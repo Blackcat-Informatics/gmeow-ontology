@@ -13484,3 +13484,255 @@ msgstr "Éviter d’interpréter la négation logique comme absence d’un tripl
 msgctxt "https://blackcatinformatics.ca/math/riemannZetaDomainMembershipLaw|https://blackcatinformatics.ca/gmeow/howToUse"
 msgid "Preserve the bound Formula root, its definingLaw link and the shared memberCondition subtree. Retain both directions of iff and the real guard with the singleton condition; keep mathematical and native admission claims separate."
 msgstr "Préserver la racine Formula explicitement quantifiée, son lien definingLaw et le sous-arbre memberCondition partagé. Conserver les deux sens de iff et la garde réelle avec la condition singleton ; garder séparées les affirmations mathématiques et d’admission native."
+
+msgctxt "https://blackcatinformatics.ca/math/besselJ|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Jₙ (Bessel function, first kind)"
+msgstr "Jₙ (fonction de Bessel, première espèce)"
+
+msgctxt "https://blackcatinformatics.ca/math/besselJ|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The integer-order family of real Bessel functions of the first kind, n ↦ (x ↦ Jₙ(x)): a math:Function from math:integers to math:besselJMemberFunctionSpace. Each selected member is a math:SpecialFunction with domain math:realNumbers and codomain math:realNumbers. The existing identity and DLMF chapter 10 link name the analytic family; its declared frame laws do not uniquely characterize analytic values or implement evaluation."
+msgstr "La famille d'ordre entier des fonctions de Bessel réelles de première espèce, n ↦ (x ↦ Jₙ(x)) : une math:Function de math:integers vers math:besselJMemberFunctionSpace. Chaque membre sélectionné est une math:SpecialFunction dont le domaine et le codomaine sont math:realNumbers. L'identité existante et le lien vers le chapitre 10 de la DLMF désignent la famille analytique ; les lois de cadrage déclarées ne caractérisent pas de manière unique ses valeurs analytiques et ne mettent pas en œuvre leur évaluation."
+
+msgctxt "https://blackcatinformatics.ca/math/besselJ|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This is a function-valued family: its input is an integer order and its output is a member function, not a set or scalar value. Function typing carries intended mathematical totality. The conditional member-frame law does not prove that selections or application values exist or are unique."
+msgstr "Il s'agit d'une famille à valeurs fonctionnelles : son entrée est un ordre entier et sa sortie une fonction membre, et non un ensemble ou une valeur scalaire. Le typage Function porte le sens mathématique visé d'une application totale. La loi conditionnelle de cadrage des membres ne prouve ni l'existence ni l'unicité des sélections ou des valeurs d'application."
+
+msgctxt "https://blackcatinformatics.ca/math/besselJ|http://www.w3.org/2004/02/skos/core#example"
+msgid "For an integer-order resource n, functionValueRel(besselJ,n,f) selects a member f; functionValueRel(f,x,y) then describes a separate application at a real argument. These two ternary relations retain both roles without fixing an arbitrary order or asserting a numerical result."
+msgstr "Pour une ressource d'ordre entier n, functionValueRel(besselJ,n,f) sélectionne un membre f ; functionValueRel(f,x,y) décrit ensuite une application distincte à un argument réel. Ces deux relations ternaires conservent les deux rôles sans fixer un ordre arbitraire ni affirmer un résultat numérique."
+
+msgctxt "https://blackcatinformatics.ca/math/besselJ|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain the integer-order first-kind family when the source has not selected one particular Jₙ member, or when a source selection must keep its order and member identity explicit."
+msgstr "À utiliser pour conserver la famille de première espèce d'ordre entier lorsque la source n'a pas sélectionné de membre Jₙ particulier, ou lorsqu'une sélection issue de la source doit garder explicites son ordre et l'identité de son membre."
+
+msgctxt "https://blackcatinformatics.ca/math/besselJ|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid using the family as an already selected unary function, replacing its integer input with an argument x, or treating a correct member frame as a proof of Bessel analytic identity or numerical evaluation."
+msgstr "Éviter d'utiliser la famille comme une fonction unaire déjà sélectionnée, de remplacer son entrée entière par un argument x ou de traiter un cadrage correct du membre comme une preuve d'identité analytique de Bessel ou d'évaluation numérique."
+
+msgctxt "https://blackcatinformatics.ca/math/besselJ|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Keep domain integers and codomain besselJMemberFunctionSpace on the family. Retain a supplied order selection through functionValueRel and frame its selected member with the existing law. Use a second functionValueRel for member application; do not invent selections or values merely to witness intended totality."
+msgstr "Conserver integers comme domaine et besselJMemberFunctionSpace comme codomaine de la famille. Conserver une sélection d'ordre fournie au moyen de functionValueRel et cadrer le membre sélectionné à l'aide de la loi existante. Utiliser une seconde relation functionValueRel pour l'application du membre ; ne pas inventer de sélections ou de valeurs pour simplement témoigner du caractère total visé."
+
+msgctxt "https://blackcatinformatics.ca/math/besselY|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Yₙ (Bessel function, second kind)"
+msgstr "Yₙ (fonction de Bessel, seconde espèce)"
+
+msgctxt "https://blackcatinformatics.ca/math/besselY|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The integer-order family of real Bessel functions of the second kind, n ↦ (x ↦ Yₙ(x)): a math:Function from math:integers to math:besselYMemberFunctionSpace. Each selected member is a math:SpecialFunction on math:besselPositiveRealArguments with codomain math:realNumbers. This explicitly selects the usual positive-real argument branch; zero and negative real arguments are excluded from that member domain. Its frame laws do not define the full analytic graph or evaluate it."
+msgstr "La famille d'ordre entier des fonctions de Bessel réelles de seconde espèce, n ↦ (x ↦ Yₙ(x)) : une math:Function de math:integers vers math:besselYMemberFunctionSpace. Chaque membre sélectionné est une math:SpecialFunction sur math:besselPositiveRealArguments, de codomaine math:realNumbers. Cette déclaration sélectionne explicitement la branche usuelle à arguments réels strictement positifs ; zéro et les arguments réels négatifs sont exclus du domaine du membre. Ses lois de cadrage ne définissent pas le graphe analytique complet et ne l'évaluent pas."
+
+msgctxt "https://blackcatinformatics.ca/math/besselY|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The family takes an integer order; a selected member takes a finite positive real argument. These are separate applications. Intended total Function meaning is restricted to those declared domains; the conditional law does not construct a member, establish output existence or extend the branch to complex arguments."
+msgstr "La famille prend un ordre entier ; un membre sélectionné prend un argument réel fini strictement positif. Ce sont deux applications distinctes. Le sens visé d'une Function totale est limité aux domaines déclarés ; la loi conditionnelle ne construit pas de membre, n'établit pas l'existence de sorties et n'étend pas la branche aux arguments complexes."
+
+msgctxt "https://blackcatinformatics.ca/math/besselY|http://www.w3.org/2004/02/skos/core#example"
+msgid "A supplied functionValueRel(besselY,n,f) selects a second-kind member framed on the positive-real interval. A supplied functionValueRel(f,x,y) with x in that interval has a real output obligation; no value at zero is supplied or guessed."
+msgstr "Une relation functionValueRel(besselY,n,f) fournie sélectionne un membre de seconde espèce cadré sur l'intervalle des réels strictement positifs. Une relation functionValueRel(f,x,y) fournie, avec x dans cet intervalle, impose que la sortie soit réelle ; aucune valeur en zéro n'est fournie ou devinée."
+
+msgctxt "https://blackcatinformatics.ca/math/besselY|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for the integer-order second-kind family under its explicit positive-real argument reading, retaining the source's selected order and member when those are supplied."
+msgstr "À utiliser pour la famille de seconde espèce d'ordre entier selon son interprétation explicite à arguments réels strictement positifs, en conservant l'ordre et le membre sélectionnés par la source lorsque ceux-ci sont fournis."
+
+msgctxt "https://blackcatinformatics.ca/math/besselY|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid declaring every Yₙ total on all real numbers, inserting a value at zero, fixing an unselected order or inferring a complex-order or complex-branch continuation from this real-valued family."
+msgstr "Éviter de déclarer chaque Yₙ totale sur tous les réels, d'insérer une valeur en zéro, de fixer un ordre non sélectionné ou de déduire de cette famille à valeurs réelles un prolongement aux ordres complexes ou à une branche complexe."
+
+msgctxt "https://blackcatinformatics.ca/math/besselY|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Keep domain integers and codomain besselYMemberFunctionSpace on the family. Preserve supplied order selections and selected member frames, with besselPositiveRealArguments as the member domain. Keep member applications separate and report absent or unsupported source values without inventing them."
+msgstr "Conserver integers comme domaine et besselYMemberFunctionSpace comme codomaine de la famille. Préserver les sélections d'ordre fournies et le cadrage des membres sélectionnés, avec besselPositiveRealArguments comme domaine du membre. Garder distinctes les applications des membres et signaler les valeurs sources absentes ou non prises en charge sans les inventer."
+
+msgctxt "https://blackcatinformatics.ca/math/besselPositiveRealArguments|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "positive real arguments for Bessel Y members"
+msgstr "arguments réels strictement positifs des membres de Bessel Y"
+
+msgctxt "https://blackcatinformatics.ca/math/besselPositiveRealArguments|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The open interval (0,+∞) used as the argument domain of the selected integer-order real Bessel Y members. Its lower endpoint is the numeric literal zero, its upper endpoint is math:PositiveInfinity, and both inclusions are math:openEndpoint. It contains finite positive real points; neither endpoint is a member."
+msgstr "L'intervalle ouvert (0,+∞) utilisé comme domaine d'argument des membres réels de Bessel Y d'ordre entier sélectionnés. Sa borne inférieure est le littéral numérique zéro, sa borne supérieure est math:PositiveInfinity et les deux marqueurs d'inclusion sont math:openEndpoint. Il contient les points réels finis strictement positifs ; aucune de ses bornes n'en est membre."
+
+msgctxt "https://blackcatinformatics.ca/math/besselPositiveRealArguments|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This Interval is a set used as a member function's domain, not the family's integer-order domain or an output range. Its four explicit endpoint fields express the selected real branch without adding a numeric-object conversion or a new interval membership evaluator."
+msgstr "Cet Interval est un ensemble utilisé comme domaine d'une fonction membre, et non le domaine d'ordres entiers de la famille ni une image de sortie. Ses quatre champs explicites de bornes expriment la branche réelle sélectionnée sans ajouter de conversion entre nombres et objets ni de nouvel évaluateur d'appartenance à un intervalle."
+
+msgctxt "https://blackcatinformatics.ca/math/besselPositiveRealArguments|http://www.w3.org/2004/02/skos/core#example"
+msgid "The declared interval has lowerEndpoint 0, upperEndpoint PositiveInfinity and two openEndpoint markers. Mathematical zero and the positive pole are excluded, so the Y-member frame does not promise a value at either boundary."
+msgstr "L'intervalle déclaré a lowerEndpoint 0, upperEndpoint PositiveInfinity et deux marqueurs openEndpoint. Le zéro mathématique et le pôle positif sont exclus ; le cadrage des membres Y ne promet donc aucune valeur à l'une ou l'autre borne."
+
+msgctxt "https://blackcatinformatics.ca/math/besselPositiveRealArguments|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use as the shared positive-real input set for the selected Y members, keeping the branch restriction explicit and distinct from integer order selection."
+msgstr "À utiliser comme ensemble d'entrées réelles strictement positives partagé par les membres Y sélectionnés, en gardant la restriction de branche explicite et distincte de la sélection d'ordre entier."
+
+msgctxt "https://blackcatinformatics.ca/math/besselPositiveRealArguments|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid closing the zero endpoint, including the infinity pole as an argument, replacing the domain by all realNumbers or treating the interval resource as one particular argument value."
+msgstr "Éviter de fermer la borne zéro, d'inclure le pôle infini comme argument, de remplacer le domaine par tout realNumbers ou de traiter la ressource d'intervalle comme une valeur d'argument particulière."
+
+msgctxt "https://blackcatinformatics.ca/math/besselPositiveRealArguments|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain all four existing Interval endpoint and inclusion fields. Reference this set from the Y member-space condition and selected member domain. Keep actual argument resources and any evidence of their membership separate from the endpoint literals."
+msgstr "Conserver les quatre champs existants de bornes et d'inclusion d'Interval. Référencer cet ensemble dans la condition de l'espace de membres Y et comme domaine du membre sélectionné. Garder les ressources d'arguments effectifs et les preuves éventuelles de leur appartenance distinctes des littéraux de bornes."
+
+msgctxt "https://blackcatinformatics.ca/math/besselJMemberFunctionSpace|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "real function space used by the Bessel J family"
+msgstr "espace de fonctions réelles utilisé par la famille de Bessel J"
+
+msgctxt "https://blackcatinformatics.ca/math/besselJMemberFunctionSpace|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The FunctionSpace of all total math:Function maps with domain math:realNumbers and codomain math:realNumbers, used as the codomain of math:besselJ. It is also a math:SetBuilderExpression whose realized member condition is backed by math:besselJMemberSpaceMembershipLaw. The space includes all correctly framed maps, not only Bessel members."
+msgstr "Le FunctionSpace de toutes les applications totales de type math:Function dont le domaine et le codomaine sont math:realNumbers, utilisé comme codomaine de math:besselJ. C'est aussi une math:SetBuilderExpression dont la condition d'appartenance réalisée est étayée par math:besselJMemberSpaceMembershipLaw. L'espace comprend toutes les applications correctement cadrées, et pas seulement les membres de Bessel."
+
+msgctxt "https://blackcatinformatics.ca/math/besselJMemberFunctionSpace|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This set is the family's codomain; the family returns a member function, not the set itself. FunctionSpace has no dedicated Function frame slots, so domain and codomain belong to each member. SpecialFunction typing is added by the separate selection law, not by this all-map membership condition."
+msgstr "Cet ensemble est le codomaine de la famille ; la famille renvoie une fonction membre, et non l'ensemble lui-même. FunctionSpace ne possède pas d'emplacements dédiés au cadrage de Function : le domaine et le codomaine appartiennent donc à chaque membre. Le typage SpecialFunction est ajouté par la loi de sélection distincte, et non par cette condition d'appartenance portant sur toutes les applications."
+
+msgctxt "https://blackcatinformatics.ca/math/besselJMemberFunctionSpace|http://www.w3.org/2004/02/skos/core#example"
+msgid "A function f typed Function with domain realNumbers and codomain realNumbers meets the shared condition φ(f). The membership law relates that condition to hasElement(besselJMemberFunctionSpace,f), without claiming f is analytically a Bessel function."
+msgstr "Une fonction f de type Function, de domaine realNumbers et de codomaine realNumbers, satisfait la condition partagée φ(f). La loi d'appartenance relie cette condition à hasElement(besselJMemberFunctionSpace,f), sans affirmer que f est analytiquement une fonction de Bessel."
+
+msgctxt "https://blackcatinformatics.ca/math/besselJMemberFunctionSpace|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain the fixed real-to-real function space that is the target set of the integer-order J family."
+msgstr "À utiliser pour conserver l'espace fixe des fonctions des réels vers les réels qui constitue l'ensemble d'arrivée de la famille J d'ordre entier."
+
+msgctxt "https://blackcatinformatics.ca/math/besselJMemberFunctionSpace|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid typing the space itself as Function, adding Function-only frame links to it or restricting its members to SpecialFunction merely because the Bessel family selects such members."
+msgstr "Éviter de typer l'espace lui-même comme Function, de lui ajouter des liens de cadrage réservés aux Function ou de limiter ses membres aux SpecialFunction au seul motif que la famille de Bessel sélectionne de tels membres."
+
+msgctxt "https://blackcatinformatics.ca/math/besselJMemberFunctionSpace|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Keep FunctionSpace and SetBuilderExpression typing, the shared memberCondition Formula and its separately bound membership law. Frame each selected map through its own domain and codomain; do not enumerate illustrative members as if they exhaust the space."
+msgstr "Conserver les types FunctionSpace et SetBuilderExpression, la Formula partagée de memberCondition et sa loi d'appartenance liant séparément les variables. Cadrer chaque application sélectionnée par son propre domaine et son propre codomaine ; ne pas énumérer des membres illustratifs comme s'ils épuisaient l'espace."
+
+msgctxt "https://blackcatinformatics.ca/math/besselYMemberFunctionSpace|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "positive-real function space used by the Bessel Y family"
+msgstr "espace de fonctions à arguments réels strictement positifs utilisé par la famille de Bessel Y"
+
+msgctxt "https://blackcatinformatics.ca/math/besselYMemberFunctionSpace|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The FunctionSpace of all total math:Function maps from math:besselPositiveRealArguments to math:realNumbers, used as the codomain of math:besselY. It is also a math:SetBuilderExpression with a realized member condition backed by math:besselYMemberSpaceMembershipLaw. Membership requires the positive-real domain frame, not Bessel analytic identity."
+msgstr "Le FunctionSpace de toutes les applications totales de type math:Function de math:besselPositiveRealArguments vers math:realNumbers, utilisé comme codomaine de math:besselY. C'est aussi une math:SetBuilderExpression dont la condition d'appartenance réalisée est étayée par math:besselYMemberSpaceMembershipLaw. L'appartenance exige un domaine cadré sur les réels strictement positifs, et non une identité analytique de Bessel."
+
+msgctxt "https://blackcatinformatics.ca/math/besselYMemberFunctionSpace|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The space collects all correctly framed positive-real-to-real functions. It is distinct from both the positive-real argument set and any one selected Y member. Its member condition does not require SpecialFunction typing or construct analytic functions."
+msgstr "L'espace rassemble toutes les fonctions correctement cadrées des réels strictement positifs vers les réels. Il se distingue à la fois de l'ensemble des arguments réels strictement positifs et de tout membre Y sélectionné. Sa condition d'appartenance n'exige pas le typage SpecialFunction et ne construit pas de fonctions analytiques."
+
+msgctxt "https://blackcatinformatics.ca/math/besselYMemberFunctionSpace|http://www.w3.org/2004/02/skos/core#example"
+msgid "For a Function f with domain besselPositiveRealArguments and codomain realNumbers, the shared condition φ(f) gives membership in this space. A later supplied integer-order Y selection additionally frames f as SpecialFunction."
+msgstr "Pour une Function f de domaine besselPositiveRealArguments et de codomaine realNumbers, la condition partagée φ(f) donne l'appartenance à cet espace. Une sélection Y d'ordre entier fournie ultérieurement cadre en outre f comme SpecialFunction."
+
+msgctxt "https://blackcatinformatics.ca/math/besselYMemberFunctionSpace|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for the codomain set of the integer-order real Y family, preserving the positive-real member-input restriction."
+msgstr "À utiliser comme ensemble codomaine de la famille Y réelle d'ordre entier, en préservant la restriction des entrées des membres aux réels strictement positifs."
+
+msgctxt "https://blackcatinformatics.ca/math/besselYMemberFunctionSpace|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid replacing the space by realNumbers, confusing a returned function with a scalar output or assigning Function-only domain/codomain links to this set."
+msgstr "Éviter de remplacer l'espace par realNumbers, de confondre une fonction renvoyée avec une sortie scalaire ou d'attribuer à cet ensemble des liens de domaine et de codomaine réservés aux Function."
+
+msgctxt "https://blackcatinformatics.ca/math/besselYMemberFunctionSpace|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain its FunctionSpace/SetBuilderExpression types and shared realized condition, with a separate closed membership-iff law. Use the space as besselY's codomain and the positive-real interval as each selected member's domain; these roles are not interchangeable."
+msgstr "Conserver ses types FunctionSpace et SetBuilderExpression ainsi que sa condition réalisée partagée, avec une loi d'appartenance distincte exprimée par une formule close d'équivalence. Utiliser l'espace comme codomaine de besselY et l'intervalle des réels strictement positifs comme domaine de chaque membre sélectionné ; ces rôles ne sont pas interchangeables."
+
+msgctxt "https://blackcatinformatics.ca/math/besselJMemberSpaceMembershipLaw|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "membership law for the Bessel J function space"
+msgstr "loi d'appartenance à l'espace de fonctions de Bessel J"
+
+msgctxt "https://blackcatinformatics.ca/math/besselJMemberSpaceMembershipLaw|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The universally quantified equivalence stating that f belongs to math:besselJMemberFunctionSpace exactly when f is a math:Function with domain math:realNumbers and codomain math:realNumbers. Its right-hand condition is the same realized Formula used by the space's math:memberCondition."
+msgstr "L'équivalence universellement quantifiée qui énonce que f appartient à math:besselJMemberFunctionSpace si et seulement si f est une math:Function dont le domaine et le codomaine sont math:realNumbers. Sa condition de droite est la même Formula réalisée que celle utilisée par math:memberCondition de l'espace."
+
+msgctxt "https://blackcatinformatics.ca/math/besselJMemberSpaceMembershipLaw|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The named law binds f explicitly and characterizes the all-map space through existing typing and frame predicates. It does not equate membership with being a Bessel member, enumerate functions or assert existence and uniqueness of family selections or application outputs."
+msgstr "La loi nommée lie explicitement f et caractérise l'espace de toutes les applications au moyen des prédicats existants de typage et de cadrage. Elle n'assimile pas l'appartenance au fait d'être un membre de Bessel, n'énumère pas les fonctions et n'affirme ni l'existence ni l'unicité des sélections de la famille ou des sorties d'application."
+
+msgctxt "https://blackcatinformatics.ca/math/besselJMemberSpaceMembershipLaw|http://www.w3.org/2004/02/skos/core#example"
+msgid "The law reads ∀f: hasElement(besselJMemberFunctionSpace,f) ↔ [Function(f) ∧ domain(f,realNumbers) ∧ codomain(f,realNumbers)]. The shared f condition is bound here independently of its use in the family frame law."
+msgstr "La loi se lit ∀f: hasElement(besselJMemberFunctionSpace,f) ↔ [Function(f) ∧ domain(f,realNumbers) ∧ codomain(f,realNumbers)]. La condition partagée sur f est liée ici indépendamment de son utilisation dans la loi de cadrage de la famille."
+
+msgctxt "https://blackcatinformatics.ca/math/besselJMemberSpaceMembershipLaw|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use as the explicit logical backing for the J member-space membership condition, retaining both directions of the equivalence."
+msgstr "À utiliser comme fondement logique explicite de la condition d'appartenance à l'espace de membres J, en conservant les deux sens de l'équivalence."
+
+msgctxt "https://blackcatinformatics.ca/math/besselJMemberSpaceMembershipLaw|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid substituting a one-way implication, an unbound condition or a label-only Formula for the membership equivalence. A correct frame is not a Bessel analytic characterization."
+msgstr "Éviter de remplacer l'équivalence d'appartenance par une implication à sens unique, une condition non liée ou une Formula réduite à une étiquette. Un cadrage correct n'est pas une caractérisation analytique de Bessel."
+
+msgctxt "https://blackcatinformatics.ca/math/besselJMemberSpaceMembershipLaw|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Keep the closed forall-f root linked by definingLaw and reuse the same acyclic condition node as memberCondition. Preserve exactly two iff operands and contiguous argument indices; do not make the owner-scoped condition an unrelated standalone assertion."
+msgstr "Conserver la racine forall-f close reliée par definingLaw et réutiliser le même nœud de condition acyclique comme memberCondition. Préserver exactement deux opérandes iff et des indices d'arguments contigus ; ne pas transformer la condition limitée à son propriétaire en une assertion autonome sans rapport."
+
+msgctxt "https://blackcatinformatics.ca/math/besselYMemberSpaceMembershipLaw|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "membership law for the Bessel Y function space"
+msgstr "loi d'appartenance à l'espace de fonctions de Bessel Y"
+
+msgctxt "https://blackcatinformatics.ca/math/besselYMemberSpaceMembershipLaw|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The universally quantified equivalence stating that f belongs to math:besselYMemberFunctionSpace exactly when f is a math:Function with domain math:besselPositiveRealArguments and codomain math:realNumbers. It binds the member variable used by the space's shared realized condition."
+msgstr "L'équivalence universellement quantifiée qui énonce que f appartient à math:besselYMemberFunctionSpace si et seulement si f est une math:Function de domaine math:besselPositiveRealArguments et de codomaine math:realNumbers. Elle lie la variable membre utilisée par la condition réalisée partagée de l'espace."
+
+msgctxt "https://blackcatinformatics.ca/math/besselYMemberSpaceMembershipLaw|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The equivalence defines an all-map space with a fixed positive-real source set. SpecialFunction typing, integer-order selection and analytic behavior belong to separate claims; this membership law provides no numerical membership execution or construction guarantee."
+msgstr "L'équivalence définit un espace de toutes les applications dont l'ensemble de départ est fixé aux réels strictement positifs. Le typage SpecialFunction, la sélection d'ordre entier et le comportement analytique relèvent d'assertions distinctes ; cette loi d'appartenance ne fournit ni exécution numérique de l'appartenance ni garantie de construction."
+
+msgctxt "https://blackcatinformatics.ca/math/besselYMemberSpaceMembershipLaw|http://www.w3.org/2004/02/skos/core#example"
+msgid "The law reads ∀f: hasElement(besselYMemberFunctionSpace,f) ↔ [Function(f) ∧ domain(f,besselPositiveRealArguments) ∧ codomain(f,realNumbers)]. It does not admit a function framed on all realNumbers by silently changing that domain."
+msgstr "La loi se lit ∀f: hasElement(besselYMemberFunctionSpace,f) ↔ [Function(f) ∧ domain(f,besselPositiveRealArguments) ∧ codomain(f,realNumbers)]. Elle n'admet pas une fonction cadrée sur tout realNumbers en modifiant silencieusement ce domaine."
+
+msgctxt "https://blackcatinformatics.ca/math/besselYMemberSpaceMembershipLaw|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to back the exact positive-real-to-real member-space criterion with a closed, two-way logical statement."
+msgstr "À utiliser pour étayer le critère exact de l'espace des membres allant des réels strictement positifs vers les réels par un énoncé logique clos dans les deux sens."
+
+msgctxt "https://blackcatinformatics.ca/math/besselYMemberSpaceMembershipLaw|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid weakening the criterion to a display label, leaving f free in the law root or assuming that the equivalence proves a candidate's Bessel values."
+msgstr "Éviter d'affaiblir le critère en le réduisant à une étiquette d'affichage, de laisser f libre à la racine de la loi ou de supposer que l'équivalence prouve les valeurs de Bessel d'un candidat."
+
+msgctxt "https://blackcatinformatics.ca/math/besselYMemberSpaceMembershipLaw|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the bound forall-f membership root and its shared condition subtree, keeping the positive-real domain identity exact. The space links the condition through memberCondition and the law through definingLaw; those ownership and backing roles remain distinct."
+msgstr "Conserver la racine d'appartenance forall-f liant la variable et son sous-arbre de condition partagé, en gardant exacte l'identité du domaine réel strictement positif. L'espace relie la condition par memberCondition et la loi par definingLaw ; ces rôles de propriété et de fondement restent distincts."
+
+msgctxt "https://blackcatinformatics.ca/math/besselJFamilyMemberFrameLaw|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "conditional member-frame law for the Bessel J family"
+msgstr "loi conditionnelle de cadrage des membres de la famille de Bessel J"
+
+msgctxt "https://blackcatinformatics.ca/math/besselJFamilyMemberFrameLaw|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The conditional law for an integer-order selection functionValueRel(besselJ,n,f): the selected f is a math:SpecialFunction with the J member-space frame. For a supplied functionValueRel(f,x,y) at x in math:realNumbers, y belongs to math:realNumbers. It retains the family selection and member application as two uses of the existing ternary relation."
+msgstr "La loi conditionnelle applicable à une sélection d'ordre entier functionValueRel(besselJ,n,f) : le membre f sélectionné est une math:SpecialFunction munie du cadrage de l'espace de membres J. Pour une relation functionValueRel(f,x,y) fournie avec x dans math:realNumbers, y appartient à math:realNumbers. Elle conserve la sélection dans la famille et l'application du membre comme deux utilisations de la relation ternaire existante."
+
+msgctxt "https://blackcatinformatics.ca/math/besselJFamilyMemberFrameLaw|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The law binds n and f, then x and y in the nested application condition. Its forward implication requires a frame for supplied selections even without supplied applications, but does not state that a member or output exists or is unique. Intended total Function semantics and the primitive analytic identity remain separate from this law's exact strength."
+msgstr "La loi lie n et f, puis x et y dans la condition d'application imbriquée. Son implication directe exige un cadrage pour les sélections fournies, même sans applications fournies, mais n'énonce ni l'existence ni l'unicité d'un membre ou d'une sortie. Le sens visé d'une Function totale et l'identité analytique primitive restent distincts de la portée exacte de cette loi."
+
+msgctxt "https://blackcatinformatics.ca/math/besselJFamilyMemberFrameLaw|http://www.w3.org/2004/02/skos/core#example"
+msgid "Given integer membership for n and a supplied besselJ(n)=f selection, the consequent requires SpecialFunction(f) and φ(f). If a real-input application f(x)=y is also supplied, its output has real membership. With no selection, the implication supplies no witness."
+msgstr "Étant données l'appartenance de n aux entiers et une sélection besselJ(n)=f fournie, le conséquent exige SpecialFunction(f) et φ(f). Si une application à entrée réelle f(x)=y est également fournie, sa sortie doit appartenir aux réels. En l'absence de sélection établie, l'implication ne fournit aucun témoin."
+
+msgctxt "https://blackcatinformatics.ca/math/besselJFamilyMemberFrameLaw|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain the order-dependent member frame and the real-output obligation for supplied J applications without erasing the selected function identity."
+msgstr "À utiliser pour conserver le cadrage du membre dépendant de l'ordre et l'obligation de sortie réelle pour les applications J fournies, sans effacer l'identité de la fonction sélectionnée."
+
+msgctxt "https://blackcatinformatics.ca/math/besselJFamilyMemberFrameLaw|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid calling the implication a totality proof, an existence or uniqueness theorem, a definition of Bessel analytic values or a registered numerical evaluator."
+msgstr "Éviter de présenter l'implication comme une preuve de totalité, un théorème d'existence ou d'unicité, une définition des valeurs analytiques de Bessel ou un évaluateur numérique enregistré."
+
+msgctxt "https://blackcatinformatics.ca/math/besselJFamilyMemberFrameLaw|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Preserve the integer-membership and family-selection guard, SpecialFunction and shared φ(f) consequent, and nested real-argument application guard. Keep functionValueRel argument order function/input/value and all variables bound; do not add fabricated selections or values."
+msgstr "Préserver la garde d'appartenance aux entiers et de sélection dans la famille, le conséquent SpecialFunction avec φ(f) partagé et la garde imbriquée d'application à argument réel. Conserver l'ordre fonction/entrée/valeur des arguments de functionValueRel et lier toutes les variables ; ne pas ajouter de sélections ou de valeurs fabriquées."
+
+msgctxt "https://blackcatinformatics.ca/math/besselYFamilyMemberFrameLaw|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "conditional member-frame law for the Bessel Y family"
+msgstr "loi conditionnelle de cadrage des membres de la famille de Bessel Y"
+
+msgctxt "https://blackcatinformatics.ca/math/besselYFamilyMemberFrameLaw|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The conditional law for an integer-order selection functionValueRel(besselY,n,f): the selected f is a math:SpecialFunction with the positive-real-to-real Y member-space frame. A supplied application functionValueRel(f,x,y) with x in math:besselPositiveRealArguments has y in math:realNumbers. No application at zero or outside the selected domain is certified."
+msgstr "La loi conditionnelle applicable à une sélection d'ordre entier functionValueRel(besselY,n,f) : le membre f sélectionné est une math:SpecialFunction munie du cadrage de l'espace de membres Y allant des réels strictement positifs vers les réels. Une application functionValueRel(f,x,y) fournie avec x dans math:besselPositiveRealArguments a y dans math:realNumbers. Aucune application en zéro ou hors du domaine sélectionné n'est certifiée."
+
+msgctxt "https://blackcatinformatics.ca/math/besselYFamilyMemberFrameLaw|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The selection and application guards use the same selected f with separately bound order, argument and value variables. This is a forward frame/range obligation, not a witness-producing totality law or an analytic graph definition. No continuation to arbitrary real or complex arguments follows."
+msgstr "Les gardes de sélection et d'application utilisent le même f sélectionné, avec des variables d'ordre, d'argument et de valeur liées séparément. Il s'agit d'une obligation directe de cadrage et d'appartenance de la sortie, et non d'une loi de totalité produisant des témoins ou d'une définition de graphe analytique. Aucun prolongement à des arguments réels ou complexes arbitraires n'en découle."
+
+msgctxt "https://blackcatinformatics.ca/math/besselYFamilyMemberFrameLaw|http://www.w3.org/2004/02/skos/core#example"
+msgid "An integer n and supplied besselY(n)=f selection require the positive-real member frame. A supplied f(x)=y with positive-real x adds the real-output obligation; a missing selection or an out-of-domain x does not create an application value."
+msgstr "Un entier n et une sélection besselY(n)=f fournie imposent le cadrage du membre sur les réels strictement positifs. Une application f(x)=y fournie avec x réel strictement positif ajoute l'obligation de sortie réelle ; une sélection non établie ou un x hors domaine ne crée pas de valeur d'application."
+
+msgctxt "https://blackcatinformatics.ca/math/besselYFamilyMemberFrameLaw|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use as logical backing for the selected integer-order Y member frame and the output range of supplied applications on its explicit real branch."
+msgstr "À utiliser comme fondement logique du cadrage du membre Y sélectionné d'ordre entier et de l'appartenance aux réels des sorties d'applications fournies sur sa branche réelle explicite."
+
+msgctxt "https://blackcatinformatics.ca/math/besselYFamilyMemberFrameLaw|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid interpreting a false or absent guard as a computed value, extending the domain across zero, or claiming that the frame uniquely selects the analytic Yₙ function among all correctly framed maps."
+msgstr "Éviter d'interpréter une garde fausse ou l'absence d'éléments l'établissant comme une valeur calculée, d'étendre le domaine à travers zéro ou d'affirmer que le cadrage sélectionne de manière unique la fonction analytique Yₙ parmi toutes les applications correctement cadrées."
+
+msgctxt "https://blackcatinformatics.ca/math/besselYFamilyMemberFrameLaw|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Keep the family application besselY,n,f separate from the member application f,x,y. Reuse the positive-real φ(f), bind all variables and retain the domain-membership guard on x. Preserve source evidence and unresolved values without inventing numerical witnesses."
+msgstr "Garder l'application familiale besselY,n,f distincte de l'application du membre f,x,y. Réutiliser φ(f) pour le domaine réel strictement positif, lier toutes les variables et conserver la garde d'appartenance au domaine sur x. Préserver les éléments fournis par la source et les valeurs non résolues sans inventer de témoins numériques."

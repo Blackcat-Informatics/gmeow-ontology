@@ -1922,7 +1922,7 @@ math:besselJ skos:closeMatch wd:Q219637 {|
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.9 ;
     gmeow:objectLabel "Bessel function" ;
-    gmeow:comment "math:besselJ is the Bessel function of the first kind Jₙ; wd:Q219637 (Bessel function) is the whole family. closeMatch — the GMEOW individual is the first-kind member." ;
+    gmeow:comment "math:besselJ is the integer-order family of real Bessel functions of the first kind, with members Jₙ; wd:Q219637 (Bessel function) covers the broader Bessel-function family. closeMatch preserves this narrower first-kind family identity." ;
     logic:sourceEndpoint math:besselJ ;
     logic:targetEndpoint wd:Q219637 ;
     logic:morphismClass logic:AffineCorrespondence ;

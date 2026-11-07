@@ -13484,3 +13484,255 @@ msgstr "不要将逻辑否定解释为缺少成员资格三元组，不要取消
 msgctxt "https://blackcatinformatics.ca/math/riemannZetaDomainMembershipLaw|https://blackcatinformatics.ca/gmeow/howToUse"
 msgid "Preserve the bound Formula root, its definingLaw link and the shared memberCondition subtree. Retain both directions of iff and the real guard with the singleton condition; keep mathematical and native admission claims separate."
 msgstr "保留绑定 Formula 根、其 definingLaw 链接及共用的 memberCondition 子树。保留 iff 的两个方向，并将实数守卫与单元素条件一起保留；区分数学声明与原生接纳声明。"
+
+msgctxt "https://blackcatinformatics.ca/math/besselJ|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Jₙ (Bessel function, first kind)"
+msgstr "Jₙ（第一类贝塞尔函数）"
+
+msgctxt "https://blackcatinformatics.ca/math/besselJ|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The integer-order family of real Bessel functions of the first kind, n ↦ (x ↦ Jₙ(x)): a math:Function from math:integers to math:besselJMemberFunctionSpace. Each selected member is a math:SpecialFunction with domain math:realNumbers and codomain math:realNumbers. The existing identity and DLMF chapter 10 link name the analytic family; its declared frame laws do not uniquely characterize analytic values or implement evaluation."
+msgstr "整数阶实第一类贝塞尔函数族 n ↦ (x ↦ Jₙ(x))：从 math:integers 到 math:besselJMemberFunctionSpace 的 math:Function。每个选定成员均为 math:SpecialFunction，其定义域和陪域均为 math:realNumbers。现有标识及 DLMF 第 10 章链接指称该解析函数族；其声明的框架定律既不唯一刻画解析值，也不实现求值。"
+
+msgctxt "https://blackcatinformatics.ca/math/besselJ|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This is a function-valued family: its input is an integer order and its output is a member function, not a set or scalar value. Function typing carries intended mathematical totality. The conditional member-frame law does not prove that selections or application values exist or are unique."
+msgstr "这是一个以函数为值的函数族：输入是整数阶数，输出是成员函数，而非集合或标量值。Function 类型承载其预期的数学全函数含义。条件式成员框架定律不证明选择或应用值的存在性或唯一性。"
+
+msgctxt "https://blackcatinformatics.ca/math/besselJ|http://www.w3.org/2004/02/skos/core#example"
+msgid "For an integer-order resource n, functionValueRel(besselJ,n,f) selects a member f; functionValueRel(f,x,y) then describes a separate application at a real argument. These two ternary relations retain both roles without fixing an arbitrary order or asserting a numerical result."
+msgstr "对于整数阶数资源 n，functionValueRel(besselJ,n,f) 选择成员 f；functionValueRel(f,x,y) 随后描述在实数自变量处的一次独立应用。这两个三元关系保留了两种角色，而不任意固定阶数或断言数值结果。"
+
+msgctxt "https://blackcatinformatics.ca/math/besselJ|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain the integer-order first-kind family when the source has not selected one particular Jₙ member, or when a source selection must keep its order and member identity explicit."
+msgstr "当源尚未选择某个特定的 Jₙ 成员，或源提供的选择需要显式保留阶数及成员标识时，用于保留整数阶第一类函数族。"
+
+msgctxt "https://blackcatinformatics.ca/math/besselJ|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid using the family as an already selected unary function, replacing its integer input with an argument x, or treating a correct member frame as a proof of Bessel analytic identity or numerical evaluation."
+msgstr "避免把该函数族当作已选定的一元函数，把其整数输入替换为自变量 x，或把正确的成员框架视为贝塞尔解析身份或数值求值的证明。"
+
+msgctxt "https://blackcatinformatics.ca/math/besselJ|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Keep domain integers and codomain besselJMemberFunctionSpace on the family. Retain a supplied order selection through functionValueRel and frame its selected member with the existing law. Use a second functionValueRel for member application; do not invent selections or values merely to witness intended totality."
+msgstr "保留函数族的定义域 integers 和陪域 besselJMemberFunctionSpace。通过 functionValueRel 保留已提供的阶数选择，并用现有定律规定选定成员的框架。用另一个 functionValueRel 表达成员应用；不要仅为见证预期的全函数含义而虚构选择或值。"
+
+msgctxt "https://blackcatinformatics.ca/math/besselY|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Yₙ (Bessel function, second kind)"
+msgstr "Yₙ（第二类贝塞尔函数）"
+
+msgctxt "https://blackcatinformatics.ca/math/besselY|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The integer-order family of real Bessel functions of the second kind, n ↦ (x ↦ Yₙ(x)): a math:Function from math:integers to math:besselYMemberFunctionSpace. Each selected member is a math:SpecialFunction on math:besselPositiveRealArguments with codomain math:realNumbers. This explicitly selects the usual positive-real argument branch; zero and negative real arguments are excluded from that member domain. Its frame laws do not define the full analytic graph or evaluate it."
+msgstr "整数阶实第二类贝塞尔函数族 n ↦ (x ↦ Yₙ(x))：从 math:integers 到 math:besselYMemberFunctionSpace 的 math:Function。每个选定成员均为定义在 math:besselPositiveRealArguments 上、陪域为 math:realNumbers 的 math:SpecialFunction。这显式选择通常的正实数自变量分支；零和负实数自变量均被排除在该成员的定义域之外。其框架定律不定义完整的解析函数图，也不对其求值。"
+
+msgctxt "https://blackcatinformatics.ca/math/besselY|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The family takes an integer order; a selected member takes a finite positive real argument. These are separate applications. Intended total Function meaning is restricted to those declared domains; the conditional law does not construct a member, establish output existence or extend the branch to complex arguments."
+msgstr "函数族接受整数阶数；选定成员接受有限正实数自变量。这是两次独立的应用。Function 的预期全函数含义限于这些已声明的定义域；条件定律不构造成员、不确立输出的存在性，也不将该分支扩展到复数自变量。"
+
+msgctxt "https://blackcatinformatics.ca/math/besselY|http://www.w3.org/2004/02/skos/core#example"
+msgid "A supplied functionValueRel(besselY,n,f) selects a second-kind member framed on the positive-real interval. A supplied functionValueRel(f,x,y) with x in that interval has a real output obligation; no value at zero is supplied or guessed."
+msgstr "已提供的 functionValueRel(besselY,n,f) 选择一个框架定义在正实数区间上的第二类成员。已提供的 functionValueRel(f,x,y) 若满足 x 属于该区间，则要求输出为实数；不提供或猜测零处的值。"
+
+msgctxt "https://blackcatinformatics.ca/math/besselY|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for the integer-order second-kind family under its explicit positive-real argument reading, retaining the source's selected order and member when those are supplied."
+msgstr "用于按显式的正实数自变量解释表达整数阶第二类函数族；源提供选定阶数和成员时，保留这些选择。"
+
+msgctxt "https://blackcatinformatics.ca/math/besselY|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid declaring every Yₙ total on all real numbers, inserting a value at zero, fixing an unselected order or inferring a complex-order or complex-branch continuation from this real-valued family."
+msgstr "避免声明每个 Yₙ 都在全体实数上为全函数，插入零处的值，固定尚未选定的阶数，或从该实值函数族推断复数阶或复分支延拓。"
+
+msgctxt "https://blackcatinformatics.ca/math/besselY|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Keep domain integers and codomain besselYMemberFunctionSpace on the family. Preserve supplied order selections and selected member frames, with besselPositiveRealArguments as the member domain. Keep member applications separate and report absent or unsupported source values without inventing them."
+msgstr "保留函数族的定义域 integers 和陪域 besselYMemberFunctionSpace。保留已提供的阶数选择及选定成员框架，并将 besselPositiveRealArguments 保留为成员定义域。分别表达成员应用，并报告缺失或不受支持的源值，不得虚构这些值。"
+
+msgctxt "https://blackcatinformatics.ca/math/besselPositiveRealArguments|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "positive real arguments for Bessel Y members"
+msgstr "贝塞尔 Y 成员的正实数自变量"
+
+msgctxt "https://blackcatinformatics.ca/math/besselPositiveRealArguments|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The open interval (0,+∞) used as the argument domain of the selected integer-order real Bessel Y members. Its lower endpoint is the numeric literal zero, its upper endpoint is math:PositiveInfinity, and both inclusions are math:openEndpoint. It contains finite positive real points; neither endpoint is a member."
+msgstr "用作选定整数阶实贝塞尔 Y 成员自变量定义域的开区间 (0,+∞)。其下端点为数值字面量零，上端点为 math:PositiveInfinity，两个端点包含方式均为 math:openEndpoint。它包含有限正实数点；两个端点均不属于该区间。"
+
+msgctxt "https://blackcatinformatics.ca/math/besselPositiveRealArguments|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This Interval is a set used as a member function's domain, not the family's integer-order domain or an output range. Its four explicit endpoint fields express the selected real branch without adding a numeric-object conversion or a new interval membership evaluator."
+msgstr "该 Interval 是用作成员函数定义域的集合，而不是函数族的整数阶定义域或输出范围。四个显式的端点字段表达选定的实分支，不新增数值与对象之间的转换，也不新增区间成员关系求值器。"
+
+msgctxt "https://blackcatinformatics.ca/math/besselPositiveRealArguments|http://www.w3.org/2004/02/skos/core#example"
+msgid "The declared interval has lowerEndpoint 0, upperEndpoint PositiveInfinity and two openEndpoint markers. Mathematical zero and the positive pole are excluded, so the Y-member frame does not promise a value at either boundary."
+msgstr "声明的区间具有 lowerEndpoint 0、upperEndpoint PositiveInfinity 和两个 openEndpoint 标记。数学上的零和正无穷端点均被排除，因此 Y 成员框架不承诺任一边界处的值。"
+
+msgctxt "https://blackcatinformatics.ca/math/besselPositiveRealArguments|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use as the shared positive-real input set for the selected Y members, keeping the branch restriction explicit and distinct from integer order selection."
+msgstr "用作选定 Y 成员共享的正实数输入集合，使分支限制保持显式，并与整数阶数选择相区分。"
+
+msgctxt "https://blackcatinformatics.ca/math/besselPositiveRealArguments|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid closing the zero endpoint, including the infinity pole as an argument, replacing the domain by all realNumbers or treating the interval resource as one particular argument value."
+msgstr "避免将零端点改为闭合，把无穷端点作为自变量纳入，将定义域替换为全体 realNumbers，或把该区间资源当作某个特定的自变量值。"
+
+msgctxt "https://blackcatinformatics.ca/math/besselPositiveRealArguments|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain all four existing Interval endpoint and inclusion fields. Reference this set from the Y member-space condition and selected member domain. Keep actual argument resources and any evidence of their membership separate from the endpoint literals."
+msgstr "保留 Interval 现有的全部四个端点及包含方式字段。在 Y 成员空间条件和选定成员的定义域中引用此集合。将实际自变量资源及其成员关系证据与端点字面量分别保留。"
+
+msgctxt "https://blackcatinformatics.ca/math/besselJMemberFunctionSpace|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "real function space used by the Bessel J family"
+msgstr "贝塞尔 J 函数族所用的实函数空间"
+
+msgctxt "https://blackcatinformatics.ca/math/besselJMemberFunctionSpace|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The FunctionSpace of all total math:Function maps with domain math:realNumbers and codomain math:realNumbers, used as the codomain of math:besselJ. It is also a math:SetBuilderExpression whose realized member condition is backed by math:besselJMemberSpaceMembershipLaw. The space includes all correctly framed maps, not only Bessel members."
+msgstr "由定义域和陪域均为 math:realNumbers、且在其定义域上处处有定义的所有 math:Function 映射组成的 FunctionSpace，用作 math:besselJ 的陪域。它同时是一个 math:SetBuilderExpression，其已实现的成员条件由 math:besselJMemberSpaceMembershipLaw 支撑。该空间包含所有框架正确的映射，而不限于贝塞尔成员。"
+
+msgctxt "https://blackcatinformatics.ca/math/besselJMemberFunctionSpace|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This set is the family's codomain; the family returns a member function, not the set itself. FunctionSpace has no dedicated Function frame slots, so domain and codomain belong to each member. SpecialFunction typing is added by the separate selection law, not by this all-map membership condition."
+msgstr "此集合是函数族的陪域；函数族返回成员函数，而非集合本身。FunctionSpace 没有专用的 Function 框架槽位，因此定义域和陪域属于各成员。SpecialFunction 类型由独立的选择定律添加，而非由此覆盖全部映射的成员条件添加。"
+
+msgctxt "https://blackcatinformatics.ca/math/besselJMemberFunctionSpace|http://www.w3.org/2004/02/skos/core#example"
+msgid "A function f typed Function with domain realNumbers and codomain realNumbers meets the shared condition φ(f). The membership law relates that condition to hasElement(besselJMemberFunctionSpace,f), without claiming f is analytically a Bessel function."
+msgstr "类型为 Function、定义域为 realNumbers、陪域为 realNumbers 的函数 f 满足共享条件 φ(f)。成员关系定律将此条件与 hasElement(besselJMemberFunctionSpace,f) 联系起来，而不声称 f 在解析意义上是贝塞尔函数。"
+
+msgctxt "https://blackcatinformatics.ca/math/besselJMemberFunctionSpace|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain the fixed real-to-real function space that is the target set of the integer-order J family."
+msgstr "用于保留固定的实数到实数函数空间，该空间是整数阶 J 函数族的目标集合。"
+
+msgctxt "https://blackcatinformatics.ca/math/besselJMemberFunctionSpace|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid typing the space itself as Function, adding Function-only frame links to it or restricting its members to SpecialFunction merely because the Bessel family selects such members."
+msgstr "避免将空间本身标为 Function 类型，向其添加仅适用于 Function 的框架链接，或仅因贝塞尔函数族选择 SpecialFunction 成员就将该空间的成员限制为 SpecialFunction。"
+
+msgctxt "https://blackcatinformatics.ca/math/besselJMemberFunctionSpace|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Keep FunctionSpace and SetBuilderExpression typing, the shared memberCondition Formula and its separately bound membership law. Frame each selected map through its own domain and codomain; do not enumerate illustrative members as if they exhaust the space."
+msgstr "保留 FunctionSpace 和 SetBuilderExpression 类型、共享的 memberCondition Formula，以及单独绑定变量的成员关系定律。通过各自的定义域和陪域规定每个选定映射的框架；不要把说明性成员的枚举当作该空间的穷尽列举。"
+
+msgctxt "https://blackcatinformatics.ca/math/besselYMemberFunctionSpace|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "positive-real function space used by the Bessel Y family"
+msgstr "贝塞尔 Y 函数族所用的正实数自变量函数空间"
+
+msgctxt "https://blackcatinformatics.ca/math/besselYMemberFunctionSpace|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The FunctionSpace of all total math:Function maps from math:besselPositiveRealArguments to math:realNumbers, used as the codomain of math:besselY. It is also a math:SetBuilderExpression with a realized member condition backed by math:besselYMemberSpaceMembershipLaw. Membership requires the positive-real domain frame, not Bessel analytic identity."
+msgstr "由从 math:besselPositiveRealArguments 到 math:realNumbers、且在其定义域上处处有定义的所有 math:Function 映射组成的 FunctionSpace，用作 math:besselY 的陪域。它同时是一个 math:SetBuilderExpression，其已实现的成员条件由 math:besselYMemberSpaceMembershipLaw 支撑。成员资格要求正实数定义域框架，而非贝塞尔解析身份。"
+
+msgctxt "https://blackcatinformatics.ca/math/besselYMemberFunctionSpace|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The space collects all correctly framed positive-real-to-real functions. It is distinct from both the positive-real argument set and any one selected Y member. Its member condition does not require SpecialFunction typing or construct analytic functions."
+msgstr "该空间汇集所有框架正确的正实数到实数函数。它既不同于正实数自变量集合，也不同于任一选定的 Y 成员。其成员条件不要求 SpecialFunction 类型，也不构造解析函数。"
+
+msgctxt "https://blackcatinformatics.ca/math/besselYMemberFunctionSpace|http://www.w3.org/2004/02/skos/core#example"
+msgid "For a Function f with domain besselPositiveRealArguments and codomain realNumbers, the shared condition φ(f) gives membership in this space. A later supplied integer-order Y selection additionally frames f as SpecialFunction."
+msgstr "对于定义域为 besselPositiveRealArguments、陪域为 realNumbers 的 Function f，共享条件 φ(f) 给出其在该空间中的成员资格。随后提供的整数阶 Y 选择还会规定 f 为 SpecialFunction。"
+
+msgctxt "https://blackcatinformatics.ca/math/besselYMemberFunctionSpace|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for the codomain set of the integer-order real Y family, preserving the positive-real member-input restriction."
+msgstr "用作整数阶实 Y 函数族的陪域集合，并保留成员输入必须为正实数的限制。"
+
+msgctxt "https://blackcatinformatics.ca/math/besselYMemberFunctionSpace|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid replacing the space by realNumbers, confusing a returned function with a scalar output or assigning Function-only domain/codomain links to this set."
+msgstr "避免用 realNumbers 替换该空间，把返回的函数与标量输出混淆，或将仅适用于 Function 的定义域和陪域链接赋给此集合。"
+
+msgctxt "https://blackcatinformatics.ca/math/besselYMemberFunctionSpace|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain its FunctionSpace/SetBuilderExpression types and shared realized condition, with a separate closed membership-iff law. Use the space as besselY's codomain and the positive-real interval as each selected member's domain; these roles are not interchangeable."
+msgstr "保留其 FunctionSpace 和 SetBuilderExpression 类型及共享的已实现条件，并以独立、无自由变量的成员当且仅当定律支撑。将此空间用作 besselY 的陪域，将正实数区间用作每个选定成员的定义域；这些角色不可互换。"
+
+msgctxt "https://blackcatinformatics.ca/math/besselJMemberSpaceMembershipLaw|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "membership law for the Bessel J function space"
+msgstr "贝塞尔 J 函数空间的成员关系定律"
+
+msgctxt "https://blackcatinformatics.ca/math/besselJMemberSpaceMembershipLaw|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The universally quantified equivalence stating that f belongs to math:besselJMemberFunctionSpace exactly when f is a math:Function with domain math:realNumbers and codomain math:realNumbers. Its right-hand condition is the same realized Formula used by the space's math:memberCondition."
+msgstr "全称量化的等价式：f 属于 math:besselJMemberFunctionSpace，当且仅当 f 为定义域和陪域均是 math:realNumbers 的 math:Function。其右侧条件与该空间的 math:memberCondition 使用同一个已实现的 Formula。"
+
+msgctxt "https://blackcatinformatics.ca/math/besselJMemberSpaceMembershipLaw|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The named law binds f explicitly and characterizes the all-map space through existing typing and frame predicates. It does not equate membership with being a Bessel member, enumerate functions or assert existence and uniqueness of family selections or application outputs."
+msgstr "该命名定律显式绑定 f，并通过现有的类型和框架谓词刻画全部映射组成的空间。它不将成员资格等同于成为贝塞尔成员，不枚举函数，也不声明函数族选择或应用输出的存在性和唯一性。"
+
+msgctxt "https://blackcatinformatics.ca/math/besselJMemberSpaceMembershipLaw|http://www.w3.org/2004/02/skos/core#example"
+msgid "The law reads ∀f: hasElement(besselJMemberFunctionSpace,f) ↔ [Function(f) ∧ domain(f,realNumbers) ∧ codomain(f,realNumbers)]. The shared f condition is bound here independently of its use in the family frame law."
+msgstr "该定律读作 ∀f: hasElement(besselJMemberFunctionSpace,f) ↔ [Function(f) ∧ domain(f,realNumbers) ∧ codomain(f,realNumbers)]。共享的 f 条件在此独立绑定，不依赖它在函数族框架定律中的使用。"
+
+msgctxt "https://blackcatinformatics.ca/math/besselJMemberSpaceMembershipLaw|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use as the explicit logical backing for the J member-space membership condition, retaining both directions of the equivalence."
+msgstr "用作 J 成员空间成员条件的显式逻辑支撑，并保留等价式的两个方向。"
+
+msgctxt "https://blackcatinformatics.ca/math/besselJMemberSpaceMembershipLaw|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid substituting a one-way implication, an unbound condition or a label-only Formula for the membership equivalence. A correct frame is not a Bessel analytic characterization."
+msgstr "避免用单向蕴涵、未绑定的条件或仅有标签的 Formula 替代成员关系等价式。正确的框架并非贝塞尔解析刻画。"
+
+msgctxt "https://blackcatinformatics.ca/math/besselJMemberSpaceMembershipLaw|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Keep the closed forall-f root linked by definingLaw and reuse the same acyclic condition node as memberCondition. Preserve exactly two iff operands and contiguous argument indices; do not make the owner-scoped condition an unrelated standalone assertion."
+msgstr "保留由 definingLaw 链接、无自由变量的 forall-f 根，并将同一个无环条件节点复用为 memberCondition。精确保留两个 iff 操作数及连续的参数索引；不要把限定于所属资源的条件变为无关的独立断言。"
+
+msgctxt "https://blackcatinformatics.ca/math/besselYMemberSpaceMembershipLaw|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "membership law for the Bessel Y function space"
+msgstr "贝塞尔 Y 函数空间的成员关系定律"
+
+msgctxt "https://blackcatinformatics.ca/math/besselYMemberSpaceMembershipLaw|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The universally quantified equivalence stating that f belongs to math:besselYMemberFunctionSpace exactly when f is a math:Function with domain math:besselPositiveRealArguments and codomain math:realNumbers. It binds the member variable used by the space's shared realized condition."
+msgstr "全称量化的等价式：f 属于 math:besselYMemberFunctionSpace，当且仅当 f 为定义域是 math:besselPositiveRealArguments、陪域是 math:realNumbers 的 math:Function。它绑定该空间共享的已实现条件所用的成员变量。"
+
+msgctxt "https://blackcatinformatics.ca/math/besselYMemberSpaceMembershipLaw|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The equivalence defines an all-map space with a fixed positive-real source set. SpecialFunction typing, integer-order selection and analytic behavior belong to separate claims; this membership law provides no numerical membership execution or construction guarantee."
+msgstr "该等价式定义由固定正实数源集合上的全部映射组成的空间。SpecialFunction 类型、整数阶选择和解析行为属于独立的声明；本成员关系定律既不提供数值层面的成员关系执行，也不保证构造。"
+
+msgctxt "https://blackcatinformatics.ca/math/besselYMemberSpaceMembershipLaw|http://www.w3.org/2004/02/skos/core#example"
+msgid "The law reads ∀f: hasElement(besselYMemberFunctionSpace,f) ↔ [Function(f) ∧ domain(f,besselPositiveRealArguments) ∧ codomain(f,realNumbers)]. It does not admit a function framed on all realNumbers by silently changing that domain."
+msgstr "该定律读作 ∀f: hasElement(besselYMemberFunctionSpace,f) ↔ [Function(f) ∧ domain(f,besselPositiveRealArguments) ∧ codomain(f,realNumbers)]。它不会通过静默更改定义域来接纳框架定义在全体 realNumbers 上的函数。"
+
+msgctxt "https://blackcatinformatics.ca/math/besselYMemberSpaceMembershipLaw|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to back the exact positive-real-to-real member-space criterion with a closed, two-way logical statement."
+msgstr "用于以无自由变量的双向逻辑陈述支撑正实数到实数成员空间的精确判据。"
+
+msgctxt "https://blackcatinformatics.ca/math/besselYMemberSpaceMembershipLaw|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid weakening the criterion to a display label, leaving f free in the law root or assuming that the equivalence proves a candidate's Bessel values."
+msgstr "避免将判据弱化为显示标签，在定律根处让 f 保持自由，或假定该等价式证明了候选函数的贝塞尔值。"
+
+msgctxt "https://blackcatinformatics.ca/math/besselYMemberSpaceMembershipLaw|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the bound forall-f membership root and its shared condition subtree, keeping the positive-real domain identity exact. The space links the condition through memberCondition and the law through definingLaw; those ownership and backing roles remain distinct."
+msgstr "保留绑定变量的 forall-f 成员关系根及其共享条件子树，并保持正实数定义域标识精确不变。空间通过 memberCondition 链接条件，通过 definingLaw 链接定律；这两种归属和支撑角色仍须区分。"
+
+msgctxt "https://blackcatinformatics.ca/math/besselJFamilyMemberFrameLaw|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "conditional member-frame law for the Bessel J family"
+msgstr "贝塞尔 J 函数族的条件式成员框架定律"
+
+msgctxt "https://blackcatinformatics.ca/math/besselJFamilyMemberFrameLaw|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The conditional law for an integer-order selection functionValueRel(besselJ,n,f): the selected f is a math:SpecialFunction with the J member-space frame. For a supplied functionValueRel(f,x,y) at x in math:realNumbers, y belongs to math:realNumbers. It retains the family selection and member application as two uses of the existing ternary relation."
+msgstr "整数阶选择 functionValueRel(besselJ,n,f) 的条件定律：选定的 f 是具有 J 成员空间框架的 math:SpecialFunction。对于已提供且 x 属于 math:realNumbers 的 functionValueRel(f,x,y)，y 属于 math:realNumbers。该定律保留函数族选择和成员应用，分别作为现有三元关系的两次使用。"
+
+msgctxt "https://blackcatinformatics.ca/math/besselJFamilyMemberFrameLaw|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The law binds n and f, then x and y in the nested application condition. Its forward implication requires a frame for supplied selections even without supplied applications, but does not state that a member or output exists or is unique. Intended total Function semantics and the primitive analytic identity remain separate from this law's exact strength."
+msgstr "该定律先绑定 n 和 f，再在嵌套的应用条件中绑定 x 和 y。其正向蕴涵对已提供的选择要求成员框架，即使尚未提供应用事实也如此，但不声明成员或输出的存在性和唯一性。Function 的预期全函数语义和原始解析身份均与此定律的确切强度相区分。"
+
+msgctxt "https://blackcatinformatics.ca/math/besselJFamilyMemberFrameLaw|http://www.w3.org/2004/02/skos/core#example"
+msgid "Given integer membership for n and a supplied besselJ(n)=f selection, the consequent requires SpecialFunction(f) and φ(f). If a real-input application f(x)=y is also supplied, its output has real membership. With no selection, the implication supplies no witness."
+msgstr "给定 n 的整数成员资格及已提供的 besselJ(n)=f 选择，后件要求 SpecialFunction(f) 和 φ(f)。若还提供了实数输入应用 f(x)=y，则其输出须具有实数成员资格。未确立选择时，该蕴涵不提供见证。"
+
+msgctxt "https://blackcatinformatics.ca/math/besselJFamilyMemberFrameLaw|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain the order-dependent member frame and the real-output obligation for supplied J applications without erasing the selected function identity."
+msgstr "用于保留依赖阶数的成员框架，以及已提供的 J 应用所承担的实数输出要求，而不抹去选定函数的标识。"
+
+msgctxt "https://blackcatinformatics.ca/math/besselJFamilyMemberFrameLaw|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid calling the implication a totality proof, an existence or uniqueness theorem, a definition of Bessel analytic values or a registered numerical evaluator."
+msgstr "避免把该蕴涵称为全函数性质的证明、存在性或唯一性定理、贝塞尔解析值定义或已注册的数值求值器。"
+
+msgctxt "https://blackcatinformatics.ca/math/besselJFamilyMemberFrameLaw|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Preserve the integer-membership and family-selection guard, SpecialFunction and shared φ(f) consequent, and nested real-argument application guard. Keep functionValueRel argument order function/input/value and all variables bound; do not add fabricated selections or values."
+msgstr "保留整数成员资格与函数族选择组成的守卫条件、包含 SpecialFunction 和共享 φ(f) 的后件，以及嵌套的实数自变量应用守卫条件。保持 functionValueRel 参数的函数/输入/值顺序，并绑定全部变量；不要添加虚构的选择或值。"
+
+msgctxt "https://blackcatinformatics.ca/math/besselYFamilyMemberFrameLaw|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "conditional member-frame law for the Bessel Y family"
+msgstr "贝塞尔 Y 函数族的条件式成员框架定律"
+
+msgctxt "https://blackcatinformatics.ca/math/besselYFamilyMemberFrameLaw|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The conditional law for an integer-order selection functionValueRel(besselY,n,f): the selected f is a math:SpecialFunction with the positive-real-to-real Y member-space frame. A supplied application functionValueRel(f,x,y) with x in math:besselPositiveRealArguments has y in math:realNumbers. No application at zero or outside the selected domain is certified."
+msgstr "整数阶选择 functionValueRel(besselY,n,f) 的条件定律：选定的 f 是具有正实数到实数 Y 成员空间框架的 math:SpecialFunction。已提供的应用 functionValueRel(f,x,y) 若满足 x 属于 math:besselPositiveRealArguments，则 y 属于 math:realNumbers。该定律不认证零处或选定定义域以外的任何应用。"
+
+msgctxt "https://blackcatinformatics.ca/math/besselYFamilyMemberFrameLaw|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The selection and application guards use the same selected f with separately bound order, argument and value variables. This is a forward frame/range obligation, not a witness-producing totality law or an analytic graph definition. No continuation to arbitrary real or complex arguments follows."
+msgstr "选择与应用守卫条件使用同一个选定的 f，并分别绑定阶数、自变量和值变量。这是正向的框架和输出归属要求，而不是产生见证的全函数定律或解析函数图定义。它不推出向任意实数或复数自变量的延拓。"
+
+msgctxt "https://blackcatinformatics.ca/math/besselYFamilyMemberFrameLaw|http://www.w3.org/2004/02/skos/core#example"
+msgid "An integer n and supplied besselY(n)=f selection require the positive-real member frame. A supplied f(x)=y with positive-real x adds the real-output obligation; a missing selection or an out-of-domain x does not create an application value."
+msgstr "整数 n 和已提供的 besselY(n)=f 选择要求正实数成员框架。已提供的 f(x)=y 若具有正实数 x，则增加实数输出要求；未确立的选择或定义域外的 x 不会创建应用值。"
+
+msgctxt "https://blackcatinformatics.ca/math/besselYFamilyMemberFrameLaw|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use as logical backing for the selected integer-order Y member frame and the output range of supplied applications on its explicit real branch."
+msgstr "用作选定整数阶 Y 成员框架的逻辑支撑，并约束在其显式实分支上已提供应用的输出范围。"
+
+msgctxt "https://blackcatinformatics.ca/math/besselYFamilyMemberFrameLaw|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid interpreting a false or absent guard as a computed value, extending the domain across zero, or claiming that the frame uniquely selects the analytic Yₙ function among all correctly framed maps."
+msgstr "避免把不成立的守卫条件或缺少确立守卫条件的证据解释为已计算的值，跨越零扩展定义域，或声称该框架能在所有框架正确的映射中唯一选出解析函数 Yₙ。"
+
+msgctxt "https://blackcatinformatics.ca/math/besselYFamilyMemberFrameLaw|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Keep the family application besselY,n,f separate from the member application f,x,y. Reuse the positive-real φ(f), bind all variables and retain the domain-membership guard on x. Preserve source evidence and unresolved values without inventing numerical witnesses."
+msgstr "将函数族应用 besselY,n,f 与成员应用 f,x,y 分开。复用正实数 φ(f)，绑定所有变量，并保留 x 的定义域成员资格守卫条件。保留源证据和未解析的值，不得虚构数值见证。"
