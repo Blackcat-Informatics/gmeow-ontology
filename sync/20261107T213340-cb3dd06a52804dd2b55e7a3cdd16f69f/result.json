@@ -1,0 +1,33 @@
+{
+  "schema": 1,
+  "worktree": "/home/paudley/Active/gmeow-ontology/.worktrees/2603-qualify-gmeow-against-the-pre-v4",
+  "branch": "paudley/2603-qualify-gmeow-against-the-pre-v4",
+  "base_ref": "bcd561365d9dca531f95751d74d36e6cbba15765",
+  "head": "02d1915153be23e326478c1a901833a3aba589a6",
+  "attempt": "/home/paudley/Active/gmeow-ontology/.worktrees/2603-qualify-gmeow-against-the-pre-v4/.stage/owner-directed-merge-evidence/sync/20261107T213340-cb3dd06a52804dd2b55e7a3cdd16f69f",
+  "conflicts": [
+    "Cargo.lock",
+    "Cargo.toml",
+    "crates/pipeline/src/stages/mappings.rs",
+    "crates/pipeline/src/stages/reason.rs",
+    "crates/validate/src/codes.rs",
+    "crates/validate/src/rule_catalog.rs",
+    "crates/validate/src/slice_ownership.rs",
+    "fuzz/Cargo.lock",
+    "fuzz/Cargo.toml",
+    "validations/common-logic-fol/clif2tptp/Cargo.lock"
+  ],
+  "status": "completed",
+  "base": "bcd561365d9dca531f95751d74d36e6cbba15765",
+  "merge_bases": [
+    "22f7894c7c2869d1410f3021d5582edaa76d2427"
+  ],
+  "merge_index": "a5ecfd80505e93e31e6c6dac55697a326a1533838cffdef546966f74deb32377",
+  "reused_paths": [],
+  "rerere_output": "Recorded preimage for 'Cargo.lock'\nRecorded preimage for 'Cargo.toml'\nRecorded preimage for 'crates/pipeline/src/stages/mappings.rs'\nRecorded preimage for 'crates/pipeline/src/stages/reason.rs'\nRecorded preimage for 'crates/validate/src/codes.rs'\nRecorded preimage for 'crates/validate/src/rule_catalog.rs'\nRecorded preimage for 'crates/validate/src/slice_ownership.rs'\nRecorded preimage for 'fuzz/Cargo.lock'\nRecorded preimage for 'fuzz/Cargo.toml'\nRecorded preimage for 'validations/common-logic-fol/clif2tptp/Cargo.lock'\n",
+  "candidate_tree": "8b8b65a3b056209e49ac97bbace523414d04ca84",
+  "candidate_patch": "candidate-18f912b11d5f42818014ff78c168c66b.patch",
+  "validation_records": [],
+  "commit": "ef9155b5fb622c00722415830e9371c1682e4e42",
+  "tree": "8b8b65a3b056209e49ac97bbace523414d04ca84"
+}

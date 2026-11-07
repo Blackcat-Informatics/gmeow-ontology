@@ -1,0 +1,62 @@
+[
+  {
+    "path": "Cargo.lock",
+    "kind": "file",
+    "executable": false,
+    "content": "accepted-18f912b11d5f42818014ff78c168c66b/0.bin"
+  },
+  {
+    "path": "Cargo.toml",
+    "kind": "file",
+    "executable": false,
+    "content": "accepted-18f912b11d5f42818014ff78c168c66b/1.bin"
+  },
+  {
+    "path": "crates/pipeline/src/stages/mappings.rs",
+    "kind": "file",
+    "executable": false,
+    "content": "accepted-18f912b11d5f42818014ff78c168c66b/2.bin"
+  },
+  {
+    "path": "crates/pipeline/src/stages/reason.rs",
+    "kind": "file",
+    "executable": false,
+    "content": "accepted-18f912b11d5f42818014ff78c168c66b/3.bin"
+  },
+  {
+    "path": "crates/validate/src/codes.rs",
+    "kind": "file",
+    "executable": false,
+    "content": "accepted-18f912b11d5f42818014ff78c168c66b/4.bin"
+  },
+  {
+    "path": "crates/validate/src/rule_catalog.rs",
+    "kind": "file",
+    "executable": false,
+    "content": "accepted-18f912b11d5f42818014ff78c168c66b/5.bin"
+  },
+  {
+    "path": "crates/validate/src/slice_ownership.rs",
+    "kind": "file",
+    "executable": false,
+    "content": "accepted-18f912b11d5f42818014ff78c168c66b/6.bin"
+  },
+  {
+    "path": "fuzz/Cargo.lock",
+    "kind": "file",
+    "executable": false,
+    "content": "accepted-18f912b11d5f42818014ff78c168c66b/7.bin"
+  },
+  {
+    "path": "fuzz/Cargo.toml",
+    "kind": "file",
+    "executable": false,
+    "content": "accepted-18f912b11d5f42818014ff78c168c66b/8.bin"
+  },
+  {
+    "path": "validations/common-logic-fol/clif2tptp/Cargo.lock",
+    "kind": "file",
+    "executable": false,
+    "content": "accepted-18f912b11d5f42818014ff78c168c66b/9.bin"
+  }
+]

@@ -1,0 +1,63 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: AGPL-3.0-only
+
+# cargo-fuzz harness for GMEOW logic, query, and Common Logic frontends. Deep,
+# coverage-guided fuzzing enforces the "reject malformed, never panic" contract
+# across the same public parser boundaries used by production.
+
+[package]
+name = "gmeow-fuzz"
+version = "0.0.0"
+edition = "2024"
+license = "AGPL-3.0-only"
+publish = false
+
+[package.metadata]
+cargo-fuzz = true
+
+# A standalone workspace: cargo-fuzz carries its own nightly + sanitizer profile
+# and must NOT join the parent workspace (whose explicit `members` list excludes
+# this directory).
+[workspace]
+
+[dependencies]
+libfuzzer-sys = "0.4"
+# The requirement matches the root; every fuzz-selected PurRDF package matches its root identity.
+purrdf = { version = "3", git = "https://github.com/Blackcat-Informatics/purrdf", rev = "5d25c3a7d8e76064aa716e3e168d9f443aba7b13" }
+gmeow-logic = { path = "../crates/logic" }
+gmeow-logic-compile = { path = "../crates/logic-compile" }
+
+[[bin]]
+name = "logic"
+path = "fuzz_targets/logic.rs"
+test = false
+doc = false
+bench = false
+
+[[bin]]
+name = "query"
+path = "fuzz_targets/query.rs"
+test = false
+doc = false
+bench = false
+
+[[bin]]
+name = "clif"
+path = "fuzz_targets/clif.rs"
+test = false
+doc = false
+bench = false
+
+[[bin]]
+name = "cgif"
+path = "fuzz_targets/cgif.rs"
+test = false
+doc = false
+bench = false
+
+[[bin]]
+name = "xcl"
+path = "fuzz_targets/xcl.rs"
+test = false
+doc = false
+bench = false

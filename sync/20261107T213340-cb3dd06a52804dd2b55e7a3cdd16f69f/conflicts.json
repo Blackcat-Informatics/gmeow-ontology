@@ -1,0 +1,202 @@
+{
+  "Cargo.lock": [
+    {
+      "mode": "100644",
+      "oid": "5604d8233d4fff4b838f295a29812fc039737f9c",
+      "stage": 1,
+      "content": "inputs/0-1.bin"
+    },
+    {
+      "mode": "100644",
+      "oid": "6428aea0f78a715bb04e1066e2efe5b20c40e850",
+      "stage": 2,
+      "content": "inputs/0-2.bin"
+    },
+    {
+      "mode": "100644",
+      "oid": "3128a35a44e9273d969a03fac601dd560f323061",
+      "stage": 3,
+      "content": "inputs/0-3.bin"
+    }
+  ],
+  "Cargo.toml": [
+    {
+      "mode": "100644",
+      "oid": "f0120c3a7646b8ce0485e48ef6de037cddca93f2",
+      "stage": 1,
+      "content": "inputs/1-1.bin"
+    },
+    {
+      "mode": "100644",
+      "oid": "1642a038566abb193211e09cb9fc85ec1ff1914c",
+      "stage": 2,
+      "content": "inputs/1-2.bin"
+    },
+    {
+      "mode": "100644",
+      "oid": "d63e7c17b763f850defa94a91f8c27551eed92af",
+      "stage": 3,
+      "content": "inputs/1-3.bin"
+    }
+  ],
+  "crates/pipeline/src/stages/mappings.rs": [
+    {
+      "mode": "100644",
+      "oid": "5446e1335582700ecc1b535cf63d4d58de720b9a",
+      "stage": 1,
+      "content": "inputs/2-1.bin"
+    },
+    {
+      "mode": "100644",
+      "oid": "e6e8a663c0e5d84b622c39bbe49a5188322c3fb0",
+      "stage": 2,
+      "content": "inputs/2-2.bin"
+    },
+    {
+      "mode": "100644",
+      "oid": "71ee03eb7fee0835dc2873e65f374a301c97d616",
+      "stage": 3,
+      "content": "inputs/2-3.bin"
+    }
+  ],
+  "crates/pipeline/src/stages/reason.rs": [
+    {
+      "mode": "100644",
+      "oid": "6c76565de0377ada3d2e2581b1809d1999a607c2",
+      "stage": 1,
+      "content": "inputs/3-1.bin"
+    },
+    {
+      "mode": "100644",
+      "oid": "cc9afb125e0c5e35471cd831b6b4254412e2c81e",
+      "stage": 2,
+      "content": "inputs/3-2.bin"
+    },
+    {
+      "mode": "100644",
+      "oid": "8bb4f6d9832de9ec00061cfbfe592b75d533eb13",
+      "stage": 3,
+      "content": "inputs/3-3.bin"
+    }
+  ],
+  "crates/validate/src/codes.rs": [
+    {
+      "mode": "100644",
+      "oid": "989e60e1925ff67739964cc243f2ee5f1a725be8",
+      "stage": 1,
+      "content": "inputs/4-1.bin"
+    },
+    {
+      "mode": "100644",
+      "oid": "9f1bd1b5f47d6186a0dbc5e8a260ee1a82990504",
+      "stage": 2,
+      "content": "inputs/4-2.bin"
+    },
+    {
+      "mode": "100644",
+      "oid": "27a1fbe3e40f181205a1085193b5c0324689f8c4",
+      "stage": 3,
+      "content": "inputs/4-3.bin"
+    }
+  ],
+  "crates/validate/src/rule_catalog.rs": [
+    {
+      "mode": "100644",
+      "oid": "ea05a04011d3a9b44d68d303cc903d6a49613e98",
+      "stage": 1,
+      "content": "inputs/5-1.bin"
+    },
+    {
+      "mode": "100644",
+      "oid": "4a24f18986883341c938ee6ebd70fe7c5ec19673",
+      "stage": 2,
+      "content": "inputs/5-2.bin"
+    },
+    {
+      "mode": "100644",
+      "oid": "57b9dd698e171fb5d70e4725edcd474e2a58a2f5",
+      "stage": 3,
+      "content": "inputs/5-3.bin"
+    }
+  ],
+  "crates/validate/src/slice_ownership.rs": [
+    {
+      "mode": "100644",
+      "oid": "933b59cf3b85b8ce1655ce8f47e50c530280ed6e",
+      "stage": 1,
+      "content": "inputs/6-1.bin"
+    },
+    {
+      "mode": "100644",
+      "oid": "3d8f6b0a5dba11b58a4417192cb9aefc7688ca65",
+      "stage": 2,
+      "content": "inputs/6-2.bin"
+    },
+    {
+      "mode": "100644",
+      "oid": "98dc8aa823f5f46394884731711d11fee7f3c7d3",
+      "stage": 3,
+      "content": "inputs/6-3.bin"
+    }
+  ],
+  "fuzz/Cargo.lock": [
+    {
+      "mode": "100644",
+      "oid": "613e52248bd876b8bfc770ebc4aa81b1d08c7a4e",
+      "stage": 1,
+      "content": "inputs/7-1.bin"
+    },
+    {
+      "mode": "100644",
+      "oid": "3e5537dc9d38b9aff38e8578577f1d6c735d68de",
+      "stage": 2,
+      "content": "inputs/7-2.bin"
+    },
+    {
+      "mode": "100644",
+      "oid": "2458fd51d713f70b786f4bbcb1d351b47f4f1cf2",
+      "stage": 3,
+      "content": "inputs/7-3.bin"
+    }
+  ],
+  "fuzz/Cargo.toml": [
+    {
+      "mode": "100644",
+      "oid": "a76f1735ac495b320409c5ba16c02d70cff6d2c8",
+      "stage": 1,
+      "content": "inputs/8-1.bin"
+    },
+    {
+      "mode": "100644",
+      "oid": "331068e3ccea85d59b9b939beb016c2cd0db63ba",
+      "stage": 2,
+      "content": "inputs/8-2.bin"
+    },
+    {
+      "mode": "100644",
+      "oid": "31d247ff02826f3a67757f42c47bdff2b4581d0f",
+      "stage": 3,
+      "content": "inputs/8-3.bin"
+    }
+  ],
+  "validations/common-logic-fol/clif2tptp/Cargo.lock": [
+    {
+      "mode": "100644",
+      "oid": "47f17e6616b50071f24b55d2db4d655e95b3e8fc",
+      "stage": 1,
+      "content": "inputs/9-1.bin"
+    },
+    {
+      "mode": "100644",
+      "oid": "558534ddfa427d11626dbae3b5173d6c28dfd6ff",
+      "stage": 2,
+      "content": "inputs/9-2.bin"
+    },
+    {
+      "mode": "100644",
+      "oid": "657a25e8463a9aef3406a8df4d77bef151feca9c",
+      "stage": 3,
+      "content": "inputs/9-3.bin"
+    }
+  ]
+}

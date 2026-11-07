@@ -1,0 +1,62 @@
+[
+  {
+    "path": "Cargo.lock",
+    "kind": "file",
+    "executable": false,
+    "content": "proposed/0.bin"
+  },
+  {
+    "path": "Cargo.toml",
+    "kind": "file",
+    "executable": false,
+    "content": "proposed/1.bin"
+  },
+  {
+    "path": "crates/pipeline/src/stages/mappings.rs",
+    "kind": "file",
+    "executable": false,
+    "content": "proposed/2.bin"
+  },
+  {
+    "path": "crates/pipeline/src/stages/reason.rs",
+    "kind": "file",
+    "executable": false,
+    "content": "proposed/3.bin"
+  },
+  {
+    "path": "crates/validate/src/codes.rs",
+    "kind": "file",
+    "executable": false,
+    "content": "proposed/4.bin"
+  },
+  {
+    "path": "crates/validate/src/rule_catalog.rs",
+    "kind": "file",
+    "executable": false,
+    "content": "proposed/5.bin"
+  },
+  {
+    "path": "crates/validate/src/slice_ownership.rs",
+    "kind": "file",
+    "executable": false,
+    "content": "proposed/6.bin"
+  },
+  {
+    "path": "fuzz/Cargo.lock",
+    "kind": "file",
+    "executable": false,
+    "content": "proposed/7.bin"
+  },
+  {
+    "path": "fuzz/Cargo.toml",
+    "kind": "file",
+    "executable": false,
+    "content": "proposed/8.bin"
+  },
+  {
+    "path": "validations/common-logic-fol/clif2tptp/Cargo.lock",
+    "kind": "file",
+    "executable": false,
+    "content": "proposed/9.bin"
+  }
+]

@@ -1,0 +1,28 @@
+Adopt the v4 structured reasoning APIs
+
+Migrate backward reasoning and proof export to structured native v4 interfaces at
+c58898ddf3357b7d2baa817dc5a652e6be83e588. Preserve explicit refusals, structural
+bindings, proof identity/order and inspectable typed diagnostic causes. Consolidate
+the diagnostic wrapper in gmeow-errors and correct the authored YAML-LD type entry.
+Root, fuzz and CLIF dependency locks agree; wasm-bindgen is pinned to 0.2.130.
+
+Principles 4, 7 and 17 govern canonical ownership and truthful qualification.
+Independent source/design reviews and configured hooks/signing passed. Hosted
+optimized producer compilation, test compilation, lint and helpers passed for
+02d191515. All three runtime producer jobs failed after kill/shutdown. Scoped OOM
+was not independently confirmed for that run. Runtime qualification, authenticated
+fixtures and current native/browser/installed consumers remain unverified.
+
+The repository owner explicitly instructed immediate merge of both pending PRs
+through ghprsq and a new CI repair and optimization issue on November 7, 2026.
+Merge proceeds under that instruction with failed CI disclosed. The integrated
+v4 tree must be qualified in that follow-up; v3 tables/assets cannot qualify it.
+No full API-freeze or runtime acceptance is claimed. Remaining continuation
+contracts in #2604 through #2612 are preserved.
+
+Refs #2603.
+
+Integrate the complete producer repair from bcd561365. Resolve native lock and
+manifest hunks to the exact v4 revision, retain the complete correspondence
+program and producer phase timers, and preserve v4 diagnostic fields and messages.
+Remaining integrated CI repair and optimization are owned by #2616.
