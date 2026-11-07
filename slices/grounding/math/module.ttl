@@ -19152,3 +19152,47 @@ math:riemannZetaDomainMembershipLaw
     gmeow:useWhen "Use as the explicit quantified backing law for the punctured domain of the continued Riemann zeta function."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid interpreting logical negation as absence of a membership triple, unbinding z, or replacing numeric interval membership by a same-node comparison with one."@x-gmeow-english ;
     gmeow:howToUse "Preserve the bound Formula root, its definingLaw link and the shared memberCondition subtree. Retain both directions of iff and the real guard with the singleton condition; keep mathematical and native admission claims separate."@x-gmeow-english .
+
+# Manifold structure-kind usage guidance.
+
+math:ManifoldStructureKind
+    skos:scopeNote "This is the selected structure context of a manifold declaration. Naming a kind does not construct an atlas, establish transition laws, supply a metric or identify a physical spacetime."@x-gmeow-english ;
+    skos:example "Illustration: ex:M math:manifoldStructureKind math:smoothStructure ."@x-gmeow-english ;
+    gmeow:useWhen "Use to state which manifold structure a mathematical record declares for its operations and obligations."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid guessing a kind from missing metadata, selecting the strongest label by default, or treating several kind labels as a substitute for the existing single-selection contract."@x-gmeow-english ;
+    gmeow:howToUse "Select one supplied kind through manifoldStructureKind and retain the manifold dimension and the actual charts, transitions and metric data appropriate to that selection. Record additional structures explicitly rather than inferring them from the label."@x-gmeow-english .
+
+math:topologicalStructure
+    skos:scopeNote "This selection retains topology and continuity without declaring a smooth, complex or metric refinement. It does not assert that the manifold can never support such an additional structure."@x-gmeow-english ;
+    skos:example "Illustration: ex:M math:manifoldStructureKind math:topologicalStructure ."@x-gmeow-english ;
+    gmeow:useWhen "Use when the manifold record selects its topological structure and supplies no stronger structure for the declared operation."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid treating an absent kind as this value, denying all possible smooth structures, or inferring derivatives and metric lengths from topology alone."@x-gmeow-english ;
+    gmeow:howToUse "Select this value explicitly through manifoldStructureKind. Retain the declared topology and chart evidence; a later smooth, complex or metric construction needs its own actual supporting data."@x-gmeow-english .
+
+math:smoothStructure
+    skos:scopeNote "The declared smooth structure requires compatible smooth transition maps. Its selection alone does not supply those maps, a metric, a connection or the result of differentiating a field."@x-gmeow-english ;
+    skos:example "Illustration: ex:M math:manifoldStructureKind math:smoothStructure ."@x-gmeow-english ;
+    gmeow:useWhen "Use when the manifold record selects a smooth structure for differential constructions."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring smoothness from continuity alone, treating a chosen kind as a completed atlas proof, or assuming a metric from differentiability."@x-gmeow-english ;
+    gmeow:howToUse "Select this value through manifoldStructureKind and retain the actual smooth atlas and transition data. State a metric or complex structure separately when that additional structure is supplied."@x-gmeow-english .
+
+math:complexStructure
+    skos:scopeNote "This selection concerns holomorphic transition maps on complex coordinate neighborhoods. It is distinct from merely attaching complex-valued data to a real manifold and does not supply missing chart or dimension declarations."@x-gmeow-english ;
+    skos:example "Illustration: ex:M math:manifoldStructureKind math:complexStructure ."@x-gmeow-english ;
+    gmeow:useWhen "Use when the manifold record selects a complex structure supported by holomorphic coordinate transitions."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring a complex structure from complex-valued functions alone, assuming a metric, or using the kind label to guess coordinate dimensions."@x-gmeow-english ;
+    gmeow:howToUse "Select this value through manifoldStructureKind. Retain the actual complex charts, their target spaces and the holomorphic transition obligations; declare dimensions using the actual coordinate-space convention."@x-gmeow-english .
+
+math:riemannianStructure
+    skos:scopeNote "This selection includes a positive-definite metric on the smooth manifold. A metric label does not supply its tensor components, certify positive definiteness or compute geodesics or curvature."@x-gmeow-english ;
+    skos:example "Illustration: ex:M math:manifoldStructureKind math:riemannianStructure ."@x-gmeow-english ;
+    gmeow:useWhen "Use when the selected manifold structure includes a positive-definite metric for lengths and angles."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid using this value for an indefinite Lorentzian metric, treating coordinate distances as a supplied metric tensor, or claiming geometric calculations from the classification alone."@x-gmeow-english ;
+    gmeow:howToUse "Select this value through manifoldStructureKind and retain the actual metricTensor and its metricSignature, together with the smooth chart data. Preserve the existing positive-definite signature convention."@x-gmeow-english .
+
+math:lorentzianStructure
+    skos:scopeNote "This is the mathematical smooth-manifold structure with one time direction and the remaining space directions under the declared metric convention. It does not assert a physical spacetime, worldline or proper-time observation."@x-gmeow-english ;
+    skos:example "The existing analysis-and-geometry scene declares ex:minkowski math:manifoldStructureKind math:lorentzianStructure ."@x-gmeow-english ;
+    gmeow:useWhen "Use when the selected manifold structure includes the indefinite metric required by a Lorentzian geometric model."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid treating it as a positive-definite Riemannian metric, inferring physical interpretation from a kind label, or discarding the actual metric sign convention."@x-gmeow-english ;
+    gmeow:howToUse "Select this value through manifoldStructureKind and retain the actual metricTensor, metricSignature counts and stated sign convention. Keep physical interpretations in their own attributed downstream records."@x-gmeow-english .
