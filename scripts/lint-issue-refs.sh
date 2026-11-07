@@ -71,7 +71,9 @@ done < <(git ls-files -z --others --ignored --exclude-standard --directory)
 # boundary narrow: tracked audit files and nested lookalike directories still
 # undergo every provenance check.
 tracked_stage_files=$(git ls-files -- .stage/)
+local_audit_stage=false
 if [[ -d .stage && -z "$tracked_stage_files" ]]; then
+  local_audit_stage=true
   DERIVED_GLOBS+=(--glob '!.stage/**')
   DERIVED_EXCLUDE_LIST+='.stage'$'\n'
 fi
@@ -233,6 +235,10 @@ if git rev-parse --verify --quiet origin/main > /dev/null 2>&1; then
         --src-prefix=a/ --dst-prefix=b/ "$base" -- . 2> /dev/null
       git ls-files --others --exclude-standard 2> /dev/null |
         while IFS= read -r path; do
+          # Apply the existing local-audit boundary before reading binary evidence.
+          if [[ "$local_audit_stage" == true && "$path" == .stage/* ]]; then
+            continue
+          fi
           [ -f "$path" ] || continue
           printf '+++ b/%s\n@@ -0,0 +1 @@\n' "$path"
           awk '{ print "+" $0 }' < "$path"
