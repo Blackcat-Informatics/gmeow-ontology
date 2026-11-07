@@ -225,9 +225,10 @@ pub fn dataset_from_paths(paths: &[PathBuf]) -> gmeow_errors::Result<Arc<RdfData
 /// Returns `Err` if the N-Triples fails to parse.
 pub fn dataset_from_nt(data_nt: &str) -> gmeow_errors::Result<Arc<RdfDataset>> {
     parse_dataset(data_nt.as_bytes(), "application/n-triples", None).map_err(|e| {
-        Diag::of_kind(crate::error::Parse::new(format!(
-            "N-Triples parse error: {e}"
-        )))
+        Diag::of_kind(crate::error::Parse::caused_by(
+            format!("N-Triples parse error: {e}"),
+            e,
+        ))
     })
 }
 

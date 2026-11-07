@@ -110,13 +110,17 @@ fn invalid(detail: impl Into<String>) -> Diag {
 
 fn read_toml(path: &Path) -> Result<toml::Value> {
     let text = std::fs::read_to_string(path).map_err(|error| {
-        Diag::of_kind(crate::error::Io::new(format!(
-            "{}: {error}",
-            path.display()
-        )))
+        Diag::of_kind(crate::error::Io::caused_by(
+            format!("{}: {error}", path.display()),
+            error,
+        ))
     })?;
-    text.parse()
-        .map_err(|error| invalid(format!("{}: {error}", path.display())))
+    text.parse().map_err(|error| {
+        Diag::of_kind(crate::error::Parse::caused_by(
+            format!("{}: {error}", path.display()),
+            error,
+        ))
+    })
 }
 
 /// Read every PurRDF package, rejecting missing or ambiguous source identities.

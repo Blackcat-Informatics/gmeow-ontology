@@ -330,8 +330,19 @@ fn malformed_trusted_key_is_reported_as_signature_invalid() {
 
 #[test]
 fn missing_key_file_returns_error() {
-    let result = read_armored_key("/nonexistent/key.asc");
-    assert!(result.is_err());
+    let error = read_armored_key("/nonexistent/key.asc").expect_err("missing key must fail");
+    let kind = error
+        .downcast_ref::<crate::error::Io>()
+        .expect("trusted-key reads retain their I/O diagnostic");
+    let cause = std::error::Error::source(kind)
+        .and_then(|cause| cause.downcast_ref::<std::io::Error>())
+        .expect("original file-read failure remains accessible");
+    assert_eq!(cause.kind(), std::io::ErrorKind::NotFound);
+    assert!(
+        error
+            .message()
+            .contains("cannot read trusted key file /nonexistent/key.asc:")
+    );
 }
 
 /// Every finding emitted by `verify_gts_bundle` must carry the

@@ -320,10 +320,10 @@ fn shape_union_key_bytes(root: &Path) -> gmeow_errors::Result<Vec<u8>> {
             .to_string_lossy()
             .replace('\\', "/");
         let bytes = std::fs::read(file).map_err(|e| {
-            Diag::of_kind(crate::error::Io::new(format!(
-                "reading shape file {}: {e}",
-                file.display()
-            )))
+            Diag::of_kind(crate::error::Io::caused_by(
+                format!("reading shape file {}: {e}", file.display()),
+                e,
+            ))
         })?;
         out.extend_from_slice(rel.as_bytes());
         out.push(0x1f);
@@ -2216,16 +2216,16 @@ pub fn collect_ttl_paths(dir: &str) -> gmeow_errors::Result<Vec<PathBuf>> {
 
 fn collect_ttl_paths_recursive(dir: &Path, paths: &mut Vec<PathBuf>) -> gmeow_errors::Result<()> {
     for entry in std::fs::read_dir(dir).map_err(|e| {
-        Diag::of_kind(crate::error::Io::new(format!(
-            "read_dir {}: {e}",
-            dir.display()
-        )))
+        Diag::of_kind(crate::error::Io::caused_by(
+            format!("read_dir {}: {e}", dir.display()),
+            e,
+        ))
     })? {
         let entry = entry.map_err(|e| {
-            Diag::of_kind(crate::error::Io::new(format!(
-                "dir entry in {}: {e}",
-                dir.display()
-            )))
+            Diag::of_kind(crate::error::Io::caused_by(
+                format!("dir entry in {}: {e}", dir.display()),
+                e,
+            ))
         })?;
         let path = entry.path();
         if path.is_dir() && !path.is_symlink() {
@@ -2253,16 +2253,16 @@ fn collect_slice_test_files(slices_dir: &str) -> gmeow_errors::Result<Vec<PathBu
             continue;
         }
         for entry in std::fs::read_dir(&tests_dir).map_err(|e| {
-            Diag::of_kind(crate::error::Io::new(format!(
-                "read_dir {}: {e}",
-                tests_dir.display()
-            )))
+            Diag::of_kind(crate::error::Io::caused_by(
+                format!("read_dir {}: {e}", tests_dir.display()),
+                e,
+            ))
         })? {
             let entry = entry.map_err(|e| {
-                Diag::of_kind(crate::error::Io::new(format!(
-                    "dir entry in {}: {e}",
-                    tests_dir.display()
-                )))
+                Diag::of_kind(crate::error::Io::caused_by(
+                    format!("dir entry in {}: {e}", tests_dir.display()),
+                    e,
+                ))
             })?;
             let path = entry.path();
             if path.is_file() && path.extension().and_then(|s| s.to_str()) == Some("ttl") {
@@ -2317,17 +2317,17 @@ fn find_example_files(slices_dir: &str) -> gmeow_errors::Result<Vec<(String, Pat
             continue;
         }
         for entry in std::fs::read_dir(&examples_dir).map_err(|e| {
-            Diag::of_kind(crate::error::Io::new(format!(
-                "read_dir {}: {e}",
-                examples_dir.display()
-            )))
+            Diag::of_kind(crate::error::Io::caused_by(
+                format!("read_dir {}: {e}", examples_dir.display()),
+                e,
+            ))
         })? {
             let entry = entry
                 .map_err(|e| {
-                    Diag::of_kind(crate::error::Io::new(format!(
-                        "dir entry in {}: {e}",
-                        examples_dir.display()
-                    )))
+                    Diag::of_kind(crate::error::Io::caused_by(
+                        format!("dir entry in {}: {e}", examples_dir.display()),
+                        e,
+                    ))
                 })?
                 .path();
             if !entry.is_file() || entry.extension().and_then(|s| s.to_str()) != Some("ttl") {
@@ -2336,11 +2336,14 @@ fn find_example_files(slices_dir: &str) -> gmeow_errors::Result<Vec<(String, Pat
             let name = entry
                 .strip_prefix(&root)
                 .map_err(|e| {
-                    Diag::of_kind(crate::error::Io::new(format!(
-                        "strip prefix {} from {}: {e}",
-                        root.display(),
-                        entry.display()
-                    )))
+                    Diag::of_kind(crate::error::Io::caused_by(
+                        format!(
+                            "strip prefix {} from {}: {e}",
+                            root.display(),
+                            entry.display()
+                        ),
+                        e,
+                    ))
                 })?
                 .components()
                 .map(|c| c.as_os_str().to_string_lossy().into_owned())
