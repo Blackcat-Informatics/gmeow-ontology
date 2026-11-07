@@ -208,10 +208,10 @@ impl ProofTree {
 
     /// Render the tree as a TSTP derivation.
     ///
-    /// One line per step, emitted in REVERSE step order (leaves first, root last) so every
-    /// parent name is defined before the inference that cites it — the conventional TSTP
-    /// reading order. Names are content-addressed ([`tstp_step_name`]), so the emitted text is
-    /// independent of that presentation order.
+    /// One line per distinct step, with every premise defined before the inference that
+    /// cites it and the root last. Premise branches are visited in reverse stored order;
+    /// shared premises are emitted once. Names are content-addressed ([`tstp_step_name`]),
+    /// so step identities do not depend on presentation order.
     ///
     /// # Errors
     ///
@@ -219,7 +219,20 @@ impl ProofTree {
     /// [`crate::provenance::DERIVATION_PREFIX`] with a name-safe content address.
     pub fn to_tstp(&self) -> gmeow_errors::Result<String> {
         let mut out = String::new();
-        for (i, step) in self.steps.iter().enumerate().rev() {
+        let mut emitted = vec![false; self.steps.len()];
+        let mut pending = vec![(0, false)];
+        while let Some((i, expanded)) = pending.pop() {
+            if emitted[i] {
+                continue;
+            }
+            let step = &self.steps[i];
+            if !expanded {
+                pending.push((i, true));
+                // LIFO visits the last premise first, preserving the presentation of
+                // unshared trees while placing shared definitions before every use.
+                pending.extend(step.premises.iter().map(|&premise| (premise, false)));
+                continue;
+            }
             let name = tstp_step_name(&step.derivation_iri)?;
             let conclusion = &self.tstp_conclusions[i];
             match &step.rule_iri {
@@ -238,6 +251,7 @@ impl ProofTree {
                     ));
                 }
             }
+            emitted[i] = true;
         }
         Ok(out)
     }
