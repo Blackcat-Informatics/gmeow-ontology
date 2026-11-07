@@ -1987,3 +1987,140 @@ gmeow:HighFrictionCorrection logic:subClassOf
 [ a logic:ClosureEntry ; logic:onClass gmeow:HighFrictionCorrection ; logic:closureKey "https://blackcatinformatics.ca/gmeow/frictionCorrection" ; logic:closureValue logic:ClosedWorldClosure ] .
 
 [ a logic:ClosureEntry ; logic:onClass gmeow:HighFrictionCorrection ; logic:closureKey "https://blackcatinformatics.ca/gmeow/frictionRule" ; logic:closureValue logic:ClosedWorldClosure ] .
+
+# Link and time refinement readings.
+
+gmeow:LinkResolution
+    a logic:Class, logic:SubKind ;
+    logic:subClassOf gmeow:Refinement ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/refinement-readings> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "Link Resolution"@x-gmeow-english ;
+    skos:definition "An observer's Refinement reading of one reference made by a source record against the records available to the holder. It retains the reference as written and the reading outcome without asserting identity from a match."@x-gmeow-english ;
+    skos:scopeNote "Selected results and unselected candidates remain separate. Resolution is attributed to the named process and offered source scope, never automatically to the source author."@x-gmeow-english ;
+    gmeow:useWhen "Use to distinguish a reference-resolution reading from other refinements of the same record."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid treating a matching name or identifier as global identity, rewriting the source reference, or selecting every candidate as a result."@x-gmeow-english ;
+    gmeow:howToUse "Name the referring record with observedFeature and the versioned reader with vantage. Retain readingScope, relationVault, relationPredicate and relatedThing or relatedName; report refinementOutcome, selected observationResult and unselected refinementCandidate separately."@x-gmeow-english ;
+    skos:example "ex:resolution a gmeow:LinkResolution ; gmeow:observedFeature ex:referringRecord ; gmeow:refinementOutcome gmeow:refinementAmbiguous ; gmeow:refinementCandidate ex:recordA, ex:recordB ."@x-gmeow-english .
+
+gmeow:TimeJoin
+    a logic:Class, logic:SubKind ;
+    logic:subClassOf gmeow:Refinement ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/refinement-readings> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "Time Join"@x-gmeow-english ;
+    skos:definition "A Refinement reading of a selected claim's missing assertion time from timed source evidence about its record, preserving any recovered value on the reading rather than asserting it as the selected claim's original time."@x-gmeow-english ;
+    skos:scopeNote "A timed claim about the same record, a shared turn, equal source text or a shared packet may supply the reported basis. Typing this reading does not establish a successful join or an identity equivalence."@x-gmeow-english ;
+    gmeow:useWhen "Use when a reader reports a recovered time for a record whose selected claim lacks a source assertion time."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid filling missing time with the reader clock, padding a date into an instant, or copying a recovered value into relationAt or assertedAt on the undated source."@x-gmeow-english ;
+    gmeow:howToUse "Retain observedFeature, vantage, readingScope and its scopeChronology. Report refinementOutcome; when a time is selected, retain recoveredAt, timeJoinBasis and the actual timed evidence through timeJoinedTo. Keep unresolved alternatives separate."@x-gmeow-english ;
+    skos:example "ex:join a gmeow:TimeJoin ; gmeow:observedFeature ex:undatedRecord ; gmeow:timeJoinBasis gmeow:timeJoinText ; gmeow:timeJoinedTo ex:timedRecord ."@x-gmeow-english .
+
+gmeow:recoveredAt
+    a logic:DatatypeProperty ;
+    logic:domain gmeow:TimeJoin ;
+    logic:range xsd:dateTime ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/refinement-readings> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "recovered assertion time"@x-gmeow-english ;
+    skos:definition "The assertion-time value a time-join reading reports from its selected timed evidence, retained as an xsd:dateTime on that reading. It is not an original assertion time supplied by the undated source."@x-gmeow-english ;
+    skos:scopeNote "Preserve the supplied lexical form, datatype and chronology. A date, month or year does not supply a date-time, and missing timezone information is not a default timezone."@x-gmeow-english ;
+    gmeow:useWhen "Use when the reading actually reports a selected recovered date-time."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid using the reader's observation or transaction time as recovered evidence, inventing precision, or inferring this value from an absent source clock."@x-gmeow-english ;
+    gmeow:howToUse "Attach the supplied date-time to the TimeJoin and retain its timeJoinedTo evidence, timeJoinBasis and ReadingScope chronology. No subproperty relation transfers this value to a source clock."@x-gmeow-english ;
+    skos:example "ex:join gmeow:recoveredAt \"2026-11-01T09:00:00Z\"^^xsd:dateTime ."@x-gmeow-english .
+
+gmeow:TimeJoinBasis
+    a logic:Class, logic:AbstractIndividualType ;
+    logic:subClassOf logic:QualityValue ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/refinement-readings> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "Time Join Basis"@x-gmeow-english ;
+    skos:definition "An open quality-value vocabulary identifying the source relationship used for a reported time join: a timed claim about the record, a shared turn, equal source text or a shared packet."@x-gmeow-english ;
+    skos:scopeNote "Basis values classify evidence, not confidence, world truth or a successful execution. The supplied values do not close the vocabulary."@x-gmeow-english ;
+    gmeow:useWhen "Use to name how the selected timed evidence relates to the undated record."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid modelling each basis as a subclass of TimeJoin, inferring a default basis, or using basis membership as an identity proof."@x-gmeow-english ;
+    gmeow:howToUse "Reference an individual through timeJoinBasis. The requesting refiner selects bases in the order record, turn, text, packet; preserve the actual process policy rather than asserting a universal preference."@x-gmeow-english ;
+    skos:example "gmeow:timeJoinText a gmeow:TimeJoinBasis ."@x-gmeow-english .
+
+gmeow:timeJoinBasis
+    a logic:ObjectProperty ;
+    logic:domain gmeow:TimeJoin ;
+    logic:range gmeow:TimeJoinBasis ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/refinement-readings> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "time join basis"@x-gmeow-english ;
+    skos:definition "Relates a time-join reading to its explicitly reported basis for associating the selected timed evidence with the undated record."@x-gmeow-english ;
+    skos:scopeNote "Optional and nonfunctional: absent basis data is unspecified, and competing attributed readings are not resolved by graph order."@x-gmeow-english ;
+    gmeow:useWhen "Use when the reader supplies the basis of its time join."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid deriving a basis from matching field values alone or silently substituting another basis when selected evidence is unavailable."@x-gmeow-english ;
+    gmeow:howToUse "Attach the actual TimeJoinBasis individual to the TimeJoin and retain the timed record with timeJoinedTo. Keep the source scope and declaring process visible."@x-gmeow-english ;
+    skos:example "ex:join gmeow:timeJoinBasis gmeow:timeJoinText ."@x-gmeow-english .
+
+gmeow:timeJoinedTo
+    a logic:ObjectProperty ;
+    logic:domain gmeow:TimeJoin ;
+    logic:range logic:Thing ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/refinement-readings> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "time joined to"@x-gmeow-english ;
+    skos:definition "The actual timed source record from whose supplied assertion time a time-join reading reports its recovered value. This is evidence identity, not an asserted equivalence with the undated record."@x-gmeow-english ;
+    skos:scopeNote "Retain the actual RDF resource, including a supplied blank node or triple term. The record basis may use another timed claim about the same record; distinct record identities are not universally required."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain the actual timed evidence supporting a reported recovered time."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid substituting a guessed source node, treating a source reference as authorization, or merging records because a join was reported."@x-gmeow-english ;
+    gmeow:howToUse "Link the TimeJoin to the timed source record as supplied; preserve the actual claim carrying its assertion time and include the offered evidence in readingScope."@x-gmeow-english ;
+    skos:example "ex:join gmeow:timeJoinedTo ex:timedRecord ."@x-gmeow-english .
+
+gmeow:timeJoinRecord
+    a gmeow:TimeJoinBasis ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/refinement-readings> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    rdfs:label "time join from the record"@x-gmeow-english ;
+    skos:definition "The reported join uses a timed claim about the same record whose selected claim lacks an assertion time."@x-gmeow-english ;
+    skos:scopeNote "The selected claim can be undated while another claim about that record supplies a time. This basis does not require inventing a distinct record or adding time to the undated claim."@x-gmeow-english ;
+    gmeow:useWhen "Use when the actual timed evidence concerns the same record."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid treating an unrelated equal identifier as sufficient record identity or promoting the recovered reading to source metadata."@x-gmeow-english ;
+    gmeow:howToUse "Set timeJoinBasis to this value and retain the actual timed claim and record through timeJoinedTo and source provenance."@x-gmeow-english ;
+    skos:example "ex:join gmeow:timeJoinBasis gmeow:timeJoinRecord ."@x-gmeow-english .
+
+gmeow:timeJoinTurn
+    a gmeow:TimeJoinBasis ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/refinement-readings> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    rdfs:label "time join from a shared turn"@x-gmeow-english ;
+    skos:definition "The reported join uses assertion time from a timed record that shares the same source chat turn with the undated record."@x-gmeow-english ;
+    skos:scopeNote "The shared turn is the existing chatTurn resource, with its source context. Turn membership does not identify the two records as one record or establish equal assertion times independently of the reading."@x-gmeow-english ;
+    gmeow:useWhen "Use when the reader actually selected timed evidence through shared chatTurn membership."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid identifying turns from equal labels, substituting conversation membership, or treating turn membership as successful time recovery."@x-gmeow-english ;
+    gmeow:howToUse "Set timeJoinBasis to this value; retain the actual timed record, both source turn-membership claims and the scope in which the reader made the join."@x-gmeow-english ;
+    skos:example "ex:join gmeow:timeJoinBasis gmeow:timeJoinTurn ."@x-gmeow-english .
+
+gmeow:timeJoinText
+    a gmeow:TimeJoinBasis ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/refinement-readings> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    rdfs:label "time join from equal text"@x-gmeow-english ;
+    skos:definition "The reported join uses the earliest supplied assertion time among other offered records stating the same source text of at least thirty characters."@x-gmeow-english ;
+    skos:scopeNote "The threshold and earliest selection belong to this reported text-join contract. Text equality does not establish record identity, and this term supplies no normalization or character-count algorithm."@x-gmeow-english ;
+    gmeow:useWhen "Use when the reader reports an earliest timed match of the same source text with at least thirty characters."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid joining on shorter or merely similar text, inventing a time for an undated match, or selecting an arbitrary winner from unresolved time comparisons."@x-gmeow-english ;
+    gmeow:howToUse "Set timeJoinBasis to this value; retain the matching source text, the actual timed record and the exact offered records and chronology supporting the reported earliest selection."@x-gmeow-english ;
+    skos:example "ex:join gmeow:timeJoinBasis gmeow:timeJoinText ."@x-gmeow-english .
+
+gmeow:timeJoinPacket
+    a gmeow:TimeJoinBasis ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/refinement-readings> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    rdfs:label "time join from a shared packet"@x-gmeow-english ;
+    skos:definition "The reported join uses assertion time from a timed record that shares the undated record's originating-packet identifier within the same producer context."@x-gmeow-english ;
+    skos:scopeNote "originatingPacket retains an unresolved string or token with its actual datatype and spelling. Equal packet strings from unrelated producers do not establish a shared packet."@x-gmeow-english ;
+    gmeow:useWhen "Use when the reader actually selected timed evidence through the same originatingPacket in its declaring producer context."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid treating a packet identifier as a globally identified packet resource, merging producer namespaces, or inferring dispatch or receipt."@x-gmeow-english ;
+    gmeow:howToUse "Set timeJoinBasis to this value and preserve the timed record, both supplied packet values, their datatypes and producer attribution, and the selected reading scope."@x-gmeow-english ;
+    skos:example "ex:join gmeow:timeJoinBasis gmeow:timeJoinPacket ."@x-gmeow-english .
+
+[ a logic:ClosureEntry ; logic:closureKey "https://blackcatinformatics.ca/gmeow/recoveredAt" ; logic:closureValue logic:ClosedWorldClosure ] .
+
+[ a logic:ClosureEntry ; logic:closureKey "https://blackcatinformatics.ca/gmeow/timeJoinBasis" ; logic:closureValue logic:ClosedWorldClosure ] .
+
+[ a logic:ClosureEntry ; logic:closureKey "https://blackcatinformatics.ca/gmeow/timeJoinedTo" ; logic:closureValue logic:ClosedWorldClosure ] .
