@@ -221,7 +221,7 @@ fn caused_diagnostic(
         reason: reason.to_owned(),
         detail,
         evidence,
-        cause: Some(Box::new(crate::error::PreservedDiagnostic(diagnostic))),
+        cause: Some(Box::new(gmeow_errors::PreservedDiagnostic(diagnostic))),
     })
     .with_context(context)
 }

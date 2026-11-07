@@ -35,6 +35,7 @@
 use std::collections::HashSet;
 use std::sync::Arc;
 
+use gmeow_errors::PreservedDiagnostic;
 use gmeow_logic_compile::frontend::parse_logic_str;
 use gmeow_logic_compile::loss_ledger::LossLedger;
 use gmeow_logic_compile::projections::{
@@ -276,26 +277,6 @@ define_diag_kind! {
     code = "pipeline.transcode.codec";
     grade = Grade::new(Severity::Error, FindingCategory::ModelingDisciplineViolation, Standpoint::Binding);
     message = "codec error: {}", message;
-}
-
-/// Keep a GTS diagnostic's evidence and native admission cause beneath the codec kind.
-#[derive(Debug)]
-struct PreservedDiagnostic(gmeow_errors::Diag);
-
-impl std::fmt::Display for PreservedDiagnostic {
-    fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        std::fmt::Display::fmt(&self.0, formatter)
-    }
-}
-
-impl std::error::Error for PreservedDiagnostic {
-    fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {
-        self.0
-            .inner()
-            .source
-            .as_deref()
-            .map(|source| source as &dyn std::error::Error)
-    }
 }
 
 /// Preserve the codec presentation while retaining the selected GTS refusal intact.

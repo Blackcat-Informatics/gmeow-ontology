@@ -22,7 +22,7 @@ pub(crate) struct ReasoningInputFailure {
     pub code: &'static str,
     pub operation: &'static str,
     pub identities: Vec<InputIdentity>,
-    pub cause: Arc<crate::error::PreservedDiagnostic>,
+    pub cause: Arc<gmeow_errors::PreservedDiagnostic>,
 }
 
 gmeow_errors::impl_diag_kind! {
@@ -61,7 +61,7 @@ fn refused(
         code,
         operation,
         identities,
-        cause: Arc::new(crate::error::PreservedDiagnostic(cause)),
+        cause: Arc::new(gmeow_errors::PreservedDiagnostic(cause)),
     })
     .with_focus(path.display().to_string())
 }
