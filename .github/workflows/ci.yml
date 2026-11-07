@@ -202,6 +202,7 @@ jobs:
       - name: Measure the complete medium sweep
         id: sweep
         env:
+          GMEOW_ALLOCATOR_OBSERVATIONS: glibc
           GMEOW_LOG: warn,pipeline_phase=info,pipeline_reasoning_detail=info
         run: |
           set -euo pipefail
@@ -422,6 +423,7 @@ jobs:
       # difference between a diagnosable failure and a bare `Killed`.
       - name: Cold-materialize the generated product
         env:
+          GMEOW_ALLOCATOR_OBSERVATIONS: glibc
           GMEOW_LOG: warn,pipeline_phase=info,pipeline_reasoning_detail=info
           SYNC_VERBOSE: "1"
           SYNC_TIMINGS_JSON: dist/sync/update-timings.json
@@ -754,6 +756,7 @@ jobs:
 
       - name: Produce optimized corpus fixtures before any test runner starts
         env:
+          GMEOW_ALLOCATOR_OBSERVATIONS: glibc
           GMEOW_LOG: warn,pipeline_phase=info,pipeline_reasoning_detail=info
         run: >-
           bash .github/scripts/observe-producer.sh fixture-prefix dist/nextest/fixture-resources.log --

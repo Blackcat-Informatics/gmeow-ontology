@@ -866,9 +866,23 @@ fn mcp() -> i32 {
     }
 }
 
+/// Report a selected allocator observation failure through the dev CLI console.
+pub fn report_allocator_observation_failure(error: &std::io::Error) {
+    dev_common::emit_error("gmeow-dev.allocator-observation.failed", error.to_string());
+}
+
 /// Parse the arguments, dispatch to the wired backend, and return the exit code.
 pub fn run() -> i32 {
-    let cli = Cli::parse();
+    let cli = match Cli::try_parse() {
+        Ok(cli) => cli,
+        Err(error) => {
+            let status = error.exit_code();
+            if let Err(print_error) = error.print() {
+                return dev_common::fail(format!("print CLI help or usage error: {print_error}"));
+            }
+            return status;
+        }
+    };
     if dev_producer::requires_admission(&cli.command)
         && let Err(error) = dev_producer::admit()
     {
