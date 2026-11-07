@@ -119,6 +119,16 @@ impl Domain {
         values.next().is_none().then_some(value)
     }
     fn union_intersection(&mut self, left: &Self, right: &Self) -> bool {
+        debug_assert_eq!(
+            self.0.len(),
+            left.0.len(),
+            "shared value-flow universe width"
+        );
+        debug_assert_eq!(
+            self.0.len(),
+            right.0.len(),
+            "shared value-flow universe width"
+        );
         let mut present = false;
         for ((output, left), right) in self.0.iter_mut().zip(&left.0).zip(&right.0) {
             let intersection = left & right;
@@ -262,6 +272,13 @@ struct HeadSupport {
     opposite: AdaptiveDomain,
 }
 
+impl HeadSupport {
+    /// Allocated vector payload, excluding container overhead and process RSS.
+    fn payload_bytes(&self) -> usize {
+        self.predicates.capacity() * std::mem::size_of::<usize>() + self.opposite.payload_bytes()
+    }
+}
+
 /// One support row, shared by every key whose row holds the same content.
 type Row = std::sync::Arc<AdaptiveDomain>;
 
@@ -318,10 +335,7 @@ impl RowTable {
     fn footprint(&self) -> RowTableFootprint {
         let mut result = RowTableFootprint::default();
         for row in &self.rows {
-            let bytes = match row.0.as_ref() {
-                AdaptiveDomain::Dense(domain) => domain.0.capacity() * 8,
-                AdaptiveDomain::Sparse { values, .. } => values.capacity() * 8,
-            };
+            let bytes = row.0.payload_bytes();
             result.rows += 1;
             result.payload_bytes += bytes;
             if Row::strong_count(&row.0) == 1 {
@@ -902,6 +916,14 @@ enum AdaptiveDomain {
 }
 
 impl AdaptiveDomain {
+    /// Allocated backing payload only; sparse indices use the target's usize width.
+    fn payload_bytes(&self) -> usize {
+        match self {
+            Self::Dense(domain) => domain.0.capacity() * std::mem::size_of::<u64>(),
+            Self::Sparse { values, .. } => values.capacity() * std::mem::size_of::<usize>(),
+        }
+    }
+
     fn empty(size: usize) -> Self {
         Self::Sparse {
             size,
@@ -1007,13 +1029,7 @@ impl AdaptiveDomain {
 
     fn intersect_union_into(&self, filter: &Domain, output: &mut Domain) -> bool {
         match self {
-            Self::Dense(domain) => {
-                let mut intersection = domain.clone();
-                intersection.intersect(filter);
-                let present = !intersection.is_empty();
-                output.union(&intersection);
-                present
-            }
+            Self::Dense(domain) => output.union_intersection(domain, filter),
             Self::Sparse { values, .. } => {
                 let mut present = false;
                 for &value in values {
@@ -1167,10 +1183,7 @@ impl RelationSummary {
             if !rectangle[side].overlaps(values) {
                 continue;
             }
-            let mut contribution = rectangle[1 - side].clone();
-            contribution.intersect(filter);
-            if !contribution.is_empty() {
-                output.union(&contribution);
+            if output.union_intersection(&rectangle[1 - side], filter) {
                 present.union_intersection(&rectangle[side], values);
             }
         }
@@ -2765,19 +2778,121 @@ impl ValueFlow {
                 // dynamic readers, so a later fixed-point visit sees support added
                 // by sibling candidates.
                 let partitioned = crate::timing::Instant::now();
+                let trace_large = candidates.len() >= 1_000
+                    && tracing::enabled!(target: "pipeline_reasoning_detail", tracing::Level::INFO);
+                if trace_large {
+                    tracing::info!(
+                        target: "pipeline_reasoning_detail",
+                        phase = "refine-head-classes",
+                        event = "start",
+                        slot,
+                        rule_index,
+                        visit,
+                        producer = rule.name.as_str(),
+                        candidates = candidates.len(),
+                        universe_cells = self.universe.size(),
+                        domain_bytes = self.universe.size().div_ceil(64) * std::mem::size_of::<u64>(),
+                        "native head refinement subphase",
+                    );
+                }
                 let classes = self.value_classes(rule, state, bindings, &candidates);
                 classes_evaluated = classes.len();
                 timings[0] = partitioned.elapsed().as_millis();
+                if trace_large {
+                    tracing::info!(
+                        target: "pipeline_reasoning_detail",
+                        phase = "refine-head-classes",
+                        event = "end",
+                        slot,
+                        rule_index,
+                        visit,
+                        producer = rule.name.as_str(),
+                        candidates = candidates.len(),
+                        classes = classes.len(),
+                        universe_cells = self.universe.size(),
+                        domain_bytes = self.universe.size().div_ceil(64) * std::mem::size_of::<u64>(),
+                        elapsed_ms = timings[0],
+                        "native head refinement subphase",
+                    );
+                    tracing::info!(
+                        target: "pipeline_reasoning_detail",
+                        phase = "refine-head-evaluate",
+                        event = "start",
+                        slot,
+                        rule_index,
+                        visit,
+                        producer = rule.name.as_str(),
+                        classes = classes.len(),
+                        "native head refinement subphase",
+                    );
+                }
                 let evaluated = crate::timing::Instant::now();
                 let mut supports = Vec::with_capacity(classes.len());
-                for batch in classes.chunks(PARALLEL_HEAD_REFINEMENT_CHUNK_SIZE) {
+                let mut retained_support_payload_bytes = 0usize;
+                for (batch_index, batch) in classes
+                    .chunks(PARALLEL_HEAD_REFINEMENT_CHUNK_SIZE)
+                    .enumerate()
+                {
+                    let previous = supports.len();
                     supports.par_extend(batch.par_iter().map(|members| {
                         let refinement = self
                             .bindings_for_head_value(rule, head, slot, members[0], state, bindings);
                         self.head_value_support(head, slot, refinement)
                     }));
+                    if trace_large {
+                        // Count only newly retained results, once per result. This
+                        // diagnostic never scans the row pool or materializes a domain.
+                        retained_support_payload_bytes += supports[previous..]
+                            .iter()
+                            .flatten()
+                            .map(HeadSupport::payload_bytes)
+                            .sum::<usize>();
+                        if (batch_index + 1).is_power_of_two() {
+                            tracing::info!(
+                                target: "pipeline_reasoning_detail",
+                                phase = "refine-head-evaluate",
+                                event = "progress",
+                                slot,
+                                rule_index,
+                                visit,
+                                producer = rule.name.as_str(),
+                                processed_batches = batch_index + 1,
+                                processed_classes = supports.len(),
+                                classes = classes.len(),
+                                retained_support_payload_bytes,
+                                elapsed_ms = evaluated.elapsed().as_millis(),
+                                "native head refinement vector payload excludes overhead and RSS",
+                            );
+                        }
+                    }
                 }
                 timings[1] = evaluated.elapsed().as_millis();
+                if trace_large {
+                    tracing::info!(
+                        target: "pipeline_reasoning_detail",
+                        phase = "refine-head-evaluate",
+                        event = "end",
+                        slot,
+                        rule_index,
+                        visit,
+                        producer = rule.name.as_str(),
+                        classes = classes.len(),
+                        retained_support_payload_bytes,
+                        elapsed_ms = timings[1],
+                        "native head refinement vector payload excludes overhead and RSS",
+                    );
+                    tracing::info!(
+                        target: "pipeline_reasoning_detail",
+                        phase = "refine-head-publish",
+                        event = "start",
+                        slot,
+                        rule_index,
+                        visit,
+                        producer = rule.name.as_str(),
+                        candidates = candidates.len(),
+                        "native head refinement subphase",
+                    );
+                }
                 let published = crate::timing::Instant::now();
                 let mut publications: Vec<(usize, usize)> = classes
                     .iter()
@@ -2807,6 +2922,20 @@ impl ValueFlow {
                     );
                 }
                 timings[2] = published.elapsed().as_millis();
+                if trace_large {
+                    tracing::info!(
+                        target: "pipeline_reasoning_detail",
+                        phase = "refine-head-publish",
+                        event = "end",
+                        slot,
+                        rule_index,
+                        visit,
+                        producer = rule.name.as_str(),
+                        candidates = candidates.len(),
+                        elapsed_ms = timings[2],
+                        "native head refinement subphase",
+                    );
+                }
             } else {
                 for value in candidates.iter().copied() {
                     let refinement =

@@ -201,6 +201,8 @@ jobs:
 
       - name: Measure the complete medium sweep
         id: sweep
+        env:
+          GMEOW_LOG: warn,pipeline_phase=info,pipeline_reasoning_detail=info
         run: |
           set -euo pipefail
           bash .github/scripts/observe-producer.sh medium-sweep dist/medium-sweep/resources.log -- \
