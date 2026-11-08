@@ -14884,3 +14884,507 @@ msgstr "避免反转边、将其附于孤立字面量，或用它将支撑集等
 msgctxt "https://blackcatinformatics.ca/math/hasSupport|https://blackcatinformatics.ca/gmeow/howToUse"
 msgid "Keep the Distribution as subject and the actual DistributionSupport resource as object. Preserve supplied carrier, topology and evidence independently; do not invent an enumeration, a default support, a uniqueness rule or a computed positive-mass test."
 msgstr "保留 Distribution 为主语，实际 DistributionSupport 资源为宾语。独立保留所提供的载体、拓扑及依据；不编造枚举、默认支撑集、唯一性规则或计算所得的正质量测试。"
+
+msgctxt "https://blackcatinformatics.ca/math/Distribution|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Distribution"
+msgstr "分布"
+
+msgctxt "https://blackcatinformatics.ca/math/Distribution|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A probability distribution: a law assigning probabilities over outcomes, named by its family through math:distributionFamily (normal, binomial, Poisson, …) and parameterized. A distribution missing its family is underspecified (math:MissingDistributionParameterization). The canonical declaration guard is triggered by supplied parameters, never by a marker class: a distribution that supplies a math:hasDistributionParameter also names its math:distributionParameterization (the explicit convention fixing which parametric form of its family is meant), and fills each math:DistributionParameterRole that parameterization requires exactly once (math:DistributionParameterRoleCardinality), while a record with no supplied parameters is not rejected by that guard alone. Absence of supplied parameters does not establish mathematical nonparametricity or complete specification of a parametric law. A subclass of math:MathematicalObject; an R rnorm/dbinom/… call lifts to this object with its family and parameterization, distinct from the math:ProbabilityMeasure it induces."
+msgstr "概率分布：对结果赋予概率的规律，通过 math:distributionFamily 指明其分布族（正态、二项、泊松等），并以参数描述。缺少分布族的分布属于欠定（math:MissingDistributionParameterization）。规范声明守卫由所提供的参数触发，绝非由标记类触发：提供 math:hasDistributionParameter 的分布还须指明 math:distributionParameterization，即确定所指分布族参数形式的显式约定，并将该参数化要求的每个 math:DistributionParameterRole 恰好填充一次（math:DistributionParameterRoleCardinality）；而没有提供参数的记录不会仅因该守卫被拒绝。未提供参数不确立数学上的非参数性，也不确立参数分布律已完整指定。它是 math:MathematicalObject 的子类；R rnorm/dbinom/… 调用连同其分布族及参数化可提升为此对象，与其诱导的 math:ProbabilityMeasure 分开。"
+
+msgctxt "https://blackcatinformatics.ca/math/Distribution|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "A distribution describes a probability law, distinct from an evaluated draw, its probability measure, its family and its parameterization. A missing supplied parameter does not classify the law as nonparametric or establish that the record is complete."
+msgstr "分布描述概率律，不同于已求值的抽样结果、其概率测度、分布族及参数化。缺少所提供参数不会将该分布律归类为非参数分布，也不确立记录完整。"
+
+msgctxt "https://blackcatinformatics.ca/math/Distribution|http://www.w3.org/2004/02/skos/core#example"
+msgid "The scene declares ex:rainfallNormal with ex:normalFamily, ex:meanStddevParameterization and the two supplied parameters ex:muParam and ex:sigmaParam. Their declared quantity values are 12.0 and 4.5; these records are not an executed sampler or a proof of a complete consistent rainfall model."
+msgstr "场景声明 ex:rainfallNormal 具有 ex:normalFamily、ex:meanStddevParameterization 及两个所提供参数 ex:muParam 和 ex:sigmaParam。它们声明的量值为 12.0 和 4.5；这些记录不是已执行的采样器，也不是完整且一致降雨模型的证明。"
+
+msgctxt "https://blackcatinformatics.ca/math/Distribution|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for the source law associated with a random variable or probabilistic description, retaining its actual family, convention, parameters, support and evidence."
+msgstr "用于与随机变量或概率描述关联的来源分布律，保留其实际分布族、约定、参数、支撑集及依据。"
+
+msgctxt "https://blackcatinformatics.ca/math/Distribution|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating a family label, one observed result, an empty parameter list or a function-call label as a complete probability law. Do not choose a normal family, convention or independence model by default."
+msgstr "避免将分布族标签、单个观测结果、空参数列表或函数调用标签视为完整概率律。不要默认选择正态分布族、约定或独立性模型。"
+
+msgctxt "https://blackcatinformatics.ca/math/Distribution|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Name the actual distributionFamily. Preserve distributionParameterization and each hasDistributionParameter resource as supplied; the existing declaration guard requires a convention when parameters are supplied, while every selected parametric law still needs its complete explicit specification."
+msgstr "指明实际 distributionFamily。按所提供内容保留 distributionParameterization 和各个 hasDistributionParameter 资源；现有声明守卫在提供参数时要求约定，而每个已选定参数分布律仍需要完整的显式说明。"
+
+msgctxt "https://blackcatinformatics.ca/math/DistributionFamily|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Distribution Family"
+msgstr "分布族"
+
+msgctxt "https://blackcatinformatics.ca/math/DistributionFamily|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A distribution family: the named parametric family a math:Distribution belongs to — normal, binomial, Poisson, gamma, and the rest — carried by math:distributionFamily. A subclass of math:MathematicalObject. A family fixes the functional form but NOT the convention: many families have several conventional parameterizations (mean/stddev vs mean/variance vs mean/precision), so a bare family label does not identify the intended convention. A parametric law requires its explicit convention; the canonical declaration guard requires math:distributionParameterization when math:hasDistributionParameter is supplied. A distribution without a family is ill-formed (math:MissingDistributionParameterization)."
+msgstr "分布族：math:Distribution 所属的具名参数分布族，例如正态、二项、泊松、伽马等，通过 math:distributionFamily 承载。它是 math:MathematicalObject 的子类。分布族确定函数形式，但不确定约定；许多分布族有多种常规参数化，如 mean/stddev、mean/variance 和 mean/precision，因此单独的分布族标签不指明预期约定。参数分布律需要显式约定；当提供 math:hasDistributionParameter 时，规范声明守卫要求 math:distributionParameterization。没有分布族的分布为不良形式（math:MissingDistributionParameterization）。"
+
+msgctxt "https://blackcatinformatics.ca/math/DistributionFamily|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The family identifies a form of probability law, not its parameter values or the convention assigning meaning to them. Naming a family alone neither selects a convention nor proves normalization, support or conformance."
+msgstr "分布族标明概率律的一种形式，而非参数值或赋予参数含义的约定。仅指明分布族既不选择约定，也不证明归一化、支撑集或符合性。"
+
+msgctxt "https://blackcatinformatics.ca/math/DistributionFamily|http://www.w3.org/2004/02/skos/core#example"
+msgid "The scene types ex:normalFamily as DistributionFamily and points to it from ex:rainfallNormal. The separate ex:meanStddevParameterization fixes the supplied mean/stddev convention; it is not inferred from the normal label."
+msgstr "场景将 ex:normalFamily 标注为 DistributionFamily，并从 ex:rainfallNormal 指向它。另行提供的 ex:meanStddevParameterization 确定所提供的 mean/stddev 约定；该约定不是根据正态标签推断的。"
+
+msgctxt "https://blackcatinformatics.ca/math/DistributionFamily|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for a supplied family resource shared by distributions of that family while keeping each law and convention distinct."
+msgstr "用于同族分布共享的已提供分布族资源，同时保持各个分布律及约定分离。"
+
+msgctxt "https://blackcatinformatics.ca/math/DistributionFamily|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid using a numerical parameter, a density value or one realized sample as a family. Absence of parameters is not evidence that a named law is mathematically nonparametric."
+msgstr "避免将数值参数、密度值或单个实现样本用作分布族。参数缺失不是具名分布律在数学上为非参数分布的依据。"
+
+msgctxt "https://blackcatinformatics.ca/math/DistributionFamily|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Keep the family as the object of distributionFamily and retain the separately declared convention and required roles. A family name authorizes no silent parameter defaults, numerical evaluation or conversion between conventions."
+msgstr "保留分布族为 distributionFamily 的宾语，并保留另行声明的约定及必需角色。分布族名称不授权隐含参数默认值、数值求值或约定之间的转换。"
+
+msgctxt "https://blackcatinformatics.ca/math/distributionFamily|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "distribution family"
+msgstr "分布族"
+
+msgctxt "https://blackcatinformatics.ca/math/distributionFamily|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Relates a math:Distribution to the family it belongs to — normal, binomial, Poisson, and the rest. Domain math:Distribution, range the distribution family (stated in prose). A distribution names its family; missing the family it is underspecified. A parametric law also declares its parameterization; the canonical declaration guard is triggered by supplied math:hasDistributionParameter links, whose absence does not prove nonparametricity or completeness."
+msgstr "将 math:Distribution 关联到其所属分布族，例如正态、二项、泊松等。定义域为 math:Distribution，值域为分布族（以文字说明）。分布指明其分布族；缺少分布族即属欠定。参数分布律还声明其参数化；规范声明守卫由所提供的 math:hasDistributionParameter 链接触发，缺少这些链接既不证明非参数性，也不证明完整性。"
+
+msgctxt "https://blackcatinformatics.ca/math/distributionFamily|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The direction is Distribution to its declared family resource. The existing family requirement is independent of the supplied-parameter trigger for a convention; neither edge computes the law."
+msgstr "方向为 Distribution 指向其已声明分布族资源。现有分布族要求独立于约定的所提供参数触发条件；两种边都不计算分布律。"
+
+msgctxt "https://blackcatinformatics.ca/math/distributionFamily|http://www.w3.org/2004/02/skos/core#example"
+msgid "The scene asserts ex:rainfallNormal distributionFamily ex:normalFamily and separately names ex:meanStddevParameterization. The family link does not encode the supplied mean and standard deviation."
+msgstr "场景断言 ex:rainfallNormal distributionFamily ex:normalFamily，并另行指明 ex:meanStddevParameterization。分布族链接不编码所提供的均值和标准差。"
+
+msgctxt "https://blackcatinformatics.ca/math/distributionFamily|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when a source identifies the family of a distribution, preserving the actual family resource."
+msgstr "当来源指明分布所属分布族时使用，保留实际分布族资源。"
+
+msgctxt "https://blackcatinformatics.ca/math/distributionFamily|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid reversing the relation, pointing it at a bare family-name literal or using it to infer a convention, default parameters or a preferred law."
+msgstr "避免反转关系、将其指向孤立的分布族名称字面量，或用它推断约定、默认参数或优先分布律。"
+
+msgctxt "https://blackcatinformatics.ca/math/distributionFamily|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Link the distribution to its supplied DistributionFamily. Retain its actual distributionParameterization and parameter resources separately; do not substitute the family for a missing convention or treat an untriggered guard as complete conformance."
+msgstr "将分布链接到所提供的 DistributionFamily。另行保留实际 distributionParameterization 及参数资源；不要以分布族替代缺失约定，也不要将未触发守卫视为完全符合要求。"
+
+msgctxt "https://blackcatinformatics.ca/math/DistributionParameterization|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Distribution Parameterization"
+msgstr "分布参数化"
+
+msgctxt "https://blackcatinformatics.ca/math/DistributionParameterization|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A distribution parameterization: the explicit, mandatory convention that fixes WHICH parametric form of a family is meant, declaring the roles it requires through math:requiresParameterRole (e.g. a normal mean/stddev parameterization requires a mean role and a stddev role). A subclass of math:MathematicalObject. Roles are SCOPED by the parameterization, so 'scale' cannot silently mean standard deviation in one family and rate in another. Linking two parameterization conventions of the same family (mean/variance to mean/stddev) is a DECLARED transform — a math:MathematicalExpression such as σ = √(σ²) — never a string relabel; a silent default parameterization is forbidden (math:MissingDistributionParameterization)."
+msgstr "分布参数化：显式且必需的约定，确定所指的是分布族的哪一种参数形式，通过 math:requiresParameterRole 声明其必需角色，例如正态分布的 mean/stddev 参数化要求均值角色及标准差角色。它是 math:MathematicalObject 的子类。角色的作用域由参数化限定，因此 'scale' 不能暗中在一个分布族中表示标准差，在另一个分布族中表示速率。将同族的两种参数化约定关联起来，如从 mean/variance 到 mean/stddev，是已声明的变换，即 σ = √(σ²) 之类的 math:MathematicalExpression，绝非字符串重标；禁止隐含默认参数化（math:MissingDistributionParameterization）。"
+
+msgctxt "https://blackcatinformatics.ca/math/DistributionParameterization|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "A parameterization fixes the meaning and required roles of parameters within a family, such as mean/stddev versus mean/variance. A declaration of a convention or transform is not execution or a proof that two parameterized laws agree."
+msgstr "参数化确定分布族内参数的含义及必需角色，例如 mean/stddev 与 mean/variance 的区别。声明约定或变换不是执行，也不证明两个已参数化分布律一致。"
+
+msgctxt "https://blackcatinformatics.ca/math/DistributionParameterization|http://www.w3.org/2004/02/skos/core#example"
+msgid "The scene declares ex:meanStddevParameterization with requiresParameterRole ex:meanRole and ex:stddevRole. The distribution supplies ex:muParam and ex:sigmaParam through hasDistributionParameter; no variance-to-stddev expression is supplied there."
+msgstr "场景声明 ex:meanStddevParameterization 具有 requiresParameterRole ex:meanRole 和 ex:stddevRole。分布通过 hasDistributionParameter 提供 ex:muParam 和 ex:sigmaParam；其中没有提供方差到标准差的表达式。"
+
+msgctxt "https://blackcatinformatics.ca/math/DistributionParameterization|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for an explicitly supplied convention that distinguishes the roles and representation of a family's parameters."
+msgstr "用于显式提供的约定，以区分分布族参数的角色及表示。"
+
+msgctxt "https://blackcatinformatics.ca/math/DistributionParameterization|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating a family label, the word scale or a reordered list of numbers as a complete convention. Do not silently reinterpret variance as standard deviation or a rate as a scale."
+msgstr "避免将分布族标签、scale 一词或重新排序的数字列表视为完整约定。不要暗中将方差重新解释为标准差，或将速率重新解释为尺度。"
+
+msgctxt "https://blackcatinformatics.ca/math/DistributionParameterization|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Name the convention through distributionParameterization, retain its requiresParameterRole declarations and each role's actual roleWithinParameterization. Preserve a separately supplied reparameterization expression and evidence; a descriptive formula or label does not supply an AST or evaluated conversion."
+msgstr "通过 distributionParameterization 指明约定，保留其 requiresParameterRole 声明及各角色实际的 roleWithinParameterization。保留另行提供的重参数化表达式及依据；描述性公式或标签不提供 AST 或已求值转换。"
+
+msgctxt "https://blackcatinformatics.ca/math/distributionParameterization|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "distribution parameterization"
+msgstr "分布参数化"
+
+msgctxt "https://blackcatinformatics.ca/math/distributionParameterization|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Relates a math:Distribution to the math:DistributionParameterization it uses — the explicit convention fixing which parametric form of its family is meant. Domain math:Distribution, range math:DistributionParameterization (stated in prose). Mandatory for a parametric distribution: a parametric distribution without a parameterization is ill-formed (math:MissingDistributionParameterization), and a silent default is forbidden. Linking one parameterization convention to another of the same family is a declared math:MathematicalExpression transform, never a string relabel."
+msgstr "将 math:Distribution 关联到其使用的 math:DistributionParameterization，即确定所指分布族参数形式的显式约定。定义域为 math:Distribution，值域为 math:DistributionParameterization（以文字说明）。参数分布必须具备此项：没有参数化的参数分布为不良形式（math:MissingDistributionParameterization），且禁止隐含默认值。将同族的一种参数化约定关联到另一种，是已声明的 math:MathematicalExpression 变换，绝非字符串重标。"
+
+msgctxt "https://blackcatinformatics.ca/math/distributionParameterization|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The relation records the convention selected for a distribution. The canonical declaration guard is activated by supplied hasDistributionParameter links; absence of those links proves neither nonparametricity nor completeness."
+msgstr "此关系记录为分布选定的约定。规范声明守卫由所提供的 hasDistributionParameter 链接激活；缺少这些链接既不证明非参数性，也不证明完整性。"
+
+msgctxt "https://blackcatinformatics.ca/math/distributionParameterization|http://www.w3.org/2004/02/skos/core#example"
+msgid "The scene asserts ex:rainfallNormal distributionParameterization ex:meanStddevParameterization and supplies parameters filling its two declared roles. The edge itself contains no parameter values or conversion instructions."
+msgstr "场景断言 ex:rainfallNormal distributionParameterization ex:meanStddevParameterization，并提供填充其两个已声明角色的参数。边本身不包含参数值或转换指令。"
+
+msgctxt "https://blackcatinformatics.ca/math/distributionParameterization|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to identify the actual convention under which a distribution's supplied parameters are interpreted."
+msgstr "用于指明解释分布所提供参数时采用的实际约定。"
+
+msgctxt "https://blackcatinformatics.ca/math/distributionParameterization|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid choosing a convention from the family name, numeric order or an unqualified scale label. Do not replace a required convention with a silent default or claim that a link executes reparameterization."
+msgstr "避免根据分布族名称、数字顺序或无限定的 scale 标签选择约定。不要以隐含默认值替代必需约定，也不要声称链接执行重参数化。"
+
+msgctxt "https://blackcatinformatics.ca/math/distributionParameterization|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Keep the Distribution as subject and its supplied DistributionParameterization as object. Retain required-role declarations and actual supplied parameters separately; a selected parametric law remains answerable for its complete convention even when a particular guard is not triggered."
+msgstr "保留 Distribution 为主语，所提供的 DistributionParameterization 为宾语。另行保留必需角色声明及实际提供的参数；即使某个守卫未触发，已选定参数分布律仍须满足其完整约定义务。"
+
+msgctxt "https://blackcatinformatics.ca/math/DistributionParameter|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Distribution Parameter"
+msgstr "分布参数"
+
+msgctxt "https://blackcatinformatics.ca/math/DistributionParameter|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A distribution parameter: one supplied parameter of a math:Distribution, carrying its role in the parameterization (math:parameterRole, a math:DistributionParameterRole) and its value as EITHER a numeric quantity (math:parameterQuantity, a math:Quantity) OR a symbolic expression (math:parameterExpression, a math:MathematicalExpression). A subclass of math:MathematicalObject. The earlier single overloaded parameterValue property is REMOVED (greenfield): the role, the numeric value, and the symbolic value are three distinct properties, never one. Each required role is supplied by exactly one parameter (math:DistributionParameterRoleCardinality otherwise), whose quantity satisfies the role's positivity and dimension constraints (math:DistributionParameterConstraint otherwise)."
+msgstr "分布参数：math:Distribution 的一个已提供参数，承载其在参数化中的角色（math:parameterRole，math:DistributionParameterRole）及其值；值为数值量（math:parameterQuantity，math:Quantity）或符号表达式（math:parameterExpression，math:MathematicalExpression），二者择一。它是 math:MathematicalObject 的子类。早先单个重载的 parameterValue 属性已移除，采用全新设计；角色、数值及符号值是三个不同属性，绝不是一个。每个必需角色由恰好一个参数提供，否则为 math:DistributionParameterRoleCardinality；其量满足角色的正值及量纲约束，否则为 math:DistributionParameterConstraint。"
+
+msgctxt "https://blackcatinformatics.ca/math/DistributionParameter|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "A parameter is the role-bearing object, distinct from its numeric quantity or symbolic expression. Its intended contract selects a numeric or symbolic carrier; carrying a link or type does not itself evaluate a formula or certify all role and value obligations."
+msgstr "参数是承载角色的对象，不同于其数值量或符号表达式。其预期约定选择数值载体或符号载体；具有链接或类型本身不对公式求值，也不证明全部角色和值义务。"
+
+msgctxt "https://blackcatinformatics.ca/math/DistributionParameter|http://www.w3.org/2004/02/skos/core#example"
+msgid "The scene records ex:muParam with parameterRole ex:meanRole and parameterQuantity ex:muQuantity, and ex:sigmaParam with ex:stddevRole and ex:sigmaQuantity. The quantities carry 12.0 and 4.5 separately from those role-bearing parameter objects."
+msgstr "场景为 ex:muParam 记录 parameterRole ex:meanRole 和 parameterQuantity ex:muQuantity，并为 ex:sigmaParam 记录 ex:stddevRole 和 ex:sigmaQuantity。量分别承载 12.0 和 4.5，与这些承载角色的参数对象分开。"
+
+msgctxt "https://blackcatinformatics.ca/math/DistributionParameter|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for a supplied parameter whose role and numeric or symbolic value carrier must remain identifiable within a convention."
+msgstr "用于所提供的参数，其角色及数值或符号值载体必须在约定内保持可辨识。"
+
+msgctxt "https://blackcatinformatics.ca/math/DistributionParameter|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid replacing the parameter object with a bare literal or treating equal numeric magnitudes as identity of parameters. Do not claim that an unevaluated symbolic carrier has passed numerical positivity or dimension checks."
+msgstr "避免以孤立字面量替代参数对象，或将数值相等视为参数身份相同。不要声称未求值的符号载体已通过数值正值或量纲检查。"
+
+msgctxt "https://blackcatinformatics.ca/math/DistributionParameter|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain parameterRole and the selected parameterQuantity or parameterExpression carrier, respecting the intended exclusive-carrier contract. Keep role scope, dimensions, exactness and evaluation evidence where supplied; missing evidence or an unreadable carrier is not a certificate of conformance."
+msgstr "保留 parameterRole 及所选 parameterQuantity 或 parameterExpression 载体，遵循预期的互斥载体约定。保留所提供的角色作用域、量纲、精确性及求值依据；依据缺失或载体不可读不是符合性证书。"
+
+msgctxt "https://blackcatinformatics.ca/math/hasDistributionParameter|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "has distribution parameter"
+msgstr "具有分布参数"
+
+msgctxt "https://blackcatinformatics.ca/math/hasDistributionParameter|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Relates a math:Distribution to one of its supplied math:DistributionParameter objects. Domain math:Distribution, range math:DistributionParameter (stated in prose). A distribution supplies each role required by its parameterization exactly once (math:DistributionParameterRoleCardinality otherwise)."
+msgstr "将 math:Distribution 关联到其已提供的某个 math:DistributionParameter 对象。定义域为 math:Distribution，值域为 math:DistributionParameter（以文字说明）。分布将其参数化要求的每个角色恰好提供一次，否则为 math:DistributionParameterRoleCardinality。"
+
+msgctxt "https://blackcatinformatics.ca/math/hasDistributionParameter|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This links a distribution to its supplied parameter objects. Required-role coverage is assessed through the distribution's declared convention and each parameter's parameterRole, rather than by counting all parameters or comparing their numeric values."
+msgstr "此关系将分布链接到其所提供的参数对象。通过分布已声明约定及各参数的 parameterRole 评估必需角色覆盖，而非统计全部参数或比较其数值。"
+
+msgctxt "https://blackcatinformatics.ca/math/hasDistributionParameter|http://www.w3.org/2004/02/skos/core#example"
+msgid "The scene links ex:rainfallNormal to ex:muParam and ex:sigmaParam; their roles are ex:meanRole and ex:stddevRole under ex:meanStddevParameterization. Repeating an identical RDF assertion does not create a second parameter resource."
+msgstr "场景将 ex:rainfallNormal 链接到 ex:muParam 和 ex:sigmaParam；其角色是 ex:meanStddevParameterization 下的 ex:meanRole 和 ex:stddevRole。重复同一 RDF 断言不会创建第二个参数资源。"
+
+msgctxt "https://blackcatinformatics.ca/math/hasDistributionParameter|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain every parameter resource actually supplied for a distribution and its selected convention."
+msgstr "用于保留为分布及其所选约定实际提供的每个参数资源。"
+
+msgctxt "https://blackcatinformatics.ca/math/hasDistributionParameter|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid pointing directly to a quantity, expression or literal, merging distinct parameters because their magnitudes agree, or treating an absent parameter list as proof of a complete law."
+msgstr "避免直接指向量、表达式或字面量、因数值相等而合并不同参数，或将参数列表缺失视为完整分布律的证明。"
+
+msgctxt "https://blackcatinformatics.ca/math/hasDistributionParameter|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Keep the distribution as subject and each supplied DistributionParameter as object. Follow its convention's requiresParameterRole and the parameters' parameterRole links; the required-role laws do not impose a global maximum on all parameter resources or decide the status of every extra role."
+msgstr "保留分布为主语，各个所提供的 DistributionParameter 为宾语。沿其约定的 requiresParameterRole 及参数的 parameterRole 链接追踪；必需角色定律不对全部参数资源施加全局上限，也不判定每个额外角色的状态。"
+
+msgctxt "https://blackcatinformatics.ca/math/DistributionParameterRole|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Distribution Parameter Role"
+msgstr "分布参数角色"
+
+msgctxt "https://blackcatinformatics.ca/math/DistributionParameterRole|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A distribution parameter role: the SCOPED slot a parameter fills within a parameterization — the mean role, the stddev role, the rate role — named as a first-class object so 'scale' cannot silently mean different things across families. A subclass of math:MathematicalObject. It declares the parameterization it belongs to (math:roleWithinParameterization), whether its parameter's value must be positive (math:requiresPositiveValue, a boolean), and the dimension its parameter's quantity must carry (math:quantityDimension) — so a variance role carrying squared units and a correlation role being dimensionless are stated, not assumed, and a mis-dimensioned parameter is caught (math:DistributionParameterConstraint)."
+msgstr "分布参数角色：参数在参数化内填充的有作用域槽位，例如均值角色、标准差角色或速率角色；它被指明为一等对象，使 'scale' 不能在不同分布族间暗中表示不同含义。它是 math:MathematicalObject 的子类。它声明所属参数化（math:roleWithinParameterization）、其参数值是否必须为正（math:requiresPositiveValue，布尔值）及参数量必须具有的量纲（math:quantityDimension）；因此，方差角色具有平方单位、相关系数角色无量纲等要求是已声明的，而非假定，参数量纲错误会被检测（math:DistributionParameterConstraint）。"
+
+msgctxt "https://blackcatinformatics.ca/math/DistributionParameterRole|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "A role gives a parameter meaning within a convention, separate from the parameter instance and its value. Positivity and dimension declarations belong to that role; their presence does not supply an absent value, dimension vector or evaluation result."
+msgstr "角色在约定内赋予参数含义，与参数实例及其值分开。正值及量纲声明属于该角色；声明存在不提供缺失值、量纲向量或求值结果。"
+
+msgctxt "https://blackcatinformatics.ca/math/DistributionParameterRole|http://www.w3.org/2004/02/skos/core#example"
+msgid "The scene gives ex:meanRole and ex:stddevRole the same roleWithinParameterization ex:meanStddevParameterization. Only ex:stddevRole declares requiresPositiveValue true there; neither scene role supplies a quantityDimension declaration."
+msgstr "场景为 ex:meanRole 和 ex:stddevRole 给出相同的 roleWithinParameterization ex:meanStddevParameterization。其中只有 ex:stddevRole 声明 requiresPositiveValue true；两个场景角色均未提供 quantityDimension 声明。"
+
+msgctxt "https://blackcatinformatics.ca/math/DistributionParameterRole|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for the actual scoped slot that distinguishes mean, standard deviation, variance, rate, precision or another parameter meaning."
+msgstr "用于区分均值、标准差、方差、速率、精度或其他参数含义的实际作用域槽位。"
+
+msgctxt "https://blackcatinformatics.ca/math/DistributionParameterRole|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring positivity, dimension or global interchangeability from the word scale. Do not invent a quantityDimension edge from a human-readable unit label."
+msgstr "避免根据 scale 一词推断正值要求、量纲或全局可互换性。不要根据人类可读单位标签编造 quantityDimension 边。"
+
+msgctxt "https://blackcatinformatics.ca/math/DistributionParameterRole|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain roleWithinParameterization and any actual requiresPositiveValue and quantityDimension declarations. Keep each parameterRole association and required-role declaration separate; type and labels alone neither enforce scope coherence nor establish every value obligation."
+msgstr "保留 roleWithinParameterization 及实际的 requiresPositiveValue 和 quantityDimension 声明。保持各项 parameterRole 关联与必需角色声明分开；仅有类型及标签既不强制作用域一致性，也不确立每项值义务。"
+
+msgctxt "https://blackcatinformatics.ca/math/parameterRole|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "parameter role"
+msgstr "参数角色"
+
+msgctxt "https://blackcatinformatics.ca/math/parameterRole|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Relates a math:DistributionParameter to the math:DistributionParameterRole it fills within its distribution's parameterization. Domain math:DistributionParameter, range math:DistributionParameterRole (stated in prose). The role is scoped by the parameterization, so the same parameter object never silently means different things across families."
+msgstr "将 math:DistributionParameter 关联到其在分布参数化内填充的 math:DistributionParameterRole。定义域为 math:DistributionParameter，值域为 math:DistributionParameterRole（以文字说明）。角色的作用域由参数化限定，因此同一参数对象绝不在不同分布族间暗中改变含义。"
+
+msgctxt "https://blackcatinformatics.ca/math/parameterRole|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The direction is parameter object to the role it fills, not to a value or a family. The role's convention and required-role membership remain separate declarations; the edge alone does not establish global uniqueness or complete scope consistency."
+msgstr "方向为参数对象指向所填充角色，而非指向值或分布族。角色的约定及必需角色归属仍是单独声明；边本身不确立全局唯一性或完整作用域一致性。"
+
+msgctxt "https://blackcatinformatics.ca/math/parameterRole|http://www.w3.org/2004/02/skos/core#example"
+msgid "The scene asserts ex:muParam parameterRole ex:meanRole and ex:sigmaParam parameterRole ex:stddevRole. Their parameterQuantity links identify separate value resources, and their roleWithinParameterization links remain on the role objects."
+msgstr "场景断言 ex:muParam parameterRole ex:meanRole 和 ex:sigmaParam parameterRole ex:stddevRole。其 parameterQuantity 链接指明单独的值资源，而 roleWithinParameterization 链接仍保留在角色对象上。"
+
+msgctxt "https://blackcatinformatics.ca/math/parameterRole|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when a source supplies the role under which a particular distribution parameter is interpreted."
+msgstr "当来源提供用于解释特定分布参数的角色时使用。"
+
+msgctxt "https://blackcatinformatics.ca/math/parameterRole|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid using a numeric quantity or a generic string as the role resource, reversing the edge or assuming the first encountered role is the only supplied one."
+msgstr "避免用数值量或一般字符串作为角色资源、反转边，或假定首先遇到的角色是唯一提供的角色。"
+
+msgctxt "https://blackcatinformatics.ca/math/parameterRole|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Keep the DistributionParameter as subject and the actual DistributionParameterRole as object. Preserve the role's convention, required-role membership and declared value constraints without manufacturing a global one-role rule or discarding coexisting source associations."
+msgstr "保留 DistributionParameter 为主语，实际 DistributionParameterRole 为宾语。保留角色的约定、必需角色归属及已声明值约束，不编造全局单角色规则，也不丢弃并存来源关联。"
+
+msgctxt "https://blackcatinformatics.ca/math/parameterQuantity|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "parameter quantity"
+msgstr "参数量"
+
+msgctxt "https://blackcatinformatics.ca/math/parameterQuantity|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Relates a math:DistributionParameter to its numeric value as a dimensioned quantity. Domain math:DistributionParameter, range math:Quantity (stated in prose). One of the two mutually exclusive value carriers of a parameter (the other being math:parameterExpression for a symbolic value); it replaces the removed overloaded parameterValue property, and its quantity must satisfy the role's positivity and dimension constraints (math:DistributionParameterConstraint otherwise)."
+msgstr "将 math:DistributionParameter 关联到作为带量纲的量的数值。定义域为 math:DistributionParameter，值域为 math:Quantity（以文字说明）。它是参数的两个互斥值载体之一，另一个是用于符号值的 math:parameterExpression；它替代已移除的重载 parameterValue 属性，其量必须满足角色的正值及量纲约束，否则为 math:DistributionParameterConstraint。"
+
+msgctxt "https://blackcatinformatics.ca/math/parameterQuantity|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This selects the numeric quantity carrier, distinct from the parameter's role and the symbolic expression carrier. Quantity dimension and exact or approximate magnitude metadata remain part of the supplied value description, not facts inferred from a label."
+msgstr "此关系选择数值量载体，与参数角色及符号表达式载体分开。量的量纲及精确或近似数值元数据仍属于所提供的值描述，而非根据标签推断的事实。"
+
+msgctxt "https://blackcatinformatics.ca/math/parameterQuantity|http://www.w3.org/2004/02/skos/core#example"
+msgid "The scene asserts ex:sigmaParam parameterQuantity ex:sigmaQuantity, whose quantityValue is the decimal 4.5. The label mentioning millimetres is not a structured unit or quantityDimension declaration; preserve only the actual source edges."
+msgstr "场景断言 ex:sigmaParam parameterQuantity ex:sigmaQuantity，其 quantityValue 为十进制 4.5。提及毫米的标签不是结构化单位或 quantityDimension 声明；仅保留实际来源边。"
+
+msgctxt "https://blackcatinformatics.ca/math/parameterQuantity|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for a parameter supplied as a numeric Quantity with its actual magnitude and dimensional evidence."
+msgstr "用于以数值 Quantity 提供的参数，连同其实际数值及量纲依据。"
+
+msgctxt "https://blackcatinformatics.ca/math/parameterQuantity|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid using a bare numeric literal as the quantity resource, silently converting a symbolic expression to a number, or assuming a missing or unreadable magnitude satisfies a declared positive-value requirement."
+msgstr "避免以孤立数值字面量作为量资源、暗中将符号表达式转换为数字，或假定缺失或不可读数值满足已声明正值要求。"
+
+msgctxt "https://blackcatinformatics.ca/math/parameterQuantity|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Keep the parameter as subject and the numeric Quantity as object, respecting the intended alternative to parameterExpression. Retain actual quantityValue, hasDimension, unit, frame and exactness information where supplied; declared positivity and dimension obligations still require evidence."
+msgstr "保留参数为主语，数值 Quantity 为宾语，遵循其与 parameterExpression 的预期备选关系。保留实际提供的 quantityValue、hasDimension、单位、参考系及精确性信息；已声明正值及量纲义务仍需要依据。"
+
+msgctxt "https://blackcatinformatics.ca/math/parameterExpression|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "parameter expression"
+msgstr "参数表达式"
+
+msgctxt "https://blackcatinformatics.ca/math/parameterExpression|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Relates a math:DistributionParameter to its value as a symbolic expression — a math:MathematicalExpression AST for a parameter given by a formula (a hierarchical prior's hyperparameter, a reparameterization σ = √(σ²)). Domain math:DistributionParameter, range math:MathematicalExpression (stated in prose). The symbolic counterpart of math:parameterQuantity; a reparameterization is carried here as a declared transform, never a string relabel."
+msgstr "将 math:DistributionParameter 关联到作为符号表达式的值，即以公式给出的参数所用的 math:MathematicalExpression AST，例如层次先验的超参数或重参数化 σ = √(σ²)。定义域为 math:DistributionParameter，值域为 math:MathematicalExpression（以文字说明）。它是 math:parameterQuantity 的符号对应项；重参数化在此作为已声明变换承载，绝非字符串重标。"
+
+msgctxt "https://blackcatinformatics.ca/math/parameterExpression|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This selects a symbolic MathematicalExpression carrier rather than a numeric parameter quantity. An expression description, an AST and evidence of evaluating that AST are distinct; naming one does not manufacture the others."
+msgstr "此关系选择符号 MathematicalExpression 载体，而非数值参数量。表达式描述、AST 及对该 AST 求值的依据彼此不同；指明其中之一不会制造另外两者。"
+
+msgctxt "https://blackcatinformatics.ca/math/parameterExpression|http://www.w3.org/2004/02/skos/core#example"
+msgid "As a hypothetical illustration, a symbolic standard-deviation parameter may name a separately supplied MathematicalExpression for the square root of variance. The existing rainfall scene supplies only numeric parameterQuantity carriers and contains no such expression or evaluated conversion."
+msgstr "作为假想示意，符号标准差参数可指明另行提供的 MathematicalExpression，表示方差的平方根。现有降雨场景仅提供数值 parameterQuantity 载体，不含此类表达式或已求值转换。"
+
+msgctxt "https://blackcatinformatics.ca/math/parameterExpression|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the source provides the parameter's value as a genuine symbolic expression with its declared structure."
+msgstr "当来源以具有已声明结构的真正符号表达式提供参数值时使用。"
+
+msgctxt "https://blackcatinformatics.ca/math/parameterExpression|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid substituting a formula label or an unevaluated string for the supplied expression structure, or asserting that symbolic parameters have passed numerical validation without evaluation evidence."
+msgstr "避免以公式标签或未求值字符串替代所提供的表达式结构，也不要在没有求值依据时断言符号参数已通过数值验证。"
+
+msgctxt "https://blackcatinformatics.ca/math/parameterExpression|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Keep the parameter as subject and the supplied MathematicalExpression resource as object. Preserve its actual AST, scope and evaluation evidence separately while respecting the intended numeric-or-symbolic carrier choice; do not invent a default value or execute a conversion by relabelling."
+msgstr "保留参数为主语，所提供的 MathematicalExpression 资源为宾语。另行保留其实际 AST、作用域及求值依据，同时遵循预期的数值或符号载体选择；不编造默认值，也不通过重新标注执行转换。"
+
+msgctxt "https://blackcatinformatics.ca/math/requiresParameterRole|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "requires parameter role"
+msgstr "要求参数角色"
+
+msgctxt "https://blackcatinformatics.ca/math/requiresParameterRole|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Relates a math:DistributionParameterization to a math:DistributionParameterRole it requires — the roles a conforming distribution must supply exactly once each. Domain math:DistributionParameterization, range math:DistributionParameterRole (stated in prose). A distribution that fails to supply a required role exactly once is ill-formed (math:DistributionParameterRoleCardinality)."
+msgstr "将 math:DistributionParameterization 关联到其要求的 math:DistributionParameterRole，即符合要求的分布必须各提供恰好一次的角色。定义域为 math:DistributionParameterization，值域为 math:DistributionParameterRole（以文字说明）。未将必需角色恰好提供一次的分布为不良形式（math:DistributionParameterRoleCardinality）。"
+
+msgctxt "https://blackcatinformatics.ca/math/requiresParameterRole|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The direction is convention to required role. The canonical required-role laws detect a required role with no supplying parameter or with two distinct supplying parameters; they do not close every possible extra role or prove all role-scoping and value conditions."
+msgstr "方向为约定指向必需角色。规范的必需角色定律检测未被任何参数填充或被两个不同参数填充的必需角色；这些定律不封闭所有可能的额外角色，也不证明全部角色作用域及值条件。"
+
+msgctxt "https://blackcatinformatics.ca/math/requiresParameterRole|http://www.w3.org/2004/02/skos/core#example"
+msgid "The scene has ex:meanStddevParameterization requiresParameterRole ex:meanRole and ex:stddevRole. Its ex:rainfallNormal supplies the corresponding ex:muParam and ex:sigmaParam objects; a bare role label would not establish those links."
+msgstr "场景具有 ex:meanStddevParameterization requiresParameterRole ex:meanRole 和 ex:stddevRole。其 ex:rainfallNormal 提供对应的 ex:muParam 和 ex:sigmaParam 对象；孤立角色标签不能确立这些链接。"
+
+msgctxt "https://blackcatinformatics.ca/math/requiresParameterRole|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain each role explicitly required by a supplied parameterization."
+msgstr "用于保留所提供参数化明确要求的每个角色。"
+
+msgctxt "https://blackcatinformatics.ca/math/requiresParameterRole|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid attaching this edge to a parameter instance, inferring required roles solely from a family name, or treating an empty declared requirement set as proof that a mathematical law needs no parameters."
+msgstr "避免将此边附于参数实例、仅根据分布族名称推断必需角色，或将空的已声明要求集合视为数学分布律不需要参数的证明。"
+
+msgctxt "https://blackcatinformatics.ca/math/requiresParameterRole|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Keep the DistributionParameterization as subject and each required DistributionParameterRole as object. Trace actual hasDistributionParameter and parameterRole links for each required role; two distinct parameter resources count separately even when their numeric magnitudes agree."
+msgstr "保留 DistributionParameterization 为主语，每个必需 DistributionParameterRole 为宾语。对各必需角色追踪实际 hasDistributionParameter 和 parameterRole 链接；两个不同参数资源分别计数，即使其数值相等。"
+
+msgctxt "https://blackcatinformatics.ca/math/roleWithinParameterization|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "role within parameterization"
+msgstr "角色所属参数化"
+
+msgctxt "https://blackcatinformatics.ca/math/roleWithinParameterization|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Relates a math:DistributionParameterRole to the math:DistributionParameterization that scopes it. Domain math:DistributionParameterRole, range math:DistributionParameterization (stated in prose). The scoping edge that makes a role's meaning local to its parameterization rather than global."
+msgstr "将 math:DistributionParameterRole 关联到限定其作用域的 math:DistributionParameterization。定义域为 math:DistributionParameterRole，值域为 math:DistributionParameterization（以文字说明）。该作用域边使角色含义局限于其参数化，而非全局。"
+
+msgctxt "https://blackcatinformatics.ca/math/roleWithinParameterization|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This names the convention that scopes a role's meaning. It is distinct from requiresParameterRole, which declares that the convention requires the role; one direction does not automatically supply the other."
+msgstr "此关系指明限定角色含义作用域的约定。它不同于 requiresParameterRole，后者声明约定要求该角色；一个方向不会自动提供另一个方向。"
+
+msgctxt "https://blackcatinformatics.ca/math/roleWithinParameterization|http://www.w3.org/2004/02/skos/core#example"
+msgid "The scene asserts ex:stddevRole roleWithinParameterization ex:meanStddevParameterization and separately asserts that the convention requires ex:stddevRole. These two edges record different aspects of the role."
+msgstr "场景断言 ex:stddevRole roleWithinParameterization ex:meanStddevParameterization，并另行断言该约定要求 ex:stddevRole。这两条边记录角色的不同方面。"
+
+msgctxt "https://blackcatinformatics.ca/math/roleWithinParameterization|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when a source identifies the convention within which a parameter role is defined."
+msgstr "当来源指明定义某参数角色的约定时使用。"
+
+msgctxt "https://blackcatinformatics.ca/math/roleWithinParameterization|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating a role name as globally meaningful across conventions, reversing the direction or deriving an unasserted required-role edge solely from the scoping edge."
+msgstr "避免将角色名称视为跨约定的全局含义、反转方向，或仅根据作用域边推导未断言的必需角色边。"
+
+msgctxt "https://blackcatinformatics.ca/math/roleWithinParameterization|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Keep the DistributionParameterRole as subject and its actual DistributionParameterization as object. Preserve required-role membership and parameter instances independently; the scoping link alone does not prove complete bidirectional consistency or impose a single-owner rule."
+msgstr "保留 DistributionParameterRole 为主语，其实际 DistributionParameterization 为宾语。独立保留必需角色归属及参数实例；仅有作用域链接不证明完整的双向一致性，也不施加单一归属者规则。"
+
+msgctxt "https://blackcatinformatics.ca/math/requiresPositiveValue|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "requires positive value"
+msgstr "要求正值"
+
+msgctxt "https://blackcatinformatics.ca/math/requiresPositiveValue|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Declares whether the parameter filling a role must be strictly positive — true for a standard-deviation, variance, rate, or precision role. Domain math:DistributionParameterRole, range xsd:boolean (stated in prose). A parameter whose quantity violates its role's declared positivity is ill-formed (math:DistributionParameterConstraint)."
+msgstr "声明填充角色的参数是否必须严格为正；对于标准差、方差、速率或精度角色为 true。定义域为 math:DistributionParameterRole，值域为 xsd:boolean（以文字说明）。参数量违反其角色已声明正值要求时为不良形式（math:DistributionParameterConstraint）。"
+
+msgctxt "https://blackcatinformatics.ca/math/requiresPositiveValue|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This is a declared boolean condition on a role: true requires strictly positive magnitude, not merely nonnegative magnitude. A false declaration does not supply a value or prove that the parameter satisfies its other mathematical obligations."
+msgstr "这是角色上已声明的布尔条件：true 要求数值严格大于零，而非仅为非负。false 声明不提供值，也不证明参数满足其他数学义务。"
+
+msgctxt "https://blackcatinformatics.ca/math/requiresPositiveValue|http://www.w3.org/2004/02/skos/core#example"
+msgid "The rainfall scene puts requiresPositiveValue true on ex:stddevRole and supplies ex:sigmaQuantity with decimal magnitude 4.5. The separate parameterization fixture explicitly gives its mean role false; absence of a flag in another record is not the same source assertion."
+msgstr "降雨场景在 ex:stddevRole 上给出 requiresPositiveValue true，并提供十进制数值为 4.5 的 ex:sigmaQuantity。单独的参数化夹具明确为其均值角色给出 false；另一记录中缺少标志并不是相同的来源断言。"
+
+msgctxt "https://blackcatinformatics.ca/math/requiresPositiveValue|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the actual convention declares whether a parameter filling a role must have positive magnitude."
+msgstr "当实际约定声明填充角色的参数是否必须具有正数值时使用。"
+
+msgctxt "https://blackcatinformatics.ca/math/requiresPositiveValue|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring the flag from the word rate or scale, accepting zero where strict positivity is required, or treating a missing magnitude as a successful comparison."
+msgstr "避免根据 rate 或 scale 一词推断标志、在要求严格为正时接受零，或将数值缺失视为比较成功。"
+
+msgctxt "https://blackcatinformatics.ca/math/requiresPositiveValue|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Attach an actual xsd:boolean to the role, retain the parameter-to-quantity association and magnitude evidence, and respect the declared strict condition. No flag executes an expression or certifies positivity when its required value cannot be evaluated."
+msgstr "将实际 xsd:boolean 附于角色，保留参数到量的关联及数值依据，并遵循已声明的严格条件。任何标志都不执行表达式，也不在所需值无法求值时证明正值。"
+
+msgctxt "https://blackcatinformatics.ca/math/quantityDimension|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "quantity dimension"
+msgstr "量的量纲"
+
+msgctxt "https://blackcatinformatics.ca/math/quantityDimension|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Names the dimension the quantity of a parameter filling a role must carry — the same dimension as the random variable for a location role, the squared dimension for a variance role, math:dimensionless for a correlation role. Domain math:DistributionParameterRole, range math:Dimension or a math:RoleDimensionRelation (stated in prose; a dimension may be given absolutely, or by reference to the random variable's dimension). It carries the parameter's dimensional constraint so a mis-dimensioned parameter is caught (math:DistributionParameterConstraint), not silently accepted."
+msgstr "指明填充角色的参数量必须具有的量纲：位置角色与随机变量量纲相同，方差角色为平方量纲，相关系数角色为 math:dimensionless。定义域为 math:DistributionParameterRole，值域为 math:Dimension 或 math:RoleDimensionRelation（以文字说明；量纲可按绝对形式给出，或参照随机变量的量纲给出）。它承载参数的量纲约束，使参数量纲错误被检测（math:DistributionParameterConstraint），而非暗中接受。"
+
+msgctxt "https://blackcatinformatics.ca/math/quantityDimension|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This is the role's required dimension specification, distinct from hasDimension on a quantity or random variable. It may be an absolute Dimension or a RoleDimensionRelation; the declaration does not itself supply the actual quantity dimension or perform unit conversion."
+msgstr "这是角色所要求的量纲说明，不同于量或随机变量上的 hasDimension。它可以是绝对 Dimension 或 RoleDimensionRelation；声明本身不提供实际参数量的量纲，也不执行单位换算。"
+
+msgctxt "https://blackcatinformatics.ca/math/quantityDimension|http://www.w3.org/2004/02/skos/core#example"
+msgid "The dimensional fixture assigns its mean role quantityDimension math:sameAsRandomVariableDimension while both the height random variable and parameter quantity name math:lengthDimension. The actual rainfall scene has no role-level quantityDimension edge."
+msgstr "量纲夹具为其均值角色指定 quantityDimension math:sameAsRandomVariableDimension，而高度随机变量与参数量都指明 math:lengthDimension。实际降雨场景没有角色层级的 quantityDimension 边。"
+
+msgctxt "https://blackcatinformatics.ca/math/quantityDimension|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for an actual absolute or relative dimensional requirement of a parameter role."
+msgstr "用于参数角色实际的绝对或相对量纲要求。"
+
+msgctxt "https://blackcatinformatics.ca/math/quantityDimension|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid confusing a dimension with a numeric unit scale, declaring math:dimensionless as a RoleDimensionRelation, or inferring structured constraints from unit text in a label."
+msgstr "避免将量纲与数值单位尺度混淆、将 math:dimensionless 声明为 RoleDimensionRelation，或根据标签中的单位文本推断结构化约束。"
+
+msgctxt "https://blackcatinformatics.ca/math/quantityDimension|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Keep the role as subject and its supplied Dimension or canonical relative relation as object. Retain actual hasDimension links and ownership paths separately; supported exact vector comparison is distinct from a proof that all required inputs and every source association were checked."
+msgstr "保留角色为主语，所提供的 Dimension 或规范相对关系为宾语。另行保留实际 hasDimension 链接及归属路径；受支持的精确向量比较不同于已检查全部必需输入及每项来源关联的证明。"
+
+msgctxt "https://blackcatinformatics.ca/math/RoleDimensionRelation|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Role Dimension Relation"
+msgstr "角色量纲关系"
+
+msgctxt "https://blackcatinformatics.ca/math/RoleDimensionRelation|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A relational specification of a parameter role's required dimension, stated RELATIVE to the random variable's dimension rather than as an absolute math:Dimension. The canonical relations are math:sameAsRandomVariableDimension (a location parameter shares the random variable's dimension), math:squareOfRandomVariableDimension (a variance parameter carries the squared dimension), and — for a dimensionless parameter such as a correlation — the absolute math:dimensionless. The native math:DistributionParameterConstraint validator resolves a role's math:quantityDimension against the actual random-variable dimension by exact ℚ⁷ arithmetic (dimEqual for same, dimProduct of the vector with itself for square), so a variance parameter given linear units is a caught error."
+msgstr "参数角色所需量纲的关系式说明，相对于随机变量量纲表述，而非作为绝对 math:Dimension。规范关系为 math:sameAsRandomVariableDimension，表示位置参数与随机变量共享量纲；math:squareOfRandomVariableDimension，表示方差参数具有平方量纲；而对于相关系数等无量纲参数，则使用绝对 math:dimensionless。原生 math:DistributionParameterConstraint 验证器通过精确 ℚ⁷ 算术，将角色的 math:quantityDimension 相对于实际随机变量量纲解析：相同使用 dimEqual，平方使用向量与自身的 dimProduct，因此给方差参数提供线性单位会被检测为错误。"
+
+msgctxt "https://blackcatinformatics.ca/math/RoleDimensionRelation|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "A relative dimension specification refers to the associated random variable's dimension. The canonical same and square relations are not dimensions themselves; the absolute dimensionless alternative of quantityDimension remains a Dimension."
+msgstr "相对量纲说明参照所关联随机变量的量纲。规范的相同及平方关系本身不是量纲；quantityDimension 的绝对无量纲备选仍是 Dimension。"
+
+msgctxt "https://blackcatinformatics.ca/math/RoleDimensionRelation|http://www.w3.org/2004/02/skos/core#example"
+msgid "The dimensional fixture uses math:sameAsRandomVariableDimension, while the relational-dimension counter-example uses math:squareOfRandomVariableDimension for a variance role. These declarations request different comparisons; neither relation supplies a missing random-variable dimension."
+msgstr "量纲夹具使用 math:sameAsRandomVariableDimension，而关系量纲反例为方差角色使用 math:squareOfRandomVariableDimension。这些声明请求不同的比较；任一关系都不提供缺失的随机变量量纲。"
+
+msgctxt "https://blackcatinformatics.ca/math/RoleDimensionRelation|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the role's required dimension is defined relative to the random variable rather than by one absolute Dimension resource."
+msgstr "当角色所需量纲相对于随机变量定义，而非由单个绝对 Dimension 资源给出时使用。"
+
+msgctxt "https://blackcatinformatics.ca/math/RoleDimensionRelation|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid using an arbitrary label as an executable relation, treating the relation as a quantity's concrete dimension, or assuming all ownership and dimension paths are available from the role alone."
+msgstr "避免将任意标签用作可执行关系、将该关系视为量的具体量纲，或假定仅凭角色就能取得全部归属及量纲路径。"
+
+msgctxt "https://blackcatinformatics.ca/math/RoleDimensionRelation|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Use the canonical same or square individual through quantityDimension and retain the actual parameter, distribution and random-variable associations. Exact supported vector arithmetic establishes a comparison only for its resolved inputs, not complete admission of ambiguous or absent carriers."
+msgstr "通过 quantityDimension 使用规范的相同或平方个体，并保留实际参数、分布及随机变量关联。受支持的精确向量算术仅针对其已解析输入确立比较，不代表对歧义或缺失载体的完整准入。"
+
+msgctxt "https://blackcatinformatics.ca/math/sameAsRandomVariableDimension|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "same as random-variable dimension"
+msgstr "与随机变量量纲相同"
+
+msgctxt "https://blackcatinformatics.ca/math/sameAsRandomVariableDimension|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The role-dimension relation for a location-like parameter whose quantity must carry the SAME dimension as the random variable it parameterizes (dimEqual): a location parameter of a distribution over height carries height units. Resolved by the native math:DistributionParameterConstraint validator against the random variable's math:hasDimension."
+msgstr "位置类参数的角色量纲关系，其量必须与所参数化随机变量具有相同量纲（dimEqual）：高度分布的位置参数具有高度单位。由原生 math:DistributionParameterConstraint 验证器相对于随机变量的 math:hasDimension 解析。"
+
+msgctxt "https://blackcatinformatics.ca/math/sameAsRandomVariableDimension|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This canonical individual requests equality of dimension exponent vectors with the associated random variable. It does not assert identity of quantity resources, equality of numeric magnitudes or matching unit scales."
+msgstr "此规范个体请求与所关联随机变量的量纲指数向量相等。它不断言量资源身份相同、数值相等或单位尺度匹配。"
+
+msgctxt "https://blackcatinformatics.ca/math/sameAsRandomVariableDimension|http://www.w3.org/2004/02/skos/core#example"
+msgid "The dimensional fixture gives the height random variable and its mean parameter's quantity math:lengthDimension, while the role names math:sameAsRandomVariableDimension. This supplies the intended same-dimension case without computing a unit conversion or a magnitude."
+msgstr "量纲夹具为高度随机变量及其均值参数量给出 math:lengthDimension，而角色指明 math:sameAsRandomVariableDimension。这提供预期的同量纲案例，但不计算单位换算或数值。"
+
+msgctxt "https://blackcatinformatics.ca/math/sameAsRandomVariableDimension|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for a role whose parameter quantity must carry the same physical dimension as the associated random variable."
+msgstr "用于参数量必须与所关联随机变量具有相同物理量纲的角色。"
+
+msgctxt "https://blackcatinformatics.ca/math/sameAsRandomVariableDimension|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid applying the relation as a direct hasDimension value, replacing a variance requirement with it, or merging quantity nodes because their dimensions agree."
+msgstr "避免将此关系直接用作 hasDimension 值、用它替代方差要求，或因量纲一致而合并量节点。"
+
+msgctxt "https://blackcatinformatics.ca/math/sameAsRandomVariableDimension|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Point quantityDimension from the role to math:sameAsRandomVariableDimension. Preserve the quantity's and random variable's actual hasDimension links and the intervening distribution/parameter associations; missing inputs or a label alone establish no equality result."
+msgstr "从角色通过 quantityDimension 指向 math:sameAsRandomVariableDimension。保留量及随机变量实际的 hasDimension 链接，以及中间的分布和参数关联；缺失输入或仅有标签不确立任何相等结果。"
+
+msgctxt "https://blackcatinformatics.ca/math/squareOfRandomVariableDimension|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "square of random-variable dimension"
+msgstr "随机变量量纲的平方"
+
+msgctxt "https://blackcatinformatics.ca/math/squareOfRandomVariableDimension|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The role-dimension relation for a variance-like parameter whose quantity must carry the SQUARED dimension of the random variable (the exact-rational sum of the random variable's exponent vector with itself, dimProduct): a variance parameter of a distribution over height carries height² units. Resolved by the native math:DistributionParameterConstraint validator; a variance parameter given the linear (un-squared) dimension is a caught error."
+msgstr "方差类参数的角色量纲关系，其量必须具有随机变量的平方量纲，即将随机变量的指数向量与自身作精确有理数加法（dimProduct）：高度分布的方差参数具有 height² 单位。由原生 math:DistributionParameterConstraint 验证器解析；给方差参数提供线性而非平方量纲会被检测为错误。"
+
+msgctxt "https://blackcatinformatics.ca/math/squareOfRandomVariableDimension|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This canonical individual requests the squared physical dimension: adding the random variable's exact rational exponent vector to itself. It does not square a numeric magnitude or choose a variance parameterization."
+msgstr "此规范个体请求平方物理量纲，即将随机变量的精确有理数指数向量与自身相加。它不对数值取平方，也不选择方差参数化。"
+
+msgctxt "https://blackcatinformatics.ca/math/squareOfRandomVariableDimension|http://www.w3.org/2004/02/skos/core#example"
+msgid "The relational-dimension counter-example declares math:squareOfRandomVariableDimension for a variance role but gives both its parameter quantity and associated random variable math:lengthDimension. That is the intended linear-versus-squared mismatch, not a runtime verdict established by this annotation."
+msgstr "关系量纲反例为方差角色声明 math:squareOfRandomVariableDimension，但给其参数量及所关联随机变量都提供 math:lengthDimension。这是预期的线性与平方不匹配，并非由此注记确立的运行时判定。"
+
+msgctxt "https://blackcatinformatics.ca/math/squareOfRandomVariableDimension|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for a variance-like role whose parameter quantity must carry the squared dimension of the associated random variable."
+msgstr "用于参数量必须具有所关联随机变量平方量纲的方差类角色。"
+
+msgctxt "https://blackcatinformatics.ca/math/squareOfRandomVariableDimension|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid interpreting squared dimension as a numeric squaring operation, accepting linear units for a variance requirement, or inferring a relative comparison when the actual ownership or dimension links are missing."
+msgstr "避免将平方量纲解释为数值平方运算、为方差要求接受线性单位，或在实际归属或量纲链接缺失时推断相对比较。"
+
+msgctxt "https://blackcatinformatics.ca/math/squareOfRandomVariableDimension|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Point quantityDimension from the role to math:squareOfRandomVariableDimension and retain the actual hasDimension and association paths. Preserve structured exponent data and comparison evidence where supplied; no conversion, numerical variance or successful check follows from the relation name alone."
+msgstr "从角色通过 quantityDimension 指向 math:squareOfRandomVariableDimension，并保留实际 hasDimension 及关联路径。保留所提供的结构化指数数据及比较依据；仅有关系名称不意味着转换、数值方差或检查成功。"

@@ -14884,3 +14884,507 @@ msgstr "Éviter d’inverser l’arête, de la rattacher à un simple littéral 
 msgctxt "https://blackcatinformatics.ca/math/hasSupport|https://blackcatinformatics.ca/gmeow/howToUse"
 msgid "Keep the Distribution as subject and the actual DistributionSupport resource as object. Preserve supplied carrier, topology and evidence independently; do not invent an enumeration, a default support, a uniqueness rule or a computed positive-mass test."
 msgstr "Garder la Distribution comme sujet et la ressource DistributionSupport effective comme objet. Préserver indépendamment le support ambiant, la topologie et les éléments probants fournis ; ne pas inventer d’énumération, de support par défaut, de règle d’unicité ou de test calculé de masse strictement positive."
+
+msgctxt "https://blackcatinformatics.ca/math/Distribution|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Distribution"
+msgstr "Distribution"
+
+msgctxt "https://blackcatinformatics.ca/math/Distribution|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A probability distribution: a law assigning probabilities over outcomes, named by its family through math:distributionFamily (normal, binomial, Poisson, …) and parameterized. A distribution missing its family is underspecified (math:MissingDistributionParameterization). The canonical declaration guard is triggered by supplied parameters, never by a marker class: a distribution that supplies a math:hasDistributionParameter also names its math:distributionParameterization (the explicit convention fixing which parametric form of its family is meant), and fills each math:DistributionParameterRole that parameterization requires exactly once (math:DistributionParameterRoleCardinality), while a record with no supplied parameters is not rejected by that guard alone. Absence of supplied parameters does not establish mathematical nonparametricity or complete specification of a parametric law. A subclass of math:MathematicalObject; an R rnorm/dbinom/… call lifts to this object with its family and parameterization, distinct from the math:ProbabilityMeasure it induces."
+msgstr "Une distribution de probabilité : une loi attribuant des probabilités aux issues, nommée par sa famille au moyen de math:distributionFamily (normale, binomiale, Poisson, …) et paramétrée. Une distribution sans famille est insuffisamment spécifiée (math:MissingDistributionParameterization). La condition canonique de déclaration est déclenchée par les paramètres fournis, jamais par une classe marqueur : une distribution qui fournit un lien math:hasDistributionParameter nomme aussi sa math:distributionParameterization (la convention explicite qui fixe la forme paramétrique visée de sa famille) et fournit exactement une fois chaque math:DistributionParameterRole exigé par cette paramétrisation (math:DistributionParameterRoleCardinality), tandis qu’un enregistrement sans paramètres fournis n’est pas rejeté par cette seule condition. L’absence de paramètres fournis n’établit ni le caractère mathématiquement non paramétrique ni la spécification complète d’une loi paramétrique. Sous-classe de math:MathematicalObject ; un appel R à rnorm/dbinom/… est représenté par cet objet avec sa famille et sa paramétrisation, distinct de la math:ProbabilityMeasure qu’il induit."
+
+msgctxt "https://blackcatinformatics.ca/math/Distribution|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "A distribution describes a probability law, distinct from an evaluated draw, its probability measure, its family and its parameterization. A missing supplied parameter does not classify the law as nonparametric or establish that the record is complete."
+msgstr "Une distribution décrit une loi de probabilité, distincte d’un tirage évalué, de sa mesure de probabilité, de sa famille et de sa paramétrisation. Un paramètre fourni manquant ne classe pas la loi comme non paramétrique et n’établit pas que l’enregistrement est complet."
+
+msgctxt "https://blackcatinformatics.ca/math/Distribution|http://www.w3.org/2004/02/skos/core#example"
+msgid "The scene declares ex:rainfallNormal with ex:normalFamily, ex:meanStddevParameterization and the two supplied parameters ex:muParam and ex:sigmaParam. Their declared quantity values are 12.0 and 4.5; these records are not an executed sampler or a proof of a complete consistent rainfall model."
+msgstr "La scène déclare ex:rainfallNormal avec ex:normalFamily, ex:meanStddevParameterization et les deux paramètres fournis ex:muParam et ex:sigmaParam. Leurs valeurs de grandeur déclarées sont 12.0 et 4.5 ; ces enregistrements ne constituent ni un échantillonneur exécuté ni une preuve d’un modèle de précipitations complet et cohérent."
+
+msgctxt "https://blackcatinformatics.ca/math/Distribution|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for the source law associated with a random variable or probabilistic description, retaining its actual family, convention, parameters, support and evidence."
+msgstr "Utiliser pour la loi source associée à une variable aléatoire ou à une description probabiliste, en conservant sa famille, sa convention, ses paramètres, son support et ses éléments probants effectifs."
+
+msgctxt "https://blackcatinformatics.ca/math/Distribution|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating a family label, one observed result, an empty parameter list or a function-call label as a complete probability law. Do not choose a normal family, convention or independence model by default."
+msgstr "Éviter de traiter un libellé de famille, un résultat observé, une liste de paramètres vide ou un libellé d’appel de fonction comme une loi de probabilité complète. Ne pas choisir par défaut une famille normale, une convention ou un modèle d’indépendance."
+
+msgctxt "https://blackcatinformatics.ca/math/Distribution|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Name the actual distributionFamily. Preserve distributionParameterization and each hasDistributionParameter resource as supplied; the existing declaration guard requires a convention when parameters are supplied, while every selected parametric law still needs its complete explicit specification."
+msgstr "Nommer la distributionFamily effective. Préserver distributionParameterization et chaque ressource hasDistributionParameter telles qu’elles sont fournies ; la condition de déclaration existante exige une convention lorsque des paramètres sont fournis, tandis que toute loi paramétrique sélectionnée nécessite toujours sa spécification explicite complète."
+
+msgctxt "https://blackcatinformatics.ca/math/DistributionFamily|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Distribution Family"
+msgstr "Famille de distributions"
+
+msgctxt "https://blackcatinformatics.ca/math/DistributionFamily|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A distribution family: the named parametric family a math:Distribution belongs to — normal, binomial, Poisson, gamma, and the rest — carried by math:distributionFamily. A subclass of math:MathematicalObject. A family fixes the functional form but NOT the convention: many families have several conventional parameterizations (mean/stddev vs mean/variance vs mean/precision), so a bare family label does not identify the intended convention. A parametric law requires its explicit convention; the canonical declaration guard requires math:distributionParameterization when math:hasDistributionParameter is supplied. A distribution without a family is ill-formed (math:MissingDistributionParameterization)."
+msgstr "Une famille de distributions : la famille paramétrique nommée à laquelle appartient une math:Distribution — normale, binomiale, Poisson, gamma et autres — portée par math:distributionFamily. Sous-classe de math:MathematicalObject. Une famille fixe la forme fonctionnelle, mais PAS la convention : de nombreuses familles admettent plusieurs paramétrisations conventionnelles (moyenne/écart-type, moyenne/variance ou moyenne/précision), de sorte qu’un simple libellé de famille n’identifie pas la convention visée. Une loi paramétrique exige sa convention explicite ; la condition canonique de déclaration exige math:distributionParameterization lorsqu’un lien math:hasDistributionParameter est fourni. Une distribution sans famille est mal formée (math:MissingDistributionParameterization)."
+
+msgctxt "https://blackcatinformatics.ca/math/DistributionFamily|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The family identifies a form of probability law, not its parameter values or the convention assigning meaning to them. Naming a family alone neither selects a convention nor proves normalization, support or conformance."
+msgstr "La famille identifie une forme de loi de probabilité, non ses valeurs de paramètres ni la convention qui leur donne un sens. Nommer une famille seule ne sélectionne pas de convention et ne prouve ni normalisation, ni support, ni conformité."
+
+msgctxt "https://blackcatinformatics.ca/math/DistributionFamily|http://www.w3.org/2004/02/skos/core#example"
+msgid "The scene types ex:normalFamily as DistributionFamily and points to it from ex:rainfallNormal. The separate ex:meanStddevParameterization fixes the supplied mean/stddev convention; it is not inferred from the normal label."
+msgstr "La scène type ex:normalFamily comme DistributionFamily et y renvoie depuis ex:rainfallNormal. La ressource distincte ex:meanStddevParameterization fixe la convention moyenne/écart-type fournie ; celle-ci n’est pas inférée du libellé « normale »."
+
+msgctxt "https://blackcatinformatics.ca/math/DistributionFamily|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for a supplied family resource shared by distributions of that family while keeping each law and convention distinct."
+msgstr "Utiliser pour une ressource de famille fournie, partagée par les distributions de cette famille, tout en gardant chaque loi et chaque convention distinctes."
+
+msgctxt "https://blackcatinformatics.ca/math/DistributionFamily|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid using a numerical parameter, a density value or one realized sample as a family. Absence of parameters is not evidence that a named law is mathematically nonparametric."
+msgstr "Éviter d’utiliser un paramètre numérique, une valeur de densité ou un échantillon réalisé comme famille. L’absence de paramètres n’est pas un élément probant établissant qu’une loi nommée est mathématiquement non paramétrique."
+
+msgctxt "https://blackcatinformatics.ca/math/DistributionFamily|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Keep the family as the object of distributionFamily and retain the separately declared convention and required roles. A family name authorizes no silent parameter defaults, numerical evaluation or conversion between conventions."
+msgstr "Garder la famille comme objet de distributionFamily et conserver la convention et les rôles requis déclarés séparément. Un nom de famille n’autorise ni valeurs de paramètres par défaut implicites, ni évaluation numérique, ni conversion entre conventions."
+
+msgctxt "https://blackcatinformatics.ca/math/distributionFamily|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "distribution family"
+msgstr "famille de distributions"
+
+msgctxt "https://blackcatinformatics.ca/math/distributionFamily|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Relates a math:Distribution to the family it belongs to — normal, binomial, Poisson, and the rest. Domain math:Distribution, range the distribution family (stated in prose). A distribution names its family; missing the family it is underspecified. A parametric law also declares its parameterization; the canonical declaration guard is triggered by supplied math:hasDistributionParameter links, whose absence does not prove nonparametricity or completeness."
+msgstr "Relie une math:Distribution à la famille à laquelle elle appartient — normale, binomiale, Poisson et autres. Domaine : math:Distribution ; portée : la famille de distributions (indiqués en prose). Une distribution nomme sa famille ; sans famille, elle est insuffisamment spécifiée. Une loi paramétrique déclare aussi sa paramétrisation ; la condition canonique de déclaration est déclenchée par des liens math:hasDistributionParameter fournis, dont l’absence ne prouve ni le caractère non paramétrique ni la complétude."
+
+msgctxt "https://blackcatinformatics.ca/math/distributionFamily|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The direction is Distribution to its declared family resource. The existing family requirement is independent of the supplied-parameter trigger for a convention; neither edge computes the law."
+msgstr "La direction va de la Distribution à sa ressource de famille déclarée. L’exigence existante de famille est indépendante du déclenchement d’une convention par les paramètres fournis ; aucune de ces arêtes ne calcule la loi."
+
+msgctxt "https://blackcatinformatics.ca/math/distributionFamily|http://www.w3.org/2004/02/skos/core#example"
+msgid "The scene asserts ex:rainfallNormal distributionFamily ex:normalFamily and separately names ex:meanStddevParameterization. The family link does not encode the supplied mean and standard deviation."
+msgstr "La scène affirme ex:rainfallNormal distributionFamily ex:normalFamily et nomme séparément ex:meanStddevParameterization. Le lien de famille ne code pas la moyenne et l’écart-type fournis."
+
+msgctxt "https://blackcatinformatics.ca/math/distributionFamily|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when a source identifies the family of a distribution, preserving the actual family resource."
+msgstr "Utiliser lorsqu’une source identifie la famille d’une distribution, en préservant la ressource de famille effective."
+
+msgctxt "https://blackcatinformatics.ca/math/distributionFamily|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid reversing the relation, pointing it at a bare family-name literal or using it to infer a convention, default parameters or a preferred law."
+msgstr "Éviter d’inverser la relation, de la faire pointer vers un simple littéral de nom de famille ou de l’utiliser pour inférer une convention, des paramètres par défaut ou une loi privilégiée."
+
+msgctxt "https://blackcatinformatics.ca/math/distributionFamily|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Link the distribution to its supplied DistributionFamily. Retain its actual distributionParameterization and parameter resources separately; do not substitute the family for a missing convention or treat an untriggered guard as complete conformance."
+msgstr "Relier la distribution à sa DistributionFamily fournie. Conserver séparément sa distributionParameterization effective et ses ressources de paramètres ; ne pas substituer la famille à une convention manquante ni traiter une condition non déclenchée comme une conformité complète."
+
+msgctxt "https://blackcatinformatics.ca/math/DistributionParameterization|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Distribution Parameterization"
+msgstr "Paramétrisation de distribution"
+
+msgctxt "https://blackcatinformatics.ca/math/DistributionParameterization|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A distribution parameterization: the explicit, mandatory convention that fixes WHICH parametric form of a family is meant, declaring the roles it requires through math:requiresParameterRole (e.g. a normal mean/stddev parameterization requires a mean role and a stddev role). A subclass of math:MathematicalObject. Roles are SCOPED by the parameterization, so 'scale' cannot silently mean standard deviation in one family and rate in another. Linking two parameterization conventions of the same family (mean/variance to mean/stddev) is a DECLARED transform — a math:MathematicalExpression such as σ = √(σ²) — never a string relabel; a silent default parameterization is forbidden (math:MissingDistributionParameterization)."
+msgstr "Une paramétrisation de distribution : la convention explicite et obligatoire qui fixe QUELLE forme paramétrique d’une famille est visée, en déclarant les rôles qu’elle exige au moyen de math:requiresParameterRole (par exemple, une paramétrisation normale moyenne/écart-type exige un rôle de moyenne et un rôle d’écart-type). Sous-classe de math:MathematicalObject. Les rôles sont DÉLIMITÉS par la paramétrisation, de sorte que « échelle » ne peut pas signifier implicitement écart-type dans une famille et taux dans une autre. Relier deux conventions de paramétrisation d’une même famille (moyenne/variance à moyenne/écart-type) constitue une transformation DÉCLARÉE — une math:MathematicalExpression telle que σ = √(σ²) — jamais un simple changement de libellé textuel ; une paramétrisation par défaut implicite est interdite (math:MissingDistributionParameterization)."
+
+msgctxt "https://blackcatinformatics.ca/math/DistributionParameterization|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "A parameterization fixes the meaning and required roles of parameters within a family, such as mean/stddev versus mean/variance. A declaration of a convention or transform is not execution or a proof that two parameterized laws agree."
+msgstr "Une paramétrisation fixe le sens et les rôles requis des paramètres au sein d’une famille, par exemple moyenne/écart-type par opposition à moyenne/variance. Déclarer une convention ou une transformation n’est ni une exécution ni une preuve que deux lois paramétrées concordent."
+
+msgctxt "https://blackcatinformatics.ca/math/DistributionParameterization|http://www.w3.org/2004/02/skos/core#example"
+msgid "The scene declares ex:meanStddevParameterization with requiresParameterRole ex:meanRole and ex:stddevRole. The distribution supplies ex:muParam and ex:sigmaParam through hasDistributionParameter; no variance-to-stddev expression is supplied there."
+msgstr "La scène déclare ex:meanStddevParameterization avec requiresParameterRole ex:meanRole et ex:stddevRole. La distribution fournit ex:muParam et ex:sigmaParam au moyen de hasDistributionParameter ; aucune expression de conversion de variance en écart-type n’y est fournie."
+
+msgctxt "https://blackcatinformatics.ca/math/DistributionParameterization|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for an explicitly supplied convention that distinguishes the roles and representation of a family's parameters."
+msgstr "Utiliser pour une convention explicitement fournie qui distingue les rôles et la représentation des paramètres d’une famille."
+
+msgctxt "https://blackcatinformatics.ca/math/DistributionParameterization|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating a family label, the word scale or a reordered list of numbers as a complete convention. Do not silently reinterpret variance as standard deviation or a rate as a scale."
+msgstr "Éviter de traiter un libellé de famille, le mot échelle ou une liste de nombres réordonnée comme une convention complète. Ne pas réinterpréter implicitement une variance comme un écart-type, ni un taux comme une échelle."
+
+msgctxt "https://blackcatinformatics.ca/math/DistributionParameterization|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Name the convention through distributionParameterization, retain its requiresParameterRole declarations and each role's actual roleWithinParameterization. Preserve a separately supplied reparameterization expression and evidence; a descriptive formula or label does not supply an AST or evaluated conversion."
+msgstr "Nommer la convention au moyen de distributionParameterization, conserver ses déclarations requiresParameterRole et le roleWithinParameterization effectif de chaque rôle. Préserver une expression de reparamétrisation et des éléments probants fournis séparément ; une formule descriptive ou un libellé ne fournit ni AST ni conversion évaluée."
+
+msgctxt "https://blackcatinformatics.ca/math/distributionParameterization|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "distribution parameterization"
+msgstr "paramétrisation de distribution"
+
+msgctxt "https://blackcatinformatics.ca/math/distributionParameterization|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Relates a math:Distribution to the math:DistributionParameterization it uses — the explicit convention fixing which parametric form of its family is meant. Domain math:Distribution, range math:DistributionParameterization (stated in prose). Mandatory for a parametric distribution: a parametric distribution without a parameterization is ill-formed (math:MissingDistributionParameterization), and a silent default is forbidden. Linking one parameterization convention to another of the same family is a declared math:MathematicalExpression transform, never a string relabel."
+msgstr "Relie une math:Distribution à la math:DistributionParameterization qu’elle utilise — la convention explicite qui fixe la forme paramétrique visée de sa famille. Domaine : math:Distribution ; portée : math:DistributionParameterization (indiqués en prose). Obligatoire pour une distribution paramétrique : une distribution paramétrique sans paramétrisation est mal formée (math:MissingDistributionParameterization), et un choix par défaut implicite est interdit. Relier une convention de paramétrisation à une autre de la même famille constitue une transformation math:MathematicalExpression déclarée, jamais un simple changement de libellé textuel."
+
+msgctxt "https://blackcatinformatics.ca/math/distributionParameterization|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The relation records the convention selected for a distribution. The canonical declaration guard is activated by supplied hasDistributionParameter links; absence of those links proves neither nonparametricity nor completeness."
+msgstr "La relation consigne la convention sélectionnée pour une distribution. La condition canonique de déclaration est activée par des liens hasDistributionParameter fournis ; leur absence ne prouve ni le caractère non paramétrique ni la complétude."
+
+msgctxt "https://blackcatinformatics.ca/math/distributionParameterization|http://www.w3.org/2004/02/skos/core#example"
+msgid "The scene asserts ex:rainfallNormal distributionParameterization ex:meanStddevParameterization and supplies parameters filling its two declared roles. The edge itself contains no parameter values or conversion instructions."
+msgstr "La scène affirme ex:rainfallNormal distributionParameterization ex:meanStddevParameterization et fournit des paramètres remplissant ses deux rôles déclarés. L’arête elle-même ne contient ni valeurs de paramètres ni instructions de conversion."
+
+msgctxt "https://blackcatinformatics.ca/math/distributionParameterization|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to identify the actual convention under which a distribution's supplied parameters are interpreted."
+msgstr "Utiliser pour identifier la convention effective selon laquelle les paramètres fournis d’une distribution sont interprétés."
+
+msgctxt "https://blackcatinformatics.ca/math/distributionParameterization|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid choosing a convention from the family name, numeric order or an unqualified scale label. Do not replace a required convention with a silent default or claim that a link executes reparameterization."
+msgstr "Éviter de choisir une convention à partir du nom de famille, de l’ordre numérique ou d’un libellé d’échelle non qualifié. Ne pas remplacer une convention requise par un choix par défaut implicite ni prétendre qu’un lien exécute une reparamétrisation."
+
+msgctxt "https://blackcatinformatics.ca/math/distributionParameterization|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Keep the Distribution as subject and its supplied DistributionParameterization as object. Retain required-role declarations and actual supplied parameters separately; a selected parametric law remains answerable for its complete convention even when a particular guard is not triggered."
+msgstr "Garder la Distribution comme sujet et sa DistributionParameterization fournie comme objet. Conserver séparément les déclarations de rôles requis et les paramètres effectivement fournis ; une loi paramétrique sélectionnée reste tenue à sa convention complète même lorsqu’une condition particulière n’est pas déclenchée."
+
+msgctxt "https://blackcatinformatics.ca/math/DistributionParameter|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Distribution Parameter"
+msgstr "Paramètre de distribution"
+
+msgctxt "https://blackcatinformatics.ca/math/DistributionParameter|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A distribution parameter: one supplied parameter of a math:Distribution, carrying its role in the parameterization (math:parameterRole, a math:DistributionParameterRole) and its value as EITHER a numeric quantity (math:parameterQuantity, a math:Quantity) OR a symbolic expression (math:parameterExpression, a math:MathematicalExpression). A subclass of math:MathematicalObject. The earlier single overloaded parameterValue property is REMOVED (greenfield): the role, the numeric value, and the symbolic value are three distinct properties, never one. Each required role is supplied by exactly one parameter (math:DistributionParameterRoleCardinality otherwise), whose quantity satisfies the role's positivity and dimension constraints (math:DistributionParameterConstraint otherwise)."
+msgstr "Un paramètre de distribution : un paramètre fourni d’une math:Distribution, portant son rôle dans la paramétrisation (math:parameterRole, un math:DistributionParameterRole) et sa valeur SOIT comme grandeur numérique (math:parameterQuantity, une math:Quantity), SOIT comme expression symbolique (math:parameterExpression, une math:MathematicalExpression). Sous-classe de math:MathematicalObject. L’ancienne propriété unique surchargée parameterValue est SUPPRIMÉE (conception à neuf) : le rôle, la valeur numérique et la valeur symbolique sont trois propriétés distinctes, jamais une seule. Chaque rôle requis est fourni par exactement un paramètre (math:DistributionParameterRoleCardinality sinon), dont la grandeur satisfait les contraintes de positivité et de dimension du rôle (math:DistributionParameterConstraint sinon)."
+
+msgctxt "https://blackcatinformatics.ca/math/DistributionParameter|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "A parameter is the role-bearing object, distinct from its numeric quantity or symbolic expression. Its intended contract selects a numeric or symbolic carrier; carrying a link or type does not itself evaluate a formula or certify all role and value obligations."
+msgstr "Un paramètre est l’objet porteur du rôle, distinct de sa grandeur numérique ou de son expression symbolique. Son contrat visé sélectionne un support numérique ou symbolique ; porter un lien ou un type n’évalue pas en soi une formule et ne certifie pas toutes les obligations de rôle et de valeur."
+
+msgctxt "https://blackcatinformatics.ca/math/DistributionParameter|http://www.w3.org/2004/02/skos/core#example"
+msgid "The scene records ex:muParam with parameterRole ex:meanRole and parameterQuantity ex:muQuantity, and ex:sigmaParam with ex:stddevRole and ex:sigmaQuantity. The quantities carry 12.0 and 4.5 separately from those role-bearing parameter objects."
+msgstr "La scène consigne ex:muParam avec parameterRole ex:meanRole et parameterQuantity ex:muQuantity, ainsi que ex:sigmaParam avec ex:stddevRole et ex:sigmaQuantity. Les grandeurs portent 12.0 et 4.5 séparément de ces objets paramètres porteurs de rôles."
+
+msgctxt "https://blackcatinformatics.ca/math/DistributionParameter|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for a supplied parameter whose role and numeric or symbolic value carrier must remain identifiable within a convention."
+msgstr "Utiliser pour un paramètre fourni dont le rôle et le support de valeur numérique ou symbolique doivent rester identifiables au sein d’une convention."
+
+msgctxt "https://blackcatinformatics.ca/math/DistributionParameter|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid replacing the parameter object with a bare literal or treating equal numeric magnitudes as identity of parameters. Do not claim that an unevaluated symbolic carrier has passed numerical positivity or dimension checks."
+msgstr "Éviter de remplacer l’objet paramètre par un simple littéral ou de traiter des valeurs numériques égales comme une identité de paramètres. Ne pas prétendre qu’un support symbolique non évalué a satisfait aux vérifications numériques de positivité ou de dimension."
+
+msgctxt "https://blackcatinformatics.ca/math/DistributionParameter|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain parameterRole and the selected parameterQuantity or parameterExpression carrier, respecting the intended exclusive-carrier contract. Keep role scope, dimensions, exactness and evaluation evidence where supplied; missing evidence or an unreadable carrier is not a certificate of conformance."
+msgstr "Conserver parameterRole et le support sélectionné parameterQuantity ou parameterExpression, en respectant le contrat visé de supports exclusifs. Garder la portée du rôle, les dimensions, le caractère exact et les éléments probants d’évaluation là où ils sont fournis ; des éléments manquants ou un support illisible ne constituent pas un certificat de conformité."
+
+msgctxt "https://blackcatinformatics.ca/math/hasDistributionParameter|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "has distribution parameter"
+msgstr "a pour paramètre de distribution"
+
+msgctxt "https://blackcatinformatics.ca/math/hasDistributionParameter|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Relates a math:Distribution to one of its supplied math:DistributionParameter objects. Domain math:Distribution, range math:DistributionParameter (stated in prose). A distribution supplies each role required by its parameterization exactly once (math:DistributionParameterRoleCardinality otherwise)."
+msgstr "Relie une math:Distribution à l’un de ses objets math:DistributionParameter fournis. Domaine : math:Distribution ; portée : math:DistributionParameter (indiqués en prose). Une distribution fournit exactement une fois chaque rôle requis par sa paramétrisation (math:DistributionParameterRoleCardinality sinon)."
+
+msgctxt "https://blackcatinformatics.ca/math/hasDistributionParameter|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This links a distribution to its supplied parameter objects. Required-role coverage is assessed through the distribution's declared convention and each parameter's parameterRole, rather than by counting all parameters or comparing their numeric values."
+msgstr "Cette relation relie une distribution à ses objets paramètres fournis. La couverture des rôles requis est évaluée au moyen de la convention déclarée de la distribution et du parameterRole de chaque paramètre, plutôt qu’en comptant tous les paramètres ou en comparant leurs valeurs numériques."
+
+msgctxt "https://blackcatinformatics.ca/math/hasDistributionParameter|http://www.w3.org/2004/02/skos/core#example"
+msgid "The scene links ex:rainfallNormal to ex:muParam and ex:sigmaParam; their roles are ex:meanRole and ex:stddevRole under ex:meanStddevParameterization. Repeating an identical RDF assertion does not create a second parameter resource."
+msgstr "La scène relie ex:rainfallNormal à ex:muParam et ex:sigmaParam ; leurs rôles sont ex:meanRole et ex:stddevRole dans ex:meanStddevParameterization. Répéter une assertion RDF identique ne crée pas une seconde ressource de paramètre."
+
+msgctxt "https://blackcatinformatics.ca/math/hasDistributionParameter|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain every parameter resource actually supplied for a distribution and its selected convention."
+msgstr "Utiliser pour conserver chaque ressource de paramètre effectivement fournie pour une distribution et sa convention sélectionnée."
+
+msgctxt "https://blackcatinformatics.ca/math/hasDistributionParameter|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid pointing directly to a quantity, expression or literal, merging distinct parameters because their magnitudes agree, or treating an absent parameter list as proof of a complete law."
+msgstr "Éviter de pointer directement vers une grandeur, une expression ou un littéral, de fusionner des paramètres distincts parce que leurs valeurs concordent ou de traiter une liste de paramètres absente comme une preuve de loi complète."
+
+msgctxt "https://blackcatinformatics.ca/math/hasDistributionParameter|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Keep the distribution as subject and each supplied DistributionParameter as object. Follow its convention's requiresParameterRole and the parameters' parameterRole links; the required-role laws do not impose a global maximum on all parameter resources or decide the status of every extra role."
+msgstr "Garder la distribution comme sujet et chaque DistributionParameter fourni comme objet. Suivre le requiresParameterRole de sa convention et les liens parameterRole des paramètres ; les lois sur les rôles requis n’imposent pas de maximum global sur toutes les ressources de paramètres et ne décident pas du statut de chaque rôle supplémentaire."
+
+msgctxt "https://blackcatinformatics.ca/math/DistributionParameterRole|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Distribution Parameter Role"
+msgstr "Rôle de paramètre de distribution"
+
+msgctxt "https://blackcatinformatics.ca/math/DistributionParameterRole|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A distribution parameter role: the SCOPED slot a parameter fills within a parameterization — the mean role, the stddev role, the rate role — named as a first-class object so 'scale' cannot silently mean different things across families. A subclass of math:MathematicalObject. It declares the parameterization it belongs to (math:roleWithinParameterization), whether its parameter's value must be positive (math:requiresPositiveValue, a boolean), and the dimension its parameter's quantity must carry (math:quantityDimension) — so a variance role carrying squared units and a correlation role being dimensionless are stated, not assumed, and a mis-dimensioned parameter is caught (math:DistributionParameterConstraint)."
+msgstr "Un rôle de paramètre de distribution : l’emplacement DÉLIMITÉ qu’un paramètre remplit dans une paramétrisation — le rôle de moyenne, d’écart-type ou de taux — nommé comme objet à part entière afin que « échelle » ne puisse pas signifier implicitement des choses différentes selon les familles. Sous-classe de math:MathematicalObject. Il déclare la paramétrisation à laquelle il appartient (math:roleWithinParameterization), si la valeur de son paramètre doit être positive (math:requiresPositiveValue, un booléen) et la dimension que la grandeur de son paramètre doit porter (math:quantityDimension) — ainsi, le carré des unités pour un rôle de variance et le caractère sans dimension d’un rôle de corrélation sont déclarés, non supposés, et un paramètre de dimension inadéquate est signalé (math:DistributionParameterConstraint)."
+
+msgctxt "https://blackcatinformatics.ca/math/DistributionParameterRole|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "A role gives a parameter meaning within a convention, separate from the parameter instance and its value. Positivity and dimension declarations belong to that role; their presence does not supply an absent value, dimension vector or evaluation result."
+msgstr "Un rôle donne un sens à un paramètre au sein d’une convention, séparément de l’instance de paramètre et de sa valeur. Les déclarations de positivité et de dimension appartiennent à ce rôle ; leur présence ne fournit ni valeur absente, ni vecteur de dimension, ni résultat d’évaluation."
+
+msgctxt "https://blackcatinformatics.ca/math/DistributionParameterRole|http://www.w3.org/2004/02/skos/core#example"
+msgid "The scene gives ex:meanRole and ex:stddevRole the same roleWithinParameterization ex:meanStddevParameterization. Only ex:stddevRole declares requiresPositiveValue true there; neither scene role supplies a quantityDimension declaration."
+msgstr "La scène attribue à ex:meanRole et ex:stddevRole le même roleWithinParameterization ex:meanStddevParameterization. Seul ex:stddevRole y déclare requiresPositiveValue true ; aucun des deux rôles de la scène ne fournit de déclaration quantityDimension."
+
+msgctxt "https://blackcatinformatics.ca/math/DistributionParameterRole|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for the actual scoped slot that distinguishes mean, standard deviation, variance, rate, precision or another parameter meaning."
+msgstr "Utiliser pour l’emplacement effectivement délimité qui distingue une moyenne, un écart-type, une variance, un taux, une précision ou un autre sens de paramètre."
+
+msgctxt "https://blackcatinformatics.ca/math/DistributionParameterRole|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring positivity, dimension or global interchangeability from the word scale. Do not invent a quantityDimension edge from a human-readable unit label."
+msgstr "Éviter d’inférer du mot échelle une positivité, une dimension ou une interchangeabilité globale. Ne pas inventer d’arête quantityDimension à partir d’un libellé d’unité lisible par un humain."
+
+msgctxt "https://blackcatinformatics.ca/math/DistributionParameterRole|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain roleWithinParameterization and any actual requiresPositiveValue and quantityDimension declarations. Keep each parameterRole association and required-role declaration separate; type and labels alone neither enforce scope coherence nor establish every value obligation."
+msgstr "Conserver roleWithinParameterization et toute déclaration effective requiresPositiveValue et quantityDimension. Garder séparément chaque association parameterRole et chaque déclaration de rôle requis ; le type et les libellés seuls ne garantissent ni la cohérence de portée ni toutes les obligations de valeur."
+
+msgctxt "https://blackcatinformatics.ca/math/parameterRole|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "parameter role"
+msgstr "rôle du paramètre"
+
+msgctxt "https://blackcatinformatics.ca/math/parameterRole|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Relates a math:DistributionParameter to the math:DistributionParameterRole it fills within its distribution's parameterization. Domain math:DistributionParameter, range math:DistributionParameterRole (stated in prose). The role is scoped by the parameterization, so the same parameter object never silently means different things across families."
+msgstr "Relie un math:DistributionParameter au math:DistributionParameterRole qu’il remplit dans la paramétrisation de sa distribution. Domaine : math:DistributionParameter ; portée : math:DistributionParameterRole (indiqués en prose). Le rôle est délimité par la paramétrisation, de sorte qu’un même objet paramètre ne signifie jamais implicitement des choses différentes selon les familles."
+
+msgctxt "https://blackcatinformatics.ca/math/parameterRole|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The direction is parameter object to the role it fills, not to a value or a family. The role's convention and required-role membership remain separate declarations; the edge alone does not establish global uniqueness or complete scope consistency."
+msgstr "La direction va de l’objet paramètre au rôle qu’il remplit, non à une valeur ou à une famille. La convention du rôle et son appartenance aux rôles requis restent des déclarations distinctes ; l’arête seule n’établit ni unicité globale ni cohérence complète de portée."
+
+msgctxt "https://blackcatinformatics.ca/math/parameterRole|http://www.w3.org/2004/02/skos/core#example"
+msgid "The scene asserts ex:muParam parameterRole ex:meanRole and ex:sigmaParam parameterRole ex:stddevRole. Their parameterQuantity links identify separate value resources, and their roleWithinParameterization links remain on the role objects."
+msgstr "La scène affirme ex:muParam parameterRole ex:meanRole et ex:sigmaParam parameterRole ex:stddevRole. Leurs liens parameterQuantity identifient des ressources de valeurs distinctes, et leurs liens roleWithinParameterization restent sur les objets rôles."
+
+msgctxt "https://blackcatinformatics.ca/math/parameterRole|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when a source supplies the role under which a particular distribution parameter is interpreted."
+msgstr "Utiliser lorsqu’une source fournit le rôle selon lequel un paramètre de distribution particulier est interprété."
+
+msgctxt "https://blackcatinformatics.ca/math/parameterRole|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid using a numeric quantity or a generic string as the role resource, reversing the edge or assuming the first encountered role is the only supplied one."
+msgstr "Éviter d’utiliser une grandeur numérique ou une chaîne générique comme ressource de rôle, d’inverser l’arête ou de supposer que le premier rôle rencontré est le seul fourni."
+
+msgctxt "https://blackcatinformatics.ca/math/parameterRole|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Keep the DistributionParameter as subject and the actual DistributionParameterRole as object. Preserve the role's convention, required-role membership and declared value constraints without manufacturing a global one-role rule or discarding coexisting source associations."
+msgstr "Garder le DistributionParameter comme sujet et le DistributionParameterRole effectif comme objet. Préserver la convention du rôle, son appartenance aux rôles requis et ses contraintes de valeur déclarées sans fabriquer de règle globale de rôle unique ni éliminer des associations sources coexistantes."
+
+msgctxt "https://blackcatinformatics.ca/math/parameterQuantity|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "parameter quantity"
+msgstr "grandeur du paramètre"
+
+msgctxt "https://blackcatinformatics.ca/math/parameterQuantity|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Relates a math:DistributionParameter to its numeric value as a dimensioned quantity. Domain math:DistributionParameter, range math:Quantity (stated in prose). One of the two mutually exclusive value carriers of a parameter (the other being math:parameterExpression for a symbolic value); it replaces the removed overloaded parameterValue property, and its quantity must satisfy the role's positivity and dimension constraints (math:DistributionParameterConstraint otherwise)."
+msgstr "Relie un math:DistributionParameter à sa valeur numérique en tant que grandeur dimensionnée. Domaine : math:DistributionParameter ; portée : math:Quantity (indiqués en prose). L’un des deux supports de valeur mutuellement exclusifs d’un paramètre (l’autre étant math:parameterExpression pour une valeur symbolique) ; il remplace l’ancienne propriété surchargée parameterValue, et sa grandeur doit satisfaire aux contraintes de positivité et de dimension du rôle (math:DistributionParameterConstraint sinon)."
+
+msgctxt "https://blackcatinformatics.ca/math/parameterQuantity|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This selects the numeric quantity carrier, distinct from the parameter's role and the symbolic expression carrier. Quantity dimension and exact or approximate magnitude metadata remain part of the supplied value description, not facts inferred from a label."
+msgstr "Cette relation sélectionne le support de grandeur numérique, distinct du rôle du paramètre et du support d’expression symbolique. La dimension de la grandeur et les métadonnées de valeur exacte ou approchée font partie de la description de valeur fournie, non de faits inférés d’un libellé."
+
+msgctxt "https://blackcatinformatics.ca/math/parameterQuantity|http://www.w3.org/2004/02/skos/core#example"
+msgid "The scene asserts ex:sigmaParam parameterQuantity ex:sigmaQuantity, whose quantityValue is the decimal 4.5. The label mentioning millimetres is not a structured unit or quantityDimension declaration; preserve only the actual source edges."
+msgstr "La scène affirme ex:sigmaParam parameterQuantity ex:sigmaQuantity, dont le quantityValue est le décimal 4.5. Le libellé mentionnant des millimètres n’est ni une unité structurée ni une déclaration quantityDimension ; ne préserver que les arêtes sources effectives."
+
+msgctxt "https://blackcatinformatics.ca/math/parameterQuantity|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for a parameter supplied as a numeric Quantity with its actual magnitude and dimensional evidence."
+msgstr "Utiliser pour un paramètre fourni comme Quantity numérique avec sa valeur effective et ses éléments probants dimensionnels."
+
+msgctxt "https://blackcatinformatics.ca/math/parameterQuantity|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid using a bare numeric literal as the quantity resource, silently converting a symbolic expression to a number, or assuming a missing or unreadable magnitude satisfies a declared positive-value requirement."
+msgstr "Éviter d’utiliser un simple littéral numérique comme ressource de grandeur, de convertir implicitement une expression symbolique en nombre ou de supposer qu’une valeur absente ou illisible satisfait à une exigence déclarée de stricte positivité."
+
+msgctxt "https://blackcatinformatics.ca/math/parameterQuantity|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Keep the parameter as subject and the numeric Quantity as object, respecting the intended alternative to parameterExpression. Retain actual quantityValue, hasDimension, unit, frame and exactness information where supplied; declared positivity and dimension obligations still require evidence."
+msgstr "Garder le paramètre comme sujet et la Quantity numérique comme objet, en respectant l’alternative visée à parameterExpression. Conserver les informations effectives quantityValue, hasDimension, d’unité, de repère et de caractère exact là où elles sont fournies ; les obligations déclarées de positivité et de dimension exigent toujours des éléments probants."
+
+msgctxt "https://blackcatinformatics.ca/math/parameterExpression|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "parameter expression"
+msgstr "expression du paramètre"
+
+msgctxt "https://blackcatinformatics.ca/math/parameterExpression|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Relates a math:DistributionParameter to its value as a symbolic expression — a math:MathematicalExpression AST for a parameter given by a formula (a hierarchical prior's hyperparameter, a reparameterization σ = √(σ²)). Domain math:DistributionParameter, range math:MathematicalExpression (stated in prose). The symbolic counterpart of math:parameterQuantity; a reparameterization is carried here as a declared transform, never a string relabel."
+msgstr "Relie un math:DistributionParameter à sa valeur en tant qu’expression symbolique — un AST math:MathematicalExpression pour un paramètre donné par une formule (un hyperparamètre d’une loi a priori hiérarchique, une reparamétrisation σ = √(σ²)). Domaine : math:DistributionParameter ; portée : math:MathematicalExpression (indiqués en prose). Le pendant symbolique de math:parameterQuantity ; une reparamétrisation est portée ici comme transformation déclarée, jamais comme simple changement de libellé textuel."
+
+msgctxt "https://blackcatinformatics.ca/math/parameterExpression|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This selects a symbolic MathematicalExpression carrier rather than a numeric parameter quantity. An expression description, an AST and evidence of evaluating that AST are distinct; naming one does not manufacture the others."
+msgstr "Cette relation sélectionne un support symbolique MathematicalExpression plutôt qu’une grandeur numérique de paramètre. Une description d’expression, un AST et les éléments probants de l’évaluation de cet AST sont distincts ; en nommer un ne fabrique pas les autres."
+
+msgctxt "https://blackcatinformatics.ca/math/parameterExpression|http://www.w3.org/2004/02/skos/core#example"
+msgid "As a hypothetical illustration, a symbolic standard-deviation parameter may name a separately supplied MathematicalExpression for the square root of variance. The existing rainfall scene supplies only numeric parameterQuantity carriers and contains no such expression or evaluated conversion."
+msgstr "À titre d’illustration hypothétique, un paramètre symbolique d’écart-type peut nommer une MathematicalExpression fournie séparément pour la racine carrée de la variance. La scène de précipitations existante ne fournit que des supports numériques parameterQuantity et ne contient ni une telle expression ni une conversion évaluée."
+
+msgctxt "https://blackcatinformatics.ca/math/parameterExpression|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the source provides the parameter's value as a genuine symbolic expression with its declared structure."
+msgstr "Utiliser lorsque la source fournit la valeur du paramètre comme une véritable expression symbolique avec sa structure déclarée."
+
+msgctxt "https://blackcatinformatics.ca/math/parameterExpression|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid substituting a formula label or an unevaluated string for the supplied expression structure, or asserting that symbolic parameters have passed numerical validation without evaluation evidence."
+msgstr "Éviter de substituer un libellé de formule ou une chaîne non évaluée à la structure d’expression fournie, ou d’affirmer que des paramètres symboliques ont satisfait à la validation numérique sans éléments probants d’évaluation."
+
+msgctxt "https://blackcatinformatics.ca/math/parameterExpression|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Keep the parameter as subject and the supplied MathematicalExpression resource as object. Preserve its actual AST, scope and evaluation evidence separately while respecting the intended numeric-or-symbolic carrier choice; do not invent a default value or execute a conversion by relabelling."
+msgstr "Garder le paramètre comme sujet et la ressource MathematicalExpression fournie comme objet. Préserver séparément son AST effectif, sa portée et les éléments probants de son évaluation, tout en respectant le choix visé d’un support numérique ou symbolique ; ne pas inventer de valeur par défaut ni exécuter une conversion par simple changement de libellé."
+
+msgctxt "https://blackcatinformatics.ca/math/requiresParameterRole|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "requires parameter role"
+msgstr "exige un rôle de paramètre"
+
+msgctxt "https://blackcatinformatics.ca/math/requiresParameterRole|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Relates a math:DistributionParameterization to a math:DistributionParameterRole it requires — the roles a conforming distribution must supply exactly once each. Domain math:DistributionParameterization, range math:DistributionParameterRole (stated in prose). A distribution that fails to supply a required role exactly once is ill-formed (math:DistributionParameterRoleCardinality)."
+msgstr "Relie une math:DistributionParameterization à un math:DistributionParameterRole qu’elle exige — les rôles qu’une distribution conforme doit fournir exactement une fois chacun. Domaine : math:DistributionParameterization ; portée : math:DistributionParameterRole (indiqués en prose). Une distribution qui ne fournit pas un rôle requis exactement une fois est mal formée (math:DistributionParameterRoleCardinality)."
+
+msgctxt "https://blackcatinformatics.ca/math/requiresParameterRole|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The direction is convention to required role. The canonical required-role laws detect a required role with no supplying parameter or with two distinct supplying parameters; they do not close every possible extra role or prove all role-scoping and value conditions."
+msgstr "La direction va de la convention au rôle requis. Les lois canoniques sur les rôles requis détectent un rôle requis sans paramètre qui le fournisse, ou fourni par deux paramètres distincts ; elles ne ferment pas tous les rôles supplémentaires possibles et ne prouvent pas toutes les conditions de portée des rôles et de valeur."
+
+msgctxt "https://blackcatinformatics.ca/math/requiresParameterRole|http://www.w3.org/2004/02/skos/core#example"
+msgid "The scene has ex:meanStddevParameterization requiresParameterRole ex:meanRole and ex:stddevRole. Its ex:rainfallNormal supplies the corresponding ex:muParam and ex:sigmaParam objects; a bare role label would not establish those links."
+msgstr "La scène contient ex:meanStddevParameterization requiresParameterRole ex:meanRole et ex:stddevRole. Sa distribution ex:rainfallNormal fournit les objets correspondants ex:muParam et ex:sigmaParam ; un simple libellé de rôle n’établirait pas ces liens."
+
+msgctxt "https://blackcatinformatics.ca/math/requiresParameterRole|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain each role explicitly required by a supplied parameterization."
+msgstr "Utiliser pour conserver chaque rôle explicitement requis par une paramétrisation fournie."
+
+msgctxt "https://blackcatinformatics.ca/math/requiresParameterRole|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid attaching this edge to a parameter instance, inferring required roles solely from a family name, or treating an empty declared requirement set as proof that a mathematical law needs no parameters."
+msgstr "Éviter de rattacher cette arête à une instance de paramètre, d’inférer les rôles requis du seul nom de famille ou de traiter un ensemble déclaré d’exigences vide comme une preuve qu’une loi mathématique ne nécessite aucun paramètre."
+
+msgctxt "https://blackcatinformatics.ca/math/requiresParameterRole|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Keep the DistributionParameterization as subject and each required DistributionParameterRole as object. Trace actual hasDistributionParameter and parameterRole links for each required role; two distinct parameter resources count separately even when their numeric magnitudes agree."
+msgstr "Garder la DistributionParameterization comme sujet et chaque DistributionParameterRole requis comme objet. Suivre les liens effectifs hasDistributionParameter et parameterRole pour chaque rôle requis ; deux ressources de paramètres distinctes comptent séparément même lorsque leurs valeurs numériques concordent."
+
+msgctxt "https://blackcatinformatics.ca/math/roleWithinParameterization|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "role within parameterization"
+msgstr "rôle au sein d’une paramétrisation"
+
+msgctxt "https://blackcatinformatics.ca/math/roleWithinParameterization|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Relates a math:DistributionParameterRole to the math:DistributionParameterization that scopes it. Domain math:DistributionParameterRole, range math:DistributionParameterization (stated in prose). The scoping edge that makes a role's meaning local to its parameterization rather than global."
+msgstr "Relie un math:DistributionParameterRole à la math:DistributionParameterization qui le délimite. Domaine : math:DistributionParameterRole ; portée : math:DistributionParameterization (indiqués en prose). L’arête de portée qui rend le sens d’un rôle local à sa paramétrisation plutôt que global."
+
+msgctxt "https://blackcatinformatics.ca/math/roleWithinParameterization|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This names the convention that scopes a role's meaning. It is distinct from requiresParameterRole, which declares that the convention requires the role; one direction does not automatically supply the other."
+msgstr "Cette relation nomme la convention qui délimite le sens d’un rôle. Elle est distincte de requiresParameterRole, qui déclare que la convention exige le rôle ; une direction ne fournit pas automatiquement l’autre."
+
+msgctxt "https://blackcatinformatics.ca/math/roleWithinParameterization|http://www.w3.org/2004/02/skos/core#example"
+msgid "The scene asserts ex:stddevRole roleWithinParameterization ex:meanStddevParameterization and separately asserts that the convention requires ex:stddevRole. These two edges record different aspects of the role."
+msgstr "La scène affirme ex:stddevRole roleWithinParameterization ex:meanStddevParameterization et affirme séparément que la convention exige ex:stddevRole. Ces deux arêtes consignent des aspects différents du rôle."
+
+msgctxt "https://blackcatinformatics.ca/math/roleWithinParameterization|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when a source identifies the convention within which a parameter role is defined."
+msgstr "Utiliser lorsqu’une source identifie la convention au sein de laquelle un rôle de paramètre est défini."
+
+msgctxt "https://blackcatinformatics.ca/math/roleWithinParameterization|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating a role name as globally meaningful across conventions, reversing the direction or deriving an unasserted required-role edge solely from the scoping edge."
+msgstr "Éviter de traiter un nom de rôle comme globalement significatif entre conventions, d’inverser la direction ou de déduire une arête de rôle requis non affirmée de la seule arête de portée."
+
+msgctxt "https://blackcatinformatics.ca/math/roleWithinParameterization|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Keep the DistributionParameterRole as subject and its actual DistributionParameterization as object. Preserve required-role membership and parameter instances independently; the scoping link alone does not prove complete bidirectional consistency or impose a single-owner rule."
+msgstr "Garder le DistributionParameterRole comme sujet et sa DistributionParameterization effective comme objet. Préserver indépendamment l’appartenance aux rôles requis et les instances de paramètres ; le lien de portée seul ne prouve pas une cohérence bidirectionnelle complète et n’impose pas de règle de propriétaire unique."
+
+msgctxt "https://blackcatinformatics.ca/math/requiresPositiveValue|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "requires positive value"
+msgstr "exige une valeur positive"
+
+msgctxt "https://blackcatinformatics.ca/math/requiresPositiveValue|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Declares whether the parameter filling a role must be strictly positive — true for a standard-deviation, variance, rate, or precision role. Domain math:DistributionParameterRole, range xsd:boolean (stated in prose). A parameter whose quantity violates its role's declared positivity is ill-formed (math:DistributionParameterConstraint)."
+msgstr "Déclare si le paramètre remplissant un rôle doit être strictement positif — vrai pour un rôle d’écart-type, de variance, de taux ou de précision. Domaine : math:DistributionParameterRole ; portée : xsd:boolean (indiqués en prose). Un paramètre dont la grandeur viole la positivité déclarée de son rôle est mal formé (math:DistributionParameterConstraint)."
+
+msgctxt "https://blackcatinformatics.ca/math/requiresPositiveValue|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This is a declared boolean condition on a role: true requires strictly positive magnitude, not merely nonnegative magnitude. A false declaration does not supply a value or prove that the parameter satisfies its other mathematical obligations."
+msgstr "Il s’agit d’une condition booléenne déclarée sur un rôle : true exige une valeur strictement positive, non simplement non négative. Une déclaration false ne fournit pas de valeur et ne prouve pas que le paramètre satisfait à ses autres obligations mathématiques."
+
+msgctxt "https://blackcatinformatics.ca/math/requiresPositiveValue|http://www.w3.org/2004/02/skos/core#example"
+msgid "The rainfall scene puts requiresPositiveValue true on ex:stddevRole and supplies ex:sigmaQuantity with decimal magnitude 4.5. The separate parameterization fixture explicitly gives its mean role false; absence of a flag in another record is not the same source assertion."
+msgstr "La scène de précipitations place requiresPositiveValue true sur ex:stddevRole et fournit ex:sigmaQuantity avec la valeur décimale 4.5. Le jeu de données de paramétrisation distinct donne explicitement false à son rôle de moyenne ; l’absence d’indicateur dans un autre enregistrement n’est pas la même assertion source."
+
+msgctxt "https://blackcatinformatics.ca/math/requiresPositiveValue|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the actual convention declares whether a parameter filling a role must have positive magnitude."
+msgstr "Utiliser lorsque la convention effective déclare si un paramètre remplissant un rôle doit avoir une valeur positive."
+
+msgctxt "https://blackcatinformatics.ca/math/requiresPositiveValue|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring the flag from the word rate or scale, accepting zero where strict positivity is required, or treating a missing magnitude as a successful comparison."
+msgstr "Éviter d’inférer l’indicateur du mot taux ou échelle, d’accepter zéro lorsqu’une stricte positivité est requise ou de traiter une valeur manquante comme une comparaison réussie."
+
+msgctxt "https://blackcatinformatics.ca/math/requiresPositiveValue|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Attach an actual xsd:boolean to the role, retain the parameter-to-quantity association and magnitude evidence, and respect the declared strict condition. No flag executes an expression or certifies positivity when its required value cannot be evaluated."
+msgstr "Rattacher un xsd:boolean effectif au rôle, conserver l’association entre paramètre et grandeur ainsi que les éléments probants de valeur, et respecter la condition stricte déclarée. Aucun indicateur n’exécute une expression ni ne certifie la positivité lorsque sa valeur requise ne peut pas être évaluée."
+
+msgctxt "https://blackcatinformatics.ca/math/quantityDimension|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "quantity dimension"
+msgstr "dimension de la grandeur"
+
+msgctxt "https://blackcatinformatics.ca/math/quantityDimension|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Names the dimension the quantity of a parameter filling a role must carry — the same dimension as the random variable for a location role, the squared dimension for a variance role, math:dimensionless for a correlation role. Domain math:DistributionParameterRole, range math:Dimension or a math:RoleDimensionRelation (stated in prose; a dimension may be given absolutely, or by reference to the random variable's dimension). It carries the parameter's dimensional constraint so a mis-dimensioned parameter is caught (math:DistributionParameterConstraint), not silently accepted."
+msgstr "Nomme la dimension que doit porter la grandeur d’un paramètre remplissant un rôle — la même dimension que la variable aléatoire pour un rôle de position, la dimension au carré pour un rôle de variance, math:dimensionless pour un rôle de corrélation. Domaine : math:DistributionParameterRole ; portée : math:Dimension ou math:RoleDimensionRelation (indiqués en prose ; une dimension peut être donnée de façon absolue ou relativement à la dimension de la variable aléatoire). Cette propriété porte la contrainte dimensionnelle du paramètre afin qu’un paramètre de dimension inadéquate soit signalé (math:DistributionParameterConstraint), non accepté implicitement."
+
+msgctxt "https://blackcatinformatics.ca/math/quantityDimension|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This is the role's required dimension specification, distinct from hasDimension on a quantity or random variable. It may be an absolute Dimension or a RoleDimensionRelation; the declaration does not itself supply the actual quantity dimension or perform unit conversion."
+msgstr "Il s’agit de la spécification de dimension requise du rôle, distincte de hasDimension sur une grandeur ou une variable aléatoire. Elle peut être une Dimension absolue ou une RoleDimensionRelation ; la déclaration ne fournit pas en elle-même la dimension effective de la grandeur et n’effectue pas de conversion d’unité."
+
+msgctxt "https://blackcatinformatics.ca/math/quantityDimension|http://www.w3.org/2004/02/skos/core#example"
+msgid "The dimensional fixture assigns its mean role quantityDimension math:sameAsRandomVariableDimension while both the height random variable and parameter quantity name math:lengthDimension. The actual rainfall scene has no role-level quantityDimension edge."
+msgstr "Le jeu de données dimensionnel attribue à son rôle de moyenne quantityDimension math:sameAsRandomVariableDimension, tandis que la variable aléatoire de taille et la grandeur du paramètre nomment toutes deux math:lengthDimension. La scène de précipitations effective ne comporte aucune arête quantityDimension au niveau des rôles."
+
+msgctxt "https://blackcatinformatics.ca/math/quantityDimension|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for an actual absolute or relative dimensional requirement of a parameter role."
+msgstr "Utiliser pour une exigence dimensionnelle absolue ou relative effective d’un rôle de paramètre."
+
+msgctxt "https://blackcatinformatics.ca/math/quantityDimension|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid confusing a dimension with a numeric unit scale, declaring math:dimensionless as a RoleDimensionRelation, or inferring structured constraints from unit text in a label."
+msgstr "Éviter de confondre une dimension avec une échelle numérique d’unité, de déclarer math:dimensionless comme une RoleDimensionRelation ou d’inférer des contraintes structurées du texte d’unité d’un libellé."
+
+msgctxt "https://blackcatinformatics.ca/math/quantityDimension|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Keep the role as subject and its supplied Dimension or canonical relative relation as object. Retain actual hasDimension links and ownership paths separately; supported exact vector comparison is distinct from a proof that all required inputs and every source association were checked."
+msgstr "Garder le rôle comme sujet et sa Dimension fournie ou sa relation relative canonique comme objet. Conserver séparément les liens hasDimension effectifs et les chemins d’appartenance ; une comparaison vectorielle exacte prise en charge est distincte d’une preuve que toutes les entrées requises et chaque association source ont été vérifiées."
+
+msgctxt "https://blackcatinformatics.ca/math/RoleDimensionRelation|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Role Dimension Relation"
+msgstr "Relation de dimension de rôle"
+
+msgctxt "https://blackcatinformatics.ca/math/RoleDimensionRelation|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A relational specification of a parameter role's required dimension, stated RELATIVE to the random variable's dimension rather than as an absolute math:Dimension. The canonical relations are math:sameAsRandomVariableDimension (a location parameter shares the random variable's dimension), math:squareOfRandomVariableDimension (a variance parameter carries the squared dimension), and — for a dimensionless parameter such as a correlation — the absolute math:dimensionless. The native math:DistributionParameterConstraint validator resolves a role's math:quantityDimension against the actual random-variable dimension by exact ℚ⁷ arithmetic (dimEqual for same, dimProduct of the vector with itself for square), so a variance parameter given linear units is a caught error."
+msgstr "Une spécification relationnelle de la dimension requise d’un rôle de paramètre, énoncée RELATIVEMENT à la dimension de la variable aléatoire plutôt que comme une math:Dimension absolue. Les relations canoniques sont math:sameAsRandomVariableDimension (un paramètre de position partage la dimension de la variable aléatoire), math:squareOfRandomVariableDimension (un paramètre de variance porte la dimension au carré) et — pour un paramètre sans dimension tel qu’une corrélation — la dimension absolue math:dimensionless. Le validateur natif math:DistributionParameterConstraint résout la math:quantityDimension d’un rôle par rapport à la dimension effective de la variable aléatoire au moyen d’une arithmétique exacte dans ℚ⁷ (dimEqual pour l’égalité, dimProduct du vecteur avec lui-même pour le carré), de sorte qu’un paramètre de variance donné en unités linéaires constitue une erreur signalée."
+
+msgctxt "https://blackcatinformatics.ca/math/RoleDimensionRelation|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "A relative dimension specification refers to the associated random variable's dimension. The canonical same and square relations are not dimensions themselves; the absolute dimensionless alternative of quantityDimension remains a Dimension."
+msgstr "Une spécification de dimension relative renvoie à la dimension de la variable aléatoire associée. Les relations canoniques d’égalité et de carré ne sont pas elles-mêmes des dimensions ; l’alternative absolue sans dimension de quantityDimension reste une Dimension."
+
+msgctxt "https://blackcatinformatics.ca/math/RoleDimensionRelation|http://www.w3.org/2004/02/skos/core#example"
+msgid "The dimensional fixture uses math:sameAsRandomVariableDimension, while the relational-dimension counter-example uses math:squareOfRandomVariableDimension for a variance role. These declarations request different comparisons; neither relation supplies a missing random-variable dimension."
+msgstr "Le jeu de données dimensionnel utilise math:sameAsRandomVariableDimension, tandis que le contre-exemple de dimension relative utilise math:squareOfRandomVariableDimension pour un rôle de variance. Ces déclarations demandent des comparaisons différentes ; aucune relation ne fournit une dimension de variable aléatoire manquante."
+
+msgctxt "https://blackcatinformatics.ca/math/RoleDimensionRelation|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the role's required dimension is defined relative to the random variable rather than by one absolute Dimension resource."
+msgstr "Utiliser lorsque la dimension requise du rôle est définie relativement à la variable aléatoire plutôt que par une ressource Dimension absolue."
+
+msgctxt "https://blackcatinformatics.ca/math/RoleDimensionRelation|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid using an arbitrary label as an executable relation, treating the relation as a quantity's concrete dimension, or assuming all ownership and dimension paths are available from the role alone."
+msgstr "Éviter d’utiliser un libellé arbitraire comme relation exécutable, de traiter la relation comme la dimension concrète d’une grandeur ou de supposer que tous les chemins d’appartenance et de dimension sont disponibles à partir du seul rôle."
+
+msgctxt "https://blackcatinformatics.ca/math/RoleDimensionRelation|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Use the canonical same or square individual through quantityDimension and retain the actual parameter, distribution and random-variable associations. Exact supported vector arithmetic establishes a comparison only for its resolved inputs, not complete admission of ambiguous or absent carriers."
+msgstr "Utiliser l’individu canonique d’égalité ou de carré au moyen de quantityDimension et conserver les associations effectives entre paramètre, distribution et variable aléatoire. L’arithmétique vectorielle exacte prise en charge établit une comparaison seulement pour ses entrées résolues, non une admission complète de supports ambigus ou absents."
+
+msgctxt "https://blackcatinformatics.ca/math/sameAsRandomVariableDimension|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "same as random-variable dimension"
+msgstr "même dimension que la variable aléatoire"
+
+msgctxt "https://blackcatinformatics.ca/math/sameAsRandomVariableDimension|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The role-dimension relation for a location-like parameter whose quantity must carry the SAME dimension as the random variable it parameterizes (dimEqual): a location parameter of a distribution over height carries height units. Resolved by the native math:DistributionParameterConstraint validator against the random variable's math:hasDimension."
+msgstr "La relation de dimension de rôle pour un paramètre de position dont la grandeur doit porter la MÊME dimension que la variable aléatoire qu’il paramètre (dimEqual) : un paramètre de position d’une distribution de tailles porte des unités de taille. Résolue par le validateur natif math:DistributionParameterConstraint par rapport au math:hasDimension de la variable aléatoire."
+
+msgctxt "https://blackcatinformatics.ca/math/sameAsRandomVariableDimension|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This canonical individual requests equality of dimension exponent vectors with the associated random variable. It does not assert identity of quantity resources, equality of numeric magnitudes or matching unit scales."
+msgstr "Cet individu canonique demande l’égalité des vecteurs d’exposants dimensionnels avec celui de la variable aléatoire associée. Il n’affirme ni identité des ressources de grandeurs, ni égalité des valeurs numériques, ni concordance des échelles d’unité."
+
+msgctxt "https://blackcatinformatics.ca/math/sameAsRandomVariableDimension|http://www.w3.org/2004/02/skos/core#example"
+msgid "The dimensional fixture gives the height random variable and its mean parameter's quantity math:lengthDimension, while the role names math:sameAsRandomVariableDimension. This supplies the intended same-dimension case without computing a unit conversion or a magnitude."
+msgstr "Le jeu de données dimensionnel donne à la variable aléatoire de taille et à la grandeur de son paramètre de moyenne math:lengthDimension, tandis que le rôle nomme math:sameAsRandomVariableDimension. Cela fournit le cas visé de même dimension sans calculer de conversion d’unité ni de valeur."
+
+msgctxt "https://blackcatinformatics.ca/math/sameAsRandomVariableDimension|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for a role whose parameter quantity must carry the same physical dimension as the associated random variable."
+msgstr "Utiliser pour un rôle dont la grandeur de paramètre doit porter la même dimension physique que la variable aléatoire associée."
+
+msgctxt "https://blackcatinformatics.ca/math/sameAsRandomVariableDimension|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid applying the relation as a direct hasDimension value, replacing a variance requirement with it, or merging quantity nodes because their dimensions agree."
+msgstr "Éviter d’appliquer la relation comme valeur directe de hasDimension, de remplacer par elle une exigence de variance ou de fusionner des nœuds de grandeurs parce que leurs dimensions concordent."
+
+msgctxt "https://blackcatinformatics.ca/math/sameAsRandomVariableDimension|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Point quantityDimension from the role to math:sameAsRandomVariableDimension. Preserve the quantity's and random variable's actual hasDimension links and the intervening distribution/parameter associations; missing inputs or a label alone establish no equality result."
+msgstr "Faire pointer quantityDimension du rôle vers math:sameAsRandomVariableDimension. Préserver les liens hasDimension effectifs de la grandeur et de la variable aléatoire ainsi que les associations intermédiaires entre distribution et paramètre ; des entrées manquantes ou un libellé seul n’établissent aucun résultat d’égalité."
+
+msgctxt "https://blackcatinformatics.ca/math/squareOfRandomVariableDimension|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "square of random-variable dimension"
+msgstr "carré de la dimension de la variable aléatoire"
+
+msgctxt "https://blackcatinformatics.ca/math/squareOfRandomVariableDimension|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The role-dimension relation for a variance-like parameter whose quantity must carry the SQUARED dimension of the random variable (the exact-rational sum of the random variable's exponent vector with itself, dimProduct): a variance parameter of a distribution over height carries height² units. Resolved by the native math:DistributionParameterConstraint validator; a variance parameter given the linear (un-squared) dimension is a caught error."
+msgstr "La relation de dimension de rôle pour un paramètre de variance dont la grandeur doit porter la dimension AU CARRÉ de la variable aléatoire (la somme rationnelle exacte du vecteur d’exposants de la variable aléatoire avec lui-même, dimProduct) : un paramètre de variance d’une distribution de tailles porte des unités de taille². Résolue par le validateur natif math:DistributionParameterConstraint ; un paramètre de variance donné avec la dimension linéaire (non élevée au carré) constitue une erreur signalée."
+
+msgctxt "https://blackcatinformatics.ca/math/squareOfRandomVariableDimension|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This canonical individual requests the squared physical dimension: adding the random variable's exact rational exponent vector to itself. It does not square a numeric magnitude or choose a variance parameterization."
+msgstr "Cet individu canonique demande la dimension physique au carré : additionner le vecteur d’exposants rationnels exacts de la variable aléatoire à lui-même. Il n’élève pas une valeur numérique au carré et ne choisit pas de paramétrisation par la variance."
+
+msgctxt "https://blackcatinformatics.ca/math/squareOfRandomVariableDimension|http://www.w3.org/2004/02/skos/core#example"
+msgid "The relational-dimension counter-example declares math:squareOfRandomVariableDimension for a variance role but gives both its parameter quantity and associated random variable math:lengthDimension. That is the intended linear-versus-squared mismatch, not a runtime verdict established by this annotation."
+msgstr "Le contre-exemple de dimension relative déclare math:squareOfRandomVariableDimension pour un rôle de variance, mais donne à la grandeur de son paramètre et à la variable aléatoire associée math:lengthDimension. Il s’agit de la discordance visée entre dimension linéaire et dimension au carré, non d’un verdict d’exécution établi par cette annotation."
+
+msgctxt "https://blackcatinformatics.ca/math/squareOfRandomVariableDimension|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for a variance-like role whose parameter quantity must carry the squared dimension of the associated random variable."
+msgstr "Utiliser pour un rôle de variance dont la grandeur de paramètre doit porter le carré de la dimension de la variable aléatoire associée."
+
+msgctxt "https://blackcatinformatics.ca/math/squareOfRandomVariableDimension|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid interpreting squared dimension as a numeric squaring operation, accepting linear units for a variance requirement, or inferring a relative comparison when the actual ownership or dimension links are missing."
+msgstr "Éviter d’interpréter une dimension au carré comme une opération numérique d’élévation au carré, d’accepter des unités linéaires pour une exigence de variance ou d’inférer une comparaison relative lorsque les liens effectifs d’appartenance ou de dimension sont manquants."
+
+msgctxt "https://blackcatinformatics.ca/math/squareOfRandomVariableDimension|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Point quantityDimension from the role to math:squareOfRandomVariableDimension and retain the actual hasDimension and association paths. Preserve structured exponent data and comparison evidence where supplied; no conversion, numerical variance or successful check follows from the relation name alone."
+msgstr "Faire pointer quantityDimension du rôle vers math:squareOfRandomVariableDimension et conserver les chemins effectifs de hasDimension et d’association. Préserver les données structurées d’exposants et les éléments probants de comparaison là où ils sont fournis ; aucune conversion, variance numérique ou vérification réussie ne découle du seul nom de la relation."

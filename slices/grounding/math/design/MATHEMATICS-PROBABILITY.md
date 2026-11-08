@@ -115,10 +115,12 @@ a caught error, not a silent one.
 
 ### Mandatory, correctly-factored parameterization
 
-Distribution parameterization is **explicit and mandatory**, because many families have several
-conventional forms and a bare family label silently hides which one is meant. The parameter
-apparatus is factored across three distinct properties — the earlier single `parameterValue`
-overload is removed:
+Distribution parameterization is **explicit and mandatory for a parametric law**, because many
+families have several conventional forms and a bare family label silently hides which one is meant.
+The canonical declaration guard is triggered by supplied `math:hasDistributionParameter` links;
+a record with none does not thereby establish mathematical nonparametricity or complete
+specification. The parameter apparatus is factored across three distinct properties — the earlier
+single `parameterValue` overload is removed:
 
 - `math:hasDistributionParameter` — Distribution → `math:DistributionParameter`.
 - `math:parameterQuantity` — `math:DistributionParameter` → `math:Quantity` (a numeric parameter).
