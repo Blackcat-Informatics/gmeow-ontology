@@ -16,13 +16,14 @@
 #
 # A math:Statistic describes a data function, not evidence of a computed value.
 # A math:ModelAssumption is a condition requiring appropriate methods and evidence;
-# naming it does not make every condition empirically testable. The estimate
-# is accompanied by a math:EffectSize (a Cohen's d) whose math:effectSizeContrast is the
-# SAME shared math:StatisticalContrast object the estimand targets (math:targetContrast)
-# — one modeled comparison, never two near-synonyms — so it satisfies
-# math:UnframedEffectSizeShape (contrast + scale + reference frame). A math:InferenceRun
-# is the PROCESS that produced the estimate; a math:Prediction (a forecast of a new
-# case's outcome) is held apart from the estimate of a parameter.
+# naming it does not make every condition empirically testable. The raw survival
+# difference and the separately declared latent-survival Cohen's d have distinct
+# comparison resources. This scene supplies no conversion or equivalence between
+# them and does not attach that Cohen's d to the ATE result. Its contrast, scale and
+# reference-frame links satisfy the declared effect-frame presence boundary, not
+# numerical evaluation or comparison compatibility. The math:InferenceRun names
+# the generating activity; these declarations do not prove that estimation ran.
+# A math:Prediction for a new case is distinct from a parameter-estimation result.
 @prefix math:  <https://blackcatinformatics.ca/math/> .
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
 @prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/math/statistics/estimation/> .
@@ -46,8 +47,8 @@ ex:trialPopulation a math:StatisticalPopulation ;
 ex:survivalOutcome a math:StatisticalVariable ;
     rdfs:label "Five-year overall survival (0/1) — the outcome the estimand is defined on"@x-gmeow-english .
 
-# The SINGLE shared contrast object: the estimand targets it AND the effect size
-# below measures its magnitude — one modeled comparison referenced by both.
+# This contrast belongs to the declared raw five-year survival target.
+# The latent-survival effect measure below has its own comparison resource.
 ex:treatmentContrast a math:StatisticalContrast ;
     rdfs:label "Drug D vs. standard-of-care — the treatment-minus-control contrast"@x-gmeow-english .
 
@@ -73,7 +74,6 @@ ex:ateEstimate a math:Estimate ;
     math:estimatedParameter ex:betaTreatment ;
     math:estimator ex:ipwEstimator ;
     math:estimateValue ex:ateValue ;
-    math:effectSize ex:cohensD ;
     gmeow:wasGeneratedBy ex:estimationRun .
 
 ex:betaTreatment a math:MathematicalObject ;
@@ -86,11 +86,15 @@ ex:ateValue a math:MathematicalObject ;
 ex:survivalDiffStatistic a math:Statistic ;
     rdfs:label "Weighted difference in survival proportions — a statistic"@x-gmeow-english .
 
-# --- The effect size: framed by the SHARED contrast, a scale, and a frame ----- #
+# --- Separate latent-survival effect: comparison, scale and frame ------------ #
+# No numerical value or transformation of the raw survival difference is supplied.
+
+ex:latentSurvivalContrast a math:StatisticalContrast ;
+    rdfs:label "Latent-survival comparison described by the separate Cohen's d record"@x-gmeow-english .
 
 ex:cohensD a math:EffectSize ;
     rdfs:label "Cohen's d for the treatment effect on the survival latent"@x-gmeow-english ;
-    math:effectSizeContrast ex:treatmentContrast ;
+    math:effectSizeContrast ex:latentSurvivalContrast ;
     math:effectSizeScale ex:sdScale ;
     gmeow:hasReferenceFrame ex:analysisFrame .
 

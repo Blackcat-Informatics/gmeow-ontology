@@ -7906,13 +7906,13 @@ math:MeasurementScale
     rdfs:subClassOf math:MathematicalObject ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "Measurement Scale"@x-gmeow-english ;
-    skos:definition "A measurement scale: the level of measurement a math:StatisticalVariable is recorded on — nominal, ordinal, interval, ratio, count, or compositional. A subclass of math:MathematicalObject naming which arithmetic and comparisons the values license, so a nominal code is never averaged and a compositional part is never treated as a free real. The scale is a first-class object carried by the variable, so scale-appropriate analysis is checkable rather than assumed."@x-gmeow-english ;
+    skos:definition "A measurement scale: a specification of how a statistical variable or effect measure is represented and interpreted. For a math:StatisticalVariable this includes its measurement level, such as nominal, ordinal, interval or ratio, and relevant data-structure conventions for counts or compositions; for an effect measure it can describe original outcome units, a normalization or a transformed representation. A subclass of math:MathematicalObject. Its supplied definition informs the arithmetic and comparisons licensed in that context; a name or type alone does not establish data validity, scale compatibility or a completed transformation."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox ;
-    gmeow:useWhen "Mint one to record the level of measurement a variable is on: nominal, ordinal, interval, ratio, count, or compositional, so scale-appropriate analysis is checkable."@x-gmeow-english ;
-    gmeow:avoidWhen "Do not average a nominal code or treat a compositional part as a free real; the scale exists precisely to forbid arithmetic the values do not license."@x-gmeow-english ;
-    gmeow:howToUse "Carry it on a math:StatisticalVariable, and reuse the very same object as an effect size math:effectSizeScale so magnitude and variable speak one scale vocabulary."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain a supplied variable measurement level or effect-representation convention, including any stated standardization or transformation, while keeping the actual source context and permitted interpretation explicit."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not infer licensed arithmetic from numeric category codes or treat compositional parts as independent unrestricted measurements. A scale name alone does not validate an operation, establish compatible representations or prove that a transformation ran."@x-gmeow-english ;
+    gmeow:howToUse "Retain the scale attached to the math:StatisticalVariable or through an effect's math:effectSizeScale. Reuse a resource only when the source specifies the same scale with compatible context; preserve distinct original, standardized or transformed representations without inventing conversions or data checks."@x-gmeow-english ;
     skos:example "exf:logOddsScale a math:MeasurementScale ."@x-gmeow-english ;
-    skos:scopeNote "What arithmetic and comparisons the values permit, distinct from the unit and coding of the values (math:UnitPolicy) and from the variable model role (math:VariableRole)."@x-gmeow-english .
+    skos:scopeNote "Measurement level and effect representation are uses of the same vocabulary, not a demand for identical scale resources. Keep the scale's actual role and definition distinct from the unit and coding policy (math:UnitPolicy) and from the variable model role (math:VariableRole); a scale reference alone supplies none of their missing details."@x-gmeow-english .
 
 math:UnitPolicy
     a logic:Class ;
@@ -8142,9 +8142,10 @@ math:missingnessMechanism
 # A math:Statistic is a data function defined without unknown parameters and may
 # also serve as an estimator; distinguish that function from its realized value.
 # A math:ModelAssumption can be cited and assessed where suitable methods and
-# evidence exist; naming it does not establish empirical testability or truth. The modeled contrast a
-# study targets is a single shared math:StatisticalContrast, referenced both here
-# (math:targetContrast) and by a later effect-size layer, never two near-synonyms.
+# evidence exist; naming it does not establish empirical testability or truth.
+# math:StatisticalContrast is shared vocabulary for supplied comparisons or associations.
+# An estimand and an effect measure may reuse a contrast resource when the source
+# supports the same comparison and relevant context; sharing is not universal.
 # A math:InferenceRun is the gmeow:Activity that runs an estimation or inference and
 # produces the estimates and p-values — the PROCESS leg of the process / result /
 # claim separation, held disjoint from gmeow:Observation. An estimate that names
@@ -8209,13 +8210,13 @@ math:StatisticalContrast
     rdfs:subClassOf math:MathematicalObject ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "Statistical Contrast"@x-gmeow-english ;
-    skos:definition "A statistical contrast: the modeled comparison notion between conditions — a difference, a ratio, an odds ratio, a hazard ratio of an outcome between a treatment and a reference condition. A subclass of math:MathematicalObject naming the comparison as a first-class object. This is the SINGLE shared contrast object that both a math:Estimand's target comparison (math:targetContrast) and an effect size's contrast reference — one modeled object, never two near-synonym classes for 'the difference being estimated' and 'the difference an effect size measures'. Holding the contrast once, shared, is what keeps the estimand's target and the effect-size's scale talking about the same comparison."@x-gmeow-english ;
+    skos:definition "A statistical contrast: a modeled comparison or association specification, such as a difference, ratio, odds ratio or hazard ratio between stated conditions, or an association between variables. A subclass of math:MathematicalObject naming what is compared or associated in its supplied outcome, population, time and convention context. An estimand can name it through math:targetContrast and an effect measure through math:effectSizeContrast. Those roles may reuse one resource when the source specifies the same comparison; using one contrast vocabulary does not require every estimand and effect size to share an individual or establish numerical equivalence."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox ;
     gmeow:useWhen "Mint one for the modeled comparison between conditions, a difference, ratio, odds ratio, or hazard ratio of an outcome between a treatment and a reference."@x-gmeow-english ;
-    gmeow:avoidWhen "Do not mint separate near-synonym contrasts for an estimand target and an effect-size magnitude; use the ONE shared contrast object so both name the same comparison."@x-gmeow-english ;
-    gmeow:howToUse "Reference the single contrast object from both an estimand math:targetContrast and an effect size math:effectSizeContrast."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid forcing distinct source comparisons into one resource or creating duplicate names for a comparison the source actually identifies as the same. A raw survival-probability difference and a standardized latent-outcome difference are not established as one comparison merely because they name the same treatment and reference."@x-gmeow-english ;
+    gmeow:howToUse "Retain the supplied comparison definition, direction and relevant outcome, population, time and convention context in their existing representation. Use math:targetContrast or math:effectSizeContrast for the corresponding role; reuse the object only when its identity is supported, without inventing an equivalence, conversion or computed effect."@x-gmeow-english ;
     skos:example "exf:treatVsControl a math:StatisticalContrast ."@x-gmeow-english ;
-    skos:scopeNote "The comparison notion itself, distinct from the math:Estimand that targets it and the math:EffectSize that measures its magnitude; one shared object, never two."@x-gmeow-english .
+    skos:scopeNote "This vocabulary uses contrast for the supplied comparison or association, not only a linear contrast of coefficients. Distinguish it from a target quantity, an effect-measure record and its numerical value. Equal treatment labels alone do not establish equal outcomes, populations, horizons, comparison direction or normalization."@x-gmeow-english .
 
 math:InferenceRun
     a logic:Class ;
@@ -8260,13 +8261,13 @@ math:targetContrast
     a logic:ObjectProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "target contrast"@x-gmeow-english ;
-    skos:definition "Relates a math:Estimand to the math:StatisticalContrast it targets — the comparison between conditions (a difference, ratio, odds ratio, hazard ratio of the outcome) the estimand quantifies. Domain math:Estimand, range math:StatisticalContrast (stated in prose). The contrast is the SHARED modeled object also referenced by an effect size, so the estimand's target and the effect-size's scale name the same comparison; an average treatment effect estimand targets the treatment-minus-control contrast of its outcome."@x-gmeow-english ;
+    skos:definition "Relates a math:Estimand to the math:StatisticalContrast it targets: the supplied comparison or association the target quantifies. Domain math:Estimand, range math:StatisticalContrast (stated in prose). An average treatment effect can target a treatment-minus-control outcome difference. An effect size may reference that same contrast when the source supports the shared comparison and context; this link neither requires an accompanying effect size nor establishes equality with another comparison."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox ;
-    gmeow:useWhen "Use to frame the estimand on the comparison between conditions it quantifies, the treatment-minus-control difference of its outcome."@x-gmeow-english ;
-    gmeow:avoidWhen "Do not mint a contrast unique to the estimand; reference the SHARED math:StatisticalContrast object an effect size also names, so target and magnitude agree."@x-gmeow-english ;
-    gmeow:howToUse "Set it on a math:Estimand with range math:StatisticalContrast, the same object reachable from an effect size through math:effectSizeContrast."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain a supplied estimand's comparison or association, including its direction and relevant study or model context, without assuming that every estimand is a treatment-minus-control difference."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid demanding an effect-size counterpart, inferring identity from matching condition labels, or equating raw and transformed outcomes without source support. Preserve distinct comparisons when their definitions or contexts differ."@x-gmeow-english ;
+    gmeow:howToUse "Keep math:Estimand as subject and its supplied math:StatisticalContrast as object. Retain the actual target and comparison context; a math:effectSizeContrast link may reuse that object when justified, but no shared object, numerical conversion or executed analysis is inferred."@x-gmeow-english ;
     skos:example "exf:ate math:targetContrast exf:treatVsControl ."@x-gmeow-english ;
-    skos:scopeNote "The estimand comparison coordinate, distinct from math:effectSizeContrast (same shared object, effect-size side) and from math:targetOutcome (the quantity compared)."@x-gmeow-english .
+    skos:scopeNote "The estimand-to-comparison role is distinct from math:effectSizeContrast on an effect measure and from math:targetOutcome naming the quantity compared. Sharing a comparison resource does not prove an estimated value, scale conversion or causal identification."@x-gmeow-english .
 
 math:targetTime
     a logic:ObjectProperty ;
@@ -15022,8 +15023,8 @@ math:IllFramedPValue
 # paradigm-NEUTRAL kinds — math:PredictionInterval, math:ToleranceInterval,       #
 # math:EffectSize, and math:Prediction — are left under math:MathematicalObject,  #
 # free of either family, because a prediction interval and a tolerance interval   #
-# are computed in both paradigms and an effect size is a magnitude of a contrast  #
-# either way.                                                                    #
+# are used in both paradigms. An effect measure quantifies an effect or association
+# on its declared scale; it need not be standardized or nonnegative.
 # =========================================================================== #
 
 # --- Frequentist interval and region kinds (⊑ math:FrequentistResult) -------- #
@@ -15145,13 +15146,13 @@ math:EffectSize
     rdfs:subClassOf math:MathematicalObject ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "Effect Size"@x-gmeow-english ;
-    skos:definition "An effect size: the standardized MAGNITUDE of a contrast — a Cohen's d, a correlation, an odds ratio, an R² — that answers 'how big is the effect' rather than 'is it distinguishable from zero'. A subclass of math:MathematicalObject, deliberately PARADIGM-NEUTRAL (under neither family) because an effect size is estimated in both paradigms. To be interpretable it identifies THREE things: the comparison it measures the magnitude of through math:effectSizeContrast — the SAME shared math:StatisticalContrast object an estimand targets through math:targetContrast, one modeled contrast, never a near-synonym — the math:MeasurementScale it is expressed on through math:effectSizeScale, and its reference frame through gmeow:hasReferenceFrame (the house frame predicate, the same edge a math:ProbabilityValue is framed by). An effect size missing its contrast, scale, or frame is an uninterpretable bare number (math:UnframedEffectSize)."@x-gmeow-english ;
+    skos:definition "An effect size: a quantitative effect or association measure, such as a raw difference, Cohen's d, a correlation, an odds ratio or an R². Such measures need not be standardized or nonnegative; their sign, units, reference value and interpretation depend on the selected measure. A subclass of math:MathematicalObject, usable in frequentist and Bayesian settings. It names its comparison through math:effectSizeContrast, its math:MeasurementScale through math:effectSizeScale and its reference frame through gmeow:hasReferenceFrame. The canonical closed-world presence requirements cover all three roles; a missing role is math:UnframedEffectSize. Present links do not establish numerical evaluation, compatible scales, a valid estimate or identity with an estimand's comparison."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox ;
-    gmeow:useWhen "Mint one for the standardized MAGNITUDE of a contrast, answering how big the effect is rather than whether it is distinguishable from zero."@x-gmeow-english ;
-    gmeow:avoidWhen "Do not report an effect size as a bare number; missing its contrast, scale, or reference frame it is uninterpretable."@x-gmeow-english ;
-    gmeow:howToUse "Identify its math:effectSizeContrast (the shared math:StatisticalContrast), its math:effectSizeScale, and its gmeow:hasReferenceFrame; missing any is math:UnframedEffectSize."@x-gmeow-english ;
-    skos:example "exf:cohensD a math:EffectSize ; math:effectSizeContrast exf:treatVsControl ; math:effectSizeScale exf:sdScale ."@x-gmeow-english ;
-    skos:scopeNote "The magnitude of an effect, distinct from a math:PValue (its distinguishability from zero) and from the math:StatisticalContrast whose size it measures."@x-gmeow-english ;
+    gmeow:useWhen "Use for a supplied quantitative effect or association measure whose comparison, scale and frame can be retained, preserving whether it is signed, standardized, in original outcome units or represented as a ratio or transformed ratio."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid forcing a nonnegative or standardized interpretation, deriving an effect from a p-value, or treating three present frame links as evidence of compatible or computed results. Do not invent an effect measure or a transformation to fill missing source evidence."@x-gmeow-english ;
+    gmeow:howToUse "Keep the math:EffectSize and its actual math:effectSizeContrast, math:effectSizeScale and gmeow:hasReferenceFrame links. Preserve any supplied value, direction, normalization, reference value and execution evidence separately; missing framing is math:UnframedEffectSize, while presence alone does not qualify numerical or source fidelity."@x-gmeow-english ;
+    skos:example "The estimation scene separately declares ex:ateEstimate for a five-year survival difference and ex:cohensD for a latent-survival comparison. The effect-size record names its own contrast, ex:sdScale and ex:analysisFrame, without a numerical Cohen's d value or a conversion from the labeled raw difference."@x-gmeow-english ;
+    skos:scopeNote "An effect-measure record is distinct from its supplied value and the comparison it describes. A math:PValue concerns a specified test and null model; it does not supply effect magnitude or make every null a zero difference. Ratios and their logarithms have different representations and reference values, and a declared frame is not a conversion proof."@x-gmeow-english ;
     gmeow:enforcesFailureClass math:UnframedEffectSize .
 
 math:Prediction
@@ -15221,37 +15222,37 @@ math:effectSize
     a logic:ObjectProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "effect size"@x-gmeow-english ;
-    skos:definition "Relates an inference result or a math:HypothesisTest to the math:EffectSize accompanying it — the standardized magnitude of the effect the result concerns, alongside its significance. Domain a result object or a math:HypothesisTest, range math:EffectSize (stated in prose). Naming the effect size as an object is what lets 'how big is the effect', not only 'is it significant', be answered — a test with a p-value but no effect size reports distinguishability without magnitude."@x-gmeow-english ;
+    skos:definition "Relates an inference result or a math:HypothesisTest to a supplied math:EffectSize accompanying it. Domain a result object or a math:HypothesisTest, range math:EffectSize (stated in prose). The effect measure describes the relevant effect or association on its declared scale; it need not be standardized, nonnegative or inferred from a significance result. The association alone does not establish a computed value or that the measure describes the same target as every other result linked nearby."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox ;
-    gmeow:useWhen "Use to attach an effect size to a result or test, so how big the effect is accompanies whether it is significant."@x-gmeow-english ;
-    gmeow:avoidWhen "Do not report a test with a p-value but no effect size; that reports distinguishability without magnitude, which this edge exists to complete."@x-gmeow-english ;
-    gmeow:howToUse "Set it on a result object or a math:HypothesisTest with range math:EffectSize."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain a supplied effect measure accompanying a result or test, together with evidence for its actual comparison, scale and relationship to that result."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid converting a p-value into an effect size, requiring every descriptive result to have a significance test, or attaching a measure of a different outcome as though it quantified the same target. Missing source information does not authorize a fabricated accompaniment or numerical conversion."@x-gmeow-english ;
+    gmeow:howToUse "Keep the result or math:HypothesisTest as subject and the supplied math:EffectSize resource as object. Preserve its comparison, scale, frame and any value evidence; distinguish a declared accompaniment from proof of a computed or target-compatible measure."@x-gmeow-english ;
     skos:example "exf:tTest math:effectSize exf:cohensD ."@x-gmeow-english ;
-    skos:scopeNote "Attaches magnitude to a result, distinct from math:pValue (distinguishability) carried by the same test."@x-gmeow-english .
+    skos:scopeNote "This is a result-to-effect-measure association, distinct from math:pValue on a test and from the effect measure's value or comparison. A p-value's interpretation depends on its test and null model; it is not an effect magnitude, and the null reference need not be zero."@x-gmeow-english .
 
 math:effectSizeContrast
     a logic:ObjectProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "effect-size contrast"@x-gmeow-english ;
-    skos:definition "Relates a math:EffectSize to the math:StatisticalContrast whose magnitude it measures — the comparison between conditions (a difference, a ratio, an odds ratio) the effect size quantifies the size of. Domain math:EffectSize, range math:StatisticalContrast (stated in prose). This is the SAME shared math:StatisticalContrast object a math:Estimand targets through math:targetContrast — one modeled contrast referenced by both the estimand's target and the effect size's magnitude, never two near-synonym contrasts — so the effect size and the estimand talk about the same comparison. An effect size naming no contrast is uninterpretable (math:UnframedEffectSize)."@x-gmeow-english ;
+    skos:definition "Relates a math:EffectSize to the math:StatisticalContrast specifying the comparison or association it quantifies. Domain math:EffectSize, range math:StatisticalContrast (stated in prose). The same contrast resource may be targeted through math:targetContrast when the source defines the same comparison in the relevant context; an estimand counterpart and a shared target-contrast resource are not universally required. An effect size missing its contrast reference is math:UnframedEffectSize; a present link alone proves no numerical value or compatibility."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox ;
-    gmeow:useWhen "Use to name the comparison whose magnitude an effect size measures, referencing the SHARED contrast an estimand also targets."@x-gmeow-english ;
-    gmeow:avoidWhen "Do not mint a separate contrast for the effect size; use the same math:StatisticalContrast an estimand names through math:targetContrast so both agree."@x-gmeow-english ;
-    gmeow:howToUse "Set it on a math:EffectSize with range math:StatisticalContrast; missing it is math:UnframedEffectSize."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain the supplied comparison or association an effect measure quantifies, reusing an estimand's contrast resource only when its actual identity and context are supported."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid imposing one shared contrast on distinct outcomes, horizons, populations or conventions, or using separate vocabulary classes merely for the estimand-side and effect-side roles. No identity or conversion follows solely from matching treatment labels or present links."@x-gmeow-english ;
+    gmeow:howToUse "Keep math:EffectSize as subject and its supplied math:StatisticalContrast as object. Preserve the comparison and context evidence with the separate scale and frame; missing the link is math:UnframedEffectSize, while numerical interpretation requires its own supplied evidence."@x-gmeow-english ;
     skos:example "exf:cohensD math:effectSizeContrast exf:treatVsControl ."@x-gmeow-english ;
-    skos:scopeNote "The effect-size side of the shared contrast, the same object as an estimand math:targetContrast, distinct from math:effectSizeScale (the standardization)."@x-gmeow-english .
+    skos:scopeNote "This identifies the effect measure's comparison, distinct from math:effectSizeScale and its reference frame. Same-class resources are not necessarily the same comparison, and a shared resource does not itself prove that raw, standardized and transformed measures are numerically equivalent."@x-gmeow-english .
 
 math:effectSizeScale
     a logic:ObjectProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "effect-size scale"@x-gmeow-english ;
-    skos:definition "Relates a math:EffectSize to the math:MeasurementScale it is expressed on — the standardization (a standard-deviation scale for a Cohen's d, a correlation scale, a log-odds scale for an odds ratio) that fixes how its magnitude is read. Domain math:EffectSize, range math:MeasurementScale (stated in prose). The same math:MeasurementScale first-class object the variables layer uses; an effect size naming no scale is a magnitude with no units of comparison, uninterpretable (math:UnframedEffectSize)."@x-gmeow-english ;
+    skos:definition "Relates a math:EffectSize to the math:MeasurementScale describing how its value is represented and interpreted, including any supplied standardization or transformation. Domain math:EffectSize, range math:MeasurementScale (stated in prose). Examples include original outcome units for a raw difference, a declared standard-deviation normalization for Cohen's d, a correlation scale, an odds-ratio scale and a log-odds-ratio scale. An odds ratio has multiplicative no-effect reference 1; its natural logarithm has reference 0. An effect size missing this scale reference is math:UnframedEffectSize; the link does not perform a transformation or establish compatible values."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox ;
-    gmeow:useWhen "Use to name the scale an effect size is expressed on, the standardization that fixes how its magnitude is read."@x-gmeow-english ;
-    gmeow:avoidWhen "Do not omit the scale; an effect size with no units of comparison is a magnitude with no meaning, which is math:UnframedEffectSize."@x-gmeow-english ;
-    gmeow:howToUse "Set it on a math:EffectSize with range math:MeasurementScale, the same first-class scale object the variables layer uses."@x-gmeow-english ;
+    gmeow:useWhen "Use to preserve the actual scale, direction and any normalization or transformation convention supplied for an effect measure, including an unstandardized difference or a ratio with a nonzero null reference."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid labeling an odds ratio as a log-odds value, inferring the actual standard-deviation denominator or its convention from Cohen's d alone, or treating a scale name as an executed conversion. Do not force every effect onto a standardized or nonnegative magnitude scale."@x-gmeow-english ;
+    gmeow:howToUse "Keep math:EffectSize as subject and the supplied math:MeasurementScale resource as object, retaining any actual units, denominator, transformation and reference-value account. Missing the link is math:UnframedEffectSize; preserve unresolved compatibility or value evidence without inventing it."@x-gmeow-english ;
     skos:example "exf:cohensD math:effectSizeScale exf:sdScale ."@x-gmeow-english ;
-    skos:scopeNote "The standardization of a magnitude, distinct from math:effectSizeContrast (the comparison measured) and from the effect size reference frame carried by gmeow:hasReferenceFrame."@x-gmeow-english .
+    skos:scopeNote "The effect's representation scale is distinct from math:effectSizeContrast and from its gmeow:hasReferenceFrame. Reusing the scale vocabulary does not require the effect and its outcome variable to share one scale resource. An odds ratio is not a log odds ratio, and dimensionless does not mean standardized."@x-gmeow-english .
 
 # --- Interval and effect-size conformance-failure classes ------------------- #
 
@@ -15299,13 +15300,13 @@ math:UnframedEffectSize
     rdfs:subClassOf math:MathConformanceFailure ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "Unframed Effect Size"@x-gmeow-english ;
-    skos:definition "The failure raised when a math:EffectSize does not identify all three of the frame that makes its magnitude interpretable: the comparison it measures through math:effectSizeContrast (a math:StatisticalContrast), the scale it is expressed on through math:effectSizeScale (a math:MeasurementScale), and its reference frame through gmeow:hasReferenceFrame. An effect size missing any of the three is an uninterpretable bare number — a magnitude with no comparison, no units of comparison, or no frame it is expressed in."@x-gmeow-english ;
+    skos:definition "The failure raised when a math:EffectSize lacks any required math:effectSizeContrast, math:effectSizeScale or gmeow:hasReferenceFrame reference. The canonical logic: restrictions and logic:ClosureEntry records require these three roles under closed-world validation; generated validation shapes project that contract. This is a missing-reference finding on an effect-measure record, whether or not a numerical value is supplied. Present links do not establish compatible comparisons or scales, valid values or types, or an executed analysis."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox ;
-    gmeow:useWhen "This failure is raised when an effect size does not identify all three of the frame that makes its magnitude interpretable."@x-gmeow-english ;
-    gmeow:avoidWhen "Do not report an effect size missing its contrast, its scale, or its reference frame; any one missing leaves an uninterpretable bare number."@x-gmeow-english ;
-    gmeow:howToUse "Detected when a math:EffectSize lacks math:effectSizeContrast, math:effectSizeScale, or gmeow:hasReferenceFrame; supply all three to avoid it."@x-gmeow-english ;
+    gmeow:useWhen "Use when a supplied math:EffectSize is missing its required math:effectSizeContrast, math:effectSizeScale or gmeow:hasReferenceFrame reference, retaining the actual offending resource and missing role even when the record contains no numerical value."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not suppress the finding because an incomplete record has no numeric payload, or raise it solely because a result is unevaluated, unfavorable or incompatible. Do not invent comparison, scale or frame resources to conceal missing source evidence."@x-gmeow-english ;
+    gmeow:howToUse "Identify the math:EffectSize and the missing math:effectSizeContrast, math:effectSizeScale or gmeow:hasReferenceFrame role from the canonical restrictions and closure records. Preserve the actual source evidence and supply a real reference only when available; keep value, type, compatibility and execution qualification separate from this presence check."@x-gmeow-english ;
     skos:example "exf:bareD a math:UnframedEffectSize ."@x-gmeow-english ;
-    skos:scopeNote "The uninterpretable-magnitude finding, distinct from math:IllFramedPValue (an ambiguous p-value) and math:UnderspecifiedEstimate (an estimate with no target or act)."@x-gmeow-english .
+    skos:scopeNote "This identifies a missing required comparison, scale or reference-frame link, distinct from math:IllFramedPValue and math:UnderspecifiedEstimate. A complete set of these links meets this presence boundary without certifying full mathematical or source validity. An unfavorable result, absent numeric payload or unqualified conversion is not itself this missing-link failure."@x-gmeow-english .
 
 # =========================================================================== #
 # Diagnostics, model comparison, calibration, and design/integrity             #

@@ -237,32 +237,32 @@ msgid "Effect Size"
 msgstr "Taille d'effet"
 
 msgctxt "https://blackcatinformatics.ca/math/EffectSize|skos:definition"
-msgid "An effect size: the standardized MAGNITUDE of a contrast — a Cohen's d, a correlation, an odds ratio, an R² — that answers 'how big is the effect' rather than 'is it distinguishable from zero'. A subclass of math:MathematicalObject, deliberately PARADIGM-NEUTRAL (under neither family) because an effect size is estimated in both paradigms. To be interpretable it identifies THREE things: the comparison it measures the magnitude of through math:effectSizeContrast — the SAME shared math:StatisticalContrast object an estimand targets through math:targetContrast, one modeled contrast, never a near-synonym — the math:MeasurementScale it is expressed on through math:effectSizeScale, and its reference frame through gmeow:hasReferenceFrame (the house frame predicate, the same edge a math:ProbabilityValue is framed by). An effect size missing its contrast, scale, or frame is an uninterpretable bare number (math:UnframedEffectSize)."
-msgstr "Une taille d'effet : la MAGNITUDE standardisée d'un contraste — un d de Cohen, une corrélation, un rapport de cotes, un R² — qui répond à « quelle est la taille de l'effet » plutôt qu'à « est-il distinguable de zéro ». Une sous-classe de math:MathematicalObject, délibérément NEUTRE VIS-À-VIS DU PARADIGME (sous aucune famille) parce qu'une taille d'effet est estimée dans les deux paradigmes. Pour être interprétable, elle identifie TROIS choses : la comparaison dont elle mesure la magnitude via math:effectSizeContrast — le MÊME objet math:StatisticalContrast partagé qu'un estimande cible via math:targetContrast, un seul contraste modélisé, jamais un quasi-synonyme —, la math:MeasurementScale sur laquelle elle est exprimée via math:effectSizeScale, et son cadre de référence via gmeow:hasReferenceFrame (le prédicat maison de cadre, la même arête par laquelle une math:ProbabilityValue est cadrée). Une taille d'effet sans son contraste, son échelle ou son cadre est un nombre nu ininterprétable (math:UnframedEffectSize)."
+msgid "An effect size: a quantitative effect or association measure, such as a raw difference, Cohen's d, a correlation, an odds ratio or an R². Such measures need not be standardized or nonnegative; their sign, units, reference value and interpretation depend on the selected measure. A subclass of math:MathematicalObject, usable in frequentist and Bayesian settings. It names its comparison through math:effectSizeContrast, its math:MeasurementScale through math:effectSizeScale and its reference frame through gmeow:hasReferenceFrame. The canonical closed-world presence requirements cover all three roles; a missing role is math:UnframedEffectSize. Present links do not establish numerical evaluation, compatible scales, a valid estimate or identity with an estimand's comparison."
+msgstr "Une taille d'effet : une mesure quantitative d'effet ou d'association, telle qu'une différence brute, Cohen's d, une corrélation, un rapport de cotes ou un R². Ces mesures ne sont pas nécessairement standardisées ni non négatives ; leur signe, leurs unités, leur valeur de référence et leur interprétation dépendent de la mesure choisie. Une sous-classe de math:MathematicalObject, utilisable dans les cadres fréquentiste et bayésien. Elle nomme sa comparaison par math:effectSizeContrast, son math:MeasurementScale par math:effectSizeScale et son cadre de référence par gmeow:hasReferenceFrame. Les exigences canoniques de présence en monde clos couvrent ces trois rôles ; un rôle manquant relève de math:UnframedEffectSize. La présence des liens n'établit ni une évaluation numérique, ni des échelles compatibles, ni une estimation valide, ni l'identité avec la comparaison d'un estimand."
 
 msgctxt "https://blackcatinformatics.ca/math/effectSize|rdfs:label"
 msgid "effect size"
 msgstr "taille d'effet"
 
 msgctxt "https://blackcatinformatics.ca/math/effectSize|skos:definition"
-msgid "Relates an inference result or a math:HypothesisTest to the math:EffectSize accompanying it — the standardized magnitude of the effect the result concerns, alongside its significance. Domain a result object or a math:HypothesisTest, range math:EffectSize (stated in prose). Naming the effect size as an object is what lets 'how big is the effect', not only 'is it significant', be answered — a test with a p-value but no effect size reports distinguishability without magnitude."
-msgstr "Relie un objet résultat d'inférence ou un math:HypothesisTest à la math:EffectSize qui l'accompagne — la magnitude standardisée de l'effet que le résultat concerne, aux côtés de sa significativité. Domaine un objet résultat ou un math:HypothesisTest, portée math:EffectSize (précisé en prose). Nommer la taille d'effet comme objet est ce qui permet de répondre à « quelle est la taille de l'effet », et non seulement à « est-il significatif » — un test avec une valeur p mais sans taille d'effet rapporte la distinguabilité sans la magnitude."
+msgid "Relates an inference result or a math:HypothesisTest to a supplied math:EffectSize accompanying it. Domain a result object or a math:HypothesisTest, range math:EffectSize (stated in prose). The effect measure describes the relevant effect or association on its declared scale; it need not be standardized, nonnegative or inferred from a significance result. The association alone does not establish a computed value or that the measure describes the same target as every other result linked nearby."
+msgstr "Relie un résultat d'inférence ou un math:HypothesisTest à un math:EffectSize fourni qui l'accompagne. Domaine un objet résultat ou un math:HypothesisTest, portée math:EffectSize (énoncés en prose). La mesure d'effet décrit l'effet ou l'association pertinent sur son échelle déclarée ; elle n'est pas nécessairement standardisée, non négative ou déduite d'un résultat de significativité. L'association seule n'établit ni une valeur calculée ni que la mesure décrit la même cible que tout autre résultat lié à proximité."
 
 msgctxt "https://blackcatinformatics.ca/math/effectSizeContrast|rdfs:label"
 msgid "effect-size contrast"
 msgstr "contraste de taille d'effet"
 
 msgctxt "https://blackcatinformatics.ca/math/effectSizeContrast|skos:definition"
-msgid "Relates a math:EffectSize to the math:StatisticalContrast whose magnitude it measures — the comparison between conditions (a difference, a ratio, an odds ratio) the effect size quantifies the size of. Domain math:EffectSize, range math:StatisticalContrast (stated in prose). This is the SAME shared math:StatisticalContrast object a math:Estimand targets through math:targetContrast — one modeled contrast referenced by both the estimand's target and the effect size's magnitude, never two near-synonym contrasts — so the effect size and the estimand talk about the same comparison. An effect size naming no contrast is uninterpretable (math:UnframedEffectSize)."
-msgstr "Relie une math:EffectSize au math:StatisticalContrast dont elle mesure la magnitude — la comparaison entre modalités (une différence, un ratio, un rapport de cotes) dont la taille d'effet quantifie l'ampleur. Domaine math:EffectSize, portée math:StatisticalContrast (précisé en prose). C'est le MÊME objet math:StatisticalContrast partagé qu'un math:Estimand cible via math:targetContrast — un seul contraste modélisé référencé à la fois par la cible de l'estimande et la magnitude de la taille d'effet, jamais deux quasi-synonymes — de sorte que la taille d'effet et l'estimande parlent de la même comparaison. Une taille d'effet ne nommant aucun contraste est ininterprétable (math:UnframedEffectSize)."
+msgid "Relates a math:EffectSize to the math:StatisticalContrast specifying the comparison or association it quantifies. Domain math:EffectSize, range math:StatisticalContrast (stated in prose). The same contrast resource may be targeted through math:targetContrast when the source defines the same comparison in the relevant context; an estimand counterpart and a shared target-contrast resource are not universally required. An effect size missing its contrast reference is math:UnframedEffectSize; a present link alone proves no numerical value or compatibility."
+msgstr "Relie un math:EffectSize au math:StatisticalContrast qui spécifie la comparaison ou l'association qu'il quantifie. Domaine math:EffectSize, portée math:StatisticalContrast (énoncés en prose). La même ressource de contraste peut être ciblée par math:targetContrast lorsque la source définit la même comparaison dans le contexte pertinent ; un estimand correspondant et une ressource de contraste cible partagée ne sont pas universellement requis. Une taille d'effet dont la référence au contraste manque relève de math:UnframedEffectSize ; la présence d'un lien ne prouve à elle seule aucune valeur numérique ni aucune compatibilité."
 
 msgctxt "https://blackcatinformatics.ca/math/effectSizeScale|rdfs:label"
 msgid "effect-size scale"
 msgstr "échelle de taille d'effet"
 
 msgctxt "https://blackcatinformatics.ca/math/effectSizeScale|skos:definition"
-msgid "Relates a math:EffectSize to the math:MeasurementScale it is expressed on — the standardization (a standard-deviation scale for a Cohen's d, a correlation scale, a log-odds scale for an odds ratio) that fixes how its magnitude is read. Domain math:EffectSize, range math:MeasurementScale (stated in prose). The same math:MeasurementScale first-class object the variables layer uses; an effect size naming no scale is a magnitude with no units of comparison, uninterpretable (math:UnframedEffectSize)."
-msgstr "Relie une math:EffectSize à la math:MeasurementScale sur laquelle elle est exprimée — la standardisation (une échelle d'écart-type pour un d de Cohen, une échelle de corrélation, une échelle de log-cotes pour un rapport de cotes) qui fixe comment sa magnitude se lit. Domaine math:EffectSize, portée math:MeasurementScale (précisé en prose). Le même objet math:MeasurementScale de première classe qu'emploie la couche des variables ; une taille d'effet ne nommant aucune échelle est une magnitude sans unités de comparaison, ininterprétable (math:UnframedEffectSize)."
+msgid "Relates a math:EffectSize to the math:MeasurementScale describing how its value is represented and interpreted, including any supplied standardization or transformation. Domain math:EffectSize, range math:MeasurementScale (stated in prose). Examples include original outcome units for a raw difference, a declared standard-deviation normalization for Cohen's d, a correlation scale, an odds-ratio scale and a log-odds-ratio scale. An odds ratio has multiplicative no-effect reference 1; its natural logarithm has reference 0. An effect size missing this scale reference is math:UnframedEffectSize; the link does not perform a transformation or establish compatible values."
+msgstr "Relie un math:EffectSize au math:MeasurementScale qui décrit comment sa valeur est représentée et interprétée, y compris toute standardisation ou transformation fournie. Domaine math:EffectSize, portée math:MeasurementScale (énoncés en prose). Les exemples comprennent les unités d'origine du résultat étudié pour une différence brute, une normalisation par l'écart-type déclarée pour Cohen's d, une échelle de corrélation, une échelle de rapport de cotes et une échelle de logarithme du rapport de cotes. Un rapport de cotes a pour référence multiplicative d'absence d'effet 1 ; son logarithme naturel a pour référence 0. Une taille d'effet dont cette référence d'échelle manque relève de math:UnframedEffectSize ; le lien n'effectue pas de transformation et n'établit pas la compatibilité des valeurs."
 
 msgctxt "https://blackcatinformatics.ca/math/Estimand|rdfs:label"
 msgid "Estimand"
@@ -589,8 +589,8 @@ msgid "Measurement Scale"
 msgstr "Échelle de mesure"
 
 msgctxt "https://blackcatinformatics.ca/math/MeasurementScale|skos:definition"
-msgid "A measurement scale: the level of measurement a math:StatisticalVariable is recorded on — nominal, ordinal, interval, ratio, count, or compositional. A subclass of math:MathematicalObject naming which arithmetic and comparisons the values license, so a nominal code is never averaged and a compositional part is never treated as a free real. The scale is a first-class object carried by the variable, so scale-appropriate analysis is checkable rather than assumed."
-msgstr "Une échelle de mesure : le niveau de mesure sur lequel une math:StatisticalVariable est enregistrée — nominale, ordinale, d'intervalle, de rapport, de comptage ou compositionnelle. Une sous-classe de math:MathematicalObject nommant quelles opérations arithmétiques et comparaisons les valeurs autorisent, de sorte qu'un code nominal ne soit jamais moyenné et qu'une part compositionnelle ne soit jamais traitée comme un réel libre. L'échelle est un objet de première classe porté par la variable, de sorte que l'analyse adaptée à l'échelle soit vérifiable plutôt que supposée."
+msgid "A measurement scale: a specification of how a statistical variable or effect measure is represented and interpreted. For a math:StatisticalVariable this includes its measurement level, such as nominal, ordinal, interval or ratio, and relevant data-structure conventions for counts or compositions; for an effect measure it can describe original outcome units, a normalization or a transformed representation. A subclass of math:MathematicalObject. Its supplied definition informs the arithmetic and comparisons licensed in that context; a name or type alone does not establish data validity, scale compatibility or a completed transformation."
+msgstr "Une échelle de mesure : une spécification de la manière dont une variable statistique ou une mesure d'effet est représentée et interprétée. Pour une math:StatisticalVariable, cela comprend son niveau de mesure, tel que nominal, ordinal, d'intervalle ou de rapport, ainsi que les conventions pertinentes de structure des données pour les comptages ou les compositions ; pour une mesure d'effet, elle peut décrire les unités d'origine du résultat étudié, une normalisation ou une représentation transformée. Une sous-classe de math:MathematicalObject. Sa définition fournie renseigne sur les opérations arithmétiques et les comparaisons permises dans ce contexte ; un nom ou un type seul n'établit ni la validité des données, ni la compatibilité des échelles, ni l'achèvement d'une transformation."
 
 msgctxt "https://blackcatinformatics.ca/math/midPTail|rdfs:label"
 msgid "mid-p"
@@ -877,8 +877,8 @@ msgid "Statistical Contrast"
 msgstr "Contraste statistique"
 
 msgctxt "https://blackcatinformatics.ca/math/StatisticalContrast|skos:definition"
-msgid "A statistical contrast: the modeled comparison notion between conditions — a difference, a ratio, an odds ratio, a hazard ratio of an outcome between a treatment and a reference condition. A subclass of math:MathematicalObject naming the comparison as a first-class object. This is the SINGLE shared contrast object that both a math:Estimand's target comparison (math:targetContrast) and an effect size's contrast reference — one modeled object, never two near-synonym classes for 'the difference being estimated' and 'the difference an effect size measures'. Holding the contrast once, shared, is what keeps the estimand's target and the effect-size's scale talking about the same comparison."
-msgstr "Un contraste statistique : la notion de comparaison modélisée entre modalités — une différence, un ratio, un rapport de cotes, un rapport de risques d'une issue entre une modalité de traitement et une modalité de référence. Une sous-classe de math:MathematicalObject nommant la comparaison comme objet de première classe. C'est l'UNIQUE objet contraste partagé que référencent à la fois la comparaison cible d'un math:Estimand (math:targetContrast) et le contraste d'une taille d'effet — un seul objet modélisé, jamais deux quasi-synonymes pour « la différence estimée » et « la différence que mesure une taille d'effet ». Tenir le contraste une seule fois, partagé, est ce qui maintient la cible de l'estimande et l'échelle de la taille d'effet parlant de la même comparaison."
+msgid "A statistical contrast: a modeled comparison or association specification, such as a difference, ratio, odds ratio or hazard ratio between stated conditions, or an association between variables. A subclass of math:MathematicalObject naming what is compared or associated in its supplied outcome, population, time and convention context. An estimand can name it through math:targetContrast and an effect measure through math:effectSizeContrast. Those roles may reuse one resource when the source specifies the same comparison; using one contrast vocabulary does not require every estimand and effect size to share an individual or establish numerical equivalence."
+msgstr "Un contraste statistique : une spécification modélisée de comparaison ou d'association, telle qu'une différence, un rapport, un rapport de cotes ou un rapport des risques instantanés entre des conditions énoncées, ou une association entre des variables. Une sous-classe de math:MathematicalObject qui nomme ce qui est comparé ou associé dans le contexte fourni de résultat étudié, de population, de temps et de conventions. Un estimand peut le nommer par math:targetContrast et une mesure d'effet par math:effectSizeContrast. Ces rôles peuvent réutiliser une même ressource lorsque la source spécifie la même comparaison ; l'emploi d'un vocabulaire commun de contrastes n'exige pas que chaque estimand et chaque taille d'effet partagent un individu, et n'établit pas d'équivalence numérique."
 
 msgctxt "https://blackcatinformatics.ca/math/StatisticalPopulation|rdfs:label"
 msgid "Statistical Population"
@@ -941,8 +941,8 @@ msgid "target contrast"
 msgstr "contraste cible"
 
 msgctxt "https://blackcatinformatics.ca/math/targetContrast|skos:definition"
-msgid "Relates a math:Estimand to the math:StatisticalContrast it targets — the comparison between conditions (a difference, ratio, odds ratio, hazard ratio of the outcome) the estimand quantifies. Domain math:Estimand, range math:StatisticalContrast (stated in prose). The contrast is the SHARED modeled object also referenced by an effect size, so the estimand's target and the effect-size's scale name the same comparison; an average treatment effect estimand targets the treatment-minus-control contrast of its outcome."
-msgstr "Relie un math:Estimand au math:StatisticalContrast qu'il cible — la comparaison entre modalités (une différence, un ratio, un rapport de cotes, un rapport de risques de l'issue) que l'estimande quantifie. Domaine math:Estimand, portée math:StatisticalContrast (précisé en prose). Le contraste est l'objet modélisé PARTAGÉ que référence aussi une taille d'effet, de sorte que la cible de l'estimande et l'échelle de la taille d'effet nomment la même comparaison ; un estimande d'effet moyen de traitement cible le contraste traitement-moins-contrôle de son issue."
+msgid "Relates a math:Estimand to the math:StatisticalContrast it targets: the supplied comparison or association the target quantifies. Domain math:Estimand, range math:StatisticalContrast (stated in prose). An average treatment effect can target a treatment-minus-control outcome difference. An effect size may reference that same contrast when the source supports the shared comparison and context; this link neither requires an accompanying effect size nor establishes equality with another comparison."
+msgstr "Relie un math:Estimand au math:StatisticalContrast qu'il cible : la comparaison ou l'association fournie que la cible quantifie. Domaine math:Estimand, portée math:StatisticalContrast (énoncés en prose). Un effet moyen du traitement peut cibler une différence de résultat entre traitement et témoin, dans le sens traitement moins témoin. Une taille d'effet peut référencer ce même contraste lorsque la source étaye la comparaison et le contexte partagés ; ce lien n'exige pas de taille d'effet associée et n'établit pas l'égalité avec une autre comparaison."
 
 msgctxt "https://blackcatinformatics.ca/math/targetOutcome|rdfs:label"
 msgid "target outcome"
@@ -1029,8 +1029,8 @@ msgid "Unframed Effect Size"
 msgstr "Taille d'effet non cadrée"
 
 msgctxt "https://blackcatinformatics.ca/math/UnframedEffectSize|skos:definition"
-msgid "The failure raised when a math:EffectSize does not identify all three of the frame that makes its magnitude interpretable: the comparison it measures through math:effectSizeContrast (a math:StatisticalContrast), the scale it is expressed on through math:effectSizeScale (a math:MeasurementScale), and its reference frame through gmeow:hasReferenceFrame. An effect size missing any of the three is an uninterpretable bare number — a magnitude with no comparison, no units of comparison, or no frame it is expressed in."
-msgstr "L'échec soulevé lorsqu'une math:EffectSize n'identifie pas les trois éléments du cadre qui rend sa magnitude interprétable : la comparaison qu'elle mesure via math:effectSizeContrast (un math:StatisticalContrast), l'échelle sur laquelle elle est exprimée via math:effectSizeScale (une math:MeasurementScale) et son cadre de référence via gmeow:hasReferenceFrame. Une taille d'effet privée de l'un quelconque des trois est un nombre nu ininterprétable — une magnitude sans comparaison, sans unités de comparaison ou sans cadre dans lequel elle est exprimée."
+msgid "The failure raised when a math:EffectSize lacks any required math:effectSizeContrast, math:effectSizeScale or gmeow:hasReferenceFrame reference. The canonical logic: restrictions and logic:ClosureEntry records require these three roles under closed-world validation; generated validation shapes project that contract. This is a missing-reference finding on an effect-measure record, whether or not a numerical value is supplied. Present links do not establish compatible comparisons or scales, valid values or types, or an executed analysis."
+msgstr "Le défaut signalé lorsqu'une référence requise math:effectSizeContrast, math:effectSizeScale ou gmeow:hasReferenceFrame manque à un math:EffectSize. Les restrictions canoniques logic: et les enregistrements logic:ClosureEntry exigent ces trois rôles en validation en monde clos ; les formes de validation générées projettent ce contrat. Il s'agit d'un constat de référence manquante sur un enregistrement de mesure d'effet, qu'une valeur numérique soit fournie ou non. La présence des liens n'établit ni des comparaisons ou des échelles compatibles, ni des valeurs ou des types valides, ni une analyse exécutée."
 
 msgctxt "https://blackcatinformatics.ca/math/UnitPolicy|rdfs:label"
 msgid "Unit Policy"
@@ -16946,3 +16946,163 @@ msgstr "Ne pas créer d’estimation qui ne nomme ni estimande ni paramètre est
 msgctxt "https://blackcatinformatics.ca/math/UnderspecifiedEstimate|https://blackcatinformatics.ca/gmeow/howToUse"
 msgid "Detected when a math:Estimate names neither math:estimatesEstimand nor math:estimatedParameter, or names no math:estimator; give an estimate its target and its act to avoid it."
 msgstr "Détectée lorsqu’une math:Estimate ne nomme ni math:estimatesEstimand ni math:estimatedParameter, ou ne nomme aucun math:estimator ; donner à une estimation sa cible et son acte pour l’éviter."
+
+msgctxt "https://blackcatinformatics.ca/math/StatisticalContrast|skos:scopeNote"
+msgid "This vocabulary uses contrast for the supplied comparison or association, not only a linear contrast of coefficients. Distinguish it from a target quantity, an effect-measure record and its numerical value. Equal treatment labels alone do not establish equal outcomes, populations, horizons, comparison direction or normalization."
+msgstr "Ce vocabulaire emploie contraste pour la comparaison ou l'association fournie, et pas uniquement pour un contraste linéaire de coefficients. Le distinguer d'une quantité cible, d'un enregistrement de mesure d'effet et de sa valeur numérique. Des libellés de traitement identiques ne suffisent pas à établir l'identité des résultats étudiés, des populations, des horizons, du sens de comparaison ou de la normalisation."
+
+msgctxt "https://blackcatinformatics.ca/math/StatisticalContrast|skos:example"
+msgid "exf:treatVsControl a math:StatisticalContrast ."
+msgstr "exf:treatVsControl a math:StatisticalContrast ."
+
+msgctxt "https://blackcatinformatics.ca/math/StatisticalContrast|gmeow:useWhen"
+msgid "Mint one for the modeled comparison between conditions, a difference, ratio, odds ratio, or hazard ratio of an outcome between a treatment and a reference."
+msgstr "Créer un objet pour la comparaison modélisée entre des conditions : une différence, un rapport, un rapport de cotes ou un rapport des risques instantanés concernant un résultat étudié entre un traitement et une référence."
+
+msgctxt "https://blackcatinformatics.ca/math/StatisticalContrast|gmeow:avoidWhen"
+msgid "Avoid forcing distinct source comparisons into one resource or creating duplicate names for a comparison the source actually identifies as the same. A raw survival-probability difference and a standardized latent-outcome difference are not established as one comparison merely because they name the same treatment and reference."
+msgstr "Éviter de fusionner des comparaisons distinctes de la source dans une seule ressource ou de créer des noms en double pour une comparaison que la source identifie effectivement comme étant la même. Une différence brute de probabilités de survie et une différence standardisée d'un résultat latent ne sont pas établies comme une même comparaison du seul fait qu'elles nomment le même traitement et la même référence."
+
+msgctxt "https://blackcatinformatics.ca/math/StatisticalContrast|gmeow:howToUse"
+msgid "Retain the supplied comparison definition, direction and relevant outcome, population, time and convention context in their existing representation. Use math:targetContrast or math:effectSizeContrast for the corresponding role; reuse the object only when its identity is supported, without inventing an equivalence, conversion or computed effect."
+msgstr "Conserver la définition et le sens de la comparaison fournis, ainsi que le contexte pertinent de résultat étudié, de population, de temps et de conventions, dans leur représentation existante. Employer math:targetContrast ou math:effectSizeContrast pour le rôle correspondant ; ne réutiliser l'objet que si son identité est étayée, sans inventer d'équivalence, de conversion ni d'effet calculé."
+
+msgctxt "https://blackcatinformatics.ca/math/targetContrast|skos:scopeNote"
+msgid "The estimand-to-comparison role is distinct from math:effectSizeContrast on an effect measure and from math:targetOutcome naming the quantity compared. Sharing a comparison resource does not prove an estimated value, scale conversion or causal identification."
+msgstr "Le rôle qui relie l'estimand à la comparaison se distingue de math:effectSizeContrast sur une mesure d'effet et de math:targetOutcome, qui nomme la quantité comparée. Le partage d'une ressource de comparaison ne prouve ni une valeur estimée, ni une conversion d'échelle, ni une identification causale."
+
+msgctxt "https://blackcatinformatics.ca/math/targetContrast|skos:example"
+msgid "exf:ate math:targetContrast exf:treatVsControl ."
+msgstr "exf:ate math:targetContrast exf:treatVsControl ."
+
+msgctxt "https://blackcatinformatics.ca/math/targetContrast|gmeow:useWhen"
+msgid "Use to retain a supplied estimand's comparison or association, including its direction and relevant study or model context, without assuming that every estimand is a treatment-minus-control difference."
+msgstr "Employer pour conserver la comparaison ou l'association d'un estimand fourni, y compris son sens et le contexte pertinent de l'étude ou du modèle, sans supposer que tout estimand est une différence traitement moins témoin."
+
+msgctxt "https://blackcatinformatics.ca/math/targetContrast|gmeow:avoidWhen"
+msgid "Avoid demanding an effect-size counterpart, inferring identity from matching condition labels, or equating raw and transformed outcomes without source support. Preserve distinct comparisons when their definitions or contexts differ."
+msgstr "Éviter d'exiger une taille d'effet correspondante, de déduire l'identité de libellés de conditions identiques ou d'assimiler des résultats bruts et transformés sans appui dans la source. Conserver des comparaisons distinctes lorsque leurs définitions ou leurs contextes diffèrent."
+
+msgctxt "https://blackcatinformatics.ca/math/targetContrast|gmeow:howToUse"
+msgid "Keep math:Estimand as subject and its supplied math:StatisticalContrast as object. Retain the actual target and comparison context; a math:effectSizeContrast link may reuse that object when justified, but no shared object, numerical conversion or executed analysis is inferred."
+msgstr "Garder math:Estimand comme sujet et son math:StatisticalContrast fourni comme objet. Conserver la cible réelle et le contexte de comparaison ; un lien math:effectSizeContrast peut réutiliser cet objet si cela est justifié, mais aucun objet partagé, aucune conversion numérique ni aucune analyse exécutée n'est déduit."
+
+msgctxt "https://blackcatinformatics.ca/math/EffectSize|skos:scopeNote"
+msgid "An effect-measure record is distinct from its supplied value and the comparison it describes. A math:PValue concerns a specified test and null model; it does not supply effect magnitude or make every null a zero difference. Ratios and their logarithms have different representations and reference values, and a declared frame is not a conversion proof."
+msgstr "Un enregistrement de mesure d'effet se distingue de sa valeur fournie et de la comparaison qu'il décrit. Un math:PValue concerne un test et un modèle sous l'hypothèse nulle spécifiés ; il ne fournit pas l'amplitude de l'effet et ne fait pas de toute hypothèse nulle une différence nulle. Les rapports et leurs logarithmes ont des représentations et des valeurs de référence différentes, et un cadre déclaré ne constitue pas une preuve de conversion."
+
+msgctxt "https://blackcatinformatics.ca/math/EffectSize|skos:example"
+msgid "The estimation scene separately declares ex:ateEstimate for a five-year survival difference and ex:cohensD for a latent-survival comparison. The effect-size record names its own contrast, ex:sdScale and ex:analysisFrame, without a numerical Cohen's d value or a conversion from the labeled raw difference."
+msgstr "La scène d'estimation déclare séparément ex:ateEstimate pour une différence de survie à cinq ans et ex:cohensD pour une comparaison de survie latente. L'enregistrement de taille d'effet nomme son propre contraste, ex:sdScale et ex:analysisFrame, sans valeur numérique de Cohen's d ni conversion à partir de la différence brute ainsi libellée."
+
+msgctxt "https://blackcatinformatics.ca/math/EffectSize|gmeow:useWhen"
+msgid "Use for a supplied quantitative effect or association measure whose comparison, scale and frame can be retained, preserving whether it is signed, standardized, in original outcome units or represented as a ratio or transformed ratio."
+msgstr "Employer pour une mesure quantitative d'effet ou d'association fournie dont la comparaison, l'échelle et le cadre peuvent être conservés, en préservant les indications précisant si elle est signée, standardisée, exprimée dans les unités d'origine du résultat étudié ou représentée par un rapport ou un rapport transformé."
+
+msgctxt "https://blackcatinformatics.ca/math/EffectSize|gmeow:avoidWhen"
+msgid "Avoid forcing a nonnegative or standardized interpretation, deriving an effect from a p-value, or treating three present frame links as evidence of compatible or computed results. Do not invent an effect measure or a transformation to fill missing source evidence."
+msgstr "Éviter d'imposer une interprétation non négative ou standardisée, de déduire un effet d'une valeur p ou de prendre la présence des trois liens de cadrage pour une preuve de résultats compatibles ou calculés. Ne pas inventer de mesure d'effet ni de transformation pour combler des éléments manquants dans la source."
+
+msgctxt "https://blackcatinformatics.ca/math/EffectSize|gmeow:howToUse"
+msgid "Keep the math:EffectSize and its actual math:effectSizeContrast, math:effectSizeScale and gmeow:hasReferenceFrame links. Preserve any supplied value, direction, normalization, reference value and execution evidence separately; missing framing is math:UnframedEffectSize, while presence alone does not qualify numerical or source fidelity."
+msgstr "Conserver le math:EffectSize et ses liens effectifs math:effectSizeContrast, math:effectSizeScale et gmeow:hasReferenceFrame. Préserver séparément toute valeur, tout sens, toute normalisation, toute valeur de référence et toute preuve d'exécution fournis ; un cadrage manquant relève de math:UnframedEffectSize, tandis que la présence seule ne suffit pas à qualifier la fidélité numérique ou la fidélité à la source."
+
+msgctxt "https://blackcatinformatics.ca/math/effectSize|skos:scopeNote"
+msgid "This is a result-to-effect-measure association, distinct from math:pValue on a test and from the effect measure's value or comparison. A p-value's interpretation depends on its test and null model; it is not an effect magnitude, and the null reference need not be zero."
+msgstr "Il s'agit d'une association du résultat à la mesure d'effet, distincte de math:pValue sur un test ainsi que de la valeur ou de la comparaison de la mesure d'effet. L'interprétation d'une valeur p dépend de son test et de son modèle sous l'hypothèse nulle ; ce n'est pas une amplitude d'effet, et la référence sous l'hypothèse nulle n'est pas nécessairement zéro."
+
+msgctxt "https://blackcatinformatics.ca/math/effectSize|skos:example"
+msgid "exf:tTest math:effectSize exf:cohensD ."
+msgstr "exf:tTest math:effectSize exf:cohensD ."
+
+msgctxt "https://blackcatinformatics.ca/math/effectSize|gmeow:useWhen"
+msgid "Use to retain a supplied effect measure accompanying a result or test, together with evidence for its actual comparison, scale and relationship to that result."
+msgstr "Employer pour conserver une mesure d'effet fournie qui accompagne un résultat ou un test, avec les éléments étayant sa comparaison réelle, son échelle et sa relation avec ce résultat."
+
+msgctxt "https://blackcatinformatics.ca/math/effectSize|gmeow:avoidWhen"
+msgid "Avoid converting a p-value into an effect size, requiring every descriptive result to have a significance test, or attaching a measure of a different outcome as though it quantified the same target. Missing source information does not authorize a fabricated accompaniment or numerical conversion."
+msgstr "Éviter de convertir une valeur p en taille d'effet, d'exiger un test de significativité pour tout résultat descriptif ou de rattacher une mesure d'un autre résultat étudié comme si elle quantifiait la même cible. Une information manquante dans la source n'autorise ni un accompagnement fabriqué ni une conversion numérique."
+
+msgctxt "https://blackcatinformatics.ca/math/effectSize|gmeow:howToUse"
+msgid "Keep the result or math:HypothesisTest as subject and the supplied math:EffectSize resource as object. Preserve its comparison, scale, frame and any value evidence; distinguish a declared accompaniment from proof of a computed or target-compatible measure."
+msgstr "Garder le résultat ou math:HypothesisTest comme sujet et la ressource math:EffectSize fournie comme objet. Conserver sa comparaison, son échelle, son cadre et tout élément étayant une valeur ; distinguer un accompagnement déclaré de la preuve d'une mesure calculée ou compatible avec la cible."
+
+msgctxt "https://blackcatinformatics.ca/math/effectSizeContrast|skos:scopeNote"
+msgid "This identifies the effect measure's comparison, distinct from math:effectSizeScale and its reference frame. Same-class resources are not necessarily the same comparison, and a shared resource does not itself prove that raw, standardized and transformed measures are numerically equivalent."
+msgstr "Ceci identifie la comparaison de la mesure d'effet, distincte de math:effectSizeScale et de son cadre de référence. Des ressources de même classe ne sont pas nécessairement la même comparaison, et une ressource partagée ne prouve pas en elle-même l'équivalence numérique de mesures brutes, standardisées et transformées."
+
+msgctxt "https://blackcatinformatics.ca/math/effectSizeContrast|skos:example"
+msgid "exf:cohensD math:effectSizeContrast exf:treatVsControl ."
+msgstr "exf:cohensD math:effectSizeContrast exf:treatVsControl ."
+
+msgctxt "https://blackcatinformatics.ca/math/effectSizeContrast|gmeow:useWhen"
+msgid "Use to retain the supplied comparison or association an effect measure quantifies, reusing an estimand's contrast resource only when its actual identity and context are supported."
+msgstr "Employer pour conserver la comparaison ou l'association fournie qu'une mesure d'effet quantifie, en ne réutilisant la ressource de contraste d'un estimand que si son identité réelle et son contexte sont étayés."
+
+msgctxt "https://blackcatinformatics.ca/math/effectSizeContrast|gmeow:avoidWhen"
+msgid "Avoid imposing one shared contrast on distinct outcomes, horizons, populations or conventions, or using separate vocabulary classes merely for the estimand-side and effect-side roles. No identity or conversion follows solely from matching treatment labels or present links."
+msgstr "Éviter d'imposer un contraste partagé à des résultats étudiés, des horizons, des populations ou des conventions distincts, ou d'employer des classes de vocabulaire séparées pour les seuls rôles du côté de l'estimand et du côté de l'effet. Aucune identité ni conversion ne découle uniquement de libellés de traitement identiques ou de la présence des liens."
+
+msgctxt "https://blackcatinformatics.ca/math/effectSizeContrast|gmeow:howToUse"
+msgid "Keep math:EffectSize as subject and its supplied math:StatisticalContrast as object. Preserve the comparison and context evidence with the separate scale and frame; missing the link is math:UnframedEffectSize, while numerical interpretation requires its own supplied evidence."
+msgstr "Garder math:EffectSize comme sujet et son math:StatisticalContrast fourni comme objet. Conserver les éléments étayant la comparaison et le contexte avec l'échelle et le cadre distincts ; l'absence du lien relève de math:UnframedEffectSize, tandis que l'interprétation numérique exige ses propres éléments fournis à l'appui."
+
+msgctxt "https://blackcatinformatics.ca/math/effectSizeScale|skos:scopeNote"
+msgid "The effect's representation scale is distinct from math:effectSizeContrast and from its gmeow:hasReferenceFrame. Reusing the scale vocabulary does not require the effect and its outcome variable to share one scale resource. An odds ratio is not a log odds ratio, and dimensionless does not mean standardized."
+msgstr "L'échelle de représentation de l'effet se distingue de math:effectSizeContrast et de son gmeow:hasReferenceFrame. La réutilisation du vocabulaire des échelles n'exige pas que l'effet et la variable du résultat étudié partagent une même ressource d'échelle. Un rapport de cotes n'est pas un logarithme de rapport de cotes, et sans dimension ne signifie pas standardisé."
+
+msgctxt "https://blackcatinformatics.ca/math/effectSizeScale|skos:example"
+msgid "exf:cohensD math:effectSizeScale exf:sdScale ."
+msgstr "exf:cohensD math:effectSizeScale exf:sdScale ."
+
+msgctxt "https://blackcatinformatics.ca/math/effectSizeScale|gmeow:useWhen"
+msgid "Use to preserve the actual scale, direction and any normalization or transformation convention supplied for an effect measure, including an unstandardized difference or a ratio with a nonzero null reference."
+msgstr "Employer pour préserver l'échelle réelle, le sens et toute convention de normalisation ou de transformation fournis pour une mesure d'effet, y compris une différence non standardisée ou un rapport dont la référence sous l'hypothèse nulle est non nulle."
+
+msgctxt "https://blackcatinformatics.ca/math/effectSizeScale|gmeow:avoidWhen"
+msgid "Avoid labeling an odds ratio as a log-odds value, inferring the actual standard-deviation denominator or its convention from Cohen's d alone, or treating a scale name as an executed conversion. Do not force every effect onto a standardized or nonnegative magnitude scale."
+msgstr "Éviter de désigner un rapport de cotes comme une valeur de log-cotes, de déduire le dénominateur effectif d'écart-type ou sa convention à partir de Cohen's d seul, ou de prendre un nom d'échelle pour une conversion exécutée. Ne pas imposer à tout effet une échelle d'amplitude standardisée ou non négative."
+
+msgctxt "https://blackcatinformatics.ca/math/effectSizeScale|gmeow:howToUse"
+msgid "Keep math:EffectSize as subject and the supplied math:MeasurementScale resource as object, retaining any actual units, denominator, transformation and reference-value account. Missing the link is math:UnframedEffectSize; preserve unresolved compatibility or value evidence without inventing it."
+msgstr "Garder math:EffectSize comme sujet et la ressource math:MeasurementScale fournie comme objet, en conservant toute description effective des unités, du dénominateur, de la transformation et de la valeur de référence. L'absence du lien relève de math:UnframedEffectSize ; conserver les éléments non résolus concernant la compatibilité ou la valeur sans les inventer."
+
+msgctxt "https://blackcatinformatics.ca/math/MeasurementScale|gmeow:useWhen"
+msgid "Use to retain a supplied variable measurement level or effect-representation convention, including any stated standardization or transformation, while keeping the actual source context and permitted interpretation explicit."
+msgstr "Employer pour conserver un niveau de mesure de variable ou une convention de représentation d'effet fournis, y compris toute standardisation ou transformation énoncée, en gardant explicites le contexte réel de la source et l'interprétation permise."
+
+msgctxt "https://blackcatinformatics.ca/math/MeasurementScale|gmeow:avoidWhen"
+msgid "Do not infer licensed arithmetic from numeric category codes or treat compositional parts as independent unrestricted measurements. A scale name alone does not validate an operation, establish compatible representations or prove that a transformation ran."
+msgstr "Ne pas déduire les opérations arithmétiques permises de codes numériques de catégories, ni traiter les parts compositionnelles comme des mesures indépendantes sans restriction. Un nom d'échelle seul ne valide pas une opération, n'établit pas de représentations compatibles et ne prouve pas qu'une transformation a été exécutée."
+
+msgctxt "https://blackcatinformatics.ca/math/MeasurementScale|gmeow:howToUse"
+msgid "Retain the scale attached to the math:StatisticalVariable or through an effect's math:effectSizeScale. Reuse a resource only when the source specifies the same scale with compatible context; preserve distinct original, standardized or transformed representations without inventing conversions or data checks."
+msgstr "Conserver l'échelle rattachée à la math:StatisticalVariable ou par le math:effectSizeScale d'un effet. Ne réutiliser une ressource que lorsque la source spécifie la même échelle dans un contexte compatible ; préserver les représentations d'origine, standardisées ou transformées distinctes sans inventer de conversions ni de contrôles des données."
+
+msgctxt "https://blackcatinformatics.ca/math/MeasurementScale|skos:example"
+msgid "exf:logOddsScale a math:MeasurementScale ."
+msgstr "exf:logOddsScale a math:MeasurementScale ."
+
+msgctxt "https://blackcatinformatics.ca/math/MeasurementScale|skos:scopeNote"
+msgid "Measurement level and effect representation are uses of the same vocabulary, not a demand for identical scale resources. Keep the scale's actual role and definition distinct from the unit and coding policy (math:UnitPolicy) and from the variable model role (math:VariableRole); a scale reference alone supplies none of their missing details."
+msgstr "Le niveau de mesure et la représentation d'effet sont des usages du même vocabulaire, et non une exigence de ressources d'échelle identiques. Garder le rôle et la définition réels de l'échelle distincts de la politique d'unités et de codage (math:UnitPolicy) et du rôle de la variable dans le modèle (math:VariableRole) ; une référence d'échelle seule ne fournit aucun de leurs détails manquants."
+
+msgctxt "https://blackcatinformatics.ca/math/UnframedEffectSize|gmeow:useWhen"
+msgid "Use when a supplied math:EffectSize is missing its required math:effectSizeContrast, math:effectSizeScale or gmeow:hasReferenceFrame reference, retaining the actual offending resource and missing role even when the record contains no numerical value."
+msgstr "Employer lorsqu'une référence requise math:effectSizeContrast, math:effectSizeScale ou gmeow:hasReferenceFrame manque à un math:EffectSize fourni, en conservant la ressource réellement en défaut et le rôle manquant même si l'enregistrement ne contient aucune valeur numérique."
+
+msgctxt "https://blackcatinformatics.ca/math/UnframedEffectSize|gmeow:avoidWhen"
+msgid "Do not suppress the finding because an incomplete record has no numeric payload, or raise it solely because a result is unevaluated, unfavorable or incompatible. Do not invent comparison, scale or frame resources to conceal missing source evidence."
+msgstr "Ne pas supprimer le constat au motif qu'un enregistrement incomplet ne contient aucune donnée numérique, ni le signaler au seul motif qu'un résultat n'est pas évalué, est défavorable ou est incompatible. Ne pas inventer de ressources de comparaison, d'échelle ou de cadre pour masquer des éléments manquants dans la source."
+
+msgctxt "https://blackcatinformatics.ca/math/UnframedEffectSize|gmeow:howToUse"
+msgid "Identify the math:EffectSize and the missing math:effectSizeContrast, math:effectSizeScale or gmeow:hasReferenceFrame role from the canonical restrictions and closure records. Preserve the actual source evidence and supply a real reference only when available; keep value, type, compatibility and execution qualification separate from this presence check."
+msgstr "Identifier le math:EffectSize et le rôle manquant math:effectSizeContrast, math:effectSizeScale ou gmeow:hasReferenceFrame à partir des restrictions canoniques et des enregistrements de fermeture. Préserver les éléments réels de la source et ne fournir une référence réelle que lorsqu'elle est disponible ; garder la qualification de la valeur, du type, de la compatibilité et de l'exécution distincte de ce contrôle de présence."
+
+msgctxt "https://blackcatinformatics.ca/math/UnframedEffectSize|skos:example"
+msgid "exf:bareD a math:UnframedEffectSize ."
+msgstr "exf:bareD a math:UnframedEffectSize ."
+
+msgctxt "https://blackcatinformatics.ca/math/UnframedEffectSize|skos:scopeNote"
+msgid "This identifies a missing required comparison, scale or reference-frame link, distinct from math:IllFramedPValue and math:UnderspecifiedEstimate. A complete set of these links meets this presence boundary without certifying full mathematical or source validity. An unfavorable result, absent numeric payload or unqualified conversion is not itself this missing-link failure."
+msgstr "Ceci identifie un lien requis manquant de comparaison, d'échelle ou de cadre de référence, distinct de math:IllFramedPValue et de math:UnderspecifiedEstimate. Un ensemble complet de ces liens satisfait à ce critère de présence sans certifier la validité mathématique complète ni la fidélité complète à la source. Un résultat défavorable, l'absence de données numériques ou une conversion non qualifiée ne constitue pas en soi ce défaut de lien manquant."

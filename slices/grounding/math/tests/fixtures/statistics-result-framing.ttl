@@ -5,7 +5,7 @@
 # effect size, an interval, a prediction, a diagnostic, a fitted model, and a run". A worked
 # result/evaluation scene: a math:HypothesisTest weighing an alternative
 # (math:alternativeHypothesis) and reporting an effect size (math:effectSize); that
-# math:EffectSize naming its contrast (math:effectSizeContrast) and standardization scale
+# math:EffectSize naming its contrast (math:effectSizeContrast) and representation scale
 # (math:effectSizeScale); a math:ConfidenceInterval naming its two bounds
 # (math:hasIntervalBound) and coverage (math:confidenceLevel); a math:CredibleInterval naming
 # its posterior mass (math:credibleMass); a math:Prediction naming its target
@@ -22,7 +22,9 @@ ex:test a math:HypothesisTest ;
     math:alternativeHypothesis ex:alt ;
     math:effectSize ex:es .
 
-# The effect size: its contrast and the scale it is standardized on.
+# The effect-size record names a contrast and representation scale.
+# This query fixture supplies no numerical value or reference-frame link;
+# its predicate inventory is not a complete effect-size admission proof.
 ex:es a math:EffectSize ;
     math:effectSizeContrast ex:contrast ;
     math:effectSizeScale ex:scale .
