@@ -13910,7 +13910,7 @@ math:conditionalOn
     skos:scopeNote "This is the conditioning role of a ConditionalProbability, not its numerator event or resulting value. It names the source context B in P(A | B); a supplied link does not establish positive P(B), a measure or a conditional-probability construction."@x-gmeow-english ;
     skos:example "The probability scene asserts ex:pRainGivenWetGrass conditionalOn ex:wetGrassEvent. The clean conditioning fixture likewise gives ex:posteriorProbability conditionalOn ex:evidenceEvent; those are supplied context links, not numeric evaluations."@x-gmeow-english ;
     gmeow:useWhen "Use when a source supplies the event or context on which a conditional probability is conditioned, including its actual probability-setting evidence where available."@x-gmeow-english ;
-    gmeow:avoidWhen "Avoid reversing the edge, using its object as the event being assessed, or confusing it with independentGiven on a conditional-independence assertion. Do not infer a positive-probability event or a unique context from the property name alone."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid confusing the conditioning role with the assessed-event role; the event resources may coincide, as in P(B | B) = 1 when P(B) > 0. Do not reverse the edge, substitute independentGiven, or infer positive probability or a unique context from the property name alone."@x-gmeow-english ;
     gmeow:howToUse "Keep the ConditionalProbability object as subject and its actual conditioning resource as object. Preserve the separate source description of the assessed event, probability setting and value; this edge alone fills none of those roles and does not justify zero-probability conditioning."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
