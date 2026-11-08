@@ -13425,7 +13425,12 @@ math:OddsValue
         ] ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "Odds Value"@x-gmeow-english ;
-    skos:definition "An odds value: p/(1−p), a quantity in the open interval (0, ∞). A subclass of math:Quantity and a probability-scale transform of a probability, NOT a probability — held OWL disjointWith math:ProbabilityValue so it can never be read as one (math:ProbabilityScaleConflation). It links back to the probability it transforms through a math:ProbabilityScaleTransform."@x-gmeow-english ;
+    skos:definition "An odds value: the finite ratio p/(1−p) for 0 ≤ p < 1, with values in [0, ∞). Zero odds represents p = 0; p = 1 has no finite odds value. A dimensionless subclass of math:Quantity, held disjoint from math:ProbabilityValue (math:ProbabilityScaleConflation). A math:ProbabilityScaleTransform may declare the probability-side value through math:transformsToProbabilityValue; this type alone supplies neither a source-input link nor an executed conversion."@x-gmeow-english ;
+    skos:scopeNote "Odds express the ratio of an event probability to its complement, rather than a probability magnitude in [0, 1]. Finite nonnegative odds include zero; the divergence at p = 1 does not supply an infinity literal or authorize clamping."@x-gmeow-english ;
+    skos:example "The existing scene records ex:rainOdds as OddsValue with quantityValue 3.0, the weather-forecast reference frame and dimensionless dimension. Mathematically 3:1 odds corresponds to p = 3/4; the scene separately declares ex:pRainFromOdds as 0.75 without a source-input edge from ex:rainOdds to the transform."@x-gmeow-english ;
+    gmeow:useWhen "Use for a supplied odds-scale quantity, retaining its actual magnitude, dimension, frame and exact or approximate representation."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid treating odds as a probability, log-odds, odds ratio between two groups, solver weight or uncalibrated confidence. A magnitude between zero and one does not change the scale kind."@x-gmeow-english ;
+    gmeow:howToUse "Type the supplied quantity as OddsValue and retain its source metadata. If a probability-side target is separately declared, preserve that declaration and whatever source association and conversion evidence is actually supplied; do not infer either from the type or matching numbers."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 math:LogOddsValue
@@ -13461,7 +13466,12 @@ math:LogOddsValue
         ] ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "Log-Odds Value"@x-gmeow-english ;
-    skos:definition "A log-odds (logit) value: log(p/(1−p)), a quantity on the whole real line (−∞, ∞). A subclass of math:Quantity and a probability-scale transform of a probability, NOT a probability — held OWL disjointWith math:ProbabilityValue so a log-odds handed to a consumer expecting [0, 1] is a caught error (math:ProbabilityScaleConflation), not a silent one. It links back to the probability it transforms through a math:ProbabilityScaleTransform."@x-gmeow-english ;
+    skos:definition "A finite log-odds (logit) value: ln(p/(1−p)) for 0 < p < 1, using the natural logarithm and ranging over the real line. The endpoint probabilities zero and one have no finite logit. A dimensionless subclass of math:Quantity, held disjoint from math:ProbabilityValue (math:ProbabilityScaleConflation). A math:ProbabilityScaleTransform may declare the probability-side value through math:transformsToProbabilityValue; this type alone supplies neither a source-input link nor an executed conversion."@x-gmeow-english ;
+    skos:scopeNote "The logit uses the natural logarithm of odds, not the logarithm of the probability alone. Its finite values may be negative, zero or positive; endpoint divergence does not provide a finite value or a declared infinity representation."@x-gmeow-english ;
+    skos:example "The existing ex:rainLogOdds record carries quantityValue 1.0986, the weather-forecast reference frame and dimensionless dimension. Its comment identifies this as an approximation to ln 3; it is not an exact representation of ln 3 or evidence that the probability conversion executed."@x-gmeow-english ;
+    gmeow:useWhen "Use for a supplied finite natural-log odds quantity associated with a probability strictly between zero and one, preserving the source scale and precision."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid using for ordinary odds, a log-probability, an unspecified logarithm base, endpoint infinities or a probability magnitude. Do not clamp, exponentiate or relabel an input silently."@x-gmeow-english ;
+    gmeow:howToUse "Type the supplied quantity as LogOddsValue and retain its magnitude, dimension, frame and exactness metadata. Preserve any separately supplied transform target and source evidence; a rounded decimal and an explanatory label do not establish an exact identity or an executed inverse-logit computation."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 math:ProbabilityScaleTransform
@@ -13469,14 +13479,24 @@ math:ProbabilityScaleTransform
     rdfs:subClassOf math:MathematicalObject ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "Probability Scale Transform"@x-gmeow-english ;
-    skos:definition "A probability-scale transform: the object linking a lawful probability-scale value (a math:OddsValue or math:LogOddsValue) back to the math:ProbabilityValue it re-expresses, through math:transformsToProbabilityValue. A subclass of math:MathematicalObject. It is what keeps the [0, 1] gate a genuine hard fail while still admitting odds and log-odds: the scales are related to their probability by a declared transform, never conflated with it."@x-gmeow-english ;
+    skos:definition "A mathematical object describing a change from an odds or log-odds scale to the probability scale. A subclass of math:MathematicalObject whose declared probability-side value is named through math:transformsToProbabilityValue. That target link alone records neither the source-scale input nor execution of the conversion, and never makes an odds or log-odds quantity a math:ProbabilityValue."@x-gmeow-english ;
+    skos:scopeNote "The transform object is distinct from the source-scale quantity and the probability-side value. A declared target is an association, not evidence of a supplied operand, conversion body, evaluated result or exact numerical agreement."@x-gmeow-english ;
+    skos:example "The existing ex:oddsToProbability is a ProbabilityScaleTransform with transformsToProbabilityValue ex:pRainFromOdds. The target carries 0.75 and its weather-forecast frame; the 3:1 label and nearby ex:rainOdds record do not create a source-input edge."@x-gmeow-english ;
+    gmeow:useWhen "Use to describe a declared change of probability scale while keeping the transform, its probability-side target and any actual source evidence distinguishable."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid using a transform record as proof that an input was supplied, a conversion was run, a result was checked or one probability estimate should replace another. Do not use it to retag odds or log-odds as probabilities."@x-gmeow-english ;
+    gmeow:howToUse "Type the supplied transform object as ProbabilityScaleTransform and retain its actual transformsToProbabilityValue links. Keep source operands, mathematical descriptions and execution evidence only where actually supplied; do not invent an input property or claim computation from the target declaration."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 math:transformsToProbabilityValue
     a logic:ObjectProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "transforms to probability value"@x-gmeow-english ;
-    skos:definition "Relates a math:ProbabilityScaleTransform to the math:ProbabilityValue it re-expresses. Domain math:ProbabilityScaleTransform, range math:ProbabilityValue (stated in prose). The seam by which a math:OddsValue or math:LogOddsValue recovers its probability without being typed as one."@x-gmeow-english ;
+    skos:definition "Relates a math:ProbabilityScaleTransform to its declared probability-side math:ProbabilityValue. Domain math:ProbabilityScaleTransform and range math:ProbabilityValue are stated in prose. The direction is transform to probability value; the link alone supplies no source-scale operand and does not execute or verify a conversion."@x-gmeow-english ;
+    skos:scopeNote "This property names the probability side of a declared scale transform. It does not relate an odds quantity directly to a probability, identify either value with the transform, or assert a source operand, numeric equality or execution."@x-gmeow-english ;
+    skos:example "The scene asserts ex:oddsToProbability transformsToProbabilityValue ex:pRainFromOdds. The probability record carries 0.75, while ex:forecastRainEvent separately links it through probabilityOfEvent alongside the existing 0.72 record; the transform link selects no winner."@x-gmeow-english ;
+    gmeow:useWhen "Use when the source actually declares a probability-side value for a probability-scale transform, preserving the transform-to-value direction."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid reversing the edge, pointing it at a bare literal, using it as the source-input slot or deriving it solely from nearby numbers, labels or comments. It does not establish a unique target or a computed conversion."@x-gmeow-english ;
+    gmeow:howToUse "Keep the actual transform as subject and the supplied ProbabilityValue resource as object, preserving its magnitude, dimension and frame or model. Retain other estimates and any independent source or execution evidence without adding a preference, cardinality rule or inferred operand."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 # --- Random variables, distributions, factored parameterization, moments ---- #

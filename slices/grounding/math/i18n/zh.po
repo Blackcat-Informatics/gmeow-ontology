@@ -14604,3 +14604,115 @@ msgstr "避免将赔率、对数赔率、求解器权重或未经校准的置信
 msgctxt "https://blackcatinformatics.ca/math/ProbabilityValue|https://blackcatinformatics.ca/gmeow/howToUse"
 msgid "Retain the actual magnitude, dimension and exact/approximate metadata. The existing framing constraint requires at least one supplied hasReferenceFrame or probabilityModel; a supplied logic:confidence additionally requires logic:probabilityModel. Preserve the actual source associations and evidence: a declared model does not itself execute or validate a confidence-to-probability mapping."
 msgstr "保留实际数值、维度及精确或近似元数据。现有框架约束要求 hasReferenceFrame 或 probabilityModel 中至少提供一项；所提供的 logic:confidence 还要求 logic:probabilityModel。保留实际来源关联及依据：已声明模型本身不执行或验证置信度到概率的映射。"
+
+msgctxt "https://blackcatinformatics.ca/math/OddsValue|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Odds Value"
+msgstr "赔率值"
+
+msgctxt "https://blackcatinformatics.ca/math/OddsValue|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An odds value: the finite ratio p/(1−p) for 0 ≤ p < 1, with values in [0, ∞). Zero odds represents p = 0; p = 1 has no finite odds value. A dimensionless subclass of math:Quantity, held disjoint from math:ProbabilityValue (math:ProbabilityScaleConflation). A math:ProbabilityScaleTransform may declare the probability-side value through math:transformsToProbabilityValue; this type alone supplies neither a source-input link nor an executed conversion."
+msgstr "赔率值：0 ≤ p < 1 时的有限比值 p/(1−p)，取值于 [0, ∞)。零赔率表示 p = 0；p = 1 没有有限赔率值。它是 math:Quantity 的无量纲子类，保持与 math:ProbabilityValue 互斥（math:ProbabilityScaleConflation）。math:ProbabilityScaleTransform 可以通过 math:transformsToProbabilityValue 声明概率侧的值；仅有此类型既不提供来源输入链接，也不提供已执行的转换。"
+
+msgctxt "https://blackcatinformatics.ca/math/OddsValue|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Odds express the ratio of an event probability to its complement, rather than a probability magnitude in [0, 1]. Finite nonnegative odds include zero; the divergence at p = 1 does not supply an infinity literal or authorize clamping."
+msgstr "赔率表示事件概率与其补事件概率之比，而非 [0, 1] 中的概率数值。有限非负赔率包括零；p = 1 处的发散不提供无穷字面量，也不授权截断。"
+
+msgctxt "https://blackcatinformatics.ca/math/OddsValue|http://www.w3.org/2004/02/skos/core#example"
+msgid "The existing scene records ex:rainOdds as OddsValue with quantityValue 3.0, the weather-forecast reference frame and dimensionless dimension. Mathematically 3:1 odds corresponds to p = 3/4; the scene separately declares ex:pRainFromOdds as 0.75 without a source-input edge from ex:rainOdds to the transform."
+msgstr "现有场景将 ex:rainOdds 记录为具有 quantityValue 3.0、天气预报参考系及 dimensionless 维度的 OddsValue。在数学上，3:1 赔率对应于 p = 3/4；场景另行将 ex:pRainFromOdds 声明为 0.75，但没有从 ex:rainOdds 指向转换的来源输入边。"
+
+msgctxt "https://blackcatinformatics.ca/math/OddsValue|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for a supplied odds-scale quantity, retaining its actual magnitude, dimension, frame and exact or approximate representation."
+msgstr "用于所提供的赔率尺度量，保留其实际数值、维度、参考系及精确或近似表示。"
+
+msgctxt "https://blackcatinformatics.ca/math/OddsValue|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating odds as a probability, log-odds, odds ratio between two groups, solver weight or uncalibrated confidence. A magnitude between zero and one does not change the scale kind."
+msgstr "避免将赔率视为概率、对数赔率、两组之间的赔率比、求解器权重或未经校准的置信度。数值位于零与一之间不会改变尺度种类。"
+
+msgctxt "https://blackcatinformatics.ca/math/OddsValue|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Type the supplied quantity as OddsValue and retain its source metadata. If a probability-side target is separately declared, preserve that declaration and whatever source association and conversion evidence is actually supplied; do not infer either from the type or matching numbers."
+msgstr "将所提供的量标注为 OddsValue，并保留其来源元数据。如果另行声明了概率侧目标，则保留该声明及实际提供的来源关联和转换依据；不要根据类型或匹配数字推断这些关联或依据。"
+
+msgctxt "https://blackcatinformatics.ca/math/LogOddsValue|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Log-Odds Value"
+msgstr "对数赔率值"
+
+msgctxt "https://blackcatinformatics.ca/math/LogOddsValue|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A finite log-odds (logit) value: ln(p/(1−p)) for 0 < p < 1, using the natural logarithm and ranging over the real line. The endpoint probabilities zero and one have no finite logit. A dimensionless subclass of math:Quantity, held disjoint from math:ProbabilityValue (math:ProbabilityScaleConflation). A math:ProbabilityScaleTransform may declare the probability-side value through math:transformsToProbabilityValue; this type alone supplies neither a source-input link nor an executed conversion."
+msgstr "有限对数赔率（logit）值：0 < p < 1 时的 ln(p/(1−p))，使用自然对数，值域为实直线。端点概率零和一没有有限 logit。它是 math:Quantity 的无量纲子类，保持与 math:ProbabilityValue 互斥（math:ProbabilityScaleConflation）。math:ProbabilityScaleTransform 可以通过 math:transformsToProbabilityValue 声明概率侧的值；仅有此类型既不提供来源输入链接，也不提供已执行的转换。"
+
+msgctxt "https://blackcatinformatics.ca/math/LogOddsValue|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The logit uses the natural logarithm of odds, not the logarithm of the probability alone. Its finite values may be negative, zero or positive; endpoint divergence does not provide a finite value or a declared infinity representation."
+msgstr "logit 使用赔率的自然对数，而非仅对概率取对数。其有限值可以为负、零或正；端点处的发散不提供有限值，也不提供已声明的无穷表示。"
+
+msgctxt "https://blackcatinformatics.ca/math/LogOddsValue|http://www.w3.org/2004/02/skos/core#example"
+msgid "The existing ex:rainLogOdds record carries quantityValue 1.0986, the weather-forecast reference frame and dimensionless dimension. Its comment identifies this as an approximation to ln 3; it is not an exact representation of ln 3 or evidence that the probability conversion executed."
+msgstr "现有 ex:rainLogOdds 记录带有 quantityValue 1.0986、天气预报参考系及 dimensionless 维度。其注释说明这是 ln 3 的近似值；它不是 ln 3 的精确表示，也不是概率转换已执行的依据。"
+
+msgctxt "https://blackcatinformatics.ca/math/LogOddsValue|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for a supplied finite natural-log odds quantity associated with a probability strictly between zero and one, preserving the source scale and precision."
+msgstr "用于所提供的有限自然对数赔率量，其关联概率严格介于零与一之间，并保留来源尺度及精度。"
+
+msgctxt "https://blackcatinformatics.ca/math/LogOddsValue|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid using for ordinary odds, a log-probability, an unspecified logarithm base, endpoint infinities or a probability magnitude. Do not clamp, exponentiate or relabel an input silently."
+msgstr "避免将其用于普通赔率、对数概率、未指定的对数底、端点无穷或概率数值。不要暗中对输入截断、取指数或重新标注。"
+
+msgctxt "https://blackcatinformatics.ca/math/LogOddsValue|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Type the supplied quantity as LogOddsValue and retain its magnitude, dimension, frame and exactness metadata. Preserve any separately supplied transform target and source evidence; a rounded decimal and an explanatory label do not establish an exact identity or an executed inverse-logit computation."
+msgstr "将所提供的量标注为 LogOddsValue，并保留其数值、维度、参考系及精确性元数据。保留任何另行提供的转换目标及来源依据；舍入小数和解释性标签不确立精确恒等关系，也不确立已执行的逆 logit 计算。"
+
+msgctxt "https://blackcatinformatics.ca/math/ProbabilityScaleTransform|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Probability Scale Transform"
+msgstr "概率尺度转换"
+
+msgctxt "https://blackcatinformatics.ca/math/ProbabilityScaleTransform|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A mathematical object describing a change from an odds or log-odds scale to the probability scale. A subclass of math:MathematicalObject whose declared probability-side value is named through math:transformsToProbabilityValue. That target link alone records neither the source-scale input nor execution of the conversion, and never makes an odds or log-odds quantity a math:ProbabilityValue."
+msgstr "描述从赔率或对数赔率尺度到概率尺度变化的数学对象。它是 math:MathematicalObject 的子类，通过 math:transformsToProbabilityValue 指明其已声明的概率侧值。仅有该目标链接既不记录来源尺度输入，也不记录转换执行，且绝不使赔率或对数赔率量成为 math:ProbabilityValue。"
+
+msgctxt "https://blackcatinformatics.ca/math/ProbabilityScaleTransform|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The transform object is distinct from the source-scale quantity and the probability-side value. A declared target is an association, not evidence of a supplied operand, conversion body, evaluated result or exact numerical agreement."
+msgstr "转换对象不同于来源尺度量和概率侧值。声明目标是一项关联，并非已提供操作数、转换定义体、求值结果或精确数值一致性的依据。"
+
+msgctxt "https://blackcatinformatics.ca/math/ProbabilityScaleTransform|http://www.w3.org/2004/02/skos/core#example"
+msgid "The existing ex:oddsToProbability is a ProbabilityScaleTransform with transformsToProbabilityValue ex:pRainFromOdds. The target carries 0.75 and its weather-forecast frame; the 3:1 label and nearby ex:rainOdds record do not create a source-input edge."
+msgstr "现有 ex:oddsToProbability 是带有 transformsToProbabilityValue ex:pRainFromOdds 的 ProbabilityScaleTransform。目标带有 0.75 及其天气预报参考系；3:1 标签和邻近 ex:rainOdds 记录不会创建来源输入边。"
+
+msgctxt "https://blackcatinformatics.ca/math/ProbabilityScaleTransform|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to describe a declared change of probability scale while keeping the transform, its probability-side target and any actual source evidence distinguishable."
+msgstr "用于描述已声明的概率尺度变化，同时保持转换、概率侧目标及任何实际来源依据可区分。"
+
+msgctxt "https://blackcatinformatics.ca/math/ProbabilityScaleTransform|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid using a transform record as proof that an input was supplied, a conversion was run, a result was checked or one probability estimate should replace another. Do not use it to retag odds or log-odds as probabilities."
+msgstr "避免将转换记录作为已提供输入、已运行转换、已检查结果或某个概率估计应替代另一个估计的证明。不要用它将赔率或对数赔率重标为概率。"
+
+msgctxt "https://blackcatinformatics.ca/math/ProbabilityScaleTransform|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Type the supplied transform object as ProbabilityScaleTransform and retain its actual transformsToProbabilityValue links. Keep source operands, mathematical descriptions and execution evidence only where actually supplied; do not invent an input property or claim computation from the target declaration."
+msgstr "将所提供的转换对象标注为 ProbabilityScaleTransform，并保留其实际 transformsToProbabilityValue 链接。仅在实际提供时保留来源操作数、数学描述及执行依据；不编造输入属性，也不根据目标声明声称已进行计算。"
+
+msgctxt "https://blackcatinformatics.ca/math/transformsToProbabilityValue|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "transforms to probability value"
+msgstr "转换至概率值"
+
+msgctxt "https://blackcatinformatics.ca/math/transformsToProbabilityValue|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Relates a math:ProbabilityScaleTransform to its declared probability-side math:ProbabilityValue. Domain math:ProbabilityScaleTransform and range math:ProbabilityValue are stated in prose. The direction is transform to probability value; the link alone supplies no source-scale operand and does not execute or verify a conversion."
+msgstr "将 math:ProbabilityScaleTransform 关联到其已声明的概率侧 math:ProbabilityValue。定义域 math:ProbabilityScaleTransform 及值域 math:ProbabilityValue 以文字说明。方向为转换指向概率值；单凭链接不提供来源尺度操作数，也不执行或验证转换。"
+
+msgctxt "https://blackcatinformatics.ca/math/transformsToProbabilityValue|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This property names the probability side of a declared scale transform. It does not relate an odds quantity directly to a probability, identify either value with the transform, or assert a source operand, numeric equality or execution."
+msgstr "此属性指明已声明尺度转换的概率侧。它不直接将赔率量关联到概率、不将任一数值与转换等同，也不断言来源操作数、数值相等或执行。"
+
+msgctxt "https://blackcatinformatics.ca/math/transformsToProbabilityValue|http://www.w3.org/2004/02/skos/core#example"
+msgid "The scene asserts ex:oddsToProbability transformsToProbabilityValue ex:pRainFromOdds. The probability record carries 0.75, while ex:forecastRainEvent separately links it through probabilityOfEvent alongside the existing 0.72 record; the transform link selects no winner."
+msgstr "场景断言 ex:oddsToProbability transformsToProbabilityValue ex:pRainFromOdds。概率记录带有 0.75，而 ex:forecastRainEvent 通过 probabilityOfEvent 将它与现有 0.72 记录并列链接；转换链接不选择胜出者。"
+
+msgctxt "https://blackcatinformatics.ca/math/transformsToProbabilityValue|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the source actually declares a probability-side value for a probability-scale transform, preserving the transform-to-value direction."
+msgstr "当来源实际为概率尺度转换声明概率侧值时使用，保留从转换到数值的方向。"
+
+msgctxt "https://blackcatinformatics.ca/math/transformsToProbabilityValue|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid reversing the edge, pointing it at a bare literal, using it as the source-input slot or deriving it solely from nearby numbers, labels or comments. It does not establish a unique target or a computed conversion."
+msgstr "避免反转边、将其指向孤立字面量、用作来源输入槽位，或仅根据邻近数字、标签或注释推导该边。它不确立唯一目标，也不确立计算所得转换。"
+
+msgctxt "https://blackcatinformatics.ca/math/transformsToProbabilityValue|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Keep the actual transform as subject and the supplied ProbabilityValue resource as object, preserving its magnitude, dimension and frame or model. Retain other estimates and any independent source or execution evidence without adding a preference, cardinality rule or inferred operand."
+msgstr "保留实际转换为主语，所提供的 ProbabilityValue 资源为宾语，并保留其数值、维度及参考系或模型。保留其他估计及任何独立来源或执行依据，不添加偏好、基数规则或推断的操作数。"
