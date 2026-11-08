@@ -143,6 +143,27 @@ structure to be unambiguous. A p-value carries not only its test but its **null 
 mid-p), and any **multiplicity adjustment** (`math:pValueAdjustment`/`math:multipleComparisonFamily`),
 because a p-value with a null and a statistic but no tail or sidedness is still ambiguous.
 
+A `math:EffectSize` describes a quantitative effect or association on its stated scale.
+It need not be standardized or nonnegative: raw differences retain outcome units, while
+standardized measures retain their actual denominator and convention. An odds ratio has
+no-effect reference one; a log odds ratio has reference zero. Naming a scale performs no
+conversion, and a p-value supplies no effect magnitude or universal zero-null interpretation.
+
+`math:StatisticalContrast` is the shared vocabulary for a supplied comparison or association.
+An estimand's `math:targetContrast` and an effect's `math:effectSizeContrast` may reuse a
+resource when the source supports the same comparison and relevant context; sharing a
+vocabulary does not impose identity between distinct outcomes, populations or conventions.
+The example's raw five-year survival ATE and latent-survival Cohen's d are separate records
+with distinct comparisons, without an asserted numerical conversion or accompaniment.
+
+`math:effectSizeScale` names a `math:MeasurementScale` describing the actual effect
+representation; using the same scale vocabulary as variables does not require the same
+scale individual. The canonical effect-size restrictions and closure require a comparison,
+scale and reference-frame link. Their presence does not certify numerical results,
+comparison or scale compatibility, or an executed analysis.
+
+For definitions of raw and standardized differences, comparison direction and ratio transformations, see [Cochrane Handbook, Chapter 6, Sections 6.1.2 and 6.5.1](https://www.cochrane.org/authors/handbooks-and-manuals/handbook/current/chapter-06).
+
 Uncertainty is not always a scalar interval: alongside `math:ConfidenceInterval` (with
 `math:confidenceLevel`) and `math:CredibleInterval` (with `math:credibleMass`), the layer carries
 `math:PredictionInterval`, `math:ToleranceInterval`, and the multivariate `math:ConfidenceRegion`

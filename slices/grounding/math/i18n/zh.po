@@ -237,32 +237,32 @@ msgid "Effect Size"
 msgstr "效应量"
 
 msgctxt "https://blackcatinformatics.ca/math/EffectSize|skos:definition"
-msgid "An effect size: the standardized MAGNITUDE of a contrast — a Cohen's d, a correlation, an odds ratio, an R² — that answers 'how big is the effect' rather than 'is it distinguishable from zero'. A subclass of math:MathematicalObject, deliberately PARADIGM-NEUTRAL (under neither family) because an effect size is estimated in both paradigms. To be interpretable it identifies THREE things: the comparison it measures the magnitude of through math:effectSizeContrast — the SAME shared math:StatisticalContrast object an estimand targets through math:targetContrast, one modeled contrast, never a near-synonym — the math:MeasurementScale it is expressed on through math:effectSizeScale, and its reference frame through gmeow:hasReferenceFrame (the house frame predicate, the same edge a math:ProbabilityValue is framed by). An effect size missing its contrast, scale, or frame is an uninterpretable bare number (math:UnframedEffectSize)."
-msgstr "一个效应量：一个对比的标准化幅度——一个 Cohen's d、一个相关、一个比值比、一个 R²——回答“效应有多大”，而非“它是否可与零区分”。它是 math:MathematicalObject 的子类，刻意保持范式中立（不属于任一族），因为效应量在两种范式下都会被估计。为可解释，它须确定三样东西：它通过 math:effectSizeContrast 所度量幅度的比较——与估计目标通过 math:targetContrast 所指向的同一个共享 math:StatisticalContrast 对象，一个建模的对比，绝非近义词——它通过 math:effectSizeScale 所表达的 math:MeasurementScale，以及它通过 gmeow:hasReferenceFrame（内置的参照系谓词，即 math:ProbabilityValue 被赋予框架所用的同一条边）所具的参照系。缺少其对比、尺度或参照系的效应量是一个无法解释的裸数（math:UnframedEffectSize）。"
+msgid "An effect size: a quantitative effect or association measure, such as a raw difference, Cohen's d, a correlation, an odds ratio or an R². Such measures need not be standardized or nonnegative; their sign, units, reference value and interpretation depend on the selected measure. A subclass of math:MathematicalObject, usable in frequentist and Bayesian settings. It names its comparison through math:effectSizeContrast, its math:MeasurementScale through math:effectSizeScale and its reference frame through gmeow:hasReferenceFrame. The canonical closed-world presence requirements cover all three roles; a missing role is math:UnframedEffectSize. Present links do not establish numerical evaluation, compatible scales, a valid estimate or identity with an estimand's comparison."
+msgstr "一种效应量：定量的效应或关联度量，例如原始差值、Cohen's d、相关系数、比值比或 R²。这些度量不一定经过标准化，也不一定非负；其正负号、单位、参照值和解释取决于所选度量。它是 math:MathematicalObject 的子类，可用于频率学派和贝叶斯语境。它通过 math:effectSizeContrast 指明比较，通过 math:effectSizeScale 指明其 math:MeasurementScale，并通过 gmeow:hasReferenceFrame 指明参照框架。规范的封闭世界存在性要求涵盖这三个角色；缺少任一角色即属于 math:UnframedEffectSize。链接存在并不能确立已进行数值求值、尺度相容、估计有效，或与某个估计目标的比较具有同一性。"
 
 msgctxt "https://blackcatinformatics.ca/math/effectSize|rdfs:label"
 msgid "effect size"
 msgstr "效应量"
 
 msgctxt "https://blackcatinformatics.ca/math/effectSize|skos:definition"
-msgid "Relates an inference result or a math:HypothesisTest to the math:EffectSize accompanying it — the standardized magnitude of the effect the result concerns, alongside its significance. Domain a result object or a math:HypothesisTest, range math:EffectSize (stated in prose). Naming the effect size as an object is what lets 'how big is the effect', not only 'is it significant', be answered — a test with a p-value but no effect size reports distinguishability without magnitude."
-msgstr "将一个推断结果对象或一个 math:HypothesisTest 关联到伴随它的 math:EffectSize——结果所关切效应的标准化幅度，与其显著性并列。定义域为一个结果对象或一个 math:HypothesisTest，值域为 math:EffectSize（在文字中说明）。将效应量命名为对象，正是让“效应有多大”而不仅是“它是否显著”得以被回答——一个有 p 值却无效应量的检验，报告了可区分性却无幅度。"
+msgid "Relates an inference result or a math:HypothesisTest to a supplied math:EffectSize accompanying it. Domain a result object or a math:HypothesisTest, range math:EffectSize (stated in prose). The effect measure describes the relevant effect or association on its declared scale; it need not be standardized, nonnegative or inferred from a significance result. The association alone does not establish a computed value or that the measure describes the same target as every other result linked nearby."
+msgstr "将推断结果或 math:HypothesisTest 关联到伴随它的、已提供的 math:EffectSize。定义域为结果对象或 math:HypothesisTest，值域为 math:EffectSize（以文字说明）。效应度量在其声明的尺度上描述相关效应或关联；它不一定经过标准化，不一定非负，也不一定由显著性结果推断而来。仅凭这种关联，不能确立已计算的值，也不能确立该度量与附近链接的所有其他结果描述的是同一目标。"
 
 msgctxt "https://blackcatinformatics.ca/math/effectSizeContrast|rdfs:label"
 msgid "effect-size contrast"
 msgstr "效应量对比"
 
 msgctxt "https://blackcatinformatics.ca/math/effectSizeContrast|skos:definition"
-msgid "Relates a math:EffectSize to the math:StatisticalContrast whose magnitude it measures — the comparison between conditions (a difference, a ratio, an odds ratio) the effect size quantifies the size of. Domain math:EffectSize, range math:StatisticalContrast (stated in prose). This is the SAME shared math:StatisticalContrast object a math:Estimand targets through math:targetContrast — one modeled contrast referenced by both the estimand's target and the effect size's magnitude, never two near-synonym contrasts — so the effect size and the estimand talk about the same comparison. An effect size naming no contrast is uninterpretable (math:UnframedEffectSize)."
-msgstr "将一个 math:EffectSize 关联到它所度量幅度的 math:StatisticalContrast——效应量所量化其大小的、各方之间的比较（一个差、一个比值、一个比值比）。定义域为 math:EffectSize，值域为 math:StatisticalContrast（在文字中说明）。这与一个 math:Estimand 通过 math:targetContrast 所指向的是同一个共享 math:StatisticalContrast 对象——一个建模的对比被估计目标之靶与效应量之幅度共同引用，绝非两个近义对比——因而效应量与估计目标谈论的是同一比较。不命名任何对比的效应量无法解释（math:UnframedEffectSize）。"
+msgid "Relates a math:EffectSize to the math:StatisticalContrast specifying the comparison or association it quantifies. Domain math:EffectSize, range math:StatisticalContrast (stated in prose). The same contrast resource may be targeted through math:targetContrast when the source defines the same comparison in the relevant context; an estimand counterpart and a shared target-contrast resource are not universally required. An effect size missing its contrast reference is math:UnframedEffectSize; a present link alone proves no numerical value or compatibility."
+msgstr "将一个 math:EffectSize 关联到规定其所量化比较或关联的 math:StatisticalContrast。定义域为 math:EffectSize，值域为 math:StatisticalContrast（以文字说明）。当来源在相关语境中定义的是同一比较时，math:targetContrast 可以指向同一对比资源；并非普遍要求存在对应的估计目标和共享的目标对比资源。效应量缺少对比引用时属于 math:UnframedEffectSize；仅有链接存在不能证明任何数值或相容性。"
 
 msgctxt "https://blackcatinformatics.ca/math/effectSizeScale|rdfs:label"
 msgid "effect-size scale"
 msgstr "效应量尺度"
 
 msgctxt "https://blackcatinformatics.ca/math/effectSizeScale|skos:definition"
-msgid "Relates a math:EffectSize to the math:MeasurementScale it is expressed on — the standardization (a standard-deviation scale for a Cohen's d, a correlation scale, a log-odds scale for an odds ratio) that fixes how its magnitude is read. Domain math:EffectSize, range math:MeasurementScale (stated in prose). The same math:MeasurementScale first-class object the variables layer uses; an effect size naming no scale is a magnitude with no units of comparison, uninterpretable (math:UnframedEffectSize)."
-msgstr "将一个 math:EffectSize 关联到它所表达其上的 math:MeasurementScale——固定其幅度如何解读的标准化（用于 Cohen's d 的标准差尺度、相关尺度、用于比值比的对数几率尺度）。定义域为 math:EffectSize，值域为 math:MeasurementScale（在文字中说明）。这是变量层所用的同一个头等 math:MeasurementScale 对象；不命名任何尺度的效应量是一个没有比较单位的幅度，无法解释（math:UnframedEffectSize）。"
+msgid "Relates a math:EffectSize to the math:MeasurementScale describing how its value is represented and interpreted, including any supplied standardization or transformation. Domain math:EffectSize, range math:MeasurementScale (stated in prose). Examples include original outcome units for a raw difference, a declared standard-deviation normalization for Cohen's d, a correlation scale, an odds-ratio scale and a log-odds-ratio scale. An odds ratio has multiplicative no-effect reference 1; its natural logarithm has reference 0. An effect size missing this scale reference is math:UnframedEffectSize; the link does not perform a transformation or establish compatible values."
+msgstr "将一个 math:EffectSize 关联到描述其值如何表示和解释的 math:MeasurementScale，包括任何已提供的标准化或变换。定义域为 math:EffectSize，值域为 math:MeasurementScale（以文字说明）。例如原始差值所用的原始结局单位、为 Cohen's d 声明的标准差归一化、相关系数尺度、比值比尺度以及对数比值比尺度。比值比的乘法无效应参照值为 1；其自然对数的参照值为 0。效应量缺少此尺度引用时属于 math:UnframedEffectSize；该链接不会执行变换，也不确立数值相容。"
 
 msgctxt "https://blackcatinformatics.ca/math/Estimand|rdfs:label"
 msgid "Estimand"
@@ -589,8 +589,8 @@ msgid "Measurement Scale"
 msgstr "测量尺度"
 
 msgctxt "https://blackcatinformatics.ca/math/MeasurementScale|skos:definition"
-msgid "A measurement scale: the level of measurement a math:StatisticalVariable is recorded on — nominal, ordinal, interval, ratio, count, or compositional. A subclass of math:MathematicalObject naming which arithmetic and comparisons the values license, so a nominal code is never averaged and a compositional part is never treated as a free real. The scale is a first-class object carried by the variable, so scale-appropriate analysis is checkable rather than assumed."
-msgstr "一个测量尺度：一个 math:StatisticalVariable 被记录所处的测量层级——名义、有序、区间、比率、计数或成分。它是 math:MathematicalObject 的子类，命名各值所允许的算术与比较，使名义编码绝不被求平均、成分之一部绝不被当作自由实数处理。尺度是由变量承载的头等对象，因而与尺度相称的分析可被核验而非被假定。"
+msgid "A measurement scale: a specification of how a statistical variable or effect measure is represented and interpreted. For a math:StatisticalVariable this includes its measurement level, such as nominal, ordinal, interval or ratio, and relevant data-structure conventions for counts or compositions; for an effect measure it can describe original outcome units, a normalization or a transformed representation. A subclass of math:MathematicalObject. Its supplied definition informs the arithmetic and comparisons licensed in that context; a name or type alone does not establish data validity, scale compatibility or a completed transformation."
+msgstr "一种测量尺度：规定统计变量或效应度量如何表示和解释。对于 math:StatisticalVariable，这包括其测量层级，例如名义、有序、区间或比率，以及计数或成分数据所涉及的相关数据结构约定；对于效应度量，它可以描述原始结局单位、归一化方式或变换后的表示。它是 math:MathematicalObject 的子类。已提供的定义为该语境中允许的算术运算和比较提供依据；仅凭名称或类型，不能确立数据有效、尺度相容或变换已经完成。"
 
 msgctxt "https://blackcatinformatics.ca/math/midPTail|rdfs:label"
 msgid "mid-p"
@@ -877,8 +877,8 @@ msgid "Statistical Contrast"
 msgstr "统计对比"
 
 msgctxt "https://blackcatinformatics.ca/math/StatisticalContrast|skos:definition"
-msgid "A statistical contrast: the modeled comparison notion between conditions — a difference, a ratio, an odds ratio, a hazard ratio of an outcome between a treatment and a reference condition. A subclass of math:MathematicalObject naming the comparison as a first-class object. This is the SINGLE shared contrast object that both a math:Estimand's target comparison (math:targetContrast) and an effect size's contrast reference — one modeled object, never two near-synonym classes for 'the difference being estimated' and 'the difference an effect size measures'. Holding the contrast once, shared, is what keeps the estimand's target and the effect-size's scale talking about the same comparison."
-msgstr "一个统计对比：各方之间的建模比较概念——一个差、一个比值、一个比值比、一个结局在一个处理方与一个参照方之间的风险比。它是 math:MathematicalObject 的子类，将比较命名为头等对象。这是一个 math:Estimand 的目标比较（math:targetContrast）与一个效应量的对比二者共同引用的唯一共享对比对象——一个建模对象，绝非为“被估计的差”与“效应量所度量的差”各设两个近义类。将对比一次性地共享持有，正是使估计目标之靶与效应量之尺度谈论同一比较。"
+msgid "A statistical contrast: a modeled comparison or association specification, such as a difference, ratio, odds ratio or hazard ratio between stated conditions, or an association between variables. A subclass of math:MathematicalObject naming what is compared or associated in its supplied outcome, population, time and convention context. An estimand can name it through math:targetContrast and an effect measure through math:effectSizeContrast. Those roles may reuse one resource when the source specifies the same comparison; using one contrast vocabulary does not require every estimand and effect size to share an individual or establish numerical equivalence."
+msgstr "一种统计对比：以模型表达的比较或关联规范，例如所述条件之间的差值、比值、比值比或瞬时风险比，或变量之间的关联。它是 math:MathematicalObject 的子类，在已提供的结局、总体、时间和约定语境中，指明比较或关联的对象。估计目标可通过 math:targetContrast 指向它，效应度量可通过 math:effectSizeContrast 指向它。当来源规定的是同一比较时，这些角色可复用同一资源；使用同一套对比词汇并不要求每个估计目标与效应量共享同一个体，也不确立数值等价性。"
 
 msgctxt "https://blackcatinformatics.ca/math/StatisticalPopulation|rdfs:label"
 msgid "Statistical Population"
@@ -941,8 +941,8 @@ msgid "target contrast"
 msgstr "目标对比"
 
 msgctxt "https://blackcatinformatics.ca/math/targetContrast|skos:definition"
-msgid "Relates a math:Estimand to the math:StatisticalContrast it targets — the comparison between conditions (a difference, ratio, odds ratio, hazard ratio of the outcome) the estimand quantifies. Domain math:Estimand, range math:StatisticalContrast (stated in prose). The contrast is the SHARED modeled object also referenced by an effect size, so the estimand's target and the effect-size's scale name the same comparison; an average treatment effect estimand targets the treatment-minus-control contrast of its outcome."
-msgstr "将一个 math:Estimand 关联到它所指向的 math:StatisticalContrast——估计目标所量化的、各方之间的比较（结局的一个差、比值、比值比、风险比）。定义域为 math:Estimand，值域为 math:StatisticalContrast（在文字中说明）。该对比是同样被一个效应量引用的共享建模对象，因而估计目标之靶与效应量之尺度命名同一比较；一个平均处理效应估计目标指向其结局的处理减对照对比。"
+msgid "Relates a math:Estimand to the math:StatisticalContrast it targets: the supplied comparison or association the target quantifies. Domain math:Estimand, range math:StatisticalContrast (stated in prose). An average treatment effect can target a treatment-minus-control outcome difference. An effect size may reference that same contrast when the source supports the shared comparison and context; this link neither requires an accompanying effect size nor establishes equality with another comparison."
+msgstr "将一个 math:Estimand 关联到它所针对的 math:StatisticalContrast，即目标所量化的、已提供的比较或关联。定义域为 math:Estimand，值域为 math:StatisticalContrast（以文字说明）。平均处理效应可以针对处理减对照的结局差。当来源支持共享的比较及其语境时，效应量可以引用同一对比；此链接既不要求存在配套的效应量，也不确立它与另一比较相等。"
 
 msgctxt "https://blackcatinformatics.ca/math/targetOutcome|rdfs:label"
 msgid "target outcome"
@@ -1029,8 +1029,8 @@ msgid "Unframed Effect Size"
 msgstr "无框架效应量"
 
 msgctxt "https://blackcatinformatics.ca/math/UnframedEffectSize|skos:definition"
-msgid "The failure raised when a math:EffectSize does not identify all three of the frame that makes its magnitude interpretable: the comparison it measures through math:effectSizeContrast (a math:StatisticalContrast), the scale it is expressed on through math:effectSizeScale (a math:MeasurementScale), and its reference frame through gmeow:hasReferenceFrame. An effect size missing any of the three is an uninterpretable bare number — a magnitude with no comparison, no units of comparison, or no frame it is expressed in."
-msgstr "当一个 math:EffectSize 不确定使其幅度可解释之框架的全部三样时所引发的失败：它通过 math:effectSizeContrast 所度量的比较（一个 math:StatisticalContrast）、它通过 math:effectSizeScale 所表达其上的尺度（一个 math:MeasurementScale），以及它通过 gmeow:hasReferenceFrame 所具的参照系。缺三者之任一的效应量是一个无法解释的裸数——一个没有比较、没有比较单位或没有其被表达所处框架的幅度。"
+msgid "The failure raised when a math:EffectSize lacks any required math:effectSizeContrast, math:effectSizeScale or gmeow:hasReferenceFrame reference. The canonical logic: restrictions and logic:ClosureEntry records require these three roles under closed-world validation; generated validation shapes project that contract. This is a missing-reference finding on an effect-measure record, whether or not a numerical value is supplied. Present links do not establish compatible comparisons or scales, valid values or types, or an executed analysis."
+msgstr "当 math:EffectSize 缺少任何必需的 math:effectSizeContrast、math:effectSizeScale 或 gmeow:hasReferenceFrame 引用时报告的失败。规范的 logic: 限制和 logic:ClosureEntry 记录要求在封闭世界验证下具备这三个角色；生成的验证形状是该契约的投影。这是针对效应度量记录的引用缺失检查发现，无论是否提供数值。链接存在并不能确立比较或尺度相容、值或类型有效，或分析已经执行。"
 
 msgctxt "https://blackcatinformatics.ca/math/UnitPolicy|rdfs:label"
 msgid "Unit Policy"
@@ -17122,3 +17122,163 @@ msgstr "不要创建既未指明估计目标也未指明被估参数，或未指
 msgctxt "https://blackcatinformatics.ca/math/UnderspecifiedEstimate|https://blackcatinformatics.ca/gmeow/howToUse"
 msgid "Detected when a math:Estimate names neither math:estimatesEstimand nor math:estimatedParameter, or names no math:estimator; give an estimate its target and its act to avoid it."
 msgstr "当 math:Estimate 既未指明 math:estimatesEstimand 也未指明 math:estimatedParameter，或未指明 math:estimator 时检测到；为估计值提供其目标及方法以避免此失败。"
+
+msgctxt "https://blackcatinformatics.ca/math/StatisticalContrast|skos:scopeNote"
+msgid "This vocabulary uses contrast for the supplied comparison or association, not only a linear contrast of coefficients. Distinguish it from a target quantity, an effect-measure record and its numerical value. Equal treatment labels alone do not establish equal outcomes, populations, horizons, comparison direction or normalization."
+msgstr "本词汇中的对比指已提供的比较或关联，并不限于系数的线性对比。应将其与目标量、效应度量记录及其数值区分开来。仅凭相同的处理标签，不能确立结局、总体、时间范围、比较方向或归一化方式相同。"
+
+msgctxt "https://blackcatinformatics.ca/math/StatisticalContrast|skos:example"
+msgid "exf:treatVsControl a math:StatisticalContrast ."
+msgstr "exf:treatVsControl a math:StatisticalContrast ."
+
+msgctxt "https://blackcatinformatics.ca/math/StatisticalContrast|gmeow:useWhen"
+msgid "Mint one for the modeled comparison between conditions, a difference, ratio, odds ratio, or hazard ratio of an outcome between a treatment and a reference."
+msgstr "当需要记录条件之间以模型表达的比较时创建一个对象：处理与参照之间某一结局的差值、比值、比值比或瞬时风险比。"
+
+msgctxt "https://blackcatinformatics.ca/math/StatisticalContrast|gmeow:avoidWhen"
+msgid "Avoid forcing distinct source comparisons into one resource or creating duplicate names for a comparison the source actually identifies as the same. A raw survival-probability difference and a standardized latent-outcome difference are not established as one comparison merely because they name the same treatment and reference."
+msgstr "避免将来源中不同的比较强行合并为一个资源，也避免为来源确实认定为同一比较的对象重复命名。原始生存概率差与标准化的潜在结局差，不会仅因它们指向相同的处理和参照就被确立为同一比较。"
+
+msgctxt "https://blackcatinformatics.ca/math/StatisticalContrast|gmeow:howToUse"
+msgid "Retain the supplied comparison definition, direction and relevant outcome, population, time and convention context in their existing representation. Use math:targetContrast or math:effectSizeContrast for the corresponding role; reuse the object only when its identity is supported, without inventing an equivalence, conversion or computed effect."
+msgstr "在现有表示中保留已提供的比较定义、方向以及相关的结局、总体、时间和约定语境。用 math:targetContrast 或 math:effectSizeContrast 表达相应角色；只有对象的同一性得到支持时才复用它，不要虚构等价关系、换算或已计算的效应。"
+
+msgctxt "https://blackcatinformatics.ca/math/targetContrast|skos:scopeNote"
+msgid "The estimand-to-comparison role is distinct from math:effectSizeContrast on an effect measure and from math:targetOutcome naming the quantity compared. Sharing a comparison resource does not prove an estimated value, scale conversion or causal identification."
+msgstr "从估计目标到比较的角色，不同于效应度量上的 math:effectSizeContrast，也不同于指明被比较量的 math:targetOutcome。共享一个比较资源，并不能证明估计值、尺度换算或因果识别。"
+
+msgctxt "https://blackcatinformatics.ca/math/targetContrast|skos:example"
+msgid "exf:ate math:targetContrast exf:treatVsControl ."
+msgstr "exf:ate math:targetContrast exf:treatVsControl ."
+
+msgctxt "https://blackcatinformatics.ca/math/targetContrast|gmeow:useWhen"
+msgid "Use to retain a supplied estimand's comparison or association, including its direction and relevant study or model context, without assuming that every estimand is a treatment-minus-control difference."
+msgstr "用于保留已提供估计目标的比较或关联，包括其方向以及相关的研究或模型语境，不要假定每个估计目标都是处理减对照的差值。"
+
+msgctxt "https://blackcatinformatics.ca/math/targetContrast|gmeow:avoidWhen"
+msgid "Avoid demanding an effect-size counterpart, inferring identity from matching condition labels, or equating raw and transformed outcomes without source support. Preserve distinct comparisons when their definitions or contexts differ."
+msgstr "避免要求必须有对应的效应量、从相同的条件标签推断同一性，或在没有来源支持时将原始结局与变换后的结局等同。定义或语境不同时，应保留不同的比较。"
+
+msgctxt "https://blackcatinformatics.ca/math/targetContrast|gmeow:howToUse"
+msgid "Keep math:Estimand as subject and its supplied math:StatisticalContrast as object. Retain the actual target and comparison context; a math:effectSizeContrast link may reuse that object when justified, but no shared object, numerical conversion or executed analysis is inferred."
+msgstr "以 math:Estimand 为主语，以其已提供的 math:StatisticalContrast 为宾语。保留实际目标和比较语境；有依据时，math:effectSizeContrast 链接可复用该对象，但不能由此推断出共享对象、数值换算或已执行的分析。"
+
+msgctxt "https://blackcatinformatics.ca/math/EffectSize|skos:scopeNote"
+msgid "An effect-measure record is distinct from its supplied value and the comparison it describes. A math:PValue concerns a specified test and null model; it does not supply effect magnitude or make every null a zero difference. Ratios and their logarithms have different representations and reference values, and a declared frame is not a conversion proof."
+msgstr "效应度量记录不同于其已提供的值，也不同于它描述的比较。math:PValue 针对的是指定的检验和零假设模型；它不提供效应幅度，也不意味着每个零假设都对应零差值。比值与其对数具有不同的表示和参照值，声明框架并不是换算证明。"
+
+msgctxt "https://blackcatinformatics.ca/math/EffectSize|skos:example"
+msgid "The estimation scene separately declares ex:ateEstimate for a five-year survival difference and ex:cohensD for a latent-survival comparison. The effect-size record names its own contrast, ex:sdScale and ex:analysisFrame, without a numerical Cohen's d value or a conversion from the labeled raw difference."
+msgstr "估计场景分别声明 ex:ateEstimate 用于五年生存差，ex:cohensD 用于潜在生存结局的比较。效应量记录指明自身的对比、ex:sdScale 和 ex:analysisFrame，但没有提供 Cohen's d 的数值，也没有提供从所标注原始差值进行的换算。"
+
+msgctxt "https://blackcatinformatics.ca/math/EffectSize|gmeow:useWhen"
+msgid "Use for a supplied quantitative effect or association measure whose comparison, scale and frame can be retained, preserving whether it is signed, standardized, in original outcome units or represented as a ratio or transformed ratio."
+msgstr "用于已提供的定量效应或关联度量，且其比较、尺度和框架可以保留；应保留它是否带正负号、是否标准化、是否以原始结局单位表达，以及是否表示为比值或变换后的比值。"
+
+msgctxt "https://blackcatinformatics.ca/math/EffectSize|gmeow:avoidWhen"
+msgid "Avoid forcing a nonnegative or standardized interpretation, deriving an effect from a p-value, or treating three present frame links as evidence of compatible or computed results. Do not invent an effect measure or a transformation to fill missing source evidence."
+msgstr "避免强加非负或标准化的解释、从 p 值推导效应，或将三个框架链接齐全视为结果相容或已经计算的证据。不要虚构效应度量或变换来填补来源证据的缺失。"
+
+msgctxt "https://blackcatinformatics.ca/math/EffectSize|gmeow:howToUse"
+msgid "Keep the math:EffectSize and its actual math:effectSizeContrast, math:effectSizeScale and gmeow:hasReferenceFrame links. Preserve any supplied value, direction, normalization, reference value and execution evidence separately; missing framing is math:UnframedEffectSize, while presence alone does not qualify numerical or source fidelity."
+msgstr "保留 math:EffectSize 及其实际的 math:effectSizeContrast、math:effectSizeScale 和 gmeow:hasReferenceFrame 链接。将已提供的值、方向、归一化方式、参照值和执行证据分别保留；缺少框架信息属于 math:UnframedEffectSize，而仅有链接存在不足以确认数值层面或对来源的忠实性。"
+
+msgctxt "https://blackcatinformatics.ca/math/effectSize|skos:scopeNote"
+msgid "This is a result-to-effect-measure association, distinct from math:pValue on a test and from the effect measure's value or comparison. A p-value's interpretation depends on its test and null model; it is not an effect magnitude, and the null reference need not be zero."
+msgstr "这是从结果到效应度量的关联，不同于检验上的 math:pValue，也不同于效应度量的值或比较。p 值的解释取决于其检验和零假设模型；它不是效应幅度，零假设下的参照值也不一定为零。"
+
+msgctxt "https://blackcatinformatics.ca/math/effectSize|skos:example"
+msgid "exf:tTest math:effectSize exf:cohensD ."
+msgstr "exf:tTest math:effectSize exf:cohensD ."
+
+msgctxt "https://blackcatinformatics.ca/math/effectSize|gmeow:useWhen"
+msgid "Use to retain a supplied effect measure accompanying a result or test, together with evidence for its actual comparison, scale and relationship to that result."
+msgstr "用于保留伴随结果或检验的、已提供的效应度量，以及支持其实际比较、尺度和与该结果关系的证据。"
+
+msgctxt "https://blackcatinformatics.ca/math/effectSize|gmeow:avoidWhen"
+msgid "Avoid converting a p-value into an effect size, requiring every descriptive result to have a significance test, or attaching a measure of a different outcome as though it quantified the same target. Missing source information does not authorize a fabricated accompaniment or numerical conversion."
+msgstr "避免将 p 值换算为效应量、要求每个描述性结果都有显著性检验，或将另一结局的度量附加进来，仿佛它量化的是同一目标。来源信息缺失并不授权虚构配套度量或数值换算。"
+
+msgctxt "https://blackcatinformatics.ca/math/effectSize|gmeow:howToUse"
+msgid "Keep the result or math:HypothesisTest as subject and the supplied math:EffectSize resource as object. Preserve its comparison, scale, frame and any value evidence; distinguish a declared accompaniment from proof of a computed or target-compatible measure."
+msgstr "以结果或 math:HypothesisTest 为主语，以已提供的 math:EffectSize 资源为宾语。保留其比较、尺度、框架及任何数值证据；应区分声明的伴随关系与度量已经计算或与目标相容的证明。"
+
+msgctxt "https://blackcatinformatics.ca/math/effectSizeContrast|skos:scopeNote"
+msgid "This identifies the effect measure's comparison, distinct from math:effectSizeScale and its reference frame. Same-class resources are not necessarily the same comparison, and a shared resource does not itself prove that raw, standardized and transformed measures are numerically equivalent."
+msgstr "这指明效应度量的比较，不同于 math:effectSizeScale 及其参照框架。同一类的资源不一定是同一比较，共享资源本身也不能证明原始、标准化和变换后的度量在数值上等价。"
+
+msgctxt "https://blackcatinformatics.ca/math/effectSizeContrast|skos:example"
+msgid "exf:cohensD math:effectSizeContrast exf:treatVsControl ."
+msgstr "exf:cohensD math:effectSizeContrast exf:treatVsControl ."
+
+msgctxt "https://blackcatinformatics.ca/math/effectSizeContrast|gmeow:useWhen"
+msgid "Use to retain the supplied comparison or association an effect measure quantifies, reusing an estimand's contrast resource only when its actual identity and context are supported."
+msgstr "用于保留效应度量所量化的、已提供的比较或关联；只有实际同一性和语境得到支持时，才复用估计目标的对比资源。"
+
+msgctxt "https://blackcatinformatics.ca/math/effectSizeContrast|gmeow:avoidWhen"
+msgid "Avoid imposing one shared contrast on distinct outcomes, horizons, populations or conventions, or using separate vocabulary classes merely for the estimand-side and effect-side roles. No identity or conversion follows solely from matching treatment labels or present links."
+msgstr "避免对不同的结局、时间范围、总体或约定强加一个共享对比，也避免仅因分别承担估计目标侧和效应侧的角色就使用不同的词汇类。仅凭相同的处理标签或链接存在，不能推出同一性或换算关系。"
+
+msgctxt "https://blackcatinformatics.ca/math/effectSizeContrast|gmeow:howToUse"
+msgid "Keep math:EffectSize as subject and its supplied math:StatisticalContrast as object. Preserve the comparison and context evidence with the separate scale and frame; missing the link is math:UnframedEffectSize, while numerical interpretation requires its own supplied evidence."
+msgstr "以 math:EffectSize 为主语，以其已提供的 math:StatisticalContrast 为宾语。将比较和语境证据与单独的尺度、框架一并保留；缺少此链接属于 math:UnframedEffectSize，而数值解释需要其自身已提供的证据。"
+
+msgctxt "https://blackcatinformatics.ca/math/effectSizeScale|skos:scopeNote"
+msgid "The effect's representation scale is distinct from math:effectSizeContrast and from its gmeow:hasReferenceFrame. Reusing the scale vocabulary does not require the effect and its outcome variable to share one scale resource. An odds ratio is not a log odds ratio, and dimensionless does not mean standardized."
+msgstr "效应的表示尺度不同于 math:effectSizeContrast，也不同于其 gmeow:hasReferenceFrame。复用尺度词汇并不要求效应与其结局变量共享同一个尺度资源。比值比不是对数比值比，无量纲也不意味着经过标准化。"
+
+msgctxt "https://blackcatinformatics.ca/math/effectSizeScale|skos:example"
+msgid "exf:cohensD math:effectSizeScale exf:sdScale ."
+msgstr "exf:cohensD math:effectSizeScale exf:sdScale ."
+
+msgctxt "https://blackcatinformatics.ca/math/effectSizeScale|gmeow:useWhen"
+msgid "Use to preserve the actual scale, direction and any normalization or transformation convention supplied for an effect measure, including an unstandardized difference or a ratio with a nonzero null reference."
+msgstr "用于保留为效应度量提供的实际尺度、方向以及任何归一化或变换约定，包括未标准化的差值，或零假设参照值非零的比值。"
+
+msgctxt "https://blackcatinformatics.ca/math/effectSizeScale|gmeow:avoidWhen"
+msgid "Avoid labeling an odds ratio as a log-odds value, inferring the actual standard-deviation denominator or its convention from Cohen's d alone, or treating a scale name as an executed conversion. Do not force every effect onto a standardized or nonnegative magnitude scale."
+msgstr "避免将比值比标为对数赔率值、仅凭 Cohen's d 就推断实际的标准差分母或其约定，或将尺度名称视为已执行的换算。不要强行将所有效应都放在标准化或非负的幅度尺度上。"
+
+msgctxt "https://blackcatinformatics.ca/math/effectSizeScale|gmeow:howToUse"
+msgid "Keep math:EffectSize as subject and the supplied math:MeasurementScale resource as object, retaining any actual units, denominator, transformation and reference-value account. Missing the link is math:UnframedEffectSize; preserve unresolved compatibility or value evidence without inventing it."
+msgstr "以 math:EffectSize 为主语，以已提供的 math:MeasurementScale 资源为宾语，保留对实际单位、分母、变换和参照值的任何说明。缺少此链接属于 math:UnframedEffectSize；保留尚未解决的相容性或数值证据问题，不要虚构证据。"
+
+msgctxt "https://blackcatinformatics.ca/math/MeasurementScale|gmeow:useWhen"
+msgid "Use to retain a supplied variable measurement level or effect-representation convention, including any stated standardization or transformation, while keeping the actual source context and permitted interpretation explicit."
+msgstr "用于保留已提供的变量测量层级或效应表示约定，包括任何明确说明的标准化或变换，同时明确保留实际的来源语境和允许的解释。"
+
+msgctxt "https://blackcatinformatics.ca/math/MeasurementScale|gmeow:avoidWhen"
+msgid "Do not infer licensed arithmetic from numeric category codes or treat compositional parts as independent unrestricted measurements. A scale name alone does not validate an operation, establish compatible representations or prove that a transformation ran."
+msgstr "不要从类别的数字编码推断允许的算术运算，也不要将成分部分视为彼此独立且不受限制的测量。仅有尺度名称，不能确认操作有效，不能确立表示相容，也不能证明变换已经执行。"
+
+msgctxt "https://blackcatinformatics.ca/math/MeasurementScale|gmeow:howToUse"
+msgid "Retain the scale attached to the math:StatisticalVariable or through an effect's math:effectSizeScale. Reuse a resource only when the source specifies the same scale with compatible context; preserve distinct original, standardized or transformed representations without inventing conversions or data checks."
+msgstr "保留附于 math:StatisticalVariable 的尺度，或通过效应的 math:effectSizeScale 引用的尺度。只有来源在相容语境中规定相同尺度时才复用资源；应保留不同的原始、标准化或变换后表示，不要虚构换算或数据检查。"
+
+msgctxt "https://blackcatinformatics.ca/math/MeasurementScale|skos:example"
+msgid "exf:logOddsScale a math:MeasurementScale ."
+msgstr "exf:logOddsScale a math:MeasurementScale ."
+
+msgctxt "https://blackcatinformatics.ca/math/MeasurementScale|skos:scopeNote"
+msgid "Measurement level and effect representation are uses of the same vocabulary, not a demand for identical scale resources. Keep the scale's actual role and definition distinct from the unit and coding policy (math:UnitPolicy) and from the variable model role (math:VariableRole); a scale reference alone supplies none of their missing details."
+msgstr "测量层级和效应表示是同一套词汇的不同用途，并不要求尺度资源相同。应将尺度的实际角色和定义与单位及编码策略（math:UnitPolicy）以及变量在模型中的角色（math:VariableRole）区分开来；仅有尺度引用不会补足它们任何缺失的细节。"
+
+msgctxt "https://blackcatinformatics.ca/math/UnframedEffectSize|gmeow:useWhen"
+msgid "Use when a supplied math:EffectSize is missing its required math:effectSizeContrast, math:effectSizeScale or gmeow:hasReferenceFrame reference, retaining the actual offending resource and missing role even when the record contains no numerical value."
+msgstr "当已提供的 math:EffectSize 缺少必需的 math:effectSizeContrast、math:effectSizeScale 或 gmeow:hasReferenceFrame 引用时使用；即使记录不含数值，也要保留实际违规资源和缺失角色。"
+
+msgctxt "https://blackcatinformatics.ca/math/UnframedEffectSize|gmeow:avoidWhen"
+msgid "Do not suppress the finding because an incomplete record has no numeric payload, or raise it solely because a result is unevaluated, unfavorable or incompatible. Do not invent comparison, scale or frame resources to conceal missing source evidence."
+msgstr "不要因为不完整记录没有数值内容就隐去此发现，也不要仅因结果尚未求值、不利或不相容就报告此发现。不要虚构比较、尺度或框架资源来掩盖来源证据的缺失。"
+
+msgctxt "https://blackcatinformatics.ca/math/UnframedEffectSize|gmeow:howToUse"
+msgid "Identify the math:EffectSize and the missing math:effectSizeContrast, math:effectSizeScale or gmeow:hasReferenceFrame role from the canonical restrictions and closure records. Preserve the actual source evidence and supply a real reference only when available; keep value, type, compatibility and execution qualification separate from this presence check."
+msgstr "依据规范限制和封闭性记录，识别 math:EffectSize 及其缺失的 math:effectSizeContrast、math:effectSizeScale 或 gmeow:hasReferenceFrame 角色。保留实际来源证据，仅在真实引用可用时才提供；将对值、类型、相容性和执行情况的核验与此存在性检查分开。"
+
+msgctxt "https://blackcatinformatics.ca/math/UnframedEffectSize|skos:example"
+msgid "exf:bareD a math:UnframedEffectSize ."
+msgstr "exf:bareD a math:UnframedEffectSize ."
+
+msgctxt "https://blackcatinformatics.ca/math/UnframedEffectSize|skos:scopeNote"
+msgid "This identifies a missing required comparison, scale or reference-frame link, distinct from math:IllFramedPValue and math:UnderspecifiedEstimate. A complete set of these links meets this presence boundary without certifying full mathematical or source validity. An unfavorable result, absent numeric payload or unqualified conversion is not itself this missing-link failure."
+msgstr "这识别的是必需的比较、尺度或参照框架链接缺失，不同于 math:IllFramedPValue 和 math:UnderspecifiedEstimate。这些链接齐全即满足此存在性边界，但不证明数学上或来源上的全面有效性。结果不利、没有数值内容或换算未经核验，本身并不构成这种链接缺失失败。"

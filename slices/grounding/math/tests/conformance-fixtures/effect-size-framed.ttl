@@ -18,8 +18,8 @@ ex:cohensD a math:EffectSize ;
     math:effectSizeScale ex:standardDeviationScale ;
     gmeow:hasReferenceFrame ex:effectFrame .
 
-# The SAME shared math:StatisticalContrast an estimand would target through
-# math:targetContrast — one modeled comparison, not a near-synonym.
+# A supplied comparison resource; this fixture does not name an estimand or
+# establish shared target identity, numerical values or compatible normalization.
 ex:treatmentContrast a math:StatisticalContrast .
 
 ex:standardDeviationScale a math:MeasurementScale .

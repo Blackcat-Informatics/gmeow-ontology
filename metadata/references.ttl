@@ -13980,3 +13980,32 @@ repo:README.md a gmeow:CreativeWork ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/citations> ;
     gmeow:selectorLocator "Building: PCRE2 support" ;
     gmeow:sourceLocation "https://github.com/BurntSushi/ripgrep/blob/15.2.0/README.md" .
+
+<https://www.cochrane.org/authors/handbooks-and-manuals/handbook/current/chapter-06> a gmeow:CreativeWork ;
+    rdfs:label "Cochrane Handbook chapter 6: Choosing effect measures and computing estimates of effect"@en ;
+    skos:definition "The Cochrane Handbook chapter defining intervention effect measures and their numerical representations."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/citations> ;
+    gmeow:bibliographicCitation "Higgins JP, Li T, Deeks JJ (editors). Chapter 6: Choosing effect measures and computing estimates of effect. Updated August 2023. In: Cochrane Handbook for Systematic Reviews of Interventions, version 6.5. Cochrane, 2024. Accessed 8 November 2026." ;
+    gmeow:sourceLocation "https://www.cochrane.org/authors/handbooks-and-manuals/handbook/current/chapter-06" .
+
+<https://blackcatinformatics.ca/gmeow/repo/slices/grounding/math/design/MATHEMATICS-STATISTICS.md> a gmeow:CreativeWork ;
+    rdfs:label "slices/grounding/math/design/MATHEMATICS-STATISTICS.md"@en ;
+    skos:definition "The Math statistics charter citing effect-measure definitions and representation conventions."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/citations> ;
+    gmeow:sourceLocation "slices/grounding/math/design/MATHEMATICS-STATISTICS.md" .
+
+<https://blackcatinformatics.ca/gmeow/references/citation/math-statistics-effect-measures> a gmeow:CitationAct ;
+    rdfs:label "slices/grounding/math/design/MATHEMATICS-STATISTICS.md"@en ;
+    skos:definition "The statistics charter cites Cochrane definitions distinguishing raw and standardized differences, comparison direction and ratio transformations."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/citations> ;
+    gmeow:citationIntent gmeow:intentCitesAsDataSource ;
+    gmeow:citingEntity <https://blackcatinformatics.ca/gmeow/repo/slices/grounding/math/design/MATHEMATICS-STATISTICS.md> ;
+    gmeow:citedEntity <https://www.cochrane.org/authors/handbooks-and-manuals/handbook/current/chapter-06> ;
+    gmeow:viaSelector <https://blackcatinformatics.ca/gmeow/references/selector/math-statistics-effect-measures-sections> .
+
+<https://blackcatinformatics.ca/gmeow/references/selector/math-statistics-effect-measures-sections> a gmeow:Selector ;
+    rdfs:label "Cochrane effect-measure definitions and representations"@en ;
+    skos:definition "Sections 6.1.2 and 6.5.1 of Cochrane Handbook chapter 6, cited by the statistics charter's Inference and results section."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/citations> ;
+    gmeow:selectorLocator "Sections 6.1.2 and 6.5.1" ;
+    gmeow:sourceLocation "https://www.cochrane.org/authors/handbooks-and-manuals/handbook/current/chapter-06" .
