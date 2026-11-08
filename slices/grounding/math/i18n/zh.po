@@ -16506,3 +16506,33 @@ msgstr "避免将计数视为信息距离值、在依据缺失时赋零，或断
 msgctxt "https://blackcatinformatics.ca/math/DivergenceDiagnostic|https://blackcatinformatics.ca/gmeow/howToUse"
 msgid "Retain the DivergenceDiagnostic and its actual generating run, count or event records, detection criterion and transition selection as supplied. Keep potential-bias warnings and source claims attached to their evidence without inventing an event log, missing count, inaccessible region or successful diagnostic computation."
 msgstr "保留 DivergenceDiagnostic，以及按所提供内容保留其实际生成运行、计数或事件记录、检测判据及转移选择。将潜在偏差警告及来源声称保留在其依据上，不编造事件日志、缺失计数、不可达区域或成功诊断计算。"
+
+# Stochastic-process family and evidence boundaries.
+
+msgctxt "https://blackcatinformatics.ca/math/StochasticProcess|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Stochastic Process"
+msgstr "随机过程"
+
+msgctxt "https://blackcatinformatics.ca/math/StochasticProcess|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A stochastic process: an indexed family of random variables {X_t} defined on a common probability space. A subclass of math:MathematicalObject. Markov chains, Poisson processes and Brownian motion are examples. A generic process need not have the Markov property; neither a math:MarkovKernel link nor a declared logic: probability-model lowering follows from this type alone."
+msgstr "随机过程：定义于共同概率空间上、带索引的随机变量族 {X_t}。它是 math:MathematicalObject 的子类。马尔可夫链、泊松过程及布朗运动都是例子。一般过程不必具有马尔可夫性；仅有此类型既不推出 math:MarkovKernel 链接，也不推出已声明的 logic: 概率模型降级。"
+
+msgctxt "https://blackcatinformatics.ca/math/StochasticProcess|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The index set need not represent time. At a fixed index t, X_t is a random variable; for a fixed source outcome ω, t ↦ X_t(ω) is a sample path. The family, its law, a realized path and an activity that samples it have different roles. Marginal laws at individual indices alone do not specify the full joint process law."
+msgstr "索引集不必表示时间。在固定索引 t 处，X_t 是随机变量；对于固定来源结果 ω，t ↦ X_t(ω) 是样本路径。变量族、其分布律、已实现路径及对其采样的活动具有不同角色。仅有各索引处的边缘分布律不足以指定完整联合过程分布律。"
+
+msgctxt "https://blackcatinformatics.ca/math/StochasticProcess|http://www.w3.org/2004/02/skos/core#example"
+msgid "The probability scene declares ex:dailyRainfallProcess as StochasticProcess and labels it daily rainfall process {X_t}. The record supplies no index set, variable members, common-space link, process-to-kernel link or transition law; the nearby weather kernel supplies endpoint links only."
+msgstr "概率场景将 ex:dailyRainfallProcess 声明为 StochasticProcess，并以每日降雨过程 {X_t} 为标签。记录不提供索引集、变量成员、共同空间链接、过程到核的链接或转移律；邻近天气核仅提供端点链接。"
+
+msgctxt "https://blackcatinformatics.ca/math/StochasticProcess|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for a source's indexed family of random variables on a common probability space, retaining its actual index interpretation, variable family and joint-law account rather than treating a single observed trajectory as the complete process."
+msgstr "用于来源在共同概率空间上、带索引的随机变量族，保留实际索引解释、变量族及联合分布律说明，而非将单条观测轨迹视为完整过程。"
+
+msgctxt "https://blackcatinformatics.ca/math/StochasticProcess|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid assuming the Markov property, independence, a time index or an available transition kernel from this type or a descriptive label. A sampled trajectory or an MCMCRun does not by itself specify the abstract process or establish an executable probability-model lowering."
+msgstr "避免根据此类型或描述性标签假定马尔可夫性、独立性、时间索引或可用转移核。采样轨迹或 MCMCRun 本身不指定抽象过程，也不确立可执行概率模型降级。"
+
+msgctxt "https://blackcatinformatics.ca/math/StochasticProcess|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Type the supplied mathematical family as StochasticProcess and preserve its actual indices, variable members, common probability-space and law evidence in their existing representation. Keep sample paths and sampling activities separately described. For reasoning, retain a supported explicit lowering of the selected model; do not invent a target, process-to-kernel relation or missing process data from the type."
+msgstr "将所提供的随机变量族标注为 StochasticProcess，并按现有表示保留其实际索引、变量成员、共同概率空间及分布律依据。另行描述样本路径及采样活动。对于推理，保留所选模型受支持的显式降级；不根据类型编造目标、过程到核的关系或缺失过程数据。"
