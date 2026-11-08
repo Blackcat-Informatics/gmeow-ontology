@@ -75,9 +75,11 @@ Conditional probability names *both* the event and the conditioning event or con
 (`math:conditionalOn`) — a conditional with an unnamed conditioning context is ill-formed.
 
 Independence is modeled explicitly and in three distinguishable states, because a reasoning engine
-behaves very differently across them and must never infer the second or third from silence:
+behaves very differently across them and must never infer marginal or conditional independence
+from silence:
 
-- **Marginal independence** — a `math:IndependenceAssertion` with `math:independenceSubject` and
+- **Marginal independence** — a marginal claim recorded as a `math:IndependenceAssertion` with
+  `math:independenceSubject` and
   `math:independentOf` (or `math:mutuallyIndependentSet` for a joint set).
 - **Conditional independence** — a `math:ConditionalIndependenceAssertion` adding
   `math:independentGiven` naming the conditioning set: *A ⫫ B | C*.

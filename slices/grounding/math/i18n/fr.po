@@ -15556,3 +15556,283 @@ msgstr "Éviter de rattacher un simple littéral ou un DistributionParameter com
 msgctxt "https://blackcatinformatics.ca/math/hasMoment|https://blackcatinformatics.ca/gmeow/howToUse"
 msgid "Keep the Distribution or RandomVariable as subject and the actual Moment-family resource as object. Preserve its specific result type, supplied dimension, probability context and provenance; covariance and correlation also need their actual operand identities and joint setting, which this single link does not provide."
 msgstr "Garder la Distribution ou la RandomVariable comme sujet et la ressource effective de la famille Moment comme objet. Préserver son type de résultat spécifique, sa dimension fournie, son contexte probabiliste et sa provenance ; covariance et corrélation nécessitent aussi les identités effectives de leurs opérandes et le cadre conjoint, que ce lien unique ne fournit pas."
+
+msgctxt "https://blackcatinformatics.ca/math/ConditionalProbability|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Conditional Probability"
+msgstr "Probabilité conditionnelle"
+
+msgctxt "https://blackcatinformatics.ca/math/ConditionalProbability|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A conditional probability P(A | B): a probability object naming BOTH the event it is about and the conditioning event or context it is conditioned on (math:conditionalOn). A subclass of math:MathematicalObject. A conditional with an unnamed conditioning context is ill-formed (math:UnconditionedAssertion) — the conditioning context is never left implicit."
+msgstr "Une probabilité conditionnelle P(A | B) : un objet de probabilité nommant À LA FOIS l’événement auquel elle se rapporte et l’événement ou le contexte de conditionnement dont elle dépend (math:conditionalOn). Une sous-classe de math:MathematicalObject. Une probabilité conditionnelle dont le contexte de conditionnement n’est pas nommé est mal formée (math:UnconditionedAssertion) — ce contexte n’est jamais laissé implicite."
+
+msgctxt "https://blackcatinformatics.ca/math/ConditionalProbability|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "For ordinary event conditioning, P(A | B) = P(A ∩ B) / P(B) requires P(B) > 0 in a common probability setting. Naming a context alone proves neither this hypothesis nor a numerical conditional; zero-probability conditioning requires a separately justified construction."
+msgstr "Pour le conditionnement ordinaire par un événement, P(A | B) = P(A ∩ B) / P(B) exige P(B) > 0 dans un même cadre probabiliste. Nommer un contexte ne prouve à soi seul ni cette hypothèse ni une probabilité conditionnelle numérique ; le conditionnement par un événement de probabilité nulle exige une construction justifiée séparément."
+
+msgctxt "https://blackcatinformatics.ca/math/ConditionalProbability|http://www.w3.org/2004/02/skos/core#example"
+msgid "The probability scene types ex:pRainGivenWetGrass as ConditionalProbability and supplies conditionalOn ex:wetGrassEvent. Its label describes rain given wet grass, but the record there supplies neither a structured numerator-event link nor a numeric value."
+msgstr "La scène de probabilité attribue à ex:pRainGivenWetGrass le type ConditionalProbability et fournit conditionalOn ex:wetGrassEvent. Son libellé décrit la pluie sachant que l’herbe est mouillée, mais cet enregistrement ne fournit ni lien structuré vers l’événement du numérateur ni valeur numérique."
+
+msgctxt "https://blackcatinformatics.ca/math/ConditionalProbability|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for a supplied probability object that explicitly identifies its conditioning event or context, while retaining the event being assessed and the actual probability setting in their supplied representation."
+msgstr "Utiliser pour un objet de probabilité fourni qui identifie explicitement son événement ou son contexte de conditionnement, tout en conservant l’événement évalué et le cadre probabiliste réel dans leur représentation fournie."
+
+msgctxt "https://blackcatinformatics.ca/math/ConditionalProbability|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid reading P(A | B) as P(B | A), an unconditional probability, a confidence score or a causal effect. Do not invent a numerator, measure or numeric value, or assign a default conditional when the conditioning event has probability zero."
+msgstr "Éviter de lire P(A | B) comme P(B | A), une probabilité non conditionnelle, un score de confiance ou un effet causal. Ne pas inventer de numérateur, de mesure ou de valeur numérique, ni attribuer une probabilité conditionnelle par défaut lorsque l’événement de conditionnement est de probabilité nulle."
+
+msgctxt "https://blackcatinformatics.ca/math/ConditionalProbability|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Type the supplied object as ConditionalProbability and keep its actual conditionalOn link, event description and probability evidence. The conditioning-link requirement is a presence boundary; it neither supplies missing event/value structure nor constructs a conditional law or proves normalization."
+msgstr "Attribuer à l’objet fourni le type ConditionalProbability et conserver son lien conditionalOn réel, sa description de l’événement et ses éléments probants de probabilité. L’exigence du lien de conditionnement constitue une limite de présence ; elle ne fournit aucune structure manquante pour l’événement ou la valeur, ne construit aucune loi conditionnelle et ne prouve pas la normalisation."
+
+msgctxt "https://blackcatinformatics.ca/math/IndependenceAssertion|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Independence Assertion"
+msgstr "Assertion d’indépendance"
+
+msgctxt "https://blackcatinformatics.ca/math/IndependenceAssertion|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An independence assertion: a modeler's claim of marginal or conditional independence for A and B (or a set of facts), naming its subject (math:independenceSubject) and what it is independent of (math:independentOf, or math:mutuallyIndependentSet for a joint set). A subclass of math:MathematicalObject. Independence is a STANDPOINT-SCOPED claim, not a fact of the graph: the assertion is held by whoever asserted the model and names the model it holds in (math:independenceHoldsInModel, held by a gmeow:vantage), so 'who claimed these independent, and in which model' is always answerable. The ABSENCE of any independence assertion is 'not modeled' — a real, distinct third state that a reasoning engine must NEVER read as independence."
+msgstr "Une assertion d’indépendance : l’affirmation, par un modélisateur, d’une indépendance marginale ou conditionnelle entre A et B (ou au sein d’un ensemble de faits), nommant son sujet (math:independenceSubject) et ce dont il est indépendant (math:independentOf, ou math:mutuallyIndependentSet pour un ensemble conjoint). Une sous-classe de math:MathematicalObject. L’indépendance est une affirmation SITUÉE DANS UN POINT DE VUE, et non un fait du graphe : l’assertion est soutenue par l’auteur de l’affirmation du modèle et nomme le modèle dans lequel elle vaut (math:independenceHoldsInModel, soutenue depuis un gmeow:vantage), de sorte que la question « qui a affirmé cette indépendance, et dans quel modèle » admet toujours une réponse. L’ABSENCE de toute assertion d’indépendance signifie « non modélisé » — un troisième état réel et distinct qu’un moteur de raisonnement ne doit JAMAIS interpréter comme une indépendance."
+
+msgctxt "https://blackcatinformatics.ca/math/IndependenceAssertion|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This is the local assertion umbrella, including ConditionalIndependenceAssertion. Parent-class membership alone does not establish that a claim is marginal. Independence is stated in a model and held from a vantage; the assertion records a claim rather than proving its mathematical truth."
+msgstr "Il s’agit de la catégorie locale générale des assertions, qui comprend ConditionalIndependenceAssertion. L’appartenance à la classe parente ne suffit pas à établir qu’une affirmation est marginale. L’indépendance est énoncée dans un modèle et soutenue depuis un point de vue ; l’assertion consigne une affirmation sans en prouver la vérité mathématique."
+
+msgctxt "https://blackcatinformatics.ca/math/IndependenceAssertion|http://www.w3.org/2004/02/skos/core#example"
+msgid "The three-state fixture gives ex:abIndep independenceSubject ex:eventA, independentOf ex:eventB, independenceHoldsInModel ex:indepModel and gmeow:vantage ex:modeler. These supplied links ground that modeled claim; the separate absent candidate pair does not become independent."
+msgstr "Le jeu de données des trois états donne à ex:abIndep independenceSubject ex:eventA, independentOf ex:eventB, independenceHoldsInModel ex:indepModel et gmeow:vantage ex:modeler. Ces liens fournis fondent cette affirmation modélisée ; la paire candidate distincte sans assertion ne devient pas indépendante."
+
+msgctxt "https://blackcatinformatics.ca/math/IndependenceAssertion|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for a source's explicit independence claim, retaining whether it is marginal or conditional, its operands, applicable model and holding vantage without promoting one source account over another."
+msgstr "Utiliser pour une affirmation explicite d’indépendance fournie par une source, en conservant son caractère marginal ou conditionnel, ses opérandes, le modèle applicable et le point de vue qui la soutient, sans privilégier le récit d’une source par rapport à un autre."
+
+msgctxt "https://blackcatinformatics.ca/math/IndependenceAssertion|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring independence from silence, zero correlation or a shared class label. Do not classify every parent-typed assertion as marginal, discard a conditional subclass, or turn a present assertion with missing metadata into an absent claim."
+msgstr "Éviter de déduire une indépendance du silence, d’une corrélation nulle ou d’un libellé de classe partagé. Ne pas classer comme marginale toute assertion portant le type parent, écarter une sous-classe conditionnelle, ni transformer une assertion présente mais dépourvue de métadonnées en affirmation absente."
+
+msgctxt "https://blackcatinformatics.ca/math/IndependenceAssertion|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Keep the assertion resource distinct from the events or variables it concerns. Preserve its supplied independenceSubject, independentOf or mutuallyIndependentSet, model and vantage; use the existing conditional subclass and independentGiven for an explicitly conditional claim. Retain coexisting contextual claims and report missing evidence without inventing it."
+msgstr "Garder la ressource d’assertion distincte des événements ou variables qu’elle concerne. Préserver les liens independenceSubject, independentOf ou mutuallyIndependentSet fournis, ainsi que le modèle et le point de vue ; employer la sous-classe conditionnelle existante et independentGiven pour une affirmation explicitement conditionnelle. Conserver les affirmations contextuelles coexistantes et signaler les éléments probants manquants sans les inventer."
+
+msgctxt "https://blackcatinformatics.ca/math/ConditionalIndependenceAssertion|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Conditional Independence Assertion"
+msgstr "Assertion d’indépendance conditionnelle"
+
+msgctxt "https://blackcatinformatics.ca/math/ConditionalIndependenceAssertion|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A conditional-independence assertion A ⫫ B | C: an independence assertion that additionally names the conditioning set it is relative to (math:independentGiven). A subclass of math:IndependenceAssertion. Like marginal independence it is a standpoint-scoped modeler's claim naming its model; distinct from marginal independence (neither generally implies the other), and distinct again from 'not modeled'. A conditional-independence assertion that fails to name its conditioning set is ill-formed (math:UnconditionedAssertion)."
+msgstr "Une assertion d’indépendance conditionnelle A ⫫ B | C : une assertion d’indépendance qui nomme en outre l’ensemble de conditionnement auquel elle se rapporte (math:independentGiven). Une sous-classe de math:IndependenceAssertion. Comme l’indépendance marginale, elle est une affirmation de modélisateur située dans un point de vue et nommant son modèle ; elle se distingue de l’indépendance marginale (aucune des deux n’implique généralement l’autre), ainsi que de l’état « non modélisé ». Une assertion d’indépendance conditionnelle qui ne nomme pas son ensemble de conditionnement est mal formée (math:UnconditionedAssertion)."
+
+msgctxt "https://blackcatinformatics.ca/math/ConditionalIndependenceAssertion|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The claim is relative to the stated conditioning context C. In general marginal independence does not imply conditional independence, and conditional independence does not imply marginal independence. Naming C does not assert that C is independent of either operand."
+msgstr "L’affirmation est relative au contexte de conditionnement C énoncé. En général, l’indépendance marginale n’implique pas l’indépendance conditionnelle, et l’indépendance conditionnelle n’implique pas l’indépendance marginale. Nommer C n’affirme pas que C est indépendant de l’un ou l’autre des opérandes."
+
+msgctxt "https://blackcatinformatics.ca/math/ConditionalIndependenceAssertion|http://www.w3.org/2004/02/skos/core#example"
+msgid "In the three-state fixture, ex:acGivenD names ex:eventA through independenceSubject, ex:eventC through independentOf and ex:eventD through independentGiven, with ex:indepModel and ex:modeler as its supplied model and vantage. The record asserts a conditional claim rather than a computed factorization."
+msgstr "Dans le jeu de données des trois états, ex:acGivenD nomme ex:eventA par independenceSubject, ex:eventC par independentOf et ex:eventD par independentGiven, avec ex:indepModel et ex:modeler comme modèle et point de vue fournis. L’enregistrement énonce une affirmation conditionnelle plutôt qu’une factorisation calculée."
+
+msgctxt "https://blackcatinformatics.ca/math/ConditionalIndependenceAssertion|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for an explicit independence claim relative to a named conditioning set or context, preserving its two operands, probability setting, model and vantage as actually supplied."
+msgstr "Utiliser pour une affirmation explicite d’indépendance relative à un ensemble ou contexte de conditionnement nommé, en conservant ses deux opérandes, son cadre probabiliste, son modèle et son point de vue tels qu’ils sont effectivement fournis."
+
+msgctxt "https://blackcatinformatics.ca/math/ConditionalIndependenceAssertion|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid dropping the conditioning context, treating the parent IndependenceAssertion type as an additional marginal claim, or deriving independence from a missing assertion. Do not replace a source's conditioning set with a guessed common cause or preferred model."
+msgstr "Éviter d’omettre le contexte de conditionnement, de traiter le type parent IndependenceAssertion comme une affirmation marginale supplémentaire ou de déduire une indépendance d’une assertion manquante. Ne pas remplacer l’ensemble de conditionnement d’une source par une cause commune supposée ou un modèle privilégié."
+
+msgctxt "https://blackcatinformatics.ca/math/ConditionalIndependenceAssertion|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Type the assertion as ConditionalIndependenceAssertion, retain its independenceSubject and independentOf operands and name the supplied context through independentGiven. Keep actual model and vantage links separately; presence of the conditioning link does not prove the conditional law, complete record admission or mathematical independence."
+msgstr "Attribuer à l’assertion le type ConditionalIndependenceAssertion, conserver ses opérandes independenceSubject et independentOf et nommer le contexte fourni par independentGiven. Garder les liens réels de modèle et de point de vue séparément ; la présence du lien de conditionnement ne prouve ni la loi conditionnelle, ni l’admission complète de l’enregistrement, ni l’indépendance mathématique."
+
+msgctxt "https://blackcatinformatics.ca/math/conditionalOn|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "conditional on"
+msgstr "conditionnée par"
+
+msgctxt "https://blackcatinformatics.ca/math/conditionalOn|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Names the conditioning event or context of a conditional probability — the B in P(A | B). Domain math:ConditionalProbability, range a math:ProbabilityEvent or conditioning context (stated in prose). A conditional probability names one; a conditional with an unnamed conditioning context is ill-formed (math:UnconditionedAssertion)."
+msgstr "Nomme l’événement ou le contexte de conditionnement d’une probabilité conditionnelle — le B dans P(A | B). Domaine math:ConditionalProbability, portée math:ProbabilityEvent ou contexte de conditionnement (énoncés en prose). Une probabilité conditionnelle en nomme un ; si son contexte de conditionnement n’est pas nommé, elle est mal formée (math:UnconditionedAssertion)."
+
+msgctxt "https://blackcatinformatics.ca/math/conditionalOn|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This is the conditioning role of a ConditionalProbability, not its numerator event or resulting value. It names the source context B in P(A | B); a supplied link does not establish positive P(B), a measure or a conditional-probability construction."
+msgstr "Il s’agit du rôle de conditionnement d’une ConditionalProbability, et non de son événement du numérateur ou de sa valeur résultante. Il nomme le contexte source B dans P(A | B) ; un lien fourni n’établit ni que P(B) est positif, ni une mesure, ni une construction de probabilité conditionnelle."
+
+msgctxt "https://blackcatinformatics.ca/math/conditionalOn|http://www.w3.org/2004/02/skos/core#example"
+msgid "The probability scene asserts ex:pRainGivenWetGrass conditionalOn ex:wetGrassEvent. The clean conditioning fixture likewise gives ex:posteriorProbability conditionalOn ex:evidenceEvent; those are supplied context links, not numeric evaluations."
+msgstr "La scène de probabilité affirme ex:pRainGivenWetGrass conditionalOn ex:wetGrassEvent. Le jeu de données conforme de conditionnement donne de même ex:posteriorProbability conditionalOn ex:evidenceEvent ; ce sont des liens de contexte fournis, et non des évaluations numériques."
+
+msgctxt "https://blackcatinformatics.ca/math/conditionalOn|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when a source supplies the event or context on which a conditional probability is conditioned, including its actual probability-setting evidence where available."
+msgstr "Utiliser lorsqu’une source fournit l’événement ou le contexte par lequel une probabilité conditionnelle est conditionnée, avec les éléments probants réels de son cadre probabiliste lorsqu’ils sont disponibles."
+
+msgctxt "https://blackcatinformatics.ca/math/conditionalOn|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid reversing the edge, using its object as the event being assessed, or confusing it with independentGiven on a conditional-independence assertion. Do not infer a positive-probability event or a unique context from the property name alone."
+msgstr "Éviter d’inverser le lien, d’employer son objet comme événement évalué ou de le confondre avec independentGiven sur une assertion d’indépendance conditionnelle. Ne déduire du seul nom de la propriété ni un événement de probabilité positive ni un contexte unique."
+
+msgctxt "https://blackcatinformatics.ca/math/conditionalOn|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Keep the ConditionalProbability object as subject and its actual conditioning resource as object. Preserve the separate source description of the assessed event, probability setting and value; this edge alone fills none of those roles and does not justify zero-probability conditioning."
+msgstr "Garder l’objet ConditionalProbability comme sujet et sa ressource réelle de conditionnement comme objet. Préserver la description source séparée de l’événement évalué, du cadre probabiliste et de la valeur ; ce lien seul ne remplit aucun de ces rôles et ne justifie pas un conditionnement par un événement de probabilité nulle."
+
+msgctxt "https://blackcatinformatics.ca/math/independenceSubject|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "independence subject"
+msgstr "sujet de l’indépendance"
+
+msgctxt "https://blackcatinformatics.ca/math/independenceSubject|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Names the subject of an independence assertion — the A whose independence is claimed. Domain math:IndependenceAssertion, range a math:ProbabilityEvent or math:RandomVariable (stated in prose)."
+msgstr "Nomme le sujet d’une assertion d’indépendance — le A dont l’indépendance est affirmée. Domaine math:IndependenceAssertion, portée math:ProbabilityEvent ou math:RandomVariable (énoncés en prose)."
+
+msgctxt "https://blackcatinformatics.ca/math/independenceSubject|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This names the A operand of an independence claim; its subject is the assertion resource, not the event or random variable A itself. Mathematical symmetry between operands does not make this assertion-to-operand property symmetric."
+msgstr "Nomme l’opérande A d’une affirmation d’indépendance ; son sujet est la ressource d’assertion, et non l’événement ou la variable aléatoire A elle-même. La symétrie mathématique entre les opérandes ne rend pas symétrique cette propriété allant de l’assertion à l’opérande."
+
+msgctxt "https://blackcatinformatics.ca/math/independenceSubject|http://www.w3.org/2004/02/skos/core#example"
+msgid "The fixture asserts ex:abIndep independenceSubject ex:eventA and separately independentOf ex:eventB. Its conditional ex:acGivenD also uses ex:eventA as independenceSubject while naming a different counterpart and a conditioning event."
+msgstr "Le jeu de données affirme ex:abIndep independenceSubject ex:eventA et, séparément, independentOf ex:eventB. Son assertion conditionnelle ex:acGivenD emploie également ex:eventA comme independenceSubject tout en nommant un autre opérande et un événement de conditionnement."
+
+msgctxt "https://blackcatinformatics.ca/math/independenceSubject|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to identify the actual event or random variable whose independence is asserted, retaining its distinction from the assertion, counterpart and any conditioning context."
+msgstr "Utiliser pour identifier l’événement ou la variable aléatoire réel dont l’indépendance est affirmée, en le distinguant de l’assertion, de l’autre opérande et de tout contexte de conditionnement."
+
+msgctxt "https://blackcatinformatics.ca/math/independenceSubject|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid pointing from one event directly to another through this property, reversing the assertion-to-operand edge, or treating an operand's presence as a proof of independence or complete source metadata."
+msgstr "Éviter de relier directement un événement à un autre par cette propriété, d’inverser le lien allant de l’assertion à l’opérande ou de traiter la présence d’un opérande comme une preuve d’indépendance ou de complétude des métadonnées source."
+
+msgctxt "https://blackcatinformatics.ca/math/independenceSubject|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Put independenceSubject on the supplied IndependenceAssertion resource and retain its actual operand object. Keep independentOf or the supplied joint-set form, any independentGiven context, model and vantage separately; no operand edge fabricates the other roles or an evaluated probability law."
+msgstr "Placer independenceSubject sur la ressource IndependenceAssertion fournie et conserver son objet opérande réel. Garder séparément independentOf ou la forme d’ensemble conjoint fournie, tout contexte independentGiven, le modèle et le point de vue ; aucun lien d’opérande ne fabrique les autres rôles ni une loi de probabilité évaluée."
+
+msgctxt "https://blackcatinformatics.ca/math/independentOf|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "independent of"
+msgstr "indépendant de"
+
+msgctxt "https://blackcatinformatics.ca/math/independentOf|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Names the event or variable an independence subject is asserted independent of — the B in A ⫫ B. Domain math:IndependenceAssertion, range a math:ProbabilityEvent or math:RandomVariable (stated in prose). Used for pairwise independence, including conditional assertions whose context is named separately; a set of mutually independent facts uses math:mutuallyIndependentSet instead."
+msgstr "Nomme l’événement ou la variable dont un sujet d’indépendance est affirmé indépendant — le B dans A ⫫ B. Domaine math:IndependenceAssertion, portée math:ProbabilityEvent ou math:RandomVariable (énoncés en prose). Employée pour l’indépendance deux à deux, y compris dans les assertions conditionnelles dont le contexte est nommé séparément ; un ensemble de faits mutuellement indépendants emploie plutôt math:mutuallyIndependentSet."
+
+msgctxt "https://blackcatinformatics.ca/math/independentOf|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This is the counterpart B role on an assertion about A, for a marginal or explicitly conditional pairwise claim. The predicate relates an assertion to its operand, so mathematical symmetry of independence does not declare the RDF property symmetric."
+msgstr "Il s’agit du rôle de l’autre opérande B sur une assertion concernant A, pour une affirmation d’indépendance deux à deux marginale ou explicitement conditionnelle. Le prédicat relie une assertion à son opérande ; la symétrie mathématique de l’indépendance ne déclare donc pas la propriété RDF symétrique."
+
+msgctxt "https://blackcatinformatics.ca/math/independentOf|http://www.w3.org/2004/02/skos/core#example"
+msgid "The fixture supplies ex:abIndep independentOf ex:eventB for its marginal claim and ex:acGivenD independentOf ex:eventC for its conditional claim. The latter separately names ex:eventD through independentGiven."
+msgstr "Le jeu de données fournit ex:abIndep independentOf ex:eventB pour son affirmation marginale et ex:acGivenD independentOf ex:eventC pour son affirmation conditionnelle. Cette dernière nomme séparément ex:eventD par independentGiven."
+
+msgctxt "https://blackcatinformatics.ca/math/independentOf|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for the supplied counterpart event or random variable in a pairwise independence claim, retaining any separately stated conditioning context and the claim's model and vantage."
+msgstr "Utiliser pour l’autre événement ou variable aléatoire fourni dans une affirmation d’indépendance deux à deux, en conservant tout contexte de conditionnement énoncé séparément ainsi que le modèle et le point de vue de l’affirmation."
+
+msgctxt "https://blackcatinformatics.ca/math/independentOf|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating every use as marginal, attaching the edge directly between the two operands, or upgrading a list of pairwise claims into mutual independence of a larger family. A counterpart link is neither an independence proof nor a numeric coefficient."
+msgstr "Éviter de traiter tout emploi comme marginal, de placer le lien directement entre les deux opérandes ou de transformer une liste d’affirmations deux à deux en indépendance mutuelle d’une famille plus grande. Un lien vers l’autre opérande n’est ni une preuve d’indépendance ni un coefficient numérique."
+
+msgctxt "https://blackcatinformatics.ca/math/independentOf|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Keep the assertion as subject and its actual counterpart as object, alongside independenceSubject. Preserve independentGiven for a conditional claim and the supplied model and vantage evidence; use mutuallyIndependentSet only when the source actually supplies that joint-set claim and resource."
+msgstr "Garder l’assertion comme sujet et l’autre opérande réel comme objet, aux côtés de independenceSubject. Préserver independentGiven pour une affirmation conditionnelle et les éléments probants de modèle et de point de vue fournis ; n’employer mutuallyIndependentSet que lorsque la source fournit effectivement cette affirmation portant sur un ensemble conjoint et sa ressource."
+
+msgctxt "https://blackcatinformatics.ca/math/independentGiven|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "independent given"
+msgstr "indépendants sachant"
+
+msgctxt "https://blackcatinformatics.ca/math/independentGiven|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Names the conditioning set of a conditional-independence assertion — the C in A ⫫ B | C. Domain math:ConditionalIndependenceAssertion, range the conditioning set (stated in prose). A conditional-independence assertion that fails to name its conditioning set is ill-formed (math:UnconditionedAssertion)."
+msgstr "Nomme l’ensemble de conditionnement d’une assertion d’indépendance conditionnelle — le C dans A ⫫ B | C. Domaine math:ConditionalIndependenceAssertion, portée l’ensemble de conditionnement (énoncés en prose). Une assertion d’indépendance conditionnelle qui ne nomme pas son ensemble de conditionnement est mal formée (math:UnconditionedAssertion)."
+
+msgctxt "https://blackcatinformatics.ca/math/independentGiven|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This names the C conditioning role in a conditional-independence claim. Retain the supplied resource, including an event used as context; the link alone supplies no enumeration, sigma-algebra, conditional distribution or independence proof."
+msgstr "Nomme le rôle de conditionnement C dans une affirmation d’indépendance conditionnelle. Conserver la ressource fournie, y compris un événement employé comme contexte ; le lien seul ne fournit ni énumération, ni tribu, ni loi conditionnelle, ni preuve d’indépendance."
+
+msgctxt "https://blackcatinformatics.ca/math/independentGiven|http://www.w3.org/2004/02/skos/core#example"
+msgid "The three-state fixture gives ex:acGivenD independentGiven ex:eventD. The positive conformance fixture instead names ex:diseaseEvent on ex:givenIndependence, while the negative ex:ungivenIndependence omits independentGiven."
+msgstr "Le jeu de données des trois états donne ex:acGivenD independentGiven ex:eventD. Le jeu de données positif de conformité nomme plutôt ex:diseaseEvent sur ex:givenIndependence, tandis que le cas négatif ex:ungivenIndependence omet independentGiven."
+
+msgctxt "https://blackcatinformatics.ca/math/independentGiven|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the source explicitly identifies the conditioning set or context relative to which a conditional-independence assertion is made."
+msgstr "Utiliser lorsque la source identifie explicitement l’ensemble ou le contexte de conditionnement relativement auquel une assertion d’indépendance conditionnelle est formulée."
+
+msgctxt "https://blackcatinformatics.ca/math/independentGiven|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid confusing this context with either independence operand, using conditionalOn as a substitute, or inferring a conditioning set from a label. An absent link is not an empty conditioning set or permission to reinterpret the claim as marginal."
+msgstr "Éviter de confondre ce contexte avec l’un des opérandes d’indépendance, de lui substituer conditionalOn ou de déduire un ensemble de conditionnement d’un libellé. Un lien absent n’est ni un ensemble de conditionnement vide ni une autorisation de réinterpréter l’affirmation comme marginale."
+
+msgctxt "https://blackcatinformatics.ca/math/independentGiven|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Keep ConditionalIndependenceAssertion as subject and the actual supplied conditioning resource as object. Retain both operands, model and vantage independently; report an absent context as the declared UnconditionedAssertion boundary rather than inventing it or claiming a factorization result."
+msgstr "Garder ConditionalIndependenceAssertion comme sujet et la ressource réelle de conditionnement fournie comme objet. Conserver séparément les deux opérandes, le modèle et le point de vue ; signaler un contexte absent comme la limite déclarée UnconditionedAssertion plutôt que de l’inventer ou de revendiquer un résultat de factorisation."
+
+msgctxt "https://blackcatinformatics.ca/math/mutuallyIndependentSet|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "mutually independent set"
+msgstr "ensemble mutuellement indépendant"
+
+msgctxt "https://blackcatinformatics.ca/math/mutuallyIndependentSet|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Names the set of facts an independence assertion claims MUTUALLY independent — a claim stronger in general than pairwise independence over the same facts; for two members the requirements coincide. Domain math:IndependenceAssertion, range the set of mutually independent events or variables (stated in prose). The joint-set form of math:independentOf."
+msgstr "Nomme l’ensemble de faits qu’une assertion d’indépendance affirme MUTUELLEMENT indépendants — une affirmation généralement plus forte que l’indépendance deux à deux des mêmes faits ; pour deux membres, les exigences coïncident. Domaine math:IndependenceAssertion, portée l’ensemble d’événements ou de variables mutuellement indépendants (énoncés en prose). La forme d’ensemble conjoint de math:independentOf."
+
+msgctxt "https://blackcatinformatics.ca/math/mutuallyIndependentSet|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Mutual independence requires factorization for every finite subcollection of events; for random variables, apply this to their measurable value events. For two members it coincides with pairwise independence; larger families can be pairwise independent without being mutually independent."
+msgstr "L’indépendance mutuelle exige une factorisation pour chaque sous-famille finie d’événements ; pour les variables aléatoires, appliquer cette exigence à leurs événements de valeurs mesurables. Pour deux membres, elle coïncide avec l’indépendance deux à deux ; les familles plus grandes peuvent être indépendantes deux à deux sans être mutuellement indépendantes."
+
+msgctxt "https://blackcatinformatics.ca/math/mutuallyIndependentSet|http://www.w3.org/2004/02/skos/core#example"
+msgid "As a mathematical illustration, let U and V be independent fair bits and W = U XOR V. Every pair is independent, but P(U=0, V=0, W=0) = 1/4 while the product of the three marginal probabilities is 1/8. This supplies no existing RDF set resource or executed calculation."
+msgstr "À titre d’illustration mathématique, soient U et V des bits indépendants et équiprobables, et W = U XOR V. Chaque paire est indépendante, mais P(U=0, V=0, W=0) = 1/4 tandis que le produit des trois probabilités marginales vaut 1/8. Cela ne fournit aucune ressource d’ensemble RDF existante ni aucun calcul exécuté."
+
+msgctxt "https://blackcatinformatics.ca/math/mutuallyIndependentSet|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the source supplies an explicit mutual-independence claim over an identified collection of events or variables, with its actual member representation, model and vantage."
+msgstr "Utiliser lorsque la source fournit une affirmation explicite d’indépendance mutuelle sur une collection identifiée d’événements ou de variables, avec sa représentation réelle des membres, son modèle et son point de vue."
+
+msgctxt "https://blackcatinformatics.ca/math/mutuallyIndependentSet|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid promoting pairwise claims to mutual independence of a larger collection, interpreting an unordered set as an operand sequence, or treating a set label as a member inventory or proof of factorization."
+msgstr "Éviter de transformer des affirmations deux à deux en indépendance mutuelle d’une collection plus grande, d’interpréter un ensemble non ordonné comme une séquence d’opérandes ou de traiter un libellé d’ensemble comme un inventaire des membres ou une preuve de factorisation."
+
+msgctxt "https://blackcatinformatics.ca/math/mutuallyIndependentSet|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Point mutuallyIndependentSet from the IndependenceAssertion to the actual supplied set resource. Preserve its source member representation and the scope of the joint claim; do not invent membership edges, a cardinality, a factorization proof or a sampling result from the link alone."
+msgstr "Faire pointer mutuallyIndependentSet de IndependenceAssertion vers la ressource d’ensemble réellement fournie. Préserver la représentation source de ses membres et la portée de l’affirmation conjointe ; ne pas inventer de liens d’appartenance, de cardinalité, de preuve de factorisation ou de résultat d’échantillonnage à partir du seul lien."
+
+msgctxt "https://blackcatinformatics.ca/math/independenceHoldsInModel|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "independence holds in model"
+msgstr "indépendance valable dans le modèle"
+
+msgctxt "https://blackcatinformatics.ca/math/independenceHoldsInModel|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Names the model an independence assertion holds in — the dependency model, probability model, or standpoint within which the claimed independence is asserted. Domain math:IndependenceAssertion, range the model it holds in (stated in prose). Independence is a modeler's claim from a vantage (the assertion is held by a gmeow:vantage), not a fact of the graph, so an independence claim always names the model it holds in and never floats free of one."
+msgstr "Nomme le modèle dans lequel vaut une assertion d’indépendance — le modèle de dépendance, le modèle probabiliste ou le point de vue au sein duquel l’indépendance revendiquée est affirmée. Domaine math:IndependenceAssertion, portée le modèle dans lequel elle vaut (énoncés en prose). L’indépendance est l’affirmation d’un modélisateur depuis un point de vue (l’assertion est soutenue depuis un gmeow:vantage), et non un fait du graphe ; une affirmation d’indépendance nomme donc toujours le modèle dans lequel elle vaut et n’en est jamais détachée."
+
+msgctxt "https://blackcatinformatics.ca/math/independenceHoldsInModel|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This is the model or context role of an independence claim; gmeow:vantage separately identifies who holds it. Preserve both roles even when the source resources are related. Neither role alone establishes a complete probability model or a mathematical independence result."
+msgstr "Il s’agit du rôle de modèle ou de contexte d’une affirmation d’indépendance ; gmeow:vantage identifie séparément qui la soutient. Préserver les deux rôles même lorsque les ressources source sont liées. Aucun de ces rôles ne suffit à établir un modèle probabiliste complet ou un résultat mathématique d’indépendance."
+
+msgctxt "https://blackcatinformatics.ca/math/independenceHoldsInModel|http://www.w3.org/2004/02/skos/core#example"
+msgid "The fixture gives ex:abIndep independenceHoldsInModel ex:indepModel and separately gmeow:vantage ex:modeler. The probability scene supplies model links on ex:seasonSprinklerIndependence and ex:rainSprinklerCondIndep, but their inspected records do not themselves supply a vantage."
+msgstr "Le jeu de données donne ex:abIndep independenceHoldsInModel ex:indepModel et, séparément, gmeow:vantage ex:modeler. La scène de probabilité fournit des liens de modèle sur ex:seasonSprinklerIndependence et ex:rainSprinklerCondIndep, mais les enregistrements examinés ne fournissent pas eux-mêmes de point de vue."
+
+msgctxt "https://blackcatinformatics.ca/math/independenceHoldsInModel|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain the actual named model or context within which a source's independence claim is asserted, while preserving the separate holding-vantage account."
+msgstr "Utiliser pour conserver le modèle ou le contexte réellement nommé au sein duquel l’affirmation d’indépendance d’une source est énoncée, tout en préservant séparément l’indication du point de vue qui la soutient."
+
+msgctxt "https://blackcatinformatics.ca/math/independenceHoldsInModel|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating a model link as a holding-vantage link, applying one model's claim to every model, or deriving a complete logic:ProbabilityModel from an identifier alone. Missing model or vantage metadata is not evidence that an explicit assertion is absent."
+msgstr "Éviter de traiter un lien de modèle comme un lien de point de vue soutenant l’affirmation, d’appliquer l’affirmation d’un modèle à tous les modèles ou de déduire un logic:ProbabilityModel complet d’un seul identifiant. Des métadonnées de modèle ou de point de vue manquantes ne prouvent pas qu’une assertion explicite est absente."
+
+msgctxt "https://blackcatinformatics.ca/math/independenceHoldsInModel|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Keep the IndependenceAssertion as subject and its supplied model or context as object. Preserve the actual operands, any conditioning context and the source's vantage separately; retain coexisting model-indexed claims without selecting a preferred account or fabricating missing metadata."
+msgstr "Garder IndependenceAssertion comme sujet et son modèle ou contexte fourni comme objet. Préserver séparément les opérandes réels, tout contexte de conditionnement et le point de vue de la source ; conserver les affirmations coexistantes indexées par modèle sans sélectionner un récit privilégié ni fabriquer de métadonnées manquantes."
+
+msgctxt "https://blackcatinformatics.ca/math/UnconditionedAssertion|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Unconditioned Assertion"
+msgstr "Assertion sans conditionnement"
+
+msgctxt "https://blackcatinformatics.ca/math/UnconditionedAssertion|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The failure raised when a math:ConditionalProbability does not name its conditioning context (math:conditionalOn) or a math:ConditionalIndependenceAssertion does not name its conditioning set (math:independentGiven). A conditional or conditional-independence assertion always names what it is conditioned on; one that leaves its conditioning context implicit is ill-formed."
+msgstr "L’échec signalé lorsqu’une math:ConditionalProbability ne nomme pas son contexte de conditionnement (math:conditionalOn) ou qu’une math:ConditionalIndependenceAssertion ne nomme pas son ensemble de conditionnement (math:independentGiven). Une assertion conditionnelle ou d’indépendance conditionnelle nomme toujours ce par quoi elle est conditionnée ; une assertion qui laisse son contexte de conditionnement implicite est mal formée."
+
+msgctxt "https://blackcatinformatics.ca/math/UnconditionedAssertion|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This identifies a missing named conditioning link, not every defect in a probability record. It does not by itself diagnose zero-probability conditioning, prove or refute independence, or establish complete operand, model and vantage metadata."
+msgstr "Identifie un lien de conditionnement nommé manquant, et non tout défaut d’un enregistrement de probabilité. Cela ne diagnostique pas à soi seul un conditionnement par un événement de probabilité nulle, ne prouve ni ne réfute une indépendance et n’établit pas la complétude des métadonnées d’opérandes, de modèle et de point de vue."
+
+msgctxt "https://blackcatinformatics.ca/math/UnconditionedAssertion|http://www.w3.org/2004/02/skos/core#example"
+msgid "The negative fixtures declare ex:unconditionedProbability without conditionalOn and ex:ungivenIndependence without independentGiven. Their positive counterparts supply those links; this identifies the declared presence boundary, not an executed mathematical test."
+msgstr "Les jeux de données négatifs déclarent ex:unconditionedProbability sans conditionalOn et ex:ungivenIndependence sans independentGiven. Leurs homologues positifs fournissent ces liens ; cela identifie la limite de présence déclarée, et non un test mathématique exécuté."
+
+msgctxt "https://blackcatinformatics.ca/math/UnconditionedAssertion|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when a supplied ConditionalProbability lacks its named conditionalOn context or a supplied ConditionalIndependenceAssertion lacks independentGiven, retaining the actual offending record and missing role."
+msgstr "Utiliser lorsqu’une ConditionalProbability fournie ne possède pas son contexte conditionalOn nommé ou qu’une ConditionalIndependenceAssertion fournie ne possède pas independentGiven, en conservant l’enregistrement fautif réel et le rôle manquant."
+
+msgctxt "https://blackcatinformatics.ca/math/UnconditionedAssertion|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid raising this failure merely because P(B) = 0, an independence claim is unproved or no independence assertion exists. Missing conditioning structure, other missing metadata and undefined mathematics are distinct concerns."
+msgstr "Éviter de signaler cet échec au seul motif que P(B) = 0, qu’une affirmation d’indépendance n’est pas prouvée ou qu’aucune assertion d’indépendance n’existe. La structure de conditionnement manquante, les autres métadonnées manquantes et les mathématiques non définies sont des questions distinctes."
+
+msgctxt "https://blackcatinformatics.ca/math/UnconditionedAssertion|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the offending resource, its actual type, the missing conditioning property and the source evidence. Add a real source context only when supplied; do not guess an event, model, prior or vantage, drop the record or claim that naming a context proves its mathematics."
+msgstr "Conserver la ressource fautive, son type réel, la propriété de conditionnement manquante et les éléments probants de la source. N’ajouter un contexte source réel que lorsqu’il est fourni ; ne pas deviner d’événement, de modèle, de loi a priori ou de point de vue, supprimer l’enregistrement ni affirmer que nommer un contexte en prouve les mathématiques."
