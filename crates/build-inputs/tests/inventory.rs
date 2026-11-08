@@ -2690,3 +2690,134 @@ fn portable_source_editions_resolve_declared_inherited_and_language_default() {
     );
     assert!(gmeow_build_inputs::source_edition(root.path(), "crate/src/lib.rs").is_err());
 }
+
+/// Pair a tiny registry lock witness with its selected external lexical package.
+fn registry_json_selection(root: &Path, alias: &str) -> ProductionSelection {
+    let mut selected = json_selection(root, alias);
+    let source = "registry+https://github.com/rust-lang/crates.io-index";
+    write(
+        root,
+        "Cargo.lock",
+        &format!(
+            "version=4\n[[package]]\nname='purrdf-lex'\nversion='4.0.0'\nsource='{source}'\nchecksum='{}'\n",
+            "a".repeat(64)
+        ),
+    );
+    selected.units[1].package = format!("{source}#purrdf-lex@4.0.0");
+    selected
+}
+
+/// Macro input capability requires agreement among declaration, lock and selection.
+#[test]
+fn reviewed_registry_json_macros_require_the_exact_declared_locked_selected_owner() {
+    for alias in ["purrdf-lex", "wire-json"] {
+        let binding = alias.replace('-', "_");
+        let root = fixture(&format!(
+            "::{binding}::json_record!(impl ToJson for Record {{ include_str!(\"label.txt\") => value }});"
+        ));
+        write(root.path(), "crate/src/label.txt", "registry field");
+        let declaration = format!("{alias}={{package='purrdf-lex',version='=4'}}");
+        let manifest = format!(
+            "[package]\nname='example'\nversion='1.0.0'\nedition='2024'\n[dependencies]\n{declaration}\n"
+        );
+        write(root.path(), "crate/Cargo.toml", &manifest);
+        let selected = registry_json_selection(root.path(), alias);
+        let first = InputInventory::collect(root.path(), &selected).unwrap();
+        assert!(first.files.contains_key("crate/src/label.txt"));
+        let mut wrong = selected.clone();
+        wrong.units[1].package = wrong.units[1].package.replace("@4.0.0", "@4.0.1");
+        assert!(InputInventory::collect(root.path(), &wrong).is_err());
+        let lock = std::fs::read_to_string(root.path().join("Cargo.lock")).unwrap();
+        for invalid in [
+            lock.replace(&"a".repeat(64), "bad"),
+            lock.replace(&"a".repeat(64), &"A".repeat(64)),
+            lock.replace("version='4.0.0'", "version='4.0.1'"),
+            lock.replace(
+                "registry+https://github.com/rust-lang/crates.io-index",
+                "registry+https://example.invalid/index",
+            ),
+            format!(
+                "{lock}[[package]]{}",
+                lock.split_once("[[package]]").unwrap().1
+            ),
+        ] {
+            write(root.path(), "Cargo.lock", &invalid);
+            assert!(InputInventory::collect(root.path(), &selected).is_err());
+        }
+        write(root.path(), "Cargo.lock", &lock);
+        write(
+            root.path(),
+            "crate/Cargo.toml",
+            &manifest.replace("version='=4'", "version='=3'"),
+        );
+        assert!(InputInventory::collect(root.path(), &selected).is_err());
+        write(root.path(), "crate/Cargo.toml", &manifest);
+        for mutation in [
+            "patch",
+            "source-replacement",
+            "malformed-patch",
+            "malformed-replace",
+        ] {
+            let mut selected = selected.clone();
+            json_mutated_policy(root.path(), mutation, &mut selected);
+            assert!(
+                InputInventory::collect(root.path(), &selected).is_err(),
+                "{mutation}"
+            );
+            write(
+                root.path(),
+                "Cargo.toml",
+                "[workspace]\nmembers=['crate']\n",
+            );
+            let config = root.path().join(".cargo/config.toml");
+            if config.is_file() {
+                std::fs::remove_file(config).unwrap();
+            }
+        }
+    }
+}
+
+/// Native macro inputs must belong to the substrate's actual delegated lexical leaf.
+#[test]
+fn native_registry_json_macro_must_be_the_substrates_delegated_leaf() {
+    let root = tempfile::tempdir().unwrap();
+    write(
+        root.path(),
+        "Cargo.toml",
+        "[workspace.dependencies]\npurrdf='=4'\npurrdf-lex='=4'\n",
+    );
+    let source = "registry+https://github.com/rust-lang/crates.io-index";
+    let lock = format!(
+        "[[package]]\nname='purrdf'\nversion='4.0.0'\nsource='{source}'\nchecksum='{}'\n[[package]]\nname='purrdf-lex'\nversion='4.0.0'\nsource='{source}'\nchecksum='{}'\n",
+        "a".repeat(64),
+        "b".repeat(64)
+    );
+    write(root.path(), "Cargo.lock", &lock);
+    for name in ["logic", "logic-compile", "term-arena", "ns"] {
+        write(
+            root.path(),
+            &format!("crates/{name}/Cargo.toml"),
+            "[package]\nedition='2024'\n[dependencies]\npurrdf-lex={workspace=true}\n",
+        );
+        write(root.path(), &format!("crates/{name}/src/lib.rs"), "");
+    }
+    write(
+        root.path(),
+        "crates/logic-compile/src/lib.rs",
+        "::purrdf_lex::json_string_enum!(Mode { One => \"one\" });",
+    );
+    gmeow_build_inputs::NativeSources::collect(root.path()).unwrap();
+    write(
+        root.path(),
+        "Cargo.toml",
+        &format!(
+            "[workspace.dependencies]\npurrdf={{git='https://github.com/Blackcat-Informatics/purrdf',rev='{JSON_REVISION}'}}\npurrdf-lex='=4'\n"
+        ),
+    );
+    assert!(
+        gmeow_build_inputs::NativeSources::collect(root.path())
+            .unwrap_err()
+            .to_string()
+            .contains("must match native substrate")
+    );
+}

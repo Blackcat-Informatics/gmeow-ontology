@@ -34,15 +34,26 @@ objects it produces.
 The R bridge lifts an R script's mathematical and statistical content into `math:` and its
 computation into `logic:`:
 
-- data frames → `math:DatasetMatrix` (held by reference); vectors/matrices → `math:Vector`/`math:Matrix`;
-- model formulas `y ~ x1 + x2` → a `math:ModelFormula` AST (the `~` is a binder, not a string);
-- `lm`/`glm`/`lmer` → `math:StatisticalModel`/`math:FittedModel` with declared assumptions;
+- data frames → `math:DatasetMatrix` descriptions held by reference; vectors/matrices → `math:Vector`/`math:Matrix`;
+- model formulas, including one-sided forms, → a `math:ModelFormula` AST (the R `~` representation is a binder, not a string);
+- `lm`/`glm`/`lmer` → source-described `math:StatisticalModel`/`math:FittedModel` resources with represented formula/data links;
 - `rnorm`/`dbinom`/… → `math:Distribution` with family and parameterization;
 - arithmetic/transforms → `math:ApplicationExpression`s; control flow and general computation → `logic:`.
 
-The natural output shape is the `broom` tidy/glance/augment triple (tidy coefficients, model-level
-statistics, augmented residuals), which maps cleanly onto `math:Estimate`/`math:FittedModel`/
-`math:Residual`. No "R ontology" exists — the lifter is an authored Rust `math-parse` front-end
+These are source-structure lifts, not execution of an R fitting engine. The inspected dataset
+emitter supplies type, label and ingest provenance without loading or authenticating the external
+payload. A binder and slots alone do not establish response/predictor-role preservation, and a
+formula/data link does not establish complete fitting-option identity. Those source distinctions
+must be preserved or explicitly refused or accounted for under a selected loss contract, without
+silently identifying different specifications. Missing supplied parameters alone establish neither
+nonparametricity nor a completely specified probability law.
+
+The intended `broom` tidy/glance/augment roles (tidy coefficients, model-level statistics and
+augmented residuals) correspond to `math:Estimate`/`math:FittedModel`/`math:Residual`. The inspected
+R residual path emits one fit-keyed residual resource with type and `math:residualOf` linkage; it
+does not compute or supply a per-observation residual inventory or preserve every requested
+residual variant. Source-described linkage is not evidence of numeric differences, observation
+identity, variant preservation or diagnostic execution. No "R ontology" exists — the lifter is an authored Rust `math-parse` front-end
 ([`MATHEMATICS-RUNTIME.md`](MATHEMATICS-RUNTIME.md)).
 
 > **Flagship — R, for any script.** Answerable when the bridge lifts an arbitrary R script's

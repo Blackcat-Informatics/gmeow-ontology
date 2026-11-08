@@ -613,9 +613,11 @@ pub static QUERY_ASSET: VendoredWasmAsset = VendoredWasmAsset {
             needle: "static fromGts(gts)",
             hint: "vendored bindings lack the Dataset.fromGts static method — the bundle explorer's load path",
         },
+        // The pinned binding generator declares immutable numeric slice inputs as
+        // typed arrays or plain number arrays; keep these full signatures exact.
         ExportCheck {
             file: "gmeow_query_wasm.d.ts",
-            needle: "static fromGts(gts: Uint8Array): Dataset;",
+            needle: "static fromGts(gts: Uint8Array | number[]): Dataset;",
             hint: "vendored .d.ts lacks the fromGts type signature",
         },
         ExportCheck {
@@ -626,7 +628,7 @@ pub static QUERY_ASSET: VendoredWasmAsset = VendoredWasmAsset {
         },
         ExportCheck {
             file: "gmeow_query_wasm.d.ts",
-            needle: "function blake3Hex(bytes: Uint8Array): string;",
+            needle: "function blake3Hex(bytes: Uint8Array | number[]): string;",
             hint: "vendored .d.ts lacks the blake3Hex type signature",
         },
     ],
@@ -680,7 +682,7 @@ pub static VALIDATE_ASSET: VendoredWasmAsset = VendoredWasmAsset {
         },
         ExportCheck {
             file: "gmeow_validate_wasm.d.ts",
-            needle: "export function validate(data: string, format: string, gts: Uint8Array, namespace: string, origin: string): string",
+            needle: "export function validate(data: string, format: string, gts: Uint8Array | number[], namespace: string, origin: string): string",
             hint: "vendored .d.ts lacks the validate type signature",
         },
         ExportCheck {
@@ -690,7 +692,7 @@ pub static VALIDATE_ASSET: VendoredWasmAsset = VendoredWasmAsset {
         },
         ExportCheck {
             file: "gmeow_validate_wasm.d.ts",
-            needle: "export function bundle_dataset(gts: Uint8Array): string",
+            needle: "export function bundle_dataset(gts: Uint8Array | number[]): string",
             hint: "vendored .d.ts lacks the bundle_dataset type signature",
         },
     ],

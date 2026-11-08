@@ -3,7 +3,7 @@
 # result/evaluation object properties across the paradigm-result and model-evaluation layers:
 # a math:HypothesisTest weighs an alternative (math:alternativeHypothesis) and reports an
 # effect size (math:effectSize); a math:EffectSize names its contrast (math:effectSizeContrast)
-# and standardization scale (math:effectSizeScale); an interval names its bounds
+# and representation scale (math:effectSizeScale); an interval names its bounds
 # (math:hasIntervalBound) and coverage/mass (math:confidenceLevel / math:credibleMass); a
 # math:Prediction names its target (math:predictionTarget); a math:ModelDiagnostic anchors to
 # the fit (math:diagnosticFor) via a method (math:diagnosticMethod); a fitted model posits an

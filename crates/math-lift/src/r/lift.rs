@@ -1204,12 +1204,13 @@ impl Lift<'_> {
 
     // -- estimates, residuals, observations -----------------------------------
 
-    /// The `math:Estimate` a two-sample test produces: the contrast between its samples.
+    /// A source-described `math:Estimate` for a supported two-sample test call.
     ///
-    /// No `math:FittedModel` — there is no formula, so there is no specification to fit, and
-    /// minting one would fabricate the very restriction `math:FittedModel` exists to pin.
-    /// What the call DOES determine is an estimand (the contrast) and the procedure that
-    /// estimated it, which is exactly `math:Estimate`'s union obligation plus `math:estimator`.
+    /// This path emits a generic `math:estimatedParameter` contrast record and an estimator,
+    /// not a framed `math:Estimand`, numerical contrast or executed fitting result.
+    /// It does not fabricate a `math:FittedModel` without a supplied model formula.
+    /// The parameter arm is one alternative in the canonical target union; the estimator
+    /// is required separately. Source links do not establish complete target identification.
     fn emit_two_sample_estimate(
         &mut self,
         function: &str,
@@ -1260,10 +1261,10 @@ impl Lift<'_> {
             let (estimate, fresh) = self.mint("estimate", &key)?;
             if fresh {
                 self.sink.typed(&estimate, &math("Estimate"))?;
-                // math:Estimate rdfs:subClassOf owl:unionOf(estimatesEstimand,
-                // estimatedParameter) AND names its estimator. The parameter arm is what an
-                // R script determines; an estimand needs six framing coordinates the script
-                // never states, so claiming one would be fabrication.
+                // The canonical target union accepts estimatesEstimand or estimatedParameter,
+                // or both, with an estimator required separately. This source path emits the
+                // parameter arm; it does not extract a general study-target definition.
+                // Not every mathematical estimand requires the six causal framing roles.
                 self.sink
                     .iri(&estimate, &math("estimatedParameter"), &parameter)?;
                 self.sink.iri(&estimate, &math("estimator"), &estimator)?;

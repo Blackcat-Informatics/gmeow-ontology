@@ -70,19 +70,31 @@ Core classes: `math:StatisticalModel`, `math:ModelFormula`, `math:ModelAssumptio
 Core properties: `math:modelFormula`, `math:modelAssumption`, `math:fittedToData`,
 `math:estimatesEstimand`, `math:estimatedParameter`, `math:estimator`, and `math:estimateValue`.
 
-A `math:StatisticalModel` carries its specification as a `math:ModelFormula` — which is a
-**specialization of `math:MathematicalExpression`** (a real AST from the expression core), not a
-parallel stringly-typed formula class, so `y ~ x1 + x2` is an application tree with resolved
-variables, not text. Assumptions are first-class `math:ModelAssumption` objects (normality,
-homoscedasticity, independence of errors) so an assumption can be checked, cited, or violated with a
-diagnostic rather than left implicit.
+A `math:StatisticalModel` records its model expression as a structured `math:ModelFormula`, a
+specialization of `math:MathematicalExpression`. A formula may have a response or be one-sided;
+the R tilde representation uses `math:BindingExpression` and indexed `math:ArgumentSlot` operands.
+The general formula frame and supplied conformance examples inspect slot structure, not complete
+binder admission or preservation of every source role. A formula alone does not supply the full
+distributional specification, family/link choices, contrasts, weights, subsets or fitting options.
+Assumptions are first-class `math:ModelAssumption` objects (normality, homoscedasticity, independence
+of errors). The stated conditions can be cited and, where suitable methods and evidence are
+available, assessed or reported violated rather than left implicit. Naming a condition does not
+establish its empirical testability or truth.
 
-**Estimand vs parameter.** The layer distinguishes the *target of inference* from the *model
-quantity*. A `math:Estimand` is what the study is actually trying to learn — framed by population,
-outcome, contrast, time, intervention, and missing-data policy — whereas an estimated parameter is a
-coefficient inside a particular model. This distinction is load-bearing for causal inference,
-surveys, trials, and policy models, where the same estimand (an average treatment effect) can be
-targeted by different parameters under different models:
+A model described by a source lift is not evidence of an executed fitting process. Likewise, a
+`math:DatasetMatrix` identifier, type, label or ingest provenance does not by itself establish an
+authenticated external blob reference, available payload or resolved column schema. Preserve the
+actual supplied specification, data reference and source distinctions, and qualify the selected
+operation separately; passing a required-link check does not establish numerical fit validity.
+
+**Estimand vs parameter.** The layer distinguishes the target a study seeks to learn from a
+model quantity named in an estimate. A model parameter may itself be the specified estimand,
+but a coefficient name does not automatically identify a substantive population or causal target.
+Supplying both target links does not establish equality or identification between their objects.
+Population, outcome, contrast, time, intervention and missing-data policy provide relevant
+causal-study framing, not universal mathematical prerequisites or a demonstrated six-role
+admission gate for every estimand. Such declarations alone prove neither causal identification
+nor valid treatment of missing data or intercurrent events. The vocabulary offers these roles:
 
 ```text
 math:Estimand
@@ -94,11 +106,20 @@ math:Estimand
   math:missingDataPolicy
 ```
 
-An `math:Estimator` is the procedure; a `math:Statistic` is a function of the data; a
-`math:Estimate` is the produced value linked to *both* its estimand (`math:estimatesEstimand`) and,
-where relevant, its model parameter (`math:estimatedParameter`); a `math:FittedModel` is the model
-bound to data (`math:fittedToData` — reserved for `math:FittedModel`, not attached to an estimate);
-and a `math:InferenceRun` is the `gmeow:Activity` that produced them.
+A `math:Estimator` is the estimation procedure; a `math:Statistic` is a data function defined
+without unknown model parameters. The same function can have both roles; distinguish it from
+its realized value on particular data. A `math:Estimate` records a result with an estimand
+(`math:estimatesEstimand`) or model-parameter target (`math:estimatedParameter`), or both, and a
+separately required estimator (`math:estimator`). The inspected target and method requirements do
+not establish a universal `math:estimateValue`-presence check or numerical evaluation. A
+`math:FittedModel` is the data-bound model (`math:fittedToData`), and a `math:InferenceRun` is the
+`gmeow:Activity` that applies a procedure; the procedure is not that activity or a held claim.
+
+The native R source lift can emit estimated-parameter and estimator records without a numerical
+coefficient value, a framed study estimand or a completed fitting run. Formula-term labels do not
+establish actual design-matrix coefficients, contrast coding, rank or option-sensitive estimator
+identity. Preserve the supplied source and result evidence and its limits without inventing values
+or treating source-described links as executed estimation.
 
 ## Inference and results
 
@@ -122,11 +143,42 @@ structure to be unambiguous. A p-value carries not only its test but its **null 
 mid-p), and any **multiplicity adjustment** (`math:pValueAdjustment`/`math:multipleComparisonFamily`),
 because a p-value with a null and a statistic but no tail or sidedness is still ambiguous.
 
+A `math:EffectSize` describes a quantitative effect or association on its stated scale.
+It need not be standardized or nonnegative: raw differences retain outcome units, while
+standardized measures retain their actual denominator and convention. An odds ratio has
+no-effect reference one; a log odds ratio has reference zero. Naming a scale performs no
+conversion, and a p-value supplies no effect magnitude or universal zero-null interpretation.
+
+`math:StatisticalContrast` is the shared vocabulary for a supplied comparison or association.
+An estimand's `math:targetContrast` and an effect's `math:effectSizeContrast` may reuse a
+resource when the source supports the same comparison and relevant context; sharing a
+vocabulary does not impose identity between distinct outcomes, populations or conventions.
+The example's raw five-year survival ATE and latent-survival Cohen's d are separate records
+with distinct comparisons, without an asserted numerical conversion or accompaniment.
+
+`math:effectSizeScale` names a `math:MeasurementScale` describing the actual effect
+representation; using the same scale vocabulary as variables does not require the same
+scale individual. The canonical effect-size restrictions and closure require a comparison,
+scale and reference-frame link. Their presence does not certify numerical results,
+comparison or scale compatibility, or an executed analysis.
+
+For definitions of raw and standardized differences, comparison direction and ratio transformations, see [Cochrane Handbook, Chapter 6, Sections 6.1.2 and 6.5.1](https://www.cochrane.org/authors/handbooks-and-manuals/handbook/current/chapter-06).
+
 Uncertainty is not always a scalar interval: alongside `math:ConfidenceInterval` (with
 `math:confidenceLevel`) and `math:CredibleInterval` (with `math:credibleMass`), the layer carries
 `math:PredictionInterval`, `math:ToleranceInterval`, and the multivariate `math:ConfidenceRegion`
 and `math:CredibleRegion`. A `math:ModelDiagnostic` names the fitted model it evaluates
-(`math:diagnosticFor`) and its method.
+(`math:diagnosticFor`) and its method (`math:diagnosticMethod`). The canonical required-link
+restrictions and closed-world closure require both roles; missing either is
+`math:UnanchoredDiagnostic`. These anchors do not establish that a check executed, produced a
+numerical result or verified an assumption. Explicitly naming a `math:ModelAssumption` makes the
+condition identifiable; it does not make every condition empirically testable from the observed
+data.
+
+A raw `math:Residual` uses observed minus predicted. Other residual conventions require their own
+source meaning; a residual record and its `math:residualOf` fit link do not supply observation
+indices, numerical differences, a variant or a completed diagnostic. Preserve the actual source
+convention, values and assessment evidence where supplied without inventing them.
 
 ### Model comparison and calibration
 

@@ -75,9 +75,11 @@ Conditional probability names *both* the event and the conditioning event or con
 (`math:conditionalOn`) — a conditional with an unnamed conditioning context is ill-formed.
 
 Independence is modeled explicitly and in three distinguishable states, because a reasoning engine
-behaves very differently across them and must never infer the second or third from silence:
+behaves very differently across them and must never infer marginal or conditional independence
+from silence:
 
-- **Marginal independence** — a `math:IndependenceAssertion` with `math:independenceSubject` and
+- **Marginal independence** — a marginal claim recorded as a `math:IndependenceAssertion` with
+  `math:independenceSubject` and
   `math:independentOf` (or `math:mutuallyIndependentSet` for a joint set).
 - **Conditional independence** — a `math:ConditionalIndependenceAssertion` adding
   `math:independentGiven` naming the conditioning set: *A ⫫ B | C*.
@@ -103,9 +105,10 @@ Core properties: `math:randomVariableDomain`, `math:randomVariableCodomain`,
 
 A random variable is a measurable map with a declared domain and codomain
 (`math:randomVariableDomain`/`math:randomVariableCodomain`) and a probability-space or distribution
-context. A distribution carries a support (`math:hasSupport`) and moments (`math:hasMoment`,
-specialized as `math:ExpectedValue`, `math:Variance`, `math:Covariance`, `math:Correlation`);
-moments are quantity-valued results, not literals.
+context. A distribution carries a support (`math:hasSupport`) and may have supplied,
+mathematically well-defined moment or summary results (`math:hasMoment`, specialized as
+`math:ExpectedValue`, `math:Variance`, `math:Covariance`, `math:Correlation`); those results are
+quantity-valued objects, not literals. Their existence is not guaranteed for every distribution.
 
 **Dimensional constraints are carried, not assumed.** A random variable over height and its
 distribution's location parameter share height units; a variance parameter carries squared units; a
@@ -243,25 +246,49 @@ first draft — so the implementation does not invent the seam ad hoc:
 
 | Mathematics object | `logic:` target | Exact? | Required completeness gate |
 |---|---|---|---|
-| `math:FullIndependenceModel` | `logic:FullIndependence` | yes | all probabilistic facts named |
-| `math:JointProbabilityTable` | `logic:DependencyModel` + `logic:JointOutcome` set | yes if exhaustive | outcomes present and mass sums to one |
-| `math:BayesianNetwork` | `logic:DependencyModel` (WMC factorization) | conditional | DAG; CPT completeness |
-| `math:FactorGraph` | `logic:DependencyModel` (weighted factor product) | conditional | finite factors; normalized or declared unnormalized |
-| `math:MarkovKernel` | `logic:GenericDependence` (stochastic transition) | conditional | domain/codomain; kernel totality |
+| `math:FullIndependenceModel` | `logic:FullIndependence` | conditional on preserving the declared product model | complete named scope; declared mutual-independence assumption and marginal laws |
+| `math:JointProbabilityTable` | `logic:DependencyModel` + `logic:JointOutcome` set | conditional | disjoint exhaustive outcome assignments; nonnegative masses summing to one; preserved table |
+| `math:BayesianNetwork` | `logic:DependencyModel` (WMC factorization) | conditional | DAG; complete compatible conditional laws (CPTs for finite discrete variables); supported target representation |
+| `math:FactorGraph` | `logic:DependencyModel` (weighted factor product) | conditional | finite nonnegative measurable factors; finite strictly positive normalizer over the declared base measure; preserved normalization semantics |
+| `math:MarkovKernel` | `logic:GenericDependence` (stochastic transition) | conditional | declared measurable domain/codomain; probability measure at every source point; measurability in that point; preserved transition law |
 | approximate model | bounded approximate result | no | explicit approximation/loss policy |
 
-The exactness column is a `logic:preservationKind` value
-([`MATHEMATICS-CONFORMANCE.md`](MATHEMATICS-CONFORMANCE.md)); a "conditional" row is exact only when
-its completeness gate holds, and lossy otherwise with its drops enumerated.
+`math:StochasticProcess` describes an indexed random-variable family on a common probability
+space; its class has no `math:probabilityModelLowering` declaration in the model-family table.
+Generic processes need not be Markov, and their type alone supplies neither a transition-kernel
+link nor an executed realization or supported `logic:` lowering.
+
+The exactness column describes the obligations behind the declared `logic:preservationKind`
+([`MATHEMATICS-CONFORMANCE.md`](MATHEMATICS-CONFORMANCE.md)). Class-level exactness declarations
+record the intended family lowering, not a proof for every instance. The selected model and target
+must satisfy their completeness and preservation obligations. An explicitly unnormalized factor
+representation can be exact when it defines a valid law and retains its normalization semantics.
+Invalid or unsupported models report incomplete, unsupported or not-evaluated; they do not
+automatically become valid lossy models. A supported approximate lowering requires an explicit
+validated approximation policy and a loss account.
+
+The current native dependency checks inspect declared lowering links, graph and kernel endpoint
+presence, named table-row presence and readable exact mass sums. They do not establish general
+DAG or conditional-law completeness, kernel totality, exhaustive assignments or factor normalization.
+The class-level lowering query exposes declarations, and the worked scene names graph and endpoint
+resources without supplying complete edge, conditional-law or transition inventories. These are
+structural examples, not instance preservation certificates.
 
 The Bayesian update chain is first-class: `math:PriorDistribution`, `math:LikelihoodFunction`, and
-`math:PosteriorDistribution` are distinct objects linked by
-`math:hasPrior`/`math:hasLikelihood`/`math:hasPosterior`, so a posterior always answers *from what
-prior, under what likelihood, over what data*. Where the posterior is sampled rather than
-closed-form, the operational Bayesian objects are modeled too — `math:PosteriorSample`,
-`math:MCMCRun` (an `gmeow:Activity`), and the chain diagnostics `math:ChainDiagnostic`,
-`math:EffectiveSampleSize`, `math:RHat`, and `math:DivergenceDiagnostic` — so "is this posterior
-trustworthy" is answerable, not assumed.
+`math:PosteriorDistribution` carry distinct roles linked by
+`math:hasPrior`/`math:hasLikelihood`/`math:hasPosterior`. A likelihood holds observed data fixed while
+the parameter varies and uses the model's mass or density relative to its stated observation measure;
+it is not a distribution over that parameter. In the ordinary likelihood construction, the posterior
+reweights the prior and requires finite strictly positive normalizing evidence. Missing or invalid
+evidence does not license a default posterior. A posterior from one update may serve as a later
+prior; role distinctions do not impose resource inequality across updates.
+
+Preserve the actual prior, likelihood, data and model context supplied by the source. The worked
+scene names these roles but supplies no realized likelihood expression, structured observed-data
+link, parameter values or executed update. Where sampling is declared, `math:PosteriorSample`,
+`math:MCMCRun` (a `gmeow:Activity`) and the chain diagnostics `math:ChainDiagnostic`,
+`math:EffectiveSampleSize`, `math:RHat` and `math:DivergenceDiagnostic` record sampling roles and
+evidence; diagnostic declarations alone do not certify a valid posterior or trustworthy inference.
 
 > A probabilistic reasoning request that references probabilistic facts points at an explicit
 > probability-model object with a declared `logic:` lowering. If the model is absent, structurally

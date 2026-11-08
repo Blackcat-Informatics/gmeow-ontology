@@ -86,10 +86,19 @@ jobs:
         with:
           toolchain: nightly-2026-09-05
 
-      - name: Install the pinned nextest identity tool for build evidence
-        uses: taiki-e/install-action@86f7a0ffb25f40114606501a311ebcfaf882ea32 # v2
-        with:
-          tool: cargo-nextest@0.9.137
+      - name: Install the pinned nextest identity tool from locked source
+        run: |
+          set -euo pipefail
+          cargo install --locked --version 0.9.137 --root "$RUNNER_TEMP/required-nextest" cargo-nextest
+          export PATH="$RUNNER_TEMP/required-nextest/bin:$PATH"
+          cargo nextest --version > "$RUNNER_TEMP/required-nextest-version.txt"
+          cat "$RUNNER_TEMP/required-nextest-version.txt"
+          nextest_release=$(sed -n 's/^release: //p' "$RUNNER_TEMP/required-nextest-version.txt")
+          if [[ "$nextest_release" != '0.9.137' ]]; then
+            echo "::error::cargo-nextest release $nextest_release != pinned 0.9.137"
+            exit 1
+          fi
+          echo "$RUNNER_TEMP/required-nextest/bin" >> "$GITHUB_PATH"
 
       - name: Fingerprint the resolved Rust toolchain
         id: toolchain
@@ -620,10 +629,11 @@ jobs:
 
       # `make lint` runs scripts/lint-issue-refs.sh, which hard-requires ripgrep;
       # it is not present on the runner image by default.
-      - name: Install ripgrep
-        uses: taiki-e/install-action@86f7a0ffb25f40114606501a311ebcfaf882ea32 # v2
-        with:
-          tool: ripgrep
+      - name: Install required ripgrep with PCRE2
+        run: |
+          cargo install --locked --version 15.2.0 --features pcre2 --root "$RUNNER_TEMP/required-ripgrep" ripgrep
+          "$RUNNER_TEMP/required-ripgrep/bin/rg" --pcre2-version
+          echo "$RUNNER_TEMP/required-ripgrep/bin" >> "$GITHUB_PATH"
 
       - name: Lint gate
         run: make lint
@@ -1169,7 +1179,7 @@ jobs:
           retention-days: 1
 
   # Shards execute the SAME authenticated archive with nextest's stable slice
-  # partitioning. No shard invokes Cargo compilation. Every runner re-verifies the
+  # partitioning. No shard compiles workspace tests. Every runner re-verifies the
   # archive receipt and the mechanical union/disjointness proof before executing its
   # slice. Tests use the runner's available CPU width; full-width tests retain their
   # `num-cpus` reservations with no fixed global concurrency cap.
@@ -1246,10 +1256,11 @@ jobs:
       # script exits 2 ("ripgrep (rg) is required") and every case of that test reds on
       # the exit code rather than on what it is asserting. The test runs in the nextest
       # shards, so the tool has to be here too; a gate that cannot run is not a gate.
-      - name: Install ripgrep
-        uses: taiki-e/install-action@86f7a0ffb25f40114606501a311ebcfaf882ea32 # v2
-        with:
-          tool: ripgrep
+      - name: Install required ripgrep with PCRE2
+        run: |
+          cargo install --locked --version 15.2.0 --features pcre2 --root "$RUNNER_TEMP/required-ripgrep" ripgrep
+          "$RUNNER_TEMP/required-ripgrep/bin/rg" --pcre2-version
+          echo "$RUNNER_TEMP/required-ripgrep/bin" >> "$GITHUB_PATH"
 
       - name: Verify archive identity and exact slice coverage
         run: make nextest-archive-verify

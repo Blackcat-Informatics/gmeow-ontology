@@ -303,7 +303,7 @@ enforce it.
   reparameterization is a declared transform.
 - **Statistical results are provenance-heavy.** A statistical number without a method, data
   provenance, and interpretation frame is at most an uninterpreted scalar. An estimate references
-  its estimated parameter and estimator; a p-value references its hypothesis, test, test statistic
+  its estimand and/or estimated parameter plus its estimator; a p-value references its hypothesis, test, test statistic
   or procedure, and data/model context; a confidence interval and a credible interval are distinct
   result kinds and are never collapsed.
 - **Frequentist and Bayesian outputs are peers.** Neither family is privileged; each has its own

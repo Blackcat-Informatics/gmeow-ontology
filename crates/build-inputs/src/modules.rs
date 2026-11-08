@@ -259,6 +259,7 @@ struct ScanMode {
     ownership_only: bool,
 }
 
+/// Follow modules and admit source-input macros only through proven owners.
 fn scan_unit(
     workspace: &Path,
     inventory: &mut InputInventory,
@@ -312,15 +313,10 @@ fn scan_unit(
     } else if !dependencies.is_empty() && modern {
         let owners = crate::json_macros::portable(workspace, &declarations, &dependencies)?;
         if !ownership_only && !owners.is_empty() {
-            let substrate = crate::native_substrate_source(workspace)?;
-            let (repository, revision) = substrate
-                .rsplit_once('#')
-                .ok_or_else(|| fail("native substrate identity has no revision"))?;
-            let expected = format!("git+{repository}?rev={revision}");
-            if owners.values().any(|source| source != &expected) {
-                return Err(fail(format!(
-                    "native JSON macro owner must match native substrate {substrate}"
-                )));
+            for owner in owners.values() {
+                if !crate::native::matches_native_json_owner(workspace, owner)? {
+                    return Err(fail("native JSON macro owner must match native substrate"));
+                }
             }
         }
         owners.into_keys().collect()
