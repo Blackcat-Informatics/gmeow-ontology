@@ -14492,3 +14492,115 @@ msgstr "避免将此代数等同于笛卡尔载体，或自动等同于其完整
 msgctxt "https://blackcatinformatics.ca/math/ProductSigmaAlgebra|https://blackcatinformatics.ca/gmeow/howToUse"
 msgid "Retain the supplied factor-space and event-family descriptions and link the ProductSigmaAlgebra through eventSigmaAlgebra on the actual ProbabilitySpace. Keep sampleSpace, probabilityMeasure and any asserted independence model separate; do not invent factor links, execute a factorization or interpret a selected query's missing row as invalidity."
 msgstr "保留所提供的因子空间及事件族描述，并在实际 ProbabilitySpace 上通过 eventSigmaAlgebra 链接 ProductSigmaAlgebra。保持 sampleSpace、probabilityMeasure 及任何已断言独立性模型分离；不编造因子链接、不执行分解，也不将所选查询中的缺失行解释为无效性。"
+
+msgctxt "https://blackcatinformatics.ca/math/ProbabilityEvent|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Probability Event"
+msgstr "概率事件"
+
+msgctxt "https://blackcatinformatics.ca/math/ProbabilityEvent|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A probability event: a measurable subset of a sample space — a MEASURABLE SET OF OUTCOMES, in the measure-theoretic sense, situated in a space through math:eventInSpace and assigned a framed probability through math:probabilityOfEvent. A subclass of math:Set. It is held OWL disjointWith logic:Event because a logic:Event is an occurrent (something that happens in time) whereas a probability event is a set of outcomes: a rain occurrence and the rain event-set in a forecast space are never conflated. math:eventInSpace declares the event's probability-space context without itself establishing measurability or membership in that space's math:eventSigmaAlgebra; there is NO separate EventSet class — the σ-algebra is the sole event algebra."
+msgstr "概率事件：样本空间的可测子集，即测度论意义上的可测结果集合，通过 math:eventInSpace 置于空间中，并通过 math:probabilityOfEvent 被赋予有框架的概率。它是 math:Set 的子类。它通过 OWL disjointWith 保持与 logic:Event 互斥，因为 logic:Event 是在时间中发生的事项，而概率事件是结果集合：实际降雨与预报空间中的降雨事件集合绝不混淆。math:eventInSpace 声明事件的概率空间上下文，但本身不确立可测性或对该空间 math:eventSigmaAlgebra 的归属；不存在单独的 EventSet 类，σ-代数是唯一的事件代数。"
+
+msgctxt "https://blackcatinformatics.ca/math/ProbabilityEvent|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This is a measurable set of outcomes in a declared probability-space context, not an occurrence in time or one outcome point. The canonical disjointness from logic:Event preserves that distinction; declaring a context does not itself prove set membership or measurability."
+msgstr "这是已声明概率空间上下文中的可测结果集合，而非时间中的实际发生或单个结果点。与 logic:Event 的规范互斥关系保留此区别；声明上下文本身不证明集合归属或可测性。"
+
+msgctxt "https://blackcatinformatics.ca/math/ProbabilityEvent|http://www.w3.org/2004/02/skos/core#example"
+msgid "The existing scene records ex:forecastRainEvent as ProbabilityEvent, names ex:weatherSpace through eventInSpace and links both ex:pRainTomorrow and ex:pRainFromOdds through probabilityOfEvent. These are supplied event/value records, not computed membership or a selected winning probability."
+msgstr "现有场景将 ex:forecastRainEvent 记录为 ProbabilityEvent，通过 eventInSpace 指明 ex:weatherSpace，并通过 probabilityOfEvent 同时链接 ex:pRainTomorrow 和 ex:pRainFromOdds。这些是所提供的事件及数值记录，并非计算所得的归属或选定的胜出概率。"
+
+msgctxt "https://blackcatinformatics.ca/math/ProbabilityEvent|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for the event-set A whose probability P(A) is represented in a supplied probability-space context, retaining the source's event description and supporting evidence."
+msgstr "用于事件集合 A，其概率 P(A) 在所提供的概率空间上下文中表示，同时保留来源的事件描述及支持依据。"
+
+msgctxt "https://blackcatinformatics.ca/math/ProbabilityEvent|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid using this class for a weather occurrence, an outcome point, the whole event algebra or a probability magnitude. Do not infer a measurable-subset proof, event realization or unconditional logical truth from its type or a probability endpoint."
+msgstr "避免将此类用于实际天气发生、结果点、整个事件代数或概率数值。不要根据其类型或概率区间端点推断可测子集证明、事件实现或无条件逻辑真值。"
+
+msgctxt "https://blackcatinformatics.ca/math/ProbabilityEvent|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Type the supplied event-set as ProbabilityEvent and retain its actual eventInSpace and probabilityOfEvent links. Keep the outcome carrier, eventSigmaAlgebra, source observation and value frames separately supplied; do not invent membership edges or identify the set with an occurrence."
+msgstr "将所提供的事件集合标注为 ProbabilityEvent，并保留其实际 eventInSpace 和 probabilityOfEvent 链接。结果载体、eventSigmaAlgebra、来源观测及数值框架须另行提供；不编造归属边，也不将集合等同于实际发生。"
+
+msgctxt "https://blackcatinformatics.ca/math/eventInSpace|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "event in space"
+msgstr "事件所在空间"
+
+msgctxt "https://blackcatinformatics.ca/math/eventInSpace|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Situates a probability event in the probability space it is a measurable set of outcomes of. Domain math:ProbabilityEvent, range math:ProbabilitySpace (stated in prose). Measurability is relative to the space's math:eventSigmaAlgebra; the context link alone supplies no membership decision; the event is a set of outcomes, not an occurrent (it is disjoint from logic:Event)."
+msgstr "将概率事件置于其作为可测结果集合所归属的概率空间中。定义域为 math:ProbabilityEvent，值域为 math:ProbabilitySpace（以文字说明）。可测性相对于空间的 math:eventSigmaAlgebra 而言；单凭上下文链接不提供归属判定；事件是结果集合，而非发生事项，与 logic:Event 互斥。"
+
+msgctxt "https://blackcatinformatics.ca/math/eventInSpace|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This declares the probability-space context in which an event-set is asserted measurable. The object is a ProbabilitySpace, not its outcome carrier, event algebra or measure; the context link supplies no algorithm or proof deciding membership in that algebra."
+msgstr "此关系声明概率空间上下文，在其中事件集合被断言为可测。宾语是 ProbabilitySpace，而非其结果载体、事件代数或测度；上下文链接不提供判定对该代数归属的算法或证明。"
+
+msgctxt "https://blackcatinformatics.ca/math/eventInSpace|http://www.w3.org/2004/02/skos/core#example"
+msgid "The existing scene states ex:forecastRainEvent math:eventInSpace ex:weatherSpace. That space separately names ex:rainfallOutcomes, ex:rainfallBorel and ex:weatherMeasure through its component roles."
+msgstr "现有场景声明 ex:forecastRainEvent math:eventInSpace ex:weatherSpace。该空间通过组成部分角色另行指明 ex:rainfallOutcomes、ex:rainfallBorel 和 ex:weatherMeasure。"
+
+msgctxt "https://blackcatinformatics.ca/math/eventInSpace|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain the actual probability-space context of a ProbabilityEvent and thereby identify the sample-space, event-algebra and measure record relevant to its interpretation."
+msgstr "用于保留 ProbabilityEvent 的实际概率空间上下文，从而指明与其解释相关的样本空间、事件代数及测度记录。"
+
+msgctxt "https://blackcatinformatics.ca/math/eventInSpace|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid reversing the link, substituting a sample space or σ-algebra for its ProbabilitySpace object, or treating the association as a measurability test, a probability calculation or automatic model selection."
+msgstr "避免反转链接、用样本空间或 σ-代数替代其 ProbabilitySpace 宾语，或将此关联视为可测性测试、概率计算或自动模型选择。"
+
+msgctxt "https://blackcatinformatics.ca/math/eventInSpace|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Write the supplied ProbabilityEvent as subject and its ProbabilitySpace as object. Preserve the actual component descriptions and any evidence for measurability; a missing membership proof does not authorize inventing a carrier, event algebra, measure or validation result."
+msgstr "以所提供的 ProbabilityEvent 为主语，以其 ProbabilitySpace 为宾语。保留实际组成部分描述及任何可测性依据；缺少归属证明并不授权编造载体、事件代数、测度或验证结果。"
+
+msgctxt "https://blackcatinformatics.ca/math/probabilityOfEvent|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "probability of event"
+msgstr "事件概率"
+
+msgctxt "https://blackcatinformatics.ca/math/probabilityOfEvent|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Relates a probability event to the framed probability value P(A) assigned to it. Domain math:ProbabilityEvent, range math:ProbabilityValue (stated in prose). The probability is a framed quantity object naming its probability frame or model, never a bare literal (math:UnframedProbabilityValue) and never inferred from a confidence score without a declared mapping (math:ConfidenceAsProbability)."
+msgstr "将概率事件关联到赋予它的有框架概率值 P(A)。定义域为 math:ProbabilityEvent，值域为 math:ProbabilityValue（以文字说明）。概率是指明其概率框架或模型的有框架量对象，绝非孤立字面量（math:UnframedProbabilityValue），也绝不在没有已声明映射时根据置信分数推断（math:ConfidenceAsProbability）。"
+
+msgctxt "https://blackcatinformatics.ca/math/probabilityOfEvent|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The direction is event-set to framed probability-value object. It retains a supplied P(A) record without evaluating a probability measure or ranking multiple records; each value's actual frame, model, source and exactness remain relevant to interpretation."
+msgstr "方向为事件集合指向有框架的概率值对象。此关系保留所提供的 P(A) 记录，不对概率测度求值，也不对多个记录排序；每个值的实际框架、模型、来源及精确性仍与解释相关。"
+
+msgctxt "https://blackcatinformatics.ca/math/probabilityOfEvent|http://www.w3.org/2004/02/skos/core#example"
+msgid "The existing scene links ex:forecastRainEvent to ex:pRainTomorrow with decimal quantityValue 0.72 and to ex:pRainFromOdds with decimal quantityValue 0.75. Both values retain ex:weatherForecastProbabilityFrame; this role does not choose or combine them."
+msgstr "现有场景将 ex:forecastRainEvent 链接到具有十进制 quantityValue 0.72 的 ex:pRainTomorrow，以及具有十进制 quantityValue 0.75 的 ex:pRainFromOdds。两个值均保留 ex:weatherForecastProbabilityFrame；此角色不择一，也不合并它们。"
+
+msgctxt "https://blackcatinformatics.ca/math/probabilityOfEvent|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to connect a ProbabilityEvent to an actual ProbabilityValue record, preserving its frame or model and source evidence rather than substituting a bare number."
+msgstr "用于将 ProbabilityEvent 连接到实际 ProbabilityValue 记录，保留其框架或模型及来源依据，不以裸数值替代。"
+
+msgctxt "https://blackcatinformatics.ca/math/probabilityOfEvent|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid reversing the edge, linking directly to a confidence score or literal, treating multiple records as one privileged answer, or claiming that this association computes, calibrates, averages or reconciles probabilities."
+msgstr "避免反转边、直接链接到置信分数或字面量、将多个记录视为单一特权答案，或声称此关联计算、校准、平均或协调概率。"
+
+msgctxt "https://blackcatinformatics.ca/math/probabilityOfEvent|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the ProbabilityEvent as subject and its supplied ProbabilityValue as object, with eventInSpace and each value's actual magnitude, dimension, frame/model and provenance kept in their original roles. Preserve coexisting records without introducing a functional-property rule, default winner or fabricated probability."
+msgstr "保留 ProbabilityEvent 为主语，所提供的 ProbabilityValue 为宾语，并将 eventInSpace 及各值的实际数值、维度、框架或模型和来源溯源保留在原有角色中。保留并存记录，不引入函数属性规则、默认胜出者或编造概率。"
+
+msgctxt "https://blackcatinformatics.ca/math/ProbabilityValue|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Probability Value"
+msgstr "概率值"
+
+msgctxt "https://blackcatinformatics.ca/math/ProbabilityValue|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A probability value: a quantity/result object that is ALWAYS in the closed unit interval [0, 1], carrying its magnitude and naming its probability frame or model. A subclass of math:Quantity (a probability is math:dimensionless). Where exact, it is carried as a math:RationalValue with math:isExact true (the exact/approximate split — 1/3, not 0.333); where empirical it may be an approximate value. The canonical math:ProbabilityValueRangeConstraint requires each supplied math:quantityValue to lie in [0, 1], with an out-of-bounds magnitude classified as math:ProbabilityOutOfBounds; odds and log-odds are NOT probabilities and are their own kinds (math:OddsValue, math:LogOddsValue), held disjoint from this class so a consumer seeing a math:ProbabilityValue may correctly assume a closed unit interval."
+msgstr "概率值：始终位于闭单位区间 [0, 1] 内的量或结果对象，带有其数值并指明其概率框架或模型。它是 math:Quantity 的子类，概率为 math:dimensionless。精确时，它以带有 math:isExact true 的 math:RationalValue 承载，体现精确与近似之分，即 1/3 而非 0.333；经验值则可以是近似值。规范的 math:ProbabilityValueRangeConstraint 要求每个所提供的 math:quantityValue 位于 [0, 1] 内，越界数值归类为 math:ProbabilityOutOfBounds；赔率及对数赔率不是概率，而有各自的种类（math:OddsValue、math:LogOddsValue），并保持与此类互斥，因此使用方见到 math:ProbabilityValue 时可正确假定闭单位区间。"
+
+msgctxt "https://blackcatinformatics.ca/math/ProbabilityValue|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This is a dimensionless quantity/result object, distinct from its magnitude, event-set, probability-space context and confidence. The authored range constrains supplied quantityValue values to the closed interval including zero and one; it does not construct missing values or certify complete numeric admission."
+msgstr "这是无量纲的量或结果对象，不同于其数值、事件集合、概率空间上下文及置信度。来源中编写的范围将所提供 quantityValue 值约束在包括零和一的闭区间内；它不构造缺失值，也不证明完整数值准入。"
+
+msgctxt "https://blackcatinformatics.ca/math/ProbabilityValue|http://www.w3.org/2004/02/skos/core#example"
+msgid "The existing ex:pRainTomorrow record has decimal quantityValue 0.72, dimensionless dimension, weatherForecastProbabilityFrame and isResultOf ex:forecastRun. The surrounding forecastProbabilityObservation carries ex:weatherModelV17 as its vantage; that agent is not supplied as the value's probabilityModel."
+msgstr "现有 ex:pRainTomorrow 记录具有十进制 quantityValue 0.72、dimensionless 维度、weatherForecastProbabilityFrame 及 isResultOf ex:forecastRun。外围 forecastProbabilityObservation 以 ex:weatherModelV17 为其 vantage；该代理并未作为数值的 probabilityModel 提供。"
+
+msgctxt "https://blackcatinformatics.ca/math/ProbabilityValue|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for an actual framed probability magnitude or result, retaining whether the source supplies exact RationalValue/isExact metadata or an empirical approximation without inferring exactness from a decimal spelling."
+msgstr "用于实际有框架的概率数值或结果，保留来源是否提供精确 RationalValue/isExact 元数据或经验近似，不根据十进制写法推断精确性。"
+
+msgctxt "https://blackcatinformatics.ca/math/ProbabilityValue|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid retagging odds, log-odds, a solver weight or an uncalibrated confidence as a probability, rounding an exact source value, or treating an in-range literal as proof of a valid model, measurability, calibration or complete conformance."
+msgstr "避免将赔率、对数赔率、求解器权重或未经校准的置信度重标为概率、将精确来源值舍入，或将在范围内的字面量视为模型有效性、可测性、校准或完整符合性的证明。"
+
+msgctxt "https://blackcatinformatics.ca/math/ProbabilityValue|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the actual magnitude, dimension and exact/approximate metadata. The existing framing constraint requires at least one supplied hasReferenceFrame or probabilityModel; a supplied logic:confidence additionally requires logic:probabilityModel. Preserve the actual source associations and evidence: a declared model does not itself execute or validate a confidence-to-probability mapping."
+msgstr "保留实际数值、维度及精确或近似元数据。现有框架约束要求 hasReferenceFrame 或 probabilityModel 中至少提供一项；所提供的 logic:confidence 还要求 logic:probabilityModel。保留实际来源关联及依据：已声明模型本身不执行或验证置信度到概率的映射。"
