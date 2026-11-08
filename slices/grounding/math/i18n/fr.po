@@ -14604,3 +14604,115 @@ msgstr "Éviter de réétiqueter des cotes, des log-cotes, un poids de solveur o
 msgctxt "https://blackcatinformatics.ca/math/ProbabilityValue|https://blackcatinformatics.ca/gmeow/howToUse"
 msgid "Retain the actual magnitude, dimension and exact/approximate metadata. The existing framing constraint requires at least one supplied hasReferenceFrame or probabilityModel; a supplied logic:confidence additionally requires logic:probabilityModel. Preserve the actual source associations and evidence: a declared model does not itself execute or validate a confidence-to-probability mapping."
 msgstr "Conserver la magnitude, la dimension et les métadonnées effectives sur le caractère exact ou approché de la valeur. La contrainte de cadrage existante exige au moins un rôle fourni parmi hasReferenceFrame et probabilityModel ; une logic:confidence fournie exige en plus logic:probabilityModel. Préserver les associations sources effectives et les éléments probants : un modèle déclaré n’exécute ni ne valide à lui seul une correspondance de confiance vers probabilité."
+
+msgctxt "https://blackcatinformatics.ca/math/OddsValue|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Odds Value"
+msgstr "Valeur de cote"
+
+msgctxt "https://blackcatinformatics.ca/math/OddsValue|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An odds value: the finite ratio p/(1−p) for 0 ≤ p < 1, with values in [0, ∞). Zero odds represents p = 0; p = 1 has no finite odds value. A dimensionless subclass of math:Quantity, held disjoint from math:ProbabilityValue (math:ProbabilityScaleConflation). A math:ProbabilityScaleTransform may declare the probability-side value through math:transformsToProbabilityValue; this type alone supplies neither a source-input link nor an executed conversion."
+msgstr "Une valeur de cote : le rapport fini p/(1−p) pour 0 ≤ p < 1, prenant ses valeurs dans [0, ∞). Une cote nulle représente p = 0 ; p = 1 n’a pas de valeur de cote finie. Sous-classe sans dimension de math:Quantity, maintenue disjointe de math:ProbabilityValue (math:ProbabilityScaleConflation). Un math:ProbabilityScaleTransform peut déclarer la valeur du côté probabilité par math:transformsToProbabilityValue ; ce type seul ne fournit ni lien d’entrée source ni conversion exécutée."
+
+msgctxt "https://blackcatinformatics.ca/math/OddsValue|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Odds express the ratio of an event probability to its complement, rather than a probability magnitude in [0, 1]. Finite nonnegative odds include zero; the divergence at p = 1 does not supply an infinity literal or authorize clamping."
+msgstr "Les cotes expriment le rapport entre la probabilité d’un événement et celle de son complément, plutôt qu’une magnitude de probabilité dans [0, 1]. Les cotes finies non négatives incluent zéro ; la divergence en p = 1 ne fournit pas de littéral d’infini et n’autorise pas un écrêtage."
+
+msgctxt "https://blackcatinformatics.ca/math/OddsValue|http://www.w3.org/2004/02/skos/core#example"
+msgid "The existing scene records ex:rainOdds as OddsValue with quantityValue 3.0, the weather-forecast reference frame and dimensionless dimension. Mathematically 3:1 odds corresponds to p = 3/4; the scene separately declares ex:pRainFromOdds as 0.75 without a source-input edge from ex:rainOdds to the transform."
+msgstr "La scène existante consigne ex:rainOdds comme OddsValue avec quantityValue 3.0, le cadre de référence de prévision météorologique et une dimension dimensionless. Mathématiquement, une cote de 3:1 correspond à p = 3/4 ; la scène déclare séparément ex:pRainFromOdds comme 0.75, sans arête d’entrée source de ex:rainOdds vers la transformation."
+
+msgctxt "https://blackcatinformatics.ca/math/OddsValue|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for a supplied odds-scale quantity, retaining its actual magnitude, dimension, frame and exact or approximate representation."
+msgstr "Utiliser pour une quantité fournie sur l’échelle des cotes, en conservant sa magnitude, sa dimension, son cadre et sa représentation exacte ou approchée effectifs."
+
+msgctxt "https://blackcatinformatics.ca/math/OddsValue|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating odds as a probability, log-odds, odds ratio between two groups, solver weight or uncalibrated confidence. A magnitude between zero and one does not change the scale kind."
+msgstr "Éviter de traiter une cote comme une probabilité, une log-cote, un rapport de cotes entre deux groupes, un poids de solveur ou une confiance non étalonnée. Une magnitude entre zéro et un ne change pas le type d’échelle."
+
+msgctxt "https://blackcatinformatics.ca/math/OddsValue|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Type the supplied quantity as OddsValue and retain its source metadata. If a probability-side target is separately declared, preserve that declaration and whatever source association and conversion evidence is actually supplied; do not infer either from the type or matching numbers."
+msgstr "Typer la quantité fournie comme OddsValue et conserver ses métadonnées sources. Si une cible du côté probabilité est déclarée séparément, préserver cette déclaration ainsi que toute association source et tout élément probant de conversion effectivement fournis ; ne déduire ni l’un ni l’autre du type ou de nombres concordants."
+
+msgctxt "https://blackcatinformatics.ca/math/LogOddsValue|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Log-Odds Value"
+msgstr "Valeur de log-cote"
+
+msgctxt "https://blackcatinformatics.ca/math/LogOddsValue|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A finite log-odds (logit) value: ln(p/(1−p)) for 0 < p < 1, using the natural logarithm and ranging over the real line. The endpoint probabilities zero and one have no finite logit. A dimensionless subclass of math:Quantity, held disjoint from math:ProbabilityValue (math:ProbabilityScaleConflation). A math:ProbabilityScaleTransform may declare the probability-side value through math:transformsToProbabilityValue; this type alone supplies neither a source-input link nor an executed conversion."
+msgstr "Une valeur finie de log-cote (logit) : ln(p/(1−p)) pour 0 < p < 1, utilisant le logarithme naturel et parcourant la droite réelle. Les probabilités extrêmes zéro et un n’ont pas de logit fini. Sous-classe sans dimension de math:Quantity, maintenue disjointe de math:ProbabilityValue (math:ProbabilityScaleConflation). Un math:ProbabilityScaleTransform peut déclarer la valeur du côté probabilité par math:transformsToProbabilityValue ; ce type seul ne fournit ni lien d’entrée source ni conversion exécutée."
+
+msgctxt "https://blackcatinformatics.ca/math/LogOddsValue|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The logit uses the natural logarithm of odds, not the logarithm of the probability alone. Its finite values may be negative, zero or positive; endpoint divergence does not provide a finite value or a declared infinity representation."
+msgstr "Le logit utilise le logarithme naturel de la cote, non le logarithme de la seule probabilité. Ses valeurs finies peuvent être négatives, nulles ou positives ; la divergence aux extrémités ne fournit pas de valeur finie ni de représentation déclarée de l’infini."
+
+msgctxt "https://blackcatinformatics.ca/math/LogOddsValue|http://www.w3.org/2004/02/skos/core#example"
+msgid "The existing ex:rainLogOdds record carries quantityValue 1.0986, the weather-forecast reference frame and dimensionless dimension. Its comment identifies this as an approximation to ln 3; it is not an exact representation of ln 3 or evidence that the probability conversion executed."
+msgstr "L’enregistrement existant ex:rainLogOdds porte quantityValue 1.0986, le cadre de référence de prévision météorologique et une dimension dimensionless. Son commentaire indique qu’il s’agit d’une approximation de ln 3 ; ce n’est ni une représentation exacte de ln 3 ni un élément probant d’exécution de la conversion de probabilité."
+
+msgctxt "https://blackcatinformatics.ca/math/LogOddsValue|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for a supplied finite natural-log odds quantity associated with a probability strictly between zero and one, preserving the source scale and precision."
+msgstr "Utiliser pour une quantité fournie de log-cote naturelle finie associée à une probabilité strictement comprise entre zéro et un, en préservant l’échelle et la précision sources."
+
+msgctxt "https://blackcatinformatics.ca/math/LogOddsValue|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid using for ordinary odds, a log-probability, an unspecified logarithm base, endpoint infinities or a probability magnitude. Do not clamp, exponentiate or relabel an input silently."
+msgstr "Éviter de l’utiliser pour des cotes ordinaires, une log-probabilité, une base de logarithme non spécifiée, des infinis aux extrémités ou une magnitude de probabilité. Ne pas écrêter, appliquer une exponentielle ou réétiqueter silencieusement une entrée."
+
+msgctxt "https://blackcatinformatics.ca/math/LogOddsValue|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Type the supplied quantity as LogOddsValue and retain its magnitude, dimension, frame and exactness metadata. Preserve any separately supplied transform target and source evidence; a rounded decimal and an explanatory label do not establish an exact identity or an executed inverse-logit computation."
+msgstr "Typer la quantité fournie comme LogOddsValue et conserver sa magnitude, sa dimension, son cadre et ses métadonnées d’exactitude. Préserver toute cible de transformation et tout élément probant source fournis séparément ; une décimale arrondie et un libellé explicatif n’établissent ni identité exacte ni calcul de logit inverse exécuté."
+
+msgctxt "https://blackcatinformatics.ca/math/ProbabilityScaleTransform|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Probability Scale Transform"
+msgstr "Transformation d’échelle de probabilité"
+
+msgctxt "https://blackcatinformatics.ca/math/ProbabilityScaleTransform|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A mathematical object describing a change from an odds or log-odds scale to the probability scale. A subclass of math:MathematicalObject whose declared probability-side value is named through math:transformsToProbabilityValue. That target link alone records neither the source-scale input nor execution of the conversion, and never makes an odds or log-odds quantity a math:ProbabilityValue."
+msgstr "Un objet mathématique décrivant un changement de l’échelle des cotes ou des log-cotes vers l’échelle des probabilités. Sous-classe de math:MathematicalObject dont la valeur déclarée du côté probabilité est nommée par math:transformsToProbabilityValue. Ce lien cible seul ne consigne ni l’entrée sur l’échelle source ni l’exécution de la conversion, et ne fait jamais d’une quantité de cote ou de log-cote une math:ProbabilityValue."
+
+msgctxt "https://blackcatinformatics.ca/math/ProbabilityScaleTransform|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The transform object is distinct from the source-scale quantity and the probability-side value. A declared target is an association, not evidence of a supplied operand, conversion body, evaluated result or exact numerical agreement."
+msgstr "L’objet transformation se distingue de la quantité sur l’échelle source et de la valeur du côté probabilité. Une cible déclarée est une association, non un élément probant d’opérande fourni, de corps de conversion, de résultat évalué ou de concordance numérique exacte."
+
+msgctxt "https://blackcatinformatics.ca/math/ProbabilityScaleTransform|http://www.w3.org/2004/02/skos/core#example"
+msgid "The existing ex:oddsToProbability is a ProbabilityScaleTransform with transformsToProbabilityValue ex:pRainFromOdds. The target carries 0.75 and its weather-forecast frame; the 3:1 label and nearby ex:rainOdds record do not create a source-input edge."
+msgstr "L’objet existant ex:oddsToProbability est un ProbabilityScaleTransform avec transformsToProbabilityValue ex:pRainFromOdds. La cible porte 0.75 et son cadre de prévision météorologique ; le libellé 3:1 et l’enregistrement voisin ex:rainOdds ne créent pas d’arête d’entrée source."
+
+msgctxt "https://blackcatinformatics.ca/math/ProbabilityScaleTransform|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to describe a declared change of probability scale while keeping the transform, its probability-side target and any actual source evidence distinguishable."
+msgstr "Utiliser pour décrire un changement déclaré d’échelle de probabilité tout en gardant distincts la transformation, sa cible du côté probabilité et tout élément probant source effectif."
+
+msgctxt "https://blackcatinformatics.ca/math/ProbabilityScaleTransform|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid using a transform record as proof that an input was supplied, a conversion was run, a result was checked or one probability estimate should replace another. Do not use it to retag odds or log-odds as probabilities."
+msgstr "Éviter d’utiliser un enregistrement de transformation comme preuve qu’une entrée a été fournie, qu’une conversion a été exécutée, qu’un résultat a été vérifié ou qu’une estimation de probabilité doit en remplacer une autre. Ne pas l’utiliser pour réétiqueter des cotes ou des log-cotes comme des probabilités."
+
+msgctxt "https://blackcatinformatics.ca/math/ProbabilityScaleTransform|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Type the supplied transform object as ProbabilityScaleTransform and retain its actual transformsToProbabilityValue links. Keep source operands, mathematical descriptions and execution evidence only where actually supplied; do not invent an input property or claim computation from the target declaration."
+msgstr "Typer l’objet transformation fourni comme ProbabilityScaleTransform et conserver ses liens effectifs transformsToProbabilityValue. Garder les opérandes sources, les descriptions mathématiques et les éléments probants d’exécution uniquement lorsqu’ils sont effectivement fournis ; ne pas inventer de propriété d’entrée ni revendiquer un calcul à partir de la déclaration de cible."
+
+msgctxt "https://blackcatinformatics.ca/math/transformsToProbabilityValue|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "transforms to probability value"
+msgstr "transforme en valeur de probabilité"
+
+msgctxt "https://blackcatinformatics.ca/math/transformsToProbabilityValue|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Relates a math:ProbabilityScaleTransform to its declared probability-side math:ProbabilityValue. Domain math:ProbabilityScaleTransform and range math:ProbabilityValue are stated in prose. The direction is transform to probability value; the link alone supplies no source-scale operand and does not execute or verify a conversion."
+msgstr "Relie un math:ProbabilityScaleTransform à sa math:ProbabilityValue déclarée du côté probabilité. Le domaine math:ProbabilityScaleTransform et la portée math:ProbabilityValue sont indiqués en prose. La direction va de la transformation vers la valeur de probabilité ; le lien seul ne fournit aucun opérande sur l’échelle source et n’exécute ni ne vérifie une conversion."
+
+msgctxt "https://blackcatinformatics.ca/math/transformsToProbabilityValue|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This property names the probability side of a declared scale transform. It does not relate an odds quantity directly to a probability, identify either value with the transform, or assert a source operand, numeric equality or execution."
+msgstr "Cette propriété nomme le côté probabilité d’une transformation d’échelle déclarée. Elle ne relie pas directement une quantité de cote à une probabilité, n’assimile aucune des deux valeurs à la transformation et n’affirme ni opérande source, ni égalité numérique, ni exécution."
+
+msgctxt "https://blackcatinformatics.ca/math/transformsToProbabilityValue|http://www.w3.org/2004/02/skos/core#example"
+msgid "The scene asserts ex:oddsToProbability transformsToProbabilityValue ex:pRainFromOdds. The probability record carries 0.75, while ex:forecastRainEvent separately links it through probabilityOfEvent alongside the existing 0.72 record; the transform link selects no winner."
+msgstr "La scène affirme ex:oddsToProbability transformsToProbabilityValue ex:pRainFromOdds. L’enregistrement de probabilité porte 0.75, tandis que ex:forecastRainEvent le relie séparément par probabilityOfEvent aux côtés de l’enregistrement existant de 0.72 ; le lien de transformation ne sélectionne aucun gagnant."
+
+msgctxt "https://blackcatinformatics.ca/math/transformsToProbabilityValue|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the source actually declares a probability-side value for a probability-scale transform, preserving the transform-to-value direction."
+msgstr "Utiliser lorsque la source déclare effectivement une valeur du côté probabilité pour une transformation d’échelle de probabilité, en préservant la direction de la transformation vers la valeur."
+
+msgctxt "https://blackcatinformatics.ca/math/transformsToProbabilityValue|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid reversing the edge, pointing it at a bare literal, using it as the source-input slot or deriving it solely from nearby numbers, labels or comments. It does not establish a unique target or a computed conversion."
+msgstr "Éviter d’inverser l’arête, de la diriger vers un simple littéral, de l’utiliser comme emplacement d’entrée source ou de la déduire uniquement de nombres, libellés ou commentaires voisins. Elle n’établit ni cible unique ni conversion calculée."
+
+msgctxt "https://blackcatinformatics.ca/math/transformsToProbabilityValue|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Keep the actual transform as subject and the supplied ProbabilityValue resource as object, preserving its magnitude, dimension and frame or model. Retain other estimates and any independent source or execution evidence without adding a preference, cardinality rule or inferred operand."
+msgstr "Garder la transformation effective comme sujet et la ressource ProbabilityValue fournie comme objet, en préservant sa magnitude, sa dimension et son cadre ou modèle. Conserver les autres estimations et tout élément probant indépendant de source ou d’exécution sans ajouter de préférence, de règle de cardinalité ou d’opérande inféré."

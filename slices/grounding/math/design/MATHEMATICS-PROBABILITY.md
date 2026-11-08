@@ -188,9 +188,9 @@ transforms and are modeled as their own kinds:
 
 ```text
 math:ProbabilityValue          # always in [0,1]
-math:OddsValue                 # (0, ∞)
-math:LogOddsValue              # (-∞, ∞)
-math:ProbabilityScaleTransform # links a transform value back to its probability
+math:OddsValue                 # finite odds [0, ∞), for 0 ≤ p < 1
+math:LogOddsValue              # finite natural-log odds (-∞, ∞), for 0 < p < 1
+math:ProbabilityScaleTransform # describes a scale change; declares its probability-side value
 math:transformsToProbabilityValue
 ```
 
