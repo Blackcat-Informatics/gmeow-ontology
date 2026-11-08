@@ -350,6 +350,26 @@ fn interrupted_publication_is_a_miss_but_present_receipts_must_authenticate() {
         assert!(message.contains(&expected), "missing {expected}: {message}");
     }
     assert_eq!(std::fs::read(&path).unwrap(), receipt_before);
+    let mut bounded = recipe.clone();
+    for index in 0..9 {
+        bounded
+            .compiler_environment
+            .insert(format!("BOUNDARY_{index:02}"), "changed".into());
+    }
+    let message = verify(scratch.path(), &binary, &path, &bounded)
+        .expect_err("stale recipe must refuse admission")
+        .to_string();
+    assert!(message.contains("compiler_environment: 9 changed keys; 1 omitted"));
+    let details: Vec<_> = message
+        .lines()
+        .filter(|line| line.starts_with("compiler_environment["))
+        .collect();
+    assert_eq!(details.len(), 8);
+    for (index, detail) in details.iter().enumerate() {
+        assert!(detail.starts_with(&format!("compiler_environment[\"BOUNDARY_{index:02}\"]")));
+    }
+    assert!(!message.contains("compiler_environment[\"BOUNDARY_08\"]"));
+    assert_eq!(std::fs::read(&path).unwrap(), receipt_before);
     std::fs::write(&binary, b"substituted bytes").expect("replace");
     assert!(staged_is_fresh(&binary, &path, &recipe).is_err());
     std::fs::remove_file(&binary).expect("remove binary");
