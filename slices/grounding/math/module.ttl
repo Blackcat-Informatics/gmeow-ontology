@@ -14055,6 +14055,11 @@ math:PriorDistribution
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "Prior Distribution"@x-gmeow-english ;
     skos:definition "A prior distribution: the distribution over a parameter BEFORE data is taken into account, the input of a Bayesian update. A subclass of math:Distribution. It is a distinct first-class object linked into the update chain through math:hasPrior, so a posterior always answers 'from what prior'."@x-gmeow-english ;
+    skos:scopeNote "Prior is a role relative to a specified update and its data, not a claim that no earlier evidence exists. A previous posterior may serve as the prior for a later update. Preserve the parameter space and existing evidence context; role differences alone do not require different resource identities across updates."@x-gmeow-english ;
+    skos:example "The probability scene declares ex:rainRatePrior as PriorDistribution with distributionFamily ex:betaFamily. Both ex:rainRatePosterior and ex:rainRateUpdate name it through hasPrior; these records supply no beta parameters or completed numerical update."@x-gmeow-english ;
+    gmeow:useWhen "Use for a supplied probability distribution playing the prior role in an identified Bayesian update, including a distribution informed by earlier observations or an earlier posterior."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid treating a prior as evidence-free by definition, confusing its distribution with a confidence score, or treating a beta-family label as complete parameterization. An improper prior expression is not automatically a probability distribution of this class."@x-gmeow-english ;
+    gmeow:howToUse "Type the supplied distribution as PriorDistribution and retain its actual parameter space, family, parameterization and evidence context in their source representation. Preserve the update's or posterior's hasPrior link and distinguish the data already incorporated from the new update data, without inventing missing parameters or duplicating observations."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 math:LikelihoodFunction
@@ -14062,7 +14067,12 @@ math:LikelihoodFunction
     rdfs:subClassOf math:MathematicalObject ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "Likelihood Function"@x-gmeow-english ;
-    skos:definition "A likelihood function L(θ) = P(data | θ): the probability of the observed data as a function of the parameter, the evidence term of a Bayesian update. A subclass of math:MathematicalObject (it is a function of the parameter, not itself a normalized distribution over it). It is linked into the update chain through math:hasLikelihood, so a posterior always answers 'under what likelihood, over what data'."@x-gmeow-english ;
+    skos:definition "A likelihood function L(θ; y) = p(y | θ): for fixed observed data y, the model's probability mass or density as a function of parameter θ, relative to the stated common observation measure. A subclass of math:MathematicalObject. It is not itself a normalized distribution over the parameter and is distinct from the normalizing evidence of a Bayesian update. It is linked through math:hasLikelihood so the supplied prior, data and model context remain traceable."@x-gmeow-english ;
+    skos:scopeNote "Observed data are held fixed while the parameter varies. Continuous observations generally use a density rather than the probability of a singleton event; density values can exceed one and depend on the observation measure. A likelihood supplies no prior or posterior by itself and need not integrate to one over the parameter."@x-gmeow-english ;
+    skos:example "The probability scene declares ex:rainRateLikelihood as LikelihoodFunction and labels it L(θ) = P(observed wet days | θ). The update and posterior link to it through hasLikelihood, but this record provides neither a realized likelihood expression nor a structured observed-data link."@x-gmeow-english ;
+    gmeow:useWhen "Use for a source's likelihood of fixed observed data under a specified parameterized sampling model, retaining whether the model uses probability mass or a density and which observation measure gives that expression meaning."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid reading a continuous-data density as singleton probability, normalizing over the parameter without a prior, or substituting a confidence score, marginal likelihood or posterior for this function. A label alone does not identify the actual observations or evaluate the likelihood."@x-gmeow-english ;
+    gmeow:howToUse "Retain the LikelihoodFunction resource and the actual hasLikelihood links from its update or posterior. Preserve the supplied data identity, varying parameter, sampling model and observation-measure account in their existing representation; do not invent a data predicate, expression tree, parameter value or numerical evaluation."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 math:PosteriorDistribution
@@ -14070,7 +14080,12 @@ math:PosteriorDistribution
     rdfs:subClassOf math:Distribution ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "Posterior Distribution"@x-gmeow-english ;
-    skos:definition "A posterior distribution: the distribution over a parameter AFTER data, proportional to prior times likelihood, the output of a Bayesian update. A subclass of math:Distribution. It is linked to the prior and likelihood it derives from through math:hasPrior and math:hasLikelihood, so a posterior always answers 'from what prior, under what likelihood, over what data'. Where it is sampled rather than closed-form, its trustworthiness is answerable through math:PosteriorSample and the chain diagnostics."@x-gmeow-english ;
+    skos:definition "A posterior distribution: the distribution over a parameter conditional on specified data, produced by a Bayesian update. In the ordinary likelihood construction it reweights the prior by the likelihood and requires finite strictly positive normalizing evidence. A subclass of math:Distribution, linked to its supplied prior and likelihood through math:hasPrior and math:hasLikelihood. A math:PosteriorSample can approximate it; chain diagnostics provide limited sampling evidence rather than certifying the posterior's validity or the inference's trustworthiness."@x-gmeow-english ;
+    skos:scopeNote "For prior measure Π and fixed-data likelihood L, the ordinary normalizer is Z = ∫ L(θ) Π(dθ), with 0 < Z < ∞, and the posterior is the prior reweighted by L / Z. A zero, infinite or unavailable normalizer does not license a default posterior under this construction; other conditioning constructions require their own justification."@x-gmeow-english ;
+    skos:example "The probability scene gives ex:rainRatePosterior hasPrior ex:rainRatePrior and hasLikelihood ex:rainRateLikelihood, and ex:rainRateUpdate points to it through hasPosterior. The beta-family label and these links provide neither the missing parameter values nor a computed or normalized posterior law."@x-gmeow-english ;
+    gmeow:useWhen "Use for a supplied posterior law with its actual prior, likelihood, data and model context, preserving whether it is specified analytically or represented through a declared sampling approximation."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid deriving a posterior merely from three linked names, treating an undefined normalization as a valid update, or taking favorable sampling diagnostics as a proof of correctness. A posterior is neither the likelihood function nor a confidence score, and a later update may reuse it in the prior role."@x-gmeow-english ;
+    gmeow:howToUse "Retain the PosteriorDistribution and its hasPrior and hasLikelihood evidence, plus the update's actual hasPosterior link. Preserve parameterization, data context and the selected construction's normalization evidence as supplied; keep samples and diagnostics separately identified and report missing qualification without fabricating a posterior or an executed update."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 math:PosteriorSample
@@ -14126,6 +14141,11 @@ math:hasPrior
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "has prior"@x-gmeow-english ;
     skos:definition "Relates a Bayesian update (or its math:PosteriorDistribution) to the math:PriorDistribution it starts from. Domain a math:PosteriorDistribution or Bayesian update, range math:PriorDistribution (stated in prose). Names the prior a posterior derives from, so the update chain is always traceable to its input."@x-gmeow-english ;
+    skos:scopeNote "The subject is an update or its posterior and the object is the supplied prior distribution. This records the prior role rather than a temporal ordering proof, a numerical operand literal or a universal uniqueness condition. A posterior from an earlier update can occupy this role in a later one."@x-gmeow-english ;
+    skos:example "The probability scene supplies ex:rainRatePosterior hasPrior ex:rainRatePrior and ex:rainRateUpdate hasPrior ex:rainRatePrior. Both refer to the same declared prior; no separate prior copy or new update class is needed to retain those links."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain which actual prior distribution a supplied Bayesian update or posterior depends on, together with the update-specific data and model context."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid reversing the edge, linking a raw number as the prior, or inferring a unique global prior from one update's record. Different update roles do not prohibit a previous posterior from serving as the current prior."@x-gmeow-english ;
+    gmeow:howToUse "Keep the update or PosteriorDistribution as subject and its supplied PriorDistribution as object. Preserve the accompanying likelihood, data context and resulting posterior in their actual roles, including sequential reuse, without inventing a missing prior, replacing coexisting source accounts or claiming that the link proves a valid update."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 math:hasLikelihood
@@ -14133,6 +14153,11 @@ math:hasLikelihood
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "has likelihood"@x-gmeow-english ;
     skos:definition "Relates a Bayesian update (or its math:PosteriorDistribution) to the math:LikelihoodFunction weighting the prior by the data. Domain a math:PosteriorDistribution or Bayesian update, range math:LikelihoodFunction (stated in prose). Names the likelihood under which the update was performed."@x-gmeow-english ;
+    skos:scopeNote "The object is the likelihood function for the update's fixed observed data under its sampling model. This is distinct from a prior distribution, a posterior distribution and the normalizing evidence; the link alone neither names the observations structurally nor evaluates a probability or density."@x-gmeow-english ;
+    skos:example "The probability scene gives ex:rainRateUpdate and ex:rainRatePosterior hasLikelihood ex:rainRateLikelihood. The likelihood's label mentions observed wet days, without a structured data link or a realized expression in that record."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain the actual LikelihoodFunction supplied for a Bayesian update or its posterior, with its fixed-data and sampling-model context intact."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid linking a confidence score or normalizing constant as the likelihood function, exchanging the likelihood and posterior roles, or assuming that a density must be bounded by one. Do not fabricate observed-data identity from a descriptive label."@x-gmeow-english ;
+    gmeow:howToUse "Keep the update or PosteriorDistribution as subject and its supplied LikelihoodFunction resource as object. Retain its source data, parameter, observation measure and sampling-model evidence in their supplied form, alongside the actual prior and posterior links; disclose missing context rather than inventing a computation."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 math:hasPosterior
@@ -14140,6 +14165,11 @@ math:hasPosterior
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "has posterior"@x-gmeow-english ;
     skos:definition "Relates a Bayesian update — or a Bayesian interval estimate (a math:CredibleInterval / math:CredibleRegion) that summarizes it — to the math:PosteriorDistribution it produces or is taken over. Domain a Bayesian update or a credible interval/region, range math:PosteriorDistribution (stated in prose). Names the posterior resulting from combining the prior and likelihood, and the posterior context a credible interval's math:credibleMass is a probability over; a credible interval naming no posterior is ill-formed (math:IncompleteCredibleInterval)."@x-gmeow-english ;
+    skos:scopeNote "The relation serves an update-result role or an interval/region posterior-context role, according to its subject. The inspected required-link closure applies to CredibleInterval; this does not establish a universal admission check for every update, posterior or credible region, or prove that the linked law is normalized."@x-gmeow-english ;
+    skos:example "The probability scene gives ex:rainRateUpdate hasPosterior ex:rainRatePosterior. The credible-interval fixtures give ex:paramCredible and ex:masslessCredible hasPosterior ex:paramPosterior; the latter lacks credibleMass, so that negative case concerns missing mass rather than a missing posterior link."@x-gmeow-english ;
+    gmeow:useWhen "Use to name the actual posterior produced by a supplied Bayesian update or the posterior distribution over which a supplied Bayesian interval or region states its mass."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid substituting a prior, sample or frequentist confidence distribution for the supplied posterior. A posterior link alone does not prove that an update executed, a credible mass is valid or every source record passed a complete Bayesian admission check."@x-gmeow-english ;
+    gmeow:howToUse "Keep the actual update or Bayesian interval/region as subject and the supplied PosteriorDistribution as object. For an update, retain its prior, likelihood and data context; for an interval or region, retain its bounds and posterior mass as supplied. Preserve missing-link and missing-mass evidence separately without inventing a posterior or a new update type."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 math:dependencyGraph

@@ -16166,3 +16166,173 @@ msgstr "Éviter d’assimiler une preuve indisponible à une fausse revendicatio
 msgctxt "https://blackcatinformatics.ca/math/ExactPreservationViolated|https://blackcatinformatics.ca/gmeow/howToUse"
 msgid "Keep the claimed logic:ExactPreservation, model or ProjectionRecord, and contradictory mass, missing-link or loss evidence together. State which check actually decided the finding and which obligations remain unqualified; repair the source contract or validate a genuinely supported alternative lowering without hiding the failed claim."
 msgstr "Garder ensemble la logic:ExactPreservation revendiquée, le modèle ou ProjectionRecord et les éléments probants contradictoires de masse, de lien manquant ou de perte. Indiquer quelle vérification a effectivement décidé la constatation et quelles obligations restent non qualifiées ; réparer le contrat source ou valider une autre traduction réellement prise en charge sans masquer la revendication en échec."
+
+# Bayesian prior, likelihood and posterior chain.
+
+msgctxt "https://blackcatinformatics.ca/math/PriorDistribution|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Prior Distribution"
+msgstr "Loi a priori"
+
+msgctxt "https://blackcatinformatics.ca/math/PriorDistribution|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A prior distribution: the distribution over a parameter BEFORE data is taken into account, the input of a Bayesian update. A subclass of math:Distribution. It is a distinct first-class object linked into the update chain through math:hasPrior, so a posterior always answers 'from what prior'."
+msgstr "Une loi a priori : la loi sur un paramètre AVANT la prise en compte des données, qui constitue l’entrée d’une mise à jour bayésienne. Sous-classe de math:Distribution. C’est un objet distinct à part entière, relié à la chaîne de mise à jour par math:hasPrior, de sorte qu’une loi a posteriori indique toujours de quelle loi a priori elle provient."
+
+msgctxt "https://blackcatinformatics.ca/math/PriorDistribution|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Prior is a role relative to a specified update and its data, not a claim that no earlier evidence exists. A previous posterior may serve as the prior for a later update. Preserve the parameter space and existing evidence context; role differences alone do not require different resource identities across updates."
+msgstr "Le caractère a priori est un rôle relatif à une mise à jour spécifiée et à ses données, non une affirmation qu’aucun élément probant antérieur n’existe. Une loi a posteriori précédente peut servir de loi a priori pour une mise à jour ultérieure. Préserver l’espace des paramètres et le contexte probant existant ; les différences de rôle seules n’exigent pas des identités de ressources différentes entre les mises à jour."
+
+msgctxt "https://blackcatinformatics.ca/math/PriorDistribution|http://www.w3.org/2004/02/skos/core#example"
+msgid "The probability scene declares ex:rainRatePrior as PriorDistribution with distributionFamily ex:betaFamily. Both ex:rainRatePosterior and ex:rainRateUpdate name it through hasPrior; these records supply no beta parameters or completed numerical update."
+msgstr "La scène de probabilité déclare ex:rainRatePrior comme PriorDistribution avec distributionFamily ex:betaFamily. Tant ex:rainRatePosterior que ex:rainRateUpdate la nomment par hasPrior ; ces enregistrements ne fournissent ni paramètres de loi bêta ni mise à jour numérique achevée."
+
+msgctxt "https://blackcatinformatics.ca/math/PriorDistribution|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for a supplied probability distribution playing the prior role in an identified Bayesian update, including a distribution informed by earlier observations or an earlier posterior."
+msgstr "Utiliser pour une loi de probabilité fournie jouant le rôle a priori dans une mise à jour bayésienne identifiée, y compris une loi informée par des observations antérieures ou une loi a posteriori précédente."
+
+msgctxt "https://blackcatinformatics.ca/math/PriorDistribution|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating a prior as evidence-free by definition, confusing its distribution with a confidence score, or treating a beta-family label as complete parameterization. An improper prior expression is not automatically a probability distribution of this class."
+msgstr "Éviter de traiter une loi a priori comme dépourvue par définition d’éléments probants, de confondre sa loi avec un score de confiance ou de traiter un libellé de famille bêta comme une paramétrisation complète. Une expression a priori impropre n’est pas automatiquement une loi de probabilité de cette classe."
+
+msgctxt "https://blackcatinformatics.ca/math/PriorDistribution|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Type the supplied distribution as PriorDistribution and retain its actual parameter space, family, parameterization and evidence context in their source representation. Preserve the update's or posterior's hasPrior link and distinguish the data already incorporated from the new update data, without inventing missing parameters or duplicating observations."
+msgstr "Typer la loi fournie comme PriorDistribution et conserver son espace des paramètres, sa famille, sa paramétrisation et son contexte probant effectifs dans leur représentation source. Préserver le lien hasPrior de la mise à jour ou de la loi a posteriori et distinguer les données déjà intégrées des nouvelles données de mise à jour, sans inventer de paramètres manquants ni compter deux fois des observations."
+
+msgctxt "https://blackcatinformatics.ca/math/LikelihoodFunction|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Likelihood Function"
+msgstr "Fonction de vraisemblance"
+
+msgctxt "https://blackcatinformatics.ca/math/LikelihoodFunction|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A likelihood function L(θ; y) = p(y | θ): for fixed observed data y, the model's probability mass or density as a function of parameter θ, relative to the stated common observation measure. A subclass of math:MathematicalObject. It is not itself a normalized distribution over the parameter and is distinct from the normalizing evidence of a Bayesian update. It is linked through math:hasLikelihood so the supplied prior, data and model context remain traceable."
+msgstr "Une fonction de vraisemblance L(θ; y) = p(y | θ) : pour des données observées y fixées, la masse ou la densité de probabilité du modèle en fonction du paramètre θ, relativement à la mesure d’observation commune indiquée. Sous-classe de math:MathematicalObject. Elle n’est pas elle-même une loi normalisée sur le paramètre et se distingue de l’évidence normalisatrice d’une mise à jour bayésienne. Elle est reliée par math:hasLikelihood afin que les contextes a priori, de données et de modèle fournis restent traçables."
+
+msgctxt "https://blackcatinformatics.ca/math/LikelihoodFunction|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Observed data are held fixed while the parameter varies. Continuous observations generally use a density rather than the probability of a singleton event; density values can exceed one and depend on the observation measure. A likelihood supplies no prior or posterior by itself and need not integrate to one over the parameter."
+msgstr "Les données observées restent fixes tandis que le paramètre varie. Les observations continues utilisent généralement une densité plutôt que la probabilité d’un événement singleton ; les valeurs de densité peuvent dépasser un et dépendent de la mesure d’observation. Une vraisemblance ne fournit à elle seule ni loi a priori ni loi a posteriori et son intégrale sur le paramètre n’est pas nécessairement égale à un."
+
+msgctxt "https://blackcatinformatics.ca/math/LikelihoodFunction|http://www.w3.org/2004/02/skos/core#example"
+msgid "The probability scene declares ex:rainRateLikelihood as LikelihoodFunction and labels it L(θ) = P(observed wet days | θ). The update and posterior link to it through hasLikelihood, but this record provides neither a realized likelihood expression nor a structured observed-data link."
+msgstr "La scène de probabilité déclare ex:rainRateLikelihood comme LikelihoodFunction et lui donne le libellé L(θ) = P(observed wet days | θ). La mise à jour et la loi a posteriori y sont reliées par hasLikelihood, mais cet enregistrement ne fournit ni expression de vraisemblance réalisée ni lien structuré vers les données observées."
+
+msgctxt "https://blackcatinformatics.ca/math/LikelihoodFunction|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for a source's likelihood of fixed observed data under a specified parameterized sampling model, retaining whether the model uses probability mass or a density and which observation measure gives that expression meaning."
+msgstr "Utiliser pour la vraisemblance, fournie par une source, de données observées fixées sous un modèle d’échantillonnage paramétré spécifié, en conservant l’indication du recours à une masse de probabilité ou à une densité, ainsi que la mesure d’observation qui donne son sens à cette expression."
+
+msgctxt "https://blackcatinformatics.ca/math/LikelihoodFunction|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid reading a continuous-data density as singleton probability, normalizing over the parameter without a prior, or substituting a confidence score, marginal likelihood or posterior for this function. A label alone does not identify the actual observations or evaluate the likelihood."
+msgstr "Éviter de lire une densité de données continues comme une probabilité de singleton, de normaliser sur le paramètre sans loi a priori ou de substituer à cette fonction un score de confiance, une vraisemblance marginale ou une loi a posteriori. Un libellé seul n’identifie pas les observations effectives et n’évalue pas la vraisemblance."
+
+msgctxt "https://blackcatinformatics.ca/math/LikelihoodFunction|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the LikelihoodFunction resource and the actual hasLikelihood links from its update or posterior. Preserve the supplied data identity, varying parameter, sampling model and observation-measure account in their existing representation; do not invent a data predicate, expression tree, parameter value or numerical evaluation."
+msgstr "Conserver la ressource LikelihoodFunction et les liens hasLikelihood effectifs provenant de sa mise à jour ou de sa loi a posteriori. Préserver l’identité des données, le paramètre variable, le modèle d’échantillonnage et la description de la mesure d’observation fournis dans leur représentation existante ; ne pas inventer de prédicat de données, d’arbre d’expression, de valeur de paramètre ou d’évaluation numérique."
+
+msgctxt "https://blackcatinformatics.ca/math/PosteriorDistribution|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Posterior Distribution"
+msgstr "Loi a posteriori"
+
+msgctxt "https://blackcatinformatics.ca/math/PosteriorDistribution|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A posterior distribution: the distribution over a parameter conditional on specified data, produced by a Bayesian update. In the ordinary likelihood construction it reweights the prior by the likelihood and requires finite strictly positive normalizing evidence. A subclass of math:Distribution, linked to its supplied prior and likelihood through math:hasPrior and math:hasLikelihood. A math:PosteriorSample can approximate it; chain diagnostics provide limited sampling evidence rather than certifying the posterior's validity or the inference's trustworthiness."
+msgstr "Une loi a posteriori : la loi sur un paramètre conditionnellement à des données spécifiées, produite par une mise à jour bayésienne. Dans la construction ordinaire par vraisemblance, elle repondère la loi a priori par la vraisemblance et exige une évidence normalisatrice finie et strictement positive. Sous-classe de math:Distribution, reliée à sa loi a priori et à sa vraisemblance fournies par math:hasPrior et math:hasLikelihood. Un math:PosteriorSample peut l’approximer ; les diagnostics de chaîne fournissent des éléments probants limités sur l’échantillonnage, sans certifier la validité de la loi a posteriori ni la fiabilité de l’inférence."
+
+msgctxt "https://blackcatinformatics.ca/math/PosteriorDistribution|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "For prior measure Π and fixed-data likelihood L, the ordinary normalizer is Z = ∫ L(θ) Π(dθ), with 0 < Z < ∞, and the posterior is the prior reweighted by L / Z. A zero, infinite or unavailable normalizer does not license a default posterior under this construction; other conditioning constructions require their own justification."
+msgstr "Pour une mesure a priori Π et une vraisemblance L à données fixées, la constante de normalisation ordinaire est Z = ∫ L(θ) Π(dθ), avec 0 < Z < ∞, et la loi a posteriori est la loi a priori repondérée par L / Z. Une constante de normalisation nulle, infinie ou indisponible n’autorise pas une loi a posteriori par défaut dans cette construction ; d’autres constructions de conditionnement exigent leur propre justification."
+
+msgctxt "https://blackcatinformatics.ca/math/PosteriorDistribution|http://www.w3.org/2004/02/skos/core#example"
+msgid "The probability scene gives ex:rainRatePosterior hasPrior ex:rainRatePrior and hasLikelihood ex:rainRateLikelihood, and ex:rainRateUpdate points to it through hasPosterior. The beta-family label and these links provide neither the missing parameter values nor a computed or normalized posterior law."
+msgstr "La scène de probabilité donne ex:rainRatePosterior hasPrior ex:rainRatePrior et hasLikelihood ex:rainRateLikelihood, et ex:rainRateUpdate y renvoie par hasPosterior. Le libellé de famille bêta et ces liens ne fournissent ni les valeurs de paramètres manquantes ni une loi a posteriori calculée ou normalisée."
+
+msgctxt "https://blackcatinformatics.ca/math/PosteriorDistribution|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for a supplied posterior law with its actual prior, likelihood, data and model context, preserving whether it is specified analytically or represented through a declared sampling approximation."
+msgstr "Utiliser pour une loi a posteriori fournie avec ses contextes effectifs de loi a priori, de vraisemblance, de données et de modèle, en préservant l’indication de sa spécification analytique ou de sa représentation par une approximation d’échantillonnage déclarée."
+
+msgctxt "https://blackcatinformatics.ca/math/PosteriorDistribution|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid deriving a posterior merely from three linked names, treating an undefined normalization as a valid update, or taking favorable sampling diagnostics as a proof of correctness. A posterior is neither the likelihood function nor a confidence score, and a later update may reuse it in the prior role."
+msgstr "Éviter de déduire une loi a posteriori de trois noms reliés seulement, de traiter une normalisation indéfinie comme une mise à jour valide ou de prendre des diagnostics d’échantillonnage favorables pour une preuve de correction. Une loi a posteriori n’est ni la fonction de vraisemblance ni un score de confiance, et une mise à jour ultérieure peut la réutiliser dans le rôle a priori."
+
+msgctxt "https://blackcatinformatics.ca/math/PosteriorDistribution|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the PosteriorDistribution and its hasPrior and hasLikelihood evidence, plus the update's actual hasPosterior link. Preserve parameterization, data context and the selected construction's normalization evidence as supplied; keep samples and diagnostics separately identified and report missing qualification without fabricating a posterior or an executed update."
+msgstr "Conserver la PosteriorDistribution et ses éléments probants hasPrior et hasLikelihood, ainsi que le lien hasPosterior effectif de la mise à jour. Préserver la paramétrisation, le contexte des données et les éléments probants de normalisation de la construction sélectionnée tels qu’ils sont fournis ; identifier séparément les échantillons et les diagnostics et signaler une qualification manquante sans fabriquer de loi a posteriori ni de mise à jour exécutée."
+
+msgctxt "https://blackcatinformatics.ca/math/hasPrior|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "has prior"
+msgstr "a pour loi a priori"
+
+msgctxt "https://blackcatinformatics.ca/math/hasPrior|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Relates a Bayesian update (or its math:PosteriorDistribution) to the math:PriorDistribution it starts from. Domain a math:PosteriorDistribution or Bayesian update, range math:PriorDistribution (stated in prose). Names the prior a posterior derives from, so the update chain is always traceable to its input."
+msgstr "Relie une mise à jour bayésienne (ou sa math:PosteriorDistribution) à la math:PriorDistribution dont elle part. Domaine : une math:PosteriorDistribution ou une mise à jour bayésienne ; portée : math:PriorDistribution (indiqués en prose). Nomme la loi a priori dont dérive une loi a posteriori, de sorte que la chaîne de mise à jour soit toujours traçable jusqu’à son entrée."
+
+msgctxt "https://blackcatinformatics.ca/math/hasPrior|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The subject is an update or its posterior and the object is the supplied prior distribution. This records the prior role rather than a temporal ordering proof, a numerical operand literal or a universal uniqueness condition. A posterior from an earlier update can occupy this role in a later one."
+msgstr "Le sujet est une mise à jour ou sa loi a posteriori et l’objet est la loi a priori fournie. Cela consigne le rôle a priori plutôt qu’une preuve d’ordre temporel, un littéral d’opérande numérique ou une condition d’unicité universelle. Une loi a posteriori d’une mise à jour antérieure peut occuper ce rôle dans une mise à jour ultérieure."
+
+msgctxt "https://blackcatinformatics.ca/math/hasPrior|http://www.w3.org/2004/02/skos/core#example"
+msgid "The probability scene supplies ex:rainRatePosterior hasPrior ex:rainRatePrior and ex:rainRateUpdate hasPrior ex:rainRatePrior. Both refer to the same declared prior; no separate prior copy or new update class is needed to retain those links."
+msgstr "La scène de probabilité fournit ex:rainRatePosterior hasPrior ex:rainRatePrior et ex:rainRateUpdate hasPrior ex:rainRatePrior. Tous deux renvoient à la même loi a priori déclarée ; aucune copie distincte de cette loi ni nouvelle classe de mise à jour n’est nécessaire pour conserver ces liens."
+
+msgctxt "https://blackcatinformatics.ca/math/hasPrior|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain which actual prior distribution a supplied Bayesian update or posterior depends on, together with the update-specific data and model context."
+msgstr "Utiliser pour conserver de quelle loi a priori effective dépend une mise à jour bayésienne ou une loi a posteriori fournie, avec les contextes de données et de modèle propres à cette mise à jour."
+
+msgctxt "https://blackcatinformatics.ca/math/hasPrior|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid reversing the edge, linking a raw number as the prior, or inferring a unique global prior from one update's record. Different update roles do not prohibit a previous posterior from serving as the current prior."
+msgstr "Éviter d’inverser l’arête, de relier un nombre brut comme loi a priori ou d’inférer une loi a priori globale unique de l’enregistrement d’une mise à jour. Des rôles de mise à jour différents n’interdisent pas qu’une loi a posteriori précédente serve de loi a priori actuelle."
+
+msgctxt "https://blackcatinformatics.ca/math/hasPrior|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Keep the update or PosteriorDistribution as subject and its supplied PriorDistribution as object. Preserve the accompanying likelihood, data context and resulting posterior in their actual roles, including sequential reuse, without inventing a missing prior, replacing coexisting source accounts or claiming that the link proves a valid update."
+msgstr "Garder la mise à jour ou PosteriorDistribution comme sujet et sa PriorDistribution fournie comme objet. Préserver la vraisemblance associée, le contexte des données et la loi a posteriori résultante dans leurs rôles effectifs, y compris la réutilisation séquentielle, sans inventer de loi a priori manquante, remplacer des descriptions sources coexistantes ou prétendre que le lien prouve une mise à jour valide."
+
+msgctxt "https://blackcatinformatics.ca/math/hasLikelihood|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "has likelihood"
+msgstr "a pour vraisemblance"
+
+msgctxt "https://blackcatinformatics.ca/math/hasLikelihood|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Relates a Bayesian update (or its math:PosteriorDistribution) to the math:LikelihoodFunction weighting the prior by the data. Domain a math:PosteriorDistribution or Bayesian update, range math:LikelihoodFunction (stated in prose). Names the likelihood under which the update was performed."
+msgstr "Relie une mise à jour bayésienne (ou sa math:PosteriorDistribution) à la math:LikelihoodFunction qui pondère la loi a priori par les données. Domaine : une math:PosteriorDistribution ou une mise à jour bayésienne ; portée : math:LikelihoodFunction (indiqués en prose). Nomme la vraisemblance sous laquelle la mise à jour a été effectuée."
+
+msgctxt "https://blackcatinformatics.ca/math/hasLikelihood|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The object is the likelihood function for the update's fixed observed data under its sampling model. This is distinct from a prior distribution, a posterior distribution and the normalizing evidence; the link alone neither names the observations structurally nor evaluates a probability or density."
+msgstr "L’objet est la fonction de vraisemblance pour les données observées fixées de la mise à jour sous son modèle d’échantillonnage. Elle se distingue d’une loi a priori, d’une loi a posteriori et de l’évidence normalisatrice ; le lien seul ne nomme pas structurellement les observations et n’évalue ni probabilité ni densité."
+
+msgctxt "https://blackcatinformatics.ca/math/hasLikelihood|http://www.w3.org/2004/02/skos/core#example"
+msgid "The probability scene gives ex:rainRateUpdate and ex:rainRatePosterior hasLikelihood ex:rainRateLikelihood. The likelihood's label mentions observed wet days, without a structured data link or a realized expression in that record."
+msgstr "La scène de probabilité donne à ex:rainRateUpdate et ex:rainRatePosterior hasLikelihood ex:rainRateLikelihood. Le libellé de la vraisemblance mentionne des jours humides observés, sans lien structuré vers les données ni expression réalisée dans cet enregistrement."
+
+msgctxt "https://blackcatinformatics.ca/math/hasLikelihood|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain the actual LikelihoodFunction supplied for a Bayesian update or its posterior, with its fixed-data and sampling-model context intact."
+msgstr "Utiliser pour conserver la LikelihoodFunction effective fournie pour une mise à jour bayésienne ou sa loi a posteriori, avec ses contextes de données fixées et de modèle d’échantillonnage intacts."
+
+msgctxt "https://blackcatinformatics.ca/math/hasLikelihood|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid linking a confidence score or normalizing constant as the likelihood function, exchanging the likelihood and posterior roles, or assuming that a density must be bounded by one. Do not fabricate observed-data identity from a descriptive label."
+msgstr "Éviter de relier un score de confiance ou une constante de normalisation comme fonction de vraisemblance, d’intervertir les rôles de vraisemblance et de loi a posteriori ou de supposer qu’une densité doit être bornée supérieurement par un. Ne pas fabriquer l’identité des données observées à partir d’un libellé descriptif."
+
+msgctxt "https://blackcatinformatics.ca/math/hasLikelihood|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Keep the update or PosteriorDistribution as subject and its supplied LikelihoodFunction resource as object. Retain its source data, parameter, observation measure and sampling-model evidence in their supplied form, alongside the actual prior and posterior links; disclose missing context rather than inventing a computation."
+msgstr "Garder la mise à jour ou PosteriorDistribution comme sujet et sa ressource LikelihoodFunction fournie comme objet. Conserver ses éléments probants sources de données, de paramètre, de mesure d’observation et de modèle d’échantillonnage dans leur forme fournie, avec les liens effectifs de loi a priori et de loi a posteriori ; exposer le contexte manquant au lieu d’inventer un calcul."
+
+msgctxt "https://blackcatinformatics.ca/math/hasPosterior|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "has posterior"
+msgstr "a pour loi a posteriori"
+
+msgctxt "https://blackcatinformatics.ca/math/hasPosterior|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Relates a Bayesian update — or a Bayesian interval estimate (a math:CredibleInterval / math:CredibleRegion) that summarizes it — to the math:PosteriorDistribution it produces or is taken over. Domain a Bayesian update or a credible interval/region, range math:PosteriorDistribution (stated in prose). Names the posterior resulting from combining the prior and likelihood, and the posterior context a credible interval's math:credibleMass is a probability over; a credible interval naming no posterior is ill-formed (math:IncompleteCredibleInterval)."
+msgstr "Relie une mise à jour bayésienne — ou une estimation bayésienne par intervalle (un math:CredibleInterval / une math:CredibleRegion) qui la résume — à la math:PosteriorDistribution qu’elle produit ou sur laquelle elle est définie. Domaine : une mise à jour bayésienne ou un intervalle ou une région de crédibilité ; portée : math:PosteriorDistribution (indiqués en prose). Nomme la loi a posteriori résultant de la combinaison de la loi a priori et de la vraisemblance, ainsi que le contexte a posteriori sur lequel la math:credibleMass d’un intervalle de crédibilité est une probabilité ; un intervalle de crédibilité ne nommant aucune loi a posteriori est mal formé (math:IncompleteCredibleInterval)."
+
+msgctxt "https://blackcatinformatics.ca/math/hasPosterior|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The relation serves an update-result role or an interval/region posterior-context role, according to its subject. The inspected required-link closure applies to CredibleInterval; this does not establish a universal admission check for every update, posterior or credible region, or prove that the linked law is normalized."
+msgstr "La relation sert un rôle de résultat de mise à jour ou de contexte a posteriori d’intervalle ou de région, selon son sujet. La clôture de lien requis examinée s’applique à CredibleInterval ; cela n’établit pas de vérification universelle d’admission pour toute mise à jour, loi a posteriori ou région de crédibilité et ne prouve pas que la loi reliée est normalisée."
+
+msgctxt "https://blackcatinformatics.ca/math/hasPosterior|http://www.w3.org/2004/02/skos/core#example"
+msgid "The probability scene gives ex:rainRateUpdate hasPosterior ex:rainRatePosterior. The credible-interval fixtures give ex:paramCredible and ex:masslessCredible hasPosterior ex:paramPosterior; the latter lacks credibleMass, so that negative case concerns missing mass rather than a missing posterior link."
+msgstr "La scène de probabilité donne ex:rainRateUpdate hasPosterior ex:rainRatePosterior. Les jeux de données d’intervalles de crédibilité donnent à ex:paramCredible et ex:masslessCredible hasPosterior ex:paramPosterior ; il manque credibleMass au second, de sorte que ce cas négatif concerne une masse manquante plutôt qu’un lien de loi a posteriori manquant."
+
+msgctxt "https://blackcatinformatics.ca/math/hasPosterior|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to name the actual posterior produced by a supplied Bayesian update or the posterior distribution over which a supplied Bayesian interval or region states its mass."
+msgstr "Utiliser pour nommer la loi a posteriori effective produite par une mise à jour bayésienne fournie ou la loi a posteriori sur laquelle un intervalle bayésien fourni ou une région bayésienne fournie indique sa masse."
+
+msgctxt "https://blackcatinformatics.ca/math/hasPosterior|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid substituting a prior, sample or frequentist confidence distribution for the supplied posterior. A posterior link alone does not prove that an update executed, a credible mass is valid or every source record passed a complete Bayesian admission check."
+msgstr "Éviter de substituer une loi a priori, un échantillon ou une distribution de confiance fréquentiste à la loi a posteriori fournie. Un lien de loi a posteriori seul ne prouve pas qu’une mise à jour a été exécutée, qu’une masse de crédibilité est valide ou que chaque enregistrement source a passé une vérification complète d’admission bayésienne."
+
+msgctxt "https://blackcatinformatics.ca/math/hasPosterior|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Keep the actual update or Bayesian interval/region as subject and the supplied PosteriorDistribution as object. For an update, retain its prior, likelihood and data context; for an interval or region, retain its bounds and posterior mass as supplied. Preserve missing-link and missing-mass evidence separately without inventing a posterior or a new update type."
+msgstr "Garder la mise à jour effective ou l’intervalle ou la région bayésienne comme sujet et la PosteriorDistribution fournie comme objet. Pour une mise à jour, conserver ses contextes de loi a priori, de vraisemblance et de données ; pour un intervalle ou une région, conserver ses bornes et sa masse a posteriori telles qu’elles sont fournies. Préserver séparément les éléments probants de lien manquant et de masse manquante sans inventer de loi a posteriori ni de nouveau type de mise à jour."

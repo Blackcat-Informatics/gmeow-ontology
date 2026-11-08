@@ -270,13 +270,20 @@ resources without supplying complete edge, conditional-law or transition invento
 structural examples, not instance preservation certificates.
 
 The Bayesian update chain is first-class: `math:PriorDistribution`, `math:LikelihoodFunction`, and
-`math:PosteriorDistribution` are distinct objects linked by
-`math:hasPrior`/`math:hasLikelihood`/`math:hasPosterior`, so a posterior always answers *from what
-prior, under what likelihood, over what data*. Where the posterior is sampled rather than
-closed-form, the operational Bayesian objects are modeled too — `math:PosteriorSample`,
-`math:MCMCRun` (an `gmeow:Activity`), and the chain diagnostics `math:ChainDiagnostic`,
-`math:EffectiveSampleSize`, `math:RHat`, and `math:DivergenceDiagnostic` — so "is this posterior
-trustworthy" is answerable, not assumed.
+`math:PosteriorDistribution` carry distinct roles linked by
+`math:hasPrior`/`math:hasLikelihood`/`math:hasPosterior`. A likelihood holds observed data fixed while
+the parameter varies and uses the model's mass or density relative to its stated observation measure;
+it is not a distribution over that parameter. In the ordinary likelihood construction, the posterior
+reweights the prior and requires finite strictly positive normalizing evidence. Missing or invalid
+evidence does not license a default posterior. A posterior from one update may serve as a later
+prior; role distinctions do not impose resource inequality across updates.
+
+Preserve the actual prior, likelihood, data and model context supplied by the source. The worked
+scene names these roles but supplies no realized likelihood expression, structured observed-data
+link, parameter values or executed update. Where sampling is declared, `math:PosteriorSample`,
+`math:MCMCRun` (a `gmeow:Activity`) and the chain diagnostics `math:ChainDiagnostic`,
+`math:EffectiveSampleSize`, `math:RHat` and `math:DivergenceDiagnostic` record sampling roles and
+evidence; diagnostic declarations alone do not certify a valid posterior or trustworthy inference.
 
 > A probabilistic reasoning request that references probabilistic facts points at an explicit
 > probability-model object with a declared `logic:` lowering. If the model is absent, structurally
