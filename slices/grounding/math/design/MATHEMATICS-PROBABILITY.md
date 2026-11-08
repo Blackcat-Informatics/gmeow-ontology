@@ -253,6 +253,11 @@ first draft — so the implementation does not invent the seam ad hoc:
 | `math:MarkovKernel` | `logic:GenericDependence` (stochastic transition) | conditional | declared measurable domain/codomain; probability measure at every source point; measurability in that point; preserved transition law |
 | approximate model | bounded approximate result | no | explicit approximation/loss policy |
 
+`math:StochasticProcess` describes an indexed random-variable family on a common probability
+space; its class has no `math:probabilityModelLowering` declaration in the model-family table.
+Generic processes need not be Markov, and their type alone supplies neither a transition-kernel
+link nor an executed realization or supported `logic:` lowering.
+
 The exactness column describes the obligations behind the declared `logic:preservationKind`
 ([`MATHEMATICS-CONFORMANCE.md`](MATHEMATICS-CONFORMANCE.md)). Class-level exactness declarations
 record the intended family lowering, not a proof for every instance. The selected model and target

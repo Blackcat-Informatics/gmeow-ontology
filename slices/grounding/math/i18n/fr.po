@@ -16506,3 +16506,33 @@ msgstr "Éviter de traiter le dénombrement comme une valeur de distance informa
 msgctxt "https://blackcatinformatics.ca/math/DivergenceDiagnostic|https://blackcatinformatics.ca/gmeow/howToUse"
 msgid "Retain the DivergenceDiagnostic and its actual generating run, count or event records, detection criterion and transition selection as supplied. Keep potential-bias warnings and source claims attached to their evidence without inventing an event log, missing count, inaccessible region or successful diagnostic computation."
 msgstr "Conserver le DivergenceDiagnostic et son exécution génératrice effective, son dénombrement ou ses enregistrements d’événements, son critère de détection et sa sélection des transitions tels qu’ils sont fournis. Garder les avertissements de biais potentiel et les affirmations sources attachés à leurs éléments probants sans inventer de journal d’événements, de dénombrement manquant, de région inaccessible ou de calcul diagnostique réussi."
+
+# Stochastic-process family and evidence boundaries.
+
+msgctxt "https://blackcatinformatics.ca/math/StochasticProcess|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Stochastic Process"
+msgstr "Processus stochastique"
+
+msgctxt "https://blackcatinformatics.ca/math/StochasticProcess|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A stochastic process: an indexed family of random variables {X_t} defined on a common probability space. A subclass of math:MathematicalObject. Markov chains, Poisson processes and Brownian motion are examples. A generic process need not have the Markov property; neither a math:MarkovKernel link nor a declared logic: probability-model lowering follows from this type alone."
+msgstr "Un processus stochastique : une famille indexée de variables aléatoires {X_t} définies sur un espace probabilisé commun. Sous-classe de math:MathematicalObject. Les chaînes de Markov, les processus de Poisson et le mouvement brownien en sont des exemples. Un processus générique ne possède pas nécessairement la propriété de Markov ; ni un lien math:MarkovKernel ni une traduction déclarée vers un modèle probabiliste logic: ne découlent de ce type seul."
+
+msgctxt "https://blackcatinformatics.ca/math/StochasticProcess|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The index set need not represent time. At a fixed index t, X_t is a random variable; for a fixed source outcome ω, t ↦ X_t(ω) is a sample path. The family, its law, a realized path and an activity that samples it have different roles. Marginal laws at individual indices alone do not specify the full joint process law."
+msgstr "L’ensemble d’indices ne représente pas nécessairement le temps. À un indice t fixé, X_t est une variable aléatoire ; pour une issue source ω fixée, t ↦ X_t(ω) est une trajectoire. La famille, sa loi, une trajectoire réalisée et une activité qui l’échantillonne ont des rôles différents. Les lois marginales aux indices individuels ne spécifient pas à elles seules la loi conjointe complète du processus."
+
+msgctxt "https://blackcatinformatics.ca/math/StochasticProcess|http://www.w3.org/2004/02/skos/core#example"
+msgid "The probability scene declares ex:dailyRainfallProcess as StochasticProcess and labels it daily rainfall process {X_t}. The record supplies no index set, variable members, common-space link, process-to-kernel link or transition law; the nearby weather kernel supplies endpoint links only."
+msgstr "La scène de probabilité déclare ex:dailyRainfallProcess comme StochasticProcess et lui donne un libellé de processus de précipitations quotidiennes {X_t}. L’enregistrement ne fournit ni ensemble d’indices, ni variables membres, ni lien vers un espace commun, ni lien du processus vers un noyau, ni loi de transition ; le noyau météorologique voisin ne fournit que des liens d’extrémités."
+
+msgctxt "https://blackcatinformatics.ca/math/StochasticProcess|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for a source's indexed family of random variables on a common probability space, retaining its actual index interpretation, variable family and joint-law account rather than treating a single observed trajectory as the complete process."
+msgstr "Utiliser pour une famille indexée de variables aléatoires sur un espace probabilisé commun fournie par une source, en conservant son interprétation effective des indices, sa famille de variables et sa description de la loi conjointe plutôt qu’en traitant une seule trajectoire observée comme le processus complet."
+
+msgctxt "https://blackcatinformatics.ca/math/StochasticProcess|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid assuming the Markov property, independence, a time index or an available transition kernel from this type or a descriptive label. A sampled trajectory or an MCMCRun does not by itself specify the abstract process or establish an executable probability-model lowering."
+msgstr "Éviter de supposer la propriété de Markov, l’indépendance, un indice temporel ou un noyau de transition disponible à partir de ce type ou d’un libellé descriptif. Une trajectoire échantillonnée ou un MCMCRun ne spécifie pas à lui seul le processus abstrait et n’établit pas de traduction exécutable de modèle probabiliste."
+
+msgctxt "https://blackcatinformatics.ca/math/StochasticProcess|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Type the supplied mathematical family as StochasticProcess and preserve its actual indices, variable members, common probability-space and law evidence in their existing representation. Keep sample paths and sampling activities separately described. For reasoning, retain a supported explicit lowering of the selected model; do not invent a target, process-to-kernel relation or missing process data from the type."
+msgstr "Typer la famille mathématique fournie comme StochasticProcess et préserver ses indices effectifs, ses variables membres et les éléments probants d’espace probabilisé commun et de loi dans leur représentation existante. Décrire séparément les trajectoires et les activités d’échantillonnage. Pour le raisonnement, conserver une traduction explicite prise en charge du modèle sélectionné ; ne pas inventer de cible, de relation du processus vers un noyau ou de données de processus manquantes à partir du type."
