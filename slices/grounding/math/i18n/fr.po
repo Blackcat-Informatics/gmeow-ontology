@@ -269,24 +269,24 @@ msgid "Estimand"
 msgstr "Estimande"
 
 msgctxt "https://blackcatinformatics.ca/math/Estimand|skos:definition"
-msgid "An estimand: the target quantity a study is actually trying to learn — the thing an estimate speaks about, distinct from any coefficient inside a particular model. A subclass of math:MathematicalObject framed by the six coordinates that make it well-posed: the target population it refers to (math:targetPopulation), the outcome measured on that population (math:targetOutcome), the contrast between conditions it compares (math:targetContrast, a math:StatisticalContrast), the time or horizon it is defined at (math:targetTime), the intervention condition it conditions on (math:interventionCondition), and the missing-data policy under which it is defined (math:missingDataPolicy). This framing is load-bearing for causal inference, surveys, trials, and policy models, where the same estimand (an average treatment effect) can be targeted by different parameters under different models. An estimate names its estimand through math:estimatesEstimand; an estimand held apart from the model parameter is what keeps the target of inference from being read off a coefficient."
-msgstr "Un estimande : la quantité cible qu'une étude cherche réellement à apprendre — la chose dont parle une estimation, distincte de tout coefficient à l'intérieur d'un modèle particulier. Une sous-classe de math:MathematicalObject cadrée par les six coordonnées qui la rendent bien posée : la population cible à laquelle elle se réfère (math:targetPopulation), l'issue mesurée sur cette population (math:targetOutcome), le contraste entre modalités qu'elle compare (math:targetContrast, un math:StatisticalContrast), le temps ou l'horizon auquel elle est définie (math:targetTime), la condition d'intervention à laquelle elle conditionne (math:interventionCondition) et la politique de données manquantes sous laquelle elle est définie (math:missingDataPolicy). Ce cadrage est porteur pour l'inférence causale, les sondages, les essais et les modèles de politique publique, où un même estimande (un effet moyen de traitement) peut être ciblé par différents paramètres sous différents modèles. Une estimation nomme son estimande via math:estimatesEstimand ; un estimande tenu à part du paramètre de modèle est ce qui empêche que la cible de l'inférence soit lue sur un coefficient."
+msgid "An estimand: the target quantity a study seeks to learn, which may be a population summary, a causal contrast or an explicitly specified parameter of a math:StatisticalModel. A subclass of math:MathematicalObject, named from an estimate through math:estimatesEstimand. The vocabulary provides math:targetPopulation, math:targetOutcome, math:targetContrast (a math:StatisticalContrast), math:targetTime, math:interventionCondition and math:missingDataPolicy to describe relevant study context. This causal-study framing is not a universal mathematical definition or a demonstrated required-path gate for every estimand. A coefficient name alone does not identify the substantive target, and a declared frame alone does not establish causal identification or a valid treatment of missing data or intercurrent events."
+msgstr "Un estimande : la quantité cible qu’une étude cherche à apprendre, qui peut être un résumé de population, un contraste causal ou un paramètre explicitement spécifié d’un math:StatisticalModel. Une sous-classe de math:MathematicalObject, nommée depuis une estimation par math:estimatesEstimand. Le vocabulaire fournit math:targetPopulation, math:targetOutcome, math:targetContrast (un math:StatisticalContrast), math:targetTime, math:interventionCondition et math:missingDataPolicy pour décrire le contexte pertinent de l’étude. Ce cadrage d’étude causale n’est ni une définition mathématique universelle ni une vérification démontrée de chemins requis pour tout estimande. Un nom de coefficient seul n’identifie pas la cible substantielle, et un cadre déclaré seul n’établit ni identification causale ni traitement valide des données manquantes ou des événements intercurrents."
 
 msgctxt "https://blackcatinformatics.ca/math/Estimate|rdfs:label"
 msgid "Estimate"
 msgstr "Estimation"
 
 msgctxt "https://blackcatinformatics.ca/math/Estimate|skos:definition"
-msgid "An estimate: a produced value that estimates an estimand (math:estimatesEstimand) and, where relevant, a model parameter (math:estimatedParameter), carrying its value (math:estimateValue) and the estimator that produced it (math:estimator). A subclass of math:MathematicalObject and the structured result object of the process / result / claim separation — neither the analysis activity nor the held claim, and never a bare number: it fixes both WHAT it estimates (its estimand and/or its estimated parameter) and HOW (the estimator that produced it), and one naming neither its target quantity nor a model parameter, or naming no estimator, is underspecified (math:UnderspecifiedEstimate). The R broom tidy triple lifts model coefficients onto these objects."
-msgstr "Une estimation : une valeur produite qui estime un estimande (math:estimatesEstimand) et, le cas échéant, un paramètre de modèle (math:estimatedParameter), portant sa valeur (math:estimateValue) et l'estimateur qui l'a produite (math:estimator). Une sous-classe de math:MathematicalObject et l'objet résultat structuré de la séparation processus / résultat / affirmation — ni l'activité d'analyse ni l'affirmation tenue, et jamais un nombre nu : elle fixe à la fois CE QU'elle estime (son estimande et/ou son paramètre estimé) et COMMENT (l'estimateur qui l'a produite) ; une estimation qui ne nomme ni sa quantité cible ni un paramètre de modèle, ou qui ne nomme aucun estimateur, est sous-spécifiée (math:UnderspecifiedEstimate). Le triplet tidy de broom en R remonte les coefficients de modèle sur ces objets."
+msgid "An estimate: a structured estimation-result record naming at least one target through math:estimatesEstimand or math:estimatedParameter and its estimation procedure through math:estimator. A supplied result value is carried through math:estimateValue. A subclass of math:MathematicalObject, distinct in role from the analysis activity and the held claim about a result. Naming neither target alternative, or naming no estimator, is underspecified (math:UnderspecifiedEstimate). The R source lift can emit target and procedure records without a numerical result or qualified coefficient identity; those records do not establish that estimation executed."
+msgstr "Une estimation : un enregistrement structuré de résultat d’estimation nommant au moins une cible par math:estimatesEstimand ou math:estimatedParameter et sa procédure d’estimation par math:estimator. Une valeur de résultat fournie est portée par math:estimateValue. Une sous-classe de math:MathematicalObject, dont le rôle se distingue de l’activité d’analyse et de l’affirmation soutenue au sujet d’un résultat. Ne nommer aucune des deux cibles possibles, ou ne nommer aucun estimateur, est sous-spécifié (math:UnderspecifiedEstimate). La traduction de source R peut émettre des enregistrements de cible et de procédure sans résultat numérique ni identité de coefficient qualifiée ; ces enregistrements n’établissent pas que l’estimation a été exécutée."
 
 msgctxt "https://blackcatinformatics.ca/math/Estimator|rdfs:label"
 msgid "Estimator"
 msgstr "Estimateur"
 
 msgctxt "https://blackcatinformatics.ca/math/Estimator|skos:definition"
-msgid "An estimator: the estimation PROCEDURE — a rule that is a function of the data (ordinary least squares, maximum likelihood, the method of moments, an inverse-probability-weighted estimator) — held strictly apart from the estimate it produces and the estimand it targets. A subclass of math:MathematicalObject; an estimate names the estimator that produced it through math:estimator, so a produced value is never a bare number without the procedure that computed it. The estimator is the map from data to a value; the math:Estimate is one output of applying it, and the math:Estimand is the quantity it aims at — three distinct objects, never collapsed."
-msgstr "Un estimateur : la PROCÉDURE d'estimation — une règle qui est une fonction des données (moindres carrés ordinaires, maximum de vraisemblance, méthode des moments, estimateur pondéré par l'inverse de la probabilité) — tenue strictement à part de l'estimation qu'il produit et de l'estimande qu'il cible. Une sous-classe de math:MathematicalObject ; une estimation nomme l'estimateur qui l'a produite via math:estimator, de sorte qu'une valeur produite ne soit jamais un nombre nu sans la procédure qui l'a calculée. L'estimateur est l'application des données vers une valeur ; la math:Estimate est une sortie de son application, et le math:Estimand est la quantité qu'il vise — trois objets distincts, jamais confondus."
+msgid "An estimator: an estimation rule or procedure mapping data to a value used to estimate a target, such as ordinary least squares, maximum likelihood, the method of moments or an inverse-probability-weighted estimator. A subclass of math:MathematicalObject, referenced from a math:Estimate through math:estimator. The math:Estimand is its target and the math:Estimate records a particular result; these roles differ from the math:InferenceRun that applies the procedure. An estimator that is a function of the data can also be a math:Statistic; role overlap does not identify a function with its realized output or prove that the procedure executed."
+msgstr "Un estimateur : une règle ou une procédure d’estimation associant aux données une valeur servant à estimer une cible, telle que les moindres carrés ordinaires, le maximum de vraisemblance, la méthode des moments ou un estimateur pondéré par l’inverse de la probabilité. Une sous-classe de math:MathematicalObject, référencée depuis une math:Estimate par math:estimator. Le math:Estimand est sa cible et la math:Estimate consigne un résultat particulier ; ces rôles diffèrent du math:InferenceRun qui applique la procédure. Un estimateur qui est une fonction des données peut aussi être une math:Statistic ; le recouvrement des rôles n’identifie pas une fonction à sa sortie réalisée et ne prouve pas que la procédure a été exécutée."
 
 msgctxt "https://blackcatinformatics.ca/math/exactTail|rdfs:label"
 msgid "exact"
@@ -869,8 +869,8 @@ msgid "Statistic"
 msgstr "Statistique"
 
 msgctxt "https://blackcatinformatics.ca/math/Statistic|skos:definition"
-msgid "A statistic: any function of the data — a summary computed from a math:Sample or math:DatasetMatrix (a sample mean, a variance, a test statistic, an order statistic). A subclass of math:MathematicalObject naming the computed quantity as a first-class object, distinct from the math:Estimator (the procedure) and from the math:Estimand (the target it may estimate). A statistic used as an estimator estimates an estimand; a statistic used as a test statistic drives a hypothesis test — but the object is a function of the data either way, never conflated with the frame it is used in."
-msgstr "Une statistique : toute fonction des données — un résumé calculé à partir d'un math:Sample ou math:DatasetMatrix (une moyenne d'échantillon, une variance, une statistique de test, une statistique d'ordre). Une sous-classe de math:MathematicalObject nommant la quantité calculée comme objet de première classe, distincte de l'math:Estimator (la procédure) et de l'math:Estimand (la cible qu'elle peut estimer). Une statistique employée comme estimateur estime un estimande ; une statistique employée comme statistique de test conduit un test d'hypothèse — mais l'objet est une fonction des données dans les deux cas, jamais confondu avec le cadre dans lequel il est employé."
+msgid "A statistic: a function of observed data whose definition does not depend on unknown model parameters, such as a sample mean, sample variance, test statistic or order statistic. A subclass of math:MathematicalObject describing the data-dependent mathematical quantity. Distinguish the function from its realized value on a particular math:Sample or math:DatasetMatrix. The same function can serve as a math:Estimator when used to estimate a math:Estimand, or as a test statistic in a hypothesis test; a type declaration alone does not establish a computed value."
+msgstr "Une statistique : une fonction des données observées dont la définition ne dépend pas de paramètres de modèle inconnus, telle qu’une moyenne d’échantillon, une variance d’échantillon, une statistique de test ou une statistique d’ordre. Une sous-classe de math:MathematicalObject décrivant la quantité mathématique dépendante des données. Distinguer la fonction de sa valeur réalisée sur un math:Sample ou une math:DatasetMatrix particulière. La même fonction peut servir de math:Estimator lorsqu’elle est employée pour estimer un math:Estimand, ou de statistique de test dans un test d’hypothèse ; une déclaration de type seule n’établit pas de valeur calculée."
 
 msgctxt "https://blackcatinformatics.ca/math/StatisticalContrast|rdfs:label"
 msgid "Statistical Contrast"
@@ -16908,3 +16908,217 @@ msgstr "Ne pas supprimer la constatation lorsque l’une des références requis
 msgctxt "https://blackcatinformatics.ca/math/UnanchoredDiagnostic|https://blackcatinformatics.ca/gmeow/howToUse"
 msgid "Identify the math:ModelDiagnostic and the missing math:diagnosticFor or math:diagnosticMethod role using the canonical restrictions and closure records. Retain the source evidence and supply a real reference only when available; do not invent a fit, method or successful result to silence the finding."
 msgstr "Identifier le math:ModelDiagnostic et le rôle math:diagnosticFor ou math:diagnosticMethod manquant à l’aide des restrictions et des enregistrements de clôture canoniques. Conserver les éléments probants de la source et ne fournir une référence réelle que lorsqu’elle est disponible ; ne pas inventer d’ajustement, de méthode ou de résultat réussi pour faire taire la constatation."
+
+# Estimation guidance.
+
+msgctxt "https://blackcatinformatics.ca/math/Estimate|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The estimation-result record is distinct from its supplied value, the math:Estimand it targets, the math:Estimator procedure and the math:InferenceRun activity. The canonical target alternatives are inclusive: an estimand, an estimated parameter or both, with an estimator required separately. The inspected target and method obligations do not establish a universal estimateValue-presence gate or numerical evaluation."
+msgstr "L’enregistrement de résultat d’estimation se distingue de sa valeur fournie, du math:Estimand qu’il cible, de la procédure math:Estimator et de l’activité math:InferenceRun. Les cibles canoniques possibles sont inclusives : un estimande, un paramètre estimé ou les deux, avec un estimateur requis séparément. Les obligations de cible et de méthode examinées n’établissent ni exigence universelle de présence d’estimateValue ni évaluation numérique."
+
+msgctxt "https://blackcatinformatics.ca/math/Estimate|http://www.w3.org/2004/02/skos/core#example"
+msgid "exf:betaHat a math:Estimate ; math:estimatesEstimand exf:ateEstimand ; math:estimator exf:olsEstimator ; math:estimateValue exf:betaValue ."
+msgstr "exf:betaHat a math:Estimate ; math:estimatesEstimand exf:ateEstimand ; math:estimator exf:olsEstimator ; math:estimateValue exf:betaValue ."
+
+msgctxt "https://blackcatinformatics.ca/math/Estimate|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for a supplied estimation-result record whose target is an estimand, a model parameter or both, retaining the procedure and any actually supplied value and execution evidence without inventing a missing target or computation."
+msgstr "Utiliser pour un enregistrement de résultat d’estimation fourni dont la cible est un estimande, un paramètre de modèle ou les deux, en conservant la procédure et toute valeur et tout élément probant d’exécution effectivement fournis sans inventer de cible ou de calcul manquant."
+
+msgctxt "https://blackcatinformatics.ca/math/Estimate|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Do not use it for the estimation activity (a math:InferenceRun) nor for the held claim about the value; an estimate that names no math:estimator is a math:UnderspecifiedEstimate."
+msgstr "Ne pas l’utiliser pour l’activité d’estimation (un math:InferenceRun) ni pour l’affirmation soutenue au sujet de la valeur ; une estimation qui ne nomme aucun math:estimator relève de math:UnderspecifiedEstimate."
+
+msgctxt "https://blackcatinformatics.ca/math/Estimate|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Keep the Estimate resource, at least one supplied estimatesEstimand or estimatedParameter target, and its estimator procedure. Retain estimateValue and generation, data and source context where supplied; a procedure link is not the generating activity, and structural admission does not prove a numeric result or complete source identity."
+msgstr "Garder la ressource Estimate, au moins une cible estimatesEstimand ou estimatedParameter fournie, et sa procédure estimator. Conserver estimateValue ainsi que les contextes de génération, de données et de source lorsqu’ils sont fournis ; un lien de procédure n’est pas l’activité génératrice, et l’admission structurelle ne prouve ni résultat numérique ni identité source complète."
+
+msgctxt "https://blackcatinformatics.ca/math/Estimator|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The data-to-value procedure, distinct in role from the math:Estimand target, math:Estimate result and execution activity. A function used for estimation can also serve as a math:Statistic; these mathematical roles need not require different function resources. A named method does not establish that all source options or numerical execution are qualified."
+msgstr "La procédure des données vers une valeur, dont le rôle se distingue du math:Estimand cible, du résultat math:Estimate et de l’activité d’exécution. Une fonction employée pour l’estimation peut aussi servir de math:Statistic ; ces rôles mathématiques n’exigent pas nécessairement des ressources de fonction différentes. Une méthode nommée n’établit pas que toutes les options sources ou l’exécution numérique sont qualifiées."
+
+msgctxt "https://blackcatinformatics.ca/math/Estimator|http://www.w3.org/2004/02/skos/core#example"
+msgid "exf:olsEstimator a math:Estimator . exf:estIncome math:estimator exf:olsEstimator ."
+msgstr "exf:olsEstimator a math:Estimator . exf:estIncome math:estimator exf:olsEstimator ."
+
+msgctxt "https://blackcatinformatics.ca/math/Estimator|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Mint one for the estimation procedure, a rule that is a function of the data such as ordinary least squares or maximum likelihood, held apart from the value it yields."
+msgstr "Créer un objet pour la procédure d’estimation, une règle qui est une fonction des données, telle que les moindres carrés ordinaires ou le maximum de vraisemblance, tenue à part de la valeur qu’elle fournit."
+
+msgctxt "https://blackcatinformatics.ca/math/Estimator|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Do not conflate it with the number it produces or the quantity it targets; it is the map from data to value, not the value or the target."
+msgstr "Ne pas le confondre avec le nombre qu’il produit ou la quantité qu’il cible ; il est l’application des données vers une valeur, non la valeur ou la cible."
+
+msgctxt "https://blackcatinformatics.ca/math/Estimator|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Reference the supplied procedure from a math:Estimate through math:estimator. Retain any actual value and generating math:InferenceRun separately; naming the procedure does not by itself establish that it ran or computed a numerical result."
+msgstr "Référencer la procédure fournie depuis une math:Estimate par math:estimator. Conserver séparément toute valeur effective et tout math:InferenceRun qui l’a produite ; nommer la procédure n’établit pas à lui seul qu’elle a été exécutée ou a calculé un résultat numérique."
+
+msgctxt "https://blackcatinformatics.ca/math/Estimand|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The target of inference, distinct in role from the math:Estimator procedure and the math:Estimate estimation-result record. A record's supplied value is separate from these roles; a target association does not prove that a numerical result is present or that estimation executed."
+msgstr "La cible de l’inférence, dont le rôle est distinct de celui de la procédure math:Estimator et de celui de l’enregistrement de résultat d’estimation math:Estimate. La valeur fournie d’un enregistrement est distincte de ces rôles ; une association à une cible ne prouve ni la présence d’un résultat numérique ni l’exécution d’une estimation."
+
+msgctxt "https://blackcatinformatics.ca/math/Estimand|http://www.w3.org/2004/02/skos/core#example"
+msgid "exf:ate a math:Estimand ; math:targetPopulation exf:adultsCanada ; math:targetContrast exf:treatVsControl ; math:interventionCondition exf:drugArm ."
+msgstr "exf:ate a math:Estimand ; math:targetPopulation exf:adultsCanada ; math:targetContrast exf:treatVsControl ; math:interventionCondition exf:drugArm ."
+
+msgctxt "https://blackcatinformatics.ca/math/Estimand|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Mint one to identify the target quantity a study seeks to learn, retaining whether it is a substantive population or causal target or an explicitly specified model parameter rather than assuming the target from a coefficient name."
+msgstr "Créer un objet pour identifier la quantité cible qu’une étude cherche à apprendre, en conservant l’indication qu’il s’agit d’une cible substantielle de population ou causale, ou d’un paramètre de modèle explicitement spécifié, plutôt que de supposer la cible à partir d’un nom de coefficient."
+
+msgctxt "https://blackcatinformatics.ca/math/Estimand|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Do not infer a substantive estimand or its causal identification from a model parameter or six named framing roles alone. The same target may be addressed under different models, and a model parameter may itself be the specified target; do not invent an intervention or missing-data policy for a general mathematical quantity."
+msgstr "Ne pas déduire un estimande substantiel ou son identification causale d’un paramètre de modèle ou de six rôles de cadrage nommés seulement. Une même cible peut être abordée sous différents modèles, et un paramètre de modèle peut lui-même être la cible spécifiée ; ne pas inventer d’intervention ou de politique de données manquantes pour une quantité mathématique générale."
+
+msgctxt "https://blackcatinformatics.ca/math/Estimand|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the actual target definition and relevant supplied math:targetPopulation, math:targetOutcome, math:targetContrast, math:targetTime, math:interventionCondition and math:missingDataPolicy context; an estimate names it through math:estimatesEstimand. Preserve absent or inapplicable context explicitly without manufacturing causal meaning or claiming a universal six-field admission check."
+msgstr "Conserver la définition effective de la cible et les contextes pertinents fournis de math:targetPopulation, math:targetOutcome, math:targetContrast, math:targetTime, math:interventionCondition et math:missingDataPolicy ; une estimation la nomme par math:estimatesEstimand. Préserver explicitement le contexte absent ou inapplicable sans fabriquer de sens causal ni revendiquer une vérification universelle d’admission à six champs."
+
+msgctxt "https://blackcatinformatics.ca/math/Statistic|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "A statistic as a data function and its observed realization are different mathematical roles; the observed value is not the function itself. Estimator and statistic roles can overlap for the same data function. Preserve the actual definition, inputs and realization evidence rather than treating a label or bare type as an evaluated summary."
+msgstr "Une statistique en tant que fonction des données et sa réalisation observée ont des rôles mathématiques différents ; la valeur observée n’est pas la fonction elle-même. Les rôles d’estimateur et de statistique peuvent se recouvrir pour une même fonction des données. Préserver la définition, les entrées et les éléments probants de réalisation effectifs plutôt que de traiter un libellé ou un simple type comme un résumé évalué."
+
+msgctxt "https://blackcatinformatics.ca/math/Statistic|http://www.w3.org/2004/02/skos/core#example"
+msgid "exf:tStat a math:Statistic ."
+msgstr "exf:tStat a math:Statistic ."
+
+msgctxt "https://blackcatinformatics.ca/math/Statistic|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Mint one for a supplied data-dependent statistic, such as a mean, sample variance or test statistic, preserving its mathematical definition and whether any realized value on actual data is supplied."
+msgstr "Créer un objet pour une statistique dépendante des données fournie, telle qu’une moyenne, une variance d’échantillon ou une statistique de test, en préservant sa définition mathématique et l’indication qu’une valeur réalisée sur des données effectives est ou non fournie."
+
+msgctxt "https://blackcatinformatics.ca/math/Statistic|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Do not equate the function with one observed value or the target it estimates, or require a separate function merely because it also acts as an estimator. A statistic is defined without unknown parameters; a numerical label or type alone does not establish its inputs, evaluation or validity."
+msgstr "Ne pas identifier la fonction à une valeur observée ou à la cible qu’elle estime, ni exiger une fonction distincte au seul motif qu’elle agit aussi comme estimateur. Une statistique est définie sans paramètres inconnus ; un libellé numérique ou un type seul n’établit ni ses entrées, ni son évaluation, ni sa validité."
+
+msgctxt "https://blackcatinformatics.ca/math/Statistic|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the Statistic and its actual function, data and realization descriptions in their existing representation. A hypothesis test can name its statistic through math:testStatistic; an estimation use may also have the estimator role. Keep any observed value and execution evidence explicit without inventing a new value relation or a completed calculation."
+msgstr "Conserver la Statistic et les descriptions effectives de fonction, de données et de réalisation dans leur représentation existante. Un test d’hypothèse peut nommer sa statistique par math:testStatistic ; un emploi pour l’estimation peut aussi avoir le rôle d’estimateur. Garder explicites toute valeur observée et tout élément probant d’exécution sans inventer de nouvelle relation de valeur ni de calcul achevé."
+
+msgctxt "https://blackcatinformatics.ca/math/estimatesEstimand|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "estimates estimand"
+msgstr "estime l’estimande"
+
+msgctxt "https://blackcatinformatics.ca/math/estimatesEstimand|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Relates a math:Estimate to the math:Estimand it targets. Domain math:Estimate, range math:Estimand (stated in prose). The substantive or model-specific target is interpreted in its actual supplied context. The canonical target requirement accepts this link or math:estimatedParameter, or both, with math:estimator required separately; absence of both target alternatives or of the estimator is math:UnderspecifiedEstimate."
+msgstr "Relie une math:Estimate au math:Estimand qu’elle cible. Domaine : math:Estimate ; portée : math:Estimand (indiqués en prose). La cible substantielle ou propre au modèle est interprétée dans son contexte effectif fourni. L’exigence canonique de cible accepte ce lien ou math:estimatedParameter, ou les deux, avec math:estimator requis séparément ; l’absence des deux cibles possibles ou de l’estimateur relève de math:UnderspecifiedEstimate."
+
+msgctxt "https://blackcatinformatics.ca/math/estimatesEstimand|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The subject is the result record and the object is its target quantity, not the estimator procedure, numeric result or generating run. Supplying both target links does not establish that a named model parameter equals or identifies a substantive estimand."
+msgstr "Le sujet est l’enregistrement de résultat et l’objet est sa quantité cible, non la procédure d’estimation, le résultat numérique ou l’exécution génératrice. Fournir les deux liens de cible n’établit pas qu’un paramètre de modèle nommé est égal à un estimande substantiel fourni séparément ou qu’il l’identifie."
+
+msgctxt "https://blackcatinformatics.ca/math/estimatesEstimand|http://www.w3.org/2004/02/skos/core#example"
+msgid "The estimation scene supplies ex:ateEstimate estimatesEstimand ex:ateEstimand and separately estimatedParameter ex:betaTreatment. Those are declared target associations; their coexistence does not prove that the coefficient identifies the population treatment effect."
+msgstr "La scène d’estimation fournit ex:ateEstimate estimatesEstimand ex:ateEstimand et, séparément, estimatedParameter ex:betaTreatment. Ce sont des associations de cible déclarées ; leur coexistence ne prouve pas que le coefficient identifie l’effet du traitement dans la population."
+
+msgctxt "https://blackcatinformatics.ca/math/estimatesEstimand|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when a source supplies the target estimand of an estimation result, retaining its actual definition and study or model context alongside any separately named model parameter."
+msgstr "Utiliser lorsqu’une source fournit l’estimande cible d’un résultat d’estimation, en conservant sa définition effective et son contexte d’étude ou de modèle avec tout paramètre de modèle nommé séparément."
+
+msgctxt "https://blackcatinformatics.ca/math/estimatesEstimand|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid reversing the result-to-target edge, substituting a numerical estimate or estimator for the target, or demanding this particular target arm when estimatedParameter already supplies the alternative. Do not infer causal identification from a coefficient or label."
+msgstr "Éviter d’inverser le lien du résultat vers la cible, de substituer une estimation numérique ou un estimateur à la cible, ou d’exiger ce choix de cible particulier lorsque estimatedParameter fournit déjà l’autre possibilité. Ne pas déduire une identification causale d’un coefficient ou d’un libellé."
+
+msgctxt "https://blackcatinformatics.ca/math/estimatesEstimand|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Keep Estimate as subject and the supplied Estimand as object, with its actual target definition and framing evidence. Preserve the separate estimator and any estimatedParameter or estimateValue links without forcing both target arms, inventing missing context or claiming a completed estimation."
+msgstr "Garder Estimate comme sujet et l’Estimand fourni comme objet, avec sa définition effective de cible et ses éléments probants de cadrage. Préserver l’estimateur séparé et tout lien estimatedParameter ou estimateValue sans imposer les deux cibles, inventer le contexte manquant ou revendiquer une estimation achevée."
+
+msgctxt "https://blackcatinformatics.ca/math/estimatedParameter|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "estimated parameter"
+msgstr "paramètre estimé"
+
+msgctxt "https://blackcatinformatics.ca/math/estimatedParameter|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Relates a math:Estimate to a model parameter named as a target of estimation. Domain math:Estimate, range the model parameter (stated in prose). The companion of math:estimatesEstimand for a model-quantity target; it does not establish that this parameter equals or identifies a separately supplied substantive estimand."
+msgstr "Relie une math:Estimate à un paramètre de modèle nommé comme cible d’estimation. Domaine : math:Estimate ; portée : le paramètre de modèle (indiqués en prose). Le complément de math:estimatesEstimand pour une cible de quantité de modèle ; cela n’établit pas que ce paramètre est égal à un estimande substantiel fourni séparément ou qu’il l’identifie."
+
+msgctxt "https://blackcatinformatics.ca/math/estimatedParameter|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This names a supplied model-quantity target, distinct from its estimated value and the procedure used. A parameter can itself be the specified estimand, but a parameter association alone neither defines every study target nor identifies it causally. No new dedicated parameter class or numerical result is inferred."
+msgstr "Nomme une cible de quantité de modèle fournie, distincte de sa valeur estimée et de la procédure employée. Un paramètre peut lui-même être l’estimande spécifié, mais une association de paramètre seule ne définit pas toute cible d’étude et ne l’identifie pas causalement. Aucune nouvelle classe dédiée de paramètre ni aucun résultat numérique n’est inféré."
+
+msgctxt "https://blackcatinformatics.ca/math/estimatedParameter|http://www.w3.org/2004/02/skos/core#example"
+msgid "The native R coefficient path emits an Estimate linked through estimatedParameter to a generic MathematicalObject parameter resource and through estimator to a method resource. Coefficient labels are inferred from formula terms; no numerical coefficient value or general study estimand is emitted by that path."
+msgstr "Le chemin R natif des coefficients émet une Estimate reliée par estimatedParameter à une ressource de paramètre MathematicalObject générique et par estimator à une ressource de méthode. Les libellés de coefficients sont inférés des termes de formule ; ce chemin n’émet ni valeur numérique de coefficient ni estimande général d’étude."
+
+msgctxt "https://blackcatinformatics.ca/math/estimatedParameter|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain a source-supplied model parameter targeted by an estimate, including a parameter that is itself the specified estimand, while keeping model and substantive-target meanings explicit."
+msgstr "Utiliser pour conserver un paramètre de modèle fourni par une source et ciblé par une estimation, y compris un paramètre qui est lui-même l’estimande spécifié, tout en gardant explicites les sens de modèle et de cible substantielle."
+
+msgctxt "https://blackcatinformatics.ca/math/estimatedParameter|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid using the estimated numerical value as the target parameter, claiming every formula term is a fitted coefficient, or inferring actual coefficient identity from a source-lifted name. Do not treat this link as proof that a model coefficient identifies a causal study target."
+msgstr "Éviter d’employer la valeur numérique estimée comme paramètre cible, d’affirmer que tout terme de formule est un coefficient ajusté ou de déduire l’identité effective d’un coefficient d’un nom traduit depuis une source. Ne pas traiter ce lien comme une preuve qu’un coefficient de modèle identifie une cible causale d’étude."
+
+msgctxt "https://blackcatinformatics.ca/math/estimatedParameter|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Keep Estimate as subject and the actual target parameter resource as object, alongside the separately supplied estimator and any estimatesEstimand context. Preserve source terms, model specification and identity limits; do not manufacture parameter values, categorical contrast columns or a verified fitted result."
+msgstr "Garder Estimate comme sujet et la ressource réelle de paramètre cible comme objet, avec l’estimateur fourni séparément et tout contexte estimatesEstimand. Préserver les termes sources, la spécification du modèle et les limites d’identité ; ne pas fabriquer de valeurs de paramètres, de colonnes de contraste catégoriel ou de résultat ajusté vérifié."
+
+msgctxt "https://blackcatinformatics.ca/math/estimateValue|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "estimate value"
+msgstr "valeur de l’estimation"
+
+msgctxt "https://blackcatinformatics.ca/math/estimateValue|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Relates a math:Estimate to the value it carries — a math:Quantity or number. Domain math:Estimate, range the estimated value (stated in prose). The produced value, distinct from the estimand it estimates and the estimator that produced it."
+msgstr "Relie une math:Estimate à la valeur qu’elle porte — une math:Quantity ou un nombre. Domaine : math:Estimate ; portée : la valeur estimée (indiqués en prose). La valeur produite, distincte de l’estimande qu’elle estime et de l’estimateur qui l’a produite."
+
+msgctxt "https://blackcatinformatics.ca/math/estimateValue|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This is the result-to-value role, distinct from a target estimand, model parameter, estimator and inference activity. The inspected target and estimator requirements do not by themselves require or compute a numerical value; a supplied value reference is not proof of its numeric payload or validity."
+msgstr "Il s’agit du rôle de lien du résultat vers la valeur, distinct d’un estimande cible, d’un paramètre de modèle, d’un estimateur et d’une activité d’inférence. Les exigences de cible et d’estimateur examinées ne requièrent ni ne calculent à elles seules une valeur numérique ; une référence de valeur fournie ne prouve ni son contenu numérique ni sa validité."
+
+msgctxt "https://blackcatinformatics.ca/math/estimateValue|http://www.w3.org/2004/02/skos/core#example"
+msgid "The positive estimate fixture links ex:treatmentEffectEstimate to ex:effectValue through estimateValue, without supplying a numerical payload on that value. The estimation scene separately labels ex:ateValue as +0.11; the label is not a structured magnitude or an executed IPW calculation."
+msgstr "Le jeu de données positif d’estimation relie ex:treatmentEffectEstimate à ex:effectValue par estimateValue, sans fournir de contenu numérique sur cette valeur. La scène d’estimation donne séparément à ex:ateValue un libellé indiquant +0.11 ; ce libellé n’est ni une grandeur structurée ni un calcul IPW exécuté."
+
+msgctxt "https://blackcatinformatics.ca/math/estimateValue|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain a result value actually supplied for an estimate, with its available quantity, exactness, unit, frame and provenance information rather than guessing a number from a result label."
+msgstr "Utiliser pour conserver une valeur de résultat effectivement fournie pour une estimation, avec les informations disponibles de quantité, d’exactitude, d’unité, de cadre et de provenance, plutôt que de deviner un nombre à partir d’un libellé de résultat."
+
+msgctxt "https://blackcatinformatics.ca/math/estimateValue|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid using the target parameter, estimand, procedure or process as the produced value, or inventing a magnitude to make a sparse record appear computed. Absence of this link is not by itself the inspected UnderspecifiedEstimate target-or-method failure."
+msgstr "Éviter d’employer le paramètre cible, l’estimande, la procédure ou le processus comme valeur produite, ou d’inventer une grandeur pour faire paraître calculé un enregistrement sommaire. L’absence de ce lien ne constitue pas à elle seule l’échec de cible ou de méthode UnderspecifiedEstimate examiné."
+
+msgctxt "https://blackcatinformatics.ca/math/estimateValue|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Keep Estimate as subject and its supplied value resource as object, preserving the source representation and any actual numeric and framing evidence. Report missing value data or unavailable evaluation explicitly without asserting a universal value-presence gate, copying a label into a numeric field or fabricating execution."
+msgstr "Garder Estimate comme sujet et sa ressource de valeur fournie comme objet, en préservant la représentation source et tout élément probant numérique ou de cadrage effectif. Signaler explicitement les données de valeur manquantes ou l’évaluation indisponible sans affirmer une exigence universelle de présence de valeur, copier un libellé dans un champ numérique ou fabriquer une exécution."
+
+msgctxt "https://blackcatinformatics.ca/math/estimator|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "estimator"
+msgstr "estimateur"
+
+msgctxt "https://blackcatinformatics.ca/math/estimator|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Relates a math:Estimate to its supplied math:Estimator — the rule or procedure, a function of the data (ordinary least squares, maximum likelihood, …). Domain math:Estimate, range math:Estimator (stated in prose). An estimate names its estimation procedure; an estimate naming no estimator is underspecified (math:UnderspecifiedEstimate). The link identifies the described procedure without itself establishing execution or a computed value."
+msgstr "Relie une math:Estimate à son math:Estimator fourni — la règle ou procédure, une fonction des données (moindres carrés ordinaires, maximum de vraisemblance, …). Domaine math:Estimate, portée math:Estimator (énoncés en prose). Une estimation nomme sa procédure d’estimation ; une estimation ne nommant aucun estimateur est insuffisamment spécifiée (math:UnderspecifiedEstimate). Le lien identifie la procédure décrite sans établir à lui seul son exécution ni l’existence d’une valeur calculée."
+
+msgctxt "https://blackcatinformatics.ca/math/estimator|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This identifies the estimation procedure, not the generating InferenceRun, target quantity or numerical output. Retain the actual method and relevant options; a method name inferred from an R callee is not proof of execution or faithful selection of every estimation variant."
+msgstr "Identifie la procédure d’estimation, non l’InferenceRun générateur, la quantité cible ou la sortie numérique. Conserver la méthode réelle et les options pertinentes ; un nom de méthode inféré d’un appel R ne prouve ni exécution ni sélection fidèle de toute variante d’estimation."
+
+msgctxt "https://blackcatinformatics.ca/math/estimator|http://www.w3.org/2004/02/skos/core#example"
+msgid "The positive fixture supplies ex:treatmentEffectEstimate estimator ex:olsEstimator and types ex:olsEstimator as Estimator. The negative counterpart keeps its target and value links but omits estimator; this is a declared missing-method boundary, not an executed fitting test."
+msgstr "Le jeu de données positif fournit ex:treatmentEffectEstimate estimator ex:olsEstimator et type ex:olsEstimator comme Estimator. Son pendant négatif conserve ses liens de cible et de valeur mais omet estimator ; il s’agit d’une limite déclarée de méthode manquante, non d’un test d’ajustement exécuté."
+
+msgctxt "https://blackcatinformatics.ca/math/estimator|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to name the supplied rule or procedure for an estimation-result record, preserving its method-specific assumptions and options separately from the activity that applies it."
+msgstr "Utiliser pour nommer la règle ou la procédure fournie pour un enregistrement de résultat d’estimation, en préservant les hypothèses et options propres à sa méthode séparément de l’activité qui l’applique."
+
+msgctxt "https://blackcatinformatics.ca/math/estimator|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid substituting a run, model parameter or numeric result for the estimator, or inferring a valid method from a callee name without checking relevant source options. A present procedure link does not establish a computed result or complete target admission."
+msgstr "Éviter de substituer une exécution, un paramètre de modèle ou un résultat numérique à l’estimateur, ou de déduire une méthode valide d’un nom de fonction appelée sans vérifier les options sources pertinentes. Un lien de procédure présent n’établit ni résultat calculé ni admission complète de cible."
+
+msgctxt "https://blackcatinformatics.ca/math/estimator|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Keep Estimate as subject and the actual Estimator procedure as object, alongside at least one supplied target alternative. Preserve any generating activity, method settings, source distinctions and result evidence independently; do not invent a method or successful calculation to satisfy a reference requirement."
+msgstr "Garder Estimate comme sujet et la procédure Estimator effective comme objet, avec au moins une cible possible fournie. Préserver indépendamment toute activité génératrice, tout réglage de méthode, toute distinction source et tout élément probant de résultat ; ne pas inventer de méthode ou de calcul réussi pour satisfaire une exigence de référence."
+
+msgctxt "https://blackcatinformatics.ca/math/UnderspecifiedEstimate|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The ill-formed-estimate finding, distinct from math:IllFramedPValue (an ambiguous p-value) and math:UnframedEffectSize (an uninterpretable magnitude). The condition is absence of both target alternatives or absence of the estimator, not a requirement that every estimate name both targets. Its absence does not establish numerical evaluation, a complete study frame or faithful source identity."
+msgstr "La constatation d’estimation mal formée, distincte de math:IllFramedPValue (une valeur p ambiguë) et de math:UnframedEffectSize (une grandeur ininterprétable). La condition est l’absence des deux cibles possibles ou l’absence de l’estimateur, non l’exigence que toute estimation nomme les deux cibles. L’absence de cette constatation n’établit ni évaluation numérique, ni cadre d’étude complet, ni identité source fidèle."
+
+msgctxt "https://blackcatinformatics.ca/math/UnderspecifiedEstimate|http://www.w3.org/2004/02/skos/core#example"
+msgid "exf:bareEstimate a math:UnderspecifiedEstimate ."
+msgstr "exf:bareEstimate a math:UnderspecifiedEstimate ."
+
+msgctxt "https://blackcatinformatics.ca/math/UnderspecifiedEstimate|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when an Estimate names neither estimatesEstimand nor estimatedParameter, or has no estimator procedure reference. Retain the actual missing role; an absent numerical value, failed computation or unqualified target identification is not automatically this specific reference failure."
+msgstr "Utiliser lorsqu’une Estimate ne nomme ni estimatesEstimand ni estimatedParameter, ou ne possède pas de référence de procédure par estimator. Conserver le rôle effectivement manquant ; une valeur numérique absente, un calcul échoué ou une identification de cible non qualifiée ne constitue pas automatiquement cet échec spécifique de référence."
+
+msgctxt "https://blackcatinformatics.ca/math/UnderspecifiedEstimate|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Do not mint an estimate that names no estimand and no estimated parameter, or no estimator; that omission is precisely this failure, not a shorthand."
+msgstr "Ne pas créer d’estimation qui ne nomme ni estimande ni paramètre estimé, ou aucun estimateur ; cette omission est précisément cet échec, non un raccourci."
+
+msgctxt "https://blackcatinformatics.ca/math/UnderspecifiedEstimate|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Detected when a math:Estimate names neither math:estimatesEstimand nor math:estimatedParameter, or names no math:estimator; give an estimate its target and its act to avoid it."
+msgstr "Détectée lorsqu’une math:Estimate ne nomme ni math:estimatesEstimand ni math:estimatedParameter, ou ne nomme aucun math:estimator ; donner à une estimation sa cible et son acte pour l’éviter."
