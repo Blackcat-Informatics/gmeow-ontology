@@ -269,24 +269,24 @@ msgid "Estimand"
 msgstr "估计目标"
 
 msgctxt "https://blackcatinformatics.ca/math/Estimand|skos:definition"
-msgid "An estimand: the target quantity a study is actually trying to learn — the thing an estimate speaks about, distinct from any coefficient inside a particular model. A subclass of math:MathematicalObject framed by the six coordinates that make it well-posed: the target population it refers to (math:targetPopulation), the outcome measured on that population (math:targetOutcome), the contrast between conditions it compares (math:targetContrast, a math:StatisticalContrast), the time or horizon it is defined at (math:targetTime), the intervention condition it conditions on (math:interventionCondition), and the missing-data policy under which it is defined (math:missingDataPolicy). This framing is load-bearing for causal inference, surveys, trials, and policy models, where the same estimand (an average treatment effect) can be targeted by different parameters under different models. An estimate names its estimand through math:estimatesEstimand; an estimand held apart from the model parameter is what keeps the target of inference from being read off a coefficient."
-msgstr "一个估计目标：一项研究真正想要认识的目标量——一个估计所论及之物，区别于某个特定模型内部的任何系数。它是 math:MathematicalObject 的子类，由使其良定的六个坐标赋予框架：它所指向的目标总体（math:targetPopulation）、在该总体上所测的结局（math:targetOutcome）、它所比较的各方之间的对比（math:targetContrast，一个 math:StatisticalContrast）、它被定义所在的时间或时程（math:targetTime）、它所条件化的干预条件（math:interventionCondition），以及它被定义所依据的缺失数据策略（math:missingDataPolicy）。此框架对因果推断、调查、试验与政策模型至关重要，其中同一个估计目标（一个平均处理效应）可在不同模型下由不同参数所指向。一个估计通过 math:estimatesEstimand 命名其估计目标；将估计目标与模型参数分开，正是使推断之靶不至于从某个系数上读取。"
+msgid "An estimand: the target quantity a study seeks to learn, which may be a population summary, a causal contrast or an explicitly specified parameter of a math:StatisticalModel. A subclass of math:MathematicalObject, named from an estimate through math:estimatesEstimand. The vocabulary provides math:targetPopulation, math:targetOutcome, math:targetContrast (a math:StatisticalContrast), math:targetTime, math:interventionCondition and math:missingDataPolicy to describe relevant study context. This causal-study framing is not a universal mathematical definition or a demonstrated required-path gate for every estimand. A coefficient name alone does not identify the substantive target, and a declared frame alone does not establish causal identification or a valid treatment of missing data or intercurrent events."
+msgstr "估计目标：研究试图认识的目标量，可以是总体汇总量、因果对比或显式指定的 math:StatisticalModel 参数。它是 math:MathematicalObject 的子类，由估计值通过 math:estimatesEstimand 指明。词汇提供 math:targetPopulation、math:targetOutcome、math:targetContrast（math:StatisticalContrast）、math:targetTime、math:interventionCondition 及 math:missingDataPolicy，用于描述相关研究上下文。此因果研究框架不是每个估计目标的普遍数学定义，也不是已证实的必需路径门槛。仅有系数名称不指明实质性目标，仅有已声明框架也不确立因果识别或对缺失数据或伴发事件的有效处理。"
 
 msgctxt "https://blackcatinformatics.ca/math/Estimate|rdfs:label"
 msgid "Estimate"
 msgstr "估计值"
 
 msgctxt "https://blackcatinformatics.ca/math/Estimate|skos:definition"
-msgid "An estimate: a produced value that estimates an estimand (math:estimatesEstimand) and, where relevant, a model parameter (math:estimatedParameter), carrying its value (math:estimateValue) and the estimator that produced it (math:estimator). A subclass of math:MathematicalObject and the structured result object of the process / result / claim separation — neither the analysis activity nor the held claim, and never a bare number: it fixes both WHAT it estimates (its estimand and/or its estimated parameter) and HOW (the estimator that produced it), and one naming neither its target quantity nor a model parameter, or naming no estimator, is underspecified (math:UnderspecifiedEstimate). The R broom tidy triple lifts model coefficients onto these objects."
-msgstr "一个估计值：一个产出的值，它估计一个估计目标（math:estimatesEstimand），并在相关时估计一个模型参数（math:estimatedParameter），承载其值（math:estimateValue）与产出它的估计量（math:estimator）。它是 math:MathematicalObject 的子类，也是过程／结果／主张分离中的结构化结果对象——既非分析活动，亦非所持的主张，并且绝不是裸数：它同时固定估计什么（其估计目标和／或被估参数）以及如何估计（产出它的估计量）；既不命名目标量或模型参数，或不命名估计量的估计值，是欠指定的（math:UnderspecifiedEstimate）。R 中 broom 的 tidy 三元组将模型系数提升到这些对象之上。"
+msgid "An estimate: a structured estimation-result record naming at least one target through math:estimatesEstimand or math:estimatedParameter and its estimation procedure through math:estimator. A supplied result value is carried through math:estimateValue. A subclass of math:MathematicalObject, distinct in role from the analysis activity and the held claim about a result. Naming neither target alternative, or naming no estimator, is underspecified (math:UnderspecifiedEstimate). The R source lift can emit target and procedure records without a numerical result or qualified coefficient identity; those records do not establish that estimation executed."
+msgstr "估计值：结构化估计结果记录，通过 math:estimatesEstimand 或 math:estimatedParameter 指明至少一个目标，并通过 math:estimator 指明估计方法。所提供结果值通过 math:estimateValue 承载。它是 math:MathematicalObject 的子类，其角色不同于分析活动及关于结果所持声称。未指明任一目标备选，或未指明估计量，即属欠指定（math:UnderspecifiedEstimate）。R 来源提升可以输出目标及方法记录，而不提供数值结果或已获资格认定的系数身份；这些记录不确立估计已执行。"
 
 msgctxt "https://blackcatinformatics.ca/math/Estimator|rdfs:label"
 msgid "Estimator"
 msgstr "估计量"
 
 msgctxt "https://blackcatinformatics.ca/math/Estimator|skos:definition"
-msgid "An estimator: the estimation PROCEDURE — a rule that is a function of the data (ordinary least squares, maximum likelihood, the method of moments, an inverse-probability-weighted estimator) — held strictly apart from the estimate it produces and the estimand it targets. A subclass of math:MathematicalObject; an estimate names the estimator that produced it through math:estimator, so a produced value is never a bare number without the procedure that computed it. The estimator is the map from data to a value; the math:Estimate is one output of applying it, and the math:Estimand is the quantity it aims at — three distinct objects, never collapsed."
-msgstr "一个估计量：估计程序——一条作为数据函数的规则（普通最小二乘、极大似然、矩法、逆概率加权估计量）——与它所产出的估计值以及它所指向的估计目标严格分开。它是 math:MathematicalObject 的子类；一个估计通过 math:estimator 命名产出它的估计量，因而一个产出的值绝非缺少计算它之程序的裸数。估计量是从数据到值的映射；math:Estimate 是施用它的一个输出，而 math:Estimand 是它所瞄准的量——三个不同的对象，绝不混同。"
+msgid "An estimator: an estimation rule or procedure mapping data to a value used to estimate a target, such as ordinary least squares, maximum likelihood, the method of moments or an inverse-probability-weighted estimator. A subclass of math:MathematicalObject, referenced from a math:Estimate through math:estimator. The math:Estimand is its target and the math:Estimate records a particular result; these roles differ from the math:InferenceRun that applies the procedure. An estimator that is a function of the data can also be a math:Statistic; role overlap does not identify a function with its realized output or prove that the procedure executed."
+msgstr "估计量：将数据映射到用于估计目标的值的估计规则或方法，例如普通最小二乘、极大似然、矩法或逆概率加权估计量。它是 math:MathematicalObject 的子类，由 math:Estimate 通过 math:estimator 引用。math:Estimand 是其目标，math:Estimate 记录特定结果；这些角色不同于应用该方法的 math:InferenceRun。作为数据函数的估计量也可以是 math:Statistic；角色重叠不将函数等同于其实现输出，也不证明方法已执行。"
 
 msgctxt "https://blackcatinformatics.ca/math/exactTail|rdfs:label"
 msgid "exact"
@@ -869,8 +869,8 @@ msgid "Statistic"
 msgstr "统计量"
 
 msgctxt "https://blackcatinformatics.ca/math/Statistic|skos:definition"
-msgid "A statistic: any function of the data — a summary computed from a math:Sample or math:DatasetMatrix (a sample mean, a variance, a test statistic, an order statistic). A subclass of math:MathematicalObject naming the computed quantity as a first-class object, distinct from the math:Estimator (the procedure) and from the math:Estimand (the target it may estimate). A statistic used as an estimator estimates an estimand; a statistic used as a test statistic drives a hypothesis test — but the object is a function of the data either way, never conflated with the frame it is used in."
-msgstr "一个统计量：数据的任何函数——从一个 math:Sample 或 math:DatasetMatrix 计算出的摘要（一个样本均值、一个方差、一个检验统计量、一个次序统计量）。它是 math:MathematicalObject 的子类，将所计算的量命名为头等对象，区别于 math:Estimator（程序）与 math:Estimand（它可能估计的靶）。一个用作估计量的统计量估计一个估计目标；一个用作检验统计量的统计量驱动一个假设检验——但无论哪种情形，该对象都是数据的函数，绝不与它被使用于其中的框架混同。"
+msgid "A statistic: a function of observed data whose definition does not depend on unknown model parameters, such as a sample mean, sample variance, test statistic or order statistic. A subclass of math:MathematicalObject describing the data-dependent mathematical quantity. Distinguish the function from its realized value on a particular math:Sample or math:DatasetMatrix. The same function can serve as a math:Estimator when used to estimate a math:Estimand, or as a test statistic in a hypothesis test; a type declaration alone does not establish a computed value."
+msgstr "统计量：定义不依赖未知模型参数的观测数据函数，例如样本均值、样本方差、检验统计量或次序统计量。它是 math:MathematicalObject 的子类，描述依赖数据的数学量。区分函数及其在特定 math:Sample 或 math:DatasetMatrix 上的实现值。同一函数用于估计 math:Estimand 时可充当 math:Estimator，也可在假设检验中充当检验统计量；仅有类型声明不确立计算所得值。"
 
 msgctxt "https://blackcatinformatics.ca/math/StatisticalContrast|rdfs:label"
 msgid "Statistical Contrast"
@@ -16732,3 +16732,217 @@ msgstr "避免将每个单独的 StatisticalModel 都报告为未拟合、将数
 msgctxt "https://blackcatinformatics.ca/math/UnfittedModel|https://blackcatinformatics.ca/gmeow/howToUse"
 msgid "Identify the FittedModel and which required reference is absent, preserving the actual declaration and source evidence. Supply a real source reference only when available; keep payload availability, formula structure, fitting-option identity and numerical qualification separately evidenced instead of fabricating a successful fit."
 msgstr "指明 FittedModel 及缺失的必需引用，保留实际声明及来源依据。仅在实际来源引用可用时补充该引用；分别保留载荷可用性、公式结构、拟合选项身份及数值资格认定依据，不编造成功拟合。"
+
+# Estimation guidance.
+
+msgctxt "https://blackcatinformatics.ca/math/Estimate|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The estimation-result record is distinct from its supplied value, the math:Estimand it targets, the math:Estimator procedure and the math:InferenceRun activity. The canonical target alternatives are inclusive: an estimand, an estimated parameter or both, with an estimator required separately. The inspected target and method obligations do not establish a universal estimateValue-presence gate or numerical evaluation."
+msgstr "估计结果记录不同于其所提供的值、目标 math:Estimand、math:Estimator 方法及 math:InferenceRun 活动。规范目标备选是包容的：估计目标、被估参数或两者均可，估计量则另行必需。所检查目标及方法义务不确立普遍的 estimateValue 存在性门槛，也不确立数值求值。"
+
+msgctxt "https://blackcatinformatics.ca/math/Estimate|http://www.w3.org/2004/02/skos/core#example"
+msgid "exf:betaHat a math:Estimate ; math:estimatesEstimand exf:ateEstimand ; math:estimator exf:olsEstimator ; math:estimateValue exf:betaValue ."
+msgstr "exf:betaHat a math:Estimate ; math:estimatesEstimand exf:ateEstimand ; math:estimator exf:olsEstimator ; math:estimateValue exf:betaValue ."
+
+msgctxt "https://blackcatinformatics.ca/math/Estimate|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for a supplied estimation-result record whose target is an estimand, a model parameter or both, retaining the procedure and any actually supplied value and execution evidence without inventing a missing target or computation."
+msgstr "用于所提供的估计结果记录，其目标是估计目标、模型参数或两者，保留方法及任何实际提供的值和执行依据，不编造缺失目标或计算。"
+
+msgctxt "https://blackcatinformatics.ca/math/Estimate|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Do not use it for the estimation activity (a math:InferenceRun) nor for the held claim about the value; an estimate that names no math:estimator is a math:UnderspecifiedEstimate."
+msgstr "不要将其用于估计活动（math:InferenceRun）或关于该值所持声称；未指明 math:estimator 的估计值为 math:UnderspecifiedEstimate。"
+
+msgctxt "https://blackcatinformatics.ca/math/Estimate|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Keep the Estimate resource, at least one supplied estimatesEstimand or estimatedParameter target, and its estimator procedure. Retain estimateValue and generation, data and source context where supplied; a procedure link is not the generating activity, and structural admission does not prove a numeric result or complete source identity."
+msgstr "保留 Estimate 资源、至少一个所提供的 estimatesEstimand 或 estimatedParameter 目标，以及 estimator 方法。保留所提供的 estimateValue 及生成、数据和来源上下文；方法链接不是生成活动，结构准入不证明数值结果或完整来源身份。"
+
+msgctxt "https://blackcatinformatics.ca/math/Estimator|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The data-to-value procedure, distinct in role from the math:Estimand target, math:Estimate result and execution activity. A function used for estimation can also serve as a math:Statistic; these mathematical roles need not require different function resources. A named method does not establish that all source options or numerical execution are qualified."
+msgstr "数据到值的方法，其角色不同于 math:Estimand 目标、math:Estimate 结果及执行活动。用于估计的函数也可充当 math:Statistic；这些数学角色不必要求不同的函数资源。具名方法不确立全部来源选项或数值执行均已获资格认定。"
+
+msgctxt "https://blackcatinformatics.ca/math/Estimator|http://www.w3.org/2004/02/skos/core#example"
+msgid "exf:olsEstimator a math:Estimator . exf:estIncome math:estimator exf:olsEstimator ."
+msgstr "exf:olsEstimator a math:Estimator . exf:estIncome math:estimator exf:olsEstimator ."
+
+msgctxt "https://blackcatinformatics.ca/math/Estimator|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Mint one for the estimation procedure, a rule that is a function of the data such as ordinary least squares or maximum likelihood, held apart from the value it yields."
+msgstr "为估计方法创建一个对象，该方法是数据的函数规则，例如普通最小二乘或极大似然，并与其产出值分开。"
+
+msgctxt "https://blackcatinformatics.ca/math/Estimator|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Do not conflate it with the number it produces or the quantity it targets; it is the map from data to value, not the value or the target."
+msgstr "不要将其与产出数字或目标量混淆；它是数据到值的映射，而非该值或目标。"
+
+msgctxt "https://blackcatinformatics.ca/math/Estimator|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Reference the supplied procedure from a math:Estimate through math:estimator. Retain any actual value and generating math:InferenceRun separately; naming the procedure does not by itself establish that it ran or computed a numerical result."
+msgstr "从 math:Estimate 通过 math:estimator 引用所提供方法。另行保留任何实际值及生成活动 math:InferenceRun；指明方法本身不确立其已运行或已计算数值结果。"
+
+msgctxt "https://blackcatinformatics.ca/math/Estimand|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The target of inference, distinct in role from the math:Estimator procedure and the math:Estimate estimation-result record. A record's supplied value is separate from these roles; a target association does not prove that a numerical result is present or that estimation executed."
+msgstr "推断目标，其角色不同于 math:Estimator 方法及 math:Estimate 估计结果记录。记录所提供的值与这些角色分开；目标关联不证明数值结果存在或估计已执行。"
+
+msgctxt "https://blackcatinformatics.ca/math/Estimand|http://www.w3.org/2004/02/skos/core#example"
+msgid "exf:ate a math:Estimand ; math:targetPopulation exf:adultsCanada ; math:targetContrast exf:treatVsControl ; math:interventionCondition exf:drugArm ."
+msgstr "exf:ate a math:Estimand ; math:targetPopulation exf:adultsCanada ; math:targetContrast exf:treatVsControl ; math:interventionCondition exf:drugArm ."
+
+msgctxt "https://blackcatinformatics.ca/math/Estimand|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Mint one to identify the target quantity a study seeks to learn, retaining whether it is a substantive population or causal target or an explicitly specified model parameter rather than assuming the target from a coefficient name."
+msgstr "创建一个对象来指明研究试图认识的目标量，保留其为实质性总体或因果目标，还是显式指定模型参数这一信息，不根据系数名称假定目标。"
+
+msgctxt "https://blackcatinformatics.ca/math/Estimand|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Do not infer a substantive estimand or its causal identification from a model parameter or six named framing roles alone. The same target may be addressed under different models, and a model parameter may itself be the specified target; do not invent an intervention or missing-data policy for a general mathematical quantity."
+msgstr "不要仅根据模型参数或六个具名框架角色推断实质性估计目标或其因果识别。同一目标可在不同模型下处理，模型参数本身也可作为指定目标；不要为一般数学量编造干预或缺失数据策略。"
+
+msgctxt "https://blackcatinformatics.ca/math/Estimand|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the actual target definition and relevant supplied math:targetPopulation, math:targetOutcome, math:targetContrast, math:targetTime, math:interventionCondition and math:missingDataPolicy context; an estimate names it through math:estimatesEstimand. Preserve absent or inapplicable context explicitly without manufacturing causal meaning or claiming a universal six-field admission check."
+msgstr "保留实际目标定义及相关的所提供 math:targetPopulation、math:targetOutcome、math:targetContrast、math:targetTime、math:interventionCondition 和 math:missingDataPolicy 上下文；估计值通过 math:estimatesEstimand 指明它。显式保留缺失或不适用的上下文状态，不制造因果含义，也不声称存在普遍的六字段准入检查。"
+
+msgctxt "https://blackcatinformatics.ca/math/Statistic|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "A statistic as a data function and its observed realization are different mathematical roles; the observed value is not the function itself. Estimator and statistic roles can overlap for the same data function. Preserve the actual definition, inputs and realization evidence rather than treating a label or bare type as an evaluated summary."
+msgstr "作为数据函数的统计量与其观测实现是不同数学角色；观测值不是函数本身。Estimator 和统计量角色可以在同一数据函数上重叠。保留实际定义、输入及实现依据，不将标签或孤立类型视为已求值汇总结果。"
+
+msgctxt "https://blackcatinformatics.ca/math/Statistic|http://www.w3.org/2004/02/skos/core#example"
+msgid "exf:tStat a math:Statistic ."
+msgstr "exf:tStat a math:Statistic ."
+
+msgctxt "https://blackcatinformatics.ca/math/Statistic|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Mint one for a supplied data-dependent statistic, such as a mean, sample variance or test statistic, preserving its mathematical definition and whether any realized value on actual data is supplied."
+msgstr "为所提供的依赖数据统计量创建一个对象，例如均值、样本方差或检验统计量，保留其数学定义及是否提供实际数据上任何实现值这一信息。"
+
+msgctxt "https://blackcatinformatics.ca/math/Statistic|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Do not equate the function with one observed value or the target it estimates, or require a separate function merely because it also acts as an estimator. A statistic is defined without unknown parameters; a numerical label or type alone does not establish its inputs, evaluation or validity."
+msgstr "不要将函数等同于单个观测值或所估计目标，也不要仅因其同时充当估计量就要求单独函数。统计量定义不含未知参数；数值标签或类型本身不确立其输入、求值或有效性。"
+
+msgctxt "https://blackcatinformatics.ca/math/Statistic|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the Statistic and its actual function, data and realization descriptions in their existing representation. A hypothesis test can name its statistic through math:testStatistic; an estimation use may also have the estimator role. Keep any observed value and execution evidence explicit without inventing a new value relation or a completed calculation."
+msgstr "按现有表示保留 Statistic 及其实际函数、数据和实现描述。假设检验可通过 math:testStatistic 指明其统计量；用于估计时也可具有估计量角色。保持任何观测值及执行依据明确，不编造新值关系或已完成计算。"
+
+msgctxt "https://blackcatinformatics.ca/math/estimatesEstimand|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "estimates estimand"
+msgstr "所估计目标"
+
+msgctxt "https://blackcatinformatics.ca/math/estimatesEstimand|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Relates a math:Estimate to the math:Estimand it targets. Domain math:Estimate, range math:Estimand (stated in prose). The substantive or model-specific target is interpreted in its actual supplied context. The canonical target requirement accepts this link or math:estimatedParameter, or both, with math:estimator required separately; absence of both target alternatives or of the estimator is math:UnderspecifiedEstimate."
+msgstr "将 math:Estimate 关联到其目标 math:Estimand。定义域为 math:Estimate，值域为 math:Estimand（以文字说明）。实质性或特定模型目标按实际所提供上下文解释。规范目标要求接受此链接、math:estimatedParameter 或两者，并另行要求 math:estimator；两个目标备选均缺失或估计量缺失即为 math:UnderspecifiedEstimate。"
+
+msgctxt "https://blackcatinformatics.ca/math/estimatesEstimand|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The subject is the result record and the object is its target quantity, not the estimator procedure, numeric result or generating run. Supplying both target links does not establish that a named model parameter equals or identifies a substantive estimand."
+msgstr "主语是结果记录，宾语是其目标量，而非估计方法、数值结果或生成运行。提供两个目标链接不确立具名模型参数等于或指明实质性估计目标。"
+
+msgctxt "https://blackcatinformatics.ca/math/estimatesEstimand|http://www.w3.org/2004/02/skos/core#example"
+msgid "The estimation scene supplies ex:ateEstimate estimatesEstimand ex:ateEstimand and separately estimatedParameter ex:betaTreatment. Those are declared target associations; their coexistence does not prove that the coefficient identifies the population treatment effect."
+msgstr "估计场景提供 ex:ateEstimate estimatesEstimand ex:ateEstimand，并另行提供 estimatedParameter ex:betaTreatment。这些是已声明目标关联；它们并存不证明系数识别了总体处理效应。"
+
+msgctxt "https://blackcatinformatics.ca/math/estimatesEstimand|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when a source supplies the target estimand of an estimation result, retaining its actual definition and study or model context alongside any separately named model parameter."
+msgstr "当来源提供估计结果的估计目标时使用，保留实际定义及研究或模型上下文，连同任何另行指明的模型参数。"
+
+msgctxt "https://blackcatinformatics.ca/math/estimatesEstimand|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid reversing the result-to-target edge, substituting a numerical estimate or estimator for the target, or demanding this particular target arm when estimatedParameter already supplies the alternative. Do not infer causal identification from a coefficient or label."
+msgstr "避免反转结果到目标的边、以数值估计或估计量替代目标，或在 estimatedParameter 已提供备选时仍要求此特定目标分支。不要根据系数或标签推断因果识别。"
+
+msgctxt "https://blackcatinformatics.ca/math/estimatesEstimand|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Keep Estimate as subject and the supplied Estimand as object, with its actual target definition and framing evidence. Preserve the separate estimator and any estimatedParameter or estimateValue links without forcing both target arms, inventing missing context or claiming a completed estimation."
+msgstr "保留 Estimate 为主语，所提供的 Estimand 为宾语，连同实际目标定义及框架依据。保留单独的 estimator 及任何 estimatedParameter 或 estimateValue 链接，不强制两个目标分支、不编造缺失上下文，也不声称估计已完成。"
+
+msgctxt "https://blackcatinformatics.ca/math/estimatedParameter|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "estimated parameter"
+msgstr "被估计参数"
+
+msgctxt "https://blackcatinformatics.ca/math/estimatedParameter|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Relates a math:Estimate to a model parameter named as a target of estimation. Domain math:Estimate, range the model parameter (stated in prose). The companion of math:estimatesEstimand for a model-quantity target; it does not establish that this parameter equals or identifies a separately supplied substantive estimand."
+msgstr "将 math:Estimate 关联到作为估计目标指明的模型参数。定义域为 math:Estimate，值域为模型参数（以文字说明）。它是模型量目标所用 math:estimatesEstimand 的配套关系；它不确立此参数等于或指明另行提供的实质性估计目标。"
+
+msgctxt "https://blackcatinformatics.ca/math/estimatedParameter|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This names a supplied model-quantity target, distinct from its estimated value and the procedure used. A parameter can itself be the specified estimand, but a parameter association alone neither defines every study target nor identifies it causally. No new dedicated parameter class or numerical result is inferred."
+msgstr "此关系指明所提供的模型量目标，不同于其估计值及所用方法。参数本身可以是指定估计目标，但仅有参数关联既不定义每个研究目标，也不对其作因果识别。不推断新的专用参数类或数值结果。"
+
+msgctxt "https://blackcatinformatics.ca/math/estimatedParameter|http://www.w3.org/2004/02/skos/core#example"
+msgid "The native R coefficient path emits an Estimate linked through estimatedParameter to a generic MathematicalObject parameter resource and through estimator to a method resource. Coefficient labels are inferred from formula terms; no numerical coefficient value or general study estimand is emitted by that path."
+msgstr "原生 R 系数路径输出一个 Estimate，通过 estimatedParameter 链接到通用 MathematicalObject 参数资源，并通过 estimator 链接到方法资源。系数标签根据公式项推断；该路径不输出数值系数值或一般研究估计目标。"
+
+msgctxt "https://blackcatinformatics.ca/math/estimatedParameter|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain a source-supplied model parameter targeted by an estimate, including a parameter that is itself the specified estimand, while keeping model and substantive-target meanings explicit."
+msgstr "用于保留估计值所针对的来源提供模型参数，包括本身即为指定估计目标的参数，同时保持模型含义及实质性目标含义明确。"
+
+msgctxt "https://blackcatinformatics.ca/math/estimatedParameter|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid using the estimated numerical value as the target parameter, claiming every formula term is a fitted coefficient, or inferring actual coefficient identity from a source-lifted name. Do not treat this link as proof that a model coefficient identifies a causal study target."
+msgstr "避免将估计所得数值用作目标参数、声称每个公式项都是拟合系数，或根据来源提升名称推断实际系数身份。不要将此链接视为模型系数识别因果研究目标的证明。"
+
+msgctxt "https://blackcatinformatics.ca/math/estimatedParameter|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Keep Estimate as subject and the actual target parameter resource as object, alongside the separately supplied estimator and any estimatesEstimand context. Preserve source terms, model specification and identity limits; do not manufacture parameter values, categorical contrast columns or a verified fitted result."
+msgstr "保留 Estimate 为主语，实际目标参数资源为宾语，连同另行提供的 estimator 及任何 estimatesEstimand 上下文。保留来源项、模型说明及身份限制；不制造参数值、类别对比列或已验证拟合结果。"
+
+msgctxt "https://blackcatinformatics.ca/math/estimateValue|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "estimate value"
+msgstr "估计结果值"
+
+msgctxt "https://blackcatinformatics.ca/math/estimateValue|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Relates a math:Estimate to the value it carries — a math:Quantity or number. Domain math:Estimate, range the estimated value (stated in prose). The produced value, distinct from the estimand it estimates and the estimator that produced it."
+msgstr "将 math:Estimate 关联到其承载的值，即 math:Quantity 或数。定义域为 math:Estimate，值域为所估计值（以文字说明）。这是产出值，不同于所估计目标及产出它的估计量。"
+
+msgctxt "https://blackcatinformatics.ca/math/estimateValue|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This is the result-to-value role, distinct from a target estimand, model parameter, estimator and inference activity. The inspected target and estimator requirements do not by themselves require or compute a numerical value; a supplied value reference is not proof of its numeric payload or validity."
+msgstr "这是结果到值的角色，不同于估计目标、模型参数、估计量及推断活动。所检查目标及估计量要求本身不要求或计算数值；所提供值引用不是其数值载荷或有效性的证明。"
+
+msgctxt "https://blackcatinformatics.ca/math/estimateValue|http://www.w3.org/2004/02/skos/core#example"
+msgid "The positive estimate fixture links ex:treatmentEffectEstimate to ex:effectValue through estimateValue, without supplying a numerical payload on that value. The estimation scene separately labels ex:ateValue as +0.11; the label is not a structured magnitude or an executed IPW calculation."
+msgstr "估计正例夹具通过 estimateValue 将 ex:treatmentEffectEstimate 链接到 ex:effectValue，但未在该值上提供数值载荷。估计场景另行以 +0.11 为 ex:ateValue 的标签；该标签不是结构化数值，也不是已执行 IPW 计算。"
+
+msgctxt "https://blackcatinformatics.ca/math/estimateValue|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain a result value actually supplied for an estimate, with its available quantity, exactness, unit, frame and provenance information rather than guessing a number from a result label."
+msgstr "用于保留为估计值实际提供的结果值，连同可用的量、精确性、单位、参考系及来源溯源信息，不根据结果标签猜测数字。"
+
+msgctxt "https://blackcatinformatics.ca/math/estimateValue|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid using the target parameter, estimand, procedure or process as the produced value, or inventing a magnitude to make a sparse record appear computed. Absence of this link is not by itself the inspected UnderspecifiedEstimate target-or-method failure."
+msgstr "避免将目标参数、估计目标、方法或过程用作产出值，或编造数值使稀疏记录看似已计算。此链接缺失本身不是所检查的 UnderspecifiedEstimate 目标或方法失败。"
+
+msgctxt "https://blackcatinformatics.ca/math/estimateValue|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Keep Estimate as subject and its supplied value resource as object, preserving the source representation and any actual numeric and framing evidence. Report missing value data or unavailable evaluation explicitly without asserting a universal value-presence gate, copying a label into a numeric field or fabricating execution."
+msgstr "保留 Estimate 为主语，所提供的值资源为宾语，保留来源表示及任何实际数值和框架依据。显式报告值数据缺失或求值不可用，不声称普遍值存在性门槛、不将标签复制到数值字段，也不编造执行。"
+
+msgctxt "https://blackcatinformatics.ca/math/estimator|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "estimator"
+msgstr "估计量"
+
+msgctxt "https://blackcatinformatics.ca/math/estimator|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Relates a math:Estimate to its supplied math:Estimator — the rule or procedure, a function of the data (ordinary least squares, maximum likelihood, …). Domain math:Estimate, range math:Estimator (stated in prose). An estimate names its estimation procedure; an estimate naming no estimator is underspecified (math:UnderspecifiedEstimate). The link identifies the described procedure without itself establishing execution or a computed value."
+msgstr "将 math:Estimate 关联到所提供的 math:Estimator，即作为数据函数的规则或方法（普通最小二乘、极大似然、…）。定义域为 math:Estimate，值域为 math:Estimator（以文字说明）。估计值指明其估计方法；未指明估计量的估计值属欠指定（math:UnderspecifiedEstimate）。链接指明所描述方法，其本身不确立执行或计算所得值。"
+
+msgctxt "https://blackcatinformatics.ca/math/estimator|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This identifies the estimation procedure, not the generating InferenceRun, target quantity or numerical output. Retain the actual method and relevant options; a method name inferred from an R callee is not proof of execution or faithful selection of every estimation variant."
+msgstr "此关系指明估计方法，而非生成 InferenceRun、目标量或数值输出。保留实际方法及相关选项；根据 R 被调用者推断的方法名不是执行或忠实选择每个估计变体的证明。"
+
+msgctxt "https://blackcatinformatics.ca/math/estimator|http://www.w3.org/2004/02/skos/core#example"
+msgid "The positive fixture supplies ex:treatmentEffectEstimate estimator ex:olsEstimator and types ex:olsEstimator as Estimator. The negative counterpart keeps its target and value links but omits estimator; this is a declared missing-method boundary, not an executed fitting test."
+msgstr "正例夹具提供 ex:treatmentEffectEstimate estimator ex:olsEstimator，并将 ex:olsEstimator 标注为 Estimator。反例对应项保留目标及值链接，但省略 estimator；这是已声明的缺失方法边界，而非已执行拟合测试。"
+
+msgctxt "https://blackcatinformatics.ca/math/estimator|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to name the supplied rule or procedure for an estimation-result record, preserving its method-specific assumptions and options separately from the activity that applies it."
+msgstr "用于指明为估计结果记录提供的规则或方法，保留方法特定假设及选项，与应用该方法的活动分开。"
+
+msgctxt "https://blackcatinformatics.ca/math/estimator|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid substituting a run, model parameter or numeric result for the estimator, or inferring a valid method from a callee name without checking relevant source options. A present procedure link does not establish a computed result or complete target admission."
+msgstr "避免以运行、模型参数或数值结果替代估计量，或在未检查相关来源选项时根据被调用者名称推断有效方法。已存在方法链接不确立计算所得结果或完整目标准入。"
+
+msgctxt "https://blackcatinformatics.ca/math/estimator|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Keep Estimate as subject and the actual Estimator procedure as object, alongside at least one supplied target alternative. Preserve any generating activity, method settings, source distinctions and result evidence independently; do not invent a method or successful calculation to satisfy a reference requirement."
+msgstr "保留 Estimate 为主语，实际 Estimator 方法为宾语，连同至少一个所提供目标备选。独立保留任何生成活动、方法设置、来源差异及结果依据；不为满足引用要求而编造方法或成功计算。"
+
+msgctxt "https://blackcatinformatics.ca/math/UnderspecifiedEstimate|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The ill-formed-estimate finding, distinct from math:IllFramedPValue (an ambiguous p-value) and math:UnframedEffectSize (an uninterpretable magnitude). The condition is absence of both target alternatives or absence of the estimator, not a requirement that every estimate name both targets. Its absence does not establish numerical evaluation, a complete study frame or faithful source identity."
+msgstr "估计值不良形式诊断，不同于表示含糊 p 值的 math:IllFramedPValue 及表示无法解释数值的 math:UnframedEffectSize。条件是两个目标备选均缺失或估计量缺失，而非要求每个估计值指明两个目标。此诊断未出现不确立数值求值、完整研究框架或忠实来源身份。"
+
+msgctxt "https://blackcatinformatics.ca/math/UnderspecifiedEstimate|http://www.w3.org/2004/02/skos/core#example"
+msgid "exf:bareEstimate a math:UnderspecifiedEstimate ."
+msgstr "exf:bareEstimate a math:UnderspecifiedEstimate ."
+
+msgctxt "https://blackcatinformatics.ca/math/UnderspecifiedEstimate|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when an Estimate names neither estimatesEstimand nor estimatedParameter, or has no estimator procedure reference. Retain the actual missing role; an absent numerical value, failed computation or unqualified target identification is not automatically this specific reference failure."
+msgstr "当 Estimate 既未指明 estimatesEstimand 也未指明 estimatedParameter，或没有 estimator 方法引用时使用。保留实际缺失角色；数值缺失、计算失败或目标识别未获资格认定不会自动构成此特定引用失败。"
+
+msgctxt "https://blackcatinformatics.ca/math/UnderspecifiedEstimate|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Do not mint an estimate that names no estimand and no estimated parameter, or no estimator; that omission is precisely this failure, not a shorthand."
+msgstr "不要创建既未指明估计目标也未指明被估参数，或未指明估计量的估计值；这种省略正是此失败，而非简写。"
+
+msgctxt "https://blackcatinformatics.ca/math/UnderspecifiedEstimate|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Detected when a math:Estimate names neither math:estimatesEstimand nor math:estimatedParameter, or names no math:estimator; give an estimate its target and its act to avoid it."
+msgstr "当 math:Estimate 既未指明 math:estimatesEstimand 也未指明 math:estimatedParameter，或未指明 math:estimator 时检测到；为估计值提供其目标及方法以避免此失败。"

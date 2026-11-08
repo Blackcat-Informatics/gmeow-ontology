@@ -5,17 +5,18 @@
 # section. It keeps four things a naive report collapses strictly apart:
 #
 #   * the TARGET of inference — a math:Estimand (the average treatment effect of a
-#     drug on 5-year survival), framed by ALL SIX coordinates that make it well-posed:
+#     drug on 5-year survival), with six declared framing roles in this scene:
 #     math:targetPopulation, math:targetOutcome, math:targetContrast, math:targetTime,
 #     math:interventionCondition, and math:missingDataPolicy;
 #   * the MODEL QUANTITY — a coefficient the estimate names (math:estimatedParameter);
 #   * the PROCEDURE — a math:Estimator (an inverse-probability-weighted estimator);
-#   * the VALUE — a math:Estimate, the structured result object that names its estimand
+#   * the RESULT — a math:Estimate, the structured result object that names its estimand
 #     AND its estimator, so math:UnderspecifiedEstimateShape stays silent (a bare
 #     number naming neither its target nor its act would fire math:UnderspecifiedEstimate).
 #
-# A math:Statistic is a function of the data; a math:ModelAssumption (normality of
-# errors) is a first-class, checkable condition a math:FittedModel posits. The estimate
+# A math:Statistic describes a data function, not evidence of a computed value.
+# A math:ModelAssumption is a condition requiring appropriate methods and evidence;
+# naming it does not make every condition empirically testable. The estimate
 # is accompanied by a math:EffectSize (a Cohen's d) whose math:effectSizeContrast is the
 # SAME shared math:StatisticalContrast object the estimand targets (math:targetContrast)
 # — one modeled comparison, never two near-synonyms — so it satisfies
@@ -127,7 +128,8 @@ ex:survivalFit a math:FittedModel ;
 ex:trialMatrix a math:DatasetMatrix ;
     rdfs:label "Trial analysis data frame (by reference)"@x-gmeow-english .
 
-# The model formula is a binder AST over indexed argument slots, never a string.
+# The model formula supplies indexed expression slots rather than a source string.
+# This record supplies no BindingExpression type, operator or boundVariable.
 ex:survivalFormula a math:ModelFormula ;
     rdfs:label "survival ~ treatment + covariates"@x-gmeow-english ;
     math:argumentSlot ex:respSlot , ex:trtSlot .
@@ -150,7 +152,7 @@ ex:treatmentDeclaration a math:FreeVariableDeclaration ;
     math:variableDomain ex:modelVariableDomain ;
     rdfs:label "treatment — the design factor"@x-gmeow-english .
 
-# A first-class assumption the model posits — checkable by a diagnostic, not implicit.
+# A first-class stated assumption; this scene or a diagnostic does not establish its truth.
 ex:noUnmeasuredConfounding a math:ModelAssumption ;
     rdfs:label "No unmeasured confounding given the measured covariates"@x-gmeow-english .
 

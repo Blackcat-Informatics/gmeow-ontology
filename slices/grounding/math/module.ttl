@@ -7697,13 +7697,13 @@ math:Estimate
     rdfs:subClassOf math:MathematicalObject ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "Estimate"@x-gmeow-english ;
-    skos:definition "An estimate: a produced value that estimates an estimand (math:estimatesEstimand) and, where relevant, a model parameter (math:estimatedParameter), carrying its value (math:estimateValue) and the estimator that produced it (math:estimator). A subclass of math:MathematicalObject and the structured result object of the process / result / claim separation — neither the analysis activity nor the held claim, and never a bare number: it fixes both WHAT it estimates (its estimand and/or its estimated parameter) and HOW (the estimator that produced it), and one naming neither its target quantity nor a model parameter, or naming no estimator, is underspecified (math:UnderspecifiedEstimate). The R broom tidy triple lifts model coefficients onto these objects."@x-gmeow-english ;
+    skos:definition "An estimate: a structured estimation-result record naming at least one target through math:estimatesEstimand or math:estimatedParameter and its estimation procedure through math:estimator. A supplied result value is carried through math:estimateValue. A subclass of math:MathematicalObject, distinct in role from the analysis activity and the held claim about a result. Naming neither target alternative, or naming no estimator, is underspecified (math:UnderspecifiedEstimate). The R source lift can emit target and procedure records without a numerical result or qualified coefficient identity; those records do not establish that estimation executed."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox ;
-    gmeow:useWhen "Use to record a produced value that estimates an estimand — the structured result object carrying its value, its estimand, and the estimator that produced it."@x-gmeow-english ;
-    gmeow:avoidWhen "Do not use it for the estimation activity (an math:InferenceRun) nor for the held claim about the value; an estimate that names no math:estimator is a math:UnderspecifiedEstimate."@x-gmeow-english ;
-    gmeow:howToUse "Mint one per estimated value; link its target through math:estimatesEstimand, its producer through math:estimator, and its magnitude through math:estimateValue."@x-gmeow-english ;
+    gmeow:useWhen "Use for a supplied estimation-result record whose target is an estimand, a model parameter or both, retaining the procedure and any actually supplied value and execution evidence without inventing a missing target or computation."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not use it for the estimation activity (a math:InferenceRun) nor for the held claim about the value; an estimate that names no math:estimator is a math:UnderspecifiedEstimate."@x-gmeow-english ;
+    gmeow:howToUse "Keep the Estimate resource, at least one supplied estimatesEstimand or estimatedParameter target, and its estimator procedure. Retain estimateValue and generation, data and source context where supplied; a procedure link is not the generating activity, and structural admission does not prove a numeric result or complete source identity."@x-gmeow-english ;
     skos:example "exf:betaHat a math:Estimate ; math:estimatesEstimand exf:ateEstimand ; math:estimator exf:olsEstimator ; math:estimateValue exf:betaValue ."@x-gmeow-english ;
-    skos:scopeNote "The produced result value, distinct from the math:Estimand it targets (the sought quantity), the math:Estimator that produces it (the procedure), and the math:InferenceRun that computes it (the activity)."@x-gmeow-english ;
+    skos:scopeNote "The estimation-result record is distinct from its supplied value, the math:Estimand it targets, the math:Estimator procedure and the math:InferenceRun activity. The canonical target alternatives are inclusive: an estimand, an estimated parameter or both, with an estimator required separately. The inspected target and method obligations do not establish a universal estimateValue-presence gate or numerical evaluation."@x-gmeow-english ;
     gmeow:enforcesFailureClass math:UnderspecifiedEstimate .
 
 math:Residual
@@ -7742,14 +7742,24 @@ math:estimatesEstimand
     a logic:ObjectProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "estimates estimand"@x-gmeow-english ;
-    skos:definition "Relates a math:Estimate to the math:Estimand — the target quantity, framed by population, outcome, contrast, time, intervention, and missing-data policy — it estimates. Domain math:Estimate, range math:Estimand (stated in prose). An estimate references its estimand and/or its estimated parameter and its estimator; naming neither the estimand nor the parameter, or naming no estimator, it is underspecified (math:UnderspecifiedEstimate)."@x-gmeow-english ;
+    skos:definition "Relates a math:Estimate to the math:Estimand it targets. Domain math:Estimate, range math:Estimand (stated in prose). The substantive or model-specific target is interpreted in its actual supplied context. The canonical target requirement accepts this link or math:estimatedParameter, or both, with math:estimator required separately; absence of both target alternatives or of the estimator is math:UnderspecifiedEstimate."@x-gmeow-english ;
+    skos:scopeNote "The subject is the result record and the object is its target quantity, not the estimator procedure, numeric result or generating run. Supplying both target links does not establish that a named model parameter equals or identifies a substantive estimand."@x-gmeow-english ;
+    skos:example "The estimation scene supplies ex:ateEstimate estimatesEstimand ex:ateEstimand and separately estimatedParameter ex:betaTreatment. Those are declared target associations; their coexistence does not prove that the coefficient identifies the population treatment effect."@x-gmeow-english ;
+    gmeow:useWhen "Use when a source supplies the target estimand of an estimation result, retaining its actual definition and study or model context alongside any separately named model parameter."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid reversing the result-to-target edge, substituting a numerical estimate or estimator for the target, or demanding this particular target arm when estimatedParameter already supplies the alternative. Do not infer causal identification from a coefficient or label."@x-gmeow-english ;
+    gmeow:howToUse "Keep Estimate as subject and the supplied Estimand as object, with its actual target definition and framing evidence. Preserve the separate estimator and any estimatedParameter or estimateValue links without forcing both target arms, inventing missing context or claiming a completed estimation."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 math:estimatedParameter
     a logic:ObjectProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "estimated parameter"@x-gmeow-english ;
-    skos:definition "Relates a math:Estimate to the model parameter it estimates, where the estimand is a parameter of a math:StatisticalModel. Domain math:Estimate, range the model parameter (stated in prose). The companion of math:estimatesEstimand for model-based estimation."@x-gmeow-english ;
+    skos:definition "Relates a math:Estimate to a model parameter named as a target of estimation. Domain math:Estimate, range the model parameter (stated in prose). The companion of math:estimatesEstimand for a model-quantity target; it does not establish that this parameter equals or identifies a separately supplied substantive estimand."@x-gmeow-english ;
+    skos:scopeNote "This names a supplied model-quantity target, distinct from its estimated value and the procedure used. A parameter can itself be the specified estimand, but a parameter association alone neither defines every study target nor identifies it causally. No new dedicated parameter class or numerical result is inferred."@x-gmeow-english ;
+    skos:example "The native R coefficient path emits an Estimate linked through estimatedParameter to a generic MathematicalObject parameter resource and through estimator to a method resource. Coefficient labels are inferred from formula terms; no numerical coefficient value or general study estimand is emitted by that path."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain a source-supplied model parameter targeted by an estimate, including a parameter that is itself the specified estimand, while keeping model and substantive-target meanings explicit."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid using the estimated numerical value as the target parameter, claiming every formula term is a fitted coefficient, or inferring actual coefficient identity from a source-lifted name. Do not treat this link as proof that a model coefficient identifies a causal study target."@x-gmeow-english ;
+    gmeow:howToUse "Keep Estimate as subject and the actual target parameter resource as object, alongside the separately supplied estimator and any estimatesEstimand context. Preserve source terms, model specification and identity limits; do not manufacture parameter values, categorical contrast columns or a verified fitted result."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 math:estimateValue
@@ -7757,13 +7767,23 @@ math:estimateValue
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "estimate value"@x-gmeow-english ;
     skos:definition "Relates a math:Estimate to the value it carries — a math:Quantity or number. Domain math:Estimate, range the estimated value (stated in prose). The produced value, distinct from the estimand it estimates and the estimator that produced it."@x-gmeow-english ;
+    skos:scopeNote "This is the result-to-value role, distinct from a target estimand, model parameter, estimator and inference activity. The inspected target and estimator requirements do not by themselves require or compute a numerical value; a supplied value reference is not proof of its numeric payload or validity."@x-gmeow-english ;
+    skos:example "The positive estimate fixture links ex:treatmentEffectEstimate to ex:effectValue through estimateValue, without supplying a numerical payload on that value. The estimation scene separately labels ex:ateValue as +0.11; the label is not a structured magnitude or an executed IPW calculation."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain a result value actually supplied for an estimate, with its available quantity, exactness, unit, frame and provenance information rather than guessing a number from a result label."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid using the target parameter, estimand, procedure or process as the produced value, or inventing a magnitude to make a sparse record appear computed. Absence of this link is not by itself the inspected UnderspecifiedEstimate target-or-method failure."@x-gmeow-english ;
+    gmeow:howToUse "Keep Estimate as subject and its supplied value resource as object, preserving the source representation and any actual numeric and framing evidence. Report missing value data or unavailable evaluation explicitly without asserting a universal value-presence gate, copying a label into a numeric field or fabricating execution."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 math:estimator
     a logic:ObjectProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "estimator"@x-gmeow-english ;
-    skos:definition "Relates a math:Estimate to the math:Estimator — the rule or procedure, a function of the data — that produced it (ordinary least squares, maximum likelihood, …). Domain math:Estimate, range math:Estimator (stated in prose). An estimate names its estimator so the produced value is never a bare number without its act; an estimate naming no estimator is underspecified (math:UnderspecifiedEstimate)."@x-gmeow-english ;
+    skos:definition "Relates a math:Estimate to its supplied math:Estimator — the rule or procedure, a function of the data (ordinary least squares, maximum likelihood, …). Domain math:Estimate, range math:Estimator (stated in prose). An estimate names its estimation procedure; an estimate naming no estimator is underspecified (math:UnderspecifiedEstimate). The link identifies the described procedure without itself establishing execution or a computed value."@x-gmeow-english ;
+    skos:scopeNote "This identifies the estimation procedure, not the generating InferenceRun, target quantity or numerical output. Retain the actual method and relevant options; a method name inferred from an R callee is not proof of execution or faithful selection of every estimation variant."@x-gmeow-english ;
+    skos:example "The positive fixture supplies ex:treatmentEffectEstimate estimator ex:olsEstimator and types ex:olsEstimator as Estimator. The negative counterpart keeps its target and value links but omits estimator; this is a declared missing-method boundary, not an executed fitting test."@x-gmeow-english ;
+    gmeow:useWhen "Use to name the supplied rule or procedure for an estimation-result record, preserving its method-specific assumptions and options separately from the activity that applies it."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid substituting a run, model parameter or numeric result for the estimator, or inferring a valid method from a callee name without checking relevant source options. A present procedure link does not establish a computed result or complete target admission."@x-gmeow-english ;
+    gmeow:howToUse "Keep Estimate as subject and the actual Estimator procedure as object, alongside at least one supplied target alternative. Preserve any generating activity, method settings, source distinctions and result evidence independently; do not invent a method or successful calculation to satisfy a reference requirement."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 math:residualOf
@@ -8115,14 +8135,14 @@ math:missingnessMechanism
 #
 # The STATISTICS-charter "Models and estimation" section: the objects that make a
 # statistical estimate a provenance-heavy result rather than a bare number. The
-# layer keeps the target of inference (math:Estimand — framed by population,
-# outcome, contrast, time, intervention, and missing-data policy) apart from the
-# model quantity an estimate names (math:estimatedParameter), and both apart from
-# the procedure that produces the value (math:Estimator) and the value itself
-# (math:Estimate, defined above with the R-bridge codomain). A math:Statistic is a
-# function of the data; a math:ModelAssumption is a first-class assumption a model
-# posits (normality, homoscedasticity, independence), so it can be checked, cited,
-# or violated with a diagnostic rather than left implicit. The modeled contrast a
+# layer distinguishes target, estimation procedure, result and generating activity.
+# A model parameter can itself be an estimand; both target links do not prove that
+# a parameter identifies a substantive study target. The six supplied framing roles
+# describe causal-study context, not a universal mathematical estimand requirement.
+# A math:Statistic is a data function defined without unknown parameters and may
+# also serve as an estimator; distinguish that function from its realized value.
+# A math:ModelAssumption can be cited and assessed where suitable methods and
+# evidence exist; naming it does not establish empirical testability or truth. The modeled contrast a
 # study targets is a single shared math:StatisticalContrast, referenced both here
 # (math:targetContrast) and by a later effect-size layer, never two near-synonyms.
 # A math:InferenceRun is the gmeow:Activity that runs an estimation or inference and
@@ -8137,39 +8157,39 @@ math:Estimand
     rdfs:subClassOf math:MathematicalObject ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "Estimand"@x-gmeow-english ;
-    skos:definition "An estimand: the target quantity a study is actually trying to learn — the thing an estimate speaks about, distinct from any coefficient inside a particular model. A subclass of math:MathematicalObject framed by the six coordinates that make it well-posed: the target population it refers to (math:targetPopulation), the outcome measured on that population (math:targetOutcome), the contrast between conditions it compares (math:targetContrast, a math:StatisticalContrast), the time or horizon it is defined at (math:targetTime), the intervention condition it conditions on (math:interventionCondition), and the missing-data policy under which it is defined (math:missingDataPolicy). This framing is load-bearing for causal inference, surveys, trials, and policy models, where the same estimand (an average treatment effect) can be targeted by different parameters under different models. An estimate names its estimand through math:estimatesEstimand; an estimand held apart from the model parameter is what keeps the target of inference from being read off a coefficient."@x-gmeow-english ;
+    skos:definition "An estimand: the target quantity a study seeks to learn, which may be a population summary, a causal contrast or an explicitly specified parameter of a math:StatisticalModel. A subclass of math:MathematicalObject, named from an estimate through math:estimatesEstimand. The vocabulary provides math:targetPopulation, math:targetOutcome, math:targetContrast (a math:StatisticalContrast), math:targetTime, math:interventionCondition and math:missingDataPolicy to describe relevant study context. This causal-study framing is not a universal mathematical definition or a demonstrated required-path gate for every estimand. A coefficient name alone does not identify the substantive target, and a declared frame alone does not establish causal identification or a valid treatment of missing data or intercurrent events."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox ;
-    gmeow:useWhen "Mint one to fix the target quantity a study is actually trying to learn, distinct from any coefficient inside a particular model."@x-gmeow-english ;
-    gmeow:avoidWhen "Do not read the estimand off a model parameter; the same average treatment effect can be targeted by different parameters under different models, so keep the target model-independent."@x-gmeow-english ;
-    gmeow:howToUse "Frame it with all six coordinates: math:targetPopulation, math:targetOutcome, math:targetContrast, math:targetTime, math:interventionCondition, and math:missingDataPolicy; an estimate names it through math:estimatesEstimand."@x-gmeow-english ;
+    gmeow:useWhen "Mint one to identify the target quantity a study seeks to learn, retaining whether it is a substantive population or causal target or an explicitly specified model parameter rather than assuming the target from a coefficient name."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not infer a substantive estimand or its causal identification from a model parameter or six named framing roles alone. The same target may be addressed under different models, and a model parameter may itself be the specified target; do not invent an intervention or missing-data policy for a general mathematical quantity."@x-gmeow-english ;
+    gmeow:howToUse "Retain the actual target definition and relevant supplied math:targetPopulation, math:targetOutcome, math:targetContrast, math:targetTime, math:interventionCondition and math:missingDataPolicy context; an estimate names it through math:estimatesEstimand. Preserve absent or inapplicable context explicitly without manufacturing causal meaning or claiming a universal six-field admission check."@x-gmeow-english ;
     skos:example "exf:ate a math:Estimand ; math:targetPopulation exf:adultsCanada ; math:targetContrast exf:treatVsControl ; math:interventionCondition exf:drugArm ."@x-gmeow-english ;
-    skos:scopeNote "The target of inference, distinct from the math:Estimator (the procedure aimed at it) and the math:Estimate (one produced value); it is what is estimated, not how or the result."@x-gmeow-english .
+    skos:scopeNote "The target of inference, distinct in role from the math:Estimator procedure and the math:Estimate estimation-result record. A record's supplied value is separate from these roles; a target association does not prove that a numerical result is present or that estimation executed."@x-gmeow-english .
 
 math:Estimator
     a logic:Class ;
     rdfs:subClassOf math:MathematicalObject ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "Estimator"@x-gmeow-english ;
-    skos:definition "An estimator: the estimation PROCEDURE — a rule that is a function of the data (ordinary least squares, maximum likelihood, the method of moments, an inverse-probability-weighted estimator) — held strictly apart from the estimate it produces and the estimand it targets. A subclass of math:MathematicalObject; an estimate names the estimator that produced it through math:estimator, so a produced value is never a bare number without the procedure that computed it. The estimator is the map from data to a value; the math:Estimate is one output of applying it, and the math:Estimand is the quantity it aims at — three distinct objects, never collapsed."@x-gmeow-english ;
+    skos:definition "An estimator: an estimation rule or procedure mapping data to a value used to estimate a target, such as ordinary least squares, maximum likelihood, the method of moments or an inverse-probability-weighted estimator. A subclass of math:MathematicalObject, referenced from a math:Estimate through math:estimator. The math:Estimand is its target and the math:Estimate records a particular result; these roles differ from the math:InferenceRun that applies the procedure. An estimator that is a function of the data can also be a math:Statistic; role overlap does not identify a function with its realized output or prove that the procedure executed."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox ;
     gmeow:useWhen "Mint one for the estimation procedure, a rule that is a function of the data such as ordinary least squares or maximum likelihood, held apart from the value it yields."@x-gmeow-english ;
     gmeow:avoidWhen "Do not conflate it with the number it produces or the quantity it targets; it is the map from data to value, not the value or the target."@x-gmeow-english ;
-    gmeow:howToUse "Reference it from a math:Estimate through math:estimator, so a produced value is never a bare number without the procedure that computed it."@x-gmeow-english ;
+    gmeow:howToUse "Reference the supplied procedure from a math:Estimate through math:estimator. Retain any actual value and generating math:InferenceRun separately; naming the procedure does not by itself establish that it ran or computed a numerical result."@x-gmeow-english ;
     skos:example "exf:olsEstimator a math:Estimator . exf:estIncome math:estimator exf:olsEstimator ."@x-gmeow-english ;
-    skos:scopeNote "The data-to-value procedure, distinct from the math:Estimand (the target it aims at) and the math:Estimate (one output of applying it)."@x-gmeow-english .
+    skos:scopeNote "The data-to-value procedure, distinct in role from the math:Estimand target, math:Estimate result and execution activity. A function used for estimation can also serve as a math:Statistic; these mathematical roles need not require different function resources. A named method does not establish that all source options or numerical execution are qualified."@x-gmeow-english .
 
 math:Statistic
     a logic:Class ;
     rdfs:subClassOf math:MathematicalObject ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "Statistic"@x-gmeow-english ;
-    skos:definition "A statistic: any function of the data — a summary computed from a math:Sample or math:DatasetMatrix (a sample mean, a variance, a test statistic, an order statistic). A subclass of math:MathematicalObject naming the computed quantity as a first-class object, distinct from the math:Estimator (the procedure) and from the math:Estimand (the target it may estimate). A statistic used as an estimator estimates an estimand; a statistic used as a test statistic drives a hypothesis test — but the object is a function of the data either way, never conflated with the frame it is used in."@x-gmeow-english ;
+    skos:definition "A statistic: a function of observed data whose definition does not depend on unknown model parameters, such as a sample mean, sample variance, test statistic or order statistic. A subclass of math:MathematicalObject describing the data-dependent mathematical quantity. Distinguish the function from its realized value on a particular math:Sample or math:DatasetMatrix. The same function can serve as a math:Estimator when used to estimate a math:Estimand, or as a test statistic in a hypothesis test; a type declaration alone does not establish a computed value."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox ;
-    gmeow:useWhen "Mint one for any function of the data, a summary computed from a sample such as a mean, variance, or test statistic."@x-gmeow-english ;
-    gmeow:avoidWhen "Do not conflate a statistic with the estimator that is a procedure or the estimand that is a target; the statistic is the computed quantity itself."@x-gmeow-english ;
-    gmeow:howToUse "Type the computed quantity as a math:Statistic; used as a test statistic it drives a hypothesis test through math:testStatistic, used as an estimator it estimates an estimand."@x-gmeow-english ;
+    gmeow:useWhen "Mint one for a supplied data-dependent statistic, such as a mean, sample variance or test statistic, preserving its mathematical definition and whether any realized value on actual data is supplied."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not equate the function with one observed value or the target it estimates, or require a separate function merely because it also acts as an estimator. A statistic is defined without unknown parameters; a numerical label or type alone does not establish its inputs, evaluation or validity."@x-gmeow-english ;
+    gmeow:howToUse "Retain the Statistic and its actual function, data and realization descriptions in their existing representation. A hypothesis test can name its statistic through math:testStatistic; an estimation use may also have the estimator role. Keep any observed value and execution evidence explicit without inventing a new value relation or a completed calculation."@x-gmeow-english ;
     skos:example "exf:tStat a math:Statistic ."@x-gmeow-english ;
-    skos:scopeNote "A function of the data, distinct from the math:Estimator (a procedure) and the math:Estimand (a target); it is the computed value, whatever frame it is used in."@x-gmeow-english .
+    skos:scopeNote "A statistic as a data function and its observed realization are different mathematical roles; the observed value is not the function itself. Estimator and statistic roles can overlap for the same data function. Preserve the actual definition, inputs and realization evidence rather than treating a label or bare type as an evaluated summary."@x-gmeow-english .
 
 math:ModelAssumption
     a logic:Class ;
@@ -9101,11 +9121,11 @@ math:UnderspecifiedEstimate
     rdfs:label "Underspecified Estimate"@x-gmeow-english ;
     skos:definition "The failure raised when a math:Estimate is ill-formed because it does not fix what it estimates or how: it names neither its estimand through math:estimatesEstimand nor its estimated parameter through math:estimatedParameter, or it names no estimator through math:estimator. An estimate is the structured result object of the process / result / claim separation, not a bare number; it must reference its estimand and/or its model parameter and the procedure that produced it. An estimate missing its target or its act is underspecified."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox ;
-    gmeow:useWhen "This failure is raised for an estimate that fixes neither what it estimates nor how, so consumers can reject it rather than read a bare number."@x-gmeow-english ;
+    gmeow:useWhen "Use when an Estimate names neither estimatesEstimand nor estimatedParameter, or has no estimator procedure reference. Retain the actual missing role; an absent numerical value, failed computation or unqualified target identification is not automatically this specific reference failure."@x-gmeow-english ;
     gmeow:avoidWhen "Do not mint an estimate that names no estimand and no estimated parameter, or no estimator; that omission is precisely this failure, not a shorthand."@x-gmeow-english ;
     gmeow:howToUse "Detected when a math:Estimate names neither math:estimatesEstimand nor math:estimatedParameter, or names no math:estimator; give an estimate its target and its act to avoid it."@x-gmeow-english ;
     skos:example "exf:bareEstimate a math:UnderspecifiedEstimate ."@x-gmeow-english ;
-    skos:scopeNote "The ill-formed-estimate finding, distinct from math:IllFramedPValue (an ambiguous p-value) and math:UnframedEffectSize (an uninterpretable magnitude)."@x-gmeow-english .
+    skos:scopeNote "The ill-formed-estimate finding, distinct from math:IllFramedPValue (an ambiguous p-value) and math:UnframedEffectSize (an uninterpretable magnitude). The condition is absence of both target alternatives or absence of the estimator, not a requirement that every estimate name both targets. Its absence does not establish numerical evaluation, a complete study frame or faithful source identity."@x-gmeow-english .
 
 math:ImplicitMissingness
     a logic:Class ;

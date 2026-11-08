@@ -86,12 +86,14 @@ authenticated external blob reference, available payload or resolved column sche
 actual supplied specification, data reference and source distinctions, and qualify the selected
 operation separately; passing a required-link check does not establish numerical fit validity.
 
-**Estimand vs parameter.** The layer distinguishes the *target of inference* from the *model
-quantity*. A `math:Estimand` is what the study is actually trying to learn — framed by population,
-outcome, contrast, time, intervention, and missing-data policy — whereas an estimated parameter is a
-coefficient inside a particular model. This distinction is load-bearing for causal inference,
-surveys, trials, and policy models, where the same estimand (an average treatment effect) can be
-targeted by different parameters under different models:
+**Estimand vs parameter.** The layer distinguishes the target a study seeks to learn from a
+model quantity named in an estimate. A model parameter may itself be the specified estimand,
+but a coefficient name does not automatically identify a substantive population or causal target.
+Supplying both target links does not establish equality or identification between their objects.
+Population, outcome, contrast, time, intervention and missing-data policy provide relevant
+causal-study framing, not universal mathematical prerequisites or a demonstrated six-role
+admission gate for every estimand. Such declarations alone prove neither causal identification
+nor valid treatment of missing data or intercurrent events. The vocabulary offers these roles:
 
 ```text
 math:Estimand
@@ -103,11 +105,20 @@ math:Estimand
   math:missingDataPolicy
 ```
 
-An `math:Estimator` is the procedure; a `math:Statistic` is a function of the data; a
-`math:Estimate` is the produced value linked to *both* its estimand (`math:estimatesEstimand`) and,
-where relevant, its model parameter (`math:estimatedParameter`); a `math:FittedModel` is the model
-bound to data (`math:fittedToData` — reserved for `math:FittedModel`, not attached to an estimate);
-and a `math:InferenceRun` is the `gmeow:Activity` that produced them.
+A `math:Estimator` is the estimation procedure; a `math:Statistic` is a data function defined
+without unknown model parameters. The same function can have both roles; distinguish it from
+its realized value on particular data. A `math:Estimate` records a result with an estimand
+(`math:estimatesEstimand`) or model-parameter target (`math:estimatedParameter`), or both, and a
+separately required estimator (`math:estimator`). The inspected target and method requirements do
+not establish a universal `math:estimateValue`-presence check or numerical evaluation. A
+`math:FittedModel` is the data-bound model (`math:fittedToData`), and a `math:InferenceRun` is the
+`gmeow:Activity` that applies a procedure; the procedure is not that activity or a held claim.
+
+The native R source lift can emit estimated-parameter and estimator records without a numerical
+coefficient value, a framed study estimand or a completed fitting run. Formula-term labels do not
+establish actual design-matrix coefficients, contrast coding, rank or option-sensitive estimator
+identity. Preserve the supplied source and result evidence and its limits without inventing values
+or treating source-described links as executed estimation.
 
 ## Inference and results
 
