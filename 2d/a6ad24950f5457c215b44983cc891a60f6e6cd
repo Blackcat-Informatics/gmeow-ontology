@@ -1,0 +1,18 @@
+ghprsq source head backlink metadata
+
+parent_hashes: 2da6ad24950f5457c215b44983cc891a60f6e6cd
+
+GhpRsq-Schema: 1
+GhpRsq-Merge-Style: structured-squash-head-backlink
+GhpRsq-GitHub-Repo: Blackcat-Informatics/gmeow-ontology
+GhpRsq-GitHub-Pull-Request: 2639
+GhpRsq-GitHub-PR-URL: https://github.com/Blackcat-Informatics/gmeow-ontology/pull/2639
+GhpRsq-Base-Ref: main
+GhpRsq-Base-OID: 1604c37901cb9b1c410b028259c549e442f0f6d7
+GhpRsq-Head-Ref: paudley/2638-clarify-finite-odds-and-declared
+GhpRsq-Head-OID: 2da6ad24950f5457c215b44983cc891a60f6e6cd
+GhpRsq-Result-Tree: acd79e7d7088f0cbc77551fb6916e26a9e659aed
+GhpRsq-Result-Commit: 82ba734967c822391bfc9ecebe9dd86e523d49f9
+GhpRsq-Parent-Hashes: 2da6ad24950f5457c215b44983cc891a60f6e6cd
+GhpRsq-Squash-Notes-SHA256: 7c35a1bd4fcb8fa5daca4e5015f3f5c571389231b26587d0f38d7d0cc0500878
+GhpRsq-Stage-Evidence: none
