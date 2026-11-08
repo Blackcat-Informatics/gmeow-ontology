@@ -865,7 +865,7 @@ wasm: verify-wasm-codebook ## Prove gmeow's wasm-clean crates (logic-compile + T
 	fi
 
 validate-wasm-pkg: verify-wasm-codebook ## Build the gmeow-validate-wasm npm/ESM package (release wasm + wasm-bindgen web bindings).
-	$(call BUILD_WASM_PKG,validate,)
+	$(call BUILD_WASM_PKG,validate,--enable-nontrapping-float-to-int)
 
 validate-wasm-pkg-test: validate-wasm-pkg ## Build the validator npm package and run its Node real-execution round-trip lane.
 	@# The RDF/SPARQL query engine has its OWN lane (`query-wasm-pkg-test`); this
