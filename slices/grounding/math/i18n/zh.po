@@ -14716,3 +14716,171 @@ msgstr "避免反转边、将其指向孤立字面量、用作来源输入槽位
 msgctxt "https://blackcatinformatics.ca/math/transformsToProbabilityValue|https://blackcatinformatics.ca/gmeow/howToUse"
 msgid "Keep the actual transform as subject and the supplied ProbabilityValue resource as object, preserving its magnitude, dimension and frame or model. Retain other estimates and any independent source or execution evidence without adding a preference, cardinality rule or inferred operand."
 msgstr "保留实际转换为主语，所提供的 ProbabilityValue 资源为宾语，并保留其数值、维度及参考系或模型。保留其他估计及任何独立来源或执行依据，不添加偏好、基数规则或推断的操作数。"
+
+msgctxt "https://blackcatinformatics.ca/math/RandomVariable|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Random Variable"
+msgstr "随机变量"
+
+msgctxt "https://blackcatinformatics.ca/math/RandomVariable|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A random variable: a measurable map from a probability space's sample space into a measurable codomain, with a declared domain (math:randomVariableDomain) and codomain (math:randomVariableCodomain) and a probability-space or distribution context (math:hasDistribution). A subclass of math:MathematicalObject. Its dimensional constraints are CARRIED, not assumed — a random variable over height and its distribution's location parameter share height units — so a mis-dimensioned parameter is a caught error. A random variable without its domain, codomain, and a space or distribution context is ill-formed (math:UnscopedRandomVariable)."
+msgstr "随机变量：从概率空间的样本空间映射到可测陪域的可测映射，具有已声明的定义域（math:randomVariableDomain）、陪域（math:randomVariableCodomain）及概率空间或分布上下文（math:hasDistribution）。它是 math:MathematicalObject 的子类。其维度约束由对象承载，而非假定；例如高度随机变量与其分布的位置参数共享高度单位，因此参数维度错误会被检测为错误。没有定义域、陪域以及空间或分布上下文的随机变量为不良形式（math:UnscopedRandomVariable）。"
+
+msgctxt "https://blackcatinformatics.ca/math/RandomVariable|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "A random variable is the measurable map, not one realized value, its law or a free variable in a formula. Declaring its source, target and probability context records those roles without itself proving measurability, the induced law or dimensional consistency."
+msgstr "随机变量是可测映射，不是单个实现值、其分布律或公式中的自由变量。声明来源、目标及概率上下文记录这些角色，但本身不证明可测性、诱导分布律或维度一致性。"
+
+msgctxt "https://blackcatinformatics.ca/math/RandomVariable|http://www.w3.org/2004/02/skos/core#example"
+msgid "The scene records ex:rainfallAmount with randomVariableDomain ex:weatherMeasurableSpace, randomVariableCodomain ex:realValuesSet and hasDistribution ex:rainfallNormal. These are declared roles; the target is typed only as Set in that scene, and the links do not establish a complete consistent stochastic model."
+msgstr "场景为 ex:rainfallAmount 记录 randomVariableDomain ex:weatherMeasurableSpace、randomVariableCodomain ex:realValuesSet 及 hasDistribution ex:rainfallNormal。这些是已声明角色；该场景中目标仅具有 Set 类型，链接不确立完整且一致的随机模型。"
+
+msgctxt "https://blackcatinformatics.ca/math/RandomVariable|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for a supplied measurable-map description with an identified source and target and a probability context, preserving its dimensions, reference frames and source evidence."
+msgstr "用于所提供的可测映射描述，带有已指明的来源、目标及概率上下文，并保留其维度、参考系及来源依据。"
+
+msgctxt "https://blackcatinformatics.ca/math/RandomVariable|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid using for an observed magnitude, a distribution object, an outcome set or an unevaluated symbol without the declared random-variable roles. Do not infer a default law, independence or a proven mapping from a label."
+msgstr "避免将其用于观测数值、分布对象、结果集合，或不具有已声明随机变量角色的未求值符号。不要根据标签推断默认分布律、独立性或已证明映射。"
+
+msgctxt "https://blackcatinformatics.ca/math/RandomVariable|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the actual randomVariableDomain and randomVariableCodomain links. The existing RandomVariableContextConstraint requires a hasDistribution link or a domain itself typed ProbabilitySpace; the presence requirements do not supply missing measurable structure, parameterization or mathematical proofs."
+msgstr "保留实际 randomVariableDomain 及 randomVariableCodomain 链接。现有 RandomVariableContextConstraint 要求存在 hasDistribution 链接，或定义域本身具有 ProbabilitySpace 类型；存在性要求不提供缺失的可测结构、参数化或数学证明。"
+
+msgctxt "https://blackcatinformatics.ca/math/randomVariableDomain|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "random variable domain"
+msgstr "随机变量定义域"
+
+msgctxt "https://blackcatinformatics.ca/math/randomVariableDomain|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Names the declared source space on which a random variable is defined. The mathematical domain includes a carrier and its measurable structure, rather than the outcome set alone. Domain math:RandomVariable, range math:MeasurableSpace or math:ProbabilitySpace (stated in prose). A random variable without its domain is ill-formed (math:UnscopedRandomVariable)."
+msgstr "指明随机变量定义于其上的已声明来源空间。数学定义域包含载体及其可测结构，而非仅有结果集合。定义域为 math:RandomVariable，值域为 math:MeasurableSpace 或 math:ProbabilitySpace（以文字说明）。没有定义域的随机变量为不良形式（math:UnscopedRandomVariable）。"
+
+msgctxt "https://blackcatinformatics.ca/math/randomVariableDomain|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This names the source side of the map, distinct from its outcome carrier alone, its codomain and the distribution on its values. A domain typed ProbabilitySpace supplies the existing context alternative; a domain typed only MeasurableSpace does not do so by itself."
+msgstr "此关系指明映射的来源侧，不同于单独的结果载体、陪域及其值上的分布。具有 ProbabilitySpace 类型的定义域满足现有上下文备选条件；仅具有 MeasurableSpace 类型的定义域本身不满足该条件。"
+
+msgctxt "https://blackcatinformatics.ca/math/randomVariableDomain|http://www.w3.org/2004/02/skos/core#example"
+msgid "The scene points ex:rainfallAmount to ex:weatherMeasurableSpace through randomVariableDomain and separately supplies hasDistribution ex:rainfallNormal. Preserve those distinct links rather than substituting the outcome carrier or silently retyping the domain as ProbabilitySpace."
+msgstr "场景通过 randomVariableDomain 将 ex:rainfallAmount 指向 ex:weatherMeasurableSpace，并另行提供 hasDistribution ex:rainfallNormal。保留这些不同链接，不以结果载体替代，也不暗中将定义域重标为 ProbabilitySpace。"
+
+msgctxt "https://blackcatinformatics.ca/math/randomVariableDomain|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to name the supplied source space of a random variable, retaining its actual measurable structure and any separately declared probability context."
+msgstr "用于指明所提供的随机变量来源空间，保留其实际可测结构及任何另行声明的概率上下文。"
+
+msgctxt "https://blackcatinformatics.ca/math/randomVariableDomain|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid pointing at a realized value, the variable itself, its distribution or the target space. A bare outcome-set description does not supply the source sigma-algebra or measure."
+msgstr "避免指向实现值、变量自身、其分布或目标空间。单纯的结果集合描述不提供来源 σ-代数或测度。"
+
+msgctxt "https://blackcatinformatics.ca/math/randomVariableDomain|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Keep the RandomVariable as subject and its declared source-space resource as object. Preserve the carrier, measurable structure and probability context where actually supplied; no edge creates a missing sigma-algebra, measure, ProbabilitySpace type or domain uniqueness claim."
+msgstr "保留 RandomVariable 为主语，其已声明来源空间资源为宾语。保留实际提供的载体、可测结构及概率上下文；任何边都不会创建缺失的 σ-代数、测度、ProbabilitySpace 类型或定义域唯一性声称。"
+
+msgctxt "https://blackcatinformatics.ca/math/randomVariableCodomain|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "random variable codomain"
+msgstr "随机变量陪域"
+
+msgctxt "https://blackcatinformatics.ca/math/randomVariableCodomain|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Names the codomain of a random variable — the measurable space it maps into (the real line with its Borel algebra for a real-valued variable). Domain math:RandomVariable, range math:MeasurableSpace (stated in prose). A random variable without its codomain is ill-formed (math:UnscopedRandomVariable)."
+msgstr "指明随机变量的陪域，即它所映入的可测空间；对于实值变量，是配备 Borel 代数的实直线。定义域为 math:RandomVariable，值域为 math:MeasurableSpace（以文字说明）。没有陪域的随机变量为不良形式（math:UnscopedRandomVariable）。"
+
+msgctxt "https://blackcatinformatics.ca/math/randomVariableCodomain|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The codomain is the declared target measurable space. It need not be the actual image or distribution support, and naming its carrier does not by itself provide its measurable structure or prove the map measurable."
+msgstr "陪域是已声明的目标可测空间。它不必是实际像或分布支撑集，指明其载体本身不提供可测结构，也不证明映射可测。"
+
+msgctxt "https://blackcatinformatics.ca/math/randomVariableCodomain|http://www.w3.org/2004/02/skos/core#example"
+msgid "The scene names ex:realValuesSet as ex:rainfallAmount's randomVariableCodomain, but types that resource only as Set. Report the declared target as supplied; do not infer a Borel algebra or MeasurableSpace type from the identifier or label."
+msgstr "场景将 ex:realValuesSet 指明为 ex:rainfallAmount 的 randomVariableCodomain，但仅将该资源标注为 Set。按所提供内容报告已声明目标；不要根据标识符或标签推断 Borel 代数或 MeasurableSpace 类型。"
+
+msgctxt "https://blackcatinformatics.ca/math/randomVariableCodomain|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain the declared target space of a random variable together with its supplied measurable structure."
+msgstr "用于保留随机变量的已声明目标空间及其所提供的可测结构。"
+
+msgctxt "https://blackcatinformatics.ca/math/randomVariableCodomain|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid substituting a realized numeric value, an output datatype, a distribution or a support set for the declared codomain role. Do not infer that the map is onto its target."
+msgstr "避免以已实现数值、输出数据类型、分布或支撑集替代所声明陪域角色。不要推断映射满射到其目标。"
+
+msgctxt "https://blackcatinformatics.ca/math/randomVariableCodomain|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Point from the RandomVariable to the actual declared codomain resource, retaining independently supplied topology or sigma-algebra evidence. The required codomain link is not an automatic measurability proof or a rule selecting one unique target."
+msgstr "从 RandomVariable 指向实际声明的陪域资源，保留独立提供的拓扑或 σ-代数依据。必需的陪域链接不是自动可测性证明，也不是选择唯一目标的规则。"
+
+msgctxt "https://blackcatinformatics.ca/math/hasDistribution|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "has distribution"
+msgstr "具有分布"
+
+msgctxt "https://blackcatinformatics.ca/math/hasDistribution|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Relates a random variable to the math:Distribution it follows. Domain math:RandomVariable, range math:Distribution (stated in prose). One of the ways a random variable declares its probability context (the other being a probability-space domain); a variable with neither is unscoped (math:UnscopedRandomVariable)."
+msgstr "将随机变量关联到其所服从的 math:Distribution。定义域为 math:RandomVariable，值域为 math:Distribution（以文字说明）。这是随机变量声明概率上下文的方式之一，另一种是定义域为概率空间；两者均无的变量缺少上下文（math:UnscopedRandomVariable）。"
+
+msgctxt "https://blackcatinformatics.ca/math/hasDistribution|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This records the declared law followed by a random variable, separate from its source space, target space, parameters and support. The association does not calculate a pushforward measure, select a family or prove that the stated law follows from the supplied map."
+msgstr "此关系记录随机变量所服从的已声明分布律，与来源空间、目标空间、参数及支撑集分开。此关联不计算推前测度、不选择分布族，也不证明所述分布律由已提供映射推出。"
+
+msgctxt "https://blackcatinformatics.ca/math/hasDistribution|http://www.w3.org/2004/02/skos/core#example"
+msgid "The scene asserts ex:rainfallAmount hasDistribution ex:rainfallNormal. The distribution separately names its normal family, mean/stddev parameterization, parameters and ex:rainfallSupport; the single association does not establish their full consistency."
+msgstr "场景断言 ex:rainfallAmount hasDistribution ex:rainfallNormal。该分布另行指明其正态分布族、mean/stddev 参数化、参数及 ex:rainfallSupport；单一关联不确立它们的完整一致性。"
+
+msgctxt "https://blackcatinformatics.ca/math/hasDistribution|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when a source actually supplies the distribution associated with a random variable, preserving the law description and its evidence."
+msgstr "当来源实际提供与随机变量关联的分布时使用，保留分布律描述及其依据。"
+
+msgctxt "https://blackcatinformatics.ca/math/hasDistribution|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid using a family label, parameter quantity, support or single observed value as the Distribution object. No missing law becomes normal by default, and multiple supplied descriptions do not imply a preferred one."
+msgstr "避免用分布族标签、参数量、支撑集或单个观测值作为 Distribution 对象。缺失分布律不会默认为正态分布，多项已提供描述也不意味着某项优先。"
+
+msgctxt "https://blackcatinformatics.ca/math/hasDistribution|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Keep the random variable as subject and the supplied Distribution resource as object. Retain its actual family, parameterization, support, dimensions and source links without manufacturing parameters, sampling results, an independence claim or an evaluated pushforward."
+msgstr "保留随机变量为主语，所提供的 Distribution 资源为宾语。保留其实际分布族、参数化、支撑集、维度及来源链接，不编造参数、采样结果、独立性声称或已求值的推前测度。"
+
+msgctxt "https://blackcatinformatics.ca/math/DistributionSupport|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Distribution Support"
+msgstr "分布支撑集"
+
+msgctxt "https://blackcatinformatics.ca/math/DistributionSupport|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The topological support of a distribution, relative to a specified carrier whose open neighbourhoods are measurable: the points for which every open neighbourhood has positive probability. On a discrete carrier with its discrete topology this reduces to outcomes with positive point mass. With their usual carriers, a nondegenerate normal has support the real line, a positive-rate Poisson the non-negative integers, and a beta with positive shape parameters [0, 1]. A subclass of math:Set, named by math:hasSupport and possibly symbolic. In general, support does not mean the points with positive singleton probability."
+msgstr "分布相对于指定载体的拓扑支撑集，该载体的开邻域均可测；支撑集由每个开邻域均有正概率的点组成。在配备离散拓扑的离散载体上，这简化为具有正点质量的结果。在各自通常载体下，非退化正态分布的支撑集为实直线，正速率泊松分布的支撑集为非负整数，具有正形状参数的贝塔分布的支撑集为 [0, 1]。它是 math:Set 的子类，通过 math:hasSupport 指明，并且可以是符号化的。一般而言，支撑集并不指单点集概率为正的那些点。"
+
+msgctxt "https://blackcatinformatics.ca/math/DistributionSupport|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Support depends on the stated carrier and topology. A continuous law can have zero mass at every singleton while its support is nonempty. Positive density at every support point and a smallest closed full-measure set on arbitrary spaces are not general defining requirements."
+msgstr "支撑集依赖所述载体及拓扑。连续分布律可以在每个单点集上质量为零，而支撑集非空。支撑集中每个点的密度为正，以及任意空间上存在最小满测闭集，都不是一般性的定义要求。"
+
+msgctxt "https://blackcatinformatics.ca/math/DistributionSupport|http://www.w3.org/2004/02/skos/core#example"
+msgid "For a hypothetical continuous uniform law on [0, 1] with its usual topology, the support includes both endpoints even though every singleton has probability zero. The existing scene separately labels ex:rainfallSupport as the real-line support of ex:rainfallNormal; that label is a source claim, not a computed support proof."
+msgstr "对于 [0, 1] 上配备通常拓扑的假想连续均匀分布律，支撑集包括两个端点，尽管每个单点集的概率均为零。现有场景另行将 ex:rainfallSupport 标记为 ex:rainfallNormal 的实直线支撑集；该标签是来源声称，而非计算所得的支撑集证明。"
+
+msgctxt "https://blackcatinformatics.ca/math/DistributionSupport|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for the supplied support set of a distribution, including a symbolic description, while retaining the carrier, topology and supporting mathematical evidence actually supplied."
+msgstr "用于所提供的分布支撑集，包括符号化描述，同时保留实际提供的载体、拓扑及相应数学依据。"
+
+msgctxt "https://blackcatinformatics.ca/math/DistributionSupport|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating support as the whole codomain, a sample-space enumeration, a confidence interval or only the points of strictly positive density or singleton probability. Do not assume every law has a density or a discrete topology."
+msgstr "避免将支撑集视为整个陪域、样本空间枚举、置信区间，或仅限于密度或单点集概率严格为正的点。不要假定每个分布律都具有密度或离散拓扑。"
+
+msgctxt "https://blackcatinformatics.ca/math/DistributionSupport|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Type the supplied set as DistributionSupport and retain its description and actual hasSupport association. Interpret it relative to the supplied measurable topological carrier; do not infer missing neighbourhood laws, membership decisions, normalization or moment existence from the type."
+msgstr "将所提供集合标注为 DistributionSupport，并保留其描述及实际 hasSupport 关联。相对于所提供的可测拓扑载体解释它；不要根据类型推断缺失邻域规律、归属判定、归一化或矩存在性。"
+
+msgctxt "https://blackcatinformatics.ca/math/hasSupport|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "has support"
+msgstr "具有支撑集"
+
+msgctxt "https://blackcatinformatics.ca/math/hasSupport|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Relates a math:Distribution to its declared math:DistributionSupport, interpreted relative to the supplied measurable topological carrier using positive-probability neighbourhoods rather than universally requiring positive point mass. Domain math:Distribution, range math:DistributionSupport (stated in prose). The support may be symbolic; this link alone neither computes it nor proves its properties."
+msgstr "将 math:Distribution 关联到其已声明 math:DistributionSupport，相对于所提供的可测拓扑载体，使用具有正概率的邻域来解释，而非一概要求正点质量。定义域为 math:Distribution，值域为 math:DistributionSupport（以文字说明）。支撑集可以是符号化的；单凭此链接既不计算它，也不证明其性质。"
+
+msgctxt "https://blackcatinformatics.ca/math/hasSupport|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This relates a distribution to its declared support set, not a random variable directly to its codomain or one sampled value. The edge records an association; it does not construct the set, establish its topology or decide membership."
+msgstr "此关系将分布关联到其已声明支撑集，而非直接将随机变量关联到其陪域或单个采样值。边记录关联；它不构造集合、不确立拓扑，也不判定归属。"
+
+msgctxt "https://blackcatinformatics.ca/math/hasSupport|http://www.w3.org/2004/02/skos/core#example"
+msgid "The scene asserts ex:rainfallNormal hasSupport ex:rainfallSupport, whose label describes the real line. Preserve that declared association separately from ex:rainfallAmount's randomVariableCodomain ex:realValuesSet; no identity between those resources is asserted."
+msgstr "场景断言 ex:rainfallNormal hasSupport ex:rainfallSupport，其标签描述实直线。将该已声明关联与 ex:rainfallAmount 的 randomVariableCodomain ex:realValuesSet 分开保留；并未断言这些资源之间身份相同。"
+
+msgctxt "https://blackcatinformatics.ca/math/hasSupport|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the source identifies a distribution's support resource, retaining any symbolic or explicit set description and its carrier context."
+msgstr "当来源指明分布的支撑集资源时使用，保留任何符号化或显式集合描述及其载体上下文。"
+
+msgctxt "https://blackcatinformatics.ca/math/hasSupport|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid reversing the edge, attaching it to a bare literal or using it to equate support with the codomain. Do not derive support from a family name alone or discard coexisting supplied support descriptions."
+msgstr "避免反转边、将其附于孤立字面量，或用它将支撑集等同于陪域。不要仅根据分布族名称推导支撑集，也不要丢弃并存的已提供支撑集描述。"
+
+msgctxt "https://blackcatinformatics.ca/math/hasSupport|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Keep the Distribution as subject and the actual DistributionSupport resource as object. Preserve supplied carrier, topology and evidence independently; do not invent an enumeration, a default support, a uniqueness rule or a computed positive-mass test."
+msgstr "保留 Distribution 为主语，实际 DistributionSupport 资源为宾语。独立保留所提供的载体、拓扑及依据；不编造枚举、默认支撑集、唯一性规则或计算所得的正质量测试。"
