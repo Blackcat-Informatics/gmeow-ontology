@@ -13595,7 +13595,12 @@ math:Moment
     rdfs:subClassOf math:MathematicalObject ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "Moment"@x-gmeow-english ;
-    skos:definition "A moment of a distribution or random variable: a quantity-valued summary — an expectation, a variance, a covariance, a correlation — named through math:hasMoment. A subclass of math:MathematicalObject and the parent of math:ExpectedValue, math:Variance, math:Covariance, and math:Correlation. A moment is a QUANTITY-valued result object carrying its dimension, never a bare literal: an expectation over height carries height units, a variance squared units, a correlation is dimensionless."@x-gmeow-english ;
+    skos:definition "In this vocabulary, a quantity-valued summary of a distribution or random variable — an expectation, a variance, a covariance or a correlation — named through math:hasMoment. A subclass of math:MathematicalObject and the parent of math:ExpectedValue, math:Variance, math:Covariance, and math:Correlation. A moment is a QUANTITY-valued result object carrying its dimension, never a bare literal: an expectation over height carries height units, a variance squared units, a correlation is dimensionless."@x-gmeow-english ;
+    skos:scopeNote "Moment is the local result-family umbrella, including normalized correlation; it is broader than raw mathematical moments E[Xⁿ]. Existence and dimensional meaning depend on the supplied law and summary kind, and the type alone establishes neither a finite value nor a computation."@x-gmeow-english ;
+    skos:example "As a mathematical illustration, let X take 1 m and 3 m with equal probabilities. Its expected value is 2 m and its variance is 1 m²; these are distinct summary results, not an asserted pair of existing RDF records."@x-gmeow-english ;
+    gmeow:useWhen "Use for a supplied moment or summary result of an identified distribution or random variable, retaining its mathematical kind, dimension and actual probability context."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid assuming every distribution has every moment, treating a correlation as an unnormalized raw moment, or replacing a result object with a bare literal. A summary is distinct from a procedure that computes it or a claim about it."@x-gmeow-english ;
+    gmeow:howToUse "Type the supplied result with Moment or its appropriate existing subclass and retain its actual hasMoment association, dimensional account and evidence. Preserve coexisting contextual results and the supplied value representation; the link proves no evaluation and the quantity-valued description does not identify the result resource with a Quantity."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 math:ExpectedValue
@@ -13604,6 +13609,11 @@ math:ExpectedValue
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "Expected Value"@x-gmeow-english ;
     skos:definition "The expected value E[X]: the first moment of a random variable, the integral of the variable against its probability measure (a math:Integral against a math:ProbabilityMeasure). A subclass of math:Moment. It carries the same dimension as the random variable it is taken over."@x-gmeow-english ;
+    skos:scopeNote "For a finite real expectation, the random variable must be integrable: E[|X|] < ∞ in the stated probability setting. The defining integral is not a guarantee that a finite result exists, and the result has the variable's physical dimension."@x-gmeow-english ;
+    skos:example "As a mathematical illustration, if X takes 1 m and 3 m with equal probabilities, E[X] = 2 m. The value summarizes the law; it is neither one realized observation nor evidence that an RDF result has been computed."@x-gmeow-english ;
+    gmeow:useWhen "Use for a source-supplied expected-value result with an identified random variable or distribution and evidence for the applicable existence conditions."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid identifying expectation with a most likely outcome, median, observed value or family location parameter without mathematical justification. Do not replace divergence or an undefined expectation with zero or invent an infinite-result representation."@x-gmeow-english ;
+    gmeow:howToUse "Retain the ExpectedValue result, its actual hasMoment association, the supplied probability setting and its dimensional account. The same physical dimension as the variable does not itself establish equal units, a reference-frame conversion, a numeric value or a successful integral evaluation."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 math:Variance
@@ -13612,6 +13622,11 @@ math:Variance
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "Variance"@x-gmeow-english ;
     skos:definition "The variance Var(X) = E[(X − E[X])²]: the second central moment of a random variable. A subclass of math:Moment. It carries the SQUARED dimension of the random variable — a variance of a height carries length², which is why a variance-parameterized family and a stddev-parameterized family carry different dimensions on their scale role."@x-gmeow-english ;
+    skos:scopeNote "Variance is the second central moment, distinct from an uncentered second moment and from standard deviation. A finite second moment suffices for a finite real variance; zero variance is allowed and does not make Pearson correlation defined."@x-gmeow-english ;
+    skos:example "As a mathematical illustration, X taking 1 m and 3 m with equal probabilities has Var(X) = 1 m². Its standard deviation is 1 m, so equal numeric magnitudes do not make those dimensionally different results identical."@x-gmeow-english ;
+    gmeow:useWhen "Use for a supplied variance result whose random variable or distribution, existence conditions and squared physical dimension are identified."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid treating variance as standard deviation, a standard error, an arbitrary scale parameter or a raw second moment. Do not invent a finite variance for a law without the required moment existence, or infer a positive variance merely from the result type."@x-gmeow-english ;
+    gmeow:howToUse "Keep the Variance result and its actual hasMoment association with the supplied law and dimensional evidence. Distinguish any variance parameter from a computed variance result; no edge computes squared deviations or converts a supplied standard-deviation parameter."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 math:Covariance
@@ -13620,6 +13635,11 @@ math:Covariance
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "Covariance"@x-gmeow-english ;
     skos:definition "The covariance Cov(X, Y) = E[(X − E[X])(Y − E[Y])]: the joint second central moment of two random variables. A subclass of math:Moment. It carries the product of the dimensions of its two variables."@x-gmeow-english ;
+    skos:scopeNote "Covariance concerns two variables in a common joint probability setting and requires a meaningful centered-product expectation. Finite second moments are sufficient for a finite covariance, but are not asserted as necessary for every definable covariance; separate marginal descriptions do not determine the joint law."@x-gmeow-english ;
+    skos:example "As a mathematical illustration, for X taking 1 m and 3 m with equal probabilities, Cov(X, X) = 1 m². This uses the same variable twice under one law; it does not assert existing operand slots or a source computation."@x-gmeow-english ;
+    gmeow:useWhen "Use for a supplied covariance result with both operand identities, a joint probability setting and the product of their physical dimensions actually accounted for."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring independence from zero covariance, deriving covariance from marginal summaries alone, or assuming two variables share a joint law because they have equal dimensions. Mathematical symmetry does not declare an RDF property symmetric."@x-gmeow-english ;
+    gmeow:howToUse "Retain the Covariance resource and its actual hasMoment association, preserving both operands and the joint setting in their supplied representation. The association alone does not identify the operand pair, supply a missing joint model, perform centering or establish a numeric result."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 math:Correlation
@@ -13627,7 +13647,12 @@ math:Correlation
     rdfs:subClassOf math:Moment ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "Correlation"@x-gmeow-english ;
-    skos:definition "The correlation ρ(X, Y) = Cov(X, Y) / (σ_X σ_Y): the covariance normalized by the product of standard deviations, a math:dimensionless quantity in [−1, 1]. A subclass of math:Moment. Being dimensionless is a stated dimensional fact, not an assumption."@x-gmeow-english ;
+    skos:definition "The Pearson correlation ρ(X, Y) = Cov(X, Y) / (σ_X σ_Y), defined for jointly distributed real-valued variables with finite, strictly positive variances: the covariance normalized by the product of standard deviations, a math:dimensionless quantity in [−1, 1]. A subclass of math:Moment. Being dimensionless is a stated dimensional fact, not an assumption."@x-gmeow-english ;
+    skos:scopeNote "This is Pearson correlation in the stated joint real-valued setting. Finite, strictly positive variances make its denominator meaningful; a constant variable's zero variance makes this correlation undefined. Zero correlation does not generally imply independence."@x-gmeow-english ;
+    skos:example "As a mathematical illustration, X taking 1 m and 3 m with equal probabilities has Corr(X, X) = 1. Replacing one operand by a constant makes its variance zero, so the Pearson formula is undefined rather than assigned a default value."@x-gmeow-english ;
+    gmeow:useWhen "Use for a supplied Pearson correlation result whose two operands, joint probability setting and finite, positive-variance conditions are established, with an explicit dimensionless account."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid using this result for an arbitrary similarity, probability, confidence score or rank-correlation statistic. Do not infer causation or independence from correlation, or substitute zero or one for an undefined zero-variance case."@x-gmeow-english ;
+    gmeow:howToUse "Retain the Correlation resource, actual hasMoment association and supplied operand, joint-law and dimensionless evidence. The range [−1, 1] is a mathematical property under the stated hypotheses; the type or link alone proves neither that those hypotheses hold nor that a value was evaluated."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 math:randomVariableDomain
@@ -13683,6 +13708,11 @@ math:hasMoment
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "has moment"@x-gmeow-english ;
     skos:definition "Relates a math:Distribution or math:RandomVariable to a math:Moment of it — an expectation, variance, covariance, or correlation. Domain a math:Distribution or math:RandomVariable, range math:Moment (stated in prose). Moments are quantity-valued result objects carrying their dimension, never bare literals."@x-gmeow-english ;
+    skos:scopeNote "This associates a Distribution or RandomVariable with a supplied Moment-family result. It does not encode a formula, numeric value or pair of operands, require every summary kind, or select a unique result from coexisting source accounts."@x-gmeow-english ;
+    skos:example "In a hypothetical representation of X taking 1 m and 3 m with equal probabilities, hasMoment can associate X with distinct ExpectedValue and Variance result resources. The mathematical illustration supplies no existing RDF result nodes or executed calculation."@x-gmeow-english ;
+    gmeow:useWhen "Use when the source actually associates a distribution or random variable with a supplied expectation, variance, covariance or correlation result object."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid attaching a bare literal or DistributionParameter as the result, reversing the edge, or treating the association as proof of existence, value, uniqueness or computation. An absent association does not prove the mathematical moment nonexistent."@x-gmeow-english ;
+    gmeow:howToUse "Keep the Distribution or RandomVariable as subject and the actual Moment-family resource as object. Preserve its specific result type, supplied dimension, probability context and provenance; covariance and correlation also need their actual operand identities and joint setting, which this single link does not provide."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 math:distributionParameterization
