@@ -16778,8 +16778,8 @@ msgid "Residual"
 msgstr "残差"
 
 msgctxt "https://blackcatinformatics.ca/math/Residual|http://www.w3.org/2004/02/skos/core#definition"
-msgid "A residual: the difference between an observed value and the value a math:FittedModel predicts, related to the fit it is a residual of through math:residualOf. A subclass of math:MathematicalObject; the R source lift can emit a residual record tied to a fit without supplying per-observation values or preserving the requested residual variant. Such a sparse record does not establish a computed numerical difference. Its statistical MEANING, if read, is a vantage-held gmeow:Observation, never an intrinsic property of the number."
-msgstr "残差：观测值与 math:FittedModel 预测值之差，通过 math:residualOf 关联到其所属拟合。它是 math:MathematicalObject 的子类；R 来源提升可以在未提供逐观测值或未保留所请求残差变体的情况下，输出与拟合相连的残差记录。此类稀疏记录不确立计算所得数值差。若解读其统计含义，该解读是由某视角持有的 gmeow:Observation，绝非数值的固有属性。"
+msgid "A residual: a model-relative discrepancy associated with an observation and a math:FittedModel, whose value depends on the declared residual convention. A raw residual is the observed value minus the model-predicted value; standardized, Pearson, deviance and other residuals use their own definitions. Related to the fit through math:residualOf and a subclass of math:MathematicalObject. The R source lift can emit a residual record tied to a fit without supplying per-observation values or preserving the requested residual variant; that sparse record does not establish a computed result. Its statistical interpretation, when stated, is a vantage-held gmeow:Observation, never an intrinsic property of its value."
+msgstr "残差：相对于模型的差异，与观测及 math:FittedModel 关联，其值取决于已声明的残差约定。原始残差是观测值减去模型预测值；标准化、Pearson、偏差及其他残差使用各自定义。它通过 math:residualOf 关联到拟合，是 math:MathematicalObject 的子类。R 来源提升可以在未提供逐观测值或未保留所请求残差变体的情况下，输出与拟合相连的残差记录；该稀疏记录不确立计算所得结果。若陈述其统计解释，该解释是由某视角持有的 gmeow:Observation，绝非其值的固有属性。"
 
 msgctxt "https://blackcatinformatics.ca/math/Residual|http://www.w3.org/2004/02/skos/core#scopeNote"
 msgid "The raw residual uses observed minus predicted, not the reverse sign. Pearson, standardized, deviance and other residual forms have their own definitions and are not automatically this raw difference. Preserve any source variant, observation association and value evidence in their supplied representation; a type and fit link alone establish none of them."
@@ -16806,8 +16806,8 @@ msgid "residual of"
 msgstr "残差所属拟合"
 
 msgctxt "https://blackcatinformatics.ca/math/residualOf|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Relates a math:Residual to the math:FittedModel it is a residual of. Domain math:Residual, range math:FittedModel (stated in prose). Names which fit an observed-minus-predicted difference belongs to."
-msgstr "将 math:Residual 关联到其所属的 math:FittedModel。定义域为 math:Residual，值域为 math:FittedModel（以文字说明）。此关系指明观测值减预测值所得差属于哪个拟合。"
+msgid "Relates a math:Residual to the math:FittedModel it concerns. Domain math:Residual, range math:FittedModel (stated in prose). Identifies the fit for raw and other residual variants; the residual convention determines how its value is defined."
+msgstr "将 math:Residual 关联到其所涉及的 math:FittedModel。定义域为 math:Residual，值域为 math:FittedModel（以文字说明）。此关系指明原始及其他残差变体所涉及的拟合；残差约定决定其值如何定义。"
 
 msgctxt "https://blackcatinformatics.ca/math/residualOf|http://www.w3.org/2004/02/skos/core#scopeNote"
 msgid "This identifies the fit a residual record concerns; the subject is the Residual and the object is the FittedModel. It is distinct from diagnosticFor on an evaluation and from a held interpretation of a residual. The link alone supplies no observation identity, numerical difference or residual-variant evidence."

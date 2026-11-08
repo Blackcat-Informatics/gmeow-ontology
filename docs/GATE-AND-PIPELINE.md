@@ -44,6 +44,14 @@ pipeline twice and queues the machine behind you.
 The PurRDF manifests select the released registry requirement (`purrdf = "=4"`), and no
 `purrdf*` requirement or locked package may admit a release below major 3
 (`PURRDF_MAJOR_FLOOR`).
+The partial requirement `=4` admits stable releases throughout major 4; it does
+not select an exact patch release. The three committed lockfiles currently select
+registry release `4.0.0`. JSON source-input macro expansion is a separate reviewed
+capability for `purrdf-lex` `4.0.0`, recorded by `REVIEWED_REGISTRY_VERSION` in
+`crates/build-inputs/src/json_macros.rs`. A lockfile bump beyond that release must
+review the macro protocol and update that capability boundary alongside ordinary
+dependency and consumer qualification; a matching Cargo requirement alone does not
+authorize source-input expansion.
 `Cargo.lock` selects the concrete version and source: a checksum identifies a
 registry package, while an exact commit identifies a Git dependency. The detached
 fuzz and CLIF workspaces commit their own lockfiles. `make maint-pin-purrdf`

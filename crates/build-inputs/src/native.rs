@@ -91,6 +91,7 @@ pub(crate) fn matches_native_json_owner(
     })
 }
 
+/// Resolve the declared substrate and bind the complete registry lock inventory.
 fn native_selection(workspace: &Path) -> Result<NativeSelection> {
     let manifest =
         std::fs::read_to_string(checked_path(workspace, Path::new("Cargo.toml"))?).map_err(fail)?;
@@ -211,6 +212,7 @@ fn native_selection(workspace: &Path) -> Result<NativeSelection> {
     Ok(NativeSelection::Registry(packages))
 }
 
+/// Refuse Cargo overrides before admitting a registry substrate inventory.
 fn registry_policy(workspace: &Path, manifest: &toml::Value) -> Result<()> {
     for document in std::iter::once(manifest.clone()).chain(
         [".cargo/config.toml", ".cargo/config"]

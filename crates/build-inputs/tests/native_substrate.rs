@@ -48,6 +48,7 @@ fn native_substrate_binds_the_git_source_and_refuses_mutable_selectors() {
     assert!(gmeow_build_inputs::native_substrate_source(root.path()).is_err());
 }
 
+/// Build a small registry inventory with independently mutable package checksums.
 fn registry_lock(facade: &str, lex: &str, leaf: &str) -> String {
     let source = "registry+https://github.com/rust-lang/crates.io-index";
     [("purrdf", facade), ("purrdf-lex", lex), ("purrdf-hash", leaf)]
@@ -58,6 +59,7 @@ fn registry_lock(facade: &str, lex: &str, leaf: &str) -> String {
         .collect()
 }
 
+/// Every substrate leaf affects identity, while malformed source proof is refused.
 #[test]
 fn registry_substrate_binds_every_leaf_and_rejects_unproven_resolution() {
     let root = tempfile::tempdir().unwrap();

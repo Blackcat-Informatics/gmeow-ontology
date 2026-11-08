@@ -2691,6 +2691,7 @@ fn portable_source_editions_resolve_declared_inherited_and_language_default() {
     assert!(gmeow_build_inputs::source_edition(root.path(), "crate/src/lib.rs").is_err());
 }
 
+/// Pair a tiny registry lock witness with its selected external lexical package.
 fn registry_json_selection(root: &Path, alias: &str) -> ProductionSelection {
     let mut selected = json_selection(root, alias);
     let source = "registry+https://github.com/rust-lang/crates.io-index";
@@ -2706,6 +2707,7 @@ fn registry_json_selection(root: &Path, alias: &str) -> ProductionSelection {
     selected
 }
 
+/// Macro input capability requires agreement among declaration, lock and selection.
 #[test]
 fn reviewed_registry_json_macros_require_the_exact_declared_locked_selected_owner() {
     for alias in ["purrdf-lex", "wire-json"] {
@@ -2775,6 +2777,7 @@ fn reviewed_registry_json_macros_require_the_exact_declared_locked_selected_owne
     }
 }
 
+/// Native macro inputs must belong to the substrate's actual delegated lexical leaf.
 #[test]
 fn native_registry_json_macro_must_be_the_substrates_delegated_leaf() {
     let root = tempfile::tempdir().unwrap();

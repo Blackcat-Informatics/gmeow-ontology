@@ -259,6 +259,7 @@ struct ScanMode {
     ownership_only: bool,
 }
 
+/// Follow modules and admit source-input macros only through proven owners.
 fn scan_unit(
     workspace: &Path,
     inventory: &mut InputInventory,

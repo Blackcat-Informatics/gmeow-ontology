@@ -13,6 +13,7 @@ use std::path::Path;
 const REPOSITORY: &str = "https://github.com/Blackcat-Informatics/purrdf";
 const PACKAGE: &str = "purrdf-lex";
 
+/// Read a checked workspace document without admitting an external path.
 fn document(workspace: &Path, relative: &str) -> Result<toml::Value> {
     std::fs::read_to_string(checked_path(workspace, Path::new(relative))?)
         .map_err(fail)?
@@ -23,7 +24,7 @@ fn document(workspace: &Path, relative: &str) -> Result<toml::Value> {
 pub(crate) const REGISTRY: &str = "registry+https://github.com/rust-lang/crates.io-index";
 const REVIEWED_REGISTRY_VERSION: &str = "4.0.0";
 
-/// Exact resolved package owner; the lock checksum authenticates registry bytes.
+/// Exact resolved package owner; the lock checksum identifies registry bytes.
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub(crate) struct Owner {
     pub source: String,
@@ -42,10 +43,12 @@ enum Declaration {
     },
 }
 
+/// Validate Cargo checksum syntax through the shared canonical hex reader.
 pub(crate) fn valid_checksum(value: &str) -> bool {
     value.len() == 64 && purrdf_hash::hex::decode_canonical(value).is_ok()
 }
 
+/// Admit only the official lexical package's supported source declarations.
 fn source(name: &str, value: &toml::Value) -> Option<Declaration> {
     if let Some(requirement) = value.as_str() {
         semver::VersionReq::parse(requirement).ok()?;
@@ -100,6 +103,7 @@ fn source(name: &str, value: &toml::Value) -> Option<Declaration> {
     }
 }
 
+/// Bind a declaration to one exact lock owner and its reviewed macro protocol.
 fn resolved_owner(declaration: &Declaration, records: &[toml::Value]) -> Option<Owner> {
     let mut matches = records
         .iter()
@@ -154,6 +158,7 @@ fn resolved_owner(declaration: &Declaration, records: &[toml::Value]) -> Option<
     }
 }
 
+/// Detect overrides that could replace or obscure the lexical macro provider.
 fn overrides(value: &toml::Value) -> bool {
     value
         .get("replace")
@@ -181,6 +186,7 @@ fn overrides(value: &toml::Value) -> bool {
             })
 }
 
+/// Resolve workspace inheritance without accepting local source overrides.
 fn inherited<'a>(
     root: &'a toml::Value,
     name: &str,
@@ -206,6 +212,7 @@ fn inherited<'a>(
         .ok_or_else(|| fail(format!("missing workspace dependency {name}")))
 }
 
+/// Retain aliases whose declarations all name one unambiguous supported source.
 fn declared_owners(
     root: &toml::Value,
     declared: &BTreeMap<String, Vec<&toml::Value>>,
@@ -249,6 +256,7 @@ fn declared_owners(
         .collect())
 }
 
+/// Prove macro ownership from declarations, configuration and an exact lock entry.
 pub(crate) fn portable(
     workspace: &Path,
     owner: &toml::Value,
@@ -290,6 +298,7 @@ pub(crate) fn portable(
         .collect())
 }
 
+/// Admit aliases only when the selected external source, name and version match.
 pub(crate) fn selected(
     workspace: &Path,
     unit: &UnitSelection,
