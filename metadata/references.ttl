@@ -14009,3 +14009,25 @@ repo:README.md a gmeow:CreativeWork ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/citations> ;
     gmeow:selectorLocator "Sections 6.1.2 and 6.5.1" ;
     gmeow:sourceLocation "https://www.cochrane.org/authors/handbooks-and-manuals/handbook/current/chapter-06" .
+
+<https://nexte.st/docs/installation/from-source/> a gmeow:CreativeWork ;
+    rdfs:label "cargo-nextest: Installing from source"@en ;
+    skos:definition "The official nextest instructions for installing cargo-nextest from crates.io with its required locked dependencies."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/citations> ;
+    gmeow:sourceLocation "https://nexte.st/docs/installation/from-source/" .
+
+<https://blackcatinformatics.ca/gmeow/references/citation/ci-nextest-locked-source-install> a gmeow:CitationAct ;
+    rdfs:label ".github/workflows/ci.yml"@en ;
+    skos:definition "The CI producer tool installation follows nextest's documented crates.io source installation with the required locked dependencies."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/citations> ;
+    gmeow:citationIntent gmeow:intentCitesAsDataSource ;
+    gmeow:citingEntity <https://blackcatinformatics.ca/gmeow/repo/.github/workflows/ci.yml> ;
+    gmeow:citedEntity <https://nexte.st/docs/installation/from-source/> ;
+    gmeow:viaSelector <https://blackcatinformatics.ca/gmeow/references/selector/ci-nextest-locked-source-install> .
+
+<https://blackcatinformatics.ca/gmeow/references/selector/ci-nextest-locked-source-install> a gmeow:Selector ;
+    rdfs:label "nextest crates.io source installation requirement"@en ;
+    skos:definition "The Installing from crates.io section and its cargo install command with the required locked flag, used by the CI producer tool installation."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/citations> ;
+    gmeow:selectorLocator "Installing from crates.io: cargo install cargo-nextest --locked" ;
+    gmeow:sourceLocation "https://nexte.st/docs/installation/from-source/" .

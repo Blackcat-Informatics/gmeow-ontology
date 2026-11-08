@@ -86,10 +86,19 @@ jobs:
         with:
           toolchain: nightly-2026-09-05
 
-      - name: Install the pinned nextest identity tool for build evidence
-        uses: taiki-e/install-action@86f7a0ffb25f40114606501a311ebcfaf882ea32 # v2
-        with:
-          tool: cargo-nextest@0.9.137
+      - name: Install the pinned nextest identity tool from locked source
+        run: |
+          set -euo pipefail
+          cargo install --locked --version 0.9.137 --root "$RUNNER_TEMP/required-nextest" cargo-nextest
+          export PATH="$RUNNER_TEMP/required-nextest/bin:$PATH"
+          cargo nextest --version > "$RUNNER_TEMP/required-nextest-version.txt"
+          cat "$RUNNER_TEMP/required-nextest-version.txt"
+          nextest_release=$(sed -n 's/^release: //p' "$RUNNER_TEMP/required-nextest-version.txt")
+          if [[ "$nextest_release" != '0.9.137' ]]; then
+            echo "::error::cargo-nextest release $nextest_release != pinned 0.9.137"
+            exit 1
+          fi
+          echo "$RUNNER_TEMP/required-nextest/bin" >> "$GITHUB_PATH"
 
       - name: Fingerprint the resolved Rust toolchain
         id: toolchain
