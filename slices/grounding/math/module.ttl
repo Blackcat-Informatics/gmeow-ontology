@@ -7778,7 +7778,7 @@ math:estimator
     a logic:ObjectProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "estimator"@x-gmeow-english ;
-    skos:definition "Relates a math:Estimate to the math:Estimator — the rule or procedure, a function of the data — that produced it (ordinary least squares, maximum likelihood, …). Domain math:Estimate, range math:Estimator (stated in prose). An estimate names its estimator so the produced value is never a bare number without its act; an estimate naming no estimator is underspecified (math:UnderspecifiedEstimate)."@x-gmeow-english ;
+    skos:definition "Relates a math:Estimate to its supplied math:Estimator — the rule or procedure, a function of the data (ordinary least squares, maximum likelihood, …). Domain math:Estimate, range math:Estimator (stated in prose). An estimate names its estimation procedure; an estimate naming no estimator is underspecified (math:UnderspecifiedEstimate). The link identifies the described procedure without itself establishing execution or a computed value."@x-gmeow-english ;
     skos:scopeNote "This identifies the estimation procedure, not the generating InferenceRun, target quantity or numerical output. Retain the actual method and relevant options; a method name inferred from an R callee is not proof of execution or faithful selection of every estimation variant."@x-gmeow-english ;
     skos:example "The positive fixture supplies ex:treatmentEffectEstimate estimator ex:olsEstimator and types ex:olsEstimator as Estimator. The negative counterpart keeps its target and value links but omits estimator; this is a declared missing-method boundary, not an executed fitting test."@x-gmeow-english ;
     gmeow:useWhen "Use to name the supplied rule or procedure for an estimation-result record, preserving its method-specific assumptions and options separately from the activity that applies it."@x-gmeow-english ;
@@ -8163,7 +8163,7 @@ math:Estimand
     gmeow:avoidWhen "Do not infer a substantive estimand or its causal identification from a model parameter or six named framing roles alone. The same target may be addressed under different models, and a model parameter may itself be the specified target; do not invent an intervention or missing-data policy for a general mathematical quantity."@x-gmeow-english ;
     gmeow:howToUse "Retain the actual target definition and relevant supplied math:targetPopulation, math:targetOutcome, math:targetContrast, math:targetTime, math:interventionCondition and math:missingDataPolicy context; an estimate names it through math:estimatesEstimand. Preserve absent or inapplicable context explicitly without manufacturing causal meaning or claiming a universal six-field admission check."@x-gmeow-english ;
     skos:example "exf:ate a math:Estimand ; math:targetPopulation exf:adultsCanada ; math:targetContrast exf:treatVsControl ; math:interventionCondition exf:drugArm ."@x-gmeow-english ;
-    skos:scopeNote "The target of inference, distinct from the math:Estimator (the procedure aimed at it) and the math:Estimate (one produced value); it is what is estimated, not how or the result."@x-gmeow-english .
+    skos:scopeNote "The target of inference, distinct in role from the math:Estimator procedure and the math:Estimate estimation-result record. A record's supplied value is separate from these roles; a target association does not prove that a numerical result is present or that estimation executed."@x-gmeow-english .
 
 math:Estimator
     a logic:Class ;
@@ -8174,7 +8174,7 @@ math:Estimator
     gmeow:graphBoxRole gmeow:boxTBox ;
     gmeow:useWhen "Mint one for the estimation procedure, a rule that is a function of the data such as ordinary least squares or maximum likelihood, held apart from the value it yields."@x-gmeow-english ;
     gmeow:avoidWhen "Do not conflate it with the number it produces or the quantity it targets; it is the map from data to value, not the value or the target."@x-gmeow-english ;
-    gmeow:howToUse "Reference it from a math:Estimate through math:estimator, so a produced value is never a bare number without the procedure that computed it."@x-gmeow-english ;
+    gmeow:howToUse "Reference the supplied procedure from a math:Estimate through math:estimator. Retain any actual value and generating math:InferenceRun separately; naming the procedure does not by itself establish that it ran or computed a numerical result."@x-gmeow-english ;
     skos:example "exf:olsEstimator a math:Estimator . exf:estIncome math:estimator exf:olsEstimator ."@x-gmeow-english ;
     skos:scopeNote "The data-to-value procedure, distinct in role from the math:Estimand target, math:Estimate result and execution activity. A function used for estimation can also serve as a math:Statistic; these mathematical roles need not require different function resources. A named method does not establish that all source options or numerical execution are qualified."@x-gmeow-english .
 

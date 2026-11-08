@@ -16772,12 +16772,12 @@ msgid "Do not conflate it with the number it produces or the quantity it targets
 msgstr "不要将其与产出数字或目标量混淆；它是数据到值的映射，而非该值或目标。"
 
 msgctxt "https://blackcatinformatics.ca/math/Estimator|https://blackcatinformatics.ca/gmeow/howToUse"
-msgid "Reference it from a math:Estimate through math:estimator, so a produced value is never a bare number without the procedure that computed it."
-msgstr "从 math:Estimate 通过 math:estimator 引用它，使产出值不是缺少其计算方法的孤立数字。"
+msgid "Reference the supplied procedure from a math:Estimate through math:estimator. Retain any actual value and generating math:InferenceRun separately; naming the procedure does not by itself establish that it ran or computed a numerical result."
+msgstr "从 math:Estimate 通过 math:estimator 引用所提供方法。另行保留任何实际值及生成活动 math:InferenceRun；指明方法本身不确立其已运行或已计算数值结果。"
 
 msgctxt "https://blackcatinformatics.ca/math/Estimand|http://www.w3.org/2004/02/skos/core#scopeNote"
-msgid "The target of inference, distinct from the math:Estimator (the procedure aimed at it) and the math:Estimate (one produced value); it is what is estimated, not how or the result."
-msgstr "推断目标，不同于针对它的 math:Estimator 方法及一个产出值 math:Estimate；它是被估计之物，而非方法或结果。"
+msgid "The target of inference, distinct in role from the math:Estimator procedure and the math:Estimate estimation-result record. A record's supplied value is separate from these roles; a target association does not prove that a numerical result is present or that estimation executed."
+msgstr "推断目标，其角色不同于 math:Estimator 方法及 math:Estimate 估计结果记录。记录所提供的值与这些角色分开；目标关联不证明数值结果存在或估计已执行。"
 
 msgctxt "https://blackcatinformatics.ca/math/Estimand|http://www.w3.org/2004/02/skos/core#example"
 msgid "exf:ate a math:Estimand ; math:targetPopulation exf:adultsCanada ; math:targetContrast exf:treatVsControl ; math:interventionCondition exf:drugArm ."
@@ -16904,8 +16904,8 @@ msgid "estimator"
 msgstr "估计量"
 
 msgctxt "https://blackcatinformatics.ca/math/estimator|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Relates a math:Estimate to the math:Estimator — the rule or procedure, a function of the data — that produced it (ordinary least squares, maximum likelihood, …). Domain math:Estimate, range math:Estimator (stated in prose). An estimate names its estimator so the produced value is never a bare number without its act; an estimate naming no estimator is underspecified (math:UnderspecifiedEstimate)."
-msgstr "将 math:Estimate 关联到产出它的 math:Estimator，即作为数据函数的规则或方法，例如普通最小二乘、极大似然等。定义域为 math:Estimate，值域为 math:Estimator（以文字说明）。估计值指明其估计量，使产出值不是缺少其方法的孤立数字；未指明估计量的估计值属欠指定（math:UnderspecifiedEstimate）。"
+msgid "Relates a math:Estimate to its supplied math:Estimator — the rule or procedure, a function of the data (ordinary least squares, maximum likelihood, …). Domain math:Estimate, range math:Estimator (stated in prose). An estimate names its estimation procedure; an estimate naming no estimator is underspecified (math:UnderspecifiedEstimate). The link identifies the described procedure without itself establishing execution or a computed value."
+msgstr "将 math:Estimate 关联到所提供的 math:Estimator，即作为数据函数的规则或方法（普通最小二乘、极大似然、…）。定义域为 math:Estimate，值域为 math:Estimator（以文字说明）。估计值指明其估计方法；未指明估计量的估计值属欠指定（math:UnderspecifiedEstimate）。链接指明所描述方法，其本身不确立执行或计算所得值。"
 
 msgctxt "https://blackcatinformatics.ca/math/estimator|http://www.w3.org/2004/02/skos/core#scopeNote"
 msgid "This identifies the estimation procedure, not the generating InferenceRun, target quantity or numerical output. Retain the actual method and relevant options; a method name inferred from an R callee is not proof of execution or faithful selection of every estimation variant."

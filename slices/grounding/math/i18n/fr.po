@@ -16772,12 +16772,12 @@ msgid "Do not conflate it with the number it produces or the quantity it targets
 msgstr "Ne pas le confondre avec le nombre qu’il produit ou la quantité qu’il cible ; il est l’application des données vers une valeur, non la valeur ou la cible."
 
 msgctxt "https://blackcatinformatics.ca/math/Estimator|https://blackcatinformatics.ca/gmeow/howToUse"
-msgid "Reference it from a math:Estimate through math:estimator, so a produced value is never a bare number without the procedure that computed it."
-msgstr "Le référencer depuis une math:Estimate par math:estimator, de sorte qu’une valeur produite ne soit jamais un nombre nu sans la procédure qui l’a calculée."
+msgid "Reference the supplied procedure from a math:Estimate through math:estimator. Retain any actual value and generating math:InferenceRun separately; naming the procedure does not by itself establish that it ran or computed a numerical result."
+msgstr "Référencer la procédure fournie depuis une math:Estimate par math:estimator. Conserver séparément toute valeur effective et tout math:InferenceRun qui l’a produite ; nommer la procédure n’établit pas à lui seul qu’elle a été exécutée ou a calculé un résultat numérique."
 
 msgctxt "https://blackcatinformatics.ca/math/Estimand|http://www.w3.org/2004/02/skos/core#scopeNote"
-msgid "The target of inference, distinct from the math:Estimator (the procedure aimed at it) and the math:Estimate (one produced value); it is what is estimated, not how or the result."
-msgstr "La cible de l’inférence, distincte du math:Estimator (la procédure qui la vise) et de la math:Estimate (une valeur produite) ; c’est ce qui est estimé, non la manière ni le résultat."
+msgid "The target of inference, distinct in role from the math:Estimator procedure and the math:Estimate estimation-result record. A record's supplied value is separate from these roles; a target association does not prove that a numerical result is present or that estimation executed."
+msgstr "La cible de l’inférence, dont le rôle est distinct de celui de la procédure math:Estimator et de celui de l’enregistrement de résultat d’estimation math:Estimate. La valeur fournie d’un enregistrement est distincte de ces rôles ; une association à une cible ne prouve ni la présence d’un résultat numérique ni l’exécution d’une estimation."
 
 msgctxt "https://blackcatinformatics.ca/math/Estimand|http://www.w3.org/2004/02/skos/core#example"
 msgid "exf:ate a math:Estimand ; math:targetPopulation exf:adultsCanada ; math:targetContrast exf:treatVsControl ; math:interventionCondition exf:drugArm ."
@@ -16904,8 +16904,8 @@ msgid "estimator"
 msgstr "estimateur"
 
 msgctxt "https://blackcatinformatics.ca/math/estimator|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Relates a math:Estimate to the math:Estimator — the rule or procedure, a function of the data — that produced it (ordinary least squares, maximum likelihood, …). Domain math:Estimate, range math:Estimator (stated in prose). An estimate names its estimator so the produced value is never a bare number without its act; an estimate naming no estimator is underspecified (math:UnderspecifiedEstimate)."
-msgstr "Relie une math:Estimate au math:Estimator — la règle ou procédure, fonction des données — qui l’a produite (moindres carrés ordinaires, maximum de vraisemblance, …). Domaine : math:Estimate ; portée : math:Estimator (indiqués en prose). Une estimation nomme son estimateur afin que la valeur produite ne soit jamais un nombre nu sans son acte ; une estimation qui ne nomme aucun estimateur est sous-spécifiée (math:UnderspecifiedEstimate)."
+msgid "Relates a math:Estimate to its supplied math:Estimator — the rule or procedure, a function of the data (ordinary least squares, maximum likelihood, …). Domain math:Estimate, range math:Estimator (stated in prose). An estimate names its estimation procedure; an estimate naming no estimator is underspecified (math:UnderspecifiedEstimate). The link identifies the described procedure without itself establishing execution or a computed value."
+msgstr "Relie une math:Estimate à son math:Estimator fourni — la règle ou procédure, une fonction des données (moindres carrés ordinaires, maximum de vraisemblance, …). Domaine math:Estimate, portée math:Estimator (énoncés en prose). Une estimation nomme sa procédure d’estimation ; une estimation ne nommant aucun estimateur est insuffisamment spécifiée (math:UnderspecifiedEstimate). Le lien identifie la procédure décrite sans établir à lui seul son exécution ni l’existence d’une valeur calculée."
 
 msgctxt "https://blackcatinformatics.ca/math/estimator|http://www.w3.org/2004/02/skos/core#scopeNote"
 msgid "This identifies the estimation procedure, not the generating InferenceRun, target quantity or numerical output. Retain the actual method and relevant options; a method name inferred from an R callee is not proof of execution or faithful selection of every estimation variant."
