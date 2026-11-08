@@ -14492,3 +14492,115 @@ msgstr "Éviter d’assimiler cette algèbre au support cartésien ou, automatiq
 msgctxt "https://blackcatinformatics.ca/math/ProductSigmaAlgebra|https://blackcatinformatics.ca/gmeow/howToUse"
 msgid "Retain the supplied factor-space and event-family descriptions and link the ProductSigmaAlgebra through eventSigmaAlgebra on the actual ProbabilitySpace. Keep sampleSpace, probabilityMeasure and any asserted independence model separate; do not invent factor links, execute a factorization or interpret a selected query's missing row as invalidity."
 msgstr "Conserver les descriptions fournies des espaces facteurs et des familles d’événements et relier la ProductSigmaAlgebra par eventSigmaAlgebra sur le ProbabilitySpace effectif. Garder séparés sampleSpace, probabilityMeasure et tout modèle d’indépendance affirmé ; ne pas inventer de liens de facteurs, exécuter une factorisation ou interpréter une ligne manquante dans une requête sélectionnée comme une invalidité."
+
+msgctxt "https://blackcatinformatics.ca/math/ProbabilityEvent|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Probability Event"
+msgstr "Événement probabiliste"
+
+msgctxt "https://blackcatinformatics.ca/math/ProbabilityEvent|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A probability event: a measurable subset of a sample space — a MEASURABLE SET OF OUTCOMES, in the measure-theoretic sense, situated in a space through math:eventInSpace and assigned a framed probability through math:probabilityOfEvent. A subclass of math:Set. It is held OWL disjointWith logic:Event because a logic:Event is an occurrent (something that happens in time) whereas a probability event is a set of outcomes: a rain occurrence and the rain event-set in a forecast space are never conflated. math:eventInSpace declares the event's probability-space context without itself establishing measurability or membership in that space's math:eventSigmaAlgebra; there is NO separate EventSet class — the σ-algebra is the sole event algebra."
+msgstr "Un événement probabiliste : un sous-ensemble mesurable d’un espace des issues, un ENSEMBLE MESURABLE D’ISSUES au sens de la théorie de la mesure, situé dans un espace par math:eventInSpace et auquel une probabilité cadrée est attribuée par math:probabilityOfEvent. Sous-classe de math:Set. Il est maintenu dans la relation OWL disjointWith avec logic:Event, car un logic:Event est un occurrent, quelque chose qui se produit dans le temps, tandis qu’un événement probabiliste est un ensemble d’issues : une occurrence de pluie et l’ensemble constituant l’événement pluie dans un espace de prévision ne sont jamais confondus. math:eventInSpace déclare le contexte d’espace de probabilité de l’événement sans établir à lui seul la mesurabilité ni l’appartenance à la math:eventSigmaAlgebra de cet espace ; il n’existe AUCUNE classe EventSet distincte : la σ-algèbre est l’unique algèbre d’événements."
+
+msgctxt "https://blackcatinformatics.ca/math/ProbabilityEvent|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This is a measurable set of outcomes in a declared probability-space context, not an occurrence in time or one outcome point. The canonical disjointness from logic:Event preserves that distinction; declaring a context does not itself prove set membership or measurability."
+msgstr "Il s’agit d’un ensemble mesurable d’issues dans un contexte déclaré d’espace de probabilité, non d’une occurrence dans le temps ni d’un point constituant une issue. La disjonction canonique avec logic:Event préserve cette distinction ; déclarer un contexte ne prouve pas à lui seul l’appartenance à un ensemble ni la mesurabilité."
+
+msgctxt "https://blackcatinformatics.ca/math/ProbabilityEvent|http://www.w3.org/2004/02/skos/core#example"
+msgid "The existing scene records ex:forecastRainEvent as ProbabilityEvent, names ex:weatherSpace through eventInSpace and links both ex:pRainTomorrow and ex:pRainFromOdds through probabilityOfEvent. These are supplied event/value records, not computed membership or a selected winning probability."
+msgstr "La scène existante consigne ex:forecastRainEvent comme ProbabilityEvent, nomme ex:weatherSpace par eventInSpace et relie à la fois ex:pRainTomorrow et ex:pRainFromOdds par probabilityOfEvent. Ce sont des enregistrements d’événement et de valeurs fournis, non une appartenance calculée ou une probabilité gagnante sélectionnée."
+
+msgctxt "https://blackcatinformatics.ca/math/ProbabilityEvent|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for the event-set A whose probability P(A) is represented in a supplied probability-space context, retaining the source's event description and supporting evidence."
+msgstr "Utiliser pour l’ensemble d’événement A dont la probabilité P(A) est représentée dans un contexte fourni d’espace de probabilité, en conservant la description source de l’événement et les éléments probants qui l’étayent."
+
+msgctxt "https://blackcatinformatics.ca/math/ProbabilityEvent|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid using this class for a weather occurrence, an outcome point, the whole event algebra or a probability magnitude. Do not infer a measurable-subset proof, event realization or unconditional logical truth from its type or a probability endpoint."
+msgstr "Éviter d’utiliser cette classe pour une occurrence météorologique, un point constituant une issue, l’algèbre d’événements entière ou une magnitude de probabilité. Ne pas inférer une preuve de sous-ensemble mesurable, la réalisation de l’événement ou une vérité logique inconditionnelle de son type ou d’une valeur extrême de l’intervalle des probabilités."
+
+msgctxt "https://blackcatinformatics.ca/math/ProbabilityEvent|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Type the supplied event-set as ProbabilityEvent and retain its actual eventInSpace and probabilityOfEvent links. Keep the outcome carrier, eventSigmaAlgebra, source observation and value frames separately supplied; do not invent membership edges or identify the set with an occurrence."
+msgstr "Typer l’ensemble d’événement fourni comme ProbabilityEvent et conserver ses liens effectifs eventInSpace et probabilityOfEvent. Garder fournis séparément le support des issues, eventSigmaAlgebra, l’observation source et les cadres des valeurs ; ne pas inventer d’arêtes d’appartenance ni assimiler l’ensemble à une occurrence."
+
+msgctxt "https://blackcatinformatics.ca/math/eventInSpace|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "event in space"
+msgstr "événement dans l’espace"
+
+msgctxt "https://blackcatinformatics.ca/math/eventInSpace|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Situates a probability event in the probability space it is a measurable set of outcomes of. Domain math:ProbabilityEvent, range math:ProbabilitySpace (stated in prose). Measurability is relative to the space's math:eventSigmaAlgebra; the context link alone supplies no membership decision; the event is a set of outcomes, not an occurrent (it is disjoint from logic:Event)."
+msgstr "Situe un événement probabiliste dans l’espace de probabilité dont il est un ensemble mesurable d’issues. Domaine : math:ProbabilityEvent ; portée : math:ProbabilitySpace (indiqués en prose). La mesurabilité est relative à la math:eventSigmaAlgebra de l’espace ; le lien de contexte seul ne fournit aucune décision d’appartenance ; l’événement est un ensemble d’issues, non un occurrent, et il est disjoint de logic:Event."
+
+msgctxt "https://blackcatinformatics.ca/math/eventInSpace|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This declares the probability-space context in which an event-set is asserted measurable. The object is a ProbabilitySpace, not its outcome carrier, event algebra or measure; the context link supplies no algorithm or proof deciding membership in that algebra."
+msgstr "Cette relation déclare le contexte d’espace de probabilité dans lequel l’ensemble constituant un événement est affirmé mesurable. L’objet est un ProbabilitySpace, non son support d’issues, son algèbre d’événements ou sa mesure ; le lien de contexte ne fournit ni algorithme ni preuve décidant l’appartenance à cette algèbre."
+
+msgctxt "https://blackcatinformatics.ca/math/eventInSpace|http://www.w3.org/2004/02/skos/core#example"
+msgid "The existing scene states ex:forecastRainEvent math:eventInSpace ex:weatherSpace. That space separately names ex:rainfallOutcomes, ex:rainfallBorel and ex:weatherMeasure through its component roles."
+msgstr "La scène existante énonce ex:forecastRainEvent math:eventInSpace ex:weatherSpace. Cet espace nomme séparément ex:rainfallOutcomes, ex:rainfallBorel et ex:weatherMeasure par ses rôles de composantes."
+
+msgctxt "https://blackcatinformatics.ca/math/eventInSpace|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain the actual probability-space context of a ProbabilityEvent and thereby identify the sample-space, event-algebra and measure record relevant to its interpretation."
+msgstr "Utiliser pour conserver le contexte effectif d’espace de probabilité d’un ProbabilityEvent et ainsi identifier les enregistrements d’espace des issues, d’algèbre d’événements et de mesure pertinents pour son interprétation."
+
+msgctxt "https://blackcatinformatics.ca/math/eventInSpace|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid reversing the link, substituting a sample space or σ-algebra for its ProbabilitySpace object, or treating the association as a measurability test, a probability calculation or automatic model selection."
+msgstr "Éviter d’inverser le lien, de substituer un espace des issues ou une σ-algèbre à son objet ProbabilitySpace, ou de traiter l’association comme un test de mesurabilité, un calcul de probabilité ou une sélection automatique de modèle."
+
+msgctxt "https://blackcatinformatics.ca/math/eventInSpace|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Write the supplied ProbabilityEvent as subject and its ProbabilitySpace as object. Preserve the actual component descriptions and any evidence for measurability; a missing membership proof does not authorize inventing a carrier, event algebra, measure or validation result."
+msgstr "Écrire le ProbabilityEvent fourni comme sujet et son ProbabilitySpace comme objet. Préserver les descriptions effectives des composantes et tout élément probant de mesurabilité ; l’absence de preuve d’appartenance n’autorise pas à inventer un support, une algèbre d’événements, une mesure ou un résultat de validation."
+
+msgctxt "https://blackcatinformatics.ca/math/probabilityOfEvent|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "probability of event"
+msgstr "probabilité de l’événement"
+
+msgctxt "https://blackcatinformatics.ca/math/probabilityOfEvent|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Relates a probability event to the framed probability value P(A) assigned to it. Domain math:ProbabilityEvent, range math:ProbabilityValue (stated in prose). The probability is a framed quantity object naming its probability frame or model, never a bare literal (math:UnframedProbabilityValue) and never inferred from a confidence score without a declared mapping (math:ConfidenceAsProbability)."
+msgstr "Relie un événement probabiliste à la valeur de probabilité cadrée P(A) qui lui est attribuée. Domaine : math:ProbabilityEvent ; portée : math:ProbabilityValue (indiqués en prose). La probabilité est un objet de quantité cadrée qui nomme son cadre ou modèle de probabilité, jamais un simple littéral (math:UnframedProbabilityValue), et elle n’est jamais inférée d’un score de confiance sans correspondance déclarée (math:ConfidenceAsProbability)."
+
+msgctxt "https://blackcatinformatics.ca/math/probabilityOfEvent|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The direction is event-set to framed probability-value object. It retains a supplied P(A) record without evaluating a probability measure or ranking multiple records; each value's actual frame, model, source and exactness remain relevant to interpretation."
+msgstr "La direction va de l’ensemble d’événement vers l’objet de valeur de probabilité cadrée. Cette relation conserve un enregistrement P(A) fourni sans évaluer une mesure de probabilité ni classer plusieurs enregistrements ; le cadre, le modèle, la source et l’exactitude effectifs de chaque valeur restent pertinents pour l’interprétation."
+
+msgctxt "https://blackcatinformatics.ca/math/probabilityOfEvent|http://www.w3.org/2004/02/skos/core#example"
+msgid "The existing scene links ex:forecastRainEvent to ex:pRainTomorrow with decimal quantityValue 0.72 and to ex:pRainFromOdds with decimal quantityValue 0.75. Both values retain ex:weatherForecastProbabilityFrame; this role does not choose or combine them."
+msgstr "La scène existante relie ex:forecastRainEvent à ex:pRainTomorrow avec une valeur décimale quantityValue 0.72 et à ex:pRainFromOdds avec une valeur décimale quantityValue 0.75. Les deux valeurs conservent ex:weatherForecastProbabilityFrame ; ce rôle ne les départage pas et ne les combine pas."
+
+msgctxt "https://blackcatinformatics.ca/math/probabilityOfEvent|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to connect a ProbabilityEvent to an actual ProbabilityValue record, preserving its frame or model and source evidence rather than substituting a bare number."
+msgstr "Utiliser pour relier un ProbabilityEvent à un enregistrement ProbabilityValue effectif, en préservant son cadre ou modèle et les éléments probants sources plutôt qu’en lui substituant un simple nombre."
+
+msgctxt "https://blackcatinformatics.ca/math/probabilityOfEvent|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid reversing the edge, linking directly to a confidence score or literal, treating multiple records as one privileged answer, or claiming that this association computes, calibrates, averages or reconciles probabilities."
+msgstr "Éviter d’inverser l’arête, de relier directement un score de confiance ou un littéral, de traiter plusieurs enregistrements comme une réponse privilégiée unique ou de prétendre que cette association calcule, étalonne, moyenne ou met en concordance les probabilités."
+
+msgctxt "https://blackcatinformatics.ca/math/probabilityOfEvent|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the ProbabilityEvent as subject and its supplied ProbabilityValue as object, with eventInSpace and each value's actual magnitude, dimension, frame/model and provenance kept in their original roles. Preserve coexisting records without introducing a functional-property rule, default winner or fabricated probability."
+msgstr "Conserver le ProbabilityEvent comme sujet et sa ProbabilityValue fournie comme objet, en gardant eventInSpace ainsi que la magnitude, la dimension, le cadre ou modèle et la provenance effectifs de chaque valeur dans leurs rôles d’origine. Préserver les enregistrements coexistants sans introduire de règle de propriété fonctionnelle, de gagnant par défaut ou de probabilité fabriquée."
+
+msgctxt "https://blackcatinformatics.ca/math/ProbabilityValue|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Probability Value"
+msgstr "Valeur de probabilité"
+
+msgctxt "https://blackcatinformatics.ca/math/ProbabilityValue|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A probability value: a quantity/result object that is ALWAYS in the closed unit interval [0, 1], carrying its magnitude and naming its probability frame or model. A subclass of math:Quantity (a probability is math:dimensionless). Where exact, it is carried as a math:RationalValue with math:isExact true (the exact/approximate split — 1/3, not 0.333); where empirical it may be an approximate value. The canonical math:ProbabilityValueRangeConstraint requires each supplied math:quantityValue to lie in [0, 1], with an out-of-bounds magnitude classified as math:ProbabilityOutOfBounds; odds and log-odds are NOT probabilities and are their own kinds (math:OddsValue, math:LogOddsValue), held disjoint from this class so a consumer seeing a math:ProbabilityValue may correctly assume a closed unit interval."
+msgstr "Une valeur de probabilité : un objet de quantité ou de résultat TOUJOURS dans l’intervalle unité fermé [0, 1], portant sa magnitude et nommant son cadre ou modèle de probabilité. Sous-classe de math:Quantity, une probabilité étant math:dimensionless. Lorsqu’elle est exacte, elle est portée comme une math:RationalValue avec math:isExact true, selon la distinction exact/approché : 1/3, non 0.333 ; lorsqu’elle est empirique, elle peut être une valeur approchée. La contrainte canonique math:ProbabilityValueRangeConstraint exige que chaque math:quantityValue fournie se situe dans [0, 1], une magnitude hors limites étant classée math:ProbabilityOutOfBounds ; les cotes et log-cotes ne sont PAS des probabilités et ont leurs propres types (math:OddsValue, math:LogOddsValue), maintenus disjoints de cette classe, afin qu’un consommateur rencontrant une math:ProbabilityValue puisse correctement supposer un intervalle unité fermé."
+
+msgctxt "https://blackcatinformatics.ca/math/ProbabilityValue|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This is a dimensionless quantity/result object, distinct from its magnitude, event-set, probability-space context and confidence. The authored range constrains supplied quantityValue values to the closed interval including zero and one; it does not construct missing values or certify complete numeric admission."
+msgstr "Il s’agit d’un objet de quantité ou de résultat sans dimension, distinct de sa magnitude, de l’ensemble d’événement, du contexte d’espace de probabilité et de la confiance. La plage définie dans la source contraint les valeurs quantityValue fournies à l’intervalle fermé incluant zéro et un ; elle ne construit pas les valeurs manquantes et ne certifie pas une admission numérique complète."
+
+msgctxt "https://blackcatinformatics.ca/math/ProbabilityValue|http://www.w3.org/2004/02/skos/core#example"
+msgid "The existing ex:pRainTomorrow record has decimal quantityValue 0.72, dimensionless dimension, weatherForecastProbabilityFrame and isResultOf ex:forecastRun. The surrounding forecastProbabilityObservation carries ex:weatherModelV17 as its vantage; that agent is not supplied as the value's probabilityModel."
+msgstr "L’enregistrement existant ex:pRainTomorrow possède une valeur décimale quantityValue 0.72, une dimension dimensionless, weatherForecastProbabilityFrame et isResultOf ex:forecastRun. La forecastProbabilityObservation environnante porte ex:weatherModelV17 comme vantage ; cet agent n’est pas fourni comme probabilityModel de la valeur."
+
+msgctxt "https://blackcatinformatics.ca/math/ProbabilityValue|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for an actual framed probability magnitude or result, retaining whether the source supplies exact RationalValue/isExact metadata or an empirical approximation without inferring exactness from a decimal spelling."
+msgstr "Utiliser pour une magnitude ou un résultat de probabilité effectivement cadré, en conservant les métadonnées RationalValue/isExact d’exactitude ou l’approximation empirique fournies par la source, sans inférer l’exactitude d’une écriture décimale."
+
+msgctxt "https://blackcatinformatics.ca/math/ProbabilityValue|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid retagging odds, log-odds, a solver weight or an uncalibrated confidence as a probability, rounding an exact source value, or treating an in-range literal as proof of a valid model, measurability, calibration or complete conformance."
+msgstr "Éviter de réétiqueter des cotes, des log-cotes, un poids de solveur ou une confiance non étalonnée comme une probabilité, d’arrondir une valeur source exacte ou de traiter un littéral dans l’intervalle comme une preuve de modèle valide, de mesurabilité, d’étalonnage ou de conformité complète."
+
+msgctxt "https://blackcatinformatics.ca/math/ProbabilityValue|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the actual magnitude, dimension and exact/approximate metadata. The existing framing constraint requires at least one supplied hasReferenceFrame or probabilityModel; a supplied logic:confidence additionally requires logic:probabilityModel. Preserve the actual source associations and evidence: a declared model does not itself execute or validate a confidence-to-probability mapping."
+msgstr "Conserver la magnitude, la dimension et les métadonnées effectives sur le caractère exact ou approché de la valeur. La contrainte de cadrage existante exige au moins un rôle fourni parmi hasReferenceFrame et probabilityModel ; une logic:confidence fournie exige en plus logic:probabilityModel. Préserver les associations sources effectives et les éléments probants : un modèle déclaré n’exécute ni ne valide à lui seul une correspondance de confiance vers probabilité."
