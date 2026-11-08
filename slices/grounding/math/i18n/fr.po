@@ -14324,3 +14324,171 @@ msgstr "Éviter de placer un score de confiance, un nombre brut ou une MeasureDe
 msgctxt "https://blackcatinformatics.ca/math/probabilityMeasure|https://blackcatinformatics.ca/gmeow/howToUse"
 msgid "Link the ProbabilitySpace to its supplied ProbabilityMeasure and retain that measure's measureOn frame and normalization evidence. Retain any supplied defining expression with its actual source association; do not invent a density AST, identify distinct space resources or select an execution model implicitly."
 msgstr "Relier le ProbabilitySpace à sa ProbabilityMeasure fournie et conserver le cadre measureOn de cette mesure ainsi que les éléments probants de normalisation. Conserver toute expression de définition fournie avec son association source effective ; ne pas inventer un AST de densité, assimiler des ressources d’espace distinctes ou sélectionner implicitement un modèle d’exécution."
+
+msgctxt "https://blackcatinformatics.ca/math/SampleSpace|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Sample Space"
+msgstr "Espace des issues"
+
+msgctxt "https://blackcatinformatics.ca/math/SampleSpace|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A sample space Ω: the set of all possible outcomes of a probabilistic experiment — the underlying set of a math:ProbabilitySpace, named through math:sampleSpace. A subclass of math:Set; its outcomes may be described generatively (math:GeneratedSampleSpace) or symbolically (math:SymbolicSampleSpace) rather than listed. An outcome is a point of Ω; a measurable set of outcomes is a math:ProbabilityEvent, not a point."
+msgstr "Un espace des issues Ω : l’ensemble de toutes les issues possibles d’une expérience probabiliste, l’ensemble sous-jacent d’un math:ProbabilitySpace, nommé par math:sampleSpace. Sous-classe de math:Set ; ses issues peuvent être décrites de manière générative (math:GeneratedSampleSpace) ou symbolique (math:SymbolicSampleSpace) plutôt qu’énumérées. Une issue est un point de Ω ; un ensemble mesurable d’issues est un math:ProbabilityEvent, non un point."
+
+msgctxt "https://blackcatinformatics.ca/math/SampleSpace|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This is Ω, the set of possible outcomes, separate in role from its measurable-event family and probability measure. Outcome presentation and event-family presentation are independent: neither the size nor the enumeration of one determines how the other is described."
+msgstr "Il s’agit de Ω, l’ensemble des issues possibles, dont le rôle se distingue de ceux de sa famille d’événements mesurables et de sa mesure de probabilité. La présentation des issues et celle de la famille d’événements sont indépendantes : ni la taille ni l’énumération de l’une ne déterminent comment l’autre est décrite."
+
+msgctxt "https://blackcatinformatics.ca/math/SampleSpace|http://www.w3.org/2004/02/skos/core#example"
+msgid "The existing probability scene names ex:rainfallOutcomes and ex:sprinklerOutcomes through sampleSpace on their respective ProbabilitySpace records. Both are typed SymbolicSampleSpace; the sprinkler label describes a finite state set without supplying an outcome-member list."
+msgstr "La scène de probabilité existante nomme ex:rainfallOutcomes et ex:sprinklerOutcomes par sampleSpace sur leurs enregistrements ProbabilitySpace respectifs. Tous deux sont typés SymbolicSampleSpace ; le libellé de l’arroseur décrit un ensemble fini d’états sans fournir de liste des issues membres de cet ensemble."
+
+msgctxt "https://blackcatinformatics.ca/math/SampleSpace|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for the actual outcome carrier of a probability-space record, whether its outcomes are described extensionally, symbolically or generatively."
+msgstr "Utiliser pour le support effectif des issues d’un enregistrement d’espace de probabilité, que ses issues soient décrites en extension, symboliquement ou de manière générative."
+
+msgctxt "https://blackcatinformatics.ca/math/SampleSpace|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid substituting one outcome, an event-set, its σ-algebra, a measure or a confidence score for the carrier. Do not infer event enumeration, a distribution or successful membership checks from the carrier's label or presentation type."
+msgstr "Éviter de substituer au support une issue, un ensemble constituant un événement, sa σ-algèbre, une mesure ou un score de confiance. Ne pas inférer une énumération d’événements, une distribution ou des vérifications d’appartenance réussies du libellé ou du type de présentation du support."
+
+msgctxt "https://blackcatinformatics.ca/math/SampleSpace|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the supplied SampleSpace resource through ProbabilitySpace's sampleSpace role, with the actual eventSigmaAlgebra and probabilityMeasure resources separately named. Preserve any supplied outcome description and inherited Set obligations without inventing members, a measure or an execution model."
+msgstr "Conserver la ressource SampleSpace fournie par le rôle sampleSpace du ProbabilitySpace, avec les ressources eventSigmaAlgebra et probabilityMeasure effectives nommées séparément. Préserver toute description d’issues fournie et les obligations héritées de Set sans inventer de membres, de mesure ou de modèle d’exécution."
+
+msgctxt "https://blackcatinformatics.ca/math/GeneratedSampleSpace|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Generated Sample Space"
+msgstr "Espace des issues généré"
+
+msgctxt "https://blackcatinformatics.ca/math/GeneratedSampleSpace|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A sample space whose outcomes are produced by a generative rule rather than enumerated — the outcomes of an unbounded sequence of coin flips, the paths of a process. A subclass of math:SampleSpace realizing the charter's allowance for generative descriptions rather than extensional listings; a generative description does not replace the probability-space record's required sample-space, event-algebra and probability-measure objects or alone certify structural completeness."
+msgstr "Un espace des issues dont les issues sont produites par une règle générative plutôt qu’énumérées : les issues d’une suite de lancers de pièce de longueur non bornée, les trajectoires d’un processus. Sous-classe de math:SampleSpace réalisant la possibilité, prévue par le cadre, de descriptions génératives plutôt que de listes en extension ; une description générative ne remplace pas les objets requis d’espace des issues, d’algèbre d’événements et de mesure de probabilité de l’enregistrement d’espace de probabilité, et ne certifie pas à elle seule la complétude structurelle."
+
+msgctxt "https://blackcatinformatics.ca/math/GeneratedSampleSpace|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This describes a generative presentation of possible outcomes. The presentation specifies the outcome space; it supplies neither permission to execute a generator nor a probability law, sampling algorithm, enumeration result or proof that the complete probability-space frame is present."
+msgstr "Cette classe décrit une présentation générative des issues possibles. La présentation spécifie l’espace des issues ; elle ne fournit ni autorisation d’exécuter un générateur, ni loi de probabilité, ni algorithme d’échantillonnage, ni résultat d’énumération, ni preuve que le cadre complet d’espace de probabilité est présent."
+
+msgctxt "https://blackcatinformatics.ca/math/GeneratedSampleSpace|http://www.w3.org/2004/02/skos/core#example"
+msgid "As a mathematical illustration, Ω can be specified as all infinite sequences of two coin symbols. That generative description names possible sequences without listing them, executing a sampler, choosing a coin bias or supplying the event algebra and measure."
+msgstr "À titre d’illustration mathématique, Ω peut être spécifié comme l’ensemble de toutes les suites infinies formées de deux symboles de lancer de pièce. Cette description générative nomme les suites possibles sans les énumérer, exécuter un échantillonneur, choisir un biais de pièce ni fournir l’algèbre d’événements et la mesure."
+
+msgctxt "https://blackcatinformatics.ca/math/GeneratedSampleSpace|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the source actually describes an outcome carrier by a generative rule rather than an extensional member list, retaining that description as supplied evidence."
+msgstr "Utiliser lorsque la source décrit effectivement un support d’issues par une règle générative plutôt que par une liste de membres en extension, en conservant cette description comme élément probant fourni."
+
+msgctxt "https://blackcatinformatics.ca/math/GeneratedSampleSpace|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring an available callable generator, randomness, fairness, termination, a complete outcome enumeration or a normalized probability measure from this type. A generative presentation need not exclude a symbolic description of the same carrier."
+msgstr "Éviter d’inférer de ce type un générateur disponible et appelable, l’aléa, l’équité, la terminaison, une énumération complète des issues ou une mesure de probabilité normalisée. Une présentation générative n’exclut pas nécessairement une description symbolique du même support."
+
+msgctxt "https://blackcatinformatics.ca/math/GeneratedSampleSpace|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Type the supplied sample-space resource as GeneratedSampleSpace and retain its actual generative description through the source's existing associations. Keep the probability-space sampleSpace, eventSigmaAlgebra and probabilityMeasure roles explicit; do not invent a generator predicate, AST, runtime result or missing component."
+msgstr "Typer la ressource d’espace des issues fournie comme GeneratedSampleSpace et conserver sa description générative effective par les associations existantes de la source. Garder explicites les rôles sampleSpace, eventSigmaAlgebra et probabilityMeasure de l’espace de probabilité ; ne pas inventer de prédicat de générateur, d’AST, de résultat d’exécution ou de composante manquante."
+
+msgctxt "https://blackcatinformatics.ca/math/SymbolicSampleSpace|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Symbolic Sample Space"
+msgstr "Espace des issues symbolique"
+
+msgctxt "https://blackcatinformatics.ca/math/SymbolicSampleSpace|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A sample space named symbolically — ℝ, ℝⁿ, a manifold, a function space — rather than by listing its outcomes. A subclass of math:SampleSpace realizing the charter's allowance for symbolic descriptions; for a space such as the real line, a probability-space record may separately name a math:BorelSigmaAlgebra and a math:ProbabilityMeasure defined by a supplied math:MeasureDefinitionExpression."
+msgstr "Un espace des issues nommé symboliquement, ℝ, ℝⁿ, une variété, un espace de fonctions, plutôt que par l’énumération de ses issues. Sous-classe de math:SampleSpace réalisant la possibilité, prévue par le cadre, de descriptions symboliques ; pour un espace tel que la droite réelle, un enregistrement d’espace de probabilité peut nommer séparément une math:BorelSigmaAlgebra et une math:ProbabilityMeasure définie par une math:MeasureDefinitionExpression fournie."
+
+msgctxt "https://blackcatinformatics.ca/math/SymbolicSampleSpace|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This is an outcome carrier named by a symbolic description rather than a member list. Symbolic does not mean continuous, infinite, undefined or unevidenced, and it does not by itself supply a topology, event algebra, probability measure or defining expression."
+msgstr "Il s’agit d’un support d’issues nommé par une description symbolique plutôt que par une liste de membres. Symbolique ne signifie ni continu, ni infini, ni indéfini, ni dépourvu de justification, et ne fournit pas à lui seul une topologie, une algèbre d’événements, une mesure de probabilité ou une expression de définition."
+
+msgctxt "https://blackcatinformatics.ca/math/SymbolicSampleSpace|http://www.w3.org/2004/02/skos/core#example"
+msgid "The existing scene types ex:sprinklerOutcomes as SymbolicSampleSpace and labels it as the sprinkler states {on, off}; ex:rainfallOutcomes is also symbolic. These records show symbolic presentation without an asserted member list, not a complete validation result."
+msgstr "La scène existante attribue à ex:sprinklerOutcomes le type SymbolicSampleSpace et lui donne pour libellé les états de l’arroseur {on, off} ; ex:rainfallOutcomes est aussi symbolique. Ces enregistrements montrent une présentation symbolique sans liste de membres affirmée, non un résultat de validation complet."
+
+msgctxt "https://blackcatinformatics.ca/math/SymbolicSampleSpace|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for a supplied symbolic outcome-space description, including a finite carrier whose elements are described symbolically rather than listed as graph members."
+msgstr "Utiliser pour une description symbolique fournie d’espace des issues, y compris un support fini dont les éléments sont décrits symboliquement plutôt qu’énumérés comme membres dans le graphe."
+
+msgctxt "https://blackcatinformatics.ca/math/SymbolicSampleSpace|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid automatically assigning a Borel algebra or density expression, treating symbolic as a synonym for continuous, or assuming that symbolic and generative descriptions are disjoint. A symbol alone establishes neither measurability nor an executable model."
+msgstr "Éviter d’attribuer automatiquement une algèbre de Borel ou une expression de densité, de traiter symbolique comme synonyme de continu ou de supposer que les descriptions symboliques et génératives sont disjointes. Un symbole seul n’établit ni la mesurabilité ni un modèle exécutable."
+
+msgctxt "https://blackcatinformatics.ca/math/SymbolicSampleSpace|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the supplied symbolic carrier and its source description, link it through sampleSpace and preserve the actual eventSigmaAlgebra and probabilityMeasure separately. Use any supplied topology, measure law or expression as evidence without inventing absent structure or identifying distinct resources."
+msgstr "Conserver le support symbolique fourni et sa description source, le relier par sampleSpace et préserver séparément les eventSigmaAlgebra et probabilityMeasure effectifs. Utiliser toute topologie, loi de mesure ou expression fournie comme élément probant sans inventer de structure absente ni assimiler des ressources distinctes."
+
+msgctxt "https://blackcatinformatics.ca/math/BorelSigmaAlgebra|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Borel σ-Algebra"
+msgstr "σ-algèbre de Borel"
+
+msgctxt "https://blackcatinformatics.ca/math/BorelSigmaAlgebra|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The Borel σ-algebra of a topological space: the σ-algebra generated by its open sets. A subclass of math:SigmaAlgebra given symbolically by its generator rather than by enumerating its measurable sets — the canonical event algebra of a continuous math:SymbolicSampleSpace such as the real line, over which a math:LebesgueMeasure or a density-defined measure acts."
+msgstr "La σ-algèbre de Borel d’un espace topologique : la σ-algèbre engendrée par ses ouverts. Sous-classe de math:SigmaAlgebra donnée symboliquement par sa famille génératrice plutôt que par l’énumération de ses ensembles mesurables : l’algèbre canonique d’événements d’un math:SymbolicSampleSpace continu tel que la droite réelle, sur laquelle agit une math:LebesgueMeasure ou une mesure définie par une densité."
+
+msgctxt "https://blackcatinformatics.ca/math/BorelSigmaAlgebra|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The Borel family is generated by the open sets of an identified topological carrier. For a subspace such as the nonnegative real line, use that carrier's relative topology. The Borel family is distinct from its completion with respect to a measure; its type alone proves no closure or membership result."
+msgstr "La famille de Borel est engendrée par les ouverts d’un support topologique identifié. Pour un sous-espace tel que la demi-droite réelle non négative, utiliser la topologie relative de ce support. La famille de Borel se distingue de sa complétion relativement à une mesure ; son type seul ne prouve aucun résultat de clôture ou d’appartenance."
+
+msgctxt "https://blackcatinformatics.ca/math/BorelSigmaAlgebra|http://www.w3.org/2004/02/skos/core#example"
+msgid "The existing scene records ex:rainfallBorel as BorelSigmaAlgebra and links it from ex:weatherSpace through eventSigmaAlgebra. Its name and label do not themselves establish the carrier topology, a measurable-set list or a completed Lebesgue event algebra."
+msgstr "La scène existante consigne ex:rainfallBorel comme BorelSigmaAlgebra et le relie depuis ex:weatherSpace par eventSigmaAlgebra. Son nom et son libellé n’établissent pas à eux seuls la topologie du support, une liste d’ensembles mesurables ou une algèbre d’événements de Lebesgue complétée."
+
+msgctxt "https://blackcatinformatics.ca/math/BorelSigmaAlgebra|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the supplied event family is the σ-algebra generated by the opens of the actual declared carrier and topology."
+msgstr "Utiliser lorsque la famille d’événements fournie est la σ-algèbre engendrée par les ouverts du support et de la topologie effectivement déclarés."
+
+msgctxt "https://blackcatinformatics.ca/math/BorelSigmaAlgebra|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring a topology from a label, substituting an ambient real-line carrier for a stated subspace, equating the Borel family with a completed Lebesgue family, or deriving a density, normalization or event probability from this declaration."
+msgstr "Éviter d’inférer une topologie d’un libellé, de substituer la droite réelle ambiante à un sous-espace énoncé, d’assimiler la famille de Borel à une famille de Lebesgue complétée ou de déduire une densité, une normalisation ou une probabilité d’événement de cette déclaration."
+
+msgctxt "https://blackcatinformatics.ca/math/BorelSigmaAlgebra|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the actual carrier and topology evidence and the probability-space link through eventSigmaAlgebra. Preserve the separately supplied sampleSpace and probabilityMeasure; a symbolic Borel description does not require enumeration or certify agreement of every supplied component."
+msgstr "Conserver les éléments probants effectifs du support et de la topologie ainsi que le lien de l’espace de probabilité par eventSigmaAlgebra. Préserver les sampleSpace et probabilityMeasure fournis séparément ; une description symbolique de Borel n’exige pas d’énumération et ne certifie pas la concordance de chaque composante fournie."
+
+msgctxt "https://blackcatinformatics.ca/math/PowerSetSigmaAlgebra|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Power-Set σ-Algebra"
+msgstr "σ-algèbre de l’ensemble des parties"
+
+msgctxt "https://blackcatinformatics.ca/math/PowerSetSigmaAlgebra|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The discrete (power-set) σ-algebra: the σ-algebra of ALL subsets of a set, 2^Ω. A subclass of math:SigmaAlgebra — the event algebra of a discrete or countable sample space, where every subset is measurable, over which a math:CountingMeasure-derived probability mass function acts."
+msgstr "La σ-algèbre discrète, ou de l’ensemble des parties : la σ-algèbre de TOUS les sous-ensembles d’un ensemble, 2^Ω. Sous-classe de math:SigmaAlgebra : l’algèbre d’événements d’un espace des issues discret ou dénombrable, où chaque sous-ensemble est mesurable, sur laquelle agit une fonction de masse de probabilité dérivée d’une math:CountingMeasure."
+
+msgctxt "https://blackcatinformatics.ca/math/PowerSetSigmaAlgebra|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The power-set algebra contains all subsets of its carrier Ω, whether that carrier is finite or infinite. Finite or countable outcome spaces provide familiar probability-mass examples, but countability is not a restriction on this class and the algebra alone selects no probability measure."
+msgstr "L’algèbre de l’ensemble des parties contient tous les sous-ensembles de son support Ω, que celui-ci soit fini ou infini. Les espaces d’issues finis ou dénombrables fournissent des exemples familiers de masse de probabilité, mais la dénombrabilité n’est pas une restriction de cette classe et l’algèbre seule ne sélectionne aucune mesure de probabilité."
+
+msgctxt "https://blackcatinformatics.ca/math/PowerSetSigmaAlgebra|http://www.w3.org/2004/02/skos/core#example"
+msgid "The existing scene records ex:sprinklerPowerSet as PowerSetSigmaAlgebra and links it from ex:sprinklerSpace through eventSigmaAlgebra. The same probability-space record names ex:sprinklerOutcomes separately; no full subset or outcome-member list is asserted by those links."
+msgstr "La scène existante consigne ex:sprinklerPowerSet comme PowerSetSigmaAlgebra et le relie depuis ex:sprinklerSpace par eventSigmaAlgebra. Le même enregistrement d’espace de probabilité nomme séparément ex:sprinklerOutcomes ; ces liens n’affirment aucune liste complète de sous-ensembles ou d’issues membres du support."
+
+msgctxt "https://blackcatinformatics.ca/math/PowerSetSigmaAlgebra|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when all subsets of the actual supplied outcome carrier form the intended measurable-event family, retaining the probability measure as a separate object."
+msgstr "Utiliser lorsque tous les sous-ensembles du support d’issues effectivement fourni forment la famille d’événements mesurables visée, en conservant la mesure de probabilité comme objet distinct."
+
+msgctxt "https://blackcatinformatics.ca/math/PowerSetSigmaAlgebra|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid making finiteness or countability a class requirement, inferring a probability mass function or normalization from the algebra, or assuming that a power-set declaration proves which source resources denote its members."
+msgstr "Éviter de faire de la finitude ou de la dénombrabilité une exigence de classe, d’inférer une fonction de masse de probabilité ou une normalisation de l’algèbre, ou de supposer qu’une déclaration d’ensemble des parties prouve quelles ressources sources désignent ses membres."
+
+msgctxt "https://blackcatinformatics.ca/math/PowerSetSigmaAlgebra|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the actual carrier description and name the PowerSetSigmaAlgebra through eventSigmaAlgebra on its ProbabilitySpace. Preserve sampleSpace and probabilityMeasure separately; provide any actual subset or mass evidence without manufacturing a list or treating presentation as computation."
+msgstr "Conserver la description effective du support et nommer la PowerSetSigmaAlgebra par eventSigmaAlgebra sur son ProbabilitySpace. Préserver séparément sampleSpace et probabilityMeasure ; fournir tout élément probant effectif de sous-ensemble ou de masse sans fabriquer de liste ni traiter la présentation comme un calcul."
+
+msgctxt "https://blackcatinformatics.ca/math/ProductSigmaAlgebra|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Product σ-Algebra"
+msgstr "σ-algèbre produit"
+
+msgctxt "https://blackcatinformatics.ca/math/ProductSigmaAlgebra|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The product σ-algebra on a product space: the σ-algebra generated by the measurable rectangles of a product of measurable spaces. A subclass of math:SigmaAlgebra given symbolically by its factors rather than enumerated — the event algebra of a joint sample space, the measure-theoretic ground of a math:JointProbabilityTable and of the independence factorization a math:FullIndependenceModel asserts."
+msgstr "La σ-algèbre produit sur un espace produit : la σ-algèbre engendrée par les rectangles mesurables d’un produit d’espaces mesurables. Sous-classe de math:SigmaAlgebra donnée symboliquement par ses facteurs plutôt qu’énumérée : l’algèbre d’événements d’un espace conjoint des issues, le fondement en théorie de la mesure d’une math:JointProbabilityTable et de la factorisation d’indépendance qu’affirme un math:FullIndependenceModel."
+
+msgctxt "https://blackcatinformatics.ca/math/ProductSigmaAlgebra|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "For two measurable factor spaces, the product event family is generated by rectangles formed from measurable factor events. It is distinct from the Cartesian outcome carrier and from a product probability measure; a joint measure on this family may describe dependent outcomes."
+msgstr "Pour deux espaces mesurables facteurs, la famille produit d’événements est engendrée par les rectangles formés à partir d’événements mesurables des facteurs. Elle se distingue du support cartésien des issues et d’une mesure de probabilité produit ; une mesure conjointe sur cette famille peut décrire des issues dépendantes."
+
+msgctxt "https://blackcatinformatics.ca/math/ProductSigmaAlgebra|http://www.w3.org/2004/02/skos/core#example"
+msgid "The existing scene records ex:jointProductAlgebra as ProductSigmaAlgebra and links it from ex:jointSpace through eventSigmaAlgebra. The source names ex:jointOutcomes and ex:jointMeasure separately, without supplying factor-property edges or proving an independence factorization."
+msgstr "La scène existante consigne ex:jointProductAlgebra comme ProductSigmaAlgebra et le relie depuis ex:jointSpace par eventSigmaAlgebra. La source nomme séparément ex:jointOutcomes et ex:jointMeasure, sans fournir d’arêtes de propriétés de facteurs ni prouver une factorisation d’indépendance."
+
+msgctxt "https://blackcatinformatics.ca/math/ProductSigmaAlgebra|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for a supplied event algebra generated from measurable factor spaces, retaining the actual factors and their event families as source evidence rather than inferring them from a joint-space name."
+msgstr "Utiliser pour une algèbre d’événements fournie engendrée à partir d’espaces mesurables facteurs, en conservant les facteurs effectifs et leurs familles d’événements comme éléments probants sources plutôt qu’en les inférant du nom d’un espace conjoint."
+
+msgctxt "https://blackcatinformatics.ca/math/ProductSigmaAlgebra|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid equating this algebra with the Cartesian carrier or automatically with its full power set. Do not infer factor independence, a product measure, a numerical joint table or a completed factorization from its type."
+msgstr "Éviter d’assimiler cette algèbre au support cartésien ou, automatiquement, à son ensemble complet des parties. Ne pas inférer de son type l’indépendance des facteurs, une mesure produit, une table conjointe numérique ou une factorisation achevée."
+
+msgctxt "https://blackcatinformatics.ca/math/ProductSigmaAlgebra|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the supplied factor-space and event-family descriptions and link the ProductSigmaAlgebra through eventSigmaAlgebra on the actual ProbabilitySpace. Keep sampleSpace, probabilityMeasure and any asserted independence model separate; do not invent factor links, execute a factorization or interpret a selected query's missing row as invalidity."
+msgstr "Conserver les descriptions fournies des espaces facteurs et des familles d’événements et relier la ProductSigmaAlgebra par eventSigmaAlgebra sur le ProbabilitySpace effectif. Garder séparés sampleSpace, probabilityMeasure et tout modèle d’indépendance affirmé ; ne pas inventer de liens de facteurs, exécuter une factorisation ou interpréter une ligne manquante dans une requête sélectionnée comme une invalidité."

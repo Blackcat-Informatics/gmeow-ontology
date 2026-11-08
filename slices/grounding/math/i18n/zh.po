@@ -14324,3 +14324,171 @@ msgstr "避免以置信分数、裸数值或 MeasureDefinitionExpression 替代�
 msgctxt "https://blackcatinformatics.ca/math/probabilityMeasure|https://blackcatinformatics.ca/gmeow/howToUse"
 msgid "Link the ProbabilitySpace to its supplied ProbabilityMeasure and retain that measure's measureOn frame and normalization evidence. Retain any supplied defining expression with its actual source association; do not invent a density AST, identify distinct space resources or select an execution model implicitly."
 msgstr "将 ProbabilitySpace 链接到其所提供的 ProbabilityMeasure，并保留该测度的 measureOn 框架及归一化依据。保留任何已提供的定义表达式及其实际来源关联；不编造密度 AST、不等同不同的空间资源，也不隐含选择执行模型。"
+
+msgctxt "https://blackcatinformatics.ca/math/SampleSpace|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Sample Space"
+msgstr "样本空间"
+
+msgctxt "https://blackcatinformatics.ca/math/SampleSpace|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A sample space Ω: the set of all possible outcomes of a probabilistic experiment — the underlying set of a math:ProbabilitySpace, named through math:sampleSpace. A subclass of math:Set; its outcomes may be described generatively (math:GeneratedSampleSpace) or symbolically (math:SymbolicSampleSpace) rather than listed. An outcome is a point of Ω; a measurable set of outcomes is a math:ProbabilityEvent, not a point."
+msgstr "样本空间 Ω：概率试验所有可能结果的集合，即 math:ProbabilitySpace 的底层集合，通过 math:sampleSpace 指明。它是 math:Set 的子类；其结果可以用生成式（math:GeneratedSampleSpace）或符号化（math:SymbolicSampleSpace）方式描述，而不逐个列出。单个结果是 Ω 中的点；可测的结果集合是 math:ProbabilityEvent，而非一个点。"
+
+msgctxt "https://blackcatinformatics.ca/math/SampleSpace|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This is Ω, the set of possible outcomes, separate in role from its measurable-event family and probability measure. Outcome presentation and event-family presentation are independent: neither the size nor the enumeration of one determines how the other is described."
+msgstr "这是可能结果的集合 Ω，其角色与可测事件族及概率测度分开。结果呈现方式与事件族呈现方式相互独立：任何一方的大小或枚举情况都不决定另一方如何描述。"
+
+msgctxt "https://blackcatinformatics.ca/math/SampleSpace|http://www.w3.org/2004/02/skos/core#example"
+msgid "The existing probability scene names ex:rainfallOutcomes and ex:sprinklerOutcomes through sampleSpace on their respective ProbabilitySpace records. Both are typed SymbolicSampleSpace; the sprinkler label describes a finite state set without supplying an outcome-member list."
+msgstr "现有概率场景在各自 ProbabilitySpace 记录上通过 sampleSpace 指明 ex:rainfallOutcomes 和 ex:sprinklerOutcomes。两者均标注为 SymbolicSampleSpace；喷洒器标签描述有限状态集合，但不提供结果成员列表。"
+
+msgctxt "https://blackcatinformatics.ca/math/SampleSpace|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for the actual outcome carrier of a probability-space record, whether its outcomes are described extensionally, symbolically or generatively."
+msgstr "用于概率空间记录的实际结果载体，无论其结果是逐个列举、符号化还是以生成式描述。"
+
+msgctxt "https://blackcatinformatics.ca/math/SampleSpace|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid substituting one outcome, an event-set, its σ-algebra, a measure or a confidence score for the carrier. Do not infer event enumeration, a distribution or successful membership checks from the carrier's label or presentation type."
+msgstr "避免用单个结果、事件子集、其 σ-代数、测度或置信分数替代载体。不要根据载体标签或呈现类型推断事件枚举、分布或成员归属检查成功。"
+
+msgctxt "https://blackcatinformatics.ca/math/SampleSpace|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the supplied SampleSpace resource through ProbabilitySpace's sampleSpace role, with the actual eventSigmaAlgebra and probabilityMeasure resources separately named. Preserve any supplied outcome description and inherited Set obligations without inventing members, a measure or an execution model."
+msgstr "通过 ProbabilitySpace 的 sampleSpace 角色保留所提供的 SampleSpace 资源，并另行指明实际 eventSigmaAlgebra 和 probabilityMeasure 资源。保留任何已提供的结果描述及继承的 Set 义务，不编造成员、测度或执行模型。"
+
+msgctxt "https://blackcatinformatics.ca/math/GeneratedSampleSpace|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Generated Sample Space"
+msgstr "生成式样本空间"
+
+msgctxt "https://blackcatinformatics.ca/math/GeneratedSampleSpace|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A sample space whose outcomes are produced by a generative rule rather than enumerated — the outcomes of an unbounded sequence of coin flips, the paths of a process. A subclass of math:SampleSpace realizing the charter's allowance for generative descriptions rather than extensional listings; a generative description does not replace the probability-space record's required sample-space, event-algebra and probability-measure objects or alone certify structural completeness."
+msgstr "结果由生成规则产生而非逐个枚举的样本空间，例如长度无上界的抛硬币序列的结果、过程的路径。它是 math:SampleSpace 的子类，体现体系允许使用生成式描述而非逐个列举；生成式描述不替代概率空间记录中必需的样本空间、事件代数及概率测度对象，也不单独证明结构完整性。"
+
+msgctxt "https://blackcatinformatics.ca/math/GeneratedSampleSpace|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This describes a generative presentation of possible outcomes. The presentation specifies the outcome space; it supplies neither permission to execute a generator nor a probability law, sampling algorithm, enumeration result or proof that the complete probability-space frame is present."
+msgstr "此类描述可能结果的生成式呈现。该呈现规定结果空间；它既不提供执行生成器的许可，也不提供概率律、采样算法、枚举结果或完整概率空间框架已存在的证明。"
+
+msgctxt "https://blackcatinformatics.ca/math/GeneratedSampleSpace|http://www.w3.org/2004/02/skos/core#example"
+msgid "As a mathematical illustration, Ω can be specified as all infinite sequences of two coin symbols. That generative description names possible sequences without listing them, executing a sampler, choosing a coin bias or supplying the event algebra and measure."
+msgstr "作为数学示意，Ω 可以规定为由两个硬币符号构成的全部无限序列。该生成式描述指明可能序列，但不列出序列、不执行采样器、不选择硬币偏置，也不提供事件代数及测度。"
+
+msgctxt "https://blackcatinformatics.ca/math/GeneratedSampleSpace|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the source actually describes an outcome carrier by a generative rule rather than an extensional member list, retaining that description as supplied evidence."
+msgstr "当来源实际通过生成规则而非逐个列举成员来描述结果载体时使用，将该描述保留为所提供的依据。"
+
+msgctxt "https://blackcatinformatics.ca/math/GeneratedSampleSpace|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring an available callable generator, randomness, fairness, termination, a complete outcome enumeration or a normalized probability measure from this type. A generative presentation need not exclude a symbolic description of the same carrier."
+msgstr "避免根据此类型推断存在可调用生成器、随机性、公平性、终止性、完整结果枚举或归一化概率测度。生成式呈现不必排斥同一载体的符号化描述。"
+
+msgctxt "https://blackcatinformatics.ca/math/GeneratedSampleSpace|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Type the supplied sample-space resource as GeneratedSampleSpace and retain its actual generative description through the source's existing associations. Keep the probability-space sampleSpace, eventSigmaAlgebra and probabilityMeasure roles explicit; do not invent a generator predicate, AST, runtime result or missing component."
+msgstr "将所提供的样本空间资源标注为 GeneratedSampleSpace，并通过来源现有的关联保留其实际生成式描述。保持概率空间的 sampleSpace、eventSigmaAlgebra 及 probabilityMeasure 角色明确；不编造生成器谓词、AST、运行时结果或缺失组成部分。"
+
+msgctxt "https://blackcatinformatics.ca/math/SymbolicSampleSpace|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Symbolic Sample Space"
+msgstr "符号化样本空间"
+
+msgctxt "https://blackcatinformatics.ca/math/SymbolicSampleSpace|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A sample space named symbolically — ℝ, ℝⁿ, a manifold, a function space — rather than by listing its outcomes. A subclass of math:SampleSpace realizing the charter's allowance for symbolic descriptions; for a space such as the real line, a probability-space record may separately name a math:BorelSigmaAlgebra and a math:ProbabilityMeasure defined by a supplied math:MeasureDefinitionExpression."
+msgstr "以符号方式指明、而非逐个列出结果的样本空间，例如 ℝ、ℝⁿ、流形或函数空间。它是 math:SampleSpace 的子类，体现体系允许符号化描述；对于实直线之类的空间，概率空间记录可以另行指明 math:BorelSigmaAlgebra 及由所提供 math:MeasureDefinitionExpression 定义的 math:ProbabilityMeasure。"
+
+msgctxt "https://blackcatinformatics.ca/math/SymbolicSampleSpace|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This is an outcome carrier named by a symbolic description rather than a member list. Symbolic does not mean continuous, infinite, undefined or unevidenced, and it does not by itself supply a topology, event algebra, probability measure or defining expression."
+msgstr "这是通过符号化描述而非成员列表指明的结果载体。符号化不表示连续、无限、未定义或没有依据，本身也不提供拓扑、事件代数、概率测度或定义表达式。"
+
+msgctxt "https://blackcatinformatics.ca/math/SymbolicSampleSpace|http://www.w3.org/2004/02/skos/core#example"
+msgid "The existing scene types ex:sprinklerOutcomes as SymbolicSampleSpace and labels it as the sprinkler states {on, off}; ex:rainfallOutcomes is also symbolic. These records show symbolic presentation without an asserted member list, not a complete validation result."
+msgstr "现有场景将 ex:sprinklerOutcomes 标注为 SymbolicSampleSpace，标签将其描述为喷洒器状态 {on, off}；ex:rainfallOutcomes 也是符号化的。这些记录呈现未断言成员列表的符号化表示，并非完整验证结果。"
+
+msgctxt "https://blackcatinformatics.ca/math/SymbolicSampleSpace|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for a supplied symbolic outcome-space description, including a finite carrier whose elements are described symbolically rather than listed as graph members."
+msgstr "用于所提供的符号化结果空间描述，包括以符号描述元素、而非将其列为图中成员的有限载体。"
+
+msgctxt "https://blackcatinformatics.ca/math/SymbolicSampleSpace|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid automatically assigning a Borel algebra or density expression, treating symbolic as a synonym for continuous, or assuming that symbolic and generative descriptions are disjoint. A symbol alone establishes neither measurability nor an executable model."
+msgstr "避免自动指定 Borel 代数或密度表达式、将符号化视为连续的同义词，或假定符号化描述与生成式描述互斥。单个符号既不确立可测性，也不确立可执行模型。"
+
+msgctxt "https://blackcatinformatics.ca/math/SymbolicSampleSpace|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the supplied symbolic carrier and its source description, link it through sampleSpace and preserve the actual eventSigmaAlgebra and probabilityMeasure separately. Use any supplied topology, measure law or expression as evidence without inventing absent structure or identifying distinct resources."
+msgstr "保留所提供的符号化载体及其来源描述，通过 sampleSpace 链接它，并另行保留实际 eventSigmaAlgebra 和 probabilityMeasure。将任何已提供的拓扑、测度律或表达式作为依据，不编造缺失结构，也不等同不同资源。"
+
+msgctxt "https://blackcatinformatics.ca/math/BorelSigmaAlgebra|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Borel σ-Algebra"
+msgstr "Borel σ-代数"
+
+msgctxt "https://blackcatinformatics.ca/math/BorelSigmaAlgebra|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The Borel σ-algebra of a topological space: the σ-algebra generated by its open sets. A subclass of math:SigmaAlgebra given symbolically by its generator rather than by enumerating its measurable sets — the canonical event algebra of a continuous math:SymbolicSampleSpace such as the real line, over which a math:LebesgueMeasure or a density-defined measure acts."
+msgstr "拓扑空间的 Borel σ-代数，即由其开集生成的 σ-代数。它是 math:SigmaAlgebra 的子类，通过生成元以符号方式给出，而非枚举其可测集；它是实直线等连续 math:SymbolicSampleSpace 的规范事件代数，math:LebesgueMeasure 或由密度定义的测度作用于其上。"
+
+msgctxt "https://blackcatinformatics.ca/math/BorelSigmaAlgebra|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The Borel family is generated by the open sets of an identified topological carrier. For a subspace such as the nonnegative real line, use that carrier's relative topology. The Borel family is distinct from its completion with respect to a measure; its type alone proves no closure or membership result."
+msgstr "Borel 集合族由已指明拓扑载体的开集生成。对于非负实直线等子空间，须使用该载体的相对拓扑。Borel 集合族不同于其关于某测度的完备化；仅有类型不证明任何封闭性或成员归属结果。"
+
+msgctxt "https://blackcatinformatics.ca/math/BorelSigmaAlgebra|http://www.w3.org/2004/02/skos/core#example"
+msgid "The existing scene records ex:rainfallBorel as BorelSigmaAlgebra and links it from ex:weatherSpace through eventSigmaAlgebra. Its name and label do not themselves establish the carrier topology, a measurable-set list or a completed Lebesgue event algebra."
+msgstr "现有场景将 ex:rainfallBorel 记录为 BorelSigmaAlgebra，并通过 eventSigmaAlgebra 从 ex:weatherSpace 链接到它。其名称和标签本身不确立载体拓扑、可测集列表或完备化的 Lebesgue 事件代数。"
+
+msgctxt "https://blackcatinformatics.ca/math/BorelSigmaAlgebra|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the supplied event family is the σ-algebra generated by the opens of the actual declared carrier and topology."
+msgstr "当所提供事件族是由实际声明的载体及拓扑的开集生成的 σ-代数时使用。"
+
+msgctxt "https://blackcatinformatics.ca/math/BorelSigmaAlgebra|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring a topology from a label, substituting an ambient real-line carrier for a stated subspace, equating the Borel family with a completed Lebesgue family, or deriving a density, normalization or event probability from this declaration."
+msgstr "避免根据标签推断拓扑、用环境实直线载体替代所述子空间、将 Borel 集合族等同于完备化的 Lebesgue 集合族，或根据此声明推导密度、归一化或事件概率。"
+
+msgctxt "https://blackcatinformatics.ca/math/BorelSigmaAlgebra|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the actual carrier and topology evidence and the probability-space link through eventSigmaAlgebra. Preserve the separately supplied sampleSpace and probabilityMeasure; a symbolic Borel description does not require enumeration or certify agreement of every supplied component."
+msgstr "保留实际载体及拓扑依据，以及通过 eventSigmaAlgebra 给出的概率空间链接。保留另行提供的 sampleSpace 和 probabilityMeasure；符号化 Borel 描述不要求枚举，也不证明每个已提供组成部分均一致。"
+
+msgctxt "https://blackcatinformatics.ca/math/PowerSetSigmaAlgebra|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Power-Set σ-Algebra"
+msgstr "幂集 σ-代数"
+
+msgctxt "https://blackcatinformatics.ca/math/PowerSetSigmaAlgebra|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The discrete (power-set) σ-algebra: the σ-algebra of ALL subsets of a set, 2^Ω. A subclass of math:SigmaAlgebra — the event algebra of a discrete or countable sample space, where every subset is measurable, over which a math:CountingMeasure-derived probability mass function acts."
+msgstr "离散（幂集）σ-代数：由某集合的全部子集构成的 σ-代数 2^Ω。它是 math:SigmaAlgebra 的子类，是离散或可数样本空间的事件代数，其中每个子集均可测，由 math:CountingMeasure 派生的概率质量函数作用于其上。"
+
+msgctxt "https://blackcatinformatics.ca/math/PowerSetSigmaAlgebra|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The power-set algebra contains all subsets of its carrier Ω, whether that carrier is finite or infinite. Finite or countable outcome spaces provide familiar probability-mass examples, but countability is not a restriction on this class and the algebra alone selects no probability measure."
+msgstr "幂集代数包含其载体 Ω 的全部子集，无论载体有限还是无限。有限或可数结果空间给出常见的概率质量示例，但可数性不是此类的限制，代数本身也不选择任何概率测度。"
+
+msgctxt "https://blackcatinformatics.ca/math/PowerSetSigmaAlgebra|http://www.w3.org/2004/02/skos/core#example"
+msgid "The existing scene records ex:sprinklerPowerSet as PowerSetSigmaAlgebra and links it from ex:sprinklerSpace through eventSigmaAlgebra. The same probability-space record names ex:sprinklerOutcomes separately; no full subset or outcome-member list is asserted by those links."
+msgstr "现有场景将 ex:sprinklerPowerSet 记录为 PowerSetSigmaAlgebra，并通过 eventSigmaAlgebra 从 ex:sprinklerSpace 链接到它。同一概率空间记录另行指明 ex:sprinklerOutcomes；这些链接不声明完整的子集列表或结果成员列表。"
+
+msgctxt "https://blackcatinformatics.ca/math/PowerSetSigmaAlgebra|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when all subsets of the actual supplied outcome carrier form the intended measurable-event family, retaining the probability measure as a separate object."
+msgstr "当实际所提供结果载体的全部子集构成预期可测事件族时使用，保持概率测度为单独对象。"
+
+msgctxt "https://blackcatinformatics.ca/math/PowerSetSigmaAlgebra|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid making finiteness or countability a class requirement, inferring a probability mass function or normalization from the algebra, or assuming that a power-set declaration proves which source resources denote its members."
+msgstr "避免将有限性或可数性设为类要求、根据代数推断概率质量函数或归一化，或假定幂集声明证明哪些来源资源指称其成员。"
+
+msgctxt "https://blackcatinformatics.ca/math/PowerSetSigmaAlgebra|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the actual carrier description and name the PowerSetSigmaAlgebra through eventSigmaAlgebra on its ProbabilitySpace. Preserve sampleSpace and probabilityMeasure separately; provide any actual subset or mass evidence without manufacturing a list or treating presentation as computation."
+msgstr "保留实际载体描述，并在其 ProbabilitySpace 上通过 eventSigmaAlgebra 指明 PowerSetSigmaAlgebra。另行保留 sampleSpace 和 probabilityMeasure；提供任何实际子集或质量依据，不编造列表，也不将呈现视为计算。"
+
+msgctxt "https://blackcatinformatics.ca/math/ProductSigmaAlgebra|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Product σ-Algebra"
+msgstr "乘积 σ-代数"
+
+msgctxt "https://blackcatinformatics.ca/math/ProductSigmaAlgebra|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The product σ-algebra on a product space: the σ-algebra generated by the measurable rectangles of a product of measurable spaces. A subclass of math:SigmaAlgebra given symbolically by its factors rather than enumerated — the event algebra of a joint sample space, the measure-theoretic ground of a math:JointProbabilityTable and of the independence factorization a math:FullIndependenceModel asserts."
+msgstr "乘积空间上的乘积 σ-代数，即由可测空间乘积的可测矩形生成的 σ-代数。它是 math:SigmaAlgebra 的子类，通过因子以符号方式给出而非逐个枚举；它是联合样本空间的事件代数，是 math:JointProbabilityTable 及 math:FullIndependenceModel 所断言独立性分解的测度论基础。"
+
+msgctxt "https://blackcatinformatics.ca/math/ProductSigmaAlgebra|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "For two measurable factor spaces, the product event family is generated by rectangles formed from measurable factor events. It is distinct from the Cartesian outcome carrier and from a product probability measure; a joint measure on this family may describe dependent outcomes."
+msgstr "对于两个可测因子空间，乘积事件族由可测因子事件组成的矩形生成。它不同于笛卡尔结果载体，也不同于乘积概率测度；此集合族上的联合测度可以描述相依结果。"
+
+msgctxt "https://blackcatinformatics.ca/math/ProductSigmaAlgebra|http://www.w3.org/2004/02/skos/core#example"
+msgid "The existing scene records ex:jointProductAlgebra as ProductSigmaAlgebra and links it from ex:jointSpace through eventSigmaAlgebra. The source names ex:jointOutcomes and ex:jointMeasure separately, without supplying factor-property edges or proving an independence factorization."
+msgstr "现有场景将 ex:jointProductAlgebra 记录为 ProductSigmaAlgebra，并通过 eventSigmaAlgebra 从 ex:jointSpace 链接到它。来源另行指明 ex:jointOutcomes 和 ex:jointMeasure，但不提供因子属性边，也不证明独立性分解。"
+
+msgctxt "https://blackcatinformatics.ca/math/ProductSigmaAlgebra|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for a supplied event algebra generated from measurable factor spaces, retaining the actual factors and their event families as source evidence rather than inferring them from a joint-space name."
+msgstr "用于由可测因子空间生成的已提供事件代数，保留实际因子及其事件族作为来源依据，不根据联合空间名称推断它们。"
+
+msgctxt "https://blackcatinformatics.ca/math/ProductSigmaAlgebra|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid equating this algebra with the Cartesian carrier or automatically with its full power set. Do not infer factor independence, a product measure, a numerical joint table or a completed factorization from its type."
+msgstr "避免将此代数等同于笛卡尔载体，或自动等同于其完整幂集。不要根据其类型推断因子独立性、乘积测度、数值联合表或已完成的分解。"
+
+msgctxt "https://blackcatinformatics.ca/math/ProductSigmaAlgebra|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the supplied factor-space and event-family descriptions and link the ProductSigmaAlgebra through eventSigmaAlgebra on the actual ProbabilitySpace. Keep sampleSpace, probabilityMeasure and any asserted independence model separate; do not invent factor links, execute a factorization or interpret a selected query's missing row as invalidity."
+msgstr "保留所提供的因子空间及事件族描述，并在实际 ProbabilitySpace 上通过 eventSigmaAlgebra 链接 ProductSigmaAlgebra。保持 sampleSpace、probabilityMeasure 及任何已断言独立性模型分离；不编造因子链接、不执行分解，也不将所选查询中的缺失行解释为无效性。"
