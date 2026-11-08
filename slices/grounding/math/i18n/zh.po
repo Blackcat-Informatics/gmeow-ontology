@@ -45,8 +45,8 @@ msgid "Exact Preservation Violated"
 msgstr "违反精确保留"
 
 msgctxt "https://blackcatinformatics.ca/math/ExactPreservationViolated|http://www.w3.org/2004/02/skos/core#definition"
-msgid "The failure raised when a mathematical projection or probability-model lowering claims logic:ExactPreservation while its own evidence contradicts exactness. A math:ProjectionRecord cannot claim exactness while declaring logic:unsupportedConstruct or a conflicting preservation kind. Probability-model lowerings require their completeness gates: exhaustive outcome mass summing to one, total Markov kernels, complete Bayesian-network conditionals and finite normalized factor graphs. This reports a false preservation claim, distinct from math:IncompleteDependencyModel (structural incompleteness regardless of the claim) and math:MissingProbabilityModelLowering (an absent lowering)."
-msgstr "数学投影或概率模型降级声称 logic:ExactPreservation，但其自身证据与精确性相矛盾时报告的失败。math:ProjectionRecord 不能在声明 logic:unsupportedConstruct 或相冲突的保留类别的同时声称精确。概率模型降级必须满足各自的完备性条件：穷尽结果的概率质量之和为一、全定义的马尔可夫核、完整的贝叶斯网络条件分布，以及有限且归一化的因子图。该诊断报告的是虚假的保留声明，区别于 math:IncompleteDependencyModel（无论声明如何都存在的结构不完整）和 math:MissingProbabilityModelLowering（缺少降级）。"
+msgid "The failure raised when a mathematical projection or probability-model lowering claims logic:ExactPreservation while its own evidence contradicts exactness. A math:ProjectionRecord cannot claim exactness while declaring logic:unsupportedConstruct or a conflicting preservation kind. Probability-model lowerings require complete outcome assignments and nonnegative normalized mass, complete network conditionals, valid total kernels, or valid finite-factor products with preserved normalization semantics as applicable. An unnormalized factor representation is not inherently lossy. This reports a false preservation claim, distinct from math:IncompleteDependencyModel and math:MissingProbabilityModelLowering."
+msgstr "当数学投影或概率模型降级声称 logic:ExactPreservation，而其自身依据与精确性相矛盾时所报告的失败。math:ProjectionRecord 不能在声明 logic:unsupportedConstruct 或相冲突保留类别的同时声称精确。概率模型降级按适用情形要求完整结果赋值及非负归一化质量、完整网络条件分布律、有效全定义核，或具有保留归一化语义的有效有限因子乘积。未归一化因子表示并非固有有损。此类报告虚假保留声称，不同于 math:IncompleteDependencyModel 及 math:MissingProbabilityModelLowering。"
 
 msgctxt "https://blackcatinformatics.ca/math/MeasureResultNonNegativeConstraint|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "Measure result non-negativity constraint"
@@ -15836,3 +15836,333 @@ msgstr "避免仅因 P(B) = 0、独立性声称未被证明或不存在独立性
 msgctxt "https://blackcatinformatics.ca/math/UnconditionedAssertion|https://blackcatinformatics.ca/gmeow/howToUse"
 msgid "Retain the offending resource, its actual type, the missing conditioning property and the source evidence. Add a real source context only when supplied; do not guess an event, model, prior or vantage, drop the record or claim that naming a context proves its mathematics."
 msgstr "保留违规资源、其实际类型、缺失条件属性及来源依据。仅在提供了实际来源上下文时添加该上下文；不猜测事件、模型、先验或视角，不丢弃记录，也不声称指明上下文即证明其数学性质。"
+
+# Dependency models and formal lowerings.
+
+msgctxt "https://blackcatinformatics.ca/math/FullIndependenceModel|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Full Independence Model"
+msgstr "完全独立模型"
+
+msgctxt "https://blackcatinformatics.ca/math/FullIndependenceModel|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A full-independence dependency model: a model that assumes mutual independence of its named probabilistic facts, so the joint distribution factorizes as a product of their marginal laws. A subclass of math:MathematicalObject. It declares a lowering into logic:FullIndependence through math:probabilityModelLowering with logic:ExactPreservation. All facts in the selected scope must be named and the lowering must preserve the declared product model; naming facts alone proves neither empirical independence nor executed preservation. A reasoning engine never treats silence as full independence."
+msgstr "完全独立依赖模型：假定其所指明的概率事实相互独立，因此联合分布分解为各边缘分布律乘积的模型。它是 math:MathematicalObject 的子类。它通过 math:probabilityModelLowering 声明降级到 logic:FullIndependence，并具有 logic:ExactPreservation。必须指明所选范围内的全部事实，且降级必须保留已声明乘积模型；仅指明事实既不证明经验独立性，也不证明已执行保留。推理引擎绝不将未作陈述视为完全独立。"
+
+msgctxt "https://blackcatinformatics.ca/math/FullIndependenceModel|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Mutual independence is a modeling assumption over the complete selected scope, stronger in general than pairwise independence; for two facts the requirements coincide. Declaring this model need not establish that observed phenomena are independent; it commits the model to a product law and leaves empirical warrant and instance preservation evidence explicit."
+msgstr "相互独立是覆盖完整所选范围的建模假设，一般强于两两独立；对于两个事实，两种要求相同。声明此模型不必确立观测现象独立；它使模型承诺采用乘积分布律，并保持经验依据及实例保留证据明确。"
+
+msgctxt "https://blackcatinformatics.ca/math/FullIndependenceModel|http://www.w3.org/2004/02/skos/core#example"
+msgid "The probability scene declares ex:independenceModel as FullIndependenceModel and links ex:seasonSprinklerIndependence to it through independenceHoldsInModel. This supplies a named model and an independence claim, without enumerating a complete product law or demonstrating a reasoning run."
+msgstr "概率场景将 ex:independenceModel 声明为 FullIndependenceModel，并通过 independenceHoldsInModel 将 ex:seasonSprinklerIndependence 链接到它。这提供具名模型及独立性声称，但不枚举完整乘积分布律，也不展示推理运行。"
+
+msgctxt "https://blackcatinformatics.ca/math/FullIndependenceModel|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when a source explicitly selects a model of mutually independent probabilistic facts and its complete intended scope can be retained, including the distinction between a modeling assumption and evidence about observations."
+msgstr "当来源显式选择概率事实相互独立的模型，且能够保留其完整预期范围时使用，包括建模假设与观测依据之间的区别。"
+
+msgctxt "https://blackcatinformatics.ca/math/FullIndependenceModel|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring this model from missing dependencies, pairwise independence or zero correlation. Do not treat a class-level exactness declaration or a list of fact names as proof of a complete instance lowering or of empirical independence."
+msgstr "避免根据依赖关系缺失、两两独立或零相关推断此模型。不要将类层级的精确性声明或事实名称列表视为完整实例降级或经验独立性的证明。"
+
+msgctxt "https://blackcatinformatics.ca/math/FullIndependenceModel|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Type the supplied model as FullIndependenceModel, retain its named facts and marginal-law account in their source representation, and preserve the actual reasoning request and lowering evidence. Keep independence assertions and their model and vantage roles distinct; do not invent missing facts or silently substitute independence for an unsupported model."
+msgstr "将所提供模型标注为 FullIndependenceModel，按来源表示保留其具名事实及边缘分布律说明，并保留实际推理请求及降级依据。保持独立性断言及其模型和视角角色分开；不编造缺失事实，也不暗中以独立性替代不支持的模型。"
+
+msgctxt "https://blackcatinformatics.ca/math/JointProbabilityTable|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Joint Probability Table"
+msgstr "联合概率表"
+
+msgctxt "https://blackcatinformatics.ca/math/JointProbabilityTable|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A joint probability table: an explicit tabulation of a joint distribution over a discrete set of facts or variables, whether dependent or independent. A subclass of math:MathematicalObject. It declares a lowering into logic:DependencyModel together with logic:JointOutcome rows through math:probabilityModelLowering, with logic:ExactPreservation conditional on preserving the complete table: mutually exclusive exhaustive outcomes with nonnegative masses summing to one. An incomplete table is math:IncompleteDependencyModel; row presence and a unit sum alone do not prove exhaustiveness or preserved assignments."
+msgstr "联合概率表：对离散事实或变量集合上的联合分布进行显式列表，无论它们相依还是独立。它是 math:MathematicalObject 的子类。它通过 math:probabilityModelLowering 声明降级到 logic:DependencyModel 及 logic:JointOutcome 行，且 logic:ExactPreservation 以保留完整表为条件：结果互斥且穷尽，具有非负且总和为一的质量。不完整的表为 math:IncompleteDependencyModel；行存在及总和为一本身不证明穷尽性或赋值已被保留。"
+
+msgctxt "https://blackcatinformatics.ca/math/JointProbabilityTable|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Each row represents an outcome assignment in the declared joint scope. The outcomes must be disjoint and exhaustive, with nonnegative normalized mass. A named collection of rows can sum to one while omitting or duplicating assignments, so arithmetic normalization alone does not establish a complete joint model."
+msgstr "每行表示已声明联合范围内的一个结果赋值。结果必须互斥且穷尽，并具有非负归一化质量。具名行集合可能在遗漏或重复赋值的同时总和为一，因此仅有算术归一化不确立完整联合模型。"
+
+msgctxt "https://blackcatinformatics.ca/math/JointProbabilityTable|http://www.w3.org/2004/02/skos/core#example"
+msgid "The probability scene gives ex:rainSprinklerJoint four logic:jointOutcome rows with logic:jointProbability values 0.3, 0.2, 0.4 and 0.1. They sum to one; row names and comments describe rain and sprinkler assignments, without structured assignment triples in those records."
+msgstr "概率场景为 ex:rainSprinklerJoint 给出四个 logic:jointOutcome 行，其 logic:jointProbability 值为 0.3、0.2、0.4 和 0.1。其总和为一；行名及注释描述降雨与喷洒器赋值，但这些记录中没有结构化赋值三元组。"
+
+msgctxt "https://blackcatinformatics.ca/math/JointProbabilityTable|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for an explicitly tabulated discrete joint law whose outcome assignments, scope and masses are supplied, including a joint table for variables modeled as independent."
+msgstr "用于显式列表的离散联合分布律，其结果赋值、范围及质量均已提供，包括建模为独立变量的联合表。"
+
+msgctxt "https://blackcatinformatics.ca/math/JointProbabilityTable|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid requiring statistical correlation, multiplying marginal probabilities without an independence assumption, or interpreting row names as structured assignment evidence. A unit sum does not excuse negative masses, overlapping rows or missing outcomes."
+msgstr "避免要求统计相关性、在没有独立性假设时将边缘概率相乘，或将行名解释为结构化赋值依据。总和为一不能为负质量、重叠行或缺失结果开脱。"
+
+msgctxt "https://blackcatinformatics.ca/math/JointProbabilityTable|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the table, its logic:jointOutcome resources, their logic:jointProbability values and the source's assignment and scope evidence. Validate disjointness, exhaustiveness, nonnegativity and normalization under the selected contract; distinguish a computed nonunit sum from an inability to read or sum masses, and retain the actual lowering and preservation evidence."
+msgstr "保留表、其 logic:jointOutcome 资源、各自的 logic:jointProbability 值及来源的赋值和范围依据。按所选约定验证互斥性、穷尽性、非负性及归一化；区分计算所得总和不为一与无法读取质量或求和，并保留实际降级及保留依据。"
+
+msgctxt "https://blackcatinformatics.ca/math/BayesianNetwork|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Bayesian Network"
+msgstr "贝叶斯网络"
+
+msgctxt "https://blackcatinformatics.ca/math/BayesianNetwork|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A Bayesian network: a directed acyclic graph of random variables with local conditional probability laws that factor a joint distribution; finite discrete variables may use conditional probability tables. A subclass of math:MathematicalObject naming its graph through math:dependencyGraph. It declares a lowering into logic:DependencyModel through math:probabilityModelLowering. The declared logic:ExactPreservation requires a complete acyclic factorization and a target representation that preserves it; graph-link presence alone establishes neither. Incomplete declarations are math:IncompleteDependencyModel, and evidence contradicting a claimed exact lowering is math:ExactPreservationViolated."
+msgstr "贝叶斯网络：由随机变量组成的有向无环图，具有将联合分布分解的局部条件概率律；有限离散变量可使用条件概率表。它是 math:MathematicalObject 的子类，通过 math:dependencyGraph 指明其图。它通过 math:probabilityModelLowering 声明降级到 logic:DependencyModel。已声明的 logic:ExactPreservation 要求完整无环分解及保留该分解的目标表示；仅有图链接存在不确立任一条件。不完整声明为 math:IncompleteDependencyModel，与所声称精确降级相矛盾的依据为 math:ExactPreservationViolated。"
+
+msgctxt "https://blackcatinformatics.ca/math/BayesianNetwork|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The graph and compatible local conditional laws jointly specify the model. Conditional tables are the finite discrete case; other variable spaces require appropriate conditional laws and a supported target. A dependencyGraph identifier supplies no edge inventory, acyclicity proof, complete conditionals or causal interpretation by itself."
+msgstr "图与相容的局部条件分布律共同指定模型。条件表适用于有限离散情形；其他变量空间需要适当条件分布律及受支持目标。dependencyGraph 标识符本身不提供边清单、无环性证明、完整条件分布律或因果解释。"
+
+msgctxt "https://blackcatinformatics.ca/math/BayesianNetwork|http://www.w3.org/2004/02/skos/core#example"
+msgid "The probability scene gives ex:sprinklerNet dependencyGraph ex:sprinklerDag and lets ex:forecastWorld reference the network through logic:probabilityModel. The graph label describes arrows, but its inspected record supplies neither structured edges nor conditional tables."
+msgstr "概率场景为 ex:sprinklerNet 给出 dependencyGraph ex:sprinklerDag，并使 ex:forecastWorld 通过 logic:probabilityModel 引用该网络。图标签描述箭头，但所检查记录既不提供结构化边，也不提供条件表。"
+
+msgctxt "https://blackcatinformatics.ca/math/BayesianNetwork|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for a supplied directed acyclic probabilistic factorization with its variable scope and local conditional laws, retaining the selected reasoning target and its representation limits."
+msgstr "用于所提供的有向无环概率分解，连同其变量范围及局部条件分布律，并保留所选推理目标及其表示限制。"
+
+msgctxt "https://blackcatinformatics.ca/math/BayesianNetwork|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating every directed graph as acyclic, every arrow as causal, or a graph label as complete conditional-law data. A class-level lowering declaration does not establish that an arbitrary continuous network is exactly representable in a discrete weighted-model-counting target."
+msgstr "避免将每个有向图都视为无环、将每个箭头都视为因果，或将图标签视为完整条件分布律数据。类层级降级声明不确立任意连续网络都能在离散加权模型计数目标中精确表示。"
+
+msgctxt "https://blackcatinformatics.ca/math/BayesianNetwork|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Keep the network as subject of dependencyGraph and preserve the actual graph, variable domains and local conditional-law evidence in their supplied representation. Verify completeness and target preservation for the selected profile; a successful missing-link check alone cannot qualify inference or exactness."
+msgstr "保留网络为 dependencyGraph 的主语，按所提供表示保留实际图、变量定义域及局部条件分布律依据。针对所选配置验证完整性及目标保留；仅通过缺失链接检查不能使推断或精确性获得资格认定。"
+
+msgctxt "https://blackcatinformatics.ca/math/FactorGraph|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Factor Graph"
+msgstr "因子图"
+
+msgctxt "https://blackcatinformatics.ca/math/FactorGraph|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A factor graph: a bipartite graph of variables and factors representing a joint law through a product of factors. A subclass of math:MathematicalObject naming its structure through math:dependencyGraph. For the declared finite-factor lowering into logic:DependencyModel through math:probabilityModelLowering, nonnegative measurable factors must have a finite strictly positive normalizer over the declared base measure. The product may already be normalized or require explicit normalization. Neither an unnormalized declaration nor a graph link proves validity or logic:ExactPreservation; the selected lowering must preserve the resulting law and its normalization semantics."
+msgstr "因子图：由变量和因子组成的二分图，通过因子乘积表示联合分布律。它是 math:MathematicalObject 的子类，通过 math:dependencyGraph 指明结构。对于通过 math:probabilityModelLowering 声明的、将有限个因子降级到 logic:DependencyModel 的过程，非负可测因子在所声明基准测度上必须具有有限且严格为正的归一化因子。乘积可以已归一化，也可以需要显式归一化。未归一化声明或图链接都不证明有效性或 logic:ExactPreservation；所选降级必须保留所得分布律及其归一化语义。"
+
+msgctxt "https://blackcatinformatics.ca/math/FactorGraph|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "With product f and normalizer Z = ∫ f dμ, a probability law requires 0 < Z < ∞ and uses f / Z relative to the declared base measure μ. An unnormalized representation can be exact when its normalization semantics are retained; an invalid product does not become a valid approximate model by declaring loss."
+msgstr "对于乘积 f 及归一化因子 Z = ∫ f dμ，概率律要求 0 < Z < ∞，并相对于已声明基准测度 μ 使用 f / Z。保留归一化语义时，未归一化表示可以是精确的；无效乘积不会因声明损失而变成有效近似模型。"
+
+msgctxt "https://blackcatinformatics.ca/math/FactorGraph|http://www.w3.org/2004/02/skos/core#example"
+msgid "The probability scene links ex:sprinklerFactorGraph to ex:sprinklerFactorStructure through dependencyGraph. The approximate-lossy fixture separately declares logic:SoundUnderApproximation and recorded drops; neither record supplies a factor inventory or establishes a finite positive normalizer."
+msgstr "概率场景通过 dependencyGraph 将 ex:sprinklerFactorGraph 链接到 ex:sprinklerFactorStructure。approximate-lossy 夹具另行声明 logic:SoundUnderApproximation 及已记录丢失项；两个记录都不提供因子清单，也不确立有限正归一化因子。"
+
+msgctxt "https://blackcatinformatics.ca/math/FactorGraph|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when a source supplies a bipartite variable-factor representation of a joint law, including an explicitly unnormalized product whose base measure, normalization obligations and selected target semantics remain explicit."
+msgstr "当来源提供联合分布律的变量与因子二分表示时使用，包括显式未归一化乘积，其基准测度、归一化义务及所选目标语义均保持明确。"
+
+msgctxt "https://blackcatinformatics.ca/math/FactorGraph|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring finite normalization from finitely many factors, assuming that an unknown normalizer is infinite, or treating unnormalized as synonymous with lossy. Negative factors or a zero or infinite normalizer do not define the asserted probability law."
+msgstr "避免根据因子数量有限推断归一化因子有限、假定未知归一化因子为无穷，或将未归一化视为有损的同义词。负因子、零归一化因子或无穷归一化因子不定义所断言的概率律。"
+
+msgctxt "https://blackcatinformatics.ca/math/FactorGraph|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the FactorGraph, its dependencyGraph structure, factor scopes and source factor laws, together with the base measure and normalization account. For the selected lowering, establish its finite-factor and validity obligations and preserve or explicitly account for normalization; disclose approximation policy and losses without asserting that disclosure alone proves a sound approximation."
+msgstr "保留 FactorGraph、其 dependencyGraph 结构、因子作用域及来源所给因子函数，以及基准测度和归一化说明。对于所选降级，确立其因子数量有限及有效性义务，并保留或显式说明归一化；披露近似策略及损失，不断言仅披露就证明近似可靠。"
+
+msgctxt "https://blackcatinformatics.ca/math/MarkovKernel|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Markov Kernel"
+msgstr "马尔可夫核"
+
+msgctxt "https://blackcatinformatics.ca/math/MarkovKernel|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A Markov kernel: a measurable map assigning to each point of a source space a probability measure on a target space — the general-theory counterpart of a transition matrix. A subclass of math:MathematicalObject. It lowers into logic:GenericDependence (a stochastic transition) via math:probabilityModelLowering; its declared logic:ExactPreservation is honest only when its completeness gate holds — a declared domain and codomain, and kernel totality (each source point maps to a genuine probability measure) — and is otherwise structurally incomplete (math:IncompleteDependencyModel)."
+msgstr "马尔可夫核：为来源空间的每个点赋予目标空间上概率测度的可测映射，是转移矩阵在一般理论中的对应概念。它是 math:MathematicalObject 的子类。它通过 math:probabilityModelLowering 降级到 logic:GenericDependence，即随机转移；其已声明 logic:ExactPreservation 仅在满足完整性门槛时才诚实成立：具有已声明定义域和陪域，且核全定义，即每个来源点映射到真正概率测度，否则结构不完整（math:IncompleteDependencyModel）。"
+
+msgctxt "https://blackcatinformatics.ca/math/MarkovKernel|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "For measurable spaces X and Y, K(x, ·) is a probability measure on Y for every x in X, and x ↦ K(x, A) is measurable for each measurable A in Y. Domain and codomain may name the same space; endpoint links alone establish neither these laws nor exact preservation by a target."
+msgstr "对于可测空间 X 和 Y，每个属于 X 的 x 所对应的 K(x, ·) 都是 Y 上的概率测度，且对于 Y 中每个可测 A，x ↦ K(x, A) 可测。定义域和陪域可以指明同一空间；仅有端点链接既不确立这些规律，也不确立目标的精确保留。"
+
+msgctxt "https://blackcatinformatics.ca/math/MarkovKernel|http://www.w3.org/2004/02/skos/core#example"
+msgid "The probability scene gives ex:weatherTransitionKernel kernelDomain ex:todayWeatherSpace and kernelCodomain ex:tomorrowWeatherSpace, each typed MeasurableSpace. Those endpoint declarations supply no transition law, matrix entries or totality proof."
+msgstr "概率场景为 ex:weatherTransitionKernel 给出 kernelDomain ex:todayWeatherSpace 和 kernelCodomain ex:tomorrowWeatherSpace，两者均具有 MeasurableSpace 类型。这些端点声明不提供转移律、矩阵项或全定义性证明。"
+
+msgctxt "https://blackcatinformatics.ca/math/MarkovKernel|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for a supplied stochastic transition assigning a target probability measure to every source point with the required measurability, including a transition kernel from a measurable space to itself."
+msgstr "用于所提供的随机转移，它为每个来源点赋予目标概率测度并具有所要求可测性，包括从可测空间到其自身的转移核。"
+
+msgctxt "https://blackcatinformatics.ca/math/MarkovKernel|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating two endpoint names as a completed kernel, a substochastic transition as a probability kernel without qualification, or a kernel alone as a complete stochastic process. Separate domain and codomain roles do not require different resource identities."
+msgstr "避免将两个端点名称视为已完成的核、未经限定就将次随机转移视为概率核，或将单个核视为完整随机过程。单独的定义域和陪域角色不要求资源身份不同。"
+
+msgctxt "https://blackcatinformatics.ca/math/MarkovKernel|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Type the supplied object as MarkovKernel and retain its actual kernelDomain, kernelCodomain and transition-law evidence. Check total probability and measurability against the named spaces and preserve the selected lowering judgment; a missing-endpoint check cannot establish these mathematical obligations."
+msgstr "将所提供对象标注为 MarkovKernel，并保留其实际 kernelDomain、kernelCodomain 及转移律依据。针对具名空间检查总概率及可测性，并保留所选降级判定；缺失端点检查不能确立这些数学义务。"
+
+msgctxt "https://blackcatinformatics.ca/math/dependencyGraph|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "dependency graph"
+msgstr "依赖图"
+
+msgctxt "https://blackcatinformatics.ca/math/dependencyGraph|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Relates a dependency model to the graph structure carrying its dependencies — the DAG of a math:BayesianNetwork, the bipartite graph of a math:FactorGraph. Domain a dependency model (math:BayesianNetwork, math:FactorGraph, and kin), range its graph structure (stated in prose). Structural completeness of this graph (a DAG, finite factors) is part of the model's completeness gate; an incomplete one is ill-formed (math:IncompleteDependencyModel)."
+msgstr "将依赖模型关联到承载其依赖关系的图结构，即 math:BayesianNetwork 的 DAG、math:FactorGraph 的二分图。定义域为依赖模型，如 math:BayesianNetwork、math:FactorGraph 及同类，值域为其图结构（以文字说明）。此图的结构完整性，如 DAG、有限个因子，是模型完整性门槛的一部分；不完整者为不良形式（math:IncompleteDependencyModel）。"
+
+msgctxt "https://blackcatinformatics.ca/math/dependencyGraph|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This relation identifies a model's supplied graph structure. Its object is the graph resource, rather than a label literal or a probability value. Graph requirements depend on the model family; linking the resource does not populate its vertices, edges, factor scopes or conditional laws."
+msgstr "此关系指明模型所提供的图结构。宾语是图资源，而非标签字面量或概率值。图要求取决于模型族；链接资源不会填入顶点、边、因子作用域或条件分布律。"
+
+msgctxt "https://blackcatinformatics.ca/math/dependencyGraph|http://www.w3.org/2004/02/skos/core#example"
+msgid "The probability scene uses ex:sprinklerNet dependencyGraph ex:sprinklerDag and ex:sprinklerFactorGraph dependencyGraph ex:sprinklerFactorStructure. The former is described as a DAG and the latter as bipartite, without those structures being enumerated in their inspected records."
+msgstr "概率场景使用 ex:sprinklerNet dependencyGraph ex:sprinklerDag 和 ex:sprinklerFactorGraph dependencyGraph ex:sprinklerFactorStructure。前者被描述为 DAG，后者被描述为二分图，但其所检查记录并未枚举这些结构。"
+
+msgctxt "https://blackcatinformatics.ca/math/dependencyGraph|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain the actual graph resource supplied as the structure of a BayesianNetwork, FactorGraph or another compatible dependency model, preserving which model owns that structure."
+msgstr "用于保留作为 BayesianNetwork、FactorGraph 或其他相容依赖模型结构而提供的实际图资源，并保留该结构所属的模型。"
+
+msgctxt "https://blackcatinformatics.ca/math/dependencyGraph|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid replacing a supplied graph resource with its label, inferring edges from naming conventions, or imposing Bayesian acyclicity on every factor graph. Link presence does not prove graph completeness or model validity."
+msgstr "避免以标签替代所提供图资源、根据命名约定推断边，或对每个因子图施加贝叶斯无环性要求。链接存在不证明图完整性或模型有效性。"
+
+msgctxt "https://blackcatinformatics.ca/math/dependencyGraph|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Keep the dependency model as subject and its graph resource as object. Retain the source's family-specific structural and probability-law evidence alongside the link, and report missing structure without fabricating vertices, edges, factors or a causal account."
+msgstr "保留依赖模型为主语，其图资源为宾语。连同链接保留来源中针对特定模型族的结构及概率律依据，并报告缺失结构，不编造顶点、边、因子或因果说明。"
+
+msgctxt "https://blackcatinformatics.ca/math/kernelDomain|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "kernel domain"
+msgstr "核定义域"
+
+msgctxt "https://blackcatinformatics.ca/math/kernelDomain|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Names the source (domain) measurable space of a math:MarkovKernel — the space whose points the kernel assigns a transition measure to. Domain math:MarkovKernel, range a measurable space (stated in prose). A Markov kernel declares both a math:kernelDomain and a math:kernelCodomain; one missing either is structurally incomplete (math:IncompleteDependencyModel)."
+msgstr "指明 math:MarkovKernel 的来源可测空间，即定义域，核为该空间各点赋予转移测度。定义域为 math:MarkovKernel，值域为可测空间（以文字说明）。马尔可夫核声明 math:kernelDomain 和 math:kernelCodomain 两者；缺少任一项即结构不完整（math:IncompleteDependencyModel）。"
+
+msgctxt "https://blackcatinformatics.ca/math/kernelDomain|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The domain supplies the source points and source measurable structure against which kernel measurability is judged. It is distinct in role from the target space and from an initial probability distribution; a source and target may nevertheless be the same measurable-space resource."
+msgstr "定义域提供来源点及来源可测结构，核的可测性据此判定。其角色不同于目标空间及初始概率分布；但来源和目标仍可以是同一可测空间资源。"
+
+msgctxt "https://blackcatinformatics.ca/math/kernelDomain|http://www.w3.org/2004/02/skos/core#example"
+msgid "The probability scene states ex:weatherTransitionKernel kernelDomain ex:todayWeatherSpace and types that space MeasurableSpace. This identifies the source role without supplying an initial weather distribution or a transition law."
+msgstr "概率场景声明 ex:weatherTransitionKernel kernelDomain ex:todayWeatherSpace，并将该空间标注为 MeasurableSpace。这指明来源角色，但不提供初始天气分布或转移律。"
+
+msgctxt "https://blackcatinformatics.ca/math/kernelDomain|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to identify the supplied source measurable space of a MarkovKernel, including a kernel whose source and target are the same space."
+msgstr "用于指明所提供的 MarkovKernel 来源可测空间，包括来源和目标为同一空间的核。"
+
+msgctxt "https://blackcatinformatics.ca/math/kernelDomain|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid reversing the relation, substituting the initial distribution or target space for the source role, or demanding different endpoint identities. A source link alone does not supply a sigma-algebra inventory or prove measurability."
+msgstr "避免反转关系、以初始分布或目标空间替代来源角色，或要求不同端点身份。单个来源链接不提供 σ-代数清单，也不证明可测性。"
+
+msgctxt "https://blackcatinformatics.ca/math/kernelDomain|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Keep the MarkovKernel as subject and its source measurable-space resource as object. Preserve the supplied kernelCodomain and law separately, even when both endpoint links share an object; report a missing source rather than guessing it from a transition label."
+msgstr "保留 MarkovKernel 为主语，其来源可测空间资源为宾语。另行保留所提供的 kernelCodomain 及分布律，即使两个端点链接共享宾语；报告缺失来源，不根据转移标签猜测来源。"
+
+msgctxt "https://blackcatinformatics.ca/math/kernelCodomain|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "kernel codomain"
+msgstr "核陪域"
+
+msgctxt "https://blackcatinformatics.ca/math/kernelCodomain|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Names the target (codomain) measurable space of a math:MarkovKernel — the space on which each source point's transition probability measure lives. Domain math:MarkovKernel, range a measurable space (stated in prose). A Markov kernel declares both a math:kernelCodomain and a math:kernelDomain; one missing either is structurally incomplete (math:IncompleteDependencyModel)."
+msgstr "指明 math:MarkovKernel 的目标可测空间，即陪域，每个来源点的转移概率测度定义于该空间。定义域为 math:MarkovKernel，值域为可测空间（以文字说明）。马尔可夫核声明 math:kernelCodomain 和 math:kernelDomain 两者；缺少任一项即结构不完整（math:IncompleteDependencyModel）。"
+
+msgctxt "https://blackcatinformatics.ca/math/kernelCodomain|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The codomain supplies the measurable target sets to which each source-indexed probability measure assigns mass. It is distinct in role from the source space and from a single realized next state; its resource may coincide with the domain resource."
+msgstr "陪域提供可测目标集合，各个按来源索引的概率测度向这些集合赋予质量。其角色不同于来源空间及单个已实现下一状态；其资源可以与定义域资源相同。"
+
+msgctxt "https://blackcatinformatics.ca/math/kernelCodomain|http://www.w3.org/2004/02/skos/core#example"
+msgid "The probability scene states ex:weatherTransitionKernel kernelCodomain ex:tomorrowWeatherSpace and types that space MeasurableSpace. The link names the target role, without supplying a distribution for tomorrow or evaluating the transition."
+msgstr "概率场景声明 ex:weatherTransitionKernel kernelCodomain ex:tomorrowWeatherSpace，并将该空间标注为 MeasurableSpace。链接指明目标角色，但不提供明日分布，也不对转移求值。"
+
+msgctxt "https://blackcatinformatics.ca/math/kernelCodomain|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to identify the supplied target measurable space on which a MarkovKernel's source-indexed probability measures are defined, including self-transitions on one space."
+msgstr "用于指明所提供的目标可测空间，MarkovKernel 按来源索引的概率测度定义于其上，包括单一空间上的自转移。"
+
+msgctxt "https://blackcatinformatics.ca/math/kernelCodomain|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid replacing the target space with a single outcome, a marginal law or the domain role. Naming the target does not establish unit mass at every source point or require a resource different from the domain."
+msgstr "避免以单个结果、边缘分布律或定义域角色替代目标空间。指明目标不确立每个来源点处质量为一，也不要求资源与定义域不同。"
+
+msgctxt "https://blackcatinformatics.ca/math/kernelCodomain|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Keep the MarkovKernel as subject and its target measurable-space resource as object. Preserve its kernelDomain and transition-law evidence, including target measurable structure, without inventing a future state or an evaluated probability from the space's name."
+msgstr "保留 MarkovKernel 为主语，其目标可测空间资源为宾语。保留其 kernelDomain 及转移律依据，包括目标可测结构，不根据空间名称编造未来状态或已求值概率。"
+
+msgctxt "https://blackcatinformatics.ca/math/probabilityModelLowering|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "probability model lowering"
+msgstr "概率模型降级"
+
+msgctxt "https://blackcatinformatics.ca/math/probabilityModelLowering|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Relates a reasoning-facing math: dependency model (a class or individual — a math:FullIndependenceModel, math:JointProbabilityTable, math:BayesianNetwork, math:FactorGraph, or math:MarkovKernel) to the logic: probability-model target it formally lowers into (logic:FullIndependence, logic:DependencyModel, logic:JointOutcome, or logic:GenericDependence). Domain a reasoning-facing math: dependency model, range a logic: probability-model target (stated in prose). The lowering is a formal, preservation-judged map, not a soft 'satisfy or project into': its preservation polarity is carried ALONGSIDE it by logic:preservationKind, reused verbatim from the logic: loss-ledger vocabulary rather than a math: near-synonym (Principle 17). A reasoning-facing model that references probabilistic facts without a declared lowering is unsupported/not-evaluated, never assumed independent (math:MissingProbabilityModelLowering)."
+msgstr "将面向推理的 math: 依赖模型关联到其正式降级到的 logic: 概率模型目标；该模型可以是类或个体，如 math:FullIndependenceModel、math:JointProbabilityTable、math:BayesianNetwork、math:FactorGraph 或 math:MarkovKernel，目标为 logic:FullIndependence、logic:DependencyModel、logic:JointOutcome 或 logic:GenericDependence。定义域为面向推理的 math: 依赖模型，值域为 logic: 概率模型目标（以文字说明）。降级是具有保留判定的形式映射，而非宽松的“满足或投影到”；其保留极性由 logic:preservationKind 随附承载，原样复用 logic: 损失账本词汇，而非 math: 近义项（原则 17）。面向推理的模型若引用概率事实却未声明降级，则为不支持或未求值，绝不假定独立（math:MissingProbabilityModelLowering）。"
+
+msgctxt "https://blackcatinformatics.ca/math/probabilityModelLowering|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The relation records the declared target; logic:preservationKind separately records its preservation judgment. Class declarations expose the intended family seam, while individual validity and actual preservation require evidence. A target link is neither an execution receipt nor a proof that an arbitrary instance satisfies the target's contract."
+msgstr "此关系记录已声明目标；logic:preservationKind 另行记录保留判定。类声明呈现预期模型族接口，而个体有效性及实际保留需要依据。目标链接既不是执行回执，也不是任意实例满足目标约定的证明。"
+
+msgctxt "https://blackcatinformatics.ca/math/probabilityModelLowering|http://www.w3.org/2004/02/skos/core#example"
+msgid "The module declares BayesianNetwork probabilityModelLowering logic:DependencyModel with logic:preservationKind logic:ExactPreservation. The lowering competency query joins a request's model type to that class-level metadata under reasoningNone, rather than computing a joint distribution or proving instance preservation."
+msgstr "模块声明 BayesianNetwork probabilityModelLowering logic:DependencyModel，并具有 logic:preservationKind logic:ExactPreservation。降级能力查询在 reasoningNone 下将请求的模型类型与该类层级元数据连接，而非计算联合分布或证明实例保留。"
+
+msgctxt "https://blackcatinformatics.ca/math/probabilityModelLowering|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain a supplied formal lowering declaration from a mathematical dependency-model class or individual into its actual logic: target, with the accompanying preservation judgment and selected-profile evidence."
+msgstr "用于保留从数学依赖模型类或个体到其实际 logic: 目标的所提供形式降级声明，连同随附保留判定及所选配置依据。"
+
+msgctxt "https://blackcatinformatics.ca/math/probabilityModelLowering|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid using a soft similarity link, inventing a math: preservation synonym, treating the class table as an instance proof, or silently defaulting to independence. An unsupported or invalid model does not become an accepted approximation merely by naming a loss kind."
+msgstr "避免使用宽松相似性链接、编造 math: 保留近义项、将类表视为实例证明，或暗中默认为独立。不支持或无效的模型不会仅因指明损失类别就成为可接受近似。"
+
+msgctxt "https://blackcatinformatics.ca/math/probabilityModelLowering|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the model-to-target declaration and its actual class or instance location together with logic:preservationKind and any recorded losses. Preserve logic:probabilityModel as the separate request-to-model link. Qualify the selected target, model obligations and approximation policy explicitly; report unsupported or not-evaluated when required evidence or capabilities are absent."
+msgstr "保留模型到目标的声明及其实际类或实例位置，连同 logic:preservationKind 和任何已记录损失。将 logic:probabilityModel 保留为单独的请求到模型链接。显式核定所选目标、模型义务及近似策略；当必需依据或能力缺失时，报告不支持或未求值。"
+
+msgctxt "https://blackcatinformatics.ca/math/MissingProbabilityModelLowering|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Missing Probability Model Lowering"
+msgstr "缺少概率模型降级"
+
+msgctxt "https://blackcatinformatics.ca/math/MissingProbabilityModelLowering|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The failure raised when a reasoning-facing dependency model referenced by a probabilistic reasoning request does not declare its logic: lowering (math:probabilityModelLowering into a logic: probability-model target with a logic:preservationKind). Absent a declared lowering the engine reports unsupported / not-evaluated rather than assuming independence; a reasoning-facing model with an undeclared lowering is ill-formed."
+msgstr "当概率推理请求所引用的面向推理依赖模型未声明其 logic: 降级时所报告的失败，即通过 math:probabilityModelLowering 降级到带有 logic:preservationKind 的 logic: 概率模型目标。缺少已声明降级时，引擎报告不支持或未求值，而非假定独立；降级未声明的面向推理模型为不良形式。"
+
+msgctxt "https://blackcatinformatics.ca/math/MissingProbabilityModelLowering|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This identifies a missing declared lowering for a referenced model. The inspected native check accepts lowering-link presence directly on the model or on one of its declared types; that presence check does not validate the target, preservation judgment or full mathematical model."
+msgstr "此类标明被引用模型缺少已声明降级。所检查原生检查直接接受模型上或其某个已声明类型上的降级链接存在；该存在性检查不验证目标、保留判定或完整数学模型。"
+
+msgctxt "https://blackcatinformatics.ca/math/MissingProbabilityModelLowering|http://www.w3.org/2004/02/skos/core#example"
+msgid "The missing-lowering counter-example references ex:unloweredModel through logic:probabilityModel without a lowering declaration. Its positive fixture supplies probabilityModelLowering logic:FullIndependence and logic:preservationKind logic:ExactPreservation on ex:loweredModel."
+msgstr "missing-lowering 反例通过 logic:probabilityModel 引用 ex:unloweredModel，但没有降级声明。其正例夹具在 ex:loweredModel 上提供 probabilityModelLowering logic:FullIndependence 和 logic:preservationKind logic:ExactPreservation。"
+
+msgctxt "https://blackcatinformatics.ca/math/MissingProbabilityModelLowering|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when a reasoning request actually references a model whose required formal lowering declaration is absent, preserving the referenced resource and the failed declaration lookup."
+msgstr "当推理请求实际引用的模型缺少必需形式降级声明时使用，保留被引用资源及失败的声明查找。"
+
+msgctxt "https://blackcatinformatics.ca/math/MissingProbabilityModelLowering|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid reporting a wholly absent model reference as this specific emitted finding, assuming independence after a lookup fails, or interpreting a present link as proof that every target and preservation obligation has passed."
+msgstr "避免将完全缺失模型引用报告为此特定诊断、在查找失败后假定独立，或将已存在链接解释为每项目标及保留义务均已通过的证明。"
+
+msgctxt "https://blackcatinformatics.ca/math/MissingProbabilityModelLowering|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the request's logic:probabilityModel object and inspect the actual model and type-level probabilityModelLowering declarations. Record the missing declaration and unsupported status without guessing a target; preserve separately any missing judgment, malformed target or incomplete-model evidence."
+msgstr "保留请求的 logic:probabilityModel 宾语，并检查实际模型及类型层级的 probabilityModelLowering 声明。记录缺失声明及不支持状态，不猜测目标；另行保留任何缺失判定、畸形目标或模型不完整依据。"
+
+msgctxt "https://blackcatinformatics.ca/math/IncompleteDependencyModel|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Incomplete Dependency Model"
+msgstr "不完整依赖模型"
+
+msgctxt "https://blackcatinformatics.ca/math/IncompleteDependencyModel|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The failure raised when a dependency-model declaration fails the completeness obligations of its selected representation or lowering: missing graph or kernel endpoints, incomplete joint outcomes, missing required conditional laws, or unmet factor-product validity obligations. The declaration is insufficient for that selected contract; this does not assert that no mathematical joint distribution can exist. Structural incompleteness is distinct from a missing lowering declaration and from evidence contradicting a claimed exact preservation."
+msgstr "当依赖模型声明未满足所选表示或降级的完整性义务时所报告的失败，例如缺少图或核端点、联合结果不完整、缺少必需条件分布律，或未满足因子乘积有效性义务。声明不足以满足所选约定；这不断言不存在数学联合分布。结构不完整不同于缺失降级声明，也不同于与所声称精确保留相矛盾的依据。"
+
+msgctxt "https://blackcatinformatics.ca/math/IncompleteDependencyModel|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Mathematical completeness includes the selected model's scope, laws and normalization obligations. The inspected native findings cover missing graph or kernel links and tables with no named outcome rows; direct instance exactness routes missing graph or endpoint evidence to ExactPreservationViolated instead. These bounded checks do not prove general acyclicity, complete conditionals or kernel totality."
+msgstr "数学完整性包括所选模型的范围、规律及归一化义务。所检查原生诊断覆盖缺失图或核链接以及未提供具名结果行的表；直接实例精确性路径则将缺失图或端点依据路由为 ExactPreservationViolated。这些有限范围检查不证明一般无环性、完整条件分布律或核全定义性。"
+
+msgctxt "https://blackcatinformatics.ca/math/IncompleteDependencyModel|http://www.w3.org/2004/02/skos/core#example"
+msgid "The counter-examples supply ex:incompleteKernel with a kernelDomain but no kernelCodomain and ex:incompleteFactorGraph with no dependencyGraph. The corresponding positive fixtures supply those links; this exercises a declared structural boundary rather than a full mathematical completion proof."
+msgstr "反例提供具有 kernelDomain 但没有 kernelCodomain 的 ex:incompleteKernel，以及没有 dependencyGraph 的 ex:incompleteFactorGraph。相应正例夹具提供这些链接；这检验已声明结构边界，而非完整数学完备性证明。"
+
+msgctxt "https://blackcatinformatics.ca/math/IncompleteDependencyModel|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for evidenced failure of the selected dependency-model completeness contract, recording which graph, endpoint, outcome or law obligation is missing or invalid and distinguishing the actual emitted diagnostic route."
+msgstr "用于有依据的所选依赖模型完整性约定失败，记录缺失或无效的图、端点、结果或规律义务，并区分实际输出的诊断路径。"
+
+msgctxt "https://blackcatinformatics.ca/math/IncompleteDependencyModel|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid concluding that no joint law can exist, treating every unknown proof as a computed contradiction, or claiming that missing-link checks validate all mathematical structure. Do not silently convert an incomplete declaration into an independent or approximate model."
+msgstr "避免断定不可能存在联合分布律、将每个未知证明视为计算所得矛盾，或声称缺失链接检查验证全部数学结构。不要暗中将不完整声明转换为独立或近似模型。"
+
+msgctxt "https://blackcatinformatics.ca/math/IncompleteDependencyModel|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Identify the supplied model family, selected representation and exact failing obligation. Preserve the original evidence and any instance preservation claim, distinguish structural failure from unavailable qualification, and obtain missing source structure without fabricating a graph, law, endpoint or outcome."
+msgstr "指明所提供模型族、所选表示及确切失败义务。保留原始依据及任何实例保留声称，区分结构失败与无法获得资格认定，并取得缺失来源结构，不编造图、规律、端点或结果。"
+
+msgctxt "https://blackcatinformatics.ca/math/ExactPreservationViolated|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "A contradicted exactness claim differs from missing proof or an absent lowering. The inspected native checks detect projection-ledger contradictions, readable nonunit joint-table sums and directly exact graph or kernel instances missing required links. Their admission does not establish every mathematical preservation condition; unreadable table audits remain unqualified."
+msgstr "被反驳的精确性声称不同于缺失证明或缺少降级。所检查原生检查检测投影账本矛盾、可读取且总和不为一的联合表，以及缺失必需链接的直接声明精确图或核实例。通过这些准入检查不确立每项数学保留条件；不可读表审计仍未获资格认定。"
+
+msgctxt "https://blackcatinformatics.ca/math/ExactPreservationViolated|http://www.w3.org/2004/02/skos/core#example"
+msgid "The nonunit-table counter-example gives ex:overclaimedTable masses 0.5 and 0.4, contradicting its class-declared exactness. Separate graph and kernel counter-examples directly declare logic:ExactPreservation while omitting a required structural link; the projection fixture instead declares a provenance drop alongside exactness."
+msgstr "nonunit-table 反例为 ex:overclaimedTable 给出质量 0.5 和 0.4，与其类声明精确性相矛盾。单独的图及核反例直接声明 logic:ExactPreservation，却省略必需结构链接；投影夹具则在精确性之外另行声明来源溯源丢失。"
+
+msgctxt "https://blackcatinformatics.ca/math/ExactPreservationViolated|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for source evidence that contradicts an actual exact-preservation claim, retaining the claim's location and the particular mathematical or loss-ledger conflict."
+msgstr "用于与实际精确保留声称相矛盾的来源依据，保留声称位置及特定数学或损失账本冲突。"
+
+msgctxt "https://blackcatinformatics.ca/math/ExactPreservationViolated|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid equating an unavailable proof with a demonstrated false claim, treating every unnormalized product as lossy, or declaring exactness because no bounded lint finding appeared. Do not replace a failed exact claim with an unsupported approximation judgment."
+msgstr "避免将无法取得的证明等同于已证实虚假声称、将每个未归一化乘积视为有损，或因未出现有限范围 lint 诊断就声明精确。不要以不受支持的近似判定替代失败的精确声称。"
+
+msgctxt "https://blackcatinformatics.ca/math/ExactPreservationViolated|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Keep the claimed logic:ExactPreservation, model or ProjectionRecord, and contradictory mass, missing-link or loss evidence together. State which check actually decided the finding and which obligations remain unqualified; repair the source contract or validate a genuinely supported alternative lowering without hiding the failed claim."
+msgstr "将所声称的 logic:ExactPreservation、模型或 ProjectionRecord，以及相矛盾的质量、缺失链接或损失依据共同保留。说明哪项检查实际作出诊断，以及哪些义务仍未获资格认定；修复来源约定，或验证确实受支持的替代降级，不掩盖失败声称。"

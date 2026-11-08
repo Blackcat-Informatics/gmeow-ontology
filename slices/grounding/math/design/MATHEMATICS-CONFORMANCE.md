@@ -360,7 +360,7 @@ process / result / claim separation, realized across the `math:` and `gmeow:` la
 | Parameter quantities satisfy the role's dimensional/positivity constraints | Rust validator | `math:DistributionParameterConstraint` |
 | A conditional/conditional-independence assertion names its conditioning set | SHACL Core | `math:UnconditionedAssertion` |
 | A probability-model lowering into `logic:` is declared for a reasoning-facing model | Rust validator | `math:MissingProbabilityModelLowering` |
-| A dependency-model declaration is structurally complete (DAG, CPT/factor totality) | Rust validator | `math:IncompleteDependencyModel` |
+| A dependency-model declaration supplies its required graph/kernel links and at least one named table outcome; these presence checks do not establish general DAG, conditional-law, factor or kernel completeness | Rust validator (missing graph or kernel links on directly exact instances route to `math:ExactPreservationViolated`) | `math:IncompleteDependencyModel` |
 | A `math:ProbabilityEvent` (a measurable set of outcomes) is never also typed a `logic:Event` (an occurrent) — the measure-theoretic set-of-outcomes and the occurrence are distinct | SHACL Core (paired shape over the directly-asserted `owl:disjointWith`) | `math:ProbabilityEventOccurrentConflation` |
 | An information measure (an entropy, divergence, Fisher information, or surprisal) declares its required frame component — its probability distribution, its logarithm base, its information unit, a divergence's reference distribution, a Fisher information's likelihood model or score parameter, or a surprisal's outcome | SHACL Core derived from OWL restrictions | `math:IncompleteInformationMeasure` |
 
@@ -410,7 +410,7 @@ process / result / claim separation, realized across the `math:` and `gmeow:` la
 > would make the gate an artifact of the test that asserts it. When a real pipeline-stage producer
 > lands, these rows move to it and the cached validation action runs over its output.
 
-| A declared-exact `math:JointProbabilityTable`/`math:MarkovKernel`/`math:BayesianNetwork`/`math:FactorGraph` actually has the outcome mass / completeness its declared `logic:ExactPreservation` claims | Rust validator (`check_math_probability_invariants`; arithmetic outcome-mass summation and dependency-graph completeness over the probability-model families, not a `math:ProjectionRecord` join) | `math:ExactPreservationViolated` |
+| A readable nonempty joint table has a unit mass sum; a directly exact network/factor graph/kernel supplies required graph or endpoint links | Rust validator (`check_math_probability_invariants`; exact-rational summation and structural-link checks, not general mathematical completeness or instance preservation proof; unreadable or overflowing table audits remain unqualified) | `math:ExactPreservationViolated` |
 
 ### Bridges / ingestion rules
 
