@@ -30,9 +30,10 @@ fn is_grounding_owner(owner: &str) -> bool {
 pub fn input_files(root: &Path) -> gmeow_errors::Result<Vec<PathBuf>> {
     let inventory = SliceInventory::discover(&root.join("slices"), gmeow_ns::gmeow_slice_vocab())
         .map_err(|why| {
-        gmeow_errors::Diag::of_kind(crate::error::Parse {
-            detail: format!("required grounding slice inventory: {why}"),
-        })
+        gmeow_errors::Diag::of_kind(crate::error::Parse::caused_by(
+            format!("required grounding slice inventory: {why}"),
+            why,
+        ))
     })?;
     let mut files = Vec::new();
     for record in inventory.records() {

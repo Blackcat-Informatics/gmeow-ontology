@@ -84,8 +84,17 @@ fn physical_grounding_inputs_bind_owner_changes_and_preserve_semantic_refusal() 
     );
 
     std::fs::write(&manifest, "invalid manifest RDF").unwrap();
+    let failure = input_files(root).expect_err("required manifests cannot be skipped");
+    let kind = failure
+        .downcast_ref::<crate::error::Parse>()
+        .expect("inventory refusal retains the validation parse classification");
     assert!(
-        input_files(root).is_err(),
-        "required manifests cannot be skipped"
+        failure
+            .message()
+            .contains("required grounding slice inventory:")
+    );
+    assert!(
+        std::error::Error::source(kind).is_some(),
+        "inventory refusal retains its original native cause"
     );
 }
