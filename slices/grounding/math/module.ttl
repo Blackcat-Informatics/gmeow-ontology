@@ -7664,7 +7664,12 @@ math:Distribution
     rdfs:subClassOf math:MathematicalObject ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "Distribution"@x-gmeow-english ;
-    skos:definition "A probability distribution: a law assigning probabilities over outcomes, named by its family through math:distributionFamily (normal, binomial, Poisson, …) and parameterized. A distribution missing its family is underspecified (math:MissingDistributionParameterization). Parametricity is detected by the presence of supplied parameters, never by a marker class: a distribution that supplies a math:hasDistributionParameter also names its math:distributionParameterization (the explicit convention fixing which parametric form of its family is meant), and fills each math:DistributionParameterRole that parameterization requires exactly once (math:DistributionParameterRoleCardinality), while a non-parametric distribution (no supplied parameters) is not rejected. A subclass of math:MathematicalObject; an R rnorm/dbinom/… call lifts to this object with its family and parameterization, distinct from the math:ProbabilityMeasure it induces."@x-gmeow-english ;
+    skos:definition "A probability distribution: a law assigning probabilities over outcomes, named by its family through math:distributionFamily (normal, binomial, Poisson, …) and parameterized. A distribution missing its family is underspecified (math:MissingDistributionParameterization). The canonical declaration guard is triggered by supplied parameters, never by a marker class: a distribution that supplies a math:hasDistributionParameter also names its math:distributionParameterization (the explicit convention fixing which parametric form of its family is meant), and fills each math:DistributionParameterRole that parameterization requires exactly once (math:DistributionParameterRoleCardinality), while a record with no supplied parameters is not rejected by that guard alone. Absence of supplied parameters does not establish mathematical nonparametricity or complete specification of a parametric law. A subclass of math:MathematicalObject; an R rnorm/dbinom/… call lifts to this object with its family and parameterization, distinct from the math:ProbabilityMeasure it induces."@x-gmeow-english ;
+    skos:scopeNote "A distribution describes a probability law, distinct from an evaluated draw, its probability measure, its family and its parameterization. A missing supplied parameter does not classify the law as nonparametric or establish that the record is complete."@x-gmeow-english ;
+    skos:example "The scene declares ex:rainfallNormal with ex:normalFamily, ex:meanStddevParameterization and the two supplied parameters ex:muParam and ex:sigmaParam. Their declared quantity values are 12.0 and 4.5; these records are not an executed sampler or a proof of a complete consistent rainfall model."@x-gmeow-english ;
+    gmeow:useWhen "Use for the source law associated with a random variable or probabilistic description, retaining its actual family, convention, parameters, support and evidence."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid treating a family label, one observed result, an empty parameter list or a function-call label as a complete probability law. Do not choose a normal family, convention or independence model by default."@x-gmeow-english ;
+    gmeow:howToUse "Name the actual distributionFamily. Preserve distributionParameterization and each hasDistributionParameter resource as supplied; the existing declaration guard requires a convention when parameters are supplied, while every selected parametric law still needs its complete explicit specification."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 math:Estimate
@@ -7742,7 +7747,12 @@ math:distributionFamily
     a logic:ObjectProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "distribution family"@x-gmeow-english ;
-    skos:definition "Relates a math:Distribution to the family it belongs to — normal, binomial, Poisson, and the rest. Domain math:Distribution, range the distribution family (stated in prose). A distribution names its family and its parameterization; missing the family it is underspecified."@x-gmeow-english ;
+    skos:definition "Relates a math:Distribution to the family it belongs to — normal, binomial, Poisson, and the rest. Domain math:Distribution, range the distribution family (stated in prose). A distribution names its family; missing the family it is underspecified. A parametric law also declares its parameterization; the canonical declaration guard is triggered by supplied math:hasDistributionParameter links, whose absence does not prove nonparametricity or completeness."@x-gmeow-english ;
+    skos:scopeNote "The direction is Distribution to its declared family resource. The existing family requirement is independent of the supplied-parameter trigger for a convention; neither edge computes the law."@x-gmeow-english ;
+    skos:example "The scene asserts ex:rainfallNormal distributionFamily ex:normalFamily and separately names ex:meanStddevParameterization. The family link does not encode the supplied mean and standard deviation."@x-gmeow-english ;
+    gmeow:useWhen "Use when a source identifies the family of a distribution, preserving the actual family resource."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid reversing the relation, pointing it at a bare family-name literal or using it to infer a convention, default parameters or a preferred law."@x-gmeow-english ;
+    gmeow:howToUse "Link the distribution to its supplied DistributionFamily. Retain its actual distributionParameterization and parameter resources separately; do not substitute the family for a missing convention or treat an untriggered guard as complete conformance."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 # =========================================================================== #
@@ -13520,7 +13530,12 @@ math:DistributionFamily
     rdfs:subClassOf math:MathematicalObject ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "Distribution Family"@x-gmeow-english ;
-    skos:definition "A distribution family: the named parametric family a math:Distribution belongs to — normal, binomial, Poisson, gamma, and the rest — carried by math:distributionFamily. A subclass of math:MathematicalObject. A family fixes the functional form but NOT the convention: many families have several conventional parameterizations (mean/stddev vs mean/variance vs mean/precision), so a bare family label is insufficient and a distribution must also name a math:DistributionParameterization. A distribution without a family is ill-formed (math:MissingDistributionParameterization)."@x-gmeow-english ;
+    skos:definition "A distribution family: the named parametric family a math:Distribution belongs to — normal, binomial, Poisson, gamma, and the rest — carried by math:distributionFamily. A subclass of math:MathematicalObject. A family fixes the functional form but NOT the convention: many families have several conventional parameterizations (mean/stddev vs mean/variance vs mean/precision), so a bare family label does not identify the intended convention. A parametric law requires its explicit convention; the canonical declaration guard requires math:distributionParameterization when math:hasDistributionParameter is supplied. A distribution without a family is ill-formed (math:MissingDistributionParameterization)."@x-gmeow-english ;
+    skos:scopeNote "The family identifies a form of probability law, not its parameter values or the convention assigning meaning to them. Naming a family alone neither selects a convention nor proves normalization, support or conformance."@x-gmeow-english ;
+    skos:example "The scene types ex:normalFamily as DistributionFamily and points to it from ex:rainfallNormal. The separate ex:meanStddevParameterization fixes the supplied mean/stddev convention; it is not inferred from the normal label."@x-gmeow-english ;
+    gmeow:useWhen "Use for a supplied family resource shared by distributions of that family while keeping each law and convention distinct."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid using a numerical parameter, a density value or one realized sample as a family. Absence of parameters is not evidence that a named law is mathematically nonparametric."@x-gmeow-english ;
+    gmeow:howToUse "Keep the family as the object of distributionFamily and retain the separately declared convention and required roles. A family name authorizes no silent parameter defaults, numerical evaluation or conversion between conventions."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 math:DistributionParameterization
@@ -13529,6 +13544,11 @@ math:DistributionParameterization
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "Distribution Parameterization"@x-gmeow-english ;
     skos:definition "A distribution parameterization: the explicit, mandatory convention that fixes WHICH parametric form of a family is meant, declaring the roles it requires through math:requiresParameterRole (e.g. a normal mean/stddev parameterization requires a mean role and a stddev role). A subclass of math:MathematicalObject. Roles are SCOPED by the parameterization, so 'scale' cannot silently mean standard deviation in one family and rate in another. Linking two parameterization conventions of the same family (mean/variance to mean/stddev) is a DECLARED transform — a math:MathematicalExpression such as σ = √(σ²) — never a string relabel; a silent default parameterization is forbidden (math:MissingDistributionParameterization)."@x-gmeow-english ;
+    skos:scopeNote "A parameterization fixes the meaning and required roles of parameters within a family, such as mean/stddev versus mean/variance. A declaration of a convention or transform is not execution or a proof that two parameterized laws agree."@x-gmeow-english ;
+    skos:example "The scene declares ex:meanStddevParameterization with requiresParameterRole ex:meanRole and ex:stddevRole. The distribution supplies ex:muParam and ex:sigmaParam through hasDistributionParameter; no variance-to-stddev expression is supplied there."@x-gmeow-english ;
+    gmeow:useWhen "Use for an explicitly supplied convention that distinguishes the roles and representation of a family's parameters."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid treating a family label, the word scale or a reordered list of numbers as a complete convention. Do not silently reinterpret variance as standard deviation or a rate as a scale."@x-gmeow-english ;
+    gmeow:howToUse "Name the convention through distributionParameterization, retain its requiresParameterRole declarations and each role's actual roleWithinParameterization. Preserve a separately supplied reparameterization expression and evidence; a descriptive formula or label does not supply an AST or evaluated conversion."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 math:DistributionParameter
@@ -13537,6 +13557,11 @@ math:DistributionParameter
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "Distribution Parameter"@x-gmeow-english ;
     skos:definition "A distribution parameter: one supplied parameter of a math:Distribution, carrying its role in the parameterization (math:parameterRole, a math:DistributionParameterRole) and its value as EITHER a numeric quantity (math:parameterQuantity, a math:Quantity) OR a symbolic expression (math:parameterExpression, a math:MathematicalExpression). A subclass of math:MathematicalObject. The earlier single overloaded parameterValue property is REMOVED (greenfield): the role, the numeric value, and the symbolic value are three distinct properties, never one. Each required role is supplied by exactly one parameter (math:DistributionParameterRoleCardinality otherwise), whose quantity satisfies the role's positivity and dimension constraints (math:DistributionParameterConstraint otherwise)."@x-gmeow-english ;
+    skos:scopeNote "A parameter is the role-bearing object, distinct from its numeric quantity or symbolic expression. Its intended contract selects a numeric or symbolic carrier; carrying a link or type does not itself evaluate a formula or certify all role and value obligations."@x-gmeow-english ;
+    skos:example "The scene records ex:muParam with parameterRole ex:meanRole and parameterQuantity ex:muQuantity, and ex:sigmaParam with ex:stddevRole and ex:sigmaQuantity. The quantities carry 12.0 and 4.5 separately from those role-bearing parameter objects."@x-gmeow-english ;
+    gmeow:useWhen "Use for a supplied parameter whose role and numeric or symbolic value carrier must remain identifiable within a convention."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid replacing the parameter object with a bare literal or treating equal numeric magnitudes as identity of parameters. Do not claim that an unevaluated symbolic carrier has passed numerical positivity or dimension checks."@x-gmeow-english ;
+    gmeow:howToUse "Retain parameterRole and the selected parameterQuantity or parameterExpression carrier, respecting the intended exclusive-carrier contract. Keep role scope, dimensions, exactness and evaluation evidence where supplied; missing evidence or an unreadable carrier is not a certificate of conformance."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 math:DistributionParameterRole
@@ -13545,6 +13570,11 @@ math:DistributionParameterRole
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "Distribution Parameter Role"@x-gmeow-english ;
     skos:definition "A distribution parameter role: the SCOPED slot a parameter fills within a parameterization — the mean role, the stddev role, the rate role — named as a first-class object so 'scale' cannot silently mean different things across families. A subclass of math:MathematicalObject. It declares the parameterization it belongs to (math:roleWithinParameterization), whether its parameter's value must be positive (math:requiresPositiveValue, a boolean), and the dimension its parameter's quantity must carry (math:quantityDimension) — so a variance role carrying squared units and a correlation role being dimensionless are stated, not assumed, and a mis-dimensioned parameter is caught (math:DistributionParameterConstraint)."@x-gmeow-english ;
+    skos:scopeNote "A role gives a parameter meaning within a convention, separate from the parameter instance and its value. Positivity and dimension declarations belong to that role; their presence does not supply an absent value, dimension vector or evaluation result."@x-gmeow-english ;
+    skos:example "The scene gives ex:meanRole and ex:stddevRole the same roleWithinParameterization ex:meanStddevParameterization. Only ex:stddevRole declares requiresPositiveValue true there; neither scene role supplies a quantityDimension declaration."@x-gmeow-english ;
+    gmeow:useWhen "Use for the actual scoped slot that distinguishes mean, standard deviation, variance, rate, precision or another parameter meaning."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring positivity, dimension or global interchangeability from the word scale. Do not invent a quantityDimension edge from a human-readable unit label."@x-gmeow-english ;
+    gmeow:howToUse "Retain roleWithinParameterization and any actual requiresPositiveValue and quantityDimension declarations. Keep each parameterRole association and required-role declaration separate; type and labels alone neither enforce scope coherence nor establish every value obligation."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 math:DistributionSupport
@@ -13660,6 +13690,11 @@ math:distributionParameterization
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "distribution parameterization"@x-gmeow-english ;
     skos:definition "Relates a math:Distribution to the math:DistributionParameterization it uses — the explicit convention fixing which parametric form of its family is meant. Domain math:Distribution, range math:DistributionParameterization (stated in prose). Mandatory for a parametric distribution: a parametric distribution without a parameterization is ill-formed (math:MissingDistributionParameterization), and a silent default is forbidden. Linking one parameterization convention to another of the same family is a declared math:MathematicalExpression transform, never a string relabel."@x-gmeow-english ;
+    skos:scopeNote "The relation records the convention selected for a distribution. The canonical declaration guard is activated by supplied hasDistributionParameter links; absence of those links proves neither nonparametricity nor completeness."@x-gmeow-english ;
+    skos:example "The scene asserts ex:rainfallNormal distributionParameterization ex:meanStddevParameterization and supplies parameters filling its two declared roles. The edge itself contains no parameter values or conversion instructions."@x-gmeow-english ;
+    gmeow:useWhen "Use to identify the actual convention under which a distribution's supplied parameters are interpreted."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid choosing a convention from the family name, numeric order or an unqualified scale label. Do not replace a required convention with a silent default or claim that a link executes reparameterization."@x-gmeow-english ;
+    gmeow:howToUse "Keep the Distribution as subject and its supplied DistributionParameterization as object. Retain required-role declarations and actual supplied parameters separately; a selected parametric law remains answerable for its complete convention even when a particular guard is not triggered."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 math:hasDistributionParameter
@@ -13667,6 +13702,11 @@ math:hasDistributionParameter
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "has distribution parameter"@x-gmeow-english ;
     skos:definition "Relates a math:Distribution to one of its supplied math:DistributionParameter objects. Domain math:Distribution, range math:DistributionParameter (stated in prose). A distribution supplies each role required by its parameterization exactly once (math:DistributionParameterRoleCardinality otherwise)."@x-gmeow-english ;
+    skos:scopeNote "This links a distribution to its supplied parameter objects. Required-role coverage is assessed through the distribution's declared convention and each parameter's parameterRole, rather than by counting all parameters or comparing their numeric values."@x-gmeow-english ;
+    skos:example "The scene links ex:rainfallNormal to ex:muParam and ex:sigmaParam; their roles are ex:meanRole and ex:stddevRole under ex:meanStddevParameterization. Repeating an identical RDF assertion does not create a second parameter resource."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain every parameter resource actually supplied for a distribution and its selected convention."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid pointing directly to a quantity, expression or literal, merging distinct parameters because their magnitudes agree, or treating an absent parameter list as proof of a complete law."@x-gmeow-english ;
+    gmeow:howToUse "Keep the distribution as subject and each supplied DistributionParameter as object. Follow its convention's requiresParameterRole and the parameters' parameterRole links; the required-role laws do not impose a global maximum on all parameter resources or decide the status of every extra role."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 math:parameterQuantity
@@ -13674,6 +13714,11 @@ math:parameterQuantity
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "parameter quantity"@x-gmeow-english ;
     skos:definition "Relates a math:DistributionParameter to its numeric value as a dimensioned quantity. Domain math:DistributionParameter, range math:Quantity (stated in prose). One of the two mutually exclusive value carriers of a parameter (the other being math:parameterExpression for a symbolic value); it replaces the removed overloaded parameterValue property, and its quantity must satisfy the role's positivity and dimension constraints (math:DistributionParameterConstraint otherwise)."@x-gmeow-english ;
+    skos:scopeNote "This selects the numeric quantity carrier, distinct from the parameter's role and the symbolic expression carrier. Quantity dimension and exact or approximate magnitude metadata remain part of the supplied value description, not facts inferred from a label."@x-gmeow-english ;
+    skos:example "The scene asserts ex:sigmaParam parameterQuantity ex:sigmaQuantity, whose quantityValue is the decimal 4.5. The label mentioning millimetres is not a structured unit or quantityDimension declaration; preserve only the actual source edges."@x-gmeow-english ;
+    gmeow:useWhen "Use for a parameter supplied as a numeric Quantity with its actual magnitude and dimensional evidence."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid using a bare numeric literal as the quantity resource, silently converting a symbolic expression to a number, or assuming a missing or unreadable magnitude satisfies a declared positive-value requirement."@x-gmeow-english ;
+    gmeow:howToUse "Keep the parameter as subject and the numeric Quantity as object, respecting the intended alternative to parameterExpression. Retain actual quantityValue, hasDimension, unit, frame and exactness information where supplied; declared positivity and dimension obligations still require evidence."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 math:parameterExpression
@@ -13681,6 +13726,11 @@ math:parameterExpression
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "parameter expression"@x-gmeow-english ;
     skos:definition "Relates a math:DistributionParameter to its value as a symbolic expression — a math:MathematicalExpression AST for a parameter given by a formula (a hierarchical prior's hyperparameter, a reparameterization σ = √(σ²)). Domain math:DistributionParameter, range math:MathematicalExpression (stated in prose). The symbolic counterpart of math:parameterQuantity; a reparameterization is carried here as a declared transform, never a string relabel."@x-gmeow-english ;
+    skos:scopeNote "This selects a symbolic MathematicalExpression carrier rather than a numeric parameter quantity. An expression description, an AST and evidence of evaluating that AST are distinct; naming one does not manufacture the others."@x-gmeow-english ;
+    skos:example "As a hypothetical illustration, a symbolic standard-deviation parameter may name a separately supplied MathematicalExpression for the square root of variance. The existing rainfall scene supplies only numeric parameterQuantity carriers and contains no such expression or evaluated conversion."@x-gmeow-english ;
+    gmeow:useWhen "Use when the source provides the parameter's value as a genuine symbolic expression with its declared structure."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid substituting a formula label or an unevaluated string for the supplied expression structure, or asserting that symbolic parameters have passed numerical validation without evaluation evidence."@x-gmeow-english ;
+    gmeow:howToUse "Keep the parameter as subject and the supplied MathematicalExpression resource as object. Preserve its actual AST, scope and evaluation evidence separately while respecting the intended numeric-or-symbolic carrier choice; do not invent a default value or execute a conversion by relabelling."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 math:parameterRole
@@ -13688,6 +13738,11 @@ math:parameterRole
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "parameter role"@x-gmeow-english ;
     skos:definition "Relates a math:DistributionParameter to the math:DistributionParameterRole it fills within its distribution's parameterization. Domain math:DistributionParameter, range math:DistributionParameterRole (stated in prose). The role is scoped by the parameterization, so the same parameter object never silently means different things across families."@x-gmeow-english ;
+    skos:scopeNote "The direction is parameter object to the role it fills, not to a value or a family. The role's convention and required-role membership remain separate declarations; the edge alone does not establish global uniqueness or complete scope consistency."@x-gmeow-english ;
+    skos:example "The scene asserts ex:muParam parameterRole ex:meanRole and ex:sigmaParam parameterRole ex:stddevRole. Their parameterQuantity links identify separate value resources, and their roleWithinParameterization links remain on the role objects."@x-gmeow-english ;
+    gmeow:useWhen "Use when a source supplies the role under which a particular distribution parameter is interpreted."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid using a numeric quantity or a generic string as the role resource, reversing the edge or assuming the first encountered role is the only supplied one."@x-gmeow-english ;
+    gmeow:howToUse "Keep the DistributionParameter as subject and the actual DistributionParameterRole as object. Preserve the role's convention, required-role membership and declared value constraints without manufacturing a global one-role rule or discarding coexisting source associations."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 math:requiresParameterRole
@@ -13695,6 +13750,11 @@ math:requiresParameterRole
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "requires parameter role"@x-gmeow-english ;
     skos:definition "Relates a math:DistributionParameterization to a math:DistributionParameterRole it requires — the roles a conforming distribution must supply exactly once each. Domain math:DistributionParameterization, range math:DistributionParameterRole (stated in prose). A distribution that fails to supply a required role exactly once is ill-formed (math:DistributionParameterRoleCardinality)."@x-gmeow-english ;
+    skos:scopeNote "The direction is convention to required role. The canonical required-role laws detect a required role with no supplying parameter or with two distinct supplying parameters; they do not close every possible extra role or prove all role-scoping and value conditions."@x-gmeow-english ;
+    skos:example "The scene has ex:meanStddevParameterization requiresParameterRole ex:meanRole and ex:stddevRole. Its ex:rainfallNormal supplies the corresponding ex:muParam and ex:sigmaParam objects; a bare role label would not establish those links."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain each role explicitly required by a supplied parameterization."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid attaching this edge to a parameter instance, inferring required roles solely from a family name, or treating an empty declared requirement set as proof that a mathematical law needs no parameters."@x-gmeow-english ;
+    gmeow:howToUse "Keep the DistributionParameterization as subject and each required DistributionParameterRole as object. Trace actual hasDistributionParameter and parameterRole links for each required role; two distinct parameter resources count separately even when their numeric magnitudes agree."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 math:roleWithinParameterization
@@ -13702,6 +13762,11 @@ math:roleWithinParameterization
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "role within parameterization"@x-gmeow-english ;
     skos:definition "Relates a math:DistributionParameterRole to the math:DistributionParameterization that scopes it. Domain math:DistributionParameterRole, range math:DistributionParameterization (stated in prose). The scoping edge that makes a role's meaning local to its parameterization rather than global."@x-gmeow-english ;
+    skos:scopeNote "This names the convention that scopes a role's meaning. It is distinct from requiresParameterRole, which declares that the convention requires the role; one direction does not automatically supply the other."@x-gmeow-english ;
+    skos:example "The scene asserts ex:stddevRole roleWithinParameterization ex:meanStddevParameterization and separately asserts that the convention requires ex:stddevRole. These two edges record different aspects of the role."@x-gmeow-english ;
+    gmeow:useWhen "Use when a source identifies the convention within which a parameter role is defined."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid treating a role name as globally meaningful across conventions, reversing the direction or deriving an unasserted required-role edge solely from the scoping edge."@x-gmeow-english ;
+    gmeow:howToUse "Keep the DistributionParameterRole as subject and its actual DistributionParameterization as object. Preserve required-role membership and parameter instances independently; the scoping link alone does not prove complete bidirectional consistency or impose a single-owner rule."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 math:requiresPositiveValue
@@ -13709,6 +13774,11 @@ math:requiresPositiveValue
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "requires positive value"@x-gmeow-english ;
     skos:definition "Declares whether the parameter filling a role must be strictly positive — true for a standard-deviation, variance, rate, or precision role. Domain math:DistributionParameterRole, range xsd:boolean (stated in prose). A parameter whose quantity violates its role's declared positivity is ill-formed (math:DistributionParameterConstraint)."@x-gmeow-english ;
+    skos:scopeNote "This is a declared boolean condition on a role: true requires strictly positive magnitude, not merely nonnegative magnitude. A false declaration does not supply a value or prove that the parameter satisfies its other mathematical obligations."@x-gmeow-english ;
+    skos:example "The rainfall scene puts requiresPositiveValue true on ex:stddevRole and supplies ex:sigmaQuantity with decimal magnitude 4.5. The separate parameterization fixture explicitly gives its mean role false; absence of a flag in another record is not the same source assertion."@x-gmeow-english ;
+    gmeow:useWhen "Use when the actual convention declares whether a parameter filling a role must have positive magnitude."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring the flag from the word rate or scale, accepting zero where strict positivity is required, or treating a missing magnitude as a successful comparison."@x-gmeow-english ;
+    gmeow:howToUse "Attach an actual xsd:boolean to the role, retain the parameter-to-quantity association and magnitude evidence, and respect the declared strict condition. No flag executes an expression or certifies positivity when its required value cannot be evaluated."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 math:quantityDimension
@@ -13716,13 +13786,23 @@ math:quantityDimension
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "quantity dimension"@x-gmeow-english ;
     skos:definition "Names the dimension the quantity of a parameter filling a role must carry — the same dimension as the random variable for a location role, the squared dimension for a variance role, math:dimensionless for a correlation role. Domain math:DistributionParameterRole, range math:Dimension or a math:RoleDimensionRelation (stated in prose; a dimension may be given absolutely, or by reference to the random variable's dimension). It carries the parameter's dimensional constraint so a mis-dimensioned parameter is caught (math:DistributionParameterConstraint), not silently accepted."@x-gmeow-english ;
+    skos:scopeNote "This is the role's required dimension specification, distinct from hasDimension on a quantity or random variable. It may be an absolute Dimension or a RoleDimensionRelation; the declaration does not itself supply the actual quantity dimension or perform unit conversion."@x-gmeow-english ;
+    skos:example "The dimensional fixture assigns its mean role quantityDimension math:sameAsRandomVariableDimension while both the height random variable and parameter quantity name math:lengthDimension. The actual rainfall scene has no role-level quantityDimension edge."@x-gmeow-english ;
+    gmeow:useWhen "Use for an actual absolute or relative dimensional requirement of a parameter role."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid confusing a dimension with a numeric unit scale, declaring math:dimensionless as a RoleDimensionRelation, or inferring structured constraints from unit text in a label."@x-gmeow-english ;
+    gmeow:howToUse "Keep the role as subject and its supplied Dimension or canonical relative relation as object. Retain actual hasDimension links and ownership paths separately; supported exact vector comparison is distinct from a proof that all required inputs and every source association were checked."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 math:RoleDimensionRelation
     a logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "Role Dimension Relation"@x-gmeow-english ;
-    skos:definition "A relational specification of a parameter role's required dimension, stated RELATIVE to the random variable's dimension rather than as an absolute math:Dimension. The canonical relations are math:sameAsRandomVariableDimension (a location parameter shares the random variable's dimension), math:squareOfRandomVariableDimension (a variance parameter carries the squared dimension), and — for a dimensionless parameter such as a correlation — the absolute math:dimensionless. The native math:DistributionParameterConstraint validator resolves a role's math:quantityDimension against the actual random-variable dimension by exact ℚ⁷ arithmetic (dimEqual for same, dimProduct of the vector with itself for square), so a variance parameter given linear units is a caught error."@x-gmeow-english ;
+    skos:definition "A relational specification of a parameter role's required dimension, stated RELATIVE to the random variable's dimension rather than as an absolute math:Dimension. The canonical relative relations are math:sameAsRandomVariableDimension (a location parameter shares the random variable's dimension) and math:squareOfRandomVariableDimension (a variance parameter carries the squared dimension). For a dimensionless parameter such as a correlation, math:quantityDimension instead names the absolute math:Dimension math:dimensionless. The native math:DistributionParameterConstraint validator resolves a role's math:quantityDimension against the actual random-variable dimension by exact ℚ⁷ arithmetic (dimEqual for same, dimProduct of the vector with itself for square), so a variance parameter given linear units is a caught error."@x-gmeow-english ;
+    skos:scopeNote "A relative dimension specification refers to the associated random variable's dimension. The canonical same and square relations are not dimensions themselves; the absolute dimensionless alternative of quantityDimension remains a Dimension."@x-gmeow-english ;
+    skos:example "The dimensional fixture uses math:sameAsRandomVariableDimension, while the relational-dimension counter-example uses math:squareOfRandomVariableDimension for a variance role. These declarations request different comparisons; neither relation supplies a missing random-variable dimension."@x-gmeow-english ;
+    gmeow:useWhen "Use when the role's required dimension is defined relative to the random variable rather than by one absolute Dimension resource."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid using an arbitrary label as an executable relation, treating the relation as a quantity's concrete dimension, or assuming all ownership and dimension paths are available from the role alone."@x-gmeow-english ;
+    gmeow:howToUse "Use the canonical same or square individual through quantityDimension and retain the actual parameter, distribution and random-variable associations. Exact supported vector arithmetic establishes a comparison only for its resolved inputs, not complete admission of ambiguous or absent carriers."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 math:sameAsRandomVariableDimension
@@ -13730,6 +13810,11 @@ math:sameAsRandomVariableDimension
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "same as random-variable dimension"@x-gmeow-english ;
     skos:definition "The role-dimension relation for a location-like parameter whose quantity must carry the SAME dimension as the random variable it parameterizes (dimEqual): a location parameter of a distribution over height carries height units. Resolved by the native math:DistributionParameterConstraint validator against the random variable's math:hasDimension."@x-gmeow-english ;
+    skos:scopeNote "This canonical individual requests equality of dimension exponent vectors with the associated random variable. It does not assert identity of quantity resources, equality of numeric magnitudes or matching unit scales."@x-gmeow-english ;
+    skos:example "The dimensional fixture gives the height random variable and its mean parameter's quantity math:lengthDimension, while the role names math:sameAsRandomVariableDimension. This supplies the intended same-dimension case without computing a unit conversion or a magnitude."@x-gmeow-english ;
+    gmeow:useWhen "Use for a role whose parameter quantity must carry the same physical dimension as the associated random variable."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid applying the relation as a direct hasDimension value, replacing a variance requirement with it, or merging quantity nodes because their dimensions agree."@x-gmeow-english ;
+    gmeow:howToUse "Point quantityDimension from the role to math:sameAsRandomVariableDimension. Preserve the quantity's and random variable's actual hasDimension links and the intervening distribution/parameter associations; missing inputs or a label alone establish no equality result."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 math:squareOfRandomVariableDimension
@@ -13737,6 +13822,11 @@ math:squareOfRandomVariableDimension
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "square of random-variable dimension"@x-gmeow-english ;
     skos:definition "The role-dimension relation for a variance-like parameter whose quantity must carry the SQUARED dimension of the random variable (the exact-rational sum of the random variable's exponent vector with itself, dimProduct): a variance parameter of a distribution over height carries height² units. Resolved by the native math:DistributionParameterConstraint validator; a variance parameter given the linear (un-squared) dimension is a caught error."@x-gmeow-english ;
+    skos:scopeNote "This canonical individual requests the squared physical dimension: adding the random variable's exact rational exponent vector to itself. It does not square a numeric magnitude or choose a variance parameterization."@x-gmeow-english ;
+    skos:example "The relational-dimension counter-example declares math:squareOfRandomVariableDimension for a variance role but gives both its parameter quantity and associated random variable math:lengthDimension. That is the intended linear-versus-squared mismatch, not a runtime verdict established by this annotation."@x-gmeow-english ;
+    gmeow:useWhen "Use for a variance-like role whose parameter quantity must carry the squared dimension of the associated random variable."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid interpreting squared dimension as a numeric squaring operation, accepting linear units for a variance requirement, or inferring a relative comparison when the actual ownership or dimension links are missing."@x-gmeow-english ;
+    gmeow:howToUse "Point quantityDimension from the role to math:squareOfRandomVariableDimension and retain the actual hasDimension and association paths. Preserve structured exponent data and comparison evidence where supplied; no conversion, numerical variance or successful check follows from the relation name alone."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 # --- Conditioning and three-state independence ------------------------------ #
@@ -17184,8 +17274,8 @@ math:ConfidenceAsProbabilityDeclaredConstraint
     logic:message "A math:ProbabilityValue that carries a logic:confidence must declare a logic:probabilityModel — the mapping from confidence to probability; a probability derived from a confidence score with no declared mapping erodes the probability/confidence boundary and is ill-formed (math:ConfidenceAsProbability)." .
 
 # Rule P6b (retires math:DistributionParameterizationShape): a distribution that
-# SUPPLIES parameters names its parameterization; a non-parametric distribution (no
-# supplied parameters) is not rejected — the trigger keys parametricity by presence.
+# SUPPLIES parameters names its parameterization. No supplied parameter means this
+# guard does not trigger; it does not establish mathematical nonparametricity.
 math:DistributionParameterizationDeclaredConstraint
     a logic:GuardedImplicationConstraint ;
     rdfs:label "Distribution parameterization-declared constraint"@x-gmeow-english ;
