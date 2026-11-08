@@ -645,16 +645,16 @@ msgid "Model Assumption"
 msgstr "模型假定"
 
 msgctxt "https://blackcatinformatics.ca/math/ModelAssumption|skos:definition"
-msgid "A model assumption: a first-class condition a math:StatisticalModel or math:FittedModel posits about the data-generating process — normality of errors, homoscedasticity, independence of observations, linearity, proportional hazards. A subclass of math:MathematicalObject named by a model through math:modelAssumption, so an assumption is an object that can be checked (by a diagnostic), cited (by a result), or reported violated, rather than left implicit in the choice of model. A model whose assumptions are stated as objects is one whose validity conditions are queryable rather than folded into a method name."
-msgstr "一个模型假定：一个 math:StatisticalModel 或 math:FittedModel 就数据生成过程所设定的头等条件——误差正态性、同方差、观测独立、线性、比例风险。它是 math:MathematicalObject 的子类，由一个模型通过 math:modelAssumption 命名，因而一个假定是可被（由诊断）核验、（由结果）引用或报告为被违反的对象，而非留于模型选择中的隐含。假定被作为对象加以陈述的模型，其有效性条件可被查询而非折入某个方法名。"
+msgid "A model assumption: a first-class condition a math:StatisticalModel or math:FittedModel posits about the data-generating process — normality of errors, homoscedasticity, independence of observations, linearity, proportional hazards. A subclass of math:MathematicalObject named by a model through math:modelAssumption, so an assumption is an identifiable object that can be cited and assessed where a suitable method and evidence are available, rather than left implicit in the choice of model. Explicit naming does not make every assumption empirically testable or establish that it holds. A model whose assumptions are stated as objects is one whose validity conditions are queryable rather than folded into a method name."
+msgstr "模型假定：math:StatisticalModel 或 math:FittedModel 对数据生成过程提出的一等条件，例如误差正态性、同方差性、观测独立性、线性及比例风险。它是 math:MathematicalObject 的子类，由模型通过 math:modelAssumption 指明，因此假定是可辨识对象，可在适当方法及依据可用时引用和评估，而非隐含于模型选择。显式命名不使每项假定都能够通过经验检验，也不确立其成立。将假定陈述为对象的模型，其有效性条件可被查询，而非隐含于方法名称。"
 
 msgctxt "https://blackcatinformatics.ca/math/modelAssumption|rdfs:label"
 msgid "model assumption"
 msgstr "模型假定"
 
 msgctxt "https://blackcatinformatics.ca/math/modelAssumption|skos:definition"
-msgid "Relates a math:StatisticalModel or math:FittedModel to a math:ModelAssumption it posits — normality of errors, homoscedasticity, independence of observations, linearity. Domain a math:StatisticalModel or math:FittedModel, range math:ModelAssumption (stated in prose). Naming assumptions as first-class objects is what makes a model's validity conditions checkable, citable, and reportable-as-violated rather than implicit in the choice of model."
-msgstr "将一个 math:StatisticalModel 或 math:FittedModel 关联到它所设定的一个 math:ModelAssumption——误差正态性、同方差、观测独立、线性。定义域为一个 math:StatisticalModel 或 math:FittedModel，值域为 math:ModelAssumption（在文字中说明）。将假定命名为头等对象，正是使一个模型的有效性条件可被核验、可被引用、可被报告为违反，而非隐含于模型选择之中。"
+msgid "Relates a math:StatisticalModel or math:FittedModel to a math:ModelAssumption it posits — normality of errors, homoscedasticity, independence of observations, linearity. Domain a math:StatisticalModel or math:FittedModel, range math:ModelAssumption (stated in prose). Naming assumptions as first-class objects makes the model's stated conditions identifiable for citation and assessment rather than implicit in the choice of model; it does not establish empirical testability, a performed check or the truth of those conditions."
+msgstr "将 math:StatisticalModel 或 math:FittedModel 关联到其提出的 math:ModelAssumption，例如误差正态性、同方差性、观测独立性及线性。定义域为 math:StatisticalModel 或 math:FittedModel，值域为 math:ModelAssumption（以文字说明）。将假定指明为一等对象，使模型所陈述条件可被辨识以供引用和评估，而非隐含于模型选择；这不确立经验可检验性、已执行检查或条件真实性。"
 
 msgctxt "https://blackcatinformatics.ca/math/ModelComparison|rdfs:label"
 msgid "Model Comparison"
@@ -669,8 +669,8 @@ msgid "Model Diagnostic"
 msgstr "模型诊断"
 
 msgctxt "https://blackcatinformatics.ca/math/ModelDiagnostic|skos:definition"
-msgid "A model diagnostic: a first-class evaluation of a fitted model — a residual plot's summary, a Q–Q assessment, a heteroscedasticity or influence measure, a goodness-of-fit statistic. A subclass of math:MathematicalObject that names the math:FittedModel it evaluates through math:diagnosticFor and the diagnostic method it applies through math:diagnosticMethod, so 'what was checked, on which fit, by which method' is queryable rather than folded into a plot's caption. A diagnostic anchored to neither its fitted model nor its method is ill-formed (math:UnanchoredDiagnostic)."
-msgstr "一个模型诊断：对一个已拟合模型的头等评估——一张残差图的摘要、一次 Q–Q 评估、一个异方差或影响度量、一个拟合优度统计量。它是 math:MathematicalObject 的子类，通过 math:diagnosticFor 命名它所评估的 math:FittedModel，通过 math:diagnosticMethod 命名它所应用的诊断方法，因而“核验了什么、在哪个拟合上、由哪种方法”可被查询而非折入某张图的题注。既不锚定其已拟合模型也不锚定其方法的诊断属于不良构造（math:UnanchoredDiagnostic）。"
+msgid "A model diagnostic: a first-class evaluation of a fitted model — a residual plot's summary, a Q–Q assessment, a heteroscedasticity or influence measure, a goodness-of-fit statistic. A subclass of math:MathematicalObject that names the math:FittedModel it evaluates through math:diagnosticFor and the diagnostic method it applies through math:diagnosticMethod, so 'what was checked, on which fit, by which method' is queryable rather than folded into a plot's caption. A diagnostic missing either its fitted-model anchor or its method is ill-formed (math:UnanchoredDiagnostic)."
+msgstr "模型诊断：对已拟合模型的一等评估，例如残差图汇总、Q–Q 评估、异方差或影响度量、拟合优度统计量。它是 math:MathematicalObject 的子类，通过 math:diagnosticFor 指明所评估的 math:FittedModel，通过 math:diagnosticMethod 指明所应用诊断方法，使检查了什么、针对哪个拟合及采用何种方法可被查询，而非隐含于图题注。诊断缺少已拟合模型锚点或方法中任一项即为不良形式（math:UnanchoredDiagnostic）。"
 
 msgctxt "https://blackcatinformatics.ca/math/multipleComparisonFamily|rdfs:label"
 msgid "multiple-comparison family"
@@ -1013,8 +1013,8 @@ msgid "Unanchored Diagnostic"
 msgstr "无锚点诊断"
 
 msgctxt "https://blackcatinformatics.ca/math/UnanchoredDiagnostic|skos:definition"
-msgid "The failure raised when a math:ModelDiagnostic does not anchor itself to what it evaluates and how — it names no math:FittedModel through math:diagnosticFor, or no method through math:diagnosticMethod. A diagnostic is an evaluation OF a fit BY a method; missing either its fitted model or its method, it is a floating number rather than a checked property of a model, and is ill-formed. Primary gate: the SHACL-Core requirement (math:UnanchoredDiagnosticShape) that a diagnostic name both its fitted model and its diagnostic method."
-msgstr "当一个 math:ModelDiagnostic 不将自身锚定于它所评估之物及方式时所引发的失败——它不通过 math:diagnosticFor 命名任何 math:FittedModel，也不通过 math:diagnosticMethod 命名任何方法。一个诊断是由一种方法对一个拟合所作的评估；缺其已拟合模型或缺其方法，它就是一个漂浮的数而非一个模型的已核验性质，属于不良构造。主关卡：SHACL-Core 要求（math:UnanchoredDiagnosticShape）——一个诊断须同时命名其已拟合模型与其诊断方法。"
+msgid "The failure raised when a math:ModelDiagnostic lacks a required math:diagnosticFor or math:diagnosticMethod reference. The canonical logic: restrictions and logic:ClosureEntry records on math:ModelDiagnostic require both named roles under closed-world validation; missing either is ill-formed. Generated validation shapes project that contract rather than authoring its semantics. This is a missing-reference finding, not a general verdict on model validity, numerical results or whether a diagnostic executed."
+msgstr "当 math:ModelDiagnostic 缺少必需 math:diagnosticFor 或 math:diagnosticMethod 引用时所报告的失败。math:ModelDiagnostic 上规范的 logic: 限制及 logic:ClosureEntry 记录在封闭世界验证下要求两个具名角色；缺少任一项即为不良形式。生成的验证形状是该约定的投影，而不是其语义定义来源。这是缺失引用诊断，而非对模型有效性、数值结果或诊断是否执行的一般判定。"
 
 msgctxt "https://blackcatinformatics.ca/math/UnderspecifiedEstimate|rdfs:label"
 msgid "Underspecified Estimate"
@@ -16732,6 +16732,182 @@ msgstr "避免将每个单独的 StatisticalModel 都报告为未拟合、将数
 msgctxt "https://blackcatinformatics.ca/math/UnfittedModel|https://blackcatinformatics.ca/gmeow/howToUse"
 msgid "Identify the FittedModel and which required reference is absent, preserving the actual declaration and source evidence. Supply a real source reference only when available; keep payload availability, formula structure, fitting-option identity and numerical qualification separately evidenced instead of fabricating a successful fit."
 msgstr "指明 FittedModel 及缺失的必需引用，保留实际声明及来源依据。仅在实际来源引用可用时补充该引用；分别保留载荷可用性、公式结构、拟合选项身份及数值资格认定依据，不编造成功拟合。"
+
+msgctxt "https://blackcatinformatics.ca/math/ModelAssumption|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "A stated validity condition of a model, distinct from the math:ModelDiagnostic that may assess it and from the math:AnalysisPlan that pre-specifies the model. An assumption can require substantive justification beyond the observed data; naming it or linking a diagnostic does not establish its truth."
+msgstr "模型所陈述的有效性条件，不同于可能评估它的 math:ModelDiagnostic，也不同于预先指定模型的 math:AnalysisPlan。假定可能需要超出观测数据的实质性论证；命名假定或链接诊断不确立其真实性。"
+
+msgctxt "https://blackcatinformatics.ca/math/ModelAssumption|http://www.w3.org/2004/02/skos/core#example"
+msgid "exf:homoscedastic a math:ModelAssumption . exf:olsFit math:modelAssumption exf:homoscedastic ."
+msgstr "exf:homoscedastic a math:ModelAssumption . exf:olsFit math:modelAssumption exf:homoscedastic ."
+
+msgctxt "https://blackcatinformatics.ca/math/ModelAssumption|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Mint one for each supplied condition a model posits about the data-generating process, such as normal errors, homoscedasticity, independence, or proportional hazards, so it can be cited and assessed where justified without claiming that every condition is empirically testable."
+msgstr "为模型针对数据生成过程提出的每项已提供条件创建一个对象，例如正态误差、同方差性、独立性或比例风险，使其可被引用并在有依据时评估，而不声称每项条件都能够通过经验检验。"
+
+msgctxt "https://blackcatinformatics.ca/math/ModelAssumption|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Do not treat an assumption name or a favorable diagnostic as proof that the condition holds. Preserve implicit source assumptions when they can be identified, without claiming that unnamed conditions are intrinsically impossible to investigate or inventing an unsupported test."
+msgstr "不要将假定名称或良好诊断视为条件成立的证明。在能够辨识时保留来源中的隐含假定，不声称未命名条件本质上无法研究，也不编造缺乏依据的检验。"
+
+msgctxt "https://blackcatinformatics.ca/math/ModelAssumption|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Name it from a math:StatisticalModel or math:FittedModel through math:modelAssumption, and retain any actual math:ModelDiagnostic assessment with its method, evidence and limits. Keep the assumed condition distinct from the result of assessing it; missing evidence does not authorize a validity claim."
+msgstr "从 math:StatisticalModel 或 math:FittedModel 通过 math:modelAssumption 指明它，并保留任何实际 math:ModelDiagnostic 评估及其方法、依据和限制。将假定条件与评估结果分开；依据缺失不授权有效性声称。"
+
+msgctxt "https://blackcatinformatics.ca/math/modelAssumption|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Names a model validity condition, distinct from math:diagnosticFor, which anchors a diagnostic that may assess such a condition to a fit. The model-to-assumption link is not a diagnostic result or proof of validity."
+msgstr "指明模型有效性条件，不同于 math:diagnosticFor，后者将可能评估此类条件的诊断锚定到拟合。模型到假定的链接不是诊断结果或有效性证明。"
+
+msgctxt "https://blackcatinformatics.ca/math/modelAssumption|http://www.w3.org/2004/02/skos/core#example"
+msgid "exf:olsFit math:modelAssumption exf:homoscedastic ."
+msgstr "exf:olsFit math:modelAssumption exf:homoscedastic ."
+
+msgctxt "https://blackcatinformatics.ca/math/modelAssumption|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to name a supplied condition a model posits, making that condition identifiable for citation and any justified assessment while preserving its source and evidential limits."
+msgstr "用于指明模型提出的所提供条件，使该条件可被辨识以供引用及任何有依据的评估，同时保留其来源及依据限制。"
+
+msgctxt "https://blackcatinformatics.ca/math/modelAssumption|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Do not infer that a named assumption is verified or empirically testable, or that an implicit condition cannot be investigated. Preserve the actual stated condition without turning a method name or absent assessment into evidence that it holds."
+msgstr "不要推断具名假定已被验证或能够通过经验检验，也不要推断隐含条件无法研究。保留实际所述条件，不将方法名称或缺失评估变为条件成立的依据。"
+
+msgctxt "https://blackcatinformatics.ca/math/modelAssumption|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Set it on a math:StatisticalModel or math:FittedModel with range math:ModelAssumption."
+msgstr "在 math:StatisticalModel 或 math:FittedModel 上设置此关系，值域为 math:ModelAssumption。"
+
+msgctxt "https://blackcatinformatics.ca/math/Residual|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Residual"
+msgstr "残差"
+
+msgctxt "https://blackcatinformatics.ca/math/Residual|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A residual record concerning a math:FittedModel, linked to the fit through math:residualOf. A subclass of math:MathematicalObject. Where an observation association and residual convention are supplied, the record can describe an observation-level model-relative discrepancy: a raw residual is the observed value minus the model-predicted value, while standardized, Pearson, deviance and other residuals use their own definitions. The R source lift can emit a fit-linked residual record without supplying observation associations or per-observation values and without preserving the requested residual variant; that sparse record does not establish an observation association, a preserved variant or numerical computation. Its statistical interpretation, when stated, is a vantage-held gmeow:Observation, never an intrinsic property of a supplied value."
+msgstr "涉及 math:FittedModel 的残差记录，通过 math:residualOf 关联到该拟合。它是 math:MathematicalObject 的子类。在提供了与观测的关联及残差约定时，该记录可以描述观测层面相对于模型的差异：原始残差是观测值减去模型预测值，而标准化、Pearson、偏差及其他残差使用各自的定义。R 来源提升可以输出与拟合相连的残差记录，而不提供与观测的关联或逐观测值，也不保留所请求的残差变体；该稀疏记录不确立与观测的关联、变体已获保留或数值计算。若陈述其统计解释，该解释是由某视角持有的 gmeow:Observation，绝非所提供值的固有属性。"
+
+msgctxt "https://blackcatinformatics.ca/math/Residual|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The raw residual uses observed minus predicted, not the reverse sign. Pearson, standardized, deviance and other residual forms have their own definitions and are not automatically this raw difference. Preserve any source variant, observation association and value evidence in their supplied representation; a type and fit link alone establish none of them."
+msgstr "原始残差使用观测值减预测值，而非相反符号。Pearson、标准化、偏差及其他残差形式有各自定义，不会自动等于此原始差值。按所提供表示保留任何来源变体、观测关联及数值依据；仅有类型及拟合链接不确立其中任何一项。"
+
+msgctxt "https://blackcatinformatics.ca/math/Residual|http://www.w3.org/2004/02/skos/core#example"
+msgid "The embedded mtcars.R scene calls residuals(fit). The inspected native path emits one fit-keyed Residual resource with residualOf pointing to the fitted-model resource, but supplies no per-observation residual values, observation indices or residual-variant specification. This is a source-described record, not a computed residual collection."
+msgstr "内嵌 mtcars.R 场景调用 residuals(fit)。所检查原生路径输出一个以拟合为键的 Residual 资源，通过 residualOf 指向已拟合模型资源，但不提供逐观测残差值、观测索引或残差变体说明。这是来源描述的记录，而非计算所得残差集合。"
+
+msgctxt "https://blackcatinformatics.ca/math/Residual|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for a supplied residual record associated with a fitted model, retaining whether an actual observed-minus-predicted value, observation identity and residual convention are established or the source provides only a sparse declaration."
+msgstr "用于与已拟合模型关联的所提供残差记录，保留实际观测值减预测值、观测身份及残差约定是否已确立，还是来源仅提供稀疏声明这一信息。"
+
+msgctxt "https://blackcatinformatics.ca/math/Residual|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid reversing the raw sign, treating a Pearson or deviance residual as the same numerical quantity without justification, or interpreting a type and fit link as a per-observation result inventory. Do not manufacture residual values, variants or an executed diagnostic from an R call or label."
+msgstr "避免反转原始差值符号、在没有论证时将 Pearson 或偏差残差视为相同数值量，或将类型及拟合链接解释为逐观测结果清单。不要根据 R 调用或标签制造残差值、变体或已执行诊断。"
+
+msgctxt "https://blackcatinformatics.ca/math/Residual|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Keep the Residual resource and its actual residualOf link, preserving supplied observation, prediction, value, convention and provenance evidence in their existing representation. Distinguish a raw numerical difference from other residual forms and from its vantage-held interpretation; report missing values or unresolved source-request identity without inventing a new field, observation record or computation."
+msgstr "保留 Residual 资源及其实际 residualOf 链接，按现有表示保留所提供观测、预测、数值、约定及来源溯源依据。区分原始数值差、其他残差形式及由视角持有的解释；报告缺失值或未解决的来源请求身份，不编造新字段、观测记录或计算。"
+
+msgctxt "https://blackcatinformatics.ca/math/residualOf|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "residual of"
+msgstr "残差所属拟合"
+
+msgctxt "https://blackcatinformatics.ca/math/residualOf|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Relates a math:Residual to the math:FittedModel it concerns. Domain math:Residual, range math:FittedModel (stated in prose). Identifies the fit for raw and other residual variants; the residual convention determines how its value is defined."
+msgstr "将 math:Residual 关联到其所涉及的 math:FittedModel。定义域为 math:Residual，值域为 math:FittedModel（以文字说明）。此关系指明原始及其他残差变体所涉及的拟合；残差约定决定其值如何定义。"
+
+msgctxt "https://blackcatinformatics.ca/math/residualOf|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This identifies the fit a residual record concerns; the subject is the Residual and the object is the FittedModel. It is distinct from diagnosticFor on an evaluation and from a held interpretation of a residual. The link alone supplies no observation identity, numerical difference or residual-variant evidence."
+msgstr "此关系指明残差记录所涉及拟合；主语是 Residual，宾语是 FittedModel。它不同于评估上的 diagnosticFor，也不同于对残差所持解释。仅有链接不提供观测身份、数值差或残差变体依据。"
+
+msgctxt "https://blackcatinformatics.ca/math/residualOf|http://www.w3.org/2004/02/skos/core#example"
+msgid "The native R path handles residuals, resid and augment calls by linking a fit-keyed Residual resource to the resolved fitted-model resource through residualOf. Its inspected emission supplies type and fit linkage, not per-observation values or distinct requested-variant records."
+msgstr "原生 R 路径处理 residuals、resid 和 augment 调用时，通过 residualOf 将以拟合为键的 Residual 资源链接到已解析的已拟合模型资源。所检查输出提供类型及拟合链接，而非逐观测数值或各个所请求变体的独立记录。"
+
+msgctxt "https://blackcatinformatics.ca/math/residualOf|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain the actual fitted model associated with a supplied residual record, keeping any observation, residual convention, numerical value and interpretation evidence separately represented as supplied."
+msgstr "用于保留所提供残差记录关联的实际已拟合模型，按所提供内容另行表示任何观测、残差约定、数值及解释依据。"
+
+msgctxt "https://blackcatinformatics.ca/math/residualOf|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid reversing the residual-to-fit edge, substituting the diagnostic method or analysis activity for the fit, or assuming that this link computes a difference or preserves every source residual request. A shared fit does not establish identity of residual variants or observation-level results."
+msgstr "避免反转残差到拟合的边、以诊断方法或分析活动替代拟合，或假定此链接计算差值或保留每个来源残差请求。共享拟合不确立残差变体或观测层级结果身份相同。"
+
+msgctxt "https://blackcatinformatics.ca/math/residualOf|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Keep Residual as subject and the supplied FittedModel as object. Preserve the actual source request and any value, observation, convention and provenance evidence without inferring a complete residual collection from this edge or creating missing result data to make a sparse record appear computed."
+msgstr "保留 Residual 为主语，所提供的 FittedModel 为宾语。保留实际来源请求及任何数值、观测、约定和来源溯源依据，不根据此边推断完整残差集合，也不创建缺失结果数据使稀疏记录看似已计算。"
+
+msgctxt "https://blackcatinformatics.ca/math/ModelDiagnostic|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "An evaluation of one fit, distinct from a math:ModelComparison (weighing several fits) and from the math:ModelAssumption it may check. The canonical required-link restrictions and closed-world closure require both fit and method; their presence does not establish an executed check, a numerical result or the truth of an assumption."
+msgstr "针对一个拟合的评估，不同于权衡多个拟合的 math:ModelComparison，也不同于其可能检查的 math:ModelAssumption。规范的必需链接限制及封闭世界闭包要求同时提供拟合与方法；两者存在不确立已执行检查、数值结果或假定真实性。"
+
+msgctxt "https://blackcatinformatics.ca/math/ModelDiagnostic|http://www.w3.org/2004/02/skos/core#example"
+msgid "exf:qqPlot a math:ModelDiagnostic ; math:diagnosticFor exf:olsFit ; math:diagnosticMethod exf:qqAssessment ."
+msgstr "exf:qqPlot a math:ModelDiagnostic ; math:diagnosticFor exf:olsFit ; math:diagnosticMethod exf:qqAssessment ."
+
+msgctxt "https://blackcatinformatics.ca/math/ModelDiagnostic|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Mint one for a first-class evaluation of a fitted model, a residual summary, a Q-Q assessment, a heteroscedasticity or influence measure, or a goodness-of-fit statistic."
+msgstr "为已拟合模型的一等评估、残差汇总、Q-Q 评估、异方差或影响度量，或拟合优度统计量创建一个对象。"
+
+msgctxt "https://blackcatinformatics.ca/math/ModelDiagnostic|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Do not leave a check buried in a plot caption; a diagnostic missing either its fit anchor or its method is math:UnanchoredDiagnostic."
+msgstr "不要将检查埋在图题注中；诊断缺少拟合锚点或方法中任一项即为 math:UnanchoredDiagnostic。"
+
+msgctxt "https://blackcatinformatics.ca/math/ModelDiagnostic|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Name the math:FittedModel it evaluates through math:diagnosticFor and the method it applies through math:diagnosticMethod."
+msgstr "通过 math:diagnosticFor 指明所评估的 math:FittedModel，通过 math:diagnosticMethod 指明所应用方法。"
+
+msgctxt "https://blackcatinformatics.ca/math/diagnosticFor|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Anchors an evaluation to a fit, distinct from math:diagnosticMethod (the procedure applied) and from math:modelAssumption (a condition of the model itself)."
+msgstr "将评估锚定到拟合，不同于 math:diagnosticMethod，即所应用程序，也不同于 math:modelAssumption，即模型本身的条件。"
+
+msgctxt "https://blackcatinformatics.ca/math/diagnosticFor|http://www.w3.org/2004/02/skos/core#example"
+msgid "exf:qqPlot math:diagnosticFor exf:olsFit ."
+msgstr "exf:qqPlot math:diagnosticFor exf:olsFit ."
+
+msgctxt "https://blackcatinformatics.ca/math/diagnosticFor|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to anchor a model evaluation to the fit it speaks about, one shared edge for the-fit-this-evaluation-is-about."
+msgstr "用于将模型评估锚定到其所论及拟合，共享同一条表达此评估针对哪个拟合的边。"
+
+msgctxt "https://blackcatinformatics.ca/math/diagnosticFor|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Do not mint a near-synonym edge per diagnostic kind; comparison, criterion, calibration, and cross-validation all reuse this one anchor."
+msgstr "不要为每种诊断类型创建近义边；比较、准则、校准及交叉验证均复用此同一锚点。"
+
+msgctxt "https://blackcatinformatics.ca/math/diagnosticFor|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Set it on a math:ModelDiagnostic, math:ModelComparison, math:InformationCriterion, math:CalibrationDiagnostic, or math:CrossValidationResult with range math:FittedModel; a diagnostic naming no fit is math:UnanchoredDiagnostic."
+msgstr "在 math:ModelDiagnostic、math:ModelComparison、math:InformationCriterion、math:CalibrationDiagnostic 或 math:CrossValidationResult 上设置此关系，值域为 math:FittedModel；未指明拟合的诊断为 math:UnanchoredDiagnostic。"
+
+msgctxt "https://blackcatinformatics.ca/math/diagnosticMethod|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The procedure a diagnostic applies over a fit, distinct from math:diagnosticFor (the fit anchored to), math:usesProofMethod (a proof strategy), and math:estimator (an estimate procedure)."
+msgstr "诊断针对拟合所应用的程序，不同于 math:diagnosticFor，即所锚定拟合，也不同于 math:usesProofMethod，即证明策略，及 math:estimator，即估计程序。"
+
+msgctxt "https://blackcatinformatics.ca/math/diagnosticMethod|http://www.w3.org/2004/02/skos/core#example"
+msgid "exf:qqPlot math:diagnosticMethod exf:qqAssessment ."
+msgstr "exf:qqPlot math:diagnosticMethod exf:qqAssessment ."
+
+msgctxt "https://blackcatinformatics.ca/math/diagnosticMethod|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to name the method a diagnostic applies, a residual-analysis procedure, goodness-of-fit test, influence measure, or reliability-curve binning."
+msgstr "用于指明诊断所应用方法，例如残差分析程序、拟合优度检验、影响度量或可靠性曲线分箱。"
+
+msgctxt "https://blackcatinformatics.ca/math/diagnosticMethod|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Do not leave the method an opaque label; a diagnostic naming no method is math:UnanchoredDiagnostic."
+msgstr "不要将方法保留为不透明标签；未指明方法的诊断为 math:UnanchoredDiagnostic。"
+
+msgctxt "https://blackcatinformatics.ca/math/diagnosticMethod|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Set it on a math:ModelDiagnostic with range the method object."
+msgstr "在 math:ModelDiagnostic 上设置此关系，值域为方法对象。"
+
+msgctxt "https://blackcatinformatics.ca/math/UnanchoredDiagnostic|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The unanchored-evaluation finding, distinct from math:CalibrationSenseConflation (a crossed calibration sense). Supplied fit and method links can meet this presence boundary without establishing a valid or executed diagnostic; other missing evidence or an unfavorable result is not itself this missing-link failure."
+msgstr "未锚定评估诊断，不同于表示校准含义混用的 math:CalibrationSenseConflation。所提供拟合及方法链接可满足此存在性边界，而不确立有效或已执行诊断；其他依据缺失或不利结果本身不是此缺失链接失败。"
+
+msgctxt "https://blackcatinformatics.ca/math/UnanchoredDiagnostic|http://www.w3.org/2004/02/skos/core#example"
+msgid "exf:floatingDiag a math:UnanchoredDiagnostic ."
+msgstr "exf:floatingDiag a math:UnanchoredDiagnostic ."
+
+msgctxt "https://blackcatinformatics.ca/math/UnanchoredDiagnostic|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when a supplied math:ModelDiagnostic lacks its required math:diagnosticFor or math:diagnosticMethod reference under the canonical closed-world contract, retaining the offending record and the actual missing role."
+msgstr "当所提供的 math:ModelDiagnostic 在规范封闭世界约定下缺少必需 math:diagnosticFor 或 math:diagnosticMethod 引用时使用，保留违规记录及实际缺失角色。"
+
+msgctxt "https://blackcatinformatics.ca/math/UnanchoredDiagnostic|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Do not suppress the finding when either required reference is absent, or raise it merely because a diagnostic result is unfavorable, uncomputed or otherwise unqualified. Missing linkage and the truth or execution of a model assessment are distinct concerns."
+msgstr "不要在任一必需引用缺失时抑制诊断，也不要仅因诊断结果不利、未计算或未获其他资格认定而报告此失败。链接缺失与模型评估的真实性或执行是不同问题。"
+
+msgctxt "https://blackcatinformatics.ca/math/UnanchoredDiagnostic|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Identify the math:ModelDiagnostic and the missing math:diagnosticFor or math:diagnosticMethod role using the canonical restrictions and closure records. Retain the source evidence and supply a real reference only when available; do not invent a fit, method or successful result to silence the finding."
+msgstr "使用规范限制及闭包记录指明 math:ModelDiagnostic 及缺失的 math:diagnosticFor 或 math:diagnosticMethod 角色。保留来源依据，仅在实际引用可用时补充；不编造拟合、方法或成功结果以消除诊断。"
 
 # Estimation guidance.
 

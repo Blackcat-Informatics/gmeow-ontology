@@ -70,15 +70,16 @@ Core classes: `math:StatisticalModel`, `math:ModelFormula`, `math:ModelAssumptio
 Core properties: `math:modelFormula`, `math:modelAssumption`, `math:fittedToData`,
 `math:estimatesEstimand`, `math:estimatedParameter`, `math:estimator`, and `math:estimateValue`.
 
-A `math:StatisticalModel` carries its specification as a structured `math:ModelFormula`, a
+A `math:StatisticalModel` records its model expression as a structured `math:ModelFormula`, a
 specialization of `math:MathematicalExpression`. A formula may have a response or be one-sided;
 the R tilde representation uses `math:BindingExpression` and indexed `math:ArgumentSlot` operands.
 The general formula frame and supplied conformance examples inspect slot structure, not complete
 binder admission or preservation of every source role. A formula alone does not supply the full
 distributional specification, family/link choices, contrasts, weights, subsets or fitting options.
 Assumptions are first-class `math:ModelAssumption` objects (normality, homoscedasticity, independence
-of errors) so an assumption can be checked, cited, or violated with a diagnostic rather than left
-implicit.
+of errors). The stated conditions can be cited and, where suitable methods and evidence are
+available, assessed or reported violated rather than left implicit. Naming a condition does not
+establish its empirical testability or truth.
 
 A model described by a source lift is not evidence of an executed fitting process. Likewise, a
 `math:DatasetMatrix` identifier, type, label or ingest provenance does not by itself establish an
@@ -167,7 +168,17 @@ Uncertainty is not always a scalar interval: alongside `math:ConfidenceInterval`
 `math:confidenceLevel`) and `math:CredibleInterval` (with `math:credibleMass`), the layer carries
 `math:PredictionInterval`, `math:ToleranceInterval`, and the multivariate `math:ConfidenceRegion`
 and `math:CredibleRegion`. A `math:ModelDiagnostic` names the fitted model it evaluates
-(`math:diagnosticFor`) and its method.
+(`math:diagnosticFor`) and its method (`math:diagnosticMethod`). The canonical required-link
+restrictions and closed-world closure require both roles; missing either is
+`math:UnanchoredDiagnostic`. These anchors do not establish that a check executed, produced a
+numerical result or verified an assumption. Explicitly naming a `math:ModelAssumption` makes the
+condition identifiable; it does not make every condition empirically testable from the observed
+data.
+
+A raw `math:Residual` uses observed minus predicted. Other residual conventions require their own
+source meaning; a residual record and its `math:residualOf` fit link do not supply observation
+indices, numerical differences, a variant or a completed diagnostic. Preserve the actual source
+convention, values and assessment evidence where supplied without inventing them.
 
 ### Model comparison and calibration
 

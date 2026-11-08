@@ -962,7 +962,7 @@ maint-refresh-wasm-assets: ## Prepare all browser assets, produce and gate once,
 	@echo "OK: all six browser assets passed the full gate and Node parity."
 
 .PHONY: maint-pin-purrdf
-maint-pin-purrdf: ## Resolve the authored exact PurRDF Git revision in all three committed workspace locks; qualification is separate.
+maint-pin-purrdf: ## Resolve the authored PurRDF dependency requirements in all three committed workspace locks; qualification is separate.
 	cargo update -p purrdf
 	cargo update --manifest-path fuzz/Cargo.toml -p purrdf
 	cargo update --manifest-path validations/common-logic-fol/clif2tptp/Cargo.toml -p purrdf
