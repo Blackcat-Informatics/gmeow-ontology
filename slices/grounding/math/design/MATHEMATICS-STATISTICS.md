@@ -70,12 +70,21 @@ Core classes: `math:StatisticalModel`, `math:ModelFormula`, `math:ModelAssumptio
 Core properties: `math:modelFormula`, `math:modelAssumption`, `math:fittedToData`,
 `math:estimatesEstimand`, `math:estimatedParameter`, `math:estimator`, and `math:estimateValue`.
 
-A `math:StatisticalModel` carries its specification as a `math:ModelFormula` — which is a
-**specialization of `math:MathematicalExpression`** (a real AST from the expression core), not a
-parallel stringly-typed formula class, so `y ~ x1 + x2` is an application tree with resolved
-variables, not text. Assumptions are first-class `math:ModelAssumption` objects (normality,
-homoscedasticity, independence of errors) so an assumption can be checked, cited, or violated with a
-diagnostic rather than left implicit.
+A `math:StatisticalModel` carries its specification as a structured `math:ModelFormula`, a
+specialization of `math:MathematicalExpression`. A formula may have a response or be one-sided;
+the R tilde representation uses `math:BindingExpression` and indexed `math:ArgumentSlot` operands.
+The general formula frame and supplied conformance examples inspect slot structure, not complete
+binder admission or preservation of every source role. A formula alone does not supply the full
+distributional specification, family/link choices, contrasts, weights, subsets or fitting options.
+Assumptions are first-class `math:ModelAssumption` objects (normality, homoscedasticity, independence
+of errors) so an assumption can be checked, cited, or violated with a diagnostic rather than left
+implicit.
+
+A model described by a source lift is not evidence of an executed fitting process. Likewise, a
+`math:DatasetMatrix` identifier, type, label or ingest provenance does not by itself establish an
+authenticated external blob reference, available payload or resolved column schema. Preserve the
+actual supplied specification, data reference and source distinctions, and qualify the selected
+operation separately; passing a required-link check does not establish numerical fit validity.
 
 **Estimand vs parameter.** The layer distinguishes the *target of inference* from the *model
 quantity*. A `math:Estimand` is what the study is actually trying to learn — framed by population,
