@@ -14519,7 +14519,7 @@ msgstr "避免将此类用于实际天气发生、结果点、整个事件代数
 
 msgctxt "https://blackcatinformatics.ca/math/ProbabilityEvent|https://blackcatinformatics.ca/gmeow/howToUse"
 msgid "Type the supplied event-set as ProbabilityEvent and retain its actual eventInSpace and probabilityOfEvent links. Keep the outcome carrier, eventSigmaAlgebra, source observation and value frames separately supplied; do not invent membership edges or identify the set with an occurrence."
-msgstr "将所提供的事件集合标注为 ProbabilityEvent，并保留其实际 eventInSpace 和 probabilityOfEvent 链接。结果载体、eventSigmaAlgebra、来源观测及数值框架须另行提供；不编造归属边，也不将集合等同于实际发生。"
+msgstr "将所提供的事件集合标注为 ProbabilityEvent，并保留其实际 eventInSpace 和 probabilityOfEvent 链接。保留分别提供的结果载体、eventSigmaAlgebra、来源观测及数值框架；不编造归属边，也不将集合等同于实际发生。"
 
 msgctxt "https://blackcatinformatics.ca/math/eventInSpace|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "event in space"
