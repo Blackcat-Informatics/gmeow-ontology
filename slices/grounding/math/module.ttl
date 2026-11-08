@@ -14093,7 +14093,12 @@ math:PosteriorSample
     rdfs:subClassOf math:MathematicalObject ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "Posterior Sample"@x-gmeow-english ;
-    skos:definition "A posterior sample: the set of draws approximating a math:PosteriorDistribution when the posterior is sampled rather than computed in closed form — the output of a math:MCMCRun. A subclass of math:MathematicalObject. Its trustworthiness is not assumed but answerable through the math:ChainDiagnostic objects (effective sample size, R-hat, divergences) attached to its run."@x-gmeow-english ;
+    skos:definition "A posterior sample: a collection of draws produced by a math:MCMCRun with the intent of approximating a math:PosteriorDistribution. A subclass of math:MathematicalObject. Repeated values remain distinct draws, and supplied ordering and chain membership are preserved. A declared sample or favorable math:ChainDiagnostic does not certify that the retained draws have the target law or that posterior inference is trustworthy."@x-gmeow-english ;
+    skos:scopeNote "This is the run's result collection, distinct from the target distribution, the sampling activity and a claim about either. Preserve multiplicity and whatever draw order, chain identity and retention selection the source actually supplies; do not invent them for an unordered or incompletely described collection."@x-gmeow-english ;
+    skos:example "The probability scene declares ex:rainRatePosteriorSample as PosteriorSample and links it to ex:rainRateMcmc through gmeow:wasGeneratedBy. Its label mentions 4000 draws, but the record supplies neither draw values nor chain membership, ordering or a sample-to-posterior link."@x-gmeow-english ;
+    gmeow:useWhen "Use for a supplied collection of retained draws intended to approximate a posterior through MCMC, preserving its actual generating run and source selection of draws."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid deduplicating repeated values, treating correlated draws as independent, or identifying the sample with the posterior law. A count in a label, a generation link or a diagnostic value alone does not establish the draw collection or its validity."@x-gmeow-english ;
+    gmeow:howToUse "Type the supplied result as PosteriorSample, retain its actual gmeow:wasGeneratedBy link and preserve the available draws, multiplicity, chain membership, order and retention account in their source representation. Keep target-posterior and diagnostic evidence separately identified without inventing a relation, missing draws or a completed sampling run."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 math:MCMCRun
@@ -14101,7 +14106,12 @@ math:MCMCRun
     rdfs:subClassOf gmeow:Activity ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "MCMC Run"@x-gmeow-english ;
-    skos:definition "A Markov-chain Monte Carlo run: the sampling PROCESS that draws a math:PosteriorSample from a posterior. A subclass of gmeow:Activity (the run is a process, distinct from its result sample and from any claim about the posterior). It produces the chain diagnostics by which 'is this posterior trustworthy' is answered rather than assumed."@x-gmeow-english ;
+    skos:definition "A Markov-chain Monte Carlo run: a sampling activity targeting a posterior distribution and intended to produce a math:PosteriorSample. A subclass of gmeow:Activity, distinct from its result sample and from claims about the target or inference. Initialization, adaptation and finite-run behavior affect the result; neither a declared run nor its math:ChainDiagnostic records guarantee posterior-distributed draws or trustworthy inference."@x-gmeow-english ;
+    skos:scopeNote "The run is a process with a specified sampling method and target, not the target law or the retained sample. Multiple chains and their warm-up, adaptation and retained-draw selections remain part of the supplied execution context. Declaring those roles does not establish that the process executed or reached stationarity."@x-gmeow-english ;
+    skos:example "The probability scene declares ex:rainRateMcmc as MCMCRun with gmeow:eventTemporalFrame ex:utcFrame. The sample and diagnostics name that run through gmeow:wasGeneratedBy, but no transition history, chain inventory or structured run-to-target-posterior link is supplied there."@x-gmeow-english ;
+    gmeow:useWhen "Use to identify an actual or explicitly described MCMC sampling activity, retaining the source's distinction between an execution record and an illustrative declaration and between the activity, target and resulting draws."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid treating an Activity type, sampler label or temporal-frame link as evidence of executed transitions, independent posterior draws or convergence. Do not infer a target posterior from a nearby resource name or use the sample itself as the generating activity."@x-gmeow-english ;
+    gmeow:howToUse "Keep the run as MCMCRun and retain products' actual gmeow:wasGeneratedBy links to it. Preserve supplied target, method, initialization, chain, adaptation, retention and timing evidence in their existing representation; report missing execution context without fabricating a sampler, posterior link, transition trace or diagnostic computation."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 math:ChainDiagnostic
@@ -14109,7 +14119,12 @@ math:ChainDiagnostic
     rdfs:subClassOf math:MathematicalObject ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "Chain Diagnostic"@x-gmeow-english ;
-    skos:definition "A chain diagnostic: a computed measure of the health of a math:MCMCRun's sampling — the parent of math:EffectiveSampleSize, math:RHat, and math:DivergenceDiagnostic. A subclass of math:MathematicalObject. Diagnostics make the trustworthiness of a sampled posterior answerable structurally rather than assumed."@x-gmeow-english ;
+    skos:definition "A chain diagnostic: a computed measure or record concerning specified aspects of a math:MCMCRun's sampling, including math:EffectiveSampleSize, math:RHat and math:DivergenceDiagnostic. A subclass of math:MathematicalObject. Its interpretation depends on the actual estimator or detection method, chains, draw selection and relevant estimand. Diagnostics provide limited evidence about sampling; they do not structurally certify posterior validity, convergence or trustworthy inference."@x-gmeow-english ;
+    skos:scopeNote "This is the local umbrella for sampling diagnostics, rather than a generic model-fit statistic or a validity certificate. Different diagnostics address different failure modes and can be uninformative outside their method's prerequisites. A declared diagnostic resource does not establish a computed result or a complete assessment."@x-gmeow-english ;
+    skos:example "The probability scene declares ex:rainRateRHat, ex:rainRateEss and ex:rainRateDivergences and gives each gmeow:wasGeneratedBy ex:rainRateMcmc. Their labels describe results, but the records contain no structured computed values, estimator specifications or supporting chain data."@x-gmeow-english ;
+    gmeow:useWhen "Use for a supplied sampling diagnostic whose generating run and specific diagnostic meaning can be retained, including evidence that warns of a problem without settling every aspect of inference quality."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid turning a diagnostic type or favorable label into a convergence, correctness or trust guarantee. Missing diagnostic data is not a favorable result, and different estimators or chain selections are not interchangeable merely because they share a label."@x-gmeow-english ;
+    gmeow:howToUse "Retain the concrete diagnostic subtype, actual generating run and supplied result, method, chain selection, draw window and estimand context. Preserve warnings and qualification limits with that evidence; do not invent numeric values, default success, a universal threshold or a computation from a label."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 math:EffectiveSampleSize
@@ -14117,7 +14132,12 @@ math:EffectiveSampleSize
     rdfs:subClassOf math:ChainDiagnostic ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "Effective Sample Size"@x-gmeow-english ;
-    skos:definition "The effective sample size: the number of effectively independent draws in a correlated MCMC chain, discounting autocorrelation. A subclass of math:ChainDiagnostic. A low effective sample size warns that a posterior summary rests on far fewer independent draws than the raw sample count suggests."@x-gmeow-english ;
+    skos:definition "An effective sample size diagnostic for MCMC: an estimated number of independent draws giving comparable Monte Carlo precision for a specified estimand and estimator. A subclass of math:ChainDiagnostic. It is a precision comparison rather than a count of actual independent draws, depends on the estimation method and retained chains, and can exceed the raw draw count under negative autocorrelation. A low value can indicate imprecise estimation of the quantity assessed; it does not by itself establish posterior correctness or convergence."@x-gmeow-english ;
+    skos:scopeNote "Effective sample size is specific to the quantity and method assessed; bulk, tail and other estimands need not have the same value. Positive serial dependence often lowers precision relative to independent draws, while negative dependence can improve it. Preserve the estimator and its assumptions rather than imposing a universal upper bound at the number of retained draws."@x-gmeow-english ;
+    skos:example "The probability scene labels ex:rainRateEss with an effective sample size of approximately 3200 and labels ex:rainRatePosteriorSample with 4000 draws. Neither label supplies a computed quantity, an ESS estimator, a chosen estimand or the draw data needed to assess that comparison."@x-gmeow-english ;
+    gmeow:useWhen "Use for a source's estimated independent-draw precision equivalence for a specified MCMC quantity, retaining the actual estimator, retained draw selection and uncertainty or failure information."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid interpreting the value as a literal count of independent draws, capping it at the raw count without a method-specific reason, or assigning one ESS to every posterior quantity. A large value does not prove mixing, convergence or a correct target model."@x-gmeow-english ;
+    gmeow:howToUse "Keep the EffectiveSampleSize record and its supplied generating-run and result evidence. Retain the estimand, estimator variant, chains and retention window actually used, together with the raw count when supplied; preserve a valid reported value above that count and do not derive an audited ESS from two descriptive labels."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 math:RHat
@@ -14125,7 +14145,12 @@ math:RHat
     rdfs:subClassOf math:ChainDiagnostic ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "R-hat"@x-gmeow-english ;
-    skos:definition "The potential-scale-reduction factor R̂: the between-chain versus within-chain variance ratio diagnosing whether multiple MCMC chains have converged to the same distribution. A subclass of math:ChainDiagnostic. An R̂ far from one warns that the chains have not mixed and the sampled posterior is not trustworthy."@x-gmeow-english ;
+    skos:definition "An R-hat diagnostic: a scale-comparison diagnostic across MCMC chains, based on within-chain variability and a pooled variance estimate under a specified method. A subclass of math:ChainDiagnostic. Classical, split, rank-normalized and folded variants differ; it is not simply the raw between-chain to within-chain variance ratio. Values away from one can flag chain disagreement, while a value near one does not prove convergence, adequate exploration or correct inference."@x-gmeow-english ;
+    skos:scopeNote "Classical R-hat uses the square root of a pooled-variance to within-chain-variance comparison; modern variants change the data transformation or chain construction. Preserve the actual method, chain set and prerequisites. Agreement in a finite scalar summary can miss shared unexplored modes or other sampling failures."@x-gmeow-english ;
+    skos:example "The probability scene labels ex:rainRateRHat as R̂ = 1.001 (chains mixed) and links it to ex:rainRateMcmc through gmeow:wasGeneratedBy. The parenthetical is a source label, not a convergence proof; no estimator variant, computed quantity or chain data is supplied there."@x-gmeow-english ;
+    gmeow:useWhen "Use for a source's reported R-hat assessment of specified chains and quantities when the actual estimator variant and supporting context can be retained, without promoting the scalar to a universal verdict."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid reading a value near one as proof of convergence, interpreting the number as the raw between/within variance ratio, or inventing a method or threshold from the label. An unavailable or undefined R-hat must not become a default favorable value."@x-gmeow-english ;
+    gmeow:howToUse "Retain the RHat resource, its actual run, reported value and variant-specific chain and draw context. Preserve the source's accompanying claim separately from the evidence for it, and assess the method's prerequisites without fabricating chains, declaring convergence or treating different variants as identical."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 math:DivergenceDiagnostic
@@ -14133,7 +14158,12 @@ math:DivergenceDiagnostic
     rdfs:subClassOf math:ChainDiagnostic ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "Divergence Diagnostic"@x-gmeow-english ;
-    skos:definition "A divergence diagnostic: the count or record of divergent transitions in a Hamiltonian/NUTS MCMC run, flagging regions of the posterior the sampler could not explore reliably. A subclass of math:ChainDiagnostic. Divergences warn of bias the raw sample would otherwise hide."@x-gmeow-english ;
+    skos:definition "A divergence diagnostic: a count or record of numerically problematic transitions detected in a Hamiltonian or NUTS MCMC run under the sampler's divergence criterion. A subclass of math:ChainDiagnostic. Such detections can warn of inaccurate exploration and biased estimates, but do not prove that a particular posterior region is inaccessible. An absence of detected divergences does not establish adequate exploration, convergence or valid inference."@x-gmeow-english ;
+    skos:scopeNote "This concerns detected sampling-integration problems, not a distributional divergence such as an information distance. Counts depend on the sampler, detection criterion, transition selection and run context. A zero count reports no detections under that account; it is not proof that every relevant region was explored reliably."@x-gmeow-english ;
+    skos:example "The probability scene declares ex:rainRateDivergences as DivergenceDiagnostic, labels it 0 divergent transitions and supplies gmeow:wasGeneratedBy ex:rainRateMcmc. The record supplies neither a structured count, detection criterion nor transition log, so the label is not an audited zero-divergence result."@x-gmeow-english ;
+    gmeow:useWhen "Use for a source's count or record of detected divergent transitions in a specified HMC or NUTS sampling run, preserving the detection method and whether the report concerns warm-up, retained sampling or another stated selection."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid treating the count as an information-distance value, assigning zero when evidence is absent, or asserting that a detection proves a missed posterior region. A zero count does not certify convergence, unbiased estimates or posterior validity."@x-gmeow-english ;
+    gmeow:howToUse "Retain the DivergenceDiagnostic and its actual generating run, count or event records, detection criterion and transition selection as supplied. Keep potential-bias warnings and source claims attached to their evidence without inventing an event log, missing count, inaccessible region or successful diagnostic computation."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 math:hasPrior

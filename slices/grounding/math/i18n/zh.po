@@ -16336,3 +16336,173 @@ msgstr "避免以先验、样本或频率学派置信分布替代所提供后验
 msgctxt "https://blackcatinformatics.ca/math/hasPosterior|https://blackcatinformatics.ca/gmeow/howToUse"
 msgid "Keep the actual update or Bayesian interval/region as subject and the supplied PosteriorDistribution as object. For an update, retain its prior, likelihood and data context; for an interval or region, retain its bounds and posterior mass as supplied. Preserve missing-link and missing-mass evidence separately without inventing a posterior or a new update type."
 msgstr "保留实际更新、贝叶斯区间或区域为主语，所提供的 PosteriorDistribution 为宾语。对于更新，保留其先验、似然及数据上下文；对于区间或区域，按所提供内容保留边界及后验质量。另行保留缺失链接及缺失质量依据，不编造后验或新的更新类型。"
+
+# MCMC samples and diagnostics.
+
+msgctxt "https://blackcatinformatics.ca/math/PosteriorSample|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Posterior Sample"
+msgstr "后验样本"
+
+msgctxt "https://blackcatinformatics.ca/math/PosteriorSample|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A posterior sample: a collection of draws produced by a math:MCMCRun with the intent of approximating a math:PosteriorDistribution. A subclass of math:MathematicalObject. Repeated values remain distinct draws, and supplied ordering and chain membership are preserved. A declared sample or favorable math:ChainDiagnostic does not certify that the retained draws have the target law or that posterior inference is trustworthy."
+msgstr "后验样本：由 math:MCMCRun 产生、旨在近似 math:PosteriorDistribution 的抽样项集合。它是 math:MathematicalObject 的子类。重复数值仍对应不同抽样项，并保留所提供的顺序及链归属。已声明样本或良好的 math:ChainDiagnostic 不证明保留抽样项服从目标分布律，也不证明后验推断可信。"
+
+msgctxt "https://blackcatinformatics.ca/math/PosteriorSample|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This is the run's result collection, distinct from the target distribution, the sampling activity and a claim about either. Preserve multiplicity and whatever draw order, chain identity and retention selection the source actually supplies; do not invent them for an unordered or incompletely described collection."
+msgstr "这是运行的结果集合，不同于目标分布、采样活动及关于两者的声称。保留重复次数，以及来源实际提供的抽样顺序、链身份及保留选择；不要为无序或描述不完整的集合编造这些信息。"
+
+msgctxt "https://blackcatinformatics.ca/math/PosteriorSample|http://www.w3.org/2004/02/skos/core#example"
+msgid "The probability scene declares ex:rainRatePosteriorSample as PosteriorSample and links it to ex:rainRateMcmc through gmeow:wasGeneratedBy. Its label mentions 4000 draws, but the record supplies neither draw values nor chain membership, ordering or a sample-to-posterior link."
+msgstr "概率场景将 ex:rainRatePosteriorSample 声明为 PosteriorSample，并通过 gmeow:wasGeneratedBy 将其链接到 ex:rainRateMcmc。标签提及 4000 次抽样，但记录既不提供抽样值，也不提供链归属、顺序或样本到后验的链接。"
+
+msgctxt "https://blackcatinformatics.ca/math/PosteriorSample|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for a supplied collection of retained draws intended to approximate a posterior through MCMC, preserving its actual generating run and source selection of draws."
+msgstr "用于所提供的保留抽样项集合，其目的是通过 MCMC 近似后验，并保留实际生成运行及来源的抽样项选择。"
+
+msgctxt "https://blackcatinformatics.ca/math/PosteriorSample|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid deduplicating repeated values, treating correlated draws as independent, or identifying the sample with the posterior law. A count in a label, a generation link or a diagnostic value alone does not establish the draw collection or its validity."
+msgstr "避免对重复数值去重、将相关抽样项视为独立，或将样本等同于后验分布律。仅有标签中的计数、生成链接或诊断值不确立抽样集合及其有效性。"
+
+msgctxt "https://blackcatinformatics.ca/math/PosteriorSample|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Type the supplied result as PosteriorSample, retain its actual gmeow:wasGeneratedBy link and preserve the available draws, multiplicity, chain membership, order and retention account in their source representation. Keep target-posterior and diagnostic evidence separately identified without inventing a relation, missing draws or a completed sampling run."
+msgstr "将所提供结果标注为 PosteriorSample，保留其实际 gmeow:wasGeneratedBy 链接，并按来源表示保留可用抽样项、重复次数、链归属、顺序及保留说明。另行指明目标后验及诊断依据，不编造关系、缺失抽样项或已完成采样运行。"
+
+msgctxt "https://blackcatinformatics.ca/math/MCMCRun|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "MCMC Run"
+msgstr "MCMC 运行"
+
+msgctxt "https://blackcatinformatics.ca/math/MCMCRun|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A Markov-chain Monte Carlo run: a sampling activity targeting a posterior distribution and intended to produce a math:PosteriorSample. A subclass of gmeow:Activity, distinct from its result sample and from claims about the target or inference. Initialization, adaptation and finite-run behavior affect the result; neither a declared run nor its math:ChainDiagnostic records guarantee posterior-distributed draws or trustworthy inference."
+msgstr "马尔可夫链蒙特卡罗运行：以后验分布为目标、旨在产生 math:PosteriorSample 的采样活动。它是 gmeow:Activity 的子类，不同于结果样本及关于目标或推断的声称。初始化、自适应及有限运行行为影响结果；已声明运行及其 math:ChainDiagnostic 记录都不保证抽样项服从后验分布，也不保证推断可信。"
+
+msgctxt "https://blackcatinformatics.ca/math/MCMCRun|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The run is a process with a specified sampling method and target, not the target law or the retained sample. Multiple chains and their warm-up, adaptation and retained-draw selections remain part of the supplied execution context. Declaring those roles does not establish that the process executed or reached stationarity."
+msgstr "运行是具有指定采样方法及目标的过程，不是目标分布律或保留样本。多条链及其预热、自适应和保留抽样项选择仍属于所提供的执行上下文。声明这些角色不确立过程已执行或已达到平稳状态。"
+
+msgctxt "https://blackcatinformatics.ca/math/MCMCRun|http://www.w3.org/2004/02/skos/core#example"
+msgid "The probability scene declares ex:rainRateMcmc as MCMCRun with gmeow:eventTemporalFrame ex:utcFrame. The sample and diagnostics name that run through gmeow:wasGeneratedBy, but no transition history, chain inventory or structured run-to-target-posterior link is supplied there."
+msgstr "概率场景将 ex:rainRateMcmc 声明为具有 gmeow:eventTemporalFrame ex:utcFrame 的 MCMCRun。样本及诊断通过 gmeow:wasGeneratedBy 指明该运行，但其中没有提供转移历史、链清单或结构化运行到目标后验链接。"
+
+msgctxt "https://blackcatinformatics.ca/math/MCMCRun|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to identify an actual or explicitly described MCMC sampling activity, retaining the source's distinction between an execution record and an illustrative declaration and between the activity, target and resulting draws."
+msgstr "用于指明实际或显式描述的 MCMC 采样活动，保留来源对执行记录与示意声明的区分，以及活动、目标和所得抽样项之间的区分。"
+
+msgctxt "https://blackcatinformatics.ca/math/MCMCRun|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating an Activity type, sampler label or temporal-frame link as evidence of executed transitions, independent posterior draws or convergence. Do not infer a target posterior from a nearby resource name or use the sample itself as the generating activity."
+msgstr "避免将 Activity 类型、采样器标签或时间框架链接视为已执行转移、独立后验抽样项或收敛的依据。不要根据邻近资源名称推断目标后验，也不将样本本身用作生成活动。"
+
+msgctxt "https://blackcatinformatics.ca/math/MCMCRun|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Keep the run as MCMCRun and retain products' actual gmeow:wasGeneratedBy links to it. Preserve supplied target, method, initialization, chain, adaptation, retention and timing evidence in their existing representation; report missing execution context without fabricating a sampler, posterior link, transition trace or diagnostic computation."
+msgstr "将运行保留为 MCMCRun，并保留产物实际指向它的 gmeow:wasGeneratedBy 链接。按现有表示保留所提供的目标、方法、初始化、链、自适应、保留及计时依据；报告缺失执行上下文，不编造采样器、后验链接、转移轨迹或诊断计算。"
+
+msgctxt "https://blackcatinformatics.ca/math/ChainDiagnostic|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Chain Diagnostic"
+msgstr "链诊断"
+
+msgctxt "https://blackcatinformatics.ca/math/ChainDiagnostic|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A chain diagnostic: a computed measure or record concerning specified aspects of a math:MCMCRun's sampling, including math:EffectiveSampleSize, math:RHat and math:DivergenceDiagnostic. A subclass of math:MathematicalObject. Its interpretation depends on the actual estimator or detection method, chains, draw selection and relevant estimand. Diagnostics provide limited evidence about sampling; they do not structurally certify posterior validity, convergence or trustworthy inference."
+msgstr "链诊断：关于 math:MCMCRun 采样特定方面的计算所得指标或记录，包括 math:EffectiveSampleSize、math:RHat 和 math:DivergenceDiagnostic。它是 math:MathematicalObject 的子类。其解释取决于实际估计量或检测方法、链、抽样项选择及相关待估量。诊断提供有限范围采样依据；它们不从结构上证明后验有效性、收敛或推断可信。"
+
+msgctxt "https://blackcatinformatics.ca/math/ChainDiagnostic|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This is the local umbrella for sampling diagnostics, rather than a generic model-fit statistic or a validity certificate. Different diagnostics address different failure modes and can be uninformative outside their method's prerequisites. A declared diagnostic resource does not establish a computed result or a complete assessment."
+msgstr "这是本词汇中采样诊断的总类，而非一般模型拟合统计量或有效性证书。不同诊断针对不同失败模式，在不满足方法前提时可能不具信息性。已声明诊断资源不确立计算所得结果或完整评估。"
+
+msgctxt "https://blackcatinformatics.ca/math/ChainDiagnostic|http://www.w3.org/2004/02/skos/core#example"
+msgid "The probability scene declares ex:rainRateRHat, ex:rainRateEss and ex:rainRateDivergences and gives each gmeow:wasGeneratedBy ex:rainRateMcmc. Their labels describe results, but the records contain no structured computed values, estimator specifications or supporting chain data."
+msgstr "概率场景声明 ex:rainRateRHat、ex:rainRateEss 和 ex:rainRateDivergences，并为每个对象给出 gmeow:wasGeneratedBy ex:rainRateMcmc。标签描述结果，但记录不含结构化计算值、估计量说明或支持链数据。"
+
+msgctxt "https://blackcatinformatics.ca/math/ChainDiagnostic|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for a supplied sampling diagnostic whose generating run and specific diagnostic meaning can be retained, including evidence that warns of a problem without settling every aspect of inference quality."
+msgstr "用于所提供的采样诊断，其生成运行及具体诊断含义可被保留，包括提示问题但不判定推断质量所有方面的依据。"
+
+msgctxt "https://blackcatinformatics.ca/math/ChainDiagnostic|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid turning a diagnostic type or favorable label into a convergence, correctness or trust guarantee. Missing diagnostic data is not a favorable result, and different estimators or chain selections are not interchangeable merely because they share a label."
+msgstr "避免将诊断类型或良好标签变成收敛、正确性或可信保证。缺失诊断数据不是良好结果，不同估计量或链选择也不会仅因共享标签而可互换。"
+
+msgctxt "https://blackcatinformatics.ca/math/ChainDiagnostic|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the concrete diagnostic subtype, actual generating run and supplied result, method, chain selection, draw window and estimand context. Preserve warnings and qualification limits with that evidence; do not invent numeric values, default success, a universal threshold or a computation from a label."
+msgstr "保留具体诊断子类、实际生成运行及所提供的结果、方法、链选择、抽样窗口和待估量上下文。连同依据保留警告及资格认定限制；不根据标签编造数值、默认成功、通用阈值或计算。"
+
+msgctxt "https://blackcatinformatics.ca/math/EffectiveSampleSize|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Effective Sample Size"
+msgstr "有效样本量"
+
+msgctxt "https://blackcatinformatics.ca/math/EffectiveSampleSize|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An effective sample size diagnostic for MCMC: an estimated number of independent draws giving comparable Monte Carlo precision for a specified estimand and estimator. A subclass of math:ChainDiagnostic. It is a precision comparison rather than a count of actual independent draws, depends on the estimation method and retained chains, and can exceed the raw draw count under negative autocorrelation. A low value can indicate imprecise estimation of the quantity assessed; it does not by itself establish posterior correctness or convergence."
+msgstr "MCMC 的有效样本量诊断：针对指定待估量及估计量，达到相近蒙特卡罗精度的独立抽样项数量的估计。它是 math:ChainDiagnostic 的子类。它是精度比较，而非实际独立抽样项的计数，取决于估计方法及保留链，并可在负自相关下超过原始抽样项数量。低值可提示所评估量的估计不精确；它本身不确立后验正确性或收敛。"
+
+msgctxt "https://blackcatinformatics.ca/math/EffectiveSampleSize|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Effective sample size is specific to the quantity and method assessed; bulk, tail and other estimands need not have the same value. Positive serial dependence often lowers precision relative to independent draws, while negative dependence can improve it. Preserve the estimator and its assumptions rather than imposing a universal upper bound at the number of retained draws."
+msgstr "有效样本量针对所评估量及方法而定；主体、尾部及其他待估量不必具有相同值。相较于独立抽样项，正序列依赖通常降低精度，负依赖则可提高精度。保留估计量及其假设，不对有效样本量施加保留抽样项数量这一通用上界。"
+
+msgctxt "https://blackcatinformatics.ca/math/EffectiveSampleSize|http://www.w3.org/2004/02/skos/core#example"
+msgid "The probability scene labels ex:rainRateEss with an effective sample size of approximately 3200 and labels ex:rainRatePosteriorSample with 4000 draws. Neither label supplies a computed quantity, an ESS estimator, a chosen estimand or the draw data needed to assess that comparison."
+msgstr "概率场景为 ex:rainRateEss 标注约 3200 的有效样本量，并为 ex:rainRatePosteriorSample 标注 4000 次抽样。任一标签都不提供计算所得量、ESS 估计量、选定待估量或评估该比较所需抽样数据。"
+
+msgctxt "https://blackcatinformatics.ca/math/EffectiveSampleSize|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for a source's estimated independent-draw precision equivalence for a specified MCMC quantity, retaining the actual estimator, retained draw selection and uncertainty or failure information."
+msgstr "用于来源针对指定 MCMC 量估计的独立抽样精度等价关系，保留实际估计量、保留抽样项选择及不确定性或失败信息。"
+
+msgctxt "https://blackcatinformatics.ca/math/EffectiveSampleSize|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid interpreting the value as a literal count of independent draws, capping it at the raw count without a method-specific reason, or assigning one ESS to every posterior quantity. A large value does not prove mixing, convergence or a correct target model."
+msgstr "避免将该值解释为独立抽样项的字面计数、在没有方法特定理由时将其封顶于原始数量，或为每个后验量指定同一个 ESS。较大值不证明混合、收敛或目标模型正确。"
+
+msgctxt "https://blackcatinformatics.ca/math/EffectiveSampleSize|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Keep the EffectiveSampleSize record and its supplied generating-run and result evidence. Retain the estimand, estimator variant, chains and retention window actually used, together with the raw count when supplied; preserve a valid reported value above that count and do not derive an audited ESS from two descriptive labels."
+msgstr "保留 EffectiveSampleSize 记录及其所提供的生成运行和结果依据。保留实际使用的待估量、估计量变体、链及保留窗口，以及所提供的原始数量；保留高于该数量的有效报告值，不根据两个描述性标签推导经审计的 ESS。"
+
+msgctxt "https://blackcatinformatics.ca/math/RHat|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "R-hat"
+msgstr "R-hat"
+
+msgctxt "https://blackcatinformatics.ca/math/RHat|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An R-hat diagnostic: a scale-comparison diagnostic across MCMC chains, based on within-chain variability and a pooled variance estimate under a specified method. A subclass of math:ChainDiagnostic. Classical, split, rank-normalized and folded variants differ; it is not simply the raw between-chain to within-chain variance ratio. Values away from one can flag chain disagreement, while a value near one does not prove convergence, adequate exploration or correct inference."
+msgstr "R-hat 诊断：跨 MCMC 链的尺度比较诊断，基于指定方法下的链内变异及合并方差估计。它是 math:ChainDiagnostic 的子类。经典、拆分、秩归一化及折叠变体各不相同；它不只是原始链间方差与链内方差之比。偏离一的值可提示链间不一致，而接近一的值不证明收敛、充分探索或推断正确。"
+
+msgctxt "https://blackcatinformatics.ca/math/RHat|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Classical R-hat uses the square root of a pooled-variance to within-chain-variance comparison; modern variants change the data transformation or chain construction. Preserve the actual method, chain set and prerequisites. Agreement in a finite scalar summary can miss shared unexplored modes or other sampling failures."
+msgstr "经典 R-hat 使用合并方差与链内方差比较的平方根；现代变体改变数据变换或链构造。保留实际方法、链集合及前提。有限标量汇总中的一致可能遗漏各链共同未探索的模态或其他采样失败。"
+
+msgctxt "https://blackcatinformatics.ca/math/RHat|http://www.w3.org/2004/02/skos/core#example"
+msgid "The probability scene labels ex:rainRateRHat as R̂ = 1.001 (chains mixed) and links it to ex:rainRateMcmc through gmeow:wasGeneratedBy. The parenthetical is a source label, not a convergence proof; no estimator variant, computed quantity or chain data is supplied there."
+msgstr "概率场景为 ex:rainRateRHat 标注 R̂ = 1.001 (chains mixed)，并通过 gmeow:wasGeneratedBy 将其链接到 ex:rainRateMcmc。括号内容是来源标签，而非收敛证明；其中未提供估计量变体、计算所得量或链数据。"
+
+msgctxt "https://blackcatinformatics.ca/math/RHat|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for a source's reported R-hat assessment of specified chains and quantities when the actual estimator variant and supporting context can be retained, without promoting the scalar to a universal verdict."
+msgstr "用于来源对指定链及量报告的 R-hat 评估，并可保留实际估计量变体及支持上下文，不将标量提升为普遍判定。"
+
+msgctxt "https://blackcatinformatics.ca/math/RHat|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid reading a value near one as proof of convergence, interpreting the number as the raw between/within variance ratio, or inventing a method or threshold from the label. An unavailable or undefined R-hat must not become a default favorable value."
+msgstr "避免将接近一的值读作收敛证明、将数值解释为原始链间与链内方差之比，或根据标签编造方法或阈值。不可用或未定义的 R-hat 绝不能变成默认良好值。"
+
+msgctxt "https://blackcatinformatics.ca/math/RHat|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the RHat resource, its actual run, reported value and variant-specific chain and draw context. Preserve the source's accompanying claim separately from the evidence for it, and assess the method's prerequisites without fabricating chains, declaring convergence or treating different variants as identical."
+msgstr "保留 RHat 资源、实际运行、报告值及变体特定的链和抽样上下文。将来源随附声称与其依据分开保留，并评估方法前提，不编造链、不声明收敛，也不将不同变体视为相同。"
+
+msgctxt "https://blackcatinformatics.ca/math/DivergenceDiagnostic|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Divergence Diagnostic"
+msgstr "发散诊断"
+
+msgctxt "https://blackcatinformatics.ca/math/DivergenceDiagnostic|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A divergence diagnostic: a count or record of numerically problematic transitions detected in a Hamiltonian or NUTS MCMC run under the sampler's divergence criterion. A subclass of math:ChainDiagnostic. Such detections can warn of inaccurate exploration and biased estimates, but do not prove that a particular posterior region is inaccessible. An absence of detected divergences does not establish adequate exploration, convergence or valid inference."
+msgstr "发散诊断：在哈密顿或 NUTS MCMC 运行中，按采样器发散判据检测到的、存在数值问题的转移的计数或记录。它是 math:ChainDiagnostic 的子类。这些检测可警告探索不准确及估计有偏，但不证明某个特定后验区域不可达。未检测到发散不确立探索充分、收敛或推断有效。"
+
+msgctxt "https://blackcatinformatics.ca/math/DivergenceDiagnostic|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This concerns detected sampling-integration problems, not a distributional divergence such as an information distance. Counts depend on the sampler, detection criterion, transition selection and run context. A zero count reports no detections under that account; it is not proof that every relevant region was explored reliably."
+msgstr "此类涉及检测到的采样数值积分问题，而非信息距离之类的分布散度。计数取决于采样器、检测判据、转移选择及运行上下文。零计数报告在该说明下未检测到发散；它不证明每个相关区域都得到可靠探索。"
+
+msgctxt "https://blackcatinformatics.ca/math/DivergenceDiagnostic|http://www.w3.org/2004/02/skos/core#example"
+msgid "The probability scene declares ex:rainRateDivergences as DivergenceDiagnostic, labels it 0 divergent transitions and supplies gmeow:wasGeneratedBy ex:rainRateMcmc. The record supplies neither a structured count, detection criterion nor transition log, so the label is not an audited zero-divergence result."
+msgstr "概率场景将 ex:rainRateDivergences 声明为 DivergenceDiagnostic，标签为 0 divergent transitions，并提供 gmeow:wasGeneratedBy ex:rainRateMcmc。记录既不提供结构化计数，也不提供检测判据或转移日志，因此标签不是经审计的零发散结果。"
+
+msgctxt "https://blackcatinformatics.ca/math/DivergenceDiagnostic|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for a source's count or record of detected divergent transitions in a specified HMC or NUTS sampling run, preserving the detection method and whether the report concerns warm-up, retained sampling or another stated selection."
+msgstr "用于来源对指定 HMC 或 NUTS 采样运行中检测到的发散转移的计数或记录，保留检测方法及报告涉及预热、保留采样还是其他已陈述选择。"
+
+msgctxt "https://blackcatinformatics.ca/math/DivergenceDiagnostic|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating the count as an information-distance value, assigning zero when evidence is absent, or asserting that a detection proves a missed posterior region. A zero count does not certify convergence, unbiased estimates or posterior validity."
+msgstr "避免将计数视为信息距离值、在依据缺失时赋零，或断言检测证明遗漏了后验区域。零计数不证明收敛、估计无偏或后验有效。"
+
+msgctxt "https://blackcatinformatics.ca/math/DivergenceDiagnostic|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the DivergenceDiagnostic and its actual generating run, count or event records, detection criterion and transition selection as supplied. Keep potential-bias warnings and source claims attached to their evidence without inventing an event log, missing count, inaccessible region or successful diagnostic computation."
+msgstr "保留 DivergenceDiagnostic，以及按所提供内容保留其实际生成运行、计数或事件记录、检测判据及转移选择。将潜在偏差警告及来源声称保留在其依据上，不编造事件日志、缺失计数、不可达区域或成功诊断计算。"
