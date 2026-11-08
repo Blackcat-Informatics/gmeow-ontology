@@ -16336,3 +16336,173 @@ msgstr "Éviter de substituer une loi a priori, un échantillon ou une distribut
 msgctxt "https://blackcatinformatics.ca/math/hasPosterior|https://blackcatinformatics.ca/gmeow/howToUse"
 msgid "Keep the actual update or Bayesian interval/region as subject and the supplied PosteriorDistribution as object. For an update, retain its prior, likelihood and data context; for an interval or region, retain its bounds and posterior mass as supplied. Preserve missing-link and missing-mass evidence separately without inventing a posterior or a new update type."
 msgstr "Garder la mise à jour effective ou l’intervalle ou la région bayésienne comme sujet et la PosteriorDistribution fournie comme objet. Pour une mise à jour, conserver ses contextes de loi a priori, de vraisemblance et de données ; pour un intervalle ou une région, conserver ses bornes et sa masse a posteriori telles qu’elles sont fournies. Préserver séparément les éléments probants de lien manquant et de masse manquante sans inventer de loi a posteriori ni de nouveau type de mise à jour."
+
+# MCMC samples and diagnostics.
+
+msgctxt "https://blackcatinformatics.ca/math/PosteriorSample|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Posterior Sample"
+msgstr "Échantillon a posteriori"
+
+msgctxt "https://blackcatinformatics.ca/math/PosteriorSample|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A posterior sample: a collection of draws produced by a math:MCMCRun with the intent of approximating a math:PosteriorDistribution. A subclass of math:MathematicalObject. Repeated values remain distinct draws, and supplied ordering and chain membership are preserved. A declared sample or favorable math:ChainDiagnostic does not certify that the retained draws have the target law or that posterior inference is trustworthy."
+msgstr "Un échantillon a posteriori : une collection de tirages produits par un math:MCMCRun dans l’intention d’approximer une math:PosteriorDistribution. Sous-classe de math:MathematicalObject. Les valeurs répétées restent des tirages distincts, et l’ordre et l’appartenance aux chaînes fournis sont préservés. Un échantillon déclaré ou un math:ChainDiagnostic favorable ne certifie pas que les tirages conservés suivent la loi cible ni que l’inférence a posteriori est fiable."
+
+msgctxt "https://blackcatinformatics.ca/math/PosteriorSample|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This is the run's result collection, distinct from the target distribution, the sampling activity and a claim about either. Preserve multiplicity and whatever draw order, chain identity and retention selection the source actually supplies; do not invent them for an unordered or incompletely described collection."
+msgstr "Il s’agit de la collection résultant de l’exécution, distincte de la loi cible, de l’activité d’échantillonnage et d’une affirmation concernant l’une ou l’autre. Préserver la multiplicité ainsi que l’ordre des tirages, l’identité des chaînes et la sélection des tirages conservés effectivement fournis par la source ; ne pas les inventer pour une collection non ordonnée ou incomplètement décrite."
+
+msgctxt "https://blackcatinformatics.ca/math/PosteriorSample|http://www.w3.org/2004/02/skos/core#example"
+msgid "The probability scene declares ex:rainRatePosteriorSample as PosteriorSample and links it to ex:rainRateMcmc through gmeow:wasGeneratedBy. Its label mentions 4000 draws, but the record supplies neither draw values nor chain membership, ordering or a sample-to-posterior link."
+msgstr "La scène de probabilité déclare ex:rainRatePosteriorSample comme PosteriorSample et le relie à ex:rainRateMcmc par gmeow:wasGeneratedBy. Son libellé mentionne 4000 tirages, mais l’enregistrement ne fournit ni valeurs de tirage, ni appartenance aux chaînes, ni ordre, ni lien de l’échantillon vers la loi a posteriori."
+
+msgctxt "https://blackcatinformatics.ca/math/PosteriorSample|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for a supplied collection of retained draws intended to approximate a posterior through MCMC, preserving its actual generating run and source selection of draws."
+msgstr "Utiliser pour une collection fournie de tirages conservés visant à approximer une loi a posteriori par MCMC, en préservant l’exécution génératrice effective et la sélection des tirages de la source."
+
+msgctxt "https://blackcatinformatics.ca/math/PosteriorSample|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid deduplicating repeated values, treating correlated draws as independent, or identifying the sample with the posterior law. A count in a label, a generation link or a diagnostic value alone does not establish the draw collection or its validity."
+msgstr "Éviter de dédupliquer les valeurs répétées, de traiter des tirages corrélés comme indépendants ou d’identifier l’échantillon à la loi a posteriori. Un nombre dans un libellé, un lien de génération ou une valeur diagnostique ne suffit pas à établir la collection de tirages ou sa validité."
+
+msgctxt "https://blackcatinformatics.ca/math/PosteriorSample|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Type the supplied result as PosteriorSample, retain its actual gmeow:wasGeneratedBy link and preserve the available draws, multiplicity, chain membership, order and retention account in their source representation. Keep target-posterior and diagnostic evidence separately identified without inventing a relation, missing draws or a completed sampling run."
+msgstr "Typer le résultat fourni comme PosteriorSample, conserver son lien gmeow:wasGeneratedBy effectif et préserver les tirages disponibles, leur multiplicité, leur appartenance aux chaînes, leur ordre et la description de leur sélection dans leur représentation source. Identifier séparément les éléments probants de loi a posteriori cible et de diagnostic sans inventer de relation, de tirages manquants ou d’exécution d’échantillonnage achevée."
+
+msgctxt "https://blackcatinformatics.ca/math/MCMCRun|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "MCMC Run"
+msgstr "Exécution MCMC"
+
+msgctxt "https://blackcatinformatics.ca/math/MCMCRun|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A Markov-chain Monte Carlo run: a sampling activity targeting a posterior distribution and intended to produce a math:PosteriorSample. A subclass of gmeow:Activity, distinct from its result sample and from claims about the target or inference. Initialization, adaptation and finite-run behavior affect the result; neither a declared run nor its math:ChainDiagnostic records guarantee posterior-distributed draws or trustworthy inference."
+msgstr "Une exécution de Monte-Carlo par chaînes de Markov : une activité d’échantillonnage ciblant une loi a posteriori et destinée à produire un math:PosteriorSample. Sous-classe de gmeow:Activity, distincte de son échantillon résultat et des affirmations sur la cible ou l’inférence. L’initialisation, l’adaptation et le comportement en durée finie influencent le résultat ; ni une exécution déclarée ni ses enregistrements math:ChainDiagnostic ne garantissent des tirages suivant la loi a posteriori ou une inférence fiable."
+
+msgctxt "https://blackcatinformatics.ca/math/MCMCRun|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The run is a process with a specified sampling method and target, not the target law or the retained sample. Multiple chains and their warm-up, adaptation and retained-draw selections remain part of the supplied execution context. Declaring those roles does not establish that the process executed or reached stationarity."
+msgstr "L’exécution est un processus dont la méthode d’échantillonnage et la cible sont spécifiées, non la loi cible ou l’échantillon conservé. Les chaînes multiples ainsi que leur mise en régime, leur adaptation et leurs sélections de tirages conservés restent partie intégrante du contexte d’exécution fourni. Déclarer ces rôles n’établit pas que le processus a été exécuté ou a atteint la stationnarité."
+
+msgctxt "https://blackcatinformatics.ca/math/MCMCRun|http://www.w3.org/2004/02/skos/core#example"
+msgid "The probability scene declares ex:rainRateMcmc as MCMCRun with gmeow:eventTemporalFrame ex:utcFrame. The sample and diagnostics name that run through gmeow:wasGeneratedBy, but no transition history, chain inventory or structured run-to-target-posterior link is supplied there."
+msgstr "La scène de probabilité déclare ex:rainRateMcmc comme MCMCRun avec gmeow:eventTemporalFrame ex:utcFrame. L’échantillon et les diagnostics nomment cette exécution par gmeow:wasGeneratedBy, mais aucun historique de transitions, inventaire de chaînes ou lien structuré de l’exécution vers la loi a posteriori cible n’y est fourni."
+
+msgctxt "https://blackcatinformatics.ca/math/MCMCRun|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to identify an actual or explicitly described MCMC sampling activity, retaining the source's distinction between an execution record and an illustrative declaration and between the activity, target and resulting draws."
+msgstr "Utiliser pour identifier une activité d’échantillonnage MCMC effective ou explicitement décrite, en conservant la distinction de la source entre un enregistrement d’exécution et une déclaration illustrative, ainsi qu’entre l’activité, la cible et les tirages résultants."
+
+msgctxt "https://blackcatinformatics.ca/math/MCMCRun|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating an Activity type, sampler label or temporal-frame link as evidence of executed transitions, independent posterior draws or convergence. Do not infer a target posterior from a nearby resource name or use the sample itself as the generating activity."
+msgstr "Éviter de traiter un type Activity, un libellé d’échantillonneur ou un lien de cadre temporel comme un élément probant de transitions exécutées, de tirages a posteriori indépendants ou de convergence. Ne pas inférer une loi a posteriori cible du nom d’une ressource voisine ni utiliser l’échantillon lui-même comme activité génératrice."
+
+msgctxt "https://blackcatinformatics.ca/math/MCMCRun|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Keep the run as MCMCRun and retain products' actual gmeow:wasGeneratedBy links to it. Preserve supplied target, method, initialization, chain, adaptation, retention and timing evidence in their existing representation; report missing execution context without fabricating a sampler, posterior link, transition trace or diagnostic computation."
+msgstr "Garder l’exécution comme MCMCRun et conserver les liens gmeow:wasGeneratedBy effectifs des produits vers elle. Préserver les éléments probants fournis de cible, de méthode, d’initialisation, de chaîne, d’adaptation, de sélection et de chronologie dans leur représentation existante ; signaler le contexte d’exécution manquant sans fabriquer d’échantillonneur, de lien a posteriori, de trace de transitions ou de calcul diagnostique."
+
+msgctxt "https://blackcatinformatics.ca/math/ChainDiagnostic|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Chain Diagnostic"
+msgstr "Diagnostic de chaîne"
+
+msgctxt "https://blackcatinformatics.ca/math/ChainDiagnostic|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A chain diagnostic: a computed measure or record concerning specified aspects of a math:MCMCRun's sampling, including math:EffectiveSampleSize, math:RHat and math:DivergenceDiagnostic. A subclass of math:MathematicalObject. Its interpretation depends on the actual estimator or detection method, chains, draw selection and relevant estimand. Diagnostics provide limited evidence about sampling; they do not structurally certify posterior validity, convergence or trustworthy inference."
+msgstr "Un diagnostic de chaîne : une mesure calculée ou un enregistrement concernant des aspects spécifiés de l’échantillonnage d’un math:MCMCRun, notamment math:EffectiveSampleSize, math:RHat et math:DivergenceDiagnostic. Sous-classe de math:MathematicalObject. Son interprétation dépend de l’estimateur ou de la méthode de détection effectifs, des chaînes, de la sélection des tirages et de l’estimande pertinente. Les diagnostics fournissent des éléments probants limités sur l’échantillonnage ; ils ne certifient pas structurellement la validité de la loi a posteriori, la convergence ou la fiabilité de l’inférence."
+
+msgctxt "https://blackcatinformatics.ca/math/ChainDiagnostic|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This is the local umbrella for sampling diagnostics, rather than a generic model-fit statistic or a validity certificate. Different diagnostics address different failure modes and can be uninformative outside their method's prerequisites. A declared diagnostic resource does not establish a computed result or a complete assessment."
+msgstr "Il s’agit de la catégorie locale englobant les diagnostics d’échantillonnage, plutôt que d’une statistique générique d’ajustement du modèle ou d’un certificat de validité. Différents diagnostics visent différents modes de défaillance et peuvent être non informatifs en dehors des prérequis de leur méthode. Une ressource diagnostique déclarée n’établit pas de résultat calculé ni d’évaluation complète."
+
+msgctxt "https://blackcatinformatics.ca/math/ChainDiagnostic|http://www.w3.org/2004/02/skos/core#example"
+msgid "The probability scene declares ex:rainRateRHat, ex:rainRateEss and ex:rainRateDivergences and gives each gmeow:wasGeneratedBy ex:rainRateMcmc. Their labels describe results, but the records contain no structured computed values, estimator specifications or supporting chain data."
+msgstr "La scène de probabilité déclare ex:rainRateRHat, ex:rainRateEss et ex:rainRateDivergences et donne à chacun gmeow:wasGeneratedBy ex:rainRateMcmc. Leurs libellés décrivent des résultats, mais les enregistrements ne contiennent ni valeurs calculées structurées, ni spécifications d’estimateurs, ni données de chaînes à l’appui."
+
+msgctxt "https://blackcatinformatics.ca/math/ChainDiagnostic|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for a supplied sampling diagnostic whose generating run and specific diagnostic meaning can be retained, including evidence that warns of a problem without settling every aspect of inference quality."
+msgstr "Utiliser pour un diagnostic d’échantillonnage fourni dont l’exécution génératrice et le sens diagnostique précis peuvent être conservés, y compris des éléments probants qui avertissent d’un problème sans trancher tous les aspects de la qualité de l’inférence."
+
+msgctxt "https://blackcatinformatics.ca/math/ChainDiagnostic|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid turning a diagnostic type or favorable label into a convergence, correctness or trust guarantee. Missing diagnostic data is not a favorable result, and different estimators or chain selections are not interchangeable merely because they share a label."
+msgstr "Éviter de transformer un type diagnostique ou un libellé favorable en garantie de convergence, de correction ou de fiabilité. Des données diagnostiques manquantes ne constituent pas un résultat favorable, et des estimateurs ou sélections de chaînes différents ne sont pas interchangeables du seul fait qu’ils partagent un libellé."
+
+msgctxt "https://blackcatinformatics.ca/math/ChainDiagnostic|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the concrete diagnostic subtype, actual generating run and supplied result, method, chain selection, draw window and estimand context. Preserve warnings and qualification limits with that evidence; do not invent numeric values, default success, a universal threshold or a computation from a label."
+msgstr "Conserver le sous-type diagnostique concret, l’exécution génératrice effective et les contextes fournis de résultat, de méthode, de sélection des chaînes, de fenêtre de tirages et d’estimande. Préserver les avertissements et les limites de qualification avec ces éléments probants ; ne pas inventer de valeurs numériques, de succès par défaut, de seuil universel ou de calcul à partir d’un libellé."
+
+msgctxt "https://blackcatinformatics.ca/math/EffectiveSampleSize|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Effective Sample Size"
+msgstr "Taille effective de l’échantillon"
+
+msgctxt "https://blackcatinformatics.ca/math/EffectiveSampleSize|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An effective sample size diagnostic for MCMC: an estimated number of independent draws giving comparable Monte Carlo precision for a specified estimand and estimator. A subclass of math:ChainDiagnostic. It is a precision comparison rather than a count of actual independent draws, depends on the estimation method and retained chains, and can exceed the raw draw count under negative autocorrelation. A low value can indicate imprecise estimation of the quantity assessed; it does not by itself establish posterior correctness or convergence."
+msgstr "Un diagnostic de taille effective de l’échantillon pour MCMC : un nombre estimé de tirages indépendants donnant une précision Monte-Carlo comparable pour une estimande et un estimateur spécifiés. Sous-classe de math:ChainDiagnostic. Il s’agit d’une comparaison de précision plutôt que d’un dénombrement de tirages effectivement indépendants ; il dépend de la méthode d’estimation et des chaînes conservées et peut dépasser le nombre brut de tirages en présence d’autocorrélation négative. Une valeur faible peut indiquer une estimation imprécise de la quantité évaluée ; elle n’établit pas à elle seule la correction de la loi a posteriori ou la convergence."
+
+msgctxt "https://blackcatinformatics.ca/math/EffectiveSampleSize|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Effective sample size is specific to the quantity and method assessed; bulk, tail and other estimands need not have the same value. Positive serial dependence often lowers precision relative to independent draws, while negative dependence can improve it. Preserve the estimator and its assumptions rather than imposing a universal upper bound at the number of retained draws."
+msgstr "La taille effective de l’échantillon est propre à la quantité et à la méthode évaluées ; sa valeur peut différer selon que l’estimande concerne la partie centrale, les queues ou une autre quantité. Une dépendance sérielle positive réduit souvent la précision par rapport à des tirages indépendants, tandis qu’une dépendance négative peut l’améliorer. Préserver l’estimateur et ses hypothèses au lieu d’imposer une borne supérieure universelle au nombre de tirages conservés."
+
+msgctxt "https://blackcatinformatics.ca/math/EffectiveSampleSize|http://www.w3.org/2004/02/skos/core#example"
+msgid "The probability scene labels ex:rainRateEss with an effective sample size of approximately 3200 and labels ex:rainRatePosteriorSample with 4000 draws. Neither label supplies a computed quantity, an ESS estimator, a chosen estimand or the draw data needed to assess that comparison."
+msgstr "La scène de probabilité donne à ex:rainRateEss un libellé indiquant une taille effective de l’échantillon d’environ 3200 et à ex:rainRatePosteriorSample un libellé indiquant 4000 tirages. Aucun des deux libellés ne fournit de quantité calculée, d’estimateur ESS, d’estimande choisie ou de données de tirage nécessaires pour évaluer cette comparaison."
+
+msgctxt "https://blackcatinformatics.ca/math/EffectiveSampleSize|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for a source's estimated independent-draw precision equivalence for a specified MCMC quantity, retaining the actual estimator, retained draw selection and uncertainty or failure information."
+msgstr "Utiliser pour l’équivalence estimée de précision en tirages indépendants fournie par une source pour une quantité MCMC spécifiée, en conservant l’estimateur effectif, la sélection des tirages conservés et les informations d’incertitude ou d’échec."
+
+msgctxt "https://blackcatinformatics.ca/math/EffectiveSampleSize|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid interpreting the value as a literal count of independent draws, capping it at the raw count without a method-specific reason, or assigning one ESS to every posterior quantity. A large value does not prove mixing, convergence or a correct target model."
+msgstr "Éviter d’interpréter la valeur comme un dénombrement littéral de tirages indépendants, de la plafonner au nombre brut sans raison propre à la méthode ou d’attribuer une même ESS à toute quantité a posteriori. Une valeur élevée ne prouve ni mélange, ni convergence, ni correction du modèle cible."
+
+msgctxt "https://blackcatinformatics.ca/math/EffectiveSampleSize|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Keep the EffectiveSampleSize record and its supplied generating-run and result evidence. Retain the estimand, estimator variant, chains and retention window actually used, together with the raw count when supplied; preserve a valid reported value above that count and do not derive an audited ESS from two descriptive labels."
+msgstr "Garder l’enregistrement EffectiveSampleSize et ses éléments probants fournis d’exécution génératrice et de résultat. Conserver l’estimande, la variante d’estimateur, les chaînes et la fenêtre de sélection effectivement utilisées, avec le nombre brut lorsqu’il est fourni ; préserver une valeur rapportée valide supérieure à ce nombre et ne pas déduire une ESS auditée de deux libellés descriptifs."
+
+msgctxt "https://blackcatinformatics.ca/math/RHat|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "R-hat"
+msgstr "R-hat"
+
+msgctxt "https://blackcatinformatics.ca/math/RHat|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An R-hat diagnostic: a scale-comparison diagnostic across MCMC chains, based on within-chain variability and a pooled variance estimate under a specified method. A subclass of math:ChainDiagnostic. Classical, split, rank-normalized and folded variants differ; it is not simply the raw between-chain to within-chain variance ratio. Values away from one can flag chain disagreement, while a value near one does not prove convergence, adequate exploration or correct inference."
+msgstr "Un diagnostic R-hat : un diagnostic de comparaison d’échelle entre chaînes MCMC, fondé sur la variabilité intra-chaîne et une estimation de variance combinée selon une méthode spécifiée. Sous-classe de math:ChainDiagnostic. Les variantes classique, scindée, normalisée par les rangs et repliée diffèrent ; il ne s’agit pas simplement du rapport brut de la variance inter-chaînes à la variance intra-chaîne. Des valeurs éloignées de un peuvent signaler un désaccord entre chaînes, tandis qu’une valeur proche de un ne prouve ni convergence, ni exploration adéquate, ni correction de l’inférence."
+
+msgctxt "https://blackcatinformatics.ca/math/RHat|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Classical R-hat uses the square root of a pooled-variance to within-chain-variance comparison; modern variants change the data transformation or chain construction. Preserve the actual method, chain set and prerequisites. Agreement in a finite scalar summary can miss shared unexplored modes or other sampling failures."
+msgstr "Le R-hat classique utilise la racine carrée d’une comparaison de la variance combinée à la variance intra-chaîne ; les variantes modernes modifient la transformation des données ou la construction des chaînes. Préserver la méthode effective, l’ensemble de chaînes et les prérequis. L’accord dans un résumé scalaire fini peut ne pas révéler des modes que toutes les chaînes laissent inexplorés ou d’autres défaillances d’échantillonnage."
+
+msgctxt "https://blackcatinformatics.ca/math/RHat|http://www.w3.org/2004/02/skos/core#example"
+msgid "The probability scene labels ex:rainRateRHat as R̂ = 1.001 (chains mixed) and links it to ex:rainRateMcmc through gmeow:wasGeneratedBy. The parenthetical is a source label, not a convergence proof; no estimator variant, computed quantity or chain data is supplied there."
+msgstr "La scène de probabilité donne à ex:rainRateRHat le libellé R̂ = 1.001 (chains mixed) et le relie à ex:rainRateMcmc par gmeow:wasGeneratedBy. La parenthèse est un libellé source, non une preuve de convergence ; aucune variante d’estimateur, quantité calculée ou donnée de chaîne n’y est fournie."
+
+msgctxt "https://blackcatinformatics.ca/math/RHat|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for a source's reported R-hat assessment of specified chains and quantities when the actual estimator variant and supporting context can be retained, without promoting the scalar to a universal verdict."
+msgstr "Utiliser pour une évaluation R-hat rapportée par une source concernant des chaînes et des quantités spécifiées lorsque la variante d’estimateur effective et le contexte à l’appui peuvent être conservés, sans promouvoir le scalaire en verdict universel."
+
+msgctxt "https://blackcatinformatics.ca/math/RHat|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid reading a value near one as proof of convergence, interpreting the number as the raw between/within variance ratio, or inventing a method or threshold from the label. An unavailable or undefined R-hat must not become a default favorable value."
+msgstr "Éviter de lire une valeur proche de un comme une preuve de convergence, d’interpréter le nombre comme le rapport brut de variance inter-chaînes sur intra-chaîne ou d’inventer une méthode ou un seuil à partir du libellé. Un R-hat indisponible ou indéfini ne doit pas devenir une valeur favorable par défaut."
+
+msgctxt "https://blackcatinformatics.ca/math/RHat|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the RHat resource, its actual run, reported value and variant-specific chain and draw context. Preserve the source's accompanying claim separately from the evidence for it, and assess the method's prerequisites without fabricating chains, declaring convergence or treating different variants as identical."
+msgstr "Conserver la ressource RHat, son exécution effective, sa valeur rapportée et son contexte de chaînes et de tirages propre à la variante. Préserver l’affirmation associée de la source séparément des éléments probants qui l’étayent et évaluer les prérequis de la méthode sans fabriquer de chaînes, déclarer la convergence ou traiter des variantes différentes comme identiques."
+
+msgctxt "https://blackcatinformatics.ca/math/DivergenceDiagnostic|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Divergence Diagnostic"
+msgstr "Diagnostic de divergence"
+
+msgctxt "https://blackcatinformatics.ca/math/DivergenceDiagnostic|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A divergence diagnostic: a count or record of numerically problematic transitions detected in a Hamiltonian or NUTS MCMC run under the sampler's divergence criterion. A subclass of math:ChainDiagnostic. Such detections can warn of inaccurate exploration and biased estimates, but do not prove that a particular posterior region is inaccessible. An absence of detected divergences does not establish adequate exploration, convergence or valid inference."
+msgstr "Un diagnostic de divergence : un dénombrement ou un enregistrement de transitions numériquement problématiques détectées dans une exécution MCMC hamiltonienne ou NUTS selon le critère de divergence de l’échantillonneur. Sous-classe de math:ChainDiagnostic. Ces détections peuvent avertir d’une exploration inexacte et d’estimations biaisées, mais ne prouvent pas qu’une région a posteriori particulière est inaccessible. L’absence de divergences détectées n’établit ni exploration adéquate, ni convergence, ni validité de l’inférence."
+
+msgctxt "https://blackcatinformatics.ca/math/DivergenceDiagnostic|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This concerns detected sampling-integration problems, not a distributional divergence such as an information distance. Counts depend on the sampler, detection criterion, transition selection and run context. A zero count reports no detections under that account; it is not proof that every relevant region was explored reliably."
+msgstr "Cela concerne les problèmes détectés d’intégration dans l’échantillonnage, non une divergence entre distributions telle qu’une distance informationnelle. Les dénombrements dépendent de l’échantillonneur, du critère de détection, de la sélection des transitions et du contexte d’exécution. Un nombre nul ne rapporte aucune détection selon cette description ; ce n’est pas une preuve que toutes les régions pertinentes ont été explorées de façon fiable."
+
+msgctxt "https://blackcatinformatics.ca/math/DivergenceDiagnostic|http://www.w3.org/2004/02/skos/core#example"
+msgid "The probability scene declares ex:rainRateDivergences as DivergenceDiagnostic, labels it 0 divergent transitions and supplies gmeow:wasGeneratedBy ex:rainRateMcmc. The record supplies neither a structured count, detection criterion nor transition log, so the label is not an audited zero-divergence result."
+msgstr "La scène de probabilité déclare ex:rainRateDivergences comme DivergenceDiagnostic, lui donne un libellé indiquant 0 transitions divergentes et fournit gmeow:wasGeneratedBy ex:rainRateMcmc. L’enregistrement ne fournit ni dénombrement structuré, ni critère de détection, ni journal de transitions ; le libellé n’est donc pas un résultat audité d’absence de divergences."
+
+msgctxt "https://blackcatinformatics.ca/math/DivergenceDiagnostic|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for a source's count or record of detected divergent transitions in a specified HMC or NUTS sampling run, preserving the detection method and whether the report concerns warm-up, retained sampling or another stated selection."
+msgstr "Utiliser pour le dénombrement ou l’enregistrement, fourni par une source, de transitions divergentes détectées dans une exécution d’échantillonnage HMC ou NUTS spécifiée, en préservant la méthode de détection et l’indication que le rapport concerne la mise en régime, l’échantillonnage conservé ou une autre sélection déclarée."
+
+msgctxt "https://blackcatinformatics.ca/math/DivergenceDiagnostic|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating the count as an information-distance value, assigning zero when evidence is absent, or asserting that a detection proves a missed posterior region. A zero count does not certify convergence, unbiased estimates or posterior validity."
+msgstr "Éviter de traiter le dénombrement comme une valeur de distance informationnelle, d’attribuer zéro lorsque les éléments probants sont absents ou d’affirmer qu’une détection prouve une région a posteriori manquée. Un nombre nul ne certifie ni convergence, ni estimations non biaisées, ni validité de la loi a posteriori."
+
+msgctxt "https://blackcatinformatics.ca/math/DivergenceDiagnostic|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the DivergenceDiagnostic and its actual generating run, count or event records, detection criterion and transition selection as supplied. Keep potential-bias warnings and source claims attached to their evidence without inventing an event log, missing count, inaccessible region or successful diagnostic computation."
+msgstr "Conserver le DivergenceDiagnostic et son exécution génératrice effective, son dénombrement ou ses enregistrements d’événements, son critère de détection et sa sélection des transitions tels qu’ils sont fournis. Garder les avertissements de biais potentiel et les affirmations sources attachés à leurs éléments probants sans inventer de journal d’événements, de dénombrement manquant, de région inaccessible ou de calcul diagnostique réussi."

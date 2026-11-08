@@ -278,9 +278,9 @@ ex:forecastWorld a logic:World ;
     logic:probabilityModel ex:sprinklerNet .
 
 # =========================================================================== #
-# 6. The first-class Bayesian update chain and its MCMC trustworthiness           #
-#    diagnostics — prior / likelihood / posterior linked, the posterior sampled   #
-#    by an MCMC run whose health is answerable (R-hat, ESS, divergences).          #
+# 6. Declared Bayesian update, sample and diagnostic roles.                     #
+#    Prior / likelihood / posterior links and MCMC generation links are named; #
+#    these records do not establish sampling execution or diagnostic results.  #
 # =========================================================================== #
 
 ex:rainRatePrior a math:PriorDistribution ;
@@ -306,8 +306,10 @@ ex:rainRateUpdate a math:MathematicalObject ;
     math:hasLikelihood ex:rainRateLikelihood ;
     math:hasPosterior ex:rainRatePosterior .
 
-# The posterior is SAMPLED, not closed-form: an MCMC run (a process, a gmeow:Activity)
-# draws a posterior sample, and its trustworthiness is answerable through the diagnostics.
+# This scene declares an MCMC run and sample/diagnostic generation links.
+# It supplies no draw collection, transition history or structured target link.
+# The following counts and R-hat/ESS values occur only in labels, not computed
+# result fields; they provide no estimator specification or convergence proof.
 ex:rainRateMcmc a math:MCMCRun ;
     rdfs:label "NUTS sampler run for the rain-rate posterior"@x-gmeow-english ;
     gmeow:eventTemporalFrame ex:utcFrame .
