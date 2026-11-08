@@ -43,10 +43,7 @@ enum Declaration {
 }
 
 pub(crate) fn valid_checksum(value: &str) -> bool {
-    value.len() == 64
-        && value
-            .bytes()
-            .all(|byte| byte.is_ascii_digit() || (b'a'..=b'f').contains(&byte))
+    value.len() == 64 && purrdf_hash::hex::decode_canonical(value).is_ok()
 }
 
 fn source(name: &str, value: &toml::Value) -> Option<Declaration> {

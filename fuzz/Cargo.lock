@@ -363,6 +363,7 @@ dependencies = [
  "glob",
  "gmeow-errors",
  "proc-macro2",
+ "purrdf-hash",
  "purrdf-lex",
  "semver",
  "sha2 0.10.9",
