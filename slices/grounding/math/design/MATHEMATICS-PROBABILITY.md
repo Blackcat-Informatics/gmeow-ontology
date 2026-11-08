@@ -103,9 +103,10 @@ Core properties: `math:randomVariableDomain`, `math:randomVariableCodomain`,
 
 A random variable is a measurable map with a declared domain and codomain
 (`math:randomVariableDomain`/`math:randomVariableCodomain`) and a probability-space or distribution
-context. A distribution carries a support (`math:hasSupport`) and moments (`math:hasMoment`,
-specialized as `math:ExpectedValue`, `math:Variance`, `math:Covariance`, `math:Correlation`);
-moments are quantity-valued results, not literals.
+context. A distribution carries a support (`math:hasSupport`) and may have supplied,
+mathematically well-defined moment or summary results (`math:hasMoment`, specialized as
+`math:ExpectedValue`, `math:Variance`, `math:Covariance`, `math:Correlation`); those results are
+quantity-valued objects, not literals. Their existence is not guaranteed for every distribution.
 
 **Dimensional constraints are carried, not assumed.** A random variable over height and its
 distribution's location parameter share height units; a variance parameter carries squared units; a

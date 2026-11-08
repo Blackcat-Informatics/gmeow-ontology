@@ -15388,3 +15388,171 @@ msgstr "避免将平方量纲解释为数值平方运算、为方差要求接受
 msgctxt "https://blackcatinformatics.ca/math/squareOfRandomVariableDimension|https://blackcatinformatics.ca/gmeow/howToUse"
 msgid "Point quantityDimension from the role to math:squareOfRandomVariableDimension and retain the actual hasDimension and association paths. Preserve structured exponent data and comparison evidence where supplied; no conversion, numerical variance or successful check follows from the relation name alone."
 msgstr "从角色通过 quantityDimension 指向 math:squareOfRandomVariableDimension，并保留实际 hasDimension 及关联路径。保留所提供的结构化指数数据及比较依据；仅有关系名称不意味着转换、数值方差或检查成功。"
+
+msgctxt "https://blackcatinformatics.ca/math/Moment|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Moment"
+msgstr "矩"
+
+msgctxt "https://blackcatinformatics.ca/math/Moment|http://www.w3.org/2004/02/skos/core#definition"
+msgid "In this vocabulary, a quantity-valued summary of a distribution or random variable — an expectation, a variance, a covariance or a correlation — named through math:hasMoment. A subclass of math:MathematicalObject and the parent of math:ExpectedValue, math:Variance, math:Covariance, and math:Correlation. A moment is a QUANTITY-valued result object carrying its dimension, never a bare literal: an expectation over height carries height units, a variance squared units, a correlation is dimensionless."
+msgstr "在本词汇中，以量为值的分布或随机变量汇总结果，例如期望、方差、协方差或相关系数，通过 math:hasMoment 指明。它是 math:MathematicalObject 的子类，也是 math:ExpectedValue、math:Variance、math:Covariance 和 math:Correlation 的父类。矩是承载其量纲、以量为值的结果对象，绝非孤立字面量：高度的期望具有高度单位，方差具有平方单位，相关系数无量纲。"
+
+msgctxt "https://blackcatinformatics.ca/math/Moment|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Moment is the local result-family umbrella, including normalized correlation; it is broader than raw mathematical moments E[Xⁿ]. Existence and dimensional meaning depend on the supplied law and summary kind, and the type alone establishes neither a finite value nor a computation."
+msgstr "Moment 是本词汇中的结果族总称，包括归一化相关系数，其范围比数学上的原点矩 E[Xⁿ] 更广。存在性及量纲含义取决于所提供的分布律和汇总种类，仅有类型既不确立有限值，也不确立计算。"
+
+msgctxt "https://blackcatinformatics.ca/math/Moment|http://www.w3.org/2004/02/skos/core#example"
+msgid "As a mathematical illustration, let X take 1 m and 3 m with equal probabilities. Its expected value is 2 m and its variance is 1 m²; these are distinct summary results, not an asserted pair of existing RDF records."
+msgstr "作为数学示意，设 X 以相等概率取 1 m 和 3 m。其期望值为 2 m，方差为 1 m²；这些是不同的汇总结果，并非对一对现有 RDF 记录的断言。"
+
+msgctxt "https://blackcatinformatics.ca/math/Moment|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for a supplied moment or summary result of an identified distribution or random variable, retaining its mathematical kind, dimension and actual probability context."
+msgstr "用于已指明分布或随机变量的所提供矩或汇总结果，保留其数学种类、量纲及实际概率上下文。"
+
+msgctxt "https://blackcatinformatics.ca/math/Moment|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid assuming every distribution has every moment, treating a correlation as an unnormalized raw moment, or replacing a result object with a bare literal. A summary is distinct from a procedure that computes it or a claim about it."
+msgstr "避免假定每个分布都具有每种矩、将相关系数视为未归一化的原点矩，或以孤立字面量替代结果对象。汇总结果不同于计算它的过程或关于它的声称。"
+
+msgctxt "https://blackcatinformatics.ca/math/Moment|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Type the supplied result with Moment or its appropriate existing subclass and retain its actual hasMoment association, dimensional account and evidence. Preserve coexisting contextual results and the supplied value representation; the link proves no evaluation and the quantity-valued description does not identify the result resource with a Quantity."
+msgstr "将所提供结果标注为 Moment 或其适当的现有子类，并保留其实际 hasMoment 关联、量纲说明及依据。保留并存的上下文结果及所提供的值表示；链接不证明求值，以量为值的描述也不将结果资源等同于 Quantity。"
+
+msgctxt "https://blackcatinformatics.ca/math/ExpectedValue|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Expected Value"
+msgstr "期望值"
+
+msgctxt "https://blackcatinformatics.ca/math/ExpectedValue|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The expected value E[X]: the first moment of a random variable, the integral of the variable against its probability measure (a math:Integral against a math:ProbabilityMeasure). A subclass of math:Moment. It carries the same dimension as the random variable it is taken over."
+msgstr "期望值 E[X]：随机变量的一阶矩，即该变量关于其概率测度的积分，也就是关于 math:ProbabilityMeasure 的 math:Integral。它是 math:Moment 的子类。它与所考察随机变量具有相同量纲。"
+
+msgctxt "https://blackcatinformatics.ca/math/ExpectedValue|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "For a finite real expectation, the random variable must be integrable: E[|X|] < ∞ in the stated probability setting. The defining integral is not a guarantee that a finite result exists, and the result has the variable's physical dimension."
+msgstr "对于有限实数期望，随机变量必须可积：在所述概率设定下 E[|X|] < ∞。定义所用积分不保证有限结果存在，结果具有变量的物理量纲。"
+
+msgctxt "https://blackcatinformatics.ca/math/ExpectedValue|http://www.w3.org/2004/02/skos/core#example"
+msgid "As a mathematical illustration, if X takes 1 m and 3 m with equal probabilities, E[X] = 2 m. The value summarizes the law; it is neither one realized observation nor evidence that an RDF result has been computed."
+msgstr "作为数学示意，若 X 以相等概率取 1 m 和 3 m，则 E[X] = 2 m。该值汇总分布律；它既不是一次已实现观测，也不是 RDF 结果已计算的依据。"
+
+msgctxt "https://blackcatinformatics.ca/math/ExpectedValue|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for a source-supplied expected-value result with an identified random variable or distribution and evidence for the applicable existence conditions."
+msgstr "用于来源提供的期望值结果，具有已指明的随机变量或分布，以及适用存在条件的依据。"
+
+msgctxt "https://blackcatinformatics.ca/math/ExpectedValue|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid identifying expectation with a most likely outcome, median, observed value or family location parameter without mathematical justification. Do not replace divergence or an undefined expectation with zero or invent an infinite-result representation."
+msgstr "避免在没有数学依据时将期望等同于最可能结果、中位数、观测值或分布族位置参数。不要以零替代发散或未定义的期望，也不编造无穷结果表示。"
+
+msgctxt "https://blackcatinformatics.ca/math/ExpectedValue|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the ExpectedValue result, its actual hasMoment association, the supplied probability setting and its dimensional account. The same physical dimension as the variable does not itself establish equal units, a reference-frame conversion, a numeric value or a successful integral evaluation."
+msgstr "保留 ExpectedValue 结果、其实际 hasMoment 关联、所提供的概率设定及量纲说明。与变量具有相同物理量纲本身不确立单位相同、参考系转换、数值或积分求值成功。"
+
+msgctxt "https://blackcatinformatics.ca/math/Variance|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Variance"
+msgstr "方差"
+
+msgctxt "https://blackcatinformatics.ca/math/Variance|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The variance Var(X) = E[(X − E[X])²]: the second central moment of a random variable. A subclass of math:Moment. It carries the SQUARED dimension of the random variable — a variance of a height carries length², which is why a variance-parameterized family and a stddev-parameterized family carry different dimensions on their scale role."
+msgstr "方差 Var(X) = E[(X − E[X])²]：随机变量的二阶中心矩。它是 math:Moment 的子类。它具有随机变量的平方量纲；高度的方差具有 length²，因此以方差参数化和以标准差参数化的分布族，其尺度角色具有不同量纲。"
+
+msgctxt "https://blackcatinformatics.ca/math/Variance|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Variance is the second central moment, distinct from an uncentered second moment and from standard deviation. A finite second moment suffices for a finite real variance; zero variance is allowed and does not make Pearson correlation defined."
+msgstr "方差是二阶中心矩，不同于未中心化的二阶矩及标准差。有限二阶矩足以保证有限实数方差；允许方差为零，但这并不使 Pearson 相关系数有定义。"
+
+msgctxt "https://blackcatinformatics.ca/math/Variance|http://www.w3.org/2004/02/skos/core#example"
+msgid "As a mathematical illustration, X taking 1 m and 3 m with equal probabilities has Var(X) = 1 m². Its standard deviation is 1 m, so equal numeric magnitudes do not make those dimensionally different results identical."
+msgstr "作为数学示意，以相等概率取 1 m 和 3 m 的 X 具有 Var(X) = 1 m²。其标准差为 1 m，因此相等数值不使这些量纲不同的结果相同。"
+
+msgctxt "https://blackcatinformatics.ca/math/Variance|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for a supplied variance result whose random variable or distribution, existence conditions and squared physical dimension are identified."
+msgstr "用于所提供的方差结果，其随机变量或分布、存在条件及平方物理量纲均已指明。"
+
+msgctxt "https://blackcatinformatics.ca/math/Variance|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating variance as standard deviation, a standard error, an arbitrary scale parameter or a raw second moment. Do not invent a finite variance for a law without the required moment existence, or infer a positive variance merely from the result type."
+msgstr "避免将方差视为标准差、标准误、任意尺度参数或原点二阶矩。不要为不满足所需矩存在性的分布律编造有限方差，也不要仅根据结果类型推断方差为正。"
+
+msgctxt "https://blackcatinformatics.ca/math/Variance|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Keep the Variance result and its actual hasMoment association with the supplied law and dimensional evidence. Distinguish any variance parameter from a computed variance result; no edge computes squared deviations or converts a supplied standard-deviation parameter."
+msgstr "保留 Variance 结果及其与所提供分布律的实际 hasMoment 关联和量纲依据。将任何方差参数与计算所得方差结果区分；任何边都不计算平方离差，也不转换所提供的标准差参数。"
+
+msgctxt "https://blackcatinformatics.ca/math/Covariance|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Covariance"
+msgstr "协方差"
+
+msgctxt "https://blackcatinformatics.ca/math/Covariance|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The covariance Cov(X, Y) = E[(X − E[X])(Y − E[Y])]: the joint second central moment of two random variables. A subclass of math:Moment. It carries the product of the dimensions of its two variables."
+msgstr "协方差 Cov(X, Y) = E[(X − E[X])(Y − E[Y])]：两个随机变量的联合二阶中心矩。它是 math:Moment 的子类。其量纲为两个变量量纲的乘积。"
+
+msgctxt "https://blackcatinformatics.ca/math/Covariance|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Covariance concerns two variables in a common joint probability setting and requires a meaningful centered-product expectation. Finite second moments are sufficient for a finite covariance, but are not asserted as necessary for every definable covariance; separate marginal descriptions do not determine the joint law."
+msgstr "协方差涉及共同联合概率设定下的两个变量，要求中心化乘积期望有意义。有限二阶矩足以保证有限协方差，但并不将其断言为每个可定义协方差的必要条件；单独的边缘分布描述不足以确定联合分布律。"
+
+msgctxt "https://blackcatinformatics.ca/math/Covariance|http://www.w3.org/2004/02/skos/core#example"
+msgid "As a mathematical illustration, for X taking 1 m and 3 m with equal probabilities, Cov(X, X) = 1 m². This uses the same variable twice under one law; it does not assert existing operand slots or a source computation."
+msgstr "作为数学示意，对于以相等概率取 1 m 和 3 m 的 X，Cov(X, X) = 1 m²。这是在同一分布律下两次使用同一个变量；它不断言现有操作数槽位或来源计算。"
+
+msgctxt "https://blackcatinformatics.ca/math/Covariance|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for a supplied covariance result with both operand identities, a joint probability setting and the product of their physical dimensions actually accounted for."
+msgstr "用于所提供的协方差结果，其中两个操作数身份、联合概率设定及其物理量纲乘积均有实际说明。"
+
+msgctxt "https://blackcatinformatics.ca/math/Covariance|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring independence from zero covariance, deriving covariance from marginal summaries alone, or assuming two variables share a joint law because they have equal dimensions. Mathematical symmetry does not declare an RDF property symmetric."
+msgstr "避免根据零协方差推断独立性、仅从边缘汇总结果推导协方差，或因两个变量量纲相等就假定它们共享联合分布律。数学对称性不声明 RDF 属性为对称属性。"
+
+msgctxt "https://blackcatinformatics.ca/math/Covariance|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the Covariance resource and its actual hasMoment association, preserving both operands and the joint setting in their supplied representation. The association alone does not identify the operand pair, supply a missing joint model, perform centering or establish a numeric result."
+msgstr "保留 Covariance 资源及其实际 hasMoment 关联，按所提供的表示保留两个操作数及联合设定。单凭该关联不指明操作数对、不提供缺失联合模型、不进行中心化，也不确立数值结果。"
+
+msgctxt "https://blackcatinformatics.ca/math/Correlation|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Correlation"
+msgstr "相关系数"
+
+msgctxt "https://blackcatinformatics.ca/math/Correlation|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The Pearson correlation ρ(X, Y) = Cov(X, Y) / (σ_X σ_Y), defined for jointly distributed real-valued variables with finite, strictly positive variances: the covariance normalized by the product of standard deviations, a math:dimensionless quantity in [−1, 1]. A subclass of math:Moment. Being dimensionless is a stated dimensional fact, not an assumption."
+msgstr "Pearson 相关系数 ρ(X, Y) = Cov(X, Y) / (σ_X σ_Y)，定义于具有联合分布、方差有限且严格为正的实值变量：以标准差乘积归一化的协方差，是 [−1, 1] 中的 math:dimensionless 量。它是 math:Moment 的子类。无量纲是明确陈述的量纲事实，而非假定。"
+
+msgctxt "https://blackcatinformatics.ca/math/Correlation|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This is Pearson correlation in the stated joint real-valued setting. Finite, strictly positive variances make its denominator meaningful; a constant variable's zero variance makes this correlation undefined. Zero correlation does not generally imply independence."
+msgstr "这是所述联合实值设定中的 Pearson 相关系数。有限且严格为正的方差使其分母有意义；常量变量的零方差使此相关系数未定义。零相关一般不意味着独立。"
+
+msgctxt "https://blackcatinformatics.ca/math/Correlation|http://www.w3.org/2004/02/skos/core#example"
+msgid "As a mathematical illustration, X taking 1 m and 3 m with equal probabilities has Corr(X, X) = 1. Replacing one operand by a constant makes its variance zero, so the Pearson formula is undefined rather than assigned a default value."
+msgstr "作为数学示意，以相等概率取 1 m 和 3 m 的 X 具有 Corr(X, X) = 1。将一个操作数替换为常量使其方差为零，因此 Pearson 公式未定义，而不是赋予默认值。"
+
+msgctxt "https://blackcatinformatics.ca/math/Correlation|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for a supplied Pearson correlation result whose two operands, joint probability setting and finite, positive-variance conditions are established, with an explicit dimensionless account."
+msgstr "用于所提供的 Pearson 相关系数结果，其两个操作数、联合概率设定及方差有限且严格为正的条件均已确立，并具有明确无量纲说明。"
+
+msgctxt "https://blackcatinformatics.ca/math/Correlation|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid using this result for an arbitrary similarity, probability, confidence score or rank-correlation statistic. Do not infer causation or independence from correlation, or substitute zero or one for an undefined zero-variance case."
+msgstr "避免将此结果用于任意相似度、概率、置信分数或秩相关统计量。不要从相关推断因果关系或独立性，也不要为未定义的零方差情形代入零或一。"
+
+msgctxt "https://blackcatinformatics.ca/math/Correlation|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the Correlation resource, actual hasMoment association and supplied operand, joint-law and dimensionless evidence. The range [−1, 1] is a mathematical property under the stated hypotheses; the type or link alone proves neither that those hypotheses hold nor that a value was evaluated."
+msgstr "保留 Correlation 资源、实际 hasMoment 关联及所提供的操作数、联合分布律和无量纲依据。范围 [−1, 1] 是在所述假设下的数学性质；仅有类型或链接既不证明这些假设成立，也不证明某值已求值。"
+
+msgctxt "https://blackcatinformatics.ca/math/hasMoment|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "has moment"
+msgstr "具有矩"
+
+msgctxt "https://blackcatinformatics.ca/math/hasMoment|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Relates a math:Distribution or math:RandomVariable to a math:Moment of it — an expectation, variance, covariance, or correlation. Domain a math:Distribution or math:RandomVariable, range math:Moment (stated in prose). Moments are quantity-valued result objects carrying their dimension, never bare literals."
+msgstr "将 math:Distribution 或 math:RandomVariable 关联到其 math:Moment，即期望、方差、协方差或相关系数。定义域为 math:Distribution 或 math:RandomVariable，值域为 math:Moment（以文字说明）。矩是承载其量纲、以量为值的结果对象，绝非孤立字面量。"
+
+msgctxt "https://blackcatinformatics.ca/math/hasMoment|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This associates a Distribution or RandomVariable with a supplied Moment-family result. It does not encode a formula, numeric value or pair of operands, require every summary kind, or select a unique result from coexisting source accounts."
+msgstr "此关系将 Distribution 或 RandomVariable 关联到所提供的 Moment 族结果。它不编码公式、数值或操作数对、不要求每种汇总种类，也不从并存来源描述中选出唯一结果。"
+
+msgctxt "https://blackcatinformatics.ca/math/hasMoment|http://www.w3.org/2004/02/skos/core#example"
+msgid "In a hypothetical representation of X taking 1 m and 3 m with equal probabilities, hasMoment can associate X with distinct ExpectedValue and Variance result resources. The mathematical illustration supplies no existing RDF result nodes or executed calculation."
+msgstr "在 X 以相等概率取 1 m 和 3 m 的假想表示中，hasMoment 可将 X 关联到不同的 ExpectedValue 和 Variance 结果资源。该数学示意不提供现有 RDF 结果节点或已执行计算。"
+
+msgctxt "https://blackcatinformatics.ca/math/hasMoment|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the source actually associates a distribution or random variable with a supplied expectation, variance, covariance or correlation result object."
+msgstr "当来源实际将分布或随机变量关联到所提供的期望、方差、协方差或相关系数结果对象时使用。"
+
+msgctxt "https://blackcatinformatics.ca/math/hasMoment|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid attaching a bare literal or DistributionParameter as the result, reversing the edge, or treating the association as proof of existence, value, uniqueness or computation. An absent association does not prove the mathematical moment nonexistent."
+msgstr "避免将孤立字面量或 DistributionParameter 作为结果、反转边，或将此关联视为存在性、数值、唯一性或计算的证明。关联缺失不证明数学上的矩不存在。"
+
+msgctxt "https://blackcatinformatics.ca/math/hasMoment|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Keep the Distribution or RandomVariable as subject and the actual Moment-family resource as object. Preserve its specific result type, supplied dimension, probability context and provenance; covariance and correlation also need their actual operand identities and joint setting, which this single link does not provide."
+msgstr "保留 Distribution 或 RandomVariable 为主语，实际 Moment 族资源为宾语。保留其具体结果类型、所提供量纲、概率上下文及来源溯源；协方差和相关系数还需要实际操作数身份及联合设定，而单个链接不提供这些信息。"

@@ -15388,3 +15388,171 @@ msgstr "Éviter d’interpréter une dimension au carré comme une opération nu
 msgctxt "https://blackcatinformatics.ca/math/squareOfRandomVariableDimension|https://blackcatinformatics.ca/gmeow/howToUse"
 msgid "Point quantityDimension from the role to math:squareOfRandomVariableDimension and retain the actual hasDimension and association paths. Preserve structured exponent data and comparison evidence where supplied; no conversion, numerical variance or successful check follows from the relation name alone."
 msgstr "Faire pointer quantityDimension du rôle vers math:squareOfRandomVariableDimension et conserver les chemins effectifs de hasDimension et d’association. Préserver les données structurées d’exposants et les éléments probants de comparaison là où ils sont fournis ; aucune conversion, variance numérique ou vérification réussie ne découle du seul nom de la relation."
+
+msgctxt "https://blackcatinformatics.ca/math/Moment|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Moment"
+msgstr "Moment"
+
+msgctxt "https://blackcatinformatics.ca/math/Moment|http://www.w3.org/2004/02/skos/core#definition"
+msgid "In this vocabulary, a quantity-valued summary of a distribution or random variable — an expectation, a variance, a covariance or a correlation — named through math:hasMoment. A subclass of math:MathematicalObject and the parent of math:ExpectedValue, math:Variance, math:Covariance, and math:Correlation. A moment is a QUANTITY-valued result object carrying its dimension, never a bare literal: an expectation over height carries height units, a variance squared units, a correlation is dimensionless."
+msgstr "Dans ce vocabulaire, un résumé à valeur de grandeur d’une distribution ou d’une variable aléatoire — une espérance, une variance, une covariance ou une corrélation — nommé au moyen de math:hasMoment. Sous-classe de math:MathematicalObject et parent de math:ExpectedValue, math:Variance, math:Covariance et math:Correlation. Un moment est un objet résultat à valeur de GRANDEUR portant sa dimension, jamais un simple littéral : une espérance de taille porte des unités de taille, une variance des unités au carré, une corrélation est sans dimension."
+
+msgctxt "https://blackcatinformatics.ca/math/Moment|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Moment is the local result-family umbrella, including normalized correlation; it is broader than raw mathematical moments E[Xⁿ]. Existence and dimensional meaning depend on the supplied law and summary kind, and the type alone establishes neither a finite value nor a computation."
+msgstr "Moment est le terme générique local de la famille de résultats, qui comprend la corrélation normalisée ; sa portée est plus large que celle des moments mathématiques bruts E[Xⁿ]. L’existence et le sens dimensionnel dépendent de la loi et du type de résumé fournis, et le type seul n’établit ni valeur finie ni calcul."
+
+msgctxt "https://blackcatinformatics.ca/math/Moment|http://www.w3.org/2004/02/skos/core#example"
+msgid "As a mathematical illustration, let X take 1 m and 3 m with equal probabilities. Its expected value is 2 m and its variance is 1 m²; these are distinct summary results, not an asserted pair of existing RDF records."
+msgstr "À titre d’illustration mathématique, soit X prenant les valeurs 1 m et 3 m avec des probabilités égales. Son espérance est de 2 m et sa variance de 1 m² ; il s’agit de résultats de résumé distincts, non d’une paire affirmée d’enregistrements RDF existants."
+
+msgctxt "https://blackcatinformatics.ca/math/Moment|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for a supplied moment or summary result of an identified distribution or random variable, retaining its mathematical kind, dimension and actual probability context."
+msgstr "Utiliser pour un moment ou un résultat de résumé fourni d’une distribution ou d’une variable aléatoire identifiée, en conservant son type mathématique, sa dimension et son contexte probabiliste effectif."
+
+msgctxt "https://blackcatinformatics.ca/math/Moment|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid assuming every distribution has every moment, treating a correlation as an unnormalized raw moment, or replacing a result object with a bare literal. A summary is distinct from a procedure that computes it or a claim about it."
+msgstr "Éviter de supposer que toute distribution possède tous les moments, de traiter une corrélation comme un moment brut non normalisé ou de remplacer un objet résultat par un simple littéral. Un résumé est distinct d’une procédure qui le calcule ou d’une affirmation à son sujet."
+
+msgctxt "https://blackcatinformatics.ca/math/Moment|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Type the supplied result with Moment or its appropriate existing subclass and retain its actual hasMoment association, dimensional account and evidence. Preserve coexisting contextual results and the supplied value representation; the link proves no evaluation and the quantity-valued description does not identify the result resource with a Quantity."
+msgstr "Typer le résultat fourni avec Moment ou sa sous-classe existante appropriée et conserver son association hasMoment effective, sa description dimensionnelle et ses éléments probants. Préserver les résultats contextuels coexistants et la représentation de valeur fournie ; le lien ne prouve aucune évaluation et la description à valeur de grandeur n’identifie pas la ressource résultat à une Quantity."
+
+msgctxt "https://blackcatinformatics.ca/math/ExpectedValue|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Expected Value"
+msgstr "Espérance mathématique"
+
+msgctxt "https://blackcatinformatics.ca/math/ExpectedValue|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The expected value E[X]: the first moment of a random variable, the integral of the variable against its probability measure (a math:Integral against a math:ProbabilityMeasure). A subclass of math:Moment. It carries the same dimension as the random variable it is taken over."
+msgstr "L’espérance E[X] : le moment d’ordre un d’une variable aléatoire, l’intégrale de la variable par rapport à sa mesure de probabilité (une math:Integral par rapport à une math:ProbabilityMeasure). Sous-classe de math:Moment. Elle porte la même dimension que la variable aléatoire dont elle est l’espérance."
+
+msgctxt "https://blackcatinformatics.ca/math/ExpectedValue|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "For a finite real expectation, the random variable must be integrable: E[|X|] < ∞ in the stated probability setting. The defining integral is not a guarantee that a finite result exists, and the result has the variable's physical dimension."
+msgstr "Pour une espérance réelle finie, la variable aléatoire doit être intégrable : E[|X|] < ∞ dans le cadre probabiliste indiqué. L’intégrale définissante ne garantit pas l’existence d’un résultat fini, et le résultat possède la dimension physique de la variable."
+
+msgctxt "https://blackcatinformatics.ca/math/ExpectedValue|http://www.w3.org/2004/02/skos/core#example"
+msgid "As a mathematical illustration, if X takes 1 m and 3 m with equal probabilities, E[X] = 2 m. The value summarizes the law; it is neither one realized observation nor evidence that an RDF result has been computed."
+msgstr "À titre d’illustration mathématique, si X prend les valeurs 1 m et 3 m avec des probabilités égales, E[X] = 2 m. La valeur résume la loi ; elle n’est ni une observation réalisée ni un élément probant établissant qu’un résultat RDF a été calculé."
+
+msgctxt "https://blackcatinformatics.ca/math/ExpectedValue|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for a source-supplied expected-value result with an identified random variable or distribution and evidence for the applicable existence conditions."
+msgstr "Utiliser pour un résultat d’espérance fourni par la source, avec une variable aléatoire ou une distribution identifiée et des éléments probants relatifs aux conditions d’existence applicables."
+
+msgctxt "https://blackcatinformatics.ca/math/ExpectedValue|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid identifying expectation with a most likely outcome, median, observed value or family location parameter without mathematical justification. Do not replace divergence or an undefined expectation with zero or invent an infinite-result representation."
+msgstr "Éviter d’identifier l’espérance à une issue la plus probable, une médiane, une valeur observée ou un paramètre de position d’une famille sans justification mathématique. Ne pas remplacer une divergence ou une espérance non définie par zéro ni inventer de représentation de résultat infini."
+
+msgctxt "https://blackcatinformatics.ca/math/ExpectedValue|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the ExpectedValue result, its actual hasMoment association, the supplied probability setting and its dimensional account. The same physical dimension as the variable does not itself establish equal units, a reference-frame conversion, a numeric value or a successful integral evaluation."
+msgstr "Conserver le résultat ExpectedValue, son association hasMoment effective, le cadre probabiliste fourni et sa description dimensionnelle. La même dimension physique que la variable n’établit pas en elle-même des unités égales, une conversion de repère, une valeur numérique ou une évaluation réussie de l’intégrale."
+
+msgctxt "https://blackcatinformatics.ca/math/Variance|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Variance"
+msgstr "Variance"
+
+msgctxt "https://blackcatinformatics.ca/math/Variance|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The variance Var(X) = E[(X − E[X])²]: the second central moment of a random variable. A subclass of math:Moment. It carries the SQUARED dimension of the random variable — a variance of a height carries length², which is why a variance-parameterized family and a stddev-parameterized family carry different dimensions on their scale role."
+msgstr "La variance Var(X) = E[(X − E[X])²] : le moment centré d’ordre deux d’une variable aléatoire. Sous-classe de math:Moment. Elle porte la dimension AU CARRÉ de la variable aléatoire — la variance d’une taille porte des unités de longueur², ce qui explique pourquoi une famille paramétrée par la variance et une famille paramétrée par l’écart-type portent des dimensions différentes sur leur rôle d’échelle."
+
+msgctxt "https://blackcatinformatics.ca/math/Variance|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Variance is the second central moment, distinct from an uncentered second moment and from standard deviation. A finite second moment suffices for a finite real variance; zero variance is allowed and does not make Pearson correlation defined."
+msgstr "La variance est le moment centré d’ordre deux, distinct d’un moment non centré d’ordre deux et de l’écart-type. Un moment d’ordre deux fini suffit à une variance réelle finie ; une variance nulle est admise et ne rend pas la corrélation de Pearson définie."
+
+msgctxt "https://blackcatinformatics.ca/math/Variance|http://www.w3.org/2004/02/skos/core#example"
+msgid "As a mathematical illustration, X taking 1 m and 3 m with equal probabilities has Var(X) = 1 m². Its standard deviation is 1 m, so equal numeric magnitudes do not make those dimensionally different results identical."
+msgstr "À titre d’illustration mathématique, X prenant les valeurs 1 m et 3 m avec des probabilités égales a Var(X) = 1 m². Son écart-type est de 1 m ; des valeurs numériques égales ne rendent donc pas identiques ces résultats de dimensions différentes."
+
+msgctxt "https://blackcatinformatics.ca/math/Variance|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for a supplied variance result whose random variable or distribution, existence conditions and squared physical dimension are identified."
+msgstr "Utiliser pour un résultat de variance fourni dont la variable aléatoire ou la distribution, les conditions d’existence et la dimension physique au carré sont identifiées."
+
+msgctxt "https://blackcatinformatics.ca/math/Variance|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating variance as standard deviation, a standard error, an arbitrary scale parameter or a raw second moment. Do not invent a finite variance for a law without the required moment existence, or infer a positive variance merely from the result type."
+msgstr "Éviter de traiter la variance comme un écart-type, une erreur-type, un paramètre d’échelle arbitraire ou un moment brut d’ordre deux. Ne pas inventer de variance finie pour une loi sans l’existence requise des moments ni inférer une variance strictement positive du seul type de résultat."
+
+msgctxt "https://blackcatinformatics.ca/math/Variance|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Keep the Variance result and its actual hasMoment association with the supplied law and dimensional evidence. Distinguish any variance parameter from a computed variance result; no edge computes squared deviations or converts a supplied standard-deviation parameter."
+msgstr "Garder le résultat Variance et son association hasMoment effective avec la loi et les éléments probants dimensionnels fournis. Distinguer tout paramètre de variance d’un résultat de variance calculé ; aucune arête ne calcule les carrés des écarts ni ne convertit un paramètre d’écart-type fourni."
+
+msgctxt "https://blackcatinformatics.ca/math/Covariance|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Covariance"
+msgstr "Covariance"
+
+msgctxt "https://blackcatinformatics.ca/math/Covariance|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The covariance Cov(X, Y) = E[(X − E[X])(Y − E[Y])]: the joint second central moment of two random variables. A subclass of math:Moment. It carries the product of the dimensions of its two variables."
+msgstr "La covariance Cov(X, Y) = E[(X − E[X])(Y − E[Y])] : le moment conjoint centré d’ordre deux de deux variables aléatoires. Sous-classe de math:Moment. Elle porte le produit des dimensions de ses deux variables."
+
+msgctxt "https://blackcatinformatics.ca/math/Covariance|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Covariance concerns two variables in a common joint probability setting and requires a meaningful centered-product expectation. Finite second moments are sufficient for a finite covariance, but are not asserted as necessary for every definable covariance; separate marginal descriptions do not determine the joint law."
+msgstr "La covariance concerne deux variables dans un cadre probabiliste conjoint commun et exige une espérance du produit centré qui ait un sens. Des moments d’ordre deux finis suffisent à une covariance finie, mais ne sont pas affirmés comme nécessaires pour toute covariance définissable ; des descriptions marginales distinctes ne déterminent pas la loi conjointe."
+
+msgctxt "https://blackcatinformatics.ca/math/Covariance|http://www.w3.org/2004/02/skos/core#example"
+msgid "As a mathematical illustration, for X taking 1 m and 3 m with equal probabilities, Cov(X, X) = 1 m². This uses the same variable twice under one law; it does not assert existing operand slots or a source computation."
+msgstr "À titre d’illustration mathématique, pour X prenant les valeurs 1 m et 3 m avec des probabilités égales, Cov(X, X) = 1 m². Cela utilise deux fois la même variable sous une seule loi ; cela n’affirme ni emplacements d’opérandes existants ni calcul source."
+
+msgctxt "https://blackcatinformatics.ca/math/Covariance|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for a supplied covariance result with both operand identities, a joint probability setting and the product of their physical dimensions actually accounted for."
+msgstr "Utiliser pour un résultat de covariance fourni dont les identités des deux opérandes, un cadre probabiliste conjoint et le produit de leurs dimensions physiques sont effectivement explicités."
+
+msgctxt "https://blackcatinformatics.ca/math/Covariance|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring independence from zero covariance, deriving covariance from marginal summaries alone, or assuming two variables share a joint law because they have equal dimensions. Mathematical symmetry does not declare an RDF property symmetric."
+msgstr "Éviter d’inférer l’indépendance d’une covariance nulle, de déduire une covariance des seuls résumés marginaux ou de supposer que deux variables partagent une loi conjointe parce qu’elles ont des dimensions égales. Une symétrie mathématique ne déclare pas une propriété RDF symétrique."
+
+msgctxt "https://blackcatinformatics.ca/math/Covariance|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the Covariance resource and its actual hasMoment association, preserving both operands and the joint setting in their supplied representation. The association alone does not identify the operand pair, supply a missing joint model, perform centering or establish a numeric result."
+msgstr "Conserver la ressource Covariance et son association hasMoment effective, en préservant les deux opérandes et le cadre conjoint dans leur représentation fournie. L’association seule n’identifie pas la paire d’opérandes, ne fournit pas de modèle conjoint manquant, n’effectue pas de centrage et n’établit pas de résultat numérique."
+
+msgctxt "https://blackcatinformatics.ca/math/Correlation|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Correlation"
+msgstr "Corrélation"
+
+msgctxt "https://blackcatinformatics.ca/math/Correlation|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The Pearson correlation ρ(X, Y) = Cov(X, Y) / (σ_X σ_Y), defined for jointly distributed real-valued variables with finite, strictly positive variances: the covariance normalized by the product of standard deviations, a math:dimensionless quantity in [−1, 1]. A subclass of math:Moment. Being dimensionless is a stated dimensional fact, not an assumption."
+msgstr "La corrélation de Pearson ρ(X, Y) = Cov(X, Y) / (σ_X σ_Y), définie pour des variables à valeurs réelles conjointement distribuées dont les variances sont finies et strictement positives : la covariance normalisée par le produit des écarts-types, une grandeur math:dimensionless dans [−1, 1]. Sous-classe de math:Moment. Le caractère sans dimension est un fait dimensionnel déclaré, non une supposition."
+
+msgctxt "https://blackcatinformatics.ca/math/Correlation|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This is Pearson correlation in the stated joint real-valued setting. Finite, strictly positive variances make its denominator meaningful; a constant variable's zero variance makes this correlation undefined. Zero correlation does not generally imply independence."
+msgstr "Il s’agit de la corrélation de Pearson dans le cadre conjoint à valeurs réelles indiqué. Des variances finies et strictement positives donnent un sens à son dénominateur ; la variance nulle d’une variable constante rend cette corrélation non définie. Une corrélation nulle n’implique pas en général l’indépendance."
+
+msgctxt "https://blackcatinformatics.ca/math/Correlation|http://www.w3.org/2004/02/skos/core#example"
+msgid "As a mathematical illustration, X taking 1 m and 3 m with equal probabilities has Corr(X, X) = 1. Replacing one operand by a constant makes its variance zero, so the Pearson formula is undefined rather than assigned a default value."
+msgstr "À titre d’illustration mathématique, X prenant les valeurs 1 m et 3 m avec des probabilités égales a Corr(X, X) = 1. Remplacer un opérande par une constante rend sa variance nulle ; la formule de Pearson est donc non définie plutôt que dotée d’une valeur par défaut."
+
+msgctxt "https://blackcatinformatics.ca/math/Correlation|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for a supplied Pearson correlation result whose two operands, joint probability setting and finite, positive-variance conditions are established, with an explicit dimensionless account."
+msgstr "Utiliser pour un résultat de corrélation de Pearson fourni dont les deux opérandes, le cadre probabiliste conjoint et les conditions de variances finies et strictement positives sont établis, avec une description explicite de son caractère sans dimension."
+
+msgctxt "https://blackcatinformatics.ca/math/Correlation|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid using this result for an arbitrary similarity, probability, confidence score or rank-correlation statistic. Do not infer causation or independence from correlation, or substitute zero or one for an undefined zero-variance case."
+msgstr "Éviter d’utiliser ce résultat pour une similarité arbitraire, une probabilité, un score de confiance ou une statistique de corrélation de rangs. Ne pas inférer de causalité ou d’indépendance d’une corrélation, ni substituer zéro ou un à un cas non défini de variance nulle."
+
+msgctxt "https://blackcatinformatics.ca/math/Correlation|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the Correlation resource, actual hasMoment association and supplied operand, joint-law and dimensionless evidence. The range [−1, 1] is a mathematical property under the stated hypotheses; the type or link alone proves neither that those hypotheses hold nor that a value was evaluated."
+msgstr "Conserver la ressource Correlation, l’association hasMoment effective et les éléments probants fournis sur les opérandes, la loi conjointe et le caractère sans dimension. L’intervalle [−1, 1] est une propriété mathématique sous les hypothèses indiquées ; le type ou le lien seul ne prouve ni que ces hypothèses sont satisfaites ni qu’une valeur a été évaluée."
+
+msgctxt "https://blackcatinformatics.ca/math/hasMoment|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "has moment"
+msgstr "a pour moment"
+
+msgctxt "https://blackcatinformatics.ca/math/hasMoment|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Relates a math:Distribution or math:RandomVariable to a math:Moment of it — an expectation, variance, covariance, or correlation. Domain a math:Distribution or math:RandomVariable, range math:Moment (stated in prose). Moments are quantity-valued result objects carrying their dimension, never bare literals."
+msgstr "Relie une math:Distribution ou une math:RandomVariable à un math:Moment qui lui correspond — une espérance, une variance, une covariance ou une corrélation. Domaine : une math:Distribution ou une math:RandomVariable ; portée : math:Moment (indiqués en prose). Les moments sont des objets résultats à valeur de grandeur portant leur dimension, jamais de simples littéraux."
+
+msgctxt "https://blackcatinformatics.ca/math/hasMoment|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This associates a Distribution or RandomVariable with a supplied Moment-family result. It does not encode a formula, numeric value or pair of operands, require every summary kind, or select a unique result from coexisting source accounts."
+msgstr "Cette relation associe une Distribution ou une RandomVariable à un résultat fourni de la famille Moment. Elle ne code ni formule, ni valeur numérique, ni paire d’opérandes, n’exige pas tous les types de résumé et ne sélectionne pas de résultat unique parmi des comptes rendus sources coexistants."
+
+msgctxt "https://blackcatinformatics.ca/math/hasMoment|http://www.w3.org/2004/02/skos/core#example"
+msgid "In a hypothetical representation of X taking 1 m and 3 m with equal probabilities, hasMoment can associate X with distinct ExpectedValue and Variance result resources. The mathematical illustration supplies no existing RDF result nodes or executed calculation."
+msgstr "Dans une représentation hypothétique de X prenant les valeurs 1 m et 3 m avec des probabilités égales, hasMoment peut associer X à des ressources de résultats ExpectedValue et Variance distinctes. L’illustration mathématique ne fournit ni nœuds de résultats RDF existants ni calcul exécuté."
+
+msgctxt "https://blackcatinformatics.ca/math/hasMoment|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the source actually associates a distribution or random variable with a supplied expectation, variance, covariance or correlation result object."
+msgstr "Utiliser lorsque la source associe effectivement une distribution ou une variable aléatoire à un objet résultat fourni d’espérance, de variance, de covariance ou de corrélation."
+
+msgctxt "https://blackcatinformatics.ca/math/hasMoment|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid attaching a bare literal or DistributionParameter as the result, reversing the edge, or treating the association as proof of existence, value, uniqueness or computation. An absent association does not prove the mathematical moment nonexistent."
+msgstr "Éviter de rattacher un simple littéral ou un DistributionParameter comme résultat, d’inverser l’arête ou de traiter l’association comme une preuve d’existence, de valeur, d’unicité ou de calcul. Une association absente ne prouve pas que le moment mathématique n’existe pas."
+
+msgctxt "https://blackcatinformatics.ca/math/hasMoment|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Keep the Distribution or RandomVariable as subject and the actual Moment-family resource as object. Preserve its specific result type, supplied dimension, probability context and provenance; covariance and correlation also need their actual operand identities and joint setting, which this single link does not provide."
+msgstr "Garder la Distribution ou la RandomVariable comme sujet et la ressource effective de la famille Moment comme objet. Préserver son type de résultat spécifique, sa dimension fournie, son contexte probabiliste et sa provenance ; covariance et corrélation nécessitent aussi les identités effectives de leurs opérandes et le cadre conjoint, que ce lien unique ne fournit pas."
