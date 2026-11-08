@@ -45,8 +45,8 @@ msgid "Exact Preservation Violated"
 msgstr "Préservation exacte violée"
 
 msgctxt "https://blackcatinformatics.ca/math/ExactPreservationViolated|http://www.w3.org/2004/02/skos/core#definition"
-msgid "The failure raised when a mathematical projection or probability-model lowering claims logic:ExactPreservation while its own evidence contradicts exactness. A math:ProjectionRecord cannot claim exactness while declaring logic:unsupportedConstruct or a conflicting preservation kind. Probability-model lowerings require their completeness gates: exhaustive outcome mass summing to one, total Markov kernels, complete Bayesian-network conditionals and finite normalized factor graphs. This reports a false preservation claim, distinct from math:IncompleteDependencyModel (structural incompleteness regardless of the claim) and math:MissingProbabilityModelLowering (an absent lowering)."
-msgstr "Échec signalé lorsqu'une projection mathématique ou une traduction de modèle probabiliste revendique logic:ExactPreservation alors que ses propres éléments probants contredisent l'exactitude. Un math:ProjectionRecord ne peut revendiquer l'exactitude tout en déclarant logic:unsupportedConstruct ou une catégorie de préservation contradictoire. Les traductions de modèles probabilistes doivent satisfaire leurs critères de complétude : masse exhaustive des issues de somme égale à un, noyaux de Markov totaux, distributions conditionnelles complètes des réseaux bayésiens et graphes de facteurs finis normalisés. Ce diagnostic signale une fausse revendication de préservation, distincte de math:IncompleteDependencyModel (incomplétude structurelle indépendamment de la revendication) et de math:MissingProbabilityModelLowering (traduction absente)."
+msgid "The failure raised when a mathematical projection or probability-model lowering claims logic:ExactPreservation while its own evidence contradicts exactness. A math:ProjectionRecord cannot claim exactness while declaring logic:unsupportedConstruct or a conflicting preservation kind. Probability-model lowerings require complete outcome assignments and nonnegative normalized mass, complete network conditionals, valid total kernels, or valid finite-factor products with preserved normalization semantics as applicable. An unnormalized factor representation is not inherently lossy. This reports a false preservation claim, distinct from math:IncompleteDependencyModel and math:MissingProbabilityModelLowering."
+msgstr "L’échec signalé lorsqu’une projection mathématique ou une traduction de modèle probabiliste revendique logic:ExactPreservation alors que ses propres éléments probants contredisent l’exactitude. Un math:ProjectionRecord ne peut revendiquer l’exactitude tout en déclarant logic:unsupportedConstruct ou un type de préservation contradictoire. Les traductions de modèles probabilistes exigent, selon le cas, des affectations d’issues complètes avec une masse non négative normalisée, des lois conditionnelles de réseau complètes, des noyaux totaux valides ou des produits valides de facteurs en nombre fini dont la sémantique de normalisation est préservée. Une représentation de facteurs non normalisée n’entraîne pas intrinsèquement de pertes. Cela signale une fausse revendication de préservation, distincte de math:IncompleteDependencyModel et de math:MissingProbabilityModelLowering."
 
 msgctxt "https://blackcatinformatics.ca/math/MeasureResultNonNegativeConstraint|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "Measure result non-negativity constraint"
@@ -15836,3 +15836,333 @@ msgstr "Éviter de signaler cet échec au seul motif que P(B) = 0, qu’une affi
 msgctxt "https://blackcatinformatics.ca/math/UnconditionedAssertion|https://blackcatinformatics.ca/gmeow/howToUse"
 msgid "Retain the offending resource, its actual type, the missing conditioning property and the source evidence. Add a real source context only when supplied; do not guess an event, model, prior or vantage, drop the record or claim that naming a context proves its mathematics."
 msgstr "Conserver la ressource fautive, son type réel, la propriété de conditionnement manquante et les éléments probants de la source. N’ajouter un contexte source réel que lorsqu’il est fourni ; ne pas deviner d’événement, de modèle, de loi a priori ou de point de vue, supprimer l’enregistrement ni affirmer que nommer un contexte en prouve les mathématiques."
+
+# Dependency models and formal lowerings.
+
+msgctxt "https://blackcatinformatics.ca/math/FullIndependenceModel|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Full Independence Model"
+msgstr "Modèle d’indépendance totale"
+
+msgctxt "https://blackcatinformatics.ca/math/FullIndependenceModel|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A full-independence dependency model: a model that assumes mutual independence of its named probabilistic facts, so the joint distribution factorizes as a product of their marginal laws. A subclass of math:MathematicalObject. It declares a lowering into logic:FullIndependence through math:probabilityModelLowering with logic:ExactPreservation. All facts in the selected scope must be named and the lowering must preserve the declared product model; naming facts alone proves neither empirical independence nor executed preservation. A reasoning engine never treats silence as full independence."
+msgstr "Un modèle de dépendance à indépendance totale : un modèle qui suppose l’indépendance mutuelle de ses faits probabilistes nommés, de sorte que la loi conjointe se factorise en produit de leurs lois marginales. Sous-classe de math:MathematicalObject. Il déclare une traduction vers logic:FullIndependence par math:probabilityModelLowering avec logic:ExactPreservation. Tous les faits du périmètre sélectionné doivent être nommés et la traduction doit préserver le modèle produit déclaré ; nommer les faits ne prouve ni leur indépendance empirique ni une préservation exécutée. Un moteur de raisonnement ne traite jamais le silence comme une indépendance totale."
+
+msgctxt "https://blackcatinformatics.ca/math/FullIndependenceModel|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Mutual independence is a modeling assumption over the complete selected scope, stronger in general than pairwise independence; for two facts the requirements coincide. Declaring this model need not establish that observed phenomena are independent; it commits the model to a product law and leaves empirical warrant and instance preservation evidence explicit."
+msgstr "L’indépendance mutuelle est une hypothèse de modélisation sur l’ensemble du périmètre sélectionné, généralement plus forte que l’indépendance deux à deux ; pour deux faits, les exigences coïncident. Déclarer ce modèle n’établit pas nécessairement que les phénomènes observés sont indépendants ; cela engage le modèle envers une loi produit et laisse explicites la justification empirique et les éléments probants de préservation des instances."
+
+msgctxt "https://blackcatinformatics.ca/math/FullIndependenceModel|http://www.w3.org/2004/02/skos/core#example"
+msgid "The probability scene declares ex:independenceModel as FullIndependenceModel and links ex:seasonSprinklerIndependence to it through independenceHoldsInModel. This supplies a named model and an independence claim, without enumerating a complete product law or demonstrating a reasoning run."
+msgstr "La scène de probabilité déclare ex:independenceModel comme FullIndependenceModel et y relie ex:seasonSprinklerIndependence par independenceHoldsInModel. Cela fournit un modèle nommé et une affirmation d’indépendance, sans énumérer une loi produit complète ni démontrer une exécution de raisonnement."
+
+msgctxt "https://blackcatinformatics.ca/math/FullIndependenceModel|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when a source explicitly selects a model of mutually independent probabilistic facts and its complete intended scope can be retained, including the distinction between a modeling assumption and evidence about observations."
+msgstr "Utiliser lorsqu’une source sélectionne explicitement un modèle de faits probabilistes mutuellement indépendants dont le périmètre visé complet peut être conservé, en maintenant la distinction entre hypothèse de modélisation et éléments probants concernant les observations."
+
+msgctxt "https://blackcatinformatics.ca/math/FullIndependenceModel|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring this model from missing dependencies, pairwise independence or zero correlation. Do not treat a class-level exactness declaration or a list of fact names as proof of a complete instance lowering or of empirical independence."
+msgstr "Éviter d’inférer ce modèle de dépendances manquantes, d’une indépendance deux à deux ou d’une corrélation nulle. Ne pas traiter une déclaration d’exactitude au niveau de la classe ou une liste de noms de faits comme une preuve de traduction complète d’une instance ou d’indépendance empirique."
+
+msgctxt "https://blackcatinformatics.ca/math/FullIndependenceModel|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Type the supplied model as FullIndependenceModel, retain its named facts and marginal-law account in their source representation, and preserve the actual reasoning request and lowering evidence. Keep independence assertions and their model and vantage roles distinct; do not invent missing facts or silently substitute independence for an unsupported model."
+msgstr "Typer le modèle fourni comme FullIndependenceModel, conserver ses faits nommés et sa description des lois marginales dans leur représentation source, et préserver la requête de raisonnement et les éléments probants de traduction effectifs. Garder distincts les assertions d’indépendance et leurs rôles de modèle et de point de vue ; ne pas inventer de faits manquants ni substituer implicitement l’indépendance à un modèle non pris en charge."
+
+msgctxt "https://blackcatinformatics.ca/math/JointProbabilityTable|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Joint Probability Table"
+msgstr "Table de probabilité conjointe"
+
+msgctxt "https://blackcatinformatics.ca/math/JointProbabilityTable|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A joint probability table: an explicit tabulation of a joint distribution over a discrete set of facts or variables, whether dependent or independent. A subclass of math:MathematicalObject. It declares a lowering into logic:DependencyModel together with logic:JointOutcome rows through math:probabilityModelLowering, with logic:ExactPreservation conditional on preserving the complete table: mutually exclusive exhaustive outcomes with nonnegative masses summing to one. An incomplete table is math:IncompleteDependencyModel; row presence and a unit sum alone do not prove exhaustiveness or preserved assignments."
+msgstr "Une table de probabilité conjointe : une tabulation explicite d’une loi conjointe sur un ensemble discret de faits ou de variables, dépendants ou indépendants. Sous-classe de math:MathematicalObject. Elle déclare une traduction vers logic:DependencyModel, accompagnée de lignes logic:JointOutcome, par math:probabilityModelLowering, avec logic:ExactPreservation sous réserve de préserver la table complète : des issues mutuellement exclusives et exhaustives dont les masses non négatives ont une somme égale à un. Une table incomplète relève de math:IncompleteDependencyModel ; la présence de lignes et une somme unitaire ne prouvent pas à elles seules l’exhaustivité ou la préservation des affectations."
+
+msgctxt "https://blackcatinformatics.ca/math/JointProbabilityTable|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Each row represents an outcome assignment in the declared joint scope. The outcomes must be disjoint and exhaustive, with nonnegative normalized mass. A named collection of rows can sum to one while omitting or duplicating assignments, so arithmetic normalization alone does not establish a complete joint model."
+msgstr "Chaque ligne représente une affectation d’issue dans le périmètre conjoint déclaré. Les issues doivent être disjointes et exhaustives, avec une masse non négative normalisée. Une collection nommée de lignes peut avoir une somme égale à un tout en omettant ou en dupliquant des affectations ; la normalisation arithmétique seule n’établit donc pas un modèle conjoint complet."
+
+msgctxt "https://blackcatinformatics.ca/math/JointProbabilityTable|http://www.w3.org/2004/02/skos/core#example"
+msgid "The probability scene gives ex:rainSprinklerJoint four logic:jointOutcome rows with logic:jointProbability values 0.3, 0.2, 0.4 and 0.1. They sum to one; row names and comments describe rain and sprinkler assignments, without structured assignment triples in those records."
+msgstr "La scène de probabilité donne à ex:rainSprinklerJoint quatre lignes logic:jointOutcome dont les valeurs logic:jointProbability sont 0.3, 0.2, 0.4 et 0.1. Leur somme vaut un ; les noms de lignes et les commentaires décrivent des affectations de pluie et d’arroseur, sans triplets structurés d’affectation dans ces enregistrements."
+
+msgctxt "https://blackcatinformatics.ca/math/JointProbabilityTable|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for an explicitly tabulated discrete joint law whose outcome assignments, scope and masses are supplied, including a joint table for variables modeled as independent."
+msgstr "Utiliser pour une loi conjointe discrète explicitement tabulée dont les affectations d’issues, le périmètre et les masses sont fournis, y compris une table conjointe de variables modélisées comme indépendantes."
+
+msgctxt "https://blackcatinformatics.ca/math/JointProbabilityTable|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid requiring statistical correlation, multiplying marginal probabilities without an independence assumption, or interpreting row names as structured assignment evidence. A unit sum does not excuse negative masses, overlapping rows or missing outcomes."
+msgstr "Éviter d’exiger une corrélation statistique, de multiplier les probabilités marginales sans hypothèse d’indépendance ou d’interpréter les noms de lignes comme des éléments probants d’affectations structurées. Une somme unitaire n’excuse ni masses négatives, ni lignes qui se chevauchent, ni issues manquantes."
+
+msgctxt "https://blackcatinformatics.ca/math/JointProbabilityTable|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the table, its logic:jointOutcome resources, their logic:jointProbability values and the source's assignment and scope evidence. Validate disjointness, exhaustiveness, nonnegativity and normalization under the selected contract; distinguish a computed nonunit sum from an inability to read or sum masses, and retain the actual lowering and preservation evidence."
+msgstr "Conserver la table, ses ressources logic:jointOutcome, leurs valeurs logic:jointProbability et les éléments probants sources sur les affectations et le périmètre. Valider la disjonction, l’exhaustivité, la non-négativité et la normalisation selon le contrat sélectionné ; distinguer une somme calculée non unitaire d’une impossibilité de lire ou d’additionner les masses, et conserver les éléments probants effectifs de traduction et de préservation."
+
+msgctxt "https://blackcatinformatics.ca/math/BayesianNetwork|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Bayesian Network"
+msgstr "Réseau bayésien"
+
+msgctxt "https://blackcatinformatics.ca/math/BayesianNetwork|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A Bayesian network: a directed acyclic graph of random variables with local conditional probability laws that factor a joint distribution; finite discrete variables may use conditional probability tables. A subclass of math:MathematicalObject naming its graph through math:dependencyGraph. It declares a lowering into logic:DependencyModel through math:probabilityModelLowering. The declared logic:ExactPreservation requires a complete acyclic factorization and a target representation that preserves it; graph-link presence alone establishes neither. Incomplete declarations are math:IncompleteDependencyModel, and evidence contradicting a claimed exact lowering is math:ExactPreservationViolated."
+msgstr "Un réseau bayésien : un graphe orienté acyclique de variables aléatoires muni de lois de probabilité conditionnelle locales qui factorisent une loi conjointe ; les variables discrètes finies peuvent utiliser des tables de probabilités conditionnelles. Sous-classe de math:MathematicalObject nommant son graphe par math:dependencyGraph. Il déclare une traduction vers logic:DependencyModel par math:probabilityModelLowering. La logic:ExactPreservation déclarée exige une factorisation acyclique complète et une représentation cible qui la préserve ; la seule présence d’un lien de graphe n’établit ni l’une ni l’autre. Les déclarations incomplètes relèvent de math:IncompleteDependencyModel, et des éléments probants contredisant une traduction prétendue exacte relèvent de math:ExactPreservationViolated."
+
+msgctxt "https://blackcatinformatics.ca/math/BayesianNetwork|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The graph and compatible local conditional laws jointly specify the model. Conditional tables are the finite discrete case; other variable spaces require appropriate conditional laws and a supported target. A dependencyGraph identifier supplies no edge inventory, acyclicity proof, complete conditionals or causal interpretation by itself."
+msgstr "Le graphe et les lois conditionnelles locales compatibles spécifient conjointement le modèle. Les tables conditionnelles constituent le cas discret fini ; d’autres espaces de variables nécessitent des lois conditionnelles appropriées et une cible prise en charge. Un identifiant dependencyGraph ne fournit à lui seul ni inventaire d’arêtes, ni preuve d’acyclicité, ni lois conditionnelles complètes, ni interprétation causale."
+
+msgctxt "https://blackcatinformatics.ca/math/BayesianNetwork|http://www.w3.org/2004/02/skos/core#example"
+msgid "The probability scene gives ex:sprinklerNet dependencyGraph ex:sprinklerDag and lets ex:forecastWorld reference the network through logic:probabilityModel. The graph label describes arrows, but its inspected record supplies neither structured edges nor conditional tables."
+msgstr "La scène de probabilité donne à ex:sprinklerNet dependencyGraph ex:sprinklerDag et fait référencer le réseau par ex:forecastWorld au moyen de logic:probabilityModel. Le libellé du graphe décrit des flèches, mais son enregistrement examiné ne fournit ni arêtes structurées ni tables conditionnelles."
+
+msgctxt "https://blackcatinformatics.ca/math/BayesianNetwork|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for a supplied directed acyclic probabilistic factorization with its variable scope and local conditional laws, retaining the selected reasoning target and its representation limits."
+msgstr "Utiliser pour une factorisation probabiliste orientée acyclique fournie, avec son périmètre de variables et ses lois conditionnelles locales, en conservant la cible de raisonnement sélectionnée et ses limites de représentation."
+
+msgctxt "https://blackcatinformatics.ca/math/BayesianNetwork|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating every directed graph as acyclic, every arrow as causal, or a graph label as complete conditional-law data. A class-level lowering declaration does not establish that an arbitrary continuous network is exactly representable in a discrete weighted-model-counting target."
+msgstr "Éviter de traiter tout graphe orienté comme acyclique, toute flèche comme causale ou un libellé de graphe comme des données complètes de lois conditionnelles. Une déclaration de traduction au niveau de la classe n’établit pas qu’un réseau continu quelconque est exactement représentable dans une cible discrète de comptage pondéré de modèles."
+
+msgctxt "https://blackcatinformatics.ca/math/BayesianNetwork|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Keep the network as subject of dependencyGraph and preserve the actual graph, variable domains and local conditional-law evidence in their supplied representation. Verify completeness and target preservation for the selected profile; a successful missing-link check alone cannot qualify inference or exactness."
+msgstr "Garder le réseau comme sujet de dependencyGraph et préserver le graphe effectif, les domaines des variables et les éléments probants des lois conditionnelles locales dans leur représentation fournie. Vérifier la complétude et la préservation par la cible pour le profil sélectionné ; une vérification réussie de liens manquants ne suffit pas à qualifier l’inférence ou l’exactitude."
+
+msgctxt "https://blackcatinformatics.ca/math/FactorGraph|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Factor Graph"
+msgstr "Graphe de facteurs"
+
+msgctxt "https://blackcatinformatics.ca/math/FactorGraph|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A factor graph: a bipartite graph of variables and factors representing a joint law through a product of factors. A subclass of math:MathematicalObject naming its structure through math:dependencyGraph. For the declared finite-factor lowering into logic:DependencyModel through math:probabilityModelLowering, nonnegative measurable factors must have a finite strictly positive normalizer over the declared base measure. The product may already be normalized or require explicit normalization. Neither an unnormalized declaration nor a graph link proves validity or logic:ExactPreservation; the selected lowering must preserve the resulting law and its normalization semantics."
+msgstr "Un graphe de facteurs : un graphe biparti de variables et de facteurs représentant une loi conjointe par un produit de facteurs. Sous-classe de math:MathematicalObject nommant sa structure par math:dependencyGraph. Pour la traduction déclarée à facteurs en nombre fini vers logic:DependencyModel par math:probabilityModelLowering, les facteurs mesurables non négatifs doivent avoir une constante de normalisation finie et strictement positive relativement à la mesure de base déclarée. Le produit peut être déjà normalisé ou nécessiter une normalisation explicite. Ni une déclaration non normalisée ni un lien de graphe ne prouvent la validité ou la logic:ExactPreservation ; la traduction sélectionnée doit préserver la loi résultante et sa sémantique de normalisation."
+
+msgctxt "https://blackcatinformatics.ca/math/FactorGraph|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "With product f and normalizer Z = ∫ f dμ, a probability law requires 0 < Z < ∞ and uses f / Z relative to the declared base measure μ. An unnormalized representation can be exact when its normalization semantics are retained; an invalid product does not become a valid approximate model by declaring loss."
+msgstr "Avec le produit f et la constante de normalisation Z = ∫ f dμ, une loi de probabilité exige 0 < Z < ∞ et utilise f / Z relativement à la mesure de base déclarée μ. Une représentation non normalisée peut être exacte lorsque sa sémantique de normalisation est conservée ; un produit invalide ne devient pas un modèle approché valide par une déclaration de perte."
+
+msgctxt "https://blackcatinformatics.ca/math/FactorGraph|http://www.w3.org/2004/02/skos/core#example"
+msgid "The probability scene links ex:sprinklerFactorGraph to ex:sprinklerFactorStructure through dependencyGraph. The approximate-lossy fixture separately declares logic:SoundUnderApproximation and recorded drops; neither record supplies a factor inventory or establishes a finite positive normalizer."
+msgstr "La scène de probabilité relie ex:sprinklerFactorGraph à ex:sprinklerFactorStructure par dependencyGraph. Le jeu de données d’approximation avec pertes déclare séparément logic:SoundUnderApproximation et des omissions consignées ; aucun de ces enregistrements ne fournit d’inventaire de facteurs ni n’établit une constante de normalisation finie et strictement positive."
+
+msgctxt "https://blackcatinformatics.ca/math/FactorGraph|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when a source supplies a bipartite variable-factor representation of a joint law, including an explicitly unnormalized product whose base measure, normalization obligations and selected target semantics remain explicit."
+msgstr "Utiliser lorsqu’une source fournit une représentation bipartie d’une loi conjointe par variables et facteurs, y compris un produit explicitement non normalisé dont la mesure de base, les obligations de normalisation et la sémantique de la cible sélectionnée restent explicites."
+
+msgctxt "https://blackcatinformatics.ca/math/FactorGraph|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring finite normalization from finitely many factors, assuming that an unknown normalizer is infinite, or treating unnormalized as synonymous with lossy. Negative factors or a zero or infinite normalizer do not define the asserted probability law."
+msgstr "Éviter d’inférer une normalisation finie d’un nombre fini de facteurs, de supposer qu’une constante de normalisation inconnue est infinie ou de traiter non normalisé comme synonyme d’avec pertes. Des facteurs négatifs ou une constante de normalisation nulle ou infinie ne définissent pas la loi de probabilité affirmée."
+
+msgctxt "https://blackcatinformatics.ca/math/FactorGraph|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the FactorGraph, its dependencyGraph structure, factor scopes and source factor laws, together with the base measure and normalization account. For the selected lowering, establish its finite-factor and validity obligations and preserve or explicitly account for normalization; disclose approximation policy and losses without asserting that disclosure alone proves a sound approximation."
+msgstr "Conserver le FactorGraph, sa structure dependencyGraph, les portées des facteurs et leurs lois sources, ainsi que la mesure de base et la description de la normalisation. Pour la traduction sélectionnée, établir ses obligations de finitude du nombre de facteurs et de validité, et préserver la normalisation ou en rendre compte explicitement ; exposer la politique d’approximation et les pertes sans affirmer que cette seule déclaration prouve une approximation correcte."
+
+msgctxt "https://blackcatinformatics.ca/math/MarkovKernel|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Markov Kernel"
+msgstr "Noyau de Markov"
+
+msgctxt "https://blackcatinformatics.ca/math/MarkovKernel|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A Markov kernel: a measurable map assigning to each point of a source space a probability measure on a target space — the general-theory counterpart of a transition matrix. A subclass of math:MathematicalObject. It lowers into logic:GenericDependence (a stochastic transition) via math:probabilityModelLowering; its declared logic:ExactPreservation is honest only when its completeness gate holds — a declared domain and codomain, and kernel totality (each source point maps to a genuine probability measure) — and is otherwise structurally incomplete (math:IncompleteDependencyModel)."
+msgstr "Un noyau de Markov : une application mesurable attribuant à chaque point d’un espace source une mesure de probabilité sur un espace cible, le pendant en théorie générale d’une matrice de transition. Sous-classe de math:MathematicalObject. Il se traduit vers logic:GenericDependence (une transition stochastique) par math:probabilityModelLowering ; sa logic:ExactPreservation déclarée n’est justifiée que lorsque son critère de complétude est satisfait — un domaine et un codomaine déclarés, ainsi que la totalité du noyau, chaque point source étant associé à une véritable mesure de probabilité — et il est autrement structurellement incomplet (math:IncompleteDependencyModel)."
+
+msgctxt "https://blackcatinformatics.ca/math/MarkovKernel|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "For measurable spaces X and Y, K(x, ·) is a probability measure on Y for every x in X, and x ↦ K(x, A) is measurable for each measurable A in Y. Domain and codomain may name the same space; endpoint links alone establish neither these laws nor exact preservation by a target."
+msgstr "Pour des espaces mesurables X et Y, K(x, ·) est une mesure de probabilité sur Y pour tout x dans X, et x ↦ K(x, A) est mesurable pour tout A mesurable dans Y. Le domaine et le codomaine peuvent nommer le même espace ; les seuls liens d’extrémités n’établissent ni ces lois ni une préservation exacte par une cible."
+
+msgctxt "https://blackcatinformatics.ca/math/MarkovKernel|http://www.w3.org/2004/02/skos/core#example"
+msgid "The probability scene gives ex:weatherTransitionKernel kernelDomain ex:todayWeatherSpace and kernelCodomain ex:tomorrowWeatherSpace, each typed MeasurableSpace. Those endpoint declarations supply no transition law, matrix entries or totality proof."
+msgstr "La scène de probabilité donne à ex:weatherTransitionKernel kernelDomain ex:todayWeatherSpace et kernelCodomain ex:tomorrowWeatherSpace, chacun typé MeasurableSpace. Ces déclarations d’extrémités ne fournissent ni loi de transition, ni entrées de matrice, ni preuve de totalité."
+
+msgctxt "https://blackcatinformatics.ca/math/MarkovKernel|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for a supplied stochastic transition assigning a target probability measure to every source point with the required measurability, including a transition kernel from a measurable space to itself."
+msgstr "Utiliser pour une transition stochastique fournie attribuant une mesure de probabilité cible à chaque point source avec la mesurabilité requise, y compris un noyau de transition d’un espace mesurable vers lui-même."
+
+msgctxt "https://blackcatinformatics.ca/math/MarkovKernel|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating two endpoint names as a completed kernel, a substochastic transition as a probability kernel without qualification, or a kernel alone as a complete stochastic process. Separate domain and codomain roles do not require different resource identities."
+msgstr "Éviter de traiter deux noms d’extrémités comme un noyau achevé, une transition sous-stochastique comme un noyau de probabilité sans qualification ou un noyau seul comme un processus stochastique complet. Des rôles distincts de domaine et de codomaine n’exigent pas des identités de ressources différentes."
+
+msgctxt "https://blackcatinformatics.ca/math/MarkovKernel|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Type the supplied object as MarkovKernel and retain its actual kernelDomain, kernelCodomain and transition-law evidence. Check total probability and measurability against the named spaces and preserve the selected lowering judgment; a missing-endpoint check cannot establish these mathematical obligations."
+msgstr "Typer l’objet fourni comme MarkovKernel et conserver ses kernelDomain, kernelCodomain et éléments probants de loi de transition effectifs. Vérifier la probabilité totale et la mesurabilité par rapport aux espaces nommés et préserver le jugement de traduction sélectionné ; une vérification d’extrémités manquantes ne peut établir ces obligations mathématiques."
+
+msgctxt "https://blackcatinformatics.ca/math/dependencyGraph|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "dependency graph"
+msgstr "graphe de dépendance"
+
+msgctxt "https://blackcatinformatics.ca/math/dependencyGraph|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Relates a dependency model to the graph structure carrying its dependencies — the DAG of a math:BayesianNetwork, the bipartite graph of a math:FactorGraph. Domain a dependency model (math:BayesianNetwork, math:FactorGraph, and kin), range its graph structure (stated in prose). Structural completeness of this graph (a DAG, finite factors) is part of the model's completeness gate; an incomplete one is ill-formed (math:IncompleteDependencyModel)."
+msgstr "Relie un modèle de dépendance à la structure de graphe portant ses dépendances — le DAG d’un math:BayesianNetwork, le graphe biparti d’un math:FactorGraph. Domaine : un modèle de dépendance (math:BayesianNetwork, math:FactorGraph et apparentés) ; portée : sa structure de graphe (indiqués en prose). La complétude structurelle de ce graphe (un DAG, des facteurs en nombre fini) fait partie du critère de complétude du modèle ; un graphe incomplet est mal formé (math:IncompleteDependencyModel)."
+
+msgctxt "https://blackcatinformatics.ca/math/dependencyGraph|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This relation identifies a model's supplied graph structure. Its object is the graph resource, rather than a label literal or a probability value. Graph requirements depend on the model family; linking the resource does not populate its vertices, edges, factor scopes or conditional laws."
+msgstr "Cette relation identifie la structure de graphe fournie d’un modèle. Son objet est la ressource de graphe, plutôt qu’un littéral de libellé ou une valeur de probabilité. Les exigences sur le graphe dépendent de la famille de modèles ; relier la ressource ne renseigne pas ses sommets, ses arêtes, les portées des facteurs ou les lois conditionnelles."
+
+msgctxt "https://blackcatinformatics.ca/math/dependencyGraph|http://www.w3.org/2004/02/skos/core#example"
+msgid "The probability scene uses ex:sprinklerNet dependencyGraph ex:sprinklerDag and ex:sprinklerFactorGraph dependencyGraph ex:sprinklerFactorStructure. The former is described as a DAG and the latter as bipartite, without those structures being enumerated in their inspected records."
+msgstr "La scène de probabilité utilise ex:sprinklerNet dependencyGraph ex:sprinklerDag et ex:sprinklerFactorGraph dependencyGraph ex:sprinklerFactorStructure. Le premier est décrit comme un DAG et le second comme biparti, sans que ces structures soient énumérées dans leurs enregistrements examinés."
+
+msgctxt "https://blackcatinformatics.ca/math/dependencyGraph|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain the actual graph resource supplied as the structure of a BayesianNetwork, FactorGraph or another compatible dependency model, preserving which model owns that structure."
+msgstr "Utiliser pour conserver la ressource de graphe effectivement fournie comme structure d’un BayesianNetwork, d’un FactorGraph ou d’un autre modèle de dépendance compatible, en préservant l’identité du modèle auquel cette structure appartient."
+
+msgctxt "https://blackcatinformatics.ca/math/dependencyGraph|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid replacing a supplied graph resource with its label, inferring edges from naming conventions, or imposing Bayesian acyclicity on every factor graph. Link presence does not prove graph completeness or model validity."
+msgstr "Éviter de remplacer une ressource de graphe fournie par son libellé, d’inférer des arêtes de conventions de nommage ou d’imposer l’acyclicité bayésienne à tout graphe de facteurs. La présence du lien ne prouve ni complétude du graphe ni validité du modèle."
+
+msgctxt "https://blackcatinformatics.ca/math/dependencyGraph|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Keep the dependency model as subject and its graph resource as object. Retain the source's family-specific structural and probability-law evidence alongside the link, and report missing structure without fabricating vertices, edges, factors or a causal account."
+msgstr "Garder le modèle de dépendance comme sujet et sa ressource de graphe comme objet. Conserver avec le lien les éléments probants sources de structure et de lois de probabilité propres à la famille, et signaler les structures manquantes sans fabriquer de sommets, d’arêtes, de facteurs ou de description causale."
+
+msgctxt "https://blackcatinformatics.ca/math/kernelDomain|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "kernel domain"
+msgstr "domaine du noyau"
+
+msgctxt "https://blackcatinformatics.ca/math/kernelDomain|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Names the source (domain) measurable space of a math:MarkovKernel — the space whose points the kernel assigns a transition measure to. Domain math:MarkovKernel, range a measurable space (stated in prose). A Markov kernel declares both a math:kernelDomain and a math:kernelCodomain; one missing either is structurally incomplete (math:IncompleteDependencyModel)."
+msgstr "Nomme l’espace mesurable source (domaine) d’un math:MarkovKernel — l’espace aux points duquel le noyau attribue une mesure de transition. Domaine : math:MarkovKernel ; portée : un espace mesurable (indiqués en prose). Un noyau de Markov déclare à la fois un math:kernelDomain et un math:kernelCodomain ; s’il lui manque l’un ou l’autre, il est structurellement incomplet (math:IncompleteDependencyModel)."
+
+msgctxt "https://blackcatinformatics.ca/math/kernelDomain|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The domain supplies the source points and source measurable structure against which kernel measurability is judged. It is distinct in role from the target space and from an initial probability distribution; a source and target may nevertheless be the same measurable-space resource."
+msgstr "Le domaine fournit les points sources et la structure mesurable source par rapport à laquelle la mesurabilité du noyau est jugée. Son rôle est distinct de celui de l’espace cible et d’une loi de probabilité initiale ; la source et la cible peuvent néanmoins être la même ressource d’espace mesurable."
+
+msgctxt "https://blackcatinformatics.ca/math/kernelDomain|http://www.w3.org/2004/02/skos/core#example"
+msgid "The probability scene states ex:weatherTransitionKernel kernelDomain ex:todayWeatherSpace and types that space MeasurableSpace. This identifies the source role without supplying an initial weather distribution or a transition law."
+msgstr "La scène de probabilité énonce ex:weatherTransitionKernel kernelDomain ex:todayWeatherSpace et type cet espace comme MeasurableSpace. Cela identifie le rôle source sans fournir de loi météorologique initiale ni de loi de transition."
+
+msgctxt "https://blackcatinformatics.ca/math/kernelDomain|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to identify the supplied source measurable space of a MarkovKernel, including a kernel whose source and target are the same space."
+msgstr "Utiliser pour identifier l’espace mesurable source fourni d’un MarkovKernel, y compris un noyau dont la source et la cible sont le même espace."
+
+msgctxt "https://blackcatinformatics.ca/math/kernelDomain|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid reversing the relation, substituting the initial distribution or target space for the source role, or demanding different endpoint identities. A source link alone does not supply a sigma-algebra inventory or prove measurability."
+msgstr "Éviter d’inverser la relation, de substituer la loi initiale ou l’espace cible au rôle source ou d’exiger des identités d’extrémités différentes. Un lien source seul ne fournit pas d’inventaire de tribu et ne prouve pas la mesurabilité."
+
+msgctxt "https://blackcatinformatics.ca/math/kernelDomain|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Keep the MarkovKernel as subject and its source measurable-space resource as object. Preserve the supplied kernelCodomain and law separately, even when both endpoint links share an object; report a missing source rather than guessing it from a transition label."
+msgstr "Garder le MarkovKernel comme sujet et sa ressource d’espace mesurable source comme objet. Préserver séparément le kernelCodomain et la loi fournis, même lorsque les deux liens d’extrémités partagent un objet ; signaler une source manquante au lieu de la deviner à partir d’un libellé de transition."
+
+msgctxt "https://blackcatinformatics.ca/math/kernelCodomain|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "kernel codomain"
+msgstr "codomaine du noyau"
+
+msgctxt "https://blackcatinformatics.ca/math/kernelCodomain|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Names the target (codomain) measurable space of a math:MarkovKernel — the space on which each source point's transition probability measure lives. Domain math:MarkovKernel, range a measurable space (stated in prose). A Markov kernel declares both a math:kernelCodomain and a math:kernelDomain; one missing either is structurally incomplete (math:IncompleteDependencyModel)."
+msgstr "Nomme l’espace mesurable cible (codomaine) d’un math:MarkovKernel — l’espace sur lequel vit la mesure de probabilité de transition de chaque point source. Domaine : math:MarkovKernel ; portée : un espace mesurable (indiqués en prose). Un noyau de Markov déclare à la fois un math:kernelCodomain et un math:kernelDomain ; s’il lui manque l’un ou l’autre, il est structurellement incomplet (math:IncompleteDependencyModel)."
+
+msgctxt "https://blackcatinformatics.ca/math/kernelCodomain|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The codomain supplies the measurable target sets to which each source-indexed probability measure assigns mass. It is distinct in role from the source space and from a single realized next state; its resource may coincide with the domain resource."
+msgstr "Le codomaine fournit les ensembles cibles mesurables auxquels chaque mesure de probabilité indexée par la source attribue une masse. Son rôle est distinct de celui de l’espace source et d’un état suivant réalisé unique ; sa ressource peut coïncider avec la ressource du domaine."
+
+msgctxt "https://blackcatinformatics.ca/math/kernelCodomain|http://www.w3.org/2004/02/skos/core#example"
+msgid "The probability scene states ex:weatherTransitionKernel kernelCodomain ex:tomorrowWeatherSpace and types that space MeasurableSpace. The link names the target role, without supplying a distribution for tomorrow or evaluating the transition."
+msgstr "La scène de probabilité énonce ex:weatherTransitionKernel kernelCodomain ex:tomorrowWeatherSpace et type cet espace comme MeasurableSpace. Le lien nomme le rôle cible, sans fournir de loi pour demain ni évaluer la transition."
+
+msgctxt "https://blackcatinformatics.ca/math/kernelCodomain|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to identify the supplied target measurable space on which a MarkovKernel's source-indexed probability measures are defined, including self-transitions on one space."
+msgstr "Utiliser pour identifier l’espace mesurable cible fourni sur lequel sont définies les mesures de probabilité indexées par la source d’un MarkovKernel, y compris les transitions d’un espace vers lui-même."
+
+msgctxt "https://blackcatinformatics.ca/math/kernelCodomain|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid replacing the target space with a single outcome, a marginal law or the domain role. Naming the target does not establish unit mass at every source point or require a resource different from the domain."
+msgstr "Éviter de remplacer l’espace cible par une issue unique, une loi marginale ou le rôle de domaine. Nommer la cible n’établit pas une masse unitaire en chaque point source et n’exige pas de ressource différente du domaine."
+
+msgctxt "https://blackcatinformatics.ca/math/kernelCodomain|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Keep the MarkovKernel as subject and its target measurable-space resource as object. Preserve its kernelDomain and transition-law evidence, including target measurable structure, without inventing a future state or an evaluated probability from the space's name."
+msgstr "Garder le MarkovKernel comme sujet et sa ressource d’espace mesurable cible comme objet. Préserver son kernelDomain et les éléments probants de loi de transition, y compris la structure mesurable cible, sans inventer d’état futur ni de probabilité évaluée à partir du nom de l’espace."
+
+msgctxt "https://blackcatinformatics.ca/math/probabilityModelLowering|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "probability model lowering"
+msgstr "traduction du modèle probabiliste"
+
+msgctxt "https://blackcatinformatics.ca/math/probabilityModelLowering|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Relates a reasoning-facing math: dependency model (a class or individual — a math:FullIndependenceModel, math:JointProbabilityTable, math:BayesianNetwork, math:FactorGraph, or math:MarkovKernel) to the logic: probability-model target it formally lowers into (logic:FullIndependence, logic:DependencyModel, logic:JointOutcome, or logic:GenericDependence). Domain a reasoning-facing math: dependency model, range a logic: probability-model target (stated in prose). The lowering is a formal, preservation-judged map, not a soft 'satisfy or project into': its preservation polarity is carried ALONGSIDE it by logic:preservationKind, reused verbatim from the logic: loss-ledger vocabulary rather than a math: near-synonym (Principle 17). A reasoning-facing model that references probabilistic facts without a declared lowering is unsupported/not-evaluated, never assumed independent (math:MissingProbabilityModelLowering)."
+msgstr "Relie un modèle de dépendance math: destiné au raisonnement (une classe ou un individu — un math:FullIndependenceModel, une math:JointProbabilityTable, un math:BayesianNetwork, un math:FactorGraph ou un math:MarkovKernel) à la cible de modèle probabiliste logic: vers laquelle il se traduit formellement (logic:FullIndependence, logic:DependencyModel, logic:JointOutcome ou logic:GenericDependence). Domaine : un modèle de dépendance math: destiné au raisonnement ; portée : une cible de modèle probabiliste logic: (indiqués en prose). La traduction est une application formelle assortie d’un jugement de préservation, non une vague relation de satisfaction ou de projection : sa polarité de préservation est portée À SES CÔTÉS par logic:preservationKind, repris tel quel du vocabulaire de registre des pertes logic: plutôt que par un quasi-synonyme math: (Principe 17). Un modèle destiné au raisonnement qui référence des faits probabilistes sans traduction déclarée est non pris en charge ou non évalué, jamais supposé indépendant (math:MissingProbabilityModelLowering)."
+
+msgctxt "https://blackcatinformatics.ca/math/probabilityModelLowering|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The relation records the declared target; logic:preservationKind separately records its preservation judgment. Class declarations expose the intended family seam, while individual validity and actual preservation require evidence. A target link is neither an execution receipt nor a proof that an arbitrary instance satisfies the target's contract."
+msgstr "La relation consigne la cible déclarée ; logic:preservationKind consigne séparément son jugement de préservation. Les déclarations de classe exposent l’articulation visée de la famille, tandis que la validité individuelle et la préservation effective exigent des éléments probants. Un lien cible n’est ni un reçu d’exécution ni une preuve qu’une instance quelconque satisfait au contrat de la cible."
+
+msgctxt "https://blackcatinformatics.ca/math/probabilityModelLowering|http://www.w3.org/2004/02/skos/core#example"
+msgid "The module declares BayesianNetwork probabilityModelLowering logic:DependencyModel with logic:preservationKind logic:ExactPreservation. The lowering competency query joins a request's model type to that class-level metadata under reasoningNone, rather than computing a joint distribution or proving instance preservation."
+msgstr "Le module déclare BayesianNetwork probabilityModelLowering logic:DependencyModel avec logic:preservationKind logic:ExactPreservation. La requête de compétence sur la traduction joint le type de modèle d’une requête à ces métadonnées de classe sous reasoningNone, au lieu de calculer une loi conjointe ou de prouver la préservation d’une instance."
+
+msgctxt "https://blackcatinformatics.ca/math/probabilityModelLowering|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain a supplied formal lowering declaration from a mathematical dependency-model class or individual into its actual logic: target, with the accompanying preservation judgment and selected-profile evidence."
+msgstr "Utiliser pour conserver une déclaration fournie de traduction formelle d’une classe ou d’un individu de modèle mathématique de dépendance vers sa cible logic: effective, avec le jugement de préservation associé et les éléments probants du profil sélectionné."
+
+msgctxt "https://blackcatinformatics.ca/math/probabilityModelLowering|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid using a soft similarity link, inventing a math: preservation synonym, treating the class table as an instance proof, or silently defaulting to independence. An unsupported or invalid model does not become an accepted approximation merely by naming a loss kind."
+msgstr "Éviter d’utiliser un lien de ressemblance vague, d’inventer un synonyme de préservation math:, de traiter la table des classes comme une preuve d’instance ou de choisir implicitement l’indépendance. Un modèle non pris en charge ou invalide ne devient pas une approximation acceptée par le seul fait de nommer un type de perte."
+
+msgctxt "https://blackcatinformatics.ca/math/probabilityModelLowering|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the model-to-target declaration and its actual class or instance location together with logic:preservationKind and any recorded losses. Preserve logic:probabilityModel as the separate request-to-model link. Qualify the selected target, model obligations and approximation policy explicitly; report unsupported or not-evaluated when required evidence or capabilities are absent."
+msgstr "Conserver la déclaration du modèle vers la cible et son emplacement effectif sur la classe ou l’instance, avec logic:preservationKind et toute perte consignée. Préserver logic:probabilityModel comme lien distinct de la requête vers le modèle. Qualifier explicitement la cible sélectionnée, les obligations du modèle et la politique d’approximation ; signaler un statut non pris en charge ou non évalué lorsque les éléments probants ou capacités requis sont absents."
+
+msgctxt "https://blackcatinformatics.ca/math/MissingProbabilityModelLowering|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Missing Probability Model Lowering"
+msgstr "Traduction du modèle probabiliste manquante"
+
+msgctxt "https://blackcatinformatics.ca/math/MissingProbabilityModelLowering|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The failure raised when a reasoning-facing dependency model referenced by a probabilistic reasoning request does not declare its logic: lowering (math:probabilityModelLowering into a logic: probability-model target with a logic:preservationKind). Absent a declared lowering the engine reports unsupported / not-evaluated rather than assuming independence; a reasoning-facing model with an undeclared lowering is ill-formed."
+msgstr "L’échec signalé lorsqu’un modèle de dépendance destiné au raisonnement, référencé par une requête de raisonnement probabiliste, ne déclare pas sa traduction logic: (math:probabilityModelLowering vers une cible de modèle probabiliste logic: avec un logic:preservationKind). En l’absence de traduction déclarée, le moteur signale un statut non pris en charge ou non évalué au lieu de supposer l’indépendance ; un modèle destiné au raisonnement dont la traduction n’est pas déclarée est mal formé."
+
+msgctxt "https://blackcatinformatics.ca/math/MissingProbabilityModelLowering|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This identifies a missing declared lowering for a referenced model. The inspected native check accepts lowering-link presence directly on the model or on one of its declared types; that presence check does not validate the target, preservation judgment or full mathematical model."
+msgstr "Identifie une traduction déclarée manquante pour un modèle référencé. La vérification native examinée accepte la présence du lien de traduction directement sur le modèle ou sur l’un de ses types déclarés ; cette vérification de présence ne valide ni la cible, ni le jugement de préservation, ni le modèle mathématique complet."
+
+msgctxt "https://blackcatinformatics.ca/math/MissingProbabilityModelLowering|http://www.w3.org/2004/02/skos/core#example"
+msgid "The missing-lowering counter-example references ex:unloweredModel through logic:probabilityModel without a lowering declaration. Its positive fixture supplies probabilityModelLowering logic:FullIndependence and logic:preservationKind logic:ExactPreservation on ex:loweredModel."
+msgstr "Le contre-exemple de traduction manquante référence ex:unloweredModel par logic:probabilityModel sans déclaration de traduction. Son jeu de données positif fournit probabilityModelLowering logic:FullIndependence et logic:preservationKind logic:ExactPreservation sur ex:loweredModel."
+
+msgctxt "https://blackcatinformatics.ca/math/MissingProbabilityModelLowering|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when a reasoning request actually references a model whose required formal lowering declaration is absent, preserving the referenced resource and the failed declaration lookup."
+msgstr "Utiliser lorsqu’une requête de raisonnement référence effectivement un modèle dont la déclaration de traduction formelle requise est absente, en préservant la ressource référencée et la recherche infructueuse de déclaration."
+
+msgctxt "https://blackcatinformatics.ca/math/MissingProbabilityModelLowering|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid reporting a wholly absent model reference as this specific emitted finding, assuming independence after a lookup fails, or interpreting a present link as proof that every target and preservation obligation has passed."
+msgstr "Éviter de signaler une référence de modèle entièrement absente comme cette constatation émise particulière, de supposer l’indépendance après l’échec d’une recherche ou d’interpréter un lien présent comme une preuve que toutes les obligations de cible et de préservation ont été satisfaites."
+
+msgctxt "https://blackcatinformatics.ca/math/MissingProbabilityModelLowering|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the request's logic:probabilityModel object and inspect the actual model and type-level probabilityModelLowering declarations. Record the missing declaration and unsupported status without guessing a target; preserve separately any missing judgment, malformed target or incomplete-model evidence."
+msgstr "Conserver l’objet logic:probabilityModel de la requête et examiner les déclarations probabilityModelLowering effectives sur le modèle et ses types. Consigner la déclaration manquante et le statut non pris en charge sans deviner de cible ; préserver séparément tout élément probant de jugement manquant, de cible mal formée ou de modèle incomplet."
+
+msgctxt "https://blackcatinformatics.ca/math/IncompleteDependencyModel|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Incomplete Dependency Model"
+msgstr "Modèle de dépendance incomplet"
+
+msgctxt "https://blackcatinformatics.ca/math/IncompleteDependencyModel|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The failure raised when a dependency-model declaration fails the completeness obligations of its selected representation or lowering: missing graph or kernel endpoints, incomplete joint outcomes, missing required conditional laws, or unmet factor-product validity obligations. The declaration is insufficient for that selected contract; this does not assert that no mathematical joint distribution can exist. Structural incompleteness is distinct from a missing lowering declaration and from evidence contradicting a claimed exact preservation."
+msgstr "L’échec signalé lorsqu’une déclaration de modèle de dépendance ne satisfait pas aux obligations de complétude de sa représentation ou traduction sélectionnée : graphe ou extrémités de noyau manquants, issues conjointes incomplètes, lois conditionnelles requises manquantes ou obligations de validité du produit de facteurs non satisfaites. La déclaration est insuffisante pour ce contrat sélectionné ; cela n’affirme pas qu’aucune loi conjointe mathématique ne peut exister. L’incomplétude structurelle se distingue d’une déclaration de traduction manquante et d’éléments probants contredisant une prétendue préservation exacte."
+
+msgctxt "https://blackcatinformatics.ca/math/IncompleteDependencyModel|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Mathematical completeness includes the selected model's scope, laws and normalization obligations. The inspected native findings cover missing graph or kernel links and tables with no named outcome rows; direct instance exactness routes missing graph or endpoint evidence to ExactPreservationViolated instead. These bounded checks do not prove general acyclicity, complete conditionals or kernel totality."
+msgstr "La complétude mathématique comprend le périmètre, les lois et les obligations de normalisation du modèle sélectionné. Les constatations natives examinées couvrent les liens de graphe ou de noyau manquants et les tables sans lignes nommées ; une revendication directe d’exactitude sur une instance oriente plutôt les éléments probants de graphe ou d’extrémité manquants vers ExactPreservationViolated. Ces vérifications délimitées ne prouvent ni acyclicité générale, ni lois conditionnelles complètes, ni totalité du noyau."
+
+msgctxt "https://blackcatinformatics.ca/math/IncompleteDependencyModel|http://www.w3.org/2004/02/skos/core#example"
+msgid "The counter-examples supply ex:incompleteKernel with a kernelDomain but no kernelCodomain and ex:incompleteFactorGraph with no dependencyGraph. The corresponding positive fixtures supply those links; this exercises a declared structural boundary rather than a full mathematical completion proof."
+msgstr "Les contre-exemples fournissent ex:incompleteKernel avec un kernelDomain mais sans kernelCodomain et ex:incompleteFactorGraph sans dependencyGraph. Les jeux de données positifs correspondants fournissent ces liens ; cela exerce une limite structurelle déclarée plutôt qu’une preuve de complétion mathématique intégrale."
+
+msgctxt "https://blackcatinformatics.ca/math/IncompleteDependencyModel|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for evidenced failure of the selected dependency-model completeness contract, recording which graph, endpoint, outcome or law obligation is missing or invalid and distinguishing the actual emitted diagnostic route."
+msgstr "Utiliser pour un échec étayé du contrat de complétude du modèle de dépendance sélectionné, en consignant l’obligation de graphe, d’extrémité, d’issue ou de loi manquante ou invalide et en distinguant la voie du diagnostic effectivement émis."
+
+msgctxt "https://blackcatinformatics.ca/math/IncompleteDependencyModel|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid concluding that no joint law can exist, treating every unknown proof as a computed contradiction, or claiming that missing-link checks validate all mathematical structure. Do not silently convert an incomplete declaration into an independent or approximate model."
+msgstr "Éviter de conclure qu’aucune loi conjointe ne peut exister, de traiter toute preuve inconnue comme une contradiction calculée ou de prétendre que les vérifications de liens manquants valident toute la structure mathématique. Ne pas convertir implicitement une déclaration incomplète en modèle indépendant ou approché."
+
+msgctxt "https://blackcatinformatics.ca/math/IncompleteDependencyModel|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Identify the supplied model family, selected representation and exact failing obligation. Preserve the original evidence and any instance preservation claim, distinguish structural failure from unavailable qualification, and obtain missing source structure without fabricating a graph, law, endpoint or outcome."
+msgstr "Identifier la famille du modèle fourni, la représentation sélectionnée et l’obligation exacte non satisfaite. Préserver les éléments probants d’origine et toute revendication de préservation sur l’instance, distinguer l’échec structurel d’une qualification indisponible, et obtenir la structure source manquante sans fabriquer de graphe, de loi, d’extrémité ou d’issue."
+
+msgctxt "https://blackcatinformatics.ca/math/ExactPreservationViolated|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "A contradicted exactness claim differs from missing proof or an absent lowering. The inspected native checks detect projection-ledger contradictions, readable nonunit joint-table sums and directly exact graph or kernel instances missing required links. Their admission does not establish every mathematical preservation condition; unreadable table audits remain unqualified."
+msgstr "Une revendication d’exactitude contredite se distingue d’une preuve manquante ou d’une traduction absente. Les vérifications natives examinées détectent les contradictions du registre de projection, les sommes lisibles non unitaires des tables conjointes et les instances de graphe ou de noyau directement déclarées exactes auxquelles manquent des liens requis. Leur admission n’établit pas chaque condition mathématique de préservation ; les audits de table illisibles restent non qualifiés."
+
+msgctxt "https://blackcatinformatics.ca/math/ExactPreservationViolated|http://www.w3.org/2004/02/skos/core#example"
+msgid "The nonunit-table counter-example gives ex:overclaimedTable masses 0.5 and 0.4, contradicting its class-declared exactness. Separate graph and kernel counter-examples directly declare logic:ExactPreservation while omitting a required structural link; the projection fixture instead declares a provenance drop alongside exactness."
+msgstr "Le contre-exemple de table non unitaire donne à ex:overclaimedTable les masses 0.5 et 0.4, contredisant son exactitude déclarée au niveau de la classe. Des contre-exemples distincts de graphe et de noyau déclarent directement logic:ExactPreservation tout en omettant un lien structurel requis ; le jeu de données de projection déclare plutôt une omission de provenance en même temps que l’exactitude."
+
+msgctxt "https://blackcatinformatics.ca/math/ExactPreservationViolated|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for source evidence that contradicts an actual exact-preservation claim, retaining the claim's location and the particular mathematical or loss-ledger conflict."
+msgstr "Utiliser pour des éléments probants sources qui contredisent une véritable revendication de préservation exacte, en conservant l’emplacement de la revendication et le conflit mathématique ou de registre des pertes particulier."
+
+msgctxt "https://blackcatinformatics.ca/math/ExactPreservationViolated|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid equating an unavailable proof with a demonstrated false claim, treating every unnormalized product as lossy, or declaring exactness because no bounded lint finding appeared. Do not replace a failed exact claim with an unsupported approximation judgment."
+msgstr "Éviter d’assimiler une preuve indisponible à une fausse revendication démontrée, de traiter tout produit non normalisé comme ayant des pertes ou de déclarer l’exactitude parce qu’aucune constatation de lint délimitée n’est apparue. Ne pas remplacer une revendication d’exactitude en échec par un jugement d’approximation non étayé."
+
+msgctxt "https://blackcatinformatics.ca/math/ExactPreservationViolated|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Keep the claimed logic:ExactPreservation, model or ProjectionRecord, and contradictory mass, missing-link or loss evidence together. State which check actually decided the finding and which obligations remain unqualified; repair the source contract or validate a genuinely supported alternative lowering without hiding the failed claim."
+msgstr "Garder ensemble la logic:ExactPreservation revendiquée, le modèle ou ProjectionRecord et les éléments probants contradictoires de masse, de lien manquant ou de perte. Indiquer quelle vérification a effectivement décidé la constatation et quelles obligations restent non qualifiées ; réparer le contrat source ou valider une autre traduction réellement prise en charge sans masquer la revendication en échec."

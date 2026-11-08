@@ -246,16 +246,28 @@ first draft — so the implementation does not invent the seam ad hoc:
 
 | Mathematics object | `logic:` target | Exact? | Required completeness gate |
 |---|---|---|---|
-| `math:FullIndependenceModel` | `logic:FullIndependence` | yes | all probabilistic facts named |
-| `math:JointProbabilityTable` | `logic:DependencyModel` + `logic:JointOutcome` set | yes if exhaustive | outcomes present and mass sums to one |
-| `math:BayesianNetwork` | `logic:DependencyModel` (WMC factorization) | conditional | DAG; CPT completeness |
-| `math:FactorGraph` | `logic:DependencyModel` (weighted factor product) | conditional | finite factors; normalized or declared unnormalized |
-| `math:MarkovKernel` | `logic:GenericDependence` (stochastic transition) | conditional | domain/codomain; kernel totality |
+| `math:FullIndependenceModel` | `logic:FullIndependence` | conditional on preserving the declared product model | complete named scope; declared mutual-independence assumption and marginal laws |
+| `math:JointProbabilityTable` | `logic:DependencyModel` + `logic:JointOutcome` set | conditional | disjoint exhaustive outcome assignments; nonnegative masses summing to one; preserved table |
+| `math:BayesianNetwork` | `logic:DependencyModel` (WMC factorization) | conditional | DAG; complete compatible conditional laws (CPTs for finite discrete variables); supported target representation |
+| `math:FactorGraph` | `logic:DependencyModel` (weighted factor product) | conditional | finite nonnegative measurable factors; finite strictly positive normalizer over the declared base measure; preserved normalization semantics |
+| `math:MarkovKernel` | `logic:GenericDependence` (stochastic transition) | conditional | declared measurable domain/codomain; probability measure at every source point; measurability in that point; preserved transition law |
 | approximate model | bounded approximate result | no | explicit approximation/loss policy |
 
-The exactness column is a `logic:preservationKind` value
-([`MATHEMATICS-CONFORMANCE.md`](MATHEMATICS-CONFORMANCE.md)); a "conditional" row is exact only when
-its completeness gate holds, and lossy otherwise with its drops enumerated.
+The exactness column describes the obligations behind the declared `logic:preservationKind`
+([`MATHEMATICS-CONFORMANCE.md`](MATHEMATICS-CONFORMANCE.md)). Class-level exactness declarations
+record the intended family lowering, not a proof for every instance. The selected model and target
+must satisfy their completeness and preservation obligations. An explicitly unnormalized factor
+representation can be exact when it defines a valid law and retains its normalization semantics.
+Invalid or unsupported models report incomplete, unsupported or not-evaluated; they do not
+automatically become valid lossy models. A supported approximate lowering requires an explicit
+validated approximation policy and a loss account.
+
+The current native dependency checks inspect declared lowering links, graph and kernel endpoint
+presence, named table-row presence and readable exact mass sums. They do not establish general
+DAG or conditional-law completeness, kernel totality, exhaustive assignments or factor normalization.
+The class-level lowering query exposes declarations, and the worked scene names graph and endpoint
+resources without supplying complete edge, conditional-law or transition inventories. These are
+structural examples, not instance preservation certificates.
 
 The Bayesian update chain is first-class: `math:PriorDistribution`, `math:LikelihoodFunction`, and
 `math:PosteriorDistribution` are distinct objects linked by
