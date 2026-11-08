@@ -15662,8 +15662,8 @@ msgid "Use when a source supplies the event or context on which a conditional pr
 msgstr "Utiliser lorsqu’une source fournit l’événement ou le contexte par lequel une probabilité conditionnelle est conditionnée, avec les éléments probants réels de son cadre probabiliste lorsqu’ils sont disponibles."
 
 msgctxt "https://blackcatinformatics.ca/math/conditionalOn|https://blackcatinformatics.ca/gmeow/avoidWhen"
-msgid "Avoid reversing the edge, using its object as the event being assessed, or confusing it with independentGiven on a conditional-independence assertion. Do not infer a positive-probability event or a unique context from the property name alone."
-msgstr "Éviter d’inverser le lien, d’employer son objet comme événement évalué ou de le confondre avec independentGiven sur une assertion d’indépendance conditionnelle. Ne déduire du seul nom de la propriété ni un événement de probabilité positive ni un contexte unique."
+msgid "Avoid confusing the conditioning role with the assessed-event role; the event resources may coincide, as in P(B | B) = 1 when P(B) > 0. Do not reverse the edge, substitute independentGiven, or infer positive probability or a unique context from the property name alone."
+msgstr "Éviter de confondre le rôle de conditionnement avec celui de l’événement évalué ; les ressources d’événement peuvent coïncider, comme dans P(B | B) = 1 lorsque P(B) > 0. Ne pas inverser l’arête, remplacer la propriété par independentGiven ni déduire une probabilité positive ou un contexte unique du seul nom de la propriété."
 
 msgctxt "https://blackcatinformatics.ca/math/conditionalOn|https://blackcatinformatics.ca/gmeow/howToUse"
 msgid "Keep the ConditionalProbability object as subject and its actual conditioning resource as object. Preserve the separate source description of the assessed event, probability setting and value; this edge alone fills none of those roles and does not justify zero-probability conditioning."
