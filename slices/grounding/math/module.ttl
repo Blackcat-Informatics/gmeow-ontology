@@ -13867,6 +13867,11 @@ math:ConditionalProbability
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "Conditional Probability"@x-gmeow-english ;
     skos:definition "A conditional probability P(A | B): a probability object naming BOTH the event it is about and the conditioning event or context it is conditioned on (math:conditionalOn). A subclass of math:MathematicalObject. A conditional with an unnamed conditioning context is ill-formed (math:UnconditionedAssertion) — the conditioning context is never left implicit."@x-gmeow-english ;
+    skos:scopeNote "For ordinary event conditioning, P(A | B) = P(A ∩ B) / P(B) requires P(B) > 0 in a common probability setting. Naming a context alone proves neither this hypothesis nor a numerical conditional; zero-probability conditioning requires a separately justified construction."@x-gmeow-english ;
+    skos:example "The probability scene types ex:pRainGivenWetGrass as ConditionalProbability and supplies conditionalOn ex:wetGrassEvent. Its label describes rain given wet grass, but the record there supplies neither a structured numerator-event link nor a numeric value."@x-gmeow-english ;
+    gmeow:useWhen "Use for a supplied probability object that explicitly identifies its conditioning event or context, while retaining the event being assessed and the actual probability setting in their supplied representation."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid reading P(A | B) as P(B | A), an unconditional probability, a confidence score or a causal effect. Do not invent a numerator, measure or numeric value, or assign a default conditional when the conditioning event has probability zero."@x-gmeow-english ;
+    gmeow:howToUse "Type the supplied object as ConditionalProbability and keep its actual conditionalOn link, event description and probability evidence. The conditioning-link requirement is a presence boundary; it neither supplies missing event/value structure nor constructs a conditional law or proves normalization."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox ;
     gmeow:enforcesFailureClass math:UnconditionedAssertion .
 
@@ -13875,7 +13880,12 @@ math:IndependenceAssertion
     rdfs:subClassOf math:MathematicalObject ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "Independence Assertion"@x-gmeow-english ;
-    skos:definition "A marginal-independence assertion: a modeler's claim that A and B (or a set of facts) are independent, naming its subject (math:independenceSubject) and what it is independent of (math:independentOf, or math:mutuallyIndependentSet for a joint set). A subclass of math:MathematicalObject. Independence is a STANDPOINT-SCOPED claim, not a fact of the graph: the assertion is held by whoever asserted the model and names the model it holds in (math:independenceHoldsInModel, held by a gmeow:vantage), so 'who claimed these independent, and in which model' is always answerable. The ABSENCE of any independence assertion is 'not modeled' — a real, distinct third state that a reasoning engine must NEVER read as independence."@x-gmeow-english ;
+    skos:definition "An independence assertion: a modeler's claim of marginal or conditional independence for A and B (or a set of facts), naming its subject (math:independenceSubject) and what it is independent of (math:independentOf, or math:mutuallyIndependentSet for a joint set). A subclass of math:MathematicalObject. Independence is a STANDPOINT-SCOPED claim, not a fact of the graph: the assertion is held by whoever asserted the model and names the model it holds in (math:independenceHoldsInModel, held by a gmeow:vantage), so 'who claimed these independent, and in which model' is always answerable. The ABSENCE of any independence assertion is 'not modeled' — a real, distinct third state that a reasoning engine must NEVER read as independence."@x-gmeow-english ;
+    skos:scopeNote "This is the local assertion umbrella, including ConditionalIndependenceAssertion. Parent-class membership alone does not establish that a claim is marginal. Independence is stated in a model and held from a vantage; the assertion records a claim rather than proving its mathematical truth."@x-gmeow-english ;
+    skos:example "The three-state fixture gives ex:abIndep independenceSubject ex:eventA, independentOf ex:eventB, independenceHoldsInModel ex:indepModel and gmeow:vantage ex:modeler. These supplied links ground that modeled claim; the separate absent candidate pair does not become independent."@x-gmeow-english ;
+    gmeow:useWhen "Use for a source's explicit independence claim, retaining whether it is marginal or conditional, its operands, applicable model and holding vantage without promoting one source account over another."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring independence from silence, zero correlation or a shared class label. Do not classify every parent-typed assertion as marginal, discard a conditional subclass, or turn a present assertion with missing metadata into an absent claim."@x-gmeow-english ;
+    gmeow:howToUse "Keep the assertion resource distinct from the events or variables it concerns. Preserve its supplied independenceSubject, independentOf or mutuallyIndependentSet, model and vantage; use the existing conditional subclass and independentGiven for an explicitly conditional claim. Retain coexisting contextual claims and report missing evidence without inventing it."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 math:ConditionalIndependenceAssertion
@@ -13883,7 +13893,12 @@ math:ConditionalIndependenceAssertion
     rdfs:subClassOf math:IndependenceAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "Conditional Independence Assertion"@x-gmeow-english ;
-    skos:definition "A conditional-independence assertion A ⫫ B | C: an independence assertion that additionally names the conditioning set it is relative to (math:independentGiven). A subclass of math:IndependenceAssertion. Like marginal independence it is a standpoint-scoped modeler's claim naming its model; distinct from marginal independence (a different, weaker-or-stronger relation), and distinct again from 'not modeled'. A conditional-independence assertion that fails to name its conditioning set is ill-formed (math:UnconditionedAssertion)."@x-gmeow-english ;
+    skos:definition "A conditional-independence assertion A ⫫ B | C: an independence assertion that additionally names the conditioning set it is relative to (math:independentGiven). A subclass of math:IndependenceAssertion. Like marginal independence it is a standpoint-scoped modeler's claim naming its model; distinct from marginal independence (neither generally implies the other), and distinct again from 'not modeled'. A conditional-independence assertion that fails to name its conditioning set is ill-formed (math:UnconditionedAssertion)."@x-gmeow-english ;
+    skos:scopeNote "The claim is relative to the stated conditioning context C. In general marginal independence does not imply conditional independence, and conditional independence does not imply marginal independence. Naming C does not assert that C is independent of either operand."@x-gmeow-english ;
+    skos:example "In the three-state fixture, ex:acGivenD names ex:eventA through independenceSubject, ex:eventC through independentOf and ex:eventD through independentGiven, with ex:indepModel and ex:modeler as its supplied model and vantage. The record asserts a conditional claim rather than a computed factorization."@x-gmeow-english ;
+    gmeow:useWhen "Use for an explicit independence claim relative to a named conditioning set or context, preserving its two operands, probability setting, model and vantage as actually supplied."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid dropping the conditioning context, treating the parent IndependenceAssertion type as an additional marginal claim, or deriving independence from a missing assertion. Do not replace a source's conditioning set with a guessed common cause or preferred model."@x-gmeow-english ;
+    gmeow:howToUse "Type the assertion as ConditionalIndependenceAssertion, retain its independenceSubject and independentOf operands and name the supplied context through independentGiven. Keep actual model and vantage links separately; presence of the conditioning link does not prove the conditional law, complete record admission or mathematical independence."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox ;
     gmeow:enforcesFailureClass math:UnconditionedAssertion .
 
@@ -13892,6 +13907,11 @@ math:conditionalOn
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "conditional on"@x-gmeow-english ;
     skos:definition "Names the conditioning event or context of a conditional probability — the B in P(A | B). Domain math:ConditionalProbability, range a math:ProbabilityEvent or conditioning context (stated in prose). A conditional probability names one; a conditional with an unnamed conditioning context is ill-formed (math:UnconditionedAssertion)."@x-gmeow-english ;
+    skos:scopeNote "This is the conditioning role of a ConditionalProbability, not its numerator event or resulting value. It names the source context B in P(A | B); a supplied link does not establish positive P(B), a measure or a conditional-probability construction."@x-gmeow-english ;
+    skos:example "The probability scene asserts ex:pRainGivenWetGrass conditionalOn ex:wetGrassEvent. The clean conditioning fixture likewise gives ex:posteriorProbability conditionalOn ex:evidenceEvent; those are supplied context links, not numeric evaluations."@x-gmeow-english ;
+    gmeow:useWhen "Use when a source supplies the event or context on which a conditional probability is conditioned, including its actual probability-setting evidence where available."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid reversing the edge, using its object as the event being assessed, or confusing it with independentGiven on a conditional-independence assertion. Do not infer a positive-probability event or a unique context from the property name alone."@x-gmeow-english ;
+    gmeow:howToUse "Keep the ConditionalProbability object as subject and its actual conditioning resource as object. Preserve the separate source description of the assessed event, probability setting and value; this edge alone fills none of those roles and does not justify zero-probability conditioning."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 math:independenceSubject
@@ -13899,13 +13919,23 @@ math:independenceSubject
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "independence subject"@x-gmeow-english ;
     skos:definition "Names the subject of an independence assertion — the A whose independence is claimed. Domain math:IndependenceAssertion, range a math:ProbabilityEvent or math:RandomVariable (stated in prose)."@x-gmeow-english ;
+    skos:scopeNote "This names the A operand of an independence claim; its subject is the assertion resource, not the event or random variable A itself. Mathematical symmetry between operands does not make this assertion-to-operand property symmetric."@x-gmeow-english ;
+    skos:example "The fixture asserts ex:abIndep independenceSubject ex:eventA and separately independentOf ex:eventB. Its conditional ex:acGivenD also uses ex:eventA as independenceSubject while naming a different counterpart and a conditioning event."@x-gmeow-english ;
+    gmeow:useWhen "Use to identify the actual event or random variable whose independence is asserted, retaining its distinction from the assertion, counterpart and any conditioning context."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid pointing from one event directly to another through this property, reversing the assertion-to-operand edge, or treating an operand's presence as a proof of independence or complete source metadata."@x-gmeow-english ;
+    gmeow:howToUse "Put independenceSubject on the supplied IndependenceAssertion resource and retain its actual operand object. Keep independentOf or the supplied joint-set form, any independentGiven context, model and vantage separately; no operand edge fabricates the other roles or an evaluated probability law."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 math:independentOf
     a logic:ObjectProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "independent of"@x-gmeow-english ;
-    skos:definition "Names the event or variable an independence subject is asserted independent of — the B in A ⫫ B. Domain math:IndependenceAssertion, range a math:ProbabilityEvent or math:RandomVariable (stated in prose). Used for pairwise marginal independence; a set of mutually independent facts uses math:mutuallyIndependentSet instead."@x-gmeow-english ;
+    skos:definition "Names the event or variable an independence subject is asserted independent of — the B in A ⫫ B. Domain math:IndependenceAssertion, range a math:ProbabilityEvent or math:RandomVariable (stated in prose). Used for pairwise independence, including conditional assertions whose context is named separately; a set of mutually independent facts uses math:mutuallyIndependentSet instead."@x-gmeow-english ;
+    skos:scopeNote "This is the counterpart B role on an assertion about A, for a marginal or explicitly conditional pairwise claim. The predicate relates an assertion to its operand, so mathematical symmetry of independence does not declare the RDF property symmetric."@x-gmeow-english ;
+    skos:example "The fixture supplies ex:abIndep independentOf ex:eventB for its marginal claim and ex:acGivenD independentOf ex:eventC for its conditional claim. The latter separately names ex:eventD through independentGiven."@x-gmeow-english ;
+    gmeow:useWhen "Use for the supplied counterpart event or random variable in a pairwise independence claim, retaining any separately stated conditioning context and the claim's model and vantage."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid treating every use as marginal, attaching the edge directly between the two operands, or upgrading a list of pairwise claims into mutual independence of a larger family. A counterpart link is neither an independence proof nor a numeric coefficient."@x-gmeow-english ;
+    gmeow:howToUse "Keep the assertion as subject and its actual counterpart as object, alongside independenceSubject. Preserve independentGiven for a conditional claim and the supplied model and vantage evidence; use mutuallyIndependentSet only when the source actually supplies that joint-set claim and resource."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 math:independentGiven
@@ -13913,13 +13943,23 @@ math:independentGiven
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "independent given"@x-gmeow-english ;
     skos:definition "Names the conditioning set of a conditional-independence assertion — the C in A ⫫ B | C. Domain math:ConditionalIndependenceAssertion, range the conditioning set (stated in prose). A conditional-independence assertion that fails to name its conditioning set is ill-formed (math:UnconditionedAssertion)."@x-gmeow-english ;
+    skos:scopeNote "This names the C conditioning role in a conditional-independence claim. Retain the supplied resource, including an event used as context; the link alone supplies no enumeration, sigma-algebra, conditional distribution or independence proof."@x-gmeow-english ;
+    skos:example "The three-state fixture gives ex:acGivenD independentGiven ex:eventD. The positive conformance fixture instead names ex:diseaseEvent on ex:givenIndependence, while the negative ex:ungivenIndependence omits independentGiven."@x-gmeow-english ;
+    gmeow:useWhen "Use when the source explicitly identifies the conditioning set or context relative to which a conditional-independence assertion is made."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid confusing this context with either independence operand, using conditionalOn as a substitute, or inferring a conditioning set from a label. An absent link is not an empty conditioning set or permission to reinterpret the claim as marginal."@x-gmeow-english ;
+    gmeow:howToUse "Keep ConditionalIndependenceAssertion as subject and the actual supplied conditioning resource as object. Retain both operands, model and vantage independently; report an absent context as the declared UnconditionedAssertion boundary rather than inventing it or claiming a factorization result."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 math:mutuallyIndependentSet
     a logic:ObjectProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "mutually independent set"@x-gmeow-english ;
-    skos:definition "Names the set of facts an independence assertion claims MUTUALLY independent — a stronger claim than pairwise independence over the same facts. Domain math:IndependenceAssertion, range the set of mutually independent events or variables (stated in prose). The joint-set form of math:independentOf."@x-gmeow-english ;
+    skos:definition "Names the set of facts an independence assertion claims MUTUALLY independent — a claim stronger in general than pairwise independence over the same facts; for two members the requirements coincide. Domain math:IndependenceAssertion, range the set of mutually independent events or variables (stated in prose). The joint-set form of math:independentOf."@x-gmeow-english ;
+    skos:scopeNote "Mutual independence requires factorization for every finite subcollection of events; for random variables, apply this to their measurable value events. For two members it coincides with pairwise independence; larger families can be pairwise independent without being mutually independent."@x-gmeow-english ;
+    skos:example "As a mathematical illustration, let U and V be independent fair bits and W = U XOR V. Every pair is independent, but P(U=0, V=0, W=0) = 1/4 while the product of the three marginal probabilities is 1/8. This supplies no existing RDF set resource or executed calculation."@x-gmeow-english ;
+    gmeow:useWhen "Use when the source supplies an explicit mutual-independence claim over an identified collection of events or variables, with its actual member representation, model and vantage."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid promoting pairwise claims to mutual independence of a larger collection, interpreting an unordered set as an operand sequence, or treating a set label as a member inventory or proof of factorization."@x-gmeow-english ;
+    gmeow:howToUse "Point mutuallyIndependentSet from the IndependenceAssertion to the actual supplied set resource. Preserve its source member representation and the scope of the joint claim; do not invent membership edges, a cardinality, a factorization proof or a sampling result from the link alone."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 math:independenceHoldsInModel
@@ -13927,6 +13967,11 @@ math:independenceHoldsInModel
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "independence holds in model"@x-gmeow-english ;
     skos:definition "Names the model an independence assertion holds in — the dependency model, probability model, or standpoint within which the claimed independence is asserted. Domain math:IndependenceAssertion, range the model it holds in (stated in prose). Independence is a modeler's claim from a vantage (the assertion is held by a gmeow:vantage), not a fact of the graph, so an independence claim always names the model it holds in and never floats free of one."@x-gmeow-english ;
+    skos:scopeNote "This is the model or context role of an independence claim; gmeow:vantage separately identifies who holds it. Preserve both roles even when the source resources are related. Neither role alone establishes a complete probability model or a mathematical independence result."@x-gmeow-english ;
+    skos:example "The fixture gives ex:abIndep independenceHoldsInModel ex:indepModel and separately gmeow:vantage ex:modeler. The probability scene supplies model links on ex:seasonSprinklerIndependence and ex:rainSprinklerCondIndep, but their inspected records do not themselves supply a vantage."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain the actual named model or context within which a source's independence claim is asserted, while preserving the separate holding-vantage account."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid treating a model link as a holding-vantage link, applying one model's claim to every model, or deriving a complete logic:ProbabilityModel from an identifier alone. Missing model or vantage metadata is not evidence that an explicit assertion is absent."@x-gmeow-english ;
+    gmeow:howToUse "Keep the IndependenceAssertion as subject and its supplied model or context as object. Preserve the actual operands, any conditioning context and the source's vantage separately; retain coexisting model-indexed claims without selecting a preferred account or fabricating missing metadata."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 # --- Dependency models, the Bayesian update chain, and MCMC diagnostics ------ #
@@ -14276,6 +14321,11 @@ math:UnconditionedAssertion
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "Unconditioned Assertion"@x-gmeow-english ;
     skos:definition "The failure raised when a math:ConditionalProbability does not name its conditioning context (math:conditionalOn) or a math:ConditionalIndependenceAssertion does not name its conditioning set (math:independentGiven). A conditional or conditional-independence assertion always names what it is conditioned on; one that leaves its conditioning context implicit is ill-formed."@x-gmeow-english ;
+    skos:scopeNote "This identifies a missing named conditioning link, not every defect in a probability record. It does not by itself diagnose zero-probability conditioning, prove or refute independence, or establish complete operand, model and vantage metadata."@x-gmeow-english ;
+    skos:example "The negative fixtures declare ex:unconditionedProbability without conditionalOn and ex:ungivenIndependence without independentGiven. Their positive counterparts supply those links; this identifies the declared presence boundary, not an executed mathematical test."@x-gmeow-english ;
+    gmeow:useWhen "Use when a supplied ConditionalProbability lacks its named conditionalOn context or a supplied ConditionalIndependenceAssertion lacks independentGiven, retaining the actual offending record and missing role."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid raising this failure merely because P(B) = 0, an independence claim is unproved or no independence assertion exists. Missing conditioning structure, other missing metadata and undefined mathematics are distinct concerns."@x-gmeow-english ;
+    gmeow:howToUse "Retain the offending resource, its actual type, the missing conditioning property and the source evidence. Add a real source context only when supplied; do not guess an event, model, prior or vantage, drop the record or claim that naming a context proves its mathematics."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 math:MissingProbabilityModelLowering
