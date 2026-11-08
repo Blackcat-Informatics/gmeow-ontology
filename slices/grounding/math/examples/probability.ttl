@@ -260,8 +260,9 @@ ex:weatherTransitionKernel a math:MarkovKernel ;
 ex:todayWeatherSpace a math:MeasurableSpace .
 ex:tomorrowWeatherSpace a math:MeasurableSpace .
 
-# (f) A stochastic process — the indexed family {X_t} of daily rainfall variables whose
-# transition structure the kernel above carries.
+# (f) A stochastic-process declaration describes an indexed daily-rainfall family.
+# The nearby kernel supplies endpoint links only; no process-to-kernel link or
+# transition law is given here.
 ex:dailyRainfallProcess a math:StochasticProcess ;
     rdfs:label "daily rainfall process {X_t}"@x-gmeow-english .
 
