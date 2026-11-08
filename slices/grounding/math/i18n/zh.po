@@ -16536,3 +16536,199 @@ msgstr "避免根据此类型或描述性标签假定马尔可夫性、独立性
 msgctxt "https://blackcatinformatics.ca/math/StochasticProcess|https://blackcatinformatics.ca/gmeow/howToUse"
 msgid "Type the supplied mathematical family as StochasticProcess and preserve its actual indices, variable members, common probability-space and law evidence in their existing representation. Keep sample paths and sampling activities separately described. For reasoning, retain a supported explicit lowering of the selected model; do not invent a target, process-to-kernel relation or missing process data from the type."
 msgstr "将所提供的随机变量族标注为 StochasticProcess，并按现有表示保留其实际索引、变量成员、共同概率空间及分布律依据。另行描述样本路径及采样活动。对于推理，保留所选模型受支持的显式降级；不根据类型编造目标、过程到核的关系或缺失过程数据。"
+
+msgctxt "https://blackcatinformatics.ca/math/StatisticalModel|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Statistical Model"
+msgstr "统计模型"
+
+msgctxt "https://blackcatinformatics.ca/math/StatisticalModel|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A statistical model: a family of probability distributions (with a math:ModelFormula specification and declared assumptions) posited to have generated data. A subclass of math:MathematicalObject; when bound to concrete data by fitting it becomes a math:FittedModel. The specification names its structure through math:modelFormula; the model is the process-independent object an R lm/glm/lmer call lifts into."
+msgstr "统计模型：被假定生成数据的概率分布族，具有 math:ModelFormula 说明及已声明假设。它是 math:MathematicalObject 的子类；经拟合绑定到具体数据时成为 math:FittedModel。其说明通过 math:modelFormula 指明结构；模型是不依赖过程的对象，R lm/glm/lmer 调用提升为此对象。"
+
+msgctxt "https://blackcatinformatics.ca/math/StatisticalModel|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The model is a family or specification object, distinct in role from a fitting activity, a fitted artifact and an individual estimate. A formula is one component: distributional assumptions, family and link choices, dependence, weights and other fitting choices must remain explicit when supplied. Source-described structure does not establish an executed or valid fit."
+msgstr "模型是分布族或说明对象，其角色不同于拟合活动、拟合产物及单个估计结果。公式只是一个组成部分：所提供的分布假设、分布族及链接函数选择、依赖关系、权重和其他拟合选择必须保持明确。来源所描述结构不确立已执行或有效的拟合。"
+
+msgctxt "https://blackcatinformatics.ca/math/StatisticalModel|http://www.w3.org/2004/02/skos/core#example"
+msgid "The embedded mtcars.R scene contains lm(mpg ~ disp + wt * gear + I(hp^2), data = cars). The R frontend emits fitted-model, formula and dataset resources from that syntax; this is source lifting, not an R optimization run or a numerical fit result."
+msgstr "内嵌 mtcars.R 场景包含 lm(mpg ~ disp + wt * gear + I(hp^2), data = cars)。R 前端根据该语法输出已拟合模型、公式及数据集资源；这是来源提升，而非 R 优化运行或数值拟合结果。"
+
+msgctxt "https://blackcatinformatics.ca/math/StatisticalModel|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for a supplied statistical model family or specification whose structure and assumptions need to be retained independently of any particular fitted result, analysis activity or held claim."
+msgstr "用于所提供的统计模型族或说明，其结构及假设需要独立于任何特定拟合结果、分析活动或所持声称保留。"
+
+msgctxt "https://blackcatinformatics.ca/math/StatisticalModel|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating a formula, function name or declared assumptions as a complete validated model. Do not infer a family, link, weighting scheme or successful fit from silence, or identify distinct source specifications merely because a lift gave them a shared label or resource."
+msgstr "避免将公式、函数名或已声明假设视为已完整验证模型。不要根据未作陈述推断分布族、链接函数、加权方案或拟合成功，也不要仅因提升为不同来源说明赋予共享标签或资源，就将它们等同。"
+
+msgctxt "https://blackcatinformatics.ca/math/StatisticalModel|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Type the supplied object as StatisticalModel and preserve its actual modelFormula, modelAssumption and other supplied model context in their existing representation. Keep any FittedModel, data binding and fitting activity separately described; retain coexisting specifications and source-fidelity limits without inventing assumptions, options or numerical execution."
+msgstr "将所提供对象标注为 StatisticalModel，并按现有表示保留实际 modelFormula、modelAssumption 及其他所提供模型上下文。另行描述任何 FittedModel、数据绑定及拟合活动；保留并存说明及来源保真度限制，不编造假设、选项或数值执行。"
+
+msgctxt "https://blackcatinformatics.ca/math/FittedModel|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Fitted Model"
+msgstr "已拟合模型"
+
+msgctxt "https://blackcatinformatics.ca/math/FittedModel|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A fitted model: a math:StatisticalModel bound to concrete data through math:fittedToData and specified by a math:modelFormula — the trained artifact an lm/glm/lmer fit produces, from which math:Estimate coefficients and math:Residual values are read. A fitted model missing its data or its specification is ill-formed (math:UnfittedModel). The R broom glance triple lifts a model's summary statistics onto this object."
+msgstr "已拟合模型：通过 math:fittedToData 绑定到具体数据、由 math:modelFormula 指定的 math:StatisticalModel，即 lm/glm/lmer 拟合产生的训练产物，可从中读取 math:Estimate 系数及 math:Residual 值。缺少数据或说明的已拟合模型为不良形式（math:UnfittedModel）。R broom glance 三元组将模型汇总统计量提升到此对象上。"
+
+msgctxt "https://blackcatinformatics.ca/math/FittedModel|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This is the model artifact role, distinct from the inference activity and its coefficient or residual results. The inspected frame names required dataset and formula links. Those links alone do not establish fitting execution, full model specification, accessible data, numerical validity or preservation of all source fitting options."
+msgstr "这是模型产物角色，不同于推断活动及其系数或残差结果。所检查框架指明必需的数据集及公式链接。这些链接本身不确立拟合执行、完整模型说明、数据可访问性、数值有效性或全部来源拟合选项的保留。"
+
+msgctxt "https://blackcatinformatics.ca/math/FittedModel|http://www.w3.org/2004/02/skos/core#example"
+msgid "The fitted-model positive fixture gives ex:fit fittedToData ex:data and modelFormula ex:formula. Its formula has one populated indexed slot, but no BindingExpression type or full binder fields are supplied there. The fixture describes a structural boundary rather than an executed fit."
+msgstr "fitted-model 正例夹具给出 ex:fit fittedToData ex:data 和 modelFormula ex:formula。其公式具有一个已填充的带索引槽位，但其中没有提供 BindingExpression 类型或完整绑定结构字段。该夹具描述结构边界，而非已执行拟合。"
+
+msgctxt "https://blackcatinformatics.ca/math/FittedModel|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for a supplied fitted-model artifact or source-described fit result whose data binding, specification and provenance can be retained, preserving whether actual fitting execution and numerical results are evidenced."
+msgstr "用于所提供的已拟合模型产物或来源描述的拟合结果，其数据绑定、说明及来源溯源可被保留，并保留是否有实际拟合执行及数值结果依据这一信息。"
+
+msgctxt "https://blackcatinformatics.ca/math/FittedModel|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating a source lm or glm call, two present links or a model label as proof that fitting ran or succeeded. Do not collapse source fits with different response roles, weights, subsets, families or links, or manufacture coefficients and diagnostics to complete a sparse description."
+msgstr "避免将来源 lm 或 glm 调用、两个已存在链接或模型标签视为拟合已运行或成功的证明。不要将响应角色、权重、子集、分布族或链接函数不同的来源拟合合并，也不要为补全稀疏描述而制造系数及诊断。"
+
+msgctxt "https://blackcatinformatics.ca/math/FittedModel|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Keep the FittedModel resource and its actual fittedToData and modelFormula links, with the supplied assumptions, method, options and generation evidence. Preserve unresolved context and source distinctions rather than inferring complete identity from a minted resource; retain fitting-execution and numerical-result evidence separately."
+msgstr "保留 FittedModel 资源及其实际 fittedToData 和 modelFormula 链接，连同所提供的假设、方法、选项及生成依据。保留未解决上下文及来源差异，不根据所创建资源推断完整身份相同；另行保留拟合执行及数值结果依据。"
+
+msgctxt "https://blackcatinformatics.ca/math/ModelFormula|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Model Formula"
+msgstr "模型公式"
+
+msgctxt "https://blackcatinformatics.ca/math/ModelFormula|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A model formula: a structured mathematical expression describing model terms and, when present, a response. A subclass of math:MathematicalExpression, linked from a math:StatisticalModel through math:modelFormula. The R representation includes one-sided forms and uses a math:BindingExpression with indexed math:ArgumentSlot operands rather than a source string. A formula alone does not specify all distributional assumptions or fitting choices of a statistical model."
+msgstr "模型公式：描述模型项以及存在时的响应的结构化数学表达式。它是 math:MathematicalExpression 的子类，由 math:StatisticalModel 通过 math:modelFormula 链接。R 表示包括单边形式，并使用带索引 math:ArgumentSlot 操作数的 math:BindingExpression，而非来源字符串。仅有公式不指定统计模型的全部分布假设或拟合选择。"
+
+msgctxt "https://blackcatinformatics.ca/math/ModelFormula|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "A formula may be one-sided, with no response. The general ModelFormula frame requires an argumentSlot and the slot-expression constraint requires its slotExpression; these are weaker than complete binder or statistical-model admission. A slotIndex of 0 alone does not distinguish a response from the first predictor of a one-sided formula."
+msgstr "公式可以是没有响应的单边形式。一般 ModelFormula 框架要求 argumentSlot，槽位表达式约束要求其 slotExpression；这些要求弱于完整绑定结构或统计模型准入。仅有值为 0 的 slotIndex 不区分响应与单边公式的首个预测变量。"
+
+msgctxt "https://blackcatinformatics.ca/math/ModelFormula|http://www.w3.org/2004/02/skos/core#example"
+msgid "The fitted-model fixture supplies ex:formula argumentSlot ex:slot0, with slotIndex 0 and slotExpression ex:respVar, without typing the formula as BindingExpression or supplying operator and boundVariable. The native R path emits additional binder structure, which still requires source-role preservation to be qualified."
+msgstr "fitted-model 夹具提供 ex:formula argumentSlot ex:slot0，带有 slotIndex 0 及 slotExpression ex:respVar，但未将公式标注为 BindingExpression，也未提供 operator 和 boundVariable。原生 R 路径输出额外绑定结构，但它仍需保留来源角色方可获得资格认定。"
+
+msgctxt "https://blackcatinformatics.ca/math/ModelFormula|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for a supplied structured model expression, including a one-sided formula or an R tilde representation, when its actual operands and any response role can be retained as structure."
+msgstr "用于所提供的结构化模型表达式，包括单边公式或 R 波浪号表示，且实际操作数及任何响应角色可作为结构保留。"
+
+msgctxt "https://blackcatinformatics.ca/math/ModelFormula|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid assuming every formula has a response, reading every first slot as a response, or replacing structured expressions with an opaque source string. A binder and slot inventory alone does not prove preservation of all source roles or a complete family, link, contrast or fitting specification."
+msgstr "避免假定每个公式都具有响应、将每个首槽位读作响应，或以不透明来源字符串替代结构化表达式。仅有绑定结构及槽位清单不证明全部来源角色的保留，也不证明完整的分布族、链接函数、对比或拟合说明。"
+
+msgctxt "https://blackcatinformatics.ca/math/ModelFormula|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the model's modelFormula link to the ModelFormula resource and its supplied argumentSlot and slotExpression structure. Preserve actual response and predictor roles, indices, binding context, interactions and offsets in their existing representation; compare source distinctions rather than inferring them from slot position, label or shared identity, and do not fabricate missing binder fields."
+msgstr "保留模型指向 ModelFormula 资源的 modelFormula 链接及所提供的 argumentSlot 和 slotExpression 结构。按现有表示保留实际响应和预测变量角色、索引、绑定上下文、交互项及偏移项；对照来源差异，不根据槽位位置、标签或共享身份推断差异，也不编造缺失绑定字段。"
+
+msgctxt "https://blackcatinformatics.ca/math/DatasetMatrix|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Dataset Matrix"
+msgstr "数据集矩阵"
+
+msgctxt "https://blackcatinformatics.ca/math/DatasetMatrix|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A dataset matrix: the data a math:FittedModel is fitted to (math:fittedToData), framed by name and structure but held BY REFERENCE — a blob reference and origin, never the payload bytes inlined (the project's blob-by-reference doctrine). A subclass of math:MathematicalObject; an R data frame lifts to this object, which names and frames the data without embedding it."
+msgstr "数据集矩阵：math:FittedModel 用于拟合的数据（math:fittedToData），通过名称及结构给出框架，但以引用方式持有，即 blob 引用及来源，绝不内联载荷字节，遵循项目的 blob 引用原则。它是 math:MathematicalObject 的子类；R 数据框提升为此对象，指明数据并给出框架而不嵌入数据。"
+
+msgctxt "https://blackcatinformatics.ca/math/DatasetMatrix|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The intended contract holds data by reference with its identity and origin, rather than embedding cells in the model graph. A named DatasetMatrix is not by itself an authenticated blob reference, an available payload or a resolved schema. The inspected R emitter supplies a representation with type, label and ingest provenance without traversing or authenticating the external data."
+msgstr "预期约定以引用方式持有数据及其身份和来源，而非在模型图中嵌入单元格。具名 DatasetMatrix 本身不是经认证 blob 引用、可用载荷或已解析模式。所检查 R 输出器提供带类型、标签及摄取溯源的表示，不遍历或认证外部数据。"
+
+msgctxt "https://blackcatinformatics.ca/math/DatasetMatrix|http://www.w3.org/2004/02/skos/core#example"
+msgid "The positive fitted-model fixture supplies ex:data as DatasetMatrix and links ex:fit to it through fittedToData; no matrix payload or external blob identifier is supplied. The R scene describes cars as subset(mtcars, cyl > 4), which the lift names by reference without loading its cells."
+msgstr "fitted-model 正例夹具提供具有 DatasetMatrix 类型的 ex:data，并通过 fittedToData 将 ex:fit 链接到它；没有提供矩阵载荷或外部 blob 标识符。R 场景将 cars 描述为 subset(mtcars, cyl > 4)，提升通过引用指明它，而不加载单元格。"
+
+msgctxt "https://blackcatinformatics.ca/math/DatasetMatrix|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for the supplied by-reference data resource associated with a fitted model, preserving the actual source identity, structural framing and origin that are available without inventing the matrix contents."
+msgstr "用于与已拟合模型关联、通过引用提供的数据资源，保留实际可用来源身份、结构框架及来源，不编造矩阵内容。"
+
+msgctxt "https://blackcatinformatics.ca/math/DatasetMatrix|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating a dataset name, label, type or source provenance as proof of accessible, authenticated or complete data. Do not inline cells, fabricate a blob address, schema or checksum, or interpret an unresolved data reference as an empty dataset."
+msgstr "避免将数据集名称、标签、类型或来源溯源视为数据可访问、经认证或完整的证明。不要内联单元格、编造 blob 地址、模式或校验和，也不将未解析数据引用解释为空数据集。"
+
+msgctxt "https://blackcatinformatics.ca/math/DatasetMatrix|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the DatasetMatrix resource and the actual fittedToData binding, together with supplied external references, frames, schema and origin evidence. Keep unresolved scope explicit; when a selected operation requires actual data, require its real authenticated input and fail explicitly if unavailable rather than substituting a label or guessed payload."
+msgstr "保留 DatasetMatrix 资源及实际 fittedToData 绑定，连同所提供外部引用、框架、模式及来源依据。保持未解决范围明确；当所选操作需要实际数据时，要求实际经认证输入，并在不可用时明确失败，不以标签或猜测载荷替代。"
+
+msgctxt "https://blackcatinformatics.ca/math/modelFormula|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "model formula"
+msgstr "模型公式"
+
+msgctxt "https://blackcatinformatics.ca/math/modelFormula|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Relates a math:StatisticalModel or math:FittedModel to its structured math:ModelFormula specification. Domain a math:StatisticalModel, range math:ModelFormula (stated in prose). The specification is a mathematical expression resource; the R tilde representation uses a math:BindingExpression AST rather than a source string. A fitted model without its formula link is ill-formed (math:UnfittedModel)."
+msgstr "将 math:StatisticalModel 或 math:FittedModel 关联到其结构化 math:ModelFormula 说明。定义域为 math:StatisticalModel，值域为 math:ModelFormula（以文字说明）。说明是数学表达式资源；R 波浪号表示使用 math:BindingExpression AST，而非来源字符串。没有公式链接的已拟合模型为不良形式（math:UnfittedModel）。"
+
+msgctxt "https://blackcatinformatics.ca/math/modelFormula|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The object is the supplied formula resource, not a label literal, a dataset or a fitting activity. A link identifies the represented specification but does not establish complete binder structure, preserved response roles, all fitting options or a valid fitted result."
+msgstr "宾语是所提供公式资源，不是标签字面量、数据集或拟合活动。链接指明所表示说明，但不确立完整绑定结构、响应角色保留、全部拟合选项或有效拟合结果。"
+
+msgctxt "https://blackcatinformatics.ca/math/modelFormula|http://www.w3.org/2004/02/skos/core#example"
+msgid "Both fitted-model fixtures give ex:fit modelFormula ex:formula. The negative case retains that link while omitting fittedToData, so a present specification link does not establish that both required fitted-model roles are supplied."
+msgstr "两个 fitted-model 夹具均给出 ex:fit modelFormula ex:formula。反例保留该链接，但省略 fittedToData，因此已存在的说明链接不确立两个必需已拟合模型角色均被提供。"
+
+msgctxt "https://blackcatinformatics.ca/math/modelFormula|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain the actual structured formula supplied for a statistical model or fitted artifact, preserving whether the source formula has a response or is one-sided."
+msgstr "用于保留为统计模型或拟合产物实际提供的结构化公式，并保留来源公式具有响应还是单边形式这一信息。"
+
+msgctxt "https://blackcatinformatics.ca/math/modelFormula|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid reversing the edge, linking raw formula text as though it were the expression resource, or treating one formula as the entire probability model. Do not infer preservation of response and fitting-option distinctions merely because a native lift emitted a modelFormula link."
+msgstr "避免反转边、将原始公式文本当作表达式资源链接，或将单个公式视为整个概率模型。不要仅因原生提升输出 modelFormula 链接，就推断响应及拟合选项差异已被保留。"
+
+msgctxt "https://blackcatinformatics.ca/math/modelFormula|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Keep the StatisticalModel or FittedModel as subject and its supplied ModelFormula as object. Retain the actual operand, binding and source context with the formula and keep assumptions, data binding and fitting choices explicit in their supplied representation, without inventing uniqueness or completing missing expression structure from a label."
+msgstr "保留 StatisticalModel 或 FittedModel 为主语，所提供的 ModelFormula 为宾语。连同公式保留实际操作数、绑定及来源上下文，并按所提供表示保持假设、数据绑定及拟合选择明确，不编造唯一性，也不根据标签补全缺失表达式结构。"
+
+msgctxt "https://blackcatinformatics.ca/math/fittedToData|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "fitted to data"
+msgstr "拟合所用数据"
+
+msgctxt "https://blackcatinformatics.ca/math/fittedToData|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Relates a math:FittedModel to the math:DatasetMatrix it was fitted to. Domain math:FittedModel, range math:DatasetMatrix (stated in prose). Reserved for math:FittedModel — it is the data binding that distinguishes a fitted model from an unbound math:StatisticalModel, never attached to an estimate; a fitted model without it is ill-formed (math:UnfittedModel)."
+msgstr "将 math:FittedModel 关联到拟合所用的 math:DatasetMatrix。定义域为 math:FittedModel，值域为 math:DatasetMatrix（以文字说明）。专用于 math:FittedModel；这是将已拟合模型与未绑定 math:StatisticalModel 区分的数据绑定，绝不附于估计结果；缺少它的已拟合模型为不良形式（math:UnfittedModel）。"
+
+msgctxt "https://blackcatinformatics.ca/math/fittedToData|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This names the data role of a FittedModel, rather than data lineage for every estimate or the activity that performed fitting. A referenced dataset may still lack a resolved payload or schema; presence of the binding does not prove available observations or executed fitting."
+msgstr "此关系指明 FittedModel 的数据角色，而非每个估计结果的数据沿革或执行拟合的活动。所引用数据集仍可能缺少已解析载荷或模式；绑定存在不证明观测可用或拟合已执行。"
+
+msgctxt "https://blackcatinformatics.ca/math/fittedToData|http://www.w3.org/2004/02/skos/core#example"
+msgid "The positive fixture gives ex:fit fittedToData ex:data; the negative fixture omits this link while retaining its formula. In the R path, a call without an explicit data argument instead receives a calling-environment reference with unresolved frame and column information recorded, rather than an invented concrete data frame."
+msgstr "正例夹具给出 ex:fit fittedToData ex:data；反例夹具保留公式但省略此链接。在 R 路径中，没有显式 data 参数的调用会改为取得调用环境引用，并记录未解决的数据框及列信息，而非编造具体数据框。"
+
+msgctxt "https://blackcatinformatics.ca/math/fittedToData|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain which actual DatasetMatrix a supplied fitted model is associated with, including a source's explicitly described data environment when the concrete frame is not resolved."
+msgstr "用于保留所提供已拟合模型实际关联的 DatasetMatrix，包括未解析具体数据框时来源显式描述的数据环境。"
+
+msgctxt "https://blackcatinformatics.ca/math/fittedToData|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid attaching the binding to a standalone Estimate merely because it was computed from data, replacing a supplied dataset with guessed observations, or treating an unresolved environment as an authenticated data frame. Missing linkage and unavailable referenced payload are different failures."
+msgstr "避免仅因独立 Estimate 根据数据计算就对其附加此绑定、以猜测观测替代所提供数据集，或将未解决环境视为经认证数据框。链接缺失与所引用载荷不可用是不同失败。"
+
+msgctxt "https://blackcatinformatics.ca/math/fittedToData|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Keep the FittedModel as subject and its supplied DatasetMatrix resource as object. Preserve source identity, selection and origin evidence with the actual modelFormula link; report missing binding or unresolved data distinctly and do not invent a dataset or fitting execution merely to satisfy a required-link check."
+msgstr "保留 FittedModel 为主语，所提供的 DatasetMatrix 资源为宾语。连同实际 modelFormula 链接保留来源身份、选择及来源依据；分别报告绑定缺失或数据未解决，不为满足必需链接检查而编造数据集或拟合执行。"
+
+msgctxt "https://blackcatinformatics.ca/math/UnfittedModel|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Unfitted Model"
+msgstr "未拟合模型"
+
+msgctxt "https://blackcatinformatics.ca/math/UnfittedModel|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The failure raised when a math:FittedModel does not reference the data it was fitted to through math:fittedToData or the specification it fits through math:modelFormula. A fitted model is a math:StatisticalModel bound to concrete data by a declared specification; missing either, it is ill-formed."
+msgstr "当 math:FittedModel 未通过 math:fittedToData 引用其拟合所用数据，或未通过 math:modelFormula 引用其拟合说明时所报告的失败。已拟合模型是以已声明说明绑定到具体数据的 math:StatisticalModel；缺少任一项即为不良形式。"
+
+msgctxt "https://blackcatinformatics.ca/math/UnfittedModel|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This identifies a missing required data or specification reference on a FittedModel. It is not a general verdict on every model, numerical fitting failure, inaccessible payload or source-identity loss. A supplied formula and dataset reference can meet the illustrated structural boundary without proving complete binder structure or a valid executed fit."
+msgstr "此类标明 FittedModel 上缺失必需数据或说明引用。它不是对每个模型、数值拟合失败、载荷不可访问或来源身份丢失的一般判定。所提供公式及数据集引用可满足示意结构边界，但不证明完整绑定结构或有效的已执行拟合。"
+
+msgctxt "https://blackcatinformatics.ca/math/UnfittedModel|http://www.w3.org/2004/02/skos/core#example"
+msgid "The fitted-model-unfitted counter-example types ex:fit as FittedModel and supplies modelFormula ex:formula but no fittedToData link. Its positive counterpart supplies both links. The negative case isolates the declared missing-data-reference boundary, not a failed optimization run."
+msgstr "fitted-model-unfitted 反例将 ex:fit 标注为 FittedModel，并提供 modelFormula ex:formula，但没有 fittedToData 链接。其正例对应项提供两个链接。反例隔离已声明的缺失数据引用边界，而非优化运行失败。"
+
+msgctxt "https://blackcatinformatics.ca/math/UnfittedModel|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for evidenced absence of a required fittedToData or modelFormula reference on a supplied FittedModel under the selected validation contract, retaining the actual missing role and offending resource."
+msgstr "用于在所选验证约定下，有依据表明所提供 FittedModel 缺少必需 fittedToData 或 modelFormula 引用的情形，保留实际缺失角色及违规资源。"
+
+msgctxt "https://blackcatinformatics.ca/math/UnfittedModel|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid reporting every bare StatisticalModel as unfitted, interpreting an inaccessible dataset as an absent link, or treating this diagnostic's absence as proof of numerical validity, complete source preservation or fitting success. Do not create dummy references to silence the finding."
+msgstr "避免将每个单独的 StatisticalModel 都报告为未拟合、将数据集不可访问解释为链接缺失，或将此诊断未出现视为数值有效、完整来源保留或拟合成功的证明。不要创建虚假引用以消除诊断。"
+
+msgctxt "https://blackcatinformatics.ca/math/UnfittedModel|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Identify the FittedModel and which required reference is absent, preserving the actual declaration and source evidence. Supply a real source reference only when available; keep payload availability, formula structure, fitting-option identity and numerical qualification separately evidenced instead of fabricating a successful fit."
+msgstr "指明 FittedModel 及缺失的必需引用，保留实际声明及来源依据。仅在实际来源引用可用时补充该引用；分别保留载荷可用性、公式结构、拟合选项身份及数值资格认定依据，不编造成功拟合。"
