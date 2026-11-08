@@ -1,0 +1,15 @@
+{
+  "schema": 1,
+  "worktree": "/home/paudley/Active/gmeow-ontology/.worktrees/2637-repair-and-optimize-main-ci-after-the",
+  "branch": "paudley/2637-repair-and-optimize-main-ci-after-the",
+  "base_ref": "origin/main",
+  "head": "1604c37901cb9b1c410b028259c549e442f0f6d7",
+  "attempt": "/home/paudley/Active/gmeow-ontology/.worktrees/2637-repair-and-optimize-main-ci-after-the/.stage/repair-and-optimize-main-ci-after-the/sync/20261108T010640-999c418345f840319e4092753dac2544",
+  "conflicts": [],
+  "status": "fast_forward",
+  "base": "82ba734967c822391bfc9ecebe9dd86e523d49f9",
+  "merge_bases": [
+    "1604c37901cb9b1c410b028259c549e442f0f6d7"
+  ],
+  "commit": "82ba734967c822391bfc9ecebe9dd86e523d49f9"
+}
