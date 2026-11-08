@@ -16166,3 +16166,173 @@ msgstr "避免将无法取得的证明等同于已证实虚假声称、将每个
 msgctxt "https://blackcatinformatics.ca/math/ExactPreservationViolated|https://blackcatinformatics.ca/gmeow/howToUse"
 msgid "Keep the claimed logic:ExactPreservation, model or ProjectionRecord, and contradictory mass, missing-link or loss evidence together. State which check actually decided the finding and which obligations remain unqualified; repair the source contract or validate a genuinely supported alternative lowering without hiding the failed claim."
 msgstr "将所声称的 logic:ExactPreservation、模型或 ProjectionRecord，以及相矛盾的质量、缺失链接或损失依据共同保留。说明哪项检查实际作出诊断，以及哪些义务仍未获资格认定；修复来源约定，或验证确实受支持的替代降级，不掩盖失败声称。"
+
+# Bayesian prior, likelihood and posterior chain.
+
+msgctxt "https://blackcatinformatics.ca/math/PriorDistribution|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Prior Distribution"
+msgstr "先验分布"
+
+msgctxt "https://blackcatinformatics.ca/math/PriorDistribution|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A prior distribution: the distribution over a parameter BEFORE data is taken into account, the input of a Bayesian update. A subclass of math:Distribution. It is a distinct first-class object linked into the update chain through math:hasPrior, so a posterior always answers 'from what prior'."
+msgstr "先验分布：在考虑数据之前参数上的分布，是贝叶斯更新的输入。它是 math:Distribution 的子类。它是单独的一等对象，通过 math:hasPrior 链接到更新链中，因此后验始终能够回答源于哪个先验。"
+
+msgctxt "https://blackcatinformatics.ca/math/PriorDistribution|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Prior is a role relative to a specified update and its data, not a claim that no earlier evidence exists. A previous posterior may serve as the prior for a later update. Preserve the parameter space and existing evidence context; role differences alone do not require different resource identities across updates."
+msgstr "先验是相对于指定更新及其数据的角色，不声称不存在更早依据。先前后验可作为后续更新的先验。保留参数空间及现有依据上下文；仅有角色差异不要求跨更新的资源身份不同。"
+
+msgctxt "https://blackcatinformatics.ca/math/PriorDistribution|http://www.w3.org/2004/02/skos/core#example"
+msgid "The probability scene declares ex:rainRatePrior as PriorDistribution with distributionFamily ex:betaFamily. Both ex:rainRatePosterior and ex:rainRateUpdate name it through hasPrior; these records supply no beta parameters or completed numerical update."
+msgstr "概率场景将 ex:rainRatePrior 声明为具有 distributionFamily ex:betaFamily 的 PriorDistribution。ex:rainRatePosterior 和 ex:rainRateUpdate 均通过 hasPrior 指明它；这些记录不提供贝塔参数或已完成数值更新。"
+
+msgctxt "https://blackcatinformatics.ca/math/PriorDistribution|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for a supplied probability distribution playing the prior role in an identified Bayesian update, including a distribution informed by earlier observations or an earlier posterior."
+msgstr "用于所提供的概率分布，它在已指明贝叶斯更新中充当先验，包括基于更早观测或更早后验的分布。"
+
+msgctxt "https://blackcatinformatics.ca/math/PriorDistribution|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating a prior as evidence-free by definition, confusing its distribution with a confidence score, or treating a beta-family label as complete parameterization. An improper prior expression is not automatically a probability distribution of this class."
+msgstr "避免将先验按定义视为没有依据、将其分布与置信分数混淆，或将贝塔分布族标签视为完整参数化。非正规先验表达式不会自动成为此类的概率分布。"
+
+msgctxt "https://blackcatinformatics.ca/math/PriorDistribution|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Type the supplied distribution as PriorDistribution and retain its actual parameter space, family, parameterization and evidence context in their source representation. Preserve the update's or posterior's hasPrior link and distinguish the data already incorporated from the new update data, without inventing missing parameters or duplicating observations."
+msgstr "将所提供分布标注为 PriorDistribution，按来源表示保留其实际参数空间、分布族、参数化及依据上下文。保留更新或后验的 hasPrior 链接，并区分已纳入数据和新更新数据，不编造缺失参数，也不重复计入观测。"
+
+msgctxt "https://blackcatinformatics.ca/math/LikelihoodFunction|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Likelihood Function"
+msgstr "似然函数"
+
+msgctxt "https://blackcatinformatics.ca/math/LikelihoodFunction|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A likelihood function L(θ; y) = p(y | θ): for fixed observed data y, the model's probability mass or density as a function of parameter θ, relative to the stated common observation measure. A subclass of math:MathematicalObject. It is not itself a normalized distribution over the parameter and is distinct from the normalizing evidence of a Bayesian update. It is linked through math:hasLikelihood so the supplied prior, data and model context remain traceable."
+msgstr "似然函数 L(θ; y) = p(y | θ)：对于固定的观测数据 y，相对于所述共同观测测度，模型的概率质量或密度作为参数 θ 的函数。它是 math:MathematicalObject 的子类。它本身不是参数上的归一化分布，也不同于贝叶斯更新的归一化证据量。它通过 math:hasLikelihood 链接，使所提供先验、数据及模型上下文保持可追踪。"
+
+msgctxt "https://blackcatinformatics.ca/math/LikelihoodFunction|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Observed data are held fixed while the parameter varies. Continuous observations generally use a density rather than the probability of a singleton event; density values can exceed one and depend on the observation measure. A likelihood supplies no prior or posterior by itself and need not integrate to one over the parameter."
+msgstr "观测数据保持固定，参数则变化。连续观测通常使用密度而非单点事件概率；密度值可以超过一，并取决于观测测度。似然本身不提供先验或后验，也不必在参数上积分为一。"
+
+msgctxt "https://blackcatinformatics.ca/math/LikelihoodFunction|http://www.w3.org/2004/02/skos/core#example"
+msgid "The probability scene declares ex:rainRateLikelihood as LikelihoodFunction and labels it L(θ) = P(observed wet days | θ). The update and posterior link to it through hasLikelihood, but this record provides neither a realized likelihood expression nor a structured observed-data link."
+msgstr "概率场景将 ex:rainRateLikelihood 声明为 LikelihoodFunction，标签为 L(θ) = P(observed wet days | θ)。更新和后验通过 hasLikelihood 链接到它，但该记录既不提供已实现的似然表达式，也不提供结构化观测数据链接。"
+
+msgctxt "https://blackcatinformatics.ca/math/LikelihoodFunction|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for a source's likelihood of fixed observed data under a specified parameterized sampling model, retaining whether the model uses probability mass or a density and which observation measure gives that expression meaning."
+msgstr "用于来源在指定参数化采样模型下对固定观测数据的似然，保留模型使用概率质量还是密度，以及赋予该表达式含义的观测测度。"
+
+msgctxt "https://blackcatinformatics.ca/math/LikelihoodFunction|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid reading a continuous-data density as singleton probability, normalizing over the parameter without a prior, or substituting a confidence score, marginal likelihood or posterior for this function. A label alone does not identify the actual observations or evaluate the likelihood."
+msgstr "避免将连续数据密度读作单点概率、在没有先验时对参数归一化，或以置信分数、边际似然或后验替代此函数。仅有标签不指明实际观测，也不对似然求值。"
+
+msgctxt "https://blackcatinformatics.ca/math/LikelihoodFunction|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the LikelihoodFunction resource and the actual hasLikelihood links from its update or posterior. Preserve the supplied data identity, varying parameter, sampling model and observation-measure account in their existing representation; do not invent a data predicate, expression tree, parameter value or numerical evaluation."
+msgstr "保留 LikelihoodFunction 资源及从更新或后验指向它的实际 hasLikelihood 链接。按现有表示保留所提供的数据身份、变化参数、采样模型及观测测度说明；不编造数据谓词、表达式树、参数值或数值求值。"
+
+msgctxt "https://blackcatinformatics.ca/math/PosteriorDistribution|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Posterior Distribution"
+msgstr "后验分布"
+
+msgctxt "https://blackcatinformatics.ca/math/PosteriorDistribution|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A posterior distribution: the distribution over a parameter conditional on specified data, produced by a Bayesian update. In the ordinary likelihood construction it reweights the prior by the likelihood and requires finite strictly positive normalizing evidence. A subclass of math:Distribution, linked to its supplied prior and likelihood through math:hasPrior and math:hasLikelihood. A math:PosteriorSample can approximate it; chain diagnostics provide limited sampling evidence rather than certifying the posterior's validity or the inference's trustworthiness."
+msgstr "后验分布：以指定数据为条件的参数分布，由贝叶斯更新产生。在普通似然构造中，它以似然对先验重新加权，并要求有限且严格为正的归一化证据量。它是 math:Distribution 的子类，通过 math:hasPrior 和 math:hasLikelihood 链接到所提供的先验及似然。math:PosteriorSample 可以近似它；链诊断提供有限范围采样依据，而非证明后验有效或推断可信。"
+
+msgctxt "https://blackcatinformatics.ca/math/PosteriorDistribution|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "For prior measure Π and fixed-data likelihood L, the ordinary normalizer is Z = ∫ L(θ) Π(dθ), with 0 < Z < ∞, and the posterior is the prior reweighted by L / Z. A zero, infinite or unavailable normalizer does not license a default posterior under this construction; other conditioning constructions require their own justification."
+msgstr "对于先验测度 Π 和固定数据似然 L，普通归一化因子为 Z = ∫ L(θ) Π(dθ)，其中 0 < Z < ∞，后验是以 L / Z 对先验重新加权的分布。归一化因子为零、无穷或不可用时，不授权在此构造下使用默认后验；其他条件化构造需要各自的论证。"
+
+msgctxt "https://blackcatinformatics.ca/math/PosteriorDistribution|http://www.w3.org/2004/02/skos/core#example"
+msgid "The probability scene gives ex:rainRatePosterior hasPrior ex:rainRatePrior and hasLikelihood ex:rainRateLikelihood, and ex:rainRateUpdate points to it through hasPosterior. The beta-family label and these links provide neither the missing parameter values nor a computed or normalized posterior law."
+msgstr "概率场景给出 ex:rainRatePosterior hasPrior ex:rainRatePrior 和 hasLikelihood ex:rainRateLikelihood，且 ex:rainRateUpdate 通过 hasPosterior 指向该后验。贝塔分布族标签及这些链接既不提供缺失参数值，也不提供计算所得或已归一化的后验分布律。"
+
+msgctxt "https://blackcatinformatics.ca/math/PosteriorDistribution|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for a supplied posterior law with its actual prior, likelihood, data and model context, preserving whether it is specified analytically or represented through a declared sampling approximation."
+msgstr "用于所提供的后验分布律，连同实际先验、似然、数据及模型上下文，并保留其以解析形式指定还是通过已声明采样近似表示。"
+
+msgctxt "https://blackcatinformatics.ca/math/PosteriorDistribution|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid deriving a posterior merely from three linked names, treating an undefined normalization as a valid update, or taking favorable sampling diagnostics as a proof of correctness. A posterior is neither the likelihood function nor a confidence score, and a later update may reuse it in the prior role."
+msgstr "避免仅根据三个相链接名称推导后验、将未定义归一化视为有效更新，或将良好采样诊断视为正确性证明。后验既不是似然函数，也不是置信分数，且后续更新可将它复用为先验。"
+
+msgctxt "https://blackcatinformatics.ca/math/PosteriorDistribution|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the PosteriorDistribution and its hasPrior and hasLikelihood evidence, plus the update's actual hasPosterior link. Preserve parameterization, data context and the selected construction's normalization evidence as supplied; keep samples and diagnostics separately identified and report missing qualification without fabricating a posterior or an executed update."
+msgstr "保留 PosteriorDistribution 及其 hasPrior 和 hasLikelihood 依据，以及更新的实际 hasPosterior 链接。按所提供内容保留参数化、数据上下文及所选构造的归一化依据；另行指明样本和诊断，并报告缺少资格认定，不编造后验或已执行更新。"
+
+msgctxt "https://blackcatinformatics.ca/math/hasPrior|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "has prior"
+msgstr "具有先验"
+
+msgctxt "https://blackcatinformatics.ca/math/hasPrior|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Relates a Bayesian update (or its math:PosteriorDistribution) to the math:PriorDistribution it starts from. Domain a math:PosteriorDistribution or Bayesian update, range math:PriorDistribution (stated in prose). Names the prior a posterior derives from, so the update chain is always traceable to its input."
+msgstr "将贝叶斯更新或其 math:PosteriorDistribution 关联到作为起点的 math:PriorDistribution。定义域为 math:PosteriorDistribution 或贝叶斯更新，值域为 math:PriorDistribution（以文字说明）。此关系指明后验所源于的先验，使更新链始终可追踪到输入。"
+
+msgctxt "https://blackcatinformatics.ca/math/hasPrior|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The subject is an update or its posterior and the object is the supplied prior distribution. This records the prior role rather than a temporal ordering proof, a numerical operand literal or a universal uniqueness condition. A posterior from an earlier update can occupy this role in a later one."
+msgstr "主语是更新或其后验，宾语是所提供的先验分布。此关系记录先验角色，而非时间排序证明、数值操作数字面量或普遍唯一性条件。更早更新的后验可以在后续更新中占据此角色。"
+
+msgctxt "https://blackcatinformatics.ca/math/hasPrior|http://www.w3.org/2004/02/skos/core#example"
+msgid "The probability scene supplies ex:rainRatePosterior hasPrior ex:rainRatePrior and ex:rainRateUpdate hasPrior ex:rainRatePrior. Both refer to the same declared prior; no separate prior copy or new update class is needed to retain those links."
+msgstr "概率场景提供 ex:rainRatePosterior hasPrior ex:rainRatePrior 和 ex:rainRateUpdate hasPrior ex:rainRatePrior。两者均引用同一已声明先验；保留这些链接不需要单独的先验副本或新的更新类。"
+
+msgctxt "https://blackcatinformatics.ca/math/hasPrior|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain which actual prior distribution a supplied Bayesian update or posterior depends on, together with the update-specific data and model context."
+msgstr "用于保留所提供贝叶斯更新或后验所依赖的实际先验分布，以及该更新特定的数据及模型上下文。"
+
+msgctxt "https://blackcatinformatics.ca/math/hasPrior|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid reversing the edge, linking a raw number as the prior, or inferring a unique global prior from one update's record. Different update roles do not prohibit a previous posterior from serving as the current prior."
+msgstr "避免反转边、将裸数值链接为先验，或根据单次更新记录推断唯一全局先验。不同更新角色不禁止将先前后验用作当前先验。"
+
+msgctxt "https://blackcatinformatics.ca/math/hasPrior|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Keep the update or PosteriorDistribution as subject and its supplied PriorDistribution as object. Preserve the accompanying likelihood, data context and resulting posterior in their actual roles, including sequential reuse, without inventing a missing prior, replacing coexisting source accounts or claiming that the link proves a valid update."
+msgstr "保留更新或 PosteriorDistribution 为主语，所提供的 PriorDistribution 为宾语。按实际角色保留随附似然、数据上下文及所得后验，包括顺序复用，不编造缺失先验、不替代并存来源描述，也不声称链接证明更新有效。"
+
+msgctxt "https://blackcatinformatics.ca/math/hasLikelihood|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "has likelihood"
+msgstr "具有似然"
+
+msgctxt "https://blackcatinformatics.ca/math/hasLikelihood|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Relates a Bayesian update (or its math:PosteriorDistribution) to the math:LikelihoodFunction weighting the prior by the data. Domain a math:PosteriorDistribution or Bayesian update, range math:LikelihoodFunction (stated in prose). Names the likelihood under which the update was performed."
+msgstr "将贝叶斯更新或其 math:PosteriorDistribution 关联到根据数据对先验加权的 math:LikelihoodFunction。定义域为 math:PosteriorDistribution 或贝叶斯更新，值域为 math:LikelihoodFunction（以文字说明）。此关系指明更新所使用的似然。"
+
+msgctxt "https://blackcatinformatics.ca/math/hasLikelihood|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The object is the likelihood function for the update's fixed observed data under its sampling model. This is distinct from a prior distribution, a posterior distribution and the normalizing evidence; the link alone neither names the observations structurally nor evaluates a probability or density."
+msgstr "宾语是在更新采样模型下、针对其固定观测数据的似然函数。它不同于先验分布、后验分布及归一化证据量；仅有链接既不以结构化方式指明观测，也不对概率或密度求值。"
+
+msgctxt "https://blackcatinformatics.ca/math/hasLikelihood|http://www.w3.org/2004/02/skos/core#example"
+msgid "The probability scene gives ex:rainRateUpdate and ex:rainRatePosterior hasLikelihood ex:rainRateLikelihood. The likelihood's label mentions observed wet days, without a structured data link or a realized expression in that record."
+msgstr "概率场景为 ex:rainRateUpdate 和 ex:rainRatePosterior 给出 hasLikelihood ex:rainRateLikelihood。似然标签提及观测到的湿润日，但该记录中没有结构化数据链接或已实现表达式。"
+
+msgctxt "https://blackcatinformatics.ca/math/hasLikelihood|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain the actual LikelihoodFunction supplied for a Bayesian update or its posterior, with its fixed-data and sampling-model context intact."
+msgstr "用于保留为贝叶斯更新或其后验提供的实际 LikelihoodFunction，并保持固定数据及采样模型上下文完整。"
+
+msgctxt "https://blackcatinformatics.ca/math/hasLikelihood|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid linking a confidence score or normalizing constant as the likelihood function, exchanging the likelihood and posterior roles, or assuming that a density must be bounded by one. Do not fabricate observed-data identity from a descriptive label."
+msgstr "避免将置信分数或归一化常数链接为似然函数、交换似然与后验角色，或假定密度必须以一为上界。不要根据描述性标签编造观测数据身份。"
+
+msgctxt "https://blackcatinformatics.ca/math/hasLikelihood|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Keep the update or PosteriorDistribution as subject and its supplied LikelihoodFunction resource as object. Retain its source data, parameter, observation measure and sampling-model evidence in their supplied form, alongside the actual prior and posterior links; disclose missing context rather than inventing a computation."
+msgstr "保留更新或 PosteriorDistribution 为主语，所提供的 LikelihoodFunction 资源为宾语。按所提供形式保留来源数据、参数、观测测度及采样模型依据，连同实际先验及后验链接；披露缺失上下文，不编造计算。"
+
+msgctxt "https://blackcatinformatics.ca/math/hasPosterior|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "has posterior"
+msgstr "具有后验"
+
+msgctxt "https://blackcatinformatics.ca/math/hasPosterior|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Relates a Bayesian update — or a Bayesian interval estimate (a math:CredibleInterval / math:CredibleRegion) that summarizes it — to the math:PosteriorDistribution it produces or is taken over. Domain a Bayesian update or a credible interval/region, range math:PosteriorDistribution (stated in prose). Names the posterior resulting from combining the prior and likelihood, and the posterior context a credible interval's math:credibleMass is a probability over; a credible interval naming no posterior is ill-formed (math:IncompleteCredibleInterval)."
+msgstr "将贝叶斯更新或对其汇总的贝叶斯区间估计（math:CredibleInterval / math:CredibleRegion）关联到其产生或所基于的 math:PosteriorDistribution。定义域为贝叶斯更新、可信区间或可信区域，值域为 math:PosteriorDistribution（以文字说明）。此关系指明结合先验与似然所得后验，以及可信区间的 math:credibleMass 所表达概率所基于的后验上下文；未指明后验的可信区间为不良形式（math:IncompleteCredibleInterval）。"
+
+msgctxt "https://blackcatinformatics.ca/math/hasPosterior|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The relation serves an update-result role or an interval/region posterior-context role, according to its subject. The inspected required-link closure applies to CredibleInterval; this does not establish a universal admission check for every update, posterior or credible region, or prove that the linked law is normalized."
+msgstr "此关系按其主语充当更新结果角色，或用于区间或区域的后验上下文角色。所检查的必需链接闭包应用于 CredibleInterval；这不确立对每个更新、后验或可信区域的普遍准入检查，也不证明所链接分布律已归一化。"
+
+msgctxt "https://blackcatinformatics.ca/math/hasPosterior|http://www.w3.org/2004/02/skos/core#example"
+msgid "The probability scene gives ex:rainRateUpdate hasPosterior ex:rainRatePosterior. The credible-interval fixtures give ex:paramCredible and ex:masslessCredible hasPosterior ex:paramPosterior; the latter lacks credibleMass, so that negative case concerns missing mass rather than a missing posterior link."
+msgstr "概率场景给出 ex:rainRateUpdate hasPosterior ex:rainRatePosterior。可信区间夹具为 ex:paramCredible 和 ex:masslessCredible 给出 hasPosterior ex:paramPosterior；后者缺少 credibleMass，因此该反例涉及缺失质量，而非缺少后验链接。"
+
+msgctxt "https://blackcatinformatics.ca/math/hasPosterior|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to name the actual posterior produced by a supplied Bayesian update or the posterior distribution over which a supplied Bayesian interval or region states its mass."
+msgstr "用于指明所提供贝叶斯更新产生的实际后验，或所提供贝叶斯区间或区域陈述其质量所基于的后验分布。"
+
+msgctxt "https://blackcatinformatics.ca/math/hasPosterior|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid substituting a prior, sample or frequentist confidence distribution for the supplied posterior. A posterior link alone does not prove that an update executed, a credible mass is valid or every source record passed a complete Bayesian admission check."
+msgstr "避免以先验、样本或频率学派置信分布替代所提供后验。仅有后验链接不证明更新已执行、可信质量有效，或每个来源记录都通过完整贝叶斯准入检查。"
+
+msgctxt "https://blackcatinformatics.ca/math/hasPosterior|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Keep the actual update or Bayesian interval/region as subject and the supplied PosteriorDistribution as object. For an update, retain its prior, likelihood and data context; for an interval or region, retain its bounds and posterior mass as supplied. Preserve missing-link and missing-mass evidence separately without inventing a posterior or a new update type."
+msgstr "保留实际更新、贝叶斯区间或区域为主语，所提供的 PosteriorDistribution 为宾语。对于更新，保留其先验、似然及数据上下文；对于区间或区域，按所提供内容保留边界及后验质量。另行保留缺失链接及缺失质量依据，不编造后验或新的更新类型。"
