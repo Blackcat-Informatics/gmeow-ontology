@@ -3,7 +3,8 @@
 
 //! Package proof for the two syntax-only JSON macros in the pinned substrate.
 //! A dependency alias alone, local package, alternate repository or floating Git
-//! selection never grants a source-input capability.
+//! selection never grants a source-input capability. Registry capability is an
+//! explicitly reviewed protocol for purrdf-lex 4.0.0, not a grant to every release.
 
 use crate::{Result, UnitSelection, checked_path, fail};
 use std::collections::{BTreeMap, BTreeSet};
@@ -19,7 +20,42 @@ fn document(workspace: &Path, relative: &str) -> Result<toml::Value> {
         .map_err(fail)
 }
 
-fn source(name: &str, value: &toml::Value) -> Option<String> {
+pub(crate) const REGISTRY: &str = "registry+https://github.com/rust-lang/crates.io-index";
+const REVIEWED_REGISTRY_VERSION: &str = "4.0.0";
+
+/// Exact resolved package owner; the lock checksum authenticates registry bytes.
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub(crate) struct Owner {
+    pub source: String,
+    pub version: String,
+    pub checksum: Option<String>,
+}
+
+#[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord)]
+enum Declaration {
+    Git {
+        revision: String,
+        requirement: Option<String>,
+    },
+    Registry {
+        requirement: String,
+    },
+}
+
+pub(crate) fn valid_checksum(value: &str) -> bool {
+    value.len() == 64
+        && value
+            .bytes()
+            .all(|byte| byte.is_ascii_digit() || (b'a'..=b'f').contains(&byte))
+}
+
+fn source(name: &str, value: &toml::Value) -> Option<Declaration> {
+    if let Some(requirement) = value.as_str() {
+        semver::VersionReq::parse(requirement).ok()?;
+        return (name == PACKAGE).then(|| Declaration::Registry {
+            requirement: requirement.into(),
+        });
+    }
     let fields = value.as_table()?;
     if fields.keys().any(|key| {
         !matches!(
@@ -33,24 +69,92 @@ fn source(name: &str, value: &toml::Value) -> Option<String> {
         None => name,
         Some(package) => package.as_str()?,
     };
-    if value
-        .get("version")
-        .is_some_and(|version| version.as_str().is_none())
-    {
+    if package != PACKAGE {
         return None;
     }
-    if package != PACKAGE || value.get("git").and_then(toml::Value::as_str) != Some(REPOSITORY) {
+    let requirement = match value.get("version") {
+        None => None,
+        Some(version) => {
+            let requirement = version.as_str()?;
+            semver::VersionReq::parse(requirement).ok()?;
+            Some(requirement.to_owned())
+        }
+    };
+    if value.get("git").is_some() || value.get("rev").is_some() {
+        if value.get("git").and_then(toml::Value::as_str) != Some(REPOSITORY) {
+            return None;
+        }
+        let revision = value.get("rev")?.as_str()?;
+        if revision.len() != 40
+            || !revision
+                .bytes()
+                .all(|byte| byte.is_ascii_digit() || (b'a'..=b'f').contains(&byte))
+        {
+            return None;
+        }
+        Some(Declaration::Git {
+            revision: revision.into(),
+            requirement,
+        })
+    } else {
+        Some(Declaration::Registry {
+            requirement: requirement?,
+        })
+    }
+}
+
+fn resolved_owner(declaration: &Declaration, records: &[toml::Value]) -> Option<Owner> {
+    let mut matches = records
+        .iter()
+        .filter(|record| record.get("name").and_then(toml::Value::as_str) == Some(PACKAGE));
+    let record = matches.next()?;
+    if matches.next().is_some() {
         return None;
     }
-    let revision = value.get("rev")?.as_str()?;
-    if revision.len() != 40
-        || !revision
-            .bytes()
-            .all(|byte| byte.is_ascii_digit() || (b'a'..=b'f').contains(&byte))
-    {
-        return None;
+    let version = record.get("version")?.as_str()?;
+    let parsed_version = semver::Version::parse(version).ok()?;
+    let locked_source = record.get("source")?.as_str()?;
+    match declaration {
+        Declaration::Git {
+            revision,
+            requirement,
+        } => {
+            let source = format!("git+{REPOSITORY}?rev={revision}");
+            if record.get("checksum").is_some()
+                || locked_source != format!("{source}#{revision}")
+                || requirement.as_ref().is_some_and(|requirement| {
+                    !semver::VersionReq::parse(requirement)
+                        .is_ok_and(|requirement| requirement.matches(&parsed_version))
+                })
+            {
+                return None;
+            }
+            Some(Owner {
+                source,
+                version: version.into(),
+                checksum: None,
+            })
+        }
+        Declaration::Registry { requirement } => {
+            if locked_source != REGISTRY
+                || version != REVIEWED_REGISTRY_VERSION
+                || !semver::VersionReq::parse(requirement)
+                    .ok()?
+                    .matches(&parsed_version)
+            {
+                return None;
+            }
+            let checksum = record.get("checksum")?.as_str()?;
+            if !valid_checksum(checksum) {
+                return None;
+            }
+            Some(Owner {
+                source: REGISTRY.into(),
+                version: version.into(),
+                checksum: Some(checksum.into()),
+            })
+        }
     }
-    Some(format!("git+{REPOSITORY}?rev={revision}"))
 }
 
 fn overrides(value: &toml::Value) -> bool {
@@ -108,7 +212,7 @@ fn inherited<'a>(
 fn declared_owners(
     root: &toml::Value,
     declared: &BTreeMap<String, Vec<&toml::Value>>,
-) -> Result<BTreeMap<String, String>> {
+) -> Result<BTreeMap<String, Declaration>> {
     let mut candidates = BTreeMap::new();
     for (name, declarations) in declared {
         let mut sources = BTreeSet::new();
@@ -152,14 +256,14 @@ pub(crate) fn portable(
     workspace: &Path,
     owner: &toml::Value,
     declared: &BTreeMap<String, Vec<&toml::Value>>,
-) -> Result<BTreeMap<String, String>> {
+) -> Result<BTreeMap<String, Owner>> {
     let root = document(workspace, "Cargo.toml")?;
     if overrides(&root) || overrides(owner) {
         return Ok(BTreeMap::new());
     }
-    let mut allowed = declared_owners(&root, declared)?;
+    let allowed = declared_owners(&root, declared)?;
     if allowed.is_empty() {
-        return Ok(allowed);
+        return Ok(BTreeMap::new());
     }
     for path in [".cargo/config.toml", ".cargo/config"] {
         if !workspace.join(path).is_file() {
@@ -175,30 +279,18 @@ pub(crate) fn portable(
             return Ok(BTreeMap::new());
         }
     }
-    // A full revision must resolve to that exact object, never a different lock
-    // object under a claimed immutable rev. Portable policy has no Cargo units.
+    // A declaration grants capability only through one exact locked owner.
     let lock = document(workspace, "Cargo.lock")?;
     let records = lock
         .get("package")
         .and_then(toml::Value::as_array)
         .ok_or_else(|| fail("Cargo.lock has no package records"))?;
-    allowed.retain(|_, source| {
-        let revision = source.rsplit_once('=').map_or("", |(_, revision)| revision);
-        let expected = format!("{source}#{revision}");
-        records
-            .iter()
-            .filter(|record| {
-                record.get("name").and_then(toml::Value::as_str) == Some(PACKAGE)
-                    && record
-                        .get("version")
-                        .and_then(toml::Value::as_str)
-                        .is_some_and(|version| !version.is_empty())
-                    && record.get("source").and_then(toml::Value::as_str) == Some(expected.as_str())
-            })
-            .count()
-            == 1
-    });
-    Ok(allowed)
+    Ok(allowed
+        .into_iter()
+        .filter_map(|(alias, declaration)| {
+            resolved_owner(&declaration, records).map(|owner| (alias, owner))
+        })
+        .collect())
 }
 
 pub(crate) fn selected(
@@ -221,10 +313,12 @@ pub(crate) fn selected(
         .zip(&unit.dependencies)
         .filter_map(|(alias, index)| {
             let dependency = &units[*index];
-            let (source, name, _) = crate::cargo::package_parts(&dependency.package).ok()?;
+            let (source, name, version) = crate::cargo::package_parts(&dependency.package).ok()?;
             (dependency.manifest.is_none()
                 && name == PACKAGE
-                && proven.get(alias).is_some_and(|expected| source == expected))
+                && proven.get(alias).is_some_and(|expected| {
+                    source == expected.source && version == expected.version
+                }))
             .then(|| alias.clone())
         })
         .collect())

@@ -41,13 +41,13 @@
 separate regeneration step to perform first; performing one runs the whole
 pipeline twice and queues the machine behind you.
 
-The PurRDF manifests declare the compatible major release (`purrdf = "4"`), and no
+The PurRDF manifests select the released registry requirement (`purrdf = "=4"`), and no
 `purrdf*` requirement or locked package may admit a release below major 3
 (`PURRDF_MAJOR_FLOOR`).
 `Cargo.lock` selects the concrete version and source: a checksum identifies a
 registry package, while an exact commit identifies a Git dependency. The detached
 fuzz and CLIF workspaces commit their own lockfiles. `make maint-pin-purrdf`
-resolves the authored Git revision in all three. The fuzz workspace resolves every
+resolves the authored dependency requirements in all three. The fuzz workspace resolves every
 PurRDF package it selects to the same identity in the production lockfile.
 Production-only components need not be linked into fuzzers; a fuzz-only component
 or any version, source or checksum drift is rejected. `make fuzz-substrate-check` verifies that

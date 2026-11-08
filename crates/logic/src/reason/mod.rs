@@ -162,7 +162,7 @@ fn framed_native_component_source() -> String {
 /// Portable semantic identity supplied by the pinned PurRDF substrate.
 ///
 /// Fold the evaluator's `CALCULUS_VERSION` and its canonical ordered OWL-RL and
-/// datatype rule hashes, together with the immutable upstream Git source pin.
+/// datatype rule hashes, together with the immutable upstream source identity.
 /// Datatype implementation changes need not alter rule syntax, so rule hashes
 /// alone cannot bind the delegated semantics. All inputs are target independent.
 ///

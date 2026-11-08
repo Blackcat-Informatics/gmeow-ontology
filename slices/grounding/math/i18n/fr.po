@@ -645,16 +645,16 @@ msgid "Model Assumption"
 msgstr "Hypothèse de modèle"
 
 msgctxt "https://blackcatinformatics.ca/math/ModelAssumption|skos:definition"
-msgid "A model assumption: a first-class condition a math:StatisticalModel or math:FittedModel posits about the data-generating process — normality of errors, homoscedasticity, independence of observations, linearity, proportional hazards. A subclass of math:MathematicalObject named by a model through math:modelAssumption, so an assumption is an object that can be checked (by a diagnostic), cited (by a result), or reported violated, rather than left implicit in the choice of model. A model whose assumptions are stated as objects is one whose validity conditions are queryable rather than folded into a method name."
-msgstr "Une hypothèse de modèle : une condition de première classe qu'un math:StatisticalModel ou math:FittedModel pose au sujet du processus générateur de données — normalité des erreurs, homoscédasticité, indépendance des observations, linéarité, risques proportionnels. Une sous-classe de math:MathematicalObject nommée par un modèle via math:modelAssumption, de sorte qu'une hypothèse soit un objet vérifiable (par un diagnostic), citable (par un résultat) ou signalable comme violée, plutôt que laissée implicite dans le choix du modèle. Un modèle dont les hypothèses sont énoncées comme objets est un modèle dont les conditions de validité sont interrogeables plutôt que repliées dans un nom de méthode."
+msgid "A model assumption: a first-class condition a math:StatisticalModel or math:FittedModel posits about the data-generating process — normality of errors, homoscedasticity, independence of observations, linearity, proportional hazards. A subclass of math:MathematicalObject named by a model through math:modelAssumption, so an assumption is an identifiable object that can be cited and assessed where a suitable method and evidence are available, rather than left implicit in the choice of model. Explicit naming does not make every assumption empirically testable or establish that it holds. A model whose assumptions are stated as objects is one whose validity conditions are queryable rather than folded into a method name."
+msgstr "Une hypothèse de modèle : une condition à part entière qu’un math:StatisticalModel ou math:FittedModel pose au sujet du processus générateur de données — normalité des erreurs, homoscédasticité, indépendance des observations, linéarité, risques proportionnels. Une sous-classe de math:MathematicalObject nommée par un modèle via math:modelAssumption, de sorte qu’une hypothèse soit un objet identifiable pouvant être cité et évalué lorsqu’une méthode et des éléments probants appropriés sont disponibles, plutôt que laissé implicite dans le choix du modèle. La désignation explicite ne rend pas toute hypothèse empiriquement testable et n’établit pas qu’elle est satisfaite. Un modèle dont les hypothèses sont énoncées comme objets possède des conditions de validité interrogeables plutôt que repliées dans un nom de méthode."
 
 msgctxt "https://blackcatinformatics.ca/math/modelAssumption|rdfs:label"
 msgid "model assumption"
 msgstr "hypothèse de modèle"
 
 msgctxt "https://blackcatinformatics.ca/math/modelAssumption|skos:definition"
-msgid "Relates a math:StatisticalModel or math:FittedModel to a math:ModelAssumption it posits — normality of errors, homoscedasticity, independence of observations, linearity. Domain a math:StatisticalModel or math:FittedModel, range math:ModelAssumption (stated in prose). Naming assumptions as first-class objects is what makes a model's validity conditions checkable, citable, and reportable-as-violated rather than implicit in the choice of model."
-msgstr "Relie un math:StatisticalModel ou math:FittedModel à une math:ModelAssumption qu'il pose — normalité des erreurs, homoscédasticité, indépendance des observations, linéarité. Domaine un math:StatisticalModel ou math:FittedModel, portée math:ModelAssumption (précisé en prose). Nommer les hypothèses comme objets de première classe est ce qui rend les conditions de validité d'un modèle vérifiables, citables et signalables comme violées plutôt qu'implicites dans le choix du modèle."
+msgid "Relates a math:StatisticalModel or math:FittedModel to a math:ModelAssumption it posits — normality of errors, homoscedasticity, independence of observations, linearity. Domain a math:StatisticalModel or math:FittedModel, range math:ModelAssumption (stated in prose). Naming assumptions as first-class objects makes the model's stated conditions identifiable for citation and assessment rather than implicit in the choice of model; it does not establish empirical testability, a performed check or the truth of those conditions."
+msgstr "Relie un math:StatisticalModel ou math:FittedModel à une math:ModelAssumption qu’il pose — normalité des erreurs, homoscédasticité, indépendance des observations, linéarité. Domaine : un math:StatisticalModel ou math:FittedModel ; portée : math:ModelAssumption (indiqués en prose). Nommer les hypothèses comme objets à part entière rend les conditions énoncées du modèle identifiables pour citation et évaluation plutôt qu’implicites dans le choix du modèle ; cela n’établit ni leur testabilité empirique, ni une vérification effectuée, ni leur vérité."
 
 msgctxt "https://blackcatinformatics.ca/math/ModelComparison|rdfs:label"
 msgid "Model Comparison"
@@ -669,8 +669,8 @@ msgid "Model Diagnostic"
 msgstr "Diagnostic de modèle"
 
 msgctxt "https://blackcatinformatics.ca/math/ModelDiagnostic|skos:definition"
-msgid "A model diagnostic: a first-class evaluation of a fitted model — a residual plot's summary, a Q–Q assessment, a heteroscedasticity or influence measure, a goodness-of-fit statistic. A subclass of math:MathematicalObject that names the math:FittedModel it evaluates through math:diagnosticFor and the diagnostic method it applies through math:diagnosticMethod, so 'what was checked, on which fit, by which method' is queryable rather than folded into a plot's caption. A diagnostic anchored to neither its fitted model nor its method is ill-formed (math:UnanchoredDiagnostic)."
-msgstr "Un diagnostic de modèle : une évaluation de première classe d'un modèle ajusté — le résumé d'un graphe de résidus, une évaluation Q–Q, une mesure d'hétéroscédasticité ou d'influence, une statistique d'adéquation. Une sous-classe de math:MathematicalObject qui nomme le math:FittedModel qu'elle évalue via math:diagnosticFor et la méthode de diagnostic qu'elle applique via math:diagnosticMethod, de sorte que « ce qui a été vérifié, sur quel ajustement, par quelle méthode » soit interrogeable plutôt que replié dans la légende d'un graphe. Un diagnostic ancré ni à son modèle ajusté ni à sa méthode est mal formé (math:UnanchoredDiagnostic)."
+msgid "A model diagnostic: a first-class evaluation of a fitted model — a residual plot's summary, a Q–Q assessment, a heteroscedasticity or influence measure, a goodness-of-fit statistic. A subclass of math:MathematicalObject that names the math:FittedModel it evaluates through math:diagnosticFor and the diagnostic method it applies through math:diagnosticMethod, so 'what was checked, on which fit, by which method' is queryable rather than folded into a plot's caption. A diagnostic missing either its fitted-model anchor or its method is ill-formed (math:UnanchoredDiagnostic)."
+msgstr "Un diagnostic de modèle : une évaluation à part entière d’un modèle ajusté — le résumé d’un graphe de résidus, une évaluation Q–Q, une mesure d’hétéroscédasticité ou d’influence, une statistique d’adéquation. Une sous-classe de math:MathematicalObject qui nomme le math:FittedModel qu’elle évalue via math:diagnosticFor et la méthode de diagnostic qu’elle applique via math:diagnosticMethod, de sorte que « ce qui a été vérifié, sur quel ajustement, par quelle méthode » soit interrogeable plutôt que replié dans la légende d’un graphe. Un diagnostic auquel manque soit son ancrage au modèle ajusté, soit sa méthode est mal formé (math:UnanchoredDiagnostic)."
 
 msgctxt "https://blackcatinformatics.ca/math/multipleComparisonFamily|rdfs:label"
 msgid "multiple-comparison family"
@@ -1013,8 +1013,8 @@ msgid "Unanchored Diagnostic"
 msgstr "Diagnostic non ancré"
 
 msgctxt "https://blackcatinformatics.ca/math/UnanchoredDiagnostic|skos:definition"
-msgid "The failure raised when a math:ModelDiagnostic does not anchor itself to what it evaluates and how — it names no math:FittedModel through math:diagnosticFor, or no method through math:diagnosticMethod. A diagnostic is an evaluation OF a fit BY a method; missing either its fitted model or its method, it is a floating number rather than a checked property of a model, and is ill-formed. Primary gate: the SHACL-Core requirement (math:UnanchoredDiagnosticShape) that a diagnostic name both its fitted model and its diagnostic method."
-msgstr "L'échec soulevé lorsqu'un math:ModelDiagnostic ne s'ancre pas à ce qu'il évalue et à comment — il ne nomme aucun math:FittedModel via math:diagnosticFor, ni aucune méthode via math:diagnosticMethod. Un diagnostic est une évaluation D'un ajustement PAR une méthode ; privé soit de son modèle ajusté soit de sa méthode, il est un nombre flottant plutôt qu'une propriété vérifiée d'un modèle, et est mal formé. Barrière primaire : l'exigence SHACL-Core (math:UnanchoredDiagnosticShape) qu'un diagnostic nomme à la fois son modèle ajusté et sa méthode de diagnostic."
+msgid "The failure raised when a math:ModelDiagnostic lacks a required math:diagnosticFor or math:diagnosticMethod reference. The canonical logic: restrictions and logic:ClosureEntry records on math:ModelDiagnostic require both named roles under closed-world validation; missing either is ill-formed. Generated validation shapes project that contract rather than authoring its semantics. This is a missing-reference finding, not a general verdict on model validity, numerical results or whether a diagnostic executed."
+msgstr "L’échec signalé lorsqu’un math:ModelDiagnostic ne possède pas une référence requise math:diagnosticFor ou math:diagnosticMethod. Les restrictions logic: canoniques et les enregistrements logic:ClosureEntry sur math:ModelDiagnostic exigent les deux rôles nommés dans la validation en monde fermé ; si l’un ou l’autre manque, le diagnostic est mal formé. Les formes de validation générées projettent ce contrat plutôt que d’en définir la sémantique. Il s’agit d’une constatation de référence manquante, non d’un verdict général sur la validité du modèle, les résultats numériques ou l’exécution d’un diagnostic."
 
 msgctxt "https://blackcatinformatics.ca/math/UnderspecifiedEstimate|rdfs:label"
 msgid "Underspecified Estimate"
@@ -16732,3 +16732,179 @@ msgstr "Éviter de signaler tout StatisticalModel seul comme non ajusté, d’in
 msgctxt "https://blackcatinformatics.ca/math/UnfittedModel|https://blackcatinformatics.ca/gmeow/howToUse"
 msgid "Identify the FittedModel and which required reference is absent, preserving the actual declaration and source evidence. Supply a real source reference only when available; keep payload availability, formula structure, fitting-option identity and numerical qualification separately evidenced instead of fabricating a successful fit."
 msgstr "Identifier le FittedModel et la référence requise absente, en préservant la déclaration effective et les éléments probants sources. Fournir une référence source réelle uniquement lorsqu’elle est disponible ; étayer séparément la disponibilité du contenu, la structure de la formule, l’identité des options d’ajustement et la qualification numérique au lieu de fabriquer un ajustement réussi."
+
+msgctxt "https://blackcatinformatics.ca/math/ModelAssumption|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "A stated validity condition of a model, distinct from the math:ModelDiagnostic that may assess it and from the math:AnalysisPlan that pre-specifies the model. An assumption can require substantive justification beyond the observed data; naming it or linking a diagnostic does not establish its truth."
+msgstr "Une condition de validité énoncée d’un modèle, distincte du math:ModelDiagnostic qui peut l’évaluer et du math:AnalysisPlan qui spécifie le modèle au préalable. Une hypothèse peut exiger une justification de fond allant au-delà des données observées ; la nommer ou relier un diagnostic n’établit pas sa vérité."
+
+msgctxt "https://blackcatinformatics.ca/math/ModelAssumption|http://www.w3.org/2004/02/skos/core#example"
+msgid "exf:homoscedastic a math:ModelAssumption . exf:olsFit math:modelAssumption exf:homoscedastic ."
+msgstr "exf:homoscedastic a math:ModelAssumption . exf:olsFit math:modelAssumption exf:homoscedastic ."
+
+msgctxt "https://blackcatinformatics.ca/math/ModelAssumption|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Mint one for each supplied condition a model posits about the data-generating process, such as normal errors, homoscedasticity, independence, or proportional hazards, so it can be cited and assessed where justified without claiming that every condition is empirically testable."
+msgstr "Créer un objet pour chaque condition fournie qu’un modèle pose au sujet du processus générateur de données, telle que la normalité des erreurs, l’homoscédasticité, l’indépendance ou les risques proportionnels, afin de pouvoir la citer et l’évaluer lorsque cela est justifié sans affirmer que toute condition est empiriquement testable."
+
+msgctxt "https://blackcatinformatics.ca/math/ModelAssumption|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Do not treat an assumption name or a favorable diagnostic as proof that the condition holds. Preserve implicit source assumptions when they can be identified, without claiming that unnamed conditions are intrinsically impossible to investigate or inventing an unsupported test."
+msgstr "Ne pas traiter un nom d’hypothèse ou un diagnostic favorable comme une preuve que la condition est satisfaite. Préserver les hypothèses sources implicites lorsqu’elles peuvent être identifiées, sans affirmer que les conditions non nommées sont intrinsèquement impossibles à étudier ni inventer de test non étayé."
+
+msgctxt "https://blackcatinformatics.ca/math/ModelAssumption|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Name it from a math:StatisticalModel or math:FittedModel through math:modelAssumption, and retain any actual math:ModelDiagnostic assessment with its method, evidence and limits. Keep the assumed condition distinct from the result of assessing it; missing evidence does not authorize a validity claim."
+msgstr "La nommer depuis un math:StatisticalModel ou math:FittedModel via math:modelAssumption et conserver toute évaluation math:ModelDiagnostic effective avec sa méthode, ses éléments probants et ses limites. Garder la condition supposée distincte du résultat de son évaluation ; des éléments probants manquants n’autorisent pas une affirmation de validité."
+
+msgctxt "https://blackcatinformatics.ca/math/modelAssumption|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Names a model validity condition, distinct from math:diagnosticFor, which anchors a diagnostic that may assess such a condition to a fit. The model-to-assumption link is not a diagnostic result or proof of validity."
+msgstr "Nomme une condition de validité du modèle, distincte de math:diagnosticFor, qui ancre à un ajustement un diagnostic pouvant évaluer une telle condition. Le lien du modèle vers l’hypothèse n’est ni un résultat diagnostique ni une preuve de validité."
+
+msgctxt "https://blackcatinformatics.ca/math/modelAssumption|http://www.w3.org/2004/02/skos/core#example"
+msgid "exf:olsFit math:modelAssumption exf:homoscedastic ."
+msgstr "exf:olsFit math:modelAssumption exf:homoscedastic ."
+
+msgctxt "https://blackcatinformatics.ca/math/modelAssumption|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to name a supplied condition a model posits, making that condition identifiable for citation and any justified assessment while preserving its source and evidential limits."
+msgstr "Utiliser pour nommer une condition fournie qu’un modèle pose, afin de rendre cette condition identifiable pour citation et pour toute évaluation justifiée, tout en préservant sa source et ses limites probantes."
+
+msgctxt "https://blackcatinformatics.ca/math/modelAssumption|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Do not infer that a named assumption is verified or empirically testable, or that an implicit condition cannot be investigated. Preserve the actual stated condition without turning a method name or absent assessment into evidence that it holds."
+msgstr "Ne pas déduire qu’une hypothèse nommée est vérifiée ou empiriquement testable, ni qu’une condition implicite ne peut pas être étudiée. Préserver la condition réellement énoncée sans transformer un nom de méthode ou une évaluation absente en preuve qu’elle est satisfaite."
+
+msgctxt "https://blackcatinformatics.ca/math/modelAssumption|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Set it on a math:StatisticalModel or math:FittedModel with range math:ModelAssumption."
+msgstr "La placer sur un math:StatisticalModel ou math:FittedModel avec math:ModelAssumption comme portée."
+
+msgctxt "https://blackcatinformatics.ca/math/Residual|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Residual"
+msgstr "Résidu"
+
+msgctxt "https://blackcatinformatics.ca/math/Residual|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A residual: the difference between an observed value and the value a math:FittedModel predicts, related to the fit it is a residual of through math:residualOf. A subclass of math:MathematicalObject; the R source lift can emit a residual record tied to a fit without supplying per-observation values or preserving the requested residual variant. Such a sparse record does not establish a computed numerical difference. Its statistical MEANING, if read, is a vantage-held gmeow:Observation, never an intrinsic property of the number."
+msgstr "Un résidu : la différence entre une valeur observée et la valeur prédite par un math:FittedModel, reliée à l’ajustement dont elle est le résidu par math:residualOf. Une sous-classe de math:MathematicalObject ; la traduction de source R peut émettre un enregistrement de résidu lié à un ajustement sans fournir de valeurs par observation ni préserver la variante de résidu demandée. Un tel enregistrement sommaire n’établit pas une différence numérique calculée. Sa SIGNIFICATION statistique, si elle est interprétée, est une gmeow:Observation soutenue depuis un point de vue, jamais une propriété intrinsèque du nombre."
+
+msgctxt "https://blackcatinformatics.ca/math/Residual|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The raw residual uses observed minus predicted, not the reverse sign. Pearson, standardized, deviance and other residual forms have their own definitions and are not automatically this raw difference. Preserve any source variant, observation association and value evidence in their supplied representation; a type and fit link alone establish none of them."
+msgstr "Le résidu brut utilise la valeur observée moins la valeur prédite, et non le signe inverse. Les résidus de Pearson, standardisés, de déviance et les autres formes ont leurs propres définitions et ne sont pas automatiquement cette différence brute. Préserver toute variante source, association à une observation et tout élément probant de valeur dans leur représentation fournie ; un type et un lien vers l’ajustement seuls n’établissent aucun de ces éléments."
+
+msgctxt "https://blackcatinformatics.ca/math/Residual|http://www.w3.org/2004/02/skos/core#example"
+msgid "The embedded mtcars.R scene calls residuals(fit). The inspected native path emits one fit-keyed Residual resource with residualOf pointing to the fitted-model resource, but supplies no per-observation residual values, observation indices or residual-variant specification. This is a source-described record, not a computed residual collection."
+msgstr "La scène embarquée mtcars.R appelle residuals(fit). Le chemin natif examiné émet une ressource Residual unique dont la clé dépend de l’ajustement, avec residualOf pointant vers la ressource du modèle ajusté, mais ne fournit ni valeurs de résidus par observation, ni indices d’observation, ni spécification de variante de résidu. Il s’agit d’un enregistrement décrit par une source, non d’une collection de résidus calculée."
+
+msgctxt "https://blackcatinformatics.ca/math/Residual|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for a supplied residual record associated with a fitted model, retaining whether an actual observed-minus-predicted value, observation identity and residual convention are established or the source provides only a sparse declaration."
+msgstr "Utiliser pour un enregistrement de résidu fourni associé à un modèle ajusté, en conservant l’indication qu’une valeur réelle observée moins prédite, une identité d’observation et une convention de résidu sont établies ou que la source ne fournit qu’une déclaration sommaire."
+
+msgctxt "https://blackcatinformatics.ca/math/Residual|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid reversing the raw sign, treating a Pearson or deviance residual as the same numerical quantity without justification, or interpreting a type and fit link as a per-observation result inventory. Do not manufacture residual values, variants or an executed diagnostic from an R call or label."
+msgstr "Éviter d’inverser le signe brut, de traiter un résidu de Pearson ou de déviance comme la même quantité numérique sans justification, ou d’interpréter un type et un lien vers l’ajustement comme un inventaire de résultats par observation. Ne pas fabriquer de valeurs de résidus, de variantes ou de diagnostic exécuté à partir d’un appel R ou d’un libellé."
+
+msgctxt "https://blackcatinformatics.ca/math/Residual|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Keep the Residual resource and its actual residualOf link, preserving supplied observation, prediction, value, convention and provenance evidence in their existing representation. Distinguish a raw numerical difference from other residual forms and from its vantage-held interpretation; report missing values or unresolved source-request identity without inventing a new field, observation record or computation."
+msgstr "Garder la ressource Residual et son lien residualOf effectif, en préservant les éléments probants fournis d’observation, de prédiction, de valeur, de convention et de provenance dans leur représentation existante. Distinguer une différence numérique brute des autres formes de résidus et de son interprétation soutenue depuis un point de vue ; signaler les valeurs manquantes ou l’identité non résolue de la requête source sans inventer de nouveau champ, d’enregistrement d’observation ou de calcul."
+
+msgctxt "https://blackcatinformatics.ca/math/residualOf|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "residual of"
+msgstr "résidu de"
+
+msgctxt "https://blackcatinformatics.ca/math/residualOf|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Relates a math:Residual to the math:FittedModel it is a residual of. Domain math:Residual, range math:FittedModel (stated in prose). Names which fit an observed-minus-predicted difference belongs to."
+msgstr "Relie un math:Residual au math:FittedModel dont il est le résidu. Domaine : math:Residual ; portée : math:FittedModel (indiqués en prose). Nomme l’ajustement auquel appartient une différence observée moins prédite."
+
+msgctxt "https://blackcatinformatics.ca/math/residualOf|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This identifies the fit a residual record concerns; the subject is the Residual and the object is the FittedModel. It is distinct from diagnosticFor on an evaluation and from a held interpretation of a residual. The link alone supplies no observation identity, numerical difference or residual-variant evidence."
+msgstr "Identifie l’ajustement auquel un enregistrement de résidu se rapporte ; le sujet est le Residual et l’objet est le FittedModel. Ce lien se distingue de diagnosticFor sur une évaluation et d’une interprétation soutenue concernant un résidu. Le lien seul ne fournit ni identité d’observation, ni différence numérique, ni élément probant de variante de résidu."
+
+msgctxt "https://blackcatinformatics.ca/math/residualOf|http://www.w3.org/2004/02/skos/core#example"
+msgid "The native R path handles residuals, resid and augment calls by linking a fit-keyed Residual resource to the resolved fitted-model resource through residualOf. Its inspected emission supplies type and fit linkage, not per-observation values or distinct requested-variant records."
+msgstr "Le chemin R natif traite les appels residuals, resid et augment en reliant, par residualOf, une ressource Residual dont la clé dépend de l’ajustement à la ressource du modèle ajusté résolue. Son émission examinée fournit le type et le lien vers l’ajustement, non des valeurs par observation ou des enregistrements distincts de variantes demandées."
+
+msgctxt "https://blackcatinformatics.ca/math/residualOf|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain the actual fitted model associated with a supplied residual record, keeping any observation, residual convention, numerical value and interpretation evidence separately represented as supplied."
+msgstr "Utiliser pour conserver le modèle ajusté effectif associé à un enregistrement de résidu fourni, en gardant séparément les éléments probants d’observation, de convention de résidu, de valeur numérique et d’interprétation tels qu’ils sont fournis."
+
+msgctxt "https://blackcatinformatics.ca/math/residualOf|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid reversing the residual-to-fit edge, substituting the diagnostic method or analysis activity for the fit, or assuming that this link computes a difference or preserves every source residual request. A shared fit does not establish identity of residual variants or observation-level results."
+msgstr "Éviter d’inverser le lien du résidu vers l’ajustement, de substituer la méthode diagnostique ou l’activité d’analyse à l’ajustement, ou de supposer que ce lien calcule une différence ou préserve toute requête source de résidu. Un ajustement partagé n’établit pas l’identité des variantes de résidus ou des résultats au niveau des observations."
+
+msgctxt "https://blackcatinformatics.ca/math/residualOf|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Keep Residual as subject and the supplied FittedModel as object. Preserve the actual source request and any value, observation, convention and provenance evidence without inferring a complete residual collection from this edge or creating missing result data to make a sparse record appear computed."
+msgstr "Garder Residual comme sujet et le FittedModel fourni comme objet. Préserver la requête source réelle et les éléments probants de valeur, d’observation, de convention et de provenance sans déduire de ce lien une collection complète de résidus ni créer de données de résultat manquantes pour faire paraître calculé un enregistrement sommaire."
+
+msgctxt "https://blackcatinformatics.ca/math/ModelDiagnostic|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "An evaluation of one fit, distinct from a math:ModelComparison (weighing several fits) and from the math:ModelAssumption it may check. The canonical required-link restrictions and closed-world closure require both fit and method; their presence does not establish an executed check, a numerical result or the truth of an assumption."
+msgstr "Une évaluation d’un ajustement, distincte d’une math:ModelComparison (comparant plusieurs ajustements) et de la math:ModelAssumption qu’elle peut vérifier. Les restrictions canoniques de liens requis et la clôture en monde fermé exigent à la fois l’ajustement et la méthode ; leur présence n’établit ni vérification exécutée, ni résultat numérique, ni vérité d’une hypothèse."
+
+msgctxt "https://blackcatinformatics.ca/math/ModelDiagnostic|http://www.w3.org/2004/02/skos/core#example"
+msgid "exf:qqPlot a math:ModelDiagnostic ; math:diagnosticFor exf:olsFit ; math:diagnosticMethod exf:qqAssessment ."
+msgstr "exf:qqPlot a math:ModelDiagnostic ; math:diagnosticFor exf:olsFit ; math:diagnosticMethod exf:qqAssessment ."
+
+msgctxt "https://blackcatinformatics.ca/math/ModelDiagnostic|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Mint one for a first-class evaluation of a fitted model, a residual summary, a Q-Q assessment, a heteroscedasticity or influence measure, or a goodness-of-fit statistic."
+msgstr "Créer un objet pour une évaluation à part entière d’un modèle ajusté, un résumé de résidus, une évaluation Q-Q, une mesure d’hétéroscédasticité ou d’influence, ou une statistique d’adéquation."
+
+msgctxt "https://blackcatinformatics.ca/math/ModelDiagnostic|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Do not leave a check buried in a plot caption; a diagnostic missing either its fit anchor or its method is math:UnanchoredDiagnostic."
+msgstr "Ne pas laisser une vérification enfouie dans la légende d’un graphe ; un diagnostic auquel manque soit son ancrage à l’ajustement, soit sa méthode relève de math:UnanchoredDiagnostic."
+
+msgctxt "https://blackcatinformatics.ca/math/ModelDiagnostic|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Name the math:FittedModel it evaluates through math:diagnosticFor and the method it applies through math:diagnosticMethod."
+msgstr "Nommer le math:FittedModel qu’il évalue via math:diagnosticFor et la méthode qu’il applique via math:diagnosticMethod."
+
+msgctxt "https://blackcatinformatics.ca/math/diagnosticFor|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Anchors an evaluation to a fit, distinct from math:diagnosticMethod (the procedure applied) and from math:modelAssumption (a condition of the model itself)."
+msgstr "Ancre une évaluation à un ajustement, contrairement à math:diagnosticMethod (la procédure appliquée) et à math:modelAssumption (une condition du modèle lui-même)."
+
+msgctxt "https://blackcatinformatics.ca/math/diagnosticFor|http://www.w3.org/2004/02/skos/core#example"
+msgid "exf:qqPlot math:diagnosticFor exf:olsFit ."
+msgstr "exf:qqPlot math:diagnosticFor exf:olsFit ."
+
+msgctxt "https://blackcatinformatics.ca/math/diagnosticFor|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to anchor a model evaluation to the fit it speaks about, one shared edge for the-fit-this-evaluation-is-about."
+msgstr "Utiliser pour ancrer une évaluation de modèle à l’ajustement dont elle parle, avec une seule arête partagée pour désigner l’ajustement auquel cette évaluation se rapporte."
+
+msgctxt "https://blackcatinformatics.ca/math/diagnosticFor|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Do not mint a near-synonym edge per diagnostic kind; comparison, criterion, calibration, and cross-validation all reuse this one anchor."
+msgstr "Ne pas créer d’arête quasi synonyme pour chaque type de diagnostic ; comparaison, critère, calibration et validation croisée réutilisent tous cet ancrage."
+
+msgctxt "https://blackcatinformatics.ca/math/diagnosticFor|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Set it on a math:ModelDiagnostic, math:ModelComparison, math:InformationCriterion, math:CalibrationDiagnostic, or math:CrossValidationResult with range math:FittedModel; a diagnostic naming no fit is math:UnanchoredDiagnostic."
+msgstr "La placer sur un math:ModelDiagnostic, math:ModelComparison, math:InformationCriterion, math:CalibrationDiagnostic ou math:CrossValidationResult avec math:FittedModel comme portée ; un diagnostic ne nommant aucun ajustement relève de math:UnanchoredDiagnostic."
+
+msgctxt "https://blackcatinformatics.ca/math/diagnosticMethod|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The procedure a diagnostic applies over a fit, distinct from math:diagnosticFor (the fit anchored to), math:usesProofMethod (a proof strategy), and math:estimator (an estimate procedure)."
+msgstr "La procédure qu’un diagnostic applique sur un ajustement, distincte de math:diagnosticFor (l’ajustement auquel il est ancré), de math:usesProofMethod (une stratégie de preuve) et de math:estimator (une procédure d’estimation)."
+
+msgctxt "https://blackcatinformatics.ca/math/diagnosticMethod|http://www.w3.org/2004/02/skos/core#example"
+msgid "exf:qqPlot math:diagnosticMethod exf:qqAssessment ."
+msgstr "exf:qqPlot math:diagnosticMethod exf:qqAssessment ."
+
+msgctxt "https://blackcatinformatics.ca/math/diagnosticMethod|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to name the method a diagnostic applies, a residual-analysis procedure, goodness-of-fit test, influence measure, or reliability-curve binning."
+msgstr "Utiliser pour nommer la méthode qu’un diagnostic applique, une procédure d’analyse des résidus, un test d’adéquation, une mesure d’influence ou un regroupement en classes pour une courbe de fiabilité."
+
+msgctxt "https://blackcatinformatics.ca/math/diagnosticMethod|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Do not leave the method an opaque label; a diagnostic naming no method is math:UnanchoredDiagnostic."
+msgstr "Ne pas laisser la méthode sous forme de libellé opaque ; un diagnostic ne nommant aucune méthode relève de math:UnanchoredDiagnostic."
+
+msgctxt "https://blackcatinformatics.ca/math/diagnosticMethod|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Set it on a math:ModelDiagnostic with range the method object."
+msgstr "La placer sur un math:ModelDiagnostic avec l’objet de méthode comme portée."
+
+msgctxt "https://blackcatinformatics.ca/math/UnanchoredDiagnostic|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The unanchored-evaluation finding, distinct from math:CalibrationSenseConflation (a crossed calibration sense). Supplied fit and method links can meet this presence boundary without establishing a valid or executed diagnostic; other missing evidence or an unfavorable result is not itself this missing-link failure."
+msgstr "La constatation d’évaluation non ancrée, distincte de math:CalibrationSenseConflation (confusion de sens de calibration). Les liens fournis d’ajustement et de méthode peuvent satisfaire cette limite de présence sans établir un diagnostic valide ou exécuté ; d’autres éléments probants manquants ou un résultat défavorable ne constituent pas en eux-mêmes cet échec de lien manquant."
+
+msgctxt "https://blackcatinformatics.ca/math/UnanchoredDiagnostic|http://www.w3.org/2004/02/skos/core#example"
+msgid "exf:floatingDiag a math:UnanchoredDiagnostic ."
+msgstr "exf:floatingDiag a math:UnanchoredDiagnostic ."
+
+msgctxt "https://blackcatinformatics.ca/math/UnanchoredDiagnostic|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when a supplied math:ModelDiagnostic lacks its required math:diagnosticFor or math:diagnosticMethod reference under the canonical closed-world contract, retaining the offending record and the actual missing role."
+msgstr "Utiliser lorsqu’un math:ModelDiagnostic fourni ne possède pas sa référence math:diagnosticFor ou math:diagnosticMethod requise selon le contrat canonique en monde fermé, en conservant l’enregistrement fautif et le rôle réellement manquant."
+
+msgctxt "https://blackcatinformatics.ca/math/UnanchoredDiagnostic|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Do not suppress the finding when either required reference is absent, or raise it merely because a diagnostic result is unfavorable, uncomputed or otherwise unqualified. Missing linkage and the truth or execution of a model assessment are distinct concerns."
+msgstr "Ne pas supprimer la constatation lorsque l’une des références requises est absente, ni la signaler au seul motif qu’un résultat diagnostique est défavorable, non calculé ou autrement non qualifié. Le lien manquant et la vérité ou l’exécution d’une évaluation de modèle sont des questions distinctes."
+
+msgctxt "https://blackcatinformatics.ca/math/UnanchoredDiagnostic|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Identify the math:ModelDiagnostic and the missing math:diagnosticFor or math:diagnosticMethod role using the canonical restrictions and closure records. Retain the source evidence and supply a real reference only when available; do not invent a fit, method or successful result to silence the finding."
+msgstr "Identifier le math:ModelDiagnostic et le rôle math:diagnosticFor ou math:diagnosticMethod manquant à l’aide des restrictions et des enregistrements de clôture canoniques. Conserver les éléments probants de la source et ne fournir une référence réelle que lorsqu’elle est disponible ; ne pas inventer d’ajustement, de méthode ou de résultat réussi pour faire taire la constatation."
