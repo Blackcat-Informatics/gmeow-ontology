@@ -869,51 +869,63 @@ impl Stage for ReasonStage {
         // repo-free RDF projection) AND as the typed `PipelineHandle::Reasoning` handle
         // pinned to that graph (C7) — dual carriage.
         let dataset = reasoned.dataset;
-        let nodes = crate::stages::diag_render::finding_nodes(&reasoned.chase_report, self.id());
-        let diag_blob = crate::node::encode_diag_nodes(self.id(), &nodes);
-        let mut artifacts: BTreeMap<String, Vec<u8>> = BTreeMap::new();
-        artifacts.insert(CLOSURE_PATH.to_string(), reasoned.closure.into_bytes());
-        artifacts.insert(
-            EXPLANATIONS_PATH.to_string(),
-            reasoned.explanations.into_bytes(),
-        );
-        artifacts.insert(LEDGER_PATH.to_string(), reasoned.ledger.into_bytes());
-        artifacts.insert(
-            PERF_LEDGER_PATH.to_string(),
-            reasoned.perf_ledger.into_bytes(),
-        );
+        let (nodes, diag_blob) =
+            measure_stage_phase(self.id(), "assemble-reason-diagnostics", || {
+                let nodes =
+                    crate::stages::diag_render::finding_nodes(&reasoned.chase_report, self.id());
+                let diag_blob = crate::node::encode_diag_nodes(self.id(), &nodes);
+                (nodes, diag_blob)
+            });
 
         // Attach the typed Reasoning handle, pinned to the `graph/reasoning` named
         // graph's canonical digest. `pin_handle` HARD-fails on a digest mismatch, so a
         // handle that disagrees with its backing graph can never attach (fail-closed).
-        let mut bundle = crate::bundle::bundle_from_artifacts_over_with_rep_blob(
-            dataset,
-            artifacts,
-            purrdf::provenance::DatasetProvenance::new(),
-            crate::stages::carrier::REP_DIAG_NODES,
-            "application/json",
-            diag_blob,
-        );
-        let pinned = bundle.graph_digest(
-            GRAPH_REASONING,
-            &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None),
-        )?;
-        bundle
-            .pin_handle(
+        let mut bundle = measure_stage_phase(self.id(), "assemble-reason-bundle", || {
+            let mut artifacts: BTreeMap<String, Vec<u8>> = BTreeMap::new();
+            artifacts.insert(CLOSURE_PATH.to_string(), reasoned.closure.into_bytes());
+            artifacts.insert(
+                EXPLANATIONS_PATH.to_string(),
+                reasoned.explanations.into_bytes(),
+            );
+            artifacts.insert(LEDGER_PATH.to_string(), reasoned.ledger.into_bytes());
+            artifacts.insert(
+                PERF_LEDGER_PATH.to_string(),
+                reasoned.perf_ledger.into_bytes(),
+            );
+            crate::bundle::bundle_from_artifacts_over_with_rep_blob(
+                dataset,
+                artifacts,
+                purrdf::provenance::DatasetProvenance::new(),
+                crate::stages::carrier::REP_DIAG_NODES,
+                "application/json",
+                diag_blob,
+            )
+        });
+        let pinned = measure_stage_phase(self.id(), "pin-reason-graph-digest", || {
+            bundle.graph_digest(
+                GRAPH_REASONING,
+                &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None),
+            )
+        })?;
+        measure_stage_phase(self.id(), "pin-reason-handle", || {
+            bundle.pin_handle(
                 GRAPH_REASONING,
                 PipelineHandle::Reasoning(Arc::new(reasoned.result)),
                 pinned,
                 &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None),
             )
-            .map_err(|e| {
-                gmeow_errors::Diag::of_kind(crate::error::StageFailed {
-                    cause: None,
-                    stage: "stage-reason".to_string(),
-                    message: format!("pin Reasoning handle to <{GRAPH_REASONING}>: {e}"),
-                })
-            })?;
+        })
+        .map_err(|e| {
+            gmeow_errors::Diag::of_kind(crate::error::StageFailed {
+                cause: None,
+                stage: "stage-reason".to_string(),
+                message: format!("pin Reasoning handle to <{GRAPH_REASONING}>: {e}"),
+            })
+        })?;
         let output_quads = bundle.dataset().quad_count();
-        let product = StageProduct::from_bundle(self.id(), Arc::new(bundle))?;
+        let product = measure_stage_phase(self.id(), "identify-reason-product", || {
+            StageProduct::from_bundle(self.id(), Arc::new(bundle))
+        })?;
         tracing::info!(
             target: "pipeline_phase",
             stage = self.id(),
