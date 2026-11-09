@@ -57,6 +57,8 @@
 //! (axes/provenance), faithful-subset where the payload rows are carried elsewhere.
 
 use std::collections::{BTreeMap, BTreeSet};
+use std::fmt;
+use std::sync::Arc;
 
 use gmeow_logic_compile::ir::{LOGIC_NAMESPACE, PreservationKind};
 use purrdf::{DatasetView, GraphMatch, QuadIds, RdfDataset, TermId, TermRef};
@@ -133,7 +135,7 @@ enum Node {
     Iri(String),
     Blank(String),
     /// An authored or inferred native RDF value, retained through the output boundary.
-    Value(purrdf::TermValue),
+    Value(Box<purrdf::TermValue>),
     Lit {
         lex: String,
         datatype: String,
@@ -173,44 +175,43 @@ impl Node {
             datatype: XSD_ANY_URI.to_owned(),
         }
     }
-    /// Render this node in canonical N-Triples term syntax.
-    fn render(&self) -> String {
+}
+
+impl fmt::Display for Node {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            Node::Iri(iri) | Node::SelfReference(iri) => format!("<{iri}>"),
-            Node::Blank(id) => format!("_:{id}"),
-            Node::Value(value) => crate::provenance::term_display(value),
+            Node::Iri(iri) | Node::SelfReference(iri) => write!(f, "<{iri}>"),
+            Node::Blank(id) => write!(f, "_:{id}"),
+            Node::Value(value) => f.write_str(&crate::provenance::term_display(value)),
             Node::Lit { lex, datatype } => {
-                format!("\"{}\"^^<{datatype}>", escape_literal(lex))
+                f.write_str("\"")?;
+                // Write unchanged spans together so large hex receipts need no escaped copy.
+                let mut start = 0;
+                for (index, ch) in lex.char_indices() {
+                    if matches!(ch, '\\' | '"') || ch.is_control() {
+                        f.write_str(&lex[start..index])?;
+                        match ch {
+                            '\\' => f.write_str("\\\\")?,
+                            '"' => f.write_str("\\\"")?,
+                            '\n' => f.write_str("\\n")?,
+                            '\r' => f.write_str("\\r")?,
+                            '\t' => f.write_str("\\t")?,
+                            control => write!(f, "\\u{:04X}", control as u32)?,
+                        }
+                        start = index + ch.len_utf8();
+                    }
+                }
+                f.write_str(&lex[start..])?;
+                write!(f, "\"^^<{datatype}>")
             }
         }
     }
 }
 
-/// Escape a lexical form for an N-Triples quoted literal (RDF 1.1 §7).
-fn escape_literal(s: &str) -> String {
-    let mut out = String::with_capacity(s.len());
-    for ch in s.chars() {
-        match ch {
-            '\\' => out.push_str("\\\\"),
-            '"' => out.push_str("\\\""),
-            '\n' => out.push_str("\\n"),
-            '\r' => out.push_str("\\r"),
-            '\t' => out.push_str("\\t"),
-            // Never emit a raw control scalar into the RDF transport. In particular,
-            // structured formula content keys deliberately contain NUL separators;
-            // preserving those bytes as UCHAR escapes keeps the N-Triples parseable
-            // while round-tripping the exact lexical form.
-            c if c.is_control() => out.push_str(&format!("\\u{:04X}", c as u32)),
-            c => out.push(c),
-        }
-    }
-    out
-}
-
 /// A triple `(subject, predicate, object)` accumulated before sorting.
 struct Triple {
     subject: Node,
-    predicate: String,
+    predicate: Arc<str>,
     object: Node,
 }
 
@@ -219,14 +220,23 @@ struct Triple {
 #[derive(Default)]
 struct Sink {
     triples: Vec<Triple>,
+    predicates: BTreeSet<Arc<str>>,
     next_blank: u64,
 }
 
 impl Sink {
-    fn push(&mut self, subject: Node, predicate: impl Into<String>, object: Node) {
+    fn push(&mut self, subject: Node, predicate: impl AsRef<str>, object: Node) {
+        let predicate = predicate.as_ref();
+        let predicate = if let Some(shared) = self.predicates.get(predicate) {
+            Arc::clone(shared)
+        } else {
+            let shared: Arc<str> = Arc::from(predicate);
+            self.predicates.insert(Arc::clone(&shared));
+            shared
+        };
         self.triples.push(Triple {
             subject,
-            predicate: predicate.into(),
+            predicate,
             object,
         });
     }
@@ -249,9 +259,7 @@ impl Sink {
         for t in &self.triples {
             lines.insert(format!(
                 "{} <{}> {}{graph} .",
-                t.subject.render(),
-                t.predicate,
-                t.object.render()
+                t.subject, t.predicate, t.object
             ));
         }
         lines.into_iter().collect()
@@ -462,11 +470,11 @@ fn contextual_assessment_sink(
         sink.push(
             subject.clone(),
             "http://www.w3.org/1999/02/22-rdf-syntax-ns#reifies",
-            Node::Value(purrdf::TermValue::Triple {
+            Node::Value(Box::new(purrdf::TermValue::Triple {
                 s: purrdf::TermValue::iri(&row.subject).into(),
                 p: purrdf::TermValue::iri(&row.predicate).into(),
                 o: purrdf::TermValue::iri(evidence.object()).into(),
-            }),
+            })),
         );
         sink.push(subject.clone(), gmeow("inWorld"), Node::iri(&row.graph));
         sink.push(subject.clone(), gmeow("viaRule"), Node::iri(&row.rule_iri));
@@ -580,7 +588,7 @@ impl ResultProjection {
             sink.push(
                 Node::iri(&axiom.subject),
                 &axiom.predicate,
-                Node::Value(axiom.object.clone()),
+                Node::Value(Box::new(axiom.object.clone())),
             );
         }
         Ok(Self { node_iri, sink })
@@ -667,7 +675,7 @@ pub(crate) fn contextual_assessment_facts(
     fn value(node: Node) -> gmeow_errors::Result<purrdf::TermValue> {
         match node {
             Node::Iri(iri) => Ok(purrdf::TermValue::iri(iri)),
-            Node::Value(value) => Ok(value),
+            Node::Value(value) => Ok(*value),
             Node::Lit { lex, datatype } => Ok(purrdf::TermValue::Literal {
                 lexical_form: lex,
                 datatype,
@@ -685,7 +693,7 @@ pub(crate) fn contextual_assessment_facts(
     for row in sink.triples {
         let fact = crate::rule_ir::Fact {
             subject: value(row.subject)?,
-            predicate: row.predicate,
+            predicate: row.predicate.to_string(),
             object: value(row.object)?,
         };
         if fact.subject.as_iri().is_none() {
@@ -814,7 +822,7 @@ fn append_native_dataset(
     let reifiers = sink
         .triples
         .iter()
-        .filter(|row| row.predicate == REIFIES)
+        .filter(|row| row.predicate.as_ref() == REIFIES)
         .map(|row| match &row.subject {
             Node::Iri(iri) => Ok(iri.clone()),
             _ => Err(result_err(
@@ -840,7 +848,7 @@ fn append_native_dataset(
         let annotation = matches!(&triple.subject, Node::Iri(iri) if reifiers.contains(iri));
         let subject = native(triple.subject)?;
         let object = native(triple.object)?;
-        if triple.predicate == REIFIES {
+        if triple.predicate.as_ref() == REIFIES {
             let purrdf::RdfTerm::Triple(statement) = object else {
                 return Err(result_err(
                     "native contextual reifier requires a quoted statement".into(),
@@ -849,11 +857,11 @@ fn append_native_dataset(
             let reifier = purrdf::RdfReifier::new(subject, *statement).in_graph(graph.clone());
             builder.push_owned_reifier_scoped(&reifier, blank_scope)?;
         } else if annotation {
-            let annotation = purrdf::RdfAnnotation::new(subject, triple.predicate, object)
+            let annotation = purrdf::RdfAnnotation::new(subject, triple.predicate.as_ref(), object)
                 .in_graph(graph.clone());
             builder.push_owned_annotation_scoped(&annotation, blank_scope)?;
         } else {
-            let mut quad = purrdf::RdfQuad::new(subject, triple.predicate, object);
+            let mut quad = purrdf::RdfQuad::new(subject, triple.predicate.as_ref(), object);
             quad.graph_name = graph.clone();
             builder.push_owned_quad_scoped(&quad, blank_scope)?;
         }
@@ -1021,7 +1029,27 @@ fn project_provenance(
             subject.clone(),
             logic("resultNativeExecution"),
             Node::Lit {
-                lex: native::encode(execution)?,
+                lex: {
+                    let started = crate::timing::Instant::now();
+                    tracing::info!(
+                        target: "pipeline_phase",
+                        stage = "stage-reason",
+                        phase = "encode-native-reasoning-receipt",
+                        event = "start",
+                        "reason phase boundary",
+                    );
+                    let encoded = native::encode(execution)?;
+                    tracing::info!(
+                        target: "pipeline_phase",
+                        stage = "stage-reason",
+                        phase = "encode-native-reasoning-receipt",
+                        event = "end",
+                        elapsed_ms = started.elapsed().as_millis(),
+                        encoded_bytes = encoded.len(),
+                        "reason phase boundary",
+                    );
+                    encoded
+                },
                 datatype: "http://www.w3.org/2001/XMLSchema#hexBinary".into(),
             },
         );
@@ -1212,7 +1240,7 @@ fn project_derived_axioms(sink: &mut Sink, subject: &Node, axioms: &[InferredAxi
         sink.push(
             node.clone(),
             logic("axiomObject"),
-            Node::Value(axiom.object.clone()),
+            Node::Value(Box::new(axiom.object.clone())),
         );
         sink.push(node.clone(), logic("axiomWorld"), axiom_term(&axiom.world));
 

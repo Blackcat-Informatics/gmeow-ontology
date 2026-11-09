@@ -23,8 +23,8 @@ impl ExecutionCbor for BudgetUsage {
         Ok(())
     }
     /// Stream every field in this record's serialized declaration order.
-    fn write_cbor<W: crate::execution_cbor::LeafWrite + ?Sized>(
-        &self,
+    fn write_cbor<'data, W: crate::execution_cbor::LeafWrite<'data> + ?Sized>(
+        &'data self,
         out: &mut W,
     ) -> io::Result<()> {
         head::write_head(out, head::MAP, 3)?;
@@ -67,8 +67,8 @@ impl ExecutionCbor for DerivationRef {
         Ok(())
     }
     /// Stream every field in this record's serialized declaration order.
-    fn write_cbor<W: crate::execution_cbor::LeafWrite + ?Sized>(
-        &self,
+    fn write_cbor<'data, W: crate::execution_cbor::LeafWrite<'data> + ?Sized>(
+        &'data self,
         out: &mut W,
     ) -> io::Result<()> {
         head::write_head(out, head::MAP, 2)?;
@@ -109,8 +109,8 @@ impl ExecutionCbor for ResultContext {
         Ok(())
     }
     /// Stream every field in this record's serialized declaration order.
-    fn write_cbor<W: crate::execution_cbor::LeafWrite + ?Sized>(
-        &self,
+    fn write_cbor<'data, W: crate::execution_cbor::LeafWrite<'data> + ?Sized>(
+        &'data self,
         out: &mut W,
     ) -> io::Result<()> {
         head::write_head(out, head::MAP, 5)?;
@@ -164,8 +164,8 @@ impl ExecutionCbor for ContradictionWitness {
         Ok(())
     }
     /// Stream every field in this record's serialized declaration order.
-    fn write_cbor<W: crate::execution_cbor::LeafWrite + ?Sized>(
-        &self,
+    fn write_cbor<'data, W: crate::execution_cbor::LeafWrite<'data> + ?Sized>(
+        &'data self,
         out: &mut W,
     ) -> io::Result<()> {
         head::write_head(out, head::MAP, 3)?;
@@ -222,8 +222,8 @@ impl ExecutionCbor for ResultProvenance {
         Ok(())
     }
     /// Stream every field in this record's serialized declaration order.
-    fn write_cbor<W: crate::execution_cbor::LeafWrite + ?Sized>(
-        &self,
+    fn write_cbor<'data, W: crate::execution_cbor::LeafWrite<'data> + ?Sized>(
+        &'data self,
         out: &mut W,
     ) -> io::Result<()> {
         head::write_head(out, head::MAP, 14)?;
@@ -315,8 +315,8 @@ impl ExecutionCbor for ResultProvenance {
 impl ExecutionCbor for InputStatus {
     crate::__gmeow_execution_unit_depth!(Valid, Invalid);
     /// Retain the original unit-variant text, independent of projection vocabularies.
-    fn write_cbor<W: crate::execution_cbor::LeafWrite + ?Sized>(
-        &self,
+    fn write_cbor<'data, W: crate::execution_cbor::LeafWrite<'data> + ?Sized>(
+        &'data self,
         out: &mut W,
     ) -> io::Result<()> {
         head::write_text(
@@ -341,8 +341,8 @@ impl ExecutionCbor for InputStatus {
 impl ExecutionCbor for EvaluationStatus {
     crate::__gmeow_execution_unit_depth!(Completed, BudgetExhausted, Unsupported);
     /// Retain the original unit-variant text, independent of projection vocabularies.
-    fn write_cbor<W: crate::execution_cbor::LeafWrite + ?Sized>(
-        &self,
+    fn write_cbor<'data, W: crate::execution_cbor::LeafWrite<'data> + ?Sized>(
+        &'data self,
         out: &mut W,
     ) -> io::Result<()> {
         head::write_text(
@@ -369,8 +369,8 @@ impl ExecutionCbor for EvaluationStatus {
 impl ExecutionCbor for CompletenessStatus {
     crate::__gmeow_execution_unit_depth!(CompleteForFragment, Incomplete, Unknown);
     /// Retain the original unit-variant text, independent of projection vocabularies.
-    fn write_cbor<W: crate::execution_cbor::LeafWrite + ?Sized>(
-        &self,
+    fn write_cbor<'data, W: crate::execution_cbor::LeafWrite<'data> + ?Sized>(
+        &'data self,
         out: &mut W,
     ) -> io::Result<()> {
         head::write_text(
@@ -404,8 +404,8 @@ impl ExecutionCbor for InformationState {
         NotEvaluated
     );
     /// Retain the original unit-variant text, independent of projection vocabularies.
-    fn write_cbor<W: crate::execution_cbor::LeafWrite + ?Sized>(
-        &self,
+    fn write_cbor<'data, W: crate::execution_cbor::LeafWrite<'data> + ?Sized>(
+        &'data self,
         out: &mut W,
     ) -> io::Result<()> {
         head::write_text(
@@ -438,8 +438,8 @@ impl ExecutionCbor for InformationState {
 impl ExecutionCbor for BudgetLimit {
     crate::__gmeow_execution_unit_depth!(Answers, Inference, Depth);
     /// Retain the original unit-variant text, independent of projection vocabularies.
-    fn write_cbor<W: crate::execution_cbor::LeafWrite + ?Sized>(
-        &self,
+    fn write_cbor<'data, W: crate::execution_cbor::LeafWrite<'data> + ?Sized>(
+        &'data self,
         out: &mut W,
     ) -> io::Result<()> {
         head::write_text(
@@ -472,8 +472,8 @@ impl ExecutionCbor for Assumption {
         SkolemWitness
     );
     /// Retain the original unit-variant text, independent of projection vocabularies.
-    fn write_cbor<W: crate::execution_cbor::LeafWrite + ?Sized>(
-        &self,
+    fn write_cbor<'data, W: crate::execution_cbor::LeafWrite<'data> + ?Sized>(
+        &'data self,
         out: &mut W,
     ) -> io::Result<()> {
         head::write_text(
@@ -504,8 +504,8 @@ impl ExecutionCbor for Assumption {
 impl ExecutionCbor for ResultClaim {
     crate::__gmeow_execution_unit_depth!(Conclusion, WorldConsistency);
     /// Retain the original unit-variant text, independent of projection vocabularies.
-    fn write_cbor<W: crate::execution_cbor::LeafWrite + ?Sized>(
-        &self,
+    fn write_cbor<'data, W: crate::execution_cbor::LeafWrite<'data> + ?Sized>(
+        &'data self,
         out: &mut W,
     ) -> io::Result<()> {
         head::write_text(

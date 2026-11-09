@@ -21,8 +21,8 @@ macro_rules! __gmeow_execution_record {
             }
 
             /// Stream all declared fields without sorting or reconstructing them.
-            fn write_cbor<W: $crate::execution_cbor::LeafWrite + ?Sized>(
-                &self,
+            fn write_cbor<'data, W: $crate::execution_cbor::LeafWrite<'data> + ?Sized>(
+                &'data self,
                 out: &mut W,
             ) -> ::std::io::Result<()> {
                 const FIELDS: &[&str] = &[$(::core::stringify!($field)),+];
