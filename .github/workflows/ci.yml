@@ -313,7 +313,11 @@ jobs:
           ASSET_BINARYEN_TAG="$(make --no-print-directory print-binaryen-ver)"
           ASSET_BINARYEN_SHA256="$(make --no-print-directory print-binaryen-linux-x64-sha256)"
           mkdir -p .cache/wasm-refresh/binaryen
+          # Bound new retries and each transfer separately; authenticate before extraction.
+          # https://curl.se/docs/manpage.html#--retry-max-time
           curl --proto '=https' --tlsv1.2 -fsSL \
+            --retry 3 --retry-delay 2 --retry-max-time 120 \
+            --connect-timeout 20 --max-time 60 \
             "https://github.com/WebAssembly/binaryen/releases/download/${ASSET_BINARYEN_TAG}/binaryen-${ASSET_BINARYEN_TAG}-x86_64-linux.tar.gz" \
             -o .cache/wasm-refresh/binaryen.tar.gz
           printf '%s  %s\n' "$ASSET_BINARYEN_SHA256" .cache/wasm-refresh/binaryen.tar.gz | sha256sum --check --strict
@@ -1952,9 +1956,14 @@ jobs:
         run: |
           set -euo pipefail
           BINARYEN_VER="$(make --no-print-directory print-binaryen-ver)"
+          BINARYEN_SHA256="$(make --no-print-directory print-binaryen-linux-x64-sha256)"
           echo "pinned binaryen: ${BINARYEN_VER}"
-          curl --proto '=https' --tlsv1.2 -fsSL -o /tmp/binaryen.tar.gz \
+          curl --proto '=https' --tlsv1.2 -fsSL \
+            --retry 3 --retry-delay 2 --retry-max-time 120 \
+            --connect-timeout 20 --max-time 60 \
+            -o /tmp/binaryen.tar.gz \
             "https://github.com/WebAssembly/binaryen/releases/download/${BINARYEN_VER}/binaryen-${BINARYEN_VER}-x86_64-linux.tar.gz"
+          printf '%s  %s\n' "$BINARYEN_SHA256" /tmp/binaryen.tar.gz | sha256sum --check --strict
           mkdir -p /tmp/binaryen
           tar xzf /tmp/binaryen.tar.gz -C /tmp/binaryen --strip-components=1
           echo "/tmp/binaryen/bin" >> "$GITHUB_PATH"

@@ -30,7 +30,7 @@ use gmeow_logic::reason::{
     LogicalGraph, PreparedReasoningInput, SelectedDomains, prepare_reasoning_input, reason_all,
 };
 use gmeow_logic::result::ReasoningResult;
-use gmeow_logic::result_rdf::{GRAPH_REASONING, project_reasoning_dataset};
+use gmeow_logic::result_rdf::{GRAPH_REASONING, ResultProjection};
 use purrdf::{RdfDataset, RdfDatasetBuilder, RdfLiteral, RdfTerm};
 
 use crate::bundle::PipelineHandle;
@@ -594,7 +594,6 @@ fn reason_dataset(
     chase_report: &gmeow_errors::Report,
     projections: &[WitnessProjection],
 ) -> Result<Arc<RdfDataset>, gmeow_errors::Diag> {
-    let reasoning_ds = project_reasoning_dataset(result)?;
     // This is an independently minted summary graph. Standardize its blanks
     // apart from every already-projected source and proof identity.
     let scopes: BTreeSet<_> = builder.blank_identities().map(|(_, scope)| scope).collect();
@@ -614,22 +613,17 @@ fn reason_dataset(
             })
         })?;
     }
-    // The graph/reasoning projection is routed into its own named graph.
+    // Route the prepared summary directly into the closure carrier, avoiding an
+    // intermediate frozen dataset and its second owned-row materialization.
+    let projection = ResultProjection::reasoning(result)?;
+    measure_stage_phase("stage-reason", "append-reasoning-summary", || {
+        projection.append_into(
+            &mut builder,
+            Some(GRAPH_REASONING),
+            purrdf::BlankScope(scope),
+        )
+    })?;
     let graph = RdfTerm::Iri(GRAPH_REASONING.to_owned());
-    for mut routed in reasoning_ds.owned_quads() {
-        routed.graph_name = Some(graph.clone());
-        builder.push_owned_quad_scoped(&routed, purrdf::BlankScope(scope))?;
-    }
-    for mut routed in reasoning_ds.owned_reifiers() {
-        routed.graph = Some(graph.clone());
-        builder.push_owned_reifier_scoped(&routed, purrdf::BlankScope(scope))?;
-    }
-    for mut routed in reasoning_ds.owned_annotations() {
-        routed.graph = Some(graph.clone());
-        builder.push_owned_annotation_scoped(&routed, purrdf::BlankScope(scope))?;
-    }
-    // The builder owns every routed row; release the completed projection.
-    drop(reasoning_ds);
     let graph_id = builder.intern_owned_term(&graph)?;
     builder.declare_named_graph(graph_id)?;
     gmeow_errors::render::append_gmeow_findings(
@@ -642,9 +636,11 @@ fn reason_dataset(
     // routed into graph/diagnostics so the offline `gmeow explain` CLI can decompose
     // an invented individual. Byte-stable: content-addressed null IRIs, sorted.
     witness_projection_into(projections, &mut builder)?;
-    builder.freeze().map_err(|e| {
-        gmeow_errors::Diag::of_kind(crate::error::Parse {
-            message: format!("freeze reason dual-carriage dataset: {e}"),
+    measure_stage_phase("stage-reason", "freeze-reason-carrier", || {
+        builder.freeze().map_err(|e| {
+            gmeow_errors::Diag::of_kind(crate::error::Parse {
+                message: format!("freeze reason dual-carriage dataset: {e}"),
+            })
         })
     })
 }
