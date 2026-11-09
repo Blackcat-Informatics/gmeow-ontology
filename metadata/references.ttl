@@ -14031,3 +14031,40 @@ repo:README.md a gmeow:CreativeWork ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/citations> ;
     gmeow:selectorLocator "Installing from crates.io: cargo install cargo-nextest --locked" ;
     gmeow:sourceLocation "https://nexte.st/docs/installation/from-source/" .
+
+<https://curl.se/docs/manpage.html> a gmeow:CreativeWork ;
+    rdfs:label "curl command-line manual"@en ;
+    skos:definition "The official curl manual documenting transient transfer retries, retry timing, per-transfer limits and output-file handling."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/citations> ;
+    gmeow:sourceLocation "https://curl.se/docs/manpage.html" .
+
+<https://blackcatinformatics.ca/gmeow/references/citation/ci-pinned-binaryen-download-retries> a gmeow:CitationAct ;
+    rdfs:label ".github/workflows/ci.yml"@en ;
+    skos:definition "The CI workflow uses curl's bounded transient retries and separate transfer limits while retaining pinned archive authentication before extraction."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/citations> ;
+    gmeow:citationIntent gmeow:intentCitesAsDataSource ;
+    gmeow:citingEntity <https://blackcatinformatics.ca/gmeow/repo/.github/workflows/ci.yml> ;
+    gmeow:citedEntity <https://curl.se/docs/manpage.html> ;
+    gmeow:viaSelector <https://blackcatinformatics.ca/gmeow/references/selector/curl-bounded-transfer-retries> .
+
+<https://blackcatinformatics.ca/gmeow/references/selector/curl-bounded-transfer-retries> a gmeow:Selector ;
+    rdfs:label "curl transient retries and transfer limits"@en ;
+    skos:definition "The retry, retry-delay, retry-max-time, connect-timeout and max-time option sections; the retry timer limits starting new attempts and does not terminate an already running transfer."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/citations> ;
+    gmeow:selectorLocator "--retry; --retry-delay; --retry-max-time; --connect-timeout; --max-time" ;
+    gmeow:sourceLocation "https://curl.se/docs/manpage.html#--retry" , "https://curl.se/docs/manpage.html#--retry-max-time" .
+
+<https://github.com/Blackcat-Informatics/gmeow-ontology/issues/2680> a gmeow:CreativeWork ;
+    rdfs:label "Pinned Binaryen download requirements"@en ;
+    skos:definition "The repository requirements citing curl's retry behavior for authenticated pinned-tool provisioning."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/citations> ;
+    gmeow:sourceLocation "https://github.com/Blackcat-Informatics/gmeow-ontology/issues/2680" .
+
+<https://blackcatinformatics.ca/gmeow/references/citation/pinned-binaryen-download-requirements> a gmeow:CitationAct ;
+    rdfs:label "Pinned Binaryen download requirements cite curl retry semantics"@en ;
+    skos:definition "The pinned-download requirements cite the curl manual for transient HTTP failures, replacement of partial output files and the distinction between retry and transfer deadlines."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/citations> ;
+    gmeow:citationIntent gmeow:intentCitesAsDataSource ;
+    gmeow:citingEntity <https://github.com/Blackcat-Informatics/gmeow-ontology/issues/2680> ;
+    gmeow:citedEntity <https://curl.se/docs/manpage.html> ;
+    gmeow:viaSelector <https://blackcatinformatics.ca/gmeow/references/selector/curl-bounded-transfer-retries> .
