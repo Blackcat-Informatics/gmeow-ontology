@@ -615,11 +615,14 @@ fn reason_dataset(
     }
     // Route the prepared summary directly into the closure carrier, avoiding an
     // intermediate frozen dataset and its second owned-row materialization.
-    ResultProjection::reasoning(result)?.append_into(
-        &mut builder,
-        Some(GRAPH_REASONING),
-        purrdf::BlankScope(scope),
-    )?;
+    let projection = ResultProjection::reasoning(result)?;
+    measure_stage_phase("stage-reason", "append-reasoning-summary", || {
+        projection.append_into(
+            &mut builder,
+            Some(GRAPH_REASONING),
+            purrdf::BlankScope(scope),
+        )
+    })?;
     let graph = RdfTerm::Iri(GRAPH_REASONING.to_owned());
     let graph_id = builder.intern_owned_term(&graph)?;
     builder.declare_named_graph(graph_id)?;
@@ -633,9 +636,11 @@ fn reason_dataset(
     // routed into graph/diagnostics so the offline `gmeow explain` CLI can decompose
     // an invented individual. Byte-stable: content-addressed null IRIs, sorted.
     witness_projection_into(projections, &mut builder)?;
-    builder.freeze().map_err(|e| {
-        gmeow_errors::Diag::of_kind(crate::error::Parse {
-            message: format!("freeze reason dual-carriage dataset: {e}"),
+    measure_stage_phase("stage-reason", "freeze-reason-carrier", || {
+        builder.freeze().map_err(|e| {
+            gmeow_errors::Diag::of_kind(crate::error::Parse {
+                message: format!("freeze reason dual-carriage dataset: {e}"),
+            })
         })
     })
 }

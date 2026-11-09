@@ -534,10 +534,44 @@ impl ResultProjection {
     /// # Errors
     /// Rejects invalid result evidence or an unrepresentable native receipt.
     pub fn reasoning(result: &ReasoningResult) -> gmeow_errors::Result<Self> {
+        let started = crate::timing::Instant::now();
+        tracing::info!(
+            target: "pipeline_phase",
+            stage = "stage-reason",
+            phase = "validate-reasoning-summary",
+            event = "start",
+            inferred_rows = result.inferred().len(),
+            "reason phase boundary",
+        );
         result.validate()?;
+        tracing::info!(
+            target: "pipeline_phase",
+            stage = "stage-reason",
+            phase = "validate-reasoning-summary",
+            event = "end",
+            elapsed_ms = started.elapsed().as_millis(),
+            "reason phase boundary",
+        );
         let sink = reasoning_sink(result)?;
+        let started = crate::timing::Instant::now();
+        tracing::info!(
+            target: "pipeline_phase",
+            stage = "stage-reason",
+            phase = "address-reasoning-summary",
+            event = "start",
+            projected_rows = sink.triples.len(),
+            "reason phase boundary",
+        );
         let (mut sink, node_iri) =
             content_addressed_sink(sink, RESULT_IRI_BASE, RESULT_PLACEHOLDER);
+        tracing::info!(
+            target: "pipeline_phase",
+            stage = "stage-reason",
+            phase = "address-reasoning-summary",
+            event = "end",
+            elapsed_ms = started.elapsed().as_millis(),
+            "reason phase boundary",
+        );
         for axiom in result.inferred().iter().filter(|axiom| {
             !axiom.is_edb
                 && axiom.world == GRAPH_REASONING
@@ -861,10 +895,45 @@ fn reasoning_sink(result: &ReasoningResult) -> gmeow_errors::Result<Sink> {
     project_preservation(&mut sink, &subject, &result.preservation);
 
     // ── provenance ───────────────────────────────────────────────────────────────
+    let started = crate::timing::Instant::now();
+    tracing::info!(
+        target: "pipeline_phase",
+        stage = "stage-reason",
+        phase = "prepare-reasoning-provenance",
+        event = "start",
+        "reason phase boundary",
+    );
     project_provenance(&mut sink, &subject, &result.provenance)?;
+    tracing::info!(
+        target: "pipeline_phase",
+        stage = "stage-reason",
+        phase = "prepare-reasoning-provenance",
+        event = "end",
+        elapsed_ms = started.elapsed().as_millis(),
+        projected_rows = sink.triples.len(),
+        "reason phase boundary",
+    );
 
     // ── payload summary ──────────────────────────────────────────────────────────
+    let started = crate::timing::Instant::now();
+    tracing::info!(
+        target: "pipeline_phase",
+        stage = "stage-reason",
+        phase = "prepare-reasoning-payload",
+        event = "start",
+        inferred_rows = result.inferred().len(),
+        "reason phase boundary",
+    );
     project_payload(&mut sink, &subject, &result.payload);
+    tracing::info!(
+        target: "pipeline_phase",
+        stage = "stage-reason",
+        phase = "prepare-reasoning-payload",
+        event = "end",
+        elapsed_ms = started.elapsed().as_millis(),
+        projected_rows = sink.triples.len(),
+        "reason phase boundary",
+    );
 
     Ok(sink)
 }
