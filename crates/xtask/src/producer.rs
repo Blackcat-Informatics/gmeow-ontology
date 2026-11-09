@@ -1046,14 +1046,242 @@ fn validate_units(units: &[CompilationUnit], roots: &[usize]) -> Result<()> {
 fn verify(root: &Path, binary: &Path, path: &Path, expected: &ExecutableRecipe) -> Result<()> {
     let receipt = ExecutableReceipt::read(path).map_err(fail)?;
     if &receipt.recipe != expected {
-        return Err(fail(
-            "producer build recipe is stale; run make producer-build",
-        ));
+        return Err(fail(recipe_mismatch(&receipt.recipe, expected)?));
     }
     receipt
         .verify(binary, &expected.digest().map_err(fail)?)
         .map_err(fail)?;
     receipt.verify_current_inputs(root).map_err(fail)
+}
+
+/// Keep mismatch output bounded while retaining exact full-text identities.
+fn mismatch_text(text: &str, offset: usize) -> String {
+    let mut chars = text.chars().skip(offset);
+    let mut visible: String = chars.by_ref().take(160).collect();
+    if chars.next().is_some() {
+        visible.push('…');
+    }
+    visible
+}
+
+/// Report the first differing line, including differences beyond a shared prefix.
+fn text_mismatch(name: &str, recorded: &str, expected: &str) -> String {
+    let mut left = recorded.split('\n');
+    let mut right = expected.split('\n');
+    let mut line = 0;
+    loop {
+        line += 1;
+        let actual = left.next();
+        let wanted = right.next();
+        if actual == wanted {
+            if actual.is_none() {
+                break;
+            }
+            continue;
+        }
+        let common = match (actual, wanted) {
+            (Some(left), Some(right)) => left
+                .chars()
+                .zip(right.chars())
+                .take_while(|(left, right)| left == right)
+                .count(),
+            _ => 0,
+        };
+        let offset = common.saturating_sub(40);
+        return format!(
+            "{name}: recorded digest {}, expected digest {}; first differing line {line}, \
+             character {common}: recorded {:?}, expected {:?}",
+            gmeow_action_cache::bytes_digest(recorded.as_bytes()),
+            gmeow_action_cache::bytes_digest(expected.as_bytes()),
+            actual.map(|value| mismatch_text(value, offset)),
+            wanted.map(|value| mismatch_text(value, offset)),
+        );
+    }
+    format!("{name}: unchanged")
+}
+
+/// Find changed map keys without rendering the complete inventory or environment.
+fn changed_keys<'a, T: PartialEq>(
+    recorded: &'a BTreeMap<String, T>,
+    expected: &'a BTreeMap<String, T>,
+) -> Vec<&'a str> {
+    recorded
+        .keys()
+        .chain(expected.keys())
+        .map(String::as_str)
+        .collect::<BTreeSet<_>>()
+        .into_iter()
+        .filter(|key| recorded.get(*key) != expected.get(*key))
+        .collect()
+}
+
+/// Name every changed field on the first differing Cargo unit, never the full graph.
+fn unit_mismatch(recorded: &[CompilationUnit], expected: &[CompilationUnit]) -> String {
+    let index = recorded
+        .iter()
+        .zip(expected)
+        .position(|(left, right)| left != right)
+        .unwrap_or(recorded.len().min(expected.len()));
+    let mut detail = format!(
+        "units: recorded count {}, expected count {}; first difference units[{index}]",
+        recorded.len(),
+        expected.len(),
+    );
+    if let (Some(left), Some(right)) = (recorded.get(index), expected.get(index)) {
+        let fields = [
+            ("package", left.package != right.package),
+            ("target", left.target != right.target),
+            ("target_kinds", left.target_kinds != right.target_kinds),
+            ("mode", left.mode != right.mode),
+            ("platform", left.platform != right.platform),
+            ("features", left.features != right.features),
+            ("profile", left.profile != right.profile),
+            ("dependencies", left.dependencies != right.dependencies),
+        ];
+        let changed: Vec<_> = fields
+            .into_iter()
+            .filter_map(|(name, differs)| differs.then_some(name))
+            .collect();
+        detail.push_str(&format!(
+            "; fields {}; recorded package {:?}, expected package {:?}",
+            changed.join(", "),
+            mismatch_text(&left.package, 0),
+            mismatch_text(&right.package, 0),
+        ));
+    }
+    detail
+}
+
+/// Diagnose strict recipe refusal from the two already-resolved typed values.
+fn recipe_mismatch(recorded: &ExecutableRecipe, expected: &ExecutableRecipe) -> Result<String> {
+    let fields = [
+        ("schema", recorded.schema != expected.schema),
+        ("profile", recorded.profile != expected.profile),
+        (
+            "source_digest",
+            recorded.source_digest != expected.source_digest,
+        ),
+        (
+            "source_inventory",
+            recorded.source_inventory != expected.source_inventory,
+        ),
+        ("rustc", recorded.rustc != expected.rustc),
+        ("cargo", recorded.cargo != expected.cargo),
+        (
+            "compiler_environment",
+            recorded.compiler_environment != expected.compiler_environment,
+        ),
+        ("units", recorded.units != expected.units),
+        ("roots", recorded.roots != expected.roots),
+    ];
+    let changed: Vec<_> = fields
+        .into_iter()
+        .filter_map(|(name, differs)| differs.then_some(name))
+        .collect();
+    let mut details = vec![format!(
+        "producer build recipe is stale; recorded {}, expected {}; changed fields: {}. \
+         Compare these inputs before rebuilding with make producer-build",
+        recorded.digest().map_err(fail)?,
+        expected.digest().map_err(fail)?,
+        changed.join(", "),
+    )];
+    for (name, left, right) in [
+        ("rustc", &recorded.rustc, &expected.rustc),
+        ("cargo", &recorded.cargo, &expected.cargo),
+    ] {
+        if left != right {
+            details.push(text_mismatch(name, left, right));
+        }
+    }
+    let environment_keys = changed_keys(
+        &recorded.compiler_environment,
+        &expected.compiler_environment,
+    );
+    if !environment_keys.is_empty() {
+        const VISIBLE_KEYS: usize = 8;
+        details.push(format!(
+            "compiler_environment: {} changed keys; {} omitted",
+            environment_keys.len(),
+            environment_keys.len().saturating_sub(VISIBLE_KEYS),
+        ));
+        for key in environment_keys.into_iter().take(VISIBLE_KEYS) {
+            let label = format!("compiler_environment[{:?}]", mismatch_text(key, 0));
+            match (
+                recorded.compiler_environment.get(key),
+                expected.compiler_environment.get(key),
+            ) {
+                (Some(left), Some(right)) => details.push(text_mismatch(&label, left, right)),
+                (left, right) => details.push(format!(
+                    "{label}: recorded {:?}, expected {:?}",
+                    left.map(|value| gmeow_action_cache::bytes_digest(value.as_bytes())),
+                    right.map(|value| gmeow_action_cache::bytes_digest(value.as_bytes())),
+                )),
+            }
+        }
+    }
+    if recorded.source_inventory != expected.source_inventory {
+        let left = &recorded.source_inventory;
+        let right = &expected.source_inventory;
+        let fields = [
+            ("schema", left.schema != right.schema),
+            ("selection", left.selection != right.selection),
+            ("files", left.files != right.files),
+            ("manifests", left.manifests != right.manifests),
+            ("packages", left.packages != right.packages),
+            ("memberships", left.memberships != right.memberships),
+            ("generated", left.generated != right.generated),
+            (
+                "environment_owners",
+                left.environment_owners != right.environment_owners,
+            ),
+        ];
+        let changed: Vec<_> = fields
+            .into_iter()
+            .filter_map(|(name, differs)| differs.then_some(name))
+            .collect();
+        details.push(format!(
+            "source_inventory changed fields: {}",
+            changed.join(", ")
+        ));
+        if let Some(path) = changed_keys(&left.files, &right.files).first().copied() {
+            let actual = left.files.get(path);
+            let wanted = right.files.get(path);
+            let fields = [
+                (
+                    "sha256",
+                    actual.map(|file| &file.sha256) != wanted.map(|file| &file.sha256),
+                ),
+                (
+                    "owners",
+                    actual.map(|file| &file.owners) != wanted.map(|file| &file.owners),
+                ),
+                (
+                    "roles",
+                    actual.map(|file| &file.roles) != wanted.map(|file| &file.roles),
+                ),
+            ];
+            let changed: Vec<_> = fields
+                .into_iter()
+                .filter_map(|(name, differs)| differs.then_some(name))
+                .collect();
+            details.push(format!(
+                "source_inventory.files[{:?}]: changed fields: {}; recorded content {:?}, expected content {:?}; \
+                 recorded input digest {:?}, expected input digest {:?}; recorded count {}, expected count {}",
+                mismatch_text(path, 0),
+                changed.join(", "),
+                actual.map(|file| &file.sha256),
+                wanted.map(|file| &file.sha256),
+                actual.map(|file| gmeow_action_cache::bytes_digest(&record::to_vec(file))),
+                wanted.map(|file| gmeow_action_cache::bytes_digest(&record::to_vec(file))),
+                left.files.len(),
+                right.files.len(),
+            ));
+        }
+    }
+    if recorded.units != expected.units {
+        details.push(unit_mismatch(&recorded.units, &expected.units));
+    }
+    Ok(details.join("\n"))
 }
 
 /// Re-admit a byte-identical executable after Cargo resolved the same production

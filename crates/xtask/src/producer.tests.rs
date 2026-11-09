@@ -315,9 +315,61 @@ fn interrupted_publication_is_a_miss_but_present_receipts_must_authenticate() {
     .expect("receipt");
     assert!(staged_is_fresh(&binary, &path, &recipe).expect("authenticated hit"));
     let mut changed = recipe.clone();
-    change_source(&mut changed);
+    changed
+        .source_inventory
+        .files
+        .get_mut("lib.rs")
+        .unwrap()
+        .owners
+        .insert("changed-owner".into());
+    changed.source_digest = changed.source_inventory.digest().unwrap();
     assert!(!staged_is_fresh(&binary, &path, &changed).expect("stale build miss"));
-    assert!(verify(scratch.path(), &binary, &path, &changed).is_err());
+    let receipt_before = std::fs::read(&path).expect("original receipt");
+    changed.rustc.push_str("\nhost: changed-host");
+    changed
+        .compiler_environment
+        .insert("CC_IDENTITY".into(), "changed compiler".into());
+    changed
+        .compiler_environment
+        .insert("TARGET_CFG".into(), "changed configuration".into());
+    let error = verify(scratch.path(), &binary, &path, &changed)
+        .expect_err("stale recipe must refuse admission");
+    let message = error.to_string();
+    for expected in [
+        recipe.digest().unwrap(),
+        changed.digest().unwrap(),
+        "source_inventory.files[\"lib.rs\"]".to_owned(),
+        "changed fields: owners".to_owned(),
+        "rustc:".to_owned(),
+        "first differing line 2".to_owned(),
+        "changed-host".to_owned(),
+        "compiler_environment[\"TARGET_CFG\"]".to_owned(),
+        "compiler_environment[\"CC_IDENTITY\"]".to_owned(),
+        "compiler_environment: 2 changed keys; 0 omitted".to_owned(),
+    ] {
+        assert!(message.contains(&expected), "missing {expected}: {message}");
+    }
+    assert_eq!(std::fs::read(&path).unwrap(), receipt_before);
+    let mut bounded = recipe.clone();
+    for index in 0..9 {
+        bounded
+            .compiler_environment
+            .insert(format!("BOUNDARY_{index:02}"), "changed".into());
+    }
+    let message = verify(scratch.path(), &binary, &path, &bounded)
+        .expect_err("stale recipe must refuse admission")
+        .to_string();
+    assert!(message.contains("compiler_environment: 9 changed keys; 1 omitted"));
+    let details: Vec<_> = message
+        .lines()
+        .filter(|line| line.starts_with("compiler_environment["))
+        .collect();
+    assert_eq!(details.len(), 8);
+    for (index, detail) in details.iter().enumerate() {
+        assert!(detail.starts_with(&format!("compiler_environment[\"BOUNDARY_{index:02}\"]")));
+    }
+    assert!(!message.contains("compiler_environment[\"BOUNDARY_08\"]"));
+    assert_eq!(std::fs::read(&path).unwrap(), receipt_before);
     std::fs::write(&binary, b"substituted bytes").expect("replace");
     assert!(staged_is_fresh(&binary, &path, &recipe).is_err());
     std::fs::remove_file(&binary).expect("remove binary");
