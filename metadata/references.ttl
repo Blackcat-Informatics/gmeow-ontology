@@ -14031,3 +14031,26 @@ repo:README.md a gmeow:CreativeWork ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/citations> ;
     gmeow:selectorLocator "Installing from crates.io: cargo install cargo-nextest --locked" ;
     gmeow:sourceLocation "https://nexte.st/docs/installation/from-source/" .
+
+<https://database.ich.org/sites/default/files/E9-R1_Step4_Guideline_2019_1203.pdf> a gmeow:CreativeWork ;
+    rdfs:label "ICH E9(R1): Addendum on estimands and sensitivity analysis in clinical trials"@en ;
+    skos:definition "The final ICH guideline distinguishing target-defining intercurrent-event strategies, estimand attributes and missing-data analysis."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/citations> ;
+    gmeow:bibliographicCitation "International Council for Harmonisation. ICH E9(R1): Addendum on estimands and sensitivity analysis in clinical trials to the guideline on statistical principles for clinical trials. Final version adopted 20 November 2019. Accessed 8 November 2026." ;
+    gmeow:sourceLocation "https://database.ich.org/sites/default/files/E9-R1_Step4_Guideline_2019_1203.pdf" .
+
+<https://blackcatinformatics.ca/gmeow/references/citation/math-statistics-estimand-event-strategies> a gmeow:CitationAct ;
+    rdfs:label "slices/grounding/math/design/MATHEMATICS-STATISTICS.md"@en ;
+    skos:definition "The statistics charter cites ICH to distinguish event-specific target strategies from analysis missing-data handling and to describe the guideline's five estimand attributes."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/citations> ;
+    gmeow:citationIntent gmeow:intentCitesAsDataSource ;
+    gmeow:citingEntity <https://blackcatinformatics.ca/gmeow/repo/slices/grounding/math/design/MATHEMATICS-STATISTICS.md> ;
+    gmeow:citedEntity <https://database.ich.org/sites/default/files/E9-R1_Step4_Guideline_2019_1203.pdf> ;
+    gmeow:viaSelector <https://blackcatinformatics.ca/gmeow/references/selector/math-statistics-estimand-event-strategies-sections> .
+
+<https://blackcatinformatics.ca/gmeow/references/selector/math-statistics-estimand-event-strategies-sections> a gmeow:Selector ;
+    rdfs:label "ICH E9(R1) target specification and analysis distinctions"@en ;
+    skos:definition "The sections cited in the statistics charter's Models and estimation discussion, located by the guideline's printed page numbers rather than PDF page indexes."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/citations> ;
+    gmeow:selectorLocator "A.1, printed page 3; A.3.1, pages 5–6; A.3.2, pages 7–9; A.3.3, pages 9–10; A.5.1, pages 15–17" ;
+    gmeow:sourceLocation "https://database.ich.org/sites/default/files/E9-R1_Step4_Guideline_2019_1203.pdf" .

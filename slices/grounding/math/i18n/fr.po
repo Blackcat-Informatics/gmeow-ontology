@@ -269,8 +269,8 @@ msgid "Estimand"
 msgstr "Estimande"
 
 msgctxt "https://blackcatinformatics.ca/math/Estimand|skos:definition"
-msgid "An estimand: the target quantity a study seeks to learn, which may be a population summary, a causal contrast or an explicitly specified parameter of a math:StatisticalModel. A subclass of math:MathematicalObject, named from an estimate through math:estimatesEstimand. The vocabulary provides math:targetPopulation, math:targetOutcome, math:targetContrast (a math:StatisticalContrast), math:targetTime, math:interventionCondition and math:missingDataPolicy to describe relevant study context. This causal-study framing is not a universal mathematical definition or a demonstrated required-path gate for every estimand. A coefficient name alone does not identify the substantive target, and a declared frame alone does not establish causal identification or a valid treatment of missing data or intercurrent events."
-msgstr "Un estimande : la quantité cible qu’une étude cherche à apprendre, qui peut être un résumé de population, un contraste causal ou un paramètre explicitement spécifié d’un math:StatisticalModel. Une sous-classe de math:MathematicalObject, nommée depuis une estimation par math:estimatesEstimand. Le vocabulaire fournit math:targetPopulation, math:targetOutcome, math:targetContrast (un math:StatisticalContrast), math:targetTime, math:interventionCondition et math:missingDataPolicy pour décrire le contexte pertinent de l’étude. Ce cadrage d’étude causale n’est ni une définition mathématique universelle ni une vérification démontrée de chemins requis pour tout estimande. Un nom de coefficient seul n’identifie pas la cible substantielle, et un cadre déclaré seul n’établit ni identification causale ni traitement valide des données manquantes ou des événements intercurrents."
+msgid "An estimand: the target quantity a study seeks to learn, which may be a population summary, a causal contrast or an explicitly specified parameter of a math:StatisticalModel. A subclass of math:MathematicalObject, named from an estimate through math:estimatesEstimand. Relevant supplied study context may use math:targetPopulation, math:targetOutcome, math:targetContrast, math:targetTime and math:interventionCondition. math:intercurrentEventHandling preserves each supplied event-strategy association defining the target question; math:missingDataPolicy separately records supplied analysis handling of unavailable data. These contextual roles are not a universal required-path gate. A coefficient name alone identifies no substantive target, and declarations alone establish neither causal identification nor valid analysis."
+msgstr "Un estimande : la quantité cible qu’une étude cherche à connaître, pouvant être un résumé de population, une comparaison causale ou un paramètre explicitement spécifié d’un math:StatisticalModel. Sous-classe de math:MathematicalObject, nommée depuis une estimation par math:estimatesEstimand. Le contexte d’étude pertinent fourni peut utiliser math:targetPopulation, math:targetOutcome, math:targetContrast, math:targetTime et math:interventionCondition. math:intercurrentEventHandling préserve chaque association événement-stratégie fournie qui définit la question cible ; math:missingDataPolicy consigne séparément le traitement analytique fourni des données indisponibles. Ces rôles contextuels ne constituent pas un contrôle universel de chemins obligatoires. Un nom de coefficient seul n’identifie aucune cible substantielle, et les déclarations seules n’établissent ni identification causale ni analyse valide."
 
 msgctxt "https://blackcatinformatics.ca/math/Estimate|rdfs:label"
 msgid "Estimate"
@@ -421,8 +421,8 @@ msgid "intervention condition"
 msgstr "condition d'intervention"
 
 msgctxt "https://blackcatinformatics.ca/math/interventionCondition|skos:definition"
-msgid "Relates a math:Estimand to the intervention or exposure condition it conditions on — the treatment, policy, or exposure whose effect the estimand quantifies (a do-condition, an assigned arm, a hypothetical intervention). Domain math:Estimand, range the intervention condition (stated in prose). One of the six framing coordinates and the causal hinge of the estimand; without a declared intervention condition an average treatment effect is not well-posed."
-msgstr "Relie un math:Estimand à la condition d'intervention ou d'exposition à laquelle il conditionne — le traitement, la politique ou l'exposition dont l'estimande quantifie l'effet (une condition do, un bras assigné, une intervention hypothétique). Domaine math:Estimand, portée la condition d'intervention (précisé en prose). L'une des six coordonnées de cadrage et la charnière causale de l'estimande ; sans condition d'intervention déclarée, un effet moyen de traitement n'est pas bien posé."
+msgid "Relates a math:Estimand to a supplied treatment, intervention or exposure condition relevant to its target. A treatment-effect question may describe assigned conditions or a hypothetical intervention. This declaration does not equate intervention with observational conditioning, prove causal identification or impose an intervention on every estimand."
+msgstr "Relie un math:Estimand à une condition de traitement, d’intervention ou d’exposition fournie et pertinente pour sa cible. Une question d’effet du traitement peut décrire des conditions assignées ou une intervention hypothétique. Cette déclaration n’assimile pas l’intervention au conditionnement observationnel, ne prouve pas l’identification causale et n’impose pas une intervention à tout estimande."
 
 msgctxt "https://blackcatinformatics.ca/math/lessAlternative|rdfs:label"
 msgid "less"
@@ -605,8 +605,8 @@ msgid "missing-data policy"
 msgstr "politique de données manquantes"
 
 msgctxt "https://blackcatinformatics.ca/math/missingDataPolicy|skos:definition"
-msgid "Relates a math:Estimand to the missing-data policy under which it is defined — the intercurrent-event and missing-data handling strategy (a treatment-policy, hypothetical, or composite strategy; a declared math:MissingnessMechanism the target rests on) that fixes what the estimand means when data are incomplete. Domain math:Estimand, range the missing-data policy (stated in prose). One of the six framing coordinates; the same treatment effect under a treatment-policy strategy and under a hypothetical strategy are distinct estimands. Distinct from math:missingnessMechanism, which declares the mechanism a variable's absence follows — this frames the estimand's policy for it."
-msgstr "Relie un math:Estimand à la politique de données manquantes sous laquelle il est défini — la stratégie de gestion des événements intercurrents et des données manquantes (une stratégie de politique de traitement, hypothétique ou composite ; un math:MissingnessMechanism déclaré sur lequel la cible repose) qui fixe ce que l'estimande signifie lorsque les données sont incomplètes. Domaine math:Estimand, portée la politique de données manquantes (précisé en prose). L'une des six coordonnées de cadrage ; le même effet de traitement sous une stratégie de politique de traitement et sous une stratégie hypothétique sont des estimandes distincts. Distincte de math:missingnessMechanism, qui déclare le mécanisme que suit l'absence d'une variable — celle-ci cadre la politique de l'estimande à son sujet."
+msgid "Relates a math:Estimand to a separately supplied analysis policy for handling unavailable data when estimating that target. The policy is distinct from an intercurrent-event strategy defining the target and from a math:MissingnessMechanism assumption. Different analysis policies may address the same estimand; this link neither defines a universal estimand attribute nor validates the policy."
+msgstr "Relie un math:Estimand à une politique analytique fournie séparément pour traiter les données indisponibles lors de l’estimation de cette cible. Cette politique est distincte d’une stratégie relative à un événement intercurrent qui définit la cible et d’une hypothèse math:MissingnessMechanism. Des politiques analytiques différentes peuvent viser le même estimande ; ce lien ne définit pas un attribut universel d’estimande et ne valide pas la politique."
 
 msgctxt "https://blackcatinformatics.ca/math/MissingnessIndicator|rdfs:label"
 msgid "Missingness Indicator"
@@ -949,24 +949,24 @@ msgid "target outcome"
 msgstr "issue cible"
 
 msgctxt "https://blackcatinformatics.ca/math/targetOutcome|skos:definition"
-msgid "Relates a math:Estimand to the outcome it is defined on — the measured quantity (a math:StatisticalVariable or outcome measure) whose value the estimand summarizes across the target population. Domain math:Estimand, range the target outcome (stated in prose). One of the six framing coordinates; the same population and contrast over a different outcome is a different estimand."
-msgstr "Relie un math:Estimand à l'issue sur laquelle il est défini — la quantité mesurée (une math:StatisticalVariable ou une mesure d'issue) dont l'estimande résume la valeur à travers la population cible. Domaine math:Estimand, portée l'issue cible (précisé en prose). L'une des six coordonnées de cadrage ; la même population et le même contraste sur une issue différente sont un estimande différent."
+msgid "Relates a math:Estimand to the supplied outcome variable or measure on which its target quantity is defined, such as a math:StatisticalVariable. The outcome is distinct from the comparison and its time horizon; this contextual role is not a universal required field for every estimand."
+msgstr "Relie un math:Estimand à la variable de résultat ou à la mesure fournie sur laquelle sa quantité cible est définie, telle qu’une math:StatisticalVariable. Le résultat mesuré est distinct de la comparaison et de son horizon temporel ; ce rôle contextuel n’est pas un champ obligatoire universel pour tout estimande."
 
 msgctxt "https://blackcatinformatics.ca/math/targetPopulation|rdfs:label"
 msgid "target population"
 msgstr "population cible"
 
 msgctxt "https://blackcatinformatics.ca/math/targetPopulation|skos:definition"
-msgid "Relates a math:Estimand to the math:StatisticalPopulation it targets — the population the estimand is defined over, who the quantity being estimated speaks about. Domain math:Estimand, range math:StatisticalPopulation (stated in prose). One of the six coordinates that make an estimand well-posed; without a target population an estimand does not fix who it refers to. Distinct from math:population, which relates an estimate or sample to its population — this frames the estimand itself."
-msgstr "Relie un math:Estimand à la math:StatisticalPopulation qu'il cible — la population sur laquelle l'estimande est défini, ce dont parle la quantité estimée. Domaine math:Estimand, portée math:StatisticalPopulation (précisé en prose). L'une des six coordonnées qui rendent un estimande bien posé ; sans population cible un estimande ne fixe pas à qui il se réfère. Distincte de math:population, qui relie une estimation ou un échantillon à sa population — celle-ci cadre l'estimande lui-même."
+msgid "Relates a math:Estimand to the math:StatisticalPopulation over which its target quantity is defined. Retain the supplied population when relevant; this role is not a universal required field for every mathematical estimand. It frames the target, whereas math:population describes the population associated with an estimate or sample."
+msgstr "Relie un math:Estimand à la math:StatisticalPopulation sur laquelle sa quantité cible est définie. Conserver la population fournie lorsqu’elle est pertinente ; ce rôle n’est pas un champ obligatoire universel pour tout estimande mathématique. Il cadre la cible, tandis que math:population décrit la population associée à une estimation ou à un échantillon."
 
 msgctxt "https://blackcatinformatics.ca/math/targetTime|rdfs:label"
 msgid "target time"
 msgstr "temps cible"
 
 msgctxt "https://blackcatinformatics.ca/math/targetTime|skos:definition"
-msgid "Relates a math:Estimand to the time or horizon it is defined at — the follow-up time, the landmark, the period over which the outcome and contrast are evaluated. Domain math:Estimand, range the target time (a time point, interval, or horizon, stated in prose). One of the six framing coordinates; a five-year survival difference and a one-year survival difference are different estimands over the same population and contrast."
-msgstr "Relie un math:Estimand au temps ou à l'horizon auquel il est défini — le temps de suivi, le repère temporel, la période sur laquelle l'issue et le contraste sont évalués. Domaine math:Estimand, portée le temps cible (un instant, un intervalle ou un horizon, précisé en prose). L'une des six coordonnées de cadrage ; une différence de survie à cinq ans et une différence de survie à un an sont des estimandes différents sur la même population et le même contraste."
+msgid "Relates a math:Estimand to a supplied time point, interval or horizon relevant to its target definition. A one-year and a five-year outcome summary may target different quantities. This role does not require a time coordinate for every mathematical estimand or establish a temporal computation."
+msgstr "Relie un math:Estimand à un instant, un intervalle ou un horizon fourni et pertinent pour sa définition cible. Un résumé du résultat à un an et à cinq ans peut viser des quantités différentes. Ce rôle n’impose pas une coordonnée temporelle à tout estimande mathématique et n’établit pas un calcul temporel."
 
 msgctxt "https://blackcatinformatics.ca/math/testStatistic|rdfs:label"
 msgid "test statistic"
@@ -16964,12 +16964,12 @@ msgid "Mint one to identify the target quantity a study seeks to learn, retainin
 msgstr "Créer un objet pour identifier la quantité cible qu’une étude cherche à apprendre, en conservant l’indication qu’il s’agit d’une cible substantielle de population ou causale, ou d’un paramètre de modèle explicitement spécifié, plutôt que de supposer la cible à partir d’un nom de coefficient."
 
 msgctxt "https://blackcatinformatics.ca/math/Estimand|https://blackcatinformatics.ca/gmeow/avoidWhen"
-msgid "Do not infer a substantive estimand or its causal identification from a model parameter or six named framing roles alone. The same target may be addressed under different models, and a model parameter may itself be the specified target; do not invent an intervention or missing-data policy for a general mathematical quantity."
-msgstr "Ne pas déduire un estimande substantiel ou son identification causale d’un paramètre de modèle ou de six rôles de cadrage nommés seulement. Une même cible peut être abordée sous différents modèles, et un paramètre de modèle peut lui-même être la cible spécifiée ; ne pas inventer d’intervention ou de politique de données manquantes pour une quantité mathématique générale."
+msgid "Avoid inferring a substantive target or causal identification from a model coefficient or framing links alone. A model parameter may itself be the specified target, and different models or analysis policies may address the same target; do not invent intervention, event-strategy or missing-data context."
+msgstr "Éviter de déduire une cible substantielle ou l’identification causale d’un coefficient de modèle ou de seuls liens de cadrage. Un paramètre de modèle peut lui-même être la cible spécifiée, et des modèles ou politiques analytiques différents peuvent viser la même cible ; ne pas inventer de contexte d’intervention, d’association événement-stratégie ou de données manquantes."
 
 msgctxt "https://blackcatinformatics.ca/math/Estimand|https://blackcatinformatics.ca/gmeow/howToUse"
-msgid "Retain the actual target definition and relevant supplied math:targetPopulation, math:targetOutcome, math:targetContrast, math:targetTime, math:interventionCondition and math:missingDataPolicy context; an estimate names it through math:estimatesEstimand. Preserve absent or inapplicable context explicitly without manufacturing causal meaning or claiming a universal six-field admission check."
-msgstr "Conserver la définition effective de la cible et les contextes pertinents fournis de math:targetPopulation, math:targetOutcome, math:targetContrast, math:targetTime, math:interventionCondition et math:missingDataPolicy ; une estimation la nomme par math:estimatesEstimand. Préserver explicitement le contexte absent ou inapplicable sans fabriquer de sens causal ni revendiquer une vérification universelle d’admission à six champs."
+msgid "Retain the actual target definition and relevant supplied population, outcome, comparison, time and intervention context. Keep each supplied event-strategy association on its own math:intercurrentEventHandling record and supplied analysis handling under math:missingDataPolicy. An estimate names the target through math:estimatesEstimand; preserve unknown or inapplicable context without asserting a universal admission check."
+msgstr "Conserver la définition cible réelle et les éléments pertinents fournis de population, de résultat mesuré, de comparaison, de temps et d’intervention. Conserver chaque association événement-stratégie fournie sur son propre enregistrement math:intercurrentEventHandling et le traitement analytique fourni sous math:missingDataPolicy. Une estimation nomme la cible par math:estimatesEstimand ; préserver le contexte inconnu ou inapplicable sans affirmer un contrôle universel d’admission."
 
 msgctxt "https://blackcatinformatics.ca/math/Statistic|http://www.w3.org/2004/02/skos/core#scopeNote"
 msgid "A statistic as a data function and its observed realization are different mathematical roles; the observed value is not the function itself. Estimator and statistic roles can overlap for the same data function. Preserve the actual definition, inputs and realization evidence rather than treating a label or bare type as an evaluated summary."
@@ -17282,3 +17282,199 @@ msgstr "exf:bareD a math:UnframedEffectSize ."
 msgctxt "https://blackcatinformatics.ca/math/UnframedEffectSize|skos:scopeNote"
 msgid "This identifies a missing required comparison, scale or reference-frame link, distinct from math:IllFramedPValue and math:UnderspecifiedEstimate. A complete set of these links meets this presence boundary without certifying full mathematical or source validity. An unfavorable result, absent numeric payload or unqualified conversion is not itself this missing-link failure."
 msgstr "Ceci identifie un lien requis manquant de comparaison, d'échelle ou de cadre de référence, distinct de math:IllFramedPValue et de math:UnderspecifiedEstimate. Un ensemble complet de ces liens satisfait à ce critère de présence sans certifier la validité mathématique complète ni la fidélité complète à la source. Un résultat défavorable, l'absence de données numériques ou une conversion non qualifiée ne constitue pas en soi ce défaut de lien manquant."
+
+msgctxt "https://blackcatinformatics.ca/math/targetPopulation|gmeow:useWhen"
+msgid "Use when the supplied target definition identifies a population whose quantity is to be estimated."
+msgstr "Utiliser lorsque la définition cible fournie identifie une population dont une quantité doit être estimée."
+
+msgctxt "https://blackcatinformatics.ca/math/targetPopulation|gmeow:avoidWhen"
+msgid "Avoid substituting the observed sample or sampling frame for the target population, or inventing a population for a target that does not supply one."
+msgstr "Éviter de substituer l’échantillon observé ou la base de sondage à la population cible, ou d’inventer une population pour une cible qui n’en fournit pas."
+
+msgctxt "https://blackcatinformatics.ca/math/targetPopulation|gmeow:howToUse"
+msgid "Link the estimand to its supplied math:StatisticalPopulation. Preserve eligibility, subgroup or other population context where given; the link alone proves neither representativeness nor identification."
+msgstr "Relier l’estimande à sa math:StatisticalPopulation fournie. Conserver le contexte d’admissibilité, de sous-groupe ou autre lorsqu’il est donné ; le lien seul ne prouve ni représentativité ni identification."
+
+msgctxt "https://blackcatinformatics.ca/math/targetPopulation|skos:example"
+msgid "exf:ate math:targetPopulation exf:adultsCanada ."
+msgstr "exf:ate math:targetPopulation exf:adultsCanada ."
+
+msgctxt "https://blackcatinformatics.ca/math/targetPopulation|skos:scopeNote"
+msgid "The target-population role is distinct from math:population and math:sampleOf. Naming a population does not specify an outcome, comparison or estimation procedure."
+msgstr "Le rôle de population cible est distinct de math:population et de math:sampleOf. Nommer une population ne spécifie ni résultat mesuré, ni comparaison, ni procédure d’estimation."
+
+msgctxt "https://blackcatinformatics.ca/math/targetOutcome|gmeow:useWhen"
+msgid "Use when the target definition specifies the measured outcome or variable whose population quantity is of interest."
+msgstr "Utiliser lorsque la définition cible spécifie le résultat mesuré ou la variable dont une quantité dans la population présente un intérêt."
+
+msgctxt "https://blackcatinformatics.ca/math/targetOutcome|gmeow:avoidWhen"
+msgid "Avoid replacing the outcome with a realized estimate, a contrast or a label from which an unprovided transformation is inferred."
+msgstr "Éviter de remplacer le résultat mesuré par une estimation réalisée, une comparaison ou une étiquette dont on déduirait une transformation non fournie."
+
+msgctxt "https://blackcatinformatics.ca/math/targetOutcome|gmeow:howToUse"
+msgid "Point from the estimand to its supplied outcome measure or math:StatisticalVariable. Retain relevant definition, coding and horizon context without inferring numerical observations or equivalence between transformed outcomes."
+msgstr "Relier l’estimande à sa mesure de résultat ou à sa math:StatisticalVariable fournie. Conserver les éléments pertinents de définition, de codage et d’horizon sans déduire d’observations numériques ni d’équivalence entre résultats transformés."
+
+msgctxt "https://blackcatinformatics.ca/math/targetOutcome|skos:example"
+msgid "exf:ate math:targetOutcome exf:income ."
+msgstr "exf:ate math:targetOutcome exf:income ."
+
+msgctxt "https://blackcatinformatics.ca/math/targetOutcome|skos:scopeNote"
+msgid "The outcome identifies what is measured. math:targetContrast identifies a supplied comparison or association, and math:targetTime records a relevant horizon; none of these links computes the target quantity."
+msgstr "Le résultat mesuré identifie ce qui est mesuré. math:targetContrast identifie une comparaison ou association fournie, et math:targetTime consigne un horizon pertinent ; aucun de ces liens ne calcule la quantité cible."
+
+msgctxt "https://blackcatinformatics.ca/math/targetTime|gmeow:useWhen"
+msgid "Use when a follow-up time, landmark, interval or other horizon is part of the supplied target meaning."
+msgstr "Utiliser lorsqu’un temps de suivi, un repère, un intervalle ou un autre horizon fait partie du sens cible fourni."
+
+msgctxt "https://blackcatinformatics.ca/math/targetTime|gmeow:avoidWhen"
+msgid "Avoid silently exchanging horizons, treating a horizon label as a measured duration, or inventing time context for a target that does not supply it."
+msgstr "Éviter d’échanger silencieusement des horizons, de traiter une étiquette d’horizon comme une durée mesurée ou d’inventer un contexte temporel pour une cible qui n’en fournit pas."
+
+msgctxt "https://blackcatinformatics.ca/math/targetTime|gmeow:howToUse"
+msgid "Link the estimand to the actual supplied time or horizon resource and retain the relevant outcome and comparison definitions. A declared horizon alone does not supply follow-up data or an evaluated temporal relation."
+msgstr "Relier l’estimande à la ressource temporelle ou à l’horizon effectivement fourni et conserver les définitions pertinentes du résultat mesuré et de la comparaison. Un horizon déclaré ne fournit à lui seul ni données de suivi ni relation temporelle évaluée."
+
+msgctxt "https://blackcatinformatics.ca/math/targetTime|skos:example"
+msgid "exf:ate math:targetTime exf:month12 ."
+msgstr "exf:ate math:targetTime exf:month12 ."
+
+msgctxt "https://blackcatinformatics.ca/math/targetTime|skos:scopeNote"
+msgid "The target horizon is distinct from the time when an estimate was generated and from an intercurrent-event handling strategy. Retain those roles separately when supplied."
+msgstr "L’horizon cible est distinct du moment où une estimation a été produite et d’une stratégie relative à un événement intercurrent. Conserver ces rôles séparément lorsqu’ils sont fournis."
+
+msgctxt "https://blackcatinformatics.ca/math/interventionCondition|gmeow:useWhen"
+msgid "Use when the target specification explicitly describes a treatment, intervention or exposure condition."
+msgstr "Utiliser lorsque la spécification cible décrit explicitement une condition de traitement, d’intervention ou d’exposition."
+
+msgctxt "https://blackcatinformatics.ca/math/interventionCondition|gmeow:avoidWhen"
+msgid "Avoid inferring an intervention from a regression coefficient, treating an observed exposure as randomized assignment, or claiming identification from this link alone."
+msgstr "Éviter de déduire une intervention d’un coefficient de régression, de traiter une exposition observée comme une assignation randomisée ou d’affirmer l’identification à partir de ce seul lien."
+
+msgctxt "https://blackcatinformatics.ca/math/interventionCondition|gmeow:howToUse"
+msgid "Link the estimand to the supplied condition description and retain the relevant comparison conditions. Represent each supplied event-strategy association through math:intercurrentEventHandling; keep analysis missing-data handling separate."
+msgstr "Relier l’estimande à la description de condition fournie et conserver les conditions de comparaison pertinentes. Représenter chaque association événement-stratégie fournie par math:intercurrentEventHandling ; conserver séparément le traitement analytique des données manquantes."
+
+msgctxt "https://blackcatinformatics.ca/math/interventionCondition|skos:example"
+msgid "exf:ate math:interventionCondition exf:drugArm ."
+msgstr "exf:ate math:interventionCondition exf:drugArm ."
+
+msgctxt "https://blackcatinformatics.ca/math/interventionCondition|skos:scopeNote"
+msgid "A condition description, a comparison, an intercurrent-event strategy and a missing-data analysis policy have distinct roles. Their presence alone proves no executed analysis or causal validity."
+msgstr "Une description de condition, une comparaison, une stratégie relative à un événement intercurrent et une politique analytique de données manquantes ont des rôles distincts. Leur présence seule ne prouve ni analyse exécutée ni validité causale."
+
+msgctxt "https://blackcatinformatics.ca/math/missingDataPolicy|gmeow:useWhen"
+msgid "Use when the source explicitly supplies analysis handling of unavailable data for the target being estimated."
+msgstr "Utiliser lorsque la source fournit explicitement le traitement analytique des données indisponibles pour la cible estimée."
+
+msgctxt "https://blackcatinformatics.ca/math/missingDataPolicy|gmeow:avoidWhen"
+msgid "Avoid using treatment-policy or hypothetical intercurrent-event strategies, or a MAR/MNAR assumption alone, as a missing-data handling procedure. Do not infer an absent analysis policy."
+msgstr "Éviter d’utiliser une stratégie de politique de traitement ou hypothétique relative à un événement intercurrent, ou une seule hypothèse MAR/MNAR, comme procédure de traitement des données manquantes. Ne pas déduire une politique analytique absente."
+
+msgctxt "https://blackcatinformatics.ca/math/missingDataPolicy|gmeow:howToUse"
+msgid "Link to the supplied analysis-policy description, preserving its method, assumptions and estimand alignment where stated. Record event-specific target strategies through math:intercurrentEventHandling and variable-level missingness assumptions through math:missingnessMechanism."
+msgstr "Relier à la description de politique analytique fournie, en conservant sa méthode, ses hypothèses et son alignement sur l’estimande lorsqu’ils sont indiqués. Consigner les stratégies cibles propres à chaque événement par math:intercurrentEventHandling et les hypothèses de manque au niveau des variables par math:missingnessMechanism."
+
+msgctxt "https://blackcatinformatics.ca/math/missingDataPolicy|skos:example"
+msgid "exf:ate math:missingDataPolicy exf:declaredImputationPlan ."
+msgstr "exf:ate math:missingDataPolicy exf:declaredImputationPlan ."
+
+msgctxt "https://blackcatinformatics.ca/math/missingDataPolicy|skos:scopeNote"
+msgid "Analysis handling, missingness assumptions and intercurrent-event target specification remain separate. Naming a policy establishes neither valid imputation, recovered observations nor an executed estimation procedure."
+msgstr "Le traitement analytique, les hypothèses de manque et la spécification cible des événements intercurrents restent séparés. Nommer une politique n’établit ni imputation valide, ni observations récupérées, ni procédure d’estimation exécutée."
+
+msgctxt "https://blackcatinformatics.ca/math/intercurrentEventHandling|rdfs:label"
+msgid "intercurrent-event handling"
+msgstr "traitement d’un événement intercurrent"
+
+msgctxt "https://blackcatinformatics.ca/math/intercurrentEventHandling|skos:definition"
+msgid "Relates a math:Estimand to a supplied event-specific handling record represented as a math:MathematicalObject. The record associates an event specification through math:intercurrentEvent with its target-defining strategy through math:intercurrentEventStrategy. Separate associations use separate records, even when their strategy descriptions are shared."
+msgstr "Relie un math:Estimand à un enregistrement fourni de traitement propre à un événement, représenté comme math:MathematicalObject. Cet enregistrement associe une spécification d’événement par math:intercurrentEvent à sa stratégie définissant la cible par math:intercurrentEventStrategy. Des associations distinctes utilisent des enregistrements distincts, même lorsque leurs descriptions de stratégie sont partagées."
+
+msgctxt "https://blackcatinformatics.ca/math/intercurrentEventHandling|gmeow:useWhen"
+msgid "Use when a target specification states how a particular intercurrent event is reflected in the question being estimated."
+msgstr "Utiliser lorsqu’une spécification cible indique comment un événement intercurrent particulier est reflété dans la question faisant l’objet de l’estimation."
+
+msgctxt "https://blackcatinformatics.ca/math/intercurrentEventHandling|gmeow:avoidWhen"
+msgid "Avoid independent unpaired event and strategy lists, confusing a specification with an observed event occurrence, or treating every estimand as requiring this role."
+msgstr "Éviter les listes indépendantes et non appariées d’événements et de stratégies, la confusion entre une spécification et une occurrence d’événement observée, ou l’obligation d’imposer ce rôle à tout estimande."
+
+msgctxt "https://blackcatinformatics.ca/math/intercurrentEventHandling|gmeow:howToUse"
+msgid "Create a separate mathematical record for each supplied event-strategy association and link both endpoints from that record. Preserve the source context and any unknown fields; these declarations do not supply an incomplete-record validator."
+msgstr "Créer un enregistrement mathématique distinct pour chaque association événement-stratégie fournie et relier les deux termes depuis cet enregistrement. Conserver le contexte source et les champs inconnus ; ces déclarations ne fournissent pas un validateur d’enregistrements incomplets."
+
+msgctxt "https://blackcatinformatics.ca/math/intercurrentEventHandling|skos:example"
+msgid "exf:ate math:intercurrentEventHandling exf:rescueHandling ."
+msgstr "exf:ate math:intercurrentEventHandling exf:rescueHandling ."
+
+msgctxt "https://blackcatinformatics.ca/math/intercurrentEventHandling|skos:scopeNote"
+msgid "This is a supplied target-specification association, not a missing-data analysis policy, an event occurrence, an executed procedure or proof of causal identification. No new record class or closed strategy enumeration is implied."
+msgstr "Il s’agit d’une association fournie de spécification cible, et non d’une politique analytique de données manquantes, d’une occurrence d’événement, d’une procédure exécutée ou d’une preuve d’identification causale. Aucune nouvelle classe d’enregistrement ni énumération fermée de stratégies n’est implicite."
+
+msgctxt "https://blackcatinformatics.ca/math/intercurrentEvent|rdfs:label"
+msgid "intercurrent event specification"
+msgstr "spécification d’événement intercurrent"
+
+msgctxt "https://blackcatinformatics.ca/math/intercurrentEvent|skos:definition"
+msgid "Relates an event-specific handling record to the event specification addressed by its strategy. The subject is the same mathematical record linked from an estimand through math:intercurrentEventHandling; its strategy is separately named through math:intercurrentEventStrategy. The object describes the event of interest rather than asserting that it occurred."
+msgstr "Relie un enregistrement de traitement propre à un événement à la spécification d’événement visée par sa stratégie. Le sujet est le même enregistrement mathématique relié depuis un estimande par math:intercurrentEventHandling ; sa stratégie est nommée séparément par math:intercurrentEventStrategy. L’objet décrit l’événement d’intérêt sans affirmer qu’il s’est produit."
+
+msgctxt "https://blackcatinformatics.ca/math/intercurrentEvent|gmeow:useWhen"
+msgid "Use to identify which event specification a supplied target strategy addresses."
+msgstr "Utiliser pour identifier la spécification d’événement visée par une stratégie cible fournie."
+
+msgctxt "https://blackcatinformatics.ca/math/intercurrentEvent|gmeow:avoidWhen"
+msgid "Avoid attaching an unpaired event list directly to an estimand, substituting study withdrawal for an intercurrent event without justification, or inferring event occurrence from its specification."
+msgstr "Éviter de rattacher directement à un estimande une liste non appariée d’événements, de substituer sans justification le retrait de l’étude à un événement intercurrent ou de déduire l’occurrence d’un événement de sa spécification."
+
+msgctxt "https://blackcatinformatics.ca/math/intercurrentEvent|gmeow:howToUse"
+msgid "Set this edge on the handling record and retain the strategy edge on that same record. Use distinct records for distinct associations and preserve the event definition and scope supplied by the source."
+msgstr "Définir ce lien sur l’enregistrement de traitement et conserver le lien de stratégie sur ce même enregistrement. Utiliser des enregistrements distincts pour des associations distinctes et préserver la définition et la portée de l’événement fournies par la source."
+
+msgctxt "https://blackcatinformatics.ca/math/intercurrentEvent|skos:example"
+msgid "exf:rescueHandling math:intercurrentEvent exf:rescueMedicationSpecification ."
+msgstr "exf:rescueHandling math:intercurrentEvent exf:rescueMedicationSpecification ."
+
+msgctxt "https://blackcatinformatics.ca/math/intercurrentEvent|skos:scopeNote"
+msgid "Event applicability belongs to the particular handling record. A shared strategy description does not imply that its event scopes or target questions are identical; missing data and intercurrent events remain distinct concepts."
+msgstr "L’applicabilité à un événement appartient à l’enregistrement de traitement particulier. Une description de stratégie partagée n’implique pas des portées d’événement ou des questions cibles identiques ; les données manquantes et les événements intercurrents restent des concepts distincts."
+
+msgctxt "https://blackcatinformatics.ca/math/intercurrentEventStrategy|rdfs:label"
+msgid "intercurrent-event strategy"
+msgstr "stratégie relative à un événement intercurrent"
+
+msgctxt "https://blackcatinformatics.ca/math/intercurrentEventStrategy|skos:definition"
+msgid "Relates an event-specific handling record to the supplied strategy description defining the target question with respect to its event specification. The event is named through math:intercurrentEvent on the same record. Treatment-policy, hypothetical and other strategy descriptions are not missing-data procedures or a closed enumeration imposed by this property."
+msgstr "Relie un enregistrement de traitement propre à un événement à la description de stratégie fournie qui définit la question cible par rapport à sa spécification d’événement. L’événement est nommé par math:intercurrentEvent sur le même enregistrement. Les descriptions de politique de traitement, hypothétiques ou autres ne sont ni des procédures de données manquantes ni une énumération fermée imposée par cette propriété."
+
+msgctxt "https://blackcatinformatics.ca/math/intercurrentEventStrategy|gmeow:useWhen"
+msgid "Use when the source explicitly describes the target-defining strategy for the event specification paired on a handling record."
+msgstr "Utiliser lorsque la source décrit explicitement la stratégie définissant la cible pour la spécification d’événement appariée sur un enregistrement de traitement."
+
+msgctxt "https://blackcatinformatics.ca/math/intercurrentEventStrategy|gmeow:avoidWhen"
+msgid "Avoid treating the strategy as imputation, inferring its applicability from another record, or claiming that naming a strategy establishes valid estimation or identifies a causal effect."
+msgstr "Éviter de traiter la stratégie comme une imputation, de déduire son applicabilité d’un autre enregistrement ou d’affirmer que nommer une stratégie établit une estimation valide ou identifie un effet causal."
+
+msgctxt "https://blackcatinformatics.ca/math/intercurrentEventStrategy|gmeow:howToUse"
+msgid "Link the handling record to the actual supplied strategy description and retain its event endpoint on that record. A strategy description may be shared by separate records without merging their event associations or estimand contexts."
+msgstr "Relier l’enregistrement de traitement à la description de stratégie effectivement fournie et conserver son terme d’événement sur cet enregistrement. Une description de stratégie peut être partagée par des enregistrements distincts sans fusionner leurs associations d’événement ni leurs contextes d’estimande."
+
+msgctxt "https://blackcatinformatics.ca/math/intercurrentEventStrategy|skos:example"
+msgid "exf:rescueHandling math:intercurrentEventStrategy exf:treatmentPolicyStrategy ."
+msgstr "exf:rescueHandling math:intercurrentEventStrategy exf:treatmentPolicyStrategy ."
+
+msgctxt "https://blackcatinformatics.ca/math/intercurrentEventStrategy|skos:scopeNote"
+msgid "The strategy helps specify the target question. The analysis method and its missing-data policy must be described separately when supplied; no strategy name proves data availability, numerical execution or successful sensitivity analysis."
+msgstr "La stratégie contribue à spécifier la question cible. La méthode d’analyse et sa politique de données manquantes doivent être décrites séparément lorsqu’elles sont fournies ; aucun nom de stratégie ne prouve la disponibilité des données, une exécution numérique ou une analyse de sensibilité réussie."
+
+msgctxt "https://blackcatinformatics.ca/math/missingnessMechanism|skos:scopeNote"
+msgid "Declares a missingness assumption, distinct from math:hasMissingnessIndicator recording absence, math:missingDataPolicy describing supplied analysis handling, and an event-specific target strategy named through math:intercurrentEventHandling. An assumption is not itself a handling procedure."
+msgstr "Déclare une hypothèse de manque, distincte de math:hasMissingnessIndicator qui consigne l’absence, de math:missingDataPolicy qui décrit le traitement analytique fourni et d’une stratégie cible propre à un événement nommée par math:intercurrentEventHandling. Une hypothèse n’est pas elle-même une procédure de traitement."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/examples/math/statistics/estimation/discontinuationSpecification|rdfs:label"
+msgid "Discontinuation of assigned treatment after initiation — the event specification"
+msgstr "Arrêt du traitement assigné après son début — la spécification d’événement"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/examples/math/statistics/estimation/treatmentPolicyStrategy|rdfs:label"
+msgid "Treatment-policy target strategy for the specified treatment discontinuation"
+msgstr "Stratégie cible de politique de traitement pour l’arrêt du traitement spécifié"
