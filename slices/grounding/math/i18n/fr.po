@@ -17470,11 +17470,3 @@ msgstr "La stratégie contribue à spécifier la question cible. La méthode d�
 msgctxt "https://blackcatinformatics.ca/math/missingnessMechanism|skos:scopeNote"
 msgid "Declares a missingness assumption, distinct from math:hasMissingnessIndicator recording absence, math:missingDataPolicy describing supplied analysis handling, and an event-specific target strategy named through math:intercurrentEventHandling. An assumption is not itself a handling procedure."
 msgstr "Déclare une hypothèse de manque, distincte de math:hasMissingnessIndicator qui consigne l’absence, de math:missingDataPolicy qui décrit le traitement analytique fourni et d’une stratégie cible propre à un événement nommée par math:intercurrentEventHandling. Une hypothèse n’est pas elle-même une procédure de traitement."
-
-msgctxt "https://blackcatinformatics.ca/gmeow/examples/math/statistics/estimation/discontinuationSpecification|rdfs:label"
-msgid "Discontinuation of assigned treatment after initiation — the event specification"
-msgstr "Arrêt du traitement assigné après son début — la spécification d’événement"
-
-msgctxt "https://blackcatinformatics.ca/gmeow/examples/math/statistics/estimation/treatmentPolicyStrategy|rdfs:label"
-msgid "Treatment-policy target strategy for the specified treatment discontinuation"
-msgstr "Stratégie cible de politique de traitement pour l’arrêt du traitement spécifié"

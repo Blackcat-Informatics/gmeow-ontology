@@ -17470,11 +17470,3 @@ msgstr "策略有助于规定目标问题。在提供分析方法及其缺失数
 msgctxt "https://blackcatinformatics.ca/math/missingnessMechanism|skos:scopeNote"
 msgid "Declares a missingness assumption, distinct from math:hasMissingnessIndicator recording absence, math:missingDataPolicy describing supplied analysis handling, and an event-specific target strategy named through math:intercurrentEventHandling. An assumption is not itself a handling procedure."
 msgstr "声明缺失机制假设，区别于记录缺失的 math:hasMissingnessIndicator、描述已提供分析处理方式的 math:missingDataPolicy，以及通过 math:intercurrentEventHandling 命名的事件专属目标策略。假设本身不是处理程序。"
-
-msgctxt "https://blackcatinformatics.ca/gmeow/examples/math/statistics/estimation/discontinuationSpecification|rdfs:label"
-msgid "Discontinuation of assigned treatment after initiation — the event specification"
-msgstr "开始治疗后停用所分配治疗——事件规范"
-
-msgctxt "https://blackcatinformatics.ca/gmeow/examples/math/statistics/estimation/treatmentPolicyStrategy|rdfs:label"
-msgid "Treatment-policy target strategy for the specified treatment discontinuation"
-msgstr "针对指定治疗停用事件的治疗政策目标策略"
