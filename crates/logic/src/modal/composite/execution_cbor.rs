@@ -24,8 +24,8 @@ impl ExecutionCbor for TemporalPrefix {
         Ok(())
     }
     /// Stream every field in this record's serialized declaration order.
-    fn write_cbor<W: crate::execution_cbor::LeafWrite + ?Sized>(
-        &self,
+    fn write_cbor<'data, W: crate::execution_cbor::LeafWrite<'data> + ?Sized>(
+        &'data self,
         out: &mut W,
     ) -> io::Result<()> {
         head::write_head(out, head::MAP, 7)?;
@@ -92,8 +92,8 @@ impl ExecutionCbor for PathObservation {
         Ok(())
     }
     /// Stream every field in this record's serialized declaration order.
-    fn write_cbor<W: crate::execution_cbor::LeafWrite + ?Sized>(
-        &self,
+    fn write_cbor<'data, W: crate::execution_cbor::LeafWrite<'data> + ?Sized>(
+        &'data self,
         out: &mut W,
     ) -> io::Result<()> {
         head::write_head(out, head::MAP, 6)?;
@@ -153,8 +153,8 @@ impl ExecutionCbor for Inference {
         Ok(())
     }
     /// Stream every field in this record's serialized declaration order.
-    fn write_cbor<W: crate::execution_cbor::LeafWrite + ?Sized>(
-        &self,
+    fn write_cbor<'data, W: crate::execution_cbor::LeafWrite<'data> + ?Sized>(
+        &'data self,
         out: &mut W,
     ) -> io::Result<()> {
         head::write_head(out, head::MAP, 4)?;
@@ -205,8 +205,8 @@ impl ExecutionCbor for AssessmentAnchor {
         Ok(())
     }
     /// Stream every field in this record's serialized declaration order.
-    fn write_cbor<W: crate::execution_cbor::LeafWrite + ?Sized>(
-        &self,
+    fn write_cbor<'data, W: crate::execution_cbor::LeafWrite<'data> + ?Sized>(
+        &'data self,
         out: &mut W,
     ) -> io::Result<()> {
         head::write_head(out, head::MAP, 5)?;
@@ -262,8 +262,8 @@ impl ExecutionCbor for TemporalBasis {
         }
     }
     /// Retain Serde's adjacent kind/evidence map, not an externally tagged variant.
-    fn write_cbor<W: crate::execution_cbor::LeafWrite + ?Sized>(
-        &self,
+    fn write_cbor<'data, W: crate::execution_cbor::LeafWrite<'data> + ?Sized>(
+        &'data self,
         out: &mut W,
     ) -> io::Result<()> {
         head::write_head(out, head::MAP, 2)?;

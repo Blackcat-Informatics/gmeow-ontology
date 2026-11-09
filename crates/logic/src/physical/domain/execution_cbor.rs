@@ -13,8 +13,8 @@ use super::{DomainProfile, LogicalGraph, SelectedDomains, SelectedLogicalWorld};
 
 impl ExecutionCbor for LogicalGraph {
     /// Retain the original default graph or complete retained named-graph term.
-    fn write_cbor<W: crate::execution_cbor::LeafWrite + ?Sized>(
-        &self,
+    fn write_cbor<'data, W: crate::execution_cbor::LeafWrite<'data> + ?Sized>(
+        &'data self,
         out: &mut W,
     ) -> io::Result<()> {
         match self {
@@ -48,8 +48,8 @@ impl ExecutionCbor for LogicalGraph {
 
 impl ExecutionCbor for DomainProfile {
     /// Retain the original enum variant spelling as a text item.
-    fn write_cbor<W: crate::execution_cbor::LeafWrite + ?Sized>(
-        &self,
+    fn write_cbor<'data, W: crate::execution_cbor::LeafWrite<'data> + ?Sized>(
+        &'data self,
         out: &mut W,
     ) -> io::Result<()> {
         head::write_text(
@@ -77,8 +77,8 @@ impl ExecutionCbor for DomainProfile {
 
 impl ExecutionCbor for SelectedLogicalWorld {
     /// Retain the complete SelectedLogicalWorld in its original declaration order.
-    fn write_cbor<W: crate::execution_cbor::LeafWrite + ?Sized>(
-        &self,
+    fn write_cbor<'data, W: crate::execution_cbor::LeafWrite<'data> + ?Sized>(
+        &'data self,
         out: &mut W,
     ) -> io::Result<()> {
         head::write_head(out, head::MAP, 4)?;
@@ -129,8 +129,8 @@ impl ExecutionCbor for SelectedLogicalWorld {
 
 impl ExecutionCbor for SelectedDomains {
     /// Retain the complete SelectedDomains in its original declaration order.
-    fn write_cbor<W: crate::execution_cbor::LeafWrite + ?Sized>(
-        &self,
+    fn write_cbor<'data, W: crate::execution_cbor::LeafWrite<'data> + ?Sized>(
+        &'data self,
         out: &mut W,
     ) -> io::Result<()> {
         head::write_head(out, head::MAP, 1)?;

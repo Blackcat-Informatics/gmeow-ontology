@@ -26,10 +26,10 @@ impl ClassAdmissionObservation {
     }
 
     /// One field owner serves the raw source profile and complete terminal profile.
-    pub(super) fn write_fields<W: crate::execution_cbor::LeafWrite + ?Sized>(
-        &self,
+    pub(super) fn write_fields<'data, W: crate::execution_cbor::LeafWrite<'data> + ?Sized>(
+        &'data self,
         out: &mut W,
-        write_world: impl Fn(&ClassAdmissionWorld, &mut W) -> io::Result<()>,
+        write_world: impl Fn(&'data ClassAdmissionWorld, &mut W) -> io::Result<()>,
     ) -> io::Result<()> {
         head::write_head(out, head::MAP, 3)?;
         head::write_text(out, "contract")?;
@@ -52,8 +52,8 @@ impl ClassAdmissionObservation {
 
 impl ClassAdmissionSourceWorld {
     /// Retain nullable graph identity and the complete unsigned assertion census.
-    fn write_fields<W: crate::execution_cbor::LeafWrite + ?Sized>(
-        &self,
+    fn write_fields<'data, W: crate::execution_cbor::LeafWrite<'data> + ?Sized>(
+        &'data self,
         out: &mut W,
     ) -> io::Result<()> {
         head::write_head(out, head::MAP, 2)?;
@@ -66,10 +66,10 @@ impl ClassAdmissionSourceWorld {
 
 impl ClassAdmissionWorld {
     /// Select the narrower source boundary or full terminal variants explicitly.
-    pub(super) fn write_fields<W: crate::execution_cbor::LeafWrite + ?Sized>(
-        &self,
+    pub(super) fn write_fields<'data, W: crate::execution_cbor::LeafWrite<'data> + ?Sized>(
+        &'data self,
         out: &mut W,
-        write_boundary: impl Fn(&FragmentBoundary, &mut W) -> io::Result<()>,
+        write_boundary: impl Fn(&'data FragmentBoundary, &mut W) -> io::Result<()>,
     ) -> io::Result<()> {
         head::write_head(out, head::MAP, 3)?;
         head::write_text(out, "graph")?;
@@ -89,8 +89,8 @@ impl ClassAdmissionWorld {
 
 impl RefutationPremise {
     /// The row field owner retains original graph and complete term identity.
-    fn write_fields<W: crate::execution_cbor::LeafWrite + ?Sized>(
-        &self,
+    fn write_fields<'data, W: crate::execution_cbor::LeafWrite<'data> + ?Sized>(
+        &'data self,
         out: &mut W,
     ) -> io::Result<()> {
         head::write_head(out, head::MAP, 4)?;
@@ -107,8 +107,8 @@ impl RefutationPremise {
 
 impl FragmentBoundary {
     /// Stream source-supported boundary variants in their retained set order.
-    fn write_admission_cbor<W: crate::execution_cbor::LeafWrite + ?Sized>(
-        &self,
+    fn write_admission_cbor<'data, W: crate::execution_cbor::LeafWrite<'data> + ?Sized>(
+        &'data self,
         out: &mut W,
     ) -> io::Result<()> {
         let mut pending = vec![self];
@@ -153,8 +153,8 @@ impl FragmentBoundary {
 
 impl RefutationSourceIssue {
     /// Preserve every selected source-issue tag and its original payload fields.
-    fn write_admission_cbor<W: crate::execution_cbor::LeafWrite + ?Sized>(
-        &self,
+    fn write_admission_cbor<'data, W: crate::execution_cbor::LeafWrite<'data> + ?Sized>(
+        &'data self,
         out: &mut W,
     ) -> io::Result<()> {
         match self {
@@ -246,8 +246,8 @@ impl RefutationSourceIssue {
 use crate::execution_cbor::{ExecutionCbor, Reader, Result as WireResult, descend};
 
 impl ExecutionCbor for RefutationPremise {
-    fn write_cbor<W: crate::execution_cbor::LeafWrite + ?Sized>(
-        &self,
+    fn write_cbor<'data, W: crate::execution_cbor::LeafWrite<'data> + ?Sized>(
+        &'data self,
         out: &mut W,
     ) -> io::Result<()> {
         RefutationPremise::write_fields(self, out)
@@ -286,8 +286,8 @@ impl ExecutionCbor for RefutationPremise {
 }
 
 impl ExecutionCbor for ClassAdmissionSourceWorld {
-    fn write_cbor<W: crate::execution_cbor::LeafWrite + ?Sized>(
-        &self,
+    fn write_cbor<'data, W: crate::execution_cbor::LeafWrite<'data> + ?Sized>(
+        &'data self,
         out: &mut W,
     ) -> io::Result<()> {
         ClassAdmissionSourceWorld::write_fields(self, out)

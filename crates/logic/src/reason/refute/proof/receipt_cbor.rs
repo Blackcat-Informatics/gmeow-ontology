@@ -15,8 +15,8 @@ use super::{
 };
 
 impl ExecutionCbor for RefutationClash {
-    fn write_cbor<W: crate::execution_cbor::LeafWrite + ?Sized>(
-        &self,
+    fn write_cbor<'data, W: crate::execution_cbor::LeafWrite<'data> + ?Sized>(
+        &'data self,
         out: &mut W,
     ) -> io::Result<()> {
         match self {
@@ -56,8 +56,8 @@ impl ExecutionCbor for RefutationClash {
 }
 
 impl ExecutionCbor for RefutationExpression {
-    fn write_cbor<W: crate::execution_cbor::LeafWrite + ?Sized>(
-        &self,
+    fn write_cbor<'data, W: crate::execution_cbor::LeafWrite<'data> + ?Sized>(
+        &'data self,
         out: &mut W,
     ) -> io::Result<()> {
         match self {
@@ -118,8 +118,8 @@ impl ExecutionCbor for RefutationExpression {
 }
 
 impl ExecutionCbor for RefutationAssumption {
-    fn write_cbor<W: crate::execution_cbor::LeafWrite + ?Sized>(
-        &self,
+    fn write_cbor<'data, W: crate::execution_cbor::LeafWrite<'data> + ?Sized>(
+        &'data self,
         out: &mut W,
     ) -> io::Result<()> {
         match self {
@@ -205,8 +205,8 @@ impl ExecutionCbor for RefutationAssumption {
 }
 
 impl ExecutionCbor for RefutationBranch {
-    fn write_cbor<W: crate::execution_cbor::LeafWrite + ?Sized>(
-        &self,
+    fn write_cbor<'data, W: crate::execution_cbor::LeafWrite<'data> + ?Sized>(
+        &'data self,
         out: &mut W,
     ) -> io::Result<()> {
         head::write_head(out, head::MAP, 2)?;
@@ -239,8 +239,8 @@ impl ExecutionCbor for RefutationBranch {
 }
 
 impl ExecutionCbor for RefutationSourceIssue {
-    fn write_cbor<W: crate::execution_cbor::LeafWrite + ?Sized>(
-        &self,
+    fn write_cbor<'data, W: crate::execution_cbor::LeafWrite<'data> + ?Sized>(
+        &'data self,
         out: &mut W,
     ) -> io::Result<()> {
         match self {
@@ -430,8 +430,8 @@ impl ExecutionCbor for RefutationSourceIssue {
 }
 
 impl ExecutionCbor for RefutationProof {
-    fn write_cbor<W: crate::execution_cbor::LeafWrite + ?Sized>(
-        &self,
+    fn write_cbor<'data, W: crate::execution_cbor::LeafWrite<'data> + ?Sized>(
+        &'data self,
         out: &mut W,
     ) -> io::Result<()> {
         match self {
