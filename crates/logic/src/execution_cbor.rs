@@ -26,10 +26,11 @@ pub(crate) const MAX_RECEIPT_DEPTH: usize = 64;
 /// This is an encoding-work bound, not a measured process-memory bound.
 pub(crate) const MAX_EXPANDED_RECEIPT_BYTES: usize = 512 * 1024 * 1024;
 
-/// Typed leaf operations for the selected receipt wire; static record keys stay inline.
-pub(crate) trait LeafWrite: Write {
-    fn string(&mut self, value: &str) -> io::Result<()>;
-    fn term(&mut self, value: &TermValue) -> io::Result<()>;
+/// Typed leaves borrow the retained source throughout table planning and emission.
+/// Static record keys and transient scalar bytes stay on the inline `Write` path.
+pub(crate) trait LeafWrite<'data>: Write {
+    fn string(&mut self, value: &'data str) -> io::Result<()>;
+    fn term(&mut self, value: &'data TermValue) -> io::Result<()>;
 }
 
 /// Explicit inline strategy used for table definitions and expanded diagnostic sizes.
@@ -42,11 +43,11 @@ impl<W: Write + ?Sized> Write for InlineWriter<'_, W> {
         self.0.flush()
     }
 }
-impl<W: Write + ?Sized> LeafWrite for InlineWriter<'_, W> {
-    fn string(&mut self, value: &str) -> io::Result<()> {
+impl<'data, W: Write + ?Sized> LeafWrite<'data> for InlineWriter<'_, W> {
+    fn string(&mut self, value: &'data str) -> io::Result<()> {
         head::write_text(self.0, value)
     }
-    fn term(&mut self, value: &TermValue) -> io::Result<()> {
+    fn term(&mut self, value: &'data TermValue) -> io::Result<()> {
         crate::term_serde::write_cbor(value, self.0)
     }
 }
@@ -104,16 +105,17 @@ struct Leaf {
     index: usize,
     bytes: usize,
 }
-/// First-use table order follows the existing deterministic typed record traversal.
+/// First-use order follows the existing deterministic typed record traversal.
+/// Keys borrow immutable source leaves; equality and ordering remain content-based.
 #[derive(Default)]
-pub(crate) struct Tables {
-    strings: BTreeMap<String, Leaf>,
-    terms: BTreeMap<TermValue, Leaf>,
+pub(crate) struct Tables<'data> {
+    strings: BTreeMap<&'data str, Leaf>,
+    terms: BTreeMap<&'data TermValue, Leaf>,
     definition_bytes: usize,
     expanded_bytes: usize,
 }
-impl Tables {
-    pub(crate) fn prepare(value: &impl ExecutionCbor, schema: &str) -> Result<Self> {
+impl<'data> Tables<'data> {
+    pub(crate) fn prepare(value: &'data impl ExecutionCbor, schema: &str) -> Result<Self> {
         let mut tables = Self::default();
         let mut expansion = Expansion::default();
         let mut compact_payload = EncodingSize::default();
@@ -180,7 +182,7 @@ impl Tables {
     }
     pub(crate) fn write_payload<W: Write + ?Sized>(
         &self,
-        value: &impl ExecutionCbor,
+        value: &'data impl ExecutionCbor,
         output: &mut W,
     ) -> io::Result<()> {
         let mut expansion = Expansion::default();
@@ -201,16 +203,16 @@ impl Tables {
     }
 }
 
-enum WriteTables<'a> {
-    Collect(&'a mut Tables),
-    Compact(&'a Tables),
+enum WriteTables<'emit, 'data> {
+    Collect(&'emit mut Tables<'data>),
+    Compact(&'emit Tables<'data>),
 }
-struct Encoder<'a, W: Write + ?Sized> {
-    output: &'a mut W,
-    tables: WriteTables<'a>,
-    expansion: &'a mut Expansion,
+struct Encoder<'emit, 'data, W: Write + ?Sized> {
+    output: &'emit mut W,
+    tables: WriteTables<'emit, 'data>,
+    expansion: &'emit mut Expansion,
 }
-impl<W: Write + ?Sized> Write for Encoder<'_, W> {
+impl<W: Write + ?Sized> Write for Encoder<'_, '_, W> {
     fn write(&mut self, bytes: &[u8]) -> io::Result<usize> {
         self.expansion
             .charge(bytes.len())
@@ -222,22 +224,22 @@ impl<W: Write + ?Sized> Write for Encoder<'_, W> {
         self.output.flush()
     }
 }
-impl<W: Write + ?Sized> LeafWrite for Encoder<'_, W> {
-    fn string(&mut self, value: &str) -> io::Result<()> {
+impl<'data, W: Write + ?Sized> LeafWrite<'data> for Encoder<'_, 'data, W> {
+    fn string(&mut self, value: &'data str) -> io::Result<()> {
         let leaf = match &mut self.tables {
             WriteTables::Collect(tables) => {
                 if let Some(leaf) = tables.strings.get(value) {
                     *leaf
                 } else {
                     let bytes = text_size(value).map_err(io::Error::other)?;
-                    // Charge the new owned table materialization before copying.
+                    // Retain the complete logical-definition charge before indexing.
                     self.expansion.charge(bytes).map_err(io::Error::other)?;
                     tables.add_definition(bytes)?;
                     let leaf = Leaf {
                         index: tables.strings.len(),
                         bytes,
                     };
-                    tables.strings.insert(value.to_owned(), leaf);
+                    tables.strings.insert(value, leaf);
                     leaf
                 }
             }
@@ -250,7 +252,7 @@ impl<W: Write + ?Sized> LeafWrite for Encoder<'_, W> {
             .map_err(io::Error::other)?;
         head::write_head(self.output, head::UNSIGNED, leaf.index as u64)
     }
-    fn term(&mut self, value: &TermValue) -> io::Result<()> {
+    fn term(&mut self, value: &'data TermValue) -> io::Result<()> {
         let leaf = match &mut self.tables {
             WriteTables::Collect(tables) => {
                 if let Some(leaf) = tables.terms.get(value) {
@@ -263,7 +265,7 @@ impl<W: Write + ?Sized> LeafWrite for Encoder<'_, W> {
                         index: tables.terms.len(),
                         bytes,
                     };
-                    tables.terms.insert(value.clone(), leaf);
+                    tables.terms.insert(value, leaf);
                     leaf
                 }
             }
@@ -361,8 +363,8 @@ pub(crate) fn descend(remaining: usize) -> Result<usize> {
 pub(crate) trait ExecutionCbor: Sized {
     /// Check the exact typed reader's visitor budget without allocating a value tree.
     fn check_depth(&self, remaining: usize) -> Result<()>;
-    fn write_cbor<W: crate::execution_cbor::LeafWrite + ?Sized>(
-        &self,
+    fn write_cbor<'data, W: crate::execution_cbor::LeafWrite<'data> + ?Sized>(
+        &'data self,
         out: &mut W,
     ) -> io::Result<()>;
     fn read_cbor(input: &mut Reader<'_>) -> Result<Self>;
@@ -660,8 +662,8 @@ impl ExecutionCbor for String {
     fn check_depth(&self, _remaining: usize) -> Result<()> {
         Ok(())
     }
-    fn write_cbor<W: crate::execution_cbor::LeafWrite + ?Sized>(
-        &self,
+    fn write_cbor<'data, W: crate::execution_cbor::LeafWrite<'data> + ?Sized>(
+        &'data self,
         out: &mut W,
     ) -> io::Result<()> {
         out.string(self)
@@ -676,8 +678,8 @@ impl ExecutionCbor for bool {
     fn check_depth(&self, _remaining: usize) -> Result<()> {
         Ok(())
     }
-    fn write_cbor<W: crate::execution_cbor::LeafWrite + ?Sized>(
-        &self,
+    fn write_cbor<'data, W: crate::execution_cbor::LeafWrite<'data> + ?Sized>(
+        &'data self,
         out: &mut W,
     ) -> io::Result<()> {
         head::write_head(out, head::SIMPLE, if *self { 21 } else { 20 })
@@ -698,7 +700,7 @@ macro_rules! unsigned {
         impl ExecutionCbor for $type {
             /// Scalars do not enter a typed deserialization visitor.
             fn check_depth(&self, _remaining: usize) -> Result<()> { Ok(()) }
-            fn write_cbor<W: crate::execution_cbor::LeafWrite + ?Sized>(&self, out: &mut W) -> io::Result<()> {
+            fn write_cbor<'data, W: crate::execution_cbor::LeafWrite<'data> + ?Sized>(&'data self, out: &mut W) -> io::Result<()> {
                 head::write_head(out, head::UNSIGNED, *self as u64)
             }
             fn read_cbor(input: &mut Reader<'_>) -> Result<Self> {
@@ -715,8 +717,8 @@ impl ExecutionCbor for u64 {
         Ok(())
     }
 
-    fn write_cbor<W: crate::execution_cbor::LeafWrite + ?Sized>(
-        &self,
+    fn write_cbor<'data, W: crate::execution_cbor::LeafWrite<'data> + ?Sized>(
+        &'data self,
         out: &mut W,
     ) -> io::Result<()> {
         head::write_head(out, head::UNSIGNED, *self)
@@ -732,8 +734,8 @@ impl ExecutionCbor for u128 {
     fn check_depth(&self, _remaining: usize) -> Result<()> {
         Ok(())
     }
-    fn write_cbor<W: crate::execution_cbor::LeafWrite + ?Sized>(
-        &self,
+    fn write_cbor<'data, W: crate::execution_cbor::LeafWrite<'data> + ?Sized>(
+        &'data self,
         out: &mut W,
     ) -> io::Result<()> {
         if let Ok(value) = u64::try_from(*self) {
@@ -774,8 +776,8 @@ impl<T: ExecutionCbor> ExecutionCbor for Option<T> {
             None => Ok(()),
         }
     }
-    fn write_cbor<W: crate::execution_cbor::LeafWrite + ?Sized>(
-        &self,
+    fn write_cbor<'data, W: crate::execution_cbor::LeafWrite<'data> + ?Sized>(
+        &'data self,
         out: &mut W,
     ) -> io::Result<()> {
         match self {
@@ -800,7 +802,7 @@ macro_rules! transparent {
             fn check_depth(&self, remaining: usize) -> Result<()> {
                 self.as_ref().check_depth(remaining)
             }
-            fn write_cbor<W: crate::execution_cbor::LeafWrite + ?Sized>(&self, out: &mut W) -> io::Result<()> { self.as_ref().write_cbor(out) }
+            fn write_cbor<'data, W: crate::execution_cbor::LeafWrite<'data> + ?Sized>(&'data self, out: &mut W) -> io::Result<()> { self.as_ref().write_cbor(out) }
             fn read_cbor(input: &mut Reader<'_>) -> Result<Self> { T::read_cbor(input).map(Self::new) }
         }
     )*};
@@ -817,8 +819,8 @@ impl<K: ExecutionCbor + Ord, V: ExecutionCbor> ExecutionCbor for BTreeMap<K, V> 
         }
         Ok(())
     }
-    fn write_cbor<W: crate::execution_cbor::LeafWrite + ?Sized>(
-        &self,
+    fn write_cbor<'data, W: crate::execution_cbor::LeafWrite<'data> + ?Sized>(
+        &'data self,
         out: &mut W,
     ) -> io::Result<()> {
         head::write_head(out, head::MAP, self.len() as u64)?;
@@ -848,8 +850,8 @@ impl<const N: usize> ExecutionCbor for [u8; N] {
     fn check_depth(&self, remaining: usize) -> Result<()> {
         descend(remaining).map(|_| ())
     }
-    fn write_cbor<W: crate::execution_cbor::LeafWrite + ?Sized>(
-        &self,
+    fn write_cbor<'data, W: crate::execution_cbor::LeafWrite<'data> + ?Sized>(
+        &'data self,
         out: &mut W,
     ) -> io::Result<()> {
         head::write_bytes(out, self)
@@ -874,7 +876,7 @@ macro_rules! tuples {
                 $(self.$index.check_depth(remaining)?;)+
                 Ok(())
             }
-            fn write_cbor<W: crate::execution_cbor::LeafWrite + ?Sized>(&self, out: &mut W) -> io::Result<()> {
+            fn write_cbor<'data, W: crate::execution_cbor::LeafWrite<'data> + ?Sized>(&'data self, out: &mut W) -> io::Result<()> {
                 head::write_head(out, head::ARRAY, $length)?;
                 $(self.$index.write_cbor(out)?;)+
                 Ok(())

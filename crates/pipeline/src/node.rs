@@ -236,11 +236,15 @@ impl StageProduct {
         bundle: Arc<PipelineBundle<PipelineHandle>>,
     ) -> Result<Self, gmeow_errors::Diag> {
         let stage_id = stage_id.into();
-        let handle_commitments = crate::handle_identity::handle_commitments(&bundle);
+        let handle_commitments =
+            measure_stage_phase(&stage_id, "capture-handle-commitments", || {
+                crate::handle_identity::handle_commitments(&bundle)
+            });
         let mut control = purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None);
-        let digest =
+        let digest = measure_stage_phase(&stage_id, "digest-stage-product", || {
             crate::handle_identity::product_digest(&bundle, &handle_commitments, &mut control)
-                .map_err(|error| carrier_digest_failure(&stage_id, error, &control))?;
+        })
+        .map_err(|error| carrier_digest_failure(&stage_id, error, &control))?;
         Ok(Self {
             stage_id,
             digest,

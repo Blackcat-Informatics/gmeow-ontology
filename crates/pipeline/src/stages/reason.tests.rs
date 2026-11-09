@@ -89,7 +89,7 @@ fn explicit_theory_selection_does_not_mint_support_graph_domains() {
     )
     .unwrap()])
     .unwrap();
-    let reasoned = reason_over_dataset(&source, &domains).unwrap();
+    let reasoned = reason_over_dataset(source.as_ref(), &domains).unwrap();
     let native = reasoned.result.native_execution().unwrap();
     assert_eq!(native.selected_domains, domains);
     assert_eq!(
@@ -131,7 +131,7 @@ fn selected_blank_graph_cannot_silently_split_at_pipeline_relabelling() {
     )
     .unwrap()])
     .unwrap();
-    let error = reason_over_dataset(&source, &domains)
+    let error = reason_over_dataset(source.as_ref(), &domains)
         .err()
         .expect("issuer mapping is mandatory");
     assert!(error.to_string().contains("issuer mapping"));
@@ -411,13 +411,43 @@ ex:world {
     let graph = dataset
         .project_graph(Some(&purrdf::RdfTerm::iri(GRAPH_REASONING)))
         .unwrap();
-    assert!(
-        graph.owned_reifiers().next().is_some(),
-        "native source receipts retain their quoted conclusions"
+    let conclusion = purrdf::RdfTriple::new(
+        RdfTerm::iri("urn:contextual-artifact:claim"),
+        "https://blackcatinformatics.ca/gmeow/accordingTo",
+        RdfTerm::iri("urn:contextual-artifact:observer"),
     );
+    let reifier = graph
+        .owned_reifiers()
+        .find(|row| row.statement == conclusion)
+        .expect("native source receipts retain the inferred attribution conclusion");
+    for (predicate, object) in [
+        (
+            "https://blackcatinformatics.ca/gmeow/inWorld",
+            "urn:contextual-artifact:world",
+        ),
+        (
+            "https://blackcatinformatics.ca/gmeow/inferenceKind",
+            "https://blackcatinformatics.ca/gmeow/Deduction",
+        ),
+    ] {
+        assert!(
+            graph.owned_annotations().any(|annotation| {
+                annotation.reifier == reifier.reifier
+                    && annotation.predicate == predicate
+                    && annotation.object == RdfTerm::iri(object)
+            }),
+            "native source receipts retain {predicate} on their own reifier"
+        );
+    }
+    let expected = gmeow_logic::result_rdf::project_reasoning_dataset(&reasoned.result).unwrap();
     assert!(
-        graph.owned_annotations().next().is_some(),
-        "native source receipt annotations follow their graph"
+        purrdf::datasets_isomorphic(
+            &graph,
+            &expected,
+            &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None),
+        )
+        .unwrap(),
+        "direct carrier emission must retain the complete standalone statement layers"
     );
     assert!(
         graph.owned_quads().any(|quad| {

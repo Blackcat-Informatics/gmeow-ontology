@@ -11,8 +11,8 @@ use purrdf_lex::cbor::head;
 use super::{ExecutionCbor, Reader, Result};
 
 impl ExecutionCbor for RdfTextDirection {
-    fn write_cbor<W: crate::execution_cbor::LeafWrite + ?Sized>(
-        &self,
+    fn write_cbor<'data, W: crate::execution_cbor::LeafWrite<'data> + ?Sized>(
+        &'data self,
         out: &mut W,
     ) -> io::Result<()> {
         head::write_text(
@@ -41,8 +41,8 @@ impl ExecutionCbor for RdfTextDirection {
 }
 
 impl ExecutionCbor for TermValue {
-    fn write_cbor<W: crate::execution_cbor::LeafWrite + ?Sized>(
-        &self,
+    fn write_cbor<'data, W: crate::execution_cbor::LeafWrite<'data> + ?Sized>(
+        &'data self,
         out: &mut W,
     ) -> io::Result<()> {
         out.term(self)

@@ -12,8 +12,8 @@ use crate::result::NativeExecutionEvidence;
 use super::{ExecutionCbor, Reader, Result};
 
 impl ExecutionCbor for NativeExecutionEvidence {
-    fn write_cbor<W: crate::execution_cbor::LeafWrite + ?Sized>(
-        &self,
+    fn write_cbor<'data, W: crate::execution_cbor::LeafWrite<'data> + ?Sized>(
+        &'data self,
         out: &mut W,
     ) -> io::Result<()> {
         head::write_head(out, head::MAP, 12)?;
