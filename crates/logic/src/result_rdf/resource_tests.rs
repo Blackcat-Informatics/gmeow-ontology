@@ -146,18 +146,18 @@ fn contextual_resource_components_refuse_nonresources_and_untyped_targets() {
     ] {
         for replacement in [
             Node::string("not a component address"),
-            Node::Value(TermValue::Triple {
+            Node::Value(Box::new(TermValue::Triple {
                 s: TermValue::iri("urn:s").into(),
                 p: TermValue::iri("urn:p").into(),
                 o: TermValue::iri("urn:o").into(),
-            }),
+            })),
             Node::iri("urn:untyped-component"),
         ] {
             let (mut sink, _) =
                 contextual_assessment_sink(&assessment).expect("admitted contextual components");
             sink.triples
                 .iter_mut()
-                .find(|row| row.predicate == logic(predicate))
+                .find(|row| row.predicate.as_ref() == logic(predicate))
                 .unwrap()
                 .object = replacement;
             let dataset = native_dataset(sink).unwrap();
@@ -178,14 +178,14 @@ fn contextual_resource_components_do_not_borrow_a_role_from_another_graph() {
     let proof = sink
         .triples
         .iter()
-        .find(|row| row.predicate == logic("resultProof"))
+        .find(|row| row.predicate.as_ref() == logic("resultProof"))
         .unwrap()
         .object
         .render();
     let position = sink
         .triples
         .iter()
-        .position(|row| row.subject.render() == proof && row.predicate == RDF_TYPE)
+        .position(|row| row.subject.render() == proof && row.predicate.as_ref() == RDF_TYPE)
         .unwrap();
     let role = sink.triples.remove(position);
     let mut foreign = Sink::default();
@@ -219,12 +219,12 @@ fn contextual_resource_components_refuse_missing_ambiguous_or_erased_fields() {
         match mutation {
             0 => sink
                 .triples
-                .retain(|row| row.predicate != logic("derivationId")),
+                .retain(|row| row.predicate.as_ref() != logic("derivationId")),
             1 => {
                 let subject = sink
                     .triples
                     .iter()
-                    .find(|row| row.predicate == logic("resultProof"))
+                    .find(|row| row.predicate.as_ref() == logic("resultProof"))
                     .unwrap()
                     .subject
                     .clone();
@@ -233,31 +233,31 @@ fn contextual_resource_components_refuse_missing_ambiguous_or_erased_fields() {
             2 => {
                 sink.triples
                     .iter_mut()
-                    .find(|row| row.predicate == logic("citesIri"))
+                    .find(|row| row.predicate.as_ref() == logic("citesIri"))
                     .unwrap()
                     .object = Node::string("urn:literal-citation")
             }
             3 => sink
                 .triples
-                .retain(|row| row.predicate != logic("witnessWorld")),
+                .retain(|row| row.predicate.as_ref() != logic("witnessWorld")),
             4 => {
                 sink.triples
                     .iter_mut()
-                    .find(|row| row.predicate == logic("witnessPremise"))
+                    .find(|row| row.predicate.as_ref() == logic("witnessPremise"))
                     .unwrap()
                     .object = Node::string("missing-components")
             }
             _ => {
                 sink.triples
                     .iter_mut()
-                    .find(|row| row.predicate == logic("derivationId"))
+                    .find(|row| row.predicate.as_ref() == logic("derivationId"))
                     .unwrap()
-                    .object = Node::Value(TermValue::Literal {
+                    .object = Node::Value(Box::new(TermValue::Literal {
                     lexical_form: "urn:proof".into(),
                     datatype: "http://www.w3.org/1999/02/22-rdf-syntax-ns#langString".into(),
                     language: Some("en".into()),
                     direction: None,
-                })
+                }))
             }
         }
         let dataset = native_dataset(sink).unwrap();

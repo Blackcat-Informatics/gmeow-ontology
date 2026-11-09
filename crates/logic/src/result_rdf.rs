@@ -57,6 +57,7 @@
 //! (axes/provenance), faithful-subset where the payload rows are carried elsewhere.
 
 use std::collections::{BTreeMap, BTreeSet};
+use std::sync::Arc;
 
 use gmeow_logic_compile::ir::{LOGIC_NAMESPACE, PreservationKind};
 use purrdf::{DatasetView, GraphMatch, QuadIds, RdfDataset, TermId, TermRef};
@@ -133,7 +134,7 @@ enum Node {
     Iri(String),
     Blank(String),
     /// An authored or inferred native RDF value, retained through the output boundary.
-    Value(purrdf::TermValue),
+    Value(Box<purrdf::TermValue>),
     Lit {
         lex: String,
         datatype: String,
@@ -210,7 +211,7 @@ fn escape_literal(s: &str) -> String {
 /// A triple `(subject, predicate, object)` accumulated before sorting.
 struct Triple {
     subject: Node,
-    predicate: String,
+    predicate: Arc<str>,
     object: Node,
 }
 
@@ -219,14 +220,23 @@ struct Triple {
 #[derive(Default)]
 struct Sink {
     triples: Vec<Triple>,
+    predicates: BTreeSet<Arc<str>>,
     next_blank: u64,
 }
 
 impl Sink {
-    fn push(&mut self, subject: Node, predicate: impl Into<String>, object: Node) {
+    fn push(&mut self, subject: Node, predicate: impl AsRef<str>, object: Node) {
+        let predicate = predicate.as_ref();
+        let predicate = if let Some(shared) = self.predicates.get(predicate) {
+            Arc::clone(shared)
+        } else {
+            let shared: Arc<str> = Arc::from(predicate);
+            self.predicates.insert(Arc::clone(&shared));
+            shared
+        };
         self.triples.push(Triple {
             subject,
-            predicate: predicate.into(),
+            predicate,
             object,
         });
     }
@@ -462,11 +472,11 @@ fn contextual_assessment_sink(
         sink.push(
             subject.clone(),
             "http://www.w3.org/1999/02/22-rdf-syntax-ns#reifies",
-            Node::Value(purrdf::TermValue::Triple {
+            Node::Value(Box::new(purrdf::TermValue::Triple {
                 s: purrdf::TermValue::iri(&row.subject).into(),
                 p: purrdf::TermValue::iri(&row.predicate).into(),
                 o: purrdf::TermValue::iri(evidence.object()).into(),
-            }),
+            })),
         );
         sink.push(subject.clone(), gmeow("inWorld"), Node::iri(&row.graph));
         sink.push(subject.clone(), gmeow("viaRule"), Node::iri(&row.rule_iri));
@@ -580,7 +590,7 @@ impl ResultProjection {
             sink.push(
                 Node::iri(&axiom.subject),
                 &axiom.predicate,
-                Node::Value(axiom.object.clone()),
+                Node::Value(Box::new(axiom.object.clone())),
             );
         }
         Ok(Self { node_iri, sink })
@@ -667,7 +677,7 @@ pub(crate) fn contextual_assessment_facts(
     fn value(node: Node) -> gmeow_errors::Result<purrdf::TermValue> {
         match node {
             Node::Iri(iri) => Ok(purrdf::TermValue::iri(iri)),
-            Node::Value(value) => Ok(value),
+            Node::Value(value) => Ok(*value),
             Node::Lit { lex, datatype } => Ok(purrdf::TermValue::Literal {
                 lexical_form: lex,
                 datatype,
@@ -685,7 +695,7 @@ pub(crate) fn contextual_assessment_facts(
     for row in sink.triples {
         let fact = crate::rule_ir::Fact {
             subject: value(row.subject)?,
-            predicate: row.predicate,
+            predicate: row.predicate.to_string(),
             object: value(row.object)?,
         };
         if fact.subject.as_iri().is_none() {
@@ -814,7 +824,7 @@ fn append_native_dataset(
     let reifiers = sink
         .triples
         .iter()
-        .filter(|row| row.predicate == REIFIES)
+        .filter(|row| row.predicate.as_ref() == REIFIES)
         .map(|row| match &row.subject {
             Node::Iri(iri) => Ok(iri.clone()),
             _ => Err(result_err(
@@ -840,7 +850,7 @@ fn append_native_dataset(
         let annotation = matches!(&triple.subject, Node::Iri(iri) if reifiers.contains(iri));
         let subject = native(triple.subject)?;
         let object = native(triple.object)?;
-        if triple.predicate == REIFIES {
+        if triple.predicate.as_ref() == REIFIES {
             let purrdf::RdfTerm::Triple(statement) = object else {
                 return Err(result_err(
                     "native contextual reifier requires a quoted statement".into(),
@@ -849,11 +859,11 @@ fn append_native_dataset(
             let reifier = purrdf::RdfReifier::new(subject, *statement).in_graph(graph.clone());
             builder.push_owned_reifier_scoped(&reifier, blank_scope)?;
         } else if annotation {
-            let annotation = purrdf::RdfAnnotation::new(subject, triple.predicate, object)
+            let annotation = purrdf::RdfAnnotation::new(subject, triple.predicate.as_ref(), object)
                 .in_graph(graph.clone());
             builder.push_owned_annotation_scoped(&annotation, blank_scope)?;
         } else {
-            let mut quad = purrdf::RdfQuad::new(subject, triple.predicate, object);
+            let mut quad = purrdf::RdfQuad::new(subject, triple.predicate.as_ref(), object);
             quad.graph_name = graph.clone();
             builder.push_owned_quad_scoped(&quad, blank_scope)?;
         }
@@ -1212,7 +1222,7 @@ fn project_derived_axioms(sink: &mut Sink, subject: &Node, axioms: &[InferredAxi
         sink.push(
             node.clone(),
             logic("axiomObject"),
-            Node::Value(axiom.object.clone()),
+            Node::Value(Box::new(axiom.object.clone())),
         );
         sink.push(node.clone(), logic("axiomWorld"), axiom_term(&axiom.world));
 
