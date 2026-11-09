@@ -8138,7 +8138,7 @@ math:missingnessMechanism
     gmeow:avoidWhen "Do not leave this edge off a variable that carries a math:hasMissingnessIndicator; its absence is exactly the implicit-missingness the gate catches."@x-gmeow-english ;
     gmeow:howToUse "Set it on a math:StatisticalVariable with range math:MissingnessMechanism."@x-gmeow-english ;
     skos:example "exf:income math:missingnessMechanism exf:mar ."@x-gmeow-english ;
-    skos:scopeNote "Declares the reason for absence, distinct from math:hasMissingnessIndicator (the flag THAT a value is absent) and from math:missingDataPolicy (the estimand-level handling strategy)."@x-gmeow-english .
+    skos:scopeNote "Declares a missingness assumption, distinct from math:hasMissingnessIndicator recording absence, math:missingDataPolicy describing supplied analysis handling, and an event-specific target strategy named through math:intercurrentEventHandling. An assumption is not itself a handling procedure."@x-gmeow-english .
 
 # =========================================================================== #
 # Models and estimation — the target of inference vs the model quantity
@@ -8147,8 +8147,9 @@ math:missingnessMechanism
 # statistical estimate a provenance-heavy result rather than a bare number. The
 # layer distinguishes target, estimation procedure, result and generating activity.
 # A model parameter can itself be an estimand; both target links do not prove that
-# a parameter identifies a substantive study target. The six supplied framing roles
-# describe causal-study context, not a universal mathematical estimand requirement.
+# a parameter identifies a substantive study target. The supplied framing roles
+# describe study context, not a universal mathematical estimand requirement.
+# Event-specific target strategies remain separate from missing-data analysis.
 # A math:Statistic is a data function defined without unknown parameters and may
 # also serve as an estimator; distinguish that function from its realized value.
 # A math:ModelAssumption can be cited and assessed where suitable methods and
@@ -8168,11 +8169,11 @@ math:Estimand
     rdfs:subClassOf math:MathematicalObject ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "Estimand"@x-gmeow-english ;
-    skos:definition "An estimand: the target quantity a study seeks to learn, which may be a population summary, a causal contrast or an explicitly specified parameter of a math:StatisticalModel. A subclass of math:MathematicalObject, named from an estimate through math:estimatesEstimand. The vocabulary provides math:targetPopulation, math:targetOutcome, math:targetContrast (a math:StatisticalContrast), math:targetTime, math:interventionCondition and math:missingDataPolicy to describe relevant study context. This causal-study framing is not a universal mathematical definition or a demonstrated required-path gate for every estimand. A coefficient name alone does not identify the substantive target, and a declared frame alone does not establish causal identification or a valid treatment of missing data or intercurrent events."@x-gmeow-english ;
+    skos:definition "An estimand: the target quantity a study seeks to learn, which may be a population summary, a causal contrast or an explicitly specified parameter of a math:StatisticalModel. A subclass of math:MathematicalObject, named from an estimate through math:estimatesEstimand. Relevant supplied study context may use math:targetPopulation, math:targetOutcome, math:targetContrast, math:targetTime and math:interventionCondition. math:intercurrentEventHandling preserves each supplied event-strategy association defining the target question; math:missingDataPolicy separately records supplied analysis handling of unavailable data. These contextual roles are not a universal required-path gate. A coefficient name alone identifies no substantive target, and declarations alone establish neither causal identification nor valid analysis."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox ;
     gmeow:useWhen "Mint one to identify the target quantity a study seeks to learn, retaining whether it is a substantive population or causal target or an explicitly specified model parameter rather than assuming the target from a coefficient name."@x-gmeow-english ;
-    gmeow:avoidWhen "Do not infer a substantive estimand or its causal identification from a model parameter or six named framing roles alone. The same target may be addressed under different models, and a model parameter may itself be the specified target; do not invent an intervention or missing-data policy for a general mathematical quantity."@x-gmeow-english ;
-    gmeow:howToUse "Retain the actual target definition and relevant supplied math:targetPopulation, math:targetOutcome, math:targetContrast, math:targetTime, math:interventionCondition and math:missingDataPolicy context; an estimate names it through math:estimatesEstimand. Preserve absent or inapplicable context explicitly without manufacturing causal meaning or claiming a universal six-field admission check."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring a substantive target or causal identification from a model coefficient or framing links alone. A model parameter may itself be the specified target, and different models or analysis policies may address the same target; do not invent intervention, event-strategy or missing-data context."@x-gmeow-english ;
+    gmeow:howToUse "Retain the actual target definition and relevant supplied population, outcome, comparison, time and intervention context. Keep each supplied event-strategy association on its own math:intercurrentEventHandling record and supplied analysis handling under math:missingDataPolicy. An estimate names the target through math:estimatesEstimand; preserve unknown or inapplicable context without asserting a universal admission check."@x-gmeow-english ;
     skos:example "exf:ate a math:Estimand ; math:targetPopulation exf:adultsCanada ; math:targetContrast exf:treatVsControl ; math:interventionCondition exf:drugArm ."@x-gmeow-english ;
     skos:scopeNote "The target of inference, distinct in role from the math:Estimator procedure and the math:Estimate estimation-result record. A record's supplied value is separate from these roles; a target association does not prove that a numerical result is present or that estimation executed."@x-gmeow-english .
 
@@ -8247,25 +8248,25 @@ math:targetPopulation
     a logic:ObjectProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "target population"@x-gmeow-english ;
-    skos:definition "Relates a math:Estimand to the math:StatisticalPopulation it targets — the population the estimand is defined over, who the quantity being estimated speaks about. Domain math:Estimand, range math:StatisticalPopulation (stated in prose). One of the six coordinates that make an estimand well-posed; without a target population an estimand does not fix who it refers to. Distinct from math:population, which relates an estimate or sample to its population — this frames the estimand itself."@x-gmeow-english ;
+    skos:definition "Relates a math:Estimand to the math:StatisticalPopulation over which its target quantity is defined. Retain the supplied population when relevant; this role is not a universal required field for every mathematical estimand. It frames the target, whereas math:population describes the population associated with an estimate or sample."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox ;
-    gmeow:useWhen "Use to frame an estimand over the population it is defined for, one of the six coordinates that make an estimand well-posed."@x-gmeow-english ;
-    gmeow:avoidWhen "Do not use it to relate an estimate to a population; that is math:population, whereas this frames the math:Estimand itself."@x-gmeow-english ;
-    gmeow:howToUse "Set it on a math:Estimand with range math:StatisticalPopulation."@x-gmeow-english ;
+    gmeow:useWhen "Use when the supplied target definition identifies a population whose quantity is to be estimated."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid substituting the observed sample or sampling frame for the target population, or inventing a population for a target that does not supply one."@x-gmeow-english ;
+    gmeow:howToUse "Link the estimand to its supplied math:StatisticalPopulation. Preserve eligibility, subgroup or other population context where given; the link alone proves neither representativeness nor identification."@x-gmeow-english ;
     skos:example "exf:ate math:targetPopulation exf:adultsCanada ."@x-gmeow-english ;
-    skos:scopeNote "Frames the estimand population coordinate, distinct from math:population, which relates an estimate or sample to its population."@x-gmeow-english .
+    skos:scopeNote "The target-population role is distinct from math:population and math:sampleOf. Naming a population does not specify an outcome, comparison or estimation procedure."@x-gmeow-english .
 
 math:targetOutcome
     a logic:ObjectProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "target outcome"@x-gmeow-english ;
-    skos:definition "Relates a math:Estimand to the outcome it is defined on — the measured quantity (a math:StatisticalVariable or outcome measure) whose value the estimand summarizes across the target population. Domain math:Estimand, range the target outcome (stated in prose). One of the six framing coordinates; the same population and contrast over a different outcome is a different estimand."@x-gmeow-english ;
+    skos:definition "Relates a math:Estimand to the supplied outcome variable or measure on which its target quantity is defined, such as a math:StatisticalVariable. The outcome is distinct from the comparison and its time horizon; this contextual role is not a universal required field for every estimand."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox ;
-    gmeow:useWhen "Use to frame the estimand on the measured quantity whose value it summarizes across the target population."@x-gmeow-english ;
-    gmeow:avoidWhen "Do not vary the outcome silently; the same population and contrast over a different outcome is a different estimand, so name the outcome explicitly."@x-gmeow-english ;
-    gmeow:howToUse "Set it on a math:Estimand with range the outcome measure or math:StatisticalVariable."@x-gmeow-english ;
+    gmeow:useWhen "Use when the target definition specifies the measured outcome or variable whose population quantity is of interest."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid replacing the outcome with a realized estimate, a contrast or a label from which an unprovided transformation is inferred."@x-gmeow-english ;
+    gmeow:howToUse "Point from the estimand to its supplied outcome measure or math:StatisticalVariable. Retain relevant definition, coding and horizon context without inferring numerical observations or equivalence between transformed outcomes."@x-gmeow-english ;
     skos:example "exf:ate math:targetOutcome exf:income ."@x-gmeow-english ;
-    skos:scopeNote "The estimand outcome coordinate, distinct from math:targetContrast (the comparison) and math:targetTime (the horizon) it is evaluated over."@x-gmeow-english .
+    skos:scopeNote "The outcome identifies what is measured. math:targetContrast identifies a supplied comparison or association, and math:targetTime records a relevant horizon; none of these links computes the target quantity."@x-gmeow-english .
 
 math:targetContrast
     a logic:ObjectProperty ;
@@ -8283,37 +8284,73 @@ math:targetTime
     a logic:ObjectProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "target time"@x-gmeow-english ;
-    skos:definition "Relates a math:Estimand to the time or horizon it is defined at — the follow-up time, the landmark, the period over which the outcome and contrast are evaluated. Domain math:Estimand, range the target time (a time point, interval, or horizon, stated in prose). One of the six framing coordinates; a five-year survival difference and a one-year survival difference are different estimands over the same population and contrast."@x-gmeow-english ;
+    skos:definition "Relates a math:Estimand to a supplied time point, interval or horizon relevant to its target definition. A one-year and a five-year outcome summary may target different quantities. This role does not require a time coordinate for every mathematical estimand or establish a temporal computation."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox ;
-    gmeow:useWhen "Use to frame the estimand at the time or horizon its outcome and contrast are evaluated at, such as a follow-up time or landmark."@x-gmeow-english ;
-    gmeow:avoidWhen "Do not omit the horizon when it matters; a five-year and a one-year survival difference are different estimands over the same population and contrast."@x-gmeow-english ;
-    gmeow:howToUse "Set it on a math:Estimand with range a time point, interval, or horizon."@x-gmeow-english ;
+    gmeow:useWhen "Use when a follow-up time, landmark, interval or other horizon is part of the supplied target meaning."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid silently exchanging horizons, treating a horizon label as a measured duration, or inventing time context for a target that does not supply it."@x-gmeow-english ;
+    gmeow:howToUse "Link the estimand to the actual supplied time or horizon resource and retain the relevant outcome and comparison definitions. A declared horizon alone does not supply follow-up data or an evaluated temporal relation."@x-gmeow-english ;
     skos:example "exf:ate math:targetTime exf:month12 ."@x-gmeow-english ;
-    skos:scopeNote "The estimand time coordinate, distinct from the math:targetOutcome measured and the math:interventionCondition conditioned on."@x-gmeow-english .
+    skos:scopeNote "The target horizon is distinct from the time when an estimate was generated and from an intercurrent-event handling strategy. Retain those roles separately when supplied."@x-gmeow-english .
 
 math:interventionCondition
     a logic:ObjectProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "intervention condition"@x-gmeow-english ;
-    skos:definition "Relates a math:Estimand to the intervention or exposure condition it conditions on — the treatment, policy, or exposure whose effect the estimand quantifies (a do-condition, an assigned arm, a hypothetical intervention). Domain math:Estimand, range the intervention condition (stated in prose). One of the six framing coordinates and the causal hinge of the estimand; without a declared intervention condition an average treatment effect is not well-posed."@x-gmeow-english ;
+    skos:definition "Relates a math:Estimand to a supplied treatment, intervention or exposure condition relevant to its target. A treatment-effect question may describe assigned conditions or a hypothetical intervention. This declaration does not equate intervention with observational conditioning, prove causal identification or impose an intervention on every estimand."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox ;
-    gmeow:useWhen "Use to frame the estimand on the intervention, treatment, or exposure whose effect it quantifies, the causal hinge of the estimand."@x-gmeow-english ;
-    gmeow:avoidWhen "Do not leave the intervention unstated in a causal estimand; without a declared condition an average treatment effect is not well-posed."@x-gmeow-english ;
-    gmeow:howToUse "Set it on a math:Estimand with range the intervention or exposure condition, such as a do-condition or an assigned arm."@x-gmeow-english ;
+    gmeow:useWhen "Use when the target specification explicitly describes a treatment, intervention or exposure condition."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring an intervention from a regression coefficient, treating an observed exposure as randomized assignment, or claiming identification from this link alone."@x-gmeow-english ;
+    gmeow:howToUse "Link the estimand to the supplied condition description and retain the relevant comparison conditions. Represent each supplied event-strategy association through math:intercurrentEventHandling; keep analysis missing-data handling separate."@x-gmeow-english ;
     skos:example "exf:ate math:interventionCondition exf:drugArm ."@x-gmeow-english ;
-    skos:scopeNote "The estimand causal coordinate, distinct from math:targetContrast (the comparison of conditions) and math:missingDataPolicy (how absence is handled)."@x-gmeow-english .
+    skos:scopeNote "A condition description, a comparison, an intercurrent-event strategy and a missing-data analysis policy have distinct roles. Their presence alone proves no executed analysis or causal validity."@x-gmeow-english .
 
 math:missingDataPolicy
     a logic:ObjectProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "missing-data policy"@x-gmeow-english ;
-    skos:definition "Relates a math:Estimand to the missing-data policy under which it is defined — the intercurrent-event and missing-data handling strategy (a treatment-policy, hypothetical, or composite strategy; a declared math:MissingnessMechanism the target rests on) that fixes what the estimand means when data are incomplete. Domain math:Estimand, range the missing-data policy (stated in prose). One of the six framing coordinates; the same treatment effect under a treatment-policy strategy and under a hypothetical strategy are distinct estimands. Distinct from math:missingnessMechanism, which declares the mechanism a variable's absence follows — this frames the estimand's policy for it."@x-gmeow-english ;
+    skos:definition "Relates a math:Estimand to a separately supplied analysis policy for handling unavailable data when estimating that target. The policy is distinct from an intercurrent-event strategy defining the target and from a math:MissingnessMechanism assumption. Different analysis policies may address the same estimand; this link neither defines a universal estimand attribute nor validates the policy."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox ;
-    gmeow:useWhen "Use to frame the estimand on the intercurrent-event and missing-data strategy that fixes what it means when data are incomplete."@x-gmeow-english ;
-    gmeow:avoidWhen "Do not confuse the estimand-level policy with the variable-level mechanism; the same effect under a treatment-policy and a hypothetical strategy are distinct estimands."@x-gmeow-english ;
-    gmeow:howToUse "Set it on a math:Estimand with range the strategy or a declared math:MissingnessMechanism the target rests on."@x-gmeow-english ;
-    skos:example "exf:ate math:missingDataPolicy exf:treatmentPolicyStrategy ."@x-gmeow-english ;
-    skos:scopeNote "The estimand policy for incompleteness, distinct from math:missingnessMechanism, which declares the mechanism a specific variable absence follows."@x-gmeow-english .
+    gmeow:useWhen "Use when the source explicitly supplies analysis handling of unavailable data for the target being estimated."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid using treatment-policy or hypothetical intercurrent-event strategies, or a MAR/MNAR assumption alone, as a missing-data handling procedure. Do not infer an absent analysis policy."@x-gmeow-english ;
+    gmeow:howToUse "Link to the supplied analysis-policy description, preserving its method, assumptions and estimand alignment where stated. Record event-specific target strategies through math:intercurrentEventHandling and variable-level missingness assumptions through math:missingnessMechanism."@x-gmeow-english ;
+    skos:example "exf:ate math:missingDataPolicy exf:declaredImputationPlan ."@x-gmeow-english ;
+    skos:scopeNote "Analysis handling, missingness assumptions and intercurrent-event target specification remain separate. Naming a policy establishes neither valid imputation, recovered observations nor an executed estimation procedure."@x-gmeow-english .
+
+math:intercurrentEventHandling
+    a logic:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "intercurrent-event handling"@x-gmeow-english ;
+    skos:definition "Relates a math:Estimand to a supplied event-specific handling record represented as a math:MathematicalObject. The record associates an event specification through math:intercurrentEvent with its target-defining strategy through math:intercurrentEventStrategy. Separate associations use separate records, even when their strategy descriptions are shared."@x-gmeow-english ;
+    gmeow:useWhen "Use when a target specification states how a particular intercurrent event is reflected in the question being estimated."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid independent unpaired event and strategy lists, confusing a specification with an observed event occurrence, or treating every estimand as requiring this role."@x-gmeow-english ;
+    gmeow:howToUse "Create a separate mathematical record for each supplied event-strategy association and link both endpoints from that record. Preserve the source context and any unknown fields; these declarations do not supply an incomplete-record validator."@x-gmeow-english ;
+    skos:example "exf:ate math:intercurrentEventHandling exf:rescueHandling ."@x-gmeow-english ;
+    skos:scopeNote "This is a supplied target-specification association, not a missing-data analysis policy, an event occurrence, an executed procedure or proof of causal identification. No new record class or closed strategy enumeration is implied."@x-gmeow-english .
+
+math:intercurrentEvent
+    a logic:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "intercurrent event specification"@x-gmeow-english ;
+    skos:definition "Relates an event-specific handling record to the event specification addressed by its strategy. The subject is the same mathematical record linked from an estimand through math:intercurrentEventHandling; its strategy is separately named through math:intercurrentEventStrategy. The object describes the event of interest rather than asserting that it occurred."@x-gmeow-english ;
+    gmeow:useWhen "Use to identify which event specification a supplied target strategy addresses."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid attaching an unpaired event list directly to an estimand, substituting study withdrawal for an intercurrent event without justification, or inferring event occurrence from its specification."@x-gmeow-english ;
+    gmeow:howToUse "Set this edge on the handling record and retain the strategy edge on that same record. Use distinct records for distinct associations and preserve the event definition and scope supplied by the source."@x-gmeow-english ;
+    skos:example "exf:rescueHandling math:intercurrentEvent exf:rescueMedicationSpecification ."@x-gmeow-english ;
+    skos:scopeNote "Event applicability belongs to the particular handling record. A shared strategy description does not imply that its event scopes or target questions are identical; missing data and intercurrent events remain distinct concepts."@x-gmeow-english .
+
+math:intercurrentEventStrategy
+    a logic:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "intercurrent-event strategy"@x-gmeow-english ;
+    skos:definition "Relates an event-specific handling record to the supplied strategy description defining the target question with respect to its event specification. The event is named through math:intercurrentEvent on the same record. Treatment-policy, hypothetical and other strategy descriptions are not missing-data procedures or a closed enumeration imposed by this property."@x-gmeow-english ;
+    gmeow:useWhen "Use when the source explicitly describes the target-defining strategy for the event specification paired on a handling record."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid treating the strategy as imputation, inferring its applicability from another record, or claiming that naming a strategy establishes valid estimation or identifies a causal effect."@x-gmeow-english ;
+    gmeow:howToUse "Link the handling record to the actual supplied strategy description and retain its event endpoint on that record. A strategy description may be shared by separate records without merging their event associations or estimand contexts."@x-gmeow-english ;
+    skos:example "exf:rescueHandling math:intercurrentEventStrategy exf:treatmentPolicyStrategy ."@x-gmeow-english ;
+    skos:scopeNote "The strategy helps specify the target question. The analysis method and its missing-data policy must be described separately when supplied; no strategy name proves data availability, numerical execution or successful sensitivity analysis."@x-gmeow-english .
 
 math:modelAssumption
     a logic:ObjectProperty ;

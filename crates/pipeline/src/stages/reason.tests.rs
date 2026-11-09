@@ -449,6 +449,16 @@ ex:world {
         .unwrap(),
         "direct carrier emission must retain the complete standalone statement layers"
     );
+    let expected = gmeow_logic::result_rdf::project_reasoning_dataset(&reasoned.result).unwrap();
+    assert!(
+        purrdf::datasets_isomorphic(
+            &graph,
+            &expected,
+            &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None),
+        )
+        .unwrap(),
+        "direct carrier emission must retain the complete standalone statement layers"
+    );
     assert!(
         graph.owned_quads().any(|quad| {
             quad.subject == RdfTerm::iri("urn:contextual-artifact:request")
