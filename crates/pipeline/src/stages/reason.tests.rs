@@ -89,7 +89,7 @@ fn explicit_theory_selection_does_not_mint_support_graph_domains() {
     )
     .unwrap()])
     .unwrap();
-    let reasoned = reason_over_dataset(&source, &domains).unwrap();
+    let reasoned = reason_over_dataset(source.as_ref(), &domains).unwrap();
     let native = reasoned.result.native_execution().unwrap();
     assert_eq!(native.selected_domains, domains);
     assert_eq!(
@@ -131,7 +131,7 @@ fn selected_blank_graph_cannot_silently_split_at_pipeline_relabelling() {
     )
     .unwrap()])
     .unwrap();
-    let error = reason_over_dataset(&source, &domains)
+    let error = reason_over_dataset(source.as_ref(), &domains)
         .err()
         .expect("issuer mapping is mandatory");
     assert!(error.to_string().contains("issuer mapping"));

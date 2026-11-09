@@ -17,6 +17,7 @@
 //! for the reasoning engine (this is the sole resource-bearing build stage).
 
 use std::collections::{BTreeMap, BTreeSet};
+use std::ops::Deref;
 use std::sync::Arc;
 use std::time::Instant;
 
@@ -126,11 +127,13 @@ fn reason_product_from_artifacts(
 /// selected blank graph identities cannot cross relabelling without its issuer map.
 /// The caller supplies the exact theory-role domain authority; merely occupying
 /// a support or diagnostic graph does not select a domain law.
+/// The carrier is consumed and released after its final authored-expression read.
+/// An owning `Arc` can release the temporary EDB before terminal artifacts are built.
 ///
 /// # Errors
 /// Rejects native input/domain admission, execution, evidence or projection failures.
 pub fn reason_over_dataset(
-    edb: &RdfDataset,
+    edb: impl Deref<Target = RdfDataset>,
     domains: &SelectedDomains,
 ) -> Result<ReasonArtifacts, gmeow_errors::Diag> {
     if domains.worlds().iter().any(
@@ -153,7 +156,7 @@ pub fn reason_over_dataset(
         input_terms = edb.term_count(),
         "stage phase boundary",
     );
-    let canon = canonicalize_edb(edb, "stage-reason")?;
+    let canon = canonicalize_edb(&*edb, "stage-reason")?;
     tracing::info!(
         target: "pipeline_phase",
         stage = "stage-reason",
@@ -199,7 +202,7 @@ fn stage_failure(message: impl Into<String>) -> gmeow_errors::Diag {
 
 /// Execute the consuming input once and retain its native proof owner in the result.
 fn reason_prepared_input(
-    edb: &RdfDataset,
+    edb: impl Deref<Target = RdfDataset>,
     input: PreparedReasoningInput,
     domains: &SelectedDomains,
 ) -> Result<ReasonArtifacts, gmeow_errors::Diag> {
@@ -286,8 +289,11 @@ fn reason_prepared_input(
     // in a SHIPPED artifact — `gmeow.gts`'s default graph and the committed inferred-closure
     // file — instead of only inside a gate process.
     let alpha_edges = measure_stage_phase("stage-reason", "project-expression-identities", || {
-        gmeow_logic::math_expression::alpha_equivalence_edges(edb)
+        gmeow_logic::math_expression::alpha_equivalence_edges(&*edb)
     });
+    // Prepared input, result and expression edges own their retained values.
+    // The original carrier has no reader during terminal artifact projection.
+    drop(edb);
     // Non-merge (the regenerate path): the closure is told-vs-inferred plus that derivation.
     let mut builder = RdfDatasetBuilder::new();
     let closure = measure_stage_phase("stage-reason", "project-inferred-closure", || {
@@ -808,7 +814,7 @@ impl Stage for ReasonStage {
             edb_quads,
             "stage phase boundary",
         );
-        let reasoned = reason_over_dataset(edb.as_ref(), &domains)?;
+        let reasoned = reason_over_dataset(edb, &domains)?;
         let inferred_axioms = reasoned.result.inferred().len();
         let budget = reasoned.result.provenance.consumed_budget;
         let budget_allowance = budget
