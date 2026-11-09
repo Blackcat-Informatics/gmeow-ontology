@@ -731,6 +731,65 @@ fn typed_inferred_objects_survive_closure_and_receipt_projections() {
         restored.payload, result.payload,
         "native result admission retains every receipt and typed object"
     );
+    let mut appended = purrdf::RdfDatasetBuilder::new();
+    let mut routed = purrdf::RdfDatasetBuilder::new();
+    for builder in [&mut appended, &mut routed] {
+        let source = builder.intern_blank("source", BlankScope(1)).unwrap();
+        let component = builder.intern_blank("axiom0", BlankScope(1)).unwrap();
+        let predicate = builder.intern_iri("urn:existing").unwrap();
+        builder
+            .push_quad(source, predicate, component, None)
+            .unwrap();
+    }
+    let scope = BlankScope(2);
+    ResultProjection::reasoning(&result)
+        .unwrap()
+        .append_into(&mut appended, Some(GRAPH_REASONING), scope)
+        .unwrap();
+    let graph = purrdf::RdfTerm::iri(GRAPH_REASONING);
+    for mut row in native.owned_quads() {
+        row.graph_name = Some(graph.clone());
+        routed.push_owned_quad_scoped(&row, scope).unwrap();
+    }
+    for mut row in native.owned_reifiers() {
+        row.graph = Some(graph.clone());
+        routed.push_owned_reifier_scoped(&row, scope).unwrap();
+    }
+    for mut row in native.owned_annotations() {
+        row.graph = Some(graph.clone());
+        routed.push_owned_annotation_scoped(&row, scope).unwrap();
+    }
+    let appended = appended.freeze().unwrap();
+    let routed = routed.freeze().unwrap();
+    assert!(
+        purrdf::datasets_isomorphic(
+            &appended,
+            &routed,
+            &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None),
+        )
+        .unwrap(),
+        "direct append must retain the complete formerly routed projection"
+    );
+    let nested: Vec<_> = [17, 19]
+        .into_iter()
+        .map(|source_scope| {
+            appended
+                .term_id_by_value(&TermValue::Blank {
+                    label: BlankScope(source_scope).qualify_label("source"),
+                    scope,
+                })
+                .expect("nested source blank survives direct scoped append")
+        })
+        .collect();
+    assert_ne!(nested[0], nested[1], "source scopes must remain distinct");
+    assert!(
+        appended
+            .term_id_by_value(&TermValue::Blank {
+                label: "axiom0".into(),
+                scope: BlankScope(1),
+            })
+            .is_some()
+    );
     let restored = parse_reasoning_graph(&project_reasoning_result(&result).unwrap()).unwrap();
     assert_eq!(
         restored.payload, result.payload,

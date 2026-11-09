@@ -579,6 +579,24 @@ impl ResultProjection {
     pub fn into_dataset(self) -> gmeow_errors::Result<std::sync::Arc<RdfDataset>> {
         native_dataset(self.sink)
     }
+
+    /// Move this projection's complete statement layers into a caller-owned carrier.
+    ///
+    /// `graph` selects the destination for every row. A nondefault `blank_scope`
+    /// must be fresh in the destination, standardizing all source blanks apart.
+    /// The caller must freeze the completed builder to validate its structure.
+    ///
+    /// # Errors
+    /// Rejects malformed RDF terms, statement metadata or storage refusal. On
+    /// failure the caller must discard the builder, which may contain a prefix.
+    pub fn append_into(
+        self,
+        builder: &mut purrdf::RdfDatasetBuilder,
+        graph: Option<&str>,
+        blank_scope: purrdf::BlankScope,
+    ) -> gmeow_errors::Result<()> {
+        append_native_dataset(self.sink, builder, graph, blank_scope)
+    }
 }
 
 /// Project the governed reasoning summary directly into a native dataset.
@@ -747,6 +765,17 @@ pub(crate) fn contextual_projection_effects() -> Vec<crate::physical::StatementP
 /// The result vocabulary owns its statement layer. Reifier declarations and all
 /// their annotations are retained in the same graph as the ordinary records.
 fn native_dataset(sink: Sink) -> gmeow_errors::Result<std::sync::Arc<RdfDataset>> {
+    let mut builder = purrdf::RdfDatasetBuilder::new();
+    append_native_dataset(sink, &mut builder, None, purrdf::BlankScope::DEFAULT)?;
+    builder.freeze().map_err(gmeow_errors::Diag::from)
+}
+
+fn append_native_dataset(
+    sink: Sink,
+    builder: &mut purrdf::RdfDatasetBuilder,
+    graph: Option<&str>,
+    blank_scope: purrdf::BlankScope,
+) -> gmeow_errors::Result<()> {
     const REIFIES: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#reifies";
     let reifiers = sink
         .triples
@@ -772,7 +801,7 @@ fn native_dataset(sink: Sink) -> gmeow_errors::Result<std::sync::Arc<RdfDataset>
             }
         })
     };
-    let mut builder = purrdf::RdfDatasetBuilder::new();
+    let graph = graph.map(purrdf::RdfTerm::iri);
     for triple in sink.triples {
         let annotation = matches!(&triple.subject, Node::Iri(iri) if reifiers.contains(iri));
         let subject = native(triple.subject)?;
@@ -783,18 +812,19 @@ fn native_dataset(sink: Sink) -> gmeow_errors::Result<std::sync::Arc<RdfDataset>
                     "native contextual reifier requires a quoted statement".into(),
                 ));
             };
-            builder.push_owned_reifier(&purrdf::RdfReifier::new(subject, *statement))?;
+            let reifier = purrdf::RdfReifier::new(subject, *statement).in_graph(graph.clone());
+            builder.push_owned_reifier_scoped(&reifier, blank_scope)?;
         } else if annotation {
-            builder.push_owned_annotation(&purrdf::RdfAnnotation::new(
-                subject,
-                triple.predicate,
-                object,
-            ))?;
+            let annotation = purrdf::RdfAnnotation::new(subject, triple.predicate, object)
+                .in_graph(graph.clone());
+            builder.push_owned_annotation_scoped(&annotation, blank_scope)?;
         } else {
-            builder.push_owned_quad(&purrdf::RdfQuad::new(subject, triple.predicate, object))?;
+            let mut quad = purrdf::RdfQuad::new(subject, triple.predicate, object);
+            quad.graph_name = graph.clone();
+            builder.push_owned_quad_scoped(&quad, blank_scope)?;
         }
     }
-    builder.freeze().map_err(gmeow_errors::Diag::from)
+    Ok(())
 }
 
 fn reasoning_sink(result: &ReasoningResult) -> gmeow_errors::Result<Sink> {
