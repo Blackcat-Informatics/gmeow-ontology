@@ -411,14 +411,34 @@ ex:world {
     let graph = dataset
         .project_graph(Some(&purrdf::RdfTerm::iri(GRAPH_REASONING)))
         .unwrap();
-    assert!(
-        graph.owned_reifiers().next().is_some(),
-        "native source receipts retain their quoted conclusions"
+    let conclusion = purrdf::RdfTriple::new(
+        RdfTerm::iri("urn:contextual-artifact:claim"),
+        "https://blackcatinformatics.ca/gmeow/accordingTo",
+        RdfTerm::iri("urn:contextual-artifact:observer"),
     );
-    assert!(
-        graph.owned_annotations().next().is_some(),
-        "native source receipt annotations follow their graph"
-    );
+    let reifier = graph
+        .owned_reifiers()
+        .find(|row| row.statement == conclusion)
+        .expect("native source receipts retain the inferred attribution conclusion");
+    for (predicate, object) in [
+        (
+            "https://blackcatinformatics.ca/gmeow/inWorld",
+            "urn:contextual-artifact:world",
+        ),
+        (
+            "https://blackcatinformatics.ca/gmeow/inferenceKind",
+            "https://blackcatinformatics.ca/gmeow/Deduction",
+        ),
+    ] {
+        assert!(
+            graph.owned_annotations().any(|annotation| {
+                annotation.reifier == reifier.reifier
+                    && annotation.predicate == predicate
+                    && annotation.object == RdfTerm::iri(object)
+            }),
+            "native source receipts retain {predicate} on their own reifier"
+        );
+    }
     let expected = gmeow_logic::result_rdf::project_reasoning_dataset(&reasoned.result).unwrap();
     assert!(
         purrdf::datasets_isomorphic(
