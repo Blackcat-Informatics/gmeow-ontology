@@ -775,9 +775,12 @@ fn typed_inferred_objects_survive_closure_and_receipt_projections() {
         .map(|source_scope| {
             appended
                 .term_id_by_value(&TermValue::Blank {
-                    label: BlankScope(source_scope).qualify_label("source"),
+                    label: BlankScope(source_scope)
+                        .qualify_label("source")
+                        .into_owned(),
                     scope,
                 })
+                .expect("native blank lookup succeeds")
                 .expect("nested source blank survives direct scoped append")
         })
         .collect();
@@ -788,6 +791,7 @@ fn typed_inferred_objects_survive_closure_and_receipt_projections() {
                 label: "axiom0".into(),
                 scope: BlankScope(1),
             })
+            .expect("native blank lookup succeeds")
             .is_some()
     );
     let restored = parse_reasoning_graph(&project_reasoning_result(&result).unwrap()).unwrap();
