@@ -57,6 +57,7 @@
 //! (axes/provenance), faithful-subset where the payload rows are carried elsewhere.
 
 use std::collections::{BTreeMap, BTreeSet};
+use std::fmt;
 use std::sync::Arc;
 
 use gmeow_logic_compile::ir::{LOGIC_NAMESPACE, PreservationKind};
@@ -174,38 +175,37 @@ impl Node {
             datatype: XSD_ANY_URI.to_owned(),
         }
     }
-    /// Render this node in canonical N-Triples term syntax.
-    fn render(&self) -> String {
+}
+
+impl fmt::Display for Node {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            Node::Iri(iri) | Node::SelfReference(iri) => format!("<{iri}>"),
-            Node::Blank(id) => format!("_:{id}"),
-            Node::Value(value) => crate::provenance::term_display(value),
+            Node::Iri(iri) | Node::SelfReference(iri) => write!(f, "<{iri}>"),
+            Node::Blank(id) => write!(f, "_:{id}"),
+            Node::Value(value) => f.write_str(&crate::provenance::term_display(value)),
             Node::Lit { lex, datatype } => {
-                format!("\"{}\"^^<{datatype}>", escape_literal(lex))
+                f.write_str("\"")?;
+                // Write unchanged spans together so large hex receipts need no escaped copy.
+                let mut start = 0;
+                for (index, ch) in lex.char_indices() {
+                    if matches!(ch, '\\' | '"') || ch.is_control() {
+                        f.write_str(&lex[start..index])?;
+                        match ch {
+                            '\\' => f.write_str("\\\\")?,
+                            '"' => f.write_str("\\\"")?,
+                            '\n' => f.write_str("\\n")?,
+                            '\r' => f.write_str("\\r")?,
+                            '\t' => f.write_str("\\t")?,
+                            control => write!(f, "\\u{:04X}", control as u32)?,
+                        }
+                        start = index + ch.len_utf8();
+                    }
+                }
+                f.write_str(&lex[start..])?;
+                write!(f, "\"^^<{datatype}>")
             }
         }
     }
-}
-
-/// Escape a lexical form for an N-Triples quoted literal (RDF 1.1 §7).
-fn escape_literal(s: &str) -> String {
-    let mut out = String::with_capacity(s.len());
-    for ch in s.chars() {
-        match ch {
-            '\\' => out.push_str("\\\\"),
-            '"' => out.push_str("\\\""),
-            '\n' => out.push_str("\\n"),
-            '\r' => out.push_str("\\r"),
-            '\t' => out.push_str("\\t"),
-            // Never emit a raw control scalar into the RDF transport. In particular,
-            // structured formula content keys deliberately contain NUL separators;
-            // preserving those bytes as UCHAR escapes keeps the N-Triples parseable
-            // while round-tripping the exact lexical form.
-            c if c.is_control() => out.push_str(&format!("\\u{:04X}", c as u32)),
-            c => out.push(c),
-        }
-    }
-    out
 }
 
 /// A triple `(subject, predicate, object)` accumulated before sorting.
@@ -259,9 +259,7 @@ impl Sink {
         for t in &self.triples {
             lines.insert(format!(
                 "{} <{}> {}{graph} .",
-                t.subject.render(),
-                t.predicate,
-                t.object.render()
+                t.subject, t.predicate, t.object
             ));
         }
         lines.into_iter().collect()
@@ -1031,7 +1029,27 @@ fn project_provenance(
             subject.clone(),
             logic("resultNativeExecution"),
             Node::Lit {
-                lex: native::encode(execution)?,
+                lex: {
+                    let started = crate::timing::Instant::now();
+                    tracing::info!(
+                        target: "pipeline_phase",
+                        stage = "stage-reason",
+                        phase = "encode-native-reasoning-receipt",
+                        event = "start",
+                        "reason phase boundary",
+                    );
+                    let encoded = native::encode(execution)?;
+                    tracing::info!(
+                        target: "pipeline_phase",
+                        stage = "stage-reason",
+                        phase = "encode-native-reasoning-receipt",
+                        event = "end",
+                        elapsed_ms = started.elapsed().as_millis(),
+                        encoded_bytes = encoded.len(),
+                        "reason phase boundary",
+                    );
+                    encoded
+                },
                 datatype: "http://www.w3.org/2001/XMLSchema#hexBinary".into(),
             },
         );

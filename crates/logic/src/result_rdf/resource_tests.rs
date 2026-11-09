@@ -181,11 +181,11 @@ fn contextual_resource_components_do_not_borrow_a_role_from_another_graph() {
         .find(|row| row.predicate.as_ref() == logic("resultProof"))
         .unwrap()
         .object
-        .render();
+        .to_string();
     let position = sink
         .triples
         .iter()
-        .position(|row| row.subject.render() == proof && row.predicate.as_ref() == RDF_TYPE)
+        .position(|row| row.subject.to_string() == proof && row.predicate.as_ref() == RDF_TYPE)
         .unwrap();
     let role = sink.triples.remove(position);
     let mut foreign = Sink::default();
