@@ -12,8 +12,8 @@ use crate::execution_cbor::{ExecutionCbor, Reader, Result as WireResult, descend
 use super::{BoundKind, FragmentBoundary, FragmentFamily};
 
 impl ExecutionCbor for FragmentFamily {
-    fn write_cbor<W: crate::execution_cbor::LeafWrite + ?Sized>(
-        &self,
+    fn write_cbor<'data, W: crate::execution_cbor::LeafWrite<'data> + ?Sized>(
+        &'data self,
         out: &mut W,
     ) -> io::Result<()> {
         match self {
@@ -41,8 +41,8 @@ impl ExecutionCbor for FragmentFamily {
 }
 
 impl ExecutionCbor for BoundKind {
-    fn write_cbor<W: crate::execution_cbor::LeafWrite + ?Sized>(
-        &self,
+    fn write_cbor<'data, W: crate::execution_cbor::LeafWrite<'data> + ?Sized>(
+        &'data self,
         out: &mut W,
     ) -> io::Result<()> {
         match self {
@@ -70,8 +70,8 @@ impl ExecutionCbor for BoundKind {
 }
 
 impl ExecutionCbor for FragmentBoundary {
-    fn write_cbor<W: crate::execution_cbor::LeafWrite + ?Sized>(
-        &self,
+    fn write_cbor<'data, W: crate::execution_cbor::LeafWrite<'data> + ?Sized>(
+        &'data self,
         out: &mut W,
     ) -> io::Result<()> {
         match self {

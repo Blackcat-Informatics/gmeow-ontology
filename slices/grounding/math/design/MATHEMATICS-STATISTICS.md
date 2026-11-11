@@ -91,10 +91,11 @@ operation separately; passing a required-link check does not establish numerical
 model quantity named in an estimate. A model parameter may itself be the specified estimand,
 but a coefficient name does not automatically identify a substantive population or causal target.
 Supplying both target links does not establish equality or identification between their objects.
-Population, outcome, contrast, time, intervention and missing-data policy provide relevant
-causal-study framing, not universal mathematical prerequisites or a demonstrated six-role
-admission gate for every estimand. Such declarations alone prove neither causal identification
-nor valid treatment of missing data or intercurrent events. The vocabulary offers these roles:
+Population, outcome, contrast, time and intervention provide relevant supplied target context,
+not universal mathematical prerequisites or a demonstrated admission gate for every estimand.
+Intercurrent-event target strategies and missing-data analysis handling have separate roles.
+Such declarations alone prove neither causal identification nor valid analysis. The vocabulary
+offers these contextual roles:
 
 ```text
 math:Estimand
@@ -103,8 +104,34 @@ math:Estimand
   math:targetContrast
   math:targetTime
   math:interventionCondition
+  math:intercurrentEventHandling
   math:missingDataPolicy
 ```
+
+Each supplied event-strategy association has its own `math:MathematicalObject` handling
+record, linked from the estimand through `math:intercurrentEventHandling`. That record names
+its event specification with `math:intercurrentEvent` and its strategy description with
+`math:intercurrentEventStrategy`. Distinct associations use distinct records even when they
+share a strategy description. The event specification is not an assertion that an event
+occurred. Keeping both endpoints on their record preserves their association; independent
+event and strategy lists would lose it. These declarations introduce no new record class,
+cardinality enforcement or incomplete-record validator.
+
+`math:missingDataPolicy` separately records explicitly supplied analysis handling of
+unavailable data for the target. A `math:MissingnessMechanism` describes an assumption about
+missingness, not a handling procedure. Neither is interchangeable with a target-defining
+intercurrent-event strategy, and different analysis policies may address the same estimand.
+The worked scene supplies an illustrative treatment-discontinuation strategy but no analysis
+missing-data policy; no such policy is inferred from its treatment-policy strategy.
+
+[ICH E9(R1), final guideline adopted 20 November 2019](https://database.ich.org/sites/default/files/E9-R1_Step4_Guideline_2019_1203.pdf)
+distinguishes intercurrent-event target specification from missing-data analysis (A.1,
+printed page 3; A.3.1, pages 5–6; A.5.1, pages 15–17). Its event-specific strategies
+(A.3.2, pages 7–9) contribute to five estimand attributes: treatment conditions, population,
+variable, intercurrent-event handling and population-level summary (A.3.3, pages 9–10).
+The repository's contextual properties are its own representation, rather than that five-item
+list or a clinical-method implementation. Naming an intervention condition establishes neither
+observational conditioning nor causal identification.
 
 A `math:Estimator` is the estimation procedure; a `math:Statistic` is a data function defined
 without unknown model parameters. The same function can have both roles; distinguish it from

@@ -2,13 +2,13 @@
 # SPDX-License-Identifier: CC-BY-4.0
 #
 # ABox fixture for the estimand-framing competency question "which properties frame an
-# estimand". One fully specified math:Estimand carrying each of the six ICH E9(R1)-style
-# attributes that pin the target quantity before any data is seen: the population it targets
-# (math:targetPopulation), the outcome it is defined on (math:targetOutcome), the contrast it
-# measures (math:targetContrast), the intervention it conditions on
-# (math:interventionCondition), the time horizon (math:targetTime), and the missing-data /
-# intercurrent-event policy (math:missingDataPolicy). The reasoning-free query projects each
-# predicate on the estimand. Unioned onto the merged ontology by gmeow:cqDataFile.
+# estimand". The supplied population, outcome, comparison, intervention and time roles
+# describe this target, without imposing a universal frame or reproducing ICH's five
+# attributes. A separately supplied analysis policy remains distinct from two explicit
+# event-strategy associations. The reasoning-free query retains each record's subject so
+# the associations cannot collapse into independent lists. This fixture supplies twelve
+# selected graph edges, not evidence of clinical validity or an incomplete-record validator.
+# Unioned onto the merged ontology by gmeow:cqDataFile.
 @prefix math: <https://blackcatinformatics.ca/math/> .
 @prefix ex:   <http://example.org/math/> .
 
@@ -18,4 +18,16 @@ ex:estimand a math:Estimand ;
     math:targetContrast ex:contrast ;
     math:interventionCondition ex:intervention ;
     math:targetTime ex:horizon ;
-    math:missingDataPolicy ex:treatmentPolicy .
+    math:missingDataPolicy ex:declaredImputationPlan ;
+    math:intercurrentEventHandling ex:discontinuationHandling , ex:rescueHandling .
+
+# Explicit toy analysis context, not inferred from either target strategy.
+ex:declaredImputationPlan a math:MathematicalObject .
+
+ex:discontinuationHandling a math:MathematicalObject ;
+    math:intercurrentEvent ex:discontinuationSpecification ;
+    math:intercurrentEventStrategy ex:treatmentPolicy .
+
+ex:rescueHandling a math:MathematicalObject ;
+    math:intercurrentEvent ex:rescueMedicationSpecification ;
+    math:intercurrentEventStrategy ex:hypotheticalStrategy .

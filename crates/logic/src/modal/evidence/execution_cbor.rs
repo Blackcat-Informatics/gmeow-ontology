@@ -19,8 +19,8 @@ impl ExecutionCbor for ModalWorldEvidence {
         Ok(())
     }
     /// Stream every field in this record's serialized declaration order.
-    fn write_cbor<W: crate::execution_cbor::LeafWrite + ?Sized>(
-        &self,
+    fn write_cbor<'data, W: crate::execution_cbor::LeafWrite<'data> + ?Sized>(
+        &'data self,
         out: &mut W,
     ) -> io::Result<()> {
         head::write_head(out, head::MAP, 2)?;
@@ -68,8 +68,8 @@ impl ExecutionCbor for ModalEvaluation {
         Ok(())
     }
     /// Stream every field in this record's serialized declaration order.
-    fn write_cbor<W: crate::execution_cbor::LeafWrite + ?Sized>(
-        &self,
+    fn write_cbor<'data, W: crate::execution_cbor::LeafWrite<'data> + ?Sized>(
+        &'data self,
         out: &mut W,
     ) -> io::Result<()> {
         head::write_head(out, head::MAP, 12)?;
@@ -151,8 +151,8 @@ impl ExecutionCbor for ModalEvaluation {
 impl ExecutionCbor for ModalOp {
     crate::__gmeow_execution_unit_depth!(Box, Diamond);
     /// Retain the original unit-variant text, independent of projection vocabularies.
-    fn write_cbor<W: crate::execution_cbor::LeafWrite + ?Sized>(
-        &self,
+    fn write_cbor<'data, W: crate::execution_cbor::LeafWrite<'data> + ?Sized>(
+        &'data self,
         out: &mut W,
     ) -> io::Result<()> {
         head::write_text(
@@ -187,8 +187,8 @@ impl ExecutionCbor for ModalFrontier {
         }
     }
     /// Preserve the original unit text or externally tagged struct-variant wire.
-    fn write_cbor<W: crate::execution_cbor::LeafWrite + ?Sized>(
-        &self,
+    fn write_cbor<'data, W: crate::execution_cbor::LeafWrite<'data> + ?Sized>(
+        &'data self,
         out: &mut W,
     ) -> io::Result<()> {
         match self {

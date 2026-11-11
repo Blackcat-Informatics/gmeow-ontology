@@ -13,8 +13,8 @@ use super::{ProgramReachability, ReachabilityEvidence};
 
 impl ExecutionCbor for ReachabilityEvidence {
     /// Retain a selected program analysis or the explicit class-only variant.
-    fn write_cbor<W: crate::execution_cbor::LeafWrite + ?Sized>(
-        &self,
+    fn write_cbor<'data, W: crate::execution_cbor::LeafWrite<'data> + ?Sized>(
+        &'data self,
         out: &mut W,
     ) -> io::Result<()> {
         match self {
@@ -48,8 +48,8 @@ impl ExecutionCbor for ReachabilityEvidence {
 
 impl ExecutionCbor for ProgramReachability {
     /// Retain the complete ProgramReachability in its original declaration order.
-    fn write_cbor<W: crate::execution_cbor::LeafWrite + ?Sized>(
-        &self,
+    fn write_cbor<'data, W: crate::execution_cbor::LeafWrite<'data> + ?Sized>(
+        &'data self,
         out: &mut W,
     ) -> io::Result<()> {
         head::write_head(out, head::MAP, 8)?;

@@ -269,8 +269,8 @@ msgid "Estimand"
 msgstr "估计目标"
 
 msgctxt "https://blackcatinformatics.ca/math/Estimand|skos:definition"
-msgid "An estimand: the target quantity a study seeks to learn, which may be a population summary, a causal contrast or an explicitly specified parameter of a math:StatisticalModel. A subclass of math:MathematicalObject, named from an estimate through math:estimatesEstimand. The vocabulary provides math:targetPopulation, math:targetOutcome, math:targetContrast (a math:StatisticalContrast), math:targetTime, math:interventionCondition and math:missingDataPolicy to describe relevant study context. This causal-study framing is not a universal mathematical definition or a demonstrated required-path gate for every estimand. A coefficient name alone does not identify the substantive target, and a declared frame alone does not establish causal identification or a valid treatment of missing data or intercurrent events."
-msgstr "估计目标：研究试图认识的目标量，可以是总体汇总量、因果对比或显式指定的 math:StatisticalModel 参数。它是 math:MathematicalObject 的子类，由估计值通过 math:estimatesEstimand 指明。词汇提供 math:targetPopulation、math:targetOutcome、math:targetContrast（math:StatisticalContrast）、math:targetTime、math:interventionCondition 及 math:missingDataPolicy，用于描述相关研究上下文。此因果研究框架不是每个估计目标的普遍数学定义，也不是已证实的必需路径门槛。仅有系数名称不指明实质性目标，仅有已声明框架也不确立因果识别或对缺失数据或伴发事件的有效处理。"
+msgid "An estimand: the target quantity a study seeks to learn, which may be a population summary, a causal contrast or an explicitly specified parameter of a math:StatisticalModel. A subclass of math:MathematicalObject, named from an estimate through math:estimatesEstimand. Relevant supplied study context may use math:targetPopulation, math:targetOutcome, math:targetContrast, math:targetTime and math:interventionCondition. math:intercurrentEventHandling preserves each supplied event-strategy association defining the target question; math:missingDataPolicy separately records supplied analysis handling of unavailable data. These contextual roles are not a universal required-path gate. A coefficient name alone identifies no substantive target, and declarations alone establish neither causal identification nor valid analysis."
+msgstr "估计目标是研究试图获知的目标量，可以是总体汇总量、因果比较或 math:StatisticalModel 中明确指定的参数。它是 math:MathematicalObject 的子类，由估计结果通过 math:estimatesEstimand 命名。相关且已提供的研究背景可使用 math:targetPopulation、math:targetOutcome、math:targetContrast、math:targetTime 和 math:interventionCondition。math:intercurrentEventHandling 保留定义目标问题的每个已提供事件与策略关联；math:missingDataPolicy 单独记录已提供的不可用数据分析处理方式。这些背景角色不构成通用的必需路径检查。仅有系数名称不能标识实质性目标，仅有声明也不能证明因果可识别性或分析有效性。"
 
 msgctxt "https://blackcatinformatics.ca/math/Estimate|rdfs:label"
 msgid "Estimate"
@@ -421,8 +421,8 @@ msgid "intervention condition"
 msgstr "干预条件"
 
 msgctxt "https://blackcatinformatics.ca/math/interventionCondition|skos:definition"
-msgid "Relates a math:Estimand to the intervention or exposure condition it conditions on — the treatment, policy, or exposure whose effect the estimand quantifies (a do-condition, an assigned arm, a hypothetical intervention). Domain math:Estimand, range the intervention condition (stated in prose). One of the six framing coordinates and the causal hinge of the estimand; without a declared intervention condition an average treatment effect is not well-posed."
-msgstr "将一个 math:Estimand 关联到它所条件化的干预或暴露条件——估计目标所量化其效应的处理、政策或暴露（一个 do 条件、一个被指派的臂、一个假设性干预）。定义域为 math:Estimand，值域为干预条件（在文字中说明）。它是六个框架坐标之一，也是估计目标的因果枢纽；没有已声明的干预条件，一个平均处理效应并非良定。"
+msgid "Relates a math:Estimand to a supplied treatment, intervention or exposure condition relevant to its target. A treatment-effect question may describe assigned conditions or a hypothetical intervention. This declaration does not equate intervention with observational conditioning, prove causal identification or impose an intervention on every estimand."
+msgstr "将 math:Estimand 关联到与其目标相关的已提供治疗、干预或暴露条件。治疗效应问题可以描述分配条件或假设干预。此声明不将干预等同于观测条件化，不证明因果可识别性，也不为每个估计目标强加干预。"
 
 msgctxt "https://blackcatinformatics.ca/math/lessAlternative|rdfs:label"
 msgid "less"
@@ -605,8 +605,8 @@ msgid "missing-data policy"
 msgstr "缺失数据策略"
 
 msgctxt "https://blackcatinformatics.ca/math/missingDataPolicy|skos:definition"
-msgid "Relates a math:Estimand to the missing-data policy under which it is defined — the intercurrent-event and missing-data handling strategy (a treatment-policy, hypothetical, or composite strategy; a declared math:MissingnessMechanism the target rests on) that fixes what the estimand means when data are incomplete. Domain math:Estimand, range the missing-data policy (stated in prose). One of the six framing coordinates; the same treatment effect under a treatment-policy strategy and under a hypothetical strategy are distinct estimands. Distinct from math:missingnessMechanism, which declares the mechanism a variable's absence follows — this frames the estimand's policy for it."
-msgstr "将一个 math:Estimand 关联到它被定义所依据的缺失数据策略——中途事件与缺失数据的处理策略（一个处理策略、假设性或复合策略；靶所依据的一个已声明 math:MissingnessMechanism），确定当数据不完整时估计目标意味着什么。定义域为 math:Estimand，值域为缺失数据策略（在文字中说明）。它是六个框架坐标之一；同一处理效应在处理策略下与在假设性策略下是不同的估计目标。它与 math:missingnessMechanism 不同，后者声明一个变量之缺失所遵循的机制——本谓词则为估计目标框定针对它的策略。"
+msgid "Relates a math:Estimand to a separately supplied analysis policy for handling unavailable data when estimating that target. The policy is distinct from an intercurrent-event strategy defining the target and from a math:MissingnessMechanism assumption. Different analysis policies may address the same estimand; this link neither defines a universal estimand attribute nor validates the policy."
+msgstr "将 math:Estimand 关联到为估计该目标而单独提供的不可用数据分析处理政策。此政策区别于定义目标的伴发事件策略，也区别于 math:MissingnessMechanism 假设。不同分析政策可以针对同一个估计目标；此链接既不定义通用估计目标属性，也不验证该政策。"
 
 msgctxt "https://blackcatinformatics.ca/math/MissingnessIndicator|rdfs:label"
 msgid "Missingness Indicator"
@@ -949,24 +949,24 @@ msgid "target outcome"
 msgstr "目标结局"
 
 msgctxt "https://blackcatinformatics.ca/math/targetOutcome|skos:definition"
-msgid "Relates a math:Estimand to the outcome it is defined on — the measured quantity (a math:StatisticalVariable or outcome measure) whose value the estimand summarizes across the target population. Domain math:Estimand, range the target outcome (stated in prose). One of the six framing coordinates; the same population and contrast over a different outcome is a different estimand."
-msgstr "将一个 math:Estimand 关联到它被定义所处的结局——被测的量（一个 math:StatisticalVariable 或结局测度），估计目标跨目标总体概括其值。定义域为 math:Estimand，值域为目标结局（在文字中说明）。它是六个框架坐标之一；同一总体与同一对比在一个不同结局上是一个不同的估计目标。"
+msgid "Relates a math:Estimand to the supplied outcome variable or measure on which its target quantity is defined, such as a math:StatisticalVariable. The outcome is distinct from the comparison and its time horizon; this contextual role is not a universal required field for every estimand."
+msgstr "将 math:Estimand 关联到定义其目标量的已提供结局变量或度量，例如 math:StatisticalVariable。结局区别于比较及其时间范围；此背景角色不是每个估计目标都必须具有的通用字段。"
 
 msgctxt "https://blackcatinformatics.ca/math/targetPopulation|rdfs:label"
 msgid "target population"
 msgstr "目标总体"
 
 msgctxt "https://blackcatinformatics.ca/math/targetPopulation|skos:definition"
-msgid "Relates a math:Estimand to the math:StatisticalPopulation it targets — the population the estimand is defined over, who the quantity being estimated speaks about. Domain math:Estimand, range math:StatisticalPopulation (stated in prose). One of the six coordinates that make an estimand well-posed; without a target population an estimand does not fix who it refers to. Distinct from math:population, which relates an estimate or sample to its population — this frames the estimand itself."
-msgstr "将一个 math:Estimand 关联到它所指向的 math:StatisticalPopulation——估计目标被定义所跨的总体，即被估计的量所论及者。定义域为 math:Estimand，值域为 math:StatisticalPopulation（在文字中说明）。它是使一个估计目标良定的六个坐标之一；没有一个目标总体，一个估计目标便不固定它所指向者。它与 math:population 不同，后者将一个估计或样本关联到其总体——本谓词则为估计目标本身框定框架。"
+msgid "Relates a math:Estimand to the math:StatisticalPopulation over which its target quantity is defined. Retain the supplied population when relevant; this role is not a universal required field for every mathematical estimand. It frames the target, whereas math:population describes the population associated with an estimate or sample."
+msgstr "将 math:Estimand 关联到其目标量所定义的 math:StatisticalPopulation。在相关时保留所提供的总体；此角色不是每个数学估计目标都必须具有的通用字段。它界定目标，而 math:population 描述与估计结果或样本关联的总体。"
 
 msgctxt "https://blackcatinformatics.ca/math/targetTime|rdfs:label"
 msgid "target time"
 msgstr "目标时间"
 
 msgctxt "https://blackcatinformatics.ca/math/targetTime|skos:definition"
-msgid "Relates a math:Estimand to the time or horizon it is defined at — the follow-up time, the landmark, the period over which the outcome and contrast are evaluated. Domain math:Estimand, range the target time (a time point, interval, or horizon, stated in prose). One of the six framing coordinates; a five-year survival difference and a one-year survival difference are different estimands over the same population and contrast."
-msgstr "将一个 math:Estimand 关联到它被定义所处的时间或时程——随访时间、地标时点、结局与对比被评估所跨的时段。定义域为 math:Estimand，值域为目标时间（一个时间点、区间或时程，在文字中说明）。它是六个框架坐标之一；一个五年生存差与一个一年生存差在同一总体与同一对比上是不同的估计目标。"
+msgid "Relates a math:Estimand to a supplied time point, interval or horizon relevant to its target definition. A one-year and a five-year outcome summary may target different quantities. This role does not require a time coordinate for every mathematical estimand or establish a temporal computation."
+msgstr "将 math:Estimand 关联到与其目标定义相关的已提供时点、区间或时间范围。一年和五年的结局汇总可能针对不同的量。此角色不要求每个数学估计目标都具有时间坐标，也不构成时间计算。"
 
 msgctxt "https://blackcatinformatics.ca/math/testStatistic|rdfs:label"
 msgid "test statistic"
@@ -16964,12 +16964,12 @@ msgid "Mint one to identify the target quantity a study seeks to learn, retainin
 msgstr "创建一个对象来指明研究试图认识的目标量，保留其为实质性总体或因果目标，还是显式指定模型参数这一信息，不根据系数名称假定目标。"
 
 msgctxt "https://blackcatinformatics.ca/math/Estimand|https://blackcatinformatics.ca/gmeow/avoidWhen"
-msgid "Do not infer a substantive estimand or its causal identification from a model parameter or six named framing roles alone. The same target may be addressed under different models, and a model parameter may itself be the specified target; do not invent an intervention or missing-data policy for a general mathematical quantity."
-msgstr "不要仅根据模型参数或六个具名框架角色推断实质性估计目标或其因果识别。同一目标可在不同模型下处理，模型参数本身也可作为指定目标；不要为一般数学量编造干预或缺失数据策略。"
+msgid "Avoid inferring a substantive target or causal identification from a model coefficient or framing links alone. A model parameter may itself be the specified target, and different models or analysis policies may address the same target; do not invent intervention, event-strategy or missing-data context."
+msgstr "避免仅从模型系数或背景链接推断实质性目标或因果可识别性。模型参数本身可以是指定目标，不同模型或分析政策也可以针对同一目标；不要虚构干预、事件与策略或缺失数据背景。"
 
 msgctxt "https://blackcatinformatics.ca/math/Estimand|https://blackcatinformatics.ca/gmeow/howToUse"
-msgid "Retain the actual target definition and relevant supplied math:targetPopulation, math:targetOutcome, math:targetContrast, math:targetTime, math:interventionCondition and math:missingDataPolicy context; an estimate names it through math:estimatesEstimand. Preserve absent or inapplicable context explicitly without manufacturing causal meaning or claiming a universal six-field admission check."
-msgstr "保留实际目标定义及相关的所提供 math:targetPopulation、math:targetOutcome、math:targetContrast、math:targetTime、math:interventionCondition 和 math:missingDataPolicy 上下文；估计值通过 math:estimatesEstimand 指明它。显式保留缺失或不适用的上下文状态，不制造因果含义，也不声称存在普遍的六字段准入检查。"
+msgid "Retain the actual target definition and relevant supplied population, outcome, comparison, time and intervention context. Keep each supplied event-strategy association on its own math:intercurrentEventHandling record and supplied analysis handling under math:missingDataPolicy. An estimate names the target through math:estimatesEstimand; preserve unknown or inapplicable context without asserting a universal admission check."
+msgstr "保留实际目标定义以及相关且已提供的总体、结局、比较、时间和干预背景。将每个已提供的事件与策略关联保留在各自的 math:intercurrentEventHandling 记录上，并在 math:missingDataPolicy 下保留已提供的分析处理方式。估计结果通过 math:estimatesEstimand 命名目标；保留未知或不适用的背景，不声称存在通用准入检查。"
 
 msgctxt "https://blackcatinformatics.ca/math/Statistic|http://www.w3.org/2004/02/skos/core#scopeNote"
 msgid "A statistic as a data function and its observed realization are different mathematical roles; the observed value is not the function itself. Estimator and statistic roles can overlap for the same data function. Preserve the actual definition, inputs and realization evidence rather than treating a label or bare type as an evaluated summary."
@@ -17282,3 +17282,191 @@ msgstr "exf:bareD a math:UnframedEffectSize ."
 msgctxt "https://blackcatinformatics.ca/math/UnframedEffectSize|skos:scopeNote"
 msgid "This identifies a missing required comparison, scale or reference-frame link, distinct from math:IllFramedPValue and math:UnderspecifiedEstimate. A complete set of these links meets this presence boundary without certifying full mathematical or source validity. An unfavorable result, absent numeric payload or unqualified conversion is not itself this missing-link failure."
 msgstr "这识别的是必需的比较、尺度或参照框架链接缺失，不同于 math:IllFramedPValue 和 math:UnderspecifiedEstimate。这些链接齐全即满足此存在性边界，但不证明数学上或来源上的全面有效性。结果不利、没有数值内容或换算未经核验，本身并不构成这种链接缺失失败。"
+
+msgctxt "https://blackcatinformatics.ca/math/targetPopulation|gmeow:useWhen"
+msgid "Use when the supplied target definition identifies a population whose quantity is to be estimated."
+msgstr "在所提供的目标定义明确指定某总体的待估量时使用。"
+
+msgctxt "https://blackcatinformatics.ca/math/targetPopulation|gmeow:avoidWhen"
+msgid "Avoid substituting the observed sample or sampling frame for the target population, or inventing a population for a target that does not supply one."
+msgstr "避免以观测样本或抽样框替代目标总体，也不要为未提供总体的目标虚构总体。"
+
+msgctxt "https://blackcatinformatics.ca/math/targetPopulation|gmeow:howToUse"
+msgid "Link the estimand to its supplied math:StatisticalPopulation. Preserve eligibility, subgroup or other population context where given; the link alone proves neither representativeness nor identification."
+msgstr "将估计目标链接到所提供的 math:StatisticalPopulation。保留已给出的资格条件、亚组或其他总体背景；该链接本身既不证明代表性，也不证明可识别性。"
+
+msgctxt "https://blackcatinformatics.ca/math/targetPopulation|skos:example"
+msgid "exf:ate math:targetPopulation exf:adultsCanada ."
+msgstr "exf:ate math:targetPopulation exf:adultsCanada ."
+
+msgctxt "https://blackcatinformatics.ca/math/targetPopulation|skos:scopeNote"
+msgid "The target-population role is distinct from math:population and math:sampleOf. Naming a population does not specify an outcome, comparison or estimation procedure."
+msgstr "目标总体角色区别于 math:population 和 math:sampleOf。命名总体并不指定结局、比较或估计程序。"
+
+msgctxt "https://blackcatinformatics.ca/math/targetOutcome|gmeow:useWhen"
+msgid "Use when the target definition specifies the measured outcome or variable whose population quantity is of interest."
+msgstr "在目标定义指定所关注总体量对应的测量结局或变量时使用。"
+
+msgctxt "https://blackcatinformatics.ca/math/targetOutcome|gmeow:avoidWhen"
+msgid "Avoid replacing the outcome with a realized estimate, a contrast or a label from which an unprovided transformation is inferred."
+msgstr "避免以已实现的估计结果、比较或被用来推断未提供变换的标签替代结局。"
+
+msgctxt "https://blackcatinformatics.ca/math/targetOutcome|gmeow:howToUse"
+msgid "Point from the estimand to its supplied outcome measure or math:StatisticalVariable. Retain relevant definition, coding and horizon context without inferring numerical observations or equivalence between transformed outcomes."
+msgstr "从估计目标指向所提供的结局度量或 math:StatisticalVariable。保留相关定义、编码和时间范围背景，不推断数值观测或不同变换结局之间的等价性。"
+
+msgctxt "https://blackcatinformatics.ca/math/targetOutcome|skos:example"
+msgid "exf:ate math:targetOutcome exf:income ."
+msgstr "exf:ate math:targetOutcome exf:income ."
+
+msgctxt "https://blackcatinformatics.ca/math/targetOutcome|skos:scopeNote"
+msgid "The outcome identifies what is measured. math:targetContrast identifies a supplied comparison or association, and math:targetTime records a relevant horizon; none of these links computes the target quantity."
+msgstr "结局标识所测量的内容。math:targetContrast 标识已提供的比较或关联，math:targetTime 记录相关时间范围；这些链接均不计算目标量。"
+
+msgctxt "https://blackcatinformatics.ca/math/targetTime|gmeow:useWhen"
+msgid "Use when a follow-up time, landmark, interval or other horizon is part of the supplied target meaning."
+msgstr "在随访时间、时间界点、区间或其他时间范围属于已提供目标含义的一部分时使用。"
+
+msgctxt "https://blackcatinformatics.ca/math/targetTime|gmeow:avoidWhen"
+msgid "Avoid silently exchanging horizons, treating a horizon label as a measured duration, or inventing time context for a target that does not supply it."
+msgstr "避免悄然更换时间范围、将时间范围标签视为实测时长，或为未提供时间背景的目标虚构时间背景。"
+
+msgctxt "https://blackcatinformatics.ca/math/targetTime|gmeow:howToUse"
+msgid "Link the estimand to the actual supplied time or horizon resource and retain the relevant outcome and comparison definitions. A declared horizon alone does not supply follow-up data or an evaluated temporal relation."
+msgstr "将估计目标链接到实际提供的时间或时间范围资源，并保留相关结局及比较定义。仅声明时间范围并不提供随访数据或已求值的时间关系。"
+
+msgctxt "https://blackcatinformatics.ca/math/targetTime|skos:example"
+msgid "exf:ate math:targetTime exf:month12 ."
+msgstr "exf:ate math:targetTime exf:month12 ."
+
+msgctxt "https://blackcatinformatics.ca/math/targetTime|skos:scopeNote"
+msgid "The target horizon is distinct from the time when an estimate was generated and from an intercurrent-event handling strategy. Retain those roles separately when supplied."
+msgstr "目标时间范围区别于估计结果生成的时间，也区别于伴发事件处理策略。在提供这些角色时应分别保留。"
+
+msgctxt "https://blackcatinformatics.ca/math/interventionCondition|gmeow:useWhen"
+msgid "Use when the target specification explicitly describes a treatment, intervention or exposure condition."
+msgstr "在目标规范明确描述治疗、干预或暴露条件时使用。"
+
+msgctxt "https://blackcatinformatics.ca/math/interventionCondition|gmeow:avoidWhen"
+msgid "Avoid inferring an intervention from a regression coefficient, treating an observed exposure as randomized assignment, or claiming identification from this link alone."
+msgstr "避免从回归系数推断干预、将观测暴露视为随机分配，或仅凭此链接声称可识别性。"
+
+msgctxt "https://blackcatinformatics.ca/math/interventionCondition|gmeow:howToUse"
+msgid "Link the estimand to the supplied condition description and retain the relevant comparison conditions. Represent each supplied event-strategy association through math:intercurrentEventHandling; keep analysis missing-data handling separate."
+msgstr "将估计目标链接到所提供的条件描述，并保留相关比较条件。通过 math:intercurrentEventHandling 表示每个已提供的事件与策略关联；分析中的缺失数据处理应单独保留。"
+
+msgctxt "https://blackcatinformatics.ca/math/interventionCondition|skos:example"
+msgid "exf:ate math:interventionCondition exf:drugArm ."
+msgstr "exf:ate math:interventionCondition exf:drugArm ."
+
+msgctxt "https://blackcatinformatics.ca/math/interventionCondition|skos:scopeNote"
+msgid "A condition description, a comparison, an intercurrent-event strategy and a missing-data analysis policy have distinct roles. Their presence alone proves no executed analysis or causal validity."
+msgstr "条件描述、比较、伴发事件策略以及缺失数据分析政策具有不同角色。它们的存在本身既不证明已执行分析，也不证明因果有效性。"
+
+msgctxt "https://blackcatinformatics.ca/math/missingDataPolicy|gmeow:useWhen"
+msgid "Use when the source explicitly supplies analysis handling of unavailable data for the target being estimated."
+msgstr "在来源明确提供针对待估目标的不可用数据分析处理方式时使用。"
+
+msgctxt "https://blackcatinformatics.ca/math/missingDataPolicy|gmeow:avoidWhen"
+msgid "Avoid using treatment-policy or hypothetical intercurrent-event strategies, or a MAR/MNAR assumption alone, as a missing-data handling procedure. Do not infer an absent analysis policy."
+msgstr "避免将治疗政策或假设性的伴发事件策略，或单独的 MAR/MNAR 假设，用作缺失数据处理程序。不要推断未提供的分析政策。"
+
+msgctxt "https://blackcatinformatics.ca/math/missingDataPolicy|gmeow:howToUse"
+msgid "Link to the supplied analysis-policy description, preserving its method, assumptions and estimand alignment where stated. Record event-specific target strategies through math:intercurrentEventHandling and variable-level missingness assumptions through math:missingnessMechanism."
+msgstr "链接到所提供的分析政策描述，并保留已说明的方法、假设及其与估计目标的一致性。通过 math:intercurrentEventHandling 记录针对具体事件的目标策略，通过 math:missingnessMechanism 记录变量层面的缺失机制假设。"
+
+msgctxt "https://blackcatinformatics.ca/math/missingDataPolicy|skos:example"
+msgid "exf:ate math:missingDataPolicy exf:declaredImputationPlan ."
+msgstr "exf:ate math:missingDataPolicy exf:declaredImputationPlan ."
+
+msgctxt "https://blackcatinformatics.ca/math/missingDataPolicy|skos:scopeNote"
+msgid "Analysis handling, missingness assumptions and intercurrent-event target specification remain separate. Naming a policy establishes neither valid imputation, recovered observations nor an executed estimation procedure."
+msgstr "分析处理、缺失机制假设和伴发事件目标规范应保持分离。命名政策既不证明有效插补或已恢复观测，也不证明已执行估计程序。"
+
+msgctxt "https://blackcatinformatics.ca/math/intercurrentEventHandling|rdfs:label"
+msgid "intercurrent-event handling"
+msgstr "伴发事件处理"
+
+msgctxt "https://blackcatinformatics.ca/math/intercurrentEventHandling|skos:definition"
+msgid "Relates a math:Estimand to a supplied event-specific handling record represented as a math:MathematicalObject. The record associates an event specification through math:intercurrentEvent with its target-defining strategy through math:intercurrentEventStrategy. Separate associations use separate records, even when their strategy descriptions are shared."
+msgstr "将 math:Estimand 关联到以 math:MathematicalObject 表示的已提供事件专属处理记录。该记录通过 math:intercurrentEvent 指定事件规范，通过 math:intercurrentEventStrategy 关联定义目标的策略。不同关联使用不同记录，即使它们共享策略描述。"
+
+msgctxt "https://blackcatinformatics.ca/math/intercurrentEventHandling|gmeow:useWhen"
+msgid "Use when a target specification states how a particular intercurrent event is reflected in the question being estimated."
+msgstr "在目标规范说明某个具体伴发事件如何体现在待估问题中时使用。"
+
+msgctxt "https://blackcatinformatics.ca/math/intercurrentEventHandling|gmeow:avoidWhen"
+msgid "Avoid independent unpaired event and strategy lists, confusing a specification with an observed event occurrence, or treating every estimand as requiring this role."
+msgstr "避免使用互不配对的独立事件列表和策略列表、将规范混同于已观测事件实例，或要求每个估计目标都具有此角色。"
+
+msgctxt "https://blackcatinformatics.ca/math/intercurrentEventHandling|gmeow:howToUse"
+msgid "Create a separate mathematical record for each supplied event-strategy association and link both endpoints from that record. Preserve the source context and any unknown fields; these declarations do not supply an incomplete-record validator."
+msgstr "为每个已提供的事件与策略关联创建独立数学记录，并从该记录链接两个端点。保留来源背景和任何未知字段；这些声明并不提供不完整记录验证器。"
+
+msgctxt "https://blackcatinformatics.ca/math/intercurrentEventHandling|skos:example"
+msgid "exf:ate math:intercurrentEventHandling exf:rescueHandling ."
+msgstr "exf:ate math:intercurrentEventHandling exf:rescueHandling ."
+
+msgctxt "https://blackcatinformatics.ca/math/intercurrentEventHandling|skos:scopeNote"
+msgid "This is a supplied target-specification association, not a missing-data analysis policy, an event occurrence, an executed procedure or proof of causal identification. No new record class or closed strategy enumeration is implied."
+msgstr "这是已提供的目标规范关联，不是缺失数据分析政策、事件实例、已执行程序或因果可识别性的证明。它不隐含新记录类或封闭的策略枚举。"
+
+msgctxt "https://blackcatinformatics.ca/math/intercurrentEvent|rdfs:label"
+msgid "intercurrent event specification"
+msgstr "伴发事件规范"
+
+msgctxt "https://blackcatinformatics.ca/math/intercurrentEvent|skos:definition"
+msgid "Relates an event-specific handling record to the event specification addressed by its strategy. The subject is the same mathematical record linked from an estimand through math:intercurrentEventHandling; its strategy is separately named through math:intercurrentEventStrategy. The object describes the event of interest rather than asserting that it occurred."
+msgstr "将事件专属处理记录关联到其策略所针对的事件规范。主体是通过 math:intercurrentEventHandling 从估计目标链接的同一数学记录；其策略通过 math:intercurrentEventStrategy 单独命名。客体描述所关注的事件，而不声称该事件已发生。"
+
+msgctxt "https://blackcatinformatics.ca/math/intercurrentEvent|gmeow:useWhen"
+msgid "Use to identify which event specification a supplied target strategy addresses."
+msgstr "用于标识已提供目标策略所针对的事件规范。"
+
+msgctxt "https://blackcatinformatics.ca/math/intercurrentEvent|gmeow:avoidWhen"
+msgid "Avoid attaching an unpaired event list directly to an estimand, substituting study withdrawal for an intercurrent event without justification, or inferring event occurrence from its specification."
+msgstr "避免直接将未配对的事件列表附加到估计目标、在无依据时以退出研究替代伴发事件，或从事件规范推断事件已发生。"
+
+msgctxt "https://blackcatinformatics.ca/math/intercurrentEvent|gmeow:howToUse"
+msgid "Set this edge on the handling record and retain the strategy edge on that same record. Use distinct records for distinct associations and preserve the event definition and scope supplied by the source."
+msgstr "在处理记录上设置此边，并在同一记录上保留策略边。不同关联使用不同记录，并保留来源提供的事件定义及范围。"
+
+msgctxt "https://blackcatinformatics.ca/math/intercurrentEvent|skos:example"
+msgid "exf:rescueHandling math:intercurrentEvent exf:rescueMedicationSpecification ."
+msgstr "exf:rescueHandling math:intercurrentEvent exf:rescueMedicationSpecification ."
+
+msgctxt "https://blackcatinformatics.ca/math/intercurrentEvent|skos:scopeNote"
+msgid "Event applicability belongs to the particular handling record. A shared strategy description does not imply that its event scopes or target questions are identical; missing data and intercurrent events remain distinct concepts."
+msgstr "事件适用范围属于具体处理记录。共享策略描述不表示事件范围或目标问题相同；缺失数据和伴发事件仍是不同概念。"
+
+msgctxt "https://blackcatinformatics.ca/math/intercurrentEventStrategy|rdfs:label"
+msgid "intercurrent-event strategy"
+msgstr "伴发事件策略"
+
+msgctxt "https://blackcatinformatics.ca/math/intercurrentEventStrategy|skos:definition"
+msgid "Relates an event-specific handling record to the supplied strategy description defining the target question with respect to its event specification. The event is named through math:intercurrentEvent on the same record. Treatment-policy, hypothetical and other strategy descriptions are not missing-data procedures or a closed enumeration imposed by this property."
+msgstr "将事件专属处理记录关联到所提供的策略描述，该策略描述针对其事件规范定义目标问题。事件通过同一记录上的 math:intercurrentEvent 命名。治疗政策、假设性及其他策略描述不是缺失数据程序，也不是此属性强加的封闭枚举。"
+
+msgctxt "https://blackcatinformatics.ca/math/intercurrentEventStrategy|gmeow:useWhen"
+msgid "Use when the source explicitly describes the target-defining strategy for the event specification paired on a handling record."
+msgstr "在来源明确描述处理记录上配对事件规范所对应的目标定义策略时使用。"
+
+msgctxt "https://blackcatinformatics.ca/math/intercurrentEventStrategy|gmeow:avoidWhen"
+msgid "Avoid treating the strategy as imputation, inferring its applicability from another record, or claiming that naming a strategy establishes valid estimation or identifies a causal effect."
+msgstr "避免将策略视为插补、从另一记录推断其适用范围，或声称命名策略即可证明估计有效或识别因果效应。"
+
+msgctxt "https://blackcatinformatics.ca/math/intercurrentEventStrategy|gmeow:howToUse"
+msgid "Link the handling record to the actual supplied strategy description and retain its event endpoint on that record. A strategy description may be shared by separate records without merging their event associations or estimand contexts."
+msgstr "将处理记录链接到实际提供的策略描述，并在该记录上保留事件端点。不同记录可以共享策略描述，而不合并它们的事件关联或估计目标背景。"
+
+msgctxt "https://blackcatinformatics.ca/math/intercurrentEventStrategy|skos:example"
+msgid "exf:rescueHandling math:intercurrentEventStrategy exf:treatmentPolicyStrategy ."
+msgstr "exf:rescueHandling math:intercurrentEventStrategy exf:treatmentPolicyStrategy ."
+
+msgctxt "https://blackcatinformatics.ca/math/intercurrentEventStrategy|skos:scopeNote"
+msgid "The strategy helps specify the target question. The analysis method and its missing-data policy must be described separately when supplied; no strategy name proves data availability, numerical execution or successful sensitivity analysis."
+msgstr "策略有助于规定目标问题。在提供分析方法及其缺失数据政策时，必须单独描述；策略名称并不证明数据可用、已执行数值计算或敏感性分析成功。"
+
+msgctxt "https://blackcatinformatics.ca/math/missingnessMechanism|skos:scopeNote"
+msgid "Declares a missingness assumption, distinct from math:hasMissingnessIndicator recording absence, math:missingDataPolicy describing supplied analysis handling, and an event-specific target strategy named through math:intercurrentEventHandling. An assumption is not itself a handling procedure."
+msgstr "声明缺失机制假设，区别于记录缺失的 math:hasMissingnessIndicator、描述已提供分析处理方式的 math:missingDataPolicy，以及通过 math:intercurrentEventHandling 命名的事件专属目标策略。假设本身不是处理程序。"

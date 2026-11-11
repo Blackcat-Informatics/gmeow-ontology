@@ -20,7 +20,7 @@ export class Dataset {
      * Throws if the container cannot be read or its segments do not fold into a
      * dataset.
      */
-    static fromGts(gts: Uint8Array): Dataset;
+    static fromGts(gts: Uint8Array | number[]): Dataset;
     /**
      * `Dataset.parse(text, format)` → parse an RDF document.
      *
@@ -80,7 +80,7 @@ export class Dataset {
  * manifest's recorded address is not the one anybody checks — so the engine that is
  * already booted before the fetch exposes the real one.
  */
-export function blake3Hex(bytes: Uint8Array): string;
+export function blake3Hex(bytes: Uint8Array | number[]): string;
 
 /**
  * The engine version (this crate's SemVer), exposed to JS as `version()` — a
@@ -100,10 +100,13 @@ export interface InitOutput {
     readonly dataset_serialize: (a: number, b: number, c: number, d: number) => void;
     readonly dataset_size: (a: number) => number;
     readonly version: (a: number) => void;
+    readonly __wbindgen_externrefs: WebAssembly.Table;
     readonly __wbindgen_add_to_stack_pointer: (a: number) => number;
     readonly __wbindgen_export: (a: number, b: number) => number;
     readonly __wbindgen_export2: (a: number, b: number, c: number) => void;
-    readonly __wbindgen_export3: (a: number, b: number, c: number, d: number) => number;
+    readonly __wbindgen_export3: (a: number) => void;
+    readonly __wbindgen_export4: (a: number, b: number, c: number, d: number) => number;
+    readonly __wbindgen_start: () => void;
 }
 
 export type SyncInitInput = BufferSource | WebAssembly.Module;

@@ -19,8 +19,8 @@ use super::{
 
 // NativeProofId is a Serde newtype over the retained integer-array digest.
 impl ExecutionCbor for NativeProofId {
-    fn write_cbor<W: crate::execution_cbor::LeafWrite + ?Sized>(
-        &self,
+    fn write_cbor<'data, W: crate::execution_cbor::LeafWrite<'data> + ?Sized>(
+        &'data self,
         out: &mut W,
     ) -> io::Result<()> {
         ExecutionCbor::write_cbor(&self.0, out)
@@ -35,8 +35,8 @@ impl ExecutionCbor for NativeProofId {
 }
 
 impl ExecutionCbor for NativeProofOrigin {
-    fn write_cbor<W: crate::execution_cbor::LeafWrite + ?Sized>(
-        &self,
+    fn write_cbor<'data, W: crate::execution_cbor::LeafWrite<'data> + ?Sized>(
+        &'data self,
         out: &mut W,
     ) -> io::Result<()> {
         match self {
@@ -197,8 +197,8 @@ impl ExecutionCbor for NativeProofOrigin {
 }
 
 impl ExecutionCbor for NativeSourceTerms {
-    fn write_cbor<W: crate::execution_cbor::LeafWrite + ?Sized>(
-        &self,
+    fn write_cbor<'data, W: crate::execution_cbor::LeafWrite<'data> + ?Sized>(
+        &'data self,
         out: &mut W,
     ) -> io::Result<()> {
         match self {
@@ -224,8 +224,8 @@ impl ExecutionCbor for NativeSourceTerms {
 }
 
 impl ExecutionCbor for NativeProofNode {
-    fn write_cbor<W: crate::execution_cbor::LeafWrite + ?Sized>(
-        &self,
+    fn write_cbor<'data, W: crate::execution_cbor::LeafWrite<'data> + ?Sized>(
+        &'data self,
         out: &mut W,
     ) -> io::Result<()> {
         head::write_head(out, head::MAP, 3)?;
@@ -267,8 +267,8 @@ impl ExecutionCbor for NativeProofNode {
 }
 
 impl ExecutionCbor for NativeRefutationFamily {
-    fn write_cbor<W: crate::execution_cbor::LeafWrite + ?Sized>(
-        &self,
+    fn write_cbor<'data, W: crate::execution_cbor::LeafWrite<'data> + ?Sized>(
+        &'data self,
         out: &mut W,
     ) -> io::Result<()> {
         match self {
@@ -298,8 +298,8 @@ impl ExecutionCbor for NativeRefutationFamily {
 }
 
 impl ExecutionCbor for NativeObligationScope {
-    fn write_cbor<W: crate::execution_cbor::LeafWrite + ?Sized>(
-        &self,
+    fn write_cbor<'data, W: crate::execution_cbor::LeafWrite<'data> + ?Sized>(
+        &'data self,
         out: &mut W,
     ) -> io::Result<()> {
         match self {
@@ -391,8 +391,8 @@ impl ExecutionCbor for NativeObligationScope {
 }
 
 impl ExecutionCbor for NativeBoundEvidence {
-    fn write_cbor<W: crate::execution_cbor::LeafWrite + ?Sized>(
-        &self,
+    fn write_cbor<'data, W: crate::execution_cbor::LeafWrite<'data> + ?Sized>(
+        &'data self,
         out: &mut W,
     ) -> io::Result<()> {
         head::write_head(out, head::MAP, 8)?;
@@ -464,8 +464,8 @@ impl ExecutionCbor for NativeBoundEvidence {
 }
 
 impl ExecutionCbor for NativeSupportedClash {
-    fn write_cbor<W: crate::execution_cbor::LeafWrite + ?Sized>(
-        &self,
+    fn write_cbor<'data, W: crate::execution_cbor::LeafWrite<'data> + ?Sized>(
+        &'data self,
         out: &mut W,
     ) -> io::Result<()> {
         head::write_head(out, head::MAP, 4)?;
@@ -513,8 +513,8 @@ impl ExecutionCbor for NativeSupportedClash {
 }
 
 impl ExecutionCbor for NativeReadKind {
-    fn write_cbor<W: crate::execution_cbor::LeafWrite + ?Sized>(
-        &self,
+    fn write_cbor<'data, W: crate::execution_cbor::LeafWrite<'data> + ?Sized>(
+        &'data self,
         out: &mut W,
     ) -> io::Result<()> {
         match self {
@@ -540,8 +540,8 @@ impl ExecutionCbor for NativeReadKind {
 }
 
 impl ExecutionCbor for NativeRead {
-    fn write_cbor<W: crate::execution_cbor::LeafWrite + ?Sized>(
-        &self,
+    fn write_cbor<'data, W: crate::execution_cbor::LeafWrite<'data> + ?Sized>(
+        &'data self,
         out: &mut W,
     ) -> io::Result<()> {
         head::write_head(out, head::MAP, 3)?;
@@ -583,8 +583,8 @@ impl ExecutionCbor for NativeRead {
 }
 
 impl ExecutionCbor for NativeObstructionKind {
-    fn write_cbor<W: crate::execution_cbor::LeafWrite + ?Sized>(
-        &self,
+    fn write_cbor<'data, W: crate::execution_cbor::LeafWrite<'data> + ?Sized>(
+        &'data self,
         out: &mut W,
     ) -> io::Result<()> {
         match self {
@@ -623,8 +623,8 @@ impl ExecutionCbor for NativeObstructionKind {
 }
 
 impl ExecutionCbor for NativeFamilyObstruction {
-    fn write_cbor<W: crate::execution_cbor::LeafWrite + ?Sized>(
-        &self,
+    fn write_cbor<'data, W: crate::execution_cbor::LeafWrite<'data> + ?Sized>(
+        &'data self,
         out: &mut W,
     ) -> io::Result<()> {
         head::write_head(out, head::MAP, 3)?;
@@ -666,8 +666,8 @@ impl ExecutionCbor for NativeFamilyObstruction {
 }
 
 impl ExecutionCbor for NativeProducerObstruction {
-    fn write_cbor<W: crate::execution_cbor::LeafWrite + ?Sized>(
-        &self,
+    fn write_cbor<'data, W: crate::execution_cbor::LeafWrite<'data> + ?Sized>(
+        &'data self,
         out: &mut W,
     ) -> io::Result<()> {
         head::write_head(out, head::MAP, 2)?;
@@ -700,8 +700,8 @@ impl ExecutionCbor for NativeProducerObstruction {
 }
 
 impl ExecutionCbor for NativeFamilyCompletion {
-    fn write_cbor<W: crate::execution_cbor::LeafWrite + ?Sized>(
-        &self,
+    fn write_cbor<'data, W: crate::execution_cbor::LeafWrite<'data> + ?Sized>(
+        &'data self,
         out: &mut W,
     ) -> io::Result<()> {
         match self {
@@ -772,8 +772,8 @@ impl ExecutionCbor for NativeFamilyCompletion {
 }
 
 impl ExecutionCbor for NativeFamilyOutcome {
-    fn write_cbor<W: crate::execution_cbor::LeafWrite + ?Sized>(
-        &self,
+    fn write_cbor<'data, W: crate::execution_cbor::LeafWrite<'data> + ?Sized>(
+        &'data self,
         out: &mut W,
     ) -> io::Result<()> {
         head::write_head(out, head::MAP, 6)?;
@@ -833,8 +833,8 @@ impl ExecutionCbor for NativeFamilyOutcome {
 }
 
 impl ExecutionCbor for NativeClosureStatus {
-    fn write_cbor<W: crate::execution_cbor::LeafWrite + ?Sized>(
-        &self,
+    fn write_cbor<'data, W: crate::execution_cbor::LeafWrite<'data> + ?Sized>(
+        &'data self,
         out: &mut W,
     ) -> io::Result<()> {
         match self {
@@ -883,8 +883,8 @@ impl ExecutionCbor for NativeClosureStatus {
 }
 
 impl ExecutionCbor for NativeAnalysisUsage {
-    fn write_cbor<W: crate::execution_cbor::LeafWrite + ?Sized>(
-        &self,
+    fn write_cbor<'data, W: crate::execution_cbor::LeafWrite<'data> + ?Sized>(
+        &'data self,
         out: &mut W,
     ) -> io::Result<()> {
         head::write_head(out, head::MAP, 3)?;
@@ -926,8 +926,8 @@ impl ExecutionCbor for NativeAnalysisUsage {
 }
 
 impl ExecutionCbor for NativeFamilyLedger {
-    fn write_cbor<W: crate::execution_cbor::LeafWrite + ?Sized>(
-        &self,
+    fn write_cbor<'data, W: crate::execution_cbor::LeafWrite<'data> + ?Sized>(
+        &'data self,
         out: &mut W,
     ) -> io::Result<()> {
         head::write_head(out, head::MAP, 9)?;

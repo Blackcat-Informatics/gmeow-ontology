@@ -15,8 +15,8 @@ use super::{EngineId, PreservationClaim};
 
 impl ExecutionCbor for PreservationKind {
     /// Delegate the exact retained variant wire to its compiler owner.
-    fn write_cbor<W: crate::execution_cbor::LeafWrite + ?Sized>(
-        &self,
+    fn write_cbor<'data, W: crate::execution_cbor::LeafWrite<'data> + ?Sized>(
+        &'data self,
         out: &mut W,
     ) -> io::Result<()> {
         PreservationKind::write_cbor(self, out)
@@ -45,8 +45,8 @@ impl ExecutionCbor for PreservationKind {
 
 impl ExecutionCbor for EngineId {
     /// Retain the complete EngineId in its original declaration order.
-    fn write_cbor<W: crate::execution_cbor::LeafWrite + ?Sized>(
-        &self,
+    fn write_cbor<'data, W: crate::execution_cbor::LeafWrite<'data> + ?Sized>(
+        &'data self,
         out: &mut W,
     ) -> io::Result<()> {
         head::write_head(out, head::MAP, 2)?;
@@ -82,8 +82,8 @@ impl ExecutionCbor for EngineId {
 
 impl ExecutionCbor for PreservationClaim {
     /// Retain the complete PreservationClaim in its original declaration order.
-    fn write_cbor<W: crate::execution_cbor::LeafWrite + ?Sized>(
-        &self,
+    fn write_cbor<'data, W: crate::execution_cbor::LeafWrite<'data> + ?Sized>(
+        &'data self,
         out: &mut W,
     ) -> io::Result<()> {
         head::write_head(out, head::MAP, 2)?;

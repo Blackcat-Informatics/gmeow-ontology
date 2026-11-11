@@ -1029,6 +1029,9 @@ ASK {
             math:targetTime
             math:interventionCondition
             math:missingDataPolicy
+            math:intercurrentEventHandling
+            math:intercurrentEvent
+            math:intercurrentEventStrategy
             math:nullHypothesis
             math:alternativeHypothesis
             math:testStatistic
