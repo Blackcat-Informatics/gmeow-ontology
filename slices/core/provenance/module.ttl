@@ -21,6 +21,37 @@ gmeow:Activity
     gmeow:howToUse "Type the occurrent as gmeow:Activity (or a specialization such as gmeow:ImportActivity), link its performer with gmeow:wasAssociatedWith and its products with the inverse of gmeow:wasGeneratedBy; carry the time the activity occurred on the event, and statement-level confidence on the derivation claims it produces."@x-gmeow-english ;
     gmeow:useWhen "Use as the occurrent that produced, transformed, used, or attributed an entity — the activity end of gmeow:wasGeneratedBy and the domain of gmeow:wasAssociatedWith."@x-gmeow-english .
 
+gmeow:Approval
+    a logic:Kind ,
+        logic:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/provenance> ;
+    rdfs:label "Approval"@x-gmeow-english ;
+    logic:mediates gmeow:approvedBy ,
+        gmeow:approvalOf ;
+    rdfs:subClassOf logic:Relator ,
+        [
+            a logic:Restriction ;
+            logic:onProperty gmeow:approvedBy ;
+            logic:someValuesFrom gmeow:Agent ;
+        ] ,
+        [
+            a logic:Restriction ;
+            logic:onProperty gmeow:approvalOf ;
+            logic:someValuesFrom gmeow:Entity ;
+        ] ,
+        [
+            a logic:Restriction ;
+            logic:onProperty gmeow:approvedOn ;
+            logic:someValuesFrom xsd:date ;
+        ] ;
+    skos:definition "A reified record that a named agent approved a body of work on a given day. It mediates between the approver (gmeow:approvedBy) and the body of work approved (gmeow:approvalOf), carries the calendar day (gmeow:approvedOn), and may carry the part of the work approved (gmeow:approvalScope) and the agent who put the approval on record (gmeow:reportedBy). Approving a body of work is a different fact from holding the claims in it: an approver is not thereby a holder of those claims, an author, a contributor or a source, and the record asserts neither that the work is correct nor that the approver agrees with every part of it."@x-gmeow-english ;
+    skos:scopeNote "One Approval node records one approval by one approver of one body of work. A joint approval is several Approval nodes, and a later approval is a new node. The identifier and label of an existing Approval are never changed or reused, and a correction or a re-approval adds a new node instead of rewriting an earlier one. This is a usage contract: no axiom enforces it and no gate can detect a relabelled node. The existential restrictions require an approver, an approved work and an approval day to be present; nothing in the record says the approval is still current."@x-gmeow-english ;
+    skos:example "ex:approval1 a gmeow:Approval ; gmeow:approvalOf ex:handbook ; gmeow:approvedBy ex:drOkafor ; gmeow:approvedOn \"2026-11-05\"^^xsd:date ; gmeow:approvalScope ex:handbookChapter3 ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid it for signed or policy-bound vouching, which is gmeow:Attestation (a vouching act under a named policy, with a required issue instant); for authorizing an effect before it is dispatched, which is logic:ApprovalCommitment (bound to an exact intent, operator, policy, decision and validity window); and for credit for making the work, which is gmeow:Contribution. Avoid it to say whose frame holds a claim (gmeow:accordingTo) or who is responsible for the work (gmeow:wasAttributedTo), and avoid treating an approver as a holder because an Approval names them."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    gmeow:howToUse "Mint one Approval per approval and bind gmeow:approvalOf, gmeow:approvedBy and gmeow:approvedOn. Add gmeow:approvalScope only when the approval covers a stated part of the work, and gmeow:reportedBy when the party who recorded the approval is worth naming. For a later approval or a correction add a new node and leave earlier nodes untouched. Keep any claims the approver holds on their own standpoint-indexed statements, separate from the Approval."@x-gmeow-english ;
+    gmeow:useWhen "Use to record who approved a body of work, on which day, and optionally for which part of it, as a fact kept apart from who holds the claims in the work."@x-gmeow-english .
+
 gmeow:ImportActivity
     a logic:Event ,
         logic:Class ;
@@ -70,6 +101,62 @@ gmeow:TextExtraction
     gmeow:useForConsumer gmeow:consumerAgentMemory ,
         gmeow:consumerInternalArchive ;
     gmeow:useWhen "Use for the text content pulled verbatim out of a source object — OCR or extraction from a PDF, image, or binary attachment — whose lineage to that source must be recorded."@x-gmeow-english .
+
+gmeow:approvalOf
+    a logic:ObjectProperty ;
+    rdfs:domain gmeow:Approval ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/provenance> ;
+    rdfs:label "approval of"@x-gmeow-english ;
+    rdfs:range gmeow:Entity ;
+    skos:definition "Relates an Approval to the body of work it approves. It is the second role of the Approval relator, which needs an approved work as well as an approver; without it an approval would not be about anything. A single Approval approves one body of work, and approval of several works is several Approval nodes."@x-gmeow-english ;
+    skos:example "ex:approval1 gmeow:approvalOf ex:handbook ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid it for the part of the work that was approved (use gmeow:approvalScope) and for the agent who approved (use gmeow:approvedBy); naming a work here does not make the approver a holder of its claims."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxCBox ,
+        gmeow:boxRBox ;
+    gmeow:howToUse "Point the gmeow:Approval at the whole work approved, whether a creative work, an information object or another entity; narrow the approval to a part with gmeow:approvalScope, not by pointing here at the part."@x-gmeow-english ;
+    gmeow:useWhen "Use to name the body of work that an Approval approves."@x-gmeow-english .
+
+gmeow:approvalScope
+    a logic:ObjectProperty ;
+    rdfs:domain gmeow:Approval ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/provenance> ;
+    rdfs:label "approval scope"@x-gmeow-english ;
+    rdfs:range gmeow:Entity ;
+    skos:definition "Relates an Approval to a part of the approved work that the approval covers: a component reached by gmeow:partOf, or a citation selector for a pinpoint. It is optional and not functional, so one Approval can name several parts. When it is absent the scope is unstated; that never means the whole work was approved."@x-gmeow-english ;
+    skos:example "ex:approval1 gmeow:approvalScope ex:handbookChapter3 ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid it for the whole work (that is gmeow:approvalOf), and avoid reading a missing value as approval of everything; also avoid it for a time window, which is not a part of a work."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxCBox ,
+        gmeow:boxRBox ;
+    gmeow:howToUse "Point at each approved part, or at a citation selector when only a pinpoint is covered; leave it off when the scope was not stated rather than naming the whole work."@x-gmeow-english ;
+    gmeow:useWhen "Use to say which part of a body of work an Approval covers when the approval is narrower than the work."@x-gmeow-english .
+
+gmeow:approvedBy
+    a logic:ObjectProperty ;
+    rdfs:domain gmeow:Approval ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/provenance> ;
+    rdfs:label "approved by"@x-gmeow-english ;
+    rdfs:range gmeow:Agent ;
+    skos:definition "Relates an Approval to the person or agent who approved the body of work. An approver is not thereby a holder of the work's claims, an author or a contributor: this property is deliberately not a subproperty of gmeow:accordingTo, gmeow:vantage, gmeow:wasAttributedTo, gmeow:wasAssociatedWith or any contributor property, so that holding claims and approving a work stay separate facts, both expressible."@x-gmeow-english ;
+    skos:example "ex:approval1 gmeow:approvedBy ex:drOkafor ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid it to say whose frame holds a claim (use gmeow:accordingTo), who is responsible for the work (use gmeow:wasAttributedTo), who is credited for making it (use a gmeow:Contribution) or who recorded the approval (use gmeow:reportedBy)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxCBox ,
+        gmeow:boxRBox ;
+    gmeow:howToUse "Set one gmeow:Agent on each Approval; for a joint approval mint one Approval per approver. Do not infer holding of the work's claims, authorship or endorsement of every part from it."@x-gmeow-english ;
+    gmeow:useWhen "Use to name the person or agent who approved a body of work in an Approval."@x-gmeow-english .
+
+gmeow:approvedOn
+    a logic:DatatypeProperty ;
+    rdfs:domain gmeow:Approval ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/provenance> ;
+    rdfs:label "approved on"@x-gmeow-english ;
+    rdfs:range xsd:date ;
+    skos:definition "The calendar day on which an Approval was given, typed as xsd:date. It is a day, not an instant: no time of day and no midnight is invented for it."@x-gmeow-english ;
+    skos:example "ex:approval1 gmeow:approvedOn \"2026-11-05\"^^xsd:date ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid it for the instant of a signed vouching act (use gmeow:issuedAt on a gmeow:Attestation), for when the system learned of the approval (gmeow:ingestedAt or gmeow:recordedAt) and for a validity window; avoid padding a day to a date-time."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxCBox ,
+        gmeow:boxRBox ;
+    gmeow:howToUse "Attach one xsd:date literal to the gmeow:Approval; a different day is a different approval and so a new node."@x-gmeow-english ;
+    gmeow:useWhen "Use to record the day an approval was given when only the date is known or meant."@x-gmeow-english .
 
 gmeow:confidence
     a logic:AnnotationProperty ;
@@ -125,6 +212,20 @@ gmeow:provenance
         gmeow:boxRBox ;
     gmeow:howToUse "Attach the prose to the gmeow:Entity as a literal; where parts of the narrative can be lifted into structured derivation, generation, or attribution links, model those and reserve this property for the irreducible remainder."@x-gmeow-english ;
     gmeow:useWhen "Use for a human-readable custody/ownership narrative that resists structured modelling — provenance prose imported from a catalogue record or curator's note."@x-gmeow-english .
+
+gmeow:reportedBy
+    a logic:ObjectProperty ;
+    rdfs:domain gmeow:Approval ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/provenance> ;
+    rdfs:label "reported by"@x-gmeow-english ;
+    rdfs:range gmeow:Agent ;
+    skos:definition "Relates an Approval to the agent who put the approval on record. The reporter only recorded it: they need not be the approver, and reporting makes them neither responsible for the approved work nor a holder of its claims. It differs from gmeow:wasAttributedTo, which ascribes responsibility (authorship, ownership or accountability) for an entity to an agent, and from gmeow:approvedBy, which names who gave the approval. It is optional, not functional, and not a subproperty of anything."@x-gmeow-english ;
+    skos:example "ex:approval1 gmeow:reportedBy ex:registryClerk ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid it for the agent who gave the approval (use gmeow:approvedBy), for responsibility for the Approval or the work (use gmeow:wasAttributedTo) and for the party who ran an import (use gmeow:wasAssociatedWith on the gmeow:ImportActivity)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxCBox ,
+        gmeow:boxRBox ;
+    gmeow:howToUse "Set it on the gmeow:Approval for each agent who reported the approval; several reporters may coexist. Omit it when the recorder is unknown."@x-gmeow-english ;
+    gmeow:useWhen "Use to name who put an approval on record when that party differs from the approver."@x-gmeow-english .
 
 gmeow:wasAssociatedWith
     a logic:ObjectProperty ;
@@ -235,6 +336,54 @@ gmeow:ingestedAtFunctionality
     gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:ingestedAt, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
     skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:ingestedAt and nothing else. It is not a definition of gmeow:ingestedAt (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
     skos:example "gmeow:ingestedAtFunctionality logic:characterizes gmeow:ingestedAt ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:approvalOfFunctionality
+    a logic:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/provenance> ;
+    rdfs:label "approvalOf is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:approvalOf is functional: an Approval approves exactly one body of work, so approval of several works is several Approval nodes rather than several works on one."@x-gmeow-english ;
+    logic:characterizes gmeow:approvalOf ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:approvalOf ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:approvalOf names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:approvalOf, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:approvalOf and nothing else. It is not a definition of gmeow:approvalOf (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:approvalOfFunctionality logic:characterizes gmeow:approvalOf ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:approvedByFunctionality
+    a logic:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/provenance> ;
+    rdfs:label "approvedBy is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:approvedBy is functional: an Approval has exactly one approver, so a co-approval is modelled as several Approval nodes, one per approver, rather than two approvers on one."@x-gmeow-english ;
+    logic:characterizes gmeow:approvedBy ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:approvedBy ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:approvedBy names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:approvedBy, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:approvedBy and nothing else. It is not a definition of gmeow:approvedBy (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:approvedByFunctionality logic:characterizes gmeow:approvedBy ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:approvedOnFunctionality
+    a logic:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/provenance> ;
+    rdfs:label "approvedOn is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:approvedOn is functional: an Approval was given on exactly one day, so a different day is a different Approval node rather than a second date on the same one."@x-gmeow-english ;
+    logic:characterizes gmeow:approvedOn ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:approvedOn ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:approvedOn names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:approvedOn, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:approvedOn and nothing else. It is not a definition of gmeow:approvedOn (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:approvedOnFunctionality logic:characterizes gmeow:approvedOn ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 
 gmeow:summaryOf
