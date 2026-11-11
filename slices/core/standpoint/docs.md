@@ -41,7 +41,8 @@ the date). A missing claim means the two frames are incomparable, never equal an
 never lower. It is transitive within one ranker's claims and is closed per ranker; it
 is not declared transitive globally, because that would chain different rankers'
 claims into a ranking nobody made. It is never derived from `sharpens`, and it is a
-presentation aid, not a confidence or a truth value.
+presentation aid, not a confidence or a truth value. The ranker, the date and the
+per-ranker closure are consumer discipline that the vocabulary does not enforce.
 
 ### gmeow:StandpointModality · gmeow:claimModality
 
