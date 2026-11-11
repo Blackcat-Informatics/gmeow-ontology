@@ -459,3 +459,55 @@ msgstr "L’obligation canonique de fonctionnalité permet au plus une claimModa
 msgctxt "https://blackcatinformatics.ca/gmeow/claimModalityFunctionality|gmeow:useWhen"
 msgid "Use to reject multiple explicit legacy modality values without requiring a missing value."
 msgstr "Utiliser pour rejeter plusieurs modalités héritées explicites sans exiger une valeur manquante."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/moreEntrenchedThan|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "more entrenched than"
+msgstr "plus ancré que"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/moreEntrenchedThan|http://www.w3.org/2004/02/skos/core#definition"
+msgid "S1 is more entrenched than S2: the party who ranks the two frames holds S1 to be the more settled of them. The ranking is a strict partial order that exists only as dated claims attributed to the ranker — a statement annotated with gmeow:accordingTo for the party who ranks and with gmeow:validFrom for when the ranking was made. It is transitive and irreflexive within one ranker's claims. It is not declared transitive globally: a global closure would chain one ranker's claim with another's and entail a ranking that no party made, so a consumer closes each ranker's claims separately (gmeow:moreEntrenchedThanIrreflexivity declares only irreflexivity, and asymmetry is not declared because two rankers may legitimately rank a pair in opposite directions, Principle 9). A missing claim means the two frames are incomparable — never equal and never lower. It is never derived from gmeow:sharpens: sharpening is containment, and reading the sharper frame as the more entrenched would invert a chain such a ranker made. It is a presentation aid for ordering frames, not a confidence, a truth value, or the epistemic-entrenchment ordering that drives logic:EntrenchmentRevision."
+msgstr "S1 est plus ancré que S2 : la partie qui classe les deux cadres tient S1 pour le plus établi des deux. Le classement est un ordre partiel strict qui n'existe que sous forme de revendications datées attribuées à celui qui classe — un énoncé annoté avec gmeow:accordingTo pour la partie qui classe et avec gmeow:validFrom pour la date du classement. Il est transitif et irréflexif au sein des revendications d'un seul classeur. Il n'est pas déclaré transitif globalement : une clôture globale enchaînerait la revendication d'un classeur avec celle d'un autre et entraînerait un classement qu'aucune partie n'a fait ; un consommateur clôt donc séparément les revendications de chaque classeur (gmeow:moreEntrenchedThanIrreflexivity ne déclare que l'irréflexivité, et l'asymétrie n'est pas déclarée parce que deux classeurs peuvent légitimement classer une paire en sens inverse, Principe 9). Une revendication absente signifie que les deux cadres sont incomparables — jamais égaux et jamais inférieurs. Il n'est jamais dérivé de gmeow:sharpens : l'affinement est une inclusion, et lire le cadre plus affiné comme le plus ancré inverserait une chaîne qu'un tel classeur a faite. C'est une aide de présentation pour ordonner les cadres, et non une confiance, une valeur de vérité ni l'ordre d'ancrage épistémique qui pilote logic:EntrenchmentRevision."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/moreEntrenchedThan|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:communityView gmeow:moreEntrenchedThan ex:fringeView {| gmeow:accordingTo ex:editorialBoard ; gmeow:validFrom \"2026-03-01\"^^xsd:date |} ."
+msgstr "ex:communityView gmeow:moreEntrenchedThan ex:fringeView {| gmeow:accordingTo ex:editorialBoard ; gmeow:validFrom \"2026-03-01\"^^xsd:date |} ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/moreEntrenchedThan|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid asserting it without the ranker and the date on the statement, avoid reading a missing claim as equal or lower, avoid deriving it from gmeow:sharpens, and avoid using it as a confidence, a truth value, or a belief-revision ordering. Never close it across rankers: chain only the claims one party made."
+msgstr "À éviter pour affirmer le classement sans le classeur et la date sur l'énoncé, pour lire une revendication absente comme égale ou inférieure, pour le dériver de gmeow:sharpens, et pour l'employer comme confiance, valeur de vérité ou ordre de révision des croyances. Ne le clôturez jamais entre classeurs : n'enchaînez que les revendications d'une seule partie."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/moreEntrenchedThan|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Assert it from the more entrenched standpoint to the less entrenched one as an annotated statement, naming the party who ranks with gmeow:accordingTo and the date with gmeow:validFrom. Leave a pair with no claim unranked. To order frames for display, take one ranker's claims, close them transitively on their own, and treat any pair left unordered as incomparable."
+msgstr "Affirmez-le du point de vue le plus ancré vers le moins ancré sous forme d'énoncé annoté, en nommant la partie qui classe avec gmeow:accordingTo et la date avec gmeow:validFrom. Laissez non classée toute paire sans revendication. Pour ordonner des cadres à l'affichage, prenez les revendications d'un seul classeur, clôturez-les transitivement à part, et traitez toute paire restée sans ordre comme incomparable."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/moreEntrenchedThan|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to record that a named party ranks one standpoint as more entrenched than another, when the ranking is only partly known and a pair nobody ranked must stay incomparable."
+msgstr "À utiliser pour consigner qu'une partie nommée classe un point de vue comme plus ancré qu'un autre, lorsque le classement n'est que partiellement connu et qu'une paire que personne n'a classée doit rester incomparable."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/moreEntrenchedThanIrreflexivity|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "moreEntrenchedThan is irreflexive"
+msgstr "moreEntrenchedThan est irréflexif"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/moreEntrenchedThanIrreflexivity|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:moreEntrenchedThan is irreflexive: no party ranks a standpoint as more entrenched than itself, as its skos:definition states. The native coherence gate reads this to raise a violation for a standpoint ranked above itself. Transitivity and asymmetry are deliberately not declared, because both would reach across rankers."
+msgstr "Affirme sur le porteur canonique que gmeow:moreEntrenchedThan est irréflexif : aucune partie ne classe un point de vue comme plus ancré que lui-même, comme l'énonce sa skos:definition. Le portail de cohérence natif lit ceci pour lever une violation lorsqu'un point de vue est classé au-dessus de lui-même. La transitivité et l'asymétrie sont délibérément non déclarées, car l'une et l'autre franchiraient la frontière entre classeurs."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/moreEntrenchedThanIrreflexivity|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the native coherence gate must enforce that gmeow:moreEntrenchedThan never relates a standpoint to itself; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
+msgstr "À utiliser lorsque le portail de cohérence natif doit garantir que gmeow:moreEntrenchedThan ne relie jamais un point de vue à lui-même ; cet enregistrement est le porteur canonique que le portail joint, de sorte que l'obligation est raisonnée plutôt que redite sur une surface de formes."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/moreEntrenchedThanIrreflexivity|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid this record when a self-edge is meaningful — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
+msgstr "À éviter lorsque une boucle sur soi-même a un sens — retirez l'assertion plutôt que de l'affaiblir, et ne la reproduisez jamais sous forme de forme écrite à la main."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/moreEntrenchedThanIrreflexivity|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:moreEntrenchedThan, logic:characteristicSort logic:irreflexiveProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."
+msgstr "À lire avec logic:characteristicSort : le couple (logic:characterizes gmeow:moreEntrenchedThan, logic:characteristicSort logic:irreflexiveProperty) constitue l'obligation entière, et la vue de fondement OWL en projette la caractéristique correspondante."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/moreEntrenchedThanIrreflexivity|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Scope: this record carries ONE integrity obligation about gmeow:moreEntrenchedThan and nothing else. It is not a definition of gmeow:moreEntrenchedThan (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
+msgstr "Portée : cet enregistrement porte UNE seule obligation d'intégrité au sujet de gmeow:moreEntrenchedThan, et rien d'autre. Ce n'est pas une définition de gmeow:moreEntrenchedThan (celle-ci figure sur le terme lui-même), ni une forme, ni un second endroit où énoncer le sens du terme — retirez l'enregistrement plutôt que de l'élargir."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/moreEntrenchedThanIrreflexivity|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:moreEntrenchedThanIrreflexivity logic:characterizes gmeow:moreEntrenchedThan ."
+msgstr "gmeow:moreEntrenchedThanIrreflexivity logic:characterizes gmeow:moreEntrenchedThan ."

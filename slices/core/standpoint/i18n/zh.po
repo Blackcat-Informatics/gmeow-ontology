@@ -459,3 +459,55 @@ msgstr "规范函数属性约束允许每个声明至多一个明确的旧式 cl
 msgctxt "https://blackcatinformatics.ca/gmeow/claimModalityFunctionality|gmeow:useWhen"
 msgid "Use to reject multiple explicit legacy modality values without requiring a missing value."
 msgstr "用于拒绝多个明确的旧式模态值，而不要求补齐缺失值。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/moreEntrenchedThan|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "more entrenched than"
+msgstr "比……更根深蒂固"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/moreEntrenchedThan|http://www.w3.org/2004/02/skos/core#definition"
+msgid "S1 is more entrenched than S2: the party who ranks the two frames holds S1 to be the more settled of them. The ranking is a strict partial order that exists only as dated claims attributed to the ranker — a statement annotated with gmeow:accordingTo for the party who ranks and with gmeow:validFrom for when the ranking was made. It is transitive and irreflexive within one ranker's claims. It is not declared transitive globally: a global closure would chain one ranker's claim with another's and entail a ranking that no party made, so a consumer closes each ranker's claims separately (gmeow:moreEntrenchedThanIrreflexivity declares only irreflexivity, and asymmetry is not declared because two rankers may legitimately rank a pair in opposite directions, Principle 9). A missing claim means the two frames are incomparable — never equal and never lower. It is never derived from gmeow:sharpens: sharpening is containment, and reading the sharper frame as the more entrenched would invert a chain such a ranker made. It is a presentation aid for ordering frames, not a confidence, a truth value, or the epistemic-entrenchment ordering that drives logic:EntrenchmentRevision."
+msgstr "S1 比 S2 更根深蒂固：对这两个框架进行排序的一方认为 S1 是二者中更稳固的一个。该排序是严格偏序，仅以归属于排序者的带日期主张形式存在——即带有 gmeow:accordingTo（指明排序方）和 gmeow:validFrom（指明排序时间）注解的陈述。它在单个排序者的主张之内是传递且非自反的。它并未被声明为全局传递：全局闭包会把一个排序者的主张与另一个排序者的主张串联，从而蕴含出无人作出过的排序，因此使用方应分别闭合每个排序者的主张（gmeow:moreEntrenchedThanIrreflexivity 仅声明非自反性；不声明反对称性，因为两个排序者可以合理地对同一对框架作出相反排序，原则 9）。缺失主张表示两个框架不可比较——绝不意味着相等，也绝不意味着更低。它绝不由 gmeow:sharpens 推导：锐化是包含关系，把更锐化的框架读作更根深蒂固，会颠倒此类排序者所作的链。它是用于排列框架的呈现辅助，不是置信度，不是真值，也不是驱动 logic:EntrenchmentRevision 的认知根深度排序。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/moreEntrenchedThan|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:communityView gmeow:moreEntrenchedThan ex:fringeView {| gmeow:accordingTo ex:editorialBoard ; gmeow:validFrom \"2026-03-01\"^^xsd:date |} ."
+msgstr "ex:communityView gmeow:moreEntrenchedThan ex:fringeView {| gmeow:accordingTo ex:editorialBoard ; gmeow:validFrom \"2026-03-01\"^^xsd:date |} ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/moreEntrenchedThan|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid asserting it without the ranker and the date on the statement, avoid reading a missing claim as equal or lower, avoid deriving it from gmeow:sharpens, and avoid using it as a confidence, a truth value, or a belief-revision ordering. Never close it across rankers: chain only the claims one party made."
+msgstr "避免在陈述上缺少排序者和日期时断言它；避免把缺失主张读作相等或更低；避免从 gmeow:sharpens 推导它；避免将其用作置信度、真值或信念修正排序。绝不跨排序者闭合：只串联同一方作出的主张。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/moreEntrenchedThan|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Assert it from the more entrenched standpoint to the less entrenched one as an annotated statement, naming the party who ranks with gmeow:accordingTo and the date with gmeow:validFrom. Leave a pair with no claim unranked. To order frames for display, take one ranker's claims, close them transitively on their own, and treat any pair left unordered as incomparable."
+msgstr "以带注解陈述的形式，从更根深蒂固的立场指向较不根深蒂固的立场来断言它，用 gmeow:accordingTo 指明排序方，用 gmeow:validFrom 指明日期。没有主张的框架对保持未排序。为展示而排列框架时，取单个排序者的主张，单独对其做传递闭包，并将仍无顺序的框架对视为不可比较。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/moreEntrenchedThan|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to record that a named party ranks one standpoint as more entrenched than another, when the ranking is only partly known and a pair nobody ranked must stay incomparable."
+msgstr "当某一指名方将一个立场排序为比另一个更根深蒂固、排序仅部分已知、且无人排序的框架对必须保持不可比较时使用。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/moreEntrenchedThanIrreflexivity|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "moreEntrenchedThan is irreflexive"
+msgstr "「比……更根深蒂固」是非自反的"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/moreEntrenchedThanIrreflexivity|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:moreEntrenchedThan is irreflexive: no party ranks a standpoint as more entrenched than itself, as its skos:definition states. The native coherence gate reads this to raise a violation for a standpoint ranked above itself. Transitivity and asymmetry are deliberately not declared, because both would reach across rankers."
+msgstr "在规范载体上断言 gmeow:moreEntrenchedThan 是非自反的：如其 skos:definition 所述，任何一方都不会把某个立场排序为比自身更根深蒂固。原生一致性门读取此项，为排在自身之上的立场抛出一个违规。传递性和反对称性被刻意不声明，因为两者都会跨越排序者。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/moreEntrenchedThanIrreflexivity|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the native coherence gate must enforce that gmeow:moreEntrenchedThan never relates a standpoint to itself; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
+msgstr "当原生一致性门必须强制 gmeow:moreEntrenchedThan 绝不将某立场关联到自身 时使用；该记录是门所连接的规范载体，因此该义务是被推理出来的，而非在形状表面上重述。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/moreEntrenchedThanIrreflexivity|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid this record when a self-edge is meaningful — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
+msgstr "当自环有意义时避免使用该记录——应撤回该断言而非削弱它，且绝不将其复刻为手写形状。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/moreEntrenchedThanIrreflexivity|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:moreEntrenchedThan, logic:characteristicSort logic:irreflexiveProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."
+msgstr "与 logic:characteristicSort 一并阅读：(logic:characterizes gmeow:moreEntrenchedThan, logic:characteristicSort logic:irreflexiveProperty) 这一对构成完整义务，OWL 基础视图据此投影出相应特征。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/moreEntrenchedThanIrreflexivity|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Scope: this record carries ONE integrity obligation about gmeow:moreEntrenchedThan and nothing else. It is not a definition of gmeow:moreEntrenchedThan (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
+msgstr "范围：该记录仅承载关于 gmeow:moreEntrenchedThan 的一项完整性义务，别无其他。它不是 gmeow:moreEntrenchedThan 的定义（定义位于术语自身），不是形状，也不是重述该术语含义的第二处位置——应撤回该记录而非扩大其范围。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/moreEntrenchedThanIrreflexivity|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:moreEntrenchedThanIrreflexivity logic:characterizes gmeow:moreEntrenchedThan ."
+msgstr "gmeow:moreEntrenchedThanIrreflexivity logic:characterizes gmeow:moreEntrenchedThan ."

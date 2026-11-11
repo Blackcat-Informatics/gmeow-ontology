@@ -171,6 +171,21 @@ gmeow:conceivable
     gmeow:graphBoxRole gmeow:boxABox ,
         gmeow:boxCBox .
 
+gmeow:moreEntrenchedThan
+    a logic:ObjectProperty ;
+    rdfs:domain gmeow:Standpoint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/standpoint> ;
+    rdfs:label "more entrenched than"@x-gmeow-english ;
+    rdfs:range gmeow:Standpoint ;
+    skos:definition "S1 is more entrenched than S2: the party who ranks the two frames holds S1 to be the more settled of them. The ranking is a strict partial order that exists only as dated claims attributed to the ranker — a statement annotated with gmeow:accordingTo for the party who ranks and with gmeow:validFrom for when the ranking was made. It is transitive and irreflexive within one ranker's claims. It is not declared transitive globally: a global closure would chain one ranker's claim with another's and entail a ranking that no party made, so a consumer closes each ranker's claims separately (gmeow:moreEntrenchedThanIrreflexivity declares only irreflexivity, and asymmetry is not declared because two rankers may legitimately rank a pair in opposite directions, Principle 9). A missing claim means the two frames are incomparable — never equal and never lower. It is never derived from gmeow:sharpens: sharpening is containment, and reading the sharper frame as the more entrenched would invert a chain such a ranker made. It is a presentation aid for ordering frames, not a confidence, a truth value, or the epistemic-entrenchment ordering that drives logic:EntrenchmentRevision."@x-gmeow-english ;
+    skos:example "ex:communityView gmeow:moreEntrenchedThan ex:fringeView {| gmeow:accordingTo ex:editorialBoard ; gmeow:validFrom \"2026-03-01\"^^xsd:date |} ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid asserting it without the ranker and the date on the statement, avoid reading a missing claim as equal or lower, avoid deriving it from gmeow:sharpens, and avoid using it as a confidence, a truth value, or a belief-revision ordering. Never close it across rankers: chain only the claims one party made."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxCBox ,
+        gmeow:boxRBox ;
+    gmeow:howToUse "Assert it from the more entrenched standpoint to the less entrenched one as an annotated statement, naming the party who ranks with gmeow:accordingTo and the date with gmeow:validFrom. Leave a pair with no claim unranked. To order frames for display, take one ranker's claims, close them transitively on their own, and treat any pair left unordered as incomparable."@x-gmeow-english ;
+    gmeow:pairsWith gmeow:sharpens ;
+    gmeow:useWhen "Use to record that a named party ranks one standpoint as more entrenched than another, when the ranking is only partly known and a pair nobody ranked must stay incomparable."@x-gmeow-english .
+
 gmeow:probable
     a gmeow:StandpointModality ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/standpoint> ;
@@ -1086,6 +1101,23 @@ gmeow:sharpensTransitivity
     skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:sharpens and nothing else. It is not a definition of gmeow:sharpens (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
     skos:example "gmeow:sharpensTransitivity logic:characterizes gmeow:sharpens ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:moreEntrenchedThanIrreflexivity
+    a logic:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/standpoint> ;
+    rdfs:label "moreEntrenchedThan is irreflexive"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:moreEntrenchedThan is irreflexive: no party ranks a standpoint as more entrenched than itself, as its skos:definition states. The native coherence gate reads this to raise a violation for a standpoint ranked above itself. Transitivity and asymmetry are deliberately not declared, because both would reach across rankers."@x-gmeow-english ;
+    logic:characterizes gmeow:moreEntrenchedThan ;
+    logic:characteristicSort logic:irreflexiveProperty ;
+    logic:formalizes gmeow:moreEntrenchedThan ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:moreEntrenchedThan never relates a standpoint to itself; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a self-edge is meaningful — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:moreEntrenchedThan, logic:characteristicSort logic:irreflexiveProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:moreEntrenchedThan and nothing else. It is not a definition of gmeow:moreEntrenchedThan (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:moreEntrenchedThanIrreflexivity logic:characterizes gmeow:moreEntrenchedThan ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
 gmeow:claimAssertoricForceFunctionality
     a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
