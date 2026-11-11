@@ -4,7 +4,7 @@
 # Worked example: an approval of a body of work, kept apart from who holds its claims.
 # The reviewer approved one chapter of the handbook on a stated day. The author holds the
 # handbook's claims and stays a separate fact; the reviewer is not made a holder. A later
-# approval of the whole handbook is a new node, and the first node is left unchanged.
+# approval of the handbook whose scope is not stated is a new node, and the first node is left unchanged.
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
 @prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/provenance/approval/> .
 @prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .

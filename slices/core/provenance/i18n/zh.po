@@ -138,8 +138,8 @@ msgid "A reified record that a named agent approved a body of work on a given da
 msgstr "一条具体化的记录，表明某个具名主体在某一天批准了一项工作成果。它在批准者（gmeow:approvedBy）与被批准的工作成果（gmeow:approvalOf）之间起中介作用，携带日历日期（gmeow:approvedOn），并可携带被批准的部分（gmeow:approvalScope）以及将该批准录入记录的主体（gmeow:reportedBy）。批准一项工作成果与持有其中的主张是两个不同的事实：批准者并不因此成为这些主张的持有者、作者、贡献者或来源，且该记录既不断言该工作成果正确，也不断言批准者认同其每一部分。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/Approval|http://www.w3.org/2004/02/skos/core#scopeNote"
-msgid "One Approval node records one approval by one approver of one body of work. A joint approval is several Approval nodes, and a later approval is a new node. The identifier and label of an existing Approval are never changed or reused, and a correction or a re-approval adds a new node instead of rewriting an earlier one. This is a usage contract: no axiom enforces it and no gate can detect a relabelled node. The existential restrictions require an approver, an approved work and an approval day to be present; nothing in the record says the approval is still current."
-msgstr "一个 Approval 节点记录一位批准者对一项工作成果的一次批准。联合批准对应多个 Approval 节点，后续批准则是新节点。既有 Approval 的标识符与标签绝不更改或重用；更正或重新批准应添加新节点，而不是改写先前的节点。这是一项使用约定：没有任何公理强制它，也没有任何门能检测出被改名的节点。存在性限制要求必须有批准者、被批准的工作成果和批准日期；记录中没有任何内容表明该批准仍然有效。"
+msgid "One Approval node records one approval by one approver of one body of work. A joint approval is several Approval nodes, and a later approval is a new node. The identifier and label of an existing Approval are never changed or reused, and a correction or a re-approval adds a new node instead of rewriting an earlier one. This is a usage contract: no axiom enforces it and no gate can detect a relabelled node. The existential restrictions entail that an approver, an approved work and an approval day exist, and nothing rejects a node that omits them; nothing in the record says the approval is still current."
+msgstr "一个 Approval 节点记录一位批准者对一项工作成果的一次批准。联合批准对应多个 Approval 节点，后续批准则是新节点。既有 Approval 的标识符与标签绝不更改或重用；更正或重新批准应添加新节点，而不是改写先前的节点。这是一项使用约定：没有任何公理强制它，也没有任何门能检测出被改名的节点。存在性限制蕴含存在批准者、被批准的工作成果和批准日期，且没有任何机制会拒绝省略它们的节点；记录中没有任何内容表明该批准仍然有效。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/Approval|http://www.w3.org/2004/02/skos/core#example"
 msgid "ex:approval1 a gmeow:Approval ; gmeow:approvalOf ex:handbook ; gmeow:approvedBy ex:drOkafor ; gmeow:approvedOn \"2026-11-05\"^^xsd:date ; gmeow:approvalScope ex:handbookChapter3 ."
@@ -174,8 +174,8 @@ msgid "Avoid it for the part of the work that was approved (use gmeow:approvalSc
 msgstr "避免用于被批准的那一部分（应使用 gmeow:approvalScope）和批准的主体（应使用 gmeow:approvedBy）；在此处点名某项工作成果并不使批准者成为其主张的持有者。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/approvalOf|https://blackcatinformatics.ca/gmeow/howToUse"
-msgid "Point the gmeow:Approval at the whole work approved, whether a creative work, an information object or another entity; narrow the approval to a part with gmeow:approvalScope, not by pointing here at the part."
-msgstr "让 Approval 指向被批准的整项工作成果，无论它是创作作品、信息对象还是其他实体；要将批准缩小到某个部分，应使用 gmeow:approvalScope，而不是在此处指向该部分。"
+msgid "Point the gmeow:Approval at the body of work the approval concerns, whether a creative work, an information object or another entity; narrow the approval to a part with gmeow:approvalScope, not by pointing here at the part."
+msgstr "让 Approval 指向该批准所涉及的工作成果，无论它是创作作品、信息对象还是其他实体；要将批准缩小到某个部分，应使用 gmeow:approvalScope，而不是在此处指向该部分。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/approvalOf|https://blackcatinformatics.ca/gmeow/useWhen"
 msgid "Use to name the body of work that an Approval approves."
@@ -194,12 +194,12 @@ msgid "ex:approval1 gmeow:approvalScope ex:handbookChapter3 ."
 msgstr "ex:approval1 gmeow:approvalScope ex:handbookChapter3 ."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/approvalScope|https://blackcatinformatics.ca/gmeow/avoidWhen"
-msgid "Avoid it for the whole work (that is gmeow:approvalOf), and avoid reading a missing value as approval of everything; also avoid it for a time window, which is not a part of a work."
-msgstr "避免用于整项工作成果（那是 gmeow:approvalOf），也避免将缺失的值解读为批准了一切；同样避免用于时间窗口，因为时间窗口不是工作成果的一部分。"
+msgid "Avoid it for the body of work the approval concerns (that is gmeow:approvalOf), and avoid reading a missing value as approval of everything; also avoid it for a time window, which is not a part of a work."
+msgstr "避免用于该批准所涉及的工作成果（那是 gmeow:approvalOf），也避免将缺失的值解读为批准了一切；同样避免用于时间窗口，因为时间窗口不是工作成果的一部分。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/approvalScope|https://blackcatinformatics.ca/gmeow/howToUse"
-msgid "Point at each approved part, or at a citation selector when only a pinpoint is covered; leave it off when the scope was not stated rather than naming the whole work."
-msgstr "指向每个被批准的部分；若仅覆盖精确定位，则指向引文选择器；当范围未说明时应省略，而不是点名整项工作成果。"
+msgid "Point at each approved part, or at a citation selector when only a pinpoint is covered; leave it off when the scope was not stated rather than naming the body of work the approval concerns."
+msgstr "指向每个被批准的部分；若仅覆盖精确定位，则指向引文选择器；当范围未说明时应省略，而不是点名该批准所涉及的工作成果。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/approvalScope|https://blackcatinformatics.ca/gmeow/useWhen"
 msgid "Use to say which part of a body of work an Approval covers when the approval is narrower than the work."

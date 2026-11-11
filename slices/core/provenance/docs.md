@@ -193,7 +193,7 @@ failure marker or runtime engine (Principles 2, 4, 7, 9, 12, 17 and 19).
 
 `gmeow:Approval` records that a named agent approved a body of work on a given day. It
 is a relator, declared like `gmeow:Attestation` and `gmeow:Contribution`, mediating two
-roles: the approver (`gmeow:approvedBy`, an agent) and the work approved
+roles: the approver (`gmeow:approvedBy`, an agent) and the body of work the approval concerns
 (`gmeow:approvalOf`, an entity). The second role is what makes the approval about
 something; a relator needs two relata. `gmeow:approvedOn` carries the calendar day as an
 `xsd:date`, with no invented time of day. `gmeow:approvalScope` optionally names the
