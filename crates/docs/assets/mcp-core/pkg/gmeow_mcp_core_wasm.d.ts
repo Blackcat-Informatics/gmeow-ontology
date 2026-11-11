@@ -62,7 +62,7 @@ export function deferred_tools(): string;
  * Throws a JS exception if the snapshot does not read as a GTS bundle, if the startup
  * language is unresolvable, or if the builtin surface does not assemble.
  */
-export function init(snapshot: Uint8Array): void;
+export function init(snapshot: Uint8Array | number[]): void;
 
 /**
  * Handle ONE JSON-RPC 2.0 frame and return the response frame.
@@ -116,10 +116,13 @@ export interface InitOutput {
     readonly mcp: (a: number, b: number, c: number) => void;
     readonly ready: () => number;
     readonly version: (a: number) => void;
+    readonly __wbindgen_externrefs: WebAssembly.Table;
     readonly __wbindgen_add_to_stack_pointer: (a: number) => number;
     readonly __wbindgen_export: (a: number, b: number, c: number) => void;
     readonly __wbindgen_export2: (a: number, b: number) => number;
     readonly __wbindgen_export3: (a: number, b: number, c: number, d: number) => number;
+    readonly __wbindgen_export4: (a: number) => void;
+    readonly __wbindgen_start: () => void;
 }
 
 export type SyncInitInput = BufferSource | WebAssembly.Module;

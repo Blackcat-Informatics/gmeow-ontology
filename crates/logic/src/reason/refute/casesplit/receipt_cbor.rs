@@ -14,8 +14,8 @@ use super::{
 };
 
 impl ExecutionCbor for ClassExecutionOutcome {
-    fn write_cbor<W: crate::execution_cbor::LeafWrite + ?Sized>(
-        &self,
+    fn write_cbor<'data, W: crate::execution_cbor::LeafWrite<'data> + ?Sized>(
+        &'data self,
         out: &mut W,
     ) -> io::Result<()> {
         head::write_head(out, head::MAP, 6)?;
@@ -77,8 +77,8 @@ impl ExecutionCbor for ClassExecutionOutcome {
 // The source-admission profile has a narrower boundary writer. This complete
 // receipt owner retains every represented variant; admission stays elsewhere.
 impl ExecutionCbor for ClassAdmissionObservation {
-    fn write_cbor<W: crate::execution_cbor::LeafWrite + ?Sized>(
-        &self,
+    fn write_cbor<'data, W: crate::execution_cbor::LeafWrite<'data> + ?Sized>(
+        &'data self,
         out: &mut W,
     ) -> io::Result<()> {
         self.write_fields(out, |world, out| {
@@ -115,8 +115,8 @@ impl ExecutionCbor for ClassAdmissionObservation {
 }
 
 impl ExecutionCbor for ClassAdmissionWorld {
-    fn write_cbor<W: crate::execution_cbor::LeafWrite + ?Sized>(
-        &self,
+    fn write_cbor<'data, W: crate::execution_cbor::LeafWrite<'data> + ?Sized>(
+        &'data self,
         out: &mut W,
     ) -> io::Result<()> {
         self.write_fields(out, ExecutionCbor::write_cbor)
@@ -151,8 +151,8 @@ impl ExecutionCbor for ClassAdmissionWorld {
 }
 
 impl ExecutionCbor for ClassSourceRefusal {
-    fn write_cbor<W: crate::execution_cbor::LeafWrite + ?Sized>(
-        &self,
+    fn write_cbor<'data, W: crate::execution_cbor::LeafWrite<'data> + ?Sized>(
+        &'data self,
         out: &mut W,
     ) -> io::Result<()> {
         match self {

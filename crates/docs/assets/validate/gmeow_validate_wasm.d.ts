@@ -19,7 +19,7 @@
  * Throws a JS exception if the container cannot be read, the statement layer cannot
  * be folded, or the dataset cannot be serialized.
  */
-export function bundle_dataset(gts: Uint8Array): string;
+export function bundle_dataset(gts: Uint8Array | number[]): string;
 
 /**
  * The BLAKE3 digest of the original GMN-1 source document (`module.ttl`), as
@@ -57,7 +57,7 @@ export function gmn_codebook_digest(): string;
  * — so it hard-fails as a panic / wasm trap, never a document defect and never a silent
  * degradation to a syntax-only check.
  */
-export function gmn_validate(bytes: Uint8Array): string;
+export function gmn_validate(bytes: Uint8Array | number[]): string;
 
 /**
  * Run Tier-1 conformance of `data` (RDF text in `format`) against the SHACL shapes
@@ -81,7 +81,7 @@ export function gmn_validate(bytes: Uint8Array): string;
  * Throws a JS exception if the bundle carries no `shapes-archive`, the archive or
  * shapes are malformed, or the data graph fails to parse.
  */
-export function validate(data: string, format: string, gts: Uint8Array, namespace: string, origin: string): string;
+export function validate(data: string, format: string, gts: Uint8Array | number[], namespace: string, origin: string): string;
 
 /**
  * The validator version (the crate's SemVer), exposed to JS as `version()`.
@@ -95,16 +95,17 @@ export type InitInput = RequestInfo | URL | Response | BufferSource | WebAssembl
 
 export interface InitOutput {
     readonly memory: WebAssembly.Memory;
-    readonly bundle_dataset: (a: number, b: number) => [number, number, number, number];
-    readonly gmn_codebook_digest: () => [number, number];
-    readonly gmn_validate: (a: number, b: number) => [number, number, number, number];
-    readonly validate: (a: number, b: number, c: number, d: number, e: number, f: number, g: number, h: number, i: number, j: number) => [number, number, number, number];
-    readonly version: () => [number, number];
+    readonly bundle_dataset: (a: number, b: number, c: number) => void;
+    readonly gmn_codebook_digest: (a: number) => void;
+    readonly gmn_validate: (a: number, b: number, c: number) => void;
+    readonly validate: (a: number, b: number, c: number, d: number, e: number, f: number, g: number, h: number, i: number, j: number, k: number) => void;
+    readonly version: (a: number) => void;
     readonly __wbindgen_externrefs: WebAssembly.Table;
-    readonly __wbindgen_malloc: (a: number, b: number) => number;
-    readonly __externref_table_dealloc: (a: number) => void;
-    readonly __wbindgen_free: (a: number, b: number, c: number) => void;
-    readonly __wbindgen_realloc: (a: number, b: number, c: number, d: number) => number;
+    readonly __wbindgen_add_to_stack_pointer: (a: number) => number;
+    readonly __wbindgen_export: (a: number, b: number) => number;
+    readonly __wbindgen_export2: (a: number, b: number, c: number) => void;
+    readonly __wbindgen_export3: (a: number) => void;
+    readonly __wbindgen_export4: (a: number, b: number, c: number, d: number) => number;
     readonly __wbindgen_start: () => void;
 }
 

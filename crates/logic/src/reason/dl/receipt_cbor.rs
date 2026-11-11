@@ -15,8 +15,8 @@ use super::{
 };
 
 impl ExecutionCbor for DlConstructFamily {
-    fn write_cbor<W: crate::execution_cbor::LeafWrite + ?Sized>(
-        &self,
+    fn write_cbor<'data, W: crate::execution_cbor::LeafWrite<'data> + ?Sized>(
+        &'data self,
         out: &mut W,
     ) -> io::Result<()> {
         match self {
@@ -181,8 +181,8 @@ impl ExecutionCbor for DlConstructFamily {
 }
 
 impl ExecutionCbor for NativeConstructOccurrence {
-    fn write_cbor<W: crate::execution_cbor::LeafWrite + ?Sized>(
-        &self,
+    fn write_cbor<'data, W: crate::execution_cbor::LeafWrite<'data> + ?Sized>(
+        &'data self,
         out: &mut W,
     ) -> io::Result<()> {
         head::write_head(out, head::MAP, 3)?;
@@ -224,8 +224,8 @@ impl ExecutionCbor for NativeConstructOccurrence {
 }
 
 impl ExecutionCbor for SourceCoverageWorld {
-    fn write_cbor<W: crate::execution_cbor::LeafWrite + ?Sized>(
-        &self,
+    fn write_cbor<'data, W: crate::execution_cbor::LeafWrite<'data> + ?Sized>(
+        &'data self,
         out: &mut W,
     ) -> io::Result<()> {
         head::write_head(out, head::MAP, 3)?;
@@ -267,8 +267,8 @@ impl ExecutionCbor for SourceCoverageWorld {
 }
 
 impl ExecutionCbor for NativeSourceGrammarBasis {
-    fn write_cbor<W: crate::execution_cbor::LeafWrite + ?Sized>(
-        &self,
+    fn write_cbor<'data, W: crate::execution_cbor::LeafWrite<'data> + ?Sized>(
+        &'data self,
         out: &mut W,
     ) -> io::Result<()> {
         match self {
@@ -339,8 +339,8 @@ impl ExecutionCbor for NativeSourceGrammarBasis {
 }
 
 impl ExecutionCbor for NativeConstructAdmission {
-    fn write_cbor<W: crate::execution_cbor::LeafWrite + ?Sized>(
-        &self,
+    fn write_cbor<'data, W: crate::execution_cbor::LeafWrite<'data> + ?Sized>(
+        &'data self,
         out: &mut W,
     ) -> io::Result<()> {
         head::write_head(out, head::MAP, 7)?;
@@ -406,8 +406,8 @@ impl ExecutionCbor for NativeConstructAdmission {
 }
 
 impl ExecutionCbor for SourceCoverageObservation {
-    fn write_cbor<W: crate::execution_cbor::LeafWrite + ?Sized>(
-        &self,
+    fn write_cbor<'data, W: crate::execution_cbor::LeafWrite<'data> + ?Sized>(
+        &'data self,
         out: &mut W,
     ) -> io::Result<()> {
         head::write_head(out, head::MAP, 2)?;

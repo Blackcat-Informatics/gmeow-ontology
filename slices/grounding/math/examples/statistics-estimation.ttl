@@ -5,9 +5,9 @@
 # section. It keeps four things a naive report collapses strictly apart:
 #
 #   * the TARGET of inference — a math:Estimand (the average treatment effect of a
-#     drug on 5-year survival), with six declared framing roles in this scene:
+#     drug on 5-year survival), with supplied framing roles in this scene:
 #     math:targetPopulation, math:targetOutcome, math:targetContrast, math:targetTime,
-#     math:interventionCondition, and math:missingDataPolicy;
+#     math:interventionCondition, and math:intercurrentEventHandling;
 #   * the MODEL QUANTITY — a coefficient the estimate names (math:estimatedParameter);
 #   * the PROCEDURE — a math:Estimator (an inverse-probability-weighted estimator);
 #   * the RESULT — a math:Estimate, the structured result object that names its estimand
@@ -30,7 +30,7 @@
 @prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
 @prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
 
-# --- The estimand: the target of inference, framed by its six coordinates ----- #
+# --- The estimand: supplied target context and event-specific strategy ------- #
 
 ex:ateEstimand a math:Estimand ;
     rdfs:label "ATE of drug D on 5-year survival — the target quantity"@x-gmeow-english ;
@@ -39,7 +39,7 @@ ex:ateEstimand a math:Estimand ;
     math:targetContrast ex:treatmentContrast ;
     math:targetTime ex:fiveYearHorizon ;
     math:interventionCondition ex:assignDrug ;
-    math:missingDataPolicy ex:treatmentPolicyStrategy .
+    math:intercurrentEventHandling ex:discontinuationHandling .
 
 ex:trialPopulation a math:StatisticalPopulation ;
     rdfs:label "Stage-II patients meeting the trial's eligibility criteria"@x-gmeow-english .
@@ -58,8 +58,18 @@ ex:fiveYearHorizon a math:MathematicalObject ;
 ex:assignDrug a math:MathematicalObject ;
     rdfs:label "do(assign drug D) — the intervention condition the estimand conditions on"@x-gmeow-english .
 
+# This illustrative target explicitly addresses treatment discontinuation.
+# This specification does not assert an observed discontinuation occurrence.
+# The scene supplies no analysis missing-data policy; treatment policy is not one.
+ex:discontinuationHandling a math:MathematicalObject ;
+    math:intercurrentEvent ex:discontinuationSpecification ;
+    math:intercurrentEventStrategy ex:treatmentPolicyStrategy .
+
+ex:discontinuationSpecification a math:MathematicalObject ;
+    rdfs:label "Discontinuation of assigned treatment after initiation — the event specification"@x-gmeow-english .
+
 ex:treatmentPolicyStrategy a math:MathematicalObject ;
-    rdfs:label "Treatment-policy strategy for intercurrent events (the missing-data policy)"@x-gmeow-english .
+    rdfs:label "Treatment-policy target strategy for the specified treatment discontinuation"@x-gmeow-english .
 
 # --- The estimator, the estimate, and the model quantity --------------------- #
 

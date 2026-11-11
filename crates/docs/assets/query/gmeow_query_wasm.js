@@ -31,12 +31,12 @@ export class Dataset {
      *
      * Throws if the container cannot be read or its segments do not fold into a
      * dataset.
-     * @param {Uint8Array} gts
+     * @param {Uint8Array | number[]} gts
      * @returns {Dataset}
      */
     static fromGts(gts) {
         try {
-            const retptr = wasm.__wbindgen_add_to_stack_pointer(-16);
+            const retptr = wasm.__wbindgen_add_to_stack_pointer(-16) >>> 0;
             const ptr0 = passArray8ToWasm0(gts, wasm.__wbindgen_export);
             const len0 = WASM_VECTOR_LEN;
             wasm.dataset_fromGts(retptr, ptr0, len0);
@@ -44,7 +44,7 @@ export class Dataset {
             var r1 = getDataViewMemory0().getInt32(retptr + 4 * 1, true);
             var r2 = getDataViewMemory0().getInt32(retptr + 4 * 2, true);
             if (r2) {
-                throw takeObject(r1);
+                throw takeFromExternrefTable0(r1);
             }
             return Dataset.__wrap(r0);
         } finally {
@@ -68,17 +68,24 @@ export class Dataset {
      */
     static parse(text, format) {
         try {
-            const retptr = wasm.__wbindgen_add_to_stack_pointer(-16);
-            const ptr0 = passStringToWasm0(text, wasm.__wbindgen_export, wasm.__wbindgen_export3);
-            const len0 = WASM_VECTOR_LEN;
-            const ptr1 = passStringToWasm0(format, wasm.__wbindgen_export, wasm.__wbindgen_export3);
-            const len1 = WASM_VECTOR_LEN;
+            const retptr = wasm.__wbindgen_add_to_stack_pointer(-16) >>> 0;
+            let ptr0, len0, ptr1, len1;
+            try {
+                ptr0 = passStringToWasm0(text, wasm.__wbindgen_export, wasm.__wbindgen_export4);
+                len0 = WASM_VECTOR_LEN;
+                ptr1 = passStringToWasm0(format, wasm.__wbindgen_export, wasm.__wbindgen_export4);
+                len1 = WASM_VECTOR_LEN;
+            } catch (e) {
+                if (ptr1) { wasm.__wbindgen_export2(ptr1, len1 * 1, 1); }
+                if (ptr0) { wasm.__wbindgen_export2(ptr0, len0 * 1, 1); }
+                throw e;
+            }
             wasm.dataset_parse(retptr, ptr0, len0, ptr1, len1);
             var r0 = getDataViewMemory0().getInt32(retptr + 4 * 0, true);
             var r1 = getDataViewMemory0().getInt32(retptr + 4 * 1, true);
             var r2 = getDataViewMemory0().getInt32(retptr + 4 * 2, true);
             if (r2) {
-                throw takeObject(r1);
+                throw takeFromExternrefTable0(r1);
             }
             return Dataset.__wrap(r0);
         } finally {
@@ -104,11 +111,18 @@ export class Dataset {
         let deferred4_0;
         let deferred4_1;
         try {
-            const retptr = wasm.__wbindgen_add_to_stack_pointer(-16);
-            const ptr0 = passStringToWasm0(sparql, wasm.__wbindgen_export, wasm.__wbindgen_export3);
-            const len0 = WASM_VECTOR_LEN;
-            var ptr1 = isLikeNone(base) ? 0 : passStringToWasm0(base, wasm.__wbindgen_export, wasm.__wbindgen_export3);
-            var len1 = WASM_VECTOR_LEN;
+            const retptr = wasm.__wbindgen_add_to_stack_pointer(-16) >>> 0;
+            let ptr0, len0, ptr1, len1;
+            try {
+                ptr0 = passStringToWasm0(sparql, wasm.__wbindgen_export, wasm.__wbindgen_export4);
+                len0 = WASM_VECTOR_LEN;
+                ptr1 = isLikeNone(base) ? 0 : passStringToWasm0(base, wasm.__wbindgen_export, wasm.__wbindgen_export4);
+                len1 = WASM_VECTOR_LEN;
+            } catch (e) {
+                if (ptr1) { wasm.__wbindgen_export2(ptr1, len1 * 1, 1); }
+                if (ptr0) { wasm.__wbindgen_export2(ptr0, len0 * 1, 1); }
+                throw e;
+            }
             wasm.dataset_query(retptr, this.__wbg_ptr, ptr0, len0, ptr1, len1);
             var r0 = getDataViewMemory0().getInt32(retptr + 4 * 0, true);
             var r1 = getDataViewMemory0().getInt32(retptr + 4 * 1, true);
@@ -118,7 +132,7 @@ export class Dataset {
             var len3 = r1;
             if (r3) {
                 ptr3 = 0; len3 = 0;
-                throw takeObject(r2);
+                throw takeFromExternrefTable0(r2);
             }
             deferred4_0 = ptr3;
             deferred4_1 = len3;
@@ -145,8 +159,8 @@ export class Dataset {
         let deferred3_0;
         let deferred3_1;
         try {
-            const retptr = wasm.__wbindgen_add_to_stack_pointer(-16);
-            const ptr0 = passStringToWasm0(format, wasm.__wbindgen_export, wasm.__wbindgen_export3);
+            const retptr = wasm.__wbindgen_add_to_stack_pointer(-16) >>> 0;
+            const ptr0 = passStringToWasm0(format, wasm.__wbindgen_export, wasm.__wbindgen_export4);
             const len0 = WASM_VECTOR_LEN;
             wasm.dataset_serialize(retptr, this.__wbg_ptr, ptr0, len0);
             var r0 = getDataViewMemory0().getInt32(retptr + 4 * 0, true);
@@ -157,7 +171,7 @@ export class Dataset {
             var len2 = r1;
             if (r3) {
                 ptr2 = 0; len2 = 0;
-                throw takeObject(r2);
+                throw takeFromExternrefTable0(r2);
             }
             deferred3_0 = ptr2;
             deferred3_1 = len2;
@@ -192,14 +206,14 @@ if (Symbol.dispose) Dataset.prototype[Symbol.dispose] = Dataset.prototype.free;
  * The browser has no native blake3, and verifying under a second algorithm would mean the
  * manifest's recorded address is not the one anybody checks — so the engine that is
  * already booted before the fetch exposes the real one.
- * @param {Uint8Array} bytes
+ * @param {Uint8Array | number[]} bytes
  * @returns {string}
  */
 export function blake3Hex(bytes) {
     let deferred2_0;
     let deferred2_1;
     try {
-        const retptr = wasm.__wbindgen_add_to_stack_pointer(-16);
+        const retptr = wasm.__wbindgen_add_to_stack_pointer(-16) >>> 0;
         const ptr0 = passArray8ToWasm0(bytes, wasm.__wbindgen_export);
         const len0 = WASM_VECTOR_LEN;
         wasm.blake3Hex(retptr, ptr0, len0);
@@ -223,7 +237,7 @@ export function version() {
     let deferred1_0;
     let deferred1_1;
     try {
-        const retptr = wasm.__wbindgen_add_to_stack_pointer(-16);
+        const retptr = wasm.__wbindgen_add_to_stack_pointer(-16) >>> 0;
         wasm.version(retptr);
         var r0 = getDataViewMemory0().getInt32(retptr + 4 * 0, true);
         var r1 = getDataViewMemory0().getInt32(retptr + 4 * 1, true);
@@ -238,20 +252,28 @@ export function version() {
 function __wbg_get_imports() {
     const import0 = {
         __proto__: null,
-        __wbg_Error_30c8987f7c2ed4e2: function(arg0, arg1) {
+        __wbg_Error_208446807d0d1e30: function(arg0, arg1) {
             const ret = Error(getStringFromWasm0(arg0, arg1));
-            return addHeapObject(ret);
+            return ret;
         },
-        __wbg___wbindgen_throw_41e9ee4f547fc59a: function(arg0, arg1) {
+        __wbg___wbindgen_throw_4c88d8bf264fd984: function(arg0, arg1) {
             throw new Error(getStringFromWasm0(arg0, arg1));
         },
-        __wbg_now_b43fbe11590aa2be: function() {
+        __wbg_now_80faebe4b1fd98e9: function() {
             const ret = Date.now();
             return ret;
         },
-        __wbg_random_704f1adb99ef0917: function() {
+        __wbg_random_f755c57ee5c03213: function() {
             const ret = Math.random();
             return ret;
+        },
+        __wbindgen_init_externref_table: function() {
+            const table = wasm.__wbindgen_externrefs;
+            table.set(0, undefined);
+            table.set(1024, undefined);
+            table.set(1025, null);
+            table.set(1026, true);
+            table.set(1027, false);
         },
     };
     return {
@@ -264,21 +286,6 @@ const DatasetFinalization = (typeof FinalizationRegistry === 'undefined')
     ? { register: () => {}, unregister: () => {} }
     : new FinalizationRegistry(ptr => wasm.__wbg_dataset_free(ptr, 1));
 
-function addHeapObject(obj) {
-    if (heap_next === heap.length) heap.push(heap.length + 1);
-    const idx = heap_next;
-    heap_next = heap[idx];
-
-    heap[idx] = obj;
-    return idx;
-}
-
-function dropObject(idx) {
-    if (idx < 1028) return;
-    heap[idx] = heap_next;
-    heap_next = idx;
-}
-
 let cachedDataViewMemory0 = null;
 function getDataViewMemory0() {
     if (cachedDataViewMemory0 === null || cachedDataViewMemory0.buffer.detached === true || (cachedDataViewMemory0.buffer.detached === undefined && cachedDataViewMemory0.buffer !== wasm.memory.buffer)) {
@@ -288,7 +295,8 @@ function getDataViewMemory0() {
 }
 
 function getStringFromWasm0(ptr, len) {
-    return decodeText(ptr >>> 0, len);
+    ptr = ptr >>> 0;
+    return decodeText(getUint8ArrayMemory0().subarray(ptr, ptr + len));
 }
 
 let cachedUint8ArrayMemory0 = null;
@@ -298,13 +306,6 @@ function getUint8ArrayMemory0() {
     }
     return cachedUint8ArrayMemory0;
 }
-
-function getObject(idx) { return heap[idx]; }
-
-let heap = new Array(1024).fill(undefined);
-heap.push(undefined, null, true, false);
-
-let heap_next = heap.length;
 
 function isLikeNone(x) {
     return x === undefined || x === null;
@@ -354,24 +355,24 @@ function passStringToWasm0(arg, malloc, realloc) {
     return ptr;
 }
 
-function takeObject(idx) {
-    const ret = getObject(idx);
-    dropObject(idx);
-    return ret;
+function takeFromExternrefTable0(idx) {
+    const value = wasm.__wbindgen_externrefs.get(idx);
+    wasm.__wbindgen_export3(idx);
+    return value;
 }
 
-let cachedTextDecoder = new TextDecoder('utf-8', { ignoreBOM: true, fatal: true });
+let cachedTextDecoder = new TextDecoder('utf-8', { ignoreBOM: true });
 cachedTextDecoder.decode();
 const MAX_SAFARI_DECODE_BYTES = 2146435072;
 let numBytesDecoded = 0;
-function decodeText(ptr, len) {
-    numBytesDecoded += len;
+function decodeText(bytes) {
+    numBytesDecoded += bytes.length;
     if (numBytesDecoded >= MAX_SAFARI_DECODE_BYTES) {
-        cachedTextDecoder = new TextDecoder('utf-8', { ignoreBOM: true, fatal: true });
+        cachedTextDecoder = new TextDecoder('utf-8', { ignoreBOM: true });
         cachedTextDecoder.decode();
-        numBytesDecoded = len;
+        numBytesDecoded = bytes.length;
     }
-    return cachedTextDecoder.decode(getUint8ArrayMemory0().subarray(ptr, ptr + len));
+    return cachedTextDecoder.decode(bytes);
 }
 
 const cachedTextEncoder = new TextEncoder();
@@ -396,6 +397,7 @@ function __wbg_finalize_init(instance, module) {
     wasmModule = module;
     cachedDataViewMemory0 = null;
     cachedUint8ArrayMemory0 = null;
+    wasm.__wbindgen_start();
     return wasm;
 }
 
@@ -458,9 +460,17 @@ function initSync(module) {
     return __wbg_finalize_init(instance, module);
 }
 
+let __wbg_init_promise;
 async function __wbg_init(module_or_path) {
     if (wasm !== undefined) return wasm;
+    if (__wbg_init_promise === undefined) {
+        __wbg_init_promise = __wbg_init_once(module_or_path);
+        __wbg_init_promise.catch(() => { __wbg_init_promise = undefined; });
+    }
+    return __wbg_init_promise;
+}
 
+async function __wbg_init_once(module_or_path) {
 
     if (module_or_path !== undefined) {
         if (Object.getPrototypeOf(module_or_path) === Object.prototype) {

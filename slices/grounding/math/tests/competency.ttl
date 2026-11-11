@@ -2170,36 +2170,77 @@ ex:cqStatisticsEstimandFramingProperties a gmeow:CompetencyQuestion ;
     gmeow:cqQueryFile "slices/grounding/math/queries/competency/statistics-estimand-framing-properties.rq" ;
     gmeow:cqDataFile "tests/fixtures/statistics-estimand-framing.ttl" ;
     gmeow:cqReasoning gmeow:reasoningNone ;
-    gmeow:cqRationale "The estimand-definition object properties made enumerable: over a fully specified estimand the query projects each PREDICATE pinning the target quantity before data. Over the fixture the answer is exactly the six ICH E9(R1)-style attributes {math:targetPopulation, math:targetOutcome, math:targetContrast, math:interventionCondition, math:targetTime, math:missingDataPolicy}." ;
+    gmeow:cqRationale "The query retains subject, property and object for this estimand’s supplied framing and its linked event-specific handling records. Exactly twelve edges preserve six direct contextual roles, two handling links and four paired record endpoints. The independent analysis policy is distinct from both target strategies; retained subjects preserve the associations. These repository roles neither reproduce ICH’s five attributes nor establish universal required fields, valid analysis or incomplete-record validation." ;
     gmeow:cqExactRows true ;
     gmeow:cqResultShape ex:cqStatisticsEstimandFramingPropertiesShape ;
-    gmeow:cqExpectRow ex:rowEstPropTargetPopulation , ex:rowEstPropTargetOutcome , ex:rowEstPropTargetContrast ,
-        ex:rowEstPropInterventionCondition , ex:rowEstPropTargetTime , ex:rowEstPropMissingDataPolicy .
+    gmeow:cqExpectRow ex:rowEstPropTargetPopulation ,
+        ex:rowEstPropTargetOutcome ,
+        ex:rowEstPropTargetContrast ,
+        ex:rowEstPropInterventionCondition ,
+        ex:rowEstPropTargetTime ,
+        ex:rowEstPropMissingDataPolicy ,
+        ex:rowEstPropDiscontinuationHandling ,
+        ex:rowEstPropRescueHandling ,
+        ex:rowEstPropDiscontinuationEvent ,
+        ex:rowEstPropDiscontinuationStrategy ,
+        ex:rowEstPropRescueEvent ,
+        ex:rowEstPropRescueStrategy .
 
 ex:cqStatisticsEstimandFramingPropertiesShape a logic:ResultShape ;
     logic:declaresColumn
+        [ logic:columnVariable "subject" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
         [ logic:columnVariable "prop" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
         [ logic:columnVariable "object" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ;
     logic:shapeCardinality logic:RowsExact .
 
 ex:rowEstPropTargetPopulation a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "subject" ; gmeow:cellValueIri exf:estimand ] ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "prop" ; gmeow:cellValueIri math:targetPopulation ] ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "object" ; gmeow:cellValueIri exf:targetPop ] .
 ex:rowEstPropTargetOutcome a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "subject" ; gmeow:cellValueIri exf:estimand ] ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "prop" ; gmeow:cellValueIri math:targetOutcome ] ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "object" ; gmeow:cellValueIri exf:outcome ] .
 ex:rowEstPropTargetContrast a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "subject" ; gmeow:cellValueIri exf:estimand ] ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "prop" ; gmeow:cellValueIri math:targetContrast ] ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "object" ; gmeow:cellValueIri exf:contrast ] .
 ex:rowEstPropInterventionCondition a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "subject" ; gmeow:cellValueIri exf:estimand ] ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "prop" ; gmeow:cellValueIri math:interventionCondition ] ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "object" ; gmeow:cellValueIri exf:intervention ] .
 ex:rowEstPropTargetTime a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "subject" ; gmeow:cellValueIri exf:estimand ] ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "prop" ; gmeow:cellValueIri math:targetTime ] ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "object" ; gmeow:cellValueIri exf:horizon ] .
 ex:rowEstPropMissingDataPolicy a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "subject" ; gmeow:cellValueIri exf:estimand ] ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "prop" ; gmeow:cellValueIri math:missingDataPolicy ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "object" ; gmeow:cellValueIri exf:declaredImputationPlan ] .
+ex:rowEstPropDiscontinuationHandling a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "subject" ; gmeow:cellValueIri exf:estimand ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "prop" ; gmeow:cellValueIri math:intercurrentEventHandling ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "object" ; gmeow:cellValueIri exf:discontinuationHandling ] .
+ex:rowEstPropRescueHandling a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "subject" ; gmeow:cellValueIri exf:estimand ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "prop" ; gmeow:cellValueIri math:intercurrentEventHandling ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "object" ; gmeow:cellValueIri exf:rescueHandling ] .
+ex:rowEstPropDiscontinuationEvent a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "subject" ; gmeow:cellValueIri exf:discontinuationHandling ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "prop" ; gmeow:cellValueIri math:intercurrentEvent ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "object" ; gmeow:cellValueIri exf:discontinuationSpecification ] .
+ex:rowEstPropDiscontinuationStrategy a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "subject" ; gmeow:cellValueIri exf:discontinuationHandling ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "prop" ; gmeow:cellValueIri math:intercurrentEventStrategy ] ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "object" ; gmeow:cellValueIri exf:treatmentPolicy ] .
+ex:rowEstPropRescueEvent a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "subject" ; gmeow:cellValueIri exf:rescueHandling ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "prop" ; gmeow:cellValueIri math:intercurrentEvent ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "object" ; gmeow:cellValueIri exf:rescueMedicationSpecification ] .
+ex:rowEstPropRescueStrategy a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "subject" ; gmeow:cellValueIri exf:rescueHandling ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "prop" ; gmeow:cellValueIri math:intercurrentEventStrategy ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "object" ; gmeow:cellValueIri exf:hypotheticalStrategy ] .
 
 # === SATQ10 — the p-value framing properties ============================== #
 

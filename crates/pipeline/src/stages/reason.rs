@@ -17,6 +17,7 @@
 //! for the reasoning engine (this is the sole resource-bearing build stage).
 
 use std::collections::{BTreeMap, BTreeSet};
+use std::ops::Deref;
 use std::sync::Arc;
 use std::time::Instant;
 
@@ -30,7 +31,7 @@ use gmeow_logic::reason::{
     LogicalGraph, PreparedReasoningInput, SelectedDomains, prepare_reasoning_input, reason_all,
 };
 use gmeow_logic::result::ReasoningResult;
-use gmeow_logic::result_rdf::{GRAPH_REASONING, project_reasoning_dataset};
+use gmeow_logic::result_rdf::{GRAPH_REASONING, ResultProjection};
 use purrdf::{RdfDataset, RdfDatasetBuilder, RdfLiteral, RdfTerm};
 
 use crate::bundle::PipelineHandle;
@@ -126,11 +127,13 @@ fn reason_product_from_artifacts(
 /// selected blank graph identities cannot cross relabelling without its issuer map.
 /// The caller supplies the exact theory-role domain authority; merely occupying
 /// a support or diagnostic graph does not select a domain law.
+/// The carrier is consumed and released after its final authored-expression read.
+/// An owning `Arc` can release the temporary EDB before terminal artifacts are built.
 ///
 /// # Errors
 /// Rejects native input/domain admission, execution, evidence or projection failures.
 pub fn reason_over_dataset(
-    edb: &RdfDataset,
+    edb: impl Deref<Target = RdfDataset>,
     domains: &SelectedDomains,
 ) -> Result<ReasonArtifacts, gmeow_errors::Diag> {
     if domains.worlds().iter().any(
@@ -153,7 +156,7 @@ pub fn reason_over_dataset(
         input_terms = edb.term_count(),
         "stage phase boundary",
     );
-    let canon = canonicalize_edb(edb, "stage-reason")?;
+    let canon = canonicalize_edb(&*edb, "stage-reason")?;
     tracing::info!(
         target: "pipeline_phase",
         stage = "stage-reason",
@@ -199,7 +202,7 @@ fn stage_failure(message: impl Into<String>) -> gmeow_errors::Diag {
 
 /// Execute the consuming input once and retain its native proof owner in the result.
 fn reason_prepared_input(
-    edb: &RdfDataset,
+    edb: impl Deref<Target = RdfDataset>,
     input: PreparedReasoningInput,
     domains: &SelectedDomains,
 ) -> Result<ReasonArtifacts, gmeow_errors::Diag> {
@@ -286,8 +289,11 @@ fn reason_prepared_input(
     // in a SHIPPED artifact — `gmeow.gts`'s default graph and the committed inferred-closure
     // file — instead of only inside a gate process.
     let alpha_edges = measure_stage_phase("stage-reason", "project-expression-identities", || {
-        gmeow_logic::math_expression::alpha_equivalence_edges(edb)
+        gmeow_logic::math_expression::alpha_equivalence_edges(&*edb)
     });
+    // Prepared input, result and expression edges own their retained values.
+    // The original carrier has no reader during terminal artifact projection.
+    drop(edb);
     // Non-merge (the regenerate path): the closure is told-vs-inferred plus that derivation.
     let mut builder = RdfDatasetBuilder::new();
     let closure = measure_stage_phase("stage-reason", "project-inferred-closure", || {
@@ -594,7 +600,6 @@ fn reason_dataset(
     chase_report: &gmeow_errors::Report,
     projections: &[WitnessProjection],
 ) -> Result<Arc<RdfDataset>, gmeow_errors::Diag> {
-    let reasoning_ds = project_reasoning_dataset(result)?;
     // This is an independently minted summary graph. Standardize its blanks
     // apart from every already-projected source and proof identity.
     let scopes: BTreeSet<_> = builder.blank_identities().map(|(_, scope)| scope).collect();
@@ -614,22 +619,17 @@ fn reason_dataset(
             })
         })?;
     }
-    // The graph/reasoning projection is routed into its own named graph.
+    // Route the prepared summary directly into the closure carrier, avoiding an
+    // intermediate frozen dataset and its second owned-row materialization.
+    let projection = ResultProjection::reasoning(result)?;
+    measure_stage_phase("stage-reason", "append-reasoning-summary", || {
+        projection.append_into(
+            &mut builder,
+            Some(GRAPH_REASONING),
+            purrdf::BlankScope(scope),
+        )
+    })?;
     let graph = RdfTerm::Iri(GRAPH_REASONING.to_owned());
-    for mut routed in reasoning_ds.owned_quads() {
-        routed.graph_name = Some(graph.clone());
-        builder.push_owned_quad_scoped(&routed, purrdf::BlankScope(scope))?;
-    }
-    for mut routed in reasoning_ds.owned_reifiers() {
-        routed.graph = Some(graph.clone());
-        builder.push_owned_reifier_scoped(&routed, purrdf::BlankScope(scope))?;
-    }
-    for mut routed in reasoning_ds.owned_annotations() {
-        routed.graph = Some(graph.clone());
-        builder.push_owned_annotation_scoped(&routed, purrdf::BlankScope(scope))?;
-    }
-    // The builder owns every routed row; release the completed projection.
-    drop(reasoning_ds);
     let graph_id = builder.intern_owned_term(&graph)?;
     builder.declare_named_graph(graph_id)?;
     gmeow_errors::render::append_gmeow_findings(
@@ -642,9 +642,11 @@ fn reason_dataset(
     // routed into graph/diagnostics so the offline `gmeow explain` CLI can decompose
     // an invented individual. Byte-stable: content-addressed null IRIs, sorted.
     witness_projection_into(projections, &mut builder)?;
-    builder.freeze().map_err(|e| {
-        gmeow_errors::Diag::of_kind(crate::error::Parse {
-            message: format!("freeze reason dual-carriage dataset: {e}"),
+    measure_stage_phase("stage-reason", "freeze-reason-carrier", || {
+        builder.freeze().map_err(|e| {
+            gmeow_errors::Diag::of_kind(crate::error::Parse {
+                message: format!("freeze reason dual-carriage dataset: {e}"),
+            })
         })
     })
 }
@@ -812,7 +814,7 @@ impl Stage for ReasonStage {
             edb_quads,
             "stage phase boundary",
         );
-        let reasoned = reason_over_dataset(edb.as_ref(), &domains)?;
+        let reasoned = reason_over_dataset(edb, &domains)?;
         let inferred_axioms = reasoned.result.inferred().len();
         let budget = reasoned.result.provenance.consumed_budget;
         let budget_allowance = budget
@@ -867,51 +869,63 @@ impl Stage for ReasonStage {
         // repo-free RDF projection) AND as the typed `PipelineHandle::Reasoning` handle
         // pinned to that graph (C7) — dual carriage.
         let dataset = reasoned.dataset;
-        let nodes = crate::stages::diag_render::finding_nodes(&reasoned.chase_report, self.id());
-        let diag_blob = crate::node::encode_diag_nodes(self.id(), &nodes);
-        let mut artifacts: BTreeMap<String, Vec<u8>> = BTreeMap::new();
-        artifacts.insert(CLOSURE_PATH.to_string(), reasoned.closure.into_bytes());
-        artifacts.insert(
-            EXPLANATIONS_PATH.to_string(),
-            reasoned.explanations.into_bytes(),
-        );
-        artifacts.insert(LEDGER_PATH.to_string(), reasoned.ledger.into_bytes());
-        artifacts.insert(
-            PERF_LEDGER_PATH.to_string(),
-            reasoned.perf_ledger.into_bytes(),
-        );
+        let (nodes, diag_blob) =
+            measure_stage_phase(self.id(), "assemble-reason-diagnostics", || {
+                let nodes =
+                    crate::stages::diag_render::finding_nodes(&reasoned.chase_report, self.id());
+                let diag_blob = crate::node::encode_diag_nodes(self.id(), &nodes);
+                (nodes, diag_blob)
+            });
 
         // Attach the typed Reasoning handle, pinned to the `graph/reasoning` named
         // graph's canonical digest. `pin_handle` HARD-fails on a digest mismatch, so a
         // handle that disagrees with its backing graph can never attach (fail-closed).
-        let mut bundle = crate::bundle::bundle_from_artifacts_over_with_rep_blob(
-            dataset,
-            artifacts,
-            purrdf::provenance::DatasetProvenance::new(),
-            crate::stages::carrier::REP_DIAG_NODES,
-            "application/json",
-            diag_blob,
-        );
-        let pinned = bundle.graph_digest(
-            GRAPH_REASONING,
-            &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None),
-        )?;
-        bundle
-            .pin_handle(
+        let mut bundle = measure_stage_phase(self.id(), "assemble-reason-bundle", || {
+            let mut artifacts: BTreeMap<String, Vec<u8>> = BTreeMap::new();
+            artifacts.insert(CLOSURE_PATH.to_string(), reasoned.closure.into_bytes());
+            artifacts.insert(
+                EXPLANATIONS_PATH.to_string(),
+                reasoned.explanations.into_bytes(),
+            );
+            artifacts.insert(LEDGER_PATH.to_string(), reasoned.ledger.into_bytes());
+            artifacts.insert(
+                PERF_LEDGER_PATH.to_string(),
+                reasoned.perf_ledger.into_bytes(),
+            );
+            crate::bundle::bundle_from_artifacts_over_with_rep_blob(
+                dataset,
+                artifacts,
+                purrdf::provenance::DatasetProvenance::new(),
+                crate::stages::carrier::REP_DIAG_NODES,
+                "application/json",
+                diag_blob,
+            )
+        });
+        let pinned = measure_stage_phase(self.id(), "pin-reason-graph-digest", || {
+            bundle.graph_digest(
+                GRAPH_REASONING,
+                &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None),
+            )
+        })?;
+        measure_stage_phase(self.id(), "pin-reason-handle", || {
+            bundle.pin_handle(
                 GRAPH_REASONING,
                 PipelineHandle::Reasoning(Arc::new(reasoned.result)),
                 pinned,
                 &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None),
             )
-            .map_err(|e| {
-                gmeow_errors::Diag::of_kind(crate::error::StageFailed {
-                    cause: None,
-                    stage: "stage-reason".to_string(),
-                    message: format!("pin Reasoning handle to <{GRAPH_REASONING}>: {e}"),
-                })
-            })?;
+        })
+        .map_err(|e| {
+            gmeow_errors::Diag::of_kind(crate::error::StageFailed {
+                cause: None,
+                stage: "stage-reason".to_string(),
+                message: format!("pin Reasoning handle to <{GRAPH_REASONING}>: {e}"),
+            })
+        })?;
         let output_quads = bundle.dataset().quad_count();
-        let product = StageProduct::from_bundle(self.id(), Arc::new(bundle))?;
+        let product = measure_stage_phase(self.id(), "identify-reason-product", || {
+            StageProduct::from_bundle(self.id(), Arc::new(bundle))
+        })?;
         tracing::info!(
             target: "pipeline_phase",
             stage = self.id(),
