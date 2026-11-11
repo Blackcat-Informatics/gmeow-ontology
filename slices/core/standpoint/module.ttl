@@ -183,7 +183,6 @@ gmeow:madeWithinContextOf
     gmeow:graphBoxRole gmeow:boxCBox ,
         gmeow:boxRBox ;
     gmeow:howToUse "Assert it from the standpoint that exists for reading works to the frame whose context its readings were made within. Use gmeow:Standpoint for both ends; no narrower class exists for a reading standpoint. Add a gmeow:sharpens edge separately and only when one frame really is a refinement of the other."@x-gmeow-english ;
-    gmeow:pairsWith gmeow:sharpens ;
     gmeow:useWhen "Use to record that a standpoint set up to read works made its readings within the context of another frame, when the two share a context but neither is a sharper case of the other."@x-gmeow-english .
 
 gmeow:probable
