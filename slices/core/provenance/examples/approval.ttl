@@ -25,7 +25,7 @@ ex:approvalChapter3 a gmeow:Approval ;
     gmeow:approvalScope ex:handbookChapter3 ;
     gmeow:reportedBy ex:registryClerk .
 
-ex:approvalWhole a gmeow:Approval ;
+ex:laterApproval a gmeow:Approval ;
     gmeow:approvalOf ex:handbook ;
     gmeow:approvedBy ex:reviewer ;
     gmeow:approvedOn "2026-12-02"^^xsd:date .
