@@ -1,14 +1,22 @@
-# Competency question: "Which data, model, estimator, and assumptions produced this
-# result, and by which process?"
+# Competency question: "Which data, model, estimator, and assumptions are on record for
+# this result, and by which process?"
 # Exercises the models-and-estimation spine: a math:Estimate names its math:Estimator
 # (math:estimator) and its math:Estimand (math:estimatesEstimand) and is produced by a
-# math:InferenceRun process (gmeow:wasGeneratedBy). The run fits the data
-# (math:fittedToData) — a math:DatasetMatrix — and the math:FittedModel fitted to that same
-# data carries its math:ModelAssumption (math:modelAssumption). The query returns, for the
-# estimate, the whole provenance chain: the estimator, the estimand, the fitted model, the
-# data, the assumption, and the producing run — so a statistical result is never a bare
-# number but the traceable output of a method over data under stated assumptions.
-# Scoped to the fixture namespace so the answer is exactly the single provenance row.
+# math:InferenceRun process (gmeow:wasGeneratedBy). The run declares each model it applied
+# (gmeow:used a math:FittedModel). The data and the assumptions belong to that model, never
+# to the run: the math:FittedModel carries its math:DatasetMatrix (math:fittedToData) and
+# its math:ModelAssumption (math:modelAssumption). Data shared with some other model
+# creates no link, so a model the generating run did not use yields no row.
+#
+# One row per (estimate, run, model used by the run, assumption). A run that used several
+# models yields rows for all of them: the query never picks one model and never claims the
+# model is unique. A row means "declared as used by the generating run", not "uniquely
+# produced this estimate". An estimate whose run used no math:FittedModel yields no row.
+#
+# Profile: estimand-bearing estimates only (math:estimator AND math:estimatesEstimand). A
+# parameter-only estimate (math:estimatedParameter plus math:estimator) is valid under the
+# canonical Estimate contract and is simply outside this profile, not invalid.
+# Scoped to the fixture namespace so each answer is exactly the enumerated rows.
 PREFIX math:  <https://blackcatinformatics.ca/math/>
 PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
 
@@ -18,10 +26,10 @@ SELECT ?estimate ?run ?data ?model ?estimator ?estimand ?assumption WHERE {
               math:estimatesEstimand ?estimand ;
               gmeow:wasGeneratedBy ?run .
     ?run a math:InferenceRun ;
-         math:fittedToData ?data .
+         gmeow:used ?model .
     ?model a math:FittedModel ;
            math:fittedToData ?data ;
            math:modelAssumption ?assumption .
     FILTER(STRSTARTS(STR(?estimate), "http://example.org/math/"))
 }
-ORDER BY ?estimate ?assumption
+ORDER BY ?estimate ?model ?assumption

@@ -140,7 +140,8 @@ its realized value on particular data. A `math:Estimate` records a result with a
 separately required estimator (`math:estimator`). The inspected target and method requirements do
 not establish a universal `math:estimateValue`-presence check or numerical evaluation. A
 `math:FittedModel` is the data-bound model (`math:fittedToData`), and a `math:InferenceRun` is the
-`gmeow:Activity` that applies a procedure; the procedure is not that activity or a held claim.
+`gmeow:Activity` that applies a procedure and records each model it applied through `gmeow:used`; the
+data stays on the model, and the procedure is not that activity or a held claim.
 
 The native R source lift can emit estimated-parameter and estimator records without a numerical
 coefficient value, a framed study estimand or a completed fitting run. Formula-term labels do not
@@ -248,7 +249,6 @@ produced, and the **held claim** from a vantage. None is typed as another — an
 # process
 ex:analysisActivity
     a math:InferenceRun , gmeow:Activity ;
-    math:fittedToData ex:trialDatasetV3 ;
     math:usedAnalysisPlan ex:planV2 ;
     gmeow:usedSoftwareCommit ex:analysisPipelineCommitA1B2 .
 
