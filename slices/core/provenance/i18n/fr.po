@@ -186,8 +186,8 @@ msgid "approval scope"
 msgstr "portée de l’approbation"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/approvalScope|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Relates an Approval to a part of the approved work that the approval covers: a component reached by gmeow:partOf, or a citation selector for a pinpoint. It is optional and not functional, so one Approval can name several parts. When it is absent the scope is unstated; that never means the whole work was approved."
-msgstr "Relie une Approval à une partie des travaux approuvés que l’approbation couvre : un composant atteint par gmeow:partOf, ou un sélecteur de citation pour un repère précis. Elle est facultative et non fonctionnelle, de sorte qu’une Approval peut nommer plusieurs parties. Lorsqu’elle est absente, la portée n’est pas indiquée ; cela ne signifie jamais que l’ensemble des travaux a été approuvé."
+msgid "Relates an Approval to a part of the approved work that the approval covers: a component reached by gmeow:partOf, or a citation selector for a pinpoint. It is optional and may repeat, so one Approval can name several parts. When it is absent the scope is unstated; that never means the whole work was approved."
+msgstr "Relie une Approval à une partie des travaux approuvés que l’approbation couvre : un composant atteint par gmeow:partOf, ou un sélecteur de citation pour un repère précis. Elle est facultative et peut se répéter, de sorte qu’une Approval peut nommer plusieurs parties. Lorsqu’elle est absente, la portée n’est pas indiquée ; cela ne signifie jamais que l’ensemble des travaux a été approuvé."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/approvalScope|http://www.w3.org/2004/02/skos/core#example"
 msgid "ex:approval1 gmeow:approvalScope ex:handbookChapter3 ."
@@ -258,8 +258,8 @@ msgid "reported by"
 msgstr "consigné par"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/reportedBy|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Relates an Approval to the agent who put the approval on record. The reporter only recorded it: they need not be the approver, and reporting makes them neither responsible for the approved work nor a holder of its claims. It differs from gmeow:wasAttributedTo, which ascribes responsibility (authorship, ownership or accountability) for an entity to an agent, and from gmeow:approvedBy, which names who gave the approval. It is optional, not functional, and not a subproperty of anything."
-msgstr "Relie une Approval à l’agent qui a consigné l’approbation. Le déclarant n’a fait que la consigner : il n’est pas nécessairement l’approbateur, et la déclaration ne le rend ni responsable des travaux approuvés ni détenteur de leurs affirmations. Elle diffère de gmeow:wasAttributedTo, qui attribue à un agent la responsabilité (paternité, propriété ou imputabilité) d’une entité, et de gmeow:approvedBy, qui nomme qui a donné l’approbation. Elle est facultative, non fonctionnelle et n’est la sous-propriété d’aucune autre."
+msgid "Relates an Approval to the agent who put the approval on record. The reporter only recorded it: they need not be the approver, and reporting makes them neither responsible for the approved work nor a holder of its claims. It differs from gmeow:wasAttributedTo, which ascribes responsibility (authorship, ownership or accountability) for an entity to an agent, and from gmeow:approvedBy, which names who gave the approval. It is optional, may repeat, and is not a subproperty of anything."
+msgstr "Relie une Approval à l’agent qui a consigné l’approbation. Le déclarant n’a fait que la consigner : il n’est pas nécessairement l’approbateur, et la déclaration ne le rend ni responsable des travaux approuvés ni détenteur de leurs affirmations. Elle diffère de gmeow:wasAttributedTo, qui attribue à un agent la responsabilité (paternité, propriété ou imputabilité) d’une entité, et de gmeow:approvedBy, qui nomme qui a donné l’approbation. Elle est facultative, peut se répéter et n’est la sous-propriété d’aucune autre."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/reportedBy|http://www.w3.org/2004/02/skos/core#example"
 msgid "ex:approval1 gmeow:reportedBy ex:registryClerk ."
@@ -276,87 +276,3 @@ msgstr "La définir sur l’Approval pour chaque agent qui a consigné l’appro
 msgctxt "https://blackcatinformatics.ca/gmeow/reportedBy|https://blackcatinformatics.ca/gmeow/useWhen"
 msgid "Use to name who put an approval on record when that party differs from the approver."
 msgstr "À utiliser pour nommer qui a consigné une approbation lorsque cette partie diffère de l’approbateur."
-
-msgctxt "https://blackcatinformatics.ca/gmeow/approvalOfFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
-msgid "approvalOf is functional"
-msgstr "approvalOf est fonctionnelle"
-
-msgctxt "https://blackcatinformatics.ca/gmeow/approvalOfFunctionality|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Asserts on the canonical carrier that gmeow:approvalOf is functional: an Approval approves exactly one body of work, so approval of several works is several Approval nodes rather than several works on one."
-msgstr "Affirme sur le porteur canonique que gmeow:approvalOf est fonctionnelle : une Approval approuve exactement un ensemble de travaux, de sorte que l’approbation de plusieurs travaux correspond à plusieurs nœuds Approval plutôt qu’à plusieurs travaux sur un seul."
-
-msgctxt "https://blackcatinformatics.ca/gmeow/approvalOfFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
-msgid "Use when the native coherence gate must enforce that gmeow:approvalOf names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
-msgstr "À utiliser lorsque la barrière de cohérence native doit imposer que gmeow:approvalOf désigne exactement une valeur ; cet enregistrement est le porteur canonique que la barrière joint, de sorte que l’obligation est raisonnée plutôt que restituée sur une surface de formes."
-
-msgctxt "https://blackcatinformatics.ca/gmeow/approvalOfFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
-msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
-msgstr "À éviter lorsqu’une seconde valeur rendrait l’enregistrement ambigu — retirer l’assertion plutôt que de l’affaiblir, et ne jamais la reproduire comme une forme rédigée à la main."
-
-msgctxt "https://blackcatinformatics.ca/gmeow/approvalOfFunctionality|https://blackcatinformatics.ca/gmeow/howToUse"
-msgid "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:approvalOf, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."
-msgstr "À lire avec logic:characteristicSort : le couple (logic:characterizes gmeow:approvalOf, logic:characteristicSort logic:functionalProperty) constitue toute l’obligation, et la vue de fondement OWL en projette la caractéristique correspondante."
-
-msgctxt "https://blackcatinformatics.ca/gmeow/approvalOfFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
-msgid "Scope: this record carries ONE integrity obligation about gmeow:approvalOf and nothing else. It is not a definition of gmeow:approvalOf (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
-msgstr "Portée : cet enregistrement porte UNE seule obligation d’intégrité concernant gmeow:approvalOf et rien d’autre. Ce n’est pas une définition de gmeow:approvalOf (elle se trouve sur le terme lui-même), ni une forme, ni un second endroit où énoncer le sens du terme — retirer l’enregistrement plutôt que de l’élargir."
-
-msgctxt "https://blackcatinformatics.ca/gmeow/approvalOfFunctionality|http://www.w3.org/2004/02/skos/core#example"
-msgid "gmeow:approvalOfFunctionality logic:characterizes gmeow:approvalOf ."
-msgstr "gmeow:approvalOfFunctionality logic:characterizes gmeow:approvalOf ."
-
-msgctxt "https://blackcatinformatics.ca/gmeow/approvedByFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
-msgid "approvedBy is functional"
-msgstr "approvedBy est fonctionnelle"
-
-msgctxt "https://blackcatinformatics.ca/gmeow/approvedByFunctionality|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Asserts on the canonical carrier that gmeow:approvedBy is functional: an Approval has exactly one approver, so a co-approval is modelled as several Approval nodes, one per approver, rather than two approvers on one."
-msgstr "Affirme sur le porteur canonique que gmeow:approvedBy est fonctionnelle : une Approval a exactement un approbateur, de sorte qu’une coapprobation est modélisée par plusieurs nœuds Approval, un par approbateur, plutôt que par deux approbateurs sur un seul."
-
-msgctxt "https://blackcatinformatics.ca/gmeow/approvedByFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
-msgid "Use when the native coherence gate must enforce that gmeow:approvedBy names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
-msgstr "À utiliser lorsque la barrière de cohérence native doit imposer que gmeow:approvedBy désigne exactement une valeur ; cet enregistrement est le porteur canonique que la barrière joint, de sorte que l’obligation est raisonnée plutôt que restituée sur une surface de formes."
-
-msgctxt "https://blackcatinformatics.ca/gmeow/approvedByFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
-msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
-msgstr "À éviter lorsqu’une seconde valeur rendrait l’enregistrement ambigu — retirer l’assertion plutôt que de l’affaiblir, et ne jamais la reproduire comme une forme rédigée à la main."
-
-msgctxt "https://blackcatinformatics.ca/gmeow/approvedByFunctionality|https://blackcatinformatics.ca/gmeow/howToUse"
-msgid "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:approvedBy, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."
-msgstr "À lire avec logic:characteristicSort : le couple (logic:characterizes gmeow:approvedBy, logic:characteristicSort logic:functionalProperty) constitue toute l’obligation, et la vue de fondement OWL en projette la caractéristique correspondante."
-
-msgctxt "https://blackcatinformatics.ca/gmeow/approvedByFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
-msgid "Scope: this record carries ONE integrity obligation about gmeow:approvedBy and nothing else. It is not a definition of gmeow:approvedBy (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
-msgstr "Portée : cet enregistrement porte UNE seule obligation d’intégrité concernant gmeow:approvedBy et rien d’autre. Ce n’est pas une définition de gmeow:approvedBy (elle se trouve sur le terme lui-même), ni une forme, ni un second endroit où énoncer le sens du terme — retirer l’enregistrement plutôt que de l’élargir."
-
-msgctxt "https://blackcatinformatics.ca/gmeow/approvedByFunctionality|http://www.w3.org/2004/02/skos/core#example"
-msgid "gmeow:approvedByFunctionality logic:characterizes gmeow:approvedBy ."
-msgstr "gmeow:approvedByFunctionality logic:characterizes gmeow:approvedBy ."
-
-msgctxt "https://blackcatinformatics.ca/gmeow/approvedOnFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
-msgid "approvedOn is functional"
-msgstr "approvedOn est fonctionnelle"
-
-msgctxt "https://blackcatinformatics.ca/gmeow/approvedOnFunctionality|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Asserts on the canonical carrier that gmeow:approvedOn is functional: an Approval was given on exactly one day, so a different day is a different Approval node rather than a second date on the same one."
-msgstr "Affirme sur le porteur canonique que gmeow:approvedOn est fonctionnelle : une Approval a été donnée exactement un jour, de sorte qu’un autre jour correspond à un autre nœud Approval plutôt qu’à une seconde date sur le même."
-
-msgctxt "https://blackcatinformatics.ca/gmeow/approvedOnFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
-msgid "Use when the native coherence gate must enforce that gmeow:approvedOn names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
-msgstr "À utiliser lorsque la barrière de cohérence native doit imposer que gmeow:approvedOn désigne exactement une valeur ; cet enregistrement est le porteur canonique que la barrière joint, de sorte que l’obligation est raisonnée plutôt que restituée sur une surface de formes."
-
-msgctxt "https://blackcatinformatics.ca/gmeow/approvedOnFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
-msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
-msgstr "À éviter lorsqu’une seconde valeur rendrait l’enregistrement ambigu — retirer l’assertion plutôt que de l’affaiblir, et ne jamais la reproduire comme une forme rédigée à la main."
-
-msgctxt "https://blackcatinformatics.ca/gmeow/approvedOnFunctionality|https://blackcatinformatics.ca/gmeow/howToUse"
-msgid "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:approvedOn, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."
-msgstr "À lire avec logic:characteristicSort : le couple (logic:characterizes gmeow:approvedOn, logic:characteristicSort logic:functionalProperty) constitue toute l’obligation, et la vue de fondement OWL en projette la caractéristique correspondante."
-
-msgctxt "https://blackcatinformatics.ca/gmeow/approvedOnFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
-msgid "Scope: this record carries ONE integrity obligation about gmeow:approvedOn and nothing else. It is not a definition of gmeow:approvedOn (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
-msgstr "Portée : cet enregistrement porte UNE seule obligation d’intégrité concernant gmeow:approvedOn et rien d’autre. Ce n’est pas une définition de gmeow:approvedOn (elle se trouve sur le terme lui-même), ni une forme, ni un second endroit où énoncer le sens du terme — retirer l’enregistrement plutôt que de l’élargir."
-
-msgctxt "https://blackcatinformatics.ca/gmeow/approvedOnFunctionality|http://www.w3.org/2004/02/skos/core#example"
-msgid "gmeow:approvedOnFunctionality logic:characterizes gmeow:approvedOn ."
-msgstr "gmeow:approvedOnFunctionality logic:characterizes gmeow:approvedOn ."

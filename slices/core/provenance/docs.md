@@ -216,9 +216,10 @@ any of those properties. Both kinds of fact can be stated about the same agent w
 one implying the other. `gmeow:reportedBy` says only who recorded the approval; it
 differs from `gmeow:wasAttributedTo`, which ascribes responsibility for an entity.
 
-`approvalOf`, `approvedBy` and `approvedOn` are each functional through a separate
-characteristic record. A joint approval, an approval of several works and an approval on
-another day are therefore several `gmeow:Approval` nodes. A later approval, or a
+The class allows at most one approved work, one approver and one approval day per
+`gmeow:Approval` node, stated as qualified cardinality restrictions on the class. A joint
+approval, an approval of several works and an approval on another day are therefore
+several `gmeow:Approval` nodes. A later approval, or a
 correction, adds a node; the identifier and label of an existing node are never changed.
 That last rule is a usage contract that no axiom enforces.
 
