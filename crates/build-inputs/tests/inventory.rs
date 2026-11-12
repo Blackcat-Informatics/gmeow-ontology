@@ -906,6 +906,125 @@ fn compiler_artifact_binding_ignores_unselected_dep_info_and_normalizes_paths() 
     );
 }
 
+/// Build the artifact record for a unit file under `unit`, with one dep-info file whose
+/// target is spelled `target` (a donor build directory's absolute path in the cases below).
+fn donor_binding(
+    unit: &str,
+    artifact: &str,
+    dep_info_dir: &str,
+    target: &str,
+) -> (
+    tempfile::TempDir,
+    gmeow_build_inputs::Result<CompilerInputs>,
+) {
+    use gmeow_build_inputs::CompilerArtifact;
+    let root = fixture("pub fn production() {}\n");
+    write(
+        root.path(),
+        &format!("{dep_info_dir}/crate-1234.d"),
+        &format!("{target}: crate/src/lib.rs\n"),
+    );
+    write(root.path(), &format!("{unit}/{artifact}"), "");
+    let result = CompilerInputs::from_artifacts(
+        root.path(),
+        &[CompilerArtifact {
+            files: vec![root.path().join(unit).join(artifact)],
+            source: root.path().join("crate/src/lib.rs"),
+            build_script: false,
+            package: selection().units[0].package.clone(),
+        }],
+    );
+    (root, result)
+}
+
+/// A unit Cargo reused from a seeded cache keeps the donor build directory's absolute
+/// prefix in its dep-info. It still binds to the artifact when the file name (which
+/// carries the unit hash) and the trailing `<package>/<hash>/out` directory agree, and
+/// its source inputs are then verified against this checkout's inventory.
+#[test]
+fn donor_prefixed_dep_info_binds_the_unit_it_names() {
+    let (root, result) = donor_binding(
+        "build/crate/h1/out",
+        "libcrate-1234.rlib",
+        "build/crate/h1/out",
+        "/donor/pipeline/build/crate/h1/out/libcrate-1234.rlib",
+    );
+    let inputs = result.unwrap();
+    let declared = inventory(root.path());
+    let resolution = resolution(root.path(), &declared.selection);
+    inputs
+        .verify(root.path(), &declared, &resolution, &[], &[])
+        .unwrap();
+    assert_eq!(
+        inputs.files,
+        [root.path().join("crate/src/lib.rs")].into_iter().collect()
+    );
+}
+
+/// A donor-prefixed target whose file name carries a different unit hash names another
+/// unit and must not authenticate this artifact.
+#[test]
+fn donor_prefixed_dep_info_with_another_unit_hash_in_the_file_name_is_refused() {
+    let (_root, result) = donor_binding(
+        "build/crate/h1/out",
+        "libcrate-1234.rlib",
+        "build/crate/h1/out",
+        "/donor/pipeline/build/crate/h1/out/libcrate-9999.rlib",
+    );
+    let error = result.unwrap_err().to_string();
+    assert!(error.contains("no matching compiler dep-info"), "{error}");
+}
+
+/// A donor-prefixed target whose trailing unit directory (package or hash) differs names
+/// a different unit even if the file name matches.
+#[test]
+fn donor_prefixed_dep_info_with_another_unit_directory_is_refused() {
+    for target in [
+        "/donor/pipeline/build/crate/h2/out/libcrate-1234.rlib",
+        "/donor/pipeline/build/other/h1/out/libcrate-1234.rlib",
+        "/donor/libcrate-1234.rlib",
+    ] {
+        let (_root, result) = donor_binding(
+            "build/crate/h1/out",
+            "libcrate-1234.rlib",
+            "build/crate/h1/out",
+            target,
+        );
+        let error = result.unwrap_err().to_string();
+        assert!(
+            error.contains("no matching compiler dep-info"),
+            "{target}: {error}"
+        );
+    }
+}
+
+/// Dep-info is read only from the directories of the reported artifact files, so a
+/// matching donor-prefixed `.d` sitting in a different unit directory never binds.
+#[test]
+fn donor_prefixed_dep_info_in_another_directory_is_refused() {
+    use gmeow_build_inputs::CompilerArtifact;
+    let root = fixture("pub fn production() {}\n");
+    write(
+        root.path(),
+        "build/crate/h3/out/crate-1234.d",
+        "/donor/pipeline/build/crate/h1/out/libcrate-1234.rlib: crate/src/lib.rs\n",
+    );
+    write(root.path(), "build/crate/h1/out/libcrate-1234.rlib", "");
+    write(root.path(), "build/crate/h1/out/unrelated.d", "x: y\n");
+    let error = CompilerInputs::from_artifacts(
+        root.path(),
+        &[CompilerArtifact {
+            files: vec![root.path().join("build/crate/h1/out/libcrate-1234.rlib")],
+            source: root.path().join("crate/src/lib.rs"),
+            build_script: false,
+            package: selection().units[0].package.clone(),
+        }],
+    )
+    .unwrap_err()
+    .to_string();
+    assert!(error.contains("no matching compiler dep-info"), "{error}");
+}
+
 #[test]
 fn generated_compiler_inputs_are_bound_outside_the_checkout_to_their_owner() {
     use gmeow_build_inputs::GeneratedInputs;
