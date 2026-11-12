@@ -59,9 +59,10 @@
 //!
 //! # Dataflow edge (the 3-place declaration)
 //!
-//! The stage `gmeow:dataflowConsumes` `stage-compile-logic` (the typechecker/prover lane),
-//! `stage-mappings` (the projected GMN forms) and `stage-parse-sources` (the shared native
-//! language context). Those edges are declared
+//! The stage `gmeow:dataflowConsumes` only `stage-parse-sources`: the dictionary, operator
+//! forms and ring lattice are resolved from its admitted language source, and the
+//! typechecker and prover run as library code, not off another stage's product. That edge
+//! is declared
 //! IDENTICALLY in three places — [`Stage::consumes`] here, `gmeow:dataflowConsumes` in
 //! `slices/core/pipeline/module.ttl`, and [`crate::run::full_spec`] — and the dogfooding
 //! parity gate (`tests/dag_dogfood.rs`) proves the three never diverge.
@@ -772,16 +773,12 @@ pub struct GmnTrainingCorpusStage {
 }
 
 impl GmnTrainingCorpusStage {
-    /// Construct the stage with the logic, projected forms and shared native language
-    /// dependencies. These edges are declared identically here, in
-    /// `slices/core/pipeline/module.ttl`, and in [`crate::run::full_spec`].
+    /// Construct the stage with its one dependency, the shared native language source.
+    /// The edge is declared identically here, in `slices/core/pipeline/module.ttl`, and
+    /// in [`crate::run::full_spec`].
     pub fn new() -> Self {
         Self {
-            consumes: vec![
-                "stage-compile-logic".to_string(),
-                "stage-mappings".to_string(),
-                crate::stages::parse_sources::STAGE_ID.to_owned(),
-            ],
+            consumes: vec![crate::stages::parse_sources::STAGE_ID.to_owned()],
         }
     }
 }

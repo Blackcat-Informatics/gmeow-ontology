@@ -87,7 +87,16 @@ blobs. Four rules bind every stage:
 4. **Read only what you declared.** The scheduler hands a stage exactly the products
    of the ids in its `dataflowConsumes`. There is no ambient access to a sibling's or
    an ancestor's carrier; an undeclared read is not "unsupported", it is
-   *unreachable*.
+   *unreachable*. The converse is enforced too: every content access to an upstream
+   product (dataset, bundle, typed handles, blob records, byte artifacts) is recorded
+   per (consumer, producer) edge, and a stage that finishes without reading a declared
+   input fails the run, naming both stages. Reading only a product's `stage_id` or
+   `digest` is not a read. A cache hit did not run, so its reads are the ones its
+   receipt recorded when it did run, and a receipt whose recorded reads differ from the
+   current declaration is refused. A whole repository run also fails on a product that
+   no stage declares as an input, that carries no committed (non-`pipeline/`) byte
+   artifact for the reconcile to write, and that is not empty: such a product is
+   content nobody uses. There is no ordering-only edge.
 
 Stage kinds (source-load, transform, reason, validate, docs-render) differ only in
 *what* they contribute and *what they read*, never in *how* they deliver it: all
@@ -474,8 +483,9 @@ authored on disk. Two producers contribute to the carrier:
   `*.gmn` witnesses.
 - **`stage-gmn-training-corpus`** — a **new registered generator stage**, the
   first dedicated `lang:` generator stage (the `lang:` sibling of
-  `stage-math-producers`) — consumes `stage-compile-logic` (the typecheck/prover
-  lane) and `stage-mappings` (the glyph registry), enumerates well-typed GMN terms,
+  `stage-math-producers`) — consumes `stage-parse-sources` (the admitted language
+  source: dictionary, operator forms and ring lattice; the typechecker and prover run
+  as library code), enumerates well-typed GMN terms,
   rejection-samples each through five deterministic verifiers, and attaches the
   proof-carrying corpus (plus its typed rejections) as the bundle-internal named
   graph `graph/gmn-training-corpus` (dual-carriage, exactly like

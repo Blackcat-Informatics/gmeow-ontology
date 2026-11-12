@@ -193,7 +193,7 @@ fn missing_reason_product_handle_and_wrong_payloads_refuse() {
     // gmeow-test-input: synthetic-only
     assert!(reasoning_verdict_from_reason(&BTreeMap::new()).is_err());
     let mut no_handle = product(result(Vec::new()));
-    let _ = Arc::make_mut(&mut no_handle.bundle).detach_handle(GRAPH_REASONING);
+    let _ = Arc::make_mut(no_handle.bundle_mut()).detach_handle(GRAPH_REASONING);
     assert!(
         reasoning_verdict_from_reason(&upstream(no_handle))
             .unwrap_err()
@@ -209,7 +209,7 @@ fn missing_reason_product_handle_and_wrong_payloads_refuse() {
             .contains("Inferred payload")
     );
     let mut wrong_arm = product(result(Vec::new()));
-    let bundle = Arc::make_mut(&mut wrong_arm.bundle);
+    let bundle = Arc::make_mut(wrong_arm.bundle_mut());
     let pin = bundle
         .graph_digest(
             GRAPH_REASONING,
@@ -376,7 +376,7 @@ fn changed_native_payload_identity_refuses() {
     };
     rows[0].object = TermValue::iri("urn:docs-verdict:substituted");
     let mut substituted = product(original);
-    let bundle = Arc::make_mut(&mut substituted.bundle);
+    let bundle = Arc::make_mut(substituted.bundle_mut());
     let pin = bundle
         .graph_digest(
             GRAPH_REASONING,

@@ -17,6 +17,7 @@
 use std::collections::BTreeMap;
 use std::path::Path;
 use std::sync::Arc;
+use std::sync::atomic::{AtomicBool, Ordering};
 
 mod diagnostic_json;
 
@@ -149,7 +150,10 @@ pub struct StageProduct {
     pub digest: String,
     /// The structured carrier this stage emitted: the frozen dataset, lookaside
     /// (including the byte-artifact lane), blob store, provenance, and handle lane.
-    pub bundle: Arc<PipelineBundle<PipelineHandle>>,
+    ///
+    /// Private so that every content read goes through an accessor that records it
+    /// (see [`Self::read_witness`]); a stage cannot touch an upstream carrier unseen.
+    bundle: Arc<PipelineBundle<PipelineHandle>>,
     /// Whether this product's CARRIER has been released (drop-after-last-consumer).
     ///
     /// `false` for every product a stage emits and for every product the cache serves.
@@ -169,6 +173,16 @@ pub struct StageProduct {
     pub carrier_released: bool,
     /// Published typed identities survive payload release and avoid repeated lowering.
     handle_commitments: BTreeMap<String, crate::handle_identity::HandleCommitment>,
+    /// The read witness of one (consumer, producer) edge.
+    ///
+    /// `None` everywhere except on the copy of an upstream product the scheduler hands
+    /// to ONE consumer's `run`: there it is armed with a fresh flag that every content
+    /// accessor ([`Self::bundle`], [`Self::dataset`], the byte-artifact accessors,
+    /// [`Self::diag_nodes`], [`Self::span_index`] and the typed-handle commitments) sets.
+    /// Reading only the identity fields `stage_id` / `digest` is not a read: the
+    /// scheduler already folds the digest into the consumer's action key. Clones share
+    /// the flag, so a read through a clone made inside the stage still counts.
+    read_witness: Option<Arc<AtomicBool>>,
 }
 
 /// Encode one producer-owned diagnostic contribution, including an empty one.
@@ -194,6 +208,7 @@ impl StageProduct {
             )),
             carrier_released: false,
             handle_commitments: BTreeMap::new(),
+            read_witness: None,
         }
     }
 
@@ -251,6 +266,7 @@ impl StageProduct {
             bundle,
             carrier_released: false,
             handle_commitments,
+            read_witness: None,
         })
     }
 
@@ -275,6 +291,7 @@ impl StageProduct {
             bundle: Arc::new(bundle),
             carrier_released: true,
             handle_commitments: self.handle_commitments,
+            read_witness: self.read_witness,
         })
     }
 
@@ -282,6 +299,7 @@ impl StageProduct {
     pub(crate) fn handle_commitments(
         &self,
     ) -> &BTreeMap<String, crate::handle_identity::HandleCommitment> {
+        self.record_read();
         &self.handle_commitments
     }
 
@@ -296,11 +314,41 @@ impl StageProduct {
 
     /// Borrow the structured carrier this product emitted.
     pub fn bundle(&self) -> &Arc<PipelineBundle<PipelineHandle>> {
+        self.record_read();
         &self.bundle
+    }
+
+    /// Mutable access to the carrier for the scheduler's own bookkeeping (stamping
+    /// the stage's provenance unit) and for tests that build a corrupt carrier. Never
+    /// recorded as a read: it is not reachable from a stage's `run`, which only ever
+    /// borrows its upstream products.
+    pub(crate) fn bundle_mut(&mut self) -> &mut Arc<PipelineBundle<PipelineHandle>> {
+        &mut self.bundle
+    }
+
+    /// Arm a fresh read witness on this (consumer's copy of an upstream) product.
+    pub(crate) fn arm_read_witness(&mut self) {
+        self.read_witness = Some(Arc::new(AtomicBool::new(false)));
+    }
+
+    /// Disarm the read witness and report whether any content accessor fired while
+    /// it was armed. An unarmed product reports `false`.
+    pub(crate) fn take_read_witness(&mut self) -> bool {
+        self.read_witness
+            .take()
+            .is_some_and(|witness| witness.load(Ordering::Acquire))
+    }
+
+    /// Mark this product as read, when it carries an armed witness.
+    fn record_read(&self) {
+        if let Some(witness) = &self.read_witness {
+            witness.store(true, Ordering::Release);
+        }
     }
 
     /// Borrow the frozen RDF dataset this product's bundle carries.
     pub fn dataset(&self) -> &RdfDataset {
+        self.record_read();
         assert!(
             !self.carrier_released,
             "stage `{}` attempted to read a dataset after its carrier was released; add the \
@@ -312,12 +360,14 @@ impl StageProduct {
 
     /// The bytes of one named byte-artifact-lane entry by logical path.
     pub fn artifact(&self, logical_path: &str) -> Option<&[u8]> {
+        self.record_read();
         bundle_artifact(&self.bundle, logical_path)
     }
 
     /// The full `(logical_path → bytes)` map of this product's byte-artifact lane,
     /// sorted by path. The surface `run_full` writes / compares against committed.
     pub fn artifacts(&self) -> BTreeMap<String, Vec<u8>> {
+        self.record_read();
         bundle_artifacts(&self.bundle)
     }
 
@@ -329,6 +379,7 @@ impl StageProduct {
     /// # Errors
     /// The carrier's byte-artifact lane is structurally corrupt.
     pub fn artifact_refs(&self) -> Result<BTreeMap<&str, &[u8]>, gmeow_errors::Diag> {
+        self.record_read();
         bundle_artifact_refs(&self.bundle)
     }
 
@@ -341,6 +392,7 @@ impl StageProduct {
     /// A declared producer must supply its blob, including an explicit empty contribution.
     /// A malformed or wrong-producer blob is a corrupt product — a HARD FAIL.
     pub fn diag_nodes(&self) -> Vec<gmeow_errors::DiagNode> {
+        self.record_read();
         match crate::bundle::bundle_rep_blob(&self.bundle, crate::stages::carrier::REP_DIAG_NODES) {
             Some(bytes) => {
                 let (stage, nodes) = diagnostic_json::decode_contribution(bytes).expect(
@@ -378,6 +430,7 @@ impl StageProduct {
     /// max consumer level, so real consumers always run before it). A present-but-malformed
     /// blob is likewise a HARD FAIL (no-optionality).
     pub fn span_index(&self) -> gmeow_errors::Result<crate::ingest::SpanIndex> {
+        self.record_read();
         match crate::bundle::bundle_rep_blob(&self.bundle, crate::stages::carrier::REP_SPAN_TABLE) {
             Some(bytes) => purrdf_lex::json::record::from_slice(bytes).map_err(|e| {
                 gmeow_errors::Diag::of_kind(crate::error::Decode::new(format!(
@@ -402,8 +455,10 @@ impl StageProduct {
 pub struct StageInput<'a> {
     /// The repository root the build operates over.
     pub root: &'a Path,
-    /// Upstream products keyed by producing-stage id. A stage reads only the
-    /// ids it declared in `consumes()`.
+    /// Upstream products keyed by producing-stage id: exactly the ids declared in
+    /// `consumes()`, so an undeclared read finds nothing. Every content access to one
+    /// of them is recorded, and the scheduler fails the run when the stage returns
+    /// without having read a declared input.
     pub upstream: &'a BTreeMap<String, StageProduct>,
 }
 
@@ -552,7 +607,9 @@ impl CachePolicy {
 pub trait Stage: Send + Sync {
     /// The stable stage id — matches the `gmeow:PipelineStage` individual.
     fn id(&self) -> &str;
-    /// The ids of the upstream stages this stage consumes, sorted.
+    /// The ids of the upstream stages this stage consumes, sorted. Each one must be
+    /// read by every run of the stage (see [`StageInput::upstream`]); an edge that only
+    /// orders two stages is a false declaration and fails the run.
     fn consumes(&self) -> &[String];
     /// The subset of [`Self::consumes`] whose in-memory carrier lanes this stage reads.
     ///

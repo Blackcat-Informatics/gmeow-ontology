@@ -71,10 +71,8 @@ impl GtsSinkStage {
                 // ONLY as parsed RDF in the fold. So the mathematical content is fully
                 // dictionary-compressed, by gmeow-core-v1, and nothing is lost.
                 "stage-medium-dictionaries".to_string(),
-                // The executable-docs "try it" surface reasons over the object-level EDB,
-                // whose authored / imports / alignments graphs ride on the source-load
-                // product (read, not re-loaded from disk).
-                "stage-source-load".to_string(),
+                // NOT `stage-source-load`: the source graphs that ship reach the sink
+                // inside the stage-snapshot carrier; the sink reads nothing from it.
                 "stage-compile-logic".to_string(),
                 "stage-mappings".to_string(),
                 "stage-math-producers".to_string(),
@@ -99,11 +97,10 @@ impl GtsSinkStage {
                 "stage-export-bench".to_string(),
                 "stage-export-cost-ledger".to_string(),
                 "stage-export-evals".to_string(),
-                // The OntoLex vartrans terminology lowering: an RDF fanout named graph
-                // folded from this run's fresh export-leaf product. (Its two NON-RDF
-                // siblings — the glossary table and the TBX termbase — ride
-                // `lang-projections-archive`, folded by `stage-archive-blobs`, not here.)
-                "stage-export-glossary".to_string(),
+                // NOT `stage-export-glossary`: its OntoLex vartrans RDF fanout graph is
+                // folded by stage-snapshot, and its two non-RDF surfaces (the glossary
+                // table and the TBX termbase) ride `lang-projections-archive`, folded by
+                // `stage-archive-blobs`. The sink reads nothing from it.
                 "stage-export-matrix".to_string(),
                 "stage-export-metadata".to_string(),
                 "stage-export-references".to_string(),

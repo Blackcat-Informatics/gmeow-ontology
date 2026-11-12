@@ -420,7 +420,7 @@ fn persistent_cache_refuses_the_ephemeral_native_source_catalog() {
     let context =
         StageKeyContext::new("stage-parse-sources", "test-native-catalog", vec![], vec![]);
     let error = cache
-        .put(&context, "stable", "persistent", &selection, &product)
+        .put(&context, "stable", "persistent", &selection, &product, &[])
         .unwrap_err();
     assert!(
         error.to_string().contains("ephemeral source catalogs"),

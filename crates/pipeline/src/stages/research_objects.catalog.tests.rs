@@ -210,7 +210,7 @@ fn research_catalog_authenticated_restore_preserves_graph_and_native_program() {
         ..ReceiptOutputSelection::default()
     };
     cache
-        .put(&context, "stable", "persistent", &selection, &product)
+        .put(&context, "stable", "persistent", &selection, &product, &[])
         .unwrap();
     let restored = cache.get(&context).unwrap().unwrap().product;
     assert_eq!(restored.digest, product.digest);

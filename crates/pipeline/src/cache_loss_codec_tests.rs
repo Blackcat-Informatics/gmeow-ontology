@@ -538,7 +538,7 @@ fn persistent_actions_preserve_loss_vectors_in_both_binary_handle_arms() {
         let context = StageKeyContext::new("stage-loss-codec", "fixed-loss-vector", vec![], vec![])
             .with_dimension("handle-arm", handle_arm_tag(&expected));
         let receipt = cache
-            .put(&context, "stable", "persistent", &selection, &product)
+            .put(&context, "stable", "persistent", &selection, &product, &[])
             .unwrap();
         let hit = cache.get(&context).unwrap().unwrap();
         assert_eq!(hit.receipt, receipt);

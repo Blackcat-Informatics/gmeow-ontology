@@ -99,12 +99,12 @@ use crate::node::StageProduct;
 pub const CACHE_VERSION: u32 = 23;
 
 /// Schema revision for the canonical action-key rows and immutable stage receipt.
-pub const RECEIPT_SCHEMA_VERSION: u32 = 2;
+pub const RECEIPT_SCHEMA_VERSION: u32 = 3;
 
 /// The structural codec identity. This is explicit in every action key rather than
 /// relying only on [`CACHE_VERSION`], because a receipt must name the representation
 /// it authenticates without knowing its storage path.
-pub const CACHE_CODEC_IDENTITY: &str = "bincode-1+purrpack1+typed-ir4+typed-payload7+compiled-logic-cbor2+diagnostics-cbor2+receipt-json-2";
+pub const CACHE_CODEC_IDENTITY: &str = "bincode-1+purrpack1+typed-ir4+typed-payload7+compiled-logic-cbor2+diagnostics-cbor2+receipt-json-3";
 
 /// Complete independently reusable contributions use the shared store's byte
 /// budget. Stage disposition and authenticated output selection determine which
@@ -423,13 +423,20 @@ pub struct StageReceipt {
     pub blob_representations: Vec<ReceiptEntity>,
     pub logical_artifacts: Vec<ReceiptEntity>,
     pub typed_handles: Vec<ReceiptEntity>,
+    /// The upstream producers the executed stage body actually read, sorted. The
+    /// scheduler records each (consumer, producer) access while the stage runs and
+    /// publishes a receipt only after every declared input was read, so this equals the
+    /// stage's declared `consumes()`. A cache hit did not run; its reads are the ones
+    /// recorded here when it did, and the scheduler refuses a hit whose recorded reads
+    /// differ from the current declaration.
+    pub inputs_read: Vec<String>,
 }
 
 impl StageReceipt {
     /// Digest of the canonical receipt payload (the envelope stores and verifies it).
     pub fn digest(&self) -> String {
         let bytes = serde_json::to_vec(self).expect("StageReceipt JSON serialization");
-        content_digest(&[b"gmeow:stage-receipt:v2", &bytes])
+        content_digest(&[b"gmeow:stage-receipt:v3", &bytes])
     }
 
     fn from_product(
@@ -440,8 +447,12 @@ impl StageReceipt {
         product: &StageProduct,
         product_blob_digest: Option<String>,
         product_blob_bytes: u64,
+        inputs_read: &[String],
     ) -> Result<Self, gmeow_errors::Diag> {
         let action_key = stage_key(&context);
+        let mut inputs_read = inputs_read.to_vec();
+        inputs_read.sort();
+        inputs_read.dedup();
         let bundle = product.bundle();
 
         let mut graph_names = selection.graphs.clone();
@@ -569,6 +580,7 @@ impl StageReceipt {
             blob_representations,
             logical_artifacts,
             typed_handles,
+            inputs_read,
         })
     }
 }
@@ -1998,8 +2010,9 @@ impl PipelineCache {
     }
 
     /// Store a stage product under its typed action context and publish its immutable
-    /// receipt. Same-key writers must produce the same receipt; otherwise the action
-    /// is nondeterministic and publication hard-fails.
+    /// receipt, recording the upstream producers the executed stage read. Same-key
+    /// writers must produce the same receipt; otherwise the action is nondeterministic
+    /// and publication hard-fails.
     pub fn put(
         &self,
         context: &StageKeyContext,
@@ -2007,6 +2020,7 @@ impl PipelineCache {
         cache_disposition: &str,
         selection: &ReceiptOutputSelection,
         product: &StageProduct,
+        inputs_read: &[String],
     ) -> Result<StageReceipt, gmeow_errors::Diag> {
         let manifest = CachedBundle::from_product(product, selection)?;
         let bytes = bincode::serialize(&manifest).map_err(|e| {
@@ -2035,6 +2049,7 @@ impl PipelineCache {
             product,
             Some(digest_hex.clone()),
             serialized_bytes,
+            inputs_read,
         )?;
         let common = self
             .store
@@ -2062,6 +2077,7 @@ impl PipelineCache {
         cache_disposition: &str,
         selection: &ReceiptOutputSelection,
         product: &StageProduct,
+        inputs_read: &[String],
     ) -> Result<StageReceipt, gmeow_errors::Diag> {
         StageReceipt::from_product(
             context.clone(),
@@ -2071,6 +2087,7 @@ impl PipelineCache {
             product,
             None,
             0,
+            inputs_read,
         )
     }
 
@@ -2092,6 +2109,7 @@ impl PipelineCache {
             &hit.product,
             hit.receipt.product_blob_digest.clone(),
             hit.receipt.product_blob_bytes,
+            &hit.receipt.inputs_read,
         )?;
         if expected != hit.receipt {
             return Err(gmeow_errors::Diag::of_kind(crate::error::CacheMismatch {
@@ -2232,9 +2250,19 @@ impl FixtureCoordinator {
                 || {
                     let product = build().map_err(FixtureCoordinateError::Pipeline)?;
                     let selection = select(&product).map_err(FixtureCoordinateError::Pipeline)?;
+                    // `build` is an opaque closure, not a scheduler-run stage body, so no
+                    // upstream read was witnessed and none is recorded. The scheduler
+                    // refuses such an entry for any stage that declares an input.
                     let receipt = self
                         .cache
-                        .put(context, stability, cache_disposition, &selection, &product)
+                        .put(
+                            context,
+                            stability,
+                            cache_disposition,
+                            &selection,
+                            &product,
+                            &[],
+                        )
                         .map_err(FixtureCoordinateError::Pipeline)?;
                     Ok(FixtureOutcome {
                         transferred_bytes: receipt.product_blob_bytes,

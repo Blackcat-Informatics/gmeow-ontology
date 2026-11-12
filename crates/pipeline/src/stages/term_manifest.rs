@@ -678,18 +678,15 @@ fn publish_release_authority(
 
 // ── Stage impl ───────────────────────────────────────────────────────────────
 
-/// The `term-content-manifest` export-leaf stage.
-pub struct TermManifestStage {
-    consumes: Vec<String>,
-}
+/// The `term-content-manifest` export-leaf stage. A source-reading leaf: the digests
+/// are computed over the authored ontology and the tracked release authority, declared
+/// in [`Stage::input_files`], so it consumes no upstream product.
+pub struct TermManifestStage;
 
 impl TermManifestStage {
-    /// Construct the stage. It consumes `stage-reason` so it runs after the reasoned
-    /// closure is available (mirroring the constraint-catalog leaf's placement).
+    /// Construct the stage.
     pub fn new() -> Self {
-        Self {
-            consumes: vec!["stage-reason".to_string()],
-        }
+        Self
     }
 }
 
@@ -704,7 +701,7 @@ impl Stage for TermManifestStage {
         "stage-term-manifest"
     }
     fn consumes(&self) -> &[String] {
-        &self.consumes
+        &[]
     }
     fn impl_version(&self) -> &str {
         "term_manifest.v4-registered-term-namespaces"

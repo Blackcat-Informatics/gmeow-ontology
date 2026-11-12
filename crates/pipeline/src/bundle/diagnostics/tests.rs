@@ -405,7 +405,7 @@ fn native_diagnostics_refuse_missing_wrong_and_substituted_publications() {
     // gmeow-test-input: synthetic-only
     let owner = DiagnosticReportOwner::Validate;
     let mut absent = product(owner, rich_report(owner));
-    let _ = Arc::make_mut(&mut absent.bundle).detach_handle(GRAPH_DIAGNOSTICS);
+    let _ = Arc::make_mut(absent.bundle_mut()).detach_handle(GRAPH_DIAGNOSTICS);
     assert!(
         absent
             .artifact(crate::stages::validate::SHACL_JSON_PATH)
@@ -422,7 +422,7 @@ fn native_diagnostics_refuse_missing_wrong_and_substituted_publications() {
     report.findings[1].locations[0].logical = Some("https://example.org/substitution".into());
     let publication = Arc::new(DiagnosticsPublication::producer(owner, Arc::new(report)).unwrap());
     pin_diagnostics(
-        Arc::make_mut(&mut changed.bundle),
+        Arc::make_mut(changed.bundle_mut()),
         "stage-validate",
         publication,
     )
@@ -434,7 +434,7 @@ fn native_diagnostics_refuse_missing_wrong_and_substituted_publications() {
             .contains("identity changed")
     );
     let mut wrong = product(owner, rich_report(owner));
-    let bundle = Arc::make_mut(&mut wrong.bundle);
+    let bundle = Arc::make_mut(wrong.bundle_mut());
     let pin = bundle
         .graph_digest(
             GRAPH_DIAGNOSTICS,

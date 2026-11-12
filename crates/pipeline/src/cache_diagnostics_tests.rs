@@ -128,7 +128,7 @@ fn diagnostics_codec_roundtrip_preserves_complete_reports_and_accounting() {
         );
         let selected = selection(product);
         let receipt = cache
-            .put(&context, "stable", "persistent", &selected, product)
+            .put(&context, "stable", "persistent", &selected, product, &[])
             .unwrap();
         let manifest = CachedBundle::from_product(product, &selected).unwrap();
         assert_eq!(

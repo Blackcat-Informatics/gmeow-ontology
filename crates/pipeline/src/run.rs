@@ -304,19 +304,16 @@ pub fn full_spec() -> PipelineSpec {
         ),
         // Compute: the rejection-sampled, proof-carrying GMN training-corpus emitter,
         // enforcing its training-corpus and provenance contracts. A productive functor
-        // over the glyph signature, it consumes
-        // stage-compile-logic (the typechecker/prover lane) and stage-mappings (the projected
-        // GMN forms / glyph registry lane), enumerates well-typed GMN terms, rejection-samples
-        // each through five verifiers, and attaches the certified corpus (+ typed rejections)
-        // as graph/gmn-training-corpus (folded into gmeow.gts by stage-snapshot).
+        // over the glyph signature, it resolves the dictionary, operator forms and ring
+        // lattice from the admitted language source of stage-parse-sources, enumerates
+        // well-typed GMN terms, rejection-samples each through five verifiers (the
+        // typechecker and prover run as library code), and attaches the certified corpus
+        // (+ typed rejections) as graph/gmn-training-corpus (folded into gmeow.gts by
+        // stage-snapshot).
         st(
             "stage-gmn-training-corpus",
             "gmn-training-corpus",
-            &[
-                "stage-compile-logic",
-                "stage-mappings",
-                "stage-parse-sources",
-            ],
+            &["stage-parse-sources"],
         ),
         // Compute: assemble a gmeow:AuthoringPacket per in-repo slice batch and attach
         // the union as graph/authoring-briefs (folded into gmeow.gts by stage-snapshot).
@@ -433,16 +430,14 @@ pub fn full_spec() -> PipelineSpec {
             ],
         ),
         // The generated constraint catalog: one gmeow:ValidationRule per finding code,
-        // enriched from the reasoned graph, folded into the bundle by stage-snapshot.
-        st(
-            "stage-constraint-catalog",
-            "constraint_catalog",
-            &["stage-reason"],
-        ),
+        // enriched from the authored ontology (declared raw inputs), folded into the
+        // bundle by stage-snapshot. It consumes no upstream product.
+        st("stage-constraint-catalog", "constraint_catalog", &[]),
         // The generated term content manifest: one gmeow:definitionDigest per
         // documented term (plus first-seen version + computed changelog entries),
-        // folded into the bundle by stage-snapshot.
-        st("stage-term-manifest", "term_manifest", &["stage-reason"]),
+        // computed over the authored ontology (declared raw inputs) and folded into the
+        // bundle by stage-snapshot. It consumes no upstream product.
+        st("stage-term-manifest", "term_manifest", &[]),
         st(
             "stage-snapshot",
             "snapshot",
@@ -695,13 +690,12 @@ pub fn full_spec() -> PipelineSpec {
             // position: bench < cost-ledger < evals).
             "stage-export-cost-ledger",
             "stage-export-evals",
-            // The human-readable terminology glossary table (byte-decorated Markdown)
-            // rides in as an opaque REP_GENERATED fanout member, read off this leaf's
-            // product (sorted position: evals < glossary < governance-floors).
-            "stage-export-glossary",
+            // NOT `stage-export-glossary`: its RDF surface is folded by stage-snapshot and
+            // its two non-RDF surfaces ride `lang-projections-archive`, folded by
+            // stage-archive-blobs, so the terminal reads nothing from it.
             // The two slice-quality floor TSVs (P17 projection of the ontology floor
             // commitments) ride in as opaque REP_GENERATED fanout members, read off this
-            // leaf's product (sorted position: glossary < governance-floors < matrix).
+            // leaf's product (sorted position: evals < governance-floors < matrix).
             "stage-export-governance-floors",
             "stage-export-matrix",
             "stage-export-metadata",
@@ -727,7 +721,8 @@ pub fn full_spec() -> PipelineSpec {
             "stage-medium-dictionaries",
             "stage-reason",
             "stage-snapshot",
-            "stage-source-load",
+            // NOT `stage-source-load`: the source graphs that ship reach the terminal
+            // inside the stage-snapshot carrier; the terminal reads nothing from it.
             // NOT `stage-statements`: the statement layer's two byte-decorated
             // projections ride `statements-archive`, folded by `stage-archive-blobs` off
             // that product, so the terminal reads nothing from it. The ordering the edge
@@ -1023,6 +1018,9 @@ pub fn run_full_scoped_with_progress(
     }
     let scheduler_started = Instant::now();
     let mut result = run(&graph, &bound, &mut ctx)?;
+    // Every product of the whole repository run, fresh or served from the cache, must
+    // be read by a declared consumer, carry a committed artifact, or be empty.
+    crate::scheduler::verify_every_product_used(&bound, &result.products)?;
     let scheduler_elapsed = scheduler_started.elapsed().as_millis();
     let gmn_reports = crate::stages::conformance::gmn_grounding::from_bytes(
         &result

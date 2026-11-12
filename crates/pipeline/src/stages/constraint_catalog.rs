@@ -3,7 +3,7 @@
 
 //! The `constraint-catalog` export leaf: the machine-readable "what GMEOW
 //! enforces" surface, generated (never hand-authored) from the validator's rule
-//! registry and the reasoned ontology.
+//! registry and the authored ontology.
 //!
 //! Every [`gmeow_validate::rule_catalog::RuleSeed`] the validator can emit becomes
 //! one `gmeow:ValidationRule` individual: its code, its default grade, its category
@@ -535,19 +535,15 @@ pub fn render_constraint_catalog(root: &Path) -> Result<Vec<u8>, gmeow_errors::D
 
 // ── Stage impl ───────────────────────────────────────────────────────────────
 
-/// The `constraint-catalog` export-leaf stage.
-pub struct ConstraintCatalogStage {
-    consumes: Vec<String>,
-}
+/// The `constraint-catalog` export-leaf stage. A source-reading leaf: the governed
+/// terms are resolved from the authored ontology, declared in
+/// [`Stage::input_files`], so it consumes no upstream product.
+pub struct ConstraintCatalogStage;
 
 impl ConstraintCatalogStage {
-    /// Construct the stage. It consumes `stage-reason` so it runs after the reasoned
-    /// closure is available (and, transitively, over the composed ontology it reads
-    /// the governed terms from).
+    /// Construct the stage.
     pub fn new() -> Self {
-        Self {
-            consumes: vec!["stage-reason".to_string()],
-        }
+        Self
     }
 }
 
@@ -562,7 +558,7 @@ impl Stage for ConstraintCatalogStage {
         "stage-constraint-catalog"
     }
     fn consumes(&self) -> &[String] {
-        &self.consumes
+        &[]
     }
     fn impl_version(&self) -> &str {
         "constraint_catalog.v1"

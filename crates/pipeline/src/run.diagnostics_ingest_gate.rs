@@ -362,7 +362,14 @@ fn cache_replay_yields_byte_identical_run_ledger() {
         content_store: crate::cache::content_store_commitment(&out.product).unwrap(),
     };
     cache
-        .put(&context, "stable", "persistent", &selection, &out.product)
+        .put(
+            &context,
+            "stable",
+            "persistent",
+            &selection,
+            &out.product,
+            &[],
+        )
         .unwrap();
     let restored = cache.get(&context).unwrap().expect("cache hit");
     let restored_nodes = restored.product.diag_nodes();

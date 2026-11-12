@@ -53,6 +53,7 @@ fn prior_diagnostic_cache_revisions_are_misses_before_hydration() {
             &product,
             Some(gmeow_action_cache::bytes_digest(&bytes)),
             u64::try_from(bytes.len()).unwrap(),
+            &[],
         )
         .unwrap();
         receipt.action_key = prior.key().to_string();
@@ -275,6 +276,7 @@ fn persist_test_product(
             "persistent",
             &full_selection(product),
             product,
+            &[],
         )
         .unwrap()
 }
@@ -1313,7 +1315,14 @@ fn persistent_unit_rejects_unselected_cumulative_lanes() {
     let mut missing_graph = full_selection(&product);
     missing_graph.graphs.clear();
     let err = cache
-        .put(&context, "stable", "persistent", &missing_graph, &product)
+        .put(
+            &context,
+            "stable",
+            "persistent",
+            &missing_graph,
+            &product,
+            &[],
+        )
         .expect_err("an unselected graph is cumulative carrier residue");
     assert!(err.is::<crate::error::StageFailed>(), "got {err:?}");
 
@@ -1326,6 +1335,7 @@ fn persistent_unit_rejects_unselected_cumulative_lanes() {
             "persistent",
             &missing_artifact,
             &product,
+            &[],
         )
         .expect_err("an unselected artifact is cumulative carrier residue");
     assert!(err.is::<crate::error::StageFailed>(), "got {err:?}");
@@ -1339,6 +1349,7 @@ fn persistent_unit_rejects_unselected_cumulative_lanes() {
             "persistent",
             &missing_default_graph,
             &product,
+            &[],
         )
         .expect_err("an uncommitted default graph is cumulative carrier residue");
     assert!(err.is::<crate::error::StageFailed>(), "got {err:?}");
@@ -1352,6 +1363,7 @@ fn persistent_unit_rejects_unselected_cumulative_lanes() {
             "persistent",
             &missing_provenance,
             &product,
+            &[],
         )
         .expect_err("uncommitted provenance is cumulative carrier residue");
     assert!(err.is::<crate::error::StageFailed>(), "got {err:?}");
@@ -1365,6 +1377,7 @@ fn persistent_unit_rejects_unselected_cumulative_lanes() {
             "persistent",
             &missing_content_store,
             &product,
+            &[],
         )
         .expect_err("an uncommitted content store is cumulative carrier residue");
     assert!(err.is::<crate::error::StageFailed>(), "got {err:?}");
@@ -1657,6 +1670,7 @@ fn concurrent_publication_is_atomic_and_nondeterminism_fails() {
             "persistent",
             &ReceiptOutputSelection::default(),
             &product,
+            &[],
         )
     }
 
@@ -1916,6 +1930,7 @@ fn bounded_store_evicts_only_unreachable_entries_and_ignores_crash_temps() {
                 "persistent",
                 &ReceiptOutputSelection::default(),
                 &StageProduct::new("stage", "digest"),
+                &[],
             )
             .unwrap_err()
             .is::<crate::error::StageFailed>()
@@ -2120,6 +2135,7 @@ fn cached_reasoning_refuses_malformed_governed_summary() {
                 "persistent",
                 &full_selection(&product),
                 &product,
+                &[],
             )
             .expect_err("a graph pin cannot authorize a malformed governed summary");
         assert!(error.message().contains("projection binding"), "{error}");
@@ -2287,6 +2303,7 @@ fn cached_relational_core_refuses_changed_body_order_even_when_semantically_equa
             "persistent",
             &full_selection(&product),
             &product,
+            &[],
         )
         .expect_err("cache binding must preserve recorded execution order");
     assert!(error.is::<crate::error::Decode>(), "{error}");
@@ -2438,6 +2455,7 @@ fn cached_correspondence_publications_refuse_a_changed_standpoint() {
                 "persistent",
                 &full_selection(&product),
                 &product,
+                &[],
             )
             .expect_err("a different standpoint must be refused before cache publication");
         assert!(error.is::<crate::error::Decode>(), "{error}");

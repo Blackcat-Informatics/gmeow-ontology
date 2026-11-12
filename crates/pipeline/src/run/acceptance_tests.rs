@@ -53,6 +53,7 @@ fn receipt_metadata() -> Vec<StageReceipt> {
                 blob_representations: vec![],
                 logical_artifacts: vec![],
                 typed_handles: vec![],
+                inputs_read: vec![],
             }
         })
         .collect()

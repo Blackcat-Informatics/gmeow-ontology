@@ -53,7 +53,6 @@ fn sink_declares_only_the_lanes_it_reads_as_carrier_inputs() {
         ]
     );
     for artifact_only in [
-        "stage-source-load",
         "stage-compile-logic",
         "stage-mappings",
         "stage-reason",

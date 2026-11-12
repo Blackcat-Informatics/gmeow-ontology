@@ -113,6 +113,7 @@ impl FromJson for ReceiptEntity {
     "blob_representations" => blob_representations,
     "logical_artifacts" => logical_artifacts,
     "typed_handles" => typed_handles,
+    "inputs_read" => inputs_read,
 }}
 impl FromJson for StageReceipt {
     fn from_json(value: &Value) -> Result<Self, DecodeError> {
@@ -138,6 +139,7 @@ impl FromJson for StageReceipt {
             blob_representations: fields.required("blob_representations")?,
             logical_artifacts: fields.required("logical_artifacts")?,
             typed_handles: fields.required("typed_handles")?,
+            inputs_read: fields.required("inputs_read")?,
         };
         fields.deny_unknown()?;
         Ok(result)

@@ -31,6 +31,7 @@ fn receipts() -> Vec<StageReceipt> {
                 blob_representations: vec![],
                 logical_artifacts: vec![],
                 typed_handles: vec![],
+                inputs_read: vec![],
             }
         })
         .collect()
@@ -214,6 +215,7 @@ fn source_export_cannot_substitute_another_selected_parent_or_artifact() {
             ..ReceiptOutputSelection::default()
         },
         &product,
+        &[],
     )
     .unwrap();
     let entity = receipt

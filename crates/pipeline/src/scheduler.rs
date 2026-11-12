@@ -371,6 +371,9 @@ struct StageRun {
     timings: Vec<StageRunTiming>,
     receipt: Option<StageReceipt>,
     output_selection: ReceiptOutputSelection,
+    /// The upstream producers this stage read, sorted: witnessed while the stage body
+    /// ran, or, on a cache hit, the set its receipt recorded when it did run.
+    inputs_read: Vec<String>,
     cache_outcome: String,
     cache_read_bytes: u64,
     cache_write_bytes: u64,
@@ -754,6 +757,7 @@ pub fn run_without(
                         stage.cache_policy().iri(),
                         &run.output_selection,
                         &run.product,
+                        &run.inputs_read,
                     )?;
                     run.cache_write_bytes = receipt.product_blob_bytes;
                     run.receipt = Some(receipt);
@@ -765,6 +769,7 @@ pub fn run_without(
                         stage.cache_policy().iri(),
                         &run.output_selection,
                         &run.product,
+                        &run.inputs_read,
                     )?);
                 }
                 if let Some(receipt) = run.receipt.clone() {
@@ -772,9 +777,9 @@ pub fn run_without(
                 }
                 run_ledger.replay(std::mem::take(&mut run.diags));
                 register_stage_unit(provenance, &run.id, stage.capabilities())?;
-                let mut stage_prov = run.product.bundle.provenance().clone();
+                let mut stage_prov = run.product.bundle().provenance().clone();
                 register_stage_unit(&mut stage_prov, &run.id, stage.capabilities())?;
-                set_bundle_provenance(&mut run.product.bundle, stage_prov);
+                set_bundle_provenance(run.product.bundle_mut(), stage_prov);
 
                 let level_timing = &mut level_timings[level];
                 if level_timing.critical_stage.is_empty()
@@ -1066,6 +1071,11 @@ fn exec_stage(
             &output_selection,
             &hit,
         )?;
+        // The stage did not run, so nothing was read now. Its reads are the ones the
+        // receipt recorded when it did run; refuse a receipt whose recorded reads are not
+        // exactly the current declaration rather than count the hit as read.
+        verify_recorded_reads(stage, &hit.receipt.inputs_read)?;
+        let inputs_read = hit.receipt.inputs_read.clone();
         let diags = hit.product.diag_nodes();
         return Ok(StageRun {
             id: stage.id().to_string(),
@@ -1077,6 +1087,7 @@ fn exec_stage(
             timings: Vec::new(),
             receipt: Some(hit.receipt),
             output_selection,
+            inputs_read,
             cache_outcome: "hit".to_string(),
             cache_read_bytes: hit.hydrated_bytes,
             cache_write_bytes: 0,
@@ -1084,6 +1095,12 @@ fn exec_stage(
         });
     }
 
+    // Arm one read witness per declared (consumer, producer) edge. Arming happens after
+    // the action key was computed and after the cache probe, so the scheduler's own
+    // identity walks never count as a read by the stage.
+    for product in upstream.values_mut() {
+        product.arm_read_witness();
+    }
     let input = StageInput {
         root,
         upstream: &upstream,
@@ -1117,6 +1134,7 @@ fn exec_stage(
     }
     let out = stage.run(input)?;
     drop(_guards);
+    let inputs_read = declared_inputs_read(stage, &mut upstream)?;
 
     // Verify the stage's ACTUAL attach delta against its declaration on the cache-miss
     // path too — the same compare as the cache-hit branch, so drift HARD-fails regardless
@@ -1143,11 +1161,175 @@ fn exec_stage(
         timings: out.timings,
         receipt: None,
         output_selection,
+        inputs_read,
         cache_outcome: cache_outcome.to_string(),
         cache_read_bytes: 0,
         cache_write_bytes: 0,
         cache_hydration_rss_delta_kib: None,
     })
+}
+
+/// Disarm the read witness of every declared input of a stage that just ran and
+/// HARD-fail when any declared input was never read.
+///
+/// A read is any content access through a [`StageProduct`] accessor while the stage
+/// body ran: its bundle, dataset, typed-handle commitments, blob records (diagnostics,
+/// span table) or byte artifacts, including through a clone the stage made. Reading
+/// only `stage_id` or `digest` is not a read. There is no ordering-only edge: an edge a
+/// stage does not read is a false declaration that keeps the producer's product live
+/// and keys the stage's cache on content it ignores.
+///
+/// # Errors
+/// [`crate::error::StageFailed`] naming the consumer and every unread producer.
+///
+/// This check runs for every stage on every run, including cache hits: a miss is
+/// witnessed here, and a hit is checked against the reads its receipt recorded.
+// A typed diagnostic kind with its authored failure class belongs with the unit that
+// publishes recorded reads as RDF; until then the existing stage-failed kind is reused.
+pub(crate) fn declared_inputs_read(
+    stage: &dyn Stage,
+    upstream: &mut BTreeMap<String, StageProduct>,
+) -> Result<Vec<String>, gmeow_errors::Diag> {
+    let mut read = Vec::with_capacity(upstream.len());
+    let mut unread = Vec::new();
+    for (producer, product) in upstream.iter_mut() {
+        if product.take_read_witness() {
+            read.push(producer.clone());
+        } else {
+            unread.push(producer.clone());
+        }
+    }
+    if unread.is_empty() {
+        return Ok(read);
+    }
+    Err(unread_inputs_failure(stage.id(), &unread, "never read"))
+}
+
+/// HARD-fail a cache hit whose receipt does not record exactly the stage's declared
+/// inputs as read. Every receipt the scheduler publishes passed
+/// [`declared_inputs_read`] first, so a mismatch is an entry written by a path that did
+/// not witness the stage's reads, never a reason to recompute silently.
+fn verify_recorded_reads(stage: &dyn Stage, recorded: &[String]) -> Result<(), gmeow_errors::Diag> {
+    let declared: BTreeSet<&str> = stage.consumes().iter().map(String::as_str).collect();
+    let recorded: BTreeSet<&str> = recorded.iter().map(String::as_str).collect();
+    let unread: Vec<String> = declared
+        .difference(&recorded)
+        .map(|producer| (*producer).to_string())
+        .collect();
+    let undeclared: Vec<&str> = recorded.difference(&declared).copied().collect();
+    if !undeclared.is_empty() {
+        return Err(gmeow_errors::Diag::of_kind(crate::error::StageFailed {
+            cause: None,
+            stage: stage.id().to_string(),
+            message: format!(
+                "cached receipt records reads of {undeclared:?}, which stage `{}` does not \
+                 declare in consumes(); the receipt does not describe this stage",
+                stage.id()
+            ),
+        }));
+    }
+    if unread.is_empty() {
+        return Ok(());
+    }
+    Err(unread_inputs_failure(
+        stage.id(),
+        &unread,
+        "has no recorded read in the cached receipt",
+    ))
+}
+
+fn unread_inputs_failure(consumer: &str, unread: &[String], how: &str) -> gmeow_errors::Diag {
+    let edges = unread
+        .iter()
+        .map(|producer| format!("`{consumer}` -> `{producer}`"))
+        .collect::<Vec<_>>()
+        .join(", ");
+    // Existing kind reused: the typed kind and its failure class come with the unit that
+    // publishes recorded reads as RDF.
+    gmeow_errors::Diag::of_kind(crate::error::StageFailed {
+        cause: None,
+        stage: consumer.to_string(),
+        message: format!(
+            "declared input edge {edges} {how} (this check runs for every stage on every \
+             run, including cache hits): stage `{consumer}` declares the producer in \
+             consumes() but its run never touched that product's dataset, bundle, typed \
+             handles, blob records or byte artifacts. Read the product through its \
+             StageProduct accessors, or remove the edge from the stage's consumes(), from \
+             full_spec() in crates/pipeline/src/run.rs and from gmeow:dataflowConsumes in \
+             slices/core/pipeline/module.ttl"
+        ),
+    })
+}
+
+/// HARD-fail on a product nothing uses.
+///
+/// A product is used when at least one of these holds:
+/// * some stage of `bound` declares its producer in `consumes()` — and
+///   [`declared_inputs_read`] guarantees that every consumer which runs reads it;
+/// * its byte-artifact lane carries a committed logical path (one outside
+///   [`crate::bundle::INTERNAL_ARTIFACT_PREFIX`]), which the post-run reconcile writes
+///   or compares; the terminal's `gmeow.gts` is such a path;
+/// * it is empty — no quads, typed handles, blob records or artifacts. A stage whose
+///   whole effect is to fail the run on a broken invariant holds nothing to waste.
+///
+/// A graph a stage attaches reaches the terminal only through a chain of consumers,
+/// so "attaches a graph the terminal carries" is the first condition. Consumers are
+/// taken from `bound`, not from the stages a partial run executed, so a deliberately
+/// omitted consumer never makes its producer look dead. Cache hits are checked like
+/// fresh products: their artifact lanes are hydrated, and a released carrier keeps its
+/// committed lane.
+///
+/// This half of the contract runs only on a whole-repository run
+/// (`run_full_scoped_with_progress`). A subset run (fixtures, sweeps) does not perform
+/// it, so its silence is not a pass.
+///
+/// # Errors
+/// [`crate::error::StageFailed`] naming every dead product's stage.
+pub fn verify_every_product_used(
+    bound: &[Arc<dyn Stage>],
+    products: &BTreeMap<String, StageProduct>,
+) -> Result<(), gmeow_errors::Diag> {
+    let consumed: BTreeSet<&str> = bound
+        .iter()
+        .flat_map(|stage| stage.consumes().iter().map(String::as_str))
+        .collect();
+    let mut dead = Vec::new();
+    for (stage_id, product) in products {
+        if consumed.contains(stage_id.as_str()) {
+            continue;
+        }
+        let artifacts = product.artifact_refs()?;
+        let committed = artifacts
+            .keys()
+            .any(|path| !path.starts_with(crate::bundle::INTERNAL_ARTIFACT_PREFIX));
+        if committed {
+            continue;
+        }
+        let bundle = product.bundle();
+        let empty = artifacts.is_empty()
+            && bundle.dataset().quad_count() == 0
+            && bundle.lookaside().blobs.is_empty()
+            && product.handle_commitments().is_empty();
+        if !empty {
+            dead.push(stage_id.clone());
+        }
+    }
+    if dead.is_empty() {
+        return Ok(());
+    }
+    // Existing kind reused: the typed kind and its failure class come with the unit that
+    // publishes recorded reads as RDF.
+    Err(gmeow_errors::Diag::of_kind(crate::error::StageFailed {
+        cause: None,
+        stage: "<scheduler>".to_string(),
+        message: format!(
+            "dead product(s) from {dead:?} (this check runs only on a whole-repository run; \
+             a subset run such as fixtures or sweeps does not perform it): no stage declares the product as an input, it \
+             carries no committed byte artifact for the reconcile and it is not empty, so \
+             the content was computed and held for nothing. Give the product a reader, emit \
+             a committed artifact, or remove the stage"
+        ),
+    }))
 }
 
 fn current_rss_kib() -> Option<u64> {

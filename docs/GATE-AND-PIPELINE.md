@@ -968,6 +968,9 @@ false claim (P11); one with no boundary record at all is worse.**
    `Stage::consumes()`, in `full_spec()`, and in `gmeow:dataflowConsumes` in
    `slices/core/pipeline/module.ttl`. Editing fewer than three leaves a mismatch
    that only surfaces at a full producer run.
+   Declare only what the stage reads: the scheduler records every content access
+   to an upstream product and fails a run whose stage never read a declared input.
+   An edge that exists only to order two stages is a false declaration; remove it.
 5. **Prefer a lowering to a core change.** If the blocker is that a downstream
    engine cannot see one edge, lower that edge and record a narrow
    `logic:expressivenessBoundary` naming only what is genuinely not preserved

@@ -185,6 +185,16 @@ fn typed_dataflow_from_non_consumed_producer_is_rejected() {
 
 // ── Binding agreement ────────────────────────────────────────────────────────
 
+/// Touch every declared upstream product the way a real stage reads its inputs. The
+/// scheduler hard-fails a stage that never reads a declared input, so every
+/// synthetic stage in these tests reads what it declares.
+fn read_declared_upstream(input: &StageInput<'_>) -> Result<(), gmeow_errors::Diag> {
+    for product in input.upstream.values() {
+        product.artifact_refs()?;
+    }
+    Ok(())
+}
+
 struct FakeStage {
     id: String,
     capabilities: Vec<String>,
@@ -212,7 +222,8 @@ impl Stage for FakeStage {
     fn impl_version(&self) -> &str {
         "v1"
     }
-    fn run(&self, _input: StageInput<'_>) -> Result<StageOutput, gmeow_errors::Diag> {
+    fn run(&self, input: StageInput<'_>) -> Result<StageOutput, gmeow_errors::Diag> {
+        read_declared_upstream(&input)?;
         Ok(StageOutput::new(StageProduct::new(
             self.id.clone(),
             "deadbeef",
@@ -368,6 +379,7 @@ fn live_product_and_authenticated_receipt_build_the_same_action_context() {
         CachePolicy::Persistent.iri(),
         &ReceiptOutputSelection::default(),
         &product,
+        &[],
     )
     .expect("source receipt");
     let receipt_upstream = std::collections::BTreeMap::from([("source".to_string(), receipt)]);
@@ -759,6 +771,7 @@ fn cache_round_trips() {
         "persistent",
         &ReceiptOutputSelection::default(),
         &p,
+        &[],
     )
     .unwrap();
     assert_eq!(c.len(), 1);
@@ -791,6 +804,7 @@ fn cache_hard_fails_on_corruption() {
         "persistent",
         &ReceiptOutputSelection::default(),
         &StageProduct::new("s", "abc123"),
+        &[],
     )
     .unwrap();
 
@@ -869,6 +883,7 @@ impl Stage for ComputeStage {
     }
     fn run(&self, input: StageInput<'_>) -> Result<StageOutput, gmeow_errors::Diag> {
         self.runs.fetch_add(1, Ordering::SeqCst);
+        read_declared_upstream(&input)?;
         let mut ups: Vec<String> = input.upstream.values().map(|p| p.digest.clone()).collect();
         ups.sort();
         let mut fields: Vec<&[u8]> = vec![self.id.as_bytes()];
@@ -965,7 +980,8 @@ impl Stage for CompletionProbeStage {
         "completion-probe-v1"
     }
 
-    fn run(&self, _input: StageInput<'_>) -> Result<StageOutput, gmeow_errors::Diag> {
+    fn run(&self, input: StageInput<'_>) -> Result<StageOutput, gmeow_errors::Diag> {
+        read_declared_upstream(&input)?;
         self.started.store(true, Ordering::SeqCst);
         if let Some((observed_started, observed_finished, observation)) = &self.observe_running {
             let deadline = std::time::Instant::now() + Duration::from_secs(1);
@@ -1150,7 +1166,8 @@ impl Stage for FailureProbeStage {
         "failure-probe-v1"
     }
 
-    fn run(&self, _input: StageInput<'_>) -> Result<StageOutput, gmeow_errors::Diag> {
+    fn run(&self, input: StageInput<'_>) -> Result<StageOutput, gmeow_errors::Diag> {
+        read_declared_upstream(&input)?;
         self.runs.fetch_add(1, Ordering::SeqCst);
         std::thread::sleep(self.delay);
         if self.fail {
@@ -1429,7 +1446,8 @@ impl Stage for FileReadingStage {
     ) -> Result<Vec<std::path::PathBuf>, gmeow_errors::Diag> {
         Ok(vec![self.file.clone()])
     }
-    fn run(&self, _input: StageInput<'_>) -> Result<StageOutput, gmeow_errors::Diag> {
+    fn run(&self, input: StageInput<'_>) -> Result<StageOutput, gmeow_errors::Diag> {
+        read_declared_upstream(&input)?;
         self.runs.fetch_add(1, Ordering::SeqCst);
         let bytes = std::fs::read(&self.file)?;
         Ok(StageOutput::new(StageProduct::new(
@@ -1545,7 +1563,8 @@ impl Stage for TwoGraphProducer {
     ) -> Result<Vec<std::path::PathBuf>, gmeow_errors::Diag> {
         Ok(vec![self.file.clone()])
     }
-    fn run(&self, _input: StageInput<'_>) -> Result<StageOutput, gmeow_errors::Diag> {
+    fn run(&self, input: StageInput<'_>) -> Result<StageOutput, gmeow_errors::Diag> {
+        read_declared_upstream(&input)?;
         self.runs.fetch_add(1, Ordering::SeqCst);
         let content = std::fs::read_to_string(&self.file)?;
         // g1's object tracks the file; g2 is constant. So an edit moves g1's digest
@@ -1655,6 +1674,7 @@ fn typed_payload_changes_invalidate_selected_and_whole_action_keys() {
             CachePolicy::Persistent.iri(),
             &selection,
             &product,
+            &[],
         )
         .unwrap();
         let live = BTreeMap::from([("source".to_string(), product)]);
@@ -1695,7 +1715,8 @@ impl Stage for EntityConsumer {
     fn impl_version(&self) -> &str {
         "v1"
     }
-    fn run(&self, _input: StageInput<'_>) -> Result<StageOutput, gmeow_errors::Diag> {
+    fn run(&self, input: StageInput<'_>) -> Result<StageOutput, gmeow_errors::Diag> {
+        read_declared_upstream(&input)?;
         self.runs.fetch_add(1, Ordering::SeqCst);
         Ok(StageOutput::new(StageProduct::new(
             self.id.clone(),
@@ -1963,7 +1984,8 @@ impl Stage for AttachTestStage {
     fn impl_version(&self) -> &str {
         "v1"
     }
-    fn run(&self, _input: StageInput<'_>) -> Result<StageOutput, gmeow_errors::Diag> {
+    fn run(&self, input: StageInput<'_>) -> Result<StageOutput, gmeow_errors::Diag> {
+        read_declared_upstream(&input)?;
         match &self.attach_graph {
             Some(g) => {
                 let nq = format!("<https://example.org/s> <https://example.org/p> \"x\" <{g}> .\n");
@@ -2138,7 +2160,8 @@ impl Stage for AttachBlobStage {
     fn impl_version(&self) -> &str {
         "v1"
     }
-    fn run(&self, _input: StageInput<'_>) -> Result<StageOutput, gmeow_errors::Diag> {
+    fn run(&self, input: StageInput<'_>) -> Result<StageOutput, gmeow_errors::Diag> {
+        read_declared_upstream(&input)?;
         let dataset = purrdf::parse_dataset(b"", "application/n-quads", None).map_err(|e| {
             gmeow_errors::Diag::of_kind(crate::error::Parse {
                 message: format!("attach-blob empty dataset: {e}"),
@@ -2781,4 +2804,178 @@ fn releasing_carriers_changes_no_byte_the_run_produces() {
             "{id}: every committed artifact byte survives the release"
         );
     }
+}
+
+// ── Declared inputs must be read; products must be used ─────────────────────
+
+/// A stage that declares its inputs and reads them only when `reads` is set.
+struct OptionalReader {
+    id: String,
+    consumes: Vec<String>,
+    reads: bool,
+}
+
+impl Stage for OptionalReader {
+    fn id(&self) -> &str {
+        &self.id
+    }
+    fn consumes(&self) -> &[String] {
+        &self.consumes
+    }
+    fn impl_version(&self) -> &str {
+        "v1"
+    }
+    fn run(&self, input: StageInput<'_>) -> Result<StageOutput, gmeow_errors::Diag> {
+        if self.reads {
+            read_declared_upstream(&input)?;
+        }
+        Ok(StageOutput::new(StageProduct::new(
+            self.id.clone(),
+            "optional-reader",
+        )))
+    }
+}
+
+/// source → a → sink, where `a` reads its declared input only when `a_reads` is set.
+fn chain_with_reader(a_reads: bool) -> (crate::graph::StageGraph, Vec<Arc<dyn Stage>>) {
+    let spec = PipelineSpec {
+        id: "p".to_string(),
+        stages: vec![
+            spec("source", &[]),
+            spec("a", &["source"]),
+            spec("sink", &["a"]),
+        ],
+    };
+    let graph = spec.validate().unwrap();
+    let registry = registry_for(
+        &spec,
+        vec![
+            fake("source", &[]),
+            Arc::new(OptionalReader {
+                id: "a".to_string(),
+                consumes: vec!["source".to_string()],
+                reads: a_reads,
+            }),
+            fake("sink", &["a"]),
+        ],
+    );
+    let bound = bind(&spec, &graph, &registry).unwrap();
+    (graph, bound)
+}
+
+/// Protects the read check: a stage that declares an input and returns without reading
+/// it fails the run with an error naming the consumer and the unread producer, and the
+/// same pipeline passes once the stage reads what it declares.
+#[test]
+fn declared_input_that_is_never_read_fails_the_run() {
+    let dir = tempfile::tempdir().unwrap();
+    let (graph, bound) = chain_with_reader(false);
+    let mut ctx = RunContext::open_uncached(dir.path(), 1);
+    let error = run(&graph, &bound, &mut ctx).expect_err("an unread declared input fails");
+    assert!(error.is::<crate::error::StageFailed>(), "{error}");
+    assert!(
+        error.to_string().contains("`a` -> `source`"),
+        "the failure names the edge: {error}"
+    );
+
+    let (graph, bound) = chain_with_reader(true);
+    let mut ctx = RunContext::open_uncached(dir.path(), 1);
+    run(&graph, &bound, &mut ctx).expect("a stage that reads every declared input passes");
+}
+
+/// Protects the cache-hit rule: a hit did not run, so it stands in only for a run
+/// whose receipt recorded a read of every declared input. An entry for the same action
+/// published without that record is refused, never counted as read. (A warm hit whose
+/// receipt does record the reads is exercised by `scheduler_runs_diamond_and_caches`.)
+#[test]
+fn cache_hit_without_recorded_reads_is_refused() {
+    let spec = PipelineSpec {
+        id: "p".to_string(),
+        stages: vec![spec("source", &[]), spec("sink", &["source"])],
+    };
+    let graph = spec.validate().unwrap();
+    let runs = Arc::new(AtomicUsize::new(0));
+    let registry = compute_registry(&spec, &runs);
+    let bound = bind(&spec, &graph, &registry).unwrap();
+    let sink = bound
+        .iter()
+        .find(|stage| stage.id() == "sink")
+        .expect("sink is bound");
+    let dir = tempfile::tempdir().unwrap();
+
+    // The exact source product `ComputeStage` emits, so the sink's action key matches
+    // the one the scheduler computes.
+    let source = StageProduct::new(
+        "source",
+        crate::cache::content_digest(&["source".as_bytes()]),
+    );
+    let upstream = std::collections::BTreeMap::from([("source".to_string(), source)]);
+    let context = crate::scheduler::action_key_context(sink.as_ref(), dir.path(), &upstream)
+        .expect("sink action context");
+    let forged = StageProduct::new("sink", "forged");
+    let selection = crate::scheduler::verify_attach_drift(sink.as_ref(), &upstream, &forged)
+        .expect("forged product selection");
+    PipelineCache::open_default(dir.path())
+        .unwrap()
+        .put(
+            &context,
+            sink.stability().iri(),
+            sink.cache_policy().iri(),
+            &selection,
+            &forged,
+            &[],
+        )
+        .expect("publish an entry that records no reads");
+
+    let mut ctx = RunContext::open(dir.path(), 1).unwrap();
+    let error = run(&graph, &bound, &mut ctx).expect_err("the unrecorded hit is refused");
+    assert!(
+        error.to_string().contains("`sink` -> `source`")
+            && error.to_string().contains("no recorded read"),
+        "{error}"
+    );
+}
+
+/// Protects the dead-product rule: a product with content that no stage declares as an
+/// input and that carries no committed artifact fails; a declared reader, a committed
+/// artifact, or an empty product (a pure check) each makes it used.
+#[test]
+fn product_nothing_uses_is_a_dead_product() {
+    let quad = b"<https://example.org/s> <https://example.org/p> \"x\" .\n";
+    let dataset = purrdf::parse_dataset(quad, "application/n-quads", None).unwrap();
+    let orphan = StageProduct::from_artifacts_over(
+        "orphan",
+        dataset,
+        std::collections::BTreeMap::from([(
+            format!("{}scratch.nq", crate::bundle::INTERNAL_ARTIFACT_PREFIX),
+            quad.to_vec(),
+        )]),
+    )
+    .unwrap();
+    let products = std::collections::BTreeMap::from([("orphan".to_string(), orphan)]);
+
+    let unread = vec![fake("orphan", &[])];
+    let error = crate::scheduler::verify_every_product_used(&unread, &products)
+        .expect_err("content nobody reads is a dead product");
+    assert!(error.to_string().contains("orphan"), "{error}");
+
+    let read = vec![fake("orphan", &[]), fake("reader", &["orphan"])];
+    crate::scheduler::verify_every_product_used(&read, &products)
+        .expect("a declared reader makes the product used");
+
+    let exit = StageProduct::from_artifacts(
+        "orphan",
+        std::collections::BTreeMap::from([("generated/exit.txt".to_string(), b"x".to_vec())]),
+    )
+    .unwrap();
+    let exits = std::collections::BTreeMap::from([("orphan".to_string(), exit)]);
+    crate::scheduler::verify_every_product_used(&unread, &exits)
+        .expect("a committed artifact makes the product an exit");
+
+    let check = std::collections::BTreeMap::from([(
+        "orphan".to_string(),
+        StageProduct::new("orphan", "check-passed"),
+    )]);
+    crate::scheduler::verify_every_product_used(&unread, &check)
+        .expect("an empty product holds nothing to waste");
 }
