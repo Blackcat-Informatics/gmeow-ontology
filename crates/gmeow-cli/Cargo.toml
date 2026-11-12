@@ -80,7 +80,6 @@ gmeow-docs = { path = "../docs" }
 purrdf.workspace = true
 purrdf-hash.workspace = true
 purrdf-lex.workspace = true
-libc.workspace = true
 # TOCTOU/symlink-safe staging of the embedded bundle to a temp path for the
 # external `gts` passthrough (atomic create + remove-on-drop).
 tempfile.workspace = true
