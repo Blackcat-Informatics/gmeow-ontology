@@ -72,7 +72,7 @@ meta:gate-generator-registry a meta:Gate ;
     meta:cliCommand "sync", "compile-gts" ;
     meta:makeTarget "check-sync" ;
     meta:generator "source_load", "statements", "compile_logic", "mappings",
-        "reason", "gts_compose", "snapshot", "docs_render", "gts_sink", "logic",
+        "reason", "snapshot", "docs_render", "gts_sink", "logic",
         "metadata", "schemas", "lpg", "matrix", "apache",
         "catalog", "profiles", "frame_shapes", "constraint_shapes", "result_shapes", "evals",
         "research-objects", "references", "export", "okf", "bench", "conformance" .

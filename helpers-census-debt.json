@@ -1957,7 +1957,6 @@
     "gmeow_pipeline::stages::export::ExportStage::default",
     "gmeow_pipeline::stages::gmn_training_corpus::GmnTrainingCorpusStage::default",
     "gmeow_pipeline::stages::goal_directed::GoalDirectedStage::default",
-    "gmeow_pipeline::stages::gts_compose::GtsComposeStage::default",
     "gmeow_pipeline::stages::gts_sink::GtsSinkStage::default",
     "gmeow_pipeline::stages::json_schema::JsonSchemaStage::default",
     "gmeow_pipeline::stages::lpg::LpgStage::default",

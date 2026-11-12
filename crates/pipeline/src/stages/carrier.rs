@@ -192,7 +192,7 @@ pub(crate) use gmeow_bundle_view::graph_iris::{GRAPH_DIAGNOSTICS, GRAPH_DOCUMENT
 /// (only `stage-validate` writes it) and bundle-internal like the
 /// `MATH_PRODUCER_GRAPHS`: no committed `generated/` byte artifact, so it
 /// needs no reconstruction rep and stays OUT of the reasoned object-level EDB
-/// (`gts_compose` folds only the default graph).
+/// (`assemble_object_level_edb` never selects it).
 pub(crate) const GRAPH_NORM_CLAIMS: &str = "https://blackcatinformatics.ca/gmeow/graph/norm-claims";
 /// The substrate SBOM projection: the reconciliation A-Box
 /// (`graph/provenance`) projected through the compiled `spdx.rq` into pure SPDX —
@@ -202,8 +202,8 @@ pub(crate) const GRAPH_NORM_CLAIMS: &str = "https://blackcatinformatics.ca/gmeow
 /// flattens into the shipped bundle's base graph — `gmeow project --profile spdx` then
 /// returns the substrate packages. Single-producer and bundle-internal like
 /// `graph/norm-claims`: no committed `generated/` byte artifact, so it needs no
-/// reconstruction rep and stays OUT of the reasoned object-level EDB (`gts_compose`
-/// folds only the default graph, and the pure-SPDX projection is a consumer view, not
+/// reconstruction rep and stays OUT of the reasoned object-level EDB (`assemble_object_level_edb`
+/// never selects it, and the pure-SPDX projection is a consumer view, not
 /// an object-level axiom source).
 pub(crate) const GRAPH_SUBSTRATE_SBOM: &str =
     "https://blackcatinformatics.ca/gmeow/graph/substrate-sbom";
@@ -291,8 +291,8 @@ pub(crate) const GRAPH_LANG_PROJECTION_CORPUS: &str =
 /// `lang:LoweringStage` carrying its `logic:preservationKind`. Folded as its own queryable named
 /// graph so a repo-free consumer reaches the compositional lowering without re-running the native
 /// bridge. Excluded from the reasoned object-level EDB exactly like `graph/lang-projection-corpus`
-/// (it asserts a self-description corpus, not object-level axioms — `gts_compose` folds only the
-/// default graph, so this named graph never pollutes the composed EDB).
+/// (it asserts a self-description corpus, not object-level axioms — `assemble_object_level_edb`
+/// never selects this named graph).
 pub(crate) const GRAPH_LANG_LOWERING_CORPUS: &str =
     "https://blackcatinformatics.ca/gmeow/graph/lang-lowering-corpus";
 /// The docs-rendering corpus: the `.po`-derived documentation language trees re-typed as
@@ -353,7 +353,7 @@ pub(crate) const GRAPH_AUTHORED_DEFAULT: &str =
 /// into the matching named graph here; the snapshot presenter reads each back via
 /// `producer_graph` and folds it into `gmeow.gts` (Design A — the producer output ships in
 /// the bundle, the shippable deliverable). Bundle-internal, like the `lang:` corpus graphs:
-/// excluded from the reasoned object-level EDB (`gts_compose` folds only the default graph)
+/// excluded from the reasoned object-level EDB (`assemble_object_level_edb` never selects them)
 /// and NOT a `generated/` file, so they map to no committed path — the superset gate's orphan
 /// sweep only considers `graph/fanout/…` / `graph/projections/…` reps. The array order pins
 /// the producer→graph pairing shared by the stage and the presenter.
@@ -468,9 +468,10 @@ const VALIDATION_SHEX_MEDIA_TYPE: &str = "text/shex";
 pub fn serialize_carrier_snapshot(
     root: &Path,
     upstream: &BTreeMap<String, StageProduct>,
-    carrier: &purrdf::RdfDataset,
+    carrier_handle: &std::sync::Arc<purrdf::RdfDataset>,
     selection: &crate::medium::registry::MediumSelection,
 ) -> Result<SerializedCarrierSnapshot, gmeow_errors::Diag> {
+    let carrier: &purrdf::RdfDataset = carrier_handle;
     let started = std::time::Instant::now();
     let frames = snapshot_frames(root, upstream, carrier)?;
     let frame_count = frames.blobs.len() + frames.report_blobs.len();
@@ -490,7 +491,7 @@ pub fn serialize_carrier_snapshot(
         None,
     )];
     serialize_snapshot(
-        carrier,
+        carrier_handle,
         &frames.extra_graphs,
         frames.blobs,
         frames.report_blobs,
@@ -878,6 +879,171 @@ pub(crate) fn producer_graph(
     )
 }
 
+/// Composition ceilings for the snapshot carrier. The composite retains handles to
+/// upstream products that are already resident and copies no quad, reifier or annotation
+/// row. It does build auxiliary alias and reverse term maps for every source after the
+/// first (on the order of 256 bytes per term of that source), and
+/// [`CarrierParts::materialize`] rebuilds the composite on each call. Those costs follow
+/// the ontology's size, so a fixed ceiling here would refuse a larger ontology for no
+/// reason rather than bound a resource.
+const CARRIER_VIEW_LIMITS: purrdf::ViewLimits = purrdf::ViewLimits {
+    max_sources: usize::MAX,
+    max_terms: usize::MAX,
+    max_rows: usize::MAX,
+    max_payload_bytes: usize::MAX,
+    max_auxiliary_bytes: usize::MAX,
+};
+
+/// Whether `dataset` holds `graph_iri` as a named graph (populated or declaration-only).
+fn holds_named_graph(dataset: &purrdf::RdfDataset, graph_iri: &str) -> bool {
+    dataset
+        .term_id_by_iri(graph_iri)
+        .is_some_and(|graph| dataset.has_named_graph(graph))
+}
+
+/// Whether `dataset` asserts at least one ordinary quad in the named graph `graph_iri`.
+fn graph_has_quads(dataset: &purrdf::RdfDataset, graph_iri: &str) -> bool {
+    dataset.term_id_by_iri(graph_iri).is_some_and(|graph| {
+        purrdf::DatasetView::quads_for_pattern(
+            dataset,
+            None,
+            None,
+            None,
+            purrdf::GraphMatch::Named(graph),
+        )
+        .next()
+        .is_some()
+    })
+}
+
+/// The snapshot carrier's parts, held as composite sources over the producers' resident
+/// datasets.
+///
+/// Each part is one producer graph selected and placed into its carrier graph
+/// (`purrdf::CompositeSource::from_selection` plus `purrdf::GraphPlacement::Named`), or
+/// a dataset this stage built itself. Selection
+/// carries a graph's quads, reifier declarations, annotations and declaration exactly as
+/// `project_graph` selects them, and named placement moves the whole selected surface
+/// into the destination graph and declares it even when empty, exactly as
+/// [`rooted_in_graph`] does. Every source is standardized apart
+/// (`purrdf::ScopeBinding::Independent`), as `RdfDataset::union` standardizes each
+/// input apart. No row is copied until [`CarrierParts::materialize`], which composes the
+/// sources afresh on every call and builds the one owned dataset its caller needs.
+struct CarrierParts<'a> {
+    upstream: &'a BTreeMap<String, StageProduct>,
+    producers: BTreeMap<String, std::sync::Arc<purrdf::CompositeDatasetView>>,
+    sources: Vec<purrdf::CompositeSource>,
+}
+
+impl<'a> CarrierParts<'a> {
+    fn new(upstream: &'a BTreeMap<String, StageProduct>) -> Self {
+        Self {
+            upstream,
+            producers: BTreeMap::new(),
+            sources: Vec::new(),
+        }
+    }
+
+    fn producer_dataset(
+        &self,
+        stage: &str,
+    ) -> Result<std::sync::Arc<purrdf::RdfDataset>, gmeow_errors::Diag> {
+        Ok(self
+            .upstream
+            .get(stage)
+            .ok_or_else(|| stage_err(&format!("missing {stage} product for the snapshot carrier")))?
+            .bundle()
+            .dataset_arc())
+    }
+
+    /// One producer's whole dataset as a single-source composite, built once per producer
+    /// so every graph selected from it shares one view.
+    fn producer_view(
+        &mut self,
+        stage: &str,
+    ) -> Result<std::sync::Arc<purrdf::CompositeDatasetView>, gmeow_errors::Diag> {
+        if let Some(view) = self.producers.get(stage) {
+            return Ok(std::sync::Arc::clone(view));
+        }
+        let dataset = self.producer_dataset(stage)?;
+        let view = std::sync::Arc::new(
+            purrdf::CompositeDatasetView::new(vec![dataset], CARRIER_VIEW_LIMITS)
+                .map_err(|e| stage_err(&format!("compose the {stage} carrier view: {e}")))?,
+        );
+        self.producers
+            .insert(stage.to_owned(), std::sync::Arc::clone(&view));
+        Ok(view)
+    }
+
+    /// Select `graph_iri` off `stage`'s dataset and place it in `placed_iri`. A graph the
+    /// producer does not hold contributes only the destination declaration, as the empty
+    /// `project_graph` result re-rooted by [`rooted_in_graph`] did.
+    fn push_graph_as(
+        &mut self,
+        stage: &str,
+        graph_iri: &str,
+        placed_iri: &str,
+    ) -> Result<(), gmeow_errors::Diag> {
+        let source =
+            if holds_named_graph(&self.producer_dataset(stage)?, graph_iri) {
+                purrdf::CompositeSource::from_selection(
+                    self.producer_view(stage)?,
+                    [purrdf::TermValue::iri(graph_iri)],
+                    CARRIER_VIEW_LIMITS,
+                )
+                .map_err(|e| stage_err(&format!("select <{graph_iri}> off {stage}: {e}")))?
+            } else {
+                purrdf::CompositeSource::new(RdfDatasetBuilder::new().freeze().map_err(|e| {
+                    stage_err(&format!("freeze the empty <{placed_iri}> part: {e}"))
+                })?)
+            };
+        self.sources
+            .push(source.with_graph_placement(purrdf::GraphPlacement::Named(
+                purrdf::TermValue::iri(placed_iri),
+            )));
+        Ok(())
+    }
+
+    /// Select `graph_iri` off `stage`'s dataset into the carrier graph of the same name.
+    fn push_graph(&mut self, stage: &str, graph_iri: &str) -> Result<(), gmeow_errors::Diag> {
+        self.push_graph_as(stage, graph_iri, graph_iri)
+    }
+
+    /// Place every record of `dataset` into the carrier graph `placed_iri`.
+    fn push_placed(&mut self, dataset: std::sync::Arc<purrdf::RdfDataset>, placed_iri: &str) {
+        self.sources
+            .push(purrdf::CompositeSource::new(dataset).with_graph_placement(
+                purrdf::GraphPlacement::Named(purrdf::TermValue::iri(placed_iri)),
+            ));
+    }
+
+    /// Keep every record of `dataset` in the graph it already names.
+    fn push_dataset(&mut self, dataset: std::sync::Arc<purrdf::RdfDataset>) {
+        self.sources.push(purrdf::CompositeSource::new(dataset));
+    }
+
+    /// Parse `bytes` natively and place the parsed dataset into `graph_iri`.
+    fn push_parsed(
+        &mut self,
+        bytes: &[u8],
+        media_type: &str,
+        graph_iri: &str,
+    ) -> Result<(), gmeow_errors::Diag> {
+        let parsed = parse_dataset(bytes, media_type, None)
+            .map_err(|e| stage_err(&format!("parse <{graph_iri}>: {e}")))?;
+        self.push_placed(parsed, graph_iri);
+        Ok(())
+    }
+
+    /// Build the one owned dataset of every part composed so far.
+    fn materialize(&self) -> Result<std::sync::Arc<purrdf::RdfDataset>, gmeow_errors::Diag> {
+        purrdf::CompositeDatasetView::from_sources(self.sources.clone(), CARRIER_VIEW_LIMITS)
+            .map_err(|e| stage_err(&format!("compose the snapshot carrier: {e}")))?
+            .materialize()
+            .map_err(|e| stage_err(&format!("materialize the snapshot carrier: {e}")))
+    }
+}
+
 fn assemble_carrier(
     upstream: &BTreeMap<String, StageProduct>,
 ) -> Result<std::sync::Arc<purrdf::RdfDataset>, gmeow_errors::Diag> {
@@ -885,155 +1051,126 @@ fn assemble_carrier(
     // The presenter no longer loads or canonicalizes any source: the authored default,
     // imports, metadata, alignments, slice-analysis, and provenance
     // were all built ONCE at the parallel DAG root (`build_self_description_dataset`) and
-    // are read here as pure projections. The authored default rides its own named graph;
-    // re-rooting it with `project_graph` lands it back in the carrier's DEFAULT
-    // graph (label dropped).
-    let base = with_owl_rdfs_projection(
-        &source_load_dataset(upstream)?
+    // are read here as pure selections. The authored default rides its own named graph;
+    // projecting it with `project_graph` lands it back in the carrier's DEFAULT graph
+    // (label dropped). That one projection also feeds the RDF-fanout attach class and the
+    // gate-verdict rule below, so the authored default is projected once.
+    let authored_default = std::sync::Arc::new(
+        source_load_dataset(upstream)?
             .project_graph(Some(&purrdf::RdfTerm::iri(GRAPH_AUTHORED_DEFAULT)))?,
-    )?;
+    );
+    let mut parts = CarrierParts::new(upstream);
+    // The OWL/RDFS reader projection is a GMEOW transform yielding a new dataset, so the
+    // base is the one part this stage builds rather than selects.
+    parts.push_dataset(with_owl_rdfs_projection(&authored_default)?);
     // ── the first-class carrier graphs ride in from their producers' datasets ───
-    // Each is read off the PRODUCER's attached named graph (a pure keyed fold), NOT
+    // Each is selected off the PRODUCER's attached named graph (a pure keyed fold), NOT
     // re-parsed from the producer's byte artifact (PIPELINE_SPINE §4 — the presenter
     // parses nothing). The statement layer is the producer's dataset (the parse of the
-    // RDF-1.2 artifact, carried default-graph-only) re-rooted here — the same quads the
-    // former `parse_into_graph(&rdf12, ...)` produced, off the already-attached dataset
-    // instead of re-parsing the byte artifact. `stage-statements` carries only its default
-    // graph (`gts_compose` folds it WHOLE, so it must not carry a named-graph copy), so
-    // re-rooting the whole dataset is exactly the former per-parse named-graph fold.
-    let statements = rooted_in_graph(
-        upstream
-            .get("stage-statements")
-            .ok_or_else(|| stage_err("missing stage-statements product for the statement layer"))?
-            .bundle()
-            .dataset(),
-        GRAPH_STATEMENTS,
+    // RDF-1.2 artifact, carried default-graph-only) placed WHOLE into graph/statements:
+    // its reifier and annotation side-tables are standpoint-scoped, so every record moves
+    // with the layer.
+    let statements = parts.producer_dataset("stage-statements")?;
+    parts.push_placed(statements, GRAPH_STATEMENTS);
+    // The self-description graphs are selected (not re-loaded) off stage-source-load.
+    parts.push_graph("stage-source-load", GRAPH_IMPORTS)?;
+    parts.push_graph("stage-source-load", GRAPH_METADATA)?;
+    // graph/alignments is a projection of the compiled SSSOM, so it rides off the
+    // fresh stage-mappings product (not source-load's stale disk read).
+    parts.push_graph("stage-mappings", GRAPH_ALIGNMENTS)?;
+    parts.push_graph("stage-source-load", GRAPH_SLICE_ANALYSIS)?;
+    // graph/grounding-seams — the authored `gmeow:Seam` registry (the closed set of
+    // sanctioned cross-grounding reference channels), read off the stage-source-load
+    // product's attached graph (a pure keyed fold, PIPELINE_SPINE §4). Bundle-internal
+    // like graph/norm-claims: it carries no committed `generated/` file, so it maps to
+    // no reconstruction rep, and it stays OUT of the reasoned object-level EDB.
+    parts.push_graph("stage-source-load", GRAPH_GROUNDING_SEAMS)?;
+    parts.push_graph("stage-verify-attestation", GRAPH_VERIFY)?;
+    parts.push_graph(
+        "stage-source-load",
+        crate::stages::provenance_graph::GRAPH_PROVENANCE,
     )?;
-    let documentation = producer_graph(upstream, "stage-docs-render", GRAPH_DOCUMENTATION)?;
+    parts.push_graph("stage-docs-render", GRAPH_DOCUMENTATION)?;
     // graph/diagnostics ← SHACL diagnostics (stage-validate) ∪ logic-compile diagnostics
-    // (stage-compile-logic) ∪ chase certificates (stage-reason), each read off its
-    // producer's attached graph and unioned here.
-    let diagnostics = purrdf::RdfDataset::union(&[
-        producer_graph(upstream, "stage-validate", GRAPH_DIAGNOSTICS)?.as_ref(),
-        producer_graph(upstream, "stage-compile-logic", GRAPH_DIAGNOSTICS)?.as_ref(),
-        producer_graph(upstream, "stage-reason", GRAPH_DIAGNOSTICS)?.as_ref(),
-        producer_graph(upstream, "stage-export-json-schema", GRAPH_DIAGNOSTICS)?.as_ref(),
-    ])?;
-    let conformance = producer_graph(upstream, "stage-conformance", GRAPH_CONFORMANCE)?;
-    let projection_ledger = producer_graph(upstream, "stage-mappings", GRAPH_PROJECTION_LEDGER)?;
-    let lang_translation_corpus =
-        producer_graph(upstream, "stage-mappings", GRAPH_LANG_TRANSLATION_CORPUS)?;
-    let lang_form_corpus = producer_graph(upstream, "stage-mappings", GRAPH_LANG_FORM_CORPUS)?;
-    let lang_projection_corpus =
-        producer_graph(upstream, "stage-mappings", GRAPH_LANG_PROJECTION_CORPUS)?;
-    let lang_lowering_corpus =
-        producer_graph(upstream, "stage-mappings", GRAPH_LANG_LOWERING_CORPUS)?;
-    let lang_docs_rendering_corpus =
-        producer_graph(upstream, "stage-mappings", GRAPH_LANG_DOCS_RENDERING_CORPUS)?;
-    let lang_glossary_corpus =
-        producer_graph(upstream, "stage-mappings", GRAPH_LANG_GLOSSARY_CORPUS)?;
-    let correspondence_laws =
-        producer_graph(upstream, "stage-mappings", GRAPH_CORRESPONDENCE_LAWS)?;
-    // The on-disk projection of the correspondence-laws corpus: the SAME triples re-rooted into
+    // (stage-compile-logic) ∪ chase certificates (stage-reason) ∪ schema-export
+    // diagnostics, each selected off its producer's attached graph.
+    for stage in [
+        "stage-validate",
+        "stage-compile-logic",
+        "stage-reason",
+        "stage-export-json-schema",
+    ] {
+        parts.push_graph(stage, GRAPH_DIAGNOSTICS)?;
+    }
+    // graph/norm-claims — the advisory dual-projection's materialised
+    // ComplianceAssessment claim graph (D4), read off stage-validate's attached
+    // graph the same way graph/diagnostics is (a pure keyed fold).
+    parts.push_graph("stage-validate", GRAPH_NORM_CLAIMS)?;
+    // graph/substrate-sbom — the substrate reconciliation A-Box projected through the
+    // compiled `spdx.rq`, read off stage-mappings' attached graph (a
+    // pure keyed fold, PIPELINE_SPINE §4). It flattens into the bundle base graph so
+    // `gmeow project --profile spdx` returns the substrate packages; bundle-internal,
+    // so `assemble_object_level_edb` never selects it.
+    parts.push_graph("stage-mappings", GRAPH_SUBSTRATE_SBOM)?;
+    for graph_iri in [
+        GRAPH_PROJECTION_LEDGER,
+        GRAPH_LANG_TRANSLATION_CORPUS,
+        GRAPH_LANG_FORM_CORPUS,
+        GRAPH_LANG_PROJECTION_CORPUS,
+        GRAPH_LANG_LOWERING_CORPUS,
+        GRAPH_LANG_DOCS_RENDERING_CORPUS,
+        GRAPH_LANG_GLOSSARY_CORPUS,
+    ] {
+        parts.push_graph("stage-mappings", graph_iri)?;
+    }
+    // graph/correspondence-laws and its on-disk projection: the SAME triples placed into
     // their `graph/fanout/<path>` reconstruction graph so the superset gate folds them to
-    // `generated/logic/gmeow.correspondence-laws.nt` (PIPELINE_SPINE §5 — RDF travels as RDF, so
-    // the discharged `logic:SectionLaw` claims land in `generated/` too). The base
-    // `graph/correspondence-laws` copy still serves the up-projection gates (single corpus, two
-    // reconstruction roles — the diagnostics `.nq` follow the same twin-graph pattern).
-    let correspondence_laws_fanout = {
-        let iri = crate::stages::superset::rdf_fanout_graph_iri(CORRESPONDENCE_LAWS_PATH)
-            .ok_or_else(|| stage_err("correspondence-laws fanout path is not an RDF path"))?;
-        rooted_in_graph(correspondence_laws.as_ref(), &iri)?
-    };
+    // `generated/logic/gmeow.correspondence-laws.nt` (PIPELINE_SPINE §5 — RDF travels as
+    // RDF, so the discharged `logic:SectionLaw` claims land in `generated/` too). The base
+    // `graph/correspondence-laws` copy still serves the up-projection gates (single corpus,
+    // two reconstruction roles — the diagnostics `.nq` follow the same twin-graph pattern).
+    parts.push_graph("stage-mappings", GRAPH_CORRESPONDENCE_LAWS)?;
+    parts.push_graph_as(
+        "stage-mappings",
+        GRAPH_CORRESPONDENCE_LAWS,
+        &crate::stages::superset::rdf_fanout_graph_iri(CORRESPONDENCE_LAWS_PATH)
+            .ok_or_else(|| stage_err("correspondence-laws fanout path is not an RDF path"))?,
+    )?;
     // graph/quality-assessment — the per-slice `gmeow:QualityAssessment` corpus, read off
     // the stage-source-load product's attached graph (a pure keyed fold, PIPELINE_SPINE §4;
     // it was scored + attached ONCE at the DAG root). The base graph ships as a queryable
-    // bundle graph; its fanout twin re-roots the SAME triples into their
-    // `graph/fanout/<path>` reconstruction graph so the superset gate folds them to
-    // `generated/quality/gmeow.quality-assessment.nt` (RDF travels as RDF — the assessment
-    // lands in `generated/` too, not only as a bundle-internal named graph).
-    let quality_assessment = source_load_graph(upstream, GRAPH_QUALITY_ASSESSMENT)?;
-    let quality_assessment_fanout = {
-        let iri = crate::stages::superset::rdf_fanout_graph_iri(QUALITY_ASSESSMENT_PATH)
-            .ok_or_else(|| stage_err("quality-assessment fanout path is not an RDF path"))?;
-        rooted_in_graph(quality_assessment.as_ref(), &iri)?
-    };
+    // bundle graph; its fanout twin places the SAME triples into their `graph/fanout/<path>`
+    // reconstruction graph so the superset gate folds them to
+    // `generated/quality/gmeow.quality-assessment.nt`.
+    parts.push_graph("stage-source-load", GRAPH_QUALITY_ASSESSMENT)?;
+    parts.push_graph_as(
+        "stage-source-load",
+        GRAPH_QUALITY_ASSESSMENT,
+        &crate::stages::superset::rdf_fanout_graph_iri(QUALITY_ASSESSMENT_PATH)
+            .ok_or_else(|| stage_err("quality-assessment fanout path is not an RDF path"))?,
+    )?;
     // graph/authoring-briefs — the per-slice `gmeow:AuthoringPacket` corpus, read off the
     // DEDICATED stage-slice-brief producer's attached graph (a pure keyed fold,
-    // PIPELINE_SPINE §4 — it was assembled + attached ONCE at the DAG root). The base graph
-    // ships as a queryable bundle graph; its fanout twin re-roots the SAME triples into
-    // their `graph/fanout/<path>` reconstruction graph so the superset gate folds them to
-    // `generated/briefs/authoring-packets.nt` (RDF travels as RDF — the packet corpus lands
-    // in `generated/` too, not only as a bundle-internal named graph).
-    let authoring_briefs = producer_graph(upstream, "stage-slice-brief", GRAPH_AUTHORING_BRIEFS)?;
-    let authoring_briefs_fanout = {
-        let iri = crate::stages::superset::rdf_fanout_graph_iri(AUTHORING_BRIEFS_PATH)
-            .ok_or_else(|| stage_err("authoring-briefs fanout path is not an RDF path"))?;
-        rooted_in_graph(authoring_briefs.as_ref(), &iri)?
-    };
-
-    // ── the carried graphs ride in from the producers' carriers ────────────────
-    let reason = upstream
-        .get("stage-reason")
-        .ok_or_else(|| stage_err("missing stage-reason product for the Reasoning handle"))?;
-    let reasoning_iri = gmeow_logic::result_rdf::GRAPH_REASONING;
-
-    // ── route every snapshot-owned source into its named graph, then union all ──
-    let mut datasets: Vec<std::sync::Arc<purrdf::RdfDataset>> = vec![
-        base,
-        statements,
-        // The self-description graphs are read (not re-loaded) off stage-source-load.
-        source_load_graph(upstream, GRAPH_IMPORTS)?,
-        source_load_graph(upstream, GRAPH_METADATA)?,
-        // graph/alignments is a projection of the compiled SSSOM, so it rides off the
-        // fresh stage-mappings product (not source-load's stale disk read).
-        producer_graph(upstream, "stage-mappings", GRAPH_ALIGNMENTS)?,
-        source_load_graph(upstream, GRAPH_SLICE_ANALYSIS)?,
-        // graph/grounding-seams — the authored `gmeow:Seam` registry (the closed set of
-        // sanctioned cross-grounding reference channels), read off the stage-source-load
-        // product's attached graph (a pure keyed fold, PIPELINE_SPINE §4). Bundle-internal
-        // like graph/norm-claims: it carries no committed `generated/` file, so it maps to
-        // no reconstruction rep, and it stays OUT of the reasoned object-level EDB.
-        source_load_graph(upstream, GRAPH_GROUNDING_SEAMS)?,
-        producer_graph(upstream, "stage-verify-attestation", GRAPH_VERIFY)?,
-        source_load_graph(upstream, crate::stages::provenance_graph::GRAPH_PROVENANCE)?,
-        documentation,
-        std::sync::Arc::new(diagnostics),
-        // graph/norm-claims — the advisory dual-projection's materialised
-        // ComplianceAssessment claim graph (D4), read off stage-validate's attached
-        // graph the same way graph/diagnostics is (a pure keyed fold).
-        producer_graph(upstream, "stage-validate", GRAPH_NORM_CLAIMS)?,
-        // graph/substrate-sbom — the substrate reconciliation A-Box projected through the
-        // compiled `spdx.rq`, read off stage-mappings' attached graph (a
-        // pure keyed fold, PIPELINE_SPINE §4). It flattens into the bundle base graph so
-        // `gmeow project --profile spdx` returns the substrate packages; bundle-internal,
-        // so it stays OUT of the reasoned EDB (`gts_compose` folds only the default graph).
-        producer_graph(upstream, "stage-mappings", GRAPH_SUBSTRATE_SBOM)?,
-        projection_ledger,
-        lang_translation_corpus,
-        lang_form_corpus,
-        lang_projection_corpus,
-        lang_lowering_corpus,
-        lang_docs_rendering_corpus,
-        lang_glossary_corpus,
-        correspondence_laws,
-        correspondence_laws_fanout,
-        quality_assessment,
-        quality_assessment_fanout,
-        authoring_briefs,
-        authoring_briefs_fanout,
-    ];
+    // PIPELINE_SPINE §4). Its fanout twin places the SAME triples into their
+    // `graph/fanout/<path>` reconstruction graph so the superset gate folds them to
+    // `generated/briefs/authoring-packets.nt`.
+    parts.push_graph("stage-slice-brief", GRAPH_AUTHORING_BRIEFS)?;
+    parts.push_graph_as(
+        "stage-slice-brief",
+        GRAPH_AUTHORING_BRIEFS,
+        &crate::stages::superset::rdf_fanout_graph_iri(AUTHORING_BRIEFS_PATH)
+            .ok_or_else(|| stage_err("authoring-briefs fanout path is not an RDF path"))?,
+    )?;
     // graph/math-producers/<name> — the ten `math:` producers' (five flagship producers —
     // one of which, r_lift, IS an executable lift — the probability-model seam, p-value
     // tri-slice, and Clifford producers, and the ONNX / proof lifts) deterministic
-    // RDF graphs, each read off the
-    // `stage-math-producers` product's attached named graph (a pure keyed fold,
-    // PIPELINE_SPINE §4) and folded into gmeow.gts (Design A — the producer output ships in
-    // the bundle). Bundle-internal, like the `lang:` corpus graphs: they carry no
-    // committed `generated/` file, so they map to no reconstruction rep (no orphan) and stay
-    // OUT of the reasoned EDB (`gts_compose` folds only the default graph).
+    // RDF graphs, each selected off the `stage-math-producers` product's attached named
+    // graph (a pure keyed fold, PIPELINE_SPINE §4) and folded into gmeow.gts (Design A —
+    // the producer output ships in the bundle). Bundle-internal, like the `lang:` corpus
+    // graphs: they carry no committed `generated/` file, so they map to no reconstruction
+    // rep (no orphan), and `assemble_object_level_edb` never selects them.
     for graph_iri in MATH_PRODUCER_GRAPHS {
-        datasets.push(producer_graph(upstream, "stage-math-producers", graph_iri)?);
+        parts.push_graph("stage-math-producers", graph_iri)?;
     }
     // graph/examples — EVERY slice's authored positive-demonstrator ABox corpus (every
     // slices/<group>/<slice>/examples/*.ttl file), read off the `stage-source-load`
@@ -1043,59 +1180,48 @@ fn assemble_carrier(
     // reasoned-graph gate — the expression-identity gate
     // (`gmeow_logic::math_expression::check_math_expression_findings`) among them — has a
     // real witness to decide over the shipped bundle instead of running vacuously.
-    datasets.push(source_load_graph(
-        upstream,
+    parts.push_graph(
+        "stage-source-load",
         gmeow_logic::reasoning_graphs::GRAPH_EXAMPLES,
-    )?);
+    )?;
     // The three code-authored termination-class worlds are direct object-level EDB
     // inputs to stage-reason. Ship those exact worlds too: the repo-free
     // `snapshot_reasoning_edb` projection must reconstruct the byte-identical EDB the
     // producer reasoned over, including the 62 demonstrator quads.
-    datasets.extend(termination_demonstrator_graphs()?);
-    datasets.extend(compile_logic_carrier_graphs(upstream)?);
-    datasets.push(rooted_in_graph(
-        &reason
-            .bundle()
-            .dataset()
-            .project_graph(Some(&purrdf::RdfTerm::iri(reasoning_iri)))?,
-        reasoning_iri,
-    )?);
+    for world in termination_demonstrator_graphs()? {
+        parts.push_dataset(world);
+    }
+    // Every compile-logic graph the bundle ships, including the meta-level correspondence
+    // program and its digest-pinned handle backing graph.
+    for graph_iri in crate::stages::compile_logic::CARRIER_GRAPHS {
+        parts.push_graph("stage-compile-logic", graph_iri)?;
+    }
+    parts.push_graph("stage-reason", gmeow_logic::result_rdf::GRAPH_REASONING)?;
     // graph/goal-directed ← the native proof-carrying backward engine's checked answers +
     // proof derivations, read off the stage-goal-directed product's attached named graph and
     // folded into gmeow.gts (dual carriage, exactly like graph/reasoning). This is the fold
-    // that makes the backward engine non-dark: without this explicit push the stage's graph
-    // would never reach the terminal bundle. Bundle-internal (no committed byte artifact this
-    // task) and excluded from the object-level EDB.
-    let goal_directed = upstream.get("stage-goal-directed").ok_or_else(|| {
-        stage_err("missing stage-goal-directed product for the goal-directed graph")
-    })?;
-    let goal_directed_iri = crate::stages::goal_directed::GRAPH_GOAL_DIRECTED;
-    datasets.push(rooted_in_graph(
-        &goal_directed
-            .bundle()
-            .dataset()
-            .project_graph(Some(&purrdf::RdfTerm::iri(goal_directed_iri)))?,
-        goal_directed_iri,
-    )?);
+    // that makes the backward engine non-dark: without this explicit selection the stage's
+    // graph would never reach the terminal bundle. Bundle-internal (no committed byte
+    // artifact) and excluded from the object-level EDB.
+    parts.push_graph(
+        "stage-goal-directed",
+        crate::stages::goal_directed::GRAPH_GOAL_DIRECTED,
+    )?;
     // graph/gmn-training-corpus ← the rejection-sampled, proof-carrying GMN training corpus
     // (and its typed rejections), read off the stage-gmn-training-corpus product's attached
     // named graph and folded into gmeow.gts (dual carriage, exactly like graph/goal-directed).
-    // Bundle-internal (no committed byte artifact) and excluded from the object-level EDB
-    // (gts_compose folds only the default graph).
-    let gmn_training = upstream.get("stage-gmn-training-corpus").ok_or_else(|| {
-        stage_err("missing stage-gmn-training-corpus product for the GMN training corpus graph")
-    })?;
-    let gmn_training_iri = crate::stages::gmn_training_corpus::GRAPH_GMN_TRAINING_CORPUS;
-    datasets.push(rooted_in_graph(
-        &gmn_training
-            .bundle()
-            .dataset()
-            .project_graph(Some(&purrdf::RdfTerm::iri(gmn_training_iri)))?,
-        gmn_training_iri,
-    )?);
-    // graph/conformance is folded only when non-empty (an all-agree corpus has none).
-    if conformance.quad_count() != 0 {
-        datasets.push(conformance);
+    // Bundle-internal (no committed byte artifact), and `assemble_object_level_edb` never
+    // selects it.
+    parts.push_graph(
+        "stage-gmn-training-corpus",
+        crate::stages::gmn_training_corpus::GRAPH_GMN_TRAINING_CORPUS,
+    )?;
+    // graph/conformance is folded only when it asserts a quad (an all-agree corpus has none).
+    if graph_has_quads(
+        &parts.producer_dataset("stage-conformance")?,
+        GRAPH_CONFORMANCE,
+    ) {
+        parts.push_graph("stage-conformance", GRAPH_CONFORMANCE)?;
     }
     // graph/projections/<name>.edoal ← each committed EDOAL projection, one named
     // graph per file. EDOAL renders through the canonical-Turtle serializer, so the
@@ -1107,18 +1233,16 @@ fn assemble_carrier(
     // the loaded pipeline-slice source (stage-source-load already holds module.ttl in
     // memory — a source input, not the bundle being produced), so the carrier's attach set
     // and the superset gate's claim set read ONE inventory (no hand-list to drift).
-    let rdf_fanout_classes = crate::stages::superset::RdfFanoutClasses::from_source(
-        &source_load_dataset(upstream)?
-            .project_graph(Some(&purrdf::RdfTerm::iri(GRAPH_AUTHORED_DEFAULT)))?,
-    )?;
+    let rdf_fanout_classes =
+        crate::stages::superset::RdfFanoutClasses::from_source(&authored_default)?;
     for (path, bytes) in mappings.artifacts() {
         if let Some(iri) = crate::stages::superset::edoal_projection_graph_iri(&path) {
-            datasets.push(parse_into_graph(&bytes, "text/turtle", &iri)?);
+            parts.push_parsed(&bytes, "text/turtle", &iri)?;
         } else if rdf_fanout_classes.contains(&path) {
             // The non-EDOAL RDF projections (core-prefixes / functions.fno /
             // list-functions), now emitted canonically by the mappings stage.
             if let Some(iri) = crate::stages::superset::rdf_fanout_graph_iri(&path) {
-                datasets.push(parse_into_graph(&bytes, "text/turtle", &iri)?);
+                parts.push_parsed(&bytes, "text/turtle", &iri)?;
             }
         }
     }
@@ -1145,17 +1269,17 @@ fn assemble_carrier(
                 } else {
                     "text/turtle"
                 };
-                datasets.push(parse_into_graph(&bytes, media_type, &iri)?);
+                parts.push_parsed(&bytes, media_type, &iri)?;
             }
             Ok(())
         },
     )?;
-    let refs: Vec<&purrdf::RdfDataset> = datasets.iter().map(|d| d.as_ref()).collect();
-    let composed = std::sync::Arc::new(crate::node::measure_stage_phase(
-        "stage-snapshot",
-        "union-carrier-graphs",
-        || purrdf::RdfDataset::union(&refs),
-    )?);
+    // The first owned carrier: the gate-verdict query below runs on the native SPARQL
+    // engine, which reads an `RdfDataset`.
+    let composed =
+        crate::node::measure_stage_phase("stage-snapshot", "materialize-carrier-graphs", || {
+            parts.materialize()
+        })?;
 
     // Reasoner-derived gate verdicts (logic:ruleGateFatalVerdict). The reason stage's
     // object-level EDB EXCLUDES the report graphs by construction, so reason_all never
@@ -1168,13 +1292,9 @@ fn assemble_carrier(
     // assembled — and fold the derived verdicts into graph/diagnostics, so the shipped
     // gmeow.gts carries the ontology's entailment and the SHACL up-set shape agrees. The
     // rule + wiring are read from the authored stage-source-load base graph, never re-typed.
-    let gate_source = std::sync::Arc::new(
-        source_load_dataset(upstream)?
-            .project_graph(Some(&purrdf::RdfTerm::iri(GRAPH_AUTHORED_DEFAULT)))?,
-    );
     let gate = crate::stages::gate_verdict::GateProgram::from_program(
         compiled_logic_program(upstream)?,
-        &gate_source,
+        &authored_default,
     )?
     .ok_or_else(|| stage_err("snapshot requires the authored findingGateVerdict rule"))?;
     let verdicts =
@@ -1185,10 +1305,15 @@ fn assemble_carrier(
     let composed_final = if verdicts.quad_count() == 0 {
         composed
     } else {
-        std::sync::Arc::new(purrdf::RdfDataset::union(&[
-            composed.as_ref(),
-            verdicts.as_ref(),
-        ])?)
+        // The verdicts join the same composition. The verdict-free carrier is released
+        // first, so only one owned carrier is ever resident.
+        drop(composed);
+        parts.push_dataset(verdicts);
+        crate::node::measure_stage_phase(
+            "stage-snapshot",
+            "materialize-carrier-with-verdicts",
+            || parts.materialize(),
+        )?
     };
 
     // Fold the SCOPED COHERENCE CERTIFICATE into the terminal bundle (graph/attestations),
@@ -1197,7 +1322,7 @@ fn assemble_carrier(
     // computed ONCE here, over the fully-composed carrier, reusing stage-reason's single
     // reasoning pass (no second reason) and the ONE `build_coherence_outcome` construction
     // the release lane also uses.
-    fold_coherence_certificate(composed_final, upstream)
+    fold_coherence_certificate(composed_final, parts, upstream)
 }
 
 /// Parse the three code-authored termination-class worlds through one shared boundary.
@@ -1233,6 +1358,7 @@ const COHERENCE_ISSUED_AT: &str = "1970-01-01T00:00:00Z";
 /// never needs a recompute path.
 fn fold_coherence_certificate(
     composed: std::sync::Arc<purrdf::RdfDataset>,
+    mut parts: CarrierParts<'_>,
     upstream: &BTreeMap<String, StageProduct>,
 ) -> Result<std::sync::Arc<purrdf::RdfDataset>, gmeow_errors::Diag> {
     // Reuse stage-reason's single reasoning pass (the typed Reasoning handle), never a
@@ -1274,7 +1400,7 @@ fn fold_coherence_certificate(
         carrier_quads = composed.quad_count(), canonical_bytes = composed_nq.nquads().len(),
         "coherence input size"
     );
-    // Only the digest is needed by the certificate and final carrier union.
+    // Only the digest is needed by the certificate and the final carrier.
     drop(composed_nq);
 
     let outcome =
@@ -1302,10 +1428,13 @@ fn fold_coherence_certificate(
     }
     let cert = parse_dataset(nquads.as_bytes(), "application/n-quads", None)
         .map_err(|e| stage_err(&format!("parse coherence certificate quads: {e}")))?;
-    Ok(std::sync::Arc::new(purrdf::RdfDataset::union(&[
-        composed.as_ref(),
-        cert.as_ref(),
-    ])?))
+    // The certificate joins the same composition as the carrier it certifies. That
+    // carrier is released first, so only one owned carrier is ever resident.
+    drop(composed);
+    parts.push_dataset(cert);
+    crate::node::measure_stage_phase("stage-snapshot", "materialize-certified-carrier", || {
+        parts.materialize()
+    })
 }
 
 /// Every remaining RDF `generated/` file (committed-path → bytes) that rides as an
@@ -1516,9 +1645,10 @@ pub fn snapshot_reasoning_edb(
 mod reasoning_edb_projection_tests;
 
 /// Project the selected compile-logic named graphs off the stage product and re-root
-/// each into its carrier graph. The caller chooses the complete shipped set or the
-/// strictly object-level reasoning subset; keeping that distinction explicit prevents
-/// the correspondence meta-formula envelope from leaking into closure.
+/// each into its carrier graph. Only the strictly object-level reasoning subset is
+/// selected here (the snapshot selects the complete shipped set through
+/// [`CarrierParts`]); keeping that distinction explicit prevents the correspondence
+/// meta-formula envelope from leaking into closure.
 fn compile_logic_graphs(
     upstream: &BTreeMap<String, StageProduct>,
     graph_iris: &[&str],
@@ -1539,14 +1669,6 @@ fn compile_logic_graphs(
             )
         })
         .collect()
-}
-
-/// Every compile-logic graph shipped by [`assemble_carrier`], including the
-/// meta-level correspondence program and its digest-pinned handle backing graph.
-fn compile_logic_carrier_graphs(
-    upstream: &BTreeMap<String, StageProduct>,
-) -> Result<Vec<std::sync::Arc<purrdf::RdfDataset>>, gmeow_errors::Diag> {
-    compile_logic_graphs(upstream, &crate::stages::compile_logic::CARRIER_GRAPHS)
 }
 
 /// Only the compile-logic graphs admitted to object-level reasoning.
@@ -1581,7 +1703,7 @@ fn compile_logic_object_graphs(
 /// over the pass-2 carrier reproduces the same bytes. Convergence is a theorem
 /// here, not an experiment.
 fn serialize_snapshot(
-    carrier: &purrdf::RdfDataset,
+    carrier_handle: &std::sync::Arc<purrdf::RdfDataset>,
     extra_graphs: &[std::sync::Arc<purrdf::RdfDataset>],
     blobs: Vec<BlobRow>,
     report_blobs: Vec<BlobRow>,
@@ -1589,6 +1711,7 @@ fn serialize_snapshot(
     selection: &crate::medium::registry::MediumSelection,
     timings: &mut Vec<StageRunTiming>,
 ) -> Result<SerializedCarrierSnapshot, gmeow_errors::Diag> {
+    let carrier: &purrdf::RdfDataset = carrier_handle;
     use crate::stages::medium_dictionaries as medium;
 
     let registry = medium::registry_from_carrier(upstream)?;
@@ -1704,7 +1827,8 @@ fn serialize_snapshot(
             }
             None => {
                 let phase_started = std::time::Instant::now();
-                let (stratum_digest, stratum_len) = snapshot_stratum_digest(carrier, &strata)?;
+                let (stratum_digest, stratum_len) =
+                    snapshot_stratum_digest(carrier_handle, &strata)?;
                 timings.push(sink_phase_timing(
                     "canonicalize-stratum",
                     phase_started.elapsed(),
@@ -1916,125 +2040,45 @@ fn reusable_pass_one_receipt(
 
 /// The digest and byte length of the canonical pass-one stratum.
 ///
-/// The id-native union and canonical byte buffer are released before returning, so callers
-/// retain only the compact identities needed by the envelope and report the processed size.
+/// The canonical byte buffer is released before returning, so callers retain only the
+/// compact identities needed by the envelope and report the processed size.
 pub fn snapshot_stratum_digest(
-    carrier: &purrdf::RdfDataset,
+    carrier: &std::sync::Arc<purrdf::RdfDataset>,
     extra_graphs: &[std::sync::Arc<purrdf::RdfDataset>],
 ) -> Result<(String, usize), gmeow_errors::Diag> {
-    let union = flat_stratum_union(carrier, extra_graphs)?;
-    let canonical = purrdf::try_canonicalize(
-        &union,
+    with_stratum_canonical(carrier, extra_graphs, |nquads| {
+        (
+            crate::medium::blake3_digest(nquads.as_bytes()),
+            nquads.len(),
+        )
+    })
+}
+
+/// Canonicalize the pass-one stratum — the carrier and every extra stratum graph,
+/// each standardized apart — in the flat presentation, and hand the canonical N-Quads
+/// document to `read`.
+///
+/// The stratum is a composite view over the resident sources, so no union dataset is
+/// built: purrdf's flat canonicalizer reads the composite directly and emits every
+/// reifier and annotation row as an ordinary quad, exactly the flattening the stratum
+/// identity is defined over.
+fn with_stratum_canonical<T>(
+    carrier: &std::sync::Arc<purrdf::RdfDataset>,
+    extra_graphs: &[std::sync::Arc<purrdf::RdfDataset>],
+    read: impl FnOnce(&str) -> T,
+) -> Result<T, gmeow_errors::Diag> {
+    let mut sources = Vec::with_capacity(1 + extra_graphs.len());
+    sources.push(std::sync::Arc::clone(carrier));
+    sources.extend(extra_graphs.iter().cloned());
+    let stratum = purrdf::CompositeDatasetView::new(sources, CARRIER_VIEW_LIMITS)
+        .map_err(|e| stage_err(&format!("compose the pass-one stratum: {e}")))?;
+    let canonical = purrdf::try_canonicalize_flat_view(
+        &stratum,
+        purrdf::CanonHash::Sha256,
         &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None),
     )
     .map_err(|e| stage_err(&format!("canonicalize the pass-one stratum: {e}")))?;
-    drop(union);
-    let len = canonical.nquads().len();
-    let digest = crate::medium::blake3_digest(canonical.nquads().as_bytes());
-    drop(canonical);
-    Ok((digest, len))
-}
-
-/// Build the flattened multi-source stratum directly over PurRDF's interned ids.
-///
-/// The former route expanded every source into owned quads before re-interning the union.
-/// This keeps one destination term table and one quad table while preserving the exact
-/// source-scoped blank-label and RDF 1.2 side-table flattening contract.
-fn flat_stratum_union(
-    carrier: &purrdf::RdfDataset,
-    extra_graphs: &[std::sync::Arc<purrdf::RdfDataset>],
-) -> Result<std::sync::Arc<purrdf::RdfDataset>, gmeow_errors::Diag> {
-    let mut builder = RdfDatasetBuilder::new();
-    for (source_index, source) in std::iter::once(carrier)
-        .chain(extra_graphs.iter().map(std::convert::AsRef::as_ref))
-        .enumerate()
-    {
-        let mut remap = vec![None; source.term_count()];
-        let outer_scope =
-            purrdf::BlankScope(u32::try_from(source_index).map_err(|_| {
-                stage_err("too many medium digest strata to assign blank-node scopes")
-            })?);
-        for quad in source.quads() {
-            let s = intern_flat_term(&mut builder, source, &mut remap, quad.s, outer_scope)?;
-            let p = intern_flat_term(&mut builder, source, &mut remap, quad.p, outer_scope)?;
-            let o = intern_flat_term(&mut builder, source, &mut remap, quad.o, outer_scope)?;
-            let g = quad
-                .g
-                .map(|term| intern_flat_term(&mut builder, source, &mut remap, term, outer_scope))
-                .transpose()?;
-            builder.push_quad(s, p, o, g)?;
-        }
-
-        let reifies = builder.intern_iri(purrdf::gts_compose::RDF_REIFIES)?;
-        for (reifier, triple, graph) in source.reifiers_with_graph() {
-            let reifier = intern_flat_term(&mut builder, source, &mut remap, reifier, outer_scope)?;
-            let triple = intern_flat_term(&mut builder, source, &mut remap, triple, outer_scope)?;
-            let graph = graph
-                .map(|term| intern_flat_term(&mut builder, source, &mut remap, term, outer_scope))
-                .transpose()?;
-            builder.push_quad(reifier, reifies, triple, graph)?;
-        }
-        for (reifier, predicate, object, graph) in source.annotations_with_graph() {
-            let reifier = intern_flat_term(&mut builder, source, &mut remap, reifier, outer_scope)?;
-            let predicate =
-                intern_flat_term(&mut builder, source, &mut remap, predicate, outer_scope)?;
-            let object = intern_flat_term(&mut builder, source, &mut remap, object, outer_scope)?;
-            let graph = graph
-                .map(|term| intern_flat_term(&mut builder, source, &mut remap, term, outer_scope))
-                .transpose()?;
-            builder.push_quad(reifier, predicate, object, graph)?;
-        }
-    }
-
-    builder
-        .freeze()
-        .map_err(|e| stage_err(&format!("union the medium digest stratum: {e}")))
-}
-
-fn intern_flat_term(
-    builder: &mut RdfDatasetBuilder,
-    source: &purrdf::RdfDataset,
-    remap: &mut [Option<purrdf::TermId>],
-    source_id: purrdf::TermId,
-    outer_scope: purrdf::BlankScope,
-) -> gmeow_errors::Result<purrdf::TermId> {
-    if let Some(mapped) = remap[source_id.index()] {
-        return Ok(mapped);
-    }
-
-    let mapped = match source.resolve(source_id) {
-        purrdf::TermRef::Iri(iri) => builder.intern_iri(iri)?,
-        purrdf::TermRef::Blank { label, scope } => {
-            let source_qualified = scope.qualify_label(label);
-            let union_qualified = outer_scope.qualify_label(source_qualified.as_ref());
-            builder.intern_blank(union_qualified.as_ref(), purrdf::BlankScope::DEFAULT)?
-        }
-        purrdf::TermRef::Literal {
-            lexical,
-            datatype,
-            language,
-            direction,
-        } => {
-            let datatype = match source.resolve(datatype) {
-                purrdf::TermRef::Iri(iri) => iri.to_owned(),
-                other => unreachable!("literal datatype must be an IRI, got {other:?}"),
-            };
-            builder.intern_literal(RdfLiteral {
-                lexical_form: lexical.to_owned(),
-                datatype: Some(datatype),
-                language: language.map(str::to_owned),
-                direction,
-            })?
-        }
-        purrdf::TermRef::Triple { s, p, o } => {
-            let s = intern_flat_term(builder, source, remap, s, outer_scope)?;
-            let p = intern_flat_term(builder, source, remap, p, outer_scope)?;
-            let o = intern_flat_term(builder, source, remap, o, outer_scope)?;
-            builder.intern_triple(s, p, o)?
-        }
-    };
-    remap[source_id.index()] = Some(mapped);
-    Ok(mapped)
+    Ok(read(canonical.nquads()))
 }
 
 #[path = "carrier.stratum_canonical_tests.rs"]
@@ -2854,8 +2898,9 @@ fn nquads_escape(value: &str) -> String {
 /// deterministic [`REP_REASONING`] archive blob. Sourced from
 /// `stage-reason`'s in-memory product (a `stage-snapshot` consumes-edge), so the fold
 /// is ONE-PASS: no disk read, no dependency on the post-snapshot `stage-export-logic`
-/// leaf, no convergence lag. The reasoned closure is NOT re-bundled here — it already
-/// rides the bundle graph via `gts-compose`. Each artifact MUST exist (no-optionality,
+/// leaf, no convergence lag. The reasoning result is NOT re-bundled here: the carrier
+/// already carries its [`gmeow_logic::result_rdf::GRAPH_REASONING`] projection, the only
+/// `stage-reason` graph the snapshot selects. Each artifact MUST exist (no-optionality,
 /// fail-closed): a partial archive would silently strip the reasoning reports.
 fn build_reasoning_blob(
     upstream: &BTreeMap<String, StageProduct>,
@@ -2868,8 +2913,8 @@ fn build_reasoning_blob(
             .ok_or_else(|| stage_err(&format!("missing stage-reason artifact {path}")))
     };
     // Bundle-relative keys under `reason/` — deliberately NOT `generated/logic/…`, so
-    // a consumer never mistakes these bundle-consistent reports (over the early-composed
-    // closure that rides the graph) for the full-fold committed `generated/logic/` files
+    // a consumer never mistakes these bundle-consistent reports (over the reasoning result
+    // whose projection rides the carrier) for the full-fold `generated/logic/` files
     // owned by `stage-export-logic`.
     let members = vec![
         (
@@ -3227,8 +3272,8 @@ pub struct SnapshotStage {
 impl SnapshotStage {
     /// Construct the snapshot stage. It reads the RDF 1.2 statement layer
     /// (`stage-statements`) and the documentation projection (`stage-docs-render`)
-    /// products to assemble the structured snapshot, plus `stage-gts-compose` /
-    /// `stage-reason` for the composed-fold / reasoned-closure wiring.
+    /// products to assemble the structured snapshot, plus `stage-reason` for the
+    /// reasoned-closure wiring.
     pub fn new() -> Self {
         Self {
             consumes: vec![
@@ -3281,7 +3326,6 @@ impl SnapshotStage {
                 // The native proof-carrying backward engine's checked answers + proof
                 // derivations, folded into the graph/goal-directed named graph of gmeow.gts.
                 "stage-goal-directed".to_string(),
-                "stage-gts-compose".to_string(),
                 "stage-reason".to_string(),
                 // The source self-description graphs (authored default / imports /
                 // metadata / alignments / slice-analysis / provenance) are attached by

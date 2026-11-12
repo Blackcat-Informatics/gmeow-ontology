@@ -381,16 +381,6 @@ pub fn full_spec() -> PipelineSpec {
             "goal_directed",
             &["stage-compile-logic", "stage-reason"],
         ),
-        st(
-            "stage-gts-compose",
-            "gts_compose",
-            &[
-                "stage-mappings",
-                "stage-reason",
-                "stage-source-load",
-                "stage-statements",
-            ],
-        ),
         // SHACL validation enforces the FRESH shape union: the generated
         // `generated/shapes/*.ttl` members are read off THIS run's producer products
         // (compile-logic + the three shape export leaves), never the stale committed
@@ -430,7 +420,6 @@ pub fn full_spec() -> PipelineSpec {
                 // previous run's committed generated/schemas/*.json (the
                 // stale-disk-fold class).
                 "stage-export-json-schema",
-                "stage-gts-compose",
                 "stage-mappings",
                 "stage-reason",
                 // THIS run's fresh term-content-manifest product: the docs model's
@@ -485,7 +474,6 @@ pub fn full_spec() -> PipelineSpec {
                 // The proof-carrying backward engine's checked answers + proof derivations,
                 // folded into graph/goal-directed of gmeow.gts.
                 "stage-goal-directed",
-                "stage-gts-compose",
                 // The FINAL projection-report loss ledger (logic ∪ correspondence rows).
                 "stage-mappings",
                 // The ten math producer graphs (five flagship producers — the rBridge one

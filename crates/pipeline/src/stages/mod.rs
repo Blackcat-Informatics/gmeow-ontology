@@ -8,7 +8,7 @@
 //! dataflow — a node is NOT a 1:1 port of an old Python generator.
 //!
 //! Landing order:
-//!   * P3 — `source_load`, `statements`, `mappings`, `reason`, `gts_compose`.
+//!   * P3 — `source_load`, `statements`, `mappings`, `reason`.
 //!   * P4 — one `ExportLeaf` per output format + the single `gts_sink`.
 //!   * P5 — `docs_render` over `crates/docs`.
 //!
@@ -67,7 +67,6 @@ pub mod gmn1_gate;
 // over the glyph signature that enumerates well-typed GMN terms, filters each through five
 // verifiers, and folds the certified corpus (+ typed rejections) as graph/gmn-training-corpus.
 pub mod gmn_training_corpus;
-pub mod gts_compose;
 pub mod gts_sink;
 pub mod json_schema;
 pub mod lang_docs_rendering;
@@ -150,7 +149,6 @@ pub fn register_default(registry: &mut StageRegistry) {
         "compile_logic",
         Arc::new(compile_logic::CompileLogicStage::new()),
     );
-    registry.register("gts_compose", Arc::new(gts_compose::GtsComposeStage::new()));
     registry.register("reason", Arc::new(reason::ReasonStage::new()));
     registry.register(
         "verify_attestation",

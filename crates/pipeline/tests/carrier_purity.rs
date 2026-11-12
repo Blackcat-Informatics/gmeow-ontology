@@ -4,10 +4,9 @@
 //! Carrier-purity gate (C11).
 //!
 //! The build pipeline's inter-stage CARRIER/TRANSPORT path is NATIVE: the composed
-//! value rides `Arc<PipelineBundle<PipelineHandle>>`/`RdfDataset` handles, the
-//! `gts_compose` union is a native `RdfDataset::union`, and the `snapshot`
-//! named-graph assembly merges authored sources with the standardize-apart union and
-//! emits the bundle through the SOLE `emit_gts` byte emitter. No oxigraph `Store` is
+//! value rides `Arc<PipelineBundle<PipelineHandle>>`/`RdfDataset` handles, and the
+//! `snapshot` named-graph assembly composes its sources natively (standardized apart per
+//! source) and emits the bundle through the SOLE `emit_gts` byte emitter. No oxigraph `Store` is
 //! created to accumulate / union / round-trip the carried RDF on that path.
 //!
 //! This is a STRUCTURAL gate, not a fragile whole-crate grep: the pipeline crate
@@ -30,10 +29,10 @@
 //!
 //! What this gate FORBIDS — and FAILS on if reintroduced — is a `Store::new()`
 //! accumulation (or a `store_from_dataset` / `dataset_from_store` store round-trip)
-//! creeping back into the CARRIER functions: `gts_compose::compose`'s union path or
-//! `carrier`'s named-graph assembly (`assemble_carrier` / `load_authored_default` /
-//! `load_imports` / `build_snapshot_bundle` and the native helpers around them). Those
-//! two modules' PRODUCTION source (everything outside their `#[cfg(test)]` region) is
+//! creeping back into the CARRIER functions: `carrier`'s named-graph assembly
+//! (`assemble_carrier` / `load_authored_default` / `load_imports` /
+//! `build_snapshot_bundle` and the native helpers around them). That
+//! module's PRODUCTION source (everything outside their `#[cfg(test)]` region) is
 //! scanned token-by-token; reintroducing oxigraph accumulation there turns this test
 //! red. The accompanying `tests::gate_would_fail_if_oxigraph_accumulation_returned`
 //! demonstrates the detector flags exactly that.
@@ -41,8 +40,8 @@
 use std::path::{Path, PathBuf};
 
 /// The carrier-transport source files whose PRODUCTION region must stay free of
-/// oxigraph store accumulation. Both are in the pipeline crate's `src/stages/`.
-const CARRIER_MODULES: [&str; 2] = ["src/stages/gts_compose.rs", "src/stages/carrier.rs"];
+/// oxigraph store accumulation, in the pipeline crate's `src/stages/`.
+const CARRIER_MODULES: [&str; 1] = ["src/stages/carrier.rs"];
 
 /// Tokens that signal an oxigraph `Store` is being created to ACCUMULATE / UNION /
 /// round-trip the carried RDF — exactly what the native carrier replaced. Any of these
@@ -116,7 +115,7 @@ fn carrier_transport_path_creates_no_oxigraph_store_for_accumulation() {
         all_violations.is_empty(),
         "carrier-purity FAILED: an oxigraph Store accumulation/round-trip was reintroduced into \
          the inter-stage carrier transport path. The composed value must ride the native \
-         `RdfDataset` / `PipelineBundle` carrier (RdfDataset::union), NOT a Store. There is NO \
+         `RdfDataset` / `PipelineBundle` carrier, NOT a Store. There is NO \
          sanctioned exception: the carrier's typed-literal value-space canonicalization is native \
          (purrdf::xsd). Violations:\n{}",
         all_violations
@@ -169,7 +168,7 @@ fn compose(upstream: &Foo) -> Result<RdfDataset, E> {
     Ok(dataset)
 }
 "#;
-        let violations = scan_violations("src/stages/gts_compose.rs", reintroduced);
+        let violations = scan_violations("src/stages/carrier.rs", reintroduced);
         let tokens: Vec<&str> = violations.iter().map(|(t, _)| t.as_str()).collect();
         assert!(
             tokens.contains(&"Store::new("),
@@ -242,7 +241,7 @@ mod tests {
     }
 }
 "#;
-        let violations = scan_violations("src/stages/gts_compose.rs", with_test_oracle);
+        let violations = scan_violations("src/stages/carrier.rs", with_test_oracle);
         assert!(
             violations.is_empty(),
             "carrier modules' #[cfg(test)] oracle region must be excluded from the scan, got {violations:?}"

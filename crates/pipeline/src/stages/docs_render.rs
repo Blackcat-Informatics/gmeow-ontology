@@ -824,10 +824,10 @@ fn walk_markdown(dir: &Path, out: &mut Vec<std::path::PathBuf>) -> Result<(), gm
 /// may instead point at a root-level shared query, e.g. `queries/competency/…` or
 /// `queries/qc/…` — both forms are repo-root-relative, mirroring
 /// `crates/slicetest/src/paths.rs::query_file`'s own resolution contract), and
-/// root `shapes/*.ttl` aggregate node shapes. These are NOT reflected in the
-/// composed `stage-gts-compose` product (guide bodies ride the bundle only as
-/// blake3 digests), so any stage that derives an artifact from the docs model
-/// must declare them as `input_files` for cache soundness. Shared by
+/// root `shapes/*.ttl` aggregate node shapes. The documentation model reads these
+/// files directly rather than through a stage product (guide bodies ride the bundle only
+/// as blake3 digests), so any stage that derives an artifact from the docs model must
+/// declare them as `input_files` for cache soundness. Shared by
 /// `DocsRenderStage` (the documentation graph) and `SnapshotStage` (the
 /// embedded rendered site).
 pub(crate) fn docs_source_files(
@@ -975,7 +975,6 @@ impl DocsRenderStage {
             consumes: vec![
                 "stage-compile-logic".to_string(),
                 "stage-export-json-schema".to_string(),
-                "stage-gts-compose".to_string(),
                 "stage-mappings".to_string(),
                 "stage-reason".to_string(),
                 "stage-term-manifest".to_string(),

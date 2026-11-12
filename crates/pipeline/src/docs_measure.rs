@@ -231,7 +231,7 @@ pub fn measure_docs_designs(root: &Path) -> Result<DocsMeasurements, Diag> {
     let without_docs = crate::stages::carrier::serialize_carrier_snapshot(
         root,
         &products,
-        carrier.as_ref(),
+        &carrier,
         &crate::medium::registry::MediumSelection::Authored,
     )
     .map_err(|e| err(format!("serialize the without-docs carrier snapshot: {e}")))?;

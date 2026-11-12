@@ -210,7 +210,7 @@ impl Stage for GtsSinkStage {
         let serialized = crate::stages::carrier::serialize_carrier_snapshot(
             input.root,
             input.upstream,
-            carrier.as_ref(),
+            &carrier,
             &crate::medium::registry::MediumSelection::Authored,
         )?;
         snapshot_output(self.id(), serialized)

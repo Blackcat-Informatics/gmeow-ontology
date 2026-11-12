@@ -11,9 +11,7 @@ use purrdf::{
     RdfLocation, RdfLookaside, RdfQuad, RdfTerm,
 };
 
-use super::{
-    GRAPH_DIAGNOSTICS, compile_logic_carrier_graphs, compile_logic_object_graphs, rooted_in_graph,
-};
+use super::{CarrierParts, GRAPH_DIAGNOSTICS, compile_logic_object_graphs, rooted_in_graph};
 use crate::node::StageProduct;
 use crate::stages::compile_logic::{
     CARRIER_GRAPHS, GRAPH_CORRESPONDENCE, GRAPH_LOGIC, GRAPH_RELATIONAL_CORE,
@@ -88,6 +86,21 @@ fn compile_source(logic_standpoint: &str, diagnostic_standpoint: &str) -> Arc<Rd
         )
         .unwrap();
     builder.freeze().expect("freeze synthetic compile carrier")
+}
+
+/// The snapshot's own selection of every shipped compile-logic graph, each composed and
+/// materialized alone so a test can inspect one graph's complete surface.
+fn compile_logic_carrier_graphs(
+    upstream: &BTreeMap<String, StageProduct>,
+) -> gmeow_errors::Result<Vec<Arc<RdfDataset>>> {
+    CARRIER_GRAPHS
+        .iter()
+        .map(|graph| {
+            let mut parts = CarrierParts::new(upstream);
+            parts.push_graph("stage-compile-logic", graph)?;
+            parts.materialize()
+        })
+        .collect()
 }
 
 fn compile_inputs(source: Arc<RdfDataset>) -> BTreeMap<String, StageProduct> {
@@ -320,4 +333,214 @@ fn ordinary_projection_reinsert_preserves_content_and_source_location() {
     assert_eq!(recovered.owned_quads().collect::<Vec<_>>(), [ordinary]);
     assert_eq!(recovered.owned_reifiers().count(), 0);
     assert_eq!(recovered.owned_annotations().count(), 0);
+}
+
+/// The snapshot carrier is composed from selections over the producers' datasets instead
+/// of the union of re-rooted copies it replaced. The coherence certificate pins the flat
+/// canonical N-Quads of that carrier and its per-graph axiom hashes, so both must equal
+/// the former construction, over blank nodes shared by label across producers, an exact
+/// duplicate quad from two producers, graph-scoped reifiers and annotations, a twin
+/// placement, a whole-dataset placement, a preserved dataset whose blank node spans two
+/// graphs and a selected graph the producer does not hold. Blank scoping must keep two
+/// producers' equal labels apart and keep one source's blank node one node across
+/// graphs. The composed carrier's wire labels differ from the former union's, so the
+/// bundle must instead be byte-identical across two compositions of the same parts run
+/// on different thread counts.
+#[test]
+fn composed_carrier_certifies_exactly_what_the_rooted_union_did() {
+    const G1: &str = "https://example.org/g1";
+    const G2: &str = "https://example.org/g2";
+    const TWIN: &str = "https://example.org/twin";
+    const WHOLE: &str = "https://example.org/whole";
+    const MISSING: &str = "https://example.org/missing";
+    const P: &str = "https://example.org/p";
+    let source = |world: &str| {
+        purrdf::parse_dataset(
+            format!(
+                r#"@prefix ex: <https://example.org/> .
+                   @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+                   ex:s ex:p ex:o .
+                   ex:g1 {{
+                       ex:s ex:p ex:dup .
+                       _:shared ex:p ex:o .
+                       ex:claim rdf:reifies <<( _:shared ex:q "value"@en )>> ;
+                           ex:accordingTo ex:{world} .
+                   }}
+                   ex:g2 {{ ex:s ex:p ex:same . _:other ex:p "x" . }}"#
+            )
+            .as_bytes(),
+            "application/trig",
+            None,
+        )
+        .expect("parse synthetic producer")
+    };
+    let alpha = source("alpha");
+    let beta = source("beta");
+    let spanning = purrdf::parse_dataset(
+        br"@prefix ex: <https://example.org/> .
+           ex:g3 { _:b ex:p ex:o . }
+           ex:g4 { _:b ex:r ex:o . }",
+        "application/trig",
+        None,
+    )
+    .expect("parse synthetic graph-spanning dataset");
+    let product = |stage: &str, dataset: &Arc<RdfDataset>| {
+        StageProduct::from_artifacts_over(stage, Arc::clone(dataset), BTreeMap::new())
+            .expect("the stage carrier digests")
+    };
+    let upstream = BTreeMap::from([
+        ("stage-alpha".to_owned(), product("stage-alpha", &alpha)),
+        ("stage-beta".to_owned(), product("stage-beta", &beta)),
+    ]);
+
+    let rooted = |dataset: &RdfDataset, graph: &str, placed: &str| {
+        rooted_in_graph(
+            &dataset
+                .project_graph(Some(&RdfTerm::iri(graph)))
+                .expect("project producer graph"),
+            placed,
+        )
+        .expect("root producer graph")
+    };
+    let former = [
+        rooted(alpha.as_ref(), G1, G1),
+        rooted(beta.as_ref(), G1, G1),
+        rooted(alpha.as_ref(), G2, G2),
+        rooted(alpha.as_ref(), G1, TWIN),
+        rooted(beta.as_ref(), MISSING, MISSING),
+        rooted_in_graph(alpha.as_ref(), WHOLE).expect("root whole producer"),
+        Arc::clone(&spanning),
+    ];
+    let former_refs: Vec<&RdfDataset> = former.iter().map(AsRef::as_ref).collect();
+    let former = RdfDataset::union(&former_refs).expect("former carrier union");
+
+    let compose = || {
+        let mut parts = CarrierParts::new(&upstream);
+        parts.push_graph("stage-alpha", G1).unwrap();
+        parts.push_graph("stage-beta", G1).unwrap();
+        parts.push_graph("stage-alpha", G2).unwrap();
+        parts.push_graph_as("stage-alpha", G1, TWIN).unwrap();
+        parts.push_graph("stage-beta", MISSING).unwrap();
+        parts.push_placed(Arc::clone(&alpha), WHOLE);
+        parts.push_dataset(Arc::clone(&spanning));
+        parts.materialize().expect("composed carrier")
+    };
+    let composed = compose();
+
+    let canonical = |dataset: &RdfDataset| {
+        purrdf::canonical_flat_nquads(
+            dataset,
+            &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None),
+        )
+        .expect("carrier canonicalizes")
+        .nquads()
+        .to_owned()
+    };
+    assert_eq!(canonical(composed.as_ref()), canonical(&former));
+    assert_eq!(
+        gmeow_logic::certificate::per_graph_axiom_hashes(
+            composed.as_ref(),
+            purrdf::gts::writer::digest_string
+        ),
+        gmeow_logic::certificate::per_graph_axiom_hashes(
+            &former,
+            purrdf::gts::writer::digest_string
+        )
+    );
+    let graph_names = |dataset: &RdfDataset| {
+        dataset
+            .owned_named_graphs()
+            .filter_map(|graph| match graph {
+                RdfTerm::Iri(iri) => Some(iri),
+                _ => None,
+            })
+            .collect::<std::collections::BTreeSet<_>>()
+    };
+    assert_eq!(graph_names(composed.as_ref()), graph_names(&former));
+    assert!(graph_names(&former).contains(MISSING));
+
+    let in_graph = |quad: &RdfQuad, graph: &str| quad.graph_name == Some(RdfTerm::iri(graph));
+    let o = RdfTerm::iri("https://example.org/o");
+    // The blank subjects of `?b predicate ex:o` in `graph`.
+    let blank_subjects = |graph: &str, predicate: &str| {
+        composed
+            .owned_quads()
+            .filter(|quad| in_graph(quad, graph) && quad.predicate == predicate && quad.object == o)
+            .filter_map(|quad| match quad.subject {
+                RdfTerm::BlankNode(label) => Some(label),
+                _ => None,
+            })
+            .collect::<std::collections::BTreeSet<_>>()
+    };
+    // Two producers' `_:shared` stay two nodes in the graph they both feed.
+    assert_eq!(blank_subjects(G1, P).len(), 2);
+    // The exact duplicate quad both producers place into G1 is asserted once.
+    let duplicate = RdfQuad::new(
+        RdfTerm::iri("https://example.org/s"),
+        P,
+        RdfTerm::iri("https://example.org/dup"),
+    );
+    assert_eq!(
+        composed
+            .owned_quads()
+            .filter(|quad| in_graph(quad, G1)
+                && quad.subject == duplicate.subject
+                && quad.predicate == duplicate.predicate
+                && quad.object == duplicate.object)
+            .count(),
+        1
+    );
+    // One source's blank node stays one node across the graphs it spans.
+    let spanning_node = blank_subjects("https://example.org/g3", P);
+    assert_eq!(spanning_node.len(), 1);
+    assert_eq!(
+        blank_subjects("https://example.org/g4", "https://example.org/r"),
+        spanning_node
+    );
+    // The whole-dataset placement keeps the reifier's quoted blank co-referent with the
+    // quad that asserts it.
+    let whole_node = blank_subjects(WHOLE, P);
+    let quoted = composed
+        .owned_reifiers()
+        .filter(|row| row.graph == Some(RdfTerm::iri(WHOLE)))
+        .filter_map(|row| match row.statement.subject {
+            RdfTerm::BlankNode(label) => Some(label),
+            _ => None,
+        })
+        .collect::<std::collections::BTreeSet<_>>();
+    assert_eq!(whole_node.len(), 1);
+    assert_eq!(quoted, whole_node);
+    drop(composed);
+
+    let bundle_bytes = || {
+        let carrier = compose();
+        let mut builder = purrdf::gts_compose::SnapshotBuilder::new();
+        let _ingestion = builder
+            .add_view(carrier.as_ref())
+            .expect("fold composed carrier");
+        let content_id = builder.snapshot_content_id();
+        // gmeow-test-input: synthetic-only
+        let emission = gmeow_gts_profile::emit_gmeow_gts(
+            builder,
+            Vec::new(),
+            Vec::new(),
+            None,
+            &gmeow_gts_profile::baseline_medium_plan(),
+        )
+        .expect("emit composed carrier through the production profile");
+        (content_id, emission.bytes)
+    };
+    let pool = |threads: usize| {
+        rayon::ThreadPoolBuilder::new()
+            .num_threads(threads)
+            .build()
+            .expect("build thread pool")
+    };
+    let narrow = pool(1).install(bundle_bytes);
+    let wide = pool(4).install(bundle_bytes);
+    assert_eq!(narrow.0, wide.0);
+    assert!(
+        narrow.1 == wide.1,
+        "composed carrier bundle bytes differ between runs"
+    );
 }

@@ -592,8 +592,9 @@ fn witness_projection_into(
 /// Finish the native closure carrier with the deterministic
 /// `graph/reasoning` projection of `result` into the named graph [`GRAPH_REASONING`],
 /// returning the dual-carriage dataset the reason stage's bundle backs. The closure
-/// stays the default-graph contribution to the compose union; the reasoning
-/// projection rides alongside as its own named graph (the typed handle's backing).
+/// stays in this dataset's default graph; the reasoning projection rides
+/// alongside as its own named graph (the typed handle's backing), and it is the only
+/// graph of this dataset the snapshot carrier selects.
 fn reason_dataset(
     mut builder: RdfDatasetBuilder,
     result: &ReasoningResult,
@@ -861,10 +862,9 @@ impl Stage for ReasonStage {
             event = "start",
             "stage phase boundary",
         );
-        // The CLOSURE is the reason stage's contribution to `gts_compose`'s union and
-        // stays the dataset's DEFAULT graph. The EXPLANATIONS and LEDGER are diagnostic
-        // REPORTS (proof skeletons / DL·EL crosscheck), NOT ontology facts; they stay
-        // byte-lane only and are EXCLUDED from the compose union BY CONSTRUCTION. The
+        // The CLOSURE stays the dataset's DEFAULT graph. The EXPLANATIONS and LEDGER are
+        // diagnostic REPORTS (proof skeletons / DL·EL crosscheck), NOT ontology facts; they
+        // stay byte-lane only and are EXCLUDED from the carried dataset BY CONSTRUCTION. The
         // typed five-axis result rides BOTH as the `graph/reasoning` named graph (the
         // repo-free RDF projection) AND as the typed `PipelineHandle::Reasoning` handle
         // pinned to that graph (C7) — dual carriage.

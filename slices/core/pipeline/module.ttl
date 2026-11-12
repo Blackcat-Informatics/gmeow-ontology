@@ -563,8 +563,8 @@ gmeow:pipeline-dataflow-goal-directed-reason
 # back, binds each gmeow:stageImpl to a registered Rust Stage, validates it    #
 # (acyclic, complete, exactly one sinkCapability holder), and runs it          #
 # single-pass. The migrated meta:gate-generator-registry queries these stages. #
-# Spine: source-load → (statements, mappings) → reason → gts-compose →         #
-# {docs-render + export leaves} → gts-sink (the one serialization).            #
+# Spine: source-load → (statements, mappings) → reason → docs-render →        #
+# snapshot → {export leaves} → gts-sink (the one serialization).              #
 # =========================================================================== #
 
 # The build plan's success criterion: a shippable gmeow.gts bundle carrying every
@@ -609,7 +609,6 @@ gmeow:pipeline-build
         gmeow:stage-reason ,
         gmeow:stage-verify-attestation ,
         gmeow:stage-goal-directed ,
-        gmeow:stage-gts-compose ,
         gmeow:stage-validate ,
         gmeow:stage-conformance ,
         gmeow:stage-constraint-catalog ,
@@ -661,7 +660,6 @@ gmeow:stage-slice-brief gmeow:stageStability gmeow:stabilityStablePrefix ; gmeow
 gmeow:stage-reason gmeow:stageStability gmeow:stabilityStablePrefix ; gmeow:stageCacheDisposition gmeow:cacheRecomputeAggregate .
 gmeow:stage-verify-attestation gmeow:stageStability gmeow:stabilityStablePrefix ; gmeow:stageCacheDisposition gmeow:cachePersistentContribution .
 gmeow:stage-goal-directed gmeow:stageStability gmeow:stabilityStablePrefix ; gmeow:stageCacheDisposition gmeow:cachePersistentContribution .
-gmeow:stage-gts-compose gmeow:stageStability gmeow:stabilityStablePrefix ; gmeow:stageCacheDisposition gmeow:cacheRecomputeAggregate .
 gmeow:stage-validate gmeow:stageStability gmeow:stabilityStablePrefix ; gmeow:stageCacheDisposition gmeow:cachePersistentContribution .
 gmeow:stage-conformance gmeow:stageStability gmeow:stabilityStablePrefix ; gmeow:stageCacheDisposition gmeow:cachePersistentContribution .
 gmeow:stage-constraint-catalog gmeow:stageStability gmeow:stabilityStablePrefix ; gmeow:stageCacheDisposition gmeow:cachePersistentContribution .
@@ -858,21 +856,6 @@ gmeow:stage-goal-directed
         gmeow:stage-compile-logic ,
         gmeow:stage-reason .
 
-gmeow:stage-gts-compose
-    a gmeow:PipelineStage ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
-    rdfs:label "gts compose"@x-gmeow-english ;
-    skos:definition "Assemble the unified in-memory RdfBundle (dataset + provenance + unit catalog) every downstream leaf and the sink fold artifacts into."@x-gmeow-english ;
-    gmeow:graphBoxRole gmeow:boxABox ;
-    logic:precondition gmeow:stageInputsAvailable ;
-    logic:capability gmeow:stageExecutorCapability ;
-    gmeow:stageImpl "gts_compose" ;
-    gmeow:dataflowConsumes
-        gmeow:stage-mappings ,
-        gmeow:stage-reason ,
-        gmeow:stage-source-load ,
-        gmeow:stage-statements .
-
 gmeow:stage-validate
     a gmeow:PipelineStage ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
@@ -906,14 +889,13 @@ gmeow:stage-docs-render
     a gmeow:PipelineStage ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
     rdfs:label "docs render"@x-gmeow-english ;
-    skos:definition "Render the typed documentation model (crates/docs) over the composed dataset and fold the doc artifacts into the bundle. Consumes gmeow:stage-reason so the projected documentation graph carries the per-term native-reasoner status (gmeow:docReasoningStatus), gmeow:stage-validate + gmeow:stage-compile-logic so the model carries the diagnostics-to-term join digest driving the per-term 'Diagnostics you might hit' surface, gmeow:stage-mappings so the model carries the dynamic per-term projection-loss join digest driving the per-term 'how this term degrades under projection' surface, and gmeow:stage-export-json-schema so the model's per-term JSON-Schema/OpenAPI fragment digest reads THIS run's schema product in memory rather than lagging one regenerate behind on the committed generated/schemas/*.json (the stale-disk-fold class)."@x-gmeow-english ;
+    skos:definition "Render the typed documentation model (crates/docs) from the slice catalog and the consumed stage products and fold the doc artifacts into the bundle. Consumes gmeow:stage-reason so the projected documentation graph carries the per-term native-reasoner status (gmeow:docReasoningStatus), gmeow:stage-validate + gmeow:stage-compile-logic so the model carries the diagnostics-to-term join digest driving the per-term 'Diagnostics you might hit' surface, gmeow:stage-mappings so the model carries the dynamic per-term projection-loss join digest driving the per-term 'how this term degrades under projection' surface, and gmeow:stage-export-json-schema so the model's per-term JSON-Schema/OpenAPI fragment digest reads THIS run's schema product in memory rather than lagging one regenerate behind on the committed generated/schemas/*.json (the stale-disk-fold class)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox ;
     logic:precondition gmeow:stageInputsAvailable ;
     logic:capability gmeow:stageExecutorCapability ;
     gmeow:stageImpl "docs_render" ;
     gmeow:dataflowConsumes gmeow:stage-compile-logic ,
         gmeow:stage-export-json-schema ,
-        gmeow:stage-gts-compose ,
         gmeow:stage-mappings ,
         gmeow:stage-reason ,
         gmeow:stage-term-manifest ,
@@ -965,7 +947,6 @@ gmeow:stage-snapshot
         gmeow:stage-export-skos-surface ,
         gmeow:stage-gmn-training-corpus ,
         gmeow:stage-goal-directed ,
-        gmeow:stage-gts-compose ,
         gmeow:stage-mappings ,
         gmeow:stage-math-producers ,
         gmeow:stage-reason ,

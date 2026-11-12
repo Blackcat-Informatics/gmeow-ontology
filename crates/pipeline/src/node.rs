@@ -133,7 +133,7 @@ fn carrier_digest_failure(
 /// The carrier is an [`Arc<PipelineBundle<PipelineHandle>>`]: the frozen RDF
 /// dataset + lookaside + content-addressed blob store + provenance + typed-handle
 /// lane. The pre-C4 named byte artifacts (logical path → bytes) ride the bundle's
-/// byte-artifact lane (see [`crate::bundle`]); `gts_compose` / `gts_sink` fold the
+/// byte-artifact lane (see [`crate::bundle`]); `stage-snapshot` / `gts_sink` fold the
 /// upstream lane into the one bundle (P3/P4). C2/C3/C5 progressively replace
 /// the byte reads with dataset/lane reads and retire the lane per stage.
 ///
