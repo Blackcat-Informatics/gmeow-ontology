@@ -1024,7 +1024,7 @@ gmeow:dictionaryTargetLength
     rdfs:label "dictionary target length"@x-gmeow-english ;
     rdfs:range xsd:nonNegativeInteger ;
     skos:definition "The dictionary size in bytes REQUESTED of the trainer on a gmeow:CompressionDictionary, and the size the trainer reports having targeted on a gmeow:CompressionDictionaryRealization (domain stated in prose). Functional per subject. It is a request, not a measurement: the achieved size is gmeow:dictionaryByteLength."@x-gmeow-english ;
-    skos:example "gmeow:dictGmeowCoreV1 gmeow:dictionaryTargetLength \"65536\"^^xsd:nonNegativeInteger ."@x-gmeow-english ;
+    skos:example "gmeow:dictGmeowCoreV1 gmeow:dictionaryTargetLength \"262144\"^^xsd:nonNegativeInteger ."@x-gmeow-english ;
     skos:scopeNote "Scope: this property carries a REQUEST — the size the trainer is asked for. It is not the size returned (gmeow:dictionaryByteLength) and not the size the committed sweep actually ran at (gmeow:measuredDictionaryTargetLength). Reading it as an achieved measurement would report a number no build necessarily produced."@x-gmeow-english ;
     gmeow:addedInVersion "0.1.0" ;
     gmeow:avoidWhen "Avoid reading it as the achieved size (that is gmeow:dictionaryByteLength) and avoid asserting several per subject."@x-gmeow-english ;
@@ -2209,7 +2209,7 @@ gmeow:dictGmeowCoreV1
     gmeow:dictionaryId "gmeow-core-v1" ;
     gmeow:dictionaryVersion "1" ;
     gmeow:dictionaryStrategy gmeow:dictStrategyTrained ;
-    gmeow:dictionaryTargetLength "65536"^^xsd:nonNegativeInteger ;
+    gmeow:dictionaryTargetLength "262144"^^xsd:nonNegativeInteger ;
     gmeow:trainsOverCorpus gmeow:corpusGmeowCoreV1 ;
     gmeow:graphBoxRole gmeow:boxABox ,
         gmeow:boxConfigBox .
@@ -2222,7 +2222,7 @@ gmeow:dictGmeowLangAstV1
     gmeow:dictionaryId "gmeow-lang-ast-v1" ;
     gmeow:dictionaryVersion "1" ;
     gmeow:dictionaryStrategy gmeow:dictStrategyTrained ;
-    gmeow:dictionaryTargetLength "65536"^^xsd:nonNegativeInteger ;
+    gmeow:dictionaryTargetLength "262144"^^xsd:nonNegativeInteger ;
     gmeow:trainsOverCorpus gmeow:corpusGmeowLangAstV1 ;
     gmeow:graphBoxRole gmeow:boxABox ,
         gmeow:boxConfigBox .
