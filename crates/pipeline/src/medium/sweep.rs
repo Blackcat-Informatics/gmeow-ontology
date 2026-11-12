@@ -464,8 +464,8 @@ pub fn check_bijection(
 /// a divergence is reported by the lane and reds here until a person reconciles the
 /// two.
 ///
-/// It is also what keeps the pipeline graph acyclic. The sweep runs the whole DAG in
-/// order to measure, so a stage that STEERED off the table could not run until the
+/// It is also what keeps the pipeline graph acyclic. The sweep runs the committed-scope
+/// DAG in order to measure, so a stage that STEERED off the table could not run until the
 /// table existed, and the table could not exist until that stage ran.
 ///
 /// # Errors
@@ -574,8 +574,8 @@ pub fn check_dictionaries_pay_for_themselves(
 ///
 /// The three checks above — the bijection, the declared-is-argmin agreement, and the
 /// pays-for-itself criterion — all grade the build against committed numbers. None of
-/// them re-derives the argmin, and none of them can: the sweep costs a whole DAG run
-/// plus a grid of trainings. What they CAN do is refuse to grade against numbers taken
+/// them re-derives the argmin, and none of them can: the sweep costs a committed-scope
+/// DAG run plus a grid of trainings. What they CAN do is refuse to grade against numbers taken
 /// over different material, and that is this check.
 ///
 /// A `gmeow:DictionaryCorpus` is a SELECTOR re-resolved on every build, so an archive

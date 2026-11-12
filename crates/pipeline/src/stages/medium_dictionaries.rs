@@ -211,7 +211,7 @@ pub struct ResolvedCorpora {
 /// steering from the table is deliberate — the sweep must never silently overwrite
 /// what a human wrote down, and the authored value stays the reviewable one — but the
 /// gate means the build can only ever train at a MEASURED point. It is also what keeps
-/// the graph acyclic: the sweep runs the whole DAG to measure, so a stage that could
+/// the graph acyclic: the sweep runs the committed-scope DAG to measure, so a stage that could
 /// not run until the table existed could never produce the table.
 ///
 /// The `term-table` strategy trains over the bundle's OWN canonical term rendering

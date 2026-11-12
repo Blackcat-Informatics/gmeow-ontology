@@ -226,6 +226,16 @@ const UNIT_DIRECTORY_COMPONENTS: usize = 3;
 /// those units as fresh. The file name carries the unit's metadata hash and the trailing
 /// unit directory carries the package and hash, so both must be equal; only the prefix
 /// above the unit directory may differ.
+///
+/// This match no longer proves that the unit was built from this checkout. Cargo's
+/// metadata hash covers the package, profile, features, dependencies and compiler, not
+/// the source content, so a unit compiled in another checkout from different sources
+/// has the same file name and unit directory and also matches. What proves the unit
+/// belongs to this tree is Cargo's freshness check, which rebuilds a unit whose recorded
+/// inputs are newer than its output, together with the current inventory, which this
+/// module still requires the compiler's reads to cover. A seeded build directory is
+/// therefore only as trustworthy as the seeding: it must give a donor's modification
+/// times only to files whose content is identical in this checkout.
 fn same_unit_file(artifact: &Path, target: &Path) -> bool {
     if artifact.file_name().is_none() || artifact.file_name() != target.file_name() {
         return false;

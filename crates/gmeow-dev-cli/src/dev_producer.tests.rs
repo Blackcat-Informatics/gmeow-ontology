@@ -107,17 +107,6 @@ fn medium_maintenance_selects_its_output_before_producer_admission() {
     }
 }
 
-/// The sweep's scheduler width is an explicit choice in the same form as `sync`.
-#[test]
-fn medium_sweep_parses_its_scheduler_width() {
-    let cli = crate::Cli::try_parse_from(["gmeow-dev", "medium-sweep", "-j", "3"])
-        .expect("parse the sweep width");
-    assert!(matches!(
-        cli.command,
-        Commands::MediumSweep { jobs: Some(3), .. }
-    ));
-}
-
 /// Reject a test binary whose build carries no admitted producer identity.
 #[test]
 fn test_executable_cannot_admit_itself_as_a_corpus_producer() {

@@ -88,8 +88,8 @@ pub(crate) fn run(out: &Path, jobs: Option<usize>) -> i32 {
 
 /// Write the BOOTSTRAP table derived from the authored declarations alone.
 ///
-/// It exists solely to break a start-up cycle: the sweep runs the whole DAG to
-/// measure, and `stage-medium-dictionaries` refuses to run without a committed table,
+/// It exists solely to break a start-up cycle: the sweep runs the committed-scope DAG
+/// to measure, and `stage-medium-dictionaries` refuses to run without a committed table,
 /// so the first sweep in a fresh tree has no way in. Every measured field is zero and
 /// the sweep overwrites the file moments later;
 /// `the_committed_winner_table_carries_real_measurements` refuses a seed that was ever

@@ -29,14 +29,16 @@
 //! Obtaining a REAL without-docs `gmeow.gts` carrier (Design C) and the REAL
 //! per-format upstream artifacts (the compiled axioms, the JSON Schema /
 //! OpenAPI pair, the Pydantic model package, …) requires the full pipeline
-//! DAG's non-docs stages to have actually run — this codebase is a strict
-//! single-pass executor with no partial/scoped DAG execution (`crate::run`'s
-//! own doc comments: "the WHOLE DAG ... runs in ONE scheduler pass"), and
-//! `crate::stages::carrier::serialize_carrier_snapshot` fails closed on any
-//! missing upstream artifact rather than falling back to a stale disk read
-//! (the "stale-disk-fold" class every stage in this crate explicitly refuses
-//! to reintroduce). So this module runs the real DAG once, entirely in
-//! memory (`crate::scheduler::run` with an uncached [`crate::scheduler::RunContext`]),
+//! DAG's non-docs stages to have actually run — the executor runs the selected
+//! DAG in one scheduler pass, and its only stage selection is by output scope
+//! (`crate::run::spec_for_scope`), which drops runtime-only exporters but keeps
+//! every stage the carrier needs, so no cheaper partial run exists for this
+//! purpose. `crate::stages::carrier::serialize_carrier_snapshot` fails closed
+//! on any missing upstream artifact rather than falling back to a stale disk
+//! read (the "stale-disk-fold" class every stage in this crate explicitly
+//! refuses to reintroduce). So this module runs the complete DAG
+//! (`crate::run::full_spec`) once, entirely in memory (`crate::scheduler::run`
+//! with an uncached [`crate::scheduler::RunContext`]),
 //! and reads every artifact it needs off the resulting in-memory
 //! [`crate::node::StageProduct`] map — never off disk, never re-derived by
 //! hand. Update-mode disk reconciliation is skipped entirely, so a
