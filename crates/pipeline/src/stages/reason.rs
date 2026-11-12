@@ -736,6 +736,9 @@ impl Stage for ReasonStage {
     fn id(&self) -> &str {
         "stage-reason"
     }
+    fn output_family(&self) -> crate::node::OutputFamily {
+        crate::node::OutputFamily::Generated
+    }
     fn consumes(&self) -> &[String] {
         &self.consumes
     }

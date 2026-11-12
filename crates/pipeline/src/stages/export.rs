@@ -110,6 +110,9 @@ impl Stage for ExportStage {
     fn id(&self) -> &str {
         "stage-export-export"
     }
+    fn output_family(&self) -> crate::node::OutputFamily {
+        crate::node::OutputFamily::RuntimeProjection
+    }
     fn consumes(&self) -> &[String] {
         &self.consumes
     }

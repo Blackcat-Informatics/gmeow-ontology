@@ -154,13 +154,15 @@ pub enum RunMode {
     Check,
 }
 
-/// Which output family an update-mode run materializes.
+/// Which output scope a run selects.
 ///
-/// This is explicit feature selection, not capability degradation: the complete
-/// DAG still executes and all strict gates still run. The selected output family
-/// is then mandatory. [`Committed`](Self::Committed) suppresses only gitignored
-/// `dist/*` runtime projections so a generated-only sync does not churn unrelated
-/// presentation files.
+/// The scope selects the DAG branch: [`spec_for_scope`] derives the stage set from each
+/// stage's declared [`crate::node::OutputFamily`]. [`All`](Self::All) runs every stage and
+/// writes the gitignored `dist/*` runtime projections. [`Committed`](Self::Committed) runs
+/// the stages whose outputs the committed scope selects (the bundle, the `generated/`
+/// tree and the codebook) and their transitive producers, so the runtime-only exporters
+/// do not execute. Every selected stage and every gate the selected stages feed stays
+/// mandatory.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum RunOutputScope {
     /// Materialize committed outputs and every gitignored runtime projection.
@@ -771,6 +773,54 @@ pub fn full_spec() -> PipelineSpec {
     }
 }
 
+/// Select the stages one output scope runs, from each stage's declared
+/// [`crate::node::OutputFamily`].
+///
+/// [`RunOutputScope::All`] keeps every stage. [`RunOutputScope::Committed`] keeps the
+/// stages of the `Generated` family plus all of their transitive producers, so a
+/// runtime-projection stage that a selected stage consumes still runs. A stage whose
+/// implementation is not registered is a hard error: a family cannot be read for it.
+pub fn spec_for_scope(
+    spec: PipelineSpec,
+    scope: RunOutputScope,
+) -> Result<PipelineSpec, gmeow_errors::Diag> {
+    if scope == RunOutputScope::All {
+        return Ok(spec);
+    }
+    let registry = default_registry();
+    let mut selected: std::collections::BTreeSet<String> = std::collections::BTreeSet::new();
+    let mut pending: Vec<String> = Vec::new();
+    for stage in &spec.stages {
+        let implementation = registry.get(&stage.impl_key).ok_or_else(|| {
+            gmeow_errors::Diag::of_kind(crate::error::InvalidDag {
+                message: format!(
+                    "stage {} binds unregistered implementation {}; its output family is unknown",
+                    stage.id, stage.impl_key
+                ),
+            })
+        })?;
+        if implementation.output_family() == crate::node::OutputFamily::Generated {
+            pending.push(stage.id.clone());
+        }
+    }
+    while let Some(id) = pending.pop() {
+        if !selected.insert(id.clone()) {
+            continue;
+        }
+        if let Some(stage) = spec.stage(&id) {
+            pending.extend(stage.consumes.iter().cloned());
+        }
+    }
+    Ok(PipelineSpec {
+        id: spec.id,
+        stages: spec
+            .stages
+            .into_iter()
+            .filter(|stage| selected.contains(&stage.id))
+            .collect(),
+    })
+}
+
 /// A capability-free stage (Generated provenance, non-sink) — the default for every
 /// transform / validate / docs-render / export leaf (the four behaviorally-inert
 /// former kinds collapse to no declaration).
@@ -929,8 +979,8 @@ pub fn run_full(root: &Path, jobs: usize, mode: RunMode) -> Result<RunReport, gm
     run_full_scoped(root, jobs, mode, RunOutputScope::All)
 }
 
-/// Run the complete build once while materializing only the explicitly selected
-/// output family. Selection never removes a stage or gate from the DAG.
+/// Run the build once for the selected output scope. The scope selects the stage set
+/// ([`spec_for_scope`]); every selected stage and its gates are mandatory.
 pub fn run_full_scoped(
     root: &Path,
     jobs: usize,
@@ -988,11 +1038,11 @@ pub fn run_full_scoped_with_progress(
         progress.stage_end("pipeline:canonical-abstract", canonical_elapsed);
     }
 
-    let spec = full_spec();
+    let spec = spec_for_scope(full_spec(), output_scope)?;
 
     // Single-pass: the schemas leaf is now a normal carrier-reading
-    // export leaf (it consumes `stage-snapshot`, not the sink bytes), so the WHOLE DAG —
-    // the terminal gts sink and the schemas tail included — runs in ONE scheduler pass.
+    // export leaf (it consumes `stage-snapshot`, not the sink bytes), so the whole selected
+    // DAG — the terminal gts sink and the schemas tail included — runs in ONE scheduler pass.
     // No producer/serialization re-derivation, no SINK_STAGE-only sub-run.
     let graph = spec.validate()?;
     let registry = default_registry();
@@ -1919,3 +1969,7 @@ mod diagnostics_ingest_gate;
 #[cfg(test)]
 #[path = "run/acceptance_tests.rs"]
 mod acceptance_tests;
+
+#[cfg(test)]
+#[path = "run.output_scope_tests.rs"]
+mod output_scope_tests;

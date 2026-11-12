@@ -197,6 +197,9 @@ impl Stage for FakeStage {
     fn id(&self) -> &str {
         &self.id
     }
+    fn output_family(&self) -> crate::node::OutputFamily {
+        crate::node::OutputFamily::Generated
+    }
     fn consumes(&self) -> &[String] {
         &self.consumes
     }
@@ -849,6 +852,9 @@ impl Stage for ComputeStage {
     fn id(&self) -> &str {
         &self.id
     }
+    fn output_family(&self) -> crate::node::OutputFamily {
+        crate::node::OutputFamily::Generated
+    }
     fn consumes(&self) -> &[String] {
         &self.consumes
     }
@@ -947,6 +953,9 @@ struct CompletionProbeStage {
 impl Stage for CompletionProbeStage {
     fn id(&self) -> &str {
         &self.id
+    }
+    fn output_family(&self) -> crate::node::OutputFamily {
+        crate::node::OutputFamily::Generated
     }
 
     fn consumes(&self) -> &[String] {
@@ -1136,6 +1145,9 @@ struct FailureProbeStage {
 impl Stage for FailureProbeStage {
     fn id(&self) -> &str {
         &self.id
+    }
+    fn output_family(&self) -> crate::node::OutputFamily {
+        crate::node::OutputFamily::Generated
     }
 
     fn consumes(&self) -> &[String] {
@@ -1417,6 +1429,9 @@ impl Stage for FileReadingStage {
     fn id(&self) -> &str {
         "file-leaf"
     }
+    fn output_family(&self) -> crate::node::OutputFamily {
+        crate::node::OutputFamily::Generated
+    }
     fn consumes(&self) -> &[String] {
         &[]
     }
@@ -1529,6 +1544,9 @@ struct TwoGraphProducer {
 impl Stage for TwoGraphProducer {
     fn id(&self) -> &str {
         "producer"
+    }
+    fn output_family(&self) -> crate::node::OutputFamily {
+        crate::node::OutputFamily::Generated
     }
     fn consumes(&self) -> &[String] {
         &[]
@@ -1685,6 +1703,9 @@ fn typed_payload_changes_invalidate_selected_and_whole_action_keys() {
 impl Stage for EntityConsumer {
     fn id(&self) -> &str {
         &self.id
+    }
+    fn output_family(&self) -> crate::node::OutputFamily {
+        crate::node::OutputFamily::Generated
     }
     fn consumes(&self) -> &[String] {
         std::slice::from_ref(&self.entities[0].0)
@@ -1951,6 +1972,9 @@ impl Stage for AttachTestStage {
     fn id(&self) -> &str {
         &self.id
     }
+    fn output_family(&self) -> crate::node::OutputFamily {
+        crate::node::OutputFamily::Generated
+    }
     fn consumes(&self) -> &[String] {
         &self.consumes
     }
@@ -2129,6 +2153,9 @@ impl Stage for AttachBlobStage {
     fn id(&self) -> &str {
         &self.id
     }
+    fn output_family(&self) -> crate::node::OutputFamily {
+        crate::node::OutputFamily::Generated
+    }
     fn consumes(&self) -> &[String] {
         &self.consumes
     }
@@ -2264,6 +2291,9 @@ fn watch_nquads(id: &str) -> String {
 impl Stage for CarrierStage {
     fn id(&self) -> &str {
         &self.id
+    }
+    fn output_family(&self) -> crate::node::OutputFamily {
+        crate::node::OutputFamily::Generated
     }
     fn consumes(&self) -> &[String] {
         &self.consumes

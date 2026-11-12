@@ -485,6 +485,9 @@ impl Stage for MediumDictionariesStage {
     fn id(&self) -> &str {
         STAGE_ID
     }
+    fn output_family(&self) -> crate::node::OutputFamily {
+        crate::node::OutputFamily::Generated
+    }
     fn consumes(&self) -> &[String] {
         &self.consumes
     }

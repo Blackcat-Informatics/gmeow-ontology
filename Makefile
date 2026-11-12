@@ -17,7 +17,8 @@ GMEOW_DEV ?= cargo xtask producer run --
 # tree by surprise; `make check` and every materializing caller pass update
 # EXPLICITLY. `SYNC_OUTPUTS` selects the fanout scope; `generated` (the bundle + the
 # committed tree) is the default because it is what the gate needs — `docs` and `all`
-# are the wider, explicitly-selected profiles.
+# are the wider, explicitly-selected profiles. The scope selects the pipeline's stages:
+# the runtime-only exporters run under `all` only.
 SYNC_MODE ?= check
 SYNC_OUTPUTS ?= generated
 SYNC_VERBOSE ?=

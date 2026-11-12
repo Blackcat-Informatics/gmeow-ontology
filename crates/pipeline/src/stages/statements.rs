@@ -576,6 +576,9 @@ impl Stage for StatementsStage {
     fn id(&self) -> &str {
         "stage-statements"
     }
+    fn output_family(&self) -> crate::node::OutputFamily {
+        crate::node::OutputFamily::Generated
+    }
     fn consumes(&self) -> &[String] {
         // Declared empty: the compiler reads dsl/statements/ from the root. The
         // dogfooded DAG wires it after source-load; the consumes-agreement check

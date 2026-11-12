@@ -994,6 +994,9 @@ impl Stage for DocsRenderStage {
     fn id(&self) -> &str {
         "stage-docs-render"
     }
+    fn output_family(&self) -> crate::node::OutputFamily {
+        crate::node::OutputFamily::Generated
+    }
     fn consumes(&self) -> &[String] {
         &self.consumes
     }

@@ -474,6 +474,9 @@ impl Stage for SourceLoadStage {
     fn id(&self) -> &str {
         "stage-source-load"
     }
+    fn output_family(&self) -> crate::node::OutputFamily {
+        crate::node::OutputFamily::Generated
+    }
     fn consumes(&self) -> &[String] {
         &self.consumes
     }

@@ -1265,6 +1265,9 @@ impl Stage for MappingsStage {
     fn id(&self) -> &str {
         "stage-mappings"
     }
+    fn output_family(&self) -> crate::node::OutputFamily {
+        crate::node::OutputFamily::Generated
+    }
     /// Borrow the immutable compiler, constraint and original-source dependencies.
     /// All instances share these identifiers fixed by the pipeline contract.
     fn consumes(&self) -> &[String] {

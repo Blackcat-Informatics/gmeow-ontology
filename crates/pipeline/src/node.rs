@@ -505,6 +505,22 @@ impl StageStability {
     }
 }
 
+/// The output family of a stage: which output scopes need what it produces.
+///
+/// Every stage declares one; the trait method has no default, so a stage added without a
+/// declaration does not compile. A run selects its stages from these declarations
+/// ([`crate::run::spec_for_scope`]): the committed scope runs the stages whose outputs it
+/// selects and their transitive producers.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
+pub enum OutputFamily {
+    /// Contributes to what every scope selects: the bundle, the committed `generated/`
+    /// tree, the codebook and whatever those need.
+    Generated,
+    /// Produces only gitignored `dist/` runtime projections, which only the scope that
+    /// materializes them (`all`) selects, and that no `Generated` stage consumes.
+    RuntimeProjection,
+}
+
 /// Whether a stage product should use the persistent structural cache.
 ///
 /// This is the executable twin of RDF `gmeow:stageCacheDisposition`: both variants
@@ -552,6 +568,8 @@ impl CachePolicy {
 pub trait Stage: Send + Sync {
     /// The stable stage id — matches the `gmeow:PipelineStage` individual.
     fn id(&self) -> &str;
+    /// The output family this stage belongs to. Required: there is no default family.
+    fn output_family(&self) -> OutputFamily;
     /// The ids of the upstream stages this stage consumes, sorted.
     fn consumes(&self) -> &[String];
     /// The subset of [`Self::consumes`] whose in-memory carrier lanes this stage reads.

@@ -393,6 +393,9 @@ impl Stage for ResultShapesStage {
     fn id(&self) -> &str {
         "stage-export-result-shapes"
     }
+    fn output_family(&self) -> crate::node::OutputFamily {
+        crate::node::OutputFamily::Generated
+    }
     fn consumes(&self) -> &[String] {
         &[]
     }
