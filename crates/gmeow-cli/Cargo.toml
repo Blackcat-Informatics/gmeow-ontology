@@ -81,8 +81,7 @@ purrdf.workspace = true
 purrdf-hash.workspace = true
 purrdf-lex.workspace = true
 libc.workspace = true
-# TOCTOU/symlink-safe staging of the embedded bundle to a temp path for the
-# external `gts` passthrough (atomic create + remove-on-drop).
+# TOCTOU/symlink-safe atomic output writes for `gmeow math` (`write_math_bytes`).
 tempfile.workspace = true
 # (De)serialize the GoEmotions capture envelope for `gmeow affect ingest-goemotions`
 # / `recover-goemotions`.

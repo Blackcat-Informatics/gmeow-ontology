@@ -16,7 +16,7 @@
 //! [`gmeow_cli_core`]: product results → stdout, errors/diagnostics → stderr,
 //! exit `0` on success, `1` on a handled failure, `2` for clap usage errors,
 //! `3` for an undecided or unsupported operation, and
-//! a passthrough child's own exit code for `gts` / `music`.
+//! `music` / `affect` / `math` engine exits.
 
 mod commands;
 mod error;
@@ -305,12 +305,12 @@ pub enum Commands {
     },
     /// Start the consumer-safe GMEOW MCP server (stdio transport).
     Mcp,
-    /// Dispatch to the external Graph Transport Substrate (GTS) CLI.
-    #[command(disable_help_flag = true, disable_version_flag = true)]
+    /// GTS container tools, run in-process (no other program is started): `info`,
+    /// `verify`, `heads`, `extract-key`, `ls`, `fold`. Each reads FILE, or the
+    /// embedded bundle when none is given.
     Gts {
-        /// Arguments forwarded verbatim to the `gts` binary.
-        #[arg(trailing_var_arg = true, allow_hyphen_values = true)]
-        args: Vec<String>,
+        #[command(subcommand)]
+        command: GtsCommands,
     },
     /// GMEOW music-package projection tools.
     Music {
@@ -1619,6 +1619,61 @@ pub enum MathCommands {
     },
 }
 
+/// The `gmeow gts` verbs: a closed set implemented in-process on the linked
+/// `purrdf::gts` codec. Every verb reads FILE, or the embedded bundle when omitted.
+#[derive(Debug, Subcommand)]
+pub enum GtsCommands {
+    /// Print the per-segment composition ledger (head, profile, row counts). Counts
+    /// signature frames as present without checking them; use `verify` for that.
+    Info {
+        /// GTS file to inspect (default: bundled gmeow.gts).
+        file: Option<PathBuf>,
+    },
+    /// Check every signature and the frame-hash chain, and report what was checked.
+    /// The exit status is the verification result of the GTS codec for the options given.
+    Verify {
+        /// GTS file to verify (default: bundled gmeow.gts).
+        file: Option<PathBuf>,
+        /// Armored OpenPGP public key to verify against, instead of the embedded
+        /// `gts:transportKey`.
+        #[arg(long = "key")]
+        key: Option<PathBuf>,
+        /// Accept a file that carries no signatures (its frame chain is still checked).
+        #[arg(long = "allow-unsigned")]
+        allow_unsigned: bool,
+        /// Signer key id the deployment trusts; repeatable. When given, at least one
+        /// valid signature from a named signer is required.
+        #[arg(long = "trusted-signer", value_name = "KID")]
+        trusted_signer: Vec<String>,
+    },
+    /// Print the segment heads and their aggregate digest as `gts-replication-heads-v1` JSON.
+    Heads {
+        /// GTS file to inspect (default: bundled gmeow.gts).
+        file: Option<PathBuf>,
+    },
+    /// Print the embedded `gts:transportKey` as an armored OpenPGP public key.
+    #[command(name = "extract-key")]
+    ExtractKey {
+        /// GTS file to read the key from (default: bundled gmeow.gts).
+        file: Option<PathBuf>,
+        /// Write the key to this file instead of standard output.
+        #[arg(short = 'o', long = "out")]
+        out: Option<PathBuf>,
+    },
+    /// List the content-addressed blobs: digest, decoded size and media type.
+    Ls {
+        /// GTS file to list (default: bundled gmeow.gts).
+        file: Option<PathBuf>,
+    },
+    /// Print the folded dataset as N-Quads with every named graph kept. Refuses a file
+    /// that suppresses reifier bindings, which this fold does not apply, and omits
+    /// compaction-provenance quads.
+    Fold {
+        /// GTS file to fold (default: bundled gmeow.gts).
+        file: Option<PathBuf>,
+    },
+}
+
 /// The `gmeow music` nested subcommands (native `gmeow_music` engine).
 #[derive(Debug, Subcommand)]
 pub enum MusicCommands {
@@ -1767,7 +1822,7 @@ pub fn run() -> i32 {
         Commands::Crossref { out, gts } => commands::crossref(reporter, &out, gts.as_deref()),
         Commands::Explain { target_iri, file } => commands::explain(reporter, target_iri, file),
         Commands::Mcp => commands::mcp(reporter),
-        Commands::Gts { args } => passthrough::gts(reporter, &args),
+        Commands::Gts { command } => passthrough::gts(reporter, &command),
         Commands::Music { command } => passthrough::music(reporter, &command),
         Commands::Affect { command } => passthrough::affect(reporter, &command),
         Commands::Math { command } => passthrough::math(reporter, &command),
