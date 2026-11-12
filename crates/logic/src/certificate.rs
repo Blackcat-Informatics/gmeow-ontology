@@ -692,6 +692,10 @@ fn result_content_id(payload: &CoherencePayload) -> String {
 /// Each graph's quads are rendered as canonical, sorted, N-Quad-ish lines and hashed
 /// with the caller-supplied `digest` primitive (the SAME blake3 `digest_string` used
 /// for the bundle hash, injected so this PyO3-free crate takes no gmeow-gts edge).
+/// A blank node renders as its scope-qualified label ([`purrdf::BlankScope::qualify_label`]),
+/// which is injective over `(label, scope)`: two distinct blanks that share a raw label
+/// in different scopes (for example, from different parts of a composed dataset) never
+/// render as one node. A default-scope label renders verbatim.
 /// The resulting Vec is sorted so re-runs are byte-identical. The default graph (no
 /// graph name) is keyed under an empty string.
 ///
@@ -706,7 +710,7 @@ pub fn per_graph_axiom_hashes(
     fn render_into(out: &mut String, term: TermRef<'_>) {
         match term {
             TermRef::Iri(iri) => write!(out, "<{iri}>"),
-            TermRef::Blank { label, .. } => write!(out, "_:{label}"),
+            TermRef::Blank { label, scope } => write!(out, "_:{}", scope.qualify_label(label)),
             TermRef::Literal {
                 lexical, language, ..
             } => match language {

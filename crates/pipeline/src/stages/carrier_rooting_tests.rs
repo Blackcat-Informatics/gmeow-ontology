@@ -337,8 +337,8 @@ fn ordinary_projection_reinsert_preserves_content_and_source_location() {
 
 /// The snapshot carrier is composed from selections over the producers' datasets instead
 /// of the union of re-rooted copies it replaced. The coherence certificate pins the flat
-/// canonical N-Quads of that carrier and its per-graph axiom hashes, so both must equal
-/// the former construction, over blank nodes shared by label across producers, an exact
+/// canonical N-Quads of that carrier, so they must equal the former construction's, over
+/// blank nodes shared by label across producers, an exact
 /// duplicate quad from two producers, graph-scoped reifiers and annotations, a twin
 /// placement, a whole-dataset placement, a preserved dataset whose blank node spans two
 /// graphs and a selected graph the producer does not hold. Blank scoping must keep two
@@ -437,16 +437,6 @@ fn composed_carrier_certifies_exactly_what_the_rooted_union_did() {
         .to_owned()
     };
     assert_eq!(canonical(composed.as_ref()), canonical(&former));
-    assert_eq!(
-        gmeow_logic::certificate::per_graph_axiom_hashes(
-            composed.as_ref(),
-            purrdf::gts::writer::digest_string
-        ),
-        gmeow_logic::certificate::per_graph_axiom_hashes(
-            &former,
-            purrdf::gts::writer::digest_string
-        )
-    );
     let graph_names = |dataset: &RdfDataset| {
         dataset
             .owned_named_graphs()
@@ -543,4 +533,66 @@ fn composed_carrier_certifies_exactly_what_the_rooted_union_did() {
         narrow.1 == wide.1,
         "composed carrier bundle bytes differ between runs"
     );
+}
+
+/// Two producers can carry the same raw blank label; the composed carrier keeps them two
+/// nodes by scope. The per-graph axiom hashes the coherence certificate pins must keep
+/// them apart too: moving a statement from one producer's `_:b` to the other's makes a
+/// different graph, so it must make a different hash. Rendering the raw label alone
+/// gives both carriers the same lines and the same hash. The hash must also reproduce
+/// across two compositions of the same parts.
+#[test]
+fn axiom_hashes_distinguish_producers_blank_nodes_that_share_a_label() {
+    const G: &str = "https://example.org/g";
+    let parse = |trig: &str| {
+        purrdf::parse_dataset(
+            format!("@prefix ex: <https://example.org/> . ex:g {{ {trig} }}").as_bytes(),
+            "application/trig",
+            None,
+        )
+        .expect("parse synthetic producer")
+    };
+    let product = |stage: &str, dataset: Arc<RdfDataset>| {
+        StageProduct::from_artifacts_over(stage, dataset, BTreeMap::new())
+            .expect("the stage carrier digests")
+    };
+    let compose = |alpha: &str, beta: &str| {
+        let upstream = BTreeMap::from([
+            (
+                "stage-alpha".to_owned(),
+                product("stage-alpha", parse(alpha)),
+            ),
+            ("stage-beta".to_owned(), product("stage-beta", parse(beta))),
+        ]);
+        let mut parts = CarrierParts::new(&upstream);
+        parts.push_graph("stage-alpha", G).unwrap();
+        parts.push_graph("stage-beta", G).unwrap();
+        parts.materialize().expect("composed carrier")
+    };
+    let hashes = |dataset: &RdfDataset| {
+        gmeow_logic::certificate::per_graph_axiom_hashes(
+            dataset,
+            purrdf::gts::writer::digest_string,
+        )
+    };
+    let canonical = |dataset: &RdfDataset| {
+        purrdf::canonical_flat_nquads(
+            dataset,
+            &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None),
+        )
+        .expect("carrier canonicalizes")
+        .nquads()
+        .to_owned()
+    };
+
+    let on_alpha = compose("_:b ex:p ex:o1 . _:b ex:q ex:x .", "_:b ex:p ex:o2 .");
+    let on_beta = compose("_:b ex:p ex:o1 .", "_:b ex:p ex:o2 . _:b ex:q ex:x .");
+    assert_ne!(
+        canonical(on_alpha.as_ref()),
+        canonical(on_beta.as_ref()),
+        "the two carriers are different graphs"
+    );
+    assert_ne!(hashes(on_alpha.as_ref()), hashes(on_beta.as_ref()));
+    let again = compose("_:b ex:p ex:o1 . _:b ex:q ex:x .", "_:b ex:p ex:o2 .");
+    assert_eq!(hashes(on_alpha.as_ref()), hashes(again.as_ref()));
 }

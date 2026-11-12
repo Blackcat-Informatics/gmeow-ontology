@@ -403,9 +403,10 @@ fn nquads_emits_unsupported_construct_and_projection_loss_as_separate_properties
 
 /// The per-graph axiom hashes the certificate pins are fixed by the original rendering:
 /// one line per quad, grouped by the rendered graph name (default graph under the empty
-/// key), sorted bytewise, joined with newlines, digested, and the digests sorted. The
-/// streaming implementation must reproduce that exactly, including a blank-node graph
-/// name, language-tagged and escaped literals, and a triple-term object.
+/// key), sorted bytewise, joined with newlines, digested, and the digests sorted. A
+/// blank node renders by its scope-qualified label. The streaming implementation must
+/// reproduce that exactly, including a blank-node graph name, language-tagged and
+/// escaped literals, and a triple-term object.
 #[test]
 fn per_graph_axiom_hashes_match_the_line_per_quad_reference() {
     let dataset = purrdf::parse_dataset(
@@ -422,7 +423,7 @@ fn per_graph_axiom_hashes_match_the_line_per_quad_reference() {
     let render = |t: TermRef<'_>| -> String {
         match t {
             TermRef::Iri(iri) => format!("<{iri}>"),
-            TermRef::Blank { label, .. } => format!("_:{label}"),
+            TermRef::Blank { label, scope } => format!("_:{}", scope.qualify_label(label)),
             TermRef::Literal {
                 lexical, language, ..
             } => match language {
