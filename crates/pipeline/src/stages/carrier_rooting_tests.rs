@@ -11,7 +11,10 @@ use purrdf::{
     RdfLocation, RdfLookaside, RdfQuad, RdfTerm,
 };
 
-use super::{CarrierParts, GRAPH_DIAGNOSTICS, compile_logic_object_graphs, rooted_in_graph};
+use super::{
+    CarrierParts, GRAPH_AUTHORED_DEFAULT, GRAPH_DIAGNOSTICS, compile_logic_object_graphs,
+    rooted_in_graph,
+};
 use crate::node::StageProduct;
 use crate::stages::compile_logic::{
     CARRIER_GRAPHS, GRAPH_CORRESPONDENCE, GRAPH_LOGIC, GRAPH_RELATIONAL_CORE,
@@ -595,4 +598,64 @@ fn axiom_hashes_distinguish_producers_blank_nodes_that_share_a_label() {
     assert_ne!(hashes(on_alpha.as_ref()), hashes(on_beta.as_ref()));
     let again = compose("_:b ex:p ex:o1 . _:b ex:q ex:x .", "_:b ex:p ex:o2 .");
     assert_eq!(hashes(on_alpha.as_ref()), hashes(again.as_ref()));
+}
+
+/// The snapshot carrier refuses an empty authored base graph and an empty RDF 1.2
+/// statement layer. Either is a regressed upstream read, and composing it would ship
+/// empty graphs that every later gate accepts.
+#[test]
+fn the_carrier_refuses_an_empty_base_or_statement_layer() {
+    let product = |stage: &str, dataset: Arc<RdfDataset>| {
+        StageProduct::from_artifacts_over(stage, dataset, BTreeMap::new())
+            .expect("the stage carrier digests")
+    };
+    let empty = || {
+        RdfDatasetBuilder::new()
+            .freeze()
+            .expect("freeze empty dataset")
+    };
+    let refusal =
+        |upstream: BTreeMap<String, StageProduct>| match super::assemble_carrier(&upstream) {
+            Ok(_) => panic!("the carrier must refuse an empty required layer"),
+            Err(error) => error.to_string(),
+        };
+
+    let empty_base = refusal(BTreeMap::from([
+        (
+            "stage-source-load".to_owned(),
+            product("stage-source-load", empty()),
+        ),
+        (
+            "stage-statements".to_owned(),
+            product("stage-statements", empty()),
+        ),
+    ]));
+    assert!(
+        empty_base.contains("authored base graph is empty"),
+        "{empty_base}"
+    );
+
+    let authored = purrdf::parse_dataset(
+        format!(
+            "<{GRAPH_AUTHORED_DEFAULT}> {{ <urn:carrier:s> <urn:carrier:p> <urn:carrier:o> . }}"
+        )
+        .as_bytes(),
+        "application/trig",
+        None,
+    )
+    .expect("parse synthetic authored base");
+    let empty_statements = refusal(BTreeMap::from([
+        (
+            "stage-source-load".to_owned(),
+            product("stage-source-load", authored),
+        ),
+        (
+            "stage-statements".to_owned(),
+            product("stage-statements", empty()),
+        ),
+    ]));
+    assert!(
+        empty_statements.contains("empty RDF 1.2 statement layer"),
+        "{empty_statements}"
+    );
 }

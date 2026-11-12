@@ -1096,7 +1096,22 @@ fn assemble_carrier(
         source_load_dataset(upstream)?
             .project_graph(Some(&purrdf::RdfTerm::iri(GRAPH_AUTHORED_DEFAULT)))?,
     );
+    // The authored base and the RDF 1.2 statement layer are required content: an empty
+    // one is a regressed read upstream, never a carrier to ship with empty graphs.
+    if authored_default.quad_count() == 0 {
+        return Err(stage_err(
+            "the stage-source-load authored base graph is empty; the snapshot carrier \
+             requires the authored ontology (check the slice module reads)",
+        ));
+    }
     let mut parts = CarrierParts::new(upstream);
+    let statements = parts.producer_dataset("stage-statements")?;
+    if statements.quad_count() == 0 {
+        return Err(stage_err(
+            "the stage-statements product carries an empty RDF 1.2 statement layer; the \
+             snapshot carrier requires it (check the dsl/statements reads)",
+        ));
+    }
     // The OWL/RDFS reader projection is a GMEOW transform yielding a new dataset, so the
     // base is the one part this stage builds rather than selects.
     parts.push_dataset(with_owl_rdfs_projection(&authored_default)?);
@@ -1107,7 +1122,6 @@ fn assemble_carrier(
     // RDF-1.2 artifact, carried default-graph-only) placed WHOLE into graph/statements:
     // its reifier and annotation side-tables are standpoint-scoped, so every record moves
     // with the layer.
-    let statements = parts.producer_dataset("stage-statements")?;
     parts.push_placed(statements, GRAPH_STATEMENTS);
     // The self-description graphs are selected (not re-loaded) off stage-source-load.
     parts.push_graph("stage-source-load", GRAPH_IMPORTS)?;
@@ -1381,12 +1395,6 @@ fn termination_demonstrator_graphs()
         .collect()
 }
 
-/// The INJECTED issue timestamp the terminal coherence certificate carries. The
-/// regenerate pipeline never samples a clock (the bundle must be byte-stable run to run —
-/// the parity gate), so the certificate's `logic:checkIssuedAt` is pinned to the Unix
-/// epoch, the SAME reproducible-build sentinel the packed-archive members zero their mtime
-/// to. It is an injected constant, not a degraded fallback: a build-time coherence proof
-/// over content-addressed bytes has no meaningful wall-clock instant.
 /// Log the size of an owned carrier after the phase that built it, so a run names the
 /// phase in which resident memory grows.
 fn log_carrier_size(phase: &str, carrier: &purrdf::RdfDataset) {
@@ -1397,6 +1405,12 @@ fn log_carrier_size(phase: &str, carrier: &purrdf::RdfDataset) {
     );
 }
 
+/// The INJECTED issue timestamp the terminal coherence certificate carries. The
+/// regenerate pipeline never samples a clock (the bundle must be byte-stable run to run —
+/// the parity gate), so the certificate's `logic:checkIssuedAt` is pinned to the Unix
+/// epoch, the SAME reproducible-build sentinel the packed-archive members zero their mtime
+/// to. It is an injected constant, not a degraded fallback: a build-time coherence proof
+/// over content-addressed bytes has no meaningful wall-clock instant.
 const COHERENCE_ISSUED_AT: &str = "1970-01-01T00:00:00Z";
 
 /// Fold the scoped coherence certificate over the fully-composed carrier into its
