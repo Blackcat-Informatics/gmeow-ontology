@@ -2719,7 +2719,7 @@
   "hash-domain": 45,
   "hex": 1,
   "json-pointer": 2,
-  "literal-and-iri-escape": 14,
+  "literal-and-iri-escape": 13,
   "media-type-by-extension": 3,
   "percent-encoding": 2,
   "rdf-collection": 19,
