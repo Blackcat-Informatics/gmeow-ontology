@@ -91,7 +91,10 @@ jobs:
           test "$target" = x86_64-unknown-linux-gnu
           cp dist/bin/gmeow "dist/gmeow-${target}"
 
-      # The bundle is regenerated from canonical sources by `make release` (it is a
+      # The manifest lists exactly the four files published as Release assets, so the
+      # check in publish-release covers what a consumer receives and nothing else (hidden
+      # build locks under dist/ are not transferred). The bundle is regenerated from
+      # canonical sources by `make release` (it is a
       # git-ignored product, not a committed input), so publish a checksum manifest that
       # pins the exact validated bytes a consumer receives.
       - name: Generate SHA-256 checksums for the release artifacts
@@ -104,7 +107,7 @@ jobs:
           # idiom the Makefile's own mktemp sites use. `rm -f` after a successful `mv`
           # is a no-op, so the trap is safe on the success path too.
           trap 'rm -f "$tmp"' EXIT
-          ( cd dist && find . -type f -print0 | sort -z | xargs -0 sha256sum ) > "$tmp"
+          ( cd dist && sha256sum gmeow-x86_64-unknown-linux-gnu gmeow.gts gmeow.gts.ingestion.cbor gmeow.identity.json ) > "$tmp"
           mv "$tmp" dist/SHA256SUMS
           cat dist/SHA256SUMS
 

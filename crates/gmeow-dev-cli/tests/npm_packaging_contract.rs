@@ -762,7 +762,8 @@ fn release_runs_wasm_parity_before_publishing() {
 #[test]
 fn release_installs_the_same_pinned_wasm_toolchain_as_ci() {
     let ci = ci_workflow();
-    let release = release_workflow();
+    let release_text = release_workflow();
+    let release = release_job(&release_text, "npm");
 
     let wasm_bindgen_pin = ci
         .lines()
@@ -874,7 +875,13 @@ fn release_publishes_the_github_release_from_its_own_scoped_job() {
         .expect("the build writes the checksum manifest");
     assert!(
         identity < checksums,
-        "the identity and target-named binary must exist before SHA256SUMS covers dist/"
+        "the identity and target-named binary must exist before SHA256SUMS lists them"
+    );
+    assert!(
+        build.contains(
+            "sha256sum gmeow-x86_64-unknown-linux-gnu gmeow.gts gmeow.gts.ingestion.cbor gmeow.identity.json"
+        ),
+        "SHA256SUMS must list exactly the files attached to the Release, not every file under dist/"
     );
 
     assert!(

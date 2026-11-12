@@ -140,6 +140,15 @@ fn stamp_identity(manifest: &Path, workspace: &Path) {
     // compiled with: the observed CPU contract, not the requested one.
     let features = std::env::var("CARGO_CFG_TARGET_FEATURE").unwrap_or_default();
     println!("cargo:rustc-env=GMEOW_BUILD_TARGET_FEATURES={features}");
+    if baseline == "x86-64-v3" {
+        let enabled: Vec<&str> = features.split(',').collect();
+        if !enabled.contains(&"avx2") || enabled.contains(&"avx512f") {
+            panic!(
+                "gmeow: GMEOW_BUILD_CPU_BASELINE=x86-64-v3 but the compiler enables target \
+                 features {features:?}; the portable baseline needs avx2 and no avx512f"
+            );
+        }
+    }
 
     let rustc = std::env::var("RUSTC").unwrap_or_else(|_| "rustc".to_owned());
     let version = Command::new(&rustc)
@@ -187,9 +196,17 @@ fn source_revision(manifest: &Path) -> (String, &'static str) {
         if let Some(path) = git(
             manifest,
             &["rev-parse", "--path-format=absolute", "--git-path", &name],
-        ) && Path::new(&path).is_file()
-        {
-            println!("cargo:rerun-if-changed={path}");
+        ) {
+            // A ref that is absent (packed, or not yet written) is watched through its
+            // nearest existing ancestor directory, so creating it re-stamps the build.
+            let mut watch = Path::new(&path);
+            while !watch.exists() {
+                let Some(parent) = watch.parent() else { break };
+                watch = parent;
+            }
+            if watch.exists() {
+                println!("cargo:rerun-if-changed={}", watch.display());
+            }
         }
     }
     (revision, "unverified")

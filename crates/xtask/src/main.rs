@@ -621,7 +621,7 @@ fn main() -> ExitCode {
         }
         _ => {
             eprintln!(
-                "usage: cargo xtask check [--explain] [--timings-json PATH] [-j N]\n       cargo xtask receipt create --out PATH\n       cargo xtask list\n       cargo xtask producer build|verify|recipe\n       cargo xtask producer run -- COMMAND\n       cargo xtask cli build [--skip-producer] [--allow-dirty] [--native]\n       cargo xtask cli run -- ARGS\n       cargo xtask cli install [--bin-dir DIR] [--allow-dirty] [--allow-native]"
+                "usage: cargo xtask check [--explain] [--timings-json PATH] [-j N]\n       cargo xtask receipt create --out PATH\n       cargo xtask list\n       cargo xtask producer build|verify|recipe\n       cargo xtask producer run -- COMMAND\n       cargo xtask cli build [--skip-producer] [--native]\n       cargo xtask cli run -- ARGS\n       cargo xtask cli install [--bin-dir DIR] [--skip-producer] [--allow-dirty] [--allow-native]"
             );
             ExitCode::from(2)
         }

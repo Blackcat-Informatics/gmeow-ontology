@@ -581,6 +581,7 @@ release-publish: ## USER-driven publish of a verified signed bundle: content-add
 	sha256sum "$(GTS_OUT)" "$(GTS_OUT).ingestion.cbor" > "$(GTS_OUT).sha256"
 	@echo "release bundle native content heads (BLAKE3):"
 	@# The staged binary from `make cli-build`; a non-clean inventory exits non-zero and stops the publish.
+	@test -x dist/bin/gmeow || { echo "dist/bin/gmeow is missing; run 'make cli-build' first"; exit 1; }
 	dist/bin/gmeow gts heads "$(GTS_OUT)"
 	gh release create "$(RELEASE_TAG)" \
 		"$(GTS_OUT)" "$(GTS_OUT).ingestion.cbor" "$(GTS_OUT).sha256" dist/crossref-deposit.xml \

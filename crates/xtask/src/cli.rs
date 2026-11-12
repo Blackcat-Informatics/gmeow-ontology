@@ -51,21 +51,22 @@ pub(super) fn command(args: Vec<String>) -> ExitCode {
     }
 }
 
-const USAGE: &str = "expected: build [--skip-producer] [--allow-dirty] [--native] | run -- ARGS | \
-                     install [--bin-dir DIR] [--allow-dirty] [--allow-native]";
+const USAGE: &str = "expected: build [--skip-producer] [--native] | run -- ARGS | \
+                     install [--bin-dir DIR] [--skip-producer] [--allow-dirty] [--allow-native]";
 
-/// Options selecting how the consumer is built.
+/// Options selecting how the consumer is built. A dirty tree is never refused here:
+/// the build records it as `dirty` in the binary and the receipt.
 #[derive(Debug, Clone, Copy, Default, PartialEq, Eq)]
 struct BuildOptions {
     skip_producer: bool,
-    allow_dirty: bool,
     native: bool,
 }
 
-/// What an `install` is explicitly permitted to place on a PATH.
+/// What an `install` builds and is explicitly permitted to place on a PATH.
 #[derive(Debug, Clone, PartialEq, Eq)]
 struct InstallOptions {
     bin_dir: Option<PathBuf>,
+    skip_producer: bool,
     allow_dirty: bool,
     allow_native: bool,
 }
@@ -97,7 +98,6 @@ fn parse(args: &[String]) -> Result<Operation> {
                 flag(arg)?;
                 match arg.as_str() {
                     "--skip-producer" => options.skip_producer = true,
-                    "--allow-dirty" => options.allow_dirty = true,
                     "--native" => options.native = true,
                     _ => return Err(fail(format!("unknown build argument {arg:?}; {USAGE}"))),
                 }
@@ -115,19 +115,28 @@ fn parse(args: &[String]) -> Result<Operation> {
         "install" => {
             let mut options = InstallOptions {
                 bin_dir: None,
+                skip_producer: false,
                 allow_dirty: false,
                 allow_native: false,
             };
             let mut iter = rest.iter();
             while let Some(arg) = iter.next() {
-                flag(arg)?;
-                match arg.as_str() {
+                let (name, inline) = match arg.split_once('=') {
+                    Some((name, value)) if name == "--bin-dir" => (name, Some(value)),
+                    _ => (arg.as_str(), None),
+                };
+                flag(name)?;
+                match name {
                     "--bin-dir" => {
-                        let dir = iter
-                            .next()
-                            .ok_or_else(|| fail("--bin-dir requires a directory"))?;
-                        options.bin_dir = Some(PathBuf::from(dir));
+                        let dir = match inline {
+                            Some(value) => value,
+                            None => iter
+                                .next()
+                                .ok_or_else(|| fail("--bin-dir requires a directory"))?,
+                        };
+                        options.bin_dir = Some(bin_dir_argument(dir)?);
                     }
+                    "--skip-producer" => options.skip_producer = true,
                     "--allow-dirty" => options.allow_dirty = true,
                     "--allow-native" => options.allow_native = true,
                     _ => {
@@ -141,6 +150,25 @@ fn parse(args: &[String]) -> Result<Operation> {
     }
 }
 
+/// A `--bin-dir` value. The shell did not expand a leading `~`, so it is refused
+/// rather than creating a directory literally named `~`.
+fn bin_dir_argument(dir: &str) -> Result<PathBuf> {
+    if dir.is_empty() || dir.starts_with('~') {
+        return Err(fail(format!(
+            "--bin-dir {dir:?} must be a directory path; a leading `~` is not expanded"
+        )));
+    }
+    Ok(PathBuf::from(dir))
+}
+
+/// The default install directory, `$HOME/.local/bin`, which needs an absolute HOME.
+fn default_bin_dir() -> Result<PathBuf> {
+    match std::env::var_os("HOME").map(PathBuf::from) {
+        Some(home) if home.is_absolute() => Ok(home.join(".local/bin")),
+        _ => Err(fail("HOME is unset or not absolute; pass --bin-dir DIR")),
+    }
+}
+
 fn execute(root: &Path, operation: Operation) -> Result<ExitCode> {
     let staged = root.join("dist/bin/gmeow");
     match operation {
@@ -149,23 +177,46 @@ fn execute(root: &Path, operation: Operation) -> Result<ExitCode> {
             Ok(ExitCode::SUCCESS)
         }
         Operation::Run(args) => {
-            ensure_current(root, &staged, false)?;
+            let receipt = match current_receipt(root, &staged)? {
+                Some(receipt) => receipt,
+                None => build(root, &staged, BuildOptions::default())?,
+            };
+            verify_identity(&staged, &receipt)?;
             let status = Command::new(&staged).args(&args).status().map_err(fail)?;
             Ok(ExitCode::from(
                 u8::try_from(status.code().unwrap_or(1)).unwrap_or(1),
             ))
         }
         Operation::Install(options) => {
-            let bin_dir = match options.bin_dir {
-                Some(dir) => absolute(&dir)?,
-                None => std::env::var_os("HOME")
-                    .map(|home| PathBuf::from(home).join(".local/bin"))
-                    .ok_or_else(|| fail("HOME is unset; pass --bin-dir DIR"))?,
+            let bin_dir = match &options.bin_dir {
+                Some(dir) => absolute(dir)?,
+                None => default_bin_dir()?,
             };
-            let receipt = ensure_current(root, &staged, options.allow_dirty)?;
+            // Refused before any build: a dirty tree can only yield a `dirty` binary.
+            if source_state(root)?.1 == Tree::Dirty && !options.allow_dirty {
+                return Err(fail(
+                    "the checkout has uncommitted or untracked changes; commit them, or pass \
+                     --allow-dirty to install a binary recorded as `dirty`",
+                ));
+            }
+            let receipt = match reusable_for_install(root, &staged, &options)? {
+                Some(receipt) => receipt,
+                None => build(
+                    root,
+                    &staged,
+                    BuildOptions {
+                        skip_producer: options.skip_producer,
+                        native: false,
+                    },
+                )?,
+            };
+            verify_identity(&staged, &receipt)?;
             admit_install(&receipt, options.allow_dirty, options.allow_native)?;
             let (installed, sha256) = install(&staged, &bin_dir, &receipt)?;
             println!("installed {} sha256 {sha256}", installed.display());
+            for line in explicit_choices(&receipt) {
+                println!("  {line}");
+            }
             Ok(ExitCode::SUCCESS)
         }
     }
@@ -488,13 +539,8 @@ fn rustc_wrapper(config: &cargo_config2::Config) -> Value {
 
 /// Produce (unless skipped), compile under the forced recipe, verify, and stage.
 fn build(root: &Path, staged: &Path, options: BuildOptions) -> Result<Value> {
+    // A dirty tree is built and recorded as `dirty`; only `install` refuses it.
     let (revision, tree) = source_state(root)?;
-    if tree == Tree::Dirty && !options.allow_dirty {
-        return Err(fail(
-            "the checkout has uncommitted or untracked changes; commit them, or pass \
-             --allow-dirty to build a binary recorded as `dirty`",
-        ));
-    }
     let rustc = rustc_program();
     let host = host_triple(&rustc)?;
     if !options.native && host != PORTABLE_TARGET {
@@ -570,16 +616,17 @@ fn build(root: &Path, staged: &Path, options: BuildOptions) -> Result<Value> {
         )?,
         "rustc_wrapper": rustc_wrapper(&config),
         "rustflags": recipe.rustflags,
-        "cflags": recipe.c_flags,
-        "cxxflags": recipe.c_flags,
+        // Forced through Cargo's [env] table: requested, not observed in cc's argv.
+        "cflags_requested": recipe.c_flags,
+        "cxxflags_requested": recipe.c_flags,
         "target": host,
         "cpu_baseline": recipe.cpu_baseline,
         "target_features": expected_features,
         "profile": "release",
         "cargo_lock_sha256": sha256_file(&root.join("Cargo.lock")).map_err(fail)?,
         "purrdf_version": locked_version(&lock_text, "purrdf")?,
-        "bundle": payload_record(&recipe.bundle)?,
-        "codebook": payload_record(&recipe.codebook)?,
+        "bundle": payload_record(&recipe.bundle, "GMEOW_BUNDLE_PATH")?,
+        "codebook": payload_record(&recipe.codebook, "GMEOW_CODEBOOK_PATH")?,
     });
     if let Err(error) = verify_identity(&temporary, &receipt) {
         let _ = std::fs::remove_file(&temporary);
@@ -615,8 +662,14 @@ fn receipt_path(staged: &Path) -> PathBuf {
     staged.with_extension("receipt.json")
 }
 
-fn payload_record(path: &Path) -> Result<Value> {
+fn payload_record(path: &Path, env_name: &str) -> Result<Value> {
+    let source = if std::env::var_os(env_name).is_some() {
+        format!("override ({env_name})")
+    } else {
+        "default".to_owned()
+    };
     Ok(json!({
+        "source": source,
         "path": path.display().to_string(),
         "sha256": sha256_file(path).map_err(fail)?,
         "bytes": std::fs::metadata(path).map_err(fail)?.len(),
@@ -773,22 +826,46 @@ fn current_receipt(root: &Path, staged: &Path) -> Result<Option<Value>> {
     Ok(current.then_some(receipt))
 }
 
-/// Reuse a current staged build or produce a portable one, then re-verify it.
-fn ensure_current(root: &Path, staged: &Path, allow_dirty: bool) -> Result<Value> {
-    let receipt = match current_receipt(root, staged)? {
-        Some(receipt) => receipt,
-        None => build(
-            root,
-            staged,
-            BuildOptions {
-                skip_producer: false,
-                allow_dirty,
-                native: false,
-            },
-        )?,
+/// Install may hand out the staged binary only when it is exactly what `install`
+/// would build now: current revision and clean tree, portable baseline, producer
+/// run, and default payloads. Any explicit override or skipped producer forces a build.
+fn reusable_for_install(
+    root: &Path,
+    staged: &Path,
+    options: &InstallOptions,
+) -> Result<Option<Value>> {
+    if options.skip_producer
+        || std::env::var_os("GMEOW_BUNDLE_PATH").is_some()
+        || std::env::var_os("GMEOW_CODEBOOK_PATH").is_some()
+    {
+        return Ok(None);
+    }
+    let Some(receipt) = current_receipt(root, staged)? else {
+        return Ok(None);
     };
-    verify_identity(staged, &receipt)?;
-    Ok(receipt)
+    let baseline_ok = receipt["cpu_baseline"] == PORTABLE_CPU;
+    let default_inputs = receipt["producer"] == "ran"
+        && receipt["bundle"]["source"] == "default"
+        && receipt["codebook"]["source"] == "default";
+    Ok((baseline_ok && default_inputs).then_some(receipt))
+}
+
+/// Explicit caller choices recorded in a receipt, for the install summary.
+fn explicit_choices(receipt: &Value) -> Vec<String> {
+    let mut choices = Vec::new();
+    if receipt["producer"] != "ran" {
+        choices.push("producer skipped (--skip-producer)".to_owned());
+    }
+    for key in ["bundle", "codebook"] {
+        let source = receipt[key]["source"].as_str().unwrap_or("default");
+        if source != "default" {
+            choices.push(format!(
+                "{key}: {source} at {}",
+                receipt[key]["path"].as_str().unwrap_or("?")
+            ));
+        }
+    }
+    choices
 }
 
 /// Refuse to place a dirty or host-tuned build on a PATH without explicit consent.

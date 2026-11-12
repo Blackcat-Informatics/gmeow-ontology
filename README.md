@@ -193,10 +193,10 @@ another program.
 
 | Asset | What it is |
 |---|---|
-| `gmeow-x86_64-unknown-linux-gnu` | the binary for x86_64 Linux (glibc), compiled for the x86-64-v3 CPU baseline, with the signed bundle embedded |
+| `gmeow-x86_64-unknown-linux-gnu` | the binary for x86_64 Linux (glibc), built on the ubuntu-latest runner so it needs a glibc at least that new, compiled for the x86-64-v3 CPU baseline, with the signed bundle embedded |
 | `gmeow.gts`, `gmeow.gts.ingestion.cbor` | the signed bundle it embeds and the bundle's ingestion companion |
 | `gmeow.identity.json` | the binary's own `gmeow version --verbose --format json` |
-| `SHA256SUMS` | SHA-256 of every file the release build produced |
+| `SHA256SUMS` | SHA-256 of the other four Release assets |
 
 ```bash
 gh release download <tag> --repo Blackcat-Informatics/gmeow-ontology
@@ -216,17 +216,16 @@ cargo xtask cli install --bin-dir <abs-dir>   # or any other directory
 the release binary for the portable x86-64-v3 baseline with the workspace and Cargo home
 paths remapped out of it, and stages `dist/bin/gmeow` with the receipt
 `dist/bin/gmeow.receipt.json`. The receipt records the binary's SHA-256 and size, the source
-revision and tree state, the compiler, the exact Rust and C flags, the target and CPU
+revision and tree state, the compiler, the exact Rust flags and the requested C flags, the target and CPU
 baseline, the `Cargo.lock` digest, the purrdf version, and the digests of the embedded bundle
 and codebook. Before anything is staged, the new binary is run with a cleared environment
-from a scratch directory, and the build fails unless the identity it reports equals the
+from a temporary directory (removed afterwards), and the build fails unless the identity it reports equals the
 receipt. The installed file is written beside its destination and renamed over it, and
-`install` prints its path and SHA-256. A current staged build is reused rather than rebuilt.
+`install` prints its path and SHA-256. A staged build is reused only when its receipt shows the same revision and a clean tree, the portable baseline, a producer run, and the default bundle and codebook; `--skip-producer` or a `GMEOW_BUNDLE_PATH` / `GMEOW_CODEBOOK_PATH` override is an explicit choice that forces a build, is recorded in the receipt, and is printed.
 
 The related tasks are `cargo xtask cli build` (stage and verify only; `make cli-build` is
-the same command) and `cargo xtask cli run -- <args>` (run the staged binary, building it
-first when it is not current). A checkout with uncommitted or untracked changes is refused
-unless `--allow-dirty` is given, and the binary then reports its tree as `dirty`. A host-tuned
+the same command and runs the producer unless `--skip-producer` is given) and `cargo xtask cli run -- <args>` (run the staged binary, building it
+first when it is not current). `build` and `run` accept a checkout with uncommitted or untracked changes and the binary reports its tree as `dirty`; `install` refuses one unless `--allow-dirty` is given. A host-tuned
 binary comes only from `cargo xtask cli build --native`, and `install` places one only with
 `--allow-native`.
 
@@ -261,8 +260,7 @@ the purrdf version, the SHA-256 and byte length of the embedded bundle and of th
 codebook, the target triple, the CPU baseline, the enabled target features, the profile, and
 the compiler. The two digests are computed at run time from the bytes the binary embeds, so
 they cannot disagree with its contents. A binary built from a checkout embeds the unsigned
-bundle that checkout produced; a Release binary embeds the signed bundle, so the two never
-have equal digests.
+bundle that checkout produced; a Release binary embeds the signed bundle. Compare a binary's digests with the Release's `gmeow.identity.json`.
 
 ### Use
 
@@ -483,7 +481,7 @@ crates/                   The Rust core: logic/ + logic-compile/ (the native log
 crates/gmeow-cli/         The native Rust `gmeow` consumer CLI; gmeow-dev-cli/ is
                           the repository-maintenance CLI (`gmeow-dev`)
 
-generated/                EVERY committed generated artifact — one root, every
+generated/                EVERY generated artifact (git-ignored) — one root, every
                           path owned by a registered generator (drift-, orphan-,
                           and internal-tag-leak-gated):
                           mappings/ (SSSOM) · projections/ (EDOAL+FnO ·
