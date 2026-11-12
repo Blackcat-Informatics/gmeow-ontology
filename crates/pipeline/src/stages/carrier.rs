@@ -975,6 +975,12 @@ impl<'a> CarrierParts<'a> {
         Ok(view)
     }
 
+    /// Drop the cached per-producer selection views. Sources already pushed keep their own
+    /// handles, so composition is unaffected.
+    fn release_views(&mut self) {
+        self.producers.clear();
+    }
+
     /// Select `graph_iri` off `stage`'s dataset and place it in `placed_iri`. A graph the
     /// producer does not hold contributes only the destination declaration, as the empty
     /// `project_graph` result re-rooted by [`rooted_in_graph`] did.
@@ -985,7 +991,7 @@ impl<'a> CarrierParts<'a> {
         placed_iri: &str,
     ) -> Result<(), gmeow_errors::Diag> {
         let source =
-            if holds_named_graph(&self.producer_dataset(stage)?, graph_iri) {
+            if holds_named_graph(self.producer_dataset(stage)?.as_ref(), graph_iri) {
                 purrdf::CompositeSource::from_selection(
                     self.producer_view(stage)?,
                     [purrdf::TermValue::iri(graph_iri)],
@@ -1218,7 +1224,7 @@ fn assemble_carrier(
     )?;
     // graph/conformance is folded only when it asserts a quad (an all-agree corpus has none).
     if graph_has_quads(
-        &parts.producer_dataset("stage-conformance")?,
+        parts.producer_dataset("stage-conformance")?.as_ref(),
         GRAPH_CONFORMANCE,
     ) {
         parts.push_graph("stage-conformance", GRAPH_CONFORMANCE)?;
@@ -1280,6 +1286,7 @@ fn assemble_carrier(
         crate::node::measure_stage_phase("stage-snapshot", "materialize-carrier-graphs", || {
             parts.materialize()
         })?;
+    log_carrier_size("materialize-carrier-graphs", &composed);
 
     // Reasoner-derived gate verdicts (logic:ruleGateFatalVerdict). The reason stage's
     // object-level EDB EXCLUDES the report graphs by construction, so reason_all never
@@ -1302,6 +1309,11 @@ fn assemble_carrier(
             gate.derived_verdict_dataset(&composed, GRAPH_DIAGNOSTICS)
         })
         .map_err(|e| stage_err(&format!("derive gate verdicts over the bundle: {e}")))?;
+    // The gate program, the authored default and the per-producer selection views have
+    // served their purpose; release them before the carrier-sized phases below.
+    drop(gate);
+    drop(authored_default);
+    parts.release_views();
     let composed_final = if verdicts.quad_count() == 0 {
         composed
     } else {
@@ -1309,11 +1321,13 @@ fn assemble_carrier(
         // first, so only one owned carrier is ever resident.
         drop(composed);
         parts.push_dataset(verdicts);
-        crate::node::measure_stage_phase(
+        let carrier = crate::node::measure_stage_phase(
             "stage-snapshot",
             "materialize-carrier-with-verdicts",
             || parts.materialize(),
-        )?
+        )?;
+        log_carrier_size("materialize-carrier-with-verdicts", &carrier);
+        carrier
     };
 
     // Fold the SCOPED COHERENCE CERTIFICATE into the terminal bundle (graph/attestations),
@@ -1342,6 +1356,16 @@ fn termination_demonstrator_graphs()
 /// epoch, the SAME reproducible-build sentinel the packed-archive members zero their mtime
 /// to. It is an injected constant, not a degraded fallback: a build-time coherence proof
 /// over content-addressed bytes has no meaningful wall-clock instant.
+/// Log the size of an owned carrier after the phase that built it, so a run names the
+/// phase in which resident memory grows.
+fn log_carrier_size(phase: &str, carrier: &purrdf::RdfDataset) {
+    tracing::info!(
+        target: "pipeline_phase", stage = "stage-snapshot", phase,
+        carrier_quads = carrier.quad_count(),
+        "owned carrier size"
+    );
+}
+
 const COHERENCE_ISSUED_AT: &str = "1970-01-01T00:00:00Z";
 
 /// Fold the scoped coherence certificate over the fully-composed carrier into its
@@ -1403,6 +1427,8 @@ fn fold_coherence_certificate(
     // Only the digest is needed by the certificate and the final carrier.
     drop(composed_nq);
 
+    // `build_coherence_outcome` renders the carrier's quads once per graph for the axiom
+    // hashes; it holds only one graph's text at a time.
     let outcome =
         crate::node::measure_stage_phase("stage-snapshot", "assess-coherence-certificate", || {
             crate::stages::release::build_coherence_outcome(
@@ -1412,6 +1438,10 @@ fn fold_coherence_certificate(
                 COHERENCE_ISSUED_AT,
             )
         })?;
+    tracing::info!(
+        target: "pipeline_phase", stage = "stage-snapshot",
+        "coherence outcome assessed; releasing the verdict-bearing carrier next"
+    );
     if outcome.is_refused() {
         return Err(stage_err(
             "coherence certificate: the assembled bundle carries a forbidden integrity \
@@ -1432,9 +1462,13 @@ fn fold_coherence_certificate(
     // carrier is released first, so only one owned carrier is ever resident.
     drop(composed);
     parts.push_dataset(cert);
-    crate::node::measure_stage_phase("stage-snapshot", "materialize-certified-carrier", || {
-        parts.materialize()
-    })
+    let certified = crate::node::measure_stage_phase(
+        "stage-snapshot",
+        "materialize-certified-carrier",
+        || parts.materialize(),
+    )?;
+    log_carrier_size("materialize-certified-carrier", &certified);
+    Ok(certified)
 }
 
 /// Every remaining RDF `generated/` file (committed-path → bytes) that rides as an

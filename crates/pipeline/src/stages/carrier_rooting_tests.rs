@@ -503,8 +503,8 @@ fn composed_carrier_certifies_exactly_what_the_rooted_union_did() {
     let quoted = composed
         .owned_reifiers()
         .filter(|row| row.graph == Some(RdfTerm::iri(WHOLE)))
-        .filter_map(|row| match row.statement.subject {
-            RdfTerm::BlankNode(label) => Some(label),
+        .filter_map(|row| match &row.statement.subject {
+            RdfTerm::BlankNode(label) => Some(label.clone()),
             _ => None,
         })
         .collect::<std::collections::BTreeSet<_>>();

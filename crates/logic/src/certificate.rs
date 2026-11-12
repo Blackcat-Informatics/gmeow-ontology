@@ -701,46 +701,74 @@ pub fn per_graph_axiom_hashes(
     dataset: &RdfDataset,
     digest: impl Fn(&[u8]) -> String,
 ) -> Vec<String> {
-    let render = |t: TermRef<'_>| -> String {
-        match t {
-            TermRef::Iri(iri) => format!("<{iri}>"),
-            TermRef::Blank { label, .. } => format!("_:{label}"),
+    use std::fmt::Write as _;
+
+    fn render_into(out: &mut String, term: TermRef<'_>) {
+        match term {
+            TermRef::Iri(iri) => write!(out, "<{iri}>"),
+            TermRef::Blank { label, .. } => write!(out, "_:{label}"),
             TermRef::Literal {
                 lexical, language, ..
             } => match language {
-                Some(lang) => format!("\"{}\"@{lang}", nq_escape(lexical)),
-                None => format!("\"{}\"", nq_escape(lexical)),
+                Some(lang) => write!(out, "\"{}\"@{lang}", nq_escape(lexical)),
+                None => write!(out, "\"{}\"", nq_escape(lexical)),
             },
-            TermRef::Triple { .. } => "<<triple>>".to_owned(),
+            TermRef::Triple { .. } => write!(out, "<<triple>>"),
         }
-    };
+        .expect("writing to a String cannot fail");
+    }
 
-    // Group canonical per-quad lines by their graph name.
-    let mut per_graph: BTreeMap<String, Vec<String>> = BTreeMap::new();
+    // Quads are grouped by graph-name id first (an integer key), then the ids that render
+    // to the same graph key are merged, so no per-quad key string is built. A graph's
+    // lines are rendered, sorted, hashed and released before the next graph's are
+    // rendered, so only the largest graph's text is ever resident.
+    let mut by_graph_id: BTreeMap<Option<purrdf::TermId>, Vec<purrdf::QuadIds>> = BTreeMap::new();
     for q in dataset.quads() {
-        let graph_key = match q.g {
+        by_graph_id.entry(q.g).or_default().push(q);
+    }
+    let mut by_graph_key: BTreeMap<String, Vec<Vec<purrdf::QuadIds>>> = BTreeMap::new();
+    for (graph, quads) in by_graph_id {
+        let graph_key = match graph {
             Some(g) => match dataset.resolve(g) {
                 TermRef::Iri(iri) => iri.to_owned(),
-                other => render(other),
+                other => {
+                    let mut key = String::new();
+                    render_into(&mut key, other);
+                    key
+                }
             },
             None => String::new(),
         };
-        let line = format!(
-            "{} {} {} .",
-            render(dataset.resolve(q.s)),
-            render(dataset.resolve(q.p)),
-            render(dataset.resolve(q.o)),
-        );
-        per_graph.entry(graph_key).or_default().push(line);
+        by_graph_key.entry(graph_key).or_default().push(quads);
     }
 
-    let mut hashes: Vec<String> = per_graph
-        .into_values()
-        .map(|mut lines| {
-            lines.sort_unstable();
-            digest(lines.join("\n").as_bytes())
-        })
-        .collect();
+    let mut hashes: Vec<String> = Vec::with_capacity(by_graph_key.len());
+    for groups in by_graph_key.into_values() {
+        let mut text = String::new();
+        let mut spans: Vec<(usize, usize)> = Vec::new();
+        for q in groups.iter().flatten() {
+            let start = text.len();
+            render_into(&mut text, dataset.resolve(q.s));
+            text.push(' ');
+            render_into(&mut text, dataset.resolve(q.p));
+            text.push(' ');
+            render_into(&mut text, dataset.resolve(q.o));
+            text.push_str(" .");
+            spans.push((start, text.len()));
+        }
+        drop(groups);
+        spans.sort_unstable_by(|a, b| text[a.0..a.1].cmp(&text[b.0..b.1]));
+        let mut joined = String::with_capacity(text.len());
+        for (index, &(start, end)) in spans.iter().enumerate() {
+            if index != 0 {
+                joined.push('\n');
+            }
+            joined.push_str(&text[start..end]);
+        }
+        drop(spans);
+        drop(text);
+        hashes.push(digest(joined.as_bytes()));
+    }
     hashes.sort_unstable();
     hashes
 }

@@ -400,3 +400,64 @@ fn nquads_emits_unsupported_construct_and_projection_loss_as_separate_properties
         "unsupportedConstruct must NOT contain the ledger code: {nquads}"
     );
 }
+
+/// The per-graph axiom hashes the certificate pins are fixed by the original rendering:
+/// one line per quad, grouped by the rendered graph name (default graph under the empty
+/// key), sorted bytewise, joined with newlines, digested, and the digests sorted. The
+/// streaming implementation must reproduce that exactly, including a blank-node graph
+/// name, language-tagged and escaped literals, and a triple-term object.
+#[test]
+fn per_graph_axiom_hashes_match_the_line_per_quad_reference() {
+    let dataset = purrdf::parse_dataset(
+        br#"@prefix ex: <https://example.org/> .
+            ex:a ex:p "plain" .
+            ex:g1 { ex:a ex:p "tag\n\"quoted\""@en . ex:b ex:p ex:c . _:x ex:p _:x . }
+            ex:g2 { ex:b ex:p ex:c . ex:r ex:q <<( ex:a ex:p ex:b )>> . }
+            _:graph { ex:a ex:p ex:z . }"#,
+        "application/trig",
+        None,
+    )
+    .expect("parse synthetic dataset");
+
+    let render = |t: TermRef<'_>| -> String {
+        match t {
+            TermRef::Iri(iri) => format!("<{iri}>"),
+            TermRef::Blank { label, .. } => format!("_:{label}"),
+            TermRef::Literal {
+                lexical, language, ..
+            } => match language {
+                Some(lang) => format!("\"{}\"@{lang}", nq_escape(lexical)),
+                None => format!("\"{}\"", nq_escape(lexical)),
+            },
+            TermRef::Triple { .. } => "<<triple>>".to_owned(),
+        }
+    };
+    let mut reference: BTreeMap<String, Vec<String>> = BTreeMap::new();
+    for q in dataset.quads() {
+        let key = match q.g {
+            Some(g) => match dataset.resolve(g) {
+                TermRef::Iri(iri) => iri.to_owned(),
+                other => render(other),
+            },
+            None => String::new(),
+        };
+        reference.entry(key).or_default().push(format!(
+            "{} {} {} .",
+            render(dataset.resolve(q.s)),
+            render(dataset.resolve(q.p)),
+            render(dataset.resolve(q.o)),
+        ));
+    }
+    let digest = |bytes: &[u8]| String::from_utf8_lossy(bytes).into_owned();
+    let mut expected: Vec<String> = reference
+        .into_values()
+        .map(|mut lines| {
+            lines.sort_unstable();
+            digest(lines.join("\n").as_bytes())
+        })
+        .collect();
+    expected.sort_unstable();
+
+    assert_eq!(expected.len(), 4);
+    assert_eq!(per_graph_axiom_hashes(&dataset, digest), expected);
+}
