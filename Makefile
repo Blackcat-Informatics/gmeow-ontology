@@ -1421,9 +1421,10 @@ maint-cl-ingest-fixture: ## (maintainer) Produce the committed CLIF ingestion fi
 	  https://example.org/cl-ingest/genealogy/kb
 
 maint-medium-sweep: ## (maintainer) Refresh bench/medium-baseline.json — the full dictionary strategy x target-length sweep plus the global codec x level sweep.
-	@# The SINGLE producer of the committed dictionary winner table. It runs the real
-	@# DAG once, then for every MEASURABLE declared dictionary grid-searches
-	@# (strategy x target length) over the same corpus the build trains from, scoring
+	@# The SINGLE producer of the committed dictionary winner table. It runs the
+	@# committed-scope DAG (the stages `sync --outputs generated` runs) once, then
+	@# for every MEASURABLE declared dictionary grid-searches (strategy x target
+	@# length) over the same corpus the build trains from, scoring
 	@# each cell by the TWO-PART CODE (the frames it primes, encoded through the cell's
 	@# dictionary, PLUS that dictionary's own in-band bytes) against the declared
 	@# no-dictionary gmeow:mediumProfileBaselineL12 code for the same frames. It also

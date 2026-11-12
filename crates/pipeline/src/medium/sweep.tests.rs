@@ -346,3 +346,38 @@ fn the_codec_sweep_prices_the_mandated_cell() {
     // A cell the sweep cannot price is a hard fail, never an omitted row.
     assert!(sweep_codecs(&frames, &[], "brotli", 12).is_err());
 }
+
+/// The sweep measures the frames the committed-scope bundle carries, so it schedules
+/// exactly the committed output scope: the runtime-only exporters (whose whole-carrier
+/// JSON-LD serialization refuses on the current corpus) are not run, while the snapshot
+/// and the archive producer the frames come from are.
+#[test]
+fn the_sweep_schedules_exactly_the_committed_output_scope() {
+    let selected: BTreeSet<String> = sweep_spec()
+        .expect("select the sweep's stages")
+        .stages
+        .into_iter()
+        .map(|stage| stage.id)
+        .collect();
+    let committed: BTreeSet<String> =
+        crate::run::spec_for_scope(crate::full_spec(), crate::run::RunOutputScope::Committed)
+            .expect("committed scope")
+            .stages
+            .into_iter()
+            .map(|stage| stage.id)
+            .collect();
+    assert_eq!(selected, committed);
+    for runtime_only in [
+        "stage-export-yaml-ld",
+        "stage-export-export",
+        "stage-export-okf",
+    ] {
+        assert!(
+            !selected.contains(runtime_only),
+            "{runtime_only} is scheduled"
+        );
+    }
+    for needed in ["stage-snapshot", "stage-archive-blobs"] {
+        assert!(selected.contains(needed), "{needed} is not scheduled");
+    }
+}

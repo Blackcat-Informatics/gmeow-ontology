@@ -253,6 +253,9 @@ pub enum Commands {
         /// Write the complete measurement evidence to this path.
         #[arg(long, default_value = "bench/medium-baseline.json")]
         out: PathBuf,
+        /// Scheduler width for the measured pipeline run. Defaults to every CPU.
+        #[arg(short = 'j', long = "jobs")]
+        jobs: Option<usize>,
     },
     /// Write a declaration-only bootstrap table with zero measured evidence.
     MediumSeed {
@@ -962,7 +965,7 @@ pub fn run() -> i32 {
         ),
         Commands::GtsFrameProfile { gts } => dev_validate::gts_frame_profile(&gts),
         Commands::MediumGate { gts, registry } => dev_validate::medium_gate(&gts, &registry),
-        Commands::MediumSweep { out } => dev_medium_sweep::run(&out),
+        Commands::MediumSweep { out, jobs } => dev_medium_sweep::run(&out, jobs),
         Commands::MediumSeed { out } => dev_medium_sweep::seed(&out),
         Commands::TermReleaseAuthority { bootstrap } => dev_term_release_authority::run(bootstrap),
         Commands::Validate {

@@ -46,10 +46,14 @@ const TOOL: &str = "medium-sweep";
 /// The CLI admits the producer first. Returns 0 on success, or 1 on a sweep,
 /// serialization, or write failure, or when a dictionary does not pay for itself.
 /// Measurement evidence is written before reporting a dictionary stop condition.
-pub(crate) fn run(out: &Path) -> i32 {
+pub(crate) fn run(out: &Path, jobs: Option<usize>) -> i32 {
+    let jobs = match crate::dev_common::resolve_jobs(jobs) {
+        Ok(jobs) => jobs,
+        Err(code) => return code,
+    };
     let root = crate::dev_common::project_root();
     let root = root.as_path();
-    let baseline = match sweep::run_sweep(root) {
+    let baseline = match sweep::run_sweep(root, jobs) {
         Ok(baseline) => baseline,
         Err(err) => {
             eprintln!("{TOOL}: the sweep failed: {err:#}");

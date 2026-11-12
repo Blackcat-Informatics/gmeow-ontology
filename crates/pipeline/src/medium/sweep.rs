@@ -680,8 +680,8 @@ pub fn check_corpus_digests(
 /// A BOOTSTRAP winner table derived from the authored declarations alone, with every
 /// measured field left at zero.
 ///
-/// It exists to break a start-up cycle and nothing else: [`run_sweep`] runs the whole
-/// DAG to measure, and `stage-medium-dictionaries` refuses to run without a committed
+/// It exists to break a start-up cycle and nothing else: [`run_sweep`] runs the
+/// committed-scope DAG to measure, and `stage-medium-dictionaries` refuses to run without a committed
 /// table, so the very first sweep in a fresh tree (or after the file is deleted) has no
 /// way in. `gmeow-dev medium-seed` writes this, the sweep immediately OVERWRITES it with
 /// real numbers, and `the_committed_winner_table_carries_real_measurements` refuses a
@@ -1170,9 +1170,21 @@ pub fn replay_corpus(dataset: &purrdf::RdfDataset) -> Result<Vec<String>, gmeow_
 pub const CODEC_SWEEP_EXCLUDED_REPS: [&str; 4] =
     ["docs-book", "docs-print", "okf-export", "ontology-docs"];
 
-/// Run the whole sweep over a repository: the real DAG once, then the
-/// `(strategy × target length)` grid per measurable dictionary plus the global codec ×
-/// level grid.
+/// The stages the sweep schedules: the committed output scope, the same selection
+/// `sync --outputs generated` runs. Every frame the sweep measures and every corpus it
+/// trains from comes from that scope, so the gitignored runtime exporters (whole-carrier
+/// JSON-LD/YAML-LD, the flat export and OKF) are not run. The sink and
+/// `stage-medium-dictionaries` are then skipped by [`run_sweep`].
+///
+/// # Errors
+/// A stage whose implementation is not registered.
+pub fn sweep_spec() -> Result<crate::loader::PipelineSpec, gmeow_errors::Diag> {
+    crate::run::spec_for_scope(crate::full_spec(), crate::run::RunOutputScope::Committed)
+}
+
+/// Run the whole sweep over a repository: the committed-scope DAG once ([`sweep_spec`]),
+/// then the `(strategy × target length)` grid per measurable dictionary plus the global
+/// codec × level grid. `jobs` is the scheduler width.
 ///
 /// This is the body of `make maint-medium-sweep`. It is deliberately in the library
 /// rather than the binary so the grid logic is unit-testable and so the binary stays a
@@ -1181,15 +1193,12 @@ pub const CODEC_SWEEP_EXCLUDED_REPS: [&str; 4] =
 /// # Errors
 /// Any DAG failure, a corpus that resolves to nothing, a trainer or encoder refusal,
 /// or a dictionary whose grid has no buildable cell.
-pub fn run_sweep(root: &Path) -> Result<MediumBaseline, gmeow_errors::Diag> {
+pub fn run_sweep(root: &Path, jobs: usize) -> Result<MediumBaseline, gmeow_errors::Diag> {
     let engine_identity =
         resolve_purrdf(&root.join("Cargo.toml"), &root.join("Cargo.lock"))?.packages;
-    let spec = crate::full_spec();
+    let spec = sweep_spec()?;
     let graph = spec.validate()?;
     let bound = crate::bind(&spec, &graph, &crate::default_registry())?;
-    let jobs = std::thread::available_parallelism()
-        .map(std::num::NonZeroUsize::get)
-        .unwrap_or(4);
     let mut ctx = crate::RunContext::open(root, jobs)?;
     // Everything EXCEPT the two stages that CONSUME this lane's own output.
     //
