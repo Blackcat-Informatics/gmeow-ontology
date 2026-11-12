@@ -16,6 +16,7 @@
 //! are [`ROOT`] and start immediately, concurrently with the synchronization pass
 //! itself.
 
+mod cli;
 mod evidence;
 mod producer;
 
@@ -518,6 +519,9 @@ fn main() -> ExitCode {
     let command = args.next().unwrap_or_else(|| "help".to_string());
     match command.as_str() {
         "producer" => producer::command(args.collect()),
+        // Builds, stages and verifies the consumer `gmeow`; its producer step runs
+        // through the same producer runner, which takes the host gate lock itself.
+        "cli" => cli::command(args.collect()),
         "check" => {
             let mut jobs = std::thread::available_parallelism().map_or(1, std::num::NonZero::get);
             let mut explain = false;
@@ -617,7 +621,7 @@ fn main() -> ExitCode {
         }
         _ => {
             eprintln!(
-                "usage: cargo xtask check [--explain] [--timings-json PATH] [-j N]\n       cargo xtask receipt create --out PATH\n       cargo xtask list\n       cargo xtask producer build|verify|recipe\n       cargo xtask producer run -- COMMAND"
+                "usage: cargo xtask check [--explain] [--timings-json PATH] [-j N]\n       cargo xtask receipt create --out PATH\n       cargo xtask list\n       cargo xtask producer build|verify|recipe\n       cargo xtask producer run -- COMMAND\n       cargo xtask cli build [--skip-producer] [--allow-dirty] [--native]\n       cargo xtask cli run -- ARGS\n       cargo xtask cli install [--bin-dir DIR] [--allow-dirty] [--allow-native]"
             );
             ExitCode::from(2)
         }

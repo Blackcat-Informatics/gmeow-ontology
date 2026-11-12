@@ -46,6 +46,11 @@ use gmeow_cli_core::ConsoleMode;
 /// absence still applies.
 pub const BUNDLE_GTS: &[u8] = include_bytes!(env!("GMEOW_BUNDLE_PATH"));
 
+/// The embedded GMN codebook the default `gmeow gmn` codec decodes, resolved by
+/// `build.rs` through `GMEOW_CODEBOOK_PATH` under the same absent/empty guard as
+/// the bundle. `gmeow version --verbose` digests these exact bytes.
+pub const GMN_CODEBOOK: &[u8] = include_bytes!(env!("GMEOW_CODEBOOK_PATH"));
+
 /// The GMEOW IRI namespace the discipline checks and term catalog key on.
 pub(crate) const NAMESPACE: &str = "https://blackcatinformatics.ca/gmeow/";
 
@@ -132,8 +137,17 @@ pub struct Cli {
 #[allow(clippy::large_enum_variant)]
 #[derive(Debug, Subcommand)]
 pub enum Commands {
-    /// Print the gmeow package version.
-    Version,
+    /// Print the gmeow package version; `--verbose` adds the full build identity.
+    Version {
+        /// Also report the source revision and tree state, the purrdf version, the
+        /// SHA-256 and size of the embedded bundle and codebook, and the target,
+        /// CPU baseline, target features, profile and compiler of this build.
+        #[arg(long)]
+        verbose: bool,
+        /// Serialization of the `--verbose` identity.
+        #[arg(long = "format", short = 'f', value_enum, default_value_t = OutputFormat::Text, requires = "verbose")]
+        format: OutputFormat,
+    },
     /// Show a summary of a GMEOW ontology snapshot (default: the bundle).
     Info {
         /// GTS snapshot to inspect (default: bundled gmeow.gts).
@@ -1667,7 +1681,7 @@ pub fn run() -> i32 {
     let reporter = reporter.as_ref();
     let lang = cli.lang;
     match cli.command {
-        Commands::Version => commands::version(),
+        Commands::Version { verbose, format } => commands::version(verbose, format),
         Commands::Info { file } => commands::info(reporter, file.as_deref()),
         Commands::Medium { command } => match command {
             MediumCommands::List { file } => commands::medium_list(reporter, file.as_deref()),

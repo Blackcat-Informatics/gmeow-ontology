@@ -138,3 +138,55 @@ fn transpile_blinded_lifts_and_fans_out_without_x_gmeow_leak_heavy_offgate() {
 // same embedded corpus twelve more times. This one blinded, environment-cleared
 // end-to-end drive is the cwd/repository-independence witness for the shared consumer
 // binary boundary.
+
+/// Protects the binary's self-description: from a scratch directory outside the
+/// checkout, with a cleared environment, `version --verbose --format json` names a
+/// full 40-hex source revision and reports bundle and codebook digests and sizes that
+/// equal the SHA-256 and length of the bytes this binary actually embeds.
+#[test]
+fn installed_binary_states_its_identity_from_blinded_cwd() {
+    use sha2::Digest as _;
+    let blind_cwd = tempfile::TempDir::new().expect("create temp dir");
+    let output = run_subcommand_in(
+        blind_cwd.path(),
+        &["version", "--verbose", "--format", "json"],
+    );
+    assert!(
+        output.status.success(),
+        "version --verbose must run with no environment and no repository: stderr={}",
+        String::from_utf8_lossy(&output.stderr)
+    );
+    let identity: serde_json::Value =
+        serde_json::from_slice(&output.stdout).expect("version --verbose emits JSON");
+
+    let revision = identity["source_revision"].as_str().expect("revision");
+    assert!(
+        revision.len() == 40 && revision.bytes().all(|b| b.is_ascii_hexdigit()),
+        "{revision}"
+    );
+    assert!(
+        ["clean", "dirty", "unverified"].contains(&identity["source_tree"].as_str().unwrap_or("")),
+        "{identity}"
+    );
+    for (field, bytes) in [
+        ("bundle", gmeow_cli::BUNDLE_GTS),
+        ("codebook", gmeow_cli::GMN_CODEBOOK),
+    ] {
+        assert_eq!(
+            identity[format!("{field}_sha256")].as_str(),
+            Some(purrdf_hash::hex::encode(&sha2::Sha256::digest(bytes)).as_str()),
+            "{field} digest must be computed over the embedded bytes"
+        );
+        assert_eq!(
+            identity[format!("{field}_bytes")].as_u64(),
+            Some(bytes.len() as u64)
+        );
+    }
+    assert!(
+        identity["purrdf_version"]
+            .as_str()
+            .is_some_and(|version| version.split('.').count() >= 3
+                && version.split('.').all(|part| !part.is_empty())),
+        "{identity}"
+    );
+}

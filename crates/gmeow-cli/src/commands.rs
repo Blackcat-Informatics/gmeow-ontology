@@ -219,10 +219,81 @@ fn resolve_selector(
 
 // ── version / info ───────────────────────────────────────────────────────────
 
-/// `gmeow version` — print the package version to stdout.
-pub fn version() -> i32 {
-    println!("{}", env!("CARGO_PKG_VERSION"));
+/// `gmeow version` — print the package version; `--verbose` prints the build identity.
+///
+/// The bundle and codebook digests are computed here from the bytes this binary
+/// embeds, never stamped at build time, so the report cannot disagree with them.
+/// Every other field is stamped by `build.rs`.
+pub fn version(verbose: bool, format: crate::OutputFormat) -> i32 {
+    if !verbose {
+        println!("{}", env!("CARGO_PKG_VERSION"));
+        return 0;
+    }
+    let identity = build_identity();
+    match format {
+        crate::OutputFormat::Text => {
+            for (key, value) in &identity {
+                let rendered = match value {
+                    serde_json::Value::String(text) => text.clone(),
+                    serde_json::Value::Array(items) => items
+                        .iter()
+                        .filter_map(serde_json::Value::as_str)
+                        .collect::<Vec<_>>()
+                        .join(","),
+                    other => other.to_string(),
+                };
+                println!("{key:<16} {rendered}");
+            }
+        }
+        crate::OutputFormat::Json => {
+            let document = serde_json::Value::Object(
+                identity
+                    .into_iter()
+                    .map(|(key, value)| (key.to_owned(), value))
+                    .collect(),
+            );
+            match serde_json::to_string_pretty(&document) {
+                Ok(text) => println!("{text}"),
+                Err(error) => {
+                    eprintln!("gmeow version: cannot serialize the build identity: {error}");
+                    return 5;
+                }
+            }
+        }
+    }
     0
+}
+
+/// The build identity as ordered fields; text prints them in this order.
+fn build_identity() -> Vec<(&'static str, serde_json::Value)> {
+    use serde_json::Value;
+    let features = env!("GMEOW_BUILD_TARGET_FEATURES")
+        .split(',')
+        .filter(|feature| !feature.is_empty())
+        .map(|feature| Value::String(feature.to_owned()))
+        .collect();
+    let text = |value: &str| Value::String(value.to_owned());
+    vec![
+        ("version", text(env!("CARGO_PKG_VERSION"))),
+        ("source_revision", text(env!("GMEOW_BUILD_SOURCE_REVISION"))),
+        ("source_tree", text(env!("GMEOW_BUILD_SOURCE_TREE"))),
+        ("purrdf_version", text(env!("GMEOW_BUILD_PURRDF_VERSION"))),
+        ("bundle_sha256", text(&sha256_hex(crate::BUNDLE_GTS))),
+        ("bundle_bytes", Value::from(crate::BUNDLE_GTS.len())),
+        ("codebook_sha256", text(&sha256_hex(crate::GMN_CODEBOOK))),
+        ("codebook_bytes", Value::from(crate::GMN_CODEBOOK.len())),
+        ("target", text(env!("GMEOW_BUILD_TARGET"))),
+        ("cpu_baseline", text(env!("GMEOW_BUILD_CPU_BASELINE"))),
+        ("target_features", Value::Array(features)),
+        ("profile", text(env!("GMEOW_BUILD_PROFILE"))),
+        ("rustc", text(env!("GMEOW_BUILD_RUSTC"))),
+    ]
+}
+
+/// Lowercase hexadecimal SHA-256 of `bytes`.
+fn sha256_hex(bytes: &[u8]) -> String {
+    use sha2::Digest as _;
+    purrdf_hash::hex::encode(&sha2::Sha256::digest(bytes))
 }
 
 /// `gmeow info` — print a count summary of a GTS snapshot.

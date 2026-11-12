@@ -54,19 +54,18 @@ disagreement as coexisting standpoints instead of overwriting the loser.
 
 | Product | What it is | Status |
 |---|---|---|
-| **`gmeow` (native Rust CLI)** | The five-minute client and repo-free consumer CLI: inspect the bundled ontology, describe terms, verify bundles, transpile RDF, project profiles, and run the MCP server. Built from source (`make cli-build` → `dist/bin/gmeow`) or obtained as a GitHub release binary | shipped |
+| **`gmeow` (native Rust CLI)** | The five-minute client and repo-free consumer CLI: inspect the bundled ontology, describe terms, verify bundles, transpile RDF, project profiles, and run the MCP server. One self-contained binary: downloaded from a GitHub Release, or built and installed from a checkout with `cargo xtask cli install` | shipped |
 | **Grounded-memory MCP server** | `store_claim` / `recall` / `revise_belief` tool-calls for agents, backed by the claim, standpoint, evidence, and suppression model | shipped |
 | **GTS `ai-package`** | A content-addressed, append-only, signable **single-file agent memory** — belief revision as suppression frames; portable across sessions, models, and vendors ([spec](https://github.com/Blackcat-Informatics/gmeow-gts/blob/main/docs/GTS-SPEC.md)) | shipped with Python, Rust, Go, and TypeScript engines plus signing/verification |
 
-**Verifiable release builds.** The `gmeow` CLI binary and the `gmeow.gts` artifact are
-built in GitHub Actions and signed with GitHub artifact attestations. After downloading a
-release artifact, verify it with:
+**Verifiable release builds.** Each `v*` tag publishes a GitHub Release whose `gmeow`
+binary, signed `gmeow.gts` bundle, ingestion companion and identity record are built in
+GitHub Actions and covered by GitHub artifact attestations. After downloading a Release
+asset, verify it with:
 
 ```bash
-gh attestation verify <path-to-artifact> --repo Blackcat-Informatics/gmeow-ontology
+gh attestation verify <path-to-asset> --repo Blackcat-Informatics/gmeow-ontology
 ```
-
-SPDX SBOMs are also generated for each release and attached as workflow artifacts.
 
 **The engine** underneath is a reasoning-centric, RDF 1.2-native, `logic:`-grounded
 super-vocabulary for modelling *digital existence* — people, organizations, documents,
@@ -183,36 +182,139 @@ slice's model *and* how it aligns/projects.
 
 ## Quick start
 
-**Using GMEOW** (no source checkout required):
+### Install `gmeow`
+
+`gmeow` is one self-contained binary. The complete `gmeow.gts` bundle and the native GMN
+codebook are compiled into it, so it needs no source checkout and no adjacent asset
+directory, and every command, `prove` and `gts` included, runs in-process without starting
+another program.
+
+**From a GitHub Release.** Each `v*` tag publishes a Release with these assets:
+
+| Asset | What it is |
+|---|---|
+| `gmeow-x86_64-unknown-linux-gnu` | the binary for x86_64 Linux (glibc), compiled for the x86-64-v3 CPU baseline, with the signed bundle embedded |
+| `gmeow.gts`, `gmeow.gts.ingestion.cbor` | the signed bundle it embeds and the bundle's ingestion companion |
+| `gmeow.identity.json` | the binary's own `gmeow version --verbose --format json` |
+| `SHA256SUMS` | SHA-256 of every file the release build produced |
 
 ```bash
-# Build the CLI from source (or download the release binary from GitHub):
-make cli-build       # source-first: produces one self-contained dist/bin/gmeow
-
-dist/bin/gmeow info
-dist/bin/gmeow describe gmeow:StandpointClaim
-dist/bin/gmeow transpile source.ttl --profiles all -o out/
-dist/bin/gmeow prove request.logic.ttl --prover eprover --format json
-dist/bin/gmeow mcp
+gh release download <tag> --repo Blackcat-Informatics/gmeow-ontology
+sha256sum --check --ignore-missing SHA256SUMS
+gh attestation verify gmeow-x86_64-unknown-linux-gnu --repo Blackcat-Informatics/gmeow-ontology
+install -m 0755 gmeow-x86_64-unknown-linux-gnu ~/.local/bin/gmeow
 ```
 
-The public `gmeow` CLI is a native Rust binary backed by the bundled
-`generated/dist/gmeow.gts` snapshot, so description, verification, transpile,
-projection, proof, export, CrossRef metadata, and GTS conversion run from the binary alone.
-The executable embeds the complete bundle and native GMN codebook; it needs no adjacent
-runtime asset directory. `gmeow prove` compiles the supplied semantic source in memory,
-and only the selected external prover executable remains a host dependency. Its JSON
-report identifies every caller source and emitted problem by content digest.
-Documentation projections are regenerated from canonical sources with `make check-sync SYNC_MODE=update SYNC_OUTPUTS=docs`;
-they are intentionally not embedded in the logical bundle.
-Repository maintenance stays on `gmeow-dev`:
-if a command needs `dsl/`, `slices/`, `generated/`, Docker, or dev fixtures, it is a
-developer command.
+**From a checkout of this repository.**
+
+```bash
+cargo xtask cli install                       # installs ~/.local/bin/gmeow
+cargo xtask cli install --bin-dir <abs-dir>   # or any other directory
+```
+
+`install` runs the producer once to materialize the git-ignored `generated/` tree, compiles
+the release binary for the portable x86-64-v3 baseline with the workspace and Cargo home
+paths remapped out of it, and stages `dist/bin/gmeow` with the receipt
+`dist/bin/gmeow.receipt.json`. The receipt records the binary's SHA-256 and size, the source
+revision and tree state, the compiler, the exact Rust and C flags, the target and CPU
+baseline, the `Cargo.lock` digest, the purrdf version, and the digests of the embedded bundle
+and codebook. Before anything is staged, the new binary is run with a cleared environment
+from a scratch directory, and the build fails unless the identity it reports equals the
+receipt. The installed file is written beside its destination and renamed over it, and
+`install` prints its path and SHA-256. A current staged build is reused rather than rebuilt.
+
+The related tasks are `cargo xtask cli build` (stage and verify only; `make cli-build` is
+the same command) and `cargo xtask cli run -- <args>` (run the staged binary, building it
+first when it is not current). A checkout with uncommitted or untracked changes is refused
+unless `--allow-dirty` is given, and the binary then reports its tree as `dirty`. A host-tuned
+binary comes only from `cargo xtask cli build --native`, and `install` places one only with
+`--allow-native`.
+
+A source build needs git, the nightly toolchain named in `rust-toolchain.toml`, a C compiler
+for the vendored native code, and network access to crates.io while it compiles. Besides the
+clone and the chosen directory, it writes the Cargo registry cache and the host lock file
+`/var/tmp/gmeow-task/host-runner.lock`. The producer step waits for any other GMEOW gate or
+producer run on the same host to finish.
+
+**From another repository.** Pin the revision you depend on and install from a clone:
+
+```bash
+git clone --filter=blob:none https://github.com/Blackcat-Informatics/gmeow-ontology <scratch>
+git -C <scratch> checkout --detach <revision>
+(cd <scratch> && cargo xtask cli install --bin-dir <abs-dir>)
+```
+
+`cargo install --git` cannot build `gmeow`. The embedded bundle is a product of this
+repository's producer, not a committed file, and `cargo install` never runs the producer, so
+the `gmeow-cli` build script stops with a message naming the missing bundle.
+
+### Identity
+
+```bash
+gmeow version                            # the package version
+gmeow version --verbose --format json    # the full build identity
+```
+
+`--verbose` reports the package version, the source revision (40 hex digits) and tree state
+(`clean`, `dirty`, or `unverified` when the binary was compiled outside `cargo xtask cli`),
+the purrdf version, the SHA-256 and byte length of the embedded bundle and of the embedded
+codebook, the target triple, the CPU baseline, the enabled target features, the profile, and
+the compiler. The two digests are computed at run time from the bytes the binary embeds, so
+they cannot disagree with its contents. A binary built from a checkout embeds the unsigned
+bundle that checkout produced; a Release binary embeds the signed bundle, so the two never
+have equal digests.
+
+### Use
+
+```bash
+gmeow info
+gmeow describe gmeow:StandpointClaim
+gmeow transpile source.ttl --profiles all -o out/
+gmeow prove request.logic.ttl --format json
+gmeow prove --dir <slices-dir> --gate
+gmeow gts heads
+gmeow mcp
+```
+
+Description, verification, transpile, projection, proof, export, CrossRef metadata, and GTS
+operations run from the binary alone. Documentation projections are regenerated from
+canonical sources with `make check-sync SYNC_MODE=update SYNC_OUTPUTS=docs`; they are
+intentionally not embedded in the logical bundle. Repository maintenance stays on
+`gmeow-dev`: if a command needs `dsl/`, `slices/`, `generated/`, Docker, or dev fixtures, it
+is a developer command.
+
+### `gmeow prove`
+
+`gmeow prove` takes one theory, from the files named on the command line or from the
+`module.ttl` and `*.logic.ttl` files under `--dir`, and returns exactly one verdict. The
+verdict is given under GMEOW's own `logic:` semantics as executed by the in-process rule
+engine, with the OWL 2 DL tableau as a second refuter over the theory's OWL view:
+
+| Verdict | When |
+|---|---|
+| `consistent` | the rule engine's closure completed, every unit of the selection is accounted for by the engine, and nothing was dropped |
+| `inconsistent` | a clash is derived; the report names the engine, the law that clashed, and the premises used |
+| `not-decided` | anything else, including an exhausted `--max-steps` or `--step-cap` budget; every drop is listed with its engine, code, and detail |
+
+| Exit code | Meaning |
+|---|---|
+| 0 | the run completed (any verdict) without `--gate`; with `--gate`, `consistent` |
+| 1 | with `--gate`, `inconsistent` |
+| 3 | with `--gate`, `not-decided` |
+| 4 | malformed input |
+| 5 | execution failure |
+
+The report has no wall-clock field, so rerunning `prove` on the same inputs and comparing
+the bytes is a valid second-party check. `--proof-out <file>` records the proof and
+`--check-proof <file>` replays it, rejecting a proof recorded against different inputs.
+`--evidence-out` writes the evidence record and `--format json` the machine-readable report.
+`--out <file>` writes a classical first-order (TPTP) export of the selection for checking
+with a third-party tool; the verdict is not computed from it.
 
 **Working on the engine** (the ontology, compilers, and gates):
 
 ```bash
-make install         # build the Rust CLIs and configure repo-local Git merge drivers
+make install         # build the producer, materialize generated/, stage the Rust CLIs in dist/bin/
 make check           # synchronize generated outputs, then run the local gate DAG
 make reason-verify   # one fresh native closure feeding reasoned-graph verify (native, Docker-free)
 make reason-verify   # native reasoning + reasoned-graph verify (consistency), one closure (Docker-free)
@@ -292,8 +394,9 @@ first time a pane needs it, replaying the identical request so a caller sees a s
 rather than a failure. See [`crates/docs/assets/console/README.md`](./crates/docs/assets/console/README.md)
 for the measured byte budgets and the offline/permalink behaviour.
 
-The committed [`generated/dist/gmeow.gts`](./generated/dist/gmeow.gts) artifact is the
-repo-free GMEOW distribution snapshot. It is the file embedded in the `gmeow` binary and used by
+`generated/dist/gmeow.gts` is the repo-free GMEOW distribution snapshot. It is a git-ignored
+product of the producer, not a committed file: a build materializes it from canonical sources
+and compiles it into the `gmeow` binary, and a Release embeds its signed copy. It is used by
 `gmeow info`, `describe`, `docs`, `verify`, `transpile`, `project`, and the GTS export
 paths when no source checkout is present. The current dist snapshot folds as one
 `dist`-profile segment with 18,207 terms, 33,142 quads, 116 RDF 1.2 reifiers, 324
@@ -320,8 +423,8 @@ SQLite, and DuckDB transforms; and robust reader diagnostics for torn appends, d
 frames, broken chains, unknown codecs, missing keys, conflicting reifiers, and position
 constraints.
 
-Verification has two layers. `gts verify generated/dist/gmeow.gts` verifies the GTS chain
-and reports the composition ledger. `gmeow verify <bundle.gts>` adds source-free ontology
+Verification has two layers. `gmeow gts verify <bundle.gts>` verifies the GTS chain
+in-process. `gmeow verify <bundle.gts>` adds source-free ontology
 checks over the folded graph: namespace, term catalog, missing labels/definitions, reader
 diagnostics, and documentation blobs. Signed release bundles also carry COSE signatures and
 an embedded OpenPGP transport key; `gmeow verify` displays the grouped fingerprint, emoji
@@ -813,10 +916,10 @@ parallel metadata file.
    and `generated/apache/gmeow.conf` are registered generated artifacts. The Apache config
    negotiates Turtle / RDF-XML / JSON-LD / HTML, handles profile and slice IRIs, and keeps
    release snapshots immutable ([Principle 6](./CONSTITUTION.md)).
-3. **Verifiable packages and bundles.** The `gmeow` release binary and `gmeow.gts` bundle, the
-   `gmeow-gts` PyPI/npm/Cargo/Go release surfaces, signed
-   GTS bundles, SBOMs, GitHub attestations, emoji verification fingerprints, and rsyncable GTS
-   payloads are part of the publication contract.
+3. **Verifiable packages and bundles.** The `gmeow` binary, its identity record, the signed
+   `gmeow.gts` bundle and its ingestion companion attached to each GitHub Release, the
+   `gmeow-gts` PyPI/npm/Cargo/Go release surfaces, GitHub attestations, emoji verification
+   fingerprints, and rsyncable GTS payloads are part of the publication contract.
 
 ## Current surface
 

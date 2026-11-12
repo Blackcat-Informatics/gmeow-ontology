@@ -225,11 +225,23 @@ make build           # Build serializations and JSON-LD context into dist/
 make project         # Project GMEOW data to external vocabulary profiles
 make release         # Regenerate, native-reason, build, report, and emit CrossRef deposit
 make release-sign-gts SIGN_KEY=/tmp/gpg/signing-key.asc GTS_OUT=dist/gmeow.gts
+make cli-build       # One producer run, then stage and self-verify the portable dist/bin/gmeow + receipt
+cargo xtask cli build [--skip-producer] [--allow-dirty] [--native]   # The task behind cli-build
+cargo xtask cli run -- ARGS                    # Run the staged gmeow, building it first if not current
+cargo xtask cli install [--bin-dir DIR]        # Install a current, verified portable gmeow (default ~/.local/bin)
 ```
 
 `make release-sign-gts` signs a freshly regenerated GTS snapshot for release
-packaging. The committed `generated/dist/gmeow.gts` remains unsigned unless a
-release workflow explicitly writes the signed copy there before packaging.
+packaging. The local `generated/dist/gmeow.gts` is a git-ignored product and stays
+unsigned; the release workflow signs `dist/gmeow.gts` and embeds that signed copy in the
+released `gmeow` by building with `GMEOW_BUNDLE_PATH` pointing at it.
+
+`cargo xtask cli build` compiles `gmeow` for the portable x86-64-v3 baseline with forced
+Rust and C flags and remapped build paths, refuses a dirty checkout unless
+`--allow-dirty`, and stages the binary only after its own
+`gmeow version --verbose --format json`, run with a cleared environment, matches the
+receipt `dist/bin/gmeow.receipt.json`. `install` refuses a dirty or host-tuned build
+unless `--allow-dirty` / `--allow-native` is given.
 
 Documentation projections are never embedded in `gmeow.gts`. The static site,
 mdbook sources, print PDF/Typst, prompt snippets, and generated model docs are
