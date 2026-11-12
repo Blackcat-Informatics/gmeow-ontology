@@ -901,6 +901,29 @@ fn holds_named_graph(dataset: &purrdf::RdfDataset, graph_iri: &str) -> bool {
         .is_some_and(|graph| dataset.has_named_graph(graph))
 }
 
+/// Number of ordinary quads `dataset` asserts in the named graph `graph_iri`.
+fn graph_quad_count(dataset: &purrdf::RdfDataset, graph_iri: &str) -> usize {
+    dataset.term_id_by_iri(graph_iri).map_or(0, |graph| {
+        purrdf::DatasetView::quads_for_pattern(
+            dataset,
+            None,
+            None,
+            None,
+            purrdf::GraphMatch::Named(graph),
+        )
+        .count()
+    })
+}
+
+/// Record one carrier part's size, so a run names every graph's contribution.
+fn log_carrier_part(source: &str, placed_in: &str, quads: usize) {
+    tracing::info!(
+        target: "pipeline_phase", stage = "stage-snapshot",
+        source, graph = placed_in, quads,
+        "carrier part"
+    );
+}
+
 /// Whether `dataset` asserts at least one ordinary quad in the named graph `graph_iri`.
 fn graph_has_quads(dataset: &purrdf::RdfDataset, graph_iri: &str) -> bool {
     dataset.term_id_by_iri(graph_iri).is_some_and(|graph| {
@@ -990,8 +1013,14 @@ impl<'a> CarrierParts<'a> {
         graph_iri: &str,
         placed_iri: &str,
     ) -> Result<(), gmeow_errors::Diag> {
+        let dataset = self.producer_dataset(stage)?;
+        log_carrier_part(
+            stage,
+            placed_iri,
+            graph_quad_count(dataset.as_ref(), graph_iri),
+        );
         let source =
-            if holds_named_graph(self.producer_dataset(stage)?.as_ref(), graph_iri) {
+            if holds_named_graph(dataset.as_ref(), graph_iri) {
                 purrdf::CompositeSource::from_selection(
                     self.producer_view(stage)?,
                     [purrdf::TermValue::iri(graph_iri)],
@@ -1017,6 +1046,7 @@ impl<'a> CarrierParts<'a> {
 
     /// Place every record of `dataset` into the carrier graph `placed_iri`.
     fn push_placed(&mut self, dataset: std::sync::Arc<purrdf::RdfDataset>, placed_iri: &str) {
+        log_carrier_part("dataset", placed_iri, dataset.quad_count());
         self.sources
             .push(purrdf::CompositeSource::new(dataset).with_graph_placement(
                 purrdf::GraphPlacement::Named(purrdf::TermValue::iri(placed_iri)),
@@ -1025,6 +1055,7 @@ impl<'a> CarrierParts<'a> {
 
     /// Keep every record of `dataset` in the graph it already names.
     fn push_dataset(&mut self, dataset: std::sync::Arc<purrdf::RdfDataset>) {
+        log_carrier_part("dataset", "(as carried)", dataset.quad_count());
         self.sources.push(purrdf::CompositeSource::new(dataset));
     }
 
