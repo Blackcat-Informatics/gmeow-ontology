@@ -38,10 +38,7 @@ use gmeow_logic::result::ReasoningResult;
 
 use crate::cache::StageReceipt;
 use crate::loader::{PipelineSpec, bind};
-use crate::node::{
-    CachePolicy, ENGINE_RESOURCE, SERIALIZATION_BUFFER_RESOURCE, SINK_CAPABILITY, SOURCE_ORIGIN,
-    StageProduct, StageStability,
-};
+use crate::node::{SINK_CAPABILITY, StageProduct};
 use crate::registry::default_registry;
 use crate::scheduler::{
     CarrierRetention, LevelTiming, RunContext, StagePhaseTiming, StageTiming, run,

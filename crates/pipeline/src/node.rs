@@ -353,7 +353,7 @@ impl StageProduct {
     }
 
     /// Borrow one typed handle of this product by its key.
-    pub fn handle(&self, key: &str) -> Option<&PipelineHandle> {
+    pub fn handle(&self, key: &str) -> Option<&purrdf::HandleEntry<PipelineHandle>> {
         self.record(crate::reads::Read::Handle(key.to_owned()));
         self.bundle.handle(key)
     }

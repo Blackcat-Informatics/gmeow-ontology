@@ -2313,7 +2313,10 @@ impl Stage for CarrierStage {
         &self.carrier_consumes
     }
     fn internal_artifact_reads(&self) -> Vec<(String, String)> {
-        &self.internal_reads
+        self.internal_reads
+            .iter()
+            .map(|(producer, artifact)| ((*producer).to_owned(), (*artifact).to_owned()))
+            .collect()
     }
     fn capabilities(&self) -> &[String] {
         &self.capabilities
