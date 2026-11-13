@@ -484,6 +484,35 @@ fn owl_step_cap_is_reported_on_its_leg_and_the_verdict_follows_the_native_engine
     );
 }
 
+/// A well-formed constraint whose guard the constraint compiler does not lower (here
+/// a disjunction) is skipped with a warning. The source is valid, so the selection is
+/// not decided and the skipped constraint is named; it is not malformed input.
+#[test]
+fn a_constraint_the_compiler_skips_is_not_decided_rather_than_malformed() {
+    let (report, code) = prove_json(
+        "skipped-constraint.logic.ttl",
+        r#"
+ex:transitionNamesItsTarget a logic:Constraint ;
+    logic:formalizes ex:transitionOf ;
+    logic:message "A transition names the thing it changes." ;
+    logic:integrity [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ;
+        logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:or
+                [ a logic:Formula ; logic:relation ex:kind ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termIri ex:Paused ] ],
+                [ a logic:Formula ; logic:relation ex:kind ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termIri ex:Resumed ] ] ] ;
+            logic:consequent [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "target" ] ; logic:exists [ a logic:Formula ; logic:relation ex:transitionOf ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "target" ] ] ] ] ] .
+"#,
+        &["--gate"],
+    );
+    assert_eq!(report["verdict"], "not-decided", "{report:#}");
+    assert_eq!(code, 3);
+    assert!(
+        drop_codes(&report)
+            .iter()
+            .any(|code| code == "SKIPPED_SELECTED_OWNER"),
+        "{report:#}"
+    );
+}
+
 /// A reasoning-contract declaration is catalogued metatheory: it is accounted, is
 /// not a drop, and does not change the verdict of the object theory.
 #[test]
