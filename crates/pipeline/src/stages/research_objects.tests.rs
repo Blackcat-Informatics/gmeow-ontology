@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 
 use super::*;
+use crate::node::Described as _;
 
 fn repo_root() -> std::path::PathBuf {
     Path::new(env!("CARGO_MANIFEST_DIR"))
@@ -37,7 +38,7 @@ fn input_files_omit_generated_scores_and_the_dag_edge_binds() {
     let stage = ResearchObjectsStage::default();
     // The DAG edge binds: the stage consumes both producers, in sorted order.
     assert_eq!(
-        stage.consumes(),
+        stage.described().consumes(),
         &[
             "stage-export-evals".to_string(),
             "stage-mappings".to_string()

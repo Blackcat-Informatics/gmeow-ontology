@@ -26,7 +26,7 @@ use std::sync::Arc;
 use gmeow_pipeline::bundle::bundle_from_artifacts_over_with_rep_blob;
 use gmeow_pipeline::bundle_blobs::REP_SPAN_TABLE;
 use gmeow_pipeline::ingest::SpanIndex;
-use gmeow_pipeline::node::{Stage, StageInput, StageProduct};
+use gmeow_pipeline::node::{StageBody, StageInput, StageProduct};
 use gmeow_pipeline::stages::source_load::BASE_GRAPH_PATH;
 use gmeow_pipeline::stages::validate::{SHACL_RDF_PATH, ValidateStage};
 use purrdf::provenance::DatasetProvenance;

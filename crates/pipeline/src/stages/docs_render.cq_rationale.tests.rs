@@ -4,7 +4,7 @@
 //! Authored input-path selection only; neither stage executes or produces data.
 
 use super::docs_source_files;
-use crate::node::Stage;
+use crate::node::StageBody;
 use crate::stages::mappings::MappingsStage;
 
 fn authored_root() -> tempfile::TempDir {

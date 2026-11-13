@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 
 use super::*;
+use crate::node::Described as _;
 
 #[test]
 fn schema_publication_carries_located_losses_and_exact_artifacts() {
@@ -129,7 +130,7 @@ fn schema_publication_matches_authored_dataflow_and_attachments() {
     let declared = declared.stage("stage-export-json-schema").unwrap();
     let implementation = JsonSchemaStage::new();
     let mut actual = declared.dataflow_entities.clone();
-    let mut expected = implementation.consumed_entities().to_vec();
+    let mut expected = implementation.described().consumed_entities().to_vec();
     for (_, entities) in actual.iter_mut().chain(expected.iter_mut()) {
         entities.sort();
     }
@@ -138,11 +139,11 @@ fn schema_publication_matches_authored_dataflow_and_attachments() {
     assert_eq!(actual, expected);
     assert_eq!(
         declared.attaches_graphs.as_slice(),
-        implementation.attaches_graphs()
+        implementation.described().attaches_graphs()
     );
     assert_eq!(
         declared.attaches_blob_reps.as_slice(),
-        implementation.attaches_blob_reps()
+        implementation.described().attaches_blob_reps()
     );
 }
 

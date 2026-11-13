@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 
 use super::PIPELINE_STAGE_ID;
-use crate::node::{Stage, StageInput, StageProduct};
+use crate::node::{StageBody, StageInput, StageProduct};
 
 /// The real diagnostics producer the forward run ledger attributes nodes to.
 const DIAG_PRODUCER_VALIDATE: &str = "stage-validate";

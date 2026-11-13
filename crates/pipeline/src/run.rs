@@ -317,6 +317,33 @@ pub fn full_spec() -> PipelineSpec {
     description().clone()
 }
 
+/// The stage `stage_id` as the scheduler runs it: the declarations of the pipeline
+/// description bound to the registered implementation.
+///
+/// # Panics
+/// When the description has no such stage or its implementation is not registered.
+#[must_use]
+pub fn described(stage_id: &str) -> &'static dyn crate::node::Stage {
+    static BOUND: std::sync::OnceLock<
+        std::collections::BTreeMap<String, Arc<dyn crate::node::Stage>>,
+    > = std::sync::OnceLock::new();
+    let bound = BOUND.get_or_init(|| {
+        let spec = description();
+        let graph = spec
+            .validate()
+            .unwrap_or_else(|error| panic!("the pipeline description is not a valid DAG: {error}"));
+        bind(spec, &graph, &default_registry())
+            .unwrap_or_else(|error| panic!("the pipeline description does not bind: {error}"))
+            .into_iter()
+            .map(|stage| (stage.id().to_owned(), stage))
+            .collect()
+    });
+    bound
+        .get(stage_id)
+        .unwrap_or_else(|| panic!("the pipeline description has no stage {stage_id}"))
+        .as_ref()
+}
+
 /// The parsed pipeline description, shared.
 pub(crate) fn description() -> &'static PipelineSpec {
     static SPEC: std::sync::OnceLock<PipelineSpec> = std::sync::OnceLock::new();

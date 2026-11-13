@@ -1,6 +1,7 @@
 // SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 // SPDX-License-Identifier: AGPL-3.0-only
 
+use crate::node::Described as _;
 use purrdf::RdfTerm;
 
 use super::*;
@@ -11,6 +12,7 @@ fn object_level_domains_keep_exact_roles_across_data_edits() {
     let stage = ReasonStage::new();
     let upstream = |digest: &str| {
         stage
+            .described()
             .consumes()
             .iter()
             .map(|producer| (producer.clone(), StageProduct::new(producer, digest)))
@@ -24,11 +26,8 @@ fn object_level_domains_keep_exact_roles_across_data_edits() {
             upstream,
         }
     }
-    let selected = object_level_domains(&stage, &input(&before)).unwrap();
-    assert_eq!(
-        selected,
-        object_level_domains(&stage, &input(&after)).unwrap()
-    );
+    let selected = object_level_domains(&input(&before)).unwrap();
+    assert_eq!(selected, object_level_domains(&input(&after)).unwrap());
     let actual: BTreeSet<_> = selected
         .worlds()
         .iter()
@@ -54,16 +53,16 @@ fn object_level_domains_keep_exact_roles_across_data_edits() {
     );
     let mut missing = upstream("missing-source");
     missing.remove("stage-source-load");
-    assert!(object_level_domains(&stage, &input(&missing)).is_err());
+    assert!(object_level_domains(&input(&missing)).is_err());
     let mut wrong = upstream("wrong-owner");
     wrong.get_mut("stage-statements").unwrap().stage_id = "stage-diagnostics".to_owned();
-    assert!(object_level_domains(&stage, &input(&wrong)).is_err());
+    assert!(object_level_domains(&input(&wrong)).is_err());
     let mut released = upstream("released-source");
     released
         .get_mut("stage-source-load")
         .unwrap()
         .carrier_released = true;
-    assert!(object_level_domains(&stage, &input(&released)).is_err());
+    assert!(object_level_domains(&input(&released)).is_err());
 }
 
 #[test]

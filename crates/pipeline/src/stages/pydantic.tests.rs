@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 
 use super::*;
+use crate::node::Described as _;
 
 fn repo_root() -> std::path::PathBuf {
     Path::new(env!("CARGO_MANIFEST_DIR"))
@@ -387,13 +388,13 @@ fn pydantic_stage_declares_fresh_metadata_edges_in_the_executable_dag() {
     let spec = crate::run::full_spec();
     spec.validate().expect("acyclic pipeline");
     let entry = spec.stages.iter().find(|s| s.id == stage.id()).unwrap();
-    assert_eq!(entry.consumes, stage.consumes());
+    assert_eq!(entry.consumes, stage.described().consumes());
     let authored =
         std::fs::read_to_string(repo_root().join("slices/core/pipeline/module.ttl")).unwrap();
     let rdf_spec = crate::loader::PipelineSpec::from_turtle(&[&authored]).unwrap();
     assert_eq!(
         rdf_spec.stage(stage.id()).unwrap().consumes,
-        stage.consumes()
+        stage.described().consumes()
     );
     assert!(entry.consumes.iter().any(|s| s == "stage-term-manifest"));
     assert!(

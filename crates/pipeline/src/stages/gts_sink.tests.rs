@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 
 use super::*;
+use crate::node::Described as _;
 
 #[test]
 fn terminal_product_commits_full_ingestion_evidence_beside_the_exact_gts() {
@@ -45,7 +46,7 @@ fn terminal_product_commits_full_ingestion_evidence_beside_the_exact_gts() {
 fn sink_declares_only_the_lanes_it_reads_as_carrier_inputs() {
     let sink = GtsSinkStage::new();
     assert_eq!(
-        sink.carrier_consumes(),
+        sink.described().carrier_consumes(),
         [
             "stage-archive-blobs",
             "stage-medium-dictionaries",
@@ -62,11 +63,18 @@ fn sink_declares_only_the_lanes_it_reads_as_carrier_inputs() {
         "stage-conformance",
     ] {
         assert!(
-            sink.consumes().iter().any(|id| id == artifact_only),
+            sink.described()
+                .consumes()
+                .iter()
+                .any(|id| id == artifact_only),
             "{artifact_only} remains a declared DAG dependency"
         );
         assert!(
-            !sink.carrier_consumes().iter().any(|id| id == artifact_only),
+            !sink
+                .described()
+                .carrier_consumes()
+                .iter()
+                .any(|id| id == artifact_only),
             "{artifact_only} supplies committed bytes, not a live carrier"
         );
     }

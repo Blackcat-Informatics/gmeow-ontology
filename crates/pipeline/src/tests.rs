@@ -16,7 +16,7 @@ use crate::cache::{
 };
 use crate::loader::{PipelineSpec, StageSpec, bind};
 use crate::node::{
-    CachePolicy, ENGINE_RESOURCE, SINK_CAPABILITY, SOURCE_ORIGIN, StageBody, StageInput,
+    CachePolicy, ENGINE_RESOURCE, SINK_CAPABILITY, SOURCE_ORIGIN, Stage, StageBody, StageInput,
     StageOutput, StageProduct, StageStability,
 };
 use crate::provenance::register_stage_unit;
@@ -222,7 +222,7 @@ impl StageBody for FakeStage {
     }
 }
 
-fn fake(id: &str, consumes: &[&str]) -> Arc<dyn Stage> {
+fn fake(id: &str, consumes: &[&str]) -> Arc<dyn StageBody> {
     Arc::new(FakeStage {
         id: id.to_string(),
         capabilities: capabilities_for(id),
@@ -232,7 +232,7 @@ fn fake(id: &str, consumes: &[&str]) -> Arc<dyn Stage> {
     })
 }
 
-fn registry_for(spec: &PipelineSpec, stages: Vec<Arc<dyn Stage>>) -> StageRegistry {
+fn registry_for(spec: &PipelineSpec, stages: Vec<Arc<dyn StageBody>>) -> StageRegistry {
     let mut r = StageRegistry::new();
     for (s, st) in spec.stages.iter().zip(stages) {
         r.register(s.impl_key.clone(), st);
@@ -309,7 +309,7 @@ fn bind_rejects_resource_disagreement() {
             consumes: vec!["source".to_string()],
             carrier_consumes: None,
             resources: Vec::new(),
-        }) as Arc<dyn Stage>,
+        }) as Arc<dyn StageBody>,
     );
     reg.register("impl:sink".to_string(), fake("sink", &["r"]));
     match bind(&s, &g, &reg).map(|v| v.len()) {
@@ -872,7 +872,7 @@ fn compute_registry(spec: &PipelineSpec, runs: &Arc<AtomicUsize>) -> StageRegist
                 stability: s.stability,
                 cache_policy: CachePolicy::Persistent,
                 runs: Arc::clone(runs),
-            }) as Arc<dyn Stage>,
+            }) as Arc<dyn StageBody>,
         );
     }
     r
@@ -1315,7 +1315,7 @@ fn recompute_policy_reruns_the_stage_but_keeps_downstream_cache_hits() {
                     CachePolicy::Persistent
                 },
                 runs: Arc::clone(&runs),
-            }) as Arc<dyn Stage>,
+            }) as Arc<dyn StageBody>,
         );
     }
     let bound = bind(&spec, &graph, &registry).unwrap();
@@ -1425,7 +1425,7 @@ fn input_files_content_busts_the_cache() {
         Arc::new(FileReadingStage {
             file: file.clone(),
             runs: Arc::clone(&runs),
-        }) as Arc<dyn Stage>,
+        }) as Arc<dyn StageBody>,
     );
     reg.register("impl:sink".to_string(), fake("sink", &[]));
     let bound = bind(&spec, &graph, &reg).unwrap();
@@ -1714,7 +1714,7 @@ fn artifact_level_invalidation_reruns_only_the_changed_graphs_consumer() {
             file: file.clone(),
             runs: Arc::clone(&prod_runs),
             attaches: vec![G1.to_string(), G2.to_string()],
-        }) as Arc<dyn Stage>,
+        }) as Arc<dyn StageBody>,
     );
     reg.register(
         "impl:cg1".to_string(),
@@ -1722,7 +1722,7 @@ fn artifact_level_invalidation_reruns_only_the_changed_graphs_consumer() {
             id: "cg1".to_string(),
             entities: vec![("producer".to_string(), vec![G1.to_string()])],
             runs: Arc::clone(&cg1_runs),
-        }) as Arc<dyn Stage>,
+        }) as Arc<dyn StageBody>,
     );
     reg.register(
         "impl:cg2".to_string(),
@@ -1730,7 +1730,7 @@ fn artifact_level_invalidation_reruns_only_the_changed_graphs_consumer() {
             id: "cg2".to_string(),
             entities: vec![("producer".to_string(), vec![G2.to_string()])],
             runs: Arc::clone(&cg2_runs),
-        }) as Arc<dyn Stage>,
+        }) as Arc<dyn StageBody>,
     );
     reg.register("impl:sink".to_string(), fake("sink", &["cg1", "cg2"]));
     let bound = bind(&s, &g, &reg).expect("binds (resource + dataflow agreement hold)");
@@ -1980,7 +1980,7 @@ fn run_attach_case(
             declared: declared.clone(),
             consumes: Vec::new(),
             entities: Vec::new(),
-        }) as Arc<dyn Stage>,
+        }) as Arc<dyn StageBody>,
     );
     reg.register("impl:sink".to_string(), fake("sink", &["producer"]));
     let bound = bind(&s, &g, &reg).expect("binds (attach declaration agrees Rust↔spec)");
@@ -2063,7 +2063,7 @@ fn attach_drift_honors_typed_entity_inputs() {
             file,
             runs: Arc::new(AtomicUsize::new(0)),
             attaches: vec![G1.to_string(), G2.to_string()],
-        }) as Arc<dyn Stage>,
+        }) as Arc<dyn StageBody>,
     );
     registry.register(
         "impl:consumer".to_string(),
@@ -2073,7 +2073,7 @@ fn attach_drift_honors_typed_entity_inputs() {
             declared: vec![G2.to_string()],
             consumes: vec!["producer".to_string()],
             entities: vec![("producer".to_string(), vec![G1.to_string()])],
-        }) as Arc<dyn Stage>,
+        }) as Arc<dyn StageBody>,
     );
     registry.register("impl:sink".to_string(), fake("sink", &["consumer"]));
     let bound = bind(&s, &graph, &registry).expect("typed attach fixture binds");
@@ -2154,7 +2154,7 @@ fn attach_drift_distinguishes_shared_blob_rep_by_content() {
             representation: REP.to_string(),
             payload: payload.to_vec(),
             declared: vec![REP.to_string()],
-        }) as Arc<dyn Stage>
+        }) as Arc<dyn StageBody>
     };
     let mut registry = StageRegistry::new();
     registry.register(
@@ -2402,7 +2402,7 @@ fn retention_registry(spec: &PipelineSpec, watch: &Arc<CarrierWatch>) -> StageRe
                 internal_reads: Vec::new(),
                 attaches: s.attaches_graphs.clone(),
                 watch: Arc::clone(watch),
-            }) as Arc<dyn Stage>,
+            }) as Arc<dyn StageBody>,
         );
     }
     r
@@ -2429,7 +2429,7 @@ fn last_consumer_level_is_total_over_consumed_stages_and_absent_for_outputs() {
     let graph = spec.validate().unwrap();
     let watch = Arc::new(CarrierWatch::default());
     let bound = bind(&spec, &graph, &retention_registry(&spec, &watch)).unwrap();
-    let by_id: std::collections::BTreeMap<&str, &Arc<dyn Stage>> =
+    let by_id: std::collections::BTreeMap<&str, &Arc<dyn StageBody>> =
         bound.iter().map(|s| (s.id(), s)).collect();
 
     let levels = crate::scheduler::last_consumer_levels(&graph, &by_id);
@@ -2452,7 +2452,7 @@ fn last_consumer_level_is_total_over_consumed_stages_and_absent_for_outputs() {
 /// declares its internal reads, with the result of binding it.
 struct ArtifactOnlyPair {
     graph: crate::graph::StageGraph,
-    bound: Result<Vec<Arc<dyn Stage>>, gmeow_errors::Diag>,
+    bound: Result<Vec<Arc<dyn StageBody>>, gmeow_errors::Diag>,
     watch: Arc<CarrierWatch>,
 }
 
@@ -2514,7 +2514,7 @@ fn artifact_only_dependency_releases_at_the_producers_own_level() {
         watch,
     } = artifact_only_pair(Vec::new());
     let bound = bound.expect("artifact-only graph binds");
-    let by_id: std::collections::BTreeMap<&str, &Arc<dyn Stage>> =
+    let by_id: std::collections::BTreeMap<&str, &Arc<dyn StageBody>> =
         bound.iter().map(|stage| (stage.id(), stage)).collect();
     assert_eq!(
         crate::scheduler::last_consumer_levels(&graph, &by_id),

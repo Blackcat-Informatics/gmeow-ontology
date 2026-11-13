@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 
 use super::*;
+use crate::node::Described as _;
 use gmeow_logic::reason::InferredAxiom;
 use gmeow_logic::result::{
     CompletenessStatus, EvaluationStatus, InformationState, InputStatus, PreservationClaim,
@@ -202,15 +203,31 @@ fn term_panels_refuse_missing_native_source_even_when_explanation_bytes_exist() 
 /// Production documentation retains reason before the snapshot can exist.
 #[test]
 fn term_panels_follow_the_actual_documentation_stage_dependencies() {
-    use crate::node::Stage;
     use crate::stages::{docs_render::DocsRenderStage, reason::ReasonStage};
 
     let docs = DocsRenderStage::new();
     let reason = ReasonStage::new();
     let snapshot = SnapshotStage::new();
-    assert!(docs.carrier_consumes().iter().any(|id| id == reason.id()));
-    assert!(!docs.consumes().iter().any(|id| id == snapshot.id()));
-    assert!(snapshot.consumes().iter().any(|id| id == docs.id()));
+    assert!(
+        docs.described()
+            .carrier_consumes()
+            .iter()
+            .any(|id| id == reason.id())
+    );
+    assert!(
+        !docs
+            .described()
+            .consumes()
+            .iter()
+            .any(|id| id == snapshot.id())
+    );
+    assert!(
+        snapshot
+            .described()
+            .consumes()
+            .iter()
+            .any(|id| id == docs.id())
+    );
 
     let product = native_upstream(vec![derived(TermValue::iri(ANIMAL))])
         .remove(reason.id())

@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 
 use super::*;
+use crate::node::Described as _;
 
 fn repo_root() -> PathBuf {
     Path::new(env!("CARGO_MANIFEST_DIR"))
@@ -13,7 +14,10 @@ fn repo_root() -> PathBuf {
 
 #[test]
 fn declared_blob_reps_match_the_static_archive_contract() {
-    let mut declared: Vec<String> = ArchiveBlobsStage::new().attaches_blob_reps().to_vec();
+    let mut declared: Vec<String> = ArchiveBlobsStage::new()
+        .described()
+        .attaches_blob_reps()
+        .to_vec();
     declared.sort();
     let mut expected: Vec<String> = ARCHIVE_REPS.iter().map(|rep| (*rep).to_string()).collect();
     expected.sort();

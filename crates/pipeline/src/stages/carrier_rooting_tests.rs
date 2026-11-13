@@ -3,6 +3,7 @@
 
 //! Synthetic contracts for GMEOW carrier placement and compile graph selection.
 
+use crate::node::Described as _;
 use std::collections::BTreeMap;
 use std::sync::Arc;
 
@@ -667,12 +668,10 @@ fn the_carrier_refuses_an_empty_base_or_statement_layer() {
 /// they do not.
 #[test]
 fn the_sink_declares_every_internal_artifact_its_reasoning_archive_reads() {
-    use crate::node::Stage as _;
-
     let sink = crate::stages::gts_sink::GtsSinkStage::new();
-    let declared = sink.internal_artifact_reads();
+    let declared = sink.described().internal_artifact_reads();
     let mut artifacts: BTreeMap<&str, BTreeMap<String, Vec<u8>>> = BTreeMap::new();
-    for (producer, artifact) in super::REASONING_INTERNAL_READS {
+    for (_, producer, artifact) in super::REASONING_INTERNAL_MEMBERS {
         artifacts
             .entry(producer)
             .or_default()
@@ -693,8 +692,15 @@ fn the_sink_declares_every_internal_artifact_its_reasoning_archive_reads() {
             .iter()
             .map(|(producer, artifacts)| {
                 assert!(
-                    sink.consumes().iter().any(|edge| edge == producer)
-                        && !sink.carrier_consumes().iter().any(|edge| edge == producer),
+                    sink.described()
+                        .consumes()
+                        .iter()
+                        .any(|edge| edge == producer)
+                        && !sink
+                            .described()
+                            .carrier_consumes()
+                            .iter()
+                            .any(|edge| edge == producer),
                     "{producer} is an artifact-only dependency of the sink"
                 );
                 let kept: std::collections::BTreeSet<&str> = declared

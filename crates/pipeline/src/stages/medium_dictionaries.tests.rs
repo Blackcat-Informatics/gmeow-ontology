@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 
 use super::*;
+use crate::node::Described as _;
 
 /// The declared consumes set covers every stage-product selector, and the
 /// sink-folded proof-trace corpus names exactly the three report artifacts owned
@@ -28,7 +29,10 @@ fn the_consumes_set_covers_shipped_corpus_producers_exactly() {
     selected.dedup();
     for stage in &selected {
         assert!(
-            CONSUMES.contains(&stage.as_str()),
+            crate::run::described(STAGE_ID)
+                .consumes()
+                .iter()
+                .any(|id| id == stage),
             "corpus selector names `{stage}`, which {STAGE_ID} does not consume — \
                  corpus::assemble would hard-fail on the missing gmeow:dataflowConsumes edge"
         );
@@ -55,7 +59,12 @@ fn the_consumes_set_covers_shipped_corpus_producers_exactly() {
         ]
     );
     assert!(!paths.contains(&crate::stages::reason::CLOSURE_PATH));
-    assert!(CONSUMES.contains(&"stage-reason"));
+    assert!(
+        crate::run::described(STAGE_ID)
+            .consumes()
+            .iter()
+            .any(|id| id == "stage-reason")
+    );
 }
 
 /// The Rust `consumes()` is sorted and matches the declared constant, which is the
@@ -64,28 +73,42 @@ fn the_consumes_set_covers_shipped_corpus_producers_exactly() {
 #[test]
 fn the_consumes_set_is_sorted_and_bound() {
     let stage = MediumDictionariesStage::new(crate::run::BuildProfile::Ordinary);
-    let mut sorted = stage.consumes().to_vec();
+    let mut sorted = stage.described().consumes().to_vec();
     sorted.sort();
-    assert_eq!(stage.consumes(), sorted.as_slice());
+    assert_eq!(stage.described().consumes(), sorted.as_slice());
     assert_eq!(stage.id(), STAGE_ID);
     assert_eq!(
-        stage.carrier_consumes(),
+        stage.described().carrier_consumes(),
         ["stage-archive-blobs", "stage-snapshot"]
     );
     assert_eq!(
-        stage.resources(),
+        stage.described().resources(),
         [crate::node::SERIALIZATION_BUFFER_RESOURCE]
     );
-    assert!(stage.consumes().iter().any(|id| id == "stage-reason"));
-    assert!(stage.consumes().iter().any(|id| id == "stage-statements"));
+    assert!(
+        stage
+            .described()
+            .consumes()
+            .iter()
+            .any(|id| id == "stage-reason")
+    );
+    assert!(
+        stage
+            .described()
+            .consumes()
+            .iter()
+            .any(|id| id == "stage-statements")
+    );
     assert!(
         !stage
+            .described()
             .carrier_consumes()
             .iter()
             .any(|id| id == "stage-reason")
     );
     assert!(
         !stage
+            .described()
             .carrier_consumes()
             .iter()
             .any(|id| id == "stage-statements")

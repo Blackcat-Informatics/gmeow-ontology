@@ -675,6 +675,19 @@ pub trait StageBody: Send + Sync {
     fn run(&self, input: StageInput<'_>) -> gmeow_errors::Result<StageOutput>;
 }
 
+/// What the pipeline description declares for a stage body, for tests that assert a
+/// declaration the body relies on.
+#[cfg(test)]
+pub(crate) trait Described: StageBody {
+    /// This body's stage as the description declares and the scheduler runs it.
+    fn described(&self) -> &'static dyn Stage {
+        crate::run::described(self.id())
+    }
+}
+
+#[cfg(test)]
+impl<T: StageBody + ?Sized> Described for T {}
+
 /// A pipeline stage as the scheduler runs it: one node of the build DAG, with the
 /// declarations of its `gmeow:PipelineStage` individual and the body bound to it. The
 /// loader's `bind` is the one production implementer.

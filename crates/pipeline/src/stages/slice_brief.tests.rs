@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 
 use super::*;
+use crate::node::Described as _;
 
 /// The stage attaches EXACTLY the authoring-briefs graph, carrying real
 /// `gmeow:AuthoringPacket` triples — the proof the packet corpus reaches the carrier
@@ -104,7 +105,7 @@ fn collect_ext_non_directory_parent_errors() {
 fn new_consumes_the_generated_shape_producers() {
     let stage = SliceBriefStage::new();
     assert_eq!(
-        stage.consumes(),
+        stage.described().consumes(),
         crate::stages::shape_union_fresh::producer_consumes().as_slice(),
         "slice-brief must consume exactly the generated-shape producers for the fresh union"
     );
