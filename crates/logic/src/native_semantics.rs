@@ -214,12 +214,12 @@ impl ProgramAdmission {
         if unsupported.is_empty() {
             return Ok(());
         }
-        Err(gmeow_errors::Diag::of_kind(crate::error::Physical {
-            detail: format!(
-                "world-local template admission refuses unexecuted source scope from {:?}: {}",
-                self.source_iri,
-                unsupported.join("; ")
+        Err(gmeow_errors::Diag::of_kind(crate::error::NativeRefusal {
+            reason: format!(
+                "world-local template admission refuses unexecuted source scope from {:?}",
+                self.source_iri
             ),
+            gaps: unsupported,
         }))
     }
 }

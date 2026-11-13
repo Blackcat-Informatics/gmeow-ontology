@@ -103,12 +103,30 @@ impl DlReasoner {
     /// # Errors
     /// Original source, execution or canonicalization refusals, as typed diagnostics.
     pub fn with_proofs<D: purrdf::DatasetView>(dataset: &D) -> Result<Self> {
-        Reasoner::with_proofs(
+        Self::with_proofs_and_step_cap(dataset, None)
+    }
+
+    /// Record native proofs with the per-decision step cap optionally narrowed to
+    /// `step_cap`. The cap is clamped to the reasoner's size-derived ceiling and can
+    /// only lower it; a run that reaches it reports an undecided, receipted search.
+    ///
+    /// # Errors
+    /// As [`with_proofs`](Self::with_proofs).
+    pub fn with_proofs_and_step_cap<D: purrdf::DatasetView>(
+        dataset: &D,
+        step_cap: Option<u64>,
+    ) -> Result<Self> {
+        let inner = Reasoner::with_proofs(
             dataset,
             &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None),
         )
-        .map(|inner| Self { inner })
-        .map_err(map_entail_err)
+        .map_err(map_entail_err)?;
+        Ok(Self {
+            inner: match step_cap {
+                Some(cap) => inner.with_step_cap(cap),
+                None => inner,
+            },
+        })
     }
 
     /// Record proofs with one caller signal covering canonical input identity,

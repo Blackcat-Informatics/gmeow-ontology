@@ -374,40 +374,24 @@ fn browser_codebook_builds_require_exact_read_only_producer_selection() {
     }
 }
 
-/// The public entry point owns clean-checkout production, while callers that
-/// already materialized the corpus use the strict post-producer edge exactly once.
+/// The public entry point owns clean-checkout production through the one xtask
+/// consumer build, while callers that already materialized the corpus use the
+/// strict post-producer edge, which runs no producer at all.
 #[test]
 fn consumer_cli_build_is_source_first_without_repeating_an_existing_producer_run() {
     let makefile = makefile();
     let public = target_recipe(&makefile, "cli-build");
-    let producer = "$(MAKE) producer-build";
-    let sync = "$(MAKE) check-sync SYNC_MODE=update SYNC_OUTPUTS=generated";
-    let consumer = "$(MAKE) consumer-cli-build-materialized";
-    assert!(
-        public.contains(producer) && public.contains(sync) && public.contains(consumer),
-        "the public consumer build must materialize both embedded assets before compilation"
-    );
     assert_eq!(
-        public.matches(producer).count(),
-        1,
-        "cli-build must invoke the producer exactly once"
-    );
-    let producer_at = public.find(producer).expect("producer command is present");
-    let sync_at = public.find(sync).expect("sync command is present");
-    let consumer_at = public.find(consumer).expect("consumer command is present");
-    assert!(
-        producer_at < sync_at && sync_at < consumer_at,
-        "cli-build must produce, synchronize, then compile the consumer"
+        public.trim(),
+        "cargo xtask cli build",
+        "cli-build must be the thin wrapper over the producing consumer build"
     );
 
     let materialized = target_recipe(&makefile, "consumer-cli-build-materialized");
-    assert!(
-        materialized.contains("cargo build -p gmeow-cli --release")
-            && materialized.contains("dist/bin/gmeow")
-            && materialized.contains("scripts/test-one-file-prover.sh dist/bin/gmeow")
-            && !materialized.contains("check-sync")
-            && !materialized.contains("producer-build"),
-        "the internal post-producer edge must only compile and stage the one-file consumer"
+    assert_eq!(
+        materialized.trim(),
+        "cargo xtask cli build --skip-producer",
+        "the internal post-producer edge must only compile, stage and verify the consumer"
     );
 
     for target in ["install", "release"] {
@@ -418,6 +402,15 @@ fn consumer_cli_build_is_source_first_without_repeating_an_existing_producer_run
             "{target} already owns materialization and must not launch a second producer run"
         );
     }
+
+    // The consumer build's producer step is the same command `check-sync` runs, so it
+    // is one producer run rather than a second pipeline entry point.
+    let cli = std::fs::read_to_string(repo_root().join("crates/xtask/src/cli.rs"))
+        .expect("read xtask consumer build");
+    assert!(
+        cli.contains(r#""run -- sync --mode update --outputs generated""#),
+        "cargo xtask cli build must materialize through the producer runner's sync"
+    );
 }
 
 #[test]

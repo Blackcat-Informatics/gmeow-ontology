@@ -3901,6 +3901,7 @@ const PINNED_DIAG_KINDS_WITHOUT_FAILURE_CLASS: &[&str] = &[
     "logic.provenance",
     "logic.query",
     "logic.reason",
+    "logic.reason.native-refusal",
     "logic.reference",
     "logic.relational-core",
     "logic.result",

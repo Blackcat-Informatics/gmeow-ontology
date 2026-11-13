@@ -685,7 +685,8 @@ fn annotation_content_key(annotation: &purrdf::RdfAnnotation) -> String {
 }
 
 pub(crate) fn default_graph_keys(product: &StageProduct) -> BTreeSet<String> {
-    let dataset = product.dataset();
+    // The scheduler's own inspection of a product is not a read by the consuming stage.
+    let dataset = product.raw_bundle().dataset();
     let mut rows = BTreeSet::new();
     rows.extend(
         dataset
@@ -720,7 +721,8 @@ pub(crate) fn default_graph_commitment(
 pub(crate) fn provenance_keys(
     product: &StageProduct,
 ) -> Result<BTreeSet<String>, gmeow_errors::Diag> {
-    let dataset = product.dataset();
+    // The scheduler's own inspection of a product is not a read by the consuming stage.
+    let dataset = product.raw_bundle().dataset();
     let provenance = product.raw_bundle().provenance().public_projection();
     // Empty occurrence lanes need no quad lookup, even on a large carrier.
     if provenance.is_empty() {

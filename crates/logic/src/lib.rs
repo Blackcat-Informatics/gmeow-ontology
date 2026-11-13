@@ -40,9 +40,6 @@ pub mod entrenchment;
 pub mod error;
 pub(crate) mod execution_cbor;
 pub mod explain;
-/// Strict SZS artifact capture plus independent checks for the admitted external
-/// proof and finite-model formats used by the installed `gmeow prove` surface.
-pub mod external_evidence;
 /// Query-scoped annotated external relations and their deterministic receipts.
 pub mod external_relation;
 mod observation_json;

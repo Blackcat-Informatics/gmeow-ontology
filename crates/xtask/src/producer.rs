@@ -24,7 +24,7 @@ use gmeow_build_inputs::{
     GeneratedInputs, InputInventory, ProductionSelection, UnitSelection,
 };
 
-type Result<T> = gmeow_errors::Result<T>;
+pub(crate) type Result<T> = gmeow_errors::Result<T>;
 const CONTRACT_ENV: &str = "GMEOW_PRODUCER_BUILD_CONTRACT";
 
 /// Attach producer-build context to the shared typed evidence diagnostic.
@@ -49,7 +49,7 @@ pub(super) fn command(args: Vec<String>) -> ExitCode {
 /// Verification never compiles. Build and run elect one builder, authenticate any
 /// staged pair, and rebuild an authenticated stale recipe or an absent receipt.
 /// Release the election lock before running the staged producer command.
-fn execute(args: &[String]) -> Result<ExitCode> {
+pub(crate) fn execute(args: &[String]) -> Result<ExitCode> {
     let root = crate::workspace_root();
     let Some(operation) = args.first() else {
         return Err(fail("expected build, verify, recipe, or run -- COMMAND"));
@@ -123,7 +123,7 @@ fn execute(args: &[String]) -> Result<ExitCode> {
 }
 
 /// Capture a command's UTF-8 stdout, rejecting launch failure or an unsuccessful exit.
-fn checked_output(mut command: Command) -> Result<String> {
+pub(crate) fn checked_output(mut command: Command) -> Result<String> {
     let output = command.output().map_err(fail)?;
     if !output.status.success() {
         return Err(fail(String::from_utf8_lossy(&output.stderr)));
@@ -132,14 +132,14 @@ fn checked_output(mut command: Command) -> Result<String> {
 }
 
 /// Read a tool's trimmed identity output using the supplied version or configuration arguments.
-fn identity(program: &str, args: &[&str]) -> Result<String> {
+pub(crate) fn identity(program: &str, args: &[&str]) -> Result<String> {
     let mut command = Command::new(program);
     command.args(args);
     Ok(checked_output(command)?.trim().to_owned())
 }
 
 /// Select Cargo from its explicit environment binding, or use normal executable discovery.
-fn cargo_program() -> OsString {
+pub(crate) fn cargo_program() -> OsString {
     std::env::var_os("CARGO").unwrap_or_else(|| OsString::from("cargo"))
 }
 
@@ -153,7 +153,7 @@ fn configured_flags(root: &Path) -> Result<Vec<String>> {
 }
 
 /// Admit exactly the resolved flags that will be encoded into the producer recipe.
-fn admitted_config_flags(config: &cargo_config2::Config) -> Result<Vec<String>> {
+pub(crate) fn admitted_config_flags(config: &cargo_config2::Config) -> Result<Vec<String>> {
     let flags = config
         .rustflags("x86_64-unknown-linux-gnu")
         .map_err(fail)?
