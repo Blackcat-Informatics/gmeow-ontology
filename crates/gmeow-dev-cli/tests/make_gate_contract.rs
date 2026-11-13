@@ -1886,3 +1886,46 @@ fn medium_sweep_has_only_the_authenticated_producer_entry_point() {
         "a standalone binary would bypass optimized producer admission"
     );
 }
+
+/// Everything that signs, publishes or ships a release must run the release profile,
+/// because only that profile refuses dictionary evidence measured over another corpus.
+/// Each entry point is pinned here: the Makefile targets, and the release workflow that
+/// reaches the signing step only through them.
+#[test]
+fn every_release_entry_point_selects_the_release_profile() {
+    let source = makefile();
+    let release = target_recipe(&source, "release");
+    assert!(
+        release.contains("check-sync SYNC_MODE=update SYNC_OUTPUTS=all SYNC_PROFILE=release"),
+        "release must materialize under the release profile: {release}"
+    );
+    let full_release = target_recipe(&source, "full-release");
+    assert!(
+        full_release.contains("$(MAKE) check SYNC_PROFILE=release"),
+        "full-release must gate under the release profile: {full_release}"
+    );
+    let sign = target_recipe(&source, "release-sign-gts");
+    assert!(
+        sign.contains("compile-gts --profile release --sign-key"),
+        "release-sign-gts rebuilds the bundle it signs, so it must name the release profile: {sign}"
+    );
+    let publish = target_recipe(&source, "release-publish");
+    assert!(
+        publish.contains("check-sync SYNC_MODE=update SYNC_OUTPUTS=docs SYNC_PROFILE=release"),
+        "release-publish regenerates the docs it ships, so it must name the release profile: {publish}"
+    );
+
+    let workflow = std::fs::read_to_string(repo_root().join(".github/workflows/release.yml"))
+        .expect("read release workflow");
+    assert!(
+        workflow.contains("run: make release\n")
+            && workflow.contains("make release-sign-gts SIGN_KEY="),
+        "the release workflow must reach the pipeline only through the release targets"
+    );
+    for forbidden in ["gmeow-dev sync", "gmeow-dev compile-gts", "make check-sync"] {
+        assert!(
+            !workflow.contains(forbidden),
+            "the release workflow must not run the pipeline directly ({forbidden})"
+        );
+    }
+}

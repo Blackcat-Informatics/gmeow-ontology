@@ -322,6 +322,54 @@ pub(crate) fn exclusions_of(
     Ok(exclusions.into_iter().collect())
 }
 
+/// Refuse an exclusion that removes nothing from what this build resolves.
+///
+/// An exclusion tells a reader a file is outside the corpus. It is true only while the
+/// excluded path names a member the selectors would otherwise admit, so a renamed file or
+/// a mistyped path is a hard failure here rather than a silent return of the file it was
+/// meant to remove. The sweep and the build both resolve through this function.
+fn require_exclusions_to_remove_material(
+    corpus_iri: &str,
+    exclusions: &[String],
+    sources: &CorpusSources<'_>,
+) -> Result<(), gmeow_errors::Diag> {
+    for exclusion in exclusions {
+        let in_memory = sources
+            .artifacts
+            .keys()
+            .any(|path| logical_path_selected(path, exclusion));
+        let upstream = || -> Result<bool, gmeow_errors::Diag> {
+            for product in sources.upstream.values() {
+                if product
+                    .artifact_refs()?
+                    .keys()
+                    .any(|path| logical_path_selected(path, exclusion))
+                {
+                    return Ok(true);
+                }
+            }
+            Ok(false)
+        };
+        let on_disk = !exclusion.starts_with("generated/") && {
+            let path = sources.root.join(exclusion);
+            if exclusion.ends_with('/') {
+                path.is_dir()
+            } else {
+                path.is_file()
+            }
+        };
+        if !(in_memory || on_disk || upstream()?) {
+            return Err(invalid_declaration(format!(
+                "<{corpus_iri}> excludes {exclusion:?}, but nothing at that path is in the corpus \
+                 this build resolves — the file was renamed or removed, or the path is mistyped. \
+                 An exclusion that removes nothing lets the file it was written for rejoin the \
+                 corpus unnoticed; correct or delete the gmeow:corpusExcludesPath value"
+            )));
+        }
+    }
+    Ok(())
+}
+
 /// Whether a logical path is removed by one of a corpus's declared exclusions. An
 /// exclusion follows the selector convention: a trailing slash names a family, any
 /// other value one exact logical file.
@@ -483,6 +531,7 @@ pub fn assemble_with_cache(
             "<{corpus_iri}> is not a declared gmeow:DictionaryCorpus"
         ))
     })?;
+    require_exclusions_to_remove_material(corpus_iri, &corpus.exclusions, sources)?;
 
     let mut samples: BTreeSet<Arc<[u8]>> = BTreeSet::new();
     // Every resolved sample's own digest — held-out members included, because the

@@ -162,8 +162,8 @@ pub struct CorpusDef {
     pub selectors: Vec<CorpusSelector>,
     /// `gmeow:corpusExcludesPath` values, sorted: logical paths removed from what the
     /// path-prefix selectors admit. Each lies inside one of [`Self::selectors`]'
-    /// path-prefix families, so it always names material the corpus would otherwise
-    /// contain.
+    /// path-prefix families, and resolving the corpus fails when the path names nothing in
+    /// it, so it always names material the corpus would otherwise contain.
     pub exclusions: Vec<String>,
 }
 

@@ -556,3 +556,25 @@ fn an_exclusion_outside_every_path_prefix_family_is_refused() {
         "{diag}"
     );
 }
+
+/// An exclusion whose path names nothing in the resolved corpus (a renamed or mistyped
+/// file) is refused at resolution, so the file it was written for cannot rejoin the
+/// corpus unnoticed.
+#[test]
+fn an_exclusion_that_removes_nothing_from_the_resolved_corpus_hard_fails() {
+    let harness = Harness::new();
+    let registry = registry_of(
+        "gmeow:corpusMistyped a gmeow:DictionaryCorpus ;\n\
+         \x20   gmeow:corpusSelectsBlobRep \"cells-archive\" ;\n\
+         \x20   gmeow:corpusSelectsPathPrefix \"slices/core/\" ;\n\
+         \x20   gmeow:corpusExcludesPath \"slices/core/gts/mdl.ttl\" .",
+    )
+    .expect("the declaration itself is well-formed");
+    let diag = assemble(&registry, &gm("corpusMistyped"), &harness.sources())
+        .expect_err("an exclusion matching no file must be refused");
+    assert!(
+        diag.to_string().contains("slices/core/gts/mdl.ttl")
+            && diag.to_string().contains("nothing at that path"),
+        "{diag}"
+    );
+}

@@ -1005,19 +1005,27 @@ fn st_goal_directed(id: &str, impl_key: &str, consumes: &[&str]) -> StageSpec {
 /// committed artifact). RDF artifacts compare by bytes (they are byte
 /// deterministic); the `gmeow.gts` bundle is compared by the production superset
 /// fold because CBOR has encoding skew.
-pub fn run_full(root: &Path, jobs: usize, mode: RunMode) -> Result<RunReport, gmeow_errors::Diag> {
-    run_full_scoped(root, jobs, mode, RunOutputScope::All)
+pub fn run_full(
+    root: &Path,
+    jobs: usize,
+    mode: RunMode,
+    profile: BuildProfile,
+) -> Result<RunReport, gmeow_errors::Diag> {
+    run_full_scoped(root, jobs, mode, RunOutputScope::All, profile)
 }
 
-/// Run an ORDINARY build once for the selected output scope. The scope selects the
-/// stage set ([`spec_for_scope`]); every selected stage and its gates are mandatory.
+/// Run one build under the explicitly selected [`BuildProfile`] for the selected output
+/// scope. The scope selects the stage set ([`spec_for_scope`]); every selected stage and
+/// its gates are mandatory. The profile has no default: a caller that ships its output
+/// must name [`BuildProfile::Release`].
 pub fn run_full_scoped(
     root: &Path,
     jobs: usize,
     mode: RunMode,
     output_scope: RunOutputScope,
+    profile: BuildProfile,
 ) -> Result<RunReport, gmeow_errors::Diag> {
-    run_full_scoped_with_progress(root, jobs, mode, output_scope, BuildProfile::Ordinary, None)
+    run_full_scoped_with_progress(root, jobs, mode, output_scope, profile, None)
 }
 
 /// Run the scoped pipeline under an explicitly selected [`BuildProfile`], with an

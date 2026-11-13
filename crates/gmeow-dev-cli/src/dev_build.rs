@@ -131,9 +131,19 @@ pub fn mappings() -> i32 {
 
 /// `gmeow-dev compile-gts [-o --sign-key --public-key]` — reproduce (and
 /// optionally sign) the committed dist snapshot.
-pub fn compile_gts(out: Option<&Path>, sign_key: Option<&Path>, public_key: Option<&Path>) -> i32 {
+pub fn compile_gts(
+    out: Option<&Path>,
+    sign_key: Option<&Path>,
+    public_key: Option<&Path>,
+    profile: gmeow_pipeline::BuildProfile,
+) -> i32 {
     if sign_key.is_some() != public_key.is_some() {
         return fail("--sign-key and --public-key must be supplied together");
+    }
+    if sign_key.is_some() && profile != gmeow_pipeline::BuildProfile::Release {
+        return fail(
+            "a signed bundle is a release: pass --profile release so stale dictionary evidence is refused",
+        );
     }
     let root = project_root();
     let jobs = match resolve_jobs(None) {
@@ -141,7 +151,7 @@ pub fn compile_gts(out: Option<&Path>, sign_key: Option<&Path>, public_key: Opti
         Err(code) => return code,
     };
     // The pipeline (the build authority) folds the snapshot at its single gts_sink.
-    let report = match run_full(&root, jobs, RunMode::Update) {
+    let report = match run_full(&root, jobs, RunMode::Update, profile) {
         Ok(report) => report,
         Err(error) => return fail(format!("regenerate failed: {error}")),
     };
@@ -362,4 +372,23 @@ fn parse_evidence_spec(spec: &str) -> Result<gmeow_pipeline::stages::release::Ev
         rep: parts[1].to_owned(),
         subject_label: parts[0].to_owned(),
     })
+}
+
+#[cfg(test)]
+mod release_profile_tests {
+    use super::*;
+
+    /// Signing rebuilds the bundle it signs, so it is refused before any build when the
+    /// profile is not the release profile.
+    #[test]
+    fn signing_a_bundle_on_the_ordinary_profile_is_refused() {
+        let key = Path::new("/does/not/exist");
+        let code = compile_gts(
+            None,
+            Some(key),
+            Some(key),
+            gmeow_pipeline::BuildProfile::Ordinary,
+        );
+        assert_ne!(code, 0);
+    }
 }

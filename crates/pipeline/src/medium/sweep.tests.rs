@@ -259,6 +259,7 @@ fn resolution(digest: &str) -> crate::medium::corpus::CorpusResolution {
 /// (trained/4096) at `declared` bytes; the winner is a different cell when they differ.
 fn graded_row(id: &str, best: u64, declared: u64) -> DictionaryBaseline {
     let mut row = row(id);
+    row.bytes_on_disk_baseline = best.max(declared) * 2;
     let cell = |strategy: &str, target_length: u64, two_part_code_bytes: u64| GridRow {
         strategy: strategy.to_string(),
         target_length,
@@ -447,4 +448,53 @@ fn the_sweep_schedules_exactly_the_committed_output_scope() {
     for needed in ["stage-snapshot", "stage-archive-blobs"] {
         assert!(selected.contains(needed), "{needed} is not scheduled");
     }
+}
+
+#[test]
+fn a_declared_cell_that_does_not_pay_for_itself_is_refused_though_the_winner_does() {
+    // The winner (990 B) beats the 1000 B no-dictionary baseline; the declared cell
+    // (1005 B, within the 1% margin of the winner) costs more than no dictionary.
+    let mut row = graded_row("gmeow-core-v1", 990, 1005);
+    row.bytes_on_disk_baseline = 1000;
+    row.two_part_code_bytes = 990;
+    let digest = row.corpus_digest.clone();
+    let diag = graded(row, &digest, crate::run::BuildProfile::Ordinary)
+        .expect_err("the shipped cell costs more than no dictionary");
+    assert_eq!(
+        gmeow_errors::code::code_str(diag.code()),
+        "pipeline.medium.dictionary-regression",
+        "{diag}"
+    );
+    assert!(
+        diag.to_string().contains("does not pay for itself"),
+        "{diag}"
+    );
+}
+
+#[test]
+fn the_margin_accepts_exactly_one_percent_and_refuses_the_next_byte_over() {
+    let accepted = graded_row("gmeow-core-v1", 10_000, 10_100);
+    let digest = accepted.corpus_digest.clone();
+    graded(accepted, &digest, crate::run::BuildProfile::Release)
+        .expect("exactly one percent above the winner is inside the margin");
+
+    let refused = graded_row("gmeow-core-v1", 10_000, 10_101);
+    let digest = refused.corpus_digest.clone();
+    graded(refused, &digest, crate::run::BuildProfile::Release)
+        .expect_err("a byte past one percent is outside the margin");
+}
+
+#[test]
+fn a_table_whose_winner_is_not_its_cheapest_cell_is_refused() {
+    let mut row = graded_row("gmeow-core-v1", 10_000, 10_050);
+    row.grid.push(GridRow {
+        strategy: "trained".to_string(),
+        target_length: 8192,
+        dictionary_bytes: 100,
+        two_part_code_bytes: 9_000,
+    });
+    let digest = row.corpus_digest.clone();
+    let diag = graded(row, &digest, crate::run::BuildProfile::Ordinary)
+        .expect_err("the table contradicts itself");
+    assert!(diag.to_string().contains("cheapest cell"), "{diag}");
 }

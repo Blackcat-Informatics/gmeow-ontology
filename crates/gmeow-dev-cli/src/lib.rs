@@ -557,6 +557,9 @@ pub enum Commands {
         sign_key: Option<PathBuf>,
         #[arg(long = "public-key")]
         public_key: Option<PathBuf>,
+        /// The build profile the snapshot is regenerated under. Signing requires `release`.
+        #[arg(long = "profile", value_enum, default_value = "ordinary")]
+        profile: SyncProfile,
     },
     /// Start the GMEOW MCP server (wired in the MCP task).
     Mcp,
@@ -1148,7 +1151,13 @@ pub fn run() -> i32 {
             out,
             sign_key,
             public_key,
-        } => dev_build::compile_gts(out.as_deref(), sign_key.as_deref(), public_key.as_deref()),
+            profile,
+        } => dev_build::compile_gts(
+            out.as_deref(),
+            sign_key.as_deref(),
+            public_key.as_deref(),
+            profile.build_profile(),
+        ),
         Commands::Mcp => mcp(),
         Commands::ImportFoundation { jsonl, out, nq } => {
             dev_project::import_foundation(&jsonl, &out, nq.as_deref())

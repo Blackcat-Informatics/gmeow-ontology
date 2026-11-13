@@ -226,9 +226,10 @@ the recorded digest, which would assert an identity nothing measured.
 The declared point need not be the argmin. A declared cell is accepted when its
 two-part code is within **1%** of the winning cell's (`DECLARED_CELL_MARGIN_BASIS_POINTS`
 = 100); the build warns when it relies on the margin and **fails** above it, as it
-does when the declared cell is absent from the grid. Re-running the sweep flips
-near-tied cells by a few hundredths of a percent, which is measurement noise rather
-than a reason to move a shipped dictionary.
+does when the declared cell is absent from the grid. The reason for the margin, with the
+observed flips, is recorded once, on `DECLARED_CELL_MARGIN_BASIS_POINTS` in
+`crates/pipeline/src/medium/sweep.rs`. The declared cell must also beat the
+no-dictionary baseline, because it is the cell that ships.
 
 ### Corpus exclusions
 

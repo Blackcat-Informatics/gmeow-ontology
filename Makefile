@@ -543,7 +543,7 @@ release-sign-gts: ## Sign the regenerated GTS bundle for release packaging.
 	@if [ -z "$(SIGN_KEY)" ]; then \
 		echo "SIGN_KEY=/path/to/secret.asc is required"; exit 1; \
 	fi
-	$(GMEOW_DEV) compile-gts --sign-key "$(SIGN_KEY)" --public-key "$(PUBLIC_KEY)" --out "$(GTS_OUT)"
+	$(GMEOW_DEV) compile-gts --profile release --sign-key "$(SIGN_KEY)" --public-key "$(PUBLIC_KEY)" --out "$(GTS_OUT)"
 
 full-release: ## Signed release-as-evidence: gate + oracle lane + conformance + perf, folded + signed + DOI (§18).
 	@if [ -z "$(SIGN_KEY)" ]; then \
@@ -582,7 +582,7 @@ release-publish: ## USER-driven publish of a verified signed bundle: content-add
 	fi
 	$(MAKE) verify-release
 	$(MAKE) crossref
-	$(MAKE) check-sync SYNC_MODE=update SYNC_OUTPUTS=docs
+	$(MAKE) check-sync SYNC_MODE=update SYNC_OUTPUTS=docs SYNC_PROFILE=release
 	$(GMEOW_DEV) docs-package --out dist/gmeow-docs.tar
 	sha256sum "$(GTS_OUT)" "$(GTS_OUT).ingestion.cbor" > "$(GTS_OUT).sha256"
 	@echo "release bundle native content heads (BLAKE3):"
@@ -1437,9 +1437,10 @@ maint-medium-sweep: ## (maintainer) Refresh bench/medium-baseline.json — the f
 	@# is evidence rather than assertion.
 	@#
 	@# Mirrors maint-bench-baseline / maint-bench-cost-baseline: a deliberate,
-	@# hand-committed refresh, never auto-drift. `stage-medium-dictionaries` CONSUMES the
-	@# committed winners, so the shipped dictionaries stay a deterministic function of the
-	@# repository instead of a per-build search.
+	@# hand-committed refresh, never auto-drift. `stage-medium-dictionaries` trains each dictionary at its
+	@# DECLARED point and grades that point against this table's grid, so the shipped
+	@# dictionaries stay a deterministic function of the repository instead of a per-build
+	@# search.
 	@# A refresh is not required for every corpus edit: the stage trains at the DECLARED
 	@# point, a declaration within the near-tie margin of the winner is accepted, and an
 	@# ordinary build whose corpus digest no longer matches the table warns and records the

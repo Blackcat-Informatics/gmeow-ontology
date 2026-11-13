@@ -624,6 +624,7 @@ impl DictionaryEvidence {
                 declared = %declared,
                 best = %best,
                 difference = %percent_above(declared.two_part_code_bytes, best.two_part_code_bytes),
+                margin_basis_points = DECLARED_CELL_MARGIN_BASIS_POINTS,
                 "the declared dictionary cell is not the committed winner; it passes within the \
                  near-tie margin",
             );
@@ -680,9 +681,14 @@ fn grid_cell(row: &DictionaryBaseline, strategy: &str, target_length: u64) -> Op
 /// acyclic: a stage that STEERED off the table could not run until the table existed,
 /// and the sweep that produces the table runs the DAG.
 ///
+/// The declared cell is also the cell that ships, so it is the one graded for paying its
+/// way: its two-part code must be below the row's no-dictionary baseline, whatever the
+/// winner's figures say.
+///
 /// # Errors
 /// `MediumDictionaryRegression` when the declared cell, or the committed winner's cell,
-/// is absent from the grid, or when the declared cell is above the margin.
+/// is absent from the grid, when the declared cell does not beat the no-dictionary
+/// baseline, or when it is above the margin.
 pub fn declared_point(
     def: &DictionaryDef,
     row: &DictionaryBaseline,
@@ -708,6 +714,26 @@ pub fn declared_point(
              `make maint-medium-sweep`"
         ))
     })?;
+    if let Some(cheapest) = row.grid.iter().map(|cell| cell.two_part_code_bytes).min()
+        && cheapest < best.two_part_code_bytes
+    {
+        return Err(super::dictionary_regression(format!(
+            "{id}: the committed winner {best} is not the cheapest cell of its own grid in \
+             {MEDIUM_BASELINE_PATH} ({cheapest} B is cheaper) — the table contradicts itself. \
+             Re-run `make maint-medium-sweep`"
+        )));
+    }
+    if declared.two_part_code_bytes >= row.bytes_on_disk_baseline {
+        return Err(super::dictionary_regression(format!(
+            "{id}: the declared cell {declared} does not pay for itself: its two-part code is not \
+             below the {} B the same frames cost with no dictionary in {MEDIUM_BASELINE_PATH}. This \
+             is the cell the build trains and ships, so it is graded here rather than at the \
+             winner. There is no threshold to relax; reconcile the declaration with the measured \
+             winner in slices/core/gts/module.ttl, or decide as a human whether the dictionary \
+             stands",
+            row.bytes_on_disk_baseline
+        )));
+    }
     if declared == best {
         return Ok(DeclaredPoint::Winner);
     }
@@ -1321,7 +1347,7 @@ pub fn run_sweep(root: &Path, jobs: usize) -> Result<MediumBaseline, gmeow_error
     // Everything EXCEPT the two stages that CONSUME this lane's own output.
     //
     // `stage-medium-dictionaries` reads the committed winner table as a gate — the
-    // bijection, the declared-is-argmin agreement, and the refusal to build against
+    // bijection, the declared point's place on the grid, and the refusal to build against
     // evidence that says a dictionary loses — and the terminal sink emits only what
     // that stage produced. Running either here would let the gate eat its own
     // diagnosis: a sweep re-run to REPLACE a table that says a dictionary loses (or a
