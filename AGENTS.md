@@ -770,3 +770,21 @@ git push
 The PR lands as a **squash-merge via `ghprsq`** — never `git merge` / `gh pr merge`. The squash
 collapses the whole branch (your commits *and* the merge commits from § Integrate) into one commit
 on `main`, so `main` stays linear. See the `/stage3` finalization flow.
+
+---
+
+## 7. Shell Calls: One Thing at a Time
+
+An agent session that raises a permission prompt stops until a person happens to look at it,
+and a long compound command is the usual cause. Keep every shell call small and plain:
+
+* **One call does one thing.** A few related commands may share a call. A chain of dozens joined
+  by `&&` or `;` is never written. When a step needs a script, write the script as a file in the
+  local working area (`.stage/`) and run that file.
+* **A deletion is never inside a chain.** No `rm -r`, `rm -rf`, `find -delete`, `git clean` or
+  `git worktree remove --force` beside other commands. A deletion is its own call, on one exact
+  path inside this repository, after an earlier call has listed that target. Remove worktrees
+  and branches with the plain `git worktree remove` and `git branch -d`.
+* **Send nothing that could raise a prompt.** No deletion by glob or variable, no path outside
+  the repository, no long compound command. When a call is refused, do not send it again in
+  another form: run the plain small version, or report the refusal.
