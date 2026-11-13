@@ -554,9 +554,9 @@ impl StageOutput {
 
 /// Whether a stage's output is stable for identical declared inputs.
 ///
-/// This is the executable twin of RDF `gmeow:stageStability`. The loader requires
-/// exact agreement before scheduling, so a receipt never claims a stronger stability
-/// class than the canonical DAG declares.
+/// This is the parsed form of RDF `gmeow:stageStability`: the stage description is its
+/// only source, so a receipt never claims a stronger stability class than the
+/// canonical DAG declares.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum StageStability {
     /// Identical declared inputs produce byte-identical output across runs.
@@ -610,9 +610,9 @@ pub enum OutputFamily {
 
 /// Whether a stage product should use the persistent structural cache.
 ///
-/// This is the executable twin of RDF `gmeow:stageCacheDisposition`: both variants
+/// This is the parsed form of RDF `gmeow:stageCacheDisposition`: both variants
 /// execute the same stage body and the scheduler applies the same attach-drift,
-/// provenance, and diagnostics gates. The loader requires exact RDF/Rust agreement.
+/// provenance, and diagnostics gates.
 /// [`Self::Recompute`] is for very large aggregate products whose canonical-byte
 /// reparse and typed-handle reconstruction costs more than rebuilding them from their
 /// already-live upstream products.
@@ -738,8 +738,8 @@ pub trait Stage: Send + Sync {
     /// unless exactly one stage holds it), and [`SOURCE_ORIGIN`] marks the
     /// authored-source loader (its emitted quads' provenance origin is `Source`, every
     /// other stage's is `Generated`). The default is none — a stage holding no
-    /// recognized capability is provenance-`Generated` and non-sink. The loader
-    /// HARD-fails if this disagrees with the RDF `gmeow:hasCapability` declaration.
+    /// recognized capability is provenance-`Generated` and non-sink. These are the
+    /// RDF `gmeow:hasCapability` declarations of the stage.
     fn capabilities(&self) -> &[String] {
         &[]
     }
@@ -747,12 +747,12 @@ pub trait Stage: Send + Sync {
     /// runs (`gmeow:requiresResource`), sorted. Two stages declaring the same
     /// resource serialize; the default is none (parallel-eligible). The reasoning
     /// stage declares [`ENGINE_RESOURCE`]; carrier-scale materializers declare
-    /// [`SERIALIZATION_BUFFER_RESOURCE`]. The loader HARD-fails if this
-    /// disagrees with the RDF `gmeow:requiresResource` declaration.
+    /// [`SERIALIZATION_BUFFER_RESOURCE`]. These are the RDF
+    /// `gmeow:requiresResource` declarations of the stage.
     fn resources(&self) -> &[String] {
         &[]
     }
-    /// The output-stability declaration mirrored by RDF `gmeow:stageStability`.
+    /// The output-stability class the stage declares with RDF `gmeow:stageStability`.
     /// Deterministic repository stages use the stable-prefix class by default; a
     /// stage with intentional per-run variance must opt in explicitly.
     fn stability(&self) -> StageStability {
@@ -776,8 +776,7 @@ pub trait Stage: Send + Sync {
     ///
     /// Narrowing is a CORRECTNESS ASSERTION: declare an entity set only when the stage
     /// provably reads nothing else from that producer's product — a too-small set would
-    /// serve a stale build. The loader HARD-fails if this disagrees with the RDF
-    /// `gmeow:BuildDataFlow` declaration (single source of truth).
+    /// serve a stale build. The RDF `gmeow:BuildDataFlow` declaration is its only source.
     fn consumed_entities(&self) -> &[(String, Vec<String>)] {
         &[]
     }
@@ -796,9 +795,8 @@ pub trait Stage: Send + Sync {
     /// attach DELTA), sorted and deduplicated. For producers narrowed by
     /// [`Self::consumed_entities`], only the declared named graphs are effective
     /// inputs; a different graph merely carried by that upstream product does not
-    /// conceal this stage's attachment. Mirrors the RDF `gmeow:attachesGraph`
-    /// declarations on the stage individual; the loader HARD-fails if the two
-    /// disagree (Rust/RDF agreement) and the scheduler HARD-fails
+    /// conceal this stage's attachment. These are the RDF `gmeow:attachesGraph`
+    /// declarations on the stage individual; the scheduler HARD-fails
     /// ([`crate::error::AttachDrift`]) if the stage's actual attach delta at run
     /// time diverges from this set (in either direction). The default is empty — a
     /// stage that attaches no NEW named graph (e.g. a leaf that only rides the
@@ -813,9 +811,8 @@ pub trait Stage: Send + Sync {
     /// digest)` identity is present in its output product but NOT in its assembled
     /// input (its attach DELTA), sorted and deduplicated. Distinct producers may
     /// therefore each attach different content under the same shared lane label.
-    /// Mirrors the RDF `gmeow:attachesBlobRep` declarations; verified against the RDF
-    /// at load (Rust/RDF agreement) and against the actual run-time delta by the
-    /// scheduler ([`crate::error::AttachDrift`]). NOT the byte-artifact lane (logical
+    /// These are the RDF `gmeow:attachesBlobRep` declarations, verified against the
+    /// actual run-time delta by the scheduler ([`crate::error::AttachDrift`]). NOT the byte-artifact lane (logical
     /// paths) — only the representation-keyed by-reference blob lane. The default is
     /// empty.
     fn attaches_blob_reps(&self) -> &[String] {

@@ -98,61 +98,6 @@ define_diag_kind! {
 }
 
 define_diag_kind! {
-    /// The registry stage's `resources()` disagrees with the RDF
-    /// `gmeow:requiresResource` declaration (Rust/RDF resource agreement).
-    pub struct ResourceMismatch { stage: String, rdf: Vec<String>, rust: Vec<String> }
-    code = "pipeline.contract.resource-mismatch";
-    grade = Grade::new(Severity::Error, FindingCategory::ModelingDisciplineViolation, Standpoint::Binding);
-    message = "stage {}: RDF gmeow:requiresResource {:?} disagrees with the Rust impl resources() {:?}", stage, rdf, rust;
-}
-
-define_diag_kind! {
-    /// The registry stage's `consumed_entities()` disagrees with the RDF
-    /// `gmeow:BuildDataFlow` typed-dataflow declaration (Rust/RDF dataflow agreement).
-    pub struct DataFlowMismatch {
-        stage: String,
-        rdf: Vec<(String, Vec<String>)>,
-        rust: Vec<(String, Vec<String>)>,
-    }
-    code = "pipeline.contract.dataflow-mismatch";
-    grade = Grade::new(Severity::Error, FindingCategory::ModelingDisciplineViolation, Standpoint::Binding);
-    message = "stage {}: RDF gmeow:BuildDataFlow typed entities {:?} disagree with the Rust impl consumed_entities() {:?}", stage, rdf, rust;
-}
-
-define_diag_kind! {
-    /// The registry stage's `consumes()` disagrees with the RDF
-    /// `dataflowConsumes` declaration (Rust/RDF consumes agreement).
-    pub struct ConsumesMismatch { stage: String, rdf: Vec<String>, rust: Vec<String> }
-    code = "pipeline.contract.consumes-mismatch";
-    grade = Grade::new(Severity::Error, FindingCategory::ModelingDisciplineViolation, Standpoint::Binding);
-    message = "stage {}: RDF dataflowConsumes {:?} disagrees with the Rust impl consumes() {:?}", stage, rdf, rust;
-}
-
-define_diag_kind! {
-    /// The registry stage's `capabilities()` disagrees with the RDF
-    /// `gmeow:hasCapability` declaration (Rust/RDF capability agreement).
-    pub struct CapabilityMismatch { stage: String, rdf: Vec<String>, rust: Vec<String> }
-    code = "pipeline.contract.capability-mismatch";
-    grade = Grade::new(Severity::Error, FindingCategory::ModelingDisciplineViolation, Standpoint::Binding);
-    message = "stage {}: RDF gmeow:hasCapability {:?} disagrees with the Rust impl capabilities() {:?}", stage, rdf, rust;
-}
-
-define_diag_kind! {
-    /// The registry stage's `attaches_graphs()` / `attaches_blob_reps()` disagrees
-    /// with the RDF `gmeow:attachesGraph` / `gmeow:attachesBlobRep` declaration
-    /// (Rust/RDF attach-declaration agreement, proved at load time).
-    pub struct AttachDeclMismatch {
-        stage: String,
-        lane: String,
-        rdf: Vec<String>,
-        rust: Vec<String>,
-    }
-    code = "pipeline.contract.attach-decl-mismatch";
-    grade = Grade::new(Severity::Error, FindingCategory::ModelingDisciplineViolation, Standpoint::Binding);
-    message = "stage {}: RDF {} {:?} disagrees with the Rust impl declaration {:?}", stage, lane, rdf, rust;
-}
-
-define_diag_kind! {
     /// A stage's ACTUAL run-time attach delta (the named graphs / content-identified
     /// blob-rep records its output product carries beyond its assembled input) diverges
     /// from its DECLARED attach set — either an undeclared attachment (attached but not
@@ -492,11 +437,6 @@ pub const PIPELINE_DIAG_CODES: &[&str] = &[
     InvalidDeclaration::CODE,
     InvalidDag::CODE,
     UnknownStageImpl::CODE,
-    ResourceMismatch::CODE,
-    DataFlowMismatch::CODE,
-    ConsumesMismatch::CODE,
-    CapabilityMismatch::CODE,
-    AttachDeclMismatch::CODE,
     AttachDrift::CODE,
     FanoutBijection::CODE,
     ExpectedOutputMissing::CODE,
@@ -544,11 +484,6 @@ pub fn register_all() -> Vec<Code> {
         InvalidDeclaration::register(),
         InvalidDag::register(),
         UnknownStageImpl::register(),
-        ResourceMismatch::register(),
-        DataFlowMismatch::register(),
-        ConsumesMismatch::register(),
-        CapabilityMismatch::register(),
-        AttachDeclMismatch::register(),
         AttachDrift::register(),
         FanoutBijection::register(),
         ExpectedOutputMissing::register(),

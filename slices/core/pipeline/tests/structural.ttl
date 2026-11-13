@@ -103,7 +103,7 @@ ASK {
 # The run-verified contribution predicates (gmeow:attachesGraph / gmeow:attachesBlobRep,
 # PIPELINE_SPINE §3.3) and the promoted fanout path↔representative map
 # (gmeow:fanoutExtracts over gmeow:FanoutExtraction) MUST carry their TBox spine so the
-# loader's Rust/RDF attach agreement and the superset gate's data-driven reconstruction
+# scheduler's attach-drift check and the superset gate's data-driven reconstruction
 # read a declared vocabulary, not undeclared symbols.
 ex:saAttachAndFanoutVocab a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:must ;

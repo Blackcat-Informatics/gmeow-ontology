@@ -138,7 +138,7 @@ gmeow:dataflowConsumes
     rdfs:label "dataflow consumes"@x-gmeow-english ;
     rdfs:domain gmeow:PipelineStage ;
     rdfs:range gmeow:PipelineStage ;
-    skos:definition "Relates a stage to an upstream stage whose product it reads. A specialization of the canonical logic:dataflowConsumes (consumer → producer) — so the build pipeline's dataflow is the same edge the DAG-workflow certifier reads, not a parallel one. The executor inverts it to schedule producers first. The transitive closure of gmeow:dataflowConsumes must be acyclic — the loader HARD-fails on a cycle (the logic:DagWorkflowResource certification). The Rust Stage's consumes() must agree with this declaration exactly (Rust/RDF agreement)."@x-gmeow-english ;
+    skos:definition "Relates a stage to an upstream stage whose product it reads. A specialization of the canonical logic:dataflowConsumes (consumer → producer) — so the build pipeline's dataflow is the same edge the DAG-workflow certifier reads, not a parallel one. The executor inverts it to schedule producers first. The transitive closure of gmeow:dataflowConsumes must be acyclic — the loader HARD-fails on a cycle (the logic:DagWorkflowResource certification). This declaration is the only source of the stage's dependencies; the stage body declares none."@x-gmeow-english ;
     skos:example "gmeow:stage-reason gmeow:dataflowConsumes gmeow:stage-statements ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
@@ -161,7 +161,7 @@ gmeow:hasCapability
     rdfs:label "has capability"@x-gmeow-english ;
     rdfs:domain gmeow:PipelineStage ;
     rdfs:range gmeow:StageCapability ;
-    skos:definition "Relates a stage to a gmeow:StageCapability it holds. A specialization of the canonical logic:capability action-theory facet. The executor reads these declarations instead of a kind enum: gmeow:sinkCapability marks the single narrow-waist exit (the loader HARD-fails unless exactly one stage holds it) and gmeow:sourceOrigin marks the authored-source loader (its products' provenance origin is Source). Non-functional — a stage may hold several capabilities. The Rust Stage's capabilities() must agree with this exactly (Rust/RDF agreement)."@x-gmeow-english ;
+    skos:definition "Relates a stage to a gmeow:StageCapability it holds. A specialization of the canonical logic:capability action-theory facet. The executor reads these declarations instead of a kind enum: gmeow:sinkCapability marks the single narrow-waist exit (the loader HARD-fails unless exactly one stage holds it) and gmeow:sourceOrigin marks the authored-source loader (its products' provenance origin is Source). Non-functional — a stage may hold several capabilities. This declaration is the only source of the stage's capabilities."@x-gmeow-english ;
     skos:example "gmeow:stage-gts-sink gmeow:hasCapability gmeow:sinkCapability ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
@@ -192,7 +192,7 @@ gmeow:requiresResource
     rdfs:label "requires resource"@x-gmeow-english ;
     rdfs:domain gmeow:PipelineStage ;
     rdfs:range gmeow:Resource ;
-    skos:definition "Relates a stage to a shared gmeow:Resource it must hold exclusively while it runs. A specialization of the canonical logic:actionResource action-theory facet: where two stages declare the same resource the supply is insufficient for both at once (logic:competesForResource), so the scheduler serializes them. Non-functional — a stage may require several resources. This is the declarative replacement for a hardcoded scheduler lock: any stage can declare any shared resource, and serialization falls out of the conflict rather than a special case. The Rust Stage's resources() must agree with this declaration exactly (Rust/RDF agreement)."@x-gmeow-english ;
+    skos:definition "Relates a stage to a shared gmeow:Resource it must hold exclusively while it runs. A specialization of the canonical logic:actionResource action-theory facet: where two stages declare the same resource the supply is insufficient for both at once (logic:competesForResource), so the scheduler serializes them. Non-functional — a stage may require several resources. This is the declarative replacement for a hardcoded scheduler lock: any stage can declare any shared resource, and serialization falls out of the conflict rather than a special case. This declaration is the only source of the resources the scheduler serializes on."@x-gmeow-english ;
     skos:example "gmeow:stage-reason gmeow:requiresResource gmeow:engineResource ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
@@ -319,11 +319,11 @@ gmeow:attachesGraph
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
     rdfs:label "attaches graph"@x-gmeow-english ;
     rdfs:domain gmeow:PipelineStage ;
-    skos:definition "Relates a gmeow:PipelineStage to a named-graph IRI it ATTACHES to the in-memory carrier — a graph present in its output product bundle but NOT in its assembled input (its attach DELTA, PIPELINE_SPINE §3 rule 3). Multi-valued: a stage may attach several graphs (e.g. gmeow:stage-source-load attaches the self-description graphs; gmeow:stage-snapshot attaches the per-file fanout / EDOAL reconstruction graphs). The range is the IRI of a carrier named graph, not a stage. The Rust Stage's attaches_graphs() must agree with this declaration exactly (Rust/RDF agreement, proved at load), and the scheduler HARD-fails if the stage's actual run-time delta diverges from it in either direction (gmeow:attachesGraph is the run-verified contract, not documentation)."@x-gmeow-english ;
+    skos:definition "Relates a gmeow:PipelineStage to a named-graph IRI it ATTACHES to the in-memory carrier — a graph present in its output product bundle but NOT in its assembled input (its attach DELTA, PIPELINE_SPINE §3 rule 3). Multi-valued: a stage may attach several graphs (e.g. gmeow:stage-source-load attaches the self-description graphs; gmeow:stage-snapshot attaches the per-file fanout / EDOAL reconstruction graphs). The range is the IRI of a carrier named graph, not a stage. This declaration is the only source of the stage's attach set, and the scheduler HARD-fails if the stage's actual run-time delta diverges from it in either direction (gmeow:attachesGraph is the run-verified contract, not documentation)."@x-gmeow-english ;
     skos:example "gmeow:stage-reason gmeow:attachesGraph <https://blackcatinformatics.ca/gmeow/graph/reasoning> ."@x-gmeow-english ;
     gmeow:useWhen "Declare a named graph a build stage contributes to the carrier, so the dependency order is derivable and the superset gate can map every output to its producer — and so the scheduler can verify at run time that the stage attaches exactly what it declares (no undeclared or unfulfilled attachment)."@x-gmeow-english ;
     gmeow:avoidWhen "Do NOT list a graph the stage merely carries forward from an upstream product (that is the upstream's attach, not this stage's — the delta subtracts the assembled input). Do NOT use it for the byte-artifact lane (logical paths) or blob-representation lanes; those are gmeow:attachesBlobRep."@x-gmeow-english ;
-    gmeow:howToUse "Assert one gmeow:attachesGraph per named-graph IRI the stage's run adds beyond its inputs, matching the Rust impl's attaches_graphs(). Capture the set empirically from a full run's attach delta; a mismatch HARD-fails at load (AttachDeclMismatch) or at run time (AttachDrift)."@x-gmeow-english ;
+    gmeow:howToUse "Assert one gmeow:attachesGraph per named-graph IRI the stage's run adds beyond its inputs. Capture the set empirically from a full run's attach delta; a mismatch HARD-fails at run time (AttachDrift)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:attachesBlobRep
@@ -332,7 +332,7 @@ gmeow:attachesBlobRep
     rdfs:label "attaches blob rep"@x-gmeow-english ;
     rdfs:domain gmeow:PipelineStage ;
     logic:range [ a rdfs:Datatype ; logic:unionOf ( xsd:string xsd:token ) ] ;
-    skos:definition "A blob-representation lane label a gmeow:PipelineStage ATTACHES to the carrier — a representation-keyed by-reference blob record (e.g. \"diagnostics:nodes\", \"spans:source-table\") whose (representation, content digest) identity is present in its output product but NOT in its assembled input (its blob-rep attach DELTA). Distinct producers may therefore each attach different content under the same shared lane label, as the compile, reason, and validation stages do for diagnostics:nodes. NOT the byte-artifact lane (logical paths) — only the representation-keyed blob lane the consumers read back by rep. Multi-valued. Stable identifier strings, not localizable prose. The Rust Stage's attaches_blob_reps() must agree exactly (Rust/RDF agreement) and the scheduler verifies the run-time delta (AttachDrift)."@x-gmeow-english ;
+    skos:definition "A blob-representation lane label a gmeow:PipelineStage ATTACHES to the carrier — a representation-keyed by-reference blob record (e.g. \"diagnostics:nodes\", \"spans:source-table\") whose (representation, content digest) identity is present in its output product but NOT in its assembled input (its blob-rep attach DELTA). Distinct producers may therefore each attach different content under the same shared lane label, as the compile, reason, and validation stages do for diagnostics:nodes. NOT the byte-artifact lane (logical paths) — only the representation-keyed blob lane the consumers read back by rep. Multi-valued. Stable identifier strings, not localizable prose. The scheduler verifies the run-time delta against this declaration (AttachDrift)."@x-gmeow-english ;
     skos:example "gmeow:stage-source-load gmeow:attachesBlobRep \"spans:source-table\" ."@x-gmeow-english ;
     gmeow:useWhen "Declare a representation-keyed blob a stage folds onto its product's by-reference lane (the diagnostics-nodes run-ledger contribution, the source-span table), so the run-time verification covers it."@x-gmeow-english ;
     gmeow:avoidWhen "Do NOT use it for named graphs (gmeow:attachesGraph) or for the byte-artifact lane; do NOT list a record whose representation and content digest the stage merely carries forward from an upstream (the delta subtracts that identity)."@x-gmeow-english ;
@@ -467,8 +467,8 @@ gmeow:serializationBufferResource
 # on. These are genuinely shared across the build: every stage gates on its    #
 # upstream products being available and demands the executor capability. They  #
 # are declared via the canonical logic: facets (NOT gmeow:hasCapability), so   #
-# the loader's capabilities() agreement ignores them — they are the action-    #
-# theory model, not the executor's sink/source role declarations.             #
+# the executor does not read them: they are the action-theory model, not the  #
+# executor's sink/source role declarations.                                   #
 # =========================================================================== #
 
 gmeow:stageInputsAvailable
@@ -1453,11 +1453,9 @@ gmeow:stage-gts-sink
 # =========================================================================== #
 # Stage attach declarations (gmeow:attachesGraph / gmeow:attachesBlobRep) —    #
 # the named graphs / blob-rep lanes each stage contributes to the carrier as   #
-# its delta. The Rust twin (stages/attach.rs) is the single Rust-side source;  #
-# these triples mirror it and the dogfooding gate (tests/dag_dogfood.rs, via   #
-# bind) HARD-fails on any divergence. Captured empirically from a full run's   #
-# attach delta so the scheduler's global bidirectional AttachDrift check has    #
-# zero false positives.                                                        #
+# its delta. These triples are the only declaration: a stage body declares     #
+# nothing. Captured empirically from a full run's attach delta so the          #
+# scheduler's global bidirectional AttachDrift check has zero false positives. #
 # =========================================================================== #
 
 gmeow:stage-source-load

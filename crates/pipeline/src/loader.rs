@@ -2,16 +2,16 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 
 //! The DAG loader: read the dogfooded build graph from `gmeow:` individuals,
-//! validate it, and bind each stage to its Rust implementation.
+//! validate it, and bind each stage description to the body that runs it.
 //!
 //! The build DAG is authored as data — `gmeow:Pipeline` / `gmeow:PipelineStage`
 //! individuals in `slices/core/pipeline/` — and read back here, so the build is
 //! a first-class ontological citizen (MAXIMAL DOGFOODING). [`PipelineSpec`] is
 //! the parsed-but-unbound shape; [`PipelineSpec::validate`] proves the structure
 //! (acyclic, complete, exactly one sink); [`bind`] resolves each `gmeow:stageImpl`
-//! against the [`StageRegistry`] and proves the Rust impl agrees with the RDF
-//! declaration (capabilities + consumes + resources + typed dataflow). Every check
-//! HARD-fails before any stage runs.
+//! against the [`StageRegistry`]. The description is the only place a stage declares
+//! what it consumes, holds, reads and attaches; a body only names itself and runs.
+//! Every check HARD-fails before any stage runs.
 
 use std::collections::{BTreeMap, BTreeSet};
 use std::sync::Arc;
@@ -40,20 +40,17 @@ pub struct StageSpec {
     pub id: String,
     /// `gmeow:hasCapability` — the capability IRIs this stage holds (e.g.
     /// [`crate::node::SINK_CAPABILITY`], [`crate::node::SOURCE_ORIGIN`]), sorted and
-    /// deduplicated. Validated against the Rust impl's `capabilities()` at bind time
-    /// (Rust/RDF agreement); the executor reads these in place of a kind enum.
+    /// deduplicated. The executor reads these in place of a kind enum.
     pub capabilities: Vec<String>,
     /// `gmeow:stageImpl` — the registry key binding this to a Rust [`Stage`].
     pub impl_key: String,
     /// `gmeow:dataflowConsumes` — upstream stage ids, sorted, deduplicated.
     pub consumes: Vec<String>,
     /// `gmeow:requiresResource` — the IRIs of shared resources the stage holds
-    /// exclusively while running, sorted, deduplicated. Validated against the Rust
-    /// impl's `resources()` at bind time (Rust/RDF agreement).
+    /// exclusively while running, sorted, deduplicated.
     pub resources: Vec<String>,
     /// Exactly one `gmeow:stageStability` closed-vocabulary individual. The loader
-    /// rejects missing, multiple, non-IRI, or unknown declarations and proves this
-    /// value agrees with the executable stage twin before scheduling.
+    /// rejects missing, multiple, non-IRI, or unknown declarations.
     pub stability: StageStability,
     /// Exactly one `gmeow:stageCacheDisposition` closed-vocabulary individual. This
     /// declaration decides whether the independently bounded stage contribution is
@@ -62,8 +59,7 @@ pub struct StageSpec {
     /// Reified `gmeow:BuildDataFlow` typed dataflow: for each upstream producer this
     /// stage reads only SPECIFIC named-graph entities from, the `(producer-local-name,
     /// sorted entity IRIs)`, the list sorted by producer. Empty = every consumed
-    /// producer is a whole-product dependency (the sound default). Validated against the
-    /// Rust impl's `consumed_entities()` at bind time (Rust/RDF agreement).
+    /// producer is a whole-product dependency (the sound default).
     pub dataflow_entities: DataFlowEntities,
     /// The reads each reified `gmeow:BuildDataFlow` edge into this stage declares, by
     /// producer: which lanes of that producer's product this stage may read. The
@@ -74,12 +70,12 @@ pub struct StageSpec {
     /// `gmeow:producesFormat` — output format tags, sorted (export leaves).
     pub formats: Vec<String>,
     /// `gmeow:attachesGraph` — the named-graph IRIs (kept whole) this stage attaches
-    /// to the carrier as its delta, sorted and deduplicated. Validated against the Rust
-    /// impl's `attaches_graphs()` at bind time (Rust/RDF agreement).
+    /// to the carrier as its delta, sorted and deduplicated. The scheduler compares it
+    /// with the stage's actual attach delta at run time.
     pub attaches_graphs: Vec<String>,
     /// `gmeow:attachesBlobRep` — the blob-representation lane labels this stage attaches
     /// (e.g. `"axioms-archive"`, `"diagnostics:nodes"`), sorted and deduplicated.
-    /// Validated against the Rust impl's `attaches_blob_reps()` at bind time.
+    /// The scheduler compares it with the stage's actual attach delta at run time.
     pub attaches_blob_reps: Vec<String>,
 }
 
@@ -102,8 +98,7 @@ impl PipelineSpec {
     ///
     /// HARD-fails on: a dangling `dataflowConsumes`, a cycle, no `Sink`, more
     /// than one `Sink`, or a typed-dataflow narrowing whose producer the consumer
-    /// does not actually `dataflowConsumes`. (Rust/RDF resource agreement is proven
-    /// at `bind` time, once the executable twin is resolved.)
+    /// does not actually `dataflowConsumes`.
     pub fn validate(&self) -> Result<StageGraph, gmeow_errors::Diag> {
         // ── Typed-dataflow endpoints: every gmeow:BuildDataFlow producer a consumer
         //    narrows to must be a declared stage AND one the consumer actually
@@ -564,6 +559,13 @@ pub fn bind(
         bound.push(Arc::new(BoundStage::new(s.clone(), stage)));
     }
     Ok(bound)
+}
+
+/// Bind one body to one stage description outside any pipeline, for a test that hands
+/// a described stage to a function taking one.
+#[cfg(test)]
+pub(crate) fn bind_one(spec: StageSpec, body: Arc<dyn crate::node::StageBody>) -> Arc<dyn Stage> {
+    Arc::new(BoundStage::new(spec, body))
 }
 
 /// A stage as the scheduler runs it: the declarations of the pipeline description and

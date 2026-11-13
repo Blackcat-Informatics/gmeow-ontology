@@ -6,9 +6,9 @@
 # gmeow:sourceOrigin), a reasoning stage (which requires the exclusive
 # gmeow:engineResource), and the single serialization exit (holding
 # gmeow:sinkCapability — the gts narrow waist). A stage that gmeow:requiresResource
-# the engine serializes against any other stage competing for it; the Rust impl's
-# resources() and capabilities() must agree with these declarations or the loader
-# HARD-fails (and exactly one stage may hold gmeow:sinkCapability).
+# the engine serializes against any other stage competing for it. These declarations
+# are the only source of a stage's resources and capabilities (and exactly one stage
+# may hold gmeow:sinkCapability).
 
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
 @prefix logic: <https://blackcatinformatics.ca/logic/> .

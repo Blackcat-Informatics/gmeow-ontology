@@ -1334,7 +1334,7 @@ fn product_handle_records(product: &StageProduct) -> BTreeMap<String, String> {
 /// consumes and carries forward is NOT counted as its attach, while a graph merely present
 /// elsewhere in an upstream carrier is not allowed to hide a real attachment. Compared
 /// against the stage's `attaches_graphs()` /
-/// `attaches_blob_reps()` declaration (Rust/RDF-verified at load). Runs on both the cache-hit
+/// `attaches_blob_reps()` declaration. Runs on both the cache-hit
 /// and cache-miss paths (called by [`exec_stage`]) so a cached product with drifted
 /// declarations cannot slip through. No optionality, no fallback.
 pub(crate) fn verify_attach_drift(

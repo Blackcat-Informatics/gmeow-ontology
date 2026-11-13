@@ -14,7 +14,7 @@ use crate::cache::{
     PipelineCache, RawInputDigest, ReceiptOutputSelection, StageInputDigest, StageKeyContext,
     stage_key,
 };
-use crate::loader::{PipelineSpec, StageSpec, bind};
+use crate::loader::{PipelineSpec, StageSpec, bind, bind_one};
 use crate::node::{
     CachePolicy, ENGINE_RESOURCE, SINK_CAPABILITY, SOURCE_ORIGIN, Stage, StageBody, StageInput,
     StageOutput, StageProduct, StageStability,
@@ -25,10 +25,9 @@ use crate::scheduler::{RunContext, dependency_closure, run, run_targets};
 use gmeow_cli_core::Reporter;
 use gmeow_errors::Report;
 
-/// The resources / capabilities a stage with id `id` declares, mirroring the real
-/// stage impls so bind's agreement holds in fixtures: `r` (the reasoner) requires the
-/// exclusive engine resource, `source` holds [`SOURCE_ORIGIN`], `sink` holds
-/// [`SINK_CAPABILITY`], everything else declares neither.
+/// The resources and capabilities the description of a fixture stage with id `id`
+/// declares: `r` (the reasoner) requires the exclusive engine resource, `source` holds
+/// [`SOURCE_ORIGIN`], `sink` holds [`SINK_CAPABILITY`], everything else declares neither.
 fn resources_for(id: &str) -> Vec<String> {
     if id == "r" {
         vec![ENGINE_RESOURCE.to_string()]
@@ -194,14 +193,12 @@ fn typed_dataflow_from_non_consumed_producer_is_rejected() {
     }
 }
 
-// ── Binding agreement ────────────────────────────────────────────────────────
+// ── Binding ──────────────────────────────────────────────────────────────────
 
+/// A body that only names itself and returns an empty product. Everything a stage
+/// declares comes from its [`StageSpec`].
 struct FakeStage {
     id: String,
-    capabilities: Vec<String>,
-    consumes: Vec<String>,
-    carrier_consumes: Option<Vec<String>>,
-    resources: Vec<String>,
 }
 
 impl StageBody for FakeStage {
@@ -222,14 +219,14 @@ impl StageBody for FakeStage {
     }
 }
 
-fn fake(id: &str, consumes: &[&str]) -> Arc<dyn StageBody> {
-    Arc::new(FakeStage {
-        id: id.to_string(),
-        capabilities: capabilities_for(id),
-        consumes: consumes.iter().map(|s| s.to_string()).collect(),
-        carrier_consumes: None,
-        resources: resources_for(id),
-    })
+fn fake(id: &str) -> Arc<dyn StageBody> {
+    Arc::new(FakeStage { id: id.to_string() })
+}
+
+/// The stage `spec` describes, run by a [`FakeStage`].
+fn described(spec: StageSpec) -> Arc<dyn Stage> {
+    let body = fake(&spec.id);
+    bind_one(spec, body)
 }
 
 fn registry_for(spec: &PipelineSpec, stages: Vec<Arc<dyn StageBody>>) -> StageRegistry {
@@ -241,88 +238,35 @@ fn registry_for(spec: &PipelineSpec, stages: Vec<Arc<dyn StageBody>>) -> StageRe
 }
 
 #[test]
-fn bind_succeeds_when_rust_agrees() {
+fn bind_returns_the_described_stages_in_topological_order() {
     let s = diamond();
     let g = s.validate().unwrap();
-    let reg = registry_for(
-        &s,
-        vec![
-            fake("source", &[]),
-            fake("a", &["source"]),
-            fake("b", &["source"]),
-            fake("sink", &["a", "b"]),
-        ],
-    );
+    let reg = registry_for(&s, vec![fake("source"), fake("a"), fake("b"), fake("sink")]);
     let bound = bind(&s, &g, &reg).expect("binds");
-    // Bound in topological order.
     assert_eq!(bound.first().unwrap().id(), "source");
     assert_eq!(bound.last().unwrap().id(), "sink");
+    // Every declaration a bound stage reports is the description's.
+    let sink = bound.last().unwrap();
+    assert_eq!(sink.consumes(), ["a".to_string(), "b".to_string()]);
+    assert_eq!(sink.capabilities(), [SINK_CAPABILITY.to_string()]);
 }
 
+/// A body names its product by the stage id, so a description bound to a body that
+/// names another stage is refused.
 #[test]
-fn bind_rejects_consumes_disagreement() {
+fn bind_rejects_a_body_that_names_another_stage() {
     let s = diamond();
     let g = s.validate().unwrap();
-    // `a`'s Rust impl forgets it consumes `source`.
-    let reg = registry_for(
-        &s,
-        vec![
-            fake("source", &[]),
-            fake("a", &[]),
-            fake("b", &["source"]),
-            fake("sink", &["a", "b"]),
-        ],
+    let reg = registry_for(&s, vec![fake("source"), fake("b"), fake("b"), fake("sink")]);
+    let diag = bind(&s, &g, &reg)
+        .map(|bound| bound.len())
+        .expect_err("a body naming another stage is refused");
+    assert!(diag.is::<crate::error::InvalidDeclaration>(), "{diag}");
+    assert!(
+        diag.to_string()
+            .contains("stage a binds implementation impl:a, whose body names itself b"),
+        "{diag}"
     );
-    match bind(&s, &g, &reg).map(|v| v.len()) {
-        Ok(_) => panic!("expected consumes mismatch"),
-        Err(d) => {
-            let k = d
-                .downcast_ref::<crate::error::ConsumesMismatch>()
-                .unwrap_or_else(|| panic!("expected consumes mismatch, got {d}"));
-            assert_eq!(k.stage, "a");
-        }
-    }
-}
-
-#[test]
-fn bind_rejects_resource_disagreement() {
-    // A Reason spec declares the engine resource, but its Rust impl forgets it —
-    // bind HARD-fails, because a divergence would break the scheduler's
-    // serialization (single source of truth).
-    let s = PipelineSpec {
-        id: "p".to_string(),
-        stages: vec![
-            spec("source", &[]),
-            spec("r", &["source"]),
-            spec("sink", &["r"]),
-        ],
-    };
-    let g = s.validate().unwrap();
-    let mut reg = StageRegistry::new();
-    reg.register("impl:source".to_string(), fake("source", &[]));
-    // The reason impl declares NO resources, disagreeing with the spec.
-    reg.register(
-        "impl:r".to_string(),
-        Arc::new(FakeStage {
-            id: "r".to_string(),
-            capabilities: Vec::new(),
-            consumes: vec!["source".to_string()],
-            carrier_consumes: None,
-            resources: Vec::new(),
-        }) as Arc<dyn StageBody>,
-    );
-    reg.register("impl:sink".to_string(), fake("sink", &["r"]));
-    match bind(&s, &g, &reg).map(|v| v.len()) {
-        Ok(_) => panic!("expected resource mismatch"),
-        Err(d) => {
-            let k = d
-                .downcast_ref::<crate::error::ResourceMismatch>()
-                .unwrap_or_else(|| panic!("expected resource mismatch, got {d}"));
-            assert_eq!(k.stage, "r");
-            assert_eq!(k.rdf, vec![ENGINE_RESOURCE.to_string()]);
-            assert!(k.rust.is_empty());
-        }
-    }
 }
 
 /// A read set names a producer the stage consumes: one on any other stage could never
@@ -349,7 +293,7 @@ fn a_read_set_on_a_stage_that_is_not_consumed_is_refused() {
 #[test]
 fn live_product_and_authenticated_receipt_build_the_same_action_context() {
     let dir = tempfile::tempdir().unwrap();
-    let consumer = fake("a", &["source"]);
+    let consumer = described(spec("a", &["source"]));
     let product = StageProduct::new("source", "source-product-digest");
     let product_upstream =
         std::collections::BTreeMap::from([("source".to_string(), product.clone())]);
@@ -828,11 +772,6 @@ fn provenance_stamps_capability_derived_origin() {
 /// (sorted) upstream digests, with a run counter to observe cache hits.
 struct ComputeStage {
     id: String,
-    capabilities: Vec<String>,
-    consumes: Vec<String>,
-    resources: Vec<String>,
-    stability: StageStability,
-    cache_policy: CachePolicy,
     runs: Arc<AtomicUsize>,
 }
 
@@ -866,11 +805,6 @@ fn compute_registry(spec: &PipelineSpec, runs: &Arc<AtomicUsize>) -> StageRegist
             s.impl_key.clone(),
             Arc::new(ComputeStage {
                 id: s.id.clone(),
-                capabilities: s.capabilities.clone(),
-                consumes: s.consumes.clone(),
-                resources: s.resources.clone(),
-                stability: s.stability,
-                cache_policy: CachePolicy::Persistent,
                 runs: Arc::clone(runs),
             }) as Arc<dyn StageBody>,
         );
@@ -914,9 +848,6 @@ impl Reporter for RecordingReporter {
 
 struct CompletionProbeStage {
     id: String,
-    capabilities: Vec<String>,
-    consumes: Vec<String>,
-    resources: Vec<String>,
     delay: Duration,
     started: Arc<AtomicBool>,
     finished: Arc<AtomicBool>,
@@ -989,9 +920,6 @@ fn completed_stage_publishes_before_an_unrelated_sibling_finishes() {
             stage.impl_key.clone(),
             Arc::new(CompletionProbeStage {
                 id: stage.id.clone(),
-                capabilities: stage.capabilities.clone(),
-                consumes: stage.consumes.clone(),
-                resources: stage.resources.clone(),
                 delay,
                 started: if stage.id == "slow" {
                     Arc::clone(&slow_started)
@@ -1054,9 +982,6 @@ fn resource_waiter_does_not_occupy_a_worker_needed_by_unrelated_ready_work() {
             stage.impl_key.clone(),
             Arc::new(CompletionProbeStage {
                 id: stage.id.clone(),
-                capabilities: stage.capabilities.clone(),
-                consumes: stage.consumes.clone(),
-                resources: stage.resources.clone(),
                 delay: if stage.id == "a-resource" {
                     Duration::from_millis(200)
                 } else {
@@ -1096,8 +1021,6 @@ fn resource_waiter_does_not_occupy_a_worker_needed_by_unrelated_ready_work() {
 
 struct FailureProbeStage {
     id: String,
-    capabilities: Vec<String>,
-    consumes: Vec<String>,
     delay: Duration,
     fail: bool,
     runs: Arc<AtomicUsize>,
@@ -1161,8 +1084,6 @@ fn successful_sibling_receipt_survives_a_later_stage_failure() {
             stage.impl_key.clone(),
             Arc::new(FailureProbeStage {
                 id: stage.id.clone(),
-                capabilities: stage.capabilities.clone(),
-                consumes: stage.consumes.clone(),
                 delay: if stage.id == "b-bad" {
                     Duration::from_millis(100)
                 } else {
@@ -1305,15 +1226,6 @@ fn recompute_policy_reruns_the_stage_but_keeps_downstream_cache_hits() {
             stage.impl_key.clone(),
             Arc::new(ComputeStage {
                 id: stage.id.clone(),
-                capabilities: stage.capabilities.clone(),
-                consumes: stage.consumes.clone(),
-                resources: stage.resources.clone(),
-                stability: stage.stability,
-                cache_policy: if stage.id == "source" {
-                    CachePolicy::Recompute
-                } else {
-                    CachePolicy::Persistent
-                },
                 runs: Arc::clone(&runs),
             }) as Arc<dyn StageBody>,
         );
@@ -1427,7 +1339,7 @@ fn input_files_content_busts_the_cache() {
             runs: Arc::clone(&runs),
         }) as Arc<dyn StageBody>,
     );
-    reg.register("impl:sink".to_string(), fake("sink", &[]));
+    reg.register("impl:sink".to_string(), fake("sink"));
     let bound = bind(&spec, &graph, &reg).unwrap();
 
     let mut ctx = RunContext::open(dir.path().join("cache"), 2).unwrap();
@@ -1486,9 +1398,6 @@ const G2: &str = "https://example.org/g2";
 struct TwoGraphProducer {
     file: std::path::PathBuf,
     runs: Arc<AtomicUsize>,
-    /// The two named graphs it attaches ([`G1`], [`G2`]) — declared so the scheduler's
-    /// attach-drift check (delta == declaration) passes.
-    attaches: Vec<String>,
 }
 
 impl StageBody for TwoGraphProducer {
@@ -1533,11 +1442,11 @@ impl StageBody for TwoGraphProducer {
     }
 }
 
-/// A consumer that declares (via typed dataflow) it reads ONLY one named graph from
-/// the producer. Its run counter shows whether it was recomputed.
+/// A body that counts its runs. The stage it is bound to declares (via typed dataflow)
+/// that it reads only one named graph of the producer, so the counter shows whether a
+/// change outside that graph recomputed it.
 struct EntityConsumer {
     id: String,
-    entities: Vec<(String, Vec<String>)>,
     runs: Arc<AtomicUsize>,
 }
 
@@ -1558,12 +1467,18 @@ fn typed_payload_changes_invalidate_selected_and_whole_action_keys() {
         b"<https://example.org/s> <https://example.org/p> <https://example.org/o> <https://example.org/graph#logic> .",
         "application/n-quads", None,
     ).unwrap();
-    let selected = EntityConsumer {
-        id: "selected".to_string(),
-        entities: vec![("source".to_string(), vec![GRAPH.to_string()])],
-        runs: Arc::new(AtomicUsize::new(0)),
-    };
-    let whole = fake("whole", &["source"]);
+    let runs = Arc::new(AtomicUsize::new(0));
+    let selected = bind_one(
+        StageSpec {
+            dataflow_entities: vec![("source".to_string(), vec![GRAPH.to_string()])],
+            ..spec("selected", &["source"])
+        },
+        Arc::new(EntityConsumer {
+            id: "selected".to_string(),
+            runs: Arc::clone(&runs),
+        }),
+    );
+    let whole = described(spec("whole", &["source"]));
     let selection = ReceiptOutputSelection {
         graphs: vec![GRAPH.to_string()],
         handles: vec![GRAPH.to_string()],
@@ -1601,9 +1516,12 @@ fn typed_payload_changes_invalidate_selected_and_whole_action_keys() {
         if let Some(prior) = previous {
             let upstream = BTreeMap::from([("source".to_string(), prior)]);
             let mut output = product.clone();
-            output.stage_id = selected.id.clone();
-            let delta = crate::scheduler::verify_attach_drift(&selected, &upstream, &output)
-                .expect("changed typed payload on an inherited graph is an output contribution");
+            output.stage_id = selected.id().to_string();
+            let delta =
+                crate::scheduler::verify_attach_drift(selected.as_ref(), &upstream, &output)
+                    .expect(
+                        "changed typed payload on an inherited graph is an output contribution",
+                    );
             assert_eq!(delta.handles, vec![GRAPH.to_string()]);
             assert!(
                 delta.graphs.is_empty(),
@@ -1622,7 +1540,7 @@ fn typed_payload_changes_invalidate_selected_and_whole_action_keys() {
         let live = BTreeMap::from([("source".to_string(), product)]);
         let receipts = BTreeMap::from([("source".to_string(), receipt)]);
         for (consumer, keys) in [
-            (&selected as &dyn Stage, &mut selected_keys),
+            (selected.as_ref(), &mut selected_keys),
             (whole.as_ref(), &mut whole_keys),
         ] {
             let live_context =
@@ -1638,7 +1556,7 @@ fn typed_payload_changes_invalidate_selected_and_whole_action_keys() {
     assert!(selected_keys.windows(2).all(|pair| pair[0] != pair[1]));
     assert!(whole_keys.windows(2).all(|pair| pair[0] != pair[1]));
     assert_eq!(
-        selected.runs.load(Ordering::SeqCst),
+        runs.load(Ordering::SeqCst),
         0,
         "admission never runs a stage"
     );
@@ -1713,14 +1631,12 @@ fn artifact_level_invalidation_reruns_only_the_changed_graphs_consumer() {
         Arc::new(TwoGraphProducer {
             file: file.clone(),
             runs: Arc::clone(&prod_runs),
-            attaches: vec![G1.to_string(), G2.to_string()],
         }) as Arc<dyn StageBody>,
     );
     reg.register(
         "impl:cg1".to_string(),
         Arc::new(EntityConsumer {
             id: "cg1".to_string(),
-            entities: vec![("producer".to_string(), vec![G1.to_string()])],
             runs: Arc::clone(&cg1_runs),
         }) as Arc<dyn StageBody>,
     );
@@ -1728,11 +1644,10 @@ fn artifact_level_invalidation_reruns_only_the_changed_graphs_consumer() {
         "impl:cg2".to_string(),
         Arc::new(EntityConsumer {
             id: "cg2".to_string(),
-            entities: vec![("producer".to_string(), vec![G2.to_string()])],
             runs: Arc::clone(&cg2_runs),
         }) as Arc<dyn StageBody>,
     );
-    reg.register("impl:sink".to_string(), fake("sink", &["cg1", "cg2"]));
+    reg.register("impl:sink".to_string(), fake("sink"));
     let bound = bind(&s, &g, &reg).expect("binds (resource + dataflow agreement hold)");
 
     let mut ctx = RunContext::open(dir.path().join("cache"), 4).unwrap();
@@ -1768,14 +1683,11 @@ fn artifact_level_invalidation_reruns_only_the_changed_graphs_consumer() {
 
 // ── Attach-drift verification (gmeow:attachesGraph run-time contract) ─────────
 
-fn lane_test_stage(id: &str, consumes: &[&str]) -> FakeStage {
-    FakeStage {
-        id: id.to_string(),
-        capabilities: Vec::new(),
-        consumes: consumes.iter().map(|value| (*value).to_string()).collect(),
-        carrier_consumes: None,
-        resources: Vec::new(),
-    }
+/// A stage that reads the dataset of everything it consumes.
+fn lane_test_stage(id: &str, consumes: &[&str]) -> Arc<dyn Stage> {
+    let mut stage = spec(id, consumes);
+    stage.reads = carrier_stage_reads(&stage.consumes, &stage.consumes, &[]);
+    described(stage)
 }
 
 fn lane_product(
@@ -1831,7 +1743,7 @@ fn persistent_source_root_may_own_every_bounded_lane() {
         true,
     );
     let selection = crate::scheduler::verify_attach_drift(
-        &source,
+        source.as_ref(),
         &std::collections::BTreeMap::new(),
         &product,
     )
@@ -1843,13 +1755,8 @@ fn persistent_source_root_may_own_every_bounded_lane() {
 
 #[test]
 fn persistent_stage_does_not_inspect_released_artifact_only_carriers() {
-    let stage = FakeStage {
-        id: "consumer".to_string(),
-        capabilities: Vec::new(),
-        consumes: vec!["source".to_string()],
-        carrier_consumes: Some(Vec::new()),
-        resources: Vec::new(),
-    };
+    // The consumer declares no carrier lane of its dependency.
+    let stage = described(spec("consumer", &["source"]));
     let released = lane_product(
         "source",
         b"<https://example.org/s> <https://example.org/p> <https://example.org/o> .\n",
@@ -1862,7 +1769,7 @@ fn persistent_stage_does_not_inspect_released_artifact_only_carriers() {
 
     let upstream = std::collections::BTreeMap::from([("source".to_string(), released)]);
     crate::scheduler::verify_attach_drift(
-        &stage,
+        stage.as_ref(),
         &upstream,
         &StageProduct::new("consumer", "empty"),
     )
@@ -1874,7 +1781,7 @@ fn persistent_stage_rejects_inherited_default_provenance_and_content_lanes() {
     fn rejects_lane(lane: &str, source: StageProduct, product: StageProduct) {
         let stage = lane_test_stage("consumer", &["source"]);
         let upstream = std::collections::BTreeMap::from([("source".to_string(), source)]);
-        let error = crate::scheduler::verify_attach_drift(&stage, &upstream, &product)
+        let error = crate::scheduler::verify_attach_drift(stage.as_ref(), &upstream, &product)
             .expect_err("a persistent non-root stage cannot retain an upstream carrier lane");
         assert!(error.is::<crate::error::StageFailed>(), "{error}");
         assert!(error.to_string().contains(lane), "{error}");
@@ -1909,9 +1816,6 @@ fn persistent_stage_rejects_inherited_default_provenance_and_content_lanes() {
 struct AttachTestStage {
     id: String,
     attach_graph: Option<String>,
-    declared: Vec<String>,
-    consumes: Vec<String>,
-    entities: Vec<(String, Vec<String>)>,
 }
 
 impl StageBody for AttachTestStage {
@@ -1977,12 +1881,9 @@ fn run_attach_case(
         Arc::new(AttachTestStage {
             id: "producer".to_string(),
             attach_graph: attach_graph.map(|s| s.to_string()),
-            declared: declared.clone(),
-            consumes: Vec::new(),
-            entities: Vec::new(),
         }) as Arc<dyn StageBody>,
     );
-    reg.register("impl:sink".to_string(), fake("sink", &["producer"]));
+    reg.register("impl:sink".to_string(), fake("sink"));
     let bound = bind(&s, &g, &reg).expect("binds (attach declaration agrees Rust↔spec)");
     let mut ctx = RunContext::open(dir.path().join("cache"), 2).unwrap();
     run(&g, &bound, &mut ctx).map(|_| ())
@@ -2062,7 +1963,6 @@ fn attach_drift_honors_typed_entity_inputs() {
         Arc::new(TwoGraphProducer {
             file,
             runs: Arc::new(AtomicUsize::new(0)),
-            attaches: vec![G1.to_string(), G2.to_string()],
         }) as Arc<dyn StageBody>,
     );
     registry.register(
@@ -2070,12 +1970,9 @@ fn attach_drift_honors_typed_entity_inputs() {
         Arc::new(AttachTestStage {
             id: "consumer".to_string(),
             attach_graph: Some(G2.to_string()),
-            declared: vec![G2.to_string()],
-            consumes: vec!["producer".to_string()],
-            entities: vec![("producer".to_string(), vec![G1.to_string()])],
         }) as Arc<dyn StageBody>,
     );
-    registry.register("impl:sink".to_string(), fake("sink", &["consumer"]));
+    registry.register("impl:sink".to_string(), fake("sink"));
     let bound = bind(&s, &graph, &registry).expect("typed attach fixture binds");
     let mut ctx = RunContext::open(dir.path().join("cache"), 2).unwrap();
 
@@ -2088,10 +1985,8 @@ fn attach_drift_honors_typed_entity_inputs() {
 /// even when an upstream product already carries that representation label.
 struct AttachBlobStage {
     id: String,
-    consumes: Vec<String>,
     representation: String,
     payload: Vec<u8>,
-    declared: Vec<String>,
 }
 
 impl StageBody for AttachBlobStage {
@@ -2144,28 +2039,17 @@ fn attach_drift_distinguishes_shared_blob_rep_by_content() {
     }
     let graph = s.validate().unwrap();
 
-    let stage = |id: &str, consumes: &[&str], payload: &[u8]| {
+    let stage = |id: &str, payload: &[u8]| {
         Arc::new(AttachBlobStage {
             id: id.to_string(),
-            consumes: consumes
-                .iter()
-                .map(|producer| (*producer).to_string())
-                .collect(),
             representation: REP.to_string(),
             payload: payload.to_vec(),
-            declared: vec![REP.to_string()],
         }) as Arc<dyn StageBody>
     };
     let mut registry = StageRegistry::new();
-    registry.register(
-        "impl:producer".to_string(),
-        stage("producer", &[], b"compile"),
-    );
-    registry.register(
-        "impl:consumer".to_string(),
-        stage("consumer", &["producer"], b"reason"),
-    );
-    registry.register("impl:sink".to_string(), fake("sink", &["consumer"]));
+    registry.register("impl:producer".to_string(), stage("producer", b"compile"));
+    registry.register("impl:consumer".to_string(), stage("consumer", b"reason"));
+    registry.register("impl:sink".to_string(), fake("sink"));
     let bound = bind(&s, &graph, &registry).expect("shared blob-rep fixture binds");
     let mut ctx = RunContext::open(dir.path().join("cache"), 2).unwrap();
 
@@ -2205,12 +2089,9 @@ impl CarrierWatch {
 /// one COMMITTED byte artifact, and one INTERNAL `pipeline/`-prefixed byte artifact.
 struct CarrierStage {
     id: String,
-    empty: Vec<String>,
-    capabilities: Vec<String>,
     consumes: Vec<String>,
     carrier_consumes: Vec<String>,
     internal_reads: Vec<(&'static str, &'static str)>,
-    attaches: Vec<String>,
     watch: Arc<CarrierWatch>,
 }
 
@@ -2395,12 +2276,9 @@ fn retention_registry(spec: &PipelineSpec, watch: &Arc<CarrierWatch>) -> StageRe
             s.impl_key.clone(),
             Arc::new(CarrierStage {
                 id: s.id.clone(),
-                empty: Vec::new(),
-                capabilities: s.capabilities.clone(),
                 consumes: s.consumes.clone(),
                 carrier_consumes: s.consumes.clone(),
                 internal_reads: Vec::new(),
-                attaches: s.attaches_graphs.clone(),
                 watch: Arc::clone(watch),
             }) as Arc<dyn StageBody>,
         );
@@ -2429,7 +2307,7 @@ fn last_consumer_level_is_total_over_consumed_stages_and_absent_for_outputs() {
     let graph = spec.validate().unwrap();
     let watch = Arc::new(CarrierWatch::default());
     let bound = bind(&spec, &graph, &retention_registry(&spec, &watch)).unwrap();
-    let by_id: std::collections::BTreeMap<&str, &Arc<dyn StageBody>> =
+    let by_id: std::collections::BTreeMap<&str, &Arc<dyn Stage>> =
         bound.iter().map(|s| (s.id(), s)).collect();
 
     let levels = crate::scheduler::last_consumer_levels(&graph, &by_id);
@@ -2452,7 +2330,7 @@ fn last_consumer_level_is_total_over_consumed_stages_and_absent_for_outputs() {
 /// declares its internal reads, with the result of binding it.
 struct ArtifactOnlyPair {
     graph: crate::graph::StageGraph,
-    bound: Result<Vec<Arc<dyn StageBody>>, gmeow_errors::Diag>,
+    bound: Result<Vec<Arc<dyn Stage>>, gmeow_errors::Diag>,
     watch: Arc<CarrierWatch>,
 }
 
@@ -2484,8 +2362,6 @@ fn artifact_only_pair(internal_reads: Vec<(&'static str, &'static str)>) -> Arti
             stage.impl_key.clone(),
             Arc::new(CarrierStage {
                 id: stage.id.clone(),
-                empty: Vec::new(),
-                capabilities: stage.capabilities.clone(),
                 consumes: stage.consumes.clone(),
                 carrier_consumes: Vec::new(),
                 internal_reads: if stage.id == "late" {
@@ -2493,7 +2369,6 @@ fn artifact_only_pair(internal_reads: Vec<(&'static str, &'static str)>) -> Arti
                 } else {
                     Vec::new()
                 },
-                attaches: stage.attaches_graphs.clone(),
                 watch: Arc::clone(&watch),
             }),
         );
@@ -2514,7 +2389,7 @@ fn artifact_only_dependency_releases_at_the_producers_own_level() {
         watch,
     } = artifact_only_pair(Vec::new());
     let bound = bound.expect("artifact-only graph binds");
-    let by_id: std::collections::BTreeMap<&str, &Arc<dyn StageBody>> =
+    let by_id: std::collections::BTreeMap<&str, &Arc<dyn Stage>> =
         bound.iter().map(|stage| (stage.id(), stage)).collect();
     assert_eq!(
         crate::scheduler::last_consumer_levels(&graph, &by_id),
