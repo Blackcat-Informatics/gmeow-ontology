@@ -22,6 +22,7 @@ use purrdf::{
 
 use crate::graph::StageGraph;
 use crate::node::{CachePolicy, GMEOW, SINK_CAPABILITY, Stage, StageStability};
+use crate::reads::{Read, ReadSet};
 use crate::registry::StageRegistry;
 
 const RDF_TYPE: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
@@ -64,6 +65,12 @@ pub struct StageSpec {
     /// producer is a whole-product dependency (the sound default). Validated against the
     /// Rust impl's `consumed_entities()` at bind time (Rust/RDF agreement).
     pub dataflow_entities: DataFlowEntities,
+    /// The reads each reified `gmeow:BuildDataFlow` edge into this stage declares, by
+    /// producer: which lanes of that producer's product this stage may read. The
+    /// scheduler hands the stage a view of each product that records every access, and
+    /// fails the stage when the recorded reads and these declarations differ. Retention
+    /// of a product's lanes is derived from the declarations of the consumers still to run.
+    pub reads: BTreeMap<String, ReadSet>,
     /// `gmeow:producesFormat` — output format tags, sorted (export leaves).
     pub formats: Vec<String>,
     /// `gmeow:attachesGraph` — the named-graph IRIs (kept whole) this stage attaches
@@ -215,8 +222,9 @@ impl PipelineSpec {
         // stages (the artifact-level dependency declarations).
         let mut by_consumer = parse_dataflow_edges(ds)?;
         for s in &mut stages {
-            if let Some(entities) = by_consumer.remove(&s.id) {
-                s.dataflow_entities = entities;
+            if let Some(declared) = by_consumer.remove(&s.id) {
+                s.dataflow_entities = declared.entities;
+                s.reads = declared.reads;
             }
         }
         // A gmeow:BuildDataFlow whose gmeow:buildFlowTo is not a hasStage member of
@@ -323,6 +331,7 @@ fn parse_stage(ds: &RdfDataset, stage_iri: &str) -> Result<StageSpec, gmeow_erro
         cache_disposition,
         // Filled in by from_store from the reified gmeow:BuildDataFlow edges.
         dataflow_entities: Vec::new(),
+        reads: BTreeMap::new(),
         formats,
         attaches_graphs,
         attaches_blob_reps,
@@ -374,9 +383,11 @@ fn required_named_declaration(
 /// producer) pair are merged.
 fn parse_dataflow_edges(
     ds: &RdfDataset,
-) -> Result<BTreeMap<String, DataFlowEntities>, gmeow_errors::Diag> {
+) -> Result<BTreeMap<String, EdgeDeclarations>, gmeow_errors::Diag> {
     // consumer -> producer -> entity set
     let mut acc: BTreeMap<String, BTreeMap<String, BTreeSet<String>>> = BTreeMap::new();
+    // consumer -> producer -> declared read set
+    let mut reads_acc: BTreeMap<String, BTreeMap<String, ReadSet>> = BTreeMap::new();
     // Every named `?edge a gmeow:BuildDataFlow` subject (kept whole), sorted.
     let mut edges: BTreeSet<String> = BTreeSet::new();
     if let (Some(p), Some(o)) = (
@@ -419,32 +430,88 @@ fn parse_dataflow_edges(
                 _ => None,
             })
             .collect();
-        if entities.is_empty() {
+        let reads = parse_edge_reads(ds, edge)?;
+        if entities.is_empty() && reads.is_empty() {
             return Err(gmeow_errors::Diag::of_kind(crate::error::Parse {
                 message: format!(
-                    "gmeow:BuildDataFlow {edge} declares no gmeow:flowEntity (a typed dataflow edge must name at least one entity graph)"
+                    "gmeow:BuildDataFlow {edge} declares neither a read (gmeow:flowReadsLane, \
+                     gmeow:flowReadsHandle, gmeow:flowReadsBlobRep, gmeow:flowReadsArtifact) nor a \
+                     gmeow:flowEntity: an edge that carries nothing is not a dependency"
                 ),
             }));
         }
-        acc.entry(consumer)
+        if !entities.is_empty() {
+            acc.entry(consumer.clone())
+                .or_default()
+                .entry(producer.clone())
+                .or_default()
+                .extend(entities);
+        }
+        reads_acc
+            .entry(consumer)
             .or_default()
             .entry(producer)
             .or_default()
-            .extend(entities);
+            .extend(reads);
     }
     // Materialize to sorted Vecs (by producer; entities sorted).
-    let out = acc
-        .into_iter()
-        .map(|(consumer, producers)| {
-            let mut rows: Vec<(String, Vec<String>)> = producers
-                .into_iter()
-                .map(|(p, ents)| (p, ents.into_iter().collect()))
-                .collect();
-            rows.sort();
-            (consumer, rows)
-        })
-        .collect();
+    let mut out: BTreeMap<String, EdgeDeclarations> = BTreeMap::new();
+    for (consumer, producers) in acc {
+        let mut rows: Vec<(String, Vec<String>)> = producers
+            .into_iter()
+            .map(|(p, ents)| (p, ents.into_iter().collect()))
+            .collect();
+        rows.sort();
+        out.entry(consumer).or_default().entities = rows;
+    }
+    for (consumer, producers) in reads_acc {
+        out.entry(consumer).or_default().reads = producers;
+    }
     Ok(out)
+}
+
+/// What the reified `gmeow:BuildDataFlow` edges into one consumer declare.
+#[derive(Debug, Default)]
+struct EdgeDeclarations {
+    /// The named-graph narrowing of the cache key, per producer.
+    entities: DataFlowEntities,
+    /// The declared read set, per producer.
+    reads: BTreeMap<String, ReadSet>,
+}
+
+/// Parse the reads one `gmeow:BuildDataFlow` edge declares.
+///
+/// A value of the wrong term kind, or a lane individual outside the closed vocabulary,
+/// is a hard failure: dropping it would silently narrow what the consumer may read.
+fn parse_edge_reads(ds: &RdfDataset, edge: &str) -> Result<ReadSet, gmeow_errors::Diag> {
+    let invalid = |property: &str, value: &TermValue| {
+        gmeow_errors::Diag::of_kind(crate::error::InvalidDeclaration {
+            message: format!(
+                "gmeow:BuildDataFlow {edge} has an invalid gmeow:{property} value {value:?}"
+            ),
+        })
+    };
+    let mut reads = ReadSet::new();
+    for value in objects(ds, edge, &iri(GMEOW, "flowReadsLane")) {
+        let lane = match &value {
+            TermValue::Iri(lane) => Read::from_lane_iri(lane),
+            _ => None,
+        };
+        reads.insert(lane.ok_or_else(|| invalid("flowReadsLane", &value))?);
+    }
+    for value in objects(ds, edge, &iri(GMEOW, "flowReadsHandle")) {
+        match &value {
+            TermValue::Iri(key) => reads.insert(Read::Handle(key.clone())),
+            _ => return Err(invalid("flowReadsHandle", &value)),
+        };
+    }
+    for rep in string_declarations(ds, edge, "flowReadsBlobRep", edge)? {
+        reads.insert(Read::BlobRep(rep));
+    }
+    for path in string_declarations(ds, edge, "flowReadsArtifact", edge)? {
+        reads.insert(Read::Artifact(path));
+    }
+    Ok(reads)
 }
 
 /// Resolve every stage's `gmeow:stageImpl` against the registry and prove the
