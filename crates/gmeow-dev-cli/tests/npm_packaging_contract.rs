@@ -801,7 +801,7 @@ fn release_installs_the_same_pinned_wasm_toolchain_as_ci() {
     );
 
     // Every installation must precede the parity lanes that consume it.
-    let parity = line_index(&release, "make wasm-parity");
+    let parity = line_index(release, "make wasm-parity");
     for needed in [
         "actions/setup-node@",
         "targets: wasm32-unknown-unknown",
@@ -809,7 +809,7 @@ fn release_installs_the_same_pinned_wasm_toolchain_as_ci() {
         &binaryen_pin,
     ] {
         assert!(
-            line_index(&release, needed) < parity,
+            line_index(release, needed) < parity,
             "release.yml installs `{needed}` after `make wasm-parity`, which needs it"
         );
     }
