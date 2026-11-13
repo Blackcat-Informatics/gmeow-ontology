@@ -80,6 +80,10 @@ gmeow-docs = { path = "../docs" }
 purrdf.workspace = true
 purrdf-hash.workspace = true
 purrdf-lex.workspace = true
+# SHA-256 of the embedded bundle and codebook for `gmeow version --verbose`. The
+# workspace pin is already linked into this binary through gmeow-logic and
+# gmeow-validate, so this adds no package; purrdf-hash has no SHA-256.
+sha2.workspace = true
 # TOCTOU/symlink-safe atomic output writes for `gmeow math` (`write_math_bytes`).
 tempfile.workspace = true
 # (De)serialize the GoEmotions capture envelope for `gmeow affect ingest-goemotions`

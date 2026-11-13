@@ -159,7 +159,7 @@ make doc-lint        # Lint ontology-docs for dangling links and coverage gaps
 ```
 
 The per-artifact `compile-*` commands were replaced by the unified generator
-registry: every committed artifact under `generated/` is produced by a
+registry: every generated artifact under `generated/` is produced by a
 registered generator with staging, source-hash banners, drift detection,
 orphan detection, and the internal-tag leak gate (no `@x-gmeow-*` tag may
 appear in a generated artifact; the statements compilation — the canonical
@@ -188,7 +188,7 @@ and CI (Principles 1, 6, 7).
 
 When you change canonical sources (ontology modules, mapping-dsl, statement-dsl), the checked-in generated artifacts can become stale. Use these targets to refresh and commit them safely:
 
-The build's architecture — the in-memory carrier spine, the single `gmeow.gts` terminal, and the post-pipeline fanout that projects the flat files back out — is specified in [`docs/PIPELINE_SPINE.md`](./docs/PIPELINE_SPINE.md). Every committed artifact under `generated/` is a projection of `gmeow.gts`; that document is canonical for any work that produces one.
+The build's architecture — the in-memory carrier spine, the single `gmeow.gts` terminal, and the post-pipeline fanout that projects the flat files back out — is specified in [`docs/PIPELINE_SPINE.md`](./docs/PIPELINE_SPINE.md). Every generated artifact under `generated/` is a projection of `gmeow.gts`; that document is canonical for any work that produces one.
 
 **One producer, one run.** `make check-sync` is the ONLY Make target that runs the regeneration pipeline, and `make check` drives it (in update mode) as the first node of the gate DAG. So the normal answer to "my generated tree is stale" is simply `make check`: it materializes and then gates, inside ONE hold of the host-global gate lock. Materializing separately first and then gating runs the whole pipeline twice and — because the second run must wait for the lock — queues the machine behind you. `make regen` was that second entry point; it is poisoned and refuses.
 
@@ -225,11 +225,22 @@ make build           # Build serializations and JSON-LD context into dist/
 make project         # Project GMEOW data to external vocabulary profiles
 make release         # Regenerate, native-reason, build, report, and emit CrossRef deposit
 make release-sign-gts SIGN_KEY=/tmp/gpg/signing-key.asc GTS_OUT=dist/gmeow.gts
+make cli-build       # One producer run, then stage and self-verify the portable dist/bin/gmeow + receipt
+cargo xtask cli build [--skip-producer] [--native]   # The task behind cli-build
+cargo xtask cli run -- ARGS                    # Run the staged gmeow, building it first if not current
+cargo xtask cli install [--bin-dir DIR] [--skip-producer]  # Install a current, verified portable gmeow (default ~/.local/bin)
 ```
 
 `make release-sign-gts` signs a freshly regenerated GTS snapshot for release
-packaging. The committed `generated/dist/gmeow.gts` remains unsigned unless a
-release workflow explicitly writes the signed copy there before packaging.
+packaging. The local `generated/dist/gmeow.gts` is a git-ignored product and stays
+unsigned; the release workflow signs `dist/gmeow.gts` and embeds that signed copy in the
+released `gmeow` by building with `GMEOW_BUNDLE_PATH` pointing at it.
+
+`cargo xtask cli build` compiles `gmeow` for the portable x86-64-v3 baseline with forced
+Rust and requested C flags and remapped build paths, records a dirty checkout as `dirty`, and stages the binary only after its own
+`gmeow version --verbose --format json`, run with a cleared environment, matches the
+receipt `dist/bin/gmeow.receipt.json`. `install` refuses a dirty or host-tuned build
+unless `--allow-dirty` / `--allow-native` is given, and reuses a staged build only when its receipt shows the same revision, a clean tree, the portable baseline, a producer run and the default payloads.
 
 Documentation projections are never embedded in `gmeow.gts`. The static site,
 mdbook sources, print PDF/Typst, prompt snippets, and generated model docs are
@@ -499,7 +510,7 @@ Mapping compilation runs inside `gmeow-dev sync --mode update --outputs generate
   * `generated/queries/projections/*.rq` — executable SPARQL CONSTRUCT projection queries.
 * **Callable interfaces**: author `logic:CallableSignature` records with named, ordered slots in the owning slice under `mappings/callable-signatures.ttl`. The compiler derives the single FnO catalog; there is no authored FnO companion or source fallback.
 * **Important behavior**: the registered generator first renders artifacts into a staging product, runs projection cross-layer invariants, and only then writes generated files. If an invariant fails, nothing is written.
-* **Drift check**: `make check-sync` renders into a staging tree, compares against the committed `generated/` artifacts, detects orphans, and enforces the internal-tag leak gate.
+* **Drift check**: `make check-sync` renders into a staging tree, compares against the materialized `generated/` artifacts, detects orphans, and enforces the internal-tag leak gate.
 
 The mapping DSL has two main authoring units:
 
@@ -584,7 +595,7 @@ queries/                 # Authored SPARQL: competency/, verify/, qc/, codecs/
 imports/                 # Vendored externals (gUFO + validation snapshots)
 docs/                    # Cross-slice doctrine docs (slice guides live IN slices)
 governance/              # Project governance artifacts
-generated/               # EVERY committed generated artifact, one root:
+generated/               # EVERY generated artifact (git-ignored), one root:
                          #   mappings/ projections/ queries/ statements/ schemas/
                          #   lpg/ metadata/ apache/ module-status.md
 dist/                    # Ephemeral build products (one .gitignore line)
