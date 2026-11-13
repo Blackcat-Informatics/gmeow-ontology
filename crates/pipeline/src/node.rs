@@ -149,7 +149,9 @@ pub struct StageProduct {
     pub digest: String,
     /// The structured carrier this stage emitted: the frozen dataset, lookaside
     /// (including the byte-artifact lane), blob store, provenance, and handle lane.
-    pub bundle: Arc<PipelineBundle<PipelineHandle>>,
+    /// Crate-private: a stage reaches a lane only through the accessors below, which
+    /// record the access against the declared read set of its dataflow edge.
+    pub(crate) bundle: Arc<PipelineBundle<PipelineHandle>>,
     /// Whether this product's CARRIER has been released (drop-after-last-consumer).
     ///
     /// `false` for every product a stage emits and for every product the cache serves.
@@ -169,6 +171,11 @@ pub struct StageProduct {
     pub carrier_released: bool,
     /// Published typed identities survive payload release and avoid repeated lowering.
     handle_commitments: BTreeMap<String, crate::handle_identity::HandleCommitment>,
+    /// The dataflow edge this view of the product was handed out under. `None` for the
+    /// product a stage emits and for the scheduler's, the cache's and the reconcile's own
+    /// view; `Some` for the view a consuming stage receives, whose every lane access is
+    /// recorded against the edge's declared read set.
+    access: Option<Arc<crate::reads::EdgeAccess>>,
 }
 
 /// Encode one producer-owned diagnostic contribution, including an empty one.
@@ -194,6 +201,7 @@ impl StageProduct {
             )),
             carrier_released: false,
             handle_commitments: BTreeMap::new(),
+            access: None,
         }
     }
 
@@ -251,6 +259,7 @@ impl StageProduct {
             bundle,
             carrier_released: false,
             handle_commitments,
+            access: None,
         })
     }
 
@@ -288,6 +297,7 @@ impl StageProduct {
             bundle: Arc::new(bundle),
             carrier_released: true,
             handle_commitments: self.handle_commitments,
+            access: self.access,
         })
     }
 
@@ -307,30 +317,87 @@ impl StageProduct {
         }
     }
 
-    /// Borrow the structured carrier this product emitted.
-    pub fn bundle(&self) -> &Arc<PipelineBundle<PipelineHandle>> {
+    /// This product as `consumer` may read it: the same carrier, with every lane access
+    /// recorded against `access`, the declared read set of the dataflow edge.
+    #[must_use]
+    pub fn consumer_view(&self, access: Arc<crate::reads::EdgeAccess>) -> Self {
+        Self {
+            access: Some(access),
+            ..self.clone()
+        }
+    }
+
+    /// Borrow the carrier without recording a read: for the scheduler, the cache and the
+    /// post-run reconcile, which handle a product without being its consumer.
+    pub(crate) fn raw_bundle(&self) -> &Arc<PipelineBundle<PipelineHandle>> {
         &self.bundle
+    }
+
+    /// The dataflow edge this view was handed out under, if it is a consumer view.
+    pub(crate) fn edge_access(&self) -> Option<&Arc<crate::reads::EdgeAccess>> {
+        self.access.as_ref()
+    }
+
+    /// Record one lane access on a consumer view. The owning view records nothing.
+    fn record(&self, access: crate::reads::Read) {
+        if let Some(edge) = &self.access {
+            edge.record(access);
+        }
+    }
+
+    /// Borrow the whole structured carrier this product emitted. On a consumer view
+    /// this is a read of every carrier lane; prefer the lane accessors.
+    pub fn bundle(&self) -> &Arc<PipelineBundle<PipelineHandle>> {
+        self.record(crate::reads::Read::Carrier);
+        &self.bundle
+    }
+
+    /// Borrow one typed handle of this product by its key.
+    pub fn handle(&self, key: &str) -> Option<&purrdf::HandleEntry<PipelineHandle>> {
+        self.record(crate::reads::Read::Handle(key.to_owned()));
+        self.bundle.handle(key)
+    }
+
+    /// Borrow one representation blob of this product by its lane label.
+    pub fn rep_blob(&self, representation: &str) -> Option<&[u8]> {
+        self.record(crate::reads::Read::BlobRep(representation.to_owned()));
+        crate::bundle::bundle_rep_blob(&self.bundle, representation)
     }
 
     /// Borrow the frozen RDF dataset this product's bundle carries.
     pub fn dataset(&self) -> &RdfDataset {
         assert!(
             !self.carrier_released,
-            "stage `{}` attempted to read a dataset after its carrier was released; add the \
-             producer to the consumer's carrier_consumes() subset",
+            "stage `{}` attempted to read a dataset after its carrier was released; its \
+             dataflow edge must declare the dataset read",
             self.stage_id
         );
+        self.record(crate::reads::Read::Dataset);
         self.bundle.dataset()
+    }
+
+    /// A shared handle to the frozen RDF dataset this product's bundle carries.
+    pub fn dataset_arc(&self) -> Arc<RdfDataset> {
+        assert!(
+            !self.carrier_released,
+            "stage `{}` attempted to read a dataset after its carrier was released; its \
+             dataflow edge must declare the dataset read",
+            self.stage_id
+        );
+        self.record(crate::reads::Read::Dataset);
+        self.bundle.dataset_arc()
     }
 
     /// The bytes of one named byte-artifact-lane entry by logical path.
     pub fn artifact(&self, logical_path: &str) -> Option<&[u8]> {
+        self.record(crate::reads::Read::Artifact(logical_path.to_owned()));
         bundle_artifact(&self.bundle, logical_path)
     }
 
     /// The full `(logical_path → bytes)` map of this product's byte-artifact lane,
     /// sorted by path. The surface `run_full` writes / compares against committed.
     pub fn artifacts(&self) -> BTreeMap<String, Vec<u8>> {
+        self.record(crate::reads::Read::AllArtifacts);
         bundle_artifacts(&self.bundle)
     }
 
@@ -342,6 +409,7 @@ impl StageProduct {
     /// # Errors
     /// The carrier's byte-artifact lane is structurally corrupt.
     pub fn artifact_refs(&self) -> Result<BTreeMap<&str, &[u8]>, gmeow_errors::Diag> {
+        self.record(crate::reads::Read::AllArtifacts);
         bundle_artifact_refs(&self.bundle)
     }
 
@@ -391,6 +459,9 @@ impl StageProduct {
     /// max consumer level, so real consumers always run before it). A present-but-malformed
     /// blob is likewise a HARD FAIL (no-optionality).
     pub fn span_index(&self) -> gmeow_errors::Result<crate::ingest::SpanIndex> {
+        self.record(crate::reads::Read::BlobRep(
+            crate::stages::carrier::REP_SPAN_TABLE.to_owned(),
+        ));
         match crate::bundle::bundle_rep_blob(&self.bundle, crate::stages::carrier::REP_SPAN_TABLE) {
             Some(bytes) => purrdf_lex::json::record::from_slice(bytes).map_err(|e| {
                 gmeow_errors::Diag::of_kind(crate::error::Decode::new(format!(
@@ -610,8 +681,14 @@ pub trait Stage: Send + Sync {
     /// scheduler keeps exactly those bytes through every release of that producer. The
     /// loader hard-fails a pair whose producer is not an artifact-only dependency or whose
     /// artifact is not internal.
-    fn internal_artifact_reads(&self) -> &[(&'static str, &'static str)] {
-        &[]
+    fn internal_artifact_reads(&self) -> Vec<(String, String)> {
+        Vec::new()
+    }
+    /// The reads this stage's dataflow edges declare, by producer. A stage bound from
+    /// the pipeline description answers with the description's declarations; the default
+    /// declares nothing, so any lane access is undeclared.
+    fn reads(&self) -> BTreeMap<String, crate::reads::ReadSet> {
+        BTreeMap::new()
     }
     /// The capability IRIs (`gmeow:hasCapability`) this stage holds, sorted. The
     /// executor reads these declarations in place of a kind enum: [`SINK_CAPABILITY`]

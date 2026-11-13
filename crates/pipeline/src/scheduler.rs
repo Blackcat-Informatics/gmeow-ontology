@@ -157,6 +157,11 @@ pub struct RunContext {
     /// The scheduler copies only these bytes before releasing their carriers. A
     /// missing stage or artifact is an error; selection never changes execution.
     pub retained_artifacts: BTreeSet<(String, String)>,
+    /// What the run does when a stage's recorded reads differ from the reads its
+    /// dataflow edges declare. Every context starts at
+    /// [`ReadPolicy::Enforce`](crate::reads::ReadPolicy::Enforce); only the maintainer
+    /// command that prints observed read sets selects `Record`.
+    pub read_policy: crate::reads::ReadPolicy,
     /// RAII owner of an ephemeral cache directory, when this context was built by
     /// [`Self::open_ephemeral`]. Holding the [`tempfile::TempDir`] here — rather than
     /// leaking a pid-salted path under the system temp dir — is what makes the cache
@@ -186,6 +191,7 @@ impl RunContext {
             carrier_retention: CarrierRetention::RetainAll,
             retained_carriers: BTreeSet::new(),
             retained_artifacts: BTreeSet::new(),
+            read_policy: crate::reads::ReadPolicy::Enforce,
             // Persistent boundary: the cache lives under the repo's `.cache/`, not a
             // temporary directory, so there is nothing to tear down.
             _ephemeral_cache_dir: None,
@@ -225,6 +231,7 @@ impl RunContext {
             carrier_retention: CarrierRetention::RetainAll,
             retained_carriers: BTreeSet::new(),
             retained_artifacts: BTreeSet::new(),
+            read_policy: crate::reads::ReadPolicy::Enforce,
             _ephemeral_cache_dir: Some(dir),
         })
     }
@@ -246,6 +253,7 @@ impl RunContext {
             carrier_retention: CarrierRetention::RetainAll,
             retained_carriers: BTreeSet::new(),
             retained_artifacts: BTreeSet::new(),
+            read_policy: crate::reads::ReadPolicy::Enforce,
             // Inert boundary: no cache I/O at all, so no temporary directory.
             _ephemeral_cache_dir: None,
         }
@@ -302,6 +310,9 @@ pub struct RunResult {
     /// one regardless of worker-completion order. `run_full` threads this into
     /// `RunReport.ledger` and attaches its own run-level reconcile findings to it.
     pub ledger: gmeow_errors::DiagLedger,
+    /// Every dataflow edge a stage body read through in this run, with its declared and
+    /// its recorded reads, in completion order. Cache hits contribute nothing.
+    pub recorded_reads: Vec<Arc<crate::reads::EdgeAccess>>,
 }
 
 /// One stage's wall-clock timing.
@@ -375,6 +386,9 @@ struct StageRun {
     cache_read_bytes: u64,
     cache_write_bytes: u64,
     cache_hydration_rss_delta_kib: Option<i64>,
+    /// The dataflow edges the stage body read through, with what it read. Empty on a
+    /// cache hit: no stage body ran, so there is nothing to compare.
+    edges: Vec<Arc<crate::reads::EdgeAccess>>,
 }
 
 /// Run a validated, bound pipeline. `bound` is the stages in topological order
@@ -605,17 +619,51 @@ pub fn run_without(
     let declared_level_frontier = last_consumer_levels(graph, &by_id);
     // The internal artifacts each producer must keep through every release, because an
     // artifact-only consumer declared it reads them.
-    let mut kept_internal: BTreeMap<&'static str, BTreeSet<&'static str>> = BTreeMap::new();
+    let mut kept_internal: BTreeMap<String, BTreeSet<String>> = BTreeMap::new();
     for stage_id in &executed {
         for (producer, artifact) in by_id[stage_id.as_str()].internal_artifact_reads() {
-            kept_internal
-                .entry(*producer)
-                .or_default()
-                .insert(*artifact);
+            kept_internal.entry(producer).or_default().insert(artifact);
         }
     }
-    let no_kept_internal = BTreeSet::new();
-    let kept_for = |producer: &str| kept_internal.get(producer).unwrap_or(&no_kept_internal);
+    let kept_for = |producer: &str| -> BTreeSet<&str> {
+        kept_internal
+            .get(producer)
+            .map(|kept| kept.iter().map(String::as_str).collect())
+            .unwrap_or_default()
+    };
+    let read_policy = ctx.read_policy;
+    let mut recorded_edges: Vec<Arc<crate::reads::EdgeAccess>> = Vec::new();
+    // Every stage whose recorded reads differ from its declared dataflow. The run goes
+    // on, so one pass names them all, and then fails.
+    let mut read_differences: Vec<(String, Vec<String>)> = Vec::new();
+    // Before any stage runs: every dependency edge of the selected graph declares what
+    // it reads. An edge with no declared read would run the consumer after the producer
+    // for no stated reason. Every such edge is reported together.
+    if read_policy == crate::reads::ReadPolicy::Enforce {
+        let mut undeclared: Vec<String> = Vec::new();
+        for stage_id in &executed {
+            let stage = by_id[stage_id.as_str()];
+            let reads = stage.reads();
+            for producer in stage.consumes() {
+                if reads.get(producer).is_none_or(BTreeSet::is_empty) {
+                    undeclared.push(format!(
+                        "{stage_id} consumes {producer} and its dataflow edge declares no read"
+                    ));
+                }
+            }
+        }
+        if !undeclared.is_empty() {
+            return Err(gmeow_errors::Diag::of_kind(crate::error::InvalidDag {
+                message: format!(
+                    "the pipeline description does not say what {} dependency edge(s) read; \
+                     run `gmeow-dev pipeline-reads` to print the declarations the stage bodies \
+                     need:\n  {}",
+                    undeclared.len(),
+                    undeclared.join("\n  ")
+                ),
+            }));
+        }
+    }
     let mut ready: BTreeSet<String> = remaining_dependencies
         .iter()
         .filter(|(_, remaining)| **remaining == 0)
@@ -666,6 +714,7 @@ pub fn run_without(
                     .iter()
                     .map(String::as_str)
                     .collect();
+                let declared_reads = stage.reads();
                 let upstream = stage
                     .consumes()
                     .iter()
@@ -681,12 +730,23 @@ pub fn run_without(
                         // their worker snapshot. Preserve the producer identity and
                         // committed artifact lane while releasing transport state before
                         // dispatch.
-                        let product = if carrier_inputs.contains(producer.as_str()) {
+                        // Recording learns what a stage body reads, so it withholds
+                        // nothing: every consumed product is handed over whole.
+                        let whole = read_policy == crate::reads::ReadPolicy::Record
+                            || carrier_inputs.contains(producer.as_str());
+                        let product = if whole {
                             product
                         } else {
-                            product.into_carrier_released_keeping(kept_for(producer))?
+                            product.into_carrier_released_keeping(&kept_for(producer))?
                         };
-                        Ok::<_, gmeow_errors::Diag>((producer.clone(), product))
+                        // The consumer receives a view of the product that records every
+                        // lane access against what its dataflow edge declares.
+                        let edge = crate::reads::EdgeAccess::new(
+                            &stage_id,
+                            producer,
+                            declared_reads.get(producer).cloned().unwrap_or_default(),
+                        );
+                        Ok::<_, gmeow_errors::Diag>((producer.clone(), product.consumer_view(edge)))
                     })
                     .collect::<Result<BTreeMap<_, _>, _>>()?;
                 if let Some(progress) = progress.as_deref() {
@@ -756,7 +816,24 @@ pub fn run_without(
             // happens before downstream readiness, so a later failure retains every exact
             // successful action receipt instead of discarding the completed prefix.
             let commit_result = (|| -> Result<(), gmeow_errors::Diag> {
+                // Declared against recorded reads, before anything of this stage is
+                // cached: a stage body that read what its edges do not declare, or did
+                // not read what they declare, produced a product the authored graph does
+                // not describe. Its product is still correct for the stages after it, so
+                // the run continues and reports every such stage at the end; the product
+                // is not admitted to the persistent cache, whose key assumes the
+                // declarations.
+                let mut reads_differ = false;
+                if !run.cached {
+                    let mismatches = crate::reads::mismatches(&run.edges);
+                    if !mismatches.is_empty() && read_policy == crate::reads::ReadPolicy::Enforce {
+                        reads_differ = true;
+                        read_differences.push((run.id.clone(), mismatches));
+                    }
+                    recorded_edges.append(&mut run.edges);
+                }
                 if stage_cache_enabled
+                    && !reads_differ
                     && !run.cached
                     && stage.stability() == StageStability::StablePrefix
                     && stage.cache_policy() == CachePolicy::Persistent
@@ -839,7 +916,7 @@ pub fn run_without(
                         && let Some(product) = products.get("stage-source-load")
                     {
                         let stripped = crate::bundle::strip_rep_blob(
-                            product.bundle(),
+                            product.raw_bundle(),
                             crate::stages::carrier::REP_SPAN_TABLE,
                         )?;
                         let source_id = product.stage_id.clone();
@@ -860,7 +937,8 @@ pub fn run_without(
                             && let Some(product) = products.remove(&producer)
                         {
                             let kept = kept_for(&producer);
-                            products.insert(producer, product.into_carrier_released_keeping(kept)?);
+                            products
+                                .insert(producer, product.into_carrier_released_keeping(&kept)?);
                         }
                     }
                     if logically_consumed.contains(&stage_id)
@@ -874,7 +952,7 @@ pub fn run_without(
                     {
                         products.insert(
                             stage_id.clone(),
-                            product.into_carrier_released_keeping(kept_for(&stage_id))?,
+                            product.into_carrier_released_keeping(&kept_for(&stage_id))?,
                         );
                     }
                 }
@@ -908,6 +986,23 @@ pub fn run_without(
         }
     });
     scheduling_result?;
+    if !read_differences.is_empty() {
+        read_differences.sort();
+        let total: usize = read_differences.iter().map(|(_, lines)| lines.len()).sum();
+        let listing = read_differences
+            .iter()
+            .map(|(stage, lines)| format!("{stage}:\n    {}", lines.join("\n    ")))
+            .collect::<Vec<_>>()
+            .join("\n  ");
+        return Err(gmeow_errors::Diag::of_kind(crate::error::StageFailed {
+            cause: None,
+            stage: read_differences[0].0.clone(),
+            message: format!(
+                "{} stage(s) read differently from their declared dataflow ({total} difference(s)):\n  {listing}",
+                read_differences.len()
+            ),
+        }));
+    }
 
     // Completion order is deliberately observational. Present receipts and timings in
     // the certified topological order so output identities and reports remain byte-stable.
@@ -961,6 +1056,7 @@ pub fn run_without(
         stage_receipts,
         receipt_root,
         ledger: run_ledger,
+        recorded_reads: recorded_edges,
     })
 }
 
@@ -1098,6 +1194,7 @@ fn exec_stage(
             cache_read_bytes: hit.hydrated_bytes,
             cache_write_bytes: 0,
             cache_hydration_rss_delta_kib: rss_delta_kib(rss_before_kib, current_rss_kib()),
+            edges: Vec::new(),
         });
     }
 
@@ -1164,6 +1261,10 @@ fn exec_stage(
         cache_read_bytes: 0,
         cache_write_bytes: 0,
         cache_hydration_rss_delta_kib: None,
+        edges: upstream
+            .values()
+            .filter_map(|product| product.edge_access().cloned())
+            .collect(),
     })
 }
 
@@ -1189,7 +1290,7 @@ fn rss_delta_kib(before: Option<u64>, after: Option<u64>) -> Option<i64> {
 /// The set of named-graph IRIs a product's carrier bundle carries.
 fn product_graphs(product: &StageProduct) -> std::collections::BTreeSet<String> {
     product
-        .bundle()
+        .raw_bundle()
         .dataset()
         .owned_named_graphs()
         .filter_map(|t| match t {
@@ -1208,7 +1309,7 @@ fn product_blob_records(
     product: &StageProduct,
 ) -> BTreeMap<String, std::collections::BTreeSet<String>> {
     let mut records: BTreeMap<String, std::collections::BTreeSet<String>> = BTreeMap::new();
-    for record in &product.bundle().lookaside().blobs {
+    for record in &product.raw_bundle().lookaside().blobs {
         if let Some(representation) = &record.representation {
             records
                 .entry(representation.clone())
@@ -1221,7 +1322,7 @@ fn product_blob_records(
 
 fn product_artifact_records(product: &StageProduct) -> BTreeMap<String, BTreeSet<String>> {
     let mut records: BTreeMap<String, BTreeSet<String>> = BTreeMap::new();
-    for resource in &product.bundle().lookaside().resources {
+    for resource in &product.raw_bundle().lookaside().resources {
         if let (Some(name), Some(digest)) = (&resource.name, &resource.content_digest) {
             records
                 .entry(name.clone())
@@ -1458,12 +1559,12 @@ impl ActionIdentity for StageProduct {
     }
 
     fn entity_digest(&self, entity: &str) -> gmeow_errors::Result<Option<String>> {
-        if !crate::handle_identity::contains_graph(self.bundle(), entity) {
+        if !crate::handle_identity::contains_graph(self.raw_bundle(), entity) {
             return Ok(None);
         }
         Ok(Some(crate::handle_identity::entity_digest(
             &self
-                .bundle()
+                .raw_bundle()
                 .graph_digest(
                     entity,
                     &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None),
