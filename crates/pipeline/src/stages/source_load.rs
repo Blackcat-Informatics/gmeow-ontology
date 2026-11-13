@@ -22,7 +22,7 @@ use purrdf::{
     flat_rdf_quads_from_dataset, parse_dataset, serialize_dataset,
 };
 
-use crate::node::{SOURCE_ORIGIN, Stage, StageInput, StageOutput, StageProduct};
+use crate::node::{StageBody, StageInput, StageOutput, StageProduct};
 
 mod parsed;
 pub(crate) use parsed::ParsedAuthoredSources;
@@ -448,19 +448,13 @@ pub fn turtle_bytes_to_dataset(
 /// The `source_load` pipeline stage — the authored-source loader. Holds
 /// [`SOURCE_ORIGIN`], so the scheduler stamps its emitted quads' provenance origin as
 /// `Source` (the kind-enum replacement: origin is read off a capability, not a tag).
-pub struct SourceLoadStage {
-    capabilities: Vec<String>,
-    consumes: Vec<String>,
-}
+pub struct SourceLoadStage {}
 
 impl SourceLoadStage {
     /// Construct the loader, declaring the [`SOURCE_ORIGIN`] capability (mirrored by
     /// the slice `gmeow:stage-source-load gmeow:hasCapability gmeow:sourceOrigin`).
     pub fn new() -> Self {
-        Self {
-            capabilities: vec![SOURCE_ORIGIN.to_string()],
-            consumes: vec![crate::stages::parse_sources::STAGE_ID.to_owned()],
-        }
+        Self {}
     }
 }
 
@@ -470,29 +464,12 @@ impl Default for SourceLoadStage {
     }
 }
 
-impl Stage for SourceLoadStage {
+impl StageBody for SourceLoadStage {
     fn id(&self) -> &str {
         "stage-source-load"
     }
     fn output_family(&self) -> crate::node::OutputFamily {
         crate::node::OutputFamily::Generated
-    }
-    fn consumes(&self) -> &[String] {
-        &self.consumes
-    }
-    fn capabilities(&self) -> &[String] {
-        &self.capabilities
-    }
-    /// The named graphs this stage attaches to the carrier (its delta), from the
-    /// single Rust-side attach table; mirrored by the slice module.ttl gmeow:attachesGraph
-    /// declarations and verified against the run-time delta by the scheduler.
-    fn attaches_graphs(&self) -> &[String] {
-        crate::stages::attach::graphs(self.id())
-    }
-    /// The blob-representation lanes this stage attaches (its delta), from the single
-    /// Rust-side attach table; mirrored by gmeow:attachesBlobRep and run-time-verified.
-    fn attaches_blob_reps(&self) -> &[String] {
-        crate::stages::attach::blob_reps(self.id())
     }
     fn impl_version(&self) -> &str {
         "source_load.v14-native-authored-quotations"

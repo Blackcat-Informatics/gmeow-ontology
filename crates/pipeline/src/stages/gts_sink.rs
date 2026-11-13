@@ -16,7 +16,7 @@
 
 use std::collections::BTreeMap;
 
-use crate::node::{SINK_CAPABILITY, Stage, StageInput, StageOutput, StageProduct};
+use crate::node::{StageBody, StageInput, StageOutput, StageProduct};
 use crate::stages::carrier::{PASS_ONE_RECEIPT_PATH, SNAPSHOT_PATH};
 
 /// Committed logical path of the serialized GTS bundle.
@@ -28,11 +28,7 @@ pub const INGESTION_RECEIPT_PATH: &str = "generated/dist/gmeow.gts.ingestion.cbo
 // ── Stage impl ───────────────────────────────────────────────────────────────
 
 /// The `gts_sink` pipeline stage — the single serialization exit.
-pub struct GtsSinkStage {
-    consumes: Vec<String>,
-    carrier_consumes: Vec<String>,
-    capabilities: Vec<String>,
-}
+pub struct GtsSinkStage {}
 
 impl GtsSinkStage {
     /// Construct the sink. It consumes the assembled carrier (`stage-snapshot`), the
@@ -44,96 +40,11 @@ impl GtsSinkStage {
     /// `gmeow:stage-gts-sink gmeow:hasCapability gmeow:sinkCapability`).
     pub fn new() -> Self {
         Self {
-            consumes: vec![
-                "stage-snapshot".to_string(),
-                // THIS run's eleven by-reference TAR archives (mappings / cells / queries
-                // / tests / schemas / shapes / axioms / models-python / lang-projections
-                // / statements / yaml-ld), folded once by
-                // their own producer — the terminal reads them off that product and
-                // re-folds nothing (PIPELINE_SPINE §3.2/§4). The edge also orders the
-                // sink after every archive-member producer transitively, so the
-                // JSON-Schema / Pydantic / generated-shape leaves need no direct edge.
-                "stage-archive-blobs".to_string(),
-                // THIS run's SIX trained zstd dictionaries and their
-                // gmeow:CompressionDictionaryRealization records. The terminal is the one
-                // point where the whole frame set exists, so it pins the dictionaries in
-                // the pack's in-band "dct" map and seals one gmeow:MediumEnvelope per
-                // frame it authors.
-                //
-                // Six, not seven: there is no gmeow-math-v1. A dictionary primes a
-                // FRAME, and every math: named graph is unioned into the snapshot
-                // payload — one frame, already primed in full by gmeow-core-v1, and
-                // gmeow:payloadSchemaDictionary is maxQualifiedCardinality 1, so a second
-                // dictionary on that frame is not merely unhelpful but unrepresentable.
-                // No mathematical byte family exists to give one instead: the archive
-                // fold takes dsl/mappings/**, the per-slice mappings/ and tests/ trees,
-                // and the shape surfaces — slices/grounding/math/** reaches the bundle
-                // ONLY as parsed RDF in the fold. So the mathematical content is fully
-                // dictionary-compressed, by gmeow-core-v1, and nothing is lost.
-                "stage-medium-dictionaries".to_string(),
-                // The executable-docs "try it" surface reasons over the object-level EDB,
-                // whose authored / imports / alignments graphs ride on the source-load
-                // product (read, not re-loaded from disk).
-                "stage-source-load".to_string(),
-                "stage-compile-logic".to_string(),
-                "stage-mappings".to_string(),
-                "stage-math-producers".to_string(),
-                "stage-reason".to_string(),
-                // NOT `stage-statements`. The terminal used to staple the statement
-                // layer's two byte-decorated projections into the generated-opaque
-                // archive; they ride `statements-archive` now, folded by
-                // `stage-archive-blobs` off that same product, so the sink reads nothing
-                // from it and an edge nothing reads is removed rather than left standing.
-                // The ORDERING it used to carry is unchanged: `stage-archive-blobs`
-                // consumes `stage-statements`, and the sink consumes that.
-                "stage-validate".to_string(),
-                // The normalized verify receipt is an opaque generated-fanout member;
-                // graph/verify itself already rides in the snapshot carrier.
-                "stage-verify-attestation".to_string(),
-                "stage-conformance".to_string(),
-                // The opaque fanout members ride in from their producing export leaves
-                // (each rendered once, in the leaf); `collect_fanout_opaque_members` reads them
-                // off these products instead of re-rendering from disk (§3.2/§4).
-                "stage-export-agreement".to_string(),
-                "stage-export-apache".to_string(),
-                "stage-export-bench".to_string(),
-                "stage-export-cost-ledger".to_string(),
-                "stage-export-evals".to_string(),
-                // The OntoLex vartrans terminology lowering: an RDF fanout named graph
-                // folded from this run's fresh export-leaf product. (Its two NON-RDF
-                // siblings — the glossary table and the TBX termbase — ride
-                // `lang-projections-archive`, folded by `stage-archive-blobs`, not here.)
-                "stage-export-glossary".to_string(),
-                "stage-export-matrix".to_string(),
-                "stage-export-metadata".to_string(),
-                "stage-export-references".to_string(),
-                "stage-export-research-objects".to_string(),
-                // The LinkML/TypeScript/GraphQL developer schema surfaces: co-derived
-                // from the same fresh shape compilation as json-schema/pydantic, folded
-                // into REP_GENERATED from THIS run's fresh product (never re-derived
-                // from the in-memory carrier — schemas is no longer carrier-projectable).
-                "stage-export-schemas".to_string(),
-                // The two slice-quality floor TSVs (P17 projection of the ontology
-                // gmeow:AxisFloorCommitment / gmeow:SliceTierFloor individuals): opaque
-                // REP_GENERATED fanout members read off this leaf's product.
-                "stage-export-governance-floors".to_string(),
-                // The two projection-vocabulary ratchet TSVs (P17 projection of the
-                // ontology gmeow:ProjectionCeilingCommitment / gmeow:ProjectionVocabulary
-                // individuals): opaque REP_GENERATED fanout members read off this leaf's
-                // product.
-                "stage-export-projection-ceilings".to_string(),
-            ],
             // The terminal reads every dependency above, but only these three through
             // carrier lanes. Every other edge contributes committed logical-artifact
             // bytes to the opaque fanout; those bytes survive carrier release. Keeping
             // the distinction explicit lets the scheduler release the multi-million-
             // quad source/mappings/reason products before terminal serialization.
-            carrier_consumes: vec![
-                "stage-archive-blobs".to_string(),
-                "stage-medium-dictionaries".to_string(),
-                "stage-snapshot".to_string(),
-            ],
-            capabilities: vec![SINK_CAPABILITY.to_string()],
         }
     }
 }
@@ -144,27 +55,12 @@ impl Default for GtsSinkStage {
     }
 }
 
-impl Stage for GtsSinkStage {
+impl StageBody for GtsSinkStage {
     fn id(&self) -> &str {
         "stage-gts-sink"
     }
     fn output_family(&self) -> crate::node::OutputFamily {
         crate::node::OutputFamily::Generated
-    }
-    fn consumes(&self) -> &[String] {
-        &self.consumes
-    }
-    fn carrier_consumes(&self) -> &[String] {
-        &self.carrier_consumes
-    }
-    fn internal_artifact_reads(&self) -> Vec<(String, String)> {
-        crate::stages::carrier::REASONING_INTERNAL_READS
-            .iter()
-            .map(|(producer, artifact)| ((*producer).to_owned(), (*artifact).to_owned()))
-            .collect()
-    }
-    fn capabilities(&self) -> &[String] {
-        &self.capabilities
     }
     fn impl_version(&self) -> &str {
         // v4: the opaque fanout members (references / bench / apache / matrix / eval +

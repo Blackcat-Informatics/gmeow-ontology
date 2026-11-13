@@ -60,7 +60,7 @@ use gmeow_logic_compile::loss_ledger::LossLedger;
 use gmeow_logic_compile::projections::ProjectionResult;
 use gmeow_validate::distinctiveness::skeleton;
 
-use crate::node::{CachePolicy, Stage, StageInput, StageOutput, StageProduct};
+use crate::node::{StageBody, StageInput, StageOutput, StageProduct};
 
 /// Committed logical path of the human-readable per-slice terminology glossary — the
 /// Markdown projection of the `graph/lang-glossary-corpus` graph, grouped by slice then
@@ -880,20 +880,12 @@ fn build_lowering_from_entries(entries: &[Entry]) -> GlossaryLoweringCorpus {
 /// `stage-archive-blobs`; the `.vartrans.ttl` rides its RDF-fanout named graph.
 pub struct GlossaryTableStage;
 
-impl Stage for GlossaryTableStage {
+impl StageBody for GlossaryTableStage {
     fn id(&self) -> &str {
         "stage-export-glossary"
     }
     fn output_family(&self) -> crate::node::OutputFamily {
         crate::node::OutputFamily::Generated
-    }
-    fn consumes(&self) -> &[String] {
-        &[]
-    }
-    fn cache_policy(&self) -> CachePolicy {
-        // This leaf currently recomputes. Attribute source discovery and rendering
-        // with phase observations before changing its cache policy.
-        CachePolicy::Recompute
     }
     fn impl_version(&self) -> &str {
         "lang_glossary_table.v1"

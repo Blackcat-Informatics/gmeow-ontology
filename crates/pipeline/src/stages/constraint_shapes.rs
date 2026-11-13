@@ -29,7 +29,7 @@ use std::path::Path;
 
 use purrdf::slice::rdf_query::{Dataset, DatasetAccumulator, Object, Subject};
 
-use crate::node::{Stage, StageInput, StageOutput, StageProduct};
+use crate::node::{StageBody, StageInput, StageOutput, StageProduct};
 
 /// Committed logical path of the generated constraint shapes.
 pub const CONSTRAINT_SHAPES_PATH: &str = "generated/shapes/constraint-shapes.ttl";
@@ -425,15 +425,12 @@ pub fn render_constraint_shapes(root: &Path) -> Result<String, gmeow_errors::Dia
 /// The `constraint-shapes` export-leaf stage.
 pub struct ConstraintShapesStage;
 
-impl Stage for ConstraintShapesStage {
+impl StageBody for ConstraintShapesStage {
     fn id(&self) -> &str {
         "stage-export-constraint-shapes"
     }
     fn output_family(&self) -> crate::node::OutputFamily {
         crate::node::OutputFamily::Generated
-    }
-    fn consumes(&self) -> &[String] {
-        &[]
     }
     fn impl_version(&self) -> &str {
         "constraint_shapes.v1"

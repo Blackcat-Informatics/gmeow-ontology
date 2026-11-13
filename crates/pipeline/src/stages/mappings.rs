@@ -46,7 +46,7 @@ use purrdf::slice::{
 };
 
 use crate::bundle::{LogicReportInputs, PipelineHandle};
-use crate::node::{Stage, StageInput, StageOutput, StageProduct};
+use crate::node::{StageBody, StageInput, StageOutput, StageProduct};
 use crate::stages::compile_logic::{GRAPH_LOGIC, PROJECTION_REPORT_PATH};
 use crate::stages::correspondence_lower;
 
@@ -1261,40 +1261,12 @@ fn collect_files_recursive(
 #[derive(Default)]
 pub struct MappingsStage;
 
-impl Stage for MappingsStage {
+impl StageBody for MappingsStage {
     fn id(&self) -> &str {
         "stage-mappings"
     }
     fn output_family(&self) -> crate::node::OutputFamily {
         crate::node::OutputFamily::Generated
-    }
-    /// Borrow the immutable compiler, constraint and original-source dependencies.
-    /// All instances share these identifiers fixed by the pipeline contract.
-    fn consumes(&self) -> &[String] {
-        // Reads dsl/mappings + slice mapping cells from the root, the compile-logic
-        // product (the logic projection rows + header counts for the FINAL projection
-        // report, plus the procedural-constraint surface the shape-grounding ledger
-        // re-certifies), AND the constraint-shapes export leaf (the FOL-constraint
-        // surface of the same ledger — THIS run's bytes, never a stale disk read).
-        static DEPS: std::sync::OnceLock<Vec<String>> = std::sync::OnceLock::new();
-        DEPS.get_or_init(|| {
-            vec![
-                "stage-compile-logic".to_string(),
-                "stage-export-constraint-shapes".to_string(),
-                crate::stages::parse_sources::STAGE_ID.to_owned(),
-            ]
-        })
-    }
-    /// The named graphs this stage attaches to the carrier (its delta), from the
-    /// single Rust-side attach table; mirrored by the slice module.ttl gmeow:attachesGraph
-    /// declarations and verified against the run-time delta by the scheduler.
-    fn attaches_graphs(&self) -> &[String] {
-        crate::stages::attach::graphs(self.id())
-    }
-    /// The blob-representation lanes this stage attaches (its delta), from the single
-    /// Rust-side attach table; mirrored by gmeow:attachesBlobRep and run-time-verified.
-    fn attaches_blob_reps(&self) -> &[String] {
-        crate::stages::attach::blob_reps(self.id())
     }
     fn impl_version(&self) -> &str {
         "mappings.v27-admitted-grounding-publication"

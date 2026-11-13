@@ -35,7 +35,7 @@ use gmeow_logic::result_rdf::GRAPH_REASONING;
 use purrdf_lex::json::record::ToJson;
 
 use crate::bundle::PipelineHandle;
-use crate::node::{CachePolicy, Stage, StageInput, StageOutput, StageProduct};
+use crate::node::{StageBody, StageInput, StageOutput, StageProduct};
 
 fn stage_err(message: impl Into<String>) -> gmeow_errors::Diag {
     gmeow_errors::Diag::of_kind(crate::error::StageFailed {
@@ -160,10 +160,7 @@ fn read_subsort_edges(
 pub const GRAPH_GOAL_DIRECTED: &str = "https://blackcatinformatics.ca/gmeow/graph/goal-directed";
 
 /// The `goal-directed` pipeline stage.
-pub struct GoalDirectedStage {
-    consumes: Vec<String>,
-    entities: Vec<(String, Vec<String>)>,
-}
+pub struct GoalDirectedStage {}
 
 impl GoalDirectedStage {
     /// Construct the stage. It consumes `stage-compile-logic` (whose typed Logic handle
@@ -179,16 +176,7 @@ impl GoalDirectedStage {
     /// pinned to `graph/logic`, so any change there already reruns `stage-compile-logic`
     /// itself.
     pub fn new() -> Self {
-        Self {
-            consumes: vec![
-                "stage-compile-logic".to_string(),
-                "stage-reason".to_string(),
-            ],
-            entities: vec![(
-                "stage-reason".to_string(),
-                vec![GRAPH_REASONING.to_string()],
-            )],
-        }
+        Self {}
     }
 }
 
@@ -199,37 +187,13 @@ impl Default for GoalDirectedStage {
     }
 }
 
-impl Stage for GoalDirectedStage {
+impl StageBody for GoalDirectedStage {
     /// The stable identity shared with the authored pipeline DAG.
     fn id(&self) -> &str {
         "stage-goal-directed"
     }
     fn output_family(&self) -> crate::node::OutputFamily {
         crate::node::OutputFamily::Generated
-    }
-    /// Read the compiled programs and their reasoned subsort evidence.
-    fn consumes(&self) -> &[String] {
-        &self.consumes
-    }
-    /// Persist only the independently authenticated proof observation delta.
-    fn cache_policy(&self) -> CachePolicy {
-        // Only this stage's proof-checked graph and observation are published: no
-        // upstream carrier or typed handle is retained. Persist that contribution
-        // so test processes can authenticate it without executing the producer.
-        // The action identity binds both authored programs and reasoned subsorts.
-        CachePolicy::Persistent
-    }
-    /// Narrow reasoning input while preserving its typed-handle commitment.
-    fn consumed_entities(&self) -> &[(String, Vec<String>)] {
-        &self.entities
-    }
-    /// Declare the stage-owned proof-answer graph.
-    fn attaches_graphs(&self) -> &[String] {
-        crate::stages::attach::graphs(self.id())
-    }
-    /// This contribution attaches no blob-representation lane.
-    fn attaches_blob_reps(&self) -> &[String] {
-        crate::stages::attach::blob_reps(self.id())
     }
     /// Invalidate earlier recomputed observations at the persistence boundary.
     fn impl_version(&self) -> &str {

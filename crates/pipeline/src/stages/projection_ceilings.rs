@@ -43,7 +43,7 @@ use gmeow_logic_compile::loss_ledger::LossLedger;
 use gmeow_logic_compile::projections::ProjectionResult;
 use gmeow_slice_quality::model::GovernanceFloors;
 
-use crate::node::{Stage, StageInput, StageOutput, StageProduct};
+use crate::node::{StageBody, StageInput, StageOutput, StageProduct};
 
 /// Committed logical path of the generated per-(slice, vocabulary) ceiling projection.
 pub const CEILINGS_PATH: &str = "generated/governance/slice-quality-projection-ceilings.tsv";
@@ -162,15 +162,12 @@ pub fn fold_projection_ceilings_loss(ledger: &mut Vec<ProjectionResult>, loss: &
 /// The `projection-ceilings` export-leaf stage.
 pub struct ProjectionCeilingsStage;
 
-impl Stage for ProjectionCeilingsStage {
+impl StageBody for ProjectionCeilingsStage {
     fn id(&self) -> &str {
         "stage-export-projection-ceilings"
     }
     fn output_family(&self) -> crate::node::OutputFamily {
         crate::node::OutputFamily::Generated
-    }
-    fn consumes(&self) -> &[String] {
-        &[]
     }
     fn impl_version(&self) -> &str {
         "projection_ceilings.v1"

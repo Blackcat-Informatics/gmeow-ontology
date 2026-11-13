@@ -25,7 +25,6 @@ pub mod apache;
 // archives exist as a product mid-DAG and a consumer can select corpora over them
 // without closing a cycle on the terminal.
 pub mod archive_blobs;
-pub(crate) mod attach;
 pub mod bench;
 pub mod catalog;
 pub mod compile_logic;

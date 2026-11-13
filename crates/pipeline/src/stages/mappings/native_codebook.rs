@@ -7,7 +7,7 @@ use std::collections::BTreeMap;
 
 use gmeow_lang_bridge::gmn1_codec::native;
 
-use crate::node::{Stage, StageInput, StageOutput, StageProduct};
+use crate::node::{StageBody, StageInput, StageOutput, StageProduct};
 use crate::stages::parse_sources::SourceCatalog;
 
 /// Independent producer whose closure does not reconcile shipped browser assets.
@@ -27,29 +27,21 @@ fn encode(catalog: &SourceCatalog) -> gmeow_errors::Result<Vec<u8>> {
 }
 
 /// Authenticated native-codebook production before browser substrate reconciliation.
-pub(crate) struct NativeCodebookStage {
-    consumes: Vec<String>,
-}
+pub(crate) struct NativeCodebookStage {}
 
 impl Default for NativeCodebookStage {
     /// Construct the stage over its declared original-source producer.
     fn default() -> Self {
-        Self {
-            consumes: vec![crate::stages::parse_sources::STAGE_ID.to_owned()],
-        }
+        Self {}
     }
 }
 
-impl Stage for NativeCodebookStage {
+impl StageBody for NativeCodebookStage {
     fn id(&self) -> &str {
         STAGE_ID
     }
     fn output_family(&self) -> crate::node::OutputFamily {
         crate::node::OutputFamily::Generated
-    }
-
-    fn consumes(&self) -> &[String] {
-        &self.consumes
     }
 
     fn impl_version(&self) -> &str {

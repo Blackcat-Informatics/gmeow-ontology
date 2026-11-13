@@ -34,7 +34,7 @@ use std::sync::Arc;
 use purrdf::{DatasetView, GraphMatch, RdfDataset, TermRef, TermValue};
 use purrdf_hash::sha1::Sha1;
 
-use crate::node::{Stage, StageInput, StageOutput, StageProduct};
+use crate::node::{StageBody, StageInput, StageOutput, StageProduct};
 use crate::stages::source_load::turtle_bytes_to_dataset;
 
 const GMEOW: &str = "https://blackcatinformatics.ca/gmeow/";
@@ -572,18 +572,12 @@ fn cell_err(cell: &Iri, msg: &str) -> gmeow_errors::Diag {
 /// The `statements` pipeline stage.
 pub struct StatementsStage;
 
-impl Stage for StatementsStage {
+impl StageBody for StatementsStage {
     fn id(&self) -> &str {
         "stage-statements"
     }
     fn output_family(&self) -> crate::node::OutputFamily {
         crate::node::OutputFamily::Generated
-    }
-    fn consumes(&self) -> &[String] {
-        // Declared empty: the compiler reads dsl/statements/ from the root. The
-        // dogfooded DAG wires it after source-load; the consumes-agreement check
-        // is reconciled when source-load publishes the loaded dataset (P3 wiring).
-        &[]
     }
     fn impl_version(&self) -> &str {
         // v2: the statement layer's JSON-LD-star / YAML-LD-star projections join the

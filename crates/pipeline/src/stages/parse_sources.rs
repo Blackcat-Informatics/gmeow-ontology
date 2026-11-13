@@ -13,7 +13,7 @@ use gmeow_logic_compile::frontend::{
 use purrdf::{CompositeDatasetView, RdfDataset, TermId, ViewLimits};
 
 use crate::bundle::PipelineHandle;
-use crate::node::{CachePolicy, Stage, StageInput, StageOutput, StageProduct, StageRunTiming};
+use crate::node::{StageBody, StageInput, StageOutput, StageProduct, StageRunTiming};
 use crate::stages::source_load::ParsedAuthoredSources;
 
 pub(crate) mod language;
@@ -372,24 +372,15 @@ pub(crate) fn catalog<'a>(input: &StageInput<'a>) -> gmeow_errors::Result<&'a So
 /// Explicit recomputed source producer; tests consume downstream persistent receipts.
 pub struct ParseSourcesStage;
 
-impl Stage for ParseSourcesStage {
+impl StageBody for ParseSourcesStage {
     fn id(&self) -> &str {
         STAGE_ID
     }
     fn output_family(&self) -> crate::node::OutputFamily {
         crate::node::OutputFamily::Generated
     }
-    fn consumes(&self) -> &[String] {
-        &[]
-    }
-    fn cache_policy(&self) -> CachePolicy {
-        CachePolicy::Recompute
-    }
     fn impl_version(&self) -> &str {
         "parse-sources.v2-structural-source-occurrences"
-    }
-    fn attaches_graphs(&self) -> &[String] {
-        crate::stages::attach::graphs(STAGE_ID)
     }
     fn input_files(&self, root: &Path) -> gmeow_errors::Result<Vec<PathBuf>> {
         crate::stages::source_load::authored_files(root)

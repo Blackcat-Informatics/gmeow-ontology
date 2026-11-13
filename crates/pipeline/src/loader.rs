@@ -530,9 +530,9 @@ fn parse_edge_reads(ds: &RdfDataset, edge: &str) -> Result<ReadSet, gmeow_errors
     Ok(reads)
 }
 
-/// Resolve every stage's `gmeow:stageImpl` against the registry and prove the
-/// Rust impl agrees with the RDF declaration (capabilities + consumes + resources +
-/// typed dataflow). Returns the bound stages in the validated topological order.
+/// Resolve every stage's `gmeow:stageImpl` against the registry and bind each
+/// implementation to the declarations of its stage. Returns the bound stages in the
+/// validated topological order.
 pub fn bind(
     spec: &PipelineSpec,
     graph: &StageGraph,
@@ -548,137 +548,19 @@ pub fn bind(
             })
         })?;
 
-        // Capability agreement (both sides sorted+deduped): the executable twin must
-        // declare exactly the capabilities the RDF does, or the executor would read a
-        // sink/source role the authored model never declared (single source of truth).
-        let mut rust_caps: Vec<String> = stage.capabilities().to_vec();
-        rust_caps.sort();
-        rust_caps.dedup();
-        if rust_caps != s.capabilities {
-            return Err(gmeow_errors::Diag::of_kind(
-                crate::error::CapabilityMismatch {
-                    stage: s.id.clone(),
-                    rdf: s.capabilities.clone(),
-                    rust: rust_caps,
-                },
-            ));
-        }
-
-        // Consumes agreement (both sides sorted+deduped).
-        let mut rust: Vec<String> = stage.consumes().to_vec();
-        rust.sort();
-        rust.dedup();
-        if rust != s.consumes {
-            return Err(gmeow_errors::Diag::of_kind(
-                crate::error::ConsumesMismatch {
-                    stage: s.id.clone(),
-                    rdf: s.consumes.clone(),
-                    rust,
-                },
-            ));
-        }
-
-        // Resource agreement (both sides sorted+deduped): the executable twin must
-        // declare exactly the shared resources the RDF does, or the scheduler's
-        // serialization would diverge from the authored model.
-        let mut rust_res: Vec<String> = stage.resources().to_vec();
-        rust_res.sort();
-        rust_res.dedup();
-        if rust_res != s.resources {
-            return Err(gmeow_errors::Diag::of_kind(
-                crate::error::ResourceMismatch {
-                    stage: s.id.clone(),
-                    rdf: s.resources.clone(),
-                    rust: rust_res,
-                },
-            ));
-        }
-
-        if stage.stability() != s.stability {
+        // The body names its product by the stage id, so the two must be one name.
+        if stage.id() != s.id {
             return Err(gmeow_errors::Diag::of_kind(
                 crate::error::InvalidDeclaration {
                     message: format!(
-                        "stage {}: RDF gmeow:stageStability {} disagrees with the Rust \
-                         executable twin {}",
+                        "stage {} binds implementation {}, whose body names itself {}",
                         s.id,
-                        s.stability.iri(),
-                        stage.stability().iri()
+                        s.impl_key,
+                        stage.id()
                     ),
                 },
             ));
         }
-        if stage.cache_policy() != s.cache_disposition {
-            return Err(gmeow_errors::Diag::of_kind(
-                crate::error::InvalidDeclaration {
-                    message: format!(
-                        "stage {}: RDF gmeow:stageCacheDisposition {} disagrees with the Rust \
-                         executable twin {}",
-                        s.id,
-                        s.cache_disposition.iri(),
-                        stage.cache_policy().iri()
-                    ),
-                },
-            ));
-        }
-
-        // Typed-dataflow (artifact-level) agreement: the executable twin must declare
-        // exactly the entity narrowing the RDF gmeow:BuildDataFlow edges declare, or the
-        // cache could narrow on a different entity set than the stage reads (stale
-        // hazard). Normalize both sides (sorted by producer, entities sorted+deduped).
-        let mut rust_entities: Vec<(String, Vec<String>)> = stage
-            .consumed_entities()
-            .iter()
-            .map(|(producer, ents)| {
-                let mut e = ents.clone();
-                e.sort();
-                e.dedup();
-                (producer.clone(), e)
-            })
-            .collect();
-        rust_entities.sort();
-        if rust_entities != s.dataflow_entities {
-            return Err(gmeow_errors::Diag::of_kind(
-                crate::error::DataFlowMismatch {
-                    stage: s.id.clone(),
-                    rdf: s.dataflow_entities.clone(),
-                    rust: rust_entities,
-                },
-            ));
-        }
-
-        // Attach-declaration agreement (both sides sorted+deduped): the executable twin
-        // must declare exactly the named graphs / blob-rep lanes the RDF
-        // gmeow:attachesGraph / gmeow:attachesBlobRep declare. The scheduler verifies the
-        // ACTUAL run-time delta against this same declaration (error::AttachDrift), so a
-        // Rust/RDF disagreement here would let the run enforce a declaration the authored
-        // model never made (single source of truth).
-        let mut rust_graphs: Vec<String> = stage.attaches_graphs().to_vec();
-        rust_graphs.sort();
-        rust_graphs.dedup();
-        if rust_graphs != s.attaches_graphs {
-            return Err(gmeow_errors::Diag::of_kind(
-                crate::error::AttachDeclMismatch {
-                    stage: s.id.clone(),
-                    lane: "gmeow:attachesGraph".to_string(),
-                    rdf: s.attaches_graphs.clone(),
-                    rust: rust_graphs,
-                },
-            ));
-        }
-        let mut rust_blob_reps: Vec<String> = stage.attaches_blob_reps().to_vec();
-        rust_blob_reps.sort();
-        rust_blob_reps.dedup();
-        if rust_blob_reps != s.attaches_blob_reps {
-            return Err(gmeow_errors::Diag::of_kind(
-                crate::error::AttachDeclMismatch {
-                    stage: s.id.clone(),
-                    lane: "gmeow:attachesBlobRep".to_string(),
-                    rdf: s.attaches_blob_reps.clone(),
-                    rust: rust_blob_reps,
-                },
-            ));
-        }
-
         bound.push(Arc::new(BoundStage::new(s.clone(), stage)));
     }
     Ok(bound)
@@ -695,12 +577,12 @@ pub fn bind(
 /// it, and whether it reads the source-span table.
 struct BoundStage {
     spec: StageSpec,
-    body: Arc<dyn Stage>,
+    body: Arc<dyn crate::node::StageBody>,
     carrier_consumes: Vec<String>,
 }
 
 impl BoundStage {
-    fn new(spec: StageSpec, body: Arc<dyn Stage>) -> Self {
+    fn new(spec: StageSpec, body: Arc<dyn crate::node::StageBody>) -> Self {
         let carrier_consumes = spec
             .consumes
             .iter()

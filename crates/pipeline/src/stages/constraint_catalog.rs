@@ -24,7 +24,7 @@ use gmeow_errors::Severity;
 use gmeow_validate::rule_catalog::{Enforcement, RuleSeed, all_rules, help_uri_for, slugify};
 use purrdf::slice::rdf_query::{Dataset, Object};
 
-use crate::node::{Stage, StageInput, StageOutput, StageProduct};
+use crate::node::{StageBody, StageInput, StageOutput, StageProduct};
 use crate::stages::source_load::module_files;
 
 /// Committed logical path of the generated constraint catalog.
@@ -536,18 +536,14 @@ pub fn render_constraint_catalog(root: &Path) -> Result<Vec<u8>, gmeow_errors::D
 // ── Stage impl ───────────────────────────────────────────────────────────────
 
 /// The `constraint-catalog` export-leaf stage.
-pub struct ConstraintCatalogStage {
-    consumes: Vec<String>,
-}
+pub struct ConstraintCatalogStage {}
 
 impl ConstraintCatalogStage {
     /// Construct the stage. It consumes `stage-reason` so it runs after the reasoned
     /// closure is available (and, transitively, over the composed ontology it reads
     /// the governed terms from).
     pub fn new() -> Self {
-        Self {
-            consumes: vec!["stage-reason".to_string()],
-        }
+        Self {}
     }
 }
 
@@ -557,15 +553,12 @@ impl Default for ConstraintCatalogStage {
     }
 }
 
-impl Stage for ConstraintCatalogStage {
+impl StageBody for ConstraintCatalogStage {
     fn id(&self) -> &str {
         "stage-constraint-catalog"
     }
     fn output_family(&self) -> crate::node::OutputFamily {
         crate::node::OutputFamily::Generated
-    }
-    fn consumes(&self) -> &[String] {
-        &self.consumes
     }
     fn impl_version(&self) -> &str {
         "constraint_catalog.v1"

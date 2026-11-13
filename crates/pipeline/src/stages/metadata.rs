@@ -26,7 +26,7 @@ use purrdf::model::{RdfLiteral, RdfTerm};
 use purrdf::{RdfDataset, RdfQuad, SerializeGraph, dataset_from_quads, serialize_dataset};
 use sha2::{Digest, Sha256};
 
-use crate::node::{Stage, StageInput, StageOutput, StageProduct};
+use crate::node::{StageBody, StageInput, StageOutput, StageProduct};
 use crate::stages::profiles::{
     SliceMeta, dependency_closure, discover_slices, group_named_profiles,
 };
@@ -711,16 +711,12 @@ pub(crate) fn render_metadata_from_dataset(
 // ── Stage impl ───────────────────────────────────────────────────────────────
 
 /// The `metadata` export-leaf stage.
-pub struct MetadataStage {
-    consumes: Vec<String>,
-}
+pub struct MetadataStage {}
 
 impl MetadataStage {
     /// Construct the stage; it consumes THIS run's snapshot fold.
     pub fn new() -> Self {
-        Self {
-            consumes: vec!["stage-snapshot".to_string()],
-        }
+        Self {}
     }
 }
 
@@ -730,15 +726,12 @@ impl Default for MetadataStage {
     }
 }
 
-impl Stage for MetadataStage {
+impl StageBody for MetadataStage {
     fn id(&self) -> &str {
         "stage-export-metadata"
     }
     fn output_family(&self) -> crate::node::OutputFamily {
         crate::node::OutputFamily::Generated
-    }
-    fn consumes(&self) -> &[String] {
-        &self.consumes
     }
     fn impl_version(&self) -> &str {
         "metadata.v3-native-products"

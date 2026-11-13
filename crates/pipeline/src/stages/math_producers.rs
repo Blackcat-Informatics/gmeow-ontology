@@ -51,7 +51,7 @@ use std::sync::Arc;
 
 use purrdf::RdfDataset;
 
-use crate::node::{Stage, StageInput, StageOutput, StageProduct, measure_stage_phase};
+use crate::node::{StageBody, StageInput, StageOutput, StageProduct, measure_stage_phase};
 use crate::stages::carrier::{MATH_PRODUCER_GRAPHS, parse_into_graph};
 
 /// The committed producer fixtures paired with the exact producer result index they
@@ -263,16 +263,12 @@ mod tests;
 
 /// Compute the ten producer graphs and the explicitly requested target projections.
 /// Projection inputs come from declared source and mapping products.
-pub struct MathProducersStage {
-    consumes: Vec<String>,
-}
+pub struct MathProducersStage {}
 
 impl MathProducersStage {
     /// Construct the stage with its source and correspondence dependencies.
     pub fn new() -> Self {
-        Self {
-            consumes: vec!["stage-mappings".to_owned(), "stage-source-load".to_owned()],
-        }
+        Self {}
     }
 }
 
@@ -282,26 +278,12 @@ impl Default for MathProducersStage {
     }
 }
 
-impl Stage for MathProducersStage {
+impl StageBody for MathProducersStage {
     fn id(&self) -> &str {
         "stage-math-producers"
     }
     fn output_family(&self) -> crate::node::OutputFamily {
         crate::node::OutputFamily::Generated
-    }
-    fn consumes(&self) -> &[String] {
-        &self.consumes
-    }
-    /// The named graphs this stage attaches to the carrier (its delta), from the
-    /// single Rust-side attach table; mirrored by the slice module.ttl gmeow:attachesGraph
-    /// declarations and verified against the run-time delta by the scheduler.
-    fn attaches_graphs(&self) -> &[String] {
-        crate::stages::attach::graphs(self.id())
-    }
-    /// The blob-representation lanes this stage attaches (its delta), from the single
-    /// Rust-side attach table; mirrored by gmeow:attachesBlobRep and run-time-verified.
-    fn attaches_blob_reps(&self) -> &[String] {
-        crate::stages::attach::blob_reps(self.id())
     }
     fn impl_version(&self) -> &str {
         // v1: fold the five math flagship producers' graphs into the carrier.

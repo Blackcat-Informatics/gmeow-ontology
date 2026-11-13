@@ -14,7 +14,7 @@ use std::path::Path;
 
 use purrdf::{DatasetView, GraphMatch, TermRef, TermValue, parse_dataset};
 
-use crate::node::{Stage, StageInput, StageOutput, StageProduct};
+use crate::node::{StageBody, StageInput, StageOutput, StageProduct};
 
 /// Committed logical path of the Apache content-negotiation include.
 pub const APACHE_PATH: &str = "generated/apache/gmeow.conf";
@@ -248,15 +248,12 @@ pub fn render_apache(root: &Path) -> Result<String, gmeow_errors::Diag> {
 /// The `apache` export-leaf stage.
 pub struct ApacheStage;
 
-impl Stage for ApacheStage {
+impl StageBody for ApacheStage {
     fn id(&self) -> &str {
         "stage-export-apache"
     }
     fn output_family(&self) -> crate::node::OutputFamily {
         crate::node::OutputFamily::Generated
-    }
-    fn consumes(&self) -> &[String] {
-        &[]
     }
     fn impl_version(&self) -> &str {
         "apache.v1"

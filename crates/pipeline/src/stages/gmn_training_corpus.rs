@@ -78,7 +78,7 @@ use gmeow_logic::goal_directed::evaluate_reasoning_programs;
 use gmeow_logic_compile::ir::{EvaluationMode, Formula, ReasoningProgramIr, Term};
 use purrdf::{RdfDataset, RdfDatasetBuilder, RdfLiteral, RdfQuad, RdfTerm};
 
-use crate::node::{Stage, StageInput, StageOutput, StageProduct, measure_stage_phase};
+use crate::node::{StageBody, StageInput, StageOutput, StageProduct, measure_stage_phase};
 
 /// The bundle-internal named graph the enumerated + certified corpus (and the recorded
 /// rejections) is folded into. A sibling of `graph/goal-directed`: a queryable projection of a
@@ -767,22 +767,14 @@ fn emit_rejected(
 // ── The stage ──────────────────────────────────────────────────────────────────────────
 
 /// The `gmn-training-corpus` pipeline stage.
-pub struct GmnTrainingCorpusStage {
-    consumes: Vec<String>,
-}
+pub struct GmnTrainingCorpusStage {}
 
 impl GmnTrainingCorpusStage {
     /// Construct the stage with the logic, projected forms and shared native language
     /// dependencies. These edges are declared identically here, in
     /// `slices/core/pipeline/module.ttl`, and in [`crate::run::full_spec`].
     pub fn new() -> Self {
-        Self {
-            consumes: vec![
-                "stage-compile-logic".to_string(),
-                "stage-mappings".to_string(),
-                crate::stages::parse_sources::STAGE_ID.to_owned(),
-            ],
-        }
+        Self {}
     }
 }
 
@@ -792,21 +784,12 @@ impl Default for GmnTrainingCorpusStage {
     }
 }
 
-impl Stage for GmnTrainingCorpusStage {
+impl StageBody for GmnTrainingCorpusStage {
     fn id(&self) -> &str {
         "stage-gmn-training-corpus"
     }
     fn output_family(&self) -> crate::node::OutputFamily {
         crate::node::OutputFamily::Generated
-    }
-    fn consumes(&self) -> &[String] {
-        &self.consumes
-    }
-    fn attaches_graphs(&self) -> &[String] {
-        crate::stages::attach::graphs(self.id())
-    }
-    fn attaches_blob_reps(&self) -> &[String] {
-        crate::stages::attach::blob_reps(self.id())
     }
     fn impl_version(&self) -> &str {
         // v1: the rejection-sampled, proof-carrying GMN training-corpus emitter.

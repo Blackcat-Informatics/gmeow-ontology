@@ -19,9 +19,7 @@ use purrdf::RdfDataset;
 
 pub use gmeow_bundle_view::export::*;
 
-use crate::node::{
-    CachePolicy, SERIALIZATION_BUFFER_RESOURCE, Stage, StageInput, StageOutput, StageProduct,
-};
+use crate::node::{StageBody, StageInput, StageOutput, StageProduct};
 
 /// Borrow THIS run's carrier dataset. The runtime path every fold-reading
 /// export leaf (export / okf) uses: the `stage-snapshot` product carries the
@@ -70,10 +68,7 @@ pub(crate) fn modeled_defs_from_upstream(
 }
 
 /// The `stage-export-export` export-leaf stage.
-pub struct ExportStage {
-    consumes: Vec<String>,
-    resources: Vec<String>,
-}
+pub struct ExportStage {}
 
 impl ExportStage {
     /// Construct the stage; it consumes THIS run's snapshot fold plus the
@@ -90,13 +85,7 @@ impl ExportStage {
     /// gmeow:serializationBufferResource` in `slices/core/pipeline/module.ttl`; the
     /// loader HARD-fails on disagreement.
     pub fn new() -> Self {
-        Self {
-            consumes: vec![
-                "stage-export-json-schema".to_string(),
-                "stage-snapshot".to_string(),
-            ],
-            resources: vec![SERIALIZATION_BUFFER_RESOURCE.to_string()],
-        }
+        Self {}
     }
 }
 
@@ -106,24 +95,12 @@ impl Default for ExportStage {
     }
 }
 
-impl Stage for ExportStage {
+impl StageBody for ExportStage {
     fn id(&self) -> &str {
         "stage-export-export"
     }
     fn output_family(&self) -> crate::node::OutputFamily {
         crate::node::OutputFamily::RuntimeProjection
-    }
-    fn consumes(&self) -> &[String] {
-        &self.consumes
-    }
-    fn resources(&self) -> &[String] {
-        &self.resources
-    }
-    fn cache_policy(&self) -> CachePolicy {
-        // Measured contribution: 2.543 GB serialized / ~34.5 s rebuild, while the
-        // renderer itself peaks at 9.06 GiB. Persisting it duplicates the two complete
-        // whole-document buffers and is not a bounded-cache win.
-        CachePolicy::Recompute
     }
     fn impl_version(&self) -> &str {
         "export.v1"

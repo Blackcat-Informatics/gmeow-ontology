@@ -19,7 +19,7 @@ use gmeow_logic::result_rdf::GRAPH_REASONING;
 use purrdf::provenance::DatasetProvenance;
 
 use crate::bundle::PipelineHandle;
-use crate::node::{Stage, StageInput, StageOutput, StageProduct, StageRunTiming};
+use crate::node::{StageBody, StageInput, StageOutput, StageProduct, StageRunTiming};
 pub mod norm_claims;
 mod substrate;
 
@@ -382,10 +382,7 @@ fn substrate_abox_from_source_load(
 }
 
 /// The `stage-validate` pipeline stage.
-pub struct ValidateStage {
-    consumes: Vec<String>,
-    entities: Vec<(String, Vec<String>)>,
-}
+pub struct ValidateStage {}
 
 impl ValidateStage {
     /// Construct the SHACL validation stage. It consumes the native source catalog,
@@ -417,31 +414,7 @@ impl ValidateStage {
     /// DELTA (the reason product also carries a `graph/diagnostics`, which the whole
     /// product would fold into this stage's input set and mask the attach).
     pub fn new() -> Self {
-        Self {
-            consumes: vec![
-                "stage-compile-logic".to_string(),
-                "stage-export-constraint-shapes".to_string(),
-                "stage-export-frame-shapes".to_string(),
-                "stage-export-result-shapes".to_string(),
-                "stage-parse-sources".to_string(),
-                "stage-reason".to_string(),
-                "stage-source-load".to_string(),
-            ],
-            entities: vec![
-                (
-                    "stage-compile-logic".to_string(),
-                    crate::stages::compile_logic::carrier_entity_list(),
-                ),
-                (
-                    "stage-parse-sources".to_string(),
-                    vec![crate::stages::parse_sources::GRAPH_SOURCE_CATALOG.to_string()],
-                ),
-                (
-                    "stage-reason".to_string(),
-                    vec![GRAPH_REASONING.to_string()],
-                ),
-            ],
-        }
+        Self {}
     }
 }
 
@@ -451,32 +424,12 @@ impl Default for ValidateStage {
     }
 }
 
-impl Stage for ValidateStage {
+impl StageBody for ValidateStage {
     fn id(&self) -> &str {
         "stage-validate"
     }
     fn output_family(&self) -> crate::node::OutputFamily {
         crate::node::OutputFamily::Generated
-    }
-    fn consumes(&self) -> &[String] {
-        &self.consumes
-    }
-    fn consumed_entities(&self) -> &[(String, Vec<String>)] {
-        &self.entities
-    }
-    fn consumes_span_table(&self) -> bool {
-        true
-    }
-    /// The named graphs this stage attaches to the carrier (its delta), from the
-    /// single Rust-side attach table; mirrored by the slice module.ttl gmeow:attachesGraph
-    /// declarations and verified against the run-time delta by the scheduler.
-    fn attaches_graphs(&self) -> &[String] {
-        crate::stages::attach::graphs(self.id())
-    }
-    /// The blob-representation lanes this stage attaches (its delta), from the single
-    /// Rust-side attach table; mirrored by gmeow:attachesBlobRep and run-time-verified.
-    fn attaches_blob_reps(&self) -> &[String] {
-        crate::stages::attach::blob_reps(self.id())
     }
     fn impl_version(&self) -> &str {
         // v9: reuse the native catalog and shared compilation; import the substrate

@@ -23,7 +23,7 @@
 
 use std::collections::BTreeMap;
 
-use crate::node::{Stage, StageInput, StageOutput, StageProduct};
+use crate::node::{StageBody, StageInput, StageOutput, StageProduct};
 use crate::stages::conformance::{AGREEMENT_TALLIES_PATH, TallyRecord, parse_agreement_tallies};
 
 /// Committed, drift-gated agreement-matrix dashboard artifact. Lives at the
@@ -232,17 +232,13 @@ pub(crate) fn render_agreement_matrix(
 
 /// The `stage-export-agreement` export leaf: the committed agreement-matrix dashboard,
 /// projected from the single grade `stage-conformance` attached.
-pub struct AgreementMatrixStage {
-    consumes: Vec<String>,
-}
+pub struct AgreementMatrixStage {}
 
 impl AgreementMatrixStage {
     /// Construct the stage. It consumes `stage-conformance` — the single grade whose
     /// attached tallies it projects — so it never re-walks the corpus.
     pub fn new() -> Self {
-        Self {
-            consumes: vec!["stage-conformance".to_string()],
-        }
+        Self {}
     }
 }
 
@@ -252,15 +248,12 @@ impl Default for AgreementMatrixStage {
     }
 }
 
-impl Stage for AgreementMatrixStage {
+impl StageBody for AgreementMatrixStage {
     fn id(&self) -> &str {
         "stage-export-agreement"
     }
     fn output_family(&self) -> crate::node::OutputFamily {
         crate::node::OutputFamily::Generated
-    }
-    fn consumes(&self) -> &[String] {
-        &self.consumes
     }
     fn impl_version(&self) -> &str {
         "agreement.v1"

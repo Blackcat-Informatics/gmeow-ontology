@@ -20,7 +20,7 @@ use gmeow_logic_compile::result_shape::{
 };
 use purrdf::{RdfDataset, TermValue};
 
-use crate::node::{Stage, StageInput, StageOutput, StageProduct};
+use crate::node::{StageBody, StageInput, StageOutput, StageProduct};
 use crate::stages::native_query::{self, Solutions};
 use crate::stages::result_shapes::competency_files;
 
@@ -402,15 +402,12 @@ pub fn validate_compositions(root: &Path) -> Result<(), gmeow_errors::Diag> {
 /// The `result-shape-composition` validation leaf stage.
 pub struct ResultShapeCompositionStage;
 
-impl Stage for ResultShapeCompositionStage {
+impl StageBody for ResultShapeCompositionStage {
     fn id(&self) -> &str {
         "stage-validate-result-shape-composition"
     }
     fn output_family(&self) -> crate::node::OutputFamily {
         crate::node::OutputFamily::Generated
-    }
-    fn consumes(&self) -> &[String] {
-        &[]
     }
     fn impl_version(&self) -> &str {
         "result_shape_composition.v1"

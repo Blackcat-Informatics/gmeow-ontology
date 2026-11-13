@@ -36,8 +36,7 @@ use purrdf::{RdfDataset, RdfDatasetBuilder, RdfLiteral, RdfTerm};
 
 use crate::bundle::PipelineHandle;
 use crate::node::{
-    CachePolicy, ENGINE_RESOURCE, Stage, StageInput, StageOutput, StageProduct, StageRunTiming,
-    measure_stage_phase,
+    StageBody, StageInput, StageOutput, StageProduct, StageRunTiming, measure_stage_phase,
 };
 
 /// COMMITTED logical path of the native told-vs-inferred closure (RDF 1.2). This is
@@ -658,11 +657,8 @@ fn reason_dataset(
 /// The semantic identity binds the selected domain profile and fixed role envelope.
 /// Source bytes and complete producer/handle identities remain separately bound by
 /// native input admission and scheduler receipts; data edits do not remint domains.
-fn object_level_domains(
-    stage: &ReasonStage,
-    input: &StageInput<'_>,
-) -> Result<SelectedDomains, gmeow_errors::Diag> {
-    for producer in stage.consumes() {
+fn object_level_domains(input: &StageInput<'_>) -> Result<SelectedDomains, gmeow_errors::Diag> {
+    for producer in input.upstream.keys() {
         let product = input.upstream.get(producer).ok_or_else(|| {
             stage_failure(format!("domain selection requires producer {producer}"))
         })?;
@@ -684,11 +680,7 @@ fn object_level_domains(
 // ── Stage impl ───────────────────────────────────────────────────────────────
 
 /// The `reason` pipeline stage — the sole engine-lock-carrying stage.
-pub struct ReasonStage {
-    consumes: Vec<String>,
-    resources: Vec<String>,
-    entities: Vec<(String, Vec<String>)>,
-}
+pub struct ReasonStage {}
 
 impl ReasonStage {
     /// Construct the stage. It reasons over the object-level EDB assembled from the
@@ -711,18 +703,7 @@ impl ReasonStage {
     /// excluded. Declaring these two entities lets a change to compile-logic's
     /// diagnostics or projection bytes alone skip re-running the (expensive) reasoner.
     pub fn new() -> Self {
-        Self {
-            consumes: vec![
-                "stage-compile-logic".to_string(),
-                "stage-source-load".to_string(),
-                "stage-statements".to_string(),
-            ],
-            resources: vec![ENGINE_RESOURCE.to_string()],
-            entities: vec![(
-                "stage-compile-logic".to_string(),
-                crate::stages::compile_logic::object_level_entity_list(),
-            )],
-        }
+        Self {}
     }
 }
 
@@ -732,40 +713,12 @@ impl Default for ReasonStage {
     }
 }
 
-impl Stage for ReasonStage {
+impl StageBody for ReasonStage {
     fn id(&self) -> &str {
         "stage-reason"
     }
     fn output_family(&self) -> crate::node::OutputFamily {
         crate::node::OutputFamily::Generated
-    }
-    fn consumes(&self) -> &[String] {
-        &self.consumes
-    }
-    fn resources(&self) -> &[String] {
-        &self.resources
-    }
-    fn cache_policy(&self) -> CachePolicy {
-        // This cumulative product carries the full closure plus several large report
-        // lanes. A measured packed-cache hit still had to restore the whole carrier
-        // and re-derive its typed handle serially; that cost exceeded recomputing the
-        // reason stage from its already-live upstream carrier. Cache pure inputs and
-        // whole-run cleanliness instead of materializing this aggregate boundary.
-        CachePolicy::Recompute
-    }
-    fn consumed_entities(&self) -> &[(String, Vec<String>)] {
-        &self.entities
-    }
-    /// The named graphs this stage attaches to the carrier (its delta), from the
-    /// single Rust-side attach table; mirrored by the slice module.ttl gmeow:attachesGraph
-    /// declarations and verified against the run-time delta by the scheduler.
-    fn attaches_graphs(&self) -> &[String] {
-        crate::stages::attach::graphs(self.id())
-    }
-    /// The blob-representation lanes this stage attaches (its delta), from the single
-    /// Rust-side attach table; mirrored by gmeow:attachesBlobRep and run-time-verified.
-    fn attaches_blob_reps(&self) -> &[String] {
-        crate::stages::attach::blob_reps(self.id())
     }
     fn impl_version(&self) -> &str {
         // Retain selected-domain native evidence and each world's independently
@@ -792,7 +745,7 @@ impl Stage for ReasonStage {
         // Admit the declared producers and select theory roles before
         // the physical union. Unselected report/support graphs cannot acquire an
         // intrinsic nonempty-domain law merely by occupying the carrier.
-        let domains = object_level_domains(self, &input)?;
+        let domains = object_level_domains(&input)?;
         let edb = crate::stages::carrier::assemble_object_level_edb(input.upstream)?;
         let edb_quads = edb.quad_count();
         tracing::info!(

@@ -31,7 +31,7 @@ use purrdf_lex::json::{
     record::{DecodeError, FromJson, Record, ToJson, Within as _},
 };
 
-use crate::node::{Stage, StageInput, StageOutput, StageProduct};
+use crate::node::{StageBody, StageInput, StageOutput, StageProduct};
 use crate::stages::source_load::module_files;
 
 /// Materialized logical path of the generated term content manifest.
@@ -679,17 +679,13 @@ fn publish_release_authority(
 // ── Stage impl ───────────────────────────────────────────────────────────────
 
 /// The `term-content-manifest` export-leaf stage.
-pub struct TermManifestStage {
-    consumes: Vec<String>,
-}
+pub struct TermManifestStage {}
 
 impl TermManifestStage {
     /// Construct the stage. It consumes `stage-reason` so it runs after the reasoned
     /// closure is available (mirroring the constraint-catalog leaf's placement).
     pub fn new() -> Self {
-        Self {
-            consumes: vec!["stage-reason".to_string()],
-        }
+        Self {}
     }
 }
 
@@ -699,15 +695,12 @@ impl Default for TermManifestStage {
     }
 }
 
-impl Stage for TermManifestStage {
+impl StageBody for TermManifestStage {
     fn id(&self) -> &str {
         "stage-term-manifest"
     }
     fn output_family(&self) -> crate::node::OutputFamily {
         crate::node::OutputFamily::Generated
-    }
-    fn consumes(&self) -> &[String] {
-        &self.consumes
     }
     fn impl_version(&self) -> &str {
         "term_manifest.v4-registered-term-namespaces"

@@ -435,9 +435,12 @@ impl StageProduct {
             }
             None => {
                 assert!(
-                    !crate::stages::attach::blob_reps(&self.stage_id)
-                        .iter()
-                        .any(|rep| rep == crate::stages::carrier::REP_DIAG_NODES),
+                    !crate::run::description()
+                        .stage(&self.stage_id)
+                        .is_some_and(|stage| stage
+                            .attaches_blob_reps
+                            .iter()
+                            .any(|rep| rep == crate::stages::carrier::REP_DIAG_NODES)),
                     "stage {} is missing its required diagnostics:nodes contribution",
                     self.stage_id
                 );
@@ -645,10 +648,36 @@ impl CachePolicy {
     }
 }
 
-/// A pipeline stage: one node in the build DAG. The Rust impl is the executable
-/// twin of a `gmeow:PipelineStage` individual; the loader binds them by
-/// `gmeow:stageImpl` and HARD-fails if their `capabilities` / `consumes` /
-/// `resources` disagree.
+/// The implementation of one pipeline stage: what a description cannot hold.
+///
+/// The pipeline description declares everything about a stage that is a fact of the
+/// graph: what it consumes and reads, its capabilities and resources, its stability and
+/// cache disposition, and what it attaches. An implementation supplies only its body, the
+/// version of that body, the source files the body reads from the working tree, and the
+/// output family it belongs to. The loader binds the two by `gmeow:stageImpl` and the
+/// scheduler runs the bound [`Stage`].
+pub trait StageBody: Send + Sync {
+    /// The stable stage id the body names its product by. The loader refuses a binding
+    /// whose `gmeow:PipelineStage` individual has another name.
+    fn id(&self) -> &str;
+    /// The output family this stage belongs to. Required: there is no default family.
+    fn output_family(&self) -> OutputFamily;
+    /// A version string folded into the cache key; bump to invalidate this stage's
+    /// cached products when its logic changes.
+    fn impl_version(&self) -> &str;
+    /// The raw source files this body reads directly from the working tree that no
+    /// upstream product digest reflects. Their content is folded into the cache key, and
+    /// a missing file is a hard failure. The default is none.
+    fn input_files(&self, _root: &Path) -> gmeow_errors::Result<Vec<std::path::PathBuf>> {
+        Ok(Vec::new())
+    }
+    /// Execute the stage over its upstream products.
+    fn run(&self, input: StageInput<'_>) -> gmeow_errors::Result<StageOutput>;
+}
+
+/// A pipeline stage as the scheduler runs it: one node of the build DAG, with the
+/// declarations of its `gmeow:PipelineStage` individual and the body bound to it. The
+/// loader's `bind` is the one production implementer.
 pub trait Stage: Send + Sync {
     /// The stable stage id — matches the `gmeow:PipelineStage` individual.
     fn id(&self) -> &str;

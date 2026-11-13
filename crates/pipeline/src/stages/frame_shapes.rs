@@ -18,7 +18,7 @@ use gmeow_logic_compile::ir::{
 };
 use purrdf::slice::rdf_query::{Dataset, DatasetAccumulator, Object};
 
-use crate::node::{Stage, StageInput, StageOutput, StageProduct};
+use crate::node::{StageBody, StageInput, StageOutput, StageProduct};
 use crate::stages::rule_severity::RuleSeverity;
 use crate::stages::source_load::module_files;
 
@@ -304,15 +304,12 @@ pub fn render_frame_shapes(root: &Path) -> Result<String, gmeow_errors::Diag> {
 /// The `frame-shapes` export-leaf stage.
 pub struct FrameShapesStage;
 
-impl Stage for FrameShapesStage {
+impl StageBody for FrameShapesStage {
     fn id(&self) -> &str {
         "stage-export-frame-shapes"
     }
     fn output_family(&self) -> crate::node::OutputFamily {
         crate::node::OutputFamily::Generated
-    }
-    fn consumes(&self) -> &[String] {
-        &[]
     }
     fn impl_version(&self) -> &str {
         "frame_shapes.v1"

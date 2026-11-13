@@ -49,7 +49,7 @@ use purrdf::provenance::DatasetProvenance;
 use purrdf::{ContentDigest, PipelineBundle};
 
 use crate::bundle::{PipelineHandle, attach_rep_blob, bundle_from_artifacts};
-use crate::node::{Stage, StageInput, StageOutput, StageProduct};
+use crate::node::{StageBody, StageInput, StageOutput, StageProduct};
 use crate::stages::carrier::{
     archive_blob, list_files, members_relpath, slice_files, slice_named_files,
 };
@@ -802,9 +802,7 @@ fn stage_err(message: &str) -> gmeow_errors::Diag {
 
 /// The `archive-blobs` pipeline stage: folds the eleven by-reference TAR archives and
 /// attaches each to its product's blob lane under its `representation` label.
-pub struct ArchiveBlobsStage {
-    consumes: Vec<String>,
-}
+pub struct ArchiveBlobsStage {}
 
 impl ArchiveBlobsStage {
     /// Construct the stage. It consumes exactly the producers whose in-memory products
@@ -820,21 +818,7 @@ impl ArchiveBlobsStage {
     /// identically here, in [`crate::run::full_spec`], and in
     /// `slices/core/pipeline/module.ttl`.
     pub fn new() -> Self {
-        Self {
-            consumes: vec![
-                "stage-compile-logic".to_string(),
-                "stage-export-constraint-shapes".to_string(),
-                "stage-export-frame-shapes".to_string(),
-                "stage-export-glossary".to_string(),
-                "stage-export-json-schema".to_string(),
-                "stage-export-pydantic".to_string(),
-                "stage-export-result-shapes".to_string(),
-                "stage-mappings".to_string(),
-                "stage-math-producers".to_string(),
-                crate::stages::mappings::native_codebook::STAGE_ID.to_string(),
-                "stage-statements".to_string(),
-            ],
-        }
+        Self {}
     }
 }
 
@@ -844,18 +828,12 @@ impl Default for ArchiveBlobsStage {
     }
 }
 
-impl Stage for ArchiveBlobsStage {
+impl StageBody for ArchiveBlobsStage {
     fn id(&self) -> &str {
         STAGE_ID
     }
     fn output_family(&self) -> crate::node::OutputFamily {
         crate::node::OutputFamily::Generated
-    }
-    fn consumes(&self) -> &[String] {
-        &self.consumes
-    }
-    fn attaches_blob_reps(&self) -> &[String] {
-        crate::stages::attach::blob_reps(self.id())
     }
     fn impl_version(&self) -> &str {
         // v1: the by-reference archive fold, lifted verbatim out of the terminal sink so

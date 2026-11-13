@@ -41,7 +41,7 @@ use gmeow_logic::reason::ExternalComparison;
 use purrdf_lex::json::record::{DecodeError, FromJson, Record, ToJson};
 use purrdf_lex::json::{self, Object, Value};
 
-use crate::node::{Stage, StageInput, StageOutput, StageProduct, measure_stage_phase};
+use crate::node::{StageBody, StageInput, StageOutput, StageProduct, measure_stage_phase};
 
 pub(crate) mod action_policy;
 pub mod advice_wing;
@@ -859,27 +859,12 @@ fn record_parallel_math<T: Send>(
 /// producer-owned and its authenticated observations feed the golden consumer.
 pub struct ConformanceStage;
 
-impl Stage for ConformanceStage {
+impl StageBody for ConformanceStage {
     fn id(&self) -> &str {
         "stage-conformance"
     }
     fn output_family(&self) -> crate::node::OutputFamily {
         crate::node::OutputFamily::Generated
-    }
-    fn consumes(&self) -> &[String] {
-        static DEPS: std::sync::OnceLock<Vec<String>> = std::sync::OnceLock::new();
-        DEPS.get_or_init(|| vec![crate::stages::parse_sources::STAGE_ID.to_owned()])
-    }
-    /// The named graphs this stage attaches to the carrier (its delta), from the
-    /// single Rust-side attach table; mirrored by the slice module.ttl gmeow:attachesGraph
-    /// declarations and verified against the run-time delta by the scheduler.
-    fn attaches_graphs(&self) -> &[String] {
-        crate::stages::attach::graphs(self.id())
-    }
-    /// The blob-representation lanes this stage attaches (its delta), from the single
-    /// Rust-side attach table; mirrored by gmeow:attachesBlobRep and run-time-verified.
-    fn attaches_blob_reps(&self) -> &[String] {
-        crate::stages::attach::blob_reps(self.id())
     }
     fn impl_version(&self) -> &str {
         "conformance.v17-independent-math-recording"

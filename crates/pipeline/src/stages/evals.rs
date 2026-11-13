@@ -32,7 +32,7 @@ use gmeow_errors::abox::{AboxObject, X_GMEOW_ENGLISH, abox_annotations};
 use gmeow_errors::render::nq_escape;
 use serde_json::Value;
 
-use crate::node::{Stage, StageInput, StageOutput, StageProduct};
+use crate::node::{StageBody, StageInput, StageOutput, StageProduct};
 
 /// Logical path of the generated leaderboard.
 pub const LEADERBOARD_PATH: &str = "generated/evals/leaderboard.md";
@@ -1027,15 +1027,12 @@ pub fn render_evals(root: &Path) -> Result<BTreeMap<String, Vec<u8>>, gmeow_erro
 /// The `stage-export-evals` export-leaf stage.
 pub struct EvalsStage;
 
-impl Stage for EvalsStage {
+impl StageBody for EvalsStage {
     fn id(&self) -> &str {
         "stage-export-evals"
     }
     fn output_family(&self) -> crate::node::OutputFamily {
         crate::node::OutputFamily::Generated
-    }
-    fn consumes(&self) -> &[String] {
-        &[]
     }
     fn impl_version(&self) -> &str {
         "evals.v2"

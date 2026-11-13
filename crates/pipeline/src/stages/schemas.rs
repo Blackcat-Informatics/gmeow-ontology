@@ -32,7 +32,7 @@ use purrdf::shapes::typescript::{
     emit_typescript,
 };
 
-use crate::node::{Stage, StageInput, StageOutput, StageProduct};
+use crate::node::{StageBody, StageInput, StageOutput, StageProduct};
 
 /// The committed logical paths of the four schema artifacts owned by this stage.
 pub const LINKML_PATH: &str = "generated/schemas/gmeow.linkml.yaml";
@@ -451,9 +451,7 @@ fn render_schemas(
 }
 
 /// The `stage-export-schemas` export-leaf stage.
-pub struct SchemasStage {
-    consumes: Vec<String>,
-}
+pub struct SchemasStage {}
 
 impl SchemasStage {
     /// Construct the stage. It reads the AUTHORED shape/ontology sources from disk
@@ -461,9 +459,7 @@ impl SchemasStage {
     /// THIS run's fresh `generated/shapes/*.ttl` bytes (never the stale committed
     /// files — the stale-disk-fold class). Mirrors [`crate::stages::json_schema::JsonSchemaStage`].
     pub fn new() -> Self {
-        Self {
-            consumes: crate::stages::shape_union_fresh::producer_consumes(),
-        }
+        Self {}
     }
 }
 
@@ -473,15 +469,12 @@ impl Default for SchemasStage {
     }
 }
 
-impl Stage for SchemasStage {
+impl StageBody for SchemasStage {
     fn id(&self) -> &str {
         "stage-export-schemas"
     }
     fn output_family(&self) -> crate::node::OutputFamily {
         crate::node::OutputFamily::Generated
-    }
-    fn consumes(&self) -> &[String] {
-        &self.consumes
     }
     fn impl_version(&self) -> &str {
         // v4: cut over from the hand-rolled OWL→LinkML model (which read the composed

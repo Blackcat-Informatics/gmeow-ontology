@@ -57,7 +57,7 @@ use purrdf::{PipelineBundle, RdfDataset, parse_dataset};
 use crate::bundle::{
     CompiledLogicPublication, LogicReportInputs, PipelineHandle, bundle_from_artifacts_over,
 };
-use crate::node::{CachePolicy, Stage, StageInput, StageOutput, StageProduct};
+use crate::node::{StageBody, StageInput, StageOutput, StageProduct};
 use crate::stages::diag_render::{
     DiagnosticsPaths, RenderedDiagnostics, render_diagnostics_artifacts,
 };
@@ -323,25 +323,14 @@ mod test_fixtures;
 pub(crate) use test_fixtures::synthetic_affine_program;
 
 /// The `stage-compile-logic` pipeline stage.
-pub struct CompileLogicStage {
-    /// The producer retaining original documents and the shared aggregate selection.
-    consumes: Vec<String>,
-    /// The catalog receipt graph and its complete native source commitment.
-    entities: Vec<(String, Vec<String>)>,
-}
+pub struct CompileLogicStage {}
 
 impl CompileLogicStage {
     /// Consume the native parse catalog. Source publication and compilation can
     /// run concurrently; the compiler's explicitly selected OPTs and worked
     /// examples remain declared direct inputs.
     pub fn new() -> Self {
-        Self {
-            consumes: vec!["stage-parse-sources".to_string()],
-            entities: vec![(
-                "stage-parse-sources".to_string(),
-                vec![crate::stages::parse_sources::GRAPH_SOURCE_CATALOG.to_string()],
-            )],
-        }
+        Self {}
     }
 }
 
@@ -469,38 +458,12 @@ fn reject_duplicate_identity<'a>(
     Ok(())
 }
 
-impl Stage for CompileLogicStage {
+impl StageBody for CompileLogicStage {
     fn id(&self) -> &str {
         "stage-compile-logic"
     }
     fn output_family(&self) -> crate::node::OutputFamily {
         crate::node::OutputFamily::Generated
-    }
-    fn consumes(&self) -> &[String] {
-        &self.consumes
-    }
-    /// The parse-stage receipt and native payload commitment authenticate every
-    /// original source input without duplicating the corpus in a transport graph.
-    fn consumed_entities(&self) -> &[(String, Vec<String>)] {
-        &self.entities
-    }
-    /// The named graphs this stage attaches to the carrier (its delta), from the
-    /// single Rust-side attach table; mirrored by the slice module.ttl gmeow:attachesGraph
-    /// declarations and verified against the run-time delta by the scheduler.
-    fn attaches_graphs(&self) -> &[String] {
-        crate::stages::attach::graphs(self.id())
-    }
-    /// The blob-representation lanes this stage attaches (its delta), from the single
-    /// Rust-side attach table; mirrored by gmeow:attachesBlobRep and run-time-verified.
-    fn attaches_blob_reps(&self) -> &[String] {
-        crate::stages::attach::blob_reps(self.id())
-    }
-    fn cache_policy(&self) -> CachePolicy {
-        // The structural cache stores complete typed Logic, relational and correspondence
-        // handles. Native values are required because graph/logic is an
-        // intentionally lossy governed projection; serving a reverse-parsed shorter
-        // program would violate no-optionality.
-        CachePolicy::Persistent
     }
     /// Require producer-owned diagnostics shape-migration parity in validation fixtures.
     fn impl_version(&self) -> &str {

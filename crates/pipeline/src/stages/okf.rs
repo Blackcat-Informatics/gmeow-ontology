@@ -19,7 +19,7 @@
 
 use std::collections::BTreeMap;
 
-use crate::node::{CachePolicy, Stage, StageInput, StageOutput, StageProduct};
+use crate::node::{StageBody, StageInput, StageOutput, StageProduct};
 use crate::stages::export::{Term, collect_term_surface, read_fold_upstream};
 
 /// The bundle directory name under `dist/`.
@@ -591,16 +591,12 @@ pub(crate) fn render_okf(
 // ── Stage impl ───────────────────────────────────────────────────────────────────
 
 /// The `stage-export-okf` export-leaf stage.
-pub struct OkfStage {
-    consumes: Vec<String>,
-}
+pub struct OkfStage {}
 
 impl OkfStage {
     /// Construct the stage; it consumes THIS run's snapshot fold.
     pub fn new() -> Self {
-        Self {
-            consumes: vec!["stage-snapshot".to_string()],
-        }
+        Self {}
     }
 }
 
@@ -610,20 +606,12 @@ impl Default for OkfStage {
     }
 }
 
-impl Stage for OkfStage {
+impl StageBody for OkfStage {
     fn id(&self) -> &str {
         "stage-export-okf"
     }
     fn output_family(&self) -> crate::node::OutputFamily {
         crate::node::OutputFamily::RuntimeProjection
-    }
-    fn consumes(&self) -> &[String] {
-        &self.consumes
-    }
-    fn cache_policy(&self) -> CachePolicy {
-        // Measured contribution: 19.8 MB serialized for a ~3.6 s deterministic fold.
-        // Rebuilding is cheaper than cache publication plus hydration.
-        CachePolicy::Recompute
     }
     fn impl_version(&self) -> &str {
         "okf.v1"

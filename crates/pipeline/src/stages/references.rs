@@ -16,7 +16,7 @@ use std::sync::Arc;
 use purrdf::{DatasetView, GraphMatch, RdfDataset, TermRef, TermValue, parse_dataset};
 use sha2::{Digest, Sha256};
 
-use crate::node::{Stage, StageInput, StageOutput, StageProduct};
+use crate::node::{StageBody, StageInput, StageOutput, StageProduct};
 
 pub const CSL_PATH: &str = "generated/references/references.csl.json";
 pub const BIB_PATH: &str = "generated/references/references.bib";
@@ -422,15 +422,12 @@ pub fn render_references(root: &Path) -> Result<BTreeMap<String, Vec<u8>>, gmeow
 /// The `references` export-leaf stage.
 pub struct ReferencesStage;
 
-impl Stage for ReferencesStage {
+impl StageBody for ReferencesStage {
     fn id(&self) -> &str {
         "stage-export-references"
     }
     fn output_family(&self) -> crate::node::OutputFamily {
         crate::node::OutputFamily::Generated
-    }
-    fn consumes(&self) -> &[String] {
-        &[]
     }
     fn impl_version(&self) -> &str {
         "references.v2"

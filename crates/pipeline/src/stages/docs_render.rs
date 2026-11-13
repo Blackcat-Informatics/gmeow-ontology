@@ -19,7 +19,7 @@ use gmeow_docs::model::{
 use gmeow_docs::rdf::to_gmeow_rdf;
 use purrdf::RdfTerm;
 
-use crate::node::{CachePolicy, Stage, StageInput, StageOutput, StageProduct};
+use crate::node::{StageBody, StageInput, StageOutput, StageProduct};
 
 /// Logical path of the documentation named graph (N-Quads, in-memory dataflow).
 pub const DOCS_GRAPH_PATH: &str = "pipeline/documentation.nq";
@@ -949,9 +949,7 @@ pub(crate) fn docs_source_files(
 // ── Stage impl ───────────────────────────────────────────────────────────────
 
 /// The `docs_render` pipeline stage.
-pub struct DocsRenderStage {
-    consumes: Vec<String>,
-}
+pub struct DocsRenderStage {}
 
 impl DocsRenderStage {
     /// Construct the stage. It discovers the docs model from the slice catalog at
@@ -971,16 +969,7 @@ impl DocsRenderStage {
     /// regenerate behind whenever a term's definition digest changes (the same
     /// stale-disk-fold class).
     pub fn new() -> Self {
-        Self {
-            consumes: vec![
-                "stage-compile-logic".to_string(),
-                "stage-export-json-schema".to_string(),
-                "stage-mappings".to_string(),
-                "stage-reason".to_string(),
-                "stage-term-manifest".to_string(),
-                "stage-validate".to_string(),
-            ],
-        }
+        Self {}
     }
 }
 
@@ -990,31 +979,12 @@ impl Default for DocsRenderStage {
     }
 }
 
-impl Stage for DocsRenderStage {
+impl StageBody for DocsRenderStage {
     fn id(&self) -> &str {
         "stage-docs-render"
     }
     fn output_family(&self) -> crate::node::OutputFamily {
         crate::node::OutputFamily::Generated
-    }
-    fn consumes(&self) -> &[String] {
-        &self.consumes
-    }
-    /// The named graphs this stage attaches to the carrier (its delta), from the
-    /// single Rust-side attach table; mirrored by the slice module.ttl gmeow:attachesGraph
-    /// declarations and verified against the run-time delta by the scheduler.
-    fn attaches_graphs(&self) -> &[String] {
-        crate::stages::attach::graphs(self.id())
-    }
-    /// The blob-representation lanes this stage attaches (its delta), from the single
-    /// Rust-side attach table; mirrored by gmeow:attachesBlobRep and run-time-verified.
-    fn attaches_blob_reps(&self) -> &[String] {
-        crate::stages::attach::blob_reps(self.id())
-    }
-    fn cache_policy(&self) -> CachePolicy {
-        // Measured contribution: 241.6 MB serialized for a ~6.1 s rebuild. Hydration
-        // cannot amortize the disk/RSS cost, so the typed DAG keeps it recompute-only.
-        CachePolicy::Recompute
     }
     fn impl_version(&self) -> &str {
         // v15: complete creator statements and manifest source dependencies.

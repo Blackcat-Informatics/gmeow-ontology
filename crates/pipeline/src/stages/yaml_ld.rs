@@ -32,9 +32,7 @@ use purrdf::RdfDataset;
 use purrdf::native_codecs::jsonld;
 use serde_json::Value;
 
-use crate::node::{
-    CachePolicy, SERIALIZATION_BUFFER_RESOURCE, Stage, StageInput, StageOutput, StageProduct,
-};
+use crate::node::{StageBody, StageInput, StageOutput, StageProduct};
 
 pub(crate) mod source_observation;
 
@@ -77,10 +75,7 @@ fn gmeow_statement_metadata_vocab() -> jsonld::StatementMetadataVocab<'static> {
 }
 
 /// The `yaml_ld` export-leaf stage.
-pub struct YamlLdStage {
-    consumes: Vec<String>,
-    resources: Vec<String>,
-}
+pub struct YamlLdStage {}
 
 impl YamlLdStage {
     /// Construct the stage; it consumes THIS run's snapshot fold.
@@ -94,10 +89,7 @@ impl YamlLdStage {
     /// gmeow:serializationBufferResource` in `slices/core/pipeline/module.ttl`; the
     /// loader HARD-fails on disagreement.
     pub fn new() -> Self {
-        Self {
-            consumes: vec!["stage-snapshot".to_string()],
-            resources: vec![SERIALIZATION_BUFFER_RESOURCE.to_string()],
-        }
+        Self {}
     }
 }
 
@@ -107,23 +99,12 @@ impl Default for YamlLdStage {
     }
 }
 
-impl Stage for YamlLdStage {
+impl StageBody for YamlLdStage {
     fn id(&self) -> &str {
         "stage-export-yaml-ld"
     }
     fn output_family(&self) -> crate::node::OutputFamily {
         crate::node::OutputFamily::RuntimeProjection
-    }
-    fn consumes(&self) -> &[String] {
-        &self.consumes
-    }
-    fn resources(&self) -> &[String] {
-        &self.resources
-    }
-    fn cache_policy(&self) -> CachePolicy {
-        // Measured contribution: 1.555 GB serialized / ~79.5 s rebuild, with an
-        // 8.37-GiB renderer peak. The whole-document pair is not a bounded cache unit.
-        CachePolicy::Recompute
     }
     fn impl_version(&self) -> &str {
         // v2: adds deterministic YAML-LD-star output and the preservation ledger.

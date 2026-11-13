@@ -13,7 +13,7 @@ use std::path::Path;
 
 use purrdf::{DatasetView, GraphMatch, TermRef, TermValue, parse_dataset};
 
-use crate::node::{Stage, StageInput, StageOutput, StageProduct};
+use crate::node::{StageBody, StageInput, StageOutput, StageProduct};
 use crate::stages::source_load::module_files;
 
 /// Committed logical path of the OASIS catalog.
@@ -125,15 +125,12 @@ fn parse_manifest(path: &Path) -> Result<(String, Vec<String>), gmeow_errors::Di
 /// The `catalog` export-leaf stage.
 pub struct CatalogStage;
 
-impl Stage for CatalogStage {
+impl StageBody for CatalogStage {
     fn id(&self) -> &str {
         "stage-export-catalog"
     }
     fn output_family(&self) -> crate::node::OutputFamily {
         crate::node::OutputFamily::Generated
-    }
-    fn consumes(&self) -> &[String] {
-        &[]
     }
     fn impl_version(&self) -> &str {
         "catalog.v1"

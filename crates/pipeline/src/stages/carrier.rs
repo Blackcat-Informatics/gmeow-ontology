@@ -18,7 +18,7 @@
 use std::collections::BTreeMap;
 use std::path::{Path, PathBuf};
 
-use crate::node::{CachePolicy, Stage, StageInput, StageOutput, StageProduct, StageRunTiming};
+use crate::node::{StageBody, StageInput, StageOutput, StageProduct, StageRunTiming};
 use purrdf::RdfDatasetBuilder;
 #[cfg(test)]
 use purrdf::gts_compose::emit_gts;
@@ -2969,9 +2969,8 @@ fn nquads_escape(value: &str) -> String {
 }
 
 /// The internal artifacts the reasoning archive folds, as `(bundle member, producer,
-/// internal artifact)`, in archive order. The sink reads each through an artifact-only
-/// dependency, so it declares them ([`REASONING_INTERNAL_READS`]) and the scheduler keeps
-/// them through release.
+/// internal artifact)`, in archive order. The sink's dataflow edges in the pipeline
+/// description declare each as a read, so the scheduler keeps them through release.
 const REASONING_INTERNAL_MEMBERS: [(&str, &str, &str); 4] = [
     (
         gmeow_logic_compile::tptp::CANON_ADMISSION_MEMBER,
@@ -2994,19 +2993,6 @@ const REASONING_INTERNAL_MEMBERS: [(&str, &str, &str); 4] = [
         gmeow_logic::verify::PREPARED_GATES_CHANNEL,
     ),
 ];
-
-/// The `(producer, internal artifact)` pairs the sink reads for the reasoning archive:
-/// [`REASONING_INTERNAL_MEMBERS`] without the member names.
-pub(crate) const REASONING_INTERNAL_READS: [(&str, &str); 4] = {
-    let mut reads = [("", ""); 4];
-    let mut index = 0;
-    while index < REASONING_INTERNAL_MEMBERS.len() {
-        let (_, producer, artifact) = REASONING_INTERNAL_MEMBERS[index];
-        reads[index] = (producer, artifact);
-        index += 1;
-    }
-    reads
-};
 
 /// Fold the native reasoner's explanation + DL/EL cross-check ledger REPORTS into a
 /// deterministic [`REP_REASONING`] archive blob. Sourced from
@@ -3359,9 +3345,7 @@ pub(crate) fn archive_blob(
 /// [`crate::stages::gts_sink::GtsSinkStage`] then presents that carrier as the
 /// `generated/dist/gmeow.gts` bytes — the single serialization boundary (the
 /// narrow-waist invariant: one Sink, the sole byte writer).
-pub struct SnapshotStage {
-    consumes: Vec<String>,
-}
+pub struct SnapshotStage {}
 
 impl SnapshotStage {
     /// Construct the snapshot stage. It reads the RDF 1.2 statement layer
@@ -3369,72 +3353,7 @@ impl SnapshotStage {
     /// products to assemble the structured snapshot, plus `stage-reason` for the
     /// reasoned-closure wiring.
     pub fn new() -> Self {
-        Self {
-            consumes: vec![
-                // The logic compiler's in-memory product: the projection-report loss
-                // ledger folds into the bundle as its own named graph and the compile
-                // findings union into the diagnostics graph (no disk re-read).
-                "stage-compile-logic".to_string(),
-                // The external-corpus divergence Findings (graph/conformance):
-                // the conformance stage grades the committed corpus's native frozen
-                // verdict against the published external verdict and emits the
-                // divergences as a gmeow:Finding N-Quads product folded here.
-                "stage-conformance".to_string(),
-                // The generated constraint catalog `.nq`, folded as the
-                // graph/fanout/catalog/constraint-catalog.nq named graph.
-                "stage-constraint-catalog".to_string(),
-                "stage-docs-render".to_string(),
-                // The RDF fanout members ride in from their producing export leaves (the
-                // render ran once, in the leaf): profiles / evals scores.ttl / glossary
-                // vartrans.ttl / research-object graphs. `rdf_fanout_members` reads them off
-                // these products.
-                "stage-export-evals".to_string(),
-                "stage-export-glossary".to_string(),
-                "stage-export-profiles".to_string(),
-                "stage-export-research-objects".to_string(),
-                // The generated SKOS concept-scheme surface (generated/skos/gmeow-skos.ttl),
-                // folded as its own graph/fanout/skos named graph by rdf_fanout_members.
-                "stage-export-skos-surface".to_string(),
-                // The mappings product carries the FINAL projection-report loss ledger
-                // (logic rows ∪ correspondence rows), folded into graph/projection-ledger.
-                "stage-mappings".to_string(),
-                // The ten math producer graphs (five flagship producers — the R one being
-                // the executable r_lift — plus the probability-model seam, p-value
-                // tri-slice, Clifford, and the ONNX / proof lift producers), folded
-                // into gmeow.gts as their own bundle-internal named graphs (Design A — the
-                // producer output ships).
-                "stage-math-producers".to_string(),
-                // The per-slice authoring-packet corpus (graph/authoring-briefs), folded
-                // into gmeow.gts and its fanout twin generated/briefs/authoring-packets.nt.
-                "stage-slice-brief".to_string(),
-                // The SHACL→JSON-Schema export leaf: its in-memory product
-                // carries THIS run's freshly-emitted gmeow.schema.json / .openapi.json
-                // bytes, which `build_archive_blobs` folds into the `schemas-archive`
-                // blob. Without this edge the snapshot would re-read the (previous-run)
-                // committed schema from disk and lag a regenerate behind (the bytes
-                // are only flushed to disk AFTER phase 1 returns — run.rs:242-254).
-                "stage-export-json-schema".to_string(),
-                // The certified GMN training corpus (graph/gmn-training-corpus), folded into
-                // gmeow.gts (bundle-internal, dual carriage exactly like graph/goal-directed).
-                "stage-gmn-training-corpus".to_string(),
-                // The native proof-carrying backward engine's checked answers + proof
-                // derivations, folded into the graph/goal-directed named graph of gmeow.gts.
-                "stage-goal-directed".to_string(),
-                "stage-reason".to_string(),
-                // The source self-description graphs (authored default / imports /
-                // metadata / alignments / slice-analysis / provenance) are attached by
-                // stage-source-load. The presenter reads them without reloading sources.
-                "stage-source-load".to_string(),
-                "stage-statements".to_string(),
-                // The generated term content manifest `.nq`, folded as the
-                // graph/fanout/catalog/term-content-manifest.nq named graph.
-                "stage-term-manifest".to_string(),
-                "stage-validate".to_string(),
-                // The dedicated bounded transform evaluates graph/verify against
-                // stage-reason's typed result without constructing another closure.
-                "stage-verify-attestation".to_string(),
-            ],
-        }
+        Self {}
     }
 }
 
@@ -3444,33 +3363,12 @@ impl Default for SnapshotStage {
     }
 }
 
-impl Stage for SnapshotStage {
+impl StageBody for SnapshotStage {
     fn id(&self) -> &str {
         "stage-snapshot"
     }
     fn output_family(&self) -> crate::node::OutputFamily {
         crate::node::OutputFamily::Generated
-    }
-    fn consumes(&self) -> &[String] {
-        &self.consumes
-    }
-    fn cache_policy(&self) -> CachePolicy {
-        // Snapshot is a cumulative carrier boundary. Restoring its packed cache
-        // requires hydrating the entire aggregate dataset and all typed handles,
-        // which measured slower than assembling it from live upstream products.
-        // The sync-level manifest owns the zero-work warm path instead.
-        CachePolicy::Recompute
-    }
-    /// The named graphs this stage attaches to the carrier (its delta), from the
-    /// single Rust-side attach table; mirrored by the slice module.ttl gmeow:attachesGraph
-    /// declarations and verified against the run-time delta by the scheduler.
-    fn attaches_graphs(&self) -> &[String] {
-        crate::stages::attach::graphs(self.id())
-    }
-    /// The blob-representation lanes this stage attaches (its delta), from the single
-    /// Rust-side attach table; mirrored by gmeow:attachesBlobRep and run-time-verified.
-    fn attaches_blob_reps(&self) -> &[String] {
-        crate::stages::attach::blob_reps(self.id())
     }
     /// Bind the complete snapshot contract, including required canon admission evidence.
     fn impl_version(&self) -> &str {

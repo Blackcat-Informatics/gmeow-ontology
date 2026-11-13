@@ -13,7 +13,7 @@ use std::path::Path;
 
 use purrdf::{DatasetView, GraphMatch, RdfDataset, TermId, TermRef, TermValue, parse_dataset};
 
-use crate::node::{Stage, StageInput, StageOutput, StageProduct};
+use crate::node::{StageBody, StageInput, StageOutput, StageProduct};
 use crate::stages::source_load::module_files;
 
 /// Committed logical path of the module-status matrix.
@@ -253,15 +253,12 @@ fn guide_status(docs: &Path) -> String {
 /// The `matrix` export-leaf stage.
 pub struct MatrixStage;
 
-impl Stage for MatrixStage {
+impl StageBody for MatrixStage {
     fn id(&self) -> &str {
         "stage-export-matrix"
     }
     fn output_family(&self) -> crate::node::OutputFamily {
         crate::node::OutputFamily::Generated
-    }
-    fn consumes(&self) -> &[String] {
-        &[]
     }
     fn impl_version(&self) -> &str {
         "matrix.v1"

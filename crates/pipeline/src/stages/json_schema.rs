@@ -26,7 +26,7 @@
 use std::collections::BTreeMap;
 use std::path::Path;
 
-use crate::node::{Stage, StageInput, StageOutput, StageProduct};
+use crate::node::{StageBody, StageInput, StageOutput, StageProduct};
 
 /// Committed logical path of the native JSON Schema (draft 2020-12).
 pub const JSON_SCHEMA_PATH: &str = "generated/schemas/gmeow.schema.json";
@@ -68,10 +68,7 @@ fn card_schema_bytes() -> Vec<u8> {
 }
 
 /// The `stage-export-json-schema` export-leaf stage.
-pub struct JsonSchemaStage {
-    consumes: Vec<String>,
-    entities: Vec<(String, Vec<String>)>,
-}
+pub struct JsonSchemaStage {}
 
 impl JsonSchemaStage {
     /// Construct the stage. It reads the AUTHORED shape/ontology sources from disk
@@ -79,13 +76,7 @@ impl JsonSchemaStage {
     /// THIS run's fresh `generated/shapes/*.ttl` bytes (never the stale committed
     /// files — the stale-disk-fold class).
     pub fn new() -> Self {
-        Self {
-            consumes: crate::stages::shape_union_fresh::producer_consumes(),
-            entities: vec![(
-                "stage-compile-logic".to_owned(),
-                crate::stages::compile_logic::carrier_entity_list(),
-            )],
-        }
+        Self {}
     }
 }
 
@@ -95,24 +86,12 @@ impl Default for JsonSchemaStage {
     }
 }
 
-impl Stage for JsonSchemaStage {
+impl StageBody for JsonSchemaStage {
     fn id(&self) -> &str {
         "stage-export-json-schema"
     }
     fn output_family(&self) -> crate::node::OutputFamily {
         crate::node::OutputFamily::Generated
-    }
-    fn consumes(&self) -> &[String] {
-        &self.consumes
-    }
-    fn consumed_entities(&self) -> &[(String, Vec<String>)] {
-        &self.entities
-    }
-    fn attaches_graphs(&self) -> &[String] {
-        crate::stages::attach::graphs(self.id())
-    }
-    fn attaches_blob_reps(&self) -> &[String] {
-        crate::stages::attach::blob_reps(self.id())
     }
     fn impl_version(&self) -> &str {
         "json_schema.v3-carried-projection-losses"

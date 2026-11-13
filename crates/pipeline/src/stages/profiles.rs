@@ -15,7 +15,7 @@ use std::path::Path;
 use gmeow_errors::abox::{BOX_TBOX, abox_annotation_turtle_lines};
 use purrdf::slice::rdf_query::{Dataset, Object};
 
-use crate::node::{Stage, StageInput, StageOutput, StageProduct};
+use crate::node::{StageBody, StageInput, StageOutput, StageProduct};
 use crate::stages::source_load::{all_manifest_files, module_files};
 
 /// Logical-path prefix of the generated profile documents.
@@ -308,15 +308,12 @@ fn parse_manifest(path: &Path) -> Result<SliceMeta, gmeow_errors::Diag> {
 /// The `profiles` export-leaf stage.
 pub struct ProfilesStage;
 
-impl Stage for ProfilesStage {
+impl StageBody for ProfilesStage {
     fn id(&self) -> &str {
         "stage-export-profiles"
     }
     fn output_family(&self) -> crate::node::OutputFamily {
         crate::node::OutputFamily::Generated
-    }
-    fn consumes(&self) -> &[String] {
-        &[]
     }
     fn impl_version(&self) -> &str {
         "profiles.v1"

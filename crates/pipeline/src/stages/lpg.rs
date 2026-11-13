@@ -42,7 +42,7 @@ use std::collections::btree_map::Entry;
 
 use purrdf::{LpgConfig, LpgExecutionLimits, LpgScope, ProjectionLimits, RdfDataset};
 
-use crate::node::{Stage, StageInput, StageOutput, StageProduct};
+use crate::node::{StageBody, StageInput, StageOutput, StageProduct};
 
 /// Logical-path prefix of the generated LPG artifacts.
 pub const LPG_DIR: &str = "generated/lpg";
@@ -207,16 +207,12 @@ pub(crate) fn render_from_dataset(
 // ── Stage impl ───────────────────────────────────────────────────────────────
 
 /// The `lpg` export-leaf stage.
-pub struct LpgStage {
-    consumes: Vec<String>,
-}
+pub struct LpgStage {}
 
 impl LpgStage {
     /// Construct the stage; it consumes THIS run's snapshot fold.
     pub fn new() -> Self {
-        Self {
-            consumes: vec!["stage-snapshot".to_string()],
-        }
+        Self {}
     }
 }
 
@@ -226,15 +222,12 @@ impl Default for LpgStage {
     }
 }
 
-impl Stage for LpgStage {
+impl StageBody for LpgStage {
     fn id(&self) -> &str {
         "stage-export-lpg"
     }
     fn output_family(&self) -> crate::node::OutputFamily {
         crate::node::OutputFamily::Generated
-    }
-    fn consumes(&self) -> &[String] {
-        &self.consumes
     }
     fn impl_version(&self) -> &str {
         "lpg.v1-purrdf"

@@ -109,7 +109,7 @@ pub use medium::audit::{
 };
 pub use node::{
     CachePolicy, ENGINE_RESOURCE, SERIALIZATION_BUFFER_RESOURCE, SINK_CAPABILITY, SOURCE_ORIGIN,
-    Stage, StageInput, StageOutput, StageProduct, StageStability,
+    Stage, StageBody, StageInput, StageOutput, StageProduct, StageStability,
 };
 pub use registry::{StageRegistry, default_registry};
 pub use run::{

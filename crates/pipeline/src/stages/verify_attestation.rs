@@ -19,7 +19,7 @@ use std::time::Instant;
 use purrdf::{ContentDigest, RdfDataset};
 
 use crate::bundle::PipelineHandle;
-use crate::node::{CachePolicy, Stage, StageInput, StageOutput, StageProduct, StageRunTiming};
+use crate::node::{StageBody, StageInput, StageOutput, StageProduct, StageRunTiming};
 
 /// Committed normalized verification receipt. It is also folded into the generated
 /// fanout archive so the shipped bundle and the filesystem projection carry the same
@@ -46,10 +46,7 @@ pub struct AttestationFreshness {
 }
 
 /// The dedicated verify-attestation transform.
-pub struct VerifyAttestationStage {
-    consumes: Vec<String>,
-    entities: Vec<(String, Vec<String>)>,
-}
+pub struct VerifyAttestationStage {}
 
 impl VerifyAttestationStage {
     /// Construct the stage over the three object-EDB producers and the reason stage's
@@ -57,25 +54,7 @@ impl VerifyAttestationStage {
     /// named-graph entities read by the transform.
     #[must_use]
     pub fn new() -> Self {
-        Self {
-            consumes: vec![
-                "stage-compile-logic".to_string(),
-                crate::stages::parse_sources::STAGE_ID.to_string(),
-                "stage-reason".to_string(),
-                "stage-source-load".to_string(),
-                "stage-statements".to_string(),
-            ],
-            entities: vec![
-                (
-                    "stage-compile-logic".to_string(),
-                    crate::stages::compile_logic::object_level_entity_list(),
-                ),
-                (
-                    "stage-reason".to_string(),
-                    vec![gmeow_logic::result_rdf::GRAPH_REASONING.to_string()],
-                ),
-            ],
-        }
+        Self {}
     }
 }
 
@@ -85,32 +64,12 @@ impl Default for VerifyAttestationStage {
     }
 }
 
-impl Stage for VerifyAttestationStage {
+impl StageBody for VerifyAttestationStage {
     fn id(&self) -> &str {
         "stage-verify-attestation"
     }
     fn output_family(&self) -> crate::node::OutputFamily {
         crate::node::OutputFamily::Generated
-    }
-
-    fn consumes(&self) -> &[String] {
-        &self.consumes
-    }
-
-    fn consumed_entities(&self) -> &[(String, Vec<String>)] {
-        &self.entities
-    }
-
-    fn cache_policy(&self) -> CachePolicy {
-        CachePolicy::Persistent
-    }
-
-    fn attaches_graphs(&self) -> &[String] {
-        crate::stages::attach::graphs(self.id())
-    }
-
-    fn attaches_blob_reps(&self) -> &[String] {
-        crate::stages::attach::blob_reps(self.id())
     }
 
     fn impl_version(&self) -> &str {

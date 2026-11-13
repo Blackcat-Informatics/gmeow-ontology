@@ -34,7 +34,7 @@ use gmeow_logic_compile::loss_ledger::LossLedger;
 use gmeow_logic_compile::projections::ProjectionResult;
 use gmeow_slice_quality::model::GovernanceFloors;
 
-use crate::node::{Stage, StageInput, StageOutput, StageProduct};
+use crate::node::{StageBody, StageInput, StageOutput, StageProduct};
 
 /// Committed logical path of the generated per-axis floor projection.
 pub const AXIS_FLOORS_PATH: &str = "generated/governance/slice-quality-axis-floors.tsv";
@@ -152,15 +152,12 @@ pub fn fold_governance_floors_loss(ledger: &mut Vec<ProjectionResult>, loss: &mu
 /// The `governance-floors` export-leaf stage.
 pub struct GovernanceFloorsStage;
 
-impl Stage for GovernanceFloorsStage {
+impl StageBody for GovernanceFloorsStage {
     fn id(&self) -> &str {
         "stage-export-governance-floors"
     }
     fn output_family(&self) -> crate::node::OutputFamily {
         crate::node::OutputFamily::Generated
-    }
-    fn consumes(&self) -> &[String] {
-        &[]
     }
     fn impl_version(&self) -> &str {
         "governance_floors.v1"

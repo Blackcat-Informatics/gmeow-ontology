@@ -314,13 +314,17 @@ const PIPELINE_DESCRIPTION: &str = include_str!("../../../slices/core/pipeline/m
 /// the authored slice, and no run can proceed without a pipeline.
 #[must_use]
 pub fn full_spec() -> PipelineSpec {
+    description().clone()
+}
+
+/// The parsed pipeline description, shared.
+pub(crate) fn description() -> &'static PipelineSpec {
     static SPEC: std::sync::OnceLock<PipelineSpec> = std::sync::OnceLock::new();
     SPEC.get_or_init(|| {
         PipelineSpec::from_turtle(&[PIPELINE_DESCRIPTION]).unwrap_or_else(|error| {
             panic!("slices/core/pipeline/module.ttl does not describe a pipeline: {error}")
         })
     })
-    .clone()
 }
 
 /// Select the stages one output scope runs, from each stage's declared

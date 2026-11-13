@@ -51,7 +51,7 @@ use purrdf::shapes::pydantic::emit_pydantic;
 
 mod topology;
 
-use crate::node::{Stage, StageInput, StageOutput, StageProduct};
+use crate::node::{StageBody, StageInput, StageOutput, StageProduct};
 
 /// The package directory prefix every artifact key carries.
 const PKG: &str = "gmeow_models";
@@ -387,22 +387,14 @@ pub fn render_models_python_package(
 /// stale-disk-fold class). Its artifacts are written to disk under
 /// [`PACKAGE_DISK_PREFIX`] (the wheel source) and folded into the
 /// `models-python` blob by the carrier.
-pub struct PydanticStage {
-    consumes: Vec<String>,
-}
+pub struct PydanticStage {}
 
 impl PydanticStage {
     /// Construct the stage. It reads the AUTHORED shape/ontology sources from disk
     /// and consumes the four generated-shape producers so the compiled union folds
     /// THIS run's fresh `generated/shapes/*.ttl` bytes.
     pub fn new() -> Self {
-        let mut consumes = crate::stages::shape_union_fresh::producer_consumes();
-        consumes.extend([
-            "stage-constraint-catalog".into(),
-            "stage-term-manifest".into(),
-        ]);
-        consumes.sort();
-        Self { consumes }
+        Self {}
     }
 }
 
@@ -412,15 +404,12 @@ impl Default for PydanticStage {
     }
 }
 
-impl Stage for PydanticStage {
+impl StageBody for PydanticStage {
     fn id(&self) -> &str {
         "stage-export-pydantic"
     }
     fn output_family(&self) -> crate::node::OutputFamily {
         crate::node::OutputFamily::Generated
-    }
-    fn consumes(&self) -> &[String] {
-        &self.consumes
     }
     fn impl_version(&self) -> &str {
         "pydantic.v5-imported-template-ownership"

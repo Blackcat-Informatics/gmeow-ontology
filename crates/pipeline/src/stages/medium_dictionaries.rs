@@ -61,7 +61,7 @@ use crate::medium::envelope::{
 use crate::medium::rdf::{DictionaryRealization, check_dictionary_retention, realize};
 use crate::medium::registry::{DictionaryDef, DictionaryStrategy, MediumRegistry, MediumSelection};
 use crate::medium::{GMEOW, MEDIUM_REGISTRY_GRAPH, SNAPSHOT_WIRE_REP, blake3_digest, train};
-use crate::node::{Stage, StageInput, StageOutput, StageProduct};
+use crate::node::{StageBody, StageInput, StageOutput, StageProduct};
 
 /// The stage id — matches the `gmeow:stage-medium-dictionaries` individual.
 pub const STAGE_ID: &str = "stage-medium-dictionaries";
@@ -70,36 +70,6 @@ pub const STAGE_ID: &str = "stage-medium-dictionaries";
 /// byte-artifact lane. Under `pipeline/`, so the reconcile passes them between
 /// stages without writing a committed file (see the module docs).
 pub const DICT_ARTIFACT_PREFIX: &str = "pipeline/medium/";
-
-/// The upstream stages this stage consumes, sorted. Every one of them is REQUIRED
-/// by a declared corpus selector, and the set is derived from the corpora rather
-/// than guessed:
-///
-/// * `stage-archive-blobs` — `gmeow:corpusSelectsBlobRep "cells-archive"` /
-///   `"axioms-archive"`;
-/// * `stage-reason` — the proof-trace corpus's three exact `generated/logic/`
-///   report paths (the sink-folded reasoning archive members, excluding the closure
-///   that already rides the snapshot graph);
-/// * `stage-snapshot` — the `graph/authoring-briefs` named-graph selector and the
-///   `generated/briefs/` path prefix, both of which first exist on the assembled
-///   carrier;
-/// * `stage-statements` — the `generated/statements/` path prefix.
-///
-/// `stage-mappings` is NOT an edge, and its absence is derived rather than chosen:
-/// `gmeow-lang-ast-v1` selected that product back when its deliverables had no rep of
-/// their own. They have one now (`lang-projections-archive`), so the corpus selects the
-/// ARCHIVE, which arrives on `stage-archive-blobs` — one authority on what is in that
-/// archive (Principle 4), and one fewer edge. The retired `gmeow-claims-v1` selected
-/// `statements-archive` + `yaml-ld-archive` the same way rather than a
-/// `generated/statements/` path prefix; those reps now ride the dictionary-less medium.
-/// (`stage-statements` stays an edge regardless — `gmeow-memory-hot-v1` selects that
-/// prefix.)
-const CONSUMES: [&str; 4] = [
-    "stage-archive-blobs",
-    "stage-reason",
-    "stage-snapshot",
-    "stage-statements",
-];
 
 fn stage_err(message: impl Into<String>) -> gmeow_errors::Diag {
     gmeow_errors::Diag::of_kind(crate::error::StageFailed {
@@ -453,10 +423,6 @@ pub(crate) fn envelope_quads(
 /// The `medium-dictionaries` pipeline stage.
 pub struct MediumDictionariesStage {
     profile: crate::run::BuildProfile,
-    consumes: Vec<String>,
-    carrier_consumes: Vec<String>,
-    attaches_graphs: Vec<String>,
-    resources: Vec<String>,
 }
 
 impl MediumDictionariesStage {
@@ -467,44 +433,25 @@ impl MediumDictionariesStage {
     pub fn new(profile: crate::run::BuildProfile) -> Self {
         Self {
             profile,
-            consumes: CONSUMES.iter().map(|s| (*s).to_string()).collect(),
             // Archive bytes live on the archive producer's representation-blob lane,
             // and declarations/named-graph samples live on the snapshot dataset. The
             // reason and statements inputs contribute committed generated/* artifacts
             // only, so their multi-million-quad datasets may be released earlier.
-            carrier_consumes: vec![
-                "stage-archive-blobs".to_string(),
-                "stage-snapshot".to_string(),
-            ],
-            attaches_graphs: crate::stages::attach::graphs(STAGE_ID).to_vec(),
             // Named-graph corpus resolution canonicalizes a carrier-scale selection
             // and dictionary training materializes compressed candidates. That live
             // set is independently bounded, but overlaps additively with either
             // whole-dataset export serializer on a cold run. Model the measured peak
             // conflict through the same declarative resource, never a fixed thread cap.
-            resources: vec![crate::node::SERIALIZATION_BUFFER_RESOURCE.to_string()],
         }
     }
 }
 
-impl Stage for MediumDictionariesStage {
+impl StageBody for MediumDictionariesStage {
     fn id(&self) -> &str {
         STAGE_ID
     }
     fn output_family(&self) -> crate::node::OutputFamily {
         crate::node::OutputFamily::Generated
-    }
-    fn consumes(&self) -> &[String] {
-        &self.consumes
-    }
-    fn carrier_consumes(&self) -> &[String] {
-        &self.carrier_consumes
-    }
-    fn attaches_graphs(&self) -> &[String] {
-        &self.attaches_graphs
-    }
-    fn resources(&self) -> &[String] {
-        &self.resources
     }
     fn impl_version(&self) -> &str {
         // v4: as v3 (the declared dictionaries trained at their declared point, graded against

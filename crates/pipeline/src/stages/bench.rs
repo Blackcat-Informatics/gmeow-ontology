@@ -31,7 +31,7 @@ use purrdf_lex::json::{
     record::{DecodeError, FromJson, Record, Within as _},
 };
 
-use crate::node::{Stage, StageInput, StageOutput, StageProduct};
+use crate::node::{StageBody, StageInput, StageOutput, StageProduct};
 
 /// Committed reference-run input (the single source of truth for the leaderboard).
 pub const BASELINE_PATH: &str = "bench/baseline.json";
@@ -446,15 +446,12 @@ pub(crate) fn render_bench_leaderboard(
 /// The `stage-export-bench` export-leaf: the committed perf leaderboard.
 pub struct BenchLeaderboardStage;
 
-impl Stage for BenchLeaderboardStage {
+impl StageBody for BenchLeaderboardStage {
     fn id(&self) -> &str {
         "stage-export-bench"
     }
     fn output_family(&self) -> crate::node::OutputFamily {
         crate::node::OutputFamily::Generated
-    }
-    fn consumes(&self) -> &[String] {
-        &[]
     }
     fn impl_version(&self) -> &str {
         "bench.v1"
@@ -1594,15 +1591,12 @@ pub(crate) fn render_soak(root: &Path) -> Result<BTreeMap<String, Vec<u8>>, gmeo
 /// cost baseline, so the single leaf renders both).
 pub struct CostLedgerStage;
 
-impl Stage for CostLedgerStage {
+impl StageBody for CostLedgerStage {
     fn id(&self) -> &str {
         "stage-export-cost-ledger"
     }
     fn output_family(&self) -> crate::node::OutputFamily {
         crate::node::OutputFamily::Generated
-    }
-    fn consumes(&self) -> &[String] {
-        &[]
     }
     fn impl_version(&self) -> &str {
         // v6: surface exact four-worker structural evidence in the cost ledger.

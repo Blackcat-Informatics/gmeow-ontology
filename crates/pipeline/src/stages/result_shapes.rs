@@ -53,7 +53,7 @@ use gmeow_logic_compile::ir::{
 };
 use purrdf::{RdfDataset, TermValue};
 
-use crate::node::{Stage, StageInput, StageOutput, StageProduct};
+use crate::node::{StageBody, StageInput, StageOutput, StageProduct};
 use crate::stages::native_query;
 
 /// Committed logical path of the generated result-shape projection.
@@ -389,15 +389,12 @@ fn wrong_value_prop(kind: Kind) -> Option<&'static str> {
 /// The `result-shapes` export-leaf stage.
 pub struct ResultShapesStage;
 
-impl Stage for ResultShapesStage {
+impl StageBody for ResultShapesStage {
     fn id(&self) -> &str {
         "stage-export-result-shapes"
     }
     fn output_family(&self) -> crate::node::OutputFamily {
         crate::node::OutputFamily::Generated
-    }
-    fn consumes(&self) -> &[String] {
-        &[]
     }
     fn impl_version(&self) -> &str {
         "result_shapes.v1"

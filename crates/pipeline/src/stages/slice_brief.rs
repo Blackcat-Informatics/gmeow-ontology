@@ -46,7 +46,7 @@ use purrdf::RdfDataset;
 use gmeow_slice_brief::{BriefInputs, assemble_packet, batch_count, defined_terms};
 use gmeow_slice_quality::graph;
 
-use crate::node::{Stage, StageInput, StageOutput, StageProduct};
+use crate::node::{StageBody, StageInput, StageOutput, StageProduct};
 use crate::stages::carrier::{GRAPH_AUTHORING_BRIEFS, parse_into_graph};
 
 /// The number of same-slice exemplar coats each packet seeks.
@@ -62,18 +62,14 @@ const EXEMPLAR_TARGET: usize = 3;
 /// this stage AFTER they materialize `generated/shapes/` on disk, so the union enumeration
 /// (`shape_files`) never fires before the directory exists (the cold-enumeration failure a
 /// no-consumes leaf hit once `generated/` became an untracked local product).
-pub struct SliceBriefStage {
-    consumes: Vec<String>,
-}
+pub struct SliceBriefStage {}
 
 impl SliceBriefStage {
     /// Construct the stage. The packets are assembled from the authored slice sources on
     /// disk at `run()`; the shape union's generated members ride in on the consumed
     /// [`crate::stages::shape_union_fresh::GENERATED_SHAPE_PRODUCERS`] products.
     pub fn new() -> Self {
-        Self {
-            consumes: crate::stages::shape_union_fresh::producer_consumes(),
-        }
+        Self {}
     }
 }
 
@@ -83,26 +79,12 @@ impl Default for SliceBriefStage {
     }
 }
 
-impl Stage for SliceBriefStage {
+impl StageBody for SliceBriefStage {
     fn id(&self) -> &str {
         "stage-slice-brief"
     }
     fn output_family(&self) -> crate::node::OutputFamily {
         crate::node::OutputFamily::Generated
-    }
-    fn consumes(&self) -> &[String] {
-        &self.consumes
-    }
-    /// The named graphs this stage attaches to the carrier (its delta), from the
-    /// single Rust-side attach table; mirrored by the slice module.ttl gmeow:attachesGraph
-    /// declarations and verified against the run-time delta by the scheduler.
-    fn attaches_graphs(&self) -> &[String] {
-        crate::stages::attach::graphs(self.id())
-    }
-    /// The blob-representation lanes this stage attaches (its delta), from the single
-    /// Rust-side attach table; mirrored by gmeow:attachesBlobRep and run-time-verified.
-    fn attaches_blob_reps(&self) -> &[String] {
-        crate::stages::attach::blob_reps(self.id())
     }
     fn impl_version(&self) -> &str {
         // v2: the exemplar-tiering shape union is FRESH — its generated/shapes/*.ttl

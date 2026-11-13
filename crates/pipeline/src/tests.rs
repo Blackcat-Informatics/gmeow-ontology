@@ -16,8 +16,8 @@ use crate::cache::{
 };
 use crate::loader::{PipelineSpec, StageSpec, bind};
 use crate::node::{
-    CachePolicy, ENGINE_RESOURCE, SINK_CAPABILITY, SOURCE_ORIGIN, Stage, StageInput, StageOutput,
-    StageProduct, StageStability,
+    CachePolicy, ENGINE_RESOURCE, SINK_CAPABILITY, SOURCE_ORIGIN, StageBody, StageInput,
+    StageOutput, StageProduct, StageStability,
 };
 use crate::provenance::register_stage_unit;
 use crate::registry::StageRegistry;
@@ -204,24 +204,12 @@ struct FakeStage {
     resources: Vec<String>,
 }
 
-impl Stage for FakeStage {
+impl StageBody for FakeStage {
     fn id(&self) -> &str {
         &self.id
     }
     fn output_family(&self) -> crate::node::OutputFamily {
         crate::node::OutputFamily::Generated
-    }
-    fn consumes(&self) -> &[String] {
-        &self.consumes
-    }
-    fn carrier_consumes(&self) -> &[String] {
-        self.carrier_consumes.as_deref().unwrap_or(&self.consumes)
-    }
-    fn capabilities(&self) -> &[String] {
-        &self.capabilities
-    }
-    fn resources(&self) -> &[String] {
-        &self.resources
     }
     fn impl_version(&self) -> &str {
         "v1"
@@ -848,27 +836,12 @@ struct ComputeStage {
     runs: Arc<AtomicUsize>,
 }
 
-impl Stage for ComputeStage {
+impl StageBody for ComputeStage {
     fn id(&self) -> &str {
         &self.id
     }
     fn output_family(&self) -> crate::node::OutputFamily {
         crate::node::OutputFamily::Generated
-    }
-    fn consumes(&self) -> &[String] {
-        &self.consumes
-    }
-    fn capabilities(&self) -> &[String] {
-        &self.capabilities
-    }
-    fn resources(&self) -> &[String] {
-        &self.resources
-    }
-    fn stability(&self) -> StageStability {
-        self.stability
-    }
-    fn cache_policy(&self) -> CachePolicy {
-        self.cache_policy
     }
     fn impl_version(&self) -> &str {
         "v1"
@@ -950,24 +923,12 @@ struct CompletionProbeStage {
     observe_running: Option<(Arc<AtomicBool>, Arc<AtomicBool>, Arc<AtomicBool>)>,
 }
 
-impl Stage for CompletionProbeStage {
+impl StageBody for CompletionProbeStage {
     fn id(&self) -> &str {
         &self.id
     }
     fn output_family(&self) -> crate::node::OutputFamily {
         crate::node::OutputFamily::Generated
-    }
-
-    fn consumes(&self) -> &[String] {
-        &self.consumes
-    }
-
-    fn capabilities(&self) -> &[String] {
-        &self.capabilities
-    }
-
-    fn resources(&self) -> &[String] {
-        &self.resources
     }
 
     fn impl_version(&self) -> &str {
@@ -1142,20 +1103,12 @@ struct FailureProbeStage {
     runs: Arc<AtomicUsize>,
 }
 
-impl Stage for FailureProbeStage {
+impl StageBody for FailureProbeStage {
     fn id(&self) -> &str {
         &self.id
     }
     fn output_family(&self) -> crate::node::OutputFamily {
         crate::node::OutputFamily::Generated
-    }
-
-    fn consumes(&self) -> &[String] {
-        &self.consumes
-    }
-
-    fn capabilities(&self) -> &[String] {
-        &self.capabilities
     }
 
     fn impl_version(&self) -> &str {
@@ -1425,15 +1378,12 @@ struct FileReadingStage {
     runs: Arc<AtomicUsize>,
 }
 
-impl Stage for FileReadingStage {
+impl StageBody for FileReadingStage {
     fn id(&self) -> &str {
         "file-leaf"
     }
     fn output_family(&self) -> crate::node::OutputFamily {
         crate::node::OutputFamily::Generated
-    }
-    fn consumes(&self) -> &[String] {
-        &[]
     }
     fn impl_version(&self) -> &str {
         "v1"
@@ -1541,18 +1491,12 @@ struct TwoGraphProducer {
     attaches: Vec<String>,
 }
 
-impl Stage for TwoGraphProducer {
+impl StageBody for TwoGraphProducer {
     fn id(&self) -> &str {
         "producer"
     }
     fn output_family(&self) -> crate::node::OutputFamily {
         crate::node::OutputFamily::Generated
-    }
-    fn consumes(&self) -> &[String] {
-        &[]
-    }
-    fn attaches_graphs(&self) -> &[String] {
-        &self.attaches
     }
     fn impl_version(&self) -> &str {
         "v1"
@@ -1700,18 +1644,12 @@ fn typed_payload_changes_invalidate_selected_and_whole_action_keys() {
     );
 }
 
-impl Stage for EntityConsumer {
+impl StageBody for EntityConsumer {
     fn id(&self) -> &str {
         &self.id
     }
     fn output_family(&self) -> crate::node::OutputFamily {
         crate::node::OutputFamily::Generated
-    }
-    fn consumes(&self) -> &[String] {
-        std::slice::from_ref(&self.entities[0].0)
-    }
-    fn consumed_entities(&self) -> &[(String, Vec<String>)] {
-        &self.entities
     }
     fn impl_version(&self) -> &str {
         "v1"
@@ -1976,21 +1914,12 @@ struct AttachTestStage {
     entities: Vec<(String, Vec<String>)>,
 }
 
-impl Stage for AttachTestStage {
+impl StageBody for AttachTestStage {
     fn id(&self) -> &str {
         &self.id
     }
     fn output_family(&self) -> crate::node::OutputFamily {
         crate::node::OutputFamily::Generated
-    }
-    fn consumes(&self) -> &[String] {
-        &self.consumes
-    }
-    fn consumed_entities(&self) -> &[(String, Vec<String>)] {
-        &self.entities
-    }
-    fn attaches_graphs(&self) -> &[String] {
-        &self.declared
     }
     fn impl_version(&self) -> &str {
         "v1"
@@ -2165,18 +2094,12 @@ struct AttachBlobStage {
     declared: Vec<String>,
 }
 
-impl Stage for AttachBlobStage {
+impl StageBody for AttachBlobStage {
     fn id(&self) -> &str {
         &self.id
     }
     fn output_family(&self) -> crate::node::OutputFamily {
         crate::node::OutputFamily::Generated
-    }
-    fn consumes(&self) -> &[String] {
-        &self.consumes
-    }
-    fn attaches_blob_reps(&self) -> &[String] {
-        &self.declared
     }
     fn impl_version(&self) -> &str {
         "v1"
@@ -2305,39 +2228,15 @@ fn watch_nquads(id: &str) -> String {
     )
 }
 
-impl Stage for CarrierStage {
+impl StageBody for CarrierStage {
     fn id(&self) -> &str {
         &self.id
     }
     fn output_family(&self) -> crate::node::OutputFamily {
         crate::node::OutputFamily::Generated
     }
-    fn consumes(&self) -> &[String] {
-        &self.consumes
-    }
-    fn carrier_consumes(&self) -> &[String] {
-        &self.carrier_consumes
-    }
-    fn internal_artifact_reads(&self) -> Vec<(String, String)> {
-        self.internal_reads
-            .iter()
-            .map(|(producer, artifact)| ((*producer).to_owned(), (*artifact).to_owned()))
-            .collect()
-    }
-    fn capabilities(&self) -> &[String] {
-        &self.capabilities
-    }
-    fn resources(&self) -> &[String] {
-        &self.empty
-    }
-    fn attaches_graphs(&self) -> &[String] {
-        &self.attaches
-    }
     fn impl_version(&self) -> &str {
         "v1"
-    }
-    fn cache_policy(&self) -> CachePolicy {
-        CachePolicy::Recompute
     }
     fn run(&self, input: StageInput<'_>) -> Result<StageOutput, gmeow_errors::Diag> {
         // Record what is STILL RESIDENT at this stage's execution instant — the live

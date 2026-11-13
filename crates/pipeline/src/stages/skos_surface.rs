@@ -22,7 +22,7 @@ use gmeow_errors::abox::{AboxObject, X_GMEOW_ENGLISH, abox_annotations};
 use gmeow_logic_compile::ir::LogicAxiom;
 use purrdf::{RdfDatasetBuilder, RdfLiteral, RdfQuad, RdfTerm, SerializeGraph, serialize_dataset};
 
-use crate::node::{Stage, StageInput, StageOutput, StageProduct};
+use crate::node::{StageBody, StageInput, StageOutput, StageProduct};
 
 /// Committed logical path of the generated SKOS concept-scheme surface.
 pub const SKOS_SURFACE_PATH: &str = "generated/skos/gmeow-skos.ttl";
@@ -218,15 +218,12 @@ pub fn render_skos_surface(root: &Path) -> Result<String, gmeow_errors::Diag> {
 /// The `skos-surface` export-leaf stage.
 pub struct SkosSurfaceStage;
 
-impl Stage for SkosSurfaceStage {
+impl StageBody for SkosSurfaceStage {
     fn id(&self) -> &str {
         "stage-export-skos-surface"
     }
     fn output_family(&self) -> crate::node::OutputFamily {
         crate::node::OutputFamily::Generated
-    }
-    fn consumes(&self) -> &[String] {
-        &[]
     }
     fn impl_version(&self) -> &str {
         "skos_surface.v2"

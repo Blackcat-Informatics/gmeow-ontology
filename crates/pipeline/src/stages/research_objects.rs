@@ -29,7 +29,7 @@ use std::sync::Arc;
 use gmeow_logic_compile::projections::grounding_catalog::GroundingCatalog;
 use purrdf::{RdfDataset, RdfLiteral, RdfTerm, SparqlResult};
 
-use crate::node::{Stage, StageInput, StageOutput, StageProduct, measure_stage_phase};
+use crate::node::{StageBody, StageInput, StageOutput, StageProduct, measure_stage_phase};
 use crate::stages::native_query;
 use crate::stages::source_load::module_files;
 
@@ -1654,9 +1654,7 @@ fn mappings_grounding_catalog(
 }
 
 /// The `research-objects` export-leaf stage.
-pub struct ResearchObjectsStage {
-    consumes: Vec<String>,
-}
+pub struct ResearchObjectsStage {}
 
 impl ResearchObjectsStage {
     /// Construct the stage. It consumes:
@@ -1675,12 +1673,7 @@ impl ResearchObjectsStage {
     /// Kept in sorted order to match the registry `consumes()` and the module.ttl
     /// `dataflowConsumes`.
     pub fn new() -> Self {
-        Self {
-            consumes: vec![
-                "stage-export-evals".to_string(),
-                "stage-mappings".to_string(),
-            ],
-        }
+        Self {}
     }
 }
 
@@ -1690,15 +1683,12 @@ impl Default for ResearchObjectsStage {
     }
 }
 
-impl Stage for ResearchObjectsStage {
+impl StageBody for ResearchObjectsStage {
     fn id(&self) -> &str {
         "stage-export-research-objects"
     }
     fn output_family(&self) -> crate::node::OutputFamily {
         crate::node::OutputFamily::Generated
-    }
-    fn consumes(&self) -> &[String] {
-        &self.consumes
     }
     fn impl_version(&self) -> &str {
         // v4: croissant/datacite/frictionless/ro-crate are projected by the purrdf 0.12.0

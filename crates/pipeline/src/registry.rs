@@ -18,13 +18,13 @@
 use std::collections::BTreeMap;
 use std::sync::Arc;
 
-use crate::node::Stage;
+use crate::node::StageBody;
 
 /// A name → implementation map for pipeline stages. Insertion is by
 /// `gmeow:stageImpl` key; lookups are deterministic (BTreeMap).
 #[derive(Default)]
 pub struct StageRegistry {
-    stages: BTreeMap<String, Arc<dyn Stage>>,
+    stages: BTreeMap<String, Arc<dyn StageBody>>,
 }
 
 impl StageRegistry {
@@ -37,12 +37,12 @@ impl StageRegistry {
 
     /// Register `stage` under `impl_key` (the `gmeow:stageImpl` value). A later
     /// registration under the same key replaces the earlier one.
-    pub fn register(&mut self, impl_key: impl Into<String>, stage: Arc<dyn Stage>) {
+    pub fn register(&mut self, impl_key: impl Into<String>, stage: Arc<dyn StageBody>) {
         self.stages.insert(impl_key.into(), stage);
     }
 
     /// Resolve an `impl_key` to its stage, if registered.
-    pub fn get(&self, impl_key: &str) -> Option<Arc<dyn Stage>> {
+    pub fn get(&self, impl_key: &str) -> Option<Arc<dyn StageBody>> {
         self.stages.get(impl_key).cloned()
     }
 
