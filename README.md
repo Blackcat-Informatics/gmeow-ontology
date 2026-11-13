@@ -292,7 +292,7 @@ engine, with the OWL 2 DL tableau as a second refuter over the theory's OWL view
 |---|---|
 | `consistent` | the rule engine's closure completed, every unit of the selection is accounted for by the engine, and nothing was dropped |
 | `inconsistent` | a clash is derived; the report names the engine, the law that clashed, and the premises used |
-| `not-decided` | anything else, including an exhausted `--max-steps` or `--step-cap` budget; every drop is listed with its engine, code, and detail |
+| `not-decided` | anything else, including an exhausted `--max-steps` or `--step-cap` budget and a program the rule engine declines for a reason it names, such as an existential chase it cannot certify; every drop is listed with its engine, code, and detail |
 
 | Exit code | Meaning |
 |---|---|
@@ -300,7 +300,7 @@ engine, with the OWL 2 DL tableau as a second refuter over the theory's OWL view
 | 1 | with `--gate`, `inconsistent` |
 | 3 | with `--gate`, `not-decided` |
 | 4 | malformed input |
-| 5 | execution failure |
+| 5 | execution failure: an engine crashed, hit an internal fault or reached a resource limit |
 
 The report has no wall-clock field, so rerunning `prove` on the same inputs and comparing
 the bytes is a valid second-party check. `--proof-out <file>` records the proof and

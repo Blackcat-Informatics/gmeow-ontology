@@ -111,7 +111,7 @@ struct SelectionReport {
 /// The native rule engine's own account of the selection.
 #[derive(Debug, Clone, Serialize)]
 struct NativeLeg {
-    /// `clash` or `no-clash`.
+    /// `clash`, `no-clash`, or `refused` when the engine declined the program.
     verdict: &'static str,
     information_state: Option<String>,
     evaluation: Option<String>,
@@ -777,8 +777,10 @@ fn unread_program_axioms(
 }
 
 /// Run the native rule engine over the whole selection and add every construct it
-/// did not decide to `drops`. An engine error is an execution failure, never a
-/// drop: a canonicalization search that reached its limit is
+/// did not decide to `drops`. An engine that declines the program for a reason it
+/// names did not fail: the leg is `refused` and the reasons are drops, so the
+/// selection is not decided. Any other engine error is an execution failure, never
+/// a drop: a canonicalization search that reached its limit is
 /// `SOURCE_CANONICALIZATION_LIMIT`, and every other error is
 /// `NATIVE_EXECUTION_FAILED`.
 fn native_leg(
@@ -818,6 +820,32 @@ fn native_leg(
                     error,
                     &[],
                 ));
+            }
+            if let Some(refusal) = error.downcast_ref::<gmeow_logic::error::NativeRefusal>() {
+                drops.insert(DropRecord::new(
+                    ENGINE_NATIVE,
+                    "NATIVE_REFUSED",
+                    refusal.reason.clone(),
+                ));
+                for gap in &refusal.gaps {
+                    drops.insert(DropRecord::new(
+                        ENGINE_NATIVE,
+                        "NATIVE_REFUSAL_REASON",
+                        gap.clone(),
+                    ));
+                }
+                return Ok(NativeLeg {
+                    verdict: "refused",
+                    information_state: None,
+                    evaluation: None,
+                    completeness: None,
+                    consumed_steps: None,
+                    allowance: None,
+                    inconsistencies: Vec::new(),
+                    unsatisfiable_classes: Vec::new(),
+                    coverage: None,
+                    refutations: Vec::new(),
+                });
             }
             return Err(caused_diagnostic(
                 "NATIVE_EXECUTION_FAILED",

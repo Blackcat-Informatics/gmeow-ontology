@@ -513,6 +513,38 @@ ex:transitionNamesItsTarget a logic:Constraint ;
     );
 }
 
+/// An engine that declines a program for a reason it names did not fail to execute.
+/// Two rules that feed an existential head back into its own body have no termination
+/// certificate, so the native engine refuses them: the selection is not decided, the
+/// native leg is reported as refused, and the engine's reasons are the named drops.
+#[test]
+fn a_program_the_native_engine_declines_is_not_decided_rather_than_a_failure() {
+    let (report, code) = prove_json(
+        "uncertified-chase.logic.ttl",
+        r#"
+_:x a logic:TermCarrier ; logic:termVariable "x" .
+_:y a logic:TermCarrier ; logic:termVariable "y" .
+ex:everyoneHasAParent a logic:Rule ;
+    logic:head [ rdf:reifies <<( _:x ex:parent _:y )>> ] ;
+    logic:body [ rdf:reifies <<( _:x logic:instanceOf ex:Person )>> ] .
+_:p a logic:TermCarrier ; logic:termVariable "p" .
+_:q a logic:TermCarrier ; logic:termVariable "q" .
+ex:parentsArePeople a logic:Rule ;
+    logic:head [ rdf:reifies <<( _:q logic:instanceOf ex:Person )>> ] ;
+    logic:body [ rdf:reifies <<( _:p ex:parent _:q )>> ] .
+ex:a logic:instanceOf ex:Person .
+"#,
+        &["--gate"],
+    );
+    assert_eq!(report["verdict"], "not-decided", "{report:#}");
+    assert_eq!(code, 3);
+    assert_eq!(report["engines"]["native"]["verdict"], "refused");
+    let codes = drop_codes(&report);
+    for expected in ["NATIVE_REFUSED", "NATIVE_REFUSAL_REASON"] {
+        assert!(codes.iter().any(|code| code == expected), "{report:#}");
+    }
+}
+
 /// A reasoning-contract declaration is catalogued metatheory: it is accounted, is
 /// not a drop, and does not change the verdict of the object theory.
 #[test]
