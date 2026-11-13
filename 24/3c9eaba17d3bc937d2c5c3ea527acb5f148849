@@ -1,0 +1,19 @@
+ghprsq source head backlink metadata
+
+parent_hashes: 243c9eaba17d3bc937d2c5c3ea527acb5f148849
+
+GhpRsq-Schema: 1
+GhpRsq-Merge-Style: structured-squash-head-backlink
+GhpRsq-GitHub-Repo: Blackcat-Informatics/gmeow-ontology
+GhpRsq-GitHub-Pull-Request: 2749
+GhpRsq-GitHub-PR-URL: https://github.com/Blackcat-Informatics/gmeow-ontology/pull/2749
+GhpRsq-Base-Ref: main
+GhpRsq-Base-OID: 39e0e728cb6a73e24df24a3283dd814799ce1b39
+GhpRsq-Head-Ref: paudley/prove-refusal-is-not-decided
+GhpRsq-Head-OID: 243c9eaba17d3bc937d2c5c3ea527acb5f148849
+GhpRsq-Result-Tree: 26d7e331aa843398a394ac890c30891521ce7a2c
+GhpRsq-Result-Commit: c585e31e28c22caab9a6fe23a75755debb0cbc6b
+GhpRsq-Parent-Hashes: 243c9eaba17d3bc937d2c5c3ea527acb5f148849
+GhpRsq-Squash-Notes-SHA256: 43a13adc4c006d4adb6e9187e9e2b275be3bad719519c083ef3b06fbaf9c9503
+GhpRsq-Defect-Class: none
+GhpRsq-Stage-Evidence: none
