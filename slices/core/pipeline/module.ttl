@@ -572,8 +572,7 @@ gmeow:pipeline-dataflow-verify-reason
     gmeow:buildFlowTo gmeow:stage-verify-attestation ;
     gmeow:flowEntity
         <https://blackcatinformatics.ca/gmeow/graph/reasoning> ;
-    gmeow:flowReadsHandle <https://blackcatinformatics.ca/gmeow/graph/reasoning> ;
-    gmeow:flowReadsLane gmeow:laneDataset .
+    gmeow:flowReadsHandle <https://blackcatinformatics.ca/gmeow/graph/reasoning> .
 
 # stage-validate reads the validation-shape byte artifacts of stage-compile-logic's
 # product (generated/shapes/validation-shapes.ttl + procedural-constraints.ttl —
@@ -597,8 +596,7 @@ gmeow:pipeline-dataflow-validate-compile-logic
         <https://blackcatinformatics.ca/gmeow/graph/logic> ,
         <https://blackcatinformatics.ca/gmeow/graph/relational-core> ;
     gmeow:flowReadsArtifact "generated/shapes/procedural-constraints.ttl" ;
-    gmeow:flowReadsArtifact "generated/shapes/validation-shapes.ttl" ;
-    gmeow:flowReadsLane gmeow:laneDataset .
+    gmeow:flowReadsArtifact "generated/shapes/validation-shapes.ttl" .
 
 gmeow:pipeline-dataflow-json-schema-compile-logic
     a gmeow:BuildDataFlow ;
@@ -614,8 +612,7 @@ gmeow:pipeline-dataflow-json-schema-compile-logic
         <https://blackcatinformatics.ca/gmeow/graph/logic> ,
         <https://blackcatinformatics.ca/gmeow/graph/relational-core> ;
     gmeow:flowReadsArtifact "generated/shapes/procedural-constraints.ttl" ;
-    gmeow:flowReadsArtifact "generated/shapes/validation-shapes.ttl" ;
-    gmeow:flowReadsLane gmeow:laneDataset .
+    gmeow:flowReadsArtifact "generated/shapes/validation-shapes.ttl" .
 
 # stage-validate ALSO reads the graph/reasoning named graph of stage-reason's product
 # (the typed Reasoning handle's backing graph): the D5 abductive (constructive-advice)
@@ -638,8 +635,7 @@ gmeow:pipeline-dataflow-validate-reason
     gmeow:buildFlowTo gmeow:stage-validate ;
     gmeow:flowEntity
         <https://blackcatinformatics.ca/gmeow/graph/reasoning> ;
-    gmeow:flowReadsHandle <https://blackcatinformatics.ca/gmeow/graph/reasoning> ;
-    gmeow:flowReadsLane gmeow:laneDataset .
+    gmeow:flowReadsHandle <https://blackcatinformatics.ca/gmeow/graph/reasoning> .
 
 # stage-goal-directed reads ONLY the graph/reasoning named graph of stage-reason's
 # product (the typed Reasoning handle's backing graph): the reasoned rdfs:subClassOf
@@ -656,8 +652,7 @@ gmeow:pipeline-dataflow-goal-directed-reason
     gmeow:buildFlowTo gmeow:stage-goal-directed ;
     gmeow:flowEntity
         <https://blackcatinformatics.ca/gmeow/graph/reasoning> ;
-    gmeow:flowReadsHandle <https://blackcatinformatics.ca/gmeow/graph/reasoning> ;
-    gmeow:flowReadsLane gmeow:laneDataset .
+    gmeow:flowReadsHandle <https://blackcatinformatics.ca/gmeow/graph/reasoning> .
 
 gmeow:pipeline-dataflow-archive-blobs-compile-logic
     a gmeow:BuildDataFlow ;
