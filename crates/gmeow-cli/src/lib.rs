@@ -73,19 +73,6 @@ impl From<DescribeFormat> for gmeow_docs::card::CardFormat {
     }
 }
 
-/// External first-order prover selected by `gmeow prove`.
-#[derive(Debug, Clone, Copy, Default, PartialEq, Eq, clap::ValueEnum)]
-pub enum ProverChoice {
-    /// Select E when installed, otherwise Vampire. `GMEOW_PROVER_PATH` pins an
-    /// exact executable and its filename determines the protocol flavor.
-    #[default]
-    Auto,
-    /// The E theorem prover (`eprover`).
-    Eprover,
-    /// The Vampire theorem prover (`vampire`).
-    Vampire,
-}
-
 /// The output serialization every structured `gmeow logic` reader shares
 /// (`fragments`, `frontier`, `explain`, `refine`, `saga`).
 ///
@@ -367,7 +354,9 @@ pub enum Commands {
         gate: bool,
     },
     /// Decide whether an ontology has a model (OWL 2 Direct-Semantics consistency),
-    /// natively over the purrdf DL reasoner. Prints the three-valued verdict
+    /// natively over the purrdf DL reasoner. The input is read in OWL/RDFS spelling
+    /// only: canonical `logic:` axioms, formulas and rules are not read by this
+    /// command (use `gmeow prove` for a `logic:` selection). Prints the three-valued verdict
     /// (`true` / `false` / `unknown`), the completeness of the run, its measured
     /// cost, and every construct boundary the reverse mapping could not turn into a
     /// DL clause. Syntax is inferred from the file's extension (`.ttl`, `.nt`,
@@ -388,11 +377,19 @@ pub enum Commands {
         #[arg(long)]
         gate: bool,
     },
-    /// Compile an exact RDF source selection once, admit its complete classical
-    /// FOF profile, and ask a bounded external prover about axiom consistency.
-    /// The report binds source/program/problem and executable identities. Solver
-    /// output remains attestation until an independently checked proof/model raises
-    /// its evidence grade.
+    /// Decide the consistency of an exact `logic:` source selection in-process,
+    /// under GMEOW native `logic:` semantics (not classical first-order logic).
+    /// The native rule engine reads the whole selection; the OWL 2 DL tableau reads
+    /// its OWL view as a second refuter. The verdict is exactly one of
+    /// `consistent`, `inconsistent` or `not-decided`: a clash found by either
+    /// engine is `inconsistent`; `consistent` requires a completed native closure,
+    /// a complete source admission and an empty native-accounting drop list;
+    /// everything else is `not-decided`, with every construct the native engine
+    /// did not decide listed as a drop. The OWL leg's own state is reported beside
+    /// the verdict and never changes a native `consistent`. A native `consistent`
+    /// is reproduced by re-running on the same inputs; a native `inconsistent`
+    /// carries its law and witness premises. No external program is run and no
+    /// wall clock is read.
     Prove {
         /// RDF source documents to compose. Each file keeps an independent blank scope.
         #[arg(required_unless_present = "dir")]
@@ -400,29 +397,38 @@ pub enum Commands {
         /// Recursively add `module.ttl` and `*.logic.ttl` below this corpus root.
         #[arg(long)]
         dir: Option<PathBuf>,
-        /// External prover implementation.
-        #[arg(long, value_enum, default_value_t = ProverChoice::Auto)]
-        prover: ProverChoice,
-        /// Parent-enforced wall deadline in seconds for each selected prover pass.
-        #[arg(
-            long = "timeout-secs",
-            default_value_t = 60,
-            value_parser = clap::value_parser!(u64).range(1..=3600)
-        )]
-        timeout_secs: u64,
-        /// Keep the exact emitted TPTP problem at this path.
-        #[arg(long)]
-        out: Option<PathBuf>,
+        /// Native derivation-step allowance. Reaching it yields `not-decided`.
+        #[arg(long = "max-steps", conflicts_with = "check_proof")]
+        max_steps: Option<u64>,
+        /// Narrow the tableau's per-decision step cap (it can only lower the
+        /// size-derived ceiling). Reaching it leaves the OWL leg `not-decided`; the
+        /// verdict still follows the native engine.
+        #[arg(long = "step-cap")]
+        step_cap: Option<u64>,
         /// Output serialization.
         #[arg(long = "format", short = 'f', value_enum, default_value_t = OutputFormat::Text)]
         format: OutputFormat,
-        /// Apply the typed gate-exit contract. Certificate-grade consistent is 0,
-        /// certified negative is 1, and undecided/unsupported/attestation is 3.
-        #[arg(long)]
+        /// Apply the gate-exit contract: consistent 0, inconsistent 1,
+        /// not-decided 3. Malformed input is 4 and execution failure 5 in either mode.
+        #[arg(long, conflicts_with = "check_proof")]
         gate: bool,
-        /// Write the complete machine-readable receipt regardless of stdout format.
+        /// Write the complete machine-readable report regardless of stdout format.
         #[arg(long = "evidence-out")]
         evidence_out: Option<PathBuf>,
+        /// Write the encoded OWL 2 DL tableau proof; the report carries its digest.
+        #[arg(long = "proof-out", conflicts_with = "check_proof")]
+        proof_out: Option<PathBuf>,
+        /// Replay an OWL-leg proof written by `--proof-out` against the same inputs
+        /// without a new solver decision, and print the claim it certifies (for
+        /// example `owl-view-consistent`). Exit 0 when it replays, 1 when it is
+        /// rejected. The native engine has no proof file: re-run `gmeow prove` on
+        /// the same inputs to reproduce its verdict.
+        #[arg(long = "check-proof")]
+        check_proof: Option<PathBuf>,
+        /// Export the TPTP FOF projection of the selection to this path. No prover
+        /// is run; a blocked projection writes no file and lists its blockers.
+        #[arg(long, conflicts_with = "check_proof")]
+        out: Option<PathBuf>,
     },
     /// Certify an ontology against the OWL 2 profiles (EL, QL, RL, DL, Full),
     /// natively over the purrdf profile checker. Prints every profile the ontology
@@ -1851,22 +1857,28 @@ pub fn run() -> i32 {
         Commands::Prove {
             inputs,
             dir,
-            prover,
-            timeout_secs,
-            out,
+            max_steps,
+            step_cap,
             format,
             gate,
             evidence_out,
+            proof_out,
+            check_proof,
+            out,
         } => commands::prove(
             reporter,
-            &inputs,
-            dir.as_deref(),
-            prover,
-            timeout_secs,
-            out.as_deref(),
-            format,
-            gate,
-            evidence_out.as_deref(),
+            &commands::ProveRequest {
+                inputs: &inputs,
+                dir: dir.as_deref(),
+                max_steps,
+                step_cap,
+                format,
+                gate,
+                evidence_out: evidence_out.as_deref(),
+                proof_out: proof_out.as_deref(),
+                check_proof: check_proof.as_deref(),
+                out: out.as_deref(),
+            },
         ),
         Commands::Profile { ontology } => commands::profile(reporter, &ontology),
         Commands::Classify {

@@ -6,7 +6,7 @@
 //! → stdout, errors/diagnostics → stderr, and a `0`/`1` exit code.
 
 mod prove;
-pub(crate) use prove::prove;
+pub(crate) use prove::{ProveRequest, prove};
 mod correspondence;
 pub(crate) use correspondence::{
     correspondence_compose, correspondence_execute, correspondence_explain, correspondence_inspect,
@@ -2842,7 +2842,9 @@ pub fn entails(
 
 /// `gmeow consistency` — decide whether an ontology has a model (OWL 2
 /// Direct-Semantics consistency), natively over the purrdf DL reasoner
-/// ([`gmeow_logic::reasoner_services::DlReasoner`]). Prints a stable, greppable
+/// ([`gmeow_logic::reasoner_services::DlReasoner`]). The reasoner reads OWL/RDFS
+/// spelling only; canonical `logic:` axioms, formulas and rules are not read here
+/// (`gmeow prove` decides a `logic:` selection). Prints a stable, greppable
 /// three-valued verdict (`true` / `false` / `unknown`) together with the run's
 /// completeness, measured cost, and every construct boundary — none of it flattened
 /// away. Malformed input exits 4 and execution failure exits 5; an `unknown`
