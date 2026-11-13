@@ -10,6 +10,19 @@ Welcome, AI Agent! This file is your behavioral contract and instruction manual 
 
 ---
 
+## Guiding principles
+
+When requests conflict, these decide. They do not replace the standing rules of this
+repository.
+
+* **GREENFIELD:** we always correct the mistakes of the past. Others' mistakes are our
+  lessons, not our limits.
+* **SOTA:** always choose the state of the art over the bones of the past.
+* **OPTIMAL:** choose the Pareto frontier of the quality, speed, efficiency and other axes.
+* **MAXIMAL:** support the broadest functionality possible after the other choices are made.
+
+---
+
 ## Deficiency emergency ledger (non-negotiable)
 
 `.deficiencies` is the log of last resort for critically undone work. Every entry
