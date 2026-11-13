@@ -199,14 +199,6 @@ impl EngineIdentity {
             executable: current_executable_identity(),
         }
     }
-
-    pub(crate) fn external_host() -> Self {
-        Self {
-            implementation: "gmeow-cli".to_owned(),
-            version: env!("CARGO_PKG_VERSION").to_owned(),
-            executable: current_executable_identity(),
-        }
-    }
 }
 
 /// Canonical preservation projection for JSON/text. The logic enums themselves
@@ -279,7 +271,6 @@ pub(crate) struct DiagnosticEvidence {
     pub(crate) emitted_at: DiagnosticSite,
     pub(crate) context_sites: Vec<DiagnosticSite>,
     pub(crate) fields: serde_json::Value,
-    pub(crate) process: Option<serde_json::Value>,
     pub(crate) observed: Option<gmeow_errors::Slot>,
     pub(crate) expected: Option<gmeow_errors::Slot>,
 }
@@ -341,14 +332,6 @@ impl ReportDiagnostic {
             serde_json::json!({"service_failure_kind": failure.kind})
         } else if let Some(failure) = diag.downcast_ref::<crate::error::ProverFailed>() {
             serde_json::json!({"reason": failure.reason, "evidence": failure.evidence})
-        } else if let Some(error) =
-            diag.downcast_ref::<gmeow_logic_compile::tptp::SzsProtocolError>()
-        {
-            serde_json::to_value(error).expect("SZS protocol error serializes")
-        } else if let Some(error) =
-            diag.downcast_ref::<gmeow_logic::external_evidence::ArtifactProtocolError>()
-        {
-            serde_json::to_value(error).expect("artifact protocol error serializes")
         } else if let Some(error) = diag.downcast_ref::<std::io::Error>() {
             serde_json::json!({"io_kind": format!("{:?}", error.kind()), "raw_os_error": error.raw_os_error()})
         } else {
@@ -358,14 +341,6 @@ impl ReportDiagnostic {
             code: diag
                 .downcast_ref::<crate::error::ProverFailed>()
                 .map(|error| error.reason.to_owned())
-                .or_else(|| {
-                    diag.downcast_ref::<gmeow_logic_compile::tptp::SzsProtocolError>()
-                        .map(|error| error.code.clone())
-                })
-                .or_else(|| {
-                    diag.downcast_ref::<gmeow_logic::external_evidence::ArtifactProtocolError>()
-                        .map(|error| error.code.clone())
-                })
                 .unwrap_or_else(|| gmeow_errors::code::code_str(diag.code()).to_owned()),
             detail: diag.message().to_owned(),
             diagnostic: Some(DiagnosticEvidence {
@@ -387,17 +362,6 @@ impl ReportDiagnostic {
                     .map(|frame| DiagnosticSite::from_location(frame.at))
                     .collect(),
                 fields,
-                process: inner
-                    .observed
-                    .as_ref()
-                    .filter(|slot| {
-                        slot.datatype.as_deref()
-                            == Some("https://blackcatinformatics.ca/gmeow/ProverProcessReceiptJson")
-                    })
-                    .map(|slot| {
-                        serde_json::from_str(&slot.lexical)
-                            .expect("internally serialized process receipt")
-                    }),
                 observed: inner.observed.clone(),
                 expected: inner.expected.clone(),
             }),
@@ -563,6 +527,7 @@ impl NativeReasoningReport {
 }
 
 impl ReasoningReportCore {
+    #[allow(clippy::too_many_arguments)]
     pub(crate) fn refused(
         operation: ReasoningOperation,
         decision: DecisionClass,

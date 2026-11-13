@@ -54,12 +54,6 @@ pub use canon_admission::{
     CANON_ADMISSION_CHANNEL, CANON_ADMISSION_MEMBER, CanonAdmissionPublication,
 };
 
-mod protocol;
-pub use protocol::{
-    FofTask, SzsAdmission, SzsOutcome, SzsProtocolError, SzsStatusObservation,
-    SzsTranscriptChannel, admit_szs_transcript, problem_name_matches,
-};
-
 pub use writer::{
     FofProjection, FofProjectionBlocker, FofProjectionStatus, FofSentence, project_tptp_fof,
 };

@@ -376,20 +376,16 @@ producer-source-extraction-apply: ## Apply the reviewed producer test-extraction
 producer-source-extraction-verify-format: ## Verify formatted producer test moves against the exact reviewed extraction plan.
 	cargo run --locked -p gmeow-build-inputs --bin extract-tests -- verify-format . .cache/integration/producer-extraction-plan.json .cache/integration/producer-extraction-format-preservation.json
 
-cli-build: ## Build the self-contained consumer CLI from a clean source checkout.
-	$(MAKE) producer-build
-	$(MAKE) check-sync SYNC_MODE=update SYNC_OUTPUTS=generated
-	$(MAKE) consumer-cli-build-materialized
+cli-build: ## Build the portable self-contained gmeow (x86-64-v3) from a clean checkout: one producer run, then stage and self-verify dist/bin/gmeow and its receipt.
+	cargo xtask cli build
 
-# Internal edge for workflows that already completed the one producer run. It
-# deliberately has no fallback: both embedded assets must exist and build.rs
-# fails closed if either is absent or empty.
+# Internal edge for workflows that already completed the one producer run: the same
+# forced portable compile, staging and identity verification as `cli-build`, without
+# the producer step. It deliberately has no fallback: both embedded assets must exist
+# (or be named by GMEOW_BUNDLE_PATH / GMEOW_CODEBOOK_PATH) and build.rs fails closed
+# if either is absent or empty.
 consumer-cli-build-materialized:
-	cargo build -p gmeow-cli --release
-	mkdir -p dist/bin
-	cp $(CARGO_TARGET_DIR)/release/gmeow dist/bin/gmeow
-	./scripts/test-one-file-prover.sh dist/bin/gmeow
-	@echo "gmeow consumer and optimized gmeow-dev producer staged at dist/bin/"
+	cargo xtask cli build --skip-producer
 
 lsp-sarif: lsp-release ## Emit SARIF from all .ttl files in the workspace root (report-only).
 	$(CARGO_TARGET_DIR)/release/gmeow-lsp sarif --out $(CARGO_TARGET_DIR)/lsp-sarif --category rust $$(find . -maxdepth 5 -name '*.ttl' -not -path './target/*' -not -path './.venv/*' | head -20) || true
@@ -429,6 +425,10 @@ heavy: ## CI-ONLY breadth lane: the soak / whole-corpus / cross-toolchain gates 
 # this is it: the `check` DAG's root task (crates/xtask/src/main.rs CHECK_DAG),
 # CI's cold-materialize + strict fixed-point steps, and every non-gate lane
 # (install / build / release / release-publish / Pages) all drive THIS target.
+# `cargo xtask cli build` (behind `make cli-build`) runs the identical producer
+# command through the same runner (`cargo xtask producer run -- sync --mode update
+# --outputs generated`) exactly once before compiling the consumer; it adds no
+# second pipeline, and its `--skip-producer` form runs none.
 # There is deliberately no second entry point — `gmeow-dev sync` takes the
 # HOST-GLOBAL gate lock (dev_sync.rs::host_lock_path, the same file `cargo xtask
 # check` locks), so a second invocable pipeline target does not merely repeat the
@@ -586,13 +586,15 @@ release-publish: ## USER-driven publish of a verified signed bundle: content-add
 	$(GMEOW_DEV) docs-package --out dist/gmeow-docs.tar
 	sha256sum "$(GTS_OUT)" "$(GTS_OUT).ingestion.cbor" > "$(GTS_OUT).sha256"
 	@echo "release bundle native content heads (BLAKE3):"
-	gts heads "$(GTS_OUT)"
+	@# The staged binary from `make cli-build`; a non-clean inventory exits non-zero and stops the publish.
+	@test -x dist/bin/gmeow || { echo "dist/bin/gmeow is missing; run 'make cli-build' first"; exit 1; }
+	dist/bin/gmeow gts heads "$(GTS_OUT)"
 	gh release create "$(RELEASE_TAG)" \
 		"$(GTS_OUT)" "$(GTS_OUT).ingestion.cbor" "$(GTS_OUT).sha256" dist/crossref-deposit.xml \
 		dist/gmeow-docs.tar dist/gmeow-docs.tar.blake3 \
 		dist/gmeow-docs/manifest/docs-manifest.ttl dist/gmeow-docs.manifest.ttl.blake3 \
 		--title "GMEOW $(RELEASE_TAG) — signed release-as-evidence bundle" \
-		--notes "Signed, content-addressed release bundle (§18). Verify with \`make verify-release\` or \`gts verify gmeow.gts\`; download integrity via the .sha256 sidecar; native content address via \`gts heads\`. The attached Crossref deposit is over the always-latest concept DOI (version-agnostic by design). The attached dist/gmeow-docs.tar is the external documentation distribution (site/mdbook/pdf/snippets/pydantic/okf/jsonld/yamlld), content-addressed by its .blake3 sidecar; dist/gmeow-docs/manifest/docs-manifest.ttl is the DCAT release manifest for those distributions, content-addressed by its own dist/gmeow-docs.manifest.ttl.blake3 sidecar (kept OUTSIDE the archived tree so re-packaging stays idempotent)."
+		--notes "Signed, content-addressed release bundle (§18). Verify with \`make verify-release\` or \`gmeow gts verify gmeow.gts\`; download integrity via the .sha256 sidecar; native content address via \`gmeow gts heads gmeow.gts\`. The attached Crossref deposit is over the always-latest concept DOI (version-agnostic by design). The attached dist/gmeow-docs.tar is the external documentation distribution (site/mdbook/pdf/snippets/pydantic/okf/jsonld/yamlld), content-addressed by its .blake3 sidecar; dist/gmeow-docs/manifest/docs-manifest.ttl is the DCAT release manifest for those distributions, content-addressed by its own dist/gmeow-docs.manifest.ttl.blake3 sidecar (kept OUTSIDE the archived tree so re-packaging stays idempotent)."
 	@if [ -n "$(CROSSREF_USER)" ] && [ -n "$(CROSSREF_PASS)" ]; then \
 		echo "submitting Crossref deposit as $(CROSSREF_USER) ..."; \
 		curl -fsS -F 'operation=doMDUpload' -F 'login_id=$(CROSSREF_USER)' \
