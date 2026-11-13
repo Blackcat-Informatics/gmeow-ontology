@@ -1031,6 +1031,9 @@ impl Stage for EvalsStage {
     fn id(&self) -> &str {
         "stage-export-evals"
     }
+    fn output_family(&self) -> crate::node::OutputFamily {
+        crate::node::OutputFamily::Generated
+    }
     fn consumes(&self) -> &[String] {
         &[]
     }

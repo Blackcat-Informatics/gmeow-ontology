@@ -5391,8 +5391,8 @@ msgid "Relates a logic:NotificationWaitSchema to the logic:ExternalSignal situat
 msgstr "将一个 logic:NotificationWaitSchema 关联到其完成所等待其到达的 logic:ExternalSignal 情境。定义域为 logic:NotificationWaitSchema，值域为一个 logic:ExternalSignal 情境（以散文形式说明）。该等待仅在此信号于状态中成立后才触发；在此之前它处于进行中（logic:awaitingSignal），绝不被静默完成。"
 
 msgctxt "https://blackcatinformatics.ca/logic/axiomHash|http://www.w3.org/2004/02/skos/core#definition"
-msgid "A content-addressed digest of an axiom set inside the checked bundle, pinning exactly which axioms the coherence outcome ranged over — MULTI-valued, one per certified fragment component. Domain logic:CoherenceCertificate or logic:CoherenceCheckAttestation (stated in prose)."
-msgstr "已检查包内某公理集的内容寻址摘要，精确钉定一致性结果所涵盖的公理——多值，每个已认证片段组件一个。定义域为 logic:CoherenceCertificate 或 logic:CoherenceCheckAttestation（以散文形式说明）。"
+msgid "A content-addressed digest of one axiom-bearing named graph of the dataset the coherence outcome was computed over (the default graph is keyed under an empty string) — MULTI-valued, one per graph. The digest covers that graph's quads rendered with the dataset's blank-node labels and scope numbering, so it is comparable only with a digest taken over a dataset labelled the same way: the same graph read back from GTS digests differently. Domain logic:CoherenceCertificate or logic:CoherenceCheckAttestation (stated in prose)."
+msgstr "一致性结果所依据数据集中某个含公理的命名图的内容寻址摘要（默认图以空字符串为键）——多值，每个图一个。摘要覆盖该图的四元组，按数据集的空白节点标签与作用域编号渲染，因此只能与在同样标注的数据集上取得的摘要比较：同一个图从 GTS 读回后摘要会不同。定义域为 logic:CoherenceCertificate 或 logic:CoherenceCheckAttestation（以散文形式说明）。"
 
 msgctxt "https://blackcatinformatics.ca/logic/BackwardEvaluation|http://www.w3.org/2004/02/skos/core#definition"
 msgid "The logic:EvaluationMode value selecting goal-directed SLG-WFS backward resolution: subsumptive demand-driven answer keying (SLG tabling), structured-term unification over logic:FunctionTerm arguments, explicit proof objects for each derived answer, and three-valued well-founded negation for logic:not-negated body literals. The one evaluation strategy this vocabulary supports today; contrast a future forward-chase member of logic:EvaluationMode over the identical clause set."

@@ -884,6 +884,9 @@ impl Stage for GlossaryTableStage {
     fn id(&self) -> &str {
         "stage-export-glossary"
     }
+    fn output_family(&self) -> crate::node::OutputFamily {
+        crate::node::OutputFamily::Generated
+    }
     fn consumes(&self) -> &[String] {
         &[]
     }

@@ -17,9 +17,15 @@ GMEOW_DEV ?= cargo xtask producer run --
 # tree by surprise; `make check` and every materializing caller pass update
 # EXPLICITLY. `SYNC_OUTPUTS` selects the fanout scope; `generated` (the bundle + the
 # committed tree) is the default because it is what the gate needs — `docs` and `all`
-# are the wider, explicitly-selected profiles.
+# are the wider, explicitly-selected profiles. The scope selects the pipeline's stages:
+# the runtime-only exporters run under `all` only.
 SYNC_MODE ?= check
 SYNC_OUTPUTS ?= generated
+# `SYNC_PROFILE` selects the build profile. `ordinary` trains each dictionary at its
+# declared point and, when the committed evidence no longer matches the resolved
+# corpus, warns and records the stale evidence digest. `release` refuses that drift.
+# It propagates through nested `make` invocations as a command-line variable.
+SYNC_PROFILE ?= ordinary
 SYNC_VERBOSE ?=
 # Optional per-run timing sink for the producer (the report-only `perf-gate` lane
 # sets it). It exists so that lane can measure the pipeline THROUGH the single
@@ -451,7 +457,7 @@ check-sync: ## The one pipeline producer: materialize (SYNC_MODE=update) or read
 		$(MAKE) check-sync SYNC_MODE=$(SYNC_MODE) SYNC_OUTPUTS=generated SYNC_VERBOSE=$(SYNC_VERBOSE) && \
 		$(MAKE) build; \
 	fi
-	$(GMEOW_DEV) sync --mode $(SYNC_MODE) --outputs $(SYNC_OUTPUTS) $(if $(filter 1 true yes on,$(strip $(SYNC_VERBOSE))),--verbose,) $(if $(strip $(SYNC_TIMINGS_JSON)),--timings-json $(SYNC_TIMINGS_JSON),)
+	$(GMEOW_DEV) sync --mode $(SYNC_MODE) --outputs $(SYNC_OUTPUTS) --profile $(SYNC_PROFILE) $(if $(filter 1 true yes on,$(strip $(SYNC_VERBOSE))),--verbose,) $(if $(strip $(SYNC_TIMINGS_JSON)),--timings-json $(SYNC_TIMINGS_JSON),)
 
 .PHONY: check-sync-prerequisite-test
 check-sync-prerequisite-test: ## Verify docs prerequisite failure propagation using inert producer stubs.
@@ -525,7 +531,7 @@ release: ## Materialize from source (update mode), native-reason, build, report,
 	# it) instead of the producer's read-only default, which would hard-fail the superset
 	# gate ("no carrier representative") on the absent tree. Every output family is
 	# materialized: a release ships the docs fanout and the runtime dist/ projections.
-	$(MAKE) check-sync SYNC_MODE=update SYNC_OUTPUTS=all
+	$(MAKE) check-sync SYNC_MODE=update SYNC_OUTPUTS=all SYNC_PROFILE=release
 	$(GMEOW_DEV) reason --mode native --merge
 	$(MAKE) consumer-cli-build-materialized
 	$(GMEOW_DEV) build
@@ -537,13 +543,13 @@ release-sign-gts: ## Sign the regenerated GTS bundle for release packaging.
 	@if [ -z "$(SIGN_KEY)" ]; then \
 		echo "SIGN_KEY=/path/to/secret.asc is required"; exit 1; \
 	fi
-	$(GMEOW_DEV) compile-gts --sign-key "$(SIGN_KEY)" --public-key "$(PUBLIC_KEY)" --out "$(GTS_OUT)"
+	$(GMEOW_DEV) compile-gts --profile release --sign-key "$(SIGN_KEY)" --public-key "$(PUBLIC_KEY)" --out "$(GTS_OUT)"
 
 full-release: ## Signed release-as-evidence: gate + oracle lane + conformance + perf, folded + signed + DOI (§18).
 	@if [ -z "$(SIGN_KEY)" ]; then \
 		echo "SIGN_KEY=/path/to/secret.asc is required"; exit 1; \
 	fi
-	$(MAKE) check
+	$(MAKE) check SYNC_PROFILE=release
 	$(MAKE) conformance
 	$(MAKE) conformance-report
 	$(MAKE) bench-compare
@@ -564,7 +570,7 @@ verify-release: ## Consumer verification of a signed release bundle: signature +
 	@if [ ! -f "$(GTS_OUT)" ]; then \
 		echo "no signed release bundle at $(GTS_OUT); run 'make full-release SIGN_KEY=...' first"; exit 1; \
 	fi
-	cargo run --release --locked -p gmeow-cli -- verify-release-bundle --bundle "$(GTS_OUT)" $(if $(PUBLIC_KEY),--public-key "$(PUBLIC_KEY)",)
+	cargo run --release --locked -p gmeow-cli -- verify-release-bundle --require-dictionary-evidence --bundle "$(GTS_OUT)" $(if $(PUBLIC_KEY),--public-key "$(PUBLIC_KEY)",)
 	@echo "verify-release: signature + trust policy + attestation frames verified over $(GTS_OUT)"
 
 release-publish: ## USER-driven publish of a verified signed bundle: content-addressed GitHub release + Crossref DOI deposit (§18 step 7).
@@ -576,7 +582,7 @@ release-publish: ## USER-driven publish of a verified signed bundle: content-add
 	fi
 	$(MAKE) verify-release
 	$(MAKE) crossref
-	$(MAKE) check-sync SYNC_MODE=update SYNC_OUTPUTS=docs
+	$(MAKE) check-sync SYNC_MODE=update SYNC_OUTPUTS=docs SYNC_PROFILE=release
 	$(GMEOW_DEV) docs-package --out dist/gmeow-docs.tar
 	sha256sum "$(GTS_OUT)" "$(GTS_OUT).ingestion.cbor" > "$(GTS_OUT).sha256"
 	@echo "release bundle native content heads (BLAKE3):"
@@ -1420,9 +1426,10 @@ maint-cl-ingest-fixture: ## (maintainer) Produce the committed CLIF ingestion fi
 	  https://example.org/cl-ingest/genealogy/kb
 
 maint-medium-sweep: ## (maintainer) Refresh bench/medium-baseline.json — the full dictionary strategy x target-length sweep plus the global codec x level sweep.
-	@# The SINGLE producer of the committed dictionary winner table. It runs the real
-	@# DAG once, then for every MEASURABLE declared dictionary grid-searches
-	@# (strategy x target length) over the same corpus the build trains from, scoring
+	@# The SINGLE producer of the committed dictionary winner table. It runs the
+	@# committed-scope DAG (the stages `sync --outputs generated` runs) once, then
+	@# for every MEASURABLE declared dictionary grid-searches (strategy x target
+	@# length) over the same corpus the build trains from, scoring
 	@# each cell by the TWO-PART CODE (the frames it primes, encoded through the cell's
 	@# dictionary, PLUS that dictionary's own in-band bytes) against the declared
 	@# no-dictionary gmeow:mediumProfileBaselineL12 code for the same frames. It also
@@ -1430,9 +1437,14 @@ maint-medium-sweep: ## (maintainer) Refresh bench/medium-baseline.json — the f
 	@# is evidence rather than assertion.
 	@#
 	@# Mirrors maint-bench-baseline / maint-bench-cost-baseline: a deliberate,
-	@# hand-committed refresh, never auto-drift. `stage-medium-dictionaries` CONSUMES the
-	@# committed winners, so the shipped dictionaries stay a deterministic function of the
-	@# repository instead of a per-build search.
+	@# hand-committed refresh, never auto-drift. `stage-medium-dictionaries` trains each dictionary at its
+	@# DECLARED point and grades that point against this table's grid, so the shipped
+	@# dictionaries stay a deterministic function of the repository instead of a per-build
+	@# search.
+	@# A refresh is not required for every corpus edit: the stage trains at the DECLARED
+	@# point, a declaration within the near-tie margin of the winner is accepted, and an
+	@# ordinary build whose corpus digest no longer matches the table warns and records the
+	@# stale evidence. A release build refuses that drift, so refresh before releasing.
 	@#
 	@# It exits NON-ZERO on the one declared stop-and-ask condition — a dictionary does
 	@# not pay for itself at its best cell (retiring a shipped dictionary orphans every

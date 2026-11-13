@@ -139,8 +139,9 @@ verify_manifest_tree() {
 validate_manifest_contract() {
   local manifest=$1
   jq -e '
-    .version == 5 and
+    .version == 6 and
     .output == "generated" and
+    .profile == "ordinary" and
     .language == "default" and
     .strict_checked == true and
     .materialized == true and

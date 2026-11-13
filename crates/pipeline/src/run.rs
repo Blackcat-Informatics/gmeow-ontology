@@ -154,19 +154,51 @@ pub enum RunMode {
     Check,
 }
 
-/// Which output family an update-mode run materializes.
+/// Which output scope a run selects.
 ///
-/// This is explicit feature selection, not capability degradation: the complete
-/// DAG still executes and all strict gates still run. The selected output family
-/// is then mandatory. [`Committed`](Self::Committed) suppresses only gitignored
-/// `dist/*` runtime projections so a generated-only sync does not churn unrelated
-/// presentation files.
+/// The scope selects the DAG branch: [`spec_for_scope`] derives the stage set from each
+/// stage's declared [`crate::node::OutputFamily`]. [`All`](Self::All) runs every stage and
+/// writes the gitignored `dist/*` runtime projections. [`Committed`](Self::Committed) runs
+/// the stages whose outputs the committed scope selects (the bundle, the `generated/`
+/// tree and the codebook) and their transitive producers, so the runtime-only exporters
+/// do not execute. Every selected stage and every gate the selected stages feed stays
+/// mandatory.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum RunOutputScope {
     /// Materialize committed outputs and every gitignored runtime projection.
     All,
     /// Materialize only committed/generated outputs.
     Committed,
+}
+
+/// Which kind of build a run is: an ordinary build or a release.
+///
+/// A release is selected EXPLICITLY by its caller (`gmeow-dev sync --profile release`,
+/// which the `release` and `full-release` Make targets pass), never inferred from an
+/// output scope, a mode, or the environment. It changes one behaviour today: a
+/// release refuses committed dictionary sweep evidence measured over a corpus other
+/// than the one the build resolved ([`crate::medium::sweep::grade_dictionary`]), where
+/// an ordinary build trains at the declared point and records the stale state on the
+/// shipped realization. The profile reaches each stage it affects through that
+/// stage's constructor and is folded into its cache key, so a product built under one
+/// profile is never reused by the other.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum BuildProfile {
+    /// An ordinary development or gate build.
+    Ordinary,
+    /// A release build.
+    Release,
+}
+
+impl BuildProfile {
+    /// The stable token naming this profile on the command line and in run manifests.
+    #[must_use]
+    pub const fn as_str(self) -> &'static str {
+        match self {
+            Self::Ordinary => "ordinary",
+            Self::Release => "release",
+        }
+    }
 }
 
 /// The outcome of a [`run_full`]: how many artifacts were produced / reproduced
@@ -381,16 +413,6 @@ pub fn full_spec() -> PipelineSpec {
             "goal_directed",
             &["stage-compile-logic", "stage-reason"],
         ),
-        st(
-            "stage-gts-compose",
-            "gts_compose",
-            &[
-                "stage-mappings",
-                "stage-reason",
-                "stage-source-load",
-                "stage-statements",
-            ],
-        ),
         // SHACL validation enforces the FRESH shape union: the generated
         // `generated/shapes/*.ttl` members are read off THIS run's producer products
         // (compile-logic + the three shape export leaves), never the stale committed
@@ -430,7 +452,6 @@ pub fn full_spec() -> PipelineSpec {
                 // previous run's committed generated/schemas/*.json (the
                 // stale-disk-fold class).
                 "stage-export-json-schema",
-                "stage-gts-compose",
                 "stage-mappings",
                 "stage-reason",
                 // THIS run's fresh term-content-manifest product: the docs model's
@@ -485,7 +506,6 @@ pub fn full_spec() -> PipelineSpec {
                 // The proof-carrying backward engine's checked answers + proof derivations,
                 // folded into graph/goal-directed of gmeow.gts.
                 "stage-goal-directed",
-                "stage-gts-compose",
                 // The FINAL projection-report loss ledger (logic ∪ correspondence rows).
                 "stage-mappings",
                 // The ten math producer graphs (five flagship producers — the rBridge one
@@ -783,6 +803,54 @@ pub fn full_spec() -> PipelineSpec {
     }
 }
 
+/// Select the stages one output scope runs, from each stage's declared
+/// [`crate::node::OutputFamily`].
+///
+/// [`RunOutputScope::All`] keeps every stage. [`RunOutputScope::Committed`] keeps the
+/// stages of the `Generated` family plus all of their transitive producers, so a
+/// runtime-projection stage that a selected stage consumes still runs. A stage whose
+/// implementation is not registered is a hard error: a family cannot be read for it.
+pub fn spec_for_scope(
+    spec: PipelineSpec,
+    scope: RunOutputScope,
+) -> Result<PipelineSpec, gmeow_errors::Diag> {
+    if scope == RunOutputScope::All {
+        return Ok(spec);
+    }
+    let registry = default_registry();
+    let mut selected: std::collections::BTreeSet<String> = std::collections::BTreeSet::new();
+    let mut pending: Vec<String> = Vec::new();
+    for stage in &spec.stages {
+        let implementation = registry.get(&stage.impl_key).ok_or_else(|| {
+            gmeow_errors::Diag::of_kind(crate::error::InvalidDag {
+                message: format!(
+                    "stage {} binds unregistered implementation {}; its output family is unknown",
+                    stage.id, stage.impl_key
+                ),
+            })
+        })?;
+        if implementation.output_family() == crate::node::OutputFamily::Generated {
+            pending.push(stage.id.clone());
+        }
+    }
+    while let Some(id) = pending.pop() {
+        if !selected.insert(id.clone()) {
+            continue;
+        }
+        if let Some(stage) = spec.stage(&id) {
+            pending.extend(stage.consumes.iter().cloned());
+        }
+    }
+    Ok(PipelineSpec {
+        id: spec.id,
+        stages: spec
+            .stages
+            .into_iter()
+            .filter(|stage| selected.contains(&stage.id))
+            .collect(),
+    })
+}
+
 /// A capability-free stage (Generated provenance, non-sink) — the default for every
 /// transform / validate / docs-render / export leaf (the four behaviorally-inert
 /// former kinds collapse to no declaration).
@@ -937,27 +1005,37 @@ fn st_goal_directed(id: &str, impl_key: &str, consumes: &[&str]) -> StageSpec {
 /// committed artifact). RDF artifacts compare by bytes (they are byte
 /// deterministic); the `gmeow.gts` bundle is compared by the production superset
 /// fold because CBOR has encoding skew.
-pub fn run_full(root: &Path, jobs: usize, mode: RunMode) -> Result<RunReport, gmeow_errors::Diag> {
-    run_full_scoped(root, jobs, mode, RunOutputScope::All)
+pub fn run_full(
+    root: &Path,
+    jobs: usize,
+    mode: RunMode,
+    profile: BuildProfile,
+) -> Result<RunReport, gmeow_errors::Diag> {
+    run_full_scoped(root, jobs, mode, RunOutputScope::All, profile)
 }
 
-/// Run the complete build once while materializing only the explicitly selected
-/// output family. Selection never removes a stage or gate from the DAG.
+/// Run one build under the explicitly selected [`BuildProfile`] for the selected output
+/// scope. The scope selects the stage set ([`spec_for_scope`]); every selected stage and
+/// its gates are mandatory. The profile has no default: a caller that ships its output
+/// must name [`BuildProfile::Release`].
 pub fn run_full_scoped(
     root: &Path,
     jobs: usize,
     mode: RunMode,
     output_scope: RunOutputScope,
+    profile: BuildProfile,
 ) -> Result<RunReport, gmeow_errors::Diag> {
-    run_full_scoped_with_progress(root, jobs, mode, output_scope, None)
+    run_full_scoped_with_progress(root, jobs, mode, output_scope, profile, None)
 }
 
-/// Run the scoped pipeline with an optional live progress sink.
+/// Run the scoped pipeline under an explicitly selected [`BuildProfile`], with an
+/// optional live progress sink.
 pub fn run_full_scoped_with_progress(
     root: &Path,
     jobs: usize,
     mode: RunMode,
     output_scope: RunOutputScope,
+    profile: BuildProfile,
     progress: Option<Arc<dyn Reporter>>,
 ) -> Result<RunReport, gmeow_errors::Diag> {
     let total_started = Instant::now();
@@ -1000,14 +1078,14 @@ pub fn run_full_scoped_with_progress(
         progress.stage_end("pipeline:canonical-abstract", canonical_elapsed);
     }
 
-    let spec = full_spec();
+    let spec = spec_for_scope(full_spec(), output_scope)?;
 
     // Single-pass: the schemas leaf is now a normal carrier-reading
-    // export leaf (it consumes `stage-snapshot`, not the sink bytes), so the WHOLE DAG —
-    // the terminal gts sink and the schemas tail included — runs in ONE scheduler pass.
+    // export leaf (it consumes `stage-snapshot`, not the sink bytes), so the whole selected
+    // DAG — the terminal gts sink and the schemas tail included — runs in ONE scheduler pass.
     // No producer/serialization re-derivation, no SINK_STAGE-only sub-run.
     let graph = spec.validate()?;
-    let registry = default_registry();
+    let registry = crate::registry::registry_for(profile);
     let bound = bind(&spec, &graph, &registry)?;
     // The whole-run manifest remains the zero-work fixed-point boundary. On a manifest
     // miss, the DAG's exact-one cache dispositions admit independently bounded stage
@@ -1931,3 +2009,7 @@ mod diagnostics_ingest_gate;
 #[cfg(test)]
 #[path = "run/acceptance_tests.rs"]
 mod acceptance_tests;
+
+#[cfg(test)]
+#[path = "run.output_scope_tests.rs"]
+mod output_scope_tests;

@@ -99,6 +99,9 @@ impl Stage for JsonSchemaStage {
     fn id(&self) -> &str {
         "stage-export-json-schema"
     }
+    fn output_family(&self) -> crate::node::OutputFamily {
+        crate::node::OutputFamily::Generated
+    }
     fn consumes(&self) -> &[String] {
         &self.consumes
     }

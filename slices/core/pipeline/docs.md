@@ -16,7 +16,7 @@ validates the graph, binds each stage to its Rust implementation, and runs it si
 `gmeow:pipeline-build` is the canonical build. Its spine flows:
 
 ```text
-source-load → (statements, mappings) → reason → gts-compose → {docs-render + export leaves} → gts-sink
+source-load → (statements, mappings) → reason → docs-render → snapshot → {export leaves} → gts-sink
 ```
 
 Browser preparation selects `stage-native-codebook` with its sole dependency,

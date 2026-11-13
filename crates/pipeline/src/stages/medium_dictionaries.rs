@@ -205,14 +205,18 @@ pub struct ResolvedCorpora {
 /// THIS run's in-memory products.
 ///
 /// The training point is the AUTHORED `(gmeow:dictionaryStrategy,
-/// gmeow:dictionaryTargetLength)`, and the COMMITTED sweep winner is what makes that
-/// declaration honest: [`crate::medium::sweep::check_declared_matches_winners`] runs
-/// before this and HARD-FAILS when the two differ. Reading the declaration rather than
-/// steering from the table is deliberate — the sweep must never silently overwrite
-/// what a human wrote down, and the authored value stays the reviewable one — but the
-/// gate means the build can only ever train at a MEASURED point. It is also what keeps
-/// the graph acyclic: the sweep runs the whole DAG to measure, so a stage that could
-/// not run until the table existed could never produce the table.
+/// gmeow:dictionaryTargetLength)`, and the committed sweep grid is what keeps that
+/// declaration honest: [`crate::medium::sweep::grade_dictionary`] runs before this and
+/// HARD-FAILS unless the declared cell is on the committed grid and within the
+/// near-tie margin of its best cell. Reading the declaration rather than steering from
+/// the table is deliberate — the sweep must never silently overwrite what a human wrote
+/// down, and the authored value stays the reviewable one. It is also what keeps the
+/// graph acyclic: the sweep runs the committed-scope DAG to measure, so a stage that
+/// could not run until the table existed could never produce the table.
+///
+/// When the committed evidence is STALE (an ordinary build whose resolved corpus is
+/// not the one the table records), training still happens at the declared point; the
+/// returned record carries the evidence digest so the realization states it.
 ///
 /// The `term-table` strategy trains over the bundle's OWN canonical term rendering
 /// rather than over the declared corpus: the two strategies differ in WHAT is fed in,
@@ -234,6 +238,7 @@ fn train_declared_dictionary(
     def: &DictionaryDef,
     dataset: &purrdf::RdfDataset,
     resolved: &corpus::CorpusResolution,
+    evidence: &crate::medium::sweep::DictionaryEvidence,
     term_table: &mut Option<Vec<u8>>,
 ) -> Result<TrainedDictionary, gmeow_errors::Diag> {
     let term_table_sample = if def.strategy == DictionaryStrategy::TermTable {
@@ -258,13 +263,16 @@ fn train_declared_dictionary(
             corpus_sample_count: resolved.training.len() as u64,
             corpus_digest: resolved.digest.clone(),
         },
+        evidence_corpus_digest: evidence.evidence_corpus_digest.clone(),
     })
 }
 
-/// One trained dictionary and the measured facts about the run that produced it.
+/// One trained dictionary, the measured facts about the run that produced it, and the
+/// corpus identity its committed sweep evidence records.
 struct TrainedDictionary {
     bytes: Vec<u8>,
     measured: crate::medium::rdf::Measured,
+    evidence_corpus_digest: String,
 }
 
 /// The trained dictionary bytes this stage produced, read back off its product's
@@ -444,6 +452,7 @@ pub(crate) fn envelope_quads(
 
 /// The `medium-dictionaries` pipeline stage.
 pub struct MediumDictionariesStage {
+    profile: crate::run::BuildProfile,
     consumes: Vec<String>,
     carrier_consumes: Vec<String>,
     attaches_graphs: Vec<String>,
@@ -451,10 +460,13 @@ pub struct MediumDictionariesStage {
 }
 
 impl MediumDictionariesStage {
-    /// Construct the stage over the [`CONSUMES`] edge set.
+    /// Construct the stage over the [`CONSUMES`] edge set for an explicitly selected
+    /// build profile: a release refuses stale sweep evidence, an ordinary build records
+    /// it (see [`crate::medium::sweep::grade_dictionary`]).
     #[must_use]
-    pub fn new() -> Self {
+    pub fn new(profile: crate::run::BuildProfile) -> Self {
         Self {
+            profile,
             consumes: CONSUMES.iter().map(|s| (*s).to_string()).collect(),
             // Archive bytes live on the archive producer's representation-blob lane,
             // and declarations/named-graph samples live on the snapshot dataset. The
@@ -475,15 +487,12 @@ impl MediumDictionariesStage {
     }
 }
 
-impl Default for MediumDictionariesStage {
-    fn default() -> Self {
-        Self::new()
-    }
-}
-
 impl Stage for MediumDictionariesStage {
     fn id(&self) -> &str {
         STAGE_ID
+    }
+    fn output_family(&self) -> crate::node::OutputFamily {
+        crate::node::OutputFamily::Generated
     }
     fn consumes(&self) -> &[String] {
         &self.consumes
@@ -498,12 +507,12 @@ impl Stage for MediumDictionariesStage {
         &self.resources
     }
     fn impl_version(&self) -> &str {
-        // v4: as v3 (the declared dictionaries trained at the COMMITTED sweep winner
-        // from bench/medium-baseline.json and measured into
+        // v4: as v3 (the declared dictionaries trained at their declared point, graded against
+        // bench/medium-baseline.json, and measured into
         // gmeow:CompressionDictionaryRealization records), plus the declared held-out
         // split — an archive-backed corpus trains on the TRAINING SIDE only — and the
-        // resolved-corpus identity, recorded on the realization and gated against the
-        // committed table. Both change the shipped dictionary BYTES, so the key moves.
+        // resolved-corpus identity, recorded on the realization and compared with the
+        // identity the committed table records. Both change the shipped dictionary BYTES, so the key moves.
         // The inventory itself is DATA — it is read off the carrier's
         // gmeow:CompressionDictionary individuals — so growing or shrinking it does not
         // move this key; only the training/measurement code does.
@@ -517,7 +526,19 @@ impl Stage for MediumDictionariesStage {
         // same-wave overlap crossing 16 GiB; serialization changes, not output bytes.
         // v7: project exact dictionary byte hashes as BLAKE3-256 typed literals.
         // Internal blob addresses, training inputs and dictionary bytes are unchanged.
-        "medium-dictionaries.v7-typed-dictionary-byte-digests"
+        // v8: the core corpus honours its declared path exclusion; the declared point
+        // is graded against the committed grid within the near-tie margin; and the
+        // realization records the evidence corpus digest and its stale state. The
+        // build profile is part of the key because a release refuses the stale state
+        // an ordinary build records, so the two never share a cached product.
+        match self.profile {
+            crate::run::BuildProfile::Ordinary => {
+                "medium-dictionaries.v8-evidence-staleness.ordinary"
+            }
+            crate::run::BuildProfile::Release => {
+                "medium-dictionaries.v8-evidence-staleness.release"
+            }
+        }
     }
     fn run(&self, input: StageInput<'_>) -> Result<StageOutput, gmeow_errors::Diag> {
         let registry = registry_from_carrier(input.upstream)?;
@@ -538,41 +559,40 @@ impl Stage for MediumDictionariesStage {
             artifacts: &artifacts,
             upstream: input.upstream,
         };
-        // The COMMITTED sweep winners, read as a GATE rather than as a steering wheel:
-        // the bijection against the MEASURABLE registry, then the requirement that the
-        // authored training point of every measurable dictionary IS the committed
-        // argmin. A build can therefore only ever train at a point somebody measured,
-        // while the authored declaration stays the single reviewable source and is
-        // never silently overwritten by a sweep.
+        // The COMMITTED sweep evidence, read as a GATE rather than as a steering wheel:
+        // the bijection against the declared registry, and the requirement that every
+        // committed reading says its dictionary pays for itself. Both are hard failures
+        // on every build. (Checked HERE rather than at the emission: the emitter also
+        // serializes fixture-scale folds, where nothing of any size pays for itself,
+        // whereas the committed evidence is about the real deliverable.)
         let baseline = crate::medium::sweep::load(input.root)?;
         crate::medium::sweep::check_bijection(&registry, &baseline)?;
-        crate::medium::sweep::check_declared_matches_winners(&registry, &baseline)?;
-        // …and the evidence must say every shipped dictionary earns the in-band bytes
-        // a consumer downloads with it. Checked HERE rather than at the emission: the
-        // emitter also serializes fixture-scale folds, where nothing of any size pays
-        // for itself, whereas the committed evidence is about the real deliverable.
         crate::medium::sweep::check_dictionaries_pay_for_themselves(&baseline)?;
-        // …and, last, the three checks above must be grading THIS build's corpus. A
-        // gmeow:DictionaryCorpus is a SELECTOR re-resolved every build, so an archive
-        // that gained or lost a member moves the corpus without moving the table, and
-        // every verdict above would then be about a sweep nobody re-ran. Resolve the
-        // corpora once, HERE, and refuse when the recorded identity is not the
-        // resolved one — the same resolution the trainer then consumes, so the digest
-        // that was gated and the bytes that ship cannot come from two different reads.
+        // Then, per dictionary, grade the declaration against THIS build's resolution
+        // before its bytes reach the trainer: the declared cell must be on the committed
+        // grid and within the near-tie margin of its best cell, and the table's corpus
+        // identity is compared with the resolved one. A release refuses stale evidence;
+        // an ordinary build trains at the declared point, warns, and records both
+        // digests on the realization. The resolution graded is the one the trainer
+        // consumes, so the digest compared and the bytes that ship come from one read.
         let mut corpus_cache = corpus::CorpusAssemblyCache::default();
         let mut term_table: Option<Vec<u8>> = None;
         let mut trained: BTreeMap<String, TrainedDictionary> = BTreeMap::new();
         for def in registry.dictionaries().values() {
             let resolved =
                 corpus::assemble_with_cache(&registry, &def.corpus, &sources, &mut corpus_cache)?;
-            // Grade this exact resolution before its bytes reach the trainer. On a
-            // clean build the resolution is consumed immediately after training; on
-            // drift it is dropped before any dictionary based on stale evidence can
-            // be produced.
-            crate::medium::sweep::check_corpus_digest(&baseline, &def.id, &resolved)?;
+            let evidence =
+                crate::medium::sweep::grade_dictionary(def, &baseline, &resolved, self.profile)?;
+            evidence.report();
             trained.insert(
                 def.id.clone(),
-                train_declared_dictionary(def, carrier.dataset(), &resolved, &mut term_table)?,
+                train_declared_dictionary(
+                    def,
+                    carrier.dataset(),
+                    &resolved,
+                    &evidence,
+                    &mut term_table,
+                )?,
             );
         }
 
@@ -584,6 +604,7 @@ impl Stage for MediumDictionariesStage {
                 def,
                 &dictionary.bytes,
                 dictionary.measured.clone(),
+                dictionary.evidence_corpus_digest.clone(),
             )?);
             lane.insert(
                 format!("{DICT_ARTIFACT_PREFIX}{id}.zdict"),
@@ -620,10 +641,11 @@ impl Stage for MediumDictionariesStage {
         ] {
             collect_files(&root.join(prefix), &mut files);
         }
-        // The COMMITTED sweep winner table this stage TRAINS AT. Without it in the
-        // cache key, refreshing the winners (`make maint-medium-sweep`) would leave the
-        // previous build's dictionary bytes in place — the shipped bytes would then
-        // disagree with the committed evidence describing them.
+        // The COMMITTED sweep table this stage grades every declaration against and
+        // whose corpus identity every realization records. Without it in the cache key,
+        // refreshing it (`make maint-medium-sweep`) would leave the previous build's
+        // realizations in place — still reporting stale evidence the new table cured,
+        // or citing a table that no longer exists.
         files.push(root.join(crate::medium::sweep::MEDIUM_BASELINE_PATH));
         files.sort();
         files.dedup();

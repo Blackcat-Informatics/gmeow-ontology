@@ -156,6 +156,9 @@ impl Stage for GovernanceFloorsStage {
     fn id(&self) -> &str {
         "stage-export-governance-floors"
     }
+    fn output_family(&self) -> crate::node::OutputFamily {
+        crate::node::OutputFamily::Generated
+    }
     fn consumes(&self) -> &[String] {
         &[]
     }

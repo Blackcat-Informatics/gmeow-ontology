@@ -286,6 +286,9 @@ impl Stage for MathProducersStage {
     fn id(&self) -> &str {
         "stage-math-producers"
     }
+    fn output_family(&self) -> crate::node::OutputFamily {
+        crate::node::OutputFamily::Generated
+    }
     fn consumes(&self) -> &[String] {
         &self.consumes
     }

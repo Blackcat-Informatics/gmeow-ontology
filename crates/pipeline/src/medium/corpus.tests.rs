@@ -500,3 +500,81 @@ fn the_term_table_rendering_is_canonical_and_vocabulary_only() {
     sorted.sort_unstable();
     assert_eq!(lines, sorted);
 }
+
+const EXCLUDING_CORPUS: &str = "gmeow:corpusExcluding a gmeow:DictionaryCorpus ;\n\
+         \x20   gmeow:corpusSelectsBlobRep \"cells-archive\" ;\n\
+         \x20   gmeow:corpusSelectsPathPrefix \"slices/core/\" ;\n\
+         \x20   gmeow:corpusExcludesPath \"slices/core/gts/module.ttl\" .";
+
+/// An exclusion removes the file from the corpus, so editing it moves neither the
+/// samples nor the identity — while the same edit moves a corpus that does not exclude it.
+#[test]
+fn an_excluded_authored_file_is_not_a_member_and_does_not_move_the_digest() {
+    let harness = Harness::new();
+    let registry = registry_of(EXCLUDING_CORPUS).expect("registry");
+    let before = assemble(&registry, &gm("corpusExcluding"), &harness.sources())
+        .expect("the excluding corpus resolves");
+    assert!(
+        !before
+            .training
+            .iter()
+            .any(|s| s.starts_with(b"# an authored source file")),
+        "the excluded file must not be a sample"
+    );
+    let unexcluded_before = assemble(&registry, &gm("corpusCore"), &harness.sources())
+        .expect("the plain corpus resolves");
+
+    std::fs::write(
+        harness.root.path().join("slices/core/gts/module.ttl"),
+        b"# the same file after an edit\n",
+    )
+    .expect("edit the authored file");
+
+    let after = assemble(&registry, &gm("corpusExcluding"), &harness.sources())
+        .expect("the excluding corpus resolves again");
+    let unexcluded_after = assemble(&registry, &gm("corpusCore"), &harness.sources())
+        .expect("the plain corpus resolves again");
+    assert_eq!(before.digest, after.digest);
+    assert_ne!(
+        unexcluded_before.digest, unexcluded_after.digest,
+        "the contrast must be real: without the exclusion the edit moves the corpus"
+    );
+}
+
+/// An exclusion that no path-prefix family of the corpus strictly contains removes
+/// nothing, so it is refused rather than left to mislead a reader.
+#[test]
+fn an_exclusion_outside_every_path_prefix_family_is_refused() {
+    let diag = registry_of(
+        "gmeow:corpusStray a gmeow:DictionaryCorpus ;\n\
+         \x20   gmeow:corpusSelectsPathPrefix \"slices/core/\" ;\n\
+         \x20   gmeow:corpusExcludesPath \"slices/extensions/x/module.ttl\" .",
+    )
+    .expect_err("an exclusion that removes nothing must be rejected");
+    assert!(
+        diag.to_string().contains("corpusSelectsPathPrefix"),
+        "{diag}"
+    );
+}
+
+/// An exclusion whose path names nothing in the resolved corpus (a renamed or mistyped
+/// file) is refused at resolution, so the file it was written for cannot rejoin the
+/// corpus unnoticed.
+#[test]
+fn an_exclusion_that_removes_nothing_from_the_resolved_corpus_hard_fails() {
+    let harness = Harness::new();
+    let registry = registry_of(
+        "gmeow:corpusMistyped a gmeow:DictionaryCorpus ;\n\
+         \x20   gmeow:corpusSelectsBlobRep \"cells-archive\" ;\n\
+         \x20   gmeow:corpusSelectsPathPrefix \"slices/core/\" ;\n\
+         \x20   gmeow:corpusExcludesPath \"slices/core/gts/mdl.ttl\" .",
+    )
+    .expect("the declaration itself is well-formed");
+    let diag = assemble(&registry, &gm("corpusMistyped"), &harness.sources())
+        .expect_err("an exclusion matching no file must be refused");
+    assert!(
+        diag.to_string().contains("slices/core/gts/mdl.ttl")
+            && diag.to_string().contains("nothing at that path"),
+        "{diag}"
+    );
+}

@@ -37,8 +37,7 @@ pub const GRAPH_DOCUMENTATION: &str = "https://blackcatinformatics.ca/gmeow/grap
 /// consumer reads every slice's authoring briefs straight out of `gmeow.gts` (the
 /// shippable authoring deliverable). Excluded from the reasoned object-level EDB exactly
 /// like `graph/quality-assessment` (it asserts a self-description corpus, not object-level
-/// axioms — `gts_compose` folds only the default graph, so this named graph never pollutes
-/// the composed EDB).
+/// axioms — the pipeline's object-level EDB assembly never selects this named graph).
 pub const GRAPH_AUTHORING_BRIEFS: &str =
     "https://blackcatinformatics.ca/gmeow/graph/authoring-briefs";
 

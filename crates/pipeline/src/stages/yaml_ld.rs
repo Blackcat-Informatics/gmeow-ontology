@@ -111,6 +111,9 @@ impl Stage for YamlLdStage {
     fn id(&self) -> &str {
         "stage-export-yaml-ld"
     }
+    fn output_family(&self) -> crate::node::OutputFamily {
+        crate::node::OutputFamily::RuntimeProjection
+    }
     fn consumes(&self) -> &[String] {
         &self.consumes
     }

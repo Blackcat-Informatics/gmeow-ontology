@@ -576,6 +576,9 @@ impl Stage for StatementsStage {
     fn id(&self) -> &str {
         "stage-statements"
     }
+    fn output_family(&self) -> crate::node::OutputFamily {
+        crate::node::OutputFamily::Generated
+    }
     fn consumes(&self) -> &[String] {
         // Declared empty: the compiler reads dsl/statements/ from the root. The
         // dogfooded DAG wires it after source-load; the consumes-agreement check
@@ -597,7 +600,7 @@ impl Stage for StatementsStage {
     fn run(&self, input: StageInput<'_>) -> Result<StageOutput, gmeow_errors::Diag> {
         let (owl, rdf12) = compile_statements(input.root)?;
         // Carry the RDF 1.2 statement layer as the bundle's frozen dataset (the
-        // contribution `gts_compose` unions over the base graph). Parsing the `rdf12`
+        // snapshot and the object-level EDB place it in graph/statements). Parsing the `rdf12`
         // Turtle folds the statement layer — `rdf:reifies` triple-term objects become
         // reifier bindings and the reifiers' other triples become annotations — so
         // the side-tables ride in the dataset, not flattened into base quads. The

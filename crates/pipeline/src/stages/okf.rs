@@ -614,6 +614,9 @@ impl Stage for OkfStage {
     fn id(&self) -> &str {
         "stage-export-okf"
     }
+    fn output_family(&self) -> crate::node::OutputFamily {
+        crate::node::OutputFamily::RuntimeProjection
+    }
     fn consumes(&self) -> &[String] {
         &self.consumes
     }

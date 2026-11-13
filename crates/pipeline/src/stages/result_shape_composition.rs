@@ -406,6 +406,9 @@ impl Stage for ResultShapeCompositionStage {
     fn id(&self) -> &str {
         "stage-validate-result-shape-composition"
     }
+    fn output_family(&self) -> crate::node::OutputFamily {
+        crate::node::OutputFamily::Generated
+    }
     fn consumes(&self) -> &[String] {
         &[]
     }
