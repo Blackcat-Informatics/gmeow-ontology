@@ -659,3 +659,65 @@ fn the_carrier_refuses_an_empty_base_or_statement_layer() {
         "{empty_statements}"
     );
 }
+
+/// The sink reads its artifact-only dependencies as released products. Every internal
+/// artifact the reasoning archive folds must be in the sink's declared internal reads, or
+/// the release drops it and the terminal fails after the whole build. Released with the
+/// sink's declaration, the producers still supply the archive; released without it,
+/// they do not.
+#[test]
+fn the_sink_declares_every_internal_artifact_its_reasoning_archive_reads() {
+    use crate::node::Stage as _;
+
+    let sink = crate::stages::gts_sink::GtsSinkStage::new();
+    let declared = sink.internal_artifact_reads();
+    let mut artifacts: BTreeMap<&str, BTreeMap<String, Vec<u8>>> = BTreeMap::new();
+    for (producer, artifact) in super::REASONING_INTERNAL_READS {
+        artifacts
+            .entry(producer)
+            .or_default()
+            .insert(artifact.to_owned(), artifact.as_bytes().to_vec());
+    }
+    for path in [
+        crate::stages::reason::EXPLANATIONS_PATH,
+        crate::stages::reason::LEDGER_PATH,
+        crate::stages::reason::PERF_LEDGER_PATH,
+    ] {
+        artifacts
+            .entry("stage-reason")
+            .or_default()
+            .insert(path.to_owned(), path.as_bytes().to_vec());
+    }
+    let upstream = |keep: bool| -> BTreeMap<String, StageProduct> {
+        artifacts
+            .iter()
+            .map(|(producer, artifacts)| {
+                assert!(
+                    sink.consumes().iter().any(|edge| edge == producer)
+                        && !sink.carrier_consumes().iter().any(|edge| edge == producer),
+                    "{producer} is an artifact-only dependency of the sink"
+                );
+                let kept: std::collections::BTreeSet<&str> = declared
+                    .iter()
+                    .filter(|(owner, _)| keep && owner == producer)
+                    .map(|(_, artifact)| *artifact)
+                    .collect();
+                let product = StageProduct::from_artifacts(*producer, artifacts.clone())
+                    .expect("synthetic product")
+                    .into_carrier_released_keeping(&kept)
+                    .expect("release");
+                ((*producer).to_owned(), product)
+            })
+            .collect()
+    };
+
+    super::build_reasoning_blob(&upstream(true))
+        .expect("the declared internal reads survive release");
+    let Err(error) = super::build_reasoning_blob(&upstream(false)) else {
+        panic!("without the declaration the release drops the internal artifacts");
+    };
+    assert!(
+        error.to_string().contains("internal_artifact_reads"),
+        "{error}"
+    );
+}

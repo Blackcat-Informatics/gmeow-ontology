@@ -553,10 +553,11 @@ fn run_pipeline_products(root: &Path, jobs: usize) -> Result<BTreeMap<String, St
     let registry = crate::registry::default_registry();
     let bound = crate::loader::bind(&spec, &graph, &registry)?;
     let mut ctx = crate::scheduler::RunContext::open_uncached(root, jobs);
-    // This module reads exactly the snapshot carrier after the DAG. Keep that one
-    // intermediate while releasing every other dead carrier at its declared frontier.
+    // After the DAG this module reads two carriers: the snapshot dataset, and the
+    // stage-reason Reasoning handle the term entailments come from. Keep those two
+    // intermediates while releasing every other dead carrier at its declared frontier.
     ctx.carrier_retention = crate::scheduler::CarrierRetention::DropAfterLastConsumer;
-    ctx.retain_carriers(["stage-snapshot"]);
+    ctx.retain_carriers(["stage-reason", "stage-snapshot"]);
     let result = crate::scheduler::run(&graph, &bound, &mut ctx)?;
     Ok(result.products)
 }

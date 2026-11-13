@@ -2270,6 +2270,7 @@ struct CarrierStage {
     capabilities: Vec<String>,
     consumes: Vec<String>,
     carrier_consumes: Vec<String>,
+    internal_reads: Vec<(&'static str, &'static str)>,
     attaches: Vec<String>,
     watch: Arc<CarrierWatch>,
 }
@@ -2300,6 +2301,9 @@ impl Stage for CarrierStage {
     }
     fn carrier_consumes(&self) -> &[String] {
         &self.carrier_consumes
+    }
+    fn internal_artifact_reads(&self) -> &[(&'static str, &'static str)] {
+        &self.internal_reads
     }
     fn capabilities(&self) -> &[String] {
         &self.capabilities
@@ -2358,6 +2362,18 @@ impl Stage for CarrierStage {
                     up.artifact(&format!("generated/retention/{dep}.txt")),
                     Some(dep.as_bytes()),
                     "artifact-only upstream {dep} keeps its committed bytes"
+                );
+                let internal = format!("pipeline/{dep}.nq");
+                let declared = self
+                    .internal_reads
+                    .iter()
+                    .any(|(producer, artifact)| producer == dep && *artifact == internal);
+                assert_eq!(
+                    up.artifact(&internal).is_some(),
+                    declared,
+                    "artifact-only upstream {dep} keeps internal {internal} exactly when \
+                     stage {} declares the read",
+                    self.id
                 );
             }
         }
@@ -2425,6 +2441,7 @@ fn retention_registry(spec: &PipelineSpec, watch: &Arc<CarrierWatch>) -> StageRe
                 capabilities: s.capabilities.clone(),
                 consumes: s.consumes.clone(),
                 carrier_consumes: s.consumes.clone(),
+                internal_reads: Vec::new(),
                 attaches: s.attaches_graphs.clone(),
                 watch: Arc::clone(watch),
             }) as Arc<dyn Stage>,
@@ -2473,8 +2490,15 @@ fn last_consumer_level_is_total_over_consumed_stages_and_absent_for_outputs() {
     );
 }
 
-#[test]
-fn artifact_only_dependency_releases_at_the_producers_own_level() {
+/// A two-stage `source -> late` graph in which `late` reads `source` artifact-only and
+/// declares its internal reads, with the result of binding it.
+struct ArtifactOnlyPair {
+    graph: crate::graph::StageGraph,
+    bound: Result<Vec<Arc<dyn Stage>>, gmeow_errors::Diag>,
+    watch: Arc<CarrierWatch>,
+}
+
+fn artifact_only_pair(internal_reads: Vec<(&'static str, &'static str)>) -> ArtifactOnlyPair {
     let chain = retention_chain();
     let source = chain
         .stages
@@ -2505,12 +2529,32 @@ fn artifact_only_dependency_releases_at_the_producers_own_level() {
                 capabilities: stage.capabilities.clone(),
                 consumes: stage.consumes.clone(),
                 carrier_consumes: Vec::new(),
+                internal_reads: if stage.id == "late" {
+                    internal_reads.clone()
+                } else {
+                    Vec::new()
+                },
                 attaches: stage.attaches_graphs.clone(),
                 watch: Arc::clone(&watch),
             }),
         );
     }
-    let bound = bind(&spec, &graph, &registry).expect("artifact-only graph binds");
+    let bound = bind(&spec, &graph, &registry);
+    ArtifactOnlyPair {
+        graph,
+        bound,
+        watch,
+    }
+}
+
+#[test]
+fn artifact_only_dependency_releases_at_the_producers_own_level() {
+    let ArtifactOnlyPair {
+        graph,
+        bound,
+        watch,
+    } = artifact_only_pair(Vec::new());
+    let bound = bound.expect("artifact-only graph binds");
     let by_id: std::collections::BTreeMap<&str, &Arc<dyn Stage>> =
         bound.iter().map(|stage| (stage.id(), stage)).collect();
     assert_eq!(
@@ -2535,6 +2579,54 @@ fn artifact_only_dependency_releases_at_the_producers_own_level() {
         std::collections::BTreeSet::new(),
         "the source carrier is already gone when its artifact-only consumer runs"
     );
+}
+
+/// An artifact-only consumer receives a released product, so an internal artifact it
+/// reads reaches it only when it declares the read. The declared bytes survive both the
+/// release at dispatch and the producer's own release, under either retention policy;
+/// the undeclared case is the previous test, where the consumer asserts the artifact is
+/// absent.
+#[test]
+fn a_declared_internal_read_survives_every_release_of_its_producer() {
+    for retention in [
+        crate::scheduler::CarrierRetention::DropAfterLastConsumer,
+        crate::scheduler::CarrierRetention::RetainAll,
+    ] {
+        let ArtifactOnlyPair { graph, bound, .. } =
+            artifact_only_pair(vec![("source", "pipeline/source.nq")]);
+        let bound = bound.expect("a declared internal read binds");
+        let dir = tempfile::tempdir().unwrap();
+        let mut ctx = RunContext::open_uncached(dir.path(), 2);
+        ctx.carrier_retention = retention;
+        let result = run(&graph, &bound, &mut ctx).expect("the declared read is served");
+        if retention == crate::scheduler::CarrierRetention::DropAfterLastConsumer {
+            let source = &result.products["source"];
+            assert!(source.carrier_released);
+            assert!(source.artifact("pipeline/source.nq").is_some());
+        }
+    }
+}
+
+/// Binding refuses an internal-artifact declaration that names a committed artifact,
+/// or a producer that is not an artifact-only dependency.
+#[test]
+fn binding_refuses_a_misdeclared_internal_read() {
+    for (reads, expected) in [
+        (
+            vec![("source", "generated/retention/source.txt")],
+            "is a committed artifact",
+        ),
+        (
+            vec![("elsewhere", "pipeline/source.nq")],
+            "not one of its artifact-only dependencies",
+        ),
+    ] {
+        let Err(error) = artifact_only_pair(reads).bound else {
+            panic!("binding must refuse a misdeclared internal read");
+        };
+        let message = error.to_string();
+        assert!(message.contains(expected), "{message}");
+    }
 }
 
 #[test]

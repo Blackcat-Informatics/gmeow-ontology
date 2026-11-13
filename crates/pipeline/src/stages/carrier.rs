@@ -2973,6 +2973,46 @@ fn nquads_escape(value: &str) -> String {
     out
 }
 
+/// The internal artifacts the reasoning archive folds, as `(bundle member, producer,
+/// internal artifact)`, in archive order. The sink reads each through an artifact-only
+/// dependency, so it declares them ([`REASONING_INTERNAL_READS`]) and the scheduler keeps
+/// them through release.
+const REASONING_INTERNAL_MEMBERS: [(&str, &str, &str); 4] = [
+    (
+        gmeow_logic_compile::tptp::CANON_ADMISSION_MEMBER,
+        "stage-compile-logic",
+        gmeow_logic_compile::tptp::CANON_ADMISSION_CHANNEL,
+    ),
+    (
+        gmeow_logic::operator_rules::PREPARED_OPERATOR_MEMBER,
+        "stage-conformance",
+        gmeow_logic::operator_rules::PREPARED_OPERATOR_CHANNEL,
+    ),
+    (
+        gmeow_logic_compile::action_policy::BUNDLE_MEMBER,
+        "stage-conformance",
+        gmeow_logic_compile::action_policy::SOURCE_ARTIFACT,
+    ),
+    (
+        gmeow_bundle_view::bundle_blobs::REASONED_GATES_MEMBER,
+        "stage-verify-attestation",
+        gmeow_logic::verify::PREPARED_GATES_CHANNEL,
+    ),
+];
+
+/// The `(producer, internal artifact)` pairs the sink reads for the reasoning archive:
+/// [`REASONING_INTERNAL_MEMBERS`] without the member names.
+pub(crate) const REASONING_INTERNAL_READS: [(&str, &str); 4] = {
+    let mut reads = [("", ""); 4];
+    let mut index = 0;
+    while index < REASONING_INTERNAL_MEMBERS.len() {
+        let (_, producer, artifact) = REASONING_INTERNAL_MEMBERS[index];
+        reads[index] = (producer, artifact);
+        index += 1;
+    }
+    reads
+};
+
 /// Fold the native reasoner's explanation + DL/EL cross-check ledger REPORTS into a
 /// deterministic [`REP_REASONING`] archive blob. Sourced from
 /// `stage-reason`'s in-memory product (a `stage-snapshot` consumes-edge), so the fold
@@ -2991,41 +3031,28 @@ fn build_reasoning_blob(
             .map(<[u8]>::to_vec)
             .ok_or_else(|| stage_err(&format!("missing stage-reason artifact {path}")))
     };
+    let internal = |index: usize| -> Result<(String, Vec<u8>), gmeow_errors::Diag> {
+        let (member, producer, artifact) = REASONING_INTERNAL_MEMBERS[index];
+        let bytes = upstream
+            .get(producer)
+            .and_then(|product| product.artifact(artifact))
+            .ok_or_else(|| {
+                stage_err(&format!(
+                    "missing {producer} internal artifact {artifact} for the reasoning \
+                     archive; an artifact-only consumer receives it only when it declares \
+                     the read in internal_artifact_reads"
+                ))
+            })?;
+        Ok((member.to_owned(), bytes.to_vec()))
+    };
     // Bundle-relative keys under `reason/` — deliberately NOT `generated/logic/…`, so
     // a consumer never mistakes these bundle-consistent reports (over the reasoning result
     // whose projection rides the carrier) for the full-fold `generated/logic/` files
     // owned by `stage-export-logic`.
     let members = vec![
-        (
-            gmeow_logic_compile::tptp::CANON_ADMISSION_MEMBER.to_owned(),
-            upstream
-                .get("stage-compile-logic")
-                .and_then(|product| {
-                    product.artifact(gmeow_logic_compile::tptp::CANON_ADMISSION_CHANNEL)
-                })
-                .ok_or_else(|| stage_err("missing stage-compile-logic canon proof admission"))?
-                .to_vec(),
-        ),
-        (
-            gmeow_logic::operator_rules::PREPARED_OPERATOR_MEMBER.to_owned(),
-            upstream
-                .get("stage-conformance")
-                .and_then(|product| {
-                    product.artifact(gmeow_logic::operator_rules::PREPARED_OPERATOR_CHANNEL)
-                })
-                .ok_or_else(|| stage_err("missing stage-conformance prepared operator rules"))?
-                .to_vec(),
-        ),
-        (
-            gmeow_logic_compile::action_policy::BUNDLE_MEMBER.to_owned(),
-            upstream
-                .get("stage-conformance")
-                .and_then(|product| {
-                    product.artifact(gmeow_logic_compile::action_policy::SOURCE_ARTIFACT)
-                })
-                .ok_or_else(|| stage_err("missing stage-conformance prepared MCP policy"))?
-                .to_vec(),
-        ),
+        internal(0)?,
+        internal(1)?,
+        internal(2)?,
         (
             "reason/reasoning-explanations.rdf12.ttl".to_string(),
             get(crate::stages::reason::EXPLANATIONS_PATH)?,
@@ -3038,14 +3065,7 @@ fn build_reasoning_blob(
             "reason/perf-ledger.ttl".to_string(),
             get(crate::stages::reason::PERF_LEDGER_PATH)?,
         ),
-        (
-            gmeow_bundle_view::bundle_blobs::REASONED_GATES_MEMBER.to_owned(),
-            upstream
-                .get("stage-verify-attestation")
-                .and_then(|product| product.artifact(gmeow_logic::verify::PREPARED_GATES_CHANNEL))
-                .ok_or_else(|| stage_err("missing stage-verify-attestation prepared native laws"))?
-                .to_vec(),
-        ),
+        internal(3)?,
     ];
     archive_blob(REP_REASONING, &members)
 }

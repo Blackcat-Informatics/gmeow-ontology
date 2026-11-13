@@ -268,7 +268,20 @@ impl StageProduct {
     /// Propagates [`release_carrier`](crate::bundle::release_carrier)'s hard failure on
     /// a corrupt byte-artifact lane.
     pub fn into_carrier_released(self) -> Result<Self, gmeow_errors::Diag> {
-        let bundle = crate::bundle::release_carrier(&self.bundle)?;
+        self.into_carrier_released_keeping(&std::collections::BTreeSet::new())
+    }
+
+    /// [`Self::into_carrier_released`], keeping the internal artifacts named in
+    /// `kept_internal` that an artifact-only consumer still reads
+    /// ([`Stage::internal_artifact_reads`]).
+    ///
+    /// # Errors
+    /// As [`Self::into_carrier_released`].
+    pub fn into_carrier_released_keeping(
+        self,
+        kept_internal: &std::collections::BTreeSet<&str>,
+    ) -> Result<Self, gmeow_errors::Diag> {
+        let bundle = crate::bundle::release_carrier(&self.bundle, kept_internal)?;
         Ok(Self {
             stage_id: self.stage_id,
             digest: self.digest,
@@ -587,6 +600,18 @@ pub trait Stage: Send + Sync {
     /// hard-fails at the first carrier read through [`StageProduct::carrier_released`].
     fn carrier_consumes(&self) -> &[String] {
         self.consumes()
+    }
+    /// The internal `pipeline/` artifacts this stage reads through artifact-only
+    /// dependencies, as `(producer, artifact)` pairs.
+    ///
+    /// Releasing a carrier drops a product's internal artifacts, and an artifact-only
+    /// consumer always receives a released product. A stage that reads an internal
+    /// artifact from a dependency outside [`Self::carrier_consumes`] names it here; the
+    /// scheduler keeps exactly those bytes through every release of that producer. The
+    /// loader hard-fails a pair whose producer is not an artifact-only dependency or whose
+    /// artifact is not internal.
+    fn internal_artifact_reads(&self) -> &[(&'static str, &'static str)] {
+        &[]
     }
     /// The capability IRIs (`gmeow:hasCapability`) this stage holds, sorted. The
     /// executor reads these declarations in place of a kind enum: [`SINK_CAPABILITY`]
