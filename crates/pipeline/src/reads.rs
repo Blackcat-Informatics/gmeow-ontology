@@ -35,6 +35,10 @@ pub enum Read {
     Artifact(String),
     /// The whole byte-artifact lane.
     AllArtifacts,
+    /// No lane: the edge orders the two stages and folds the producer's identity into
+    /// the consumer's cache key. Declared explicitly, so an edge that carries no data is
+    /// a visible decision and never an unread dependency.
+    Identity,
 }
 
 impl Read {
@@ -54,6 +58,7 @@ impl Read {
         match (self, other) {
             (Self::Carrier, access) => access.needs_carrier(),
             (Self::AllArtifacts, Self::Artifact(_) | Self::AllArtifacts) => true,
+            (Self::Identity, _) | (_, Self::Identity) => false,
             (declared, access) => declared == access,
         }
     }
@@ -66,6 +71,7 @@ impl Read {
             Self::Carrier => "gmeow:flowReadsLane gmeow:laneCarrier".to_owned(),
             Self::Dataset => "gmeow:flowReadsLane gmeow:laneDataset".to_owned(),
             Self::AllArtifacts => "gmeow:flowReadsLane gmeow:laneAllArtifacts".to_owned(),
+            Self::Identity => "gmeow:flowReadsLane gmeow:laneIdentity".to_owned(),
             Self::Handle(key) => format!("gmeow:flowReadsHandle <{key}>"),
             Self::BlobRep(rep) => format!("gmeow:flowReadsBlobRep {rep:?}"),
             Self::Artifact(path) => format!("gmeow:flowReadsArtifact {path:?}"),
@@ -79,6 +85,7 @@ impl Read {
             "laneCarrier" => Some(Self::Carrier),
             "laneDataset" => Some(Self::Dataset),
             "laneAllArtifacts" => Some(Self::AllArtifacts),
+            "laneIdentity" => Some(Self::Identity),
             _ => None,
         }
     }
@@ -90,6 +97,7 @@ impl std::fmt::Display for Read {
             Self::Carrier => f.write_str("the whole carrier"),
             Self::Dataset => f.write_str("the dataset"),
             Self::AllArtifacts => f.write_str("every byte artifact"),
+            Self::Identity => f.write_str("its identity only"),
             Self::Handle(key) => write!(f, "handle <{key}>"),
             Self::BlobRep(rep) => write!(f, "representation blob {rep:?}"),
             Self::Artifact(path) => write!(f, "artifact {path:?}"),
@@ -196,12 +204,14 @@ impl EdgeAccess {
             .collect()
     }
 
-    /// The declared reads no access exercised.
+    /// The declared reads no access exercised. An identity-only declaration reads no
+    /// lane, so there is nothing for an access to exercise.
     #[must_use]
     pub fn unread(&self) -> ReadSet {
         let observed = self.observed();
         self.declared
             .iter()
+            .filter(|declared| **declared != Read::Identity)
             .filter(|declared| !observed.iter().any(|access| declared.covers(access)))
             .cloned()
             .collect()
@@ -257,13 +267,41 @@ pub fn observed_turtle(edges: &[Arc<EdgeAccess>]) -> String {
             edge.producer,
             edge.consumer
         ));
-        for access in edge.observed() {
+        let observed = edge.observed();
+        if observed.is_empty() {
+            out.push_str(" ;\n    ");
+            out.push_str(&Read::Identity.turtle());
+        }
+        for access in observed {
             out.push_str(" ;\n    ");
             out.push_str(&access.turtle());
         }
         out.push_str(" .\n\n");
     }
     out
+}
+
+/// Run the committed-scope pipeline once under [`ReadPolicy::Record`] and return the
+/// Turtle that declares exactly what each stage body read through each edge.
+///
+/// This is how the read sets of the pipeline description are authored and checked
+/// against a tree: nothing is refused, every consumed product is handed over whole, and
+/// the output is the declaration the stage bodies need. A stage served from the cache
+/// records nothing, so the run uses no stage cache. It writes no output of the pipeline.
+///
+/// # Errors
+/// Any failure of the pipeline run itself.
+pub fn record_run(root: &std::path::Path, jobs: usize) -> Result<String, gmeow_errors::Diag> {
+    let spec =
+        crate::run::spec_for_scope(crate::full_spec(), crate::run::RunOutputScope::Committed)?;
+    let graph = spec.validate()?;
+    let bound = crate::bind(&spec, &graph, &crate::default_registry())?;
+    let mut ctx = crate::RunContext::open_uncached(root, jobs);
+    ctx.read_policy = ReadPolicy::Record;
+    let result = crate::scheduler::run(&graph, &bound, &mut ctx)?;
+    let mut edges = result.recorded_reads;
+    edges.sort_by(|a, b| (a.consumer(), a.producer()).cmp(&(b.consumer(), b.producer())));
+    Ok(observed_turtle(&edges))
 }
 
 #[cfg(test)]
