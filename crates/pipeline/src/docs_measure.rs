@@ -29,15 +29,17 @@
 //! Obtaining a REAL without-docs `gmeow.gts` carrier (Design C) and the REAL
 //! per-format upstream artifacts (the compiled axioms, the JSON Schema /
 //! OpenAPI pair, the Pydantic model package, …) requires the full pipeline
-//! DAG's non-docs stages to have actually run — the executor runs the selected
-//! DAG in one scheduler pass, and its only stage selection is by output scope
-//! (`crate::run::spec_for_scope`), which drops runtime-only exporters but keeps
-//! every stage the carrier needs, so no cheaper partial run exists for this
-//! purpose. `crate::stages::carrier::serialize_carrier_snapshot` fails closed
-//! on any missing upstream artifact rather than falling back to a stale disk
-//! read (the "stale-disk-fold" class every stage in this crate explicitly
-//! refuses to reintroduce). So this module runs the complete DAG
-//! (`crate::run::full_spec`) once, entirely in memory (`crate::scheduler::run`
+//! DAG's non-docs stages to have actually run.
+//! `crate::stages::carrier::serialize_carrier_snapshot` fails closed on any
+//! missing upstream artifact rather than falling back to a stale disk read
+//! (the "stale-disk-fold" class every stage in this crate explicitly refuses
+//! to reintroduce). Every product this module reads (the snapshot carrier and
+//! the term-manifest, compile-logic, reason, docs-render, JSON-Schema,
+//! references and Pydantic products) belongs to the committed output scope,
+//! and it renders the OKF and YAML-LD measurements itself from the carrier, so
+//! it runs that scope (`crate::run::spec_for_scope` with
+//! `RunOutputScope::Committed`) rather than the whole DAG with its runtime-only
+//! exporters. It runs it once, entirely in memory (`crate::scheduler::run`
 //! with an uncached [`crate::scheduler::RunContext`]),
 //! and reads every artifact it needs off the resulting in-memory
 //! [`crate::node::StageProduct`] map — never off disk, never re-derived by
@@ -155,7 +157,7 @@ pub fn verify_docs_measurement_determinism(root: &Path) -> Result<(), Diag> {
 /// Render every shipped documentation / serialization format through the real
 /// production renderers, frame each through the mandated GTS profile, and
 /// total the three external-distribution designs. See the module doc comment for
-/// why this runs the full pipeline DAG once, in memory, with no disk writes.
+/// why this runs the committed-scope DAG once, in memory, with no disk writes.
 pub fn measure_docs_designs(root: &Path) -> Result<DocsMeasurements, Diag> {
     let jobs = std::thread::available_parallelism()
         .map(std::num::NonZeroUsize::get)
@@ -538,12 +540,15 @@ fn yaml_ld_tree(carrier: &RdfDataset) -> Result<BTreeMap<String, Vec<u8>>, Diag>
     ]))
 }
 
-/// Run the full pipeline DAG once, entirely in memory (no per-stage cache
-/// I/O, no disk writes — mirrors `crate::run::run_full_scoped_with_progress`'s
-/// DAG-execution half exactly, stopping short of its post-run disk
-/// reconciliation loop, which this module never needs or wants to trigger).
+/// Run the committed-output-scope DAG once, entirely in memory. It selects
+/// stages the way `crate::run::run_full_scoped_with_progress` does for the
+/// committed scope, but opens an uncached context (no per-stage cache I/O) and
+/// performs no post-run disk reconciliation, so it never writes to the tree.
 fn run_pipeline_products(root: &Path, jobs: usize) -> Result<BTreeMap<String, StageProduct>, Diag> {
-    let spec = crate::run::full_spec();
+    let spec = crate::run::spec_for_scope(
+        crate::run::full_spec(),
+        crate::run::RunOutputScope::Committed,
+    )?;
     let graph = spec.validate()?;
     let registry = crate::registry::default_registry();
     let bound = crate::loader::bind(&spec, &graph, &registry)?;

@@ -695,7 +695,11 @@ fn result_content_id(payload: &CoherencePayload) -> String {
 /// A blank node renders as its scope-qualified label ([`purrdf::BlankScope::qualify_label`]),
 /// which is injective over `(label, scope)`: two distinct blanks that share a raw label
 /// in different scopes (for example, from different parts of a composed dataset) never
-/// render as one node. A default-scope label renders verbatim.
+/// render as one node. A default-scope label renders verbatim. The digest therefore
+/// depends on the dataset's blank labels and scope numbering, not only on its graph
+/// structure: the same graph read back from GTS, whose import gives each segment its own
+/// scope, digests differently. Compare these hashes only between datasets with the same
+/// labelling, never between a producer's dataset and its read-back bundle.
 /// The resulting Vec is sorted so re-runs are byte-identical. The default graph (no
 /// graph name) is keyed under an empty string.
 ///
