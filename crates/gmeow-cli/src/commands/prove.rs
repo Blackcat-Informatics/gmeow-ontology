@@ -1030,7 +1030,7 @@ fn owl_dl_leg(
     canonical: &RdfDataset,
     step_cap: Option<u64>,
 ) -> Result<(OwlDlLeg, Option<Vec<u8>>), Diag> {
-    let mut reasoner = match open_owl_view(canonical, step_cap) {
+    let reasoner = match open_owl_view(canonical, step_cap) {
         Ok((_view, reasoner)) => reasoner,
         Err(OwlOpenFailure::Limit(diagnostic)) => return Err(diagnostic),
         Err(OwlOpenFailure::NotBuilt(code, error)) => return Ok((owl_refusal(code, &error), None)),
