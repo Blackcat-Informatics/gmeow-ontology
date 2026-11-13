@@ -562,67 +562,6 @@ pub fn bind(
             ));
         }
 
-        // `carrier_consumes()` refines an existing logical dependency into a live
-        // carrier-lane read; it never creates a second edge. A duplicate or a producer
-        // absent from the RDF/Rust-agreed consumes set would make carrier release depend
-        // on an unauthored graph, so binding rejects it before scheduling.
-        let mut carrier_seen = std::collections::BTreeSet::new();
-        for producer in stage.carrier_consumes() {
-            if !carrier_seen.insert(producer.as_str()) {
-                return Err(gmeow_errors::Diag::of_kind(
-                    crate::error::InvalidDeclaration {
-                        message: format!(
-                            "stage {} declares duplicate carrier dependency {producer}",
-                            s.id
-                        ),
-                    },
-                ));
-            }
-            if rust.binary_search(producer).is_err() {
-                return Err(gmeow_errors::Diag::of_kind(
-                    crate::error::InvalidDeclaration {
-                        message: format!(
-                            "stage {} carrier dependency {producer} is not present in its \
-                             gmeow:dataflowConsumes set",
-                            s.id
-                        ),
-                    },
-                ));
-            }
-        }
-
-        // `internal_artifact_reads()` names internal artifacts a stage reads through an
-        // artifact-only edge, so the scheduler keeps them through release. A pair naming a
-        // producer outside that edge set, or a committed artifact, would keep bytes no read
-        // needs or hide a carrier read behind an artifact edge, so binding rejects it.
-        for (producer, artifact) in stage.internal_artifact_reads() {
-            let artifact_only =
-                rust.iter().any(|p| p == producer) && !carrier_seen.contains(producer);
-            if !artifact_only {
-                return Err(gmeow_errors::Diag::of_kind(
-                    crate::error::InvalidDeclaration {
-                        message: format!(
-                            "stage {} declares an internal artifact read {artifact} from \
-                             {producer}, which is not one of its artifact-only dependencies",
-                            s.id
-                        ),
-                    },
-                ));
-            }
-            if !artifact.starts_with(crate::bundle::INTERNAL_ARTIFACT_PREFIX) {
-                return Err(gmeow_errors::Diag::of_kind(
-                    crate::error::InvalidDeclaration {
-                        message: format!(
-                            "stage {} declares {artifact} from {producer} as an internal \
-                             artifact read, but it is a committed artifact, which survives \
-                             release without a declaration",
-                            s.id
-                        ),
-                    },
-                ));
-            }
-        }
-
         // Resource agreement (both sides sorted+deduped): the executable twin must
         // declare exactly the shared resources the RDF does, or the scheduler's
         // serialization would diverge from the authored model.
@@ -724,9 +663,112 @@ pub fn bind(
             ));
         }
 
-        bound.push(stage);
+        bound.push(Arc::new(BoundStage::new(s.clone(), stage)));
     }
     Ok(bound)
+}
+
+/// A stage as the scheduler runs it: the declarations of the pipeline description and
+/// the implementation its `gmeow:stageImpl` names.
+///
+/// Every declaration the scheduler reads comes from the description. The implementation
+/// supplies only what a description cannot hold: its body, its implementation version,
+/// the source files it reads from the working tree, and its output family. What the
+/// description declares about reads also decides retention: which consumed products
+/// keep a live carrier for this stage, which internal artifacts survive a release for
+/// it, and whether it reads the source-span table.
+struct BoundStage {
+    spec: StageSpec,
+    body: Arc<dyn Stage>,
+    carrier_consumes: Vec<String>,
+}
+
+impl BoundStage {
+    fn new(spec: StageSpec, body: Arc<dyn Stage>) -> Self {
+        let carrier_consumes = spec
+            .consumes
+            .iter()
+            .filter(|producer| {
+                spec.reads
+                    .get(*producer)
+                    .is_some_and(crate::reads::needs_carrier)
+            })
+            .cloned()
+            .collect();
+        Self {
+            spec,
+            body,
+            carrier_consumes,
+        }
+    }
+}
+
+impl Stage for BoundStage {
+    fn id(&self) -> &str {
+        &self.spec.id
+    }
+    fn output_family(&self) -> crate::node::OutputFamily {
+        self.body.output_family()
+    }
+    fn consumes(&self) -> &[String] {
+        &self.spec.consumes
+    }
+    fn carrier_consumes(&self) -> &[String] {
+        &self.carrier_consumes
+    }
+    fn internal_artifact_reads(&self) -> Vec<(String, String)> {
+        self.spec
+            .reads
+            .iter()
+            .flat_map(|(producer, reads)| {
+                crate::reads::internal_artifacts(reads)
+                    .map(|artifact| (producer.clone(), artifact.to_owned()))
+            })
+            .collect()
+    }
+    fn reads(&self) -> BTreeMap<String, ReadSet> {
+        self.spec.reads.clone()
+    }
+    fn capabilities(&self) -> &[String] {
+        &self.spec.capabilities
+    }
+    fn resources(&self) -> &[String] {
+        &self.spec.resources
+    }
+    fn stability(&self) -> StageStability {
+        self.spec.stability
+    }
+    fn cache_policy(&self) -> CachePolicy {
+        self.spec.cache_disposition
+    }
+    fn consumed_entities(&self) -> &[(String, Vec<String>)] {
+        &self.spec.dataflow_entities
+    }
+    fn consumes_span_table(&self) -> bool {
+        let span_table = Read::BlobRep(crate::stages::carrier::REP_SPAN_TABLE.to_owned());
+        self.spec
+            .reads
+            .values()
+            .any(|reads| reads.contains(&span_table))
+    }
+    fn attaches_graphs(&self) -> &[String] {
+        &self.spec.attaches_graphs
+    }
+    fn attaches_blob_reps(&self) -> &[String] {
+        &self.spec.attaches_blob_reps
+    }
+    fn impl_version(&self) -> &str {
+        self.body.impl_version()
+    }
+    fn input_files(&self, root: &std::path::Path) -> gmeow_errors::Result<Vec<std::path::PathBuf>> {
+        self.body.input_files(root)
+    }
+    fn run(
+        &self,
+        input: crate::node::StageInput<'_>,
+    ) -> gmeow_errors::Result<crate::node::StageOutput> {
+        self.body.run(input)
+    }
 }
 
 // ── RDF helpers (mirror gmeow-slice::catalog idioms) ─────────────────────────

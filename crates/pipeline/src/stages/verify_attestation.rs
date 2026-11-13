@@ -139,7 +139,6 @@ impl Stage for VerifyAttestationStage {
             stage_err("missing stage-reason product for the typed ReasoningResult")
         })?;
         let entry = reason_product
-            .bundle()
             .handle(gmeow_logic::result_rdf::GRAPH_REASONING)
             .ok_or_else(|| stage_err("stage-reason product carries no Reasoning handle"))?;
         let PipelineHandle::Reasoning(reasoning) = &entry.payload else {

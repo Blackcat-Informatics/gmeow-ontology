@@ -442,7 +442,7 @@ impl StageReceipt {
         product_blob_bytes: u64,
     ) -> Result<Self, gmeow_errors::Diag> {
         let action_key = stage_key(&context);
-        let bundle = product.bundle();
+        let bundle = product.raw_bundle();
 
         let mut graph_names = selection.graphs.clone();
         graph_names.sort();
@@ -721,7 +721,7 @@ pub(crate) fn provenance_keys(
     product: &StageProduct,
 ) -> Result<BTreeSet<String>, gmeow_errors::Diag> {
     let dataset = product.dataset();
-    let provenance = product.bundle().provenance().public_projection();
+    let provenance = product.raw_bundle().provenance().public_projection();
     // Empty occurrence lanes need no quad lookup, even on a large carrier.
     if provenance.is_empty() {
         return Ok(BTreeSet::new());
@@ -759,7 +759,7 @@ pub(crate) fn provenance_commitment(
 pub(crate) fn content_store_keys(
     product: &StageProduct,
 ) -> Result<BTreeSet<String>, gmeow_errors::Diag> {
-    let bundle = product.bundle();
+    let bundle = product.raw_bundle();
     bundle.blobs().verify_all().map_err(|error| {
         gmeow_errors::Diag::of_kind(crate::error::StageFailed {
             cause: None,
@@ -847,7 +847,7 @@ pub(crate) fn content_store_commitment(
         .map(|digest_hex| {
             let digest = ContentDigest::from_hex(&digest_hex).expect("validated digest");
             let len = product
-                .bundle()
+                .raw_bundle()
                 .blobs()
                 .get(&digest)
                 .map(Vec::len)
@@ -1265,7 +1265,7 @@ impl CachedBundle {
             }))
         }
 
-        let bundle = product.bundle();
+        let bundle = product.raw_bundle();
         let graphs = bundle
             .dataset()
             .owned_named_graphs()
@@ -1362,7 +1362,7 @@ impl CachedBundle {
         selection: &ReceiptOutputSelection,
     ) -> Result<Self, gmeow_errors::Diag> {
         Self::validate_bounded_contribution(product, selection)?;
-        let bundle = product.bundle();
+        let bundle = product.raw_bundle();
 
         // dataset → deterministic packed IR. This retains the complete RDF 1.2
         // value and its query indexes without serializing through RDF text.
@@ -1616,8 +1616,8 @@ impl<Bytes: AsRef<[u8]> + Into<Vec<u8>>> CachedBundle<Bytes> {
                         )))
                     })
             };
-            if !product.bundle().handles().is_empty()
-                || carrier_digest(product.bundle())? != carrier_digest(&empty)?
+            if !product.raw_bundle().handles().is_empty()
+                || carrier_digest(product.raw_bundle())? != carrier_digest(&empty)?
             {
                 return Err(gmeow_errors::Diag::of_kind(crate::error::CacheMismatch {
                     expected: self.digest,

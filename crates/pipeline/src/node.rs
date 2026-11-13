@@ -327,6 +327,17 @@ impl StageProduct {
         }
     }
 
+    /// Borrow the carrier without recording a read: for the scheduler, the cache and the
+    /// post-run reconcile, which handle a product without being its consumer.
+    pub(crate) fn raw_bundle(&self) -> &Arc<PipelineBundle<PipelineHandle>> {
+        &self.bundle
+    }
+
+    /// The dataflow edge this view was handed out under, if it is a consumer view.
+    pub(crate) fn edge_access(&self) -> Option<&Arc<crate::reads::EdgeAccess>> {
+        self.access.as_ref()
+    }
+
     /// Record one lane access on a consumer view. The owning view records nothing.
     fn record(&self, access: crate::reads::Read) {
         if let Some(edge) = &self.access {
@@ -658,8 +669,14 @@ pub trait Stage: Send + Sync {
     /// scheduler keeps exactly those bytes through every release of that producer. The
     /// loader hard-fails a pair whose producer is not an artifact-only dependency or whose
     /// artifact is not internal.
-    fn internal_artifact_reads(&self) -> &[(&'static str, &'static str)] {
-        &[]
+    fn internal_artifact_reads(&self) -> Vec<(String, String)> {
+        Vec::new()
+    }
+    /// The reads this stage's dataflow edges declare, by producer. A stage bound from
+    /// the pipeline description answers with the description's declarations; the default
+    /// declares nothing, so any lane access is undeclared.
+    fn reads(&self) -> BTreeMap<String, crate::reads::ReadSet> {
+        BTreeMap::new()
     }
     /// The capability IRIs (`gmeow:hasCapability`) this stage holds, sorted. The
     /// executor reads these declarations in place of a kind enum: [`SINK_CAPABILITY`]
