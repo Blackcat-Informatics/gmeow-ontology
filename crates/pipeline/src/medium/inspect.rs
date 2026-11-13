@@ -266,12 +266,14 @@ pub enum PrimingBundle<'a> {
 /// on a bundle they did not build.
 ///
 /// # Errors
-/// The artifact cannot be folded or carries no readable medium registry, or its
-/// dictionary evidence is stale or absent.
-pub fn require_current_dictionary_evidence(bytes: &[u8]) -> Result<(), gmeow_errors::Diag> {
+/// The artifact cannot be folded, or its dictionary evidence is stale; under
+/// [`super::rdf::EvidenceRequirement::RequireRecords`] also absent or unreadable.
+pub fn require_current_dictionary_evidence(
+    bytes: &[u8],
+    requirement: super::rdf::EvidenceRequirement,
+) -> Result<(), gmeow_errors::Diag> {
     let dataset = audit::fold_leniently(bytes)?;
-    let registry = MediumRegistry::from_dataset(dataset.as_ref())?;
-    super::rdf::require_current_evidence(&registry, dataset.as_ref())
+    super::rdf::require_current_evidence(dataset.as_ref(), requirement)
 }
 
 /// The whole medium inventory of an artifact, read from that artifact ALONE.

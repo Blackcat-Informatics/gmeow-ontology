@@ -1909,6 +1909,11 @@ fn every_release_entry_point_selects_the_release_profile() {
         sign.contains("compile-gts --profile release --sign-key"),
         "release-sign-gts rebuilds the bundle it signs, so it must name the release profile: {sign}"
     );
+    let verify = target_recipe(&source, "verify-release");
+    assert!(
+        verify.contains("verify-release-bundle --require-dictionary-evidence"),
+        "the pre-publish verification must use the strict evidence form: {verify}"
+    );
     let publish = target_recipe(&source, "release-publish");
     assert!(
         publish.contains("check-sync SYNC_MODE=update SYNC_OUTPUTS=docs SYNC_PROFILE=release"),

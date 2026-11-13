@@ -232,8 +232,7 @@ fn realized(id: &str, strategy: DictionaryStrategy, evidence: String) -> Diction
 }
 
 #[test]
-fn a_release_source_with_stale_or_absent_dictionary_evidence_is_refused_from_its_own_records() {
-    let registry = registry();
+fn the_strict_form_refuses_stale_and_absent_dictionary_evidence_from_the_bundles_own_records() {
     let current = || {
         vec![
             realized(
@@ -248,7 +247,8 @@ fn a_release_source_with_stale_or_absent_dictionary_evidence_is_refused_from_its
             ),
         ]
     };
-    require_current_evidence(&registry, bundle_dataset(&current()).as_ref())
+    let strict = EvidenceRequirement::RequireRecords;
+    require_current_evidence(bundle_dataset(&current()).as_ref(), strict)
         .expect("every declared dictionary is realized with current evidence");
 
     let recorded = blake3_digest(b"the corpus the table measured");
@@ -258,28 +258,51 @@ fn a_release_source_with_stale_or_absent_dictionary_evidence_is_refused_from_its
         DictionaryStrategy::Trained,
         recorded.clone(),
     );
-    let diag = require_current_evidence(&registry, bundle_dataset(&stale).as_ref())
+    let diag = require_current_evidence(bundle_dataset(&stale).as_ref(), strict)
         .expect_err("stale evidence must be refused");
     let text = diag.to_string();
+    let hex = |digest: &str| digest.trim_start_matches("blake3:").to_string();
     assert!(
         text.contains("gmeow-core-v1")
-            && text.contains(&recorded)
-            && text.contains(&current_evidence())
+            && text.contains(&hex(&recorded))
+            && text.contains(&hex(&current_evidence()))
             && !text.contains("gmeow-terms-v1"),
         "the message names the stale dictionary and both digests: {text}"
     );
     assert_eq!(diag.code(), crate::error::MediumCorpusDrift::register());
 
     let partial = current().into_iter().take(1).collect::<Vec<_>>();
-    let missing = require_current_evidence(&registry, bundle_dataset(&partial).as_ref())
+    let missing = require_current_evidence(bundle_dataset(&partial).as_ref(), strict)
         .expect_err("a declared dictionary with no realization must be refused");
     assert!(missing.to_string().contains("gmeow-terms-v1"), "{missing}");
 
-    let none = require_current_evidence(&registry, bundle_dataset(&[]).as_ref())
+    let none = require_current_evidence(bundle_dataset(&[]).as_ref(), strict)
         .expect_err("a bundle with no realization records must be refused");
     assert!(
         none.to_string()
             .contains("no gmeow:CompressionDictionaryRealization"),
         "{none}"
     );
+}
+
+/// An authentic release that predates the evidence records carries none; the default
+/// form must not mistake that for stale, while a positively stale record is refused in
+/// both forms.
+#[test]
+fn the_default_form_passes_a_bundle_with_no_records_and_still_refuses_a_stale_one() {
+    let default = EvidenceRequirement::RefuseStale;
+    require_current_evidence(bundle_dataset(&[]).as_ref(), default)
+        .expect("a bundle with no dictionary evidence records is not stale");
+
+    let recorded = blake3_digest(b"the corpus the table measured");
+    let stale = vec![realized(
+        "gmeow-core-v1",
+        DictionaryStrategy::Trained,
+        recorded.clone(),
+    )];
+    for requirement in [default, EvidenceRequirement::RequireRecords] {
+        let diag = require_current_evidence(bundle_dataset(&stale).as_ref(), requirement)
+            .expect_err("a positively stale record is refused in both forms");
+        assert!(diag.to_string().contains("gmeow-core-v1"), "{diag}");
+    }
 }

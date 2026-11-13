@@ -253,6 +253,39 @@ fn sign_snapshot(
     .map_err(|e| fail(format!("signing failed: {e}")))
 }
 
+/// Admit a release source: its ingestion receipt must verify, and its own recorded
+/// dictionary evidence must be current and present. Nothing is signed from a source this
+/// refuses.
+fn admit_release_source<'a>(
+    source: &Path,
+    snapshot: &'a [u8],
+) -> Result<gmeow_pipeline::stages::release::ReleaseSource<'a>, String> {
+    let receipt_path = gmeow_gts_profile::ingestion_receipt_path(source);
+    let admitted = std::fs::read(&receipt_path)
+        .map_err(|e| e.to_string())
+        .and_then(|receipt| {
+            gmeow_pipeline::stages::release::ReleaseSource::admit(snapshot, &receipt)
+                .map_err(|e| e.to_string())
+        })
+        .map_err(|e| {
+            format!(
+                "invalid release input receipt {}: {e}",
+                receipt_path.display()
+            )
+        })?;
+    gmeow_pipeline::medium::inspect::require_current_dictionary_evidence(
+        snapshot,
+        gmeow_pipeline::medium::rdf::EvidenceRequirement::RequireRecords,
+    )
+    .map_err(|error| {
+        format!(
+            "source snapshot {} cannot be released: {error}",
+            source.display()
+        )
+    })?;
+    Ok(admitted)
+}
+
 /// `gmeow-dev release-bundle …` — fold evidence into a SIGNED gmeow.gts.
 #[allow(clippy::too_many_arguments)]
 pub fn release_bundle(
@@ -274,29 +307,10 @@ pub fn release_bundle(
             ));
         }
     };
-    let source_receipt_path = gmeow_gts_profile::ingestion_receipt_path(source);
-    let source_receipt = match std::fs::read(&source_receipt_path)
-        .map_err(|e| e.to_string())
-        .and_then(|receipt| {
-            gmeow_pipeline::stages::release::ReleaseSource::admit(&snapshot, &receipt)
-                .map_err(|e| e.to_string())
-        }) {
+    let source_receipt = match admit_release_source(source, &snapshot) {
         Ok(receipt) => receipt,
-        Err(e) => {
-            return fail(format!(
-                "invalid release input receipt {}: {e}",
-                source_receipt_path.display()
-            ));
-        }
+        Err(message) => return fail(message),
     };
-    if let Err(error) =
-        gmeow_pipeline::medium::inspect::require_current_dictionary_evidence(&snapshot)
-    {
-        return fail(format!(
-            "source snapshot {} cannot be released: {error}",
-            source.display()
-        ));
-    }
     let secret_armor = match std::fs::read_to_string(sign_key) {
         Ok(s) => s,
         Err(e) => {
@@ -383,20 +397,5 @@ fn parse_evidence_spec(spec: &str) -> Result<gmeow_pipeline::stages::release::Ev
 }
 
 #[cfg(test)]
-mod release_profile_tests {
-    use super::*;
-
-    /// Signing rebuilds the bundle it signs, so it is refused before any build when the
-    /// profile is not the release profile.
-    #[test]
-    fn signing_a_bundle_on_the_ordinary_profile_is_refused() {
-        let key = Path::new("/does/not/exist");
-        let code = compile_gts(
-            None,
-            Some(key),
-            Some(key),
-            gmeow_pipeline::BuildProfile::Ordinary,
-        );
-        assert_ne!(code, 0);
-    }
-}
+#[path = "dev_build.release_profile_tests.rs"]
+mod release_profile_tests;

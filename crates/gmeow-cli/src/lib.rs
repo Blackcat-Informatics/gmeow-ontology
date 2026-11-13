@@ -173,6 +173,11 @@ pub enum Commands {
         /// Optional out-of-band trusted Ed25519 OpenPGP PUBLIC certificate.
         #[arg(long = "public-key")]
         public_key: Option<PathBuf>,
+        /// Also require the bundle to carry dictionary evidence records (the strict form the
+        /// pre-publish check uses). Without it only a positively stale record is refused, so
+        /// an authentic earlier release that predates the records still verifies.
+        #[arg(long = "require-dictionary-evidence")]
+        require_dictionary_evidence: bool,
     },
     /// Report the substrate reconciliation from the embedded bundle (no repo): what
     /// engine produced this bundle, what it embeds, and whether the claim sites agree.
@@ -1692,9 +1697,16 @@ pub fn run() -> i32 {
             &format,
             deep,
         ),
-        Commands::VerifyReleaseBundle { bundle, public_key } => {
-            commands::verify_release_bundle(reporter, &bundle, public_key.as_deref())
-        }
+        Commands::VerifyReleaseBundle {
+            bundle,
+            public_key,
+            require_dictionary_evidence,
+        } => commands::verify_release_bundle(
+            reporter,
+            &bundle,
+            public_key.as_deref(),
+            require_dictionary_evidence,
+        ),
         Commands::Substrate {
             gts,
             component,

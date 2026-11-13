@@ -570,7 +570,7 @@ verify-release: ## Consumer verification of a signed release bundle: signature +
 	@if [ ! -f "$(GTS_OUT)" ]; then \
 		echo "no signed release bundle at $(GTS_OUT); run 'make full-release SIGN_KEY=...' first"; exit 1; \
 	fi
-	cargo run --release --locked -p gmeow-cli -- verify-release-bundle --bundle "$(GTS_OUT)" $(if $(PUBLIC_KEY),--public-key "$(PUBLIC_KEY)",)
+	cargo run --release --locked -p gmeow-cli -- verify-release-bundle --require-dictionary-evidence --bundle "$(GTS_OUT)" $(if $(PUBLIC_KEY),--public-key "$(PUBLIC_KEY)",)
 	@echo "verify-release: signature + trust policy + attestation frames verified over $(GTS_OUT)"
 
 release-publish: ## USER-driven publish of a verified signed bundle: content-addressed GitHub release + Crossref DOI deposit (§18 step 7).

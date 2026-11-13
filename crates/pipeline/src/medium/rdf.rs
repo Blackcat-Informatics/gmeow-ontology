@@ -484,54 +484,121 @@ pub fn corpus_sample_counts(
     Ok(out)
 }
 
+/// What a caller requires of a bundle's recorded dictionary evidence.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum EvidenceRequirement {
+    /// Refuse only a realization that is positively flagged stale. A bundle with no
+    /// dictionary evidence records is not stale, so it passes: the form a consumer uses
+    /// for a release built before the records existed.
+    RefuseStale,
+    /// Also require the records themselves: the bundle must declare dictionaries and
+    /// carry a realization for each. The form the release lanes use, because absent
+    /// records cannot show that the evidence is current.
+    RequireRecords,
+}
+
+/// Describe every realization the bundle itself flags `gmeow:evidenceCorpusStale true`,
+/// read tolerantly (only the flag and the two digests, as recorded) so a bundle that
+/// predates part of the record shape is never misread as stale.
+fn positively_stale(dataset: &purrdf::RdfDataset) -> Vec<String> {
+    use purrdf::RdfTerm as T;
+    let quads = purrdf::flat_rdf_quads_from_dataset(dataset);
+    let literal = |subject: &RdfTerm, local: &str| -> String {
+        quads
+            .iter()
+            .find(|q| &q.subject == subject && q.predicate == gm(local))
+            .map_or_else(
+                || "<not recorded>".to_string(),
+                |q| match &q.object {
+                    T::Literal(literal) => literal.lexical_form.clone(),
+                    other => format!("{other:?}"),
+                },
+            )
+    };
+    let mut stale: Vec<String> = quads
+        .iter()
+        .filter(|q| q.predicate == gm("evidenceCorpusStale"))
+        .filter(|q| matches!(&q.object, T::Literal(l) if l.lexical_form == "true"))
+        .map(|q| {
+            let dictionary = quads
+                .iter()
+                .find(|d| d.subject == q.subject && d.predicate == gm("realizesDictionary"))
+                .map_or_else(
+                    || format!("{:?}", q.subject),
+                    |d| match &d.object {
+                        T::Iri(iri) => iri.clone(),
+                        other => format!("{other:?}"),
+                    },
+                );
+            let dictionary = quads
+                .iter()
+                .find(|d| {
+                    d.predicate == gm("dictionaryId") && RdfTerm::iri(&dictionary) == d.subject
+                })
+                .and_then(|d| match &d.object {
+                    T::Literal(literal) => Some(literal.lexical_form.clone()),
+                    _ => None,
+                })
+                .unwrap_or(dictionary);
+            format!(
+                "{dictionary}: the sweep evidence was measured over corpus {} but the dictionary \
+                 was trained from corpus {}",
+                literal(&q.subject, "evidenceCorpusDigest"),
+                literal(&q.subject, "measuredCorpusDigest"),
+            )
+        })
+        .collect();
+    stale.sort();
+    stale.dedup();
+    stale
+}
+
 /// Refuse a bundle whose dictionary evidence is not current, from the bundle's OWN
 /// recorded terms.
 ///
 /// A release ships dictionaries whose sweep evidence was measured over the corpus they
-/// were trained from. Every dictionary the bundle declares must therefore carry a
-/// realization, and no realization may carry `gmeow:evidenceCorpusStale true`. A bundle
-/// that declares no dictionary at all, or declares one with no realization, is refused
-/// as well: absent records cannot show that the evidence is current.
+/// were trained from, so no realization may carry `gmeow:evidenceCorpusStale true`
+/// ([`EvidenceRequirement::RefuseStale`]). With [`EvidenceRequirement::RequireRecords`]
+/// the bundle must also declare dictionaries and carry a realization for each.
 ///
 /// # Errors
-/// `MediumCorpusDrift` naming every offending dictionary with both digests, or the
-/// dictionaries that have no realization; a malformed realization.
+/// `MediumCorpusDrift` naming every stale dictionary with both digests and, under
+/// `RequireRecords`, the dictionaries that have no realization; under `RequireRecords`
+/// also a bundle with no readable registry or a malformed realization.
 pub fn require_current_evidence(
-    registry: &MediumRegistry,
     dataset: &purrdf::RdfDataset,
+    requirement: EvidenceRequirement,
 ) -> Result<(), gmeow_errors::Diag> {
-    let realized = realizations(dataset)?;
-    if registry.dictionaries().is_empty() {
-        return Err(super::corpus_drift(
-            "the bundle declares no gmeow:CompressionDictionary, so it carries no dictionary \
-             evidence to show is current; a release bundle is built by the pipeline with its \
-             declared dictionaries",
-        ));
-    }
-    let mut missing: Vec<&str> = Vec::new();
-    let mut stale: Vec<String> = Vec::new();
-    for def in registry.dictionaries().values() {
-        match realized.get(&def.iri) {
-            None => missing.push(def.id.as_str()),
-            Some(realization) if realization.evidence_stale() => stale.push(format!(
-                "{}: the sweep evidence was measured over corpus {} but the dictionary was \
-                 trained from corpus {}",
-                def.id, realization.evidence_corpus_digest, realization.corpus_digest
-            )),
-            Some(_) => {}
-        }
-    }
-    if missing.is_empty() && stale.is_empty() {
-        return Ok(());
-    }
-    let mut problems = Vec::new();
-    if !missing.is_empty() {
-        problems.push(format!(
-            "no gmeow:CompressionDictionaryRealization for {missing:?}"
-        ));
-    }
+    let mut problems: Vec<String> = Vec::new();
+    let stale = positively_stale(dataset);
     if !stale.is_empty() {
         problems.push(format!("stale evidence ({})", stale.join("; ")));
+    }
+    if requirement == EvidenceRequirement::RequireRecords {
+        let registry = MediumRegistry::from_dataset(dataset)?;
+        if registry.dictionaries().is_empty() {
+            problems.push(
+                "the bundle declares no gmeow:CompressionDictionary, so it carries no dictionary \
+                 evidence to show is current"
+                    .to_string(),
+            );
+        } else {
+            let realized = realizations(dataset)?;
+            let missing: Vec<&str> = registry
+                .dictionaries()
+                .values()
+                .filter(|def| !realized.contains_key(&def.iri))
+                .map(|def| def.id.as_str())
+                .collect();
+            if !missing.is_empty() {
+                problems.push(format!(
+                    "no gmeow:CompressionDictionaryRealization for {missing:?}"
+                ));
+            }
+        }
+    }
+    if problems.is_empty() {
+        return Ok(());
     }
     Err(super::corpus_drift(format!(
         "the bundle's own dictionary records do not show current evidence: {}. A release is \

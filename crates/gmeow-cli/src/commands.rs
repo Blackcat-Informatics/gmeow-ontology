@@ -684,6 +684,7 @@ pub fn verify_release_bundle(
     reporter: &dyn Reporter,
     bundle: &Path,
     public_key: Option<&Path>,
+    require_dictionary_evidence: bool,
 ) -> i32 {
     let bundle_bytes = match read_bytes(reporter, bundle) {
         Ok(b) => b,
@@ -701,15 +702,6 @@ pub fn verify_release_bundle(
             format!("invalid release ingestion companion: {error}"),
         );
     }
-    if let Err(error) =
-        gmeow_pipeline::medium::inspect::require_current_dictionary_evidence(&bundle_bytes)
-    {
-        return fail(
-            reporter,
-            "gmeow-cli.verify-release.stale-evidence",
-            format!("✗ release bundle does not show current dictionary evidence: {error}"),
-        );
-    }
     let armor = match public_key {
         None => None,
         Some(path) => match std::fs::read_to_string(path) {
@@ -725,6 +717,24 @@ pub fn verify_release_bundle(
     };
     match gmeow_pipeline::stages::release::verify_release_bundle(&bundle_bytes, armor.as_deref()) {
         Ok(report) => {
+            // The signature verdict comes first, so a forged bundle is reported as one. Only
+            // then are the bundle's own dictionary records read: a positively stale record
+            // is always refused, and absent records only when the strict form is requested.
+            let requirement = if require_dictionary_evidence {
+                gmeow_pipeline::medium::rdf::EvidenceRequirement::RequireRecords
+            } else {
+                gmeow_pipeline::medium::rdf::EvidenceRequirement::RefuseStale
+            };
+            if let Err(error) = gmeow_pipeline::medium::inspect::require_current_dictionary_evidence(
+                &bundle_bytes,
+                requirement,
+            ) {
+                return fail(
+                    reporter,
+                    "gmeow-cli.verify-release.stale-evidence",
+                    format!("✗ release bundle does not show current dictionary evidence: {error}"),
+                );
+            }
             let key_line = report.kid.map(|k| format!(", key {k}")).unwrap_or_default();
             let fp_line = report
                 .fingerprint
