@@ -830,7 +830,6 @@ fn source_load_dataset(
         .ok_or_else(|| {
             stage_err("missing stage-source-load product for the self-description graphs")
         })?
-        .bundle()
         .dataset_arc())
 }
 
@@ -974,7 +973,6 @@ impl<'a> CarrierParts<'a> {
             .upstream
             .get(stage)
             .ok_or_else(|| stage_err(&format!("missing {stage} product for the snapshot carrier")))?
-            .bundle()
             .dataset_arc())
     }
 
@@ -2301,7 +2299,7 @@ pub fn snapshot_dataset(
              inside the DAG or select CarrierRetention::RetainAll",
         ));
     }
-    Ok(product.bundle().dataset_arc())
+    Ok(product.dataset_arc())
 }
 
 // ── Blob channels the presenter itself folds ────────────────────────────────────

@@ -368,12 +368,24 @@ impl StageProduct {
     pub fn dataset(&self) -> &RdfDataset {
         assert!(
             !self.carrier_released,
-            "stage `{}` attempted to read a dataset after its carrier was released; add the \
-             producer to the consumer's carrier_consumes() subset",
+            "stage `{}` attempted to read a dataset after its carrier was released; its \
+             dataflow edge must declare the dataset read",
             self.stage_id
         );
         self.record(crate::reads::Read::Dataset);
         self.bundle.dataset()
+    }
+
+    /// A shared handle to the frozen RDF dataset this product's bundle carries.
+    pub fn dataset_arc(&self) -> Arc<RdfDataset> {
+        assert!(
+            !self.carrier_released,
+            "stage `{}` attempted to read a dataset after its carrier was released; its \
+             dataflow edge must declare the dataset read",
+            self.stage_id
+        );
+        self.record(crate::reads::Read::Dataset);
+        self.bundle.dataset_arc()
     }
 
     /// The bytes of one named byte-artifact-lane entry by logical path.
