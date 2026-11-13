@@ -55,6 +55,16 @@ fn spec(id: &str, consumes: &[&str]) -> StageSpec {
         stability: StageStability::StablePrefix,
         cache_disposition: CachePolicy::Persistent,
         dataflow_entities: Vec::new(),
+        // These synthetic stages fold only the identity of what they consume.
+        reads: consumes
+            .iter()
+            .map(|producer| {
+                (
+                    (*producer).to_string(),
+                    std::iter::once(crate::reads::Read::Identity).collect(),
+                )
+            })
+            .collect(),
         formats: Vec::new(),
         attaches_graphs: Vec::new(),
         attaches_blob_reps: Vec::new(),
@@ -2302,7 +2312,7 @@ impl Stage for CarrierStage {
     fn carrier_consumes(&self) -> &[String] {
         &self.carrier_consumes
     }
-    fn internal_artifact_reads(&self) -> &[(&'static str, &'static str)] {
+    fn internal_artifact_reads(&self) -> Vec<(String, String)> {
         &self.internal_reads
     }
     fn capabilities(&self) -> &[String] {
@@ -2415,6 +2425,7 @@ fn retention_chain() -> PipelineSpec {
         // binding parity gate remain load-bearing.
         cache_disposition: CachePolicy::Recompute,
         dataflow_entities: Vec::new(),
+        reads: std::collections::BTreeMap::new(),
         formats: Vec::new(),
         attaches_graphs: vec![watch_graph(id)],
         attaches_blob_reps: Vec::new(),

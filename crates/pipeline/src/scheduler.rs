@@ -633,6 +633,43 @@ pub fn run_without(
     };
     let read_policy = ctx.read_policy;
     let mut recorded_edges: Vec<Arc<crate::reads::EdgeAccess>> = Vec::new();
+    // Before any stage runs: every dependency edge of the selected graph declares what
+    // it reads, and declares it of a producer the stage consumes. An edge with no
+    // declared read would run the consumer after the producer for no stated reason, and
+    // a read set on a producer outside the stage's dependencies could never be served.
+    // Every such edge is reported together.
+    if read_policy == crate::reads::ReadPolicy::Enforce {
+        let mut undeclared: Vec<String> = Vec::new();
+        for stage_id in &executed {
+            let stage = by_id[stage_id.as_str()];
+            let reads = stage.reads();
+            for producer in stage.consumes() {
+                if reads.get(producer).is_none_or(BTreeSet::is_empty) {
+                    undeclared.push(format!(
+                        "{stage_id} consumes {producer} and its dataflow edge declares no read"
+                    ));
+                }
+            }
+            for producer in reads.keys() {
+                if !stage.consumes().contains(producer) {
+                    undeclared.push(format!(
+                        "{stage_id} declares reads of {producer}, which it does not consume"
+                    ));
+                }
+            }
+        }
+        if !undeclared.is_empty() {
+            return Err(gmeow_errors::Diag::of_kind(crate::error::InvalidDag {
+                message: format!(
+                    "the pipeline description does not say what {} dependency edge(s) read; \
+                     run `gmeow-dev pipeline-reads` to print the declarations the stage bodies \
+                     need:\n  {}",
+                    undeclared.len(),
+                    undeclared.join("\n  ")
+                ),
+            }));
+        }
+    }
     let mut ready: BTreeSet<String> = remaining_dependencies
         .iter()
         .filter(|(_, remaining)| **remaining == 0)
