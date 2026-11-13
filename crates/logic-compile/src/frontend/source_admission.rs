@@ -867,12 +867,11 @@ impl<'a> AdmissionBuilder<'a> {
                             |rule| rule_disposition(*index, rule, &self.declared_builtins),
                         )
                     }
-                    OwnerDisposition::Rejected => malformed(
+                    OwnerDisposition::Rejected => self.rejected(
+                        "rule",
                         "MALFORMED_SELECTED_RULE",
-                        format!(
-                            "selected rule failed compiler admission at diagnostics {:?}",
-                            lowering.diagnostics
-                        ),
+                        "SKIPPED_SELECTED_RULE",
+                        &lowering.diagnostics,
                     ),
                     OwnerDisposition::OutsideDefaultGraph => {
                         outside("rule is outside the selected default graph")
@@ -909,12 +908,11 @@ impl<'a> AdmissionBuilder<'a> {
                                 lowering.family
                             ),
                         ),
-                        OwnerDisposition::Rejected => malformed(
+                        OwnerDisposition::Rejected => self.rejected(
+                            &format!("{:?} owner", lowering.family),
                             "MALFORMED_SELECTED_OWNER",
-                            format!(
-                                "selected {:?} owner failed compiler admission at diagnostics {:?}",
-                                lowering.family, lowering.diagnostics
-                            ),
+                            "SKIPPED_SELECTED_OWNER",
+                            &lowering.diagnostics,
                         ),
                         OwnerDisposition::OutsideDefaultGraph => {
                             outside("owner is outside the selected default graph")
@@ -1181,6 +1179,36 @@ impl<'a> AdmissionBuilder<'a> {
             | AxiomSource::ClassExpression(subject)
             | AxiomSource::Reification(subject)
             | AxiomSource::Formula(subject) => self.node_documents(*subject),
+        }
+    }
+
+    /// The disposition of a selected unit the compiler rejected, graded as the compiler
+    /// graded it. An error, or a rejection that names no diagnostic, means the source is
+    /// malformed. A rejection that carries only warnings means the compiler skipped a
+    /// unit it does not lower: the source is valid and the unit is not decided.
+    fn rejected(
+        &self,
+        what: &str,
+        malformed_code: &str,
+        skipped_code: &str,
+        diagnostics: &[usize],
+    ) -> SemanticUnitDisposition {
+        let hard = diagnostics.is_empty()
+            || diagnostics
+                .iter()
+                .any(|&index| self.theory.diagnostics()[index].severity == Severity::Error);
+        if hard {
+            malformed(
+                malformed_code,
+                format!("selected {what} failed compiler admission at diagnostics {diagnostics:?}"),
+            )
+        } else {
+            blocked(
+                skipped_code,
+                format!(
+                    "the compiler skipped selected {what} with warnings at diagnostics {diagnostics:?}"
+                ),
+            )
         }
     }
 

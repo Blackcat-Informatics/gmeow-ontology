@@ -1,432 +1,541 @@
 // SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 // SPDX-License-Identifier: AGPL-3.0-only
 
-//! Installed `gmeow prove` protocol controls over tiny owned inputs. The external
-//! process is a stub: these tests verify GMEOW selection/projection/report/exit
-//! behavior and do not duplicate an external prover's conformance suite.
-
-#![cfg(unix)]
-
-use std::os::unix::fs::PermissionsExt as _;
+//! Installed `gmeow prove` over tiny owned `logic:` inputs. Both engines run
+//! in-process; these tests pin the three-valued verdict, the drop ledger, the exit
+//! contract, deterministic output and proof replay.
 
 use assert_cmd::Command;
 
-const TINY_TTL: &str = r#"@prefix ex: <https://example.org/> .
-ex:subject ex:relation ex:object .
+const PREFIXES: &str = r#"@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix rdf:   <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix ex:    <https://example.org/prove/> .
 "#;
 
-const TINY_MODEL_TRUE: &str = r#"tff('declare_$i1',type,d0:$i).
-tff('finite_domain_$i',axiom,! [X:$i] : (X = d0)).
-tff(declare_subject,type,'I|https://example.org/subject':$i).
-tff(subject_definition,axiom,'I|https://example.org/subject' = d0).
-tff(declare_object,type,'I|https://example.org/object':$i).
-tff(object_definition,axiom,'I|https://example.org/object' = d0).
-tff(declare_relation,type,'P|2|https://example.org/relation':($i * $i) > $o).
-tff(predicate_relation,axiom,'P|2|https://example.org/relation'(d0,d0)).
+/// A disjointness clash spelled in canonical `logic:` vocabulary.
+const CLASH: &str = r#"
+ex:A logic:disjointWith ex:B .
+ex:a logic:instanceOf ex:A , ex:B .
 "#;
 
-const TINY_MODEL_FALSE: &str = r#"tff('declare_$i1',type,d0:$i).
-tff('finite_domain_$i',axiom,! [X:$i] : (X = d0)).
-tff(declare_subject,type,'I|https://example.org/subject':$i).
-tff(subject_definition,axiom,'I|https://example.org/subject' = d0).
-tff(declare_object,type,'I|https://example.org/object':$i).
-tff(object_definition,axiom,'I|https://example.org/object' = d0).
-tff(declare_relation,type,'P|2|https://example.org/relation':($i * $i) > $o).
-tff(predicate_relation,axiom,~'P|2|https://example.org/relation'(d0,d0)).
+/// A small Horn theory: a taxonomy, facts and one positive rule.
+const HORN: &str = r#"
+ex:A logic:subClassOf ex:B .
+ex:a logic:instanceOf ex:A .
+ex:a ex:knows ex:b .
+_:x a logic:TermCarrier ; logic:termVariable "x" .
+ex:selfReach a logic:Rule ;
+    logic:head [ rdf:reifies <<( _:x ex:reaches _:x )>> ] ;
+    logic:body [ rdf:reifies <<( _:x logic:instanceOf ex:B )>> ] .
+"#;
+
+/// A disjunctive consequent the native Horn lowering cannot carry.
+const DISJUNCTIVE: &str = r#"
+ex:a logic:instanceOf ex:A .
+ex:law a logic:Formula ; logic:quantifiedVariable ex:x ; logic:forall ex:implication .
+ex:implication a logic:Formula ; logic:antecedent ex:guard ; logic:consequent ex:choice .
+ex:guard a logic:Formula ; logic:relation logic:instanceOf ; logic:argument ex:x, ex:classA .
+ex:choice a logic:Formula ; logic:or ex:inB, ex:inC .
+ex:inB a logic:Formula ; logic:relation logic:instanceOf ; logic:argument ex:x, ex:classB .
+ex:inC a logic:Formula ; logic:relation logic:instanceOf ; logic:argument ex:x, ex:classC .
+ex:x logic:termIndex 0 ; logic:termVariable "x" .
+ex:classA logic:termIndex 1 ; logic:termIri ex:A .
+ex:classB logic:termIndex 1 ; logic:termIri ex:B .
+ex:classC logic:termIndex 1 ; logic:termIri ex:C .
 "#;
 
 fn gmeow() -> Command {
     Command::cargo_bin("gmeow").expect("gmeow binary")
 }
 
-fn source(directory: &tempfile::TempDir, content: &str) -> std::path::PathBuf {
-    let path = directory.path().join("source.ttl");
-    std::fs::write(&path, content).expect("write source");
+fn write(directory: &std::path::Path, name: &str, body: &str) -> std::path::PathBuf {
+    let path = directory.join(name);
+    if let Some(parent) = path.parent() {
+        std::fs::create_dir_all(parent).expect("source directory");
+    }
+    std::fs::write(&path, format!("{PREFIXES}{body}")).expect("write source");
     path
 }
 
-fn prover(directory: &tempfile::TempDir, body: &str) -> std::path::PathBuf {
-    let path = directory.path().join("eprover");
-    std::fs::write(
-        &path,
-        format!(
-            "#!/bin/sh\nif [ \"$1\" = \"--version\" ]; then\n  echo 'stub-eprover 1.0'\n  exit 0\nfi\n{body}\n"
-        ),
-    )
-    .expect("write prover stub");
-    std::fs::set_permissions(&path, std::fs::Permissions::from_mode(0o755))
-        .expect("make prover executable");
-    path
+fn path(path: &std::path::Path) -> &str {
+    path.to_str().expect("utf8 path")
 }
 
-fn vampire_model_prover(directory: &tempfile::TempDir, model: &str) -> std::path::PathBuf {
-    prover(
-        directory,
-        &format!(
-            "case \" $* \" in\n\
-               *\" --schedule casc_sat \"*)\n\
-            cat <<'GMEOW_FINITE_MODEL'\n\
-            % SZS status Satisfiable\n\
-            % SZS output start FiniteModel\n\
-            {model}\
-            % SZS output end FiniteModel\n\
-            GMEOW_FINITE_MODEL\n\
-            ;;\n\
-               *)\n\
-            echo '% SZS status Satisfiable'\n\
-            ;;\n\
-            esac"
-        ),
-    )
+fn report(assert: &assert_cmd::assert::Assert) -> serde_json::Value {
+    serde_json::from_slice(&assert.get_output().stdout).expect("JSON report")
 }
 
-fn stdout_json(assert: &assert_cmd::assert::Assert) -> serde_json::Value {
-    serde_json::from_slice(&assert.get_output().stdout).expect("typed JSON report")
+fn drop_codes(report: &serde_json::Value) -> Vec<String> {
+    report["selection"]["drops"]
+        .as_array()
+        .expect("selection drops")
+        .iter()
+        .map(|drop| drop["code"].as_str().expect("drop code").to_owned())
+        .collect()
 }
 
-#[test]
-fn prove_reports_bound_attestation_without_promoting_it_to_certificate() {
+/// Run `prove --format json` on one owned source and return its report.
+fn prove_json(name: &str, body: &str, extra: &[&str]) -> (serde_json::Value, i32) {
     let directory = tempfile::tempdir().expect("scratch directory");
-    let source = source(&directory, TINY_TTL);
-    let prover = prover(&directory, "echo '% SZS status Satisfiable'");
-    let assert = gmeow()
-        .env("GMEOW_PROVER_PATH", prover)
-        .args([
-            "prove",
-            source.to_str().expect("utf8 path"),
-            "--format",
-            "json",
-        ])
-        .assert()
-        .success();
-    let report = stdout_json(&assert);
-    assert_eq!(report["verdict"], "consistent");
-    assert_eq!(report["evidence_grade"], "attestation");
-    assert_eq!(report["gate_admission"], "attestation");
-    assert_eq!(report["inputs"].as_array().map(Vec::len), Some(1));
-    assert!(
-        report["admission"]["units"]
-            .as_array()
-            .is_some_and(|v| !v.is_empty())
-    );
-    assert_eq!(
-        report["execution"]["passes"][0]["szs"]["status"],
-        "Satisfiable"
-    );
-    assert!(report["projection"]["problem_digest"].is_string());
-    assert!(report["engine"]["executable"]["content_digest"].is_string());
-    assert!(report["execution"]["executable"]["content_digest"].is_string());
+    let source = write(directory.path(), name, body);
+    let output = gmeow()
+        .args(["prove", path(&source), "--format", "json"])
+        .args(extra)
+        .output()
+        .expect("run prove");
+    let report = serde_json::from_slice(&output.stdout).expect("JSON report");
+    (report, output.status.code().expect("exit status"))
 }
 
+/// A clash derived by the native engine refutes the selection, names the law and
+/// its premises, and is the gate's certified negative.
 #[test]
-fn gate_refuses_unchecked_external_attestation_with_exit_three() {
-    let directory = tempfile::tempdir().expect("scratch directory");
-    let source = source(&directory, TINY_TTL);
-    let prover = prover(&directory, "echo '% SZS status Unsatisfiable'");
-    let assert = gmeow()
-        .env("GMEOW_PROVER_PATH", prover)
-        .args([
-            "prove",
-            source.to_str().expect("utf8 path"),
-            "--format",
-            "json",
-            "--gate",
-        ])
-        .assert()
-        .code(3);
-    let report = stdout_json(&assert);
+fn disjointness_clash_is_inconsistent_and_gate_exits_one() {
+    let (report, code) = prove_json("clash.logic.ttl", CLASH, &["--gate"]);
+    assert_eq!(code, 1, "{report:#}");
     assert_eq!(report["verdict"], "inconsistent");
-    assert_eq!(report["gate_admission"], "attestation");
-}
-
-#[test]
-fn checked_vampire_finite_model_is_certificate_grade_and_gate_admissible() {
-    let directory = tempfile::tempdir().expect("scratch directory");
-    let source = source(&directory, TINY_TTL);
-    let prover = vampire_model_prover(&directory, TINY_MODEL_TRUE);
-    let assert = gmeow()
-        .env("GMEOW_PROVER_PATH", prover)
-        .args([
-            "prove",
-            source.to_str().expect("utf8 path"),
-            "--prover",
-            "vampire",
-            "--format",
-            "json",
-            "--gate",
-        ])
-        .assert()
-        .success();
-    let report = stdout_json(&assert);
-    assert_eq!(report["verdict"], "consistent");
-    assert_eq!(report["evidence_grade"], "certificate");
-    assert_eq!(report["gate_admission"], "certificate");
-    assert_eq!(report["completeness"], "complete");
-    assert_eq!(
-        report["execution"]["passes"].as_array().map(Vec::len),
-        Some(2)
-    );
-    assert_eq!(
-        report["execution"]["passes"][1]["artifacts"][0]["check"]["code"],
-        "FINITE_MODEL_CHECKED"
+    let refutation = &report["refutations"][0];
+    assert_eq!(refutation["engine"], "native");
+    assert!(
+        refutation["law"]
+            .as_str()
+            .is_some_and(|law| !law.is_empty())
     );
     assert!(
-        report["metrics"]["decisions"]
-            .as_u64()
-            .is_some_and(|n| n > 0)
-    );
-}
-
-#[test]
-fn false_vampire_model_is_an_execution_failure() {
-    let directory = tempfile::tempdir().expect("scratch directory");
-    let source = source(&directory, TINY_TTL);
-    let prover = vampire_model_prover(&directory, TINY_MODEL_FALSE);
-    let assert = gmeow()
-        .env("GMEOW_PROVER_PATH", prover)
-        .args([
-            "prove",
-            source.to_str().expect("utf8 path"),
-            "--prover",
-            "vampire",
-            "--format",
-            "json",
-        ])
-        .assert()
-        .code(5);
-    let report = stdout_json(&assert);
-    assert_eq!(report["verdict"], "execution-failure");
-    assert!(report["diagnostics"].as_array().is_some_and(|rows| {
-        rows.iter()
-            .any(|row| row["code"] == "FINITE_MODEL_FALSIFIES_PROBLEM")
-    }));
-}
-
-#[test]
-fn structurally_checked_refutation_remains_attestation_grade() {
-    let directory = tempfile::tempdir().expect("scratch directory");
-    let source = source(&directory, TINY_TTL);
-    let prover = prover(
-        &directory,
-        r#"cat <<'GMEOW_PROOF'
-% SZS status Unsatisfiable
-% SZS output start Proof
-fof(input,axiom,'P|2|https://example.org/relation'('I|https://example.org/subject','I|https://example.org/object'),file('problem.p',input)).
-cnf(done,plain,$false,inference(unchecked_rule,[],[input])).
-% SZS output end Proof
-GMEOW_PROOF"#,
-    );
-    let assert = gmeow()
-        .env("GMEOW_PROVER_PATH", prover)
-        .args([
-            "prove",
-            source.to_str().expect("utf8 path"),
-            "--format",
-            "json",
-            "--gate",
-        ])
-        .assert()
-        .code(3);
-    let report = stdout_json(&assert);
-    assert_eq!(report["verdict"], "inconsistent");
-    assert_eq!(report["evidence_grade"], "attestation");
-    assert_eq!(report["gate_admission"], "attestation");
-    assert_eq!(
-        report["execution"]["passes"][0]["artifacts"][0]["check"]["code"],
-        "TSTP_STRUCTURE_CHECKED_INFERENCES_UNREPLAYED"
-    );
-}
-
-#[test]
-fn malformed_artifact_framing_is_an_execution_failure() {
-    let directory = tempfile::tempdir().expect("scratch directory");
-    let source = source(&directory, TINY_TTL);
-    let prover = prover(
-        &directory,
-        "echo '% SZS status Unsatisfiable'\n\
-         echo '% SZS output start Proof'\n\
-         echo 'fof(input,axiom,p(a)).'",
-    );
-    let assert = gmeow()
-        .env("GMEOW_PROVER_PATH", prover)
-        .args([
-            "prove",
-            source.to_str().expect("utf8 path"),
-            "--format",
-            "json",
-        ])
-        .assert()
-        .code(5);
-    let report = stdout_json(&assert);
-    assert!(report["diagnostics"].as_array().is_some_and(|rows| {
-        rows.iter()
-            .any(|row| row["code"] == "UNTERMINATED_SZS_ARTIFACT")
-    }));
-}
-
-#[test]
-fn conclusive_artifact_must_agree_with_the_szs_outcome() {
-    let directory = tempfile::tempdir().expect("scratch directory");
-    let source = source(&directory, TINY_TTL);
-    let prover = prover(
-        &directory,
-        r#"cat <<'GMEOW_PROOF'
-% SZS status Satisfiable
-% SZS output start Proof
-fof(input,axiom,'P|2|https://example.org/relation'('I|https://example.org/subject','I|https://example.org/object'),file('problem.p',input)).
-cnf(done,plain,$false,inference(unchecked_rule,[],[input])).
-% SZS output end Proof
-GMEOW_PROOF"#,
-    );
-    let assert = gmeow()
-        .env("GMEOW_PROVER_PATH", prover)
-        .args([
-            "prove",
-            source.to_str().expect("utf8 path"),
-            "--format",
-            "json",
-        ])
-        .assert()
-        .code(5);
-    let report = stdout_json(&assert);
-    assert!(report["diagnostics"].as_array().is_some_and(|rows| {
-        rows.iter()
-            .any(|row| row["code"] == "SZS_ARTIFACT_OUTCOME_MISMATCH")
-    }));
-}
-
-#[test]
-fn contradictory_vampire_pass_outcomes_are_rejected() {
-    let directory = tempfile::tempdir().expect("scratch directory");
-    let source = source(&directory, TINY_TTL);
-    let prover = prover(
-        &directory,
-        "case \" $* \" in\n\
-           *\" --schedule casc_sat \"*) echo '% SZS status Unsatisfiable' ;;\n\
-           *) echo '% SZS status Satisfiable' ;;\n\
-         esac",
-    );
-    let assert = gmeow()
-        .env("GMEOW_PROVER_PATH", prover)
-        .args([
-            "prove",
-            source.to_str().expect("utf8 path"),
-            "--prover",
-            "vampire",
-            "--format",
-            "json",
-        ])
-        .assert()
-        .code(5);
-    let report = stdout_json(&assert);
-    assert!(report["diagnostics"].as_array().is_some_and(|rows| {
-        rows.iter()
-            .any(|row| row["code"] == "CONFLICTING_PROVER_PASS_OUTCOME")
-    }));
-}
-
-#[test]
-fn unsupported_required_unit_blocks_before_prover_resolution() {
-    let directory = tempfile::tempdir().expect("scratch directory");
-    let source = source(
-        &directory,
-        r#"@prefix logic: <https://blackcatinformatics.ca/logic/> .
-           @prefix ex: <https://example.org/> .
-           ex:left logic:termEqual ex:right ."#,
-    );
-    let assert = gmeow()
-        .env_remove("GMEOW_PROVER_PATH")
-        .env("PATH", directory.path())
-        .args([
-            "prove",
-            source.to_str().expect("utf8 path"),
-            "--format",
-            "json",
-        ])
-        .assert()
-        .success();
-    let report = stdout_json(&assert);
-    assert_eq!(report["verdict"], "unsupported");
-    assert!(report["execution"].is_null());
-    assert!(
-        report["projection"]["blockers"]
+        refutation["premises"]
             .as_array()
-            .is_some_and(|rows| rows
-                .iter()
-                .any(|row| { row["code"] == "PROCEDURAL_RELATION_REQUIRES_BINDING_SEMANTICS" }))
+            .is_some_and(|premises| !premises.is_empty())
     );
+    let (_, code) = prove_json("clash.logic.ttl", CLASH, &[]);
+    assert_eq!(code, 0, "reporter mode exits 0 for a decided negative");
 }
 
+/// A Horn theory whose every unit is accounted and whose closure completed is
+/// `consistent` with a complete, drop-free selection.
 #[test]
-fn conflicting_szs_status_is_an_execution_failure() {
-    let directory = tempfile::tempdir().expect("scratch directory");
-    let source = source(&directory, TINY_TTL);
-    let prover = prover(
-        &directory,
-        "echo '% SZS status Satisfiable'\necho '# SZS status Unsatisfiable' >&2",
+fn horn_theory_is_consistent_with_zero_drops_and_gate_exits_zero() {
+    let (report, code) = prove_json("horn.logic.ttl", HORN, &["--gate"]);
+    assert_eq!(report["verdict"], "consistent", "{report:#}");
+    assert_eq!(code, 0);
+    assert_eq!(report["selection"]["complete"], true);
+    assert_eq!(report["selection"]["drops"], serde_json::json!([]));
+    assert_eq!(
+        report["engines"]["native"]["information_state"],
+        "supported"
     );
-    let assert = gmeow()
-        .env("GMEOW_PROVER_PATH", prover)
-        .args([
-            "prove",
-            source.to_str().expect("utf8 path"),
-            "--format",
-            "json",
-        ])
-        .assert()
-        .code(5);
-    let report = stdout_json(&assert);
-    assert_eq!(report["verdict"], "execution-failure");
-    assert!(report["diagnostics"].as_array().is_some_and(|rows| {
-        rows.iter()
-            .any(|row| row["code"] == "CONFLICTING_SZS_STATUS")
-    }));
+    assert!(
+        report["semantics"]
+            .as_str()
+            .is_some_and(|semantics| semantics.contains("native logic: semantics"))
+    );
 }
 
+/// A formula the native lowering cannot carry blocks `consistent` and is named.
+#[test]
+fn uncarried_formula_is_not_decided_with_its_drop_named_and_gate_exits_three() {
+    let (report, code) = prove_json("disjunctive.logic.ttl", DISJUNCTIVE, &["--gate"]);
+    assert_eq!(report["verdict"], "not-decided", "{report:#}");
+    assert_eq!(code, 3);
+    assert_eq!(report["selection"]["complete"], false);
+    assert!(
+        report["selection"]["drops"]
+            .as_array()
+            .expect("drops")
+            .iter()
+            .any(|drop| drop["engine"] == "native" && drop["code"] == "UNSUPPORTED_CONSTRUCT"),
+        "{report:#}"
+    );
+}
+
+/// An exhausted derivation allowance is a partial closure and never `consistent`.
+#[test]
+fn tiny_step_allowance_is_never_consistent() {
+    let (report, code) = prove_json("horn.logic.ttl", HORN, &["--max-steps", "1", "--gate"]);
+    assert_eq!(report["verdict"], "not-decided", "{report:#}");
+    assert_eq!(code, 3);
+    assert!(!drop_codes(&report).is_empty());
+}
+
+/// Malformed input has its own exit status and a machine-readable report.
 #[test]
 fn malformed_input_has_its_own_exit_and_machine_report() {
     let directory = tempfile::tempdir().expect("scratch directory");
     let missing = directory.path().join("missing.ttl");
     let assert = gmeow()
-        .args([
-            "prove",
-            missing.to_str().expect("utf8 path"),
-            "--format",
-            "json",
-        ])
+        .args(["prove", path(&missing), "--format", "json"])
         .assert()
         .code(4);
-    let report = stdout_json(&assert);
-    assert_eq!(report["verdict"], "malformed");
-    assert_eq!(report["diagnostics"][0]["code"], "SOURCE_PATH_UNAVAILABLE");
+    let missing_report = report(&assert);
+    assert_eq!(missing_report["verdict"], "malformed");
+    assert_eq!(
+        missing_report["diagnostics"][0]["code"],
+        "SOURCE_PATH_UNAVAILABLE"
+    );
+
+    let source = write(directory.path(), "broken.ttl", "this is not turtle <<<");
+    let assert = gmeow()
+        .args(["prove", path(&source), "--format", "json", "--gate"])
+        .assert()
+        .code(4);
+    assert_eq!(report(&assert)["verdict"], "malformed");
 }
 
+/// `--dir` selects exactly `module.ttl` and `*.logic.ttl`, and a rerun over the same
+/// inputs prints identical bytes.
 #[test]
-fn out_and_evidence_files_bind_the_same_problem_receipt() {
+fn dir_selects_semantic_sources_only_and_reruns_are_byte_identical() {
     let directory = tempfile::tempdir().expect("scratch directory");
-    let source = source(&directory, TINY_TTL);
-    let prover = prover(&directory, "echo '% SZS status GaveUp'");
-    let problem = directory.path().join("problem.p");
-    let evidence = directory.path().join("evidence.json");
-    gmeow()
-        .env("GMEOW_PROVER_PATH", prover)
+    write(
+        directory.path(),
+        "slice/module.ttl",
+        "ex:A logic:disjointWith ex:B .\nex:a logic:instanceOf ex:A .\n",
+    );
+    write(
+        directory.path(),
+        "slice/extra/facts.logic.ttl",
+        "ex:b logic:instanceOf ex:B .\n",
+    );
+    // Selecting this file would complete the clash; the walk must ignore it.
+    write(
+        directory.path(),
+        "slice/other.ttl",
+        "ex:a logic:instanceOf ex:B .\n",
+    );
+    let run = || {
+        gmeow()
+            .args(["prove", "--dir", path(directory.path()), "--format", "json"])
+            .output()
+            .expect("run prove")
+    };
+    let first = run();
+    let second = run();
+    assert_eq!(first.status.code(), Some(0));
+    assert_eq!(
+        first.stdout, second.stdout,
+        "two runs must print the same bytes"
+    );
+    let report: serde_json::Value = serde_json::from_slice(&first.stdout).expect("JSON");
+    let inputs: Vec<&str> = report["inputs"]
+        .as_array()
+        .expect("inputs")
+        .iter()
+        .map(|input| input["path"].as_str().expect("path"))
+        .collect();
+    assert_eq!(inputs.len(), 2, "{inputs:?}");
+    assert!(
+        inputs
+            .iter()
+            .any(|input| input.ends_with("slice/module.ttl"))
+    );
+    assert!(
+        inputs
+            .iter()
+            .any(|input| input.ends_with("facts.logic.ttl"))
+    );
+    assert_eq!(report["verdict"], "consistent", "{report:#}");
+}
+
+/// A recorded tableau proof replays against the same inputs and is rejected
+/// against altered input, without a new solver decision.
+#[test]
+fn proof_replays_on_same_inputs_and_is_rejected_on_altered_input() {
+    let directory = tempfile::tempdir().expect("scratch directory");
+    let source = write(directory.path(), "horn.logic.ttl", HORN);
+    let proof = directory.path().join("proof.bin");
+    let assert = gmeow()
         .args([
             "prove",
-            source.to_str().expect("utf8 path"),
-            "--out",
-            problem.to_str().expect("utf8 path"),
-            "--evidence-out",
-            evidence.to_str().expect("utf8 path"),
+            path(&source),
+            "--format",
+            "json",
+            "--proof-out",
+            path(&proof),
         ])
         .assert()
         .success();
-    let problem = std::fs::read_to_string(problem).expect("TPTP problem");
-    assert!(problem.contains("% source-digest:"));
-    assert!(problem.contains("% program-digest:"));
-    assert!(problem.contains("fof(gmeow_"));
-    let report: serde_json::Value =
-        serde_json::from_slice(&std::fs::read(evidence).expect("evidence receipt"))
-            .expect("evidence JSON");
-    assert_eq!(report["verdict"], "undecided");
-    assert_eq!(report["execution"]["passes"][0]["szs"]["status"], "GaveUp");
+    let digest = report(&assert)["engines"]["owl_dl"]["proof_digest"].clone();
+    assert!(digest.is_string(), "the report carries the proof digest");
+
+    let assert = gmeow()
+        .args([
+            "prove",
+            path(&source),
+            "--format",
+            "json",
+            "--check-proof",
+            path(&proof),
+        ])
+        .assert()
+        .code(0);
+    let check = report(&assert);
+    assert_eq!(check["verdict"], "replayed", "{check:#}");
+    assert_eq!(check["proof_digest"], digest);
+    // A second reader learns which answer the replayed proof certifies.
+    assert_eq!(check["claims"], serde_json::json!(["owl-view-consistent"]));
+
+    write(
+        directory.path(),
+        "horn.logic.ttl",
+        &format!("{HORN}\nex:c logic:instanceOf ex:A .\n"),
+    );
+    let assert = gmeow()
+        .args([
+            "prove",
+            path(&source),
+            "--format",
+            "json",
+            "--check-proof",
+            path(&proof),
+        ])
+        .assert()
+        .code(1);
+    assert_eq!(report(&assert)["verdict"], "rejected");
+}
+
+/// Assert a counterexample is never `consistent` and that the expected drop is named.
+fn assert_not_consistent_with(name: &str, body: &str, code: &str) {
+    let (report, exit) = prove_json(name, body, &["--gate"]);
+    assert_ne!(report["verdict"], "consistent", "{report:#}");
+    assert_ne!(exit, 0, "{report:#}");
+    assert!(
+        drop_codes(&report).iter().any(|drop| drop == code),
+        "expected drop {code}: {report:#}"
+    );
+}
+
+/// A record-form irreflexive characteristic the engine does not read is a drop,
+/// never a silent `consistent`.
+#[test]
+fn irreflexive_characteristic_record_is_a_named_drop() {
+    assert_not_consistent_with(
+        "record-irreflexive.logic.ttl",
+        r#"
+ex:pIrreflexive a logic:PropertyCharacteristicAssertion ;
+    logic:characterizes ex:p ;
+    logic:characteristicSort logic:irreflexiveProperty .
+ex:a ex:p ex:a .
+"#,
+        "CHARACTERISTIC_RECORD_NOT_READ",
+    );
+}
+
+/// A record-form asymmetric characteristic the engine does not read is a drop.
+#[test]
+fn asymmetric_characteristic_record_is_a_named_drop() {
+    assert_not_consistent_with(
+        "record-asymmetric.logic.ttl",
+        r#"
+ex:pAsymmetric a logic:PropertyCharacteristicAssertion ;
+    logic:characterizes ex:p ;
+    logic:characteristicSort logic:asymmetricProperty .
+ex:a ex:p ex:b .
+ex:b ex:p ex:a .
+"#,
+        "CHARACTERISTIC_RECORD_NOT_READ",
+    );
+}
+
+/// Equality between different terms needs substitution the engine does not have.
+#[test]
+fn equality_between_different_terms_is_a_named_drop() {
+    assert_not_consistent_with(
+        "sameas-congruence.logic.ttl",
+        r#"
+_:x a logic:TermCarrier ; logic:termVariable "x" .
+ex:selfLoopIsAbsurd a logic:Rule ;
+    logic:head [ rdf:reifies <<( _:x logic:instanceOf logic:Nothing )>> ] ;
+    logic:body [ rdf:reifies <<( _:x ex:q _:x )>> ] .
+ex:a ex:q ex:b .
+ex:a logic:sameAs ex:b .
+"#,
+        "EQUALITY_WITHOUT_SUBSTITUTION",
+    );
+}
+
+/// A universal restriction is a class-expression law outside the accounting list.
+#[test]
+fn universal_restriction_is_a_named_drop() {
+    let (report, exit) = prove_json(
+        "allvaluesfrom-universal.logic.ttl",
+        r#"
+ex:R logic:onProperty ex:p ;
+     logic:allValuesFrom logic:Thing .
+ex:R logic:subClassOf logic:Nothing .
+"#,
+        &["--gate"],
+    );
+    assert_ne!(report["verdict"], "consistent", "{report:#}");
+    assert_ne!(exit, 0);
+    assert!(!drop_codes(&report).is_empty(), "{report:#}");
+}
+
+/// Named-graph content is outside the decided default graph and is a named drop.
+#[test]
+fn named_graph_content_is_a_named_drop() {
+    let directory = tempfile::tempdir().expect("scratch directory");
+    let source = directory.path().join("named-graph.trig");
+    std::fs::write(
+        &source,
+        format!(
+            "{PREFIXES}\nex:A logic:disjointWith ex:B .\nex:a logic:instanceOf ex:A .\nex:g {{\n    ex:a logic:instanceOf ex:B .\n}}\n"
+        ),
+    )
+    .expect("write source");
+    let output = gmeow()
+        .args(["prove", path(&source), "--format", "json", "--gate"])
+        .output()
+        .expect("run prove");
+    let report: serde_json::Value = serde_json::from_slice(&output.stdout).expect("JSON");
+    assert_ne!(report["verdict"], "consistent", "{report:#}");
+    assert_ne!(output.status.code(), Some(0));
+    assert!(
+        drop_codes(&report)
+            .iter()
+            .any(|code| code == "OUTSIDE_SELECTION"),
+        "{report:#}"
+    );
+}
+
+/// The text report states the selection completeness line and one line per drop.
+#[test]
+fn text_report_lists_selection_completeness_and_each_drop() {
+    let directory = tempfile::tempdir().expect("scratch directory");
+    let source = write(directory.path(), "disjunctive.logic.ttl", DISJUNCTIVE);
+    let output = gmeow()
+        .args(["prove", path(&source)])
+        .output()
+        .expect("run prove");
+    let text = String::from_utf8(output.stdout).expect("utf8");
+    assert!(
+        text.lines().any(|line| line == "verdict not-decided"),
+        "{text}"
+    );
+    let drops = text
+        .lines()
+        .filter(|line| line.starts_with("drop native "))
+        .count();
+    assert!(drops > 0, "{text}");
+    assert!(
+        text.lines()
+            .any(|line| line.starts_with("selection incomplete drops=")
+                && line.ends_with("(native accounting)")),
+        "{text}"
+    );
+}
+
+/// A file that is not a proof, and a truncated proof, are rejected with exit 1 and a
+/// named reason; neither is mistaken for a replay.
+#[test]
+fn foreign_and_truncated_proof_files_are_rejected() {
+    let directory = tempfile::tempdir().expect("scratch directory");
+    let source = write(directory.path(), "horn.logic.ttl", HORN);
+    let proof = directory.path().join("proof.bin");
+    gmeow()
+        .args(["prove", path(&source), "--proof-out", path(&proof)])
+        .assert()
+        .success();
+    let bytes = std::fs::read(&proof).expect("recorded proof");
+    let truncated = directory.path().join("truncated.bin");
+    std::fs::write(&truncated, &bytes[..bytes.len() / 2]).expect("write truncated proof");
+    let foreign = directory.path().join("foreign.bin");
+    std::fs::write(&foreign, b"this is not a tableau proof").expect("write foreign file");
+    for candidate in [&truncated, &foreign] {
+        let assert = gmeow()
+            .args([
+                "prove",
+                path(&source),
+                "--format",
+                "json",
+                "--check-proof",
+                path(candidate),
+            ])
+            .assert()
+            .code(1);
+        let check = report(&assert);
+        assert_eq!(check["verdict"], "rejected", "{check:#}");
+        assert!(
+            check["diagnostics"][0]["code"]
+                .as_str()
+                .is_some_and(|code| !code.is_empty()),
+            "{check:#}"
+        );
+    }
+}
+
+/// A tableau step cap leaves the OWL leg not decided and reported as such, while
+/// the verdict follows the native engine's accounting.
+#[test]
+fn owl_step_cap_is_reported_on_its_leg_and_the_verdict_follows_the_native_engine() {
+    let (report, code) = prove_json("horn.logic.ttl", HORN, &["--step-cap", "0", "--gate"]);
+    assert_eq!(report["verdict"], "consistent", "{report:#}");
+    assert_eq!(code, 0);
+    assert_eq!(report["selection"]["complete"], true);
+    let owl = &report["engines"]["owl_dl"];
+    assert_eq!(owl["state"], "not-decided", "{report:#}");
+    assert!(
+        owl["notes"].as_array().is_some_and(|notes| notes
+            .iter()
+            .any(|note| note["code"] == "OWL_SEARCH_NOT_DECIDED")),
+        "{report:#}"
+    );
+    assert!(
+        drop_codes(&report).is_empty(),
+        "the OWL leg's state is never a selection drop"
+    );
+}
+
+/// A well-formed constraint whose guard the constraint compiler does not lower (here
+/// a disjunction) is skipped with a warning. The source is valid, so the selection is
+/// not decided and the skipped constraint is named; it is not malformed input.
+#[test]
+fn a_constraint_the_compiler_skips_is_not_decided_rather_than_malformed() {
+    let (report, code) = prove_json(
+        "skipped-constraint.logic.ttl",
+        r#"
+ex:transitionNamesItsTarget a logic:Constraint ;
+    logic:formalizes ex:transitionOf ;
+    logic:message "A transition names the thing it changes." ;
+    logic:integrity [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ;
+        logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:or
+                [ a logic:Formula ; logic:relation ex:kind ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termIri ex:Paused ] ],
+                [ a logic:Formula ; logic:relation ex:kind ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termIri ex:Resumed ] ] ] ;
+            logic:consequent [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "target" ] ; logic:exists [ a logic:Formula ; logic:relation ex:transitionOf ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "target" ] ] ] ] ] .
+"#,
+        &["--gate"],
+    );
+    assert_eq!(report["verdict"], "not-decided", "{report:#}");
+    assert_eq!(code, 3);
+    assert!(
+        drop_codes(&report)
+            .iter()
+            .any(|code| code == "SKIPPED_SELECTED_OWNER"),
+        "{report:#}"
+    );
+}
+
+/// A reasoning-contract declaration is catalogued metatheory: it is accounted, is
+/// not a drop, and does not change the verdict of the object theory.
+#[test]
+fn configuration_declarations_are_accounted_without_a_drop() {
+    let (report, code) = prove_json(
+        "contracts.logic.ttl",
+        r#"
+ex:classical a logic:ReasoningContract ; logic:modelSemantics logic:ClassicalSemantics .
+ex:subject ex:property ex:object .
+"#,
+        &["--gate"],
+    );
+    assert_eq!(report["verdict"], "consistent", "{report:#}");
+    assert_eq!(code, 0);
+    assert_eq!(report["selection"]["drops"], serde_json::json!([]));
+    assert!(
+        report["admission"]["units"]
+            .as_array()
+            .expect("admission units")
+            .iter()
+            .any(|unit| unit["disposition"]
+                .as_object()
+                .is_some_and(|disposition| disposition.contains_key("ConfigurationDeclaration"))),
+        "{report:#}"
+    );
 }
