@@ -156,7 +156,7 @@ pub fn reason_over_dataset(
         input_terms = edb.term_count(),
         "stage phase boundary",
     );
-    let canon = canonicalize_edb(&*edb, "stage-reason")?;
+    let canon = canonicalize_edb(&edb, "stage-reason")?;
     tracing::info!(
         target: "pipeline_phase",
         stage = "stage-reason",
@@ -289,7 +289,7 @@ fn reason_prepared_input(
     // in a SHIPPED artifact — `gmeow.gts`'s default graph and the committed inferred-closure
     // file — instead of only inside a gate process.
     let alpha_edges = measure_stage_phase("stage-reason", "project-expression-identities", || {
-        gmeow_logic::math_expression::alpha_equivalence_edges(&*edb)
+        gmeow_logic::math_expression::alpha_equivalence_edges(&edb)
     });
     // Prepared input, result and expression edges own their retained values.
     // The original carrier has no reader during terminal artifact projection.
