@@ -573,7 +573,7 @@ fn gts_verify_missing_file_fails_without_falling_back_to_the_embedded_bundle() {
         .args(["gts", "verify", "/nonexistent-gts-fixture.gts"])
         .assert()
         .failure()
-        .stderr(predicate::str::contains("gmeow-cli.gts.read"));
+        .stderr(predicate::str::contains("gmeow-cli.io.read"));
 }
 
 // ── affect intensity (Q10 production surface) ────────────────────────────────

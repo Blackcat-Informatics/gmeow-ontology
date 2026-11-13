@@ -2538,6 +2538,7 @@ fn publish_reasoning_failure(
     .publish(format, gate)
 }
 
+#[allow(clippy::too_many_arguments)]
 fn dl_service_failure_report(
     reporter: &dyn Reporter,
     diagnostic_prefix: &str,
@@ -8330,7 +8331,7 @@ fn render_logic_refine(
                 "INCOMPLETE",
                 serde_json::json!({
                     "cut_status": format!("{status:?}"),
-                    "cause": format!("{cause}"),
+                    "cause": cause.to_string(),
                     "budget": budget,
                     "note": "the derivation was cut, so NO roster is reported: a partial roster \
                              presented here would be read as the roster",

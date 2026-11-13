@@ -527,6 +527,7 @@ impl NativeReasoningReport {
 }
 
 impl ReasoningReportCore {
+    #[allow(clippy::too_many_arguments)]
     pub(crate) fn refused(
         operation: ReasoningOperation,
         decision: DecisionClass,
