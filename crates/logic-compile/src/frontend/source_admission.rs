@@ -1044,15 +1044,21 @@ impl<'a> AdmissionBuilder<'a> {
 
     fn record_diagnostics(&mut self) {
         for (index, diagnostic) in self.theory.diagnostics().iter().enumerate() {
+            // The compiler names the element it objects to; without it a reader of
+            // the report cannot find the statement.
+            let subject = diagnostic
+                .subject
+                .as_ref()
+                .map_or_else(String::new, |subject| format!(" (subject {subject})"));
             let disposition = if diagnostic.severity == Severity::Error {
                 malformed(
                     "COMPILER_ERROR_IN_SELECTED_THEORY",
-                    format!("[{}] {}", diagnostic.code, diagnostic.message),
+                    format!("[{}] {}{subject}", diagnostic.code, diagnostic.message),
                 )
             } else {
                 SemanticUnitDisposition::Observed {
                     detail: format!(
-                        "{} [{}] {}",
+                        "{} [{}] {}{subject}",
                         diagnostic.severity.as_str(),
                         diagnostic.code,
                         diagnostic.message
