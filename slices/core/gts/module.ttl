@@ -875,6 +875,24 @@ gmeow:ZstdDictMedium
 
 # --- Medium properties ------------------------------------------------------ #
 
+gmeow:corpusExcludesPath
+    a logic:DatatypeProperty ;
+    rdfs:domain gmeow:DictionaryCorpus ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
+    rdfs:label "corpus excludes path"@x-gmeow-english ;
+    logic:range [ a rdfs:Datatype ; logic:unionOf ( xsd:string xsd:token ) ] ;
+    skos:definition "A repository-relative logical path a dictionary corpus leaves out of the material its gmeow:corpusSelectsPathPrefix selectors admit. A value ending in a slash excludes that directory family; every other value excludes one exact logical file. It must lie inside one of the same corpus's path-prefix selectors, so it always names material the corpus would otherwise contain. Its purpose is the declaring module: the file that declares the dictionaries and their corpora is excluded from every corpus that would select it, so editing a declared training point does not move the corpus identity the committed sweep evidence was measured over. Non-functional: a corpus may exclude several paths."@x-gmeow-english ;
+    skos:example "gmeow:corpusGmeowCoreV1 gmeow:corpusExcludesPath \"slices/core/gts/module.ttl\" ."@x-gmeow-english ;
+    skos:scopeNote "Scope: this property removes logical files from a corpus's path-prefix selections and from nothing else. It does not remove archive members (gmeow:corpusSelectsBlobRep), named-graph content (gmeow:corpusSelectsGraph), or stage-product artifacts (gmeow:corpusSelectsStageProduct), and it does not remove material DERIVED from the excluded file, such as a graph or report the build computes from it."@x-gmeow-english ;
+    gmeow:addedInVersion "0.1.0" ;
+    gmeow:avoidWhen "Avoid a path no path-prefix selector of the same corpus covers (the build refuses it, because it would exclude nothing while claiming to), and avoid excluding training material merely to change which cell a sweep selects."@x-gmeow-english ;
+    gmeow:docsConcern gmeow:concernGTSPackaging ;
+    gmeow:graphBoxRole gmeow:boxConfigBox ,
+        gmeow:boxRBox ;
+    gmeow:howToUse "Name the exact logical file, or a slash-terminated family, to leave out of a path-prefix selection; the exclusion is applied before the corpus identity is computed."@x-gmeow-english ;
+    gmeow:termStability gmeow:stabilityExperimental ;
+    gmeow:useWhen "Use when a file inside a selected source tree must not be part of the corpus, chiefly the module that declares the corpus itself."@x-gmeow-english .
+
 gmeow:corpusSelectsBlobRep
     a logic:DatatypeProperty ;
     rdfs:domain gmeow:DictionaryCorpus ;
@@ -1226,6 +1244,42 @@ gmeow:measuredCorpusDigest
     gmeow:howToUse "Read it off the realization in graph/medium-registry and compare it against the corpus_digest column of bench/medium-baseline.json; equality is what makes the committed evidence a statement about the shipped bytes rather than about a sweep nobody re-ran."@x-gmeow-english ;
     gmeow:termStability gmeow:stabilityExperimental ;
     gmeow:useWhen "Use to pin a dictionary's shipped bytes and its committed evidence to the exact corpus resolution that produced them."@x-gmeow-english .
+
+gmeow:evidenceCorpusDigest
+    a logic:DatatypeProperty ;
+    rdfs:domain gmeow:CompressionDictionaryRealization ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
+    rdfs:label "evidence corpus digest"@x-gmeow-english ;
+    logic:range gmeow:blake3_256Digest ;
+    skos:definition "The BLAKE3-256 digest of the corpus the committed sweep evidence (bench/medium-baseline.json) was measured over for this dictionary, copied from that table's corpus_digest column. The RDF value uses gmeow:blake3_256Digest with 64 lowercase hexadecimal digits without a prefix. Exactly one per realization. Equal to gmeow:measuredCorpusDigest when the evidence describes this build's corpus; different when the evidence is stale, which gmeow:evidenceCorpusStale states."@x-gmeow-english ;
+    skos:example "ex:record gmeow:evidenceCorpusDigest \"0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef\"^^gmeow:blake3_256Digest ."@x-gmeow-english ;
+    skos:scopeNote "Scope: this property identifies the corpus the committed sweep measured, so a reader can compare it with the corpus this build resolved (gmeow:measuredCorpusDigest). It is not a digest this build computed over its own corpus, not the dictionary's own byte identity (gmeow:dictionaryContentDigest), and not a value an author edits to make the two agree."@x-gmeow-english ;
+    gmeow:addedInVersion "0.1.0" ;
+    gmeow:avoidWhen "Avoid reading it as the identity of the material the shipped bytes were trained on (that is gmeow:measuredCorpusDigest), and avoid copying the measured digest into it to hide stale evidence. Keep internal blake3: addresses distinct from the typed RDF literal."@x-gmeow-english ;
+    gmeow:docsConcern gmeow:concernGTSPackaging ;
+    gmeow:graphBoxRole gmeow:boxABox ,
+        gmeow:boxRBox ;
+    gmeow:howToUse "Read it off the realization in graph/medium-registry beside gmeow:measuredCorpusDigest; when the two differ, the committed numbers describe another corpus and the dictionary was trained at its declared point without current evidence."@x-gmeow-english ;
+    gmeow:termStability gmeow:stabilityExperimental ;
+    gmeow:useWhen "Use to record which corpus the committed sweep evidence for a shipped dictionary describes."@x-gmeow-english .
+
+gmeow:evidenceCorpusStale
+    a logic:DatatypeProperty ;
+    rdfs:domain gmeow:CompressionDictionaryRealization ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
+    rdfs:label "evidence corpus stale"@x-gmeow-english ;
+    rdfs:range xsd:boolean ;
+    skos:definition "Whether the committed sweep evidence for this dictionary was measured over a corpus other than the one this build resolved: true exactly when gmeow:evidenceCorpusDigest differs from gmeow:measuredCorpusDigest. Exactly one per realization. An ordinary build that finds stale evidence trains at the declared point, warns, and records true here; a release build refuses stale evidence (gmeow:MediumCorpusDrift), so a release bundle carries false."@x-gmeow-english ;
+    skos:example "ex:record gmeow:evidenceCorpusStale false ."@x-gmeow-english ;
+    skos:scopeNote "Scope: this property states whether the committed evidence describes the corpus this build trained over. It is not a verdict on the dictionary bytes, which are correct and decodable either way, and not a statement that the declared training point lost: it says only that the numbers that chose that point were taken over different material."@x-gmeow-english ;
+    gmeow:addedInVersion "0.1.0" ;
+    gmeow:avoidWhen "Avoid treating true as a decoding hazard — a consumer resolves the dictionary by the bytes shipped in the bundle — and avoid asserting it without the two digests it summarises."@x-gmeow-english ;
+    gmeow:docsConcern gmeow:concernGTSPackaging ;
+    gmeow:graphBoxRole gmeow:boxABox ,
+        gmeow:boxRBox ;
+    gmeow:howToUse "Read it off the realization in graph/medium-registry; when it is true, re-run `make maint-medium-sweep` to measure the current corpus before a release."@x-gmeow-english ;
+    gmeow:termStability gmeow:stabilityExperimental ;
+    gmeow:useWhen "Use to state plainly, on the shipped bundle, that a dictionary was built against stale sweep evidence."@x-gmeow-english .
 
 gmeow:measuredCorpusSampleCount
     a logic:DatatypeProperty ;
@@ -2144,9 +2198,10 @@ gmeow:corpusGmeowCoreV1
     a gmeow:DictionaryCorpus ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
     rdfs:label "core corpus v1"@x-gmeow-english ;
-    skos:definition "The bundle-internal core-tier corpus: the cell/projection TTL sources the carrier folds as cells-archive, plus the authored core slice tree. Bundle-internal — the archive rep is owned by gmeow:stage-archive-blobs and the prefix is in-repo."@x-gmeow-english ;
+    skos:definition "The bundle-internal core-tier corpus: the cell/projection TTL sources the carrier folds as cells-archive, plus the authored core slice tree except the gts module, which declares this corpus and the dictionaries trained over it and is therefore excluded so that editing a declared training point does not move the corpus the committed sweep evidence describes. Bundle-internal — the archive rep is owned by gmeow:stage-archive-blobs and the prefix is in-repo."@x-gmeow-english ;
     gmeow:corpusSelectsBlobRep "cells-archive" ;
     gmeow:corpusSelectsPathPrefix "slices/core/" ;
+    gmeow:corpusExcludesPath "slices/core/gts/module.ttl" ;
     gmeow:graphBoxRole gmeow:boxABox ,
         gmeow:boxConfigBox .
 
@@ -2636,14 +2691,14 @@ gmeow:MediumCorpusDrift
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
     rdfs:label "Medium Corpus Drift"@x-gmeow-english ;
     logic:subClassOf gmeow:GtsConformanceFailure ;
-    skos:definition "The failure raised when the corpus identity a dictionary's evidence records is not the identity of the corpus at hand — the committed sweep table (bench/medium-baseline.json) naming a gmeow:measuredCorpusDigest this build did not resolve, or two gmeow:CompressionDictionaryRealization records of one dictionary disagreeing about which corpus produced it. It exists because a gmeow:DictionaryCorpus is a SELECTOR re-resolved on every build: an archive that gains or loses one member moves the corpus while the committed evidence sits still, and every verdict read out of that evidence — the winner-table bijection, the declared-is-argmin agreement, the pays-for-itself criterion — would then be about a sweep nobody re-ran. HARD FAIL: stale evidence is not weaker evidence, it is evidence about a different corpus, so a build refuses rather than grading itself against it."@x-gmeow-english ;
+    skos:definition "The failure raised when the corpus identity a dictionary's evidence records is not the identity of the corpus at hand — the committed sweep table (bench/medium-baseline.json) naming a gmeow:measuredCorpusDigest this build did not resolve, or two gmeow:CompressionDictionaryRealization records of one dictionary disagreeing about which corpus produced it. It exists because a gmeow:DictionaryCorpus is a SELECTOR re-resolved on every build: an archive that gains or loses one member moves the corpus while the committed evidence sits still, and every verdict read out of that evidence — the winner-table bijection, the declared-is-argmin agreement, the pays-for-itself criterion — would then be about a sweep nobody re-ran. Stale evidence is not weaker evidence, it is evidence about a different corpus. A RELEASE build therefore refuses it as a HARD FAIL. An ordinary build trains at the declared point, warns, and records both identities on the realization (gmeow:evidenceCorpusDigest, gmeow:evidenceCorpusStale) instead of refusing, so an edit to a selected source tree does not stop the build before the sweep is re-run. Two realizations of one dictionary disagreeing about their corpus is a HARD FAIL on every build."@x-gmeow-english ;
     skos:example "ex:realCoreV1 a gmeow:MediumCorpusDrift ."@x-gmeow-english ;
     skos:scopeNote "Scope: this failure covers a mismatch of CORPUS IDENTITY between recorded evidence and the corpus this build resolved. It is not a mismatch between a dictionary's recorded digest and its own bytes (that is gmeow:MediumDigestMismatch), not a dropped dictionary version (gmeow:MediumDictionaryRegression), and not a verdict on the dictionary: the shipped bytes may be perfectly good while the numbers describing them are about different material."@x-gmeow-english ;
     gmeow:addedInVersion "0.1.0" ;
-    gmeow:avoidWhen "Avoid resolving it by editing the recorded digest (that asserts an identity nothing measured — re-run the sweep instead), avoid downgrading it to a warning, and avoid using it for a dictionary whose BYTES do not match their digest — that is gmeow:MediumDigestMismatch."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid resolving it by editing the recorded digest (that asserts an identity nothing measured — re-run the sweep instead), avoid relaxing the release refusal or hiding the stale state an ordinary build records, and avoid using it for a dictionary whose BYTES do not match their digest — that is gmeow:MediumDigestMismatch."@x-gmeow-english ;
     gmeow:docsConcern gmeow:concernGTSPackaging ;
     gmeow:graphBoxRole gmeow:boxTBox ;
-    gmeow:howToUse "Raised by logic:MediumCorpusIdentityAgreementConstraint and by the build's own re-derivation of every resolved corpus's digest; resolve it by re-running `make maint-medium-sweep` over the moved corpus, never by relaxing the comparison."@x-gmeow-english ;
+    gmeow:howToUse "Raised by logic:MediumCorpusIdentityAgreementConstraint on every build, and by a release build's re-derivation of every resolved corpus's digest; resolve it by re-running `make maint-medium-sweep` over the moved corpus, never by relaxing the comparison."@x-gmeow-english ;
     gmeow:termStability gmeow:stabilityExperimental ;
     gmeow:useWhen "Use to name evidence about a dictionary that describes a corpus other than the one the build resolved."@x-gmeow-english .
 
@@ -3264,7 +3319,7 @@ gmeow:CompressionDictionary logic:subClassOf
     [ a logic:Restriction ; logic:onProperty gmeow:trainsOverCorpus ; logic:minQualifiedCardinality 1 ; logic:onClass gmeow:DictionaryCorpus ] ,
     [ a logic:Restriction ; logic:onProperty gmeow:trainsOverCorpus ; logic:maxQualifiedCardinality 1 ; logic:onClass gmeow:DictionaryCorpus ] .
 
-# The GENERATED realization contract — where the measured fields ARE mandatory,
+# The GENERATED realization contract — where the measured and evidence fields ARE mandatory,
 # because the build can always supply them.
 gmeow:CompressionDictionaryRealization logic:subClassOf
     [ a logic:Restriction ; logic:onProperty gmeow:realizesDictionary ; logic:minQualifiedCardinality 1 ; logic:onClass logic:Thing ] ,
@@ -3284,7 +3339,11 @@ gmeow:CompressionDictionaryRealization logic:subClassOf
     [ a logic:Restriction ; logic:onProperty gmeow:measuredCorpusSampleCount ; logic:minQualifiedCardinality 1 ; logic:onDataRange xsd:nonNegativeInteger ] ,
     [ a logic:Restriction ; logic:onProperty gmeow:measuredCorpusSampleCount ; logic:maxQualifiedCardinality 1 ; logic:onDataRange xsd:nonNegativeInteger ] ,
     [ a logic:Restriction ; logic:onProperty gmeow:measuredCorpusDigest ; logic:minQualifiedCardinality 1 ; logic:onDataRange gmeow:blake3_256Digest ] ,
-    [ a logic:Restriction ; logic:onProperty gmeow:measuredCorpusDigest ; logic:maxQualifiedCardinality 1 ; logic:onDataRange gmeow:blake3_256Digest ] .
+    [ a logic:Restriction ; logic:onProperty gmeow:measuredCorpusDigest ; logic:maxQualifiedCardinality 1 ; logic:onDataRange gmeow:blake3_256Digest ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:evidenceCorpusDigest ; logic:minQualifiedCardinality 1 ; logic:onDataRange gmeow:blake3_256Digest ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:evidenceCorpusDigest ; logic:maxQualifiedCardinality 1 ; logic:onDataRange gmeow:blake3_256Digest ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:evidenceCorpusStale ; logic:minQualifiedCardinality 1 ; logic:onDataRange xsd:boolean ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:evidenceCorpusStale ; logic:maxQualifiedCardinality 1 ; logic:onDataRange xsd:boolean ] .
 
 # The DECLARED held-out split is exactly one modulus and one residue. Both are
 # mandatory for the same reason: a split missing either coordinate does not
@@ -3429,9 +3488,9 @@ logic:msmDistinct a logic:Formula ; logic:relation logic:termDistinct ;
 # One dictionary, ONE corpus identity. Cross-node: the obligation is about two
 # realizations of the same definition agreeing, not about either one's own
 # cardinality, so it has no OWL antecedent. It is the graph-side half of the
-# corpus-drift refusal — the build's half re-derives every resolved corpus's digest
-# and compares it against the committed sweep evidence — and both raise the same
-# named failure, because both are "the recorded corpus is not the corpus at hand".
+# corpus-drift check — the build's half re-derives every resolved corpus's digest,
+# compares it against the committed sweep evidence, and refuses on a release build —
+# and both raise the same named failure, because both are "the recorded corpus is not the corpus at hand".
 logic:MediumCorpusIdentityAgreementConstraint
     a logic:Constraint ;
     rdfs:label "Medium corpus-identity agreement constraint"@x-gmeow-english ;
@@ -3660,6 +3719,8 @@ gmeow:NativeSnapshotInputAdmission
 
 [ a logic:ClosureEntry ; logic:closureKey "https://blackcatinformatics.ca/gmeow/strataDigest" ; logic:closureValue logic:ClosedWorldClosure ] .
 
+[ a logic:ClosureEntry ; logic:closureKey "https://blackcatinformatics.ca/gmeow/evidenceCorpusDigest" ; logic:closureValue logic:ClosedWorldClosure ] .
+
 gmeow:MeasuredCorpusDigestValueConstraint
     a logic:Constraint ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
@@ -3673,4 +3734,19 @@ gmeow:MeasuredCorpusDigestValueConstraint
         logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "value" ] ;
         logic:forall [ a logic:Formula ;
             logic:antecedent [ a logic:Formula ; logic:relation gmeow:measuredCorpusDigest ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "value" ] ] ;
+            logic:consequent [ a logic:Formula ; logic:and [ a logic:Formula ; logic:relation logic:termSameComponent ; logic:argument [ logic:termIndex 0 ; logic:termVariable "value" ], [ logic:termIndex 1 ; logic:termIri logic:componentDatatype ], [ logic:termIndex 2 ; logic:termIri gmeow:blake3_256Digest ], [ logic:termIndex 3 ; logic:termIri logic:componentWhole ] ], [ a logic:Formula ; logic:relation logic:termRegex ; logic:argument [ logic:termIndex 0 ; logic:termVariable "value" ], [ logic:termIndex 1 ; logic:termLiteral "^[0-9a-f]{64}$" ] ] ] ] ] .
+
+gmeow:EvidenceCorpusDigestValueConstraint
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "supplied byte digest admission"@x-gmeow-english ;
+    skos:definition "Every supplied byte digest on the selected properties retains an admitted algorithm datatype and its exact lowercase hexadecimal width, without a prefix. This check does not compute a digest or prove that source bytes were verified."@x-gmeow-english ;
+    logic:formalizes gmeow:evidenceCorpusDigest ;
+    logic:severity "Violation" ;
+    logic:message "A supplied byte digest requires its admitted algorithm datatype and bare lowercase hexadecimal digits of the required width." ;
+    logic:integrity [ a logic:Formula ;
+        logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "value" ] ;
+        logic:forall [ a logic:Formula ;
+            logic:antecedent [ a logic:Formula ; logic:relation gmeow:evidenceCorpusDigest ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "value" ] ] ;
             logic:consequent [ a logic:Formula ; logic:and [ a logic:Formula ; logic:relation logic:termSameComponent ; logic:argument [ logic:termIndex 0 ; logic:termVariable "value" ], [ logic:termIndex 1 ; logic:termIri logic:componentDatatype ], [ logic:termIndex 2 ; logic:termIri gmeow:blake3_256Digest ], [ logic:termIndex 3 ; logic:termIri logic:componentWhole ] ], [ a logic:Formula ; logic:relation logic:termRegex ; logic:argument [ logic:termIndex 0 ; logic:termVariable "value" ], [ logic:termIndex 1 ; logic:termLiteral "^[0-9a-f]{64}$" ] ] ] ] ] .

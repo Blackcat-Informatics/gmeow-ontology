@@ -28,7 +28,7 @@ use purrdf_lex::json::{
     "target_length" => target_length, "corpus" => corpus,
 });
 ::purrdf_lex::json_record!(impl ToJson for CorpusDef {
-    "iri" => iri, "selectors" => selectors,
+    "iri" => iri, "selectors" => selectors, "exclusions" => exclusions,
 });
 ::purrdf_lex::json_record!(impl ToJson for TrainingSplitDef {
     "iri" => iri, "stride" => stride, "offset" => offset,
@@ -92,6 +92,7 @@ impl FromJson for CorpusDef {
         Ok(Self {
             iri: fields.required("iri")?,
             selectors: fields.required("selectors")?,
+            exclusions: fields.required("exclusions")?,
         })
     }
 }

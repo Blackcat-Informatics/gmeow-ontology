@@ -21,6 +21,11 @@ GMEOW_DEV ?= cargo xtask producer run --
 # the runtime-only exporters run under `all` only.
 SYNC_MODE ?= check
 SYNC_OUTPUTS ?= generated
+# `SYNC_PROFILE` selects the build profile. `ordinary` trains each dictionary at its
+# declared point and, when the committed evidence no longer matches the resolved
+# corpus, warns and records the stale evidence digest. `release` refuses that drift.
+# It propagates through nested `make` invocations as a command-line variable.
+SYNC_PROFILE ?= ordinary
 SYNC_VERBOSE ?=
 # Optional per-run timing sink for the producer (the report-only `perf-gate` lane
 # sets it). It exists so that lane can measure the pipeline THROUGH the single
@@ -452,7 +457,7 @@ check-sync: ## The one pipeline producer: materialize (SYNC_MODE=update) or read
 		$(MAKE) check-sync SYNC_MODE=$(SYNC_MODE) SYNC_OUTPUTS=generated SYNC_VERBOSE=$(SYNC_VERBOSE) && \
 		$(MAKE) build; \
 	fi
-	$(GMEOW_DEV) sync --mode $(SYNC_MODE) --outputs $(SYNC_OUTPUTS) $(if $(filter 1 true yes on,$(strip $(SYNC_VERBOSE))),--verbose,) $(if $(strip $(SYNC_TIMINGS_JSON)),--timings-json $(SYNC_TIMINGS_JSON),)
+	$(GMEOW_DEV) sync --mode $(SYNC_MODE) --outputs $(SYNC_OUTPUTS) --profile $(SYNC_PROFILE) $(if $(filter 1 true yes on,$(strip $(SYNC_VERBOSE))),--verbose,) $(if $(strip $(SYNC_TIMINGS_JSON)),--timings-json $(SYNC_TIMINGS_JSON),)
 
 .PHONY: check-sync-prerequisite-test
 check-sync-prerequisite-test: ## Verify docs prerequisite failure propagation using inert producer stubs.
@@ -526,7 +531,7 @@ release: ## Materialize from source (update mode), native-reason, build, report,
 	# it) instead of the producer's read-only default, which would hard-fail the superset
 	# gate ("no carrier representative") on the absent tree. Every output family is
 	# materialized: a release ships the docs fanout and the runtime dist/ projections.
-	$(MAKE) check-sync SYNC_MODE=update SYNC_OUTPUTS=all
+	$(MAKE) check-sync SYNC_MODE=update SYNC_OUTPUTS=all SYNC_PROFILE=release
 	$(GMEOW_DEV) reason --mode native --merge
 	$(MAKE) consumer-cli-build-materialized
 	$(GMEOW_DEV) build
@@ -544,7 +549,7 @@ full-release: ## Signed release-as-evidence: gate + oracle lane + conformance + 
 	@if [ -z "$(SIGN_KEY)" ]; then \
 		echo "SIGN_KEY=/path/to/secret.asc is required"; exit 1; \
 	fi
-	$(MAKE) check
+	$(MAKE) check SYNC_PROFILE=release
 	$(MAKE) conformance
 	$(MAKE) conformance-report
 	$(MAKE) bench-compare
@@ -1435,6 +1440,10 @@ maint-medium-sweep: ## (maintainer) Refresh bench/medium-baseline.json — the f
 	@# hand-committed refresh, never auto-drift. `stage-medium-dictionaries` CONSUMES the
 	@# committed winners, so the shipped dictionaries stay a deterministic function of the
 	@# repository instead of a per-build search.
+	@# A refresh is not required for every corpus edit: the stage trains at the DECLARED
+	@# point, a declaration within the near-tie margin of the winner is accepted, and an
+	@# ordinary build whose corpus digest no longer matches the table warns and records the
+	@# stale evidence. A release build refuses that drift, so refresh before releasing.
 	@#
 	@# It exits NON-ZERO on the one declared stop-and-ask condition — a dictionary does
 	@# not pay for itself at its best cell (retiring a shipped dictionary orphans every

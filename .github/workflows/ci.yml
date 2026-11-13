@@ -472,7 +472,7 @@ jobs:
 
       - name: Capture the immutable sync manifest
         run: >-
-          cp .cache/gmeow-sync/manifests/generated-default.json
+          cp .cache/gmeow-sync/manifests/generated-ordinary-default.json
           dist/sync/manifest.json
 
       - name: Upload independent generated tree

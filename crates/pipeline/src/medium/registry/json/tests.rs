@@ -9,9 +9,9 @@ use crate::medium::source_observation;
 use purrdf_lex::json::record::{from_slice, to_vec};
 
 const DICTIONARY: &str = r#"{"iri":"urn:d","id":"id","version":"中\n\"\\","strategy":"RawContent","target_length":7,"corpus":"urn:c"}"#;
-const CORPUS: &str = r#"{"iri":"urn:c","selectors":[{"StageProduct":"urn:stage"},{"PathPrefix":"x/"},{"Graph":"urn:g"},{"BlobRep":"z"}]}"#;
+const CORPUS: &str = r#"{"iri":"urn:c","selectors":[{"StageProduct":"urn:stage"},{"PathPrefix":"x/"},{"Graph":"urn:g"},{"BlobRep":"z"}],"exclusions":["x/excluded.ttl"]}"#;
 const MEDIUM: &str = r#"{"iri":"urn:m","codec":"codec","zstd_level":12,"source_kind":"HeaderDict","dictionaries":["urn:d"],"reader_capabilities":["a","z"]}"#;
-const REGISTRY: &str = r#"{"dictionaries":{"urn:d":{"iri":"urn:d","id":"id","version":"中\n\"\\","strategy":"RawContent","target_length":7,"corpus":"urn:c"}},"dictionary_by_id":{"id":"urn:d"},"corpora":{"urn:c":{"iri":"urn:c","selectors":[{"StageProduct":"urn:stage"},{"PathPrefix":"x/"},{"Graph":"urn:g"},{"BlobRep":"z"}]}},"split":{"iri":"urn:split","stride":8,"offset":0},"schemas":{"urn:s":{"iri":"urn:s","rep":"rep"}},"schema_by_rep":{"rep":"urn:s"},"media":{"urn:m":{"iri":"urn:m","codec":"codec","zstd_level":12,"source_kind":"HeaderDict","dictionaries":["urn:d"],"reader_capabilities":["a","z"]}},"assignment":{"urn:s":{"schema":"urn:s","medium":"urn:m","dictionary":{"Named":"urn:d"}}}}"#;
+const REGISTRY: &str = r#"{"dictionaries":{"urn:d":{"iri":"urn:d","id":"id","version":"中\n\"\\","strategy":"RawContent","target_length":7,"corpus":"urn:c"}},"dictionary_by_id":{"id":"urn:d"},"corpora":{"urn:c":{"iri":"urn:c","selectors":[{"StageProduct":"urn:stage"},{"PathPrefix":"x/"},{"Graph":"urn:g"},{"BlobRep":"z"}],"exclusions":["x/excluded.ttl"]}},"split":{"iri":"urn:split","stride":8,"offset":0},"schemas":{"urn:s":{"iri":"urn:s","rep":"rep"}},"schema_by_rep":{"rep":"urn:s"},"media":{"urn:m":{"iri":"urn:m","codec":"codec","zstd_level":12,"source_kind":"HeaderDict","dictionaries":["urn:d"],"reader_capabilities":["a","z"]}},"assignment":{"urn:s":{"schema":"urn:s","medium":"urn:m","dictionary":{"Named":"urn:d"}}}}"#;
 
 /// Independent records deliberately retain selector/vector order and sorted sets.
 fn authored_registry() -> MediumRegistry {
@@ -39,6 +39,7 @@ fn authored_registry() -> MediumRegistry {
                     CorpusSelector::Graph("urn:g".to_owned()),
                     CorpusSelector::BlobRep("z".to_owned()),
                 ],
+                exclusions: vec!["x/excluded.ttl".to_owned()],
             },
         )]
         .into(),

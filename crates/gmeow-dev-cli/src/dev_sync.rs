@@ -24,9 +24,9 @@ use sha2::{Digest, Sha256};
 use crate::dev_common::{
     fail, project_root, reporter_for, resolve_console, resolve_jobs, write_timings_json,
 };
-use crate::{SyncMode, SyncOutput};
+use crate::{SyncMode, SyncOutput, SyncProfile};
 
-const MANIFEST_VERSION: u32 = 5;
+const MANIFEST_VERSION: u32 = 6;
 const TELEMETRY_SCHEMA_VERSION: u32 = 2;
 const LOCK_ROOT_ENV: &str = "GMEOW_TASK_LOCK_ROOT";
 const LOCK_TOKEN_ENV: &str = "GMEOW_TASK_LOCK_TOKEN";
@@ -158,6 +158,9 @@ struct SyncManifest {
     build_identity: BuildIdentity,
     input_digest: String,
     output: String,
+    /// The build profile the manifest witnesses. A release must never be satisfied by
+    /// an ordinary run's manifest: the two produce different shipped realizations.
+    profile: String,
     language: String,
     strict_checked: bool,
     /// Whether the selected outputs were reconciled to disk, rather than only
@@ -323,6 +326,7 @@ pub(crate) fn accept_pipeline_report(
 pub fn sync(
     requested_mode: Option<SyncMode>,
     output: SyncOutput,
+    profile: SyncProfile,
     jobs: Option<usize>,
     lang: Option<&str>,
     timings_json: Option<&Path>,
@@ -375,7 +379,7 @@ pub fn sync(
     if verbose {
         reporter.stage_end("sync:hash-inputs", input_started.elapsed());
     }
-    let manifest_path = manifest_path(&root, output, &language);
+    let manifest_path = manifest_path(&root, output, profile, &language);
     let manifest_started = Instant::now();
     if verbose {
         reporter.stage_start("sync:validate-manifest");
@@ -384,7 +388,15 @@ pub fn sync(
         .ok()
         .and_then(|bytes| serde_json::from_slice::<SyncManifest>(&bytes).ok())
         .filter(|manifest| {
-            manifest_is_current(&root, manifest, mode, output, &language, &input_digest)
+            manifest_is_current(
+                &root,
+                manifest,
+                mode,
+                output,
+                profile,
+                &language,
+                &input_digest,
+            )
         });
     if verbose {
         reporter.stage_end("sync:validate-manifest", manifest_started.elapsed());
@@ -459,8 +471,14 @@ pub fn sync(
         SyncOutput::Generated | SyncOutput::Docs => RunOutputScope::Committed,
     };
     let progress = verbose.then(|| Arc::clone(&reporter));
-    let report = match run_full_scoped_with_progress(&root, jobs, run_mode, output_scope, progress)
-    {
+    let report = match run_full_scoped_with_progress(
+        &root,
+        jobs,
+        run_mode,
+        output_scope,
+        profile.build_profile(),
+        progress,
+    ) {
         Ok(report) => report,
         Err(e) => return fail(format!("sync pipeline failed: {e}")),
     };
@@ -527,6 +545,7 @@ pub fn sync(
         build_identity: BuildIdentity::current(),
         input_digest: final_input_digest,
         output: output.as_str().to_string(),
+        profile: profile.as_str().to_string(),
         language,
         strict_checked: true,
         materialized: mode == SyncMode::Update,
@@ -748,7 +767,7 @@ fn default_mode() -> SyncMode {
     }
 }
 
-fn manifest_path(root: &Path, output: SyncOutput, language: &str) -> PathBuf {
+fn manifest_path(root: &Path, output: SyncOutput, profile: SyncProfile, language: &str) -> PathBuf {
     let safe_language = language
         .chars()
         .map(|ch| {
@@ -759,8 +778,11 @@ fn manifest_path(root: &Path, output: SyncOutput, language: &str) -> PathBuf {
             }
         })
         .collect::<String>();
-    root.join(".cache/gmeow-sync/manifests")
-        .join(format!("{}-{safe_language}.json", output.as_str()))
+    root.join(".cache/gmeow-sync/manifests").join(format!(
+        "{}-{}-{safe_language}.json",
+        output.as_str(),
+        profile.as_str()
+    ))
 }
 
 fn pipeline_output_selected(output: SyncOutput, path: &str) -> bool {
@@ -850,6 +872,7 @@ fn manifest_is_current(
     manifest: &SyncManifest,
     mode: SyncMode,
     output: SyncOutput,
+    profile: SyncProfile,
     language: &str,
     input_digest: &str,
 ) -> bool {
@@ -858,6 +881,7 @@ fn manifest_is_current(
         || manifest.build_identity != BuildIdentity::current()
         || manifest.input_digest != input_digest
         || manifest.output != output.as_str()
+        || manifest.profile != profile.as_str()
         || manifest.language != language
         || (mode == SyncMode::Check && !manifest.strict_checked)
         || (mode == SyncMode::Update && !manifest.materialized)

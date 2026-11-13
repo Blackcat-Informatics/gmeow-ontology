@@ -171,6 +171,36 @@ pub enum RunOutputScope {
     Committed,
 }
 
+/// Which kind of build a run is: an ordinary build or a release.
+///
+/// A release is selected EXPLICITLY by its caller (`gmeow-dev sync --profile release`,
+/// which the `release` and `full-release` Make targets pass), never inferred from an
+/// output scope, a mode, or the environment. It changes one behaviour today: a
+/// release refuses committed dictionary sweep evidence measured over a corpus other
+/// than the one the build resolved ([`crate::medium::sweep::grade_dictionary`]), where
+/// an ordinary build trains at the declared point and records the stale state on the
+/// shipped realization. The profile reaches each stage it affects through that
+/// stage's constructor and is folded into its cache key, so a product built under one
+/// profile is never reused by the other.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum BuildProfile {
+    /// An ordinary development or gate build.
+    Ordinary,
+    /// A release build.
+    Release,
+}
+
+impl BuildProfile {
+    /// The stable token naming this profile on the command line and in run manifests.
+    #[must_use]
+    pub const fn as_str(self) -> &'static str {
+        match self {
+            Self::Ordinary => "ordinary",
+            Self::Release => "release",
+        }
+    }
+}
+
 /// The outcome of a [`run_full`]: how many artifacts were produced / reproduced
 /// and any drift findings (check mode) or write errors.
 #[derive(Debug, Clone)]
@@ -979,23 +1009,25 @@ pub fn run_full(root: &Path, jobs: usize, mode: RunMode) -> Result<RunReport, gm
     run_full_scoped(root, jobs, mode, RunOutputScope::All)
 }
 
-/// Run the build once for the selected output scope. The scope selects the stage set
-/// ([`spec_for_scope`]); every selected stage and its gates are mandatory.
+/// Run an ORDINARY build once for the selected output scope. The scope selects the
+/// stage set ([`spec_for_scope`]); every selected stage and its gates are mandatory.
 pub fn run_full_scoped(
     root: &Path,
     jobs: usize,
     mode: RunMode,
     output_scope: RunOutputScope,
 ) -> Result<RunReport, gmeow_errors::Diag> {
-    run_full_scoped_with_progress(root, jobs, mode, output_scope, None)
+    run_full_scoped_with_progress(root, jobs, mode, output_scope, BuildProfile::Ordinary, None)
 }
 
-/// Run the scoped pipeline with an optional live progress sink.
+/// Run the scoped pipeline under an explicitly selected [`BuildProfile`], with an
+/// optional live progress sink.
 pub fn run_full_scoped_with_progress(
     root: &Path,
     jobs: usize,
     mode: RunMode,
     output_scope: RunOutputScope,
+    profile: BuildProfile,
     progress: Option<Arc<dyn Reporter>>,
 ) -> Result<RunReport, gmeow_errors::Diag> {
     let total_started = Instant::now();
@@ -1045,7 +1077,7 @@ pub fn run_full_scoped_with_progress(
     // DAG — the terminal gts sink and the schemas tail included — runs in ONE scheduler pass.
     // No producer/serialization re-derivation, no SINK_STAGE-only sub-run.
     let graph = spec.validate()?;
-    let registry = default_registry();
+    let registry = crate::registry::registry_for(profile);
     let bound = bind(&spec, &graph, &registry)?;
     // The whole-run manifest remains the zero-work fixed-point boundary. On a manifest
     // miss, the DAG's exact-one cache dispositions admit independently bounded stage

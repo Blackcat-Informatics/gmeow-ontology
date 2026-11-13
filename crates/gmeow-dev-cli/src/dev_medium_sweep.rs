@@ -8,7 +8,7 @@
 //! It runs the real DAG once, then the full `(strategy × target length)` grid per
 //! MEASURABLE declared dictionary plus the global `(codec × level)` grid, and writes
 //! the winner table with its whole grid as evidence. `make maint-medium-sweep` wires
-//! it; the build then CONSUMES only the committed winners, so
+//! it; the build then GRADES its declared training points against the committed grid, so
 //! `stage-medium-dictionaries` stays deterministic and sweep-free.
 //!
 //! Mirrors `bench-compare --emit-baseline` and
@@ -238,7 +238,8 @@ fn stop_conditions(baseline: &MediumBaseline) -> bool {
                 "{TOOL}: FINDING — dictionary {:?} declares {}/{} but the measured argmin is \
                  {}/{}. The declaration is NOT overwritten here: reconcile \
                  slices/core/gts/module.ttl with the evidence (or record why the declaration \
-                 stands) — `the_declared_training_points_are_the_committed_winners` reds until you do.",
+                 stands). A build accepts a declaration that is not the argmin only within the \
+                 near-tie margin of the winning cell and fails above it.",
                 row.id,
                 row.declared_strategy,
                 row.declared_target_length,

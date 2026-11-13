@@ -21,6 +21,11 @@ fn measured(strategy: DictionaryStrategy) -> Measured {
     }
 }
 
+/// The evidence digest of a table measured over exactly the fixture resolution.
+fn current_evidence() -> String {
+    blake3_digest(b"the fixture corpus resolution")
+}
+
 fn trained_bytes() -> Vec<u8> {
     let owned: Vec<Vec<u8>> = (0..400u32)
         .map(|i| {
@@ -42,7 +47,13 @@ fn a_realization_carries_every_measured_field() {
         .dictionary_by_id("gmeow-core-v1")
         .expect("declared");
     let bytes = trained_bytes();
-    let realization = realize(def, &bytes, measured(DictionaryStrategy::Trained)).expect("realize");
+    let realization = realize(
+        def,
+        &bytes,
+        measured(DictionaryStrategy::Trained),
+        current_evidence(),
+    )
+    .expect("realize");
     assert_eq!(realization.byte_length, bytes.len());
     assert!(is_canonical_digest(&realization.content_digest));
     assert!(
@@ -52,8 +63,13 @@ fn a_realization_carries_every_measured_field() {
     assert_ne!(realization.zstd_dictionary_id, 0);
     // The MEASURED strategy is its own field: a trainer that fell back must be
     // able to say so without touching the authored definition.
-    let fell_back =
-        realize(def, &bytes, measured(DictionaryStrategy::RawContent)).expect("realize");
+    let fell_back = realize(
+        def,
+        &bytes,
+        measured(DictionaryStrategy::RawContent),
+        current_evidence(),
+    )
+    .expect("realize");
     assert_eq!(fell_back.strategy, DictionaryStrategy::RawContent);
     assert_eq!(def.strategy, DictionaryStrategy::Trained);
 }
@@ -64,8 +80,13 @@ fn the_projection_lands_entirely_in_the_medium_registry_graph() {
     let def = registry
         .dictionary_by_id("gmeow-core-v1")
         .expect("declared");
-    let realization =
-        realize(def, &trained_bytes(), measured(DictionaryStrategy::Trained)).expect("realize");
+    let realization = realize(
+        def,
+        &trained_bytes(),
+        measured(DictionaryStrategy::Trained),
+        current_evidence(),
+    )
+    .expect("realize");
     let envelope = seal(
         &registry,
         &crate::medium::registry::MediumSelection::Authored,
@@ -119,8 +140,20 @@ fn the_projection_is_emission_order_independent() {
         .dictionary_by_id("gmeow-terms-v1")
         .expect("declared");
     let bytes = trained_bytes();
-    let a = realize(core, &bytes, measured(DictionaryStrategy::Trained)).expect("realize");
-    let b = realize(terms, &bytes, measured(DictionaryStrategy::TermTable)).expect("realize");
+    let a = realize(
+        core,
+        &bytes,
+        measured(DictionaryStrategy::Trained),
+        current_evidence(),
+    )
+    .expect("realize");
+    let b = realize(
+        terms,
+        &bytes,
+        measured(DictionaryStrategy::TermTable),
+        current_evidence(),
+    )
+    .expect("realize");
 
     let forward = project(&registry, &[a.clone(), b.clone()], &[]).expect("project");
     let reversed = project(&registry, &[b, a], &[]).expect("project");
@@ -134,8 +167,13 @@ fn a_retired_dictionary_version_is_a_regression() {
     let def = registry
         .dictionary_by_id("gmeow-core-v1")
         .expect("declared");
-    let mut realization =
-        realize(def, &trained_bytes(), measured(DictionaryStrategy::Trained)).expect("realize");
+    let mut realization = realize(
+        def,
+        &trained_bytes(),
+        measured(DictionaryStrategy::Trained),
+        current_evidence(),
+    )
+    .expect("realize");
     check_dictionary_retention(&registry, &[realization.clone()])
         .expect("the emitted version is still declared");
 
@@ -158,8 +196,13 @@ fn a_malformed_realization_digest_is_refused_at_emission() {
     let def = registry
         .dictionary_by_id("gmeow-core-v1")
         .expect("declared");
-    let mut realization =
-        realize(def, &trained_bytes(), measured(DictionaryStrategy::Trained)).expect("realize");
+    let mut realization = realize(
+        def,
+        &trained_bytes(),
+        measured(DictionaryStrategy::Trained),
+        current_evidence(),
+    )
+    .expect("realize");
     realization.content_digest = "not-a-digest".to_string();
     let diag = project(&registry, &[realization], &[])
         .expect_err("a malformed digest must not be projected");

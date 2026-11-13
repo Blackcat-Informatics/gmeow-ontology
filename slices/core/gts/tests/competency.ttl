@@ -174,7 +174,9 @@ ex:cqMediumRecordContracts a gmeow:CompetencyQuestion ;
         ex:rowContract35 ,
         ex:rowContract36 ,
         ex:rowContract37 ,
-        ex:rowContract38 .
+        ex:rowContract38 ,
+        ex:rowContract39 ,
+        ex:rowContract40 .
 
 ex:shapeMediumRecordContracts a logic:ResultShape ;
     logic:declaresColumn
@@ -296,6 +298,12 @@ ex:rowContract37 a gmeow:ExpectedRow ;
 ex:rowContract38 a gmeow:ExpectedRow ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "record" ; gmeow:cellValueIri gmeow:ZstdDictMedium ] ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "coordinate" ; gmeow:cellValueIri gmeow:mediumZstdLevel ] .
+ex:rowContract39 a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "record" ; gmeow:cellValueIri gmeow:CompressionDictionaryRealization ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "coordinate" ; gmeow:cellValueIri gmeow:evidenceCorpusDigest ] .
+ex:rowContract40 a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "record" ; gmeow:cellValueIri gmeow:CompressionDictionaryRealization ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "coordinate" ; gmeow:cellValueIri gmeow:evidenceCorpusStale ] .
 
 # =========================================================================== #
 # 3. Which obligations are CONDITIONAL, and on what?                          #

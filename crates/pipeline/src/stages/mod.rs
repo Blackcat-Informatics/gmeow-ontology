@@ -139,9 +139,9 @@ pub mod verify_attestation;
 pub mod yaml_ld;
 
 /// Register every production stage into `registry` under its `gmeow:stageImpl`
-/// key. The single inventory the loader and `run_pipeline` (P6) share. Stages
-/// land here as P3–P5 implement them.
-pub fn register_default(registry: &mut StageRegistry) {
+/// key. The single inventory the loader and `run_pipeline` (P6) share. `profile` is
+/// handed to every stage whose behaviour depends on the build profile.
+pub fn register_default(registry: &mut StageRegistry, profile: crate::run::BuildProfile) {
     registry.register("parse_sources", Arc::new(parse_sources::ParseSourcesStage));
     registry.register("source_load", Arc::new(source_load::SourceLoadStage::new()));
     registry.register("statements", Arc::new(statements::StatementsStage));
@@ -182,7 +182,7 @@ pub fn register_default(registry: &mut StageRegistry) {
     );
     registry.register(
         "medium-dictionaries",
-        Arc::new(medium_dictionaries::MediumDictionariesStage::new()),
+        Arc::new(medium_dictionaries::MediumDictionariesStage::new(profile)),
     );
     registry.register("gts_sink", Arc::new(gts_sink::GtsSinkStage::new()));
     registry.register("catalog", Arc::new(catalog::CatalogStage));

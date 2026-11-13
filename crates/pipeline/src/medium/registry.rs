@@ -160,6 +160,11 @@ pub struct CorpusDef {
     /// its dictionary's training set undefined
     /// (`logic:DictionaryCorpusSelectorConstraint`).
     pub selectors: Vec<CorpusSelector>,
+    /// `gmeow:corpusExcludesPath` values, sorted: logical paths removed from what the
+    /// path-prefix selectors admit. Each lies inside one of [`Self::selectors`]'
+    /// path-prefix families, so it always names material the corpus would otherwise
+    /// contain.
+    pub exclusions: Vec<String>,
 }
 
 /// The DECLARED held-out split (`gmeow:CorpusTrainingSplit`) every archive-backed
@@ -683,8 +688,15 @@ impl MediumRegistry {
         for subject in subjects_of_type(ds, &gm("DictionaryCorpus")) {
             let iri = require_iri(ds, subject)?;
             let selectors = super::corpus::selectors_of(ds, subject, &iri)?;
-            self.corpora
-                .insert(iri.clone(), CorpusDef { iri, selectors });
+            let exclusions = super::corpus::exclusions_of(ds, subject, &iri, &selectors)?;
+            self.corpora.insert(
+                iri.clone(),
+                CorpusDef {
+                    iri,
+                    selectors,
+                    exclusions,
+                },
+            );
         }
         Ok(())
     }
