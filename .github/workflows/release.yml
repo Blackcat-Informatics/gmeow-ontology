@@ -186,7 +186,7 @@ jobs:
         with:
           persist-credentials: false
 
-      # The wasm32 target is REQUIRED here: `make wasm-parity` builds the five wasm engine
+      # The wasm32 target is REQUIRED here: the parity lane below builds the five wasm engine
       # npm packages, and `make wasm` hard-fails when the target is absent in CI. Kept in
       # lockstep with the ci.yml `wasm` job, which provisions it the same way.
       - name: Install Rust (nightly + wasm32)
