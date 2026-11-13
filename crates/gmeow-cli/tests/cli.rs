@@ -492,23 +492,88 @@ fn mcp_serves_a_native_jsonrpc_initialize() {
         );
 }
 
+/// A tiny, valid, UNSIGNED GTS file authored from synthetic data, written to `dir`.
+fn tiny_gts(dir: &Path) -> PathBuf {
+    let nt = "<https://example.org/a> <https://example.org/p> \"v\" .\n";
+    let ds = purrdf::parse_dataset(nt.as_bytes(), "application/n-triples", None)
+        .expect("synthetic fixture parses");
+    let bytes = purrdf::gts_write::to_gts(&ds, &purrdf::RdfLookaside::default(), "purrdf-test") // gmeow-test-input: synthetic-only
+        .expect("synthetic fixture serializes");
+    let path = dir.join("tiny.gts");
+    std::fs::write(&path, bytes).expect("write synthetic gts");
+    path
+}
+
 #[test]
-fn gts_shim_hard_fails_when_binary_missing() {
-    // test_gts_shim_fails_when_binary_missing: with no `gts` on PATH and no
-    // GMEOW_GTS_BIN, the shim hard-fails with an install hint.
+fn gts_heads_runs_in_process_with_no_path_and_no_environment() {
+    // Protects the self-contained-binary contract: `gmeow gts heads` on the embedded bundle
+    // needs no other executable and no inherited environment (no PATH search and no
+    // staged temp copy of the bundle).
     let bin = assert_cmd::cargo::cargo_bin("gmeow");
     let output = StdCommand::new(bin)
-        .args(["gts", "info"])
+        .args(["gts", "heads"])
         .env_clear()
-        .env("PATH", "/nonexistent-path-for-tests")
+        .env("PATH", "")
         .output()
-        .expect("run gmeow gts info");
-    assert!(!output.status.success(), "must hard-fail without gts");
-    let stderr = String::from_utf8_lossy(&output.stderr);
+        .expect("run gmeow gts heads");
     assert!(
-        stderr.contains("gts binary not found"),
-        "install hint on stderr: {stderr}"
+        output.status.success(),
+        "gts heads must succeed on the embedded bundle: {}",
+        String::from_utf8_lossy(&output.stderr)
     );
+    let stdout = String::from_utf8_lossy(&output.stdout);
+    assert!(
+        stdout.contains("\"schema\":\"gts-replication-heads-v1\"")
+            && stdout.contains("\"clean\":true"),
+        "heads JSON for a clean bundle: {stdout}"
+    );
+}
+
+#[test]
+fn gts_verify_rejects_a_truncated_file_with_a_named_reason() {
+    // Protects `gts verify` against reporting success for damaged input: a file cut mid-frame
+    // must fail with a non-zero exit and an integrity diagnostic, even when unsigned files
+    // are otherwise accepted, so the refusal is the truncation and not the missing signature.
+    let (_tmp, dir) = scratch("gts-truncated");
+    let path = tiny_gts(&dir);
+    let bytes = std::fs::read(&path).expect("read synthetic gts");
+
+    gmeow()
+        .args(["gts", "verify", "--allow-unsigned", path.to_str().unwrap()])
+        .assert()
+        .success()
+        .stdout(predicate::str::contains("signature check: NOT PERFORMED"));
+
+    let cut = dir.join("cut.gts");
+    std::fs::write(&cut, &bytes[..bytes.len() - 3]).expect("write truncated gts");
+    gmeow()
+        .args(["gts", "verify", "--allow-unsigned", cut.to_str().unwrap()])
+        .assert()
+        .failure()
+        .stderr(predicate::str::contains("gmeow-cli.gts.verify.failed"))
+        .stdout(predicate::str::contains("error:"));
+}
+
+#[test]
+fn gts_unknown_verb_is_a_usage_error() {
+    // Protects the closed verb set: anything outside it (including the verbs the old
+    // external CLI offered) is rejected by clap with the usage exit code, never forwarded.
+    gmeow()
+        .args(["gts", "to-sqlite"])
+        .assert()
+        .code(2)
+        .stderr(predicate::str::contains("unrecognized subcommand"));
+}
+
+#[test]
+fn gts_verify_missing_file_fails_without_falling_back_to_the_embedded_bundle() {
+    // Protects the no-silent-fallback rule: a named file that cannot be read is an error,
+    // never a reason to verify the embedded bundle instead.
+    gmeow()
+        .args(["gts", "verify", "/nonexistent-gts-fixture.gts"])
+        .assert()
+        .failure()
+        .stderr(predicate::str::contains("gmeow-cli.gts.read"));
 }
 
 // ── affect intensity (Q10 production surface) ────────────────────────────────

@@ -141,7 +141,10 @@ pub(crate) fn fail_code(
 
 /// The bytes of `file` (read from disk), or the embedded [`BUNDLE_GTS`] when
 /// `file` is `None` — the repo-free default every command shares.
-fn gts_bytes(reporter: &dyn Reporter, file: Option<&Path>) -> Result<Cow<'static, [u8]>, i32> {
+pub(crate) fn gts_bytes(
+    reporter: &dyn Reporter,
+    file: Option<&Path>,
+) -> Result<Cow<'static, [u8]>, i32> {
     match file {
         None => Ok(Cow::Borrowed(BUNDLE_GTS)),
         Some(path) => match std::fs::read(path) {
