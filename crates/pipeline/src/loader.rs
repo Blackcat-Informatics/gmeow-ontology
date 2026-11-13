@@ -132,6 +132,22 @@ impl PipelineSpec {
             }
         }
 
+        // ── Declared reads: a read set names what a stage reads of a producer it
+        //    consumes. A read set on any other stage could never be served, because the
+        //    scheduler hands a stage only the products of its dependencies. ──
+        for s in &self.stages {
+            for producer in s.reads.keys() {
+                if !s.consumes.iter().any(|c| c == producer) {
+                    return Err(gmeow_errors::Diag::of_kind(crate::error::InvalidDag {
+                        message: format!(
+                            "stage {} declares reads of {producer} but does not gmeow:dataflowConsumes it",
+                            s.id
+                        ),
+                    }));
+                }
+            }
+        }
+
         // ── Exactly one Sink (the gts narrow waist): the stage holding
         //    gmeow:sinkCapability. ──
         let sinks: Vec<&str> = self
@@ -689,9 +705,15 @@ impl BoundStage {
             .consumes
             .iter()
             .filter(|producer| {
+                // A named-graph narrowing reads those graphs of the producer's dataset,
+                // so it keeps the carrier just as a declared carrier lane does.
                 spec.reads
                     .get(*producer)
                     .is_some_and(crate::reads::needs_carrier)
+                    || spec
+                        .dataflow_entities
+                        .iter()
+                        .any(|(narrowed, _)| narrowed == *producer)
             })
             .cloned()
             .collect();

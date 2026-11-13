@@ -111,6 +111,7 @@ fn cycle_is_rejected() {
 fn dangling_dependency_is_rejected() {
     let mut s = diamond();
     s.stages[1].consumes = vec!["ghost".to_string()];
+    s.stages[1].reads.clear();
     match s.validate() {
         Ok(_) => panic!("expected dangling-dependency rejection"),
         Err(d) => {
@@ -336,34 +337,23 @@ fn bind_rejects_resource_disagreement() {
     }
 }
 
+/// A read set names a producer the stage consumes: one on any other stage could never
+/// be served, so the description is refused before binding.
 #[test]
-fn bind_rejects_carrier_dependency_outside_logical_consumes() {
-    let s = diamond();
-    let g = s.validate().unwrap();
-    let mut reg = StageRegistry::new();
-    reg.register("impl:source".to_string(), fake("source", &[]));
-    reg.register(
-        "impl:a".to_string(),
-        Arc::new(FakeStage {
-            id: "a".to_string(),
-            capabilities: Vec::new(),
-            consumes: vec!["source".to_string()],
-            carrier_consumes: Some(vec!["b".to_string()]),
-            resources: Vec::new(),
-        }),
+fn a_read_set_on_a_stage_that_is_not_consumed_is_refused() {
+    let mut s = diamond();
+    let a = s.stages.iter_mut().find(|stage| stage.id == "a").unwrap();
+    a.reads.insert(
+        "b".to_string(),
+        std::iter::once(crate::reads::Read::Dataset).collect(),
     );
-    reg.register("impl:b".to_string(), fake("b", &["source"]));
-    reg.register("impl:sink".to_string(), fake("sink", &["a", "b"]));
-
-    let diag = match bind(&s, &g, &reg) {
-        Ok(_) => panic!("unowned carrier edge must fail binding"),
-        Err(diag) => diag,
-    };
-    assert!(diag.is::<crate::error::InvalidDeclaration>(), "{diag}");
+    let diag = s
+        .validate()
+        .expect_err("a read set on a non-dependency is refused");
+    assert!(diag.is::<crate::error::InvalidDag>(), "{diag}");
     assert!(
-        diag.to_string().contains(
-            "stage a carrier dependency b is not present in its gmeow:dataflowConsumes set"
-        ),
+        diag.to_string()
+            .contains("stage a declares reads of b but does not gmeow:dataflowConsumes it"),
         "{diag}"
     );
 }
@@ -1762,8 +1752,16 @@ fn artifact_level_invalidation_reruns_only_the_changed_graphs_consumer() {
     for st in &mut s.stages {
         if st.id == "cg1" {
             st.dataflow_entities = vec![("producer".to_string(), vec![G1.to_string()])];
+            st.reads.insert(
+                "producer".to_string(),
+                std::iter::once(crate::reads::Read::Dataset).collect(),
+            );
         } else if st.id == "cg2" {
             st.dataflow_entities = vec![("producer".to_string(), vec![G2.to_string()])];
+            st.reads.insert(
+                "producer".to_string(),
+                std::iter::once(crate::reads::Read::Dataset).collect(),
+            );
         } else if st.id == "producer" {
             // The producer attaches g1 + g2; declare them so the attach-drift check passes.
             st.attaches_graphs = vec![G1.to_string(), G2.to_string()];
@@ -2114,6 +2112,14 @@ fn attach_drift_honors_typed_entity_inputs() {
             "producer" => st.attaches_graphs = vec![G1.to_string(), G2.to_string()],
             "consumer" => {
                 st.dataflow_entities = vec![("producer".to_string(), vec![G1.to_string()])];
+                st.reads.insert(
+                    "producer".to_string(),
+                    std::iter::once(crate::reads::Read::Dataset).collect(),
+                );
+                st.reads.insert(
+                    "producer".to_string(),
+                    std::iter::once(crate::reads::Read::Dataset).collect(),
+                );
                 st.attaches_graphs = vec![G2.to_string()];
             }
             _ => {}
@@ -2367,7 +2373,7 @@ impl Stage for CarrierStage {
                     self.id
                 );
                 assert_eq!(
-                    up.bundle().dataset().owned_quads().count(),
+                    up.raw_bundle().dataset().owned_quads().count(),
                     0,
                     "the released product's physical tombstone carries no dataset"
                 );
@@ -2381,9 +2387,15 @@ impl Stage for CarrierStage {
                     .internal_reads
                     .iter()
                     .any(|(producer, artifact)| producer == dep && *artifact == internal);
+                // A declared internal artifact is read through the edge; an undeclared
+                // one is only inspected here, to prove the release dropped it.
+                let kept = if declared {
+                    up.artifact(&internal).is_some()
+                } else {
+                    crate::bundle::bundle_artifact(up.raw_bundle(), &internal).is_some()
+                };
                 assert_eq!(
-                    up.artifact(&internal).is_some(),
-                    declared,
+                    kept, declared,
                     "artifact-only upstream {dep} keeps internal {internal} exactly when \
                      stage {} declares the read",
                     self.id
@@ -2411,6 +2423,35 @@ impl Stage for CarrierStage {
     }
 }
 
+/// The read sets a [`CarrierStage`] with these dependencies makes: the dataset of each
+/// carrier dependency, and of each artifact-only dependency its committed artifact plus
+/// the internal artifacts it declares.
+fn carrier_stage_reads(
+    consumes: &[String],
+    carrier_consumes: &[String],
+    internal_reads: &[(&'static str, &'static str)],
+) -> std::collections::BTreeMap<String, crate::reads::ReadSet> {
+    use crate::reads::Read;
+    consumes
+        .iter()
+        .map(|dep| {
+            let reads = if carrier_consumes.contains(dep) {
+                std::iter::once(Read::Dataset).collect()
+            } else {
+                std::iter::once(Read::Artifact(format!("generated/retention/{dep}.txt")))
+                    .chain(
+                        internal_reads
+                            .iter()
+                            .filter(|(producer, _)| producer == dep)
+                            .map(|(_, artifact)| Read::Artifact((*artifact).to_owned())),
+                    )
+                    .collect()
+            };
+            (dep.clone(), reads)
+        })
+        .collect()
+}
+
 /// A four-level CHAIN — `source → a → b → late` — so each stage's last consumer sits
 /// in a different level and the retention schedule is a non-trivial function of the
 /// levelling. `late` is the only stage nothing consumes.
@@ -2428,7 +2469,11 @@ fn retention_chain() -> PipelineSpec {
         // binding parity gate remain load-bearing.
         cache_disposition: CachePolicy::Recompute,
         dataflow_entities: Vec::new(),
-        reads: std::collections::BTreeMap::new(),
+        // Every chain stage reads the dataset of what it consumes.
+        reads: {
+            let consumes: Vec<String> = consumes.iter().map(|s| s.to_string()).collect();
+            carrier_stage_reads(&consumes, &consumes, &[])
+        },
         formats: Vec::new(),
         attaches_graphs: vec![watch_graph(id)],
         attaches_blob_reps: Vec::new(),
@@ -2527,6 +2572,7 @@ fn artifact_only_pair(internal_reads: Vec<(&'static str, &'static str)>) -> Arti
         .unwrap()
         .clone();
     late.consumes = vec!["source".to_string()];
+    late.reads = carrier_stage_reads(&late.consumes, &[], &internal_reads);
     let spec = PipelineSpec {
         id: "artifact-only-retention".to_string(),
         stages: vec![source, late],
@@ -2618,28 +2664,6 @@ fn a_declared_internal_read_survives_every_release_of_its_producer() {
             assert!(source.carrier_released);
             assert!(source.artifact("pipeline/source.nq").is_some());
         }
-    }
-}
-
-/// Binding refuses an internal-artifact declaration that names a committed artifact,
-/// or a producer that is not an artifact-only dependency.
-#[test]
-fn binding_refuses_a_misdeclared_internal_read() {
-    for (reads, expected) in [
-        (
-            vec![("source", "generated/retention/source.txt")],
-            "is a committed artifact",
-        ),
-        (
-            vec![("elsewhere", "pipeline/source.nq")],
-            "not one of its artifact-only dependencies",
-        ),
-    ] {
-        let Err(error) = artifact_only_pair(reads).bound else {
-            panic!("binding must refuse a misdeclared internal read");
-        };
-        let message = error.to_string();
-        assert!(message.contains(expected), "{message}");
     }
 }
 
