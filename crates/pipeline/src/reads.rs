@@ -301,7 +301,37 @@ pub fn record_run(root: &std::path::Path, jobs: usize) -> Result<String, gmeow_e
     let result = crate::scheduler::run(&graph, &bound, &mut ctx)?;
     let mut edges = result.recorded_reads;
     edges.sort_by(|a, b| (a.consumer(), a.producer()).cmp(&(b.consumer(), b.producer())));
-    Ok(observed_turtle(&edges))
+    let mut out = observed_turtle(&edges);
+    out.push_str(&observed_writes(&result.products)?);
+    Ok(out)
+}
+
+/// What each stage's product carries, as Turtle comment lines: its byte artifacts, typed
+/// handles and representation blobs. Read beside the recorded reads, it shows which
+/// producer writes each lane a consumer reads.
+fn observed_writes(
+    products: &std::collections::BTreeMap<String, crate::node::StageProduct>,
+) -> Result<String, gmeow_errors::Diag> {
+    let mut out = String::from("# What each stage's product carries.\n");
+    for (stage, product) in products {
+        for path in product.artifact_refs()?.keys() {
+            out.push_str(&format!("# {stage} artifact {path:?}\n"));
+        }
+        let bundle = product.raw_bundle();
+        for key in bundle.handles().keys() {
+            out.push_str(&format!("# {stage} handle <{key}>\n"));
+        }
+        let reps: BTreeSet<&str> = bundle
+            .lookaside()
+            .blobs
+            .iter()
+            .filter_map(|record| record.representation.as_deref())
+            .collect();
+        for rep in reps {
+            out.push_str(&format!("# {stage} blob-rep {rep:?}\n"));
+        }
+    }
+    Ok(out)
 }
 
 #[cfg(test)]
