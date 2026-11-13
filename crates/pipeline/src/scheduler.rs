@@ -633,6 +633,9 @@ pub fn run_without(
     };
     let read_policy = ctx.read_policy;
     let mut recorded_edges: Vec<Arc<crate::reads::EdgeAccess>> = Vec::new();
+    // Every stage whose recorded reads differ from its declared dataflow. The run goes
+    // on, so one pass names them all, and then fails.
+    let mut read_differences: Vec<(String, Vec<String>)> = Vec::new();
     // Before any stage runs: every dependency edge of the selected graph declares what
     // it reads. An edge with no declared read would run the consumer after the producer
     // for no stated reason. Every such edge is reported together.
@@ -814,25 +817,23 @@ pub fn run_without(
             // successful action receipt instead of discarding the completed prefix.
             let commit_result = (|| -> Result<(), gmeow_errors::Diag> {
                 // Declared against recorded reads, before anything of this stage is
-                // published or cached: a stage body that read what its edges do not
-                // declare, or did not read what they declare, produced a product the
-                // authored graph does not describe.
+                // cached: a stage body that read what its edges do not declare, or did
+                // not read what they declare, produced a product the authored graph does
+                // not describe. Its product is still correct for the stages after it, so
+                // the run continues and reports every such stage at the end; the product
+                // is not admitted to the persistent cache, whose key assumes the
+                // declarations.
+                let mut reads_differ = false;
                 if !run.cached {
                     let mismatches = crate::reads::mismatches(&run.edges);
                     if !mismatches.is_empty() && read_policy == crate::reads::ReadPolicy::Enforce {
-                        return Err(gmeow_errors::Diag::of_kind(crate::error::StageFailed {
-                            cause: None,
-                            stage: run.id.clone(),
-                            message: format!(
-                                "the stage's reads differ from its declared dataflow ({} difference(s)):\n  {}",
-                                mismatches.len(),
-                                mismatches.join("\n  ")
-                            ),
-                        }));
+                        reads_differ = true;
+                        read_differences.push((run.id.clone(), mismatches));
                     }
                     recorded_edges.append(&mut run.edges);
                 }
                 if stage_cache_enabled
+                    && !reads_differ
                     && !run.cached
                     && stage.stability() == StageStability::StablePrefix
                     && stage.cache_policy() == CachePolicy::Persistent
@@ -936,7 +937,8 @@ pub fn run_without(
                             && let Some(product) = products.remove(&producer)
                         {
                             let kept = kept_for(&producer);
-                            products.insert(producer, product.into_carrier_released_keeping(&kept)?);
+                            products
+                                .insert(producer, product.into_carrier_released_keeping(&kept)?);
                         }
                     }
                     if logically_consumed.contains(&stage_id)
@@ -984,6 +986,23 @@ pub fn run_without(
         }
     });
     scheduling_result?;
+    if !read_differences.is_empty() {
+        read_differences.sort();
+        let total: usize = read_differences.iter().map(|(_, lines)| lines.len()).sum();
+        let listing = read_differences
+            .iter()
+            .map(|(stage, lines)| format!("{stage}:\n    {}", lines.join("\n    ")))
+            .collect::<Vec<_>>()
+            .join("\n  ");
+        return Err(gmeow_errors::Diag::of_kind(crate::error::StageFailed {
+            cause: None,
+            stage: read_differences[0].0.clone(),
+            message: format!(
+                "{} stage(s) read differently from their declared dataflow ({total} difference(s)):\n  {listing}",
+                read_differences.len()
+            ),
+        }));
+    }
 
     // Completion order is deliberately observational. Present receipts and timings in
     // the certified topological order so output identities and reports remain byte-stable.

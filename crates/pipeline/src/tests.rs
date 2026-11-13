@@ -358,6 +358,72 @@ fn a_read_set_on_a_stage_that_is_not_consumed_is_refused() {
     );
 }
 
+/// A stage that reads a typed handle of `source` which its dataflow edge does not declare.
+struct UndeclaredHandleReader {
+    id: String,
+    consumes: Vec<String>,
+}
+
+impl Stage for UndeclaredHandleReader {
+    fn id(&self) -> &str {
+        &self.id
+    }
+    fn output_family(&self) -> crate::node::OutputFamily {
+        crate::node::OutputFamily::Generated
+    }
+    fn consumes(&self) -> &[String] {
+        &self.consumes
+    }
+    fn impl_version(&self) -> &str {
+        "v1"
+    }
+    fn run(&self, input: StageInput<'_>) -> Result<StageOutput, gmeow_errors::Diag> {
+        let _ = input.upstream["source"].handle("https://example.org/undeclared");
+        Ok(StageOutput::new(StageProduct::new(
+            self.id.clone(),
+            "deadbeef",
+        )))
+    }
+}
+
+/// A stage that reads what its dataflow edge does not declare fails the run, and the
+/// run goes on first so that one pass names every such stage, not only the first.
+#[test]
+fn a_run_names_every_stage_whose_reads_differ_from_its_declared_dataflow() {
+    let s = diamond();
+    let g = s.validate().unwrap();
+    let reader = |id: &str| {
+        Arc::new(UndeclaredHandleReader {
+            id: id.to_string(),
+            consumes: vec!["source".to_string()],
+        }) as Arc<dyn Stage>
+    };
+    let reg = registry_for(
+        &s,
+        vec![
+            fake("source", &[]),
+            reader("a"),
+            reader("b"),
+            fake("sink", &["a", "b"]),
+        ],
+    );
+    let bound = bind(&s, &g, &reg).unwrap();
+    let dir = tempfile::tempdir().unwrap();
+    let mut ctx = RunContext::open_uncached(dir.path(), 2);
+    let error = run(&g, &bound, &mut ctx)
+        .map(|result| result.products.len())
+        .expect_err("undeclared reads fail the run");
+    let text = error.to_string();
+    assert!(
+        text.contains("2 stage(s) read differently from their declared dataflow"),
+        "{text}"
+    );
+    for stage in ["a:", "b:"] {
+        assert!(text.contains(stage), "{text}");
+    }
+    assert!(text.contains("https://example.org/undeclared"), "{text}");
+}
+
 #[test]
 fn live_product_and_authenticated_receipt_build_the_same_action_context() {
     let dir = tempfile::tempdir().unwrap();
@@ -1716,7 +1782,11 @@ impl Stage for EntityConsumer {
     fn impl_version(&self) -> &str {
         "v1"
     }
-    fn run(&self, _input: StageInput<'_>) -> Result<StageOutput, gmeow_errors::Diag> {
+    fn run(&self, input: StageInput<'_>) -> Result<StageOutput, gmeow_errors::Diag> {
+        // The consumer reads the graphs its typed dataflow narrows it to.
+        for product in input.upstream.values() {
+            let _ = product.dataset();
+        }
         self.runs.fetch_add(1, Ordering::SeqCst);
         Ok(StageOutput::new(StageProduct::new(
             self.id.clone(),
@@ -1995,7 +2065,11 @@ impl Stage for AttachTestStage {
     fn impl_version(&self) -> &str {
         "v1"
     }
-    fn run(&self, _input: StageInput<'_>) -> Result<StageOutput, gmeow_errors::Diag> {
+    fn run(&self, input: StageInput<'_>) -> Result<StageOutput, gmeow_errors::Diag> {
+        // A stage that consumes a producer under a typed narrowing reads its dataset.
+        for product in input.upstream.values() {
+            let _ = product.dataset();
+        }
         match &self.attach_graph {
             Some(g) => {
                 let nq = format!("<https://example.org/s> <https://example.org/p> \"x\" <{g}> .\n");
