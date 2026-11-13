@@ -484,6 +484,63 @@ pub fn corpus_sample_counts(
     Ok(out)
 }
 
+/// Refuse a bundle whose dictionary evidence is not current, from the bundle's OWN
+/// recorded terms.
+///
+/// A release ships dictionaries whose sweep evidence was measured over the corpus they
+/// were trained from. Every dictionary the bundle declares must therefore carry a
+/// realization, and no realization may carry `gmeow:evidenceCorpusStale true`. A bundle
+/// that declares no dictionary at all, or declares one with no realization, is refused
+/// as well: absent records cannot show that the evidence is current.
+///
+/// # Errors
+/// `MediumCorpusDrift` naming every offending dictionary with both digests, or the
+/// dictionaries that have no realization; a malformed realization.
+pub fn require_current_evidence(
+    registry: &MediumRegistry,
+    dataset: &purrdf::RdfDataset,
+) -> Result<(), gmeow_errors::Diag> {
+    let realized = realizations(dataset)?;
+    if registry.dictionaries().is_empty() {
+        return Err(super::corpus_drift(
+            "the bundle declares no gmeow:CompressionDictionary, so it carries no dictionary \
+             evidence to show is current; a release bundle is built by the pipeline with its \
+             declared dictionaries",
+        ));
+    }
+    let mut missing: Vec<&str> = Vec::new();
+    let mut stale: Vec<String> = Vec::new();
+    for def in registry.dictionaries().values() {
+        match realized.get(&def.iri) {
+            None => missing.push(def.id.as_str()),
+            Some(realization) if realization.evidence_stale() => stale.push(format!(
+                "{}: the sweep evidence was measured over corpus {} but the dictionary was \
+                 trained from corpus {}",
+                def.id, realization.evidence_corpus_digest, realization.corpus_digest
+            )),
+            Some(_) => {}
+        }
+    }
+    if missing.is_empty() && stale.is_empty() {
+        return Ok(());
+    }
+    let mut problems = Vec::new();
+    if !missing.is_empty() {
+        problems.push(format!(
+            "no gmeow:CompressionDictionaryRealization for {missing:?}"
+        ));
+    }
+    if !stale.is_empty() {
+        problems.push(format!("stale evidence ({})", stale.join("; ")));
+    }
+    Err(super::corpus_drift(format!(
+        "the bundle's own dictionary records do not show current evidence: {}. A release is \
+         built with `--profile release` (`make release`), which refuses stale evidence; \
+         re-run `make maint-medium-sweep`, commit the table, and rebuild",
+        problems.join("; ")
+    )))
+}
+
 /// Read the emitted `gmeow:CompressionDictionaryRealization` records back off a folded
 /// artifact, keyed by the authored dictionary IRI they realize.
 ///

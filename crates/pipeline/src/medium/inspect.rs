@@ -261,6 +261,19 @@ pub enum PrimingBundle<'a> {
     Absent(&'a str),
 }
 
+/// Refuse an artifact whose own recorded dictionary realizations do not show current
+/// sweep evidence ([`super::rdf::require_current_evidence`]). The release lanes call this
+/// on a bundle they did not build.
+///
+/// # Errors
+/// The artifact cannot be folded or carries no readable medium registry, or its
+/// dictionary evidence is stale or absent.
+pub fn require_current_dictionary_evidence(bytes: &[u8]) -> Result<(), gmeow_errors::Diag> {
+    let dataset = audit::fold_leniently(bytes)?;
+    let registry = MediumRegistry::from_dataset(dataset.as_ref())?;
+    super::rdf::require_current_evidence(&registry, dataset.as_ref())
+}
+
 /// The whole medium inventory of an artifact, read from that artifact ALONE.
 ///
 /// # Errors

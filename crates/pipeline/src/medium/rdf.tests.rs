@@ -212,3 +212,74 @@ fn a_malformed_realization_digest_is_refused_at_emission() {
         "{diag}"
     );
 }
+
+/// The fixture registry's declarations plus the given realizations, frozen as the
+/// dataset a bundle would carry. No producer runs.
+fn bundle_dataset(realizations: &[DictionaryRealization]) -> std::sync::Arc<purrdf::RdfDataset> {
+    let registry = registry();
+    let mut quads: Vec<RdfQuad> =
+        purrdf::flat_rdf_quads_from_dataset(crate::medium::registry::fixture::dataset("").as_ref())
+            .into_iter()
+            .collect();
+    quads.extend(project(&registry, realizations, &[]).expect("project"));
+    purrdf::dataset_from_quads(&quads).expect("freeze the bundle dataset")
+}
+
+fn realized(id: &str, strategy: DictionaryStrategy, evidence: String) -> DictionaryRealization {
+    let registry = registry();
+    let def = registry.dictionary_by_id(id).expect("declared");
+    realize(def, &trained_bytes(), measured(strategy), evidence).expect("realize")
+}
+
+#[test]
+fn a_release_source_with_stale_or_absent_dictionary_evidence_is_refused_from_its_own_records() {
+    let registry = registry();
+    let current = || {
+        vec![
+            realized(
+                "gmeow-core-v1",
+                DictionaryStrategy::Trained,
+                current_evidence(),
+            ),
+            realized(
+                "gmeow-terms-v1",
+                DictionaryStrategy::TermTable,
+                current_evidence(),
+            ),
+        ]
+    };
+    require_current_evidence(&registry, bundle_dataset(&current()).as_ref())
+        .expect("every declared dictionary is realized with current evidence");
+
+    let recorded = blake3_digest(b"the corpus the table measured");
+    let mut stale = current();
+    stale[0] = realized(
+        "gmeow-core-v1",
+        DictionaryStrategy::Trained,
+        recorded.clone(),
+    );
+    let diag = require_current_evidence(&registry, bundle_dataset(&stale).as_ref())
+        .expect_err("stale evidence must be refused");
+    let text = diag.to_string();
+    assert!(
+        text.contains("gmeow-core-v1")
+            && text.contains(&recorded)
+            && text.contains(&current_evidence())
+            && !text.contains("gmeow-terms-v1"),
+        "the message names the stale dictionary and both digests: {text}"
+    );
+    assert_eq!(diag.code(), crate::error::MediumCorpusDrift::register());
+
+    let partial = current().into_iter().take(1).collect::<Vec<_>>();
+    let missing = require_current_evidence(&registry, bundle_dataset(&partial).as_ref())
+        .expect_err("a declared dictionary with no realization must be refused");
+    assert!(missing.to_string().contains("gmeow-terms-v1"), "{missing}");
+
+    let none = require_current_evidence(&registry, bundle_dataset(&[]).as_ref())
+        .expect_err("a bundle with no realization records must be refused");
+    assert!(
+        none.to_string()
+            .contains("no gmeow:CompressionDictionaryRealization"),
+        "{none}"
+    );
+}

@@ -289,6 +289,14 @@ pub fn release_bundle(
             ));
         }
     };
+    if let Err(error) =
+        gmeow_pipeline::medium::inspect::require_current_dictionary_evidence(&snapshot)
+    {
+        return fail(format!(
+            "source snapshot {} cannot be released: {error}",
+            source.display()
+        ));
+    }
     let secret_armor = match std::fs::read_to_string(sign_key) {
         Ok(s) => s,
         Err(e) => {

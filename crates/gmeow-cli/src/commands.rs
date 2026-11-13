@@ -701,6 +701,15 @@ pub fn verify_release_bundle(
             format!("invalid release ingestion companion: {error}"),
         );
     }
+    if let Err(error) =
+        gmeow_pipeline::medium::inspect::require_current_dictionary_evidence(&bundle_bytes)
+    {
+        return fail(
+            reporter,
+            "gmeow-cli.verify-release.stale-evidence",
+            format!("✗ release bundle does not show current dictionary evidence: {error}"),
+        );
+    }
     let armor = match public_key {
         None => None,
         Some(path) => match std::fs::read_to_string(path) {
