@@ -466,7 +466,7 @@ fn foreign_and_truncated_proof_files_are_rejected() {
 /// the verdict follows the native engine's accounting.
 #[test]
 fn owl_step_cap_is_reported_on_its_leg_and_the_verdict_follows_the_native_engine() {
-    let (report, code) = prove_json("horn.logic.ttl", HORN, &["--step-cap", "1", "--gate"]);
+    let (report, code) = prove_json("horn.logic.ttl", HORN, &["--step-cap", "0", "--gate"]);
     assert_eq!(report["verdict"], "consistent", "{report:#}");
     assert_eq!(code, 0);
     assert_eq!(report["selection"]["complete"], true);
