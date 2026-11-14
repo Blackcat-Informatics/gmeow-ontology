@@ -36,27 +36,54 @@ topped by `universalStandpoint`.
 ### gmeow:moreEntrenchedThan
 
 A strict partial order between standpoints that exists only as dated claims attributed
-to the party who ranks them (`gmeow:accordingTo` names the ranker, `gmeow:validFrom`
-the date). A missing claim means the two frames are incomparable, never equal and
-never lower. It is transitive within one ranker's claims and is closed per ranker; it
-is not declared transitive globally, because that would chain different rankers'
-claims into a ranking nobody made. It is never derived from `sharpens`, and it is a
-presentation aid, not a confidence or a truth value. The ranker, the date and the
-per-ranker closure are consumer discipline that the vocabulary does not enforce.
+to the party who ranks them: every edge needs a reifier annotated with
+`gmeow:accordingTo` (the ranker) and `gmeow:validFrom` (the instant from which the
+ranking holds). A missing claim means the two frames are incomparable, never equal and
+never lower. It is transitive within one ranker's claims and is closed per ranker by the
+consumer; it is not declared transitive or asymmetric globally, because that would chain
+different rankers' claims into a ranking nobody made and would reject two rankers who
+rank a pair in opposite directions (Principle 9). It is never derived from `sharpens`,
+and it is a presentation aid, not a confidence or a truth value; the top of a ranker's
+order is not a primary or preferred frame.
 
-Which claims enter one ranker's closure is fixed by a stated evaluation instant `t`. A
-claim participates when it names the ranker with `gmeow:accordingTo`, carries a
-`gmeow:validFrom` not later than `t`, and has no `gmeow:validUntil` at or before `t`; a
-claim with no `gmeow:validFrom` cannot be placed in time and does not participate. A
-ranker who reverses or withdraws an earlier ranking ends it with `gmeow:validUntil`, so
-the original and its reversal are never in force together. `gmeow:displayable false`
-controls display only and neither admits nor excludes a claim: retained superseded and
-withdrawn claims stay in the graph, and only their effective interval decides. If the
-claims in force still contain a cycle, the ranker's ranking is inconsistent at `t`; a
-consumer reports it and does not pick a side. Two consumers using the same graph and the
-same `t` then derive the same order. The law itself is recorded as an honest boundary in
-`gmeow:moreEntrenchedThanRankerClosureBoundary`, because the canonical checks certify only
-irreflexivity.
+What the canonical checks enforce:
+
+- `gmeow:moreEntrenchedThanIrreflexivity`: no standpoint is more entrenched than itself.
+- `gmeow:moreEntrenchedThanAttributionConstraint`: an edge without a reifier carrying both
+  `gmeow:accordingTo` and `gmeow:validFrom` is rejected.
+- `gmeow:moreEntrenchedThanRankerOrderConstraint`: one ranker may not hold a pair in both
+  directions at once. Two rankers may. The pair is exempt when one claim is linked to
+  the other by `gmeow:succeedsClaim` or `gmeow:correctsClaim`, or when either claim is
+  retracted with `gmeow:retractsClaim`.
+
+What is not enforced is a cycle of three or more claims of one ranker, and the per-ranker
+closure itself, which is a derivation rather than an integrity check. Both are recorded in
+`gmeow:moreEntrenchedThanRankerClosureBoundary`, because excluding a cycle of unbounded
+length is a transitive-closure statement that no first-order formula expresses.
+
+A ranker who changes or withdraws a ranking keeps the earlier claim and uses the claim
+lifecycle relations on the reifier of the ranking statement: `gmeow:succeedsClaim` for a
+reversal or replacement (the earlier claim stays valid for its earlier interval),
+`gmeow:correctsClaim` for a ranking made in error, and `gmeow:retractsClaim` for a
+withdrawal, each annotated with the same ranker and an effective time. There is no
+separate end instant for a ranking. Name the reifier of each ranking statement so these
+relations can reach it; the constraint does not check who made a lifecycle link.
+
+Which claims enter one ranker's order is fixed by a stated evaluation instant `t`. A
+claim participates when it names the ranker with `gmeow:accordingTo` and carries a
+`gmeow:validFrom` not later than `t`. Two uses differ on suppression:
+
+- A displayed order leaves out any claim suppressed with `gmeow:displayable false`, since
+  suppression is how superseded and withdrawn records leave display (Principle 10); it
+  also leaves out a corrected claim, a claim whose retraction has taken effect by `t`, and
+  a claim whose successor has taken effect by `t`.
+- A historical order at `t` ignores `gmeow:displayable`, which is a display policy and not
+  a truth judgment. It keeps a superseded claim for the period before its successor took
+  effect, and drops a corrected claim at every `t`.
+
+If the claims that remain still contain a cycle, the ranker's ranking is inconsistent at
+`t`; a consumer reports it and does not pick a side. Two consumers using the same graph,
+the same `t` and the same use then derive the same order.
 
 ### gmeow:StandpointModality · gmeow:claimModality
 
