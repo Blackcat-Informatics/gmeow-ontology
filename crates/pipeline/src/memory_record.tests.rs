@@ -35,8 +35,8 @@ fn status_text_yields_resident_and_peak_or_absence() {
 /// Phase records reach the timings JSON through the collection installed around a
 /// stage body. A stage body may run nested on a worker that is waiting on another
 /// stage's parallel work, so an inner collection must return exactly its own
-/// records, in order, and hand the outer one back intact; outside any collection
-/// with the log target off, a phase boundary keeps nothing.
+/// records, in order, and hand the outer one back intact; a phase boundary crossed
+/// outside any collection is kept by none.
 #[test]
 fn phase_records_reach_the_enclosing_collection_and_only_it() {
     phase("outside", "ignored", MemoryEvent::PhaseStart);

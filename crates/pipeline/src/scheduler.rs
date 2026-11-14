@@ -319,7 +319,8 @@ pub struct RunResult {
     /// The memory records of this run in the order they were made: one at each stage's
     /// dispatch, publication and carrier release, and the measured phase boundaries that
     /// were crossed on a thread running a stage body. A boundary crossed on a pool thread
-    /// that was running no stage body is logged but not kept here. Observations only:
+    /// that was running no stage body is not kept here; it reaches the log when the
+    /// `pipeline_memory` target is on. Observations only:
     /// they enter no product, key, receipt or digest. See [`crate::memory_record`].
     pub memory: Vec<MemoryRecord>,
 }

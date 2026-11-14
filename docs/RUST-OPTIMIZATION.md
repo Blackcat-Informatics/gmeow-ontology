@@ -104,8 +104,8 @@ is running a stage body, are made whether or not the target is selected, and a c
 `--timings-json` run carries those, resident sizes included, as
 `observations.stage_memory`; on a host without Linux procfs the two resident figures are
 null. A measured phase crossed on a pool thread that is running no stage body makes no
-kept record: with the target selected it is logged, and with the target off nothing is
-made. Selecting the target writes each record to the log as it is made, and
+kept record: with the target selected it is logged, and with the target off it is
+dropped. Selecting the target writes each record to the log as it is made, and
 `GMEOW_STAGE_MEMORY_LOG=<file>` appends each one to that file as one line whatever
 `GMEOW_LOG` selects; the hosted observer points the variable at its resource log, so a
 producer that is killed part-way still leaves them in the uploaded resource artifact.

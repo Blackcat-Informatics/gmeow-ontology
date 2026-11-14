@@ -33,8 +33,8 @@
 //!
 //! That bound covers the reads made for records only. The scheduler also reads the same
 //! file once per stage, and a second time on a cache hit, for the cache-hydration
-//! figure, and the snapshot reads it when it logs an owned carrier's size while the
-//! `pipeline_phase` target is on (`log_carrier_size` in `stages/carrier.rs`).
+//! figure, and the snapshot reads it once for each owned carrier whose size it logs
+//! (`log_carrier_size` in `stages/carrier.rs`).
 
 use std::cell::RefCell;
 use std::sync::atomic::{AtomicU64, Ordering};
@@ -211,10 +211,6 @@ thread_local! {
     static PHASE_SCOPE: RefCell<Option<Vec<MemoryRecord>>> = const { RefCell::new(None) };
 }
 
-fn target_enabled() -> bool {
-    tracing::enabled!(target: TARGET, tracing::Level::INFO)
-}
-
 /// Make one record, sampling process memory, write it to the log when [`TARGET`] is
 /// enabled, and return it.
 pub(crate) fn record(
@@ -263,13 +259,9 @@ pub(crate) fn record(
 /// collection the calling thread is inside ([`collecting_phases`]), if any. A stage's
 /// parallel work runs on the scheduler's pool, so a phase crossed there is kept by
 /// whichever stage's collection that worker thread is inside, which may be another
-/// stage's, or by none; the record names its own stage either way. With the target off
-/// and no collection in progress, nothing is read or made.
+/// stage's, or by none; the record names its own stage either way. A record made
+/// with the target off and no collection in progress is dropped.
 pub(crate) fn phase(stage_id: &str, phase: &str, event: MemoryEvent) {
-    let collecting = PHASE_SCOPE.with_borrow(Option::is_some);
-    if !collecting && !target_enabled() {
-        return;
-    }
     let made = record(stage_id, event, Some(phase), None, None);
     PHASE_SCOPE.with_borrow_mut(|scope| {
         if let Some(records) = scope.as_mut() {

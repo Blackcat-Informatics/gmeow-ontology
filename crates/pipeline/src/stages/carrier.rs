@@ -1387,9 +1387,6 @@ fn termination_demonstrator_graphs()
 /// Log the size of an owned carrier after the phase that built it, so a run names the
 /// phase in which resident memory grows.
 fn log_carrier_size(phase: &str, carrier: &purrdf::RdfDataset) {
-    if !tracing::enabled!(target: "pipeline_phase", tracing::Level::INFO) {
-        return;
-    }
     let process = crate::memory_record::ProcessMemory::sample();
     tracing::info!(
         target: "pipeline_phase", stage = "stage-snapshot", phase,
