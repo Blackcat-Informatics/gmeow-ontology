@@ -1961,7 +1961,6 @@
     "gmeow_pipeline::stages::json_schema::JsonSchemaStage::default",
     "gmeow_pipeline::stages::lpg::LpgStage::default",
     "gmeow_pipeline::stages::math_producers::MathProducersStage::default",
-    "gmeow_pipeline::stages::medium_dictionaries::MediumDictionariesStage::default",
     "gmeow_pipeline::stages::metadata::MetadataStage::default",
     "gmeow_pipeline::stages::okf::OkfStage::default",
     "gmeow_pipeline::stages::pydantic::PydanticStage::default",
