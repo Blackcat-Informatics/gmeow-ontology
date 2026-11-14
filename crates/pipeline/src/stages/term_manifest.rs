@@ -703,6 +703,9 @@ impl Stage for TermManifestStage {
     fn id(&self) -> &str {
         "stage-term-manifest"
     }
+    fn output_family(&self) -> crate::node::OutputFamily {
+        crate::node::OutputFamily::Generated
+    }
     fn consumes(&self) -> &[String] {
         &self.consumes
     }

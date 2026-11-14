@@ -348,7 +348,12 @@ fn record_gate_verdict(report: &mut Report, key: &str, accepted: bool) {
 /// Produce the build-drift observation once and retain its native gate decision.
 fn generated_feedback(root: &Path) -> gmeow_errors::Result<(Report, bool)> {
     let jobs = std::thread::available_parallelism().map_or(1, std::num::NonZero::get);
-    let run = gmeow_pipeline::run::run_full(root, jobs, gmeow_pipeline::run::RunMode::Check)?;
+    let run = gmeow_pipeline::run::run_full(
+        root,
+        jobs,
+        gmeow_pipeline::run::RunMode::Check,
+        gmeow_pipeline::BuildProfile::Ordinary,
+    )?;
     Ok(pipeline_feedback(run))
 }
 

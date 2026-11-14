@@ -108,6 +108,16 @@ define_diag_kind! {
 }
 
 define_diag_kind! {
+    /// The native engine declined to execute a program for a reason it names. It did
+    /// not fail and it decided nothing: `reason` says what was declined and `gaps` are
+    /// the particulars the refusing step reported.
+    pub struct NativeRefusal { reason: String, gaps: Vec<String> }
+    code = "logic.reason.native-refusal";
+    grade = logic_grade!();
+    message = "{}: {:?}", reason, gaps;
+}
+
+define_diag_kind! {
     /// A selected native source profile cannot certify its required capability.
     /// Refusal precedes execution and cannot become a complete logical verdict.
     pub struct NativeCoverage { profile: String, source: String, world: String, detail: String }
@@ -395,6 +405,7 @@ pub const LOGIC_DIAG_CODES: &[&str] = &[
     Ir::CODE,
     Query::CODE,
     Reason::CODE,
+    NativeRefusal::CODE,
     DlService::CODE,
     NativeBuiltin::CODE,
     NativeCoverage::CODE,
@@ -429,6 +440,7 @@ pub fn register_all() -> Vec<Code> {
         Ir::register(),
         Query::register(),
         Reason::register(),
+        NativeRefusal::register(),
         DlService::register(),
         NativeBuiltin::register(),
         NativeCoverage::register(),

@@ -40,12 +40,13 @@ gmeow verify dist/gmeow.gts
 # Pin to the repository's public release key
 gmeow verify dist/gmeow.gts --trusted-key keys/gmeow-release-key.asc
 
-# Inspect file metadata without running signature verification
-# (delegates to the external `gts` binary installed with `gmeow-gts`)
-gmeow gts info --no-verify dist/gmeow.gts
+# Signature and frame-chain check only, in-process; pin the repository key
+gmeow gts verify dist/gmeow.gts --key keys/gmeow-release-key.asc
+
+# Inspect the per-segment composition ledger without verifying signatures
+gmeow gts info dist/gmeow.gts
 
 # Extract the embedded public key for manual WoT checks
-# (delegates to the external `gts` binary; `extract-key` requires upstream gmeow-gts support)
 gmeow gts extract-key dist/gmeow.gts -o /tmp/embedded.asc
 ```
 

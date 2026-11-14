@@ -72,22 +72,25 @@ Example output:
 │ definitions         │ pass   │ 0 missing                             │
 │ documentation blobs │ pass   │ 67 blobs                              │
 └─────────────────────┴────────┴───────────────────────────────────────┘
-verification passed
+integrity only: signer NOT authenticated (key taken from the file itself)
 ```
 
 ## `gmeow gts verify`
 
-`gmeow gts verify` is the lower-level signature check. It omits the ontology
-bundle checks:
+`gmeow gts verify` is the lower-level signature and frame-chain check. It omits
+the ontology bundle checks and runs in-process on the linked GTS codec. It states
+whether any signature was checked: an unsigned file (accepted only with
+`--allow-unsigned`) reports `signature check: NOT PERFORMED`.
 
 ```bash
-COLUMNS=120 uv run gmeow gts verify dist/gmeow.gts
+gmeow gts verify dist/gmeow.gts
 ```
 
 Example output:
 
 ```text
 transport key: 93F3 2F9F 1439 F0FB A266 331B 6F47 3209 2D74 7581
+key id:        gmeow-test-key
 emoji hash:    🐷 🦆 🐵 🦋 🍎 🍐 🦊 🐸 🐟 🍒 🍎
 emoji labels:  pig duck monkey butterfly apple pear fox frog fish cherries apple
 +--[GTS transport ]+
@@ -101,24 +104,26 @@ emoji labels:  pig duck monkey butterfly apple pear fox frog fish cherries apple
 |           . o X=|
 |           .*+@O=|
 +----------------+
-signatures: 69 signed, 69 valid, 0 invalid, 0 unverified
+signatures: 69 signed, 69 valid, 0 invalid, 0 unverified, 0 trusted
+signature check: performed on 69 signature(s)
 verification passed
 ```
 
-## `gts verify`
+## `gmeow gts info`
 
-The standalone `gts` CLI reports the GTS composition ledger. For signed files,
-the `sigs` count should be nonzero:
+`gmeow gts info` prints the GTS composition ledger, one line per segment. It
+counts signature frames as present and does not check them; use `gmeow gts verify`
+for that. For signed files, `signature-frames` should be nonzero:
 
 ```bash
-COLUMNS=120 uv run gts verify dist/gmeow.gts
+gmeow gts info dist/gmeow.gts
 ```
 
 Example output:
 
 ```text
 dist/gmeow.gts: 1 segment(s)
-  segment 0: head deaafb30d8c5d90e4e04c2637ff0fdb0fcb9879317a6b5e65095b51c77a4d8bb profile dist terms 18105 quads 32954 reifies 116 annot 324 blobs 67 suppress 0 opaque 0 sigs 69
+  segment 0: head deaafb30d8c5d90e4e04c2637ff0fdb0fcb9879317a6b5e65095b51c77a4d8bb profile dist terms 18105 quads 32954 reifies 116 annot 324 blobs 67 suppress 0 opaque 0 signature-frames 69
 ```
 
 ## What to Compare

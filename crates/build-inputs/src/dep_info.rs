@@ -70,7 +70,11 @@ impl CompilerInputs {
                         .iter()
                         .any(|file| file.parent() == dep_info.parent())
                     && inputs.contains(&source);
-                if !files.is_disjoint(targets) || script_alias {
+                let unit_target = artifact.files.iter().any(|file| {
+                    file.parent() == dep_info.parent()
+                        && targets.iter().any(|target| same_unit_file(file, target))
+                });
+                if !files.is_disjoint(targets) || unit_target || script_alias {
                     matched.push((inputs, environment));
                 }
             }
@@ -209,6 +213,46 @@ impl CompilerInputs {
             }
         }
         Ok(())
+    }
+}
+
+/// Trailing per-unit directory components that must agree for a dep-info target to name
+/// an artifact: Cargo's `<package>/<metadata hash>/out` unit directory.
+const UNIT_DIRECTORY_COMPONENTS: usize = 3;
+
+/// Whether dep-info `target` names the unit file `artifact` even though the build
+/// directory prefix differs. A build directory seeded from another checkout's cache
+/// keeps the donor's absolute prefix in dep-info it never rewrites, because Cargo reuses
+/// those units as fresh. The file name carries the unit's metadata hash and the trailing
+/// unit directory carries the package and hash, so both must be equal; only the prefix
+/// above the unit directory may differ.
+///
+/// This match no longer proves that the unit was built from this checkout. Cargo's
+/// metadata hash covers the package, profile, features, dependencies and compiler, not
+/// the source content, so a unit compiled in another checkout from different sources
+/// has the same file name and unit directory and also matches. What proves the unit
+/// belongs to this tree is Cargo's freshness check, which rebuilds a unit whose recorded
+/// inputs are newer than its output, together with the current inventory, which this
+/// module still requires the compiler's reads to cover. A seeded build directory is
+/// therefore only as trustworthy as the seeding: it must give a donor's modification
+/// times only to files whose content is identical in this checkout.
+fn same_unit_file(artifact: &Path, target: &Path) -> bool {
+    if artifact.file_name().is_none() || artifact.file_name() != target.file_name() {
+        return false;
+    }
+    let tail = |path: &Path| -> Option<Vec<std::ffi::OsString>> {
+        let parent: Vec<_> = path.parent()?.components().collect();
+        let start = parent.len().checked_sub(UNIT_DIRECTORY_COMPONENTS)?;
+        Some(
+            parent[start..]
+                .iter()
+                .map(|component| component.as_os_str().to_owned())
+                .collect(),
+        )
+    };
+    match (tail(artifact), tail(target)) {
+        (Some(artifact), Some(target)) => artifact == target,
+        _ => false,
     }
 }
 

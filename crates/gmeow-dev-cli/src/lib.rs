@@ -70,6 +70,30 @@ pub enum SyncOutput {
     Docs,
 }
 
+/// Which kind of build `gmeow-dev sync` runs. A release is selected explicitly, never
+/// inferred from the output scope or the environment.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, ValueEnum)]
+pub enum SyncProfile {
+    /// An ordinary build: stale dictionary sweep evidence is recorded on the shipped
+    /// realization and reported, and the build continues.
+    Ordinary,
+    /// A release build: stale dictionary sweep evidence is refused.
+    Release,
+}
+
+impl SyncProfile {
+    pub(crate) const fn as_str(self) -> &'static str {
+        self.build_profile().as_str()
+    }
+
+    pub(crate) const fn build_profile(self) -> gmeow_pipeline::BuildProfile {
+        match self {
+            Self::Ordinary => gmeow_pipeline::BuildProfile::Ordinary,
+            Self::Release => gmeow_pipeline::BuildProfile::Release,
+        }
+    }
+}
+
 /// Which side of the strict pre-test fixture boundary to execute.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, ValueEnum)]
 pub enum TestFixtureMode {
@@ -162,6 +186,10 @@ pub enum Commands {
         /// Projection set. All outputs are made by default.
         #[arg(long = "outputs", value_enum, default_value_t = SyncOutput::All)]
         outputs: SyncOutput,
+        /// Build profile. `release` refuses stale dictionary sweep evidence; the
+        /// ordinary default records it on the bundle and warns.
+        #[arg(long = "profile", value_enum, default_value_t = SyncProfile::Ordinary)]
+        profile: SyncProfile,
         #[arg(short = 'j', long = "jobs")]
         jobs: Option<usize>,
         #[arg(long = "metadata")]
@@ -253,6 +281,9 @@ pub enum Commands {
         /// Write the complete measurement evidence to this path.
         #[arg(long, default_value = "bench/medium-baseline.json")]
         out: PathBuf,
+        /// Scheduler width for the measured pipeline run. Defaults to every CPU.
+        #[arg(short = 'j', long = "jobs")]
+        jobs: Option<usize>,
     },
     /// Write a declaration-only bootstrap table with zero measured evidence.
     MediumSeed {
@@ -526,6 +557,9 @@ pub enum Commands {
         sign_key: Option<PathBuf>,
         #[arg(long = "public-key")]
         public_key: Option<PathBuf>,
+        /// The build profile the snapshot is regenerated under. Signing requires `release`.
+        #[arg(long = "profile", value_enum, default_value = "ordinary")]
+        profile: SyncProfile,
     },
     /// Start the GMEOW MCP server (wired in the MCP task).
     Mcp,
@@ -917,6 +951,7 @@ pub fn run() -> i32 {
         Commands::Sync {
             mode,
             outputs,
+            profile,
             jobs,
             metadata,
             list_paths,
@@ -926,6 +961,7 @@ pub fn run() -> i32 {
         } => dev_sync::sync(
             mode,
             outputs,
+            profile,
             jobs,
             lang.as_deref(),
             timings_json.as_deref(),
@@ -962,7 +998,7 @@ pub fn run() -> i32 {
         ),
         Commands::GtsFrameProfile { gts } => dev_validate::gts_frame_profile(&gts),
         Commands::MediumGate { gts, registry } => dev_validate::medium_gate(&gts, &registry),
-        Commands::MediumSweep { out } => dev_medium_sweep::run(&out),
+        Commands::MediumSweep { out, jobs } => dev_medium_sweep::run(&out, jobs),
         Commands::MediumSeed { out } => dev_medium_sweep::seed(&out),
         Commands::TermReleaseAuthority { bootstrap } => dev_term_release_authority::run(bootstrap),
         Commands::Validate {
@@ -1115,7 +1151,13 @@ pub fn run() -> i32 {
             out,
             sign_key,
             public_key,
-        } => dev_build::compile_gts(out.as_deref(), sign_key.as_deref(), public_key.as_deref()),
+            profile,
+        } => dev_build::compile_gts(
+            out.as_deref(),
+            sign_key.as_deref(),
+            public_key.as_deref(),
+            profile.build_profile(),
+        ),
         Commands::Mcp => mcp(),
         Commands::ImportFoundation { jsonl, out, nq } => {
             dev_project::import_foundation(&jsonl, &out, nq.as_deref())

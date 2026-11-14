@@ -166,6 +166,9 @@ impl Stage for ProjectionCeilingsStage {
     fn id(&self) -> &str {
         "stage-export-projection-ceilings"
     }
+    fn output_family(&self) -> crate::node::OutputFamily {
+        crate::node::OutputFamily::Generated
+    }
     fn consumes(&self) -> &[String] {
         &[]
     }

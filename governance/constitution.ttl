@@ -67,12 +67,13 @@ meta:gate-rdf12-codec a meta:Gate ;
 
 meta:gate-generator-registry a meta:Gate ;
     rdfs:label "pipeline DAG registry: single-pass update / drift gates"@x-gmeow-english ;
+    rdfs:comment "The registry declares every generator. One pass runs the stages of the selected output scope: the default generated scope (and the docs scope) runs the stages that produce committed outputs plus their producers, so the runtime-only export and okf generators run only under SYNC_OUTPUTS=all."@en ;
     meta:artifact "crates/pipeline/src/run.rs", "slices/core/pipeline/module.ttl" ;
     meta:symbol "run_full" ;
     meta:cliCommand "sync", "compile-gts" ;
     meta:makeTarget "check-sync" ;
     meta:generator "source_load", "statements", "compile_logic", "mappings",
-        "reason", "gts_compose", "snapshot", "docs_render", "gts_sink", "logic",
+        "reason", "snapshot", "docs_render", "gts_sink", "logic",
         "metadata", "schemas", "lpg", "matrix", "apache",
         "catalog", "profiles", "frame_shapes", "constraint_shapes", "result_shapes", "evals",
         "research-objects", "references", "export", "okf", "bench", "conformance" .

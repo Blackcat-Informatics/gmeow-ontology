@@ -45,7 +45,7 @@ fn streamed_flat_union_matches_the_prior_flat_canonical_path() {
     )
     .expect("old flat union canonicalizes");
 
-    let actual = stratum_nquads(first.as_ref(), &[second]).expect("streamed flat union");
+    let actual = stratum_nquads(&first, &[second]).expect("composite flat stratum");
     assert_eq!(actual, expected.nquads());
 }
 
@@ -271,4 +271,54 @@ fn present_pass_one_receipt_is_typed_and_fail_closed() {
         reusable_pass_one_receipt(&upstream, &expected_input).is_err(),
         "a completed terminal without its required receipt must hard-fail"
     );
+}
+
+/// The pass-one stratum digest is pinned by the snapshot envelope and the pass-one
+/// receipt. Canonicalizing a composite view of the stratum sources must give the
+/// same bytes as canonicalizing their flattened union, over a default graph, two
+/// named graphs, blank labels shared across sources, graph-scoped reifiers and
+/// annotations, and an annotation row also asserted as an ordinary quad.
+#[test]
+fn composite_stratum_digest_equals_the_flattened_union_digest() {
+    let source = |world: &str| {
+        parse_dataset(
+            format!(
+                r#"@prefix ex: <https://example.org/> .
+                   @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+                   _:shared ex:p ex:o .
+                   ex:g1 {{
+                       _:shared ex:p ex:{world} .
+                       ex:claim rdf:reifies <<( _:shared ex:q "value"@en )>> ;
+                           ex:accordingTo ex:{world} .
+                       ex:claim ex:accordingTo ex:{world} .
+                   }}
+                   ex:g2 {{ ex:s ex:p ex:same . _:other ex:p "x" . }}"#
+            )
+            .as_bytes(),
+            "application/trig",
+            None,
+        )
+        .expect("stratum source")
+    };
+    let carrier = source("carrier");
+    let extra = [source("first"), source("second")];
+
+    let flattened: Vec<Vec<RdfQuad>> = std::iter::once(&carrier)
+        .chain(extra.iter())
+        .map(|dataset| purrdf::flat_rdf_quads_from_dataset(dataset.as_ref()))
+        .collect();
+    let refs: Vec<&[RdfQuad]> = flattened.iter().map(Vec::as_slice).collect();
+    let union = purrdf::flat_dataset_from_quad_sources(&refs).expect("flattened union");
+    let expected = purrdf::canonical_flat_nquads(
+        union.as_ref(),
+        &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None),
+    )
+    .expect("flattened union canonicalizes");
+
+    let (digest, len) = snapshot_stratum_digest(&carrier, &extra).expect("composite stratum");
+    assert_eq!(
+        digest,
+        crate::medium::blake3_digest(expected.nquads().as_bytes())
+    );
+    assert_eq!(len, expected.nquads().len());
 }

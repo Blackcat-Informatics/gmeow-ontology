@@ -3137,7 +3137,7 @@ fn builtin_tool_descriptors() -> Vec<Value> {
                  for a conclusive, fragment-scoped, violation-free closure; the strictly-weaker \
                  CoherenceCheckAttestation otherwise — an attestation is NEVER reported as a \
                  certificate), issues_certificate, is_refused, the pinned bundle_hash and \
-                 per-graph axiom_hashes (the tamper surface), contract_hash, engine, \
+                 per-graph axiom_hashes (one content digest per axiom-bearing named graph, comparable only between identically labelled datasets), contract_hash, engine, \
                  certified_fragment, the completeness/evaluation axes, contradiction_policy, \
                  projection_losses, and forbidden_violations. A bundle carrying no coherence \
                  artifact is a hard error (never a silent recompute).",
@@ -6914,7 +6914,7 @@ fn coherence_certificate_envelope(dataset: &purrdf::RdfDataset) -> gmeow_errors:
                  (malformed coherence artifact)"
         )))
     };
-    // bundle_hash / axiom_hashes are the load-bearing tamper surface. `axiomHash` rides
+    // bundle_hash and axiom_hashes are required fields. `axiomHash` rides
     // per-axiom-bearing-graph (`per_graph_axiom_hashes`), which hashes EVERY named graph in
     // the dataset the certificate was computed over — a real bundle always has at least one,
     // so an empty set here is corruption, not a legitimately-empty producer output.
