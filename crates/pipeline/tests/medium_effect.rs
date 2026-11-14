@@ -108,30 +108,44 @@ fn the_bijection_reds_in_both_directions_against_the_live_registry() {
     );
 }
 
-/// The AUTHORED training point of every measurable dictionary IS the committed argmin.
+/// The AUTHORED training point of every measurable dictionary is the committed winner
+/// or within the near-tie margin of it.
 ///
-/// This is the check that lets the build train from the DECLARATION while still only
-/// ever training at a MEASURED point. A sweep that found a different argmin is a
-/// reportable finding a human reconciles — never a silent overwrite of the slice — and
-/// this stays red until they do.
+/// This lets the build train from the DECLARATION while only ever training at a point
+/// the committed grid priced. A declaration that drifts above the margin is a finding a
+/// human reconciles, never a silent overwrite of the slice.
 #[test]
-fn the_declared_training_points_are_the_committed_winners() {
+fn the_declared_training_points_are_within_the_margin_of_the_committed_winners() {
     let registry = live_registry();
     let baseline = committed_baseline();
-    sweep::check_declared_matches_winners(&registry, &baseline).expect(
-        "slices/core/gts/module.ttl must declare the measured argmin for every measurable \
-         dictionary",
-    );
+    let ids = sweep::measurable_ids(&registry);
+    for id in &ids {
+        let def = registry.dictionary_by_id(id).expect("declared dictionary");
+        let row = baseline.row(id).expect("committed row");
+        sweep::declared_point(def, row).unwrap_or_else(|diag| {
+            panic!(
+                "slices/core/gts/module.ttl must declare a point within the margin of the \
+                 measured winner for every measurable dictionary: {diag}"
+            )
+        });
+    }
 
-    // …and the check can RED: perturbing one committed winner must be caught.
-    let mut drifted = committed_baseline();
-    let row = drifted
-        .dictionaries
-        .first_mut()
-        .expect("the table is non-empty");
-    row.winning_target_length = row.winning_target_length.saturating_mul(2) + 1;
-    let diag = sweep::check_declared_matches_winners(&registry, &drifted)
-        .expect_err("a declaration that is not the committed argmin must hard-fail");
+    // …and the check can RED: a winner far below the declared cell must be caught.
+    let id = ids
+        .iter()
+        .next()
+        .expect("at least one measurable dictionary");
+    let def = registry.dictionary_by_id(id).expect("declared dictionary");
+    let mut drifted = baseline.row(id).expect("committed row").clone();
+    drifted.winning_target_length = drifted.winning_target_length.saturating_add(1);
+    drifted.grid.push(sweep::GridRow {
+        strategy: drifted.winning_strategy.clone(),
+        target_length: drifted.winning_target_length,
+        dictionary_bytes: 1,
+        two_part_code_bytes: 1,
+    });
+    let diag = sweep::declared_point(def, &drifted)
+        .expect_err("a declaration far above the committed winner must hard-fail");
     assert_eq!(
         gmeow_errors::code::code_str(diag.code()),
         "pipeline.medium.dictionary-regression",

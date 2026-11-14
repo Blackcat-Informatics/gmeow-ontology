@@ -205,6 +205,9 @@ impl Stage for GoalDirectedStage {
     fn id(&self) -> &str {
         "stage-goal-directed"
     }
+    fn output_family(&self) -> crate::node::OutputFamily {
+        crate::node::OutputFamily::Generated
+    }
     /// Read the compiled programs and their reasoned subsort evidence.
     fn consumes(&self) -> &[String] {
         &self.consumes

@@ -556,6 +556,22 @@ pub fn reason_program(
     Ok(reason_program_budgeted(program, input, domains, None)?.0)
 }
 
+/// Execute the selected canonical program under the explicit derivation allowance.
+/// A cut retains committed facts and supported conflict evidence while the
+/// result's evaluation, completeness and preservation axes record the exhausted
+/// frontier, so an allowance can never turn a partial closure into a completed one.
+///
+/// # Errors
+/// Returns the same lowering, admission and execution failures as [`reason_program`].
+pub fn reason_program_within(
+    program: &gmeow_logic_compile::ir::LogicProgram,
+    input: PreparedReasoningInput,
+    domains: &crate::physical::SelectedDomains,
+    budget: &Budget,
+) -> gmeow_errors::Result<ReasoningResult> {
+    Ok(reason_program_budgeted(program, input, domains, budget.max_steps)?.0)
+}
+
 /// The sole producer-to-result fold for the governed native operation. The typed
 /// result consumes its execution evidence; no parallel certificate or witness
 /// vectors survive under a second owner.

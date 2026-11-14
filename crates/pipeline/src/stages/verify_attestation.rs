@@ -89,6 +89,9 @@ impl Stage for VerifyAttestationStage {
     fn id(&self) -> &str {
         "stage-verify-attestation"
     }
+    fn output_family(&self) -> crate::node::OutputFamily {
+        crate::node::OutputFamily::Generated
+    }
 
     fn consumes(&self) -> &[String] {
         &self.consumes

@@ -8,7 +8,7 @@
 //! It runs the real DAG once, then the full `(strategy × target length)` grid per
 //! MEASURABLE declared dictionary plus the global `(codec × level)` grid, and writes
 //! the winner table with its whole grid as evidence. `make maint-medium-sweep` wires
-//! it; the build then CONSUMES only the committed winners, so
+//! it; the build then GRADES its declared training points against the committed grid, so
 //! `stage-medium-dictionaries` stays deterministic and sweep-free.
 //!
 //! Mirrors `bench-compare --emit-baseline` and
@@ -46,10 +46,14 @@ const TOOL: &str = "medium-sweep";
 /// The CLI admits the producer first. Returns 0 on success, or 1 on a sweep,
 /// serialization, or write failure, or when a dictionary does not pay for itself.
 /// Measurement evidence is written before reporting a dictionary stop condition.
-pub(crate) fn run(out: &Path) -> i32 {
+pub(crate) fn run(out: &Path, jobs: Option<usize>) -> i32 {
+    let jobs = match crate::dev_common::resolve_jobs(jobs) {
+        Ok(jobs) => jobs,
+        Err(code) => return code,
+    };
     let root = crate::dev_common::project_root();
     let root = root.as_path();
-    let baseline = match sweep::run_sweep(root) {
+    let baseline = match sweep::run_sweep(root, jobs) {
         Ok(baseline) => baseline,
         Err(err) => {
             eprintln!("{TOOL}: the sweep failed: {err:#}");
@@ -84,8 +88,8 @@ pub(crate) fn run(out: &Path) -> i32 {
 
 /// Write the BOOTSTRAP table derived from the authored declarations alone.
 ///
-/// It exists solely to break a start-up cycle: the sweep runs the whole DAG to
-/// measure, and `stage-medium-dictionaries` refuses to run without a committed table,
+/// It exists solely to break a start-up cycle: the sweep runs the committed-scope DAG
+/// to measure, and `stage-medium-dictionaries` refuses to run without a committed table,
 /// so the first sweep in a fresh tree has no way in. Every measured field is zero and
 /// the sweep overwrites the file moments later;
 /// `the_committed_winner_table_carries_real_measurements` refuses a seed that was ever
@@ -234,7 +238,8 @@ fn stop_conditions(baseline: &MediumBaseline) -> bool {
                 "{TOOL}: FINDING — dictionary {:?} declares {}/{} but the measured argmin is \
                  {}/{}. The declaration is NOT overwritten here: reconcile \
                  slices/core/gts/module.ttl with the evidence (or record why the declaration \
-                 stands) — `the_declared_training_points_are_the_committed_winners` reds until you do.",
+                 stands). A build accepts a declaration that is not the argmin only within the \
+                 near-tie margin of the winning cell and fails above it.",
                 row.id,
                 row.declared_strategy,
                 row.declared_target_length,

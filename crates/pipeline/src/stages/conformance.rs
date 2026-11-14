@@ -863,6 +863,9 @@ impl Stage for ConformanceStage {
     fn id(&self) -> &str {
         "stage-conformance"
     }
+    fn output_family(&self) -> crate::node::OutputFamily {
+        crate::node::OutputFamily::Generated
+    }
     fn consumes(&self) -> &[String] {
         static DEPS: std::sync::OnceLock<Vec<String>> = std::sync::OnceLock::new();
         DEPS.get_or_init(|| vec![crate::stages::parse_sources::STAGE_ID.to_owned()])

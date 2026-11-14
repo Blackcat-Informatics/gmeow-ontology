@@ -634,3 +634,35 @@ msgstr "所提供字节摘要的准入"
 msgctxt "https://blackcatinformatics.ca/gmeow/MeasuredCorpusDigestValueConstraint|http://www.w3.org/2004/02/skos/core#definition"
 msgid "Every supplied byte digest on the selected properties retains an admitted algorithm datatype and its exact lowercase hexadecimal width, without a prefix. This check does not compute a digest or prove that source bytes were verified."
 msgstr "所选属性上的每个所提供字节摘要都保留获准的算法数据类型和精确位数的不带前缀小写十六进制。此检查既不计算摘要，也不证明来源字节已被验证。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/evidenceCorpusDigest|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The BLAKE3-256 digest of the corpus the committed sweep evidence (bench/medium-baseline.json) was measured over for this dictionary, copied from that table's corpus_digest column. The RDF value uses gmeow:blake3_256Digest with 64 lowercase hexadecimal digits without a prefix. Exactly one per realization. Equal to gmeow:measuredCorpusDigest when the evidence describes this build's corpus; different when the evidence is stale, which gmeow:evidenceCorpusStale states."
+msgstr "此字典的已提交扫描证据（bench/medium-baseline.json）所测量语料的 BLAKE3-256 摘要，复制自该表的 corpus_digest 列。RDF 值采用 gmeow:blake3_256Digest，包含 64 位不带前缀的小写十六进制。每个实现恰有一个。当证据描述本次构建的语料时，它等于 gmeow:measuredCorpusDigest；证据过期时则不同，由 gmeow:evidenceCorpusStale 说明。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/evidenceCorpusDigest|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:record gmeow:evidenceCorpusDigest \"0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef\"^^gmeow:blake3_256Digest ."
+msgstr "ex:record gmeow:evidenceCorpusDigest \"0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef\"^^gmeow:blake3_256Digest ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/evidenceCorpusDigest|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid reading it as the identity of the material the shipped bytes were trained on (that is gmeow:measuredCorpusDigest), and avoid copying the measured digest into it to hide stale evidence. Keep internal blake3: addresses distinct from the typed RDF literal."
+msgstr "避免将其读作所交付字节训练所用材料的标识（那是 gmeow:measuredCorpusDigest），也避免把测得摘要复制到此处以掩盖过期证据。应区分内部 blake3: 地址与类型化 RDF 字面量。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/evidenceCorpusStale|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Whether the committed sweep evidence for this dictionary was measured over a corpus other than the one this build resolved: true exactly when gmeow:evidenceCorpusDigest differs from gmeow:measuredCorpusDigest. Exactly one per realization. An ordinary build that finds stale evidence trains at the declared point, warns, and records true here; a release build refuses stale evidence (gmeow:MediumCorpusDrift), so a release bundle carries false."
+msgstr "此字典的已提交扫描证据是否在不同于本次构建所解析的语料上测得：当且仅当 gmeow:evidenceCorpusDigest 不同于 gmeow:measuredCorpusDigest 时为真。每个实现恰有一个。发现证据过期的普通构建会按声明的点训练、发出警告并在此记录真；发布构建拒绝过期证据（gmeow:MediumCorpusDrift），因此发布包记录为假。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/evidenceCorpusStale|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:record gmeow:evidenceCorpusStale false ."
+msgstr "ex:record gmeow:evidenceCorpusStale false ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/evidenceCorpusStale|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating true as a decoding hazard — a consumer resolves the dictionary by the bytes shipped in the bundle — and avoid asserting it without the two digests it summarises."
+msgstr "避免把真视为解码风险——使用者按包中交付的字节解析字典——也避免在没有其所概括的两个摘要时断言它。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EvidenceCorpusDigestValueConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "supplied byte digest admission"
+msgstr "所提供字节摘要的准入"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EvidenceCorpusDigestValueConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Every supplied byte digest on the selected properties retains an admitted algorithm datatype and its exact lowercase hexadecimal width, without a prefix. This check does not compute a digest or prove that source bytes were verified."
+msgstr "所选属性上的每个所提供字节摘要都保留获准的算法数据类型和精确位数的不带前缀小写十六进制。此检查既不计算摘要，也不证明来源字节已被验证。"

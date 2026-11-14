@@ -721,13 +721,6 @@
   {
    "kind": "body",
    "members": [
-    "gmeow_logic::versioning::feed",
-    "gmeow_pipeline::stages::carrier::hash_receipt_field"
-   ]
-  },
-  {
-   "kind": "body",
-   "members": [
     "gmeow_logic::physical::store::RelationStore::values_object",
     "gmeow_logic::physical::store::RelationStore::values_subject"
    ]
@@ -859,6 +852,13 @@
    "members": [
     "gmeow_logic::test_crate::reasoning_session_annotation_parity::session_common::rule",
     "gmeow_logic::test_crate::reasoning_session_refusal::rule_of"
+   ]
+  },
+  {
+   "kind": "body",
+   "members": [
+    "gmeow_logic::versioning::feed",
+    "gmeow_pipeline::stages::carrier::hash_receipt_field"
    ]
   },
   {
@@ -1957,7 +1957,6 @@
     "gmeow_pipeline::stages::export::ExportStage::default",
     "gmeow_pipeline::stages::gmn_training_corpus::GmnTrainingCorpusStage::default",
     "gmeow_pipeline::stages::goal_directed::GoalDirectedStage::default",
-    "gmeow_pipeline::stages::gts_compose::GtsComposeStage::default",
     "gmeow_pipeline::stages::gts_sink::GtsSinkStage::default",
     "gmeow_pipeline::stages::json_schema::JsonSchemaStage::default",
     "gmeow_pipeline::stages::lpg::LpgStage::default",
@@ -2719,7 +2718,7 @@
   "hash-domain": 45,
   "hex": 1,
   "json-pointer": 2,
-  "literal-and-iri-escape": 14,
+  "literal-and-iri-escape": 13,
   "media-type-by-extension": 3,
   "percent-encoding": 2,
   "rdf-collection": 19,

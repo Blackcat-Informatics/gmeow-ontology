@@ -67,14 +67,20 @@ impl StageRegistry {
     }
 }
 
-/// Build the default registry of production stages.
+/// Build the registry of production stages for an ORDINARY build.
 ///
 /// Kept as the single construction entrypoint so the loader and the PyO3
-/// `run_pipeline` (P6) share one stage inventory. Delegates to
-/// [`crate::stages::register_default`], which registers each production stage as
-/// its parcel lands (P3 onward).
+/// `run_pipeline` (P6) share one stage inventory. A release selects its stages
+/// explicitly through [`registry_for`].
 pub fn default_registry() -> StageRegistry {
+    registry_for(crate::run::BuildProfile::Ordinary)
+}
+
+/// Build the registry of production stages for an explicitly selected build profile.
+/// Delegates to [`crate::stages::register_default`], which hands the profile to every
+/// stage whose behaviour depends on it.
+pub fn registry_for(profile: crate::run::BuildProfile) -> StageRegistry {
     let mut registry = StageRegistry::new();
-    crate::stages::register_default(&mut registry);
+    crate::stages::register_default(&mut registry, profile);
     registry
 }
