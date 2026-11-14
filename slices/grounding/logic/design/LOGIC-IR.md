@@ -607,10 +607,14 @@ binds body order and repeated occurrences. Both preserve blank sharing modulo
 relabeling. Cache publication checks this complete transport identity against the
 backing graph; hydration restores the authenticated full typed payload.
 
-The flat Horn lowering does not admit contextual scope on an axiom, a rule, its
-head or any body atom. It records source-identified residue rather than emitting
-an unscoped statement, including when the only context is provenance, confidence,
-time or theory membership. A negative rule head is likewise residue, never a
+The flat Horn lowering does not admit any scope on an axiom, a rule, its head or
+any body atom: a flat clause has no place to keep a scope, or a record of what was
+left out of it. It records source-identified residue rather than emitting an
+unscoped statement, including when the only scope is provenance or confidence,
+which are evidence and select no context, and when it is time or theory
+membership, which do. The classical first-order source admission states the rule
+the flat lowering cannot: evidence is left out of the problem and recorded on the
+unit, and a context coordinate is never erased. A negative rule head is likewise residue, never a
 positive consequence. The original typed logic program remains the canonical
 owner of these constructs. This explicit boundary does not complete the separate
 contextual source/model calculus or authorize optimizations across its scope.

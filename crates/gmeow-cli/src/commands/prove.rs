@@ -28,6 +28,7 @@ use gmeow_logic_compile::frontend::{
     AxiomSource, PreparedLogicSource, SemanticUnitDisposition, SourceAdmission,
     SourceAdmissionStatus, SourceBase, SourceBaseOrigin, SourceDocument, SourceSelection,
 };
+use gmeow_logic_compile::ir::EvidenceCoordinate;
 use gmeow_logic_compile::tptp::{FofProjectionBlocker, FofProjectionStatus, project_tptp_fof};
 use purrdf::entail::Question;
 use purrdf::{CompositeDatasetView, RdfDataset, TermRef, ViewLimits};
@@ -103,6 +104,12 @@ struct SelectionReport {
     selection_digest: String,
     documents: usize,
     units: usize,
+    /// How many units were admitted with evidence left out of the problem. This is
+    /// not a drop: the claim is fully in the problem and only its attribution is
+    /// not, so it never makes the selection incomplete.
+    units_with_evidence_left_out: usize,
+    /// The evidence coordinates left out across those units, sorted.
+    evidence_left_out: Vec<&'static str>,
     /// Admission and native-accounting drops, sorted and de-duplicated. The OWL
     /// leg's own state is reported under that leg, never here.
     drops: Vec<DropRecord>,
@@ -645,6 +652,12 @@ pub(crate) fn prove(reporter: &dyn Reporter, request: &ProveRequest<'_>) -> i32 
             selection_digest: admission.selection_digest.clone(),
             documents,
             units: admission.units.len(),
+            units_with_evidence_left_out: admission
+                .units
+                .iter()
+                .filter(|unit| unit.evidence_left_out.is_some())
+                .count(),
+            evidence_left_out: evidence_left_out_coordinates(&admission),
             drops,
         }),
         semantics: PROVE_SEMANTICS,
@@ -685,6 +698,21 @@ pub(crate) fn prove(reporter: &dyn Reporter, request: &ProveRequest<'_>) -> i32 
         }
     }
     publish_report(report, request, reporter)
+}
+
+/// The evidence coordinates any unit of the admission left out of the problem,
+/// sorted. Evidence is attribution, not a claim, so naming it here is accounting
+/// and not a drop.
+fn evidence_left_out_coordinates(admission: &SourceAdmission) -> Vec<&'static str> {
+    admission
+        .units
+        .iter()
+        .filter_map(|unit| unit.evidence_left_out.as_ref())
+        .flat_map(|left_out| left_out.coordinates.iter().copied())
+        .collect::<BTreeSet<_>>()
+        .into_iter()
+        .map(EvidenceCoordinate::name)
+        .collect()
 }
 
 /// Every admission unit the selection did not admit as a theory member and did not
@@ -2319,6 +2347,16 @@ fn render_text(report: &ProveReport) {
         println!("program-digest {}", selection.program_digest);
         println!("selection-digest {}", selection.selection_digest);
         println!("semantic-units {}", selection.units);
+        println!(
+            "evidence-left-out-units {}",
+            selection.units_with_evidence_left_out
+        );
+        if !selection.evidence_left_out.is_empty() {
+            println!(
+                "evidence-left-out {}",
+                selection.evidence_left_out.join(" ")
+            );
+        }
         // `complete` is the one computed value; these lines only spell it. It covers
         // the native accounting; the OWL leg's state is printed under that leg.
         if selection.complete {

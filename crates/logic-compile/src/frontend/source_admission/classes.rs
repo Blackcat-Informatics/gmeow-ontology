@@ -138,11 +138,14 @@ impl AdmissionBuilder<'_> {
             );
         }
         for (node, disposition) in dispositions {
-            self.push(
+            let anchor = node_anchor(dataset, node);
+            let left_out = evidence_left_out(self.node_scope(node).1, [anchor.clone()]);
+            self.push_with(
                 SemanticUnitKind::ClassDefinition,
-                node_anchor(dataset, node),
+                anchor,
                 self.node_documents(node),
                 disposition,
+                left_out,
             );
         }
     }
@@ -155,25 +158,14 @@ impl AdmissionBuilder<'_> {
         roots: &BTreeSet<SourceNode>,
     ) -> Result<ClassLowering, ClassRefusal> {
         let dataset = self.theory.source().dataset();
-        if self
-            .theory
-            .source()
-            .source_graph()
-            .outgoing(node)
-            .iter()
-            .any(|edge| {
-                matches!(
-                    edge.role,
-                    SourceEdgeRole::Standpoint
-                        | SourceEdgeRole::Context
-                        | SourceEdgeRole::Provenance
-                        | SourceEdgeRole::Module
-                )
-            })
-        {
+        let (context, _) = self.node_scope(node);
+        if !context.is_empty() {
             return Err(ClassRefusal::Blocked {
                 code: "CONTEXT_ERASURE_FORBIDDEN",
-                reason: "a scoped class definition requires typed context translation".into(),
+                reason: format!(
+                    "a class definition selects a context ({}); it requires typed context translation and is never erased",
+                    join_names(context.iter().map(String::as_str))
+                ),
             });
         }
         let mut fields: BTreeMap<String, TermId> = BTreeMap::new();

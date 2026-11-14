@@ -13,7 +13,7 @@ use purrdf::{RdfDataset, TermId, TermRef};
 
 use super::{Diagnostic, FORMULA_SUBLINKS};
 use crate::graphutil::{RDF_REIFIES, RDF_STATEMENT, is_structural_type_predicate};
-use crate::ir::LOGIC_NAMESPACE;
+use crate::ir::{EvidenceCoordinate, LOGIC_NAMESPACE};
 
 mod cbor;
 
@@ -144,6 +144,31 @@ pub enum SourceEdgeRole {
     StatementComponent,
 }
 
+/// What a scope edge says about its owner's scope.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum EdgeScope {
+    /// Who reported the owner or how sure the reporter is; selects no context.
+    Evidence(EvidenceCoordinate),
+    /// Selects a context, named as a `logic:` or `gmeow:` term.
+    Context(String),
+    /// Not a scope edge.
+    None,
+}
+
+const LOGIC_CONFIDENCE: &str = "https://blackcatinformatics.ca/logic/confidence";
+const GMEOW_NAMESPACE: &str = "https://blackcatinformatics.ca/gmeow/";
+
+/// The short `logic:`/`gmeow:` spelling of a scope predicate, for messages.
+fn scope_edge_name(predicate: &str) -> String {
+    if let Some(local) = predicate.strip_prefix(LOGIC_NAMESPACE) {
+        format!("logic:{local}")
+    } else if let Some(local) = predicate.strip_prefix(GMEOW_NAMESPACE) {
+        format!("gmeow:{local}")
+    } else {
+        predicate.to_owned()
+    }
+}
+
 /// Native storage position is retained even if the same RDF assertion also has
 /// an ordinary statement-table representation.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
@@ -253,6 +278,24 @@ impl StructuralSourceGraph {
     #[must_use]
     pub fn predicate_role(predicate: &str) -> Option<SourceEdgeRole> {
         edge_spec(predicate).map(|spec| spec.role)
+    }
+
+    /// What a source edge says about the scope of its owner. This is the edge-side
+    /// statement of the rule [`ContextualScope`](crate::ir::ContextualScope)
+    /// states for a scope: provenance and confidence are evidence, every other
+    /// scope edge selects a context, and a structural edge says nothing about scope.
+    #[must_use]
+    pub fn edge_scope(role: SourceEdgeRole, predicate: &str) -> EdgeScope {
+        match role {
+            SourceEdgeRole::Provenance => EdgeScope::Evidence(EvidenceCoordinate::Provenance),
+            SourceEdgeRole::Context if predicate == LOGIC_CONFIDENCE => {
+                EdgeScope::Evidence(EvidenceCoordinate::Confidence)
+            }
+            SourceEdgeRole::Standpoint | SourceEdgeRole::Module | SourceEdgeRole::Context => {
+                EdgeScope::Context(scope_edge_name(predicate))
+            }
+            _ => EdgeScope::None,
+        }
     }
 
     pub(crate) fn new(dataset: &RdfDataset) -> Self {

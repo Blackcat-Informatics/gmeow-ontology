@@ -4,7 +4,7 @@
 //! Admission for the existing single-context native DL entailment operation.
 //! This checks context selection, not complete CompiledTheory law coverage.
 
-use gmeow_logic_compile::frontend::{SourceEdgeRole, StructuralSourceGraph};
+use gmeow_logic_compile::frontend::{EdgeScope, StructuralSourceGraph};
 use purrdf::{QuadIds, RdfDataset, TermRef};
 
 use super::{EntailmentGap, GapShape};
@@ -12,7 +12,6 @@ use super::{EntailmentGap, GapShape};
 /// The profile implemented by `dl_entails`: an unspecified, world-local default
 /// assertion context. It never selects a union of named or annotated contexts.
 const PROFILE: &str = "native-dl-default-context-v1";
-const CONFIDENCE: &str = "https://blackcatinformatics.ca/logic/confidence";
 
 /// Borrow the original dataset only after admitting its context to this profile.
 /// In particular, the reduction cannot be called with an unchecked raw dataset.
@@ -37,14 +36,15 @@ impl<'a> AdmittedDefaultGraph<'a> {
             let TermRef::Iri(predicate) = dataset.resolve(quad.p) else {
                 unreachable!("a frozen RDF dataset has IRI predicates")
             };
-            let role = StructuralSourceGraph::predicate_role(predicate);
-            let selects_context = match role {
-                Some(SourceEdgeRole::Standpoint | SourceEdgeRole::Module) => true,
-                // Confidence remains evidence, just as in native program admission;
-                // it neither selects a world nor licenses another truth algebra.
-                Some(SourceEdgeRole::Context) => predicate != CONFIDENCE,
-                _ => false,
-            };
+            // Provenance and confidence remain evidence, just as in native program
+            // admission: neither selects a world nor licenses another truth algebra.
+            let selects_context =
+                StructuralSourceGraph::predicate_role(predicate).is_some_and(|role| {
+                    matches!(
+                        StructuralSourceGraph::edge_scope(role, predicate),
+                        EdgeScope::Context(_)
+                    )
+                });
             if selects_context {
                 return Err(coverage_gap(format!(
                     "{side} {carrier} has an unexecuted context coordinate: {:?} <{predicate}> {:?} \

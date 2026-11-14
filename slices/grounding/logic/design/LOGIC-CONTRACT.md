@@ -63,6 +63,19 @@ selects every recorded document, formula root, rule and semantic owner, retainin
 blocked and malformed dispositions alongside admitted units. Worked-example
 augmentation of the projection program is not the input to this observation.
 
+A scope has six coordinates of two kinds. Provenance and confidence are evidence:
+they say who reported a claim and how sure the reporter is, and they select no
+context. Standpoint, time, modality and module select the context a claim holds in.
+A unit (claim, rule, rule atom, formula, class definition or contract declaration)
+whose scope has only evidence coordinates is admitted; the problem does not carry
+them, and the unit records which were left out together with the anchors of the
+authored nodes it was lowered from, so a premise of a proof can be traced to its
+sources. A unit with any context coordinate is blocked and its message names the
+coordinate: a context is translated, never erased. Several sources of one node give
+the same formula held by several units. Two sources that contradict each other with
+provenance alone make the theory inconsistent; a contested fact is authored with a
+standpoint.
+
 The bundle reader decodes this inventory without parsing source RDF. The source,
 program, profile and selection identities describe the producer's observation;
 decoding does not restore the live compiler authority needed to project a proof.

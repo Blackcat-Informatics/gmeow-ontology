@@ -1663,3 +1663,6 @@ fn source_identity_binds_the_complete_base_receipt() {
         "different admitted bases must never share a source identity"
     );
 }
+
+#[path = "evidence.tests.rs"]
+mod evidence_tests;

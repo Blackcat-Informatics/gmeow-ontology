@@ -51,9 +51,10 @@ pub use temporal::{FINITE_AT_OR_AFTER, FINITE_NEXT, FINITE_STRICTLY_BEFORE};
 mod presentation;
 mod source_graph;
 pub use source_graph::{
-    SourceBase, SourceBaseOrigin, SourceCarrier, SourceDocument, SourceDocumentOccurrences,
-    SourceEdge, SourceEdgeRole, SourceNode, SourceNodeBinding, SourceOccurrencePosition,
-    SourcePredicate, SourceStatementBinding, SourceUnit, SourceUnitKind, StructuralSourceGraph,
+    EdgeScope, SourceBase, SourceBaseOrigin, SourceCarrier, SourceDocument,
+    SourceDocumentOccurrences, SourceEdge, SourceEdgeRole, SourceNode, SourceNodeBinding,
+    SourceOccurrencePosition, SourcePredicate, SourceStatementBinding, SourceUnit, SourceUnitKind,
+    StructuralSourceGraph,
 };
 
 mod emission;
@@ -70,10 +71,11 @@ pub use prepared::PreparedLogicSource;
 
 mod source_admission;
 pub use source_admission::{
-    AdmittedSemanticUnit, DocumentSelection, FOF_SOURCE_PROFILE, FofSemanticProfile,
-    PropertyCharacteristic, RootSelection, SemanticUnitAdmission, SemanticUnitDisposition,
-    SemanticUnitKind, SourceAdmission, SourceAdmissionStatus, SourceAssertion,
-    SourceClassDefinition, SourceContractDeclaration, SourceGraphSelection, SourceSelection,
+    AdmittedSemanticUnit, DocumentSelection, EvidenceLeftOut, FOF_SOURCE_PROFILE,
+    FofSemanticProfile, PropertyCharacteristic, RootSelection, SemanticUnitAdmission,
+    SemanticUnitDisposition, SemanticUnitKind, SourceAdmission, SourceAdmissionStatus,
+    SourceAssertion, SourceClassDefinition, SourceContractDeclaration, SourceGraphSelection,
+    SourceSelection,
 };
 
 use super::compat;

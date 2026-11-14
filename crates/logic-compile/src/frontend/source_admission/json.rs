@@ -4,10 +4,10 @@
 //! Named observational records never restore the compiler's live admission token.
 
 use super::{
-    AdmittedSemanticUnit, DocumentSelection, FofSemanticProfile, PropertyCharacteristic,
-    RootSelection, SemanticUnitAdmission, SemanticUnitDisposition, SemanticUnitKind,
-    SourceAdmission, SourceAdmissionStatus, SourceAssertion, SourceClassDefinition,
-    SourceContractDeclaration, SourceGraphSelection, SourceSelection,
+    AdmittedSemanticUnit, DocumentSelection, EvidenceLeftOut, FofSemanticProfile,
+    PropertyCharacteristic, RootSelection, SemanticUnitAdmission, SemanticUnitDisposition,
+    SemanticUnitKind, SourceAdmission, SourceAdmissionStatus, SourceAssertion,
+    SourceClassDefinition, SourceContractDeclaration, SourceGraphSelection, SourceSelection,
 };
 use crate::ir::Formula;
 use purrdf_lex::json::{
@@ -359,13 +359,28 @@ impl FromJson for SemanticUnitDisposition {
     }
 }
 
-::purrdf_lex::json_record!(impl ToJson for SemanticUnitAdmission {
-    "id" => id,
-    "kind" => kind,
-    "anchor" => anchor,
-    "documents" => documents,
-    "disposition" => disposition,
+::purrdf_lex::json_record!(EvidenceLeftOut as "struct EvidenceLeftOut" {
+    "coordinates" => coordinates: required,
+    "nodes" => nodes: required,
 });
+
+/// A unit with no evidence left out is written with exactly the five members it
+/// always had; the sixth member is written only when the record is present, and a
+/// reader that does not find it takes the absent default.
+impl ToJson for SemanticUnitAdmission {
+    fn to_json(&self) -> Value {
+        let mut object = purrdf_lex::json::Object::new()
+            .with("id", self.id.to_json())
+            .with("kind", self.kind.to_json())
+            .with("anchor", self.anchor.to_json())
+            .with("documents", self.documents.to_json())
+            .with("disposition", self.disposition.to_json());
+        if let Some(evidence) = &self.evidence_left_out {
+            object = object.with("evidence_left_out", evidence.to_json());
+        }
+        object.into()
+    }
+}
 
 impl FromJson for SemanticUnitAdmission {
     fn from_json(value: &Value) -> Result<Self, DecodeError> {
@@ -376,6 +391,7 @@ impl FromJson for SemanticUnitAdmission {
             anchor: fields.required("anchor")?,
             documents: fields.required("documents")?,
             disposition: fields.required("disposition")?,
+            evidence_left_out: fields.optional("evidence_left_out")?,
         })
     }
 }

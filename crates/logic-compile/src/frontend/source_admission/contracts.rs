@@ -15,10 +15,30 @@ enum Support {
 impl AdmissionBuilder<'_> {
     /// Retain the native declaration and every selected fact used to read it.
     /// The ordinary proof profile remains explicit and unchanged by these facts.
+    ///
+    /// Provenance and confidence on the declaration's nodes select no context: the
+    /// declaration is catalogued with them recorded as left out. Any context
+    /// coordinate blocks it.
     pub(super) fn contract_declaration(
         &mut self,
         root: SourceNode,
         index: usize,
+    ) -> (SemanticUnitDisposition, Option<EvidenceLeftOut>) {
+        let mut coordinates = BTreeSet::new();
+        let mut nodes = BTreeSet::new();
+        let disposition = self.read_contract_declaration(root, index, &mut coordinates, &mut nodes);
+        if !coordinates.is_empty() {
+            nodes.insert(node_anchor(self.theory.source().dataset(), root));
+        }
+        (disposition, evidence_left_out(coordinates, nodes))
+    }
+
+    fn read_contract_declaration(
+        &mut self,
+        root: SourceNode,
+        index: usize,
+        coordinates: &mut BTreeSet<EvidenceCoordinate>,
+        evidence_nodes: &mut BTreeSet<String>,
     ) -> SemanticUnitDisposition {
         let Some(configuration) = self.theory.program().contracts.get(index) else {
             return malformed(
@@ -36,26 +56,19 @@ impl AdmissionBuilder<'_> {
                 continue;
             }
             let node = SourceNode { term, graph: None };
-            if self
-                .theory
-                .source()
-                .source_graph()
-                .outgoing(node)
-                .iter()
-                .any(|edge| {
-                    matches!(
-                        edge.role,
-                        SourceEdgeRole::Standpoint
-                            | SourceEdgeRole::Context
-                            | SourceEdgeRole::Provenance
-                            | SourceEdgeRole::Module
-                    )
-                })
-            {
+            let (context, evidence) = self.node_scope(node);
+            if !context.is_empty() {
                 return blocked(
                     "CONTEXT_ERASURE_FORBIDDEN",
-                    "a scoped contract declaration requires typed context translation",
+                    format!(
+                        "a contract declaration selects a context ({}); it requires typed context translation and is never erased",
+                        join_names(context.iter().map(String::as_str))
+                    ),
                 );
+            }
+            if !evidence.is_empty() {
+                coordinates.extend(evidence);
+                evidence_nodes.insert(node_anchor(dataset, node));
             }
             for quad in dataset.quads_for_pattern(Some(term), None, None, GraphMatch::Default) {
                 let TermRef::Iri(predicate) = dataset.resolve(quad.p) else {

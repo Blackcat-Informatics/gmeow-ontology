@@ -8,7 +8,7 @@
 //! marker position, can use the paired presentation spelling. Variables always
 //! bind the original term, including when that term later occurs as ordinary data.
 
-use gmeow_logic_compile::ir::{ContextualScope, LogicModality, LogicProgram};
+use gmeow_logic_compile::ir::{ContextualScope, LogicProgram};
 
 /// The selected interpretation is part of preparation and execution identity.
 #[derive(Debug, Clone, Copy, Default, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
@@ -202,13 +202,7 @@ impl ProgramAdmission {
         let unsupported: Vec<_> = self
             .scopes
             .iter()
-            .filter(|source| {
-                let scope = &source.scope;
-                scope.standpoint.is_some()
-                    || scope.time.is_some()
-                    || scope.module.is_some()
-                    || scope.modality != LogicModality::None
-            })
+            .filter(|source| !source.scope.selects_no_context())
             .map(|source| format!("{}: {:?}", source.owner, source.scope))
             .collect();
         if unsupported.is_empty() {

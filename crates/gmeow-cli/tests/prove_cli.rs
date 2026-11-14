@@ -156,6 +156,40 @@ fn tiny_step_allowance_is_never_consistent() {
     assert!(!drop_codes(&report).is_empty());
 }
 
+/// Two reified claims that name only their sources and contradict each other
+/// through a disjointness law.
+const PROVENANCE_CLASH: &str = r#"
+ex:A logic:disjointWith ex:B .
+ex:one rdf:reifies <<( ex:a logic:instanceOf ex:A )>> ; logic:provenance ex:s1 .
+ex:two rdf:reifies <<( ex:a logic:instanceOf ex:B )>> ; logic:provenance ex:s2 .
+"#;
+
+/// INVARIANT: two claims that differ only in their sources contradict each other
+/// like any two claims; a contested fact is authored with a standpoint instead.
+#[test]
+fn provenance_only_contradiction_is_inconsistent() {
+    let (report, _) = prove_json("provenance-clash.logic.ttl", PROVENANCE_CLASH, &[]);
+    assert_eq!(report["verdict"], "inconsistent", "{report:#}");
+}
+
+/// INVARIANT: a unit admitted with evidence left out is reported beside the unit
+/// counts, and it is not a drop.
+#[test]
+fn evidence_left_out_is_counted_beside_the_units_and_is_not_a_drop() {
+    let (report, _) = prove_json("provenance-clash.logic.ttl", PROVENANCE_CLASH, &[]);
+    assert_eq!(report["selection"]["units_with_evidence_left_out"], 2);
+    assert_eq!(
+        report["selection"]["evidence_left_out"],
+        serde_json::json!(["logic:provenance"])
+    );
+    assert!(
+        !drop_codes(&report)
+            .iter()
+            .any(|code| code.contains("EVIDENCE")),
+        "{report:#}"
+    );
+}
+
 /// Malformed input has its own exit status and a machine-readable report.
 #[test]
 fn malformed_input_has_its_own_exit_and_machine_report() {

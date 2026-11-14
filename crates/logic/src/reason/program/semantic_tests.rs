@@ -315,6 +315,61 @@ fn template_admission_preserves_and_refuses_unexecuted_source_scope() {
     }
 }
 
+/// INVARIANT: provenance and confidence are evidence; the native template
+/// admission takes them at every position without selecting a context, exactly as
+/// the shared scope predicate says.
+#[test]
+fn template_admission_takes_evidence_scope_at_every_position() {
+    use gmeow_logic_compile::ir::{AtomicTerm, LogicAxiom, LogicRule};
+    let atom = |predicate: &str, scope: ContextualScope| {
+        LogicAxiom::new("?x", predicate, AtomicTerm::Var("?y".into()), false, scope).unwrap()
+    };
+    let evidence = [
+        ContextualScope {
+            provenance: Some("urn:source".into()),
+            ..Default::default()
+        },
+        ContextualScope {
+            confidence: Some(0.5),
+            ..Default::default()
+        },
+    ];
+    for scope in evidence {
+        assert!(scope.selects_no_context());
+        for position in 0..3 {
+            let (rule_scope, head_scope, body_scope) = match position {
+                0 => (
+                    scope.clone(),
+                    ContextualScope::default(),
+                    ContextualScope::default(),
+                ),
+                1 => (
+                    ContextualScope::default(),
+                    scope.clone(),
+                    ContextualScope::default(),
+                ),
+                _ => (
+                    ContextualScope::default(),
+                    ContextualScope::default(),
+                    scope.clone(),
+                ),
+            };
+            let rule = LogicRule::new(
+                atom(DONE, head_scope),
+                vec![atom(EDGE, body_scope)],
+                vec![],
+                rule_scope,
+            );
+            let program = LogicProgram::new(vec![], vec![rule], vec![], Some("urn:source".into()));
+            let prepared = crate::program_analysis::prepare_program(&program).unwrap();
+            assert!(
+                prepared.admission.admit_world_local_template().is_ok(),
+                "evidence at position {position} selects no context"
+            );
+        }
+    }
+}
+
 #[test]
 fn late_projected_type_wakes_canonical_existential_body_with_original_premise() {
     use crate::physical::{ExistentialRule, WitnessPolicy};

@@ -15,6 +15,8 @@ use crate::entail::{
     RDFS_SUBPROPERTYOF, VendorReduction, build_world_edb, dl_entails, reduce_for_vendoring,
 };
 
+const CONFIDENCE: &str = "https://blackcatinformatics.ca/logic/confidence";
+
 fn quad(subject: &str, predicate: &str, object: &str) -> RdfQuad {
     RdfQuad::new(RdfTerm::iri(subject), predicate, RdfTerm::iri(object))
 }

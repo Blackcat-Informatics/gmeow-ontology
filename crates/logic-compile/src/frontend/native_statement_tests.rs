@@ -626,10 +626,12 @@ fn admission_of(text: &str) -> SourceAdmission {
 
 #[test]
 fn rules_lowered_from_one_rule_node_are_one_admission_fact_with_unchanged_id() {
-    let rule = |provenance: &str| {
+    // A context coordinate blocks every lowered rule alike, so they are one fact
+    // about the authored node. (Evidence coordinates admit them as separate units.)
+    let rule = |standpoint: &str| {
         format!(
             "ex:rule a logic:Rule ;
-                 logic:provenance {provenance} ;
+                 logic:standpoint {standpoint} ;
                  logic:head [ rdf:reifies <<( ex:Bird ex:p ex:v )>> ] ."
         )
     };

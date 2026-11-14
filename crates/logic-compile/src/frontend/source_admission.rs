@@ -24,7 +24,7 @@ use super::{
     SourceCarrier, SourceEdgeRole, SourceNode, SourceStatementBinding, SourceUnitKind,
     StructuralSourceGraph,
 };
-use crate::ir::{AtomicTerm, ContextualScope, Formula, LogicAxiom, LogicModality, Term};
+use crate::ir::{AtomicTerm, EvidenceCoordinate, Formula, LogicAxiom, LogicRule, Term};
 
 const RDF_TYPE: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
 const RDFS_CLASS: &str = "http://www.w3.org/2000/01/rdf-schema#Class";
@@ -37,7 +37,7 @@ const XSD_STRING: &str = "http://www.w3.org/2001/XMLSchema#string";
 
 /// Classical object-theory task with explicit metatheory catalogue accounting.
 pub const FOF_SOURCE_PROFILE: &str =
-    "https://blackcatinformatics.ca/logic/profile/tptp-fof-source-v4";
+    "https://blackcatinformatics.ca/logic/profile/tptp-fof-source-v5";
 
 /// The only graph placement admitted by the initial external classical profile.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
@@ -145,7 +145,7 @@ impl Default for FofSemanticProfile {
             equality: "denotational equality without a unique-name assumption".into(),
             blank_nodes: "source-scoped existential blanks skolemized for satisfiability".into(),
             free_variables: "top-level free variables universally closed".into(),
-            context: "explicit inContext and typed modal standard translations use contextualApplication with separate context, reified relation and original argument coordinates; ordinary relation arity is unchanged; other source scope on a formula or any descendant requires typed translation and cannot be erased".into(),
+            context: "explicit inContext and typed modal standard translations use contextualApplication with separate context, reified relation and original argument coordinates; ordinary relation arity is unchanged; provenance and confidence are evidence that select no context, so a unit whose scope has only those is admitted with them left out of the problem and recorded on the unit with the authored nodes it came from; standpoint, time, modality and module select a context, so any other source scope on a unit, a formula or any descendant requires typed translation, is never erased and blocks the unit".into(),
             contracts: "configuration declarations are metatheory catalogue evidence; this classical object-theory task does not execute them or assert their grammar as object axioms".into(),
         }
     }
@@ -278,6 +278,20 @@ impl SemanticUnitDisposition {
     }
 }
 
+/// The evidence a unit's scope carried and the classical problem leaves out.
+///
+/// Provenance and confidence say who reported a claim and how sure the reporter
+/// is; they select no context. The problem therefore does not carry them, and the
+/// unit records here which were left out and the authored nodes it came from, so a
+/// reader of the admission alone can go from a premise back to its sources.
+#[derive(Debug, Clone, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
+pub struct EvidenceLeftOut {
+    /// The evidence coordinates left out of the problem; never empty.
+    pub coordinates: BTreeSet<EvidenceCoordinate>,
+    /// Canonical anchors of the authored nodes the unit was lowered from.
+    pub nodes: BTreeSet<String>,
+}
+
 /// Portable accounting row. `anchor` is a canonical term/quad spelling, never a
 /// persisted native `TermId`.
 #[derive(Debug, Clone, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
@@ -287,6 +301,11 @@ pub struct SemanticUnitAdmission {
     pub anchor: String,
     pub documents: BTreeSet<String>,
     pub disposition: SemanticUnitDisposition,
+    /// Present only when the unit's scope carried evidence the problem leaves out.
+    /// Absent, the unit's identifier and every serialized form are exactly those of
+    /// a unit with no such record.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub evidence_left_out: Option<EvidenceLeftOut>,
 }
 
 /// A source-complete classical admission bound to one theory and one selection.
@@ -373,7 +392,7 @@ struct AdmissionBuilder<'a> {
     declared_builtins: BTreeSet<String>,
     certified_classes: BTreeSet<SourceNode>,
     definition_support: BTreeSet<SourceStatementBinding>,
-    untranslated_formula_contexts: BTreeSet<SourceNode>,
+    formula_scopes: contexts::FormulaScopes,
 }
 
 impl<'a> AdmissionBuilder<'a> {
@@ -394,7 +413,7 @@ impl<'a> AdmissionBuilder<'a> {
             declared_builtins: BTreeSet::new(),
             certified_classes: BTreeSet::new(),
             definition_support: BTreeSet::new(),
-            untranslated_formula_contexts: contexts::untranslated_formulas(theory.source()),
+            formula_scopes: contexts::formula_scopes(theory.source()),
         }
     }
 
@@ -788,15 +807,21 @@ impl<'a> AdmissionBuilder<'a> {
                 );
                 continue;
             }
+            let mut evidence = self.formula_scopes.evidence(lowering.source);
             let disposition = match &lowering.disposition {
                 FormulaDisposition::Formula(_) | FormulaDisposition::Axiom(_)
-                    if self
-                        .untranslated_formula_contexts
-                        .contains(&lowering.source) =>
+                    if self.formula_scopes.context(lowering.source).is_some() =>
                 {
+                    let selected = self
+                        .formula_scopes
+                        .context(lowering.source)
+                        .map(|names| join_names(names.iter().map(String::as_str)))
+                        .unwrap_or_default();
                     blocked(
                         "CONTEXT_ERASURE_FORBIDDEN",
-                        "formula source scope requires typed translation; only logic:inContext is already represented in the emitted formula",
+                        format!(
+                            "formula source scope selects a context ({selected}); it requires typed translation and is never erased; only logic:inContext is already represented in the emitted formula"
+                        ),
                     )
                 }
                 FormulaDisposition::Formula(index) => {
@@ -813,12 +838,15 @@ impl<'a> AdmissionBuilder<'a> {
                                 "formula-routed axiom index is out of range",
                             )
                         },
-                        |axiom| match self.axiom_disposition(axiom) {
-                            SemanticUnitDisposition::Blocked { code, reason } => blocked(
-                                "UNSUPPORTED_SELECTED_FORMULA",
-                                format!("formula lowering was blocked by {code}: {reason}"),
-                            ),
-                            disposition => disposition,
+                        |axiom| {
+                            evidence.extend(axiom.scope.evidence_coordinates());
+                            match self.axiom_disposition(axiom) {
+                                SemanticUnitDisposition::Blocked { code, reason } => blocked(
+                                    "UNSUPPORTED_SELECTED_FORMULA",
+                                    format!("formula lowering was blocked by {code}: {reason}"),
+                                ),
+                                disposition => disposition,
+                            }
                         },
                     )
                 }
@@ -836,7 +864,14 @@ impl<'a> AdmissionBuilder<'a> {
                     outside("formula is outside the selected default graph")
                 }
             };
-            self.push(SemanticUnitKind::Formula, anchor, documents, disposition);
+            let left_out = evidence_left_out(evidence, [anchor.clone()]);
+            self.push_with(
+                SemanticUnitKind::Formula,
+                anchor,
+                documents,
+                disposition,
+                left_out,
+            );
         }
     }
 
@@ -858,14 +893,19 @@ impl<'a> AdmissionBuilder<'a> {
                         outside(
                             "the rule root is outside the selected documents, graph, or root set",
                         ),
+                        None,
                     );
                     continue;
                 }
+                let mut evidence = BTreeSet::new();
                 let disposition = match &lowering.disposition {
                     OwnerDisposition::Emitted { index } => {
                         self.theory.program().rules.get(*index).map_or_else(
                             || malformed("MISSING_RULE_IR", "rule trace index is out of range"),
-                            |rule| rule_disposition(*index, rule, &self.declared_builtins),
+                            |rule| {
+                                evidence = rule_evidence(rule);
+                                rule_disposition(*index, rule, &self.declared_builtins)
+                            },
                         )
                     }
                     OwnerDisposition::Rejected => self.rejected(
@@ -878,8 +918,10 @@ impl<'a> AdmissionBuilder<'a> {
                         outside("rule is outside the selected default graph")
                     }
                 };
-                self.push_rule_once(anchor, documents, disposition);
+                let left_out = evidence_left_out(evidence, [anchor.clone()]);
+                self.push_rule_once(anchor, documents, disposition, left_out);
             } else {
+                let mut left_out = None;
                 let disposition = if !selected || !self.selection.owners.contains(&anchor) {
                     outside("the owner root is outside the selected documents, graph, or root set")
                 } else {
@@ -900,7 +942,10 @@ impl<'a> AdmissionBuilder<'a> {
                         OwnerDisposition::Emitted { index }
                             if lowering.family == OwnerFamily::Contract =>
                         {
-                            self.contract_declaration(lowering.source, *index)
+                            let (disposition, evidence) =
+                                self.contract_declaration(lowering.source, *index);
+                            left_out = evidence;
+                            disposition
                         }
                         OwnerDisposition::Emitted { .. } => blocked(
                             "UNSUPPORTED_SELECTED_OWNER",
@@ -920,7 +965,13 @@ impl<'a> AdmissionBuilder<'a> {
                         }
                     }
                 };
-                self.push(SemanticUnitKind::Owner, anchor, documents, disposition);
+                self.push_with(
+                    SemanticUnitKind::Owner,
+                    anchor,
+                    documents,
+                    disposition,
+                    left_out,
+                );
             }
         }
         for index in 0..self.theory.program().rules.len() {
@@ -978,17 +1029,33 @@ impl<'a> AdmissionBuilder<'a> {
                 );
                 continue;
             }
-            if sources
+            // A reifier asserts its claim exactly because its scope is not the
+            // default. Only a scope that selects a context needs a typed
+            // translation; one that carries evidence alone holds in the same
+            // context as an unscoped claim and is admitted below.
+            let reified_context = sources
                 .iter()
                 .any(|source| matches!(source, AxiomSource::Reification(_)))
-            {
+                .then(|| {
+                    self.theory
+                        .program()
+                        .axioms
+                        .get(index)
+                        .map(|axiom| axiom.scope.context_coordinates())
+                        .filter(|selected| !selected.is_empty())
+                })
+                .flatten();
+            if let Some(selected) = reified_context {
                 self.push(
                     SemanticUnitKind::Assertion,
                     anchor,
                     documents,
                     blocked(
                         "CONTEXTUAL_REIFICATION_REQUIRES_TYPED_TRANSLATION",
-                        "a reified assertion cannot be flattened without preserving its standpoint/provenance/context envelope",
+                        format!(
+                            "a reified assertion selects a context ({}); it cannot be flattened without a typed translation of that context and is never erased",
+                            join_names(selected)
+                        ),
                     ),
                 );
             } else if sources
@@ -1028,7 +1095,19 @@ impl<'a> AdmissionBuilder<'a> {
                 );
             } else if let Some(axiom) = self.theory.program().axioms.get(index) {
                 let disposition = self.axiom_disposition(axiom);
-                self.push(SemanticUnitKind::Assertion, anchor, documents, disposition);
+                let dataset = self.theory.source().dataset();
+                let nodes: BTreeSet<_> = sources
+                    .iter()
+                    .map(|source| node_anchor(dataset, axiom_source_node(source)))
+                    .collect();
+                let left_out = evidence_left_out(axiom.scope.evidence_coordinates(), nodes);
+                self.push_with(
+                    SemanticUnitKind::Assertion,
+                    anchor,
+                    documents,
+                    disposition,
+                    left_out,
+                );
             } else {
                 self.push(
                     SemanticUnitKind::Assertion,
@@ -1082,10 +1161,14 @@ impl<'a> AdmissionBuilder<'a> {
                 "a compact negated axiom is procedural NAF and cannot become classical not",
             );
         }
-        if !scope_is_flat(&axiom.scope) {
+        let selected = axiom.scope.context_coordinates();
+        if !selected.is_empty() {
             return blocked(
                 "CONTEXT_ERASURE_FORBIDDEN",
-                "standpoint/time/modality/confidence/provenance/module scope requires a typed translation",
+                format!(
+                    "scope selects a context ({}); it requires a typed translation and is never erased",
+                    join_names(selected)
+                ),
             );
         }
         if self.is_procedural_predicate(&axiom.predicate) {
@@ -1181,12 +1264,7 @@ impl<'a> AdmissionBuilder<'a> {
     }
 
     fn axiom_source_documents(&self, source: &AxiomSource) -> BTreeSet<String> {
-        match source {
-            AxiomSource::Statement { subject, .. }
-            | AxiomSource::ClassExpression(subject)
-            | AxiomSource::Reification(subject)
-            | AxiomSource::Formula(subject) => self.node_documents(*subject),
-        }
+        self.node_documents(axiom_source_node(source))
     }
 
     /// The disposition of a selected unit the compiler rejected, graded as the compiler
@@ -1226,7 +1304,20 @@ impl<'a> AdmissionBuilder<'a> {
         documents: BTreeSet<String>,
         disposition: SemanticUnitDisposition,
     ) {
-        let unit = Self::unit(kind, anchor, documents, disposition);
+        self.push_with(kind, anchor, documents, disposition, None);
+    }
+
+    /// Record a unit with the evidence its scope carried and the problem leaves
+    /// out. The record is kept only for a unit the profile reads or catalogues.
+    fn push_with(
+        &mut self,
+        kind: SemanticUnitKind,
+        anchor: String,
+        documents: BTreeSet<String>,
+        disposition: SemanticUnitDisposition,
+        evidence_left_out: Option<EvidenceLeftOut>,
+    ) {
+        let unit = Self::unit(kind, anchor, documents, disposition, evidence_left_out);
         self.units.push(unit);
     }
 
@@ -1243,26 +1334,49 @@ impl<'a> AdmissionBuilder<'a> {
         anchor: String,
         documents: BTreeSet<String>,
         disposition: SemanticUnitDisposition,
+        evidence_left_out: Option<EvidenceLeftOut>,
     ) {
-        let unit = Self::unit(SemanticUnitKind::Rule, anchor, documents, disposition);
+        let unit = Self::unit(
+            SemanticUnitKind::Rule,
+            anchor,
+            documents,
+            disposition,
+            evidence_left_out,
+        );
         if self.rule_unit_ids.insert(unit.id.clone()) {
             self.units.push(unit);
         }
     }
 
+    /// The identifier digests the unit's own record. A unit with no evidence left
+    /// out digests exactly the record it always has, so no identifier of an
+    /// unchanged unit moves; the evidence record joins the digest only when present.
     fn unit(
         kind: SemanticUnitKind,
         anchor: String,
         documents: BTreeSet<String>,
         disposition: SemanticUnitDisposition,
+        evidence_left_out: Option<EvidenceLeftOut>,
     ) -> SemanticUnitAdmission {
-        let encoded = purrdf_lex::json::record::to_vec(&(kind, &anchor, &documents, &disposition));
+        let evidence_left_out = evidence_left_out.filter(|_| {
+            matches!(
+                disposition,
+                SemanticUnitDisposition::Admitted(_)
+                    | SemanticUnitDisposition::ConfigurationDeclaration { .. }
+            )
+        });
+        let unit = (kind, &anchor, &documents, &disposition);
+        let encoded = match &evidence_left_out {
+            None => purrdf_lex::json::record::to_vec(&unit),
+            Some(evidence) => purrdf_lex::json::record::to_vec(&(unit, evidence)),
+        };
         SemanticUnitAdmission {
             id: digest_bytes(b"gmeow-semantic-unit-v1\0", &encoded),
             kind,
             anchor,
             documents,
             disposition,
+            evidence_left_out,
         }
     }
 }
@@ -1284,14 +1398,20 @@ fn rule_disposition(
             "logic:distinctBody is a bound-term guard, not denotational inequality",
         );
     }
-    if !scope_is_flat(&rule.scope)
-        || !scope_is_flat(&rule.head.scope)
-        || rule.body.iter().any(|atom| !scope_is_flat(&atom.scope))
-    {
-        return blocked(
-            "CONTEXT_ERASURE_FORBIDDEN",
-            "rule or atom context requires a typed standpoint/modal translation",
-        );
+    let positions = [("rule", &rule.scope), ("head atom", &rule.head.scope)]
+        .into_iter()
+        .chain(rule.body.iter().map(|atom| ("body atom", &atom.scope)));
+    for (position, scope) in positions {
+        let selected = scope.context_coordinates();
+        if !selected.is_empty() {
+            return blocked(
+                "CONTEXT_ERASURE_FORBIDDEN",
+                format!(
+                    "the {position} scope selects a context ({}); it requires a typed standpoint/modal translation and is never erased",
+                    join_names(selected)
+                ),
+            );
+        }
     }
     if rule.body.iter().any(|atom| atom.negated) || rule.head.negated {
         return blocked(
@@ -1380,13 +1500,39 @@ fn supported_characteristic(characteristic: &str) -> bool {
     )
 }
 
-fn scope_is_flat(scope: &ContextualScope) -> bool {
-    scope.modality == LogicModality::None
-        && scope.standpoint.is_none()
-        && scope.time.is_none()
-        && scope.confidence.is_none()
-        && scope.provenance.is_none()
-        && scope.module.is_none()
+/// Every evidence coordinate on a rule, its head and its body atoms.
+fn rule_evidence(rule: &LogicRule) -> BTreeSet<EvidenceCoordinate> {
+    std::iter::once(&rule.scope)
+        .chain(std::iter::once(&rule.head.scope))
+        .chain(rule.body.iter().map(|atom| &atom.scope))
+        .flat_map(|scope| scope.evidence_coordinates())
+        .collect()
+}
+
+/// The record of evidence a unit's scope carried; none when it carried none.
+fn evidence_left_out(
+    coordinates: BTreeSet<EvidenceCoordinate>,
+    nodes: impl IntoIterator<Item = String>,
+) -> Option<EvidenceLeftOut> {
+    (!coordinates.is_empty()).then(|| EvidenceLeftOut {
+        coordinates,
+        nodes: nodes.into_iter().collect(),
+    })
+}
+
+/// Coordinate names for a message, in the order given.
+fn join_names<'a>(names: impl IntoIterator<Item = &'a str>) -> String {
+    names.into_iter().collect::<Vec<_>>().join(", ")
+}
+
+/// The authored node an axiom source was lowered from.
+fn axiom_source_node(source: &AxiomSource) -> SourceNode {
+    match source {
+        AxiomSource::Statement { subject, .. } => *subject,
+        AxiomSource::ClassExpression(node)
+        | AxiomSource::Reification(node)
+        | AxiomSource::Formula(node) => *node,
+    }
 }
 
 fn single_iri_object(
