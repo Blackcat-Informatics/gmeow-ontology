@@ -475,7 +475,8 @@ pub fn run_full_scoped_with_progress(
     // selected stage and all attach/receipt/provenance gates remain mandatory.
     let mut ctx = RunContext::open(root, jobs)?;
     // Bound peak residency: release each stage's carrier once its last declared carrier
-    // consumer has run (or after production when every later edge is artifact-only).
+    // consumer has run and no artifact-only consumer is still reading it by reference
+    // (after production when every later edge is artifact-only).
     // This path is the whole-repository build — roughly 47 contribution and
     // aggregate products — so retaining every product's bundle for the run's life makes
     // peak memory the SUM over the DAG rather than the live frontier, which is what

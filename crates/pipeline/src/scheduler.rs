@@ -82,7 +82,7 @@ pub(crate) fn reclaim_allocator_slack() {
 pub(crate) fn reclaim_allocator_slack() {}
 
 /// What the scheduler does with a stage's carrier once its LAST declared carrier
-/// consumer has run.
+/// consumer has run and no artifact-lane view of it is in flight.
 ///
 /// This is an explicit, first-class profile selection, not a degradation switch: the
 /// run's `combined_digest` and every product's committed byte-artifact lane are
@@ -94,10 +94,12 @@ pub(crate) fn reclaim_allocator_slack() {}
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum CarrierRetention {
     /// Release each stage's carrier when its exact remaining carrier-reader count
-    /// reaches zero: the frozen dataset, typed handles, blob records,
-    /// provenance, and internal `pipeline/` byte artifacts are freed as soon as no
-    /// stage can still read them, bounding peak residency to the live frontier plus
-    /// every run OUTPUT. THE profile for the whole-repository build
+    /// reaches zero and no artifact-lane view of it is in flight (a running consumer
+    /// whose edge declares no carrier read shares the carrier by reference): the
+    /// frozen dataset, typed handles, blob records, provenance, and the internal
+    /// `pipeline/` byte artifacts no consumer declares are then freed, bounding peak
+    /// residency to the live frontier plus every run OUTPUT. THE profile for the
+    /// whole-repository build
     /// ([`crate::run::run_full_scoped_with_progress`]), whose reconcile reads only
     /// committed artifacts.
     ///
@@ -1144,8 +1146,9 @@ pub fn run_without(
 ///
 /// For each stage that ANY other stage logically consumes, this returns the topological
 /// level of its LAST carrier consumer — or its own production level when all later
-/// consumers are artifact-only. Production release now uses exact remaining-reader
-/// counters at completion time; this independent level formulation remains useful for
+/// consumers are artifact-only. Production release uses exact remaining-reader counters
+/// at completion time and also waits for any artifact-lane view still in flight, which
+/// this level formulation does not model; it remains useful for
 /// proving the same declared ownership relation over a levelled graph.
 ///
 /// A stage with NO logical consumer has no entry: its product is a run OUTPUT, retained
