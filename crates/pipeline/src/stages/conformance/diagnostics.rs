@@ -233,7 +233,7 @@ fn gate_observation(gate: &GateProgram) -> Result<GateObservation, gmeow_errors:
         }
     }
     let dataset = builder.freeze().map_err(gmeow_errors::Diag::from)?;
-    let fatal = gate.derived_fatal(&dataset)?;
+    let fatal = gate.derived_fatal(dataset.as_ref())?;
     let mut projections = BTreeMap::new();
     for (key, code, message, standpoint) in [
         ("fatal", "x.upset", "up-set finding", Standpoint::Binding),
@@ -257,7 +257,7 @@ fn gate_observation(gate: &GateProgram) -> Result<GateObservation, gmeow_errors:
             None,
         )
         .map_err(gmeow_errors::Diag::from)?;
-        let fatal = gate.derived_fatal(&dataset)?;
+        let fatal = gate.derived_fatal(dataset.as_ref())?;
         projections.insert(key.to_owned(), ProjectionObservation { nquads, fatal });
     }
     Ok(GateObservation {

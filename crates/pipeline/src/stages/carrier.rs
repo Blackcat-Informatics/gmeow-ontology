@@ -1059,10 +1059,16 @@ impl<'a> CarrierParts<'a> {
         Ok(())
     }
 
+    /// Every part composed so far as one read-only view, with no row copied. It reads
+    /// what [`Self::materialize`] would build from the same parts.
+    fn view(&self) -> Result<purrdf::CompositeDatasetView, gmeow_errors::Diag> {
+        purrdf::CompositeDatasetView::from_sources(self.sources.clone(), CARRIER_VIEW_LIMITS)
+            .map_err(|e| stage_err(&format!("compose the snapshot carrier: {e}")))
+    }
+
     /// Build the one owned dataset of every part composed so far.
     fn materialize(&self) -> Result<std::sync::Arc<purrdf::RdfDataset>, gmeow_errors::Diag> {
-        purrdf::CompositeDatasetView::from_sources(self.sources.clone(), CARRIER_VIEW_LIMITS)
-            .map_err(|e| stage_err(&format!("compose the snapshot carrier: {e}")))?
+        self.view()?
             .materialize()
             .map_err(|e| stage_err(&format!("materialize the snapshot carrier: {e}")))
     }
@@ -1312,13 +1318,12 @@ fn assemble_carrier(
             Ok(())
         },
     )?;
-    // The first owned carrier: the gate-verdict query below runs on the native SPARQL
-    // engine, which reads an `RdfDataset`.
+    // The gate-verdict query below reads the composed parts as a view, so no owned
+    // carrier is built only to be queried and then rebuilt with the verdicts.
     let composed =
-        crate::node::measure_stage_phase("stage-snapshot", "materialize-carrier-graphs", || {
-            parts.materialize()
+        crate::node::measure_stage_phase("stage-snapshot", "compose-carrier-view", || {
+            parts.view()
         })?;
-    log_carrier_size("materialize-carrier-graphs", &composed);
 
     // Reasoner-derived gate verdicts (logic:ruleGateFatalVerdict). The reason stage's
     // object-level EDB EXCLUDES the report graphs by construction, so reason_all never
@@ -1345,22 +1350,19 @@ fn assemble_carrier(
     // served their purpose; release them before the carrier-sized phases below.
     drop(gate);
     drop(authored_default);
+    drop(composed);
     parts.release_views();
-    let composed_final = if verdicts.quad_count() == 0 {
-        composed
+    // The verdicts, when there are any, join the same composition, and the carrier is
+    // built once from the same parts in the same order as before.
+    let phase = if verdicts.quad_count() == 0 {
+        "materialize-carrier-graphs"
     } else {
-        // The verdicts join the same composition. The verdict-free carrier is released
-        // first, so only one owned carrier is ever resident.
-        drop(composed);
         parts.push_dataset(verdicts);
-        let carrier = crate::node::measure_stage_phase(
-            "stage-snapshot",
-            "materialize-carrier-with-verdicts",
-            || parts.materialize(),
-        )?;
-        log_carrier_size("materialize-carrier-with-verdicts", &carrier);
-        carrier
+        "materialize-carrier-with-verdicts"
     };
+    let composed_final =
+        crate::node::measure_stage_phase("stage-snapshot", phase, || parts.materialize())?;
+    log_carrier_size(phase, &composed_final);
 
     // Fold the SCOPED COHERENCE CERTIFICATE into the terminal bundle (graph/attestations),
     // so EVERY gmeow.gts carries a budget-free, proof-carrying coherence attestation the

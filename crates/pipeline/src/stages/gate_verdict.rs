@@ -209,7 +209,7 @@ impl GateProgram {
     ) -> gmeow_errors::Result<String> {
         let dataset = dataset_from_bytes(finding_nq.as_bytes(), NativeRdfFormat::NQuads)
             .map_err(|error| gate_error(format!("parse diagnostics N-Quads: {error}")))?;
-        let verdicts = self.derived_verdict_dataset(&dataset, graph_iri)?;
+        let verdicts = self.derived_verdict_dataset(dataset.as_ref(), graph_iri)?;
         purrdf::canonical_flat_nquads(
             &verdicts,
             &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None),
@@ -220,13 +220,21 @@ impl GateProgram {
 
     /// Derive verdicts over the existing carrier without rendering or reparsing it.
     ///
+    /// `findings` is any view whose reads cannot fail: an owned dataset, or a composed
+    /// view of several, which is queried in place with no owned copy built. The verdicts
+    /// are a sorted set of finding IRIs, so they do not depend on which of the two an
+    /// equal content is held in.
+    ///
     /// # Errors
     /// Invalid finding coordinates, chase failures and invalid output terms fail closed.
-    pub fn derived_verdict_dataset(
+    pub fn derived_verdict_dataset<D>(
         &self,
-        findings: &Arc<RdfDataset>,
+        findings: &D,
         graph_iri: &str,
-    ) -> gmeow_errors::Result<Arc<RdfDataset>> {
+    ) -> gmeow_errors::Result<Arc<RdfDataset>>
+    where
+        D: purrdf::DatasetView<ReadError = std::convert::Infallible> + Sync,
+    {
         let mut output = RdfDatasetBuilder::new();
         for subject in self.derived_fatal(findings)? {
             output.push_owned_quad(
@@ -249,10 +257,10 @@ impl GateProgram {
     }
 
     /// Derive the fatal finding identities without materializing a projection dataset.
-    pub(crate) fn derived_fatal(
-        &self,
-        findings: &Arc<RdfDataset>,
-    ) -> gmeow_errors::Result<BTreeSet<String>> {
+    pub(crate) fn derived_fatal<D>(&self, findings: &D) -> gmeow_errors::Result<BTreeSet<String>>
+    where
+        D: purrdf::DatasetView<ReadError = std::convert::Infallible> + Sync,
+    {
         let tuples = grade_tuples(self, findings)?;
         if tuples.is_empty() {
             return Ok(BTreeSet::new());
@@ -327,14 +335,17 @@ fn push_triple(
 /// Extract every `(finding, severity, category, standpoint)` grade tuple SPARQL sees in
 /// the projected diagnostics graph — the exact three coordinates the up-set rule reads.
 /// Findings ride a named graph (`graph/diagnostics`), so the pattern is world-scoped.
-fn grade_tuples(
+fn grade_tuples<D>(
     gate: &GateProgram,
-    dataset: &Arc<RdfDataset>,
-) -> gmeow_errors::Result<Vec<(String, String, String, String)>> {
+    dataset: &D,
+) -> gmeow_errors::Result<Vec<(String, String, String, String)>>
+where
+    D: purrdf::DatasetView<ReadError = std::convert::Infallible> + Sync,
+{
     let sb = |message: String| gmeow_errors::Diag::of_kind(crate::error::Scoreboard { message });
     let result = gate
         .engine
-        .query_prepared(dataset, &gate.grade_query, &[], &QueryOptions::EMPTY)
+        .query_prepared_view(dataset, &gate.grade_query, &[], &QueryOptions::EMPTY)
         .map_err(|e| sb(format!("grade-tuple query: {e}")))?;
     let (variables, rows) = match result {
         SparqlResult::Solutions {
