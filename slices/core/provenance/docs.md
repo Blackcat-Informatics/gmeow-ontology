@@ -216,7 +216,10 @@ any of those properties. Both kinds of fact can be stated about the same agent w
 one implying the other. `gmeow:reportedBy` says only who recorded the approval; it
 differs from `gmeow:wasAttributedTo`, which ascribes responsibility for an entity.
 
-The class allows at most one approved work, one approver and one approval day per
+The approved work (`gmeow:approvalOf`), the approver (`gmeow:approvedBy`) and the approval
+day (`gmeow:approvedOn`) are required paths, closed-world on `gmeow:Approval`: a node that
+omits any of the three is rejected, while `gmeow:approvalScope` and `gmeow:reportedBy` stay
+optional. The class allows at most one approved work, one approver and one approval day per
 `gmeow:Approval` node, stated as qualified cardinality restrictions on the class. A joint
 approval, an approval of several works and an approval on another day are therefore
 several `gmeow:Approval` nodes. A later approval, or a
