@@ -97,15 +97,19 @@ and at the end of each timed phase of the snapshot serializer. A phase that is o
 logged makes no record of its own: that includes the phases the logic crate logs inside
 reasoning and projection, the receipt encode among them, which fall inside the enclosing
 measured stage phase. No trim follows a release, so resident size after one includes
-pages the allocator kept. Each record costs one read of `/proc/self/status`; a run makes
-at most three records per executed stage plus two per measured phase execution. The
-records are made whether or not the target is selected. Selecting it writes each one to
-the log as it is made, and `GMEOW_STAGE_MEMORY_LOG=<file>` appends each one to that file
-as one line whatever `GMEOW_LOG` selects; the hosted observer points the variable at its
-resource log, so a producer that is killed part-way still leaves them in the uploaded
-resource artifact. A completed `--timings-json` run carries all of them, resident sizes
-included, as `observations.stage_memory`; on a host without Linux procfs the two
-resident figures are null. A start without an end identifies unfinished
+pages the allocator kept. Each record costs one read of `/proc/self/status`, and the
+records of a run make at most three such reads per executed stage plus two per measured
+phase execution. The scheduler's records, and the phase records crossed on a thread that
+is running a stage body, are made whether or not the target is selected, and a completed
+`--timings-json` run carries those, resident sizes included, as
+`observations.stage_memory`; on a host without Linux procfs the two resident figures are
+null. A measured phase crossed on a pool thread that is running no stage body makes no
+kept record: with the target selected it is logged, and with the target off nothing is
+made. Selecting the target writes each record to the log as it is made, and
+`GMEOW_STAGE_MEMORY_LOG=<file>` appends each one to that file as one line whatever
+`GMEOW_LOG` selects; the hosted observer points the variable at its resource log, so a
+producer that is killed part-way still leaves them in the uploaded resource artifact.
+A start without an end identifies unfinished
 work; an end records elapsed time, not semantic acceptance. These observations never enter generated
 bytes or cache identities. Keep the same selected inputs and producer profile when
 comparing runs, and distinguish time spent discovering sources, rendering RDF,

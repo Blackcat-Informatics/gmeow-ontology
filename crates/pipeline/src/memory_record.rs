@@ -26,10 +26,15 @@
 //!
 //! Each record reads `/proc/self/status` once (a few kilobytes) and allocates its stage
 //! and phase names. A run makes at most three scheduler records per executed stage plus
-//! two per measured phase execution, so the number of reads is
-//! `3 × stages + 2 × measured phase executions`. A stage that is never released makes
-//! two scheduler records. On a host without Linux procfs the read fails and the two
-//! process figures are absent.
+//! two per measured phase execution, so the records make at most
+//! `3 × stages + 2 × measured phase executions` reads. A stage that is never released
+//! makes two scheduler records. On a host without Linux procfs the read fails and the
+//! two process figures are absent.
+//!
+//! That bound covers the reads made for records only. The scheduler also reads the same
+//! file once per stage, and a second time on a cache hit, for the cache-hydration
+//! figure, and the snapshot reads it when it logs an owned carrier's size while the
+//! `pipeline_phase` target is on (`log_carrier_size` in `stages/carrier.rs`).
 
 use std::cell::RefCell;
 use std::sync::atomic::{AtomicU64, Ordering};
