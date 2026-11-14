@@ -24204,8 +24204,8 @@ msgid "Relates a rule, statement reifier or other scoped carrier to a declared p
 msgstr "将规则、语句具体化节点或其他带作用域的承载资源关联到已声明的来源资源。来源可以是规则、文档、来源上下文或作出断言的施事者；此边本身不确定适用哪一种来源角色。"
 
 msgctxt "https://blackcatinformatics.ca/logic/provenance|http://www.w3.org/2004/02/skos/core#scopeNote"
-msgid "The domain and range remain resources rather than being restricted to Rule. No global functional characteristic is asserted: different source resources are not thereby identified. A selected compiler scope nevertheless admits only one provenance coordinate; this profile limit does not make the vocabulary globally functional."
-msgstr "定义域和范围保持为资源，不限于 Rule。不声明全局函数性：不同来源资源不会因此被视为相同。尽管如此，所选编译器作用域仅接纳一个来源坐标；此配置限制并不使该词汇具有全局函数性。"
+msgid "The domain and range remain resources rather than being restricted to Rule. No global functional characteristic is asserted: different source resources are not thereby identified. A carrier with several provenance values is lowered by the compiler into one scoped claim or rule per value, but only when no other scope coordinate also has several values."
+msgstr "定义域和范围保持为资源，不限于 Rule。不声明全局函数性：不同来源资源不会因此被视为相同。带有多个来源值的承载资源会被编译器逐值转换为各自带作用域的语句或规则，但前提是没有其他作用域坐标同时具有多个值。"
 
 msgctxt "https://blackcatinformatics.ca/logic/provenance|http://www.w3.org/2004/02/skos/core#example"
 msgid "A reifier ex:claim with rdf:reifies <<(ex:a ex:relatedTo ex:b)>> and logic:provenance ex:report records ex:report as that claim’s supplied source; quotation alone does not assert the quoted statement."
@@ -24220,8 +24220,8 @@ msgid "Do not infer truth, trust, a firing proof, a premise list or a complete d
 msgstr "不要从此边推断真实性、信任、规则触发证明、前提列表或完整推导证书。不要将所有来源限于规则，不要将不同来源视为相同，也不要将记录上的元数据传播到其向外断言。"
 
 msgctxt "https://blackcatinformatics.ca/logic/provenance|https://blackcatinformatics.ca/gmeow/howToUse"
-msgid "Attach the source resource to the exact statement reifier or declared scoped rule. The current compiler refuses multiple provenance coordinates on one selected scope; explicit lowering is required rather than choosing a source silently. Retain supporting evidence separately. A rule naming itself records its declared source, not an execution receipt."
-msgstr "将来源资源附于确切的语句具体化节点或已声明的带作用域规则。当前编译器拒绝同一所选作用域上的多个来源坐标；必须显式转换为编译器支持的表示，不得静默选择来源。分别保留支持依据。规则指向自身时记录的是其已声明来源，而非执行收据。"
+msgid "Attach the source resource to the exact statement reifier or declared scoped rule. A carrier with several provenance values is lowered into one scoped claim or rule per source; when two scope coordinates each have several values the carrier is refused, so write one reifier per intended combination. An atom of a rule takes one value of each coordinate: several values on an atom are refused, so state them on the rule node. Retain supporting evidence separately. A rule naming itself records its declared source, not an execution receipt."
+msgstr "将来源资源附于确切的语句具体化节点或已声明的带作用域规则。带有多个来源值的承载资源会逐个来源转换为带作用域的语句或规则；若两个作用域坐标各有多个值，则该承载资源被拒绝，请为每个预期组合分别写一个具体化节点。规则的原子在每个坐标上只取一个值：原子上的多个值会被拒绝，应将它们写在规则节点上。分别保留支持依据。规则指向自身时记录的是其已声明来源，而非执行收据。"
 
 msgctxt "https://blackcatinformatics.ca/logic/termGreater|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "term greater than"

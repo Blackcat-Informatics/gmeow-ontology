@@ -220,8 +220,12 @@ No whole-source owned quad vector or second dataset is created for these passes.
 Named-graph metadata cannot supply default-graph scope, and a bare quoted
 proposition cannot become an asserted axiom. Unsupported nested scoped terms
 receive a lowering error instead of being stringified or dropped.
-Invalid confidence, unknown modality, proposition-valued scope coordinates and
-unlowered coordinate multiplicity withhold the whole claim or rule with an error.
+A scope carrier with several values of exactly one coordinate lowers to one scoped
+claim or rule per value, ordered by the values' canonical term text. Invalid
+confidence, unknown modality, proposition-valued scope coordinates on any value,
+and several values of two or more coordinates (which give no pairing between
+them) withhold the whole claim or rule with an error. A rule atom carries a
+single scope.
 Separate reifiers preserve coexisting standpoints; table order cannot pick a winner.
 
 The prepared compiler can retain emission evidence bound to that exact source.
