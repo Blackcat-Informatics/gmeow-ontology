@@ -186,3 +186,46 @@ it does not require a pointer on every Activity or merge independent source
 assertions into one globally preferred value. There is no new wrapper, required
 record profile, artifact node, source/force classifier, byte verifier, native
 failure marker or runtime engine (Principles 2, 4, 7, 9, 12, 17 and 19).
+
+## Approval of a body of work
+
+### gmeow:Approval
+
+`gmeow:Approval` records that a named agent approved a body of work on a given day. It
+is a relator, declared like `gmeow:Attestation` and `gmeow:Contribution`, mediating two
+roles: the approver (`gmeow:approvedBy`, an agent) and the body of work the approval concerns
+(`gmeow:approvalOf`, an entity). The second role is what makes the approval about
+something; a relator needs two relata. `gmeow:approvedOn` carries the calendar day as an
+`xsd:date`, with no invented time of day. `gmeow:approvalScope` optionally names the
+part of the work covered, either a component reached by `gmeow:partOf` or a citation
+selector for a pinpoint; when it is absent the scope is unstated, never "the whole work".
+`gmeow:reportedBy` optionally names the agent who put the approval on record.
+
+```turtle
+ex:approval1 a gmeow:Approval ;
+    gmeow:approvalOf ex:handbook ;
+    gmeow:approvedBy ex:drOkafor ;
+    gmeow:approvedOn "2026-11-05"^^xsd:date ;
+    gmeow:approvalScope ex:handbookChapter3 .
+```
+
+An approval is never a holder. Who holds the claims in a work (`gmeow:accordingTo`), who
+is responsible for it (`gmeow:wasAttributedTo`) and who is credited for making it
+(`gmeow:Contribution`) are separate facts, and `gmeow:approvedBy` is not a subproperty of
+any of those properties. Both kinds of fact can be stated about the same agent without
+one implying the other. `gmeow:reportedBy` says only who recorded the approval; it
+differs from `gmeow:wasAttributedTo`, which ascribes responsibility for an entity.
+
+The approved work (`gmeow:approvalOf`), the approver (`gmeow:approvedBy`) and the approval
+day (`gmeow:approvedOn`) are required paths, closed-world on `gmeow:Approval`: a node that
+omits any of the three is rejected, while `gmeow:approvalScope` and `gmeow:reportedBy` stay
+optional. The class allows at most one approved work, one approver and one approval day per
+`gmeow:Approval` node, stated as qualified cardinality restrictions on the class. A joint
+approval, an approval of several works and an approval on another day are therefore
+several `gmeow:Approval` nodes. A later approval, or a
+correction, adds a node; the identifier and label of an existing node are never changed.
+That last rule is a usage contract that no axiom enforces.
+
+Use `gmeow:Attestation` for signed or policy-bound vouching, `logic:ApprovalCommitment`
+for authorizing an effect before dispatch, and `gmeow:Contribution` for credit for
+making the work (Principles 7, 9, 10, 14).

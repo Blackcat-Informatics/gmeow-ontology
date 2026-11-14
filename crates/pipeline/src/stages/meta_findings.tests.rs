@@ -177,6 +177,22 @@ fn compiled_meta_selection_rejects_a_partly_missing_fold() {
 }
 
 #[test]
+fn compiled_meta_selection_refuses_a_rule_node_that_lowers_to_several_rules() {
+    let theory = tiny_theory(
+        "ex:fanned a logic:Rule, gmeow:DiagnosticMetaRule ;
+             logic:provenance ex:a, ex:b ;
+             logic:head [ rdf:reifies <<( ex:a ex:fannedHead ex:b )>> ] .",
+    );
+    let error = MetaProgram::from_compiled_theory(&theory).err().unwrap();
+    assert!(
+        error
+            .to_string()
+            .contains("several values of a scope coordinate"),
+        "{error}"
+    );
+}
+
+#[test]
 fn compiled_meta_selection_sees_native_type_annotations() {
     let mut builder = RdfDatasetBuilder::new();
     let subject = builder.intern_iri("https://example.org/missing").unwrap();

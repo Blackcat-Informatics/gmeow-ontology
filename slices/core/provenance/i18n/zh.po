@@ -128,3 +128,151 @@ msgstr "通过规范的正向 provenanceDigest 守卫，将确切模式 ^[0-9a-f
 msgctxt "https://blackcatinformatics.ca/gmeow/ProvenanceDigestLexicalConstraint|https://blackcatinformatics.ca/logic/message"
 msgid "Every supplied provenanceDigest has exactly 64 bare lowercase hexadecimal digits; its provided-value range independently requires xsd:hexBinary. SHA-256 is fixed by the property’s meaning, not inferred from arbitrary hexadecimal values."
 msgstr "每个来源提供的 provenanceDigest 均须包含恰好 64 个无前缀的小写十六进制数字；提供值的范围校验另行要求 xsd:hexBinary。SHA-256 由属性含义固定，不是从任意十六进制值推断而来。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/Approval|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Approval"
+msgstr "批准"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/Approval|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A reified record that a named agent approved a body of work on a given day. It mediates between the approver (gmeow:approvedBy) and the body of work approved (gmeow:approvalOf), carries the calendar day (gmeow:approvedOn), and may carry the part of the work approved (gmeow:approvalScope) and the agent who put the approval on record (gmeow:reportedBy). Approving a body of work is a different fact from holding the claims in it: an approver is not thereby a holder of those claims, an author, a contributor or a source, and the record asserts neither that the work is correct nor that the approver agrees with every part of it."
+msgstr "一条具体化的记录，表明某个具名主体在某一天批准了一项工作成果。它在批准者（gmeow:approvedBy）与被批准的工作成果（gmeow:approvalOf）之间起中介作用，携带日历日期（gmeow:approvedOn），并可携带被批准的部分（gmeow:approvalScope）以及将该批准录入记录的主体（gmeow:reportedBy）。批准一项工作成果与持有其中的主张是两个不同的事实：批准者并不因此成为这些主张的持有者、作者、贡献者或来源，且该记录既不断言该工作成果正确，也不断言批准者认同其每一部分。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/Approval|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "One Approval node records one approval by one approver of one body of work. A joint approval is several Approval nodes, and a later approval is a new node. The identifier and label of an existing Approval are never changed or reused, and a correction or a re-approval adds a new node instead of rewriting an earlier one. This is a usage contract: no axiom enforces it and no gate can detect a relabelled node. The approver, the approved work and the approval day are required paths, closed-world on gmeow:Approval, so a node that omits any of them is rejected; nothing in the record says the approval is still current."
+msgstr "一个 Approval 节点记录一位批准者对一项工作成果的一次批准。联合批准对应多个 Approval 节点，后续批准则是新节点。既有 Approval 的标识符与标签绝不更改或重用；更正或重新批准应添加新节点，而不是改写先前的节点。这是一项使用约定：没有任何公理强制它，也没有任何门能检测出被改名的节点。批准者、被批准的工作成果和批准日期是必填路径，在 gmeow:Approval 上按封闭世界处理，因此省略其中任何一项的节点会被拒绝；记录中没有任何内容表明该批准仍然有效。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/Approval|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:approval1 a gmeow:Approval ; gmeow:approvalOf ex:handbook ; gmeow:approvedBy ex:drOkafor ; gmeow:approvedOn \"2026-11-05\"^^xsd:date ; gmeow:approvalScope ex:handbookChapter3 ."
+msgstr "ex:approval1 a gmeow:Approval ; gmeow:approvalOf ex:handbook ; gmeow:approvedBy ex:drOkafor ; gmeow:approvedOn \"2026-11-05\"^^xsd:date ; gmeow:approvalScope ex:handbookChapter3 ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/Approval|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid it for signed or policy-bound vouching, which is gmeow:Attestation (a vouching act under a named policy, with a required issue instant); for authorizing an effect before it is dispatched, which is logic:ApprovalCommitment (bound to an exact intent, operator, policy, decision and validity window); and for credit for making the work, which is gmeow:Contribution. Avoid it to say whose frame holds a claim (gmeow:accordingTo) or who is responsible for the work (gmeow:wasAttributedTo), and avoid treating an approver as a holder because an Approval names them."
+msgstr "避免用于带签名或受策略约束的担保，那属于 gmeow:Attestation（在具名策略下的担保行为，带有必需的签发时刻）；避免用于在效果被派发之前对其授权，那属于 logic:ApprovalCommitment（绑定于确切的意图、操作者、策略、决定和有效期窗口）；避免用于对制作该工作成果的署名，那属于 gmeow:Contribution。避免用它表示某个主张在谁的框架下成立（gmeow:accordingTo）或谁对该工作成果负责（gmeow:wasAttributedTo），也避免因 Approval 点名了批准者就将其视为持有者。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/Approval|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Mint one Approval per approval and bind gmeow:approvalOf, gmeow:approvedBy and gmeow:approvedOn. Add gmeow:approvalScope only when the approval covers a stated part of the work, and gmeow:reportedBy when the party who recorded the approval is worth naming. For a later approval or a correction add a new node and leave earlier nodes untouched. Keep any claims the approver holds on their own standpoint-indexed statements, separate from the Approval."
+msgstr "每次批准创建一个 Approval，并绑定 gmeow:approvalOf、gmeow:approvedBy 和 gmeow:approvedOn。仅当批准覆盖工作成果的某个明确部分时才添加 gmeow:approvalScope；当录入该批准的一方值得点名时才添加 gmeow:reportedBy。对于后续批准或更正，添加新节点，保持先前节点不变。批准者所持有的任何主张应保留在其各自按立场索引的陈述上，与 Approval 分开。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/Approval|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to record who approved a body of work, on which day, and optionally for which part of it, as a fact kept apart from who holds the claims in the work."
+msgstr "用于记录谁在哪一天批准了一项工作成果，并可选地记录批准了其中哪一部分，作为与谁持有该工作成果中的主张相分离的事实。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/approvalOf|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "approval of"
+msgstr "批准对象"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/approvalOf|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Relates an Approval to the body of work it approves. It is the second role of the Approval relator, which needs an approved work as well as an approver; without it an approval would not be about anything. A single Approval approves one body of work, and approval of several works is several Approval nodes."
+msgstr "将一个 Approval 关联到其所批准的工作成果。它是 Approval 关系体的第二个角色，因为关系体既需要批准者，也需要被批准的工作成果；没有它，批准就不涉及任何对象。一个 Approval 只批准一项工作成果，批准多项工作成果则对应多个 Approval 节点。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/approvalOf|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:approval1 gmeow:approvalOf ex:handbook ."
+msgstr "ex:approval1 gmeow:approvalOf ex:handbook ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/approvalOf|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid it for the part of the work that was approved (use gmeow:approvalScope) and for the agent who approved (use gmeow:approvedBy); naming a work here does not make the approver a holder of its claims."
+msgstr "避免用于被批准的那一部分（应使用 gmeow:approvalScope）和批准的主体（应使用 gmeow:approvedBy）；在此处点名某项工作成果并不使批准者成为其主张的持有者。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/approvalOf|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Point the gmeow:Approval at the body of work the approval concerns, whether a creative work, an information object or another entity; narrow the approval to a part with gmeow:approvalScope, not by pointing here at the part."
+msgstr "让 Approval 指向该批准所涉及的工作成果，无论它是创作作品、信息对象还是其他实体；要将批准缩小到某个部分，应使用 gmeow:approvalScope，而不是在此处指向该部分。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/approvalOf|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to name the body of work that an Approval approves."
+msgstr "用于指明一个 Approval 所批准的工作成果。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/approvalScope|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "approval scope"
+msgstr "批准范围"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/approvalScope|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Relates an Approval to a part of the approved work that the approval covers: a component reached by gmeow:partOf, or a citation selector for a pinpoint. It is optional and may repeat, so one Approval can name several parts. When it is absent the scope is unstated; that never means the whole work was approved."
+msgstr "将一个 Approval 关联到该批准所覆盖的、被批准工作成果的某个部分：可以是通过 gmeow:partOf 到达的组成部分，也可以是用于精确定位的引文选择器。它是可选的且可重复出现，因此一个 Approval 可以点名多个部分。缺失时，范围即为未说明；这绝不意味着整项工作成果都已获批准。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/approvalScope|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:approval1 gmeow:approvalScope ex:handbookChapter3 ."
+msgstr "ex:approval1 gmeow:approvalScope ex:handbookChapter3 ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/approvalScope|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid it for the body of work the approval concerns (that is gmeow:approvalOf), and avoid reading a missing value as approval of everything; also avoid it for a time window, which is not a part of a work."
+msgstr "避免用于该批准所涉及的工作成果（那是 gmeow:approvalOf），也避免将缺失的值解读为批准了一切；同样避免用于时间窗口，因为时间窗口不是工作成果的一部分。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/approvalScope|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Point at each approved part, or at a citation selector when only a pinpoint is covered; leave it off when the scope was not stated rather than naming the body of work the approval concerns."
+msgstr "指向每个被批准的部分；若仅覆盖精确定位，则指向引文选择器；当范围未说明时应省略，而不是点名该批准所涉及的工作成果。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/approvalScope|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to say which part of a body of work an Approval covers when the approval is narrower than the work."
+msgstr "当批准的范围窄于整项工作成果时，用于说明一个 Approval 覆盖工作成果的哪一部分。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/approvedBy|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "approved by"
+msgstr "批准者"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/approvedBy|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Relates an Approval to the person or agent who approved the body of work. An approver is not thereby a holder of the work's claims, an author or a contributor: this property is deliberately not a subproperty of gmeow:accordingTo, gmeow:vantage, gmeow:wasAttributedTo, gmeow:wasAssociatedWith or any contributor property, so that holding claims and approving a work stay separate facts, both expressible."
+msgstr "将一个 Approval 关联到批准该工作成果的人或主体。批准者并不因此成为该工作成果主张的持有者，也不是作者或贡献者：此属性刻意不是 gmeow:accordingTo、gmeow:vantage、gmeow:wasAttributedTo、gmeow:wasAssociatedWith 或任何贡献者属性的子属性，使持有主张与批准工作成果保持为两个独立的事实，二者皆可表达。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/approvedBy|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:approval1 gmeow:approvedBy ex:drOkafor ."
+msgstr "ex:approval1 gmeow:approvedBy ex:drOkafor ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/approvedBy|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid it to say whose frame holds a claim (use gmeow:accordingTo), who is responsible for the work (use gmeow:wasAttributedTo), who is credited for making it (use a gmeow:Contribution) or who recorded the approval (use gmeow:reportedBy)."
+msgstr "避免用于表示某个主张在谁的框架下成立（应使用 gmeow:accordingTo）、谁对该工作成果负责（应使用 gmeow:wasAttributedTo）、谁因制作它而获得署名（应使用 gmeow:Contribution）或谁录入了该批准（应使用 gmeow:reportedBy）。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/approvedBy|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Set one gmeow:Agent on each Approval; for a joint approval mint one Approval per approver. Do not infer holding of the work's claims, authorship or endorsement of every part from it."
+msgstr "在每个 Approval 上设置一个 gmeow:Agent；联合批准时，为每位批准者创建一个 Approval。不要据此推断其持有该工作成果的主张、署名作者身份，或认同其每一部分。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/approvedBy|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to name the person or agent who approved a body of work in an Approval."
+msgstr "用于在 Approval 中指明批准某项工作成果的人或主体。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/approvedOn|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "approved on"
+msgstr "批准日期"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/approvedOn|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The calendar day on which an Approval was given, typed as xsd:date. It is a day, not an instant: no time of day and no midnight is invented for it."
+msgstr "一个 Approval 被给出的日历日，类型为 xsd:date。它是一个日期而非时刻：不会虚构具体时间，也不会虚构午夜。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/approvedOn|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:approval1 gmeow:approvedOn \"2026-11-05\"^^xsd:date ."
+msgstr "ex:approval1 gmeow:approvedOn \"2026-11-05\"^^xsd:date ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/approvedOn|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid it for the instant of a signed vouching act (use gmeow:issuedAt on a gmeow:Attestation), for when the system learned of the approval (gmeow:ingestedAt or gmeow:recordedAt) and for a validity window; avoid padding a day to a date-time."
+msgstr "避免用于带签名的担保行为的时刻（应在 gmeow:Attestation 上使用 gmeow:issuedAt）、系统获知该批准的时间（gmeow:ingestedAt 或 gmeow:recordedAt）以及有效期窗口；避免将日期补足为日期时间。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/approvedOn|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Attach one xsd:date literal to the gmeow:Approval; a different day is a different approval and so a new node."
+msgstr "为 Approval 附加一个 xsd:date 字面量；不同的日期即是不同的批准，因此是新节点。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/approvedOn|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to record the day an approval was given when only the date is known or meant."
+msgstr "当只知道或只需要日期时，用于记录批准被给出的那一天。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/reportedBy|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "reported by"
+msgstr "报告者"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/reportedBy|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Relates an Approval to the agent who put the approval on record. The reporter only recorded it: they need not be the approver, and reporting makes them neither responsible for the approved work nor a holder of its claims. It differs from gmeow:wasAttributedTo, which ascribes responsibility (authorship, ownership or accountability) for an entity to an agent, and from gmeow:approvedBy, which names who gave the approval. It is optional, may repeat, and is not a subproperty of anything."
+msgstr "将一个 Approval 关联到将该批准录入记录的主体。报告者只是记录了它：不必是批准者，且报告并不使其对被批准的工作成果负责，也不使其成为其中主张的持有者。它不同于 gmeow:wasAttributedTo（后者将实体的责任——作者身份、所有权或问责——归于某个主体），也不同于 gmeow:approvedBy（后者指明谁给出了批准）。它是可选的、可重复出现的，且不是任何属性的子属性。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/reportedBy|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:approval1 gmeow:reportedBy ex:registryClerk ."
+msgstr "ex:approval1 gmeow:reportedBy ex:registryClerk ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/reportedBy|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid it for the agent who gave the approval (use gmeow:approvedBy), for responsibility for the Approval or the work (use gmeow:wasAttributedTo) and for the party who ran an import (use gmeow:wasAssociatedWith on the gmeow:ImportActivity)."
+msgstr "避免用于给出批准的主体（应使用 gmeow:approvedBy）、对 Approval 或工作成果的责任（应使用 gmeow:wasAttributedTo）以及执行导入的一方（应在 gmeow:ImportActivity 上使用 gmeow:wasAssociatedWith）。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/reportedBy|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Set it on the gmeow:Approval for each agent who reported the approval; several reporters may coexist. Omit it when the recorder is unknown."
+msgstr "在 Approval 上为每个报告了该批准的主体设置它；可以并存多个报告者。当录入者未知时应省略。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/reportedBy|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to name who put an approval on record when that party differs from the approver."
+msgstr "当录入批准的一方不同于批准者时，用于指明谁将批准录入了记录。"

@@ -205,29 +205,50 @@ fn modality_from_term(term: Option<&Node>) -> Option<LogicModality> {
     LogicModality::from_str_value(&raw.to_lowercase())
 }
 
-/// Read a single scope coordinate. Multiple distinct values need explicit scope
-/// lowering; choosing whichever physical table is read first is not admission.
-fn scope_value(
+/// A total, storage-order-independent identity for a scope term: its kind, its
+/// canonical text, and the complete term so that terms differing only in
+/// datatype, language or blank-node scope keep a distinct, fixed place in the
+/// order. The debug text is a sound tiebreak only while `Debug` stays derived
+/// for the term types.
+fn term_identity(term: &Node) -> (u8, String, String) {
+    let kind = match term {
+        Node::Iri(_) => 0,
+        Node::Blank { .. } => 1,
+        Node::Lit(_) => 2,
+        Node::Triple(_) => 3,
+    };
+    (kind, term_str(term), format!("{term:?}"))
+}
+
+/// Read every default-graph value of one scope coordinate, ordered by term
+/// identity (kind, then canonical text, then the full term) so the result never
+/// depends on which physical table the store returned a value from.
+///
+/// Every distinct term is returned: an IRI, a literal and a blank node that share
+/// the same text are three terms here, so that `confidence` and `modality`
+/// validate each of them. `scope_from_node` then reduces the values to the ones
+/// that produce distinct scopes.
+///
+/// `Some(empty)` means the coordinate is absent. `None` means the node was
+/// refused (a diagnostic has been recorded): a proposition-valued term on any of
+/// the values withholds the whole carrier, never just that value.
+fn scope_values(
     store: &RdfDataset,
     node: &Subject,
     field: &str,
     diagnostics: &mut Vec<Diagnostic>,
-) -> Option<Node> {
-    let subject = subject_id(store, node)?;
-    let predicate = store.term_id_by_iri(&logic_iri(field))?;
-    let mut rows =
-        crate::graphutil::default_graph_pattern(store, Some(subject), Some(predicate), None);
-    let first = rows.next()?;
-    if rows.next().is_some() {
-        diagnostics.push(Diagnostic::error(
-            "UNSUPPORTED_SCOPE_MULTIPLICITY",
-            format!("logic:{field} has multiple scope coordinates; this scope requires explicit lowering"),
-            Some(subject_str(node)),
-        ));
-        return None;
-    }
-    let value = crate::graphutil::node_of(store, first.o);
-    if matches!(value, Node::Triple(_)) {
+) -> Option<Vec<Node>> {
+    let (Some(subject), Some(predicate)) = (
+        subject_id(store, node),
+        store.term_id_by_iri(&logic_iri(field)),
+    ) else {
+        return Some(Vec::new());
+    };
+    let mut values: Vec<Node> =
+        crate::graphutil::default_graph_pattern(store, Some(subject), Some(predicate), None)
+            .map(|row| crate::graphutil::node_of(store, row.o))
+            .collect();
+    if values.iter().any(|value| matches!(value, Node::Triple(_))) {
         diagnostics.push(Diagnostic::error(
             "UNSUPPORTED_SCOPE_TERM",
             format!("logic:{field} is a proposition term; this scope requires typed term lowering"),
@@ -235,58 +256,207 @@ fn scope_value(
         ));
         return None;
     }
-    Some(value)
+    values.sort_by_cached_key(term_identity);
+    values.dedup_by_key(|value| term_identity(value));
+    Some(values)
 }
 
-/// Extract every scope dimension together. An invalid coordinate withholds the
-/// whole claim or rule; it cannot turn into a weaker or unconditional assertion.
+/// The scope under construction while the coordinates are fanned out.
+#[derive(Clone)]
+struct ScopeDraft {
+    standpoint: Option<String>,
+    time: Option<String>,
+    confidence: Option<f64>,
+    modality: LogicModality,
+    provenance: Option<String>,
+    module: Option<String>,
+}
+
+/// Cross each draft with every value of one coordinate. An absent coordinate
+/// (no values) leaves the drafts unchanged.
+fn fan_out<T>(
+    drafts: Vec<ScopeDraft>,
+    values: &[T],
+    set: impl Fn(&mut ScopeDraft, &T),
+) -> Vec<ScopeDraft> {
+    if values.is_empty() {
+        return drafts;
+    }
+    let set = &set;
+    drafts
+        .into_iter()
+        .flat_map(|draft| {
+            values.iter().map(move |value| {
+                let mut next = draft.clone();
+                set(&mut next, value);
+                next
+            })
+        })
+        .collect()
+}
+
+/// Keep the first term of each distinct text, preserving order. Terms with one
+/// text are not adjacent in identity order, so this cannot be an adjacent dedup.
+fn first_per_text(values: Vec<Node>) -> Vec<Node> {
+    let mut seen = BTreeSet::new();
+    values
+        .into_iter()
+        .filter(|value| seen.insert(term_str(value)))
+        .collect()
+}
+
+/// Extract every scope dimension together and lower the carrier into its scopes.
+///
+/// A carrier with one value per coordinate yields one scope. A carrier with
+/// several values of exactly one coordinate yields one scope per value, in the
+/// order of the values, with every other coordinate shared. Values are distinct
+/// exactly when the scopes they produce are distinct. `standpoint`, `time`,
+/// `provenance` and `inModule` are held as text in a scope, so terms with one
+/// text are one value: the first of them in term-identity order is kept, and the
+/// values are ordered by that identity. `confidence` and `modality` validate every
+/// term and are then counted by parsed value: `"0.5"` and `"0.50"` are one
+/// confidence, and the bare local name and the full IRI of one modality are one
+/// modality. Confidences are ordered by numeric value and modalities by the
+/// declaration order of `LogicModality`.
+/// A carrier with several values of two or more coordinates is refused whole:
+/// the node gives no pairing between the values of different coordinates, and
+/// their product would assert combinations no author wrote. An invalid value of
+/// any coordinate (a confidence outside [0, 1], an unknown modality, a
+/// proposition-valued term) also withholds the whole claim or rule; no value is
+/// dropped to let the others through. `None` always carries an error diagnostic.
 fn scope_from_node(
     store: &RdfDataset,
     node: &Subject,
     diagnostics: &mut Vec<Diagnostic>,
-) -> Option<ContextualScope> {
+) -> Option<Vec<ContextualScope>> {
     let start = diagnostics.len();
-    let standpoint = scope_value(store, node, "standpoint", diagnostics)
-        .as_ref()
-        .map(term_str);
-    let time = scope_value(store, node, "time", diagnostics)
-        .as_ref()
-        .map(term_str);
-    let conf_node = scope_value(store, node, "confidence", diagnostics);
-    let confidence = conf_node.as_ref().and_then(confidence_from_term);
-    if let Some(cn) = &conf_node
-        && confidence.is_none()
-    {
+    let standpoint = scope_values(store, node, "standpoint", diagnostics);
+    let time = scope_values(store, node, "time", diagnostics);
+    let confidence_nodes = scope_values(store, node, "confidence", diagnostics);
+    let modality_nodes = scope_values(store, node, "modality", diagnostics);
+    let provenance = scope_values(store, node, "provenance", diagnostics);
+    let module = scope_values(store, node, "inModule", diagnostics);
+    let (
+        Some(standpoint),
+        Some(time),
+        Some(confidence_nodes),
+        Some(modality_nodes),
+        Some(provenance),
+        Some(module),
+    ) = (
+        standpoint,
+        time,
+        confidence_nodes,
+        modality_nodes,
+        provenance,
+        module,
+    )
+    else {
+        return None;
+    };
+    let [standpoint, time, provenance, module] =
+        [standpoint, time, provenance, module].map(first_per_text);
+
+    // Every term is validated; only then are equal parsed values merged, so one
+    // invalid spelling still withholds the claim.
+    let mut confidences = Vec::with_capacity(confidence_nodes.len());
+    for value in &confidence_nodes {
+        match confidence_from_term(value) {
+            // Exact equality of the parsed value; -0.0 is folded into 0.0 first.
+            Some(confidence) => confidences.push(if confidence == 0.0 { 0.0 } else { confidence }),
+            None => diagnostics.push(Diagnostic::error(
+                "INVALID_CONFIDENCE",
+                format!(
+                    "confidence value {:?} is not a float in [0, 1]; scope excluded",
+                    term_str(value)
+                ),
+                Some(subject_str(node)),
+            )),
+        }
+    }
+    let mut modalities = Vec::with_capacity(modality_nodes.len());
+    for value in &modality_nodes {
+        match modality_from_term(Some(value)) {
+            Some(modality) => modalities.push(modality),
+            None => diagnostics.push(Diagnostic::error(
+                "UNKNOWN_MODALITY",
+                "unrecognized logic:modality; scope excluded",
+                Some(subject_str(node)),
+            )),
+        }
+    }
+
+    // Total order on the validated range (no NaN), so the sort cannot panic.
+    confidences.sort_by(f64::total_cmp);
+    confidences.dedup();
+    modalities.sort_unstable();
+    modalities.dedup();
+
+    let multi_valued: Vec<&str> = [
+        ("standpoint", standpoint.len()),
+        ("time", time.len()),
+        ("confidence", confidences.len()),
+        ("modality", modalities.len()),
+        ("provenance", provenance.len()),
+        ("inModule", module.len()),
+    ]
+    .into_iter()
+    .filter_map(|(field, count)| (count > 1).then_some(field))
+    .collect();
+    if multi_valued.len() > 1 {
+        let fields: Vec<String> = multi_valued
+            .iter()
+            .map(|field| format!("logic:{field}"))
+            .collect();
         diagnostics.push(Diagnostic::error(
-            "INVALID_CONFIDENCE",
+            "AMBIGUOUS_SCOPE_COORDINATES",
             format!(
-                "confidence value {:?} is not a float in [0, 1]; scope excluded",
-                term_str(cn)
+                "{} each carry several values on one node, which gives no pairing between \
+                 them; write one reifier or rule per intended combination",
+                fields.join(" and ")
             ),
             Some(subject_str(node)),
         ));
     }
-    let modality_node = scope_value(store, node, "modality", diagnostics);
-    let modality = modality_from_term(modality_node.as_ref());
-    if modality.is_none() {
-        diagnostics.push(Diagnostic::error(
-            "UNKNOWN_MODALITY",
-            "unrecognized logic:modality; scope excluded",
-            Some(subject_str(node)),
-        ));
-    }
-    let provenance = scope_value(store, node, "provenance", diagnostics)
-        .as_ref()
-        .map(term_str);
-    let module = scope_value(store, node, "inModule", diagnostics)
-        .as_ref()
-        .map(term_str);
     if diagnostics.len() != start {
         return None;
     }
+
+    let seed = ScopeDraft {
+        standpoint: None,
+        time: None,
+        confidence: None,
+        modality: LogicModality::None,
+        provenance: None,
+        module: None,
+    };
+    // At most one coordinate has several values (checked above), so crossing the
+    // coordinates one at a time fans that coordinate out and nothing else.
+    let drafts = fan_out(vec![seed], &standpoint, |d, v| {
+        d.standpoint = Some(term_str(v));
+    });
+    let drafts = fan_out(drafts, &time, |d, v| d.time = Some(term_str(v)));
+    let drafts = fan_out(drafts, &confidences, |d, v| d.confidence = Some(*v));
+    let drafts = fan_out(drafts, &modalities, |d, v| d.modality = *v);
+    let drafts = fan_out(drafts, &provenance, |d, v| {
+        d.provenance = Some(term_str(v));
+    });
+    let drafts = fan_out(drafts, &module, |d, v| d.module = Some(term_str(v)));
     Some(
-        ContextualScope::new(standpoint, time, confidence, modality?, provenance, module)
-            .expect("every confidence coordinate has been validated"),
+        drafts
+            .into_iter()
+            .map(|d| {
+                ContextualScope::new(
+                    d.standpoint,
+                    d.time,
+                    d.confidence,
+                    d.modality,
+                    d.provenance,
+                    d.module,
+                )
+                .expect("every confidence coordinate has been validated")
+            })
+            .collect(),
     )
 }
 
@@ -1295,12 +1465,18 @@ fn extract_scoped_axioms(
             if rule_atoms.contains(&quad.s) {
                 continue;
             }
-            let Some(scope) = scope_from_node(store, &reifier, diagnostics) else {
+            let Some(scopes) = scope_from_node(store, &reifier, diagnostics) else {
                 continue;
             };
             // Quotation alone never asserts its proposition. The same explicit
             // scope admission applies to both native and classic reification.
-            if scope == ContextualScope::default() {
+            // A carrier whose only scope is the default stays an unasserted
+            // quotation, so `none` beside another modality yields only the other claim.
+            let scopes: Vec<_> = scopes
+                .into_iter()
+                .filter(|scope| *scope != ContextualScope::default())
+                .collect();
+            if scopes.is_empty() {
                 continue;
             }
             if let Node::Triple(triple) = crate::graphutil::node_of(store, quad.o) {
@@ -1313,14 +1489,23 @@ fn extract_scoped_axioms(
                     ));
                     continue;
                 }
-                match native_quoted_axiom(store, &reifier, &triple, false, scope) {
-                    Ok(ax) => axioms.push(AxiomEmission::new(
-                        ax,
-                        AxiomSource::Reification(SourceNode {
-                            term: quad.s,
-                            graph: quad.g,
-                        }),
-                    )),
+                // One claim per scope, all anchored to the authored reifier. The
+                // claim is withheld whole: every scope's axiom is built first and
+                // none is emitted unless all of them are.
+                let lowered: gmeow_errors::Result<Vec<_>> = scopes
+                    .into_iter()
+                    .map(|scope| native_quoted_axiom(store, &reifier, &triple, false, scope))
+                    .collect();
+                match lowered {
+                    Ok(lowered) => axioms.extend(lowered.into_iter().map(|ax| {
+                        AxiomEmission::new(
+                            ax,
+                            AxiomSource::Reification(SourceNode {
+                                term: quad.s,
+                                graph: quad.g,
+                            }),
+                        )
+                    })),
                     Err(exc) => diagnostics.push(Diagnostic::error(
                         "MALFORMED_SCOPED_AXIOM",
                         exc.message().to_owned(),
@@ -1337,10 +1522,16 @@ fn extract_scoped_axioms(
         if subject_id(store, &stmt).is_some_and(|id| rule_atoms.contains(&id)) {
             continue;
         }
-        let Some(scope) = scope_from_node(store, &stmt, diagnostics) else {
+        let Some(scopes) = scope_from_node(store, &stmt, diagnostics) else {
             continue;
         };
-        if scope == ContextualScope::default() {
+        // A carrier whose only scope is the default stays an unasserted quotation,
+        // so `none` beside another modality yields only the other claim.
+        let scopes: Vec<_> = scopes
+            .into_iter()
+            .filter(|scope| *scope != ContextualScope::default())
+            .collect();
+        if scopes.is_empty() {
             continue;
         }
         let t_p = value(store, &stmt, &nn(RDF_PREDICATE));
@@ -1379,14 +1570,23 @@ fn extract_scoped_axioms(
             ));
             continue;
         };
-        match native_axiom(subj, p_str, object, false, scope) {
-            Ok(ax) => axioms.push(AxiomEmission::new(
-                ax,
-                AxiomSource::Reification(SourceNode {
-                    term: subject_id(store, &stmt).expect("selected reification root"),
-                    graph: None,
-                }),
-            )),
+        // One claim per scope, all anchored to the authored statement node. The
+        // claim is withheld whole: every scope's axiom is built first and none is
+        // emitted unless all of them are.
+        let lowered: gmeow_errors::Result<Vec<_>> = scopes
+            .into_iter()
+            .map(|scope| native_axiom(subj.clone(), p_str.clone(), object, false, scope))
+            .collect();
+        match lowered {
+            Ok(lowered) => axioms.extend(lowered.into_iter().map(|ax| {
+                AxiomEmission::new(
+                    ax,
+                    AxiomSource::Reification(SourceNode {
+                        term: subject_id(store, &stmt).expect("selected reification root"),
+                        graph: None,
+                    }),
+                )
+            })),
             Err(exc) => diagnostics.push(Diagnostic::error(
                 "MALFORMED_SCOPED_AXIOM",
                 exc.message().to_owned(),
@@ -1889,11 +2089,29 @@ fn read_reified_axiom(
             "rule atom rdf:reifies must target a triple term".into(),
         )));
     };
-    let scope = scope_from_node(store, node, diagnostics).ok_or_else(|| {
+    let mut scopes = scope_from_node(store, node, diagnostics).ok_or_else(|| {
         Diag::of_kind(crate::error::Frontend::new(
             "invalid rule atom scope".into(),
         ))
     })?;
+    // A rule atom is one conjunct of its rule, so it carries exactly one scope:
+    // lowering several scopes of one atom into several atoms would turn the rule
+    // into a conjunction, a different rule. A carrier refused by `scope_from_node`
+    // for two or more multi-valued coordinates reaches this site as the earlier
+    // error above, not this one.
+    if scopes.len() != 1 {
+        diagnostics.push(Diagnostic::error(
+            "AMBIGUOUS_RULE_ATOM_SCOPE",
+            "a rule atom carries several values of one scope coordinate; write one rule \
+             per intended atom value, each atom with its own reifier (a scope on the rule \
+             node scopes the rule as a whole, not its atoms)",
+            Some(subject_str(node)),
+        ));
+        return Err(Diag::of_kind(crate::error::Frontend::new(
+            "rule atom scope has several values".into(),
+        )));
+    }
+    let scope = scopes.remove(0);
     native_quoted_axiom(store, node, &triple, negated, scope)
 }
 
@@ -1939,7 +2157,7 @@ fn extract_rules(
             lowerings,
             |diagnostics| {
                 let diagnostic_start = diagnostics.len();
-                let Some(scope) = scope_from_node(store, &rule_node, diagnostics) else {
+                let Some(scopes) = scope_from_node(store, &rule_node, diagnostics) else {
                     return Err(Vec::new());
                 };
 
@@ -2036,10 +2254,23 @@ fn extract_rules(
                     distinct_pairs.push(pair);
                 }
 
-                let mut rule = LogicRule::new(head_axiom, body_axioms, distinct_pairs, scope);
-                if let Some(agg) = aggregation_from_node(store, &rule_node, diagnostics) {
-                    rule = rule.with_aggregation(agg);
-                }
+                let aggregation = aggregation_from_node(store, &rule_node, diagnostics);
+                // One rule per scope of the authored rule node.
+                let lowered: Vec<LogicRule> = scopes
+                    .into_iter()
+                    .map(|scope| {
+                        let rule = LogicRule::new(
+                            head_axiom.clone(),
+                            body_axioms.clone(),
+                            distinct_pairs.clone(),
+                            scope,
+                        );
+                        match &aggregation {
+                            Some(agg) => rule.with_aggregation(agg.clone()),
+                            None => rule,
+                        }
+                    })
+                    .collect();
                 // A malformed conjunct, guard, aggregation or scope cannot turn this into
                 // a weaker rule. Preserve all diagnostics, and withhold the whole rule.
                 let rule_diagnostics = &mut diagnostics[diagnostic_start..];
@@ -2054,10 +2285,18 @@ fn extract_rules(
                     }
                     return Err(Vec::new());
                 }
-                Ok(rule)
+                Ok(lowered)
             },
         ) {
-            rules.push(emitted);
+            // Every lowered rule keeps the authored rule node as its source.
+            for value in emitted.value {
+                rules.push(OwnerEmission {
+                    source: emitted.source,
+                    family: emitted.family,
+                    diagnostics: emitted.diagnostics.clone(),
+                    value,
+                });
+            }
         }
     }
 
