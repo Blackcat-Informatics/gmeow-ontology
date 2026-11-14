@@ -839,3 +839,60 @@ fn demonstrator_worlds_must_publish_their_declared_certificate_class() {
     // A present demonstrator still must earn its own class.
     assert!(require_demonstrator_classes(&copied[..1]).is_err());
 }
+
+/// The stage hands reasoning its only owner of the assembled EDB, and the EDB's last
+/// reader is the `math:` expression-identity projection. That projection now runs
+/// before the engine so the EDB can be freed first; the edges it derives must still
+/// reach the shipped inferred closure, and the owned EDB must not outlive the call.
+#[test]
+fn expression_identity_edges_reach_the_closure_from_an_owned_edb() {
+    let source = purrdf::parse_dataset(
+        b"@prefix math: <https://blackcatinformatics.ca/math/> .\n\
+          <urn:selected-theory> {\n\
+            <https://example.org/e1> a math:NumberLiteral ; math:literalValue 1 .\n\
+            <https://example.org/e2> a math:NumberLiteral ; math:literalValue 1 .\n\
+          }",
+        "application/trig",
+        None,
+    )
+    .unwrap();
+    let expected = gmeow_logic::math_expression::alpha_equivalence_edges(source.as_ref());
+    let [(first, class), (second, same_class)] = expected.as_slice() else {
+        panic!("two IRI-rooted expressions each carry one identity edge: {expected:?}");
+    };
+    assert_eq!(class, same_class, "equal expressions share one class");
+    assert_ne!(first, second);
+    let domains = SelectedDomains::new([SelectedLogicalWorld::new(
+        LogicalGraph::Named(purrdf::TermValue::iri("urn:selected-theory")),
+        DomainProfile::NonemptyObjectDomainV1,
+        "gmeow.pipeline.test.selected-theory.v1".to_owned(),
+        *purrdf_hash::blake3::hash(
+            b"gmeow.pipeline.test.selected-theory.v1/urn:selected-theory/nonempty-object-domain-v1",
+        )
+        .as_bytes(),
+    )
+    .unwrap()])
+    .unwrap();
+    let held = Arc::downgrade(&source);
+    let reasoned = reason_over_dataset(source, &domains).unwrap();
+    assert!(
+        held.upgrade().is_none(),
+        "reasoning consumed the only owner of the EDB"
+    );
+    let carried: BTreeSet<(String, String)> = reasoned
+        .dataset
+        .owned_quads()
+        .filter(|quad| quad.predicate == gmeow_logic::math_expression::MATH_ALPHA_EQUIVALENCE_CLASS)
+        .filter_map(|quad| match (&quad.subject, &quad.object) {
+            (RdfTerm::Iri(subject), RdfTerm::Iri(object)) => {
+                Some((subject.clone(), object.clone()))
+            }
+            _ => None,
+        })
+        .collect();
+    assert_eq!(carried, expected.iter().cloned().collect::<BTreeSet<_>>());
+    assert!(
+        reasoned.closure.contains("alphaEquivalenceClass"),
+        "the committed closure text carries the identity edges"
+    );
+}
