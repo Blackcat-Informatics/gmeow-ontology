@@ -24220,8 +24220,8 @@ msgid "Do not infer truth, trust, a firing proof, a premise list or a complete d
 msgstr "不要从此边推断真实性、信任、规则触发证明、前提列表或完整推导证书。不要将所有来源限于规则，不要将不同来源视为相同，也不要将记录上的元数据传播到其向外断言。"
 
 msgctxt "https://blackcatinformatics.ca/logic/provenance|https://blackcatinformatics.ca/gmeow/howToUse"
-msgid "Attach the source resource to the exact statement reifier or declared scoped rule. A carrier with several provenance values is lowered into one scoped claim or rule per source; when two scope coordinates each have several values the carrier is refused, so write one reifier per intended combination. An atom of a rule takes one value of each coordinate: several values on an atom are refused, so state them on the rule node. Retain supporting evidence separately. A rule naming itself records its declared source, not an execution receipt."
-msgstr "将来源资源附于确切的语句具体化节点或已声明的带作用域规则。带有多个来源值的承载资源会逐个来源转换为带作用域的语句或规则；若两个作用域坐标各有多个值，则该承载资源被拒绝，请为每个预期组合分别写一个具体化节点。规则的原子在每个坐标上只取一个值：原子上的多个值会被拒绝，应将它们写在规则节点上。分别保留支持依据。规则指向自身时记录的是其已声明来源，而非执行收据。"
+msgid "Attach the source resource to the exact statement reifier or declared scoped rule. A carrier with several provenance values is lowered into one scoped claim or rule per source; when two scope coordinates each have several values the carrier is refused, so write one reifier or rule per intended combination. An atom of a rule takes one value of each coordinate: several values on an atom are refused, so state them on the rule node. Retain supporting evidence separately. A rule naming itself records its declared source, not an execution receipt."
+msgstr "将来源资源附于确切的语句具体化节点或已声明的带作用域规则。带有多个来源值的承载资源会逐个来源转换为带作用域的语句或规则；若两个作用域坐标各有多个值，则该承载资源被拒绝，请为每个预期组合分别写一个具体化节点或规则。规则的原子在每个坐标上只取一个值：原子上的多个值会被拒绝，应将它们写在规则节点上。分别保留支持依据。规则指向自身时记录的是其已声明来源，而非执行收据。"
 
 msgctxt "https://blackcatinformatics.ca/logic/termGreater|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "term greater than"

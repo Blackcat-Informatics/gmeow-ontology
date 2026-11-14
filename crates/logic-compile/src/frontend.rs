@@ -205,10 +205,28 @@ fn modality_from_term(term: Option<&Node>) -> Option<LogicModality> {
     LogicModality::from_str_value(&raw.to_lowercase())
 }
 
-/// Read every default-graph value of one scope coordinate, ordered by canonical
-/// term text so the result never depends on which physical table the store
-/// returned a value from. Values are compared by their canonical term text, so
-/// two terms with the same text count as one value.
+/// A total, storage-order-independent identity for a scope term: its kind, its
+/// canonical text, and the complete term so that terms differing only in
+/// datatype, language or blank-node scope stay distinct.
+fn term_identity(term: &Node) -> (u8, String, String) {
+    let kind = match term {
+        Node::Iri(_) => 0,
+        Node::Blank { .. } => 1,
+        Node::Lit(_) => 2,
+        Node::Triple(_) => 3,
+    };
+    (kind, term_str(term), format!("{term:?}"))
+}
+
+/// Read every default-graph value of one scope coordinate, ordered by term
+/// identity (kind, then canonical text, then the full term) so the result never
+/// depends on which physical table the store returned a value from.
+///
+/// Distinct terms are distinct values: an IRI, a literal and a blank node that
+/// share the same text are three values, and literals differing in datatype or
+/// language are distinct too. This is the final identity for `standpoint`,
+/// `time`, `provenance` and `inModule`; `confidence` and `modality` are further
+/// reduced to their parsed values by `scope_from_node`.
 ///
 /// `Some(empty)` means the coordinate is absent. `None` means the node was
 /// refused (a diagnostic has been recorded): a proposition-valued term on any of
@@ -237,8 +255,8 @@ fn scope_values(
         ));
         return None;
     }
-    values.sort_by_cached_key(term_str);
-    values.dedup_by_key(|value| term_str(value));
+    values.sort_by_cached_key(term_identity);
+    values.dedup_by_key(|value| term_identity(value));
     Some(values)
 }
 
@@ -280,7 +298,12 @@ fn fan_out<T>(
 ///
 /// A carrier with one value per coordinate yields one scope. A carrier with
 /// several values of exactly one coordinate yields one scope per value, in the
-/// order of the values' canonical term text, with every other coordinate shared.
+/// order of the values, with every other coordinate shared. Values of
+/// `standpoint`, `time`, `provenance` and `inModule` are distinct when their
+/// terms are distinct (see `scope_values`), ordered by term identity. `confidence` and `modality` are counted by parsed value:
+/// `"0.5"` and `"0.50"` are one confidence, and the bare local name and the full
+/// IRI of one modality are one modality. Confidences are ordered by numeric
+/// value and modalities by the declaration order of `LogicModality`.
 /// A carrier with several values of two or more coordinates is refused whole:
 /// the node gives no pairing between the values of different coordinates, and
 /// their product would assert combinations no author wrote. An invalid value of
@@ -318,10 +341,13 @@ fn scope_from_node(
         return None;
     };
 
+    // Every term is validated; only then are equal parsed values merged, so one
+    // invalid spelling still withholds the claim.
     let mut confidences = Vec::with_capacity(confidence_nodes.len());
     for value in &confidence_nodes {
         match confidence_from_term(value) {
-            Some(confidence) => confidences.push(confidence),
+            // Exact equality of the parsed value; -0.0 is folded into 0.0 first.
+            Some(confidence) => confidences.push(if confidence == 0.0 { 0.0 } else { confidence }),
             None => diagnostics.push(Diagnostic::error(
                 "INVALID_CONFIDENCE",
                 format!(
@@ -344,11 +370,17 @@ fn scope_from_node(
         }
     }
 
+    // Total order on the validated range (no NaN), so the sort cannot panic.
+    confidences.sort_by(f64::total_cmp);
+    confidences.dedup();
+    modalities.sort_unstable();
+    modalities.dedup();
+
     let multi_valued: Vec<&str> = [
         ("standpoint", standpoint.len()),
         ("time", time.len()),
-        ("confidence", confidence_nodes.len()),
-        ("modality", modality_nodes.len()),
+        ("confidence", confidences.len()),
+        ("modality", modalities.len()),
         ("provenance", provenance.len()),
         ("inModule", module.len()),
     ]
@@ -364,7 +396,7 @@ fn scope_from_node(
             "AMBIGUOUS_SCOPE_COORDINATES",
             format!(
                 "{} each carry several values on one node, which gives no pairing between \
-                 them; write one reifier per intended combination",
+                 them; write one reifier or rule per intended combination",
                 fields.join(" and ")
             ),
             Some(subject_str(node)),
@@ -1422,6 +1454,8 @@ fn extract_scoped_axioms(
             };
             // Quotation alone never asserts its proposition. The same explicit
             // scope admission applies to both native and classic reification.
+            // A carrier whose only scope is the default stays an unasserted
+            // quotation, so `none` beside another modality yields only the other claim.
             let scopes: Vec<_> = scopes
                 .into_iter()
                 .filter(|scope| *scope != ContextualScope::default())
@@ -1475,6 +1509,8 @@ fn extract_scoped_axioms(
         let Some(scopes) = scope_from_node(store, &stmt, diagnostics) else {
             continue;
         };
+        // A carrier whose only scope is the default stays an unasserted quotation,
+        // so `none` beside another modality yields only the other claim.
         let scopes: Vec<_> = scopes
             .into_iter()
             .filter(|scope| *scope != ContextualScope::default())
