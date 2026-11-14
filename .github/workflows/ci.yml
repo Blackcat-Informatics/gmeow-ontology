@@ -602,6 +602,12 @@ jobs:
       - name: Helper ownership and dependency hygiene
         run: make helpers-hygiene
 
+      # fuzz/ is a standalone workspace over path crates of this one. A change to
+      # their dependency edges moves its resolution, and nothing else on the pull
+      # request path reads fuzz/Cargo.lock as a whole.
+      - name: Resolve the locked fuzz workspace
+        run: make fuzz-lock-check
+
   lint:
     if: ${{ github.event_name != 'workflow_dispatch' || (!inputs.maint_medium_sweep && inputs.maint_wasm_refresh == 'none') }}
     runs-on: ubuntu-latest

@@ -8,6 +8,16 @@
 
 set -euo pipefail
 
+script_dir=$(dirname -- "${BASH_SOURCE[0]}")
+# shellcheck source=build-support/common.sh
+source "$script_dir/../build-support/common.sh"
+
+# The complete source inventory is ripgrep's and the flow scanners are Perl. An
+# absent tool is named here; it is never an empty inventory or a bare status.
+gmeow_require_command rg "ripgrep (rg)"
+gmeow_require_command perl
+gmeow_require_command git
+
 repo_root=$(git rev-parse --show-toplevel)
 cd "$repo_root"
 # Independent inventory batches run directly; each result stream is sorted below.

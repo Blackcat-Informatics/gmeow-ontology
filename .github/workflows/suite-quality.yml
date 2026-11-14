@@ -45,6 +45,12 @@ jobs:
           components: llvm-tools-preview
       - name: Cache Cargo dependencies
         uses: Swatinem/rust-cache@d1527c8f67ef9af357290475d4af4b0fab8f12e0 # v2.9.3
+      # `make rust-build` starts with the corpus-purity source scanner, whose
+      # source inventory is ripgrep's. The tool is not on the hosted-runner image.
+      - name: Install ripgrep
+        uses: taiki-e/install-action@c509219cf42fba86913069efd0ade2458c59337b # v2
+        with:
+          tool: ripgrep
       - name: Install cargo-llvm-cov + cargo-nextest
         run: |
           cargo install cargo-llvm-cov --locked || cargo install cargo-llvm-cov
@@ -106,7 +112,29 @@ jobs:
           toolchain: nightly-2026-09-05
       - name: Cache Cargo dependencies
         uses: Swatinem/rust-cache@d1527c8f67ef9af357290475d4af4b0fab8f12e0 # v2.9.3
-      - name: Run criterion benchmarks
+      # `make bench` runs every bench target of the two crates, including the
+      # Gungraun instruction counts. Those start the out-of-tree runner, which
+      # drives Valgrind Callgrind. The runner release is read from Cargo.lock so
+      # it always equals the linked `gungraun` library.
+      - name: Install Valgrind
+        run: |
+          sudo apt-get update
+          sudo apt-get install --yes --no-install-recommends valgrind
+          valgrind --version
+      - name: Install the locked gungraun-runner
+        run: |
+          set -euo pipefail
+          version=$(awk '$0 == "name = \"gungraun-runner\"" { getline; gsub(/version = |"/, ""); print }' Cargo.lock)
+          test -n "$version" || { echo "ERROR: Cargo.lock names no gungraun-runner release"; exit 1; }
+          cargo install --locked --version "$version" gungraun-runner
+          command -v gungraun-runner
+      - name: Run criterion and instruction-count benchmarks
+        # Callgrind attributes counts by symbol. The committed bench profile strips
+        # symbols, so they are kept for this invocation only, exactly as
+        # `make maint-bench-instructions` does.
+        env:
+          CARGO_PROFILE_BENCH_STRIP: none
+          CARGO_PROFILE_BENCH_DEBUG: line-tables-only
         run: make bench
       - name: Regression scoreboard vs committed baseline (report-only)
         # Advisory: prints a live-vs-baseline scoreboard to the job summary and
@@ -136,6 +164,12 @@ jobs:
           toolchain: nightly-2026-09-05
       - name: Cache Cargo dependencies
         uses: Swatinem/rust-cache@d1527c8f67ef9af357290475d4af4b0fab8f12e0 # v2.9.3
+      # `make rust-build` starts with the corpus-purity source scanner, whose
+      # source inventory is ripgrep's. The tool is not on the hosted-runner image.
+      - name: Install ripgrep
+        uses: taiki-e/install-action@c509219cf42fba86913069efd0ade2458c59337b # v2
+        with:
+          tool: ripgrep
       - name: Install cargo-nextest
         uses: taiki-e/install-action@c509219cf42fba86913069efd0ade2458c59337b # v2
         with:
