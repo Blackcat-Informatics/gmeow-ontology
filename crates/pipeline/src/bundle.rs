@@ -158,11 +158,14 @@ pub const INTERNAL_ARTIFACT_PREFIX: &str = "pipeline/";
 /// Everything else is released: the frozen dataset (an empty one replaces it), the
 /// typed-handle lane, every by-reference blob record, the provenance sidecar, and every
 /// other internal `pipeline/`-prefixed artifact. `kept_internal` is the set of internal
-/// artifacts that artifact-only consumers declare they read
+/// artifacts that consumers declare they read
 /// ([`crate::node::Stage::internal_artifact_reads`]); without it they would receive a
 /// product that silently lacks them. The scheduler calls this when a product's exact
-/// remaining carrier-reader count reaches zero, and also when it hands a product to an
-/// artifact-only consumer; the resulting product is a TOMBSTONE —
+/// remaining carrier-reader count reaches zero and no artifact-only view of it is in
+/// flight. It copies the surviving lane once, which is why a consumer whose edge declares
+/// no carrier read is not handed a result of this function: it is handed a view that
+/// serves the same lane by reference (`StageProduct::consumer_artifact_view`). The
+/// resulting product is a TOMBSTONE —
 /// [`StageProduct::carrier_released`](crate::node::StageProduct::carrier_released) is
 /// set and the product keeps its ORIGINAL `digest`, because the digest is the identity
 /// witness of the carrier that was released, not a fold over this residue.
@@ -472,6 +475,17 @@ pub fn bundle_artifact<'b>(
 /// TEMPORARY (C4): `run_full` writes/compares the committed artifacts off this map.
 /// Grep `byte-artifact lane`.
 pub fn bundle_artifacts(bundle: &PipelineBundle<PipelineHandle>) -> BTreeMap<String, Vec<u8>> {
+    bundle_artifacts_where(bundle, |_| true)
+}
+
+/// [`bundle_artifacts`] restricted to the entries `wanted` accepts, which is asked about
+/// an entry's logical path only once the entry is complete (it has a name, a valid digest
+/// and its bytes in the store) and before its bytes are copied, so an entry it refuses is
+/// never cloned.
+pub fn bundle_artifacts_where(
+    bundle: &PipelineBundle<PipelineHandle>,
+    mut wanted: impl FnMut(&str) -> bool,
+) -> BTreeMap<String, Vec<u8>> {
     let mut out: BTreeMap<String, Vec<u8>> = BTreeMap::new();
     for resource in bundle.lookaside().resources_of_kind(ARTIFACT_KIND) {
         let (Some(name), Some(hex)) =
@@ -482,7 +496,9 @@ pub fn bundle_artifacts(bundle: &PipelineBundle<PipelineHandle>) -> BTreeMap<Str
         let Some(digest) = purrdf::ContentDigest::from_hex(hex) else {
             continue;
         };
-        if let Some(bytes) = bundle.blobs().get(&digest) {
+        if let Some(bytes) = bundle.blobs().get(&digest)
+            && wanted(name)
+        {
             out.insert(name.to_owned(), bytes.clone());
         }
     }
@@ -532,6 +548,27 @@ pub fn bundle_artifact_refs(
         }
     }
     Ok(out)
+}
+
+/// The `(logical path → content digests)` of the byte-artifact lane entries of `bundle`
+/// whose logical path `serves` accepts: the identities [`release_carrier`] would keep, read
+/// without building the residue.
+pub(crate) fn artifact_lane_records(
+    bundle: &PipelineBundle<PipelineHandle>,
+    serves: impl Fn(&str) -> bool,
+) -> BTreeMap<String, std::collections::BTreeSet<String>> {
+    let mut records: BTreeMap<String, std::collections::BTreeSet<String>> = BTreeMap::new();
+    for resource in bundle.lookaside().resources_of_kind(ARTIFACT_KIND) {
+        if let (Some(name), Some(digest)) = (&resource.name, &resource.content_digest)
+            && serves(name)
+        {
+            records
+                .entry(name.clone())
+                .or_default()
+                .insert(digest.clone());
+        }
+    }
+    records
 }
 
 /// Replace a bundle's provenance sidecar with `provenance` in place, cloning the

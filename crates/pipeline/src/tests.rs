@@ -55,6 +55,16 @@ fn spec(id: &str, consumes: &[&str]) -> StageSpec {
         stability: StageStability::StablePrefix,
         cache_disposition: CachePolicy::Persistent,
         dataflow_entities: Vec::new(),
+        // These synthetic stages fold only the identity of what they consume.
+        reads: consumes
+            .iter()
+            .map(|producer| {
+                (
+                    (*producer).to_string(),
+                    std::iter::once(crate::reads::Read::Identity).collect(),
+                )
+            })
+            .collect(),
         formats: Vec::new(),
         attaches_graphs: Vec::new(),
         attaches_blob_reps: Vec::new(),
@@ -101,6 +111,7 @@ fn cycle_is_rejected() {
 fn dangling_dependency_is_rejected() {
     let mut s = diamond();
     s.stages[1].consumes = vec!["ghost".to_string()];
+    s.stages[1].reads.clear();
     match s.validate() {
         Ok(_) => panic!("expected dangling-dependency rejection"),
         Err(d) => {
@@ -285,6 +296,85 @@ fn bind_rejects_consumes_disagreement() {
     }
 }
 
+/// A stage is bound only to the implementation that carries its id. Two implementations
+/// whose declarations are otherwise equal (`a` and `b` both consume only `source`) would
+/// each run the other's body under the other's id if the swap were accepted; this protects
+/// the check that refuses it.
+#[test]
+fn bind_rejects_swapped_implementations() {
+    let s = diamond();
+    let g = s.validate().unwrap();
+    let reg = registry_for(
+        &s,
+        vec![
+            fake("source", &[]),
+            fake("b", &["source"]),
+            fake("a", &["source"]),
+            fake("sink", &["a", "b"]),
+        ],
+    );
+    let diag = bind(&s, &g, &reg)
+        .map(|bound| bound.len())
+        .expect_err("swapped implementations are refused");
+    assert!(diag.is::<crate::error::InvalidDeclaration>(), "{diag}");
+    let text = diag.to_string();
+    assert!(
+        text.contains(
+            "stage a: gmeow:stageImpl \"impl:a\" names an implementation whose own id is \"b\""
+        ),
+        "{text}"
+    );
+}
+
+/// A stage whose edge from the source-load product permits reading the span table is a
+/// counted span reader, whether it names the table or declares the whole carrier: the
+/// scheduler strips the table only after every counted reader has run, so an uncounted
+/// whole-carrier reader would find it gone. An identity-only edge is not a reader.
+#[test]
+fn a_whole_carrier_declaration_counts_as_a_span_table_reader() {
+    use crate::reads::Read;
+
+    let counted = |reads: Read| -> bool {
+        let mut s = PipelineSpec {
+            id: "p".to_string(),
+            stages: vec![
+                spec("stage-source-load", &[]),
+                spec("consumer", &["stage-source-load"]),
+                spec("sink", &["consumer"]),
+            ],
+        };
+        s.stages[1].reads.insert(
+            "stage-source-load".to_string(),
+            std::iter::once(reads).collect(),
+        );
+        let g = s.validate().unwrap();
+        let reg = registry_for(
+            &s,
+            vec![
+                fake("stage-source-load", &[]),
+                fake("consumer", &["stage-source-load"]),
+                fake("sink", &["consumer"]),
+            ],
+        );
+        let bound = bind(&s, &g, &reg).unwrap();
+        bound
+            .iter()
+            .find(|stage| stage.id() == "consumer")
+            .unwrap()
+            .consumes_span_table()
+    };
+    let table = Read::BlobRep(crate::stages::carrier::REP_SPAN_TABLE.to_owned());
+    assert!(counted(table), "naming the table counts");
+    assert!(
+        counted(Read::Carrier),
+        "the whole carrier permits the read, so it counts"
+    );
+    assert!(
+        !counted(Read::Identity),
+        "an identity-only edge reads nothing"
+    );
+}
+
 #[test]
 fn bind_rejects_resource_disagreement() {
     // A Reason spec declares the engine resource, but its Rust impl forgets it —
@@ -326,35 +416,214 @@ fn bind_rejects_resource_disagreement() {
     }
 }
 
+/// A read set names a producer the stage consumes: one on any other stage could never
+/// be served, so the description is refused before binding.
 #[test]
-fn bind_rejects_carrier_dependency_outside_logical_consumes() {
+fn a_read_set_on_a_stage_that_is_not_consumed_is_refused() {
+    let mut s = diamond();
+    let a = s.stages.iter_mut().find(|stage| stage.id == "a").unwrap();
+    a.reads.insert(
+        "b".to_string(),
+        std::iter::once(crate::reads::Read::Dataset).collect(),
+    );
+    let diag = s
+        .validate()
+        .expect_err("a read set on a non-dependency is refused");
+    assert!(diag.is::<crate::error::InvalidDag>(), "{diag}");
+    assert!(
+        diag.to_string()
+            .contains("stage a declares reads of b but does not gmeow:dataflowConsumes it"),
+        "{diag}"
+    );
+}
+
+/// A stage that reads a typed handle of `source` which its dataflow edge does not declare.
+struct UndeclaredHandleReader {
+    id: String,
+    consumes: Vec<String>,
+}
+
+impl Stage for UndeclaredHandleReader {
+    fn id(&self) -> &str {
+        &self.id
+    }
+    fn output_family(&self) -> crate::node::OutputFamily {
+        crate::node::OutputFamily::Generated
+    }
+    fn consumes(&self) -> &[String] {
+        &self.consumes
+    }
+    fn impl_version(&self) -> &str {
+        "v1"
+    }
+    fn run(&self, input: StageInput<'_>) -> Result<StageOutput, gmeow_errors::Diag> {
+        let _ = input.upstream["source"].handle("https://example.org/undeclared");
+        Ok(StageOutput::new(StageProduct::new(
+            self.id.clone(),
+            "deadbeef",
+        )))
+    }
+}
+
+/// A stage that reads what its dataflow edge does not declare fails the run, and the
+/// run goes on first so that one pass names every such stage, not only the first.
+#[test]
+fn a_run_names_every_stage_whose_reads_differ_from_its_declared_dataflow() {
     let s = diamond();
     let g = s.validate().unwrap();
-    let mut reg = StageRegistry::new();
-    reg.register("impl:source".to_string(), fake("source", &[]));
-    reg.register(
-        "impl:a".to_string(),
-        Arc::new(FakeStage {
-            id: "a".to_string(),
-            capabilities: Vec::new(),
+    let reader = |id: &str| {
+        Arc::new(UndeclaredHandleReader {
+            id: id.to_string(),
             consumes: vec!["source".to_string()],
-            carrier_consumes: Some(vec!["b".to_string()]),
-            resources: Vec::new(),
-        }),
-    );
-    reg.register("impl:b".to_string(), fake("b", &["source"]));
-    reg.register("impl:sink".to_string(), fake("sink", &["a", "b"]));
-
-    let diag = match bind(&s, &g, &reg) {
-        Ok(_) => panic!("unowned carrier edge must fail binding"),
-        Err(diag) => diag,
+        }) as Arc<dyn Stage>
     };
-    assert!(diag.is::<crate::error::InvalidDeclaration>(), "{diag}");
+    let reg = registry_for(
+        &s,
+        vec![
+            fake("source", &[]),
+            reader("a"),
+            reader("b"),
+            fake("sink", &["a", "b"]),
+        ],
+    );
+    let bound = bind(&s, &g, &reg).unwrap();
+    let dir = tempfile::tempdir().unwrap();
+    let mut ctx = RunContext::open_uncached(dir.path(), 2);
+    let error = run(&g, &bound, &mut ctx)
+        .map(|result| result.products.len())
+        .expect_err("undeclared reads fail the run");
+    let text = error.to_string();
     assert!(
-        diag.to_string().contains(
-            "stage a carrier dependency b is not present in its gmeow:dataflowConsumes set"
+        text.contains("2 stage(s) read differently from their declared dataflow"),
+        "{text}"
+    );
+    for stage in ["a:", "b:"] {
+        assert!(text.contains(stage), "{text}");
+    }
+    assert!(text.contains("https://example.org/undeclared"), "{text}");
+}
+
+/// How a stage that consumes `source` through an identity-only edge misbehaves.
+#[derive(Clone, Copy)]
+enum Misbehaviour {
+    /// Reads the dataset of a product the scheduler has already released.
+    DatasetRead,
+    /// Reads a typed handle of the released product, then fails with its own message.
+    HandleReadThenFail,
+    /// Panics in the body.
+    Panic,
+}
+
+struct MisbehavingStage {
+    id: String,
+    consumes: Vec<String>,
+    how: Misbehaviour,
+}
+
+impl Stage for MisbehavingStage {
+    fn id(&self) -> &str {
+        &self.id
+    }
+    fn output_family(&self) -> crate::node::OutputFamily {
+        crate::node::OutputFamily::Generated
+    }
+    fn consumes(&self) -> &[String] {
+        &self.consumes
+    }
+    fn impl_version(&self) -> &str {
+        "v1"
+    }
+    fn run(&self, input: StageInput<'_>) -> Result<StageOutput, gmeow_errors::Diag> {
+        match self.how {
+            Misbehaviour::DatasetRead => {
+                let _ = input.upstream["source"].dataset();
+            }
+            Misbehaviour::HandleReadThenFail => {
+                let _ = input.upstream["source"].handle("https://example.org/undeclared");
+                return Err(gmeow_errors::Diag::of_kind(crate::error::StageFailed {
+                    cause: None,
+                    stage: self.id.clone(),
+                    message: "its own message: the product carries no such handle".to_string(),
+                }));
+            }
+            Misbehaviour::Panic => panic!("deliberate stage panic"),
+        }
+        Ok(StageOutput::new(StageProduct::new(
+            self.id.clone(),
+            "deadbeef",
+        )))
+    }
+}
+
+/// Run the diamond with `a` misbehaving as `how`, and return the error the run ends with.
+fn run_diamond_with_misbehaving_a(how: Misbehaviour) -> String {
+    let s = diamond();
+    let g = s.validate().unwrap();
+    let reg = registry_for(
+        &s,
+        vec![
+            fake("source", &[]),
+            Arc::new(MisbehavingStage {
+                id: "a".to_string(),
+                consumes: vec!["source".to_string()],
+                how,
+            }) as Arc<dyn Stage>,
+            fake("b", &["source"]),
+            fake("sink", &["a", "b"]),
+        ],
+    );
+    let bound = bind(&s, &g, &reg).unwrap();
+    let dir = tempfile::tempdir().unwrap();
+    let mut ctx = RunContext::open_uncached(dir.path(), 2);
+    run(&g, &bound, &mut ctx)
+        .map(|result| result.products.len())
+        .expect_err("the misbehaving stage fails the run")
+        .to_string()
+}
+
+/// An undeclared dataset read of a released producer is reported as a read difference
+/// naming the stage, the producer and the declaration to add. The release asserts before
+/// the read returns, so the run must still fail, but with the report and not a lost panic.
+#[test]
+fn an_undeclared_dataset_read_of_a_released_product_is_reported() {
+    let text = run_diamond_with_misbehaving_a(Misbehaviour::DatasetRead);
+    assert!(
+        text.contains("1 stage(s) read differently from their declared dataflow"),
+        "{text}"
+    );
+    assert!(
+        text.contains(
+            "a read the dataset of source but its dataflow edge does not declare it; \
+             declare `gmeow:flowReadsLane gmeow:laneDataset`"
         ),
-        "{diag}"
+        "{text}"
+    );
+}
+
+/// A handle read of a released product returns nothing and the stage then fails with its
+/// own message; the undeclared read is reported beside that message, never lost with it.
+#[test]
+fn a_failing_stage_still_reports_its_undeclared_reads() {
+    let text = run_diamond_with_misbehaving_a(Misbehaviour::HandleReadThenFail);
+    assert!(
+        text.contains("https://example.org/undeclared"),
+        "the read difference is missing: {text}"
+    );
+    assert!(
+        text.contains("its own message: the product carries no such handle"),
+        "the stage's own failure is missing: {text}"
+    );
+}
+
+/// A panic in a stage body must reach the coordinator as a failure. The coordinator holds
+/// its own sender, so a worker that died without sending would leave the run waiting for
+/// ever; this test returns only if the worker delivered its result.
+#[test]
+fn a_panicking_stage_fails_the_run_instead_of_hanging_it() {
+    let text = run_diamond_with_misbehaving_a(Misbehaviour::Panic);
+    assert!(
+        text.contains("stage body panicked: deliberate stage panic"),
+        "{text}"
     );
 }
 
@@ -1716,7 +1985,11 @@ impl Stage for EntityConsumer {
     fn impl_version(&self) -> &str {
         "v1"
     }
-    fn run(&self, _input: StageInput<'_>) -> Result<StageOutput, gmeow_errors::Diag> {
+    fn run(&self, input: StageInput<'_>) -> Result<StageOutput, gmeow_errors::Diag> {
+        // The consumer reads the graphs its typed dataflow narrows it to.
+        for product in input.upstream.values() {
+            let _ = product.dataset();
+        }
         self.runs.fetch_add(1, Ordering::SeqCst);
         Ok(StageOutput::new(StageProduct::new(
             self.id.clone(),
@@ -1752,8 +2025,16 @@ fn artifact_level_invalidation_reruns_only_the_changed_graphs_consumer() {
     for st in &mut s.stages {
         if st.id == "cg1" {
             st.dataflow_entities = vec![("producer".to_string(), vec![G1.to_string()])];
+            st.reads.insert(
+                "producer".to_string(),
+                std::iter::once(crate::reads::Read::Dataset).collect(),
+            );
         } else if st.id == "cg2" {
             st.dataflow_entities = vec![("producer".to_string(), vec![G2.to_string()])];
+            st.reads.insert(
+                "producer".to_string(),
+                std::iter::once(crate::reads::Read::Dataset).collect(),
+            );
         } else if st.id == "producer" {
             // The producer attaches g1 + g2; declare them so the attach-drift check passes.
             st.attaches_graphs = vec![G1.to_string(), G2.to_string()];
@@ -1904,23 +2185,39 @@ fn persistent_stage_does_not_inspect_released_artifact_only_carriers() {
         carrier_consumes: Some(Vec::new()),
         resources: Vec::new(),
     };
-    let released = lane_product(
+    let whole = lane_product(
         "source",
         b"<https://example.org/s> <https://example.org/p> <https://example.org/o> .\n",
         true,
         true,
-    )
-    .into_carrier_released()
-    .expect("release artifact-only upstream carrier");
+    );
+    let released = whole
+        .clone()
+        .into_carrier_released()
+        .expect("release artifact-only upstream carrier");
     assert!(released.carrier_released);
+    // What the scheduler hands an artifact-only consumer: a view of the still-whole
+    // product, which carries no transport lane of its own.
+    let view = whole.consumer_artifact_view(
+        crate::reads::EdgeAccess::new("consumer", "source", crate::reads::ReadSet::new()),
+        Arc::new(std::collections::BTreeSet::new()),
+    );
+    assert!(view.carrier_released);
+    assert_eq!(
+        view.artifact_records(),
+        released.artifact_records(),
+        "the verifier sees the same artifact records through the view as through the release"
+    );
 
-    let upstream = std::collections::BTreeMap::from([("source".to_string(), released)]);
-    crate::scheduler::verify_attach_drift(
-        &stage,
-        &upstream,
-        &StageProduct::new("consumer", "empty"),
-    )
-    .expect("artifact-only inputs contribute no transport lane to bounded-unit verification");
+    for upstream_product in [released, view] {
+        let upstream = std::collections::BTreeMap::from([("source".to_string(), upstream_product)]);
+        crate::scheduler::verify_attach_drift(
+            &stage,
+            &upstream,
+            &StageProduct::new("consumer", "empty"),
+        )
+        .expect("artifact-only inputs contribute no transport lane to bounded-unit verification");
+    }
 }
 
 #[test]
@@ -1987,7 +2284,11 @@ impl Stage for AttachTestStage {
     fn impl_version(&self) -> &str {
         "v1"
     }
-    fn run(&self, _input: StageInput<'_>) -> Result<StageOutput, gmeow_errors::Diag> {
+    fn run(&self, input: StageInput<'_>) -> Result<StageOutput, gmeow_errors::Diag> {
+        // A stage that consumes a producer under a typed narrowing reads its dataset.
+        for product in input.upstream.values() {
+            let _ = product.dataset();
+        }
         match &self.attach_graph {
             Some(g) => {
                 let nq = format!("<https://example.org/s> <https://example.org/p> \"x\" <{g}> .\n");
@@ -2104,6 +2405,14 @@ fn attach_drift_honors_typed_entity_inputs() {
             "producer" => st.attaches_graphs = vec![G1.to_string(), G2.to_string()],
             "consumer" => {
                 st.dataflow_entities = vec![("producer".to_string(), vec![G1.to_string()])];
+                st.reads.insert(
+                    "producer".to_string(),
+                    std::iter::once(crate::reads::Read::Dataset).collect(),
+                );
+                st.reads.insert(
+                    "producer".to_string(),
+                    std::iter::once(crate::reads::Read::Dataset).collect(),
+                );
                 st.attaches_graphs = vec![G2.to_string()];
             }
             _ => {}
@@ -2246,6 +2555,9 @@ struct CarrierWatch {
     published: Mutex<std::collections::BTreeMap<String, std::sync::Weak<purrdf::RdfDataset>>>,
     /// stage id → the set of stage ids whose dataset was STILL LIVE when it ran.
     observed: Mutex<std::collections::BTreeMap<String, std::collections::BTreeSet<String>>>,
+    /// (consumer id, artifact path) → the address of the bytes an artifact-only consumer
+    /// read through its view, to compare with the bytes the producer's product holds.
+    artifact_reads: Mutex<std::collections::BTreeMap<(String, String), usize>>,
 }
 
 impl CarrierWatch {
@@ -2302,8 +2614,11 @@ impl Stage for CarrierStage {
     fn carrier_consumes(&self) -> &[String] {
         &self.carrier_consumes
     }
-    fn internal_artifact_reads(&self) -> &[(&'static str, &'static str)] {
-        &self.internal_reads
+    fn internal_artifact_reads(&self) -> Vec<(String, String)> {
+        self.internal_reads
+            .iter()
+            .map(|(producer, artifact)| ((*producer).to_owned(), (*artifact).to_owned()))
+            .collect()
     }
     fn capabilities(&self) -> &[String] {
         &self.capabilities
@@ -2354,23 +2669,48 @@ impl Stage for CarrierStage {
                     self.id
                 );
                 assert_eq!(
-                    up.bundle().dataset().owned_quads().count(),
+                    up.raw_bundle().dataset().owned_quads().count(),
                     0,
                     "the released product's physical tombstone carries no dataset"
                 );
+                let raw = up.raw_bundle();
+                assert!(
+                    raw.handles().is_empty()
+                        && raw.lookaside().blobs.is_empty()
+                        && raw.lookaside().resources.is_empty(),
+                    "an artifact-only view's own carrier holds no handle, blob record or \
+                     artifact resource"
+                );
+                let committed = format!("generated/retention/{dep}.txt");
                 assert_eq!(
-                    up.artifact(&format!("generated/retention/{dep}.txt")),
+                    up.artifact(&committed),
                     Some(dep.as_bytes()),
                     "artifact-only upstream {dep} keeps its committed bytes"
+                );
+                self.watch.artifact_reads.lock().unwrap().insert(
+                    (self.id.clone(), committed.clone()),
+                    up.artifact(&committed)
+                        .map_or(0, |bytes| bytes.as_ptr() as usize),
                 );
                 let internal = format!("pipeline/{dep}.nq");
                 let declared = self
                     .internal_reads
                     .iter()
                     .any(|(producer, artifact)| producer == dep && *artifact == internal);
+                // A declared internal artifact is read through the edge; an undeclared
+                // one is only inspected here, to prove the release dropped it.
+                let kept = if declared {
+                    self.watch.artifact_reads.lock().unwrap().insert(
+                        (self.id.clone(), internal.clone()),
+                        up.artifact(&internal)
+                            .map_or(0, |bytes| bytes.as_ptr() as usize),
+                    );
+                    up.artifact(&internal).is_some()
+                } else {
+                    crate::bundle::bundle_artifact(up.raw_bundle(), &internal).is_some()
+                };
                 assert_eq!(
-                    up.artifact(&internal).is_some(),
-                    declared,
+                    kept, declared,
                     "artifact-only upstream {dep} keeps internal {internal} exactly when \
                      stage {} declares the read",
                     self.id
@@ -2398,6 +2738,35 @@ impl Stage for CarrierStage {
     }
 }
 
+/// The read sets a [`CarrierStage`] with these dependencies makes: the dataset of each
+/// carrier dependency, and of each artifact-only dependency its committed artifact plus
+/// the internal artifacts it declares.
+fn carrier_stage_reads(
+    consumes: &[String],
+    carrier_consumes: &[String],
+    internal_reads: &[(&'static str, &'static str)],
+) -> std::collections::BTreeMap<String, crate::reads::ReadSet> {
+    use crate::reads::Read;
+    consumes
+        .iter()
+        .map(|dep| {
+            let reads = if carrier_consumes.contains(dep) {
+                std::iter::once(Read::Dataset).collect()
+            } else {
+                std::iter::once(Read::Artifact(format!("generated/retention/{dep}.txt")))
+                    .chain(
+                        internal_reads
+                            .iter()
+                            .filter(|(producer, _)| producer == dep)
+                            .map(|(_, artifact)| Read::Artifact((*artifact).to_owned())),
+                    )
+                    .collect()
+            };
+            (dep.clone(), reads)
+        })
+        .collect()
+}
+
 /// A four-level CHAIN — `source → a → b → late` — so each stage's last consumer sits
 /// in a different level and the retention schedule is a non-trivial function of the
 /// levelling. `late` is the only stage nothing consumes.
@@ -2415,6 +2784,11 @@ fn retention_chain() -> PipelineSpec {
         // binding parity gate remain load-bearing.
         cache_disposition: CachePolicy::Recompute,
         dataflow_entities: Vec::new(),
+        // Every chain stage reads the dataset of what it consumes.
+        reads: {
+            let consumes: Vec<String> = consumes.iter().map(|s| s.to_string()).collect();
+            carrier_stage_reads(&consumes, &consumes, &[])
+        },
         formats: Vec::new(),
         attaches_graphs: vec![watch_graph(id)],
         attaches_blob_reps: Vec::new(),
@@ -2513,6 +2887,7 @@ fn artifact_only_pair(internal_reads: Vec<(&'static str, &'static str)>) -> Arti
         .unwrap()
         .clone();
     late.consumes = vec!["source".to_string()];
+    late.reads = carrier_stage_reads(&late.consumes, &[], &internal_reads);
     let spec = PipelineSpec {
         id: "artifact-only-retention".to_string(),
         stages: vec![source, late],
@@ -2581,11 +2956,10 @@ fn artifact_only_dependency_releases_at_the_producers_own_level() {
     );
 }
 
-/// An artifact-only consumer receives a released product, so an internal artifact it
-/// reads reaches it only when it declares the read. The declared bytes survive both the
-/// release at dispatch and the producer's own release, under either retention policy;
-/// the undeclared case is the previous test, where the consumer asserts the artifact is
-/// absent.
+/// An artifact-only consumer is served an internal artifact only when it declares the
+/// read. The declared bytes reach it whether the producer is whole or was released, and
+/// survive the producer's own release, under either retention policy; the undeclared
+/// case is the previous test, where the consumer asserts the artifact is absent.
 #[test]
 fn a_declared_internal_read_survives_every_release_of_its_producer() {
     for retention in [
@@ -2607,25 +2981,43 @@ fn a_declared_internal_read_survives_every_release_of_its_producer() {
     }
 }
 
-/// Binding refuses an internal-artifact declaration that names a committed artifact,
-/// or a producer that is not an artifact-only dependency.
+/// Handing a product to an artifact-only consumer copies no byte: the consumer reads the
+/// producer's committed and declared internal artifacts at the very address the
+/// producer's product holds, whether that product was still whole when the consumer was
+/// dispatched (the default retention) or already swapped for its residue (the producer
+/// has no carrier reader, so it is released as soon as it is published).
 #[test]
-fn binding_refuses_a_misdeclared_internal_read() {
-    for (reads, expected) in [
-        (
-            vec![("source", "generated/retention/source.txt")],
-            "is a committed artifact",
-        ),
-        (
-            vec![("elsewhere", "pipeline/source.nq")],
-            "not one of its artifact-only dependencies",
-        ),
+fn an_artifact_only_consumer_reads_the_producers_own_bytes() {
+    for retention in [
+        crate::scheduler::CarrierRetention::RetainAll,
+        crate::scheduler::CarrierRetention::DropAfterLastConsumer,
     ] {
-        let Err(error) = artifact_only_pair(reads).bound else {
-            panic!("binding must refuse a misdeclared internal read");
-        };
-        let message = error.to_string();
-        assert!(message.contains(expected), "{message}");
+        let ArtifactOnlyPair {
+            graph,
+            bound,
+            watch,
+        } = artifact_only_pair(vec![("source", "pipeline/source.nq")]);
+        let bound = bound.expect("a declared internal read binds");
+        let dir = tempfile::tempdir().unwrap();
+        let mut ctx = RunContext::open_uncached(dir.path(), 2);
+        ctx.carrier_retention = retention;
+        let result = run(&graph, &bound, &mut ctx).expect("the declared read is served");
+        let source = &result.products["source"];
+        assert_eq!(
+            source.carrier_released,
+            retention == crate::scheduler::CarrierRetention::DropAfterLastConsumer
+        );
+        let reads = watch.artifact_reads.lock().unwrap();
+        for path in ["generated/retention/source.txt", "pipeline/source.nq"] {
+            let held = source
+                .artifact(path)
+                .expect("the producer holds the artifact");
+            assert_eq!(
+                reads.get(&("late".to_owned(), path.to_owned())).copied(),
+                Some(held.as_ptr() as usize),
+                "{path} under {retention:?}: the consumer read a copy, not the producer's bytes"
+            );
+        }
     }
 }
 

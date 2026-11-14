@@ -7,12 +7,10 @@
 //!
 //! Each attaching stage's [`Stage::attaches_graphs`](crate::node::Stage::attaches_graphs)
 //! / [`Stage::attaches_blob_reps`](crate::node::Stage::attaches_blob_reps) returns a
-//! slice from this one table (keyed by stage id), and
-//! [`crate::run::full_spec`] fills the `StageSpec` attach fields from the SAME bound
-//! impls — so the Rust side has a single definition. The slice `module.ttl` mirrors
-//! it with `gmeow:attachesGraph` / `gmeow:attachesBlobRep` triples, and the dogfooding
-//! parity gate (`tests/dag_dogfood.rs`, via `bind`) proves the two never diverge
-//! (Rust/RDF agreement, HARD-fail on mismatch).
+//! slice from this one table (keyed by stage id), so the Rust side has a single
+//! definition. The slice `module.ttl` mirrors it with `gmeow:attachesGraph` /
+//! `gmeow:attachesBlobRep` triples, and [`crate::bind`] refuses a stage whose
+//! implementation and description disagree (Rust/RDF agreement, HARD-fail on mismatch).
 //!
 //! **A stage's attach set = its DELTA** — the named graphs / content-identified blob-rep
 //! records present in its OUTPUT product bundle but NOT in its effective INPUT. Named

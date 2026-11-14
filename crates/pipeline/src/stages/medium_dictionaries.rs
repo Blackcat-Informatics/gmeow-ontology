@@ -454,7 +454,6 @@ pub(crate) fn envelope_quads(
 pub struct MediumDictionariesStage {
     profile: crate::run::BuildProfile,
     consumes: Vec<String>,
-    carrier_consumes: Vec<String>,
     attaches_graphs: Vec<String>,
     resources: Vec<String>,
 }
@@ -468,14 +467,8 @@ impl MediumDictionariesStage {
         Self {
             profile,
             consumes: CONSUMES.iter().map(|s| (*s).to_string()).collect(),
-            // Archive bytes live on the archive producer's representation-blob lane,
-            // and declarations/named-graph samples live on the snapshot dataset. The
-            // reason and statements inputs contribute committed generated/* artifacts
-            // only, so their multi-million-quad datasets may be released earlier.
-            carrier_consumes: vec![
-                "stage-archive-blobs".to_string(),
-                "stage-snapshot".to_string(),
-            ],
+            // Which consumed products keep a live carrier for this stage is declared
+            // on its `gmeow:BuildDataFlow` edges in the pipeline slice, not here.
             attaches_graphs: crate::stages::attach::graphs(STAGE_ID).to_vec(),
             // Named-graph corpus resolution canonicalizes a carrier-scale selection
             // and dictionary training materializes compressed candidates. That live
@@ -496,9 +489,6 @@ impl Stage for MediumDictionariesStage {
     }
     fn consumes(&self) -> &[String] {
         &self.consumes
-    }
-    fn carrier_consumes(&self) -> &[String] {
-        &self.carrier_consumes
     }
     fn attaches_graphs(&self) -> &[String] {
         &self.attaches_graphs

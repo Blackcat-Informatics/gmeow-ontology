@@ -62,3 +62,24 @@ fn pipeline_handle_logic_carries_the_compiled_program() {
     let h = PipelineHandle::Logic(program);
     assert!(matches!(h, PipelineHandle::Logic(_)));
 }
+
+/// The predicate of the filtered lane copy is asked only about complete entries, and an
+/// entry it refuses is not returned (and so never cloned): the unserved name is offered
+/// to the predicate by name only, never its bytes.
+#[test]
+fn the_filtered_lane_copy_returns_only_the_entries_the_predicate_accepts() {
+    let artifacts = arts(&[("generated/a", b"a"), ("pipeline/big", b"big")]);
+    let bundle = bundle_from_artifacts(artifacts, DatasetProvenance::new());
+    let mut asked = Vec::new();
+    let lane = bundle_artifacts_where(&bundle, |path| {
+        asked.push(path.to_owned());
+        !path.starts_with("pipeline/")
+    });
+    assert_eq!(lane, arts(&[("generated/a", b"a")]));
+    assert_eq!(asked, ["generated/a", "pipeline/big"]);
+    assert_eq!(
+        bundle_artifacts(&bundle).len(),
+        2,
+        "the wrapper accepts everything"
+    );
+}
