@@ -865,11 +865,10 @@ fn expression_identity_edges_reach_the_closure_from_an_owned_edb() {
     let domains = SelectedDomains::new([SelectedLogicalWorld::new(
         LogicalGraph::Named(purrdf::TermValue::iri("urn:selected-theory")),
         DomainProfile::NonemptyObjectDomainV1,
-        "gmeow.pipeline.test.selected-theory.v1".to_owned(),
-        *purrdf_hash::blake3::hash(
-            b"gmeow.pipeline.test.selected-theory.v1/urn:selected-theory/nonempty-object-domain-v1",
-        )
-        .as_bytes(),
+        "gmeow.pipeline.test.expression-identity".to_owned(),
+        *prepare_reasoning_input(source.as_ref())
+            .unwrap()
+            .ingress_contract(),
     )
     .unwrap()])
     .unwrap();
