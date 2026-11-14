@@ -660,12 +660,12 @@ fn the_carrier_refuses_an_empty_base_or_statement_layer() {
     );
 }
 
-/// The sink reads its artifact-only dependencies as released products. Every internal
-/// artifact the reasoning archive folds must be among the internal reads the pipeline
-/// slice declares on the sink's edges (read here off the stage the scheduler runs), or the
-/// release drops it and the terminal fails after the whole build. Released with the
-/// slice's declarations, the producers still supply the archive; released without them,
-/// they do not. Removing a `gmeow:flowReadsArtifact` of the sink that the reasoning
+/// The sink reads its artifact-only dependencies through artifact-lane views. Every
+/// internal artifact the reasoning archive folds must be among the internal reads the
+/// pipeline slice declares on the sink's edges (read here off the stage the scheduler
+/// runs), or the view does not serve it and the terminal fails after the whole build.
+/// Viewed with the slice's declarations, the producers still supply the archive; viewed
+/// without them, they do not. Removing a `gmeow:flowReadsArtifact` of the sink that the reasoning
 /// archive folds fails here.
 #[test]
 fn the_sink_declares_every_internal_artifact_its_reasoning_archive_reads() {
@@ -697,16 +697,20 @@ fn the_sink_declares_every_internal_artifact_its_reasoning_archive_reads() {
                         && !sink.carrier_consumes().iter().any(|edge| edge == producer),
                     "{producer} is an artifact-only dependency of the sink"
                 );
-                let kept: std::collections::BTreeSet<&str> = declared
+                let kept: std::collections::BTreeSet<String> = declared
                     .iter()
                     .filter(|(owner, _)| keep && owner == producer)
-                    .map(|(_, artifact)| artifact.as_str())
+                    .map(|(_, artifact)| artifact.clone())
                     .collect();
-                let product = StageProduct::from_artifacts(*producer, artifacts.clone())
+                let edge = crate::reads::EdgeAccess::new(
+                    sink.id(),
+                    producer,
+                    crate::reads::ReadSet::new(),
+                );
+                let view = StageProduct::from_artifacts(*producer, artifacts.clone())
                     .expect("synthetic product")
-                    .into_carrier_released_keeping(&kept)
-                    .expect("release");
-                ((*producer).to_owned(), product)
+                    .consumer_artifact_view(edge, std::sync::Arc::new(kept));
+                ((*producer).to_owned(), view)
             })
             .collect()
     };

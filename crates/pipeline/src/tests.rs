@@ -2185,23 +2185,39 @@ fn persistent_stage_does_not_inspect_released_artifact_only_carriers() {
         carrier_consumes: Some(Vec::new()),
         resources: Vec::new(),
     };
-    let released = lane_product(
+    let whole = lane_product(
         "source",
         b"<https://example.org/s> <https://example.org/p> <https://example.org/o> .\n",
         true,
         true,
-    )
-    .into_carrier_released()
-    .expect("release artifact-only upstream carrier");
+    );
+    let released = whole
+        .clone()
+        .into_carrier_released()
+        .expect("release artifact-only upstream carrier");
     assert!(released.carrier_released);
+    // What the scheduler hands an artifact-only consumer: a view of the still-whole
+    // product, which carries no transport lane of its own.
+    let view = whole.consumer_artifact_view(
+        crate::reads::EdgeAccess::new("consumer", "source", crate::reads::ReadSet::new()),
+        Arc::new(std::collections::BTreeSet::new()),
+    );
+    assert!(view.carrier_released);
+    assert_eq!(
+        view.artifact_records(),
+        released.artifact_records(),
+        "the verifier sees the same artifact records through the view as through the release"
+    );
 
-    let upstream = std::collections::BTreeMap::from([("source".to_string(), released)]);
-    crate::scheduler::verify_attach_drift(
-        &stage,
-        &upstream,
-        &StageProduct::new("consumer", "empty"),
-    )
-    .expect("artifact-only inputs contribute no transport lane to bounded-unit verification");
+    for upstream_product in [released, view] {
+        let upstream = std::collections::BTreeMap::from([("source".to_string(), upstream_product)]);
+        crate::scheduler::verify_attach_drift(
+            &stage,
+            &upstream,
+            &StageProduct::new("consumer", "empty"),
+        )
+        .expect("artifact-only inputs contribute no transport lane to bounded-unit verification");
+    }
 }
 
 #[test]
@@ -2539,6 +2555,9 @@ struct CarrierWatch {
     published: Mutex<std::collections::BTreeMap<String, std::sync::Weak<purrdf::RdfDataset>>>,
     /// stage id → the set of stage ids whose dataset was STILL LIVE when it ran.
     observed: Mutex<std::collections::BTreeMap<String, std::collections::BTreeSet<String>>>,
+    /// (consumer id, artifact path) → the address of the bytes an artifact-only consumer
+    /// read through its view, to compare with the bytes the producer's product holds.
+    artifact_reads: Mutex<std::collections::BTreeMap<(String, String), usize>>,
 }
 
 impl CarrierWatch {
@@ -2654,10 +2673,24 @@ impl Stage for CarrierStage {
                     0,
                     "the released product's physical tombstone carries no dataset"
                 );
+                let raw = up.raw_bundle();
+                assert!(
+                    raw.handles().is_empty()
+                        && raw.lookaside().blobs.is_empty()
+                        && raw.lookaside().resources.is_empty(),
+                    "an artifact-only view's own carrier holds no handle, blob record or \
+                     artifact resource"
+                );
+                let committed = format!("generated/retention/{dep}.txt");
                 assert_eq!(
-                    up.artifact(&format!("generated/retention/{dep}.txt")),
+                    up.artifact(&committed),
                     Some(dep.as_bytes()),
                     "artifact-only upstream {dep} keeps its committed bytes"
+                );
+                self.watch.artifact_reads.lock().unwrap().insert(
+                    (self.id.clone(), committed.clone()),
+                    up.artifact(&committed)
+                        .map_or(0, |bytes| bytes.as_ptr() as usize),
                 );
                 let internal = format!("pipeline/{dep}.nq");
                 let declared = self
@@ -2667,6 +2700,11 @@ impl Stage for CarrierStage {
                 // A declared internal artifact is read through the edge; an undeclared
                 // one is only inspected here, to prove the release dropped it.
                 let kept = if declared {
+                    self.watch.artifact_reads.lock().unwrap().insert(
+                        (self.id.clone(), internal.clone()),
+                        up.artifact(&internal)
+                            .map_or(0, |bytes| bytes.as_ptr() as usize),
+                    );
                     up.artifact(&internal).is_some()
                 } else {
                     crate::bundle::bundle_artifact(up.raw_bundle(), &internal).is_some()
@@ -2918,11 +2956,10 @@ fn artifact_only_dependency_releases_at_the_producers_own_level() {
     );
 }
 
-/// An artifact-only consumer receives a released product, so an internal artifact it
-/// reads reaches it only when it declares the read. The declared bytes survive both the
-/// release at dispatch and the producer's own release, under either retention policy;
-/// the undeclared case is the previous test, where the consumer asserts the artifact is
-/// absent.
+/// An artifact-only consumer is served an internal artifact only when it declares the
+/// read. The declared bytes reach it whether the producer is whole or was released, and
+/// survive the producer's own release, under either retention policy; the undeclared
+/// case is the previous test, where the consumer asserts the artifact is absent.
 #[test]
 fn a_declared_internal_read_survives_every_release_of_its_producer() {
     for retention in [
@@ -2940,6 +2977,46 @@ fn a_declared_internal_read_survives_every_release_of_its_producer() {
             let source = &result.products["source"];
             assert!(source.carrier_released);
             assert!(source.artifact("pipeline/source.nq").is_some());
+        }
+    }
+}
+
+/// Handing a product to an artifact-only consumer copies no byte: the consumer reads the
+/// producer's committed and declared internal artifacts at the very address the
+/// producer's product holds, whether that product was still whole when the consumer was
+/// dispatched (the default retention) or already swapped for its residue (the producer
+/// has no carrier reader, so it is released as soon as it is published).
+#[test]
+fn an_artifact_only_consumer_reads_the_producers_own_bytes() {
+    for retention in [
+        crate::scheduler::CarrierRetention::RetainAll,
+        crate::scheduler::CarrierRetention::DropAfterLastConsumer,
+    ] {
+        let ArtifactOnlyPair {
+            graph,
+            bound,
+            watch,
+        } = artifact_only_pair(vec![("source", "pipeline/source.nq")]);
+        let bound = bound.expect("a declared internal read binds");
+        let dir = tempfile::tempdir().unwrap();
+        let mut ctx = RunContext::open_uncached(dir.path(), 2);
+        ctx.carrier_retention = retention;
+        let result = run(&graph, &bound, &mut ctx).expect("the declared read is served");
+        let source = &result.products["source"];
+        assert_eq!(
+            source.carrier_released,
+            retention == crate::scheduler::CarrierRetention::DropAfterLastConsumer
+        );
+        let reads = watch.artifact_reads.lock().unwrap();
+        for path in ["generated/retention/source.txt", "pipeline/source.nq"] {
+            let held = source
+                .artifact(path)
+                .expect("the producer holds the artifact");
+            assert_eq!(
+                reads.get(&("late".to_owned(), path.to_owned())).copied(),
+                Some(held.as_ptr() as usize),
+                "{path} under {retention:?}: the consumer read a copy, not the producer's bytes"
+            );
         }
     }
 }

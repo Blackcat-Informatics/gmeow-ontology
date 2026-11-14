@@ -157,16 +157,21 @@ pub struct StageProduct {
     /// Whether this product's CARRIER has been released (drop-after-last-consumer).
     ///
     /// `false` for every product a stage emits and for every product the cache serves.
-    /// The scheduler sets it — and replaces `bundle` with
+    /// The scheduler sets it on the product it holds — and replaces `bundle` with
     /// [`release_carrier`](crate::bundle::release_carrier)'s residue (the committed
-    /// byte-artifact lane only, plus the internal artifacts a consumer declares) — in two
-    /// cases. Under
+    /// byte-artifact lane only, plus the internal artifacts a consumer declares) — under
     /// [`CarrierRetention::DropAfterLastConsumer`](crate::scheduler::CarrierRetention),
     /// once the LAST stage whose dataflow edge from this one declares a carrier read has
-    /// run (the edge reads declared in the pipeline slice, see [`crate::reads`]). Under
-    /// the enforcing read policy, whatever the retention, when the product is handed to
-    /// a consumer whose edge declares no carrier read; the recording policy hands every
-    /// product over unreleased.
+    /// run and no artifact-only view of it is still in flight (the edge reads declared in
+    /// the pipeline slice, see [`crate::reads`]).
+    ///
+    /// It is also `true` on the view a consumer receives over an edge that declares no
+    /// carrier read, under the enforcing read policy and whatever the retention. That
+    /// view's own `bundle` is empty, and it serves the producer's byte-artifact lane by
+    /// reference (see [`Self::consumer_artifact_view`]); nothing is copied, and the
+    /// producer's product is not changed. The recording policy hands every product over
+    /// whole.
+    ///
     /// `digest` is preserved verbatim across the release: it is the identity witness of
     /// the carrier that was released, so `combined()` is byte-identical either way.
     ///
@@ -184,6 +189,31 @@ pub struct StageProduct {
     /// `dataset_arc`, `artifact`, `artifacts`, `artifact_refs`, `span_index`), to be
     /// compared with the edge's declared read set when the stage returns.
     access: Option<Arc<crate::reads::EdgeAccess>>,
+    /// Set on the view a consumer receives over an edge that declares no carrier read:
+    /// the producer's carrier, shared by reference, of which only the byte-artifact lane
+    /// is served. `bundle` is then an empty carrier.
+    lane: Option<ArtifactLane>,
+}
+
+/// The producer's carrier as an artifact-only consumer sees it: shared, never copied, and
+/// served only through the artifact accessors.
+///
+/// It serves the committed byte artifacts and the internal `pipeline/` artifacts some
+/// consumer of the run declares (`kept`), which is exactly the lane
+/// [`release_carrier`](crate::bundle::release_carrier) keeps. Everything else in the
+/// shared carrier (dataset, handles, blob records, provenance, any other internal
+/// artifact) is invisible through the view.
+#[derive(Debug, Clone)]
+struct ArtifactLane {
+    source: Arc<PipelineBundle<PipelineHandle>>,
+    kept: Arc<std::collections::BTreeSet<String>>,
+}
+
+impl ArtifactLane {
+    /// Whether the lane serves the artifact at `path`.
+    fn serves(&self, path: &str) -> bool {
+        !crate::reads::is_internal_artifact(path) || self.kept.contains(path)
+    }
 }
 
 /// Encode one producer-owned diagnostic contribution, including an empty one.
@@ -210,6 +240,7 @@ impl StageProduct {
             carrier_released: false,
             handle_commitments: BTreeMap::new(),
             access: None,
+            lane: None,
         }
     }
 
@@ -268,6 +299,7 @@ impl StageProduct {
             carrier_released: false,
             handle_commitments,
             access: None,
+            lane: None,
         })
     }
 
@@ -306,6 +338,7 @@ impl StageProduct {
             carrier_released: true,
             handle_commitments: self.handle_commitments,
             access: self.access,
+            lane: self.lane,
         })
     }
 
@@ -333,6 +366,70 @@ impl StageProduct {
             access: Some(access),
             ..self.clone()
         }
+    }
+
+    /// This product as a consumer whose edge declares no carrier read may read it, with
+    /// no byte copied: an empty carrier flagged [`Self::carrier_released`], and the
+    /// producer's own carrier shared by reference behind the artifact accessors alone.
+    ///
+    /// The accessors serve the committed byte artifacts and the internal artifacts named
+    /// in `kept`, which is the lane [`release_carrier`](crate::bundle::release_carrier)
+    /// would have left. The dataset, typed handles, blob records, provenance and every
+    /// other internal artifact are invisible, so the view reads the same whether the
+    /// producer's carrier is still whole or was already released. `stage_id`, `digest`
+    /// and the handle commitments are the producer's, unchanged.
+    #[must_use]
+    pub(crate) fn consumer_artifact_view(
+        &self,
+        access: Arc<crate::reads::EdgeAccess>,
+        kept: Arc<std::collections::BTreeSet<String>>,
+    ) -> Self {
+        Self {
+            stage_id: self.stage_id.clone(),
+            digest: self.digest.clone(),
+            bundle: Arc::new(bundle_from_artifacts(
+                BTreeMap::new(),
+                DatasetProvenance::new(),
+            )),
+            carrier_released: true,
+            handle_commitments: self.handle_commitments.clone(),
+            access: Some(access),
+            lane: Some(ArtifactLane {
+                source: Arc::clone(&self.bundle),
+                kept,
+            }),
+        }
+    }
+
+    /// The `(logical path → content digests)` of the byte-artifact resources this view
+    /// carries, without recording a read: the lane an artifact-only consumer is served, or
+    /// every lookaside resource of an ordinary product. For the attach verifier.
+    pub(crate) fn artifact_records(&self) -> BTreeMap<String, std::collections::BTreeSet<String>> {
+        if let Some(lane) = &self.lane {
+            return crate::bundle::artifact_lane_records(&lane.source, |path| lane.serves(path));
+        }
+        let mut records: BTreeMap<String, std::collections::BTreeSet<String>> = BTreeMap::new();
+        for resource in &self.bundle.lookaside().resources {
+            if let (Some(name), Some(digest)) = (&resource.name, &resource.content_digest) {
+                records
+                    .entry(name.clone())
+                    .or_default()
+                    .insert(digest.clone());
+            }
+        }
+        records
+    }
+
+    /// Whether the artifact lane this product serves includes `path`: every artifact of
+    /// an ordinary product, the committed and kept ones of an artifact-only view.
+    fn lane_serves(&self, path: &str) -> bool {
+        self.lane.as_ref().is_none_or(|lane| lane.serves(path))
+    }
+
+    /// The carrier the artifact accessors read: the shared producer carrier behind an
+    /// artifact-only view, otherwise this product's own.
+    fn artifact_source(&self) -> &Arc<PipelineBundle<PipelineHandle>> {
+        self.lane.as_ref().map_or(&self.bundle, |lane| &lane.source)
     }
 
     /// Borrow the carrier without recording a read: for the scheduler, the cache and the
@@ -407,7 +504,10 @@ impl StageProduct {
     /// The bytes of one named byte-artifact-lane entry by logical path.
     pub fn artifact(&self, logical_path: &str) -> Option<&[u8]> {
         self.record(crate::reads::Read::Artifact(logical_path.to_owned()));
-        bundle_artifact(&self.bundle, logical_path)
+        if !self.lane_serves(logical_path) {
+            return None;
+        }
+        bundle_artifact(self.artifact_source(), logical_path)
     }
 
     /// The full `(logical_path → bytes)` map of this product's byte-artifact lane,
@@ -420,8 +520,8 @@ impl StageProduct {
     /// artifact returned is recorded as a read of that artifact.
     pub fn artifacts(&self) -> BTreeMap<String, Vec<u8>> {
         self.record(crate::reads::Read::AllArtifacts);
-        let mut lane = bundle_artifacts(&self.bundle);
-        lane.retain(|path, _| self.lane_visible(path));
+        let mut lane = bundle_artifacts(self.artifact_source());
+        lane.retain(|path, _| self.lane_serves(path) && self.lane_visible(path));
         lane
     }
 
@@ -455,8 +555,8 @@ impl StageProduct {
     /// The carrier's byte-artifact lane is structurally corrupt.
     pub fn artifact_refs(&self) -> Result<BTreeMap<&str, &[u8]>, gmeow_errors::Diag> {
         self.record(crate::reads::Read::AllArtifacts);
-        let mut lane = bundle_artifact_refs(&self.bundle)?;
-        lane.retain(|path, _| self.lane_visible(path));
+        let mut lane = bundle_artifact_refs(self.artifact_source())?;
+        lane.retain(|path, _| self.lane_serves(path) && self.lane_visible(path));
         Ok(lane)
     }
 
@@ -710,8 +810,11 @@ pub trait Stage: Send + Sync {
     /// artifact-access authority. This executable transport-use refinement says which
     /// of those already-declared products must still retain its dataset, typed handles,
     /// representation blobs, provenance, or internal `pipeline/` artifacts when this
-    /// stage runs. An edge absent here is artifact-only: the committed logical-artifact
-    /// lane survives carrier release and remains available through the same dependency.
+    /// stage runs. An edge absent here is artifact-only: the consumer is handed a view that
+    /// shares the producer's carrier by reference and serves only the committed
+    /// logical-artifact lane and the internal artifacts consumers declare, so the lane
+    /// remains available through the same dependency whether or not the producer's
+    /// carrier has been released.
     ///
     /// The default is every dependency, which is what a hand-written stage (a test fake)
     /// gets. The stages of the production pipeline are run as the loader's bound stage,

@@ -71,7 +71,9 @@ fn retention_follows_the_declared_lanes() {
 }
 
 /// A product with one committed and two internal artifacts, as one consumer sees it
-/// under `declared`, released the way the scheduler releases it for that declaration.
+/// under `declared`: the artifact-lane view the scheduler hands an edge that declares no
+/// carrier read when `released`, the whole product the recording policy hands over
+/// otherwise.
 fn consumer_view_of(
     declared: &ReadSet,
     released: bool,
@@ -85,16 +87,14 @@ fn consumer_view_of(
         ]),
     )
     .expect("synthetic product");
-    let product = if released {
-        let kept: BTreeSet<&str> = internal_artifacts(declared).collect();
-        product
-            .into_carrier_released_keeping(&kept)
-            .expect("release")
-    } else {
-        product
-    };
     let edge = EdgeAccess::new("stage-b", "stage-a", declared.clone());
-    (product.consumer_view(Arc::clone(&edge)), edge)
+    let view = if released {
+        let kept: BTreeSet<String> = internal_artifacts(declared).map(str::to_owned).collect();
+        product.consumer_artifact_view(Arc::clone(&edge), Arc::new(kept))
+    } else {
+        product.consumer_view(Arc::clone(&edge))
+    };
+    (view, edge)
 }
 
 /// An internal artifact the edge names is kept through the release and readable, and the

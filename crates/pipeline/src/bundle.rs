@@ -161,9 +161,11 @@ pub const INTERNAL_ARTIFACT_PREFIX: &str = "pipeline/";
 /// artifacts that consumers declare they read
 /// ([`crate::node::Stage::internal_artifact_reads`]); without it they would receive a
 /// product that silently lacks them. The scheduler calls this when a product's exact
-/// remaining carrier-reader count reaches zero, and also, under the enforcing read
-/// policy, when it hands a product to an artifact-only consumer (one whose edge declares
-/// no carrier read); the resulting product is a TOMBSTONE —
+/// remaining carrier-reader count reaches zero and no artifact-only view of it is in
+/// flight. It copies the surviving lane once, which is why a consumer whose edge declares
+/// no carrier read is not handed a result of this function: it is handed a view that
+/// serves the same lane by reference (`StageProduct::consumer_artifact_view`). The
+/// resulting product is a TOMBSTONE —
 /// [`StageProduct::carrier_released`](crate::node::StageProduct::carrier_released) is
 /// set and the product keeps its ORIGINAL `digest`, because the digest is the identity
 /// witness of the carrier that was released, not a fold over this residue.
@@ -533,6 +535,27 @@ pub fn bundle_artifact_refs(
         }
     }
     Ok(out)
+}
+
+/// The `(logical path → content digests)` of the byte-artifact lane entries of `bundle`
+/// whose logical path `serves` accepts: the identities [`release_carrier`] would keep, read
+/// without building the residue.
+pub(crate) fn artifact_lane_records(
+    bundle: &PipelineBundle<PipelineHandle>,
+    serves: impl Fn(&str) -> bool,
+) -> BTreeMap<String, std::collections::BTreeSet<String>> {
+    let mut records: BTreeMap<String, std::collections::BTreeSet<String>> = BTreeMap::new();
+    for resource in bundle.lookaside().resources_of_kind(ARTIFACT_KIND) {
+        if let (Some(name), Some(digest)) = (&resource.name, &resource.content_digest)
+            && serves(name)
+        {
+            records
+                .entry(name.clone())
+                .or_default()
+                .insert(digest.clone());
+        }
+    }
+    records
 }
 
 /// Replace a bundle's provenance sidecar with `provenance` in place, cloning the

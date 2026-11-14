@@ -317,7 +317,10 @@ a named-graph narrowing) are the carrier readers; the loader derives that set fr
 the declarations, so it is always contained in `dataflowConsumes` and cannot create
 a shadow DAG. A producer's carrier is therefore *provably dead* once its last
 declared carrier reader has run, or immediately after production when every later
-reader is artifact-only. Internal `pipeline/` artifacts that any consumer declares
+reader is artifact-only. A consumer whose edge declares no carrier read is handed a view
+that shares the producer's carrier by reference and serves only the committed artifacts
+and the internal ones consumers declare, so no byte is copied for it; the carrier is not
+swapped for its residue while such a view is in flight. Internal `pipeline/` artifacts that any consumer declares
 (`gmeow:flowReadsArtifact`) are kept through every release of their producer until
 the run ends. The
 whole-repository build **releases** the carrier at that point — the dataset, typed

@@ -625,6 +625,15 @@ pub fn run_without(
             kept_internal.entry(producer).or_default().insert(artifact);
         }
     }
+    // The same names, shared by every artifact-lane view of that producer.
+    let kept_shared: BTreeMap<String, Arc<BTreeSet<String>>> = kept_internal
+        .iter()
+        .map(|(producer, kept)| (producer.clone(), Arc::new(kept.clone())))
+        .collect();
+    // The artifact-lane views of each producer's product that are in flight. A producer's
+    // carrier is not swapped for its residue while one is, so no second copy of the lane
+    // sits beside the one the view reads.
+    let mut artifact_views_in_flight: BTreeMap<String, usize> = BTreeMap::new();
     let kept_for = |producer: &str| -> BTreeSet<&str> {
         kept_internal
             .get(producer)
@@ -713,11 +722,12 @@ pub fn run_without(
                 let stage = Arc::clone(by_id[stage_id.as_str()]);
                 let resources = stage.resources().to_vec();
                 active_resources.extend(resources.iter().cloned());
-                let carrier_inputs: BTreeSet<&str> = stage
-                    .carrier_consumes()
-                    .iter()
-                    .map(String::as_str)
-                    .collect();
+                let lane_producers = artifact_lane_producers(stage.as_ref(), read_policy);
+                for producer in &lane_producers {
+                    *artifact_views_in_flight
+                        .entry(producer.clone())
+                        .or_default() += 1;
+                }
                 let declared_reads = stage.reads();
                 let upstream = stage
                     .consumes()
@@ -730,21 +740,6 @@ pub fn run_without(
                                 message: format!("missing published upstream product {producer}"),
                             })
                         })?;
-                        // Artifact-only edges never need to retain a live carrier Arc in
-                        // their worker snapshot. Preserve the producer identity and
-                        // committed artifact lane while releasing transport state before
-                        // dispatch.
-                        // Recording learns what a stage body reads, so every consumed
-                        // product is handed over without releasing its carrier. The
-                        // whole-lane artifact accessors still return only committed
-                        // artifacts and the internal ones the edge already names.
-                        let whole = read_policy == crate::reads::ReadPolicy::Record
-                            || carrier_inputs.contains(producer.as_str());
-                        let product = if whole {
-                            product
-                        } else {
-                            product.into_carrier_released_keeping(&kept_for(producer))?
-                        };
                         // The consumer receives a view of the product that records each
                         // access made through the lane accessors, to be compared with
                         // what its dataflow edge declares when the stage returns.
@@ -753,7 +748,24 @@ pub fn run_without(
                             producer,
                             declared_reads.get(producer).cloned().unwrap_or_default(),
                         );
-                        Ok::<_, gmeow_errors::Diag>((producer.clone(), product.consumer_view(edge)))
+                        // An edge that declares no carrier read is handed a view that
+                        // shares the producer's carrier by reference and serves only its
+                        // byte-artifact lane (the committed artifacts and the internal
+                        // ones consumers declare); no byte is copied, and the view reads
+                        // the same whether the producer is still whole or already
+                        // released. Recording learns what a stage body reads, so it hands
+                        // every product over whole; the whole-lane artifact accessors
+                        // still return only committed artifacts and the internal ones the
+                        // edge already names.
+                        let view = if lane_producers.contains(producer) {
+                            product.consumer_artifact_view(
+                                edge,
+                                kept_shared.get(producer).cloned().unwrap_or_default(),
+                            )
+                        } else {
+                            product.consumer_view(edge)
+                        };
+                        Ok::<_, gmeow_errors::Diag>((producer.clone(), view))
                     })
                     .collect::<Result<BTreeMap<_, _>, _>>()?;
                 if let Some(progress) = progress.as_deref() {
@@ -791,6 +803,9 @@ pub fn run_without(
                             ),
                         );
                     }
+                    // The views end here, before the coordinator learns the stage is done
+                    // and may swap a producer's carrier for its residue.
+                    drop(upstream);
                     // The coordinator outlives every scoped worker. A disconnected
                     // receiver therefore means the scope is already unwinding.
                     let _ = tx.send((stage_id, resources, result, dispatched_edges));
@@ -821,6 +836,17 @@ pub fn run_without(
             active -= 1;
             for resource in resources {
                 active_resources.remove(&resource);
+            }
+            // This stage's artifact-lane views ended with it, whether it returned or
+            // failed.
+            for producer in artifact_lane_producers(by_id[stage_id.as_str()].as_ref(), read_policy)
+            {
+                let in_flight = artifact_views_in_flight
+                    .get_mut(&producer)
+                    .expect("a dispatched artifact-lane view was counted");
+                *in_flight = in_flight
+                    .checked_sub(1)
+                    .expect("a completed artifact-lane view was counted");
             }
 
             let mut run = match result {
@@ -960,35 +986,44 @@ pub fn run_without(
                 }
 
                 if carrier_retention == CarrierRetention::DropAfterLastConsumer {
-                    for producer in carrier_inputs {
+                    for producer in &carrier_inputs {
                         let remaining = remaining_carrier_readers
-                            .get_mut(&producer)
+                            .get_mut(producer)
                             .expect("carrier producer has a counted reader");
                         *remaining = remaining
                             .checked_sub(1)
                             .expect("completed carrier reader was counted");
-                        if *remaining == 0
-                            && !retained_carriers.contains(&producer)
-                            && let Some(product) = products.remove(&producer)
-                        {
-                            let kept = kept_for(&producer);
-                            products
-                                .insert(producer, product.into_carrier_released_keeping(&kept)?);
-                        }
                     }
-                    if logically_consumed.contains(&stage_id)
-                        && remaining_carrier_readers
-                            .get(&stage_id)
-                            .copied()
-                            .unwrap_or(0)
-                            == 0
-                        && !retained_carriers.contains(&stage_id)
-                        && let Some(product) = products.remove(&stage_id)
-                    {
-                        products.insert(
-                            stage_id.clone(),
-                            product.into_carrier_released_keeping(&kept_for(&stage_id))?,
-                        );
+                    // A producer's carrier is swapped for its residue once no carrier
+                    // reader is left and no artifact-lane view of it is in flight. The
+                    // three things that can make that true are this stage finishing its
+                    // last carrier read of the producer, finishing the last view of it,
+                    // and the producer itself having just been published.
+                    let mut candidates: BTreeSet<String> = carrier_inputs.iter().cloned().collect();
+                    candidates.extend(artifact_lane_producers(stage.as_ref(), read_policy));
+                    candidates.insert(stage_id.clone());
+                    for producer in candidates {
+                        let dead = logically_consumed.contains(&producer)
+                            && remaining_carrier_readers
+                                .get(&producer)
+                                .copied()
+                                .unwrap_or(0)
+                                == 0
+                            && artifact_views_in_flight
+                                .get(&producer)
+                                .copied()
+                                .unwrap_or(0)
+                                == 0
+                            && !retained_carriers.contains(&producer);
+                        if dead
+                            && let Some(product) = products.get(&producer)
+                            && !product.carrier_released
+                        {
+                            let released = product
+                                .clone()
+                                .into_carrier_released_keeping(&kept_for(&producer))?;
+                            products.insert(producer, released);
+                        }
                     }
                 }
 
@@ -1162,6 +1197,29 @@ pub(crate) fn last_consumer_levels(
         }
     }
     last
+}
+
+/// The producers `stage` is handed an artifact-lane view of: the dependencies whose edge
+/// declares no carrier read, under the enforcing read policy. Recording hands every
+/// product over whole, so it has none.
+fn artifact_lane_producers(
+    stage: &dyn Stage,
+    policy: crate::reads::ReadPolicy,
+) -> BTreeSet<String> {
+    if policy == crate::reads::ReadPolicy::Record {
+        return BTreeSet::new();
+    }
+    let carrier: BTreeSet<&str> = stage
+        .carrier_consumes()
+        .iter()
+        .map(String::as_str)
+        .collect();
+    stage
+        .consumes()
+        .iter()
+        .filter(|producer| !carrier.contains(producer.as_str()))
+        .cloned()
+        .collect()
 }
 
 /// The text of a caught panic payload, for the failure a panicking stage reports.
@@ -1373,19 +1431,6 @@ fn product_blob_records(
     records
 }
 
-fn product_artifact_records(product: &StageProduct) -> BTreeMap<String, BTreeSet<String>> {
-    let mut records: BTreeMap<String, BTreeSet<String>> = BTreeMap::new();
-    for resource in &product.raw_bundle().lookaside().resources {
-        if let (Some(name), Some(digest)) = (&resource.name, &resource.content_digest) {
-            records
-                .entry(name.clone())
-                .or_default()
-                .insert(digest.clone());
-        }
-    }
-    records
-}
-
 fn product_handle_records(product: &StageProduct) -> BTreeMap<String, String> {
     product
         .handle_commitments()
@@ -1454,16 +1499,17 @@ pub(crate) fn verify_attach_drift(
                 .or_default()
                 .extend(digests);
         }
-        for (name, digests) in product_artifact_records(up) {
+        for (name, digests) in up.artifact_records() {
             input_artifacts.entry(name).or_default().extend(digests);
         }
         for (graph, digest) in product_handle_records(up) {
             input_handles.entry(graph).or_default().insert(digest);
         }
         // Only declared carrier inputs can contribute transport lanes. An
-        // artifact-only dependency may already have had its dataset/provenance/store
-        // released; inspecting those lanes here would violate the same transport
-        // boundary this verifier is meant to enforce.
+        // artifact-only dependency's view carries no dataset, provenance or store of its
+        // own, and the product may already have been released; inspecting those lanes
+        // here would violate the same transport boundary this verifier is meant to
+        // enforce.
         if stage.cache_policy() == CachePolicy::Persistent
             && carrier_inputs.contains(producer.as_str())
         {
@@ -1537,7 +1583,8 @@ pub(crate) fn verify_attach_drift(
         &delta_blob_reps,
         stage.attaches_blob_reps(),
     )?;
-    let delta_artifacts = product_artifact_records(product)
+    let delta_artifacts = product
+        .artifact_records()
         .into_iter()
         .filter_map(|(name, output_digests)| {
             let already_present = input_artifacts
