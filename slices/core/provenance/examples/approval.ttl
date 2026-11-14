@@ -1,0 +1,31 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Worked example: an approval of a body of work, kept apart from who holds its claims.
+# The reviewer approved one chapter of the handbook on a stated day. The author holds the
+# handbook's claims and stays a separate fact; the reviewer is not made a holder. A later
+# approval of the handbook whose scope is not stated is a new node, and the first node is left unchanged.
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/provenance/approval/> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+
+ex:handbook a gmeow:CreativeWork ;
+    gmeow:wasAttributedTo ex:author .
+
+ex:handbookChapter3 gmeow:partOf ex:handbook .
+
+ex:author a gmeow:Person .
+ex:reviewer a gmeow:Person .
+ex:registryClerk a gmeow:Person .
+
+ex:approvalChapter3 a gmeow:Approval ;
+    gmeow:approvalOf ex:handbook ;
+    gmeow:approvedBy ex:reviewer ;
+    gmeow:approvedOn "2026-11-05"^^xsd:date ;
+    gmeow:approvalScope ex:handbookChapter3 ;
+    gmeow:reportedBy ex:registryClerk .
+
+ex:laterApproval a gmeow:Approval ;
+    gmeow:approvalOf ex:handbook ;
+    gmeow:approvedBy ex:reviewer ;
+    gmeow:approvedOn "2026-12-02"^^xsd:date .
