@@ -82,7 +82,7 @@ pub(crate) fn reclaim_allocator_slack() {
 pub(crate) fn reclaim_allocator_slack() {}
 
 /// What the scheduler does with a stage's carrier once its LAST declared carrier
-/// consumer has run.
+/// consumer has run and no artifact-lane view of it is in flight.
 ///
 /// This is an explicit, first-class profile selection, not a degradation switch: the
 /// run's `combined_digest` and every product's committed byte-artifact lane are
@@ -94,10 +94,12 @@ pub(crate) fn reclaim_allocator_slack() {}
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum CarrierRetention {
     /// Release each stage's carrier when its exact remaining carrier-reader count
-    /// reaches zero: the frozen dataset, typed handles, blob records,
-    /// provenance, and internal `pipeline/` byte artifacts are freed as soon as no
-    /// stage can still read them, bounding peak residency to the live frontier plus
-    /// every run OUTPUT. THE profile for the whole-repository build
+    /// reaches zero and no artifact-lane view of it is in flight (a running consumer
+    /// whose edge declares no carrier read shares the carrier by reference): the
+    /// frozen dataset, typed handles, blob records, provenance, and the internal
+    /// `pipeline/` byte artifacts no consumer declares are then freed, bounding peak
+    /// residency to the live frontier plus every run OUTPUT. THE profile for the
+    /// whole-repository build
     /// ([`crate::run::run_full_scoped_with_progress`]), whose reconcile reads only
     /// committed artifacts.
     ///
@@ -157,6 +159,11 @@ pub struct RunContext {
     /// The scheduler copies only these bytes before releasing their carriers. A
     /// missing stage or artifact is an error; selection never changes execution.
     pub retained_artifacts: BTreeSet<(String, String)>,
+    /// What the run does when a stage's recorded reads differ from the reads its
+    /// dataflow edges declare. Every context starts at
+    /// [`ReadPolicy::Enforce`](crate::reads::ReadPolicy::Enforce); only the maintainer
+    /// command that writes observed read sets to a file selects `Record`.
+    pub read_policy: crate::reads::ReadPolicy,
     /// RAII owner of an ephemeral cache directory, when this context was built by
     /// [`Self::open_ephemeral`]. Holding the [`tempfile::TempDir`] here — rather than
     /// leaking a pid-salted path under the system temp dir — is what makes the cache
@@ -186,6 +193,7 @@ impl RunContext {
             carrier_retention: CarrierRetention::RetainAll,
             retained_carriers: BTreeSet::new(),
             retained_artifacts: BTreeSet::new(),
+            read_policy: crate::reads::ReadPolicy::Enforce,
             // Persistent boundary: the cache lives under the repo's `.cache/`, not a
             // temporary directory, so there is nothing to tear down.
             _ephemeral_cache_dir: None,
@@ -225,6 +233,7 @@ impl RunContext {
             carrier_retention: CarrierRetention::RetainAll,
             retained_carriers: BTreeSet::new(),
             retained_artifacts: BTreeSet::new(),
+            read_policy: crate::reads::ReadPolicy::Enforce,
             _ephemeral_cache_dir: Some(dir),
         })
     }
@@ -246,6 +255,7 @@ impl RunContext {
             carrier_retention: CarrierRetention::RetainAll,
             retained_carriers: BTreeSet::new(),
             retained_artifacts: BTreeSet::new(),
+            read_policy: crate::reads::ReadPolicy::Enforce,
             // Inert boundary: no cache I/O at all, so no temporary directory.
             _ephemeral_cache_dir: None,
         }
@@ -302,6 +312,9 @@ pub struct RunResult {
     /// one regardless of worker-completion order. `run_full` threads this into
     /// `RunReport.ledger` and attaches its own run-level reconcile findings to it.
     pub ledger: gmeow_errors::DiagLedger,
+    /// Every dataflow edge a stage body read through in this run, with its declared and
+    /// its recorded reads, in completion order. Cache hits contribute nothing.
+    pub recorded_reads: Vec<Arc<crate::reads::EdgeAccess>>,
 }
 
 /// One stage's wall-clock timing.
@@ -375,6 +388,9 @@ struct StageRun {
     cache_read_bytes: u64,
     cache_write_bytes: u64,
     cache_hydration_rss_delta_kib: Option<i64>,
+    /// The dataflow edges the stage body read through, with what it read. Empty on a
+    /// cache hit: no stage body ran, so there is nothing to compare.
+    edges: Vec<Arc<crate::reads::EdgeAccess>>,
 }
 
 /// Run a validated, bound pipeline. `bound` is the stages in topological order
@@ -603,19 +619,62 @@ pub fn run_without(
         }
     }
     let declared_level_frontier = last_consumer_levels(graph, &by_id);
-    // The internal artifacts each producer must keep through every release, because an
-    // artifact-only consumer declared it reads them.
-    let mut kept_internal: BTreeMap<&'static str, BTreeSet<&'static str>> = BTreeMap::new();
+    // The internal artifacts each producer must keep through every release, because a
+    // consumer declared it reads them.
+    let mut kept_internal: BTreeMap<String, BTreeSet<String>> = BTreeMap::new();
     for stage_id in &executed {
         for (producer, artifact) in by_id[stage_id.as_str()].internal_artifact_reads() {
-            kept_internal
-                .entry(*producer)
-                .or_default()
-                .insert(*artifact);
+            kept_internal.entry(producer).or_default().insert(artifact);
         }
     }
-    let no_kept_internal = BTreeSet::new();
-    let kept_for = |producer: &str| kept_internal.get(producer).unwrap_or(&no_kept_internal);
+    // The same names, shared by every artifact-lane view of that producer.
+    let kept_shared: BTreeMap<String, Arc<BTreeSet<String>>> = kept_internal
+        .iter()
+        .map(|(producer, kept)| (producer.clone(), Arc::new(kept.clone())))
+        .collect();
+    // The artifact-lane views of each producer's product that are in flight. A producer's
+    // carrier is not swapped for its residue while one is, so no second copy of the lane
+    // sits beside the one the view reads.
+    let mut artifact_views_in_flight: BTreeMap<String, usize> = BTreeMap::new();
+    let kept_for = |producer: &str| -> BTreeSet<&str> {
+        kept_internal
+            .get(producer)
+            .map(|kept| kept.iter().map(String::as_str).collect())
+            .unwrap_or_default()
+    };
+    let read_policy = ctx.read_policy;
+    let mut recorded_edges: Vec<Arc<crate::reads::EdgeAccess>> = Vec::new();
+    // Every stage whose recorded reads differ from its declared dataflow. The run goes
+    // on, so one pass names them all, and then fails.
+    let mut read_differences: Vec<(String, Vec<String>)> = Vec::new();
+    // Before any stage runs: every dependency edge of the selected graph declares what
+    // it reads. An edge with no declared read would run the consumer after the producer
+    // for no stated reason. Every such edge is reported together.
+    if read_policy == crate::reads::ReadPolicy::Enforce {
+        let mut undeclared: Vec<String> = Vec::new();
+        for stage_id in &executed {
+            let stage = by_id[stage_id.as_str()];
+            let reads = stage.reads();
+            for producer in stage.consumes() {
+                if reads.get(producer).is_none_or(BTreeSet::is_empty) {
+                    undeclared.push(format!(
+                        "{stage_id} consumes {producer} and its dataflow edge declares no read"
+                    ));
+                }
+            }
+        }
+        if !undeclared.is_empty() {
+            return Err(gmeow_errors::Diag::of_kind(crate::error::InvalidDag {
+                message: format!(
+                    "the pipeline description does not say what {} dependency edge(s) read; \
+                     run `gmeow-dev pipeline-reads --out <file>` to write the declarations \
+                     the stage bodies need:\n  {}",
+                    undeclared.len(),
+                    undeclared.join("\n  ")
+                ),
+            }));
+        }
+    }
     let mut ready: BTreeSet<String> = remaining_dependencies
         .iter()
         .filter(|(_, remaining)| **remaining == 0)
@@ -634,8 +693,12 @@ pub fn run_without(
     let jobs = ctx.jobs;
 
     let scheduling_result = pool.in_place_scope_fifo(|scope| -> Result<(), gmeow_errors::Diag> {
-        let (tx, rx) =
-            mpsc::channel::<(String, Vec<String>, Result<StageRun, gmeow_errors::Diag>)>();
+        let (tx, rx) = mpsc::channel::<(
+            String,
+            Vec<String>,
+            Result<StageRun, gmeow_errors::Diag>,
+            Vec<Arc<crate::reads::EdgeAccess>>,
+        )>();
         let mut active = 0usize;
         let mut completed = 0usize;
         let mut active_resources = BTreeSet::new();
@@ -661,11 +724,13 @@ pub fn run_without(
                 let stage = Arc::clone(by_id[stage_id.as_str()]);
                 let resources = stage.resources().to_vec();
                 active_resources.extend(resources.iter().cloned());
-                let carrier_inputs: BTreeSet<&str> = stage
-                    .carrier_consumes()
-                    .iter()
-                    .map(String::as_str)
-                    .collect();
+                let lane_producers = artifact_lane_producers(stage.as_ref(), read_policy);
+                for producer in &lane_producers {
+                    *artifact_views_in_flight
+                        .entry(producer.clone())
+                        .or_default() += 1;
+                }
+                let declared_reads = stage.reads();
                 let upstream = stage
                     .consumes()
                     .iter()
@@ -677,16 +742,32 @@ pub fn run_without(
                                 message: format!("missing published upstream product {producer}"),
                             })
                         })?;
-                        // Artifact-only edges never need to retain a live carrier Arc in
-                        // their worker snapshot. Preserve the producer identity and
-                        // committed artifact lane while releasing transport state before
-                        // dispatch.
-                        let product = if carrier_inputs.contains(producer.as_str()) {
-                            product
+                        // The consumer receives a view of the product that records each
+                        // access made through the lane accessors, to be compared with
+                        // what its dataflow edge declares when the stage returns.
+                        let edge = crate::reads::EdgeAccess::new(
+                            &stage_id,
+                            producer,
+                            declared_reads.get(producer).cloned().unwrap_or_default(),
+                        );
+                        // An edge that declares no carrier read is handed a view that
+                        // shares the producer's carrier by reference and serves only its
+                        // byte-artifact lane (the committed artifacts and the internal
+                        // ones consumers declare); no byte is copied, and the view reads
+                        // the same whether the producer is still whole or already
+                        // released. Recording learns what a stage body reads, so it hands
+                        // every product over whole; the whole-lane artifact accessors
+                        // still return only committed artifacts and the internal ones the
+                        // edge already names.
+                        let view = if lane_producers.contains(producer) {
+                            product.consumer_artifact_view(
+                                edge,
+                                kept_shared.get(producer).cloned().unwrap_or_default(),
+                            )
                         } else {
-                            product.into_carrier_released_keeping(kept_for(producer))?
+                            product.consumer_view(edge)
                         };
-                        Ok::<_, gmeow_errors::Diag>((producer.clone(), product))
+                        Ok::<_, gmeow_errors::Diag>((producer.clone(), view))
                     })
                     .collect::<Result<BTreeMap<_, _>, _>>()?;
                 if let Some(progress) = progress.as_deref() {
@@ -695,9 +776,27 @@ pub fn run_without(
                 let tx = tx.clone();
                 let progress = progress.clone();
                 active += 1;
+                // The worker reports its edges whether the stage returns, fails or
+                // panics: the reads recorded before a failure still say what the stage
+                // touched, and the coordinator reports an undeclared one with the failure.
+                let dispatched_edges: Vec<Arc<crate::reads::EdgeAccess>> = upstream
+                    .values()
+                    .filter_map(|product| product.edge_access().cloned())
+                    .collect();
                 scope.spawn_fifo(move |_| {
-                    let result =
-                        exec_stage(stage.as_ref(), root, &upstream, cache, stage_cache_enabled);
+                    // A panic in a stage body must still deliver a result: the
+                    // coordinator holds its own sender, so a worker that dies silently
+                    // would leave it waiting on `recv` for ever.
+                    let result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
+                        exec_stage(stage.as_ref(), root, &upstream, cache, stage_cache_enabled)
+                    }))
+                    .unwrap_or_else(|payload| {
+                        Err(gmeow_errors::Diag::of_kind(crate::error::StageFailed {
+                            cause: None,
+                            stage: stage_id.clone(),
+                            message: format!("stage body panicked: {}", panic_message(&*payload)),
+                        }))
+                    });
                     if let (Some(progress), Ok(run)) = (progress.as_deref(), &result) {
                         progress.stage_end(
                             stage.id(),
@@ -706,9 +805,12 @@ pub fn run_without(
                             ),
                         );
                     }
+                    // The views end here, before the coordinator learns the stage is done
+                    // and may swap a producer's carrier for its residue.
+                    drop(upstream);
                     // The coordinator outlives every scoped worker. A disconnected
                     // receiver therefore means the scope is already unwinding.
-                    let _ = tx.send((stage_id, resources, result));
+                    let _ = tx.send((stage_id, resources, result, dispatched_edges));
                 });
             }
 
@@ -726,7 +828,7 @@ pub fn run_without(
                 }));
             }
 
-            let (stage_id, resources, result) = rx.recv().map_err(|error| {
+            let (stage_id, resources, result, dispatched_edges) = rx.recv().map_err(|error| {
                 gmeow_errors::Diag::of_kind(crate::error::StageFailed {
                     cause: None,
                     stage: "<scheduler>".to_string(),
@@ -737,10 +839,31 @@ pub fn run_without(
             for resource in resources {
                 active_resources.remove(&resource);
             }
+            // This stage's artifact-lane views ended with it, whether it returned or
+            // failed.
+            for producer in artifact_lane_producers(by_id[stage_id.as_str()].as_ref(), read_policy)
+            {
+                let in_flight = artifact_views_in_flight
+                    .get_mut(&producer)
+                    .expect("a dispatched artifact-lane view was counted");
+                *in_flight = in_flight
+                    .checked_sub(1)
+                    .expect("a completed artifact-lane view was counted");
+            }
 
             let mut run = match result {
                 Ok(run) => run,
                 Err(error) => {
+                    // A failing stage's own error is kept, and so is every read it made
+                    // that its edges do not declare: a read on a released product often
+                    // IS the cause of the failure, and the declaration to add is the fix.
+                    // Declared reads it never reached are not reported: it stopped early.
+                    if read_policy == crate::reads::ReadPolicy::Enforce {
+                        let undeclared = crate::reads::undeclared_reads(&dispatched_edges);
+                        if !undeclared.is_empty() {
+                            read_differences.push((stage_id.clone(), undeclared));
+                        }
+                    }
                     if first_error.is_none() {
                         first_error = Some(error);
                     }
@@ -756,7 +879,24 @@ pub fn run_without(
             // happens before downstream readiness, so a later failure retains every exact
             // successful action receipt instead of discarding the completed prefix.
             let commit_result = (|| -> Result<(), gmeow_errors::Diag> {
+                // Declared against recorded reads, before anything of this stage is
+                // cached: a stage body that read what its edges do not declare, or did
+                // not read what they declare, produced a product the authored graph does
+                // not describe. Its product is still correct for the stages after it, so
+                // the run continues and reports every such stage at the end; the product
+                // is not admitted to the persistent cache, whose key assumes the
+                // declarations.
+                let mut reads_differ = false;
+                if !run.cached {
+                    let mismatches = crate::reads::mismatches(&run.edges);
+                    if !mismatches.is_empty() && read_policy == crate::reads::ReadPolicy::Enforce {
+                        reads_differ = true;
+                        read_differences.push((run.id.clone(), mismatches));
+                    }
+                    recorded_edges.append(&mut run.edges);
+                }
                 if stage_cache_enabled
+                    && !reads_differ
                     && !run.cached
                     && stage.stability() == StageStability::StablePrefix
                     && stage.cache_policy() == CachePolicy::Persistent
@@ -836,10 +976,10 @@ pub fn run_without(
                         .checked_sub(1)
                         .expect("completed span consumer was counted");
                     if span_consumers_remaining == 0
-                        && let Some(product) = products.get("stage-source-load")
+                        && let Some(product) = products.get(crate::loader::SPAN_TABLE_PRODUCER)
                     {
                         let stripped = crate::bundle::strip_rep_blob(
-                            product.bundle(),
+                            product.raw_bundle(),
                             crate::stages::carrier::REP_SPAN_TABLE,
                         )?;
                         let source_id = product.stage_id.clone();
@@ -848,34 +988,44 @@ pub fn run_without(
                 }
 
                 if carrier_retention == CarrierRetention::DropAfterLastConsumer {
-                    for producer in carrier_inputs {
+                    for producer in &carrier_inputs {
                         let remaining = remaining_carrier_readers
-                            .get_mut(&producer)
+                            .get_mut(producer)
                             .expect("carrier producer has a counted reader");
                         *remaining = remaining
                             .checked_sub(1)
                             .expect("completed carrier reader was counted");
-                        if *remaining == 0
-                            && !retained_carriers.contains(&producer)
-                            && let Some(product) = products.remove(&producer)
-                        {
-                            let kept = kept_for(&producer);
-                            products.insert(producer, product.into_carrier_released_keeping(kept)?);
-                        }
                     }
-                    if logically_consumed.contains(&stage_id)
-                        && remaining_carrier_readers
-                            .get(&stage_id)
-                            .copied()
-                            .unwrap_or(0)
-                            == 0
-                        && !retained_carriers.contains(&stage_id)
-                        && let Some(product) = products.remove(&stage_id)
-                    {
-                        products.insert(
-                            stage_id.clone(),
-                            product.into_carrier_released_keeping(kept_for(&stage_id))?,
-                        );
+                    // A producer's carrier is swapped for its residue once no carrier
+                    // reader is left and no artifact-lane view of it is in flight. The
+                    // three things that can make that true are this stage finishing its
+                    // last carrier read of the producer, finishing the last view of it,
+                    // and the producer itself having just been published.
+                    let mut candidates: BTreeSet<String> = carrier_inputs.iter().cloned().collect();
+                    candidates.extend(artifact_lane_producers(stage.as_ref(), read_policy));
+                    candidates.insert(stage_id.clone());
+                    for producer in candidates {
+                        let dead = logically_consumed.contains(&producer)
+                            && remaining_carrier_readers
+                                .get(&producer)
+                                .copied()
+                                .unwrap_or(0)
+                                == 0
+                            && artifact_views_in_flight
+                                .get(&producer)
+                                .copied()
+                                .unwrap_or(0)
+                                == 0
+                            && !retained_carriers.contains(&producer);
+                        if dead
+                            && let Some(product) = products.get(&producer)
+                            && !product.carrier_released
+                        {
+                            let released = product
+                                .clone()
+                                .into_carrier_released_keeping(&kept_for(&producer))?;
+                            products.insert(producer, released);
+                        }
                     }
                 }
 
@@ -907,7 +1057,33 @@ pub fn run_without(
             Ok(())
         }
     });
-    scheduling_result?;
+    let scheduling_error = scheduling_result.err();
+    if !read_differences.is_empty() {
+        read_differences.sort();
+        let total: usize = read_differences.iter().map(|(_, lines)| lines.len()).sum();
+        let listing = read_differences
+            .iter()
+            .map(|(stage, lines)| format!("{stage}:\n    {}", lines.join("\n    ")))
+            .collect::<Vec<_>>()
+            .join("\n  ");
+        // A run that also failed keeps its own error beside the read differences, so
+        // neither hides the other.
+        let failure = scheduling_error
+            .as_ref()
+            .map(|error| format!("\n  the run also failed: {error}"))
+            .unwrap_or_default();
+        return Err(gmeow_errors::Diag::of_kind(crate::error::StageFailed {
+            cause: None,
+            stage: read_differences[0].0.clone(),
+            message: format!(
+                "{} stage(s) read differently from their declared dataflow ({total} difference(s)):\n  {listing}{failure}",
+                read_differences.len()
+            ),
+        }));
+    }
+    if let Some(error) = scheduling_error {
+        return Err(error);
+    }
 
     // Completion order is deliberately observational. Present receipts and timings in
     // the certified topological order so output identities and reports remain byte-stable.
@@ -961,6 +1137,7 @@ pub fn run_without(
         stage_receipts,
         receipt_root,
         ledger: run_ledger,
+        recorded_reads: recorded_edges,
     })
 }
 
@@ -969,8 +1146,9 @@ pub fn run_without(
 ///
 /// For each stage that ANY other stage logically consumes, this returns the topological
 /// level of its LAST carrier consumer — or its own production level when all later
-/// consumers are artifact-only. Production release now uses exact remaining-reader
-/// counters at completion time; this independent level formulation remains useful for
+/// consumers are artifact-only. Production release uses exact remaining-reader counters
+/// at completion time and also waits for any artifact-lane view still in flight, which
+/// this level formulation does not model; it remains useful for
 /// proving the same declared ownership relation over a levelled graph.
 ///
 /// A stage with NO logical consumer has no entry: its product is a run OUTPUT, retained
@@ -1022,6 +1200,38 @@ pub(crate) fn last_consumer_levels(
         }
     }
     last
+}
+
+/// The producers `stage` is handed an artifact-lane view of: the dependencies whose edge
+/// declares no carrier read, under the enforcing read policy. Recording hands every
+/// product over whole, so it has none.
+fn artifact_lane_producers(
+    stage: &dyn Stage,
+    policy: crate::reads::ReadPolicy,
+) -> BTreeSet<String> {
+    if policy == crate::reads::ReadPolicy::Record {
+        return BTreeSet::new();
+    }
+    let carrier: BTreeSet<&str> = stage
+        .carrier_consumes()
+        .iter()
+        .map(String::as_str)
+        .collect();
+    stage
+        .consumes()
+        .iter()
+        .filter(|producer| !carrier.contains(producer.as_str()))
+        .cloned()
+        .collect()
+}
+
+/// The text of a caught panic payload, for the failure a panicking stage reports.
+fn panic_message(payload: &(dyn std::any::Any + Send)) -> String {
+    payload
+        .downcast_ref::<&str>()
+        .map(|text| (*text).to_owned())
+        .or_else(|| payload.downcast_ref::<String>().cloned())
+        .unwrap_or_else(|| "a non-text panic payload".to_owned())
 }
 
 /// Execute one stage: assemble its upstream inputs, consult the cache, and run it
@@ -1098,6 +1308,7 @@ fn exec_stage(
             cache_read_bytes: hit.hydrated_bytes,
             cache_write_bytes: 0,
             cache_hydration_rss_delta_kib: rss_delta_kib(rss_before_kib, current_rss_kib()),
+            edges: Vec::new(),
         });
     }
 
@@ -1164,6 +1375,10 @@ fn exec_stage(
         cache_read_bytes: 0,
         cache_write_bytes: 0,
         cache_hydration_rss_delta_kib: None,
+        edges: upstream
+            .values()
+            .filter_map(|product| product.edge_access().cloned())
+            .collect(),
     })
 }
 
@@ -1189,7 +1404,7 @@ fn rss_delta_kib(before: Option<u64>, after: Option<u64>) -> Option<i64> {
 /// The set of named-graph IRIs a product's carrier bundle carries.
 fn product_graphs(product: &StageProduct) -> std::collections::BTreeSet<String> {
     product
-        .bundle()
+        .raw_bundle()
         .dataset()
         .owned_named_graphs()
         .filter_map(|t| match t {
@@ -1208,25 +1423,12 @@ fn product_blob_records(
     product: &StageProduct,
 ) -> BTreeMap<String, std::collections::BTreeSet<String>> {
     let mut records: BTreeMap<String, std::collections::BTreeSet<String>> = BTreeMap::new();
-    for record in &product.bundle().lookaside().blobs {
+    for record in &product.raw_bundle().lookaside().blobs {
         if let Some(representation) = &record.representation {
             records
                 .entry(representation.clone())
                 .or_default()
                 .insert(record.digest.clone());
-        }
-    }
-    records
-}
-
-fn product_artifact_records(product: &StageProduct) -> BTreeMap<String, BTreeSet<String>> {
-    let mut records: BTreeMap<String, BTreeSet<String>> = BTreeMap::new();
-    for resource in &product.bundle().lookaside().resources {
-        if let (Some(name), Some(digest)) = (&resource.name, &resource.content_digest) {
-            records
-                .entry(name.clone())
-                .or_default()
-                .insert(digest.clone());
         }
     }
     records
@@ -1300,16 +1502,17 @@ pub(crate) fn verify_attach_drift(
                 .or_default()
                 .extend(digests);
         }
-        for (name, digests) in product_artifact_records(up) {
+        for (name, digests) in up.artifact_records() {
             input_artifacts.entry(name).or_default().extend(digests);
         }
         for (graph, digest) in product_handle_records(up) {
             input_handles.entry(graph).or_default().insert(digest);
         }
         // Only declared carrier inputs can contribute transport lanes. An
-        // artifact-only dependency may already have had its dataset/provenance/store
-        // released; inspecting those lanes here would violate the same transport
-        // boundary this verifier is meant to enforce.
+        // artifact-only dependency's view carries no dataset, provenance or store of its
+        // own, and the product may already have been released; inspecting those lanes
+        // here would violate the same transport boundary this verifier is meant to
+        // enforce.
         if stage.cache_policy() == CachePolicy::Persistent
             && carrier_inputs.contains(producer.as_str())
         {
@@ -1383,7 +1586,8 @@ pub(crate) fn verify_attach_drift(
         &delta_blob_reps,
         stage.attaches_blob_reps(),
     )?;
-    let delta_artifacts = product_artifact_records(product)
+    let delta_artifacts = product
+        .artifact_records()
         .into_iter()
         .filter_map(|(name, output_digests)| {
             let already_present = input_artifacts
@@ -1458,12 +1662,12 @@ impl ActionIdentity for StageProduct {
     }
 
     fn entity_digest(&self, entity: &str) -> gmeow_errors::Result<Option<String>> {
-        if !crate::handle_identity::contains_graph(self.bundle(), entity) {
+        if !crate::handle_identity::contains_graph(self.raw_bundle(), entity) {
             return Ok(None);
         }
         Ok(Some(crate::handle_identity::entity_digest(
             &self
-                .bundle()
+                .raw_bundle()
                 .graph_digest(
                     entity,
                     &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None),
