@@ -85,8 +85,13 @@ fn generated_sync_inputs_exclude_unrelated_test_harness_implementation() {
 
 #[test]
 fn manifest_path_sanitizes_language() {
-    let path = manifest_path(Path::new("/tmp/repo"), SyncOutput::All, "en,../../fr");
-    assert!(path.ends_with("all-en_______fr.json"));
+    let path = manifest_path(
+        Path::new("/tmp/repo"),
+        SyncOutput::All,
+        SyncProfile::Ordinary,
+        "en,../../fr",
+    );
+    assert!(path.ends_with("all-ordinary-en_______fr.json"));
 }
 
 #[test]
@@ -104,6 +109,7 @@ fn read_only_manifest_cannot_satisfy_update() {
         build_identity: BuildIdentity::current(),
         input_digest: "same".to_string(),
         output: SyncOutput::Generated.as_str().to_string(),
+        profile: SyncProfile::Ordinary.as_str().to_string(),
         language: "default".to_string(),
         strict_checked: true,
         materialized: false,
@@ -118,6 +124,7 @@ fn read_only_manifest_cannot_satisfy_update() {
         &manifest,
         SyncMode::Update,
         SyncOutput::Generated,
+        SyncProfile::Ordinary,
         "default",
         "same",
     ));
@@ -126,6 +133,16 @@ fn read_only_manifest_cannot_satisfy_update() {
         &manifest,
         SyncMode::Check,
         SyncOutput::Generated,
+        SyncProfile::Ordinary,
+        "default",
+        "same",
+    ));
+    assert!(!manifest_is_current(
+        Path::new("/does/not/matter"),
+        &manifest,
+        SyncMode::Check,
+        SyncOutput::Generated,
+        SyncProfile::Release,
         "default",
         "same",
     ));

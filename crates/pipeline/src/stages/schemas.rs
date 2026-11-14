@@ -477,6 +477,9 @@ impl Stage for SchemasStage {
     fn id(&self) -> &str {
         "stage-export-schemas"
     }
+    fn output_family(&self) -> crate::node::OutputFamily {
+        crate::node::OutputFamily::Generated
+    }
     fn consumes(&self) -> &[String] {
         &self.consumes
     }

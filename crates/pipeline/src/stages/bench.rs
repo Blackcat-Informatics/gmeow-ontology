@@ -450,6 +450,9 @@ impl Stage for BenchLeaderboardStage {
     fn id(&self) -> &str {
         "stage-export-bench"
     }
+    fn output_family(&self) -> crate::node::OutputFamily {
+        crate::node::OutputFamily::Generated
+    }
     fn consumes(&self) -> &[String] {
         &[]
     }
@@ -1594,6 +1597,9 @@ pub struct CostLedgerStage;
 impl Stage for CostLedgerStage {
     fn id(&self) -> &str {
         "stage-export-cost-ledger"
+    }
+    fn output_family(&self) -> crate::node::OutputFamily {
+        crate::node::OutputFamily::Generated
     }
     fn consumes(&self) -> &[String] {
         &[]

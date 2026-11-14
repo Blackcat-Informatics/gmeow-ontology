@@ -1265,6 +1265,9 @@ impl Stage for MappingsStage {
     fn id(&self) -> &str {
         "stage-mappings"
     }
+    fn output_family(&self) -> crate::node::OutputFamily {
+        crate::node::OutputFamily::Generated
+    }
     /// Borrow the immutable compiler, constraint and original-source dependencies.
     /// All instances share these identifiers fixed by the pipeline contract.
     fn consumes(&self) -> &[String] {
@@ -1394,17 +1397,15 @@ impl Stage for MappingsStage {
         );
 
         // Carry the union of the RDF outputs (`.ttl` / `.nq` / `.nt` — the alignment
-        // axioms / projections this stage contributes to compose) as the bundle's
+        // axioms / projections this stage contributes) as the bundle's
         // frozen dataset; the non-RDF outputs (`.json`, `.jsonld`, `.tsv`, `.rq`) stay
         // byte-lane only. Each RDF artifact is parsed and the per-input datasets are
-        // unioned (standardize-apart per input), so `gts_compose` folds in this one
-        // dataset instead of re-parsing each byte artifact.
-        // The default-graph union of the RDF outputs (the alignment axioms `gts_compose`
-        // folds default-graph-only) PLUS the projection-report loss ledger re-rooted into
-        // the carrier's `graph/projection-ledger` named graph, so the presenter reads the
-        // ledger as a pure keyed fold (PIPELINE_SPINE §4) instead of re-parsing the byte
-        // artifact. `gts_compose` folds only the default graph, so the named ledger graph
-        // never pollutes the composed EDB.
+        // unioned (standardize-apart per input) into this one dataset.
+        // The default-graph union of the RDF outputs (the alignment axioms) PLUS the
+        // projection-report loss ledger re-rooted into the carrier's
+        // `graph/projection-ledger` named graph, so the presenter reads the ledger as a
+        // pure keyed fold (PIPELINE_SPINE §4) instead of re-parsing the byte artifact.
+        // The object-level EDB assembly never selects the named ledger graph.
         let rdf_dataset = mappings_rdf_dataset(&artifacts)?;
         let report_ttl = artifacts.get(PROJECTION_REPORT_PATH).ok_or_else(|| {
             gmeow_errors::Diag::of_kind(crate::error::StageFailed {
@@ -1434,8 +1435,7 @@ impl Stage for MappingsStage {
         // `.po` catalog pair typed as a crossing carrying a `logic:Correspondence`),
         // carried as a named graph so the presenter reads it via `producer_graph`. Like
         // the projection-ledger and alignments graphs it stays OUT of the reasoned EDB
-        // (`gts_compose` folds only the default graph, so this named graph never pollutes
-        // the composed object-level EDB).
+        // (the object-level EDB assembly never selects this named graph).
         let lang_translation_graph = crate::stages::carrier::parse_into_graph(
             &compiled.lang_translation_corpus,
             "application/n-triples",
@@ -1444,8 +1444,8 @@ impl Stage for MappingsStage {
         // graph/lang-form-corpus — the total prose lift (Gate 1): every distinct
         // `@x-gmeow-english` source literal typed as a raw `lang:SurfaceForm`. Carried as a
         // named graph so the presenter reads it via `producer_graph`; like the
-        // translation-corpus graph it stays OUT of the reasoned EDB (`gts_compose` folds only
-        // the default graph).
+        // translation-corpus graph it stays OUT of the reasoned EDB (the object-level
+        // EDB assembly never selects it).
         let lang_form_graph = crate::stages::carrier::parse_into_graph(
             &compiled.lang_form_corpus,
             "application/n-triples",
@@ -1455,7 +1455,7 @@ impl Stage for MappingsStage {
         // lowering to an external linguistic ecosystem) plus the lifted `lang:Grammar`
         // structure. Carried as a named graph so the presenter reads it via
         // `producer_graph`; like the other `lang:` corpus graphs it stays OUT of the
-        // reasoned EDB (`gts_compose` folds only the default graph).
+        // reasoned EDB (the object-level EDB assembly never selects it).
         let lang_projection_graph = crate::stages::carrier::parse_into_graph(
             &compiled.lang_projection_corpus,
             "application/n-triples",
@@ -1465,7 +1465,7 @@ impl Stage for MappingsStage {
         // compositional first-order `lang:CompositionalLowering` formula, one
         // `lang:LoweringStage` per lowering step. Carried as a named graph so the presenter reads
         // it via `producer_graph`; like the other `lang:` corpus graphs it stays OUT of the
-        // reasoned EDB (`gts_compose` folds only the default graph).
+        // reasoned EDB (the object-level EDB assembly never selects it).
         let lang_lowering_graph = crate::stages::carrier::parse_into_graph(
             &compiled.lang_lowering_corpus,
             "application/n-triples",
@@ -1475,7 +1475,7 @@ impl Stage for MappingsStage {
         // re-typed as `lang:Rendering` / `lang:Translation` crossings plus the exec-docs
         // English-only boundary gap. Carried as a named graph so the presenter reads it via
         // `producer_graph`; like the other `lang:` corpus graphs it stays OUT of the reasoned
-        // EDB (`gts_compose` folds only the default graph).
+        // EDB (the object-level EDB assembly never selects it).
         let lang_docs_rendering_graph = crate::stages::carrier::parse_into_graph(
             &compiled.lang_docs_rendering_corpus,
             "application/n-triples",
@@ -1484,7 +1484,7 @@ impl Stage for MappingsStage {
         // graph/lang-glossary-corpus — the per-slice terminology glossary derived from the
         // reviewed `.po` pairs. Carried as a named graph so the presenter reads it via
         // `producer_graph`; like the other `lang:` corpus graphs it stays OUT of the reasoned
-        // EDB (`gts_compose` folds only the default graph).
+        // EDB (the object-level EDB assembly never selects it).
         let lang_glossary_graph = crate::stages::carrier::parse_into_graph(
             &compiled.lang_glossary_corpus,
             "application/n-triples",
@@ -1493,8 +1493,8 @@ impl Stage for MappingsStage {
         // graph/correspondence-laws — every authored `logic:Correspondence` re-projected with
         // its EXECUTED lens-law discharge verdicts. Carried as a named graph so
         // the presenter reads it via `producer_graph`; like the other corpus graphs it stays
-        // OUT of the reasoned EDB (`gts_compose` folds only the default graph, so this named
-        // graph never pollutes the composed object-level EDB — the verdicts are
+        // OUT of the reasoned EDB (the object-level EDB assembly never selects this named
+        // graph — the verdicts are
         // presenter/provenance RDF, not reasoned facts).
         let correspondence_laws_graph = crate::stages::carrier::parse_into_graph(
             &compiled.correspondence_laws_corpus,
@@ -1507,7 +1507,7 @@ impl Stage for MappingsStage {
         // named graph so the presenter reads it via `producer_graph`; it flattens into the
         // shipped bundle's base graph so `gmeow project --profile spdx` returns the substrate
         // packages. Like the other corpus graphs it stays OUT of the reasoned EDB
-        // (`gts_compose` folds only the default graph). `spdx.rq` is THIS run's compiled
+        // (the object-level EDB assembly never selects it). `spdx.rq` is THIS run's compiled
         // artifact (never a stale disk read); the source A-Box reads only build INPUTS
         // (`substrate_input_paths`), so the fold is non-self-referential.
         let spdx_program_path = format!("{QUERIES_DIR}/spdx.projection.json");
@@ -1570,8 +1570,7 @@ impl Stage for MappingsStage {
 }
 
 /// Parse every RDF artifact (`.ttl` / `.nq` / `.nt`) of the mappings byte-artifact
-/// map and union them into one frozen dataset (the native contribution
-/// `gts_compose` folds). Non-RDF artifacts are skipped. Inputs are unioned in
+/// map and union them into one frozen dataset. Non-RDF artifacts are skipped. Inputs are unioned in
 /// sorted-path order (the `BTreeMap` order) under [`RdfDataset::union`], which
 /// standardizes blank scopes apart per input and canonicalizes on freeze.
 fn mappings_rdf_dataset(

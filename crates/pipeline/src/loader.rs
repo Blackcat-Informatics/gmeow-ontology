@@ -524,6 +524,38 @@ pub fn bind(
             }
         }
 
+        // `internal_artifact_reads()` names internal artifacts a stage reads through an
+        // artifact-only edge, so the scheduler keeps them through release. A pair naming a
+        // producer outside that edge set, or a committed artifact, would keep bytes no read
+        // needs or hide a carrier read behind an artifact edge, so binding rejects it.
+        for (producer, artifact) in stage.internal_artifact_reads() {
+            let artifact_only =
+                rust.iter().any(|p| p == producer) && !carrier_seen.contains(producer);
+            if !artifact_only {
+                return Err(gmeow_errors::Diag::of_kind(
+                    crate::error::InvalidDeclaration {
+                        message: format!(
+                            "stage {} declares an internal artifact read {artifact} from \
+                             {producer}, which is not one of its artifact-only dependencies",
+                            s.id
+                        ),
+                    },
+                ));
+            }
+            if !artifact.starts_with(crate::bundle::INTERNAL_ARTIFACT_PREFIX) {
+                return Err(gmeow_errors::Diag::of_kind(
+                    crate::error::InvalidDeclaration {
+                        message: format!(
+                            "stage {} declares {artifact} from {producer} as an internal \
+                             artifact read, but it is a committed artifact, which survives \
+                             release without a declaration",
+                            s.id
+                        ),
+                    },
+                ));
+            }
+        }
+
         // Resource agreement (both sides sorted+deduped): the executable twin must
         // declare exactly the shared resources the RDF does, or the scheduler's
         // serialization would diverge from the authored model.

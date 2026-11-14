@@ -561,6 +561,9 @@ impl Stage for ConstraintCatalogStage {
     fn id(&self) -> &str {
         "stage-constraint-catalog"
     }
+    fn output_family(&self) -> crate::node::OutputFamily {
+        crate::node::OutputFamily::Generated
+    }
     fn consumes(&self) -> &[String] {
         &self.consumes
     }

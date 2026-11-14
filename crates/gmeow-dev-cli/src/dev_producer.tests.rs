@@ -94,7 +94,7 @@ fn medium_maintenance_selects_its_output_before_producer_admission() {
                 .expect("parse maintenance selection without running the producer");
         assert!(requires_admission(&cli.command));
         let (out, seed) = match cli.command {
-            Commands::MediumSweep { out } => (out, false),
+            Commands::MediumSweep { out, .. } => (out, false),
             Commands::MediumSeed { out } => (out, true),
             _ => panic!("selected a different maintenance operation"),
         };

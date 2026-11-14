@@ -91,8 +91,9 @@ mandated Rule 6 chain. Every value is an **integer byte count**, a token, or a
 fixed six-decimal fraction, so the bytes are a pure function of
 `(sources, dictionary grid)` and survive the strict `sync` drift gate.
 
-`stage-medium-dictionaries` **consumes the committed winners**: it trains each
-dictionary at the committed `(strategy, target length)` rather than searching per
+`stage-medium-dictionaries` **grades the declared point against the committed grid**: it
+trains each dictionary at its authored `(strategy, target length)`, which the grid must
+place at the winner or within the near-tie margin of it, rather than searching per
 build, so the shipped dictionary bytes are a deterministic function of the
 repository instead of a function of how much CPU the build machine had. The
 committed table ↔ the measurable registry is a **bijection**, hard-failing in both
@@ -194,26 +195,49 @@ The same statement, and the snapshot exclusion, are carried in the measurement's
 `skos:definition` in `generated/medium/dictionary-effect.ttl` — a consumer reading
 the bundle sees them without reading this file.
 
-## The table cannot rot in silence: `corpus_digest`
+## The table cannot grade a moved corpus: `corpus_digest`
 
 A `gmeow:DictionaryCorpus` is a **selector**, re-resolved on every build. An archive
-that gains or loses one member therefore moves the corpus while this file sits still —
+that gains or loses one member therefore moves the corpus while this file sits still,
 and `stage-medium-dictionaries` reads this file as a **gate** (the bijection, the
-declared-is-argmin agreement, the pays-for-itself criterion) without ever re-deriving
-the argmin, which it cannot afford to do per build.
+declared-point agreement, the pays-for-itself criterion) without re-deriving the
+argmin, which it cannot afford to do per build.
 
 So every dictionary row carries **`corpus_digest`**: the identity of the whole corpus
 resolution the grid was searched over, held-out members included — each resolved
 sample's own `blake3:` digest, in canonical digest order, hashed again. The build
-re-derives it from the same resolution path the trainer consumes and
-`sweep::check_corpus_digests` **hard-fails** with `pipeline.medium.corpus-drift`
-(`gmeow:MediumCorpusDrift`) on any difference. A stale table **reds**; it never grades.
+re-derives it from the same resolution path the trainer consumes. The table grades
+only when the two digests match:
 
-The same identity ships on the bundle's own `gmeow:CompressionDictionaryRealization` as
-`gmeow:measuredCorpusDigest`, so a consumer can see which corpus produced the bytes it
-is priming with. The fix for a drift failure is always `make maint-medium-sweep` over
-the moved corpus — never editing the recorded digest, which would assert an identity
-nothing measured.
+* **Release build** (`--profile release`, `make release`, `make full-release`): a
+  difference **hard-fails** with `pipeline.medium.corpus-drift`
+  (`gmeow:MediumCorpusDrift`).
+* **Ordinary build**: the dictionary is trained at its declared point over the
+  resolved corpus, a warning names both digests, and the realization records
+  `gmeow:evidenceCorpusDigest` (the digest the table measured) beside
+  `gmeow:measuredCorpusDigest` (the digest of the corpus the bytes were trained
+  from). `gmeow:evidenceCorpusStale` is `true` exactly when the two differ.
+
+Either way the fix is `make maint-medium-sweep` over the moved corpus — never editing
+the recorded digest, which would assert an identity nothing measured.
+
+### The near-tie margin
+
+The declared point need not be the argmin. A declared cell is accepted when its
+two-part code is within **1%** of the winning cell's (`DECLARED_CELL_MARGIN_BASIS_POINTS`
+= 100); the build warns when it relies on the margin and **fails** above it, as it
+does when the declared cell is absent from the grid. The reason for the margin, with the
+observed flips, is recorded once, on `DECLARED_CELL_MARGIN_BASIS_POINTS` in
+`crates/pipeline/src/medium/sweep.rs`. The declared cell must also beat the
+no-dictionary baseline, because it is the cell that ships.
+
+### Corpus exclusions
+
+A corpus may declare `gmeow:corpusExcludesPath` for an authored file that would
+otherwise make it self-referential, such as the module that declares the corpus.
+Each exclusion must sit strictly inside a path-prefix family of the same corpus. An
+excluded file is not a member, so editing it does not move the digest. Corpora derived
+from reasoning or authoring-brief output can still move when that file changes.
 
 The current reader requires `gmeow.medium-baseline.v3`. Its top-level
 `engine_identity` records every selected PurRDF package in ascending name order,
@@ -419,7 +443,8 @@ evidence is the point. (That the mandated chain is not the grid's size argmin is
 on) a dictionary whose **authored**
 `gmeow:dictionaryTargetLength` / `gmeow:dictionaryStrategy` is not the measured
 argmin: the declaration is never silently overwritten, and
-`the_declared_training_points_are_the_committed_winners` stays red until a human
+`the_declared_training_points_are_within_the_margin_of_the_committed_winners` stays red
+while the declaration sits above the near-tie margin, until a human
 reconciles the slice with the evidence.
 
 # The identity gates — a zstd-compressed claim is the same claim

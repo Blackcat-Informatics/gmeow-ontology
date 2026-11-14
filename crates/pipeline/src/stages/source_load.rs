@@ -384,9 +384,7 @@ fn sorted_dirs(dir: &Path) -> Result<Vec<PathBuf>, gmeow_errors::Diag> {
 
 /// Serialize a frozen [`RdfDataset`] to the deterministic N-Quads byte form (full
 /// RDF 1.2 statement layer, lines sorted bytewise ascending, trailing newline). This
-/// is the single dataset → N-Quads projection the pipeline's in-memory dataflow speaks;
-/// the `gts_compose` stage projects the composed UNION dataset through it for its byte
-/// lane.
+/// is the single dataset → N-Quads projection the pipeline's in-memory dataflow speaks.
 pub fn dataset_to_sorted_nquads(
     dataset: &purrdf::RdfDataset,
 ) -> Result<Vec<u8>, gmeow_errors::Diag> {
@@ -476,6 +474,9 @@ impl Stage for SourceLoadStage {
     fn id(&self) -> &str {
         "stage-source-load"
     }
+    fn output_family(&self) -> crate::node::OutputFamily {
+        crate::node::OutputFamily::Generated
+    }
     fn consumes(&self) -> &[String] {
         &self.consumes
     }
@@ -519,8 +520,7 @@ impl Stage for SourceLoadStage {
     }
     fn run(&self, input: StageInput<'_>) -> Result<StageOutput, gmeow_errors::Diag> {
         let mut timings = Vec::with_capacity(7);
-        // Carry the authored base graph as the bundle's DEFAULT graph (the native
-        // contribution `gts_compose`'s default-graph fold unions), and keep emitting the
+        // Carry the authored base graph as the bundle's DEFAULT graph, and keep emitting the
         // BASE_GRAPH_PATH N-Quads byte lane for the byte readers — BOTH from the base
         // dataset alone, so neither changes as the self-description graphs are added.
         let started = Instant::now();

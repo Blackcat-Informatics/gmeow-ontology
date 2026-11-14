@@ -191,7 +191,7 @@ fn producer_receipt_identity_precedes_the_local_sync_manifest() {
     .unwrap();
     fs::write(
         root.path()
-            .join(".cache/gmeow-sync/manifests/generated-default.json"),
+            .join(".cache/gmeow-sync/manifests/generated-ordinary-default.json"),
         json::write_compact(&Value::from(
             Object::new().with("build_fingerprint", ("b".repeat(64)).to_json()),
         )),
@@ -232,7 +232,7 @@ fn explicit_legacy_producer_manifest_supplies_cold_identity_outside_the_cache() 
     assert!(
         !root
             .path()
-            .join(".cache/gmeow-sync/manifests/generated-default.json")
+            .join(".cache/gmeow-sync/manifests/generated-ordinary-default.json")
             .exists(),
         "producer identity must not warm the live sync-manifest cache"
     );
@@ -333,7 +333,7 @@ fn producer_identity_is_required_and_structurally_validated() {
     fs::create_dir_all(root.path().join(".cache/gmeow-sync/manifests")).unwrap();
     fs::write(
         root.path()
-            .join(".cache/gmeow-sync/manifests/generated-default.json"),
+            .join(".cache/gmeow-sync/manifests/generated-ordinary-default.json"),
         br#"{"build_fingerprint":"NOT-A-DIGEST"}"#,
     )
     .unwrap();

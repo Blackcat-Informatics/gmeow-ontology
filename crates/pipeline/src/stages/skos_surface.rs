@@ -222,6 +222,9 @@ impl Stage for SkosSurfaceStage {
     fn id(&self) -> &str {
         "stage-export-skos-surface"
     }
+    fn output_family(&self) -> crate::node::OutputFamily {
+        crate::node::OutputFamily::Generated
+    }
     fn consumes(&self) -> &[String] {
         &[]
     }

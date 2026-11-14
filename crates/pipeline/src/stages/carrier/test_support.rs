@@ -33,7 +33,7 @@ pub(super) fn okf_link_targets_missing_from(
 
 /// The canonical serialization of the snapshot payload's quad set MINUS the
 /// medium-envelope subgraph — the region `gmeow:stratumPayloadExcludingMediumEnvelope`
-/// names, taken over the pass-1 union (which is exactly that region, because the
+/// names, taken over the pass-1 stratum (which is exactly that region, because the
 /// envelopes do not exist yet).
 ///
 /// RDFC-1.0 canonical N-Quads, not a raw dump: the stratum digest must be a function
@@ -41,19 +41,13 @@ pub(super) fn okf_link_targets_missing_from(
 /// is free to perform. A reader recomputes it from the bundle it holds and compares.
 ///
 /// # Errors
-/// The union fails dataset validation or canonicalization.
+/// The stratum fails composition or canonicalization.
 #[cfg(test)]
 pub(super) fn stratum_nquads(
-    carrier: &purrdf::RdfDataset,
+    carrier: &std::sync::Arc<purrdf::RdfDataset>,
     extra_graphs: &[std::sync::Arc<purrdf::RdfDataset>],
 ) -> Result<String, gmeow_errors::Diag> {
-    let union = flat_stratum_union(carrier, extra_graphs)?;
-    Ok(purrdf::try_canonicalize(
-        &union,
-        &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None),
-    )?
-    .nquads()
-    .to_owned())
+    with_stratum_canonical(carrier, extra_graphs, str::to_owned)
 }
 
 /// Render the mdbook `src/` source tree and pack it into the single `docs-book` archive blob

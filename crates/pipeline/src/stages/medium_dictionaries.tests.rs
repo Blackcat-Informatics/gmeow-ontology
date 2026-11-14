@@ -63,7 +63,7 @@ fn the_consumes_set_covers_shipped_corpus_producers_exactly() {
 /// `module.ttl`) this crate can check without running the loader.
 #[test]
 fn the_consumes_set_is_sorted_and_bound() {
-    let stage = MediumDictionariesStage::new();
+    let stage = MediumDictionariesStage::new(crate::run::BuildProfile::Ordinary);
     let mut sorted = stage.consumes().to_vec();
     sorted.sort();
     assert_eq!(stage.consumes(), sorted.as_slice());
@@ -104,4 +104,80 @@ fn the_frame_identity_separates_rep_and_digest() {
     assert_ne!(a, c);
     assert_eq!(a, frame_iri("cells-archive", "blake3:aa"));
     assert!(a.starts_with("https://blackcatinformatics.ca/gmeow/frame/"));
+}
+
+/// An ordinary build over a moved corpus trains at the DECLARED point and the
+/// projected realization carries both digests with the stale flag set, so a consumer
+/// can see the bytes were not trained from the corpus the evidence measured.
+#[test]
+fn a_stale_evidence_build_trains_at_the_declaration_and_records_both_digests() {
+    use crate::medium::registry::{fixture, gm};
+    use crate::medium::sweep::{DeclaredPoint, DictionaryEvidence, EvidenceCorpus};
+
+    let registry = MediumRegistry::from_dataset(&fixture::dataset("")).expect("fixture registry");
+    let def = registry
+        .dictionary_by_id("gmeow-core-v1")
+        .expect("declared");
+    let training = (0..400u32)
+        .map(|i| {
+            std::sync::Arc::<[u8]>::from(
+                format!(
+                    "<https://blackcatinformatics.ca/gmeow/t{}> <https://e/p> \"v{i}\" .\n",
+                    i % 31
+                )
+                .into_bytes(),
+            )
+        })
+        .collect();
+    let resolved_digest = crate::medium::blake3_digest(b"the corpus this build resolved");
+    let recorded_digest = crate::medium::blake3_digest(b"the corpus the table measured");
+    let resolved = corpus::CorpusResolution {
+        training,
+        held_out_count: 0,
+        digest: resolved_digest.clone(),
+    };
+    let evidence = DictionaryEvidence {
+        id: def.id.clone(),
+        declared_point: DeclaredPoint::Winner,
+        corpus: EvidenceCorpus::Stale {
+            recorded: recorded_digest.clone(),
+            resolved: resolved_digest.clone(),
+        },
+        evidence_corpus_digest: recorded_digest.clone(),
+    };
+
+    let trained =
+        train_declared_dictionary(def, &fixture::dataset(""), &resolved, &evidence, &mut None)
+            .expect("train at the declared point");
+    assert_eq!(trained.measured.strategy, def.strategy);
+    assert_eq!(trained.measured.target_length, def.target_length);
+
+    let realization = crate::medium::rdf::realize(
+        def,
+        &trained.bytes,
+        trained.measured,
+        trained.evidence_corpus_digest,
+    )
+    .expect("realize");
+    let quads = crate::medium::rdf::project(&registry, &[realization], &[]).expect("project");
+    let lexical = |predicate: &str| -> String {
+        quads
+            .iter()
+            .find_map(|q| match (&q.object, q.predicate == gm(predicate)) {
+                (purrdf::RdfTerm::Literal(literal), true) => Some(literal.lexical_form.clone()),
+                _ => None,
+            })
+            .unwrap_or_else(|| panic!("the projection carries gmeow:{predicate}"))
+    };
+    assert_eq!(lexical("evidenceCorpusStale"), "true");
+    assert_eq!(
+        lexical("measuredDictionaryTargetLength"),
+        def.target_length.to_string()
+    );
+    assert!(
+        lexical("evidenceCorpusDigest").contains(recorded_digest.trim_start_matches("blake3:"))
+            && lexical("measuredCorpusDigest")
+                .contains(resolved_digest.trim_start_matches("blake3:")),
+        "the realization must keep the evidence digest and the trained-from digest apart"
+    );
 }

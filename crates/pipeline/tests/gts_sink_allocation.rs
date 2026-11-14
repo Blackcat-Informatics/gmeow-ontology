@@ -3,10 +3,11 @@
 
 //! Deterministic allocation gate for the snapshot stratum's canonical digest.
 //!
-//! The production path must keep one id-native flat union. The reference below is
-//! deliberately test-only: it preserves the former two owned-quad expansions and
-//! two flat datasets so the gate can prove both byte parity and a strict allocation
-//! win without relying on host RSS or wall-clock timing.
+//! The production path canonicalizes a composite view of the stratum sources and
+//! builds no union dataset. The reference below is deliberately test-only: it
+//! preserves the former two owned-quad expansions and two flat datasets so the gate
+//! can prove both byte parity and a strict allocation win without relying on host RSS
+//! or wall-clock timing.
 
 use std::collections::BTreeMap;
 use std::sync::Arc;
@@ -117,12 +118,12 @@ fn legacy_stratum_digest(
 }
 
 #[test]
-fn id_native_stratum_is_byte_identical_and_strictly_lowers_allocations() {
+fn composite_stratum_is_byte_identical_and_strictly_lowers_allocations() {
     let carrier = synthetic_source(0);
     let extra_graphs = vec![synthetic_source(1)];
 
     let (candidate, candidate_alloc) = measure(|| {
-        snapshot_stratum_digest(&carrier, &extra_graphs).expect("id-native digest succeeds")
+        snapshot_stratum_digest(&carrier, &extra_graphs).expect("composite stratum digest succeeds")
     });
     let ((legacy_digest, legacy_len, legacy_blank_count), legacy_alloc) =
         measure(|| legacy_stratum_digest(&carrier, &extra_graphs));
@@ -138,17 +139,17 @@ fn id_native_stratum_is_byte_identical_and_strictly_lowers_allocations() {
     );
     assert!(
         candidate_alloc.bytes < legacy_alloc.bytes,
-        "id-native total allocated bytes did not strictly fall: candidate={candidate_alloc:?}, \
+        "composite stratum total allocated bytes did not strictly fall: candidate={candidate_alloc:?}, \
          legacy={legacy_alloc:?}"
     );
     assert!(
         candidate_alloc.count < legacy_alloc.count,
-        "id-native allocation count did not strictly fall: candidate={candidate_alloc:?}, \
+        "composite stratum allocation count did not strictly fall: candidate={candidate_alloc:?}, \
          legacy={legacy_alloc:?}"
     );
     assert!(
         candidate_alloc.peak_live < legacy_alloc.peak_live,
-        "id-native peak live bytes did not strictly fall: candidate={candidate_alloc:?}, \
+        "composite stratum peak live bytes did not strictly fall: candidate={candidate_alloc:?}, \
          legacy={legacy_alloc:?}"
     );
 }

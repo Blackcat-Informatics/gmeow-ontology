@@ -1,18 +1,23 @@
 // SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 // SPDX-License-Identifier: AGPL-3.0-only
 
-//! The native/shim command surfaces: `gmeow gts` (a shim to the external `gts`
-//! binary), `gmeow music` (the native `gmeow_music` engine), `gmeow affect`
-//! (the native `gmeow_affect` intensity-geometry engine), and `gmeow math` (the
-//! native `gmeow_math_lift` ingestion bridges).
+//! The native command surfaces that sit beside the core verbs: `gmeow gts` (the in-process
+//! GTS container verbs on the linked `purrdf::gts` codec), `gmeow music` (the native
+//! `gmeow_music` engine), `gmeow affect` (the native `gmeow_affect` intensity-geometry
+//! engine), and `gmeow math` (the native `gmeow_math_lift` ingestion bridges).
 
+use std::io::Write as _;
 use std::path::{Path, PathBuf};
 
 use gmeow_cli_core::Reporter;
+use purrdf::gts::policy::TrustPolicy;
+use purrdf::gts::verify::VerifyOptions;
+use purrdf_lex::cbor::Value;
 
-use crate::commands::{fail, fail_code};
+use crate::commands::{fail, fail_code, gts_bytes};
 use crate::{
-    AffectCommands, BUNDLE_GTS, ClassifyMetric, FinanceCommands, MathCommands, MusicCommands,
+    AffectCommands, BUNDLE_GTS, ClassifyMetric, FinanceCommands, GtsCommands, MathCommands,
+    MusicCommands,
 };
 
 /// The canonical core-affect metric profile — the default `gmeow affect classify`
@@ -37,89 +42,421 @@ const CORE_AFFECT_METRIC_PAD: &str = "https://blackcatinformatics.ca/gmeow/coreA
 /// CLI-produced run can never be mistaken for — or collide with — a bundle-resident one.
 const MATH_LIFT_MINT_BASE: &str = "https://blackcatinformatics.ca/gmeow/examples/math/lift/";
 
-/// The install hint printed when the external `gts` binary cannot be found.
-pub(crate) const GTS_INSTALL_HINT: &str = "gts binary not found. Install gmeow-gts: pip install gmeow-gts \
-     (or cargo install gmeow-gts, etc.), or set GMEOW_GTS_BIN to its path.";
+// ── gmeow gts ────────────────────────────────────────────────────────────────
 
-/// The GTS subcommands that expect a snapshot file argument — the bundled
-/// snapshot is injected for these when the user gives none.
-const FILE_SUBCOMMANDS: &[&str] = &["info", "verify", "ls", "fold", "extract-key"];
-
-/// Resolve the external `gts` binary: `GMEOW_GTS_BIN` wins, then a `gts` on
-/// `PATH`. Returns `None` when neither resolves (the caller HARD-FAILS).
-pub(crate) fn resolve_gts_binary() -> Option<PathBuf> {
-    if let Ok(explicit) = std::env::var("GMEOW_GTS_BIN") {
-        let path = PathBuf::from(&explicit);
-        if !explicit.is_empty() && path.is_file() {
-            return Some(path);
-        }
-    }
-    which("gts")
+/// The name a `gmeow gts` verb prints for its input.
+fn gts_title(file: Option<&Path>) -> String {
+    file.map_or_else(|| "gmeow.gts".to_owned(), |path| path.display().to_string())
 }
 
-/// Locate `name` on `PATH` (the executable-search fallback; no external crate).
-fn which(name: &str) -> Option<PathBuf> {
-    let path_var = std::env::var_os("PATH")?;
-    // Append the platform executable suffix (empty on Unix, `.exe` on Windows)
-    // so the lookup resolves `gts.exe` where the OS requires it.
-    let filename = format!("{name}{}", std::env::consts::EXE_SUFFIX);
-    for dir in std::env::split_paths(&path_var) {
-        let candidate = dir.join(&filename);
-        if candidate.is_file() {
-            return Some(candidate);
-        }
+/// Write `bytes` to stdout, failing with a named code when the stream is closed or full.
+fn gts_write_stdout(reporter: &dyn Reporter, bytes: &[u8]) -> i32 {
+    let mut stdout = std::io::stdout().lock();
+    match stdout.write_all(bytes).and_then(|()| stdout.flush()) {
+        Ok(()) => 0,
+        Err(error) => fail(
+            reporter,
+            "gmeow-cli.gts.write",
+            format!("cannot write to standard output: {error}"),
+        ),
     }
-    None
 }
 
-/// `gmeow gts …` — forward arguments verbatim to the external `gts` binary,
-/// injecting the bundled snapshot path for file-expecting subcommands. Propagates
-/// the child's exit code; HARD-FAILS when the binary is absent.
-pub(crate) fn gts(reporter: &dyn Reporter, args: &[String]) -> i32 {
-    let Some(exe) = resolve_gts_binary() else {
-        return fail(reporter, "gmeow-cli.gts.missing", GTS_INSTALL_HINT);
+/// `gmeow gts …` — the closed set of in-process GTS container verbs, built on the linked
+/// `purrdf::gts` codec. Nothing here starts another program.
+pub(crate) fn gts(reporter: &dyn Reporter, command: &GtsCommands) -> i32 {
+    match command {
+        GtsCommands::Info { file } => gts_info(reporter, file.as_deref()),
+        GtsCommands::Verify {
+            file,
+            key,
+            allow_unsigned,
+            trusted_signer,
+        } => gts_verify(
+            reporter,
+            file.as_deref(),
+            key.as_deref(),
+            *allow_unsigned,
+            trusted_signer,
+        ),
+        GtsCommands::Heads { file } => gts_heads(reporter, file.as_deref()),
+        GtsCommands::ExtractKey { file, out } => {
+            gts_extract_key(reporter, file.as_deref(), out.as_deref())
+        }
+        GtsCommands::Ls { file } => gts_ls(reporter, file.as_deref()),
+        GtsCommands::Fold { file } => gts_fold(reporter, file.as_deref()),
+    }
+}
+
+/// `gmeow gts info` — the per-segment composition ledger, one fold per segment and never
+/// unioned. Signature frames are counted as present; nothing is checked (that is `verify`).
+/// A torn file or a segment that folded with diagnostics is printed and exits non-zero.
+fn gts_info(reporter: &dyn Reporter, file: Option<&Path>) -> i32 {
+    let bytes = match gts_bytes(reporter, file) {
+        Ok(bytes) => bytes,
+        Err(code) => return code,
     };
+    let title = gts_title(file);
+    let folded = purrdf::gts::reader::read_file_segments(&bytes);
+    if let Some(fatal) = &folded.fatal {
+        return fail(
+            reporter,
+            "gmeow-cli.gts.info.unreadable",
+            format!("{title}: {}: {}", fatal.code, fatal.detail),
+        );
+    }
+    println!("{title}: {} segment(s)", folded.segments.len());
+    let mut problems = 0_usize;
+    for (index, segment) in folded.segments.iter().enumerate() {
+        let head = segment
+            .segment_heads
+            .first()
+            .map_or_else(|| "-".to_owned(), |head| purrdf_hash::hex::encode(head));
+        let profile = segment.segment_profiles.first().map_or("-", String::as_str);
+        println!(
+            "  segment {index}: head {head} profile {profile} terms {} quads {} reifies {} \
+             annot {} blobs {} suppress {} opaque {} signature-frames {}",
+            segment.terms.len(),
+            segment.quads.len(),
+            segment.reifiers.len(),
+            segment.annotations.len(),
+            segment.blobs.len(),
+            segment.suppressions.len(),
+            segment.opaque.len(),
+            segment.signatures.len(),
+        );
+        for diagnostic in &segment.diagnostics {
+            problems += 1;
+            println!("    diagnostic {}: {}", diagnostic.code, diagnostic.detail);
+        }
+    }
+    if let Some(torn) = &folded.torn {
+        problems += 1;
+        println!("  torn trailing item: {torn}");
+    }
+    if problems > 0 {
+        return fail(
+            reporter,
+            "gmeow-cli.gts.info.problems",
+            format!("{title}: {problems} problem(s) found; run `gmeow gts verify` for the verdict"),
+        );
+    }
+    0
+}
 
-    let mut forwarded: Vec<String> = args.to_vec();
-    // Keep the embedded snapshot staged for the child's lifetime.
-    let mut staged: Option<StagedBundle> = None;
-
-    if forwarded.is_empty() {
-        forwarded.push("--help".to_owned());
-    } else if FILE_SUBCOMMANDS.contains(&forwarded[0].as_str()) {
-        let tail = &forwarded[1..];
-        let has_file_arg = if let Some(marker) = tail.iter().position(|a| a == "--") {
-            marker + 1 < tail.len()
-        } else {
-            tail.iter().any(|a| !a.starts_with('-'))
-        };
-        if !has_file_arg {
-            match StagedBundle::write(BUNDLE_GTS) {
-                Ok(s) => {
-                    let path = s.path().to_string_lossy().into_owned();
-                    staged = Some(s);
-                    forwarded.insert(1, path);
-                }
-                Err(e) => {
-                    return fail(
-                        reporter,
-                        "gmeow-cli.gts.stage-bundle",
-                        format!("cannot stage bundled snapshot: {e}"),
-                    );
-                }
+/// `gmeow gts verify` — the signature and frame-chain check of
+/// `purrdf::gts::verify::verify_file_with_options`.
+///
+/// The exit status is exactly purrdf's verdict (`VerificationResult::ok`) for the file and
+/// options given: unsigned frames and unsigned files are valid in this format unless
+/// `--allow-unsigned` is withheld, and nothing is added to that decision here. The report
+/// states what was checked, including when no signature was present.
+fn gts_verify(
+    reporter: &dyn Reporter,
+    file: Option<&Path>,
+    key: Option<&Path>,
+    allow_unsigned: bool,
+    trusted_signers: &[String],
+) -> i32 {
+    let bytes = match gts_bytes(reporter, file) {
+        Ok(bytes) => bytes,
+        Err(code) => return code,
+    };
+    let title = gts_title(file);
+    let mut options = VerifyOptions::new()
+        .require_signatures(!allow_unsigned)
+        .trust_policy(TrustPolicy::new(
+            trusted_signers.iter().cloned(),
+            !trusted_signers.is_empty(),
+        ));
+    if let Some(path) = key {
+        match std::fs::read_to_string(path) {
+            Ok(armored) => options = options.with_armored_key(armored),
+            Err(error) => {
+                return fail(
+                    reporter,
+                    "gmeow-cli.gts.read",
+                    format!("cannot read key {}: {error}", path.display()),
+                );
             }
         }
     }
 
-    let status = std::process::Command::new(&exe).args(&forwarded).status();
-    drop(staged);
-    match status {
-        Ok(s) => s.code().unwrap_or(1),
-        Err(e) => fail(
+    let result = purrdf::gts::verify::verify_file_with_options(&bytes, &options);
+    // Information only: signatures were checked when each landed as valid, invalid or
+    // unresolved; an early refusal copies a signature count without checking any.
+    let performed = result.valid + result.invalid + result.unverified > 0;
+
+    println!("{title}");
+    if performed {
+        if let Some(fingerprint) = &result.fingerprint {
+            println!(
+                "transport key: {}",
+                purrdf::gts::verify::format_fingerprint(fingerprint)
+            );
+        }
+        if let Some(kid) = &result.kid {
+            println!("key id:        {kid}");
+        }
+        if let Some(emoji) = &result.emojihash {
+            println!("emoji hash:    {emoji}");
+        }
+        if let Some(labels) = &result.emojihash_labels {
+            println!("emoji labels:  {labels}");
+        }
+        if let Some(art) = &result.randomart {
+            println!("{art}");
+        }
+    }
+    println!(
+        "signatures: {} signed, {} valid, {} invalid, {} unverified, {} trusted",
+        result.signed, result.valid, result.invalid, result.unverified, result.trusted
+    );
+    if performed {
+        println!(
+            "signature check: performed on {} signature(s)",
+            result.signed
+        );
+    } else {
+        println!("signature check: NOT PERFORMED, the file carries no signatures to check");
+    }
+    for diagnostic in &result.diagnostics {
+        println!("diagnostic {}: {}", diagnostic.code, diagnostic.detail);
+    }
+    for finding in &result.profile_findings {
+        println!(
+            "profile {:?} {}: {}",
+            finding.severity, finding.code, finding.detail
+        );
+    }
+
+    if result.ok {
+        println!("verification passed");
+        return 0;
+    }
+    let mut reasons: Vec<String> = result.errors.iter().map(ToString::to_string).collect();
+    if reasons.is_empty() {
+        reasons.push("verification refused (see the diagnostics and profile findings)".to_owned());
+    }
+    for reason in &reasons {
+        println!("error: {reason}");
+    }
+    fail(
+        reporter,
+        "gmeow-cli.gts.verify.failed",
+        format!("{title}: verification failed: {}", reasons.join("; ")),
+    )
+}
+
+/// `gmeow gts heads` — the `gts-replication-heads-v1` JSON of the file's segment heads.
+/// A torn or damaged file prints the JSON (`"clean":false`) and exits non-zero.
+fn gts_heads(reporter: &dyn Reporter, file: Option<&Path>) -> i32 {
+    let bytes = match gts_bytes(reporter, file) {
+        Ok(bytes) => bytes,
+        Err(code) => return code,
+    };
+    let title = gts_title(file);
+    let inventory = purrdf::gts::replication::inventory(&bytes);
+    let printed = gts_write_stdout(
+        reporter,
+        purrdf::gts::replication::heads_json(&inventory).as_bytes(),
+    );
+    if printed != 0 {
+        return printed;
+    }
+    let problem = if let Some(fatal) = &inventory.fatal {
+        Some(format!("{}: {}", fatal.code, fatal.detail))
+    } else if let Some(torn) = &inventory.torn {
+        Some(torn.to_string())
+    } else {
+        inventory.segments.iter().find_map(|segment| {
+            segment.diagnostics.first().map(|diagnostic| {
+                format!(
+                    "segment {}: {}: {}",
+                    segment.index, diagnostic.code, diagnostic.detail
+                )
+            })
+        })
+    };
+    match problem {
+        None => 0,
+        Some(problem) => fail(
             reporter,
-            "gmeow-cli.gts.spawn",
-            format!("failed to run gts: {e}"),
+            "gmeow-cli.gts.heads.unclean",
+            format!("{title}: {problem}"),
         ),
+    }
+}
+
+/// `gmeow gts extract-key` — the ASCII-armored OpenPGP public key embedded as
+/// `gts:transportKey`, to stdout or `-o FILE`. A file that does not fold cleanly, or has no
+/// well-formed key (kid and armor), is a failure. The key is NOT authenticated by this verb.
+fn gts_extract_key(reporter: &dyn Reporter, file: Option<&Path>, out: Option<&Path>) -> i32 {
+    let bytes = match gts_bytes(reporter, file) {
+        Ok(bytes) => bytes,
+        Err(code) => return code,
+    };
+    let graph = match purrdf::gts::read_all_segments(&bytes) {
+        Ok(graph) => graph,
+        Err(error) => {
+            return fail(
+                reporter,
+                "gmeow-cli.gts.fold",
+                format!("{}: cannot fold: {error}", gts_title(file)),
+            );
+        }
+    };
+    let Some(key) = purrdf::gts::verify::extract_transport_key(&graph) else {
+        return fail(
+            reporter,
+            "gmeow-cli.gts.extract-key.absent",
+            format!(
+                "{}: no gts:transportKey in the file metadata",
+                gts_title(file)
+            ),
+        );
+    };
+    gmeow_cli_core::note(
+        reporter,
+        "gmeow",
+        "gmeow-cli.gts.extract-key.unverified",
+        format!(
+            "key id {}: taken from the file itself; no signature was checked (see `gmeow gts verify`)",
+            key.kid
+        ),
+    );
+    let mut armored = key.gpg;
+    if !armored.ends_with('\n') {
+        armored.push('\n');
+    }
+    match out {
+        None => gts_write_stdout(reporter, armored.as_bytes()),
+        Some(path) => match std::fs::write(path, armored.as_bytes()) {
+            Ok(()) => 0,
+            Err(error) => fail(
+                reporter,
+                "gmeow-cli.gts.write",
+                format!("cannot write {}: {error}", path.display()),
+            ),
+        },
+    }
+}
+
+/// The declared media type of a blob, from its frame's `pub` map (`mt`).
+fn gts_blob_media(meta: Option<&Value>) -> &str {
+    let Some(Value::Map(entries)) = meta else {
+        return "-";
+    };
+    entries
+        .iter()
+        .find_map(|(key, value)| match (key, value) {
+            (Value::Text(key), Value::Text(value)) if key == "mt" => Some(value.as_str()),
+            _ => None,
+        })
+        .unwrap_or("-")
+}
+
+/// `gmeow gts ls` — the content-addressed blobs the file carries: digest, decoded size and
+/// declared media type, sorted by digest. Any fold diagnostic or undecodable blob fails.
+fn gts_ls(reporter: &dyn Reporter, file: Option<&Path>) -> i32 {
+    let bytes = match gts_bytes(reporter, file) {
+        Ok(bytes) => bytes,
+        Err(code) => return code,
+    };
+    let title = gts_title(file);
+    let graph = match purrdf::gts::read_all_segments(&bytes) {
+        Ok(graph) => graph,
+        Err(error) => {
+            return fail(
+                reporter,
+                "gmeow-cli.gts.fold",
+                format!("{title}: cannot fold: {error}"),
+            );
+        }
+    };
+    let meta_by_digest: std::collections::BTreeMap<&str, &Value> = graph
+        .blob_meta
+        .iter()
+        .map(|(digest, meta)| (digest.as_str(), meta))
+        .collect();
+    let mut rows: Vec<(&str, usize, &str)> = Vec::with_capacity(graph.blobs.len());
+    for (digest, entry) in &graph.blobs {
+        let length = match entry.decoded_len() {
+            Ok(length) => length,
+            Err(error) => {
+                return fail(
+                    reporter,
+                    "gmeow-cli.gts.ls.undecodable",
+                    format!("{title}: blob {digest} does not decode: {error}"),
+                );
+            }
+        };
+        rows.push((
+            digest,
+            length,
+            gts_blob_media(meta_by_digest.get(digest.as_str()).copied()),
+        ));
+    }
+    rows.sort_unstable();
+    let mut listing = String::new();
+    for (digest, length, media) in rows {
+        listing.push_str(&format!("{digest}\t{length}\t{media}\n"));
+    }
+    gts_write_stdout(reporter, listing.as_bytes())
+}
+
+/// `gmeow gts fold` — the post-suppression dataset of every segment as N-Quads, with each
+/// quad's named graph kept. A file that suppresses reifier bindings is refused, since the
+/// projection does not apply those and would print them as active; compaction-provenance
+/// quads are not part of the projection. Any fold diagnostic fails.
+fn gts_fold(reporter: &dyn Reporter, file: Option<&Path>) -> i32 {
+    let bytes = match gts_bytes(reporter, file) {
+        Ok(bytes) => bytes,
+        Err(code) => return code,
+    };
+    let title = gts_title(file);
+    let fold_failed = |error: &dyn std::fmt::Display| {
+        fail(
+            reporter,
+            "gmeow-cli.gts.fold",
+            format!("{title}: cannot fold: {error}"),
+        )
+    };
+    let graph = match purrdf::gts::read_all_segments(&bytes) {
+        Ok(graph) => graph,
+        Err(error) => return fold_failed(&error),
+    };
+    let suppresses_reifiers = graph.suppressions.iter().any(|suppression| {
+        suppression.targets.iter().any(|target| match target {
+            Value::Map(entries) => entries.iter().any(|(key, value)| {
+                matches!((key, value), (Value::Text(key), Value::Text(kind))
+                    if key == "kind" && kind == "reifier")
+            }),
+            _ => false,
+        })
+    });
+    if suppresses_reifiers {
+        return fail(
+            reporter,
+            "gmeow-cli.gts.fold.reifier-suppression",
+            format!(
+                "{title}: the file suppresses reifier bindings, which this fold does not apply; \
+                 refusing to print them as active"
+            ),
+        );
+    }
+    let effective = purrdf::gts_certify::effective_projection(&graph);
+    let dataset = match purrdf::gts::dataset_from_gts_graph(&effective) {
+        Ok(dataset) => dataset,
+        Err(error) => return fold_failed(&error),
+    };
+    match purrdf::serialize_dataset(
+        &dataset,
+        "application/n-quads",
+        purrdf::SerializeGraph::Dataset,
+    ) {
+        Ok(nquads) => gts_write_stdout(reporter, &nquads),
+        Err(error) => fold_failed(&error),
     }
 }
 
@@ -637,32 +974,6 @@ pub(crate) fn math(reporter: &dyn Reporter, command: &MathCommands) -> i32 {
             .with_context(format!("gmeow math {leaf}")),
             "gmeow",
         ),
-    }
-}
-
-/// A scoped temp copy of the embedded bundle, removed on drop.
-///
-/// Backed by [`tempfile::NamedTempFile`], which creates the file atomically with
-/// `O_EXCL` semantics and a randomized name — closing the TOCTOU / symlink race a
-/// predictable pid+timestamp name would open — and unlinks it on drop.
-struct StagedBundle {
-    file: tempfile::NamedTempFile,
-}
-
-impl StagedBundle {
-    fn write(bytes: &[u8]) -> std::io::Result<Self> {
-        use std::io::Write;
-        let mut file = tempfile::Builder::new()
-            .prefix("gmeow-gts-")
-            .suffix(".gts")
-            .tempfile()?;
-        file.write_all(bytes)?;
-        file.flush()?;
-        Ok(Self { file })
-    }
-
-    fn path(&self) -> &Path {
-        self.file.path()
     }
 }
 

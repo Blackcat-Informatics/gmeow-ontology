@@ -16,7 +16,7 @@
 //! [`gmeow_cli_core`]: product results → stdout, errors/diagnostics → stderr,
 //! exit `0` on success, `1` on a handled failure, `2` for clap usage errors,
 //! `3` for an undecided or unsupported operation, and
-//! a passthrough child's own exit code for `gts` / `music`.
+//! `music` / `affect` / `math` engine exits.
 
 mod commands;
 mod error;
@@ -46,6 +46,11 @@ use gmeow_cli_core::ConsoleMode;
 /// absence still applies.
 pub const BUNDLE_GTS: &[u8] = include_bytes!(env!("GMEOW_BUNDLE_PATH"));
 
+/// The embedded GMN codebook the default `gmeow gmn` codec decodes, resolved by
+/// `build.rs` through `GMEOW_CODEBOOK_PATH` under the same absent/empty guard as
+/// the bundle. `gmeow version --verbose` digests these exact bytes.
+pub const GMN_CODEBOOK: &[u8] = include_bytes!(env!("GMEOW_CODEBOOK_PATH"));
+
 /// The GMEOW IRI namespace the discipline checks and term catalog key on.
 pub(crate) const NAMESPACE: &str = "https://blackcatinformatics.ca/gmeow/";
 
@@ -71,19 +76,6 @@ impl From<DescribeFormat> for gmeow_docs::card::CardFormat {
             DescribeFormat::Toon => gmeow_docs::card::CardFormat::Toon,
         }
     }
-}
-
-/// External first-order prover selected by `gmeow prove`.
-#[derive(Debug, Clone, Copy, Default, PartialEq, Eq, clap::ValueEnum)]
-pub enum ProverChoice {
-    /// Select E when installed, otherwise Vampire. `GMEOW_PROVER_PATH` pins an
-    /// exact executable and its filename determines the protocol flavor.
-    #[default]
-    Auto,
-    /// The E theorem prover (`eprover`).
-    Eprover,
-    /// The Vampire theorem prover (`vampire`).
-    Vampire,
 }
 
 /// The output serialization every structured `gmeow logic` reader shares
@@ -132,8 +124,17 @@ pub struct Cli {
 #[allow(clippy::large_enum_variant)]
 #[derive(Debug, Subcommand)]
 pub enum Commands {
-    /// Print the gmeow package version.
-    Version,
+    /// Print the gmeow package version; `--verbose` adds the full build identity.
+    Version {
+        /// Also report the source revision and tree state, the purrdf version, the
+        /// SHA-256 and size of the embedded bundle and codebook, and the target,
+        /// CPU baseline, target features, profile and compiler of this build.
+        #[arg(long)]
+        verbose: bool,
+        /// Serialization of the `--verbose` identity.
+        #[arg(long = "format", short = 'f', value_enum, default_value_t = OutputFormat::Text, requires = "verbose")]
+        format: OutputFormat,
+    },
     /// Show a summary of a GMEOW ontology snapshot (default: the bundle).
     Info {
         /// GTS snapshot to inspect (default: bundled gmeow.gts).
@@ -173,6 +174,11 @@ pub enum Commands {
         /// Optional out-of-band trusted Ed25519 OpenPGP PUBLIC certificate.
         #[arg(long = "public-key")]
         public_key: Option<PathBuf>,
+        /// Also require the bundle to carry dictionary evidence records (the strict form the
+        /// pre-publish check uses). Without it only a positively stale record is refused, so
+        /// an authentic earlier release that predates the records still verifies.
+        #[arg(long = "require-dictionary-evidence")]
+        require_dictionary_evidence: bool,
     },
     /// Report the substrate reconciliation from the embedded bundle (no repo): what
     /// engine produced this bundle, what it embeds, and whether the claim sites agree.
@@ -305,12 +311,12 @@ pub enum Commands {
     },
     /// Start the consumer-safe GMEOW MCP server (stdio transport).
     Mcp,
-    /// Dispatch to the external Graph Transport Substrate (GTS) CLI.
-    #[command(disable_help_flag = true, disable_version_flag = true)]
+    /// GTS container tools, run in-process (no other program is started): `info`,
+    /// `verify`, `heads`, `extract-key`, `ls`, `fold`. Each reads FILE, or the
+    /// embedded bundle when none is given.
     Gts {
-        /// Arguments forwarded verbatim to the `gts` binary.
-        #[arg(trailing_var_arg = true, allow_hyphen_values = true)]
-        args: Vec<String>,
+        #[command(subcommand)]
+        command: GtsCommands,
     },
     /// GMEOW music-package projection tools.
     Music {
@@ -362,7 +368,9 @@ pub enum Commands {
         gate: bool,
     },
     /// Decide whether an ontology has a model (OWL 2 Direct-Semantics consistency),
-    /// natively over the purrdf DL reasoner. Prints the three-valued verdict
+    /// natively over the purrdf DL reasoner. The input is read in OWL/RDFS spelling
+    /// only: canonical `logic:` axioms, formulas and rules are not read by this
+    /// command (use `gmeow prove` for a `logic:` selection). Prints the three-valued verdict
     /// (`true` / `false` / `unknown`), the completeness of the run, its measured
     /// cost, and every construct boundary the reverse mapping could not turn into a
     /// DL clause. Syntax is inferred from the file's extension (`.ttl`, `.nt`,
@@ -383,11 +391,19 @@ pub enum Commands {
         #[arg(long)]
         gate: bool,
     },
-    /// Compile an exact RDF source selection once, admit its complete classical
-    /// FOF profile, and ask a bounded external prover about axiom consistency.
-    /// The report binds source/program/problem and executable identities. Solver
-    /// output remains attestation until an independently checked proof/model raises
-    /// its evidence grade.
+    /// Decide the consistency of an exact `logic:` source selection in-process,
+    /// under GMEOW native `logic:` semantics (not classical first-order logic).
+    /// The native rule engine reads the whole selection; the OWL 2 DL tableau reads
+    /// its OWL view as a second refuter. The verdict is exactly one of
+    /// `consistent`, `inconsistent` or `not-decided`: a clash found by either
+    /// engine is `inconsistent`; `consistent` requires a completed native closure,
+    /// a complete source admission and an empty native-accounting drop list;
+    /// everything else is `not-decided`, with every construct the native engine
+    /// did not decide listed as a drop. The OWL leg's own state is reported beside
+    /// the verdict and never changes a native `consistent`. A native `consistent`
+    /// is reproduced by re-running on the same inputs; a native `inconsistent`
+    /// carries its law and witness premises. No external program is run and no
+    /// wall clock is read.
     Prove {
         /// RDF source documents to compose. Each file keeps an independent blank scope.
         #[arg(required_unless_present = "dir")]
@@ -395,29 +411,38 @@ pub enum Commands {
         /// Recursively add `module.ttl` and `*.logic.ttl` below this corpus root.
         #[arg(long)]
         dir: Option<PathBuf>,
-        /// External prover implementation.
-        #[arg(long, value_enum, default_value_t = ProverChoice::Auto)]
-        prover: ProverChoice,
-        /// Parent-enforced wall deadline in seconds for each selected prover pass.
-        #[arg(
-            long = "timeout-secs",
-            default_value_t = 60,
-            value_parser = clap::value_parser!(u64).range(1..=3600)
-        )]
-        timeout_secs: u64,
-        /// Keep the exact emitted TPTP problem at this path.
-        #[arg(long)]
-        out: Option<PathBuf>,
+        /// Native derivation-step allowance. Reaching it yields `not-decided`.
+        #[arg(long = "max-steps", conflicts_with = "check_proof")]
+        max_steps: Option<u64>,
+        /// Narrow the tableau's per-decision step cap (it can only lower the
+        /// size-derived ceiling). Reaching it leaves the OWL leg `not-decided`; the
+        /// verdict still follows the native engine.
+        #[arg(long = "step-cap")]
+        step_cap: Option<u64>,
         /// Output serialization.
         #[arg(long = "format", short = 'f', value_enum, default_value_t = OutputFormat::Text)]
         format: OutputFormat,
-        /// Apply the typed gate-exit contract. Certificate-grade consistent is 0,
-        /// certified negative is 1, and undecided/unsupported/attestation is 3.
-        #[arg(long)]
+        /// Apply the gate-exit contract: consistent 0, inconsistent 1,
+        /// not-decided 3. Malformed input is 4 and execution failure 5 in either mode.
+        #[arg(long, conflicts_with = "check_proof")]
         gate: bool,
-        /// Write the complete machine-readable receipt regardless of stdout format.
+        /// Write the complete machine-readable report regardless of stdout format.
         #[arg(long = "evidence-out")]
         evidence_out: Option<PathBuf>,
+        /// Write the encoded OWL 2 DL tableau proof; the report carries its digest.
+        #[arg(long = "proof-out", conflicts_with = "check_proof")]
+        proof_out: Option<PathBuf>,
+        /// Replay an OWL-leg proof written by `--proof-out` against the same inputs
+        /// without a new solver decision, and print the claim it certifies (for
+        /// example `owl-view-consistent`). Exit 0 when it replays, 1 when it is
+        /// rejected. The native engine has no proof file: re-run `gmeow prove` on
+        /// the same inputs to reproduce its verdict.
+        #[arg(long = "check-proof")]
+        check_proof: Option<PathBuf>,
+        /// Export the TPTP FOF projection of the selection to this path. No prover
+        /// is run; a blocked projection writes no file and lists its blockers.
+        #[arg(long, conflicts_with = "check_proof")]
+        out: Option<PathBuf>,
     },
     /// Certify an ontology against the OWL 2 profiles (EL, QL, RL, DL, Full),
     /// natively over the purrdf profile checker. Prints every profile the ontology
@@ -1619,6 +1644,61 @@ pub enum MathCommands {
     },
 }
 
+/// The `gmeow gts` verbs: a closed set implemented in-process on the linked
+/// `purrdf::gts` codec. Every verb reads FILE, or the embedded bundle when omitted.
+#[derive(Debug, Subcommand)]
+pub enum GtsCommands {
+    /// Print the per-segment composition ledger (head, profile, row counts). Counts
+    /// signature frames as present without checking them; use `verify` for that.
+    Info {
+        /// GTS file to inspect (default: bundled gmeow.gts).
+        file: Option<PathBuf>,
+    },
+    /// Check every signature and the frame-hash chain, and report what was checked.
+    /// The exit status is the verification result of the GTS codec for the options given.
+    Verify {
+        /// GTS file to verify (default: bundled gmeow.gts).
+        file: Option<PathBuf>,
+        /// Armored OpenPGP public key to verify against, instead of the embedded
+        /// `gts:transportKey`.
+        #[arg(long = "key")]
+        key: Option<PathBuf>,
+        /// Accept a file that carries no signatures (its frame chain is still checked).
+        #[arg(long = "allow-unsigned")]
+        allow_unsigned: bool,
+        /// Signer key id the deployment trusts; repeatable. When given, at least one
+        /// valid signature from a named signer is required.
+        #[arg(long = "trusted-signer", value_name = "KID")]
+        trusted_signer: Vec<String>,
+    },
+    /// Print the segment heads and their aggregate digest as `gts-replication-heads-v1` JSON.
+    Heads {
+        /// GTS file to inspect (default: bundled gmeow.gts).
+        file: Option<PathBuf>,
+    },
+    /// Print the embedded `gts:transportKey` as an armored OpenPGP public key.
+    #[command(name = "extract-key")]
+    ExtractKey {
+        /// GTS file to read the key from (default: bundled gmeow.gts).
+        file: Option<PathBuf>,
+        /// Write the key to this file instead of standard output.
+        #[arg(short = 'o', long = "out")]
+        out: Option<PathBuf>,
+    },
+    /// List the content-addressed blobs: digest, decoded size and media type.
+    Ls {
+        /// GTS file to list (default: bundled gmeow.gts).
+        file: Option<PathBuf>,
+    },
+    /// Print the folded dataset as N-Quads with every named graph kept. Refuses a file
+    /// that suppresses reifier bindings, which this fold does not apply, and omits
+    /// compaction-provenance quads.
+    Fold {
+        /// GTS file to fold (default: bundled gmeow.gts).
+        file: Option<PathBuf>,
+    },
+}
+
 /// The `gmeow music` nested subcommands (native `gmeow_music` engine).
 #[derive(Debug, Subcommand)]
 pub enum MusicCommands {
@@ -1667,7 +1747,7 @@ pub fn run() -> i32 {
     let reporter = reporter.as_ref();
     let lang = cli.lang;
     match cli.command {
-        Commands::Version => commands::version(),
+        Commands::Version { verbose, format } => commands::version(verbose, format),
         Commands::Info { file } => commands::info(reporter, file.as_deref()),
         Commands::Medium { command } => match command {
             MediumCommands::List { file } => commands::medium_list(reporter, file.as_deref()),
@@ -1692,9 +1772,16 @@ pub fn run() -> i32 {
             &format,
             deep,
         ),
-        Commands::VerifyReleaseBundle { bundle, public_key } => {
-            commands::verify_release_bundle(reporter, &bundle, public_key.as_deref())
-        }
+        Commands::VerifyReleaseBundle {
+            bundle,
+            public_key,
+            require_dictionary_evidence,
+        } => commands::verify_release_bundle(
+            reporter,
+            &bundle,
+            public_key.as_deref(),
+            require_dictionary_evidence,
+        ),
         Commands::Substrate {
             gts,
             component,
@@ -1767,7 +1854,7 @@ pub fn run() -> i32 {
         Commands::Crossref { out, gts } => commands::crossref(reporter, &out, gts.as_deref()),
         Commands::Explain { target_iri, file } => commands::explain(reporter, target_iri, file),
         Commands::Mcp => commands::mcp(reporter),
-        Commands::Gts { args } => passthrough::gts(reporter, &args),
+        Commands::Gts { command } => passthrough::gts(reporter, &command),
         Commands::Music { command } => passthrough::music(reporter, &command),
         Commands::Affect { command } => passthrough::affect(reporter, &command),
         Commands::Math { command } => passthrough::math(reporter, &command),
@@ -1839,22 +1926,28 @@ pub fn run() -> i32 {
         Commands::Prove {
             inputs,
             dir,
-            prover,
-            timeout_secs,
-            out,
+            max_steps,
+            step_cap,
             format,
             gate,
             evidence_out,
+            proof_out,
+            check_proof,
+            out,
         } => commands::prove(
             reporter,
-            &inputs,
-            dir.as_deref(),
-            prover,
-            timeout_secs,
-            out.as_deref(),
-            format,
-            gate,
-            evidence_out.as_deref(),
+            &commands::ProveRequest {
+                inputs: &inputs,
+                dir: dir.as_deref(),
+                max_steps,
+                step_cap,
+                format,
+                gate,
+                evidence_out: evidence_out.as_deref(),
+                proof_out: proof_out.as_deref(),
+                check_proof: check_proof.as_deref(),
+                out: out.as_deref(),
+            },
         ),
         Commands::Profile { ontology } => commands::profile(reporter, &ontology),
         Commands::Classify {

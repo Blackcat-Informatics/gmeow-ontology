@@ -727,7 +727,7 @@ fn pipeline_build_fingerprint(
             "/payload/build_identity/fingerprint",
         ),
         (
-            root.join(".cache/gmeow-sync/manifests/generated-default.json"),
+            root.join(".cache/gmeow-sync/manifests/generated-ordinary-default.json"),
             "/build_fingerprint",
         ),
     ];

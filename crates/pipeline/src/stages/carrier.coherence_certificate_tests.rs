@@ -47,7 +47,9 @@ fn fold_attaches_a_coherence_artifact_to_graph_attestations() {
     upstream.insert("stage-reason".to_string(), reason_product(&reasoned.result));
 
     let composed = parse_dataset(edb.as_bytes(), "application/n-quads", None).unwrap();
-    let folded = fold_coherence_certificate(composed, &upstream).expect("fold certificate");
+    let mut parts = CarrierParts::new(&upstream);
+    parts.push_dataset(Arc::clone(&composed));
+    let folded = fold_coherence_certificate(composed, parts, &upstream).expect("fold certificate");
 
     let attestations = folded
         .project_graph(Some(&purrdf::RdfTerm::iri(
@@ -72,7 +74,9 @@ fn fold_attaches_a_coherence_artifact_to_graph_attestations() {
 
     // Deterministic: re-folding the same carrier + result is byte-identical.
     let composed2 = parse_dataset(edb.as_bytes(), "application/n-quads", None).unwrap();
-    let folded2 = fold_coherence_certificate(composed2, &upstream).expect("fold again");
+    let mut parts2 = CarrierParts::new(&upstream);
+    parts2.push_dataset(Arc::clone(&composed2));
+    let folded2 = fold_coherence_certificate(composed2, parts2, &upstream).expect("fold again");
     let nq1 = purrdf::canonical_flat_nquads(
         folded.as_ref(),
         &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None),

@@ -151,24 +151,26 @@ const ARTIFACT_KIND: RdfLookasideKind = RdfLookasideKind::Blob;
 /// two cannot drift into disagreeing about what "internal" means.
 pub const INTERNAL_ARTIFACT_PREFIX: &str = "pipeline/";
 
-/// Rebuild `bundle` retaining ONLY what a run OUTPUT needs: its COMMITTED
-/// byte-artifact-lane entries (every lane entry whose logical path does NOT start with
-/// [`INTERNAL_ARTIFACT_PREFIX`]).
+/// Rebuild `bundle` retaining ONLY its COMMITTED byte-artifact-lane entries (every lane
+/// entry whose logical path does NOT start with [`INTERNAL_ARTIFACT_PREFIX`]) plus the
+/// internal entries named in `kept_internal`.
 ///
-/// Everything a DECLARED CONSUMER could have read is released: the frozen dataset (an
-/// empty one replaces it), the typed-handle lane, every by-reference blob record, the
-/// provenance sidecar, and every internal `pipeline/`-prefixed artifact. The scheduler
-/// calls this as soon as its exact remaining carrier-reader count reaches zero; the
-/// resulting product is a TOMBSTONE —
+/// Everything else is released: the frozen dataset (an empty one replaces it), the
+/// typed-handle lane, every by-reference blob record, the provenance sidecar, and every
+/// other internal `pipeline/`-prefixed artifact. `kept_internal` is the set of internal
+/// artifacts that artifact-only consumers declare they read
+/// ([`crate::node::Stage::internal_artifact_reads`]); without it they would receive a
+/// product that silently lacks them. The scheduler calls this when a product's exact
+/// remaining carrier-reader count reaches zero, and also when it hands a product to an
+/// artifact-only consumer; the resulting product is a TOMBSTONE —
 /// [`StageProduct::carrier_released`](crate::node::StageProduct::carrier_released) is
 /// set and the product keeps its ORIGINAL `digest`, because the digest is the identity
 /// witness of the carrier that was released, not a fold over this residue.
 ///
 /// Determinism: the surviving lane is rebuilt in the source lookaside's iteration order
 /// over a strict subset of its entries, so the operation is a pure, idempotent function
-/// of the input bundle. No stage can observe it — `exec_stage` hands a stage exactly the
-/// products it declared in `consumes()`, and the release happens only after every
-/// dispatched reader has completed.
+/// of the input bundle and `kept_internal`. A carrier reader never observes it: the
+/// scheduler releases a product only after every dispatched carrier reader has completed.
 ///
 /// # Errors
 /// A malformed artifact-resource content digest, or a lane entry whose bytes are missing
@@ -176,6 +178,7 @@ pub const INTERNAL_ARTIFACT_PREFIX: &str = "pipeline/";
 /// lane (no-optionality).
 pub fn release_carrier(
     bundle: &PipelineBundle<PipelineHandle>,
+    kept_internal: &std::collections::BTreeSet<&str>,
 ) -> Result<PipelineBundle<PipelineHandle>, gmeow_errors::Diag> {
     let mut lookaside = RdfLookaside::default();
     let mut blobs = ContentStore::new();
@@ -185,7 +188,7 @@ pub fn release_carrier(
         else {
             continue;
         };
-        if name.starts_with(INTERNAL_ARTIFACT_PREFIX) {
+        if name.starts_with(INTERNAL_ARTIFACT_PREFIX) && !kept_internal.contains(name) {
             continue;
         }
         let digest = purrdf::ContentDigest::from_hex(hex).ok_or_else(|| {

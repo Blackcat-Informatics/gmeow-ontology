@@ -73,7 +73,7 @@ pub struct FofProjection {
 /// Project one exact, completely admitted source selection to TPTP FOF.
 ///
 /// The function is deliberately total: refusals are typed data and can be emitted
-/// by a CLI/report surface. A caller may invoke an external prover only when status
+/// by a CLI/report surface. A caller may export the problem text only when status
 /// is [`FofProjectionStatus::Complete`] and `problem` is present.
 #[must_use]
 pub fn project_tptp_fof(theory: &CompiledTheory, admission: &SourceAdmission) -> FofProjection {

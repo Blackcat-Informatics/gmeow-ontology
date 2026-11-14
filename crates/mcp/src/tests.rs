@@ -6729,8 +6729,8 @@ gmeow_test_batch_macros::batch_mcp_items! {
 
     /// The carrier folds a CONCLUSIVE, fragment-scoped, violation-free closure as a real
     /// `logic:CoherenceCertificate`; the read tool surfaces `issues_certificate:true`, the
-    /// certificate class, and the pinned bundle_hash / per-graph axiom_hashes VERBATIM (the
-    /// tamper surface) — proving the digests are exactly `per_graph_axiom_hashes` and not
+    /// certificate class, and the pinned bundle_hash / per-graph axiom_hashes VERBATIM
+    /// — proving the digests are exactly `per_graph_axiom_hashes` and not
     /// fabricated.
     #[test]
     fn coherence_certificate_surfaces_a_certificate_with_the_pinned_digests() {
