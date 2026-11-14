@@ -168,26 +168,31 @@ fn native_conflict_result() -> ReasoningResult {
 #[test]
 fn transported_projection_matches_the_reencoding_path_byte_for_byte() {
     let result = native_conflict_result();
-    let live = project_reasoning_dataset(&result).unwrap();
-    let reread = parse_reasoning_dataset(&live, GraphMatch::Default).unwrap();
-    let reencoded = project_reasoning_result(&reread).unwrap();
+    let live = project_reasoning_dataset(&result).expect("a native result projects");
+    let reread =
+        parse_reasoning_dataset(&live, GraphMatch::Default).expect("its own projection reads back");
+    let reencoded = project_reasoning_result(&reread).expect("the read-back result projects");
     assert!(
         reencoded.contains("resultNativeExecution"),
         "the fixture carries a native execution receipt"
     );
 
-    let transported = transport_reasoning(&result).unwrap();
+    let transported = transport_reasoning(&result).expect("a native result transports");
     assert_eq!(transported.result().provenance, reread.provenance);
     assert_eq!(transported.result().inferred(), reread.inferred());
-    let reused = ResultProjection::transported(&transported).unwrap();
+    let reused =
+        ResultProjection::transported(&transported).expect("the transported result projects");
     assert_eq!(
         reused.node_iri(),
-        ResultProjection::reasoning(&reread).unwrap().node_iri()
+        ResultProjection::reasoning(&reread)
+            .expect("the read-back result projects")
+            .node_iri()
     );
     assert_eq!(reused.to_ntriples(), reencoded);
 
     let other = read_reasoning_result_expecting(
-        &ResultGraph::new(&live, GraphMatch::Default).unwrap(),
+        &ResultGraph::new(&live, GraphMatch::Default)
+            .expect("the projected dataset has a default graph"),
         Some(Some("00")),
     );
     assert!(

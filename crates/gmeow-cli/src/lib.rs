@@ -1739,15 +1739,7 @@ pub(crate) fn resolve_console(flag: Option<ConsoleMode>) -> ConsoleMode {
 /// process exit code.
 pub fn report_stage_memory_log_failure(error: &gmeow_cli_core::StageMemoryLogError) -> i32 {
     let reporter = gmeow_cli_core::reporter_for(resolve_console(None));
-    let diag = gmeow_errors::Diag::new(
-        gmeow_errors::code::register_code("gmeow.stage-memory-log.failed"),
-        gmeow_errors::Grade::new(
-            gmeow_errors::Severity::Error,
-            gmeow_errors::FindingCategory::ModelingDisciplineViolation,
-            gmeow_errors::Standpoint::Binding,
-        ),
-        error.to_string(),
-    );
+    let diag = commands::error_diag("gmeow.stage-memory-log.failed", error.to_string());
     gmeow_cli_core::emit_and_exit(reporter.as_ref(), diag, "gmeow")
 }
 

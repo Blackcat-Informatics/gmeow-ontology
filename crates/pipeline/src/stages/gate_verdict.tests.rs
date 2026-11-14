@@ -248,8 +248,8 @@ fn malformed_or_incomplete_gate_semantics_fail_closed() {
 #[test]
 fn gate_verdicts_over_a_composed_view_equal_those_over_its_materialization() {
     let gate = GateProgram::from_source(&source_nquads(SOURCE_GRAPH))
-        .unwrap()
-        .unwrap();
+        .expect("the gate source parses")
+        .expect("the source carries the authored gate rule");
     let graph = "https://blackcatinformatics.ca/gmeow/graph/diagnostics";
     let limits = purrdf::ViewLimits {
         max_sources: usize::MAX,
@@ -258,20 +258,24 @@ fn gate_verdicts_over_a_composed_view_equal_those_over_its_materialization() {
         max_payload_bytes: usize::MAX,
         max_auxiliary_bytes: usize::MAX,
     };
-    let findings = dataset_from_bytes(finding_nq().as_bytes(), NativeRdfFormat::NQuads).unwrap();
+    let findings = dataset_from_bytes(finding_nq().as_bytes(), NativeRdfFormat::NQuads)
+        .expect("the finding fixture is well-formed N-Quads");
     let moved = "https://blackcatinformatics.ca/gmeow/graph/moved-diagnostics";
     let selected = purrdf::CompositeSource::from_selection(
-        Arc::new(purrdf::CompositeDatasetView::new(vec![Arc::clone(&findings)], limits).unwrap()),
+        Arc::new(
+            purrdf::CompositeDatasetView::new(vec![Arc::clone(&findings)], limits)
+                .expect("one dataset composes under unbounded limits"),
+        ),
         [purrdf::TermValue::iri(graph)],
         limits,
     )
-    .unwrap()
+    .expect("the diagnostics graph is selectable from the view")
     .with_graph_placement(purrdf::GraphPlacement::Named(purrdf::TermValue::iri(moved)));
     let unrelated = dataset_from_bytes(
         b"<urn:other> <urn:p> <urn:o> <urn:other-graph> .\n",
         NativeRdfFormat::NQuads,
     )
-    .unwrap();
+    .expect("the unrelated fixture is well-formed N-Quads");
     let view = purrdf::CompositeDatasetView::from_sources(
         vec![
             purrdf::CompositeSource::new(unrelated),
@@ -280,13 +284,16 @@ fn gate_verdicts_over_a_composed_view_equal_those_over_its_materialization() {
         ],
         limits,
     )
-    .unwrap();
-    let materialized = view.materialize().unwrap();
+    .expect("three sources compose under unbounded limits");
+    let materialized = view.materialize().expect("an unbounded view materializes");
 
-    let over_view = gate.derived_fatal(&view).unwrap();
+    let over_view = gate
+        .derived_fatal(&view)
+        .expect("the gate derives over a view");
     assert_eq!(
         over_view,
-        gate.derived_fatal(materialized.as_ref()).unwrap()
+        gate.derived_fatal(materialized.as_ref())
+            .expect("the gate derives over the materialized dataset")
     );
     assert_eq!(
         over_view,
@@ -300,15 +307,18 @@ fn gate_verdicts_over_a_composed_view_equal_those_over_its_materialization() {
             &verdicts,
             &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None),
         )
-        .unwrap()
+        .expect("the verdict dataset canonicalizes")
         .nquads()
         .to_owned()
     };
     assert_eq!(
-        rendered(gate.derived_verdict_dataset(&view, graph).unwrap()),
+        rendered(
+            gate.derived_verdict_dataset(&view, graph)
+                .expect("the gate derives verdicts over a view")
+        ),
         rendered(
             gate.derived_verdict_dataset(materialized.as_ref(), graph)
-                .unwrap()
+                .expect("the gate derives verdicts over the materialized dataset")
         )
     );
 }

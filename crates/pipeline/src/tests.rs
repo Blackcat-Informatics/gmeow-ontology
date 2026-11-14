@@ -3242,7 +3242,7 @@ fn carrier_retention_is_bounded_by_the_live_frontier() {
     // ── The memory record: a hosted run that dies part-way is read from these, so
     //    every executed stage must have a dispatch and a publication record, every
     //    released producer a release record naming what the release removed, and the
-    //    run output none. Making the records changes no digest.
+    //    run output none.
     use crate::memory_record::MemoryEvent;
     let events = |stage: &str, event: MemoryEvent| -> Vec<&crate::memory_record::MemoryRecord> {
         result
@@ -3290,18 +3290,6 @@ fn carrier_retention_is_bounded_by_the_live_frontier() {
         events("late", MemoryEvent::Release).is_empty(),
         "a run output is never released"
     );
-    let (retained, _) = run_retention_chain(crate::scheduler::CarrierRetention::RetainAll);
-    assert!(
-        retained
-            .memory
-            .iter()
-            .all(|made| made.event != MemoryEvent::Release),
-        "RetainAll records no release"
-    );
-    assert_eq!(
-        result.combined_digest, retained.combined_digest,
-        "the determinism witness is the same with and without release records"
-    );
 }
 
 #[test]
@@ -3330,6 +3318,13 @@ fn releasing_carriers_changes_no_byte_the_run_produces() {
             "late".to_string(),
         ]),
         "under RetainAll every carrier survives the whole run"
+    );
+    assert!(
+        retained
+            .memory
+            .iter()
+            .all(|made| made.event != crate::memory_record::MemoryEvent::Release),
+        "RetainAll makes no release record"
     );
 
     assert_eq!(

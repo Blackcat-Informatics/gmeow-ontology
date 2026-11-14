@@ -2,17 +2,34 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 
 //! The per-stage memory record: what the process and one stage product held at each
-//! scheduler and phase boundary of a pipeline run.
+//! scheduler boundary and each measured phase boundary of a pipeline run.
 //!
 //! Every record is an observation. None enters a product, a cache key, a receipt or a
-//! digest. A record is written as it is made, as one `tracing` event on the
-//! [`TARGET`] target, so a run that is killed part-way still leaves the records of
-//! every boundary it reached. The scheduler also returns the records of a run that
-//! finishes in [`RunResult::memory`](crate::scheduler::RunResult::memory).
+//! digest. The scheduler returns the records of a run that finishes in
+//! [`RunResult::memory`](crate::scheduler::RunResult::memory). While the [`TARGET`]
+//! target is enabled, each record is also written as it is made, as one `tracing`
+//! event, so a run that is killed part-way leaves the records of every boundary it
+//! reached. The target controls only that emission, never what a record holds.
 //!
-//! Process memory is sampled only while the [`TARGET`] target is enabled at `info`;
-//! with it off, a record carries the product footprint alone and no `/proc` read is
-//! made.
+//! # Which boundaries make a record
+//!
+//! * The scheduler makes one at each stage's dispatch, publication and carrier release.
+//! * A stage body makes one at the start and one at the end of each phase it runs
+//!   through [`measure_stage_phase`](crate::node::measure_stage_phase), and the snapshot
+//!   serializer makes one at the end of each of its timed phases.
+//!
+//! A phase that is only logged makes no record of its own. That includes every phase
+//! the `gmeow-logic` crate logs on the `pipeline_phase` target, the native receipt
+//! encode among them; those fall inside the enclosing measured stage phase.
+//!
+//! # Cost
+//!
+//! Each record reads `/proc/self/status` once (a few kilobytes) and allocates its stage
+//! and phase names. A run makes at most three scheduler records per executed stage plus
+//! two per measured phase execution, so the number of reads is
+//! `3 × stages + 2 × measured phase executions`. A stage that is never released makes
+//! two scheduler records. On a host without Linux procfs the read fails and the two
+//! process figures are absent.
 
 use std::cell::RefCell;
 use std::sync::atomic::{AtomicU64, Ordering};
@@ -22,12 +39,12 @@ use purrdf::PipelineBundle;
 use crate::bundle::PipelineHandle;
 
 /// The `tracing` target every memory record is emitted on.
-pub const TARGET: &str = gmeow_cli_core::STAGE_MEMORY_TARGET;
+pub(crate) const TARGET: &str = gmeow_cli_core::STAGE_MEMORY_TARGET;
 
 /// This process's resident memory as the kernel reports it, in KiB.
 ///
-/// Both values are absent on a host without Linux procfs, when the status text does
-/// not carry the field, and in a record made while [`TARGET`] is disabled.
+/// A value is absent on a host without Linux procfs and when the status text does not
+/// carry the field. The peak is that of the whole process lifetime, not of one stage.
 #[derive(Debug, Clone, Copy, Default, PartialEq, Eq)]
 pub struct ProcessMemory {
     /// Current resident set size (`VmRSS`).
@@ -39,7 +56,7 @@ pub struct ProcessMemory {
 impl ProcessMemory {
     /// Read this process's resident and peak resident size from `/proc/self/status`.
     #[must_use]
-    pub fn sample() -> Self {
+    pub(crate) fn sample() -> Self {
         std::fs::read_to_string("/proc/self/status")
             .map(|status| Self::parse_status(&status))
             .unwrap_or_default()
@@ -59,15 +76,6 @@ impl ProcessMemory {
         Self {
             rss_kib: value("VmRSS:"),
             peak_rss_kib: value("VmHWM:"),
-        }
-    }
-
-    /// Sample when [`TARGET`] is enabled; otherwise report nothing without reading.
-    fn sample_if_enabled() -> Self {
-        if target_enabled() {
-            Self::sample()
-        } else {
-            Self::default()
         }
     }
 }
@@ -171,7 +179,9 @@ impl MemoryEvent {
 /// One observation of memory at a stage or phase boundary.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct MemoryRecord {
-    /// Position in the order the records of this process were made.
+    /// The process that made the record. One log file can hold the records of several.
+    pub pid: u32,
+    /// Position in the order the records of that process were made.
     pub seq: u64,
     /// The stage the boundary belongs to.
     pub stage_id: String,
@@ -200,7 +210,8 @@ fn target_enabled() -> bool {
     tracing::enabled!(target: TARGET, tracing::Level::INFO)
 }
 
-/// Make one record, write it to the log when [`TARGET`] is enabled, and return it.
+/// Make one record, sampling process memory, write it to the log when [`TARGET`] is
+/// enabled, and return it.
 pub(crate) fn record(
     stage_id: &str,
     event: MemoryEvent,
@@ -209,16 +220,18 @@ pub(crate) fn record(
     released: Option<ReleasedFootprint>,
 ) -> MemoryRecord {
     let made = MemoryRecord {
+        pid: std::process::id(),
         seq: NEXT_SEQ.fetch_add(1, Ordering::Relaxed),
         stage_id: stage_id.to_owned(),
         event,
         phase: phase.map(str::to_owned),
-        process: ProcessMemory::sample_if_enabled(),
+        process: ProcessMemory::sample(),
         product,
         released,
     };
     tracing::info!(
         target: TARGET,
+        pid = made.pid,
         seq = made.seq,
         stage = stage_id,
         event = event.as_str(),
@@ -241,10 +254,12 @@ pub(crate) fn record(
 
 /// Record a phase boundary of a stage body.
 ///
-/// The record is written to the log when [`TARGET`] is enabled, and kept for the run
-/// result when the calling thread is inside [`collecting_phases`]. A phase that runs on
-/// another thread, such as a worker of a parallel iterator inside the stage, reaches
-/// the log only. With the target off and no collection in progress, nothing is done.
+/// The record is written to the log when [`TARGET`] is enabled, and kept by the
+/// collection the calling thread is inside ([`collecting_phases`]), if any. A stage's
+/// parallel work runs on the scheduler's pool, so a phase crossed there is kept by
+/// whichever stage's collection that worker thread is inside, which may be another
+/// stage's, or by none; the record names its own stage either way. With the target off
+/// and no collection in progress, nothing is read or made.
 pub(crate) fn phase(stage_id: &str, phase: &str, event: MemoryEvent) {
     let collecting = PHASE_SCOPE.with_borrow(Option::is_some);
     if !collecting && !target_enabled() {

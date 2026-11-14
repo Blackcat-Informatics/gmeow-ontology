@@ -317,9 +317,10 @@ pub struct RunResult {
     /// its recorded reads, in completion order. Cache hits contribute nothing.
     pub recorded_reads: Vec<Arc<crate::reads::EdgeAccess>>,
     /// The memory records of this run in the order they were made: one at each stage's
-    /// dispatch, publication and carrier release, and one at each phase boundary a stage
-    /// body crossed on its own worker thread. Observations only: they enter no product,
-    /// key, receipt or digest. See [`crate::memory_record`].
+    /// dispatch, publication and carrier release, and the measured phase boundaries that
+    /// were crossed on a thread running a stage body. A boundary crossed on a pool thread
+    /// that was running no stage body is logged but not kept here. Observations only:
+    /// they enter no product, key, receipt or digest. See [`crate::memory_record`].
     pub memory: Vec<MemoryRecord>,
 }
 

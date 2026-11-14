@@ -153,7 +153,7 @@ const XSD_HEX_BINARY: &str = "http://www.w3.org/2001/XMLSchema#hexBinary";
 /// Only [`transport_reasoning`] makes one, from the text it has proved the transported
 /// result's own receipt encodes to, so a projection given one never needs to encode again.
 #[derive(Clone)]
-pub struct ReceiptText(Arc<String>);
+pub(crate) struct ReceiptText(Arc<String>);
 
 /// Write one typed literal in N-Triples form, escaping its lexical form.
 fn write_typed_literal(f: &mut fmt::Formatter<'_>, lex: &str, datatype: &str) -> fmt::Result {

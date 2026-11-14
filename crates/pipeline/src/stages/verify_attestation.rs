@@ -252,20 +252,16 @@ fn build_output_from_report(
     // The receipt is encoded once: the text that crosses the projection is kept and
     // written again for the digest below, where a second projection of the transported
     // value would encode it a second time to the same bytes.
-    let transported = crate::node::measure_stage_phase(
-        "stage-verify-attestation",
-        "transport-reasoning-summary",
-        || gmeow_logic::result_rdf::transport_reasoning(reasoning),
-    )?;
+    let transported =
+        crate::node::measure_stage_phase(stage_id, "transport-reasoning-summary", || {
+            gmeow_logic::result_rdf::transport_reasoning(reasoning)
+        })?;
     let transported_reasoning = transported.result();
-    let reasoning_projection = crate::node::measure_stage_phase(
-        "stage-verify-attestation",
-        "project-transported-reasoning",
-        || {
+    let reasoning_projection =
+        crate::node::measure_stage_phase(stage_id, "project-transported-reasoning", || {
             gmeow_logic::result_rdf::ResultProjection::transported(&transported)
                 .map(|projection| projection.to_ntriples())
-        },
-    )?;
+        })?;
     let query_digest = query_set_digest(queries);
     let finding_count = report.findings.len();
     let error_count = report.error_count();

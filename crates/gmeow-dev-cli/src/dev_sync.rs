@@ -681,6 +681,7 @@ pub fn sync(
                 });
                 purrdf_lex::json::Value::from(
                     purrdf_lex::json::Object::new()
+                        .with("pid", made.pid)
                         .with("seq", made.seq)
                         .with("stage", made.stage_id.as_str())
                         .with("event", made.event.as_str())

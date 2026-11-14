@@ -841,11 +841,26 @@ fn demonstrator_worlds_must_publish_their_declared_certificate_class() {
 }
 
 /// The stage hands reasoning its only owner of the assembled EDB, and the EDB's last
-/// reader is the `math:` expression-identity projection. That projection now runs
-/// before the engine so the EDB can be freed first; the edges it derives must still
-/// reach the shipped inferred closure, and the owned EDB must not outlive the call.
+/// reader is the `math:` expression-identity projection. That projection runs before
+/// the engine so the EDB is dropped before reasoning starts, not held through it; the
+/// edges it derives must still reach the shipped closure and dataset. The drop is
+/// observed through the owner's own `Drop`, ordered against the `reason-all` phase.
 #[test]
 fn expression_identity_edges_reach_the_closure_from_an_owned_edb() {
+    use crate::memory_record::{MemoryEvent, collecting_phases, phase};
+    /// An owner of the EDB that records, in phase order, when it is dropped.
+    struct Watched(Arc<RdfDataset>);
+    impl Deref for Watched {
+        type Target = RdfDataset;
+        fn deref(&self) -> &RdfDataset {
+            &self.0
+        }
+    }
+    impl Drop for Watched {
+        fn drop(&mut self) {
+            phase("test-edb-owner", "dropped", MemoryEvent::PhaseEnd);
+        }
+    }
     let source = purrdf::parse_dataset(
         b"@prefix math: <https://blackcatinformatics.ca/math/> .\n\
           <urn:selected-theory> {\n\
@@ -855,7 +870,7 @@ fn expression_identity_edges_reach_the_closure_from_an_owned_edb() {
         "application/trig",
         None,
     )
-    .unwrap();
+    .expect("the fixture is well-formed TriG");
     let expected = gmeow_logic::math_expression::alpha_equivalence_edges(source.as_ref());
     let [(first, class), (second, same_class)] = expected.as_slice() else {
         panic!("two IRI-rooted expressions each carry one identity edge: {expected:?}");
@@ -867,16 +882,26 @@ fn expression_identity_edges_reach_the_closure_from_an_owned_edb() {
         DomainProfile::NonemptyObjectDomainV1,
         "gmeow.pipeline.test.expression-identity".to_owned(),
         *prepare_reasoning_input(source.as_ref())
-            .unwrap()
+            .expect("the fixture prepares as reasoning input")
             .ingress_contract(),
     )
-    .unwrap()])
-    .unwrap();
-    let held = Arc::downgrade(&source);
-    let reasoned = reason_over_dataset(source, &domains).unwrap();
+    .expect("a named IRI graph is a selectable world")])
+    .expect("one world is a valid selection");
+    let (reasoned, boundaries) =
+        collecting_phases(|| reason_over_dataset(Watched(source), &domains));
+    let reasoned = reasoned.expect("the tiny theory reasons");
+    let position = |stage: &str, name: &str, event: MemoryEvent| {
+        boundaries
+            .iter()
+            .position(|made| {
+                made.stage_id == stage && made.phase.as_deref() == Some(name) && made.event == event
+            })
+            .unwrap_or_else(|| panic!("{stage}/{name} was crossed"))
+    };
     assert!(
-        held.upgrade().is_none(),
-        "reasoning consumed the only owner of the EDB"
+        position("test-edb-owner", "dropped", MemoryEvent::PhaseEnd)
+            < position("stage-reason", "reason-all", MemoryEvent::PhaseStart),
+        "the EDB's owner is dropped before the engine starts"
     );
     let carried: BTreeSet<(String, String)> = reasoned
         .dataset

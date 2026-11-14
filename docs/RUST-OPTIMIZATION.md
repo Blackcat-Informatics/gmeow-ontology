@@ -88,15 +88,24 @@ inputs, or claim a speedup from a benchmark that did not exercise the changed pa
 Cold CI producers select
 `GMEOW_LOG=warn,pipeline_phase=info,pipeline_reasoning_detail=info,pipeline_memory=info`
 so the reasoning boundaries, large-input value-flow details and glossary/snapshot
-subphases remain visible before a stage completes. The `pipeline_memory` target is the
-per-stage memory record: resident and peak resident size of the process at each stage's
-dispatch, publication and carrier release and at each phase boundary, with the
-product's quad, term and artifact-byte counts and what a release removed. No trim
-follows a release, so resident size after one includes pages the allocator kept.
-`GMEOW_STAGE_MEMORY_LOG=<file>` appends the same records to a file one line at a time;
-the hosted observer points it at its resource log, so a producer that is killed
-part-way still leaves them in the uploaded resource artifact. A completed
-`--timings-json` run carries them as `observations.stage_memory`. A start without an end identifies unfinished
+subphases remain visible before a stage completes. The `pipeline_memory` target emits
+the per-stage memory record: the process id, its resident size and its lifetime peak
+resident size, at each stage's dispatch, publication and carrier release, with the
+product's quad, term and artifact-byte counts and what a release removed. A record is
+also made at the start and end of each phase a stage runs through `measure_stage_phase`
+and at the end of each timed phase of the snapshot serializer. A phase that is only
+logged makes no record of its own: that includes the phases the logic crate logs inside
+reasoning and projection, the receipt encode among them, which fall inside the enclosing
+measured stage phase. No trim follows a release, so resident size after one includes
+pages the allocator kept. Each record costs one read of `/proc/self/status`; a run makes
+at most three records per executed stage plus two per measured phase execution. The
+records are made whether or not the target is selected. Selecting it writes each one to
+the log as it is made, and `GMEOW_STAGE_MEMORY_LOG=<file>` appends each one to that file
+as one line whatever `GMEOW_LOG` selects; the hosted observer points the variable at its
+resource log, so a producer that is killed part-way still leaves them in the uploaded
+resource artifact. A completed `--timings-json` run carries all of them, resident sizes
+included, as `observations.stage_memory`; on a host without Linux procfs the two
+resident figures are null. A start without an end identifies unfinished
 work; an end records elapsed time, not semantic acceptance. These observations never enter generated
 bytes or cache identities. Keep the same selected inputs and producer profile when
 comparing runs, and distinguish time spent discovering sources, rendering RDF,
