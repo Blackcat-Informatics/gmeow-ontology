@@ -35,8 +35,7 @@ use crate::node::{Stage, StageInput, StageOutput, StageProduct};
 pub const CONSTRAINT_SHAPES_PATH: &str = "generated/shapes/constraint-shapes.ttl";
 
 const NS: &str = "https://blackcatinformatics.ca/gmeow/";
-use gmeow_ns::LOGIC_NS;
-const RDFS_DOMAIN: &str = "http://www.w3.org/2000/01/rdf-schema#domain";
+use gmeow_ns::{LOGIC_DOMAIN, LOGIC_NS, RDFS_DOMAIN};
 const RDF_FIRST: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#first";
 const RDF_REST: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#rest";
 // The class-disjointness set is authored in the canonical `logic:` spelling
@@ -166,9 +165,40 @@ fn filter_in(var: &str, members: &[String]) -> String {
     format!("FILTER(?{var} IN ({list}))")
 }
 
+/// The class a property's characteristic constraint targets: its domain. A slice authors it
+/// as `logic:domain` (canonical); `rdfs:domain` is read where a slice still carries the older
+/// spelling. Both present and different is a contradiction, and neither present is a hard
+/// failure naming the canonical spelling to author.
+fn characteristic_target_class(
+    ds: &Dataset,
+    prop: &str,
+    kind: &str,
+) -> Result<String, gmeow_errors::Diag> {
+    let parse_err = |message: String| gmeow_errors::Diag::of_kind(crate::error::Parse { message });
+    let read = |predicate: &str| {
+        ds.first_object_iri(prop, predicate)
+            .map_err(|e| parse_err(e.to_string()))
+    };
+    match (read(LOGIC_DOMAIN)?, read(RDFS_DOMAIN)?) {
+        (Some(canonical), Some(legacy)) if canonical != legacy => Err(parse_err(format!(
+            "constraint-shapes: {prop} declares logic:domain {canonical} but rdfs:domain {legacy} \
+             for its {kind} target class; author only logic:domain"
+        ))),
+        (Some(domain), _) | (None, Some(domain)) => Ok(domain),
+        (None, None) => Err(parse_err(format!(
+            "constraint-shapes: {prop} has no logic:domain for its {kind} target class; \
+             author logic:domain on the property"
+        ))),
+    }
+}
+
 /// Render the constraint-shapes document.
 pub fn render_constraint_shapes(root: &Path) -> Result<String, gmeow_errors::Diag> {
-    let ds = load_authored(root)?;
+    render_from_dataset(&load_authored(root)?)
+}
+
+/// Render the constraint-shapes document from an already loaded authored dataset.
+fn render_from_dataset(ds: &Dataset) -> Result<String, gmeow_errors::Diag> {
     let q = |e: purrdf::slice::SliceError| {
         gmeow_errors::Diag::of_kind(crate::error::Parse {
             message: e.to_string(),
@@ -197,16 +227,7 @@ pub fn render_constraint_shapes(root: &Path) -> Result<String, gmeow_errors::Dia
                     message: format!("characteristic assertion {rec} lacks characterizes"),
                 })
             })?;
-        let domain = ds
-            .first_object_iri(&prop, RDFS_DOMAIN)
-            .map_err(q)?
-            .ok_or_else(|| {
-                gmeow_errors::Diag::of_kind(crate::error::Parse {
-                    message: format!(
-                        "constraint-shapes: {prop} has no rdfs:domain for its {kind} target class"
-                    ),
-                })
-            })?;
+        let domain = characteristic_target_class(ds, &prop, kind)?;
         let prop_local = local(&prop);
         let iri = format!("{NS}{}{kind}ConstraintShape", pascal(&prop));
         let (path, phrase) = if kind == "Acyclicity" {
@@ -259,7 +280,7 @@ pub fn render_constraint_shapes(root: &Path) -> Result<String, gmeow_errors::Dia
     }
 
     // ── Class-disjointness (named logic:AllDisjointClasses carrying logic:formalizes) ──
-    let list_edges = ListEdges::collect(&ds);
+    let list_edges = ListEdges::collect(ds);
     let mut seen_disjoint: BTreeSet<String> = BTreeSet::new();
     let mut disjoint_subjects = Vec::new();
     for ty in [LOGIC_ALL_DISJOINT, OWL_ALL_DISJOINT] {
