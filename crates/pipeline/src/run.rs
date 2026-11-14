@@ -330,24 +330,6 @@ pub fn full_spec() -> PipelineSpec {
     .clone()
 }
 
-/// One stage of the production pipeline as the scheduler runs it, bound from the
-/// authored slice. For tests that must observe what the slice declares about retention
-/// (carrier consumers, kept internal artifacts, span-table readers), which only a bound
-/// stage answers.
-///
-/// # Panics
-/// When the authored pipeline does not validate or bind, or has no stage `id`.
-#[cfg(test)]
-pub(crate) fn bound_production_stage(id: &str) -> Arc<dyn crate::node::Stage> {
-    let spec = full_spec();
-    let graph = spec.validate().expect("the authored pipeline validates");
-    let bound = bind(&spec, &graph, &default_registry()).expect("the authored pipeline binds");
-    bound
-        .into_iter()
-        .find(|stage| stage.id() == id)
-        .unwrap_or_else(|| panic!("the authored pipeline has no stage {id}"))
-}
-
 /// Select the stages one output scope runs, from each stage's declared
 /// [`crate::node::OutputFamily`].
 ///
@@ -1412,3 +1394,10 @@ mod acceptance_tests;
 #[cfg(test)]
 #[path = "run.output_scope_tests.rs"]
 mod output_scope_tests;
+
+#[cfg(test)]
+#[path = "run.bound_stage_tests.rs"]
+mod bound_stage_tests;
+
+#[cfg(test)]
+pub(crate) use bound_stage_tests::bound_production_stage;

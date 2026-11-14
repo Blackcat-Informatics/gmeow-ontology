@@ -707,8 +707,8 @@ pub(crate) fn archive_blob_bytes_from_product<'a>(
     if product.carrier_released {
         return Err(stage_err(&format!(
             "the {STAGE_ID} carrier was released before `{rep}` was read; the consumer's \
-             dataflow edge from {STAGE_ID} in the pipeline slice must declare a carrier read \
-             (`gmeow:flowReadsBlobRep \"{rep}\"`)"
+             dataflow edge from {STAGE_ID} in the pipeline slice must declare the whole \
+             carrier (`gmeow:flowReadsLane gmeow:laneCarrier`)"
         )));
     }
     archive_bytes(product.bundle(), rep)

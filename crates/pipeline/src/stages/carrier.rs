@@ -2995,21 +2995,6 @@ const REASONING_INTERNAL_MEMBERS: [(&str, &str, &str); 4] = [
     ),
 ];
 
-/// The `(producer, internal artifact)` pairs the sink reads for the reasoning archive:
-/// [`REASONING_INTERNAL_MEMBERS`] without the member names. Only the test that proves
-/// the pipeline slice declares each of them uses it.
-#[cfg(test)]
-pub(crate) const REASONING_INTERNAL_READS: [(&str, &str); 4] = {
-    let mut reads = [("", ""); 4];
-    let mut index = 0;
-    while index < REASONING_INTERNAL_MEMBERS.len() {
-        let (_, producer, artifact) = REASONING_INTERNAL_MEMBERS[index];
-        reads[index] = (producer, artifact);
-        index += 1;
-    }
-    reads
-};
-
 /// Fold the native reasoner's explanation + DL/EL cross-check ledger REPORTS into a
 /// deterministic [`REP_REASONING`] archive blob. Sourced from
 /// `stage-reason`'s in-memory product (a `stage-snapshot` consumes-edge), so the fold

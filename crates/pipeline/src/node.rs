@@ -409,8 +409,9 @@ impl StageProduct {
     /// sorted by path. The surface `run_full` writes / compares against committed.
     ///
     /// On a consumer view this is the committed artifacts plus the internal `pipeline/`
-    /// artifacts the edge names; an unnamed internal artifact is not part of the lane the
-    /// consumer is permitted to read, and retention does not keep it. Each internal
+    /// artifacts the edge names. An internal artifact this edge does not name is not
+    /// returned for this consumer, and it is kept through the release only when some
+    /// other consumer in the run names it. Each internal
     /// artifact returned is recorded as a read of that artifact.
     pub fn artifacts(&self) -> BTreeMap<String, Vec<u8>> {
         self.record(crate::reads::Read::AllArtifacts);

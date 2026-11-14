@@ -734,8 +734,10 @@ pub fn run_without(
                         // their worker snapshot. Preserve the producer identity and
                         // committed artifact lane while releasing transport state before
                         // dispatch.
-                        // Recording learns what a stage body reads, so it withholds
-                        // nothing: every consumed product is handed over whole.
+                        // Recording learns what a stage body reads, so every consumed
+                        // product is handed over without releasing its carrier. The
+                        // whole-lane artifact accessors still return only committed
+                        // artifacts and the internal ones the edge already names.
                         let whole = read_policy == crate::reads::ReadPolicy::Record
                             || carrier_inputs.contains(producer.as_str());
                         let product = if whole {

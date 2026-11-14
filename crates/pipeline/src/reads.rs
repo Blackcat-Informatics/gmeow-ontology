@@ -237,8 +237,12 @@ pub enum ReadPolicy {
     /// A stage that reads what its edges do not declare, or does not read what they
     /// declare, fails and publishes nothing. Every production run.
     Enforce,
-    /// Reads are recorded and reported, and nothing is refused. Only the maintainer
-    /// command that prints the read sets a tree's stage bodies make.
+    /// Reads are recorded and reported, and nothing is refused. Every product is handed
+    /// over without releasing its carrier, but the whole-lane artifact accessors still
+    /// return only committed artifacts and the internal ones the edge already names, so
+    /// an internal artifact a stage reaches only through the whole lane is not
+    /// discovered by the recorder and must be named by hand. Only the maintainer command
+    /// that writes the read sets a tree's stage bodies make uses it.
     Record,
 }
 
@@ -310,8 +314,11 @@ pub fn observed_turtle(edges: &[Arc<EdgeAccess>]) -> String {
 /// Turtle that declares exactly what each stage body read through each edge.
 ///
 /// This is how the read sets of the pipeline description are authored and checked
-/// against a tree: nothing is refused, every consumed product is handed over whole, and
-/// the output is the declaration the stage bodies need. A stage served from the cache
+/// against a tree: nothing is refused, every consumed product is handed over without
+/// releasing its carrier, and the output is the declaration the stage bodies need, except
+/// that an internal artifact a stage reaches only through the whole artifact lane is not
+/// discovered (the whole-lane accessors return only committed artifacts and the internal
+/// ones the edge already names) and must be named by hand. A stage served from the cache
 /// records nothing, so the run uses no stage cache. It writes no output of the pipeline.
 ///
 /// # Errors

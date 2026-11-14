@@ -671,7 +671,7 @@ fn the_sink_declares_every_internal_artifact_its_reasoning_archive_reads() {
     let sink = crate::run::bound_production_stage("stage-gts-sink");
     let declared = sink.internal_artifact_reads();
     let mut artifacts: BTreeMap<&str, BTreeMap<String, Vec<u8>>> = BTreeMap::new();
-    for (producer, artifact) in super::REASONING_INTERNAL_READS {
+    for (_, producer, artifact) in super::REASONING_INTERNAL_MEMBERS {
         artifacts
             .entry(producer)
             .or_default()

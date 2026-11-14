@@ -975,7 +975,10 @@ false claim (P11); one with no boundary record at all is worse.**
    a stage whose recorded reads differ from its declaration. Those declarations
    also decide what is kept alive for the consumer, so an edge written without
    them does not run. `gmeow-dev pipeline-reads --out <file>` writes the
-   declarations a tree's stage bodies need. Reads are compared only for a stage
+   declarations a tree's stage bodies need, except that an internal `pipeline/`
+   artifact a stage reaches only through the whole artifact lane is not
+   discovered (the whole-lane accessors return only committed artifacts and the
+   internal ones the edge already names) and must be named by hand. Reads are compared only for a stage
    that executes: a stage served from the stage cache is not compared, so a
    changed declaration is not checked until a cache miss runs the stage.
 5. **Prefer a lowering to a core change.** If the blocker is that a downstream

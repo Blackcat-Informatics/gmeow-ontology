@@ -259,7 +259,7 @@ gmeow:laneAllArtifacts
     a gmeow:ProductLane ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
     rdfs:label "lane: every byte artifact"@x-gmeow-english ;
-    skos:definition "The consumer enumerates the whole byte-artifact lane of the producer's product, which covers the COMMITTED artifacts only. An internal artifact, one whose path begins pipeline/, is not covered: a consumer may read it only when the same edge names its exact path with gmeow:flowReadsArtifact, and an unnamed internal artifact is neither kept through the release of the producer's carrier nor returned by the whole-lane accessors, so reading it is reported as an undeclared read. Committed artifacts survive the release of the producer's carrier, so this read alone does not keep the carrier resident."@x-gmeow-english ;
+    skos:definition "The consumer enumerates the whole byte-artifact lane of the producer's product, which covers the COMMITTED artifacts only. An internal artifact, one whose path begins pipeline/, is not covered: a consumer may read it only when the same edge names its exact path with gmeow:flowReadsArtifact, and an internal artifact this edge does not name is not returned by the whole-lane accessors for this consumer, and it is kept through the release of the producer's carrier only when some other consumer in the run names it, so reading it directly is reported as an undeclared read. Committed artifacts survive the release of the producer's carrier, so this read alone does not keep the carrier resident."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 
 gmeow:laneIdentity
@@ -280,7 +280,7 @@ gmeow:flowReadsLane
     skos:scopeNote "Scope: this property declares what a stage body reads from an upstream product in memory. Which named graphs narrow the consumer's cache key is gmeow:flowEntity; files read from the working tree are not products and are not declared here."@x-gmeow-english ;
     gmeow:useWhen "Declare a whole-lane read on the edge whenever the consumer's stage body takes the producer's dataset, raw bundle or whole artifact lane."@x-gmeow-english ;
     gmeow:avoidWhen "Do not use this property for a single handle, representation blob or artifact; name it with the specific property so retention and review see exactly what is read."@x-gmeow-english ;
-    gmeow:howToUse "Author the reads from what the stage body does; the maintainer command that records a run writes the exact declarations a tree's stage bodies need to a file."@x-gmeow-english ;
+    gmeow:howToUse "Author the reads from what the stage body does; the maintainer command that records a run writes the declarations a tree's stage bodies need to a file, except that an internal artifact a stage reaches only through the whole artifact lane is not discovered by the recorder, because the whole-lane accessors return only committed artifacts and the internal ones the edge already names, and must be named by hand."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:flowReadsHandle
