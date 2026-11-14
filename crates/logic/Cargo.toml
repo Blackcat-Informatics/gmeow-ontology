@@ -151,10 +151,11 @@ gmeow-gts-profile = { path = "../gts-profile" }
 # Gungraun: the DETERMINISTIC instruction-count backend for the engine bench
 # (benches/engines_instructions.rs). It counts retired instructions under Valgrind
 # Callgrind — a machine-independent, run-to-run stable metric — as corroboration for
-# the on-gate steps+alloc+peak-live cost gate. MAINT-ONLY: it needs the `valgrind`
+# the on-gate steps+alloc+peak-live cost gate. OFF-GATE: it needs the `valgrind`
 # binary and the out-of-tree `gungraun-runner` (installed via
 # `cargo install gungraun-runner --version 0.19.4`, which MUST match this pin),
-# so it is wired only into `make maint-bench-instructions`, never `make check`.
+# so it runs under `make maint-bench-instructions` and `make bench`, never
+# `make check`.
 # The default `benchmark` feature supplies `#[library_benchmark]` / `main!`.
 # The extra `client_requests` and `cachegrind` features stay off, retaining the
 # instruction-only harness dependency surface.

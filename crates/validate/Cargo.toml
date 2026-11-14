@@ -127,8 +127,9 @@ gmeow-test-batch-macros = { path = "../test-batch-macros" }
 inventory = "0.3"
 # Deterministic retired-instruction backend for the whole-ontology-union conformance
 # cost-partition bench. Pin MUST equal crates/logic/Cargo.toml (the out-of-tree
-# gungraun-runner is version-locked to it). MAINT-ONLY: needs valgrind + the
-# runner, invoked via `make maint-bench-instructions`, never `make check`.
+# gungraun-runner is version-locked to it). OFF-GATE: needs valgrind + the
+# runner, invoked via `make maint-bench-instructions` and `make bench`, never
+# `make check`.
 gungraun = "=0.19.4"
 # Deterministic allocation accounting (bytes / count / peak-live) for the same
 # cost-partition bench — the always-available half that needs no valgrind. Leaf
