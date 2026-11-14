@@ -28,6 +28,18 @@ scan() {
     (cd "$fixture" && bash "$repo_root/scripts/lint-test-corpus-producers.sh")
 }
 
+# A scan that must pass shows its captured output when it does not: a missing
+# tool or a false positive is then named instead of leaving a bare exit status.
+accept() {
+    local status=0
+    scan > "$fixture_root/result.log" 2>&1 || status=$?
+    if [ "$status" -ne 0 ]; then
+        cat "$fixture_root/result.log" >&2
+        printf 'ERROR: corpus scanner rejected a clean fixture (status %s)\n' "$status" >&2
+        exit 1
+    fi
+}
+
 reject() {
     local expected=$1
     if scan > "$fixture_root/result.log" 2>&1; then
@@ -41,14 +53,14 @@ reject() {
     fi
 }
 
-scan > "$fixture_root/result.log" 2>&1
+accept
 
 # Producer names are complete identifiers, not suffixes in descriptive test names.
 cat > "$fixture/crates/ignored/tests/identifier_boundaries.rs" <<'RUST'
 #[test]
 fn pending_source_preparation_is_not_certified_by_cached_observation() {}
 RUST
-scan > "$fixture_root/result.log" 2>&1
+accept
 cat >> "$fixture/crates/ignored/tests/identifier_boundaries.rs" <<'RUST'
 #[test]
 fn calls_a_qualified_producer() { execution::cached_observation(); }
@@ -317,7 +329,7 @@ fn authenticated_artifact() { read_selected_action() }
 #[test]
 fn attempt() { parse_dataset(authenticated_artifact()); }
 RUST
-scan > "$fixture_root/result.log" 2>&1
+accept
 cat >> "$fixture/crates/ignored/lib.rs" <<'RUST'
 #[test]
 fn semantic_reproduction() {
@@ -340,7 +352,7 @@ fn independent_inputs() {
     parse_dataset(nested(b"<urn:s> <urn:p> <urn:o> ."));
 }
 RUST
-scan > "$fixture_root/result.log" 2>&1
+accept
 cat >> "$fixture/crates/ignored/lib.rs" <<'RUST'
 fn recurse_left(value: Data) -> Data { recurse_right(value) }
 fn recurse_right(value: Data) -> Data { if control { recurse_left(value) } else { value } }
@@ -392,7 +404,7 @@ fn controls() {
     Command::new("gmeow").arg("https://example.org/slices/user-term");
 }
 RUST
-scan > "$fixture_root/result.log" 2>&1
+accept
 rm "$fixture/crates/ignored/lib.rs"
 
 # Temporary destinations cannot launder authored bytes into a synthetic fixture.
@@ -454,7 +466,7 @@ fn control() {
     }
 }
 RUST
-scan > "$fixture_root/result.log" 2>&1
+accept
 rm "$fixture/crates/ignored/tests/control.rs"
 
 # A broken lexical analysis is a gate failure, never an empty finding set.
@@ -479,5 +491,5 @@ rm "$fixture/crates/ignored/lib.rs"
 mv "$fixture/crates" "$fixture/absent-crates"
 reject 'corpus-producer source discovery failed'
 mv "$fixture/absent-crates" "$fixture/crates"
-scan > "$fixture_root/result.log" 2>&1
+accept
 printf 'corpus scanner regressions OK: authored local flows, ignored sources and tool failures are enforced\n'

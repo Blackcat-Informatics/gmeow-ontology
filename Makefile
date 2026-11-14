@@ -1215,9 +1215,14 @@ insta-review: rust-build verify-test-fixtures ## Regenerate intentional insta sn
 
 ##@ CI And Report-Only Work
 
-.PHONY: fuzz-substrate-check
-fuzz-substrate-check: ## Verify identical committed PurRDF resolutions for production and fuzzing, without updating them.
+.PHONY: fuzz-lock-check fuzz-substrate-check
+fuzz-lock-check: ## Resolve the standalone fuzz workspace against its committed lock, without updating it.
+	@# fuzz/ is its own workspace over path crates of this one, so any change to
+	@# their dependency edges moves the resolution that fuzz/Cargo.lock records.
+	@# A stale lock is repaired with the same command without `--locked`.
 	cargo metadata --locked --manifest-path fuzz/Cargo.toml --format-version 1 > /dev/null
+
+fuzz-substrate-check: fuzz-lock-check ## Verify identical committed PurRDF resolutions for production and fuzzing, without updating them.
 	$(GMEOW_DEV) fuzz-substrate-check
 
 fuzz-smoke: fuzz-substrate-check ## Run bounded coverage-guided fuzz smoke tests for each format frontend.

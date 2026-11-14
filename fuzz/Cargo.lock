@@ -421,7 +421,6 @@ dependencies = [
  "gmeow-lang-form",
  "gmeow-logic-compile",
  "gmeow-math",
- "gmeow-math-lift",
  "gmeow-ns",
  "gmeow-term-arena",
  "hashbrown 0.15.5",
