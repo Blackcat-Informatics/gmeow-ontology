@@ -29,14 +29,10 @@ fn partial_zh_fixture_dir() -> PathBuf {
     PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("tests/fixtures/partial-zh-grounding")
 }
 
-fn empty_tiers() -> BTreeMap<String, i64> {
-    BTreeMap::new()
-}
-
 #[test]
 fn fr_translation_joins_as_present_cell() {
     let dir = logic_slice_dir();
-    let tiers = empty_tiers();
+    let tiers = BTreeMap::new();
     let inputs = BriefInputs {
         slice_dir: &dir,
         axis: Some("Rule"),
@@ -83,7 +79,7 @@ fn missing_zh_is_a_sparse_absent_count_not_a_materialized_cell() {
     // explicit per-term absence. A dedicated fixture (not the live logic slice,
     // which is now fully fr/zh-covered) keeps this absent case durable.
     let dir = partial_zh_fixture_dir();
-    let tiers = empty_tiers();
+    let tiers = BTreeMap::new();
     let inputs = BriefInputs {
         slice_dir: &dir,
         axis: None,
@@ -144,7 +140,7 @@ fn missing_zh_is_a_sparse_absent_count_not_a_materialized_cell() {
 #[test]
 fn batch_out_of_range_is_a_hard_fail() {
     let dir = logic_slice_dir();
-    let tiers = empty_tiers();
+    let tiers = BTreeMap::new();
     let inputs = BriefInputs {
         slice_dir: &dir,
         axis: None,
@@ -180,7 +176,7 @@ fn exemplar_shortfall_is_recorded() {
 #[test]
 fn to_turtle_is_byte_stable_across_identical_assemblies() {
     let dir = logic_slice_dir();
-    let tiers = empty_tiers();
+    let tiers = BTreeMap::new();
     let inputs = BriefInputs {
         slice_dir: &dir,
         axis: Some("Rule"),
