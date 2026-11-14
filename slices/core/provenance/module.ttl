@@ -32,17 +32,17 @@ gmeow:Approval
         [
             a logic:Restriction ;
             logic:onProperty gmeow:approvedBy ;
-            logic:someValuesFrom gmeow:Agent ;
+            logic:allValuesFrom gmeow:Agent ;
         ] ,
         [
             a logic:Restriction ;
             logic:onProperty gmeow:approvalOf ;
-            logic:someValuesFrom gmeow:Entity ;
+            logic:allValuesFrom gmeow:Entity ;
         ] ,
         [
             a logic:Restriction ;
             logic:onProperty gmeow:approvedOn ;
-            logic:someValuesFrom xsd:date ;
+            logic:allValuesFrom xsd:date ;
         ] ;
     skos:definition "A reified record that a named agent approved a body of work on a given day. It mediates between the approver (gmeow:approvedBy) and the body of work approved (gmeow:approvalOf), carries the calendar day (gmeow:approvedOn), and may carry the part of the work approved (gmeow:approvalScope) and the agent who put the approval on record (gmeow:reportedBy). Approving a body of work is a different fact from holding the claims in it: an approver is not thereby a holder of those claims, an author, a contributor or a source, and the record asserts neither that the work is correct nor that the approver agrees with every part of it."@x-gmeow-english ;
     skos:scopeNote "One Approval node records one approval by one approver of one body of work. A joint approval is several Approval nodes, and a later approval is a new node. The identifier and label of an existing Approval are never changed or reused, and a correction or a re-approval adds a new node instead of rewriting an earlier one. This is a usage contract: no axiom enforces it and no gate can detect a relabelled node. The existential restrictions entail that an approver, an approved work and an approval day exist, and nothing rejects a node that omits them; nothing in the record says the approval is still current."@x-gmeow-english ;
@@ -57,6 +57,16 @@ gmeow:Approval logic:subClassOf
     [ a logic:Restriction ; logic:onProperty gmeow:approvalOf ; logic:maxQualifiedCardinality 1 ; logic:onClass gmeow:Entity ] ,
     [ a logic:Restriction ; logic:onProperty gmeow:approvedBy ; logic:maxQualifiedCardinality 1 ; logic:onClass gmeow:Agent ] ,
     [ a logic:Restriction ; logic:onProperty gmeow:approvedOn ; logic:maxQualifiedCardinality 1 ; logic:onDataRange xsd:date ] .
+
+# The approved work, the approver and the approval day are required paths: each is closed-world on gmeow:Approval.
+[ a logic:ClosureEntry ; logic:onClass gmeow:Approval ;
+    logic:closureKey "https://blackcatinformatics.ca/gmeow/approvalOf" ; logic:closureValue logic:ClosedWorldClosure ] .
+
+[ a logic:ClosureEntry ; logic:onClass gmeow:Approval ;
+    logic:closureKey "https://blackcatinformatics.ca/gmeow/approvedBy" ; logic:closureValue logic:ClosedWorldClosure ] .
+
+[ a logic:ClosureEntry ; logic:onClass gmeow:Approval ;
+    logic:closureKey "https://blackcatinformatics.ca/gmeow/approvedOn" ; logic:closureValue logic:ClosedWorldClosure ] .
 
 gmeow:ImportActivity
     a logic:Event ,
