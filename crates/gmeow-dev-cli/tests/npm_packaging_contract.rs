@@ -762,7 +762,8 @@ fn release_runs_wasm_parity_before_publishing() {
 #[test]
 fn release_installs_the_same_pinned_wasm_toolchain_as_ci() {
     let ci = ci_workflow();
-    let release = release_workflow();
+    let release_text = release_workflow();
+    let release = release_job(&release_text, "npm");
 
     let wasm_bindgen_pin = ci
         .lines()
@@ -800,7 +801,7 @@ fn release_installs_the_same_pinned_wasm_toolchain_as_ci() {
     );
 
     // Every installation must precede the parity lanes that consume it.
-    let parity = line_index(&release, "make wasm-parity");
+    let parity = line_index(release, "make wasm-parity");
     for needed in [
         "actions/setup-node@",
         "targets: wasm32-unknown-unknown",
@@ -808,8 +809,125 @@ fn release_installs_the_same_pinned_wasm_toolchain_as_ci() {
         &binaryen_pin,
     ] {
         assert!(
-            line_index(&release, needed) < parity,
+            line_index(release, needed) < parity,
             "release.yml installs `{needed}` after `make wasm-parity`, which needs it"
+        );
+    }
+}
+
+/// The body of one top-level job of release.yml, up to the next job header.
+fn release_job<'a>(release: &'a str, job: &str) -> &'a str {
+    let header = format!("\n  {job}:\n");
+    let start = release
+        .find(&header)
+        .unwrap_or_else(|| panic!("release.yml declares the `{job}` job"))
+        + header.len();
+    let body = &release[start..];
+    let end = body
+        .lines()
+        .scan(0, |offset, line| {
+            let at = *offset;
+            *offset += line.len() + 1;
+            Some((at, line))
+        })
+        .find(|(_, line)| {
+            line.len() > 2
+                && line.starts_with("  ")
+                && !line.starts_with("   ")
+                && line.trim_end().ends_with(':')
+        })
+        .map_or(body.len(), |(at, _)| at);
+    &body[..end]
+}
+
+/// The GitHub Release is published by its own job, which alone holds
+/// `contents: write`, depends only on the signed and attested build, and attaches the
+/// binary, bundle, ingestion companion, checksum manifest and identity to the pushed
+/// tag (never creating one). npm publication is a separate job, so a missing npm token
+/// cannot withhold the Release, and its parity still precedes its publish. The workflow
+/// default stays read-only and every action stays pinned to a full commit SHA.
+#[test]
+fn release_publishes_the_github_release_from_its_own_scoped_job() {
+    let release = release_workflow();
+    let preamble = &release[..release.find("\njobs:\n").expect("jobs table")];
+    assert!(
+        preamble.contains("permissions:\n  contents: read\n"),
+        "the workflow default must stay contents: read"
+    );
+
+    let build = release_job(&release, "build");
+    let publish = release_job(&release, "publish-release");
+    let npm = release_job(&release, "npm");
+
+    assert!(
+        !build.contains("contents: write") && !npm.contains("contents: write"),
+        "only publish-release may write repository contents"
+    );
+    assert!(
+        build.contains("::error::GMEOW_RELEASE_SIGNING_KEY secret is not configured"),
+        "the signing step stays mandatory in the build job"
+    );
+    let identity = build
+        .find("version --verbose --format json > dist/gmeow.identity.json")
+        .expect("the build records the binary's own identity");
+    let checksums = build
+        .find("dist/SHA256SUMS")
+        .expect("the build writes the checksum manifest");
+    assert!(
+        identity < checksums,
+        "the identity and target-named binary must exist before SHA256SUMS lists them"
+    );
+    assert!(
+        build.contains(
+            "sha256sum gmeow-x86_64-unknown-linux-gnu gmeow.gts gmeow.gts.ingestion.cbor gmeow.identity.json"
+        ),
+        "SHA256SUMS must list exactly the files attached to the Release, not every file under dist/"
+    );
+
+    assert!(
+        publish.contains("needs: build") && publish.contains("contents: write"),
+        "publish-release must follow the build with job-scoped contents: write"
+    );
+    assert!(
+        publish.contains("gh release create \"$GITHUB_REF_NAME\" --verify-tag"),
+        "the Release must attach to the pushed tag, never create one"
+    );
+    for asset in [
+        "dist/gmeow-x86_64-unknown-linux-gnu",
+        "dist/gmeow.gts",
+        "dist/gmeow.gts.ingestion.cbor",
+        "dist/SHA256SUMS",
+        "dist/gmeow.identity.json",
+    ] {
+        assert!(publish.contains(asset), "the Release must attach {asset}");
+    }
+    assert!(
+        !publish.contains("npm"),
+        "the Release must not depend on npm publication"
+    );
+
+    assert!(
+        npm.contains("needs: build"),
+        "npm consumes the build's outputs"
+    );
+    let parity = npm.find("make wasm-parity").expect("npm job runs parity");
+    let publish_npm = npm.find(PUBLISH_COMMAND).expect("npm job publishes");
+    assert!(
+        parity < publish_npm,
+        "parity must precede npm publish inside the npm job"
+    );
+
+    for line in release.lines().filter(|line| line.contains("uses: ")) {
+        let reference = line
+            .split("uses: ")
+            .nth(1)
+            .and_then(|rest| rest.split_whitespace().next())
+            .and_then(|action| action.split_once('@'))
+            .map(|(_, reference)| reference)
+            .unwrap_or_default();
+        assert!(
+            reference.len() == 40 && reference.bytes().all(|b| b.is_ascii_hexdigit()),
+            "every action must be pinned to a full commit SHA: {line}"
         );
     }
 }

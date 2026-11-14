@@ -12,7 +12,8 @@ use purrdf::{
 };
 
 use super::{
-    GRAPH_DIAGNOSTICS, compile_logic_carrier_graphs, compile_logic_object_graphs, rooted_in_graph,
+    CarrierParts, GRAPH_AUTHORED_DEFAULT, GRAPH_DIAGNOSTICS, compile_logic_object_graphs,
+    rooted_in_graph,
 };
 use crate::node::StageProduct;
 use crate::stages::compile_logic::{
@@ -88,6 +89,21 @@ fn compile_source(logic_standpoint: &str, diagnostic_standpoint: &str) -> Arc<Rd
         )
         .unwrap();
     builder.freeze().expect("freeze synthetic compile carrier")
+}
+
+/// The snapshot's own selection of every shipped compile-logic graph, each composed and
+/// materialized alone so a test can inspect one graph's complete surface.
+fn compile_logic_carrier_graphs(
+    upstream: &BTreeMap<String, StageProduct>,
+) -> gmeow_errors::Result<Vec<Arc<RdfDataset>>> {
+    CARRIER_GRAPHS
+        .iter()
+        .map(|graph| {
+            let mut parts = CarrierParts::new(upstream);
+            parts.push_graph("stage-compile-logic", graph)?;
+            parts.materialize()
+        })
+        .collect()
 }
 
 fn compile_inputs(source: Arc<RdfDataset>) -> BTreeMap<String, StageProduct> {
@@ -320,4 +336,388 @@ fn ordinary_projection_reinsert_preserves_content_and_source_location() {
     assert_eq!(recovered.owned_quads().collect::<Vec<_>>(), [ordinary]);
     assert_eq!(recovered.owned_reifiers().count(), 0);
     assert_eq!(recovered.owned_annotations().count(), 0);
+}
+
+/// The snapshot carrier is composed from selections over the producers' datasets instead
+/// of the union of re-rooted copies it replaced. The coherence certificate pins the flat
+/// canonical N-Quads of that carrier, so they must equal the former construction's, over
+/// blank nodes shared by label across producers, an exact
+/// duplicate quad from two producers, graph-scoped reifiers and annotations, a twin
+/// placement, a whole-dataset placement, a preserved dataset whose blank node spans two
+/// graphs and a selected graph the producer does not hold. Blank scoping must keep two
+/// producers' equal labels apart and keep one source's blank node one node across
+/// graphs. The composed carrier's wire labels differ from the former union's, so the
+/// bundle must instead be byte-identical across two compositions of the same parts run
+/// on different thread counts.
+#[test]
+fn composed_carrier_certifies_exactly_what_the_rooted_union_did() {
+    const G1: &str = "https://example.org/g1";
+    const G2: &str = "https://example.org/g2";
+    const TWIN: &str = "https://example.org/twin";
+    const WHOLE: &str = "https://example.org/whole";
+    const MISSING: &str = "https://example.org/missing";
+    const P: &str = "https://example.org/p";
+    let source = |world: &str| {
+        purrdf::parse_dataset(
+            format!(
+                r#"@prefix ex: <https://example.org/> .
+                   @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+                   ex:s ex:p ex:o .
+                   ex:g1 {{
+                       ex:s ex:p ex:dup .
+                       _:shared ex:p ex:o .
+                       ex:claim rdf:reifies <<( _:shared ex:q "value"@en )>> ;
+                           ex:accordingTo ex:{world} .
+                   }}
+                   ex:g2 {{ ex:s ex:p ex:same . _:other ex:p "x" . }}"#
+            )
+            .as_bytes(),
+            "application/trig",
+            None,
+        )
+        .expect("parse synthetic producer")
+    };
+    let alpha = source("alpha");
+    let beta = source("beta");
+    let spanning = purrdf::parse_dataset(
+        br"@prefix ex: <https://example.org/> .
+           ex:g3 { _:b ex:p ex:o . }
+           ex:g4 { _:b ex:r ex:o . }",
+        "application/trig",
+        None,
+    )
+    .expect("parse synthetic graph-spanning dataset");
+    let product = |stage: &str, dataset: &Arc<RdfDataset>| {
+        StageProduct::from_artifacts_over(stage, Arc::clone(dataset), BTreeMap::new())
+            .expect("the stage carrier digests")
+    };
+    let upstream = BTreeMap::from([
+        ("stage-alpha".to_owned(), product("stage-alpha", &alpha)),
+        ("stage-beta".to_owned(), product("stage-beta", &beta)),
+    ]);
+
+    let rooted = |dataset: &RdfDataset, graph: &str, placed: &str| {
+        rooted_in_graph(
+            &dataset
+                .project_graph(Some(&RdfTerm::iri(graph)))
+                .expect("project producer graph"),
+            placed,
+        )
+        .expect("root producer graph")
+    };
+    let former = [
+        rooted(alpha.as_ref(), G1, G1),
+        rooted(beta.as_ref(), G1, G1),
+        rooted(alpha.as_ref(), G2, G2),
+        rooted(alpha.as_ref(), G1, TWIN),
+        rooted(beta.as_ref(), MISSING, MISSING),
+        rooted_in_graph(alpha.as_ref(), WHOLE).expect("root whole producer"),
+        Arc::clone(&spanning),
+    ];
+    let former_refs: Vec<&RdfDataset> = former.iter().map(AsRef::as_ref).collect();
+    let former = RdfDataset::union(&former_refs).expect("former carrier union");
+
+    let compose = || {
+        let mut parts = CarrierParts::new(&upstream);
+        parts.push_graph("stage-alpha", G1).unwrap();
+        parts.push_graph("stage-beta", G1).unwrap();
+        parts.push_graph("stage-alpha", G2).unwrap();
+        parts.push_graph_as("stage-alpha", G1, TWIN).unwrap();
+        parts.push_graph("stage-beta", MISSING).unwrap();
+        parts.push_placed(Arc::clone(&alpha), WHOLE);
+        parts.push_dataset(Arc::clone(&spanning));
+        parts.materialize().expect("composed carrier")
+    };
+    let composed = compose();
+
+    let canonical = |dataset: &RdfDataset| {
+        purrdf::canonical_flat_nquads(
+            dataset,
+            &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None),
+        )
+        .expect("carrier canonicalizes")
+        .nquads()
+        .to_owned()
+    };
+    assert_eq!(canonical(composed.as_ref()), canonical(&former));
+    let graph_names = |dataset: &RdfDataset| {
+        dataset
+            .owned_named_graphs()
+            .filter_map(|graph| match graph {
+                RdfTerm::Iri(iri) => Some(iri),
+                _ => None,
+            })
+            .collect::<std::collections::BTreeSet<_>>()
+    };
+    assert_eq!(graph_names(composed.as_ref()), graph_names(&former));
+    assert!(graph_names(&former).contains(MISSING));
+
+    let in_graph = |quad: &RdfQuad, graph: &str| quad.graph_name == Some(RdfTerm::iri(graph));
+    let o = RdfTerm::iri("https://example.org/o");
+    // The blank subjects of `?b predicate ex:o` in `graph`.
+    let blank_subjects = |graph: &str, predicate: &str| {
+        composed
+            .owned_quads()
+            .filter(|quad| in_graph(quad, graph) && quad.predicate == predicate && quad.object == o)
+            .filter_map(|quad| match quad.subject {
+                RdfTerm::BlankNode(label) => Some(label),
+                _ => None,
+            })
+            .collect::<std::collections::BTreeSet<_>>()
+    };
+    // Two producers' `_:shared` stay two nodes in the graph they both feed.
+    assert_eq!(blank_subjects(G1, P).len(), 2);
+    // The exact duplicate quad both producers place into G1 is asserted once.
+    let duplicate = RdfQuad::new(
+        RdfTerm::iri("https://example.org/s"),
+        P,
+        RdfTerm::iri("https://example.org/dup"),
+    );
+    assert_eq!(
+        composed
+            .owned_quads()
+            .filter(|quad| in_graph(quad, G1)
+                && quad.subject == duplicate.subject
+                && quad.predicate == duplicate.predicate
+                && quad.object == duplicate.object)
+            .count(),
+        1
+    );
+    // One source's blank node stays one node across the graphs it spans.
+    let spanning_node = blank_subjects("https://example.org/g3", P);
+    assert_eq!(spanning_node.len(), 1);
+    assert_eq!(
+        blank_subjects("https://example.org/g4", "https://example.org/r"),
+        spanning_node
+    );
+    // The whole-dataset placement keeps the reifier's quoted blank co-referent with the
+    // quad that asserts it.
+    let whole_node = blank_subjects(WHOLE, P);
+    let quoted = composed
+        .owned_reifiers()
+        .filter(|row| row.graph == Some(RdfTerm::iri(WHOLE)))
+        .filter_map(|row| match &row.statement.subject {
+            RdfTerm::BlankNode(label) => Some(label.clone()),
+            _ => None,
+        })
+        .collect::<std::collections::BTreeSet<_>>();
+    assert_eq!(whole_node.len(), 1);
+    assert_eq!(quoted, whole_node);
+    drop(composed);
+
+    let bundle_bytes = || {
+        let carrier = compose();
+        let mut builder = purrdf::gts_compose::SnapshotBuilder::new();
+        let _ingestion = builder
+            .add_view(carrier.as_ref())
+            .expect("fold composed carrier");
+        let content_id = builder.snapshot_content_id();
+        // gmeow-test-input: synthetic-only
+        let emission = gmeow_gts_profile::emit_gmeow_gts(
+            builder,
+            Vec::new(),
+            Vec::new(),
+            None,
+            &gmeow_gts_profile::baseline_medium_plan(),
+        )
+        .expect("emit composed carrier through the production profile");
+        (content_id, emission.bytes)
+    };
+    let pool = |threads: usize| {
+        rayon::ThreadPoolBuilder::new()
+            .num_threads(threads)
+            .build()
+            .expect("build thread pool")
+    };
+    let narrow = pool(1).install(bundle_bytes);
+    let wide = pool(4).install(bundle_bytes);
+    assert_eq!(narrow.0, wide.0);
+    assert!(
+        narrow.1 == wide.1,
+        "composed carrier bundle bytes differ between runs"
+    );
+}
+
+/// Two producers can carry the same raw blank label; the composed carrier keeps them two
+/// nodes by scope. The per-graph axiom hashes the coherence certificate pins must keep
+/// them apart too: moving a statement from one producer's `_:b` to the other's makes a
+/// different graph, so it must make a different hash. Rendering the raw label alone
+/// gives both carriers the same lines and the same hash. The hash must also reproduce
+/// across two compositions of the same parts.
+#[test]
+fn axiom_hashes_distinguish_producers_blank_nodes_that_share_a_label() {
+    const G: &str = "https://example.org/g";
+    let parse = |trig: &str| {
+        purrdf::parse_dataset(
+            format!("@prefix ex: <https://example.org/> . ex:g {{ {trig} }}").as_bytes(),
+            "application/trig",
+            None,
+        )
+        .expect("parse synthetic producer")
+    };
+    let product = |stage: &str, dataset: Arc<RdfDataset>| {
+        StageProduct::from_artifacts_over(stage, dataset, BTreeMap::new())
+            .expect("the stage carrier digests")
+    };
+    let compose = |alpha: &str, beta: &str| {
+        let upstream = BTreeMap::from([
+            (
+                "stage-alpha".to_owned(),
+                product("stage-alpha", parse(alpha)),
+            ),
+            ("stage-beta".to_owned(), product("stage-beta", parse(beta))),
+        ]);
+        let mut parts = CarrierParts::new(&upstream);
+        parts.push_graph("stage-alpha", G).unwrap();
+        parts.push_graph("stage-beta", G).unwrap();
+        parts.materialize().expect("composed carrier")
+    };
+    let hashes = |dataset: &RdfDataset| {
+        gmeow_logic::certificate::per_graph_axiom_hashes(
+            dataset,
+            purrdf::gts::writer::digest_string,
+        )
+    };
+    let canonical = |dataset: &RdfDataset| {
+        purrdf::canonical_flat_nquads(
+            dataset,
+            &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None),
+        )
+        .expect("carrier canonicalizes")
+        .nquads()
+        .to_owned()
+    };
+
+    let on_alpha = compose("_:b ex:p ex:o1 . _:b ex:q ex:x .", "_:b ex:p ex:o2 .");
+    let on_beta = compose("_:b ex:p ex:o1 .", "_:b ex:p ex:o2 . _:b ex:q ex:x .");
+    assert_ne!(
+        canonical(on_alpha.as_ref()),
+        canonical(on_beta.as_ref()),
+        "the two carriers are different graphs"
+    );
+    assert_ne!(hashes(on_alpha.as_ref()), hashes(on_beta.as_ref()));
+    let again = compose("_:b ex:p ex:o1 . _:b ex:q ex:x .", "_:b ex:p ex:o2 .");
+    assert_eq!(hashes(on_alpha.as_ref()), hashes(again.as_ref()));
+}
+
+/// The snapshot carrier refuses an empty authored base graph and an empty RDF 1.2
+/// statement layer. Either is a regressed upstream read, and composing it would ship
+/// empty graphs that every later gate accepts.
+#[test]
+fn the_carrier_refuses_an_empty_base_or_statement_layer() {
+    let product = |stage: &str, dataset: Arc<RdfDataset>| {
+        StageProduct::from_artifacts_over(stage, dataset, BTreeMap::new())
+            .expect("the stage carrier digests")
+    };
+    let empty = || {
+        RdfDatasetBuilder::new()
+            .freeze()
+            .expect("freeze empty dataset")
+    };
+    let refusal =
+        |upstream: BTreeMap<String, StageProduct>| match super::assemble_carrier(&upstream) {
+            Ok(_) => panic!("the carrier must refuse an empty required layer"),
+            Err(error) => error.to_string(),
+        };
+
+    let empty_base = refusal(BTreeMap::from([
+        (
+            "stage-source-load".to_owned(),
+            product("stage-source-load", empty()),
+        ),
+        (
+            "stage-statements".to_owned(),
+            product("stage-statements", empty()),
+        ),
+    ]));
+    assert!(
+        empty_base.contains("authored base graph is empty"),
+        "{empty_base}"
+    );
+
+    let authored = purrdf::parse_dataset(
+        format!(
+            "<{GRAPH_AUTHORED_DEFAULT}> {{ <urn:carrier:s> <urn:carrier:p> <urn:carrier:o> . }}"
+        )
+        .as_bytes(),
+        "application/trig",
+        None,
+    )
+    .expect("parse synthetic authored base");
+    let empty_statements = refusal(BTreeMap::from([
+        (
+            "stage-source-load".to_owned(),
+            product("stage-source-load", authored),
+        ),
+        (
+            "stage-statements".to_owned(),
+            product("stage-statements", empty()),
+        ),
+    ]));
+    assert!(
+        empty_statements.contains("empty RDF 1.2 statement layer"),
+        "{empty_statements}"
+    );
+}
+
+/// The sink reads its artifact-only dependencies as released products. Every internal
+/// artifact the reasoning archive folds must be in the sink's declared internal reads, or
+/// the release drops it and the terminal fails after the whole build. Released with the
+/// sink's declaration, the producers still supply the archive; released without it,
+/// they do not.
+#[test]
+fn the_sink_declares_every_internal_artifact_its_reasoning_archive_reads() {
+    use crate::node::Stage as _;
+
+    let sink = crate::stages::gts_sink::GtsSinkStage::new();
+    let declared = sink.internal_artifact_reads();
+    let mut artifacts: BTreeMap<&str, BTreeMap<String, Vec<u8>>> = BTreeMap::new();
+    for (producer, artifact) in super::REASONING_INTERNAL_READS {
+        artifacts
+            .entry(producer)
+            .or_default()
+            .insert(artifact.to_owned(), artifact.as_bytes().to_vec());
+    }
+    for path in [
+        crate::stages::reason::EXPLANATIONS_PATH,
+        crate::stages::reason::LEDGER_PATH,
+        crate::stages::reason::PERF_LEDGER_PATH,
+    ] {
+        artifacts
+            .entry("stage-reason")
+            .or_default()
+            .insert(path.to_owned(), path.as_bytes().to_vec());
+    }
+    let upstream = |keep: bool| -> BTreeMap<String, StageProduct> {
+        artifacts
+            .iter()
+            .map(|(producer, artifacts)| {
+                assert!(
+                    sink.consumes().iter().any(|edge| edge == producer)
+                        && !sink.carrier_consumes().iter().any(|edge| edge == producer),
+                    "{producer} is an artifact-only dependency of the sink"
+                );
+                let kept: std::collections::BTreeSet<&str> = declared
+                    .iter()
+                    .filter(|(owner, _)| keep && owner == producer)
+                    .map(|(_, artifact)| *artifact)
+                    .collect();
+                let product = StageProduct::from_artifacts(*producer, artifacts.clone())
+                    .expect("synthetic product")
+                    .into_carrier_released_keeping(&kept)
+                    .expect("release");
+                ((*producer).to_owned(), product)
+            })
+            .collect()
+    };
+
+    super::build_reasoning_blob(&upstream(true))
+        .expect("the declared internal reads survive release");
+    let Err(error) = super::build_reasoning_blob(&upstream(false)) else {
+        panic!("without the declaration the release drops the internal artifacts");
+    };
+    assert!(
+        error.to_string().contains("internal_artifact_reads"),
+        "{error}"
+    );
 }

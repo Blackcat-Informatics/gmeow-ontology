@@ -29,7 +29,7 @@
 | You want | Run | Notes |
 | --- | --- | --- |
 | To verify your work | `make check` | THE entry point. Its DAG runs the producer in update mode as its first node, then gates. One hold of the host-global lock. |
-| Artifacts, no gate | `make check-sync SYNC_MODE=update` | Rarely what you want. Scope with `SYNC_OUTPUTS={generated,docs,all}`. |
+| Artifacts, no gate | `make check-sync SYNC_MODE=update` | Rarely what you want. Scope with `SYNC_OUTPUTS={generated,docs,all}`; the scope selects the stages (the runtime-only `stage-export-yaml-ld`, `stage-export-export` and `stage-export-okf` run under `all` only). |
 | Read-only drift verification | `make check-sync` | `SYNC_MODE=check` is the default, so a bare invocation can never mutate the tree. |
 | The external docs fanout | `make check-sync SYNC_MODE=update SYNC_OUTPUTS=docs` | Adds the materialize-then-`build` ordering that scope alone needs. |
 | A clean-clone bootstrap | `make install` | Builds only the producer, materializes, then builds the consumer CLIs. |

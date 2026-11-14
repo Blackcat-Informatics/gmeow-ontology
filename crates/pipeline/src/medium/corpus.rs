@@ -14,6 +14,11 @@
 //! | `gmeow:corpusSelectsPathPrefix` | one exact logical file, or the artifacts / authored files under a trailing-slash prefix |
 //! | `gmeow:corpusSelectsStageProduct` | that stage product's artifacts |
 //!
+//! One subtraction exists beside them: `gmeow:corpusExcludesPath` removes logical files
+//! from what the path-prefix selectors admit ([`exclusions_of`]). The core corpus uses
+//! it to leave out the module that declares the corpora, so reconciling a declared
+//! training point does not move the corpus identity its sweep evidence records.
+//!
 //! # Why a stage-product selector exists at all
 //!
 //! This selector is the general route to a producer's byte-artifact lane when no
@@ -274,6 +279,106 @@ pub(crate) fn selectors_of(
     Ok(selectors)
 }
 
+/// Read a corpus individual's `gmeow:corpusExcludesPath` values off the carrier.
+///
+/// An exclusion removes logical files from what the corpus's path-prefix selectors
+/// admit. It exists for the module that declares the corpus: that file is inside the
+/// `slices/core/` tree the core corpus selects, so without the exclusion, editing a
+/// declared training point would move the very corpus identity the committed sweep
+/// evidence was measured over.
+///
+/// # Errors
+/// An exclusion that is not a literal, or one that no path-prefix FAMILY selector of
+/// the same corpus strictly contains. Such an exclusion removes nothing while still
+/// claiming to, so a reader would believe a file is out of the corpus whether or not
+/// it ever could have been in it.
+pub(crate) fn exclusions_of(
+    ds: &RdfDataset,
+    subject: TermId,
+    corpus_iri: &str,
+    selectors: &[CorpusSelector],
+) -> Result<Vec<String>, gmeow_errors::Diag> {
+    let mut exclusions: BTreeSet<String> = BTreeSet::new();
+    for object in objects(ds, subject, &gm("corpusExcludesPath")) {
+        exclusions.insert(literal(ds, object, corpus_iri, "corpusExcludesPath")?);
+    }
+    for exclusion in &exclusions {
+        let covered = selectors.iter().any(|selector| match selector {
+            CorpusSelector::PathPrefix(prefix) => {
+                prefix.ends_with('/')
+                    && exclusion.starts_with(prefix.as_str())
+                    && exclusion != prefix
+            }
+            _ => false,
+        });
+        if !covered {
+            return Err(invalid_declaration(format!(
+                "<{corpus_iri}> excludes {exclusion:?}, which no gmeow:corpusSelectsPathPrefix \
+                 family of the same corpus strictly contains — an exclusion that removes nothing \
+                 would still tell a reader the file is out of the corpus"
+            )));
+        }
+    }
+    Ok(exclusions.into_iter().collect())
+}
+
+/// Refuse an exclusion that removes nothing from what this build resolves.
+///
+/// An exclusion tells a reader a file is outside the corpus. It is true only while the
+/// excluded path names a member the selectors would otherwise admit, so a renamed file or
+/// a mistyped path is a hard failure here rather than a silent return of the file it was
+/// meant to remove. The sweep and the build both resolve through this function.
+fn require_exclusions_to_remove_material(
+    corpus_iri: &str,
+    exclusions: &[String],
+    sources: &CorpusSources<'_>,
+) -> Result<(), gmeow_errors::Diag> {
+    for exclusion in exclusions {
+        let in_memory = sources
+            .artifacts
+            .keys()
+            .any(|path| logical_path_selected(path, exclusion));
+        let upstream = || -> Result<bool, gmeow_errors::Diag> {
+            for product in sources.upstream.values() {
+                if product
+                    .artifact_refs()?
+                    .keys()
+                    .any(|path| logical_path_selected(path, exclusion))
+                {
+                    return Ok(true);
+                }
+            }
+            Ok(false)
+        };
+        let on_disk = !exclusion.starts_with("generated/") && {
+            let path = sources.root.join(exclusion);
+            if exclusion.ends_with('/') {
+                path.is_dir()
+            } else {
+                path.is_file()
+            }
+        };
+        if !(in_memory || on_disk || upstream()?) {
+            return Err(invalid_declaration(format!(
+                "<{corpus_iri}> excludes {exclusion:?}, but nothing at that path is in the corpus \
+                 this build resolves — the file was renamed or removed, or the path is mistyped. \
+                 An exclusion that removes nothing lets the file it was written for rejoin the \
+                 corpus unnoticed; correct or delete the gmeow:corpusExcludesPath value"
+            )));
+        }
+    }
+    Ok(())
+}
+
+/// Whether a logical path is removed by one of a corpus's declared exclusions. An
+/// exclusion follows the selector convention: a trailing slash names a family, any
+/// other value one exact logical file.
+fn excluded(path: &str, exclusions: &[String]) -> bool {
+    exclusions
+        .iter()
+        .any(|exclusion| logical_path_selected(path, exclusion))
+}
+
 /// A `gmeow:corpusSelects*` predicate outside [`RECOGNIZED_SELECTORS`] is a hard
 /// fail — never a silent skip.
 fn reject_unrecognized_selectors(
@@ -426,6 +531,7 @@ pub fn assemble_with_cache(
             "<{corpus_iri}> is not a declared gmeow:DictionaryCorpus"
         ))
     })?;
+    require_exclusions_to_remove_material(corpus_iri, &corpus.exclusions, sources)?;
 
     let mut samples: BTreeSet<Arc<[u8]>> = BTreeSet::new();
     // Every resolved sample's own digest — held-out members included, because the
@@ -487,8 +593,8 @@ pub fn assemble_with_cache(
                 }
             }
             CorpusSelector::PathPrefix(prefix) => {
-                for bytes in selected_artifacts(sources, prefix)?.into_values() {
-                    if !bytes.is_empty() {
+                for (path, bytes) in selected_artifacts(sources, prefix)? {
+                    if !bytes.is_empty() && !excluded(path, &corpus.exclusions) {
                         admit(&mut samples, &mut digests, Arc::from(bytes));
                     }
                 }
@@ -496,7 +602,15 @@ pub fn assemble_with_cache(
                 // `stage-archive-blobs` tars for the same reason); a `generated/`
                 // prefix is NOT, and resolves from the in-memory lane above alone.
                 if !prefix.starts_with("generated/") {
-                    collect_authored_files(&sources.root.join(prefix), &mut samples, &mut digests);
+                    collect_authored_files(
+                        &AuthoredTree {
+                            root: sources.root,
+                            exclusions: &corpus.exclusions,
+                        },
+                        &sources.root.join(prefix),
+                        &mut samples,
+                        &mut digests,
+                    );
                 }
             }
             CorpusSelector::StageProduct(stage_iri) => {
@@ -622,10 +736,31 @@ fn reject_covering_graphs(
     Ok(())
 }
 
+/// The repository an authored path-prefix selection walks, and the declared
+/// exclusions it honours. Exclusions are logical (repository-relative) paths, so each
+/// file is compared by its path relative to [`Self::root`].
+struct AuthoredTree<'a> {
+    root: &'a Path,
+    exclusions: &'a [String],
+}
+
+impl AuthoredTree<'_> {
+    /// Whether `path` is removed by a declared exclusion. A path outside the root (or
+    /// not valid UTF-8) cannot be named by an exclusion, so it is never excluded.
+    fn excludes(&self, path: &Path) -> bool {
+        path.strip_prefix(self.root)
+            .ok()
+            .and_then(Path::to_str)
+            .is_some_and(|logical| excluded(logical, self.exclusions))
+    }
+}
+
 /// One exact AUTHORED file, or every regular file under an authored directory,
-/// recursively. Symlinks are skipped in both positions: a symlinked directory could
-/// form a cycle, and a symlinked file would fold the same bytes twice under two names.
+/// recursively, minus the corpus's declared exclusions. Symlinks are skipped in both
+/// positions: a symlinked directory could form a cycle, and a symlinked file would
+/// fold the same bytes twice under two names.
 fn collect_authored_files(
+    tree: &AuthoredTree<'_>,
     path: &Path,
     samples: &mut BTreeSet<Arc<[u8]>>,
     digests: &mut BTreeSet<String>,
@@ -634,7 +769,8 @@ fn collect_authored_files(
         return;
     }
     if path.is_file() {
-        if let Ok(bytes) = std::fs::read(path)
+        if !tree.excludes(path)
+            && let Ok(bytes) = std::fs::read(path)
             && !bytes.is_empty()
         {
             admit(samples, digests, Arc::from(bytes));
@@ -650,13 +786,7 @@ fn collect_authored_files(
         .collect();
     paths.sort();
     for path in paths {
-        if path.is_dir() {
-            collect_authored_files(&path, samples, digests);
-        } else if let Ok(bytes) = std::fs::read(&path)
-            && !bytes.is_empty()
-        {
-            admit(samples, digests, Arc::from(bytes));
-        }
+        collect_authored_files(tree, &path, samples, digests);
     }
 }
 

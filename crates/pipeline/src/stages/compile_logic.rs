@@ -473,6 +473,9 @@ impl Stage for CompileLogicStage {
     fn id(&self) -> &str {
         "stage-compile-logic"
     }
+    fn output_family(&self) -> crate::node::OutputFamily {
+        crate::node::OutputFamily::Generated
+    }
     fn consumes(&self) -> &[String] {
         &self.consumes
     }

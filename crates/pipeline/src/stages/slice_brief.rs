@@ -87,6 +87,9 @@ impl Stage for SliceBriefStage {
     fn id(&self) -> &str {
         "stage-slice-brief"
     }
+    fn output_family(&self) -> crate::node::OutputFamily {
+        crate::node::OutputFamily::Generated
+    }
     fn consumes(&self) -> &[String] {
         &self.consumes
     }

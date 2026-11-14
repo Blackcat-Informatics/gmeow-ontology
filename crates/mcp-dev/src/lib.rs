@@ -205,7 +205,12 @@ fn run_pipeline(root: &std::path::Path, mode: &'static str) -> gmeow_errors::Res
             std::thread::available_parallelism().map_or(1, std::num::NonZero::get),
         ),
     };
-    let report = gmeow_pipeline::run::run_full(root, jobs, run_mode)?;
+    let report = gmeow_pipeline::run::run_full(
+        root,
+        jobs,
+        run_mode,
+        gmeow_pipeline::BuildProfile::Ordinary,
+    )?;
     Ok(json!({
         "ok": report.is_clean(),
         "mode": mode,

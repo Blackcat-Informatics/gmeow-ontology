@@ -131,9 +131,19 @@ pub fn mappings() -> i32 {
 
 /// `gmeow-dev compile-gts [-o --sign-key --public-key]` — reproduce (and
 /// optionally sign) the committed dist snapshot.
-pub fn compile_gts(out: Option<&Path>, sign_key: Option<&Path>, public_key: Option<&Path>) -> i32 {
+pub fn compile_gts(
+    out: Option<&Path>,
+    sign_key: Option<&Path>,
+    public_key: Option<&Path>,
+    profile: gmeow_pipeline::BuildProfile,
+) -> i32 {
     if sign_key.is_some() != public_key.is_some() {
         return fail("--sign-key and --public-key must be supplied together");
+    }
+    if sign_key.is_some() && profile != gmeow_pipeline::BuildProfile::Release {
+        return fail(
+            "a signed bundle is a release: pass --profile release so stale dictionary evidence is refused",
+        );
     }
     let root = project_root();
     let jobs = match resolve_jobs(None) {
@@ -141,7 +151,7 @@ pub fn compile_gts(out: Option<&Path>, sign_key: Option<&Path>, public_key: Opti
         Err(code) => return code,
     };
     // The pipeline (the build authority) folds the snapshot at its single gts_sink.
-    let report = match run_full(&root, jobs, RunMode::Update) {
+    let report = match run_full(&root, jobs, RunMode::Update, profile) {
         Ok(report) => report,
         Err(error) => return fail(format!("regenerate failed: {error}")),
     };
@@ -243,6 +253,39 @@ fn sign_snapshot(
     .map_err(|e| fail(format!("signing failed: {e}")))
 }
 
+/// Admit a release source: its ingestion receipt must verify, and its own recorded
+/// dictionary evidence must be current and present. Nothing is signed from a source this
+/// refuses.
+fn admit_release_source<'a>(
+    source: &Path,
+    snapshot: &'a [u8],
+) -> Result<gmeow_pipeline::stages::release::ReleaseSource<'a>, String> {
+    let receipt_path = gmeow_gts_profile::ingestion_receipt_path(source);
+    let admitted = std::fs::read(&receipt_path)
+        .map_err(|e| e.to_string())
+        .and_then(|receipt| {
+            gmeow_pipeline::stages::release::ReleaseSource::admit(snapshot, &receipt)
+                .map_err(|e| e.to_string())
+        })
+        .map_err(|e| {
+            format!(
+                "invalid release input receipt {}: {e}",
+                receipt_path.display()
+            )
+        })?;
+    gmeow_pipeline::medium::inspect::require_current_dictionary_evidence(
+        snapshot,
+        gmeow_pipeline::medium::rdf::EvidenceRequirement::RequireRecords,
+    )
+    .map_err(|error| {
+        format!(
+            "source snapshot {} cannot be released: {error}",
+            source.display()
+        )
+    })?;
+    Ok(admitted)
+}
+
 /// `gmeow-dev release-bundle …` — fold evidence into a SIGNED gmeow.gts.
 #[allow(clippy::too_many_arguments)]
 pub fn release_bundle(
@@ -264,20 +307,9 @@ pub fn release_bundle(
             ));
         }
     };
-    let source_receipt_path = gmeow_gts_profile::ingestion_receipt_path(source);
-    let source_receipt = match std::fs::read(&source_receipt_path)
-        .map_err(|e| e.to_string())
-        .and_then(|receipt| {
-            gmeow_pipeline::stages::release::ReleaseSource::admit(&snapshot, &receipt)
-                .map_err(|e| e.to_string())
-        }) {
+    let source_receipt = match admit_release_source(source, &snapshot) {
         Ok(receipt) => receipt,
-        Err(e) => {
-            return fail(format!(
-                "invalid release input receipt {}: {e}",
-                source_receipt_path.display()
-            ));
-        }
+        Err(message) => return fail(message),
     };
     let secret_armor = match std::fs::read_to_string(sign_key) {
         Ok(s) => s,
@@ -363,3 +395,7 @@ fn parse_evidence_spec(spec: &str) -> Result<gmeow_pipeline::stages::release::Ev
         subject_label: parts[0].to_owned(),
     })
 }
+
+#[cfg(test)]
+#[path = "dev_build.release_profile_tests.rs"]
+mod release_profile_tests;

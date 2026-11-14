@@ -1698,6 +1698,9 @@ impl Stage for ResearchObjectsStage {
     fn id(&self) -> &str {
         "stage-export-research-objects"
     }
+    fn output_family(&self) -> crate::node::OutputFamily {
+        crate::node::OutputFamily::Generated
+    }
     fn consumes(&self) -> &[String] {
         &self.consumes
     }

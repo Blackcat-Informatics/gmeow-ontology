@@ -257,6 +257,9 @@ impl Stage for MatrixStage {
     fn id(&self) -> &str {
         "stage-export-matrix"
     }
+    fn output_family(&self) -> crate::node::OutputFamily {
+        crate::node::OutputFamily::Generated
+    }
     fn consumes(&self) -> &[String] {
         &[]
     }

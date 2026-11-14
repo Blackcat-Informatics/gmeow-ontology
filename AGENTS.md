@@ -10,6 +10,19 @@ Welcome, AI Agent! This file is your behavioral contract and instruction manual 
 
 ---
 
+## Guiding principles
+
+When requests conflict, these decide. They do not replace the standing rules of this
+repository.
+
+* **GREENFIELD:** we always correct the mistakes of the past. Others' mistakes are our
+  lessons, not our limits.
+* **SOTA:** always choose the state of the art over the bones of the past.
+* **OPTIMAL:** choose the Pareto frontier of the quality, speed, efficiency and other axes.
+* **MAXIMAL:** support the broadest functionality possible after the other choices are made.
+
+---
+
 ## Deficiency emergency ledger (non-negotiable)
 
 `.deficiencies` is the log of last resort for critically undone work. Every entry
@@ -159,7 +172,7 @@ make doc-lint        # Lint ontology-docs for dangling links and coverage gaps
 ```
 
 The per-artifact `compile-*` commands were replaced by the unified generator
-registry: every committed artifact under `generated/` is produced by a
+registry: every generated artifact under `generated/` is produced by a
 registered generator with staging, source-hash banners, drift detection,
 orphan detection, and the internal-tag leak gate (no `@x-gmeow-*` tag may
 appear in a generated artifact; the statements compilation — the canonical
@@ -188,7 +201,7 @@ and CI (Principles 1, 6, 7).
 
 When you change canonical sources (ontology modules, mapping-dsl, statement-dsl), the checked-in generated artifacts can become stale. Use these targets to refresh and commit them safely:
 
-The build's architecture — the in-memory carrier spine, the single `gmeow.gts` terminal, and the post-pipeline fanout that projects the flat files back out — is specified in [`docs/PIPELINE_SPINE.md`](./docs/PIPELINE_SPINE.md). Every committed artifact under `generated/` is a projection of `gmeow.gts`; that document is canonical for any work that produces one.
+The build's architecture — the in-memory carrier spine, the single `gmeow.gts` terminal, and the post-pipeline fanout that projects the flat files back out — is specified in [`docs/PIPELINE_SPINE.md`](./docs/PIPELINE_SPINE.md). Every generated artifact under `generated/` is a projection of `gmeow.gts`; that document is canonical for any work that produces one.
 
 **One producer, one run.** `make check-sync` is the ONLY Make target that runs the regeneration pipeline, and `make check` drives it (in update mode) as the first node of the gate DAG. So the normal answer to "my generated tree is stale" is simply `make check`: it materializes and then gates, inside ONE hold of the host-global gate lock. Materializing separately first and then gating runs the whole pipeline twice and — because the second run must wait for the lock — queues the machine behind you. `make regen` was that second entry point; it is poisoned and refuses.
 
@@ -203,7 +216,7 @@ make commit          # Run sync, stage the artifacts, and commit (default messag
 make commit MESSAGE="feat: ..."  # Same, with a custom commit message
 ```
 
-`make check-sync` runs the registered pipeline exactly once in topological order. `SYNC_OUTPUTS` selects the fanout scope: `generated` (the default — the bundle plus the `generated/` tree) or the wider `docs` and `all` profiles, which additionally fan out runtime `dist/` projections and external documentation. Narrowing the scope never weakens the selected profile's dependencies or gates. Independent generators at the same topological level use every available CPU by default; `--jobs N` is an explicit local override, never a hidden low thread cap. Use `SYNC_VERBOSE=1` (or `gmeow-dev sync --verbose`) to stream live DAG stages and synchronization boundaries. A worktree-local clean manifest under `.cache/gmeow-sync/manifests/` hashes canonical inputs and witnesses every managed output, so a warm fixed-point run skips the pipeline entirely. On a miss, cumulative carrier snapshots are recomputed in memory rather than serialized into a multi-gigabyte stage cache. Update mode writes only byte-changed files and removes stale owned outputs; check mode renders and validates without touching files.
+`make check-sync` runs the registered pipeline exactly once in topological order. `SYNC_OUTPUTS` selects the fanout scope: `generated` (the default — the bundle plus the `generated/` tree) or the wider `docs` and `all` profiles, which additionally fan out runtime `dist/` projections and external documentation. The scope selects the DAG branch from each stage's declared output family: `generated` runs the stages whose outputs it selects and their transitive producers, so the runtime-only exporters (`stage-export-yaml-ld`, `stage-export-export`, `stage-export-okf`) run only under `all`. Narrowing the scope never weakens the selected profile's dependencies or gates. Independent generators at the same topological level use every available CPU by default; `--jobs N` is an explicit local override, never a hidden low thread cap. Use `SYNC_VERBOSE=1` (or `gmeow-dev sync --verbose`) to stream live DAG stages and synchronization boundaries. A worktree-local clean manifest under `.cache/gmeow-sync/manifests/` hashes canonical inputs and witnesses every managed output, so a warm fixed-point run skips the pipeline entirely. On a miss, cumulative carrier snapshots are recomputed in memory rather than serialized into a multi-gigabyte stage cache. Update mode writes only byte-changed files and removes stale owned outputs; check mode renders and validates without touching files.
 
 * `generated/mappings/`, `generated/projections/`, `generated/queries/` — the `mappings` generator
 * `generated/statements/` — the `statements` generator (RDF 1.2 lead + OWL downcast)
@@ -225,11 +238,22 @@ make build           # Build serializations and JSON-LD context into dist/
 make project         # Project GMEOW data to external vocabulary profiles
 make release         # Regenerate, native-reason, build, report, and emit CrossRef deposit
 make release-sign-gts SIGN_KEY=/tmp/gpg/signing-key.asc GTS_OUT=dist/gmeow.gts
+make cli-build       # One producer run, then stage and self-verify the portable dist/bin/gmeow + receipt
+cargo xtask cli build [--skip-producer] [--native]   # The task behind cli-build
+cargo xtask cli run -- ARGS                    # Run the staged gmeow, building it first if not current
+cargo xtask cli install [--bin-dir DIR] [--skip-producer]  # Install a current, verified portable gmeow (default ~/.local/bin)
 ```
 
 `make release-sign-gts` signs a freshly regenerated GTS snapshot for release
-packaging. The committed `generated/dist/gmeow.gts` remains unsigned unless a
-release workflow explicitly writes the signed copy there before packaging.
+packaging. The local `generated/dist/gmeow.gts` is a git-ignored product and stays
+unsigned; the release workflow signs `dist/gmeow.gts` and embeds that signed copy in the
+released `gmeow` by building with `GMEOW_BUNDLE_PATH` pointing at it.
+
+`cargo xtask cli build` compiles `gmeow` for the portable x86-64-v3 baseline with forced
+Rust and requested C flags and remapped build paths, records a dirty checkout as `dirty`, and stages the binary only after its own
+`gmeow version --verbose --format json`, run with a cleared environment, matches the
+receipt `dist/bin/gmeow.receipt.json`. `install` refuses a dirty or host-tuned build
+unless `--allow-dirty` / `--allow-native` is given, and reuses a staged build only when its receipt shows the same revision, a clean tree, the portable baseline, a producer run and the default payloads.
 
 Documentation projections are never embedded in `gmeow.gts`. The static site,
 mdbook sources, print PDF/Typst, prompt snippets, and generated model docs are
@@ -499,7 +523,7 @@ Mapping compilation runs inside `gmeow-dev sync --mode update --outputs generate
   * `generated/queries/projections/*.rq` — executable SPARQL CONSTRUCT projection queries.
 * **Callable interfaces**: author `logic:CallableSignature` records with named, ordered slots in the owning slice under `mappings/callable-signatures.ttl`. The compiler derives the single FnO catalog; there is no authored FnO companion or source fallback.
 * **Important behavior**: the registered generator first renders artifacts into a staging product, runs projection cross-layer invariants, and only then writes generated files. If an invariant fails, nothing is written.
-* **Drift check**: `make check-sync` renders into a staging tree, compares against the committed `generated/` artifacts, detects orphans, and enforces the internal-tag leak gate.
+* **Drift check**: `make check-sync` renders into a staging tree, compares against the materialized `generated/` artifacts, detects orphans, and enforces the internal-tag leak gate.
 
 The mapping DSL has two main authoring units:
 
@@ -584,7 +608,7 @@ queries/                 # Authored SPARQL: competency/, verify/, qc/, codecs/
 imports/                 # Vendored externals (gUFO + validation snapshots)
 docs/                    # Cross-slice doctrine docs (slice guides live IN slices)
 governance/              # Project governance artifacts
-generated/               # EVERY committed generated artifact, one root:
+generated/               # EVERY generated artifact (git-ignored), one root:
                          #   mappings/ projections/ queries/ statements/ schemas/
                          #   lpg/ metadata/ apache/ module-status.md
 dist/                    # Ephemeral build products (one .gitignore line)
@@ -759,3 +783,21 @@ git push
 The PR lands as a **squash-merge via `ghprsq`** — never `git merge` / `gh pr merge`. The squash
 collapses the whole branch (your commits *and* the merge commits from § Integrate) into one commit
 on `main`, so `main` stays linear. See the `/stage3` finalization flow.
+
+---
+
+## 7. Shell Calls: One Thing at a Time
+
+An agent session that raises a permission prompt stops until a person happens to look at it,
+and a long compound command is the usual cause. Keep every shell call small and plain:
+
+* **One call does one thing.** A few related commands may share a call. A chain of dozens joined
+  by `&&` or `;` is never written. When a step needs a script, write the script as a file in the
+  local working area (`.stage/`) and run that file.
+* **A deletion is never inside a chain.** No `rm -r`, `rm -rf`, `find -delete`, `git clean` or
+  `git worktree remove --force` beside other commands. A deletion is its own call, on one exact
+  path inside this repository, after an earlier call has listed that target. Remove worktrees
+  and branches with the plain `git worktree remove` and `git branch -d`.
+* **Send nothing that could raise a prompt.** No deletion by glob or variable, no path outside
+  the repository, no long compound command. When a call is refused, do not send it again in
+  another form: run the plain small version, or report the refusal.

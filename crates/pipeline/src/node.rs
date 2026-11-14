@@ -133,7 +133,7 @@ fn carrier_digest_failure(
 /// The carrier is an [`Arc<PipelineBundle<PipelineHandle>>`]: the frozen RDF
 /// dataset + lookaside + content-addressed blob store + provenance + typed-handle
 /// lane. The pre-C4 named byte artifacts (logical path → bytes) ride the bundle's
-/// byte-artifact lane (see [`crate::bundle`]); `gts_compose` / `gts_sink` fold the
+/// byte-artifact lane (see [`crate::bundle`]); `stage-snapshot` / `gts_sink` fold the
 /// upstream lane into the one bundle (P3/P4). C2/C3/C5 progressively replace
 /// the byte reads with dataset/lane reads and retire the lane per stage.
 ///
@@ -268,7 +268,20 @@ impl StageProduct {
     /// Propagates [`release_carrier`](crate::bundle::release_carrier)'s hard failure on
     /// a corrupt byte-artifact lane.
     pub fn into_carrier_released(self) -> Result<Self, gmeow_errors::Diag> {
-        let bundle = crate::bundle::release_carrier(&self.bundle)?;
+        self.into_carrier_released_keeping(&std::collections::BTreeSet::new())
+    }
+
+    /// [`Self::into_carrier_released`], keeping the internal artifacts named in
+    /// `kept_internal` that an artifact-only consumer still reads
+    /// ([`Stage::internal_artifact_reads`]).
+    ///
+    /// # Errors
+    /// As [`Self::into_carrier_released`].
+    pub fn into_carrier_released_keeping(
+        self,
+        kept_internal: &std::collections::BTreeSet<&str>,
+    ) -> Result<Self, gmeow_errors::Diag> {
+        let bundle = crate::bundle::release_carrier(&self.bundle, kept_internal)?;
         Ok(Self {
             stage_id: self.stage_id,
             digest: self.digest,
@@ -505,6 +518,22 @@ impl StageStability {
     }
 }
 
+/// The output family of a stage: which output scopes need what it produces.
+///
+/// Every stage declares one; the trait method has no default, so a stage added without a
+/// declaration does not compile. A run selects its stages from these declarations
+/// ([`crate::run::spec_for_scope`]): the committed scope runs the stages whose outputs it
+/// selects and their transitive producers.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
+pub enum OutputFamily {
+    /// Contributes to what every scope selects: the bundle, the committed `generated/`
+    /// tree, the codebook and whatever those need.
+    Generated,
+    /// Produces only gitignored `dist/` runtime projections, which only the scope that
+    /// materializes them (`all`) selects, and that no `Generated` stage consumes.
+    RuntimeProjection,
+}
+
 /// Whether a stage product should use the persistent structural cache.
 ///
 /// This is the executable twin of RDF `gmeow:stageCacheDisposition`: both variants
@@ -552,6 +581,8 @@ impl CachePolicy {
 pub trait Stage: Send + Sync {
     /// The stable stage id — matches the `gmeow:PipelineStage` individual.
     fn id(&self) -> &str;
+    /// The output family this stage belongs to. Required: there is no default family.
+    fn output_family(&self) -> OutputFamily;
     /// The ids of the upstream stages this stage consumes, sorted.
     fn consumes(&self) -> &[String];
     /// The subset of [`Self::consumes`] whose in-memory carrier lanes this stage reads.
@@ -569,6 +600,18 @@ pub trait Stage: Send + Sync {
     /// hard-fails at the first carrier read through [`StageProduct::carrier_released`].
     fn carrier_consumes(&self) -> &[String] {
         self.consumes()
+    }
+    /// The internal `pipeline/` artifacts this stage reads through artifact-only
+    /// dependencies, as `(producer, artifact)` pairs.
+    ///
+    /// Releasing a carrier drops a product's internal artifacts, and an artifact-only
+    /// consumer always receives a released product. A stage that reads an internal
+    /// artifact from a dependency outside [`Self::carrier_consumes`] names it here; the
+    /// scheduler keeps exactly those bytes through every release of that producer. The
+    /// loader hard-fails a pair whose producer is not an artifact-only dependency or whose
+    /// artifact is not internal.
+    fn internal_artifact_reads(&self) -> &[(&'static str, &'static str)] {
+        &[]
     }
     /// The capability IRIs (`gmeow:hasCapability`) this stage holds, sorted. The
     /// executor reads these declarations in place of a kind enum: [`SINK_CAPABILITY`]

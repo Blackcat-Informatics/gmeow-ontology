@@ -467,13 +467,12 @@ define_diag_kind! {
 
 define_diag_kind! {
     /// The committed sweep evidence (`bench/medium-baseline.json`) records a corpus
-    /// identity that is not the identity of the corpus THIS build resolved. A
+    /// identity that is not the identity of the corpus a RELEASE build resolved. A
     /// `gmeow:DictionaryCorpus` is a SELECTOR re-resolved every build, so an archive
-    /// gaining or losing a member moves the corpus without moving the table — and the
-    /// table would keep grading the bijection, the declared-is-argmin agreement, and
-    /// the pays-for-itself criterion against numbers from a sweep nobody re-ran. HARD
-    /// FAIL: stale evidence is not weaker evidence, it is evidence about a different
-    /// corpus.
+    /// gaining or losing a member moves the corpus without moving the table. An
+    /// ordinary build records that state on the realization and continues; a release
+    /// refuses it, because stale evidence is not weaker evidence, it is evidence about a
+    /// different corpus.
     pub struct MediumCorpusDrift { detail: String }
     code = "pipeline.medium.corpus-drift";
     grade = Grade::new(Severity::Error, FindingCategory::ModelingDisciplineViolation, Standpoint::Binding);

@@ -563,8 +563,8 @@ gmeow:pipeline-dataflow-goal-directed-reason
 # back, binds each gmeow:stageImpl to a registered Rust Stage, validates it    #
 # (acyclic, complete, exactly one sinkCapability holder), and runs it          #
 # single-pass. The migrated meta:gate-generator-registry queries these stages. #
-# Spine: source-load → (statements, mappings) → reason → gts-compose →         #
-# {docs-render + export leaves} → gts-sink (the one serialization).            #
+# Spine: source-load → (statements, mappings) → reason → docs-render →        #
+# snapshot → {export leaves} → gts-sink (the one serialization).              #
 # =========================================================================== #
 
 # The build plan's success criterion: a shippable gmeow.gts bundle carrying every
@@ -609,7 +609,6 @@ gmeow:pipeline-build
         gmeow:stage-reason ,
         gmeow:stage-verify-attestation ,
         gmeow:stage-goal-directed ,
-        gmeow:stage-gts-compose ,
         gmeow:stage-validate ,
         gmeow:stage-conformance ,
         gmeow:stage-constraint-catalog ,
@@ -661,7 +660,6 @@ gmeow:stage-slice-brief gmeow:stageStability gmeow:stabilityStablePrefix ; gmeow
 gmeow:stage-reason gmeow:stageStability gmeow:stabilityStablePrefix ; gmeow:stageCacheDisposition gmeow:cacheRecomputeAggregate .
 gmeow:stage-verify-attestation gmeow:stageStability gmeow:stabilityStablePrefix ; gmeow:stageCacheDisposition gmeow:cachePersistentContribution .
 gmeow:stage-goal-directed gmeow:stageStability gmeow:stabilityStablePrefix ; gmeow:stageCacheDisposition gmeow:cachePersistentContribution .
-gmeow:stage-gts-compose gmeow:stageStability gmeow:stabilityStablePrefix ; gmeow:stageCacheDisposition gmeow:cacheRecomputeAggregate .
 gmeow:stage-validate gmeow:stageStability gmeow:stabilityStablePrefix ; gmeow:stageCacheDisposition gmeow:cachePersistentContribution .
 gmeow:stage-conformance gmeow:stageStability gmeow:stabilityStablePrefix ; gmeow:stageCacheDisposition gmeow:cachePersistentContribution .
 gmeow:stage-constraint-catalog gmeow:stageStability gmeow:stabilityStablePrefix ; gmeow:stageCacheDisposition gmeow:cachePersistentContribution .
@@ -858,21 +856,6 @@ gmeow:stage-goal-directed
         gmeow:stage-compile-logic ,
         gmeow:stage-reason .
 
-gmeow:stage-gts-compose
-    a gmeow:PipelineStage ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
-    rdfs:label "gts compose"@x-gmeow-english ;
-    skos:definition "Assemble the unified in-memory RdfBundle (dataset + provenance + unit catalog) every downstream leaf and the sink fold artifacts into."@x-gmeow-english ;
-    gmeow:graphBoxRole gmeow:boxABox ;
-    logic:precondition gmeow:stageInputsAvailable ;
-    logic:capability gmeow:stageExecutorCapability ;
-    gmeow:stageImpl "gts_compose" ;
-    gmeow:dataflowConsumes
-        gmeow:stage-mappings ,
-        gmeow:stage-reason ,
-        gmeow:stage-source-load ,
-        gmeow:stage-statements .
-
 gmeow:stage-validate
     a gmeow:PipelineStage ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
@@ -906,14 +889,13 @@ gmeow:stage-docs-render
     a gmeow:PipelineStage ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
     rdfs:label "docs render"@x-gmeow-english ;
-    skos:definition "Render the typed documentation model (crates/docs) over the composed dataset and fold the doc artifacts into the bundle. Consumes gmeow:stage-reason so the projected documentation graph carries the per-term native-reasoner status (gmeow:docReasoningStatus), gmeow:stage-validate + gmeow:stage-compile-logic so the model carries the diagnostics-to-term join digest driving the per-term 'Diagnostics you might hit' surface, gmeow:stage-mappings so the model carries the dynamic per-term projection-loss join digest driving the per-term 'how this term degrades under projection' surface, and gmeow:stage-export-json-schema so the model's per-term JSON-Schema/OpenAPI fragment digest reads THIS run's schema product in memory rather than lagging one regenerate behind on the committed generated/schemas/*.json (the stale-disk-fold class)."@x-gmeow-english ;
+    skos:definition "Render the typed documentation model (crates/docs) from the slice catalog and the consumed stage products and fold the doc artifacts into the bundle. Consumes gmeow:stage-reason so the projected documentation graph carries the per-term native-reasoner status (gmeow:docReasoningStatus), gmeow:stage-validate + gmeow:stage-compile-logic so the model carries the diagnostics-to-term join digest driving the per-term 'Diagnostics you might hit' surface, gmeow:stage-mappings so the model carries the dynamic per-term projection-loss join digest driving the per-term 'how this term degrades under projection' surface, and gmeow:stage-export-json-schema so the model's per-term JSON-Schema/OpenAPI fragment digest reads THIS run's schema product in memory rather than lagging one regenerate behind on the committed generated/schemas/*.json (the stale-disk-fold class)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox ;
     logic:precondition gmeow:stageInputsAvailable ;
     logic:capability gmeow:stageExecutorCapability ;
     gmeow:stageImpl "docs_render" ;
     gmeow:dataflowConsumes gmeow:stage-compile-logic ,
         gmeow:stage-export-json-schema ,
-        gmeow:stage-gts-compose ,
         gmeow:stage-mappings ,
         gmeow:stage-reason ,
         gmeow:stage-term-manifest ,
@@ -965,7 +947,6 @@ gmeow:stage-snapshot
         gmeow:stage-export-skos-surface ,
         gmeow:stage-gmn-training-corpus ,
         gmeow:stage-goal-directed ,
-        gmeow:stage-gts-compose ,
         gmeow:stage-mappings ,
         gmeow:stage-math-producers ,
         gmeow:stage-reason ,
@@ -1329,7 +1310,7 @@ gmeow:stage-medium-dictionaries
     a gmeow:PipelineStage ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
     rdfs:label "medium dictionaries"@x-gmeow-english ;
-    skos:definition "Train the six declared gmeow:CompressionDictionary definitions over their declared gmeow:DictionaryCorpus selectors, measure each into a gmeow:CompressionDictionaryRealization (content digest, byte length, zstd Dictionary_ID, measured strategy, measured target length), and attach the result as the build-time graph/medium-registry named graph. It is the SINGLE producer of the bundle's dictionaries: the terminal reads its product to pin them in the shipped segment header's in-band dct map and to seal one gmeow:MediumEnvelope per emitted frame. Its dataflow edges are DERIVED from the shipped corpora rather than chosen — archive-rep selectors borrow the exact gmeow:stage-archive-blobs representations, named-graph selectors read gmeow:stage-snapshot, and generated-path selectors borrow only their matching gmeow:stage-reason / gmeow:stage-statements artifacts. The reason and statements datasets are not transport inputs and may be released before this stage. Each corpus is resolved, evidence-checked, trained, and released before the next; only a bounded canonical selected-graph cache is shared. Each archive-backed corpus is resolved under the declared gmeow:CorpusTrainingSplit, so the trainer sees a PROPER SUBSET of the archive's members and the tar the dictionary is later evaluated over still carries the rest; the identity of the whole resolution is recorded as gmeow:measuredCorpusDigest and checked against the committed sweep evidence, so a table measured over a corpus this build did not resolve REDS (gmeow:MediumCorpusDrift) rather than grading. A corpus that resolves to nothing, an archive-backed corpus the split holds nothing out of, a selector this build cannot evaluate, or a selector that reaches the medium pass's own output are each a HARD FAIL, never a silently smaller training set. The trained bytes ride an INTERNAL pipeline/ byte-artifact family rather than a committed generated/ file: a dictionary's shipping channel is the segment header, and a second on-disk copy would oblige the superset gate to reconstruct bytes the bundle already carries in band."@x-gmeow-english ;
+    skos:definition "Train the six declared gmeow:CompressionDictionary definitions over their declared gmeow:DictionaryCorpus selectors, measure each into a gmeow:CompressionDictionaryRealization (content digest, byte length, zstd Dictionary_ID, measured strategy, measured target length), and attach the result as the build-time graph/medium-registry named graph. It is the SINGLE producer of the bundle's dictionaries: the terminal reads its product to pin them in the shipped segment header's in-band dct map and to seal one gmeow:MediumEnvelope per emitted frame. Its dataflow edges are DERIVED from the shipped corpora rather than chosen — archive-rep selectors borrow the exact gmeow:stage-archive-blobs representations, named-graph selectors read gmeow:stage-snapshot, and generated-path selectors borrow only their matching gmeow:stage-reason / gmeow:stage-statements artifacts. The reason and statements datasets are not transport inputs and may be released before this stage. Each corpus is resolved, evidence-checked, trained, and released before the next; only a bounded canonical selected-graph cache is shared. Each archive-backed corpus is resolved under the declared gmeow:CorpusTrainingSplit, so the trainer sees a PROPER SUBSET of the archive's members and the tar the dictionary is later evaluated over still carries the rest; the identity of the whole resolution is recorded as gmeow:measuredCorpusDigest and checked against the committed sweep evidence: a release build refuses a table measured over a corpus this build did not resolve (gmeow:MediumCorpusDrift), while an ordinary build trains at the declared point, warns, and records the stale state on the realization (gmeow:evidenceCorpusDigest, gmeow:evidenceCorpusStale). A corpus that resolves to nothing, an archive-backed corpus the split holds nothing out of, a selector this build cannot evaluate, or a selector that reaches the medium pass's own output are each a HARD FAIL, never a silently smaller training set. The trained bytes ride an INTERNAL pipeline/ byte-artifact family rather than a committed generated/ file: a dictionary's shipping channel is the segment header, and a second on-disk copy would oblige the superset gate to reconstruct bytes the bundle already carries in band."@x-gmeow-english ;
     skos:example "gmeow:stage-medium-dictionaries a gmeow:PipelineStage ; gmeow:stageImpl \"medium-dictionaries\" ; gmeow:dataflowConsumes gmeow:stage-archive-blobs ."@x-gmeow-english ;
     skos:scopeNote "Scope: this stage covers TRAINING and MEASURING the declared dictionaries into the graph/medium-registry named graph — what the shipped dictionaries ARE. It does not decide which payload rep uses which dictionary (that is authored on gmeow:PayloadSchema, never derived here), it does not pin them into the shipped segment header or seal a gmeow:MediumEnvelope (gmeow:stage-gts-sink does both), and it does not price them: whether a dictionary pays for itself is measured at the terminal into graph/medium-measurement, because only there does the whole emitted frame set exist."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox ;

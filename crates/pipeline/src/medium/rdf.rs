@@ -29,6 +29,7 @@ use super::{MEDIUM_REGISTRY_GRAPH, blake3_digest, dictionary_regression, is_cano
 
 const RDF_TYPE: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
 const XSD_NON_NEGATIVE_INTEGER: &str = "http://www.w3.org/2001/XMLSchema#nonNegativeInteger";
+const XSD_BOOLEAN: &str = "http://www.w3.org/2001/XMLSchema#boolean";
 
 /// The GENERATED realization of one authored dictionary.
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
@@ -42,13 +43,13 @@ pub struct DictionaryRealization {
     ///
     /// Its own predicate rather than a second `gmeow:dictionaryStrategy`: the authored
     /// property is exactly-one on the DEFINITION and states the human's intent, while
-    /// this one is the sweep-selected winner the build executed. Spelling both with
+    /// this one is what the build executed. Spelling both with
     /// one predicate made a definition and a realization indistinguishable to a
     /// reader, so a divergence between what was asked for and what ran had nowhere to
     /// be recorded.
     pub strategy: DictionaryStrategy,
     /// `gmeow:measuredDictionaryTargetLength` — the target the trainer was given,
-    /// which is the committed sweep's argmin. Same split, same reason: the authored
+    /// which is the declared target. Same split, same reason: the authored
     /// `gmeow:dictionaryTargetLength` is the DECLARED target and stays on the
     /// definition.
     pub target_length: usize,
@@ -70,6 +71,14 @@ pub struct DictionaryRealization {
     /// the committed sweep evidence records a different one
     /// (`gmeow:MediumCorpusDrift`).
     pub corpus_digest: String,
+    /// `gmeow:evidenceCorpusDigest` — the corpus identity the committed sweep evidence
+    /// records for this dictionary, in canonical `blake3:` form.
+    ///
+    /// Equal to [`Self::corpus_digest`] when the evidence describes this build's corpus.
+    /// An ordinary build may ship a realization where the two differ; it then trained at
+    /// the declared point without current evidence, and `gmeow:evidenceCorpusStale` says
+    /// so ([`Self::evidence_stale`]). A release build refuses that state before training.
+    pub evidence_corpus_digest: String,
     /// Internal `blake3:<64 lowercase hex>` address, projected as a typed digest.
     pub content_digest: String,
     /// `gmeow:dictionaryByteLength` — what the trainer ACTUALLY returned, which may
@@ -80,6 +89,14 @@ pub struct DictionaryRealization {
 }
 
 impl DictionaryRealization {
+    /// `gmeow:evidenceCorpusStale`: whether the committed evidence describes a corpus
+    /// other than the one this build resolved. Derived from the two digests rather than
+    /// stored beside them, so the shipped flag cannot disagree with them.
+    #[must_use]
+    pub fn evidence_stale(&self) -> bool {
+        self.evidence_corpus_digest != self.corpus_digest
+    }
+
     /// The realization individual's IRI, derived from the dictionary id + version so
     /// two versions of one id never collide on one subject.
     #[must_use]
@@ -90,8 +107,9 @@ impl DictionaryRealization {
 
 /// Measure a trained dictionary into its realization record.
 ///
-/// `measured` is what the trainer ACTUALLY ran — the committed sweep winner and the
-/// corpus size THIS build resolved — never the authored declaration restated.
+/// `measured` is what the trainer ACTUALLY ran — the declared training point and the
+/// corpus THIS build resolved. `evidence_corpus_digest` is the corpus identity the
+/// committed sweep evidence records for the dictionary.
 ///
 /// # Errors
 /// The bytes do not parse as a finalized zstd dictionary (so no `Dictionary_ID`
@@ -100,6 +118,7 @@ pub fn realize(
     def: &DictionaryDef,
     bytes: &[u8],
     measured: Measured,
+    evidence_corpus_digest: String,
 ) -> Result<DictionaryRealization, gmeow_errors::Diag> {
     Ok(DictionaryRealization {
         dictionary: def.iri.clone(),
@@ -108,6 +127,7 @@ pub fn realize(
         target_length: measured.target_length,
         corpus_sample_count: measured.corpus_sample_count,
         corpus_digest: measured.corpus_digest,
+        evidence_corpus_digest,
         content_digest: blake3_digest(bytes),
         byte_length: bytes.len(),
         zstd_dictionary_id: super::train::zstd_dictionary_id(bytes)?,
@@ -122,9 +142,9 @@ pub fn realize(
 /// plausible at either position.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Measured {
-    /// The strategy that ran — the committed sweep's winner, not the authored intent.
+    /// The strategy that ran — the declared training point.
     pub strategy: DictionaryStrategy,
-    /// The target length the trainer was given — likewise the committed winner.
+    /// The target length the trainer was given — likewise the declared point.
     pub target_length: usize,
     /// How many samples the trainer was actually handed on this build: the TRAINING
     /// side of the declared held-out split, not the whole resolved corpus.
@@ -230,6 +250,14 @@ pub fn project(
                 realization.dictionary, realization.corpus_digest
             )));
         }
+        if !is_canonical_digest(&realization.evidence_corpus_digest) {
+            return Err(super::digest_mismatch(format!(
+                "realization of <{}> carries gmeow:evidenceCorpusDigest {:?}, which is not \
+                 written 'blake3:<64 lowercase hex>' — it is compared against \
+                 gmeow:measuredCorpusDigest to state whether the committed evidence is stale",
+                realization.dictionary, realization.evidence_corpus_digest
+            )));
+        }
         let subject = realization.iri(def);
         emit(
             &subject,
@@ -249,7 +277,7 @@ pub fn project(
         // The MEASURED half of the definition/realization split. Deliberately NOT
         // `gmeow:dictionaryStrategy` / `gmeow:dictionaryTargetLength`: those two are
         // exactly-one on the AUTHORED definition and say what a human declared, while
-        // these say what the build's committed sweep winner actually ran. One
+        // these say what the build actually ran. One
         // predicate for both made the divergence unrecordable.
         emit(
             &subject,
@@ -274,6 +302,25 @@ pub fn project(
             RdfTerm::literal(crate::projections::blake3_blob_literal(
                 &realization.corpus_digest,
             )?),
+        );
+        emit(
+            &subject,
+            gm("evidenceCorpusDigest"),
+            RdfTerm::literal(crate::projections::blake3_blob_literal(
+                &realization.evidence_corpus_digest,
+            )?),
+        );
+        emit(
+            &subject,
+            gm("evidenceCorpusStale"),
+            RdfTerm::literal(RdfLiteral::typed(
+                if realization.evidence_stale() {
+                    "true"
+                } else {
+                    "false"
+                },
+                XSD_BOOLEAN,
+            )),
         );
         emit(
             &subject,
@@ -437,6 +484,130 @@ pub fn corpus_sample_counts(
     Ok(out)
 }
 
+/// What a caller requires of a bundle's recorded dictionary evidence.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum EvidenceRequirement {
+    /// Refuse only a realization that is positively flagged stale. A bundle with no
+    /// dictionary evidence records is not stale, so it passes: the form a consumer uses
+    /// for a release built before the records existed.
+    RefuseStale,
+    /// Also require the records themselves: the bundle must declare dictionaries and
+    /// carry a realization for each. The form the release lanes use, because absent
+    /// records cannot show that the evidence is current.
+    RequireRecords,
+}
+
+/// Describe every realization the bundle itself flags `gmeow:evidenceCorpusStale true`,
+/// read tolerantly (only the flag and the two digests, as recorded) so a bundle that
+/// predates part of the record shape is never misread as stale.
+fn positively_stale(dataset: &purrdf::RdfDataset) -> Vec<String> {
+    use purrdf::RdfTerm as T;
+    let quads = purrdf::flat_rdf_quads_from_dataset(dataset);
+    let literal = |subject: &RdfTerm, local: &str| -> String {
+        quads
+            .iter()
+            .find(|q| &q.subject == subject && q.predicate == gm(local))
+            .map_or_else(
+                || "<not recorded>".to_string(),
+                |q| match &q.object {
+                    T::Literal(literal) => literal.lexical_form.clone(),
+                    other => format!("{other:?}"),
+                },
+            )
+    };
+    let mut stale: Vec<String> = quads
+        .iter()
+        .filter(|q| q.predicate == gm("evidenceCorpusStale"))
+        .filter(|q| matches!(&q.object, T::Literal(l) if l.lexical_form == "true"))
+        .map(|q| {
+            let dictionary = quads
+                .iter()
+                .find(|d| d.subject == q.subject && d.predicate == gm("realizesDictionary"))
+                .map_or_else(
+                    || format!("{:?}", q.subject),
+                    |d| match &d.object {
+                        T::Iri(iri) => iri.clone(),
+                        other => format!("{other:?}"),
+                    },
+                );
+            let dictionary = quads
+                .iter()
+                .find(|d| {
+                    d.predicate == gm("dictionaryId") && RdfTerm::iri(&dictionary) == d.subject
+                })
+                .and_then(|d| match &d.object {
+                    T::Literal(literal) => Some(literal.lexical_form.clone()),
+                    _ => None,
+                })
+                .unwrap_or(dictionary);
+            format!(
+                "{dictionary}: the sweep evidence was measured over corpus {} but the dictionary \
+                 was trained from corpus {}",
+                literal(&q.subject, "evidenceCorpusDigest"),
+                literal(&q.subject, "measuredCorpusDigest"),
+            )
+        })
+        .collect();
+    stale.sort();
+    stale.dedup();
+    stale
+}
+
+/// Refuse a bundle whose dictionary evidence is not current, from the bundle's OWN
+/// recorded terms.
+///
+/// A release ships dictionaries whose sweep evidence was measured over the corpus they
+/// were trained from, so no realization may carry `gmeow:evidenceCorpusStale true`
+/// ([`EvidenceRequirement::RefuseStale`]). With [`EvidenceRequirement::RequireRecords`]
+/// the bundle must also declare dictionaries and carry a realization for each.
+///
+/// # Errors
+/// `MediumCorpusDrift` naming every stale dictionary with both digests and, under
+/// `RequireRecords`, the dictionaries that have no realization; under `RequireRecords`
+/// also a bundle with no readable registry or a malformed realization.
+pub fn require_current_evidence(
+    dataset: &purrdf::RdfDataset,
+    requirement: EvidenceRequirement,
+) -> Result<(), gmeow_errors::Diag> {
+    let mut problems: Vec<String> = Vec::new();
+    let stale = positively_stale(dataset);
+    if !stale.is_empty() {
+        problems.push(format!("stale evidence ({})", stale.join("; ")));
+    }
+    if requirement == EvidenceRequirement::RequireRecords {
+        let registry = MediumRegistry::from_dataset(dataset)?;
+        if registry.dictionaries().is_empty() {
+            problems.push(
+                "the bundle declares no gmeow:CompressionDictionary, so it carries no dictionary \
+                 evidence to show is current"
+                    .to_string(),
+            );
+        } else {
+            let realized = realizations(dataset)?;
+            let missing: Vec<&str> = registry
+                .dictionaries()
+                .values()
+                .filter(|def| !realized.contains_key(&def.iri))
+                .map(|def| def.id.as_str())
+                .collect();
+            if !missing.is_empty() {
+                problems.push(format!(
+                    "no gmeow:CompressionDictionaryRealization for {missing:?}"
+                ));
+            }
+        }
+    }
+    if problems.is_empty() {
+        return Ok(());
+    }
+    Err(super::corpus_drift(format!(
+        "the bundle's own dictionary records do not show current evidence: {}. A release is \
+         built with `--profile release` (`make release`), which refuses stale evidence; \
+         re-run `make maint-medium-sweep`, commit the table, and rebuild",
+        problems.join("; ")
+    )))
+}
+
 /// Read the emitted `gmeow:CompressionDictionaryRealization` records back off a folded
 /// artifact, keyed by the authored dictionary IRI they realize.
 ///
@@ -521,10 +692,27 @@ pub fn realizations(
                 .unwrap_or(usize::MAX),
             corpus_sample_count: number("measuredCorpusSampleCount")?,
             corpus_digest: blake3_digest_value(&quads, subject, "measuredCorpusDigest")?,
+            evidence_corpus_digest: blake3_digest_value(&quads, subject, "evidenceCorpusDigest")?,
             content_digest: blake3_digest_value(&quads, subject, "dictionaryContentDigest")?,
             byte_length: usize::try_from(number("dictionaryByteLength")?).unwrap_or(usize::MAX),
             zstd_dictionary_id: u32::try_from(number("zstdDictionaryId")?).unwrap_or(u32::MAX),
         };
+        let stale = required(literal_of("evidenceCorpusStale"), "evidenceCorpusStale")?;
+        let stale = match stale.as_str() {
+            "true" => true,
+            "false" => false,
+            other => {
+                return Err(super::invalid_declaration(format!(
+                    "<{subject}> gmeow:evidenceCorpusStale {other:?} is not an xsd:boolean"
+                )));
+            }
+        };
+        if stale != realization.evidence_stale() {
+            return Err(super::invalid_declaration(format!(
+                "<{subject}> states gmeow:evidenceCorpusStale {stale}, but its \
+                 gmeow:evidenceCorpusDigest and gmeow:measuredCorpusDigest say the opposite"
+            )));
+        }
         if out
             .get(&dictionary)
             .is_some_and(|previous| previous != &realization)

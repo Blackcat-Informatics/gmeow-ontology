@@ -603,6 +603,19 @@ pub fn run_without(
         }
     }
     let declared_level_frontier = last_consumer_levels(graph, &by_id);
+    // The internal artifacts each producer must keep through every release, because an
+    // artifact-only consumer declared it reads them.
+    let mut kept_internal: BTreeMap<&'static str, BTreeSet<&'static str>> = BTreeMap::new();
+    for stage_id in &executed {
+        for (producer, artifact) in by_id[stage_id.as_str()].internal_artifact_reads() {
+            kept_internal
+                .entry(*producer)
+                .or_default()
+                .insert(*artifact);
+        }
+    }
+    let no_kept_internal = BTreeSet::new();
+    let kept_for = |producer: &str| kept_internal.get(producer).unwrap_or(&no_kept_internal);
     let mut ready: BTreeSet<String> = remaining_dependencies
         .iter()
         .filter(|(_, remaining)| **remaining == 0)
@@ -671,7 +684,7 @@ pub fn run_without(
                         let product = if carrier_inputs.contains(producer.as_str()) {
                             product
                         } else {
-                            product.into_carrier_released()?
+                            product.into_carrier_released_keeping(kept_for(producer))?
                         };
                         Ok::<_, gmeow_errors::Diag>((producer.clone(), product))
                     })
@@ -846,7 +859,8 @@ pub fn run_without(
                             && !retained_carriers.contains(&producer)
                             && let Some(product) = products.remove(&producer)
                         {
-                            products.insert(producer, product.into_carrier_released()?);
+                            let kept = kept_for(&producer);
+                            products.insert(producer, product.into_carrier_released_keeping(kept)?);
                         }
                     }
                     if logically_consumed.contains(&stage_id)
@@ -858,7 +872,10 @@ pub fn run_without(
                         && !retained_carriers.contains(&stage_id)
                         && let Some(product) = products.remove(&stage_id)
                     {
-                        products.insert(stage_id.clone(), product.into_carrier_released()?);
+                        products.insert(
+                            stage_id.clone(),
+                            product.into_carrier_released_keeping(kept_for(&stage_id))?,
+                        );
                     }
                 }
 

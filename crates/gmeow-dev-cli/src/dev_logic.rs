@@ -274,7 +274,12 @@ pub fn compile(check: bool, mode: Option<&str>) -> i32 {
     };
     // A mode selects the reported projection, while the single producer's whole
     // diagnostic and drift contract remains mandatory before accepting its output.
-    let report = match run_full(&root, jobs, run_mode) {
+    let report = match run_full(
+        &root,
+        jobs,
+        run_mode,
+        gmeow_pipeline::BuildProfile::Ordinary,
+    ) {
         Ok(report) => report,
         Err(error) => return fail(format!("logic compile failed: {error}")),
     };

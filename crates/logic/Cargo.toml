@@ -51,10 +51,6 @@ gmeow-math = { path = "../math" }
 # project surface (frontend / ir / projections) and bridges its IR into the runtime
 # EvalRule via crate::lower; certify + the compile_logic entrypoint call into it.
 gmeow-logic-compile = { path = "../logic-compile" }
-# The shipped, reasoner-free TPTP/TSTP syntax AST. External evidence checking
-# reuses its one FOF/CNF parser; it does not link the repository conformance
-# harness or a second reasoning authority.
-gmeow-math-lift = { path = "../math-lift" }
 # THE one structured-term representation: the persistent hash-consed, binder-aware,
 # content-addressed term arena, relocated OUT of this runtime so a front-end can intern
 # terms without linking the native DL engine. This crate is its engine-tier consumer —

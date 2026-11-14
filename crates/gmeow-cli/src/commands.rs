@@ -6,7 +6,7 @@
 //! → stdout, errors/diagnostics → stderr, and a `0`/`1` exit code.
 
 mod prove;
-pub(crate) use prove::prove;
+pub(crate) use prove::{ProveRequest, prove};
 mod correspondence;
 pub(crate) use correspondence::{
     correspondence_compose, correspondence_execute, correspondence_explain, correspondence_inspect,
@@ -141,7 +141,10 @@ pub(crate) fn fail_code(
 
 /// The bytes of `file` (read from disk), or the embedded [`BUNDLE_GTS`] when
 /// `file` is `None` — the repo-free default every command shares.
-fn gts_bytes(reporter: &dyn Reporter, file: Option<&Path>) -> Result<Cow<'static, [u8]>, i32> {
+pub(crate) fn gts_bytes(
+    reporter: &dyn Reporter,
+    file: Option<&Path>,
+) -> Result<Cow<'static, [u8]>, i32> {
     match file {
         None => Ok(Cow::Borrowed(BUNDLE_GTS)),
         Some(path) => match std::fs::read(path) {
@@ -219,10 +222,81 @@ fn resolve_selector(
 
 // ── version / info ───────────────────────────────────────────────────────────
 
-/// `gmeow version` — print the package version to stdout.
-pub fn version() -> i32 {
-    println!("{}", env!("CARGO_PKG_VERSION"));
+/// `gmeow version` — print the package version; `--verbose` prints the build identity.
+///
+/// The bundle and codebook digests are computed here from the bytes this binary
+/// embeds, never stamped at build time, so the report cannot disagree with them.
+/// Every other field is stamped by `build.rs`.
+pub fn version(verbose: bool, format: crate::OutputFormat) -> i32 {
+    if !verbose {
+        println!("{}", env!("CARGO_PKG_VERSION"));
+        return 0;
+    }
+    let identity = build_identity();
+    match format {
+        crate::OutputFormat::Text => {
+            for (key, value) in &identity {
+                let rendered = match value {
+                    serde_json::Value::String(text) => text.clone(),
+                    serde_json::Value::Array(items) => items
+                        .iter()
+                        .filter_map(serde_json::Value::as_str)
+                        .collect::<Vec<_>>()
+                        .join(","),
+                    other => other.to_string(),
+                };
+                println!("{key:<16} {rendered}");
+            }
+        }
+        crate::OutputFormat::Json => {
+            let document = serde_json::Value::Object(
+                identity
+                    .into_iter()
+                    .map(|(key, value)| (key.to_owned(), value))
+                    .collect(),
+            );
+            match serde_json::to_string_pretty(&document) {
+                Ok(text) => println!("{text}"),
+                Err(error) => {
+                    eprintln!("gmeow version: cannot serialize the build identity: {error}");
+                    return 5;
+                }
+            }
+        }
+    }
     0
+}
+
+/// The build identity as ordered fields; text prints them in this order.
+fn build_identity() -> Vec<(&'static str, serde_json::Value)> {
+    use serde_json::Value;
+    let features = env!("GMEOW_BUILD_TARGET_FEATURES")
+        .split(',')
+        .filter(|feature| !feature.is_empty())
+        .map(|feature| Value::String(feature.to_owned()))
+        .collect();
+    let text = |value: &str| Value::String(value.to_owned());
+    vec![
+        ("version", text(env!("CARGO_PKG_VERSION"))),
+        ("source_revision", text(env!("GMEOW_BUILD_SOURCE_REVISION"))),
+        ("source_tree", text(env!("GMEOW_BUILD_SOURCE_TREE"))),
+        ("purrdf_version", text(env!("GMEOW_BUILD_PURRDF_VERSION"))),
+        ("bundle_sha256", text(&sha256_hex(crate::BUNDLE_GTS))),
+        ("bundle_bytes", Value::from(crate::BUNDLE_GTS.len())),
+        ("codebook_sha256", text(&sha256_hex(crate::GMN_CODEBOOK))),
+        ("codebook_bytes", Value::from(crate::GMN_CODEBOOK.len())),
+        ("target", text(env!("GMEOW_BUILD_TARGET"))),
+        ("cpu_baseline", text(env!("GMEOW_BUILD_CPU_BASELINE"))),
+        ("target_features", Value::Array(features)),
+        ("profile", text(env!("GMEOW_BUILD_PROFILE"))),
+        ("rustc", text(env!("GMEOW_BUILD_RUSTC"))),
+    ]
+}
+
+/// Lowercase hexadecimal SHA-256 of `bytes`.
+fn sha256_hex(bytes: &[u8]) -> String {
+    use sha2::Digest as _;
+    purrdf_hash::hex::encode(&sha2::Sha256::digest(bytes))
 }
 
 /// `gmeow info` — print a count summary of a GTS snapshot.
@@ -684,6 +758,7 @@ pub fn verify_release_bundle(
     reporter: &dyn Reporter,
     bundle: &Path,
     public_key: Option<&Path>,
+    require_dictionary_evidence: bool,
 ) -> i32 {
     let bundle_bytes = match read_bytes(reporter, bundle) {
         Ok(b) => b,
@@ -716,6 +791,24 @@ pub fn verify_release_bundle(
     };
     match gmeow_pipeline::stages::release::verify_release_bundle(&bundle_bytes, armor.as_deref()) {
         Ok(report) => {
+            // The signature verdict comes first, so a forged bundle is reported as one. Only
+            // then are the bundle's own dictionary records read: a positively stale record
+            // is always refused, and absent records only when the strict form is requested.
+            let requirement = if require_dictionary_evidence {
+                gmeow_pipeline::medium::rdf::EvidenceRequirement::RequireRecords
+            } else {
+                gmeow_pipeline::medium::rdf::EvidenceRequirement::RefuseStale
+            };
+            if let Err(error) = gmeow_pipeline::medium::inspect::require_current_dictionary_evidence(
+                &bundle_bytes,
+                requirement,
+            ) {
+                return fail(
+                    reporter,
+                    "gmeow-cli.verify-release.stale-evidence",
+                    format!("✗ release bundle does not show current dictionary evidence: {error}"),
+                );
+            }
             let key_line = report.kid.map(|k| format!(", key {k}")).unwrap_or_default();
             let fp_line = report
                 .fingerprint
@@ -2445,6 +2538,7 @@ fn publish_reasoning_failure(
     .publish(format, gate)
 }
 
+#[allow(clippy::too_many_arguments)]
 fn dl_service_failure_report(
     reporter: &dyn Reporter,
     diagnostic_prefix: &str,
@@ -2823,7 +2917,9 @@ pub fn entails(
 
 /// `gmeow consistency` — decide whether an ontology has a model (OWL 2
 /// Direct-Semantics consistency), natively over the purrdf DL reasoner
-/// ([`gmeow_logic::reasoner_services::DlReasoner`]). Prints a stable, greppable
+/// ([`gmeow_logic::reasoner_services::DlReasoner`]). The reasoner reads OWL/RDFS
+/// spelling only; canonical `logic:` axioms, formulas and rules are not read here
+/// (`gmeow prove` decides a `logic:` selection). Prints a stable, greppable
 /// three-valued verdict (`true` / `false` / `unknown`) together with the run's
 /// completeness, measured cost, and every construct boundary — none of it flattened
 /// away. Malformed input exits 4 and execution failure exits 5; an `unknown`
@@ -8235,7 +8331,7 @@ fn render_logic_refine(
                 "INCOMPLETE",
                 serde_json::json!({
                     "cut_status": format!("{status:?}"),
-                    "cause": format!("{cause}"),
+                    "cause": cause.to_string(),
                     "budget": budget,
                     "note": "the derivation was cut, so NO roster is reported: a partial roster \
                              presented here would be read as the roster",

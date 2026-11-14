@@ -734,10 +734,15 @@ pub(super) fn execute_transaction(
     let result = match execution {
         NativeOutcome::Decided(result) => result,
         NativeOutcome::Unsupported(kind) => {
-            return Err(reason_err(format!(
-                "native program execution refused {kind:?}: {:?}",
-                program.admission.capability_gap_rows()
-            )));
+            return Err(gmeow_errors::Diag::of_kind(crate::error::NativeRefusal {
+                reason: format!("native program execution refused {kind:?}"),
+                gaps: program
+                    .admission
+                    .capability_gap_rows()
+                    .iter()
+                    .map(|row| format!("{}: {}", row.category, row.detail))
+                    .collect(),
+            }));
         }
     };
     let publish_started = Instant::now();

@@ -75,6 +75,8 @@ and the no-debug-symbol policy intact.
 
 * Regenerate docs: `make check-sync SYNC_MODE=update SYNC_OUTPUTS=docs`
 * Build dist serializations: `make build`
+* Build, stage and self-verify the portable `dist/bin/gmeow`: `make cli-build` (= `cargo xtask cli build`)
+* Install the self-contained `gmeow`: `cargo xtask cli install [--bin-dir DIR]`
 * Run release build: `make release`
 * Sign a release GTS: `make release-sign-gts SIGN_KEY=/tmp/gpg/signing-key.asc GTS_OUT=dist/gmeow.gts`
 
