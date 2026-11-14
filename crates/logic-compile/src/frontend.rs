@@ -2102,8 +2102,9 @@ fn read_reified_axiom(
     if scopes.len() != 1 {
         diagnostics.push(Diagnostic::error(
             "AMBIGUOUS_RULE_ATOM_SCOPE",
-            "a rule atom carries several values of one scope coordinate; state the \
-             scope on the rule node, or write one rule per intended atom scope",
+            "a rule atom carries several values of one scope coordinate; write one rule \
+             per intended atom value, each atom with its own reifier (a scope on the rule \
+             node scopes the rule as a whole, not its atoms)",
             Some(subject_str(node)),
         ));
         return Err(Diag::of_kind(crate::error::Frontend::new(
