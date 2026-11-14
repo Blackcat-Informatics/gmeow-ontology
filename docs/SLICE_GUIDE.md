@@ -602,7 +602,7 @@ advisor's term list as the specification of the uplift.
 
 - Work in a worktree (`.worktrees/<slug>/`), never the top-level checkout; build the
   native extensions before regenerating; regenerate with `make check`, never the bare
-  command (`CLAUDE.md` § working discipline).
+  command (`AGENTS.md` § 3 and § 4).
 - **Slice edits drift generated artifacts by design** — that is the pipeline working, not
   a problem. Expect: docs-model goldens on any term or annotation change; result-shapes
   and docs goldens on competency additions; SSSOM/mappings artifacts on alignment changes;
