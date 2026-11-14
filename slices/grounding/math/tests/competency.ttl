@@ -1630,7 +1630,7 @@ ex:cqStatisticsEstimateProvenance a gmeow:CompetencyQuestion ;
     gmeow:cqQueryFile "slices/grounding/math/queries/competency/statistics-estimate-provenance.rq" ;
     gmeow:cqDataFile "tests/fixtures/statistics-estimate-provenance.ttl" ;
     gmeow:cqReasoning gmeow:reasoningNone ;
-    gmeow:cqRationale "A math:Estimate names its math:Estimator (math:estimator) and math:Estimand (math:estimatesEstimand) and is produced by a math:InferenceRun process (gmeow:wasGeneratedBy); the run fits the math:DatasetMatrix data (math:fittedToData) and the math:FittedModel over that same data carries its math:ModelAssumption (math:modelAssumption) — so a statistical result is the traceable output of a method over data under stated assumptions, by a named process. Over the fixture the answer is exactly {treatmentEffectEstimate → run analysisRun, data trialData, model trialFittedModel, estimator olsEstimator, estimand averageTreatmentEffect, assumption normalErrors}." ;
+    gmeow:cqRationale "A math:Estimate names its math:Estimator (math:estimator) and math:Estimand (math:estimatesEstimand) and is produced by a math:InferenceRun process (gmeow:wasGeneratedBy); the run declares the math:FittedModel it applied (gmeow:used), and that model carries both its math:DatasetMatrix data (math:fittedToData) and its math:ModelAssumption (math:modelAssumption) — so a statistical result is the traceable output of a method over data under stated assumptions, by a named process. Data shared with some other model creates no link. A row means the model is declared as used by the generating run, not that it uniquely produced the estimate; a run that used several models yields a row for each. The profile covers estimand-bearing estimates only (estimator and estimatesEstimand): a parameter-only estimate is valid under the canonical contract and is simply outside it, not invalid. Over the fixture the answer is exactly {treatmentEffectEstimate → run analysisRun, data trialData, model trialFittedModel, estimator olsEstimator, estimand averageTreatmentEffect, assumption normalErrors}." ;
     gmeow:cqExactRows true ;
     gmeow:cqResultShape ex:cqStatisticsEstimateProvenanceShape ;
     gmeow:cqExpectRow ex:rowEstimateProvenance .
@@ -1654,6 +1654,45 @@ ex:rowEstimateProvenance a gmeow:ExpectedRow ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "estimator" ; gmeow:cellValueIri exf:olsEstimator ] ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "estimand" ; gmeow:cellValueIri exf:averageTreatmentEffect ] ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "assumption" ; gmeow:cellValueIri exf:normalErrors ] .
+
+# The adversarial companion: one dataset shared by three fitted models and used directly by
+# both runs, with a single-model run, a two-model run, a foil model no run used, and a
+# parameter-only estimate.
+ex:cqStatisticsEstimateProvenanceAmbiguity a gmeow:CompetencyQuestion ;
+    gmeow:cqQueryFile "slices/grounding/math/queries/competency/statistics-estimate-provenance.rq" ;
+    gmeow:cqDataFile "tests/fixtures/statistics-estimate-provenance-ambiguity.ttl" ;
+    gmeow:cqReasoning gmeow:reasoningNone ;
+    gmeow:cqRationale "Protects two behaviours of the estimate-provenance profile. First, shared data alone cannot manufacture a producing-model link: runA and runB each gmeow:used the math:DatasetMatrix sharedData directly, and modelM1, modelM2 and modelM3 are all fitted to it, yet a model fitted to that data but not used by the generating run must not appear. So modelM2 and its assumption do not appear for estimateE1, whose runA used only modelM1, and modelM3, which no math:InferenceRun gmeow:used, and its assumption never appear for any estimate; the dataset itself, which a run also gmeow:used, is not a math:FittedModel and is never returned as a model. A query that reached a model through the run's data would return those extra rows and fail the exact-row check. Second, a run that used several models keeps its ambiguity: runB used modelM1 and modelM2, so estimateE2 yields a row for each, and the query neither picks one nor claims the model is unique — a row means 'declared as used by the generating run', not 'uniquely produced this estimate'. estimateE3 is a parameter-only estimate (math:estimatedParameter plus math:estimator, no estimand): valid under the canonical Estimate contract and outside this estimand-bearing profile, so it yields no row and is not flagged invalid. Over the fixture the answer is exactly {estimateE1 → runA, modelM1, assumptionM1; estimateE2 → runB, modelM1, assumptionM1; estimateE2 → runB, modelM2, assumptionM2}, each with data sharedData, estimator sharedEstimator and estimand sharedEstimand." ;
+    gmeow:cqExactRows true ;
+    gmeow:cqResultShape ex:cqStatisticsEstimateProvenanceShape ;
+    gmeow:cqExpectRow ex:rowAmbiguityE1M1 , ex:rowAmbiguityE2M1 , ex:rowAmbiguityE2M2 .
+
+ex:rowAmbiguityE1M1 a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "estimate" ; gmeow:cellValueIri exf:estimateE1 ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "run" ; gmeow:cellValueIri exf:runA ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "data" ; gmeow:cellValueIri exf:sharedData ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "model" ; gmeow:cellValueIri exf:modelM1 ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "estimator" ; gmeow:cellValueIri exf:sharedEstimator ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "estimand" ; gmeow:cellValueIri exf:sharedEstimand ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "assumption" ; gmeow:cellValueIri exf:assumptionM1 ] .
+
+ex:rowAmbiguityE2M1 a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "estimate" ; gmeow:cellValueIri exf:estimateE2 ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "run" ; gmeow:cellValueIri exf:runB ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "data" ; gmeow:cellValueIri exf:sharedData ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "model" ; gmeow:cellValueIri exf:modelM1 ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "estimator" ; gmeow:cellValueIri exf:sharedEstimator ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "estimand" ; gmeow:cellValueIri exf:sharedEstimand ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "assumption" ; gmeow:cellValueIri exf:assumptionM1 ] .
+
+ex:rowAmbiguityE2M2 a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "estimate" ; gmeow:cellValueIri exf:estimateE2 ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "run" ; gmeow:cellValueIri exf:runB ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "data" ; gmeow:cellValueIri exf:sharedData ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "model" ; gmeow:cellValueIri exf:modelM2 ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "estimator" ; gmeow:cellValueIri exf:sharedEstimator ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "estimand" ; gmeow:cellValueIri exf:sharedEstimand ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "assumption" ; gmeow:cellValueIri exf:assumptionM2 ] .
 
 # === SQ3 — inference and results: p-value framing and multiplicity ========= #
 

@@ -111,7 +111,7 @@ ex:pValueMagnitude a math:ProbabilityValue , math:RationalValue ;
 ex:samplingFrame a gmeow:ReferenceFrame .
 
 ex:inferenceRun a math:InferenceRun , gmeow:Activity ;
-    math:fittedToData ex:sampleData .
+    gmeow:used ex:sampleData .
 ex:sampleData a math:DatasetMatrix .
 ex:pvalueObservation a gmeow:Observation ;
     gmeow:vantage ex:analystStandpoint ;

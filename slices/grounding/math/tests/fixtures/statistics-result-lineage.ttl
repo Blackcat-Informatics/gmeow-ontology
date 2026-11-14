@@ -4,7 +4,7 @@
 # ABox fixture for the result-lineage competency question "does a terminal result reach
 # back to an estimand and forward to a held observation?". A full connected process /
 # result / claim chain modelled on the charter's process/result/claim example:
-#   process  — ex:analysisRun, a math:InferenceRun (a gmeow:Activity) that fits the data;
+#   process  — ex:analysisRun, a math:InferenceRun (a gmeow:Activity) that produced the result;
 #   result   — ex:treatmentEffectEstimate, a math:Estimate naming its math:Estimator and
 #              math:Estimand, carrying its value quantity (math:estimateValue), produced
 #              by the run (gmeow:wasGeneratedBy);
@@ -20,9 +20,8 @@
 @prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
 @prefix ex:    <http://example.org/math/> .
 
-# process — the analysis run that fit the data and produced the estimate.
+# process — the analysis run that produced the estimate.
 ex:analysisRun a math:InferenceRun , gmeow:Activity ;
-    math:fittedToData ex:trialDataset ;
     math:usedAnalysisPlan ex:planV2 .
 
 ex:trialDataset a math:DatasetMatrix .
