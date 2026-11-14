@@ -141,7 +141,8 @@ separately required estimator (`math:estimator`). The inspected target and metho
 not establish a universal `math:estimateValue`-presence check or numerical evaluation. A
 `math:FittedModel` is the data-bound model (`math:fittedToData`), and a `math:InferenceRun` is the
 `gmeow:Activity` that applies a procedure and records each model it applied through `gmeow:used`; the
-data stays on the model, and the procedure is not that activity or a held claim.
+fitted-to-data link stays on the model, a dataset the run itself read is also recorded through
+`gmeow:used`, and the procedure is not that activity or a held claim.
 
 The native R source lift can emit estimated-parameter and estimator records without a numerical
 coefficient value, a framed study estimand or a completed fitting run. Formula-term labels do not

@@ -8238,7 +8238,7 @@ math:InferenceRun
     gmeow:graphBoxRole gmeow:boxTBox ;
     gmeow:useWhen "Mint one for the executed occurrence of an estimation or inference, the analysis activity that applies a declared model and produces result objects."@x-gmeow-english ;
     gmeow:avoidWhen "Do not type a run as its own observation or as a result object; a run is the PROCESS, held disjoint from gmeow:Observation and distinct from the math:Estimate it produces."@x-gmeow-english ;
-    gmeow:howToUse "Type it as a gmeow:Activity, tie its results back through gmeow:wasGeneratedBy, record each model it applied through gmeow:used (the data stays on the math:FittedModel, never on the run), and name the plan it followed through math:usedAnalysisPlan."@x-gmeow-english ;
+    gmeow:howToUse "Type it as a gmeow:Activity, tie its results back through gmeow:wasGeneratedBy, record each model it applied through gmeow:used (math:fittedToData stays on the math:FittedModel and is never asserted on the run; a dataset the run itself read is also recorded through gmeow:used), and name the plan it followed through math:usedAnalysisPlan."@x-gmeow-english ;
     skos:example "exf:run1 a math:InferenceRun ; math:usedAnalysisPlan exf:plan1 ."@x-gmeow-english ;
     skos:scopeNote "The estimation PROCESS, distinct from the math:Estimate result objects it produces and from the gmeow:Observation that holds a claim about them from a vantage."@x-gmeow-english .
 
