@@ -116,6 +116,7 @@ fn modal_product(dataset: &RdfDataset) -> Result<ModalProduct, gmeow_errors::Dia
     )?])?;
     let product = crate::stages::reason::reason_product_over_dataset(&rooted, &domains)?;
     let handle = product
+        .bundle()
         .handle(GRAPH_REASONING)
         .ok_or_else(|| super::stage_err("stage-reason did not pin its required native result"))?;
     let PipelineHandle::Reasoning(result) = &handle.payload else {

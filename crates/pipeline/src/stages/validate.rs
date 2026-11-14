@@ -378,7 +378,7 @@ fn substrate_abox_from_source_load(
             message: "missing stage-source-load product for the substrate A-Box".to_owned(),
         })
     })?;
-    substrate::project(product.dataset())
+    substrate::project(product.bundle().dataset())
 }
 
 /// The `stage-validate` pipeline stage.
@@ -720,16 +720,19 @@ impl ValidateStage {
                     .to_owned(),
             })
         })?;
-        let reasoning_entry = reason_product.handle(GRAPH_REASONING).ok_or_else(|| {
-            gmeow_errors::Diag::of_kind(crate::error::StageFailed {
-                cause: None,
-                stage: self.id().to_owned(),
-                message: format!(
-                    "stage-reason product carries no typed Reasoning handle at \
+        let reasoning_entry = reason_product
+            .bundle()
+            .handle(GRAPH_REASONING)
+            .ok_or_else(|| {
+                gmeow_errors::Diag::of_kind(crate::error::StageFailed {
+                    cause: None,
+                    stage: self.id().to_owned(),
+                    message: format!(
+                        "stage-reason product carries no typed Reasoning handle at \
                          <{GRAPH_REASONING}>"
-                ),
-            })
-        })?;
+                    ),
+                })
+            })?;
         let PipelineHandle::Reasoning(reasoning) = &reasoning_entry.payload else {
             return Err(gmeow_errors::Diag::of_kind(crate::error::StageFailed {
                 cause: None,

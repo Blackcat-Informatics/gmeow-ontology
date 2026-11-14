@@ -830,6 +830,7 @@ fn source_load_dataset(
         .ok_or_else(|| {
             stage_err("missing stage-source-load product for the self-description graphs")
         })?
+        .bundle()
         .dataset_arc())
 }
 
@@ -871,6 +872,7 @@ pub(crate) fn producer_graph(
     })?;
     rooted_in_graph(
         &product
+            .bundle()
             .dataset()
             .project_graph(Some(&purrdf::RdfTerm::iri(graph_iri)))?,
         graph_iri,
@@ -973,6 +975,7 @@ impl<'a> CarrierParts<'a> {
             .upstream
             .get(stage)
             .ok_or_else(|| stage_err(&format!("missing {stage} product for the snapshot carrier")))?
+            .bundle()
             .dataset_arc())
     }
 
@@ -1433,6 +1436,7 @@ fn fold_coherence_certificate(
         .get("stage-reason")
         .ok_or_else(|| stage_err("missing stage-reason product for the coherence certificate"))?;
     let reason_entry = reason
+        .bundle()
         .handle(gmeow_logic::result_rdf::GRAPH_REASONING)
         .ok_or_else(|| stage_err("stage-reason product carries no Reasoning handle"))?;
     let crate::bundle::PipelineHandle::Reasoning(result) = &reason_entry.payload else {
@@ -1661,7 +1665,7 @@ pub fn assemble_object_level_edb(
 
     let mut datasets: Vec<std::sync::Arc<purrdf::RdfDataset>> = vec![
         base,
-        rooted_in_graph(statements.dataset(), GRAPH_STATEMENTS)?,
+        rooted_in_graph(statements.bundle().dataset(), GRAPH_STATEMENTS)?,
         source_load_graph(upstream, GRAPH_IMPORTS)?,
         // EVERY slice's positive-demonstrator ABox — the authored worked examples under
         // `slices/<group>/<slice>/examples/` — admitted to object-level reasoning so each
@@ -1737,6 +1741,7 @@ fn compile_logic_graphs(
         .map(|iri| {
             rooted_in_graph(
                 &compile
+                    .bundle()
                     .dataset()
                     .project_graph(Some(&purrdf::RdfTerm::iri(iri)))?,
                 iri,
@@ -2026,7 +2031,7 @@ fn pass_one_receipt_input_digest(
             "cannot key a GTS pass-one receipt from a released stage-snapshot carrier",
         ));
     }
-    if !std::ptr::eq(snapshot.dataset(), carrier) {
+    if !std::ptr::eq(snapshot.bundle().dataset(), carrier) {
         return Err(stage_err(
             "the GTS serializer carrier is not the stage-snapshot product's exact dataset",
         ));
@@ -2299,7 +2304,7 @@ pub fn snapshot_dataset(
              inside the DAG or select CarrierRetention::RetainAll",
         ));
     }
-    Ok(product.dataset_arc())
+    Ok(product.bundle().dataset_arc())
 }
 
 // ── Blob channels the presenter itself folds ────────────────────────────────────
@@ -3521,6 +3526,7 @@ pub(crate) fn compiled_logic_program(
         .get("stage-compile-logic")
         .ok_or_else(|| stage_err("missing stage-compile-logic product for the Logic handle"))?;
     let entry = compile
+        .bundle()
         .handle(crate::stages::compile_logic::GRAPH_LOGIC)
         .ok_or_else(|| stage_err("stage-compile-logic product carries no Logic handle"))?;
     let program = entry.payload.logic_program().ok_or_else(|| {
@@ -3555,6 +3561,7 @@ fn build_snapshot_bundle(
 
     // ── the RelationalCore handle payload + its backing graph/relational-core ─────
     let rc_entry = compile
+        .bundle()
         .handle(crate::stages::compile_logic::GRAPH_RELATIONAL_CORE)
         .ok_or_else(|| stage_err("stage-compile-logic product carries no RelationalCore handle"))?;
     let crate::bundle::PipelineHandle::RelationalCore(rc_program) = &rc_entry.payload else {
@@ -3566,6 +3573,7 @@ fn build_snapshot_bundle(
 
     // ── the Correspondence handle payload + its backing graph/correspondence ──────
     let corr_entry = compile
+        .bundle()
         .handle(crate::stages::compile_logic::GRAPH_CORRESPONDENCE)
         .ok_or_else(|| stage_err("stage-compile-logic product carries no Correspondence handle"))?;
     let crate::bundle::PipelineHandle::Correspondence(corr_program) = &corr_entry.payload else {
@@ -3580,6 +3588,7 @@ fn build_snapshot_bundle(
         .get("stage-reason")
         .ok_or_else(|| stage_err("missing stage-reason product for the Reasoning handle"))?;
     let reason_entry = reason
+        .bundle()
         .handle(gmeow_logic::result_rdf::GRAPH_REASONING)
         .ok_or_else(|| stage_err("stage-reason product carries no Reasoning handle"))?;
     let crate::bundle::PipelineHandle::Reasoning(result) = &reason_entry.payload else {

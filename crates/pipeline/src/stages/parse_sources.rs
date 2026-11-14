@@ -359,6 +359,7 @@ pub(crate) fn catalog<'a>(input: &StageInput<'a>) -> gmeow_errors::Result<&'a So
         .ok_or_else(|| stage_error("missing native parse-stage product".into()))?;
     let _ = product.dataset();
     match product
+        .bundle()
         .handle(GRAPH_SOURCE_CATALOG)
         .map(|entry| &entry.payload)
     {

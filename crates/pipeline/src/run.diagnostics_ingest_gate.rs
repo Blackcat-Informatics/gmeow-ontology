@@ -212,7 +212,7 @@ fn span_index_hard_fails_after_the_drop_and_is_not_shipped() {
 
     // Strip exactly as the scheduler does at the drop point.
     let stripped =
-        crate::bundle::strip_rep_blob(product.raw_bundle(), crate::stages::carrier::REP_SPAN_TABLE)
+        crate::bundle::strip_rep_blob(product.bundle(), crate::stages::carrier::REP_SPAN_TABLE)
             .expect("strip span blob");
     let dropped = product.with_released_bundle(stripped);
     assert_eq!(
@@ -222,11 +222,8 @@ fn span_index_hard_fails_after_the_drop_and_is_not_shipped() {
 
     // Not shipped: the stripped product carries no span blob for the sink to fold.
     assert!(
-        crate::bundle::bundle_rep_blob(
-            dropped.raw_bundle(),
-            crate::stages::carrier::REP_SPAN_TABLE
-        )
-        .is_none(),
+        crate::bundle::bundle_rep_blob(dropped.bundle(), crate::stages::carrier::REP_SPAN_TABLE)
+            .is_none(),
         "the stripped product must not carry the span blob"
     );
 
@@ -345,7 +342,7 @@ fn cache_replay_yields_byte_identical_run_ledger() {
             .collect(),
         blob_representations: out
             .product
-            .raw_bundle()
+            .bundle()
             .lookaside()
             .blobs
             .iter()
@@ -353,13 +350,13 @@ fn cache_replay_yields_byte_identical_run_ledger() {
             .collect(),
         logical_artifacts: out
             .product
-            .raw_bundle()
+            .bundle()
             .lookaside()
             .resources
             .iter()
             .filter_map(|resource| resource.name.clone())
             .collect(),
-        handles: out.product.raw_bundle().handles().keys().cloned().collect(),
+        handles: out.product.bundle().handles().keys().cloned().collect(),
         default_graph: crate::cache::default_graph_commitment(&out.product).unwrap(),
         provenance: crate::cache::provenance_commitment(&out.product).unwrap(),
         content_store: crate::cache::content_store_commitment(&out.product).unwrap(),

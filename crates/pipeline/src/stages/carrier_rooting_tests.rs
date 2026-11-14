@@ -700,7 +700,7 @@ fn the_sink_declares_every_internal_artifact_its_reasoning_archive_reads() {
                 let kept: std::collections::BTreeSet<&str> = declared
                     .iter()
                     .filter(|(owner, _)| keep && owner == producer)
-                    .map(|(_, artifact)| artifact.as_str())
+                    .map(|(_, artifact)| *artifact)
                     .collect();
                 let product = StageProduct::from_artifacts(*producer, artifacts.clone())
                     .expect("synthetic product")
