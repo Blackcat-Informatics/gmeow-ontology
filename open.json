@@ -1,0 +1,30 @@
+{
+  "schema": 1,
+  "issue": 2756,
+  "repo": "gmeow-ontology",
+  "forge": "github",
+  "nwo": "Blackcat-Informatics/gmeow-ontology",
+  "read_access": "anon-read",
+  "main_root": "/home/paudley/Active/gmeow-ontology",
+  "worktree": "/home/paudley/Active/gmeow-ontology/.worktrees/2756-repair-the-three-helpers-check-failures",
+  "branch": "paudley/2756-repair-the-three-helpers-check-failures",
+  "slug": "repair-the-three-helpers-check-failures",
+  "slug_drift": false,
+  "stage_dir": "/home/paudley/Active/gmeow-ontology/.worktrees/2756-repair-the-three-helpers-check-failures/.stage/repair-the-three-helpers-check-failures",
+  "stage_tracked": true,
+  "base": "origin/main",
+  "base_oid": "05385cf3b80521897499ec47cdccfb54b75680d2",
+  "reused": false,
+  "adr_repo": false,
+  "created": [
+    "worktree:/home/paudley/Active/gmeow-ontology/.worktrees/2756-repair-the-three-helpers-check-failures",
+    "branch:paudley/2756-repair-the-three-helpers-check-failures",
+    "ignored:8267 files (8267 reflinked, 0 written)",
+    "rust-caches:skipping busy source /opt/.cargo/25/014a074a4bb951: /opt/.cargo/25/014a074a4bb951/debug/.cargo-build-lock; reflinked /home/paudley/Active/gmeow-ontology/.worktrees/2695-publish-a-single-self-contained-gmeow caches into /home/paudley/Active/gmeow-ontology/.worktrees/2756-repair-the-three-helpers-check-failures plus 688 dependency units from 2 other checkouts in 64.3s; 12961 unchanged files keep their built mtimes; 24 other files take the seed time and rebuild; 488 units naming another checkout rebuild",
+    "stage:/home/paudley/Active/gmeow-ontology/.worktrees/2756-repair-the-three-helpers-check-failures/.stage/repair-the-three-helpers-check-failures",
+    "issue:/home/paudley/Active/gmeow-ontology/.worktrees/2756-repair-the-three-helpers-check-failures/.stage/repair-the-three-helpers-check-failures/issue.md"
+  ],
+  "warnings": [],
+  "timestamp": "2026-11-13T18:45:03-0600",
+  "seed_error": ""
+}

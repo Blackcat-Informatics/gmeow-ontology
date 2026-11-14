@@ -1,0 +1,20 @@
+{
+  "assignees": [],
+  "author": {
+    "id": "MDQ6VXNlcjUyNzU1NQ==",
+    "is_bot": false,
+    "login": "paudley",
+    "name": "Patrick Audley"
+  },
+  "body": "The hosted `helpers` check passed on `main` on 2026-11-12 (run 43263534387) and has failed on every run since.\nThree failing lines are on `main` today. Each came in with a change that merged before its checks had finished.\n\n## The three lines\n\nFrom `make helpers-hygiene` (`scripts/check-shared-helpers.py`), run 43463810521:\n\n```\nFAIL: isomorphic shim group shim:e7b4e9dec554ea70 is sanctioned by no variant or [[distinct]] row: gmeow_foundation_corpus::importer::FoundationImporter::default, ...\nFAIL: recorded debt shim group [... medium_dictionaries::MediumDictionariesStage::default ...] no longer exists as recorded; lower the debt with `scripts/check-shared-helpers.py --write-debt`\nFAIL: job `hash-domain`: 46 copies outside its home, debt allows 45\n```\n\n- The first two appear at 56545ecd1 (#2737). That change removed `impl Default for MediumDictionariesStage`, so\n  the recorded group of `Default` implementations lost a member and no longer matches its record.\n- The third appears first in the run of #2746 and is absent from the run of its base. One new copy of the\n  hash-domain job entered with that change. The script names no file. The likeliest site is the new `sha256_hex`\n  in `crates/gmeow-cli/src/commands.rs`; this is not yet confirmed.\n\n## Wanted\n\n1. The recorded `Default` group matches the group that exists: the record shrinks to the smaller group. No\n   group is added and no count rises.\n2. The new hash-domain copy is found and routed through the job's home helper, so the count returns to 45. The\n   allowance is not raised.\n3. If either cannot be done without raising a recorded debt, stop and say so on this issue.\n\n## Acceptance\n\n- `make helpers-hygiene` exits 0 locally at the fixing head.\n- The hosted `helpers` check passes on the fixing pull request and on `main` after the merge.\n- `helpers-census-debt.json` and `helpers-ledger.toml` show no raised count and no new sanctioned group.\n",
+  "closedAt": null,
+  "comments": [],
+  "createdAt": "2026-11-14T00:43:36Z",
+  "labels": [],
+  "milestone": null,
+  "number": 2756,
+  "state": "OPEN",
+  "title": "Repair the three helpers check failures on main without raising any debt",
+  "updatedAt": "2026-11-14T00:43:36Z",
+  "url": "https://github.com/Blackcat-Informatics/gmeow-ontology/issues/2756"
+}

@@ -1,0 +1,47 @@
+rule:raw-hash-domain crates/build-inputs/src/lib.rs 143  b"gmeow-production-input-inventory-v1\0" is handed to `.update(…)` without a `Domain`
+rule:raw-hash-domain crates/docs-model/src/fixture.rs 540  b"gmeow-docs-fixture-v2\x1f" is handed to `.update(…)` without a `Domain`
+rule:raw-hash-domain crates/gmeow-cli/src/commands/prove.rs 51  `PROVE_DOMAIN_AUTHORITY` = b"gmeow.prove.default-graph-selection.v1" is a domain constant that is not a `Domain`
+rule:raw-hash-domain crates/gmeow-dev-cli/src/dev_sync.rs 935  b"gmeow:sync-managed-output-root:v1\x1f" is handed to `.update(…)` without a `Domain`
+rule:raw-hash-domain crates/gmeow-dev-cli/src/dev_sync.rs 993  b"gmeow:sync-input-closure:v5\x1f" is handed to `.update(…)` without a `Domain`
+rule:raw-hash-domain crates/logic-compile/src/frontend/source_admission.rs 355  b"gmeow-live-source-admission-v1\0" is handed to `.update(…)` without a `Domain`
+rule:raw-hash-domain crates/logic-compile/src/frontend/source_admission.rs 1444  b"gmeow-prepared-source-v3\0" is handed to `.update(…)` without a `Domain`
+rule:raw-hash-domain crates/logic-compile/src/projections/get_leg.rs 419  b"gmeow.native-mapping-binding.v1\0" is handed to `.update(…)` without a `Domain`
+rule:raw-hash-domain crates/logic-compile/src/projections/mod.rs 550  b"gmeow.correspondence-report-target.v2\0" is handed to `.update(…)` without a `Domain`
+rule:raw-hash-domain crates/logic-compile/src/relational_core/formula_analysis.rs 72  b"gmeow-formula-analysis-v1\0" is handed to `.update(…)` without a `Domain`
+rule:raw-hash-domain crates/logic-compile/src/relational_core/identity.rs 69  b"RELATIONAL-CORE-PROJECTION-v1" is handed to `frame(…)` without a `Domain`
+rule:raw-hash-domain crates/logic-compile/src/relational_core/identity.rs 69  b"RELATIONAL-CORE-v3" is handed to `frame(…)` without a `Domain`
+rule:raw-hash-domain crates/logic/src/cost.rs 638  b"gmeow-repeat-forward-closure-v2" is handed to `frame(…)` without a `Domain`
+rule:raw-hash-domain crates/logic/src/cost.rs 659  b"gmeow-record-skip-fact-closure-v2" is handed to `frame(…)` without a `Domain`
+rule:raw-hash-domain crates/logic/src/cost.rs 678  b"gmeow-record-skip-fact-closure-v2" is handed to `frame(…)` without a `Domain`
+rule:raw-hash-domain crates/logic/src/counterfactual.rs 683  b"gmeow-counterfactual-incremental-base-v1\x0a" is handed to `.update(…)` without a `Domain`
+rule:raw-hash-domain crates/logic/src/counterfactual.rs 703  b"gmeow-counterfactual-goal-v1" is handed to `frame(…)` without a `Domain`
+rule:raw-hash-domain crates/logic/src/dispatch.rs 371  b"gmeow-backward-query-contract-v1" is handed to `frame(…)` without a `Domain`
+rule:raw-hash-domain crates/logic/src/materialize.rs 262  b"gmeow-selected-view-materialization-contract-v1" is handed to `frame(…)` without a `Domain`
+rule:raw-hash-domain crates/logic/src/modal/contextual.rs 822  b"gmeow-finite-attributed-modal-basis-v1\0" is handed to `.update(…)` without a `Domain`
+rule:raw-hash-domain crates/logic/src/modal/contextual/monitor.rs 241  b"gmeow-monitor-context-basis-v1\0" is handed to `.update(…)` without a `Domain`
+rule:raw-hash-domain crates/logic/src/modal/journal.rs 258  b"gmeow-finite-journal-v1" is handed to `frame(…)` without a `Domain`
+rule:raw-hash-domain crates/logic/src/physical/effects/value_flow.rs 1455  b"gmeow-native-input-columns-v3\0" is handed to `.update(…)` without a `Domain`
+rule:raw-hash-domain crates/logic/src/physical/plan.rs 218  b"gmeow-joint-selected-rule-keys-v1\0" is handed to `.update(…)` without a `Domain`
+rule:raw-hash-domain crates/logic/src/physical/plan.rs 479  b"gmeow-eval-rule-ir-v3" is handed to `frame_str(…)` without a `Domain`
+rule:raw-hash-domain crates/logic/src/physical/seminaive.rs 2714  b"gmeow-rule-parallel-derived-rows-v2\0" is handed to `.update(…)` without a `Domain`
+rule:raw-hash-domain crates/logic/src/physical/seminaive/joint/input.rs 210  b"gmeow-native-schema-template-v1\0" is handed to `.update(…)` without a `Domain`
+rule:raw-hash-domain crates/logic/src/physical/seminaive/joint/input.rs 516  b"gmeow-native-joint-value-flow-v5\0" is handed to `.update(…)` without a `Domain`
+rule:raw-hash-domain crates/logic/src/physical/seminaive/joint/input.rs 920  b"gmeow-native-source-admission-v1\0" is handed to `.update(…)` without a `Domain`
+rule:raw-hash-domain crates/logic/src/physical/seminaive/joint/input/admission.rs 195  b"gmeow-native-selector-bindings-v3\0" is handed to `.update(…)` without a `Domain`
+rule:raw-hash-domain crates/logic/src/physical/store/witness.rs 117  b"gmeow-witness-origin-v1" is handed to `frame(…)` without a `Domain`
+rule:raw-hash-domain crates/logic/src/program_analysis.rs 400  b"gmeow-native-program-preparation-v1\0" is handed to `.update(…)` without a `Domain`
+rule:raw-hash-domain crates/logic/src/runtime.rs 271  b"gmeow-logic-backward-source-v2" is handed to `frame(…)` without a `Domain`
+rule:raw-hash-domain crates/logic/src/runtime.rs 345  b"gmeow-logic-engine-contract-v1" is handed to `frame(…)` without a `Domain`
+rule:raw-hash-domain crates/logic/src/runtime/session/checkpoint.rs 54  b"gmeow-logic-session-checkpoint-v1" is handed to `frame(…)` without a `Domain`
+rule:raw-hash-domain crates/logic/src/runtime/session/delta.rs 120  b"gmeow-logic-session-delta-v1" is handed to `frame(…)` without a `Domain`
+rule:raw-hash-domain crates/logic/src/runtime/session/journal.rs 51  b"gmeow-logic-transition-v1" is handed to `frame(…)` without a `Domain`
+rule:raw-hash-domain crates/logic/src/seam.rs 932  b"gmeow-world-fact-snapshot-generation-v2" is handed to `.update(…)` without a `Domain`
+rule:raw-hash-domain crates/perf-evidence/src/junit.rs 234  b"gmeow:junit-inventory:v1\0" is handed to `.update(…)` without a `Domain`
+rule:raw-hash-domain crates/perf-evidence/src/sample.rs 812  b"gmeow:external-dependency-resolution:v1\0" is handed to `.update(…)` without a `Domain`
+rule:raw-hash-domain crates/perf-evidence/src/sample.rs 900  b"gmeow:tree-census:v1\0" is handed to `.update(…)` without a `Domain`
+rule:raw-hash-domain crates/pipeline/src/projections.rs 851  b"gmeow.pipeline.reasoned-type-harvest.v1/default/nonempty-object-domain-v1" is handed to `blake3::hash(…)` without a `D
+rule:raw-hash-domain crates/pipeline/src/stages/conformance/verify_gates.rs 125  b"gmeow.pipeline.reasoned-verify-scenes.v1/default/nonempty-object-domain-v1" is handed to `blake3::hash(…)` without a `
+rule:raw-hash-domain crates/pipeline/src/stages/reason.tests.rs 85  b"gmeow.pipeline.test.selected-theory.v1/urn:selected-theory/nonempty-object-domain-v1" is handed to `blake3::hash(…)` w
+rule:raw-hash-domain crates/slice-quality/src/lib.rs 701  b"gmeow-scored-input-v2\0" is handed to `.update(…)` without a `Domain`
+rule:raw-hash-domain crates/slice-quality/src/reasoner.rs 47  b"gmeow.slice-quality.module-theory.v1/default/nonempty-object-domain-v1" is handed to `blake3::hash(…)` without a `Doma
+TOTAL 46
