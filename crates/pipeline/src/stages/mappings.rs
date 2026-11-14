@@ -908,7 +908,7 @@ fn logic_report_inputs(
 ) -> gmeow_errors::Result<&LogicReportInputs> {
     let publication = upstream
         .get("stage-compile-logic")
-        .and_then(|product| product.bundle().handle(GRAPH_LOGIC))
+        .and_then(|product| product.handle(GRAPH_LOGIC))
         .and_then(|entry| match &entry.payload {
             PipelineHandle::CompiledLogic(publication) => Some(publication),
             _ => None,

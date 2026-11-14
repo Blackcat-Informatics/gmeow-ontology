@@ -706,8 +706,9 @@ pub(crate) fn archive_blob_bytes_from_product<'a>(
     })?;
     if product.carrier_released {
         return Err(stage_err(&format!(
-            "the {STAGE_ID} carrier was released before `{rep}` was read; the consumer must \
-             declare {STAGE_ID} in carrier_consumes()"
+            "the {STAGE_ID} carrier was released before `{rep}` was read; the consumer's \
+             dataflow edge from {STAGE_ID} in the pipeline slice must declare the whole \
+             carrier (`gmeow:flowReadsLane gmeow:laneCarrier`)"
         )));
     }
     archive_bytes(product.bundle(), rep)
@@ -817,8 +818,8 @@ impl ArchiveBlobsStage {
     /// `stage-export-pydantic` (the model package), the three generated-shape export
     /// leaves, and `stage-statements` (the statement layer's two byte projections and
     /// the claim corpus's JSON-LD-star / YAML-LD-star surface). The edge set is declared
-    /// identically here, in [`crate::run::full_spec`], and in
-    /// `slices/core/pipeline/module.ttl`.
+    /// identically here and in `slices/core/pipeline/module.ttl`, and the loader refuses a
+    /// pipeline description that disagrees.
     pub fn new() -> Self {
         Self {
             consumes: vec![

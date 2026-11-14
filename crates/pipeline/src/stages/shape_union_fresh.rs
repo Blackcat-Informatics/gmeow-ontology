@@ -46,7 +46,8 @@ const GENERATED_SHAPES_PREFIX: &str = "generated/shapes/";
 /// The producer stages a fresh-union consumer must `consumes()` — the stages whose
 /// in-memory products carry THIS run's `generated/shapes/*.ttl` bytes (see
 /// [`fresh_generated_shape_members`]). Sorted; the slice DAG's
-/// `gmeow:dataflowConsumes` mirrors these edges and `run.rs::full_spec` repeats them.
+/// `gmeow:dataflowConsumes` mirrors these edges, and the loader refuses a description that
+/// disagrees with the implementation.
 pub const GENERATED_SHAPE_PRODUCERS: &[&str] = &[
     "stage-compile-logic",
     "stage-export-constraint-shapes",
