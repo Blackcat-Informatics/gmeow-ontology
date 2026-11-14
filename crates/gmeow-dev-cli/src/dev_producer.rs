@@ -35,7 +35,6 @@ pub(crate) fn requires_admission(command: &Commands) -> bool {
         Commands::TestFixtures { mode, .. } => matches!(mode, TestFixtureMode::Produce),
         Commands::Fanout { .. }
         | Commands::MediumSweep { .. }
-        | Commands::PipelineReads { .. }
         | Commands::MediumSeed { .. }
         | Commands::TermReleaseAuthority { .. }
         | Commands::DocsMeasure

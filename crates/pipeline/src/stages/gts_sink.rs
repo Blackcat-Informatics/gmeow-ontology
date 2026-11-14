@@ -157,11 +157,8 @@ impl Stage for GtsSinkStage {
     fn carrier_consumes(&self) -> &[String] {
         &self.carrier_consumes
     }
-    fn internal_artifact_reads(&self) -> Vec<(String, String)> {
-        crate::stages::carrier::REASONING_INTERNAL_READS
-            .iter()
-            .map(|(producer, artifact)| ((*producer).to_owned(), (*artifact).to_owned()))
-            .collect()
+    fn internal_artifact_reads(&self) -> &[(&'static str, &'static str)] {
+        &crate::stages::carrier::REASONING_INTERNAL_READS
     }
     fn capabilities(&self) -> &[String] {
         &self.capabilities

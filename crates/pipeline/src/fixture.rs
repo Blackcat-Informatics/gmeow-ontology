@@ -266,7 +266,7 @@ fn settled_source_load_digest(
         }));
     }
     let stripped = crate::bundle::strip_rep_blob(
-        hit.product.raw_bundle(),
+        hit.product.bundle(),
         crate::stages::carrier::REP_SPAN_TABLE,
     )?;
     let settled = StageProduct::from_bundle(hit.product.stage_id.clone(), Arc::new(stripped))?;

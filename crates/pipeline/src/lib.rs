@@ -72,7 +72,6 @@ pub mod projection_profiles;
 pub mod projections;
 pub mod provenance;
 pub mod put_executor;
-pub mod reads;
 pub mod registry;
 pub mod run;
 pub mod scheduler;
