@@ -1,0 +1,30 @@
+{
+  "schema": 1,
+  "issue": 2683,
+  "repo": "gmeow-ontology",
+  "forge": "github",
+  "nwo": "Blackcat-Informatics/gmeow-ontology",
+  "read_access": "anon-read",
+  "main_root": "/home/paudley/Active/gmeow-ontology",
+  "worktree": "/home/paudley/Active/gmeow-ontology/.worktrees/2683-vocabulary-record-an-approval-of-a-body",
+  "branch": "paudley/2683-vocabulary-record-an-approval-of-a-body",
+  "slug": "vocabulary-record-an-approval-of-a-body",
+  "slug_drift": false,
+  "stage_dir": "/home/paudley/Active/gmeow-ontology/.worktrees/2683-vocabulary-record-an-approval-of-a-body/.stage/vocabulary-record-an-approval-of-a-body",
+  "stage_tracked": true,
+  "base": "origin/main",
+  "base_oid": "da6d91aa90a34b6b07c38062c44afb82cfc9ff5c",
+  "reused": false,
+  "adr_repo": false,
+  "created": [
+    "worktree:/home/paudley/Active/gmeow-ontology/.worktrees/2683-vocabulary-record-an-approval-of-a-body",
+    "branch:paudley/2683-vocabulary-record-an-approval-of-a-body",
+    "ignored:8267 files (8267 reflinked, 0 written)",
+    "rust-caches:reflinked /home/paudley/Active/gmeow-ontology/.worktrees/2646-restore-main-ci-after-producer caches into /home/paudley/Active/gmeow-ontology/.worktrees/2683-vocabulary-record-an-approval-of-a-body plus 0 dependency units from 0 other checkouts in 4.1s; 12906 unchanged files keep their built mtimes; 82 other files take the seed time and rebuild; 0 units naming another checkout rebuild",
+    "stage:/home/paudley/Active/gmeow-ontology/.worktrees/2683-vocabulary-record-an-approval-of-a-body/.stage/vocabulary-record-an-approval-of-a-body",
+    "issue:/home/paudley/Active/gmeow-ontology/.worktrees/2683-vocabulary-record-an-approval-of-a-body/.stage/vocabulary-record-an-approval-of-a-body/issue.md"
+  ],
+  "warnings": [],
+  "timestamp": "2026-11-11T16:24:08-0600",
+  "seed_error": ""
+}

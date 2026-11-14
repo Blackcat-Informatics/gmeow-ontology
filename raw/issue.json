@@ -1,0 +1,45 @@
+{
+  "assignees": [],
+  "author": {
+    "id": "MDQ6VXNlcjUyNzU1NQ==",
+    "is_bot": false,
+    "login": "paudley",
+    "name": "Patrick Audley"
+  },
+  "body": "Request: a general vocabulary for recording an approval of a body of work,\nseparate from who holds the claims in it.\n\nNeed: a reader of a body of work often has to know who approved it, when,\nand for what scope, and that is a different fact from who made or holds\nits claims. Today a record can say who holds a claim but has no typed way\nto say that a named person approved the work on a date, and for which\nscope, without making the approver a holder.\n\nProposed terms (one node per approval; a later approval adds a node, and\nits identifier and label never change):\n- an approval class;\n- approvedBy (the person or agent who approved);\n- approvedOn (the date, typed as a date);\n- approvalScope (optional: the part of the work approved);\n- reportedBy (optional: who recorded the approval).\n\nNote: an approval is never a holder. Holding claims and approving a body of\nwork are separate facts and both should be expressible.\n",
+  "closedAt": null,
+  "comments": [],
+  "createdAt": "2026-11-10T14:43:27Z",
+  "labels": [
+    {
+      "id": "LA_kwDOSwdn1s8AAAACl8ZKwA",
+      "name": "enhancement",
+      "description": "New feature or request",
+      "color": "a2eeef"
+    },
+    {
+      "id": "LA_kwDOSwdn1s8AAAACmTvTOg",
+      "name": "foundational",
+      "description": "Foundational / kernel construct",
+      "color": "b60205"
+    },
+    {
+      "id": "LA_kwDOSwdn1s8AAAACmTvThA",
+      "name": "cross-cutting",
+      "description": "Cross-cutting concern",
+      "color": "fbca04"
+    },
+    {
+      "id": "LA_kwDOSwdn1s8AAAACmTvT1A",
+      "name": "module-enhancement",
+      "description": "Enhancement to an existing module",
+      "color": "c5def5"
+    }
+  ],
+  "milestone": null,
+  "number": 2683,
+  "state": "OPEN",
+  "title": "vocabulary: record an approval of a body of work, separate from its holders",
+  "updatedAt": "2026-11-10T14:44:00Z",
+  "url": "https://github.com/Blackcat-Informatics/gmeow-ontology/issues/2683"
+}
