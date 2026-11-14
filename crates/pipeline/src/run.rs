@@ -305,9 +305,16 @@ const PIPELINE_DESCRIPTION: &str = include_str!("../../../slices/core/pipeline/m
 ///
 /// `slices/core/pipeline/module.ttl` is the one description of the build graph: its
 /// stages, their dependency edges and what each edge reads, their capabilities,
-/// resources, cache dispositions and attach sets. Nothing in Rust repeats it. The
-/// description is compiled in, so the producer and the description it executes cannot
-/// differ, and the producer's own authentication covers the file.
+/// resources, cache dispositions and attach sets. What each edge reads also decides
+/// retention: which products keep their carrier for a consumer, which internal artifacts
+/// survive a release, and which stage reads the source-span table. Those three are
+/// stated nowhere in Rust.
+///
+/// Every stage implementation still declares its own id, consumes, capabilities,
+/// resources, stability, cache disposition, entity narrowing and attach sets, and
+/// [`crate::bind`] refuses a description that disagrees with the implementation it
+/// names. The description is compiled in, so the producer and the description it
+/// executes cannot differ, and the producer's own authentication covers the file.
 ///
 /// # Panics
 /// When the compiled-in description does not parse as a pipeline. That is a defect of
@@ -321,6 +328,24 @@ pub fn full_spec() -> PipelineSpec {
         })
     })
     .clone()
+}
+
+/// One stage of the production pipeline as the scheduler runs it, bound from the
+/// authored slice. For tests that must observe what the slice declares about retention
+/// (carrier consumers, kept internal artifacts, span-table readers), which only a bound
+/// stage answers.
+///
+/// # Panics
+/// When the authored pipeline does not validate or bind, or has no stage `id`.
+#[cfg(test)]
+pub(crate) fn bound_production_stage(id: &str) -> Arc<dyn crate::node::Stage> {
+    let spec = full_spec();
+    let graph = spec.validate().expect("the authored pipeline validates");
+    let bound = bind(&spec, &graph, &default_registry()).expect("the authored pipeline binds");
+    bound
+        .into_iter()
+        .find(|stage| stage.id() == id)
+        .unwrap_or_else(|| panic!("the authored pipeline has no stage {id}"))
 }
 
 /// Select the stages one output scope runs, from each stage's declared

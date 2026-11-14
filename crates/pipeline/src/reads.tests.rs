@@ -69,3 +69,72 @@ fn retention_follows_the_declared_lanes() {
     );
     assert!(needs_carrier(&set(&[Read::BlobRep("spans".into())])));
 }
+
+/// A product with one committed and two internal artifacts, as one consumer sees it
+/// under `declared`, released the way the scheduler releases it for that declaration.
+fn consumer_view_of(
+    declared: &ReadSet,
+    released: bool,
+) -> (crate::node::StageProduct, Arc<EdgeAccess>) {
+    let product = crate::node::StageProduct::from_artifacts(
+        "stage-a",
+        std::collections::BTreeMap::from([
+            ("generated/x".to_owned(), b"x".to_vec()),
+            ("pipeline/named".to_owned(), b"n".to_vec()),
+            ("pipeline/unnamed".to_owned(), b"u".to_vec()),
+        ]),
+    )
+    .expect("synthetic product");
+    let product = if released {
+        let kept: BTreeSet<&str> = internal_artifacts(declared).collect();
+        product
+            .into_carrier_released_keeping(&kept)
+            .expect("release")
+    } else {
+        product
+    };
+    let edge = EdgeAccess::new("stage-b", "stage-a", declared.clone());
+    (product.consumer_view(Arc::clone(&edge)), edge)
+}
+
+/// An internal artifact the edge names is kept through the release and readable, and the
+/// whole-lane accessors return it beside the committed artifacts, with every read
+/// declared. Protects the "named internal artifact" half of the all-artifacts rule.
+#[test]
+fn a_named_internal_artifact_is_kept_and_readable_beside_the_whole_lane() {
+    let declared = set(&[Read::AllArtifacts, Read::Artifact("pipeline/named".into())]);
+    let (view, edge) = consumer_view_of(&declared, true);
+    assert_eq!(view.artifact("pipeline/named"), Some(b"n".as_slice()));
+    let lane: Vec<String> = view.artifacts().into_keys().collect();
+    assert_eq!(lane, ["generated/x", "pipeline/named"]);
+    assert!(edge.undeclared().is_empty(), "{:?}", edge.undeclared());
+    assert!(edge.unread().is_empty(), "{:?}", edge.unread());
+}
+
+/// Under an all-artifacts declaration alone an internal artifact is outside the permitted
+/// lane: a direct read is reported as undeclared (even where the carrier is still whole,
+/// as under the recording policy), and the whole-lane accessors do not return it.
+/// Protects the "unnamed internal artifact" half of the all-artifacts rule.
+#[test]
+fn an_unnamed_internal_artifact_is_undeclared_under_the_whole_lane() {
+    let declared = set(&[Read::AllArtifacts]);
+    assert!(!permits(
+        &declared,
+        &Read::Artifact("pipeline/unnamed".into())
+    ));
+    let (view, edge) = consumer_view_of(&declared, false);
+    let lane: Vec<String> = view
+        .artifact_refs()
+        .expect("lane")
+        .keys()
+        .map(|k| (*k).to_owned())
+        .collect();
+    assert_eq!(lane, ["generated/x"]);
+    assert_eq!(view.artifacts().len(), 1);
+    assert!(edge.undeclared().is_empty());
+    let _ = view.artifact("pipeline/unnamed");
+    assert_eq!(
+        edge.undeclared(),
+        set(&[Read::Artifact("pipeline/unnamed".into())])
+    );
+}

@@ -58,9 +58,10 @@ fn the_consumes_set_covers_shipped_corpus_producers_exactly() {
     assert!(CONSUMES.contains(&"stage-reason"));
 }
 
-/// The Rust `consumes()` is sorted and matches the declared constant, which is the
-/// half of the three-way declaration (`Stage::consumes`, `run::full_spec`,
-/// `module.ttl`) this crate can check without running the loader.
+/// The Rust `consumes()` is sorted and matches the declared constant, and the stage
+/// the scheduler runs keeps a live carrier only for the products it reads through
+/// carrier lanes. The retention is read off the bound stage, derived from the reads the
+/// pipeline slice declares, so a carrier read removed from the slice fails here.
 #[test]
 fn the_consumes_set_is_sorted_and_bound() {
     let stage = MediumDictionariesStage::new(crate::run::BuildProfile::Ordinary);
@@ -69,23 +70,25 @@ fn the_consumes_set_is_sorted_and_bound() {
     assert_eq!(stage.consumes(), sorted.as_slice());
     assert_eq!(stage.id(), STAGE_ID);
     assert_eq!(
-        stage.carrier_consumes(),
-        ["stage-archive-blobs", "stage-snapshot"]
-    );
-    assert_eq!(
         stage.resources(),
         [crate::node::SERIALIZATION_BUFFER_RESOURCE]
     );
     assert!(stage.consumes().iter().any(|id| id == "stage-reason"));
     assert!(stage.consumes().iter().any(|id| id == "stage-statements"));
+
+    let bound = crate::run::bound_production_stage(STAGE_ID);
+    assert_eq!(
+        bound.carrier_consumes(),
+        ["stage-archive-blobs", "stage-snapshot"]
+    );
     assert!(
-        !stage
+        !bound
             .carrier_consumes()
             .iter()
             .any(|id| id == "stage-reason")
     );
     assert!(
-        !stage
+        !bound
             .carrier_consumes()
             .iter()
             .any(|id| id == "stage-statements")

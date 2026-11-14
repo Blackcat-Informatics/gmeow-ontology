@@ -296,6 +296,85 @@ fn bind_rejects_consumes_disagreement() {
     }
 }
 
+/// A stage is bound only to the implementation that carries its id. Two implementations
+/// whose declarations are otherwise equal (`a` and `b` both consume only `source`) would
+/// each run the other's body under the other's id if the swap were accepted; this protects
+/// the check that refuses it.
+#[test]
+fn bind_rejects_swapped_implementations() {
+    let s = diamond();
+    let g = s.validate().unwrap();
+    let reg = registry_for(
+        &s,
+        vec![
+            fake("source", &[]),
+            fake("b", &["source"]),
+            fake("a", &["source"]),
+            fake("sink", &["a", "b"]),
+        ],
+    );
+    let diag = bind(&s, &g, &reg)
+        .map(|bound| bound.len())
+        .expect_err("swapped implementations are refused");
+    assert!(diag.is::<crate::error::InvalidDeclaration>(), "{diag}");
+    let text = diag.to_string();
+    assert!(
+        text.contains(
+            "stage a: gmeow:stageImpl \"impl:a\" names an implementation whose own id is \"b\""
+        ),
+        "{text}"
+    );
+}
+
+/// A stage whose edge from the source-load product permits reading the span table is a
+/// counted span reader, whether it names the table or declares the whole carrier: the
+/// scheduler strips the table only after every counted reader has run, so an uncounted
+/// whole-carrier reader would find it gone. An identity-only edge is not a reader.
+#[test]
+fn a_whole_carrier_declaration_counts_as_a_span_table_reader() {
+    use crate::reads::Read;
+
+    let counted = |reads: Read| -> bool {
+        let mut s = PipelineSpec {
+            id: "p".to_string(),
+            stages: vec![
+                spec("stage-source-load", &[]),
+                spec("consumer", &["stage-source-load"]),
+                spec("sink", &["consumer"]),
+            ],
+        };
+        s.stages[1].reads.insert(
+            "stage-source-load".to_string(),
+            std::iter::once(reads).collect(),
+        );
+        let g = s.validate().unwrap();
+        let reg = registry_for(
+            &s,
+            vec![
+                fake("stage-source-load", &[]),
+                fake("consumer", &["stage-source-load"]),
+                fake("sink", &["consumer"]),
+            ],
+        );
+        let bound = bind(&s, &g, &reg).unwrap();
+        bound
+            .iter()
+            .find(|stage| stage.id() == "consumer")
+            .unwrap()
+            .consumes_span_table()
+    };
+    let table = Read::BlobRep(crate::stages::carrier::REP_SPAN_TABLE.to_owned());
+    assert!(counted(table), "naming the table counts");
+    assert!(
+        counted(Read::Carrier),
+        "the whole carrier permits the read, so it counts"
+    );
+    assert!(
+        !counted(Read::Identity),
+        "an identity-only edge reads nothing"
+    );
+}
+
 #[test]
 fn bind_rejects_resource_disagreement() {
     // A Reason spec declares the engine resource, but its Rust impl forgets it —
@@ -422,6 +501,130 @@ fn a_run_names_every_stage_whose_reads_differ_from_its_declared_dataflow() {
         assert!(text.contains(stage), "{text}");
     }
     assert!(text.contains("https://example.org/undeclared"), "{text}");
+}
+
+/// How a stage that consumes `source` through an identity-only edge misbehaves.
+#[derive(Clone, Copy)]
+enum Misbehaviour {
+    /// Reads the dataset of a product the scheduler has already released.
+    DatasetRead,
+    /// Reads a typed handle of the released product, then fails with its own message.
+    HandleReadThenFail,
+    /// Panics in the body.
+    Panic,
+}
+
+struct MisbehavingStage {
+    id: String,
+    consumes: Vec<String>,
+    how: Misbehaviour,
+}
+
+impl Stage for MisbehavingStage {
+    fn id(&self) -> &str {
+        &self.id
+    }
+    fn output_family(&self) -> crate::node::OutputFamily {
+        crate::node::OutputFamily::Generated
+    }
+    fn consumes(&self) -> &[String] {
+        &self.consumes
+    }
+    fn impl_version(&self) -> &str {
+        "v1"
+    }
+    fn run(&self, input: StageInput<'_>) -> Result<StageOutput, gmeow_errors::Diag> {
+        match self.how {
+            Misbehaviour::DatasetRead => {
+                let _ = input.upstream["source"].dataset();
+            }
+            Misbehaviour::HandleReadThenFail => {
+                let _ = input.upstream["source"].handle("https://example.org/undeclared");
+                return Err(gmeow_errors::Diag::of_kind(crate::error::StageFailed {
+                    cause: None,
+                    stage: self.id.clone(),
+                    message: "its own message: the product carries no such handle".to_string(),
+                }));
+            }
+            Misbehaviour::Panic => panic!("deliberate stage panic"),
+        }
+        Ok(StageOutput::new(StageProduct::new(
+            self.id.clone(),
+            "deadbeef",
+        )))
+    }
+}
+
+/// Run the diamond with `a` misbehaving as `how`, and return the error the run ends with.
+fn run_diamond_with_misbehaving_a(how: Misbehaviour) -> String {
+    let s = diamond();
+    let g = s.validate().unwrap();
+    let reg = registry_for(
+        &s,
+        vec![
+            fake("source", &[]),
+            Arc::new(MisbehavingStage {
+                id: "a".to_string(),
+                consumes: vec!["source".to_string()],
+                how,
+            }) as Arc<dyn Stage>,
+            fake("b", &["source"]),
+            fake("sink", &["a", "b"]),
+        ],
+    );
+    let bound = bind(&s, &g, &reg).unwrap();
+    let dir = tempfile::tempdir().unwrap();
+    let mut ctx = RunContext::open_uncached(dir.path(), 2);
+    run(&g, &bound, &mut ctx)
+        .map(|result| result.products.len())
+        .expect_err("the misbehaving stage fails the run")
+        .to_string()
+}
+
+/// An undeclared dataset read of a released producer is reported as a read difference
+/// naming the stage, the producer and the declaration to add. The release asserts before
+/// the read returns, so the run must still fail, but with the report and not a lost panic.
+#[test]
+fn an_undeclared_dataset_read_of_a_released_product_is_reported() {
+    let text = run_diamond_with_misbehaving_a(Misbehaviour::DatasetRead);
+    assert!(
+        text.contains("1 stage(s) read differently from their declared dataflow"),
+        "{text}"
+    );
+    assert!(
+        text.contains(
+            "a read the dataset of source but its dataflow edge does not declare it; \
+             declare `gmeow:flowReadsLane gmeow:laneDataset`"
+        ),
+        "{text}"
+    );
+}
+
+/// A handle read of a released product returns nothing and the stage then fails with its
+/// own message; the undeclared read is reported beside that message, never lost with it.
+#[test]
+fn a_failing_stage_still_reports_its_undeclared_reads() {
+    let text = run_diamond_with_misbehaving_a(Misbehaviour::HandleReadThenFail);
+    assert!(
+        text.contains("https://example.org/undeclared"),
+        "the read difference is missing: {text}"
+    );
+    assert!(
+        text.contains("its own message: the product carries no such handle"),
+        "the stage's own failure is missing: {text}"
+    );
+}
+
+/// A panic in a stage body must reach the coordinator as a failure. The coordinator holds
+/// its own sender, so a worker that died without sending would leave the run waiting for
+/// ever; this test returns only if the worker delivered its result.
+#[test]
+fn a_panicking_stage_fails_the_run_instead_of_hanging_it() {
+    let text = run_diamond_with_misbehaving_a(Misbehaviour::Panic);
+    assert!(
+        text.contains("stage body panicked: deliberate stage panic"),
+        "{text}"
+    );
 }
 
 #[test]

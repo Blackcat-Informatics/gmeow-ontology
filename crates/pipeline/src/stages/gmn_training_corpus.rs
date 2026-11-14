@@ -57,14 +57,14 @@
 //! A signature-load / codec / prover failure is a HARD FAIL (no-optionality); a REJECTED
 //! candidate is not a failure — it is designed corpus filtering, recorded with its typed reason.
 //!
-//! # Dataflow edge (the 3-place declaration)
+//! # Dataflow edge (the 2-place declaration)
 //!
 //! The stage `gmeow:dataflowConsumes` `stage-compile-logic` (the typechecker/prover lane),
 //! `stage-mappings` (the projected GMN forms) and `stage-parse-sources` (the shared native
-//! language context). Those edges are declared
-//! IDENTICALLY in three places — [`Stage::consumes`] here, `gmeow:dataflowConsumes` in
-//! `slices/core/pipeline/module.ttl`, and [`crate::run::full_spec`] — and the dogfooding
-//! parity gate (`tests/dag_dogfood.rs`) proves the three never diverge.
+//! language context). Those edges are declared in two places — [`Stage::consumes`] here
+//! and `gmeow:dataflowConsumes` in `slices/core/pipeline/module.ttl` — and
+//! [`crate::bind`] refuses a description that disagrees with the implementation. What
+//! each edge reads is declared on its `gmeow:BuildDataFlow` individual in the same slice.
 
 use std::collections::BTreeMap;
 use std::path::Path;
@@ -773,8 +773,8 @@ pub struct GmnTrainingCorpusStage {
 
 impl GmnTrainingCorpusStage {
     /// Construct the stage with the logic, projected forms and shared native language
-    /// dependencies. These edges are declared identically here, in
-    /// `slices/core/pipeline/module.ttl`, and in [`crate::run::full_spec`].
+    /// dependencies. These edges are declared identically here and in
+    /// `slices/core/pipeline/module.ttl`, and [`crate::bind`] refuses a disagreement.
     pub fn new() -> Self {
         Self {
             consumes: vec![

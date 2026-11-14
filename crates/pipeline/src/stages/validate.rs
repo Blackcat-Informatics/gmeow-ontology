@@ -464,9 +464,6 @@ impl Stage for ValidateStage {
     fn consumed_entities(&self) -> &[(String, Vec<String>)] {
         &self.entities
     }
-    fn consumes_span_table(&self) -> bool {
-        true
-    }
     /// The named graphs this stage attaches to the carrier (its delta), from the
     /// single Rust-side attach table; mirrored by the slice module.ttl gmeow:attachesGraph
     /// declarations and verified against the run-time delta by the scheduler.

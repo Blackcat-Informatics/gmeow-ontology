@@ -310,14 +310,19 @@ source-scoped blank in a proposition requires an explicit target query binding.
 
 **The carrier's lifetime is bounded (drop-after-last-carrier-consumer).** Every
 `dataflowConsumes` edge remains the authored scheduling, action-key, and artifact
-dependency. The executable `carrier_consumes()` subset says which of those edges
-also reads the live transport lanes. The loader requires that subset to be unique
-and contained in `dataflowConsumes`; it cannot create a shadow DAG. A producer's
-carrier is therefore *provably dead* once its last declared carrier reader has run,
-or immediately after production when every later reader is artifact-only. The
-whole-repository build **releases** it at that point — the dataset, typed handles,
-blob records, provenance, and internal `pipeline/`-prefixed byte artifacts are freed
-— keeping only the committed byte artifacts later consumers and the post-run
+dependency, and each edge is a `gmeow:BuildDataFlow` individual that declares what
+the consumer reads of the producer's product. The edges whose declared reads need
+the live transport lanes (a carrier lane, a typed handle, a blob representation, or
+a named-graph narrowing) are the carrier readers; the loader derives that set from
+the declarations, so it is always contained in `dataflowConsumes` and cannot create
+a shadow DAG. A producer's carrier is therefore *provably dead* once its last
+declared carrier reader has run, or immediately after production when every later
+reader is artifact-only. Internal `pipeline/` artifacts that any consumer declares
+(`gmeow:flowReadsArtifact`) are kept through every release of their producer until
+the run ends. The
+whole-repository build **releases** the carrier at that point — the dataset, typed
+handles, blob records, provenance, and the other internal `pipeline/`-prefixed byte
+artifacts are freed — keeping only the committed byte artifacts later consumers and the post-run
 reconcile still read, plus the product's `digest` verbatim. Peak residency is then
 the live carrier frontier plus the run's outputs, not the **sum** of every stage's
 cumulative carrier snapshot over the DAG; the latter grows with both the corpus and

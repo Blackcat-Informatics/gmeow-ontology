@@ -232,10 +232,10 @@ gmeow:ProductLane
         logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
     rdfs:label "Product Lane"@x-gmeow-english ;
-    rdfs:subClassOf logic:QualityValue ;
-    skos:definition "The CLOSED set of whole lanes of a stage product that a consuming stage can declare it reads on a gmeow:BuildDataFlow edge: gmeow:laneCarrier (the whole carrier through the raw bundle), gmeow:laneDataset (the frozen dataset), gmeow:laneAllArtifacts (the whole byte-artifact lane) and gmeow:laneIdentity (nothing but the product's identity, for ordering and the cache key). A single typed handle, representation blob or byte artifact is named by gmeow:flowReadsHandle, gmeow:flowReadsBlobRep or gmeow:flowReadsArtifact instead."@x-gmeow-english ;
+    logic:subClassOf logic:QualityValue ;
+    skos:definition "The set of whole lanes of a stage product that a consuming stage can declare it reads on a gmeow:BuildDataFlow edge: gmeow:laneCarrier (the whole carrier through the raw bundle), gmeow:laneDataset (the frozen dataset), gmeow:laneAllArtifacts (the whole byte-artifact lane) and gmeow:laneIdentity (nothing but the product's identity, for ordering and the cache key). A single typed handle, representation blob or byte artifact is named by gmeow:flowReadsHandle, gmeow:flowReadsBlobRep or gmeow:flowReadsArtifact instead. The pipeline loader accepts only these four values and refuses any other lane individual when it reads the description; no axiom in this slice closes the set."@x-gmeow-english ;
     skos:example "gmeow:pipeline-dataflow-reason-compile-logic gmeow:flowReadsLane gmeow:laneDataset ."@x-gmeow-english ;
-    skos:scopeNote "Scope: this closed value class names lanes of an in-memory stage product. It does not name files in the working tree, committed outputs, or graphs of the shipped bundle."@x-gmeow-english ;
+    skos:scopeNote "Scope: this value class names lanes of an in-memory stage product. It does not name files in the working tree, committed outputs, or graphs of the shipped bundle."@x-gmeow-english ;
     gmeow:useWhen "Use a Product Lane when a consuming stage reads a whole lane of the producer's product, so the scheduler can keep that lane alive for it and refuse a read the edge does not declare."@x-gmeow-english ;
     gmeow:avoidWhen "Do not declare gmeow:laneCarrier where the consumer reads one handle or one representation blob: the wider declaration keeps the whole carrier resident for that consumer."@x-gmeow-english ;
     gmeow:howToUse "Assert one gmeow:flowReadsLane per whole lane the consumer's stage body reads; a run fails the stage when its recorded reads and the declared reads differ in either direction."@x-gmeow-english ;
@@ -259,7 +259,7 @@ gmeow:laneAllArtifacts
     a gmeow:ProductLane ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
     rdfs:label "lane: every byte artifact"@x-gmeow-english ;
-    skos:definition "The consumer enumerates the whole byte-artifact lane of the producer's product. Committed artifacts survive the release of the producer's carrier, so this read alone does not keep the carrier resident."@x-gmeow-english ;
+    skos:definition "The consumer enumerates the whole byte-artifact lane of the producer's product, which covers the COMMITTED artifacts only. An internal artifact, one whose path begins pipeline/, is not covered: a consumer may read it only when the same edge names its exact path with gmeow:flowReadsArtifact, and an unnamed internal artifact is neither kept through the release of the producer's carrier nor returned by the whole-lane accessors, so reading it is reported as an undeclared read. Committed artifacts survive the release of the producer's carrier, so this read alone does not keep the carrier resident."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 
 gmeow:laneIdentity
@@ -273,21 +273,21 @@ gmeow:flowReadsLane
     a logic:ObjectProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
     rdfs:label "flow reads lane"@x-gmeow-english ;
-    rdfs:domain gmeow:BuildDataFlow ;
-    rdfs:range gmeow:ProductLane ;
-    skos:definition "Relates a gmeow:BuildDataFlow edge to a whole lane of the producer's product that the consumer stage reads. Multi-valued. The scheduler hands the consumer a view of the product that records every lane access; a recorded access no declaration on the edge covers, and a declaration no recorded access exercises, both fail the stage before its product is published."@x-gmeow-english ;
+    logic:domain gmeow:BuildDataFlow ;
+    logic:range gmeow:ProductLane ;
+    skos:definition "Relates a gmeow:BuildDataFlow edge to a whole lane of the producer's product that the consumer stage reads. Multi-valued. The scheduler hands the consumer a view of the product that records every lane access; a recorded access no declaration on the edge covers, and a declaration no recorded access exercises, both fail the run under the enforcing read policy. The stage's product is still published to the stages that consume it and the run goes on, so every such stage is reported together when the run ends; the product is not written to the stage cache. A stage served from the stage cache is not compared, because no stage body ran. A stage that itself fails is reported for the undeclared reads it made, and for none it did not reach."@x-gmeow-english ;
     skos:example "gmeow:pipeline-dataflow-reason-compile-logic gmeow:flowReadsLane gmeow:laneDataset ."@x-gmeow-english ;
     skos:scopeNote "Scope: this property declares what a stage body reads from an upstream product in memory. Which named graphs narrow the consumer's cache key is gmeow:flowEntity; files read from the working tree are not products and are not declared here."@x-gmeow-english ;
     gmeow:useWhen "Declare a whole-lane read on the edge whenever the consumer's stage body takes the producer's dataset, raw bundle or whole artifact lane."@x-gmeow-english ;
     gmeow:avoidWhen "Do not use this property for a single handle, representation blob or artifact; name it with the specific property so retention and review see exactly what is read."@x-gmeow-english ;
-    gmeow:howToUse "Author the reads from what the stage body does; the maintainer command that records a run prints the exact declarations a tree's stage bodies need."@x-gmeow-english ;
+    gmeow:howToUse "Author the reads from what the stage body does; the maintainer command that records a run writes the exact declarations a tree's stage bodies need to a file."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:flowReadsHandle
     a logic:ObjectProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
     rdfs:label "flow reads handle"@x-gmeow-english ;
-    rdfs:domain gmeow:BuildDataFlow ;
+    logic:domain gmeow:BuildDataFlow ;
     skos:definition "Relates a gmeow:BuildDataFlow edge to the key of one typed in-memory handle of the producer's product that the consumer stage reads. The key is the IRI of the named graph the handle is pinned to. Multi-valued. A handle lives on the producer's carrier, so the carrier stays resident until this consumer has run."@x-gmeow-english ;
     skos:example "gmeow:pipeline-dataflow-mappings-compile-logic gmeow:flowReadsHandle <https://blackcatinformatics.ca/gmeow/graph/logic> ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
@@ -296,9 +296,9 @@ gmeow:flowReadsBlobRep
     a logic:DatatypeProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
     rdfs:label "flow reads blob representation"@x-gmeow-english ;
-    rdfs:domain gmeow:BuildDataFlow ;
+    logic:domain gmeow:BuildDataFlow ;
     logic:range [ a rdfs:Datatype ; logic:unionOf ( xsd:string xsd:token ) ] ;
-    skos:definition "Names one representation-keyed blob of the producer's product that the consumer stage reads, by its lane label. Multi-valued. The label is an identifier, not localizable prose. The scheduler strips a representation blob from the producer's product once the last consumer that declares it has run."@x-gmeow-english ;
+    skos:definition "Names one representation-keyed blob of the producer's product that the consumer stage reads, by its lane label. Multi-valued. The label is an identifier, not localizable prose. The only representation blob the scheduler strips on its own is the source-span table, spans:source-table of gmeow:stage-source-load, once the last stage that declares it has run; every other representation blob is released with the producer's carrier, after its last carrier reader has run."@x-gmeow-english ;
     skos:example "gmeow:pipeline-dataflow-validate-source-load gmeow:flowReadsBlobRep \"spans:source-table\" ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
@@ -306,10 +306,10 @@ gmeow:flowReadsArtifact
     a logic:DatatypeProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
     rdfs:label "flow reads artifact"@x-gmeow-english ;
-    rdfs:domain gmeow:BuildDataFlow ;
+    logic:domain gmeow:BuildDataFlow ;
     logic:range [ a rdfs:Datatype ; logic:unionOf ( xsd:string xsd:token ) ] ;
-    skos:definition "Names one byte artifact of the producer's product that the consumer stage reads, by its exact logical path. Multi-valued. The path is an identifier, not localizable prose. An internal artifact, one whose path begins pipeline/, is dropped when the producer's carrier is released unless a consumer that has not run yet declares it here; a committed artifact survives release without a declaration but is still an undeclared read if the edge does not name it."@x-gmeow-english ;
-    skos:example "gmeow:pipeline-dataflow-gts-sink-compile-logic gmeow:flowReadsArtifact \"pipeline/logic/canon-admission.json\" ."@x-gmeow-english ;
+    skos:definition "Names one byte artifact of the producer's product that the consumer stage reads, by its exact logical path. Multi-valued. The path is an identifier, not localizable prose. An internal artifact, one whose path begins pipeline/, is dropped when the producer's carrier is released unless some consumer in the run declares it here, in which case it is kept through every release of that producer until the run ends, whether or not the declaring consumer has run; a committed artifact survives release without a declaration but is still an undeclared read unless the edge names it or declares the whole lane with gmeow:laneAllArtifacts, which never covers an internal artifact."@x-gmeow-english ;
+    skos:example "gmeow:pipeline-dataflow-gts-sink-compile-logic gmeow:flowReadsArtifact \"pipeline/canon-proof-admission.json\" ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 # --- Stage attach declarations (contribution-declaration; PIPELINE_SPINE §3.3) ---
@@ -1335,12 +1335,18 @@ gmeow:pipeline-dataflow-gts-sink-medium-dictionaries
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
     rdfs:label "dataflow: medium-dictionaries → gts-sink"@x-gmeow-english ;
     gmeow:flowReason gmeow:flowReasonDataflow ;
-    skos:definition "The dataflow edge from gmeow:stage-medium-dictionaries to gmeow:stage-gts-sink: gts-sink reads every byte artifact, the frozen dataset of the producer's product."@x-gmeow-english ;
+    skos:definition "The dataflow edge from gmeow:stage-medium-dictionaries to gmeow:stage-gts-sink: gts-sink reads every committed byte artifact, the six internal trained-dictionary artifacts it names, and the frozen dataset of the producer's product."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox ;
     gmeow:buildFlowFrom gmeow:stage-medium-dictionaries ;
     gmeow:buildFlowTo gmeow:stage-gts-sink ;
     gmeow:flowReadsLane gmeow:laneAllArtifacts ;
-    gmeow:flowReadsLane gmeow:laneDataset .
+    gmeow:flowReadsLane gmeow:laneDataset ;
+    gmeow:flowReadsArtifact "pipeline/medium/gmeow-core-v1.zdict" ;
+    gmeow:flowReadsArtifact "pipeline/medium/gmeow-lang-ast-v1.zdict" ;
+    gmeow:flowReadsArtifact "pipeline/medium/gmeow-logic-v1.zdict" ;
+    gmeow:flowReadsArtifact "pipeline/medium/gmeow-memory-compact-v1.zdict" ;
+    gmeow:flowReadsArtifact "pipeline/medium/gmeow-memory-hot-v1.zdict" ;
+    gmeow:flowReadsArtifact "pipeline/medium/gmeow-prooftrace-v1.zdict" .
 
 gmeow:pipeline-dataflow-gts-sink-reason
     a gmeow:BuildDataFlow ;
@@ -3848,7 +3854,7 @@ gmeow:flowReasonDataflow
     a gmeow:FlowReason ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
     rdfs:label "flow reason: dataflow"@x-gmeow-english ;
-    skos:definition "The edge exists because BYTES genuinely flow producer → consumer: the consumer reads the producer's product (the ordinary gmeow:dataflowConsumes case). A dataflow reasoner may key the consumer's cache on the flowing entities' digests and is free to schedule producers first. The default and most common reason; the build DAG's own edges all carry it. Distinct from gmeow:flowReasonAuthority, whose edge carries no bytes and exists purely to order two stages."@x-gmeow-english ;
+    skos:definition "The edge exists because BYTES genuinely flow producer → consumer: the consumer reads the producer's product (the ordinary gmeow:dataflowConsumes case). A dataflow reasoner may key the consumer's cache on the flowing entities' digests and is free to schedule producers first. The default and most common reason; most of the build DAG's own edges carry it, and the edges that carry no bytes declare gmeow:flowReasonAuthority instead. Distinct from gmeow:flowReasonAuthority, whose edge carries no bytes and exists purely to order two stages."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 
 gmeow:flowReasonAuthority

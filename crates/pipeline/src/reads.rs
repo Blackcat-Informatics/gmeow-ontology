@@ -11,8 +11,11 @@
 //! declare and a declared read the stage never made are both failures, so the graph a
 //! plan is derived from is the graph the stage bodies execute.
 //!
-//! The declaration also decides retention: a product keeps a lane exactly as long as a
-//! consumer that has not run yet declares it.
+//! The declaration also decides retention. A product keeps its carrier until the last
+//! consumer whose edge declares a carrier read has run. An internal `pipeline/` artifact
+//! that any consumer in the run declares is kept through every release of its producer
+//! until the run ends, whether or not that consumer has run yet; so is the source-span
+//! table until its last declared reader has run.
 
 use std::collections::BTreeSet;
 use std::sync::{Arc, Mutex, PoisonError};
@@ -53,11 +56,16 @@ impl Read {
     }
 
     /// Whether a declaration of `self` permits the access `other`.
+    ///
+    /// The whole byte-artifact lane covers COMMITTED artifacts only. An internal
+    /// `pipeline/` artifact is permitted only by a declaration that names its exact path,
+    /// because retention keeps an internal artifact only when it is named.
     #[must_use]
     pub fn covers(&self, other: &Self) -> bool {
         match (self, other) {
             (Self::Carrier, access) => access.needs_carrier(),
-            (Self::AllArtifacts, Self::Artifact(_) | Self::AllArtifacts) => true,
+            (Self::AllArtifacts, Self::Artifact(path)) => !is_internal_artifact(path),
+            (Self::AllArtifacts, Self::AllArtifacts) => true,
             (Self::Identity, _) | (_, Self::Identity) => false,
             (declared, access) => declared == access,
         }
@@ -105,6 +113,12 @@ impl std::fmt::Display for Read {
     }
 }
 
+/// Whether a logical artifact path is an internal dataflow artifact (not a committed output).
+#[must_use]
+pub fn is_internal_artifact(path: &str) -> bool {
+    path.starts_with(crate::bundle::INTERNAL_ARTIFACT_PREFIX)
+}
+
 /// The reads one consumer declares over one producer's product.
 pub type ReadSet = BTreeSet<Read>;
 
@@ -120,13 +134,12 @@ pub fn needs_carrier(declared: &ReadSet) -> bool {
     declared.iter().any(Read::needs_carrier)
 }
 
-/// The internal `pipeline/` artifacts a read set names. They are dropped when a carrier
-/// is released unless a consumer that has not run yet declares them.
+/// The internal `pipeline/` artifacts a read set names. A release drops every internal
+/// artifact except those some consumer of the run declares; those are kept through every
+/// release of the producer until the run ends.
 pub fn internal_artifacts(declared: &ReadSet) -> impl Iterator<Item = &str> {
     declared.iter().filter_map(|read| match read {
-        Read::Artifact(path) if path.starts_with(crate::bundle::INTERNAL_ARTIFACT_PREFIX) => {
-            Some(path.as_str())
-        }
+        Read::Artifact(path) if is_internal_artifact(path) => Some(path.as_str()),
         _ => None,
     })
 }
@@ -229,9 +242,12 @@ pub enum ReadPolicy {
     Record,
 }
 
-/// The declared-versus-recorded mismatches of one executed stage, one line each.
+/// The reads of one stage that its dataflow edges do not declare, one line each, each
+/// naming the consumer, the producer, the lane and the declaration to add. A stage that
+/// failed or panicked part-way is reported by this alone: the reads it never reached are
+/// not differences.
 #[must_use]
-pub fn mismatches(edges: &[Arc<EdgeAccess>]) -> Vec<String> {
+pub fn undeclared_reads(edges: &[Arc<EdgeAccess>]) -> Vec<String> {
     let mut lines = Vec::new();
     for edge in edges {
         for access in edge.undeclared() {
@@ -242,6 +258,15 @@ pub fn mismatches(edges: &[Arc<EdgeAccess>]) -> Vec<String> {
                 access.turtle()
             ));
         }
+    }
+    lines
+}
+
+/// The declared-versus-recorded mismatches of one executed stage, one line each.
+#[must_use]
+pub fn mismatches(edges: &[Arc<EdgeAccess>]) -> Vec<String> {
+    let mut lines = undeclared_reads(edges);
+    for edge in edges {
         for declared in edge.unread() {
             lines.push(format!(
                 "{} declares it reads {declared} of {} and never did; remove `{}` or the edge",

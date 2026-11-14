@@ -656,8 +656,8 @@ pub fn run_without(
             return Err(gmeow_errors::Diag::of_kind(crate::error::InvalidDag {
                 message: format!(
                     "the pipeline description does not say what {} dependency edge(s) read; \
-                     run `gmeow-dev pipeline-reads` to print the declarations the stage bodies \
-                     need:\n  {}",
+                     run `gmeow-dev pipeline-reads --out <file>` to write the declarations \
+                     the stage bodies need:\n  {}",
                     undeclared.len(),
                     undeclared.join("\n  ")
                 ),
@@ -682,8 +682,12 @@ pub fn run_without(
     let jobs = ctx.jobs;
 
     let scheduling_result = pool.in_place_scope_fifo(|scope| -> Result<(), gmeow_errors::Diag> {
-        let (tx, rx) =
-            mpsc::channel::<(String, Vec<String>, Result<StageRun, gmeow_errors::Diag>)>();
+        let (tx, rx) = mpsc::channel::<(
+            String,
+            Vec<String>,
+            Result<StageRun, gmeow_errors::Diag>,
+            Vec<Arc<crate::reads::EdgeAccess>>,
+        )>();
         let mut active = 0usize;
         let mut completed = 0usize;
         let mut active_resources = BTreeSet::new();
@@ -755,9 +759,27 @@ pub fn run_without(
                 let tx = tx.clone();
                 let progress = progress.clone();
                 active += 1;
+                // The worker reports its edges whether the stage returns, fails or
+                // panics: the reads recorded before a failure still say what the stage
+                // touched, and the coordinator reports an undeclared one with the failure.
+                let dispatched_edges: Vec<Arc<crate::reads::EdgeAccess>> = upstream
+                    .values()
+                    .filter_map(|product| product.edge_access().cloned())
+                    .collect();
                 scope.spawn_fifo(move |_| {
-                    let result =
-                        exec_stage(stage.as_ref(), root, &upstream, cache, stage_cache_enabled);
+                    // A panic in a stage body must still deliver a result: the
+                    // coordinator holds its own sender, so a worker that dies silently
+                    // would leave it waiting on `recv` for ever.
+                    let result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
+                        exec_stage(stage.as_ref(), root, &upstream, cache, stage_cache_enabled)
+                    }))
+                    .unwrap_or_else(|payload| {
+                        Err(gmeow_errors::Diag::of_kind(crate::error::StageFailed {
+                            cause: None,
+                            stage: stage_id.clone(),
+                            message: format!("stage body panicked: {}", panic_message(&*payload)),
+                        }))
+                    });
                     if let (Some(progress), Ok(run)) = (progress.as_deref(), &result) {
                         progress.stage_end(
                             stage.id(),
@@ -768,7 +790,7 @@ pub fn run_without(
                     }
                     // The coordinator outlives every scoped worker. A disconnected
                     // receiver therefore means the scope is already unwinding.
-                    let _ = tx.send((stage_id, resources, result));
+                    let _ = tx.send((stage_id, resources, result, dispatched_edges));
                 });
             }
 
@@ -786,7 +808,7 @@ pub fn run_without(
                 }));
             }
 
-            let (stage_id, resources, result) = rx.recv().map_err(|error| {
+            let (stage_id, resources, result, dispatched_edges) = rx.recv().map_err(|error| {
                 gmeow_errors::Diag::of_kind(crate::error::StageFailed {
                     cause: None,
                     stage: "<scheduler>".to_string(),
@@ -801,6 +823,16 @@ pub fn run_without(
             let mut run = match result {
                 Ok(run) => run,
                 Err(error) => {
+                    // A failing stage's own error is kept, and so is every read it made
+                    // that its edges do not declare: a read on a released product often
+                    // IS the cause of the failure, and the declaration to add is the fix.
+                    // Declared reads it never reached are not reported: it stopped early.
+                    if read_policy == crate::reads::ReadPolicy::Enforce {
+                        let undeclared = crate::reads::undeclared_reads(&dispatched_edges);
+                        if !undeclared.is_empty() {
+                            read_differences.push((stage_id.clone(), undeclared));
+                        }
+                    }
                     if first_error.is_none() {
                         first_error = Some(error);
                     }
@@ -913,7 +945,7 @@ pub fn run_without(
                         .checked_sub(1)
                         .expect("completed span consumer was counted");
                     if span_consumers_remaining == 0
-                        && let Some(product) = products.get("stage-source-load")
+                        && let Some(product) = products.get(crate::loader::SPAN_TABLE_PRODUCER)
                     {
                         let stripped = crate::bundle::strip_rep_blob(
                             product.raw_bundle(),
@@ -985,7 +1017,7 @@ pub fn run_without(
             Ok(())
         }
     });
-    scheduling_result?;
+    let scheduling_error = scheduling_result.err();
     if !read_differences.is_empty() {
         read_differences.sort();
         let total: usize = read_differences.iter().map(|(_, lines)| lines.len()).sum();
@@ -994,14 +1026,23 @@ pub fn run_without(
             .map(|(stage, lines)| format!("{stage}:\n    {}", lines.join("\n    ")))
             .collect::<Vec<_>>()
             .join("\n  ");
+        // A run that also failed keeps its own error beside the read differences, so
+        // neither hides the other.
+        let failure = scheduling_error
+            .as_ref()
+            .map(|error| format!("\n  the run also failed: {error}"))
+            .unwrap_or_default();
         return Err(gmeow_errors::Diag::of_kind(crate::error::StageFailed {
             cause: None,
             stage: read_differences[0].0.clone(),
             message: format!(
-                "{} stage(s) read differently from their declared dataflow ({total} difference(s)):\n  {listing}",
+                "{} stage(s) read differently from their declared dataflow ({total} difference(s)):\n  {listing}{failure}",
                 read_differences.len()
             ),
         }));
+    }
+    if let Some(error) = scheduling_error {
+        return Err(error);
     }
 
     // Completion order is deliberately observational. Present receipts and timings in
@@ -1118,6 +1159,15 @@ pub(crate) fn last_consumer_levels(
         }
     }
     last
+}
+
+/// The text of a caught panic payload, for the failure a panicking stage reports.
+fn panic_message(payload: &(dyn std::any::Any + Send)) -> String {
+    payload
+        .downcast_ref::<&str>()
+        .map(|text| (*text).to_owned())
+        .or_else(|| payload.downcast_ref::<String>().cloned())
+        .unwrap_or_else(|| "a non-text panic payload".to_owned())
 }
 
 /// Execute one stage: assemble its upstream inputs, consult the cache, and run it

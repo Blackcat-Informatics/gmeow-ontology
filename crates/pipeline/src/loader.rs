@@ -25,6 +25,10 @@ use crate::node::{CachePolicy, GMEOW, SINK_CAPABILITY, Stage, StageStability};
 use crate::reads::{Read, ReadSet};
 use crate::registry::StageRegistry;
 
+/// The stage whose product carries the source-span table. One constant for the loader,
+/// which counts the stages that may read the table, and the scheduler, which strips it.
+pub(crate) const SPAN_TABLE_PRODUCER: &str = "stage-source-load";
+
 const RDF_TYPE: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
 
 /// A stage's typed dataflow: for each upstream producer it narrows to specific
@@ -531,8 +535,8 @@ fn parse_edge_reads(ds: &RdfDataset, edge: &str) -> Result<ReadSet, gmeow_errors
 }
 
 /// Resolve every stage's `gmeow:stageImpl` against the registry and prove the
-/// Rust impl agrees with the RDF declaration (capabilities + consumes + resources +
-/// typed dataflow). Returns the bound stages in the validated topological order.
+/// Rust impl agrees with the RDF declaration (its own id + capabilities + consumes +
+/// resources + stability + cache disposition + typed dataflow + attach sets). Returns the bound stages in the validated topological order.
 pub fn bind(
     spec: &PipelineSpec,
     graph: &StageGraph,
@@ -547,6 +551,25 @@ pub fn bind(
                 impl_key: s.impl_key.clone(),
             })
         })?;
+
+        // Identity agreement: the implementation a stage is bound to must be the stage
+        // the description names. The bound stage answers to the description's id, so
+        // without this check two implementations whose other declarations are equal
+        // could be swapped and each would run the other's body under the other's id.
+        if stage.id() != s.id {
+            return Err(gmeow_errors::Diag::of_kind(
+                crate::error::InvalidDeclaration {
+                    message: format!(
+                        "stage {}: gmeow:stageImpl \"{}\" names an implementation whose own id \
+                         is \"{}\"; a stage is bound only to the implementation that carries \
+                         its id",
+                        s.id,
+                        s.impl_key,
+                        stage.id()
+                    ),
+                },
+            ));
+        }
 
         // Capability agreement (both sides sorted+deduped): the executable twin must
         // declare exactly the capabilities the RDF does, or the executor would read a
@@ -767,11 +790,15 @@ impl Stage for BoundStage {
         &self.spec.dataflow_entities
     }
     fn consumes_span_table(&self) -> bool {
+        // The span table rides the source-load product. A declaration that PERMITS the
+        // read counts, so a stage that declares the whole carrier and calls
+        // `span_index()` is a counted reader: the scheduler strips the table only after
+        // every counted reader has run.
         let span_table = Read::BlobRep(crate::stages::carrier::REP_SPAN_TABLE.to_owned());
         self.spec
             .reads
-            .values()
-            .any(|reads| reads.contains(&span_table))
+            .get(SPAN_TABLE_PRODUCER)
+            .is_some_and(|reads| crate::reads::permits(reads, &span_table))
     }
     fn attaches_graphs(&self) -> &[String] {
         &self.spec.attaches_graphs

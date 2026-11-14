@@ -30,7 +30,6 @@ pub const INGESTION_RECEIPT_PATH: &str = "generated/dist/gmeow.gts.ingestion.cbo
 /// The `gts_sink` pipeline stage — the single serialization exit.
 pub struct GtsSinkStage {
     consumes: Vec<String>,
-    carrier_consumes: Vec<String>,
     capabilities: Vec<String>,
 }
 
@@ -123,16 +122,9 @@ impl GtsSinkStage {
                 // product.
                 "stage-export-projection-ceilings".to_string(),
             ],
-            // The terminal reads every dependency above, but only these three through
-            // carrier lanes. Every other edge contributes committed logical-artifact
-            // bytes to the opaque fanout; those bytes survive carrier release. Keeping
-            // the distinction explicit lets the scheduler release the multi-million-
-            // quad source/mappings/reason products before terminal serialization.
-            carrier_consumes: vec![
-                "stage-archive-blobs".to_string(),
-                "stage-medium-dictionaries".to_string(),
-                "stage-snapshot".to_string(),
-            ],
+            // Which of these edges keep a live carrier for the terminal, and which
+            // internal artifacts it reads off the released products, is declared on the
+            // sink's `gmeow:BuildDataFlow` edges in the pipeline slice, not here.
             capabilities: vec![SINK_CAPABILITY.to_string()],
         }
     }
@@ -153,15 +145,6 @@ impl Stage for GtsSinkStage {
     }
     fn consumes(&self) -> &[String] {
         &self.consumes
-    }
-    fn carrier_consumes(&self) -> &[String] {
-        &self.carrier_consumes
-    }
-    fn internal_artifact_reads(&self) -> Vec<(String, String)> {
-        crate::stages::carrier::REASONING_INTERNAL_READS
-            .iter()
-            .map(|(producer, artifact)| ((*producer).to_owned(), (*artifact).to_owned()))
-            .collect()
     }
     fn capabilities(&self) -> &[String] {
         &self.capabilities

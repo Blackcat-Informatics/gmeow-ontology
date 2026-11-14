@@ -149,17 +149,20 @@ pub struct StageProduct {
     pub digest: String,
     /// The structured carrier this stage emitted: the frozen dataset, lookaside
     /// (including the byte-artifact lane), blob store, provenance, and handle lane.
-    /// Crate-private: a stage reaches a lane only through the accessors below, which
-    /// record the access against the declared read set of its dataflow edge.
+    /// Crate-private. The accessors below record the access against the declared read
+    /// set of the dataflow edge; they are how a stage is meant to reach a lane. Nothing
+    /// enforces that inside the crate: every stage lives in it, so a stage body could
+    /// read this field or [`Self::raw_bundle`] without a record. No stage does today.
     pub(crate) bundle: Arc<PipelineBundle<PipelineHandle>>,
     /// Whether this product's CARRIER has been released (drop-after-last-consumer).
     ///
     /// `false` for every product a stage emits and for every product the cache serves.
     /// The scheduler sets it — and replaces `bundle` with
     /// [`release_carrier`](crate::bundle::release_carrier)'s residue (the committed
-    /// byte-artifact lane only) — once the LAST stage declaring this one in
-    /// `carrier_consumes()` has run (or immediately after production when every later
-    /// dependency is artifact-only), under
+    /// byte-artifact lane only, plus the internal artifacts a consumer declares) — once
+    /// the LAST stage whose dataflow edge from this one declares a carrier read has run
+    /// (the edge reads declared in the pipeline slice, see [`crate::reads`]), or when the
+    /// product is handed to a consumer whose edge declares no carrier read, under
     /// [`CarrierRetention::DropAfterLastConsumer`](crate::scheduler::CarrierRetention).
     /// `digest` is preserved verbatim across the release: it is the identity witness of
     /// the carrier that was released, so `combined()` is byte-identical either way.
@@ -281,7 +284,7 @@ impl StageProduct {
     }
 
     /// [`Self::into_carrier_released`], keeping the internal artifacts named in
-    /// `kept_internal` that an artifact-only consumer still reads
+    /// `kept_internal` that a consumer declares it reads
     /// ([`Stage::internal_artifact_reads`]).
     ///
     /// # Errors
@@ -365,26 +368,34 @@ impl StageProduct {
     }
 
     /// Borrow the frozen RDF dataset this product's bundle carries.
+    ///
+    /// # Panics
+    /// When the carrier has been released. The read is recorded BEFORE the assertion, so
+    /// the scheduler, which catches the stage's panic, reports it as an undeclared read of
+    /// this producer with the declaration to add.
     pub fn dataset(&self) -> &RdfDataset {
+        self.record(crate::reads::Read::Dataset);
         assert!(
             !self.carrier_released,
             "stage `{}` attempted to read a dataset after its carrier was released; its \
              dataflow edge must declare the dataset read",
             self.stage_id
         );
-        self.record(crate::reads::Read::Dataset);
         self.bundle.dataset()
     }
 
     /// A shared handle to the frozen RDF dataset this product's bundle carries.
+    ///
+    /// # Panics
+    /// As [`Self::dataset`].
     pub fn dataset_arc(&self) -> Arc<RdfDataset> {
+        self.record(crate::reads::Read::Dataset);
         assert!(
             !self.carrier_released,
             "stage `{}` attempted to read a dataset after its carrier was released; its \
              dataflow edge must declare the dataset read",
             self.stage_id
         );
-        self.record(crate::reads::Read::Dataset);
         self.bundle.dataset_arc()
     }
 
@@ -396,21 +407,51 @@ impl StageProduct {
 
     /// The full `(logical_path → bytes)` map of this product's byte-artifact lane,
     /// sorted by path. The surface `run_full` writes / compares against committed.
+    ///
+    /// On a consumer view this is the committed artifacts plus the internal `pipeline/`
+    /// artifacts the edge names; an unnamed internal artifact is not part of the lane the
+    /// consumer is permitted to read, and retention does not keep it. Each internal
+    /// artifact returned is recorded as a read of that artifact.
     pub fn artifacts(&self) -> BTreeMap<String, Vec<u8>> {
         self.record(crate::reads::Read::AllArtifacts);
-        bundle_artifacts(&self.bundle)
+        let mut lane = bundle_artifacts(&self.bundle);
+        lane.retain(|path, _| self.lane_visible(path));
+        lane
+    }
+
+    /// Whether the whole-lane accessors return `path` on this view. The owning view sees
+    /// every artifact. A consumer view sees the committed ones, and an internal one only
+    /// when its edge names it, in which case the read of that exact artifact is recorded.
+    fn lane_visible(&self, path: &str) -> bool {
+        let Some(edge) = &self.access else {
+            return true;
+        };
+        if !crate::reads::is_internal_artifact(path) {
+            return true;
+        }
+        let named = crate::reads::Read::Artifact(path.to_owned());
+        if edge.declared().contains(&named) {
+            edge.record(named);
+            true
+        } else {
+            false
+        }
     }
 
     /// Borrow every byte-artifact entry without cloning its payload.
     ///
     /// Selective consumers should filter this view before copying anything. The
-    /// owned [`Self::artifacts`] projection remains the reconcile/write boundary.
+    /// owned [`Self::artifacts`] projection remains the reconcile/write boundary. A
+    /// consumer view returns the same lane as [`Self::artifacts`]: committed artifacts and
+    /// the internal ones its edge names.
     ///
     /// # Errors
     /// The carrier's byte-artifact lane is structurally corrupt.
     pub fn artifact_refs(&self) -> Result<BTreeMap<&str, &[u8]>, gmeow_errors::Diag> {
         self.record(crate::reads::Read::AllArtifacts);
-        bundle_artifact_refs(&self.bundle)
+        let mut lane = bundle_artifact_refs(&self.bundle)?;
+        lane.retain(|path, _| self.lane_visible(path));
+        Ok(lane)
     }
 
     /// The FORWARD-projected diagnostics nodes this product carries on its
@@ -650,7 +691,8 @@ impl CachePolicy {
 /// `gmeow:stageImpl` and HARD-fails if their `capabilities` / `consumes` /
 /// `resources` disagree.
 pub trait Stage: Send + Sync {
-    /// The stable stage id — matches the `gmeow:PipelineStage` individual.
+    /// The stable stage id — matches the `gmeow:PipelineStage` individual. The loader
+    /// refuses to bind an implementation to a stage whose id differs from it.
     fn id(&self) -> &str;
     /// The output family this stage belongs to. Required: there is no default family.
     fn output_family(&self) -> OutputFamily;
@@ -665,22 +707,25 @@ pub trait Stage: Send + Sync {
     /// stage runs. An edge absent here is artifact-only: the committed logical-artifact
     /// lane survives carrier release and remains available through the same dependency.
     ///
-    /// The conservative default is every dependency. A stage may narrow this only when
-    /// its implementation reads committed artifacts exclusively; the loader hard-fails
-    /// if an override names anything outside `consumes()`, and a mistaken narrowing
-    /// hard-fails at the first carrier read through [`StageProduct::carrier_released`].
+    /// The default is every dependency, which is what a hand-written stage (a test fake)
+    /// gets. The stages of the production pipeline are run as the loader's bound stage,
+    /// which overrides this with the producers whose dataflow edge declares a carrier
+    /// read (a carrier lane, a handle, a blob representation, or a named-graph
+    /// narrowing). An implementation's own answer is ignored there, and nothing compares
+    /// the two. A read of a released carrier fails at the read, through
+    /// [`StageProduct::carrier_released`].
     fn carrier_consumes(&self) -> &[String] {
         self.consumes()
     }
-    /// The internal `pipeline/` artifacts this stage reads through artifact-only
-    /// dependencies, as `(producer, artifact)` pairs.
+    /// The internal `pipeline/` artifacts this stage reads through dependencies whose
+    /// carrier is released for it, as `(producer, artifact)` pairs.
     ///
-    /// Releasing a carrier drops a product's internal artifacts, and an artifact-only
-    /// consumer always receives a released product. A stage that reads an internal
-    /// artifact from a dependency outside [`Self::carrier_consumes`] names it here; the
-    /// scheduler keeps exactly those bytes through every release of that producer. The
-    /// loader hard-fails a pair whose producer is not an artifact-only dependency or whose
-    /// artifact is not internal.
+    /// Releasing a carrier drops a product's internal artifacts. The default is none,
+    /// which is what a hand-written stage gets. The bound stage of the production
+    /// pipeline overrides this with every `gmeow:flowReadsArtifact` the pipeline slice
+    /// declares under `pipeline/`; an implementation's own answer is ignored there. The
+    /// scheduler keeps exactly those bytes through every release of that producer until
+    /// the run ends, whether or not the declaring consumer has run.
     fn internal_artifact_reads(&self) -> Vec<(String, String)> {
         Vec::new()
     }
@@ -740,8 +785,11 @@ pub trait Stage: Send + Sync {
         &[]
     }
     /// Whether this stage READS `stage-source-load`'s source-span table (via
-    /// [`StageProduct::span_index`]). Overridden to `true` by the two diagnostics
-    /// consumers (`stage-validate` / `stage-compile-logic`) ONLY. The scheduler folds the
+    /// [`StageProduct::span_index`]). The bound stage of the production pipeline answers
+    /// `true` exactly when its dataflow edge from `stage-source-load` PERMITS reading the
+    /// `spans:source-table` blob representation, by naming it or by declaring the whole
+    /// carrier; the default, which a
+    /// hand-written stage gets, is `false`. The scheduler folds the
     /// exact remaining-consumer count into the drop-after-last-consumer point: after the
     /// final declared reader commits, the span-table blob is stripped from the source-load
     /// product, so every later stage that reaches for it HARD-fails and the shipped bundle

@@ -2970,8 +2970,8 @@ fn nquads_escape(value: &str) -> String {
 
 /// The internal artifacts the reasoning archive folds, as `(bundle member, producer,
 /// internal artifact)`, in archive order. The sink reads each through an artifact-only
-/// dependency, so it declares them ([`REASONING_INTERNAL_READS`]) and the scheduler keeps
-/// them through release.
+/// dependency, so its `gmeow:BuildDataFlow` edge to the producer declares the read
+/// (`gmeow:flowReadsArtifact`) and the scheduler keeps the artifact through release.
 const REASONING_INTERNAL_MEMBERS: [(&str, &str, &str); 4] = [
     (
         gmeow_logic_compile::tptp::CANON_ADMISSION_MEMBER,
@@ -2996,7 +2996,9 @@ const REASONING_INTERNAL_MEMBERS: [(&str, &str, &str); 4] = [
 ];
 
 /// The `(producer, internal artifact)` pairs the sink reads for the reasoning archive:
-/// [`REASONING_INTERNAL_MEMBERS`] without the member names.
+/// [`REASONING_INTERNAL_MEMBERS`] without the member names. Only the test that proves
+/// the pipeline slice declares each of them uses it.
+#[cfg(test)]
 pub(crate) const REASONING_INTERNAL_READS: [(&str, &str); 4] = {
     let mut reads = [("", ""); 4];
     let mut index = 0;
@@ -3034,8 +3036,8 @@ fn build_reasoning_blob(
             .ok_or_else(|| {
                 stage_err(&format!(
                     "missing {producer} internal artifact {artifact} for the reasoning \
-                     archive; an artifact-only consumer receives it only when it declares \
-                     the read in internal_artifact_reads"
+                     archive; an artifact-only consumer receives it only when its dataflow \
+                     edge to {producer} declares `gmeow:flowReadsArtifact \"{artifact}\"`"
                 ))
             })?;
         Ok((member.to_owned(), bytes.to_vec()))

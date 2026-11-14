@@ -661,15 +661,14 @@ fn the_carrier_refuses_an_empty_base_or_statement_layer() {
 }
 
 /// The sink reads its artifact-only dependencies as released products. Every internal
-/// artifact the reasoning archive folds must be in the sink's declared internal reads, or
-/// the release drops it and the terminal fails after the whole build. Released with the
-/// sink's declaration, the producers still supply the archive; released without it,
-/// they do not.
+/// artifact the reasoning archive folds must be among the internal reads the pipeline
+/// slice declares on the sink's edges (read here off the stage the scheduler runs), or the
+/// release drops it and the terminal fails after the whole build. Released with the
+/// slice's declarations, the producers still supply the archive; released without them,
+/// they do not. Removing a `gmeow:flowReadsArtifact` of the sink from the slice fails here.
 #[test]
 fn the_sink_declares_every_internal_artifact_its_reasoning_archive_reads() {
-    use crate::node::Stage as _;
-
-    let sink = crate::stages::gts_sink::GtsSinkStage::new();
+    let sink = crate::run::bound_production_stage("stage-gts-sink");
     let declared = sink.internal_artifact_reads();
     let mut artifacts: BTreeMap<&str, BTreeMap<String, Vec<u8>>> = BTreeMap::new();
     for (producer, artifact) in super::REASONING_INTERNAL_READS {
@@ -717,7 +716,7 @@ fn the_sink_declares_every_internal_artifact_its_reasoning_archive_reads() {
         panic!("without the declaration the release drops the internal artifacts");
     };
     assert!(
-        error.to_string().contains("internal_artifact_reads"),
+        error.to_string().contains("gmeow:flowReadsArtifact"),
         "{error}"
     );
 }

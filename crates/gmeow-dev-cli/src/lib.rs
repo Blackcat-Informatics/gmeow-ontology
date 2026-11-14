@@ -287,7 +287,8 @@ pub enum Commands {
         jobs: Option<usize>,
     },
     /// Run the pipeline once recording what every stage body reads through every
-    /// dataflow edge, and print the declarations those reads need.
+    /// dataflow edge, and write the declarations those reads need to the file named by
+    /// `--out`.
     #[command(name = "pipeline-reads")]
     PipelineReads {
         /// Write the Turtle declarations to this path.
