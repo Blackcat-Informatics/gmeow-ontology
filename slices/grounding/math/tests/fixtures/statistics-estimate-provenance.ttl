@@ -5,8 +5,8 @@
 # process → result scene: a math:InferenceRun (a gmeow:Activity) applies a declared
 # math:FittedModel (gmeow:used) and produces (gmeow:wasGeneratedBy) a math:Estimate that
 # names its math:Estimator (math:estimator) and its math:Estimand (math:estimatesEstimand).
-# The data (math:fittedToData, a math:DatasetMatrix held by reference) and the
-# math:ModelAssumption (math:modelAssumption) sit on the model, not on the run. The query
+# The fitted-to-data link (math:fittedToData, to a math:DatasetMatrix held by reference)
+# and the math:ModelAssumption (math:modelAssumption) sit on the model. The query
 # keys on the estimate and returns the chain — run, model, data, estimator, estimand,
 # assumption. Unioned onto the merged ontology by gmeow:cqDataFile.
 @prefix math:  <https://blackcatinformatics.ca/math/> .

@@ -3,10 +3,11 @@
 # Exercises the models-and-estimation spine: a math:Estimate names its math:Estimator
 # (math:estimator) and its math:Estimand (math:estimatesEstimand) and is produced by a
 # math:InferenceRun process (gmeow:wasGeneratedBy). The run declares each model it applied
-# (gmeow:used a math:FittedModel). The data and the assumptions belong to that model, never
-# to the run: the math:FittedModel carries its math:DatasetMatrix (math:fittedToData) and
-# its math:ModelAssumption (math:modelAssumption). Data shared with some other model
-# creates no link, so a model the generating run did not use yields no row.
+# (gmeow:used a math:FittedModel). The reported data and assumptions are the model's own:
+# the math:FittedModel carries its math:DatasetMatrix (math:fittedToData) and its
+# math:ModelAssumption (math:modelAssumption). A dataset the run itself gmeow:used is not
+# reported and links no model. Data shared with some other model creates no link either,
+# so a model the generating run did not use yields no row.
 #
 # One row per (estimate, run, model used by the run, assumption). A run that used several
 # models yields rows for all of them: the query never picks one model and never claims the
