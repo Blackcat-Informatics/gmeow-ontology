@@ -11,7 +11,7 @@ fn set(reads: &[Read]) -> ReadSet {
 }
 
 /// A whole-carrier declaration permits every carrier lane and no byte artifact, and the
-/// whole artifact lane permits any artifact and no carrier lane.
+/// whole artifact lane permits any committed artifact and no carrier lane.
 #[test]
 fn a_declaration_permits_exactly_the_lanes_it_covers() {
     let carrier = set(&[Read::Carrier]);

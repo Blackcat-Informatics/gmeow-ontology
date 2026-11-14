@@ -152,7 +152,7 @@ pub struct StageProduct {
     /// Crate-private. The accessors below record the access against the declared read
     /// set of the dataflow edge; they are how a stage is meant to reach a lane. Nothing
     /// enforces that inside the crate: every stage lives in it, so a stage body could
-    /// read this field or [`Self::raw_bundle`] without a record. No stage does today.
+    /// read this field or [`Self::raw_bundle`] without a record. No production stage does today.
     pub(crate) bundle: Arc<PipelineBundle<PipelineHandle>>,
     /// Whether this product's CARRIER has been released (drop-after-last-consumer).
     ///
@@ -176,8 +176,10 @@ pub struct StageProduct {
     handle_commitments: BTreeMap<String, crate::handle_identity::HandleCommitment>,
     /// The dataflow edge this view of the product was handed out under. `None` for the
     /// product a stage emits and for the scheduler's, the cache's and the reconcile's own
-    /// view; `Some` for the view a consuming stage receives, whose every lane access is
-    /// recorded against the edge's declared read set.
+    /// view; `Some` for the view a consuming stage receives, which records each access made
+    /// through the lane accessors (`bundle`, `handle`, `rep_blob`, `dataset`,
+    /// `dataset_arc`, `artifact`, `artifacts`, `artifact_refs`, `span_index`), to be
+    /// compared with the edge's declared read set when the stage returns.
     access: Option<Arc<crate::reads::EdgeAccess>>,
 }
 
@@ -320,8 +322,8 @@ impl StageProduct {
         }
     }
 
-    /// This product as `consumer` may read it: the same carrier, with every lane access
-    /// recorded against `access`, the declared read set of the dataflow edge.
+    /// This product as `consumer` may read it: the same carrier, recording each access made through
+    /// the lane accessors against `access`, the declared read set of the dataflow edge.
     #[must_use]
     pub fn consumer_view(&self, access: Arc<crate::reads::EdgeAccess>) -> Self {
         Self {
@@ -713,13 +715,13 @@ pub trait Stage: Send + Sync {
     /// which overrides this with the producers whose dataflow edge declares a carrier
     /// read (a carrier lane, a handle, a blob representation, or a named-graph
     /// narrowing). An implementation's own answer is ignored there, and nothing compares
-    /// the two. A read of a released carrier fails at the read, through
-    /// [`StageProduct::carrier_released`].
+    /// the two. A dataset read of a released carrier panics at the read, through
+    /// [`StageProduct::carrier_released`]; a handle or blob read returns nothing.
     fn carrier_consumes(&self) -> &[String] {
         self.consumes()
     }
-    /// The internal `pipeline/` artifacts this stage reads through dependencies whose
-    /// carrier is released for it, as `(producer, artifact)` pairs.
+    /// The internal `pipeline/` artifacts this stage reads, as `(producer, artifact)`
+    /// pairs, whether or not the dependency's carrier is released for it.
     ///
     /// Releasing a carrier drops a product's internal artifacts. The default is none,
     /// which is what a hand-written stage gets. The bound stage of the production

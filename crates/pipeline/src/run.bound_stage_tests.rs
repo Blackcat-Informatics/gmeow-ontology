@@ -3,8 +3,8 @@
 
 use super::*;
 
-/// The implementation the authored pipeline binds to stage `id`: the same instance
-/// the scheduler runs, so a test reads the declarations the production stage reports.
+/// The implementation the authored pipeline binds to stage `id` under the default
+/// registry, so a test reads the declarations the production stage reports.
 ///
 /// # Panics
 /// When the authored pipeline does not validate or bind, or has no stage `id`.

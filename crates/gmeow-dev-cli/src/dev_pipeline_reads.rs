@@ -7,7 +7,9 @@
 //! reads of the producer's product, and a production run fails a stage whose recorded
 //! reads differ. This command is how those declarations are authored: it runs the
 //! committed-scope pipeline once with recording in place of enforcement and writes the
-//! Turtle that declares exactly what each stage body read. It writes no pipeline output.
+//! Turtle that declares what each stage body read, except an internal artifact it reaches
+//! only through the whole artifact lane, which must be named by hand. It writes no
+//! pipeline output.
 
 use std::path::Path;
 

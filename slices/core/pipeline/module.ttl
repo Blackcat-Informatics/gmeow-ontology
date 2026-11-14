@@ -237,7 +237,7 @@ gmeow:ProductLane
     skos:example "gmeow:pipeline-dataflow-reason-compile-logic gmeow:flowReadsLane gmeow:laneDataset ."@x-gmeow-english ;
     skos:scopeNote "Scope: this value class names lanes of an in-memory stage product. It does not name files in the working tree, committed outputs, or graphs of the shipped bundle."@x-gmeow-english ;
     gmeow:useWhen "Use a Product Lane when a consuming stage reads a whole lane of the producer's product, so the scheduler can keep that lane alive for it and refuse a read the edge does not declare."@x-gmeow-english ;
-    gmeow:avoidWhen "Do not declare gmeow:laneCarrier where the consumer reads one handle or one representation blob: the wider declaration keeps the whole carrier resident for that consumer."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not declare gmeow:laneCarrier where the consumer reads one handle or one representation blob: name it with gmeow:flowReadsHandle or gmeow:flowReadsBlobRep, so the run fails the stage if it reads anything wider."@x-gmeow-english ;
     gmeow:howToUse "Assert one gmeow:flowReadsLane per whole lane the consumer's stage body reads; a run fails the stage when its recorded reads and the declared reads differ in either direction."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
@@ -258,7 +258,7 @@ gmeow:laneDataset
 gmeow:laneAllArtifacts
     a gmeow:ProductLane ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
-    rdfs:label "lane: every byte artifact"@x-gmeow-english ;
+    rdfs:label "lane: every committed byte artifact"@x-gmeow-english ;
     skos:definition "The consumer enumerates the whole byte-artifact lane of the producer's product, which covers the COMMITTED artifacts only. An internal artifact, one whose path begins pipeline/, is not covered: a consumer may read it only when the same edge names its exact path with gmeow:flowReadsArtifact, and an internal artifact this edge does not name is not returned by the whole-lane accessors for this consumer, and it is kept through the release of the producer's carrier only when some other consumer in the run names it, so reading it directly is reported as an undeclared read. Committed artifacts survive the release of the producer's carrier, so this read alone does not keep the carrier resident."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 
@@ -275,7 +275,7 @@ gmeow:flowReadsLane
     rdfs:label "flow reads lane"@x-gmeow-english ;
     logic:domain gmeow:BuildDataFlow ;
     logic:range gmeow:ProductLane ;
-    skos:definition "Relates a gmeow:BuildDataFlow edge to a whole lane of the producer's product that the consumer stage reads. Multi-valued. The scheduler hands the consumer a view of the product that records every lane access; a recorded access no declaration on the edge covers, and a declaration no recorded access exercises, both fail the run under the enforcing read policy. The stage's product is still published to the stages that consume it and the run goes on, so every such stage is reported together when the run ends; the product is not written to the stage cache. A stage served from the stage cache is not compared, because no stage body ran. A stage that itself fails is reported for the undeclared reads it made, and for none it did not reach."@x-gmeow-english ;
+    skos:definition "Relates a gmeow:BuildDataFlow edge to a whole lane of the producer's product that the consumer stage reads. Multi-valued. The scheduler hands the consumer a view of the product that records each access made through the lane accessors (bundle, handle, rep_blob, dataset, dataset_arc, artifact, artifacts, artifact_refs, span_index) and compares them with the declaration when the stage returns; a recorded access no declaration on the edge covers, and a declaration no recorded access exercises, both fail the run under the enforcing read policy. The stage's product is still published to the stages that consume it and the run goes on, so every such stage is reported together when the run ends; the product is not written to the stage cache. A stage served from the stage cache is not compared, because no stage body ran. A stage that itself fails is reported for the undeclared reads it made, and for none it did not reach."@x-gmeow-english ;
     skos:example "gmeow:pipeline-dataflow-reason-compile-logic gmeow:flowReadsLane gmeow:laneDataset ."@x-gmeow-english ;
     skos:scopeNote "Scope: this property declares what a stage body reads from an upstream product in memory. Which named graphs narrow the consumer's cache key is gmeow:flowEntity; files read from the working tree are not products and are not declared here."@x-gmeow-english ;
     gmeow:useWhen "Declare a whole-lane read on the edge whenever the consumer's stage body takes the producer's dataset, raw bundle or whole artifact lane."@x-gmeow-english ;
@@ -298,7 +298,7 @@ gmeow:flowReadsBlobRep
     rdfs:label "flow reads blob representation"@x-gmeow-english ;
     logic:domain gmeow:BuildDataFlow ;
     logic:range [ a rdfs:Datatype ; logic:unionOf ( xsd:string xsd:token ) ] ;
-    skos:definition "Names one representation-keyed blob of the producer's product that the consumer stage reads, by its lane label. Multi-valued. The label is an identifier, not localizable prose. The only representation blob the scheduler strips on its own is the source-span table, spans:source-table of gmeow:stage-source-load, once the last stage that declares it has run; every other representation blob is released with the producer's carrier, after its last carrier reader has run."@x-gmeow-english ;
+    skos:definition "Names one representation-keyed blob of the producer's product that the consumer stage reads, by its lane label. Multi-valued. The label is an identifier, not localizable prose. The only representation blob the scheduler strips on its own is the source-span table, spans:source-table of gmeow:stage-source-load, once the last stage whose edge permits it (by naming it or by declaring the whole carrier) has run; every other representation blob is released with the producer's carrier, after its last carrier reader has run."@x-gmeow-english ;
     skos:example "gmeow:pipeline-dataflow-validate-source-load gmeow:flowReadsBlobRep \"spans:source-table\" ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
@@ -659,7 +659,7 @@ gmeow:pipeline-dataflow-archive-blobs-compile-logic
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
     rdfs:label "dataflow: compile-logic → archive-blobs"@x-gmeow-english ;
     gmeow:flowReason gmeow:flowReasonDataflow ;
-    skos:definition "The dataflow edge from gmeow:stage-compile-logic to gmeow:stage-archive-blobs: archive-blobs reads every byte artifact of the producer's product."@x-gmeow-english ;
+    skos:definition "The dataflow edge from gmeow:stage-compile-logic to gmeow:stage-archive-blobs: archive-blobs reads every committed byte artifact of the producer's product."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox ;
     gmeow:buildFlowFrom gmeow:stage-compile-logic ;
     gmeow:buildFlowTo gmeow:stage-archive-blobs ;
@@ -692,7 +692,7 @@ gmeow:pipeline-dataflow-archive-blobs-export-glossary
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
     rdfs:label "dataflow: export-glossary → archive-blobs"@x-gmeow-english ;
     gmeow:flowReason gmeow:flowReasonDataflow ;
-    skos:definition "The dataflow edge from gmeow:stage-export-glossary to gmeow:stage-archive-blobs: archive-blobs reads every byte artifact of the producer's product."@x-gmeow-english ;
+    skos:definition "The dataflow edge from gmeow:stage-export-glossary to gmeow:stage-archive-blobs: archive-blobs reads every committed byte artifact of the producer's product."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox ;
     gmeow:buildFlowFrom gmeow:stage-export-glossary ;
     gmeow:buildFlowTo gmeow:stage-archive-blobs ;
@@ -717,7 +717,7 @@ gmeow:pipeline-dataflow-archive-blobs-export-pydantic
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
     rdfs:label "dataflow: export-pydantic → archive-blobs"@x-gmeow-english ;
     gmeow:flowReason gmeow:flowReasonDataflow ;
-    skos:definition "The dataflow edge from gmeow:stage-export-pydantic to gmeow:stage-archive-blobs: archive-blobs reads every byte artifact of the producer's product."@x-gmeow-english ;
+    skos:definition "The dataflow edge from gmeow:stage-export-pydantic to gmeow:stage-archive-blobs: archive-blobs reads every committed byte artifact of the producer's product."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox ;
     gmeow:buildFlowFrom gmeow:stage-export-pydantic ;
     gmeow:buildFlowTo gmeow:stage-archive-blobs ;
@@ -739,7 +739,7 @@ gmeow:pipeline-dataflow-archive-blobs-mappings
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
     rdfs:label "dataflow: mappings → archive-blobs"@x-gmeow-english ;
     gmeow:flowReason gmeow:flowReasonDataflow ;
-    skos:definition "The dataflow edge from gmeow:stage-mappings to gmeow:stage-archive-blobs: archive-blobs reads every byte artifact of the producer's product."@x-gmeow-english ;
+    skos:definition "The dataflow edge from gmeow:stage-mappings to gmeow:stage-archive-blobs: archive-blobs reads every committed byte artifact of the producer's product."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox ;
     gmeow:buildFlowFrom gmeow:stage-mappings ;
     gmeow:buildFlowTo gmeow:stage-archive-blobs ;
@@ -764,7 +764,7 @@ gmeow:pipeline-dataflow-archive-blobs-native-codebook
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
     rdfs:label "dataflow: native-codebook → archive-blobs"@x-gmeow-english ;
     gmeow:flowReason gmeow:flowReasonDataflow ;
-    skos:definition "The dataflow edge from gmeow:stage-native-codebook to gmeow:stage-archive-blobs: archive-blobs reads every byte artifact of the producer's product."@x-gmeow-english ;
+    skos:definition "The dataflow edge from gmeow:stage-native-codebook to gmeow:stage-archive-blobs: archive-blobs reads every committed byte artifact of the producer's product."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox ;
     gmeow:buildFlowFrom gmeow:stage-native-codebook ;
     gmeow:buildFlowTo gmeow:stage-archive-blobs ;
@@ -775,7 +775,7 @@ gmeow:pipeline-dataflow-archive-blobs-statements
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
     rdfs:label "dataflow: statements → archive-blobs"@x-gmeow-english ;
     gmeow:flowReason gmeow:flowReasonDataflow ;
-    skos:definition "The dataflow edge from gmeow:stage-statements to gmeow:stage-archive-blobs: archive-blobs reads the artifact 'pipeline/statements/gmeow.rdf12.jsonld', the artifact 'pipeline/statements/gmeow.rdf12.yamlld', every byte artifact of the producer's product."@x-gmeow-english ;
+    skos:definition "The dataflow edge from gmeow:stage-statements to gmeow:stage-archive-blobs: archive-blobs reads the artifact 'pipeline/statements/gmeow.rdf12.jsonld', the artifact 'pipeline/statements/gmeow.rdf12.yamlld', every committed byte artifact of the producer's product."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox ;
     gmeow:buildFlowFrom gmeow:stage-statements ;
     gmeow:buildFlowTo gmeow:stage-archive-blobs ;
@@ -1168,7 +1168,7 @@ gmeow:pipeline-dataflow-gts-sink-export-agreement
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
     rdfs:label "dataflow: export-agreement → gts-sink"@x-gmeow-english ;
     gmeow:flowReason gmeow:flowReasonDataflow ;
-    skos:definition "The dataflow edge from gmeow:stage-export-agreement to gmeow:stage-gts-sink: gts-sink reads every byte artifact of the producer's product."@x-gmeow-english ;
+    skos:definition "The dataflow edge from gmeow:stage-export-agreement to gmeow:stage-gts-sink: gts-sink reads every committed byte artifact of the producer's product."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox ;
     gmeow:buildFlowFrom gmeow:stage-export-agreement ;
     gmeow:buildFlowTo gmeow:stage-gts-sink ;
@@ -1179,7 +1179,7 @@ gmeow:pipeline-dataflow-gts-sink-export-apache
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
     rdfs:label "dataflow: export-apache → gts-sink"@x-gmeow-english ;
     gmeow:flowReason gmeow:flowReasonDataflow ;
-    skos:definition "The dataflow edge from gmeow:stage-export-apache to gmeow:stage-gts-sink: gts-sink reads every byte artifact of the producer's product."@x-gmeow-english ;
+    skos:definition "The dataflow edge from gmeow:stage-export-apache to gmeow:stage-gts-sink: gts-sink reads every committed byte artifact of the producer's product."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox ;
     gmeow:buildFlowFrom gmeow:stage-export-apache ;
     gmeow:buildFlowTo gmeow:stage-gts-sink ;
@@ -1190,7 +1190,7 @@ gmeow:pipeline-dataflow-gts-sink-export-bench
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
     rdfs:label "dataflow: export-bench → gts-sink"@x-gmeow-english ;
     gmeow:flowReason gmeow:flowReasonDataflow ;
-    skos:definition "The dataflow edge from gmeow:stage-export-bench to gmeow:stage-gts-sink: gts-sink reads every byte artifact of the producer's product."@x-gmeow-english ;
+    skos:definition "The dataflow edge from gmeow:stage-export-bench to gmeow:stage-gts-sink: gts-sink reads every committed byte artifact of the producer's product."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox ;
     gmeow:buildFlowFrom gmeow:stage-export-bench ;
     gmeow:buildFlowTo gmeow:stage-gts-sink ;
@@ -1201,7 +1201,7 @@ gmeow:pipeline-dataflow-gts-sink-export-cost-ledger
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
     rdfs:label "dataflow: export-cost-ledger → gts-sink"@x-gmeow-english ;
     gmeow:flowReason gmeow:flowReasonDataflow ;
-    skos:definition "The dataflow edge from gmeow:stage-export-cost-ledger to gmeow:stage-gts-sink: gts-sink reads every byte artifact of the producer's product."@x-gmeow-english ;
+    skos:definition "The dataflow edge from gmeow:stage-export-cost-ledger to gmeow:stage-gts-sink: gts-sink reads every committed byte artifact of the producer's product."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox ;
     gmeow:buildFlowFrom gmeow:stage-export-cost-ledger ;
     gmeow:buildFlowTo gmeow:stage-gts-sink ;
@@ -1212,7 +1212,7 @@ gmeow:pipeline-dataflow-gts-sink-export-evals
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
     rdfs:label "dataflow: export-evals → gts-sink"@x-gmeow-english ;
     gmeow:flowReason gmeow:flowReasonDataflow ;
-    skos:definition "The dataflow edge from gmeow:stage-export-evals to gmeow:stage-gts-sink: gts-sink reads every byte artifact of the producer's product."@x-gmeow-english ;
+    skos:definition "The dataflow edge from gmeow:stage-export-evals to gmeow:stage-gts-sink: gts-sink reads every committed byte artifact of the producer's product."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox ;
     gmeow:buildFlowFrom gmeow:stage-export-evals ;
     gmeow:buildFlowTo gmeow:stage-gts-sink ;
@@ -1234,7 +1234,7 @@ gmeow:pipeline-dataflow-gts-sink-export-governance-floors
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
     rdfs:label "dataflow: export-governance-floors → gts-sink"@x-gmeow-english ;
     gmeow:flowReason gmeow:flowReasonDataflow ;
-    skos:definition "The dataflow edge from gmeow:stage-export-governance-floors to gmeow:stage-gts-sink: gts-sink reads every byte artifact of the producer's product."@x-gmeow-english ;
+    skos:definition "The dataflow edge from gmeow:stage-export-governance-floors to gmeow:stage-gts-sink: gts-sink reads every committed byte artifact of the producer's product."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox ;
     gmeow:buildFlowFrom gmeow:stage-export-governance-floors ;
     gmeow:buildFlowTo gmeow:stage-gts-sink ;
@@ -1245,7 +1245,7 @@ gmeow:pipeline-dataflow-gts-sink-export-matrix
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
     rdfs:label "dataflow: export-matrix → gts-sink"@x-gmeow-english ;
     gmeow:flowReason gmeow:flowReasonDataflow ;
-    skos:definition "The dataflow edge from gmeow:stage-export-matrix to gmeow:stage-gts-sink: gts-sink reads every byte artifact of the producer's product."@x-gmeow-english ;
+    skos:definition "The dataflow edge from gmeow:stage-export-matrix to gmeow:stage-gts-sink: gts-sink reads every committed byte artifact of the producer's product."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox ;
     gmeow:buildFlowFrom gmeow:stage-export-matrix ;
     gmeow:buildFlowTo gmeow:stage-gts-sink ;
@@ -1256,7 +1256,7 @@ gmeow:pipeline-dataflow-gts-sink-export-metadata
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
     rdfs:label "dataflow: export-metadata → gts-sink"@x-gmeow-english ;
     gmeow:flowReason gmeow:flowReasonDataflow ;
-    skos:definition "The dataflow edge from gmeow:stage-export-metadata to gmeow:stage-gts-sink: gts-sink reads every byte artifact of the producer's product."@x-gmeow-english ;
+    skos:definition "The dataflow edge from gmeow:stage-export-metadata to gmeow:stage-gts-sink: gts-sink reads every committed byte artifact of the producer's product."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox ;
     gmeow:buildFlowFrom gmeow:stage-export-metadata ;
     gmeow:buildFlowTo gmeow:stage-gts-sink ;
@@ -1267,7 +1267,7 @@ gmeow:pipeline-dataflow-gts-sink-export-projection-ceilings
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
     rdfs:label "dataflow: export-projection-ceilings → gts-sink"@x-gmeow-english ;
     gmeow:flowReason gmeow:flowReasonDataflow ;
-    skos:definition "The dataflow edge from gmeow:stage-export-projection-ceilings to gmeow:stage-gts-sink: gts-sink reads every byte artifact of the producer's product."@x-gmeow-english ;
+    skos:definition "The dataflow edge from gmeow:stage-export-projection-ceilings to gmeow:stage-gts-sink: gts-sink reads every committed byte artifact of the producer's product."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox ;
     gmeow:buildFlowFrom gmeow:stage-export-projection-ceilings ;
     gmeow:buildFlowTo gmeow:stage-gts-sink ;
@@ -1278,7 +1278,7 @@ gmeow:pipeline-dataflow-gts-sink-export-references
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
     rdfs:label "dataflow: export-references → gts-sink"@x-gmeow-english ;
     gmeow:flowReason gmeow:flowReasonDataflow ;
-    skos:definition "The dataflow edge from gmeow:stage-export-references to gmeow:stage-gts-sink: gts-sink reads every byte artifact of the producer's product."@x-gmeow-english ;
+    skos:definition "The dataflow edge from gmeow:stage-export-references to gmeow:stage-gts-sink: gts-sink reads every committed byte artifact of the producer's product."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox ;
     gmeow:buildFlowFrom gmeow:stage-export-references ;
     gmeow:buildFlowTo gmeow:stage-gts-sink ;
@@ -1289,7 +1289,7 @@ gmeow:pipeline-dataflow-gts-sink-export-research-objects
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
     rdfs:label "dataflow: export-research-objects → gts-sink"@x-gmeow-english ;
     gmeow:flowReason gmeow:flowReasonDataflow ;
-    skos:definition "The dataflow edge from gmeow:stage-export-research-objects to gmeow:stage-gts-sink: gts-sink reads every byte artifact of the producer's product."@x-gmeow-english ;
+    skos:definition "The dataflow edge from gmeow:stage-export-research-objects to gmeow:stage-gts-sink: gts-sink reads every committed byte artifact of the producer's product."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox ;
     gmeow:buildFlowFrom gmeow:stage-export-research-objects ;
     gmeow:buildFlowTo gmeow:stage-gts-sink ;
@@ -1300,7 +1300,7 @@ gmeow:pipeline-dataflow-gts-sink-export-schemas
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
     rdfs:label "dataflow: export-schemas → gts-sink"@x-gmeow-english ;
     gmeow:flowReason gmeow:flowReasonDataflow ;
-    skos:definition "The dataflow edge from gmeow:stage-export-schemas to gmeow:stage-gts-sink: gts-sink reads every byte artifact of the producer's product."@x-gmeow-english ;
+    skos:definition "The dataflow edge from gmeow:stage-export-schemas to gmeow:stage-gts-sink: gts-sink reads every committed byte artifact of the producer's product."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox ;
     gmeow:buildFlowFrom gmeow:stage-export-schemas ;
     gmeow:buildFlowTo gmeow:stage-gts-sink ;
@@ -1324,7 +1324,7 @@ gmeow:pipeline-dataflow-gts-sink-math-producers
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
     rdfs:label "dataflow: math-producers → gts-sink"@x-gmeow-english ;
     gmeow:flowReason gmeow:flowReasonDataflow ;
-    skos:definition "The dataflow edge from gmeow:stage-math-producers to gmeow:stage-gts-sink: gts-sink reads every byte artifact of the producer's product."@x-gmeow-english ;
+    skos:definition "The dataflow edge from gmeow:stage-math-producers to gmeow:stage-gts-sink: gts-sink reads every committed byte artifact of the producer's product."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox ;
     gmeow:buildFlowFrom gmeow:stage-math-producers ;
     gmeow:buildFlowTo gmeow:stage-gts-sink ;
@@ -1471,7 +1471,7 @@ gmeow:pipeline-dataflow-medium-dictionaries-archive-blobs
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
     rdfs:label "dataflow: archive-blobs → medium-dictionaries"@x-gmeow-english ;
     gmeow:flowReason gmeow:flowReasonDataflow ;
-    skos:definition "The dataflow edge from gmeow:stage-archive-blobs to gmeow:stage-medium-dictionaries: medium-dictionaries reads every byte artifact, the whole carrier of the producer's product."@x-gmeow-english ;
+    skos:definition "The dataflow edge from gmeow:stage-archive-blobs to gmeow:stage-medium-dictionaries: medium-dictionaries reads every committed byte artifact, the whole carrier of the producer's product."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox ;
     gmeow:buildFlowFrom gmeow:stage-archive-blobs ;
     gmeow:buildFlowTo gmeow:stage-medium-dictionaries ;
@@ -1483,7 +1483,7 @@ gmeow:pipeline-dataflow-medium-dictionaries-reason
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
     rdfs:label "dataflow: reason → medium-dictionaries"@x-gmeow-english ;
     gmeow:flowReason gmeow:flowReasonDataflow ;
-    skos:definition "The dataflow edge from gmeow:stage-reason to gmeow:stage-medium-dictionaries: medium-dictionaries reads every byte artifact of the producer's product."@x-gmeow-english ;
+    skos:definition "The dataflow edge from gmeow:stage-reason to gmeow:stage-medium-dictionaries: medium-dictionaries reads every committed byte artifact of the producer's product."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox ;
     gmeow:buildFlowFrom gmeow:stage-reason ;
     gmeow:buildFlowTo gmeow:stage-medium-dictionaries ;
@@ -1494,7 +1494,7 @@ gmeow:pipeline-dataflow-medium-dictionaries-snapshot
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
     rdfs:label "dataflow: snapshot → medium-dictionaries"@x-gmeow-english ;
     gmeow:flowReason gmeow:flowReasonDataflow ;
-    skos:definition "The dataflow edge from gmeow:stage-snapshot to gmeow:stage-medium-dictionaries: medium-dictionaries reads every byte artifact, the frozen dataset of the producer's product."@x-gmeow-english ;
+    skos:definition "The dataflow edge from gmeow:stage-snapshot to gmeow:stage-medium-dictionaries: medium-dictionaries reads every committed byte artifact, the frozen dataset of the producer's product."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox ;
     gmeow:buildFlowFrom gmeow:stage-snapshot ;
     gmeow:buildFlowTo gmeow:stage-medium-dictionaries ;
@@ -1506,7 +1506,7 @@ gmeow:pipeline-dataflow-medium-dictionaries-statements
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
     rdfs:label "dataflow: statements → medium-dictionaries"@x-gmeow-english ;
     gmeow:flowReason gmeow:flowReasonDataflow ;
-    skos:definition "The dataflow edge from gmeow:stage-statements to gmeow:stage-medium-dictionaries: medium-dictionaries reads every byte artifact of the producer's product."@x-gmeow-english ;
+    skos:definition "The dataflow edge from gmeow:stage-statements to gmeow:stage-medium-dictionaries: medium-dictionaries reads every committed byte artifact of the producer's product."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox ;
     gmeow:buildFlowFrom gmeow:stage-statements ;
     gmeow:buildFlowTo gmeow:stage-medium-dictionaries ;
@@ -1648,7 +1648,7 @@ gmeow:pipeline-dataflow-snapshot-export-evals
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
     rdfs:label "dataflow: export-evals → snapshot"@x-gmeow-english ;
     gmeow:flowReason gmeow:flowReasonDataflow ;
-    skos:definition "The dataflow edge from gmeow:stage-export-evals to gmeow:stage-snapshot: snapshot reads every byte artifact of the producer's product."@x-gmeow-english ;
+    skos:definition "The dataflow edge from gmeow:stage-export-evals to gmeow:stage-snapshot: snapshot reads every committed byte artifact of the producer's product."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox ;
     gmeow:buildFlowFrom gmeow:stage-export-evals ;
     gmeow:buildFlowTo gmeow:stage-snapshot ;
@@ -1659,7 +1659,7 @@ gmeow:pipeline-dataflow-snapshot-export-glossary
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
     rdfs:label "dataflow: export-glossary → snapshot"@x-gmeow-english ;
     gmeow:flowReason gmeow:flowReasonDataflow ;
-    skos:definition "The dataflow edge from gmeow:stage-export-glossary to gmeow:stage-snapshot: snapshot reads every byte artifact of the producer's product."@x-gmeow-english ;
+    skos:definition "The dataflow edge from gmeow:stage-export-glossary to gmeow:stage-snapshot: snapshot reads every committed byte artifact of the producer's product."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox ;
     gmeow:buildFlowFrom gmeow:stage-export-glossary ;
     gmeow:buildFlowTo gmeow:stage-snapshot ;
@@ -1681,7 +1681,7 @@ gmeow:pipeline-dataflow-snapshot-export-profiles
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
     rdfs:label "dataflow: export-profiles → snapshot"@x-gmeow-english ;
     gmeow:flowReason gmeow:flowReasonDataflow ;
-    skos:definition "The dataflow edge from gmeow:stage-export-profiles to gmeow:stage-snapshot: snapshot reads every byte artifact of the producer's product."@x-gmeow-english ;
+    skos:definition "The dataflow edge from gmeow:stage-export-profiles to gmeow:stage-snapshot: snapshot reads every committed byte artifact of the producer's product."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox ;
     gmeow:buildFlowFrom gmeow:stage-export-profiles ;
     gmeow:buildFlowTo gmeow:stage-snapshot ;
@@ -1692,7 +1692,7 @@ gmeow:pipeline-dataflow-snapshot-export-research-objects
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
     rdfs:label "dataflow: export-research-objects → snapshot"@x-gmeow-english ;
     gmeow:flowReason gmeow:flowReasonDataflow ;
-    skos:definition "The dataflow edge from gmeow:stage-export-research-objects to gmeow:stage-snapshot: snapshot reads every byte artifact of the producer's product."@x-gmeow-english ;
+    skos:definition "The dataflow edge from gmeow:stage-export-research-objects to gmeow:stage-snapshot: snapshot reads every committed byte artifact of the producer's product."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox ;
     gmeow:buildFlowFrom gmeow:stage-export-research-objects ;
     gmeow:buildFlowTo gmeow:stage-snapshot ;
@@ -1703,7 +1703,7 @@ gmeow:pipeline-dataflow-snapshot-export-skos-surface
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
     rdfs:label "dataflow: export-skos-surface → snapshot"@x-gmeow-english ;
     gmeow:flowReason gmeow:flowReasonDataflow ;
-    skos:definition "The dataflow edge from gmeow:stage-export-skos-surface to gmeow:stage-snapshot: snapshot reads every byte artifact of the producer's product."@x-gmeow-english ;
+    skos:definition "The dataflow edge from gmeow:stage-export-skos-surface to gmeow:stage-snapshot: snapshot reads every committed byte artifact of the producer's product."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox ;
     gmeow:buildFlowFrom gmeow:stage-export-skos-surface ;
     gmeow:buildFlowTo gmeow:stage-snapshot ;
@@ -1736,7 +1736,7 @@ gmeow:pipeline-dataflow-snapshot-mappings
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
     rdfs:label "dataflow: mappings → snapshot"@x-gmeow-english ;
     gmeow:flowReason gmeow:flowReasonDataflow ;
-    skos:definition "The dataflow edge from gmeow:stage-mappings to gmeow:stage-snapshot: snapshot reads the artifact 'generated/logic/projection-report.ttl', every byte artifact, the frozen dataset of the producer's product."@x-gmeow-english ;
+    skos:definition "The dataflow edge from gmeow:stage-mappings to gmeow:stage-snapshot: snapshot reads the artifact 'generated/logic/projection-report.ttl', every committed byte artifact, the frozen dataset of the producer's product."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox ;
     gmeow:buildFlowFrom gmeow:stage-mappings ;
     gmeow:buildFlowTo gmeow:stage-snapshot ;
@@ -1749,7 +1749,7 @@ gmeow:pipeline-dataflow-snapshot-math-producers
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
     rdfs:label "dataflow: math-producers → snapshot"@x-gmeow-english ;
     gmeow:flowReason gmeow:flowReasonDataflow ;
-    skos:definition "The dataflow edge from gmeow:stage-math-producers to gmeow:stage-snapshot: snapshot reads every byte artifact, the frozen dataset of the producer's product."@x-gmeow-english ;
+    skos:definition "The dataflow edge from gmeow:stage-math-producers to gmeow:stage-snapshot: snapshot reads every committed byte artifact, the frozen dataset of the producer's product."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox ;
     gmeow:buildFlowFrom gmeow:stage-math-producers ;
     gmeow:buildFlowTo gmeow:stage-snapshot ;

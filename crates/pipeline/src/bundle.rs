@@ -158,7 +158,7 @@ pub const INTERNAL_ARTIFACT_PREFIX: &str = "pipeline/";
 /// Everything else is released: the frozen dataset (an empty one replaces it), the
 /// typed-handle lane, every by-reference blob record, the provenance sidecar, and every
 /// other internal `pipeline/`-prefixed artifact. `kept_internal` is the set of internal
-/// artifacts that artifact-only consumers declare they read
+/// artifacts that consumers declare they read
 /// ([`crate::node::Stage::internal_artifact_reads`]); without it they would receive a
 /// product that silently lacks them. The scheduler calls this when a product's exact
 /// remaining carrier-reader count reaches zero, and also when it hands a product to an

@@ -160,7 +160,7 @@ pub struct RunContext {
     /// What the run does when a stage's recorded reads differ from the reads its
     /// dataflow edges declare. Every context starts at
     /// [`ReadPolicy::Enforce`](crate::reads::ReadPolicy::Enforce); only the maintainer
-    /// command that prints observed read sets selects `Record`.
+    /// command that writes observed read sets to a file selects `Record`.
     pub read_policy: crate::reads::ReadPolicy,
     /// RAII owner of an ephemeral cache directory, when this context was built by
     /// [`Self::open_ephemeral`]. Holding the [`tempfile::TempDir`] here — rather than
@@ -617,8 +617,8 @@ pub fn run_without(
         }
     }
     let declared_level_frontier = last_consumer_levels(graph, &by_id);
-    // The internal artifacts each producer must keep through every release, because an
-    // artifact-only consumer declared it reads them.
+    // The internal artifacts each producer must keep through every release, because a
+    // consumer declared it reads them.
     let mut kept_internal: BTreeMap<String, BTreeSet<String>> = BTreeMap::new();
     for stage_id in &executed {
         for (producer, artifact) in by_id[stage_id.as_str()].internal_artifact_reads() {
@@ -745,8 +745,9 @@ pub fn run_without(
                         } else {
                             product.into_carrier_released_keeping(&kept_for(producer))?
                         };
-                        // The consumer receives a view of the product that records every
-                        // lane access against what its dataflow edge declares.
+                        // The consumer receives a view of the product that records each
+                        // access made through the lane accessors, to be compared with
+                        // what its dataflow edge declares when the stage returns.
                         let edge = crate::reads::EdgeAccess::new(
                             &stage_id,
                             producer,

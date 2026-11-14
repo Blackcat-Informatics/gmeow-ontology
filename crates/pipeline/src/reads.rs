@@ -6,8 +6,10 @@
 //! A dependency edge of the build graph says more than "this stage runs after that one".
 //! It says which lanes of the producer's product the consumer reads. The authored
 //! pipeline description declares that read set on the edge; the scheduler hands the
-//! consumer a view of the product that checks every access against the declaration and
-//! records it; and the two are compared when the stage returns. A read the edge does not
+//! consumer a view of the product that records each access made through the lane
+//! accessors (`bundle`, `handle`, `rep_blob`, `dataset`, `dataset_arc`, `artifact`,
+//! `artifacts`, `artifact_refs`, `span_index`); and the recorded reads are compared with
+//! the declaration when the stage returns. A read the edge does not
 //! declare and a declared read the stage never made are both failures, so the graph a
 //! plan is derived from is the graph the stage bodies execute.
 //!
@@ -36,7 +38,7 @@ pub enum Read {
     BlobRep(String),
     /// One byte artifact, by its exact logical path.
     Artifact(String),
-    /// The whole byte-artifact lane.
+    /// The whole committed byte-artifact lane.
     AllArtifacts,
     /// No lane: the edge orders the two stages and folds the producer's identity into
     /// the consumer's cache key. Declared explicitly, so an edge that carries no data is
@@ -104,7 +106,7 @@ impl std::fmt::Display for Read {
         match self {
             Self::Carrier => f.write_str("the whole carrier"),
             Self::Dataset => f.write_str("the dataset"),
-            Self::AllArtifacts => f.write_str("every byte artifact"),
+            Self::AllArtifacts => f.write_str("every committed byte artifact"),
             Self::Identity => f.write_str("its identity only"),
             Self::Handle(key) => write!(f, "handle <{key}>"),
             Self::BlobRep(rep) => write!(f, "representation blob {rep:?}"),
@@ -235,9 +237,11 @@ impl EdgeAccess {
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum ReadPolicy {
     /// A stage that reads what its edges do not declare, or does not read what they
-    /// declare, fails and publishes nothing. Every production run.
+    /// declare, fails the run at its end; its product is still handed to later stages but
+    /// is not written to the stage cache. Every production run.
     Enforce,
-    /// Reads are recorded and reported, and nothing is refused. Every product is handed
+    /// Reads are recorded and returned in `RunResult::recorded_reads`; no difference is
+    /// reported and nothing is refused. Every product is handed
     /// over without releasing its carrier, but the whole-lane artifact accessors still
     /// return only committed artifacts and the internal ones the edge already names, so
     /// an internal artifact a stage reaches only through the whole lane is not

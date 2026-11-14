@@ -665,7 +665,8 @@ fn the_carrier_refuses_an_empty_base_or_statement_layer() {
 /// slice declares on the sink's edges (read here off the stage the scheduler runs), or the
 /// release drops it and the terminal fails after the whole build. Released with the
 /// slice's declarations, the producers still supply the archive; released without them,
-/// they do not. Removing a `gmeow:flowReadsArtifact` of the sink from the slice fails here.
+/// they do not. Removing a `gmeow:flowReadsArtifact` of the sink that the reasoning
+/// archive folds fails here.
 #[test]
 fn the_sink_declares_every_internal_artifact_its_reasoning_archive_reads() {
     let sink = crate::run::bound_production_stage("stage-gts-sink");
