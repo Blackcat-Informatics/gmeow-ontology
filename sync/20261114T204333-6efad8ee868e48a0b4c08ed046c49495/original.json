@@ -1,0 +1,26 @@
+[
+  {
+    "path": "slices/core/standpoint/docs.md",
+    "kind": "file",
+    "executable": false,
+    "content": "original/0.bin"
+  },
+  {
+    "path": "slices/core/standpoint/i18n/fr.po",
+    "kind": "file",
+    "executable": false,
+    "content": "original/1.bin"
+  },
+  {
+    "path": "slices/core/standpoint/i18n/zh.po",
+    "kind": "file",
+    "executable": false,
+    "content": "original/2.bin"
+  },
+  {
+    "path": "slices/core/standpoint/module.ttl",
+    "kind": "file",
+    "executable": false,
+    "content": "original/3.bin"
+  }
+]

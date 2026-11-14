@@ -1,0 +1,6 @@
+{"time": "2026-11-14T20:43:33.707134+00:00", "status": "started"}
+{"time": "2026-11-14T20:43:35.155107+00:00", "status": "merging"}
+{"time": "2026-11-14T20:43:35.836979+00:00", "status": "conflicted"}
+{"time": "2026-11-14T20:43:35.845240+00:00", "status": "review_required", "reused_paths": [], "rerere_output": "Recorded preimage for 'slices/core/standpoint/docs.md'\nRecorded preimage for 'slices/core/standpoint/i18n/fr.po'\nRecorded preimage for 'slices/core/standpoint/i18n/zh.po'\nRecorded preimage for 'slices/core/standpoint/module.ttl'\n"}
+{"time": "2026-11-14T20:44:12.317193+00:00", "status": "committing", "candidate_tree": "7f7259c3a664efd7b62ef8b81fa933cdfc6fbb70", "candidate_patch": "candidate-c606aed7699745bdae8014af99b731ce.patch", "validation_records": []}
+{"time": "2026-11-14T20:44:15.847780+00:00", "status": "completed", "commit": "d402e3b72b4218893c99da1be7dc51070401867e", "tree": "7f7259c3a664efd7b62ef8b81fa933cdfc6fbb70"}

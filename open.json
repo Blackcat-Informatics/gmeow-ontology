@@ -1,0 +1,30 @@
+{
+  "schema": 1,
+  "issue": 2685,
+  "repo": "gmeow-ontology",
+  "forge": "github",
+  "nwo": "Blackcat-Informatics/gmeow-ontology",
+  "read_access": "anon-read",
+  "main_root": "/home/paudley/Active/gmeow-ontology",
+  "worktree": "/home/paudley/Active/gmeow-ontology/.worktrees/2685-vocabulary-a-transitive-partial-order",
+  "branch": "paudley/2685-vocabulary-a-transitive-partial-order",
+  "slug": "vocabulary-a-transitive-partial-order",
+  "slug_drift": false,
+  "stage_dir": "/home/paudley/Active/gmeow-ontology/.worktrees/2685-vocabulary-a-transitive-partial-order/.stage/vocabulary-a-transitive-partial-order",
+  "stage_tracked": true,
+  "base": "origin/main",
+  "base_oid": "7a9e9fc173f99d02fb2f7732d85f73aaeed1916b",
+  "reused": false,
+  "adr_repo": false,
+  "created": [
+    "worktree:/home/paudley/Active/gmeow-ontology/.worktrees/2685-vocabulary-a-transitive-partial-order",
+    "branch:paudley/2685-vocabulary-a-transitive-partial-order",
+    "ignored:8267 files (8267 reflinked, 0 written)",
+    "rust-caches:reflinked /home/paudley/Active/gmeow-ontology/.worktrees/2646-restore-main-ci-after-producer caches into /home/paudley/Active/gmeow-ontology/.worktrees/2685-vocabulary-a-transitive-partial-order plus 0 dependency units from 0 other checkouts in 2.5s; 12986 unchanged files keep their built mtimes; 2 other files take the seed time and rebuild; 0 units naming another checkout rebuild",
+    "stage:/home/paudley/Active/gmeow-ontology/.worktrees/2685-vocabulary-a-transitive-partial-order/.stage/vocabulary-a-transitive-partial-order",
+    "issue:/home/paudley/Active/gmeow-ontology/.worktrees/2685-vocabulary-a-transitive-partial-order/.stage/vocabulary-a-transitive-partial-order/issue.md"
+  ],
+  "warnings": [],
+  "timestamp": "2026-11-11T15:57:54-0600",
+  "seed_error": ""
+}

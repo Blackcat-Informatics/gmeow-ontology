@@ -1,0 +1,461 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# GMEOW translation catalog (slice: standpoint, language: zh).
+# Authored translation store — the ONLY home for non-English ontology prose.
+# The build merges this into gmeow.gts; it is never written back into the .ttl.
+msgid ""
+msgstr ""
+"Project-Id-Version: gmeow\n"
+"Language: zh\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/claimAssertoricForceFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "claimAssertoricForce is functional"
+msgstr "claimAssertoricForce 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/claimCredenceFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "claimCredence is functional"
+msgstr "claimCredence 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/claimCredenceFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:claimCredence is functional: a standpoint claim carries one precise graded belief as an xsd:decimal in [0,1], so the advisory numeric surface is a single value that must lie within its authoritative credence band's threshold range rather than a set of competing decimals."
+msgstr "在规范载体上断言 gmeow:claimCredence 是函数式的：一个立场主张携带一个精确的分级信念，以 [0,1] 区间内的 xsd:decimal 表示，因此该建议性数值层面是一个单一值，必须落在其权威可信度带的阈值范围之内，而非一组相互竞争的小数值。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/claimCredenceLevelFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "claimCredenceLevel is functional"
+msgstr "claimCredenceLevel 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/claimCredenceLevelFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:claimCredenceLevel is functional: a standpoint claim carries one qualitative credence band — the surface the lossless legacy projection keys on — so a claim's graded belief resolves to a single frame-relative band rather than several bands on one claim."
+msgstr "在规范载体上断言 gmeow:claimCredenceLevel 是函数式的：一个立场主张携带一个定性的可信度带——这正是无损遗留投影所依赖的层面——因此一个主张的分级信念解析为唯一一个相对于框架的带，而不是在同一主张上存在多个带。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/claimModalForceFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "claimModalForce is functional"
+msgstr "claimModalForce 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/claimModalityFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "claimModality is functional"
+msgstr "claimModality 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/claimPolarityFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "claimPolarity is functional"
+msgstr "claimPolarity 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/claimPolarityFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:claimPolarity is functional: a standpoint claim takes one affirm / deny / suspend direction, so the relator carries a single polarity (absent reading as affirm) and deny stays the frame-relative carrier of the legacy refuted rather than one claim holding several polarities."
+msgstr "在规范载体上断言 gmeow:claimPolarity 是函数式的：一个立场主张取唯一一个 affirm / deny / suspend 方向，因此关系体携带唯一一种极性（缺省即读作 affirm），deny 仍是遗留 refuted 的相对于框架的载体，而不是一个主张同时持有多种极性。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/claimSupportStatusFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "claimSupportStatus is functional"
+msgstr "claimSupportStatus 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/claimSupportStatusFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:claimSupportStatus is functional: a standpoint claim carries one Belnap evidential status — supported, opposed, both, or neither — so a witnessed glut or gap is recorded as the single admissible status of the claim rather than being split into rival status values on one claim."
+msgstr "在规范载体上断言 gmeow:claimSupportStatus 是函数式的：一个立场主张携带一个 Belnap 证据状态——supported、opposed、both 或 neither——因此所观察到的过剩（glut）或空缺（gap）被记录为该主张唯一可采纳的状态，而不是在同一主张上被拆分为多个相互竞争的状态值。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/claimTruthDirectednessFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "claimTruthDirectedness is functional"
+msgstr "claimTruthDirectedness 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/claimTruthDirectednessFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:claimTruthDirectedness is functional: a standpoint claim carries one orientation toward truth — truth-aimed, indifferent, or strategic — so the relator takes a single orientation (absent reading as truth-aimed) and indifferent remains the sole carrier of the legacy bullshit rather than co-existing orientations on one claim."
+msgstr "在规范载体上断言 gmeow:claimTruthDirectedness 是函数式的：一个立场主张携带一种对真理的取向——`truth-aimed`、`indifferent` 或 `strategic`——因此关系体取唯一一种取向（缺省即读作 `truth-aimed`），indifferent 仍是遗留 bullshit 的唯一载体，而不是在同一主张上共存多种取向。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/sharpensTransitivity|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "sharpens is transitive"
+msgstr "「锐化」具有传递性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/sharpensTransitivity|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:sharpens is transitive: the standpoint refinement order its skos:definition names (Standpoint Logic's coverage relation). The native coherence gate reads this to close the refinement order. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "在规范载体上断言 gmeow:sharpens 是传递的：其 skos:definition 所命名的立场精化序（立场逻辑的覆盖关系）。原生一致性门读取此断言以闭合该精化序。该记录不是该术语的定义，也绝不是形状：义务由该记录推理得出，而非在别处重述。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/standpointClaimFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "standpointClaim is functional"
+msgstr "standpointClaim 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/standpointClaimFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:standpointClaim is functional: a standpoint-tenure generates exactly one StandpointClaim observation of its time-scoped fact, so the bridge from the tenure situation to its observation carries a single claim and a free-standing claim with no tenure is minted as a bare observation instead. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "在规范载体上断言 gmeow:standpointClaim 是函数性的:一个立场保有恰好生成一个针对其限定时间之事实的 StandpointClaim 观测,因此从保有情境到其观测之间的桥梁只承载一个断言,没有保有的独立断言则改为铸造成一个纯粹的观测。该记录不是该术语的定义，也绝不是形状：义务由该记录推理得出，而非在别处重述。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/tenureStandpointFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "tenureStandpoint is functional"
+msgstr "tenureStandpoint 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/tenureStandpointFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:tenureStandpoint is functional: a standpoint-tenure records exactly one frame's position, so it names a single standpoint that becomes the vantage of the generated claim, and a different frame's position is a separate tenure rather than a second — never privileged — standpoint on one."
+msgstr "在规范载体上断言 gmeow:tenureStandpoint 是函数性的:一个立场保有恰好记录一个参照系的立场,因此它指明了成为所生成断言之视角的那唯一一个立场,不同参照系的立场是一个独立的保有,而不是在这一个保有上添加第二个——绝不享有特权的——立场。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/sharpensTransitivity|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the native coherence gate must enforce that gmeow:sharpens composes along chains; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
+msgstr "当原生一致性门必须强制 gmeow:sharpens 沿链复合 时使用；该记录是门所连接的规范载体，因此该义务是被推理出来的，而非在形状表面上重述。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/sharpensTransitivity|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid this record when the relation must not compose — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
+msgstr "当该关系不应复合时避免使用该记录——应撤回该断言而非削弱它，且绝不将其复刻为手写形状。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/sharpensTransitivity|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:sharpens, logic:characteristicSort logic:transitiveProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."
+msgstr "与 logic:characteristicSort 一并阅读：(logic:characterizes gmeow:sharpens, logic:characteristicSort logic:transitiveProperty) 这一对构成完整义务，OWL 基础视图据此投影出相应特征。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/sharpensTransitivity|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:sharpensTransitivity logic:characterizes gmeow:sharpens ."
+msgstr "gmeow:sharpensTransitivity logic:characterizes gmeow:sharpens ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/claimAssertoricForceFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the native coherence gate must enforce that gmeow:claimAssertoricForce names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
+msgstr "当原生一致性门必须强制 gmeow:claimAssertoricForce 恰好命名一个值 时使用；该记录是门所连接的规范载体，因此该义务是被推理出来的，而非在形状表面上重述。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/claimAssertoricForceFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
+msgstr "当第二个值会使该记录产生歧义时避免使用该记录——应撤回该断言而非削弱它，且绝不将其复刻为手写形状。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/claimAssertoricForceFunctionality|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:claimAssertoricForce, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."
+msgstr "与 logic:characteristicSort 一并阅读：(logic:characterizes gmeow:claimAssertoricForce, logic:characteristicSort logic:functionalProperty) 这一对构成完整义务，OWL 基础视图据此投影出相应特征。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/claimAssertoricForceFunctionality|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:claimAssertoricForceFunctionality logic:characterizes gmeow:claimAssertoricForce ."
+msgstr "gmeow:claimAssertoricForceFunctionality logic:characterizes gmeow:claimAssertoricForce ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/claimCredenceFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the native coherence gate must enforce that gmeow:claimCredence names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
+msgstr "当原生一致性门必须强制 gmeow:claimCredence 恰好命名一个值 时使用；该记录是门所连接的规范载体，因此该义务是被推理出来的，而非在形状表面上重述。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/claimCredenceFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
+msgstr "当第二个值会使该记录产生歧义时避免使用该记录——应撤回该断言而非削弱它，且绝不将其复刻为手写形状。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/claimCredenceFunctionality|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:claimCredence, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."
+msgstr "与 logic:characteristicSort 一并阅读：(logic:characterizes gmeow:claimCredence, logic:characteristicSort logic:functionalProperty) 这一对构成完整义务，OWL 基础视图据此投影出相应特征。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/claimCredenceFunctionality|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:claimCredenceFunctionality logic:characterizes gmeow:claimCredence ."
+msgstr "gmeow:claimCredenceFunctionality logic:characterizes gmeow:claimCredence ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/claimCredenceLevelFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the native coherence gate must enforce that gmeow:claimCredenceLevel names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
+msgstr "当原生一致性门必须强制 gmeow:claimCredenceLevel 恰好命名一个值 时使用；该记录是门所连接的规范载体，因此该义务是被推理出来的，而非在形状表面上重述。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/claimCredenceLevelFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
+msgstr "当第二个值会使该记录产生歧义时避免使用该记录——应撤回该断言而非削弱它，且绝不将其复刻为手写形状。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/claimCredenceLevelFunctionality|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:claimCredenceLevel, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."
+msgstr "与 logic:characteristicSort 一并阅读：(logic:characterizes gmeow:claimCredenceLevel, logic:characteristicSort logic:functionalProperty) 这一对构成完整义务，OWL 基础视图据此投影出相应特征。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/claimCredenceLevelFunctionality|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:claimCredenceLevelFunctionality logic:characterizes gmeow:claimCredenceLevel ."
+msgstr "gmeow:claimCredenceLevelFunctionality logic:characterizes gmeow:claimCredenceLevel ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/claimModalForceFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
+msgstr "当第二个值会使该记录产生歧义时避免使用该记录——应撤回该断言而非削弱它，且绝不将其复刻为手写形状。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/claimModalForceFunctionality|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:claimModalForce, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."
+msgstr "与 logic:characteristicSort 一并阅读：(logic:characterizes gmeow:claimModalForce, logic:characteristicSort logic:functionalProperty) 这一对构成完整义务，OWL 基础视图据此投影出相应特征。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/claimModalForceFunctionality|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:claimModalForceFunctionality logic:characterizes gmeow:claimModalForce ."
+msgstr "gmeow:claimModalForceFunctionality logic:characterizes gmeow:claimModalForce ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/claimModalityFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
+msgstr "当第二个值会使该记录产生歧义时避免使用该记录——应撤回该断言而非削弱它，且绝不将其复刻为手写形状。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/claimModalityFunctionality|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:claimModality, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."
+msgstr "与 logic:characteristicSort 一并阅读：(logic:characterizes gmeow:claimModality, logic:characteristicSort logic:functionalProperty) 这一对构成完整义务，OWL 基础视图据此投影出相应特征。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/claimModalityFunctionality|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:claimModalityFunctionality logic:characterizes gmeow:claimModality ."
+msgstr "gmeow:claimModalityFunctionality logic:characterizes gmeow:claimModality ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/claimPolarityFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the native coherence gate must enforce that gmeow:claimPolarity names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
+msgstr "当原生一致性门必须强制 gmeow:claimPolarity 恰好命名一个值 时使用；该记录是门所连接的规范载体，因此该义务是被推理出来的，而非在形状表面上重述。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/claimPolarityFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
+msgstr "当第二个值会使该记录产生歧义时避免使用该记录——应撤回该断言而非削弱它，且绝不将其复刻为手写形状。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/claimPolarityFunctionality|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:claimPolarity, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."
+msgstr "与 logic:characteristicSort 一并阅读：(logic:characterizes gmeow:claimPolarity, logic:characteristicSort logic:functionalProperty) 这一对构成完整义务，OWL 基础视图据此投影出相应特征。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/claimPolarityFunctionality|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:claimPolarityFunctionality logic:characterizes gmeow:claimPolarity ."
+msgstr "gmeow:claimPolarityFunctionality logic:characterizes gmeow:claimPolarity ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/claimSupportStatusFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the native coherence gate must enforce that gmeow:claimSupportStatus names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
+msgstr "当原生一致性门必须强制 gmeow:claimSupportStatus 恰好命名一个值 时使用；该记录是门所连接的规范载体，因此该义务是被推理出来的，而非在形状表面上重述。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/claimSupportStatusFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
+msgstr "当第二个值会使该记录产生歧义时避免使用该记录——应撤回该断言而非削弱它，且绝不将其复刻为手写形状。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/claimSupportStatusFunctionality|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:claimSupportStatus, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."
+msgstr "与 logic:characteristicSort 一并阅读：(logic:characterizes gmeow:claimSupportStatus, logic:characteristicSort logic:functionalProperty) 这一对构成完整义务，OWL 基础视图据此投影出相应特征。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/claimSupportStatusFunctionality|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:claimSupportStatusFunctionality logic:characterizes gmeow:claimSupportStatus ."
+msgstr "gmeow:claimSupportStatusFunctionality logic:characterizes gmeow:claimSupportStatus ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/claimTruthDirectednessFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the native coherence gate must enforce that gmeow:claimTruthDirectedness names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
+msgstr "当原生一致性门必须强制 gmeow:claimTruthDirectedness 恰好命名一个值 时使用；该记录是门所连接的规范载体，因此该义务是被推理出来的，而非在形状表面上重述。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/claimTruthDirectednessFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
+msgstr "当第二个值会使该记录产生歧义时避免使用该记录——应撤回该断言而非削弱它，且绝不将其复刻为手写形状。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/claimTruthDirectednessFunctionality|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:claimTruthDirectedness, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."
+msgstr "与 logic:characteristicSort 一并阅读：(logic:characterizes gmeow:claimTruthDirectedness, logic:characteristicSort logic:functionalProperty) 这一对构成完整义务，OWL 基础视图据此投影出相应特征。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/claimTruthDirectednessFunctionality|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:claimTruthDirectednessFunctionality logic:characterizes gmeow:claimTruthDirectedness ."
+msgstr "gmeow:claimTruthDirectednessFunctionality logic:characterizes gmeow:claimTruthDirectedness ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/standpointClaimFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the native coherence gate must enforce that gmeow:standpointClaim names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
+msgstr "当原生一致性门必须强制 gmeow:standpointClaim 恰好命名一个值 时使用；该记录是门所连接的规范载体，因此该义务是被推理出来的，而非在形状表面上重述。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/standpointClaimFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
+msgstr "当第二个值会使该记录产生歧义时避免使用该记录——应撤回该断言而非削弱它，且绝不将其复刻为手写形状。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/standpointClaimFunctionality|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:standpointClaim, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."
+msgstr "与 logic:characteristicSort 一并阅读：(logic:characterizes gmeow:standpointClaim, logic:characteristicSort logic:functionalProperty) 这一对构成完整义务，OWL 基础视图据此投影出相应特征。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/standpointClaimFunctionality|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:standpointClaimFunctionality logic:characterizes gmeow:standpointClaim ."
+msgstr "gmeow:standpointClaimFunctionality logic:characterizes gmeow:standpointClaim ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/tenureStandpointFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the native coherence gate must enforce that gmeow:tenureStandpoint names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
+msgstr "当原生一致性门必须强制 gmeow:tenureStandpoint 恰好命名一个值 时使用；该记录是门所连接的规范载体，因此该义务是被推理出来的，而非在形状表面上重述。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/tenureStandpointFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
+msgstr "当第二个值会使该记录产生歧义时避免使用该记录——应撤回该断言而非削弱它，且绝不将其复刻为手写形状。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/tenureStandpointFunctionality|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:tenureStandpoint, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."
+msgstr "与 logic:characteristicSort 一并阅读：(logic:characterizes gmeow:tenureStandpoint, logic:characteristicSort logic:functionalProperty) 这一对构成完整义务，OWL 基础视图据此投影出相应特征。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/tenureStandpointFunctionality|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:tenureStandpointFunctionality logic:characterizes gmeow:tenureStandpoint ."
+msgstr "gmeow:tenureStandpointFunctionality logic:characterizes gmeow:tenureStandpoint ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/sharpensTransitivity|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Scope: this record carries ONE integrity obligation about gmeow:sharpens and nothing else. It is not a definition of gmeow:sharpens (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
+msgstr "范围：该记录仅承载关于 gmeow:sharpens 的一项完整性义务，别无其他。它不是 gmeow:sharpens 的定义（定义位于术语自身），不是形状，也不是重述该术语含义的第二处位置——应撤回该记录而非扩大其范围。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/claimAssertoricForceFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Scope: this record carries ONE integrity obligation about gmeow:claimAssertoricForce and nothing else. It is not a definition of gmeow:claimAssertoricForce (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
+msgstr "范围：该记录仅承载关于 gmeow:claimAssertoricForce 的一项完整性义务，别无其他。它不是 gmeow:claimAssertoricForce 的定义（定义位于术语自身），不是形状，也不是重述该术语含义的第二处位置——应撤回该记录而非扩大其范围。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/claimCredenceFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Scope: this record carries ONE integrity obligation about gmeow:claimCredence and nothing else. It is not a definition of gmeow:claimCredence (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
+msgstr "范围：该记录仅承载关于 gmeow:claimCredence 的一项完整性义务，别无其他。它不是 gmeow:claimCredence 的定义（定义位于术语自身），不是形状，也不是重述该术语含义的第二处位置——应撤回该记录而非扩大其范围。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/claimCredenceLevelFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Scope: this record carries ONE integrity obligation about gmeow:claimCredenceLevel and nothing else. It is not a definition of gmeow:claimCredenceLevel (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
+msgstr "范围：该记录仅承载关于 gmeow:claimCredenceLevel 的一项完整性义务，别无其他。它不是 gmeow:claimCredenceLevel 的定义（定义位于术语自身），不是形状，也不是重述该术语含义的第二处位置——应撤回该记录而非扩大其范围。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/claimModalForceFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Scope: this record carries ONE integrity obligation about gmeow:claimModalForce and nothing else. It is not a definition of gmeow:claimModalForce (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
+msgstr "范围：该记录仅承载关于 gmeow:claimModalForce 的一项完整性义务，别无其他。它不是 gmeow:claimModalForce 的定义（定义位于术语自身），不是形状，也不是重述该术语含义的第二处位置——应撤回该记录而非扩大其范围。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/claimModalityFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Scope: this record carries ONE integrity obligation about gmeow:claimModality and nothing else. It is not a definition of gmeow:claimModality (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
+msgstr "范围：该记录仅承载关于 gmeow:claimModality 的一项完整性义务，别无其他。它不是 gmeow:claimModality 的定义（定义位于术语自身），不是形状，也不是重述该术语含义的第二处位置——应撤回该记录而非扩大其范围。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/claimPolarityFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Scope: this record carries ONE integrity obligation about gmeow:claimPolarity and nothing else. It is not a definition of gmeow:claimPolarity (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
+msgstr "范围：该记录仅承载关于 gmeow:claimPolarity 的一项完整性义务，别无其他。它不是 gmeow:claimPolarity 的定义（定义位于术语自身），不是形状，也不是重述该术语含义的第二处位置——应撤回该记录而非扩大其范围。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/claimSupportStatusFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Scope: this record carries ONE integrity obligation about gmeow:claimSupportStatus and nothing else. It is not a definition of gmeow:claimSupportStatus (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
+msgstr "范围：该记录仅承载关于 gmeow:claimSupportStatus 的一项完整性义务，别无其他。它不是 gmeow:claimSupportStatus 的定义（定义位于术语自身），不是形状，也不是重述该术语含义的第二处位置——应撤回该记录而非扩大其范围。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/claimTruthDirectednessFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Scope: this record carries ONE integrity obligation about gmeow:claimTruthDirectedness and nothing else. It is not a definition of gmeow:claimTruthDirectedness (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
+msgstr "范围：该记录仅承载关于 gmeow:claimTruthDirectedness 的一项完整性义务，别无其他。它不是 gmeow:claimTruthDirectedness 的定义（定义位于术语自身），不是形状，也不是重述该术语含义的第二处位置——应撤回该记录而非扩大其范围。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/standpointClaimFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Scope: this record carries ONE integrity obligation about gmeow:standpointClaim and nothing else. It is not a definition of gmeow:standpointClaim (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
+msgstr "范围：该记录仅承载关于 gmeow:standpointClaim 的一项完整性义务，别无其他。它不是 gmeow:standpointClaim 的定义（定义位于术语自身），不是形状，也不是重述该术语含义的第二处位置——应撤回该记录而非扩大其范围。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/tenureStandpointFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Scope: this record carries ONE integrity obligation about gmeow:tenureStandpoint and nothing else. It is not a definition of gmeow:tenureStandpoint (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
+msgstr "范围：该记录仅承载关于 gmeow:tenureStandpoint 的一项完整性义务，别无其他。它不是 gmeow:tenureStandpoint 的定义（定义位于术语自身），不是形状，也不是重述该术语含义的第二处位置——应撤回该记录而非扩大其范围。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ClaimCredenceRangeConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "ClaimCredence declarative range constraint"
+msgstr "ClaimCredence 声明式取值范围约束"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ClaimCredenceRangeConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A validation-only integrity constraint: a StandpointClaim's gmeow:claimCredence is an xsd:decimal in [0.0, 1.0]."
+msgstr "仅用于验证的完整性约束：StandpointClaim 的 gmeow:claimCredence 是位于 [0.0, 1.0] 区间内的 xsd:decimal。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/succeedsClaim|rdfs:label"
+msgid "succeeds claim"
+msgstr "接续声明"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/succeedsClaim|skos:definition"
+msgid "Relates a successor claim-bearing entity to its predecessor when the claimed state changes. The predecessor remains valid during its earlier fact-time interval according to the stated standpoint."
+msgstr "当所声明状态发生变化时，将后继声明承载实体关联到前驱。根据所述立场，前驱在其较早的事实时间区间内仍有效。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/succeedsClaim|gmeow:howToUse"
+msgid "Annotate the relation with accordingTo and validFrom for its effective time; retain separate fact-time intervals on the claims or name usages."
+msgstr "以 accordingTo 和 validFrom 标注关系的立场及生效时间；在声明或名称使用上保留独立的事实时间区间。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/succeedsClaim|gmeow:useWhen"
+msgid "Relates a successor claim-bearing entity to its predecessor when the claimed state changes. The predecessor remains valid during its earlier fact-time interval according to the stated standpoint."
+msgstr "当所声明状态发生变化时，将后继声明承载实体关联到前驱。根据所述立场，前驱在其较早的事实时间区间内仍有效。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/succeedsClaim|gmeow:avoidWhen"
+msgid "Do not infer global truth, deletion, a preferred claim or a change in another standpoint."
+msgstr "不要推断全局真值、删除、首选声明或另一立场中的变化。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/succeedsClaim|skos:scopeNote"
+msgid "The effective time of a lifecycle relation is distinct from the fact-time interval of the proposition. Display suppression is a projection policy, not a global truth judgment."
+msgstr "生命周期关系的生效时间与命题的事实时间区间不同。显示抑制是投影政策，而非全局真值判断。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/succeedsClaim|skos:example"
+msgid "ex:janet gmeow:succeedsClaim ex:bob ."
+msgstr "ex:janet gmeow:succeedsClaim ex:bob ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/correctsClaim|rdfs:label"
+msgid "corrects claim"
+msgstr "纠正声明"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/correctsClaim|skos:definition"
+msgid "Relates a correcting claim-bearing entity to a predecessor rejected as erroneous by the correcting standpoint, including its purported earlier validity. It does not make the predecessor globally false in other standpoints."
+msgstr "将纠正声明承载实体关联到被纠正立场判为错误的前驱，包括其声称的早期有效性。这不会使前驱在其他立场下全局为假。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/correctsClaim|gmeow:howToUse"
+msgid "Annotate the relation with accordingTo and validFrom for when the correction took effect. Suppress the erroneous predecessor in that standpoint without erasing its retained record."
+msgstr "以 accordingTo 和 validFrom 标注纠正的立场及生效时间。在该立场下抑制错误前驱的显示，但不删除其保留记录。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/correctsClaim|gmeow:useWhen"
+msgid "Relates a correcting claim-bearing entity to a predecessor rejected as erroneous by the correcting standpoint, including its purported earlier validity. It does not make the predecessor globally false in other standpoints."
+msgstr "将纠正声明承载实体关联到被纠正立场判为错误的前驱，包括其声称的早期有效性。这不会使前驱在其他立场下全局为假。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/correctsClaim|gmeow:avoidWhen"
+msgid "Do not infer global truth, deletion, a preferred claim or a change in another standpoint."
+msgstr "不要推断全局真值、删除、首选声明或另一立场中的变化。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/correctsClaim|skos:scopeNote"
+msgid "The effective time of a lifecycle relation is distinct from the fact-time interval of the proposition. Display suppression is a projection policy, not a global truth judgment."
+msgstr "生命周期关系的生效时间与命题的事实时间区间不同。显示抑制是投影政策，而非全局真值判断。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/correctsClaim|skos:example"
+msgid "ex:correction gmeow:correctsClaim ex:mistakenName ."
+msgstr "ex:correction gmeow:correctsClaim ex:mistakenName ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/retractsClaim|rdfs:label"
+msgid "retracts claim"
+msgstr "撤回声明"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/retractsClaim|skos:definition"
+msgid "Relates a withdrawal activity to the claim-bearing entity it withdraws in a stated standpoint. This relation is the canonical lifecycle encoding; a speech-act force alone performs no withdrawal."
+msgstr "将撤回活动关联到其在所述立场下撤回的声明承载实体。此关系是规范的生命周期编码；仅有言语行为力度不执行撤回。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/retractsClaim|gmeow:howToUse"
+msgid "Type the subject Activity, name its actor with wasAssociatedWith, and annotate the relation with accordingTo and validFrom. Retraction suppresses retained history for ordinary revision; erasure requires separate authorization."
+msgstr "将主语定型为 Activity，以 wasAssociatedWith 指定行为者，并以 accordingTo 和 validFrom 标注关系。普通修订中的撤回抑制历史显示并保留记录；删除需要独立授权。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/retractsClaim|gmeow:useWhen"
+msgid "Relates a withdrawal activity to the claim-bearing entity it withdraws in a stated standpoint. This relation is the canonical lifecycle encoding; a speech-act force alone performs no withdrawal."
+msgstr "将撤回活动关联到其在所述立场下撤回的声明承载实体。此关系是规范的生命周期编码；仅有言语行为力度不执行撤回。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/retractsClaim|gmeow:avoidWhen"
+msgid "Do not infer global truth, deletion, a preferred claim or a change in another standpoint."
+msgstr "不要推断全局真值、删除、首选声明或另一立场中的变化。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/retractsClaim|skos:scopeNote"
+msgid "The effective time of a lifecycle relation is distinct from the fact-time interval of the proposition. Display suppression is a projection policy, not a global truth judgment."
+msgstr "生命周期关系的生效时间与命题的事实时间区间不同。显示抑制是投影政策，而非全局真值判断。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/retractsClaim|skos:example"
+msgid "ex:withdrawal a gmeow:Activity ; gmeow:retractsClaim ex:claim ."
+msgstr "ex:withdrawal a gmeow:Activity ; gmeow:retractsClaim ex:claim ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ModalForce|gmeow:howToUse"
+msgid "Reference a modal-force individual via claimModalForce on a StandpointClaim or standpointModalForce on an annotated statement. An absent modal force is unspecified, not necessary or actual. State gmeow:modalForceNecessary explicitly when necessity is intended."
+msgstr "在 StandpointClaim 上通过 claimModalForce，或在带注释语句上通过 standpointModalForce 引用模态力度个体。模态力度缺省表示未指定，而非必然或现实。若意指必然性，应明确给出 gmeow:modalForceNecessary。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/modalForceNecessary|skos:definition"
+msgid "The proposition holds in every precisification admitted by the standpoint. This explicit necessary force participates in the seeded unequivocal and refuted decompositions; it is never inferred from absence."
+msgstr "命题在该立场允许的每种精确化中成立。此明确的必然力度参与预设的 unequivocal 和 refuted 分解；绝不从缺省推断。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/standpointModalForce|skos:definition"
+msgid "The alethic modal force of an annotated proposition, orthogonal to credence and confidence. It is the flattened-statement twin of claimModalForce. An absent modal force is unspecified, not necessary or actual. State gmeow:modalForceNecessary explicitly when necessity is intended."
+msgstr "带注释命题的真势模态力度，与信念程度及置信度正交。它是 claimModalForce 的扁平语句对应项。模态力度缺省表示未指定，而非必然或现实。若意指必然性，应明确给出 gmeow:modalForceNecessary。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/claimModalForce|gmeow:howToUse"
+msgid "Name one ModalForce individual when specified; flatten it to standpointModalForce without supplying a value for absence. An absent modal force is unspecified, not necessary or actual. State gmeow:modalForceNecessary explicitly when necessity is intended."
+msgstr "指定时引用一个 ModalForce 个体；扁平化为 standpointModalForce 时不得为缺省补值。模态力度缺省表示未指定，而非必然或现实。若意指必然性，应明确给出 gmeow:modalForceNecessary。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/claimModalForceFunctionality|skos:definition"
+msgid "The canonical functional-property obligation permits at most one explicit claimModalForce per claim. Absence remains unspecified; functionality does not require a value or supply necessary."
+msgstr "规范函数属性约束允许每个声明至多一个明确的 claimModalForce。缺省仍为未指定；函数性不要求存在值，也不补入 necessary。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/claimModalForceFunctionality|gmeow:useWhen"
+msgid "Use to reject multiple explicit modal-force values without requiring a missing value."
+msgstr "用于拒绝多个明确模态力度值，而不要求补齐缺失值。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/assertoricRetract|skos:definition"
+msgid "The retract speech-act force describes an utterance of withdrawal. It does not withdraw its carrying claim or change lifecycle state. Use an Activity with retractsClaim for lifecycle withdrawal; ordinary revision retains suppressed history and governed erasure requires separate authorization."
+msgstr "retract 言语行为力度描述撤回话语。它不撤回承载它的声明，也不改变生命周期状态。生命周期撤回应使用带有 retractsClaim 的 Activity；普通修订保留受抑制历史，受治理删除需要独立授权。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AssertoricForce|skos:definition"
+msgid "The speech-act force axis: assert puts a proposition forward, conjecture offers it tentatively, assume supposes it for argument, retract describes a withdrawal utterance. Speech-act classification alone has no lifecycle effect."
+msgstr "言语行为力度轴：assert 提出命题，conjecture 暂时提出猜想，assume 为论证而假设，retract 描述撤回话语。仅作言语行为分类不影响生命周期。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AssertoricForce|gmeow:avoidWhen"
+msgid "The retract speech-act force describes an utterance of withdrawal. It does not withdraw its carrying claim or change lifecycle state. Use an Activity with retractsClaim for lifecycle withdrawal; ordinary revision retains suppressed history and governed erasure requires separate authorization."
+msgstr "retract 言语行为力度描述撤回话语。它不撤回承载它的声明，也不改变生命周期状态。生命周期撤回应使用带有 retractsClaim 的 Activity；普通修订保留受抑制历史，受治理删除需要独立授权。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/claimAssertoricForce|gmeow:avoidWhen"
+msgid "The retract speech-act force describes an utterance of withdrawal. It does not withdraw its carrying claim or change lifecycle state. Use an Activity with retractsClaim for lifecycle withdrawal; ordinary revision retains suppressed history and governed erasure requires separate authorization."
+msgstr "retract 言语行为力度描述撤回话语。它不撤回承载它的声明，也不改变生命周期状态。生命周期撤回应使用带有 retractsClaim 的 Activity；普通修订保留受抑制历史，受治理删除需要独立授权。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/claimAssertoricForceFunctionality|skos:definition"
+msgid "The canonical functional-property obligation permits at most one explicit claimAssertoricForce per claim. The retract value classifies speech only; lifecycle withdrawal is represented by Activity/retractsClaim."
+msgstr "规范函数属性约束允许每个声明至多一个明确的 claimAssertoricForce。retract 值仅分类言语；生命周期撤回以 Activity/retractsClaim 表示。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/StandpointModality|gmeow:howToUse"
+msgid "Reference a seeded legacy modality only when explicitly specified. Absence is unspecified and supplies no modal force; only explicit legacy values carry their declared decompositions."
+msgstr "仅在明确指定时引用预设旧式模态。缺省为未指定，不补入模态力度；只有明确值才携带其声明的分解。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/claimModality|gmeow:howToUse"
+msgid "Reference a seeded legacy modality only when explicitly specified. Absence is unspecified and supplies no modal force; only explicit legacy values carry their declared decompositions."
+msgstr "仅在明确指定时引用预设旧式模态。缺省为未指定，不补入模态力度；只有明确值才携带其声明的分解。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/unequivocal|skos:definition"
+msgid "Explicit settled or necessary truth according to a standpoint: the proposition holds in every admitted precisification. Its declared decomposition includes necessary. An absent modality never implies this value."
+msgstr "某立场下明确的确定或必然真：命题在所有允许的精确化中成立。其声明分解包含 necessary。模态缺省绝不隐含此值。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/slices/standpoint|skos:scopeNote"
+msgid "Suppression retains superseded records during ordinary revision. Separately authorized governed erasure removes exactly selected named objects, including its forget request, without retained deletion receipts or cascading through references. Unselected references may dangle and answer gone. Succession preserves prior fact-time validity; correction rejects the earlier claim only in the correcting standpoint."
+msgstr "普通修订通过显示抑制保留被替代记录。独立授权的受治理删除只移除选定命名对象，包括遗忘请求本身，不保留删除回执，也不沿引用级联删除。未选中引用可以悬空并返回“已不存在”。接续保留早期事实时间有效性；纠正仅在纠正立场下拒绝早先声明。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/claimModalityFunctionality|skos:definition"
+msgid "The canonical functional-property obligation permits at most one explicit legacy claimModality per claim. Absence is unspecified, supplies no unequivocal value and licenses no necessary-force decomposition."
+msgstr "规范函数属性约束允许每个声明至多一个明确的旧式 claimModality。缺省为未指定，不补入 unequivocal 值，也不允许必然力度分解。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/claimModalityFunctionality|gmeow:useWhen"
+msgid "Use to reject multiple explicit legacy modality values without requiring a missing value."
+msgstr "用于拒绝多个明确的旧式模态值，而不要求补齐缺失值。"

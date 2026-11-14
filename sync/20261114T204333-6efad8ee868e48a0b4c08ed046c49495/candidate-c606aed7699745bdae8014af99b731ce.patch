@@ -1,0 +1,2065 @@
+diff --git crates/logic-compile/src/frontend.rs crates/logic-compile/src/frontend.rs
+index 130691360..53d443217 100644
+--- crates/logic-compile/src/frontend.rs
++++ crates/logic-compile/src/frontend.rs
+@@ -205,29 +205,50 @@ fn modality_from_term(term: Option<&Node>) -> Option<LogicModality> {
+     LogicModality::from_str_value(&raw.to_lowercase())
+ }
+ 
+-/// Read a single scope coordinate. Multiple distinct values need explicit scope
+-/// lowering; choosing whichever physical table is read first is not admission.
+-fn scope_value(
++/// A total, storage-order-independent identity for a scope term: its kind, its
++/// canonical text, and the complete term so that terms differing only in
++/// datatype, language or blank-node scope keep a distinct, fixed place in the
++/// order. The debug text is a sound tiebreak only while `Debug` stays derived
++/// for the term types.
++fn term_identity(term: &Node) -> (u8, String, String) {
++    let kind = match term {
++        Node::Iri(_) => 0,
++        Node::Blank { .. } => 1,
++        Node::Lit(_) => 2,
++        Node::Triple(_) => 3,
++    };
++    (kind, term_str(term), format!("{term:?}"))
++}
++
++/// Read every default-graph value of one scope coordinate, ordered by term
++/// identity (kind, then canonical text, then the full term) so the result never
++/// depends on which physical table the store returned a value from.
++///
++/// Every distinct term is returned: an IRI, a literal and a blank node that share
++/// the same text are three terms here, so that `confidence` and `modality`
++/// validate each of them. `scope_from_node` then reduces the values to the ones
++/// that produce distinct scopes.
++///
++/// `Some(empty)` means the coordinate is absent. `None` means the node was
++/// refused (a diagnostic has been recorded): a proposition-valued term on any of
++/// the values withholds the whole carrier, never just that value.
++fn scope_values(
+     store: &RdfDataset,
+     node: &Subject,
+     field: &str,
+     diagnostics: &mut Vec<Diagnostic>,
+-) -> Option<Node> {
+-    let subject = subject_id(store, node)?;
+-    let predicate = store.term_id_by_iri(&logic_iri(field))?;
+-    let mut rows =
+-        crate::graphutil::default_graph_pattern(store, Some(subject), Some(predicate), None);
+-    let first = rows.next()?;
+-    if rows.next().is_some() {
+-        diagnostics.push(Diagnostic::error(
+-            "UNSUPPORTED_SCOPE_MULTIPLICITY",
+-            format!("logic:{field} has multiple scope coordinates; this scope requires explicit lowering"),
+-            Some(subject_str(node)),
+-        ));
+-        return None;
+-    }
+-    let value = crate::graphutil::node_of(store, first.o);
+-    if matches!(value, Node::Triple(_)) {
++) -> Option<Vec<Node>> {
++    let (Some(subject), Some(predicate)) = (
++        subject_id(store, node),
++        store.term_id_by_iri(&logic_iri(field)),
++    ) else {
++        return Some(Vec::new());
++    };
++    let mut values: Vec<Node> =
++        crate::graphutil::default_graph_pattern(store, Some(subject), Some(predicate), None)
++            .map(|row| crate::graphutil::node_of(store, row.o))
++            .collect();
++    if values.iter().any(|value| matches!(value, Node::Triple(_))) {
+         diagnostics.push(Diagnostic::error(
+             "UNSUPPORTED_SCOPE_TERM",
+             format!("logic:{field} is a proposition term; this scope requires typed term lowering"),
+@@ -235,58 +256,207 @@ fn scope_value(
+         ));
+         return None;
+     }
+-    Some(value)
++    values.sort_by_cached_key(term_identity);
++    values.dedup_by_key(|value| term_identity(value));
++    Some(values)
+ }
+ 
+-/// Extract every scope dimension together. An invalid coordinate withholds the
+-/// whole claim or rule; it cannot turn into a weaker or unconditional assertion.
++/// The scope under construction while the coordinates are fanned out.
++#[derive(Clone)]
++struct ScopeDraft {
++    standpoint: Option<String>,
++    time: Option<String>,
++    confidence: Option<f64>,
++    modality: LogicModality,
++    provenance: Option<String>,
++    module: Option<String>,
++}
++
++/// Cross each draft with every value of one coordinate. An absent coordinate
++/// (no values) leaves the drafts unchanged.
++fn fan_out<T>(
++    drafts: Vec<ScopeDraft>,
++    values: &[T],
++    set: impl Fn(&mut ScopeDraft, &T),
++) -> Vec<ScopeDraft> {
++    if values.is_empty() {
++        return drafts;
++    }
++    let set = &set;
++    drafts
++        .into_iter()
++        .flat_map(|draft| {
++            values.iter().map(move |value| {
++                let mut next = draft.clone();
++                set(&mut next, value);
++                next
++            })
++        })
++        .collect()
++}
++
++/// Keep the first term of each distinct text, preserving order. Terms with one
++/// text are not adjacent in identity order, so this cannot be an adjacent dedup.
++fn first_per_text(values: Vec<Node>) -> Vec<Node> {
++    let mut seen = BTreeSet::new();
++    values
++        .into_iter()
++        .filter(|value| seen.insert(term_str(value)))
++        .collect()
++}
++
++/// Extract every scope dimension together and lower the carrier into its scopes.
++///
++/// A carrier with one value per coordinate yields one scope. A carrier with
++/// several values of exactly one coordinate yields one scope per value, in the
++/// order of the values, with every other coordinate shared. Values are distinct
++/// exactly when the scopes they produce are distinct. `standpoint`, `time`,
++/// `provenance` and `inModule` are held as text in a scope, so terms with one
++/// text are one value: the first of them in term-identity order is kept, and the
++/// values are ordered by that identity. `confidence` and `modality` validate every
++/// term and are then counted by parsed value: `"0.5"` and `"0.50"` are one
++/// confidence, and the bare local name and the full IRI of one modality are one
++/// modality. Confidences are ordered by numeric value and modalities by the
++/// declaration order of `LogicModality`.
++/// A carrier with several values of two or more coordinates is refused whole:
++/// the node gives no pairing between the values of different coordinates, and
++/// their product would assert combinations no author wrote. An invalid value of
++/// any coordinate (a confidence outside [0, 1], an unknown modality, a
++/// proposition-valued term) also withholds the whole claim or rule; no value is
++/// dropped to let the others through. `None` always carries an error diagnostic.
+ fn scope_from_node(
+     store: &RdfDataset,
+     node: &Subject,
+     diagnostics: &mut Vec<Diagnostic>,
+-) -> Option<ContextualScope> {
++) -> Option<Vec<ContextualScope>> {
+     let start = diagnostics.len();
+-    let standpoint = scope_value(store, node, "standpoint", diagnostics)
+-        .as_ref()
+-        .map(term_str);
+-    let time = scope_value(store, node, "time", diagnostics)
+-        .as_ref()
+-        .map(term_str);
+-    let conf_node = scope_value(store, node, "confidence", diagnostics);
+-    let confidence = conf_node.as_ref().and_then(confidence_from_term);
+-    if let Some(cn) = &conf_node
+-        && confidence.is_none()
+-    {
++    let standpoint = scope_values(store, node, "standpoint", diagnostics);
++    let time = scope_values(store, node, "time", diagnostics);
++    let confidence_nodes = scope_values(store, node, "confidence", diagnostics);
++    let modality_nodes = scope_values(store, node, "modality", diagnostics);
++    let provenance = scope_values(store, node, "provenance", diagnostics);
++    let module = scope_values(store, node, "inModule", diagnostics);
++    let (
++        Some(standpoint),
++        Some(time),
++        Some(confidence_nodes),
++        Some(modality_nodes),
++        Some(provenance),
++        Some(module),
++    ) = (
++        standpoint,
++        time,
++        confidence_nodes,
++        modality_nodes,
++        provenance,
++        module,
++    )
++    else {
++        return None;
++    };
++    let [standpoint, time, provenance, module] =
++        [standpoint, time, provenance, module].map(first_per_text);
++
++    // Every term is validated; only then are equal parsed values merged, so one
++    // invalid spelling still withholds the claim.
++    let mut confidences = Vec::with_capacity(confidence_nodes.len());
++    for value in &confidence_nodes {
++        match confidence_from_term(value) {
++            // Exact equality of the parsed value; -0.0 is folded into 0.0 first.
++            Some(confidence) => confidences.push(if confidence == 0.0 { 0.0 } else { confidence }),
++            None => diagnostics.push(Diagnostic::error(
++                "INVALID_CONFIDENCE",
++                format!(
++                    "confidence value {:?} is not a float in [0, 1]; scope excluded",
++                    term_str(value)
++                ),
++                Some(subject_str(node)),
++            )),
++        }
++    }
++    let mut modalities = Vec::with_capacity(modality_nodes.len());
++    for value in &modality_nodes {
++        match modality_from_term(Some(value)) {
++            Some(modality) => modalities.push(modality),
++            None => diagnostics.push(Diagnostic::error(
++                "UNKNOWN_MODALITY",
++                "unrecognized logic:modality; scope excluded",
++                Some(subject_str(node)),
++            )),
++        }
++    }
++
++    // Total order on the validated range (no NaN), so the sort cannot panic.
++    confidences.sort_by(f64::total_cmp);
++    confidences.dedup();
++    modalities.sort_unstable();
++    modalities.dedup();
++
++    let multi_valued: Vec<&str> = [
++        ("standpoint", standpoint.len()),
++        ("time", time.len()),
++        ("confidence", confidences.len()),
++        ("modality", modalities.len()),
++        ("provenance", provenance.len()),
++        ("inModule", module.len()),
++    ]
++    .into_iter()
++    .filter_map(|(field, count)| (count > 1).then_some(field))
++    .collect();
++    if multi_valued.len() > 1 {
++        let fields: Vec<String> = multi_valued
++            .iter()
++            .map(|field| format!("logic:{field}"))
++            .collect();
+         diagnostics.push(Diagnostic::error(
+-            "INVALID_CONFIDENCE",
++            "AMBIGUOUS_SCOPE_COORDINATES",
+             format!(
+-                "confidence value {:?} is not a float in [0, 1]; scope excluded",
+-                term_str(cn)
++                "{} each carry several values on one node, which gives no pairing between \
++                 them; write one reifier or rule per intended combination",
++                fields.join(" and ")
+             ),
+             Some(subject_str(node)),
+         ));
+     }
+-    let modality_node = scope_value(store, node, "modality", diagnostics);
+-    let modality = modality_from_term(modality_node.as_ref());
+-    if modality.is_none() {
+-        diagnostics.push(Diagnostic::error(
+-            "UNKNOWN_MODALITY",
+-            "unrecognized logic:modality; scope excluded",
+-            Some(subject_str(node)),
+-        ));
+-    }
+-    let provenance = scope_value(store, node, "provenance", diagnostics)
+-        .as_ref()
+-        .map(term_str);
+-    let module = scope_value(store, node, "inModule", diagnostics)
+-        .as_ref()
+-        .map(term_str);
+     if diagnostics.len() != start {
+         return None;
+     }
++
++    let seed = ScopeDraft {
++        standpoint: None,
++        time: None,
++        confidence: None,
++        modality: LogicModality::None,
++        provenance: None,
++        module: None,
++    };
++    // At most one coordinate has several values (checked above), so crossing the
++    // coordinates one at a time fans that coordinate out and nothing else.
++    let drafts = fan_out(vec![seed], &standpoint, |d, v| {
++        d.standpoint = Some(term_str(v));
++    });
++    let drafts = fan_out(drafts, &time, |d, v| d.time = Some(term_str(v)));
++    let drafts = fan_out(drafts, &confidences, |d, v| d.confidence = Some(*v));
++    let drafts = fan_out(drafts, &modalities, |d, v| d.modality = *v);
++    let drafts = fan_out(drafts, &provenance, |d, v| {
++        d.provenance = Some(term_str(v));
++    });
++    let drafts = fan_out(drafts, &module, |d, v| d.module = Some(term_str(v)));
+     Some(
+-        ContextualScope::new(standpoint, time, confidence, modality?, provenance, module)
+-            .expect("every confidence coordinate has been validated"),
++        drafts
++            .into_iter()
++            .map(|d| {
++                ContextualScope::new(
++                    d.standpoint,
++                    d.time,
++                    d.confidence,
++                    d.modality,
++                    d.provenance,
++                    d.module,
++                )
++                .expect("every confidence coordinate has been validated")
++            })
++            .collect(),
+     )
+ }
+ 
+@@ -1295,12 +1465,18 @@ fn extract_scoped_axioms(
+             if rule_atoms.contains(&quad.s) {
+                 continue;
+             }
+-            let Some(scope) = scope_from_node(store, &reifier, diagnostics) else {
++            let Some(scopes) = scope_from_node(store, &reifier, diagnostics) else {
+                 continue;
+             };
+             // Quotation alone never asserts its proposition. The same explicit
+             // scope admission applies to both native and classic reification.
+-            if scope == ContextualScope::default() {
++            // A carrier whose only scope is the default stays an unasserted
++            // quotation, so `none` beside another modality yields only the other claim.
++            let scopes: Vec<_> = scopes
++                .into_iter()
++                .filter(|scope| *scope != ContextualScope::default())
++                .collect();
++            if scopes.is_empty() {
+                 continue;
+             }
+             if let Node::Triple(triple) = crate::graphutil::node_of(store, quad.o) {
+@@ -1313,14 +1489,23 @@ fn extract_scoped_axioms(
+                     ));
+                     continue;
+                 }
+-                match native_quoted_axiom(store, &reifier, &triple, false, scope) {
+-                    Ok(ax) => axioms.push(AxiomEmission::new(
+-                        ax,
+-                        AxiomSource::Reification(SourceNode {
+-                            term: quad.s,
+-                            graph: quad.g,
+-                        }),
+-                    )),
++                // One claim per scope, all anchored to the authored reifier. The
++                // claim is withheld whole: every scope's axiom is built first and
++                // none is emitted unless all of them are.
++                let lowered: gmeow_errors::Result<Vec<_>> = scopes
++                    .into_iter()
++                    .map(|scope| native_quoted_axiom(store, &reifier, &triple, false, scope))
++                    .collect();
++                match lowered {
++                    Ok(lowered) => axioms.extend(lowered.into_iter().map(|ax| {
++                        AxiomEmission::new(
++                            ax,
++                            AxiomSource::Reification(SourceNode {
++                                term: quad.s,
++                                graph: quad.g,
++                            }),
++                        )
++                    })),
+                     Err(exc) => diagnostics.push(Diagnostic::error(
+                         "MALFORMED_SCOPED_AXIOM",
+                         exc.message().to_owned(),
+@@ -1337,10 +1522,16 @@ fn extract_scoped_axioms(
+         if subject_id(store, &stmt).is_some_and(|id| rule_atoms.contains(&id)) {
+             continue;
+         }
+-        let Some(scope) = scope_from_node(store, &stmt, diagnostics) else {
++        let Some(scopes) = scope_from_node(store, &stmt, diagnostics) else {
+             continue;
+         };
+-        if scope == ContextualScope::default() {
++        // A carrier whose only scope is the default stays an unasserted quotation,
++        // so `none` beside another modality yields only the other claim.
++        let scopes: Vec<_> = scopes
++            .into_iter()
++            .filter(|scope| *scope != ContextualScope::default())
++            .collect();
++        if scopes.is_empty() {
+             continue;
+         }
+         let t_p = value(store, &stmt, &nn(RDF_PREDICATE));
+@@ -1379,14 +1570,23 @@ fn extract_scoped_axioms(
+             ));
+             continue;
+         };
+-        match native_axiom(subj, p_str, object, false, scope) {
+-            Ok(ax) => axioms.push(AxiomEmission::new(
+-                ax,
+-                AxiomSource::Reification(SourceNode {
+-                    term: subject_id(store, &stmt).expect("selected reification root"),
+-                    graph: None,
+-                }),
+-            )),
++        // One claim per scope, all anchored to the authored statement node. The
++        // claim is withheld whole: every scope's axiom is built first and none is
++        // emitted unless all of them are.
++        let lowered: gmeow_errors::Result<Vec<_>> = scopes
++            .into_iter()
++            .map(|scope| native_axiom(subj.clone(), p_str.clone(), object, false, scope))
++            .collect();
++        match lowered {
++            Ok(lowered) => axioms.extend(lowered.into_iter().map(|ax| {
++                AxiomEmission::new(
++                    ax,
++                    AxiomSource::Reification(SourceNode {
++                        term: subject_id(store, &stmt).expect("selected reification root"),
++                        graph: None,
++                    }),
++                )
++            })),
+             Err(exc) => diagnostics.push(Diagnostic::error(
+                 "MALFORMED_SCOPED_AXIOM",
+                 exc.message().to_owned(),
+@@ -1889,11 +2089,29 @@ fn read_reified_axiom(
+             "rule atom rdf:reifies must target a triple term".into(),
+         )));
+     };
+-    let scope = scope_from_node(store, node, diagnostics).ok_or_else(|| {
++    let mut scopes = scope_from_node(store, node, diagnostics).ok_or_else(|| {
+         Diag::of_kind(crate::error::Frontend::new(
+             "invalid rule atom scope".into(),
+         ))
+     })?;
++    // A rule atom is one conjunct of its rule, so it carries exactly one scope:
++    // lowering several scopes of one atom into several atoms would turn the rule
++    // into a conjunction, a different rule. A carrier refused by `scope_from_node`
++    // for two or more multi-valued coordinates reaches this site as the earlier
++    // error above, not this one.
++    if scopes.len() != 1 {
++        diagnostics.push(Diagnostic::error(
++            "AMBIGUOUS_RULE_ATOM_SCOPE",
++            "a rule atom carries several values of one scope coordinate; write one rule \
++             per intended atom value, each atom with its own reifier (a scope on the rule \
++             node scopes the rule as a whole, not its atoms)",
++            Some(subject_str(node)),
++        ));
++        return Err(Diag::of_kind(crate::error::Frontend::new(
++            "rule atom scope has several values".into(),
++        )));
++    }
++    let scope = scopes.remove(0);
+     native_quoted_axiom(store, node, &triple, negated, scope)
+ }
+ 
+@@ -1939,7 +2157,7 @@ fn extract_rules(
+             lowerings,
+             |diagnostics| {
+                 let diagnostic_start = diagnostics.len();
+-                let Some(scope) = scope_from_node(store, &rule_node, diagnostics) else {
++                let Some(scopes) = scope_from_node(store, &rule_node, diagnostics) else {
+                     return Err(Vec::new());
+                 };
+ 
+@@ -2036,10 +2254,23 @@ fn extract_rules(
+                     distinct_pairs.push(pair);
+                 }
+ 
+-                let mut rule = LogicRule::new(head_axiom, body_axioms, distinct_pairs, scope);
+-                if let Some(agg) = aggregation_from_node(store, &rule_node, diagnostics) {
+-                    rule = rule.with_aggregation(agg);
+-                }
++                let aggregation = aggregation_from_node(store, &rule_node, diagnostics);
++                // One rule per scope of the authored rule node.
++                let lowered: Vec<LogicRule> = scopes
++                    .into_iter()
++                    .map(|scope| {
++                        let rule = LogicRule::new(
++                            head_axiom.clone(),
++                            body_axioms.clone(),
++                            distinct_pairs.clone(),
++                            scope,
++                        );
++                        match &aggregation {
++                            Some(agg) => rule.with_aggregation(agg.clone()),
++                            None => rule,
++                        }
++                    })
++                    .collect();
+                 // A malformed conjunct, guard, aggregation or scope cannot turn this into
+                 // a weaker rule. Preserve all diagnostics, and withhold the whole rule.
+                 let rule_diagnostics = &mut diagnostics[diagnostic_start..];
+@@ -2054,10 +2285,18 @@ fn extract_rules(
+                     }
+                     return Err(Vec::new());
+                 }
+-                Ok(rule)
++                Ok(lowered)
+             },
+         ) {
+-            rules.push(emitted);
++            // Every lowered rule keeps the authored rule node as its source.
++            for value in emitted.value {
++                rules.push(OwnerEmission {
++                    source: emitted.source,
++                    family: emitted.family,
++                    diagnostics: emitted.diagnostics.clone(),
++                    value,
++                });
++            }
+         }
+     }
+ 
+diff --git crates/logic-compile/src/frontend/native_statement_tests.rs crates/logic-compile/src/frontend/native_statement_tests.rs
+index 2a26c6552..50029cdf7 100644
+--- crates/logic-compile/src/frontend/native_statement_tests.rs
++++ crates/logic-compile/src/frontend/native_statement_tests.rs
+@@ -295,7 +295,7 @@ fn annotation_only_modal_formula_preserves_authored_variable_and_constraint_owne
+ 
+ #[test]
+ fn invalid_native_scope_never_emits_a_weaker_claim() {
+-    for kind in ["confidence", "modality", "multiplicity", "proposition"] {
++    for kind in ["confidence", "modality", "proposition"] {
+         let mut builder = RdfDatasetBuilder::new();
+         let (reifier, triple) = quoted_axiom(&mut builder);
+         builder.push_reifier(reifier, triple).unwrap();
+@@ -315,11 +315,6 @@ fn invalid_native_scope_never_emits_a_weaker_claim() {
+                 builder.intern_iri(&logic_iri("UnknownModality")).unwrap(),
+                 "UNKNOWN_MODALITY",
+             ),
+-            "multiplicity" => (
+-                "standpoint",
+-                builder.intern_iri("https://example.org/other").unwrap(),
+-                "UNSUPPORTED_SCOPE_MULTIPLICITY",
+-            ),
+             "proposition" => ("time", triple, "UNSUPPORTED_SCOPE_TERM"),
+             _ => unreachable!(),
+         };
+@@ -380,3 +375,605 @@ fn separate_native_reifiers_preserve_coexisting_standpoints() {
+         ])
+     );
+ }
++
++/// A scope value as authored on a claim: an IRI or a plain literal.
++#[derive(Clone, Copy)]
++enum Authored {
++    Iri(&'static str),
++    Text(&'static str),
++}
++
++/// Compile one quoted claim carrying the given `logic:` scope values, in the order
++/// given, and return the scopes of the resulting `ex:Bird` axioms with the
++/// diagnostic codes.
++fn lower_claim(values: &[(&str, Authored)]) -> (Vec<ContextualScope>, Vec<String>) {
++    let mut builder = RdfDatasetBuilder::new();
++    let (reifier, triple) = quoted_axiom(&mut builder);
++    builder.push_reifier(reifier, triple).unwrap();
++    for (field, value) in values {
++        let predicate = builder.intern_iri(&logic_iri(field)).unwrap();
++        let object = match value {
++            Authored::Iri(iri) => builder.intern_iri(iri).unwrap(),
++            Authored::Text(text) => builder.intern_literal(RdfLiteral::simple(*text)).unwrap(),
++        };
++        builder.push_annotation(reifier, predicate, object).unwrap();
++    }
++    let source = builder.freeze().unwrap();
++    let (program, diagnostics) = parse_logic_dataset(&source, None).unwrap();
++    let scopes = program
++        .axioms
++        .iter()
++        .filter(|a| a.subject == "https://example.org/Bird")
++        .map(|a| a.scope.clone())
++        .collect();
++    (scopes, diagnostics.into_iter().map(|d| d.code).collect())
++}
++
++#[test]
++fn several_values_of_one_scope_coordinate_lower_to_one_claim_per_value() {
++    use Authored::{Iri, Text};
++    let cases: [(&str, Authored, Authored); 6] = [
++        (
++            "standpoint",
++            Iri("https://example.org/a"),
++            Iri("https://example.org/b"),
++        ),
++        ("time", Text("2026-01-01"), Text("2026-02-01")),
++        ("confidence", Text("0.25"), Text("0.75")),
++        (
++            "modality",
++            Iri("https://blackcatinformatics.ca/logic/alethic"),
++            Iri("https://blackcatinformatics.ca/logic/epistemic"),
++        ),
++        (
++            "provenance",
++            Iri("https://example.org/a"),
++            Iri("https://example.org/b"),
++        ),
++        (
++            "inModule",
++            Iri("https://example.org/a"),
++            Iri("https://example.org/b"),
++        ),
++    ];
++    for (field, first, second) in cases {
++        let (forward, codes) = lower_claim(&[(field, first), (field, second)]);
++        let (backward, _) = lower_claim(&[(field, second), (field, first)]);
++        assert!(codes.is_empty(), "{field}: {codes:?}");
++        assert_eq!(forward.len(), 2, "{field}");
++        assert_ne!(
++            forward[0], forward[1],
++            "{field}: the two claims are distinct"
++        );
++        assert_eq!(
++            forward, backward,
++            "{field}: authoring order changed the result"
++        );
++    }
++}
++
++#[test]
++fn fanning_out_one_coordinate_shares_every_other_coordinate() {
++    use Authored::{Iri, Text};
++    let (scopes, codes) = lower_claim(&[
++        ("standpoint", Iri("https://example.org/shared")),
++        ("confidence", Text("0.5")),
++        ("provenance", Iri("https://example.org/a")),
++        ("provenance", Iri("https://example.org/b")),
++    ]);
++    assert!(codes.is_empty(), "{codes:?}");
++    assert_eq!(scopes.len(), 2);
++    for scope in &scopes {
++        assert_eq!(
++            scope.standpoint.as_deref(),
++            Some("https://example.org/shared")
++        );
++        assert_eq!(scope.confidence, Some(0.5));
++    }
++}
++
++#[test]
++fn two_provenance_values_yield_two_claims_in_canonical_order() {
++    use Authored::Iri;
++    let (scopes, codes) = lower_claim(&[
++        ("provenance", Iri("https://example.org/zulu")),
++        ("provenance", Iri("https://example.org/alfa")),
++    ]);
++    assert!(codes.is_empty(), "{codes:?}");
++    let provenance: Vec<_> = scopes.iter().map(|s| s.provenance.as_deref()).collect();
++    assert_eq!(
++        provenance,
++        [
++            Some("https://example.org/alfa"),
++            Some("https://example.org/zulu")
++        ]
++    );
++}
++
++#[test]
++fn several_values_of_two_scope_coordinates_withhold_the_claim_naming_both() {
++    use Authored::Iri;
++    let mut builder = RdfDatasetBuilder::new();
++    let (reifier, triple) = quoted_axiom(&mut builder);
++    builder.push_reifier(reifier, triple).unwrap();
++    for (field, value) in [
++        ("provenance", "https://example.org/a"),
++        ("provenance", "https://example.org/b"),
++        ("standpoint", "https://example.org/c"),
++        ("standpoint", "https://example.org/d"),
++    ] {
++        let predicate = builder.intern_iri(&logic_iri(field)).unwrap();
++        let object = builder.intern_iri(value).unwrap();
++        builder.push_annotation(reifier, predicate, object).unwrap();
++    }
++    let source = builder.freeze().unwrap();
++    let (program, diagnostics) = parse_logic_dataset(&source, None).unwrap();
++    let refusal = diagnostics
++        .iter()
++        .find(|d| d.code == "AMBIGUOUS_SCOPE_COORDINATES")
++        .unwrap_or_else(|| panic!("{diagnostics:?}"));
++    assert_eq!(refusal.severity, Severity::Error);
++    assert_eq!(
++        refusal.subject.as_deref(),
++        Some("https://example.org/claim")
++    );
++    assert!(refusal.message.contains("logic:provenance"));
++    assert!(refusal.message.contains("logic:standpoint"));
++    assert!(
++        !program
++            .axioms
++            .iter()
++            .any(|a| a.subject == "https://example.org/Bird")
++    );
++    // A neighbouring node with one multi-valued coordinate is admitted.
++    let (admitted, codes) = lower_claim(&[
++        ("provenance", Iri("https://example.org/a")),
++        ("provenance", Iri("https://example.org/b")),
++    ]);
++    assert_eq!((admitted.len(), codes.is_empty()), (2, true));
++}
++
++#[test]
++fn one_invalid_value_among_several_withholds_every_claim() {
++    use Authored::{Iri, Text};
++    for (values, expected) in [
++        (
++            vec![("confidence", Text("0.5")), ("confidence", Text("2.5"))],
++            "INVALID_CONFIDENCE",
++        ),
++        (
++            vec![
++                (
++                    "modality",
++                    Iri("https://blackcatinformatics.ca/logic/alethic"),
++                ),
++                (
++                    "modality",
++                    Iri("https://blackcatinformatics.ca/logic/Unknown"),
++                ),
++            ],
++            "UNKNOWN_MODALITY",
++        ),
++    ] {
++        let (scopes, codes) = lower_claim(&values);
++        assert!(scopes.is_empty(), "{expected}: {scopes:?}");
++        assert!(codes.iter().any(|c| c == expected), "{expected}: {codes:?}");
++    }
++    // A proposition-valued value among IRIs.
++    let mut builder = RdfDatasetBuilder::new();
++    let (reifier, triple) = quoted_axiom(&mut builder);
++    builder.push_reifier(reifier, triple).unwrap();
++    let predicate = builder.intern_iri(&logic_iri("provenance")).unwrap();
++    let source_iri = builder.intern_iri("https://example.org/a").unwrap();
++    builder
++        .push_annotation(reifier, predicate, source_iri)
++        .unwrap();
++    builder.push_annotation(reifier, predicate, triple).unwrap();
++    let source = builder.freeze().unwrap();
++    let (program, diagnostics) = parse_logic_dataset(&source, None).unwrap();
++    assert!(
++        diagnostics
++            .iter()
++            .any(|d| d.code == "UNSUPPORTED_SCOPE_TERM")
++    );
++    assert!(
++        program
++            .axioms
++            .iter()
++            .all(|a| a.subject != "https://example.org/Bird")
++    );
++}
++
++fn parse_turtle(text: &str) -> std::sync::Arc<purrdf::RdfDataset> {
++    purrdf::parse_dataset(
++        format!(
++            "@prefix logic: <https://blackcatinformatics.ca/logic/> .
++             @prefix ex: <https://example.org/> .
++             @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> . {text}"
++        )
++        .as_bytes(),
++        "application/trig",
++        None,
++    )
++    .unwrap()
++}
++
++#[test]
++fn a_rule_atom_with_several_values_of_one_coordinate_withholds_the_whole_rule() {
++    let dataset = parse_turtle(
++        "ex:rule a logic:Rule ;
++             logic:head [ rdf:reifies <<( ex:Bird ex:p ex:v )>> ] ;
++             logic:body [ rdf:reifies <<( ex:Bird ex:q ex:v )>> ;
++                          logic:provenance ex:a, ex:b ] .",
++    );
++    let (program, diagnostics) = parse_logic_dataset(&dataset, None).unwrap();
++    assert!(
++        diagnostics
++            .iter()
++            .any(|d| d.code == "AMBIGUOUS_RULE_ATOM_SCOPE" && d.severity == Severity::Error),
++        "{diagnostics:?}"
++    );
++    assert!(program.rules.is_empty(), "{:?}", program.rules);
++}
++
++fn admission_of(text: &str) -> SourceAdmission {
++    let theory = PreparedLogicSource::new(&parse_turtle(text))
++        .unwrap()
++        .into_compiled(None)
++        .unwrap();
++    SourceAdmission::classical_fof(&theory, SourceSelection::all_classical_roots(&theory))
++}
++
++#[test]
++fn rules_lowered_from_one_rule_node_are_one_admission_fact_with_unchanged_id() {
++    let rule = |provenance: &str| {
++        format!(
++            "ex:rule a logic:Rule ;
++                 logic:provenance {provenance} ;
++                 logic:head [ rdf:reifies <<( ex:Bird ex:p ex:v )>> ] ."
++        )
++    };
++    let fanned = admission_of(&rule("ex:a, ex:b"));
++    let single = admission_of(&rule("ex:a"));
++    let rule_units = |admission: &SourceAdmission| {
++        admission
++            .units
++            .iter()
++            .filter(|unit| unit.kind == SemanticUnitKind::Rule)
++            .cloned()
++            .collect::<Vec<_>>()
++    };
++    let (fanned_rules, single_rules) = (rule_units(&fanned), rule_units(&single));
++    assert_eq!(fanned_rules.len(), 1, "{fanned_rules:?}");
++    assert!(matches!(
++        &fanned_rules[0].disposition,
++        SemanticUnitDisposition::Blocked { code, .. } if code == "CONTEXT_ERASURE_FORBIDDEN"
++    ));
++    // Same kind, anchor, documents and disposition: the authored rule keeps the
++    // id it has with a single provenance value.
++    assert_eq!(fanned_rules, single_rules);
++    let ids: BTreeSet<_> = fanned.units.iter().map(|unit| &unit.id).collect();
++    assert_eq!(ids.len(), fanned.units.len(), "{:?}", fanned.units);
++}
++
++#[test]
++fn axioms_lowered_from_one_reifier_get_distinct_assertion_units() {
++    let admission = admission_of(
++        "ex:claim rdf:reifies <<( ex:Bird ex:p ex:v )>> ;
++             logic:provenance ex:a, ex:b .",
++    );
++    let assertions: Vec<_> = admission
++        .units
++        .iter()
++        .filter(|unit| unit.kind == SemanticUnitKind::Assertion)
++        .collect();
++    assert_eq!(assertions.len(), 2, "{assertions:?}");
++    assert_ne!(assertions[0].id, assertions[1].id);
++    assert_ne!(assertions[0].anchor, assertions[1].anchor);
++}
++
++#[test]
++fn spellings_of_one_confidence_or_modality_count_as_one_value() {
++    use Authored::{Iri, Text};
++    let provenance = [
++        ("provenance", Iri("https://example.org/a")),
++        ("provenance", Iri("https://example.org/b")),
++    ];
++    for (field, first, second) in [
++        ("confidence", Text("0.5"), Text("0.50")),
++        ("confidence", Text("0.5"), Text("5e-1")),
++        (
++            "modality",
++            Iri("https://blackcatinformatics.ca/logic/alethic"),
++            Iri("https://blackcatinformatics.ca/logic/Alethic"),
++        ),
++    ] {
++        let (one, codes) = lower_claim(&[(field, first), (field, second)]);
++        assert!(codes.is_empty(), "{field}: {codes:?}");
++        assert_eq!(one.len(), 1, "{field}: one value, one claim");
++        let mut with_sources = vec![(field, first), (field, second)];
++        with_sources.extend(provenance);
++        let (two, codes) = lower_claim(&with_sources);
++        assert!(codes.is_empty(), "{field}: {codes:?}");
++        assert_eq!(two.len(), 2, "{field}: two sources, two claims");
++    }
++}
++
++#[test]
++fn distinct_confidences_fan_out_in_numeric_order_whatever_the_authored_order() {
++    use Authored::Text;
++    let spellings = [
++        ("confidence", Text("0.5")),
++        ("confidence", Text("0.50")),
++        ("confidence", Text("1e-1")),
++    ];
++    let mut reversed = spellings;
++    reversed.reverse();
++    for authored in [spellings, reversed] {
++        let (scopes, codes) = lower_claim(&authored);
++        assert!(codes.is_empty(), "{codes:?}");
++        let confidences: Vec<_> = scopes.iter().map(|s| s.confidence).collect();
++        // Text order would put 0.5 before 1e-1; numeric order does not.
++        assert_eq!(confidences, [Some(0.1), Some(0.5)]);
++    }
++}
++
++fn rule_text(coordinates: &str) -> String {
++    format!(
++        "ex:rule a logic:Rule ;
++             {coordinates}
++             logic:head [ rdf:reifies <<( ex:Bird ex:p ex:v )>> ] ."
++    )
++}
++
++fn rule_scopes(coordinates: &str) -> (Vec<ContextualScope>, Vec<String>) {
++    let (program, diagnostics) =
++        parse_logic_dataset(&parse_turtle(&rule_text(coordinates)), None).unwrap();
++    (
++        program
++            .rules
++            .iter()
++            .map(|rule| rule.scope.clone())
++            .collect(),
++        diagnostics.into_iter().map(|d| d.code).collect(),
++    )
++}
++
++#[test]
++fn a_rule_node_with_two_provenance_values_lowers_to_two_rules_one_source() {
++    let dataset = parse_turtle(&rule_text("logic:provenance ex:zulu, ex:alfa ;"));
++    let theory = PreparedLogicSource::new(&dataset)
++        .unwrap()
++        .into_compiled(None)
++        .unwrap();
++    assert!(
++        theory.diagnostics().is_empty(),
++        "{:?}",
++        theory.diagnostics()
++    );
++    let authored = SourceNode {
++        term: theory
++            .source()
++            .dataset()
++            .term_id_by_iri("https://example.org/rule")
++            .unwrap(),
++        graph: None,
++    };
++    let lowerings: Vec<_> = theory
++        .owner_lowerings()
++        .iter()
++        .filter(|owner| owner.family == OwnerFamily::Rule)
++        .collect();
++    assert_eq!(lowerings.len(), 2, "{lowerings:?}");
++    assert!(lowerings.iter().all(|owner| owner.source == authored));
++    let provenance: Vec<_> = lowerings
++        .iter()
++        .map(|owner| {
++            let OwnerDisposition::Emitted { index } = owner.disposition else {
++                panic!("rule not emitted: {owner:?}")
++            };
++            theory.program().rules[index]
++                .scope
++                .provenance
++                .clone()
++                .unwrap()
++        })
++        .collect();
++    let mut indices: Vec<_> = lowerings
++        .iter()
++        .map(|owner| owner.disposition.clone())
++        .collect();
++    indices.dedup();
++    assert_eq!(
++        indices.len(),
++        2,
++        "two lowerings carry two different indices"
++    );
++    let mut sorted = provenance.clone();
++    sorted.sort();
++    assert_eq!(
++        sorted,
++        ["https://example.org/alfa", "https://example.org/zulu"]
++    );
++}
++
++#[test]
++fn lowered_claims_keep_the_authored_reifier_as_their_only_source() {
++    let dataset = parse_turtle(
++        "ex:claim rdf:reifies <<( ex:Bird ex:p ex:v )>> ; logic:provenance ex:a, ex:b .",
++    );
++    let theory = PreparedLogicSource::new(&dataset)
++        .unwrap()
++        .into_compiled(None)
++        .unwrap();
++    assert!(
++        theory.diagnostics().is_empty(),
++        "{:?}",
++        theory.diagnostics()
++    );
++    let authored = SourceNode {
++        term: theory
++            .source()
++            .dataset()
++            .term_id_by_iri("https://example.org/claim")
++            .unwrap(),
++        graph: None,
++    };
++    let claims: Vec<_> = theory
++        .program()
++        .axioms
++        .iter()
++        .enumerate()
++        .filter(|(_, axiom)| axiom.subject == "https://example.org/Bird")
++        .collect();
++    assert_eq!(claims.len(), 2);
++    for (index, _) in claims {
++        assert_eq!(
++            theory.axiom_sources()[index],
++            [AxiomSource::Reification(authored)]
++        );
++    }
++}
++
++#[test]
++fn the_classic_statement_carrier_fans_out_like_a_reifier() {
++    let dataset = parse_turtle(
++        "ex:statement a rdf:Statement ;
++             rdf:subject ex:Bird ; rdf:predicate ex:p ; rdf:object ex:v ;
++             logic:provenance ex:a, ex:b .",
++    );
++    let (program, diagnostics) = parse_logic_dataset(&dataset, None).unwrap();
++    assert!(diagnostics.is_empty(), "{diagnostics:?}");
++    let provenance: Vec<_> = program
++        .axioms
++        .iter()
++        .filter(|a| a.subject == "https://example.org/Bird")
++        .map(|a| a.scope.provenance.as_deref())
++        .collect();
++    assert_eq!(
++        provenance,
++        [Some("https://example.org/a"), Some("https://example.org/b")]
++    );
++}
++
++#[test]
++fn a_rule_node_with_two_multi_valued_coordinates_is_refused_whole() {
++    let (rules, codes) = rule_scopes("logic:provenance ex:a, ex:b ; logic:standpoint ex:c, ex:d ;");
++    assert!(rules.is_empty(), "{rules:?}");
++    assert!(
++        codes.iter().any(|c| c == "AMBIGUOUS_SCOPE_COORDINATES"),
++        "{codes:?}"
++    );
++}
++
++#[test]
++fn one_invalid_value_among_several_withholds_the_whole_rule() {
++    let (rules, codes) = rule_scopes("logic:confidence 0.5, 2.5 ;");
++    assert!(rules.is_empty(), "{rules:?}");
++    assert!(codes.iter().any(|c| c == "INVALID_CONFIDENCE"), "{codes:?}");
++}
++
++#[test]
++fn a_rule_node_fans_out_on_a_coordinate_other_than_provenance() {
++    let (rules, codes) = rule_scopes("logic:standpoint ex:b, ex:a ; logic:confidence 0.5 ;");
++    assert!(codes.is_empty(), "{codes:?}");
++    let standpoints: Vec<_> = rules.iter().map(|s| s.standpoint.as_deref()).collect();
++    assert_eq!(
++        standpoints,
++        [Some("https://example.org/a"), Some("https://example.org/b")]
++    );
++    assert!(rules.iter().all(|s| s.confidence == Some(0.5)));
++}
++
++#[test]
++fn rule_fan_out_is_the_same_in_both_authoring_orders() {
++    let forward = rule_scopes("logic:provenance ex:a, ex:b ;");
++    let backward = rule_scopes("logic:provenance ex:b, ex:a ;");
++    assert_eq!(forward.0.len(), 2);
++    assert_eq!(forward, backward);
++}
++
++#[test]
++fn modality_none_beside_another_modality_yields_only_the_other_claim_but_both_rules() {
++    // A claim whose only scope is the default stays an unasserted quotation, so
++    // only the epistemic claim is emitted.
++    let dataset = parse_turtle(
++        "ex:claim rdf:reifies <<( ex:Bird ex:p ex:v )>> ;
++             logic:modality logic:none, logic:epistemic .",
++    );
++    let (program, diagnostics) = parse_logic_dataset(&dataset, None).unwrap();
++    assert!(diagnostics.is_empty(), "{diagnostics:?}");
++    let modalities: Vec<_> = program
++        .axioms
++        .iter()
++        .filter(|a| a.subject == "https://example.org/Bird")
++        .map(|a| a.scope.modality)
++        .collect();
++    assert_eq!(modalities, [LogicModality::Epistemic]);
++    // A rule is asserted without any scope, so the `none` rule is the unscoped one.
++    let (rules, codes) = rule_scopes("logic:modality logic:none, logic:epistemic ;");
++    assert!(codes.is_empty(), "{codes:?}");
++    let modalities: Vec<_> = rules.iter().map(|s| s.modality).collect();
++    assert_eq!(modalities, [LogicModality::None, LogicModality::Epistemic]);
++}
++
++#[test]
++fn values_split_across_physical_tables_fan_out_the_same_way() {
++    // Both placements: neither value's table may decide the result.
++    for annotated_first in [true, false] {
++        let mut builder = RdfDatasetBuilder::new();
++        let (reifier, triple) = quoted_axiom(&mut builder);
++        builder.push_reifier(reifier, triple).unwrap();
++        let predicate = builder.intern_iri(&logic_iri("provenance")).unwrap();
++        let a = builder.intern_iri("https://example.org/a").unwrap();
++        let b = builder.intern_iri("https://example.org/b").unwrap();
++        let (annotated, quad) = if annotated_first { (a, b) } else { (b, a) };
++        builder
++            .push_annotation(reifier, predicate, annotated)
++            .unwrap();
++        builder.push_quad(reifier, predicate, quad, None).unwrap();
++        let source = builder.freeze().unwrap();
++        let (program, diagnostics) = parse_logic_dataset(&source, None).unwrap();
++        assert!(diagnostics.is_empty(), "{diagnostics:?}");
++        let provenance: Vec<_> = program
++            .axioms
++            .iter()
++            .filter(|a| a.subject == "https://example.org/Bird")
++            .map(|a| a.scope.provenance.as_deref())
++            .collect();
++        assert_eq!(
++            provenance,
++            [Some("https://example.org/a"), Some("https://example.org/b")],
++            "annotated_first={annotated_first}"
++        );
++    }
++}
++
++#[test]
++fn terms_with_one_text_are_one_value_whichever_is_authored_first() {
++    use Authored::{Iri, Text};
++    let same_text = [
++        ("provenance", Iri("https://example.org/a")),
++        ("provenance", Text("https://example.org/a")),
++    ];
++    let mut reversed = same_text;
++    reversed.reverse();
++    // An IRI and a literal of one text lower to identical scopes: one claim.
++    let (forward, codes) = lower_claim(&same_text);
++    let (backward, _) = lower_claim(&reversed);
++    assert!(codes.is_empty(), "{codes:?}");
++    assert_eq!(forward.len(), 1);
++    assert_eq!(forward, backward);
++    // Beside two values of another coordinate they still count once, so the node
++    // fans out on that coordinate and is not refused as ambiguous.
++    for authored in [same_text, reversed] {
++        let mut values = authored.to_vec();
++        values.extend([
++            ("standpoint", Iri("https://example.org/c")),
++            ("standpoint", Iri("https://example.org/d")),
++        ]);
++        let (scopes, codes) = lower_claim(&values);
++        assert!(codes.is_empty(), "{codes:?}");
++        assert_eq!(scopes.len(), 2, "{scopes:?}");
++    }
++}
+diff --git crates/logic-compile/src/frontend/source_admission.rs crates/logic-compile/src/frontend/source_admission.rs
+index 13a581eb5..b1eeb1366 100644
+--- crates/logic-compile/src/frontend/source_admission.rs
++++ crates/logic-compile/src/frontend/source_admission.rs
+@@ -368,6 +368,7 @@ struct AdmissionBuilder<'a> {
+     selection: SourceSelection,
+     selected_documents: BTreeSet<String>,
+     units: Vec<SemanticUnitAdmission>,
++    rule_unit_ids: BTreeSet<String>,
+     declared_classes: BTreeSet<String>,
+     declared_builtins: BTreeSet<String>,
+     certified_classes: BTreeSet<SourceNode>,
+@@ -388,6 +389,7 @@ impl<'a> AdmissionBuilder<'a> {
+             selection,
+             selected_documents,
+             units: Vec::new(),
++            rule_unit_ids: BTreeSet::new(),
+             declared_classes: BTreeSet::new(),
+             declared_builtins: BTreeSet::new(),
+             certified_classes: BTreeSet::new(),
+@@ -850,8 +852,7 @@ impl<'a> AdmissionBuilder<'a> {
+                     seen_rules.insert(*index);
+                 }
+                 if !selected || !self.selection.rules.contains(&anchor) {
+-                    self.push(
+-                        SemanticUnitKind::Rule,
++                    self.push_rule_once(
+                         anchor,
+                         documents,
+                         outside(
+@@ -877,7 +878,7 @@ impl<'a> AdmissionBuilder<'a> {
+                         outside("rule is outside the selected default graph")
+                     }
+                 };
+-                self.push(SemanticUnitKind::Rule, anchor, documents, disposition);
++                self.push_rule_once(anchor, documents, disposition);
+             } else {
+                 let disposition = if !selected || !self.selection.owners.contains(&anchor) {
+                     outside("the owner root is outside the selected documents, graph, or root set")
+@@ -1225,14 +1226,44 @@ impl<'a> AdmissionBuilder<'a> {
+         documents: BTreeSet<String>,
+         disposition: SemanticUnitDisposition,
+     ) {
++        let unit = Self::unit(kind, anchor, documents, disposition);
++        self.units.push(unit);
++    }
++
++    /// Record a Rule unit unless an identical one is already recorded.
++    ///
++    /// The admission ledger describes authored units. Two rules lowered from one
++    /// authored rule node that receive the same disposition are one admission fact
++    /// about that node, not two; the fan-out is a lowering detail. Only exact
++    /// duplicates (same kind, anchor, documents and disposition, which is what the
++    /// id digests) collapse. Lowered rules whose dispositions differ, such as
++    /// admitted rules carrying different rule indices, stay separate units.
++    fn push_rule_once(
++        &mut self,
++        anchor: String,
++        documents: BTreeSet<String>,
++        disposition: SemanticUnitDisposition,
++    ) {
++        let unit = Self::unit(SemanticUnitKind::Rule, anchor, documents, disposition);
++        if self.rule_unit_ids.insert(unit.id.clone()) {
++            self.units.push(unit);
++        }
++    }
++
++    fn unit(
++        kind: SemanticUnitKind,
++        anchor: String,
++        documents: BTreeSet<String>,
++        disposition: SemanticUnitDisposition,
++    ) -> SemanticUnitAdmission {
+         let encoded = purrdf_lex::json::record::to_vec(&(kind, &anchor, &documents, &disposition));
+-        self.units.push(SemanticUnitAdmission {
++        SemanticUnitAdmission {
+             id: digest_bytes(b"gmeow-semantic-unit-v1\0", &encoded),
+             kind,
+             anchor,
+             documents,
+             disposition,
+-        });
++        }
+     }
+ }
+ 
+diff --git crates/pipeline/src/stages/meta_findings.rs crates/pipeline/src/stages/meta_findings.rs
+index 690b72ddf..2282e320c 100644
+--- crates/pipeline/src/stages/meta_findings.rs
++++ crates/pipeline/src/stages/meta_findings.rs
+@@ -341,14 +341,15 @@ impl MetaProgram {
+         }
+         // Bind the class-based selection to actual owner emissions. Provenance is
+         // authored evidence, never an index into this program's rule collection.
+-        let emitted: BTreeMap<_, _> = owners
++        let mut emitted: BTreeMap<SourceNode, Vec<usize>> = BTreeMap::new();
++        for owner in owners
+             .iter()
+             .filter(|owner| owner.family == OwnerFamily::Rule)
+-            .filter_map(|owner| match owner.disposition {
+-                OwnerDisposition::Emitted { index } => Some((owner.source, index)),
+-                OwnerDisposition::Rejected | OwnerDisposition::OutsideDefaultGraph => None,
+-            })
+-            .collect();
++        {
++            if let OwnerDisposition::Emitted { index } = owner.disposition {
++                emitted.entry(owner.source).or_default().push(index);
++            }
++        }
+         let missing = meta_nodes
+             .iter()
+             .filter(|node| !emitted.contains_key(node))
+@@ -361,9 +362,24 @@ impl MetaProgram {
+                 ),
+             }));
+         }
++        // A node whose scope has several values of one coordinate lowers to one rule
++        // per value. A meta-rule is folded as one rule, so choosing among them would be
++        // silent; refuse instead.
++        let fanned_out = meta_nodes
++            .iter()
++            .filter(|node| emitted[*node].len() > 1)
++            .count();
++        if fanned_out > 0 {
++            return Err(gmeow_errors::Diag::of_kind(crate::error::MetaFold {
++                message: format!(
++                    "{fanned_out} of {} selected gmeow:DiagnosticMetaRule subject(s) lower to several rules because they carry several values of a scope coordinate; author each meta-rule with one value per scope coordinate",
++                    meta_nodes.len()
++                ),
++            }));
++        }
+         let rules: Vec<LogicRule> = meta_nodes
+             .iter()
+-            .map(|node| program.rules[emitted[node]].clone())
++            .map(|node| program.rules[emitted[node][0]].clone())
+             .collect();
+         let category_polarity = native_iri_pairs(wiring, CATEGORY_POLARITY);
+         let engine = NativeSparqlEngine::new();
+diff --git crates/pipeline/src/stages/meta_findings.tests.rs crates/pipeline/src/stages/meta_findings.tests.rs
+index 3096fa6bf..680309670 100644
+--- crates/pipeline/src/stages/meta_findings.tests.rs
++++ crates/pipeline/src/stages/meta_findings.tests.rs
+@@ -176,6 +176,22 @@ fn compiled_meta_selection_rejects_a_partly_missing_fold() {
+     }
+ }
+ 
++#[test]
++fn compiled_meta_selection_refuses_a_rule_node_that_lowers_to_several_rules() {
++    let theory = tiny_theory(
++        "ex:fanned a logic:Rule, gmeow:DiagnosticMetaRule ;
++             logic:provenance ex:a, ex:b ;
++             logic:head [ rdf:reifies <<( ex:a ex:fannedHead ex:b )>> ] .",
++    );
++    let error = MetaProgram::from_compiled_theory(&theory).err().unwrap();
++    assert!(
++        error
++            .to_string()
++            .contains("several values of a scope coordinate"),
++        "{error}"
++    );
++}
++
+ #[test]
+ fn compiled_meta_selection_sees_native_type_annotations() {
+     let mut builder = RdfDatasetBuilder::new();
+diff --git docs/PIPELINE_SPINE.md docs/PIPELINE_SPINE.md
+index 59ced7a28..0433f6fc9 100644
+--- docs/PIPELINE_SPINE.md
++++ docs/PIPELINE_SPINE.md
+@@ -220,8 +220,16 @@ No whole-source owned quad vector or second dataset is created for these passes.
+ Named-graph metadata cannot supply default-graph scope, and a bare quoted
+ proposition cannot become an asserted axiom. Unsupported nested scoped terms
+ receive a lowering error instead of being stringified or dropped.
+-Invalid confidence, unknown modality, proposition-valued scope coordinates and
+-unlowered coordinate multiplicity withhold the whole claim or rule with an error.
++A scope carrier with several values of exactly one coordinate lowers to one scoped
++claim or rule per value, in an order fixed by the values and never by the store:
++by term for standpoint, time, provenance and module, by number for confidence
++and by declared order for modality; two spellings of one confidence or modality
++are one value, and so are two terms of one text in a standpoint, time,
++provenance or module (the first in term order is kept). Invalid
++confidence, unknown modality, proposition-valued scope coordinates on any value,
++and several values of two or more coordinates (which give no pairing between
++them) withhold the whole claim or rule with an error. A rule atom carries a
++single scope.
+ Separate reifiers preserve coexisting standpoints; table order cannot pick a winner.
+ 
+ The prepared compiler can retain emission evidence bound to that exact source.
+diff --git slices/core/provenance/docs.md slices/core/provenance/docs.md
+index e335ea081..d3959d863 100644
+--- slices/core/provenance/docs.md
++++ slices/core/provenance/docs.md
+@@ -186,3 +186,46 @@ it does not require a pointer on every Activity or merge independent source
+ assertions into one globally preferred value. There is no new wrapper, required
+ record profile, artifact node, source/force classifier, byte verifier, native
+ failure marker or runtime engine (Principles 2, 4, 7, 9, 12, 17 and 19).
++
++## Approval of a body of work
++
++### gmeow:Approval
++
++`gmeow:Approval` records that a named agent approved a body of work on a given day. It
++is a relator, declared like `gmeow:Attestation` and `gmeow:Contribution`, mediating two
++roles: the approver (`gmeow:approvedBy`, an agent) and the body of work the approval concerns
++(`gmeow:approvalOf`, an entity). The second role is what makes the approval about
++something; a relator needs two relata. `gmeow:approvedOn` carries the calendar day as an
++`xsd:date`, with no invented time of day. `gmeow:approvalScope` optionally names the
++part of the work covered, either a component reached by `gmeow:partOf` or a citation
++selector for a pinpoint; when it is absent the scope is unstated, never "the whole work".
++`gmeow:reportedBy` optionally names the agent who put the approval on record.
++
++```turtle
++ex:approval1 a gmeow:Approval ;
++    gmeow:approvalOf ex:handbook ;
++    gmeow:approvedBy ex:drOkafor ;
++    gmeow:approvedOn "2026-11-05"^^xsd:date ;
++    gmeow:approvalScope ex:handbookChapter3 .
++```
++
++An approval is never a holder. Who holds the claims in a work (`gmeow:accordingTo`), who
++is responsible for it (`gmeow:wasAttributedTo`) and who is credited for making it
++(`gmeow:Contribution`) are separate facts, and `gmeow:approvedBy` is not a subproperty of
++any of those properties. Both kinds of fact can be stated about the same agent without
++one implying the other. `gmeow:reportedBy` says only who recorded the approval; it
++differs from `gmeow:wasAttributedTo`, which ascribes responsibility for an entity.
++
++The approved work (`gmeow:approvalOf`), the approver (`gmeow:approvedBy`) and the approval
++day (`gmeow:approvedOn`) are required paths, closed-world on `gmeow:Approval`: a node that
++omits any of the three is rejected, while `gmeow:approvalScope` and `gmeow:reportedBy` stay
++optional. The class allows at most one approved work, one approver and one approval day per
++`gmeow:Approval` node, stated as qualified cardinality restrictions on the class. A joint
++approval, an approval of several works and an approval on another day are therefore
++several `gmeow:Approval` nodes. A later approval, or a
++correction, adds a node; the identifier and label of an existing node are never changed.
++That last rule is a usage contract that no axiom enforces.
++
++Use `gmeow:Attestation` for signed or policy-bound vouching, `logic:ApprovalCommitment`
++for authorizing an effect before dispatch, and `gmeow:Contribution` for credit for
++making the work (Principles 7, 9, 10, 14).
+diff --git slices/core/provenance/examples/approval.ttl slices/core/provenance/examples/approval.ttl
+new file mode 100644
+index 000000000..fdb588001
+--- /dev/null
++++ slices/core/provenance/examples/approval.ttl
+@@ -0,0 +1,31 @@
++# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
++# SPDX-License-Identifier: CC-BY-4.0
++#
++# Worked example: an approval of a body of work, kept apart from who holds its claims.
++# The reviewer approved one chapter of the handbook on a stated day. The author holds the
++# handbook's claims and stays a separate fact; the reviewer is not made a holder. A later
++# approval of the handbook whose scope is not stated is a new node, and the first node is left unchanged.
++@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
++@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/provenance/approval/> .
++@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
++
++ex:handbook a gmeow:CreativeWork ;
++    gmeow:wasAttributedTo ex:author .
++
++ex:handbookChapter3 gmeow:partOf ex:handbook .
++
++ex:author a gmeow:Person .
++ex:reviewer a gmeow:Person .
++ex:registryClerk a gmeow:Person .
++
++ex:approvalChapter3 a gmeow:Approval ;
++    gmeow:approvalOf ex:handbook ;
++    gmeow:approvedBy ex:reviewer ;
++    gmeow:approvedOn "2026-11-05"^^xsd:date ;
++    gmeow:approvalScope ex:handbookChapter3 ;
++    gmeow:reportedBy ex:registryClerk .
++
++ex:laterApproval a gmeow:Approval ;
++    gmeow:approvalOf ex:handbook ;
++    gmeow:approvedBy ex:reviewer ;
++    gmeow:approvedOn "2026-12-02"^^xsd:date .
+diff --git slices/core/provenance/i18n/fr.po slices/core/provenance/i18n/fr.po
+index 9f27f01d5..e6cee5347 100644
+--- slices/core/provenance/i18n/fr.po
++++ slices/core/provenance/i18n/fr.po
+@@ -128,3 +128,151 @@ msgstr "Appliquer la garde positive canonique provenanceDigest et le motif exact
+ msgctxt "https://blackcatinformatics.ca/gmeow/ProvenanceDigestLexicalConstraint|https://blackcatinformatics.ca/logic/message"
+ msgid "Every supplied provenanceDigest has exactly 64 bare lowercase hexadecimal digits; its provided-value range independently requires xsd:hexBinary. SHA-256 is fixed by the property’s meaning, not inferred from arbitrary hexadecimal values."
+ msgstr "Chaque provenanceDigest fourni comporte exactement 64 chiffres hexadécimaux minuscules sans préfixe ; le contrôle séparé de sa plage de valeurs exige xsd:hexBinary. SHA-256 est fixé par le sens de la propriété et non inféré de valeurs hexadécimales quelconques."
++
++msgctxt "https://blackcatinformatics.ca/gmeow/Approval|http://www.w3.org/2000/01/rdf-schema#label"
++msgid "Approval"
++msgstr "Approbation"
++
++msgctxt "https://blackcatinformatics.ca/gmeow/Approval|http://www.w3.org/2004/02/skos/core#definition"
++msgid "A reified record that a named agent approved a body of work on a given day. It mediates between the approver (gmeow:approvedBy) and the body of work approved (gmeow:approvalOf), carries the calendar day (gmeow:approvedOn), and may carry the part of the work approved (gmeow:approvalScope) and the agent who put the approval on record (gmeow:reportedBy). Approving a body of work is a different fact from holding the claims in it: an approver is not thereby a holder of those claims, an author, a contributor or a source, and the record asserts neither that the work is correct nor that the approver agrees with every part of it."
++msgstr "Enregistrement réifié attestant qu’un agent nommé a approuvé un ensemble de travaux à un jour donné. Il fait le lien entre l’approbateur (gmeow:approvedBy) et l’ensemble de travaux approuvé (gmeow:approvalOf), porte le jour calendaire (gmeow:approvedOn) et peut porter la partie des travaux approuvée (gmeow:approvalScope) ainsi que l’agent qui a consigné l’approbation (gmeow:reportedBy). Approuver un ensemble de travaux est un fait distinct du fait de détenir les affirmations qu’il contient : un approbateur n’est pas, de ce fait, détenteur de ces affirmations, auteur, contributeur ni source, et l’enregistrement n’affirme ni que les travaux sont corrects ni que l’approbateur est d’accord avec chacune de leurs parties."
++
++msgctxt "https://blackcatinformatics.ca/gmeow/Approval|http://www.w3.org/2004/02/skos/core#scopeNote"
++msgid "One Approval node records one approval by one approver of one body of work. A joint approval is several Approval nodes, and a later approval is a new node. The identifier and label of an existing Approval are never changed or reused, and a correction or a re-approval adds a new node instead of rewriting an earlier one. This is a usage contract: no axiom enforces it and no gate can detect a relabelled node. The approver, the approved work and the approval day are required paths, closed-world on gmeow:Approval, so a node that omits any of them is rejected; nothing in the record says the approval is still current."
++msgstr "Un nœud Approval enregistre une approbation, par un approbateur, d’un ensemble de travaux. Une approbation conjointe correspond à plusieurs nœuds Approval, et une approbation ultérieure est un nouveau nœud. L’identifiant et l’étiquette d’une Approval existante ne sont jamais modifiés ni réutilisés, et une correction ou une nouvelle approbation ajoute un nouveau nœud au lieu de réécrire un nœud antérieur. Il s’agit d’une convention d’usage : aucun axiome ne l’impose et aucune barrière ne peut détecter un nœud rebaptisé. L’approbateur, les travaux approuvés et le jour d’approbation sont des chemins obligatoires, en monde clos sur gmeow:Approval, de sorte qu’un nœud qui en omet un est rejeté ; rien dans l’enregistrement ne dit que l’approbation est toujours en vigueur."
++
++msgctxt "https://blackcatinformatics.ca/gmeow/Approval|http://www.w3.org/2004/02/skos/core#example"
++msgid "ex:approval1 a gmeow:Approval ; gmeow:approvalOf ex:handbook ; gmeow:approvedBy ex:drOkafor ; gmeow:approvedOn \"2026-11-05\"^^xsd:date ; gmeow:approvalScope ex:handbookChapter3 ."
++msgstr "ex:approval1 a gmeow:Approval ; gmeow:approvalOf ex:handbook ; gmeow:approvedBy ex:drOkafor ; gmeow:approvedOn \"2026-11-05\"^^xsd:date ; gmeow:approvalScope ex:handbookChapter3 ."
++
++msgctxt "https://blackcatinformatics.ca/gmeow/Approval|https://blackcatinformatics.ca/gmeow/avoidWhen"
++msgid "Avoid it for signed or policy-bound vouching, which is gmeow:Attestation (a vouching act under a named policy, with a required issue instant); for authorizing an effect before it is dispatched, which is logic:ApprovalCommitment (bound to an exact intent, operator, policy, decision and validity window); and for credit for making the work, which is gmeow:Contribution. Avoid it to say whose frame holds a claim (gmeow:accordingTo) or who is responsible for the work (gmeow:wasAttributedTo), and avoid treating an approver as a holder because an Approval names them."
++msgstr "À éviter pour une garantie signée ou liée à une politique, qui relève de gmeow:Attestation (un acte de garantie sous une politique nommée, avec un instant d’émission obligatoire) ; pour l’autorisation d’un effet avant son envoi, qui relève de logic:ApprovalCommitment (liée à une intention, un opérateur, une politique, une décision et une fenêtre de validité exacts) ; et pour le crédit d’avoir réalisé les travaux, qui relève de gmeow:Contribution. À éviter pour dire dans quel cadre une affirmation est tenue (gmeow:accordingTo) ou qui est responsable des travaux (gmeow:wasAttributedTo), et à éviter de traiter un approbateur comme un détenteur parce qu’une Approval le nomme."
++
++msgctxt "https://blackcatinformatics.ca/gmeow/Approval|https://blackcatinformatics.ca/gmeow/howToUse"
++msgid "Mint one Approval per approval and bind gmeow:approvalOf, gmeow:approvedBy and gmeow:approvedOn. Add gmeow:approvalScope only when the approval covers a stated part of the work, and gmeow:reportedBy when the party who recorded the approval is worth naming. For a later approval or a correction add a new node and leave earlier nodes untouched. Keep any claims the approver holds on their own standpoint-indexed statements, separate from the Approval."
++msgstr "Créer une Approval par approbation et lier gmeow:approvalOf, gmeow:approvedBy et gmeow:approvedOn. N’ajouter gmeow:approvalScope que lorsque l’approbation couvre une partie précise des travaux, et gmeow:reportedBy lorsque la partie qui a consigné l’approbation mérite d’être nommée. Pour une approbation ultérieure ou une correction, ajouter un nouveau nœud et laisser les nœuds antérieurs intacts. Garder les affirmations que détient l’approbateur sur leurs propres énoncés indexés par point de vue, séparées de l’Approval."
++
++msgctxt "https://blackcatinformatics.ca/gmeow/Approval|https://blackcatinformatics.ca/gmeow/useWhen"
++msgid "Use to record who approved a body of work, on which day, and optionally for which part of it, as a fact kept apart from who holds the claims in the work."
++msgstr "À utiliser pour consigner qui a approuvé un ensemble de travaux, quel jour, et éventuellement pour quelle partie, comme un fait distinct de celui qui détient les affirmations des travaux."
++
++msgctxt "https://blackcatinformatics.ca/gmeow/approvalOf|http://www.w3.org/2000/01/rdf-schema#label"
++msgid "approval of"
++msgstr "approbation de"
++
++msgctxt "https://blackcatinformatics.ca/gmeow/approvalOf|http://www.w3.org/2004/02/skos/core#definition"
++msgid "Relates an Approval to the body of work it approves. It is the second role of the Approval relator, which needs an approved work as well as an approver; without it an approval would not be about anything. A single Approval approves one body of work, and approval of several works is several Approval nodes."
++msgstr "Relie une Approval aux travaux qu’elle approuve. C’est le second rôle du relateur Approval, qui a besoin de travaux approuvés autant que d’un approbateur ; sans lui, une approbation ne porterait sur rien. Une même Approval approuve un seul ensemble de travaux, et l’approbation de plusieurs travaux correspond à plusieurs nœuds Approval."
++
++msgctxt "https://blackcatinformatics.ca/gmeow/approvalOf|http://www.w3.org/2004/02/skos/core#example"
++msgid "ex:approval1 gmeow:approvalOf ex:handbook ."
++msgstr "ex:approval1 gmeow:approvalOf ex:handbook ."
++
++msgctxt "https://blackcatinformatics.ca/gmeow/approvalOf|https://blackcatinformatics.ca/gmeow/avoidWhen"
++msgid "Avoid it for the part of the work that was approved (use gmeow:approvalScope) and for the agent who approved (use gmeow:approvedBy); naming a work here does not make the approver a holder of its claims."
++msgstr "À éviter pour la partie des travaux qui a été approuvée (utiliser gmeow:approvalScope) et pour l’agent qui a approuvé (utiliser gmeow:approvedBy) ; nommer des travaux ici ne fait pas de l’approbateur un détenteur de leurs affirmations."
++
++msgctxt "https://blackcatinformatics.ca/gmeow/approvalOf|https://blackcatinformatics.ca/gmeow/howToUse"
++msgid "Point the gmeow:Approval at the body of work the approval concerns, whether a creative work, an information object or another entity; narrow the approval to a part with gmeow:approvalScope, not by pointing here at the part."
++msgstr "Pointer l’Approval vers l’ensemble de travaux que concerne l’approbation, qu’il s’agisse d’une œuvre créative, d’un objet d’information ou d’une autre entité ; restreindre l’approbation à une partie avec gmeow:approvalScope, et non en pointant ici vers la partie."
++
++msgctxt "https://blackcatinformatics.ca/gmeow/approvalOf|https://blackcatinformatics.ca/gmeow/useWhen"
++msgid "Use to name the body of work that an Approval approves."
++msgstr "À utiliser pour nommer l’ensemble de travaux qu’une Approval approuve."
++
++msgctxt "https://blackcatinformatics.ca/gmeow/approvalScope|http://www.w3.org/2000/01/rdf-schema#label"
++msgid "approval scope"
++msgstr "portée de l’approbation"
++
++msgctxt "https://blackcatinformatics.ca/gmeow/approvalScope|http://www.w3.org/2004/02/skos/core#definition"
++msgid "Relates an Approval to a part of the approved work that the approval covers: a component reached by gmeow:partOf, or a citation selector for a pinpoint. It is optional and may repeat, so one Approval can name several parts. When it is absent the scope is unstated; that never means the whole work was approved."
++msgstr "Relie une Approval à une partie des travaux approuvés que l’approbation couvre : un composant atteint par gmeow:partOf, ou un sélecteur de citation pour un repère précis. Elle est facultative et peut se répéter, de sorte qu’une Approval peut nommer plusieurs parties. Lorsqu’elle est absente, la portée n’est pas indiquée ; cela ne signifie jamais que l’ensemble des travaux a été approuvé."
++
++msgctxt "https://blackcatinformatics.ca/gmeow/approvalScope|http://www.w3.org/2004/02/skos/core#example"
++msgid "ex:approval1 gmeow:approvalScope ex:handbookChapter3 ."
++msgstr "ex:approval1 gmeow:approvalScope ex:handbookChapter3 ."
++
++msgctxt "https://blackcatinformatics.ca/gmeow/approvalScope|https://blackcatinformatics.ca/gmeow/avoidWhen"
++msgid "Avoid it for the body of work the approval concerns (that is gmeow:approvalOf), and avoid reading a missing value as approval of everything; also avoid it for a time window, which is not a part of a work."
++msgstr "À éviter pour l’ensemble de travaux que concerne l’approbation (c’est gmeow:approvalOf), et à éviter de lire une valeur manquante comme une approbation de tout ; à éviter aussi pour une fenêtre temporelle, qui n’est pas une partie de travaux."
++
++msgctxt "https://blackcatinformatics.ca/gmeow/approvalScope|https://blackcatinformatics.ca/gmeow/howToUse"
++msgid "Point at each approved part, or at a citation selector when only a pinpoint is covered; leave it off when the scope was not stated rather than naming the body of work the approval concerns."
++msgstr "Pointer vers chaque partie approuvée, ou vers un sélecteur de citation lorsque seul un repère précis est couvert ; l’omettre lorsque la portée n’a pas été indiquée plutôt que de nommer l’ensemble de travaux que concerne l’approbation."
++
++msgctxt "https://blackcatinformatics.ca/gmeow/approvalScope|https://blackcatinformatics.ca/gmeow/useWhen"
++msgid "Use to say which part of a body of work an Approval covers when the approval is narrower than the work."
++msgstr "À utiliser pour dire quelle partie d’un ensemble de travaux une Approval couvre lorsque l’approbation est plus étroite que les travaux."
++
++msgctxt "https://blackcatinformatics.ca/gmeow/approvedBy|http://www.w3.org/2000/01/rdf-schema#label"
++msgid "approved by"
++msgstr "approuvé par"
++
++msgctxt "https://blackcatinformatics.ca/gmeow/approvedBy|http://www.w3.org/2004/02/skos/core#definition"
++msgid "Relates an Approval to the person or agent who approved the body of work. An approver is not thereby a holder of the work's claims, an author or a contributor: this property is deliberately not a subproperty of gmeow:accordingTo, gmeow:vantage, gmeow:wasAttributedTo, gmeow:wasAssociatedWith or any contributor property, so that holding claims and approving a work stay separate facts, both expressible."
++msgstr "Relie une Approval à la personne ou à l’agent qui a approuvé l’ensemble de travaux. Un approbateur n’est pas, de ce fait, détenteur des affirmations des travaux, ni auteur ou contributeur : cette propriété n’est volontairement pas une sous-propriété de gmeow:accordingTo, gmeow:vantage, gmeow:wasAttributedTo, gmeow:wasAssociatedWith ni d’aucune propriété de contributeur, afin que détenir des affirmations et approuver des travaux restent des faits distincts, tous deux exprimables."
++
++msgctxt "https://blackcatinformatics.ca/gmeow/approvedBy|http://www.w3.org/2004/02/skos/core#example"
++msgid "ex:approval1 gmeow:approvedBy ex:drOkafor ."
++msgstr "ex:approval1 gmeow:approvedBy ex:drOkafor ."
++
++msgctxt "https://blackcatinformatics.ca/gmeow/approvedBy|https://blackcatinformatics.ca/gmeow/avoidWhen"
++msgid "Avoid it to say whose frame holds a claim (use gmeow:accordingTo), who is responsible for the work (use gmeow:wasAttributedTo), who is credited for making it (use a gmeow:Contribution) or who recorded the approval (use gmeow:reportedBy)."
++msgstr "À éviter pour dire dans quel cadre une affirmation est tenue (utiliser gmeow:accordingTo), qui est responsable des travaux (utiliser gmeow:wasAttributedTo), qui est crédité de leur réalisation (utiliser une gmeow:Contribution) ou qui a consigné l’approbation (utiliser gmeow:reportedBy)."
++
++msgctxt "https://blackcatinformatics.ca/gmeow/approvedBy|https://blackcatinformatics.ca/gmeow/howToUse"
++msgid "Set one gmeow:Agent on each Approval; for a joint approval mint one Approval per approver. Do not infer holding of the work's claims, authorship or endorsement of every part from it."
++msgstr "Définir un seul gmeow:Agent sur chaque Approval ; pour une approbation conjointe, créer une Approval par approbateur. N’en déduire ni la détention des affirmations des travaux, ni la paternité, ni l’aval de chacune de leurs parties."
++
++msgctxt "https://blackcatinformatics.ca/gmeow/approvedBy|https://blackcatinformatics.ca/gmeow/useWhen"
++msgid "Use to name the person or agent who approved a body of work in an Approval."
++msgstr "À utiliser pour nommer, dans une Approval, la personne ou l’agent qui a approuvé un ensemble de travaux."
++
++msgctxt "https://blackcatinformatics.ca/gmeow/approvedOn|http://www.w3.org/2000/01/rdf-schema#label"
++msgid "approved on"
++msgstr "approuvé le"
++
++msgctxt "https://blackcatinformatics.ca/gmeow/approvedOn|http://www.w3.org/2004/02/skos/core#definition"
++msgid "The calendar day on which an Approval was given, typed as xsd:date. It is a day, not an instant: no time of day and no midnight is invented for it."
++msgstr "Le jour calendaire où une Approval a été donnée, typé xsd:date. C’est un jour et non un instant : aucune heure et aucun minuit n’est inventé."
++
++msgctxt "https://blackcatinformatics.ca/gmeow/approvedOn|http://www.w3.org/2004/02/skos/core#example"
++msgid "ex:approval1 gmeow:approvedOn \"2026-11-05\"^^xsd:date ."
++msgstr "ex:approval1 gmeow:approvedOn \"2026-11-05\"^^xsd:date ."
++
++msgctxt "https://blackcatinformatics.ca/gmeow/approvedOn|https://blackcatinformatics.ca/gmeow/avoidWhen"
++msgid "Avoid it for the instant of a signed vouching act (use gmeow:issuedAt on a gmeow:Attestation), for when the system learned of the approval (gmeow:ingestedAt or gmeow:recordedAt) and for a validity window; avoid padding a day to a date-time."
++msgstr "À éviter pour l’instant d’un acte de garantie signé (utiliser gmeow:issuedAt sur une gmeow:Attestation), pour le moment où le système a pris connaissance de l’approbation (gmeow:ingestedAt ou gmeow:recordedAt) et pour une fenêtre de validité ; éviter de compléter un jour pour en faire une date-heure."
++
++msgctxt "https://blackcatinformatics.ca/gmeow/approvedOn|https://blackcatinformatics.ca/gmeow/howToUse"
++msgid "Attach one xsd:date literal to the gmeow:Approval; a different day is a different approval and so a new node."
++msgstr "Attacher un littéral xsd:date à l’Approval ; un autre jour est une autre approbation et donc un nouveau nœud."
++
++msgctxt "https://blackcatinformatics.ca/gmeow/approvedOn|https://blackcatinformatics.ca/gmeow/useWhen"
++msgid "Use to record the day an approval was given when only the date is known or meant."
++msgstr "À utiliser pour consigner le jour où une approbation a été donnée lorsque seule la date est connue ou voulue."
++
++msgctxt "https://blackcatinformatics.ca/gmeow/reportedBy|http://www.w3.org/2000/01/rdf-schema#label"
++msgid "reported by"
++msgstr "consigné par"
++
++msgctxt "https://blackcatinformatics.ca/gmeow/reportedBy|http://www.w3.org/2004/02/skos/core#definition"
++msgid "Relates an Approval to the agent who put the approval on record. The reporter only recorded it: they need not be the approver, and reporting makes them neither responsible for the approved work nor a holder of its claims. It differs from gmeow:wasAttributedTo, which ascribes responsibility (authorship, ownership or accountability) for an entity to an agent, and from gmeow:approvedBy, which names who gave the approval. It is optional, may repeat, and is not a subproperty of anything."
++msgstr "Relie une Approval à l’agent qui a consigné l’approbation. Le déclarant n’a fait que la consigner : il n’est pas nécessairement l’approbateur, et la déclaration ne le rend ni responsable des travaux approuvés ni détenteur de leurs affirmations. Elle diffère de gmeow:wasAttributedTo, qui attribue à un agent la responsabilité (paternité, propriété ou imputabilité) d’une entité, et de gmeow:approvedBy, qui nomme qui a donné l’approbation. Elle est facultative, peut se répéter et n’est la sous-propriété d’aucune autre."
++
++msgctxt "https://blackcatinformatics.ca/gmeow/reportedBy|http://www.w3.org/2004/02/skos/core#example"
++msgid "ex:approval1 gmeow:reportedBy ex:registryClerk ."
++msgstr "ex:approval1 gmeow:reportedBy ex:registryClerk ."
++
++msgctxt "https://blackcatinformatics.ca/gmeow/reportedBy|https://blackcatinformatics.ca/gmeow/avoidWhen"
++msgid "Avoid it for the agent who gave the approval (use gmeow:approvedBy), for responsibility for the Approval or the work (use gmeow:wasAttributedTo) and for the party who ran an import (use gmeow:wasAssociatedWith on the gmeow:ImportActivity)."
++msgstr "À éviter pour l’agent qui a donné l’approbation (utiliser gmeow:approvedBy), pour la responsabilité de l’Approval ou des travaux (utiliser gmeow:wasAttributedTo) et pour la partie qui a exécuté un import (utiliser gmeow:wasAssociatedWith sur l’activité gmeow:ImportActivity)."
++
++msgctxt "https://blackcatinformatics.ca/gmeow/reportedBy|https://blackcatinformatics.ca/gmeow/howToUse"
++msgid "Set it on the gmeow:Approval for each agent who reported the approval; several reporters may coexist. Omit it when the recorder is unknown."
++msgstr "La définir sur l’Approval pour chaque agent qui a consigné l’approbation ; plusieurs déclarants peuvent coexister. L’omettre lorsque l’auteur de la consignation est inconnu."
++
++msgctxt "https://blackcatinformatics.ca/gmeow/reportedBy|https://blackcatinformatics.ca/gmeow/useWhen"
++msgid "Use to name who put an approval on record when that party differs from the approver."
++msgstr "À utiliser pour nommer qui a consigné une approbation lorsque cette partie diffère de l’approbateur."
+diff --git slices/core/provenance/i18n/zh.po slices/core/provenance/i18n/zh.po
+index d7f043c59..1ca02f9f3 100644
+--- slices/core/provenance/i18n/zh.po
++++ slices/core/provenance/i18n/zh.po
+@@ -128,3 +128,151 @@ msgstr "通过规范的正向 provenanceDigest 守卫，将确切模式 ^[0-9a-f
+ msgctxt "https://blackcatinformatics.ca/gmeow/ProvenanceDigestLexicalConstraint|https://blackcatinformatics.ca/logic/message"
+ msgid "Every supplied provenanceDigest has exactly 64 bare lowercase hexadecimal digits; its provided-value range independently requires xsd:hexBinary. SHA-256 is fixed by the property’s meaning, not inferred from arbitrary hexadecimal values."
+ msgstr "每个来源提供的 provenanceDigest 均须包含恰好 64 个无前缀的小写十六进制数字；提供值的范围校验另行要求 xsd:hexBinary。SHA-256 由属性含义固定，不是从任意十六进制值推断而来。"
++
++msgctxt "https://blackcatinformatics.ca/gmeow/Approval|http://www.w3.org/2000/01/rdf-schema#label"
++msgid "Approval"
++msgstr "批准"
++
++msgctxt "https://blackcatinformatics.ca/gmeow/Approval|http://www.w3.org/2004/02/skos/core#definition"
++msgid "A reified record that a named agent approved a body of work on a given day. It mediates between the approver (gmeow:approvedBy) and the body of work approved (gmeow:approvalOf), carries the calendar day (gmeow:approvedOn), and may carry the part of the work approved (gmeow:approvalScope) and the agent who put the approval on record (gmeow:reportedBy). Approving a body of work is a different fact from holding the claims in it: an approver is not thereby a holder of those claims, an author, a contributor or a source, and the record asserts neither that the work is correct nor that the approver agrees with every part of it."
++msgstr "一条具体化的记录，表明某个具名主体在某一天批准了一项工作成果。它在批准者（gmeow:approvedBy）与被批准的工作成果（gmeow:approvalOf）之间起中介作用，携带日历日期（gmeow:approvedOn），并可携带被批准的部分（gmeow:approvalScope）以及将该批准录入记录的主体（gmeow:reportedBy）。批准一项工作成果与持有其中的主张是两个不同的事实：批准者并不因此成为这些主张的持有者、作者、贡献者或来源，且该记录既不断言该工作成果正确，也不断言批准者认同其每一部分。"
++
++msgctxt "https://blackcatinformatics.ca/gmeow/Approval|http://www.w3.org/2004/02/skos/core#scopeNote"
++msgid "One Approval node records one approval by one approver of one body of work. A joint approval is several Approval nodes, and a later approval is a new node. The identifier and label of an existing Approval are never changed or reused, and a correction or a re-approval adds a new node instead of rewriting an earlier one. This is a usage contract: no axiom enforces it and no gate can detect a relabelled node. The approver, the approved work and the approval day are required paths, closed-world on gmeow:Approval, so a node that omits any of them is rejected; nothing in the record says the approval is still current."
++msgstr "一个 Approval 节点记录一位批准者对一项工作成果的一次批准。联合批准对应多个 Approval 节点，后续批准则是新节点。既有 Approval 的标识符与标签绝不更改或重用；更正或重新批准应添加新节点，而不是改写先前的节点。这是一项使用约定：没有任何公理强制它，也没有任何门能检测出被改名的节点。批准者、被批准的工作成果和批准日期是必填路径，在 gmeow:Approval 上按封闭世界处理，因此省略其中任何一项的节点会被拒绝；记录中没有任何内容表明该批准仍然有效。"
++
++msgctxt "https://blackcatinformatics.ca/gmeow/Approval|http://www.w3.org/2004/02/skos/core#example"
++msgid "ex:approval1 a gmeow:Approval ; gmeow:approvalOf ex:handbook ; gmeow:approvedBy ex:drOkafor ; gmeow:approvedOn \"2026-11-05\"^^xsd:date ; gmeow:approvalScope ex:handbookChapter3 ."
++msgstr "ex:approval1 a gmeow:Approval ; gmeow:approvalOf ex:handbook ; gmeow:approvedBy ex:drOkafor ; gmeow:approvedOn \"2026-11-05\"^^xsd:date ; gmeow:approvalScope ex:handbookChapter3 ."
++
++msgctxt "https://blackcatinformatics.ca/gmeow/Approval|https://blackcatinformatics.ca/gmeow/avoidWhen"
++msgid "Avoid it for signed or policy-bound vouching, which is gmeow:Attestation (a vouching act under a named policy, with a required issue instant); for authorizing an effect before it is dispatched, which is logic:ApprovalCommitment (bound to an exact intent, operator, policy, decision and validity window); and for credit for making the work, which is gmeow:Contribution. Avoid it to say whose frame holds a claim (gmeow:accordingTo) or who is responsible for the work (gmeow:wasAttributedTo), and avoid treating an approver as a holder because an Approval names them."
++msgstr "避免用于带签名或受策略约束的担保，那属于 gmeow:Attestation（在具名策略下的担保行为，带有必需的签发时刻）；避免用于在效果被派发之前对其授权，那属于 logic:ApprovalCommitment（绑定于确切的意图、操作者、策略、决定和有效期窗口）；避免用于对制作该工作成果的署名，那属于 gmeow:Contribution。避免用它表示某个主张在谁的框架下成立（gmeow:accordingTo）或谁对该工作成果负责（gmeow:wasAttributedTo），也避免因 Approval 点名了批准者就将其视为持有者。"
++
++msgctxt "https://blackcatinformatics.ca/gmeow/Approval|https://blackcatinformatics.ca/gmeow/howToUse"
++msgid "Mint one Approval per approval and bind gmeow:approvalOf, gmeow:approvedBy and gmeow:approvedOn. Add gmeow:approvalScope only when the approval covers a stated part of the work, and gmeow:reportedBy when the party who recorded the approval is worth naming. For a later approval or a correction add a new node and leave earlier nodes untouched. Keep any claims the approver holds on their own standpoint-indexed statements, separate from the Approval."
++msgstr "每次批准创建一个 Approval，并绑定 gmeow:approvalOf、gmeow:approvedBy 和 gmeow:approvedOn。仅当批准覆盖工作成果的某个明确部分时才添加 gmeow:approvalScope；当录入该批准的一方值得点名时才添加 gmeow:reportedBy。对于后续批准或更正，添加新节点，保持先前节点不变。批准者所持有的任何主张应保留在其各自按立场索引的陈述上，与 Approval 分开。"
++
++msgctxt "https://blackcatinformatics.ca/gmeow/Approval|https://blackcatinformatics.ca/gmeow/useWhen"
++msgid "Use to record who approved a body of work, on which day, and optionally for which part of it, as a fact kept apart from who holds the claims in the work."
++msgstr "用于记录谁在哪一天批准了一项工作成果，并可选地记录批准了其中哪一部分，作为与谁持有该工作成果中的主张相分离的事实。"
++
++msgctxt "https://blackcatinformatics.ca/gmeow/approvalOf|http://www.w3.org/2000/01/rdf-schema#label"
++msgid "approval of"
++msgstr "批准对象"
++
++msgctxt "https://blackcatinformatics.ca/gmeow/approvalOf|http://www.w3.org/2004/02/skos/core#definition"
++msgid "Relates an Approval to the body of work it approves. It is the second role of the Approval relator, which needs an approved work as well as an approver; without it an approval would not be about anything. A single Approval approves one body of work, and approval of several works is several Approval nodes."
++msgstr "将一个 Approval 关联到其所批准的工作成果。它是 Approval 关系体的第二个角色，因为关系体既需要批准者，也需要被批准的工作成果；没有它，批准就不涉及任何对象。一个 Approval 只批准一项工作成果，批准多项工作成果则对应多个 Approval 节点。"
++
++msgctxt "https://blackcatinformatics.ca/gmeow/approvalOf|http://www.w3.org/2004/02/skos/core#example"
++msgid "ex:approval1 gmeow:approvalOf ex:handbook ."
++msgstr "ex:approval1 gmeow:approvalOf ex:handbook ."
++
++msgctxt "https://blackcatinformatics.ca/gmeow/approvalOf|https://blackcatinformatics.ca/gmeow/avoidWhen"
++msgid "Avoid it for the part of the work that was approved (use gmeow:approvalScope) and for the agent who approved (use gmeow:approvedBy); naming a work here does not make the approver a holder of its claims."
++msgstr "避免用于被批准的那一部分（应使用 gmeow:approvalScope）和批准的主体（应使用 gmeow:approvedBy）；在此处点名某项工作成果并不使批准者成为其主张的持有者。"
++
++msgctxt "https://blackcatinformatics.ca/gmeow/approvalOf|https://blackcatinformatics.ca/gmeow/howToUse"
++msgid "Point the gmeow:Approval at the body of work the approval concerns, whether a creative work, an information object or another entity; narrow the approval to a part with gmeow:approvalScope, not by pointing here at the part."
++msgstr "让 Approval 指向该批准所涉及的工作成果，无论它是创作作品、信息对象还是其他实体；要将批准缩小到某个部分，应使用 gmeow:approvalScope，而不是在此处指向该部分。"
++
++msgctxt "https://blackcatinformatics.ca/gmeow/approvalOf|https://blackcatinformatics.ca/gmeow/useWhen"
++msgid "Use to name the body of work that an Approval approves."
++msgstr "用于指明一个 Approval 所批准的工作成果。"
++
++msgctxt "https://blackcatinformatics.ca/gmeow/approvalScope|http://www.w3.org/2000/01/rdf-schema#label"
++msgid "approval scope"
++msgstr "批准范围"
++
++msgctxt "https://blackcatinformatics.ca/gmeow/approvalScope|http://www.w3.org/2004/02/skos/core#definition"
++msgid "Relates an Approval to a part of the approved work that the approval covers: a component reached by gmeow:partOf, or a citation selector for a pinpoint. It is optional and may repeat, so one Approval can name several parts. When it is absent the scope is unstated; that never means the whole work was approved."
++msgstr "将一个 Approval 关联到该批准所覆盖的、被批准工作成果的某个部分：可以是通过 gmeow:partOf 到达的组成部分，也可以是用于精确定位的引文选择器。它是可选的且可重复出现，因此一个 Approval 可以点名多个部分。缺失时，范围即为未说明；这绝不意味着整项工作成果都已获批准。"
++
++msgctxt "https://blackcatinformatics.ca/gmeow/approvalScope|http://www.w3.org/2004/02/skos/core#example"
++msgid "ex:approval1 gmeow:approvalScope ex:handbookChapter3 ."
++msgstr "ex:approval1 gmeow:approvalScope ex:handbookChapter3 ."
++
++msgctxt "https://blackcatinformatics.ca/gmeow/approvalScope|https://blackcatinformatics.ca/gmeow/avoidWhen"
++msgid "Avoid it for the body of work the approval concerns (that is gmeow:approvalOf), and avoid reading a missing value as approval of everything; also avoid it for a time window, which is not a part of a work."
++msgstr "避免用于该批准所涉及的工作成果（那是 gmeow:approvalOf），也避免将缺失的值解读为批准了一切；同样避免用于时间窗口，因为时间窗口不是工作成果的一部分。"
++
++msgctxt "https://blackcatinformatics.ca/gmeow/approvalScope|https://blackcatinformatics.ca/gmeow/howToUse"
++msgid "Point at each approved part, or at a citation selector when only a pinpoint is covered; leave it off when the scope was not stated rather than naming the body of work the approval concerns."
++msgstr "指向每个被批准的部分；若仅覆盖精确定位，则指向引文选择器；当范围未说明时应省略，而不是点名该批准所涉及的工作成果。"
++
++msgctxt "https://blackcatinformatics.ca/gmeow/approvalScope|https://blackcatinformatics.ca/gmeow/useWhen"
++msgid "Use to say which part of a body of work an Approval covers when the approval is narrower than the work."
++msgstr "当批准的范围窄于整项工作成果时，用于说明一个 Approval 覆盖工作成果的哪一部分。"
++
++msgctxt "https://blackcatinformatics.ca/gmeow/approvedBy|http://www.w3.org/2000/01/rdf-schema#label"
++msgid "approved by"
++msgstr "批准者"
++
++msgctxt "https://blackcatinformatics.ca/gmeow/approvedBy|http://www.w3.org/2004/02/skos/core#definition"
++msgid "Relates an Approval to the person or agent who approved the body of work. An approver is not thereby a holder of the work's claims, an author or a contributor: this property is deliberately not a subproperty of gmeow:accordingTo, gmeow:vantage, gmeow:wasAttributedTo, gmeow:wasAssociatedWith or any contributor property, so that holding claims and approving a work stay separate facts, both expressible."
++msgstr "将一个 Approval 关联到批准该工作成果的人或主体。批准者并不因此成为该工作成果主张的持有者，也不是作者或贡献者：此属性刻意不是 gmeow:accordingTo、gmeow:vantage、gmeow:wasAttributedTo、gmeow:wasAssociatedWith 或任何贡献者属性的子属性，使持有主张与批准工作成果保持为两个独立的事实，二者皆可表达。"
++
++msgctxt "https://blackcatinformatics.ca/gmeow/approvedBy|http://www.w3.org/2004/02/skos/core#example"
++msgid "ex:approval1 gmeow:approvedBy ex:drOkafor ."
++msgstr "ex:approval1 gmeow:approvedBy ex:drOkafor ."
++
++msgctxt "https://blackcatinformatics.ca/gmeow/approvedBy|https://blackcatinformatics.ca/gmeow/avoidWhen"
++msgid "Avoid it to say whose frame holds a claim (use gmeow:accordingTo), who is responsible for the work (use gmeow:wasAttributedTo), who is credited for making it (use a gmeow:Contribution) or who recorded the approval (use gmeow:reportedBy)."
++msgstr "避免用于表示某个主张在谁的框架下成立（应使用 gmeow:accordingTo）、谁对该工作成果负责（应使用 gmeow:wasAttributedTo）、谁因制作它而获得署名（应使用 gmeow:Contribution）或谁录入了该批准（应使用 gmeow:reportedBy）。"
++
++msgctxt "https://blackcatinformatics.ca/gmeow/approvedBy|https://blackcatinformatics.ca/gmeow/howToUse"
++msgid "Set one gmeow:Agent on each Approval; for a joint approval mint one Approval per approver. Do not infer holding of the work's claims, authorship or endorsement of every part from it."
++msgstr "在每个 Approval 上设置一个 gmeow:Agent；联合批准时，为每位批准者创建一个 Approval。不要据此推断其持有该工作成果的主张、署名作者身份，或认同其每一部分。"
++
++msgctxt "https://blackcatinformatics.ca/gmeow/approvedBy|https://blackcatinformatics.ca/gmeow/useWhen"
++msgid "Use to name the person or agent who approved a body of work in an Approval."
++msgstr "用于在 Approval 中指明批准某项工作成果的人或主体。"
++
++msgctxt "https://blackcatinformatics.ca/gmeow/approvedOn|http://www.w3.org/2000/01/rdf-schema#label"
++msgid "approved on"
++msgstr "批准日期"
++
++msgctxt "https://blackcatinformatics.ca/gmeow/approvedOn|http://www.w3.org/2004/02/skos/core#definition"
++msgid "The calendar day on which an Approval was given, typed as xsd:date. It is a day, not an instant: no time of day and no midnight is invented for it."
++msgstr "一个 Approval 被给出的日历日，类型为 xsd:date。它是一个日期而非时刻：不会虚构具体时间，也不会虚构午夜。"
++
++msgctxt "https://blackcatinformatics.ca/gmeow/approvedOn|http://www.w3.org/2004/02/skos/core#example"
++msgid "ex:approval1 gmeow:approvedOn \"2026-11-05\"^^xsd:date ."
++msgstr "ex:approval1 gmeow:approvedOn \"2026-11-05\"^^xsd:date ."
++
++msgctxt "https://blackcatinformatics.ca/gmeow/approvedOn|https://blackcatinformatics.ca/gmeow/avoidWhen"
++msgid "Avoid it for the instant of a signed vouching act (use gmeow:issuedAt on a gmeow:Attestation), for when the system learned of the approval (gmeow:ingestedAt or gmeow:recordedAt) and for a validity window; avoid padding a day to a date-time."
++msgstr "避免用于带签名的担保行为的时刻（应在 gmeow:Attestation 上使用 gmeow:issuedAt）、系统获知该批准的时间（gmeow:ingestedAt 或 gmeow:recordedAt）以及有效期窗口；避免将日期补足为日期时间。"
++
++msgctxt "https://blackcatinformatics.ca/gmeow/approvedOn|https://blackcatinformatics.ca/gmeow/howToUse"
++msgid "Attach one xsd:date literal to the gmeow:Approval; a different day is a different approval and so a new node."
++msgstr "为 Approval 附加一个 xsd:date 字面量；不同的日期即是不同的批准，因此是新节点。"
++
++msgctxt "https://blackcatinformatics.ca/gmeow/approvedOn|https://blackcatinformatics.ca/gmeow/useWhen"
++msgid "Use to record the day an approval was given when only the date is known or meant."
++msgstr "当只知道或只需要日期时，用于记录批准被给出的那一天。"
++
++msgctxt "https://blackcatinformatics.ca/gmeow/reportedBy|http://www.w3.org/2000/01/rdf-schema#label"
++msgid "reported by"
++msgstr "报告者"
++
++msgctxt "https://blackcatinformatics.ca/gmeow/reportedBy|http://www.w3.org/2004/02/skos/core#definition"
++msgid "Relates an Approval to the agent who put the approval on record. The reporter only recorded it: they need not be the approver, and reporting makes them neither responsible for the approved work nor a holder of its claims. It differs from gmeow:wasAttributedTo, which ascribes responsibility (authorship, ownership or accountability) for an entity to an agent, and from gmeow:approvedBy, which names who gave the approval. It is optional, may repeat, and is not a subproperty of anything."
++msgstr "将一个 Approval 关联到将该批准录入记录的主体。报告者只是记录了它：不必是批准者，且报告并不使其对被批准的工作成果负责，也不使其成为其中主张的持有者。它不同于 gmeow:wasAttributedTo（后者将实体的责任——作者身份、所有权或问责——归于某个主体），也不同于 gmeow:approvedBy（后者指明谁给出了批准）。它是可选的、可重复出现的，且不是任何属性的子属性。"
++
++msgctxt "https://blackcatinformatics.ca/gmeow/reportedBy|http://www.w3.org/2004/02/skos/core#example"
++msgid "ex:approval1 gmeow:reportedBy ex:registryClerk ."
++msgstr "ex:approval1 gmeow:reportedBy ex:registryClerk ."
++
++msgctxt "https://blackcatinformatics.ca/gmeow/reportedBy|https://blackcatinformatics.ca/gmeow/avoidWhen"
++msgid "Avoid it for the agent who gave the approval (use gmeow:approvedBy), for responsibility for the Approval or the work (use gmeow:wasAttributedTo) and for the party who ran an import (use gmeow:wasAssociatedWith on the gmeow:ImportActivity)."
++msgstr "避免用于给出批准的主体（应使用 gmeow:approvedBy）、对 Approval 或工作成果的责任（应使用 gmeow:wasAttributedTo）以及执行导入的一方（应在 gmeow:ImportActivity 上使用 gmeow:wasAssociatedWith）。"
++
++msgctxt "https://blackcatinformatics.ca/gmeow/reportedBy|https://blackcatinformatics.ca/gmeow/howToUse"
++msgid "Set it on the gmeow:Approval for each agent who reported the approval; several reporters may coexist. Omit it when the recorder is unknown."
++msgstr "在 Approval 上为每个报告了该批准的主体设置它；可以并存多个报告者。当录入者未知时应省略。"
++
++msgctxt "https://blackcatinformatics.ca/gmeow/reportedBy|https://blackcatinformatics.ca/gmeow/useWhen"
++msgid "Use to name who put an approval on record when that party differs from the approver."
++msgstr "当录入批准的一方不同于批准者时，用于指明谁将批准录入了记录。"
+diff --git slices/core/provenance/module.ttl slices/core/provenance/module.ttl
+index 628a75f9f..a82862e7b 100644
+--- slices/core/provenance/module.ttl
++++ slices/core/provenance/module.ttl
+@@ -21,6 +21,53 @@ gmeow:Activity
+     gmeow:howToUse "Type the occurrent as gmeow:Activity (or a specialization such as gmeow:ImportActivity), link its performer with gmeow:wasAssociatedWith and its products with the inverse of gmeow:wasGeneratedBy; carry the time the activity occurred on the event, and statement-level confidence on the derivation claims it produces."@x-gmeow-english ;
+     gmeow:useWhen "Use as the occurrent that produced, transformed, used, or attributed an entity — the activity end of gmeow:wasGeneratedBy and the domain of gmeow:wasAssociatedWith."@x-gmeow-english .
+ 
++gmeow:Approval
++    a logic:Kind ,
++        logic:Class ;
++    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/provenance> ;
++    rdfs:label "Approval"@x-gmeow-english ;
++    logic:mediates gmeow:approvedBy ,
++        gmeow:approvalOf ;
++    logic:subClassOf logic:Relator ,
++        [
++            a logic:Restriction ;
++            logic:onProperty gmeow:approvedBy ;
++            logic:allValuesFrom gmeow:Agent ;
++        ] ,
++        [
++            a logic:Restriction ;
++            logic:onProperty gmeow:approvalOf ;
++            logic:allValuesFrom gmeow:Entity ;
++        ] ,
++        [
++            a logic:Restriction ;
++            logic:onProperty gmeow:approvedOn ;
++            logic:allValuesFrom xsd:date ;
++        ] ;
++    skos:definition "A reified record that a named agent approved a body of work on a given day. It mediates between the approver (gmeow:approvedBy) and the body of work approved (gmeow:approvalOf), carries the calendar day (gmeow:approvedOn), and may carry the part of the work approved (gmeow:approvalScope) and the agent who put the approval on record (gmeow:reportedBy). Approving a body of work is a different fact from holding the claims in it: an approver is not thereby a holder of those claims, an author, a contributor or a source, and the record asserts neither that the work is correct nor that the approver agrees with every part of it."@x-gmeow-english ;
++    skos:scopeNote "One Approval node records one approval by one approver of one body of work. A joint approval is several Approval nodes, and a later approval is a new node. The identifier and label of an existing Approval are never changed or reused, and a correction or a re-approval adds a new node instead of rewriting an earlier one. This is a usage contract: no axiom enforces it and no gate can detect a relabelled node. The approver, the approved work and the approval day are required paths, closed-world on gmeow:Approval, so a node that omits any of them is rejected; nothing in the record says the approval is still current."@x-gmeow-english ;
++    skos:example "ex:approval1 a gmeow:Approval ; gmeow:approvalOf ex:handbook ; gmeow:approvedBy ex:drOkafor ; gmeow:approvedOn \"2026-11-05\"^^xsd:date ; gmeow:approvalScope ex:handbookChapter3 ."@x-gmeow-english ;
++    gmeow:avoidWhen "Avoid it for signed or policy-bound vouching, which is gmeow:Attestation (a vouching act under a named policy, with a required issue instant); for authorizing an effect before it is dispatched, which is logic:ApprovalCommitment (bound to an exact intent, operator, policy, decision and validity window); and for credit for making the work, which is gmeow:Contribution. Avoid it to say whose frame holds a claim (gmeow:accordingTo) or who is responsible for the work (gmeow:wasAttributedTo), and avoid treating an approver as a holder because an Approval names them."@x-gmeow-english ;
++    gmeow:graphBoxRole gmeow:boxTBox ;
++    gmeow:howToUse "Mint one Approval per approval and bind gmeow:approvalOf, gmeow:approvedBy and gmeow:approvedOn. Add gmeow:approvalScope only when the approval covers a stated part of the work, and gmeow:reportedBy when the party who recorded the approval is worth naming. For a later approval or a correction add a new node and leave earlier nodes untouched. Keep any claims the approver holds on their own standpoint-indexed statements, separate from the Approval."@x-gmeow-english ;
++    gmeow:useWhen "Use to record who approved a body of work, on which day, and optionally for which part of it, as a fact kept apart from who holds the claims in the work."@x-gmeow-english .
++
++# An Approval has at most one approved work, one approver and one approval day; a co-approval is several Approval nodes.
++gmeow:Approval logic:subClassOf
++    [ a logic:Restriction ; logic:onProperty gmeow:approvalOf ; logic:maxQualifiedCardinality 1 ; logic:onClass gmeow:Entity ] ,
++    [ a logic:Restriction ; logic:onProperty gmeow:approvedBy ; logic:maxQualifiedCardinality 1 ; logic:onClass gmeow:Agent ] ,
++    [ a logic:Restriction ; logic:onProperty gmeow:approvedOn ; logic:maxQualifiedCardinality 1 ; logic:onDataRange xsd:date ] .
++
++# The approved work, the approver and the approval day are required paths: each is closed-world on gmeow:Approval.
++[ a logic:ClosureEntry ; logic:onClass gmeow:Approval ;
++    logic:closureKey "https://blackcatinformatics.ca/gmeow/approvalOf" ; logic:closureValue logic:ClosedWorldClosure ] .
++
++[ a logic:ClosureEntry ; logic:onClass gmeow:Approval ;
++    logic:closureKey "https://blackcatinformatics.ca/gmeow/approvedBy" ; logic:closureValue logic:ClosedWorldClosure ] .
++
++[ a logic:ClosureEntry ; logic:onClass gmeow:Approval ;
++    logic:closureKey "https://blackcatinformatics.ca/gmeow/approvedOn" ; logic:closureValue logic:ClosedWorldClosure ] .
++
+ gmeow:ImportActivity
+     a logic:Event ,
+         logic:Class ;
+@@ -71,6 +118,62 @@ gmeow:TextExtraction
+         gmeow:consumerInternalArchive ;
+     gmeow:useWhen "Use for the text content pulled verbatim out of a source object — OCR or extraction from a PDF, image, or binary attachment — whose lineage to that source must be recorded."@x-gmeow-english .
+ 
++gmeow:approvalOf
++    a logic:ObjectProperty ;
++    logic:domain gmeow:Approval ;
++    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/provenance> ;
++    rdfs:label "approval of"@x-gmeow-english ;
++    logic:range gmeow:Entity ;
++    skos:definition "Relates an Approval to the body of work it approves. It is the second role of the Approval relator, which needs an approved work as well as an approver; without it an approval would not be about anything. A single Approval approves one body of work, and approval of several works is several Approval nodes."@x-gmeow-english ;
++    skos:example "ex:approval1 gmeow:approvalOf ex:handbook ."@x-gmeow-english ;
++    gmeow:avoidWhen "Avoid it for the part of the work that was approved (use gmeow:approvalScope) and for the agent who approved (use gmeow:approvedBy); naming a work here does not make the approver a holder of its claims."@x-gmeow-english ;
++    gmeow:graphBoxRole gmeow:boxCBox ,
++        gmeow:boxRBox ;
++    gmeow:howToUse "Point the gmeow:Approval at the body of work the approval concerns, whether a creative work, an information object or another entity; narrow the approval to a part with gmeow:approvalScope, not by pointing here at the part."@x-gmeow-english ;
++    gmeow:useWhen "Use to name the body of work that an Approval approves."@x-gmeow-english .
++
++gmeow:approvalScope
++    a logic:ObjectProperty ;
++    logic:domain gmeow:Approval ;
++    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/provenance> ;
++    rdfs:label "approval scope"@x-gmeow-english ;
++    logic:range gmeow:Entity ;
++    skos:definition "Relates an Approval to a part of the approved work that the approval covers: a component reached by gmeow:partOf, or a citation selector for a pinpoint. It is optional and may repeat, so one Approval can name several parts. When it is absent the scope is unstated; that never means the whole work was approved."@x-gmeow-english ;
++    skos:example "ex:approval1 gmeow:approvalScope ex:handbookChapter3 ."@x-gmeow-english ;
++    gmeow:avoidWhen "Avoid it for the body of work the approval concerns (that is gmeow:approvalOf), and avoid reading a missing value as approval of everything; also avoid it for a time window, which is not a part of a work."@x-gmeow-english ;
++    gmeow:graphBoxRole gmeow:boxCBox ,
++        gmeow:boxRBox ;
++    gmeow:howToUse "Point at each approved part, or at a citation selector when only a pinpoint is covered; leave it off when the scope was not stated rather than naming the body of work the approval concerns."@x-gmeow-english ;
++    gmeow:useWhen "Use to say which part of a body of work an Approval covers when the approval is narrower than the work."@x-gmeow-english .
++
++gmeow:approvedBy
++    a logic:ObjectProperty ;
++    logic:domain gmeow:Approval ;
++    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/provenance> ;
++    rdfs:label "approved by"@x-gmeow-english ;
++    logic:range gmeow:Agent ;
++    skos:definition "Relates an Approval to the person or agent who approved the body of work. An approver is not thereby a holder of the work's claims, an author or a contributor: this property is deliberately not a subproperty of gmeow:accordingTo, gmeow:vantage, gmeow:wasAttributedTo, gmeow:wasAssociatedWith or any contributor property, so that holding claims and approving a work stay separate facts, both expressible."@x-gmeow-english ;
++    skos:example "ex:approval1 gmeow:approvedBy ex:drOkafor ."@x-gmeow-english ;
++    gmeow:avoidWhen "Avoid it to say whose frame holds a claim (use gmeow:accordingTo), who is responsible for the work (use gmeow:wasAttributedTo), who is credited for making it (use a gmeow:Contribution) or who recorded the approval (use gmeow:reportedBy)."@x-gmeow-english ;
++    gmeow:graphBoxRole gmeow:boxCBox ,
++        gmeow:boxRBox ;
++    gmeow:howToUse "Set one gmeow:Agent on each Approval; for a joint approval mint one Approval per approver. Do not infer holding of the work's claims, authorship or endorsement of every part from it."@x-gmeow-english ;
++    gmeow:useWhen "Use to name the person or agent who approved a body of work in an Approval."@x-gmeow-english .
++
++gmeow:approvedOn
++    a logic:DatatypeProperty ;
++    logic:domain gmeow:Approval ;
++    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/provenance> ;
++    rdfs:label "approved on"@x-gmeow-english ;
++    logic:range xsd:date ;
++    skos:definition "The calendar day on which an Approval was given, typed as xsd:date. It is a day, not an instant: no time of day and no midnight is invented for it."@x-gmeow-english ;
++    skos:example "ex:approval1 gmeow:approvedOn \"2026-11-05\"^^xsd:date ."@x-gmeow-english ;
++    gmeow:avoidWhen "Avoid it for the instant of a signed vouching act (use gmeow:issuedAt on a gmeow:Attestation), for when the system learned of the approval (gmeow:ingestedAt or gmeow:recordedAt) and for a validity window; avoid padding a day to a date-time."@x-gmeow-english ;
++    gmeow:graphBoxRole gmeow:boxCBox ,
++        gmeow:boxRBox ;
++    gmeow:howToUse "Attach one xsd:date literal to the gmeow:Approval; a different day is a different approval and so a new node."@x-gmeow-english ;
++    gmeow:useWhen "Use to record the day an approval was given when only the date is known or meant."@x-gmeow-english .
++
+ gmeow:confidence
+     a logic:AnnotationProperty ;
+     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/provenance> ;
+@@ -126,6 +229,20 @@ gmeow:provenance
+     gmeow:howToUse "Attach the prose to the gmeow:Entity as a literal; where parts of the narrative can be lifted into structured derivation, generation, or attribution links, model those and reserve this property for the irreducible remainder."@x-gmeow-english ;
+     gmeow:useWhen "Use for a human-readable custody/ownership narrative that resists structured modelling — provenance prose imported from a catalogue record or curator's note."@x-gmeow-english .
+ 
++gmeow:reportedBy
++    a logic:ObjectProperty ;
++    logic:domain gmeow:Approval ;
++    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/provenance> ;
++    rdfs:label "reported by"@x-gmeow-english ;
++    logic:range gmeow:Agent ;
++    skos:definition "Relates an Approval to the agent who put the approval on record. The reporter only recorded it: they need not be the approver, and reporting makes them neither responsible for the approved work nor a holder of its claims. It differs from gmeow:wasAttributedTo, which ascribes responsibility (authorship, ownership or accountability) for an entity to an agent, and from gmeow:approvedBy, which names who gave the approval. It is optional, may repeat, and is not a subproperty of anything."@x-gmeow-english ;
++    skos:example "ex:approval1 gmeow:reportedBy ex:registryClerk ."@x-gmeow-english ;
++    gmeow:avoidWhen "Avoid it for the agent who gave the approval (use gmeow:approvedBy), for responsibility for the Approval or the work (use gmeow:wasAttributedTo) and for the party who ran an import (use gmeow:wasAssociatedWith on the gmeow:ImportActivity)."@x-gmeow-english ;
++    gmeow:graphBoxRole gmeow:boxCBox ,
++        gmeow:boxRBox ;
++    gmeow:howToUse "Set it on the gmeow:Approval for each agent who reported the approval; several reporters may coexist. Omit it when the recorder is unknown."@x-gmeow-english ;
++    gmeow:useWhen "Use to name who put an approval on record when that party differs from the approver."@x-gmeow-english .
++
+ gmeow:wasAssociatedWith
+     a logic:ObjectProperty ;
+     rdfs:domain gmeow:Activity ;
+diff --git slices/core/standpoint/docs.md slices/core/standpoint/docs.md
+index b690d2913..6c31d7a2d 100644
+--- slices/core/standpoint/docs.md
++++ slices/core/standpoint/docs.md
+@@ -16,6 +16,7 @@ Everything here is **authored once** in `mapping-dsl/` and generated by
+ | `gmeow:standpointModality` | `owl:AnnotationProperty` | the belief value: `unequivocal` (□/true), `probable`, `conceivable` (◊/possible), `refuted` (□¬/false) — spans Standpoint-Logic *and* CRMinf belief values |
+ | `gmeow:Standpoint` | class (`logic:Kind`) | a named perspective/frame (often a bare `gmeow:Agent` instead) |
+ | `gmeow:sharpens` | transitive object property | the standpoint ⊆ / precisification order |
++| `gmeow:madeWithinContextOf` | object property (no characteristic) | relates a standpoint that exists for reading works to the frame whose context its readings were made within — never a sharpening, so the subject does not become a case of the object |
+ | `gmeow:moreEntrenchedThan` | object property (irreflexive) | a ranker's dated, partial ordering of frames by entrenchment — never derived from `sharpens`, never closed across rankers |
+ | `gmeow:universalStandpoint` | individual | the explicit-universal top of the `sharpens` poset `*` |
+ | `gmeow:unspecifiedStandpoint` | individual | the default-of-silence frame for unindexed claims (unspecified, not universal) |
+@@ -33,6 +34,16 @@ frame needs its own identity (often a bare `gmeow:Agent` suffices). Standpoints
+ form a poset under `sharpens` (transitive, the standpoint ⊆ refinement relation),
+ topped by `universalStandpoint`.
+ 
++### gmeow:madeWithinContextOf
++
++Relates a standpoint that exists for reading works to the frame whose context its
++readings were made within. Two such standpoints may share a context without either
++being a sharper case of the other, so it is not a subproperty of `sharpens` and entails
++no `sharpens` edge. It is not transitive, symmetric or irreflexive: chaining would
++rebuild a refinement-like order, the subject is the reader and the object the frame,
++and a standpoint reading within its own context is a legitimate degenerate case. It is
++not for a person who holds claims about other things as well; use `accordingTo` there.
++
+ ### gmeow:moreEntrenchedThan
+ 
+ A strict partial order between standpoints that exists only as dated claims attributed
+diff --git slices/core/standpoint/i18n/fr.po slices/core/standpoint/i18n/fr.po
+index cc6bac120..d711b2d9d 100644
+--- slices/core/standpoint/i18n/fr.po
++++ slices/core/standpoint/i18n/fr.po
+@@ -460,6 +460,30 @@ msgctxt "https://blackcatinformatics.ca/gmeow/claimModalityFunctionality|gmeow:u
+ msgid "Use to reject multiple explicit legacy modality values without requiring a missing value."
+ msgstr "Utiliser pour rejeter plusieurs modalités héritées explicites sans exiger une valeur manquante."
+ 
++msgctxt "https://blackcatinformatics.ca/gmeow/madeWithinContextOf|http://www.w3.org/2000/01/rdf-schema#label"
++msgid "made within context of"
++msgstr "fait dans le contexte de"
++
++msgctxt "https://blackcatinformatics.ca/gmeow/madeWithinContextOf|http://www.w3.org/2004/02/skos/core#definition"
++msgid "S1 made within context of S2: S1 is a standpoint that exists for reading works, and the readings it holds were made within the context of the frame S2. It is not a sharpening: S1 does not become a case of S2, the relation by itself says nothing about which precisifications either frame admits, and two standpoints that share one context are not thereby refinements of each other. It is not a subproperty of gmeow:sharpens and entails nothing about it, so no gmeow:sharpens edge follows from it and none is removed by it. No property characteristic is declared: it is not transitive, because a frame that supplied the context for one set of readings does not thereby supply it for the readings made within that frame's own context, and chaining would build the refinement-like order this relation exists to avoid; it is not symmetric, because the object is the frame and the subject is the reader; and irreflexivity is withheld because a standpoint that reads works within its own context is a legitimate degenerate case that a gate must not reject. It is for a standpoint that exists for reading works, not for a person or party who also holds claims about other things; such a holder is related to the claims it holds with gmeow:accordingTo."
++msgstr "S1 fait dans le contexte de S2 : S1 est un point de vue qui existe pour lire des œuvres, et les lectures qu'il porte ont été faites dans le contexte du cadre S2. Ce n'est pas un affinement : S1 ne devient pas un cas de S2, la relation ne dit à elle seule rien des précisions qu'admet l'un ou l'autre cadre, et deux points de vue qui partagent un même contexte ne sont pas pour autant des affinements l'un de l'autre. Ce n'est pas une sous-propriété de gmeow:sharpens et elle n'entraîne rien à son sujet : aucune arête gmeow:sharpens n'en découle et aucune n'est supprimée par elle. Aucune caractéristique de propriété n'est déclarée : elle n'est pas transitive, car un cadre qui a fourni le contexte d'un ensemble de lectures ne le fournit pas pour autant aux lectures faites dans le propre contexte de ce cadre, et un enchaînement construirait l'ordre de type affinement que cette relation existe pour éviter ; elle n'est pas symétrique, car l'objet est le cadre et le sujet est le lecteur ; et l'irréflexivité est écartée parce qu'un point de vue qui lit des œuvres dans son propre contexte est un cas dégénéré légitime qu'un portail ne doit pas rejeter. Elle est réservée à un point de vue qui existe pour lire des œuvres, et non à une personne ou une partie qui détient aussi des revendications sur d'autres choses ; un tel détenteur est relié aux revendications qu'il détient par gmeow:accordingTo."
++
++msgctxt "https://blackcatinformatics.ca/gmeow/madeWithinContextOf|http://www.w3.org/2004/02/skos/core#example"
++msgid "ex:formalistReading gmeow:madeWithinContextOf ex:interwarCriticism ."
++msgstr "ex:formalistReading gmeow:madeWithinContextOf ex:interwarCriticism ."
++
++msgctxt "https://blackcatinformatics.ca/gmeow/madeWithinContextOf|https://blackcatinformatics.ca/gmeow/avoidWhen"
++msgid "Avoid it to say one frame is a more specific case of another, which is gmeow:sharpens; avoid it for a person or party who holds claims about things other than the reading of works; avoid reading two standpoints with the same object as ordered, equal or one sharper than the other; and avoid chaining it into a context of a context."
++msgstr "À éviter pour dire qu'un cadre est un cas plus précis d'un autre, ce qui relève de gmeow:sharpens ; à éviter pour une personne ou une partie qui détient des revendications sur d'autres choses que la lecture d'œuvres ; à éviter de lire deux points de vue ayant le même objet comme ordonnés, égaux ou l'un plus affiné que l'autre ; et à éviter de l'enchaîner en un contexte d'un contexte."
++
++msgctxt "https://blackcatinformatics.ca/gmeow/madeWithinContextOf|https://blackcatinformatics.ca/gmeow/howToUse"
++msgid "Assert it from the standpoint that exists for reading works to the frame whose context its readings were made within. Use gmeow:Standpoint for both ends; no class is specific to a standpoint that reads works, and gmeow:ReadingOrder is a different notion, a standpoint that orders the segments of a work for consumption, so do not use it as the subject unless that ordering standpoint is itself the one whose readings were made within the context. Add a gmeow:sharpens edge separately and only when one frame really is a refinement of the other."
++msgstr "Affirmez-la du point de vue qui existe pour lire des œuvres vers le cadre dans le contexte duquel ses lectures ont été faites. Employez gmeow:Standpoint aux deux extrémités ; aucune classe n'est propre à un point de vue qui lit des œuvres, et gmeow:ReadingOrder est une notion différente, un point de vue qui ordonne les segments d'une œuvre en vue de sa consommation ; ne l'employez donc pas comme sujet, sauf si ce point de vue d'ordonnancement est lui-même celui dont les lectures ont été faites dans le contexte. Ajoutez séparément une arête gmeow:sharpens, et seulement lorsqu'un cadre est réellement un affinement de l'autre."
++
++msgctxt "https://blackcatinformatics.ca/gmeow/madeWithinContextOf|https://blackcatinformatics.ca/gmeow/useWhen"
++msgid "Use to record that a standpoint set up to read works made its readings within the context of another frame, when the two share a context but neither is a sharper case of the other."
++msgstr "À utiliser pour consigner qu'un point de vue conçu pour lire des œuvres a fait ses lectures dans le contexte d'un autre cadre, lorsque les deux partagent un contexte sans que ni l'un ni l'autre soit un cas plus affiné."
++
+ msgctxt "https://blackcatinformatics.ca/gmeow/moreEntrenchedThan|http://www.w3.org/2000/01/rdf-schema#label"
+ msgid "more entrenched than"
+ msgstr "plus ancré que"
+diff --git slices/core/standpoint/i18n/zh.po slices/core/standpoint/i18n/zh.po
+index 49d5dd9ec..ce6cc501a 100644
+--- slices/core/standpoint/i18n/zh.po
++++ slices/core/standpoint/i18n/zh.po
+@@ -460,6 +460,30 @@ msgctxt "https://blackcatinformatics.ca/gmeow/claimModalityFunctionality|gmeow:u
+ msgid "Use to reject multiple explicit legacy modality values without requiring a missing value."
+ msgstr "用于拒绝多个明确的旧式模态值，而不要求补齐缺失值。"
+ 
++msgctxt "https://blackcatinformatics.ca/gmeow/madeWithinContextOf|http://www.w3.org/2000/01/rdf-schema#label"
++msgid "made within context of"
++msgstr "在……语境内作出"
++
++msgctxt "https://blackcatinformatics.ca/gmeow/madeWithinContextOf|http://www.w3.org/2004/02/skos/core#definition"
++msgid "S1 made within context of S2: S1 is a standpoint that exists for reading works, and the readings it holds were made within the context of the frame S2. It is not a sharpening: S1 does not become a case of S2, the relation by itself says nothing about which precisifications either frame admits, and two standpoints that share one context are not thereby refinements of each other. It is not a subproperty of gmeow:sharpens and entails nothing about it, so no gmeow:sharpens edge follows from it and none is removed by it. No property characteristic is declared: it is not transitive, because a frame that supplied the context for one set of readings does not thereby supply it for the readings made within that frame's own context, and chaining would build the refinement-like order this relation exists to avoid; it is not symmetric, because the object is the frame and the subject is the reader; and irreflexivity is withheld because a standpoint that reads works within its own context is a legitimate degenerate case that a gate must not reject. It is for a standpoint that exists for reading works, not for a person or party who also holds claims about other things; such a holder is related to the claims it holds with gmeow:accordingTo."
++msgstr "S1 在 S2 的语境内作出：S1 是一个为阅读作品而存在的立场，其所持的解读是在框架 S2 的语境之内作出的。它不是锐化：S1 不会成为 S2 的一个特例，该关系本身并不说明任一框架容许哪些精确化，共享同一语境的两个立场也不因此互为精化。它不是 gmeow:sharpens 的子属性，也不蕴含任何关于它的内容，因此不会由它推出 gmeow:sharpens 边，也不会由它移除任何此类边。它不声明任何属性特征：它不是传递的，因为为一组解读提供语境的框架，并不因此为在该框架自身语境内作出的解读提供语境，而串联会构造出本关系旨在避免的类精化顺序；它不是对称的，因为宾语是框架，主语是阅读者；也不声明非自反性，因为在自身语境内阅读作品的立场是合理的退化情形，门不得拒绝。它适用于为阅读作品而存在的立场，不适用于同时还持有关于其他事物之主张的个人或一方；此类持有者通过 gmeow:accordingTo 与其所持主张相关联。"
++
++msgctxt "https://blackcatinformatics.ca/gmeow/madeWithinContextOf|http://www.w3.org/2004/02/skos/core#example"
++msgid "ex:formalistReading gmeow:madeWithinContextOf ex:interwarCriticism ."
++msgstr "ex:formalistReading gmeow:madeWithinContextOf ex:interwarCriticism ."
++
++msgctxt "https://blackcatinformatics.ca/gmeow/madeWithinContextOf|https://blackcatinformatics.ca/gmeow/avoidWhen"
++msgid "Avoid it to say one frame is a more specific case of another, which is gmeow:sharpens; avoid it for a person or party who holds claims about things other than the reading of works; avoid reading two standpoints with the same object as ordered, equal or one sharper than the other; and avoid chaining it into a context of a context."
++msgstr "避免用它表示某个框架是另一个框架的更具体特例，那是 gmeow:sharpens 的用途；避免用于持有关于阅读作品之外其他事物主张的个人或一方；避免把宾语相同的两个立场读作有序、相等或其一更锐化；避免将其串联成语境的语境。"
++
++msgctxt "https://blackcatinformatics.ca/gmeow/madeWithinContextOf|https://blackcatinformatics.ca/gmeow/howToUse"
++msgid "Assert it from the standpoint that exists for reading works to the frame whose context its readings were made within. Use gmeow:Standpoint for both ends; no class is specific to a standpoint that reads works, and gmeow:ReadingOrder is a different notion, a standpoint that orders the segments of a work for consumption, so do not use it as the subject unless that ordering standpoint is itself the one whose readings were made within the context. Add a gmeow:sharpens edge separately and only when one frame really is a refinement of the other."
++msgstr "从为阅读作品而存在的立场指向其解读所处语境的框架来断言它。两端都使用 gmeow:Standpoint；不存在专属于阅读作品之立场的类，而 gmeow:ReadingOrder 是另一种概念，即为消费而排列作品各片段的立场，因此不要将其用作主语，除非该排序立场本身正是其解读在该语境内作出的那一个。仅当一个框架确为另一个框架的精化时，才另行添加 gmeow:sharpens 边。"
++
++msgctxt "https://blackcatinformatics.ca/gmeow/madeWithinContextOf|https://blackcatinformatics.ca/gmeow/useWhen"
++msgid "Use to record that a standpoint set up to read works made its readings within the context of another frame, when the two share a context but neither is a sharper case of the other."
++msgstr "当为阅读作品而设立的立场在另一框架的语境内作出其解读，且两者共享语境而彼此都不是更锐化的特例时使用。"
++
+ msgctxt "https://blackcatinformatics.ca/gmeow/moreEntrenchedThan|http://www.w3.org/2000/01/rdf-schema#label"
+ msgid "more entrenched than"
+ msgstr "比……更根深蒂固"
+diff --git slices/core/standpoint/module.ttl slices/core/standpoint/module.ttl
+index 81b5aebdd..f563e8cc6 100644
+--- slices/core/standpoint/module.ttl
++++ slices/core/standpoint/module.ttl
+@@ -171,6 +171,20 @@ gmeow:conceivable
+     gmeow:graphBoxRole gmeow:boxABox ,
+         gmeow:boxCBox .
+ 
++gmeow:madeWithinContextOf
++    a logic:ObjectProperty ;
++    logic:domain gmeow:Standpoint ;
++    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/standpoint> ;
++    rdfs:label "made within context of"@x-gmeow-english ;
++    logic:range gmeow:Standpoint ;
++    skos:definition "S1 made within context of S2: S1 is a standpoint that exists for reading works, and the readings it holds were made within the context of the frame S2. It is not a sharpening: S1 does not become a case of S2, the relation by itself says nothing about which precisifications either frame admits, and two standpoints that share one context are not thereby refinements of each other. It is not a subproperty of gmeow:sharpens and entails nothing about it, so no gmeow:sharpens edge follows from it and none is removed by it. No property characteristic is declared: it is not transitive, because a frame that supplied the context for one set of readings does not thereby supply it for the readings made within that frame's own context, and chaining would build the refinement-like order this relation exists to avoid; it is not symmetric, because the object is the frame and the subject is the reader; and irreflexivity is withheld because a standpoint that reads works within its own context is a legitimate degenerate case that a gate must not reject. It is for a standpoint that exists for reading works, not for a person or party who also holds claims about other things; such a holder is related to the claims it holds with gmeow:accordingTo."@x-gmeow-english ;
++    skos:example "ex:formalistReading gmeow:madeWithinContextOf ex:interwarCriticism ."@x-gmeow-english ;
++    gmeow:avoidWhen "Avoid it to say one frame is a more specific case of another, which is gmeow:sharpens; avoid it for a person or party who holds claims about things other than the reading of works; avoid reading two standpoints with the same object as ordered, equal or one sharper than the other; and avoid chaining it into a context of a context."@x-gmeow-english ;
++    gmeow:graphBoxRole gmeow:boxCBox ,
++        gmeow:boxRBox ;
++    gmeow:howToUse "Assert it from the standpoint that exists for reading works to the frame whose context its readings were made within. Use gmeow:Standpoint for both ends; no class is specific to a standpoint that reads works, and gmeow:ReadingOrder is a different notion, a standpoint that orders the segments of a work for consumption, so do not use it as the subject unless that ordering standpoint is itself the one whose readings were made within the context. Add a gmeow:sharpens edge separately and only when one frame really is a refinement of the other."@x-gmeow-english ;
++    gmeow:useWhen "Use to record that a standpoint set up to read works made its readings within the context of another frame, when the two share a context but neither is a sharper case of the other."@x-gmeow-english .
++
+ gmeow:moreEntrenchedThan
+     a logic:ObjectProperty ;
+     logic:domain gmeow:Standpoint ;
+diff --git slices/grounding/logic/i18n/fr.po slices/grounding/logic/i18n/fr.po
+index 70d15f4a9..adc5f910c 100644
+--- slices/grounding/logic/i18n/fr.po
++++ slices/grounding/logic/i18n/fr.po
+@@ -24204,8 +24204,8 @@ msgid "Relates a rule, statement reifier or other scoped carrier to a declared p
+ msgstr "Relie une règle, un réificateur d’énoncé ou un autre support contextualisé à une ressource déclarée comme source de provenance. La source peut être une règle, un document, un contexte source ou un agent qui affirme ; l’arête ne détermine pas à elle seule quel rôle de source s’applique."
+ 
+ msgctxt "https://blackcatinformatics.ca/logic/provenance|http://www.w3.org/2004/02/skos/core#scopeNote"
+-msgid "The domain and range remain resources rather than being restricted to Rule. No global functional characteristic is asserted: different source resources are not thereby identified. A selected compiler scope nevertheless admits only one provenance coordinate; this profile limit does not make the vocabulary globally functional."
+-msgstr "Le domaine et le codomaine restent des ressources, sans être limités à Rule. Aucune caractéristique fonctionnelle globale n’est affirmée : des ressources sources différentes ne sont pas pour autant identifiées. Un contexte de compilation sélectionné n’admet néanmoins qu’une coordonnée de provenance ; cette limite de profil ne rend pas le vocabulaire globalement fonctionnel."
++msgid "The domain and range remain resources rather than being restricted to Rule. No global functional characteristic is asserted: different source resources are not thereby identified. A carrier with several provenance values is lowered by the compiler into one scoped claim or rule per value, but only when no other scope coordinate also has several values."
++msgstr "Le domaine et le codomaine restent des ressources, sans être limités à Rule. Aucune caractéristique fonctionnelle globale n’est affirmée : des ressources sources différentes ne sont pas pour autant identifiées. Un support portant plusieurs valeurs de provenance est abaissé par le compilateur en un énoncé ou une règle contextualisé par valeur, mais seulement si aucune autre coordonnée de contexte n’a elle aussi plusieurs valeurs."
+ 
+ msgctxt "https://blackcatinformatics.ca/logic/provenance|http://www.w3.org/2004/02/skos/core#example"
+ msgid "A reifier ex:claim with rdf:reifies <<(ex:a ex:relatedTo ex:b)>> and logic:provenance ex:report records ex:report as that claim’s supplied source; quotation alone does not assert the quoted statement."
+@@ -24220,8 +24220,8 @@ msgid "Do not infer truth, trust, a firing proof, a premise list or a complete d
+ msgstr "Ne pas déduire de cette arête la vérité, la confiance, une preuve de déclenchement, une liste de prémisses ou un certificat complet de dérivation. Ne pas limiter toutes les sources aux règles, identifier des sources distinctes, ni propager les métadonnées d’un enregistrement à ses assertions sortantes."
+ 
+ msgctxt "https://blackcatinformatics.ca/logic/provenance|https://blackcatinformatics.ca/gmeow/howToUse"
+-msgid "Attach the source resource to the exact statement reifier or declared scoped rule. The current compiler refuses multiple provenance coordinates on one selected scope; explicit lowering is required rather than choosing a source silently. Retain supporting evidence separately. A rule naming itself records its declared source, not an execution receipt."
+-msgstr "Rattacher la ressource source au réificateur d’énoncé exact ou à la règle contextualisée déclarée. Le compilateur actuel refuse plusieurs coordonnées de provenance dans un même contexte sélectionné ; un abaissement explicite est requis, plutôt qu’un choix silencieux de source. Conserver séparément les éléments probants. Une règle qui se nomme elle-même enregistre sa source déclarée, et non un reçu d’exécution."
++msgid "Attach the source resource to the exact statement reifier or declared scoped rule. A carrier with several provenance values is lowered into one scoped claim or rule per source; when two scope coordinates each have several values the carrier is refused, so write one reifier or rule per intended combination. An atom of a rule takes one value of each coordinate: several values on an atom are refused, so write one rule per intended atom value, each atom with its own reifier. A scope on the rule node applies to the rule as a whole and is not the scope of its atoms. Retain supporting evidence separately. A rule naming itself records its declared source, not an execution receipt."
++msgstr "Rattacher la ressource source au réificateur d’énoncé exact ou à la règle contextualisée déclarée. Un support portant plusieurs valeurs de provenance est abaissé en un énoncé ou une règle contextualisé par source ; lorsque deux coordonnées de contexte ont chacune plusieurs valeurs, le support est refusé : écrire un réificateur ou une règle par combinaison voulue. Un atome de règle prend une seule valeur par coordonnée : plusieurs valeurs sur un atome sont refusées ; il faut écrire une règle par valeur d’atome voulue, chaque atome avec son propre réificateur. Un contexte porté par le nœud de la règle s’applique à la règle entière et n’est pas le contexte de ses atomes. Conserver séparément les éléments probants. Une règle qui se nomme elle-même enregistre sa source déclarée, et non un reçu d’exécution."
+ 
+ msgctxt "https://blackcatinformatics.ca/logic/termGreater|http://www.w3.org/2000/01/rdf-schema#label"
+ msgid "term greater than"
+diff --git slices/grounding/logic/i18n/zh.po slices/grounding/logic/i18n/zh.po
+index c7e8286b7..2a6c03d8a 100644
+--- slices/grounding/logic/i18n/zh.po
++++ slices/grounding/logic/i18n/zh.po
+@@ -24204,8 +24204,8 @@ msgid "Relates a rule, statement reifier or other scoped carrier to a declared p
+ msgstr "将规则、语句具体化节点或其他带作用域的承载资源关联到已声明的来源资源。来源可以是规则、文档、来源上下文或作出断言的施事者；此边本身不确定适用哪一种来源角色。"
+ 
+ msgctxt "https://blackcatinformatics.ca/logic/provenance|http://www.w3.org/2004/02/skos/core#scopeNote"
+-msgid "The domain and range remain resources rather than being restricted to Rule. No global functional characteristic is asserted: different source resources are not thereby identified. A selected compiler scope nevertheless admits only one provenance coordinate; this profile limit does not make the vocabulary globally functional."
+-msgstr "定义域和范围保持为资源，不限于 Rule。不声明全局函数性：不同来源资源不会因此被视为相同。尽管如此，所选编译器作用域仅接纳一个来源坐标；此配置限制并不使该词汇具有全局函数性。"
++msgid "The domain and range remain resources rather than being restricted to Rule. No global functional characteristic is asserted: different source resources are not thereby identified. A carrier with several provenance values is lowered by the compiler into one scoped claim or rule per value, but only when no other scope coordinate also has several values."
++msgstr "定义域和范围保持为资源，不限于 Rule。不声明全局函数性：不同来源资源不会因此被视为相同。带有多个来源值的承载资源会被编译器逐值转换为各自带作用域的语句或规则，但前提是没有其他作用域坐标同时具有多个值。"
+ 
+ msgctxt "https://blackcatinformatics.ca/logic/provenance|http://www.w3.org/2004/02/skos/core#example"
+ msgid "A reifier ex:claim with rdf:reifies <<(ex:a ex:relatedTo ex:b)>> and logic:provenance ex:report records ex:report as that claim’s supplied source; quotation alone does not assert the quoted statement."
+@@ -24220,8 +24220,8 @@ msgid "Do not infer truth, trust, a firing proof, a premise list or a complete d
+ msgstr "不要从此边推断真实性、信任、规则触发证明、前提列表或完整推导证书。不要将所有来源限于规则，不要将不同来源视为相同，也不要将记录上的元数据传播到其向外断言。"
+ 
+ msgctxt "https://blackcatinformatics.ca/logic/provenance|https://blackcatinformatics.ca/gmeow/howToUse"
+-msgid "Attach the source resource to the exact statement reifier or declared scoped rule. The current compiler refuses multiple provenance coordinates on one selected scope; explicit lowering is required rather than choosing a source silently. Retain supporting evidence separately. A rule naming itself records its declared source, not an execution receipt."
+-msgstr "将来源资源附于确切的语句具体化节点或已声明的带作用域规则。当前编译器拒绝同一所选作用域上的多个来源坐标；必须显式转换为编译器支持的表示，不得静默选择来源。分别保留支持依据。规则指向自身时记录的是其已声明来源，而非执行收据。"
++msgid "Attach the source resource to the exact statement reifier or declared scoped rule. A carrier with several provenance values is lowered into one scoped claim or rule per source; when two scope coordinates each have several values the carrier is refused, so write one reifier or rule per intended combination. An atom of a rule takes one value of each coordinate: several values on an atom are refused, so write one rule per intended atom value, each atom with its own reifier. A scope on the rule node applies to the rule as a whole and is not the scope of its atoms. Retain supporting evidence separately. A rule naming itself records its declared source, not an execution receipt."
++msgstr "将来源资源附于确切的语句具体化节点或已声明的带作用域规则。带有多个来源值的承载资源会逐个来源转换为带作用域的语句或规则；若两个作用域坐标各有多个值，则该承载资源被拒绝，请为每个预期组合分别写一个具体化节点或规则。规则的原子在每个坐标上只取一个值：原子上的多个值会被拒绝，请为每个预期的原子取值分别写一条规则，每个原子带有自己的具体化节点。规则节点上的作用域适用于整条规则，而不是其中各个原子的作用域。分别保留支持依据。规则指向自身时记录的是其已声明来源，而非执行收据。"
+ 
+ msgctxt "https://blackcatinformatics.ca/logic/termGreater|http://www.w3.org/2000/01/rdf-schema#label"
+ msgid "term greater than"
+diff --git slices/grounding/logic/module.ttl slices/grounding/logic/module.ttl
+index 45dd660a1..7a0b08838 100644
+--- slices/grounding/logic/module.ttl
++++ slices/grounding/logic/module.ttl
+@@ -24716,11 +24716,11 @@ logic:provenance
+     gmeow:graphBoxRole gmeow:boxRBox ;
+     rdfs:label "provenance source"@x-gmeow-english ;
+     skos:definition "Relates a rule, statement reifier or other scoped carrier to a declared provenance source resource. The source can be a rule, document, source context or asserting agent; the edge does not by itself determine which source role applies."@x-gmeow-english ;
+-    skos:scopeNote "The domain and range remain resources rather than being restricted to Rule. No global functional characteristic is asserted: different source resources are not thereby identified. A selected compiler scope nevertheless admits only one provenance coordinate; this profile limit does not make the vocabulary globally functional."@x-gmeow-english ;
++    skos:scopeNote "The domain and range remain resources rather than being restricted to Rule. No global functional characteristic is asserted: different source resources are not thereby identified. A carrier with several provenance values is lowered by the compiler into one scoped claim or rule per value, but only when no other scope coordinate also has several values."@x-gmeow-english ;
+     skos:example "A reifier ex:claim with rdf:reifies <<(ex:a ex:relatedTo ex:b)>> and logic:provenance ex:report records ex:report as that claim’s supplied source; quotation alone does not assert the quoted statement."@x-gmeow-english ;
+     gmeow:useWhen "Use to retain an explicitly supplied origin on the exact rule or statement carrier whose scope it qualifies. Preserve the kind and identity of the actual source without requiring every source to be a firing rule."@x-gmeow-english ;
+     gmeow:avoidWhen "Do not infer truth, trust, a firing proof, a premise list or a complete derivation certificate from this edge. Do not restrict all sources to rules, equate distinct sources, or propagate metadata from a record to its outgoing assertions."@x-gmeow-english ;
+-    gmeow:howToUse "Attach the source resource to the exact statement reifier or declared scoped rule. The current compiler refuses multiple provenance coordinates on one selected scope; explicit lowering is required rather than choosing a source silently. Retain supporting evidence separately. A rule naming itself records its declared source, not an execution receipt."@x-gmeow-english .
++    gmeow:howToUse "Attach the source resource to the exact statement reifier or declared scoped rule. A carrier with several provenance values is lowered into one scoped claim or rule per source; when two scope coordinates each have several values the carrier is refused, so write one reifier or rule per intended combination. An atom of a rule takes one value of each coordinate: several values on an atom are refused, so write one rule per intended atom value, each atom with its own reifier. A scope on the rule node applies to the rule as a whole and is not the scope of its atoms. Retain supporting evidence separately. A rule naming itself records its declared source, not an execution receipt."@x-gmeow-english .
+ 
+ logic:termGreater
+     a logic:ObjectProperty ;

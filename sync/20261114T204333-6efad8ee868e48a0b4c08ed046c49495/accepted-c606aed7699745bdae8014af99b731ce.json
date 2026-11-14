@@ -1,0 +1,26 @@
+[
+  {
+    "path": "slices/core/standpoint/docs.md",
+    "kind": "file",
+    "executable": false,
+    "content": "accepted-c606aed7699745bdae8014af99b731ce/0.bin"
+  },
+  {
+    "path": "slices/core/standpoint/i18n/fr.po",
+    "kind": "file",
+    "executable": false,
+    "content": "accepted-c606aed7699745bdae8014af99b731ce/1.bin"
+  },
+  {
+    "path": "slices/core/standpoint/i18n/zh.po",
+    "kind": "file",
+    "executable": false,
+    "content": "accepted-c606aed7699745bdae8014af99b731ce/2.bin"
+  },
+  {
+    "path": "slices/core/standpoint/module.ttl",
+    "kind": "file",
+    "executable": false,
+    "content": "accepted-c606aed7699745bdae8014af99b731ce/3.bin"
+  }
+]

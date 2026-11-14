@@ -1,0 +1,39 @@
+{
+  "assignees": [],
+  "author": {
+    "id": "MDQ6VXNlcjUyNzU1NQ==",
+    "is_bot": false,
+    "login": "paudley",
+    "name": "Patrick Audley"
+  },
+  "body": "Request: a transitive, partial ordering between standpoints, declared only\nas dated claims attributed to the party who ranks them.\n\nNeed: some readers rank frames by how entrenched they are, and the ranking\nis often only partly known. A total order is wrong: a missing claim should\nmean the two are incomparable, never equal and never lower. Today there is\nno typed way to record such a ranking with its date and its attribution.\n\nProposed term: moreEntrenchedThan, between standpoints, transitive.\n\nRules: it is a partial order, declared only as dated claims attributed to\nthe party who ranks. A missing claim means incomparable. It is never derived\nfrom sharpening: a logic engine that reads the sharper frame as the more\nentrenched would invert such a chain. It is a presentation aid, not a\nconfidence or a truth value.\n",
+  "closedAt": null,
+  "comments": [],
+  "createdAt": "2026-11-10T14:43:29Z",
+  "labels": [
+    {
+      "id": "LA_kwDOSwdn1s8AAAACl8ZKwA",
+      "name": "enhancement",
+      "description": "New feature or request",
+      "color": "a2eeef"
+    },
+    {
+      "id": "LA_kwDOSwdn1s8AAAACnasmrQ",
+      "name": "logic",
+      "description": "logic: reasoning layer (the RDF 1.2-native logic; OWL is a projection)",
+      "color": "5319e7"
+    },
+    {
+      "id": "LA_kwDOSwdn1s8AAAADBPkJyQ",
+      "name": "terms",
+      "description": "",
+      "color": "ededed"
+    }
+  ],
+  "milestone": null,
+  "number": 2685,
+  "state": "OPEN",
+  "title": "vocabulary: a transitive partial order between standpoints as dated claims",
+  "updatedAt": "2026-11-10T14:43:55Z",
+  "url": "https://github.com/Blackcat-Informatics/gmeow-ontology/issues/2685"
+}

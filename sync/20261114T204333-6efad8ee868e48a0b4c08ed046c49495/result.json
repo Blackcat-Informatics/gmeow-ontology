@@ -1,0 +1,27 @@
+{
+  "schema": 1,
+  "worktree": "/home/paudley/Active/gmeow-ontology/.worktrees/2685-vocabulary-a-transitive-partial-order",
+  "branch": "paudley/2685-vocabulary-a-transitive-partial-order",
+  "base_ref": "refs/remotes/origin/main",
+  "head": "98bf53bad92c879b7e264504ca96da6d4cf98d69",
+  "attempt": "/home/paudley/Active/gmeow-ontology/.worktrees/2685-vocabulary-a-transitive-partial-order/.stage/vocabulary-a-transitive-partial-order/sync/20261114T204333-6efad8ee868e48a0b4c08ed046c49495",
+  "conflicts": [
+    "slices/core/standpoint/docs.md",
+    "slices/core/standpoint/i18n/fr.po",
+    "slices/core/standpoint/i18n/zh.po",
+    "slices/core/standpoint/module.ttl"
+  ],
+  "status": "completed",
+  "base": "d8af1cd0a8055558e610c030a9890a72704816c6",
+  "merge_bases": [
+    "f71169a7816781db9edfa4f474e9b71dc804d877"
+  ],
+  "merge_index": "93fe6de0bb63d02be6220e6b72521f4f4f5f83d9c4204eb2d780dfb17309f3a1",
+  "reused_paths": [],
+  "rerere_output": "Recorded preimage for 'slices/core/standpoint/docs.md'\nRecorded preimage for 'slices/core/standpoint/i18n/fr.po'\nRecorded preimage for 'slices/core/standpoint/i18n/zh.po'\nRecorded preimage for 'slices/core/standpoint/module.ttl'\n",
+  "candidate_tree": "7f7259c3a664efd7b62ef8b81fa933cdfc6fbb70",
+  "candidate_patch": "candidate-c606aed7699745bdae8014af99b731ce.patch",
+  "validation_records": [],
+  "commit": "d402e3b72b4218893c99da1be7dc51070401867e",
+  "tree": "7f7259c3a664efd7b62ef8b81fa933cdfc6fbb70"
+}
