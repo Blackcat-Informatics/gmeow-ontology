@@ -233,7 +233,7 @@ gmeow:ProductLane
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
     rdfs:label "Product Lane"@x-gmeow-english ;
     logic:subClassOf logic:QualityValue ;
-    skos:definition "The set of whole lanes of a stage product that a consuming stage can declare it reads on a gmeow:BuildDataFlow edge: gmeow:laneCarrier (the whole carrier through the raw bundle), gmeow:laneDataset (the frozen dataset), gmeow:laneAllArtifacts (the whole byte-artifact lane) and gmeow:laneIdentity (nothing but the product's identity, for ordering and the cache key). A single typed handle, representation blob or byte artifact is named by gmeow:flowReadsHandle, gmeow:flowReadsBlobRep or gmeow:flowReadsArtifact instead. The pipeline loader accepts only these four values and refuses any other lane individual when it reads the description; no axiom in this slice closes the set."@x-gmeow-english ;
+    skos:definition "The set of whole lanes of a stage product that a consuming stage can declare it reads on a gmeow:BuildDataFlow edge: gmeow:laneCarrier (the whole carrier through the raw bundle), gmeow:laneDataset (the frozen dataset), gmeow:laneAllArtifacts (the whole byte-artifact lane) and gmeow:laneIdentity (nothing but the product's identity, for ordering and the cache key). A single typed handle, representation blob or byte artifact is named by gmeow:flowReadsHandle, gmeow:flowReadsBlobRep or gmeow:flowReadsArtifact instead. The pipeline loader accepts only these four values and refuses any other lane individual when it reads the description; no axiom in this slice closes the set. A lane is not a stage, an edge, or a single named handle, blob or artifact."@x-gmeow-english ;
     skos:example "gmeow:pipeline-dataflow-reason-compile-logic gmeow:flowReadsLane gmeow:laneDataset ."@x-gmeow-english ;
     skos:scopeNote "Scope: this value class names lanes of an in-memory stage product. It does not name files in the working tree, committed outputs, or graphs of the shipped bundle."@x-gmeow-english ;
     gmeow:useWhen "Use a Product Lane when a consuming stage reads a whole lane of the producer's product, so the scheduler can keep that lane alive for it and refuse a read the edge does not declare."@x-gmeow-english ;
@@ -288,7 +288,7 @@ gmeow:flowReadsHandle
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
     rdfs:label "flow reads handle"@x-gmeow-english ;
     logic:domain gmeow:BuildDataFlow ;
-    skos:definition "Relates a gmeow:BuildDataFlow edge to the key of one typed in-memory handle of the producer's product that the consumer stage reads. The key is the IRI of the named graph the handle is pinned to. Multi-valued. A handle lives on the producer's carrier, so the carrier stays resident until this consumer has run."@x-gmeow-english ;
+    skos:definition "Relates a gmeow:BuildDataFlow edge to the key of one typed in-memory handle of the producer's product that the consumer stage reads. The key is the IRI of the named graph the handle is pinned to. Multi-valued. A handle lives on the producer's carrier, so the carrier stays resident until this consumer has run. It is not a declaration of the dataset or of a representation blob, which gmeow:flowReadsLane and gmeow:flowReadsBlobRep make."@x-gmeow-english ;
     skos:example "gmeow:pipeline-dataflow-mappings-compile-logic gmeow:flowReadsHandle <https://blackcatinformatics.ca/gmeow/graph/logic> ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 

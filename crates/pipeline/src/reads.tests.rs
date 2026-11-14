@@ -138,3 +138,22 @@ fn an_unnamed_internal_artifact_is_undeclared_under_the_whole_lane() {
         set(&[Read::Artifact("pipeline/unnamed".into())])
     );
 }
+
+/// The whole-lane copy on an artifact-lane view over a still-whole producer returns the
+/// committed entries and the internal ones the edge names, and records the read of each
+/// named internal entry it returns, exactly as before the copy was narrowed.
+#[test]
+fn the_whole_lane_copy_on_an_artifact_view_returns_the_served_entries_and_their_reads() {
+    let declared = set(&[Read::AllArtifacts, Read::Artifact("pipeline/named".into())]);
+    let (view, edge) = consumer_view_of(&declared, true);
+    let lane = view.artifacts();
+    assert_eq!(
+        lane,
+        std::collections::BTreeMap::from([
+            ("generated/x".to_owned(), b"x".to_vec()),
+            ("pipeline/named".to_owned(), b"n".to_vec()),
+        ])
+    );
+    assert!(edge.undeclared().is_empty(), "{:?}", edge.undeclared());
+    assert!(edge.unread().is_empty(), "{:?}", edge.unread());
+}

@@ -24,7 +24,7 @@ use purrdf::provenance::DatasetProvenance;
 use purrdf::{PipelineBundle, RdfDataset};
 
 use crate::bundle::{
-    PipelineHandle, bundle_artifact, bundle_artifact_refs, bundle_artifacts, bundle_from_artifacts,
+    PipelineHandle, bundle_artifact, bundle_artifact_refs, bundle_from_artifacts,
     bundle_from_artifacts_over,
 };
 /// The GMEOW namespace prefix that every pipeline term lives under.
@@ -517,12 +517,13 @@ impl StageProduct {
     /// artifacts the edge names. An internal artifact this edge does not name is not
     /// returned for this consumer, and it is kept through the release only when some
     /// other consumer in the run names it. Each internal
-    /// artifact returned is recorded as a read of that artifact.
+    /// artifact returned is recorded as a read of that artifact. Only the entries
+    /// returned are copied.
     pub fn artifacts(&self) -> BTreeMap<String, Vec<u8>> {
         self.record(crate::reads::Read::AllArtifacts);
-        let mut lane = bundle_artifacts(self.artifact_source());
-        lane.retain(|path, _| self.lane_serves(path) && self.lane_visible(path));
-        lane
+        crate::bundle::bundle_artifacts_where(self.artifact_source(), |path| {
+            self.lane_serves(path) && self.lane_visible(path)
+        })
     }
 
     /// Whether the whole-lane accessors return `path` on this view. The owning view sees

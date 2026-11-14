@@ -475,6 +475,17 @@ pub fn bundle_artifact<'b>(
 /// TEMPORARY (C4): `run_full` writes/compares the committed artifacts off this map.
 /// Grep `byte-artifact lane`.
 pub fn bundle_artifacts(bundle: &PipelineBundle<PipelineHandle>) -> BTreeMap<String, Vec<u8>> {
+    bundle_artifacts_where(bundle, |_| true)
+}
+
+/// [`bundle_artifacts`] restricted to the entries `wanted` accepts, which is asked about
+/// an entry's logical path only once the entry is complete (it has a name, a valid digest
+/// and its bytes in the store) and before its bytes are copied, so an entry it refuses is
+/// never cloned.
+pub fn bundle_artifacts_where(
+    bundle: &PipelineBundle<PipelineHandle>,
+    mut wanted: impl FnMut(&str) -> bool,
+) -> BTreeMap<String, Vec<u8>> {
     let mut out: BTreeMap<String, Vec<u8>> = BTreeMap::new();
     for resource in bundle.lookaside().resources_of_kind(ARTIFACT_KIND) {
         let (Some(name), Some(hex)) =
@@ -485,7 +496,9 @@ pub fn bundle_artifacts(bundle: &PipelineBundle<PipelineHandle>) -> BTreeMap<Str
         let Some(digest) = purrdf::ContentDigest::from_hex(hex) else {
             continue;
         };
-        if let Some(bytes) = bundle.blobs().get(&digest) {
+        if let Some(bytes) = bundle.blobs().get(&digest)
+            && wanted(name)
+        {
             out.insert(name.to_owned(), bytes.clone());
         }
     }
