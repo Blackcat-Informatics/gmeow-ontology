@@ -86,9 +86,17 @@ Report exactly what ran. Do not invent percentages, extrapolate from unrelated
 inputs, or claim a speedup from a benchmark that did not exercise the changed path.
 
 Cold CI producers select
-`GMEOW_LOG=warn,pipeline_phase=info,pipeline_reasoning_detail=info` so the reasoning
-boundaries, large-input value-flow details and glossary/snapshot subphases remain
-visible before a stage completes. A start without an end identifies unfinished
+`GMEOW_LOG=warn,pipeline_phase=info,pipeline_reasoning_detail=info,pipeline_memory=info`
+so the reasoning boundaries, large-input value-flow details and glossary/snapshot
+subphases remain visible before a stage completes. The `pipeline_memory` target is the
+per-stage memory record: resident and peak resident size of the process at each stage's
+dispatch, publication and carrier release and at each phase boundary, with the
+product's quad, term and artifact-byte counts and what a release removed. No trim
+follows a release, so resident size after one includes pages the allocator kept.
+`GMEOW_STAGE_MEMORY_LOG=<file>` appends the same records to a file one line at a time;
+the hosted observer points it at its resource log, so a producer that is killed
+part-way still leaves them in the uploaded resource artifact. A completed
+`--timings-json` run carries them as `observations.stage_memory`. A start without an end identifies unfinished
 work; an end records elapsed time, not semantic acceptance. These observations never enter generated
 bytes or cache identities. Keep the same selected inputs and producer profile when
 comparing runs, and distinguish time spent discovering sources, rendering RDF,

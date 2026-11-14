@@ -504,6 +504,10 @@ pub fn serialize_carrier_snapshot(
 /// Build one report-only sink phase record. `live_scratch` names a representation
 /// resident at the observation boundary; `released_scratch` names one processed and
 /// dropped before the record. These observations never contribute to product identity.
+///
+/// The metadata carries structural counts only, because it is copied into the timings
+/// JSON's deterministic work record. Resident memory at the same boundary goes to the
+/// memory record instead, under [`SNAPSHOT_SERIALIZER`].
 fn sink_phase_timing(
     phase: &str,
     elapsed: std::time::Duration,
@@ -513,7 +517,11 @@ fn sink_phase_timing(
     live_scratch: Option<(&str, usize)>,
     released_scratch: Option<(&str, usize)>,
 ) -> StageRunTiming {
-    let (rss_kib, peak_rss_kib) = linux_process_rss_kib();
+    crate::memory_record::phase(
+        SNAPSHOT_SERIALIZER,
+        phase,
+        crate::memory_record::MemoryEvent::PhaseEnd,
+    );
     let render = |scratch: Option<(&str, usize)>| {
         scratch
             .map(|(name, bytes)| format!("{name}:{bytes}"))
@@ -524,37 +532,19 @@ fn sink_phase_timing(
         elapsed_ms: elapsed.as_millis(),
         metadata: Some(format!(
             "carrier_terms={};carrier_quads={};payload_frames={frame_count};\
-             payload_frame_bytes={frame_bytes};live_scratch={};released_scratch={};\
-             rss_kib={};peak_rss_kib={}",
+             payload_frame_bytes={frame_bytes};live_scratch={};released_scratch={}",
             carrier.term_count(),
             carrier.quad_count(),
             render(live_scratch),
             render(released_scratch),
-            rss_kib
-                .map(|value| value.to_string())
-                .unwrap_or_else(|| "unavailable".to_string()),
-            peak_rss_kib
-                .map(|value| value.to_string())
-                .unwrap_or_else(|| "unavailable".to_string()),
         )),
     }
 }
 
-fn linux_process_rss_kib() -> (Option<u64>, Option<u64>) {
-    let Ok(status) = std::fs::read_to_string("/proc/self/status") else {
-        return (None, None);
-    };
-    let value = |key: &str| {
-        status.lines().find_map(|line| {
-            line.strip_prefix(key)?
-                .split_whitespace()
-                .next()?
-                .parse::<u64>()
-                .ok()
-        })
-    };
-    (value("VmRSS:"), value("VmHWM:"))
-}
+/// The name the snapshot serializer's phase boundaries carry in the memory record. The
+/// serializer is entered by the terminal sink and by the documentation measurement, so
+/// the name is the serializer's own and not a stage id.
+const SNAPSHOT_SERIALIZER: &str = "gts-snapshot-serializer";
 
 /// Every payload-bearing BLOB frame this emission authors, plus the carrier-time
 /// meta-level graphs that ride beside them — assembled ONCE, here, so "what frames
@@ -1395,9 +1385,16 @@ fn termination_demonstrator_graphs()
 /// Log the size of an owned carrier after the phase that built it, so a run names the
 /// phase in which resident memory grows.
 fn log_carrier_size(phase: &str, carrier: &purrdf::RdfDataset) {
+    if !tracing::enabled!(target: "pipeline_phase", tracing::Level::INFO) {
+        return;
+    }
+    let process = crate::memory_record::ProcessMemory::sample();
     tracing::info!(
         target: "pipeline_phase", stage = "stage-snapshot", phase,
         carrier_quads = carrier.quad_count(),
+        carrier_terms = carrier.term_count(),
+        rss_kib = process.rss_kib,
+        peak_rss_kib = process.peak_rss_kib,
         "owned carrier size"
     );
 }

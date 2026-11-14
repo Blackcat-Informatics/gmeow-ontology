@@ -4,7 +4,10 @@
 //! The `gmeow-dev` binary entrypoint.
 
 fn main() {
-    gmeow_cli_core::init_tracing();
+    if let Err(error) = gmeow_cli_core::init_tracing() {
+        gmeow_dev_cli::report_stage_memory_log_failure(&error);
+        std::process::exit(1);
+    }
     let observer = match gmeow_pipeline::allocator_observation::AllocatorObserver::start_from_env()
     {
         Ok(observer) => observer,

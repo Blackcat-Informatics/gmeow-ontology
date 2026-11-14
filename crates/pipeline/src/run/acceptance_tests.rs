@@ -20,6 +20,7 @@ fn report(mode: RunMode, ledger: DiagLedger) -> RunReport {
         stage_receipt_root: String::new(),
         stage_timings: vec![],
         stage_phase_timings: vec![],
+        stage_memory: vec![],
         level_timings: vec![],
         stage_receipts: vec![],
         output_paths: vec![],

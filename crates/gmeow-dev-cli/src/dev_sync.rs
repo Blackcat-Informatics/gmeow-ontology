@@ -654,6 +654,44 @@ pub fn sync(
                 )
             })
             .collect::<Vec<_>>();
+        // Resident memory and product sizes are observations of this execution. They
+        // are written under `observations` only, never under `deterministic_work`.
+        let stage_memory = report
+            .stage_memory
+            .iter()
+            .map(|made| {
+                let product = made.product.map(|footprint| {
+                    purrdf_lex::json::Value::from(
+                        purrdf_lex::json::Object::new()
+                            .with("quads", footprint.quads)
+                            .with("terms", footprint.terms)
+                            .with("committed_lane_bytes", footprint.committed_lane_bytes)
+                            .with("internal_lane_bytes", footprint.internal_lane_bytes)
+                            .with("carrier_released", footprint.carrier_released),
+                    )
+                });
+                let released = made.released.map(|freed| {
+                    purrdf_lex::json::Value::from(
+                        purrdf_lex::json::Object::new()
+                            .with("quads", freed.quads)
+                            .with("terms", freed.terms)
+                            .with("committed_lane_bytes", freed.committed_lane_bytes)
+                            .with("internal_lane_bytes", freed.internal_lane_bytes),
+                    )
+                });
+                purrdf_lex::json::Value::from(
+                    purrdf_lex::json::Object::new()
+                        .with("seq", made.seq)
+                        .with("stage", made.stage_id.as_str())
+                        .with("event", made.event.as_str())
+                        .with("phase", made.phase.as_deref())
+                        .with("rss_kib", made.process.rss_kib)
+                        .with("peak_rss_kib", made.process.peak_rss_kib)
+                        .with("product", product)
+                        .with("released", released),
+                )
+            })
+            .collect::<Vec<_>>();
         let critical_path_ms = report
             .level_timings
             .iter()
@@ -735,6 +773,7 @@ pub fn sync(
                             .with("critical_path_ms", critical_path_ms)
                             .with("stages", stages.to_json())
                             .with("stage_phases", stage_phase_observations.to_json())
+                            .with("stage_memory", stage_memory.to_json())
                             .with("levels", levels.to_json())
                             .with("timings", timings.to_json()),
                     ),

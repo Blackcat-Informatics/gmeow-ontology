@@ -232,6 +232,10 @@ pub struct RunReport {
     /// Internal phase observations emitted by freshly executed stages. Stable work
     /// metadata is carried separately from the observed elapsed duration.
     pub stage_phase_timings: Vec<StagePhaseTiming>,
+    /// The scheduler's memory records in the order they were made: process and product
+    /// size at each stage's dispatch, publication and release, and at phase boundaries.
+    /// Run telemetry, never part of a receipt or of the deterministic work record.
+    pub stage_memory: Vec<crate::memory_record::MemoryRecord>,
     /// Structured scheduler critical levels used to compute the DAG critical-path floor.
     pub level_timings: Vec<LevelTiming>,
     /// Immutable deterministic receipts for every executed DAG stage. These carry the
@@ -567,6 +571,7 @@ pub fn run_full_scoped_with_progress(
     let stage_receipt_root = result.receipt_root.clone();
     let stage_timings = result.stage_timings.clone();
     let stage_phase_timings = result.stage_phase_timings.clone();
+    let stage_memory = result.memory.clone();
     let level_timings = result.level_timings.clone();
     let stage_receipts = result.stage_receipts.clone();
     let mut products: BTreeMap<String, StageProduct> = result.products;
@@ -974,6 +979,7 @@ pub fn run_full_scoped_with_progress(
         stage_receipt_root,
         stage_timings,
         stage_phase_timings,
+        stage_memory,
         level_timings,
         stage_receipts,
         output_paths,

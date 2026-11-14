@@ -750,18 +750,85 @@ pub fn exit_code(report: &Report) -> i32 {
 ///
 /// Idempotent: uses `try_init` and swallows the already-initialized error, so
 /// both `main`s and any test may call it without a double-install panic.
-pub fn init_tracing() {
+///
+/// When [`STAGE_MEMORY_LOG_ENV`] names a file, a second layer appends every
+/// `pipeline_memory` event to it, whatever the stderr filter selects. Each event is
+/// one unbuffered append of one whole line, so the file holds every record made
+/// before the process was killed and may be shared with another appending writer.
+///
+/// # Errors
+/// The file named by [`STAGE_MEMORY_LOG_ENV`] cannot be opened for appending. The
+/// record was selected, so it is not silently dropped.
+pub fn init_tracing() -> Result<(), StageMemoryLogError> {
+    use tracing_subscriber::Layer as _;
+    use tracing_subscriber::layer::SubscriberExt as _;
+    use tracing_subscriber::util::SubscriberInitExt as _;
+
     let filter = std::env::var("GMEOW_LOG")
         .or_else(|_| std::env::var("RUST_LOG"))
         .unwrap_or_else(|_| "warn".to_owned());
     let env_filter = tracing_subscriber::EnvFilter::try_new(filter)
         .unwrap_or_else(|_| tracing_subscriber::EnvFilter::new("warn"));
+    let stderr_layer = tracing_subscriber::fmt::layer()
+        .with_writer(std::io::stderr)
+        .with_filter(env_filter);
+    let memory_layer = match std::env::var_os(STAGE_MEMORY_LOG_ENV) {
+        Some(path) if !path.is_empty() => {
+            let path = std::path::PathBuf::from(path);
+            let file = std::fs::OpenOptions::new()
+                .create(true)
+                .append(true)
+                .open(&path)
+                .map_err(|source| StageMemoryLogError { path, source })?;
+            Some(
+                tracing_subscriber::fmt::layer()
+                    .with_ansi(false)
+                    .with_writer(std::sync::Arc::new(file))
+                    .with_filter(
+                        tracing_subscriber::filter::Targets::new()
+                            .with_target(STAGE_MEMORY_TARGET, tracing::Level::INFO),
+                    ),
+            )
+        }
+        _ => None,
+    };
     // `try_init` returns Err if a global subscriber is already set — ignore it so
     // this stays idempotent across bins and tests.
-    let _ = tracing_subscriber::fmt()
-        .with_env_filter(env_filter)
-        .with_writer(std::io::stderr)
+    let _ = tracing_subscriber::registry()
+        .with(stderr_layer)
+        .with(memory_layer)
         .try_init();
+    Ok(())
+}
+
+/// The environment variable naming the file the per-stage memory record is appended to.
+pub const STAGE_MEMORY_LOG_ENV: &str = "GMEOW_STAGE_MEMORY_LOG";
+
+/// The `tracing` target the pipeline emits its per-stage memory record on.
+pub const STAGE_MEMORY_TARGET: &str = "pipeline_memory";
+
+/// The selected per-stage memory log could not be opened for appending.
+#[derive(Debug)]
+pub struct StageMemoryLogError {
+    path: std::path::PathBuf,
+    source: std::io::Error,
+}
+
+impl std::fmt::Display for StageMemoryLogError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(
+            f,
+            "cannot append the stage memory log {} selected by {STAGE_MEMORY_LOG_ENV}: {}",
+            self.path.display(),
+            self.source
+        )
+    }
+}
+
+impl std::error::Error for StageMemoryLogError {
+    fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {
+        Some(&self.source)
+    }
 }
 
 #[path = "lib.tests.rs"]

@@ -212,7 +212,7 @@ jobs:
         id: sweep
         env:
           GMEOW_ALLOCATOR_OBSERVATIONS: glibc
-          GMEOW_LOG: warn,pipeline_phase=info,pipeline_reasoning_detail=info
+          GMEOW_LOG: warn,pipeline_phase=info,pipeline_reasoning_detail=info,pipeline_memory=info
         run: |
           set -euo pipefail
           bash .github/scripts/observe-producer.sh medium-sweep dist/medium-sweep/resources.log -- \
@@ -437,7 +437,7 @@ jobs:
       - name: Cold-materialize the generated product
         env:
           GMEOW_ALLOCATOR_OBSERVATIONS: glibc
-          GMEOW_LOG: warn,pipeline_phase=info,pipeline_reasoning_detail=info
+          GMEOW_LOG: warn,pipeline_phase=info,pipeline_reasoning_detail=info,pipeline_memory=info
           SYNC_VERBOSE: "1"
           SYNC_TIMINGS_JSON: dist/sync/update-timings.json
         run: |
@@ -771,7 +771,7 @@ jobs:
       - name: Produce optimized corpus fixtures before any test runner starts
         env:
           GMEOW_ALLOCATOR_OBSERVATIONS: glibc
-          GMEOW_LOG: warn,pipeline_phase=info,pipeline_reasoning_detail=info
+          GMEOW_LOG: warn,pipeline_phase=info,pipeline_reasoning_detail=info,pipeline_memory=info
         run: >-
           bash .github/scripts/observe-producer.sh fixture-prefix dist/nextest/fixture-resources.log --
           make produce-producer-independent-test-fixtures

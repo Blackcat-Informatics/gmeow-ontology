@@ -3238,6 +3238,70 @@ fn carrier_retention_is_bounded_by_the_live_frontier() {
         late.artifact("pipeline/late.nq").is_some(),
         "the run output keeps even its internal artifacts"
     );
+
+    // ── The memory record: a hosted run that dies part-way is read from these, so
+    //    every executed stage must have a dispatch and a publication record, every
+    //    released producer a release record naming what the release removed, and the
+    //    run output none. Making the records changes no digest.
+    use crate::memory_record::MemoryEvent;
+    let events = |stage: &str, event: MemoryEvent| -> Vec<&crate::memory_record::MemoryRecord> {
+        result
+            .memory
+            .iter()
+            .filter(|made| made.stage_id == stage && made.event == event)
+            .collect()
+    };
+    assert!(
+        result
+            .memory
+            .windows(2)
+            .all(|pair| pair[0].seq < pair[1].seq),
+        "records are returned in the order they were made"
+    );
+    for id in ["source", "a", "b", "late"] {
+        let dispatch = events(id, MemoryEvent::Dispatch);
+        let complete = events(id, MemoryEvent::Complete);
+        assert_eq!(dispatch.len(), 1, "{id}: one dispatch record");
+        assert_eq!(complete.len(), 1, "{id}: one publication record");
+        assert!(dispatch[0].seq < complete[0].seq, "{id}: dispatched first");
+        let published = complete[0]
+            .product
+            .expect("a published product is measured");
+        assert_eq!(published.quads, 1, "{id}: the published carrier's dataset");
+        assert!(!published.carrier_released);
+        assert!(published.committed_lane_bytes > 0 && published.internal_lane_bytes > 0);
+    }
+    for id in ["source", "a", "b"] {
+        let release = events(id, MemoryEvent::Release);
+        assert_eq!(release.len(), 1, "{id}: one release record");
+        let freed = release[0]
+            .released
+            .expect("a release names what it removed");
+        assert_eq!(freed.quads, 1, "{id}: the released dataset is counted");
+        assert!(freed.internal_lane_bytes > 0, "{id}: internal artifacts go");
+        assert_eq!(
+            freed.committed_lane_bytes, 0,
+            "{id}: committed artifacts stay"
+        );
+        let residue = release[0].product.expect("the residue is measured");
+        assert!(residue.carrier_released && residue.quads == 0);
+    }
+    assert!(
+        events("late", MemoryEvent::Release).is_empty(),
+        "a run output is never released"
+    );
+    let (retained, _) = run_retention_chain(crate::scheduler::CarrierRetention::RetainAll);
+    assert!(
+        retained
+            .memory
+            .iter()
+            .all(|made| made.event != MemoryEvent::Release),
+        "RetainAll records no release"
+    );
+    assert_eq!(
+        result.combined_digest, retained.combined_digest,
+        "the determinism witness is the same with and without release records"
+    );
 }
 
 #[test]

@@ -571,6 +571,33 @@ pub(crate) fn artifact_lane_records(
     records
 }
 
+/// The payload bytes of `bundle`'s byte-artifact lane, as `(committed, internal)`: the
+/// entries [`release_carrier`] always keeps, and the `pipeline/` ones. An entry whose
+/// bytes are not in the content store counts nothing. For the memory record.
+pub(crate) fn artifact_lane_bytes(bundle: &PipelineBundle<PipelineHandle>) -> (u64, u64) {
+    let mut committed = 0u64;
+    let mut internal = 0u64;
+    for resource in bundle.lookaside().resources_of_kind(ARTIFACT_KIND) {
+        let (Some(name), Some(hex)) =
+            (resource.name.as_deref(), resource.content_digest.as_deref())
+        else {
+            continue;
+        };
+        let Some(bytes) =
+            ContentDigest::from_hex(hex).and_then(|digest| bundle.blobs().get(&digest))
+        else {
+            continue;
+        };
+        let len = u64::try_from(bytes.len()).unwrap_or(u64::MAX);
+        if name.starts_with(INTERNAL_ARTIFACT_PREFIX) {
+            internal = internal.saturating_add(len);
+        } else {
+            committed = committed.saturating_add(len);
+        }
+    }
+    (committed, internal)
+}
+
 /// Replace a bundle's provenance sidecar with `provenance` in place, cloning the
 /// shared carrier only if needed (`Arc::make_mut`). The pipeline scheduler uses
 /// this to thread the run's per-stage provenance into the produced carrier
