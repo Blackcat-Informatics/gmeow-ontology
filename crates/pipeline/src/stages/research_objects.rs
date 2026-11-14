@@ -1643,11 +1643,7 @@ fn mappings_grounding_catalog(
 ) -> Result<&GroundingCatalog, gmeow_errors::Diag> {
     upstream
         .get("stage-mappings")
-        .and_then(|product| {
-            product
-                .bundle()
-                .handle(super::carrier::GRAPH_CORRESPONDENCE_LAWS)
-        })
+        .and_then(|product| product.handle(super::carrier::GRAPH_CORRESPONDENCE_LAWS))
         .and_then(|entry| match &entry.payload {
             crate::bundle::PipelineHandle::GroundingCatalog(catalog) => Some(catalog.as_ref()),
             _ => None,
