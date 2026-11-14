@@ -207,7 +207,9 @@ fn modality_from_term(term: Option<&Node>) -> Option<LogicModality> {
 
 /// A total, storage-order-independent identity for a scope term: its kind, its
 /// canonical text, and the complete term so that terms differing only in
-/// datatype, language or blank-node scope stay distinct.
+/// datatype, language or blank-node scope keep a distinct, fixed place in the
+/// order. The debug text is a sound tiebreak only while `Debug` stays derived
+/// for the term types.
 fn term_identity(term: &Node) -> (u8, String, String) {
     let kind = match term {
         Node::Iri(_) => 0,
@@ -222,11 +224,10 @@ fn term_identity(term: &Node) -> (u8, String, String) {
 /// identity (kind, then canonical text, then the full term) so the result never
 /// depends on which physical table the store returned a value from.
 ///
-/// Distinct terms are distinct values: an IRI, a literal and a blank node that
-/// share the same text are three values, and literals differing in datatype or
-/// language are distinct too. This is the final identity for `standpoint`,
-/// `time`, `provenance` and `inModule`; `confidence` and `modality` are further
-/// reduced to their parsed values by `scope_from_node`.
+/// Every distinct term is returned: an IRI, a literal and a blank node that share
+/// the same text are three terms here, so that `confidence` and `modality`
+/// validate each of them. `scope_from_node` then reduces the values to the ones
+/// that produce distinct scopes.
 ///
 /// `Some(empty)` means the coordinate is absent. `None` means the node was
 /// refused (a diagnostic has been recorded): a proposition-valued term on any of
@@ -294,16 +295,29 @@ fn fan_out<T>(
         .collect()
 }
 
+/// Keep the first term of each distinct text, preserving order. Terms with one
+/// text are not adjacent in identity order, so this cannot be an adjacent dedup.
+fn first_per_text(values: Vec<Node>) -> Vec<Node> {
+    let mut seen = BTreeSet::new();
+    values
+        .into_iter()
+        .filter(|value| seen.insert(term_str(value)))
+        .collect()
+}
+
 /// Extract every scope dimension together and lower the carrier into its scopes.
 ///
 /// A carrier with one value per coordinate yields one scope. A carrier with
 /// several values of exactly one coordinate yields one scope per value, in the
-/// order of the values, with every other coordinate shared. Values of
-/// `standpoint`, `time`, `provenance` and `inModule` are distinct when their
-/// terms are distinct (see `scope_values`), ordered by term identity. `confidence` and `modality` are counted by parsed value:
-/// `"0.5"` and `"0.50"` are one confidence, and the bare local name and the full
-/// IRI of one modality are one modality. Confidences are ordered by numeric
-/// value and modalities by the declaration order of `LogicModality`.
+/// order of the values, with every other coordinate shared. Values are distinct
+/// exactly when the scopes they produce are distinct. `standpoint`, `time`,
+/// `provenance` and `inModule` are held as text in a scope, so terms with one
+/// text are one value: the first of them in term-identity order is kept, and the
+/// values are ordered by that identity. `confidence` and `modality` validate every
+/// term and are then counted by parsed value: `"0.5"` and `"0.50"` are one
+/// confidence, and the bare local name and the full IRI of one modality are one
+/// modality. Confidences are ordered by numeric value and modalities by the
+/// declaration order of `LogicModality`.
 /// A carrier with several values of two or more coordinates is refused whole:
 /// the node gives no pairing between the values of different coordinates, and
 /// their product would assert combinations no author wrote. An invalid value of
@@ -340,6 +354,8 @@ fn scope_from_node(
     else {
         return None;
     };
+    let [standpoint, time, provenance, module] =
+        [standpoint, time, provenance, module].map(first_per_text);
 
     // Every term is validated; only then are equal parsed values merged, so one
     // invalid spelling still withholds the claim.

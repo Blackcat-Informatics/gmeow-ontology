@@ -705,7 +705,7 @@ fn distinct_confidences_fan_out_in_numeric_order_whatever_the_authored_order() {
     let spellings = [
         ("confidence", Text("0.5")),
         ("confidence", Text("0.50")),
-        ("confidence", Text("0.25")),
+        ("confidence", Text("1e-1")),
     ];
     let mut reversed = spellings;
     reversed.reverse();
@@ -713,7 +713,8 @@ fn distinct_confidences_fan_out_in_numeric_order_whatever_the_authored_order() {
         let (scopes, codes) = lower_claim(&authored);
         assert!(codes.is_empty(), "{codes:?}");
         let confidences: Vec<_> = scopes.iter().map(|s| s.confidence).collect();
-        assert_eq!(confidences, [Some(0.25), Some(0.5)]);
+        // Text order would put 0.5 before 1e-1; numeric order does not.
+        assert_eq!(confidences, [Some(0.1), Some(0.5)]);
     }
 }
 
@@ -918,42 +919,61 @@ fn modality_none_beside_another_modality_yields_only_the_other_claim_but_both_ru
 
 #[test]
 fn values_split_across_physical_tables_fan_out_the_same_way() {
-    let mut builder = RdfDatasetBuilder::new();
-    let (reifier, triple) = quoted_axiom(&mut builder);
-    builder.push_reifier(reifier, triple).unwrap();
-    let predicate = builder.intern_iri(&logic_iri("provenance")).unwrap();
-    let first = builder.intern_iri("https://example.org/a").unwrap();
-    let second = builder.intern_iri("https://example.org/b").unwrap();
-    builder.push_annotation(reifier, predicate, first).unwrap();
-    builder.push_quad(reifier, predicate, second, None).unwrap();
-    let source = builder.freeze().unwrap();
-    let (program, diagnostics) = parse_logic_dataset(&source, None).unwrap();
-    assert!(diagnostics.is_empty(), "{diagnostics:?}");
-    let provenance: Vec<_> = program
-        .axioms
-        .iter()
-        .filter(|a| a.subject == "https://example.org/Bird")
-        .map(|a| a.scope.provenance.as_deref())
-        .collect();
-    assert_eq!(
-        provenance,
-        [Some("https://example.org/a"), Some("https://example.org/b")]
-    );
+    // Both placements: neither value's table may decide the result.
+    for annotated_first in [true, false] {
+        let mut builder = RdfDatasetBuilder::new();
+        let (reifier, triple) = quoted_axiom(&mut builder);
+        builder.push_reifier(reifier, triple).unwrap();
+        let predicate = builder.intern_iri(&logic_iri("provenance")).unwrap();
+        let a = builder.intern_iri("https://example.org/a").unwrap();
+        let b = builder.intern_iri("https://example.org/b").unwrap();
+        let (annotated, quad) = if annotated_first { (a, b) } else { (b, a) };
+        builder
+            .push_annotation(reifier, predicate, annotated)
+            .unwrap();
+        builder.push_quad(reifier, predicate, quad, None).unwrap();
+        let source = builder.freeze().unwrap();
+        let (program, diagnostics) = parse_logic_dataset(&source, None).unwrap();
+        assert!(diagnostics.is_empty(), "{diagnostics:?}");
+        let provenance: Vec<_> = program
+            .axioms
+            .iter()
+            .filter(|a| a.subject == "https://example.org/Bird")
+            .map(|a| a.scope.provenance.as_deref())
+            .collect();
+        assert_eq!(
+            provenance,
+            [Some("https://example.org/a"), Some("https://example.org/b")],
+            "annotated_first={annotated_first}"
+        );
+    }
 }
 
 #[test]
-fn distinct_terms_with_the_same_text_are_distinct_values() {
-    // An IRI and a literal spelling the same text are two provenance values, so
-    // beside two standpoints the node is ambiguous whichever the store returns first.
-    let (scopes, codes) = lower_claim(&[
-        ("provenance", Authored::Iri("https://example.org/a")),
-        ("provenance", Authored::Text("https://example.org/a")),
-        ("standpoint", Authored::Iri("https://example.org/c")),
-        ("standpoint", Authored::Iri("https://example.org/d")),
-    ]);
-    assert!(scopes.is_empty(), "{scopes:?}");
-    assert!(
-        codes.iter().any(|c| c == "AMBIGUOUS_SCOPE_COORDINATES"),
-        "{codes:?}"
-    );
+fn terms_with_one_text_are_one_value_whichever_is_authored_first() {
+    use Authored::{Iri, Text};
+    let same_text = [
+        ("provenance", Iri("https://example.org/a")),
+        ("provenance", Text("https://example.org/a")),
+    ];
+    let mut reversed = same_text;
+    reversed.reverse();
+    // An IRI and a literal of one text lower to identical scopes: one claim.
+    let (forward, codes) = lower_claim(&same_text);
+    let (backward, _) = lower_claim(&reversed);
+    assert!(codes.is_empty(), "{codes:?}");
+    assert_eq!(forward.len(), 1);
+    assert_eq!(forward, backward);
+    // Beside two values of another coordinate they still count once, so the node
+    // fans out on that coordinate and is not refused as ambiguous.
+    for authored in [same_text, reversed] {
+        let mut values = authored.to_vec();
+        values.extend([
+            ("standpoint", Iri("https://example.org/c")),
+            ("standpoint", Iri("https://example.org/d")),
+        ]);
+        let (scopes, codes) = lower_claim(&values);
+        assert!(codes.is_empty(), "{codes:?}");
+        assert_eq!(scopes.len(), 2, "{scopes:?}");
+    }
 }
