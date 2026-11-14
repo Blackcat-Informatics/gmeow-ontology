@@ -39,10 +39,10 @@ A strict partial order between standpoints that exists only as dated claims attr
 to the party who ranks them: every edge needs a reifier annotated with
 `gmeow:accordingTo` (the ranker) and `gmeow:validFrom` (the instant from which the
 ranking holds). A missing claim means the two frames are incomparable, never equal and
-never lower. It is transitive within one ranker's claims and is closed per ranker by the
-consumer; it is not declared transitive or asymmetric globally, because that would chain
-different rankers' claims into a ranking nobody made and would reject two rankers who
-rank a pair in opposite directions (Principle 9). It is never derived from `sharpens`,
+never lower. It is transitive within one ranker's live claims, which a canonical check
+requires to be closed; it is not declared transitive or asymmetric globally, because that
+would chain different rankers' claims into a ranking nobody made and would reject two
+rankers who rank a pair in opposite directions (Principle 9). It is never derived from `sharpens`,
 and it is a presentation aid, not a confidence or a truth value; the top of a ranker's
 order is not a primary or preferred frame.
 
@@ -55,11 +55,24 @@ What the canonical checks enforce:
   directions at once. Two rankers may. The pair is exempt when one claim is linked to
   the other by `gmeow:succeedsClaim` or `gmeow:correctsClaim`, or when either claim is
   retracted with `gmeow:retractsClaim`.
+- `gmeow:moreEntrenchedThanRankerClosureConstraint`: a ranker who holds a live claim
+  ranking a over b and a live claim ranking b over c must also hold a live claim ranking
+  a over c. A claim is live when it is the object of no `gmeow:succeedsClaim`, no
+  `gmeow:correctsClaim` and no `gmeow:retractsClaim`. A premise that is superseded,
+  corrected or retracted does not oblige, and the concluding claim must itself be live.
 
-What is not enforced is a cycle of three or more claims of one ranker, and the per-ranker
-closure itself, which is a derivation rather than an integrity check. Both are recorded in
-`gmeow:moreEntrenchedThanRankerClosureBoundary`, because excluding a cycle of unbounded
-length is a transitive-closure statement that no first-order formula expresses.
+Together these checks reject a cycle of any length among one ranker's live claims: the
+closure forces a live claim from the first standpoint of the cycle to its last, and that
+claim meets the claim closing the cycle as a reversed pair. `logic:transitiveReach` is not
+used for this, because it follows one fixed property over asserted edges and cannot be
+restricted to the reifiers that name one ranker.
+
+What is not enforced: the checks read the record as it stands and compare no dates, so
+they do not judge the order at an evaluation instant. A cycle among the claims selected
+at an instant `t` below (for example among claims that were all in force before one of
+them was superseded) is reported by the consumer. The checks apply to a claim whose
+first standpoint is typed `gmeow:Standpoint`, and they do not check who made a lifecycle
+link.
 
 A ranker who changes or withdraws a ranking keeps the earlier claim and uses the claim
 lifecycle relations on the reifier of the ranking statement: `gmeow:succeedsClaim` for a
@@ -67,7 +80,7 @@ reversal or replacement (the earlier claim stays valid for its earlier interval)
 `gmeow:correctsClaim` for a ranking made in error, and `gmeow:retractsClaim` for a
 withdrawal, each annotated with the same ranker and an effective time. There is no
 separate end instant for a ranking. Name the reifier of each ranking statement so these
-relations can reach it; the constraint does not check who made a lifecycle link.
+relations can reach it; the constraints do not check who made a lifecycle link.
 
 Which claims enter one ranker's order is fixed by a stated evaluation instant `t`. A
 claim participates when it names the ranker with `gmeow:accordingTo` and carries a
@@ -77,13 +90,21 @@ claim participates when it names the ranker with `gmeow:accordingTo` and carries
   suppression is how superseded and withdrawn records leave display (Principle 10); it
   also leaves out a corrected claim, a claim whose retraction has taken effect by `t`, and
   a claim whose successor has taken effect by `t`.
-- A historical order at `t` ignores `gmeow:displayable`, which is a display policy and not
-  a truth judgment. It keeps a superseded claim for the period before its successor took
-  effect, and drops a corrected claim at every `t`.
+- A historical order at `t` answers what the ranker held at `t`. It ignores
+  `gmeow:displayable`, which is a display policy and not a truth judgment. It keeps a
+  superseded claim for every `t` before its successor took effect and leaves it out from
+  that instant on. It leaves out a corrected claim at every `t`, because a correction
+  rejects the earlier validity of the claim. It keeps a retracted claim for every `t`
+  before its retraction took effect and leaves it out from that instant on, because a
+  retraction withdraws endorsement from then on and does not erase that the claim was
+  made. A lifecycle relation takes effect at the earliest `gmeow:validFrom` on its own
+  statement; one that carries no such date counts as in effect at every `t`.
 
-If the claims that remain still contain a cycle, the ranker's ranking is inconsistent at
-`t`; a consumer reports it and does not pick a side. Two consumers using the same graph,
-the same `t` and the same use then derive the same order.
+In both uses the consumer closes the selected claims transitively, per ranker, and leaves
+any pair still unordered incomparable. If the selected claims contain a cycle, the
+ranker's ranking is inconsistent at `t`; a consumer reports it and does not pick a side.
+Every case above is decided by the graph, the ranker, `t` and the use, so two consumers
+given the same four select the same claims and derive the same order.
 
 ### gmeow:StandpointModality · gmeow:claimModality
 
