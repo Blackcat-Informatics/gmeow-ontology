@@ -511,3 +511,15 @@ msgstr "范围：该记录仅承载关于 gmeow:moreEntrenchedThan 的一项完�
 msgctxt "https://blackcatinformatics.ca/gmeow/moreEntrenchedThanIrreflexivity|http://www.w3.org/2004/02/skos/core#example"
 msgid "gmeow:moreEntrenchedThanIrreflexivity logic:characterizes gmeow:moreEntrenchedThan ."
 msgstr "gmeow:moreEntrenchedThanIrreflexivity logic:characterizes gmeow:moreEntrenchedThan ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/moreEntrenchedThanRankerClosureBoundary|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "moreEntrenchedThan Per-Ranker Closure Boundary"
+msgstr "moreEntrenchedThan 按排序者闭包的边界"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/moreEntrenchedThanRankerClosureBoundary|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The retained-withhold record for the ranker-scoped ordering law of gmeow:moreEntrenchedThan: that the claims of one ranker form a strict partial order, closed per ranker, is first-order over reified ranking statements but is not certified by the native coherence gate, which carries only gmeow:moreEntrenchedThanIrreflexivity. Consumers close each ranker's claims in force at a stated evaluation time and report a cycle among them rather than resolving it."
+msgstr "gmeow:moreEntrenchedThan 按排序者划定范围的序律的保留记录：同一排序者的主张构成严格偏序并按排序者闭包，这在具体化的排序陈述上属于一阶，但原生一致性闸门并未认证它，闸门只承载 gmeow:moreEntrenchedThanIrreflexivity。使用方在所声明的评估时刻对每位排序者当时有效的主张求闭包，并报告其中的环，而不是自行消解。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/moreEntrenchedThanRankerClosureBoundary|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Cite it when explaining why gmeow:moreEntrenchedThan declares neither global transitivity nor asymmetry, and why per-ranker transitivity and cycle exclusion are consumer discipline rather than a certified canonical check."
+msgstr "用于说明 gmeow:moreEntrenchedThan 为何既不声明全局传递性也不声明非对称性，以及为何按排序者的传递性与环排除属于使用方的约束，而非经认证的规范检查。"

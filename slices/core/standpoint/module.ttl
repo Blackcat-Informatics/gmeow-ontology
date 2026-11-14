@@ -173,10 +173,10 @@ gmeow:conceivable
 
 gmeow:moreEntrenchedThan
     a logic:ObjectProperty ;
-    rdfs:domain gmeow:Standpoint ;
+    logic:domain gmeow:Standpoint ;
+    logic:range gmeow:Standpoint ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/standpoint> ;
     rdfs:label "more entrenched than"@x-gmeow-english ;
-    rdfs:range gmeow:Standpoint ;
     skos:definition "S1 is more entrenched than S2: the party who ranks the two frames holds S1 to be the more settled of them. The ranking is a strict partial order that exists only as dated claims attributed to the ranker — a statement annotated with gmeow:accordingTo for the party who ranks and with gmeow:validFrom for when the ranking was made. The vocabulary does not enforce the ranker or the date: a statement without them is accepted, so supplying both on every statement is authoring discipline that the consumer carries. It is transitive and irreflexive within one ranker's claims. It is not declared transitive globally: a global closure would chain one ranker's claim with another's and entail a ranking that no party made, so a consumer closes each ranker's claims separately (gmeow:moreEntrenchedThanIrreflexivity declares only irreflexivity, and asymmetry is not declared because two rankers may legitimately rank a pair in opposite directions, Principle 9). A missing claim means the two frames are incomparable — never equal and never lower. It is never derived from gmeow:sharpens: sharpening is containment, and reading the sharper frame as the more entrenched would invert a chain such a ranker made. It is a presentation aid for ordering frames, not a confidence, a truth value, or the epistemic-entrenchment ordering that drives logic:EntrenchmentRevision."@x-gmeow-english ;
     skos:example "ex:communityView gmeow:moreEntrenchedThan ex:fringeView {| gmeow:accordingTo ex:editorialBoard ; gmeow:validFrom \"2026-03-01T00:00:00Z\"^^xsd:dateTime |} ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid asserting it without the ranker and the date on the statement, avoid reading a missing claim as equal or lower, avoid deriving it from gmeow:sharpens, and avoid using it as a confidence, a truth value, or a belief-revision ordering. Never close it across rankers: chain only the claims one party made."@x-gmeow-english ;
@@ -1115,6 +1115,17 @@ gmeow:moreEntrenchedThanIrreflexivity
     gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:moreEntrenchedThan, logic:characteristicSort logic:irreflexiveProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
     skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:moreEntrenchedThan and nothing else. It is not a definition of gmeow:moreEntrenchedThan (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
     skos:example "gmeow:moreEntrenchedThanIrreflexivity logic:characterizes gmeow:moreEntrenchedThan ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:moreEntrenchedThanRankerClosureBoundary
+    a logic:NamedIndividual ,
+        gmeow:InformationObject ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/standpoint> ;
+    rdfs:label "moreEntrenchedThan Per-Ranker Closure Boundary"@x-gmeow-english ;
+    logic:expressivenessBoundary logic:FirstOrder ;
+    logic:fragmentBoundaryReason "Transitivity of gmeow:moreEntrenchedThan within one ranker's claims, and the exclusion of a cycle among them, would quantify over reified ranking statements and join them on the gmeow:accordingTo annotation they share. Those statement-layer annotations are not the object and datatype edges the guarded description-logic fragment's deciders reach, and a global transitivity or asymmetry axiom would instead chain different rankers' claims into a ranking nobody made. The only certified obligation is irreflexivity; a same-ranker cycle of length two or more is therefore not rejected by any canonical check." ;
+    skos:definition "The retained-withhold record for the ranker-scoped ordering law of gmeow:moreEntrenchedThan: that the claims of one ranker form a strict partial order, closed per ranker, is first-order over reified ranking statements but is not certified by the native coherence gate, which carries only gmeow:moreEntrenchedThanIrreflexivity. Consumers close each ranker's claims in force at a stated evaluation time and report a cycle among them rather than resolving it."@x-gmeow-english ;
+    gmeow:useWhen "Cite it when explaining why gmeow:moreEntrenchedThan declares neither global transitivity nor asymmetry, and why per-ranker transitivity and cycle exclusion are consumer discipline rather than a certified canonical check."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 
 gmeow:claimAssertoricForceFunctionality

@@ -511,3 +511,15 @@ msgstr "Portée : cet enregistrement porte UNE seule obligation d'intégrité au
 msgctxt "https://blackcatinformatics.ca/gmeow/moreEntrenchedThanIrreflexivity|http://www.w3.org/2004/02/skos/core#example"
 msgid "gmeow:moreEntrenchedThanIrreflexivity logic:characterizes gmeow:moreEntrenchedThan ."
 msgstr "gmeow:moreEntrenchedThanIrreflexivity logic:characterizes gmeow:moreEntrenchedThan ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/moreEntrenchedThanRankerClosureBoundary|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "moreEntrenchedThan Per-Ranker Closure Boundary"
+msgstr "Limite de fermeture par classeur de moreEntrenchedThan"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/moreEntrenchedThanRankerClosureBoundary|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The retained-withhold record for the ranker-scoped ordering law of gmeow:moreEntrenchedThan: that the claims of one ranker form a strict partial order, closed per ranker, is first-order over reified ranking statements but is not certified by the native coherence gate, which carries only gmeow:moreEntrenchedThanIrreflexivity. Consumers close each ranker's claims in force at a stated evaluation time and report a cycle among them rather than resolving it."
+msgstr "L'enregistrement de réserve pour la loi d'ordre propre à chaque classeur de gmeow:moreEntrenchedThan : que les revendications d'un même classeur forment un ordre partiel strict, fermé par classeur, est du premier ordre sur des énoncés de classement réifiés mais n'est pas certifié par le portail de cohérence natif, qui ne porte que gmeow:moreEntrenchedThanIrreflexivity. Les consommateurs ferment les revendications en vigueur de chaque classeur à un instant d'évaluation indiqué et signalent un cycle plutôt que de le résoudre."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/moreEntrenchedThanRankerClosureBoundary|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Cite it when explaining why gmeow:moreEntrenchedThan declares neither global transitivity nor asymmetry, and why per-ranker transitivity and cycle exclusion are consumer discipline rather than a certified canonical check."
+msgstr "À citer pour expliquer pourquoi gmeow:moreEntrenchedThan ne déclare ni transitivité globale ni asymétrie, et pourquoi la transitivité par classeur et l'exclusion des cycles relèvent de la discipline du consommateur plutôt que d'un contrôle canonique certifié."

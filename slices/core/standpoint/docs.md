@@ -44,6 +44,20 @@ claims into a ranking nobody made. It is never derived from `sharpens`, and it i
 presentation aid, not a confidence or a truth value. The ranker, the date and the
 per-ranker closure are consumer discipline that the vocabulary does not enforce.
 
+Which claims enter one ranker's closure is fixed by a stated evaluation instant `t`. A
+claim participates when it names the ranker with `gmeow:accordingTo`, carries a
+`gmeow:validFrom` not later than `t`, and has no `gmeow:validUntil` at or before `t`; a
+claim with no `gmeow:validFrom` cannot be placed in time and does not participate. A
+ranker who reverses or withdraws an earlier ranking ends it with `gmeow:validUntil`, so
+the original and its reversal are never in force together. `gmeow:displayable false`
+controls display only and neither admits nor excludes a claim: retained superseded and
+withdrawn claims stay in the graph, and only their effective interval decides. If the
+claims in force still contain a cycle, the ranker's ranking is inconsistent at `t`; a
+consumer reports it and does not pick a side. Two consumers using the same graph and the
+same `t` then derive the same order. The law itself is recorded as an honest boundary in
+`gmeow:moreEntrenchedThanRankerClosureBoundary`, because the canonical checks certify only
+irreflexivity.
+
 ### gmeow:StandpointModality · gmeow:claimModality
 
 The belief value a standpoint assigns a proposition — the closed vocabulary
