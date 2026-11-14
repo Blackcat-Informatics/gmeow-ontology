@@ -171,6 +171,20 @@ gmeow:conceivable
     gmeow:graphBoxRole gmeow:boxABox ,
         gmeow:boxCBox .
 
+gmeow:madeWithinContextOf
+    a logic:ObjectProperty ;
+    logic:domain gmeow:Standpoint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/standpoint> ;
+    rdfs:label "made within context of"@x-gmeow-english ;
+    logic:range gmeow:Standpoint ;
+    skos:definition "S1 made within context of S2: S1 is a standpoint that exists for reading works, and the readings it holds were made within the context of the frame S2. It is not a sharpening: S1 does not become a case of S2, the relation by itself says nothing about which precisifications either frame admits, and two standpoints that share one context are not thereby refinements of each other. It is not a subproperty of gmeow:sharpens and entails nothing about it, so no gmeow:sharpens edge follows from it and none is removed by it. No property characteristic is declared: it is not transitive, because a frame that supplied the context for one set of readings does not thereby supply it for the readings made within that frame's own context, and chaining would build the refinement-like order this relation exists to avoid; it is not symmetric, because the object is the frame and the subject is the reader; and irreflexivity is withheld because a standpoint that reads works within its own context is a legitimate degenerate case that a gate must not reject. It is for a standpoint that exists for reading works, not for a person or party who also holds claims about other things; such a holder is related to the claims it holds with gmeow:accordingTo."@x-gmeow-english ;
+    skos:example "ex:formalistReading gmeow:madeWithinContextOf ex:interwarCriticism ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid it to say one frame is a more specific case of another, which is gmeow:sharpens; avoid it for a person or party who holds claims about things other than the reading of works; avoid reading two standpoints with the same object as ordered, equal or one sharper than the other; and avoid chaining it into a context of a context."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxCBox ,
+        gmeow:boxRBox ;
+    gmeow:howToUse "Assert it from the standpoint that exists for reading works to the frame whose context its readings were made within. Use gmeow:Standpoint for both ends; no class is specific to a standpoint that reads works, and gmeow:ReadingOrder is a different notion, a standpoint that orders the segments of a work for consumption, so do not use it as the subject unless that ordering standpoint is itself the one whose readings were made within the context. Add a gmeow:sharpens edge separately and only when one frame really is a refinement of the other."@x-gmeow-english ;
+    gmeow:useWhen "Use to record that a standpoint set up to read works made its readings within the context of another frame, when the two share a context but neither is a sharper case of the other."@x-gmeow-english .
+
 gmeow:probable
     a gmeow:StandpointModality ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/standpoint> ;
