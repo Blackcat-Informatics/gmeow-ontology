@@ -48,7 +48,7 @@ const MAX_SOURCE_DOCUMENTS: usize = 4_096;
 const PROVE_PROFILE: &str = "gmeow-native-selection-consistency-v1";
 
 /// Authority recorded for the single default-graph world `prove` selects.
-const PROVE_DOMAIN_AUTHORITY: &str = "gmeow.prove.default-graph-selection.v1";
+const PROVE_WORLD_AUTHORITY: &str = "gmeow.prove.default-graph-selection.v1";
 
 const VERDICT_CONSISTENT: &str = "consistent";
 const VERDICT_INCONSISTENT: &str = "inconsistent";
@@ -794,7 +794,7 @@ fn native_leg(
         let domains = SelectedDomains::new([SelectedLogicalWorld::new(
             LogicalGraph::Default,
             DomainProfile::NonemptyObjectDomainV1,
-            PROVE_DOMAIN_AUTHORITY.to_owned(),
+            PROVE_WORLD_AUTHORITY.to_owned(),
             *input.ingress_contract(),
         )?])?;
         let result = gmeow_logic::reason::reason_program_within(
