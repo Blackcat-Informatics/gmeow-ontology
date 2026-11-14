@@ -22,7 +22,12 @@ use purrdf::{
 
 use crate::graph::StageGraph;
 use crate::node::{CachePolicy, GMEOW, SINK_CAPABILITY, Stage, StageStability};
+use crate::reads::{Read, ReadSet};
 use crate::registry::StageRegistry;
+
+/// The stage whose product carries the source-span table. One constant for the loader,
+/// which counts the stages that may read the table, and the scheduler, which strips it.
+pub(crate) const SPAN_TABLE_PRODUCER: &str = "stage-source-load";
 
 const RDF_TYPE: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
 
@@ -64,6 +69,14 @@ pub struct StageSpec {
     /// producer is a whole-product dependency (the sound default). Validated against the
     /// Rust impl's `consumed_entities()` at bind time (Rust/RDF agreement).
     pub dataflow_entities: DataFlowEntities,
+    /// The reads each reified `gmeow:BuildDataFlow` edge into this stage declares, by
+    /// producer: which lanes of that producer's product this stage may read. The
+    /// scheduler hands the stage a view of each product that records each access made
+    /// through the lane accessors, and fails the stage when the recorded reads and these
+    /// declarations differ. Retention is derived from the declarations: a carrier is kept
+    /// until its last declared carrier reader has run, and a declared internal artifact
+    /// is kept through every release until the run ends.
+    pub reads: BTreeMap<String, ReadSet>,
     /// `gmeow:producesFormat` — output format tags, sorted (export leaves).
     pub formats: Vec<String>,
     /// `gmeow:attachesGraph` — the named-graph IRIs (kept whole) this stage attaches
@@ -118,6 +131,22 @@ impl PipelineSpec {
                     return Err(gmeow_errors::Diag::of_kind(crate::error::InvalidDag {
                         message: format!(
                             "stage {} declares typed dataflow from {producer} but does not gmeow:dataflowConsumes it",
+                            s.id
+                        ),
+                    }));
+                }
+            }
+        }
+
+        // ── Declared reads: a read set names what a stage reads of a producer it
+        //    consumes. A read set on any other stage could never be served, because the
+        //    scheduler hands a stage only the products of its dependencies. ──
+        for s in &self.stages {
+            for producer in s.reads.keys() {
+                if !s.consumes.iter().any(|c| c == producer) {
+                    return Err(gmeow_errors::Diag::of_kind(crate::error::InvalidDag {
+                        message: format!(
+                            "stage {} declares reads of {producer} but does not gmeow:dataflowConsumes it",
                             s.id
                         ),
                     }));
@@ -215,8 +244,9 @@ impl PipelineSpec {
         // stages (the artifact-level dependency declarations).
         let mut by_consumer = parse_dataflow_edges(ds)?;
         for s in &mut stages {
-            if let Some(entities) = by_consumer.remove(&s.id) {
-                s.dataflow_entities = entities;
+            if let Some(declared) = by_consumer.remove(&s.id) {
+                s.dataflow_entities = declared.entities;
+                s.reads = declared.reads;
             }
         }
         // A gmeow:BuildDataFlow whose gmeow:buildFlowTo is not a hasStage member of
@@ -323,6 +353,7 @@ fn parse_stage(ds: &RdfDataset, stage_iri: &str) -> Result<StageSpec, gmeow_erro
         cache_disposition,
         // Filled in by from_store from the reified gmeow:BuildDataFlow edges.
         dataflow_entities: Vec::new(),
+        reads: BTreeMap::new(),
         formats,
         attaches_graphs,
         attaches_blob_reps,
@@ -374,9 +405,11 @@ fn required_named_declaration(
 /// producer) pair are merged.
 fn parse_dataflow_edges(
     ds: &RdfDataset,
-) -> Result<BTreeMap<String, DataFlowEntities>, gmeow_errors::Diag> {
+) -> Result<BTreeMap<String, EdgeDeclarations>, gmeow_errors::Diag> {
     // consumer -> producer -> entity set
     let mut acc: BTreeMap<String, BTreeMap<String, BTreeSet<String>>> = BTreeMap::new();
+    // consumer -> producer -> declared read set
+    let mut reads_acc: BTreeMap<String, BTreeMap<String, ReadSet>> = BTreeMap::new();
     // Every named `?edge a gmeow:BuildDataFlow` subject (kept whole), sorted.
     let mut edges: BTreeSet<String> = BTreeSet::new();
     if let (Some(p), Some(o)) = (
@@ -419,37 +452,93 @@ fn parse_dataflow_edges(
                 _ => None,
             })
             .collect();
-        if entities.is_empty() {
+        let reads = parse_edge_reads(ds, edge)?;
+        if entities.is_empty() && reads.is_empty() {
             return Err(gmeow_errors::Diag::of_kind(crate::error::Parse {
                 message: format!(
-                    "gmeow:BuildDataFlow {edge} declares no gmeow:flowEntity (a typed dataflow edge must name at least one entity graph)"
+                    "gmeow:BuildDataFlow {edge} declares neither a read (gmeow:flowReadsLane, \
+                     gmeow:flowReadsHandle, gmeow:flowReadsBlobRep, gmeow:flowReadsArtifact) nor a \
+                     gmeow:flowEntity: an edge that carries nothing is not a dependency"
                 ),
             }));
         }
-        acc.entry(consumer)
+        if !entities.is_empty() {
+            acc.entry(consumer.clone())
+                .or_default()
+                .entry(producer.clone())
+                .or_default()
+                .extend(entities);
+        }
+        reads_acc
+            .entry(consumer)
             .or_default()
             .entry(producer)
             .or_default()
-            .extend(entities);
+            .extend(reads);
     }
     // Materialize to sorted Vecs (by producer; entities sorted).
-    let out = acc
-        .into_iter()
-        .map(|(consumer, producers)| {
-            let mut rows: Vec<(String, Vec<String>)> = producers
-                .into_iter()
-                .map(|(p, ents)| (p, ents.into_iter().collect()))
-                .collect();
-            rows.sort();
-            (consumer, rows)
-        })
-        .collect();
+    let mut out: BTreeMap<String, EdgeDeclarations> = BTreeMap::new();
+    for (consumer, producers) in acc {
+        let mut rows: Vec<(String, Vec<String>)> = producers
+            .into_iter()
+            .map(|(p, ents)| (p, ents.into_iter().collect()))
+            .collect();
+        rows.sort();
+        out.entry(consumer).or_default().entities = rows;
+    }
+    for (consumer, producers) in reads_acc {
+        out.entry(consumer).or_default().reads = producers;
+    }
     Ok(out)
 }
 
+/// What the reified `gmeow:BuildDataFlow` edges into one consumer declare.
+#[derive(Debug, Default)]
+struct EdgeDeclarations {
+    /// The named-graph narrowing of the cache key, per producer.
+    entities: DataFlowEntities,
+    /// The declared read set, per producer.
+    reads: BTreeMap<String, ReadSet>,
+}
+
+/// Parse the reads one `gmeow:BuildDataFlow` edge declares.
+///
+/// A value of the wrong term kind, or a lane individual outside the closed vocabulary,
+/// is a hard failure: dropping it would silently narrow what the consumer may read.
+fn parse_edge_reads(ds: &RdfDataset, edge: &str) -> Result<ReadSet, gmeow_errors::Diag> {
+    let invalid = |property: &str, value: &TermValue| {
+        gmeow_errors::Diag::of_kind(crate::error::InvalidDeclaration {
+            message: format!(
+                "gmeow:BuildDataFlow {edge} has an invalid gmeow:{property} value {value:?}"
+            ),
+        })
+    };
+    let mut reads = ReadSet::new();
+    for value in objects(ds, edge, &iri(GMEOW, "flowReadsLane")) {
+        let lane = match &value {
+            TermValue::Iri(lane) => Read::from_lane_iri(lane),
+            _ => None,
+        };
+        reads.insert(lane.ok_or_else(|| invalid("flowReadsLane", &value))?);
+    }
+    for value in objects(ds, edge, &iri(GMEOW, "flowReadsHandle")) {
+        match &value {
+            TermValue::Iri(key) => reads.insert(Read::Handle(key.clone())),
+            _ => return Err(invalid("flowReadsHandle", &value)),
+        };
+    }
+    for rep in string_declarations(ds, edge, "flowReadsBlobRep", edge)? {
+        reads.insert(Read::BlobRep(rep));
+    }
+    for path in string_declarations(ds, edge, "flowReadsArtifact", edge)? {
+        reads.insert(Read::Artifact(path));
+    }
+    Ok(reads)
+}
+
 /// Resolve every stage's `gmeow:stageImpl` against the registry and prove the
-/// Rust impl agrees with the RDF declaration (capabilities + consumes + resources +
-/// typed dataflow). Returns the bound stages in the validated topological order.
+/// Rust impl agrees with the RDF declaration (its own id + capabilities + consumes +
+/// resources + stability + cache disposition + typed dataflow + attach sets). Returns the bound stages in the validated topological order.
 pub fn bind(
     spec: &PipelineSpec,
     graph: &StageGraph,
@@ -464,6 +553,25 @@ pub fn bind(
                 impl_key: s.impl_key.clone(),
             })
         })?;
+
+        // Identity agreement: the implementation a stage is bound to must be the stage
+        // the description names. The bound stage answers to the description's id, so
+        // without this check two implementations whose other declarations are equal
+        // could be swapped and each would run the other's body under the other's id.
+        if stage.id() != s.id {
+            return Err(gmeow_errors::Diag::of_kind(
+                crate::error::InvalidDeclaration {
+                    message: format!(
+                        "stage {}: gmeow:stageImpl \"{}\" names an implementation whose own id \
+                         is \"{}\"; a stage is bound only to the implementation that carries \
+                         its id",
+                        s.id,
+                        s.impl_key,
+                        stage.id()
+                    ),
+                },
+            ));
+        }
 
         // Capability agreement (both sides sorted+deduped): the executable twin must
         // declare exactly the capabilities the RDF does, or the executor would read a
@@ -493,67 +601,6 @@ pub fn bind(
                     rust,
                 },
             ));
-        }
-
-        // `carrier_consumes()` refines an existing logical dependency into a live
-        // carrier-lane read; it never creates a second edge. A duplicate or a producer
-        // absent from the RDF/Rust-agreed consumes set would make carrier release depend
-        // on an unauthored graph, so binding rejects it before scheduling.
-        let mut carrier_seen = std::collections::BTreeSet::new();
-        for producer in stage.carrier_consumes() {
-            if !carrier_seen.insert(producer.as_str()) {
-                return Err(gmeow_errors::Diag::of_kind(
-                    crate::error::InvalidDeclaration {
-                        message: format!(
-                            "stage {} declares duplicate carrier dependency {producer}",
-                            s.id
-                        ),
-                    },
-                ));
-            }
-            if rust.binary_search(producer).is_err() {
-                return Err(gmeow_errors::Diag::of_kind(
-                    crate::error::InvalidDeclaration {
-                        message: format!(
-                            "stage {} carrier dependency {producer} is not present in its \
-                             gmeow:dataflowConsumes set",
-                            s.id
-                        ),
-                    },
-                ));
-            }
-        }
-
-        // `internal_artifact_reads()` names internal artifacts a stage reads through an
-        // artifact-only edge, so the scheduler keeps them through release. A pair naming a
-        // producer outside that edge set, or a committed artifact, would keep bytes no read
-        // needs or hide a carrier read behind an artifact edge, so binding rejects it.
-        for (producer, artifact) in stage.internal_artifact_reads() {
-            let artifact_only =
-                rust.iter().any(|p| p == producer) && !carrier_seen.contains(producer);
-            if !artifact_only {
-                return Err(gmeow_errors::Diag::of_kind(
-                    crate::error::InvalidDeclaration {
-                        message: format!(
-                            "stage {} declares an internal artifact read {artifact} from \
-                             {producer}, which is not one of its artifact-only dependencies",
-                            s.id
-                        ),
-                    },
-                ));
-            }
-            if !artifact.starts_with(crate::bundle::INTERNAL_ARTIFACT_PREFIX) {
-                return Err(gmeow_errors::Diag::of_kind(
-                    crate::error::InvalidDeclaration {
-                        message: format!(
-                            "stage {} declares {artifact} from {producer} as an internal \
-                             artifact read, but it is a committed artifact, which survives \
-                             release without a declaration",
-                            s.id
-                        ),
-                    },
-                ));
-            }
         }
 
         // Resource agreement (both sides sorted+deduped): the executable twin must
@@ -657,9 +704,122 @@ pub fn bind(
             ));
         }
 
-        bound.push(stage);
+        bound.push(Arc::new(BoundStage::new(s.clone(), stage)));
     }
     Ok(bound)
+}
+
+/// A stage as the scheduler runs it: the declarations of the pipeline description and
+/// the implementation its `gmeow:stageImpl` names.
+///
+/// Every declaration the scheduler reads comes from the description. The implementation
+/// supplies only what a description cannot hold: its body, its implementation version,
+/// the source files it reads from the working tree, and its output family. What the
+/// description declares about reads also decides retention: which consumed products
+/// keep a live carrier for this stage, which internal artifacts survive a release for
+/// it, and whether it reads the source-span table.
+struct BoundStage {
+    spec: StageSpec,
+    body: Arc<dyn Stage>,
+    carrier_consumes: Vec<String>,
+}
+
+impl BoundStage {
+    fn new(spec: StageSpec, body: Arc<dyn Stage>) -> Self {
+        let carrier_consumes = spec
+            .consumes
+            .iter()
+            .filter(|producer| {
+                // A named-graph narrowing reads those graphs of the producer's dataset,
+                // so it keeps the carrier just as a declared carrier lane does.
+                spec.reads
+                    .get(*producer)
+                    .is_some_and(crate::reads::needs_carrier)
+                    || spec
+                        .dataflow_entities
+                        .iter()
+                        .any(|(narrowed, _)| narrowed == *producer)
+            })
+            .cloned()
+            .collect();
+        Self {
+            spec,
+            body,
+            carrier_consumes,
+        }
+    }
+}
+
+impl Stage for BoundStage {
+    fn id(&self) -> &str {
+        &self.spec.id
+    }
+    fn output_family(&self) -> crate::node::OutputFamily {
+        self.body.output_family()
+    }
+    fn consumes(&self) -> &[String] {
+        &self.spec.consumes
+    }
+    fn carrier_consumes(&self) -> &[String] {
+        &self.carrier_consumes
+    }
+    fn internal_artifact_reads(&self) -> Vec<(String, String)> {
+        self.spec
+            .reads
+            .iter()
+            .flat_map(|(producer, reads)| {
+                crate::reads::internal_artifacts(reads)
+                    .map(|artifact| (producer.clone(), artifact.to_owned()))
+            })
+            .collect()
+    }
+    fn reads(&self) -> BTreeMap<String, ReadSet> {
+        self.spec.reads.clone()
+    }
+    fn capabilities(&self) -> &[String] {
+        &self.spec.capabilities
+    }
+    fn resources(&self) -> &[String] {
+        &self.spec.resources
+    }
+    fn stability(&self) -> StageStability {
+        self.spec.stability
+    }
+    fn cache_policy(&self) -> CachePolicy {
+        self.spec.cache_disposition
+    }
+    fn consumed_entities(&self) -> &[(String, Vec<String>)] {
+        &self.spec.dataflow_entities
+    }
+    fn consumes_span_table(&self) -> bool {
+        // The span table rides the source-load product. A declaration that PERMITS the
+        // read counts, so a stage that declares the whole carrier and calls
+        // `span_index()` is a counted reader: the scheduler strips the table only after
+        // every counted reader has run.
+        let span_table = Read::BlobRep(crate::stages::carrier::REP_SPAN_TABLE.to_owned());
+        self.spec
+            .reads
+            .get(SPAN_TABLE_PRODUCER)
+            .is_some_and(|reads| crate::reads::permits(reads, &span_table))
+    }
+    fn attaches_graphs(&self) -> &[String] {
+        &self.spec.attaches_graphs
+    }
+    fn attaches_blob_reps(&self) -> &[String] {
+        &self.spec.attaches_blob_reps
+    }
+    fn impl_version(&self) -> &str {
+        self.body.impl_version()
+    }
+    fn input_files(&self, root: &std::path::Path) -> gmeow_errors::Result<Vec<std::path::PathBuf>> {
+        self.body.input_files(root)
+    }
+    fn run(
+        &self,
+        input: crate::node::StageInput<'_>,
+    ) -> gmeow_errors::Result<crate::node::StageOutput> {
+        self.body.run(input)
+    }
 }
 
 // ── RDF helpers (mirror gmeow-slice::catalog idioms) ─────────────────────────

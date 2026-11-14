@@ -205,7 +205,10 @@ fn term_panels_follow_the_actual_documentation_stage_dependencies() {
     use crate::node::Stage;
     use crate::stages::{docs_render::DocsRenderStage, reason::ReasonStage};
 
-    let docs = DocsRenderStage::new();
+    // The documentation stage as the scheduler runs it: its carrier inputs are the ones
+    // the pipeline slice declares it reads, so removing the declared carrier read of
+    // the reasoning product fails here.
+    let docs = crate::run::bound_production_stage(DocsRenderStage::new().id());
     let reason = ReasonStage::new();
     let snapshot = SnapshotStage::new();
     assert!(docs.carrier_consumes().iter().any(|id| id == reason.id()));

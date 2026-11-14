@@ -964,10 +964,23 @@ false claim (P11); one with no boundary record at all is worse.**
    digest over the files you consumed (`shaclInputDigest`) or a fingerprint over
    the scored source set (`gmeow:versionFingerprint`) — and make the projection
    lossless for every field a reader needs (P4, P9).
-4. **Declare the edge in all three places.** A stage's dependency lives in
-   `Stage::consumes()`, in `full_spec()`, and in `gmeow:dataflowConsumes` in
-   `slices/core/pipeline/module.ttl`. Editing fewer than three leaves a mismatch
-   that only surfaces at a full producer run.
+4. **Declare the edge in two places, and declare what it reads.** A stage's
+   dependency lives in `Stage::consumes()` and in `gmeow:dataflowConsumes` in
+   `slices/core/pipeline/module.ttl`; `bind` refuses a stage whose implementation
+   and description disagree. The slice also holds one `gmeow:BuildDataFlow`
+   individual per dependency edge, and each must declare what the consumer reads
+   of the producer's product (`gmeow:flowReadsLane`, `gmeow:flowReadsHandle`,
+   `gmeow:flowReadsBlobRep` or `gmeow:flowReadsArtifact`; `gmeow:laneIdentity`
+   when it reads nothing). A run refuses an edge that declares no read, and fails
+   a stage whose recorded reads differ from its declaration. Those declarations
+   also decide what is kept alive for the consumer, so an edge written without
+   them does not run. `gmeow-dev pipeline-reads --out <file>` writes the
+   declarations a tree's stage bodies need, except that an internal `pipeline/`
+   artifact a stage reaches only through the whole artifact lane is not
+   discovered (the whole-lane accessors return only committed artifacts and the
+   internal ones the edge already names) and must be named by hand. Reads are compared only for a stage
+   that executes: a stage served from the stage cache is not compared, so a
+   changed declaration is not checked until a cache miss runs the stage.
 5. **Prefer a lowering to a core change.** If the blocker is that a downstream
    engine cannot see one edge, lower that edge and record a narrow
    `logic:expressivenessBoundary` naming only what is genuinely not preserved

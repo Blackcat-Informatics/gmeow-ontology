@@ -252,3 +252,1051 @@ msgstr "table de codes native"
 msgctxt "https://blackcatinformatics.ca/gmeow/stage-native-codebook|http://www.w3.org/2004/02/skos/core#definition"
 msgid "Encode the native GMN dictionary and codebook from the admitted original language source and publish their authenticated language projection artifact. The archive stage carries these exact bytes in the language projection family. Its sole dependency is source parsing, so browser engines can be rebuilt before substrate reconciliation."
 msgstr "Encode le dictionnaire et la table de codes GMN natifs à partir de la source linguistique originale admise et publie leur artefact de projection linguistique authentifié. L'étape d'archivage reprend ces octets exacts dans la famille des projections linguistiques. Sa seule dépendance est l'analyse des sources, ce qui permet de reconstruire les moteurs de navigateur avant la vérification de cohérence du substrat."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ProductLane|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Product Lane"
+msgstr "Voie de produit"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ProductLane|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The set of whole lanes of a stage product that a consuming stage can declare it reads on a gmeow:BuildDataFlow edge: gmeow:laneCarrier (the whole carrier through the raw bundle), gmeow:laneDataset (the frozen dataset), gmeow:laneAllArtifacts (the whole byte-artifact lane) and gmeow:laneIdentity (nothing but the product's identity, for ordering and the cache key). A single typed handle, representation blob or byte artifact is named by gmeow:flowReadsHandle, gmeow:flowReadsBlobRep or gmeow:flowReadsArtifact instead. The pipeline loader accepts only these four values and refuses any other lane individual when it reads the description; no axiom in this slice closes the set. A lane is not a stage, an edge, or a single named handle, blob or artifact."
+msgstr "L'ensemble des voies entières d'un produit d'étape qu'une étape consommatrice peut déclarer lire sur une arête gmeow:BuildDataFlow : gmeow:laneCarrier (le porteur entier par le bundle brut), gmeow:laneDataset (le jeu de données figé), gmeow:laneAllArtifacts (la voie complète d'artefacts d'octets) et gmeow:laneIdentity (rien que l'identité du produit, pour l'ordonnancement et la clé de cache). Un handle typé, un blob de représentation ou un artefact d'octets isolé est plutôt nommé par gmeow:flowReadsHandle, gmeow:flowReadsBlobRep ou gmeow:flowReadsArtifact. Le chargeur du pipeline n'accepte que ces quatre valeurs et refuse tout autre individu de voie lorsqu'il lit la description ; aucun axiome de cette tranche ne ferme l'ensemble. Une voie n'est ni une étape, ni une arête, ni un handle, un blob ou un artefact nommé isolément."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ProductLane|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use a Product Lane when a consuming stage reads a whole lane of the producer's product, so the scheduler can keep that lane alive for it and refuse a read the edge does not declare."
+msgstr "À utiliser lorsqu'une étape consommatrice lit une voie entière du produit du producteur, afin que l'ordonnanceur puisse la garder vivante pour elle et refuser une lecture que l'arête ne déclare pas."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ProductLane|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Do not declare gmeow:laneCarrier where the consumer reads one handle or one representation blob: name it with gmeow:flowReadsHandle or gmeow:flowReadsBlobRep, so the run fails the stage if it reads anything wider."
+msgstr "Ne déclarez pas gmeow:laneCarrier lorsque le consommateur lit un seul handle ou un seul blob de représentation : nommez-le avec gmeow:flowReadsHandle ou gmeow:flowReadsBlobRep, afin que l'exécution fasse échouer l'étape si elle lit quoi que ce soit de plus large."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ProductLane|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Assert one gmeow:flowReadsLane per whole lane the consumer's stage body reads; a run fails the stage when its recorded reads and the declared reads differ in either direction."
+msgstr "Affirmez un gmeow:flowReadsLane par voie entière que lit le corps d'étape du consommateur ; une exécution fait échouer l'étape lorsque ses lectures enregistrées et les lectures déclarées diffèrent, dans un sens comme dans l'autre."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ProductLane|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:pipeline-dataflow-reason-compile-logic gmeow:flowReadsLane gmeow:laneDataset ."
+msgstr "gmeow:pipeline-dataflow-reason-compile-logic gmeow:flowReadsLane gmeow:laneDataset ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ProductLane|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Scope: this value class names lanes of an in-memory stage product. It does not name files in the working tree, committed outputs, or graphs of the shipped bundle."
+msgstr "Portée : cette classe de valeurs nomme les voies d'un produit d'étape en mémoire. Elle ne nomme ni des fichiers de l'arbre de travail, ni des sorties versionnées, ni des graphes du bundle livré."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/laneCarrier|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "lane: whole carrier"
+msgstr "voie : porteur entier"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/laneCarrier|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The consumer takes the producer's raw bundle: the frozen dataset, every typed handle, every representation blob, the lookaside records and the provenance. The producer's carrier stays resident until this consumer has run."
+msgstr "Le consommateur prend le bundle brut du producteur : le jeu de données figé, chaque handle typé, chaque blob de représentation, les enregistrements annexes et la provenance. Le porteur du producteur reste résident jusqu'à l'exécution de ce consommateur."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/laneDataset|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "lane: dataset"
+msgstr "voie : jeu de données"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/laneDataset|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The consumer reads the frozen dataset of the producer's product. The producer's carrier stays resident until this consumer has run."
+msgstr "Le consommateur lit le jeu de données figé du produit du producteur. Le porteur du producteur reste résident jusqu'à l'exécution de ce consommateur."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/laneAllArtifacts|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "lane: every committed byte artifact"
+msgstr "voie : tout artefact d'octets versionné"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/laneAllArtifacts|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The consumer enumerates the whole byte-artifact lane of the producer's product, which covers the COMMITTED artifacts only. An internal artifact, one whose path begins pipeline/, is not covered: a consumer may read it only when the same edge names its exact path with gmeow:flowReadsArtifact, and an internal artifact this edge does not name is not returned by the whole-lane accessors for this consumer, and it is kept through the release of the producer's carrier only when some other consumer in the run names it, so reading it directly is reported as an undeclared read. Committed artifacts survive the release of the producer's carrier. A consumer whose edge declares this read and no carrier read is served the lane by reference. A release of the producer's carrier that falls due while that consumer runs waits until it has finished; a carrier already released when the consumer starts is not held, and the consumer is then served the artifacts the release kept that this edge covers."
+msgstr "Le consommateur énumère toute la voie d'artefacts d'octets du produit du producteur, qui ne couvre que les artefacts VERSIONNÉS. Un artefact interne, dont le chemin commence par pipeline/, n'est pas couvert : un consommateur ne peut le lire que si la même arête nomme son chemin exact avec gmeow:flowReadsArtifact, et un artefact interne que cette arête ne nomme pas n'est pas renvoyé à ce consommateur par les accesseurs de voie entière ; il n'est conservé à travers la libération du porteur du producteur que si un autre consommateur de l'exécution le nomme, de sorte que le lire directement est signalé comme une lecture non déclarée. Les artefacts versionnés survivent à la libération du porteur du producteur. Un consommateur dont l'arête déclare cette lecture et aucune lecture du porteur se voit servir la voie par référence. Une libération du porteur du producteur qui arrive à échéance pendant que ce consommateur s'exécute attend qu'il ait terminé ; un porteur déjà libéré au démarrage du consommateur n'est pas retenu, et le consommateur reçoit alors les artefacts conservés par la libération que cette arête couvre."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/laneIdentity|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "lane: identity only"
+msgstr "voie : identité seule"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/laneIdentity|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The consumer reads no lane of the producer's product: the edge orders the two stages and folds the producer's identity into the consumer's cache key, and nothing else. Stated explicitly so that an edge carrying no data is a visible decision of the graph and never an unread dependency."
+msgstr "Le consommateur ne lit aucune voie du produit du producteur : l'arête ordonne les deux étapes et intègre l'identité du producteur dans la clé de cache du consommateur, et rien d'autre. Énoncé explicitement pour qu'une arête ne transportant aucune donnée soit une décision visible du graphe et jamais une dépendance non lue."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/flowReadsLane|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "flow reads lane"
+msgstr "lecture de voie par le flux"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/flowReadsLane|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Relates a gmeow:BuildDataFlow edge to a whole lane of the producer's product that the consumer stage reads. Multi-valued. The scheduler hands the consumer a view of the product that records each access made through the lane accessors (bundle, handle, rep_blob, dataset, dataset_arc, artifact, artifacts, artifact_refs, span_index) and compares them with the declaration when the stage returns; a recorded access no declaration on the edge covers, and a declaration no recorded access exercises, both fail the run under the enforcing read policy. The stage's product is still published to the stages that consume it and the run goes on, so every such stage is reported together when the run ends; the product is not written to the stage cache. A stage served from the stage cache is not compared, because no stage body ran. A stage that itself fails is reported for the undeclared reads it made, and for none it did not reach."
+msgstr "Relie une arête gmeow:BuildDataFlow à une voie entière du produit du producteur que l'étape consommatrice lit. Multivalué. L'ordonnanceur remet au consommateur une vue du produit qui enregistre chaque accès effectué par les accesseurs de voie (bundle, handle, rep_blob, dataset, dataset_arc, artifact, artifacts, artifact_refs, span_index) et les compare à la déclaration lorsque l'étape retourne ; un accès enregistré qu'aucune déclaration de l'arête ne couvre, et une déclaration qu'aucun accès enregistré n'exerce, font tous deux échouer l'exécution sous la politique de lecture stricte. Le produit de l'étape est tout de même publié aux étapes qui le consomment et l'exécution se poursuit, de sorte que chaque étape fautive est signalée en même temps à la fin de l'exécution ; le produit n'est pas écrit dans le cache d'étape. Une étape servie depuis le cache d'étape n'est pas comparée, car aucun corps d'étape n'a été exécuté. Une étape qui échoue elle-même est signalée pour les lectures non déclarées qu'elle a effectuées, et pour aucune de celles qu'elle n'a pas atteintes."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/flowReadsLane|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Declare a whole-lane read on the edge whenever the consumer's stage body takes the producer's dataset, raw bundle or whole artifact lane."
+msgstr "À déclarer sur l'arête, pour une lecture de voie entière, chaque fois que le corps d'étape du consommateur prend le jeu de données, le bundle brut ou la voie complète d'artefacts du producteur."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/flowReadsLane|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Do not use this property for a single handle, representation blob or artifact; name it with the specific property so retention and review see exactly what is read."
+msgstr "À éviter pour un seul handle, un seul blob de représentation ou un seul artefact ; nommez-le avec la propriété spécifique afin que la rétention et la revue voient exactement ce qui est lu."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/flowReadsLane|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Author the reads from what the stage body does; the maintainer command that records a run writes the declarations a tree's stage bodies need to a file, except that an internal artifact a stage reaches only through the whole artifact lane is not discovered by the recorder, because the whole-lane accessors return only committed artifacts and the internal ones the edge already names, and must be named by hand."
+msgstr "Rédigez les lectures d'après ce que fait le corps d'étape ; la commande de mainteneur qui enregistre une exécution écrit dans un fichier les déclarations dont ont besoin les corps d'étape d'un arbre, sauf qu'un artefact interne qu'une étape n'atteint que par la voie complète d'artefacts n'est pas découvert par l'enregistreur, car les accesseurs de voie entière ne renvoient que les artefacts versionnés et les artefacts internes que l'arête nomme déjà ; il doit alors être nommé à la main."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/flowReadsLane|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:pipeline-dataflow-reason-compile-logic gmeow:flowReadsLane gmeow:laneDataset ."
+msgstr "gmeow:pipeline-dataflow-reason-compile-logic gmeow:flowReadsLane gmeow:laneDataset ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/flowReadsLane|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Scope: this property declares what a stage body reads from an upstream product in memory. Which named graphs narrow the consumer's cache key is gmeow:flowEntity; files read from the working tree are not products and are not declared here."
+msgstr "Portée : cette propriété déclare ce qu'un corps d'étape lit en mémoire dans un produit amont. Les graphes nommés qui restreignent la clé de cache du consommateur relèvent de gmeow:flowEntity ; les fichiers lus depuis l'arbre de travail ne sont pas des produits et ne sont pas déclarés ici."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/flowReadsHandle|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "flow reads handle"
+msgstr "lecture de handle par le flux"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/flowReadsHandle|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Relates a gmeow:BuildDataFlow edge to the key of one typed in-memory handle of the producer's product that the consumer stage reads. The key is the IRI of the named graph the handle is pinned to. Multi-valued. A handle lives on the producer's carrier, so the carrier stays resident until this consumer has run. It is not a declaration of the dataset or of a representation blob, which gmeow:flowReadsLane and gmeow:flowReadsBlobRep make."
+msgstr "Relie une arête gmeow:BuildDataFlow à la clé d'un handle typé en mémoire du produit du producteur que l'étape consommatrice lit. La clé est l'IRI du graphe nommé auquel le handle est épinglé. Multivalué. Un handle vit sur le porteur du producteur, de sorte que le porteur reste résident jusqu'à l'exécution de ce consommateur. Ce n'est pas une déclaration du jeu de données ni d'un blob de représentation, que font gmeow:flowReadsLane et gmeow:flowReadsBlobRep."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/flowReadsHandle|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:pipeline-dataflow-mappings-compile-logic gmeow:flowReadsHandle <https://blackcatinformatics.ca/gmeow/graph/logic> ."
+msgstr "gmeow:pipeline-dataflow-mappings-compile-logic gmeow:flowReadsHandle <https://blackcatinformatics.ca/gmeow/graph/logic> ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/flowReadsBlobRep|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "flow reads blob representation"
+msgstr "lecture de blob de représentation par le flux"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/flowReadsBlobRep|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Names one representation-keyed blob of the producer's product that the consumer stage reads, by its lane label. Multi-valued. The label is an identifier, not localizable prose. The only representation blob the scheduler strips on its own is the source-span table, spans:source-table of gmeow:stage-source-load, once the last stage whose edge permits it (by naming it or by declaring the whole carrier) has run; every other representation blob is released with the producer's carrier, after its last carrier reader has run."
+msgstr "Nomme un blob indexé par représentation du produit du producteur que l'étape consommatrice lit, par son libellé de voie. Multivalué. Le libellé est un identifiant, non de la prose localisable. Le seul blob de représentation que l'ordonnanceur retire de lui-même est la table des empans de source, spans:source-table de gmeow:stage-source-load, une fois exécutée la dernière étape dont l'arête l'autorise (en le nommant ou en déclarant le porteur entier) ; tout autre blob de représentation est libéré avec le porteur du producteur, après l'exécution de son dernier lecteur du porteur."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/flowReadsBlobRep|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:pipeline-dataflow-validate-source-load gmeow:flowReadsBlobRep \"spans:source-table\" ."
+msgstr "gmeow:pipeline-dataflow-validate-source-load gmeow:flowReadsBlobRep \"spans:source-table\" ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/flowReadsArtifact|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "flow reads artifact"
+msgstr "lecture d'artefact par le flux"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/flowReadsArtifact|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Names one byte artifact of the producer's product that the consumer stage reads, by its exact logical path. Multi-valued. The path is an identifier, not localizable prose. An internal artifact, one whose path begins pipeline/, is dropped when the producer's carrier is released unless some consumer in the run declares it here, in which case it is kept through every release of that producer until the run ends, whether or not the declaring consumer has run; a committed artifact survives release without a declaration but is still an undeclared read unless the edge names it or declares the whole lane with gmeow:laneAllArtifacts, which never covers an internal artifact."
+msgstr "Nomme un artefact d'octets du produit du producteur que l'étape consommatrice lit, par son chemin logique exact. Multivalué. Le chemin est un identifiant, non de la prose localisable. Un artefact interne, dont le chemin commence par pipeline/, est abandonné lorsque le porteur du producteur est libéré, sauf si un consommateur de l'exécution le déclare ici : il est alors conservé à travers chaque libération de ce producteur jusqu'à la fin de l'exécution, que le consommateur déclarant ait ou non déjà été exécuté ; un artefact versionné survit à la libération sans déclaration, mais reste une lecture non déclarée à moins que l'arête ne le nomme ou ne déclare la voie entière avec gmeow:laneAllArtifacts, qui ne couvre jamais un artefact interne."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/flowReadsArtifact|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:pipeline-dataflow-gts-sink-compile-logic gmeow:flowReadsArtifact \"pipeline/canon-proof-admission.json\" ."
+msgstr "gmeow:pipeline-dataflow-gts-sink-compile-logic gmeow:flowReadsArtifact \"pipeline/canon-proof-admission.json\" ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-archive-blobs-compile-logic|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "dataflow: compile-logic → archive-blobs"
+msgstr "flux de données : compile-logic → archive-blobs"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-archive-blobs-compile-logic|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The dataflow edge from gmeow:stage-compile-logic to gmeow:stage-archive-blobs: archive-blobs reads every committed byte artifact of the producer's product."
+msgstr "L'arête de flux de données de gmeow:stage-compile-logic à gmeow:stage-archive-blobs : archive-blobs lit chaque artefact d'octets versionné du produit du producteur."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-archive-blobs-export-constraint-shapes|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "dataflow: export-constraint-shapes → archive-blobs"
+msgstr "flux de données : export-constraint-shapes → archive-blobs"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-archive-blobs-export-constraint-shapes|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The dataflow edge from gmeow:stage-export-constraint-shapes to gmeow:stage-archive-blobs: archive-blobs reads the artifact 'generated/shapes/constraint-shapes.ttl' of the producer's product."
+msgstr "L'arête de flux de données de gmeow:stage-export-constraint-shapes à gmeow:stage-archive-blobs : archive-blobs lit l'artefact « generated/shapes/constraint-shapes.ttl » du produit du producteur."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-archive-blobs-export-frame-shapes|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "dataflow: export-frame-shapes → archive-blobs"
+msgstr "flux de données : export-frame-shapes → archive-blobs"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-archive-blobs-export-frame-shapes|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The dataflow edge from gmeow:stage-export-frame-shapes to gmeow:stage-archive-blobs: archive-blobs reads the artifact 'generated/shapes/frame-shapes.ttl' of the producer's product."
+msgstr "L'arête de flux de données de gmeow:stage-export-frame-shapes à gmeow:stage-archive-blobs : archive-blobs lit l'artefact « generated/shapes/frame-shapes.ttl » du produit du producteur."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-archive-blobs-export-glossary|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "dataflow: export-glossary → archive-blobs"
+msgstr "flux de données : export-glossary → archive-blobs"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-archive-blobs-export-glossary|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The dataflow edge from gmeow:stage-export-glossary to gmeow:stage-archive-blobs: archive-blobs reads every committed byte artifact of the producer's product."
+msgstr "L'arête de flux de données de gmeow:stage-export-glossary à gmeow:stage-archive-blobs : archive-blobs lit chaque artefact d'octets versionné du produit du producteur."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-archive-blobs-export-json-schema|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "dataflow: export-json-schema → archive-blobs"
+msgstr "flux de données : export-json-schema → archive-blobs"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-archive-blobs-export-json-schema|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The dataflow edge from gmeow:stage-export-json-schema to gmeow:stage-archive-blobs: archive-blobs reads the artifact 'generated/schemas/card.schema.json', the artifact 'generated/schemas/gmeow.openapi.json', the artifact 'generated/schemas/gmeow.schema.json', the artifact 'generated/schemas/validate-finding.schema.json' of the producer's product."
+msgstr "L'arête de flux de données de gmeow:stage-export-json-schema à gmeow:stage-archive-blobs : archive-blobs lit l'artefact « generated/schemas/card.schema.json », l'artefact « generated/schemas/gmeow.openapi.json », l'artefact « generated/schemas/gmeow.schema.json », l'artefact « generated/schemas/validate-finding.schema.json » du produit du producteur."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-archive-blobs-export-pydantic|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "dataflow: export-pydantic → archive-blobs"
+msgstr "flux de données : export-pydantic → archive-blobs"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-archive-blobs-export-pydantic|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The dataflow edge from gmeow:stage-export-pydantic to gmeow:stage-archive-blobs: archive-blobs reads every committed byte artifact of the producer's product."
+msgstr "L'arête de flux de données de gmeow:stage-export-pydantic à gmeow:stage-archive-blobs : archive-blobs lit chaque artefact d'octets versionné du produit du producteur."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-archive-blobs-export-result-shapes|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "dataflow: export-result-shapes → archive-blobs"
+msgstr "flux de données : export-result-shapes → archive-blobs"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-archive-blobs-export-result-shapes|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The dataflow edge from gmeow:stage-export-result-shapes to gmeow:stage-archive-blobs: archive-blobs reads the artifact 'generated/shapes/result-shapes.ttl' of the producer's product."
+msgstr "L'arête de flux de données de gmeow:stage-export-result-shapes à gmeow:stage-archive-blobs : archive-blobs lit l'artefact « generated/shapes/result-shapes.ttl » du produit du producteur."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-archive-blobs-mappings|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "dataflow: mappings → archive-blobs"
+msgstr "flux de données : mappings → archive-blobs"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-archive-blobs-mappings|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The dataflow edge from gmeow:stage-mappings to gmeow:stage-archive-blobs: archive-blobs reads every committed byte artifact of the producer's product."
+msgstr "L'arête de flux de données de gmeow:stage-mappings à gmeow:stage-archive-blobs : archive-blobs lit chaque artefact d'octets versionné du produit du producteur."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-archive-blobs-math-producers|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "dataflow: math-producers → archive-blobs"
+msgstr "flux de données : math-producers → archive-blobs"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-archive-blobs-math-producers|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The dataflow edge from gmeow:stage-math-producers to gmeow:stage-archive-blobs: archive-blobs reads the artifact 'generated/queries/math-projection-expression-losses.rq', the artifact 'generated/queries/math-projection-losses.rq', the artifact 'generated/queries/math-projection-preservation.rq', the artifact 'generated/queries/math-projection-sensitive-losses.rq' of the producer's product."
+msgstr "L'arête de flux de données de gmeow:stage-math-producers à gmeow:stage-archive-blobs : archive-blobs lit l'artefact « generated/queries/math-projection-expression-losses.rq », l'artefact « generated/queries/math-projection-losses.rq », l'artefact « generated/queries/math-projection-preservation.rq », l'artefact « generated/queries/math-projection-sensitive-losses.rq » du produit du producteur."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-archive-blobs-native-codebook|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "dataflow: native-codebook → archive-blobs"
+msgstr "flux de données : native-codebook → archive-blobs"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-archive-blobs-native-codebook|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The dataflow edge from gmeow:stage-native-codebook to gmeow:stage-archive-blobs: archive-blobs reads every committed byte artifact of the producer's product."
+msgstr "L'arête de flux de données de gmeow:stage-native-codebook à gmeow:stage-archive-blobs : archive-blobs lit chaque artefact d'octets versionné du produit du producteur."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-archive-blobs-statements|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "dataflow: statements → archive-blobs"
+msgstr "flux de données : statements → archive-blobs"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-archive-blobs-statements|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The dataflow edge from gmeow:stage-statements to gmeow:stage-archive-blobs: archive-blobs reads the artifact 'pipeline/statements/gmeow.rdf12.jsonld', the artifact 'pipeline/statements/gmeow.rdf12.yamlld', every committed byte artifact of the producer's product."
+msgstr "L'arête de flux de données de gmeow:stage-statements à gmeow:stage-archive-blobs : archive-blobs lit l'artefact « pipeline/statements/gmeow.rdf12.jsonld », l'artefact « pipeline/statements/gmeow.rdf12.yamlld », chaque artefact d'octets versionné du produit du producteur."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-conformance-parse-sources|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "dataflow: parse-sources → conformance"
+msgstr "flux de données : parse-sources → conformance"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-conformance-parse-sources|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The dataflow edge from gmeow:stage-parse-sources to gmeow:stage-conformance: conformance reads the typed handle pinned to <https://blackcatinformatics.ca/gmeow/graph/source-catalog>, the frozen dataset of the producer's product."
+msgstr "L'arête de flux de données de gmeow:stage-parse-sources à gmeow:stage-conformance : conformance lit le handle typé épinglé à <https://blackcatinformatics.ca/gmeow/graph/source-catalog>, le jeu de données figé du produit du producteur."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-constraint-catalog-reason|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "dataflow: reason → constraint-catalog"
+msgstr "flux de données : reason → constraint-catalog"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-constraint-catalog-reason|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The dataflow edge from gmeow:stage-reason to gmeow:stage-constraint-catalog: constraint-catalog reads no lane of the producer's product; the edge orders the two stages and folds the producer's identity into the consumer's cache key."
+msgstr "L'arête de flux de données de gmeow:stage-reason à gmeow:stage-constraint-catalog : constraint-catalog ne lit aucune voie du produit du producteur ; l'arête ordonne les deux étapes et intègre l'identité du producteur dans la clé de cache du consommateur."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-docs-render-compile-logic|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "dataflow: compile-logic → docs-render"
+msgstr "flux de données : compile-logic → docs-render"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-docs-render-compile-logic|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The dataflow edge from gmeow:stage-compile-logic to gmeow:stage-docs-render: docs-render reads the whole carrier of the producer's product."
+msgstr "L'arête de flux de données de gmeow:stage-compile-logic à gmeow:stage-docs-render : docs-render lit le porteur entier du produit du producteur."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-docs-render-export-json-schema|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "dataflow: export-json-schema → docs-render"
+msgstr "flux de données : export-json-schema → docs-render"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-docs-render-export-json-schema|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The dataflow edge from gmeow:stage-export-json-schema to gmeow:stage-docs-render: docs-render reads the artifact 'generated/schemas/gmeow.openapi.json', the artifact 'generated/schemas/gmeow.schema.json' of the producer's product."
+msgstr "L'arête de flux de données de gmeow:stage-export-json-schema à gmeow:stage-docs-render : docs-render lit l'artefact « generated/schemas/gmeow.openapi.json », l'artefact « generated/schemas/gmeow.schema.json » du produit du producteur."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-docs-render-mappings|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "dataflow: mappings → docs-render"
+msgstr "flux de données : mappings → docs-render"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-docs-render-mappings|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The dataflow edge from gmeow:stage-mappings to gmeow:stage-docs-render: docs-render reads the frozen dataset of the producer's product."
+msgstr "L'arête de flux de données de gmeow:stage-mappings à gmeow:stage-docs-render : docs-render lit le jeu de données figé du produit du producteur."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-docs-render-reason|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "dataflow: reason → docs-render"
+msgstr "flux de données : reason → docs-render"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-docs-render-reason|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The dataflow edge from gmeow:stage-reason to gmeow:stage-docs-render: docs-render reads the whole carrier of the producer's product."
+msgstr "L'arête de flux de données de gmeow:stage-reason à gmeow:stage-docs-render : docs-render lit le porteur entier du produit du producteur."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-docs-render-term-manifest|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "dataflow: term-manifest → docs-render"
+msgstr "flux de données : term-manifest → docs-render"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-docs-render-term-manifest|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The dataflow edge from gmeow:stage-term-manifest to gmeow:stage-docs-render: docs-render reads the artifact 'generated/catalog/term-content-manifest.nq' of the producer's product."
+msgstr "L'arête de flux de données de gmeow:stage-term-manifest à gmeow:stage-docs-render : docs-render lit l'artefact « generated/catalog/term-content-manifest.nq » du produit du producteur."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-docs-render-validate|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "dataflow: validate → docs-render"
+msgstr "flux de données : validate → docs-render"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-docs-render-validate|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The dataflow edge from gmeow:stage-validate to gmeow:stage-docs-render: docs-render reads the whole carrier of the producer's product."
+msgstr "L'arête de flux de données de gmeow:stage-validate à gmeow:stage-docs-render : docs-render lit le porteur entier du produit du producteur."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-export-agreement-conformance|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "dataflow: conformance → export-agreement"
+msgstr "flux de données : conformance → export-agreement"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-export-agreement-conformance|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The dataflow edge from gmeow:stage-conformance to gmeow:stage-export-agreement: export-agreement reads the artifact 'pipeline/agreement-tallies.json' of the producer's product."
+msgstr "L'arête de flux de données de gmeow:stage-conformance à gmeow:stage-export-agreement : export-agreement lit l'artefact « pipeline/agreement-tallies.json » du produit du producteur."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-export-json-schema-export-constraint-shapes|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "dataflow: export-constraint-shapes → export-json-schema"
+msgstr "flux de données : export-constraint-shapes → export-json-schema"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-export-json-schema-export-constraint-shapes|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The dataflow edge from gmeow:stage-export-constraint-shapes to gmeow:stage-export-json-schema: export-json-schema reads the artifact 'generated/shapes/constraint-shapes.ttl' of the producer's product."
+msgstr "L'arête de flux de données de gmeow:stage-export-constraint-shapes à gmeow:stage-export-json-schema : export-json-schema lit l'artefact « generated/shapes/constraint-shapes.ttl » du produit du producteur."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-export-json-schema-export-frame-shapes|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "dataflow: export-frame-shapes → export-json-schema"
+msgstr "flux de données : export-frame-shapes → export-json-schema"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-export-json-schema-export-frame-shapes|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The dataflow edge from gmeow:stage-export-frame-shapes to gmeow:stage-export-json-schema: export-json-schema reads the artifact 'generated/shapes/frame-shapes.ttl' of the producer's product."
+msgstr "L'arête de flux de données de gmeow:stage-export-frame-shapes à gmeow:stage-export-json-schema : export-json-schema lit l'artefact « generated/shapes/frame-shapes.ttl » du produit du producteur."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-export-json-schema-export-result-shapes|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "dataflow: export-result-shapes → export-json-schema"
+msgstr "flux de données : export-result-shapes → export-json-schema"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-export-json-schema-export-result-shapes|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The dataflow edge from gmeow:stage-export-result-shapes to gmeow:stage-export-json-schema: export-json-schema reads the artifact 'generated/shapes/result-shapes.ttl' of the producer's product."
+msgstr "L'arête de flux de données de gmeow:stage-export-result-shapes à gmeow:stage-export-json-schema : export-json-schema lit l'artefact « generated/shapes/result-shapes.ttl » du produit du producteur."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-export-lpg-snapshot|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "dataflow: snapshot → export-lpg"
+msgstr "flux de données : snapshot → export-lpg"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-export-lpg-snapshot|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The dataflow edge from gmeow:stage-snapshot to gmeow:stage-export-lpg: export-lpg reads the frozen dataset of the producer's product."
+msgstr "L'arête de flux de données de gmeow:stage-snapshot à gmeow:stage-export-lpg : export-lpg lit le jeu de données figé du produit du producteur."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-export-metadata-snapshot|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "dataflow: snapshot → export-metadata"
+msgstr "flux de données : snapshot → export-metadata"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-export-metadata-snapshot|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The dataflow edge from gmeow:stage-snapshot to gmeow:stage-export-metadata: export-metadata reads the frozen dataset of the producer's product."
+msgstr "L'arête de flux de données de gmeow:stage-snapshot à gmeow:stage-export-metadata : export-metadata lit le jeu de données figé du produit du producteur."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-export-pydantic-compile-logic|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "dataflow: compile-logic → export-pydantic"
+msgstr "flux de données : compile-logic → export-pydantic"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-export-pydantic-compile-logic|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The dataflow edge from gmeow:stage-compile-logic to gmeow:stage-export-pydantic: export-pydantic reads the artifact 'generated/shapes/procedural-constraints.ttl', the artifact 'generated/shapes/validation-shapes.ttl' of the producer's product."
+msgstr "L'arête de flux de données de gmeow:stage-compile-logic à gmeow:stage-export-pydantic : export-pydantic lit l'artefact « generated/shapes/procedural-constraints.ttl », l'artefact « generated/shapes/validation-shapes.ttl » du produit du producteur."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-export-pydantic-constraint-catalog|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "dataflow: constraint-catalog → export-pydantic"
+msgstr "flux de données : constraint-catalog → export-pydantic"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-export-pydantic-constraint-catalog|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The dataflow edge from gmeow:stage-constraint-catalog to gmeow:stage-export-pydantic: export-pydantic reads the artifact 'generated/catalog/constraint-catalog.nq' of the producer's product."
+msgstr "L'arête de flux de données de gmeow:stage-constraint-catalog à gmeow:stage-export-pydantic : export-pydantic lit l'artefact « generated/catalog/constraint-catalog.nq » du produit du producteur."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-export-pydantic-export-constraint-shapes|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "dataflow: export-constraint-shapes → export-pydantic"
+msgstr "flux de données : export-constraint-shapes → export-pydantic"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-export-pydantic-export-constraint-shapes|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The dataflow edge from gmeow:stage-export-constraint-shapes to gmeow:stage-export-pydantic: export-pydantic reads the artifact 'generated/shapes/constraint-shapes.ttl' of the producer's product."
+msgstr "L'arête de flux de données de gmeow:stage-export-constraint-shapes à gmeow:stage-export-pydantic : export-pydantic lit l'artefact « generated/shapes/constraint-shapes.ttl » du produit du producteur."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-export-pydantic-export-frame-shapes|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "dataflow: export-frame-shapes → export-pydantic"
+msgstr "flux de données : export-frame-shapes → export-pydantic"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-export-pydantic-export-frame-shapes|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The dataflow edge from gmeow:stage-export-frame-shapes to gmeow:stage-export-pydantic: export-pydantic reads the artifact 'generated/shapes/frame-shapes.ttl' of the producer's product."
+msgstr "L'arête de flux de données de gmeow:stage-export-frame-shapes à gmeow:stage-export-pydantic : export-pydantic lit l'artefact « generated/shapes/frame-shapes.ttl » du produit du producteur."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-export-pydantic-export-result-shapes|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "dataflow: export-result-shapes → export-pydantic"
+msgstr "flux de données : export-result-shapes → export-pydantic"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-export-pydantic-export-result-shapes|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The dataflow edge from gmeow:stage-export-result-shapes to gmeow:stage-export-pydantic: export-pydantic reads the artifact 'generated/shapes/result-shapes.ttl' of the producer's product."
+msgstr "L'arête de flux de données de gmeow:stage-export-result-shapes à gmeow:stage-export-pydantic : export-pydantic lit l'artefact « generated/shapes/result-shapes.ttl » du produit du producteur."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-export-pydantic-term-manifest|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "dataflow: term-manifest → export-pydantic"
+msgstr "flux de données : term-manifest → export-pydantic"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-export-pydantic-term-manifest|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The dataflow edge from gmeow:stage-term-manifest to gmeow:stage-export-pydantic: export-pydantic reads the artifact 'generated/catalog/term-content-manifest.nq' of the producer's product."
+msgstr "L'arête de flux de données de gmeow:stage-term-manifest à gmeow:stage-export-pydantic : export-pydantic lit l'artefact « generated/catalog/term-content-manifest.nq » du produit du producteur."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-export-research-objects-export-evals|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "dataflow: export-evals → export-research-objects"
+msgstr "flux de données : export-evals → export-research-objects"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-export-research-objects-export-evals|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The dataflow edge from gmeow:stage-export-evals to gmeow:stage-export-research-objects: export-research-objects reads the artifact 'generated/evals/scores.ttl' of the producer's product."
+msgstr "L'arête de flux de données de gmeow:stage-export-evals à gmeow:stage-export-research-objects : export-research-objects lit l'artefact « generated/evals/scores.ttl » du produit du producteur."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-export-research-objects-mappings|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "dataflow: mappings → export-research-objects"
+msgstr "flux de données : mappings → export-research-objects"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-export-research-objects-mappings|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The dataflow edge from gmeow:stage-mappings to gmeow:stage-export-research-objects: export-research-objects reads the artifact 'generated/queries/dcat.projection.json', the typed handle pinned to <https://blackcatinformatics.ca/gmeow/graph/correspondence-laws> of the producer's product."
+msgstr "L'arête de flux de données de gmeow:stage-mappings à gmeow:stage-export-research-objects : export-research-objects lit l'artefact « generated/queries/dcat.projection.json », le handle typé épinglé à <https://blackcatinformatics.ca/gmeow/graph/correspondence-laws> du produit du producteur."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-export-schemas-compile-logic|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "dataflow: compile-logic → export-schemas"
+msgstr "flux de données : compile-logic → export-schemas"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-export-schemas-compile-logic|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The dataflow edge from gmeow:stage-compile-logic to gmeow:stage-export-schemas: export-schemas reads the artifact 'generated/shapes/procedural-constraints.ttl', the artifact 'generated/shapes/validation-shapes.ttl' of the producer's product."
+msgstr "L'arête de flux de données de gmeow:stage-compile-logic à gmeow:stage-export-schemas : export-schemas lit l'artefact « generated/shapes/procedural-constraints.ttl », l'artefact « generated/shapes/validation-shapes.ttl » du produit du producteur."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-export-schemas-export-constraint-shapes|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "dataflow: export-constraint-shapes → export-schemas"
+msgstr "flux de données : export-constraint-shapes → export-schemas"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-export-schemas-export-constraint-shapes|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The dataflow edge from gmeow:stage-export-constraint-shapes to gmeow:stage-export-schemas: export-schemas reads the artifact 'generated/shapes/constraint-shapes.ttl' of the producer's product."
+msgstr "L'arête de flux de données de gmeow:stage-export-constraint-shapes à gmeow:stage-export-schemas : export-schemas lit l'artefact « generated/shapes/constraint-shapes.ttl » du produit du producteur."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-export-schemas-export-frame-shapes|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "dataflow: export-frame-shapes → export-schemas"
+msgstr "flux de données : export-frame-shapes → export-schemas"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-export-schemas-export-frame-shapes|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The dataflow edge from gmeow:stage-export-frame-shapes to gmeow:stage-export-schemas: export-schemas reads the artifact 'generated/shapes/frame-shapes.ttl' of the producer's product."
+msgstr "L'arête de flux de données de gmeow:stage-export-frame-shapes à gmeow:stage-export-schemas : export-schemas lit l'artefact « generated/shapes/frame-shapes.ttl » du produit du producteur."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-export-schemas-export-result-shapes|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "dataflow: export-result-shapes → export-schemas"
+msgstr "flux de données : export-result-shapes → export-schemas"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-export-schemas-export-result-shapes|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The dataflow edge from gmeow:stage-export-result-shapes to gmeow:stage-export-schemas: export-schemas reads the artifact 'generated/shapes/result-shapes.ttl' of the producer's product."
+msgstr "L'arête de flux de données de gmeow:stage-export-result-shapes à gmeow:stage-export-schemas : export-schemas lit l'artefact « generated/shapes/result-shapes.ttl » du produit du producteur."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-gmn-training-corpus-compile-logic|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "dataflow: compile-logic → gmn-training-corpus"
+msgstr "flux de données : compile-logic → gmn-training-corpus"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-gmn-training-corpus-compile-logic|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The dataflow edge from gmeow:stage-compile-logic to gmeow:stage-gmn-training-corpus: gmn-training-corpus reads no lane of the producer's product; the edge orders the two stages and folds the producer's identity into the consumer's cache key."
+msgstr "L'arête de flux de données de gmeow:stage-compile-logic à gmeow:stage-gmn-training-corpus : gmn-training-corpus ne lit aucune voie du produit du producteur ; l'arête ordonne les deux étapes et intègre l'identité du producteur dans la clé de cache du consommateur."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-gmn-training-corpus-mappings|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "dataflow: mappings → gmn-training-corpus"
+msgstr "flux de données : mappings → gmn-training-corpus"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-gmn-training-corpus-mappings|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The dataflow edge from gmeow:stage-mappings to gmeow:stage-gmn-training-corpus: gmn-training-corpus reads no lane of the producer's product; the edge orders the two stages and folds the producer's identity into the consumer's cache key."
+msgstr "L'arête de flux de données de gmeow:stage-mappings à gmeow:stage-gmn-training-corpus : gmn-training-corpus ne lit aucune voie du produit du producteur ; l'arête ordonne les deux étapes et intègre l'identité du producteur dans la clé de cache du consommateur."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-gmn-training-corpus-parse-sources|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "dataflow: parse-sources → gmn-training-corpus"
+msgstr "flux de données : parse-sources → gmn-training-corpus"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-gmn-training-corpus-parse-sources|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The dataflow edge from gmeow:stage-parse-sources to gmeow:stage-gmn-training-corpus: gmn-training-corpus reads the typed handle pinned to <https://blackcatinformatics.ca/gmeow/graph/source-catalog>, the frozen dataset of the producer's product."
+msgstr "L'arête de flux de données de gmeow:stage-parse-sources à gmeow:stage-gmn-training-corpus : gmn-training-corpus lit le handle typé épinglé à <https://blackcatinformatics.ca/gmeow/graph/source-catalog>, le jeu de données figé du produit du producteur."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-goal-directed-compile-logic|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "dataflow: compile-logic → goal-directed"
+msgstr "flux de données : compile-logic → goal-directed"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-goal-directed-compile-logic|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The dataflow edge from gmeow:stage-compile-logic to gmeow:stage-goal-directed: goal-directed reads the typed handle pinned to <https://blackcatinformatics.ca/gmeow/graph/logic> of the producer's product."
+msgstr "L'arête de flux de données de gmeow:stage-compile-logic à gmeow:stage-goal-directed : goal-directed lit le handle typé épinglé à <https://blackcatinformatics.ca/gmeow/graph/logic> du produit du producteur."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-gts-sink-archive-blobs|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "dataflow: archive-blobs → gts-sink"
+msgstr "flux de données : archive-blobs → gts-sink"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-gts-sink-archive-blobs|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The dataflow edge from gmeow:stage-archive-blobs to gmeow:stage-gts-sink: gts-sink reads the whole carrier of the producer's product."
+msgstr "L'arête de flux de données de gmeow:stage-archive-blobs à gmeow:stage-gts-sink : gts-sink lit le porteur entier du produit du producteur."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-gts-sink-compile-logic|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "dataflow: compile-logic → gts-sink"
+msgstr "flux de données : compile-logic → gts-sink"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-gts-sink-compile-logic|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The dataflow edge from gmeow:stage-compile-logic to gmeow:stage-gts-sink: gts-sink reads the artifact 'generated/cl/gmeow.cgif', the artifact 'generated/cl/gmeow.clif', the artifact 'generated/cl/gmeow.xcl', the artifact 'generated/diagnostics/logic-compile.html', the artifact 'generated/diagnostics/logic-compile.json', the artifact 'generated/diagnostics/logic-compile.sarif', the artifact 'generated/n3/gmeow.n3', the artifact 'generated/shacl-af/gmeow.shacl-af.ttl', the artifact 'generated/shapes/validation-shapes.shex', the artifact 'generated/shapes/validation-shapes.ttl', the artifact 'pipeline/canon-proof-admission.json' of the producer's product."
+msgstr "L'arête de flux de données de gmeow:stage-compile-logic à gmeow:stage-gts-sink : gts-sink lit l'artefact « generated/cl/gmeow.cgif », l'artefact « generated/cl/gmeow.clif », l'artefact « generated/cl/gmeow.xcl », l'artefact « generated/diagnostics/logic-compile.html », l'artefact « generated/diagnostics/logic-compile.json », l'artefact « generated/diagnostics/logic-compile.sarif », l'artefact « generated/n3/gmeow.n3 », l'artefact « generated/shacl-af/gmeow.shacl-af.ttl », l'artefact « generated/shapes/validation-shapes.shex », l'artefact « generated/shapes/validation-shapes.ttl », l'artefact « pipeline/canon-proof-admission.json » du produit du producteur."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-gts-sink-conformance|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "dataflow: conformance → gts-sink"
+msgstr "flux de données : conformance → gts-sink"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-gts-sink-conformance|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The dataflow edge from gmeow:stage-conformance to gmeow:stage-gts-sink: gts-sink reads the artifact 'pipeline/mcp-action-policy.json', the artifact 'pipeline/prepared-operator-rules.json' of the producer's product."
+msgstr "L'arête de flux de données de gmeow:stage-conformance à gmeow:stage-gts-sink : gts-sink lit l'artefact « pipeline/mcp-action-policy.json », l'artefact « pipeline/prepared-operator-rules.json » du produit du producteur."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-gts-sink-export-agreement|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "dataflow: export-agreement → gts-sink"
+msgstr "flux de données : export-agreement → gts-sink"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-gts-sink-export-agreement|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The dataflow edge from gmeow:stage-export-agreement to gmeow:stage-gts-sink: gts-sink reads every committed byte artifact of the producer's product."
+msgstr "L'arête de flux de données de gmeow:stage-export-agreement à gmeow:stage-gts-sink : gts-sink lit chaque artefact d'octets versionné du produit du producteur."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-gts-sink-export-apache|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "dataflow: export-apache → gts-sink"
+msgstr "flux de données : export-apache → gts-sink"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-gts-sink-export-apache|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The dataflow edge from gmeow:stage-export-apache to gmeow:stage-gts-sink: gts-sink reads every committed byte artifact of the producer's product."
+msgstr "L'arête de flux de données de gmeow:stage-export-apache à gmeow:stage-gts-sink : gts-sink lit chaque artefact d'octets versionné du produit du producteur."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-gts-sink-export-bench|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "dataflow: export-bench → gts-sink"
+msgstr "flux de données : export-bench → gts-sink"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-gts-sink-export-bench|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The dataflow edge from gmeow:stage-export-bench to gmeow:stage-gts-sink: gts-sink reads every committed byte artifact of the producer's product."
+msgstr "L'arête de flux de données de gmeow:stage-export-bench à gmeow:stage-gts-sink : gts-sink lit chaque artefact d'octets versionné du produit du producteur."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-gts-sink-export-cost-ledger|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "dataflow: export-cost-ledger → gts-sink"
+msgstr "flux de données : export-cost-ledger → gts-sink"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-gts-sink-export-cost-ledger|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The dataflow edge from gmeow:stage-export-cost-ledger to gmeow:stage-gts-sink: gts-sink reads every committed byte artifact of the producer's product."
+msgstr "L'arête de flux de données de gmeow:stage-export-cost-ledger à gmeow:stage-gts-sink : gts-sink lit chaque artefact d'octets versionné du produit du producteur."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-gts-sink-export-evals|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "dataflow: export-evals → gts-sink"
+msgstr "flux de données : export-evals → gts-sink"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-gts-sink-export-evals|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The dataflow edge from gmeow:stage-export-evals to gmeow:stage-gts-sink: gts-sink reads every committed byte artifact of the producer's product."
+msgstr "L'arête de flux de données de gmeow:stage-export-evals à gmeow:stage-gts-sink : gts-sink lit chaque artefact d'octets versionné du produit du producteur."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-gts-sink-export-glossary|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "dataflow: export-glossary → gts-sink"
+msgstr "flux de données : export-glossary → gts-sink"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-gts-sink-export-glossary|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The dataflow edge from gmeow:stage-export-glossary to gmeow:stage-gts-sink: gts-sink reads no lane of the producer's product; the edge orders the two stages and folds the producer's identity into the consumer's cache key."
+msgstr "L'arête de flux de données de gmeow:stage-export-glossary à gmeow:stage-gts-sink : gts-sink ne lit aucune voie du produit du producteur ; l'arête ordonne les deux étapes et intègre l'identité du producteur dans la clé de cache du consommateur."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-gts-sink-export-governance-floors|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "dataflow: export-governance-floors → gts-sink"
+msgstr "flux de données : export-governance-floors → gts-sink"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-gts-sink-export-governance-floors|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The dataflow edge from gmeow:stage-export-governance-floors to gmeow:stage-gts-sink: gts-sink reads every committed byte artifact of the producer's product."
+msgstr "L'arête de flux de données de gmeow:stage-export-governance-floors à gmeow:stage-gts-sink : gts-sink lit chaque artefact d'octets versionné du produit du producteur."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-gts-sink-export-matrix|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "dataflow: export-matrix → gts-sink"
+msgstr "flux de données : export-matrix → gts-sink"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-gts-sink-export-matrix|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The dataflow edge from gmeow:stage-export-matrix to gmeow:stage-gts-sink: gts-sink reads every committed byte artifact of the producer's product."
+msgstr "L'arête de flux de données de gmeow:stage-export-matrix à gmeow:stage-gts-sink : gts-sink lit chaque artefact d'octets versionné du produit du producteur."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-gts-sink-export-metadata|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "dataflow: export-metadata → gts-sink"
+msgstr "flux de données : export-metadata → gts-sink"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-gts-sink-export-metadata|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The dataflow edge from gmeow:stage-export-metadata to gmeow:stage-gts-sink: gts-sink reads every committed byte artifact of the producer's product."
+msgstr "L'arête de flux de données de gmeow:stage-export-metadata à gmeow:stage-gts-sink : gts-sink lit chaque artefact d'octets versionné du produit du producteur."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-gts-sink-export-projection-ceilings|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "dataflow: export-projection-ceilings → gts-sink"
+msgstr "flux de données : export-projection-ceilings → gts-sink"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-gts-sink-export-projection-ceilings|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The dataflow edge from gmeow:stage-export-projection-ceilings to gmeow:stage-gts-sink: gts-sink reads every committed byte artifact of the producer's product."
+msgstr "L'arête de flux de données de gmeow:stage-export-projection-ceilings à gmeow:stage-gts-sink : gts-sink lit chaque artefact d'octets versionné du produit du producteur."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-gts-sink-export-references|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "dataflow: export-references → gts-sink"
+msgstr "flux de données : export-references → gts-sink"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-gts-sink-export-references|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The dataflow edge from gmeow:stage-export-references to gmeow:stage-gts-sink: gts-sink reads every committed byte artifact of the producer's product."
+msgstr "L'arête de flux de données de gmeow:stage-export-references à gmeow:stage-gts-sink : gts-sink lit chaque artefact d'octets versionné du produit du producteur."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-gts-sink-export-research-objects|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "dataflow: export-research-objects → gts-sink"
+msgstr "flux de données : export-research-objects → gts-sink"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-gts-sink-export-research-objects|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The dataflow edge from gmeow:stage-export-research-objects to gmeow:stage-gts-sink: gts-sink reads every committed byte artifact of the producer's product."
+msgstr "L'arête de flux de données de gmeow:stage-export-research-objects à gmeow:stage-gts-sink : gts-sink lit chaque artefact d'octets versionné du produit du producteur."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-gts-sink-export-schemas|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "dataflow: export-schemas → gts-sink"
+msgstr "flux de données : export-schemas → gts-sink"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-gts-sink-export-schemas|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The dataflow edge from gmeow:stage-export-schemas to gmeow:stage-gts-sink: gts-sink reads every committed byte artifact of the producer's product."
+msgstr "L'arête de flux de données de gmeow:stage-export-schemas à gmeow:stage-gts-sink : gts-sink lit chaque artefact d'octets versionné du produit du producteur."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-gts-sink-mappings|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "dataflow: mappings → gts-sink"
+msgstr "flux de données : mappings → gts-sink"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-gts-sink-mappings|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The dataflow edge from gmeow:stage-mappings to gmeow:stage-gts-sink: gts-sink reads the artifact 'generated/context.jsonld', the artifact 'generated/mappings/dsl-stats.json', the artifact 'generated/projections/gmeow-affect.emotionml.xml' of the producer's product."
+msgstr "L'arête de flux de données de gmeow:stage-mappings à gmeow:stage-gts-sink : gts-sink lit l'artefact « generated/context.jsonld », l'artefact « generated/mappings/dsl-stats.json », l'artefact « generated/projections/gmeow-affect.emotionml.xml » du produit du producteur."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-gts-sink-math-producers|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "dataflow: math-producers → gts-sink"
+msgstr "flux de données : math-producers → gts-sink"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-gts-sink-math-producers|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The dataflow edge from gmeow:stage-math-producers to gmeow:stage-gts-sink: gts-sink reads every committed byte artifact of the producer's product."
+msgstr "L'arête de flux de données de gmeow:stage-math-producers à gmeow:stage-gts-sink : gts-sink lit chaque artefact d'octets versionné du produit du producteur."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-gts-sink-medium-dictionaries|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "dataflow: medium-dictionaries → gts-sink"
+msgstr "flux de données : medium-dictionaries → gts-sink"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-gts-sink-medium-dictionaries|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The dataflow edge from gmeow:stage-medium-dictionaries to gmeow:stage-gts-sink: gts-sink reads every committed byte artifact, the six internal trained-dictionary artifacts it names, and the frozen dataset of the producer's product."
+msgstr "L'arête de flux de données de gmeow:stage-medium-dictionaries à gmeow:stage-gts-sink : gts-sink lit chaque artefact d'octets versionné, les six artefacts internes de dictionnaires entraînés qu'elle nomme, et le jeu de données figé du produit du producteur."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-gts-sink-reason|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "dataflow: reason → gts-sink"
+msgstr "flux de données : reason → gts-sink"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-gts-sink-reason|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The dataflow edge from gmeow:stage-reason to gmeow:stage-gts-sink: gts-sink reads the artifact 'generated/logic/dl-el-crosscheck-report.ttl', the artifact 'generated/logic/inferred-closure.rdf12.ttl', the artifact 'generated/logic/perf-ledger.ttl', the artifact 'generated/logic/reasoning-explanations.rdf12.ttl' of the producer's product."
+msgstr "L'arête de flux de données de gmeow:stage-reason à gmeow:stage-gts-sink : gts-sink lit l'artefact « generated/logic/dl-el-crosscheck-report.ttl », l'artefact « generated/logic/inferred-closure.rdf12.ttl », l'artefact « generated/logic/perf-ledger.ttl », l'artefact « generated/logic/reasoning-explanations.rdf12.ttl » du produit du producteur."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-gts-sink-snapshot|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "dataflow: snapshot → gts-sink"
+msgstr "flux de données : snapshot → gts-sink"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-gts-sink-snapshot|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The dataflow edge from gmeow:stage-snapshot to gmeow:stage-gts-sink: gts-sink reads the frozen dataset of the producer's product."
+msgstr "L'arête de flux de données de gmeow:stage-snapshot à gmeow:stage-gts-sink : gts-sink lit le jeu de données figé du produit du producteur."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-gts-sink-source-load|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "dataflow: source-load → gts-sink"
+msgstr "flux de données : source-load → gts-sink"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-gts-sink-source-load|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The dataflow edge from gmeow:stage-source-load to gmeow:stage-gts-sink: gts-sink reads no lane of the producer's product; the edge orders the two stages and folds the producer's identity into the consumer's cache key."
+msgstr "L'arête de flux de données de gmeow:stage-source-load à gmeow:stage-gts-sink : gts-sink ne lit aucune voie du produit du producteur ; l'arête ordonne les deux étapes et intègre l'identité du producteur dans la clé de cache du consommateur."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-gts-sink-validate|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "dataflow: validate → gts-sink"
+msgstr "flux de données : validate → gts-sink"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-gts-sink-validate|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The dataflow edge from gmeow:stage-validate to gmeow:stage-gts-sink: gts-sink reads the artifact 'generated/diagnostics/shacl.html', the artifact 'generated/diagnostics/shacl.json', the artifact 'generated/diagnostics/shacl.sarif' of the producer's product."
+msgstr "L'arête de flux de données de gmeow:stage-validate à gmeow:stage-gts-sink : gts-sink lit l'artefact « generated/diagnostics/shacl.html », l'artefact « generated/diagnostics/shacl.json », l'artefact « generated/diagnostics/shacl.sarif » du produit du producteur."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-gts-sink-verify-attestation|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "dataflow: verify-attestation → gts-sink"
+msgstr "flux de données : verify-attestation → gts-sink"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-gts-sink-verify-attestation|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The dataflow edge from gmeow:stage-verify-attestation to gmeow:stage-gts-sink: gts-sink reads the artifact 'generated/diagnostics/verify.json', the artifact 'pipeline/prepared-verify-gates.json' of the producer's product."
+msgstr "L'arête de flux de données de gmeow:stage-verify-attestation à gmeow:stage-gts-sink : gts-sink lit l'artefact « generated/diagnostics/verify.json », l'artefact « pipeline/prepared-verify-gates.json » du produit du producteur."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-mappings-compile-logic|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "dataflow: compile-logic → mappings"
+msgstr "flux de données : compile-logic → mappings"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-mappings-compile-logic|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The dataflow edge from gmeow:stage-compile-logic to gmeow:stage-mappings: mappings reads the artifact 'generated/shapes/procedural-constraints.ttl', the typed handle pinned to <https://blackcatinformatics.ca/gmeow/graph/logic> of the producer's product."
+msgstr "L'arête de flux de données de gmeow:stage-compile-logic à gmeow:stage-mappings : mappings lit l'artefact « generated/shapes/procedural-constraints.ttl », le handle typé épinglé à <https://blackcatinformatics.ca/gmeow/graph/logic> du produit du producteur."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-mappings-export-constraint-shapes|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "dataflow: export-constraint-shapes → mappings"
+msgstr "flux de données : export-constraint-shapes → mappings"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-mappings-export-constraint-shapes|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The dataflow edge from gmeow:stage-export-constraint-shapes to gmeow:stage-mappings: mappings reads the artifact 'generated/shapes/constraint-shapes.ttl' of the producer's product."
+msgstr "L'arête de flux de données de gmeow:stage-export-constraint-shapes à gmeow:stage-mappings : mappings lit l'artefact « generated/shapes/constraint-shapes.ttl » du produit du producteur."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-mappings-parse-sources|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "dataflow: parse-sources → mappings"
+msgstr "flux de données : parse-sources → mappings"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-mappings-parse-sources|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The dataflow edge from gmeow:stage-parse-sources to gmeow:stage-mappings: mappings reads the typed handle pinned to <https://blackcatinformatics.ca/gmeow/graph/source-catalog>, the frozen dataset of the producer's product."
+msgstr "L'arête de flux de données de gmeow:stage-parse-sources à gmeow:stage-mappings : mappings lit le handle typé épinglé à <https://blackcatinformatics.ca/gmeow/graph/source-catalog>, le jeu de données figé du produit du producteur."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-math-producers-mappings|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "dataflow: mappings → math-producers"
+msgstr "flux de données : mappings → math-producers"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-math-producers-mappings|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The dataflow edge from gmeow:stage-mappings to gmeow:stage-math-producers: math-producers reads the frozen dataset of the producer's product."
+msgstr "L'arête de flux de données de gmeow:stage-mappings à gmeow:stage-math-producers : math-producers lit le jeu de données figé du produit du producteur."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-math-producers-source-load|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "dataflow: source-load → math-producers"
+msgstr "flux de données : source-load → math-producers"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-math-producers-source-load|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The dataflow edge from gmeow:stage-source-load to gmeow:stage-math-producers: math-producers reads the frozen dataset of the producer's product."
+msgstr "L'arête de flux de données de gmeow:stage-source-load à gmeow:stage-math-producers : math-producers lit le jeu de données figé du produit du producteur."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-medium-dictionaries-archive-blobs|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "dataflow: archive-blobs → medium-dictionaries"
+msgstr "flux de données : archive-blobs → medium-dictionaries"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-medium-dictionaries-archive-blobs|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The dataflow edge from gmeow:stage-archive-blobs to gmeow:stage-medium-dictionaries: medium-dictionaries reads every committed byte artifact, the whole carrier of the producer's product."
+msgstr "L'arête de flux de données de gmeow:stage-archive-blobs à gmeow:stage-medium-dictionaries : medium-dictionaries lit chaque artefact d'octets versionné, le porteur entier du produit du producteur."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-medium-dictionaries-reason|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "dataflow: reason → medium-dictionaries"
+msgstr "flux de données : reason → medium-dictionaries"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-medium-dictionaries-reason|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The dataflow edge from gmeow:stage-reason to gmeow:stage-medium-dictionaries: medium-dictionaries reads every committed byte artifact of the producer's product."
+msgstr "L'arête de flux de données de gmeow:stage-reason à gmeow:stage-medium-dictionaries : medium-dictionaries lit chaque artefact d'octets versionné du produit du producteur."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-medium-dictionaries-snapshot|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "dataflow: snapshot → medium-dictionaries"
+msgstr "flux de données : snapshot → medium-dictionaries"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-medium-dictionaries-snapshot|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The dataflow edge from gmeow:stage-snapshot to gmeow:stage-medium-dictionaries: medium-dictionaries reads every committed byte artifact, the frozen dataset of the producer's product."
+msgstr "L'arête de flux de données de gmeow:stage-snapshot à gmeow:stage-medium-dictionaries : medium-dictionaries lit chaque artefact d'octets versionné, le jeu de données figé du produit du producteur."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-medium-dictionaries-statements|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "dataflow: statements → medium-dictionaries"
+msgstr "flux de données : statements → medium-dictionaries"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-medium-dictionaries-statements|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The dataflow edge from gmeow:stage-statements to gmeow:stage-medium-dictionaries: medium-dictionaries reads every committed byte artifact of the producer's product."
+msgstr "L'arête de flux de données de gmeow:stage-statements à gmeow:stage-medium-dictionaries : medium-dictionaries lit chaque artefact d'octets versionné du produit du producteur."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-native-codebook-parse-sources|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "dataflow: parse-sources → native-codebook"
+msgstr "flux de données : parse-sources → native-codebook"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-native-codebook-parse-sources|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The dataflow edge from gmeow:stage-parse-sources to gmeow:stage-native-codebook: native-codebook reads the typed handle pinned to <https://blackcatinformatics.ca/gmeow/graph/source-catalog>, the frozen dataset of the producer's product."
+msgstr "L'arête de flux de données de gmeow:stage-parse-sources à gmeow:stage-native-codebook : native-codebook lit le handle typé épinglé à <https://blackcatinformatics.ca/gmeow/graph/source-catalog>, le jeu de données figé du produit du producteur."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-reason-source-load|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "dataflow: source-load → reason"
+msgstr "flux de données : source-load → reason"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-reason-source-load|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The dataflow edge from gmeow:stage-source-load to gmeow:stage-reason: reason reads the frozen dataset of the producer's product."
+msgstr "L'arête de flux de données de gmeow:stage-source-load à gmeow:stage-reason : reason lit le jeu de données figé du produit du producteur."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-reason-statements|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "dataflow: statements → reason"
+msgstr "flux de données : statements → reason"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-reason-statements|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The dataflow edge from gmeow:stage-statements to gmeow:stage-reason: reason reads the frozen dataset of the producer's product."
+msgstr "L'arête de flux de données de gmeow:stage-statements à gmeow:stage-reason : reason lit le jeu de données figé du produit du producteur."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-slice-brief-compile-logic|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "dataflow: compile-logic → slice-brief"
+msgstr "flux de données : compile-logic → slice-brief"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-slice-brief-compile-logic|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The dataflow edge from gmeow:stage-compile-logic to gmeow:stage-slice-brief: slice-brief reads the artifact 'generated/shapes/procedural-constraints.ttl', the artifact 'generated/shapes/validation-shapes.ttl' of the producer's product."
+msgstr "L'arête de flux de données de gmeow:stage-compile-logic à gmeow:stage-slice-brief : slice-brief lit l'artefact « generated/shapes/procedural-constraints.ttl », l'artefact « generated/shapes/validation-shapes.ttl » du produit du producteur."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-slice-brief-export-constraint-shapes|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "dataflow: export-constraint-shapes → slice-brief"
+msgstr "flux de données : export-constraint-shapes → slice-brief"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-slice-brief-export-constraint-shapes|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The dataflow edge from gmeow:stage-export-constraint-shapes to gmeow:stage-slice-brief: slice-brief reads the artifact 'generated/shapes/constraint-shapes.ttl' of the producer's product."
+msgstr "L'arête de flux de données de gmeow:stage-export-constraint-shapes à gmeow:stage-slice-brief : slice-brief lit l'artefact « generated/shapes/constraint-shapes.ttl » du produit du producteur."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-slice-brief-export-frame-shapes|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "dataflow: export-frame-shapes → slice-brief"
+msgstr "flux de données : export-frame-shapes → slice-brief"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-slice-brief-export-frame-shapes|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The dataflow edge from gmeow:stage-export-frame-shapes to gmeow:stage-slice-brief: slice-brief reads the artifact 'generated/shapes/frame-shapes.ttl' of the producer's product."
+msgstr "L'arête de flux de données de gmeow:stage-export-frame-shapes à gmeow:stage-slice-brief : slice-brief lit l'artefact « generated/shapes/frame-shapes.ttl » du produit du producteur."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-slice-brief-export-result-shapes|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "dataflow: export-result-shapes → slice-brief"
+msgstr "flux de données : export-result-shapes → slice-brief"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-slice-brief-export-result-shapes|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The dataflow edge from gmeow:stage-export-result-shapes to gmeow:stage-slice-brief: slice-brief reads the artifact 'generated/shapes/result-shapes.ttl' of the producer's product."
+msgstr "L'arête de flux de données de gmeow:stage-export-result-shapes à gmeow:stage-slice-brief : slice-brief lit l'artefact « generated/shapes/result-shapes.ttl » du produit du producteur."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-snapshot-compile-logic|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "dataflow: compile-logic → snapshot"
+msgstr "flux de données : compile-logic → snapshot"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-snapshot-compile-logic|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The dataflow edge from gmeow:stage-compile-logic to gmeow:stage-snapshot: snapshot reads the artifact 'generated/diagnostics/logic-compile.nq', the artifact 'generated/foundation/gufo.ttl', the artifact 'generated/logic/gmeow.correspondence.nt', the artifact 'generated/logic/gmeow.relational-core.nt', the typed handle pinned to <https://blackcatinformatics.ca/gmeow/graph/correspondence>, the typed handle pinned to <https://blackcatinformatics.ca/gmeow/graph/logic>, the typed handle pinned to <https://blackcatinformatics.ca/gmeow/graph/relational-core>, the whole carrier, the frozen dataset of the producer's product."
+msgstr "L'arête de flux de données de gmeow:stage-compile-logic à gmeow:stage-snapshot : snapshot lit l'artefact « generated/diagnostics/logic-compile.nq », l'artefact « generated/foundation/gufo.ttl », l'artefact « generated/logic/gmeow.correspondence.nt », l'artefact « generated/logic/gmeow.relational-core.nt », le handle typé épinglé à <https://blackcatinformatics.ca/gmeow/graph/correspondence>, le handle typé épinglé à <https://blackcatinformatics.ca/gmeow/graph/logic>, le handle typé épinglé à <https://blackcatinformatics.ca/gmeow/graph/relational-core>, le porteur entier, le jeu de données figé du produit du producteur."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-snapshot-conformance|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "dataflow: conformance → snapshot"
+msgstr "flux de données : conformance → snapshot"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-snapshot-conformance|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The dataflow edge from gmeow:stage-conformance to gmeow:stage-snapshot: snapshot reads the frozen dataset of the producer's product."
+msgstr "L'arête de flux de données de gmeow:stage-conformance à gmeow:stage-snapshot : snapshot lit le jeu de données figé du produit du producteur."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-snapshot-constraint-catalog|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "dataflow: constraint-catalog → snapshot"
+msgstr "flux de données : constraint-catalog → snapshot"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-snapshot-constraint-catalog|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The dataflow edge from gmeow:stage-constraint-catalog to gmeow:stage-snapshot: snapshot reads the artifact 'generated/catalog/constraint-catalog.nq' of the producer's product."
+msgstr "L'arête de flux de données de gmeow:stage-constraint-catalog à gmeow:stage-snapshot : snapshot lit l'artefact « generated/catalog/constraint-catalog.nq » du produit du producteur."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-snapshot-docs-render|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "dataflow: docs-render → snapshot"
+msgstr "flux de données : docs-render → snapshot"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-snapshot-docs-render|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The dataflow edge from gmeow:stage-docs-render to gmeow:stage-snapshot: snapshot reads the frozen dataset of the producer's product."
+msgstr "L'arête de flux de données de gmeow:stage-docs-render à gmeow:stage-snapshot : snapshot lit le jeu de données figé du produit du producteur."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-snapshot-export-evals|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "dataflow: export-evals → snapshot"
+msgstr "flux de données : export-evals → snapshot"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-snapshot-export-evals|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The dataflow edge from gmeow:stage-export-evals to gmeow:stage-snapshot: snapshot reads every committed byte artifact of the producer's product."
+msgstr "L'arête de flux de données de gmeow:stage-export-evals à gmeow:stage-snapshot : snapshot lit chaque artefact d'octets versionné du produit du producteur."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-snapshot-export-glossary|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "dataflow: export-glossary → snapshot"
+msgstr "flux de données : export-glossary → snapshot"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-snapshot-export-glossary|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The dataflow edge from gmeow:stage-export-glossary to gmeow:stage-snapshot: snapshot reads every committed byte artifact of the producer's product."
+msgstr "L'arête de flux de données de gmeow:stage-export-glossary à gmeow:stage-snapshot : snapshot lit chaque artefact d'octets versionné du produit du producteur."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-snapshot-export-json-schema|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "dataflow: export-json-schema → snapshot"
+msgstr "flux de données : export-json-schema → snapshot"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-snapshot-export-json-schema|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The dataflow edge from gmeow:stage-export-json-schema to gmeow:stage-snapshot: snapshot reads the frozen dataset of the producer's product."
+msgstr "L'arête de flux de données de gmeow:stage-export-json-schema à gmeow:stage-snapshot : snapshot lit le jeu de données figé du produit du producteur."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-snapshot-export-profiles|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "dataflow: export-profiles → snapshot"
+msgstr "flux de données : export-profiles → snapshot"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-snapshot-export-profiles|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The dataflow edge from gmeow:stage-export-profiles to gmeow:stage-snapshot: snapshot reads every committed byte artifact of the producer's product."
+msgstr "L'arête de flux de données de gmeow:stage-export-profiles à gmeow:stage-snapshot : snapshot lit chaque artefact d'octets versionné du produit du producteur."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-snapshot-export-research-objects|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "dataflow: export-research-objects → snapshot"
+msgstr "flux de données : export-research-objects → snapshot"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-snapshot-export-research-objects|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The dataflow edge from gmeow:stage-export-research-objects to gmeow:stage-snapshot: snapshot reads every committed byte artifact of the producer's product."
+msgstr "L'arête de flux de données de gmeow:stage-export-research-objects à gmeow:stage-snapshot : snapshot lit chaque artefact d'octets versionné du produit du producteur."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-snapshot-export-skos-surface|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "dataflow: export-skos-surface → snapshot"
+msgstr "flux de données : export-skos-surface → snapshot"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-snapshot-export-skos-surface|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The dataflow edge from gmeow:stage-export-skos-surface to gmeow:stage-snapshot: snapshot reads every committed byte artifact of the producer's product."
+msgstr "L'arête de flux de données de gmeow:stage-export-skos-surface à gmeow:stage-snapshot : snapshot lit chaque artefact d'octets versionné du produit du producteur."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-snapshot-gmn-training-corpus|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "dataflow: gmn-training-corpus → snapshot"
+msgstr "flux de données : gmn-training-corpus → snapshot"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-snapshot-gmn-training-corpus|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The dataflow edge from gmeow:stage-gmn-training-corpus to gmeow:stage-snapshot: snapshot reads the frozen dataset of the producer's product."
+msgstr "L'arête de flux de données de gmeow:stage-gmn-training-corpus à gmeow:stage-snapshot : snapshot lit le jeu de données figé du produit du producteur."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-snapshot-goal-directed|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "dataflow: goal-directed → snapshot"
+msgstr "flux de données : goal-directed → snapshot"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-snapshot-goal-directed|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The dataflow edge from gmeow:stage-goal-directed to gmeow:stage-snapshot: snapshot reads the frozen dataset of the producer's product."
+msgstr "L'arête de flux de données de gmeow:stage-goal-directed à gmeow:stage-snapshot : snapshot lit le jeu de données figé du produit du producteur."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-snapshot-mappings|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "dataflow: mappings → snapshot"
+msgstr "flux de données : mappings → snapshot"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-snapshot-mappings|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The dataflow edge from gmeow:stage-mappings to gmeow:stage-snapshot: snapshot reads the artifact 'generated/logic/projection-report.ttl', every committed byte artifact, the frozen dataset of the producer's product."
+msgstr "L'arête de flux de données de gmeow:stage-mappings à gmeow:stage-snapshot : snapshot lit l'artefact « generated/logic/projection-report.ttl », chaque artefact d'octets versionné, le jeu de données figé du produit du producteur."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-snapshot-math-producers|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "dataflow: math-producers → snapshot"
+msgstr "flux de données : math-producers → snapshot"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-snapshot-math-producers|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The dataflow edge from gmeow:stage-math-producers to gmeow:stage-snapshot: snapshot reads every committed byte artifact, the frozen dataset of the producer's product."
+msgstr "L'arête de flux de données de gmeow:stage-math-producers à gmeow:stage-snapshot : snapshot lit chaque artefact d'octets versionné, le jeu de données figé du produit du producteur."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-snapshot-reason|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "dataflow: reason → snapshot"
+msgstr "flux de données : reason → snapshot"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-snapshot-reason|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The dataflow edge from gmeow:stage-reason to gmeow:stage-snapshot: snapshot reads the typed handle pinned to <https://blackcatinformatics.ca/gmeow/graph/reasoning>, the frozen dataset of the producer's product."
+msgstr "L'arête de flux de données de gmeow:stage-reason à gmeow:stage-snapshot : snapshot lit le handle typé épinglé à <https://blackcatinformatics.ca/gmeow/graph/reasoning>, le jeu de données figé du produit du producteur."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-snapshot-slice-brief|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "dataflow: slice-brief → snapshot"
+msgstr "flux de données : slice-brief → snapshot"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-snapshot-slice-brief|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The dataflow edge from gmeow:stage-slice-brief to gmeow:stage-snapshot: snapshot reads the frozen dataset of the producer's product."
+msgstr "L'arête de flux de données de gmeow:stage-slice-brief à gmeow:stage-snapshot : snapshot lit le jeu de données figé du produit du producteur."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-snapshot-source-load|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "dataflow: source-load → snapshot"
+msgstr "flux de données : source-load → snapshot"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-snapshot-source-load|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The dataflow edge from gmeow:stage-source-load to gmeow:stage-snapshot: snapshot reads the frozen dataset of the producer's product."
+msgstr "L'arête de flux de données de gmeow:stage-source-load à gmeow:stage-snapshot : snapshot lit le jeu de données figé du produit du producteur."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-snapshot-statements|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "dataflow: statements → snapshot"
+msgstr "flux de données : statements → snapshot"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-snapshot-statements|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The dataflow edge from gmeow:stage-statements to gmeow:stage-snapshot: snapshot reads the frozen dataset of the producer's product."
+msgstr "L'arête de flux de données de gmeow:stage-statements à gmeow:stage-snapshot : snapshot lit le jeu de données figé du produit du producteur."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-snapshot-term-manifest|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "dataflow: term-manifest → snapshot"
+msgstr "flux de données : term-manifest → snapshot"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-snapshot-term-manifest|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The dataflow edge from gmeow:stage-term-manifest to gmeow:stage-snapshot: snapshot reads the artifact 'generated/catalog/term-content-manifest.nq' of the producer's product."
+msgstr "L'arête de flux de données de gmeow:stage-term-manifest à gmeow:stage-snapshot : snapshot lit l'artefact « generated/catalog/term-content-manifest.nq » du produit du producteur."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-snapshot-validate|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "dataflow: validate → snapshot"
+msgstr "flux de données : validate → snapshot"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-snapshot-validate|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The dataflow edge from gmeow:stage-validate to gmeow:stage-snapshot: snapshot reads the artifact 'generated/diagnostics/shacl.nq', the whole carrier, the frozen dataset of the producer's product."
+msgstr "L'arête de flux de données de gmeow:stage-validate à gmeow:stage-snapshot : snapshot lit l'artefact « generated/diagnostics/shacl.nq », le porteur entier, le jeu de données figé du produit du producteur."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-snapshot-verify-attestation|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "dataflow: verify-attestation → snapshot"
+msgstr "flux de données : verify-attestation → snapshot"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-snapshot-verify-attestation|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The dataflow edge from gmeow:stage-verify-attestation to gmeow:stage-snapshot: snapshot reads the frozen dataset of the producer's product."
+msgstr "L'arête de flux de données de gmeow:stage-verify-attestation à gmeow:stage-snapshot : snapshot lit le jeu de données figé du produit du producteur."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-source-load-parse-sources|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "dataflow: parse-sources → source-load"
+msgstr "flux de données : parse-sources → source-load"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-source-load-parse-sources|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The dataflow edge from gmeow:stage-parse-sources to gmeow:stage-source-load: source-load reads the typed handle pinned to <https://blackcatinformatics.ca/gmeow/graph/source-catalog>, the frozen dataset of the producer's product."
+msgstr "L'arête de flux de données de gmeow:stage-parse-sources à gmeow:stage-source-load : source-load lit le handle typé épinglé à <https://blackcatinformatics.ca/gmeow/graph/source-catalog>, le jeu de données figé du produit du producteur."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-term-manifest-reason|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "dataflow: reason → term-manifest"
+msgstr "flux de données : reason → term-manifest"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-term-manifest-reason|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The dataflow edge from gmeow:stage-reason to gmeow:stage-term-manifest: term-manifest reads no lane of the producer's product; the edge orders the two stages and folds the producer's identity into the consumer's cache key."
+msgstr "L'arête de flux de données de gmeow:stage-reason à gmeow:stage-term-manifest : term-manifest ne lit aucune voie du produit du producteur ; l'arête ordonne les deux étapes et intègre l'identité du producteur dans la clé de cache du consommateur."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-validate-export-constraint-shapes|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "dataflow: export-constraint-shapes → validate"
+msgstr "flux de données : export-constraint-shapes → validate"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-validate-export-constraint-shapes|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The dataflow edge from gmeow:stage-export-constraint-shapes to gmeow:stage-validate: validate reads the artifact 'generated/shapes/constraint-shapes.ttl' of the producer's product."
+msgstr "L'arête de flux de données de gmeow:stage-export-constraint-shapes à gmeow:stage-validate : validate lit l'artefact « generated/shapes/constraint-shapes.ttl » du produit du producteur."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-validate-export-frame-shapes|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "dataflow: export-frame-shapes → validate"
+msgstr "flux de données : export-frame-shapes → validate"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-validate-export-frame-shapes|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The dataflow edge from gmeow:stage-export-frame-shapes to gmeow:stage-validate: validate reads the artifact 'generated/shapes/frame-shapes.ttl' of the producer's product."
+msgstr "L'arête de flux de données de gmeow:stage-export-frame-shapes à gmeow:stage-validate : validate lit l'artefact « generated/shapes/frame-shapes.ttl » du produit du producteur."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-validate-export-result-shapes|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "dataflow: export-result-shapes → validate"
+msgstr "flux de données : export-result-shapes → validate"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-validate-export-result-shapes|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The dataflow edge from gmeow:stage-export-result-shapes to gmeow:stage-validate: validate reads the artifact 'generated/shapes/result-shapes.ttl' of the producer's product."
+msgstr "L'arête de flux de données de gmeow:stage-export-result-shapes à gmeow:stage-validate : validate lit l'artefact « generated/shapes/result-shapes.ttl » du produit du producteur."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-validate-source-load|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "dataflow: source-load → validate"
+msgstr "flux de données : source-load → validate"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-validate-source-load|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The dataflow edge from gmeow:stage-source-load to gmeow:stage-validate: validate reads the representation blob 'spans:source-table', the frozen dataset of the producer's product."
+msgstr "L'arête de flux de données de gmeow:stage-source-load à gmeow:stage-validate : validate lit le blob de représentation « spans:source-table », le jeu de données figé du produit du producteur."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-verify-attestation-parse-sources|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "dataflow: parse-sources → verify-attestation"
+msgstr "flux de données : parse-sources → verify-attestation"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-verify-attestation-parse-sources|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The dataflow edge from gmeow:stage-parse-sources to gmeow:stage-verify-attestation: verify-attestation reads the typed handle pinned to <https://blackcatinformatics.ca/gmeow/graph/source-catalog>, the frozen dataset of the producer's product."
+msgstr "L'arête de flux de données de gmeow:stage-parse-sources à gmeow:stage-verify-attestation : verify-attestation lit le handle typé épinglé à <https://blackcatinformatics.ca/gmeow/graph/source-catalog>, le jeu de données figé du produit du producteur."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-verify-attestation-source-load|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "dataflow: source-load → verify-attestation"
+msgstr "flux de données : source-load → verify-attestation"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-verify-attestation-source-load|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The dataflow edge from gmeow:stage-source-load to gmeow:stage-verify-attestation: verify-attestation reads the frozen dataset of the producer's product."
+msgstr "L'arête de flux de données de gmeow:stage-source-load à gmeow:stage-verify-attestation : verify-attestation lit le jeu de données figé du produit du producteur."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-verify-attestation-statements|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "dataflow: statements → verify-attestation"
+msgstr "flux de données : statements → verify-attestation"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-verify-attestation-statements|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The dataflow edge from gmeow:stage-statements to gmeow:stage-verify-attestation: verify-attestation reads the frozen dataset of the producer's product."
+msgstr "L'arête de flux de données de gmeow:stage-statements à gmeow:stage-verify-attestation : verify-attestation lit le jeu de données figé du produit du producteur."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-export-export-export-json-schema|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "dataflow: export-json-schema → export-export"
+msgstr "flux de données : export-json-schema → export-export"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-export-export-export-json-schema|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The dataflow edge from gmeow:stage-export-json-schema to gmeow:stage-export-export: export-export reads the artifact 'generated/schemas/gmeow.schema.json' of the producer's product."
+msgstr "L'arête de flux de données de gmeow:stage-export-json-schema à gmeow:stage-export-export : export-export lit l'artefact « generated/schemas/gmeow.schema.json » du produit du producteur."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-export-export-snapshot|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "dataflow: snapshot → export-export"
+msgstr "flux de données : snapshot → export-export"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-export-export-snapshot|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The dataflow edge from gmeow:stage-snapshot to gmeow:stage-export-export: export-export reads the frozen dataset of the producer's product."
+msgstr "L'arête de flux de données de gmeow:stage-snapshot à gmeow:stage-export-export : export-export lit le jeu de données figé du produit du producteur."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-export-okf-snapshot|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "dataflow: snapshot → export-okf"
+msgstr "flux de données : snapshot → export-okf"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-export-okf-snapshot|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The dataflow edge from gmeow:stage-snapshot to gmeow:stage-export-okf: export-okf reads the frozen dataset of the producer's product."
+msgstr "L'arête de flux de données de gmeow:stage-snapshot à gmeow:stage-export-okf : export-okf lit le jeu de données figé du produit du producteur."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-export-yaml-ld-snapshot|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "dataflow: snapshot → export-yaml-ld"
+msgstr "flux de données : snapshot → export-yaml-ld"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-export-yaml-ld-snapshot|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The dataflow edge from gmeow:stage-snapshot to gmeow:stage-export-yaml-ld: export-yaml-ld reads the frozen dataset of the producer's product."
+msgstr "L'arête de flux de données de gmeow:stage-snapshot à gmeow:stage-export-yaml-ld : export-yaml-ld lit le jeu de données figé du produit du producteur."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/flowReasonDataflow|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The edge exists because BYTES genuinely flow producer → consumer: the consumer reads the producer's product (the ordinary gmeow:dataflowConsumes case). A dataflow reasoner may key the consumer's cache on the flowing entities' digests and is free to schedule producers first. The default and most common reason; most of the build DAG's own edges carry it, and the edges that carry no bytes declare gmeow:flowReasonAuthority instead. Distinct from gmeow:flowReasonAuthority, whose edge carries no bytes and exists purely to order two stages."
+msgstr "L'arête existe parce que des OCTETS circulent réellement du producteur vers le consommateur : le consommateur lit le produit du producteur (le cas ordinaire de gmeow:dataflowConsumes). Un raisonneur de flux de données peut indexer le cache du consommateur sur les condensats des entités qui circulent et est libre d'ordonnancer d'abord les producteurs. C'est la raison par défaut et la plus courante ; la plupart des arêtes du DAG de construction la portent, et les arêtes qui ne transportent aucun octet déclarent plutôt gmeow:flowReasonAuthority. À distinguer de gmeow:flowReasonAuthority, dont l'arête ne transporte aucun octet et n'existe que pour ordonner deux étapes."

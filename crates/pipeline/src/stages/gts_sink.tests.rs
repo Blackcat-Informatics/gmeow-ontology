@@ -41,9 +41,13 @@ fn terminal_product_commits_full_ingestion_evidence_beside_the_exact_gts() {
     assert!(gmeow_gts_profile::read_ingestion_receipt(&changed, companion).is_err());
 }
 
+/// The sink keeps a live carrier only for the three products it reads through carrier
+/// lanes. This reads the retention the scheduler uses, derived from the sink's declared
+/// reads in the pipeline slice, so a carrier read removed from the slice (or an artifact
+/// read promoted to a carrier read) fails here.
 #[test]
 fn sink_declares_only_the_lanes_it_reads_as_carrier_inputs() {
-    let sink = GtsSinkStage::new();
+    let sink = crate::run::bound_production_stage("stage-gts-sink");
     assert_eq!(
         sink.carrier_consumes(),
         [
