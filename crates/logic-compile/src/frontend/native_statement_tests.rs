@@ -295,7 +295,7 @@ fn annotation_only_modal_formula_preserves_authored_variable_and_constraint_owne
 
 #[test]
 fn invalid_native_scope_never_emits_a_weaker_claim() {
-    for kind in ["confidence", "modality", "multiplicity", "proposition"] {
+    for kind in ["confidence", "modality", "proposition"] {
         let mut builder = RdfDatasetBuilder::new();
         let (reifier, triple) = quoted_axiom(&mut builder);
         builder.push_reifier(reifier, triple).unwrap();
@@ -314,11 +314,6 @@ fn invalid_native_scope_never_emits_a_weaker_claim() {
                 "modality",
                 builder.intern_iri(&logic_iri("UnknownModality")).unwrap(),
                 "UNKNOWN_MODALITY",
-            ),
-            "multiplicity" => (
-                "standpoint",
-                builder.intern_iri("https://example.org/other").unwrap(),
-                "UNSUPPORTED_SCOPE_MULTIPLICITY",
             ),
             "proposition" => ("time", triple, "UNSUPPORTED_SCOPE_TERM"),
             _ => unreachable!(),
@@ -379,4 +374,606 @@ fn separate_native_reifiers_preserve_coexisting_standpoints() {
             Some("https://example.org/other")
         ])
     );
+}
+
+/// A scope value as authored on a claim: an IRI or a plain literal.
+#[derive(Clone, Copy)]
+enum Authored {
+    Iri(&'static str),
+    Text(&'static str),
+}
+
+/// Compile one quoted claim carrying the given `logic:` scope values, in the order
+/// given, and return the scopes of the resulting `ex:Bird` axioms with the
+/// diagnostic codes.
+fn lower_claim(values: &[(&str, Authored)]) -> (Vec<ContextualScope>, Vec<String>) {
+    let mut builder = RdfDatasetBuilder::new();
+    let (reifier, triple) = quoted_axiom(&mut builder);
+    builder.push_reifier(reifier, triple).unwrap();
+    for (field, value) in values {
+        let predicate = builder.intern_iri(&logic_iri(field)).unwrap();
+        let object = match value {
+            Authored::Iri(iri) => builder.intern_iri(iri).unwrap(),
+            Authored::Text(text) => builder.intern_literal(RdfLiteral::simple(*text)).unwrap(),
+        };
+        builder.push_annotation(reifier, predicate, object).unwrap();
+    }
+    let source = builder.freeze().unwrap();
+    let (program, diagnostics) = parse_logic_dataset(&source, None).unwrap();
+    let scopes = program
+        .axioms
+        .iter()
+        .filter(|a| a.subject == "https://example.org/Bird")
+        .map(|a| a.scope.clone())
+        .collect();
+    (scopes, diagnostics.into_iter().map(|d| d.code).collect())
+}
+
+#[test]
+fn several_values_of_one_scope_coordinate_lower_to_one_claim_per_value() {
+    use Authored::{Iri, Text};
+    let cases: [(&str, Authored, Authored); 6] = [
+        (
+            "standpoint",
+            Iri("https://example.org/a"),
+            Iri("https://example.org/b"),
+        ),
+        ("time", Text("2026-01-01"), Text("2026-02-01")),
+        ("confidence", Text("0.25"), Text("0.75")),
+        (
+            "modality",
+            Iri("https://blackcatinformatics.ca/logic/alethic"),
+            Iri("https://blackcatinformatics.ca/logic/epistemic"),
+        ),
+        (
+            "provenance",
+            Iri("https://example.org/a"),
+            Iri("https://example.org/b"),
+        ),
+        (
+            "inModule",
+            Iri("https://example.org/a"),
+            Iri("https://example.org/b"),
+        ),
+    ];
+    for (field, first, second) in cases {
+        let (forward, codes) = lower_claim(&[(field, first), (field, second)]);
+        let (backward, _) = lower_claim(&[(field, second), (field, first)]);
+        assert!(codes.is_empty(), "{field}: {codes:?}");
+        assert_eq!(forward.len(), 2, "{field}");
+        assert_ne!(
+            forward[0], forward[1],
+            "{field}: the two claims are distinct"
+        );
+        assert_eq!(
+            forward, backward,
+            "{field}: authoring order changed the result"
+        );
+    }
+}
+
+#[test]
+fn fanning_out_one_coordinate_shares_every_other_coordinate() {
+    use Authored::{Iri, Text};
+    let (scopes, codes) = lower_claim(&[
+        ("standpoint", Iri("https://example.org/shared")),
+        ("confidence", Text("0.5")),
+        ("provenance", Iri("https://example.org/a")),
+        ("provenance", Iri("https://example.org/b")),
+    ]);
+    assert!(codes.is_empty(), "{codes:?}");
+    assert_eq!(scopes.len(), 2);
+    for scope in &scopes {
+        assert_eq!(
+            scope.standpoint.as_deref(),
+            Some("https://example.org/shared")
+        );
+        assert_eq!(scope.confidence, Some(0.5));
+    }
+}
+
+#[test]
+fn two_provenance_values_yield_two_claims_in_canonical_order() {
+    use Authored::Iri;
+    let (scopes, codes) = lower_claim(&[
+        ("provenance", Iri("https://example.org/zulu")),
+        ("provenance", Iri("https://example.org/alfa")),
+    ]);
+    assert!(codes.is_empty(), "{codes:?}");
+    let provenance: Vec<_> = scopes.iter().map(|s| s.provenance.as_deref()).collect();
+    assert_eq!(
+        provenance,
+        [
+            Some("https://example.org/alfa"),
+            Some("https://example.org/zulu")
+        ]
+    );
+}
+
+#[test]
+fn several_values_of_two_scope_coordinates_withhold_the_claim_naming_both() {
+    use Authored::Iri;
+    let mut builder = RdfDatasetBuilder::new();
+    let (reifier, triple) = quoted_axiom(&mut builder);
+    builder.push_reifier(reifier, triple).unwrap();
+    for (field, value) in [
+        ("provenance", "https://example.org/a"),
+        ("provenance", "https://example.org/b"),
+        ("standpoint", "https://example.org/c"),
+        ("standpoint", "https://example.org/d"),
+    ] {
+        let predicate = builder.intern_iri(&logic_iri(field)).unwrap();
+        let object = builder.intern_iri(value).unwrap();
+        builder.push_annotation(reifier, predicate, object).unwrap();
+    }
+    let source = builder.freeze().unwrap();
+    let (program, diagnostics) = parse_logic_dataset(&source, None).unwrap();
+    let refusal = diagnostics
+        .iter()
+        .find(|d| d.code == "AMBIGUOUS_SCOPE_COORDINATES")
+        .unwrap_or_else(|| panic!("{diagnostics:?}"));
+    assert_eq!(refusal.severity, Severity::Error);
+    assert_eq!(
+        refusal.subject.as_deref(),
+        Some("https://example.org/claim")
+    );
+    assert!(refusal.message.contains("logic:provenance"));
+    assert!(refusal.message.contains("logic:standpoint"));
+    assert!(
+        !program
+            .axioms
+            .iter()
+            .any(|a| a.subject == "https://example.org/Bird")
+    );
+    // A neighbouring node with one multi-valued coordinate is admitted.
+    let (admitted, codes) = lower_claim(&[
+        ("provenance", Iri("https://example.org/a")),
+        ("provenance", Iri("https://example.org/b")),
+    ]);
+    assert_eq!((admitted.len(), codes.is_empty()), (2, true));
+}
+
+#[test]
+fn one_invalid_value_among_several_withholds_every_claim() {
+    use Authored::{Iri, Text};
+    for (values, expected) in [
+        (
+            vec![("confidence", Text("0.5")), ("confidence", Text("2.5"))],
+            "INVALID_CONFIDENCE",
+        ),
+        (
+            vec![
+                (
+                    "modality",
+                    Iri("https://blackcatinformatics.ca/logic/alethic"),
+                ),
+                (
+                    "modality",
+                    Iri("https://blackcatinformatics.ca/logic/Unknown"),
+                ),
+            ],
+            "UNKNOWN_MODALITY",
+        ),
+    ] {
+        let (scopes, codes) = lower_claim(&values);
+        assert!(scopes.is_empty(), "{expected}: {scopes:?}");
+        assert!(codes.iter().any(|c| c == expected), "{expected}: {codes:?}");
+    }
+    // A proposition-valued value among IRIs.
+    let mut builder = RdfDatasetBuilder::new();
+    let (reifier, triple) = quoted_axiom(&mut builder);
+    builder.push_reifier(reifier, triple).unwrap();
+    let predicate = builder.intern_iri(&logic_iri("provenance")).unwrap();
+    let source_iri = builder.intern_iri("https://example.org/a").unwrap();
+    builder
+        .push_annotation(reifier, predicate, source_iri)
+        .unwrap();
+    builder.push_annotation(reifier, predicate, triple).unwrap();
+    let source = builder.freeze().unwrap();
+    let (program, diagnostics) = parse_logic_dataset(&source, None).unwrap();
+    assert!(
+        diagnostics
+            .iter()
+            .any(|d| d.code == "UNSUPPORTED_SCOPE_TERM")
+    );
+    assert!(
+        program
+            .axioms
+            .iter()
+            .all(|a| a.subject != "https://example.org/Bird")
+    );
+}
+
+fn parse_turtle(text: &str) -> std::sync::Arc<purrdf::RdfDataset> {
+    purrdf::parse_dataset(
+        format!(
+            "@prefix logic: <https://blackcatinformatics.ca/logic/> .
+             @prefix ex: <https://example.org/> .
+             @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> . {text}"
+        )
+        .as_bytes(),
+        "application/trig",
+        None,
+    )
+    .unwrap()
+}
+
+#[test]
+fn a_rule_atom_with_several_values_of_one_coordinate_withholds_the_whole_rule() {
+    let dataset = parse_turtle(
+        "ex:rule a logic:Rule ;
+             logic:head [ rdf:reifies <<( ex:Bird ex:p ex:v )>> ] ;
+             logic:body [ rdf:reifies <<( ex:Bird ex:q ex:v )>> ;
+                          logic:provenance ex:a, ex:b ] .",
+    );
+    let (program, diagnostics) = parse_logic_dataset(&dataset, None).unwrap();
+    assert!(
+        diagnostics
+            .iter()
+            .any(|d| d.code == "AMBIGUOUS_RULE_ATOM_SCOPE" && d.severity == Severity::Error),
+        "{diagnostics:?}"
+    );
+    assert!(program.rules.is_empty(), "{:?}", program.rules);
+}
+
+fn admission_of(text: &str) -> SourceAdmission {
+    let theory = PreparedLogicSource::new(&parse_turtle(text))
+        .unwrap()
+        .into_compiled(None)
+        .unwrap();
+    SourceAdmission::classical_fof(&theory, SourceSelection::all_classical_roots(&theory))
+}
+
+#[test]
+fn rules_lowered_from_one_rule_node_are_one_admission_fact_with_unchanged_id() {
+    let rule = |provenance: &str| {
+        format!(
+            "ex:rule a logic:Rule ;
+                 logic:provenance {provenance} ;
+                 logic:head [ rdf:reifies <<( ex:Bird ex:p ex:v )>> ] ."
+        )
+    };
+    let fanned = admission_of(&rule("ex:a, ex:b"));
+    let single = admission_of(&rule("ex:a"));
+    let rule_units = |admission: &SourceAdmission| {
+        admission
+            .units
+            .iter()
+            .filter(|unit| unit.kind == SemanticUnitKind::Rule)
+            .cloned()
+            .collect::<Vec<_>>()
+    };
+    let (fanned_rules, single_rules) = (rule_units(&fanned), rule_units(&single));
+    assert_eq!(fanned_rules.len(), 1, "{fanned_rules:?}");
+    assert!(matches!(
+        &fanned_rules[0].disposition,
+        SemanticUnitDisposition::Blocked { code, .. } if code == "CONTEXT_ERASURE_FORBIDDEN"
+    ));
+    // Same kind, anchor, documents and disposition: the authored rule keeps the
+    // id it has with a single provenance value.
+    assert_eq!(fanned_rules, single_rules);
+    let ids: BTreeSet<_> = fanned.units.iter().map(|unit| &unit.id).collect();
+    assert_eq!(ids.len(), fanned.units.len(), "{:?}", fanned.units);
+}
+
+#[test]
+fn axioms_lowered_from_one_reifier_get_distinct_assertion_units() {
+    let admission = admission_of(
+        "ex:claim rdf:reifies <<( ex:Bird ex:p ex:v )>> ;
+             logic:provenance ex:a, ex:b .",
+    );
+    let assertions: Vec<_> = admission
+        .units
+        .iter()
+        .filter(|unit| unit.kind == SemanticUnitKind::Assertion)
+        .collect();
+    assert_eq!(assertions.len(), 2, "{assertions:?}");
+    assert_ne!(assertions[0].id, assertions[1].id);
+    assert_ne!(assertions[0].anchor, assertions[1].anchor);
+}
+
+#[test]
+fn spellings_of_one_confidence_or_modality_count_as_one_value() {
+    use Authored::{Iri, Text};
+    let provenance = [
+        ("provenance", Iri("https://example.org/a")),
+        ("provenance", Iri("https://example.org/b")),
+    ];
+    for (field, first, second) in [
+        ("confidence", Text("0.5"), Text("0.50")),
+        ("confidence", Text("0.5"), Text("5e-1")),
+        (
+            "modality",
+            Iri("https://blackcatinformatics.ca/logic/alethic"),
+            Iri("https://blackcatinformatics.ca/logic/Alethic"),
+        ),
+    ] {
+        let (one, codes) = lower_claim(&[(field, first), (field, second)]);
+        assert!(codes.is_empty(), "{field}: {codes:?}");
+        assert_eq!(one.len(), 1, "{field}: one value, one claim");
+        let mut with_sources = vec![(field, first), (field, second)];
+        with_sources.extend(provenance);
+        let (two, codes) = lower_claim(&with_sources);
+        assert!(codes.is_empty(), "{field}: {codes:?}");
+        assert_eq!(two.len(), 2, "{field}: two sources, two claims");
+    }
+}
+
+#[test]
+fn distinct_confidences_fan_out_in_numeric_order_whatever_the_authored_order() {
+    use Authored::Text;
+    let spellings = [
+        ("confidence", Text("0.5")),
+        ("confidence", Text("0.50")),
+        ("confidence", Text("1e-1")),
+    ];
+    let mut reversed = spellings;
+    reversed.reverse();
+    for authored in [spellings, reversed] {
+        let (scopes, codes) = lower_claim(&authored);
+        assert!(codes.is_empty(), "{codes:?}");
+        let confidences: Vec<_> = scopes.iter().map(|s| s.confidence).collect();
+        // Text order would put 0.5 before 1e-1; numeric order does not.
+        assert_eq!(confidences, [Some(0.1), Some(0.5)]);
+    }
+}
+
+fn rule_text(coordinates: &str) -> String {
+    format!(
+        "ex:rule a logic:Rule ;
+             {coordinates}
+             logic:head [ rdf:reifies <<( ex:Bird ex:p ex:v )>> ] ."
+    )
+}
+
+fn rule_scopes(coordinates: &str) -> (Vec<ContextualScope>, Vec<String>) {
+    let (program, diagnostics) =
+        parse_logic_dataset(&parse_turtle(&rule_text(coordinates)), None).unwrap();
+    (
+        program
+            .rules
+            .iter()
+            .map(|rule| rule.scope.clone())
+            .collect(),
+        diagnostics.into_iter().map(|d| d.code).collect(),
+    )
+}
+
+#[test]
+fn a_rule_node_with_two_provenance_values_lowers_to_two_rules_one_source() {
+    let dataset = parse_turtle(&rule_text("logic:provenance ex:zulu, ex:alfa ;"));
+    let theory = PreparedLogicSource::new(&dataset)
+        .unwrap()
+        .into_compiled(None)
+        .unwrap();
+    assert!(
+        theory.diagnostics().is_empty(),
+        "{:?}",
+        theory.diagnostics()
+    );
+    let authored = SourceNode {
+        term: theory
+            .source()
+            .dataset()
+            .term_id_by_iri("https://example.org/rule")
+            .unwrap(),
+        graph: None,
+    };
+    let lowerings: Vec<_> = theory
+        .owner_lowerings()
+        .iter()
+        .filter(|owner| owner.family == OwnerFamily::Rule)
+        .collect();
+    assert_eq!(lowerings.len(), 2, "{lowerings:?}");
+    assert!(lowerings.iter().all(|owner| owner.source == authored));
+    let provenance: Vec<_> = lowerings
+        .iter()
+        .map(|owner| {
+            let OwnerDisposition::Emitted { index } = owner.disposition else {
+                panic!("rule not emitted: {owner:?}")
+            };
+            theory.program().rules[index]
+                .scope
+                .provenance
+                .clone()
+                .unwrap()
+        })
+        .collect();
+    let mut indices: Vec<_> = lowerings
+        .iter()
+        .map(|owner| owner.disposition.clone())
+        .collect();
+    indices.dedup();
+    assert_eq!(
+        indices.len(),
+        2,
+        "two lowerings carry two different indices"
+    );
+    let mut sorted = provenance.clone();
+    sorted.sort();
+    assert_eq!(
+        sorted,
+        ["https://example.org/alfa", "https://example.org/zulu"]
+    );
+}
+
+#[test]
+fn lowered_claims_keep_the_authored_reifier_as_their_only_source() {
+    let dataset = parse_turtle(
+        "ex:claim rdf:reifies <<( ex:Bird ex:p ex:v )>> ; logic:provenance ex:a, ex:b .",
+    );
+    let theory = PreparedLogicSource::new(&dataset)
+        .unwrap()
+        .into_compiled(None)
+        .unwrap();
+    assert!(
+        theory.diagnostics().is_empty(),
+        "{:?}",
+        theory.diagnostics()
+    );
+    let authored = SourceNode {
+        term: theory
+            .source()
+            .dataset()
+            .term_id_by_iri("https://example.org/claim")
+            .unwrap(),
+        graph: None,
+    };
+    let claims: Vec<_> = theory
+        .program()
+        .axioms
+        .iter()
+        .enumerate()
+        .filter(|(_, axiom)| axiom.subject == "https://example.org/Bird")
+        .collect();
+    assert_eq!(claims.len(), 2);
+    for (index, _) in claims {
+        assert_eq!(
+            theory.axiom_sources()[index],
+            [AxiomSource::Reification(authored)]
+        );
+    }
+}
+
+#[test]
+fn the_classic_statement_carrier_fans_out_like_a_reifier() {
+    let dataset = parse_turtle(
+        "ex:statement a rdf:Statement ;
+             rdf:subject ex:Bird ; rdf:predicate ex:p ; rdf:object ex:v ;
+             logic:provenance ex:a, ex:b .",
+    );
+    let (program, diagnostics) = parse_logic_dataset(&dataset, None).unwrap();
+    assert!(diagnostics.is_empty(), "{diagnostics:?}");
+    let provenance: Vec<_> = program
+        .axioms
+        .iter()
+        .filter(|a| a.subject == "https://example.org/Bird")
+        .map(|a| a.scope.provenance.as_deref())
+        .collect();
+    assert_eq!(
+        provenance,
+        [Some("https://example.org/a"), Some("https://example.org/b")]
+    );
+}
+
+#[test]
+fn a_rule_node_with_two_multi_valued_coordinates_is_refused_whole() {
+    let (rules, codes) = rule_scopes("logic:provenance ex:a, ex:b ; logic:standpoint ex:c, ex:d ;");
+    assert!(rules.is_empty(), "{rules:?}");
+    assert!(
+        codes.iter().any(|c| c == "AMBIGUOUS_SCOPE_COORDINATES"),
+        "{codes:?}"
+    );
+}
+
+#[test]
+fn one_invalid_value_among_several_withholds_the_whole_rule() {
+    let (rules, codes) = rule_scopes("logic:confidence 0.5, 2.5 ;");
+    assert!(rules.is_empty(), "{rules:?}");
+    assert!(codes.iter().any(|c| c == "INVALID_CONFIDENCE"), "{codes:?}");
+}
+
+#[test]
+fn a_rule_node_fans_out_on_a_coordinate_other_than_provenance() {
+    let (rules, codes) = rule_scopes("logic:standpoint ex:b, ex:a ; logic:confidence 0.5 ;");
+    assert!(codes.is_empty(), "{codes:?}");
+    let standpoints: Vec<_> = rules.iter().map(|s| s.standpoint.as_deref()).collect();
+    assert_eq!(
+        standpoints,
+        [Some("https://example.org/a"), Some("https://example.org/b")]
+    );
+    assert!(rules.iter().all(|s| s.confidence == Some(0.5)));
+}
+
+#[test]
+fn rule_fan_out_is_the_same_in_both_authoring_orders() {
+    let forward = rule_scopes("logic:provenance ex:a, ex:b ;");
+    let backward = rule_scopes("logic:provenance ex:b, ex:a ;");
+    assert_eq!(forward.0.len(), 2);
+    assert_eq!(forward, backward);
+}
+
+#[test]
+fn modality_none_beside_another_modality_yields_only_the_other_claim_but_both_rules() {
+    // A claim whose only scope is the default stays an unasserted quotation, so
+    // only the epistemic claim is emitted.
+    let dataset = parse_turtle(
+        "ex:claim rdf:reifies <<( ex:Bird ex:p ex:v )>> ;
+             logic:modality logic:none, logic:epistemic .",
+    );
+    let (program, diagnostics) = parse_logic_dataset(&dataset, None).unwrap();
+    assert!(diagnostics.is_empty(), "{diagnostics:?}");
+    let modalities: Vec<_> = program
+        .axioms
+        .iter()
+        .filter(|a| a.subject == "https://example.org/Bird")
+        .map(|a| a.scope.modality)
+        .collect();
+    assert_eq!(modalities, [LogicModality::Epistemic]);
+    // A rule is asserted without any scope, so the `none` rule is the unscoped one.
+    let (rules, codes) = rule_scopes("logic:modality logic:none, logic:epistemic ;");
+    assert!(codes.is_empty(), "{codes:?}");
+    let modalities: Vec<_> = rules.iter().map(|s| s.modality).collect();
+    assert_eq!(modalities, [LogicModality::None, LogicModality::Epistemic]);
+}
+
+#[test]
+fn values_split_across_physical_tables_fan_out_the_same_way() {
+    // Both placements: neither value's table may decide the result.
+    for annotated_first in [true, false] {
+        let mut builder = RdfDatasetBuilder::new();
+        let (reifier, triple) = quoted_axiom(&mut builder);
+        builder.push_reifier(reifier, triple).unwrap();
+        let predicate = builder.intern_iri(&logic_iri("provenance")).unwrap();
+        let a = builder.intern_iri("https://example.org/a").unwrap();
+        let b = builder.intern_iri("https://example.org/b").unwrap();
+        let (annotated, quad) = if annotated_first { (a, b) } else { (b, a) };
+        builder
+            .push_annotation(reifier, predicate, annotated)
+            .unwrap();
+        builder.push_quad(reifier, predicate, quad, None).unwrap();
+        let source = builder.freeze().unwrap();
+        let (program, diagnostics) = parse_logic_dataset(&source, None).unwrap();
+        assert!(diagnostics.is_empty(), "{diagnostics:?}");
+        let provenance: Vec<_> = program
+            .axioms
+            .iter()
+            .filter(|a| a.subject == "https://example.org/Bird")
+            .map(|a| a.scope.provenance.as_deref())
+            .collect();
+        assert_eq!(
+            provenance,
+            [Some("https://example.org/a"), Some("https://example.org/b")],
+            "annotated_first={annotated_first}"
+        );
+    }
+}
+
+#[test]
+fn terms_with_one_text_are_one_value_whichever_is_authored_first() {
+    use Authored::{Iri, Text};
+    let same_text = [
+        ("provenance", Iri("https://example.org/a")),
+        ("provenance", Text("https://example.org/a")),
+    ];
+    let mut reversed = same_text;
+    reversed.reverse();
+    // An IRI and a literal of one text lower to identical scopes: one claim.
+    let (forward, codes) = lower_claim(&same_text);
+    let (backward, _) = lower_claim(&reversed);
+    assert!(codes.is_empty(), "{codes:?}");
+    assert_eq!(forward.len(), 1);
+    assert_eq!(forward, backward);
+    // Beside two values of another coordinate they still count once, so the node
+    // fans out on that coordinate and is not refused as ambiguous.
+    for authored in [same_text, reversed] {
+        let mut values = authored.to_vec();
+        values.extend([
+            ("standpoint", Iri("https://example.org/c")),
+            ("standpoint", Iri("https://example.org/d")),
+        ]);
+        let (scopes, codes) = lower_claim(&values);
+        assert!(codes.is_empty(), "{codes:?}");
+        assert_eq!(scopes.len(), 2, "{scopes:?}");
+    }
 }

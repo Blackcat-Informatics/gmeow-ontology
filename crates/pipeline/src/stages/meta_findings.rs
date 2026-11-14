@@ -341,14 +341,15 @@ impl MetaProgram {
         }
         // Bind the class-based selection to actual owner emissions. Provenance is
         // authored evidence, never an index into this program's rule collection.
-        let emitted: BTreeMap<_, _> = owners
+        let mut emitted: BTreeMap<SourceNode, Vec<usize>> = BTreeMap::new();
+        for owner in owners
             .iter()
             .filter(|owner| owner.family == OwnerFamily::Rule)
-            .filter_map(|owner| match owner.disposition {
-                OwnerDisposition::Emitted { index } => Some((owner.source, index)),
-                OwnerDisposition::Rejected | OwnerDisposition::OutsideDefaultGraph => None,
-            })
-            .collect();
+        {
+            if let OwnerDisposition::Emitted { index } = owner.disposition {
+                emitted.entry(owner.source).or_default().push(index);
+            }
+        }
         let missing = meta_nodes
             .iter()
             .filter(|node| !emitted.contains_key(node))
@@ -361,9 +362,24 @@ impl MetaProgram {
                 ),
             }));
         }
+        // A node whose scope has several values of one coordinate lowers to one rule
+        // per value. A meta-rule is folded as one rule, so choosing among them would be
+        // silent; refuse instead.
+        let fanned_out = meta_nodes
+            .iter()
+            .filter(|node| emitted[*node].len() > 1)
+            .count();
+        if fanned_out > 0 {
+            return Err(gmeow_errors::Diag::of_kind(crate::error::MetaFold {
+                message: format!(
+                    "{fanned_out} of {} selected gmeow:DiagnosticMetaRule subject(s) lower to several rules because they carry several values of a scope coordinate; author each meta-rule with one value per scope coordinate",
+                    meta_nodes.len()
+                ),
+            }));
+        }
         let rules: Vec<LogicRule> = meta_nodes
             .iter()
-            .map(|node| program.rules[emitted[node]].clone())
+            .map(|node| program.rules[emitted[node][0]].clone())
             .collect();
         let category_polarity = native_iri_pairs(wiring, CATEGORY_POLARITY);
         let engine = NativeSparqlEngine::new();

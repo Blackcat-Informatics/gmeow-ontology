@@ -368,6 +368,7 @@ struct AdmissionBuilder<'a> {
     selection: SourceSelection,
     selected_documents: BTreeSet<String>,
     units: Vec<SemanticUnitAdmission>,
+    rule_unit_ids: BTreeSet<String>,
     declared_classes: BTreeSet<String>,
     declared_builtins: BTreeSet<String>,
     certified_classes: BTreeSet<SourceNode>,
@@ -388,6 +389,7 @@ impl<'a> AdmissionBuilder<'a> {
             selection,
             selected_documents,
             units: Vec::new(),
+            rule_unit_ids: BTreeSet::new(),
             declared_classes: BTreeSet::new(),
             declared_builtins: BTreeSet::new(),
             certified_classes: BTreeSet::new(),
@@ -850,8 +852,7 @@ impl<'a> AdmissionBuilder<'a> {
                     seen_rules.insert(*index);
                 }
                 if !selected || !self.selection.rules.contains(&anchor) {
-                    self.push(
-                        SemanticUnitKind::Rule,
+                    self.push_rule_once(
                         anchor,
                         documents,
                         outside(
@@ -877,7 +878,7 @@ impl<'a> AdmissionBuilder<'a> {
                         outside("rule is outside the selected default graph")
                     }
                 };
-                self.push(SemanticUnitKind::Rule, anchor, documents, disposition);
+                self.push_rule_once(anchor, documents, disposition);
             } else {
                 let disposition = if !selected || !self.selection.owners.contains(&anchor) {
                     outside("the owner root is outside the selected documents, graph, or root set")
@@ -1225,14 +1226,44 @@ impl<'a> AdmissionBuilder<'a> {
         documents: BTreeSet<String>,
         disposition: SemanticUnitDisposition,
     ) {
+        let unit = Self::unit(kind, anchor, documents, disposition);
+        self.units.push(unit);
+    }
+
+    /// Record a Rule unit unless an identical one is already recorded.
+    ///
+    /// The admission ledger describes authored units. Two rules lowered from one
+    /// authored rule node that receive the same disposition are one admission fact
+    /// about that node, not two; the fan-out is a lowering detail. Only exact
+    /// duplicates (same kind, anchor, documents and disposition, which is what the
+    /// id digests) collapse. Lowered rules whose dispositions differ, such as
+    /// admitted rules carrying different rule indices, stay separate units.
+    fn push_rule_once(
+        &mut self,
+        anchor: String,
+        documents: BTreeSet<String>,
+        disposition: SemanticUnitDisposition,
+    ) {
+        let unit = Self::unit(SemanticUnitKind::Rule, anchor, documents, disposition);
+        if self.rule_unit_ids.insert(unit.id.clone()) {
+            self.units.push(unit);
+        }
+    }
+
+    fn unit(
+        kind: SemanticUnitKind,
+        anchor: String,
+        documents: BTreeSet<String>,
+        disposition: SemanticUnitDisposition,
+    ) -> SemanticUnitAdmission {
         let encoded = purrdf_lex::json::record::to_vec(&(kind, &anchor, &documents, &disposition));
-        self.units.push(SemanticUnitAdmission {
+        SemanticUnitAdmission {
             id: digest_bytes(b"gmeow-semantic-unit-v1\0", &encoded),
             kind,
             anchor,
             documents,
             disposition,
-        });
+        }
     }
 }
 
