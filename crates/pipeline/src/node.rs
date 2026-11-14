@@ -159,11 +159,14 @@ pub struct StageProduct {
     /// `false` for every product a stage emits and for every product the cache serves.
     /// The scheduler sets it — and replaces `bundle` with
     /// [`release_carrier`](crate::bundle::release_carrier)'s residue (the committed
-    /// byte-artifact lane only, plus the internal artifacts a consumer declares) — once
-    /// the LAST stage whose dataflow edge from this one declares a carrier read has run
-    /// (the edge reads declared in the pipeline slice, see [`crate::reads`]), or when the
-    /// product is handed to a consumer whose edge declares no carrier read, under
-    /// [`CarrierRetention::DropAfterLastConsumer`](crate::scheduler::CarrierRetention).
+    /// byte-artifact lane only, plus the internal artifacts a consumer declares) — in two
+    /// cases. Under
+    /// [`CarrierRetention::DropAfterLastConsumer`](crate::scheduler::CarrierRetention),
+    /// once the LAST stage whose dataflow edge from this one declares a carrier read has
+    /// run (the edge reads declared in the pipeline slice, see [`crate::reads`]). Under
+    /// the enforcing read policy, whatever the retention, when the product is handed to
+    /// a consumer whose edge declares no carrier read; the recording policy hands every
+    /// product over unreleased.
     /// `digest` is preserved verbatim across the release: it is the identity witness of
     /// the carrier that was released, so `combined()` is byte-identical either way.
     ///
