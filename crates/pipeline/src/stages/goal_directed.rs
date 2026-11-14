@@ -76,7 +76,6 @@ fn read_reasoning_programs(
         )
     })?;
     let entry = compile_logic
-        .bundle()
         .handle(crate::stages::compile_logic::GRAPH_LOGIC)
         .ok_or_else(|| {
             stage_err(format!(
@@ -116,7 +115,7 @@ fn read_subsort_edges(
              for the order-sorted math-subsort demonstrator",
         )
     })?;
-    let entry = reason.bundle().handle(GRAPH_REASONING).ok_or_else(|| {
+    let entry = reason.handle(GRAPH_REASONING).ok_or_else(|| {
         stage_err(format!(
             "stage-reason product carries no typed handle at <{GRAPH_REASONING}>"
         ))

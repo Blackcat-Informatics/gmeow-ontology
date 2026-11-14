@@ -80,8 +80,9 @@ commitment, not this repo's.
    consumer must run after the producer *even when no bytes flow* — a decision precedence a pure-dataflow
    reasoner would wrongly drop), and `gmeow:flowReasonCost` (an edge added only to serialize two stages
    sharing a scarce resource). A single required property composes with the existing reified edge — one
-   edge, one typed reason — rather than a parallel `AuthorityFlow` subclass. The build DAG's own five
-   edges all declare `gmeow:flowReasonDataflow`.
+   edge, one typed reason — rather than a parallel `AuthorityFlow` subclass. Most of the build DAG's own
+   edges declare `gmeow:flowReasonDataflow`; the edges that carry no bytes declare
+   `gmeow:flowReasonAuthority`.
 
 2. **Per-stage failure dispositions + obligation.** `gmeow:StageDisposition` is a closed set of six
    outcomes on a `gmeow:StageExecution` (one run of a stage) via `gmeow:stageDisposition`:

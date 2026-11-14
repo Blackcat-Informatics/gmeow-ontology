@@ -9,7 +9,7 @@ fn ids(spec: &PipelineSpec) -> BTreeSet<String> {
     spec.stages.iter().map(|stage| stage.id.clone()).collect()
 }
 
-fn family(stage: &StageSpec) -> OutputFamily {
+fn family(stage: &crate::loader::StageSpec) -> OutputFamily {
     default_registry()
         .get(&stage.impl_key)
         .expect("every full-spec stage binds a registered implementation")

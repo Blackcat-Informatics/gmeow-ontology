@@ -25,6 +25,7 @@ mod dev_gates;
 mod dev_i18n;
 mod dev_logic;
 mod dev_medium_sweep;
+mod dev_pipeline_reads;
 mod dev_producer;
 mod dev_project;
 mod dev_reason;
@@ -282,6 +283,18 @@ pub enum Commands {
         #[arg(long, default_value = "bench/medium-baseline.json")]
         out: PathBuf,
         /// Scheduler width for the measured pipeline run. Defaults to every CPU.
+        #[arg(short = 'j', long = "jobs")]
+        jobs: Option<usize>,
+    },
+    /// Run the pipeline once recording what every stage body reads through every
+    /// dataflow edge, and write the declarations those reads need to the file named by
+    /// `--out`.
+    #[command(name = "pipeline-reads")]
+    PipelineReads {
+        /// Write the Turtle declarations to this path.
+        #[arg(long)]
+        out: PathBuf,
+        /// Scheduler width for the recorded pipeline run. Defaults to every CPU.
         #[arg(short = 'j', long = "jobs")]
         jobs: Option<usize>,
     },
@@ -1000,6 +1013,7 @@ pub fn run() -> i32 {
         Commands::MediumGate { gts, registry } => dev_validate::medium_gate(&gts, &registry),
         Commands::MediumSweep { out, jobs } => dev_medium_sweep::run(&out, jobs),
         Commands::MediumSeed { out } => dev_medium_sweep::seed(&out),
+        Commands::PipelineReads { out, jobs } => dev_pipeline_reads::run(&out, jobs),
         Commands::TermReleaseAuthority { bootstrap } => dev_term_release_authority::run(bootstrap),
         Commands::Validate {
             timings,

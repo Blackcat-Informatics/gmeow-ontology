@@ -830,7 +830,6 @@ fn source_load_dataset(
         .ok_or_else(|| {
             stage_err("missing stage-source-load product for the self-description graphs")
         })?
-        .bundle()
         .dataset_arc())
 }
 
@@ -872,7 +871,6 @@ pub(crate) fn producer_graph(
     })?;
     rooted_in_graph(
         &product
-            .bundle()
             .dataset()
             .project_graph(Some(&purrdf::RdfTerm::iri(graph_iri)))?,
         graph_iri,
@@ -975,7 +973,6 @@ impl<'a> CarrierParts<'a> {
             .upstream
             .get(stage)
             .ok_or_else(|| stage_err(&format!("missing {stage} product for the snapshot carrier")))?
-            .bundle()
             .dataset_arc())
     }
 
@@ -1436,7 +1433,6 @@ fn fold_coherence_certificate(
         .get("stage-reason")
         .ok_or_else(|| stage_err("missing stage-reason product for the coherence certificate"))?;
     let reason_entry = reason
-        .bundle()
         .handle(gmeow_logic::result_rdf::GRAPH_REASONING)
         .ok_or_else(|| stage_err("stage-reason product carries no Reasoning handle"))?;
     let crate::bundle::PipelineHandle::Reasoning(result) = &reason_entry.payload else {
@@ -1665,7 +1661,7 @@ pub fn assemble_object_level_edb(
 
     let mut datasets: Vec<std::sync::Arc<purrdf::RdfDataset>> = vec![
         base,
-        rooted_in_graph(statements.bundle().dataset(), GRAPH_STATEMENTS)?,
+        rooted_in_graph(statements.dataset(), GRAPH_STATEMENTS)?,
         source_load_graph(upstream, GRAPH_IMPORTS)?,
         // EVERY slice's positive-demonstrator ABox — the authored worked examples under
         // `slices/<group>/<slice>/examples/` — admitted to object-level reasoning so each
@@ -1741,7 +1737,6 @@ fn compile_logic_graphs(
         .map(|iri| {
             rooted_in_graph(
                 &compile
-                    .bundle()
                     .dataset()
                     .project_graph(Some(&purrdf::RdfTerm::iri(iri)))?,
                 iri,
@@ -2031,7 +2026,7 @@ fn pass_one_receipt_input_digest(
             "cannot key a GTS pass-one receipt from a released stage-snapshot carrier",
         ));
     }
-    if !std::ptr::eq(snapshot.bundle().dataset(), carrier) {
+    if !std::ptr::eq(snapshot.dataset(), carrier) {
         return Err(stage_err(
             "the GTS serializer carrier is not the stage-snapshot product's exact dataset",
         ));
@@ -2304,7 +2299,7 @@ pub fn snapshot_dataset(
              inside the DAG or select CarrierRetention::RetainAll",
         ));
     }
-    Ok(product.bundle().dataset_arc())
+    Ok(product.dataset_arc())
 }
 
 // ── Blob channels the presenter itself folds ────────────────────────────────────
@@ -2975,8 +2970,8 @@ fn nquads_escape(value: &str) -> String {
 
 /// The internal artifacts the reasoning archive folds, as `(bundle member, producer,
 /// internal artifact)`, in archive order. The sink reads each through an artifact-only
-/// dependency, so it declares them ([`REASONING_INTERNAL_READS`]) and the scheduler keeps
-/// them through release.
+/// dependency, so its `gmeow:BuildDataFlow` edge to the producer declares the read
+/// (`gmeow:flowReadsArtifact`) and the scheduler keeps the artifact through release.
 const REASONING_INTERNAL_MEMBERS: [(&str, &str, &str); 4] = [
     (
         gmeow_logic_compile::tptp::CANON_ADMISSION_MEMBER,
@@ -2999,19 +2994,6 @@ const REASONING_INTERNAL_MEMBERS: [(&str, &str, &str); 4] = [
         gmeow_logic::verify::PREPARED_GATES_CHANNEL,
     ),
 ];
-
-/// The `(producer, internal artifact)` pairs the sink reads for the reasoning archive:
-/// [`REASONING_INTERNAL_MEMBERS`] without the member names.
-pub(crate) const REASONING_INTERNAL_READS: [(&str, &str); 4] = {
-    let mut reads = [("", ""); 4];
-    let mut index = 0;
-    while index < REASONING_INTERNAL_MEMBERS.len() {
-        let (_, producer, artifact) = REASONING_INTERNAL_MEMBERS[index];
-        reads[index] = (producer, artifact);
-        index += 1;
-    }
-    reads
-};
 
 /// Fold the native reasoner's explanation + DL/EL cross-check ledger REPORTS into a
 /// deterministic [`REP_REASONING`] archive blob. Sourced from
@@ -3039,8 +3021,8 @@ fn build_reasoning_blob(
             .ok_or_else(|| {
                 stage_err(&format!(
                     "missing {producer} internal artifact {artifact} for the reasoning \
-                     archive; an artifact-only consumer receives it only when it declares \
-                     the read in internal_artifact_reads"
+                     archive; an artifact-only consumer receives it only when its dataflow \
+                     edge to {producer} declares `gmeow:flowReadsArtifact \"{artifact}\"`"
                 ))
             })?;
         Ok((member.to_owned(), bytes.to_vec()))
@@ -3526,7 +3508,6 @@ pub(crate) fn compiled_logic_program(
         .get("stage-compile-logic")
         .ok_or_else(|| stage_err("missing stage-compile-logic product for the Logic handle"))?;
     let entry = compile
-        .bundle()
         .handle(crate::stages::compile_logic::GRAPH_LOGIC)
         .ok_or_else(|| stage_err("stage-compile-logic product carries no Logic handle"))?;
     let program = entry.payload.logic_program().ok_or_else(|| {
@@ -3561,7 +3542,6 @@ fn build_snapshot_bundle(
 
     // ── the RelationalCore handle payload + its backing graph/relational-core ─────
     let rc_entry = compile
-        .bundle()
         .handle(crate::stages::compile_logic::GRAPH_RELATIONAL_CORE)
         .ok_or_else(|| stage_err("stage-compile-logic product carries no RelationalCore handle"))?;
     let crate::bundle::PipelineHandle::RelationalCore(rc_program) = &rc_entry.payload else {
@@ -3573,7 +3553,6 @@ fn build_snapshot_bundle(
 
     // ── the Correspondence handle payload + its backing graph/correspondence ──────
     let corr_entry = compile
-        .bundle()
         .handle(crate::stages::compile_logic::GRAPH_CORRESPONDENCE)
         .ok_or_else(|| stage_err("stage-compile-logic product carries no Correspondence handle"))?;
     let crate::bundle::PipelineHandle::Correspondence(corr_program) = &corr_entry.payload else {
@@ -3588,7 +3567,6 @@ fn build_snapshot_bundle(
         .get("stage-reason")
         .ok_or_else(|| stage_err("missing stage-reason product for the Reasoning handle"))?;
     let reason_entry = reason
-        .bundle()
         .handle(gmeow_logic::result_rdf::GRAPH_REASONING)
         .ok_or_else(|| stage_err("stage-reason product carries no Reasoning handle"))?;
     let crate::bundle::PipelineHandle::Reasoning(result) = &reason_entry.payload else {

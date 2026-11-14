@@ -252,3 +252,1051 @@ msgstr "原生码本"
 msgctxt "https://blackcatinformatics.ca/gmeow/stage-native-codebook|http://www.w3.org/2004/02/skos/core#definition"
 msgid "Encode the native GMN dictionary and codebook from the admitted original language source and publish their authenticated language projection artifact. The archive stage carries these exact bytes in the language projection family. Its sole dependency is source parsing, so browser engines can be rebuilt before substrate reconciliation."
 msgstr "从已准入的原始语言源编码原生 GMN 字典和码本，并发布经过认证的语言投影制品。归档阶段将这些完全相同的字节纳入语言投影制品族。此阶段仅依赖源解析，因此可在底层组件一致性核对之前重新构建浏览器引擎。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ProductLane|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Product Lane"
+msgstr "产品通道"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ProductLane|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The set of whole lanes of a stage product that a consuming stage can declare it reads on a gmeow:BuildDataFlow edge: gmeow:laneCarrier (the whole carrier through the raw bundle), gmeow:laneDataset (the frozen dataset), gmeow:laneAllArtifacts (the whole byte-artifact lane) and gmeow:laneIdentity (nothing but the product's identity, for ordering and the cache key). A single typed handle, representation blob or byte artifact is named by gmeow:flowReadsHandle, gmeow:flowReadsBlobRep or gmeow:flowReadsArtifact instead. The pipeline loader accepts only these four values and refuses any other lane individual when it reads the description; no axiom in this slice closes the set. A lane is not a stage, an edge, or a single named handle, blob or artifact."
+msgstr "使用方阶段在一条 gmeow:BuildDataFlow 边上可声明读取的、某个阶段产品的整条通道的集合：gmeow:laneCarrier（通过原始 bundle 获取整个载体）、gmeow:laneDataset（冻结数据集）、gmeow:laneAllArtifacts（整条字节产物通道）以及 gmeow:laneIdentity（仅产品标识，用于排序和缓存键）。单个类型化句柄、表示形式二进制块或字节产物则改由 gmeow:flowReadsHandle、gmeow:flowReadsBlobRep 或 gmeow:flowReadsArtifact 点名。流水线加载器只接受这四个值，读取描述时会拒绝任何其他通道个体；本切片中没有任何公理封闭该集合。通道不是阶段，不是边，也不是单个被点名的句柄、二进制块或产物。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ProductLane|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use a Product Lane when a consuming stage reads a whole lane of the producer's product, so the scheduler can keep that lane alive for it and refuse a read the edge does not declare."
+msgstr "当使用方阶段读取生产者产品的一整条通道时使用产品通道，这样调度器就能为它保持该通道存活，并拒绝该边未声明的读取。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ProductLane|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Do not declare gmeow:laneCarrier where the consumer reads one handle or one representation blob: name it with gmeow:flowReadsHandle or gmeow:flowReadsBlobRep, so the run fails the stage if it reads anything wider."
+msgstr "当使用方只读取一个句柄或一个表示形式二进制块时，不要声明 gmeow:laneCarrier：请用 gmeow:flowReadsHandle 或 gmeow:flowReadsBlobRep 点名它，这样一旦该阶段读取了更宽的内容，运行就会使其失败。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ProductLane|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Assert one gmeow:flowReadsLane per whole lane the consumer's stage body reads; a run fails the stage when its recorded reads and the declared reads differ in either direction."
+msgstr "对使用方阶段主体读取的每条整条通道，断言一个 gmeow:flowReadsLane；当其已记录的读取与已声明的读取在任一方向上不一致时，运行会使该阶段失败。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ProductLane|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:pipeline-dataflow-reason-compile-logic gmeow:flowReadsLane gmeow:laneDataset ."
+msgstr "gmeow:pipeline-dataflow-reason-compile-logic gmeow:flowReadsLane gmeow:laneDataset ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ProductLane|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Scope: this value class names lanes of an in-memory stage product. It does not name files in the working tree, committed outputs, or graphs of the shipped bundle."
+msgstr "范围：该值类名指称内存中阶段产品的通道。它不指称工作树中的文件、已提交的输出，也不指称所发布 bundle 的图。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/laneCarrier|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "lane: whole carrier"
+msgstr "通道：整个载体"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/laneCarrier|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The consumer takes the producer's raw bundle: the frozen dataset, every typed handle, every representation blob, the lookaside records and the provenance. The producer's carrier stays resident until this consumer has run."
+msgstr "使用方获取生产者的原始 bundle：冻结数据集、每个类型化句柄、每个表示形式二进制块、旁路记录以及溯源信息。生产者的载体会一直驻留，直到该使用方运行完毕。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/laneDataset|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "lane: dataset"
+msgstr "通道：数据集"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/laneDataset|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The consumer reads the frozen dataset of the producer's product. The producer's carrier stays resident until this consumer has run."
+msgstr "使用方读取生产者产品的冻结数据集。生产者的载体会一直驻留，直到该使用方运行完毕。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/laneAllArtifacts|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "lane: every committed byte artifact"
+msgstr "通道：每个已提交的字节产物"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/laneAllArtifacts|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The consumer enumerates the whole byte-artifact lane of the producer's product, which covers the COMMITTED artifacts only. An internal artifact, one whose path begins pipeline/, is not covered: a consumer may read it only when the same edge names its exact path with gmeow:flowReadsArtifact, and an internal artifact this edge does not name is not returned by the whole-lane accessors for this consumer, and it is kept through the release of the producer's carrier only when some other consumer in the run names it, so reading it directly is reported as an undeclared read. Committed artifacts survive the release of the producer's carrier. A consumer whose edge declares this read and no carrier read is served the lane by reference. A release of the producer's carrier that falls due while that consumer runs waits until it has finished; a carrier already released when the consumer starts is not held, and the consumer is then served the artifacts the release kept that this edge covers."
+msgstr "使用方枚举生产者产品的整条字节产物通道，该通道仅覆盖已提交的产物。内部产物（路径以 pipeline/ 开头）不在覆盖范围内：只有同一条边用 gmeow:flowReadsArtifact 点名其精确路径时，使用方才可读取它；这条边未点名的内部产物不会被整条通道的访问器返回给该使用方，并且只有运行中的其他使用方点名了它，它才会在生产者载体释放后被保留，因此直接读取它会被报告为未声明的读取。已提交的产物在生产者载体释放后依然保留。边上声明了此读取而没有载体读取的使用方，将按引用获得该通道。生产者载体的释放若恰在该使用方运行期间到期，则等待其结束；使用方启动时载体已被释放的，不会被持有，此时使用方获得的是释放时保留下来且该边覆盖的产物。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/laneIdentity|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "lane: identity only"
+msgstr "通道：仅标识"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/laneIdentity|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The consumer reads no lane of the producer's product: the edge orders the two stages and folds the producer's identity into the consumer's cache key, and nothing else. Stated explicitly so that an edge carrying no data is a visible decision of the graph and never an unread dependency."
+msgstr "使用方不读取生产者产品的任何通道：该边仅为两个阶段排序，并把生产者的标识并入使用方的缓存键，别无其他。明确写出这一点，是为了让不携带数据的边成为图中一项可见的决定，而绝不是一个未被读取的依赖。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/flowReadsLane|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "flow reads lane"
+msgstr "流读取的通道"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/flowReadsLane|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Relates a gmeow:BuildDataFlow edge to a whole lane of the producer's product that the consumer stage reads. Multi-valued. The scheduler hands the consumer a view of the product that records each access made through the lane accessors (bundle, handle, rep_blob, dataset, dataset_arc, artifact, artifacts, artifact_refs, span_index) and compares them with the declaration when the stage returns; a recorded access no declaration on the edge covers, and a declaration no recorded access exercises, both fail the run under the enforcing read policy. The stage's product is still published to the stages that consume it and the run goes on, so every such stage is reported together when the run ends; the product is not written to the stage cache. A stage served from the stage cache is not compared, because no stage body ran. A stage that itself fails is reported for the undeclared reads it made, and for none it did not reach."
+msgstr "将一条 gmeow:BuildDataFlow 边关联到使用方阶段读取的、生产者产品中的一整条通道。可多值。调度器会向使用方交付该产品的一个视图，该视图记录通过通道访问器（bundle、handle、rep_blob、dataset、dataset_arc、artifact、artifacts、artifact_refs、span_index）发生的每一次访问，并在阶段返回时将其与声明比较；凡是该边上没有任何声明覆盖的已记录访问，以及没有任何已记录访问用到的声明，在强制执行的读取策略下都会使运行失败。该阶段的产品仍会发布给消费它的各阶段，运行也会继续，因此每个此类阶段都会在运行结束时一并报告；该产品不会写入阶段缓存。从阶段缓存提供的阶段不做比较，因为没有阶段主体运行。自身失败的阶段只会就其已发生的未声明读取被报告，未触及的读取则不报告。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/flowReadsLane|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Declare a whole-lane read on the edge whenever the consumer's stage body takes the producer's dataset, raw bundle or whole artifact lane."
+msgstr "每当使用方的阶段主体读取生产者的数据集、原始 bundle 或整条产物通道时，就在该边上声明一次整条通道的读取。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/flowReadsLane|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Do not use this property for a single handle, representation blob or artifact; name it with the specific property so retention and review see exactly what is read."
+msgstr "对于单个句柄、表示形式二进制块或产物，不要使用该属性；请用对应的专门属性点名，使保留与评审能准确看到读取的内容。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/flowReadsLane|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Author the reads from what the stage body does; the maintainer command that records a run writes the declarations a tree's stage bodies need to a file, except that an internal artifact a stage reaches only through the whole artifact lane is not discovered by the recorder, because the whole-lane accessors return only committed artifacts and the internal ones the edge already names, and must be named by hand."
+msgstr "依据阶段主体的实际行为来编写读取声明；记录一次运行的维护者命令会把一棵树的各阶段主体所需的声明写入文件，但如果某个内部产物仅通过整条产物通道才被某阶段触及，记录器不会发现它，因为整条通道的访问器只返回已提交的产物以及该边已点名的内部产物，所以必须手工点名。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/flowReadsLane|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:pipeline-dataflow-reason-compile-logic gmeow:flowReadsLane gmeow:laneDataset ."
+msgstr "gmeow:pipeline-dataflow-reason-compile-logic gmeow:flowReadsLane gmeow:laneDataset ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/flowReadsLane|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Scope: this property declares what a stage body reads from an upstream product in memory. Which named graphs narrow the consumer's cache key is gmeow:flowEntity; files read from the working tree are not products and are not declared here."
+msgstr "范围：该属性声明阶段主体从上游产品在内存中读取的内容。哪些命名图会收窄使用方的缓存键，由 gmeow:flowEntity 决定；从工作树读取的文件不是产品，不在此处声明。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/flowReadsHandle|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "flow reads handle"
+msgstr "流读取的句柄"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/flowReadsHandle|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Relates a gmeow:BuildDataFlow edge to the key of one typed in-memory handle of the producer's product that the consumer stage reads. The key is the IRI of the named graph the handle is pinned to. Multi-valued. A handle lives on the producer's carrier, so the carrier stays resident until this consumer has run. It is not a declaration of the dataset or of a representation blob, which gmeow:flowReadsLane and gmeow:flowReadsBlobRep make."
+msgstr "将一条 gmeow:BuildDataFlow 边关联到使用方阶段读取的、生产者产品中某个内存中类型化句柄的键。该键是句柄所固定到的命名图的 IRI。可多值。句柄存在于生产者的载体上，因此载体会一直驻留，直到该使用方运行完毕。它不是对数据集或表示形式二进制块的声明，那两者分别由 gmeow:flowReadsLane 和 gmeow:flowReadsBlobRep 声明。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/flowReadsHandle|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:pipeline-dataflow-mappings-compile-logic gmeow:flowReadsHandle <https://blackcatinformatics.ca/gmeow/graph/logic> ."
+msgstr "gmeow:pipeline-dataflow-mappings-compile-logic gmeow:flowReadsHandle <https://blackcatinformatics.ca/gmeow/graph/logic> ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/flowReadsBlobRep|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "flow reads blob representation"
+msgstr "流读取的表示形式二进制块"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/flowReadsBlobRep|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Names one representation-keyed blob of the producer's product that the consumer stage reads, by its lane label. Multi-valued. The label is an identifier, not localizable prose. The only representation blob the scheduler strips on its own is the source-span table, spans:source-table of gmeow:stage-source-load, once the last stage whose edge permits it (by naming it or by declaring the whole carrier) has run; every other representation blob is released with the producer's carrier, after its last carrier reader has run."
+msgstr "指明使用方阶段读取的、生产者产品中的一个按表示形式键控的二进制块，以其通道标签标识。可多值。标签是标识符，不是可本地化的行文。调度器自行清除的唯一表示形式二进制块是源跨度表，即 gmeow:stage-source-load 的 spans:source-table，且须在最后一个其边允许这样做（通过点名它或声明整个载体）的阶段运行完毕之后；其他所有表示形式二进制块都随生产者的载体一同释放，时间点在其最后一个载体读取者运行之后。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/flowReadsBlobRep|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:pipeline-dataflow-validate-source-load gmeow:flowReadsBlobRep \"spans:source-table\" ."
+msgstr "gmeow:pipeline-dataflow-validate-source-load gmeow:flowReadsBlobRep \"spans:source-table\" ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/flowReadsArtifact|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "flow reads artifact"
+msgstr "流读取的产物"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/flowReadsArtifact|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Names one byte artifact of the producer's product that the consumer stage reads, by its exact logical path. Multi-valued. The path is an identifier, not localizable prose. An internal artifact, one whose path begins pipeline/, is dropped when the producer's carrier is released unless some consumer in the run declares it here, in which case it is kept through every release of that producer until the run ends, whether or not the declaring consumer has run; a committed artifact survives release without a declaration but is still an undeclared read unless the edge names it or declares the whole lane with gmeow:laneAllArtifacts, which never covers an internal artifact."
+msgstr "指明使用方阶段读取的、生产者产品中的一个字节产物，以其精确的逻辑路径标识。可多值。路径是标识符，不是可本地化的行文。内部产物（路径以 pipeline/ 开头）在生产者的载体被释放时会被丢弃，除非运行中的某个使用方在此处声明了它：此时它会在该生产者的每一次释放中一直保留到运行结束，无论声明它的使用方是否已经运行；已提交的产物无需声明即可在释放后保留，但除非该边点名它，或用 gmeow:laneAllArtifacts 声明整条通道，否则仍属于未声明的读取，而 gmeow:laneAllArtifacts 从不覆盖内部产物。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/flowReadsArtifact|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:pipeline-dataflow-gts-sink-compile-logic gmeow:flowReadsArtifact \"pipeline/canon-proof-admission.json\" ."
+msgstr "gmeow:pipeline-dataflow-gts-sink-compile-logic gmeow:flowReadsArtifact \"pipeline/canon-proof-admission.json\" ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-archive-blobs-compile-logic|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "dataflow: compile-logic → archive-blobs"
+msgstr "数据流：compile-logic → archive-blobs"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-archive-blobs-compile-logic|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The dataflow edge from gmeow:stage-compile-logic to gmeow:stage-archive-blobs: archive-blobs reads every committed byte artifact of the producer's product."
+msgstr "从 gmeow:stage-compile-logic 到 gmeow:stage-archive-blobs 的数据流边：archive-blobs 读取生产者产品中的每个已提交的字节产物。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-archive-blobs-export-constraint-shapes|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "dataflow: export-constraint-shapes → archive-blobs"
+msgstr "数据流：export-constraint-shapes → archive-blobs"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-archive-blobs-export-constraint-shapes|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The dataflow edge from gmeow:stage-export-constraint-shapes to gmeow:stage-archive-blobs: archive-blobs reads the artifact 'generated/shapes/constraint-shapes.ttl' of the producer's product."
+msgstr "从 gmeow:stage-export-constraint-shapes 到 gmeow:stage-archive-blobs 的数据流边：archive-blobs 读取生产者产品中的产物“generated/shapes/constraint-shapes.ttl”。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-archive-blobs-export-frame-shapes|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "dataflow: export-frame-shapes → archive-blobs"
+msgstr "数据流：export-frame-shapes → archive-blobs"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-archive-blobs-export-frame-shapes|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The dataflow edge from gmeow:stage-export-frame-shapes to gmeow:stage-archive-blobs: archive-blobs reads the artifact 'generated/shapes/frame-shapes.ttl' of the producer's product."
+msgstr "从 gmeow:stage-export-frame-shapes 到 gmeow:stage-archive-blobs 的数据流边：archive-blobs 读取生产者产品中的产物“generated/shapes/frame-shapes.ttl”。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-archive-blobs-export-glossary|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "dataflow: export-glossary → archive-blobs"
+msgstr "数据流：export-glossary → archive-blobs"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-archive-blobs-export-glossary|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The dataflow edge from gmeow:stage-export-glossary to gmeow:stage-archive-blobs: archive-blobs reads every committed byte artifact of the producer's product."
+msgstr "从 gmeow:stage-export-glossary 到 gmeow:stage-archive-blobs 的数据流边：archive-blobs 读取生产者产品中的每个已提交的字节产物。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-archive-blobs-export-json-schema|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "dataflow: export-json-schema → archive-blobs"
+msgstr "数据流：export-json-schema → archive-blobs"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-archive-blobs-export-json-schema|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The dataflow edge from gmeow:stage-export-json-schema to gmeow:stage-archive-blobs: archive-blobs reads the artifact 'generated/schemas/card.schema.json', the artifact 'generated/schemas/gmeow.openapi.json', the artifact 'generated/schemas/gmeow.schema.json', the artifact 'generated/schemas/validate-finding.schema.json' of the producer's product."
+msgstr "从 gmeow:stage-export-json-schema 到 gmeow:stage-archive-blobs 的数据流边：archive-blobs 读取生产者产品中的产物“generated/schemas/card.schema.json”、产物“generated/schemas/gmeow.openapi.json”、产物“generated/schemas/gmeow.schema.json”、产物“generated/schemas/validate-finding.schema.json”。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-archive-blobs-export-pydantic|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "dataflow: export-pydantic → archive-blobs"
+msgstr "数据流：export-pydantic → archive-blobs"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-archive-blobs-export-pydantic|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The dataflow edge from gmeow:stage-export-pydantic to gmeow:stage-archive-blobs: archive-blobs reads every committed byte artifact of the producer's product."
+msgstr "从 gmeow:stage-export-pydantic 到 gmeow:stage-archive-blobs 的数据流边：archive-blobs 读取生产者产品中的每个已提交的字节产物。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-archive-blobs-export-result-shapes|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "dataflow: export-result-shapes → archive-blobs"
+msgstr "数据流：export-result-shapes → archive-blobs"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-archive-blobs-export-result-shapes|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The dataflow edge from gmeow:stage-export-result-shapes to gmeow:stage-archive-blobs: archive-blobs reads the artifact 'generated/shapes/result-shapes.ttl' of the producer's product."
+msgstr "从 gmeow:stage-export-result-shapes 到 gmeow:stage-archive-blobs 的数据流边：archive-blobs 读取生产者产品中的产物“generated/shapes/result-shapes.ttl”。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-archive-blobs-mappings|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "dataflow: mappings → archive-blobs"
+msgstr "数据流：mappings → archive-blobs"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-archive-blobs-mappings|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The dataflow edge from gmeow:stage-mappings to gmeow:stage-archive-blobs: archive-blobs reads every committed byte artifact of the producer's product."
+msgstr "从 gmeow:stage-mappings 到 gmeow:stage-archive-blobs 的数据流边：archive-blobs 读取生产者产品中的每个已提交的字节产物。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-archive-blobs-math-producers|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "dataflow: math-producers → archive-blobs"
+msgstr "数据流：math-producers → archive-blobs"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-archive-blobs-math-producers|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The dataflow edge from gmeow:stage-math-producers to gmeow:stage-archive-blobs: archive-blobs reads the artifact 'generated/queries/math-projection-expression-losses.rq', the artifact 'generated/queries/math-projection-losses.rq', the artifact 'generated/queries/math-projection-preservation.rq', the artifact 'generated/queries/math-projection-sensitive-losses.rq' of the producer's product."
+msgstr "从 gmeow:stage-math-producers 到 gmeow:stage-archive-blobs 的数据流边：archive-blobs 读取生产者产品中的产物“generated/queries/math-projection-expression-losses.rq”、产物“generated/queries/math-projection-losses.rq”、产物“generated/queries/math-projection-preservation.rq”、产物“generated/queries/math-projection-sensitive-losses.rq”。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-archive-blobs-native-codebook|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "dataflow: native-codebook → archive-blobs"
+msgstr "数据流：native-codebook → archive-blobs"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-archive-blobs-native-codebook|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The dataflow edge from gmeow:stage-native-codebook to gmeow:stage-archive-blobs: archive-blobs reads every committed byte artifact of the producer's product."
+msgstr "从 gmeow:stage-native-codebook 到 gmeow:stage-archive-blobs 的数据流边：archive-blobs 读取生产者产品中的每个已提交的字节产物。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-archive-blobs-statements|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "dataflow: statements → archive-blobs"
+msgstr "数据流：statements → archive-blobs"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-archive-blobs-statements|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The dataflow edge from gmeow:stage-statements to gmeow:stage-archive-blobs: archive-blobs reads the artifact 'pipeline/statements/gmeow.rdf12.jsonld', the artifact 'pipeline/statements/gmeow.rdf12.yamlld', every committed byte artifact of the producer's product."
+msgstr "从 gmeow:stage-statements 到 gmeow:stage-archive-blobs 的数据流边：archive-blobs 读取生产者产品中的产物“pipeline/statements/gmeow.rdf12.jsonld”、产物“pipeline/statements/gmeow.rdf12.yamlld”、每个已提交的字节产物。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-conformance-parse-sources|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "dataflow: parse-sources → conformance"
+msgstr "数据流：parse-sources → conformance"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-conformance-parse-sources|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The dataflow edge from gmeow:stage-parse-sources to gmeow:stage-conformance: conformance reads the typed handle pinned to <https://blackcatinformatics.ca/gmeow/graph/source-catalog>, the frozen dataset of the producer's product."
+msgstr "从 gmeow:stage-parse-sources 到 gmeow:stage-conformance 的数据流边：conformance 读取生产者产品中的固定到 <https://blackcatinformatics.ca/gmeow/graph/source-catalog> 的类型化句柄、冻结数据集。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-constraint-catalog-reason|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "dataflow: reason → constraint-catalog"
+msgstr "数据流：reason → constraint-catalog"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-constraint-catalog-reason|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The dataflow edge from gmeow:stage-reason to gmeow:stage-constraint-catalog: constraint-catalog reads no lane of the producer's product; the edge orders the two stages and folds the producer's identity into the consumer's cache key."
+msgstr "从 gmeow:stage-reason 到 gmeow:stage-constraint-catalog 的数据流边：constraint-catalog 不读取生产者产品的任何通道；该边仅为两个阶段排序，并将生产者的标识并入使用方的缓存键。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-docs-render-compile-logic|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "dataflow: compile-logic → docs-render"
+msgstr "数据流：compile-logic → docs-render"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-docs-render-compile-logic|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The dataflow edge from gmeow:stage-compile-logic to gmeow:stage-docs-render: docs-render reads the whole carrier of the producer's product."
+msgstr "从 gmeow:stage-compile-logic 到 gmeow:stage-docs-render 的数据流边：docs-render 读取生产者产品中的整个载体。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-docs-render-export-json-schema|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "dataflow: export-json-schema → docs-render"
+msgstr "数据流：export-json-schema → docs-render"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-docs-render-export-json-schema|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The dataflow edge from gmeow:stage-export-json-schema to gmeow:stage-docs-render: docs-render reads the artifact 'generated/schemas/gmeow.openapi.json', the artifact 'generated/schemas/gmeow.schema.json' of the producer's product."
+msgstr "从 gmeow:stage-export-json-schema 到 gmeow:stage-docs-render 的数据流边：docs-render 读取生产者产品中的产物“generated/schemas/gmeow.openapi.json”、产物“generated/schemas/gmeow.schema.json”。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-docs-render-mappings|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "dataflow: mappings → docs-render"
+msgstr "数据流：mappings → docs-render"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-docs-render-mappings|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The dataflow edge from gmeow:stage-mappings to gmeow:stage-docs-render: docs-render reads the frozen dataset of the producer's product."
+msgstr "从 gmeow:stage-mappings 到 gmeow:stage-docs-render 的数据流边：docs-render 读取生产者产品中的冻结数据集。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-docs-render-reason|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "dataflow: reason → docs-render"
+msgstr "数据流：reason → docs-render"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-docs-render-reason|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The dataflow edge from gmeow:stage-reason to gmeow:stage-docs-render: docs-render reads the whole carrier of the producer's product."
+msgstr "从 gmeow:stage-reason 到 gmeow:stage-docs-render 的数据流边：docs-render 读取生产者产品中的整个载体。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-docs-render-term-manifest|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "dataflow: term-manifest → docs-render"
+msgstr "数据流：term-manifest → docs-render"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-docs-render-term-manifest|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The dataflow edge from gmeow:stage-term-manifest to gmeow:stage-docs-render: docs-render reads the artifact 'generated/catalog/term-content-manifest.nq' of the producer's product."
+msgstr "从 gmeow:stage-term-manifest 到 gmeow:stage-docs-render 的数据流边：docs-render 读取生产者产品中的产物“generated/catalog/term-content-manifest.nq”。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-docs-render-validate|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "dataflow: validate → docs-render"
+msgstr "数据流：validate → docs-render"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-docs-render-validate|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The dataflow edge from gmeow:stage-validate to gmeow:stage-docs-render: docs-render reads the whole carrier of the producer's product."
+msgstr "从 gmeow:stage-validate 到 gmeow:stage-docs-render 的数据流边：docs-render 读取生产者产品中的整个载体。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-export-agreement-conformance|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "dataflow: conformance → export-agreement"
+msgstr "数据流：conformance → export-agreement"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-export-agreement-conformance|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The dataflow edge from gmeow:stage-conformance to gmeow:stage-export-agreement: export-agreement reads the artifact 'pipeline/agreement-tallies.json' of the producer's product."
+msgstr "从 gmeow:stage-conformance 到 gmeow:stage-export-agreement 的数据流边：export-agreement 读取生产者产品中的产物“pipeline/agreement-tallies.json”。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-export-json-schema-export-constraint-shapes|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "dataflow: export-constraint-shapes → export-json-schema"
+msgstr "数据流：export-constraint-shapes → export-json-schema"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-export-json-schema-export-constraint-shapes|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The dataflow edge from gmeow:stage-export-constraint-shapes to gmeow:stage-export-json-schema: export-json-schema reads the artifact 'generated/shapes/constraint-shapes.ttl' of the producer's product."
+msgstr "从 gmeow:stage-export-constraint-shapes 到 gmeow:stage-export-json-schema 的数据流边：export-json-schema 读取生产者产品中的产物“generated/shapes/constraint-shapes.ttl”。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-export-json-schema-export-frame-shapes|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "dataflow: export-frame-shapes → export-json-schema"
+msgstr "数据流：export-frame-shapes → export-json-schema"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-export-json-schema-export-frame-shapes|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The dataflow edge from gmeow:stage-export-frame-shapes to gmeow:stage-export-json-schema: export-json-schema reads the artifact 'generated/shapes/frame-shapes.ttl' of the producer's product."
+msgstr "从 gmeow:stage-export-frame-shapes 到 gmeow:stage-export-json-schema 的数据流边：export-json-schema 读取生产者产品中的产物“generated/shapes/frame-shapes.ttl”。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-export-json-schema-export-result-shapes|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "dataflow: export-result-shapes → export-json-schema"
+msgstr "数据流：export-result-shapes → export-json-schema"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-export-json-schema-export-result-shapes|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The dataflow edge from gmeow:stage-export-result-shapes to gmeow:stage-export-json-schema: export-json-schema reads the artifact 'generated/shapes/result-shapes.ttl' of the producer's product."
+msgstr "从 gmeow:stage-export-result-shapes 到 gmeow:stage-export-json-schema 的数据流边：export-json-schema 读取生产者产品中的产物“generated/shapes/result-shapes.ttl”。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-export-lpg-snapshot|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "dataflow: snapshot → export-lpg"
+msgstr "数据流：snapshot → export-lpg"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-export-lpg-snapshot|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The dataflow edge from gmeow:stage-snapshot to gmeow:stage-export-lpg: export-lpg reads the frozen dataset of the producer's product."
+msgstr "从 gmeow:stage-snapshot 到 gmeow:stage-export-lpg 的数据流边：export-lpg 读取生产者产品中的冻结数据集。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-export-metadata-snapshot|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "dataflow: snapshot → export-metadata"
+msgstr "数据流：snapshot → export-metadata"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-export-metadata-snapshot|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The dataflow edge from gmeow:stage-snapshot to gmeow:stage-export-metadata: export-metadata reads the frozen dataset of the producer's product."
+msgstr "从 gmeow:stage-snapshot 到 gmeow:stage-export-metadata 的数据流边：export-metadata 读取生产者产品中的冻结数据集。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-export-pydantic-compile-logic|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "dataflow: compile-logic → export-pydantic"
+msgstr "数据流：compile-logic → export-pydantic"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-export-pydantic-compile-logic|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The dataflow edge from gmeow:stage-compile-logic to gmeow:stage-export-pydantic: export-pydantic reads the artifact 'generated/shapes/procedural-constraints.ttl', the artifact 'generated/shapes/validation-shapes.ttl' of the producer's product."
+msgstr "从 gmeow:stage-compile-logic 到 gmeow:stage-export-pydantic 的数据流边：export-pydantic 读取生产者产品中的产物“generated/shapes/procedural-constraints.ttl”、产物“generated/shapes/validation-shapes.ttl”。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-export-pydantic-constraint-catalog|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "dataflow: constraint-catalog → export-pydantic"
+msgstr "数据流：constraint-catalog → export-pydantic"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-export-pydantic-constraint-catalog|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The dataflow edge from gmeow:stage-constraint-catalog to gmeow:stage-export-pydantic: export-pydantic reads the artifact 'generated/catalog/constraint-catalog.nq' of the producer's product."
+msgstr "从 gmeow:stage-constraint-catalog 到 gmeow:stage-export-pydantic 的数据流边：export-pydantic 读取生产者产品中的产物“generated/catalog/constraint-catalog.nq”。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-export-pydantic-export-constraint-shapes|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "dataflow: export-constraint-shapes → export-pydantic"
+msgstr "数据流：export-constraint-shapes → export-pydantic"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-export-pydantic-export-constraint-shapes|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The dataflow edge from gmeow:stage-export-constraint-shapes to gmeow:stage-export-pydantic: export-pydantic reads the artifact 'generated/shapes/constraint-shapes.ttl' of the producer's product."
+msgstr "从 gmeow:stage-export-constraint-shapes 到 gmeow:stage-export-pydantic 的数据流边：export-pydantic 读取生产者产品中的产物“generated/shapes/constraint-shapes.ttl”。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-export-pydantic-export-frame-shapes|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "dataflow: export-frame-shapes → export-pydantic"
+msgstr "数据流：export-frame-shapes → export-pydantic"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-export-pydantic-export-frame-shapes|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The dataflow edge from gmeow:stage-export-frame-shapes to gmeow:stage-export-pydantic: export-pydantic reads the artifact 'generated/shapes/frame-shapes.ttl' of the producer's product."
+msgstr "从 gmeow:stage-export-frame-shapes 到 gmeow:stage-export-pydantic 的数据流边：export-pydantic 读取生产者产品中的产物“generated/shapes/frame-shapes.ttl”。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-export-pydantic-export-result-shapes|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "dataflow: export-result-shapes → export-pydantic"
+msgstr "数据流：export-result-shapes → export-pydantic"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-export-pydantic-export-result-shapes|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The dataflow edge from gmeow:stage-export-result-shapes to gmeow:stage-export-pydantic: export-pydantic reads the artifact 'generated/shapes/result-shapes.ttl' of the producer's product."
+msgstr "从 gmeow:stage-export-result-shapes 到 gmeow:stage-export-pydantic 的数据流边：export-pydantic 读取生产者产品中的产物“generated/shapes/result-shapes.ttl”。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-export-pydantic-term-manifest|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "dataflow: term-manifest → export-pydantic"
+msgstr "数据流：term-manifest → export-pydantic"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-export-pydantic-term-manifest|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The dataflow edge from gmeow:stage-term-manifest to gmeow:stage-export-pydantic: export-pydantic reads the artifact 'generated/catalog/term-content-manifest.nq' of the producer's product."
+msgstr "从 gmeow:stage-term-manifest 到 gmeow:stage-export-pydantic 的数据流边：export-pydantic 读取生产者产品中的产物“generated/catalog/term-content-manifest.nq”。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-export-research-objects-export-evals|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "dataflow: export-evals → export-research-objects"
+msgstr "数据流：export-evals → export-research-objects"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-export-research-objects-export-evals|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The dataflow edge from gmeow:stage-export-evals to gmeow:stage-export-research-objects: export-research-objects reads the artifact 'generated/evals/scores.ttl' of the producer's product."
+msgstr "从 gmeow:stage-export-evals 到 gmeow:stage-export-research-objects 的数据流边：export-research-objects 读取生产者产品中的产物“generated/evals/scores.ttl”。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-export-research-objects-mappings|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "dataflow: mappings → export-research-objects"
+msgstr "数据流：mappings → export-research-objects"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-export-research-objects-mappings|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The dataflow edge from gmeow:stage-mappings to gmeow:stage-export-research-objects: export-research-objects reads the artifact 'generated/queries/dcat.projection.json', the typed handle pinned to <https://blackcatinformatics.ca/gmeow/graph/correspondence-laws> of the producer's product."
+msgstr "从 gmeow:stage-mappings 到 gmeow:stage-export-research-objects 的数据流边：export-research-objects 读取生产者产品中的产物“generated/queries/dcat.projection.json”、固定到 <https://blackcatinformatics.ca/gmeow/graph/correspondence-laws> 的类型化句柄。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-export-schemas-compile-logic|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "dataflow: compile-logic → export-schemas"
+msgstr "数据流：compile-logic → export-schemas"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-export-schemas-compile-logic|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The dataflow edge from gmeow:stage-compile-logic to gmeow:stage-export-schemas: export-schemas reads the artifact 'generated/shapes/procedural-constraints.ttl', the artifact 'generated/shapes/validation-shapes.ttl' of the producer's product."
+msgstr "从 gmeow:stage-compile-logic 到 gmeow:stage-export-schemas 的数据流边：export-schemas 读取生产者产品中的产物“generated/shapes/procedural-constraints.ttl”、产物“generated/shapes/validation-shapes.ttl”。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-export-schemas-export-constraint-shapes|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "dataflow: export-constraint-shapes → export-schemas"
+msgstr "数据流：export-constraint-shapes → export-schemas"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-export-schemas-export-constraint-shapes|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The dataflow edge from gmeow:stage-export-constraint-shapes to gmeow:stage-export-schemas: export-schemas reads the artifact 'generated/shapes/constraint-shapes.ttl' of the producer's product."
+msgstr "从 gmeow:stage-export-constraint-shapes 到 gmeow:stage-export-schemas 的数据流边：export-schemas 读取生产者产品中的产物“generated/shapes/constraint-shapes.ttl”。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-export-schemas-export-frame-shapes|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "dataflow: export-frame-shapes → export-schemas"
+msgstr "数据流：export-frame-shapes → export-schemas"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-export-schemas-export-frame-shapes|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The dataflow edge from gmeow:stage-export-frame-shapes to gmeow:stage-export-schemas: export-schemas reads the artifact 'generated/shapes/frame-shapes.ttl' of the producer's product."
+msgstr "从 gmeow:stage-export-frame-shapes 到 gmeow:stage-export-schemas 的数据流边：export-schemas 读取生产者产品中的产物“generated/shapes/frame-shapes.ttl”。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-export-schemas-export-result-shapes|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "dataflow: export-result-shapes → export-schemas"
+msgstr "数据流：export-result-shapes → export-schemas"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-export-schemas-export-result-shapes|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The dataflow edge from gmeow:stage-export-result-shapes to gmeow:stage-export-schemas: export-schemas reads the artifact 'generated/shapes/result-shapes.ttl' of the producer's product."
+msgstr "从 gmeow:stage-export-result-shapes 到 gmeow:stage-export-schemas 的数据流边：export-schemas 读取生产者产品中的产物“generated/shapes/result-shapes.ttl”。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-gmn-training-corpus-compile-logic|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "dataflow: compile-logic → gmn-training-corpus"
+msgstr "数据流：compile-logic → gmn-training-corpus"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-gmn-training-corpus-compile-logic|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The dataflow edge from gmeow:stage-compile-logic to gmeow:stage-gmn-training-corpus: gmn-training-corpus reads no lane of the producer's product; the edge orders the two stages and folds the producer's identity into the consumer's cache key."
+msgstr "从 gmeow:stage-compile-logic 到 gmeow:stage-gmn-training-corpus 的数据流边：gmn-training-corpus 不读取生产者产品的任何通道；该边仅为两个阶段排序，并将生产者的标识并入使用方的缓存键。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-gmn-training-corpus-mappings|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "dataflow: mappings → gmn-training-corpus"
+msgstr "数据流：mappings → gmn-training-corpus"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-gmn-training-corpus-mappings|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The dataflow edge from gmeow:stage-mappings to gmeow:stage-gmn-training-corpus: gmn-training-corpus reads no lane of the producer's product; the edge orders the two stages and folds the producer's identity into the consumer's cache key."
+msgstr "从 gmeow:stage-mappings 到 gmeow:stage-gmn-training-corpus 的数据流边：gmn-training-corpus 不读取生产者产品的任何通道；该边仅为两个阶段排序，并将生产者的标识并入使用方的缓存键。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-gmn-training-corpus-parse-sources|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "dataflow: parse-sources → gmn-training-corpus"
+msgstr "数据流：parse-sources → gmn-training-corpus"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-gmn-training-corpus-parse-sources|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The dataflow edge from gmeow:stage-parse-sources to gmeow:stage-gmn-training-corpus: gmn-training-corpus reads the typed handle pinned to <https://blackcatinformatics.ca/gmeow/graph/source-catalog>, the frozen dataset of the producer's product."
+msgstr "从 gmeow:stage-parse-sources 到 gmeow:stage-gmn-training-corpus 的数据流边：gmn-training-corpus 读取生产者产品中的固定到 <https://blackcatinformatics.ca/gmeow/graph/source-catalog> 的类型化句柄、冻结数据集。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-goal-directed-compile-logic|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "dataflow: compile-logic → goal-directed"
+msgstr "数据流：compile-logic → goal-directed"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-goal-directed-compile-logic|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The dataflow edge from gmeow:stage-compile-logic to gmeow:stage-goal-directed: goal-directed reads the typed handle pinned to <https://blackcatinformatics.ca/gmeow/graph/logic> of the producer's product."
+msgstr "从 gmeow:stage-compile-logic 到 gmeow:stage-goal-directed 的数据流边：goal-directed 读取生产者产品中的固定到 <https://blackcatinformatics.ca/gmeow/graph/logic> 的类型化句柄。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-gts-sink-archive-blobs|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "dataflow: archive-blobs → gts-sink"
+msgstr "数据流：archive-blobs → gts-sink"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-gts-sink-archive-blobs|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The dataflow edge from gmeow:stage-archive-blobs to gmeow:stage-gts-sink: gts-sink reads the whole carrier of the producer's product."
+msgstr "从 gmeow:stage-archive-blobs 到 gmeow:stage-gts-sink 的数据流边：gts-sink 读取生产者产品中的整个载体。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-gts-sink-compile-logic|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "dataflow: compile-logic → gts-sink"
+msgstr "数据流：compile-logic → gts-sink"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-gts-sink-compile-logic|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The dataflow edge from gmeow:stage-compile-logic to gmeow:stage-gts-sink: gts-sink reads the artifact 'generated/cl/gmeow.cgif', the artifact 'generated/cl/gmeow.clif', the artifact 'generated/cl/gmeow.xcl', the artifact 'generated/diagnostics/logic-compile.html', the artifact 'generated/diagnostics/logic-compile.json', the artifact 'generated/diagnostics/logic-compile.sarif', the artifact 'generated/n3/gmeow.n3', the artifact 'generated/shacl-af/gmeow.shacl-af.ttl', the artifact 'generated/shapes/validation-shapes.shex', the artifact 'generated/shapes/validation-shapes.ttl', the artifact 'pipeline/canon-proof-admission.json' of the producer's product."
+msgstr "从 gmeow:stage-compile-logic 到 gmeow:stage-gts-sink 的数据流边：gts-sink 读取生产者产品中的产物“generated/cl/gmeow.cgif”、产物“generated/cl/gmeow.clif”、产物“generated/cl/gmeow.xcl”、产物“generated/diagnostics/logic-compile.html”、产物“generated/diagnostics/logic-compile.json”、产物“generated/diagnostics/logic-compile.sarif”、产物“generated/n3/gmeow.n3”、产物“generated/shacl-af/gmeow.shacl-af.ttl”、产物“generated/shapes/validation-shapes.shex”、产物“generated/shapes/validation-shapes.ttl”、产物“pipeline/canon-proof-admission.json”。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-gts-sink-conformance|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "dataflow: conformance → gts-sink"
+msgstr "数据流：conformance → gts-sink"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-gts-sink-conformance|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The dataflow edge from gmeow:stage-conformance to gmeow:stage-gts-sink: gts-sink reads the artifact 'pipeline/mcp-action-policy.json', the artifact 'pipeline/prepared-operator-rules.json' of the producer's product."
+msgstr "从 gmeow:stage-conformance 到 gmeow:stage-gts-sink 的数据流边：gts-sink 读取生产者产品中的产物“pipeline/mcp-action-policy.json”、产物“pipeline/prepared-operator-rules.json”。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-gts-sink-export-agreement|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "dataflow: export-agreement → gts-sink"
+msgstr "数据流：export-agreement → gts-sink"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-gts-sink-export-agreement|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The dataflow edge from gmeow:stage-export-agreement to gmeow:stage-gts-sink: gts-sink reads every committed byte artifact of the producer's product."
+msgstr "从 gmeow:stage-export-agreement 到 gmeow:stage-gts-sink 的数据流边：gts-sink 读取生产者产品中的每个已提交的字节产物。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-gts-sink-export-apache|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "dataflow: export-apache → gts-sink"
+msgstr "数据流：export-apache → gts-sink"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-gts-sink-export-apache|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The dataflow edge from gmeow:stage-export-apache to gmeow:stage-gts-sink: gts-sink reads every committed byte artifact of the producer's product."
+msgstr "从 gmeow:stage-export-apache 到 gmeow:stage-gts-sink 的数据流边：gts-sink 读取生产者产品中的每个已提交的字节产物。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-gts-sink-export-bench|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "dataflow: export-bench → gts-sink"
+msgstr "数据流：export-bench → gts-sink"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-gts-sink-export-bench|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The dataflow edge from gmeow:stage-export-bench to gmeow:stage-gts-sink: gts-sink reads every committed byte artifact of the producer's product."
+msgstr "从 gmeow:stage-export-bench 到 gmeow:stage-gts-sink 的数据流边：gts-sink 读取生产者产品中的每个已提交的字节产物。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-gts-sink-export-cost-ledger|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "dataflow: export-cost-ledger → gts-sink"
+msgstr "数据流：export-cost-ledger → gts-sink"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-gts-sink-export-cost-ledger|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The dataflow edge from gmeow:stage-export-cost-ledger to gmeow:stage-gts-sink: gts-sink reads every committed byte artifact of the producer's product."
+msgstr "从 gmeow:stage-export-cost-ledger 到 gmeow:stage-gts-sink 的数据流边：gts-sink 读取生产者产品中的每个已提交的字节产物。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-gts-sink-export-evals|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "dataflow: export-evals → gts-sink"
+msgstr "数据流：export-evals → gts-sink"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-gts-sink-export-evals|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The dataflow edge from gmeow:stage-export-evals to gmeow:stage-gts-sink: gts-sink reads every committed byte artifact of the producer's product."
+msgstr "从 gmeow:stage-export-evals 到 gmeow:stage-gts-sink 的数据流边：gts-sink 读取生产者产品中的每个已提交的字节产物。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-gts-sink-export-glossary|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "dataflow: export-glossary → gts-sink"
+msgstr "数据流：export-glossary → gts-sink"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-gts-sink-export-glossary|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The dataflow edge from gmeow:stage-export-glossary to gmeow:stage-gts-sink: gts-sink reads no lane of the producer's product; the edge orders the two stages and folds the producer's identity into the consumer's cache key."
+msgstr "从 gmeow:stage-export-glossary 到 gmeow:stage-gts-sink 的数据流边：gts-sink 不读取生产者产品的任何通道；该边仅为两个阶段排序，并将生产者的标识并入使用方的缓存键。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-gts-sink-export-governance-floors|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "dataflow: export-governance-floors → gts-sink"
+msgstr "数据流：export-governance-floors → gts-sink"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-gts-sink-export-governance-floors|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The dataflow edge from gmeow:stage-export-governance-floors to gmeow:stage-gts-sink: gts-sink reads every committed byte artifact of the producer's product."
+msgstr "从 gmeow:stage-export-governance-floors 到 gmeow:stage-gts-sink 的数据流边：gts-sink 读取生产者产品中的每个已提交的字节产物。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-gts-sink-export-matrix|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "dataflow: export-matrix → gts-sink"
+msgstr "数据流：export-matrix → gts-sink"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-gts-sink-export-matrix|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The dataflow edge from gmeow:stage-export-matrix to gmeow:stage-gts-sink: gts-sink reads every committed byte artifact of the producer's product."
+msgstr "从 gmeow:stage-export-matrix 到 gmeow:stage-gts-sink 的数据流边：gts-sink 读取生产者产品中的每个已提交的字节产物。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-gts-sink-export-metadata|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "dataflow: export-metadata → gts-sink"
+msgstr "数据流：export-metadata → gts-sink"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-gts-sink-export-metadata|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The dataflow edge from gmeow:stage-export-metadata to gmeow:stage-gts-sink: gts-sink reads every committed byte artifact of the producer's product."
+msgstr "从 gmeow:stage-export-metadata 到 gmeow:stage-gts-sink 的数据流边：gts-sink 读取生产者产品中的每个已提交的字节产物。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-gts-sink-export-projection-ceilings|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "dataflow: export-projection-ceilings → gts-sink"
+msgstr "数据流：export-projection-ceilings → gts-sink"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-gts-sink-export-projection-ceilings|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The dataflow edge from gmeow:stage-export-projection-ceilings to gmeow:stage-gts-sink: gts-sink reads every committed byte artifact of the producer's product."
+msgstr "从 gmeow:stage-export-projection-ceilings 到 gmeow:stage-gts-sink 的数据流边：gts-sink 读取生产者产品中的每个已提交的字节产物。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-gts-sink-export-references|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "dataflow: export-references → gts-sink"
+msgstr "数据流：export-references → gts-sink"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-gts-sink-export-references|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The dataflow edge from gmeow:stage-export-references to gmeow:stage-gts-sink: gts-sink reads every committed byte artifact of the producer's product."
+msgstr "从 gmeow:stage-export-references 到 gmeow:stage-gts-sink 的数据流边：gts-sink 读取生产者产品中的每个已提交的字节产物。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-gts-sink-export-research-objects|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "dataflow: export-research-objects → gts-sink"
+msgstr "数据流：export-research-objects → gts-sink"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-gts-sink-export-research-objects|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The dataflow edge from gmeow:stage-export-research-objects to gmeow:stage-gts-sink: gts-sink reads every committed byte artifact of the producer's product."
+msgstr "从 gmeow:stage-export-research-objects 到 gmeow:stage-gts-sink 的数据流边：gts-sink 读取生产者产品中的每个已提交的字节产物。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-gts-sink-export-schemas|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "dataflow: export-schemas → gts-sink"
+msgstr "数据流：export-schemas → gts-sink"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-gts-sink-export-schemas|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The dataflow edge from gmeow:stage-export-schemas to gmeow:stage-gts-sink: gts-sink reads every committed byte artifact of the producer's product."
+msgstr "从 gmeow:stage-export-schemas 到 gmeow:stage-gts-sink 的数据流边：gts-sink 读取生产者产品中的每个已提交的字节产物。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-gts-sink-mappings|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "dataflow: mappings → gts-sink"
+msgstr "数据流：mappings → gts-sink"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-gts-sink-mappings|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The dataflow edge from gmeow:stage-mappings to gmeow:stage-gts-sink: gts-sink reads the artifact 'generated/context.jsonld', the artifact 'generated/mappings/dsl-stats.json', the artifact 'generated/projections/gmeow-affect.emotionml.xml' of the producer's product."
+msgstr "从 gmeow:stage-mappings 到 gmeow:stage-gts-sink 的数据流边：gts-sink 读取生产者产品中的产物“generated/context.jsonld”、产物“generated/mappings/dsl-stats.json”、产物“generated/projections/gmeow-affect.emotionml.xml”。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-gts-sink-math-producers|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "dataflow: math-producers → gts-sink"
+msgstr "数据流：math-producers → gts-sink"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-gts-sink-math-producers|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The dataflow edge from gmeow:stage-math-producers to gmeow:stage-gts-sink: gts-sink reads every committed byte artifact of the producer's product."
+msgstr "从 gmeow:stage-math-producers 到 gmeow:stage-gts-sink 的数据流边：gts-sink 读取生产者产品中的每个已提交的字节产物。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-gts-sink-medium-dictionaries|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "dataflow: medium-dictionaries → gts-sink"
+msgstr "数据流：medium-dictionaries → gts-sink"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-gts-sink-medium-dictionaries|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The dataflow edge from gmeow:stage-medium-dictionaries to gmeow:stage-gts-sink: gts-sink reads every committed byte artifact, the six internal trained-dictionary artifacts it names, and the frozen dataset of the producer's product."
+msgstr "从 gmeow:stage-medium-dictionaries 到 gmeow:stage-gts-sink 的数据流边：gts-sink 读取每个已提交的字节产物、该边点名的六个内部训练字典产物，以及生产者产品中的冻结数据集。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-gts-sink-reason|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "dataflow: reason → gts-sink"
+msgstr "数据流：reason → gts-sink"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-gts-sink-reason|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The dataflow edge from gmeow:stage-reason to gmeow:stage-gts-sink: gts-sink reads the artifact 'generated/logic/dl-el-crosscheck-report.ttl', the artifact 'generated/logic/inferred-closure.rdf12.ttl', the artifact 'generated/logic/perf-ledger.ttl', the artifact 'generated/logic/reasoning-explanations.rdf12.ttl' of the producer's product."
+msgstr "从 gmeow:stage-reason 到 gmeow:stage-gts-sink 的数据流边：gts-sink 读取生产者产品中的产物“generated/logic/dl-el-crosscheck-report.ttl”、产物“generated/logic/inferred-closure.rdf12.ttl”、产物“generated/logic/perf-ledger.ttl”、产物“generated/logic/reasoning-explanations.rdf12.ttl”。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-gts-sink-snapshot|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "dataflow: snapshot → gts-sink"
+msgstr "数据流：snapshot → gts-sink"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-gts-sink-snapshot|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The dataflow edge from gmeow:stage-snapshot to gmeow:stage-gts-sink: gts-sink reads the frozen dataset of the producer's product."
+msgstr "从 gmeow:stage-snapshot 到 gmeow:stage-gts-sink 的数据流边：gts-sink 读取生产者产品中的冻结数据集。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-gts-sink-source-load|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "dataflow: source-load → gts-sink"
+msgstr "数据流：source-load → gts-sink"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-gts-sink-source-load|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The dataflow edge from gmeow:stage-source-load to gmeow:stage-gts-sink: gts-sink reads no lane of the producer's product; the edge orders the two stages and folds the producer's identity into the consumer's cache key."
+msgstr "从 gmeow:stage-source-load 到 gmeow:stage-gts-sink 的数据流边：gts-sink 不读取生产者产品的任何通道；该边仅为两个阶段排序，并将生产者的标识并入使用方的缓存键。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-gts-sink-validate|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "dataflow: validate → gts-sink"
+msgstr "数据流：validate → gts-sink"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-gts-sink-validate|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The dataflow edge from gmeow:stage-validate to gmeow:stage-gts-sink: gts-sink reads the artifact 'generated/diagnostics/shacl.html', the artifact 'generated/diagnostics/shacl.json', the artifact 'generated/diagnostics/shacl.sarif' of the producer's product."
+msgstr "从 gmeow:stage-validate 到 gmeow:stage-gts-sink 的数据流边：gts-sink 读取生产者产品中的产物“generated/diagnostics/shacl.html”、产物“generated/diagnostics/shacl.json”、产物“generated/diagnostics/shacl.sarif”。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-gts-sink-verify-attestation|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "dataflow: verify-attestation → gts-sink"
+msgstr "数据流：verify-attestation → gts-sink"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-gts-sink-verify-attestation|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The dataflow edge from gmeow:stage-verify-attestation to gmeow:stage-gts-sink: gts-sink reads the artifact 'generated/diagnostics/verify.json', the artifact 'pipeline/prepared-verify-gates.json' of the producer's product."
+msgstr "从 gmeow:stage-verify-attestation 到 gmeow:stage-gts-sink 的数据流边：gts-sink 读取生产者产品中的产物“generated/diagnostics/verify.json”、产物“pipeline/prepared-verify-gates.json”。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-mappings-compile-logic|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "dataflow: compile-logic → mappings"
+msgstr "数据流：compile-logic → mappings"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-mappings-compile-logic|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The dataflow edge from gmeow:stage-compile-logic to gmeow:stage-mappings: mappings reads the artifact 'generated/shapes/procedural-constraints.ttl', the typed handle pinned to <https://blackcatinformatics.ca/gmeow/graph/logic> of the producer's product."
+msgstr "从 gmeow:stage-compile-logic 到 gmeow:stage-mappings 的数据流边：mappings 读取生产者产品中的产物“generated/shapes/procedural-constraints.ttl”、固定到 <https://blackcatinformatics.ca/gmeow/graph/logic> 的类型化句柄。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-mappings-export-constraint-shapes|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "dataflow: export-constraint-shapes → mappings"
+msgstr "数据流：export-constraint-shapes → mappings"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-mappings-export-constraint-shapes|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The dataflow edge from gmeow:stage-export-constraint-shapes to gmeow:stage-mappings: mappings reads the artifact 'generated/shapes/constraint-shapes.ttl' of the producer's product."
+msgstr "从 gmeow:stage-export-constraint-shapes 到 gmeow:stage-mappings 的数据流边：mappings 读取生产者产品中的产物“generated/shapes/constraint-shapes.ttl”。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-mappings-parse-sources|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "dataflow: parse-sources → mappings"
+msgstr "数据流：parse-sources → mappings"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-mappings-parse-sources|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The dataflow edge from gmeow:stage-parse-sources to gmeow:stage-mappings: mappings reads the typed handle pinned to <https://blackcatinformatics.ca/gmeow/graph/source-catalog>, the frozen dataset of the producer's product."
+msgstr "从 gmeow:stage-parse-sources 到 gmeow:stage-mappings 的数据流边：mappings 读取生产者产品中的固定到 <https://blackcatinformatics.ca/gmeow/graph/source-catalog> 的类型化句柄、冻结数据集。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-math-producers-mappings|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "dataflow: mappings → math-producers"
+msgstr "数据流：mappings → math-producers"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-math-producers-mappings|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The dataflow edge from gmeow:stage-mappings to gmeow:stage-math-producers: math-producers reads the frozen dataset of the producer's product."
+msgstr "从 gmeow:stage-mappings 到 gmeow:stage-math-producers 的数据流边：math-producers 读取生产者产品中的冻结数据集。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-math-producers-source-load|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "dataflow: source-load → math-producers"
+msgstr "数据流：source-load → math-producers"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-math-producers-source-load|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The dataflow edge from gmeow:stage-source-load to gmeow:stage-math-producers: math-producers reads the frozen dataset of the producer's product."
+msgstr "从 gmeow:stage-source-load 到 gmeow:stage-math-producers 的数据流边：math-producers 读取生产者产品中的冻结数据集。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-medium-dictionaries-archive-blobs|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "dataflow: archive-blobs → medium-dictionaries"
+msgstr "数据流：archive-blobs → medium-dictionaries"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-medium-dictionaries-archive-blobs|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The dataflow edge from gmeow:stage-archive-blobs to gmeow:stage-medium-dictionaries: medium-dictionaries reads every committed byte artifact, the whole carrier of the producer's product."
+msgstr "从 gmeow:stage-archive-blobs 到 gmeow:stage-medium-dictionaries 的数据流边：medium-dictionaries 读取生产者产品中的每个已提交的字节产物、整个载体。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-medium-dictionaries-reason|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "dataflow: reason → medium-dictionaries"
+msgstr "数据流：reason → medium-dictionaries"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-medium-dictionaries-reason|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The dataflow edge from gmeow:stage-reason to gmeow:stage-medium-dictionaries: medium-dictionaries reads every committed byte artifact of the producer's product."
+msgstr "从 gmeow:stage-reason 到 gmeow:stage-medium-dictionaries 的数据流边：medium-dictionaries 读取生产者产品中的每个已提交的字节产物。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-medium-dictionaries-snapshot|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "dataflow: snapshot → medium-dictionaries"
+msgstr "数据流：snapshot → medium-dictionaries"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-medium-dictionaries-snapshot|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The dataflow edge from gmeow:stage-snapshot to gmeow:stage-medium-dictionaries: medium-dictionaries reads every committed byte artifact, the frozen dataset of the producer's product."
+msgstr "从 gmeow:stage-snapshot 到 gmeow:stage-medium-dictionaries 的数据流边：medium-dictionaries 读取生产者产品中的每个已提交的字节产物、冻结数据集。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-medium-dictionaries-statements|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "dataflow: statements → medium-dictionaries"
+msgstr "数据流：statements → medium-dictionaries"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-medium-dictionaries-statements|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The dataflow edge from gmeow:stage-statements to gmeow:stage-medium-dictionaries: medium-dictionaries reads every committed byte artifact of the producer's product."
+msgstr "从 gmeow:stage-statements 到 gmeow:stage-medium-dictionaries 的数据流边：medium-dictionaries 读取生产者产品中的每个已提交的字节产物。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-native-codebook-parse-sources|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "dataflow: parse-sources → native-codebook"
+msgstr "数据流：parse-sources → native-codebook"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-native-codebook-parse-sources|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The dataflow edge from gmeow:stage-parse-sources to gmeow:stage-native-codebook: native-codebook reads the typed handle pinned to <https://blackcatinformatics.ca/gmeow/graph/source-catalog>, the frozen dataset of the producer's product."
+msgstr "从 gmeow:stage-parse-sources 到 gmeow:stage-native-codebook 的数据流边：native-codebook 读取生产者产品中的固定到 <https://blackcatinformatics.ca/gmeow/graph/source-catalog> 的类型化句柄、冻结数据集。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-reason-source-load|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "dataflow: source-load → reason"
+msgstr "数据流：source-load → reason"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-reason-source-load|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The dataflow edge from gmeow:stage-source-load to gmeow:stage-reason: reason reads the frozen dataset of the producer's product."
+msgstr "从 gmeow:stage-source-load 到 gmeow:stage-reason 的数据流边：reason 读取生产者产品中的冻结数据集。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-reason-statements|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "dataflow: statements → reason"
+msgstr "数据流：statements → reason"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-reason-statements|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The dataflow edge from gmeow:stage-statements to gmeow:stage-reason: reason reads the frozen dataset of the producer's product."
+msgstr "从 gmeow:stage-statements 到 gmeow:stage-reason 的数据流边：reason 读取生产者产品中的冻结数据集。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-slice-brief-compile-logic|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "dataflow: compile-logic → slice-brief"
+msgstr "数据流：compile-logic → slice-brief"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-slice-brief-compile-logic|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The dataflow edge from gmeow:stage-compile-logic to gmeow:stage-slice-brief: slice-brief reads the artifact 'generated/shapes/procedural-constraints.ttl', the artifact 'generated/shapes/validation-shapes.ttl' of the producer's product."
+msgstr "从 gmeow:stage-compile-logic 到 gmeow:stage-slice-brief 的数据流边：slice-brief 读取生产者产品中的产物“generated/shapes/procedural-constraints.ttl”、产物“generated/shapes/validation-shapes.ttl”。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-slice-brief-export-constraint-shapes|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "dataflow: export-constraint-shapes → slice-brief"
+msgstr "数据流：export-constraint-shapes → slice-brief"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-slice-brief-export-constraint-shapes|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The dataflow edge from gmeow:stage-export-constraint-shapes to gmeow:stage-slice-brief: slice-brief reads the artifact 'generated/shapes/constraint-shapes.ttl' of the producer's product."
+msgstr "从 gmeow:stage-export-constraint-shapes 到 gmeow:stage-slice-brief 的数据流边：slice-brief 读取生产者产品中的产物“generated/shapes/constraint-shapes.ttl”。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-slice-brief-export-frame-shapes|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "dataflow: export-frame-shapes → slice-brief"
+msgstr "数据流：export-frame-shapes → slice-brief"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-slice-brief-export-frame-shapes|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The dataflow edge from gmeow:stage-export-frame-shapes to gmeow:stage-slice-brief: slice-brief reads the artifact 'generated/shapes/frame-shapes.ttl' of the producer's product."
+msgstr "从 gmeow:stage-export-frame-shapes 到 gmeow:stage-slice-brief 的数据流边：slice-brief 读取生产者产品中的产物“generated/shapes/frame-shapes.ttl”。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-slice-brief-export-result-shapes|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "dataflow: export-result-shapes → slice-brief"
+msgstr "数据流：export-result-shapes → slice-brief"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-slice-brief-export-result-shapes|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The dataflow edge from gmeow:stage-export-result-shapes to gmeow:stage-slice-brief: slice-brief reads the artifact 'generated/shapes/result-shapes.ttl' of the producer's product."
+msgstr "从 gmeow:stage-export-result-shapes 到 gmeow:stage-slice-brief 的数据流边：slice-brief 读取生产者产品中的产物“generated/shapes/result-shapes.ttl”。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-snapshot-compile-logic|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "dataflow: compile-logic → snapshot"
+msgstr "数据流：compile-logic → snapshot"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-snapshot-compile-logic|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The dataflow edge from gmeow:stage-compile-logic to gmeow:stage-snapshot: snapshot reads the artifact 'generated/diagnostics/logic-compile.nq', the artifact 'generated/foundation/gufo.ttl', the artifact 'generated/logic/gmeow.correspondence.nt', the artifact 'generated/logic/gmeow.relational-core.nt', the typed handle pinned to <https://blackcatinformatics.ca/gmeow/graph/correspondence>, the typed handle pinned to <https://blackcatinformatics.ca/gmeow/graph/logic>, the typed handle pinned to <https://blackcatinformatics.ca/gmeow/graph/relational-core>, the whole carrier, the frozen dataset of the producer's product."
+msgstr "从 gmeow:stage-compile-logic 到 gmeow:stage-snapshot 的数据流边：snapshot 读取生产者产品中的产物“generated/diagnostics/logic-compile.nq”、产物“generated/foundation/gufo.ttl”、产物“generated/logic/gmeow.correspondence.nt”、产物“generated/logic/gmeow.relational-core.nt”、固定到 <https://blackcatinformatics.ca/gmeow/graph/correspondence> 的类型化句柄、固定到 <https://blackcatinformatics.ca/gmeow/graph/logic> 的类型化句柄、固定到 <https://blackcatinformatics.ca/gmeow/graph/relational-core> 的类型化句柄、整个载体、冻结数据集。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-snapshot-conformance|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "dataflow: conformance → snapshot"
+msgstr "数据流：conformance → snapshot"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-snapshot-conformance|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The dataflow edge from gmeow:stage-conformance to gmeow:stage-snapshot: snapshot reads the frozen dataset of the producer's product."
+msgstr "从 gmeow:stage-conformance 到 gmeow:stage-snapshot 的数据流边：snapshot 读取生产者产品中的冻结数据集。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-snapshot-constraint-catalog|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "dataflow: constraint-catalog → snapshot"
+msgstr "数据流：constraint-catalog → snapshot"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-snapshot-constraint-catalog|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The dataflow edge from gmeow:stage-constraint-catalog to gmeow:stage-snapshot: snapshot reads the artifact 'generated/catalog/constraint-catalog.nq' of the producer's product."
+msgstr "从 gmeow:stage-constraint-catalog 到 gmeow:stage-snapshot 的数据流边：snapshot 读取生产者产品中的产物“generated/catalog/constraint-catalog.nq”。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-snapshot-docs-render|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "dataflow: docs-render → snapshot"
+msgstr "数据流：docs-render → snapshot"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-snapshot-docs-render|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The dataflow edge from gmeow:stage-docs-render to gmeow:stage-snapshot: snapshot reads the frozen dataset of the producer's product."
+msgstr "从 gmeow:stage-docs-render 到 gmeow:stage-snapshot 的数据流边：snapshot 读取生产者产品中的冻结数据集。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-snapshot-export-evals|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "dataflow: export-evals → snapshot"
+msgstr "数据流：export-evals → snapshot"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-snapshot-export-evals|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The dataflow edge from gmeow:stage-export-evals to gmeow:stage-snapshot: snapshot reads every committed byte artifact of the producer's product."
+msgstr "从 gmeow:stage-export-evals 到 gmeow:stage-snapshot 的数据流边：snapshot 读取生产者产品中的每个已提交的字节产物。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-snapshot-export-glossary|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "dataflow: export-glossary → snapshot"
+msgstr "数据流：export-glossary → snapshot"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-snapshot-export-glossary|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The dataflow edge from gmeow:stage-export-glossary to gmeow:stage-snapshot: snapshot reads every committed byte artifact of the producer's product."
+msgstr "从 gmeow:stage-export-glossary 到 gmeow:stage-snapshot 的数据流边：snapshot 读取生产者产品中的每个已提交的字节产物。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-snapshot-export-json-schema|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "dataflow: export-json-schema → snapshot"
+msgstr "数据流：export-json-schema → snapshot"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-snapshot-export-json-schema|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The dataflow edge from gmeow:stage-export-json-schema to gmeow:stage-snapshot: snapshot reads the frozen dataset of the producer's product."
+msgstr "从 gmeow:stage-export-json-schema 到 gmeow:stage-snapshot 的数据流边：snapshot 读取生产者产品中的冻结数据集。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-snapshot-export-profiles|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "dataflow: export-profiles → snapshot"
+msgstr "数据流：export-profiles → snapshot"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-snapshot-export-profiles|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The dataflow edge from gmeow:stage-export-profiles to gmeow:stage-snapshot: snapshot reads every committed byte artifact of the producer's product."
+msgstr "从 gmeow:stage-export-profiles 到 gmeow:stage-snapshot 的数据流边：snapshot 读取生产者产品中的每个已提交的字节产物。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-snapshot-export-research-objects|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "dataflow: export-research-objects → snapshot"
+msgstr "数据流：export-research-objects → snapshot"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-snapshot-export-research-objects|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The dataflow edge from gmeow:stage-export-research-objects to gmeow:stage-snapshot: snapshot reads every committed byte artifact of the producer's product."
+msgstr "从 gmeow:stage-export-research-objects 到 gmeow:stage-snapshot 的数据流边：snapshot 读取生产者产品中的每个已提交的字节产物。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-snapshot-export-skos-surface|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "dataflow: export-skos-surface → snapshot"
+msgstr "数据流：export-skos-surface → snapshot"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-snapshot-export-skos-surface|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The dataflow edge from gmeow:stage-export-skos-surface to gmeow:stage-snapshot: snapshot reads every committed byte artifact of the producer's product."
+msgstr "从 gmeow:stage-export-skos-surface 到 gmeow:stage-snapshot 的数据流边：snapshot 读取生产者产品中的每个已提交的字节产物。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-snapshot-gmn-training-corpus|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "dataflow: gmn-training-corpus → snapshot"
+msgstr "数据流：gmn-training-corpus → snapshot"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-snapshot-gmn-training-corpus|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The dataflow edge from gmeow:stage-gmn-training-corpus to gmeow:stage-snapshot: snapshot reads the frozen dataset of the producer's product."
+msgstr "从 gmeow:stage-gmn-training-corpus 到 gmeow:stage-snapshot 的数据流边：snapshot 读取生产者产品中的冻结数据集。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-snapshot-goal-directed|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "dataflow: goal-directed → snapshot"
+msgstr "数据流：goal-directed → snapshot"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-snapshot-goal-directed|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The dataflow edge from gmeow:stage-goal-directed to gmeow:stage-snapshot: snapshot reads the frozen dataset of the producer's product."
+msgstr "从 gmeow:stage-goal-directed 到 gmeow:stage-snapshot 的数据流边：snapshot 读取生产者产品中的冻结数据集。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-snapshot-mappings|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "dataflow: mappings → snapshot"
+msgstr "数据流：mappings → snapshot"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-snapshot-mappings|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The dataflow edge from gmeow:stage-mappings to gmeow:stage-snapshot: snapshot reads the artifact 'generated/logic/projection-report.ttl', every committed byte artifact, the frozen dataset of the producer's product."
+msgstr "从 gmeow:stage-mappings 到 gmeow:stage-snapshot 的数据流边：snapshot 读取生产者产品中的产物“generated/logic/projection-report.ttl”、每个已提交的字节产物、冻结数据集。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-snapshot-math-producers|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "dataflow: math-producers → snapshot"
+msgstr "数据流：math-producers → snapshot"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-snapshot-math-producers|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The dataflow edge from gmeow:stage-math-producers to gmeow:stage-snapshot: snapshot reads every committed byte artifact, the frozen dataset of the producer's product."
+msgstr "从 gmeow:stage-math-producers 到 gmeow:stage-snapshot 的数据流边：snapshot 读取生产者产品中的每个已提交的字节产物、冻结数据集。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-snapshot-reason|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "dataflow: reason → snapshot"
+msgstr "数据流：reason → snapshot"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-snapshot-reason|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The dataflow edge from gmeow:stage-reason to gmeow:stage-snapshot: snapshot reads the typed handle pinned to <https://blackcatinformatics.ca/gmeow/graph/reasoning>, the frozen dataset of the producer's product."
+msgstr "从 gmeow:stage-reason 到 gmeow:stage-snapshot 的数据流边：snapshot 读取生产者产品中的固定到 <https://blackcatinformatics.ca/gmeow/graph/reasoning> 的类型化句柄、冻结数据集。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-snapshot-slice-brief|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "dataflow: slice-brief → snapshot"
+msgstr "数据流：slice-brief → snapshot"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-snapshot-slice-brief|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The dataflow edge from gmeow:stage-slice-brief to gmeow:stage-snapshot: snapshot reads the frozen dataset of the producer's product."
+msgstr "从 gmeow:stage-slice-brief 到 gmeow:stage-snapshot 的数据流边：snapshot 读取生产者产品中的冻结数据集。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-snapshot-source-load|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "dataflow: source-load → snapshot"
+msgstr "数据流：source-load → snapshot"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-snapshot-source-load|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The dataflow edge from gmeow:stage-source-load to gmeow:stage-snapshot: snapshot reads the frozen dataset of the producer's product."
+msgstr "从 gmeow:stage-source-load 到 gmeow:stage-snapshot 的数据流边：snapshot 读取生产者产品中的冻结数据集。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-snapshot-statements|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "dataflow: statements → snapshot"
+msgstr "数据流：statements → snapshot"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-snapshot-statements|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The dataflow edge from gmeow:stage-statements to gmeow:stage-snapshot: snapshot reads the frozen dataset of the producer's product."
+msgstr "从 gmeow:stage-statements 到 gmeow:stage-snapshot 的数据流边：snapshot 读取生产者产品中的冻结数据集。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-snapshot-term-manifest|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "dataflow: term-manifest → snapshot"
+msgstr "数据流：term-manifest → snapshot"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-snapshot-term-manifest|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The dataflow edge from gmeow:stage-term-manifest to gmeow:stage-snapshot: snapshot reads the artifact 'generated/catalog/term-content-manifest.nq' of the producer's product."
+msgstr "从 gmeow:stage-term-manifest 到 gmeow:stage-snapshot 的数据流边：snapshot 读取生产者产品中的产物“generated/catalog/term-content-manifest.nq”。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-snapshot-validate|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "dataflow: validate → snapshot"
+msgstr "数据流：validate → snapshot"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-snapshot-validate|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The dataflow edge from gmeow:stage-validate to gmeow:stage-snapshot: snapshot reads the artifact 'generated/diagnostics/shacl.nq', the whole carrier, the frozen dataset of the producer's product."
+msgstr "从 gmeow:stage-validate 到 gmeow:stage-snapshot 的数据流边：snapshot 读取生产者产品中的产物“generated/diagnostics/shacl.nq”、整个载体、冻结数据集。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-snapshot-verify-attestation|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "dataflow: verify-attestation → snapshot"
+msgstr "数据流：verify-attestation → snapshot"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-snapshot-verify-attestation|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The dataflow edge from gmeow:stage-verify-attestation to gmeow:stage-snapshot: snapshot reads the frozen dataset of the producer's product."
+msgstr "从 gmeow:stage-verify-attestation 到 gmeow:stage-snapshot 的数据流边：snapshot 读取生产者产品中的冻结数据集。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-source-load-parse-sources|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "dataflow: parse-sources → source-load"
+msgstr "数据流：parse-sources → source-load"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-source-load-parse-sources|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The dataflow edge from gmeow:stage-parse-sources to gmeow:stage-source-load: source-load reads the typed handle pinned to <https://blackcatinformatics.ca/gmeow/graph/source-catalog>, the frozen dataset of the producer's product."
+msgstr "从 gmeow:stage-parse-sources 到 gmeow:stage-source-load 的数据流边：source-load 读取生产者产品中的固定到 <https://blackcatinformatics.ca/gmeow/graph/source-catalog> 的类型化句柄、冻结数据集。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-term-manifest-reason|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "dataflow: reason → term-manifest"
+msgstr "数据流：reason → term-manifest"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-term-manifest-reason|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The dataflow edge from gmeow:stage-reason to gmeow:stage-term-manifest: term-manifest reads no lane of the producer's product; the edge orders the two stages and folds the producer's identity into the consumer's cache key."
+msgstr "从 gmeow:stage-reason 到 gmeow:stage-term-manifest 的数据流边：term-manifest 不读取生产者产品的任何通道；该边仅为两个阶段排序，并将生产者的标识并入使用方的缓存键。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-validate-export-constraint-shapes|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "dataflow: export-constraint-shapes → validate"
+msgstr "数据流：export-constraint-shapes → validate"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-validate-export-constraint-shapes|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The dataflow edge from gmeow:stage-export-constraint-shapes to gmeow:stage-validate: validate reads the artifact 'generated/shapes/constraint-shapes.ttl' of the producer's product."
+msgstr "从 gmeow:stage-export-constraint-shapes 到 gmeow:stage-validate 的数据流边：validate 读取生产者产品中的产物“generated/shapes/constraint-shapes.ttl”。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-validate-export-frame-shapes|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "dataflow: export-frame-shapes → validate"
+msgstr "数据流：export-frame-shapes → validate"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-validate-export-frame-shapes|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The dataflow edge from gmeow:stage-export-frame-shapes to gmeow:stage-validate: validate reads the artifact 'generated/shapes/frame-shapes.ttl' of the producer's product."
+msgstr "从 gmeow:stage-export-frame-shapes 到 gmeow:stage-validate 的数据流边：validate 读取生产者产品中的产物“generated/shapes/frame-shapes.ttl”。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-validate-export-result-shapes|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "dataflow: export-result-shapes → validate"
+msgstr "数据流：export-result-shapes → validate"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-validate-export-result-shapes|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The dataflow edge from gmeow:stage-export-result-shapes to gmeow:stage-validate: validate reads the artifact 'generated/shapes/result-shapes.ttl' of the producer's product."
+msgstr "从 gmeow:stage-export-result-shapes 到 gmeow:stage-validate 的数据流边：validate 读取生产者产品中的产物“generated/shapes/result-shapes.ttl”。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-validate-source-load|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "dataflow: source-load → validate"
+msgstr "数据流：source-load → validate"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-validate-source-load|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The dataflow edge from gmeow:stage-source-load to gmeow:stage-validate: validate reads the representation blob 'spans:source-table', the frozen dataset of the producer's product."
+msgstr "从 gmeow:stage-source-load 到 gmeow:stage-validate 的数据流边：validate 读取生产者产品中的表示形式二进制块“spans:source-table”、冻结数据集。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-verify-attestation-parse-sources|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "dataflow: parse-sources → verify-attestation"
+msgstr "数据流：parse-sources → verify-attestation"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-verify-attestation-parse-sources|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The dataflow edge from gmeow:stage-parse-sources to gmeow:stage-verify-attestation: verify-attestation reads the typed handle pinned to <https://blackcatinformatics.ca/gmeow/graph/source-catalog>, the frozen dataset of the producer's product."
+msgstr "从 gmeow:stage-parse-sources 到 gmeow:stage-verify-attestation 的数据流边：verify-attestation 读取生产者产品中的固定到 <https://blackcatinformatics.ca/gmeow/graph/source-catalog> 的类型化句柄、冻结数据集。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-verify-attestation-source-load|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "dataflow: source-load → verify-attestation"
+msgstr "数据流：source-load → verify-attestation"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-verify-attestation-source-load|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The dataflow edge from gmeow:stage-source-load to gmeow:stage-verify-attestation: verify-attestation reads the frozen dataset of the producer's product."
+msgstr "从 gmeow:stage-source-load 到 gmeow:stage-verify-attestation 的数据流边：verify-attestation 读取生产者产品中的冻结数据集。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-verify-attestation-statements|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "dataflow: statements → verify-attestation"
+msgstr "数据流：statements → verify-attestation"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-verify-attestation-statements|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The dataflow edge from gmeow:stage-statements to gmeow:stage-verify-attestation: verify-attestation reads the frozen dataset of the producer's product."
+msgstr "从 gmeow:stage-statements 到 gmeow:stage-verify-attestation 的数据流边：verify-attestation 读取生产者产品中的冻结数据集。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-export-export-export-json-schema|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "dataflow: export-json-schema → export-export"
+msgstr "数据流：export-json-schema → export-export"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-export-export-export-json-schema|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The dataflow edge from gmeow:stage-export-json-schema to gmeow:stage-export-export: export-export reads the artifact 'generated/schemas/gmeow.schema.json' of the producer's product."
+msgstr "从 gmeow:stage-export-json-schema 到 gmeow:stage-export-export 的数据流边：export-export 读取生产者产品中的产物“generated/schemas/gmeow.schema.json”。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-export-export-snapshot|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "dataflow: snapshot → export-export"
+msgstr "数据流：snapshot → export-export"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-export-export-snapshot|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The dataflow edge from gmeow:stage-snapshot to gmeow:stage-export-export: export-export reads the frozen dataset of the producer's product."
+msgstr "从 gmeow:stage-snapshot 到 gmeow:stage-export-export 的数据流边：export-export 读取生产者产品中的冻结数据集。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-export-okf-snapshot|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "dataflow: snapshot → export-okf"
+msgstr "数据流：snapshot → export-okf"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-export-okf-snapshot|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The dataflow edge from gmeow:stage-snapshot to gmeow:stage-export-okf: export-okf reads the frozen dataset of the producer's product."
+msgstr "从 gmeow:stage-snapshot 到 gmeow:stage-export-okf 的数据流边：export-okf 读取生产者产品中的冻结数据集。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-export-yaml-ld-snapshot|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "dataflow: snapshot → export-yaml-ld"
+msgstr "数据流：snapshot → export-yaml-ld"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-export-yaml-ld-snapshot|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The dataflow edge from gmeow:stage-snapshot to gmeow:stage-export-yaml-ld: export-yaml-ld reads the frozen dataset of the producer's product."
+msgstr "从 gmeow:stage-snapshot 到 gmeow:stage-export-yaml-ld 的数据流边：export-yaml-ld 读取生产者产品中的冻结数据集。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/flowReasonDataflow|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The edge exists because BYTES genuinely flow producer → consumer: the consumer reads the producer's product (the ordinary gmeow:dataflowConsumes case). A dataflow reasoner may key the consumer's cache on the flowing entities' digests and is free to schedule producers first. The default and most common reason; most of the build DAG's own edges carry it, and the edges that carry no bytes declare gmeow:flowReasonAuthority instead. Distinct from gmeow:flowReasonAuthority, whose edge carries no bytes and exists purely to order two stages."
+msgstr "该边之所以存在，是因为字节确实从生产者流向使用方：使用方读取生产者的产品（即常规的 gmeow:dataflowConsumes 情形）。数据流推理器可以按流动实体的摘要为使用方的缓存建键，并可自由地先调度生产者。这是默认且最常见的原因；构建 DAG 的大多数边都带有它，而不携带任何字节的边则改为声明 gmeow:flowReasonAuthority。与 gmeow:flowReasonAuthority 不同，后者的边不携带任何字节，仅用于为两个阶段排序。"
