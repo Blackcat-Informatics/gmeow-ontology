@@ -1,0 +1,45 @@
+{
+  "assignees": [],
+  "author": {
+    "id": "MDQ6VXNlcjUyNzU1NQ==",
+    "is_bot": false,
+    "login": "paudley",
+    "name": "Patrick Audley"
+  },
+  "body": "Request: a frame relation between a standpoint and the context its readings\nwere made within, which does not narrow the standpoint.\n\nNeed: a reading of a work is made from some frame. Two standpoints may\nshare a context (the readings were made within that context) without one\nbeing a sharper case of the other. Today sharpening is the only relation\nbetween standpoints, and using it for a shared context would wrongly make\none frame a refinement of the other.\n\nProposed term: madeWithinContextOf, relating a standpoint that exists for\nreading works to the frame whose context its readings were made within.\n\nExplicitly not a sharpening: the subject does not become a case of the\nobject. It is for standpoints that exist for reading works, not for a\nperson who holds claims about other things as well.\n",
+  "closedAt": null,
+  "comments": [],
+  "createdAt": "2026-11-10T14:43:28Z",
+  "labels": [
+    {
+      "id": "LA_kwDOSwdn1s8AAAACl8ZKwA",
+      "name": "enhancement",
+      "description": "New feature or request",
+      "color": "a2eeef"
+    },
+    {
+      "id": "LA_kwDOSwdn1s8AAAACmTvTOg",
+      "name": "foundational",
+      "description": "Foundational / kernel construct",
+      "color": "b60205"
+    },
+    {
+      "id": "LA_kwDOSwdn1s8AAAACnasmrQ",
+      "name": "logic",
+      "description": "logic: reasoning layer (the RDF 1.2-native logic; OWL is a projection)",
+      "color": "5319e7"
+    },
+    {
+      "id": "LA_kwDOSwdn1s8AAAADBPkJyQ",
+      "name": "terms",
+      "description": "",
+      "color": "ededed"
+    }
+  ],
+  "milestone": null,
+  "number": 2684,
+  "state": "OPEN",
+  "title": "vocabulary: a frame relation between standpoints that does not narrow",
+  "updatedAt": "2026-11-10T14:43:58Z",
+  "url": "https://github.com/Blackcat-Informatics/gmeow-ontology/issues/2684"
+}

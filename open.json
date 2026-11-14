@@ -1,0 +1,30 @@
+{
+  "schema": 1,
+  "issue": 2684,
+  "repo": "gmeow-ontology",
+  "forge": "github",
+  "nwo": "Blackcat-Informatics/gmeow-ontology",
+  "read_access": "anon-read",
+  "main_root": "/home/paudley/Active/gmeow-ontology",
+  "worktree": "/home/paudley/Active/gmeow-ontology/.worktrees/2684-vocabulary-a-frame-relation-between",
+  "branch": "paudley/2684-vocabulary-a-frame-relation-between",
+  "slug": "vocabulary-a-frame-relation-between",
+  "slug_drift": false,
+  "stage_dir": "/home/paudley/Active/gmeow-ontology/.worktrees/2684-vocabulary-a-frame-relation-between/.stage/vocabulary-a-frame-relation-between",
+  "stage_tracked": true,
+  "base": "origin/main",
+  "base_oid": "7a9e9fc173f99d02fb2f7732d85f73aaeed1916b",
+  "reused": false,
+  "adr_repo": false,
+  "created": [
+    "worktree:/home/paudley/Active/gmeow-ontology/.worktrees/2684-vocabulary-a-frame-relation-between",
+    "branch:paudley/2684-vocabulary-a-frame-relation-between",
+    "ignored:8267 files (8267 reflinked, 0 written)",
+    "rust-caches:reflinked /home/paudley/Active/gmeow-ontology/.worktrees/2646-restore-main-ci-after-producer caches into /home/paudley/Active/gmeow-ontology/.worktrees/2684-vocabulary-a-frame-relation-between plus 0 dependency units from 0 other checkouts in 3.3s; 12986 unchanged files keep their built mtimes; 2 other files take the seed time and rebuild; 0 units naming another checkout rebuild",
+    "stage:/home/paudley/Active/gmeow-ontology/.worktrees/2684-vocabulary-a-frame-relation-between/.stage/vocabulary-a-frame-relation-between",
+    "issue:/home/paudley/Active/gmeow-ontology/.worktrees/2684-vocabulary-a-frame-relation-between/.stage/vocabulary-a-frame-relation-between/issue.md"
+  ],
+  "warnings": [],
+  "timestamp": "2026-11-11T16:05:16-0600",
+  "seed_error": ""
+}
