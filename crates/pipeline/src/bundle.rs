@@ -161,8 +161,9 @@ pub const INTERNAL_ARTIFACT_PREFIX: &str = "pipeline/";
 /// artifacts that consumers declare they read
 /// ([`crate::node::Stage::internal_artifact_reads`]); without it they would receive a
 /// product that silently lacks them. The scheduler calls this when a product's exact
-/// remaining carrier-reader count reaches zero, and also when it hands a product to an
-/// artifact-only consumer; the resulting product is a TOMBSTONE —
+/// remaining carrier-reader count reaches zero, and also, under the enforcing read
+/// policy, when it hands a product to an artifact-only consumer (one whose edge declares
+/// no carrier read); the resulting product is a TOMBSTONE —
 /// [`StageProduct::carrier_released`](crate::node::StageProduct::carrier_released) is
 /// set and the product keeps its ORIGINAL `digest`, because the digest is the identity
 /// witness of the carrier that was released, not a fold over this residue.

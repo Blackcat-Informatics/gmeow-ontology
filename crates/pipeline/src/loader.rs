@@ -71,11 +71,11 @@ pub struct StageSpec {
     pub dataflow_entities: DataFlowEntities,
     /// The reads each reified `gmeow:BuildDataFlow` edge into this stage declares, by
     /// producer: which lanes of that producer's product this stage may read. The
-    /// scheduler hands the stage a view of each product that records every access, and
-    /// fails the stage when the recorded reads and these declarations differ. Retention
-    /// is derived from the declarations: a carrier is kept until its last declared
-    /// carrier reader has run, and a declared internal artifact is kept through every
-    /// release until the run ends.
+    /// scheduler hands the stage a view of each product that records each access made
+    /// through the lane accessors, and fails the stage when the recorded reads and these
+    /// declarations differ. Retention is derived from the declarations: a carrier is kept
+    /// until its last declared carrier reader has run, and a declared internal artifact
+    /// is kept through every release until the run ends.
     pub reads: BTreeMap<String, ReadSet>,
     /// `gmeow:producesFormat` — output format tags, sorted (export leaves).
     pub formats: Vec<String>,
