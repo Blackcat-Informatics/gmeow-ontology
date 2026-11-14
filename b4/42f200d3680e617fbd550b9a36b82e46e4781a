@@ -1,0 +1,24 @@
+ghprsq source head backlink metadata
+
+parent_hashes: b442f200d3680e617fbd550b9a36b82e46e4781a
+
+GhpRsq-Schema: 1
+GhpRsq-Merge-Style: structured-squash-head-backlink
+GhpRsq-GitHub-Repo: Blackcat-Informatics/gmeow-ontology
+GhpRsq-GitHub-Pull-Request: 2762
+GhpRsq-GitHub-PR-URL: https://github.com/Blackcat-Informatics/gmeow-ontology/pull/2762
+GhpRsq-Base-Ref: main
+GhpRsq-Base-OID: 05385cf3b80521897499ec47cdccfb54b75680d2
+GhpRsq-Head-Ref: paudley/2756-repair-the-three-helpers-check-failures
+GhpRsq-Head-OID: b442f200d3680e617fbd550b9a36b82e46e4781a
+GhpRsq-Result-Tree: 39f4677e62eed7009d4881e60550f6591a36e56c
+GhpRsq-Result-Commit: 04aa28a7e0d2151398271eddfa65215044be4e7e
+GhpRsq-Parent-Hashes: b442f200d3680e617fbd550b9a36b82e46e4781a
+GhpRsq-Squash-Notes-SHA256: b8de6198f729f3f8ea91c551280942e4909a29d172116f6a78f8667a76acc11b
+GhpRsq-Defect-Class: gate-left-red
+GhpRsq-Stage-Tree: 045b70dd5a0636f13857f46b2a7bdaf7386a76de
+GhpRsq-Stage-Commit: 03655fd14bbfa57244607a9e244ce649f292c028
+GhpRsq-Stage-Tag: refs/tags/ghprsq/artifacts/03655fd14bbfa57244607a9e244ce649f292c028
+GhpRsq-Stage-Ref: refs/ghprsq/pr/2762/stage
+GhpRsq-Stage-Files: 11
+GhpRsq-Stage-URL: https://github.com/Blackcat-Informatics/gmeow-ontology/tree/03655fd14bbfa57244607a9e244ce649f292c028
