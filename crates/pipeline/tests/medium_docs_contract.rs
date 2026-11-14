@@ -4,7 +4,7 @@
 //! The two normative documents the medium axis is answerable to, checked against the
 //! DATA rather than against a copy of themselves.
 //!
-//! `docs/gts-narrow-waist.md` and `docs/PIPELINE_SPINE.md` are not commentary: CLAUDE.md
+//! `docs/gts-narrow-waist.md` and `docs/PIPELINE_SPINE.md` are not commentary: AGENTS.md
 //! makes the spine canonical for anything touching `crates/pipeline` or `generated/`, and
 //! the narrow waist is the rule set every producer is written against. Stale doctrine in
 //! a normative document is a defect of the same kind as stale code — with the extra edge
