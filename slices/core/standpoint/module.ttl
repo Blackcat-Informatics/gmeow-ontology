@@ -185,6 +185,20 @@ gmeow:madeWithinContextOf
     gmeow:howToUse "Assert it from the standpoint that exists for reading works to the frame whose context its readings were made within. Use gmeow:Standpoint for both ends; no class is specific to a standpoint that reads works, and gmeow:ReadingOrder is a different notion, a standpoint that orders the segments of a work for consumption, so do not use it as the subject unless that ordering standpoint is itself the one whose readings were made within the context. Add a gmeow:sharpens edge separately and only when one frame really is a refinement of the other."@x-gmeow-english ;
     gmeow:useWhen "Use to record that a standpoint set up to read works made its readings within the context of another frame, when the two share a context but neither is a sharper case of the other."@x-gmeow-english .
 
+gmeow:moreEntrenchedThan
+    a logic:ObjectProperty ;
+    logic:domain gmeow:Standpoint ;
+    logic:range gmeow:Standpoint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/standpoint> ;
+    rdfs:label "more entrenched than"@x-gmeow-english ;
+    skos:definition "S1 is more entrenched than S2: the party who ranks the two frames holds S1 to be the more settled of them. The ranking is a strict partial order that exists only as dated claims attributed to the ranker: every asserted edge needs a reifier annotated with gmeow:accordingTo for the party who ranks and with gmeow:validFrom for the instant from which the ranking holds, and gmeow:moreEntrenchedThanAttributionConstraint rejects an edge without both. Within one ranker the order is irreflexive (gmeow:moreEntrenchedThanIrreflexivity) and asymmetric: gmeow:moreEntrenchedThanRankerOrderConstraint rejects a ranker who holds a pair in both directions at once, unless one of the two claims is succeeded or corrected by the other, or is retracted, through the claim-lifecycle relations. It is transitive within one ranker's live claims: gmeow:moreEntrenchedThanRankerClosureConstraint requires a ranker who holds a claim ranking a over b and a claim ranking b over c to hold a claim ranking a over c as well, where none of the three is succeeded, corrected or retracted. It is not declared transitive or asymmetric globally: a global closure would chain one ranker's claim with another's and entail a ranking that no party made, and two rankers may legitimately rank a pair in opposite directions (Principle 9). Together these checks reject a cycle of any length among one ranker's live claims. They read the record as it stands and compare no dates, so a cycle among the claims selected at an evaluation instant is reported by the consumer and not by a canonical check. A missing claim means the two frames are incomparable — never equal and never lower. It is never derived from gmeow:sharpens: sharpening is containment, and reading the sharper frame as the more entrenched would invert a chain such a ranker made. It is a presentation aid for ordering frames, not a confidence, a truth value, or the epistemic-entrenchment ordering that drives logic:EntrenchmentRevision."@x-gmeow-english ;
+    skos:example "ex:communityView gmeow:moreEntrenchedThan ex:fringeView {| gmeow:accordingTo ex:editorialBoard ; gmeow:validFrom \"2026-03-01T00:00:00Z\"^^xsd:dateTime |} ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid asserting it without the ranker and the date on the statement, which is rejected, avoid reading a missing claim as equal or lower, avoid deriving it from gmeow:sharpens, and avoid using it as a confidence, a truth value, or a belief-revision ordering. Avoid reading the top of a ranker's order as the primary or preferred frame (Principle 9). Never close it across rankers: chain only the claims one party made. Avoid ending a ranking by rewriting it or by an invented end instant: record a change or withdrawal with the claim-lifecycle relations."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxCBox ,
+        gmeow:boxRBox ;
+    gmeow:howToUse "Assert it from the more entrenched standpoint to the less entrenched one as an annotated statement, naming the party who ranks with gmeow:accordingTo and the instant from which the ranking holds with gmeow:validFrom; an edge without both is rejected. Leave a pair with no claim unranked. When one ranker's live claims rank a over b and b over c, also record that ranker's dated claim ranking a over c; a chain without it is rejected. To change or withdraw a ranking, keep the earlier claim and record the change with the claim-lifecycle relations, naming the reifier of the ranking statement: gmeow:succeedsClaim for a reversal or replacement, gmeow:correctsClaim for a ranking made in error, gmeow:retractsClaim for a withdrawal. To order frames for display at an evaluation instant t, take one ranker's claims whose gmeow:validFrom is not later than t, leave out a claim suppressed with gmeow:displayable false, a corrected claim, a claim whose retraction or successor has taken effect by t, close what remains transitively on its own, and treat any pair left unordered as incomparable; if the remaining claims still contain a cycle, report it and do not pick a side. A historical order at t answers what the ranker held at t. It ignores gmeow:displayable, which is a display policy and not a truth judgment. It keeps a superseded claim for every t before its successor took effect and leaves it out from that instant on. It leaves out a corrected claim at every t, because a correction rejects the earlier validity of the claim. It keeps a retracted claim for every t before its retraction took effect and leaves it out from that instant on, because a retraction withdraws endorsement from then on and does not erase that the claim was made. A lifecycle relation takes effect at the earliest gmeow:validFrom on its own statement; one that carries no such date counts as in effect at every t. The canonical checks read the record as it stands and not at an instant, so the consumer still closes the claims selected at t, per ranker."@x-gmeow-english ;
+    gmeow:useWhen "Use to record that a named party ranks one standpoint as more entrenched than another, when the ranking is only partly known and a pair nobody ranked must stay incomparable."@x-gmeow-english .
+
 gmeow:probable
     a gmeow:StandpointModality ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/standpoint> ;
@@ -1100,6 +1114,193 @@ gmeow:sharpensTransitivity
     skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:sharpens and nothing else. It is not a definition of gmeow:sharpens (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
     skos:example "gmeow:sharpensTransitivity logic:characterizes gmeow:sharpens ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:moreEntrenchedThanIrreflexivity
+    a logic:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/standpoint> ;
+    rdfs:label "moreEntrenchedThan is irreflexive"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:moreEntrenchedThan is irreflexive: no party ranks a standpoint as more entrenched than itself, as its skos:definition states. The native coherence gate reads this to raise a violation for a standpoint ranked above itself. Transitivity and asymmetry are deliberately not declared, because both would reach across rankers."@x-gmeow-english ;
+    logic:characterizes gmeow:moreEntrenchedThan ;
+    logic:characteristicSort logic:irreflexiveProperty ;
+    logic:formalizes gmeow:moreEntrenchedThan ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:moreEntrenchedThan never relates a standpoint to itself; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a self-edge is meaningful — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:moreEntrenchedThan, logic:characteristicSort logic:irreflexiveProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:moreEntrenchedThan and nothing else. It is not a definition of gmeow:moreEntrenchedThan (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:moreEntrenchedThanIrreflexivity logic:characterizes gmeow:moreEntrenchedThan ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:moreEntrenchedThanAttributionConstraint
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/standpoint> ;
+    rdfs:label "More entrenched than attribution constraint"@x-gmeow-english ;
+    skos:definition "A closed-world integrity constraint: every gmeow:moreEntrenchedThan edge asserted from a gmeow:Standpoint must have an RDF 1.2 reifier of the same statement that carries both a gmeow:accordingTo value naming the party who ranks and a gmeow:validFrom value giving the instant from which the ranking holds, so that the order exists only as dated claims attributed to a ranker. A bare edge, or an edge whose reifier lacks either annotation, is rejected. It checks that the annotations are present, not who the ranker is or whether the date is sensible. A universal-to-existential formula over the lowered reifier components."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid reading it as proof that the ranker is the right party, that the date is correct, or that the ranking is still current: it checks presence only, and it applies to an edge whose subject is typed gmeow:Standpoint."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    gmeow:howToUse "Annotate every gmeow:moreEntrenchedThan statement with gmeow:accordingTo and gmeow:validFrom on its reifier; the constraint needs no other input."@x-gmeow-english ;
+    gmeow:useWhen "Use to confirm that every ranking between standpoints is a dated claim attributed to the party who ranks."@x-gmeow-english ;
+    logic:formalizes gmeow:moreEntrenchedThan ;
+    logic:message "Every gmeow:moreEntrenchedThan edge from a gmeow:Standpoint must have a reifier carrying both gmeow:accordingTo (the ranker) and gmeow:validFrom (the instant the ranking holds)." ;
+    logic:severity "Violation" ;
+    logic:integrity [ a logic:Formula ;
+        logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "other" ] ;
+        logic:forall [ a logic:Formula ;
+            logic:antecedent [ a logic:Formula ;
+                logic:and [ a logic:Formula ; logic:relation rdf:type ;
+                        logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri gmeow:Standpoint ] ] ,
+                    [ a logic:Formula ; logic:relation gmeow:moreEntrenchedThan ;
+                        logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "other" ] ] ] ;
+            logic:consequent [ a logic:Formula ;
+                logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "claim" ] , [ logic:termIndex 1 ; logic:termVariable "ranker" ] , [ logic:termIndex 2 ; logic:termVariable "from" ] ;
+                logic:exists [ a logic:Formula ;
+                    logic:and [ a logic:Formula ; logic:relation logic:reifiedStatementSubject ;
+                            logic:argument [ logic:termIndex 0 ; logic:termVariable "claim" ] , [ logic:termIndex 1 ; logic:termVariable "this" ] ] ,
+                        [ a logic:Formula ; logic:relation logic:reifiedStatementPredicate ;
+                            logic:argument [ logic:termIndex 0 ; logic:termVariable "claim" ] , [ logic:termIndex 1 ; logic:termIri gmeow:moreEntrenchedThan ] ] ,
+                        [ a logic:Formula ; logic:relation logic:reifiedStatementObject ;
+                            logic:argument [ logic:termIndex 0 ; logic:termVariable "claim" ] , [ logic:termIndex 1 ; logic:termVariable "other" ] ] ,
+                        [ a logic:Formula ; logic:relation gmeow:accordingTo ;
+                            logic:argument [ logic:termIndex 0 ; logic:termVariable "claim" ] , [ logic:termIndex 1 ; logic:termVariable "ranker" ] ] ,
+                        [ a logic:Formula ; logic:relation gmeow:validFrom ;
+                            logic:argument [ logic:termIndex 0 ; logic:termVariable "claim" ] , [ logic:termIndex 1 ; logic:termVariable "from" ] ] ] ] ] ] .
+
+gmeow:moreEntrenchedThanRankerOrderConstraint
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/standpoint> ;
+    rdfs:label "More entrenched than per-ranker order constraint"@x-gmeow-english ;
+    skos:definition "A closed-world integrity constraint: one ranker may not hold both gmeow:moreEntrenchedThan(a, b) and gmeow:moreEntrenchedThan(b, a) as live claims, the reversed pair that would make the strict order symmetric. Both edges are matched through their RDF 1.2 reifiers, which must name the same ranker with gmeow:accordingTo, so two different rankers ranking a pair in opposite directions is the legal co-equal conflict of Principle 9 and is never rejected. A pair is exempt when one claim is linked to the other by gmeow:succeedsClaim or gmeow:correctsClaim in either direction, or when either claim is the object of a gmeow:retractsClaim, because those relations are the repository's encoding of a ranker changing or withdrawing a ranking. An edge from a standpoint to itself is the degenerate reversed pair. Only the pair of two claims is checked here: gmeow:moreEntrenchedThanRankerClosureConstraint requires the claim that spans a longer chain of live claims, and that claim meets the claim closing a longer cycle as a reversed pair."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid reading it as a check across rankers, who may legitimately disagree, as a check of a cycle longer than two, or as a check of who made a lifecycle link: any claim-lifecycle link between the two claims exempts the pair."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    gmeow:howToUse "Record a reversal as a new ranking statement that gmeow:succeedsClaim the earlier one, a mistaken ranking with gmeow:correctsClaim, and a withdrawal with a gmeow:Activity that gmeow:retractsClaim the earlier claim; name the reifier of each ranking statement so that the lifecycle relation can reach it."@x-gmeow-english ;
+    gmeow:useWhen "Use to reject a ranker who ranks the same two frames in both directions at once without recording a succession, correction or withdrawal."@x-gmeow-english ;
+    logic:formalizes gmeow:moreEntrenchedThan ;
+    logic:message "One ranker may not hold gmeow:moreEntrenchedThan in both directions between two standpoints unless one claim succeeds or corrects the other or is retracted." ;
+    logic:severity "Violation" ;
+    logic:integrity [ a logic:Formula ;
+        logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ;
+        logic:forall [ a logic:Formula ;
+            logic:antecedent [ a logic:Formula ; logic:relation rdf:type ;
+                logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri gmeow:Standpoint ] ] ;
+            logic:consequent [ a logic:Formula ;
+                logic:not [ a logic:Formula ;
+                    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "other" ] , [ logic:termIndex 1 ; logic:termVariable "first" ] , [ logic:termIndex 2 ; logic:termVariable "second" ] , [ logic:termIndex 3 ; logic:termVariable "ranker" ] ;
+                    logic:exists [ a logic:Formula ;
+                        logic:and [ a logic:Formula ; logic:relation logic:reifiedStatementSubject ;
+                                logic:argument [ logic:termIndex 0 ; logic:termVariable "first" ] , [ logic:termIndex 1 ; logic:termVariable "this" ] ] ,
+                            [ a logic:Formula ; logic:relation logic:reifiedStatementPredicate ;
+                                logic:argument [ logic:termIndex 0 ; logic:termVariable "first" ] , [ logic:termIndex 1 ; logic:termIri gmeow:moreEntrenchedThan ] ] ,
+                            [ a logic:Formula ; logic:relation logic:reifiedStatementObject ;
+                                logic:argument [ logic:termIndex 0 ; logic:termVariable "first" ] , [ logic:termIndex 1 ; logic:termVariable "other" ] ] ,
+                            [ a logic:Formula ; logic:relation gmeow:accordingTo ;
+                                logic:argument [ logic:termIndex 0 ; logic:termVariable "first" ] , [ logic:termIndex 1 ; logic:termVariable "ranker" ] ] ,
+                            [ a logic:Formula ; logic:relation logic:reifiedStatementSubject ;
+                                logic:argument [ logic:termIndex 0 ; logic:termVariable "second" ] , [ logic:termIndex 1 ; logic:termVariable "other" ] ] ,
+                            [ a logic:Formula ; logic:relation logic:reifiedStatementPredicate ;
+                                logic:argument [ logic:termIndex 0 ; logic:termVariable "second" ] , [ logic:termIndex 1 ; logic:termIri gmeow:moreEntrenchedThan ] ] ,
+                            [ a logic:Formula ; logic:relation logic:reifiedStatementObject ;
+                                logic:argument [ logic:termIndex 0 ; logic:termVariable "second" ] , [ logic:termIndex 1 ; logic:termVariable "this" ] ] ,
+                            [ a logic:Formula ; logic:relation gmeow:accordingTo ;
+                                logic:argument [ logic:termIndex 0 ; logic:termVariable "second" ] , [ logic:termIndex 1 ; logic:termVariable "ranker" ] ] ,
+                            [ a logic:Formula ; logic:not [ a logic:Formula ; logic:relation gmeow:succeedsClaim ;
+                                logic:argument [ logic:termIndex 0 ; logic:termVariable "first" ] , [ logic:termIndex 1 ; logic:termVariable "second" ] ] ] ,
+                            [ a logic:Formula ; logic:not [ a logic:Formula ; logic:relation gmeow:succeedsClaim ;
+                                logic:argument [ logic:termIndex 0 ; logic:termVariable "second" ] , [ logic:termIndex 1 ; logic:termVariable "first" ] ] ] ,
+                            [ a logic:Formula ; logic:not [ a logic:Formula ; logic:relation gmeow:correctsClaim ;
+                                logic:argument [ logic:termIndex 0 ; logic:termVariable "first" ] , [ logic:termIndex 1 ; logic:termVariable "second" ] ] ] ,
+                            [ a logic:Formula ; logic:not [ a logic:Formula ; logic:relation gmeow:correctsClaim ;
+                                logic:argument [ logic:termIndex 0 ; logic:termVariable "second" ] , [ logic:termIndex 1 ; logic:termVariable "first" ] ] ] ,
+                            [ a logic:Formula ; logic:not [ a logic:Formula ;
+                                logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "withdrawal" ] ;
+                                logic:exists [ a logic:Formula ; logic:relation gmeow:retractsClaim ;
+                                    logic:argument [ logic:termIndex 0 ; logic:termVariable "withdrawal" ] , [ logic:termIndex 1 ; logic:termVariable "first" ] ] ] ] ,
+                            [ a logic:Formula ; logic:not [ a logic:Formula ;
+                                logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "withdrawal" ] ;
+                                logic:exists [ a logic:Formula ; logic:relation gmeow:retractsClaim ;
+                                    logic:argument [ logic:termIndex 0 ; logic:termVariable "withdrawal" ] , [ logic:termIndex 1 ; logic:termVariable "second" ] ] ] ] ] ] ] ] ] .
+
+gmeow:moreEntrenchedThanRankerClosureConstraint
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/standpoint> ;
+    rdfs:label "More entrenched than per-ranker closure constraint"@x-gmeow-english ;
+    skos:definition "A closed-world integrity constraint: when one ranker holds a live claim gmeow:moreEntrenchedThan(a, b) and a live claim gmeow:moreEntrenchedThan(b, c), that ranker must also hold a live claim gmeow:moreEntrenchedThan(a, c), so that each ranker's live claims are closed under transitivity. All three edges are matched through their RDF 1.2 reifiers, which must name the same ranker with gmeow:accordingTo, so the claims of different rankers are never chained (Principle 9). A claim is live when it is the object of no gmeow:succeedsClaim, no gmeow:correctsClaim and no gmeow:retractsClaim. A premise that is superseded, corrected or retracted does not oblige, and the concluding claim must itself be live: the live claims are the ones a displayed order keeps once every recorded lifecycle relation has taken effect, so they then already contain every ranking that closing them derives. Together with gmeow:moreEntrenchedThanIrreflexivity and gmeow:moreEntrenchedThanRankerOrderConstraint this rejects a cycle of any length among one ranker's live claims: the closure forces a live claim from the first standpoint of the cycle to its last, and that claim meets the claim closing the cycle as a reversed pair. The check reads the record as it stands and compares no dates, so it does not judge the order at an evaluation instant. logic:transitiveReach is not used, because it follows one fixed property over asserted edges and cannot be restricted to the reifiers that name one ranker. A universal-to-existential formula over the lowered reifier components."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid reading it as a closure across rankers, as a derivation that adds the missing claim for you, as a check of the order at an evaluation instant, or as a check of who made a lifecycle link: any claim-lifecycle link to a claim makes that claim not live. It applies to a chain whose first standpoint is typed gmeow:Standpoint."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    gmeow:howToUse "When a ranker ranks a over b and b over c, record that ranker's dated claim ranking a over c as its own annotated statement. When a premise is succeeded, corrected or retracted the obligation lapses, and the concluding claim can then be changed or withdrawn with the same claim-lifecycle relations."@x-gmeow-english ;
+    gmeow:useWhen "Use to reject a ranker whose live claims rank a over b and b over c without a live claim that ranks a over c."@x-gmeow-english ;
+    logic:formalizes gmeow:moreEntrenchedThan ;
+    logic:message "A ranker who holds live gmeow:moreEntrenchedThan claims from a to b and from b to c must also hold a live claim from a to c; a claim that is succeeded, corrected or retracted is not live." ;
+    logic:severity "Violation" ;
+    logic:integrity [ a logic:Formula ;
+        logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "middle" ] , [ logic:termIndex 2 ; logic:termVariable "lower" ] , [ logic:termIndex 3 ; logic:termVariable "first" ] , [ logic:termIndex 4 ; logic:termVariable "second" ] , [ logic:termIndex 5 ; logic:termVariable "ranker" ] ;
+        logic:forall [ a logic:Formula ;
+            logic:antecedent [ a logic:Formula ;
+                logic:and [ a logic:Formula ; logic:relation rdf:type ;
+                        logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri gmeow:Standpoint ] ] ,
+                    [ a logic:Formula ; logic:relation logic:reifiedStatementSubject ;
+                        logic:argument [ logic:termIndex 0 ; logic:termVariable "first" ] , [ logic:termIndex 1 ; logic:termVariable "this" ] ] ,
+                    [ a logic:Formula ; logic:relation logic:reifiedStatementPredicate ;
+                        logic:argument [ logic:termIndex 0 ; logic:termVariable "first" ] , [ logic:termIndex 1 ; logic:termIri gmeow:moreEntrenchedThan ] ] ,
+                    [ a logic:Formula ; logic:relation logic:reifiedStatementObject ;
+                        logic:argument [ logic:termIndex 0 ; logic:termVariable "first" ] , [ logic:termIndex 1 ; logic:termVariable "middle" ] ] ,
+                    [ a logic:Formula ; logic:relation gmeow:accordingTo ;
+                        logic:argument [ logic:termIndex 0 ; logic:termVariable "first" ] , [ logic:termIndex 1 ; logic:termVariable "ranker" ] ] ,
+                    [ a logic:Formula ; logic:relation logic:reifiedStatementSubject ;
+                        logic:argument [ logic:termIndex 0 ; logic:termVariable "second" ] , [ logic:termIndex 1 ; logic:termVariable "middle" ] ] ,
+                    [ a logic:Formula ; logic:relation logic:reifiedStatementPredicate ;
+                        logic:argument [ logic:termIndex 0 ; logic:termVariable "second" ] , [ logic:termIndex 1 ; logic:termIri gmeow:moreEntrenchedThan ] ] ,
+                    [ a logic:Formula ; logic:relation logic:reifiedStatementObject ;
+                        logic:argument [ logic:termIndex 0 ; logic:termVariable "second" ] , [ logic:termIndex 1 ; logic:termVariable "lower" ] ] ,
+                    [ a logic:Formula ; logic:relation gmeow:accordingTo ;
+                        logic:argument [ logic:termIndex 0 ; logic:termVariable "second" ] , [ logic:termIndex 1 ; logic:termVariable "ranker" ] ] ,
+                    [ a logic:Formula ; logic:not [ a logic:Formula ;
+                        logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "firstSuccessor" ] ;
+                        logic:exists [ a logic:Formula ; logic:relation gmeow:succeedsClaim ;
+                            logic:argument [ logic:termIndex 0 ; logic:termVariable "firstSuccessor" ] , [ logic:termIndex 1 ; logic:termVariable "first" ] ] ] ] ,
+                    [ a logic:Formula ; logic:not [ a logic:Formula ;
+                        logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "firstCorrection" ] ;
+                        logic:exists [ a logic:Formula ; logic:relation gmeow:correctsClaim ;
+                            logic:argument [ logic:termIndex 0 ; logic:termVariable "firstCorrection" ] , [ logic:termIndex 1 ; logic:termVariable "first" ] ] ] ] ,
+                    [ a logic:Formula ; logic:not [ a logic:Formula ;
+                        logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "firstWithdrawal" ] ;
+                        logic:exists [ a logic:Formula ; logic:relation gmeow:retractsClaim ;
+                            logic:argument [ logic:termIndex 0 ; logic:termVariable "firstWithdrawal" ] , [ logic:termIndex 1 ; logic:termVariable "first" ] ] ] ] ,
+                    [ a logic:Formula ; logic:not [ a logic:Formula ;
+                        logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "secondSuccessor" ] ;
+                        logic:exists [ a logic:Formula ; logic:relation gmeow:succeedsClaim ;
+                            logic:argument [ logic:termIndex 0 ; logic:termVariable "secondSuccessor" ] , [ logic:termIndex 1 ; logic:termVariable "second" ] ] ] ] ,
+                    [ a logic:Formula ; logic:not [ a logic:Formula ;
+                        logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "secondCorrection" ] ;
+                        logic:exists [ a logic:Formula ; logic:relation gmeow:correctsClaim ;
+                            logic:argument [ logic:termIndex 0 ; logic:termVariable "secondCorrection" ] , [ logic:termIndex 1 ; logic:termVariable "second" ] ] ] ] ,
+                    [ a logic:Formula ; logic:not [ a logic:Formula ;
+                        logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "secondWithdrawal" ] ;
+                        logic:exists [ a logic:Formula ; logic:relation gmeow:retractsClaim ;
+                            logic:argument [ logic:termIndex 0 ; logic:termVariable "secondWithdrawal" ] , [ logic:termIndex 1 ; logic:termVariable "second" ] ] ] ] ] ;
+            logic:consequent [ a logic:Formula ;
+                logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "third" ] ;
+                logic:exists [ a logic:Formula ;
+                    logic:and [ a logic:Formula ; logic:relation logic:reifiedStatementSubject ;
+                            logic:argument [ logic:termIndex 0 ; logic:termVariable "third" ] , [ logic:termIndex 1 ; logic:termVariable "this" ] ] ,
+                        [ a logic:Formula ; logic:relation logic:reifiedStatementPredicate ;
+                            logic:argument [ logic:termIndex 0 ; logic:termVariable "third" ] , [ logic:termIndex 1 ; logic:termIri gmeow:moreEntrenchedThan ] ] ,
+                        [ a logic:Formula ; logic:relation logic:reifiedStatementObject ;
+                            logic:argument [ logic:termIndex 0 ; logic:termVariable "third" ] , [ logic:termIndex 1 ; logic:termVariable "lower" ] ] ,
+                        [ a logic:Formula ; logic:relation gmeow:accordingTo ;
+                            logic:argument [ logic:termIndex 0 ; logic:termVariable "third" ] , [ logic:termIndex 1 ; logic:termVariable "ranker" ] ] ,
+                        [ a logic:Formula ; logic:not [ a logic:Formula ;
+                            logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "thirdSuccessor" ] ;
+                            logic:exists [ a logic:Formula ; logic:relation gmeow:succeedsClaim ;
+                                logic:argument [ logic:termIndex 0 ; logic:termVariable "thirdSuccessor" ] , [ logic:termIndex 1 ; logic:termVariable "third" ] ] ] ] ,
+                        [ a logic:Formula ; logic:not [ a logic:Formula ;
+                            logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "thirdCorrection" ] ;
+                            logic:exists [ a logic:Formula ; logic:relation gmeow:correctsClaim ;
+                                logic:argument [ logic:termIndex 0 ; logic:termVariable "thirdCorrection" ] , [ logic:termIndex 1 ; logic:termVariable "third" ] ] ] ] ,
+                        [ a logic:Formula ; logic:not [ a logic:Formula ;
+                            logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "thirdWithdrawal" ] ;
+                            logic:exists [ a logic:Formula ; logic:relation gmeow:retractsClaim ;
+                                logic:argument [ logic:termIndex 0 ; logic:termVariable "thirdWithdrawal" ] , [ logic:termIndex 1 ; logic:termVariable "third" ] ] ] ] ] ] ] ] .
+
 gmeow:claimAssertoricForceFunctionality
     a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
