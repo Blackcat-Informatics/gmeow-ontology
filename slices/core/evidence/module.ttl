@@ -107,7 +107,6 @@ gmeow:assertionCategoryDerivedInterpretation
     a gmeow:AssertionCategory ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/evidence> ;
     rdfs:label "derived interpretation"@x-gmeow-english ;
-    skos:closeMatch gmeow:observationTypeDerived ;
     skos:definition "The claim is an interpretation inferred or computed from other statements rather than stated by its subject or read from a source. It is the claim-level counterpart of gmeow:observationTypeDerived, which says the same of an observation: categorise the bare claim and type the observation record, and infer neither from the other. The statements it was derived from are carried by its provenance."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox ,
         gmeow:boxCBox .
@@ -117,10 +116,6 @@ gmeow:assertionCategoryPublishedEvidence
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/evidence> ;
     rdfs:label "published evidence"@x-gmeow-english ;
     skos:definition "The claim is a statement that rests on externally published evidence: it reports what a source outside the claim's own standpoint has published, and each such source is cited through a gmeow:CitationAct that carries its own gmeow:hasEvidenceClass. The evidence classes that name a kind of published source — gmeow:evidenceOfficialSource, gmeow:evidenceIndependentTradePress, gmeow:evidencePublicRegistry and gmeow:evidenceNewspaperLead — are narrower cases of it, related as values: the category does not fix which of them a citation of the claim carries, and a claim of another category may cite such a source."@x-gmeow-english ;
-    skos:narrowMatch gmeow:evidenceIndependentTradePress ,
-        gmeow:evidenceNewspaperLead ,
-        gmeow:evidenceOfficialSource ,
-        gmeow:evidencePublicRegistry ;
     gmeow:graphBoxRole gmeow:boxABox ,
         gmeow:boxCBox .
 
@@ -129,10 +124,7 @@ gmeow:assertionCategorySelfDescription
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/evidence> ;
     rdfs:label "self-description"@x-gmeow-english ;
     rdfs:seeAlso gmeow:selfAsserted ;
-    skos:broadMatch gmeow:sourceIndependenceSelfOrIssuerOriginated ;
-    skos:closeMatch gmeow:evidenceSELF ;
     skos:definition "The claim is a description of the subject made by the subject itself. It is the claim-level counterpart of gmeow:evidenceSELF on a citation; gmeow:evidenceSelfControlledSite is a narrower case and gmeow:sourceIndependenceSelfOrIssuerOriginated a broader one, which also covers an issuer or affiliated party. These relations hold between the values, not between a claim and its citations: a self-description that cites an official source carries this category while that citation carries gmeow:evidenceOfficialSource, and gmeow:evidenceSELF on a citation does not by itself make a claim a self-description. A statement or identity facet marked gmeow:selfAsserted true is a self-description; that flag also marks the authority of a subject over its own identity facets (Principle 9), which this category does not assert."@x-gmeow-english ;
-    skos:narrowMatch gmeow:evidenceSelfControlledSite ;
     gmeow:graphBoxRole gmeow:boxABox ,
         gmeow:boxCBox .
 

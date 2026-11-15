@@ -12,7 +12,7 @@
 # - the analyst infers a third membership from the first (derived interpretation).
 #
 # The citations carry the evidence classes. The category values are related to the
-# evidence-class values in the module, but a claim's category is not read off its
+# evidence-class values in the slice's mapping source, but a claim's category is not read off its
 # citations: the organisation's own self-description cites an official source, so
 # its category and the evidence class of its citation differ. A categorisation is
 # itself a claim, so the third one is attributed to the standpoint that made it.

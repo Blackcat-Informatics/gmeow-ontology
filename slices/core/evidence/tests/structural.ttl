@@ -354,10 +354,12 @@ ASK {
 
 # --- Assertion category (Principles 2, 4 and 9) --------------------------------
 # gmeow:AssertionCategory is a value vocabulary with the three seeded individuals,
-# gmeow:assertionCategory carries them on a claim, and each individual is related
-# to the existing evidence-class, source-independence and observation-type
-# individuals. The relations hold between values; no property axiom derives a
-# claim's category from its citations, and the category never ranks claims.
+# and gmeow:assertionCategory carries them on a claim. The links from each
+# individual to the existing evidence-class, source-independence and
+# observation-type individuals are alignment cells in mappings/equivalences.ttl,
+# pinned by the competency questions; the module only points at
+# gmeow:selfAsserted. No property axiom derives a claim's category from its
+# citations, and the category never ranks claims.
 ex:saAssertionCategoryVocabulary a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:must ;
     gmeow:saScope gmeow:scopeModule ;
@@ -373,24 +375,24 @@ ASK {
 }""" ;
     gmeow:saRationale "The three assertion categories are individuals of one value vocabulary reached through one property whose range is that vocabulary (Principle 4: one way to state the category on a claim)." .
 
-ex:saAssertionCategoryRelatedToExistingValues a gmeow:StructuralAssertion ;
+ex:saSelfDescriptionPointsAtSelfAsserted a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:must ;
     gmeow:saScope gmeow:scopeModule ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK { gmeow:assertionCategorySelfDescription rdfs:seeAlso gmeow:selfAsserted . }""" ;
+    gmeow:saRationale "The self-description category MUST point at gmeow:selfAsserted, the other carrier of a subject's own statement, so the two are not unrelated ways to say the same thing (Principle 4)." .
+
+ex:saAssertionCategoryLinksNotInModule a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:mustNot ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
 PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
 ASK {
-    gmeow:assertionCategorySelfDescription skos:closeMatch gmeow:evidenceSELF ;
-        skos:narrowMatch gmeow:evidenceSelfControlledSite ;
-        skos:broadMatch gmeow:sourceIndependenceSelfOrIssuerOriginated ;
-        rdfs:seeAlso gmeow:selfAsserted .
-    gmeow:assertionCategoryPublishedEvidence skos:narrowMatch gmeow:evidenceOfficialSource ,
-        gmeow:evidenceIndependentTradePress ,
-        gmeow:evidencePublicRegistry ,
-        gmeow:evidenceNewspaperLead .
-    gmeow:assertionCategoryDerivedInterpretation skos:closeMatch gmeow:observationTypeDerived .
+    ?category a gmeow:AssertionCategory ;
+        (skos:exactMatch|skos:closeMatch|skos:broadMatch|skos:narrowMatch|skos:relatedMatch) ?value .
 }""" ;
-    gmeow:saRationale "Every assertion category MUST be related to the existing individuals that say the same of a citation or an observation, so the category is grounded in the evidence and observation vocabulary and is not a second, unrelated one (Principle 4); the self-description category MUST point at gmeow:selfAsserted, the other carrier of a subject's own statement." .
+    gmeow:saRationale "The links from the category values to the existing values are alignment cells in the slice's mapping source and ship as correspondence content. The module MUST NOT restate them as bare triples: that would be a second source (Principle 4)." .
 
 ex:saAssertionCategoryNotFunctional a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:mustNot ;

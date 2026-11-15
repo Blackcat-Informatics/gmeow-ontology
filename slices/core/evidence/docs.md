@@ -125,9 +125,11 @@ differently.
 
 The category is stated on the claim and says what kind of assertion it is. The evidence
 class and the source independence are stated on each `gmeow:CitationAct` and describe one
-citation; the observation type is stated on a `gmeow:Observation`. The module relates the
-category values to those existing values with SKOS mapping relations, the form the places
-slice uses between granularity levels and place types:
+citation; the observation type is stated on a `gmeow:Observation`. The category values are
+related to those existing values by alignment cells in `mappings/equivalences.ttl`, the
+slice's mapping source. Each cell is a SKOS mapping statement with its justification and
+confidence, and compiles into the shipped correspondence content and the slice's SSSOM
+set:
 
 | Category | Relation | Existing value |
 |---|---|---|
@@ -139,10 +141,10 @@ slice uses between granularity levels and place types:
 
 `skos:closeMatch` marks the counterpart that says the same thing of another carrier,
 `skos:narrowMatch` a narrower case and `skos:broadMatch` a broader one. The relations
-hold between the values. They say nothing about any one claim and its citations, and no
-property axiom ties `gmeow:assertionCategory` to `gmeow:hasEvidenceClass`,
-`gmeow:sourceIndependence` or `gmeow:observationType`, so nothing is derived in either
-direction:
+hold between the values. They say nothing about any one claim and its citations, no cell
+relates the properties, and no property axiom ties `gmeow:assertionCategory` to
+`gmeow:hasEvidenceClass`, `gmeow:sourceIndependence` or `gmeow:observationType`, so nothing
+is derived in either direction:
 
 - a self-description may cite an official source, so its category is
   `assertionCategorySelfDescription` while its citation carries
@@ -157,7 +159,8 @@ For a derived interpretation, categorise the bare claim and type the observation
 `observationTypeDerived` on a `gmeow:Observation` are the same judgement on two
 carriers. Neither is inferred from the other; deriving one from the other is solver work.
 
-`gmeow:selfAsserted` (gender slice) is related too. A statement or identity facet marked
+`gmeow:selfAsserted` (gender slice) is related too. The self-description value points
+at it with `rdfs:seeAlso` in the module. A statement or identity facet marked
 `gmeow:selfAsserted true` is a self-description. The flag says more than the category:
 it marks the authority of a subject over its own identity facets (Principle 9). Use
 `gmeow:selfAsserted` on an identity facet, where that authority is the point, and
