@@ -29,6 +29,9 @@ use crate::ir::{
 use super::sparql_lower::{sparql_literal, sparql_predicate};
 
 #[cfg(test)]
+mod foreign_domain_tests;
+
+#[cfg(test)]
 mod obligation_declaration_tests;
 
 #[cfg(test)]

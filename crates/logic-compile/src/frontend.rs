@@ -3812,8 +3812,11 @@ pub fn derive_validation_shapes(
     // property-scoped SubjectsOf(P) domain shape AND — so the declarative class-node reader
     // (Pydantic / ShEx) narrows the field to scalar — every rdfs:domain class node shape of P. A
     // property with NO rdfs:domain (e.g. gmeow:unit) keeps ONLY the property-scoped cap; no class
-    // node shape is fabricated. The merge (`merge_same_path_properties`) folds the class-scoped cap
-    // cleanly into any restriction the class already authored on P.
+    // node shape is fabricated. A domain or range class outside the authoring namespaces likewise
+    // gets no class node shape (a derived shape is named only in an authoring namespace); the
+    // property-scoped cap still bounds every subject (object) of P, whatever its class. The merge
+    // (`merge_same_path_properties`) folds the class-scoped cap cleanly into any restriction the
+    // class already authored on P.
     let char_assertion_ty = Node::iri(logic_iri("PropertyCharacteristicAssertion"));
     let functional_sort = Node::iri(logic_iri("functionalProperty"));
     let inverse_functional_sort = Node::iri(logic_iri("inverseFunctionalProperty"));
@@ -3845,6 +3848,7 @@ pub fn derive_validation_shapes(
             for c in restriction_objects(&prop_subj, &p_domain, &p_logic_domain) {
                 if let Node::Iri(c) = c
                     && matches!(classify(&c), Some(ConstraintComponent::Class(_)))
+                    && is_authoring_ns(&c)
                 {
                     let pc = PropertyConstraintIr::new(
                         &prop,
@@ -3874,6 +3878,7 @@ pub fn derive_validation_shapes(
             for c in restriction_objects(&prop_subj, &p_range, &p_logic_range) {
                 if let Node::Iri(c) = c
                     && matches!(classify(&c), Some(ConstraintComponent::Class(_)))
+                    && is_authoring_ns(&c)
                 {
                     let pc = PropertyConstraintIr::new(
                         &prop,
