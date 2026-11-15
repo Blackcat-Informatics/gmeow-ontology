@@ -1364,6 +1364,10 @@ pub enum ChaseAdmission {
     Uncertified {
         /// The offending special edges, sorted.
         violations: Vec<String>,
+        /// The analysis bounds that kept a finer certificate from being decided, each
+        /// naming the bound and its measured size. A bound is not a cycle: it is reported
+        /// apart from `violations` so a reader can tell which of the two refused.
+        bounds: Vec<String>,
     },
 }
 
@@ -1535,6 +1539,103 @@ impl StatementRule {
 /// spans every constant of the program, so larger programs are refused with that
 /// reason rather than attempted.
 const MODEL_SUMMARIZING_MAX_RULES: usize = 64;
+
+/// The offending rules a termination refusal lists with a reason of their own. Past this
+/// many, the remaining rules are still all named, together in one further reason.
+const REPORTED_RULES: usize = 16;
+/// The edges or members one rule's reason lists before it counts the rest.
+const REPORTED_DETAILS: usize = 4;
+
+/// The head relations of a rule, sorted and de-duplicated.
+fn head_relations(rule: &ExistentialRule) -> Vec<String> {
+    rule.head
+        .iter()
+        .map(|atom| atom.predicate.clone())
+        .collect::<BTreeSet<_>>()
+        .into_iter()
+        .collect()
+}
+
+/// The marker an input-specific specialization appends to the name of the rule it
+/// specializes, followed by its ordinal.
+pub(crate) const SPECIALIZATION_MARK: &str = ":immutable-binding:";
+
+/// The rule a specialization was made from; any other name is its own rule.
+fn specialized_from(name: &str) -> &str {
+    name.split_once(SPECIALIZATION_MARK)
+        .map_or(name, |(rule, _)| rule)
+}
+
+/// Group a refusal's findings by rule, bounded in number: one reason for each of the
+/// first [`REPORTED_RULES`] rules (sorted by rule identity) naming the rule, its head
+/// relations and up to [`REPORTED_DETAILS`] of its findings, then at most one reason that
+/// names every remaining rule. No rule that lies on a cycle goes unnamed.
+fn grouped_rule_reasons(
+    kind: &str,
+    what: &str,
+    groups: impl IntoIterator<Item = (String, Vec<String>, Vec<String>)>,
+) -> Vec<String> {
+    // Specializations of one rule are one rule to a reader.
+    let mut merged: BTreeMap<String, (BTreeSet<String>, BTreeSet<String>)> = BTreeMap::new();
+    for (rule, relations, details) in groups {
+        let entry = merged
+            .entry(specialized_from(&rule).to_owned())
+            .or_default();
+        entry.0.extend(relations);
+        entry.1.extend(details);
+    }
+    let groups: Vec<(String, Vec<String>, Vec<String>)> = merged
+        .into_iter()
+        .map(|(rule, (relations, details))| {
+            (
+                rule,
+                relations.into_iter().collect(),
+                details.into_iter().collect(),
+            )
+        })
+        .collect();
+    let render = |relations: &[String]| {
+        relations
+            .iter()
+            .map(|relation| format!("<{relation}>"))
+            .collect::<Vec<_>>()
+            .join(", ")
+    };
+    let mut reasons: Vec<String> = groups
+        .iter()
+        .take(REPORTED_RULES)
+        .map(|(rule, relations, details)| {
+            let listed = details
+                .iter()
+                .take(REPORTED_DETAILS)
+                .cloned()
+                .collect::<Vec<_>>()
+                .join("; ");
+            let more = details.len().saturating_sub(REPORTED_DETAILS);
+            let more = if more == 0 {
+                String::new()
+            } else {
+                format!(" (and {more} more)")
+            };
+            format!(
+                "{kind}: rule <{rule}> with head relations [{}] {what}: {listed}{more}",
+                render(relations)
+            )
+        })
+        .collect();
+    if groups.len() > REPORTED_RULES {
+        let rest: Vec<String> = groups[REPORTED_RULES..]
+            .iter()
+            .map(|(rule, ..)| format!("<{rule}>"))
+            .collect();
+        reasons.push(format!(
+            "{kind}: {} further rule(s) {what}: {}",
+            rest.len(),
+            rest.join(", ")
+        ));
+    }
+    reasons
+}
 
 /// Which rungs of the termination-class ladder a certification may climb.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -1828,8 +1929,15 @@ impl ChaseAdmission {
                         "checked joint acyclicity"
                     );
                     joint
-                        .or_else(|| Self::certify_restricted_joint_acyclic(&analysis, &rja))
-                        .unwrap_or(Self::Uncertified { violations })
+                        .map(Ok)
+                        .unwrap_or_else(|| Self::certify_restricted_joint_acyclic(&analysis, &rja))
+                        .unwrap_or_else(|mut cycles| {
+                            cycles.extend(violations);
+                            Self::Uncertified {
+                                violations: cycles,
+                                bounds: Vec::new(),
+                            }
+                        })
                 }
             }
         };
@@ -1854,7 +1962,7 @@ impl ChaseAdmission {
             | Self::ModelSummarizingAcyclic { evidence } => {
                 *evidence = format!("{context}; {evidence}");
             }
-            Self::Uncertified { violations } => {
+            Self::Uncertified { violations, .. } => {
                 violations.insert(0, format!("{context} has no joint termination certificate"));
             }
         }
@@ -1889,8 +1997,12 @@ impl ChaseAdmission {
                 }
                 rule.numeric.clear();
             }
-            return Self::certify_weakly_acyclic(&abstraction)
-                .unwrap_or_else(|violations| Self::Uncertified { violations });
+            return Self::certify_weakly_acyclic(&abstraction).unwrap_or_else(|violations| {
+                Self::Uncertified {
+                    violations,
+                    bounds: Vec::new(),
+                }
+            });
         }
         let empty = BTreeSet::new();
         let guarded: BTreeSet<_> = rules
@@ -1922,27 +2034,41 @@ impl ChaseAdmission {
     ) -> Self {
         match Self::certify_weakly_acyclic(weak) {
             Ok(admission) => admission,
-            Err(mut violations) => Self::certify_joint_acyclic(weak)
-                .or_else(|| Self::certify_super_weak_acyclic(tuples))
-                .or_else(|| match ladder {
-                    Ladder::Complete if tuples.len() <= MODEL_SUMMARIZING_MAX_RULES => {
-                        Self::certify_model_summarizing(tuples)
-                    }
-                    Ladder::Complete => {
-                        violations.insert(
-                            0,
-                            format!(
-                                "model-summarizing acyclicity not attempted: {} rules exceed its \
-                                 {MODEL_SUMMARIZING_MAX_RULES}-rule bound",
+            Err(violations) => {
+                let mut bounds = Vec::new();
+                let mut cycles = Vec::new();
+                Self::certify_joint_acyclic(weak)
+                    .or_else(|| Self::certify_super_weak_acyclic(tuples))
+                    .or_else(|| match ladder {
+                        Ladder::Complete if tuples.len() <= MODEL_SUMMARIZING_MAX_RULES => {
+                            Self::certify_model_summarizing(tuples)
+                        }
+                        Ladder::Complete => {
+                            bounds.push(format!(
+                                "model-summarizing acyclicity not attempted: {} rules exceed \
+                                 its {MODEL_SUMMARIZING_MAX_RULES}-rule bound",
                                 tuples.len()
-                            ),
-                        );
-                        None
-                    }
-                    Ladder::Polynomial => None,
-                })
-                .or_else(|| Self::certify_restricted_joint_acyclic(weak, rja))
-                .unwrap_or(Self::Uncertified { violations }),
+                            ));
+                            None
+                        }
+                        Ladder::Polynomial => None,
+                    })
+                    .or_else(|| match Self::certify_restricted_joint_acyclic(weak, rja) {
+                        Ok(admission) => Some(admission),
+                        Err(found) => {
+                            cycles = found;
+                            None
+                        }
+                    })
+                    .unwrap_or_else(|| {
+                        // The restricted rung computes the sharpest cycle, so it leads.
+                        cycles.extend(violations);
+                        Self::Uncertified {
+                            violations: cycles,
+                            bounds,
+                        }
+                    })
+            }
         }
     }
 
@@ -1953,14 +2079,14 @@ impl ChaseAdmission {
         // Adjacency (normal ∪ special) and the special-edge list.
         let mut adj: std::collections::BTreeMap<Position, BTreeSet<Position>> =
             std::collections::BTreeMap::new();
-        let mut special: Vec<(Position, Position)> = Vec::new();
+        let mut special: Vec<(Position, Position, usize)> = Vec::new();
         let mut all_nodes: BTreeSet<Position> = BTreeSet::new();
         // Positions a head writes and a body reads: cross-rule flow joins a written
         // position to every read position its values can match.
         let mut written: BTreeSet<Position> = BTreeSet::new();
         let mut read: BTreeSet<Position> = BTreeSet::new();
 
-        for rule in rules {
+        for (rule_index, rule) in rules.iter().enumerate() {
             let body_vars = rule.body_vars();
             let existentials: BTreeSet<String> = rule.existentials().into_iter().collect();
 
@@ -1997,7 +2123,7 @@ impl ChaseAdmission {
                             read.insert(b.clone());
                             written.insert(h.clone());
                             adj.entry(b.clone()).or_default().insert(h.clone());
-                            special.push((b.clone(), h.clone()));
+                            special.push((b.clone(), h.clone(), rule_index));
                         }
                     }
                 }
@@ -2012,18 +2138,30 @@ impl ChaseAdmission {
         // graph, so that holds exactly when u and v share a strongly connected
         // component: one linear pass decides every edge.
         let component = position_components(&adj);
-        let mut violations: Vec<String> = Vec::new();
-        for (u, v) in &special {
+        // One reason per offending rule, never one per edge: a conflated position graph
+        // can put hundreds of edges on a cycle, and the reader needs the rules.
+        let mut offending: BTreeMap<usize, BTreeSet<String>> = BTreeMap::new();
+        for (u, v, rule) in &special {
             if component[u] == component[v] {
-                violations.push(format!(
-                    "weak-acyclicity: existential edge {} -> {} lies in a cycle (the restricted chase may not terminate)",
+                offending.entry(*rule).or_default().insert(format!(
+                    "{} -> {}",
                     u.render(),
                     v.render()
                 ));
             }
         }
-        violations.sort();
-        violations.dedup();
+        let violations = grouped_rule_reasons(
+            "weak-acyclicity",
+            "has existential edge(s) in a cycle (the restricted chase may not terminate)",
+            offending.into_iter().map(|(rule, edges)| {
+                let rule = &rules[rule];
+                (
+                    rule.rule_iri.clone(),
+                    head_relations(rule),
+                    edges.into_iter().collect(),
+                )
+            }),
+        );
 
         if violations.is_empty() {
             Ok(Self::WeaklyAcyclic {
@@ -2108,8 +2246,8 @@ impl ChaseAdmission {
     fn certify_restricted_joint_acyclic(
         rules: &[ExistentialRule],
         program: &RjaProgram<'_>,
-    ) -> Option<Self> {
-        let graph = JointGraph::new(rules)?;
+    ) -> Result<Self, Vec<String>> {
+        let graph = JointGraph::new(rules).ok_or_else(Vec::new)?;
         // Joint acyclicity's edges, each with the frontiers that carry it. Every
         // restricted edge is one of these, so a restricted cycle lies inside one
         // strongly connected component of this graph: only an edge within a component
@@ -2180,35 +2318,33 @@ impl ChaseAdmission {
         }
         let edge_count = edges.iter().map(BTreeSet::len).sum::<usize>();
         let acyclic = acyclic(&edges);
+        // The surviving cycles, as reasons: the rules on them, with their relations.
+        let mut cycles: BTreeMap<usize, BTreeSet<String>> = BTreeMap::new();
         if !acyclic {
             let remaining = strongly_connected_components(&edges);
             let mut members: BTreeMap<usize, Vec<usize>> = BTreeMap::new();
             for (node, &c) in remaining.iter().enumerate() {
                 members.entry(c).or_default().push(node);
             }
+            let mut cycle = 0usize;
             for nodes in members.values() {
                 let looped = nodes.len() > 1 || edges[nodes[0]].contains(&nodes[0]);
                 if !looped {
                     continue;
                 }
-                let names: Vec<String> = nodes
-                    .iter()
-                    .map(|&node| {
-                        let (rule, null) = &graph.existentials[node];
-                        let iri = rules[*rule].rule_iri.as_str();
-                        let mark = if program.nonblocking.contains(iri) {
-                            " (non-blockable)"
-                        } else {
-                            ""
-                        };
-                        format!("{iri} {null}{mark}")
-                    })
-                    .collect();
-                tracing::info!(
-                    target: "termination_certificate",
-                    members = ?names,
-                    "restricted joint acyclicity cycle"
-                );
+                cycle += 1;
+                for &node in nodes {
+                    let (rule, null) = &graph.existentials[node];
+                    let mark = if program.nonblocking.contains(rules[*rule].rule_iri.as_str()) {
+                        " (non-blockable)"
+                    } else {
+                        ""
+                    };
+                    cycles.entry(*rule).or_default().insert(format!(
+                        "existential {null}{mark} lies on cycle {cycle} of {} existential(s)",
+                        nodes.len()
+                    ));
+                }
             }
         }
         tracing::info!(
@@ -2221,16 +2357,31 @@ impl ChaseAdmission {
             acyclic,
             "checked restricted joint acyclicity"
         );
-        acyclic.then(|| Self::RestrictedJointlyAcyclic {
-            evidence: format!(
-                "restricted jointly acyclic: {} existential variable(s), {} dependency \
-                 edge(s), {} trigger(s) blocked by the Datalog-closed premise, no \
-                 existential depends on itself",
-                graph.existentials.len(),
-                edge_count,
-                blocked
-            ),
-        })
+        if acyclic {
+            Ok(Self::RestrictedJointlyAcyclic {
+                evidence: format!(
+                    "restricted jointly acyclic: {} existential variable(s), {} dependency \
+                     edge(s), {} trigger(s) blocked by the Datalog-closed premise, no \
+                     existential depends on itself",
+                    graph.existentials.len(),
+                    edge_count,
+                    blocked
+                ),
+            })
+        } else {
+            Err(grouped_rule_reasons(
+                "restricted-joint-acyclicity",
+                "invents a value that can trigger itself",
+                cycles.into_iter().map(|(rule, details)| {
+                    let rule = &rules[rule];
+                    (
+                        rule.rule_iri.clone(),
+                        head_relations(rule),
+                        details.into_iter().collect(),
+                    )
+                }),
+            ))
+        }
     }
 
     /// **Super-weak acyclicity** (Marnette, 2009): strictly broader than weak acyclicity,
@@ -2495,6 +2646,22 @@ impl ChaseAdmission {
         )
     }
 
+    /// The reasons an uncertified program was refused: per-rule cycle findings.
+    pub(crate) fn violations(&self) -> &[String] {
+        match self {
+            Self::Uncertified { violations, .. } => violations,
+            _ => &[],
+        }
+    }
+
+    /// The analysis bounds that kept a finer certificate from being decided.
+    pub(crate) fn bounds(&self) -> &[String] {
+        match self {
+            Self::Uncertified { bounds, .. } => bounds,
+            _ => &[],
+        }
+    }
+
     /// The COUNTED capability-gap rows for this certificate: one
     /// [`crate::reason::ledger::DivergenceKind::DlGap`] row per weak-acyclicity violation
     /// when [`Self::Uncertified`], and NONE when [`Self::WeaklyAcyclic`] (a certified
@@ -2507,8 +2674,11 @@ impl ChaseAdmission {
     /// committed DL/EL crosscheck `gapCount == 0` gate.
     pub(crate) fn capability_gap_rows(&self) -> Vec<crate::reason::ledger::LedgerRow> {
         match self {
-            Self::Uncertified { violations } => {
+            Self::Uncertified { violations, bounds } => {
                 crate::reason::ledger::existential_gap_rows(violations)
+                    .into_iter()
+                    .chain(crate::reason::ledger::existential_gap_rows(bounds))
+                    .collect()
             }
             Self::WeaklyAcyclic { .. }
             | Self::JointlyAcyclic { .. }
@@ -2557,10 +2727,15 @@ impl ChaseAdmission {
                 evidence.clone(),
             )
             .with_tool("chase"),
-            Self::Uncertified { violations } => Finding::new(
+            Self::Uncertified { violations, bounds } => Finding::new(
                 Severity::Error,
                 "chase.certificate.uncertified".to_owned(),
-                violations.join("; "),
+                violations
+                    .iter()
+                    .chain(bounds)
+                    .cloned()
+                    .collect::<Vec<_>>()
+                    .join("; "),
             )
             .with_tool("chase"),
         }
@@ -2647,13 +2822,23 @@ impl ChaseAdmission {
             (
                 Self::Uncertified {
                     violations: mut merged,
+                    bounds: mut merged_bounds,
                 },
-                Self::Uncertified { violations: rhs },
+                Self::Uncertified {
+                    violations: rhs,
+                    bounds: rhs_bounds,
+                },
             ) => {
                 merged.extend(rhs);
                 merged.sort();
                 merged.dedup();
-                Self::Uncertified { violations: merged }
+                merged_bounds.extend(rhs_bounds);
+                merged_bounds.sort();
+                merged_bounds.dedup();
+                Self::Uncertified {
+                    violations: merged,
+                    bounds: merged_bounds,
+                }
             }
             // Any Uncertified part forces the whole to Uncertified, keeping its violations.
             (u @ Self::Uncertified { .. }, _) | (_, u @ Self::Uncertified { .. }) => u,

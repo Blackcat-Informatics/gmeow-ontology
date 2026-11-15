@@ -1183,6 +1183,7 @@ fn producer_admission(
     } else {
         ChaseAdmission::Uncertified {
             violations: arithmetic,
+            bounds: Vec::new(),
         }
     }
 }

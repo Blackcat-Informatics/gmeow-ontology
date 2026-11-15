@@ -752,10 +752,16 @@ pub(super) fn execute_transaction(
                 reason: format!("native program execution refused {kind:?}"),
                 gaps: program
                     .admission
-                    .capability_gap_rows()
+                    .violations()
                     .iter()
-                    .map(|row| format!("{}: {}", row.category, row.detail))
+                    .map(|violation| {
+                        format!(
+                            "{}: {violation}",
+                            crate::reason::ledger::EXISTENTIAL_CHASE_CATEGORY
+                        )
+                    })
                     .collect(),
+                bounds: program.admission.bounds().to_vec(),
             }));
         }
     };

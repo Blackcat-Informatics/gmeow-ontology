@@ -34,7 +34,8 @@ const MAX_BYTES: usize = 128 << 20;
 /// value cells, so more rows than this cannot sharpen it further.
 const ENRICHMENT_ROWS: usize = 4096;
 const ENRICHMENT_BYTES: usize = 1 << 20;
-/// The retained template rule metadata a cacheable joint template may carry.
+/// The retained template rule metadata a cacheable joint template may carry. It bounds
+/// what is retained between runs only; it never decides whether a certificate is tried.
 pub(super) const CACHEABLE_BYTES: usize = 1 << 20;
 
 /// Retained rule metadata only; no source facts or per-world closure is cached.
@@ -293,10 +294,11 @@ impl Template {
         if admission.admits_native() {
             return Ok(Ok(admission));
         }
-        let refused = |mut admission: ChaseAdmission| {
-            if let ChaseAdmission::Uncertified { violations } = &mut admission {
-                for (index, note) in notes.iter().enumerate() {
-                    violations.insert(index, note.clone());
+        // Each bound that kept a finer analysis from completing is named on the refusal.
+        let refused = |mut admission: ChaseAdmission, extra: Option<String>| {
+            if let ChaseAdmission::Uncertified { bounds, .. } = &mut admission {
+                for (index, note) in notes.iter().chain(extra.as_ref()).enumerate() {
+                    bounds.insert(index, note.clone());
                 }
             }
             admission
@@ -345,7 +347,14 @@ impl Template {
             }) else {
                 // The decided first-pass certificate stands when the finer
                 // enumeration cannot complete.
-                return Ok(Ok(refused(admission)));
+                return Ok(Ok(refused(
+                    admission,
+                    Some(format!(
+                        "the source-enumerated second pass was not attempted: rule {} has more \
+                         than {MAX_BINDINGS} value bindings",
+                        rule.name
+                    )),
+                )));
             };
             for ordinal in 0..count {
                 let mut cursor = ordinal;
@@ -361,7 +370,16 @@ impl Template {
                     source_facts: Vec::new(),
                 };
                 if !push_analysis(&mut analysis, &mut bytes, rule, &solution, &[]) {
-                    return Ok(Ok(refused(admission)));
+                    return Ok(Ok(refused(
+                        admission,
+                        Some(format!(
+                            "the source-enumerated second pass stopped at rule {} after {} \
+                             specialized statements ({bytes} bytes): its bound is {MAX_BINDINGS} \
+                             statements and {MAX_BYTES} bytes",
+                            rule.name,
+                            analysis.len()
+                        )),
+                    )));
                 }
             }
         }
@@ -372,11 +390,10 @@ impl Template {
         );
         let seeds = firing_seeds(facts, possible, external, semantics);
         let firing = firing_statements(&analysis, seeds.as_ref(), semantics);
-        Ok(Ok(refused(ChaseAdmission::certify_statements(
-            &firing,
-            semantics,
-            Ladder::Complete,
-        ))))
+        Ok(Ok(refused(
+            ChaseAdmission::certify_statements(&firing, semantics, Ladder::Complete),
+            None,
+        )))
     }
 
     /// The first pass: specialize every producer on its settled (immutable or
@@ -740,15 +757,13 @@ fn push_analysis(
     true
 }
 
-/// Why an input's specific termination certificate was not attempted. The
+/// Why an input's specific termination certificate was not decided. The
 /// source-independent template certificate then decides alone, and a refusal
 /// names this gap rather than presenting the template's ledger as the input's.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub(super) enum EvidenceGap {
     /// No input-specific observation was supplied.
     Unobserved,
-    /// The retained rule metadata exceeds the cacheable bound.
-    Uncacheable { metadata_bytes: usize },
     /// The proved-immutable selector rows exceed the analysis bound.
     Bound {
         facts: usize,
@@ -777,11 +792,6 @@ impl std::fmt::Display for EvidenceGap {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
             Self::Unobserved => f.write_str("no input-specific evidence was observed"),
-            Self::Uncacheable { metadata_bytes } => write!(
-                f,
-                "the joint template's rule metadata ({metadata_bytes} bytes) exceeds the \
-                 {CACHEABLE_BYTES}-byte cacheable bound"
-            ),
             Self::Bound {
                 facts,
                 bytes,
@@ -834,8 +844,10 @@ impl gmeow_errors::DiagKind for EvidenceGap {
 }
 
 impl EvidenceGap {
-    pub(super) fn uncacheable(metadata_bytes: usize) -> Self {
-        Self::Uncacheable { metadata_bytes }
+    /// Whether an analysis bound, rather than an absent observation, left the
+    /// input-specific certificate undecided.
+    pub(super) fn is_bound(&self) -> bool {
+        !matches!(self, Self::Unobserved)
     }
 }
 
@@ -868,7 +880,11 @@ fn specialize(
     };
     let substitute = |atom: &[EvalTerm; 3]| atom.each_ref().map(substitute_term);
     StatementRule {
-        name: format!("{}:immutable-binding:{ordinal}", rule.name),
+        name: format!(
+            "{}{}{ordinal}",
+            rule.name,
+            crate::physical::chase::SPECIALIZATION_MARK
+        ),
         body: rule
             .body
             .iter()

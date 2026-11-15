@@ -303,6 +303,7 @@ impl ProgramAdmission {
                 self.source_iri
             ),
             gaps: unsupported,
+            bounds: Vec::new(),
         }))
     }
 

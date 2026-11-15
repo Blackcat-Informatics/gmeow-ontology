@@ -947,3 +947,122 @@ ex:h1 lx:s "?x" ; lx:p logic:naryArg0 ; lx:o "?x" .
         "{report:#}"
     );
 }
+
+/// A formula rule that invents a value of the class it fires on, so the invention can
+/// feed itself without end: `Src(a) -> exists y. Src(y) and rel(a, y)`.
+const SELF_FEEDING_FORMULA: &str = r#"
+ex:cycleBody a logic:Formula ; logic:relation logic:instanceOf ;
+    logic:argument [ a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "A" ],
+                   [ a logic:TermCarrier ; logic:termIndex 1 ; logic:termIri ex:Src ] .
+ex:cycleHeadClass a logic:Formula ; logic:relation logic:instanceOf ;
+    logic:argument [ a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "Y" ],
+                   [ a logic:TermCarrier ; logic:termIndex 1 ; logic:termIri ex:Src ] .
+ex:cycleHeadRel a logic:Formula ; logic:relation ex:rel ;
+    logic:argument [ a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "A" ],
+                   [ a logic:TermCarrier ; logic:termIndex 1 ; logic:termVariable "Y" ] .
+ex:cycleHead a logic:Formula ; logic:and ex:cycleHeadClass, ex:cycleHeadRel .
+ex:cycleExists a logic:Formula ;
+    logic:quantifiedVariable [ a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "Y" ] ;
+    logic:exists ex:cycleHead .
+ex:cycleImplication a logic:Formula ; logic:antecedent ex:cycleBody ; logic:consequent ex:cycleExists .
+ex:cycleLaw a logic:Formula ;
+    logic:quantifiedVariable [ a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "A" ] ;
+    logic:forall ex:cycleImplication .
+ex:a logic:instanceOf ex:Src .
+"#;
+
+/// A termination refusal names the rule of the cycle by its compiler-produced identity
+/// and, because the compiled theory has one, the authored formula it came from.
+#[test]
+fn a_real_existential_cycle_is_a_named_refusal_with_its_authored_formula() {
+    let (report, code) = prove_json("self-feeding.logic.ttl", SELF_FEEDING_FORMULA, &["--gate"]);
+    assert_eq!(report["verdict"], "not-decided", "{report:#}");
+    assert_eq!(code, 3);
+    assert_eq!(report["engines"]["native"]["verdict"], "refused");
+    assert!(
+        has_drop(
+            &report,
+            "NATIVE_REFUSAL_REASON",
+            "(authored formula <https://example.org/prove/cycleLaw>)"
+        ),
+        "{report:#}"
+    );
+    assert!(
+        has_drop(
+            &report,
+            "NATIVE_REFUSAL_REASON",
+            "<https://example.org/prove/rel>"
+        ),
+        "the rule's head relations are named: {report:#}"
+    );
+    assert!(
+        !drop_codes(&report)
+            .iter()
+            .any(|code| code == "NATIVE_ANALYSIS_BOUND"),
+        "a cycle is not an analysis bound: {report:#}"
+    );
+}
+
+/// A refused report lists the lowering residue a completed run of the same selection
+/// lists: both read it from one preparation.
+#[test]
+fn a_refused_report_lists_the_lowering_drops_a_completed_run_lists() {
+    let (completed, _) = prove_json("disjunctive.logic.ttl", DISJUNCTIVE, &["--gate"]);
+    let residue = |report: &serde_json::Value| -> Vec<String> {
+        report["selection"]["drops"]
+            .as_array()
+            .expect("selection drops")
+            .iter()
+            .filter(|drop| drop["code"] == "UNSUPPORTED_CONSTRUCT")
+            .map(|drop| drop["detail"].as_str().expect("detail").to_owned())
+            .collect()
+    };
+    let expected = residue(&completed);
+    assert!(!expected.is_empty(), "{completed:#}");
+    let (refused, code) = prove_json(
+        "refused-with-residue.logic.ttl",
+        &format!("{SELF_FEEDING_FORMULA}{DISJUNCTIVE}"),
+        &["--gate"],
+    );
+    assert_eq!(code, 3, "{refused:#}");
+    assert_eq!(
+        refused["engines"]["native"]["verdict"], "refused",
+        "{refused:#}"
+    );
+    let listed = residue(&refused);
+    for construct in &expected {
+        assert!(listed.contains(construct), "{construct}: {refused:#}");
+    }
+}
+
+/// A program whose native termination is certified only for its own input stays
+/// decided however many inert rules pad it: the size of the template decides only
+/// whether it is cached.
+#[test]
+fn a_program_padded_past_the_cacheable_bound_is_decided_rather_than_refused() {
+    let mut body = String::from(
+        r#"
+ex:A logic:subClassOf [ a logic:Restriction ; logic:onProperty ex:p ;
+    logic:minQualifiedCardinality 2 ; logic:onClass logic:Thing ] .
+ex:a logic:instanceOf ex:A .
+_:x a logic:TermCarrier ; logic:termVariable "x" .
+"#,
+    );
+    for index in 0..900 {
+        body.push_str(&format!(
+            "ex:pad{index} a logic:Rule ; logic:head [ rdf:reifies <<( _:x ex:padTo{index} _:x )>> ] ; \
+             logic:body [ rdf:reifies <<( _:x ex:padFrom{index} _:x )>> ] .\n"
+        ));
+    }
+    let (report, _) = prove_json("padded.logic.ttl", &body, &["--gate"]);
+    assert_eq!(
+        report["engines"]["native"]["verdict"], "no-clash",
+        "{report:#}"
+    );
+    assert!(
+        !drop_codes(&report)
+            .iter()
+            .any(|code| code == "NATIVE_REFUSED" || code == "NATIVE_ANALYSIS_BOUND"),
+        "{report:#}"
+    );
+}

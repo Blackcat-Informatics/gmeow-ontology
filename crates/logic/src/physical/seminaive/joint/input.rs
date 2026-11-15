@@ -883,10 +883,9 @@ impl JointTemplate {
             // immutable-predicate check. Source absence alone proves nothing;
             // an external envelope either participates in the finite bound or
             // prevents the source-concrete certificate.
+            // Whether the template may be cached decides nothing here: the analysis
+            // is bounded by its own row, byte and specialization limits.
             .map(|termination| {
-                if !self.cacheable() {
-                    return Err(admission::EvidenceGap::uncacheable(self.metadata_bytes));
-                }
                 termination.observe(
                     facts,
                     &possible,
@@ -1302,11 +1301,14 @@ impl JointInput<'_> {
                 }
                 Ok(_) => {}
                 Err(reason) => {
-                    if let ChaseAdmission::Uncertified { violations } = &mut admission {
-                        violations.insert(
-                            0,
-                            format!("input-specific termination certificate not decided: {reason}"),
-                        );
+                    if let ChaseAdmission::Uncertified { violations, bounds } = &mut admission {
+                        let note =
+                            format!("input-specific termination certificate not decided: {reason}");
+                        if reason.is_bound() {
+                            bounds.insert(0, note);
+                        } else {
+                            violations.insert(0, note);
+                        }
                     }
                 }
             }

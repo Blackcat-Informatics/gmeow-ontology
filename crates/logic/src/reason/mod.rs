@@ -596,15 +596,92 @@ pub fn reason_selected_theory_within(
     ingress: &ClaimIngress,
     budget: &Budget,
 ) -> gmeow_errors::Result<ReasoningResult> {
-    ingress.authorize(theory.program(), &input)?;
+    let selected = prepare_selected_theory(theory, ingress)?;
+    reason_prepared_theory_within(theory, &selected, input, domains, ingress, budget)
+}
+
+/// A selected theory's native lowering, prepared once. A caller that holds it can name
+/// what the lowering left out and which authored formula a compiled rule came from
+/// whether the run that follows completes or is refused.
+#[derive(Debug, Clone)]
+pub struct SelectedProgram {
+    prepared: std::sync::Arc<crate::program_analysis::PreparedProgram>,
+}
+
+impl SelectedProgram {
+    /// The constructs the lowering could not carry, each named exactly once. A completed
+    /// run folds these into its preservation claim; a refused run reports the same set.
+    #[must_use]
+    pub fn lowering_residue(&self) -> &std::collections::BTreeSet<String> {
+        &self.prepared.preservation.unsupported_constructs
+    }
+
+    /// Each compiler-produced rule identity with the IRIs of the authored formulas it was
+    /// clausified from. A formula without an IRI of its own (a blank node) contributes
+    /// none, and a rule with no named formula is omitted: its identity stands alone.
+    #[must_use]
+    pub fn authored_rule_formulas(
+        &self,
+        theory: &gmeow_logic_compile::frontend::CompiledTheory,
+    ) -> std::collections::BTreeMap<String, Vec<String>> {
+        let dataset = theory.source().dataset();
+        let mut named: std::collections::BTreeMap<usize, String> =
+            std::collections::BTreeMap::new();
+        for lowering in theory.formula_lowerings() {
+            if let gmeow_logic_compile::frontend::FormulaDisposition::Formula(index) =
+                lowering.disposition
+                && let purrdf::TermRef::Iri(iri) = dataset.resolve(lowering.source.term)
+            {
+                named.entry(index).or_insert_with(|| iri.to_owned());
+            }
+        }
+        self.prepared
+            .formula_rules
+            .iter()
+            .filter_map(|(rule, origins)| {
+                let iris: Vec<String> = origins
+                    .iter()
+                    .filter_map(|index| named.get(index).cloned())
+                    .collect();
+                (!iris.is_empty()).then(|| (rule.clone(), iris))
+            })
+            .collect()
+    }
+}
+
+/// Lower one selected theory for native execution.
+///
+/// # Errors
+/// Returns a refusal when `ingress` does not account for this theory's own selection,
+/// and the lowering failures of [`reason_program_within`].
+pub fn prepare_selected_theory(
+    theory: &gmeow_logic_compile::frontend::CompiledTheory,
+    ingress: &ClaimIngress,
+) -> gmeow_errors::Result<SelectedProgram> {
     let prepared = crate::program_analysis::prepare_program_under(
         theory.program(),
         crate::native_semantics::SourceAdmissionProfile::SelectedTheoryV1 {
             theory: ingress.selection().clone(),
         },
     )?;
-    let closure = program::execute(&prepared, input, domains, budget.max_steps)?;
-    Ok(result_from_closure(&prepared, closure, budget.max_steps)?.0)
+    Ok(SelectedProgram { prepared })
+}
+
+/// Execute a selected theory whose lowering [`prepare_selected_theory`] already made.
+///
+/// # Errors
+/// As [`reason_selected_theory_within`].
+pub fn reason_prepared_theory_within(
+    theory: &gmeow_logic_compile::frontend::CompiledTheory,
+    selected: &SelectedProgram,
+    input: PreparedReasoningInput,
+    domains: &crate::physical::SelectedDomains,
+    ingress: &ClaimIngress,
+    budget: &Budget,
+) -> gmeow_errors::Result<ReasoningResult> {
+    ingress.authorize(theory.program(), &input)?;
+    let closure = program::execute(&selected.prepared, input, domains, budget.max_steps)?;
+    Ok(result_from_closure(&selected.prepared, closure, budget.max_steps)?.0)
 }
 
 /// The sole producer-to-result fold for the governed native operation. The typed

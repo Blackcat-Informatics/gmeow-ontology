@@ -524,13 +524,43 @@ fn certify_cyclic_restriction_is_uncertified() {
     let cyclic = restriction_rule("http://ex/rule/cyclic", D, P, D);
     let admission = ChaseAdmission::certify(&[cyclic]);
     match admission {
-        ChaseAdmission::Uncertified { violations } => {
+        ChaseAdmission::Uncertified { violations, .. } => {
             assert!(!violations.is_empty());
-            assert!(violations[0].contains("lies in a cycle"));
+            assert!(
+                violations
+                    .iter()
+                    .any(|reason| reason.contains("<http://ex/rule/cyclic>")
+                        && reason.contains("cycle")),
+                "the refusal names the rule on the cycle: {violations:?}"
+            );
         }
         certified => {
             panic!("cyclic D⊑∃p.D must NOT certify by any class, got: {certified:?}")
         }
+    }
+}
+
+#[test]
+fn a_refusal_naming_many_cyclic_rules_stays_bounded_and_names_every_rule() {
+    // Forty self-feeding rules: one reason each would be forty reasons. The reasons are
+    // grouped by rule and capped, and the rules past the cap are still all named.
+    let rules: Vec<_> = (0..40)
+        .map(|index| restriction_rule(&format!("http://ex/rule/cyclic{index:02}"), D, P, D))
+        .collect();
+    let ChaseAdmission::Uncertified { violations, .. } = ChaseAdmission::certify(&rules) else {
+        panic!("self-feeding rules must not certify");
+    };
+    let weak: Vec<_> = violations
+        .iter()
+        .filter(|reason| reason.starts_with("weak-acyclicity"))
+        .collect();
+    assert!(weak.len() <= REPORTED_RULES + 1, "{} reasons", weak.len());
+    for index in 0..40 {
+        let rule = format!("<http://ex/rule/cyclic{index:02}>");
+        assert!(
+            weak.iter().any(|reason| reason.contains(&rule)),
+            "{rule} is named: {weak:?}"
+        );
     }
 }
 
@@ -1111,7 +1141,11 @@ fn certify_lattice_ranks_are_strictly_ordered() {
     // increase Uncertified < WA < JA < SWA < MSA.
     let ev = |s: &str| s.to_owned();
     let ranks = [
-        ChaseAdmission::Uncertified { violations: vec![] }.rank(),
+        ChaseAdmission::Uncertified {
+            violations: vec![],
+            bounds: vec![],
+        }
+        .rank(),
         ChaseAdmission::WeaklyAcyclic { evidence: ev("wa") }.rank(),
         ChaseAdmission::JointlyAcyclic { evidence: ev("ja") }.rank(),
         ChaseAdmission::SuperWeaklyAcyclic {
@@ -1166,12 +1200,14 @@ fn certify_lattice_combine_merges_uncertified_violations() {
     // sorted, deduped — so no termination-failure diagnostic is dropped by the meet.
     let a = ChaseAdmission::Uncertified {
         violations: vec!["edge y -> z in cycle".to_owned(), "shared".to_owned()],
+        bounds: vec![],
     };
     let b = ChaseAdmission::Uncertified {
         violations: vec!["edge p -> q in cycle".to_owned(), "shared".to_owned()],
+        bounds: vec![],
     };
     match a.combine(b) {
-        ChaseAdmission::Uncertified { violations } => assert_eq!(
+        ChaseAdmission::Uncertified { violations, .. } => assert_eq!(
             violations,
             vec![
                 "edge p -> q in cycle".to_owned(),
@@ -1241,6 +1277,7 @@ fn certify_lattice_combine_is_the_strength_poset_meet() {
     // Any certified class meets Uncertified down to Uncertified.
     let uncertified = ChaseAdmission::Uncertified {
         violations: vec![ev("v")],
+        bounds: vec![],
     };
     for cert in [wa(), ja(), swa(), msa()] {
         assert!(!cert.clone().combine(uncertified.clone()).admits_native());
@@ -2172,11 +2209,11 @@ fn a_summarized_consumer_never_blocks_a_restricted_trigger() {
         families: &empty,
         semantics: crate::native_semantics::SemanticVocabulary::Exact,
     };
-    assert!(ChaseAdmission::certify_restricted_joint_acyclic(&rules, &program).is_some());
+    assert!(ChaseAdmission::certify_restricted_joint_acyclic(&rules, &program).is_ok());
     let summarized = BTreeSet::from(["http://ex/rule/entry", "http://ex/rule/posting"]);
     program.nonblocking = &summarized;
     assert!(
-        ChaseAdmission::certify_restricted_joint_acyclic(&rules, &program).is_none(),
+        ChaseAdmission::certify_restricted_joint_acyclic(&rules, &program).is_err(),
         "a summarized consumer's trigger is never blocked"
     );
 }

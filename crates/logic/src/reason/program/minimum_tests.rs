@@ -19,6 +19,7 @@ const R: &str = "urn:minimum:restriction";
 const C: &str = "urn:minimum:class";
 const S: &str = "urn:minimum:subject";
 const SEEN: &str = "urn:minimum:seen";
+const SRC: &str = "urn:minimum:src";
 
 fn fact(s: &str, p: &str, o: &str) -> RdfQuad {
     RdfQuad::new(RdfTerm::iri(s), p, RdfTerm::iri(o))
@@ -662,6 +663,19 @@ fn immutable_selector_rows_past_the_analysis_bound_name_the_undecided_certificat
     let Err(error) = run(rows, &[(P, SEEN)], None) else {
         panic!("an undecided input certificate must not admit the minimum laws");
     };
+    // The bound is its own channel of the refusal, never one more per-rule reason.
+    let refusal = error
+        .downcast_ref::<crate::error::NativeRefusal>()
+        .expect("a typed refusal")
+        .clone();
+    assert_eq!(refusal.bounds.len(), 1, "{refusal:?}");
+    assert!(
+        refusal
+            .gaps
+            .iter()
+            .all(|gap| !gap.contains("input-specific termination certificate")),
+        "{refusal:?}"
+    );
     let error = error.to_string();
     assert!(
         error.contains("input-specific termination certificate not decided"),
@@ -741,4 +755,176 @@ fn two_distinct_qualifiers_still_obstruct_a_qualified_count() {
         result.native_status,
         crate::reason::refute::native::NativeClosureStatus::Blocked { .. }
     ));
+}
+
+/// Inert copy rules whose bodies no statement matches, enough that the joint template's
+/// retained metadata passes the cacheable bound.
+fn inert_padding(rules: usize) -> Vec<Formula> {
+    let atom = |predicate: String| {
+        Formula::atom(
+            Term::iri(&predicate).unwrap(),
+            vec![Term::var("x").unwrap(), Term::var("y").unwrap()],
+        )
+        .unwrap()
+    };
+    (0..rules)
+        .map(|index| Formula::Forall {
+            vars: vec!["x".to_owned(), "y".to_owned()],
+            body: Box::new(Formula::Implies(
+                Box::new(atom(format!("urn:minimum:pad:from:{index}"))),
+                Box::new(atom(format!("urn:minimum:pad:to:{index}"))),
+            )),
+        })
+        .collect()
+}
+
+/// How many inert rules the padded programs carry: past the 1 MiB template bound.
+const PADDING: usize = 700;
+
+fn run_formulas(
+    rows: Vec<RdfQuad>,
+    formulas: Vec<Formula>,
+    budget: Option<u64>,
+) -> gmeow_errors::Result<ProgramClosure> {
+    let program = LogicProgram::new(vec![], vec![], vec![], None).with_formulas(formulas);
+    let prepared = crate::program_analysis::prepare_program(&program)?;
+    execute(
+        &prepared,
+        crate::reason::program::prepare_reasoning_input(&source(rows)).unwrap(),
+        &crate::physical::SelectedDomains::new([]).unwrap(),
+        budget,
+    )
+}
+
+#[test]
+fn a_program_padded_past_the_cacheable_bound_is_certified_and_runs() {
+    // The template's size decides only whether it is cached, never whether the
+    // input-specific termination certificate is tried. The minimum laws certify only
+    // that way, so padding them with inert rules must not turn a decided program into a
+    // refusal.
+    let result = run_formulas(
+        request(MIN, "2", C),
+        inert_padding(PADDING)
+            .into_iter()
+            .chain(copying(&[(P, SEEN)]).formulas.iter().cloned())
+            .collect(),
+        None,
+    )
+    .unwrap();
+    assert_eq!(result.status, crate::seam::BudgetStatus::Ok);
+    assert_eq!(fillers(&result, P).len(), 2);
+    assert_eq!(fillers(&result, P), fillers(&result, SEEN));
+}
+
+/// `law(vars, body, head)`: the universal closure of `body -> head`.
+fn law(vars: &[&str], body: Formula, head: Formula) -> Formula {
+    Formula::Forall {
+        vars: vars.iter().map(|var| (*var).to_owned()).collect(),
+        body: Box::new(Formula::Implies(Box::new(body), Box::new(head))),
+    }
+}
+
+/// A predication whose arguments are variables (`?name`) or IRIs.
+fn relation(predicate: &str, arguments: &[&str]) -> Formula {
+    Formula::atom(
+        Term::iri(predicate).unwrap(),
+        arguments
+            .iter()
+            .map(|argument| match argument.strip_prefix('?') {
+                Some(name) => Term::var(name).unwrap(),
+                None => Term::iri(*argument).unwrap(),
+            })
+            .collect(),
+    )
+    .unwrap()
+}
+
+fn exists(vars: &[&str], body: Formula) -> Formula {
+    Formula::Exists {
+        vars: vars.iter().map(|var| (*var).to_owned()).collect(),
+        body: Box::new(body),
+    }
+}
+
+/// Every refusal of a genuine value-invention cycle names the offending rule by its
+/// compiler-produced identity and the relations it writes, padded or not.
+fn assert_cycle_refusal_names_its_rules(laws: Vec<Formula>, relations: &[&str]) {
+    for padding in [0, PADDING] {
+        let formulas: Vec<Formula> = laws.iter().cloned().chain(inert_padding(padding)).collect();
+        let error = run_formulas(vec![fact(S, TYPE, SRC)], formulas, None)
+            .err()
+            .expect("a genuine existential cycle has no termination certificate");
+        let refusal = error
+            .downcast_ref::<crate::error::NativeRefusal>()
+            .unwrap_or_else(|| panic!("the refusal is typed: {error}"));
+        assert!(
+            refusal.reason.contains("NonTerminatingExistential"),
+            "{refusal:?}"
+        );
+        let named = refusal
+            .gaps
+            .iter()
+            .filter(|gap| gap.contains("formula-existential/"))
+            .collect::<Vec<_>>();
+        assert!(!named.is_empty(), "padding {padding}: {refusal:?}");
+        for relation in relations {
+            assert!(
+                named
+                    .iter()
+                    .any(|gap| gap.contains(&format!("<{relation}>"))),
+                "padding {padding}: the cycle's relation {relation} is named: {refusal:?}"
+            );
+        }
+        assert!(
+            refusal.gaps.len() <= 20,
+            "the reasons stay bounded in number: {refusal:?}"
+        );
+    }
+}
+
+#[test]
+fn a_direct_existential_cycle_stays_refused_and_names_its_rule() {
+    // Src(a) -> exists y. Src(y) and rel(a, y)
+    assert_cycle_refusal_names_its_rules(
+        vec![law(
+            &["a"],
+            relation(TYPE, &["?a", SRC]),
+            exists(
+                &["y"],
+                Formula::And(vec![
+                    relation(TYPE, &["?y", SRC]),
+                    relation("urn:minimum:rel", &["?a", "?y"]),
+                ]),
+            ),
+        )],
+        &[
+            "https://blackcatinformatics.ca/logic/instanceOf",
+            "urn:minimum:rel",
+        ],
+    );
+}
+
+#[test]
+fn an_existential_cycle_through_an_nary_argument_stays_refused_and_names_its_rules() {
+    // Src(a) -> r(a, a, a);  r(a, b, c) -> exists y. p(b, y);  p(b, y) -> r(y, y, y)
+    assert_cycle_refusal_names_its_rules(
+        vec![
+            law(
+                &["a"],
+                relation(TYPE, &["?a", SRC]),
+                relation("urn:minimum:r", &["?a", "?a", "?a"]),
+            ),
+            law(
+                &["a", "b", "c"],
+                relation("urn:minimum:r", &["?a", "?b", "?c"]),
+                exists(&["y"], relation("urn:minimum:p", &["?b", "?y"])),
+            ),
+            law(
+                &["b", "y"],
+                relation("urn:minimum:p", &["?b", "?y"]),
+                relation("urn:minimum:r", &["?y", "?y", "?y"]),
+            ),
+        ],
+        &["urn:minimum:p"],
+    );
 }

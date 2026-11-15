@@ -37,6 +37,9 @@ pub(crate) struct PreparedProgram {
     pub(crate) existential_rules: Vec<ExistentialRule>,
     /// Every formula that could not be lowered, never inferred from cache success.
     pub(crate) preservation: PreservationClaim,
+    /// Each compiler-produced rule identity, with the indices into the program's
+    /// formulas of the authored formulas it was clausified from.
+    pub(crate) formula_rules: std::collections::BTreeMap<String, std::collections::BTreeSet<usize>>,
     /// No datasets or run state; shared joint dependency and witness layout only.
     #[serde(skip)]
     joint: Mutex<Option<NativeOutcome<Arc<JointProgram>>>>,
@@ -142,6 +145,7 @@ impl PreparedProgram {
             rules: self.rules.clone(),
             existential_rules: self.existential_rules.clone(),
             preservation: self.preservation.clone(),
+            formula_rules: self.formula_rules.clone(),
             joint: Mutex::new(None),
             reasoning_rules: OnceLock::new(),
             schema_plans: Mutex::new(SchemaPlans::default()),
@@ -164,6 +168,7 @@ impl PreparedProgram {
             rules,
             existential_rules: lowering.existential_rules,
             preservation: lowering.preservation,
+            formula_rules: lowering.formula_rules,
             joint: Mutex::new(None),
             reasoning_rules: std::sync::OnceLock::new(),
             schema_plans: Mutex::new(SchemaPlans::default()),
