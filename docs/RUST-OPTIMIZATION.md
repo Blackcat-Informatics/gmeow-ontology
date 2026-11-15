@@ -113,9 +113,10 @@ the free chunks the allocator keeps, including pages a return already handed bac
 resident size and the live bytes measure different scopes: the resident size also
 counts code, thread stacks and resident file and shared mappings, which the allocator
 totals do not. The resident size less the live bytes is therefore an upper bound on the
-memory the allocator holds unused, not a measure of what a return can recover, and the
-bound holds only while the live bytes are themselves resident: live pages that are
-swapped out or never touched lower it. Each record
+resident memory the allocator holds unused, not on all of its free bytes, some of which
+are pages already handed back, and not a measure of what a return can recover. The
+bound holds only when the two readings describe the same moment and the live bytes are
+themselves resident: live pages that are swapped out or never touched lower it. Each record
 costs one read of `/proc/self/status` and one `mallinfo2` call, which walks each
 arena's free lists under that arena's lock; a `reclaim` record reads the status file
 twice. The records of a run make at most five such reads per executed stage plus two

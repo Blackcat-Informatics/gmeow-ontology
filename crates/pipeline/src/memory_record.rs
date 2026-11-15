@@ -106,9 +106,11 @@ impl ProcessMemory {
 /// These totals and the resident size measure different scopes: the resident size also
 /// counts code, thread stacks and resident file and shared mappings, which the
 /// allocator does not own. The resident size less [`Self::live_bytes`] is therefore an
-/// upper bound on the memory the allocator holds unused, not a measure of what a
-/// return of freed pages can recover, and it is a bound only while the live bytes are
-/// themselves resident: live pages that are swapped out or never touched lower it.
+/// upper bound on the resident memory the allocator holds unused, not on all of
+/// [`Self::free_bytes`], some of which are pages already handed back, and not a measure
+/// of what a return of freed pages can recover. It is a bound only when the two readings
+/// describe the same moment and the live bytes are themselves resident: live pages that
+/// are swapped out or never touched lower it.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct AllocatorMemory {
     /// Bytes in allocations that have not been freed, arena and mapped together.
