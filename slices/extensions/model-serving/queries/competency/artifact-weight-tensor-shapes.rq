@@ -1,0 +1,25 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Which tensors does a served artifact declare, for which mathematical model, and with
+# what shape? The answer is read through the math terms alone: the artifact names a
+# math:LearnedModel and a math:WeightTensor, the tensor names its math:TensorShape, and
+# the shape gives its rank and one indexed axis per row with that axis's concrete
+# extent. The rank, index and extent are returned as their lexical forms.
+PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX math: <https://blackcatinformatics.ca/math/>
+SELECT ?artifact ?model ?weight (STR(?rankValue) AS ?rank) (STR(?indexValue) AS ?axisIndex) (STR(?extentValue) AS ?axisExtent) WHERE {
+    ?artifact a gmeow:TensorModelArtifact ;
+        gmeow:artifactLearnedModel ?model ;
+        gmeow:artifactWeightTensor ?weight .
+    ?model a math:LearnedModel .
+    ?weight a math:WeightTensor ;
+        math:tensorShape ?shape .
+    ?shape a math:TensorShape ;
+        math:tensorRank ?rankValue ;
+        math:shapeAxis ?axis .
+    ?axis a math:TensorAxis ;
+        math:axisIndex ?indexValue ;
+        math:axisExtent ?extentValue .
+}
+ORDER BY ?artifact ?weight ?axisIndex

@@ -23,6 +23,11 @@
 @prefix logic: <https://blackcatinformatics.ca/logic/> .
 @prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/model-serving/tests/> .
 @prefix exd:   <https://blackcatinformatics.ca/gmeow/examples/model-serving/> .
+# The worked mathematical example (examples/mathematical-model.ttl).
+@prefix exm:   <https://blackcatinformatics.ca/gmeow/examples/model-serving/mathematical/> .
+@prefix math:  <https://blackcatinformatics.ca/math/> .
+@prefix unit:  <http://qudt.org/vocab/unit/> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
 
 # --- CQ3 / two sessions: same subject or shared model? -------------------------
 # The two sessions' invocations trace to the SAME gmeow:ModelArtifact (shared
@@ -124,3 +129,90 @@ ex:cqProjectionAgreementRow a gmeow:ExpectedRow ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "auditSubject" ; gmeow:cellValueIri exd:lillithStage ] ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "shortcutConfig" ; gmeow:cellValueIri exd:configA ] ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "auditConfig" ; gmeow:cellValueIri exd:configA ] .
+
+# --- Mathematical consumer: which tensors does an artifact declare, with what shape? ---
+# The served artifact reaches its tensors through the math terms only. RowsExact: one
+# row per axis of the one declared weight tensor, each carrying the artifact, its
+# learned model, the tensor, the shape's rank and that axis's index and extent.
+ex:cqArtifactWeightTensorShapes a gmeow:CompetencyQuestion ;
+    gmeow:cqQueryFile "slices/extensions/model-serving/queries/competency/artifact-weight-tensor-shapes.rq" ;
+    gmeow:cqDataFile "examples/mathematical-model.ttl" ;
+    gmeow:cqExactRows true ;
+    gmeow:cqResultShape ex:cqArtifactWeightTensorShapesShape ;
+    gmeow:cqRationale "GMEOW must answer 'which tensors does this served artifact declare, for which mathematical model, and with what shape?' from the math terms, with no tensor vocabulary of this slice's own. Over the worked example the gmeow:TensorModelArtifact names its math:LearnedModel and one math:WeightTensor; that tensor names a math:TensorShape of rank 2 with two math:TensorAxis nodes at indices 0 and 1, each of extent 2. The asserted answer is exactly those two rows. A tensor with no declared shape, a shape with no rank, or an axis with no index or no concrete extent drops a row, and a second weight tensor or a third axis adds one; each fails the exact-row match. The tokenizer and the learned artifact of the example that select no tensor profile contribute no row." ;
+    gmeow:cqExpectRow ex:cqArtifactWeightTensorShapesRow0 , ex:cqArtifactWeightTensorShapesRow1 .
+
+ex:cqArtifactWeightTensorShapesShape a logic:ResultShape ;
+    logic:declaresColumn
+        [ logic:columnVariable "artifact" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ;
+    logic:declaresColumn
+        [ logic:columnVariable "model" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ;
+    logic:declaresColumn
+        [ logic:columnVariable "weight" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ;
+    logic:declaresColumn
+        [ logic:columnVariable "rank" ; logic:columnTermKind logic:TermKindLiteral ; logic:columnBinding logic:BindingRequired ; logic:columnDatatype xsd:string ] ;
+    logic:declaresColumn
+        [ logic:columnVariable "axisIndex" ; logic:columnTermKind logic:TermKindLiteral ; logic:columnBinding logic:BindingRequired ; logic:columnDatatype xsd:string ] ;
+    logic:declaresColumn
+        [ logic:columnVariable "axisExtent" ; logic:columnTermKind logic:TermKindLiteral ; logic:columnBinding logic:BindingRequired ; logic:columnDatatype xsd:string ] ;
+    logic:shapeCardinality logic:RowsExact .
+
+ex:cqArtifactWeightTensorShapesRow0 a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "artifact" ; gmeow:cellValueIri exm:artifact ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "model" ; gmeow:cellValueIri exm:model ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "weight" ; gmeow:cellValueIri exm:weights ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "rank" ; gmeow:cellValueLiteral "2" ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "axisIndex" ; gmeow:cellValueLiteral "0" ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "axisExtent" ; gmeow:cellValueLiteral "2" ] .
+ex:cqArtifactWeightTensorShapesRow1 a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "artifact" ; gmeow:cellValueIri exm:artifact ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "model" ; gmeow:cellValueIri exm:model ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "weight" ; gmeow:cellValueIri exm:weights ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "rank" ; gmeow:cellValueLiteral "2" ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "axisIndex" ; gmeow:cellValueLiteral "1" ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "axisExtent" ; gmeow:cellValueLiteral "2" ] .
+
+# --- Mathematical consumer: which metric readings are held, and in what dimension? ---
+# RowsExact: one row per held reading, each with its artifact, evaluator, metric, the
+# dimension the metric declares and the result carries, the magnitude, and the unit
+# where the result names one.
+ex:cqMetricObservations a gmeow:CompetencyQuestion ;
+    gmeow:cqQueryFile "slices/extensions/model-serving/queries/competency/metric-observations.rq" ;
+    gmeow:cqDataFile "examples/mathematical-model.ttl" ;
+    gmeow:cqExactRows true ;
+    gmeow:cqResultShape ex:cqMetricObservationsShape ;
+    gmeow:cqRationale "GMEOW must answer 'which metric readings are held about this artifact, by whom, and in what dimension?' with the metric, the reading and the result kept apart. Over the worked example one evaluator holds two readings about one artifact: accuracy, declared math:dimensionless, with the magnitude 0.91 and no unit; and latency, declared math:timeDimension, with the magnitude 0.024 in seconds. The asserted answer is exactly those two rows. The query keeps a row only when the result carries the dimension its own metric declares and has a magnitude, so a latency reported as a bare dimensionless number, or a result with no magnitude, drops its row and fails the exact-row match; the unit column is left unbound for the dimensionless reading, so a unit attached to it changes the row." ;
+    gmeow:cqExpectRow ex:cqMetricObservationsRowAccuracy , ex:cqMetricObservationsRowLatency .
+
+ex:cqMetricObservationsShape a logic:ResultShape ;
+    logic:declaresColumn
+        [ logic:columnVariable "observation" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ;
+    logic:declaresColumn
+        [ logic:columnVariable "artifact" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ;
+    logic:declaresColumn
+        [ logic:columnVariable "evaluator" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ;
+    logic:declaresColumn
+        [ logic:columnVariable "metric" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ;
+    logic:declaresColumn
+        [ logic:columnVariable "dimension" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ;
+    logic:declaresColumn
+        [ logic:columnVariable "value" ; logic:columnTermKind logic:TermKindLiteral ; logic:columnBinding logic:BindingRequired ; logic:columnDatatype xsd:string ] ;
+    logic:declaresColumn
+        [ logic:columnVariable "unit" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingOptional ] ;
+    logic:shapeCardinality logic:RowsExact .
+
+ex:cqMetricObservationsRowAccuracy a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "observation" ; gmeow:cellValueIri exm:accuracyObservation ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "artifact" ; gmeow:cellValueIri exm:artifact ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "evaluator" ; gmeow:cellValueIri exm:evaluator ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "metric" ; gmeow:cellValueIri exm:accuracy ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "dimension" ; gmeow:cellValueIri math:dimensionless ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "value" ; gmeow:cellValueLiteral "0.91" ] .
+ex:cqMetricObservationsRowLatency a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "observation" ; gmeow:cellValueIri exm:latencyObservation ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "artifact" ; gmeow:cellValueIri exm:artifact ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "evaluator" ; gmeow:cellValueIri exm:evaluator ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "metric" ; gmeow:cellValueIri exm:latency ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "dimension" ; gmeow:cellValueIri math:timeDimension ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "value" ; gmeow:cellValueLiteral "0.024" ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "unit" ; gmeow:cellValueIri unit:SEC ] .

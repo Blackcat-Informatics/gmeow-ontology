@@ -146,3 +146,15 @@ benchmark nor certify tensor payloads, numerical operator compatibility or
 arbitrary tensor-shape consistency. Shape-rank, axis-count and extent validation
 remain the math owner's separate contract; the displayed tensor shape is an
 ordinary declaration, not an executed conformance result.
+
+Two competency questions read the worked example through the math terms. One
+returns each weight tensor of a tensor artifact with its learned model, the rank
+of its shape and the index and extent of every axis. The other returns each held
+metric reading with its artifact, evaluator, metric, dimension, magnitude and,
+where the result names one, its unit; it keeps a reading only when the result
+carries the dimension its own metric declares. The metric result law has a
+conforming fixture and two counter-examples under `tests/`: a latency reported
+as a bare dimensionless number, and a result with no magnitude. A structural
+assertion keeps literal-valued properties off the artifact, metric and metric
+observation classes, so a magnitude has one path, and a second pins each
+mathematical role to its math owner.

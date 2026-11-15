@@ -1,0 +1,24 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Passing control for gmeow:ModelMetricResultConstraint: one evaluator holds one
+# accuracy reading about one artifact. The metric declares math:dimensionless, the
+# result carries that same dimension and exactly one finite numeric magnitude, so all
+# four parts of the law hold. A conformance cell of this slice reads this module and
+# this fixture only, so the fixture restates the type of the math-owned dimension it
+# names. Bound by ex:ecMetricObservationDimensioned.
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix math:  <https://blackcatinformatics.ca/math/> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/model-serving/metric-controls/> .
+
+math:dimensionless a math:Dimension .
+
+ex:artifact a gmeow:ModelArtifact .
+ex:evaluator a gmeow:Entity .
+ex:benchmark a gmeow:ObservationMethod .
+ex:accuracy a gmeow:ModelMetric ; gmeow:metricDimension math:dimensionless .
+ex:reading a gmeow:ModelMetricObservation ;
+    gmeow:vantage ex:evaluator ; gmeow:observedFeature ex:artifact ;
+    gmeow:observationMethod ex:benchmark ; gmeow:evaluatedMetric ex:accuracy ;
+    gmeow:observationResult ex:score .
+ex:score a math:Quantity ; math:hasDimension math:dimensionless ; math:quantityValue 0.91 .

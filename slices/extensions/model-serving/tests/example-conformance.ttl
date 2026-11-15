@@ -7,7 +7,8 @@
 # (crates/slicetest). gmeow:exampleFile is SLICE-RELATIVE; gmeow:expectedViolationCode
 # is the native finding code finding_from_shacl builds as
 # "shacl.<ConstraintComponentLocalName>" (crates/validate/src/findings.rs). These
-# pin the counter-examples that MUST reject; the conformant examples/*.ttl are
+# pin the counter-examples that MUST reject and one conforming metric fixture; the
+# worked examples/*.ttl are
 # exercised as competency cqDataFiles.
 
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
@@ -25,3 +26,31 @@ ex:ecDeploymentTwoArtifacts a gmeow:ExampleConformance ;
 # tests/structural.ttl, NOT by a SHACL sh:not counter-example here — a node-level
 # sh:not (or a second NodeShape) on gmeow:ModelDeployment would suppress the
 # closed-world JSON-schema property projection for the class.
+
+# --- Metric results: the held reading carries its metric's dimension and one magnitude ---
+# gmeow:ModelMetricResultConstraint is this slice's law over the math terms
+# math:hasDimension and math:quantityValue. One fixture satisfies it and two
+# counter-examples each break one part of it. A cell of this slice reads this module
+# and one fixture, so each fixture restates the type of the math-owned dimension it
+# names; the tensor-shape laws belong to the math slice and are controlled there.
+
+ex:ecMetricObservationDimensioned a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/conformance-fixtures/metric-observation-dimensioned.ttl" ;
+    gmeow:expectedOutcome gmeow:conforms ;
+    gmeow:conformanceRationale "One gmeow:ModelMetricObservation names its evaluator, artifact, method, metric and result. The metric declares math:dimensionless and the math:Quantity result carries math:dimensionless and exactly one finite numeric math:quantityValue, 0.91, so every part of gmeow:ModelMetricResultConstraint holds and the observation's own profile is complete. The fixture validates with no findings; it records a reading and computes no benchmark." .
+
+ex:ecMetricResultDimensionMismatch a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/metric-result-dimension-mismatch.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.SPARQLConstraintComponent" ;
+    gmeow:expectedSourceShape gmeow:ModelMetricResultConstraintProceduralConstraintShape ;
+    gmeow:expectedSoleFinding true ;
+    gmeow:conformanceRationale "The latency metric declares math:timeDimension and its reading's result is typed math:dimensionless, a bare number where a duration is expected. gmeow:ModelMetricResultConstraint requires each result to carry the dimension its own metric declares, so validation MUST emit shacl.SPARQLConstraintComponent from the shape that constraint projects to. The result has exactly one finite numeric magnitude and the observation names every required participant with its declared type, so no other law of this slice is broken and the cell declares soleness." .
+
+ex:ecMetricResultNoMagnitude a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/metric-result-no-magnitude.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.SPARQLConstraintComponent" ;
+    gmeow:expectedSourceShape gmeow:ModelMetricResultConstraintProceduralConstraintShape ;
+    gmeow:expectedSoleFinding true ;
+    gmeow:conformanceRationale "The accuracy reading's result carries the declared math:dimensionless and no math:quantityValue. gmeow:ModelMetricResultConstraint requires each result to have a magnitude, so validation MUST emit shacl.SPARQLConstraintComponent from the shape that constraint projects to. The dimension agrees with the metric and the observation names every required participant with its declared type, so no other law of this slice is broken and the cell declares soleness." .
