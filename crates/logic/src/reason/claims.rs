@@ -50,6 +50,8 @@ pub enum UnreadReason {
     Qualified {
         carrier: String,
         predicate: String,
+        /// The named graph of that statement; none for the default graph.
+        graph: Option<String>,
         statements: usize,
     },
     /// Another carried statement mentions the claim's carrier: inside a triple term
@@ -59,14 +61,23 @@ pub enum UnreadReason {
     Mentioned {
         carrier: String,
         by: String,
+        /// The named graph of that statement; none for the default graph.
+        graph: Option<String>,
         statements: usize,
     },
+    /// The claim's carrier names a graph, so the node also stands for a context.
+    GraphName { carrier: String },
     /// The claim has a variable in a term position.
     NotGround,
     /// The carried statement could not be identified in the dataset.
     SourceUnresolved,
     /// The claim states a term other than the RDF term its carrier holds.
     SourceMismatch,
+}
+
+/// The place of a statement in a drop: nothing for the default graph.
+fn in_graph(graph: Option<&str>) -> String {
+    graph.map_or_else(String::new, |graph| format!(" in graph {graph}"))
 }
 
 impl std::fmt::Display for UnreadReason {
@@ -80,19 +91,24 @@ impl std::fmt::Display for UnreadReason {
             Self::Qualified {
                 carrier,
                 predicate,
+                graph,
                 statements,
             } => write!(
                 f,
-                "{statements} statement(s) about its carrier {carrier} are not evidence, first <{predicate}>"
+                "{statements} statement(s) about its carrier {carrier} are not evidence, first <{predicate}>{}",
+                in_graph(graph.as_deref())
             ),
             Self::Mentioned {
                 carrier,
                 by,
+                graph,
                 statements,
             } => write!(
                 f,
-                "its carrier {carrier} is mentioned by {statements} carried statement(s), first that of {by}"
+                "its carrier {carrier} is mentioned by {statements} carried statement(s), first that of {by}{}",
+                in_graph(graph.as_deref())
             ),
+            Self::GraphName { carrier } => write!(f, "its carrier {carrier} names a graph"),
             Self::NotGround => f.write_str("the claim has a variable in a term position"),
             Self::SourceUnresolved => {
                 f.write_str("its carrier does not identify exactly one statement of the source")
@@ -202,8 +218,8 @@ fn scoped(program: &LogicProgram) -> impl Iterator<Item = (usize, &LogicAxiom)> 
 /// them. Then every scoped axiom of the compiled program is classified by
 /// [`TheorySelection::membership`]. A ground claim inside the theory, whose carrier
 /// the compiler resolves as evidence only (nothing is said about the carrier except
-/// its reification structure, `logic:provenance` and `logic:confidence`, and no other
-/// carried statement mentions it), is added to
+/// its reification structure, `logic:provenance` and `logic:confidence`, in any graph, and no
+/// statement of any graph mentions it or has it as object or graph name), is added to
 /// `world` as one fact whose subject, predicate and object are the
 /// native terms of the statement its carrier holds, so blank identity, datatype,
 /// language and direction are those of the source. Every other scoped axiom is
@@ -282,24 +298,31 @@ fn claimed_fact(
         ClaimStatement::Qualified {
             carrier,
             predicate,
+            graph,
             statements,
         } => {
             return Err(UnreadReason::Qualified {
                 carrier,
                 predicate,
+                graph,
                 statements,
             });
         }
         ClaimStatement::Mentioned {
             carrier,
             by,
+            graph,
             statements,
         } => {
             return Err(UnreadReason::Mentioned {
                 carrier,
                 by,
+                graph,
                 statements,
             });
+        }
+        ClaimStatement::GraphName { carrier } => {
+            return Err(UnreadReason::GraphName { carrier });
         }
         ClaimStatement::Unresolved => return Err(UnreadReason::SourceUnresolved),
         ClaimStatement::Mismatch => return Err(UnreadReason::SourceMismatch),

@@ -275,7 +275,7 @@ struct TptpExport {
 }
 
 /// The reference semantics of every verdict this command prints.
-const PROVE_SEMANTICS: &str = "GMEOW native logic: semantics of the selection's default graph, decided by the native rule engine's accounting; a reified claim is read as a statement of that graph only when it states logic:provenance or logic:confidence, nothing else is said about its reifier in the default graph except the reification itself, and no other reifier's statement mentions that reifier; every other scoped claim is a named drop, so an assertion may be left unread but is always named, and a quotation is never read; a provenance value is not interpreted; the OWL 2 DL tableau over the selection's OWL view is a second refuter only. Authored reasoning-contract configuration is catalogued, not executed. A native consistent verdict has no replayable proof and is reproduced by re-running on the same inputs; a native inconsistent verdict carries its law and witness premises; only the tableau's answer carries a replayable proof. This is not a verdict about the classical first-order export written by --out.";
+const PROVE_SEMANTICS: &str = "GMEOW native logic: semantics of the selection's default graph, decided by the native rule engine's accounting; a reified claim is read as a statement of that graph only when it states logic:provenance or logic:confidence, nothing else is stated about its reifier in any graph of the input except the reification itself, and no statement of any graph has that reifier as its object, mentions it inside a triple term or a statement node, or uses it as a predicate or a graph name; every other scoped claim is a named drop, so an assertion may be left unread but is always named, and a quotation is never read; a provenance value is not interpreted; the OWL 2 DL tableau over the selection's OWL view is a second refuter only. Authored reasoning-contract configuration is catalogued, not executed. A native consistent verdict has no replayable proof and is reproduced by re-running on the same inputs; a native inconsistent verdict carries its law and witness premises; only the tableau's answer carries a replayable proof. This is not a verdict about the classical first-order export written by --out.";
 
 #[derive(Debug, Clone, Serialize)]
 struct ProveReport {
@@ -812,8 +812,8 @@ fn unread_program_axioms(
 /// carrier nothing is said except the reification itself, `logic:provenance` and
 /// `logic:confidence` is a statement of the same theory. Any other statement about
 /// the carrier (a standpoint, a stance, a time, a modality, a module, an unknown
-/// annotation), and any mention of the carrier in another reifier's carried
-/// statement, keeps the claim unread, as a `SCOPED_CLAIM_NOT_READ` drop that names
+/// annotation), and any mention of the carrier in another statement, in any graph
+/// of the input, keeps the claim unread, as a `SCOPED_CLAIM_NOT_READ` drop that names
 /// what kept it out. A reifier with no scope coordinate is a quotation, never read.
 /// An engine that declines the program for a reason it names did not fail: the leg
 /// is `refused` and the reasons are drops, so the selection is not decided. Any

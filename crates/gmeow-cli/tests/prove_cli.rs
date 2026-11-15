@@ -706,26 +706,44 @@ ex:A logic:disjointWith ex:B .
 }
 
 /// A statement about a claim keeps the claim out even when another reifier carries
-/// it. Here a second evidence-only claim refutes the first claim's reifier; the
-/// first claim is not read, so its statement does not contradict the assertion, and
-/// the drop names the reifier that mentions it.
+/// it. Here a second reifier refutes the first claim's reifier; the first claim is
+/// not read, so its statement does not contradict the assertion, and the drop names
+/// the reifier that mentions it. The refuting reifier counts wherever it is written:
+/// as an evidence-only claim of the default graph, or as a quotation in a named
+/// graph, where the drop also names the graph.
 #[test]
 fn a_claim_refuted_by_another_claim_is_not_read() {
-    let (report, code) = prove_json(
-        "claim-about-claim.logic.ttl",
-        r#"
+    const CONTESTED: &str = r#"
 ex:A logic:disjointWith ex:B .
 ex:a logic:instanceOf ex:A .
 ex:r1 rdf:reifies <<( ex:a logic:instanceOf ex:B )>> ; logic:provenance ex:first .
-ex:r2 rdf:reifies <<( ex:r1 <https://blackcatinformatics.ca/gmeow/standpointModality>
-        <https://blackcatinformatics.ca/gmeow/refuted> )>> ; logic:provenance ex:second .
-"#,
-        &["--gate"],
-    );
+"#;
+    const REFUTES: &str = r#"ex:r2 rdf:reifies <<( ex:r1 <https://blackcatinformatics.ca/gmeow/standpointModality>
+        <https://blackcatinformatics.ca/gmeow/refuted> )>>"#;
+    for (name, body, claims_read, place) in [
+        (
+            "claim-about-claim.logic.ttl",
+            format!("{CONTESTED}{REFUTES} ; logic:provenance ex:second .\n"),
+            1,
+            "that of https://example.org/prove/r2",
+        ),
+        (
+            "claim-about-claim.trig",
+            format!("{CONTESTED}ex:g {{ {REFUTES} . }}\n"),
+            0,
+            "that of https://example.org/prove/r2 in graph https://example.org/prove/g",
+        ),
+    ] {
+        let (report, code) = prove_json(name, &body, &["--gate"]);
+        refuted_claim_is_unread(&report, code, claims_read, place);
+    }
+}
+
+fn refuted_claim_is_unread(report: &serde_json::Value, code: i32, claims_read: u64, place: &str) {
     assert_eq!(report["verdict"], "not-decided", "{report:#}");
     assert_eq!(code, 3);
     assert_eq!(report["engines"]["native"]["verdict"], "no-clash");
-    assert_eq!(report["selection"]["claims_read"], 1);
+    assert_eq!(report["selection"]["claims_read"], claims_read);
     let unread: Vec<&str> = report["selection"]["drops"]
         .as_array()
         .expect("selection drops")
@@ -737,7 +755,7 @@ ex:r2 rdf:reifies <<( ex:r1 <https://blackcatinformatics.ca/gmeow/standpointModa
         matches!(
             unread[..],
             [detail] if detail.contains("its carrier https://example.org/prove/r1 is mentioned")
-                && detail.contains("that of https://example.org/prove/r2")
+                && detail.ends_with(place)
         ),
         "{report:#}"
     );

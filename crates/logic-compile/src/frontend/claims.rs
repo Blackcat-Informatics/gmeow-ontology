@@ -27,7 +27,8 @@ use super::{
     formula_reader::read_atomic_carrier, logic_iri, native_axiom, native_quoted_axiom,
     term_as_subject, term_str,
 };
-use crate::graphutil::{default_graph_pattern, iri_of, node_of, subject_of};
+use crate::graphutil::{default_graph_pattern, iri_of, node_of, source_graph_pattern, subject_of};
+use purrdf::dataset_view::GraphMatch;
 
 /// The statement a scoped claim carries, as term identities of the prepared dataset.
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -40,22 +41,28 @@ pub enum ClaimStatement {
         object: TermId,
     },
     /// Something other than evidence is said about `carrier`. `predicate` is the
-    /// first such predicate IRI in sorted order and `statements` is how many
+    /// first such predicate IRI in sorted order, `graph` the named graph that
+    /// statement is in (none for the default graph), and `statements` is how many
     /// statements about the carrier are outside the evidence allow-list.
     Qualified {
         carrier: String,
         predicate: String,
+        graph: Option<String>,
         statements: usize,
     },
-    /// `carrier` occurs inside a triple term, or is the subject, predicate or object
-    /// of a classic statement node: someone says something about the claim. `by` is
-    /// the first node, in sorted order, whose statement mentions it and `statements`
-    /// is how many mentions there are.
+    /// `carrier` occurs inside a triple term, as the predicate of a statement, or as
+    /// the subject, predicate or object of a classic statement node: someone says
+    /// something about the claim. `by` is the first node, in sorted order, whose
+    /// statement mentions it, `graph` the named graph of that statement (none for
+    /// the default graph), and `statements` is how many mentions there are.
     Mentioned {
         carrier: String,
         by: String,
+        graph: Option<String>,
         statements: usize,
     },
+    /// `carrier` names a graph, so the claim's node also stands for a context.
+    GraphName { carrier: String },
     /// No carrier, a carrier outside the default graph, or not exactly one carried
     /// statement that the compiler lowered to the axiom.
     Unresolved,
@@ -76,13 +83,19 @@ pub enum ClaimStatement {
 /// logic:none`), a module, an attribution, a second type, or an annotation this
 /// reader has never heard of may each change where or whether the claim holds.
 ///
-/// The rule has two more arms, applied by [`ClaimResolver`] because they concern
-/// statements the carrier is not the subject of. A default-graph statement whose
-/// object is the carrier keeps the claim out. So does any mention of the carrier in
-/// a carried statement: inside a triple term at any depth, or as the subject,
-/// predicate or object of a classic statement node. A mention counts whoever makes
-/// it, whether that other node is itself read, left unread, or a bare quotation,
-/// so no fixpoint is needed: a claim that is mentioned is out.
+/// The rule has more arms, applied by [`ClaimResolver`] because they concern
+/// statements the carrier is not the subject of. A statement whose object is the
+/// carrier keeps the claim out. So does any mention of the carrier: inside a triple
+/// term at any depth, as the predicate of a statement, or as the subject, predicate
+/// or object of a classic statement node. A mention counts whoever makes it,
+/// whether that other node is itself read, left unread, or a bare quotation, so no
+/// fixpoint is needed: a claim that is mentioned is out. A carrier that names a
+/// graph is out too.
+///
+/// Every arm reads every graph of the source, not only the default graph. What is
+/// said about a carrier in a named graph can only keep its claim out: an
+/// allow-listed statement there is not evidence, because the compiler reads a
+/// claim's scope from the default graph alone, and it does not block either.
 fn evidence_only(predicate: &str, object: &Node) -> bool {
     match predicate {
         RDF_REIFIES | RDF_SUBJECT | RDF_PREDICATE | RDF_OBJECT => true,
@@ -91,13 +104,18 @@ fn evidence_only(predicate: &str, object: &Node) -> bool {
     }
 }
 
-/// What the default graph says about one claim carrier from outside it.
+/// A use of a carrier: the predicate or mentioning node, and the named graph.
+type Use = (String, Option<String>);
+
+/// What the source says about one claim carrier from outside it, in any graph.
 #[derive(Debug, Default)]
 struct CarrierUses {
     /// Predicates of statements whose object is the carrier.
-    references: Vec<String>,
-    /// Nodes whose carried statement mentions the carrier.
-    mentions: Vec<String>,
+    references: Vec<Use>,
+    /// Nodes whose statement mentions the carrier.
+    mentions: Vec<Use>,
+    /// The carrier is the name of a graph.
+    names_graph: bool,
 }
 
 /// Resolves the scoped claims of one compiled source.
@@ -120,10 +138,11 @@ fn node_name(store: &RdfDataset, node: TermId) -> String {
 
 /// Every term inside the triple term `term`, at any depth. Nothing for other terms.
 fn triple_term_parts(store: &RdfDataset, term: TermId, parts: &mut Vec<TermId>) {
-    if let TermRef::Triple { s, p, o } = store.resolve(term) {
-        for part in [s, p, o] {
-            parts.push(part);
-            triple_term_parts(store, part, parts);
+    let mut pending = vec![term];
+    while let Some(term) = pending.pop() {
+        if let TermRef::Triple { s, p, o } = store.resolve(term) {
+            parts.extend([s, p, o]);
+            pending.extend([s, p, o]);
         }
     }
 }
@@ -143,21 +162,39 @@ impl<S: std::borrow::Borrow<PreparedLogicSource>> CompiledSource<S> {
             })
             .collect();
         if !uses.is_empty() {
+            for graph in store.named_graphs() {
+                if let Some(carrier) = uses.get_mut(&graph) {
+                    carrier.names_graph = true;
+                }
+            }
             let mut parts = Vec::new();
-            for quad in default_graph_pattern(store, None, None, None) {
+            for quad in source_graph_pattern(store, None, None, None, GraphMatch::Any) {
+                let graph = quad.g.map(|graph| node_name(store, graph));
+                if let Some(graph) = quad.g
+                    && let Some(carrier) = uses.get_mut(&graph)
+                {
+                    carrier.names_graph = true;
+                }
                 if let Some(carrier) = uses.get_mut(&quad.o) {
                     let predicate = iri_of(store, quad.p);
                     if matches!(predicate.as_str(), RDF_SUBJECT | RDF_PREDICATE | RDF_OBJECT) {
-                        carrier.mentions.push(node_name(store, quad.s));
+                        carrier
+                            .mentions
+                            .push((node_name(store, quad.s), graph.clone()));
                     } else {
-                        carrier.references.push(predicate.as_str().to_owned());
+                        carrier
+                            .references
+                            .push((predicate.as_str().to_owned(), graph.clone()));
                     }
                 }
                 parts.clear();
+                parts.push(quad.p);
                 triple_term_parts(store, quad.o, &mut parts);
                 for part in &parts {
                     if let Some(carrier) = uses.get_mut(part) {
-                        carrier.mentions.push(node_name(store, quad.s));
+                        carrier
+                            .mentions
+                            .push((node_name(store, quad.s), graph.clone()));
                     }
                 }
             }
@@ -208,35 +245,48 @@ impl<S: std::borrow::Borrow<PreparedLogicSource>> ClaimResolver<'_, S> {
         resolved.unwrap_or(ClaimStatement::Unresolved)
     }
 
-    /// What is said about `carrier` beyond evidence, if anything: a statement it is
-    /// the subject of that fails [`evidence_only`] or a statement it is the object
-    /// of (`Qualified`), else a carried statement that mentions it (`Mentioned`).
+    /// What is said about `carrier` beyond evidence, in any graph, if anything: a
+    /// statement it is the subject of that fails [`evidence_only`] or a statement it
+    /// is the object of (`Qualified`), else a statement that mentions it
+    /// (`Mentioned`), else its use as a graph name (`GraphName`).
     fn said_about(&self, store: &RdfDataset, carrier: TermId) -> Option<ClaimStatement> {
         let uses = self.uses.get(&carrier);
-        let mut outside: Vec<String> = default_graph_pattern(store, Some(carrier), None, None)
-            .filter_map(|quad| {
-                let predicate = iri_of(store, quad.p);
-                (!evidence_only(predicate.as_str(), &node_of(store, quad.o)))
-                    .then(|| predicate.as_str().to_owned())
-            })
-            .chain(
-                uses.into_iter()
-                    .flat_map(|uses| uses.references.iter().cloned()),
-            )
-            .collect();
+        let mut outside: Vec<Use> =
+            source_graph_pattern(store, Some(carrier), None, None, GraphMatch::Any)
+                .filter_map(|quad| {
+                    let predicate = iri_of(store, quad.p);
+                    (!evidence_only(predicate.as_str(), &node_of(store, quad.o))).then(|| {
+                        (
+                            predicate.as_str().to_owned(),
+                            quad.g.map(|graph| node_name(store, graph)),
+                        )
+                    })
+                })
+                .chain(
+                    uses.into_iter()
+                        .flat_map(|uses| uses.references.iter().cloned()),
+                )
+                .collect();
         outside.sort();
-        if let Some(predicate) = outside.first() {
+        if let Some((predicate, graph)) = outside.first() {
             return Some(ClaimStatement::Qualified {
                 carrier: node_name(store, carrier),
                 predicate: predicate.clone(),
+                graph: graph.clone(),
                 statements: outside.len(),
             });
         }
-        let by = uses?.mentions.iter().min()?;
-        Some(ClaimStatement::Mentioned {
+        let uses = uses?;
+        if let Some((by, graph)) = uses.mentions.iter().min() {
+            return Some(ClaimStatement::Mentioned {
+                carrier: node_name(store, carrier),
+                by: by.clone(),
+                graph: graph.clone(),
+                statements: uses.mentions.len(),
+            });
+        }
+        uses.names_graph.then(|| ClaimStatement::GraphName {
             carrier: node_name(store, carrier),
-            by: by.clone(),
-            statements: uses?.mentions.len(),
         })
     }
 }

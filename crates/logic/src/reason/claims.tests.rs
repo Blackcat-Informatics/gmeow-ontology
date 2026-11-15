@@ -36,8 +36,8 @@ const EVIDENCE_CLASH: &str = r#"
 
 fn compile(body: &str) -> CompiledTheory {
     let text = format!("{PREFIXES}{body}");
-    let dataset = purrdf::parse_dataset(text.as_bytes(), "text/turtle", None)
-        .expect("the owned source is valid Turtle");
+    let dataset = purrdf::parse_dataset(text.as_bytes(), "application/trig", None)
+        .expect("the owned source is valid TriG");
     PreparedLogicSource::new(&dataset)
         .expect("the owned source prepares")
         .into_compiled(None)
@@ -363,6 +363,7 @@ fn qualified(carrier: &str, predicate: &str, statements: usize) -> UnreadReason 
     UnreadReason::Qualified {
         carrier: carrier.to_owned(),
         predicate: predicate.to_owned(),
+        graph: None,
         statements,
     }
 }
@@ -371,6 +372,7 @@ fn mentioned(carrier: &str, by: &str, statements: usize) -> UnreadReason {
     UnreadReason::Mentioned {
         carrier: carrier.to_owned(),
         by: by.to_owned(),
+        graph: None,
         statements,
     }
 }
@@ -610,5 +612,62 @@ fn a_claim_about_an_ordinary_resource_leaves_other_claims_read() {
 
     assert!(!consistent(&result.expect("the selected theory executes")));
     assert_eq!(ingress.read().len(), 2);
+    assert!(ingress.unread().is_empty());
+}
+
+/// PROTECTS: what a named graph says about a claim's carrier keeps the claim out
+/// and never lets it in. A refutation carried by a reifier in a named graph, a
+/// plain statement about the carrier there, and the carrier's use as a graph name
+/// each leave the claim unread, named with the graph. An allow-listed statement
+/// about the carrier in a named graph is neither evidence nor an obstacle: the
+/// claim is read on its default-graph evidence alone, and a reifier whose only
+/// evidence is in a named graph stays a quotation.
+#[test]
+fn a_named_graph_can_keep_a_claim_out_but_is_never_its_evidence() {
+    let graph = Some("https://example.org/claims/g".to_owned());
+    for (named, expected) in [
+        (
+            "ex:g { ex:r2 rdf:reifies <<( ex:r1 gmeow:standpointModality gmeow:refuted )>> . }",
+            UnreadReason::Mentioned {
+                carrier: R1.to_owned(),
+                by: R2.to_owned(),
+                graph: graph.clone(),
+                statements: 1,
+            },
+        ),
+        (
+            "ex:g { ex:r1 gmeow:accordingTo ex:S1 . }",
+            UnreadReason::Qualified {
+                carrier: R1.to_owned(),
+                predicate: ACCORDING_TO.to_owned(),
+                graph: graph.clone(),
+                statements: 1,
+            },
+        ),
+        (
+            "ex:r1 { ex:b logic:instanceOf ex:Left . }",
+            UnreadReason::GraphName {
+                carrier: R1.to_owned(),
+            },
+        ),
+    ] {
+        let theory = compile(&format!("{CONTESTED}{named}"));
+        let (result, ingress) = decide(&theory);
+
+        assert!(
+            consistent(&result.expect("the selected theory executes")),
+            "{named}"
+        );
+        assert_eq!(unread_reasons(&ingress), [expected], "{named}");
+    }
+
+    let theory = compile(&format!(
+        "{CONTESTED}
+         ex:quoted rdf:reifies <<( ex:a logic:instanceOf ex:Right )>> .
+         ex:g {{ ex:r1 logic:confidence 0.9 . ex:quoted logic:provenance ex:second . }}"
+    ));
+    let (result, ingress) = decide(&theory);
+    assert!(!consistent(&result.expect("the selected theory executes")));
+    assert_eq!(ingress.read().len(), 1);
     assert!(ingress.unread().is_empty());
 }

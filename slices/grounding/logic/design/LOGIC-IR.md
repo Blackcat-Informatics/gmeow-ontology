@@ -534,16 +534,16 @@ the substrate does not.
   rule, head or body atom carries a standpoint, time, modality or module coordinate. The
   selected-theory profile first accounts for every scoped claim in a claim ingress ledger:
   a ground claim is read as a fact of the selected world only when it is evidence only,
-  meaning every default-graph statement about its carrier is on a closed allow-list: the
+  meaning every stated statement about its carrier, in any graph, is on a closed allow-list: the
   reification structure (`rdf:reifies`, or `rdf:type rdf:Statement` with `rdf:subject`,
   `rdf:predicate` and `rdf:object`), `logic:provenance` and `logic:confidence`. The fact
   is built from the RDF terms the carrier holds and the envelope stays on the carrier as
   evidence. Any other statement with the carrier as subject, any statement with the
-  carrier as object, and any mention of the carrier in a statement another carrier holds
-  (inside a triple term at any depth, or as a term of a classic statement node, whatever
-  the standing of that other carrier) keeps the claim out, whether or not its predicate is
-  known: a
-  standpoint, a stance or denial, a time, a module, a second type, an unknown annotation,
+  carrier as object or predicate, any mention of the carrier in a statement another carrier
+  holds (inside a triple term at any depth, or as a term of a classic statement node,
+  whatever the standing of that other carrier), and the carrier's use as a graph name keep
+  the claim out, in whichever graph of the source they occur; a named graph never supplies
+  the evidence. A predicate need not be known to count: a standpoint, a stance or denial, a time, a module, a second type, an unknown annotation,
   and every `logic:modality` value, so a carrier that states `logic:none` beside another
   modality is not read for either value. Every claim that is not read is recorded with
   the coordinate, predicate or reason that kept it out. Under

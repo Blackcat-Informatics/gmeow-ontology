@@ -131,8 +131,15 @@ included), a module, a further type, an attribution, or a predicate the reader d
 know. The same holds when another statement points at the reifier, and when another
 reifier's carried statement mentions it, at any depth of a triple term and whether that
 other reifier is itself an assertion, an unread claim or a quotation: a claim someone speaks
-about is out, and no fixpoint is taken. The statements that count are those of the default
-graph and the statements other reifiers carry. Two evidence-only claims
+about is out, and no fixpoint is taken. The statements that count are the stated ones, not
+those a rule derives, in every graph of the source: the default graph, each named graph, and
+the statements reifiers carry in either. A reifier used as a predicate or as a graph name is
+out as well. A named graph can only keep a claim out. It is another context, so by the rule
+of [context-indexed entailment](#inconsistency-across-contexts-and-context-indexed-entailment)
+nothing in it is an assertion of this theory or evidence for one: provenance or confidence
+stated there does not make a claim an assertion, and a statement there never contradicts
+one here. Declining to read a claim that another context speaks about draws no conclusion
+across contexts; it only withholds one. Two evidence-only claims
 that contradict each other therefore contradict within one context and make the theory
 inconsistent, while two claims placed in different standpoints do not; a contested fact is
 authored with a standpoint, not with provenance alone.
