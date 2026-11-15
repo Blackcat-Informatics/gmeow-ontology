@@ -100,6 +100,56 @@ primary, and routine).
 | Family anecdote | `evidenceFamilyNarrative` — low | `sourceIndependenceIndependent` + `sourceTierSecondary` + `coverageDepthPassingMention` → `supportsNotability false` |
 | Rumour on social media | `evidenceRUMOR` — very low | `sourceIndependenceIndependent` + `sourceTierPrimary` + `coverageDepthPassingMention` → `supportsNotability false` |
 
+## The assertion category of a claim
+
+### gmeow:AssertionCategory and gmeow:assertionCategory
+
+Axis A grades a citation. A claim that is a bare statement reifier has no citation to
+carry a label of its own kind, yet a consumer often needs to say, on the claim itself,
+what sort of assertion it is. `gmeow:assertionCategory` does that with one property and
+one value vocabulary, `gmeow:AssertionCategory`, three individuals:
+
+| Individual | The claim is |
+|---|---|
+| `assertionCategorySelfDescription` | a description of the subject made by the subject itself |
+| `assertionCategoryPublishedEvidence` | a statement that rests on externally published evidence |
+| `assertionCategoryDerivedInterpretation` | an interpretation inferred or computed from other statements |
+
+Annotate the statement reifier with the category, the way `gmeow:accordingTo` and
+`gmeow:confidence` ride the statement. The property is non-functional, so a claim that is
+both a self-description and a derived interpretation carries both, and different
+standpoints may categorise the same claim differently.
+
+### How the category relates to evidence classes
+
+The two are different questions on different nodes. The category is stated on the claim
+and says what kind of assertion it is. The evidence class is stated on each
+`gmeow:CitationAct` and grades the warrant that one citation gives. Nothing is derived in
+either direction, and no property, individual or class bridges them:
+
+- a self-description may cite an official source, so its category is
+  `assertionCategorySelfDescription` while its citation carries
+  `evidenceOfficialSource`;
+- a citation classed `evidenceSELF` does not make the claim a self-description, and a
+  self-description need not cite anything;
+- a claim resting on published evidence takes its warrant from the evidence classes of
+  the citations it rests on, never from the category.
+
+The derived-interpretation category is the claim-level counterpart of an observation
+typed `observationTypeDerived`: type the observation for the observation record and
+annotate the statement reifier for the bare claim. Neither implies the other, and
+deriving one from the other is solver work.
+
+### When to use it
+
+Use the category when a consumer needs to list or select claims by what kind of assertion
+they are, with no citation in view. Do not use it to rank claims, to hide one, or as a
+trust level: claims of different categories about the same matter are co-equal and stay
+retrievable together (Principle 9). The worked example
+`examples/assertion-categories.ttl` holds one claim of each category and a self-description
+citing an official source; the competency questions return the claims by category and set
+each beside the evidence class of its citation.
+
 ## Open-world policy & solver boundary
 
 No existential restrictions are asserted on `CitationAct`: every facet here is an
