@@ -143,13 +143,24 @@ impl SemanticVocabulary {
 ///
 /// Its text form (`axiom/3`, `rule/0/body/1`) is the one shown in a refusal and the
 /// one committed to by execution identity, so the two never diverge.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
+#[derive(Clone, Copy, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
 #[serde(into = "String", try_from = "String")]
 pub(crate) enum SourceOwner {
     Axiom(usize),
     Rule(usize),
     Head(usize),
     Body(usize, usize),
+}
+
+/// The debug form is the quoted text form, exactly what the owner printed when it
+/// was a string. It MUST NOT change: the witness contract hashes the debug text of
+/// the whole program admission, so any other rendering would move the witness
+/// contract, the joint input identity and every minted witness IRI of every
+/// existing program.
+impl std::fmt::Debug for SourceOwner {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        std::fmt::Debug::fmt(&self.to_string(), f)
+    }
 }
 
 impl std::fmt::Display for SourceOwner {
@@ -169,8 +180,20 @@ impl From<SourceOwner> for String {
     }
 }
 
+/// A serialized owner that is not one of the four text forms.
+#[derive(Debug)]
+pub(crate) struct UnknownSourceOwner(String);
+
+impl std::fmt::Display for UnknownSourceOwner {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "unknown source scope owner {:?}", self.0)
+    }
+}
+
+impl std::error::Error for UnknownSourceOwner {}
+
 impl TryFrom<String> for SourceOwner {
-    type Error = String;
+    type Error = UnknownSourceOwner;
 
     fn try_from(text: String) -> Result<Self, Self::Error> {
         let index = |part: &str| part.parse::<usize>().ok();
@@ -184,7 +207,7 @@ impl TryFrom<String> for SourceOwner {
                 .map(|(rule, atom)| Self::Body(rule, atom)),
             _ => None,
         };
-        owner.ok_or_else(|| format!("unknown source scope owner {text:?}"))
+        owner.ok_or(UnknownSourceOwner(text))
     }
 }
 

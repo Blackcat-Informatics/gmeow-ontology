@@ -590,6 +590,20 @@ fn provenance_only_contradiction_is_inconsistent() {
     assert_eq!(code, 1);
     assert_eq!(report["engines"]["native"]["verdict"], "clash");
     assert_eq!(report["selection"]["claims_read"], 2);
+    // The report lists each claim it read, with the source that reported it.
+    let sources: Vec<&str> = report["selection"]["claims"]
+        .as_array()
+        .expect("read claims")
+        .iter()
+        .map(|claim| claim["provenance"].as_str().expect("claim provenance"))
+        .collect();
+    assert_eq!(
+        sources,
+        [
+            "https://example.org/prove/first",
+            "https://example.org/prove/second"
+        ]
+    );
 }
 
 /// Reading a claim never decides `consistent` on its own: while source admission
@@ -650,6 +664,43 @@ ex:a logic:instanceOf ex:A .
         !drop_codes(&report)
             .iter()
             .any(|code| code == "NATIVE_REFUSED"),
+        "{report:#}"
+    );
+}
+
+/// A contradiction across standpoints is not a contradiction of the theory. Two
+/// claims that contradict each other, each placed in its own standpoint and each
+/// carrying provenance, are not read: the selection is not decided, and each claim
+/// is a drop that names the predicate that kept it out.
+#[test]
+fn claims_in_different_standpoints_are_not_a_contradiction() {
+    let (report, code) = prove_json(
+        "standpoints.logic.ttl",
+        r#"
+ex:A logic:disjointWith ex:B .
+[] rdf:reifies <<( ex:a logic:instanceOf ex:A )>> ;
+    <https://blackcatinformatics.ca/gmeow/accordingTo> ex:S1 ; logic:provenance ex:first .
+[] rdf:reifies <<( ex:a logic:instanceOf ex:B )>> ;
+    <https://blackcatinformatics.ca/gmeow/accordingTo> ex:S2 ; logic:provenance ex:second .
+"#,
+        &["--gate"],
+    );
+    assert_eq!(report["verdict"], "not-decided", "{report:#}");
+    assert_eq!(code, 3);
+    assert_eq!(report["engines"]["native"]["verdict"], "no-clash");
+    assert_eq!(report["selection"]["claims_read"], 0);
+    let unread: Vec<&str> = report["selection"]["drops"]
+        .as_array()
+        .expect("selection drops")
+        .iter()
+        .filter(|drop| drop["code"] == "SCOPED_CLAIM_NOT_READ")
+        .map(|drop| drop["detail"].as_str().expect("drop detail"))
+        .collect();
+    assert_eq!(unread.len(), 2, "{report:#}");
+    assert!(
+        unread
+            .iter()
+            .all(|detail| detail.contains("<https://blackcatinformatics.ca/gmeow/accordingTo>")),
         "{report:#}"
     );
 }

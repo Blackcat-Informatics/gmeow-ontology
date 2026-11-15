@@ -104,12 +104,31 @@ struct SelectionReport {
     selection_digest: String,
     documents: usize,
     units: usize,
-    /// Scoped claims of the selected theory the native engine read as facts. Every
-    /// other scoped claim is a `SCOPED_CLAIM_NOT_READ` drop.
+    /// How many scoped claims the native engine read as facts. Every other scoped
+    /// claim is a `SCOPED_CLAIM_NOT_READ` drop.
     claims_read: usize,
+    /// Each claim read as a fact, in program order: a premise of a refutation that
+    /// equals one of these statements may rest on that report.
+    claims: Vec<ReadClaimReport>,
     /// Admission and native-accounting drops, sorted and de-duplicated. The OWL
     /// leg's own state is reported under that leg, never here.
     drops: Vec<DropRecord>,
+}
+
+/// One scoped claim the native engine read as a fact of the selected world, with the
+/// evidence its carrier states.
+#[derive(Debug, Clone, Serialize)]
+struct ReadClaimReport {
+    /// `program:axiom:N`, the claim's place in the compiled program.
+    anchor: String,
+    subject: String,
+    predicate: String,
+    object: String,
+    /// The `logic:provenance` of the report, when stated.
+    provenance: Option<String>,
+    /// The `logic:confidence` of the report, when stated. It is metadata, never a
+    /// truth degree.
+    confidence: Option<f64>,
 }
 
 /// The native rule engine's own account of the selection.
@@ -127,9 +146,9 @@ struct NativeLeg {
     coverage: Option<DlCoverage>,
     /// Each clash: the law that derived it and its witness premises.
     refutations: Vec<Refutation>,
-    /// Scoped claims read as facts; reported under `selection.claims_read`.
+    /// Scoped claims read as facts; reported under `selection.claims`.
     #[serde(skip)]
-    claims_read: usize,
+    claims_read: Vec<ReadClaimReport>,
 }
 
 impl NativeLeg {
@@ -254,7 +273,7 @@ struct TptpExport {
 }
 
 /// The reference semantics of every verdict this command prints.
-const PROVE_SEMANTICS: &str = "GMEOW native logic: semantics of the selection's default graph, decided by the native rule engine's accounting; a scoped claim whose scope selects no context is read as a statement of that graph, and every other scoped claim is a named drop; the OWL 2 DL tableau over the selection's OWL view is a second refuter only. Authored reasoning-contract configuration is catalogued, not executed. A native consistent verdict has no replayable proof and is reproduced by re-running on the same inputs; a native inconsistent verdict carries its law and witness premises; only the tableau's answer carries a replayable proof. This is not a verdict about the classical first-order export written by --out.";
+const PROVE_SEMANTICS: &str = "GMEOW native logic: semantics of the selection's default graph, decided by the native rule engine's accounting; a reified claim is read as a statement of that graph only when nothing is said about its reifier except the reification itself, logic:provenance and logic:confidence, and every other scoped claim is a named drop; the OWL 2 DL tableau over the selection's OWL view is a second refuter only. Authored reasoning-contract configuration is catalogued, not executed. A native consistent verdict has no replayable proof and is reproduced by re-running on the same inputs; a native inconsistent verdict carries its law and witness premises; only the tableau's answer carries a replayable proof. This is not a verdict about the classical first-order export written by --out.";
 
 #[derive(Debug, Clone, Serialize)]
 struct ProveReport {
@@ -652,7 +671,8 @@ pub(crate) fn prove(reporter: &dyn Reporter, request: &ProveRequest<'_>) -> i32 
             selection_digest: admission.selection_digest.clone(),
             documents,
             units: admission.units.len(),
-            claims_read: native.claims_read,
+            claims_read: native.claims_read.len(),
+            claims: native.claims_read.clone(),
             drops,
         }),
         semantics: PROVE_SEMANTICS,
@@ -786,10 +806,12 @@ fn unread_program_axioms(
 
 /// Run the native rule engine over the whole selection and add every construct it
 /// did not decide to `drops`. The engine reads the asserted statements of the default
-/// graph and, with them, each scoped claim whose scope selects no context: a claim
-/// that carries only provenance or confidence is a statement of the same theory. A
-/// claim placed in a module, a standpoint, a time or a modality is not read and is a
-/// `SCOPED_CLAIM_NOT_READ` drop naming the coordinate. A quotation is never read.
+/// graph and, with them, each evidence-only claim: a reified claim about whose
+/// carrier nothing is said except the reification itself, `logic:provenance` and
+/// `logic:confidence` is a statement of the same theory. Any other statement about
+/// the carrier (a standpoint, a stance, a time, a modality, a module, an unknown
+/// annotation) keeps the claim unread, as a `SCOPED_CLAIM_NOT_READ` drop that names
+/// what kept it out. A reifier with no scope coordinate is a quotation, never read.
 /// An engine that declines the program for a reason it names did not fail: the leg
 /// is `refused` and the reasons are drops, so the selection is not decided. Any
 /// other engine error is an execution failure, never a drop: a canonicalization
@@ -807,19 +829,26 @@ fn native_leg(
         &LogicalGraph::Default,
         &TheorySelection::top_level_only(),
     );
-    let mut claims_read = 0;
+    let mut claims_read = Vec::new();
     if let Ok((_, ingress)) = &prepared {
-        // The ledger and the engine read one compiled program; a scoped axiom the
-        // ledger does not hold is a broken invariant of this command.
-        if let Some(index) = ingress.unaccounted(theory.program()) {
-            return Err(failure(
-                "CLAIM_LEDGER_INCOMPLETE",
-                format!(
-                    "program:axiom:{index}: the scoped claim is neither read nor named by the claim ingress ledger"
-                ),
-            ));
-        }
-        claims_read = ingress.read().len();
+        // The ledger classifies every scoped axiom of this same compiled program, and
+        // the engine entry refuses a ledger that does not cover the program it runs,
+        // so no separate coverage check is repeated here.
+        claims_read = ingress
+            .read()
+            .iter()
+            .map(|claim| {
+                let axiom = &theory.program().axioms[claim.axiom];
+                ReadClaimReport {
+                    anchor: format!("program:axiom:{}", claim.axiom),
+                    subject: axiom.subject.clone(),
+                    predicate: axiom.predicate.clone(),
+                    object: axiom.obj.key(),
+                    provenance: axiom.scope.provenance.clone(),
+                    confidence: axiom.scope.confidence,
+                }
+            })
+            .collect();
         for claim in ingress.unread() {
             let axiom = &theory.program().axioms[claim.axiom];
             drops.insert(DropRecord::new(

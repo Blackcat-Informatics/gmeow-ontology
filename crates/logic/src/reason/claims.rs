@@ -6,17 +6,20 @@
 //! A scoped claim is a reifier or `rdf:Statement` node that carries a scope
 //! coordinate. The dataset holds only its carrier, so the bare-program entries never
 //! read the claimed statement. This module is the one place a scoped claim becomes a
-//! fact: a claim whose scope is inside the selected theory is added to the selected
-//! world with the exact RDF terms of its carrier, and every other scoped claim is
-//! recorded with the reason it was left out. A quotation, which carries no scope
+//! fact: a claim whose scope is inside the selected theory, and whose carrier says
+//! nothing but evidence, is added to the selected world with the exact RDF terms of
+//! its carrier, and every other scoped claim is recorded with the reason it was left
+//! out. The compiler owns the evidence allow-list and the resolution. A quotation, which carries no scope
 //! coordinate, is not a scoped axiom of the program and is never read.
 
 use std::collections::BTreeSet;
 
-use gmeow_logic_compile::frontend::{ClaimStatement, CompiledTheory};
+use gmeow_logic_compile::frontend::{
+    ClaimResolver, ClaimStatement, CompiledTheory, PreparedLogicSource,
+};
 use gmeow_logic_compile::ir::{
-    AtomicTerm, ContextualScope, EvidenceCoordinate, LogicAxiom, LogicProgram, NodeKind,
-    ScopeMembership, TheorySelection,
+    AtomicTerm, ContextualScope, EvidenceCoordinate, LogicAxiom, LogicProgram, ScopeMembership,
+    TheorySelection,
 };
 use purrdf::TermValue;
 
@@ -40,10 +43,13 @@ pub enum UnreadReason {
     /// The scope selects a context outside the selected theory. The `logic:` names
     /// of the selecting coordinates are listed.
     Context(Vec<&'static str>),
-    /// The claim is negated; a negative statement is not a fact.
-    Negated,
-    /// The claim is not an object-level statement.
-    NotObjectLevel,
+    /// Something other than evidence is said about the claim's carrier, so the
+    /// claim may be placed, denied or qualified. `predicate` is the first such
+    /// predicate IRI in sorted order; `statements` counts all of them.
+    Qualified {
+        predicate: String,
+        statements: usize,
+    },
     /// The claim has a variable in a term position.
     NotGround,
     /// The carried statement could not be identified in the dataset.
@@ -60,8 +66,13 @@ impl std::fmt::Display for UnreadReason {
                 "its scope selects a context outside the selected theory ({})",
                 coordinates.join(", ")
             ),
-            Self::Negated => f.write_str("a negated claim is not a fact"),
-            Self::NotObjectLevel => f.write_str("the claim is not an object-level statement"),
+            Self::Qualified {
+                predicate,
+                statements,
+            } => write!(
+                f,
+                "{statements} statement(s) about its carrier are not evidence, first <{predicate}>"
+            ),
             Self::NotGround => f.write_str("the claim has a variable in a term position"),
             Self::SourceUnresolved => {
                 f.write_str("its carrier does not identify exactly one statement of the source")
@@ -117,8 +128,7 @@ impl ClaimIngress {
     }
 
     /// The first scoped axiom of `program` this ledger does not account for.
-    #[must_use]
-    pub fn unaccounted(&self, program: &LogicProgram) -> Option<usize> {
+    fn unaccounted(&self, program: &LogicProgram) -> Option<usize> {
         scoped(program).map(|(index, _)| index).find(|index| {
             self.read
                 .binary_search_by_key(index, |claim| claim.axiom)
@@ -170,8 +180,10 @@ fn scoped(program: &LogicProgram) -> impl Iterator<Item = (usize, &LogicAxiom)> 
 ///
 /// The source statements are ingested exactly as [`prepare_reasoning_input`] ingests
 /// them. Then every scoped axiom of the compiled program is classified by
-/// [`TheorySelection::membership`]. A positive, ground, object-level claim inside the
-/// theory is added to `world` as one fact whose subject, predicate and object are the
+/// [`TheorySelection::membership`]. A ground claim inside the theory, whose carrier
+/// the compiler resolves as evidence only (nothing is said about the carrier except
+/// its reification structure, `logic:provenance` and `logic:confidence`), is added to
+/// `world` as one fact whose subject, predicate and object are the
 /// native terms of the statement its carrier holds, so blank identity, datatype,
 /// language and direction are those of the source. Every other scoped axiom is
 /// recorded as unread. A claim that is also asserted plainly adds no second fact.
@@ -188,13 +200,14 @@ pub fn prepare_selected_theory_input(
     let mut facts = Vec::new();
     let mut read = Vec::new();
     let mut unread = Vec::new();
+    let resolver = theory.claim_resolver();
     for (index, axiom) in scoped(program) {
         let reason = match selection.membership(&axiom.scope) {
             ScopeMembership::UntranslatedContext { coordinates } => {
                 UnreadReason::Context(coordinates)
             }
             ScopeMembership::InTheory { evidence } => {
-                match claimed_fact(theory, dataset, index, axiom) {
+                match claimed_fact(&resolver, dataset, index, axiom) {
                     Ok(fact) => {
                         facts.push(fact);
                         read.push(ReadClaim {
@@ -228,29 +241,32 @@ pub fn prepare_selected_theory_input(
 
 /// The fact a claim inside the selected theory states, or why it states none.
 fn claimed_fact(
-    theory: &CompiledTheory,
+    resolver: &ClaimResolver<'_, PreparedLogicSource>,
     dataset: &purrdf::RdfDataset,
     index: usize,
     axiom: &LogicAxiom,
 ) -> Result<Fact, UnreadReason> {
-    if axiom.negated {
-        return Err(UnreadReason::Negated);
-    }
-    if axiom.node_kind != NodeKind::ObjectLevelFormula {
-        return Err(UnreadReason::NotObjectLevel);
-    }
     if axiom.subject.starts_with('?')
         || axiom.predicate.starts_with('?')
         || matches!(axiom.obj, AtomicTerm::Var(_))
     {
         return Err(UnreadReason::NotGround);
     }
-    let (subject, predicate, object) = match theory.claim_statement(index) {
+    let (subject, predicate, object) = match resolver.statement(index) {
         ClaimStatement::Resolved {
             subject,
             predicate,
             object,
         } => (subject, predicate, object),
+        ClaimStatement::Qualified {
+            predicate,
+            statements,
+        } => {
+            return Err(UnreadReason::Qualified {
+                predicate,
+                statements,
+            });
+        }
         ClaimStatement::Unresolved => return Err(UnreadReason::SourceUnresolved),
         ClaimStatement::Mismatch => return Err(UnreadReason::SourceMismatch),
     };

@@ -533,10 +533,17 @@ the substrate does not.
   bare-program profile reads no scoped claim and refuses a program in which any axiom,
   rule, head or body atom carries a standpoint, time, modality or module coordinate. The
   selected-theory profile first accounts for every scoped claim in a claim ingress ledger:
-  a positive, ground claim whose scope selects no context (it carries only provenance or
-  confidence) is read as a fact of the selected world, built from the RDF terms its
-  carrier holds, with its envelope left on the carrier as evidence; every other scoped
-  claim is recorded as not read with the coordinate or reason that kept it out. Under
+  a ground claim is read as a fact of the selected world only when it is evidence only,
+  meaning every default-graph statement about its carrier is on a closed allow-list: the
+  reification structure (`rdf:reifies`, or `rdf:type rdf:Statement` with `rdf:subject`,
+  `rdf:predicate` and `rdf:object`), `logic:provenance` and `logic:confidence`. The fact
+  is built from the RDF terms the carrier holds and the envelope stays on the carrier as
+  evidence. Any other statement with the carrier as subject, and any statement with the
+  carrier as object, keeps the claim out, whether or not its predicate is known: a
+  standpoint, a stance or denial, a time, a module, a second type, an unknown annotation,
+  and every `logic:modality` value, so a carrier that states `logic:none` beside another
+  modality is not read for either value. Every claim that is not read is recorded with
+  the coordinate, predicate or reason that kept it out. Under
   that profile an axiom's scope does not refuse the program, while a rule, head or body
   atom scoped outside the selected theory still does. A reifier with no scope coordinate
   is a quotation under both profiles and is never read as a fact.
@@ -625,7 +632,8 @@ positive consequence. The original typed logic program remains the canonical
 owner of these constructs. This explicit boundary does not complete the separate
 contextual source/model calculus or authorize optimizations across its scope.
 The selected-theory native profile is a different operation and does not change
-this lowering: it reads an evidence-only scoped claim as a fact of the selected
+this lowering: it reads an evidence-only scoped claim (nothing is said about its
+carrier but the reification, provenance and confidence) as a fact of the selected
 world and names every other scoped claim, and it writes no unscoped statement
 into any projection.
 

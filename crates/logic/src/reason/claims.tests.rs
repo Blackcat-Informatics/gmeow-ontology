@@ -14,6 +14,7 @@ use gmeow_logic_compile::frontend::PreparedLogicSource;
 const PREFIXES: &str = r#"@prefix logic: <https://blackcatinformatics.ca/logic/> .
 @prefix rdf:   <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
 @prefix ex:    <https://example.org/claims/> .
 ex:Left logic:disjointWith ex:Right .
 "#;
@@ -351,4 +352,139 @@ fn the_bare_program_entry_reads_no_scoped_claim() {
         "{:?}",
         refusal.gaps
     );
+}
+
+const ACCORDING_TO: &str = "https://blackcatinformatics.ca/gmeow/accordingTo";
+
+fn qualified(predicate: &str, statements: usize) -> UnreadReason {
+    UnreadReason::Qualified {
+        predicate: predicate.to_owned(),
+        statements,
+    }
+}
+
+fn unread_reasons(ingress: &ClaimIngress) -> Vec<UnreadReason> {
+    ingress
+        .unread()
+        .iter()
+        .map(|claim| claim.reason.clone())
+        .collect()
+}
+
+/// PROTECTS: a contradiction across standpoints is not a contradiction of the
+/// theory. Two claims that contradict each other, each placed in its own standpoint
+/// with `gmeow:accordingTo` and each carrying provenance, are not read: the verdict
+/// is not inconsistent and both are named with the predicate that kept them out.
+#[test]
+fn claims_placed_in_standpoints_by_according_to_are_named_and_are_not_a_clash() {
+    let theory = compile(
+        r#"
+[] rdf:reifies <<( ex:a logic:instanceOf ex:Left )>> ; gmeow:accordingTo ex:S1 ; logic:provenance ex:first .
+[] rdf:reifies <<( ex:a logic:instanceOf ex:Right )>> ; gmeow:accordingTo ex:S2 ; logic:provenance ex:second .
+"#,
+    );
+    let (result, ingress) = decide(&theory);
+
+    assert!(consistent(&result.expect("the selected theory executes")));
+    assert!(ingress.read().is_empty());
+    assert_eq!(
+        unread_reasons(&ingress),
+        [qualified(ACCORDING_TO, 1), qualified(ACCORDING_TO, 1)]
+    );
+}
+
+/// PROTECTS: the evidence allow-list is closed. Provenance does not turn a claim
+/// into a statement of the theory when anything else is said about its carrier: a
+/// denial stance, an annotation this reader does not know, a second type, a
+/// statement that points at the carrier, or any `logic:modality` value including
+/// `logic:none`. Each such claim adds no fact and is named with the first offending
+/// predicate and the number of offending statements.
+#[test]
+fn a_claim_with_anything_but_evidence_about_its_carrier_is_named_and_adds_no_fact() {
+    const MODALITY: &str = "https://blackcatinformatics.ca/logic/modality";
+    for (carrier, expected) in [
+        (
+            "gmeow:standpointModality gmeow:refuted ; logic:provenance ex:first",
+            vec![qualified(
+                "https://blackcatinformatics.ca/gmeow/standpointModality",
+                1,
+            )],
+        ),
+        (
+            r#"ex:note "hearsay" ; ex:seen true ; logic:provenance ex:first"#,
+            vec![qualified("https://example.org/claims/note", 2)],
+        ),
+        (
+            "a ex:Rumour ; logic:provenance ex:first",
+            vec![qualified(
+                "http://www.w3.org/1999/02/22-rdf-syntax-ns#type",
+                1,
+            )],
+        ),
+        (
+            "logic:provenance ex:first . ex:denial ex:denies ex:claim",
+            vec![qualified("https://example.org/claims/denies", 1)],
+        ),
+        (
+            "logic:modality logic:none ; logic:provenance ex:first",
+            vec![qualified(MODALITY, 1)],
+        ),
+        (
+            "logic:modality logic:none, logic:deontic ; logic:provenance ex:first",
+            vec![
+                UnreadReason::Context(vec!["logic:modality"]),
+                qualified(MODALITY, 2),
+            ],
+        ),
+    ] {
+        let theory = compile(&format!(
+            "ex:a logic:instanceOf ex:Left .
+             ex:claim rdf:reifies <<( ex:a logic:instanceOf ex:Right )>> ; {carrier} ."
+        ));
+        let (result, ingress) = decide(&theory);
+
+        assert!(
+            consistent(&result.expect("the selected theory executes")),
+            "{carrier}"
+        );
+        assert!(ingress.read().is_empty(), "{carrier}");
+        let mut reasons = unread_reasons(&ingress);
+        reasons.sort_by_key(|reason| reason.to_string());
+        let mut expected = expected;
+        expected.sort_by_key(|reason| reason.to_string());
+        assert_eq!(reasons, expected, "{carrier}");
+    }
+}
+
+/// PROTECTS: the classic `rdf:Statement` carrier follows the same rule as the RDF
+/// 1.2 reifier. With only evidence about it, its statement is read and can clash;
+/// placed in a standpoint, it is named and not read.
+#[test]
+fn a_classic_statement_carrier_is_read_only_when_it_is_evidence_only() {
+    let classic = |name: &str, class: &str, extra: &str| {
+        format!(
+            "ex:{name} a rdf:Statement ; rdf:subject ex:a ; rdf:predicate logic:instanceOf ;
+                 rdf:object ex:{class} ; logic:provenance ex:{name}Source {extra} .\n"
+        )
+    };
+
+    let evidence_only = compile(&format!(
+        "{}{}",
+        classic("first", "Left", ""),
+        classic("second", "Right", "; logic:confidence 0.9")
+    ));
+    let (result, ingress) = decide(&evidence_only);
+    assert!(!consistent(&result.expect("the selected theory executes")));
+    assert_eq!(ingress.read().len(), 2);
+    assert!(ingress.unread().is_empty());
+
+    let placed = compile(&format!(
+        "{}{}",
+        classic("first", "Left", ""),
+        classic("second", "Right", "; gmeow:accordingTo ex:S2")
+    ));
+    let (result, ingress) = decide(&placed);
+    assert!(consistent(&result.expect("the selected theory executes")));
+    assert_eq!(ingress.read().len(), 1);
+    assert_eq!(unread_reasons(&ingress), [qualified(ACCORDING_TO, 1)]);
 }

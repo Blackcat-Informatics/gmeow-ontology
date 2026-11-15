@@ -64,7 +64,7 @@ pub use emission::{
 };
 
 mod claims;
-pub use claims::ClaimStatement;
+pub use claims::{ClaimResolver, ClaimStatement};
 
 mod prepared;
 pub use crate::graphutil::default_graph_pattern as default_source_statements;

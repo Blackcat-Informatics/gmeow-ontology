@@ -113,6 +113,25 @@ predicates over the reifier; they are never implicit in the quoting. This rule r
 triple terms appear (the foundation's modal lowering, the worlds layer), and it is the reason the
 foundation needs explicit lowering rather than getting modality "for free."
 
+One stance is settled by a closed rule, because a consistency verdict depends on it:
+
+> A reified claim is an **assertion of the theory it is written in** exactly when it is
+> **evidence only**: the only statements about its reifier are the reification itself
+> (`rdf:reifies`, or the classic `rdf:Statement` node with its subject, predicate and
+> object), `logic:provenance` and `logic:confidence`. Provenance says who reported the claim
+> and confidence how sure the reporter is; neither places the claim in a context, denies it,
+> or weakens it. A reifier with none of these is a quotation and asserts nothing.
+
+The list is closed and it fails closed. Any other statement about the reifier may place,
+deny or qualify the claim, so the claim is then not an assertion of the unindexed theory:
+a standpoint (`gmeow:accordingTo`, `logic:standpoint`), a stance such as
+`gmeow:standpointModality gmeow:refuted`, a time, a modality (the value `logic:none`
+included), a module, a further type, an attribution, or a predicate the reader does not
+know. The same holds when another statement points at the reifier. Two evidence-only claims
+that contradict each other therefore contradict within one context and make the theory
+inconsistent, while two claims placed in different standpoints do not; a contested fact is
+authored with a standpoint, not with provenance alone.
+
 ## The reasoning contract
 
 "Sound" is ambiguous until you answer "sound relative to which semantics?" Because `logic:` admits

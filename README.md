@@ -294,12 +294,15 @@ engine, with the OWL 2 DL tableau as a second refuter over the theory's OWL view
 | `inconsistent` | a clash is derived; the report names the engine, the law that clashed, and the premises used |
 | `not-decided` | anything else, including an exhausted `--max-steps` or `--step-cap` budget and a program the rule engine declines for a reason it names, such as an existential chase it cannot certify; every drop is listed with its engine, code, and detail |
 
-The rule engine reads the asserted statements of the theory. It also reads a reified claim
-whose scope carries only `logic:provenance` or `logic:confidence`, because such a claim is a
-statement of the same theory; the report counts these as `claims_read`. A claim placed in a
-module, a standpoint, a time or a modality is not read and is listed as a
-`SCOPED_CLAIM_NOT_READ` drop that names the coordinate. A reifier with no scope coordinate is
-a quotation and is never read.
+The rule engine reads the asserted statements of the theory. It also reads an evidence-only
+reified claim: one about whose reifier nothing is said except the reification itself
+(`rdf:reifies`, or the classic `rdf:Statement` form), `logic:provenance` and
+`logic:confidence`. Such a claim is a statement of the same theory; the report counts these as
+`claims_read` and lists each under `claims` with its source. Any other statement about the
+reifier keeps the claim unread: a standpoint (`gmeow:accordingTo`, `logic:standpoint`), a
+stance or denial, a time, a modality, a module, another type, or an annotation `prove` does
+not know. Each unread claim is a `SCOPED_CLAIM_NOT_READ` drop that names what kept it out. A
+reifier with no scope coordinate is a quotation and is never read.
 
 | Exit code | Meaning |
 |---|---|
