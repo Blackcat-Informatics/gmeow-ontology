@@ -380,3 +380,54 @@ fn the_enrichment_rows_note_states_the_measured_rows_and_bytes() {
         "{note}"
     );
 }
+
+#[test]
+fn a_refusal_names_the_selector_rows_the_interning_cut_actually_read() {
+    // `urn:property rdfs:range urn:restriction` with `restriction ⊑ ≥1 property`
+    // cycles, and 600 members make the enriched value universe pass its cell bound
+    // while every selector row is retained. The note must count those retained rows,
+    // not the smaller proved-immutable subset.
+    let mut rows = restriction("urn:restriction");
+    rows.push(fact(
+        "urn:property",
+        "http://www.w3.org/2000/01/rdf-schema#range",
+        "urn:restriction",
+    ));
+    rows.extend(
+        (0..600).map(|index| fact(&format!("urn:member:{index}"), TYPE, "urn:restriction")),
+    );
+    let template = template(&[]);
+    let data = BTreeMap::from([(WORLD.to_owned(), rows)]);
+    let input = template.input(&data, Arc::from([]), &[]).unwrap();
+    let Some(Ok(evidence)) = &input.evidence else {
+        panic!("no input-specific evidence was observed");
+    };
+    let read = evidence
+        .enrichment
+        .as_ref()
+        .expect("every selector row is within the enrichment bound")
+        .len();
+    assert!(
+        read > evidence.facts.len(),
+        "the rows read ({read}) must differ from the immutable subset ({})",
+        evidence.facts.len()
+    );
+    let crate::physical::seminaive::NativeOutcome::Decided(plan) = input.prepare().unwrap() else {
+        panic!("a decided refusal")
+    };
+    let ChaseAdmission::Uncertified { bounds, violations } = &plan.admission else {
+        panic!(
+            "a cyclic range restriction is refused: {:?}",
+            plan.admission
+        )
+    };
+    let note = bounds
+        .iter()
+        .chain(violations.iter())
+        .find(|note| note.contains("interning bound"))
+        .unwrap_or_else(|| panic!("no interning note: {bounds:?} {violations:?}"));
+    assert!(
+        note.contains(&format!("({read} selector rows, then 0 possible fact(s))")),
+        "{note}"
+    );
+}
