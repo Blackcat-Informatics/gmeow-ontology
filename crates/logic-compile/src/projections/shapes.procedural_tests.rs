@@ -2117,10 +2117,22 @@ fn objects_of_guard_over_argument_lowers_to_an_executable_target_objects_of_cons
          ex:unindexed logic:termVariable \"y\" .\n\
          ex:free a logic:TermCarrier ; logic:termVariable \"z\" .\n",
     );
+    // Exactly two focus nodes: the named unindexed operand by its full IRI, and the blank-node
+    // operand, which the report renders as a `_:` label.
+    let named: Vec<&str> = flagged
+        .iter()
+        .map(String::as_str)
+        .filter(|focus| !focus.starts_with("_:"))
+        .collect();
+    assert_eq!(named, ["<https://ex/unindexed>"], "{flagged:?}");
+    let blank = flagged
+        .iter()
+        .filter(|focus| focus.starts_with("_:"))
+        .count();
+    assert_eq!(blank, 1, "{flagged:?}");
     assert_eq!(flagged.len(), 2, "{flagged:?}");
     assert!(
-        flagged.iter().any(|f| f.contains("unindexed")),
+        !flagged.iter().any(|focus| focus == "<https://ex/indexed>"),
         "{flagged:?}"
     );
-    assert!(!flagged.iter().any(|f| f.contains("free")), "{flagged:?}");
 }
