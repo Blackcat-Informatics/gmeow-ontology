@@ -1,0 +1,361 @@
+time	seq	stage	event	phase	span_path	rss_kib	peak_rss_kib
+23:24:57	0	stage-export-apache	dispatch			221068	243384
+23:24:57	1	stage-export-bench	dispatch			221408	243384
+23:24:57	2	stage-export-catalog	dispatch			221516	243384
+23:24:57	3	stage-export-constraint-shapes	dispatch			221664	243384
+23:24:57	4	stage-export-bench	phase-start	capture-handle-commitments	capture-handle-commitments	222456	243384
+23:24:57	5	stage-export-bench	phase-end	capture-handle-commitments	capture-handle-commitments	222472	243384
+23:24:57	6	stage-export-bench	phase-start	digest-stage-product	digest-stage-product	222492	243384
+23:24:57	7	stage-export-bench	phase-end	digest-stage-product	digest-stage-product	223096	243384
+23:24:57	8	stage-export-apache	phase-start	capture-handle-commitments	capture-handle-commitments	224204	243384
+23:24:57	9	stage-export-apache	phase-end	capture-handle-commitments	capture-handle-commitments	224316	243384
+23:24:57	10	stage-export-apache	phase-start	digest-stage-product	digest-stage-product	224408	243384
+23:24:57	11	stage-export-apache	phase-end	digest-stage-product	digest-stage-product	224556	243384
+23:24:57	12	stage-export-bench	complete			226936	243384
+23:24:57	13	stage-export-bench	release			227128	243384
+23:24:57	14	stage-export-cost-ledger	dispatch			227192	243384
+23:24:57	15	stage-export-cost-ledger	phase-start	capture-handle-commitments	capture-handle-commitments	229692	243384
+23:24:57	16	stage-export-cost-ledger	phase-end	capture-handle-commitments	capture-handle-commitments	229692	243384
+23:24:57	17	stage-export-cost-ledger	phase-start	digest-stage-product	digest-stage-product	229692	243384
+23:24:57	18	stage-export-cost-ledger	phase-end	digest-stage-product	digest-stage-product	229692	243384
+23:24:57	19	stage-export-apache	complete			229904	243384
+23:24:57	20	stage-export-apache	release			229904	243384
+23:24:57	21	stage-export-evals	dispatch			229904	243384
+23:24:57	22	stage-export-evals	phase-start	capture-handle-commitments	capture-handle-commitments	232648	243384
+23:24:57	23	stage-export-evals	phase-end	capture-handle-commitments	capture-handle-commitments	232648	243384
+23:24:57	24	stage-export-evals	phase-start	digest-stage-product	digest-stage-product	232648	243384
+23:24:57	25	stage-export-evals	phase-end	digest-stage-product	digest-stage-product	232648	243384
+23:24:57	26	stage-export-cost-ledger	complete			232652	243384
+23:24:57	27	stage-export-cost-ledger	release			232652	243384
+23:24:57	28	stage-export-frame-shapes	dispatch			232716	243384
+23:24:57	29	stage-export-evals	complete			232852	243384
+23:24:57	30	stage-export-evals	release			232852	243384
+23:24:57	31	stage-export-glossary	dispatch			232852	243384
+23:24:57	32	stage-export-catalog	phase-start	capture-handle-commitments	capture-handle-commitments	234808	243384
+23:24:57	33	stage-export-catalog	phase-end	capture-handle-commitments	capture-handle-commitments	234816	243384
+23:24:57	34	stage-export-catalog	phase-start	digest-stage-product	digest-stage-product	234844	243384
+23:24:57	35	stage-export-catalog	phase-end	digest-stage-product	digest-stage-product	234916	243384
+23:24:57	36	stage-export-catalog	complete			239604	243384
+23:24:57	37	stage-export-governance-floors	dispatch			239660	243384
+23:24:57	38	stage-export-glossary	phase-start	build-entries	build-entries	290772	290772
+23:24:57	39	stage-export-glossary	phase-start	read-homographs	build-entries>read-homographs	291972	291972
+23:25:00	40	stage-export-glossary	phase-end	read-homographs	build-entries>read-homographs	472684	472684
+23:25:01	41	stage-export-glossary	phase-end	build-entries	build-entries	527208	527208
+23:25:01	42	stage-export-glossary	phase-start	render-table	render-table	527208	527208
+23:25:01	43	stage-export-constraint-shapes	phase-start	capture-handle-commitments	capture-handle-commitments	528620	528620
+23:25:01	44	stage-export-constraint-shapes	phase-end	capture-handle-commitments	capture-handle-commitments	528620	528620
+23:25:01	45	stage-export-constraint-shapes	phase-start	digest-stage-product	digest-stage-product	528620	528620
+23:25:01	46	stage-export-constraint-shapes	phase-end	digest-stage-product	digest-stage-product	528620	528620
+23:25:01	47	stage-export-constraint-shapes	complete			528620	528620
+23:25:01	48	stage-export-constraint-shapes	release			528620	528620
+23:25:01	49	stage-export-matrix	dispatch			528620	528620
+23:25:01	50	stage-export-frame-shapes	phase-start	capture-handle-commitments	capture-handle-commitments	528812	528812
+23:25:01	51	stage-export-frame-shapes	phase-end	capture-handle-commitments	capture-handle-commitments	528812	528812
+23:25:01	52	stage-export-frame-shapes	phase-start	digest-stage-product	digest-stage-product	528812	528812
+23:25:01	53	stage-export-frame-shapes	phase-end	digest-stage-product	digest-stage-product	528812	528812
+23:25:01	54	stage-export-frame-shapes	complete			528812	528812
+23:25:01	55	stage-export-frame-shapes	release			528812	528812
+23:25:01	56	stage-export-profiles	dispatch			528812	528812
+23:25:01	57	stage-export-profiles	phase-start	capture-handle-commitments	capture-handle-commitments	529008	529008
+23:25:01	58	stage-export-profiles	phase-end	capture-handle-commitments	capture-handle-commitments	529008	529008
+23:25:01	59	stage-export-profiles	phase-start	digest-stage-product	digest-stage-product	529008	529008
+23:25:01	60	stage-export-profiles	phase-end	digest-stage-product	digest-stage-product	529008	529008
+23:25:02	61	stage-export-profiles	complete			539132	539132
+23:25:02	62	stage-export-profiles	release			539132	539132
+23:25:02	63	stage-export-projection-ceilings	dispatch			539132	539132
+23:25:02	64	stage-export-glossary	phase-end	render-table	render-table	568616	568616
+23:25:02	65	stage-export-glossary	phase-start	render-vartrans-statements	render-vartrans-statements	568616	568616
+23:25:03	66	stage-export-governance-floors	phase-start	capture-handle-commitments	capture-handle-commitments	879884	879884
+23:25:03	67	stage-export-governance-floors	phase-end	capture-handle-commitments	capture-handle-commitments	879884	879884
+23:25:03	68	stage-export-governance-floors	phase-start	digest-stage-product	digest-stage-product	879884	879884
+23:25:03	69	stage-export-governance-floors	phase-end	digest-stage-product	digest-stage-product	879888	879888
+23:25:03	70	stage-export-governance-floors	complete			882060	882060
+23:25:03	71	stage-export-governance-floors	release			882072	882072
+23:25:03	72	stage-export-references	dispatch			882072	882072
+23:25:03	73	stage-export-matrix	phase-start	capture-handle-commitments	capture-handle-commitments	887976	887976
+23:25:03	74	stage-export-matrix	phase-end	capture-handle-commitments	capture-handle-commitments	887996	887996
+23:25:03	75	stage-export-matrix	phase-start	digest-stage-product	digest-stage-product	888012	888012
+23:25:03	76	stage-export-matrix	phase-end	digest-stage-product	digest-stage-product	888028	888028
+23:25:03	77	stage-export-references	phase-start	capture-handle-commitments	capture-handle-commitments	903684	903684
+23:25:03	78	stage-export-references	phase-end	capture-handle-commitments	capture-handle-commitments	903684	903684
+23:25:03	79	stage-export-references	phase-start	digest-stage-product	digest-stage-product	903684	903684
+23:25:03	80	stage-export-references	phase-end	digest-stage-product	digest-stage-product	903684	903684
+23:25:03	81	stage-export-matrix	complete			903684	903684
+23:25:03	82	stage-export-matrix	release			904464	904464
+23:25:03	83	stage-export-result-shapes	dispatch			904520	904520
+23:25:03	84	stage-export-references	complete			912464	912464
+23:25:03	85	stage-export-references	release			912576	912576
+23:25:03	86	stage-export-skos-surface	dispatch			913036	913036
+23:25:04	87	stage-export-result-shapes	phase-start	capture-handle-commitments	capture-handle-commitments	950168	950168
+23:25:04	88	stage-export-result-shapes	phase-end	capture-handle-commitments	capture-handle-commitments	950168	950168
+23:25:04	89	stage-export-result-shapes	phase-start	digest-stage-product	digest-stage-product	950168	950168
+23:25:04	90	stage-export-result-shapes	phase-end	digest-stage-product	digest-stage-product	950168	950168
+23:25:04	91	stage-export-result-shapes	complete			950168	950168
+23:25:04	92	stage-export-result-shapes	release			950168	950168
+23:25:04	93	stage-parse-sources	dispatch			950168	950168
+23:25:05	94	stage-export-glossary	phase-end	render-vartrans-statements	render-vartrans-statements	1130572	1160308
+23:25:05	95	stage-export-glossary	phase-start	canonicalize-vartrans	canonicalize-vartrans	1130572	1160308
+23:25:08	96	stage-export-skos-surface	phase-start	capture-handle-commitments	capture-handle-commitments	1506712	1506712
+23:25:08	97	stage-export-skos-surface	phase-end	capture-handle-commitments	capture-handle-commitments	1506752	1506752
+23:25:08	98	stage-export-skos-surface	phase-start	digest-stage-product	digest-stage-product	1506764	1506764
+23:25:08	99	stage-export-skos-surface	phase-end	digest-stage-product	digest-stage-product	1506780	1506780
+23:25:08	100	stage-export-skos-surface	complete			1530844	1530844
+23:25:08	101	stage-export-skos-surface	release			1437540	1532484
+23:25:08	102	stage-statements	dispatch			1437800	1532484
+23:25:08	103	stage-export-projection-ceilings	phase-start	capture-handle-commitments	capture-handle-commitments	1438928	1532484
+23:25:08	104	stage-export-projection-ceilings	phase-end	capture-handle-commitments	capture-handle-commitments	1438940	1532484
+23:25:08	105	stage-export-projection-ceilings	phase-start	digest-stage-product	digest-stage-product	1438952	1532484
+23:25:08	106	stage-export-projection-ceilings	phase-end	digest-stage-product	digest-stage-product	1438968	1532484
+23:25:08	107	stage-statements	phase-start	capture-handle-commitments	capture-handle-commitments	1447920	1532484
+23:25:08	108	stage-statements	phase-end	capture-handle-commitments	capture-handle-commitments	1447936	1532484
+23:25:08	109	stage-statements	phase-start	digest-stage-product	digest-stage-product	1447952	1532484
+23:25:08	110	stage-statements	phase-end	digest-stage-product	digest-stage-product	1448188	1532484
+23:25:08	111	stage-export-projection-ceilings	complete			1448772	1532484
+23:25:08	112	stage-export-projection-ceilings	release			1448796	1532484
+23:25:08	113	stage-validate-result-shape-composition	dispatch			1448820	1532484
+23:25:08	114	stage-statements	complete			1456792	1532484
+23:25:08	115	stage-validate-result-shape-composition	complete			1495356	1532484
+23:25:10	116	stage-parse-sources	phase-start	capture-handle-commitments	capture-handle-commitments	1589332	1647940
+23:25:10	117	stage-parse-sources	phase-end	capture-handle-commitments	capture-handle-commitments	1589332	1647940
+23:25:10	118	stage-parse-sources	phase-start	digest-stage-product	digest-stage-product	1589332	1647940
+23:25:10	119	stage-parse-sources	phase-end	digest-stage-product	digest-stage-product	1589332	1647940
+23:25:10	120	stage-parse-sources	complete			1589460	1647940
+23:25:10	121	stage-compile-logic	dispatch			1589460	1647940
+23:25:10	122	stage-conformance	dispatch			1589460	1647940
+23:25:10	123	stage-native-codebook	dispatch			1589460	1647940
+23:25:10	124	stage-native-codebook	phase-start	capture-handle-commitments	capture-handle-commitments	1590600	1647940
+23:25:10	125	stage-native-codebook	phase-end	capture-handle-commitments	capture-handle-commitments	1590600	1647940
+23:25:10	126	stage-native-codebook	phase-start	digest-stage-product	digest-stage-product	1590600	1647940
+23:25:10	127	stage-native-codebook	phase-end	digest-stage-product	digest-stage-product	1590600	1647940
+23:25:10	128	stage-native-codebook	complete			1590600	1647940
+23:25:10	129	stage-native-codebook	release			1590600	1647940
+23:25:10	130	stage-source-load	dispatch			1590600	1647940
+23:25:10	131	stage-conformance	phase-start	record-glossary	record-glossary	1614976	1647940
+23:25:10	132	stage-conformance	phase-end	record-glossary	record-glossary	1625684	1647940
+23:25:10	133	stage-conformance	phase-start	record-cl-ingest	record-cl-ingest	1625684	1647940
+23:25:10	134	stage-conformance	phase-end	record-cl-ingest	record-cl-ingest	1629460	1647940
+23:25:10	135	stage-conformance	phase-start	record-epistemics	record-epistemics	1629460	1647940
+23:25:11	136	stage-conformance	phase-end	record-epistemics	record-epistemics	1693596	1738720
+23:25:11	137	stage-conformance	phase-start	record-execution	record-execution	1693596	1738720
+23:25:28	138	stage-export-glossary	phase-end	canonicalize-vartrans	canonicalize-vartrans	1590784	2455808
+23:25:28	139	stage-export-glossary	phase-start	render-tbx	render-tbx	1412944	2455808
+23:25:28	140	stage-export-glossary	phase-end	render-tbx	render-tbx	1413016	2455808
+23:25:28	141	stage-export-glossary	phase-start	publish-glossary-product	publish-glossary-product	1413016	2455808
+23:25:29	142	stage-export-glossary	phase-start	capture-handle-commitments	publish-glossary-product>capture-handle-commitments	1413032	2455808
+23:25:29	143	stage-export-glossary	phase-end	capture-handle-commitments	publish-glossary-product>capture-handle-commitments	1413032	2455808
+23:25:29	144	stage-export-glossary	phase-start	digest-stage-product	publish-glossary-product>digest-stage-product	1413032	2455808
+23:25:29	145	stage-export-glossary	phase-end	digest-stage-product	publish-glossary-product>digest-stage-product	1413032	2455808
+23:25:29	146	stage-export-glossary	phase-end	publish-glossary-product	publish-glossary-product	1413032	2455808
+23:25:29	147	stage-conformance	phase-start	record-math-lowering	record-math-lowering	1413072	2455808
+23:25:29	148	stage-export-glossary	complete			1413296	2455808
+23:25:29	149	stage-export-glossary	release			1426064	2455808
+23:25:48	150	stage-conformance	phase-end	record-math-lowering	record-math-lowering	1484236	2455808
+23:25:48	151	stage-conformance	phase-start	record-source-lint	record-source-lint	1484236	2455808
+23:25:51	152	stage-conformance	phase-end	record-source-lint	record-source-lint	1497816	2455808
+23:27:43	153	stage-conformance	phase-end	record-execution	record-execution	3326636	3495968
+23:27:43	154	stage-conformance	phase-start	record-operator-rules	record-operator-rules	3326636	3495968
+23:27:43	155	stage-conformance	phase-end	record-operator-rules	record-operator-rules	3328996	3495968
+23:27:43	156	stage-conformance	phase-start	record-registry-surface	record-registry-surface	3328996	3495968
+23:27:43	157	stage-conformance	phase-end	record-registry-surface	record-registry-surface	3328996	3495968
+23:27:43	158	stage-conformance	phase-start	grade-external-corpora	grade-external-corpora	3328996	3495968
+23:27:43	159	stage-conformance	phase-end	grade-external-corpora	grade-external-corpora	3329132	3495968
+23:27:43	160	stage-conformance	phase-start	render-conformance-nq	render-conformance-nq	3329132	3495968
+23:27:43	161	stage-conformance	phase-end	render-conformance-nq	render-conformance-nq	3329200	3495968
+23:27:43	162	stage-conformance	phase-start	render-agreement-tallies	render-agreement-tallies	3329200	3495968
+23:27:43	163	stage-conformance	phase-end	render-agreement-tallies	render-agreement-tallies	3329204	3495968
+23:27:43	164	stage-conformance	phase-start	parse-conformance-graph	parse-conformance-graph	3329204	3495968
+23:27:43	165	stage-conformance	phase-end	parse-conformance-graph	parse-conformance-graph	3329228	3495968
+23:27:43	166	stage-conformance	phase-start	record-gmn-vectors	record-gmn-vectors	3329228	3495968
+23:27:46	167	stage-conformance	phase-end	record-gmn-vectors	record-gmn-vectors	3470696	3533456
+23:27:46	168	stage-conformance	phase-start	record-supplemental	record-supplemental	3470696	3533456
+23:27:52	169	stage-conformance	phase-end	record-supplemental	record-supplemental	4467572	4467572
+23:27:52	170	stage-conformance	phase-start	record-diagnostics	record-diagnostics	4467636	4467636
+23:27:54	171	stage-conformance	phase-end	record-diagnostics	record-diagnostics	4813520	4990324
+23:27:54	172	stage-conformance	phase-start	record-language-catalog	record-language-catalog	4813520	4990324
+23:27:54	173	stage-conformance	phase-end	record-language-catalog	record-language-catalog	4813584	4990324
+23:27:54	174	stage-conformance	phase-start	record-documentation-graph	record-documentation-graph	4813584	4990324
+23:27:54	175	stage-conformance	phase-end	record-documentation-graph	record-documentation-graph	4813584	4990324
+23:27:54	176	stage-conformance	phase-start	record-source-glyph-legend	record-source-glyph-legend	4813584	4990324
+23:27:54	177	stage-conformance	phase-end	record-source-glyph-legend	record-source-glyph-legend	4813584	4990324
+23:27:54	178	stage-conformance	phase-start	record-source-medium	record-source-medium	4813584	4990324
+23:27:54	179	stage-conformance	phase-end	record-source-medium	record-source-medium	4813584	4990324
+23:27:54	180	stage-conformance	phase-start	record-native-scene	record-native-scene	4813584	4990324
+23:27:54	181	stage-conformance	phase-end	record-native-scene	record-native-scene	4585360	4990324
+23:27:54	182	stage-conformance	phase-start	record-verify-gates	record-verify-gates	4585360	4990324
+23:27:58	183	stage-conformance	phase-end	record-verify-gates	record-verify-gates	4538984	4990324
+23:27:58	184	stage-conformance	phase-start	record-expression-substrate	record-expression-substrate	4538984	4990324
+23:27:59	185	stage-conformance	phase-end	record-expression-substrate	record-expression-substrate	4538984	4990324
+23:27:59	186	stage-conformance	phase-start	record-logic-module-contracts	record-logic-module-contracts	4538984	4990324
+23:27:59	187	stage-conformance	phase-end	record-logic-module-contracts	record-logic-module-contracts	4538984	4990324
+23:27:59	188	stage-conformance	phase-start	record-gufo-superset	record-gufo-superset	4538984	4990324
+23:27:59	189	stage-conformance	phase-end	record-gufo-superset	record-gufo-superset	4538984	4990324
+23:27:59	190	stage-conformance	phase-start	record-reviewed-translations	record-reviewed-translations	4538984	4990324
+23:28:00	191	stage-conformance	phase-end	record-reviewed-translations	record-reviewed-translations	4666296	4990324
+23:28:00	192	stage-conformance	phase-start	record-wasm-gmn	record-wasm-gmn	4666296	4990324
+23:28:00	193	stage-conformance	phase-end	record-wasm-gmn	record-wasm-gmn	4666296	4990324
+23:28:00	194	stage-conformance	phase-start	record-wellfounded-plan	record-wellfounded-plan	4666296	4990324
+23:28:01	195	stage-conformance	phase-end	record-wellfounded-plan	record-wellfounded-plan	4666296	4990324
+23:28:01	196	stage-conformance	phase-start	record-grounding-catalogs	record-grounding-catalogs	4666296	4990324
+23:28:01	197	stage-source-load	phase-start	capture-handle-commitments	capture-handle-commitments	4771456	4990324
+23:28:01	198	stage-source-load	phase-end	capture-handle-commitments	capture-handle-commitments	4771456	4990324
+23:28:01	199	stage-source-load	phase-start	digest-stage-product	digest-stage-product	4771456	4990324
+23:28:02	200	stage-conformance	phase-end	record-grounding-catalogs	record-grounding-catalogs	4726120	4990324
+23:28:02	201	stage-conformance	phase-start	record-action-policy	record-action-policy	4726120	4990324
+23:28:03	202	stage-conformance	phase-end	record-action-policy	record-action-policy	4726120	4990324
+23:28:03	203	stage-conformance	phase-start	record-medium-axis	record-medium-axis	4726120	4990324
+23:28:03	204	stage-conformance	phase-end	record-medium-axis	record-medium-axis	4726120	4990324
+23:28:03	205	stage-conformance	phase-start	record-source-contracts	record-source-contracts	4726120	4990324
+23:28:03	206	stage-conformance	phase-end	record-source-contracts	record-source-contracts	4726120	4990324
+23:28:03	207	stage-conformance	phase-start	record-yaml-ld-source	record-yaml-ld-source	4726120	4990324
+23:28:03	208	stage-conformance	phase-end	record-yaml-ld-source	record-yaml-ld-source	4726760	4990324
+23:28:03	209	stage-conformance	phase-start	record-gmn-dictionary	record-gmn-dictionary	4726760	4990324
+23:28:03	210	stage-conformance	phase-end	record-gmn-dictionary	record-gmn-dictionary	4728520	4990324
+23:28:03	211	stage-conformance	phase-start	record-gmn-signatures	record-gmn-signatures	4728520	4990324
+23:28:09	212	stage-conformance	phase-end	record-gmn-signatures	record-gmn-signatures	4892620	4990324
+23:28:09	213	stage-conformance	phase-start	record-gmn-grounding	record-gmn-grounding	4892620	4990324
+23:28:12	214	stage-reason	phase-start	canonicalize-edb	record-gmn-grounding>canonicalize-edb	4892876	4990324
+23:28:12	215	stage-reason	phase-end	canonicalize-edb	record-gmn-grounding>canonicalize-edb	4892876	4990324
+23:28:12	216	stage-reason	phase-start	project-expression-identities	record-gmn-grounding>project-expression-identities	4892876	4990324
+23:28:12	217	stage-reason	phase-end	project-expression-identities	record-gmn-grounding>project-expression-identities	4892876	4990324
+23:28:12	218	stage-reason	phase-start	prepare-reasoning-input	record-gmn-grounding>prepare-reasoning-input	4892876	4990324
+23:28:12	219	stage-reason	phase-end	prepare-reasoning-input	record-gmn-grounding>prepare-reasoning-input	4892876	4990324
+23:28:12	220	stage-reason	phase-start	reason-all	record-gmn-grounding>reason-all	3091308	4990324
+23:28:12	221	stage-reason	phase-end	reason-all	record-gmn-grounding>reason-all	3094364	4990324
+23:28:12	222	stage-reason	phase-start	project-reason-artifacts	record-gmn-grounding>project-reason-artifacts	3094364	4990324
+23:28:12	223	stage-reason	phase-start	project-witnesses	record-gmn-grounding>project-reason-artifacts>project-witnesses	3094364	4990324
+23:28:12	224	stage-reason	phase-end	project-witnesses	record-gmn-grounding>project-reason-artifacts>project-witnesses	3094364	4990324
+23:28:12	225	stage-reason	phase-start	project-inferred-closure	record-gmn-grounding>project-reason-artifacts>project-inferred-closure	3094364	4990324
+23:28:12	226	stage-reason	phase-end	project-inferred-closure	record-gmn-grounding>project-reason-artifacts>project-inferred-closure	3094368	4990324
+23:28:12	227	stage-reason	phase-start	project-explanations	record-gmn-grounding>project-reason-artifacts>project-explanations	3094368	4990324
+23:28:12	228	stage-reason	phase-end	project-explanations	record-gmn-grounding>project-reason-artifacts>project-explanations	3094372	4990324
+23:28:12	229	stage-reason	phase-start	project-dl-el-ledger	record-gmn-grounding>project-reason-artifacts>project-dl-el-ledger	3094372	4990324
+23:28:12	230	stage-reason	phase-end	project-dl-el-ledger	record-gmn-grounding>project-reason-artifacts>project-dl-el-ledger	3094372	4990324
+23:28:12	231	stage-reason	phase-start	project-reason-dataset	record-gmn-grounding>project-reason-artifacts>project-reason-dataset	3094372	4990324
+23:28:12	232	stage-reason	phase-start	append-reasoning-summary	record-gmn-grounding>project-reason-artifacts>project-reason-dataset>append-reasoning-summary	3094596	4990324
+23:28:12	233	stage-reason	phase-end	append-reasoning-summary	record-gmn-grounding>project-reason-artifacts>project-reason-dataset>append-reasoning-summary	3094664	4990324
+23:28:12	234	stage-reason	phase-start	freeze-reason-carrier	record-gmn-grounding>project-reason-artifacts>project-reason-dataset>freeze-reason-carrier	3094668	4990324
+23:28:12	235	stage-reason	phase-end	freeze-reason-carrier	record-gmn-grounding>project-reason-artifacts>project-reason-dataset>freeze-reason-carrier	3094740	4990324
+23:28:12	236	stage-reason	phase-end	project-reason-dataset	record-gmn-grounding>project-reason-artifacts>project-reason-dataset	3094740	4990324
+23:28:12	237	stage-reason	phase-end	project-reason-artifacts	record-gmn-grounding>project-reason-artifacts	3094740	4990324
+23:28:12	238	stage-reason	phase-start	capture-handle-commitments	record-gmn-grounding>capture-handle-commitments	3094740	4990324
+23:28:12	239	stage-reason	phase-end	capture-handle-commitments	record-gmn-grounding>capture-handle-commitments	3094804	4990324
+23:28:12	240	stage-reason	phase-start	digest-stage-product	record-gmn-grounding>digest-stage-product	3094804	4990324
+23:28:12	241	stage-reason	phase-end	digest-stage-product	record-gmn-grounding>digest-stage-product	3094908	4990324
+23:28:14	242	stage-source-load	phase-end	digest-stage-product	digest-stage-product	3341652	4990324
+23:28:20	243	stage-conformance	phase-end	record-gmn-grounding	record-gmn-grounding	3695388	4990324
+23:28:20	244	stage-conformance	phase-start	record-operator-scenes	record-operator-scenes	3695388	4990324
+23:28:21	245	stage-conformance	phase-end	record-operator-scenes	record-operator-scenes	3695388	4990324
+23:28:21	246	stage-conformance	phase-start	capture-handle-commitments	capture-handle-commitments	3695388	4990324
+23:28:21	247	stage-conformance	phase-end	capture-handle-commitments	capture-handle-commitments	3695388	4990324
+23:28:21	248	stage-conformance	phase-start	digest-stage-product	digest-stage-product	3695388	4990324
+23:28:21	249	stage-conformance	phase-end	digest-stage-product	digest-stage-product	3695388	4990324
+23:28:30	250	stage-compile-logic	phase-start	capture-handle-commitments	capture-handle-commitments	3925840	4990324
+23:28:30	251	stage-compile-logic	phase-end	capture-handle-commitments	capture-handle-commitments	3925840	4990324
+23:28:30	252	stage-compile-logic	phase-start	digest-stage-product	digest-stage-product	3925840	4990324
+23:28:32	253	stage-compile-logic	phase-end	digest-stage-product	digest-stage-product	4186452	4990324
+23:28:41	254	stage-source-load	complete			3934684	4990324
+23:28:42	255	stage-conformance	complete			3934684	4990324
+23:28:42	256	stage-export-agreement	dispatch			3934684	4990324
+23:28:42	257	stage-export-agreement	phase-start	capture-handle-commitments	capture-handle-commitments	3934684	4990324
+23:28:42	258	stage-export-agreement	phase-end	capture-handle-commitments	capture-handle-commitments	3934684	4990324
+23:28:42	259	stage-export-agreement	phase-start	digest-stage-product	digest-stage-product	3934684	4990324
+23:28:42	260	stage-export-agreement	phase-end	digest-stage-product	digest-stage-product	3934684	4990324
+23:29:09	261	stage-compile-logic	complete			4105976	6161200
+23:29:09	262	stage-export-json-schema	dispatch			4105976	6161200
+23:29:09	263	stage-export-schemas	dispatch			4105976	6161200
+23:29:09	264	stage-mappings	dispatch			4105976	6161200
+23:29:09	265	stage-export-agreement	complete			4130780	6161200
+23:29:09	266	stage-export-agreement	release			4130780	6161200
+23:29:09	267	stage-reason	dispatch			4130780	6161200
+23:29:09	268	stage-reason	phase-start	assemble-object-edb	assemble-object-edb	4130780	6161200
+23:29:15	269	stage-export-json-schema	phase-start	capture-handle-commitments	capture-handle-commitments	4402504	6161200
+23:29:15	270	stage-export-json-schema	phase-end	capture-handle-commitments	capture-handle-commitments	4402504	6161200
+23:29:15	271	stage-export-json-schema	phase-start	digest-stage-product	digest-stage-product	4402508	6161200
+23:29:15	272	stage-export-json-schema	phase-end	digest-stage-product	digest-stage-product	4403164	6161200
+23:29:15	273	stage-export-schemas	phase-start	capture-handle-commitments	capture-handle-commitments	4430128	6161200
+23:29:15	274	stage-export-schemas	phase-end	capture-handle-commitments	capture-handle-commitments	4430128	6161200
+23:29:15	275	stage-export-schemas	phase-start	digest-stage-product	digest-stage-product	4430132	6161200
+23:29:15	276	stage-export-schemas	phase-end	digest-stage-product	digest-stage-product	4430132	6161200
+23:29:16	277	stage-export-schemas	complete			4443716	6161200
+23:29:16	278	stage-export-schemas	release			4443836	6161200
+23:29:16	279	stage-slice-brief	dispatch			4443836	6161200
+23:29:18	280	stage-export-json-schema	complete			4460008	6161200
+23:29:34	281	stage-reason	phase-end	assemble-object-edb	assemble-object-edb	4910244	6161200
+23:29:34	282	stage-reason	phase-start	construct-closure-and-artifacts	construct-closure-and-artifacts	4910244	6161200
+23:29:34	283	stage-reason	phase-start	canonicalize-edb	construct-closure-and-artifacts>canonicalize-edb	4910244	6161200
+23:29:42	284	stage-reason	phase-end	canonicalize-edb	construct-closure-and-artifacts>canonicalize-edb	4910244	6161200
+23:29:42	285	stage-reason	phase-start	project-expression-identities	construct-closure-and-artifacts>project-expression-identities	4910244	6161200
+23:29:43	286	stage-reason	phase-end	project-expression-identities	construct-closure-and-artifacts>project-expression-identities	4991876	6161200
+23:29:43	287	stage-reason	phase-start	prepare-reasoning-input	construct-closure-and-artifacts>prepare-reasoning-input	4919668	6161200
+23:29:50	288	stage-reason	phase-end	prepare-reasoning-input	construct-closure-and-artifacts>prepare-reasoning-input	6510424	6510424
+23:29:50	289	stage-reason	phase-start	reason-all	construct-closure-and-artifacts>reason-all	4558948	6510024
+23:37:05	290	stage-slice-brief	phase-start	capture-handle-commitments	capture-handle-commitments	5065508	6510024
+23:37:05	291	stage-slice-brief	phase-end	capture-handle-commitments	capture-handle-commitments	5065508	6510024
+23:37:05	292	stage-slice-brief	phase-start	digest-stage-product	digest-stage-product	5065508	6510024
+23:37:05	293	stage-slice-brief	phase-end	digest-stage-product	digest-stage-product	5140504	6510024
+23:37:12	294	stage-slice-brief	complete			5499420	6510024
+23:37:28	295	stage-mappings	phase-start	read-homographs	read-homographs	6191324	6510024
+23:37:30	296	stage-mappings	phase-end	read-homographs	read-homographs	6191324	6510024
+23:41:53	297	stage-mappings	phase-start	capture-handle-commitments	capture-handle-commitments	10285032	10285032
+23:41:53	298	stage-mappings	phase-end	capture-handle-commitments	capture-handle-commitments	10285032	10285032
+23:41:53	299	stage-mappings	phase-start	digest-stage-product	digest-stage-product	10285032	10285032
+23:42:12	300	stage-mappings	phase-end	digest-stage-product	digest-stage-product	11995640	13951068
+23:44:34	301	stage-mappings	complete			13004348	15370128
+23:44:34	302	stage-export-research-objects	dispatch			13005160	15370128
+23:44:34	303	stage-gmn-training-corpus	dispatch			13005236	15370128
+23:44:34	304	stage-math-producers	dispatch			13005268	15370128
+23:44:35	305	stage-gmn-training-corpus	phase-start	gmn-resolve-context	construct-closure-and-artifacts>reason-all>gmn-resolve-context	13005536	15370128
+23:44:35	306	stage-gmn-training-corpus	phase-end	gmn-resolve-context	construct-closure-and-artifacts>reason-all>gmn-resolve-context	13005828	15370128
+23:44:35	307	stage-gmn-training-corpus	phase-start	gmn-build-corpus	construct-closure-and-artifacts>reason-all>gmn-build-corpus	13005916	15370128
+23:44:35	308	stage-gmn-training-corpus	phase-end	gmn-build-corpus	construct-closure-and-artifacts>reason-all>gmn-build-corpus	13008416	15370128
+23:44:35	309	stage-gmn-training-corpus	phase-start	gmn-freeze-corpus	construct-closure-and-artifacts>reason-all>gmn-freeze-corpus	13008416	15370128
+23:44:35	310	stage-gmn-training-corpus	phase-end	gmn-freeze-corpus	construct-closure-and-artifacts>reason-all>gmn-freeze-corpus	13008416	15370128
+23:44:35	311	stage-gmn-training-corpus	phase-start	gmn-build-product	construct-closure-and-artifacts>reason-all>gmn-build-product	13008424	15370128
+23:44:35	312	stage-gmn-training-corpus	phase-start	capture-handle-commitments	construct-closure-and-artifacts>reason-all>gmn-build-product>capture-handle-commitments	13008436	15370128
+23:44:35	313	stage-gmn-training-corpus	phase-end	capture-handle-commitments	construct-closure-and-artifacts>reason-all>gmn-build-product>capture-handle-commitments	13008444	15370128
+23:44:35	314	stage-gmn-training-corpus	phase-start	digest-stage-product	construct-closure-and-artifacts>reason-all>gmn-build-product>digest-stage-product	13008444	15370128
+23:44:35	315	stage-gmn-training-corpus	phase-end	digest-stage-product	construct-closure-and-artifacts>reason-all>gmn-build-product>digest-stage-product	13008568	15370128
+23:44:35	316	stage-gmn-training-corpus	phase-end	gmn-build-product	construct-closure-and-artifacts>reason-all>gmn-build-product	13008568	15370128
+23:44:35	317	stage-gmn-training-corpus	complete			13013344	15370128
+23:44:37	318	stage-math-producers	phase-start	math-project-requests	math-project-requests	13163744	15370128
+23:44:37	319	stage-export-research-objects	phase-start	dcat-parse-ontology	dcat-parse-ontology	13059420	15370128
+23:44:38	320	stage-math-producers	phase-end	math-project-requests	math-project-requests	13061324	15370128
+23:44:38	321	stage-math-producers	phase-start	math-native-producers	math-native-producers	13061332	15370128
+23:44:38	322	stage-math-producers	phase-end	math-native-producers	math-native-producers	13062320	15370128
+23:44:38	323	stage-math-producers	phase-start	math-producer-parity	math-producer-parity	13062376	15370128
+23:44:38	324	stage-math-producers	phase-end	math-producer-parity	math-producer-parity	13062376	15370128
+23:44:38	325	stage-math-producers	phase-start	capture-handle-commitments	capture-handle-commitments	13062440	15370128
+23:44:38	326	stage-math-producers	phase-end	capture-handle-commitments	capture-handle-commitments	13062440	15370128
+23:44:38	327	stage-math-producers	phase-start	digest-stage-product	digest-stage-product	13062440	15370128
+23:44:38	328	stage-math-producers	phase-end	digest-stage-product	digest-stage-product	13062440	15370128
+23:44:39	329	stage-export-research-objects	phase-end	dcat-parse-ontology	dcat-parse-ontology	13062452	15370128
+23:44:39	330	stage-export-research-objects	phase-start	dcat-prepare-profile	dcat-prepare-profile	13062452	15370128
+23:44:39	331	stage-export-research-objects	phase-end	dcat-prepare-profile	dcat-prepare-profile	13064320	15370128
+23:44:39	332	stage-export-research-objects	phase-start	dcat-union-examples	dcat-union-examples	13064320	15370128
+23:44:39	333	stage-export-research-objects	phase-end	dcat-union-examples	dcat-union-examples	13064588	15370128
+23:44:39	334	stage-export-research-objects	phase-start	dcat-admit-digests	dcat-admit-digests	13064608	15370128
+23:44:39	335	stage-export-research-objects	phase-end	dcat-admit-digests	dcat-admit-digests	13064680	15370128
+23:44:39	336	stage-export-research-objects	phase-start	dcat-execute	dcat-execute	13064680	15370128
+23:44:40	337	stage-export-research-objects	phase-end	dcat-execute	dcat-execute	13069836	15370128
+23:44:40	338	stage-export-research-objects	phase-start	dcat-flatten-output	dcat-flatten-output	13069956	15370128
+23:44:40	339	stage-export-research-objects	phase-end	dcat-flatten-output	dcat-flatten-output	13069956	15370128
+23:44:40	340	stage-export-research-objects	phase-start	dcat-freeze-output	dcat-freeze-output	13069960	15370128
+23:44:40	341	stage-export-research-objects	phase-end	dcat-freeze-output	dcat-freeze-output	13069960	15370128
+23:44:40	342	stage-export-research-objects	phase-start	dcat-serialize-output	dcat-serialize-output	13069960	15370128
+23:44:40	343	stage-export-research-objects	phase-end	dcat-serialize-output	dcat-serialize-output	13069960	15370128
+23:44:40	344	stage-export-research-objects	phase-start	dcat-normalize-output	dcat-normalize-output	13069960	15370128
+23:44:40	345	stage-export-research-objects	phase-end	dcat-normalize-output	dcat-normalize-output	13069960	15370128
+23:44:40	346	stage-export-research-objects	phase-start	capture-handle-commitments	capture-handle-commitments	13070040	15370128
+23:44:40	347	stage-export-research-objects	phase-end	capture-handle-commitments	capture-handle-commitments	13070040	15370128
+23:44:40	348	stage-export-research-objects	phase-start	digest-stage-product	digest-stage-product	13070040	15370128
+23:44:40	349	stage-export-research-objects	phase-end	digest-stage-product	digest-stage-product	13070040	15370128
+23:44:48	350	stage-math-producers	complete			13587400	15370128
+23:44:49	351	stage-export-research-objects	complete			13587416	15370128
+23:44:49	352	stage-export-research-objects	release			13587496	15370128
+00:36:14	353	stage-reason	phase-end	reason-all	construct-closure-and-artifacts>reason-all	14486892	15370128
+00:36:14	354	stage-reason	phase-start	project-reason-artifacts	construct-closure-and-artifacts>project-reason-artifacts	14486900	15370128
+00:36:14	355	stage-reason	phase-start	project-witnesses	construct-closure-and-artifacts>project-reason-artifacts>project-witnesses	14486904	15370128
+00:36:15	356	stage-reason	phase-end	project-witnesses	construct-closure-and-artifacts>project-reason-artifacts>project-witnesses	14486972	15370128
+00:36:15	357	stage-reason	phase-start	project-inferred-closure	construct-closure-and-artifacts>project-reason-artifacts>project-inferred-closure	14487064	15370128
+00:36:25	358	stage-reason	phase-end	project-inferred-closure	construct-closure-and-artifacts>project-reason-artifacts>project-inferred-closure	14702216	15370128
+00:36:25	359	stage-reason	phase-start	project-explanations	construct-closure-and-artifacts>project-reason-artifacts>project-explanations	14702216	15370128
