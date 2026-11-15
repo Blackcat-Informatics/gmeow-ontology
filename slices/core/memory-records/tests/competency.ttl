@@ -10,7 +10,7 @@
 @prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/memory-records/tests/> .
 @prefix tf:    <https://example.org/trace-finality/> .
 
-# "Where did a producer declare marking final, for which ledger, and up to which packet?"
+# "Whose marks does each watermark finalize, in which ledger, and up to which packet?"
 ex:cqWatermarkDeclared a gmeow:CompetencyQuestion ;
     gmeow:cqReasoning gmeow:reasoningNone ;
     gmeow:cqDataFile "examples/trace-finality.ttl" ;
@@ -21,7 +21,7 @@ SELECT ?watermark ?ledger ?producer ?packet WHERE {
         gmeow:traceFinalityProducer ?producer ;
         gmeow:watermarkPacket ?packet .
 }""" ;
-    gmeow:cqRationale "A recorder must be able to read, as data, which producer declared marking final for which ledger and up to which recorded packet, without the answer implying that the declaration was checked against the ledger's order." ;
+    gmeow:cqRationale "A recorder must be able to read, as data, which producer's marks a watermark finalizes, in which ledger and up to which recorded packet, without the answer implying that the declaration was checked against the ledger's order or that it covers any other producer." ;
     gmeow:cqExactRows true ;
     gmeow:cqResultShape ex:cqWatermarkDeclaredShape ;
     gmeow:cqExpectRow ex:wdCut .
@@ -40,7 +40,7 @@ ex:wdCut a gmeow:ExpectedRow ;
         [ a gmeow:ExpectedCell ; gmeow:cellVar "producer" ; gmeow:cellValueIri tf:memoryService ] ,
         [ a gmeow:ExpectedCell ; gmeow:cellVar "packet" ; gmeow:cellValueIri tf:packetOne ] .
 
-# "Which late producers have stated a committed point, and what is it?"
+# "Which committed point has each late producer stated?"
 ex:cqFrontierCommitted a gmeow:CompetencyQuestion ;
     gmeow:cqReasoning gmeow:reasoningNone ;
     gmeow:cqDataFile "examples/trace-finality.ttl" ;
@@ -50,7 +50,7 @@ SELECT ?frontier ?producer ?point WHERE {
         gmeow:traceFinalityProducer ?producer ;
         gmeow:frontierPoint ?point .
 }""" ;
-    gmeow:cqRationale "A recorder deciding whether a watermark may advance needs each producer's stated committed point as data. The question returns the stated point per producer and does not decide whether the watermark passes it, since no order is evaluated." ;
+    gmeow:cqRationale "A recorder deciding whether a producer's watermark may advance needs that producer's stated committed point as data. The question returns the stated point per producer and does not decide whether the watermark passes it, since no order is evaluated." ;
     gmeow:cqExactRows true ;
     gmeow:cqResultShape ex:cqFrontierCommittedShape ;
     gmeow:cqExpectRow ex:fcLate .

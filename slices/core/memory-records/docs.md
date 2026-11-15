@@ -367,7 +367,7 @@ on one watermark. A further cut is a separate watermark.
 that marks events later, has declared for a ledger. It names the ledger and
 producer in the same way and one `frontierPoint`, a `TraceAnchor` packet key
 that need not be a recorded ledger member; a validation constraint rejects two
-distinct points on one frontier. Every applicable producer states its own
+distinct points on one frontier. Each producer states its own
 frontier, and none is preferred.
 
 `TraceMarksGivenUp` is the explicit give-up of marks a producer held only in
@@ -381,7 +381,7 @@ make a second cut packet or point the same individual as the first instead of
 reporting the declaration, so a constraint is used.
 
 The order is time, then digest, and a watermark is meant never to move backward
-and not to pass an applicable frontier or a packet with lost marks that were not
+and not to pass its producer's frontier or a packet with lost marks that were not
 given up. These records declare no such law. Checking them needs a typed
 comparison of times and digests, which no constraint here makes; the numeric
 integrity comparison is not a substitute. Consequently nothing verifies that a

@@ -231,7 +231,8 @@ and establish no native execution or consumer adoption (Principles 2, 4, 7,
 
 ## Finality declarations without an order law
 
-Three records declare finality over a ledger of recorded packets: TraceWatermark,
+Three records declare finality, each about one producer's marks over a ledger of
+recorded packets: TraceWatermark,
 TraceMarkFrontier and TraceMarksGivenUp. Each is an InformationObject sub-kind
 that says what a recorder or producer declared and nothing more. Each requires
 its declarer through wasAttributedTo, in the form the mark uses: an
@@ -267,7 +268,7 @@ nothing is derived from a declaration.
 
 Deferred laws, and why. Four laws are not authored: that the ledger's order is
 time then digest; that a watermark is inclusive and never moves backward; that
-a watermark does not pass any applicable frontier; and that lost marks are
+a watermark does not pass its producer's frontier; and that lost marks are
 given up before a watermark passes their packet. Each needs a typed comparison
 of temporal values and of binary digests as a bound integrity relation. The
 existing numeric comparison handles finite numbers only, and relabeling it

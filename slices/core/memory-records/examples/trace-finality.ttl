@@ -37,7 +37,8 @@ ex:ledger a gmeow:TracePacketLedger ;
     gmeow:tracePacket ex:packetOne , ex:packetTwo , ex:packetThree ;
     gmeow:wasAttributedTo ex:recorder .
 
-# The memory service declares that marking is final up to and including packet one.
+# The memory service declares that its own marking is final up to and including packet one;
+# marks of any other producer are not covered.
 ex:cut a gmeow:TraceWatermark ;
     gmeow:traceFinalityLedger ex:ledger ;
     gmeow:traceFinalityProducer ex:memoryService ;
