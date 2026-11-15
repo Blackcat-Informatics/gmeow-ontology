@@ -1567,7 +1567,7 @@ const REPORTED_DETAILS: usize = 4;
 
 /// The marker an input-specific specialization appends to the name of the rule it
 /// specializes, followed by its ordinal.
-pub(crate) const SPECIALIZATION_MARK: &str = ":immutable-binding:";
+pub const SPECIALIZATION_MARK: &str = ":immutable-binding:";
 
 /// The rule a specialization was made from; any other name is its own rule.
 fn specialized_from(name: &str) -> &str {

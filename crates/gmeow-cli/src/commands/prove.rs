@@ -901,37 +901,34 @@ fn name_authored_rules(
     text: &str,
     authored: &std::collections::BTreeMap<String, Vec<String>>,
 ) -> String {
-    let mut named = text.to_owned();
-    for (rule, formulas) in authored {
-        let opening = format!("<{rule}");
-        let formulas = formulas
-            .iter()
-            .map(|formula| format!("<{formula}>"))
-            .collect::<Vec<_>>()
-            .join(", ");
-        let mut out = String::with_capacity(named.len());
-        let mut rest = named.as_str();
-        while let Some(at) = rest.find(&opening) {
-            let after = &rest[at + opening.len()..];
-            // The identity ends at `>`; a specialization of the rule adds `:suffix`.
-            let closes = after.starts_with('>')
-                || (after.starts_with(':')
-                    && after
-                        .find('>')
-                        .is_some_and(|end| !after[..end].contains(char::is_whitespace)));
-            if !closes {
-                out.push_str(&rest[..at + opening.len()]);
-                rest = after;
-                continue;
-            }
-            let end = at + opening.len() + after.find('>').unwrap_or(0) + 1;
-            out.push_str(&rest[..end]);
-            out.push_str(&format!(" (authored formula {formulas})"));
-            rest = &rest[end..];
-        }
-        out.push_str(rest);
-        named = out;
+    if authored.is_empty() {
+        return text.to_owned();
     }
+    // One pass over the `<...>` terms: each is looked up whole, or without the
+    // specialization suffix an input-specific analysis adds to a rule's identity.
+    let mut named = String::with_capacity(text.len());
+    let mut rest = text;
+    while let Some(open) = rest.find('<') {
+        let Some(length) = rest[open..].find('>') else {
+            break;
+        };
+        let close = open + length;
+        named.push_str(&rest[..=close]);
+        let term = &rest[open + 1..close];
+        let rule = term
+            .split_once(gmeow_logic::materialize::SPECIALIZATION_MARK)
+            .map_or(term, |(rule, _)| rule);
+        if let Some(formulas) = authored.get(rule) {
+            let formulas = formulas
+                .iter()
+                .map(|formula| format!("<{formula}>"))
+                .collect::<Vec<_>>()
+                .join(", ");
+            named.push_str(&format!(" (authored formula {formulas})"));
+        }
+        rest = &rest[close + 1..];
+    }
+    named.push_str(rest);
     named
 }
 

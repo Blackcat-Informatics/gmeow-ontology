@@ -198,8 +198,8 @@ pub(crate) use chase::{
 // The termination certificate is surfaced PUBLICLY (re-exported through the public
 // `materialize` module below) so callers can read the chase's weak-acyclicity certificate
 // and its `to_finding()` gmeow:Finding off a `materialize_routed` result.
-pub use chase::ChaseAdmission;
 pub(crate) use chase::DL_CHASE_STEP_BACKSTOP;
+pub use chase::{ChaseAdmission, SPECIALIZATION_MARK};
 
 // The backward native evaluator: magic-sets demand transformation +
 // `resolve_native`, the oracle-parity sibling of `reference_resolver::resolve`. The primary
