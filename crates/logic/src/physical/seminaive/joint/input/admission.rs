@@ -306,11 +306,11 @@ impl Template {
         // Derived selector edges need not be immutable to have a finite value
         // domain. Reuse the same abstract interpreter, with at most 512 exact
         // value cells. This never executes a concrete closure or lowers a rule.
-        let enriched = flow.with_source_constants_measured(
-            evidence
-                .enrichment
-                .as_ref()
-                .unwrap_or(&evidence.facts)
+        // The rows read are the enrichment rows when every selector row was kept, else
+        // the proved-immutable rows; the note must count the ones actually read.
+        let source_rows = evidence.enrichment.as_ref().unwrap_or(&evidence.facts);
+        let enriched = flow.with_source_constants(
+            source_rows
                 .iter()
                 .copied()
                 .chain(possible.iter().map(|(_, fact)| fact)),
@@ -330,7 +330,7 @@ impl Template {
             notes.push(interning_note(
                 cut,
                 evidence.enrichment.is_some(),
-                evidence.facts.len(),
+                source_rows.len(),
                 possible.len(),
             ));
         }

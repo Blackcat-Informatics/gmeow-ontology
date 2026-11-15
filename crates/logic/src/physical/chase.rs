@@ -2656,10 +2656,10 @@ impl ChaseAdmission {
         // Run the engine's own fixpoint under an explicit step budget. The MSA Datalog
         // program is pure positive Datalog over a finite domain (the summarizing nulls are
         // constants, never invented), so its least model is finite; the budget bounds the
-        // cost of a large authored program during `stage-reason`. A non-stratifiable
-        // program or an engine error refuses without a bound; a budget cut refuses and
-        // names the budget (the ladder falls through to `Uncertified` → budget) — never a
-        // silent admit. Crucially, a
+        // cost of a large authored program during `stage-reason`. A budget cut
+        // refuses and names the budget (the ladder falls through to `Uncertified` →
+        // budget) — never a silent admit. A compile failure or an engine error is an
+        // invariant break and panics rather than reading as a refusal. Crucially, a
         // budget-`Exhausted` run leaves a PARTIAL least model: a `dep(n,n)` edge it never
         // reached would read as absent and MIS-certify, so `Exhausted` must REFUSE, never
         // certify on an incomplete fixpoint.

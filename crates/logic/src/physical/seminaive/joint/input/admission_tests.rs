@@ -334,23 +334,22 @@ fn cell_fact(index: usize) -> Fact {
 #[test]
 fn interning_cut_measures_the_cells_and_the_rows_actually_read() {
     let flow = ValueFlow::new(&[], &[], SEMANTICS);
-    let own = flow.with_source_constants_measured(std::iter::empty(), usize::MAX);
+    let own = flow.with_source_constants(std::iter::empty(), usize::MAX);
     assert!(own.is_ok());
     let facts: Vec<_> = (0..10).map(cell_fact).collect();
-    // One cell for the flow, three for the first fact, then two per fact (the predicate
-    // is shared): eight cells are passed while reading the fourth.
+    // The bound is checked after every term. The flow holds one cell, the first fact adds
+    // three, each later fact two (the predicate is shared): 4, 6 and 8 cells after the
+    // first three facts, then the fourth fact's subject makes 9 and passes the bound.
     let cut = flow
-        .with_source_constants_measured(facts.iter(), 8)
-        .err()
-        .expect("ten facts pass an eight-cell bound");
-    assert_eq!((cut.facts_read, cut.cells), (4, 10), "{cut:?}");
+        .with_source_constants(facts.iter(), 8)
+        .expect_err("ten facts pass an eight-cell bound");
+    assert_eq!((cut.facts_read, cut.cells), (4, 9), "{cut:?}");
     assert!(cut.cells > 8 && cut.cells > cut.flow_cells, "{cut:?}");
     // A bound already passed by the flow's own constants reads no row at all.
     let own_cells = cut.flow_cells;
     let cut = flow
-        .with_source_constants_measured(facts.iter(), own_cells - 1)
-        .err()
-        .expect("the flow's own cells pass the bound");
+        .with_source_constants(facts.iter(), own_cells - 1)
+        .expect_err("the flow's own cells pass the bound");
     assert_eq!((cut.facts_read, cut.cells), (0, own_cells), "{cut:?}");
 }
 

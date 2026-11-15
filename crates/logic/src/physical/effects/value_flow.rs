@@ -3488,18 +3488,9 @@ impl ValueFlow {
 
     /// Add bounded exact selector cells without re-lowering a native rule. The
     /// existing constant indices remain stable; Other still covers every value
-    /// outside the enriched vocabulary, including arbitrary future witnesses.
+    /// outside the enriched vocabulary, including arbitrary future witnesses. When
+    /// the value universe passes `limit` the error names what it measured.
     pub(crate) fn with_source_constants<'a>(
-        &self,
-        facts: impl Iterator<Item = &'a Fact>,
-        limit: usize,
-    ) -> Option<Self> {
-        self.with_source_constants_measured(facts, limit).ok()
-    }
-
-    /// [`Self::with_source_constants`], naming what the value universe measured when it
-    /// passed `limit`.
-    pub(crate) fn with_source_constants_measured<'a>(
         &self,
         facts: impl Iterator<Item = &'a Fact>,
         limit: usize,
