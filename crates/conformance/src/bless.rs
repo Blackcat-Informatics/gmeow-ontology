@@ -4,9 +4,10 @@
 //! Golden regeneration ("bless") mode.
 //!
 //! [`write_expected`] writes a case's `expected/` goldens from a fresh [`CaseOutputs`]
-//! instead of asserting against them. Its one caller is the maintenance command
-//! `gmeow-dev conformance-bless`, which names each case explicitly; no test and no gate
-//! reaches it. This is the native regeneration path for the conformance corpus.
+//! instead of asserting against them. The committed cases are blessed only by the
+//! maintenance command `gmeow-dev conformance-bless`, which names each case explicitly; no
+//! test and no gate blesses a committed case. The writer's own tests bless synthetic cases
+//! in temporary directories. This is the native regeneration path for the conformance corpus.
 //!
 //! Comparison is canonical-JSON / graph-isomorphism, so bless writes a clean,
 //! deterministic canonical form (sorted-key pretty JSON; the compiler's
@@ -28,8 +29,8 @@
 //! **refreshes goldens that already exist** — it never spawns a golden the case
 //! deliberately omits. Combined with the deterministic front-end (RDFC-1.0 blank
 //! labels), this makes `bless → git diff` clean: a second bless on a fresh
-//! checkout is a no-op. To **seed a brand-new case**, set
-//! `GMEOW_CONFORMANCE_BLESS_INIT=1`, which writes the full produced golden set; the
+//! checkout is a no-op. To **seed a brand-new case**, the caller selects
+//! [`Goldens::All`], which writes the full produced golden set; the
 //! author then curates (deletes) the targets that case should not gate.
 
 use std::path::Path;
@@ -39,22 +40,29 @@ use gmeow_errors::Diag;
 use crate::error::{Io, Serialize};
 use crate::run::CaseOutputs;
 
-/// Whether bless is in seed/init mode (`GMEOW_CONFORMANCE_BLESS_INIT=1`) — write the
-/// full produced golden set rather than only refreshing existing goldens.
-fn init_mode() -> bool {
-    std::env::var_os("GMEOW_CONFORMANCE_BLESS_INIT").is_some_and(|v| v == "1")
+/// Which goldens a bless writes.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum Goldens {
+    /// Refresh only the goldens the case already commits.
+    Existing,
+    /// Seed a new case: write the full produced golden set.
+    All,
 }
 
 /// Write the reproducible `expected/` goldens for `case_dir` from `out`.
 ///
-/// In the default (refresh) mode only goldens that already exist on disk are
-/// rewritten, so the curated corpus stays curated and bless is idempotent. In
-/// init mode (`GMEOW_CONFORMANCE_BLESS_INIT=1`) the full produced set is written.
+/// With [`Goldens::Existing`] only goldens that already exist on disk are
+/// rewritten, so the curated corpus stays curated and bless is idempotent. With
+/// [`Goldens::All`] the full produced set is written.
 ///
 /// # Errors
 /// Returns an error string on any filesystem or serialization failure.
-pub fn write_expected(case_dir: &Path, out: &CaseOutputs) -> gmeow_errors::Result<()> {
-    let init = init_mode();
+pub fn write_expected(
+    case_dir: &Path,
+    out: &CaseOutputs,
+    goldens: Goldens,
+) -> gmeow_errors::Result<()> {
+    let init = goldens == Goldens::All;
     let expected = case_dir.join("expected");
     let proj = expected.join("projections");
 

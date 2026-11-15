@@ -1317,7 +1317,7 @@ maint-refresh-target-axioms: ## Re-vendor minimal target-axiom snapshots.
 
 maint-conformance-bless: ## Refresh the expected outputs of the named conformance cases (CASES="<id-or-path> ..."); read the diff before committing.
 	@test -n "$(strip $(CASES))" || { echo "CASES is required for maint-conformance-bless"; exit 2; }
-	cargo run --locked -p gmeow-dev-cli --bin gmeow-dev -- conformance-bless $(CASES)
+	$(GMEOW_DEV) conformance-bless $(CASES)
 
 maint-refresh-reviewed-coverage-golden: ## Refresh the deterministic reviewed-translation coverage golden from all live slice catalogs.
 	cargo run -p gmeow-docs-model --example refresh-reviewed-coverage-golden
