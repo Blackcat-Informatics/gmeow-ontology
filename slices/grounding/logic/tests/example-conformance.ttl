@@ -243,9 +243,9 @@ ex:ecFlagshipNonFailureClass a gmeow:ExampleConformance ;
 
 # =========================================================================== #
 # Typed full-FOL IR — procedural constraint projection twins. The positive case
-# jointly satisfies all seven ontology-authored constraints; each negative fixture
-# changes one independent condition and must be rejected by the generated
-# sh:SPARQLConstraint surface.
+# jointly satisfies the ontology-authored constraints named in its rationale; each
+# negative fixture changes one independent condition and must be rejected by the
+# generated sh:SPARQLConstraint surface.
 # =========================================================================== #
 
 ex:ecTypedIrConstraintsWellformed a gmeow:ExampleConformance ;

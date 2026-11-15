@@ -1010,8 +1010,8 @@ ASK {
     logic:TermCarrierValueConstraint a logic:ChoiceGroupConstraint ;
         logic:onClass logic:TermCarrier ;
         logic:choiceMode "exactly-one" ;
-        logic:choicePredicate logic:termIri, logic:termVariable,
-            logic:termLiteral, logic:termSequenceMarker .
+        logic:choicePredicate logic:termApplication, logic:termIri, logic:termLiteral,
+            logic:termSequenceMarker, logic:termVariable .
     logic:TermCarrierIndexConstraint a logic:Constraint ;
         logic:integrity/logic:forall ?argumentImplication .
     ?argumentImplication logic:antecedent/logic:relation logic:argument ;
@@ -1024,7 +1024,7 @@ ASK {
     logic:LiteralDatatypeConstraint logic:trigger logic:termLiteralDatatype ;
         logic:requires logic:termLiteral .
 }""" ;
-    gmeow:saRationale "Constraint-sugar descriptors MUST be distinct from object-level Formula AST nodes, while formula constructor choice, the two inseparable implication operands, the four exclusive term kinds, the indices required on logic:argument operands and on logic:quantifiedVariable binders, and literal/datatype pairing remain ontology-resident executable constraints. The index requirement is guarded by the owning predicate, never by the TermCarrier class, because a carrier in an RDF 1.2 triple-term position of a rule atom needs no index. The Rust parser supplies the graph-global companion checks for arity, unique contiguous indices, and cycles; neither layer relies on prose alone." .
+    gmeow:saRationale "Constraint-sugar descriptors MUST be distinct from object-level Formula AST nodes, while formula constructor choice, the two inseparable implication operands, the five exclusive term kinds, the indices required on logic:argument operands and on logic:quantifiedVariable binders, and literal/datatype pairing remain ontology-resident executable constraints. The index requirement is guarded by the owning predicate, never by the TermCarrier class, because a carrier in an RDF 1.2 triple-term position of a rule atom needs no index. The Rust parser supplies the graph-global companion checks for arity, unique contiguous indices, and cycles; neither layer relies on prose alone." .
 
 # --- Lowering legality is distinct from output presentation (MUST) ----------
 ex:saTypedIrConversionTarget a gmeow:StructuralAssertion ;

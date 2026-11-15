@@ -10442,6 +10442,10 @@ msgctxt "https://blackcatinformatics.ca/logic/TermCarrierIndexConstraint|https:/
 msgid "Use when validating the ordered argument lists of atoms, function terms and rule inequality guards."
 msgstr "在验证原子、函数项和规则不等式守卫的有序参数列表时使用。"
 
+msgctxt "https://blackcatinformatics.ca/logic/TermCarrierIndexConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Require one non-negative integer index on each logic:argument carrier, then validate the sibling index set as 0 through n minus 1."
+msgstr "要求每个 logic:argument 载体都带有一个非负整数索引，然后验证同级载体的索引集合恰为 0 到 n 减 1。"
+
 msgctxt "https://blackcatinformatics.ca/logic/BoundVariableCarrierIndexConstraint|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "Bound Variable Carrier Index Constraint"
 msgstr "约束变量载体索引约束"

@@ -10442,6 +10442,10 @@ msgctxt "https://blackcatinformatics.ca/logic/TermCarrierIndexConstraint|https:/
 msgid "Use when validating the ordered argument lists of atoms, function terms and rule inequality guards."
 msgstr "À utiliser pour valider les listes ordonnées d'arguments des atomes, des termes fonctionnels et des gardes d'inégalité de règle."
 
+msgctxt "https://blackcatinformatics.ca/logic/TermCarrierIndexConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Require one non-negative integer index on each logic:argument carrier, then validate the sibling index set as 0 through n minus 1."
+msgstr "Exiger un indice entier non négatif sur chaque porteur de logic:argument, puis valider l'ensemble des indices des porteurs frères comme allant de 0 à n moins 1."
+
 msgctxt "https://blackcatinformatics.ca/logic/BoundVariableCarrierIndexConstraint|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "Bound Variable Carrier Index Constraint"
 msgstr "Contrainte d'indice du porteur de variable liée"

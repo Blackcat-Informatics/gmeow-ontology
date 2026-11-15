@@ -17157,7 +17157,7 @@ logic:TermCarrierIndexConstraint
     skos:example "ex:atom logic:argument ex:slot . ex:slot logic:termVariable 'x' . violates this constraint because ex:slot has no logic:termIndex."@x-gmeow-english ;
     gmeow:avoidWhen "Do not infer an omitted index from RDF statement order, which has no semantic ordering."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxCBox ;
-    gmeow:howToUse "Require one non-negative integer index on each carrier, then validate the sibling index set as 0 through n minus 1."@x-gmeow-english ;
+    gmeow:howToUse "Require one non-negative integer index on each logic:argument carrier, then validate the sibling index set as 0 through n minus 1."@x-gmeow-english ;
     gmeow:useWhen "Use when validating the ordered argument lists of atoms, function terms and rule inequality guards."@x-gmeow-english .
 
 logic:BoundVariableCarrierIndexConstraint
