@@ -73,13 +73,16 @@ static RECLAIM_IN_PROGRESS: Mutex<()> = Mutex::new(());
 /// resident sizes.
 ///
 /// The return is process-wide, so two at once would walk the same arenas for the same
-/// pages and neither resident reading would belong to one of them. Callers therefore
-/// take turns. The waiters are bounded by the callers that exist: one coordinator for
+/// pages. Callers therefore take turns, which keeps one return's two resident readings
+/// clear of another return. The waiters are bounded by the callers that exist: one coordinator for
 /// each pipeline run in the process and each reasoning body in flight, never one per
 /// worker.
 ///
 /// The returned record is an observation: resident size immediately before and after,
-/// and the time the return took. See [`crate::memory_record`].
+/// and the time the return took. Other threads go on allocating and freeing between
+/// the two readings, so their difference is what the return gave back net of that
+/// activity, and it can be small or negative beside a busy stage. See
+/// [`crate::memory_record`].
 pub(crate) fn reclaim_allocator_slack(stage_id: &str, phase: Option<&str>) -> MemoryRecord {
     let _turn = RECLAIM_IN_PROGRESS
         .lock()
@@ -1416,9 +1419,9 @@ fn exec_stage(
         })?);
     }
     // Carrier-scale serializers share one permit because each owns a whole-document
-    // buffer. The pages a sibling serializer freed are returned to the system when the
-    // coordinator publishes that sibling, which is before it dispatches the next holder
-    // of the permit.
+    // buffer. Within one run, the pages a sibling serializer freed are returned to the
+    // system when the coordinator publishes that sibling, which is before it dispatches
+    // the next holder of the permit.
     let out = stage.run(input)?;
     drop(_guards);
 

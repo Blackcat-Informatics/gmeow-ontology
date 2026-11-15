@@ -18,6 +18,7 @@
     gmeow:sliceDependsOn <https://blackcatinformatics.ca/gmeow/slices/math> ,
         <https://blackcatinformatics.ca/gmeow/slices/logic> ,
         <https://blackcatinformatics.ca/gmeow/slices/documents> ,
+        <https://blackcatinformatics.ca/gmeow/slices/creative-works> ,
         <https://blackcatinformatics.ca/gmeow/slices/kernel> ,
         <https://blackcatinformatics.ca/gmeow/slices/teleology> ;
     gmeow:sliceConsumer "Content-addressed sources under the claim spine and the GTS packages (blake3 digests)."@x-gmeow-english .

@@ -46,7 +46,7 @@ fn bless_is_self_consistent() {
         &crate::native_observation::read,
     )
     .expect("run_case ok");
-    write_expected(&dst, &out).expect("bless ok");
+    write_expected(&dst, &out, Goldens::Existing).expect("bless ok");
 
     // gmeow-test-input: synthetic-only; no repository source or fixture read.
     let out2 = crate::run::run_case(

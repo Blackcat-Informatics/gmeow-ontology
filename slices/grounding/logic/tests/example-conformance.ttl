@@ -243,15 +243,15 @@ ex:ecFlagshipNonFailureClass a gmeow:ExampleConformance ;
 
 # =========================================================================== #
 # Typed full-FOL IR — procedural constraint projection twins. The positive case
-# jointly satisfies all six ontology-authored constraints; each negative fixture
-# changes one independent condition and must be rejected by the generated
-# sh:SPARQLConstraint surface.
+# jointly satisfies the ontology-authored constraints named in its rationale; each
+# negative fixture changes one independent condition and must be rejected by the
+# generated sh:SPARQLConstraint surface.
 # =========================================================================== #
 
 ex:ecTypedIrConstraintsWellformed a gmeow:ExampleConformance ;
     gmeow:exampleFile "tests/conformance-fixtures/typed-ir-constraints-wellformed.ttl" ;
     gmeow:expectedOutcome gmeow:conforms ;
-    gmeow:conformanceRationale "The complete implication selects one constructor at every Formula node, carries both ordered operands, and gives each TermCarrier exactly one indexed value kind; its typed literal carries both lexical form and datatype. FormulaConstructorConstraint, both implication guards, TermCarrierValueConstraint, TermCarrierIndexConstraint, and LiteralDatatypeConstraint therefore all remain silent." .
+    gmeow:conformanceRationale "The complete implication selects one constructor at every Formula node, carries both ordered operands, and gives each TermCarrier exactly one value kind; every logic:argument operand and the logic:quantifiedVariable carrier of the complete existential carry a logic:termIndex; the typed literal carries both lexical form and datatype. FormulaConstructorConstraint, both implication guards, TermCarrierValueConstraint, TermCarrierIndexConstraint, BoundVariableCarrierIndexConstraint, and LiteralDatatypeConstraint therefore all remain silent." .
 
 ex:ecTypedIrTwoConstructors a gmeow:ExampleConformance ;
     gmeow:exampleFile "tests/counter-examples/typed-ir-two-constructors.ttl" ;
@@ -281,7 +281,15 @@ ex:ecTypedIrCarrierWithoutIndex a gmeow:ExampleConformance ;
     gmeow:exampleFile "tests/counter-examples/typed-ir-carrier-without-index.ttl" ;
     gmeow:expectedOutcome gmeow:violates ;
     gmeow:expectedViolationCode "shacl.SPARQLConstraintComponent" ;
-    gmeow:conformanceRationale "The TermCarrier has one unambiguous variable value but no logic:termIndex, so TermCarrierIndexConstraint must reject the positionless RDF argument rather than infer order from serialization." .
+    gmeow:expectedSourceShape logic:TermCarrierIndexConstraintProceduralConstraintShape ;
+    gmeow:conformanceRationale "The atom's logic:argument operand has one unambiguous variable value but no logic:termIndex, so TermCarrierIndexConstraint must reject the positionless RDF argument rather than infer order from serialization." .
+
+ex:ecTypedIrBinderWithoutIndex a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/typed-ir-binder-without-index.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.SPARQLConstraintComponent" ;
+    gmeow:expectedSourceShape logic:BoundVariableCarrierIndexConstraintProceduralConstraintShape ;
+    gmeow:conformanceRationale "The quantifier's logic:quantifiedVariable carrier names one variable but has no logic:termIndex, while the indexed operand of its body atom is well formed, so BoundVariableCarrierIndexConstraint must reject the positionless binder rather than infer the order of the binding block from serialization." .
 
 ex:ecTypedIrDatatypeWithoutLiteral a gmeow:ExampleConformance ;
     gmeow:exampleFile "tests/counter-examples/typed-ir-datatype-without-literal.ttl" ;

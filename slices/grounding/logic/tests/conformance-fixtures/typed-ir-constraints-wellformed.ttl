@@ -32,3 +32,24 @@ ex:typedLiteralCarrier
     logic:termIndex 0 ;
     logic:termLiteral "18" ;
     logic:termLiteralDatatype xsd:integer .
+
+# One complete existential. Its bound-variable carrier and its body operand each carry an index.
+ex:validQuantifier
+    a logic:Formula ;
+    logic:exists ex:validQuantifierBody ;
+    logic:quantifiedVariable ex:boundVariableCarrier .
+
+ex:boundVariableCarrier
+    a logic:TermCarrier ;
+    logic:termIndex 0 ;
+    logic:termVariable "candidate" .
+
+ex:validQuantifierBody
+    a logic:Formula ;
+    logic:argument ex:quantifiedOperandCarrier ;
+    logic:relation ex:eligible .
+
+ex:quantifiedOperandCarrier
+    a logic:TermCarrier ;
+    logic:termIndex 0 ;
+    logic:termVariable "candidate" .

@@ -273,20 +273,30 @@ impl FromJson for PropertyConstraintIr {
     "node_components" => node_components,
     "label" => label,
     "failure_class" => failure_class,
+    "excluded_obligation_declarations" => excluded_obligation_declarations,
 });
 impl FromJson for ValidationShapeIr {
     fn from_json(value: &Value) -> Result<Self, DecodeError> {
         let mut fields = Record::new(value, "struct ValidationShapeIr")?;
-        Ok(Self {
-            iri: fields.required("iri")?,
-            target: fields.required("target")?,
+        let iri = fields.required("iri")?;
+        let target = fields.required("target")?;
+        let shape = Self {
+            iri,
+            target,
             properties: fields.required("properties")?,
             node_kind: fields.required("node_kind")?,
             standpoint: fields.optional("standpoint")?,
             node_components: fields.required("node_components")?,
             label: fields.optional("label")?,
             failure_class: fields.optional("failure_class")?,
-        })
+            excluded_obligation_declarations: fields
+                .required("excluded_obligation_declarations")?,
+        };
+        // The exclusion is meaningful only on a class target; refuse the record rather than
+        // carry a state the projections would read inconsistently.
+        Self::admit_excluded_declarations(&shape.target, &shape.excluded_obligation_declarations)
+            .map_err(DecodeError::custom)?;
+        Ok(shape)
     }
 }
 

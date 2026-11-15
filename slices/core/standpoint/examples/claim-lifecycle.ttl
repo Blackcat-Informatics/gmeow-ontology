@@ -13,7 +13,9 @@ ex:janetUsage a gmeow:Entity ;
     gmeow:succeedsClaim ex:bobUsage
     {| gmeow:accordingTo ex:person ;
        gmeow:validFrom "2025-01-01T00:00:00Z"^^xsd:dateTime |} .
-ex:mistakenUsage a gmeow:Entity ; gmeow:displayable false .
+# A correction is a statement by the correcting standpoint. The corrected usage
+# carries no display flag and is not superseded: both usages stay retrievable.
+ex:mistakenUsage a gmeow:Entity .
 ex:correctUsage a gmeow:Entity ;
     gmeow:correctsClaim ex:mistakenUsage
     {| gmeow:accordingTo ex:person ;

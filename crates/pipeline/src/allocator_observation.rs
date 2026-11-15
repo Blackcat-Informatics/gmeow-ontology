@@ -169,9 +169,10 @@ fn observe(phase: &str, started: Instant) -> io::Result<()> {
     result.map_err(|error| context("write allocator observation to stderr", error))
 }
 
-/// GNU documents `malloc_info` as MT-Safe and covering all arenas, unlike the
-/// documented main-arena limitation of `mallinfo2`. Preserve its versioned XML
-/// without assuming a fixed schema or deriving allocator in-use arithmetic.
+/// GNU documents `malloc_info` as MT-Safe and covering all arenas. It reports each
+/// arena on its own, with the sizes of its free chunks, which the process totals
+/// [`allocator_totals`] reads from `mallinfo2` do not. Preserve its versioned XML
+/// without assuming a fixed schema or deriving figures from it.
 #[cfg(all(target_os = "linux", target_env = "gnu"))]
 fn capture_glibc() -> io::Result<Vec<u8>> {
     use std::io::{Read, Seek, SeekFrom};

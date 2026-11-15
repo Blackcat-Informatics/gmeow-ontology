@@ -493,8 +493,21 @@ PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 PREFIX ex: <https://example.org/lifecycle/>
 PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
 PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
-ASK { gmeow:succeedsClaim rdfs:subPropertyOf gmeow:supersedes . gmeow:correctsClaim rdfs:subPropertyOf gmeow:supersedes . gmeow:retractsClaim rdfs:domain gmeow:Activity ; rdfs:range gmeow:Entity . }""" ;
-    gmeow:saRationale "Succession and correction specialize supersession; actual withdrawal belongs to an activity, not a force individual." .
+ASK { gmeow:succeedsClaim rdfs:subPropertyOf gmeow:supersedes . gmeow:correctsClaim rdfs:domain gmeow:Entity ; rdfs:range gmeow:Entity . gmeow:retractsClaim rdfs:domain gmeow:Activity ; rdfs:range gmeow:Entity . }""" ;
+    gmeow:saRationale "Succession specializes supersession; correction is a relation between claim-bearing entities in its own right; actual withdrawal belongs to an activity, not a force individual." .
+
+<https://example.org/lifecycle/tests/correction-is-not-supersession> a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:mustNot ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+ { gmeow:correctsClaim (rdfs:subPropertyOf|logic:subPropertyOf)+ gmeow:supersedes }
+ UNION
+ { gmeow:correctsClaim (rdfs:subPropertyOf|logic:subPropertyOf)+ gmeow:supersededBy }
+}""" ;
+    gmeow:saRationale "gmeow:correctsClaim MUST NOT be a sub-property of gmeow:supersedes or gmeow:supersededBy, in either spelling of the sub-property edge. A correction is a statement by the correcting standpoint that another claim is wrong; were it a supersession, every correction would derive that the corrected claim is superseded and would prompt its suppression, which lets one standpoint remove another standpoint's claim from view (Principles 9 and 10)." .
 
 <https://example.org/lifecycle/tests/lifecycle-examples> a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:must ;
@@ -516,7 +529,29 @@ ASK {
  ?r rdf:reifies <<( ex:withdrawal gmeow:retractsClaim ex:claim )>> ;
     gmeow:accordingTo ex:person ; gmeow:validFrom "2025-03-01T00:00:00Z"^^xsd:dateTime .
  FILTER NOT EXISTS { ex:janetUsage gmeow:correctsClaim ex:bobUsage }
+ FILTER NOT EXISTS { ex:mistakenUsage gmeow:displayable false }
+ FILTER NOT EXISTS { ex:correctUsage gmeow:supersedes ex:mistakenUsage }
  FILTER NOT EXISTS { ex:utterance gmeow:retractsClaim ?target }
  FILTER NOT EXISTS { ex:utterance gmeow:claimModalForce ?force }
 }""" ;
-    gmeow:saRationale "Worked succession, correction and withdrawal retain distinct relation kinds, standpoint and effective time. Speech-act force alone supplies neither withdrawal nor necessity." .
+    gmeow:saRationale "Worked succession, correction and withdrawal retain distinct relation kinds, standpoint and effective time. The corrected usage carries no display flag and no supersession: a correction leaves the claim it corrects as it was. Speech-act force alone supplies neither withdrawal nor necessity." .
+
+<https://example.org/lifecycle/tests/disagreement-and-correction-retain-the-claim> a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModuleAndExamples ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX ex: <https://example.org/correction/>
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+ASK {
+ ex:blueClaim a gmeow:ClaimToken ; gmeow:accordingTo ex:surveyorView ; gmeow:expresses ex:doorIsBlue .
+ ex:neighbourDoubt a gmeow:ClaimEvaluation ; gmeow:evaluates ex:blueClaim ; gmeow:accordingTo ex:neighbourView .
+ ex:redClaim gmeow:correctsClaim ex:blueClaim ; gmeow:expresses ex:doorIsRed .
+ ?c rdf:reifies <<( ex:redClaim gmeow:correctsClaim ex:blueClaim )>> ;
+    gmeow:accordingTo ex:inspectorView ; gmeow:validFrom "2026-04-02T09:00:00Z"^^xsd:dateTime .
+ FILTER NOT EXISTS { ex:blueClaim gmeow:displayable ?flag }
+ FILTER NOT EXISTS { ?later gmeow:supersedes ex:blueClaim }
+ FILTER NOT EXISTS { ex:blueClaim gmeow:supersededBy ?later }
+ FILTER NOT EXISTS { ex:neighbourDoubt gmeow:correctsClaim ?any }
+}""" ;
+    gmeow:saRationale "A plain disagreement is a gmeow:ClaimEvaluation and a correction is gmeow:correctsClaim indexed to the correcting standpoint. Neither one puts a display flag or a supersession on the claim it is about, so the disputed claim, the evaluation and the correction are all retrievable together (Principles 9 and 10)." .

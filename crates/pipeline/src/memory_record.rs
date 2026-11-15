@@ -102,11 +102,21 @@ impl ProcessMemory {
 /// The totals are those of every arena and are not an atomic snapshot: threads go on
 /// allocating while the arenas are read one after another. Free bytes are the free
 /// chunks the allocator keeps for reuse; they include pages a return of freed pages has
-/// already handed back to the system, so they are not a resident figure. Resident
-/// memory held but not in use is the resident size less [`Self::live_bytes`].
+/// already handed back to the system, so they are not a resident figure.
+///
+/// These totals and the resident size measure different scopes: the resident size also
+/// counts code, thread stacks and resident file and shared mappings, which the
+/// allocator does not own. The resident size less [`Self::live_bytes`] is therefore an
+/// indication of the resident memory the allocator holds unused, and is neither a bound
+/// on it nor a measure of what a return of freed pages can recover. It reads high by the
+/// resident memory the allocator does not own. It reads low because glibc counts chunks
+/// freed into its per-thread caches as still in use, so they are inside the live bytes,
+/// and because live pages that are swapped out or never touched are not resident; the
+/// two readings are also not taken at one moment.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct AllocatorMemory {
-    /// Bytes in allocations that have not been freed, arena and mapped together.
+    /// Bytes the allocator reports as in use, arena and mapped together: allocations that
+    /// have not been freed, and chunks freed into a per-thread cache.
     pub live_bytes: u64,
     /// Bytes in free chunks the allocator keeps.
     pub free_bytes: u64,
