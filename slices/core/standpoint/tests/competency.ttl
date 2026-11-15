@@ -1,0 +1,54 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Declarative competency questions for the standpoint slice, executed by the
+# native Rust slice-test harness (crates/slicetest) over the merged ontology in
+# the asserted lane, with the named example overlaid as instance data.
+
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/standpoint/tests/> .
+@prefix case:  <https://example.org/correction/> .
+
+# "Which claims does the inspector's correction involve, and what does each say?"
+# The answer holds BOTH the corrected claim and the claim that corrects it. A
+# claim hidden with gmeow:displayable false or superseded by the other would be
+# filtered out, so a correction that suppressed the corrected claim would return
+# one row and fail the exact-row contract.
+ex:cqCorrectionRetainsBothClaims a gmeow:CompetencyQuestion ;
+    gmeow:cqReasoning gmeow:reasoningNone ;
+    gmeow:cqDataFile "examples/correction-and-disagreement.ttl" ;
+    gmeow:cqQuery """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX case: <https://example.org/correction/>
+SELECT ?claim ?content WHERE {
+    ?correction gmeow:correctsClaim ?corrected .
+    ?link rdf:reifies <<( ?correction gmeow:correctsClaim ?corrected )>> ;
+        gmeow:accordingTo case:inspectorView .
+    ?claim a gmeow:ClaimToken ;
+        gmeow:expresses ?content .
+    FILTER ( ?claim = ?corrected || ?claim = ?correction )
+    FILTER NOT EXISTS { ?claim gmeow:displayable false }
+    FILTER NOT EXISTS { ?correction gmeow:supersedes ?corrected }
+    FILTER NOT EXISTS { ?corrected gmeow:supersededBy ?correction }
+}""" ;
+    gmeow:cqRationale "A correction is a statement by the correcting standpoint and does not supersede or suppress the claim it corrects (Principles 9 and 10): asking for the claims of the inspector's correction returns the surveyor's corrected claim and the inspector's correcting claim together, each with its own content." ;
+    gmeow:cqExactRows true ;
+    gmeow:cqResultShape ex:cqCorrectionRetainsBothClaimsShape ;
+    gmeow:cqExpectRow
+        ex:cqCorrectionRowCorrected ,
+        ex:cqCorrectionRowCorrecting .
+
+ex:cqCorrectionRetainsBothClaimsShape a logic:ResultShape ;
+    logic:declaresColumn
+        [ logic:columnVariable "claim" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "content" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ;
+    logic:shapeCardinality logic:RowsExact .
+
+ex:cqCorrectionRowCorrected a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "claim" ; gmeow:cellValueIri case:blueClaim ] ,
+        [ a gmeow:ExpectedCell ; gmeow:cellVar "content" ; gmeow:cellValueIri case:doorIsBlue ] .
+
+ex:cqCorrectionRowCorrecting a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "claim" ; gmeow:cellValueIri case:redClaim ] ,
+        [ a gmeow:ExpectedCell ; gmeow:cellVar "content" ; gmeow:cellValueIri case:doorIsRed ] .

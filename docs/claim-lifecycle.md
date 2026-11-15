@@ -11,15 +11,43 @@ that distinction, indexed to the standpoint making it.
 | Relation | Subject → object | Historical interpretation in the stated standpoint |
 |---|---|---|
 | `gmeow:succeedsClaim` | successor → predecessor | The earlier claim remains valid during its earlier fact-time interval. |
-| `gmeow:correctsClaim` | correction → erroneous predecessor | The predecessor's purported earlier validity is rejected. |
+| `gmeow:correctsClaim` | correcting claim → corrected claim | The correcting standpoint states that the corrected claim is wrong, including its purported earlier validity. The corrected claim is retained unchanged. |
 | `gmeow:retractsClaim` | withdrawal activity → withdrawn claim | The standpoint withdraws its endorsement; withdrawal alone does not establish falsity. |
 
-The first two relations specialize `gmeow:supersedes`. They accept claim-bearing
-entities, including name usages; they do not require turning every name usage into
-a `StandpointClaim`. None selects a global winner or changes another standpoint.
-Annotate each relation with `gmeow:accordingTo` and `gmeow:validFrom` for its
-standpoint and effective time. Keep the proposition's fact-time interval separate.
-For a withdrawal activity, `gmeow:wasAssociatedWith` names the performing agent.
+Only `gmeow:succeedsClaim` specializes `gmeow:supersedes`. The relations accept
+claim-bearing entities, including name usages; they do not require turning every
+name usage into a `StandpointClaim`. None selects a global winner or changes
+another standpoint. Annotate each relation with `gmeow:accordingTo` and
+`gmeow:validFrom` for its standpoint and effective time. Keep the proposition's
+fact-time interval separate. For a withdrawal activity, `gmeow:wasAssociatedWith`
+names the performing agent.
+
+## Correction is not suppression
+
+Correction and suppression are two different acts. "It is blue" answered by "No, it
+is red, you are wrong, I checked" does not erase the evidence of blue.
+
+- A correction derives no `gmeow:supersedes` and no `gmeow:supersededBy`, and it is
+  no reason to set `gmeow:displayable false` on the corrected claim. The corrected
+  claim and its correction are both retrievable.
+- `gmeow:displayable false` is a global safety control: a deadname or another
+  superseded label, and a standpoint's own closed tenure or withdrawn claim. No data
+  sets it because a claim is disputed, corrected or evaluated. What a particular
+  reader sees of a disputed claim is decided at projection.
+- A succession or a retraction is a standpoint changing its own position. Neither
+  is a dispute, and neither is weakened by the rule above.
+
+Choose the pattern by what happened:
+
+| What happened | Record |
+|---|---|
+| Two parties simply disagree; nothing is corrected. | A `gmeow:ClaimEvaluation` that `gmeow:evaluates` the claim, with the evaluator's standpoint in `gmeow:accordingTo` and its verdict in `gmeow:expresses`. Both claims stand. |
+| A standpoint states, on a codified basis such as a checked record or a rule that decides between the two claims, that another claim is wrong. | `gmeow:correctsClaim` from the correcting claim to the corrected claim, annotated with the correcting standpoint and the effective time. |
+| The claimed state changed. | `gmeow:succeedsClaim`. |
+| A standpoint withdraws its own claim. | A `gmeow:Activity` that `gmeow:retractsClaim` the claim. |
+
+The standpoint slice carries one worked example of the first two patterns in
+`slices/core/standpoint/examples/correction-and-disagreement.ttl`.
 
 ```turtle
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
