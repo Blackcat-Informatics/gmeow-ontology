@@ -1,7 +1,7 @@
 # Well-formed Participation fixture (#41). Every subject satisfies the events SHACL
 # shapes: a Participation mediates exactly one event and at least one participant;
-# the event carries a type; a superseded participation is suppressed (displayable
-# false), so even the warning-level shape stays clean. `SHACL validation` MUST conform.
+# the event carries a type; a superseded participation is retained (displayable
+# false is allowed but never required). `SHACL validation` MUST conform.
 
 @prefix ex:    <https://example.org/shapes/> .
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
@@ -20,7 +20,7 @@ ex:bornPart a gmeow:Participation ;
     gmeow:participationRole gmeow:roleParticipantPrincipal .
 
 # A superseded (corrected) participation, suppressed not deleted (Principle 10) —
-# carries gmeow:displayable false, so CorrectedEventSuppressionShape stays clean.
+# carries gmeow:displayable false, which is allowed on a participation its source withdrew.
 ex:correctedPart a gmeow:Participation ;
     gmeow:participationEvent ex:birth ;
     gmeow:participationParticipant ex:wrongMidwife ;

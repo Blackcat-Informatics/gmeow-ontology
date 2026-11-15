@@ -461,3 +461,15 @@ ASK {
     gmeow:disclosureNonAcknowledgement a gmeow:DisclosureOutcome .
 }""" ;
     gmeow:saRationale "Policy and disclosure observations share the canonical observation roles, while the reader and explicit disclosure outcomes remain separately typed." .
+
+ex:saNoObservationConstraintPromptsDisplayFalse a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:mustNot ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
+ASK {
+    ?constraint a logic:Constraint ; logic:integrity ?root .
+    ?root (logic:forall|logic:exists|logic:not|logic:and|logic:or|logic:antecedent|logic:consequent)* ?formula .
+    ?formula logic:relation gmeow:displayable .
+}""" ;
+    gmeow:saRationale "No constraint in the observations module prompts gmeow:displayable false. An observation whose validity ended, or that another party disputes or corrects, is retained and shown according to the reader's policy at projection; the superseded identity facet, a global safety case, is checked by the gender module (Principles 9 and 10)." .
