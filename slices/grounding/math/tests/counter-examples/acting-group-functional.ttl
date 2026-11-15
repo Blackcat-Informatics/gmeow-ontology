@@ -1,0 +1,12 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Fail-witness for ex:saActingGroupHasNoGlobalAxiom: a functional characteristic on
+# math:actingGroup. Under the reasoner it would make two actors of one action the same
+# individual, so a subgroup and the full group would be identified instead of reported.
+@prefix math:  <https://blackcatinformatics.ca/math/> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+
+[] a logic:PropertyCharacteristicAssertion ;
+    logic:characterizes math:actingGroup ;
+    logic:characteristicSort logic:functionalProperty .

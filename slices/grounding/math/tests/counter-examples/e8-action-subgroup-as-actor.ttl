@@ -1,0 +1,28 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Fail-witness for ex:saE8WeylActionActorIsItsWeylGroup: the named E8 Weyl action
+# declares a proper subgroup of W(E8) as its actor. The subgroup is a fully framed
+# Group, so the generic actor declaration is satisfied; only the identity of the named
+# action's actor is wrong.
+@prefix math: <https://blackcatinformatics.ca/math/> .
+@prefix exa:  <https://blackcatinformatics.ca/gmeow/examples/math/algebra/> .
+@prefix ex:   <http://example.org/math/group-action-actor/> .
+
+exa:e8WeylAction a math:GroupAction ;
+    math:actingGroup ex:evenSubgroup ;
+    math:actsOn exa:e8Roots .
+
+ex:evenSubgroup a math:Group ;
+    math:underlyingSet ex:evenCarrier ;
+    math:structureOperation ex:evenComposition ;
+    math:identityElement ex:evenIdentity ;
+    math:inverseOperation ex:evenInverse ;
+    math:satisfiesAxiom ex:evenAssociativity, ex:evenIdentityLaw, ex:evenInverseLaw ;
+    math:groupOrder 348364800 .
+ex:evenCarrier a math:Set .
+ex:evenComposition a math:Operation .
+ex:evenInverse a math:Operation .
+ex:evenAssociativity a math:Axiom .
+ex:evenIdentityLaw a math:Axiom .
+ex:evenInverseLaw a math:Axiom .
