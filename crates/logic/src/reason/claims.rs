@@ -54,8 +54,8 @@ pub enum UnreadReason {
         graph: Option<String>,
         statements: usize,
     },
-    /// Another carried statement mentions the claim's carrier: inside a triple term
-    /// at any depth, or as a term of a classic statement node. `by` is the first
+    /// Another statement mentions the claim's carrier: inside a triple term at any
+    /// depth, as its predicate, or as a term of a classic statement node. `by` is the first
     /// mentioning node in sorted order and `statements` counts the mentions. It
     /// counts whether that node is itself read, unread or a bare quotation.
     Mentioned {
@@ -105,7 +105,7 @@ impl std::fmt::Display for UnreadReason {
                 statements,
             } => write!(
                 f,
-                "its carrier {carrier} is mentioned by {statements} carried statement(s), first that of {by}{}",
+                "its carrier {carrier} is mentioned by {statements} statement(s), first that of {by}{}",
                 in_graph(graph.as_deref())
             ),
             Self::GraphName { carrier } => write!(f, "its carrier {carrier} names a graph"),

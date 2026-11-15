@@ -547,8 +547,9 @@ ex:r1 rdf:reifies <<( ex:a logic:instanceOf ex:Right )>> ; logic:provenance ex:f
 /// refutes the first claim's reifier, or that names it as an object, sits inside a
 /// triple term; the first claim is then not read, so the theory is not inconsistent,
 /// and it is named with the reifier that mentions it. The same holds when the
-/// mention is a bare quotation, is nested deeper in a triple term, or is made by a
-/// classic statement node.
+/// mention is a bare quotation, is nested deeper in a triple term, is made by a
+/// classic statement node, or is a plain statement that uses the reifier as its
+/// predicate.
 #[test]
 fn a_claim_another_carried_statement_mentions_is_named_and_adds_no_fact() {
     for mention in [
@@ -557,6 +558,7 @@ fn a_claim_another_carried_statement_mentions_is_named_and_adds_no_fact() {
         "ex:r2 rdf:reifies <<( ex:auditor ex:retracts ex:r1 )>> .",
         "ex:r2 rdf:reifies <<( ex:auditor ex:says <<( ex:r1 ex:is ex:Wrong )>> )>> ; logic:provenance ex:audit .",
         "ex:r2 a rdf:Statement ; rdf:subject ex:r1 ; rdf:predicate ex:is ; rdf:object ex:Wrong ; logic:provenance ex:audit .",
+        "ex:r2 ex:r1 ex:Wrong .",
     ] {
         let theory = compile(&format!("{CONTESTED}{mention}"));
         let (result, ingress) = decide(&theory);
