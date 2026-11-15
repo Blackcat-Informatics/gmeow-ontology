@@ -197,9 +197,9 @@ It adds no Formula, Constraint, failure marker, generator, fixture or runtime
 order implementation. Existing direct dependencies already name all owners;
 no manifest or cross-slice seam changes are needed.
 
-The time-then-digest comparison mechanism, inclusive monotonic finality cuts,
-complete applicable producer frontiers and lost-mark give-up with its reason
-remain separate contracts. No reported order pair tuples or blanket source
+The time-then-digest comparison mechanism and the order laws that need it are
+not part of this evidence unit; the finality declarations below state what
+remains undone. No reported order pair tuples or blanket source
 commit-history/completeness prerequisites are added to this evidence unit.
 Current numeric integrity comparison must not be used as a temporal or digest
 comparator; PurRDF owns the existing typed value mechanisms and any actual
@@ -228,3 +228,49 @@ lost-mark accounting remain separate from this metadata-retention seam.
 These declarations perform no recording, comparison, retention or deletion
 and establish no native execution or consumer adoption (Principles 2, 4, 7,
 11, 12 and 17).
+
+## Finality declarations without an order law
+
+Three records declare finality over a ledger of recorded packets: TraceWatermark,
+TraceMarkFrontier and TraceMarksGivenUp. Each is an InformationObject sub-kind
+that says what a recorder or producer declared and nothing more.
+
+A watermark and a frontier share two required roles, traceFinalityLedger
+(ranging over TracePacketLedger) and traceFinalityProducer (ranging over Agent).
+Their union domain also admits the give-up, where both roles are optional. A
+watermark adds watermarkPacket over TracePacket, so its cut carries the packet's
+ordering time and frame; a frontier adds frontierPoint over TraceAnchor, so its
+committed point is a packet key that need not be a recorded ledger member. A
+give-up requires givenUpReason, a literal that keeps the producer's wording
+rather than a coded category, and names the packets through givenUpPacket over
+TraceAnchor. Requiredness is an all-values restriction with a class-local
+closed-world entry, the form the mark and recorded packet already use. The six
+roles each receive property-global endpoint closure.
+
+Single-valued cut and point are two validation constraints over term
+distinctness, not functional axioms: a functional axiom would make a second
+value the same individual as the first, and the declaration should be reported
+instead. The constraints compare no time and no digest. A structural assertion
+rejects any constraint on a finality role that uses a relation other than the
+type test, the role under test and term distinctness, and others reject
+sub-property, inverse, chain, rule-body and non-constraint formula use of the
+roles, so nothing is derived from a declaration.
+
+Deferred laws, and why. Four laws are not authored: that the ledger's order is
+time then digest; that a watermark is inclusive and never moves backward; that
+a watermark does not pass any applicable frontier; and that lost marks are
+given up before a watermark passes their packet. Each needs a typed comparison
+of temporal values and of binary digests as a bound integrity relation. The
+existing numeric comparison handles finite numbers only, and relabeling it
+would compare lexical or numeric forms instead of times and digests; a formula
+that cannot be evaluated is not a law. Until that comparison exists, the terms
+and their notes say that the order is recorded, not checked. Consequently
+nothing verifies that the cut belongs to its ledger, that one watermark is at or
+above another, that a frontier never moves backward or that a give-up came
+first.
+
+Conditional discard eligibility is preserved as prose on the watermark: an
+unmarked packet at or below the cut that is old enough under the recorder's own
+policy is eligible only on those conditions. No role records the policy's
+verdict, a recording or a deletion, so no execution is claimed (Principles 4, 7,
+9, 11, 12, 17 and 19).

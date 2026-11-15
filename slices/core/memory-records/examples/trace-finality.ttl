@@ -1,0 +1,67 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+
+@prefix ex: <https://example.org/trace-finality/> .
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+# A memory service marks important events and a separate recorder keeps the
+# traces around them. The recorder's ledger lists three packets it observed. The
+# records below hold what each party declared about finality; none compares a
+# time or a digest, and none says a trace was recorded or deleted.
+ex:memoryService a gmeow:SoftwareAgent .
+ex:lateDeriver a gmeow:SoftwareAgent .
+ex:recorder a gmeow:SoftwareAgent .
+
+ex:profile a gmeow:InformationObject ;
+    dcterms:description "Each packet digest is the digest of the packet's bytes as the memory service wrote them; the packet's time is its write time."@en .
+
+ex:packetOne a gmeow:TracePacket ;
+    gmeow:anchorPacket "1111111111111111111111111111111111111111111111111111111111111111"^^xsd:hexBinary ;
+    gmeow:anchorSourceProfile ex:profile ;
+    gmeow:tracePacketAt "2026-11-01T09:00:00Z"^^xsd:dateTime ;
+    gmeow:hasReferenceFrame gmeow:temporalFrameUTCGregorian .
+ex:packetTwo a gmeow:TracePacket ;
+    gmeow:anchorPacket "2222222222222222222222222222222222222222222222222222222222222222"^^xsd:hexBinary ;
+    gmeow:anchorSourceProfile ex:profile ;
+    gmeow:tracePacketAt "2026-11-01T09:05:00Z"^^xsd:dateTime ;
+    gmeow:hasReferenceFrame gmeow:temporalFrameUTCGregorian .
+ex:packetThree a gmeow:TracePacket ;
+    gmeow:anchorPacket "3333333333333333333333333333333333333333333333333333333333333333"^^xsd:hexBinary ;
+    gmeow:anchorSourceProfile ex:profile ;
+    gmeow:tracePacketAt "2026-11-01T09:10:00Z"^^xsd:dateTime ;
+    gmeow:hasReferenceFrame gmeow:temporalFrameUTCGregorian .
+
+ex:ledger a gmeow:TracePacketLedger ;
+    gmeow:tracePacket ex:packetOne , ex:packetTwo , ex:packetThree ;
+    gmeow:wasAttributedTo ex:recorder .
+
+# The memory service declares that marking is final up to and including packet one.
+ex:cut a gmeow:TraceWatermark ;
+    gmeow:traceFinalityLedger ex:ledger ;
+    gmeow:traceFinalityProducer ex:memoryService ;
+    gmeow:watermarkPacket ex:packetOne ;
+    gmeow:wasAttributedTo ex:memoryService .
+
+# A derivation that marks events later states how far it has committed. Its
+# point is a packet key that is not a member of the ledger.
+ex:pointKey a gmeow:TraceAnchor ;
+    gmeow:anchorPacket "4444444444444444444444444444444444444444444444444444444444444444"^^xsd:hexBinary ;
+    gmeow:anchorSourceProfile ex:profile ;
+    gmeow:tracePacketAt "2026-11-01T09:07:00Z"^^xsd:dateTime .
+ex:lateFrontier a gmeow:TraceMarkFrontier ;
+    gmeow:traceFinalityLedger ex:ledger ;
+    gmeow:traceFinalityProducer ex:lateDeriver ;
+    gmeow:frontierPoint ex:pointKey ;
+    gmeow:wasAttributedTo ex:lateDeriver .
+
+# Marks the memory service held only in memory for packet two were lost on a
+# restart. It gives them up with its reason; this marks nothing and deletes
+# nothing.
+ex:lost a gmeow:TraceMarksGivenUp ;
+    gmeow:traceFinalityLedger ex:ledger ;
+    gmeow:traceFinalityProducer ex:memoryService ;
+    gmeow:givenUpPacket ex:packetTwo ;
+    gmeow:givenUpReason "Marks held only in memory were lost when the service restarted."@en ;
+    gmeow:wasAttributedTo ex:memoryService .

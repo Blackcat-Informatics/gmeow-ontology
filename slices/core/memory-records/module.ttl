@@ -1216,3 +1216,195 @@ gmeow:tracePacketPosition
     gmeow:howToUse "Preserve the complete supplied literal, including datatype and lexical form, and interpret it through this anchor's actual anchorSourceProfile. On the exact-statement reifier retain supplied source through wasDerivedFrom, declaring perspective through accordingTo and recorder through wasAttributedTo. Existing TraceAnchor obligations still require anchorPacket and anchorSourceProfile; invent no missing profile."@x-gmeow-english ;
     logic:domain gmeow:TraceAnchor ;
     logic:range xsd:nonNegativeInteger .
+
+gmeow:TraceWatermark
+    a logic:Class , logic:SubKind ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/memory-records> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "Trace marking watermark"@x-gmeow-english ;
+    skos:definition "A declaration, made for one TracePacketLedger and one producer, that marking is final for every packet at or below one named TracePacket in the ledger's order, so that no mark will name such a packet. It records what its declarer stated, not a verified order, and it is distinct from a producer's committed frontier and from a give-up of lost marks."@x-gmeow-english ;
+    skos:scopeNote "A watermark names its ledger (traceFinalityLedger), its producer (traceFinalityProducer) and one cut packet (watermarkPacket); the cut is inclusive of that packet. The ledger's order is time, then digest. Without a typed time and digest comparison nothing here checks that order, that the cut packet is a member of the ledger, that the cut never moves backward between watermarks, that every applicable producer frontier has been reached, or that lost marks were given up first. Several watermarks may coexist as separate attributed declarations."@x-gmeow-english ;
+    skos:example "The memory service declares its cut: ex:cut a gmeow:TraceWatermark ; gmeow:traceFinalityLedger ex:ledger ; gmeow:traceFinalityProducer ex:memoryService ; gmeow:watermarkPacket ex:packetOne ."@x-gmeow-english ;
+    gmeow:useWhen "Use when a recorder or memory service actually declares that marking is final up to a named packet of a named ledger."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring a watermark from the newest packet, from missing marks or from age, and avoid reading it as proof that marking is final, that a trace was recorded, or that any trace was or may be deleted."@x-gmeow-english ;
+    gmeow:howToUse "Name the ledger, the producer and the cut packet, and attribute the declaration through wasAttributedTo. An unmarked packet at or below the cut that is old enough under the recorder's own policy is eligible for discard only on those conditions; the watermark records neither the policy's verdict, a recording nor a deletion. Keep every comparison of time and digest outside this record."@x-gmeow-english ;
+    logic:subClassOf gmeow:InformationObject .
+
+gmeow:TraceMarkFrontier
+    a logic:Class , logic:SubKind ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/memory-records> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "Trace mark frontier"@x-gmeow-english ;
+    skos:definition "A declaration by a producer that marks events after the fact, naming for one TracePacketLedger the committed point up to which it has finished marking. It records the point the producer stated, not a verified position, and it is distinct from a watermark, which is a finality cut over the whole ledger."@x-gmeow-english ;
+    skos:scopeNote "A frontier names its ledger (traceFinalityLedger), its producer (traceFinalityProducer) and one committed point (frontierPoint), a packet key that need not be a recorded ledger member. A watermark should not pass an applicable frontier, but without a typed time and digest comparison nothing here checks that, or that a producer's frontier never moves backward. A producer that has committed nothing states no frontier; absence is not a frontier at the start of the order."@x-gmeow-english ;
+    skos:example "A late derivation states its committed point: ex:lateFrontier a gmeow:TraceMarkFrontier ; gmeow:traceFinalityLedger ex:ledger ; gmeow:traceFinalityProducer ex:lateDeriver ; gmeow:frontierPoint ex:pointKey ."@x-gmeow-english ;
+    gmeow:useWhen "Use when a producer that marks events later actually states how far it has committed its marking for a ledger."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid manufacturing a frontier for a producer that stated none, and avoid reading one as proof that marking up to the point is complete or that a watermark may advance."@x-gmeow-english ;
+    gmeow:howToUse "Name the ledger, the producer and the committed point, attribute the declaration through wasAttributedTo, and keep one frontier per producer and statement. Every applicable frontier is a separate record; none is chosen as the preferred one."@x-gmeow-english ;
+    logic:subClassOf gmeow:InformationObject .
+
+gmeow:TraceMarksGivenUp
+    a logic:Class , logic:SubKind ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/memory-records> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "Trace marks given up"@x-gmeow-english ;
+    skos:definition "An explicit declaration that marks a producer held only in memory were lost, for example on a restart, and are given up for named packets, with the reason. It is not an absence of marks, not a without-packet status on a mark, and not a deletion of anything."@x-gmeow-english ;
+    skos:scopeNote "A give-up requires its reason (givenUpReason) and names the packets whose marks are given up (givenUpPacket); it may also name the ledger and producer through traceFinalityLedger and traceFinalityProducer. Without a typed time and digest comparison nothing here checks that a give-up precedes a watermark passing its packets. A give-up does not mark the packets and does not make them eligible for discard."@x-gmeow-english ;
+    skos:example "The service gives up its lost marks: ex:lost a gmeow:TraceMarksGivenUp ; gmeow:traceFinalityProducer ex:memoryService ; gmeow:givenUpPacket ex:packetTwo ; gmeow:givenUpReason \"Marks held only in memory were lost when the service restarted.\"@en ."@x-gmeow-english ;
+    gmeow:useWhen "Use when a producer explicitly states that its in-memory marks for named packets were lost and gives the reason."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring a give-up from missing marks, from a without-packet flag or from a restart nobody reported, and avoid reading one as a mark, as finality or as permission to delete."@x-gmeow-english ;
+    gmeow:howToUse "Keep the original wording of the reason, name every packet whose marks are given up, and attribute the declaration through wasAttributedTo. Record the later watermark separately; this record does not advance it."@x-gmeow-english ;
+    logic:subClassOf gmeow:InformationObject .
+
+gmeow:traceFinalityLedger
+    a logic:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/memory-records> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "finality ledger"@x-gmeow-english ;
+    skos:definition "The TracePacketLedger whose packet order a watermark, frontier or give-up declaration is about, not a claim that the ledger lists every packet."@x-gmeow-english ;
+    skos:scopeNote "Required on a TraceWatermark and a TraceMarkFrontier, optional on a TraceMarksGivenUp. Naming a ledger does not make the ledger complete, and the declaration is not a member of it."@x-gmeow-english ;
+    skos:example "The cut names the ledger it concerns: ex:cut gmeow:traceFinalityLedger ex:ledger ."@x-gmeow-english ;
+    gmeow:useWhen "Use to say which ledger's packet order a finality declaration concerns."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid using it to claim that the ledger lists every packet or that its membership is closed."@x-gmeow-english ;
+    gmeow:howToUse "Link the declaration to the actual ledger record whose tracePacket members it refers to; do not copy the ledger's members onto the declaration."@x-gmeow-english ;
+    logic:domain [ a logic:Class ; logic:unionOf ( gmeow:TraceWatermark gmeow:TraceMarkFrontier gmeow:TraceMarksGivenUp ) ] ;
+    logic:range gmeow:TracePacketLedger .
+
+gmeow:traceFinalityProducer
+    a logic:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/memory-records> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "finality producer"@x-gmeow-english ;
+    skos:definition "The Agent that produces the marks a watermark, frontier or give-up declaration is about, such as the memory service or a derivation that marks events later, not the agent that made the declaration."@x-gmeow-english ;
+    skos:scopeNote "Required on a TraceWatermark and a TraceMarkFrontier, optional on a TraceMarksGivenUp. It names the producer the declaration concerns; the declarer is recorded separately through wasAttributedTo and need not be the same agent."@x-gmeow-english ;
+    skos:example "The frontier names the producer it concerns: ex:lateFrontier gmeow:traceFinalityProducer ex:lateDeriver ."@x-gmeow-english ;
+    gmeow:useWhen "Use to say whose marking a finality declaration concerns."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid using it to identify who declared the record, to rank producers or to claim the producer has finished marking."@x-gmeow-english ;
+    gmeow:howToUse "Link the actual producer agent; give each producer that applies its own frontier rather than choosing one."@x-gmeow-english ;
+    logic:domain [ a logic:Class ; logic:unionOf ( gmeow:TraceWatermark gmeow:TraceMarkFrontier gmeow:TraceMarksGivenUp ) ] ;
+    logic:range gmeow:Agent .
+
+gmeow:watermarkPacket
+    a logic:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/memory-records> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "watermark packet"@x-gmeow-english ;
+    skos:definition "The recorded TracePacket at or below which this watermark declares marking final, inclusive of that packet and not of the packets above it."@x-gmeow-english ;
+    skos:scopeNote "Required on a TraceWatermark; one value is meant, enforced by a validation constraint rather than a functional axiom. The packet is a TracePacket, so it carries its ordering time and frame, but nothing here checks that it belongs to the declared ledger or compares it with another packet."@x-gmeow-english ;
+    skos:example "The cut names its packet: ex:cut gmeow:watermarkPacket ex:packetOne ."@x-gmeow-english ;
+    gmeow:useWhen "Use to name the cut packet the watermark's declaration is inclusive of."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid naming a packet that was not recorded, and avoid using it to say that packets above the cut are not final."@x-gmeow-english ;
+    gmeow:howToUse "Link the actual recorded packet, with its tracePacketAt and reference frame, that the declarer named as the cut."@x-gmeow-english ;
+    logic:domain gmeow:TraceWatermark ;
+    logic:range gmeow:TracePacket .
+
+gmeow:frontierPoint
+    a logic:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/memory-records> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "frontier committed point"@x-gmeow-english ;
+    skos:definition "The packet key, a TraceAnchor, up to which the producer of this TraceMarkFrontier states it has committed its marking, not a position anyone verified."@x-gmeow-english ;
+    skos:scopeNote "Required on a TraceMarkFrontier; one value is meant, enforced by a validation constraint rather than a functional axiom. The key keeps its own packet digest and, when supplied, its ordering time, and need not be a recorded ledger member."@x-gmeow-english ;
+    skos:example "The frontier names its committed point: ex:lateFrontier gmeow:frontierPoint ex:pointKey ."@x-gmeow-english ;
+    gmeow:useWhen "Use to name the committed point a producer stated for its marking."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid choosing a point for a producer that stated none, and avoid reading it as proof that the producer has marked everything up to it."@x-gmeow-english ;
+    gmeow:howToUse "Link the actual TraceAnchor the producer stated, with its digest and profile; add tracePacketAt when the source supplies the time that places it."@x-gmeow-english ;
+    logic:domain gmeow:TraceMarkFrontier ;
+    logic:range gmeow:TraceAnchor .
+
+gmeow:givenUpPacket
+    a logic:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/memory-records> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "given-up packet"@x-gmeow-english ;
+    skos:definition "A packet, identified by its TraceAnchor, whose in-memory marks this give-up declares lost, not a packet that merely has no marks."@x-gmeow-english ;
+    skos:scopeNote "Optional and nonfunctional: a give-up may name several packets, and several give-ups may name one packet. Naming a packet neither marks it nor makes it eligible for discard."@x-gmeow-english ;
+    skos:example "The give-up names a packet whose marks were lost: ex:lost gmeow:givenUpPacket ex:packetTwo ."@x-gmeow-english ;
+    gmeow:useWhen "Use to name each packet whose marks the producer says it lost."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid naming a packet to hide an unmarked one, or inferring one from a packet that merely has no marks."@x-gmeow-english ;
+    gmeow:howToUse "Link the actual packet anchor or recorded packet for every packet the producer states it lost marks for."@x-gmeow-english ;
+    logic:domain gmeow:TraceMarksGivenUp ;
+    logic:range gmeow:TraceAnchor .
+
+gmeow:givenUpReason
+    a logic:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/memory-records> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "given-up reason"@x-gmeow-english ;
+    skos:definition "The producer's stated reason, in its own words, why the marks of this TraceMarksGivenUp are lost and given up, not a coded category."@x-gmeow-english ;
+    skos:scopeNote "Required on a TraceMarksGivenUp; the wording is kept as supplied and is not a coded category, so reasons from different producers may coexist. An empty reason satisfies the structure but states nothing."@x-gmeow-english ;
+    skos:example "The give-up states why: ex:lost gmeow:givenUpReason \"Marks held only in memory were lost when the service restarted.\"@en ."@x-gmeow-english ;
+    gmeow:useWhen "Use whenever a give-up is recorded, with the reason as the producer gave it."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inventing a reason, normalizing the wording into a category, or leaving a give-up without one."@x-gmeow-english ;
+    gmeow:howToUse "Keep the original text and its language tag; one reason per statement, with a further reason as a further statement or a separate give-up."@x-gmeow-english ;
+    logic:domain gmeow:TraceMarksGivenUp ;
+    logic:range rdfs:Literal .
+
+[ a logic:ClosureEntry ; logic:closureKey "https://blackcatinformatics.ca/gmeow/traceFinalityLedger" ; logic:closureValue logic:ClosedWorldClosure ] .
+[ a logic:ClosureEntry ; logic:closureKey "https://blackcatinformatics.ca/gmeow/traceFinalityProducer" ; logic:closureValue logic:ClosedWorldClosure ] .
+[ a logic:ClosureEntry ; logic:closureKey "https://blackcatinformatics.ca/gmeow/watermarkPacket" ; logic:closureValue logic:ClosedWorldClosure ] .
+[ a logic:ClosureEntry ; logic:closureKey "https://blackcatinformatics.ca/gmeow/frontierPoint" ; logic:closureValue logic:ClosedWorldClosure ] .
+[ a logic:ClosureEntry ; logic:closureKey "https://blackcatinformatics.ca/gmeow/givenUpPacket" ; logic:closureValue logic:ClosedWorldClosure ] .
+[ a logic:ClosureEntry ; logic:closureKey "https://blackcatinformatics.ca/gmeow/givenUpReason" ; logic:closureValue logic:ClosedWorldClosure ] .
+
+gmeow:TraceWatermark logic:subClassOf
+    [ a logic:Restriction ; logic:onProperty gmeow:traceFinalityLedger ; logic:allValuesFrom gmeow:TracePacketLedger ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:traceFinalityProducer ; logic:allValuesFrom gmeow:Agent ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:watermarkPacket ; logic:allValuesFrom gmeow:TracePacket ] .
+
+gmeow:TraceMarkFrontier logic:subClassOf
+    [ a logic:Restriction ; logic:onProperty gmeow:traceFinalityLedger ; logic:allValuesFrom gmeow:TracePacketLedger ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:traceFinalityProducer ; logic:allValuesFrom gmeow:Agent ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:frontierPoint ; logic:allValuesFrom gmeow:TraceAnchor ] .
+
+gmeow:TraceMarksGivenUp logic:subClassOf
+    [ a logic:Restriction ; logic:onProperty gmeow:givenUpReason ; logic:allValuesFrom rdfs:Literal ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:givenUpPacket ; logic:allValuesFrom gmeow:TraceAnchor ] .
+
+[ a logic:ClosureEntry ; logic:onClass gmeow:TraceWatermark ; logic:closureKey "https://blackcatinformatics.ca/gmeow/traceFinalityLedger" ; logic:closureValue logic:ClosedWorldClosure ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:TraceWatermark ; logic:closureKey "https://blackcatinformatics.ca/gmeow/traceFinalityProducer" ; logic:closureValue logic:ClosedWorldClosure ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:TraceWatermark ; logic:closureKey "https://blackcatinformatics.ca/gmeow/watermarkPacket" ; logic:closureValue logic:ClosedWorldClosure ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:TraceMarkFrontier ; logic:closureKey "https://blackcatinformatics.ca/gmeow/traceFinalityLedger" ; logic:closureValue logic:ClosedWorldClosure ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:TraceMarkFrontier ; logic:closureKey "https://blackcatinformatics.ca/gmeow/traceFinalityProducer" ; logic:closureValue logic:ClosedWorldClosure ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:TraceMarkFrontier ; logic:closureKey "https://blackcatinformatics.ca/gmeow/frontierPoint" ; logic:closureValue logic:ClosedWorldClosure ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:TraceMarksGivenUp ; logic:closureKey "https://blackcatinformatics.ca/gmeow/givenUpReason" ; logic:closureValue logic:ClosedWorldClosure ] .
+
+gmeow:TraceWatermarkPacketUniqueConstraint
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/memory-records> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "Trace watermark single cut packet"@x-gmeow-english ;
+    skos:definition "A TraceWatermark names at most one watermarkPacket; two distinct cut packets on one watermark are rejected rather than merged into one individual."@x-gmeow-english ;
+    skos:scopeNote "A validation constraint is used instead of a functional axiom so that a second packet is reported, not inferred to be the same packet. A further cut is a separate watermark. Nothing compares the packets' times or digests."@x-gmeow-english ;
+    skos:example "A watermark with two cut packets is rejected: ex:badCut a gmeow:TraceWatermark ; gmeow:watermarkPacket ex:packetOne , ex:packetTwo ."@x-gmeow-english ;
+    gmeow:useWhen "Use to check that one watermark declaration states one cut."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid reading it as an order check or as a check that a later watermark stays at or above an earlier one."@x-gmeow-english ;
+    gmeow:howToUse "Positively bind the watermark and two watermarkPacket values and forbid their being distinct; the check uses term distinctness only."@x-gmeow-english ;
+    logic:formalizes gmeow:watermarkPacket ;
+    logic:message "A TraceWatermark names at most one watermarkPacket; a further cut is a separate watermark."@x-gmeow-english ;
+    logic:integrity [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "cutWatermark" ] ;
+        logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:relation rdf:type ; logic:argument [ logic:termIndex 0 ; logic:termVariable "cutWatermark" ] , [ logic:termIndex 1 ; logic:termIri gmeow:TraceWatermark ] ] ;
+            logic:consequent [ a logic:Formula ; logic:not [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "cutFirst" ] , [ logic:termIndex 1 ; logic:termVariable "cutSecond" ] ;
+                logic:exists [ a logic:Formula ; logic:and [ a logic:Formula ; logic:relation gmeow:watermarkPacket ; logic:argument [ logic:termIndex 0 ; logic:termVariable "cutWatermark" ] , [ logic:termIndex 1 ; logic:termVariable "cutFirst" ] ] ,
+                    [ a logic:Formula ; logic:relation gmeow:watermarkPacket ; logic:argument [ logic:termIndex 0 ; logic:termVariable "cutWatermark" ] , [ logic:termIndex 1 ; logic:termVariable "cutSecond" ] ] ,
+                    [ a logic:Formula ; logic:relation logic:termDistinct ; logic:argument [ logic:termIndex 0 ; logic:termVariable "cutFirst" ] , [ logic:termIndex 1 ; logic:termVariable "cutSecond" ] ] ] ] ] ] ] .
+
+gmeow:TraceMarkFrontierPointUniqueConstraint
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/memory-records> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "Trace mark frontier single committed point"@x-gmeow-english ;
+    skos:definition "A TraceMarkFrontier names at most one frontierPoint; two distinct committed points on one frontier are rejected rather than merged into one individual."@x-gmeow-english ;
+    skos:scopeNote "A validation constraint is used instead of a functional axiom so that a second point is reported, not inferred to be the same point. A producer's later committed point is a separate frontier. Nothing compares the points' times or digests."@x-gmeow-english ;
+    skos:example "A frontier with two committed points is rejected: ex:badFrontier a gmeow:TraceMarkFrontier ; gmeow:frontierPoint ex:pointKey , ex:otherKey ."@x-gmeow-english ;
+    gmeow:useWhen "Use to check that one frontier declaration states one committed point."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid reading it as an order check or as a check that a frontier never moves backward."@x-gmeow-english ;
+    gmeow:howToUse "Positively bind the frontier and two frontierPoint values and forbid their being distinct; the check uses term distinctness only."@x-gmeow-english ;
+    logic:formalizes gmeow:frontierPoint ;
+    logic:message "A TraceMarkFrontier names at most one frontierPoint; a later committed point is a separate frontier."@x-gmeow-english ;
+    logic:integrity [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "pointFrontier" ] ;
+        logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:relation rdf:type ; logic:argument [ logic:termIndex 0 ; logic:termVariable "pointFrontier" ] , [ logic:termIndex 1 ; logic:termIri gmeow:TraceMarkFrontier ] ] ;
+            logic:consequent [ a logic:Formula ; logic:not [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "pointFirst" ] , [ logic:termIndex 1 ; logic:termVariable "pointSecond" ] ;
+                logic:exists [ a logic:Formula ; logic:and [ a logic:Formula ; logic:relation gmeow:frontierPoint ; logic:argument [ logic:termIndex 0 ; logic:termVariable "pointFrontier" ] , [ logic:termIndex 1 ; logic:termVariable "pointFirst" ] ] ,
+                    [ a logic:Formula ; logic:relation gmeow:frontierPoint ; logic:argument [ logic:termIndex 0 ; logic:termVariable "pointFrontier" ] , [ logic:termIndex 1 ; logic:termVariable "pointSecond" ] ] ,
+                    [ a logic:Formula ; logic:relation logic:termDistinct ; logic:argument [ logic:termIndex 0 ; logic:termVariable "pointFirst" ] , [ logic:termIndex 1 ; logic:termVariable "pointSecond" ] ] ] ] ] ] ] .
