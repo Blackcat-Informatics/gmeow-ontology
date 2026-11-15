@@ -1,0 +1,17 @@
+# Competency question: "Which group acts in the E8 Weyl action, on what, and under
+# which law?" The actor, target and law are returned rather than fixed in the pattern,
+# so the answer is whatever the authored record declares: a different actor returns a
+# different row, a second actor returns a second row, and a missing actor or a law
+# named by only one of the two law links returns no row. Over e8-symmetry.ttl the
+# answer is exactly {exa:e8Weyl, exa:e8Roots, exa:groupActionLaw}. The query reads the
+# declaration; it does not evaluate the law or construct the action.
+PREFIX exa: <https://blackcatinformatics.ca/gmeow/examples/math/algebra/>
+PREFIX math: <https://blackcatinformatics.ca/math/>
+
+SELECT ?actor ?target ?law WHERE {
+    exa:e8WeylAction a math:GroupAction ;
+        math:actingGroup ?actor ;
+        math:actsOn ?target ;
+        math:preservationLaw ?law ;
+        math:satisfiesAxiom ?law .
+}

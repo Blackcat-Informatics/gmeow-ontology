@@ -1,0 +1,16 @@
+# Competency question: "Which groups act on the A2 roots, through which action, and
+# is each acting group the Weyl group or the full automorphism group of those roots?"
+# Three actions share one target. The actor of each comes only from its own
+# math:actingGroup link; the two role columns are bound only where the data declares
+# that role for that actor. Over a2-acting-groups.ttl the Weyl group and the full
+# automorphism group are different actors and the rotation subgroup is neither.
+PREFIX exag: <https://blackcatinformatics.ca/gmeow/examples/math/acting-groups/>
+PREFIX math: <https://blackcatinformatics.ca/math/>
+
+SELECT ?action ?actor ?weylGroupOf ?automorphismGroupOf WHERE {
+    ?action a math:GroupAction ;
+        math:actingGroup ?actor ;
+        math:actsOn exag:a2Roots .
+    OPTIONAL { ?weylGroupOf math:weylGroup ?actor . }
+    OPTIONAL { ?actor math:automorphismGroupOf ?automorphismGroupOf . }
+}
