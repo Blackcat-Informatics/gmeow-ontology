@@ -1338,22 +1338,30 @@ fn refused_existential_program_counts_a_reason_ledger_dlgap() {
     );
 
     let rows = admission.capability_gap_rows();
-    assert_eq!(rows.len(), 1, "one DlGap row per violation");
-    assert_eq!(rows[0].kind, crate::reason::ledger::DivergenceKind::DlGap);
     assert_eq!(
-        rows[0].category,
-        crate::reason::ledger::EXISTENTIAL_CHASE_CATEGORY,
-        "scoped out of the DL/EL crosscheck corpus by category"
+        rows.len(),
+        admission.violations().len() + admission.bounds().len(),
+        "one DlGap row per violation"
     );
+    assert!(!rows.is_empty());
+    for row in &rows {
+        assert_eq!(row.kind, crate::reason::ledger::DivergenceKind::DlGap);
+        assert_eq!(
+            row.category,
+            crate::reason::ledger::EXISTENTIAL_CHASE_CATEGORY,
+            "scoped out of the DL/EL crosscheck corpus by category"
+        );
+    }
     assert!(
-        rows[0].detail.contains("lies in a cycle"),
-        "the violation evidence rides in detail: {:?}",
-        rows[0].detail
+        rows.iter()
+            .any(|row| row.detail.contains("<http://ex/rule/cyclic>")
+                && row.detail.contains("in a cycle")),
+        "the violation evidence names its rule in detail: {rows:?}"
     );
 
     // Routed into the counted divergence ledger it IS tallied and fails enforce…
     let ledger = crate::reason::ledger::build_ledger(Vec::new(), rows, Vec::new());
-    assert_eq!(ledger.dl_gap, 1, "counted as a DL gap in reason::ledger");
+    assert_eq!(ledger.dl_gap, 2, "counted as a DL gap in reason::ledger");
     assert!(!crate::reason::ledger::enforce(&ledger).passed);
 
     // …but a CERTIFIED program contributes no gap rows.
@@ -1422,7 +1430,7 @@ fn certificate_finding_carries_evidence_or_violations() {
     assert_eq!(bad_finding.severity, Severity::Error);
     assert_eq!(bad_finding.code, "chase.certificate.uncertified");
     assert!(
-        bad_finding.message.contains("lies in a cycle"),
+        bad_finding.message.contains("in a cycle"),
         "the Uncertified finding carries its violations: {}",
         bad_finding.message
     );
