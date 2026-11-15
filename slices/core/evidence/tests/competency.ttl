@@ -8,7 +8,9 @@
 
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
 @prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix skos:  <http://www.w3.org/2004/02/skos/core#> .
 @prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/evidence/tests/> .
+@prefix case:  <https://example.org/assertion-category/> .
 
 # ── Evidence vocabulary (classes, properties, value individuals) ──────────────
 ex:cqEvidence a gmeow:CompetencyQuestion ;
@@ -86,3 +88,181 @@ ex:neSignificant a gmeow:ExpectedRow ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri gmeow:coverageDepthSignificantCoverage ] .
 ex:neSupports a gmeow:ExpectedRow ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri gmeow:supportsNotability ] .
+
+# ── Claims by assertion category ──────────────────────────────────────────────
+# "Which memberships of the organisation are claimed, and of what category is each
+# claim?" Runs without reasoning over the worked example. All three claims come
+# back, one per category: the category classifies a claim and never filters or
+# ranks it (Principle 9), so the query has no filter on category and no ordering.
+ex:cqClaimsByAssertionCategory a gmeow:CompetencyQuestion ;
+    gmeow:cqReasoning gmeow:reasoningNone ;
+    gmeow:cqDataFile "examples/assertion-categories.ttl" ;
+    gmeow:cqQuery """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX case: <https://example.org/assertion-category/>
+SELECT ?object ?category WHERE {
+    ?claim rdf:reifies <<( case:acme gmeow:memberOf ?object )>> ;
+        gmeow:assertionCategory ?category .
+}""" ;
+    gmeow:cqRationale "A consumer that publishes claims as statement reifiers must be able to list them by the category stated on each claim: the organisation's self-description, the claim resting on a published register and the derived interpretation all come back together, none ranked above another (Principle 9)." ;
+    gmeow:cqExactRows true ;
+    gmeow:cqResultShape ex:cqClaimsByAssertionCategoryShape ;
+    gmeow:cqExpectRow
+        ex:cqCategoryRowSelf ,
+        ex:cqCategoryRowEvidenced ,
+        ex:cqCategoryRowDerived .
+
+ex:cqClaimsByAssertionCategoryShape a logic:ResultShape ;
+    logic:declaresColumn
+        [ logic:columnVariable "object" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "category" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ;
+    logic:shapeCardinality logic:RowsExact .
+
+ex:cqCategoryRowSelf a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "object" ; gmeow:cellValueIri case:tradeAssociation ] ,
+        [ a gmeow:ExpectedCell ; gmeow:cellVar "category" ; gmeow:cellValueIri gmeow:assertionCategorySelfDescription ] .
+
+ex:cqCategoryRowEvidenced a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "object" ; gmeow:cellValueIri case:chamberOfCommerce ] ,
+        [ a gmeow:ExpectedCell ; gmeow:cellVar "category" ; gmeow:cellValueIri gmeow:assertionCategoryPublishedEvidence ] .
+
+ex:cqCategoryRowDerived a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "object" ; gmeow:cellValueIri case:industryGroup ] ,
+        [ a gmeow:ExpectedCell ; gmeow:cellVar "category" ; gmeow:cellValueIri gmeow:assertionCategoryDerivedInterpretation ] .
+
+# ── A claim's category beside the evidence classes of its citations ───────────
+# "For each claim that cites a source, what category is the claim and what
+# evidence class does the citation carry?" The self-description cites an official
+# source, so the two differ for it; the claim with no citation does not
+# appear because the question asks about cited claims only.
+ex:cqCategoryBesideEvidenceClass a gmeow:CompetencyQuestion ;
+    gmeow:cqReasoning gmeow:reasoningNone ;
+    gmeow:cqDataFile "examples/assertion-categories.ttl" ;
+    gmeow:cqQuery """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX case: <https://example.org/assertion-category/>
+SELECT ?object ?category ?evidenceClass WHERE {
+    ?claim rdf:reifies <<( case:acme gmeow:memberOf ?object )>> ;
+        gmeow:assertionCategory ?category .
+    ?citation gmeow:citingEntity ?claim ;
+        gmeow:hasEvidenceClass ?evidenceClass .
+}""" ;
+    gmeow:cqRationale "The category of a claim and the evidence class of the citations it rests on are stated on different nodes and may differ: the organisation's self-description cites an official source, so a consumer reads the category from the claim and the warrant from each citation. The category values are related to the evidence-class values by alignment cells in the slice's mapping source, but neither statement is derived from the other." ;
+    gmeow:cqExactRows true ;
+    gmeow:cqResultShape ex:cqCategoryBesideEvidenceClassShape ;
+    gmeow:cqExpectRow
+        ex:cqBesideRowSelf ,
+        ex:cqBesideRowEvidenced .
+
+ex:cqCategoryBesideEvidenceClassShape a logic:ResultShape ;
+    logic:declaresColumn
+        [ logic:columnVariable "object" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "category" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "evidenceClass" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ;
+    logic:shapeCardinality logic:RowsExact .
+
+ex:cqBesideRowSelf a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "object" ; gmeow:cellValueIri case:tradeAssociation ] ,
+        [ a gmeow:ExpectedCell ; gmeow:cellVar "category" ; gmeow:cellValueIri gmeow:assertionCategorySelfDescription ] ,
+        [ a gmeow:ExpectedCell ; gmeow:cellVar "evidenceClass" ; gmeow:cellValueIri gmeow:evidenceOfficialSource ] .
+
+ex:cqBesideRowEvidenced a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "object" ; gmeow:cellValueIri case:chamberOfCommerce ] ,
+        [ a gmeow:ExpectedCell ; gmeow:cellVar "category" ; gmeow:cellValueIri gmeow:assertionCategoryPublishedEvidence ] ,
+        [ a gmeow:ExpectedCell ; gmeow:cellVar "evidenceClass" ; gmeow:cellValueIri gmeow:evidenceOfficialSource ] .
+
+# ── The category values are related to the existing values ───────────────────
+# "To which existing evidence-class, source-independence and observation-type
+# values is each assertion category related, and how?" The links are alignment
+# cells in the slice's mapping source, overlaid here. The exact row set pins
+# every cell: a removed, added or re-ranked link changes the rows. Each counted
+# cell must carry its mapping set and a justification.
+ex:cqAssertionCategoryValueLinks a gmeow:CompetencyQuestion ;
+    gmeow:cqReasoning gmeow:reasoningNone ;
+    gmeow:cqDataFile "mappings/equivalences.ttl" ;
+    gmeow:cqQuery """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+SELECT DISTINCT ?category ?relation ?value WHERE {
+    VALUES ?category {
+        gmeow:assertionCategorySelfDescription
+        gmeow:assertionCategoryPublishedEvidence
+        gmeow:assertionCategoryDerivedInterpretation
+    }
+    ?cell rdf:reifies <<( ?category ?relation ?value )>> ;
+        gmeow:sssomFile "gmeow-evidence.sssom.tsv" ;
+        gmeow:justification ?justification .
+}""" ;
+    gmeow:cqRationale "The assertion category is grounded in the existing evidence and observation vocabulary and is not a second, unrelated one (Principle 4): each category value is linked, by an alignment cell that ships as correspondence content, to the existing values that say the same of a citation or an observation." ;
+    gmeow:cqExactRows true ;
+    gmeow:cqResultShape ex:cqAssertionCategoryValueLinksShape ;
+    gmeow:cqExpectRow
+        ex:cqLinkSelfSelf ,
+        ex:cqLinkSelfSite ,
+        ex:cqLinkSelfIssuer ,
+        ex:cqLinkPublishedOfficial ,
+        ex:cqLinkPublishedTradePress ,
+        ex:cqLinkPublishedRegistry ,
+        ex:cqLinkPublishedNewspaper ,
+        ex:cqLinkDerivedObservation .
+
+ex:cqAssertionCategoryValueLinksShape a logic:ResultShape ;
+    logic:declaresColumn
+        [ logic:columnVariable "category" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "relation" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "value" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ;
+    logic:shapeCardinality logic:RowsExact .
+
+ex:cqLinkSelfSelf a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "category" ; gmeow:cellValueIri gmeow:assertionCategorySelfDescription ] ,
+        [ a gmeow:ExpectedCell ; gmeow:cellVar "relation" ; gmeow:cellValueIri skos:closeMatch ] ,
+        [ a gmeow:ExpectedCell ; gmeow:cellVar "value" ; gmeow:cellValueIri gmeow:evidenceSELF ] .
+
+ex:cqLinkSelfSite a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "category" ; gmeow:cellValueIri gmeow:assertionCategorySelfDescription ] ,
+        [ a gmeow:ExpectedCell ; gmeow:cellVar "relation" ; gmeow:cellValueIri skos:narrowMatch ] ,
+        [ a gmeow:ExpectedCell ; gmeow:cellVar "value" ; gmeow:cellValueIri gmeow:evidenceSelfControlledSite ] .
+
+ex:cqLinkSelfIssuer a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "category" ; gmeow:cellValueIri gmeow:assertionCategorySelfDescription ] ,
+        [ a gmeow:ExpectedCell ; gmeow:cellVar "relation" ; gmeow:cellValueIri skos:broadMatch ] ,
+        [ a gmeow:ExpectedCell ; gmeow:cellVar "value" ; gmeow:cellValueIri gmeow:sourceIndependenceSelfOrIssuerOriginated ] .
+
+ex:cqLinkPublishedOfficial a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "category" ; gmeow:cellValueIri gmeow:assertionCategoryPublishedEvidence ] ,
+        [ a gmeow:ExpectedCell ; gmeow:cellVar "relation" ; gmeow:cellValueIri skos:narrowMatch ] ,
+        [ a gmeow:ExpectedCell ; gmeow:cellVar "value" ; gmeow:cellValueIri gmeow:evidenceOfficialSource ] .
+
+ex:cqLinkPublishedTradePress a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "category" ; gmeow:cellValueIri gmeow:assertionCategoryPublishedEvidence ] ,
+        [ a gmeow:ExpectedCell ; gmeow:cellVar "relation" ; gmeow:cellValueIri skos:narrowMatch ] ,
+        [ a gmeow:ExpectedCell ; gmeow:cellVar "value" ; gmeow:cellValueIri gmeow:evidenceIndependentTradePress ] .
+
+ex:cqLinkPublishedRegistry a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "category" ; gmeow:cellValueIri gmeow:assertionCategoryPublishedEvidence ] ,
+        [ a gmeow:ExpectedCell ; gmeow:cellVar "relation" ; gmeow:cellValueIri skos:narrowMatch ] ,
+        [ a gmeow:ExpectedCell ; gmeow:cellVar "value" ; gmeow:cellValueIri gmeow:evidencePublicRegistry ] .
+
+ex:cqLinkPublishedNewspaper a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "category" ; gmeow:cellValueIri gmeow:assertionCategoryPublishedEvidence ] ,
+        [ a gmeow:ExpectedCell ; gmeow:cellVar "relation" ; gmeow:cellValueIri skos:narrowMatch ] ,
+        [ a gmeow:ExpectedCell ; gmeow:cellVar "value" ; gmeow:cellValueIri gmeow:evidenceNewspaperLead ] .
+
+ex:cqLinkDerivedObservation a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "category" ; gmeow:cellValueIri gmeow:assertionCategoryDerivedInterpretation ] ,
+        [ a gmeow:ExpectedCell ; gmeow:cellVar "relation" ; gmeow:cellValueIri skos:closeMatch ] ,
+        [ a gmeow:ExpectedCell ; gmeow:cellVar "value" ; gmeow:cellValueIri gmeow:observationTypeDerived ] .
+
+# ── No cell derives a claim's category from its citations ────────────────────
+# The value links must not become a link between the properties: a cell relating
+# gmeow:assertionCategory to the citation, observation or self-assertion property
+# would let a claim's category follow from its citations.
+ex:cqAssertionCategoryNoPropertyLink a gmeow:CompetencyQuestion ;
+    gmeow:cqReasoning gmeow:reasoningNone ;
+    gmeow:cqDataFile "mappings/equivalences.ttl" ;
+    gmeow:cqQuery """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+ASK {
+    VALUES ?other { gmeow:hasEvidenceClass gmeow:sourceIndependence gmeow:observationType gmeow:selfAsserted }
+    { gmeow:assertionCategory ?relation ?other } UNION { ?other ?relation gmeow:assertionCategory }
+}""" ;
+    gmeow:cqRationale "Nothing is derived between a claim's category and the evidence classes of its citations: a self-description may cite an official source. The mapping source therefore relates values only and never the properties that carry them." ;
+    gmeow:cqExpectAsk false .

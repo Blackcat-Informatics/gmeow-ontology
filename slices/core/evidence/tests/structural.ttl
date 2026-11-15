@@ -351,3 +351,89 @@ ASK {
     }
 }""" ;
     gmeow:saRationale "No evidence property (hasEvidenceClass, sourceIndependence, sourceTier, coverageDepth) MUST carry any rdfs:subPropertyOf or owl:equivalentProperty bridge to truth/trust properties (observationResult, trustor, trustee, endorses) -- evidence is a warrant annotation, never an inferential truth bridge." .
+
+# --- Assertion category (Principles 2, 4 and 9) --------------------------------
+# gmeow:AssertionCategory is a value vocabulary with the three seeded individuals,
+# and gmeow:assertionCategory carries them on a claim. The links from each
+# individual to the existing evidence-class, source-independence and
+# observation-type individuals are alignment cells in mappings/equivalences.ttl,
+# pinned by the competency questions; the module only points at
+# gmeow:selfAsserted. No property axiom derives a claim's category from its
+# citations, and the category never ranks claims.
+ex:saAssertionCategoryVocabulary a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    gmeow:AssertionCategory (rdfs:subClassOf|logic:subClassOf) logic:QualityValue .
+    gmeow:assertionCategorySelfDescription a gmeow:AssertionCategory .
+    gmeow:assertionCategoryPublishedEvidence a gmeow:AssertionCategory .
+    gmeow:assertionCategoryDerivedInterpretation a gmeow:AssertionCategory .
+    gmeow:assertionCategory (rdfs:range|logic:range) gmeow:AssertionCategory .
+}""" ;
+    gmeow:saRationale "The three assertion categories are individuals of one value vocabulary reached through one property whose range is that vocabulary (Principle 4: one way to state the category on a claim)." .
+
+ex:saSelfDescriptionPointsAtSelfAsserted a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK { gmeow:assertionCategorySelfDescription rdfs:seeAlso gmeow:selfAsserted . }""" ;
+    gmeow:saRationale "The self-description category MUST point at gmeow:selfAsserted, the other carrier of a subject's own statement, so the two are not unrelated ways to say the same thing (Principle 4)." .
+
+ex:saAssertionCategoryLinksNotInModule a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:mustNot ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
+ASK {
+    ?category a gmeow:AssertionCategory ;
+        (skos:exactMatch|skos:closeMatch|skos:broadMatch|skos:narrowMatch|skos:relatedMatch) ?value .
+}""" ;
+    gmeow:saRationale "The links from the category values to the existing values are alignment cells in the slice's mapping source and ship as correspondence content. The module MUST NOT restate them as bare triples: that would be a second source (Principle 4)." .
+
+ex:saAssertionCategoryNotFunctional a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:mustNot ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
+ASK { ?rec logic:characterizes gmeow:assertionCategory ; logic:characteristicSort logic:functionalProperty . }""" ;
+    gmeow:saRationale "gmeow:assertionCategory MUST NOT be functional: competing categorisations by different standpoints coexist, and no single category is forced onto a claim (Principle 9)." .
+
+ex:saAssertionCategoryNotDerivedFromCitations a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:mustNot ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+ASK {
+    VALUES ?other { gmeow:hasEvidenceClass gmeow:sourceIndependence gmeow:observationType gmeow:selfAsserted }
+    {
+        gmeow:assertionCategory (rdfs:subPropertyOf|logic:subPropertyOf|owl:equivalentProperty|logic:equivalentProperty) ?other .
+    } UNION {
+        ?other (rdfs:subPropertyOf|logic:subPropertyOf|owl:equivalentProperty|logic:equivalentProperty) gmeow:assertionCategory .
+    }
+}""" ;
+    gmeow:saRationale "The relations between the category values and the existing values MUST NOT become a property bridge: with a sub-property or equivalent-property edge a claim's category would follow from the evidence classes of its citations, and a self-description that cites an official source could no longer be stated." .
+
+ex:saAssertionCategoryExample a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModuleAndExamples ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX ex: <https://example.org/assertion-category/>
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+ASK {
+    ex:selfClaim rdf:reifies <<( ex:acme gmeow:memberOf ex:tradeAssociation )>> ;
+        gmeow:assertionCategory gmeow:assertionCategorySelfDescription .
+    ex:evidencedClaim rdf:reifies <<( ex:acme gmeow:memberOf ex:chamberOfCommerce )>> ;
+        gmeow:assertionCategory gmeow:assertionCategoryPublishedEvidence .
+    ex:derivedClaim rdf:reifies <<( ex:acme gmeow:memberOf ex:industryGroup )>> ;
+        gmeow:assertionCategory gmeow:assertionCategoryDerivedInterpretation .
+    ex:selfCite gmeow:citingEntity ex:selfClaim ; gmeow:hasEvidenceClass gmeow:evidenceOfficialSource .
+    FILTER NOT EXISTS { ?claim gmeow:displayable ?flag . FILTER ( ?claim IN ( ex:selfClaim, ex:evidencedClaim, ex:derivedClaim ) ) }
+    FILTER NOT EXISTS { ?later gmeow:supersedes ?claim2 . FILTER ( ?claim2 IN ( ex:selfClaim, ex:evidencedClaim, ex:derivedClaim ) ) }
+}""" ;
+    gmeow:saRationale "The worked example holds one claim of each category, shows a self-description whose citation carries an official-source evidence class, and ranks, hides and supersedes none of the three (Principle 9)." .

@@ -1,0 +1,85 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# GMEOW translation catalog (slice: evidence, language: fr).
+# Authored translation store — the ONLY home for non-English ontology prose.
+# The build merges this into gmeow.gts; it is never written back into the .ttl.
+msgid ""
+msgstr ""
+"Project-Id-Version: gmeow\n"
+"Language: fr\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AssertionCategory|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Assertion Category"
+msgstr "Catégorie d'assertion"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AssertionCategory|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The kind of assertion a claim is — a value vocabulary (individuals, never subclasses) that says what the claim is, not how well it is supported: a self-description by the subject of the claim, a statement resting on externally published evidence, or a derived interpretation inferred or computed from other statements. A category classifies a claim and never ranks it; claims of different categories about the same matter are co-equal and coexist (Principle 9). Each category is related by a mapping relation to the gmeow:EvidenceClass, gmeow:SourceIndependence and gmeow:ObservationType individuals that say the same of a citation or an observation. Those relations hold between the values, never between a claim and its citations, so a claim's category and the evidence classes of its citations may differ: a self-description may cite an official source."
+msgstr "Le genre d'assertion que constitue une revendication — un vocabulaire de valeurs (des individus, jamais des sous-classes) qui dit ce qu'est la revendication et non son degré de soutien : une auto-description par le sujet de la revendication, un énoncé reposant sur des preuves publiées de l'extérieur, ou une interprétation dérivée, inférée ou calculée à partir d'autres énoncés. Une catégorie classe une revendication sans jamais la hiérarchiser ; les revendications de catégories différentes sur une même question sont de rang égal et coexistent (Principe 9). Chaque catégorie est reliée par une relation de correspondance aux individus gmeow:EvidenceClass, gmeow:SourceIndependence et gmeow:ObservationType qui disent la même chose d'une citation ou d'une observation. Ces relations valent entre les valeurs, jamais entre une revendication et ses citations, de sorte que la catégorie d'une revendication et les classes de preuve de ses citations peuvent différer : une auto-description peut citer une source officielle."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AssertionCategory|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:claim gmeow:assertionCategory gmeow:assertionCategorySelfDescription ."
+msgstr "ex:claim gmeow:assertionCategory gmeow:assertionCategorySelfDescription ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AssertionCategory|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid using it to rank or filter claims by trust, to restate the evidence class of the citations a claim rests on (that is gmeow:hasEvidenceClass on each gmeow:CitationAct), or to mint per-category subclasses; the categories are individuals."
+msgstr "À éviter pour hiérarchiser ou filtrer les revendications selon la confiance, pour répéter la classe de preuve des citations sur lesquelles repose une revendication (c'est gmeow:hasEvidenceClass sur chaque gmeow:CitationAct), ou pour créer des sous-classes par catégorie ; les catégories sont des individus."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AssertionCategory|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Reference one of the seeded individuals through gmeow:assertionCategory on the claim's statement reifier or claim record; mint a new individual with a label and definition only for a kind of assertion that none of the seeded ones covers."
+msgstr "Référencer l'un des individus fournis au moyen de gmeow:assertionCategory sur le réificateur d'énoncé ou l'enregistrement de la revendication ; créer un nouvel individu avec une étiquette et une définition seulement pour un genre d'assertion qu'aucun des individus fournis ne couvre."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AssertionCategory|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use as the value vocabulary behind gmeow:assertionCategory — naming whether a claim is the subject's own description, rests on published evidence, or is a derived interpretation."
+msgstr "À utiliser comme vocabulaire de valeurs de gmeow:assertionCategory — pour nommer si une revendication est la description propre du sujet, repose sur des preuves publiées ou est une interprétation dérivée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/assertionCategory|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "assertion category"
+msgstr "catégorie d'assertion"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/assertionCategory|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The category of the assertion a claim makes — self-description, published evidence or derived interpretation — stated on the claim itself. It declares no domain, so it applies alike to a bare statement reifier and to a claim record such as a gmeow:ClaimToken, without typing either. Non-functional: competing categorisations by different standpoints coexist, and a claim that is both a self-description and a derived interpretation carries both. It is not a rank, a trust level or a display flag, and it is distinct from gmeow:hasEvidenceClass, which grades one citation: no category follows from the evidence classes of a claim's citations and none implies them. Its correspondence with gmeow:hasEvidenceClass and gmeow:observationType is stated between their values."
+msgstr "La catégorie de l'assertion que fait une revendication — auto-description, preuve publiée ou interprétation dérivée — énoncée sur la revendication elle-même. Elle ne déclare aucun domaine et s'applique donc aussi bien à un simple réificateur d'énoncé qu'à un enregistrement de revendication tel qu'un gmeow:ClaimToken, sans typer ni l'un ni l'autre. Non fonctionnelle : des catégorisations concurrentes par des points de vue différents coexistent, et une revendication à la fois auto-description et interprétation dérivée porte les deux. Ce n'est ni un rang, ni un niveau de confiance, ni un indicateur d'affichage, et elle se distingue de gmeow:hasEvidenceClass, qui évalue une seule citation : aucune catégorie ne découle des classes de preuve des citations d'une revendication et aucune ne les implique. Sa correspondance avec gmeow:hasEvidenceClass et gmeow:observationType est énoncée entre leurs valeurs."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/assertionCategory|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:claim gmeow:assertionCategory gmeow:assertionCategoryPublishedEvidence ."
+msgstr "ex:claim gmeow:assertionCategory gmeow:assertionCategoryPublishedEvidence ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/assertionCategory|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid using it as a rank, a trust level or a display flag, avoid reading the evidence classes of a claim's citations off it, and avoid forcing one value; it is non-functional (Principle 9)."
+msgstr "À éviter comme rang, niveau de confiance ou indicateur d'affichage ; ne pas en déduire les classes de preuve des citations d'une revendication ; ne pas imposer une seule valeur : elle est non fonctionnelle (Principe 9)."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/assertionCategory|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Annotate the claim's statement reifier or claim record with one or more gmeow:AssertionCategory individuals; keep the evidence class on each gmeow:CitationAct the claim rests on, and let claims of different categories coexist without ordering. A categorisation is itself a claim: annotate it with gmeow:accordingTo when it matters which standpoint made it."
+msgstr "Annoter le réificateur d'énoncé ou l'enregistrement de la revendication avec un ou plusieurs individus gmeow:AssertionCategory ; garder la classe de preuve sur chaque gmeow:CitationAct sur laquelle repose la revendication, et laisser coexister sans ordre les revendications de catégories différentes. Une catégorisation est elle-même une revendication : l'annoter avec gmeow:accordingTo lorsqu'il importe de savoir quel point de vue l'a faite."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/assertionCategory|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to say, on the claim itself, what kind of assertion it is, so a consumer can list or select claims by category without inspecting their citations."
+msgstr "À utiliser pour dire, sur la revendication elle-même, de quel genre d'assertion il s'agit, afin qu'un consommateur puisse lister ou sélectionner des revendications par catégorie sans examiner leurs citations."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/assertionCategoryDerivedInterpretation|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "derived interpretation"
+msgstr "interprétation dérivée"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/assertionCategoryDerivedInterpretation|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The claim is an interpretation inferred or computed from other statements rather than stated by its subject or read from a source. It is the claim-level counterpart of gmeow:observationTypeDerived, which says the same of an observation: categorise the bare claim and type the observation record, and infer neither from the other. The statements it was derived from are carried by its provenance."
+msgstr "La revendication est une interprétation inférée ou calculée à partir d'autres énoncés plutôt qu'énoncée par son sujet ou lue dans une source. C'est l'équivalent, au niveau de la revendication, de gmeow:observationTypeDerived, qui dit la même chose d'une observation : catégoriser la revendication simple et typer l'enregistrement d'observation, sans inférer l'un de l'autre. Les énoncés dont elle est dérivée sont portés par sa provenance."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/assertionCategoryPublishedEvidence|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "published evidence"
+msgstr "preuve publiée"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/assertionCategoryPublishedEvidence|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The claim is a statement that rests on externally published evidence: it reports what a source outside the claim's own standpoint has published, and each such source is cited through a gmeow:CitationAct that carries its own gmeow:hasEvidenceClass. The evidence classes that name a kind of published source — gmeow:evidenceOfficialSource, gmeow:evidenceIndependentTradePress, gmeow:evidencePublicRegistry and gmeow:evidenceNewspaperLead — are narrower cases of it, related as values: the category does not fix which of them a citation of the claim carries, and a claim of another category may cite such a source."
+msgstr "La revendication est un énoncé qui repose sur des preuves publiées de l'extérieur : elle rapporte ce qu'a publié une source extérieure au point de vue propre de la revendication, et chaque source de ce genre est citée au moyen d'un gmeow:CitationAct qui porte son propre gmeow:hasEvidenceClass. Les classes de preuve qui nomment un genre de source publiée — gmeow:evidenceOfficialSource, gmeow:evidenceIndependentTradePress, gmeow:evidencePublicRegistry et gmeow:evidenceNewspaperLead — en sont des cas plus étroits, reliés en tant que valeurs : la catégorie ne fixe pas laquelle porte une citation de la revendication, et une revendication d'une autre catégorie peut citer une telle source."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/assertionCategorySelfDescription|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "self-description"
+msgstr "auto-description"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/assertionCategorySelfDescription|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The claim is a description of the subject made by the subject itself. It is the claim-level counterpart of gmeow:evidenceSELF on a citation; gmeow:evidenceSelfControlledSite is a narrower case and gmeow:sourceIndependenceSelfOrIssuerOriginated a broader one, which also covers an issuer or affiliated party. These relations hold between the values, not between a claim and its citations: a self-description that cites an official source carries this category while that citation carries gmeow:evidenceOfficialSource, and gmeow:evidenceSELF on a citation does not by itself make a claim a self-description. A statement or identity facet marked gmeow:selfAsserted true is a self-description; that flag also marks the authority of a subject over its own identity facets (Principle 9), which this category does not assert."
+msgstr "La revendication est une description du sujet faite par le sujet lui-même. C'est l'équivalent, au niveau de la revendication, de gmeow:evidenceSELF sur une citation ; gmeow:evidenceSelfControlledSite en est un cas plus étroit et gmeow:sourceIndependenceSelfOrIssuerOriginated un cas plus large, qui couvre aussi un émetteur ou une partie affiliée. Ces relations valent entre les valeurs, non entre une revendication et ses citations : une auto-description qui cite une source officielle porte cette catégorie tandis que cette citation porte gmeow:evidenceOfficialSource, et gmeow:evidenceSELF sur une citation ne suffit pas à faire d'une revendication une auto-description. Un énoncé ou une facette d'identité marqués gmeow:selfAsserted true sont une auto-description ; cet indicateur marque en outre l'autorité d'un sujet sur ses propres facettes d'identité (Principe 9), ce que cette catégorie n'affirme pas."

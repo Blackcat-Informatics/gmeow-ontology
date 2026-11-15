@@ -1,0 +1,65 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Worked example: one claim of each assertion category, stated on the claim
+# itself (Principles 2, 4 and 9).
+#
+# Three standpoints put forward three memberships of one organisation. Each claim
+# is a statement reifier and carries its category through gmeow:assertionCategory:
+#
+# - the organisation describes itself (self-description);
+# - an analyst reports what a published registry entry says (published evidence);
+# - the analyst infers a third membership from the first (derived interpretation).
+#
+# The citations carry the evidence classes. The category values are related to the
+# evidence-class values in the slice's mapping source, but a claim's category is not read off its
+# citations: the organisation's own self-description cites an official source, so
+# its category and the evidence class of its citation differ. A categorisation is
+# itself a claim, so the third one is attributed to the standpoint that made it.
+# No claim is ranked, hidden or superseded by another.
+
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix rdf:   <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix ex:    <https://example.org/assertion-category/> .
+
+ex:acme a gmeow:Organization .
+ex:tradeAssociation a gmeow:Organization .
+ex:chamberOfCommerce a gmeow:Organization .
+ex:industryGroup a gmeow:Organization .
+
+ex:acmeView a gmeow:Standpoint .
+ex:analystView a gmeow:Standpoint .
+
+ex:registryEntry a gmeow:CreativeWork ;
+    gmeow:title "Chamber of commerce member register"@x-gmeow-english .
+
+# Self-description: the subject describes itself.
+ex:selfClaim rdf:reifies <<( ex:acme gmeow:memberOf ex:tradeAssociation )>> ;
+    gmeow:accordingTo       ex:acmeView ;
+    gmeow:assertionCategory gmeow:assertionCategorySelfDescription .
+
+# Published evidence: the claim reports what a register outside the claim's own
+# standpoint says.
+ex:evidencedClaim rdf:reifies <<( ex:acme gmeow:memberOf ex:chamberOfCommerce )>> ;
+    gmeow:accordingTo       ex:analystView ;
+    gmeow:assertionCategory gmeow:assertionCategoryPublishedEvidence .
+
+# Derived interpretation: inferred from the self-described membership.
+ex:derivedClaim rdf:reifies <<( ex:acme gmeow:memberOf ex:industryGroup )>> ;
+    gmeow:accordingTo       ex:analystView ;
+    gmeow:assertionCategory gmeow:assertionCategoryDerivedInterpretation
+        {| gmeow:accordingTo ex:analystView |} .
+
+# The evidence class belongs to each citation, not to the claim. The
+# self-description cites an official source, so the two differ.
+ex:selfCite a gmeow:CitationAct ;
+    gmeow:citingEntity     ex:selfClaim ;
+    gmeow:citedEntity      ex:registryEntry ;
+    gmeow:citationIntent   gmeow:intentSupports ;
+    gmeow:hasEvidenceClass gmeow:evidenceOfficialSource .
+
+ex:evidencedCite a gmeow:CitationAct ;
+    gmeow:citingEntity     ex:evidencedClaim ;
+    gmeow:citedEntity      ex:registryEntry ;
+    gmeow:citationIntent   gmeow:intentSupports ;
+    gmeow:hasEvidenceClass gmeow:evidenceOfficialSource .
