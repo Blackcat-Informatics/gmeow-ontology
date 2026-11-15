@@ -2391,9 +2391,12 @@ fn classify_literal(
     lit: &RdfLiteral,
     refs: &mut BTreeMap<String, RefPayload>,
 ) -> (String, Gmn1ConstructCategory) {
+    // A plain string names `xsd:string` either explicitly or by omission: a literal read
+    // back from a dataset carries no datatype when it is the implied one, while a
+    // hand-built or decoded literal spells it out. Both are the same RDF term.
     let plain_string = lit.language.is_none()
         && lit.direction.is_none()
-        && lit.datatype.as_deref() == Some(XSD_STRING);
+        && lit.datatype.as_deref().is_none_or(|d| d == XSD_STRING);
     if plain_string
         && is_identifier(&lit.lexical_form)
         && !lit.lexical_form.starts_with(BLANK_PREFIX)
