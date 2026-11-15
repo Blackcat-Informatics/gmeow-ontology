@@ -1,0 +1,52 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Worked example — evaluating a claim that exists only as an RDF 1.2 reified
+# statement. Alice's claim that the sky is blue is recorded as a quoted triple
+# with a named reifier; nothing asserts the triple itself. Bob judges that claim
+# wrong and says why.
+#
+# gmeow:evaluates ranges over gmeow:ClaimToken, so the evaluation does not point
+# at the reifier. A claim token is minted for Alice's assertion act, and the
+# reifier is linked to it with gmeow:putForwardByClaim. The reifier stays a
+# reifier: it is not typed as a claim token or an activity.
+#
+# The evaluation is Bob's own claim, held according to Bob's standpoint. Its
+# verdict is a proposition minted here, and its reason is Bob's verbatim wording
+# in gmeow:statedRationale. Alice's statement is untouched: it carries no
+# gmeow:displayable flag, it is not ranked below anything, and nothing replaces
+# it. Both readings stay retrievable (Principle 9).
+
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix ex:    <https://example.org/reified-evaluation/> .
+@prefix rdf:   <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+
+ex:alice a gmeow:Agent .
+ex:bob   a gmeow:Agent .
+ex:aliceStandpoint a gmeow:Standpoint ; rdfs:label "Alice's standpoint"@x-gmeow-english .
+ex:bobStandpoint   a gmeow:Standpoint ; rdfs:label "Bob's standpoint"@x-gmeow-english .
+
+# ── 1. The claim exists only as a reified statement (quoted, not asserted). ───
+ex:skyStatement rdf:reifies <<( ex:sky ex:hasColour ex:blue )>> ;
+    gmeow:accordingTo ex:aliceStandpoint .
+
+# ── 2. The claim token for the act that put the statement forward, and the ────
+#       bridge from the reifier to it.
+ex:aliceSaysBlue a gmeow:ClaimToken ;
+    gmeow:wasAssociatedWith ex:alice ;
+    gmeow:accordingTo       ex:aliceStandpoint .
+
+ex:skyStatement gmeow:putForwardByClaim ex:aliceSaysBlue .
+
+# ── 3. Bob's evaluation: its target is the token, its verdict a proposition, ──
+#       its reason Bob's own words.
+ex:skyClaimIsWrong a gmeow:Proposition ;
+    rdfs:label "the claim that the sky is blue is wrong"@x-gmeow-english .
+
+ex:bobEvaluation a gmeow:ClaimEvaluation ;
+    gmeow:evaluates         ex:aliceSaysBlue ;
+    gmeow:wasAssociatedWith ex:bob ;
+    gmeow:accordingTo       ex:bobStandpoint ;
+    gmeow:expresses         ex:skyClaimIsWrong ;
+    gmeow:statedRationale   "No, it is red. I checked at sunset."@en .
