@@ -338,3 +338,63 @@ ASK {
     UNION { ?s ?p ?forbidden . }
 }""" ;
     gmeow:saRationale "None of isResolved / isAnswered / answerValue / isTrue / isFalse may appear in any subject, predicate, or object position — a question is resolved by reusing the epistemics spine over an answers-claim (Principle 6), never by a resolution bit." .
+
+# --- Absence records (Principles 4 and 9) --------------------------------------
+# An unanswered question is recorded as an attributed, dated observation with a
+# reason from one value vocabulary. It asserts no value and no negation.
+ex:saAbsenceVocabulary a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ; gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    gmeow:AbsenceRecord (rdfs:subClassOf|logic:subClassOf) gmeow:Observation .
+    gmeow:AbsenceReason (rdfs:subClassOf|logic:subClassOf) logic:QualityValue .
+    gmeow:absenceReason (rdfs:range|logic:range) gmeow:AbsenceReason .
+    gmeow:absenceReasonNotFound a gmeow:AbsenceReason .
+    gmeow:absenceReasonRetrievalFailed a gmeow:AbsenceReason .
+    gmeow:absenceReasonNotPublished a gmeow:AbsenceReason .
+    gmeow:absenceReasonNotApplicable a gmeow:AbsenceReason .
+}""" ;
+    gmeow:saRationale "An absence record reuses the observation spine (who determined it is the vantage, when is observedAt) and takes its reason from one value vocabulary with the four reasons." .
+
+ex:saAbsenceDerivesNothing a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:mustNot ; gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+ASK {
+    VALUES ?p { gmeow:absenceReason gmeow:absenceQuestion gmeow:absentProperty gmeow:consultedSource }
+    VALUES ?link { rdfs:subPropertyOf logic:subPropertyOf owl:inverseOf owl:propertyChainAxiom owl:equivalentProperty }
+    { ?p ?link ?q } UNION { ?q ?link ?p }
+}""" ;
+    gmeow:saRationale "The properties of an absence record MUST NOT be a sub-property, inverse, chain or equivalent of anything: no value, negation or other statement is derived from an absence record (an unanswered question is unknown, never false)." .
+
+ex:saAbsenceReasonNotFunctional a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:mustNot ; gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+ASK { gmeow:absenceReason a ?kind . VALUES ?kind { owl:FunctionalProperty logic:FunctionalProperty } }""" ;
+    gmeow:saRationale "Reasons from different vantages coexist and none is privileged (Principle 9)." .
+
+ex:saAbsenceExample a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ; gmeow:saScope gmeow:scopeModuleAndExamples ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX ex: <https://example.org/absence/>
+ASK {
+    ex:foundedNotFound a gmeow:AbsenceRecord ; gmeow:absenceReason gmeow:absenceReasonNotFound ; gmeow:consultedSource ex:companyRegister ; gmeow:vantage ex:researcher ; gmeow:observedAt ?t1 .
+    ex:membersFetchFailed a gmeow:AbsenceRecord ; gmeow:absenceReason gmeow:absenceReasonRetrievalFailed ; gmeow:consultedSource ex:acmeWebsite .
+    ex:revenueNotPublished a gmeow:AbsenceRecord ; gmeow:absenceReason gmeow:absenceReasonNotPublished .
+    ex:dissolutionNotApplicable a gmeow:AbsenceRecord ; gmeow:absenceReason gmeow:absenceReasonNotApplicable .
+    ex:foundedAnswer gmeow:answers ex:whenFounded ; gmeow:observedAt ?t2 .
+    FILTER NOT EXISTS { ?r a gmeow:AbsenceRecord ; gmeow:observationResult ?v }
+    FILTER NOT EXISTS { ex:acme gmeow:foundedOn ?d }
+    FILTER NOT EXISTS { ex:acme gmeow:memberOf ?m }
+    FILTER NOT EXISTS { ex:acme ex:annualRevenue ?x }
+    FILTER NOT EXISTS { ex:acme ex:dissolvedOn ?y }
+    FILTER NOT EXISTS { ?s gmeow:displayable ?flag }
+    FILTER NOT EXISTS { ?later gmeow:supersedes ?earlier }
+}""" ;
+    gmeow:saRationale "Counter-example: the four absence records assert no value and no negation about the subject (no result on any record, no asserted founding date, membership, revenue or dissolution date), the later answer sits beside the earlier not-found record, and nothing is suppressed or superseded." .

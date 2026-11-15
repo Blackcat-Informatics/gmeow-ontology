@@ -230,3 +230,219 @@ msgstr "Plusieurs contextes peuvent coexister ; aucun n’identifie la Question 
 msgctxt "https://blackcatinformatics.ca/gmeow/questionContext|http://www.w3.org/2004/02/skos/core#example"
 msgid "For example: ex:question gmeow:questionContext \"The question arose during the morning review.\"@en ."
 msgstr "Par exemple : ex:question gmeow:questionContext \"The question arose during the morning review.\"@en ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AbsenceReason|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Absence Reason"
+msgstr "Raison d'absence"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AbsenceReason|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Why a question has no answer — a value vocabulary (individuals, never subclasses) naming one reason an absence record gives: not found in the sources searched, retrieval failed, not published by its holder, or not applicable to the subject. A reason explains an absence and asserts nothing about the world: no reason entails a value or a negation. The set is open, and withholding by a disclosure policy is not one of them (that is gmeow:DisclosureOutcome)."
+msgstr "Pourquoi une question n'a pas de réponse — un vocabulaire de valeurs (des individus, jamais des sous-classes) nommant une raison donnée par un enregistrement d'absence : introuvable dans les sources consultées, échec de la récupération, non publié par son détenteur, ou sans objet pour le sujet. Une raison explique une absence et n'affirme rien sur le monde : aucune raison n'implique une valeur ni une négation. L'ensemble est ouvert, et la rétention par une politique de divulgation n'en fait pas partie (c'est gmeow:DisclosureOutcome)."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AbsenceReason|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:record gmeow:absenceReason gmeow:absenceReasonNotFound ."
+msgstr "ex:record gmeow:absenceReason gmeow:absenceReasonNotFound ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AbsenceReason|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid using a reason to assert that a value is false or absent in the world, to record a deliberate withholding (use gmeow:DisclosureOutcome), or to mint per-reason subclasses; the reasons are individuals."
+msgstr "À éviter pour affirmer qu'une valeur est fausse ou absente dans le monde, pour consigner une rétention délibérée (utiliser gmeow:DisclosureOutcome) ou pour créer des sous-classes par raison ; les raisons sont des individus."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AbsenceReason|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Reference one of the seeded individuals through gmeow:absenceReason on a gmeow:AbsenceRecord; mint a new individual with a label and a definition that distinguishes it from the seeded ones only when none of them fits."
+msgstr "Référencer l'un des individus fournis au moyen de gmeow:absenceReason sur un gmeow:AbsenceRecord ; créer un nouvel individu, avec une étiquette et une définition qui le distingue des individus fournis, seulement si aucun ne convient."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AbsenceReason|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use as the value vocabulary behind gmeow:absenceReason, so the reason a question went unanswered is data a consumer can list and filter."
+msgstr "À utiliser comme vocabulaire de valeurs de gmeow:absenceReason, afin que la raison pour laquelle une question est restée sans réponse soit une donnée qu'un consommateur peut lister et filtrer."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AbsenceRecord|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Absence Record"
+msgstr "Enregistrement d'absence"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AbsenceRecord|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An attributed, dated observation that a question has no answer, with the reason. It names the subject and the property or question concerned, the vantage that determined the absence (gmeow:vantage) and when (gmeow:observedAt), and gives a reason (gmeow:absenceReason). It asserts no value and no negation, and nothing may be derived from it as false: an unanswered question is unknown, never false. A later answer does not contradict an earlier record; both are retained, each with its own time. It is a claim like any other, so records from different vantages coexist."
+msgstr "Une observation attribuée et datée selon laquelle une question n'a pas de réponse, avec la raison. Elle nomme le sujet et la propriété ou la question concernés, le point de vue qui a établi l'absence (gmeow:vantage) et le moment (gmeow:observedAt), et donne une raison (gmeow:absenceReason). Elle n'affirme ni valeur ni négation, et rien ne peut en être dérivé comme faux : une question sans réponse est inconnue, jamais fausse. Une réponse ultérieure ne contredit pas un enregistrement antérieur ; les deux sont conservés, chacun avec son propre moment. C'est une revendication comme une autre : les enregistrements de points de vue différents coexistent."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AbsenceRecord|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:record a gmeow:AbsenceRecord ; gmeow:vantage ex:researcher ; gmeow:observedFeature ex:acme ; gmeow:absenceQuestion ex:whenFounded ; gmeow:absenceReason gmeow:absenceReasonNotFound ."
+msgstr "ex:record a gmeow:AbsenceRecord ; gmeow:vantage ex:researcher ; gmeow:observedFeature ex:acme ; gmeow:absenceQuestion ex:whenFounded ; gmeow:absenceReason gmeow:absenceReasonNotFound ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AbsenceRecord|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid asserting it as a fact about the subject, reading it as a negative (an absent value is unknown, never false), deleting it when an answer arrives, or using it for a deliberate withholding by a disclosure policy (that is gmeow:DisclosureOutcome)."
+msgstr "À éviter pour l'affirmer comme un fait sur le sujet, pour le lire comme une négation (une valeur absente est inconnue, jamais fausse), pour le supprimer à l'arrivée d'une réponse ou pour une rétention délibérée par une politique de divulgation (c'est gmeow:DisclosureOutcome)."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AbsenceRecord|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Mint one record per determination: bind gmeow:vantage to who determined it, gmeow:observedAt to when, gmeow:observedFeature to the subject, gmeow:absenceQuestion or gmeow:absentProperty to what was asked, and gmeow:absenceReason to why; add gmeow:consultedSource for a not-found or retrieval-failed reason. Keep a later answer beside it."
+msgstr "Créer un enregistrement par détermination : lier gmeow:vantage à qui l'a établie, gmeow:observedAt au moment, gmeow:observedFeature au sujet, gmeow:absenceQuestion ou gmeow:absentProperty à ce qui a été demandé, et gmeow:absenceReason au pourquoi ; ajouter gmeow:consultedSource pour une raison de type introuvable ou échec de récupération. Garder une réponse ultérieure à côté."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AbsenceRecord|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to record, as attributed and dated data, that a question about a subject went unanswered and why, without asserting any value or negation."
+msgstr "À utiliser pour consigner, sous forme de données attribuées et datées, qu'une question sur un sujet est restée sans réponse et pourquoi, sans affirmer de valeur ni de négation."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/absenceQuestion|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "absence question"
+msgstr "question sans réponse"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/absenceQuestion|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The question an absence record says has no answer. Use it when the unanswered matter is a question; when it is a property of the subject, gmeow:absentProperty names that property. Non-functional: one determination may cover several questions."
+msgstr "La question dont un enregistrement d'absence dit qu'elle n'a pas de réponse. À utiliser lorsque la matière sans réponse est une question ; lorsqu'il s'agit d'une propriété du sujet, gmeow:absentProperty nomme cette propriété. Non fonctionnelle : une détermination peut couvrir plusieurs questions."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/absenceQuestion|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:record gmeow:absenceQuestion ex:whenFounded ."
+msgstr "ex:record gmeow:absenceQuestion ex:whenFounded ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/absenceQuestion|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating it as the question being answered or resolved; it only names what was found to be unanswered."
+msgstr "À éviter pour la traiter comme la question à laquelle on répond ou qui est résolue ; elle nomme seulement ce qui a été constaté sans réponse."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/absenceQuestion|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Point the gmeow:AbsenceRecord at the gmeow:Question it concerns; a later answer is a separate gmeow:answers claim and the record stays."
+msgstr "Pointer le gmeow:AbsenceRecord vers le gmeow:Question concernée ; une réponse ultérieure est une revendication gmeow:answers distincte et l'enregistrement demeure."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/absenceQuestion|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to say which question an absence record concerns."
+msgstr "À utiliser pour dire quelle question un enregistrement d'absence concerne."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/absenceReason|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "absence reason"
+msgstr "raison d'absence"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/absenceReason|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The reason an absence record gives for the missing answer, drawn from the open gmeow:AbsenceReason vocabulary. Non-functional: a different determination is a different record, and two records from different vantages may give different reasons for the same question; none is privileged (Principle 9)."
+msgstr "La raison que donne un enregistrement d'absence pour la réponse manquante, tirée du vocabulaire ouvert gmeow:AbsenceReason. Non fonctionnelle : une autre détermination est un autre enregistrement, et deux enregistrements de points de vue différents peuvent donner des raisons différentes pour la même question ; aucune n'est privilégiée (Principe 9)."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/absenceReason|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:record gmeow:absenceReason gmeow:absenceReasonRetrievalFailed ."
+msgstr "ex:record gmeow:absenceReason gmeow:absenceReasonRetrievalFailed ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/absenceReason|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid reading any reason as a value or a negation, and avoid putting two reasons on one record to merge two determinations; mint a second record."
+msgstr "À éviter pour lire une raison comme une valeur ou une négation, et pour mettre deux raisons sur un enregistrement afin de fusionner deux déterminations ; créer un second enregistrement."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/absenceReason|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Set exactly one gmeow:AbsenceReason on each gmeow:AbsenceRecord."
+msgstr "Renseigner exactement un gmeow:AbsenceReason sur chaque gmeow:AbsenceRecord."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/absenceReason|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to say why a question has no answer."
+msgstr "À utiliser pour dire pourquoi une question n'a pas de réponse."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/absentProperty|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "absent property"
+msgstr "propriété sans valeur"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/absentProperty|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The property of the subject for which an absence record found no value, given as the property itself. The record asserts nothing about the property: no value, no negation and no claim that the subject lacks it. The subject is the record's gmeow:observedFeature. Non-functional."
+msgstr "La propriété du sujet pour laquelle un enregistrement d'absence n'a trouvé aucune valeur, donnée comme la propriété elle-même. L'enregistrement n'affirme rien sur la propriété : ni valeur, ni négation, ni prétention que le sujet en est dépourvu. Le sujet est le gmeow:observedFeature de l'enregistrement. Non fonctionnelle."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/absentProperty|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:record gmeow:absentProperty gmeow:foundedOn ."
+msgstr "ex:record gmeow:absentProperty gmeow:foundedOn ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/absentProperty|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid reading it as the subject lacking the property; an unanswered property is unknown, never false."
+msgstr "À éviter pour la lire comme le sujet qui manque de la propriété ; une propriété sans réponse est inconnue, jamais fausse."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/absentProperty|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Name the property that was asked about on the gmeow:AbsenceRecord, beside the subject given by gmeow:observedFeature."
+msgstr "Nommer sur le gmeow:AbsenceRecord la propriété sur laquelle portait la question, à côté du sujet donné par gmeow:observedFeature."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/absentProperty|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the unanswered matter is a property of a subject rather than a worded question."
+msgstr "À utiliser lorsque la matière sans réponse est une propriété d'un sujet plutôt qu'une question formulée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/consultedSource|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "consulted source"
+msgstr "source consultée"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/consultedSource|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A source, collection, index or described scope consulted when an absence was determined. For a not-found reason it is the scope that was searched; for a retrieval-failed reason it is the source that could not be fetched. Non-functional: several sources may have been searched."
+msgstr "Une source, collection, index ou portée décrite consultée lorsqu'une absence a été établie. Pour la raison introuvable, c'est la portée qui a été explorée ; pour la raison d'échec de récupération, c'est la source qui n'a pu être obtenue. Non fonctionnelle : plusieurs sources peuvent avoir été explorées."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/consultedSource|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:record gmeow:consultedSource ex:parishRegisters ."
+msgstr "ex:record gmeow:consultedSource ex:parishRegisters ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/consultedSource|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid reading the sources as exhaustive: a not-found record says the answer was not found in them, not that it exists nowhere."
+msgstr "À éviter pour lire les sources comme exhaustives : un enregistrement d'introuvable dit que la réponse n'y a pas été trouvée, non qu'elle n'existe nulle part."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/consultedSource|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Point the gmeow:AbsenceRecord at each source or scope searched; for a failed retrieval point at the one attempted source."
+msgstr "Pointer le gmeow:AbsenceRecord vers chaque source ou portée explorée ; pour une récupération échouée, pointer vers l'unique source tentée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/consultedSource|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to say where an absence was determined: the scope searched, or the source that could not be fetched."
+msgstr "À utiliser pour dire où une absence a été établie : la portée explorée, ou la source qui n'a pu être obtenue."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/absenceReasonNotFound|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "not found"
+msgstr "introuvable"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/absenceReasonNotFound|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The sources searched were read and hold no answer. The record carries the scope searched through gmeow:consultedSource. It says nothing about sources outside that scope and nothing about whether an answer exists."
+msgstr "Les sources explorées ont été lues et ne contiennent aucune réponse. L'enregistrement porte la portée explorée au moyen de gmeow:consultedSource. Il ne dit rien des sources hors de cette portée ni de l'existence d'une réponse."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/absenceReasonNotApplicable|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "not applicable"
+msgstr "sans objet"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/absenceReasonNotApplicable|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The question does not apply to this subject, so it has no answer by its nature (a dissolution date for an organisation that is still active). Unlike the other reasons this is a claim about the subject, made from a vantage, and it can be disputed by another vantage like any claim."
+msgstr "La question ne s'applique pas à ce sujet, de sorte qu'elle n'a pas de réponse par nature (une date de dissolution pour une organisation encore active). Contrairement aux autres raisons, c'est une revendication sur le sujet, faite depuis un point de vue, que tout autre point de vue peut contester comme n'importe quelle revendication."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/absenceReasonNotPublished|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "not published"
+msgstr "non publié"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/absenceReasonNotPublished|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The answer exists but its holder has not made it public, so no public source states it. This is not a disclosure outcome: nothing was withheld by applying a policy to a reader, the holder simply has not published it."
+msgstr "La réponse existe mais son détenteur ne l'a pas rendue publique, de sorte qu'aucune source publique ne l'énonce. Ce n'est pas un résultat de divulgation : rien n'a été retenu par l'application d'une politique à un lecteur, le détenteur ne l'a simplement pas publiée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/absenceReasonRetrievalFailed|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "retrieval failed"
+msgstr "récupération échouée"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/absenceReasonRetrievalFailed|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The source could not be fetched, so it was not read and its content is unknown. The record points at the attempted source through gmeow:consultedSource. A failed retrieval produces no source snapshot and says nothing about what the source holds."
+msgstr "La source n'a pu être obtenue, de sorte qu'elle n'a pas été lue et que son contenu est inconnu. L'enregistrement pointe vers la source tentée au moyen de gmeow:consultedSource. Une récupération échouée ne produit aucun instantané de source et ne dit rien de ce que la source contient."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AbsenceRecordReasonConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Absence record reason constraint"
+msgstr "Contrainte de raison d'un enregistrement d'absence"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AbsenceRecordReasonConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A closed-world integrity constraint: a direct gmeow:AbsenceRecord gives at least one gmeow:absenceReason."
+msgstr "Une contrainte d'intégrité en monde clos : un gmeow:AbsenceRecord direct donne au moins un gmeow:absenceReason."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AbsenceRecordVantageConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Absence record vantage constraint"
+msgstr "Contrainte de point de vue d'un enregistrement d'absence"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AbsenceRecordVantageConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A closed-world integrity constraint: a direct gmeow:AbsenceRecord names at least one gmeow:vantage, the one who determined the absence; an absence is never a bare fact."
+msgstr "Une contrainte d'intégrité en monde clos : un gmeow:AbsenceRecord direct nomme au moins un gmeow:vantage, celui qui a établi l'absence ; une absence n'est jamais un fait brut."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AbsenceRecordTimeConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Absence record time constraint"
+msgstr "Contrainte de moment d'un enregistrement d'absence"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AbsenceRecordTimeConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A closed-world integrity constraint: a direct gmeow:AbsenceRecord carries the instant it was determined (gmeow:observedAt), so a later answer can sit beside it with its own time."
+msgstr "Une contrainte d'intégrité en monde clos : un gmeow:AbsenceRecord direct porte l'instant où il a été établi (gmeow:observedAt), de sorte qu'une réponse ultérieure peut se placer à côté avec son propre moment."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AbsenceNotFoundScopeConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Absence not-found scope constraint"
+msgstr "Contrainte de portée d'un enregistrement d'introuvable"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AbsenceNotFoundScopeConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A closed-world integrity constraint: an absence record whose reason is gmeow:absenceReasonNotFound names the scope that was searched through gmeow:consultedSource."
+msgstr "Une contrainte d'intégrité en monde clos : un enregistrement d'absence dont la raison est gmeow:absenceReasonNotFound nomme la portée explorée au moyen de gmeow:consultedSource."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AbsenceRetrievalFailedSourceConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Absence retrieval-failed source constraint"
+msgstr "Contrainte de source d'un enregistrement d'échec de récupération"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AbsenceRetrievalFailedSourceConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A closed-world integrity constraint: an absence record whose reason is gmeow:absenceReasonRetrievalFailed names the attempted source through gmeow:consultedSource."
+msgstr "Une contrainte d'intégrité en monde clos : un enregistrement d'absence dont la raison est gmeow:absenceReasonRetrievalFailed nomme la source tentée au moyen de gmeow:consultedSource."

@@ -1,0 +1,73 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Worked example: why a question has no answer, recorded as data (Principles 4
+# and 9). Four attributed, dated absence records about one organisation, one per
+# reason, and a later answer to the first question.
+#
+# No record asserts a value or a negation. The organisation has no asserted
+# founding date, member list, revenue or dissolution date, and none is denied.
+# The later answer does not contradict the earlier not-found record: both are
+# kept, each with its own time.
+
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+@prefix ex:    <https://example.org/absence/> .
+
+ex:acme a gmeow:Organization .
+ex:researcher a gmeow:Agent .
+ex:fetcher a gmeow:Agent .
+ex:analyst a gmeow:Agent .
+ex:curator a gmeow:Agent .
+
+ex:whenFounded a gmeow:Question ;
+    gmeow:questionType gmeow:typeWh ;
+    rdfs:label "when was the organisation founded?"@x-gmeow-english .
+
+ex:companyRegister a gmeow:Entity .
+ex:acmeWebsite a gmeow:Entity .
+ex:foundingDay a gmeow:Entity .
+
+# Not found: the register that was searched holds no answer.
+ex:foundedNotFound a gmeow:AbsenceRecord ;
+    gmeow:vantage         ex:researcher ;
+    gmeow:observedAt      "2026-03-01T10:00:00Z"^^xsd:dateTime ;
+    gmeow:observedFeature ex:acme ;
+    gmeow:absenceQuestion ex:whenFounded ;
+    gmeow:absentProperty  gmeow:foundedOn ;
+    gmeow:absenceReason   gmeow:absenceReasonNotFound ;
+    gmeow:consultedSource ex:companyRegister .
+
+# Retrieval failed: the website could not be fetched, so it was not read.
+ex:membersFetchFailed a gmeow:AbsenceRecord ;
+    gmeow:vantage         ex:fetcher ;
+    gmeow:observedAt      "2026-03-02T10:00:00Z"^^xsd:dateTime ;
+    gmeow:observedFeature ex:acme ;
+    gmeow:absentProperty  gmeow:memberOf ;
+    gmeow:absenceReason   gmeow:absenceReasonRetrievalFailed ;
+    gmeow:consultedSource ex:acmeWebsite .
+
+# Not published: the holder has not made the figure public.
+ex:revenueNotPublished a gmeow:AbsenceRecord ;
+    gmeow:vantage         ex:analyst ;
+    gmeow:observedAt      "2026-03-03T10:00:00Z"^^xsd:dateTime ;
+    gmeow:observedFeature ex:acme ;
+    gmeow:absentProperty  ex:annualRevenue ;
+    gmeow:absenceReason   gmeow:absenceReasonNotPublished .
+
+# Not applicable: a claim about the subject, made from the curator's vantage.
+ex:dissolutionNotApplicable a gmeow:AbsenceRecord ;
+    gmeow:vantage         ex:curator ;
+    gmeow:observedAt      "2026-03-04T10:00:00Z"^^xsd:dateTime ;
+    gmeow:observedFeature ex:acme ;
+    gmeow:absentProperty  ex:dissolvedOn ;
+    gmeow:absenceReason   gmeow:absenceReasonNotApplicable .
+
+# A later answer to the first question. The not-found record above stays.
+ex:foundedAnswer a gmeow:StandpointClaim ;
+    gmeow:answers           ex:whenFounded ;
+    gmeow:vantage           ex:researcher ;
+    gmeow:observedAt        "2026-06-01T10:00:00Z"^^xsd:dateTime ;
+    gmeow:observedFeature   ex:acme ;
+    gmeow:observationResult ex:foundingDay .

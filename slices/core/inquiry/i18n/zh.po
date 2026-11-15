@@ -230,3 +230,219 @@ msgstr "多个情境可以并存；情境不标识 Question，也不建立已接
 msgctxt "https://blackcatinformatics.ca/gmeow/questionContext|http://www.w3.org/2004/02/skos/core#example"
 msgid "For example: ex:question gmeow:questionContext \"The question arose during the morning review.\"@en ."
 msgstr "例如：ex:question gmeow:questionContext \"The question arose during the morning review.\"@en ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AbsenceReason|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Absence Reason"
+msgstr "缺失原因"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AbsenceReason|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Why a question has no answer — a value vocabulary (individuals, never subclasses) naming one reason an absence record gives: not found in the sources searched, retrieval failed, not published by its holder, or not applicable to the subject. A reason explains an absence and asserts nothing about the world: no reason entails a value or a negation. The set is open, and withholding by a disclosure policy is not one of them (that is gmeow:DisclosureOutcome)."
+msgstr "问题为何没有答案——一个值词汇表（由个体构成，绝不使用子类），列出缺失记录可给出的原因：在所查来源中未找到、取得失败、持有者未公开，或不适用于该主体。原因只解释缺失，不对世界作任何断言：任何原因都不蕴含某个值或某种否定。该集合是开放的，披露策略造成的扣留不在其中（那是 gmeow:DisclosureOutcome）。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AbsenceReason|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:record gmeow:absenceReason gmeow:absenceReasonNotFound ."
+msgstr "ex:record gmeow:absenceReason gmeow:absenceReasonNotFound ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AbsenceReason|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid using a reason to assert that a value is false or absent in the world, to record a deliberate withholding (use gmeow:DisclosureOutcome), or to mint per-reason subclasses; the reasons are individuals."
+msgstr "避免用原因断言某个值在世界中为假或不存在，避免用它记录有意的扣留（应使用 gmeow:DisclosureOutcome），也避免为每个原因创建子类；各原因都是个体。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AbsenceReason|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Reference one of the seeded individuals through gmeow:absenceReason on a gmeow:AbsenceRecord; mint a new individual with a label and a definition that distinguishes it from the seeded ones only when none of them fits."
+msgstr "在 gmeow:AbsenceRecord 上通过 gmeow:absenceReason 引用预置个体之一；只有当预置个体都不适用时，才创建带标签、且定义能与预置个体区分的新个体。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AbsenceReason|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use as the value vocabulary behind gmeow:absenceReason, so the reason a question went unanswered is data a consumer can list and filter."
+msgstr "用作 gmeow:absenceReason 的值词汇表，使问题未获回答的原因成为使用方可以列出和过滤的数据。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AbsenceRecord|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Absence Record"
+msgstr "缺失记录"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AbsenceRecord|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An attributed, dated observation that a question has no answer, with the reason. It names the subject and the property or question concerned, the vantage that determined the absence (gmeow:vantage) and when (gmeow:observedAt), and gives a reason (gmeow:absenceReason). It asserts no value and no negation, and nothing may be derived from it as false: an unanswered question is unknown, never false. A later answer does not contradict an earlier record; both are retained, each with its own time. It is a claim like any other, so records from different vantages coexist."
+msgstr "一条有归属、有时间的观察，表明某个问题没有答案并给出原因。它指明主体以及所涉及的属性或问题、确定该缺失的视角（gmeow:vantage）和时间（gmeow:observedAt），并给出原因（gmeow:absenceReason）。它不断言任何值或否定，也不得由它推出任何为假的结论：未获回答的问题是未知的，而不是假的。后来的答案并不与先前的记录矛盾；两者都被保留，各自带有自己的时间。它与其他声明一样是一种声明，因此来自不同视角的记录并存。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AbsenceRecord|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:record a gmeow:AbsenceRecord ; gmeow:vantage ex:researcher ; gmeow:observedFeature ex:acme ; gmeow:absenceQuestion ex:whenFounded ; gmeow:absenceReason gmeow:absenceReasonNotFound ."
+msgstr "ex:record a gmeow:AbsenceRecord ; gmeow:vantage ex:researcher ; gmeow:observedFeature ex:acme ; gmeow:absenceQuestion ex:whenFounded ; gmeow:absenceReason gmeow:absenceReasonNotFound ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AbsenceRecord|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid asserting it as a fact about the subject, reading it as a negative (an absent value is unknown, never false), deleting it when an answer arrives, or using it for a deliberate withholding by a disclosure policy (that is gmeow:DisclosureOutcome)."
+msgstr "避免把它当作关于主体的事实来断言，避免把它读作否定（缺失的值是未知的，而不是假的），避免在答案出现时删除它，也避免用它表示披露策略造成的有意扣留（那是 gmeow:DisclosureOutcome）。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AbsenceRecord|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Mint one record per determination: bind gmeow:vantage to who determined it, gmeow:observedAt to when, gmeow:observedFeature to the subject, gmeow:absenceQuestion or gmeow:absentProperty to what was asked, and gmeow:absenceReason to why; add gmeow:consultedSource for a not-found or retrieval-failed reason. Keep a later answer beside it."
+msgstr "每次确定创建一条记录：用 gmeow:vantage 绑定确定者，用 gmeow:observedAt 绑定时间，用 gmeow:observedFeature 绑定主体，用 gmeow:absenceQuestion 或 gmeow:absentProperty 绑定所问内容，用 gmeow:absenceReason 绑定原因；对于未找到或取得失败的原因，再加上 gmeow:consultedSource。后来的答案保留在它旁边。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AbsenceRecord|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to record, as attributed and dated data, that a question about a subject went unanswered and why, without asserting any value or negation."
+msgstr "用于以有归属、有时间的数据记录某个关于主体的问题未获回答及其原因，而不断言任何值或否定。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/absenceQuestion|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "absence question"
+msgstr "缺失问题"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/absenceQuestion|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The question an absence record says has no answer. Use it when the unanswered matter is a question; when it is a property of the subject, gmeow:absentProperty names that property. Non-functional: one determination may cover several questions."
+msgstr "缺失记录所说没有答案的问题。未获回答的事项是一个问题时使用它；若是主体的某个属性，则由 gmeow:absentProperty 指明该属性。非函数性：一次确定可以涵盖多个问题。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/absenceQuestion|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:record gmeow:absenceQuestion ex:whenFounded ."
+msgstr "ex:record gmeow:absenceQuestion ex:whenFounded ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/absenceQuestion|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating it as the question being answered or resolved; it only names what was found to be unanswered."
+msgstr "避免把它当作正被回答或已解决的问题；它只指明被发现未获回答的内容。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/absenceQuestion|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Point the gmeow:AbsenceRecord at the gmeow:Question it concerns; a later answer is a separate gmeow:answers claim and the record stays."
+msgstr "让 gmeow:AbsenceRecord 指向它所涉及的 gmeow:Question；后来的答案是单独的 gmeow:answers 声明，记录仍然保留。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/absenceQuestion|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to say which question an absence record concerns."
+msgstr "用于说明缺失记录涉及哪个问题。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/absenceReason|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "absence reason"
+msgstr "缺失原因"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/absenceReason|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The reason an absence record gives for the missing answer, drawn from the open gmeow:AbsenceReason vocabulary. Non-functional: a different determination is a different record, and two records from different vantages may give different reasons for the same question; none is privileged (Principle 9)."
+msgstr "缺失记录对答案缺失给出的原因，取自开放的 gmeow:AbsenceReason 词汇表。非函数性：不同的确定是不同的记录，来自不同视角的两条记录可能对同一问题给出不同原因；没有哪一个享有特权（原则 9）。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/absenceReason|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:record gmeow:absenceReason gmeow:absenceReasonRetrievalFailed ."
+msgstr "ex:record gmeow:absenceReason gmeow:absenceReasonRetrievalFailed ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/absenceReason|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid reading any reason as a value or a negation, and avoid putting two reasons on one record to merge two determinations; mint a second record."
+msgstr "避免把任何原因读作值或否定，也避免在一条记录上放两个原因来合并两次确定；应创建第二条记录。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/absenceReason|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Set exactly one gmeow:AbsenceReason on each gmeow:AbsenceRecord."
+msgstr "在每条 gmeow:AbsenceRecord 上恰好设置一个 gmeow:AbsenceReason。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/absenceReason|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to say why a question has no answer."
+msgstr "用于说明问题为何没有答案。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/absentProperty|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "absent property"
+msgstr "缺失属性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/absentProperty|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The property of the subject for which an absence record found no value, given as the property itself. The record asserts nothing about the property: no value, no negation and no claim that the subject lacks it. The subject is the record's gmeow:observedFeature. Non-functional."
+msgstr "缺失记录未找到值的主体属性，以属性本身给出。记录对该属性不作任何断言：没有值，没有否定，也不主张主体缺少它。主体是记录的 gmeow:observedFeature。非函数性。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/absentProperty|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:record gmeow:absentProperty gmeow:foundedOn ."
+msgstr "ex:record gmeow:absentProperty gmeow:foundedOn ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/absentProperty|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid reading it as the subject lacking the property; an unanswered property is unknown, never false."
+msgstr "避免把它读作主体缺少该属性；未获回答的属性是未知的，而不是假的。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/absentProperty|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Name the property that was asked about on the gmeow:AbsenceRecord, beside the subject given by gmeow:observedFeature."
+msgstr "在 gmeow:AbsenceRecord 上指明所问的属性，与由 gmeow:observedFeature 给出的主体并列。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/absentProperty|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the unanswered matter is a property of a subject rather than a worded question."
+msgstr "当未获回答的事项是主体的某个属性而不是一个措辞明确的问题时使用。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/consultedSource|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "consulted source"
+msgstr "查阅来源"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/consultedSource|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A source, collection, index or described scope consulted when an absence was determined. For a not-found reason it is the scope that was searched; for a retrieval-failed reason it is the source that could not be fetched. Non-functional: several sources may have been searched."
+msgstr "确定缺失时所查阅的来源、集合、索引或被描述的范围。对于未找到的原因，它是被搜索的范围；对于取得失败的原因，它是无法取得的来源。非函数性：可能搜索过多个来源。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/consultedSource|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:record gmeow:consultedSource ex:parishRegisters ."
+msgstr "ex:record gmeow:consultedSource ex:parishRegisters ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/consultedSource|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid reading the sources as exhaustive: a not-found record says the answer was not found in them, not that it exists nowhere."
+msgstr "避免把这些来源读作详尽无遗：未找到记录说的是答案在其中未被找到，而不是答案在任何地方都不存在。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/consultedSource|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Point the gmeow:AbsenceRecord at each source or scope searched; for a failed retrieval point at the one attempted source."
+msgstr "让 gmeow:AbsenceRecord 指向每个被搜索的来源或范围；对于取得失败，则指向所尝试的那个来源。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/consultedSource|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to say where an absence was determined: the scope searched, or the source that could not be fetched."
+msgstr "用于说明缺失是在何处确定的：被搜索的范围，或无法取得的来源。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/absenceReasonNotFound|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "not found"
+msgstr "未找到"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/absenceReasonNotFound|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The sources searched were read and hold no answer. The record carries the scope searched through gmeow:consultedSource. It says nothing about sources outside that scope and nothing about whether an answer exists."
+msgstr "所搜索的来源已被读取，其中没有答案。记录通过 gmeow:consultedSource 携带被搜索的范围。它对该范围之外的来源不作任何说明，也不说明答案是否存在。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/absenceReasonNotApplicable|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "not applicable"
+msgstr "不适用"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/absenceReasonNotApplicable|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The question does not apply to this subject, so it has no answer by its nature (a dissolution date for an organisation that is still active). Unlike the other reasons this is a claim about the subject, made from a vantage, and it can be disputed by another vantage like any claim."
+msgstr "该问题不适用于此主体，因此其性质决定了它没有答案（例如仍在运营的组织的解散日期）。与其他原因不同，这是关于主体的一项声明，由某个视角作出，并且像任何声明一样可被其他视角质疑。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/absenceReasonNotPublished|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "not published"
+msgstr "未公开"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/absenceReasonNotPublished|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The answer exists but its holder has not made it public, so no public source states it. This is not a disclosure outcome: nothing was withheld by applying a policy to a reader, the holder simply has not published it."
+msgstr "答案存在，但其持有者没有公开，因此没有任何公开来源陈述它。这不是披露结果：并没有通过对读者应用策略而扣留任何内容，只是持有者没有发布它。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/absenceReasonRetrievalFailed|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "retrieval failed"
+msgstr "取得失败"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/absenceReasonRetrievalFailed|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The source could not be fetched, so it was not read and its content is unknown. The record points at the attempted source through gmeow:consultedSource. A failed retrieval produces no source snapshot and says nothing about what the source holds."
+msgstr "无法取得该来源，因此它未被读取，其内容未知。记录通过 gmeow:consultedSource 指向所尝试的来源。取得失败不会产生来源快照，也不说明该来源包含什么。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AbsenceRecordReasonConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Absence record reason constraint"
+msgstr "缺失记录原因约束"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AbsenceRecordReasonConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A closed-world integrity constraint: a direct gmeow:AbsenceRecord gives at least one gmeow:absenceReason."
+msgstr "一条封闭世界完整性约束：直接的 gmeow:AbsenceRecord 至少给出一个 gmeow:absenceReason。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AbsenceRecordVantageConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Absence record vantage constraint"
+msgstr "缺失记录视角约束"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AbsenceRecordVantageConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A closed-world integrity constraint: a direct gmeow:AbsenceRecord names at least one gmeow:vantage, the one who determined the absence; an absence is never a bare fact."
+msgstr "一条封闭世界完整性约束：直接的 gmeow:AbsenceRecord 至少指明一个 gmeow:vantage，即确定该缺失的一方；缺失从来不是赤裸的事实。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AbsenceRecordTimeConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Absence record time constraint"
+msgstr "缺失记录时间约束"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AbsenceRecordTimeConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A closed-world integrity constraint: a direct gmeow:AbsenceRecord carries the instant it was determined (gmeow:observedAt), so a later answer can sit beside it with its own time."
+msgstr "一条封闭世界完整性约束：直接的 gmeow:AbsenceRecord 携带其被确定的时刻（gmeow:observedAt），使后来的答案可以带着自己的时间与之并列。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AbsenceNotFoundScopeConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Absence not-found scope constraint"
+msgstr "未找到范围约束"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AbsenceNotFoundScopeConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A closed-world integrity constraint: an absence record whose reason is gmeow:absenceReasonNotFound names the scope that was searched through gmeow:consultedSource."
+msgstr "一条封闭世界完整性约束：原因为 gmeow:absenceReasonNotFound 的缺失记录通过 gmeow:consultedSource 指明被搜索的范围。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AbsenceRetrievalFailedSourceConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Absence retrieval-failed source constraint"
+msgstr "取得失败来源约束"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AbsenceRetrievalFailedSourceConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A closed-world integrity constraint: an absence record whose reason is gmeow:absenceReasonRetrievalFailed names the attempted source through gmeow:consultedSource."
+msgstr "一条封闭世界完整性约束：原因为 gmeow:absenceReasonRetrievalFailed 的缺失记录通过 gmeow:consultedSource 指明所尝试的来源。"
