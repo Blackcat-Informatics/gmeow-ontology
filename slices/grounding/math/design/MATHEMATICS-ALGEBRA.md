@@ -132,6 +132,26 @@ Formula and small witness establish their stated composition-compatibility conse
 not realize the identity action, bind all witness symbols to E8 coordinates, construct the complete
 action or prove faithfulness. Those obligations remain distinct from actor declaration validation.
 
+The target of an action does not identify its actor. `examples/a2-acting-groups.ttl` records three
+actions on the six A2 roots: the full automorphism group of order 12, the Weyl group of order 6 and
+the rotation subgroup of order 3 each act on the same roots, and each descriptor names its own
+group. There the Weyl group is a proper normal subgroup of the full automorphism group, so the two
+roles that coincide for E8 are held by different resources. `math:actingGroup` therefore carries no
+property characteristic, no global domain or range, and no sub-property, inverse, chain or rule
+that could derive it from `math:actsOn`, `math:weylGroup` or `math:automorphismGroupOf`: a
+functional characteristic would have a reasoner identify a subgroup with the full group when both
+are named, and a derived link would give a subgroup's action the full group as a second actor.
+
+Three kinds of control read the declaration without evaluating a law:
+
+| Control | Input | What fails it |
+|---|---|---|
+| `cqE8ActingGroup` (asserted competency question) | `examples/e8-symmetry.ttl` | an actor other than `exa:e8Weyl`, a second actor, no actor, or a law named by only one of the two law links |
+| `cqActingGroupsOnRootSystem` (asserted competency question) | `examples/a2-acting-groups.ttl` | an action recorded under another group, or the A2 Weyl group given the full-automorphism role |
+| structural assertions with fail-witness fixtures | the module and every worked example | a missing, repeated or non-Group actor, a descriptor typed as a group, a wrong actor or dropped law link on the E8 record, or an axiom that characterizes or derives `math:actingGroup` |
+
+These controls check what is declared. The four actor conformance cells cover the generated validation view for a missing, a repeated and a non-Group actor. A different actor on the named E8 record and a law named by one link only are well formed to that view by design, so only these declared-data controls catch them. None of the controls proves an action law.
+
 ## Homomorphic encryption — the HE flagship
 
 Homomorphic encryption is a `math:RingHomomorphism` (partial or full) whose preservation law is

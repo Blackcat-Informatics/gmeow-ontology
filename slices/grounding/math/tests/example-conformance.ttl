@@ -2564,6 +2564,11 @@ ex:ecGroupActionActorMultiple a gmeow:ExampleConformance ;
     gmeow:expectedFailureClass math:MalformedGroupActionActor ;
     gmeow:conformanceRationale "Two distinct RDF resources are supplied as actors, both fully framed Groups. The generated maximum count must raise only MalformedGroupActionActor on the module-plus-example reader view. This checks the declaration count, without requiring an owl:differentFrom assertion or claiming native equality reasoning rejects the data." .
 
+ex:ecA2ActingGroups a gmeow:ExampleConformance ;
+    gmeow:exampleFile "examples/a2-acting-groups.ttl" ;
+    gmeow:expectedOutcome gmeow:conforms ;
+    gmeow:conformanceRationale "Three math:GroupAction descriptors on one math:RootSystem each name exactly one actor through math:actingGroup: a framed math:AutomorphismGroup anchored by math:automorphismGroupOf, a framed math:WeylGroup with its typed math:hasRootSystem anchor, and a framed math:Group. Each actor reaches math:Group by its declared type or a subclass route, the root system declares its rank, Cartan matrix and Weyl group, and its six roots in rank 2 leave the E8 value gate inert. The example validates with no findings; it declares actors and a target and constructs no action." .
+
 ex:ecLimitResultNonnumeric a gmeow:ExampleConformance ;
     gmeow:exampleFile "tests/counter-examples/limit-result-nonnumeric.ttl" ;
     gmeow:expectedOutcome gmeow:violates ;

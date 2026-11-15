@@ -18,6 +18,8 @@
 # The authored algebra-law witness elements (examples/*.ttl): the native reasoningLogic
 # lane queries the consequents the four laws DERIVE over these witnesses.
 @prefix exa:   <https://blackcatinformatics.ca/gmeow/examples/math/algebra/> .
+# The worked acting-group example (examples/a2-acting-groups.ttl).
+@prefix exag:  <https://blackcatinformatics.ca/gmeow/examples/math/acting-groups/> .
 # The worked closed-form example (examples/closed-form-functions.ttl).
 @prefix exm:   <https://blackcatinformatics.ca/gmeow/examples/math/> .
 # The two worked signed-radial-field scenes (examples/signed-radial-field-*.ttl).
@@ -343,6 +345,65 @@ ex:cqMapsShape a logic:ResultShape ;
 
 ex:rowWeylMap a gmeow:ExpectedRow ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "value" ; gmeow:cellValueIri exa:gaWr ] .
+
+# === Q6b — who acts: the declared actor of the E8 Weyl action (asserted record) === #
+# The native question above joins fixed descriptor links to a derived equality. This one
+# reads the authored record alone and returns the actor, so a different, repeated or
+# missing actor changes the answer without any law firing.
+
+ex:cqE8ActingGroup a gmeow:CompetencyQuestion ;
+    gmeow:cqQueryFile "slices/grounding/math/queries/competency/e8-acting-group.rq" ;
+    gmeow:cqDataFile "examples/e8-symmetry.ttl" ;
+    gmeow:cqReasoning gmeow:reasoningNone ;
+    gmeow:cqRationale "The E8 Weyl action declares its acting group as data. Over the authored example the answer is exactly {actor exa:e8Weyl, target exa:e8Roots, law exa:groupActionLaw}: the group named by math:actingGroup, the roots named by math:actsOn, and the one law named by both math:preservationLaw and math:satisfiesAxiom. The actor is returned, not fixed in the pattern, so a record naming a subgroup returns that subgroup, a record naming two actors returns two rows, and a record with no actor or with only one law link returns none; each fails the exact-row match. The question reads the declaration and proves nothing about the action itself." ;
+    gmeow:cqExactRows true ;
+    gmeow:cqResultShape ex:cqE8ActingGroupShape ;
+    gmeow:cqExpectRow ex:rowE8ActingGroup .
+
+ex:cqE8ActingGroupShape a logic:ResultShape ;
+    logic:declaresColumn
+        [ logic:columnVariable "actor" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "target" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "law" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ;
+    logic:shapeCardinality logic:RowsExact .
+
+ex:rowE8ActingGroup a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "actor" ; gmeow:cellValueIri exa:e8Weyl ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "target" ; gmeow:cellValueIri exa:e8Roots ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "law" ; gmeow:cellValueIri exa:groupActionLaw ] .
+
+# === Q6c — one target, three acting groups: the full group, the Weyl group, a subgroup === #
+
+ex:cqActingGroupsOnRootSystem a gmeow:CompetencyQuestion ;
+    gmeow:cqQueryFile "slices/grounding/math/queries/competency/acting-groups-on-root-system.rq" ;
+    gmeow:cqDataFile "examples/a2-acting-groups.ttl" ;
+    gmeow:cqReasoning gmeow:reasoningNone ;
+    gmeow:cqRationale "Three groups act on the six A2 roots, so the target of an action does not determine its actor. Over the worked example the answer is exactly three rows: the full automorphism group acts through exag:a2AutomorphismAction and is the declared automorphism group of the roots; the Weyl group acts through exag:a2WeylAction and is the declared Weyl group of the roots; the rotation subgroup acts through exag:a2RotationAction and has neither role. The two role columns are left unbound where the data declares no such role, so recording the subgroup's action under the Weyl group, or typing the A2 Weyl group as the full automorphism group as is right for E8, changes a row and fails the exact-row match." ;
+    gmeow:cqExactRows true ;
+    gmeow:cqResultShape ex:cqActingGroupsOnRootSystemShape ;
+    gmeow:cqExpectRow ex:rowA2AutomorphismAction , ex:rowA2WeylAction , ex:rowA2RotationAction .
+
+ex:cqActingGroupsOnRootSystemShape a logic:ResultShape ;
+    logic:declaresColumn
+        [ logic:columnVariable "action" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "actor" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "weylGroupOf" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingOptional ] ,
+        [ logic:columnVariable "automorphismGroupOf" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingOptional ] ;
+    logic:shapeCardinality logic:RowsExact .
+
+ex:rowA2AutomorphismAction a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "action" ; gmeow:cellValueIri exag:a2AutomorphismAction ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "actor" ; gmeow:cellValueIri exag:a2Automorphisms ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "automorphismGroupOf" ; gmeow:cellValueIri exag:a2Roots ] .
+
+ex:rowA2WeylAction a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "action" ; gmeow:cellValueIri exag:a2WeylAction ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "actor" ; gmeow:cellValueIri exag:a2Weyl ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "weylGroupOf" ; gmeow:cellValueIri exag:a2Roots ] .
+
+ex:rowA2RotationAction a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "action" ; gmeow:cellValueIri exag:a2RotationAction ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "actor" ; gmeow:cellValueIri exag:a2Rotations ] .
 
 # === Q7 — the validated E8 root system (240 / rank 8 / Weyl order) ========== #
 
