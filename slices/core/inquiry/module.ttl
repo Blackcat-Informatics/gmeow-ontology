@@ -506,3 +506,343 @@ gmeow:questionContext
     logic:range [ a rdfs:Datatype ; logic:unionOf ( xsd:string rdf:langString rdf:dirLangString ) ] .
 
 [ a logic:ClosureEntry ; logic:closureKey "https://blackcatinformatics.ca/gmeow/questionContext" ; logic:closureValue logic:ClosedWorldClosure ] .
+
+# === Unanswered questions: why a question has no answer, as data ===============
+#
+# An absence record is an attributed, dated observation that a question has no
+# answer, with the reason. It gives no value for the property asked about and
+# negates none, and nothing is derived from it: a later answer sits beside it,
+# and each keeps its own time.
+
+gmeow:AbsenceReason
+    a logic:AbstractIndividualType ,
+        logic:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inquiry> ;
+    rdfs:label "Absence Reason"@x-gmeow-english ;
+    logic:subClassOf logic:QualityValue ;
+    skos:definition "Why a question has no answer — a value vocabulary (individuals, never subclasses) naming one reason an absence record gives: not found in the sources searched, retrieval failed, not published by its holder, or not applicable to the subject. No reason gives a value for the property asked about or negates one. Not found and retrieval failed describe the search. Not published claims that the determiner holds an answer exists and is not public, and not applicable claims that the question's presupposition does not hold for the subject; each of those two is a claim from a vantage, disputable like any other, and derives no value. The set is open, and withholding by a disclosure policy is not one of them (that is gmeow:DisclosureOutcome)."@x-gmeow-english ;
+    skos:example "ex:record gmeow:absenceReason gmeow:absenceReasonNotFound ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid using a reason to assert that a value is false or absent in the world, to record a deliberate withholding (use gmeow:DisclosureOutcome), or to mint per-reason subclasses; the reasons are individuals."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    gmeow:howToUse "Reference one of the seeded individuals through gmeow:absenceReason on a gmeow:AbsenceRecord; mint a new individual with a label and a definition that distinguishes it from the seeded ones only when none of them fits."@x-gmeow-english ;
+    gmeow:useWhen "Use as the value vocabulary behind gmeow:absenceReason, so the reason a question went unanswered is data a consumer can list and filter."@x-gmeow-english .
+
+gmeow:AbsenceRecord
+    a logic:SubKind ,
+        logic:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inquiry> ;
+    rdfs:label "Absence Record"@x-gmeow-english ;
+    logic:subClassOf gmeow:Observation ;
+    skos:definition "An attributed, dated observation that a question has no answer, with the reason. A direct record names exactly one subject (gmeow:observedFeature), at least one of the question (gmeow:absenceQuestion) or the property (gmeow:absentProperty) asked about, the vantage that determined the absence (gmeow:vantage), when (gmeow:observedAt), and exactly one reason (gmeow:absenceReason, enforced by validation, not by a functional axiom). It gives no value for the property asked about and negates none, and nothing may be derived from it as false: an unanswered question is unknown, never false. Its reason may carry a claim of its own: not applicable says the question's presupposition does not hold for the subject, and not published says the determiner holds an answer exists and is not public; each is a claim from a vantage that another vantage may dispute. A later answer does not contradict an earlier record; both are retained, each with its own time. Records from different vantages coexist, and competing reasons for the same question are separate records, none privileged."@x-gmeow-english ;
+    skos:example "ex:record a gmeow:AbsenceRecord ; gmeow:vantage ex:researcher ; gmeow:observedFeature ex:acme ; gmeow:absenceQuestion ex:whoFounded ; gmeow:absenceReason gmeow:absenceReasonNotFound ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid reading it as a value or a negative (an absent value is unknown, never false), putting two reasons on one record (mint a second record from the second vantage), deleting it when an answer arrives, or using it for a deliberate withholding by a disclosure policy (that is gmeow:DisclosureOutcome)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    gmeow:howToUse "Mint one record per determination: bind gmeow:vantage to who determined it, gmeow:observedAt to when, gmeow:observedFeature to the one subject, gmeow:absenceQuestion or gmeow:absentProperty (or both) to what was asked, and one gmeow:absenceReason to why; add gmeow:consultedSource for a not-found or retrieval-failed reason. Keep a later answer beside it, and record a competing reason as a separate record from its own vantage."@x-gmeow-english ;
+    gmeow:useWhen "Use to record, as attributed and dated data, that a question about a subject went unanswered and why, without giving any value for the property asked about or negating it."@x-gmeow-english .
+
+gmeow:absenceQuestion
+    a logic:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inquiry> ;
+    rdfs:label "absence question"@x-gmeow-english ;
+    logic:domain gmeow:AbsenceRecord ;
+    logic:range gmeow:Question ;
+    skos:definition "The question an absence record says has no answer. Use it when the unanswered matter is a question; when it is a property of the subject, gmeow:absentProperty names that property. Non-functional: one determination may cover several questions."@x-gmeow-english ;
+    skos:example "ex:record gmeow:absenceQuestion ex:whoFounded ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid treating it as the question being answered or resolved; it only names what was found to be unanswered."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:howToUse "Point the gmeow:AbsenceRecord at the gmeow:Question it concerns; a later answer is a separate gmeow:answers claim and the record stays."@x-gmeow-english ;
+    gmeow:useWhen "Use to say which question an absence record concerns."@x-gmeow-english .
+
+gmeow:absenceReason
+    a logic:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inquiry> ;
+    rdfs:label "absence reason"@x-gmeow-english ;
+    logic:domain gmeow:AbsenceRecord ;
+    logic:range gmeow:AbsenceReason ;
+    skos:definition "The reason an absence record gives for the missing answer, drawn from the open gmeow:AbsenceReason vocabulary. One record carries exactly one reason, enforced by validation and not by a functional axiom. Competing reasons for the same question are separate records from separate vantages, which coexist; none is privileged (Principles 9 and 10)."@x-gmeow-english ;
+    skos:example "ex:record gmeow:absenceReason gmeow:absenceReasonRetrievalFailed ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid reading any reason as a value or a negation, and avoid putting two reasons on one record to merge two determinations; mint a second record."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:howToUse "Set exactly one gmeow:AbsenceReason on each gmeow:AbsenceRecord; validation reports a second, and a competing reason is a separate record from its own vantage."@x-gmeow-english ;
+    gmeow:useWhen "Use to say why a question has no answer."@x-gmeow-english .
+
+gmeow:absentProperty
+    a logic:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inquiry> ;
+    rdfs:label "absent property"@x-gmeow-english ;
+    logic:domain gmeow:AbsenceRecord ;
+    logic:range logic:Thing ;
+    skos:definition "The property of the subject for which an absence record found no value, given as the property itself. The record gives no value for the property and does not negate it; any claim about the subject comes only from the reason (not applicable, not published). The subject is the record's gmeow:observedFeature. Non-functional."@x-gmeow-english ;
+    skos:example "ex:record gmeow:absentProperty gmeow:foundedBy ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid reading it as the subject lacking the property; an unanswered property is unknown, never false."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:howToUse "Name the property that was asked about on the gmeow:AbsenceRecord, beside the subject given by gmeow:observedFeature."@x-gmeow-english ;
+    gmeow:useWhen "Use when the unanswered matter is a property of a subject rather than a worded question."@x-gmeow-english .
+
+gmeow:consultedSource
+    a logic:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inquiry> ;
+    rdfs:label "consulted source"@x-gmeow-english ;
+    logic:domain gmeow:AbsenceRecord ;
+    logic:range gmeow:Entity ;
+    skos:definition "A source, collection, index or described scope consulted when an absence was determined. For a not-found reason it is the scope that was searched; for a retrieval-failed reason it is the source that could not be fetched. Non-functional: several sources may have been searched."@x-gmeow-english ;
+    skos:example "ex:record gmeow:consultedSource ex:parishRegisters ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid reading the sources as exhaustive: a not-found record says the answer was not found in them, not that it exists nowhere."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:howToUse "Point the gmeow:AbsenceRecord at each source or scope searched; for a failed retrieval point at the one attempted source."@x-gmeow-english ;
+    gmeow:useWhen "Use to say where an absence was determined: the scope searched, or the source that could not be fetched."@x-gmeow-english .
+
+gmeow:absenceReasonNotFound
+    a gmeow:AbsenceReason ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inquiry> ;
+    rdfs:label "not found"@x-gmeow-english ;
+    skos:definition "The sources searched were read and hold no answer. The record carries the scope searched through gmeow:consultedSource. It says nothing about sources outside that scope and nothing about whether an answer exists."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:absenceReasonNotApplicable
+    a gmeow:AbsenceReason ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inquiry> ;
+    rdfs:label "not applicable"@x-gmeow-english ;
+    skos:definition "The question's presupposition does not hold for this subject, so the question has no answer by its nature (a dissolution date for an organisation that is still active). This is a claim about the subject, made from a vantage, and another vantage can dispute it like any claim. It still gives no value for the property asked about and negates none."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:absenceReasonNotPublished
+    a gmeow:AbsenceReason ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inquiry> ;
+    rdfs:label "not published"@x-gmeow-english ;
+    skos:definition "The determiner holds that an answer exists and that its holder has not made it public, so no public source states it. This is a claim from a vantage, disputable like any claim, and it gives no value. It is not a disclosure outcome: nothing was withheld by applying a policy to a reader, the holder simply has not published it."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:absenceReasonRetrievalFailed
+    a gmeow:AbsenceReason ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inquiry> ;
+    rdfs:label "retrieval failed"@x-gmeow-english ;
+    skos:definition "The source could not be fetched, so it was not read and its content is unknown. The record points at the attempted source through gmeow:consultedSource. A failed retrieval produces no source snapshot and says nothing about what the source holds."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+# Each direct absence record carries its subject, its question or property, its
+# reason, its vantage and its time, and a
+# not-found or retrieval-failed reason carries the source consulted.
+
+gmeow:AbsenceRecordReasonConstraint
+    a logic:Constraint ;
+    rdfs:label "Absence record reason constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inquiry> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world integrity constraint: a direct gmeow:AbsenceRecord gives at least one gmeow:absenceReason."@x-gmeow-english ;
+    logic:formalizes gmeow:absenceReason ;
+    logic:severity "Violation" ;
+    logic:message "An absence record must give a reason (gmeow:absenceReason)." ;
+    logic:integrity logic:absRForall .
+logic:absRForall a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ;
+    logic:forall logic:absRImpl .
+logic:absRImpl a logic:Formula ; logic:antecedent logic:absRGuard ; logic:consequent logic:absRHas .
+logic:absRGuard a logic:Formula ; logic:relation logic:directType ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri gmeow:AbsenceRecord ] .
+logic:absRHas a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "r" ] ;
+    logic:exists logic:absRAtom .
+logic:absRAtom a logic:Formula ; logic:relation gmeow:absenceReason ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "r" ] .
+
+gmeow:AbsenceRecordVantageConstraint
+    a logic:Constraint ;
+    rdfs:label "Absence record vantage constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inquiry> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world integrity constraint: a direct gmeow:AbsenceRecord names at least one gmeow:vantage, the one who determined the absence; an absence is never a bare fact."@x-gmeow-english ;
+    logic:formalizes gmeow:AbsenceRecord ;
+    logic:severity "Violation" ;
+    logic:message "An absence record must name who determined it (gmeow:vantage)." ;
+    logic:integrity logic:absVForall .
+logic:absVForall a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ;
+    logic:forall logic:absVImpl .
+logic:absVImpl a logic:Formula ; logic:antecedent logic:absVGuard ; logic:consequent logic:absVHas .
+logic:absVGuard a logic:Formula ; logic:relation logic:directType ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri gmeow:AbsenceRecord ] .
+logic:absVHas a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "v" ] ;
+    logic:exists logic:absVAtom .
+logic:absVAtom a logic:Formula ; logic:relation gmeow:vantage ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "v" ] .
+
+gmeow:AbsenceRecordTimeConstraint
+    a logic:Constraint ;
+    rdfs:label "Absence record time constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inquiry> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world integrity constraint: a direct gmeow:AbsenceRecord carries the instant it was determined (gmeow:observedAt), so a later answer can sit beside it with its own time."@x-gmeow-english ;
+    logic:formalizes gmeow:AbsenceRecord ;
+    logic:severity "Violation" ;
+    logic:message "An absence record must carry when it was determined (gmeow:observedAt)." ;
+    logic:integrity logic:absTForall .
+logic:absTForall a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ;
+    logic:forall logic:absTImpl .
+logic:absTImpl a logic:Formula ; logic:antecedent logic:absTGuard ; logic:consequent logic:absTHas .
+logic:absTGuard a logic:Formula ; logic:relation logic:directType ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri gmeow:AbsenceRecord ] .
+logic:absTHas a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "t" ] ;
+    logic:exists logic:absTAtom .
+logic:absTAtom a logic:Formula ; logic:relation gmeow:observedAt ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "t" ] .
+
+gmeow:AbsenceNotFoundScopeConstraint
+    a logic:Constraint ;
+    rdfs:label "Absence not-found scope constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inquiry> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world integrity constraint: an absence record whose reason is gmeow:absenceReasonNotFound names the scope that was searched through gmeow:consultedSource."@x-gmeow-english ;
+    logic:formalizes gmeow:consultedSource ;
+    logic:severity "Violation" ;
+    logic:message "A not-found absence record must carry the scope searched (gmeow:consultedSource)." ;
+    logic:integrity logic:absNForall .
+logic:absNForall a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ;
+    logic:forall logic:absNImpl .
+logic:absNImpl a logic:Formula ; logic:antecedent logic:absNGuard ; logic:consequent logic:absNHas .
+logic:absNGuard a logic:Formula ; logic:relation gmeow:absenceReason ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri gmeow:absenceReasonNotFound ] .
+logic:absNHas a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "s" ] ;
+    logic:exists logic:absNAtom .
+logic:absNAtom a logic:Formula ; logic:relation gmeow:consultedSource ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "s" ] .
+
+gmeow:AbsenceRetrievalFailedSourceConstraint
+    a logic:Constraint ;
+    rdfs:label "Absence retrieval-failed source constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inquiry> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world integrity constraint: an absence record whose reason is gmeow:absenceReasonRetrievalFailed names the attempted source through gmeow:consultedSource."@x-gmeow-english ;
+    logic:formalizes gmeow:consultedSource ;
+    logic:severity "Violation" ;
+    logic:message "A retrieval-failed absence record must name the attempted source (gmeow:consultedSource)." ;
+    logic:integrity logic:absFForall .
+logic:absFForall a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ;
+    logic:forall logic:absFImpl .
+logic:absFImpl a logic:Formula ; logic:antecedent logic:absFGuard ; logic:consequent logic:absFHas .
+logic:absFGuard a logic:Formula ; logic:relation gmeow:absenceReason ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri gmeow:absenceReasonRetrievalFailed ] .
+logic:absFHas a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "s" ] ;
+    logic:exists logic:absFAtom .
+logic:absFAtom a logic:Formula ; logic:relation gmeow:consultedSource ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "s" ] .
+
+# A direct absence record names exactly one subject and at least one of the
+# question or the property asked about.
+
+gmeow:AbsenceRecordFeatureConstraint
+    a logic:Constraint ;
+    rdfs:label "Absence record subject constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inquiry> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world integrity constraint: a direct gmeow:AbsenceRecord names at least one subject through gmeow:observedFeature."@x-gmeow-english ;
+    logic:formalizes gmeow:AbsenceRecord ;
+    logic:severity "Violation" ;
+    logic:message "An absence record must name its subject (gmeow:observedFeature)." ;
+    logic:integrity logic:absSbForall .
+logic:absSbForall a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ;
+    logic:forall logic:absSbImpl .
+logic:absSbImpl a logic:Formula ; logic:antecedent logic:absSbGuard ; logic:consequent logic:absSbHas .
+logic:absSbGuard a logic:Formula ; logic:relation logic:directType ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri gmeow:AbsenceRecord ] .
+logic:absSbHas a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "f" ] ;
+    logic:exists logic:absSbAtom .
+logic:absSbAtom a logic:Formula ; logic:relation gmeow:observedFeature ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "f" ] .
+
+gmeow:AbsenceRecordFeatureUniqueConstraint
+    a logic:Constraint ;
+    rdfs:label "Absence record single subject constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inquiry> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world integrity constraint: a direct gmeow:AbsenceRecord names at most one subject through gmeow:observedFeature, never two distinct values."@x-gmeow-english ;
+    logic:formalizes gmeow:AbsenceRecord ;
+    logic:severity "Violation" ;
+    logic:message "An absence record must name exactly one subject (gmeow:observedFeature)." ;
+    logic:integrity logic:absSuForall .
+logic:absSuForall a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ;
+    logic:forall logic:absSuImpl .
+logic:absSuImpl a logic:Formula ; logic:antecedent logic:absSuGuard ; logic:consequent logic:absSuPhi .
+logic:absSuGuard a logic:Formula ; logic:relation logic:directType ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri gmeow:AbsenceRecord ] .
+logic:absSuPhi a logic:Formula ; logic:not logic:absSuExists .
+logic:absSuExists a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "f1" ] , [ logic:termIndex 1 ; logic:termVariable "f2" ] ;
+    logic:exists logic:absSuBody .
+logic:absSuBody a logic:Formula ; logic:and logic:absSuf1 , logic:absSuf2 , logic:absSuDistinct .
+logic:absSuf1 a logic:Formula ; logic:relation gmeow:observedFeature ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "f1" ] .
+logic:absSuf2 a logic:Formula ; logic:relation gmeow:observedFeature ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "f2" ] .
+logic:absSuDistinct a logic:Formula ; logic:relation logic:termDistinct ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "f1" ] , [ logic:termIndex 1 ; logic:termVariable "f2" ] .
+
+gmeow:AbsenceRecordAskedConstraint
+    a logic:Constraint ;
+    rdfs:label "Absence record asked-matter constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inquiry> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world integrity constraint: a direct gmeow:AbsenceRecord names the unanswered matter, through gmeow:absenceQuestion or gmeow:absentProperty or both."@x-gmeow-english ;
+    logic:formalizes gmeow:AbsenceRecord ;
+    logic:severity "Violation" ;
+    logic:message "An absence record must name the question (gmeow:absenceQuestion) or the property (gmeow:absentProperty) it concerns." ;
+    logic:integrity logic:absAqForall .
+logic:absAqForall a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ;
+    logic:forall logic:absAqImpl .
+logic:absAqImpl a logic:Formula ; logic:antecedent logic:absAqGuard ; logic:consequent logic:absAqOr .
+logic:absAqGuard a logic:Formula ; logic:relation logic:directType ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri gmeow:AbsenceRecord ] .
+logic:absAqOr a logic:Formula ; logic:or logic:absAqQuestion , logic:absAqProperty .
+logic:absAqQuestion a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "q" ] ;
+    logic:exists logic:absAqQuestionAtom .
+logic:absAqQuestionAtom a logic:Formula ; logic:relation gmeow:absenceQuestion ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "q" ] .
+logic:absAqProperty a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "p" ] ;
+    logic:exists logic:absAqPropertyAtom .
+logic:absAqPropertyAtom a logic:Formula ; logic:relation gmeow:absentProperty ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "p" ] .
+
+# One record, one reason: a closed-world constraint, not a functional axiom. A
+# functional property would make a second reason identify the two reason
+# individuals instead of reporting the record.
+
+gmeow:AbsenceRecordReasonUniqueConstraint
+    a logic:Constraint ;
+    rdfs:label "Absence record single reason constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inquiry> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world integrity constraint: a direct gmeow:AbsenceRecord gives at most one gmeow:absenceReason, never two distinct values. Competing reasons for the same question are separate records from separate vantages."@x-gmeow-english ;
+    logic:formalizes gmeow:absenceReason ;
+    logic:severity "Violation" ;
+    logic:message "An absence record must give exactly one reason (gmeow:absenceReason); a competing reason is a separate record." ;
+    logic:integrity logic:absRuForall .
+logic:absRuForall a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ;
+    logic:forall logic:absRuImpl .
+logic:absRuImpl a logic:Formula ; logic:antecedent logic:absRuGuard ; logic:consequent logic:absRuPhi .
+logic:absRuGuard a logic:Formula ; logic:relation logic:directType ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri gmeow:AbsenceRecord ] .
+logic:absRuPhi a logic:Formula ; logic:not logic:absRuExists .
+logic:absRuExists a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "r1" ] , [ logic:termIndex 1 ; logic:termVariable "r2" ] ;
+    logic:exists logic:absRuBody .
+logic:absRuBody a logic:Formula ; logic:and logic:absRur1 , logic:absRur2 , logic:absRuDistinct .
+logic:absRur1 a logic:Formula ; logic:relation gmeow:absenceReason ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "r1" ] .
+logic:absRur2 a logic:Formula ; logic:relation gmeow:absenceReason ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "r2" ] .
+logic:absRuDistinct a logic:Formula ; logic:relation logic:termDistinct ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "r1" ] , [ logic:termIndex 1 ; logic:termVariable "r2" ] .
