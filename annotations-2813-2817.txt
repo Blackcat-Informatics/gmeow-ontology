@@ -1,0 +1,28 @@
+== pr2813 f807002e4370ba07a0d3fa616ebcc9f0b9805a6e
+-- quality failure
+   [failure] Process completed with exit code 1.
+   [failure] a quality job did not succeed (skipped)
+   [notice] "The ubuntu-latest label will migrate to Ubuntu 26 beginning October 19, 2026. For more information, see https://github.com/actions/runner-images/issues/14748"
+-- generation (a) cancelled
+   [failure] The job has exceeded the maximum execution time of 2h0m0s
+   [notice] "The ubuntu-latest label will migrate to Ubuntu 26 beginning October 19, 2026. For more information, see https://github.com/actions/runner-images/issues/14748"
+-- generation (b) failure
+   [failure] The operation was canceled.
+   [notice] "The ubuntu-latest label will migrate to Ubuntu 26 beginning October 19, 2026. For more information, see https://github.com/actions/runner-images/issues/14748"
+-- fixture-prefix failure
+   [failure] The operation was canceled.
+   [notice] "The ubuntu-latest label will migrate to Ubuntu 26 beginning October 19, 2026. For more information, see https://github.com/actions/runner-images/issues/14748"
+== pr2817 417fd45d7b715272026f015d9561075b7b935fbd
+-- quality failure
+   [failure] Process completed with exit code 1.
+   [failure] a quality job did not succeed (skipped)
+   [notice] "The ubuntu-latest label will migrate to Ubuntu 26 beginning October 19, 2026. For more information, see https://github.com/actions/runner-images/issues/14748"
+-- generation (a) failure
+   [failure] The hosted runner lost communication with the server. Anything in your workflow that terminates the runner process, starves it for CPU/Memory, or blocks its network access can cause this error.
+   [notice] "The ubuntu-latest label will migrate to Ubuntu 26 beginning October 19, 2026. For more information, see https://github.com/actions/runner-images/issues/14748"
+-- fixture-prefix failure
+   [failure] The hosted runner lost communication with the server. Anything in your workflow that terminates the runner process, starves it for CPU/Memory, or blocks its network access can cause this error.
+   [notice] "The ubuntu-latest label will migrate to Ubuntu 26 beginning October 19, 2026. For more information, see https://github.com/actions/runner-images/issues/14748"
+-- generation (b) failure
+   [failure] The hosted runner lost communication with the server. Anything in your workflow that terminates the runner process, starves it for CPU/Memory, or blocks its network access can cause this error.
+   [notice] "The ubuntu-latest label will migrate to Ubuntu 26 beginning October 19, 2026. For more information, see https://github.com/actions/runner-images/issues/14748"
