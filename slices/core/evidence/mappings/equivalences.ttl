@@ -91,3 +91,69 @@ gmeow:hasEvidenceClass skos:relatedMatch schema:isBasedOn {|
     gmeow:confidence 0.6 ;
     gmeow:comment "schema:isBasedOn links a CreativeWork to its source material; gmeow:hasEvidenceClass types the evidential warrant of that link"
 |} .
+
+# --------------------------------------------------------------------------- #
+# Assertion category: value links to the existing GMEOW vocabulary
+# --------------------------------------------------------------------------- #
+# Each gmeow:AssertionCategory individual is related to the existing evidence-class,
+# source-independence and observation-type individuals that say the same of a
+# citation or an observation. The relations hold between the values only: no cell
+# relates gmeow:assertionCategory to another property, so a claim's category is
+# never derived from the evidence classes of its citations. Every target is a core
+# term (evidence itself and observations).
+
+gmeow:assertionCategorySelfDescription skos:closeMatch gmeow:evidenceSELF {|
+    gmeow:sssomFile "gmeow-evidence.sssom.tsv" ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.85 ;
+    gmeow:comment "The category says of a claim what gmeow:evidenceSELF says of a citation: it originates from the subject itself. The carriers differ (a claim, a citation) and the evidence class also grades warrant, so the link is a close match and not an equivalence."
+|} .
+
+gmeow:assertionCategorySelfDescription skos:narrowMatch gmeow:evidenceSelfControlledSite {|
+    gmeow:sssomFile "gmeow-evidence.sssom.tsv" ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.8 ;
+    gmeow:comment "gmeow:evidenceSelfControlledSite is the narrower value: a self-description published on a site, account or profile the subject controls."
+|} .
+
+gmeow:assertionCategorySelfDescription skos:broadMatch gmeow:sourceIndependenceSelfOrIssuerOriginated {|
+    gmeow:sssomFile "gmeow-evidence.sssom.tsv" ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.8 ;
+    gmeow:comment "gmeow:sourceIndependenceSelfOrIssuerOriginated is the broader value: it also covers an issuer, promoter or affiliated party, which a self-description does not."
+|} .
+
+gmeow:assertionCategoryPublishedEvidence skos:narrowMatch gmeow:evidenceOfficialSource {|
+    gmeow:sssomFile "gmeow-evidence.sssom.tsv" ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.8 ;
+    gmeow:comment "gmeow:evidenceOfficialSource is a narrower value: one kind of externally published source. The category does not fix which evidence class a citation of the claim carries."
+|} .
+
+gmeow:assertionCategoryPublishedEvidence skos:narrowMatch gmeow:evidenceIndependentTradePress {|
+    gmeow:sssomFile "gmeow-evidence.sssom.tsv" ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.8 ;
+    gmeow:comment "gmeow:evidenceIndependentTradePress is a narrower value: one kind of externally published source."
+|} .
+
+gmeow:assertionCategoryPublishedEvidence skos:narrowMatch gmeow:evidencePublicRegistry {|
+    gmeow:sssomFile "gmeow-evidence.sssom.tsv" ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.8 ;
+    gmeow:comment "gmeow:evidencePublicRegistry is a narrower value: one kind of externally published source."
+|} .
+
+gmeow:assertionCategoryPublishedEvidence skos:narrowMatch gmeow:evidenceNewspaperLead {|
+    gmeow:sssomFile "gmeow-evidence.sssom.tsv" ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.8 ;
+    gmeow:comment "gmeow:evidenceNewspaperLead is a narrower value: one kind of externally published source."
+|} .
+
+gmeow:assertionCategoryDerivedInterpretation skos:closeMatch gmeow:observationTypeDerived {|
+    gmeow:sssomFile "gmeow-evidence.sssom.tsv" ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.85 ;
+    gmeow:comment "The category says of a claim what the core observations value gmeow:observationTypeDerived says of an observation: it was produced by inference or calculation from other statements. The carriers differ, so the link is a close match; neither statement is inferred from the other."
+|} .

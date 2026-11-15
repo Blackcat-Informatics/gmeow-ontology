@@ -18,6 +18,7 @@
 
 mod dev_build;
 mod dev_common;
+mod dev_conformance;
 mod dev_docs_measure;
 mod dev_docs_package;
 mod dev_feedback;
@@ -600,6 +601,17 @@ pub enum Commands {
         /// (repo-relative or absolute); default scans every slice.
         #[arg(long = "path")]
         path: Option<PathBuf>,
+    },
+    /// Refresh the expected outputs of the named conformance cases from the native runner.
+    /// Every case is named explicitly, by path or by its id under `conformance/logic/cases`.
+    #[command(name = "conformance-bless")]
+    ConformanceBless {
+        /// The cases to refresh; at least one is required.
+        #[arg(required = true)]
+        cases: Vec<PathBuf>,
+        /// Seed a new case: write the full produced golden set, not only the goldens it commits.
+        #[arg(long)]
+        init: bool,
     },
     /// Propose (and certify) the OWL antecedent that would ground each legacy `shapes.ttl` block.
     #[command(name = "shape-lift")]
@@ -1185,6 +1197,9 @@ pub fn run() -> i32 {
             dev_project::describe(&term, gts.as_deref(), lang.as_deref())
         }
         Commands::ShapeEquivalence { path } => dev_shapes::shape_equivalence(path.as_deref()),
+        Commands::ConformanceBless { cases, init } => {
+            dev_conformance::conformance_bless(&cases, init)
+        }
         Commands::ShapeLift { path } => dev_shapes::shape_lift(path.as_deref()),
         Commands::ShapeMigrate { path, apply, prune } => {
             if prune {

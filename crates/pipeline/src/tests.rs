@@ -3290,6 +3290,45 @@ fn carrier_retention_is_bounded_by_the_live_frontier() {
         events("late", MemoryEvent::Release).is_empty(),
         "a run output is never released"
     );
+    // Freed pages are returned once for each stage, after its publication and after
+    // every release its completion caused, and the record carries the resident size on
+    // both sides of the return. It measures the process only, never a product.
+    for id in ["source", "a", "b", "late"] {
+        let reclaim = events(id, MemoryEvent::Reclaim);
+        assert_eq!(reclaim.len(), 1, "{id}: one return of freed pages");
+        let made = reclaim[0];
+        assert!(events(id, MemoryEvent::Complete)[0].seq < made.seq);
+        let returned = made
+            .reclaim
+            .expect("a return names its resident size before");
+        assert_eq!(
+            returned.rss_before_kib.is_some(),
+            made.process.rss_kib.is_some(),
+            "{id}: the resident size is read on both sides of the return, or on neither"
+        );
+        assert!(made.phase.is_none() && made.product.is_none() && made.released.is_none());
+    }
+    let last_release = result
+        .memory
+        .iter()
+        .rposition(|made| made.event == MemoryEvent::Release)
+        .expect("the chain releases carriers");
+    assert_eq!(
+        (
+            result.memory[last_release + 1].stage_id.as_str(),
+            result.memory[last_release + 1].event
+        ),
+        ("late", MemoryEvent::Reclaim),
+        "the return follows the releases the same completion caused"
+    );
+    assert!(
+        result
+            .memory
+            .iter()
+            .filter(|made| made.event != MemoryEvent::Reclaim)
+            .all(|made| made.reclaim.is_none()),
+        "only a return of freed pages carries its figures"
+    );
 }
 
 #[test]

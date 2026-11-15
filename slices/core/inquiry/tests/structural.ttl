@@ -338,3 +338,121 @@ ASK {
     UNION { ?s ?p ?forbidden . }
 }""" ;
     gmeow:saRationale "None of isResolved / isAnswered / answerValue / isTrue / isFalse may appear in any subject, predicate, or object position — a question is resolved by reusing the epistemics spine over an answers-claim (Principle 6), never by a resolution bit." .
+
+# --- Absence records (Principles 4, 9 and 10) ----------------------------------
+# An unanswered question is recorded as an attributed, dated observation with a
+# reason from one value vocabulary. It gives no value for the property asked
+# about and negates none; one record carries exactly one reason.
+ex:saAbsenceVocabulary a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ; gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    gmeow:AbsenceRecord (rdfs:subClassOf|logic:subClassOf) gmeow:Observation .
+    gmeow:AbsenceReason (rdfs:subClassOf|logic:subClassOf) logic:QualityValue .
+    gmeow:absenceReason (rdfs:range|logic:range) gmeow:AbsenceReason .
+    gmeow:absenceReasonNotFound a gmeow:AbsenceReason .
+    gmeow:absenceReasonRetrievalFailed a gmeow:AbsenceReason .
+    gmeow:absenceReasonNotPublished a gmeow:AbsenceReason .
+    gmeow:absenceReasonNotApplicable a gmeow:AbsenceReason .
+}""" ;
+    gmeow:saRationale "An absence record reuses the observation spine (who determined it is the vantage, when is observedAt) and takes its reason from one value vocabulary with the four reasons." .
+
+ex:saAbsenceDerivesNothing a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:mustNot ; gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    VALUES ?p { gmeow:absenceReason gmeow:absenceQuestion gmeow:absentProperty gmeow:consultedSource }
+    VALUES ?link { rdfs:subPropertyOf logic:subPropertyOf logic:inverseOf logic:equivalentProperty }
+    { ?p ?link ?q }
+    UNION { ?q ?link ?p }
+    UNION { ?p logic:propertyChainAxiom ?chain }
+    UNION { ?q logic:propertyChainAxiom ?chain . ?chain rdf:rest*/rdf:first ?p }
+}""" ;
+    gmeow:saRationale "The properties of an absence record MUST NOT be a sub-property, inverse, chain or equivalent of anything, nor a member of anything's property chain: no value, negation or other statement is derived from an absence record (an unanswered question is unknown, never false). The derivation routes checked at module scope are sub-property, inverse, equivalent-property, chain, restriction (the next assertion), rule bodies and formulas outside constraints (the two after it); the competency question over the example data checks only what is asserted." .
+
+ex:saAbsenceNoRestriction a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:mustNot ; gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
+ASK {
+    VALUES ?p { gmeow:absenceReason gmeow:absenceQuestion gmeow:absentProperty gmeow:consultedSource }
+    ?restriction logic:onProperty ?p .
+}""" ;
+    gmeow:saRationale "None of the four absence properties is the property of a restriction: the module authors no restriction on them, so a class axiom cannot make a record entail a value or a negation of the property it asks about. Authoring one fails this assertion." .
+
+ex:saAbsenceNoRuleBody a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:mustNot ; gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+ASK {
+    VALUES ?p { gmeow:absenceReason gmeow:absenceQuestion gmeow:absentProperty gmeow:consultedSource }
+    ?rule a logic:Rule ; (logic:body|logic:negatedBody) ?atom .
+    ?atom rdf:reifies <<( ?s ?p ?o )>> .
+}""" ;
+    gmeow:saRationale "No logic:Rule in the module has a positive (logic:body) or negated (logic:negatedBody) body atom whose predicate is one of the four absence properties, so no rule authored here derives a statement from an absence record. Rules and axioms authored in another slice are outside the reach of a module-scope assertion." .
+
+ex:saAbsenceNoFormulaOutsideConstraint a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:mustNot ; gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
+ASK {
+    VALUES ?p { gmeow:absenceReason gmeow:absenceQuestion gmeow:absentProperty gmeow:consultedSource }
+    ?formula logic:relation ?p .
+    FILTER NOT EXISTS {
+        ?constraint a logic:Constraint ; logic:integrity ?root .
+        ?root (logic:forall|logic:exists|logic:not|logic:and|logic:or|logic:antecedent|logic:consequent)* ?formula .
+    }
+}""" ;
+    gmeow:saRationale "Every logic:Formula that uses one of the four absence properties is a node of a logic:Constraint integrity tree, which validates and derives nothing. A formula on these properties anywhere else (a law, a definition) would fail this assertion." .
+
+ex:saAbsenceReasonAtMostOne a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ; gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
+ASK {
+    gmeow:AbsenceRecordReasonUniqueConstraint a logic:Constraint ;
+        logic:formalizes gmeow:absenceReason ;
+        logic:integrity ?forall .
+    ?forall logic:forall ?implies .
+    ?implies logic:consequent ?not .
+    ?not logic:not ?exists .
+    ?exists logic:exists ?body .
+    ?body logic:and ?first , ?second , ?distinct .
+    ?first logic:relation gmeow:absenceReason .
+    ?second logic:relation gmeow:absenceReason .
+    ?distinct logic:relation logic:termDistinct .
+    FILTER(?first != ?second)
+}""" ;
+    gmeow:saRationale "One record carries one reason, enforced by a closed-world constraint that rejects two distinct reason values on a direct record. Competing reasons for the same question are separate records from separate vantages, which coexist (Principles 9 and 10)." .
+
+ex:saAbsenceReasonNotFunctional a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:mustNot ; gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
+ASK { ?rec logic:characterizes gmeow:absenceReason ; logic:characteristicSort logic:functionalProperty . }""" ;
+    gmeow:saRationale "A functional property would make a second reason identify the two reason individuals (for example not found with not published) instead of reporting the record, so the single-reason rule is a validation constraint and no functional characteristic record may characterize gmeow:absenceReason." .
+
+ex:saAbsenceExample a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ; gmeow:saScope gmeow:scopeModuleAndExamples ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX ex: <https://example.org/absence/>
+ASK {
+    ex:foundedNotFound a gmeow:AbsenceRecord ; gmeow:absenceReason gmeow:absenceReasonNotFound ; gmeow:consultedSource ex:companyRegister ; gmeow:vantage ex:researcher ; gmeow:observedAt ?t1 .
+    ex:membersFetchFailed a gmeow:AbsenceRecord ; gmeow:absenceReason gmeow:absenceReasonRetrievalFailed ; gmeow:consultedSource ex:acmeWebsite .
+    ex:revenueNotPublished a gmeow:AbsenceRecord ; gmeow:absenceReason gmeow:absenceReasonNotPublished .
+    ex:dissolutionNotApplicable a gmeow:AbsenceRecord ; gmeow:absenceReason gmeow:absenceReasonNotApplicable .
+    ex:leaderNotFound a gmeow:AbsenceRecord ; gmeow:absenceQuestion ex:whoLeads ; gmeow:absenceReason gmeow:absenceReasonNotFound .
+    ex:foundedAnswer gmeow:answers ex:whoFounded ; gmeow:observedAt ?t2 .
+    FILTER NOT EXISTS { ?rec a gmeow:AbsenceRecord ; gmeow:observedFeature ?subject ; gmeow:absentProperty ?property . ?subject ?property ?value }
+    FILTER NOT EXISTS { ?rec2 a gmeow:AbsenceRecord ; gmeow:observationResult ?result }
+    FILTER NOT EXISTS { ?rec3 a gmeow:AbsenceRecord ; gmeow:displayable ?flag }
+    FILTER NOT EXISTS { ?rec4 a gmeow:AbsenceRecord ; gmeow:supersedes ?earlier }
+    FILTER NOT EXISTS { ?rec5 a gmeow:AbsenceRecord ; gmeow:absenceReason ?r1 , ?r2 . FILTER(?r1 != ?r2) }
+}""" ;
+    gmeow:saRationale "Counter-example: the absence records name their asked properties, yet no subject carries a value for any asked property, no record carries a result, display flag or supersession, and no record carries two reasons; the later answer sits beside the earlier not-found record, and a record may name only a question. The negative clauses are tied to the records, so deleting the records fails the assertion." .

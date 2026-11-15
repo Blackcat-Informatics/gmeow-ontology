@@ -69,7 +69,7 @@ projection-time join on `contentDigest`.
 
 ## Dependencies
 
-Depends on `documents` (the WEMI carrier tiers the metadata attaches to). Consumed by the
+Depends on `documents` and `creative-works` (the WEMI carrier tiers the metadata attaches to). Consumed by the
 claim spine's content-addressed sources and by the GTS packages' blake3 identity spine
 (Principle 14).
 
@@ -111,3 +111,50 @@ serializations are distinct encoded artifacts; a creative work's human-readable
 `extent` and a text's Unicode character count are different facts. The property
 neither reads bytes nor verifies a digest. Multiple attributed size claims can
 coexist without a globally functional winner.
+
+## Source snapshots
+
+### gmeow:SourceSnapshot
+
+A web source cited as evidence can change or vanish, so a citation needs to point at
+what was actually retrieved. `gmeow:SourceSnapshot` is a retrieved copy of a source at one
+moment. It is a `gmeow:Item` — one particular carrier of the `gmeow:Manifestation` it
+exemplifies (for a web source, a `gmeow:WebPage`) — and never a new work, expression or
+manifestation. A second retrieval of the same page is a second snapshot, even when the
+digest is unchanged.
+
+| Fact | Property |
+|---|---|
+| the page the bytes are a copy of | `gmeow:exemplifies` |
+| the digest of the retrieved bytes | `gmeow:contentDigest` |
+| when the bytes were retrieved | `gmeow:retrievedAt` |
+| the address they were retrieved from (live, may change) | `gmeow:sourceLocation` |
+| the address of exactly these stored bytes | `gmeow:immutableAddress` |
+
+All four of digest, retrieval instant, retrieval address and immutable address are
+required of a snapshot. A fetch that produced no bytes is not a snapshot: do not mint one
+with fields left out; record why the question has no answer instead.
+
+### gmeow:retrievedAt
+
+Retrieval time is a clock of its own, apart from the four the model already has. Valid
+time is when a stated fact held; assertion time is when a claim was put forward; source
+carrier time (`gmeow:sourceModifiedAt`) is the last change of the source artifact; record
+time is when the record was entered (`gmeow:recordedNoLaterThan`, `gmeow:ingestedAt`).
+`gmeow:retrievedAt` says only when these bytes were obtained. It does not date the facts
+in the page, the page's own modification or the entry of the record.
+
+### gmeow:immutableAddress
+
+Where the stored bytes can be found again, for example a content-addressed archive path.
+It must never resolve to other bytes. The live address a document was fetched from stays
+on `gmeow:sourceLocation`: the two are different on purpose, and a snapshot carries both.
+
+### Citing a snapshot
+
+A `gmeow:CitationAct` names the snapshot as its `gmeow:citedEntity` (a snapshot is a
+`gmeow:CreativeWork` at the item tier), and its `gmeow:viaSelector` quotes a passage of the
+retrieved bytes, not of the live page. The worked example
+`examples/source-snapshot.ttl` holds one claim, one citation and one snapshot; the
+competency question returns the evidence chain with the digest, the retrieval instant and
+both addresses.

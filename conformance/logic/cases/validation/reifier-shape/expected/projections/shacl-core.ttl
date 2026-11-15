@@ -2,7 +2,7 @@
 @prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
 
 <https://blackcatinformatics.ca/gmeow/provenance/Endorsement-shape> a sh:NodeShape ;
-    sh:targetClass <https://blackcatinformatics.ca/gmeow/provenance/Endorsement> ;
+    sh:target [ a sh:SPARQLTarget ; sh:select """SELECT DISTINCT ?this WHERE { ?this <http://www.w3.org/1999/02/22-rdf-syntax-ns#type>/<http://www.w3.org/2000/01/rdf-schema#subClassOf>* <https://blackcatinformatics.ca/gmeow/provenance/Endorsement> . FILTER ( ?this NOT IN ( <https://blackcatinformatics.ca/gmeow/provenance/assertsReificationObligation> ) ) }""" ] ;
     sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/provenance/endorsedBy> ; sh:class <https://blackcatinformatics.ca/gmeow/provenance/Agent> ] .
 
 <https://blackcatinformatics.ca/gmeow/provenance/Record-shape> a sh:NodeShape ;

@@ -100,6 +100,7 @@ pub(crate) fn requires_admission(command: &Commands) -> bool {
         | Commands::ShapeEquivalence { .. }
         | Commands::ShapeLift { .. }
         | Commands::ShapeMigrate { .. }
+        | Commands::ConformanceBless { .. }
         | Commands::Certify { .. }
         | Commands::SliceQualityProjectionDebt { .. }
         | Commands::SliceFixDeps { .. }

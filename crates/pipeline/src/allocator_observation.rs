@@ -1,7 +1,8 @@
 // SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 // SPDX-License-Identifier: AGPL-3.0-only
 
-//! Explicitly selected, process-wide libc allocator observations for producer diagnosis.
+//! Explicitly selected, process-wide libc allocator observations for producer diagnosis,
+//! and the allocator totals every per-stage memory record carries ([`allocator_totals`]).
 //!
 //! The `glibc` profile records native, all-arena `malloc_info` XML. It does not
 //! measure Rust ownership or RSS, and concurrent allocations mean the report is
@@ -168,9 +169,10 @@ fn observe(phase: &str, started: Instant) -> io::Result<()> {
     result.map_err(|error| context("write allocator observation to stderr", error))
 }
 
-/// GNU documents `malloc_info` as MT-Safe and covering all arenas, unlike the
-/// documented main-arena limitation of `mallinfo2`. Preserve its versioned XML
-/// without assuming a fixed schema or deriving allocator in-use arithmetic.
+/// GNU documents `malloc_info` as MT-Safe and covering all arenas. It reports each
+/// arena on its own, with the sizes of its free chunks, which the process totals
+/// [`allocator_totals`] reads from `mallinfo2` do not. Preserve its versioned XML
+/// without assuming a fixed schema or deriving figures from it.
 #[cfg(all(target_os = "linux", target_env = "gnu"))]
 fn capture_glibc() -> io::Result<Vec<u8>> {
     use std::io::{Read, Seek, SeekFrom};
@@ -231,4 +233,34 @@ fn capture_glibc() -> io::Result<Vec<u8>> {
         io::ErrorKind::Unsupported,
         "the selected glibc allocator observation profile requires GNU/Linux",
     ))
+}
+
+/// The allocator's own live and free byte totals, for the per-stage memory record.
+///
+/// This is the cheap companion of the `malloc_info` profile above: one `mallinfo2`
+/// call with no thread, stream or text, made at every memory record whether or not a
+/// profile is selected. glibc sums every arena under that arena's lock; a run on glibc
+/// 2.44 showed allocations made and freed on other threads in the totals, although the
+/// Linux manual page still describes the figures as those of the main arena. Live bytes
+/// are the arena bytes in use plus the mapped chunks, which glibc counts apart.
+#[cfg(all(target_os = "linux", target_env = "gnu"))]
+pub(crate) fn allocator_totals() -> Option<crate::memory_record::AllocatorMemory> {
+    // SAFETY: `mallinfo2` takes no argument and returns its totals by value. glibc
+    // marks it unsafe to call from several threads in two cases only: while the
+    // allocator is first initializing, and beside a `mallopt` call. This process has
+    // allocated long before any memory record is made, and no code in this workspace
+    // calls `mallopt`. The call reads allocator bookkeeping under each arena's lock
+    // and exposes no Rust allocation.
+    let totals = unsafe { libc::mallinfo2() };
+    let bytes = |count: libc::size_t| u64::try_from(count).unwrap_or(u64::MAX);
+    Some(crate::memory_record::AllocatorMemory {
+        live_bytes: bytes(totals.uordblks).saturating_add(bytes(totals.hblkhd)),
+        free_bytes: bytes(totals.fordblks),
+    })
+}
+
+/// A target without glibc offers no such totals, so the record carries none.
+#[cfg(not(all(target_os = "linux", target_env = "gnu")))]
+pub(crate) fn allocator_totals() -> Option<crate::memory_record::AllocatorMemory> {
+    None
 }

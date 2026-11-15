@@ -232,7 +232,7 @@ print-mdbook-ver: ## Print the pinned mdBook lane-tool version (Pages caches exa
 	lsp-build lsp-release lsp-sarif diagnostics-rust-sarif \
 	slicetest conformance conformance-report insta-review slice-quality slice-quality-gate \
 	fuzz-smoke bench bench-compare bench-golden-gate bench-soak rust-coverage mutants compliance-report perf-gate perf-sample perf-accept perf-ci-receipt \
-	maint-bump-purrdf maint-extract maint-refresh-target-axioms maint-refresh-validate-asset maint-refresh-reason-asset maint-refresh-reason-witness maint-refresh-describe-witness maint-refresh-reviewed-coverage-golden maint-refresh-gmn-asset maint-refresh-query-asset maint-wikidata-live \
+	maint-bump-purrdf maint-extract maint-refresh-target-axioms maint-refresh-validate-asset maint-refresh-reason-asset maint-refresh-reason-witness maint-refresh-describe-witness maint-refresh-reviewed-coverage-golden maint-conformance-bless maint-refresh-gmn-asset maint-refresh-query-asset maint-wikidata-live \
 	maint-extract maint-refresh-target-axioms maint-refresh-mcp-witness maint-refresh-mcp-asset maint-refresh-mcp-core-asset maint-refresh-mcp-assets \
 	maint-wikidata-live \
 	maint-wikidata-coverage maint-wikidata-audit \
@@ -1314,6 +1314,10 @@ maint-extract: ## Run import/extract policy for TARGET.
 
 maint-refresh-target-axioms: ## Re-vendor minimal target-axiom snapshots.
 	$(GMEOW_DEV) refresh-target-axioms --target all
+
+maint-conformance-bless: ## Refresh the expected outputs of the named conformance cases (CASES="<id-or-path> ..."); read the diff before committing.
+	@test -n "$(strip $(CASES))" || { echo "CASES is required for maint-conformance-bless"; exit 2; }
+	$(GMEOW_DEV) conformance-bless $(CASES)
 
 maint-refresh-reviewed-coverage-golden: ## Refresh the deterministic reviewed-translation coverage golden from all live slice catalogs.
 	cargo run -p gmeow-docs-model --example refresh-reviewed-coverage-golden

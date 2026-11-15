@@ -13,7 +13,9 @@
 //!
 //! # Which boundaries make a record
 //!
-//! * The scheduler makes one at each stage's dispatch, publication and carrier release.
+//! * The scheduler makes one at each stage's dispatch, publication and carrier release,
+//!   and one for the return of freed allocator pages that follows each publication.
+//! * The reasoning stage makes one for each return of freed pages inside its body.
 //! * A stage body makes one at the start and one at the end of each phase it runs
 //!   through [`measure_stage_phase`](crate::node::measure_stage_phase), and the snapshot
 //!   serializer makes one at the end of each of its timed phases.
@@ -24,12 +26,20 @@
 //!
 //! # Cost
 //!
-//! Each record reads `/proc/self/status` once (a few kilobytes) and allocates its stage
-//! and phase names. A run makes at most three scheduler records per executed stage plus
-//! two per measured phase execution, so the records make at most
-//! `3 × stages + 2 × measured phase executions` reads. A stage that is never released
-//! makes two scheduler records. On a host without Linux procfs the read fails and the
-//! two process figures are absent.
+//! Each record reads `/proc/self/status` once (a few kilobytes), asks the allocator for
+//! its totals once and allocates its stage and phase names. A record of a return of
+//! freed pages reads the status file a second time, before the return. A run makes at
+//! most four scheduler records per executed stage plus two per measured phase
+//! execution, so the records make at most `5 × stages + 2 × measured phase executions`
+//! reads, plus two for each return inside the reasoning stage. A stage that is never
+//! released makes three scheduler records. On a host without Linux procfs the read
+//! fails and the two process figures are absent.
+//!
+//! The allocator totals come from glibc's `mallinfo2`, which takes each arena's lock in
+//! turn and walks that arena's free lists, so its cost grows with the number of free
+//! chunks and it can delay a thread allocating in the arena being read. It is one call
+//! with no allocation, file or text of its own. On a target without glibc the totals
+//! are absent.
 //!
 //! That bound covers the reads made for records only. The scheduler also reads the same
 //! file once per stage, and a second time on a cache hit, for the cache-hydration
@@ -38,6 +48,7 @@
 
 use std::cell::RefCell;
 use std::sync::atomic::{AtomicU64, Ordering};
+use std::time::Duration;
 
 use purrdf::PipelineBundle;
 
@@ -83,6 +94,42 @@ impl ProcessMemory {
             peak_rss_kib: value("VmHWM:"),
         }
     }
+}
+
+/// What the process allocator held, in bytes, as its own totals report it.
+///
+/// The totals are those of every arena and are not an atomic snapshot: threads go on
+/// allocating while the arenas are read one after another. Free bytes are the free
+/// chunks the allocator keeps for reuse; they include pages a return of freed pages has
+/// already handed back to the system, so they are not a resident figure.
+///
+/// These totals and the resident size measure different scopes: the resident size also
+/// counts code, thread stacks and resident file and shared mappings, which the
+/// allocator does not own. The resident size less [`Self::live_bytes`] is therefore an
+/// indication of the resident memory the allocator holds unused, and is neither a bound
+/// on it nor a measure of what a return of freed pages can recover. It reads high by the
+/// resident memory the allocator does not own. It reads low because glibc counts chunks
+/// freed into its per-thread caches as still in use, so they are inside the live bytes,
+/// and because live pages that are swapped out or never touched are not resident; the
+/// two readings are also not taken at one moment.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct AllocatorMemory {
+    /// Bytes the allocator reports as in use, arena and mapped together: allocations that
+    /// have not been freed, and chunks freed into a per-thread cache.
+    pub live_bytes: u64,
+    /// Bytes in free chunks the allocator keeps.
+    pub free_bytes: u64,
+}
+
+/// One return of freed allocator pages to the system, as the record made after it
+/// reports it. The resident size after the return is the record's own
+/// [`MemoryRecord::process`].
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct ReclaimedMemory {
+    /// Resident set size read immediately before the return (`VmRSS`).
+    pub rss_before_kib: Option<u64>,
+    /// How long the return took, in microseconds.
+    pub elapsed_us: u64,
 }
 
 /// The size of one stage product's carrier, in structural counts.
@@ -165,6 +212,10 @@ pub enum MemoryEvent {
     PhaseStart,
     /// A named phase inside a stage body ended.
     PhaseEnd,
+    /// Freed allocator pages were returned to the system: after the stage's
+    /// publication when the record names no phase, and after the named phase of the
+    /// stage body when it names one.
+    Reclaim,
 }
 
 impl MemoryEvent {
@@ -177,6 +228,7 @@ impl MemoryEvent {
             Self::Release => "release",
             Self::PhaseStart => "phase-start",
             Self::PhaseEnd => "phase-end",
+            Self::Reclaim => "reclaim",
         }
     }
 }
@@ -192,15 +244,20 @@ pub struct MemoryRecord {
     pub stage_id: String,
     /// The boundary.
     pub event: MemoryEvent,
-    /// The phase name, for the two phase events.
+    /// The phase name, for the two phase events and for a return of freed pages made
+    /// inside a stage body.
     pub phase: Option<String>,
     /// Process memory at the boundary.
     pub process: ProcessMemory,
+    /// The allocator's totals at the boundary. Absent where the allocator offers none.
+    pub allocator: Option<AllocatorMemory>,
     /// The stage's product: as published for [`MemoryEvent::Complete`], and as left
     /// after the release for [`MemoryEvent::Release`]. Absent for the other events.
     pub product: Option<ProductFootprint>,
     /// What the release removed, for [`MemoryEvent::Release`].
     pub released: Option<ReleasedFootprint>,
+    /// The return of freed pages, for [`MemoryEvent::Reclaim`].
+    pub reclaim: Option<ReclaimedMemory>,
 }
 
 /// Orders the records of one process across every thread that makes them.
@@ -220,6 +277,43 @@ pub(crate) fn record(
     product: Option<ProductFootprint>,
     released: Option<ReleasedFootprint>,
 ) -> MemoryRecord {
+    make(stage_id, event, phase, product, released, None)
+}
+
+/// Record a return of freed allocator pages that has just finished.
+///
+/// `rss_before_kib` is the resident size the caller read immediately before the return
+/// and `elapsed` how long the return took; the record samples the resident size after
+/// it. `phase` names the phase of the stage body the return followed, and is absent for
+/// the return the scheduler makes after a publication.
+pub(crate) fn reclaimed(
+    stage_id: &str,
+    phase: Option<&str>,
+    rss_before_kib: Option<u64>,
+    elapsed: Duration,
+) -> MemoryRecord {
+    let reclaim = ReclaimedMemory {
+        rss_before_kib,
+        elapsed_us: u64::try_from(elapsed.as_micros()).unwrap_or(u64::MAX),
+    };
+    make(
+        stage_id,
+        MemoryEvent::Reclaim,
+        phase,
+        None,
+        None,
+        Some(reclaim),
+    )
+}
+
+fn make(
+    stage_id: &str,
+    event: MemoryEvent,
+    phase: Option<&str>,
+    product: Option<ProductFootprint>,
+    released: Option<ReleasedFootprint>,
+    reclaim: Option<ReclaimedMemory>,
+) -> MemoryRecord {
     let made = MemoryRecord {
         pid: std::process::id(),
         seq: NEXT_SEQ.fetch_add(1, Ordering::Relaxed),
@@ -227,8 +321,10 @@ pub(crate) fn record(
         event,
         phase: phase.map(str::to_owned),
         process: ProcessMemory::sample(),
+        allocator: crate::allocator_observation::allocator_totals(),
         product,
         released,
+        reclaim,
     };
     tracing::info!(
         target: TARGET,
@@ -239,6 +335,10 @@ pub(crate) fn record(
         phase,
         rss_kib = made.process.rss_kib,
         peak_rss_kib = made.process.peak_rss_kib,
+        allocator_live_bytes = made.allocator.map(|totals| totals.live_bytes),
+        allocator_free_bytes = made.allocator.map(|totals| totals.free_bytes),
+        reclaim_rss_before_kib = reclaim.and_then(|returned| returned.rss_before_kib),
+        reclaim_elapsed_us = reclaim.map(|returned| returned.elapsed_us),
         quads = product.map(|footprint| footprint.quads),
         terms = product.map(|footprint| footprint.terms),
         committed_lane_bytes = product.map(|footprint| footprint.committed_lane_bytes),
@@ -262,7 +362,12 @@ pub(crate) fn record(
 /// stage's, or by none; the record names its own stage either way. A record made
 /// with the target off and no collection in progress is dropped.
 pub(crate) fn phase(stage_id: &str, phase: &str, event: MemoryEvent) {
-    let made = record(stage_id, event, Some(phase), None, None);
+    keep(record(stage_id, event, Some(phase), None, None));
+}
+
+/// Hand a record made inside a stage body to the collection the calling thread is
+/// inside ([`collecting_phases`]), if any.
+pub(crate) fn keep(made: MemoryRecord) {
     PHASE_SCOPE.with_borrow_mut(|scope| {
         if let Some(records) = scope.as_mut() {
             records.push(made);

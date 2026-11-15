@@ -6,6 +6,20 @@
 @prefix logic: <https://blackcatinformatics.ca/logic/> .
 @prefix dcterms: <http://purl.org/dc/terms/> .
 
+gmeow:AssertionCategory
+    a logic:AbstractIndividualType ,
+        logic:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/evidence> ;
+    rdfs:label "Assertion Category"@x-gmeow-english ;
+    logic:subClassOf logic:QualityValue ;
+    skos:definition "The kind of assertion a claim is — a value vocabulary (individuals, never subclasses) that says what the claim is, not how well it is supported: a self-description by the subject of the claim, a statement resting on externally published evidence, or a derived interpretation inferred or computed from other statements. A category classifies a claim and never ranks it; claims of different categories about the same matter are co-equal and coexist (Principle 9). Each category is related by a mapping relation to the gmeow:EvidenceClass, gmeow:SourceIndependence and gmeow:ObservationType individuals that say the same of a citation or an observation. Those relations hold between the values, never between a claim and its citations, so a claim's category and the evidence classes of its citations may differ: a self-description may cite an official source."@x-gmeow-english ;
+    skos:example "ex:claim gmeow:assertionCategory gmeow:assertionCategorySelfDescription ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid using it to rank or filter claims by trust, to restate the evidence class of the citations a claim rests on (that is gmeow:hasEvidenceClass on each gmeow:CitationAct), or to mint per-category subclasses; the categories are individuals."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxCBox ,
+        gmeow:boxTBox ;
+    gmeow:howToUse "Reference one of the seeded individuals through gmeow:assertionCategory on the claim's statement reifier or claim record; mint a new individual with a label and definition only for a kind of assertion that none of the seeded ones covers."@x-gmeow-english ;
+    gmeow:useWhen "Use as the value vocabulary behind gmeow:assertionCategory — naming whether a claim is the subject's own description, rests on published evidence, or is a derived interpretation."@x-gmeow-english .
+
 gmeow:CoverageDepth
     a logic:AbstractIndividualType ,
         logic:Class ;
@@ -75,6 +89,44 @@ gmeow:SourceTier
         gmeow:boxTBox ;
     gmeow:howToUse "Reference the seeded tier individuals via gmeow:sourceTier on the citation; combine with independence and coverage depth so the solver can weigh notability, and let competing tier assessments coexist (Principle 9)."@x-gmeow-english ;
     gmeow:useWhen "Use as the value vocabulary behind gmeow:sourceTier — the standard primary/secondary/tertiary bibliographic axis — when classifying a cited source for notability assessment."@x-gmeow-english .
+
+gmeow:assertionCategory
+    a logic:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/evidence> ;
+    rdfs:label "assertion category"@x-gmeow-english ;
+    logic:range gmeow:AssertionCategory ;
+    skos:definition "The category of the assertion a claim makes — self-description, published evidence or derived interpretation — stated on the claim itself. It declares no domain, so it applies alike to a bare statement reifier and to a claim record such as a gmeow:ClaimToken, without typing either. Non-functional: competing categorisations by different standpoints coexist, and a claim that is both a self-description and a derived interpretation carries both. It is not a rank, a trust level or a display flag, and it is distinct from gmeow:hasEvidenceClass, which grades one citation: no category follows from the evidence classes of a claim's citations and none implies them. Its correspondence with gmeow:hasEvidenceClass and gmeow:observationType is stated between their values."@x-gmeow-english ;
+    skos:example "ex:claim gmeow:assertionCategory gmeow:assertionCategoryPublishedEvidence ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid using it as a rank, a trust level or a display flag, avoid reading the evidence classes of a claim's citations off it, and avoid forcing one value; it is non-functional (Principle 9)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxCBox ,
+        gmeow:boxRBox ;
+    gmeow:howToUse "Annotate the claim's statement reifier or claim record with one or more gmeow:AssertionCategory individuals; keep the evidence class on each gmeow:CitationAct the claim rests on, and let claims of different categories coexist without ordering. A categorisation is itself a claim: annotate it with gmeow:accordingTo when it matters which standpoint made it."@x-gmeow-english ;
+    gmeow:useWhen "Use to say, on the claim itself, what kind of assertion it is, so a consumer can list or select claims by category without inspecting their citations."@x-gmeow-english .
+
+gmeow:assertionCategoryDerivedInterpretation
+    a gmeow:AssertionCategory ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/evidence> ;
+    rdfs:label "derived interpretation"@x-gmeow-english ;
+    skos:definition "The claim is an interpretation inferred or computed from other statements rather than stated by its subject or read from a source. It is the claim-level counterpart of gmeow:observationTypeDerived, which says the same of an observation: categorise the bare claim and type the observation record, and infer neither from the other. The statements it was derived from are carried by its provenance."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ,
+        gmeow:boxCBox .
+
+gmeow:assertionCategoryPublishedEvidence
+    a gmeow:AssertionCategory ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/evidence> ;
+    rdfs:label "published evidence"@x-gmeow-english ;
+    skos:definition "The claim is a statement that rests on externally published evidence: it reports what a source outside the claim's own standpoint has published, and each such source is cited through a gmeow:CitationAct that carries its own gmeow:hasEvidenceClass. The evidence classes that name a kind of published source — gmeow:evidenceOfficialSource, gmeow:evidenceIndependentTradePress, gmeow:evidencePublicRegistry and gmeow:evidenceNewspaperLead — are narrower cases of it, related as values: the category does not fix which of them a citation of the claim carries, and a claim of another category may cite such a source."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ,
+        gmeow:boxCBox .
+
+gmeow:assertionCategorySelfDescription
+    a gmeow:AssertionCategory ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/evidence> ;
+    rdfs:label "self-description"@x-gmeow-english ;
+    rdfs:seeAlso gmeow:selfAsserted ;
+    skos:definition "The claim is a description of the subject made by the subject itself. It is the claim-level counterpart of gmeow:evidenceSELF on a citation; gmeow:evidenceSelfControlledSite is a narrower case and gmeow:sourceIndependenceSelfOrIssuerOriginated a broader one, which also covers an issuer or affiliated party. These relations hold between the values, not between a claim and its citations: a self-description that cites an official source carries this category while that citation carries gmeow:evidenceOfficialSource, and gmeow:evidenceSELF on a citation does not by itself make a claim a self-description. A statement or identity facet marked gmeow:selfAsserted true is a self-description; that flag also marks the authority of a subject over its own identity facets (Principle 9), which this category does not assert."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ,
+        gmeow:boxCBox .
 
 gmeow:coverageDepth
     a logic:ObjectProperty ;

@@ -35,7 +35,8 @@ g:endorsedBy a owl:ObjectProperty .
 # The statement-layer reifier obligation: every g:Record g:asserts value must be
 # reified by a g:Endorsement. Authored as a classic rdf:Statement whose reifier is
 # typed g:Endorsement (the shape C) — no logic: scope, so it is inert to the logic
-# frontend and read only by the shape derivation (FAMILY 5).
-[] a rdf:Statement, g:Endorsement ;
+# frontend and read only by the shape derivation (FAMILY 5). The declaration is an IRI:
+# the shape derived for g:Endorsement excludes it from its focus nodes by name.
+g:assertsReificationObligation a rdf:Statement, g:Endorsement ;
     rdf:subject g:Record ;
     rdf:predicate g:asserts .

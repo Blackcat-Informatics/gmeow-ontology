@@ -55,6 +55,11 @@ authority), `false` for a third-party record. Non-functional — a multi-source 
 both, coexisting rather than contradicting (Principle 9's standpoint stance). Also usable as
 a statement-level RDF 1.2 annotation on a quoted claim.
 
+A statement or facet marked `gmeow:selfAsserted true` is a self-description in the sense of
+`gmeow:assertionCategorySelfDescription` (evidence slice). That category says only what
+kind of assertion a claim is and carries no authority; this flag also marks the authority
+of the subject over its own identity facets.
+
 ## The three axes in this slice
 
 ### gmeow:GenderIdentity · gmeow:hasGenderIdentity · gmeow:genderValue
