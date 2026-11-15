@@ -135,14 +135,23 @@ ex:saAggregateConstraintNamesEveryRequiredRelation a gmeow:StructuralAssertion ;
     gmeow:saPattern """PREFIX g: <https://blackcatinformatics.ca/gmeow/>
 PREFIX l: <https://blackcatinformatics.ca/logic/>
 PREFIX m: <https://blackcatinformatics.ca/math/>
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
 ASK {
-  g:AggregateQualityResultsConstraint a l:Constraint ; l:formalizes g:AggregateQualityAssessment ; l:integrity ?root .
-  ?root (l:and|l:or|l:forall|l:exists|l:antecedent|l:consequent)* ?valueNode . ?valueNode l:relation m:estimateValue .
-  ?root (l:and|l:or|l:forall|l:exists|l:antecedent|l:consequent)* ?estimatorNode . ?estimatorNode l:relation m:estimator .
-  ?root (l:and|l:or|l:forall|l:exists|l:antecedent|l:consequent)* ?estimandNode . ?estimandNode l:relation m:estimatesEstimand .
-  ?root (l:and|l:or|l:forall|l:exists|l:antecedent|l:consequent)* ?parameterNode . ?parameterNode l:relation m:estimatedParameter .
+  g:AggregateQualityResultsConstraint a l:Constraint ; l:formalizes g:AggregateQualityAssessment ;
+    l:integrity/l:forall/l:consequent ?obligations .
+  ?obligations l:and ?valueExists , ?valueTyped , ?estimatorExists , ?estimatorTyped , ?targetPresent .
+  ?valueExists l:consequent/l:exists/l:relation m:estimateValue .
+  ?valueTyped l:forall/l:consequent ?valueType .
+  ?valueType l:relation rdf:type ; l:argument/l:termIri m:Quantity .
+  ?estimatorExists l:consequent/l:exists/l:relation m:estimator .
+  ?estimatorTyped l:forall/l:consequent ?estimatorType .
+  ?estimatorType l:relation rdf:type ; l:argument/l:termIri m:Estimator .
+  ?targetPresent l:consequent/l:or ?estimandCase , ?parameterCase .
+  ?estimandCase l:exists/l:relation m:estimatesEstimand .
+  ?parameterCase l:exists/l:relation m:estimatedParameter .
 }""" ;
-    gmeow:saRationale "The aggregate result law MUST be a logic:Constraint over the aggregate assessment whose formula tree reaches the value, estimator and both target relations, so each obligation is authored in the canonical core and the generated validation view is only its projection." .
+    gmeow:saRationale "The aggregate result law MUST be a logic:Constraint over the aggregate assessment whose per-result obligations are five distinct conjuncts: a value exists, every value is a math:Quantity, an estimator exists, every estimator is a math:Estimator, and an estimand or a parameter target exists. Removing any one conjunct falsifies the assertion." .
+
 
 ex:saQualityDimensionIsNotAQuantityDimension a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:mustNot ;
