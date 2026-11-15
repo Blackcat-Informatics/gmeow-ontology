@@ -3268,6 +3268,14 @@ fn carrier_retention_is_bounded_by_the_live_frontier() {
             .product
             .expect("a published product is measured");
         assert_eq!(published.quads, 1, "{id}: the published carrier's dataset");
+        if id == "late" {
+            // The run output is never released, so its dataset is still the published one.
+            assert_eq!(
+                published.dataset_payload_bytes,
+                u64::try_from(late.dataset().rdf_payload_bytes()).unwrap(),
+                "the record carries the dataset's own payload accounting"
+            );
+        }
         assert!(!published.carrier_released);
         assert!(published.committed_lane_bytes > 0 && published.internal_lane_bytes > 0);
     }

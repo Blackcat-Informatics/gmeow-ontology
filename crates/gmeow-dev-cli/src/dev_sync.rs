@@ -776,6 +776,7 @@ fn stage_memory_observation(
             purrdf_lex::json::Object::new()
                 .with("quads", footprint.quads)
                 .with("terms", footprint.terms)
+                .with("dataset_payload_bytes", footprint.dataset_payload_bytes)
                 .with("committed_lane_bytes", footprint.committed_lane_bytes)
                 .with("internal_lane_bytes", footprint.internal_lane_bytes)
                 .with("carrier_released", footprint.carrier_released),

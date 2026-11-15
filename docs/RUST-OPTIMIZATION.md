@@ -92,9 +92,13 @@ subphases remain visible before a stage completes. The `pipeline_memory` target 
 the per-stage memory record: the process id, its resident size and its lifetime peak
 resident size, and the allocator's live and free byte totals, at each stage's dispatch,
 publication and carrier release, with the
-product's quad, term and artifact-byte counts and what a release removed. A record is
+product's quad, term and artifact-byte counts, the bytes of its dataset's term text
+and record tables as the dataset states them (`dataset_payload_bytes`, which leaves out
+lookup indexes, allocator overhead and every typed handle payload), and what a release
+removed. A record is
 also made at the start and end of each phase a stage runs through `measure_stage_phase`
-and at the end of each timed phase of the snapshot serializer. A phase that is only
+and at the end of each timed phase of the snapshot serializer, whose stratum
+canonicalization also has a start record. A phase that is only
 logged makes no record of its own: that includes the phases the logic crate logs inside
 reasoning and projection, the receipt encode among them, which fall inside the enclosing
 measured stage phase. No trim follows a release directly, so resident size in a release

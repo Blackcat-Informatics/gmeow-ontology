@@ -1009,6 +1009,23 @@ fn encode_handle(handle: &PipelineHandle) -> Result<Vec<u8>, gmeow_errors::Diag>
     })
 }
 
+/// The pin of one restored handle graph: SHA-256 over the canonical document of the
+/// projected graph, in the presentation that renders statement rows through the
+/// profile's reserved terms.
+///
+/// PurRDF's digest entry returns that digest without handing the document back, so
+/// the restore keeps no canonical text of a handle graph. The bytes hashed are those
+/// `try_canonicalize` returns for the same dataset under the same policy.
+fn restored_handle_graph_pin(
+    subgraph: &purrdf::RdfDataset,
+) -> Result<ContentDigest, purrdf::CanonError> {
+    purrdf::try_canonical_sha256_view(
+        subgraph,
+        purrdf::CanonHash::Sha256,
+        &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None),
+    )
+}
+
 /// Restore a complete native payload without reparsing a governed RDF projection.
 fn rebuild_handle(
     arm: &str,
@@ -1550,25 +1567,18 @@ impl<Bytes: AsRef<[u8]> + Into<Vec<u8>>> CachedBundle<Bytes> {
         // Assemble the bundle, then re-pin every handle (re-checks the digest invariant).
         let mut bundle = PipelineBundleAlias::new(dataset, lookaside, Arc::new(store), provenance);
         for h in self.handles {
-            let subgraph = Arc::new(
-                bundle
-                    .dataset()
-                    .project_graph(Some(&purrdf::RdfTerm::iri(&h.graph)))?,
-            );
+            let subgraph = bundle
+                .dataset()
+                .project_graph(Some(&purrdf::RdfTerm::iri(&h.graph)))?;
             // Derive the pin and typed payload from the SAME live graph projection.
             // `pin_handle` independently checks that pin against the restored carrier,
             // preserving the hard-fail invariant without a duplicate persisted graph.
-            let canonical = purrdf::try_canonicalize(
-                &subgraph,
-                &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None),
-            )
-            .map_err(|e| {
+            let pinned = restored_handle_graph_pin(&subgraph).map_err(|e| {
                 gmeow_errors::Diag::of_kind(crate::error::Decode::new(format!(
                     "cache: canonicalize handle graph <{}> failed: {e}",
                     h.graph
                 )))
             })?;
-            let pinned = ContentDigest::of(canonical.nquads().as_bytes());
             let payload = rebuild_handle(&h.arm, h.typed_payload.as_ref().map(AsRef::as_ref))?;
             if let PipelineHandle::Diagnostics(publication) = &payload {
                 publication.validate_binding(&self.stage_id, &h.graph)?;
