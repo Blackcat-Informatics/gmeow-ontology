@@ -100,6 +100,86 @@ primary, and routine).
 | Family anecdote | `evidenceFamilyNarrative` — low | `sourceIndependenceIndependent` + `sourceTierSecondary` + `coverageDepthPassingMention` → `supportsNotability false` |
 | Rumour on social media | `evidenceRUMOR` — very low | `sourceIndependenceIndependent` + `sourceTierPrimary` + `coverageDepthPassingMention` → `supportsNotability false` |
 
+## The assertion category of a claim
+
+### gmeow:AssertionCategory and gmeow:assertionCategory
+
+Axis A grades a citation. A claim that is a bare statement reifier has no citation to
+carry a label of its own kind, yet a consumer often needs to say, on the claim itself,
+what sort of assertion it is. `gmeow:assertionCategory` does that with one property and
+one value vocabulary, `gmeow:AssertionCategory`, three individuals:
+
+| Individual | The claim is |
+|---|---|
+| `assertionCategorySelfDescription` | a description of the subject made by the subject itself |
+| `assertionCategoryPublishedEvidence` | a statement that rests on externally published evidence |
+| `assertionCategoryDerivedInterpretation` | an interpretation inferred or computed from other statements |
+
+Annotate the statement reifier, or a claim record such as a `gmeow:ClaimToken`, with the
+category, the way `gmeow:accordingTo` and `gmeow:confidence` ride the statement. The
+property is non-functional, so a claim that is both a self-description and a derived
+interpretation carries both, and different standpoints may categorise the same claim
+differently.
+
+### How the category relates to the existing vocabulary
+
+The category is stated on the claim and says what kind of assertion it is. The evidence
+class and the source independence are stated on each `gmeow:CitationAct` and describe one
+citation; the observation type is stated on a `gmeow:Observation`. The category values are
+related to those existing values by alignment cells in `mappings/equivalences.ttl`, the
+slice's mapping source. Each cell is a SKOS mapping statement with its justification and
+confidence, and compiles into the shipped correspondence content and the slice's SSSOM
+set:
+
+| Category | Relation | Existing value |
+|---|---|---|
+| `assertionCategorySelfDescription` | `skos:closeMatch` | `evidenceSELF` |
+| `assertionCategorySelfDescription` | `skos:narrowMatch` | `evidenceSelfControlledSite` |
+| `assertionCategorySelfDescription` | `skos:broadMatch` | `sourceIndependenceSelfOrIssuerOriginated` |
+| `assertionCategoryPublishedEvidence` | `skos:narrowMatch` | `evidenceOfficialSource`, `evidenceIndependentTradePress`, `evidencePublicRegistry`, `evidenceNewspaperLead` |
+| `assertionCategoryDerivedInterpretation` | `skos:closeMatch` | `observationTypeDerived` |
+
+`skos:closeMatch` marks the counterpart that says the same thing of another carrier,
+`skos:narrowMatch` a narrower case and `skos:broadMatch` a broader one. The relations
+hold between the values. They say nothing about any one claim and its citations, no cell
+relates the properties, and no property axiom ties `gmeow:assertionCategory` to
+`gmeow:hasEvidenceClass`, `gmeow:sourceIndependence` or `gmeow:observationType`, so nothing
+is derived in either direction:
+
+- a self-description may cite an official source, so its category is
+  `assertionCategorySelfDescription` while its citation carries
+  `evidenceOfficialSource`;
+- a citation classed `evidenceSELF` does not make the claim a self-description, and a
+  self-description need not cite anything;
+- a claim resting on published evidence takes its warrant from the evidence classes of
+  the citations it rests on, never from the category.
+
+For a derived interpretation, categorise the bare claim and type the observation record:
+`assertionCategoryDerivedInterpretation` on a statement reifier and
+`observationTypeDerived` on a `gmeow:Observation` are the same judgement on two
+carriers. Neither is inferred from the other; deriving one from the other is solver work.
+
+`gmeow:selfAsserted` (gender slice) is related too. The self-description value points
+at it with `rdfs:seeAlso` in the module. A statement or identity facet marked
+`gmeow:selfAsserted true` is a self-description. The flag says more than the category:
+it marks the authority of a subject over its own identity facets (Principle 9). Use
+`gmeow:selfAsserted` on an identity facet, where that authority is the point, and
+`gmeow:assertionCategory` to say what kind of assertion any claim is. The category
+asserts no authority and no rank.
+
+### When to use it
+
+Use the category when a consumer needs to list or select claims by what kind of assertion
+they are, with no citation in view. Do not use it to rank claims, to hide one, or as a
+trust level: claims of different categories about the same matter are co-equal and stay
+retrievable together (Principle 9). A categorisation is itself a claim made from a
+standpoint: annotate the `gmeow:assertionCategory` statement with `gmeow:accordingTo`
+when it matters who categorised, and let different standpoints categorise the same claim
+differently. The worked example `examples/assertion-categories.ttl` holds one claim of
+each category, a self-description citing an official source and a categorisation
+attributed to its standpoint; the competency questions return the claims by category and
+set each beside the evidence class of its citation.
+
 ## Open-world policy & solver boundary
 
 No existential restrictions are asserted on `CitationAct`: every facet here is an
