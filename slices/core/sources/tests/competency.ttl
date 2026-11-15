@@ -70,7 +70,7 @@ SELECT ?quote ?snapshot ?digest ?retrievedAt ?liveAddress ?immutableAddress WHER
         gmeow:sourceLocation ?liveAddress ;
         gmeow:immutableAddress ?immutableAddress .
 }""" ;
-    gmeow:cqRationale "A web citation is only re-checkable if the quoted passage is anchored to the bytes that were retrieved: the chain from the claim through its citation to the snapshot returns the digest of those bytes, when they were retrieved, the live address they came from and the immutable address they are stored at, kept apart." ;
+    gmeow:cqRationale "A web citation is only re-checkable if the quoted passage is anchored to the bytes that were retrieved: the chain from the claim through its citation to the snapshot returns the digest of those bytes, when they were retrieved, the live address they came from and the immutable address they are stored at, kept apart."@x-gmeow-english ;
     gmeow:cqExactRows true ;
     gmeow:cqResultShape ex:cqSnapshotEvidenceChainShape ;
     gmeow:cqExpectRow ex:scChain .
@@ -87,7 +87,7 @@ ex:cqSnapshotEvidenceChainShape a logic:ResultShape ;
 
 ex:scChain a gmeow:ExpectedRow ;
     gmeow:rowCell
-        [ a gmeow:ExpectedCell ; gmeow:cellVar "quote" ; gmeow:cellValueLiteral "Acme was founded on 12 March 1998" ] ,
+        [ a gmeow:ExpectedCell ; gmeow:cellVar "quote" ; gmeow:cellValueLiteral "Acme was founded by Alice Moreau" ] ,
         [ a gmeow:ExpectedCell ; gmeow:cellVar "snapshot" ; gmeow:cellValueIri case:pageSnapshot ] ,
         [ a gmeow:ExpectedCell ; gmeow:cellVar "digest" ; gmeow:cellValueLiteral "5f8d1e2a9c4b7d0e3f6a1b8c5d2e9f0a3b6c7d4e1f8a2b5c9d0e3f6a7b4c1d8e"^^gmeow:blake3_256Digest ] ,
         [ a gmeow:ExpectedCell ; gmeow:cellVar "retrievedAt" ; gmeow:cellValueLiteral "2026-09-30T17:00:00Z"^^xsd:dateTime ] ,

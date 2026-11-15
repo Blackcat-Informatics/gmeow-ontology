@@ -22,9 +22,9 @@ ex:analystView a gmeow:Standpoint .
 
 ex:aboutPage a gmeow:WebPage .
 
-ex:foundedClaim rdf:reifies <<( ex:acme gmeow:foundedOn ex:foundingDay )>> ;
+ex:foundedClaim rdf:reifies <<( ex:acme gmeow:foundedBy ex:founder )>> ;
     gmeow:accordingTo ex:analystView .
-ex:foundingDay a gmeow:Entity .
+ex:founder a gmeow:Agent .
 
 ex:pageSnapshot a gmeow:SourceSnapshot ;
     gmeow:exemplifies      ex:aboutPage ;
@@ -34,7 +34,7 @@ ex:pageSnapshot a gmeow:SourceSnapshot ;
     gmeow:immutableAddress "https://archive.example.org/blake3/5f8d1e2a9c4b7d0e3f6a1b8c5d2e9f0a3b6c7d4e1f8a2b5c9d0e3f6a7b4c1d8e"^^xsd:anyURI .
 
 ex:foundedQuote a gmeow:Selector ;
-    gmeow:selectorTextQuote "Acme was founded on 12 March 1998" .
+    gmeow:selectorTextQuote "Acme was founded by Alice Moreau" .
 
 ex:foundedCite a gmeow:CitationAct ;
     gmeow:citingEntity   ex:foundedClaim ;

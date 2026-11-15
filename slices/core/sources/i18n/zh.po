@@ -63,8 +63,8 @@ msgid "A retrieved copy of a source at one moment: one particular carrier (a gme
 msgstr "某一时刻对来源取得的副本：它是所例示的 gmeow:Manifestation 的一个特定载体（gmeow:Item），恰好保存所取得的字节。它不是新的作品、表达或表现形式。它带有字节摘要（gmeow:contentDigest）、取得时刻（gmeow:retrievedAt）、取得字节时所用的地址（gmeow:sourceLocation，可能变化或消失）以及所存字节的不可变地址（gmeow:immutableAddress）。无论摘要是否相同，再次取得就是另一个快照。没有产生字节的取得不是快照。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/SourceSnapshot|http://www.w3.org/2004/02/skos/core#example"
-msgid "ex:snapshot a gmeow:SourceSnapshot ; gmeow:exemplifies ex:page ; gmeow:sourceLocation \"https://example.org/page\" ; gmeow:immutableAddress \"https://archive.example.org/blake3/5f8d1e2a\"^^xsd:anyURI ."
-msgstr "ex:snapshot a gmeow:SourceSnapshot ; gmeow:exemplifies ex:page ; gmeow:sourceLocation \"https://example.org/page\" ; gmeow:immutableAddress \"https://archive.example.org/blake3/5f8d1e2a\"^^xsd:anyURI ."
+msgid "ex:snapshot a gmeow:SourceSnapshot ; gmeow:exemplifies ex:page ; gmeow:contentDigest \"5f8d1e2a9c4b7d0e3f6a1b8c5d2e9f0a3b6c7d4e1f8a2b5c9d0e3f6a7b4c1d8e\"^^gmeow:blake3_256Digest ; gmeow:retrievedAt \"2026-09-30T17:00:00Z\"^^xsd:dateTime ; gmeow:sourceLocation \"https://example.org/page\" ; gmeow:immutableAddress \"https://archive.example.org/blake3/5f8d1e2a\"^^xsd:anyURI ."
+msgstr "ex:snapshot a gmeow:SourceSnapshot ; gmeow:exemplifies ex:page ; gmeow:contentDigest \"5f8d1e2a9c4b7d0e3f6a1b8c5d2e9f0a3b6c7d4e1f8a2b5c9d0e3f6a7b4c1d8e\"^^gmeow:blake3_256Digest ; gmeow:retrievedAt \"2026-09-30T17:00:00Z\"^^xsd:dateTime ; gmeow:sourceLocation \"https://example.org/page\" ; gmeow:immutableAddress \"https://archive.example.org/blake3/5f8d1e2a\"^^xsd:anyURI ."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/SourceSnapshot|https://blackcatinformatics.ca/gmeow/avoidWhen"
 msgid "Avoid for a fetch that failed or returned nothing (record why with an absence record, never a snapshot with missing fields), for the live page itself (that is a gmeow:WebPage), and for a re-encoding or translation of the document, which is another manifestation."

@@ -69,7 +69,7 @@ projection-time join on `contentDigest`.
 
 ## Dependencies
 
-Depends on `documents` (the WEMI carrier tiers the metadata attaches to). Consumed by the
+Depends on `documents` and `creative-works` (the WEMI carrier tiers the metadata attaches to). Consumed by the
 claim spine's content-addressed sources and by the GTS packages' blake3 identity spine
 (Principle 14).
 
