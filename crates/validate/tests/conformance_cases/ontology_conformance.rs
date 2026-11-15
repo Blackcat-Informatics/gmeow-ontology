@@ -60,6 +60,13 @@ use gmeow_test_batch_macros::batch_cases;
     Case::file("shapes", "suppression-warning-only")
         .warnings(&["should set gmeow:displayable false"])
 )]
+#[case::deadname_without_flag_draws_the_suppression_warning(
+    Case::file("shapes", "deadname-unsuppressed-warning")
+        .warnings(&["should set gmeow:displayable false"])
+)]
+#[case::ended_observation_draws_no_suppression_warning(
+    Case::file("shapes", "observation-ended-no-warning").no_warning("displayable false")
+)]
 // Closed-world dual of the OWL 2 DL oracle's two-axis inconsistency check (no reasoner).
 #[case::orthogonality_data_check_rejects_two_axes(
     Case::inline(

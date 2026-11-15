@@ -253,3 +253,21 @@ ex:saNoFlatSexObjectProperty a gmeow:StructuralAssertion ;
 PREFIX owl: <http://www.w3.org/2002/07/owl#>
 ASK { gmeow:sex a owl:ObjectProperty . }""" ;
     gmeow:saRationale "gmeow:sex MUST NOT exist as an owl:ObjectProperty — greenfield removal of the old flat sex property." .
+
+# --- The superseded-facet warning is typed to the identity facet (MUST) ---
+ex:saSupersededFacetWarningGuardIsTyped a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+ASK {
+    gmeow:SupersededGenderIdentitySuppressionConstraint logic:severity "Warning" ; logic:integrity ?root .
+    ?root logic:forall ?implies .
+    ?implies logic:antecedent ?guard .
+    ?guard logic:and ?typeAtom , ?untilAtom .
+    ?typeAtom logic:relation rdf:type ; logic:argument ?arg .
+    ?arg logic:termIri gmeow:IdentityFacet .
+    ?untilAtom logic:relation gmeow:validUntil .
+}""" ;
+    gmeow:saRationale "The warning that prompts gmeow:displayable false on a superseded facet carries the gmeow:IdentityFacet type atom beside gmeow:validUntil. Without it the lowering targets every node with a validity end, and an ended observation or participation would be told to hide itself (Principles 9 and 10)." .

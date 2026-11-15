@@ -427,7 +427,7 @@ gmeow:SupersededGenderIdentitySuppressionConstraint
     rdfs:label "Superseded gender-identity facet suppression constraint"@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gender> ;
     gmeow:graphBoxRole gmeow:boxTBox ;
-    skos:definition "A closed-world integrity constraint (Warning): a superseded identity facet — a gmeow:GenderIdentity, gmeow:GenderExpression, gmeow:SexualOrientation, or gmeow:RomanticOrientation carrying gmeow:validUntil — should set gmeow:displayable false, suppressed from display, never deleted (Principle 10). The gmeow:validUntil trigger the retired multi-target gmeow:SupersededFacetSuppressionShape keyed on is the guard; every facet kind that carries a validity end is covered."@x-gmeow-english ;
+    skos:definition "A closed-world integrity constraint (Warning): a superseded identity facet — a gmeow:GenderIdentity, gmeow:GenderExpression, gmeow:SexualOrientation, or gmeow:RomanticOrientation carrying gmeow:validUntil — should set gmeow:displayable false, suppressed from display, never deleted (Principle 10). The guard is the type gmeow:IdentityFacet together with gmeow:validUntil, so it reaches every facet kind and nothing else: an observation, a participation or any other node whose validity ended is not reported, and a facet that another party disputes or corrects, with no validity end of its own, is not reported either. It concerns a holder superseding its own facet, a global safety case hidden from every reader."@x-gmeow-english ;
     logic:formalizes gmeow:SupersededFacetSuppressionShape ;
     logic:severity "Warning" ;
     logic:message "A superseded identity facet (one with gmeow:validUntil) should set gmeow:displayable false — suppressed from display, never deleted." ;
@@ -436,7 +436,10 @@ logic:supGiForall a logic:Formula ;
     logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "u" ] ;
     logic:forall logic:supGiImpl .
 logic:supGiImpl a logic:Formula ; logic:antecedent logic:supGiGuard ; logic:consequent logic:supGiDisp .
-logic:supGiGuard a logic:Formula ; logic:relation gmeow:validUntil ;
+logic:supGiGuard a logic:Formula ; logic:and logic:supGiType , logic:supGiUntil .
+logic:supGiType a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri gmeow:IdentityFacet ] .
+logic:supGiUntil a logic:Formula ; logic:relation gmeow:validUntil ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "u" ] .
 logic:supGiDisp a logic:Formula ; logic:relation gmeow:displayable ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termLiteral "false" ; logic:termLiteralDatatype xsd:boolean ] .

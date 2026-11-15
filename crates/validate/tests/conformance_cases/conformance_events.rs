@@ -74,7 +74,9 @@ const FORMER_EVENT_SUBCLASSES: &[&str] = &[
 // ── SHACL Case twins ─────────────────────────────────────────────────────────
 
 #[batch_cases]
-#[case::wellformed_participation_conforms(Case::file("shapes", "participation-wellformed"))]
+#[case::wellformed_participation_conforms(
+    Case::file("shapes", "participation-wellformed").no_warning("displayable false")
+)]
 // The `participation-malformed` fixture (Participation without event / participant)
 // must fail SHACL with a violation mentioning one of participationEvent /
 // participationParticipant (case-sensitive disjunction → `any_violation`).
