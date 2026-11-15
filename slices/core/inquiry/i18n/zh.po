@@ -260,8 +260,8 @@ msgid "Absence Record"
 msgstr "缺失记录"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/AbsenceRecord|http://www.w3.org/2004/02/skos/core#definition"
-msgid "An attributed, dated observation that a question has no answer, with the reason. A direct record names exactly one subject (gmeow:observedFeature), at least one of the question (gmeow:absenceQuestion) or the property (gmeow:absentProperty) asked about, the vantage that determined the absence (gmeow:vantage), when (gmeow:observedAt), and exactly one reason (gmeow:absenceReason). It gives no value for the property asked about and negates none, and nothing may be derived from it as false: an unanswered question is unknown, never false. Its reason may carry a claim of its own: not applicable says the question's presupposition does not hold for the subject, and not published says the determiner holds an answer exists and is not public; each is a claim from a vantage that another vantage may dispute. A later answer does not contradict an earlier record; both are retained, each with its own time. Records from different vantages coexist, and competing reasons for the same question are separate records, none privileged."
-msgstr "有归属、有时间的观察，表明某个问题没有答案并给出原因。直接记录恰好指明一个主体（gmeow:observedFeature）、所询问的问题（gmeow:absenceQuestion）或属性（gmeow:absentProperty）至少其一、判定缺失的视角（gmeow:vantage）、时间（gmeow:observedAt），以及恰好一个原因（gmeow:absenceReason）。它不给出所询问属性的值，也不否定该属性，且不得由它推导出任何为假的结论：未获回答的问题是未知的，绝不是假的。其原因可带有自己的声明：不适用表示该问题的预设对该主体不成立，未公开发布表示判定者认为答案存在但并不公开；二者都是某个视角作出的声明，其他视角可以质疑。较晚出现的答案并不与较早的记录相矛盾；两者都被保留，各有自己的时间。不同视角的记录并存，针对同一问题的相互竞争的原因是各自独立的记录，没有哪一个享有特权。"
+msgid "An attributed, dated observation that a question has no answer, with the reason. A direct record names exactly one subject (gmeow:observedFeature), at least one of the question (gmeow:absenceQuestion) or the property (gmeow:absentProperty) asked about, the vantage that determined the absence (gmeow:vantage), when (gmeow:observedAt), and exactly one reason (gmeow:absenceReason, enforced by validation, not by a functional axiom). It gives no value for the property asked about and negates none, and nothing may be derived from it as false: an unanswered question is unknown, never false. Its reason may carry a claim of its own: not applicable says the question's presupposition does not hold for the subject, and not published says the determiner holds an answer exists and is not public; each is a claim from a vantage that another vantage may dispute. A later answer does not contradict an earlier record; both are retained, each with its own time. Records from different vantages coexist, and competing reasons for the same question are separate records, none privileged."
+msgstr "有归属、有时间的观察，表明某个问题没有答案并给出原因。直接记录恰好指明一个主体（gmeow:observedFeature）、所询问的问题（gmeow:absenceQuestion）或属性（gmeow:absentProperty）至少其一、判定缺失的视角（gmeow:vantage）、时间（gmeow:observedAt），以及恰好一个原因（gmeow:absenceReason，由验证强制，而非由函数性公理保证）。它不给出所询问属性的值，也不否定该属性，且不得由它推导出任何为假的结论：未获回答的问题是未知的，绝不是假的。其原因可带有自己的声明：不适用表示该问题的预设对该主体不成立，未公开发布表示判定者认为答案存在但并不公开；二者都是某个视角作出的声明，其他视角可以质疑。较晚出现的答案并不与较早的记录相矛盾；两者都被保留，各有自己的时间。不同视角的记录并存，针对同一问题的相互竞争的原因是各自独立的记录，没有哪一个享有特权。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/AbsenceRecord|http://www.w3.org/2004/02/skos/core#example"
 msgid "ex:record a gmeow:AbsenceRecord ; gmeow:vantage ex:researcher ; gmeow:observedFeature ex:acme ; gmeow:absenceQuestion ex:whoFounded ; gmeow:absenceReason gmeow:absenceReasonNotFound ."
@@ -288,8 +288,8 @@ msgid "The question an absence record says has no answer. Use it when the unansw
 msgstr "缺失记录所说没有答案的问题。未获回答的事项是一个问题时使用它；若是主体的某个属性，则由 gmeow:absentProperty 指明该属性。非函数性：一次确定可以涵盖多个问题。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/absenceQuestion|http://www.w3.org/2004/02/skos/core#example"
-msgid "ex:record gmeow:absenceQuestion ex:whenFounded ."
-msgstr "ex:record gmeow:absenceQuestion ex:whenFounded ."
+msgid "ex:record gmeow:absenceQuestion ex:whoFounded ."
+msgstr "ex:record gmeow:absenceQuestion ex:whoFounded ."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/absenceQuestion|https://blackcatinformatics.ca/gmeow/avoidWhen"
 msgid "Avoid treating it as the question being answered or resolved; it only names what was found to be unanswered."
@@ -308,8 +308,8 @@ msgid "absence reason"
 msgstr "给出的缺失原因"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/absenceReason|http://www.w3.org/2004/02/skos/core#definition"
-msgid "The reason an absence record gives for the missing answer, drawn from the open gmeow:AbsenceReason vocabulary. Functional: one record carries exactly one reason. Competing reasons for the same question are separate records from separate vantages, which coexist; none is privileged (Principles 9 and 10)."
-msgstr "缺失记录为缺少的答案所给出的原因，取自开放的 gmeow:AbsenceReason 词表。函数性：一条记录恰好带有一个原因。针对同一问题的相互竞争的原因是来自不同视角的独立记录，它们并存；没有哪一个享有特权（原则 9 和 10）。"
+msgid "The reason an absence record gives for the missing answer, drawn from the open gmeow:AbsenceReason vocabulary. One record carries exactly one reason, enforced by validation and not by a functional axiom. Competing reasons for the same question are separate records from separate vantages, which coexist; none is privileged (Principles 9 and 10)."
+msgstr "缺失记录为缺少的答案所给出的原因，取自开放的 gmeow:AbsenceReason 词表。一条记录恰好带有一个原因，由验证强制，而非由函数性公理保证。针对同一问题的相互竞争的原因是来自不同视角的独立记录，它们并存；没有哪一个享有特权（原则 9 和 10）。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/absenceReason|http://www.w3.org/2004/02/skos/core#example"
 msgid "ex:record gmeow:absenceReason gmeow:absenceReasonRetrievalFailed ."
@@ -320,8 +320,8 @@ msgid "Avoid reading any reason as a value or a negation, and avoid putting two 
 msgstr "避免把任何原因读作值或否定，也避免在一条记录上放两个原因来合并两次确定；应创建第二条记录。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/absenceReason|https://blackcatinformatics.ca/gmeow/howToUse"
-msgid "Set exactly one gmeow:AbsenceReason on each gmeow:AbsenceRecord."
-msgstr "在每条 gmeow:AbsenceRecord 上恰好设置一个 gmeow:AbsenceReason。"
+msgid "Set exactly one gmeow:AbsenceReason on each gmeow:AbsenceRecord; validation reports a second, and a competing reason is a separate record from its own vantage."
+msgstr "在每条 gmeow:AbsenceRecord 上设置恰好一个 gmeow:AbsenceReason；验证会报告第二个，相互竞争的原因是来自其自身视角的独立记录。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/absenceReason|https://blackcatinformatics.ca/gmeow/useWhen"
 msgid "Use to say why a question has no answer."
@@ -447,34 +447,6 @@ msgctxt "https://blackcatinformatics.ca/gmeow/AbsenceRetrievalFailedSourceConstr
 msgid "A closed-world integrity constraint: an absence record whose reason is gmeow:absenceReasonRetrievalFailed names the attempted source through gmeow:consultedSource."
 msgstr "一条封闭世界完整性约束：原因为 gmeow:absenceReasonRetrievalFailed 的缺失记录通过 gmeow:consultedSource 指明所尝试的来源。"
 
-msgctxt "https://blackcatinformatics.ca/gmeow/absenceReasonFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
-msgid "absenceReason is functional"
-msgstr "absenceReason 具有函数性"
-
-msgctxt "https://blackcatinformatics.ca/gmeow/absenceReasonFunctionality|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Asserts on the canonical carrier that gmeow:absenceReason is functional: a gmeow:AbsenceRecord gives exactly one reason. A competing reason for the same question is a separate record from another vantage, never a second value on this one."
-msgstr "在规范载体上断言 gmeow:absenceReason 是函数性的：一条 gmeow:AbsenceRecord 恰好给出一个原因。针对同一问题的竞争性原因是来自另一视角的独立记录，绝不是这条记录上的第二个值。"
-
-msgctxt "https://blackcatinformatics.ca/gmeow/absenceReasonFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
-msgid "Use when the native coherence gate must enforce that gmeow:absenceReason names exactly one value on a record, so the obligation is reasoned rather than restated on a shape surface."
-msgstr "当原生一致性门必须强制 gmeow:absenceReason 在一条记录上恰好命名一个值时使用，使该义务是被推理出来的，而不是在形状表面上重述。"
-
-msgctxt "https://blackcatinformatics.ca/gmeow/absenceReasonFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
-msgid "Avoid this record when a second reason would merge two determinations; mint a second gmeow:AbsenceRecord instead, and never mirror this as a hand-authored shape."
-msgstr "当第二个原因会合并两次判定时避免使用；应改为新建第二条 gmeow:AbsenceRecord，且绝不将其复刻为手写形状。"
-
-msgctxt "https://blackcatinformatics.ca/gmeow/absenceReasonFunctionality|https://blackcatinformatics.ca/gmeow/howToUse"
-msgid "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:absenceReason, logic:characteristicSort logic:functionalProperty) is the whole obligation."
-msgstr "与 logic:characteristicSort 一并阅读：(logic:characterizes gmeow:absenceReason, logic:characteristicSort logic:functionalProperty) 这一对构成完整义务。"
-
-msgctxt "https://blackcatinformatics.ca/gmeow/absenceReasonFunctionality|http://www.w3.org/2004/02/skos/core#example"
-msgid "gmeow:absenceReasonFunctionality logic:characterizes gmeow:absenceReason ."
-msgstr "gmeow:absenceReasonFunctionality logic:characterizes gmeow:absenceReason ."
-
-msgctxt "https://blackcatinformatics.ca/gmeow/absenceReasonFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
-msgid "Scope: this record carries ONE integrity obligation about gmeow:absenceReason and nothing else. Records from different vantages remain free to give different reasons for the same question."
-msgstr "范围：该记录仅承载关于 gmeow:absenceReason 的一项完整性义务，别无其他。来自不同视角的记录仍可自由地为同一问题给出不同的原因。"
-
 msgctxt "https://blackcatinformatics.ca/gmeow/AbsenceRecordFeatureConstraint|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "Absence record subject constraint"
 msgstr "缺失记录主体约束"
@@ -498,3 +470,11 @@ msgstr "缺失记录所问事项约束"
 msgctxt "https://blackcatinformatics.ca/gmeow/AbsenceRecordAskedConstraint|http://www.w3.org/2004/02/skos/core#definition"
 msgid "A closed-world integrity constraint: a direct gmeow:AbsenceRecord names the unanswered matter, through gmeow:absenceQuestion or gmeow:absentProperty or both."
 msgstr "封闭世界完整性约束：直接的 gmeow:AbsenceRecord 通过 gmeow:absenceQuestion 或 gmeow:absentProperty（或两者）指明未获回答的事项。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AbsenceRecordReasonUniqueConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Absence record single reason constraint"
+msgstr "缺失记录单一原因约束"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AbsenceRecordReasonUniqueConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A closed-world integrity constraint: a direct gmeow:AbsenceRecord gives at most one gmeow:absenceReason, never two distinct values. Competing reasons for the same question are separate records from separate vantages."
+msgstr "封闭世界完整性约束：直接的 gmeow:AbsenceRecord 至多给出一个 gmeow:absenceReason，绝不能是两个不同的值。针对同一问题的相互竞争的原因是来自不同视角的独立记录。"

@@ -171,13 +171,17 @@ ex:uqLeaderQuestion a gmeow:ExpectedRow ;
         [ a gmeow:ExpectedCell ; gmeow:cellVar "asked" ; gmeow:cellValueIri case:whoLeads ] ,
         [ a gmeow:ExpectedCell ; gmeow:cellVar "reason" ; gmeow:cellValueIri gmeow:absenceReasonNotFound ] .
 
-# "Does any absence record entail a value or a negative for the property it
-# asks about?" Under the native reasoning logic, every statement about the
-# subject that could stem from a record is looked for: a value of the asked
-# property, a denial, or a refutation. None is asserted in the example, so any
-# row would be an entailment from a record. Expected: none.
-ex:cqAbsenceEntailsNothing a gmeow:CompetencyQuestion ;
-    gmeow:cqReasoning gmeow:reasoningLogic ;
+# "Do the example records assert a value, a denial or a refutation for the
+# property they ask about?" Run over the asserted example data without
+# reasoning: each record is paired with its subject and asked property, and the
+# query looks for an asserted value of that property, a claim about the subject
+# with deny polarity, or a claim about the subject with refuted modality. None
+# is asserted, so the expected result is empty. This is a check of the asserted
+# data only; that nothing is derived from the absence properties is carried by
+# the structural assertions on sub-property, inverse, equivalence, chain and
+# restriction axioms.
+ex:cqAbsenceRecordsAssertNoValue a gmeow:CompetencyQuestion ;
+    gmeow:cqReasoning gmeow:reasoningNone ;
     gmeow:cqDataFile "examples/absence-records.ttl" ;
     gmeow:cqQuery """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
 SELECT ?record ?kind WHERE {
@@ -190,11 +194,11 @@ SELECT ?record ?kind WHERE {
     UNION
     { ?claim gmeow:observedFeature ?subject ; gmeow:claimModality gmeow:refuted . BIND("refutation" AS ?kind) }
 }""" ;
-    gmeow:cqRationale "An absence record gives no value for the property it asks about and negates none (an unanswered question is unknown, never false). The query pairs each record with its subject and asked property and looks for a value of that property, a denied claim or a refuted claim about the subject after closure under the native reasoner; the example asserts none of them, so an empty result shows nothing was entailed from the records, including the not-applicable and not-published ones." ;
-    gmeow:cqResultShape ex:cqAbsenceEntailsNothingShape ;
+    gmeow:cqRationale "An absence record gives no value for the property it asks about and negates none (an unanswered question is unknown, never false). The query pairs each record that names a property with its subject and looks, in the asserted example, for a value of that property, a denied claim or a refuted claim about the subject; the example asserts none of them, so an empty result shows that the records assert no value, denial or refutation. It does not show what a reasoner would derive: the absence properties carry no sub-property, inverse, equivalence, chain or restriction axiom, which the structural assertions check." ;
+    gmeow:cqResultShape ex:cqAbsenceRecordsAssertNoValueShape ;
     gmeow:cqExpectRowCount 0 .
 
-ex:cqAbsenceEntailsNothingShape a logic:ResultShape ;
+ex:cqAbsenceRecordsAssertNoValueShape a logic:ResultShape ;
     logic:shapeCardinality logic:RowsCount ;
     logic:shapeRowCount 0 ;
     logic:declaresColumn

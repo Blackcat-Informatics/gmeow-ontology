@@ -373,14 +373,44 @@ ASK {
     UNION { ?p logic:propertyChainAxiom ?chain }
     UNION { ?q logic:propertyChainAxiom ?chain . ?chain rdf:rest*/rdf:first ?p }
 }""" ;
-    gmeow:saRationale "The properties of an absence record MUST NOT be a sub-property, inverse, chain or equivalent of anything, nor a member of anything's property chain: no value, negation or other statement is derived from an absence record (an unanswered question is unknown, never false)." .
+    gmeow:saRationale "The properties of an absence record MUST NOT be a sub-property, inverse, chain or equivalent of anything, nor a member of anything's property chain: no value, negation or other statement is derived from an absence record (an unanswered question is unknown, never false). Together with the restriction assertion below this carries the no-derivation requirement; the competency question over the example data checks only what is asserted." .
 
-ex:saAbsenceReasonFunctional a gmeow:StructuralAssertion ;
+ex:saAbsenceNoRestriction a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:mustNot ; gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
+ASK {
+    VALUES ?p { gmeow:absenceReason gmeow:absenceQuestion gmeow:absentProperty gmeow:consultedSource }
+    ?restriction logic:onProperty ?p .
+}""" ;
+    gmeow:saRationale "None of the four absence properties is the property of a restriction: this branch authors no restriction on them, so a class axiom cannot make a record entail a value or a negation of the property it asks about. Authoring one fails this assertion." .
+
+ex:saAbsenceReasonAtMostOne a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:must ; gmeow:saScope gmeow:scopeModule ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
 PREFIX logic: <https://blackcatinformatics.ca/logic/>
+ASK {
+    gmeow:AbsenceRecordReasonUniqueConstraint a logic:Constraint ;
+        logic:formalizes gmeow:absenceReason ;
+        logic:integrity ?forall .
+    ?forall logic:forall ?implies .
+    ?implies logic:consequent ?not .
+    ?not logic:not ?exists .
+    ?exists logic:exists ?body .
+    ?body logic:and ?first , ?second , ?distinct .
+    ?first logic:relation gmeow:absenceReason .
+    ?second logic:relation gmeow:absenceReason .
+    ?distinct logic:relation logic:termDistinct .
+    FILTER(?first != ?second)
+}""" ;
+    gmeow:saRationale "One record carries one reason, enforced by a closed-world constraint that rejects two distinct reason values on a direct record. Competing reasons for the same question are separate records from separate vantages, which coexist (Principles 9 and 10)." .
+
+ex:saAbsenceReasonNotFunctional a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:mustNot ; gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
 ASK { ?rec logic:characterizes gmeow:absenceReason ; logic:characteristicSort logic:functionalProperty . }""" ;
-    gmeow:saRationale "One record carries exactly one reason. Competing reasons for the same question are separate records from separate vantages, which coexist and none is privileged (Principles 9 and 10)." .
+    gmeow:saRationale "A functional property would make a second reason identify the two reason individuals (for example not found with not published) instead of reporting the record, so the single-reason rule is a validation constraint and no functional characteristic record may characterize gmeow:absenceReason." .
 
 ex:saAbsenceExample a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:must ; gmeow:saScope gmeow:scopeModuleAndExamples ;

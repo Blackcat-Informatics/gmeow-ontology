@@ -282,7 +282,9 @@ that a question went unanswered, with the reason:
 A record gives no value for the property asked about and negates none, and nothing is derived
 from it. It is a claim like any other: records from different vantages coexist, and none is
 privileged (Principles 9 and 10). Mint one record per determination. A record carries exactly
-one reason; a competing reason for the same question is a separate record from its own vantage.
+one reason, enforced by a validation constraint and not by a functional axiom (a functional
+property would make a second reason identify the two reason individuals instead of reporting the
+record); a competing reason for the same question is a separate record from its own vantage.
 
 ### gmeow:AbsenceReason
 
@@ -308,8 +310,10 @@ not contradict, replace or hide the earlier record; both are kept, so what was k
 stays queryable. The worked example `examples/absence-records.ttl` holds one record for each
 reason, one record that names only a question, and a later answer; the competency questions
 list the unanswered questions about a subject with their reasons, return a record beside the
-answer that followed it, and show under the native reasoner that no value, denial or refutation
-follows from any record.
+answer that followed it, and show that the example records assert no value, denial or refutation
+for the property they ask about. That check reads asserted data only; structural assertions carry
+the no-derivation requirement by pinning that no sub-property, inverse, equivalence, chain or
+restriction axiom involves the absence properties.
 
 ### Relation to the absence terms of other slices
 

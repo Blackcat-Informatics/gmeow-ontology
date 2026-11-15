@@ -533,7 +533,7 @@ gmeow:AbsenceRecord
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inquiry> ;
     rdfs:label "Absence Record"@x-gmeow-english ;
     logic:subClassOf gmeow:Observation ;
-    skos:definition "An attributed, dated observation that a question has no answer, with the reason. A direct record names exactly one subject (gmeow:observedFeature), at least one of the question (gmeow:absenceQuestion) or the property (gmeow:absentProperty) asked about, the vantage that determined the absence (gmeow:vantage), when (gmeow:observedAt), and exactly one reason (gmeow:absenceReason). It gives no value for the property asked about and negates none, and nothing may be derived from it as false: an unanswered question is unknown, never false. Its reason may carry a claim of its own: not applicable says the question's presupposition does not hold for the subject, and not published says the determiner holds an answer exists and is not public; each is a claim from a vantage that another vantage may dispute. A later answer does not contradict an earlier record; both are retained, each with its own time. Records from different vantages coexist, and competing reasons for the same question are separate records, none privileged."@x-gmeow-english ;
+    skos:definition "An attributed, dated observation that a question has no answer, with the reason. A direct record names exactly one subject (gmeow:observedFeature), at least one of the question (gmeow:absenceQuestion) or the property (gmeow:absentProperty) asked about, the vantage that determined the absence (gmeow:vantage), when (gmeow:observedAt), and exactly one reason (gmeow:absenceReason, enforced by validation, not by a functional axiom). It gives no value for the property asked about and negates none, and nothing may be derived from it as false: an unanswered question is unknown, never false. Its reason may carry a claim of its own: not applicable says the question's presupposition does not hold for the subject, and not published says the determiner holds an answer exists and is not public; each is a claim from a vantage that another vantage may dispute. A later answer does not contradict an earlier record; both are retained, each with its own time. Records from different vantages coexist, and competing reasons for the same question are separate records, none privileged."@x-gmeow-english ;
     skos:example "ex:record a gmeow:AbsenceRecord ; gmeow:vantage ex:researcher ; gmeow:observedFeature ex:acme ; gmeow:absenceQuestion ex:whoFounded ; gmeow:absenceReason gmeow:absenceReasonNotFound ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid reading it as a value or a negative (an absent value is unknown, never false), putting two reasons on one record (mint a second record from the second vantage), deleting it when an answer arrives, or using it for a deliberate withholding by a disclosure policy (that is gmeow:DisclosureOutcome)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox ;
@@ -547,7 +547,7 @@ gmeow:absenceQuestion
     logic:domain gmeow:AbsenceRecord ;
     logic:range gmeow:Question ;
     skos:definition "The question an absence record says has no answer. Use it when the unanswered matter is a question; when it is a property of the subject, gmeow:absentProperty names that property. Non-functional: one determination may cover several questions."@x-gmeow-english ;
-    skos:example "ex:record gmeow:absenceQuestion ex:whenFounded ."@x-gmeow-english ;
+    skos:example "ex:record gmeow:absenceQuestion ex:whoFounded ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid treating it as the question being answered or resolved; it only names what was found to be unanswered."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox ;
     gmeow:howToUse "Point the gmeow:AbsenceRecord at the gmeow:Question it concerns; a later answer is a separate gmeow:answers claim and the record stays."@x-gmeow-english ;
@@ -559,11 +559,11 @@ gmeow:absenceReason
     rdfs:label "absence reason"@x-gmeow-english ;
     logic:domain gmeow:AbsenceRecord ;
     logic:range gmeow:AbsenceReason ;
-    skos:definition "The reason an absence record gives for the missing answer, drawn from the open gmeow:AbsenceReason vocabulary. Functional: one record carries exactly one reason. Competing reasons for the same question are separate records from separate vantages, which coexist; none is privileged (Principles 9 and 10)."@x-gmeow-english ;
+    skos:definition "The reason an absence record gives for the missing answer, drawn from the open gmeow:AbsenceReason vocabulary. One record carries exactly one reason, enforced by validation and not by a functional axiom. Competing reasons for the same question are separate records from separate vantages, which coexist; none is privileged (Principles 9 and 10)."@x-gmeow-english ;
     skos:example "ex:record gmeow:absenceReason gmeow:absenceReasonRetrievalFailed ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid reading any reason as a value or a negation, and avoid putting two reasons on one record to merge two determinations; mint a second record."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox ;
-    gmeow:howToUse "Set exactly one gmeow:AbsenceReason on each gmeow:AbsenceRecord."@x-gmeow-english ;
+    gmeow:howToUse "Set exactly one gmeow:AbsenceReason on each gmeow:AbsenceRecord; validation reports a second, and a competing reason is a separate record from its own vantage."@x-gmeow-english ;
     gmeow:useWhen "Use to say why a question has no answer."@x-gmeow-english .
 
 gmeow:absentProperty
@@ -734,25 +734,6 @@ logic:absFHas a logic:Formula ;
 logic:absFAtom a logic:Formula ; logic:relation gmeow:consultedSource ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "s" ] .
 
-# One record, one reason: the single value is a declared characteristic of the
-# property, and the at-least-one constraint above keeps it required.
-
-gmeow:absenceReasonFunctionality
-    a logic:NamedIndividual ,
-        logic:PropertyCharacteristicAssertion ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inquiry> ;
-    rdfs:label "absenceReason is functional"@x-gmeow-english ;
-    skos:definition "Asserts on the canonical carrier that gmeow:absenceReason is functional: a gmeow:AbsenceRecord gives exactly one reason. A competing reason for the same question is a separate record from another vantage, never a second value on this one."@x-gmeow-english ;
-    logic:characterizes gmeow:absenceReason ;
-    logic:characteristicSort logic:functionalProperty ;
-    logic:formalizes gmeow:absenceReason ;
-    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:absenceReason names exactly one value on a record, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
-    gmeow:avoidWhen "Avoid this record when a second reason would merge two determinations; mint a second gmeow:AbsenceRecord instead, and never mirror this as a hand-authored shape."@x-gmeow-english ;
-    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:absenceReason, logic:characteristicSort logic:functionalProperty) is the whole obligation."@x-gmeow-english ;
-    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:absenceReason and nothing else. Records from different vantages remain free to give different reasons for the same question."@x-gmeow-english ;
-    skos:example "gmeow:absenceReasonFunctionality logic:characterizes gmeow:absenceReason ."@x-gmeow-english ;
-    gmeow:graphBoxRole gmeow:boxABox .
-
 # A direct absence record names exactly one subject and at least one of the
 # question or the property asked about.
 
@@ -833,3 +814,35 @@ logic:absAqProperty a logic:Formula ;
     logic:exists logic:absAqPropertyAtom .
 logic:absAqPropertyAtom a logic:Formula ; logic:relation gmeow:absentProperty ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "p" ] .
+
+# One record, one reason: a closed-world constraint, not a functional axiom. A
+# functional property would make a second reason identify the two reason
+# individuals instead of reporting the record.
+
+gmeow:AbsenceRecordReasonUniqueConstraint
+    a logic:Constraint ;
+    rdfs:label "Absence record single reason constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inquiry> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world integrity constraint: a direct gmeow:AbsenceRecord gives at most one gmeow:absenceReason, never two distinct values. Competing reasons for the same question are separate records from separate vantages."@x-gmeow-english ;
+    logic:formalizes gmeow:absenceReason ;
+    logic:severity "Violation" ;
+    logic:message "An absence record must give exactly one reason (gmeow:absenceReason); a competing reason is a separate record." ;
+    logic:integrity logic:absRuForall .
+logic:absRuForall a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ;
+    logic:forall logic:absRuImpl .
+logic:absRuImpl a logic:Formula ; logic:antecedent logic:absRuGuard ; logic:consequent logic:absRuPhi .
+logic:absRuGuard a logic:Formula ; logic:relation logic:directType ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri gmeow:AbsenceRecord ] .
+logic:absRuPhi a logic:Formula ; logic:not logic:absRuExists .
+logic:absRuExists a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "r1" ] , [ logic:termIndex 1 ; logic:termVariable "r2" ] ;
+    logic:exists logic:absRuBody .
+logic:absRuBody a logic:Formula ; logic:and logic:absRur1 , logic:absRur2 , logic:absRuDistinct .
+logic:absRur1 a logic:Formula ; logic:relation gmeow:absenceReason ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "r1" ] .
+logic:absRur2 a logic:Formula ; logic:relation gmeow:absenceReason ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "r2" ] .
+logic:absRuDistinct a logic:Formula ; logic:relation logic:termDistinct ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "r1" ] , [ logic:termIndex 1 ; logic:termVariable "r2" ] .
