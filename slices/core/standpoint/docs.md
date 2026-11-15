@@ -68,9 +68,14 @@ What the canonical checks enforce:
   retracted with `gmeow:retractsClaim`.
 - `gmeow:moreEntrenchedThanRankerClosureConstraint`: a ranker who holds a live claim
   ranking a over b and a live claim ranking b over c must also hold a live claim ranking
-  a over c. A claim is live when it is the object of no `gmeow:succeedsClaim`, no
-  `gmeow:correctsClaim` and no `gmeow:retractsClaim`. A premise that is superseded,
-  corrected or retracted does not oblige, and the concluding claim must itself be live.
+  a over c. A claim is live when it is the object of no `gmeow:succeedsClaim`, of no
+  `gmeow:retractsClaim`, and of no `gmeow:correctsClaim` statement whose reifier names
+  the same ranker with `gmeow:accordingTo`. The ranker is read from the annotation on the
+  correction statement, not from the correcting claim: a correction statement that names
+  another party leaves the claim live, whichever claim it is made from, because a
+  correction does not supersede or suppress the claim it corrects. A premise that is
+  superseded, retracted or corrected by a statement that names its own ranker does not
+  oblige, and the concluding claim must itself be live.
 
 Together these checks reject a cycle of any length among one ranker's live claims: the
 closure forces a live claim from the first standpoint of the cycle to its last, and that
@@ -82,8 +87,10 @@ What is not enforced: the checks read the record as it stands and compare no dat
 they do not judge the order at an evaluation instant. A cycle among the claims selected
 at an instant `t` below (for example among claims that were all in force before one of
 them was superseded) is reported by the consumer. The checks apply to a claim whose
-first standpoint is typed `gmeow:Standpoint`, and they do not check who made a lifecycle
-link.
+first standpoint is typed `gmeow:Standpoint`. They do not check who made a succession or
+a retraction. The pair check exempts two claims of one ranker when either corrects the
+other and does not check who made that link. The closure check counts a correction only
+when the annotation on the `gmeow:correctsClaim` statement names that ranker.
 
 A ranker who changes or withdraws a ranking keeps the earlier claim and uses the claim
 lifecycle relations on the reifier of the ranking statement: `gmeow:succeedsClaim` for a
@@ -91,7 +98,15 @@ reversal or replacement (the earlier claim stays valid for its earlier interval)
 `gmeow:correctsClaim` for a ranking made in error, and `gmeow:retractsClaim` for a
 withdrawal, each annotated with the same ranker and an effective time. There is no
 separate end instant for a ranking. Name the reifier of each ranking statement so these
-relations can reach it; the constraints do not check who made a lifecycle link.
+relations can reach it; the constraints do not check who made a succession or a
+retraction. A ranker's own correction of a ranking looks like this, with the ranker on
+the annotation of the correction statement:
+
+```turtle
+ex:reviewedRanking gmeow:correctsClaim ex:mistakenRanking
+    {| gmeow:accordingTo ex:editorialBoard ;
+       gmeow:validFrom "2026-05-01T00:00:00Z"^^xsd:dateTime |} .
+```
 
 Which claims enter one ranker's order is fixed by a stated evaluation instant `t`. A
 claim participates when it names the ranker with `gmeow:accordingTo` and carries a
@@ -99,13 +114,19 @@ claim participates when it names the ranker with `gmeow:accordingTo` and carries
 
 - A displayed order leaves out any claim suppressed with `gmeow:displayable false`, since
   suppression is how superseded and withdrawn records leave display (Principle 10); it
-  also leaves out a corrected claim, a claim whose retraction has taken effect by `t`, and
-  a claim whose successor has taken effect by `t`.
-- A historical order at `t` answers what the ranker held at `t`. It ignores
+  also leaves out a claim corrected by a correction statement that names the ranker with
+  `gmeow:accordingTo`, a claim whose retraction has taken effect by `t`, and a claim
+  whose successor has taken effect by `t`.
+- A historical order at `t` gives the ranker's present account of what it ranked at
+  `t`: it is read from the record as it now stands, so a correction the ranker makes
+  later changes the account of earlier instants. It ignores
   `gmeow:displayable`, which is a display policy and not a truth judgment. It keeps a
   superseded claim for every `t` before its successor took effect and leaves it out from
-  that instant on. It leaves out a corrected claim at every `t`, because a correction
-  rejects the earlier validity of the claim. It keeps a retracted claim for every `t`
+  that instant on. It leaves out at every `t` a claim corrected by a correction statement
+  that names the ranker, because the ranker then rejects the earlier validity of its own
+  claim. A correction statement that names another party removes the claim from neither
+  order: a correction does not supersede or suppress the claim it corrects. The corrected
+  claim itself stays in the record either way. It keeps a retracted claim for every `t`
   before its retraction took effect and leaves it out from that instant on, because a
   retraction withdraws endorsement from then on and does not erase that the claim was
   made. A lifecycle relation takes effect at the earliest `gmeow:validFrom` on its own
@@ -116,6 +137,43 @@ any pair still unordered incomparable. If the selected claims contain a cycle, t
 ranker's ranking is inconsistent at `t`; a consumer reports it and does not pick a side.
 Every case above is decided by the graph, the ranker, `t` and the use, so two consumers
 given the same four select the same claims and derive the same order.
+
+### gmeow:correctsClaim
+
+Correction and suppression are two different acts. "It is blue" answered by "No, it is
+red, you are wrong, I checked" does not erase the evidence of blue. Two patterns cover
+the cases, and neither one touches the claim it is about.
+
+| Case | Pattern | What is recorded |
+|---|---|---|
+| Two parties simply disagree; nothing is corrected. | A `gmeow:ClaimEvaluation` that `gmeow:evaluates` the claim | The evaluator's standpoint (`gmeow:accordingTo`) and the verdict it `gmeow:expresses`. Evaluations by other standpoints coexist. |
+| A standpoint states, on a codified basis such as a checked record or a rule that decides between the two claims, that another claim is wrong. | `gmeow:correctsClaim` from the correcting claim to the corrected claim | The correcting standpoint (`gmeow:accordingTo`) and the effective time (`gmeow:validFrom`) on the relation. |
+
+`gmeow:correctsClaim` is not a sub-property of `gmeow:supersedes`. A correction derives no
+`gmeow:supersedes` and no `gmeow:supersededBy`, and it gives no reason to set
+`gmeow:displayable false`: the corrected claim is retained unchanged and stays
+retrievable beside its correction. No data sets `gmeow:displayable false` because a
+claim is disputed, corrected or evaluated; what a particular reader sees of a disputed
+claim is decided at projection. Principle 10 names the cases that do prompt suppression.
+A claimed state that changed is `gmeow:succeedsClaim`, and a standpoint withdrawing its
+own claim is `gmeow:retractsClaim`; neither is a dispute.
+
+```turtle
+# Plain disagreement: the neighbour doubts the report and corrects nothing.
+ex:neighbourDoubt a gmeow:ClaimEvaluation ;
+    gmeow:evaluates   ex:blueClaim ;
+    gmeow:accordingTo ex:neighbourView ;
+    gmeow:expresses   ex:blueClaimUnwarranted .
+
+# Correction: the inspector checked the paint record and says the report is wrong.
+ex:redClaim gmeow:correctsClaim ex:blueClaim
+    {| gmeow:accordingTo ex:inspectorView ;
+       gmeow:validFrom "2026-04-02T09:00:00Z"^^xsd:dateTime |} .
+```
+
+The complete example is `examples/correction-and-disagreement.ttl`. Its competency
+question in `tests/competency.ttl` asks for the claims of the inspector's correction and
+receives both `ex:blueClaim` and `ex:redClaim`.
 
 ### gmeow:StandpointModality · gmeow:claimModality
 

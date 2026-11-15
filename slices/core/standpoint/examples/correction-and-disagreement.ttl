@@ -1,0 +1,58 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Worked example: a plain disagreement and a correction are two different
+# records, and neither one removes the claim it is about (Principles 9 and 10).
+#
+# A surveyor reports that the door is blue.
+#
+# Pattern 1, plain disagreement. A neighbour doubts the report and corrects
+# nothing. The doubt is a gmeow:ClaimEvaluation that gmeow:evaluates the
+# surveyor's claim and gmeow:expresses the neighbour's verdict.
+#
+# Pattern 2, correction. An inspector checks the door against the paint record,
+# states that the report is wrong and claims that the door is red. The
+# correction is gmeow:correctsClaim on the inspector's claim, annotated with the
+# inspector's standpoint and the instant the correction took effect.
+#
+# In both patterns the surveyor's claim stays as it was authored: no
+# gmeow:displayable false, no gmeow:supersedes. Which claim a reader is shown is
+# decided at projection.
+
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix ex:    <https://example.org/correction/> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+
+ex:surveyor  a gmeow:Agent .
+ex:neighbour a gmeow:Agent .
+ex:inspector a gmeow:Agent .
+
+ex:surveyorView  a gmeow:Standpoint .
+ex:neighbourView a gmeow:Standpoint .
+ex:inspectorView a gmeow:Standpoint .
+
+ex:doorIsBlue          a gmeow:Proposition .
+ex:doorIsRed           a gmeow:Proposition .
+ex:blueClaimUnwarranted a gmeow:Proposition .
+
+# The claim both patterns are about.
+ex:blueClaim a gmeow:ClaimToken ;
+    gmeow:wasAssociatedWith ex:surveyor ;
+    gmeow:accordingTo       ex:surveyorView ;
+    gmeow:expresses         ex:doorIsBlue .
+
+# Pattern 1: the neighbour disagrees and corrects nothing.
+ex:neighbourDoubt a gmeow:ClaimEvaluation ;
+    gmeow:wasAssociatedWith ex:neighbour ;
+    gmeow:evaluates         ex:blueClaim ;
+    gmeow:accordingTo       ex:neighbourView ;
+    gmeow:expresses         ex:blueClaimUnwarranted .
+
+# Pattern 2: the inspector corrects the claim from the inspector's standpoint.
+ex:redClaim a gmeow:ClaimToken ;
+    gmeow:wasAssociatedWith ex:inspector ;
+    gmeow:accordingTo       ex:inspectorView ;
+    gmeow:expresses         ex:doorIsRed ;
+    gmeow:correctsClaim     ex:blueClaim
+        {| gmeow:accordingTo ex:inspectorView ;
+           gmeow:validFrom "2026-04-02T09:00:00Z"^^xsd:dateTime |} .
