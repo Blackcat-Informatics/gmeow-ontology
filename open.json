@@ -1,0 +1,30 @@
+{
+  "schema": 1,
+  "issue": 2801,
+  "repo": "gmeow-ontology",
+  "forge": "github",
+  "nwo": "Blackcat-Informatics/gmeow-ontology",
+  "read_access": "anon-read",
+  "main_root": "/home/paudley/Active/gmeow-ontology",
+  "worktree": "/home/paudley/Active/gmeow-ontology/.worktrees/2801-term-source-snapshot-a-retrieved-copy",
+  "branch": "paudley/2801-term-source-snapshot-a-retrieved-copy",
+  "slug": "term-source-snapshot-a-retrieved-copy",
+  "slug_drift": false,
+  "stage_dir": "/home/paudley/Active/gmeow-ontology/.worktrees/2801-term-source-snapshot-a-retrieved-copy/.stage/term-source-snapshot-a-retrieved-copy",
+  "stage_tracked": true,
+  "base": "origin/main",
+  "base_oid": "1198be05c9e85367ebd85fd6ea45c3f520c76ffb",
+  "reused": false,
+  "adr_repo": false,
+  "created": [
+    "worktree:/home/paudley/Active/gmeow-ontology/.worktrees/2801-term-source-snapshot-a-retrieved-copy",
+    "branch:paudley/2801-term-source-snapshot-a-retrieved-copy",
+    "ignored:8264 files (8264 reflinked, 0 written)",
+    "rust-caches:git ls-files -s -z failed in /home/paudley/Active/gmeow-ontology/.worktrees/2745-research-objects-purrdf-version: fatal: cannot change to '/home/paudley/Active/gmeow-ontology/.worktrees/2745-research-objects-purrdf-version': No such file or directory",
+    "stage:/home/paudley/Active/gmeow-ontology/.worktrees/2801-term-source-snapshot-a-retrieved-copy/.stage/term-source-snapshot-a-retrieved-copy",
+    "issue:/home/paudley/Active/gmeow-ontology/.worktrees/2801-term-source-snapshot-a-retrieved-copy/.stage/term-source-snapshot-a-retrieved-copy/issue.md"
+  ],
+  "warnings": [],
+  "timestamp": "2026-11-15T02:01:20-0600",
+  "seed_error": ""
+}

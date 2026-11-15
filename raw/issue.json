@@ -1,0 +1,73 @@
+{
+  "assignees": [],
+  "author": {
+    "id": "MDQ6VXNlcjUyNzU1NQ==",
+    "is_bot": false,
+    "login": "paudley",
+    "name": "Patrick Audley"
+  },
+  "body": "## Request\n\nA consumer citing web sources as evidence needs to describe a source snapshot: the cited document as retrieved at one moment, with the digest of the retrieved bytes, the time of retrieval, and an immutable address for exactly those bytes (for example a content-addressed archive path).\n\n## What exists\n\n`gmeow:contentDigest` with the digest datatypes, `gmeow:sourceLocation` and `gmeow:sourceModifiedAt` (sources slice); `gmeow:WebPage` and the work, expression and manifestation layering (documents slice); `gmeow:CitationAct` with `gmeow:viaSelector` and `gmeow:selectorTextQuote` (citations slice); `gmeow:ingestedAt` on an import activity (provenance slice). There is no snapshot class, no retrieval-time property for a fetched copy, and no stated way to distinguish the live address a document was fetched from, from the immutable address of the retrieved bytes.\n\n## Required\n\n- A class for a retrieved copy of a source at one moment, placed in the existing document layering (a snapshot is a particular carrier of a manifestation; it is not a new work), with: the digest of its bytes, the instant of retrieval, the address it was retrieved from, and the immutable address of the stored bytes.\n- Retrieval time is distinct from the four existing clocks (valid time, assertion time, source carrier time, record time), and the definitions say how.\n- A citation can point at a snapshot, so a quoted passage is anchored to the retrieved bytes, not to the live address.\n- A failed retrieval is not a snapshot; see the absence-reasons request.\n- A worked example (one claim, one citation, one snapshot with digest, retrieval time and both addresses), a competency question returning the evidence chain of a claim, and translations.\n\nPrinciples 2, 4, 7.\n",
+  "closedAt": null,
+  "comments": [
+    {
+      "id": "IC_kwDOSwdn1s8AAAABmoeAgQ",
+      "author": {
+        "login": "paudley"
+      },
+      "authorAssociation": "MEMBER",
+      "body": "Blocks: #2795 (Release 0.4.0), by the maintainer's decision.",
+      "createdAt": "2026-11-15T01:49:54Z",
+      "includesCreatedEdit": false,
+      "isMinimized": false,
+      "minimizedReason": "",
+      "reactionGroups": [],
+      "url": "https://github.com/Blackcat-Informatics/gmeow-ontology/issues/2801#issuecomment-6887538817",
+      "viewerDidAuthor": true
+    }
+  ],
+  "createdAt": "2026-11-15T01:17:34Z",
+  "labels": [
+    {
+      "id": "LA_kwDOSwdn1s8AAAACl8ZKsg",
+      "name": "documentation",
+      "description": "Improvements or additions to documentation",
+      "color": "0075ca"
+    },
+    {
+      "id": "LA_kwDOSwdn1s8AAAACl8ZKwA",
+      "name": "enhancement",
+      "description": "New feature or request",
+      "color": "a2eeef"
+    },
+    {
+      "id": "LA_kwDOSwdn1s8AAAACmTvTOg",
+      "name": "foundational",
+      "description": "Foundational / kernel construct",
+      "color": "b60205"
+    },
+    {
+      "id": "LA_kwDOSwdn1s8AAAACmTvThA",
+      "name": "cross-cutting",
+      "description": "Cross-cutting concern",
+      "color": "fbca04"
+    },
+    {
+      "id": "LA_kwDOSwdn1s8AAAACoIO76w",
+      "name": "complexity-hard",
+      "description": "Foundational/cross-cutting/research; large coordination or new semantics",
+      "color": "b60205"
+    },
+    {
+      "id": "LA_kwDOSwdn1s8AAAADBPkJyQ",
+      "name": "terms",
+      "description": "",
+      "color": "ededed"
+    }
+  ],
+  "milestone": null,
+  "number": 2801,
+  "state": "OPEN",
+  "title": "[term] Source snapshot: a retrieved copy with digest, retrieval time and immutable address",
+  "updatedAt": "2026-11-15T01:49:54Z",
+  "url": "https://github.com/Blackcat-Informatics/gmeow-ontology/issues/2801"
+}
