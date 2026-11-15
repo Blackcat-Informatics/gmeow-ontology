@@ -138,7 +138,7 @@ ex:samplingFrame a gmeow:ReferenceFrame .
 # --- The process / result / claim spine --------------------------------------- #
 
 ex:inferenceRun a math:InferenceRun , gmeow:Activity ;
-    math:fittedToData ex:sampleData .
+    gmeow:used ex:sampleData .
 ex:sampleData a math:DatasetMatrix .
 
 ex:pvalueObservation a gmeow:Observation ;
