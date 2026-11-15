@@ -918,6 +918,11 @@ pub fn report_allocator_observation_failure(error: &std::io::Error) {
     dev_common::emit_error("gmeow-dev.allocator-observation.failed", error.to_string());
 }
 
+/// Report that the selected stage memory log could not be opened.
+pub fn report_stage_memory_log_failure(error: &gmeow_cli_core::StageMemoryLogError) {
+    dev_common::emit_error("gmeow-dev.stage-memory-log.failed", error.to_string());
+}
+
 /// Parse the arguments, dispatch to the wired backend, and return the exit code.
 pub fn run() -> i32 {
     let cli = match Cli::try_parse() {

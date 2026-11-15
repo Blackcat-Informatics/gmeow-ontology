@@ -66,6 +66,7 @@ mod json_counts;
 pub mod loader;
 pub mod mapping_purity;
 pub mod medium;
+pub mod memory_record;
 pub mod node;
 pub mod projection_execution;
 pub mod projection_profiles;

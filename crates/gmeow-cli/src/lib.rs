@@ -1735,6 +1735,14 @@ pub(crate) fn resolve_console(flag: Option<ConsoleMode>) -> ConsoleMode {
     ConsoleMode::resolve_stderr_default(flag, env_val.as_deref(), std::io::stderr().is_terminal())
 }
 
+/// Report that the selected stage memory log could not be opened, and return the
+/// process exit code.
+pub fn report_stage_memory_log_failure(error: &gmeow_cli_core::StageMemoryLogError) -> i32 {
+    let reporter = gmeow_cli_core::reporter_for(resolve_console(None));
+    let diag = commands::error_diag("gmeow.stage-memory-log.failed", error.to_string());
+    gmeow_cli_core::emit_and_exit(reporter.as_ref(), diag, "gmeow")
+}
+
 /// Parse the arguments, dispatch to the wired backend, and return the process
 /// exit code. clap emits its own usage errors (exit `2`) before this returns.
 pub fn run() -> i32 {

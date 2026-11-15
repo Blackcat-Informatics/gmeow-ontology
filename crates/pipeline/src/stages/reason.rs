@@ -127,8 +127,10 @@ fn reason_product_from_artifacts(
 /// selected blank graph identities cannot cross relabelling without its issuer map.
 /// The caller supplies the exact theory-role domain authority; merely occupying
 /// a support or diagnostic graph does not select a domain law.
-/// The carrier is consumed and released after its final authored-expression read.
-/// An owning `Arc` can release the temporary EDB before terminal artifacts are built.
+/// The carrier is consumed and dropped after its final read, the authored-expression
+/// projection, which runs before the engine. A caller that passes its only owner
+/// therefore has the EDB freed before reasoning starts; a caller that passes a
+/// borrow keeps it.
 ///
 /// # Errors
 /// Rejects native input/domain admission, execution, evidence or projection failures.
@@ -146,50 +148,42 @@ pub fn reason_over_dataset(
     // Issue canonical labels directly over the native RDF 1.2 carrier. The
     // shared issuer determines Skolem identity without a text document and a
     // second parse/freeze; every statement-layer row remains in its own table.
-    let canon_started = Instant::now();
+    let input_quads = edb.quad_count();
+    let input_terms = edb.term_count();
+    let canon = measure_stage_phase("stage-reason", "canonicalize-edb", || {
+        canonicalize_edb(&edb, "stage-reason")
+    })?;
     tracing::info!(
         target: "pipeline_phase",
         stage = "stage-reason",
         phase = "canonicalize-edb",
-        event = "start",
-        input_quads = edb.quad_count(),
-        input_terms = edb.term_count(),
-        "stage phase boundary",
-    );
-    let canon = canonicalize_edb(&edb, "stage-reason")?;
-    tracing::info!(
-        target: "pipeline_phase",
-        stage = "stage-reason",
-        phase = "canonicalize-edb",
-        event = "end",
-        elapsed_ms = canon_started.elapsed().as_millis(),
+        input_quads,
+        input_terms,
         output_quads = canon.quad_count(),
         output_terms = canon.term_count(),
-        "stage phase boundary",
+        "canonical reasoning input size",
     );
-    let prepare_started = Instant::now();
-    tracing::info!(
-        target: "pipeline_phase",
-        stage = "stage-reason",
-        phase = "prepare-reasoning-input",
-        event = "start",
-        "stage phase boundary",
-    );
-    let input = prepare_reasoning_input(canon.as_ref())?;
-    // Prepared input owns its canonical terms. Release the temporary dataset
-    // and reclaim free allocator pages before consuming reasoning starts. The
-    // original EDB remains available for authored expression projections.
+    // The `math:` expression-identity derivation over the SAME asserted EDB the closure is
+    // reasoned from. Lowered from `edb`, not `canon` and not the closure: the derivation is a
+    // claim about the structure an author WROTE, and
+    // `gmeow_logic::math_expression::alpha_equivalence_edges` is the one place that rule
+    // lives (it is also what the reason-verify / `validate --deep` gates splice into their
+    // in-process reasoned graph). It is a function of the asserted dataset alone and is the
+    // dataset's last reader, so it runs here and the dataset is released before the engine
+    // starts rather than held through the whole reasoning pass.
+    let alpha_edges = measure_stage_phase("stage-reason", "project-expression-identities", || {
+        gmeow_logic::math_expression::alpha_equivalence_edges(&edb)
+    });
+    drop(edb);
+    let input = measure_stage_phase("stage-reason", "prepare-reasoning-input", || {
+        prepare_reasoning_input(canon.as_ref())
+    })?;
+    // Prepared input owns its canonical terms, and the expression edges own their
+    // strings. Release the canonical dataset and reclaim free allocator pages, which
+    // covers the asserted dataset dropped above, before consuming reasoning starts.
     drop(canon);
     crate::scheduler::reclaim_allocator_slack();
-    tracing::info!(
-        target: "pipeline_phase",
-        stage = "stage-reason",
-        phase = "prepare-reasoning-input",
-        event = "end",
-        elapsed_ms = prepare_started.elapsed().as_millis(),
-        "stage phase boundary",
-    );
-    reason_prepared_input(edb, input, domains)
+    reason_prepared_input(alpha_edges, input, domains)
 }
 
 fn stage_failure(message: impl Into<String>) -> gmeow_errors::Diag {
@@ -201,39 +195,34 @@ fn stage_failure(message: impl Into<String>) -> gmeow_errors::Diag {
 }
 
 /// Execute the consuming input once and retain its native proof owner in the result.
+/// `alpha_edges` are the expression-identity edges of the asserted dataset the input
+/// was prepared from ([`gmeow_logic::math_expression::alpha_equivalence_edges`]).
 fn reason_prepared_input(
-    edb: impl Deref<Target = RdfDataset>,
+    alpha_edges: Vec<(String, String)>,
     input: PreparedReasoningInput,
     domains: &SelectedDomains,
 ) -> Result<ReasonArtifacts, gmeow_errors::Diag> {
-    let reason_started = Instant::now();
-    tracing::info!(
-        target: "pipeline_phase",
-        stage = "stage-reason",
-        phase = "reason-all",
-        event = "start",
-        selected_worlds = domains.worlds().len(),
-        "stage phase boundary",
-    );
-    let result = reason_all(input, domains)
+    let result = measure_stage_phase("stage-reason", "reason-all", || reason_all(input, domains))
         .map_err(|error| error.with_context("stage-reason: native reasoning failed"))?;
     tracing::info!(
         target: "pipeline_phase",
         stage = "stage-reason",
         phase = "reason-all",
-        event = "end",
-        elapsed_ms = reason_started.elapsed().as_millis(),
+        selected_worlds = domains.worlds().len(),
         inferred_axioms = result.inferred().len(),
-        "stage phase boundary",
+        "reasoning result size",
     );
-    let artifacts_started = Instant::now();
-    tracing::info!(
-        target: "pipeline_phase",
-        stage = "stage-reason",
-        phase = "project-reason-artifacts",
-        event = "start",
-        "stage phase boundary",
-    );
+    measure_stage_phase("stage-reason", "project-reason-artifacts", || {
+        project_reason_artifacts(result, &alpha_edges)
+    })
+}
+
+/// Project the terminal artifacts of one reasoning result: the closure, the carried
+/// dataset, the explanations and the ledgers.
+fn project_reason_artifacts(
+    result: ReasoningResult,
+    alpha_edges: &[(String, String)],
+) -> Result<ReasonArtifacts, gmeow_errors::Diag> {
     let native = result.native_execution()?;
     // Admit the exact committed native minting heads and their world-local proof;
     // certificate findings cite those heads, including subject-only value nulls.
@@ -280,24 +269,13 @@ fn reason_prepared_input(
         chase_report.add_finding(finding);
     }
     chase_report.normalize();
-    // The `math:` expression-identity derivation over the SAME asserted EDB this closure was
-    // reasoned from. Lowered from `edb`, not `canon` and not the closure: the derivation is a
-    // claim about the structure an author WROTE, and
-    // `gmeow_logic::math_expression::alpha_equivalence_edges` is the one place that rule
-    // lives (it is also what the reason-verify / `validate --deep` gates splice into their
-    // in-process reasoned graph). Serializing it here is what puts the joinable α-class node
-    // in a SHIPPED artifact — `gmeow.gts`'s default graph and the committed inferred-closure
-    // file — instead of only inside a gate process.
-    let alpha_edges = measure_stage_phase("stage-reason", "project-expression-identities", || {
-        gmeow_logic::math_expression::alpha_equivalence_edges(&edb)
-    });
-    // Prepared input, result and expression edges own their retained values.
-    // The original carrier has no reader during terminal artifact projection.
-    drop(edb);
-    // Non-merge (the regenerate path): the closure is told-vs-inferred plus that derivation.
+    // Non-merge (the regenerate path): the closure is told-vs-inferred plus the `math:`
+    // expression-identity derivation. Serializing those edges here is what puts the
+    // joinable α-class node in a SHIPPED artifact — `gmeow.gts`'s default graph and the
+    // committed inferred-closure file — instead of only inside a gate process.
     let mut builder = RdfDatasetBuilder::new();
     let closure = measure_stage_phase("stage-reason", "project-inferred-closure", || {
-        build_inferred_closure_into(&result, &alpha_edges, &mut builder)
+        build_inferred_closure_into(&result, alpha_edges, &mut builder)
     })
     .map_err(|e| {
         gmeow_errors::Diag::of_kind(crate::error::StageFailed {
@@ -330,11 +308,9 @@ fn reason_prepared_input(
         target: "pipeline_phase",
         stage = "stage-reason",
         phase = "project-reason-artifacts",
-        event = "end",
-        elapsed_ms = artifacts_started.elapsed().as_millis(),
         output_quads = dataset.quad_count(),
         witness_projections = witness_projections.len(),
-        "stage phase boundary",
+        "reason artifact size",
     );
     Ok(ReasonArtifacts {
         closure,
@@ -782,27 +758,21 @@ impl Stage for ReasonStage {
         // committed closure AND backs the bundle's `graph/reasoning`; there is no
         // second full-fold export leaf.
         let edb_started = Instant::now();
-        tracing::info!(
-            target: "pipeline_phase",
-            stage = self.id(),
-            phase = "assemble-object-edb",
-            event = "start",
-            "stage phase boundary",
-        );
         // Admit the declared producers and select theory roles before
         // the physical union. Unselected report/support graphs cannot acquire an
         // intrinsic nonempty-domain law merely by occupying the carrier.
-        let domains = object_level_domains(self, &input)?;
-        let edb = crate::stages::carrier::assemble_object_level_edb(input.upstream)?;
+        let (domains, edb) = measure_stage_phase(self.id(), "assemble-object-edb", || {
+            let domains = object_level_domains(self, &input)?;
+            let edb = crate::stages::carrier::assemble_object_level_edb(input.upstream)?;
+            Ok::<_, gmeow_errors::Diag>((domains, edb))
+        })?;
         let edb_quads = edb.quad_count();
         tracing::info!(
             target: "pipeline_phase",
             stage = self.id(),
             phase = "assemble-object-edb",
-            event = "end",
-            elapsed_ms = edb_started.elapsed().as_millis(),
             edb_quads,
-            "stage phase boundary",
+            "object-level EDB size",
         );
         timings.push(StageRunTiming {
             phase: "assemble-object-edb".to_string(),
@@ -810,15 +780,10 @@ impl Stage for ReasonStage {
             metadata: Some(format!("edb-quads={edb_quads}")),
         });
         let closure_started = Instant::now();
-        tracing::info!(
-            target: "pipeline_phase",
-            stage = self.id(),
-            phase = "construct-closure-and-artifacts",
-            event = "start",
-            edb_quads,
-            "stage phase boundary",
-        );
-        let reasoned = reason_over_dataset(edb, &domains)?;
+        let reasoned = measure_stage_phase(self.id(), "construct-closure-and-artifacts", || {
+            reason_over_dataset(edb, &domains)
+        })?;
+        let closure_elapsed_ms = closure_started.elapsed().as_millis();
         let inferred_axioms = reasoned.result.inferred().len();
         let budget = reasoned.result.provenance.consumed_budget;
         let budget_allowance = budget
@@ -836,16 +801,14 @@ impl Stage for ReasonStage {
             target: "pipeline_phase",
             stage = self.id(),
             phase = "construct-closure-and-artifacts",
-            event = "end",
-            elapsed_ms = closure_started.elapsed().as_millis(),
             edb_quads,
             inferred_axioms,
             artifact_bytes,
-            "stage phase boundary",
+            "closure and artifact size",
         );
         timings.push(StageRunTiming {
             phase: "construct-closure-and-artifacts".to_string(),
-            elapsed_ms: closure_started.elapsed().as_millis(),
+            elapsed_ms: closure_elapsed_ms,
             metadata: Some(format!(
                 "closure-constructions=1;edb-quads={edb_quads};inferred-axioms={inferred_axioms};\
                  budget-consumed={};budget-allowance={budget_allowance};budget-limit={budget_limit};\
@@ -858,86 +821,89 @@ impl Stage for ReasonStage {
             )),
         });
         let output_started = Instant::now();
-        tracing::info!(
-            target: "pipeline_phase",
-            stage = self.id(),
-            phase = "assemble-reason-product",
-            event = "start",
-            "stage phase boundary",
-        );
-        // The CLOSURE stays the dataset's DEFAULT graph. The EXPLANATIONS and LEDGER are
-        // diagnostic REPORTS (proof skeletons / DL·EL crosscheck), NOT ontology facts; they
-        // stay byte-lane only and are EXCLUDED from the carried dataset BY CONSTRUCTION. The
-        // typed five-axis result rides BOTH as the `graph/reasoning` named graph (the
-        // repo-free RDF projection) AND as the typed `PipelineHandle::Reasoning` handle
-        // pinned to that graph (C7) — dual carriage.
-        let dataset = reasoned.dataset;
-        let (nodes, diag_blob) =
-            measure_stage_phase(self.id(), "assemble-reason-diagnostics", || {
-                let nodes =
-                    crate::stages::diag_render::finding_nodes(&reasoned.chase_report, self.id());
-                let diag_blob = crate::node::encode_diag_nodes(self.id(), &nodes);
-                (nodes, diag_blob)
-            });
+        let (product, nodes, output_quads) =
+            measure_stage_phase(self.id(), "assemble-reason-product", || {
+                // The CLOSURE stays the dataset's DEFAULT graph. The EXPLANATIONS and LEDGER are
+                // diagnostic REPORTS (proof skeletons / DL·EL crosscheck), NOT ontology facts; they
+                // stay byte-lane only and are EXCLUDED from the carried dataset BY CONSTRUCTION. The
+                // typed five-axis result rides BOTH as the `graph/reasoning` named graph (the
+                // repo-free RDF projection) AND as the typed `PipelineHandle::Reasoning` handle
+                // pinned to that graph (C7) — dual carriage.
+                let dataset = reasoned.dataset;
+                let (nodes, diag_blob) =
+                    measure_stage_phase(self.id(), "assemble-reason-diagnostics", || {
+                        let nodes = crate::stages::diag_render::finding_nodes(
+                            &reasoned.chase_report,
+                            self.id(),
+                        );
+                        let diag_blob = crate::node::encode_diag_nodes(self.id(), &nodes);
+                        (nodes, diag_blob)
+                    });
 
-        // Attach the typed Reasoning handle, pinned to the `graph/reasoning` named
-        // graph's canonical digest. `pin_handle` HARD-fails on a digest mismatch, so a
-        // handle that disagrees with its backing graph can never attach (fail-closed).
-        let mut bundle = measure_stage_phase(self.id(), "assemble-reason-bundle", || {
-            let mut artifacts: BTreeMap<String, Vec<u8>> = BTreeMap::new();
-            artifacts.insert(CLOSURE_PATH.to_string(), reasoned.closure.into_bytes());
-            artifacts.insert(
-                EXPLANATIONS_PATH.to_string(),
-                reasoned.explanations.into_bytes(),
-            );
-            artifacts.insert(LEDGER_PATH.to_string(), reasoned.ledger.into_bytes());
-            artifacts.insert(
-                PERF_LEDGER_PATH.to_string(),
-                reasoned.perf_ledger.into_bytes(),
-            );
-            crate::bundle::bundle_from_artifacts_over_with_rep_blob(
-                dataset,
-                artifacts,
-                purrdf::provenance::DatasetProvenance::new(),
-                crate::stages::carrier::REP_DIAG_NODES,
-                "application/json",
-                diag_blob,
-            )
-        });
-        let pinned = measure_stage_phase(self.id(), "pin-reason-graph-digest", || {
-            bundle.graph_digest(
-                GRAPH_REASONING,
-                &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None),
-            )
-        })?;
-        measure_stage_phase(self.id(), "pin-reason-handle", || {
-            bundle.pin_handle(
-                GRAPH_REASONING,
-                PipelineHandle::Reasoning(Arc::new(reasoned.result)),
-                pinned,
-                &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None),
-            )
-        })
-        .map_err(|e| {
-            gmeow_errors::Diag::of_kind(crate::error::StageFailed {
-                cause: None,
-                stage: "stage-reason".to_string(),
-                message: format!("pin Reasoning handle to <{GRAPH_REASONING}>: {e}"),
-            })
-        })?;
-        let output_quads = bundle.dataset().quad_count();
-        let product = measure_stage_phase(self.id(), "identify-reason-product", || {
-            StageProduct::from_bundle(self.id(), Arc::new(bundle))
-        })?;
+                // Attach the typed Reasoning handle, pinned to the `graph/reasoning` named
+                // graph's canonical digest. `pin_handle` HARD-fails on a digest mismatch, so a
+                // handle that disagrees with its backing graph can never attach (fail-closed).
+                let mut bundle = measure_stage_phase(self.id(), "assemble-reason-bundle", || {
+                    let mut artifacts: BTreeMap<String, Vec<u8>> = BTreeMap::new();
+                    artifacts.insert(CLOSURE_PATH.to_string(), reasoned.closure.into_bytes());
+                    artifacts.insert(
+                        EXPLANATIONS_PATH.to_string(),
+                        reasoned.explanations.into_bytes(),
+                    );
+                    artifacts.insert(LEDGER_PATH.to_string(), reasoned.ledger.into_bytes());
+                    artifacts.insert(
+                        PERF_LEDGER_PATH.to_string(),
+                        reasoned.perf_ledger.into_bytes(),
+                    );
+                    crate::bundle::bundle_from_artifacts_over_with_rep_blob(
+                        dataset,
+                        artifacts,
+                        purrdf::provenance::DatasetProvenance::new(),
+                        crate::stages::carrier::REP_DIAG_NODES,
+                        "application/json",
+                        diag_blob,
+                    )
+                });
+                let pinned = measure_stage_phase(self.id(), "pin-reason-graph-digest", || {
+                    bundle.graph_digest(
+                        GRAPH_REASONING,
+                        &mut purrdf::CanonicalizationControl::new(
+                            purrdf::RDFC_V2_CORPUS_POLICY,
+                            None,
+                        ),
+                    )
+                })?;
+                measure_stage_phase(self.id(), "pin-reason-handle", || {
+                    bundle.pin_handle(
+                        GRAPH_REASONING,
+                        PipelineHandle::Reasoning(Arc::new(reasoned.result)),
+                        pinned,
+                        &mut purrdf::CanonicalizationControl::new(
+                            purrdf::RDFC_V2_CORPUS_POLICY,
+                            None,
+                        ),
+                    )
+                })
+                .map_err(|e| {
+                    gmeow_errors::Diag::of_kind(crate::error::StageFailed {
+                        cause: None,
+                        stage: "stage-reason".to_string(),
+                        message: format!("pin Reasoning handle to <{GRAPH_REASONING}>: {e}"),
+                    })
+                })?;
+                let output_quads = bundle.dataset().quad_count();
+                let product = measure_stage_phase(self.id(), "identify-reason-product", || {
+                    StageProduct::from_bundle(self.id(), Arc::new(bundle))
+                })?;
+                Ok::<_, gmeow_errors::Diag>((product, nodes, output_quads))
+            })?;
         tracing::info!(
             target: "pipeline_phase",
             stage = self.id(),
             phase = "assemble-reason-product",
-            event = "end",
-            elapsed_ms = output_started.elapsed().as_millis(),
             output_quads,
             diagnostic_nodes = nodes.len(),
-            "stage phase boundary",
+            "reason product size",
         );
         timings.push(StageRunTiming {
             phase: "assemble-reason-product".to_string(),

@@ -504,6 +504,10 @@ pub fn serialize_carrier_snapshot(
 /// Build one report-only sink phase record. `live_scratch` names a representation
 /// resident at the observation boundary; `released_scratch` names one processed and
 /// dropped before the record. These observations never contribute to product identity.
+///
+/// The metadata carries structural counts only, because it is copied into the timings
+/// JSON's deterministic work record. Resident memory at the same boundary goes to the
+/// memory record instead, under [`SNAPSHOT_SERIALIZER`].
 fn sink_phase_timing(
     phase: &str,
     elapsed: std::time::Duration,
@@ -513,7 +517,11 @@ fn sink_phase_timing(
     live_scratch: Option<(&str, usize)>,
     released_scratch: Option<(&str, usize)>,
 ) -> StageRunTiming {
-    let (rss_kib, peak_rss_kib) = linux_process_rss_kib();
+    crate::memory_record::phase(
+        SNAPSHOT_SERIALIZER,
+        phase,
+        crate::memory_record::MemoryEvent::PhaseEnd,
+    );
     let render = |scratch: Option<(&str, usize)>| {
         scratch
             .map(|(name, bytes)| format!("{name}:{bytes}"))
@@ -524,37 +532,19 @@ fn sink_phase_timing(
         elapsed_ms: elapsed.as_millis(),
         metadata: Some(format!(
             "carrier_terms={};carrier_quads={};payload_frames={frame_count};\
-             payload_frame_bytes={frame_bytes};live_scratch={};released_scratch={};\
-             rss_kib={};peak_rss_kib={}",
+             payload_frame_bytes={frame_bytes};live_scratch={};released_scratch={}",
             carrier.term_count(),
             carrier.quad_count(),
             render(live_scratch),
             render(released_scratch),
-            rss_kib
-                .map(|value| value.to_string())
-                .unwrap_or_else(|| "unavailable".to_string()),
-            peak_rss_kib
-                .map(|value| value.to_string())
-                .unwrap_or_else(|| "unavailable".to_string()),
         )),
     }
 }
 
-fn linux_process_rss_kib() -> (Option<u64>, Option<u64>) {
-    let Ok(status) = std::fs::read_to_string("/proc/self/status") else {
-        return (None, None);
-    };
-    let value = |key: &str| {
-        status.lines().find_map(|line| {
-            line.strip_prefix(key)?
-                .split_whitespace()
-                .next()?
-                .parse::<u64>()
-                .ok()
-        })
-    };
-    (value("VmRSS:"), value("VmHWM:"))
-}
+/// The name the snapshot serializer's phase boundaries carry in the memory record. The
+/// serializer is entered by the terminal sink and by the documentation measurement, so
+/// the name is the serializer's own and not a stage id.
+const SNAPSHOT_SERIALIZER: &str = "gts-snapshot-serializer";
 
 /// Every payload-bearing BLOB frame this emission authors, plus the carrier-time
 /// meta-level graphs that ride beside them — assembled ONCE, here, so "what frames
@@ -1069,10 +1059,16 @@ impl<'a> CarrierParts<'a> {
         Ok(())
     }
 
+    /// Every part composed so far as one read-only view, with no row copied. It reads
+    /// what [`Self::materialize`] would build from the same parts.
+    fn view(&self) -> Result<purrdf::CompositeDatasetView, gmeow_errors::Diag> {
+        purrdf::CompositeDatasetView::from_sources(self.sources.clone(), CARRIER_VIEW_LIMITS)
+            .map_err(|e| stage_err(&format!("compose the snapshot carrier: {e}")))
+    }
+
     /// Build the one owned dataset of every part composed so far.
     fn materialize(&self) -> Result<std::sync::Arc<purrdf::RdfDataset>, gmeow_errors::Diag> {
-        purrdf::CompositeDatasetView::from_sources(self.sources.clone(), CARRIER_VIEW_LIMITS)
-            .map_err(|e| stage_err(&format!("compose the snapshot carrier: {e}")))?
+        self.view()?
             .materialize()
             .map_err(|e| stage_err(&format!("materialize the snapshot carrier: {e}")))
     }
@@ -1322,13 +1318,12 @@ fn assemble_carrier(
             Ok(())
         },
     )?;
-    // The first owned carrier: the gate-verdict query below runs on the native SPARQL
-    // engine, which reads an `RdfDataset`.
+    // The gate-verdict query below reads the composed parts as a view, so no owned
+    // carrier is built only to be queried and then rebuilt with the verdicts.
     let composed =
-        crate::node::measure_stage_phase("stage-snapshot", "materialize-carrier-graphs", || {
-            parts.materialize()
+        crate::node::measure_stage_phase("stage-snapshot", "compose-carrier-view", || {
+            parts.view()
         })?;
-    log_carrier_size("materialize-carrier-graphs", &composed);
 
     // Reasoner-derived gate verdicts (logic:ruleGateFatalVerdict). The reason stage's
     // object-level EDB EXCLUDES the report graphs by construction, so reason_all never
@@ -1355,22 +1350,19 @@ fn assemble_carrier(
     // served their purpose; release them before the carrier-sized phases below.
     drop(gate);
     drop(authored_default);
+    drop(composed);
     parts.release_views();
-    let composed_final = if verdicts.quad_count() == 0 {
-        composed
+    // The verdicts, when there are any, join the same composition, and the carrier is
+    // built once from the same parts in the same order as before.
+    let phase = if verdicts.quad_count() == 0 {
+        "materialize-carrier-graphs"
     } else {
-        // The verdicts join the same composition. The verdict-free carrier is released
-        // first, so only one owned carrier is ever resident.
-        drop(composed);
         parts.push_dataset(verdicts);
-        let carrier = crate::node::measure_stage_phase(
-            "stage-snapshot",
-            "materialize-carrier-with-verdicts",
-            || parts.materialize(),
-        )?;
-        log_carrier_size("materialize-carrier-with-verdicts", &carrier);
-        carrier
+        "materialize-carrier-with-verdicts"
     };
+    let composed_final =
+        crate::node::measure_stage_phase("stage-snapshot", phase, || parts.materialize())?;
+    log_carrier_size(phase, &composed_final);
 
     // Fold the SCOPED COHERENCE CERTIFICATE into the terminal bundle (graph/attestations),
     // so EVERY gmeow.gts carries a budget-free, proof-carrying coherence attestation the
@@ -1395,9 +1387,13 @@ fn termination_demonstrator_graphs()
 /// Log the size of an owned carrier after the phase that built it, so a run names the
 /// phase in which resident memory grows.
 fn log_carrier_size(phase: &str, carrier: &purrdf::RdfDataset) {
+    let process = crate::memory_record::ProcessMemory::sample();
     tracing::info!(
         target: "pipeline_phase", stage = "stage-snapshot", phase,
         carrier_quads = carrier.quad_count(),
+        carrier_terms = carrier.term_count(),
+        rss_kib = process.rss_kib,
+        peak_rss_kib = process.peak_rss_kib,
         "owned carrier size"
     );
 }

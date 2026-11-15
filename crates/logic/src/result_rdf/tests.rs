@@ -160,6 +160,50 @@ fn native_conflict_result() -> ReasoningResult {
     result
 }
 
+/// The verify attestation digests the projection of the reasoning result a consumer can
+/// recover from `graph/reasoning`. Transporting the result with one receipt encode and
+/// reusing that text must give the very value and the very bytes of the path it
+/// replaces, which projects, reads back and projects again with a second encode. The
+/// reader must also refuse a receipt literal other than the one it was told to expect.
+#[test]
+fn transported_projection_matches_the_reencoding_path_byte_for_byte() {
+    let result = native_conflict_result();
+    let live = project_reasoning_dataset(&result).expect("a native result projects");
+    let reread =
+        parse_reasoning_dataset(&live, GraphMatch::Default).expect("its own projection reads back");
+    let reencoded = project_reasoning_result(&reread).expect("the read-back result projects");
+    assert!(
+        reencoded.contains("resultNativeExecution"),
+        "the fixture carries a native execution receipt"
+    );
+
+    let transported = transport_reasoning(&result).expect("a native result transports");
+    assert_eq!(transported.result().provenance, reread.provenance);
+    assert_eq!(transported.result().inferred(), reread.inferred());
+    let reused =
+        ResultProjection::transported(&transported).expect("the transported result projects");
+    assert_eq!(
+        reused.node_iri(),
+        ResultProjection::reasoning(&reread)
+            .expect("the read-back result projects")
+            .node_iri()
+    );
+    assert_eq!(reused.to_ntriples(), reencoded);
+
+    let other = read_reasoning_result_expecting(
+        &ResultGraph::new(&live, GraphMatch::Default)
+            .expect("the projected dataset has a default graph"),
+        Some(Some("00")),
+    );
+    assert!(
+        other
+            .unwrap_err()
+            .to_string()
+            .contains("differs from the receipt"),
+        "a literal other than the expected receipt is refused"
+    );
+}
+
 #[test]
 fn terminal_result_retains_native_execution_and_requires_the_separate_closure() {
     let result = native_conflict_result();

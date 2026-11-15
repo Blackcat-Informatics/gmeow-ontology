@@ -4,6 +4,9 @@
 
 # Observe a hosted producer without changing its command, resources or parallelism.
 # Console samples can survive a runner loss that prevents artifact upload.
+# The producer is told, through GMEOW_STAGE_MEMORY_LOG, to append its per-stage memory
+# record to the same resource log. Both writers append whole lines, so a producer that
+# is killed part-way leaves the records of every stage boundary it reached in that log.
 set -uo pipefail
 
 if [[ $# -lt 4 || $3 != -- ]]; then
@@ -28,6 +31,12 @@ if ! mkdir -p "$(dirname "$log")" || ! exec 3>>"$log"; then
   printf 'observer: cannot append resource log %s; producer not started\n' "$log" >&2
   exit 125
 fi
+# The producer may change directory, so it is given the log by absolute path.
+if ! memory_log=$(cd "$(dirname "$log")" && pwd -P) || [[ -z $memory_log ]]; then
+  printf 'observer: cannot resolve resource log directory; producer not started\n' >&2
+  exit 125
+fi
+memory_log=$memory_log/${log##*/}
 
 emit() {
   local status=0
@@ -202,5 +211,5 @@ while [[ ! -f $ready_file ]]; do
 done
 if ! rm -- "$ready_file"; then exit 125; fi
 producer_status=running
-if "$@" 3>&-; then producer_status=0; else producer_status=$?; fi
+if GMEOW_STAGE_MEMORY_LOG=$memory_log "$@" 3>&-; then producer_status=0; else producer_status=$?; fi
 cleanup "$producer_status"

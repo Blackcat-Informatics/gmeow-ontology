@@ -308,8 +308,11 @@ pub fn render_diagnostics_artifacts(
     // selected gate always executes, including when its result is empty.
     let gate_dataset = gate
         .map(|gate| {
-            gate.derived_verdict_dataset(&projected, crate::stages::carrier::GRAPH_DIAGNOSTICS)
-                .map_err(|e| stage_err("RDF", format!("derive gate verdict: {e}")))
+            gate.derived_verdict_dataset(
+                projected.as_ref(),
+                crate::stages::carrier::GRAPH_DIAGNOSTICS,
+            )
+            .map_err(|e| stage_err("RDF", format!("derive gate verdict: {e}")))
         })
         .transpose()?;
     let nq_ds = if derivation.is_empty()

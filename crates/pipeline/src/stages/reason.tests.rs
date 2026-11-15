@@ -839,3 +839,84 @@ fn demonstrator_worlds_must_publish_their_declared_certificate_class() {
     // A present demonstrator still must earn its own class.
     assert!(require_demonstrator_classes(&copied[..1]).is_err());
 }
+
+/// The stage hands reasoning its only owner of the assembled EDB, and the EDB's last
+/// reader is the `math:` expression-identity projection. That projection runs before
+/// the engine so the EDB is dropped before reasoning starts, not held through it; the
+/// edges it derives must still reach the shipped closure and dataset. The drop is
+/// observed through the owner's own `Drop`, ordered against the `reason-all` phase.
+#[test]
+fn expression_identity_edges_reach_the_closure_from_an_owned_edb() {
+    use crate::memory_record::{MemoryEvent, collecting_phases, phase};
+    /// An owner of the EDB that records, in phase order, when it is dropped.
+    struct Watched(Arc<RdfDataset>);
+    impl Deref for Watched {
+        type Target = RdfDataset;
+        fn deref(&self) -> &RdfDataset {
+            &self.0
+        }
+    }
+    impl Drop for Watched {
+        fn drop(&mut self) {
+            phase("test-edb-owner", "dropped", MemoryEvent::PhaseEnd);
+        }
+    }
+    let source = purrdf::parse_dataset(
+        b"@prefix math: <https://blackcatinformatics.ca/math/> .\n\
+          <urn:selected-theory> {\n\
+            <https://example.org/e1> a math:NumberLiteral ; math:literalValue 1 .\n\
+            <https://example.org/e2> a math:NumberLiteral ; math:literalValue 1 .\n\
+          }",
+        "application/trig",
+        None,
+    )
+    .expect("the fixture is well-formed TriG");
+    let expected = gmeow_logic::math_expression::alpha_equivalence_edges(source.as_ref());
+    let [(first, class), (second, same_class)] = expected.as_slice() else {
+        panic!("two IRI-rooted expressions each carry one identity edge: {expected:?}");
+    };
+    assert_eq!(class, same_class, "equal expressions share one class");
+    assert_ne!(first, second);
+    let domains = SelectedDomains::new([SelectedLogicalWorld::new(
+        LogicalGraph::Named(purrdf::TermValue::iri("urn:selected-theory")),
+        DomainProfile::NonemptyObjectDomainV1,
+        "gmeow.pipeline.test.expression-identity".to_owned(),
+        *prepare_reasoning_input(source.as_ref())
+            .expect("the fixture prepares as reasoning input")
+            .ingress_contract(),
+    )
+    .expect("a named IRI graph is a selectable world")])
+    .expect("one world is a valid selection");
+    let (reasoned, boundaries) =
+        collecting_phases(|| reason_over_dataset(Watched(source), &domains));
+    let reasoned = reasoned.expect("the tiny theory reasons");
+    let position = |stage: &str, name: &str, event: MemoryEvent| {
+        boundaries
+            .iter()
+            .position(|made| {
+                made.stage_id == stage && made.phase.as_deref() == Some(name) && made.event == event
+            })
+            .unwrap_or_else(|| panic!("{stage}/{name} was crossed"))
+    };
+    assert!(
+        position("test-edb-owner", "dropped", MemoryEvent::PhaseEnd)
+            < position("stage-reason", "reason-all", MemoryEvent::PhaseStart),
+        "the EDB's owner is dropped before the engine starts"
+    );
+    let carried: BTreeSet<(String, String)> = reasoned
+        .dataset
+        .owned_quads()
+        .filter(|quad| quad.predicate == gmeow_logic::math_expression::MATH_ALPHA_EQUIVALENCE_CLASS)
+        .filter_map(|quad| match (&quad.subject, &quad.object) {
+            (RdfTerm::Iri(subject), RdfTerm::Iri(object)) => {
+                Some((subject.clone(), object.clone()))
+            }
+            _ => None,
+        })
+        .collect();
+    assert_eq!(carried, expected.iter().cloned().collect::<BTreeSet<_>>());
+    assert!(
+        reasoned.closure.contains("alphaEquivalenceClass"),
+        "the committed closure text carries the identity edges"
+    );
+}

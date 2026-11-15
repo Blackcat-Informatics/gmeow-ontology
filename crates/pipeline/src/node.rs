@@ -32,16 +32,20 @@ pub(crate) const GMEOW: &str = "https://blackcatinformatics.ca/gmeow/";
 
 /// Observe a producer phase without putting clock values in its product or key.
 /// The work's return value, including an original typed refusal, is unchanged.
+/// Each boundary also makes a memory record (see [`crate::memory_record`]).
 pub(crate) fn measure_stage_phase<T>(stage: &str, phase: &str, work: impl FnOnce() -> T) -> T {
+    use crate::memory_record::MemoryEvent;
     let span = ::tracing::info_span!(target: "pipeline_phase", "producer_phase", stage, phase);
     let _entered = span.enter();
     let started = std::time::Instant::now();
     tracing::info!(target: "pipeline_phase", stage, phase, event = "start", "producer phase boundary");
+    crate::memory_record::phase(stage, phase, MemoryEvent::PhaseStart);
     let value = work();
     tracing::info!(
         target: "pipeline_phase", stage, phase, event = "end",
         elapsed_ms = %started.elapsed().as_millis(), "producer phase boundary"
     );
+    crate::memory_record::phase(stage, phase, MemoryEvent::PhaseEnd);
     value
 }
 
@@ -418,6 +422,12 @@ impl StageProduct {
             }
         }
         records
+    }
+
+    /// The size of this product's own carrier, without recording a read: for the memory
+    /// record the scheduler makes when it publishes and releases a product.
+    pub(crate) fn footprint(&self) -> crate::memory_record::ProductFootprint {
+        crate::memory_record::ProductFootprint::of(&self.bundle, self.carrier_released)
     }
 
     /// Whether the artifact lane this product serves includes `path`: every artifact of

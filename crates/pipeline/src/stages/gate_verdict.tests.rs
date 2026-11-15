@@ -239,3 +239,86 @@ fn malformed_or_incomplete_gate_semantics_fail_closed() {
         "{error}"
     );
 }
+
+/// The snapshot derives its gate verdicts by querying the composed carrier view in
+/// place, so that no owned carrier is built only to be queried. The verdicts decide
+/// which `findingGateVerdict` triples ship, so a view must yield exactly the verdicts
+/// its own materialization does, including when the findings arrive through a graph
+/// selection and a placement into another graph.
+#[test]
+fn gate_verdicts_over_a_composed_view_equal_those_over_its_materialization() {
+    let gate = GateProgram::from_source(&source_nquads(SOURCE_GRAPH))
+        .expect("the gate source parses")
+        .expect("the source carries the authored gate rule");
+    let graph = "https://blackcatinformatics.ca/gmeow/graph/diagnostics";
+    let limits = purrdf::ViewLimits {
+        max_sources: usize::MAX,
+        max_terms: usize::MAX,
+        max_rows: usize::MAX,
+        max_payload_bytes: usize::MAX,
+        max_auxiliary_bytes: usize::MAX,
+    };
+    let findings = dataset_from_bytes(finding_nq().as_bytes(), NativeRdfFormat::NQuads)
+        .expect("the finding fixture is well-formed N-Quads");
+    let moved = "https://blackcatinformatics.ca/gmeow/graph/moved-diagnostics";
+    let selected = purrdf::CompositeSource::from_selection(
+        Arc::new(
+            purrdf::CompositeDatasetView::new(vec![Arc::clone(&findings)], limits)
+                .expect("one dataset composes under unbounded limits"),
+        ),
+        [purrdf::TermValue::iri(graph)],
+        limits,
+    )
+    .expect("the diagnostics graph is selectable from the view")
+    .with_graph_placement(purrdf::GraphPlacement::Named(purrdf::TermValue::iri(moved)));
+    let unrelated = dataset_from_bytes(
+        b"<urn:other> <urn:p> <urn:o> <urn:other-graph> .\n",
+        NativeRdfFormat::NQuads,
+    )
+    .expect("the unrelated fixture is well-formed N-Quads");
+    let view = purrdf::CompositeDatasetView::from_sources(
+        vec![
+            purrdf::CompositeSource::new(unrelated),
+            selected,
+            purrdf::CompositeSource::new(Arc::clone(&findings)),
+        ],
+        limits,
+    )
+    .expect("three sources compose under unbounded limits");
+    let materialized = view.materialize().expect("an unbounded view materializes");
+
+    let over_view = gate
+        .derived_fatal(&view)
+        .expect("the gate derives over a view");
+    assert_eq!(
+        over_view,
+        gate.derived_fatal(materialized.as_ref())
+            .expect("the gate derives over the materialized dataset")
+    );
+    assert_eq!(
+        over_view,
+        BTreeSet::from([
+            "https://blackcatinformatics.ca/gmeow/examples/diagnostics/upset".to_owned()
+        ]),
+        "the up-set finding alone is fatal, whichever graph carries it"
+    );
+    let rendered = |verdicts: Arc<RdfDataset>| {
+        purrdf::canonical_flat_nquads(
+            &verdicts,
+            &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None),
+        )
+        .expect("the verdict dataset canonicalizes")
+        .nquads()
+        .to_owned()
+    };
+    assert_eq!(
+        rendered(
+            gate.derived_verdict_dataset(&view, graph)
+                .expect("the gate derives verdicts over a view")
+        ),
+        rendered(
+            gate.derived_verdict_dataset(materialized.as_ref(), graph)
+                .expect("the gate derives verdicts over the materialized dataset")
+        )
+    );
+}

@@ -140,6 +140,42 @@ enum Node {
         lex: String,
         datatype: String,
     },
+    /// An already encoded native execution receipt, shared with its other holder. It is
+    /// the same RDF term as a [`Node::Lit`] of that text and the `xsd:hexBinary` datatype.
+    Receipt(ReceiptText),
+}
+
+/// The datatype of the `logic:resultNativeExecution` receipt literal.
+const XSD_HEX_BINARY: &str = "http://www.w3.org/2001/XMLSchema#hexBinary";
+
+/// The lexical form of one encoded native execution receipt, held once and shared.
+///
+/// Only [`transport_reasoning`] makes one, from the text it has proved the transported
+/// result's own receipt encodes to, so a projection given one never needs to encode again.
+#[derive(Clone)]
+pub(crate) struct ReceiptText(Arc<String>);
+
+/// Write one typed literal in N-Triples form, escaping its lexical form.
+fn write_typed_literal(f: &mut fmt::Formatter<'_>, lex: &str, datatype: &str) -> fmt::Result {
+    f.write_str("\"")?;
+    // Write unchanged spans together so large hex receipts need no escaped copy.
+    let mut start = 0;
+    for (index, ch) in lex.char_indices() {
+        if matches!(ch, '\\' | '"') || ch.is_control() {
+            f.write_str(&lex[start..index])?;
+            match ch {
+                '\\' => f.write_str("\\\\")?,
+                '"' => f.write_str("\\\"")?,
+                '\n' => f.write_str("\\n")?,
+                '\r' => f.write_str("\\r")?,
+                '\t' => f.write_str("\\t")?,
+                control => write!(f, "\\u{:04X}", control as u32)?,
+            }
+            start = index + ch.len_utf8();
+        }
+    }
+    f.write_str(&lex[start..])?;
+    write!(f, "\"^^<{datatype}>")
 }
 
 impl Node {
@@ -183,27 +219,8 @@ impl fmt::Display for Node {
             Node::Iri(iri) | Node::SelfReference(iri) => write!(f, "<{iri}>"),
             Node::Blank(id) => write!(f, "_:{id}"),
             Node::Value(value) => f.write_str(&crate::provenance::term_display(value)),
-            Node::Lit { lex, datatype } => {
-                f.write_str("\"")?;
-                // Write unchanged spans together so large hex receipts need no escaped copy.
-                let mut start = 0;
-                for (index, ch) in lex.char_indices() {
-                    if matches!(ch, '\\' | '"') || ch.is_control() {
-                        f.write_str(&lex[start..index])?;
-                        match ch {
-                            '\\' => f.write_str("\\\\")?,
-                            '"' => f.write_str("\\\"")?,
-                            '\n' => f.write_str("\\n")?,
-                            '\r' => f.write_str("\\r")?,
-                            '\t' => f.write_str("\\t")?,
-                            control => write!(f, "\\u{:04X}", control as u32)?,
-                        }
-                        start = index + ch.len_utf8();
-                    }
-                }
-                f.write_str(&lex[start..])?;
-                write!(f, "\"^^<{datatype}>")
-            }
+            Node::Lit { lex, datatype } => write_typed_literal(f, lex, datatype),
+            Node::Receipt(text) => write_typed_literal(f, &text.0, XSD_HEX_BINARY),
         }
     }
 }
@@ -542,6 +559,24 @@ impl ResultProjection {
     /// # Errors
     /// Rejects invalid result evidence or an unrepresentable native receipt.
     pub fn reasoning(result: &ReasoningResult) -> gmeow_errors::Result<Self> {
+        Self::reasoning_with(result, None)
+    }
+
+    /// Prepare the projection of a transported result, reusing the receipt text its
+    /// transport already holds instead of encoding the receipt again. The projection is
+    /// the one [`Self::reasoning`] makes of the same result.
+    ///
+    /// # Errors
+    /// Rejects invalid result evidence.
+    pub fn transported(transported: &TransportedReasoning) -> gmeow_errors::Result<Self> {
+        Self::reasoning_with(&transported.result, transported.receipt.as_ref())
+    }
+
+    /// `receipt`, when given, is the text `result`'s native execution encodes to.
+    fn reasoning_with(
+        result: &ReasoningResult,
+        receipt: Option<&ReceiptText>,
+    ) -> gmeow_errors::Result<Self> {
         let started = crate::timing::Instant::now();
         tracing::info!(
             target: "pipeline_phase",
@@ -560,7 +595,7 @@ impl ResultProjection {
             elapsed_ms = started.elapsed().as_millis(),
             "reason phase boundary",
         );
-        let sink = reasoning_sink(result)?;
+        let sink = reasoning_sink(result, receipt)?;
         let started = crate::timing::Instant::now();
         tracing::info!(
             target: "pipeline_phase",
@@ -679,6 +714,12 @@ pub(crate) fn contextual_assessment_facts(
             Node::Lit { lex, datatype } => Ok(purrdf::TermValue::Literal {
                 lexical_form: lex,
                 datatype,
+                language: None,
+                direction: None,
+            }),
+            Node::Receipt(text) => Ok(purrdf::TermValue::Literal {
+                lexical_form: text.0.as_str().to_owned(),
+                datatype: XSD_HEX_BINARY.to_owned(),
                 language: None,
                 direction: None,
             }),
@@ -841,6 +882,11 @@ fn append_native_dataset(
             Node::Lit { lex, datatype } => {
                 purrdf::RdfTerm::Literal(purrdf::RdfLiteral::typed(lex, datatype))
             }
+            // The dataset's term table owns its text, so this is the one copy made.
+            Node::Receipt(text) => purrdf::RdfTerm::Literal(purrdf::RdfLiteral::typed(
+                text.0.as_str().to_owned(),
+                XSD_HEX_BINARY,
+            )),
         })
     };
     let graph = graph.map(purrdf::RdfTerm::iri);
@@ -869,7 +915,10 @@ fn append_native_dataset(
     Ok(())
 }
 
-fn reasoning_sink(result: &ReasoningResult) -> gmeow_errors::Result<Sink> {
+fn reasoning_sink(
+    result: &ReasoningResult,
+    receipt: Option<&ReceiptText>,
+) -> gmeow_errors::Result<Sink> {
     let mut sink = Sink::default();
     let subject = Node::SelfReference(RESULT_PLACEHOLDER.to_owned());
 
@@ -911,7 +960,7 @@ fn reasoning_sink(result: &ReasoningResult) -> gmeow_errors::Result<Sink> {
         event = "start",
         "reason phase boundary",
     );
-    project_provenance(&mut sink, &subject, &result.provenance)?;
+    project_provenance(&mut sink, &subject, &result.provenance, receipt)?;
     tracing::info!(
         target: "pipeline_phase",
         stage = "stage-reason",
@@ -966,10 +1015,13 @@ fn project_preservation(sink: &mut Sink, subject: &Node, claim: &PreservationCla
 }
 
 /// Emit the full provenance bundle (every field, sorted where it is a set/list).
+/// `receipt`, when given, is the text `prov.native_execution` encodes to; it is used
+/// as the receipt literal and the receipt is not encoded.
 fn project_provenance(
     sink: &mut Sink,
     subject: &Node,
     prov: &ResultProvenance,
+    receipt: Option<&ReceiptText>,
 ) -> gmeow_errors::Result<()> {
     sink.push(
         subject.clone(),
@@ -1024,7 +1076,13 @@ fn project_provenance(
     for witness in sorted_witnesses {
         project_witness(sink, subject, witness);
     }
-    if let Some(execution) = &prov.native_execution {
+    if let Some(text) = receipt.filter(|_| prov.native_execution.is_some()) {
+        sink.push(
+            subject.clone(),
+            logic("resultNativeExecution"),
+            Node::Receipt(text.clone()),
+        );
+    } else if let Some(execution) = &prov.native_execution {
         sink.push(
             subject.clone(),
             logic("resultNativeExecution"),
@@ -1050,7 +1108,7 @@ fn project_provenance(
                     );
                     encoded
                 },
-                datatype: "http://www.w3.org/2001/XMLSchema#hexBinary".into(),
+                datatype: XSD_HEX_BINARY.into(),
             },
         );
     }
@@ -1435,7 +1493,63 @@ pub fn parse_reasoning_dataset(
     read_reasoning_result(&ResultGraph::new(dataset, graph)?)
 }
 
+/// A reasoning result as a consumer recovers it from `graph/reasoning`, together with
+/// the receipt text that transport carried.
+pub struct TransportedReasoning {
+    result: ReasoningResult,
+    receipt: Option<ReceiptText>,
+}
+
+impl TransportedReasoning {
+    /// The result read back from the projection.
+    #[must_use]
+    pub fn result(&self) -> &ReasoningResult {
+        &self.result
+    }
+}
+
+/// Project `result` to its `graph/reasoning` dataset and read it back, as a consumer of
+/// the shipped bundle does, encoding the native execution receipt once.
+///
+/// The returned value equals `parse_reasoning_dataset(&project_reasoning_dataset(result)?,
+/// GraphMatch::Default)`. The receipt text it keeps is the literal the reader admitted:
+/// the reader decodes that literal and refuses it unless the decoded evidence encodes
+/// back to the same bytes, and the literal is compared with the kept text here. So
+/// [`ResultProjection::transported`] may write the kept text where re-encoding the
+/// transported evidence would produce it.
+///
+/// # Errors
+/// Rejects an invalid result, an unrepresentable receipt, or a projection the reader
+/// does not admit.
+pub fn transport_reasoning(result: &ReasoningResult) -> gmeow_errors::Result<TransportedReasoning> {
+    let receipt = result
+        .provenance
+        .native_execution
+        .as_ref()
+        .map(|execution| native::encode(execution).map(|text| ReceiptText(Arc::new(text))))
+        .transpose()?;
+    let dataset = ResultProjection::reasoning_with(result, receipt.as_ref())?.into_dataset()?;
+    let transported = read_reasoning_result_expecting(
+        &ResultGraph::new(&dataset, GraphMatch::Default)?,
+        Some(receipt.as_ref().map(|text| text.0.as_str())),
+    )
+    .map_err(|error| error.with_context("read native graph/reasoning summary"))?;
+    Ok(TransportedReasoning {
+        result: transported,
+        receipt,
+    })
+}
+
 fn read_reasoning_result(triples: &ResultGraph<'_>) -> gmeow_errors::Result<ReasoningResult> {
+    read_reasoning_result_expecting(triples, None)
+}
+
+/// Read the result. `expected_receipt`, when given, is what the receipt literal must
+/// be: the exact text, or no literal at all.
+fn read_reasoning_result_expecting(
+    triples: &ResultGraph<'_>,
+    expected_receipt: Option<Option<&str>>,
+) -> gmeow_errors::Result<ReasoningResult> {
     let results = triples
         .iter()
         .filter(|t| t.predicate == RDF_TYPE && t.object_iri() == Some(logic("ReasoningResult")))
@@ -1548,6 +1662,11 @@ fn read_reasoning_result(triples: &ResultGraph<'_>) -> gmeow_errors::Result<Reas
         .filter(|row| row.predicate == logic("resultNativeExecution"))
         .collect::<Vec<_>>();
     prov.native_execution = match execution_rows.as_slice() {
+        [] if expected_receipt.is_some_and(|expected| expected.is_some()) => {
+            return Err(result_err(
+                "graph/reasoning: the projected resultNativeExecution receipt is absent".into(),
+            ));
+        }
         [] => None,
         [row] => match row.object {
             TermRef::Literal {
@@ -1560,6 +1679,13 @@ fn read_reasoning_result(triples: &ResultGraph<'_>) -> gmeow_errors::Result<Reas
                 TermRef::Iri("http://www.w3.org/2001/XMLSchema#hexBinary")
             ) =>
             {
+                if expected_receipt.is_some_and(|expected| expected != Some(lexical)) {
+                    return Err(result_err(
+                        "graph/reasoning: resultNativeExecution differs from the receipt its \
+                         projection was given"
+                            .into(),
+                    ));
+                }
                 Some(native::decode(lexical)?)
             }
             _ => {

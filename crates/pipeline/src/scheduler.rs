@@ -27,6 +27,7 @@ use crate::cache::{
     default_graph_commitment, default_graph_keys, provenance_commitment, provenance_keys,
 };
 use crate::graph::StageGraph;
+use crate::memory_record::{MemoryEvent, MemoryRecord, ProcessMemory};
 use crate::node::{
     CachePolicy, SERIALIZATION_BUFFER_RESOURCE, Stage, StageInput, StageProduct, StageRunTiming,
     StageStability,
@@ -315,6 +316,13 @@ pub struct RunResult {
     /// Every dataflow edge a stage body read through in this run, with its declared and
     /// its recorded reads, in completion order. Cache hits contribute nothing.
     pub recorded_reads: Vec<Arc<crate::reads::EdgeAccess>>,
+    /// The memory records of this run in the order they were made: one at each stage's
+    /// dispatch, publication and carrier release, and the measured phase boundaries that
+    /// were crossed on a thread running a stage body. A boundary crossed on a pool thread
+    /// that was running no stage body is not kept here; it reaches the log when the
+    /// `pipeline_memory` target is on. Observations only:
+    /// they enter no product, key, receipt or digest. See [`crate::memory_record`].
+    pub memory: Vec<MemoryRecord>,
 }
 
 /// One stage's wall-clock timing.
@@ -644,6 +652,7 @@ pub fn run_without(
     };
     let read_policy = ctx.read_policy;
     let mut recorded_edges: Vec<Arc<crate::reads::EdgeAccess>> = Vec::new();
+    let mut memory: Vec<MemoryRecord> = Vec::new();
     // Every stage whose recorded reads differ from its declared dataflow. The run goes
     // on, so one pass names them all, and then fails.
     let mut read_differences: Vec<(String, Vec<String>)> = Vec::new();
@@ -698,6 +707,7 @@ pub fn run_without(
             Vec<String>,
             Result<StageRun, gmeow_errors::Diag>,
             Vec<Arc<crate::reads::EdgeAccess>>,
+            Vec<MemoryRecord>,
         )>();
         let mut active = 0usize;
         let mut completed = 0usize;
@@ -773,6 +783,13 @@ pub fn run_without(
                 if let Some(progress) = progress.as_deref() {
                     progress.stage_start(&stage_id);
                 }
+                memory.push(crate::memory_record::record(
+                    &stage_id,
+                    MemoryEvent::Dispatch,
+                    None,
+                    None,
+                    None,
+                ));
                 let tx = tx.clone();
                 let progress = progress.clone();
                 active += 1;
@@ -786,16 +803,23 @@ pub fn run_without(
                 scope.spawn_fifo(move |_| {
                     // A panic in a stage body must still deliver a result: the
                     // coordinator holds its own sender, so a worker that dies silently
-                    // would leave it waiting on `recv` for ever.
-                    let result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
-                        exec_stage(stage.as_ref(), root, &upstream, cache, stage_cache_enabled)
-                    }))
-                    .unwrap_or_else(|payload| {
-                        Err(gmeow_errors::Diag::of_kind(crate::error::StageFailed {
-                            cause: None,
-                            stage: stage_id.clone(),
-                            message: format!("stage body panicked: {}", panic_message(&*payload)),
+                    // would leave it waiting on `recv` for ever. The phase boundaries
+                    // the body crosses on this thread are collected around it, so they
+                    // are delivered whether it returns, fails or panics.
+                    let (result, phase_records) = crate::memory_record::collecting_phases(|| {
+                        std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
+                            exec_stage(stage.as_ref(), root, &upstream, cache, stage_cache_enabled)
                         }))
+                        .unwrap_or_else(|payload| {
+                            Err(gmeow_errors::Diag::of_kind(crate::error::StageFailed {
+                                cause: None,
+                                stage: stage_id.clone(),
+                                message: format!(
+                                    "stage body panicked: {}",
+                                    panic_message(&*payload)
+                                ),
+                            }))
+                        })
                     });
                     if let (Some(progress), Ok(run)) = (progress.as_deref(), &result) {
                         progress.stage_end(
@@ -810,7 +834,7 @@ pub fn run_without(
                     drop(upstream);
                     // The coordinator outlives every scoped worker. A disconnected
                     // receiver therefore means the scope is already unwinding.
-                    let _ = tx.send((stage_id, resources, result, dispatched_edges));
+                    let _ = tx.send((stage_id, resources, result, dispatched_edges, phase_records));
                 });
             }
 
@@ -828,13 +852,15 @@ pub fn run_without(
                 }));
             }
 
-            let (stage_id, resources, result, dispatched_edges) = rx.recv().map_err(|error| {
-                gmeow_errors::Diag::of_kind(crate::error::StageFailed {
-                    cause: None,
-                    stage: "<scheduler>".to_string(),
-                    message: format!("scheduler worker channel closed: {error}"),
-                })
-            })?;
+            let (stage_id, resources, result, dispatched_edges, phase_records) =
+                rx.recv().map_err(|error| {
+                    gmeow_errors::Diag::of_kind(crate::error::StageFailed {
+                        cause: None,
+                        stage: "<scheduler>".to_string(),
+                        message: format!("scheduler worker channel closed: {error}"),
+                    })
+                })?;
+            memory.extend(phase_records);
             active -= 1;
             for resource in resources {
                 active_resources.remove(&resource);
@@ -968,6 +994,13 @@ pub fn run_without(
                     retained_artifacts
                         .insert((selected_stage.clone(), path.clone()), bytes.to_vec());
                 }
+                memory.push(crate::memory_record::record(
+                    &run.id,
+                    MemoryEvent::Complete,
+                    None,
+                    Some(run.product.footprint()),
+                    None,
+                ));
                 products.insert(run.id.clone(), run.product);
                 completed += 1;
 
@@ -1021,10 +1054,21 @@ pub fn run_without(
                             && let Some(product) = products.get(&producer)
                             && !product.carrier_released
                         {
+                            let before = product.footprint();
                             let released = product
                                 .clone()
                                 .into_carrier_released_keeping(&kept_for(&producer))?;
-                            products.insert(producer, released);
+                            let after = released.footprint();
+                            products.insert(producer.clone(), released);
+                            // Made after the swap, so the process figures are those with
+                            // the scheduler's reference to the carrier gone.
+                            memory.push(crate::memory_record::record(
+                                &producer,
+                                MemoryEvent::Release,
+                                None,
+                                Some(after),
+                                Some(before.released_to(&after)),
+                            ));
                         }
                     }
                 }
@@ -1090,6 +1134,9 @@ pub fn run_without(
     stage_receipts.sort_by_key(|receipt| order_index[receipt.context.stage_id.as_str()]);
     stage_timings.sort_by_key(|timing| order_index[timing.stage_id.as_str()]);
     stage_phase_timings.sort_by_key(|timing| order_index[timing.stage_id.as_str()]);
+    // Memory records are an observation of what happened when, so they keep the order
+    // they were made in.
+    memory.sort_by_key(|made| made.seq);
 
     if profile {
         let floor: u128 = level_timings.iter().map(|l| l.elapsed_ms).sum();
@@ -1138,6 +1185,7 @@ pub fn run_without(
         receipt_root,
         ledger: run_ledger,
         recorded_reads: recorded_edges,
+        memory,
     })
 }
 
@@ -1272,7 +1320,7 @@ fn exec_stage(
     // the loader's DataFlow agreement is what guarantees the declaration is honest.
     let key_context = action_key_context(stage, root, &upstream)?;
     let started = std::time::Instant::now();
-    let rss_before_kib = current_rss_kib();
+    let rss_before_kib = ProcessMemory::sample().rss_kib;
 
     if stage_cache_enabled
         && stage.stability() == StageStability::StablePrefix
@@ -1307,7 +1355,10 @@ fn exec_stage(
             cache_outcome: "hit".to_string(),
             cache_read_bytes: hit.hydrated_bytes,
             cache_write_bytes: 0,
-            cache_hydration_rss_delta_kib: rss_delta_kib(rss_before_kib, current_rss_kib()),
+            cache_hydration_rss_delta_kib: rss_delta_kib(
+                rss_before_kib,
+                ProcessMemory::sample().rss_kib,
+            ),
             edges: Vec::new(),
         });
     }
@@ -1380,19 +1431,6 @@ fn exec_stage(
             .filter_map(|product| product.edge_access().cloned())
             .collect(),
     })
-}
-
-fn current_rss_kib() -> Option<u64> {
-    std::fs::read_to_string("/proc/self/status")
-        .ok()?
-        .lines()
-        .find_map(|line| {
-            line.strip_prefix("VmRSS:")?
-                .split_whitespace()
-                .next()?
-                .parse::<u64>()
-                .ok()
-        })
 }
 
 fn rss_delta_kib(before: Option<u64>, after: Option<u64>) -> Option<i64> {

@@ -41,7 +41,11 @@ pub(crate) fn reason_test_dataset(edb: &RdfDataset) -> Result<ReasonArtifacts, g
             })
             .collect::<gmeow_errors::Result<Vec<_>>>()?,
     )?;
-    reason_prepared_input(edb, input, &domains)
+    reason_prepared_input(
+        gmeow_logic::math_expression::alpha_equivalence_edges(edb),
+        input,
+        &domains,
+    )
 }
 
 #[cfg(test)]

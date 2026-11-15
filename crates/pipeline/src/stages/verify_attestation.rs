@@ -249,14 +249,19 @@ fn build_output_from_report(
     // the transport-normalized value the consumer can actually recover rather than the
     // richer in-process handle. Query evaluation is unchanged: it reads only non-EDB
     // inferred rows, all of which the projection carries.
-    let live_projection = gmeow_logic::result_rdf::project_reasoning_dataset(reasoning)?;
-    let transported_reasoning = gmeow_logic::result_rdf::parse_reasoning_dataset(
-        &live_projection,
-        purrdf::GraphMatch::Default,
-    )
-    .map_err(|error| stage_err(format!("read native graph/reasoning summary: {error}")))?;
+    // The receipt is encoded once: the text that crosses the projection is kept and
+    // written again for the digest below, where a second projection of the transported
+    // value would encode it a second time to the same bytes.
+    let transported =
+        crate::node::measure_stage_phase(stage_id, "transport-reasoning-summary", || {
+            gmeow_logic::result_rdf::transport_reasoning(reasoning)
+        })?;
+    let transported_reasoning = transported.result();
     let reasoning_projection =
-        gmeow_logic::result_rdf::project_reasoning_result(&transported_reasoning)?;
+        crate::node::measure_stage_phase(stage_id, "project-transported-reasoning", || {
+            gmeow_logic::result_rdf::ResultProjection::transported(&transported)
+                .map(|projection| projection.to_ntriples())
+        })?;
     let query_digest = query_set_digest(queries);
     let finding_count = report.findings.len();
     let error_count = report.error_count();

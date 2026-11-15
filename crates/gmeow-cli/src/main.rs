@@ -4,6 +4,8 @@
 //! The `gmeow` binary entrypoint.
 
 fn main() {
-    gmeow_cli_core::init_tracing();
+    if let Err(error) = gmeow_cli_core::init_tracing() {
+        std::process::exit(gmeow_cli::report_stage_memory_log_failure(&error));
+    }
     std::process::exit(gmeow_cli::run());
 }

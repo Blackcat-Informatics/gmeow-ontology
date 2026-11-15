@@ -82,7 +82,7 @@ use crate::{BUNDLE_GTS, NAMESPACE, OutputFormat};
 /// pre-carrier graded witness a handled `gmeow` failure lowers to (never a bare
 /// string). The `code` is interned once (idempotently) and the message carries
 /// the specifics.
-fn error_diag(code: &str, message: impl Into<String>) -> Diag {
+pub(crate) fn error_diag(code: &str, message: impl Into<String>) -> Diag {
     Diag::new(
         gmeow_errors::code::register_code(code),
         Grade::new(
