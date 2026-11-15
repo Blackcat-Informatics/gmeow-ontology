@@ -948,6 +948,81 @@ ex:ecWeightTensorNoParameterSpace a gmeow:ExampleConformance ;
     gmeow:expectedSoleFinding true ;
     gmeow:conformanceRationale "The counter-example names the layer the weight parameterizes but omits the math:ParameterSpace it lives in (sh:minCount 1 on math:WeightTensorShape), so validation MUST emit shacl.MinCountConstraintComponent and NO other finding (math:UnframedWeightTensor)." .
 
+# === Declared tensor shapes: rank, axis count, index and extent consistency === #
+# One passing fixture satisfies all eight tensor-shape laws; each counter-example
+# breaks one law and keeps the other seven satisfied. The five laws carried only as a
+# constraint are pinned by the IRI of the shape that constraint projects to and declare
+# soleness. The three value bounds are also lowered onto the class shape of
+# math:TensorShape or math:TensorAxis, so one negative value can be reported by the
+# class shape and by the bound's own constraint shape; those cells pin the range
+# component on the class shape and do not declare soleness.
+
+ex:ecTensorShapeConsistent a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/conformance-fixtures/tensor-shape-consistent.ttl" ;
+    gmeow:expectedOutcome gmeow:conforms ;
+    gmeow:conformanceRationale "Four declared shapes satisfy every tensor-shape law together: a rank-0 scalar with no axis; a rank-2 shape with two axes at indices 0 and 1, one carrying only a symbolic extent and one only a concrete extent; a rank-1 shape whose axis declares no extent; and a rank-1 shape whose axis has the disclosed extent 0. Every rank, index and extent is an integer of zero or greater, each rank equals its number of axis nodes, each index is below its own shape's rank and used once within that shape, index 0 recurs only across different shapes, and no axis carries both extent forms. The symbolic extent names a math:FreeVariableDeclaration with a typed math:variableDomain. The fixture validates with no findings; it declares shapes and loads no tensor." .
+
+ex:ecTensorRankNegative a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/tensor-rank-negative.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.MinInclusiveConstraintComponent" ;
+    gmeow:expectedSourceShape math:TensorShape-shape ;
+    gmeow:conformanceRationale "A math:TensorShape declares math:tensorRank -1 and no axis. math:TensorRankNonNegativeConstraint bounds the rank at zero, and its declarative lowering places sh:minInclusive 0 on math:tensorRank in math:TensorShape-shape, so validation MUST emit shacl.MinInclusiveConstraintComponent from that shape. -1 is an integer, so the integer-family profile holds; with no axis the count law forms no group, the positive-rank law is not triggered by a rank that is not above zero, and the index laws read nothing. The cell does not declare soleness: the same bound is also carried by the constraint's own projected shape, so one negative rank may be reported by two shapes of one law." .
+
+ex:ecTensorAxisIndexNegative a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/tensor-axis-index-negative.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.MinInclusiveConstraintComponent" ;
+    gmeow:expectedSourceShape math:TensorAxis-shape ;
+    gmeow:conformanceRationale "The one axis of a rank-1 math:TensorShape declares math:axisIndex -1. math:TensorAxisIndexNonNegativeConstraint bounds the index at zero, and its declarative lowering places sh:minInclusive 0 on math:axisIndex in math:TensorAxis-shape, so validation MUST emit shacl.MinInclusiveConstraintComponent from that shape. One axis agrees with rank 1, -1 is below the rank so the upper index bound holds, and one axis cannot repeat a position. The cell does not declare soleness: the same bound is also carried by the constraint's own projected shape, so one negative index may be reported by two shapes of one law." .
+
+ex:ecTensorAxisExtentNegative a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/tensor-axis-extent-negative.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.MinInclusiveConstraintComponent" ;
+    gmeow:expectedSourceShape math:TensorAxis-shape ;
+    gmeow:conformanceRationale "The one axis of a rank-1 math:TensorShape declares math:axisExtent -3 at index 0. math:TensorAxisExtentNonNegativeConstraint bounds a concrete extent at zero, and its declarative lowering places sh:minInclusive 0 on math:axisExtent in math:TensorAxis-shape, so validation MUST emit shacl.MinInclusiveConstraintComponent from that shape. The index is 0, which satisfies the index bound on the same class shape, so the range finding can only come from the extent. The cell does not declare soleness: the same bound is also carried by the constraint's own projected shape, so one negative extent may be reported by two shapes of one law." .
+
+ex:ecTensorRankAxisCountMismatch a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/tensor-rank-axis-count-mismatch.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.SPARQLConstraintComponent" ;
+    gmeow:expectedSourceShape math:TensorShapeCountConstraintProceduralConstraintShape ;
+    gmeow:expectedSoleFinding true ;
+    gmeow:conformanceRationale "A math:TensorShape declares math:tensorRank 3 and two distinct math:shapeAxis nodes. math:TensorShapeCountConstraint compares the count of distinct axis nodes with the rank, so 2 against 3 MUST emit shacl.SPARQLConstraintComponent from the shape that constraint projects to. The indices 0 and 1 are zero or greater, below 3 and different, and a positive rank has an axis, so no other tensor-shape law is broken and the cell declares soleness." .
+
+ex:ecTensorPositiveRankNoAxis a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/tensor-positive-rank-no-axis.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.SPARQLConstraintComponent" ;
+    gmeow:expectedSourceShape math:TensorPositiveRankAxisConstraintProceduralConstraintShape ;
+    gmeow:expectedSoleFinding true ;
+    gmeow:conformanceRationale "A math:TensorShape declares math:tensorRank 2 and no math:shapeAxis. The count law joins a shape to its axes before counting, so a shape with no axis yields no group and that law reports nothing; math:TensorPositiveRankAxisConstraint is the law that covers this case and MUST emit shacl.SPARQLConstraintComponent from the shape it projects to. With no axis there is no index or extent to read, so the cell declares soleness. A rank-0 shape with no axis is the passing twin in the conforming fixture." .
+
+ex:ecTensorAxisIndexOutOfRank a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/tensor-axis-index-out-of-rank.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.SPARQLConstraintComponent" ;
+    gmeow:expectedSourceShape math:TensorAxisIndexRangeConstraintProceduralConstraintShape ;
+    gmeow:expectedSoleFinding true ;
+    gmeow:conformanceRationale "A rank-2 math:TensorShape declares two axes at math:axisIndex 0 and 2. math:TensorAxisIndexRangeConstraint requires every index to be strictly below the rank of its own shape, so index 2 under rank 2 MUST emit shacl.SPARQLConstraintComponent from the shape that constraint projects to. Two axes agree with rank 2, both indices are zero or greater and they differ, so the count, bound and uniqueness laws hold and the cell declares soleness." .
+
+ex:ecTensorAxisIndexDuplicate a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/tensor-axis-index-duplicate.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.SPARQLConstraintComponent" ;
+    gmeow:expectedSourceShape math:TensorAxisIndexUniquenessConstraintProceduralConstraintShape ;
+    gmeow:expectedSoleFinding true ;
+    gmeow:conformanceRationale "A rank-2 math:TensorShape declares two distinct axis nodes that both carry math:axisIndex 0. math:TensorAxisIndexUniquenessConstraint requires two axes of one shape with equal indices to be the same node, so the repeated position MUST emit shacl.SPARQLConstraintComponent from the shape that constraint projects to. Two axes agree with rank 2 and index 0 is zero or greater and below 2, so the count, bound and range laws hold and the cell declares soleness. Index 0 used once in each of two different shapes is the passing twin in the conforming fixture." .
+
+ex:ecTensorAxisExtentBoth a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/tensor-axis-extent-both.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.SPARQLConstraintComponent" ;
+    gmeow:expectedSourceShape math:TensorAxisExtentChoiceConstraintProceduralConstraintShape ;
+    gmeow:expectedSoleFinding true ;
+    gmeow:conformanceRationale "The one axis of a rank-1 math:TensorShape declares both math:axisExtent 4 and a math:symbolicExtent. math:TensorAxisExtentChoiceConstraint admits at most one of the two, so validation MUST emit shacl.SPARQLConstraintComponent from the shape that constraint projects to. Each declaration is well formed alone: 4 is zero or greater, and the symbolic extent names a math:FreeVariableDeclaration with a typed math:variableDomain. The shape is otherwise consistent, so the cell declares soleness. An axis with one extent form, and an axis with neither, are the passing twins in the conforming fixture." .
+
 # === Numeric layer: an exact rational carrier has a non-zero denominator ===== #
 
 ex:ecRationalValueWellFormed a gmeow:ExampleConformance ;

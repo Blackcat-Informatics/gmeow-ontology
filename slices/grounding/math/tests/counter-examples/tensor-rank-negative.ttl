@@ -1,0 +1,12 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Failing control for math:TensorRankNonNegativeConstraint: a shape declares rank -1.
+# The value is an integer and the shape declares no axis, so the integer-family
+# profile, the axis-count law (no axis, no counted group), the positive-rank law (the
+# rank is not above zero) and the index laws (no axis) are all satisfied; the negative
+# rank is the only defect. Bound by ex:ecTensorRankNegative.
+@prefix math: <https://blackcatinformatics.ca/math/> .
+@prefix ex:   <http://example.org/math/tensor-shape-controls/> .
+
+ex:shape a math:TensorShape ; math:tensorRank -1 .

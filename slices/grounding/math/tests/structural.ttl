@@ -1479,3 +1479,48 @@ ASK {
  FILTER NOT EXISTS { [] a l:ClosureEntry ; l:onClass m:ExpressionType ; l:closureKey "https://blackcatinformatics.ca/math/expressionValueSpace" ; l:closureValue l:ClosedWorldClosure }
 }""" ;
     gmeow:saRationale "Explicit value-space interpretation retains distinct descriptor and Set identities without universally requiring or silently promoting general types to Sets." .
+
+# --- Declared tensor shapes: the eight consistency laws and what each one states ---
+# The conformance cells show each law rejecting one input. These two assertions pin the
+# laws themselves, so weakening a bound, comparator, counted path or choice mode, or
+# dropping the comparison a formula ends in, fails here before any fixture is read.
+ex:saTensorShapeRecordLaws a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ; gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX m: <https://blackcatinformatics.ca/math/>
+PREFIX l: <https://blackcatinformatics.ca/logic/>
+ASK {
+ m:TensorRankNonNegativeConstraint a l:ValueRangeConstraint ;
+     l:onClass m:TensorShape ; l:valuePath m:tensorRank ; l:minInclusiveBound 0 .
+ m:TensorAxisIndexNonNegativeConstraint a l:ValueRangeConstraint ;
+     l:onClass m:TensorAxis ; l:valuePath m:axisIndex ; l:minInclusiveBound 0 .
+ m:TensorAxisExtentNonNegativeConstraint a l:ValueRangeConstraint ;
+     l:onClass m:TensorAxis ; l:valuePath m:axisExtent ; l:minInclusiveBound 0 .
+ m:TensorShapeCountConstraint a l:AggregateConstraint ;
+     l:onClass m:TensorShape ; l:aggFunction "COUNT" ; l:aggDistinct true ;
+     l:aggPath m:shapeAxis ; l:aggComparator "=" ; l:aggCompareTo m:tensorRank .
+ m:TensorAxisExtentChoiceConstraint a l:ChoiceGroupConstraint ;
+     l:onClass m:TensorAxis ; l:choicePredicate m:axisExtent , m:symbolicExtent ;
+     l:choiceMode "at-most-one" .
+}""" ;
+    gmeow:saRationale "The five tensor-shape laws authored as constraint records MUST keep the parameters that give them their meaning: each of the three bounds names its class, its value path and the inclusive lower bound 0; the count law counts distinct math:shapeAxis nodes and compares them for equality with math:tensorRank; the extent choice ranges over math:axisExtent and math:symbolicExtent in the at-most-one mode. A bound moved off zero, a count that is not distinct or compared with another property, or a choice mode that requires an extent would each change what a declared shape must satisfy." .
+
+ex:saTensorShapeFormulaLaws a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ; gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX m: <https://blackcatinformatics.ca/math/>
+PREFIX l: <https://blackcatinformatics.ca/logic/>
+ASK {
+ m:TensorPositiveRankAxisConstraint a l:Constraint ; l:formalizes m:TensorShape ;
+     l:integrity/l:forall ?presence .
+ ?presence l:antecedent/l:and/l:relation l:termGreater ;
+     l:consequent/l:exists/l:relation m:shapeAxis .
+ m:TensorAxisIndexRangeConstraint a l:Constraint ; l:formalizes m:TensorShape ;
+     l:integrity/l:forall ?range .
+ ?range l:antecedent/l:and/l:and/l:relation m:tensorRank ;
+     l:antecedent/l:and/l:relation m:shapeAxis , m:axisIndex ;
+     l:consequent/l:relation l:termLess .
+ m:TensorAxisIndexUniquenessConstraint a l:Constraint ; l:formalizes m:TensorShape ;
+     l:integrity/l:forall ?unique .
+ ?unique l:antecedent/l:and/l:relation m:shapeAxis , m:axisIndex , l:termEqual ;
+     l:consequent/l:relation l:termEqual .
+}""" ;
+    gmeow:saRationale "The three tensor-shape laws authored as formula trees MUST end in the comparison that states them. The presence law is guarded by a rank above zero and concludes that a math:shapeAxis exists. The range law reads the rank of the shape that owns the axis, through math:tensorRank and math:shapeAxis, and concludes that the math:axisIndex is strictly less than it. The uniqueness law is guarded by numeric equality of two indices under one shape and concludes that the two axis nodes are equal. Removing a guard relation or replacing a concluding comparison leaves a law that accepts the input its conformance cell rejects." .

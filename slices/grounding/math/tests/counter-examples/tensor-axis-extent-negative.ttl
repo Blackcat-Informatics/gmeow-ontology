@@ -1,0 +1,12 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Failing control for math:TensorAxisExtentNonNegativeConstraint: the one axis of a
+# rank-1 shape declares the concrete extent -3. Rank, axis count, index 0 and the
+# single extent declaration are all well formed; the negative length is the only
+# defect. Bound by ex:ecTensorAxisExtentNegative.
+@prefix math: <https://blackcatinformatics.ca/math/> .
+@prefix ex:   <http://example.org/math/tensor-shape-controls/> .
+
+ex:shape a math:TensorShape ; math:tensorRank 1 ; math:shapeAxis ex:axis .
+ex:axis a math:TensorAxis ; math:axisIndex 0 ; math:axisExtent -3 .

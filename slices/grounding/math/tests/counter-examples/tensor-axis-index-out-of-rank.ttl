@@ -1,0 +1,14 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Failing control for math:TensorAxisIndexRangeConstraint: a rank-2 shape declares two
+# axes at indices 0 and 2. Two axes agree with the rank, both indices are zero or
+# greater and they differ, so the count, bound and uniqueness laws hold; index 2 is
+# not below rank 2 and is the only defect. Bound by ex:ecTensorAxisIndexOutOfRank.
+@prefix math: <https://blackcatinformatics.ca/math/> .
+@prefix ex:   <http://example.org/math/tensor-shape-controls/> .
+
+ex:shape a math:TensorShape ; math:tensorRank 2 ;
+    math:shapeAxis ex:first, ex:third .
+ex:first a math:TensorAxis ; math:axisIndex 0 .
+ex:third a math:TensorAxis ; math:axisIndex 2 .
