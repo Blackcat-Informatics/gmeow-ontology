@@ -1,0 +1,28 @@
+== pr2810 6026d22c3066f268b17b2d0711f9acc27f5ed65b
+-- quality failure
+   [failure] Process completed with exit code 1.
+   [failure] a quality job did not succeed (skipped)
+   [notice] "The ubuntu-latest label will migrate to Ubuntu 26 beginning October 19, 2026. For more information, see https://github.com/actions/runner-images/issues/14748"
+-- generation (b) failure
+   [failure] The hosted runner lost communication with the server. Anything in your workflow that terminates the runner process, starves it for CPU/Memory, or blocks its network access can cause this error.
+   [notice] "The ubuntu-latest label will migrate to Ubuntu 26 beginning October 19, 2026. For more information, see https://github.com/actions/runner-images/issues/14748"
+-- generation (a) failure
+   [failure] The operation was canceled.
+   [notice] "The ubuntu-latest label will migrate to Ubuntu 26 beginning October 19, 2026. For more information, see https://github.com/actions/runner-images/issues/14748"
+-- fixture-prefix failure
+   [failure] The operation was canceled.
+   [notice] "The ubuntu-latest label will migrate to Ubuntu 26 beginning October 19, 2026. For more information, see https://github.com/actions/runner-images/issues/14748"
+== main af68f2dde
+-- quality failure
+   [failure] Process completed with exit code 1.
+   [failure] a quality job did not succeed (skipped)
+   [notice] "The ubuntu-latest label will migrate to Ubuntu 26 beginning October 19, 2026. For more information, see https://github.com/actions/runner-images/issues/14748"
+-- generation (a) failure
+   [failure] The operation was canceled.
+   [notice] "The ubuntu-latest label will migrate to Ubuntu 26 beginning October 19, 2026. For more information, see https://github.com/actions/runner-images/issues/14748"
+-- generation (b) failure
+   [failure] The hosted runner lost communication with the server. Anything in your workflow that terminates the runner process, starves it for CPU/Memory, or blocks its network access can cause this error.
+   [notice] "The ubuntu-latest label will migrate to Ubuntu 26 beginning October 19, 2026. For more information, see https://github.com/actions/runner-images/issues/14748"
+-- fixture-prefix failure
+   [failure] The operation was canceled.
+   [notice] "The ubuntu-latest label will migrate to Ubuntu 26 beginning October 19, 2026. For more information, see https://github.com/actions/runner-images/issues/14748"
