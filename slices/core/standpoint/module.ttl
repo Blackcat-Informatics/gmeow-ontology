@@ -946,23 +946,27 @@ logic:scuGuard a logic:Formula ; logic:relation gmeow:standpointCredence ;
 logic:scuHigh a logic:Formula ; logic:relation logic:termLessEqual ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "v" ] , [ logic:termIndex 1 ; logic:termLiteral "1.0" ; logic:termLiteralDatatype xsd:decimal ] .
 
-# A withdrawn standpoint (a gmeow:StandpointTenure whose interval has ended)
-# should set gmeow:displayable false — suppressed from display, never deleted. Warning.
+# A standpoint its own holder withdrew (a gmeow:StandpointTenure whose interval has
+# ended and that a withdrawal activity retracts) should set gmeow:displayable false —
+# suppressed from display, never deleted. Warning. An interval that merely ended is not
+# a withdrawal.
 gmeow:WithdrawnStandpointSuppressionConstraint
     a logic:Constraint ;
     rdfs:label "Withdrawn standpoint suppression constraint"@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/standpoint> ;
     gmeow:graphBoxRole gmeow:boxTBox ;
-    skos:definition "A closed-world integrity constraint: a gmeow:StandpointTenure whose interval has ended sets gmeow:displayable false."@x-gmeow-english ;
+    skos:definition "A closed-world integrity constraint: a gmeow:StandpointTenure whose interval has ended and that a withdrawal activity retracts through gmeow:retractsClaim should set gmeow:displayable false. It concerns a holder withdrawing its own position, which is hidden from every reader. A tenure whose interval merely ended, and a claim that another party disputes or corrects, are not reported: what a reader is shown of them is reader policy, decided at projection."@x-gmeow-english ;
     logic:formalizes gmeow:WithdrawnStandpointSuppressionShape ;
     logic:severity "Warning" ;
-    logic:message "A withdrawn standpoint (a StandpointTenure whose interval has ended) should set gmeow:displayable false — suppressed from display, never deleted." ;
+    logic:message "A standpoint tenure whose interval has ended and that a withdrawal activity retracts should set gmeow:displayable false — suppressed from display, never deleted." ;
     logic:integrity logic:wssForall .
 logic:wssForall a logic:Formula ;
-    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "iv" ] , [ logic:termIndex 2 ; logic:termVariable "end" ] ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "iv" ] , [ logic:termIndex 2 ; logic:termVariable "end" ] , [ logic:termIndex 3 ; logic:termVariable "act" ] ;
     logic:forall logic:wssImpl .
 logic:wssImpl a logic:Formula ; logic:antecedent logic:wssGuard ; logic:consequent logic:wssDisp .
-logic:wssGuard a logic:Formula ; logic:and logic:wssType , logic:wssDuring , logic:wssEnded .
+logic:wssGuard a logic:Formula ; logic:and logic:wssType , logic:wssDuring , logic:wssEnded , logic:wssRetracted .
+logic:wssRetracted a logic:Formula ; logic:relation gmeow:retractsClaim ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "act" ] , [ logic:termIndex 1 ; logic:termVariable "this" ] .
 logic:wssType a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri gmeow:StandpointTenure ] .
 logic:wssDuring a logic:Formula ; logic:relation gmeow:duringInterval ;

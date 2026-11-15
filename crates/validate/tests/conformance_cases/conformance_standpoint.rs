@@ -53,6 +53,10 @@ use purrdf::slice::rdf_query::{Object, Subject};
     Case::file("shapes", "standpoint-withdrawn-warning")
         .warnings(&["displayable false"])
 )]
+#[case::ended_tenure_without_retraction_conforms(Case::file(
+    "shapes",
+    "standpoint-ended-tenure-conforms"
+))]
 #[case::variety_coexistence_fixture_conforms(Case::file("shapes", "variety-coexistence"))]
 #[case::etymology_coexistence_fixture_conforms(Case::file("shapes", "etymology-coexistence"))]
 #[case::credence_band_and_decimal_consistent_conforms(Case::file(

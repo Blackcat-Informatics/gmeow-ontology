@@ -555,3 +555,15 @@ ASK {
  FILTER NOT EXISTS { ex:neighbourDoubt gmeow:correctsClaim ?any }
 }""" ;
     gmeow:saRationale "A plain disagreement is a gmeow:ClaimEvaluation and a correction is gmeow:correctsClaim indexed to the correcting standpoint. Neither one puts a display flag or a supersession on the claim it is about, so the disputed claim, the evaluation and the correction are all retrievable together (Principles 9 and 10)." .
+
+<https://example.org/lifecycle/tests/withdrawn-standpoint-warning-needs-a-retraction> a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
+ASK {
+    gmeow:WithdrawnStandpointSuppressionConstraint logic:integrity ?root .
+    ?root (logic:forall|logic:exists|logic:not|logic:and|logic:or|logic:antecedent|logic:consequent)* ?atom .
+    ?atom logic:relation gmeow:retractsClaim .
+}""" ;
+    gmeow:saRationale "The warning that prompts gmeow:displayable false on a standpoint tenure reads a withdrawal activity that retracts the tenure, so an interval that merely ended draws no warning; it reads no correction, supersession or evaluation by another party (Principles 9 and 10)." .

@@ -1,5 +1,5 @@
-# Withdrawn-standpoint WARNING fixture (#43). A StandpointTenure whose interval has
-# ENDED (a withdrawn position) but is NOT suppressed (no gmeow:displayable false) —
+# Withdrawn-standpoint WARNING fixture. A StandpointTenure whose interval has
+# ENDED and that a withdrawal activity RETRACTS (its holder withdrew the position) but is NOT suppressed (no gmeow:displayable false) —
 # this trips gmeow:WithdrawnStandpointSuppressionShape, which is sh:Warning severity
 # (Principle 10: suppression, never erasure; a source may lag the flag). The tenure
 # is otherwise well-formed (exactly one gmeow:tenureStandpoint) so NO Violation
@@ -25,3 +25,6 @@ ex:withdrawnClaim a gmeow:StandpointClaim ;
     gmeow:observationMethod gmeow:methodExpertJudgement .
 
 ex:standpoint-un a gmeow:Standpoint .
+
+ex:withdrawal a gmeow:Activity ;
+    gmeow:retractsClaim ex:un-recognition .

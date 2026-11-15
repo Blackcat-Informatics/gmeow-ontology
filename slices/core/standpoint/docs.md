@@ -158,6 +158,11 @@ claim is decided at projection. Principle 10 names the cases that do prompt supp
 A claimed state that changed is `gmeow:succeedsClaim`, and a standpoint withdrawing its
 own claim is `gmeow:retractsClaim`; neither is a dispute.
 
+The suppression warning on a standpoint tenure (`gmeow:WithdrawnStandpointSuppressionConstraint`)
+concerns a holder withdrawing its own position: it fires only for a tenure whose interval has
+ended and that a withdrawal activity retracts. A tenure whose interval merely ended is not
+reported, and a correction or dispute by another party never prompts a display flag.
+
 ```turtle
 # Plain disagreement: the neighbour doubts the report and corrects nothing.
 ex:neighbourDoubt a gmeow:ClaimEvaluation ;
