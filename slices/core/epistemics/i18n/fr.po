@@ -151,7 +151,7 @@ msgstr "Affirme sur le porteur canonique que gmeow:underStandard est fonctionnel
 
 msgctxt "https://blackcatinformatics.ca/gmeow/adequacyUnderStandardFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
 msgid "Use when the native coherence gate must enforce that gmeow:adequacyUnderStandard names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
-msgstr "À utiliser lorsque le portail de cohérence natif doit garantir que gmeow:adequacyUnderStandard nomme au plus une valeur ; cet enregistrement est le porteur canonique que le portail joint, de sorte que l'obligation est raisonnée plutôt que redite sur une surface de formes."
+msgstr "À utiliser lorsque le portail de cohérence natif doit garantir que gmeow:adequacyUnderStandard nomme exactement une valeur ; cet enregistrement est le porteur canonique que le portail joint, de sorte que l'obligation est raisonnée plutôt que redite sur une surface de formes."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/adequacyUnderStandardFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
 msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
@@ -527,7 +527,7 @@ msgstr "putForwardByClaim est fonctionnelle"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/putForwardByClaimFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
 msgid "Use when the native coherence gate must enforce that gmeow:putForwardByClaim names at most one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
-msgstr "À utiliser lorsque le portail de cohérence natif doit garantir que gmeow:putForwardByClaim nomme exactement une valeur ; cet enregistrement est le porteur canonique que le portail joint, de sorte que l'obligation est raisonnée plutôt que redite sur une surface de formes."
+msgstr "À utiliser lorsque le portail de cohérence natif doit garantir que gmeow:putForwardByClaim nomme au plus une valeur ; cet enregistrement est le porteur canonique que le portail joint, de sorte que l'obligation est raisonnée plutôt que redite sur une surface de formes."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/putForwardByClaimFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
 msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
