@@ -1,0 +1,30 @@
+{
+  "schema": 1,
+  "issue": 2802,
+  "repo": "gmeow-ontology",
+  "forge": "github",
+  "nwo": "Blackcat-Informatics/gmeow-ontology",
+  "read_access": "anon-read",
+  "main_root": "/home/paudley/Active/gmeow-ontology",
+  "worktree": "/home/paudley/Active/gmeow-ontology/.worktrees/2802-term-reasons-a-question-has-no-answer",
+  "branch": "paudley/2802-term-reasons-a-question-has-no-answer",
+  "slug": "term-reasons-a-question-has-no-answer",
+  "slug_drift": false,
+  "stage_dir": "/home/paudley/Active/gmeow-ontology/.worktrees/2802-term-reasons-a-question-has-no-answer/.stage/term-reasons-a-question-has-no-answer",
+  "stage_tracked": true,
+  "base": "origin/main",
+  "base_oid": "862638ad8d2c47448484a00e2ac21ac38c69ec0e",
+  "reused": false,
+  "adr_repo": false,
+  "created": [
+    "worktree:/home/paudley/Active/gmeow-ontology/.worktrees/2802-term-reasons-a-question-has-no-answer",
+    "branch:paudley/2802-term-reasons-a-question-has-no-answer",
+    "ignored:8264 files (8264 reflinked, 0 written)",
+    "rust-caches:skipping busy source /opt/.cargo/96/6065c8dc4fe136: /opt/.cargo/96/6065c8dc4fe136/pipeline/.cargo-build-lock; reflinked /home/paudley/Active/gmeow-ontology/.worktrees/2800-term-assertion-category-on-a-claim-self caches into /home/paudley/Active/gmeow-ontology/.worktrees/2802-term-reasons-a-question-has-no-answer plus 0 dependency units from 0 other checkouts in 389.8s; 12994 unchanged files keep their built mtimes; 2 other files take the seed time and rebuild; 252 units naming another checkout rebuild",
+    "stage:/home/paudley/Active/gmeow-ontology/.worktrees/2802-term-reasons-a-question-has-no-answer/.stage/term-reasons-a-question-has-no-answer",
+    "issue:/home/paudley/Active/gmeow-ontology/.worktrees/2802-term-reasons-a-question-has-no-answer/.stage/term-reasons-a-question-has-no-answer/issue.md"
+  ],
+  "warnings": [],
+  "timestamp": "2026-11-15T02:07:57-0600",
+  "seed_error": ""
+}

@@ -1,0 +1,73 @@
+{
+  "assignees": [],
+  "author": {
+    "id": "MDQ6VXNlcjUyNzU1NQ==",
+    "is_bot": false,
+    "login": "paudley",
+    "name": "Patrick Audley"
+  },
+  "body": "## Request\n\nA consumer needs to record why a question has no answer, as data, without asserting a negative. Cases:\n\n1. not found in the searched sources, with the scope that was searched;\n2. retrieval failed (the source could not be fetched);\n3. not published (the answer exists but its holder has not made it public);\n4. not applicable (the question does not apply to this subject).\n\n\"Withheld\" is already covered by `gmeow:DisclosureOutcome`.\n\n## What exists\n\nAbsence is doctrine throughout the model (an absent value is unknown, never false), but there is no vocabulary for the reason. The nearest terms are each scoped to another domain: `gmeow:StructuredNull` (a source's own explicit null), `gmeow:recallVerdictNotFound` (an asker's verdict on a recall answer), `gmeow:lossValueMissing` (a query-input loss), `gmeow:dispositionTypedAbsence` (a pipeline stage's typed nothing), `gmeow:qualityNotApplicable` (a slice-quality axis), and `gmeow:verdictUndetermined`.\n\n## Required\n\n- A record of an unanswered question: which subject and which property (or question) it concerns, the reason, who determined it and when, as an attributed, dated observation and never a bare fact. It asserts no value and no negation, and nothing may derive falsity from it.\n- A small set of reason individuals covering the cases above, each with a definition that distinguishes it from the others and from withholding. \"Not found\" carries the scope searched; \"retrieval failed\" can point at the attempted source. Whether \"not published\" and \"not applicable\" belong is to be decided on the merits: \"not applicable\" is a claim about the subject, which the others are not.\n- The relation to the existing domain-scoped absence terms is stated, and where one of them is the same notion it is grounded in the new term instead of duplicated.\n- A later answer does not contradict an earlier absence record: both are retained, each with its time.\n- Worked examples for each reason, a competency question listing unanswered questions for a subject with their reasons, counter-examples showing that an absence record does not entail a negative, and translations.\n\nPrinciples 4, 9.\n",
+  "closedAt": null,
+  "comments": [
+    {
+      "id": "IC_kwDOSwdn1s8AAAABmoeCkw",
+      "author": {
+        "login": "paudley"
+      },
+      "authorAssociation": "MEMBER",
+      "body": "Blocks: #2795 (Release 0.4.0), by the maintainer's decision.",
+      "createdAt": "2026-11-15T01:49:57Z",
+      "includesCreatedEdit": false,
+      "isMinimized": false,
+      "minimizedReason": "",
+      "reactionGroups": [],
+      "url": "https://github.com/Blackcat-Informatics/gmeow-ontology/issues/2802#issuecomment-6887539347",
+      "viewerDidAuthor": true
+    }
+  ],
+  "createdAt": "2026-11-15T01:17:36Z",
+  "labels": [
+    {
+      "id": "LA_kwDOSwdn1s8AAAACl8ZKwA",
+      "name": "enhancement",
+      "description": "New feature or request",
+      "color": "a2eeef"
+    },
+    {
+      "id": "LA_kwDOSwdn1s8AAAACmTvTOg",
+      "name": "foundational",
+      "description": "Foundational / kernel construct",
+      "color": "b60205"
+    },
+    {
+      "id": "LA_kwDOSwdn1s8AAAACmTvThA",
+      "name": "cross-cutting",
+      "description": "Cross-cutting concern",
+      "color": "fbca04"
+    },
+    {
+      "id": "LA_kwDOSwdn1s8AAAACmTvT1A",
+      "name": "module-enhancement",
+      "description": "Enhancement to an existing module",
+      "color": "c5def5"
+    },
+    {
+      "id": "LA_kwDOSwdn1s8AAAACoIO76w",
+      "name": "complexity-hard",
+      "description": "Foundational/cross-cutting/research; large coordination or new semantics",
+      "color": "b60205"
+    },
+    {
+      "id": "LA_kwDOSwdn1s8AAAADBPkJyQ",
+      "name": "terms",
+      "description": "",
+      "color": "ededed"
+    }
+  ],
+  "milestone": null,
+  "number": 2802,
+  "state": "OPEN",
+  "title": "[term] Reasons a question has no answer: not found, retrieval failed, not published, not applicable",
+  "updatedAt": "2026-11-15T01:49:57Z",
+  "url": "https://github.com/Blackcat-Informatics/gmeow-ontology/issues/2802"
+}
