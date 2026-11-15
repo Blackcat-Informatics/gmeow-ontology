@@ -664,3 +664,50 @@ ex:saNameScriptNotDatatypeProperty a gmeow:StructuralAssertion ;
 PREFIX owl: <http://www.w3.org/2002/07/owl#>
 ASK { gmeow:nameScript a owl:DatatypeProperty . }""" ;
     gmeow:saRationale "gmeow:nameScript MUST NOT be an owl:DatatypeProperty -- the bare ISO 15924 literal carrier is retired under the lang: graft; script is always a first-class lang:Script individual, never an opaque code string." .
+
+# --- 55. The superseded-name warning reads only the name's own purpose (MUST-NOT) ---
+ex:saSupersededNameSuppressionIgnoresDispute a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:mustNot ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
+ASK {
+    VALUES ?p { gmeow:accordingTo gmeow:usageAuthority gmeow:evaluates gmeow:correctsClaim gmeow:supersedes gmeow:supersededBy }
+    gmeow:SupersededNameSuppressionConstraint logic:integrity ?root .
+    ?root (logic:forall|logic:exists|logic:not|logic:and|logic:or|logic:antecedent|logic:consequent)* ?formula .
+    ?formula logic:relation ?p .
+}""" ;
+    gmeow:saRationale "The suppression warning for a superseded name or deadname MUST NOT read a standpoint, an authority, an evaluation, a correction or a supersession link: a dispute or a correction by another party never prompts gmeow:displayable false, and only the name's own recorded purpose does (Principles 9 and 10)." .
+
+# --- 56. The superseded-name warning still reads the deadname purpose (MUST) ---
+ex:saSupersededNameSuppressionReadsDeadnamePurpose a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
+ASK {
+    gmeow:SupersededNameSuppressionConstraint logic:severity "Warning" ; logic:integrity ?root .
+    ?root (logic:forall|logic:exists|logic:not|logic:and|logic:or|logic:antecedent|logic:consequent)* ?purpose .
+    ?purpose logic:relation gmeow:namePurpose .
+    ?root (logic:forall|logic:exists|logic:not|logic:and|logic:or|logic:antecedent|logic:consequent)* ?dead .
+    ?dead logic:relation logic:termEqual ;
+        logic:argument ?arg .
+    ?arg logic:termIri gmeow:namePurposeDeadname .
+}""" ;
+    gmeow:saRationale "A deadname that omits gmeow:displayable false is still reported: the warning keeps its namePurposeDeadname test, because a superseded name is hidden from every reader (Principle 10)." .
+
+# --- 57. The worked example holds a disputed name with no display flag (MUST) ---
+ex:saDisputedNameKeepsNoDisplayFlag a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModuleAndExamples ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX ex: <https://blackcatinformatics.ca/gmeow/examples/names/>
+ASK {
+    ex:usageRegistry a gmeow:NameUsage ; gmeow:usageAppellation ex:nameRegistry ; gmeow:usageAuthority ex:registryOffice .
+    ex:usageSelf a gmeow:NameUsage ; gmeow:usageAppellation ex:nameChosen ; gmeow:usageAuthority ex:robin .
+    ex:nameDead gmeow:namePurpose gmeow:namePurposeDeadname ; gmeow:displayable false .
+    FILTER NOT EXISTS { ex:nameRegistry gmeow:displayable ?flag }
+    FILTER NOT EXISTS { ex:nameRegistry gmeow:namePurpose gmeow:namePurposeDeadname }
+    FILTER NOT EXISTS { ex:nameRegistry gmeow:namePurpose gmeow:namePurposeSuperseded }
+}""" ;
+    gmeow:saRationale "Two authorities name one person differently and both usages stay in the data. The disputed appellation carries no deadname purpose and no display value, so the suppression warning does not report it, while the person's superseded deadname keeps its flag (Principles 9 and 10)." .

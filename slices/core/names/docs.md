@@ -193,6 +193,16 @@ There is no priority ranking — `displayable false` is a hard suppression, and 
 chosen name surfaces by locale match. The `DeadnameSuppressionShape`
 (`shapes/gmeow-shapes.ttl`) warns when a superseded/deadname omits the flag.
 
+`gmeow:displayable false` is a global safety control, not a verdict on a claim.
+It belongs on a name its holder has superseded, because every reader must be kept
+from seeing it. It does not belong on a name that another party disputes,
+corrects or evaluates: the two claims coexist, both stay retrievable, and which
+one a reader is shown is that reader's policy, decided at projection and
+recorded, where it is recorded at all, as a `gmeow:DisclosureDecision`. The
+suppression warning reads only the name's own purpose (`namePurposeDeadname` or
+`namePurposeSuperseded`), so a disputed name with neither purpose is not
+reported. `examples/person-names.ttl` carries both cases.
+
 ## Pronouns & honorifics — facets, independent of sex
 
 Pronouns and honorifics are **first-class, contextual, temporal, and sex/gender
