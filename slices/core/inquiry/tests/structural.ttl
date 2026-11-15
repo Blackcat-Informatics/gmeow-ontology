@@ -392,10 +392,10 @@ PREFIX logic: <https://blackcatinformatics.ca/logic/>
 PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
 ASK {
     VALUES ?p { gmeow:absenceReason gmeow:absenceQuestion gmeow:absentProperty gmeow:consultedSource }
-    ?rule a logic:Rule ; logic:body ?atom .
+    ?rule a logic:Rule ; (logic:body|logic:negatedBody) ?atom .
     ?atom rdf:reifies <<( ?s ?p ?o )>> .
 }""" ;
-    gmeow:saRationale "No logic:Rule in the module has a body atom whose predicate is one of the four absence properties, so no rule authored here derives a statement from an absence record. Rules and axioms authored in another slice are outside the reach of a module-scope assertion." .
+    gmeow:saRationale "No logic:Rule in the module has a positive (logic:body) or negated (logic:negatedBody) body atom whose predicate is one of the four absence properties, so no rule authored here derives a statement from an absence record. Rules and axioms authored in another slice are outside the reach of a module-scope assertion." .
 
 ex:saAbsenceNoFormulaOutsideConstraint a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:mustNot ; gmeow:saScope gmeow:scopeModule ;
@@ -403,7 +403,7 @@ ex:saAbsenceNoFormulaOutsideConstraint a gmeow:StructuralAssertion ;
 PREFIX logic: <https://blackcatinformatics.ca/logic/>
 ASK {
     VALUES ?p { gmeow:absenceReason gmeow:absenceQuestion gmeow:absentProperty gmeow:consultedSource }
-    ?formula a logic:Formula ; logic:relation ?p .
+    ?formula logic:relation ?p .
     FILTER NOT EXISTS {
         ?constraint a logic:Constraint ; logic:integrity ?root .
         ?root (logic:forall|logic:exists|logic:not|logic:and|logic:or|logic:antecedent|logic:consequent)* ?formula .
