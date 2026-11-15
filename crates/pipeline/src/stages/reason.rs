@@ -182,7 +182,10 @@ pub fn reason_over_dataset(
     // strings. Release the canonical dataset and reclaim free allocator pages, which
     // covers the asserted dataset dropped above, before consuming reasoning starts.
     drop(canon);
-    crate::scheduler::reclaim_allocator_slack();
+    crate::memory_record::keep(crate::scheduler::reclaim_allocator_slack(
+        "stage-reason",
+        Some("prepare-reasoning-input"),
+    ));
     reason_prepared_input(alpha_edges, input, domains)
 }
 
@@ -212,6 +215,14 @@ fn reason_prepared_input(
         inferred_axioms = result.inferred().len(),
         "reasoning result size",
     );
+    // Reasoning consumed the prepared input and has returned only its result: the
+    // input rows and every engine working structure the result does not own died
+    // with that call. Return those pages before the projection allocates the closure
+    // and the explanations beside the result.
+    crate::memory_record::keep(crate::scheduler::reclaim_allocator_slack(
+        "stage-reason",
+        Some("reason-all"),
+    ));
     measure_stage_phase("stage-reason", "project-reason-artifacts", || {
         project_reason_artifacts(result, &alpha_edges)
     })

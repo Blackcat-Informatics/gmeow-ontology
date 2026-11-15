@@ -78,3 +78,32 @@ fn phase_records_reach_the_enclosing_collection_and_only_it() {
         "a finished collection leaves nothing behind"
     );
 }
+
+/// A hosted run is diagnosed from how much of the resident size is live data and how
+/// much the allocator kept after a free, so every record carries the allocator's own
+/// totals where glibc supplies them and they follow a real allocation. On a target
+/// without them the totals are absent, never zero.
+#[test]
+fn record_carries_allocator_totals_only_where_the_allocator_reports_them() {
+    let before = record("probe", MemoryEvent::Dispatch, None, None, None);
+    let held = vec![1_u8; 8 << 20];
+    let after = record("probe", MemoryEvent::Complete, None, None, None);
+    assert!(
+        after.reclaim.is_none(),
+        "a boundary record returns no pages"
+    );
+    #[cfg(all(target_os = "linux", target_env = "gnu"))]
+    {
+        let (before, after) = (
+            before.allocator.expect("glibc reports its totals"),
+            after.allocator.expect("glibc reports its totals"),
+        );
+        assert!(
+            after.live_bytes - before.live_bytes >= 8 << 20,
+            "live bytes follow an allocation that is still held: {before:?} -> {after:?}"
+        );
+    }
+    #[cfg(not(all(target_os = "linux", target_env = "gnu")))]
+    assert_eq!((before.allocator, after.allocator), (None, None));
+    drop(held);
+}

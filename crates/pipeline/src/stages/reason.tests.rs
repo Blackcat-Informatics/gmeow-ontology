@@ -903,6 +903,28 @@ fn expression_identity_edges_reach_the_closure_from_an_owned_edb() {
             < position("stage-reason", "reason-all", MemoryEvent::PhaseStart),
         "the EDB's owner is dropped before the engine starts"
     );
+    // Freed pages are returned at the two handoffs where the stage's largest owners
+    // have just died: the input datasets before the engine starts, and the engine's
+    // working state before the projection allocates beside the result.
+    assert!(
+        position(
+            "stage-reason",
+            "prepare-reasoning-input",
+            MemoryEvent::Reclaim
+        ) < position("stage-reason", "reason-all", MemoryEvent::PhaseStart),
+        "the freed input is returned before the engine starts"
+    );
+    let after_engine = position("stage-reason", "reason-all", MemoryEvent::Reclaim);
+    assert!(
+        position("stage-reason", "reason-all", MemoryEvent::PhaseEnd) < after_engine
+            && after_engine
+                < position(
+                    "stage-reason",
+                    "project-reason-artifacts",
+                    MemoryEvent::PhaseStart
+                ),
+        "the engine's freed state is returned before the projection starts"
+    );
     let carried: BTreeSet<(String, String)> = reasoned
         .dataset
         .owned_quads()

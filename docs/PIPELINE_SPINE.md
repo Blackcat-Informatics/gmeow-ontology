@@ -347,11 +347,11 @@ reader that reaches for an unretained intermediate, HARD-fails on the released m
 rather than treating the empty residue as data. A post-run proof names the exact
 intermediate carriers it retains in the run context; `RetainAll` remains an explicit
 diagnostic profile. These profiles change only residency, never produced bytes.
-On glibc Linux, the scheduler also requests allocator reclamation whenever ownership
-of the declarative serialization-buffer resource passes to the next carrier-scale
-serializer, and at the topological barrier immediately before the unique terminal.
-That returns pages already freed by cold export, mapping, and dictionary waves instead
-of carrying arena slack into the next whole-document buffer; on other allocators it is
+On glibc Linux, the scheduler also requests allocator reclamation once after each
+stage's publication and the carrier releases that completion caused, before the next
+stage is dispatched, and the reasoning stage requests it after preparing its input and
+after `reason-all`. That returns pages already freed by a completed stage instead of
+carrying arena slack beside the stages still running; on other allocators it is
 a no-op, and on every platform it changes only residency, never the live value graph or
 output.
 
