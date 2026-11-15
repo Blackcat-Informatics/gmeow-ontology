@@ -198,8 +198,8 @@ order implementation. Existing direct dependencies already name all owners;
 no manifest or cross-slice seam changes are needed.
 
 The time-then-digest comparison mechanism and the order laws that need it are
-not part of this evidence unit; the finality declarations below state what
-remains undone. No reported order pair tuples or blanket source
+not part of this evidence unit; the finality declarations below do not
+author them. No reported order pair tuples or blanket source
 commit-history/completeness prerequisites are added to this evidence unit.
 Current numeric integrity comparison must not be used as a temporal or digest
 comparator; PurRDF owns the existing typed value mechanisms and any actual
@@ -233,28 +233,37 @@ and establish no native execution or consumer adoption (Principles 2, 4, 7,
 
 Three records declare finality over a ledger of recorded packets: TraceWatermark,
 TraceMarkFrontier and TraceMarksGivenUp. Each is an InformationObject sub-kind
-that says what a recorder or producer declared and nothing more.
+that says what a recorder or producer declared and nothing more. Each requires
+its declarer through wasAttributedTo, in the form the mark uses: an
+all-values restriction over Agent and a class-local closed-world entry. The
+declarer is not the producer the declaration is about, although one agent may be
+both.
 
 A watermark and a frontier share two required roles, traceFinalityLedger
 (ranging over TracePacketLedger) and traceFinalityProducer (ranging over Agent).
-Their union domain also admits the give-up, where both roles are optional. A
-watermark adds watermarkPacket over TracePacket, so its cut carries the packet's
-ordering time and frame; a frontier adds frontierPoint over TraceAnchor, so its
-committed point is a packet key that need not be a recorded ledger member. A
-give-up requires givenUpReason, a literal that keeps the producer's wording
-rather than a coded category, and names the packets through givenUpPacket over
-TraceAnchor. Requiredness is an all-values restriction with a class-local
-closed-world entry, the form the mark and recorded packet already use. The six
-roles each receive property-global endpoint closure.
+Their union domain also admits the give-up, where both roles are optional. The
+producer is the one whose marks the declaration is about: a watermark finalizes
+that producer's marks up to its cut and is not a cut over the whole ledger, so a
+recorder may treat the ledger as final only when it holds a watermark for every
+producer it knows of. A watermark adds watermarkPacket over TracePacket, so its
+cut carries the packet's ordering time and frame; a frontier adds frontierPoint
+over TraceAnchor, so its committed point is a packet key that need not be a
+recorded ledger member. A give-up requires givenUpReason, a literal that keeps
+the producer's wording rather than a coded category, and names the packets
+through givenUpPacket over TraceAnchor. Requiredness is an all-values
+restriction with a class-local closed-world entry, the form the mark and
+recorded packet use. The six roles each receive property-global endpoint
+closure.
 
 Single-valued cut and point are two validation constraints over term
-distinctness, not functional axioms: a functional axiom would make a second
-value the same individual as the first, and the declaration should be reported
-instead. The constraints compare no time and no digest. A structural assertion
-rejects any constraint on a finality role that uses a relation other than the
-type test, the role under test and term distinctness, and others reject
-sub-property, inverse, chain, rule-body and non-constraint formula use of the
-roles, so nothing is derived from a declaration.
+distinctness, not functional axioms. A functional axiom, and equally a maximum
+qualified cardinality on an object property, would make a second value the same
+individual as the first, and the declaration should be reported instead. The
+constraints compare no time and no digest. A structural assertion rejects any
+constraint on a finality role or class that uses a relation other than the type
+test, the role under test and term distinctness, and others reject sub-property,
+inverse, chain, rule-body and non-constraint formula use of the roles, so
+nothing is derived from a declaration.
 
 Deferred laws, and why. Four laws are not authored: that the ledger's order is
 time then digest; that a watermark is inclusive and never moves backward; that
@@ -271,6 +280,7 @@ first.
 
 Conditional discard eligibility is preserved as prose on the watermark: an
 unmarked packet at or below the cut that is old enough under the recorder's own
-policy is eligible only on those conditions. No role records the policy's
-verdict, a recording or a deletion, so no execution is claimed (Principles 4, 7,
-9, 11, 12, 17 and 19).
+policy is eligible only on those conditions, and only where the recorder holds a
+watermark for every producer it knows of. No role records the policy's verdict,
+a recording or a deletion, so no execution is claimed (Principles 4, 7, 9, 11,
+12, 17 and 19).

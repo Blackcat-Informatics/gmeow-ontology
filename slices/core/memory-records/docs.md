@@ -349,21 +349,26 @@ by a supplied timestamp or structurally valid ledger membership.
 
 Three records hold what a recorder or producer declared about when marking is
 final. They are structural vocabulary only: each says what was declared, and none
-checks an order.
+checks an order. A declaration is a claim by someone, so each requires its
+declarer through `wasAttributedTo`. The declarer is distinct from the producer
+the declaration is about, although the same agent may be both.
 
-`TraceWatermark` declares that marking is final for every packet at or below one
-named `TracePacket` of a `TracePacketLedger` in the ledger's order, inclusive of
-that packet; no mark will name such a packet. It names its ledger
-(`traceFinalityLedger`), its producer (`traceFinalityProducer`) and its cut
-packet (`watermarkPacket`); each is required, and a validation constraint
-rejects two distinct cut packets on one watermark. A further cut is a separate
-watermark.
+`TraceWatermark` declares that marking is final for the one producer it names
+through `traceFinalityProducer`, for every packet of one `TracePacketLedger` at
+or below one named `TracePacket` in the ledger's order, inclusive of that packet:
+that producer will mark no such packet. It finalizes that producer's marks, not
+the whole ledger. A recorder may treat the ledger as final only when it holds a
+watermark for every producer it knows of. The watermark names its ledger
+(`traceFinalityLedger`), its producer and its cut packet (`watermarkPacket`);
+each is required, and a validation constraint rejects two distinct cut packets
+on one watermark. A further cut is a separate watermark.
 
-`TraceMarkFrontier` is the committed point a producer that marks events later
-declares for a ledger. It names the ledger and producer in the same way and one
-`frontierPoint`, a `TraceAnchor` packet key that need not be a recorded ledger
-member; a validation constraint rejects two distinct points on one frontier.
-Every applicable producer states its own frontier, and none is preferred.
+`TraceMarkFrontier` is the committed point the one producer it names, a producer
+that marks events later, has declared for a ledger. It names the ledger and
+producer in the same way and one `frontierPoint`, a `TraceAnchor` packet key
+that need not be a recorded ledger member; a validation constraint rejects two
+distinct points on one frontier. Every applicable producer states its own
+frontier, and none is preferred.
 
 `TraceMarksGivenUp` is the explicit give-up of marks a producer held only in
 memory and lost, for example on a restart. `givenUpReason` is required and keeps
@@ -384,12 +389,14 @@ cut belongs to its ledger, that one watermark is at or above another, that a
 watermark stays at or below a frontier, or that a give-up came first.
 
 An unmarked packet at or below a watermark that is old enough under the
-recorder's own policy is eligible for discard only on those conditions. The
+recorder's own policy is eligible for discard only on those conditions, and only
+where the recorder holds a watermark for every producer it knows of. The
 watermark records neither that policy's verdict, nor that a trace was recorded,
 nor that any deletion happened or is permitted. Missing membership is not
 unmarkedness, finality or an age-policy verdict. No trace join, retention,
 deletion action, producer commitment, completeness proof or consumer adoption
-follows (Principles 4, 7, 9, 11, 12, 17 and 19).
+follows. The worked example is [trace-finality.ttl](examples/trace-finality.ttl)
+(Principles 4, 7, 9, 11, 12, 17 and 19).
 
 ## Reported trace feed positions
 

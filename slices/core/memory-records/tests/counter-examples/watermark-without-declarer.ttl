@@ -1,0 +1,27 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# A watermark that names its ledger, producer and cut packet but no declarer. Every
+# other required role is present, so the only missing required path is the
+# declarer (wasAttributedTo). Lives under tests/ so the global validate gate never
+# loads it as data.
+@prefix ex: <https://example.org/trace-finality-counter/> .
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+ex:service a gmeow:SoftwareAgent .
+ex:profile a gmeow:InformationObject ;
+    dcterms:description "Each packet digest is the digest of the packet's bytes as the memory service wrote them."@en .
+ex:packet a gmeow:TracePacket ;
+    gmeow:anchorPacket "1111111111111111111111111111111111111111111111111111111111111111"^^xsd:hexBinary ;
+    gmeow:anchorSourceProfile ex:profile ;
+    gmeow:tracePacketAt "2026-11-01T09:00:00Z"^^xsd:dateTime ;
+    gmeow:hasReferenceFrame gmeow:temporalFrameUTCGregorian .
+ex:ledger a gmeow:TracePacketLedger ;
+    gmeow:tracePacket ex:packet ;
+    gmeow:wasAttributedTo ex:service .
+ex:cut a gmeow:TraceWatermark ;
+    gmeow:traceFinalityLedger ex:ledger ;
+    gmeow:traceFinalityProducer ex:service ;
+    gmeow:watermarkPacket ex:packet .

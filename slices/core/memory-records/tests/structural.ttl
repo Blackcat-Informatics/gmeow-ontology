@@ -32,6 +32,7 @@ ex:saTraceFinalityRequiredRoles a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:must ; gmeow:saScope gmeow:scopeModule ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
 PREFIX logic: <https://blackcatinformatics.ca/logic/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 ASK {
     gmeow:TraceWatermark logic:subClassOf [ logic:onProperty gmeow:traceFinalityLedger ; logic:allValuesFrom gmeow:TracePacketLedger ] ,
         [ logic:onProperty gmeow:traceFinalityProducer ; logic:allValuesFrom gmeow:Agent ] ,
@@ -40,15 +41,21 @@ ASK {
         [ logic:onProperty gmeow:traceFinalityProducer ; logic:allValuesFrom gmeow:Agent ] ,
         [ logic:onProperty gmeow:frontierPoint ; logic:allValuesFrom gmeow:TraceAnchor ] .
     gmeow:TraceMarksGivenUp logic:subClassOf [ logic:onProperty gmeow:givenUpReason ; logic:allValuesFrom rdfs:Literal ] .
-    [] logic:onClass gmeow:TraceWatermark ; logic:closureKey "https://blackcatinformatics.ca/gmeow/traceFinalityLedger" .
-    [] logic:onClass gmeow:TraceWatermark ; logic:closureKey "https://blackcatinformatics.ca/gmeow/traceFinalityProducer" .
-    [] logic:onClass gmeow:TraceWatermark ; logic:closureKey "https://blackcatinformatics.ca/gmeow/watermarkPacket" .
-    [] logic:onClass gmeow:TraceMarkFrontier ; logic:closureKey "https://blackcatinformatics.ca/gmeow/traceFinalityLedger" .
-    [] logic:onClass gmeow:TraceMarkFrontier ; logic:closureKey "https://blackcatinformatics.ca/gmeow/traceFinalityProducer" .
-    [] logic:onClass gmeow:TraceMarkFrontier ; logic:closureKey "https://blackcatinformatics.ca/gmeow/frontierPoint" .
-    [] logic:onClass gmeow:TraceMarksGivenUp ; logic:closureKey "https://blackcatinformatics.ca/gmeow/givenUpReason" .
+    [] logic:onClass gmeow:TraceWatermark ; logic:closureKey "https://blackcatinformatics.ca/gmeow/traceFinalityLedger" ; logic:closureValue logic:ClosedWorldClosure .
+    [] logic:onClass gmeow:TraceWatermark ; logic:closureKey "https://blackcatinformatics.ca/gmeow/traceFinalityProducer" ; logic:closureValue logic:ClosedWorldClosure .
+    [] logic:onClass gmeow:TraceWatermark ; logic:closureKey "https://blackcatinformatics.ca/gmeow/watermarkPacket" ; logic:closureValue logic:ClosedWorldClosure .
+    [] logic:onClass gmeow:TraceMarkFrontier ; logic:closureKey "https://blackcatinformatics.ca/gmeow/traceFinalityLedger" ; logic:closureValue logic:ClosedWorldClosure .
+    [] logic:onClass gmeow:TraceMarkFrontier ; logic:closureKey "https://blackcatinformatics.ca/gmeow/traceFinalityProducer" ; logic:closureValue logic:ClosedWorldClosure .
+    [] logic:onClass gmeow:TraceMarkFrontier ; logic:closureKey "https://blackcatinformatics.ca/gmeow/frontierPoint" ; logic:closureValue logic:ClosedWorldClosure .
+    [] logic:onClass gmeow:TraceMarksGivenUp ; logic:closureKey "https://blackcatinformatics.ca/gmeow/givenUpReason" ; logic:closureValue logic:ClosedWorldClosure .
+    gmeow:TraceWatermark logic:subClassOf [ logic:onProperty gmeow:wasAttributedTo ; logic:allValuesFrom gmeow:Agent ] .
+    [] logic:onClass gmeow:TraceWatermark ; logic:closureKey "https://blackcatinformatics.ca/gmeow/wasAttributedTo" ; logic:closureValue logic:ClosedWorldClosure .
+    gmeow:TraceMarkFrontier logic:subClassOf [ logic:onProperty gmeow:wasAttributedTo ; logic:allValuesFrom gmeow:Agent ] .
+    [] logic:onClass gmeow:TraceMarkFrontier ; logic:closureKey "https://blackcatinformatics.ca/gmeow/wasAttributedTo" ; logic:closureValue logic:ClosedWorldClosure .
+    gmeow:TraceMarksGivenUp logic:subClassOf [ logic:onProperty gmeow:wasAttributedTo ; logic:allValuesFrom gmeow:Agent ] .
+    [] logic:onClass gmeow:TraceMarksGivenUp ; logic:closureKey "https://blackcatinformatics.ca/gmeow/wasAttributedTo" ; logic:closureValue logic:ClosedWorldClosure .
 }""" ;
-    gmeow:saRationale "A watermark and a frontier name their ledger and producer, a watermark its cut packet, a frontier its committed point, and a give-up its reason: each is an all-values restriction plus a closed-world required-path entry on that class. Dropping one entry fails the assertion." .
+    gmeow:saRationale "A watermark and a frontier name their ledger and producer, a watermark its cut packet, a frontier its committed point, a give-up its reason, and all three name their declarer through wasAttributedTo: each is an all-values restriction plus a closed-world required-path entry on that class. Dropping one entry, or opening its closure, fails the assertion." .
 
 ex:saTraceFinalityNoComparison a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:mustNot ; gmeow:saScope gmeow:scopeModule ;
@@ -56,13 +63,13 @@ ex:saTraceFinalityNoComparison a gmeow:StructuralAssertion ;
 PREFIX logic: <https://blackcatinformatics.ca/logic/>
 PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
 ASK {
-    VALUES ?term { gmeow:traceFinalityLedger gmeow:traceFinalityProducer gmeow:watermarkPacket gmeow:frontierPoint gmeow:givenUpPacket gmeow:givenUpReason }
+    VALUES ?term { gmeow:TraceWatermark gmeow:TraceMarkFrontier gmeow:TraceMarksGivenUp gmeow:traceFinalityLedger gmeow:traceFinalityProducer gmeow:watermarkPacket gmeow:frontierPoint gmeow:givenUpPacket gmeow:givenUpReason }
     ?constraint a logic:Constraint ; logic:formalizes ?term ; logic:integrity ?root .
     ?root (logic:forall|logic:exists|logic:not|logic:and|logic:or|logic:antecedent|logic:consequent)* ?formula .
     ?formula logic:relation ?relation .
     FILTER(?relation NOT IN (rdf:type, gmeow:watermarkPacket, gmeow:frontierPoint, logic:termDistinct))
 }""" ;
-    gmeow:saRationale "No constraint on a finality role uses a relation other than the type test, the role being limited and term distinctness. In particular none compares a time or a digest, and none uses the numeric comparison, so a constraint added later that compares them fails this assertion." .
+    gmeow:saRationale "No constraint on a finality class or role uses a relation other than the type test, the role being limited and term distinctness. In particular none compares a time or a digest, and none uses the numeric comparison, so a constraint added later that compares them fails this assertion." .
 
 ex:saTraceFinalityDerivesNothing a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:mustNot ; gmeow:saScope gmeow:scopeModule ;
@@ -149,12 +156,13 @@ ex:saTraceFinalityExample a gmeow:StructuralAssertion ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
 PREFIX ex: <https://example.org/trace-finality/>
 ASK {
-    ex:cut a gmeow:TraceWatermark ; gmeow:traceFinalityLedger ex:ledger ; gmeow:traceFinalityProducer ex:memoryService ; gmeow:watermarkPacket ex:packetOne .
-    ex:lateFrontier a gmeow:TraceMarkFrontier ; gmeow:traceFinalityLedger ex:ledger ; gmeow:traceFinalityProducer ex:lateDeriver ; gmeow:frontierPoint ex:pointKey .
-    ex:lost a gmeow:TraceMarksGivenUp ; gmeow:givenUpPacket ex:packetTwo ; gmeow:givenUpReason ?reason .
+    ex:cut a gmeow:TraceWatermark ; gmeow:traceFinalityLedger ex:ledger ; gmeow:traceFinalityProducer ex:memoryService ; gmeow:watermarkPacket ex:packetOne ; gmeow:wasAttributedTo ex:memoryService .
+    ex:lateFrontier a gmeow:TraceMarkFrontier ; gmeow:traceFinalityLedger ex:ledger ; gmeow:traceFinalityProducer ex:lateDeriver ; gmeow:frontierPoint ex:pointKey ; gmeow:wasAttributedTo ex:lateDeriver .
+    ex:lost a gmeow:TraceMarksGivenUp ; gmeow:givenUpPacket ex:packetTwo ; gmeow:givenUpReason ?reason ; gmeow:wasAttributedTo ex:memoryService .
     ex:ledger gmeow:tracePacket ex:packetOne , ex:packetTwo , ex:packetThree .
     FILTER NOT EXISTS { ?w a gmeow:TraceWatermark ; gmeow:watermarkPacket ?a , ?b . FILTER(?a != ?b) }
     FILTER NOT EXISTS { ?f a gmeow:TraceMarkFrontier ; gmeow:frontierPoint ?c , ?d . FILTER(?c != ?d) }
     FILTER NOT EXISTS { ?g a gmeow:TraceMarksGivenUp . FILTER NOT EXISTS { ?g gmeow:givenUpReason ?r } }
+    FILTER NOT EXISTS { VALUES ?cls { gmeow:TraceWatermark gmeow:TraceMarkFrontier gmeow:TraceMarksGivenUp } ?d a ?cls . FILTER NOT EXISTS { ?d gmeow:wasAttributedTo ?who } }
 }""" ;
-    gmeow:saRationale "Counter-example: the worked records name their ledger, producer, cut, committed point and reason, the cut and the point are single and every give-up carries a reason. Each negative clause is tied to the records, so deleting them fails the assertion." .
+    gmeow:saRationale "Counter-example: the worked records name their ledger, producer, cut, committed point and reason, the cut and the point are single and every give-up carries a reason, and every declaration names its declarer. Each negative clause is tied to the records, so deleting them fails the assertion." .

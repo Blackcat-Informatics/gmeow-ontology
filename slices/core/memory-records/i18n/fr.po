@@ -1714,44 +1714,44 @@ msgid "Trace marking watermark"
 msgstr "Filigrane de marquage de trace"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/TraceWatermark|http://www.w3.org/2004/02/skos/core#definition"
-msgid "A declaration, made for one TracePacketLedger and one producer, that marking is final for every packet at or below one named TracePacket in the ledger's order, so that no mark will name such a packet. It records what its declarer stated, not a verified order, and it is distinct from a producer's committed frontier and from a give-up of lost marks."
-msgstr "Déclaration, faite pour un TracePacketLedger et un producteur, que le marquage est final pour tout paquet situé au niveau d’un TracePacket nommé du registre ou en dessous dans l’ordre de ce registre : aucune marque ne nommera un tel paquet. Elle consigne ce que son déclarant a affirmé, et non un ordre vérifié ; elle se distingue de la frontière validée d’un producteur et d’un abandon de marques perdues."
+msgid "A declaration that marking is final, for the one producer named through traceFinalityProducer, for every packet of one TracePacketLedger at or below one named TracePacket in the ledger's order: that producer will mark no such packet. It finalizes only that producer's marks, not the whole ledger, and it records what its declarer stated rather than a verified order."
+msgstr "Déclaration que le marquage est final, pour le seul producteur nommé par traceFinalityProducer, pour tout paquet d’un TracePacketLedger situé au niveau d’un TracePacket nommé ou en dessous dans l’ordre du registre : ce producteur ne marquera aucun tel paquet. Elle ne rend finales que les marques de ce producteur, non tout le registre, et consigne ce que son déclarant a affirmé plutôt qu’un ordre vérifié."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/TraceWatermark|http://www.w3.org/2004/02/skos/core#scopeNote"
-msgid "A watermark names its ledger (traceFinalityLedger), its producer (traceFinalityProducer) and one cut packet (watermarkPacket); the cut is inclusive of that packet. The ledger's order is time, then digest. Without a typed time and digest comparison nothing here checks that order, that the cut packet is a member of the ledger, that the cut never moves backward between watermarks, that every applicable producer frontier has been reached, or that lost marks were given up first. Several watermarks may coexist as separate attributed declarations."
-msgstr "Un filigrane nomme son registre (traceFinalityLedger), son producteur (traceFinalityProducer) et un paquet de coupure (watermarkPacket) ; la coupure inclut ce paquet. L’ordre du registre est le temps, puis le condensat. Sans comparaison typée du temps et du condensat, rien ici ne vérifie cet ordre, que le paquet de coupure est membre du registre, que la coupure ne recule jamais d’un filigrane à l’autre, que chaque frontière applicable d’un producteur a été atteinte, ni que les marques perdues ont d’abord été abandonnées. Plusieurs filigranes peuvent coexister comme déclarations attribuées distinctes."
+msgid "A watermark names its ledger (traceFinalityLedger), the one producer whose marks it finalizes (traceFinalityProducer), one cut packet (watermarkPacket; the cut includes that packet) and its declarer through wasAttributedTo, who may be that producer or another agent. A recorder may treat the ledger as final only when it holds a watermark for every producer it knows of. The ledger's order is time, then digest. Without a typed time and digest comparison nothing here checks that order, that the cut packet is a member of the ledger, that the cut never moves backward between watermarks, that every applicable producer frontier has been reached, or that lost marks were given up first. Several watermarks may coexist as separate attributed declarations."
+msgstr "Un filigrane nomme son registre (traceFinalityLedger), le seul producteur dont il rend les marques finales (traceFinalityProducer), un paquet de coupure (watermarkPacket ; la coupure inclut ce paquet) et son déclarant par wasAttributedTo, qui peut être ce producteur ou un autre agent. Un enregistreur ne peut tenir le registre pour final que s’il détient un filigrane pour chaque producteur qu’il connaît. L’ordre du registre est le temps, puis le condensat. Sans comparaison typée du temps et du condensat, rien ici ne vérifie cet ordre, que le paquet de coupure est membre du registre, que la coupure ne recule jamais d’un filigrane à l’autre, que chaque frontière applicable d’un producteur a été atteinte, ni que les marques perdues ont d’abord été abandonnées. Plusieurs filigranes peuvent coexister comme déclarations attribuées distinctes."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/TraceWatermark|http://www.w3.org/2004/02/skos/core#example"
-msgid "The memory service declares its cut: ex:cut a gmeow:TraceWatermark ; gmeow:traceFinalityLedger ex:ledger ; gmeow:traceFinalityProducer ex:memoryService ; gmeow:watermarkPacket ex:packetOne ."
-msgstr "Le service de mémoire déclare sa coupure : ex:cut a gmeow:TraceWatermark ; gmeow:traceFinalityLedger ex:ledger ; gmeow:traceFinalityProducer ex:memoryService ; gmeow:watermarkPacket ex:packetOne ."
+msgid "The memory service declares its own cut: ex:cut a gmeow:TraceWatermark ; gmeow:traceFinalityLedger ex:ledger ; gmeow:traceFinalityProducer ex:memoryService ; gmeow:watermarkPacket ex:packetOne ; gmeow:wasAttributedTo ex:memoryService ."
+msgstr "Le service de mémoire déclare sa propre coupure : ex:cut a gmeow:TraceWatermark ; gmeow:traceFinalityLedger ex:ledger ; gmeow:traceFinalityProducer ex:memoryService ; gmeow:watermarkPacket ex:packetOne ; gmeow:wasAttributedTo ex:memoryService ."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/TraceWatermark|https://blackcatinformatics.ca/gmeow/useWhen"
-msgid "Use when a recorder or memory service actually declares that marking is final up to a named packet of a named ledger."
-msgstr "À utiliser lorsqu’un enregistreur ou un service de mémoire déclare réellement que le marquage est final jusqu’à un paquet nommé d’un registre nommé."
+msgid "Use when a recorder or memory service actually declares that one producer's marking is final up to a named packet of a named ledger."
+msgstr "À utiliser lorsqu’un enregistreur ou un service de mémoire déclare réellement que le marquage d’un producteur est final jusqu’à un paquet nommé d’un registre nommé."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/TraceWatermark|https://blackcatinformatics.ca/gmeow/avoidWhen"
-msgid "Avoid inferring a watermark from the newest packet, from missing marks or from age, and avoid reading it as proof that marking is final, that a trace was recorded, or that any trace was or may be deleted."
-msgstr "Éviter de déduire un filigrane du paquet le plus récent, de marques absentes ou de l’âge, et éviter d’y voir la preuve que le marquage est final, qu’une trace a été enregistrée ou qu’une trace a été ou peut être supprimée."
+msgid "Avoid inferring a watermark from the newest packet, from missing marks or from age, avoid reading it as a cut over the whole ledger or over another producer's marks, and avoid reading it as proof that marking is final, that a trace was recorded, or that any trace was or may be deleted."
+msgstr "Éviter de déduire un filigrane du paquet le plus récent, de marques absentes ou de l’âge, éviter d’y voir une coupure de tout le registre ou des marques d’un autre producteur, et éviter d’y voir la preuve que le marquage est final, qu’une trace a été enregistrée ou qu’une trace a été ou peut être supprimée."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/TraceWatermark|https://blackcatinformatics.ca/gmeow/howToUse"
-msgid "Name the ledger, the producer and the cut packet, and attribute the declaration through wasAttributedTo. An unmarked packet at or below the cut that is old enough under the recorder's own policy is eligible for discard only on those conditions; the watermark records neither the policy's verdict, a recording nor a deletion. Keep every comparison of time and digest outside this record."
-msgstr "Nommer le registre, le producteur et le paquet de coupure, et attribuer la déclaration par wasAttributedTo. Un paquet non marqué situé à la coupure ou en dessous et assez ancien selon la politique propre à l’enregistreur n’est admissible à l’élimination que sous ces conditions ; le filigrane ne consigne ni le verdict de cette politique, ni un enregistrement, ni une suppression. Garder toute comparaison de temps et de condensat hors de cet enregistrement."
+msgid "Name the ledger, the producer whose marks are finalized, the cut packet and the declarer through wasAttributedTo. An unmarked packet at or below the cut that is old enough under the recorder's own policy is eligible for discard only on those conditions and only where the recorder holds a watermark for every producer it knows of; the watermark records neither the policy's verdict, a recording nor a deletion. Keep every comparison of time and digest outside this record."
+msgstr "Nommer le registre, le producteur dont les marques sont rendues finales, le paquet de coupure et le déclarant par wasAttributedTo. Un paquet non marqué situé à la coupure ou en dessous et assez ancien selon la politique propre à l’enregistreur n’est admissible à l’élimination que sous ces conditions et seulement si l’enregistreur détient un filigrane pour chaque producteur qu’il connaît ; le filigrane ne consigne ni le verdict de cette politique, ni un enregistrement, ni une suppression. Garder toute comparaison de temps et de condensat hors de cet enregistrement."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/TraceMarkFrontier|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "Trace mark frontier"
 msgstr "Frontière de marquage de trace"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/TraceMarkFrontier|http://www.w3.org/2004/02/skos/core#definition"
-msgid "A declaration by a producer that marks events after the fact, naming for one TracePacketLedger the committed point up to which it has finished marking. It records the point the producer stated, not a verified position, and it is distinct from a watermark, which is a finality cut over the whole ledger."
-msgstr "Déclaration d’un producteur qui marque des événements après coup, nommant pour un TracePacketLedger le point validé jusqu’où il a terminé son marquage. Elle consigne le point que le producteur a affirmé, et non une position vérifiée ; elle se distingue d’un filigrane, qui est une coupure de finalité sur tout le registre."
+msgid "A declaration of the committed point in one TracePacketLedger up to which the one producer named through traceFinalityProducer, a producer that marks events after the fact, has finished marking. It covers only that producer and records the point its declarer stated, not a verified position, and it is distinct from a watermark, which finalizes one producer's marks up to a cut."
+msgstr "Déclaration du point validé d’un TracePacketLedger jusqu’où le seul producteur nommé par traceFinalityProducer, un producteur qui marque des événements après coup, a terminé son marquage. Elle ne couvre que ce producteur et consigne le point que son déclarant a affirmé, et non une position vérifiée ; elle se distingue d’un filigrane, qui rend finales les marques d’un producteur jusqu’à une coupure."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/TraceMarkFrontier|http://www.w3.org/2004/02/skos/core#scopeNote"
-msgid "A frontier names its ledger (traceFinalityLedger), its producer (traceFinalityProducer) and one committed point (frontierPoint), a packet key that need not be a recorded ledger member. A watermark should not pass an applicable frontier, but without a typed time and digest comparison nothing here checks that, or that a producer's frontier never moves backward. A producer that has committed nothing states no frontier; absence is not a frontier at the start of the order."
-msgstr "Une frontière nomme son registre (traceFinalityLedger), son producteur (traceFinalityProducer) et un point validé (frontierPoint), une clé de paquet qui n’est pas forcément un membre enregistré du registre. Un filigrane ne devrait pas dépasser une frontière applicable, mais sans comparaison typée du temps et du condensat rien ici ne le vérifie, ni que la frontière d’un producteur ne recule jamais. Un producteur qui n’a rien validé n’énonce aucune frontière ; l’absence n’est pas une frontière au début de l’ordre."
+msgid "A frontier names its ledger (traceFinalityLedger), the one producer it covers (traceFinalityProducer), one committed point (frontierPoint), a packet key that need not be a recorded ledger member, and its declarer through wasAttributedTo, who may be that producer or another agent. A watermark should not pass an applicable frontier, but without a typed time and digest comparison nothing here checks that, or that a producer's frontier never moves backward. A producer that has committed nothing states no frontier; absence is not a frontier at the start of the order."
+msgstr "Une frontière nomme son registre (traceFinalityLedger), le seul producteur qu’elle couvre (traceFinalityProducer), un point validé (frontierPoint), une clé de paquet qui n’est pas forcément un membre enregistré du registre, et son déclarant par wasAttributedTo, qui peut être ce producteur ou un autre agent. Un filigrane ne devrait pas dépasser une frontière applicable, mais sans comparaison typée du temps et du condensat rien ici ne le vérifie, ni que la frontière d’un producteur ne recule jamais. Un producteur qui n’a rien validé n’énonce aucune frontière ; l’absence n’est pas une frontière au début de l’ordre."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/TraceMarkFrontier|http://www.w3.org/2004/02/skos/core#example"
-msgid "A late derivation states its committed point: ex:lateFrontier a gmeow:TraceMarkFrontier ; gmeow:traceFinalityLedger ex:ledger ; gmeow:traceFinalityProducer ex:lateDeriver ; gmeow:frontierPoint ex:pointKey ."
-msgstr "Une dérivation tardive énonce son point validé : ex:lateFrontier a gmeow:TraceMarkFrontier ; gmeow:traceFinalityLedger ex:ledger ; gmeow:traceFinalityProducer ex:lateDeriver ; gmeow:frontierPoint ex:pointKey ."
+msgid "A late derivation states its own committed point: ex:lateFrontier a gmeow:TraceMarkFrontier ; gmeow:traceFinalityLedger ex:ledger ; gmeow:traceFinalityProducer ex:lateDeriver ; gmeow:frontierPoint ex:pointKey ; gmeow:wasAttributedTo ex:lateDeriver ."
+msgstr "Une dérivation tardive énonce son propre point validé : ex:lateFrontier a gmeow:TraceMarkFrontier ; gmeow:traceFinalityLedger ex:ledger ; gmeow:traceFinalityProducer ex:lateDeriver ; gmeow:frontierPoint ex:pointKey ; gmeow:wasAttributedTo ex:lateDeriver ."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/TraceMarkFrontier|https://blackcatinformatics.ca/gmeow/useWhen"
 msgid "Use when a producer that marks events later actually states how far it has committed its marking for a ledger."
@@ -1762,8 +1762,8 @@ msgid "Avoid manufacturing a frontier for a producer that stated none, and avoid
 msgstr "Éviter de fabriquer une frontière pour un producteur qui n’en a énoncé aucune, et éviter d’y voir la preuve que le marquage jusqu’à ce point est achevé ou qu’un filigrane peut avancer."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/TraceMarkFrontier|https://blackcatinformatics.ca/gmeow/howToUse"
-msgid "Name the ledger, the producer and the committed point, attribute the declaration through wasAttributedTo, and keep one frontier per producer and statement. Every applicable frontier is a separate record; none is chosen as the preferred one."
-msgstr "Nommer le registre, le producteur et le point validé, attribuer la déclaration par wasAttributedTo, et garder une frontière par producteur et par énoncé. Chaque frontière applicable est un enregistrement distinct ; aucune n’est choisie comme préférée."
+msgid "Name the ledger, the producer, the committed point and the declarer through wasAttributedTo, and keep one frontier per producer and statement. Every applicable frontier is a separate record; none is chosen as the preferred one."
+msgstr "Nommer le registre, le producteur, le point validé et le déclarant par wasAttributedTo, et garder une frontière par producteur et par énoncé. Chaque frontière applicable est un enregistrement distinct ; aucune n’est choisie comme préférée."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/TraceMarksGivenUp|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "Trace marks given up"
@@ -1774,12 +1774,12 @@ msgid "An explicit declaration that marks a producer held only in memory were lo
 msgstr "Déclaration explicite que des marques qu’un producteur ne détenait qu’en mémoire ont été perdues, par exemple lors d’un redémarrage, et sont abandonnées pour des paquets nommés, avec la raison. Ce n’est pas une absence de marques, ni un état sans paquet sur une marque, ni une suppression de quoi que ce soit."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/TraceMarksGivenUp|http://www.w3.org/2004/02/skos/core#scopeNote"
-msgid "A give-up requires its reason (givenUpReason) and names the packets whose marks are given up (givenUpPacket); it may also name the ledger and producer through traceFinalityLedger and traceFinalityProducer. Without a typed time and digest comparison nothing here checks that a give-up precedes a watermark passing its packets. A give-up does not mark the packets and does not make them eligible for discard."
-msgstr "Un abandon exige sa raison (givenUpReason) et nomme les paquets dont les marques sont abandonnées (givenUpPacket) ; il peut aussi nommer le registre et le producteur par traceFinalityLedger et traceFinalityProducer. Sans comparaison typée du temps et du condensat, rien ici ne vérifie qu’un abandon précède le passage d’un filigrane sur ses paquets. Un abandon ne marque pas les paquets et ne les rend pas admissibles à l’élimination."
+msgid "A give-up requires its reason (givenUpReason) and its declarer through wasAttributedTo, and names the packets whose marks are given up (givenUpPacket); it may also name the ledger and the producer whose marks were lost through traceFinalityLedger and traceFinalityProducer. Without a typed time and digest comparison nothing here checks that a give-up precedes a watermark passing its packets. A give-up does not mark the packets and does not make them eligible for discard."
+msgstr "Un abandon exige sa raison (givenUpReason) et son déclarant par wasAttributedTo, et nomme les paquets dont les marques sont abandonnées (givenUpPacket) ; il peut aussi nommer le registre et le producteur dont les marques ont été perdues par traceFinalityLedger et traceFinalityProducer. Sans comparaison typée du temps et du condensat, rien ici ne vérifie qu’un abandon précède le passage d’un filigrane sur ses paquets. Un abandon ne marque pas les paquets et ne les rend pas admissibles à l’élimination."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/TraceMarksGivenUp|http://www.w3.org/2004/02/skos/core#example"
-msgid "The service gives up its lost marks: ex:lost a gmeow:TraceMarksGivenUp ; gmeow:traceFinalityProducer ex:memoryService ; gmeow:givenUpPacket ex:packetTwo ; gmeow:givenUpReason \"Marks held only in memory were lost when the service restarted.\"@en ."
-msgstr "Le service abandonne ses marques perdues : ex:lost a gmeow:TraceMarksGivenUp ; gmeow:traceFinalityProducer ex:memoryService ; gmeow:givenUpPacket ex:packetTwo ; gmeow:givenUpReason \"Marks held only in memory were lost when the service restarted.\"@en ."
+msgid "The service gives up its lost marks: ex:lost a gmeow:TraceMarksGivenUp ; gmeow:traceFinalityProducer ex:memoryService ; gmeow:givenUpPacket ex:packetTwo ; gmeow:givenUpReason \"Marks held only in memory were lost when the service restarted.\"@en ; gmeow:wasAttributedTo ex:memoryService ."
+msgstr "Le service abandonne ses marques perdues : ex:lost a gmeow:TraceMarksGivenUp ; gmeow:traceFinalityProducer ex:memoryService ; gmeow:givenUpPacket ex:packetTwo ; gmeow:givenUpReason \"Marks held only in memory were lost when the service restarted.\"@en ; gmeow:wasAttributedTo ex:memoryService ."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/TraceMarksGivenUp|https://blackcatinformatics.ca/gmeow/useWhen"
 msgid "Use when a producer explicitly states that its in-memory marks for named packets were lost and gives the reason."
@@ -1799,7 +1799,7 @@ msgstr "registre de finalité"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/traceFinalityLedger|http://www.w3.org/2004/02/skos/core#definition"
 msgid "The TracePacketLedger whose packet order a watermark, frontier or give-up declaration is about, not a claim that the ledger lists every packet."
-msgstr "Le TracePacketLedger dont l’ordre des paquets concerne une déclaration de filigrane, de frontière ou d’abandon, et non l’affirmation que le registre énumère tous les paquets."
+msgstr "Le TracePacketLedger dont l’ordre des paquets est celui sur lequel porte une déclaration de filigrane, de frontière ou d’abandon, et non l’affirmation que le registre énumère tous les paquets."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/traceFinalityLedger|http://www.w3.org/2004/02/skos/core#scopeNote"
 msgid "Required on a TraceWatermark and a TraceMarkFrontier, optional on a TraceMarksGivenUp. Naming a ledger does not make the ledger complete, and the declaration is not a member of it."
@@ -1826,20 +1826,20 @@ msgid "finality producer"
 msgstr "producteur de finalité"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/traceFinalityProducer|http://www.w3.org/2004/02/skos/core#definition"
-msgid "The Agent that produces the marks a watermark, frontier or give-up declaration is about, such as the memory service or a derivation that marks events later, not the agent that made the declaration."
-msgstr "L’Agent qui produit les marques visées par une déclaration de filigrane, de frontière ou d’abandon, tel le service de mémoire ou une dérivation qui marque des événements plus tard, et non l’agent qui a fait la déclaration."
+msgid "The Agent whose marks a watermark, frontier or give-up declaration is about: the producer whose marks a watermark finalizes, whose committed point a frontier states, or whose in-memory marks a give-up gives up, such as the memory service or a derivation that marks events later. It is not the agent that made the declaration, although the same agent may be both."
+msgstr "L’Agent dont les marques sont visées par une déclaration de filigrane, de frontière ou d’abandon : le producteur dont un filigrane rend les marques finales, dont une frontière énonce le point validé, ou dont un abandon abandonne les marques en mémoire, tel le service de mémoire ou une dérivation qui marque des événements plus tard. Ce n’est pas l’agent qui a fait la déclaration, bien qu’un même agent puisse être les deux."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/traceFinalityProducer|http://www.w3.org/2004/02/skos/core#scopeNote"
-msgid "Required on a TraceWatermark and a TraceMarkFrontier, optional on a TraceMarksGivenUp. It names the producer the declaration concerns; the declarer is recorded separately through wasAttributedTo and need not be the same agent."
-msgstr "Obligatoire sur un TraceWatermark et un TraceMarkFrontier, facultatif sur un TraceMarksGivenUp. Il nomme le producteur que concerne la déclaration ; le déclarant est consigné séparément par wasAttributedTo et n’est pas forcément le même agent."
+msgid "Required on a TraceWatermark and a TraceMarkFrontier, optional on a TraceMarksGivenUp. A declaration is about one producer; marks of a second producer need their own declaration, and a recorder may treat the ledger as final only when it holds a watermark for every producer it knows of. The declarer is recorded separately through wasAttributedTo and may be the same agent."
+msgstr "Obligatoire sur un TraceWatermark et un TraceMarkFrontier, facultatif sur un TraceMarksGivenUp. Une déclaration porte sur un seul producteur ; les marques d’un second producteur exigent leur propre déclaration, et un enregistreur ne peut tenir le registre pour final que s’il détient un filigrane pour chaque producteur qu’il connaît. Le déclarant est consigné séparément par wasAttributedTo et peut être le même agent."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/traceFinalityProducer|http://www.w3.org/2004/02/skos/core#example"
 msgid "The frontier names the producer it concerns: ex:lateFrontier gmeow:traceFinalityProducer ex:lateDeriver ."
 msgstr "La frontière nomme le producteur concerné : ex:lateFrontier gmeow:traceFinalityProducer ex:lateDeriver ."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/traceFinalityProducer|https://blackcatinformatics.ca/gmeow/useWhen"
-msgid "Use to say whose marking a finality declaration concerns."
-msgstr "À utiliser pour dire de quel marquage relève une déclaration de finalité."
+msgid "Use to say whose marks a finality declaration finalizes, states a committed point for or gives up."
+msgstr "À utiliser pour dire dont quelles marques une déclaration de finalité rend finales, pour lesquelles elle énonce un point validé ou dont elle abandonne les marques."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/traceFinalityProducer|https://blackcatinformatics.ca/gmeow/avoidWhen"
 msgid "Avoid using it to identify who declared the record, to rank producers or to claim the producer has finished marking."
@@ -1854,8 +1854,8 @@ msgid "watermark packet"
 msgstr "paquet du filigrane"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/watermarkPacket|http://www.w3.org/2004/02/skos/core#definition"
-msgid "The recorded TracePacket at or below which this watermark declares marking final, inclusive of that packet and not of the packets above it."
-msgstr "Le TracePacket enregistré à partir duquel et en dessous duquel ce filigrane déclare le marquage final, ce paquet inclus et non les paquets au-dessus."
+msgid "The recorded TracePacket at or below which this watermark declares its producer's marking final, inclusive of that packet and not of the packets above it."
+msgstr "Le TracePacket enregistré à partir duquel et en dessous duquel ce filigrane déclare final le marquage de son producteur, ce paquet inclus et non les paquets au-dessus."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/watermarkPacket|http://www.w3.org/2004/02/skos/core#scopeNote"
 msgid "Required on a TraceWatermark; one value is meant, enforced by a validation constraint rather than a functional axiom. The packet is a TracePacket, so it carries its ordering time and frame, but nothing here checks that it belongs to the declared ledger or compares it with another packet."
@@ -1958,8 +1958,8 @@ msgid "Avoid inventing a reason, normalizing the wording into a category, or lea
 msgstr "Éviter d’inventer une raison, d’en normaliser la formulation en catégorie ou de laisser un abandon sans raison."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/givenUpReason|https://blackcatinformatics.ca/gmeow/howToUse"
-msgid "Keep the original text and its language tag; one reason per statement, with a further reason as a further statement or a separate give-up."
-msgstr "Conserver le texte d’origine et sa balise de langue ; une raison par énoncé, une autre raison étant un autre énoncé ou un abandon distinct."
+msgid "Keep the original text and its language tag when it has one; one reason per statement, with a further reason as a further statement or a separate give-up."
+msgstr "Conserver le texte d’origine et sa balise de langue lorsqu’il en a une ; une raison par énoncé, une autre raison étant un autre énoncé ou un abandon distinct."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/TraceWatermarkPacketUniqueConstraint|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "Trace watermark single cut packet"
