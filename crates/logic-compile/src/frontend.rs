@@ -3948,9 +3948,10 @@ pub fn derive_validation_shapes(
     //
     // The declaration needs its type `C` to name that shape, which also makes it an instance of
     // `C` (and of every superclass of `C`) without being a reifier occurrence: it is schema
-    // metadata. Every class a recognized declaration is an instance of is therefore recorded, and
-    // the class shapes built below exclude obligation declarations from their focus sets.
-    let mut obligation_classes: BTreeSet<String> = BTreeSet::new();
+    // metadata. Each recognized declaration is therefore recorded under every class it is an
+    // instance of, and the class shapes built below exclude exactly those declarations, by IRI,
+    // from their focus sets. No other node is excluded, whatever form it is written in.
+    let mut obligation_declarations: BTreeMap<String, BTreeSet<String>> = BTreeMap::new();
     let p_rdf_subject = nn(RDF_SUBJECT);
     let p_rdf_predicate = nn(RDF_PREDICATE);
     for r in subjects_with(store, &nn(RDF_TYPE), &Node::iri(RDF_STATEMENT)) {
@@ -3977,6 +3978,15 @@ pub fn derive_validation_shapes(
         else {
             continue;
         };
+        // A shape can exclude a node only by naming it, so a declaration must have an IRI.
+        let Subject::Iri(declaration) = &r else {
+            return Err(Diag::of_kind(crate::error::Frontend::new(format!(
+                "reification obligation on subject class <{k}> and predicate <{p}> is declared \
+                 by a blank node; the declaration must be an IRI so the shape derived for its \
+                 reifier class <{c}> can exclude it from validation by identity"
+            )))
+            .with_focus(subject_str(&r)));
+        };
         let mut pending: Vec<String> = objects(store, &r, &nn(RDF_TYPE))
             .into_iter()
             .filter_map(|t| match t {
@@ -3984,10 +3994,15 @@ pub fn derive_validation_shapes(
                 _ => None,
             })
             .collect();
+        let mut seen: BTreeSet<String> = BTreeSet::new();
         while let Some(class) = pending.pop() {
-            if !obligation_classes.insert(class.clone()) {
+            if !seen.insert(class.clone()) {
                 continue;
             }
+            obligation_declarations
+                .entry(class.clone())
+                .or_default()
+                .insert(declaration.clone());
             let class = Subject::Iri(class);
             pending.extend(
                 restriction_objects(&class, &p_subclass, &p_logic_subclass)
@@ -4219,8 +4234,11 @@ pub fn derive_validation_shapes(
         }
         let mut shape = ValidationShapeIr::new(iri, target.clone(), properties, None)?
             .with_node_components(node_components)?;
-        if matches!(&target, ShapeTarget::Class(class) if obligation_classes.contains(class)) {
-            shape = shape.with_obligation_declarations_excluded()?;
+        if let ShapeTarget::Class(class) = &target
+            && let Some(declarations) = obligation_declarations.get(class)
+        {
+            shape = shape
+                .with_obligation_declarations_excluded(declarations.iter().cloned().collect())?;
         }
         // Failure metadata belongs to the canonical target term, never to a hand-authored SHACL
         // node. For a class-targeted shape that term is the CLASS; for the domain/range shapes

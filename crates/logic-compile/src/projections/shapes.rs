@@ -522,8 +522,11 @@ pub fn project_validation_shape_shacl(shape: &ValidationShapeIr) -> String {
         ));
     }
     match &shape.target {
-        ShapeTarget::Class(c) if shape.excludes_obligation_declarations => {
-            pos.push(obligation_free_class_target_clause(c));
+        ShapeTarget::Class(c) if !shape.excluded_obligation_declarations.is_empty() => {
+            pos.push(obligation_free_class_target_clause(
+                c,
+                &shape.excluded_obligation_declarations,
+            ));
         }
         ShapeTarget::Class(c) => pos.push(format!("sh:targetClass {}", iri_term(c))),
         ShapeTarget::SubjectsOf(p) => pos.push(format!("sh:targetSubjectsOf {}", iri_term(p))),
@@ -924,7 +927,7 @@ pub fn shex_residue(shape: &ValidationShapeIr) -> Vec<String> {
             shape.node_components.len()
         ));
     }
-    if shape.excludes_obligation_declarations {
+    if !shape.excluded_obligation_declarations.is_empty() {
         residue.push(
             "the exclusion of schema-level reification obligation declarations from the focus \
              set has no ShEx form (ShEx associates shapes via an external ShapeMap); carried in \
@@ -1867,32 +1870,20 @@ fn direct_class_target_clause(c: &str) -> String {
 }
 
 /// The `sh:target [ a sh:SPARQLTarget … ]` clause selecting every instance of a class EXCEPT the
-/// schema-level reification obligation declarations typed with it.
+/// named schema-level reification obligation declarations.
 ///
 /// The instance selection is the one `sh:targetClass` makes (`rdf:type` closed over
-/// `rdfs:subClassOf`). The excluded nodes are exactly the records the validation frontend reads
-/// as obligations: a classic `rdf:Statement` whose `rdf:subject` and `rdf:predicate` are IRIs in
-/// an authoring namespace. An actual reifier occurrence carries a native `rdf:reifies` triple
-/// term, so a node that has one is always selected, whatever else it carries.
-fn obligation_free_class_target_clause(c: &str) -> String {
-    use crate::graphutil::{RDF_PREDICATE, RDF_REIFIES, RDF_STATEMENT, RDF_SUBJECT};
-    let authored = |variable: &str| {
-        crate::frontend::AUTHORING_NAMESPACES
-            .iter()
-            .map(|namespace| format!("STRSTARTS(STR(?{variable}), '{namespace}')"))
-            .collect::<Vec<_>>()
-            .join(" || ")
-    };
+/// `rdfs:subClassOf`). The exclusion is by identity: only the listed declaration IRIs are
+/// removed, in the order the shape carries them, so every other node of the class is selected
+/// whatever form it is written in.
+fn obligation_free_class_target_clause(c: &str, declarations: &[String]) -> String {
+    let excluded: Vec<String> = declarations.iter().map(|iri| iri_term(iri)).collect();
     format!(
         "sh:target [ a sh:SPARQLTarget ; sh:select \"\"\"SELECT DISTINCT ?this WHERE {{ \
          ?this <{RDF_TYPE}>/<{RDFS_SUBCLASS_OF}>* {ct} . \
-         FILTER NOT EXISTS {{ ?this <{RDF_TYPE}> <{RDF_STATEMENT}> ; <{RDF_SUBJECT}> ?subject ; \
-         <{RDF_PREDICATE}> ?predicate . \
-         FILTER ( isIRI(?subject) && isIRI(?predicate) && ( {subject} ) && ( {predicate} ) ) \
-         FILTER NOT EXISTS {{ ?this <{RDF_REIFIES}> ?statement }} }} }}\"\"\" ]",
+         FILTER ( ?this NOT IN ( {excluded} ) ) }}\"\"\" ]",
         ct = iri_term(c),
-        subject = authored("subject"),
-        predicate = authored("predicate"),
+        excluded = excluded.join(", "),
     )
 }
 

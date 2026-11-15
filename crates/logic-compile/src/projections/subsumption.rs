@@ -65,8 +65,9 @@ pub fn enforcement_key(shape: &ValidationShapeIr) -> String {
         key_list(&nodes),
     );
     // Excluding obligation declarations narrows the focus set, so it is enforcement content.
-    if shape.excludes_obligation_declarations {
-        key.push_str("\u{1f}xobligation=true");
+    if !shape.excluded_obligation_declarations.is_empty() {
+        key.push_str("\u{1f}xobligations=");
+        key.push_str(&key_list(&shape.excluded_obligation_declarations));
     }
     key
 }
@@ -150,7 +151,7 @@ fn property_subsumes(strong: &PropertyConstraintIr, weak: &PropertyConstraintIr)
 /// `subsumes(a, b) && subsumes(b, a)`.
 pub fn subsumes(strong: &ValidationShapeIr, weak: &ValidationShapeIr) -> bool {
     if strong.target != weak.target
-        || strong.excludes_obligation_declarations != weak.excludes_obligation_declarations
+        || strong.excluded_obligation_declarations != weak.excluded_obligation_declarations
     {
         return false;
     }

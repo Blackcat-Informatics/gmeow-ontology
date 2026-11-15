@@ -855,13 +855,14 @@ pub struct ValidationShapeIr {
     /// Typed conformance failure raised by this validation shape. Annotation-level metadata:
     /// projected to `gmeow:enforcesFailureClass`, but excluded from semantic identity.
     pub failure_class: Option<String>,
-    /// Whether schema-level reification obligation declarations are excluded from the focus set of
-    /// this class-targeted shape. An obligation is declared as a classic `rdf:Statement` record
-    /// typed with its reifier class, so the declaration is an instance of the class without being
-    /// a reifier occurrence; the validation surface must not select it. Set only by
-    /// [`Self::with_obligation_declarations_excluded`]; `false` leaves the content key
+    /// The schema-level reification obligation declarations excluded from the focus set of this
+    /// class-targeted shape, by IRI, sorted and distinct. An obligation is declared as a classic
+    /// `rdf:Statement` record typed with its reifier class, so the declaration is an instance of
+    /// the class (and of its ancestors) without being a reifier occurrence; exactly these nodes,
+    /// and no others, are removed from the focus set. Set only by
+    /// [`Self::with_obligation_declarations_excluded`]; empty leaves the content key
     /// byte-identical.
-    pub excludes_obligation_declarations: bool,
+    pub excluded_obligation_declarations: Vec<String>,
 }
 
 impl ValidationShapeIr {
@@ -938,7 +939,7 @@ impl ValidationShapeIr {
             node_components: Vec::new(),
             label: None,
             failure_class: None,
-            excludes_obligation_declarations: false,
+            excluded_obligation_declarations: Vec::new(),
         })
     }
 
@@ -996,22 +997,44 @@ impl ValidationShapeIr {
         Ok(self)
     }
 
-    /// Exclude schema-level reification obligation declarations from this shape's focus set.
-    /// Only a class target has instances a declaration can be mistaken for, so every other
-    /// target is refused.
+    /// Exclude the named schema-level reification obligation declarations from this shape's
+    /// focus set. Chainable; sorts and deduplicates so supply order never affects identity.
     ///
     /// # Errors
-    /// Refuses a shape whose target is not [`ShapeTarget::Class`].
-    pub fn with_obligation_declarations_excluded(mut self) -> gmeow_errors::Result<Self> {
-        if !matches!(self.target, ShapeTarget::Class(_)) {
-            return Err(Diag::of_kind(crate::error::Validation::new(format!(
-                "ValidationShapeIr {}: obligation declarations can be excluded only from a \
-                 class-targeted shape",
+    /// Refuses a blank declaration IRI, and any declaration on a shape whose target is not
+    /// [`ShapeTarget::Class`]: only a class target has instances a declaration can be among.
+    pub fn with_obligation_declarations_excluded(
+        mut self,
+        declarations: Vec<String>,
+    ) -> gmeow_errors::Result<Self> {
+        Self::admit_excluded_declarations(&self.target, &declarations).map_err(|reason| {
+            Diag::of_kind(crate::error::Validation::new(format!(
+                "ValidationShapeIr {}: {reason}",
                 self.iri
-            ))));
-        }
-        self.excludes_obligation_declarations = true;
+            )))
+        })?;
+        let mut declarations = declarations;
+        declarations.sort();
+        declarations.dedup();
+        self.excluded_obligation_declarations = declarations;
         Ok(self)
+    }
+
+    /// The one admission rule for excluded declarations, shared by the builder and the decoder.
+    pub(crate) fn admit_excluded_declarations(
+        target: &ShapeTarget,
+        declarations: &[String],
+    ) -> Result<(), &'static str> {
+        if declarations.is_empty() {
+            return Ok(());
+        }
+        if !matches!(target, ShapeTarget::Class(_)) {
+            return Err("obligation declarations can be excluded only from a class-targeted shape");
+        }
+        if declarations.iter().any(|iri| iri.trim().is_empty()) {
+            return Err("an excluded obligation declaration must be a non-empty IRI");
+        }
+        Ok(())
     }
 
     /// Stable sort key for canonical ordering — the shape IRI is unique.
@@ -1062,8 +1085,11 @@ impl ValidationShapeIr {
         if let Some(label) = &self.label {
             key.push_str(&format!("{SEP}label={}", key_field(label)));
         }
-        if self.excludes_obligation_declarations {
-            key.push_str(&format!("{SEP}xobligation=true"));
+        if !self.excluded_obligation_declarations.is_empty() {
+            key.push_str(&format!(
+                "{SEP}XOBLIGATIONS={}",
+                key_list(self.excluded_obligation_declarations.iter().cloned())
+            ));
         }
         key
     }

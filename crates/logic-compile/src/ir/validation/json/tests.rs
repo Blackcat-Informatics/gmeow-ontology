@@ -4,7 +4,7 @@
 use super::*;
 use purrdf_lex::json::record::{from_slice, to_vec};
 
-const WIRE: &str = r#"{"iri":"","target":{"ValueKeyed":{"predicate":"","value":"raw target"}},"properties":[{"path":"","min_count":0,"max_count":4294967295,"cardinality_provenance":"OwlRestriction","components":[{"NumericRange":{"min":-0.0,"max":1e+20,"min_inclusive":false,"max_inclusive":true}},{"PrecisionRange":{"min":1.0,"max":null,"min_inclusive":true,"max_inclusive":false}},{"Datatype":"raw datatype"},{"Class":"raw class"},{"NodeKindShacl":"Iri"},{"In":[{"Iri":"z"},{"Literal":["text","http://www.w3.org/1999/02/22-rdf-syntax-ns#langString","fr",null]},{"Iri":"a"}]},{"Pattern":{"regex":"[ab]","flags":"i"}},{"MinLength":0},{"MaxLength":4294967295},{"LanguageIn":["z","a","z"]},{"DateTimeRange":{"min":"raw min","max":null,"min_inclusive":false,"max_inclusive":true}},{"TerminologyBinding":{"terminology_id":"raw terminology","codes":["z","a","z"]}},{"OrdinalSet":{"pairs":[[-9223372036854775808,"z"],[9223372036854775807,"a"],[-9223372036854775808,"z"]]}},{"DateTimePattern":"raw pattern"},{"HasValue":{"Iri":"raw value"}},{"QualifiedValueShape":{"shape":[{"Not":{"Class":"z"}},{"Class":"a"}],"min":null,"max":0}},{"Not":{"Class":"raw"}},{"Or":[{"Class":"z"},{"Class":"a"}]},{"Xone":[{"Class":"z"},{"Class":"a"}]},{"OrProperties":["z","a","z"]},"UniqueLang"],"inverse":true,"reifier_shape":"raw reifier","reification_required":true,"severity":"Warning","message":"retained 中"}],"node_kind":"Annotation","standpoint":"raw standpoint","node_components":[{"OrProperties":["z","a","z"]}],"label":null,"failure_class":"raw failure","excludes_obligation_declarations":true}"#;
+const WIRE: &str = r#"{"iri":"","target":{"ValueKeyed":{"predicate":"","value":"raw target"}},"properties":[{"path":"","min_count":0,"max_count":4294967295,"cardinality_provenance":"OwlRestriction","components":[{"NumericRange":{"min":-0.0,"max":1e+20,"min_inclusive":false,"max_inclusive":true}},{"PrecisionRange":{"min":1.0,"max":null,"min_inclusive":true,"max_inclusive":false}},{"Datatype":"raw datatype"},{"Class":"raw class"},{"NodeKindShacl":"Iri"},{"In":[{"Iri":"z"},{"Literal":["text","http://www.w3.org/1999/02/22-rdf-syntax-ns#langString","fr",null]},{"Iri":"a"}]},{"Pattern":{"regex":"[ab]","flags":"i"}},{"MinLength":0},{"MaxLength":4294967295},{"LanguageIn":["z","a","z"]},{"DateTimeRange":{"min":"raw min","max":null,"min_inclusive":false,"max_inclusive":true}},{"TerminologyBinding":{"terminology_id":"raw terminology","codes":["z","a","z"]}},{"OrdinalSet":{"pairs":[[-9223372036854775808,"z"],[9223372036854775807,"a"],[-9223372036854775808,"z"]]}},{"DateTimePattern":"raw pattern"},{"HasValue":{"Iri":"raw value"}},{"QualifiedValueShape":{"shape":[{"Not":{"Class":"z"}},{"Class":"a"}],"min":null,"max":0}},{"Not":{"Class":"raw"}},{"Or":[{"Class":"z"},{"Class":"a"}]},{"Xone":[{"Class":"z"},{"Class":"a"}]},{"OrProperties":["z","a","z"]},"UniqueLang"],"inverse":true,"reifier_shape":"raw reifier","reification_required":true,"severity":"Warning","messages":[["retained 中","http://www.w3.org/2001/XMLSchema#string",null,null]]}],"node_kind":"Annotation","standpoint":"raw standpoint","node_components":[{"OrProperties":["z","a","z"]}],"label":null,"failure_class":"raw failure","excluded_obligation_declarations":[]}"#;
 
 #[test]
 fn validation_ir_native_wire_retains_recursive_components_and_all_tags() {
@@ -96,6 +96,19 @@ fn validation_ir_native_wire_retains_recursive_components_and_all_tags() {
             wire.as_bytes()
         );
     }
+    // The exclusion of obligation declarations round-trips on a class target, in supplied order.
+    let excluding = WIRE
+        .replace(
+            r#"{"ValueKeyed":{"predicate":"","value":"raw target"}}"#,
+            r#"{"Class":"raw"}"#,
+        )
+        .replace(
+            "\"excluded_obligation_declarations\":[]",
+            "\"excluded_obligation_declarations\":[\"z\",\"a\"]",
+        );
+    let shape: ValidationShapeIr = from_slice(excluding.as_bytes()).unwrap();
+    assert_eq!(shape.excluded_obligation_declarations, ["z", "a"]);
+    assert_eq!(to_vec(&shape), excluding.as_bytes());
     let omitted = WIRE
         .replace("\"label\":null,", "")
         .replace("\"min\":null,", "");
@@ -130,6 +143,12 @@ fn validation_ir_native_admission_refuses_record_variant_and_numeric_drift() {
         WIRE.replace("\"inverse\":true,", ""),
         WIRE.replace("\"reification_required\":true,", ""),
         WIRE.replace("\"node_kind\":\"Annotation\",", ""),
+        WIRE.replace(",\"excluded_obligation_declarations\":[]", ""),
+        // An exclusion is admitted only on a class target.
+        WIRE.replace(
+            "\"excluded_obligation_declarations\":[]",
+            "\"excluded_obligation_declarations\":[\"a\"]",
+        ),
         WIRE.replace(
             "\"node_components\":[{\"OrProperties\":[\"z\",\"a\",\"z\"]}],",
             "",

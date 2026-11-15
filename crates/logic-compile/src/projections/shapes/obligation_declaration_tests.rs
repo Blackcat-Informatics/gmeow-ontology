@@ -80,9 +80,9 @@ fn finding(focus: &str, path: &str) -> (String, String, String) {
     )
 }
 
-/// Protects: a closure-required path on a reifier class still reds every actual reifier that
-/// lacks it. Excluding obligation declarations must not release an occurrence, including one
-/// that also carries classic reification terms or names a subject outside the authoring ground.
+/// Protects: a closure-required path on a reifier class still reds every instance that lacks
+/// it, in either reifier form. Only the declaration itself is excluded: a record written in the
+/// same classic form as a declaration, over the same class, is validated like any other node.
 #[test]
 fn instance_reifier_missing_a_closure_required_path_is_still_a_violation() {
     let shapes = derived(&SCHEMA.concat());
@@ -90,26 +90,23 @@ fn instance_reifier_missing_a_closure_required_path_is_still_a_violation() {
         "{HIERARCHY}\
          ex:ranked a g:Claim ; g:rank 1 ; g:source \"s\" ; \
              rdf:reifies <<( ex:answer g:record ex:first )>> .\n\
-         ex:unranked a g:Claim ; g:source \"s\" ; \
+         ex:native a g:Claim ; g:source \"s\" ; \
              rdf:reifies <<( ex:answer g:record ex:second )>> .\n\
-         ex:scaffolded a g:Claim , rdf:Statement ; g:source \"s\" ; rdf:subject g:Answer ; \
-             rdf:predicate g:record ; rdf:reifies <<( ex:answer g:record ex:third )>> .\n\
-         ex:foreign a g:Claim , rdf:Statement ; g:source \"s\" ; rdf:subject ex:answer ; \
-             rdf:predicate g:record .\n"
+         g:classicClaim a rdf:Statement , g:Claim ; g:source \"s\" ; rdf:subject g:answer ; \
+             rdf:predicate g:record ; rdf:object g:third .\n"
     );
     assert_eq!(
         findings(&shapes, &data),
         BTreeSet::from([
-            finding("https://example.org/foreign", "rank"),
-            finding("https://example.org/scaffolded", "rank"),
-            finding("https://example.org/unranked", "rank"),
+            finding("https://blackcatinformatics.ca/gmeow/classicClaim", "rank"),
+            finding("https://example.org/native", "rank"),
         ])
     );
 }
 
 /// Protects: a schema-level obligation declaration is not a focus node of the derived shape of
-/// its reifier class or of any superclass, so authoring the obligation needs no dummy values.
-/// The same source reds without the exclusion, which is the defect this guards against.
+/// its reifier class or of any ancestor class, so authoring the obligation needs no dummy
+/// values. The same source reds without the exclusion, which is the defect this guards against.
 #[test]
 fn obligation_declaration_is_not_a_focus_node_of_its_class_shapes() {
     let source = format!("{HIERARCHY}{}", SCHEMA.concat());
@@ -117,7 +114,7 @@ fn obligation_declaration_is_not_a_focus_node_of_its_class_shapes() {
     assert_eq!(findings(&shapes, &source), BTreeSet::new());
 
     for shape in &mut shapes {
-        shape.excludes_obligation_declarations = false;
+        shape.excluded_obligation_declarations.clear();
     }
     let declaration = "https://blackcatinformatics.ca/gmeow/ClaimObligation";
     assert_eq!(
@@ -128,9 +125,12 @@ fn obligation_declaration_is_not_a_focus_node_of_its_class_shapes() {
 }
 
 /// Protects: the lowered shape of an obligation's reifier class is a pure function of the
-/// authored source, byte-identical whatever order the source states it in.
+/// authored source: byte-identical whatever order the source states it in, with the excluded
+/// declarations listed in sorted order.
 #[test]
 fn obligation_reifier_class_shape_lowers_deterministically() {
+    let second = "g:AnotherClaimObligation a rdf:Statement , g:Claim ; rdf:subject g:Digest ; \
+                  rdf:predicate g:record ; rdf:object logic:Thing .\n";
     let claim_shape = |schema: String| {
         let shapes = derived(&schema);
         let shape = shapes
@@ -139,32 +139,30 @@ fn obligation_reifier_class_shape_lowers_deterministically() {
             .expect("the reifier class shape is derived");
         project_validation_shape_shacl(shape)
     };
-    let forward = claim_shape(SCHEMA.concat());
-    let reversed = claim_shape(SCHEMA.iter().rev().copied().collect());
+    let forward = claim_shape(format!("{}{second}", SCHEMA.concat()));
+    let reversed = claim_shape(format!(
+        "{second}{}",
+        SCHEMA.iter().rev().copied().collect::<String>()
+    ));
     assert_eq!(forward, reversed);
-    assert_eq!(forward, EXPECTED_CLAIM_SHAPE);
+    let mut settings = insta::Settings::clone_current();
+    settings.set_prepend_module_to_snapshot(false);
+    settings.bind(|| insta::assert_snapshot!("obligation-reifier-class-shape", forward));
 }
 
-const EXPECTED_CLAIM_SHAPE: &str = "<https://blackcatinformatics.ca/gmeow/Claim-shape> a sh:NodeShape ;\n    \
-     sh:target [ a sh:SPARQLTarget ; sh:select \"\"\"SELECT DISTINCT ?this WHERE { \
-     ?this <http://www.w3.org/1999/02/22-rdf-syntax-ns#type>/\
-     <http://www.w3.org/2000/01/rdf-schema#subClassOf>* \
-     <https://blackcatinformatics.ca/gmeow/Claim> . \
-     FILTER NOT EXISTS { \
-     ?this <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> \
-     <http://www.w3.org/1999/02/22-rdf-syntax-ns#Statement> ; \
-     <http://www.w3.org/1999/02/22-rdf-syntax-ns#subject> ?subject ; \
-     <http://www.w3.org/1999/02/22-rdf-syntax-ns#predicate> ?predicate . \
-     FILTER ( isIRI(?subject) && isIRI(?predicate) && \
-     ( STRSTARTS(STR(?subject), 'https://blackcatinformatics.ca/gmeow/') || \
-     STRSTARTS(STR(?subject), 'https://blackcatinformatics.ca/math/') || \
-     STRSTARTS(STR(?subject), 'https://blackcatinformatics.ca/lang/') || \
-     STRSTARTS(STR(?subject), 'https://blackcatinformatics.ca/logic/') ) && \
-     ( STRSTARTS(STR(?predicate), 'https://blackcatinformatics.ca/gmeow/') || \
-     STRSTARTS(STR(?predicate), 'https://blackcatinformatics.ca/math/') || \
-     STRSTARTS(STR(?predicate), 'https://blackcatinformatics.ca/lang/') || \
-     STRSTARTS(STR(?predicate), 'https://blackcatinformatics.ca/logic/') ) ) \
-     FILTER NOT EXISTS { ?this <http://www.w3.org/1999/02/22-rdf-syntax-ns#reifies> ?statement } \
-     } }\"\"\" ] ;\n    \
-     sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/rank> ; sh:minCount 1 ; \
-     sh:datatype <http://www.w3.org/2001/XMLSchema#integer> ] .\n";
+/// Protects: a declaration that cannot be named cannot be excluded by identity, so a blank-node
+/// obligation declaration is refused with its subject class and predicate instead of being
+/// validated as an instance or silently dropped. The same declaration with an IRI is admitted.
+#[test]
+fn blank_node_obligation_declaration_is_refused() {
+    let anonymous = SCHEMA.concat().replace("g:ClaimObligation a", "[] a");
+    let error = derive_validation_shapes(&dataset(&anonymous)).unwrap_err();
+    let message = error.to_string();
+    assert!(
+        message.contains("https://blackcatinformatics.ca/gmeow/Answer")
+            && message.contains("https://blackcatinformatics.ca/gmeow/record")
+            && message.contains("blank node"),
+        "{message}"
+    );
+    assert!(derive_validation_shapes(&dataset(&SCHEMA.concat())).is_ok());
+}
