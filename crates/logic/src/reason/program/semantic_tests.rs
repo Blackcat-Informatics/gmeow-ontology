@@ -531,7 +531,7 @@ fn head_and_body_scopes_are_not_erased_and_source_evidence_survives_publication(
             .find(|scope| scope.scope.standpoint.is_some())
             .unwrap();
         assert_eq!(
-            original.owner,
+            original.owner.to_string(),
             if head_scope {
                 "rule/0/head"
             } else {
@@ -540,6 +540,6 @@ fn head_and_body_scopes_are_not_erased_and_source_evidence_survives_publication(
         );
         assert_eq!(original.scope.provenance.as_deref(), Some("urn:assertor"));
         assert_eq!(original.scope.confidence, Some(0.75));
-        assert!(prepared.admission.admit_world_local_template().is_err());
+        assert!(prepared.admission.admit().is_err());
     }
 }

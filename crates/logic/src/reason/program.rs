@@ -66,6 +66,17 @@ impl PreparedReasoningInput {
         graph: crate::physical::LogicalGraph,
         fact: Fact,
     ) -> gmeow_errors::Result<bool> {
+        self.assert_facts(&graph, [fact])
+    }
+
+    /// Apply a set of native assertions to one explicitly named source context as
+    /// a single source edit. Returns whether any assertion was new; an input that
+    /// already holds all of them is left untouched.
+    pub(super) fn assert_facts(
+        &mut self,
+        graph: &crate::physical::LogicalGraph,
+        facts: impl IntoIterator<Item = Fact>,
+    ) -> gmeow_errors::Result<bool> {
         let world = graph.world()?;
         let graph = graph.graph().cloned();
         if self.graphs.get(&world).is_some_and(|prior| prior != &graph) {
@@ -73,19 +84,22 @@ impl PreparedReasoningInput {
                 "assertion graph aliases a different source context".to_owned(),
             ));
         }
-        let occurrence = super::refute::RefutationPremise {
-            subject: fact.subject,
-            predicate: fact.predicate,
-            object: fact.object,
-            graph: graph.clone(),
-        };
         let mut sources: std::collections::BTreeSet<_> = self
             .occurrences
             .get(&world)
             .into_iter()
             .flat_map(|sources| sources.iter().cloned())
             .collect();
-        if !sources.insert(occurrence) {
+        let mut changed = false;
+        for fact in facts {
+            changed |= sources.insert(super::refute::RefutationPremise {
+                subject: fact.subject,
+                predicate: fact.predicate,
+                object: fact.object,
+                graph: graph.clone(),
+            });
+        }
+        if !changed {
             return Ok(false);
         }
         let mut occurrences = self.occurrences.clone();
@@ -533,7 +547,7 @@ pub(super) fn execute_transaction(
         source_facts = input.facts.values().map(Vec::len).sum::<usize>(),
         "reason phase boundary",
     );
-    prepared.admission.admit_world_local_template()?;
+    prepared.admission.admit()?;
     input.admit_domains(domains)?;
     let modal = crate::modal::native::NativeModalProgram::prepare(&input.occurrences)?;
     for (world, graph) in modal

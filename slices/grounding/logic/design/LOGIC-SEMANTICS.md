@@ -113,6 +113,44 @@ predicates over the reifier; they are never implicit in the quoting. This rule r
 triple terms appear (the foundation's modal lowering, the worlds layer), and it is the reason the
 foundation needs explicit lowering rather than getting modality "for free."
 
+One stance is settled by a closed rule, because a consistency verdict depends on it:
+
+> A reified claim is an **assertion of the theory it is written in** exactly when it is
+> **evidence only**: its reifier states at least one of `logic:provenance` and
+> `logic:confidence`, and the only statements about the reifier are those two and the
+> reification itself (`rdf:reifies`, or the classic `rdf:Statement` node with its subject,
+> predicate and object). Provenance says who reported the claim and confidence how sure the
+> reporter is; neither places the claim in a context, denies it, or weakens it. A reifier
+> that states neither is a quotation and asserts nothing.
+
+The list is closed and it fails closed. Any other statement about the reifier may place,
+deny or qualify the claim, so the claim is then not an assertion of the unindexed theory:
+a standpoint (`gmeow:accordingTo`, `logic:standpoint`), a stance such as
+`gmeow:standpointModality gmeow:refuted`, a time, a modality (the value `logic:none`
+included), a module, a further type, an attribution, or a predicate the reader does not
+know. The same holds when another statement points at the reifier, and when another
+reifier's carried statement mentions it, at any depth of a triple term and whether that
+other reifier is itself an assertion, an unread claim or a quotation: a claim someone speaks
+about is out, and no fixpoint is taken. The statements that count are the stated ones, not
+those a rule derives, in every graph of the source: the default graph, each named graph, and
+the statements reifiers carry in either. A reifier used as a predicate or as a graph name is
+out as well. A named graph can only keep a claim out. It is another context, so by the rule
+of [context-indexed entailment](#inconsistency-across-contexts-and-context-indexed-entailment)
+nothing in it is an assertion of this theory or evidence for one: provenance or confidence
+stated there does not make a claim an assertion, and a statement there never contradicts
+one here. Declining to read a claim that another context speaks about draws no conclusion
+across contexts; it only withholds one. Two evidence-only claims
+that contradict each other therefore contradict within one context and make the theory
+inconsistent, while two claims placed in different standpoints do not; a contested fact is
+authored with a standpoint, not with provenance alone.
+
+The executed selected-theory profile is narrower than this definition in one direction only.
+It may leave an assertion unread, for example a claim over a typed term carrier, a claim
+with a variable, or a carrier that holds more than one candidate statement, and it always
+names each claim it leaves unread. It never reads a quotation. One residual is not
+interpreted: the *value* of `logic:provenance`. A claim whose stated source is itself a
+retraction or denial activity is still read as reported by that source.
+
 ## The reasoning contract
 
 "Sound" is ambiguous until you answer "sound relative to which semantics?" Because `logic:` admits

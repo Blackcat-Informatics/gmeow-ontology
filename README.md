@@ -294,6 +294,22 @@ engine, with the OWL 2 DL tableau as a second refuter over the theory's OWL view
 | `inconsistent` | a clash is derived; the report names the engine, the law that clashed, and the premises used |
 | `not-decided` | anything else, including an exhausted `--max-steps` or `--step-cap` budget and a program the rule engine declines for a reason it names, such as an existential chase it cannot certify; every drop is listed with its engine, code, and detail |
 
+The rule engine reads the asserted statements of the theory. It also reads an evidence-only
+reified claim: one about whose reifier nothing is said except the reification itself
+(`rdf:reifies`, or the classic `rdf:Statement` form), `logic:provenance` and
+`logic:confidence`. Such a claim is a statement of the same theory; the report counts these as
+`claims_read` and lists each under `claims` with its source. Any other statement about
+the reifier, in any graph of the input, keeps the claim unread: a standpoint (`gmeow:accordingTo`,
+`logic:standpoint`), a stance or denial, a time, a modality, a module, another type, or an
+annotation `prove` does not know. So does any mention of the reifier in
+another statement, in any graph: as its object or predicate, inside a statement another
+reifier carries (a bare quotation included), or as a graph name. A named graph can only keep
+a claim out; provenance or confidence stated there is not evidence. Each unread claim is a `SCOPED_CLAIM_NOT_READ`
+drop that names what kept it out, so `prove` may leave an assertion unread but always names
+it. A reifier that states neither provenance nor confidence is a quotation and is never
+read. The value of `logic:provenance` is not interpreted: a claim whose source is itself a
+retraction is still read as reported.
+
 | Exit code | Meaning |
 |---|---|
 | 0 | the run completed (any verdict) without `--gate`; with `--gate`, `consistent` |
@@ -301,6 +317,15 @@ engine, with the OWL 2 DL tableau as a second refuter over the theory's OWL view
 | 3 | with `--gate`, `not-decided` |
 | 4 | malformed input |
 | 5 | execution failure: an engine crashed, hit an internal fault or reached a resource limit |
+
+When an engine fails after the selection was admitted, the report still carries the
+selection and the drops named before the failure, with `selection.complete` false. That
+list is what was known when the engine stopped, not the full account. A failure after both
+engines ended, while writing the `--out` export, the proof or the evidence file, keeps the
+completed selection and engine blocks. It sets the verdict and decision to
+`execution-failure`, marks the evaluation failed, its completeness unknown and its
+information state not evaluated, refuses the evidence grade and gate admission, and adds
+the failure diagnostic.
 
 The report has no wall-clock field, so rerunning `prove` on the same inputs and comparing
 the bytes is a valid second-party check. `--proof-out <file>` records the proof and

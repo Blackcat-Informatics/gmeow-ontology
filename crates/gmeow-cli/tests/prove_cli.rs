@@ -571,3 +571,379 @@ ex:subject ex:property ex:object .
         "{report:#}"
     );
 }
+
+/// Two reports from different sources that type one individual into two disjoint
+/// classes.
+const PROVENANCE_CLASH: &str = r#"
+ex:A logic:disjointWith ex:B .
+[] rdf:reifies <<( ex:a logic:instanceOf ex:A )>> ; logic:provenance ex:first .
+[] rdf:reifies <<( ex:a logic:instanceOf ex:B )>> ; logic:provenance ex:second .
+"#;
+
+/// A claim that carries only provenance is a statement of the selected theory, so
+/// two such claims that contradict each other refute the selection even though
+/// source admission has not admitted either one.
+#[test]
+fn provenance_only_contradiction_is_inconsistent() {
+    let (report, code) = prove_json("provenance-clash.logic.ttl", PROVENANCE_CLASH, &["--gate"]);
+    assert_eq!(report["verdict"], "inconsistent", "{report:#}");
+    assert_eq!(code, 1);
+    assert_eq!(report["engines"]["native"]["verdict"], "clash");
+    assert_eq!(report["selection"]["claims_read"], 2);
+    // The report lists each claim it read, with the source that reported it.
+    let sources: Vec<&str> = report["selection"]["claims"]
+        .as_array()
+        .expect("read claims")
+        .iter()
+        .map(|claim| claim["provenance"].as_str().expect("claim provenance"))
+        .collect();
+    assert_eq!(
+        sources,
+        [
+            "https://example.org/prove/first",
+            "https://example.org/prove/second"
+        ]
+    );
+}
+
+/// Reading a claim never decides `consistent` on its own: while source admission
+/// still blocks a reified claim, a selection of claims with no clash is not decided,
+/// the engine ran rather than refused, and the report counts the claims it read.
+#[test]
+fn provenance_only_claims_without_a_clash_are_not_decided_until_admitted() {
+    let (report, code) = prove_json(
+        "provenance-agree.logic.ttl",
+        r#"
+[] rdf:reifies <<( ex:a logic:instanceOf ex:A )>> ; logic:provenance ex:first .
+[] rdf:reifies <<( ex:b logic:instanceOf ex:A )>> ; logic:provenance ex:second .
+"#,
+        &["--gate"],
+    );
+    assert_eq!(report["verdict"], "not-decided", "{report:#}");
+    assert_eq!(code, 3);
+    assert_eq!(report["engines"]["native"]["verdict"], "no-clash");
+    assert_eq!(report["selection"]["claims_read"], 2);
+    assert!(
+        drop_codes(&report)
+            .iter()
+            .any(|code| code == "CONTEXTUAL_REIFICATION_REQUIRES_TYPED_TRANSLATION"),
+        "{report:#}"
+    );
+}
+
+/// A claim placed in a module is outside the selected theory: it is a named drop
+/// that states the coordinate, it is not read, and it no longer makes the native
+/// engine refuse the whole selection.
+#[test]
+fn a_module_scoped_claim_is_named_unread_and_the_engine_still_runs() {
+    let (report, code) = prove_json(
+        "module-claim.logic.ttl",
+        r#"
+ex:A logic:disjointWith ex:B .
+ex:a logic:instanceOf ex:A .
+[] rdf:reifies <<( ex:a logic:instanceOf ex:B )>> ; logic:inModule ex:module .
+"#,
+        &["--gate"],
+    );
+    assert_eq!(report["verdict"], "not-decided", "{report:#}");
+    assert_eq!(code, 3);
+    assert_eq!(report["engines"]["native"]["verdict"], "no-clash");
+    assert_eq!(report["selection"]["claims_read"], 0);
+    let unread: Vec<&str> = report["selection"]["drops"]
+        .as_array()
+        .expect("selection drops")
+        .iter()
+        .filter(|drop| drop["code"] == "SCOPED_CLAIM_NOT_READ")
+        .map(|drop| drop["detail"].as_str().expect("drop detail"))
+        .collect();
+    assert!(
+        matches!(unread[..], [detail] if detail.contains("logic:inModule")),
+        "{report:#}"
+    );
+    assert!(
+        !drop_codes(&report)
+            .iter()
+            .any(|code| code == "NATIVE_REFUSED"),
+        "{report:#}"
+    );
+}
+
+/// A contradiction across standpoints is not a contradiction of the theory. Two
+/// claims that contradict each other, each placed in its own standpoint and each
+/// carrying provenance, are not read: the selection is not decided, and each claim
+/// is a drop that names the predicate that kept it out.
+#[test]
+fn claims_in_different_standpoints_are_not_a_contradiction() {
+    let (report, code) = prove_json(
+        "standpoints.logic.ttl",
+        r#"
+ex:A logic:disjointWith ex:B .
+[] rdf:reifies <<( ex:a logic:instanceOf ex:A )>> ;
+    <https://blackcatinformatics.ca/gmeow/accordingTo> ex:S1 ; logic:provenance ex:first .
+[] rdf:reifies <<( ex:a logic:instanceOf ex:B )>> ;
+    <https://blackcatinformatics.ca/gmeow/accordingTo> ex:S2 ; logic:provenance ex:second .
+"#,
+        &["--gate"],
+    );
+    assert_eq!(report["verdict"], "not-decided", "{report:#}");
+    assert_eq!(code, 3);
+    assert_eq!(report["engines"]["native"]["verdict"], "no-clash");
+    assert_eq!(report["selection"]["claims_read"], 0);
+    let unread: Vec<&str> = report["selection"]["drops"]
+        .as_array()
+        .expect("selection drops")
+        .iter()
+        .filter(|drop| drop["code"] == "SCOPED_CLAIM_NOT_READ")
+        .map(|drop| drop["detail"].as_str().expect("drop detail"))
+        .collect();
+    assert_eq!(unread.len(), 2, "{report:#}");
+    assert!(
+        unread
+            .iter()
+            .all(|detail| detail.contains("<https://blackcatinformatics.ca/gmeow/accordingTo>")),
+        "{report:#}"
+    );
+}
+
+/// A statement about a claim keeps the claim out even when another reifier carries
+/// it. Here a second reifier refutes the first claim's reifier; the first claim is
+/// not read, so its statement does not contradict the assertion, and the drop names
+/// the reifier that mentions it. The refuting reifier counts wherever it is written:
+/// as an evidence-only claim of the default graph, or as a quotation in a named
+/// graph, where the drop also names the graph.
+#[test]
+fn a_claim_refuted_by_another_claim_is_not_read() {
+    const CONTESTED: &str = r#"
+ex:A logic:disjointWith ex:B .
+ex:a logic:instanceOf ex:A .
+ex:r1 rdf:reifies <<( ex:a logic:instanceOf ex:B )>> ; logic:provenance ex:first .
+"#;
+    const REFUTES: &str = r#"ex:r2 rdf:reifies <<( ex:r1 <https://blackcatinformatics.ca/gmeow/standpointModality>
+        <https://blackcatinformatics.ca/gmeow/refuted> )>>"#;
+    for (name, body, claims_read, place) in [
+        (
+            "claim-about-claim.logic.ttl",
+            format!("{CONTESTED}{REFUTES} ; logic:provenance ex:second .\n"),
+            1,
+            "that of https://example.org/prove/r2",
+        ),
+        (
+            "claim-about-claim.trig",
+            format!("{CONTESTED}ex:g {{ {REFUTES} . }}\n"),
+            0,
+            "that of https://example.org/prove/r2 in graph https://example.org/prove/g",
+        ),
+    ] {
+        let (report, code) = prove_json(name, &body, &["--gate"]);
+        refuted_claim_is_unread(&report, code, claims_read, place);
+    }
+}
+
+fn refuted_claim_is_unread(report: &serde_json::Value, code: i32, claims_read: u64, place: &str) {
+    assert_eq!(report["verdict"], "not-decided", "{report:#}");
+    assert_eq!(code, 3);
+    assert_eq!(report["engines"]["native"]["verdict"], "no-clash");
+    assert_eq!(report["selection"]["claims_read"], claims_read);
+    let unread: Vec<&str> = report["selection"]["drops"]
+        .as_array()
+        .expect("selection drops")
+        .iter()
+        .filter(|drop| drop["code"] == "SCOPED_CLAIM_NOT_READ")
+        .map(|drop| drop["detail"].as_str().expect("drop detail"))
+        .collect();
+    assert!(
+        matches!(
+            unread[..],
+            [detail] if detail.contains("its carrier https://example.org/prove/r1 is mentioned")
+                && detail.ends_with(place)
+        ),
+        "{report:#}"
+    );
+}
+
+/// `forall A. Src(A) -> (first and second)`, with `second` spelled by the caller.
+fn conjunctive_consequent(second: &str) -> String {
+    format!(
+        r#"
+ex:a logic:instanceOf ex:Src .
+ex:law a logic:Formula ; logic:quantifiedVariable [ a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "A" ] ; logic:forall ex:imp .
+ex:imp a logic:Formula ; logic:antecedent ex:g ; logic:consequent ex:c .
+ex:g a logic:Formula ; logic:relation logic:instanceOf ; logic:argument [ a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "A" ], [ a logic:TermCarrier ; logic:termIndex 1 ; logic:termIri ex:Src ] .
+ex:c a logic:Formula ; logic:and ex:c1, ex:c2 .
+ex:c1 a logic:Formula ; logic:relation logic:instanceOf ; logic:argument [ a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "A" ], [ a logic:TermCarrier ; logic:termIndex 1 ; logic:termIri ex:Dst ] .
+ex:c2 a logic:Formula ; {second} .
+"#
+    )
+}
+
+/// A consequent that conjoins a unary atom with an atom of arity three is one
+/// dependency the native engine executes: the run is decided, not an execution
+/// failure, and no drop names the formula.
+#[test]
+fn a_consequent_mixing_a_unary_and_a_ternary_atom_is_executed() {
+    let (report, code) = prove_json(
+        "mixed-head.logic.ttl",
+        &conjunctive_consequent(
+            r#"logic:relation ex:tern ; logic:argument [ a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "A" ], [ a logic:TermCarrier ; logic:termIndex 1 ; logic:termVariable "A" ], [ a logic:TermCarrier ; logic:termIndex 2 ; logic:termVariable "A" ]"#,
+        ),
+        &["--gate"],
+    );
+    assert_eq!(report["verdict"], "consistent", "{report:#}");
+    assert_eq!(code, 0);
+    assert_eq!(report["selection"]["drops"], serde_json::json!([]));
+}
+
+/// A head the native engine cannot carry, here a positional argument atom on a
+/// variable the antecedent binds, is a named drop that states the rule and its head
+/// relations. The selection is not decided; it is not an execution failure.
+#[test]
+fn a_rule_head_the_engine_cannot_carry_is_a_named_drop() {
+    let (report, code) = prove_json(
+        "refused-head.logic.ttl",
+        &conjunctive_consequent(
+            r#"logic:relation logic:naryArg0 ; logic:argument [ a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "A" ], [ a logic:TermCarrier ; logic:termIndex 1 ; logic:termVariable "A" ]"#,
+        ),
+        &["--gate"],
+    );
+    assert_eq!(report["verdict"], "not-decided", "{report:#}");
+    assert_eq!(code, 3);
+    assert!(
+        report["selection"]["drops"]
+            .as_array()
+            .expect("drops")
+            .iter()
+            .any(|drop| drop["code"] == "UNSUPPORTED_CONSTRUCT"
+                && drop["detail"].as_str().is_some_and(|detail| {
+                    detail
+                        .contains("rule <https://blackcatinformatics.ca/logic/formula-existential/")
+                        && detail.contains("head relations [<https://example.org/prove/Dst>]")
+                })),
+        "{report:#}"
+    );
+}
+
+/// `forall A. Src(A) -> exists U, V. (R1(V, A) on node U and R2(inner) on node V)`,
+/// with both tuples spelled in the reified vocabulary. `inner` is the term the tuple
+/// on `V` takes as its argument.
+fn tuple_inside_a_tuple(inner: &str) -> String {
+    let term = |index: usize, body: &str| {
+        format!("[ a logic:TermCarrier ; logic:termIndex {index} ; {body} ]")
+    };
+    let var = |index: usize, name: &str| term(index, &format!(r#"logic:termVariable "{name}""#));
+    let iri = |index: usize, name: &str| term(index, &format!("logic:termIri {name}"));
+    let atom = |name: &str, relation: &str, first: String, second: String| {
+        format!(
+            "ex:{name} a logic:Formula ; logic:relation {relation} ; logic:argument {first}, {second} .\n"
+        )
+    };
+    [
+        "\nex:a logic:instanceOf ex:Src .\n".to_owned(),
+        format!(
+            "ex:law a logic:Formula ; logic:quantifiedVariable {} ; logic:forall ex:imp .\n",
+            var(0, "A")
+        ),
+        "ex:imp a logic:Formula ; logic:antecedent ex:g ; logic:consequent ex:some .\n".to_owned(),
+        atom("g", "logic:instanceOf", var(0, "A"), iri(1, "ex:Src")),
+        format!(
+            "ex:some a logic:Formula ; logic:quantifiedVariable {}, {} ; logic:exists ex:all .\n",
+            var(0, "U"),
+            var(1, "V")
+        ),
+        "ex:all a logic:Formula ; logic:and ex:t1, ex:t2, ex:t3, ex:t4, ex:t5 .\n".to_owned(),
+        atom("t1", "logic:instanceOf", var(0, "U"), iri(1, "ex:R1")),
+        atom("t2", "logic:naryArg0", var(0, "U"), var(1, "V")),
+        atom("t3", "logic:naryArg1", var(0, "U"), var(1, "A")),
+        atom("t4", "logic:instanceOf", var(0, "V"), iri(1, "ex:R2")),
+        atom("t5", "logic:naryArg0", var(0, "V"), var(1, inner)),
+    ]
+    .concat()
+}
+
+fn has_drop(report: &serde_json::Value, code: &str, detail: &str) -> bool {
+    report["selection"]["drops"]
+        .as_array()
+        .expect("drops")
+        .iter()
+        .any(|drop| {
+            drop["code"] == code
+                && drop["detail"]
+                    .as_str()
+                    .is_some_and(|text| text.contains(detail))
+        })
+}
+
+/// A tuple that takes another tuple's node as an argument is executed whatever order
+/// its two nodes were quantified in; it is not an execution failure and its rule is
+/// not dropped at lowering.
+#[test]
+fn a_tuple_that_takes_another_tuples_node_is_executed() {
+    let (report, code) = prove_json(
+        "nested-tuple.logic.ttl",
+        &tuple_inside_a_tuple("A"),
+        &["--gate"],
+    );
+    assert_ne!(code, 5, "{report:#}");
+    assert_eq!(
+        report["engines"]["native"]["verdict"], "no-clash",
+        "{report:#}"
+    );
+    assert!(
+        !has_drop(&report, "UNSUPPORTED_CONSTRUCT", ""),
+        "{report:#}"
+    );
+}
+
+/// Two tuples that take each other's node have no node to mint. The rule is a named
+/// drop that states both relations, and the selection is not decided.
+#[test]
+fn tuples_that_take_each_others_node_are_a_named_drop() {
+    let (report, code) = prove_json(
+        "tuple-cycle.logic.ttl",
+        &tuple_inside_a_tuple("U"),
+        &["--gate"],
+    );
+    assert_eq!(report["verdict"], "not-decided", "{report:#}");
+    assert_eq!(code, 3);
+    assert!(
+        has_drop(&report, "UNSUPPORTED_CONSTRUCT", "each other's reifier")
+            && has_drop(
+                &report,
+                "UNSUPPORTED_CONSTRUCT",
+                "head relations [<https://example.org/prove/R1>, <https://example.org/prove/R2>]"
+            ),
+        "{report:#}"
+    );
+}
+
+/// An authored existential rule record whose head the engine cannot carry is declined
+/// like any other unsupported construct: a named drop that states the rule and its
+/// head relation, beside the drops named before the engine ran. The selection is not
+/// decided; it is not an execution failure.
+#[test]
+fn an_authored_rule_record_the_engine_cannot_carry_is_a_named_drop() {
+    let (report, code) = prove_json(
+        "refused-record.logic.ttl",
+        r#"
+@prefix lx: <https://blackcatinformatics.ca/gmeow/logic/existential#> .
+ex:a ex:p ex:a .
+[] rdf:reifies <<( ex:a logic:instanceOf ex:B )>> ; logic:inModule ex:module .
+ex:r a lx:ExistentialRule ; lx:body ex:b1 ; lx:head ex:h1 .
+ex:b1 lx:s "?x" ; lx:p ex:p ; lx:o "?x" .
+ex:h1 lx:s "?x" ; lx:p logic:naryArg0 ; lx:o "?x" .
+"#,
+        &["--gate"],
+    );
+    assert_eq!(report["verdict"], "not-decided", "{report:#}");
+    assert_eq!(code, 3);
+    assert_eq!(report["engines"]["native"]["verdict"], "refused");
+    assert_eq!(report["selection"]["complete"], false);
+    assert!(
+        has_drop(&report, "SCOPED_CLAIM_NOT_READ", "logic:inModule")
+            && has_drop(
+                &report,
+                "UNSUPPORTED_CONSTRUCT",
+                "rule <https://example.org/prove/r> with head relations [<https://blackcatinformatics.ca/logic/naryArg0>]"
+            ),
+        "{report:#}"
+    );
+}

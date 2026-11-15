@@ -8,7 +8,7 @@
 //! marker position, can use the paired presentation spelling. Variables always
 //! bind the original term, including when that term later occurs as ordinary data.
 
-use gmeow_logic_compile::ir::{ContextualScope, LogicModality, LogicProgram};
+use gmeow_logic_compile::ir::{ContextualScope, LogicProgram, ScopeMembership, TheorySelection};
 
 /// The selected interpretation is part of preparation and execution identity.
 #[derive(Debug, Clone, Copy, Default, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
@@ -139,21 +139,103 @@ impl SemanticVocabulary {
     }
 }
 
+/// The construct of the source program a retained scope belongs to.
+///
+/// Its text form (`axiom/3`, `rule/0/body/1`) is the one shown in a refusal and the
+/// one committed to by execution identity, so the two never diverge.
+#[derive(Clone, Copy, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
+#[serde(into = "String", try_from = "String")]
+pub(crate) enum SourceOwner {
+    Axiom(usize),
+    Rule(usize),
+    Head(usize),
+    Body(usize, usize),
+}
+
+/// The debug form is the quoted text form, exactly what the owner printed when it
+/// was a string. It MUST NOT change: the witness contract hashes the debug text of
+/// the whole program admission, so any other rendering would move the witness
+/// contract, the joint input identity and every minted witness IRI of every
+/// existing program.
+impl std::fmt::Debug for SourceOwner {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        std::fmt::Debug::fmt(&self.to_string(), f)
+    }
+}
+
+impl std::fmt::Display for SourceOwner {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Self::Axiom(index) => write!(f, "axiom/{index}"),
+            Self::Rule(index) => write!(f, "rule/{index}"),
+            Self::Head(index) => write!(f, "rule/{index}/head"),
+            Self::Body(index, atom) => write!(f, "rule/{index}/body/{atom}"),
+        }
+    }
+}
+
+impl From<SourceOwner> for String {
+    fn from(owner: SourceOwner) -> Self {
+        owner.to_string()
+    }
+}
+
+/// A serialized owner that is not one of the four text forms.
+#[derive(Debug)]
+pub(crate) struct UnknownSourceOwner(String);
+
+impl std::fmt::Display for UnknownSourceOwner {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "unknown source scope owner {:?}", self.0)
+    }
+}
+
+impl std::error::Error for UnknownSourceOwner {}
+
+impl TryFrom<String> for SourceOwner {
+    type Error = UnknownSourceOwner;
+
+    fn try_from(text: String) -> Result<Self, Self::Error> {
+        let index = |part: &str| part.parse::<usize>().ok();
+        let parts: Vec<&str> = text.split('/').collect();
+        let owner = match parts[..] {
+            ["axiom", axiom] => index(axiom).map(Self::Axiom),
+            ["rule", rule] => index(rule).map(Self::Rule),
+            ["rule", rule, "head"] => index(rule).map(Self::Head),
+            ["rule", rule, "body", atom] => index(rule)
+                .zip(index(atom))
+                .map(|(rule, atom)| Self::Body(rule, atom)),
+            _ => None,
+        };
+        owner.ok_or(UnknownSourceOwner(text))
+    }
+}
+
 /// Source scope retained before the relational lowerer removes scope annotations.
 #[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
 pub(crate) struct SourceScope {
-    pub(crate) owner: String,
+    pub(crate) owner: SourceOwner,
     pub(crate) scope: ContextualScope,
 }
 
-/// This profile does not claim complete source-theory execution or coverage.
-#[derive(Debug, Clone, Copy, serde::Serialize, serde::Deserialize)]
+/// Neither profile claims complete source-theory execution or coverage.
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
 pub(crate) enum SourceAdmissionProfile {
+    /// Bare-program execution: the program's rules and formulas run as world-local
+    /// templates and no source-owned axiom is read. Any context coordinate on any
+    /// retained scope refuses the program.
     WorldLocalTemplatesV1,
+    /// Execution of one selected theory. Every scoped axiom is accounted for by the
+    /// claim ingress ledger of the same selection before execution: read as a fact
+    /// of the selected world, or named as not read. An axiom's scope is therefore no
+    /// reason to refuse; a rule, head or body-atom scope outside the theory still is.
+    SelectedTheoryV1 { theory: TheorySelection },
 }
 
 /// Bare-program execution is explicitly a world-local template operation. It does
 /// not admit a CompiledTheory or promote source-owned axioms into global facts.
+/// The selected-theory profile is the one place a scoped source axiom can become a
+/// fact, and only through its claim ingress ledger.
 #[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
 pub(crate) struct ProgramAdmission {
     pub(crate) profile: SourceAdmissionProfile,
@@ -162,32 +244,32 @@ pub(crate) struct ProgramAdmission {
 }
 
 impl ProgramAdmission {
-    pub(crate) fn capture(program: &LogicProgram) -> Self {
+    pub(crate) fn capture(program: &LogicProgram, profile: SourceAdmissionProfile) -> Self {
         let mut scopes = Vec::new();
         for (index, axiom) in program.axioms.iter().enumerate() {
             scopes.push(SourceScope {
-                owner: format!("axiom/{index}"),
+                owner: SourceOwner::Axiom(index),
                 scope: axiom.scope.clone(),
             });
         }
         for (index, rule) in program.rules.iter().enumerate() {
             scopes.push(SourceScope {
-                owner: format!("rule/{index}"),
+                owner: SourceOwner::Rule(index),
                 scope: rule.scope.clone(),
             });
             scopes.push(SourceScope {
-                owner: format!("rule/{index}/head"),
+                owner: SourceOwner::Head(index),
                 scope: rule.head.scope.clone(),
             });
             for (body_index, atom) in rule.body.iter().enumerate() {
                 scopes.push(SourceScope {
-                    owner: format!("rule/{index}/body/{body_index}"),
+                    owner: SourceOwner::Body(index, body_index),
                     scope: atom.scope.clone(),
                 });
             }
         }
         Self {
-            profile: SourceAdmissionProfile::WorldLocalTemplatesV1,
+            profile,
             source_iri: program.source_iri.clone(),
             scopes,
         }
@@ -195,31 +277,40 @@ impl ProgramAdmission {
 
     /// Refuse semantics this profile cannot execute before starting any world.
     /// Confidence and provenance remain source evidence; neither selects a world.
-    pub(crate) fn admit_world_local_template(&self) -> gmeow_errors::Result<()> {
-        match self.profile {
-            SourceAdmissionProfile::WorldLocalTemplatesV1 => {}
-        }
-        let unsupported: Vec<_> = self
-            .scopes
-            .iter()
-            .filter(|source| {
-                let scope = &source.scope;
-                scope.standpoint.is_some()
-                    || scope.time.is_some()
-                    || scope.module.is_some()
-                    || scope.modality != LogicModality::None
-            })
-            .map(|source| format!("{}: {:?}", source.owner, source.scope))
-            .collect();
+    pub(crate) fn admit(&self) -> gmeow_errors::Result<()> {
+        let (name, unsupported) = match &self.profile {
+            SourceAdmissionProfile::WorldLocalTemplatesV1 => (
+                "world-local template",
+                self.outside(|source| !source.scope.selects_no_context()),
+            ),
+            SourceAdmissionProfile::SelectedTheoryV1 { theory } => (
+                "selected-theory",
+                self.outside(|source| {
+                    !matches!(source.owner, SourceOwner::Axiom(_))
+                        && !matches!(
+                            theory.membership(&source.scope),
+                            ScopeMembership::InTheory { .. }
+                        )
+                }),
+            ),
+        };
         if unsupported.is_empty() {
             return Ok(());
         }
         Err(gmeow_errors::Diag::of_kind(crate::error::NativeRefusal {
             reason: format!(
-                "world-local template admission refuses unexecuted source scope from {:?}",
+                "{name} admission refuses unexecuted source scope from {:?}",
                 self.source_iri
             ),
             gaps: unsupported,
         }))
+    }
+
+    fn outside(&self, refused: impl Fn(&SourceScope) -> bool) -> Vec<String> {
+        self.scopes
+            .iter()
+            .filter(|source| refused(source))
+            .map(|source| format!("{}: {:?}", source.owner, source.scope))
+            .collect()
     }
 }
