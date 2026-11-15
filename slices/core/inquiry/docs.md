@@ -311,9 +311,10 @@ stays queryable. The worked example `examples/absence-records.ttl` holds one rec
 reason, one record that names only a question, and a later answer; the competency questions
 list the unanswered questions about a subject with their reasons, return a record beside the
 answer that followed it, and show that the example records assert no value, denial or refutation
-for the property they ask about. That check reads asserted data only; structural assertions carry
-the no-derivation requirement by pinning that no sub-property, inverse, equivalence, chain or
-restriction axiom involves the absence properties.
+for the property they ask about. That check reads asserted data only. Structural assertions pin, at module scope, that no
+sub-property, inverse, equivalent-property, chain or restriction axiom, no rule body and no
+formula outside a constraint involves the absence properties; a rule or axiom authored in
+another slice is outside their reach.
 
 ### Relation to the absence terms of other slices
 
