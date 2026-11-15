@@ -44,10 +44,21 @@ pub enum UnreadReason {
     /// of the selecting coordinates are listed.
     Context(Vec<&'static str>),
     /// Something other than evidence is said about the claim's carrier, so the
-    /// claim may be placed, denied or qualified. `predicate` is the first such
-    /// predicate IRI in sorted order; `statements` counts all of them.
+    /// claim may be placed, denied or qualified. `carrier` is the reifier or
+    /// statement node concerned, `predicate` the first such predicate IRI in sorted
+    /// order, and `statements` counts all of them.
     Qualified {
+        carrier: String,
         predicate: String,
+        statements: usize,
+    },
+    /// Another carried statement mentions the claim's carrier: inside a triple term
+    /// at any depth, or as a term of a classic statement node. `by` is the first
+    /// mentioning node in sorted order and `statements` counts the mentions. It
+    /// counts whether that node is itself read, unread or a bare quotation.
+    Mentioned {
+        carrier: String,
+        by: String,
         statements: usize,
     },
     /// The claim has a variable in a term position.
@@ -67,11 +78,20 @@ impl std::fmt::Display for UnreadReason {
                 coordinates.join(", ")
             ),
             Self::Qualified {
+                carrier,
                 predicate,
                 statements,
             } => write!(
                 f,
-                "{statements} statement(s) about its carrier are not evidence, first <{predicate}>"
+                "{statements} statement(s) about its carrier {carrier} are not evidence, first <{predicate}>"
+            ),
+            Self::Mentioned {
+                carrier,
+                by,
+                statements,
+            } => write!(
+                f,
+                "its carrier {carrier} is mentioned by {statements} carried statement(s), first that of {by}"
             ),
             Self::NotGround => f.write_str("the claim has a variable in a term position"),
             Self::SourceUnresolved => {
@@ -182,7 +202,8 @@ fn scoped(program: &LogicProgram) -> impl Iterator<Item = (usize, &LogicAxiom)> 
 /// them. Then every scoped axiom of the compiled program is classified by
 /// [`TheorySelection::membership`]. A ground claim inside the theory, whose carrier
 /// the compiler resolves as evidence only (nothing is said about the carrier except
-/// its reification structure, `logic:provenance` and `logic:confidence`), is added to
+/// its reification structure, `logic:provenance` and `logic:confidence`, and no other
+/// carried statement mentions it), is added to
 /// `world` as one fact whose subject, predicate and object are the
 /// native terms of the statement its carrier holds, so blank identity, datatype,
 /// language and direction are those of the source. Every other scoped axiom is
@@ -259,11 +280,24 @@ fn claimed_fact(
             object,
         } => (subject, predicate, object),
         ClaimStatement::Qualified {
+            carrier,
             predicate,
             statements,
         } => {
             return Err(UnreadReason::Qualified {
+                carrier,
                 predicate,
+                statements,
+            });
+        }
+        ClaimStatement::Mentioned {
+            carrier,
+            by,
+            statements,
+        } => {
+            return Err(UnreadReason::Mentioned {
+                carrier,
+                by,
                 statements,
             });
         }

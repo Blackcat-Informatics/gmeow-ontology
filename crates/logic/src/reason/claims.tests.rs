@@ -356,18 +356,48 @@ fn the_bare_program_entry_reads_no_scoped_claim() {
 
 const ACCORDING_TO: &str = "https://blackcatinformatics.ca/gmeow/accordingTo";
 
-fn qualified(predicate: &str, statements: usize) -> UnreadReason {
+const BLANK: &str = "_:";
+const CLAIM: &str = "https://example.org/claims/claim";
+
+fn qualified(carrier: &str, predicate: &str, statements: usize) -> UnreadReason {
     UnreadReason::Qualified {
+        carrier: carrier.to_owned(),
         predicate: predicate.to_owned(),
         statements,
     }
 }
 
+fn mentioned(carrier: &str, by: &str, statements: usize) -> UnreadReason {
+    UnreadReason::Mentioned {
+        carrier: carrier.to_owned(),
+        by: by.to_owned(),
+        statements,
+    }
+}
+
+/// The reasons in program order. A blank carrier's label is assigned by the source
+/// canonicalization, so it is reduced to [`BLANK`].
 fn unread_reasons(ingress: &ClaimIngress) -> Vec<UnreadReason> {
+    let anonymous = |name: &mut String| {
+        if name.starts_with(BLANK) {
+            BLANK.clone_into(name);
+        }
+    };
     ingress
         .unread()
         .iter()
-        .map(|claim| claim.reason.clone())
+        .map(|claim| {
+            let mut reason = claim.reason.clone();
+            match &mut reason {
+                UnreadReason::Qualified { carrier, .. } => anonymous(carrier),
+                UnreadReason::Mentioned { carrier, by, .. } => {
+                    anonymous(carrier);
+                    anonymous(by);
+                }
+                _ => {}
+            }
+            reason
+        })
         .collect()
 }
 
@@ -389,7 +419,10 @@ fn claims_placed_in_standpoints_by_according_to_are_named_and_are_not_a_clash() 
     assert!(ingress.read().is_empty());
     assert_eq!(
         unread_reasons(&ingress),
-        [qualified(ACCORDING_TO, 1), qualified(ACCORDING_TO, 1)]
+        [
+            qualified(BLANK, ACCORDING_TO, 1),
+            qualified(BLANK, ACCORDING_TO, 1)
+        ]
     );
 }
 
@@ -406,34 +439,36 @@ fn a_claim_with_anything_but_evidence_about_its_carrier_is_named_and_adds_no_fac
         (
             "gmeow:standpointModality gmeow:refuted ; logic:provenance ex:first",
             vec![qualified(
+                CLAIM,
                 "https://blackcatinformatics.ca/gmeow/standpointModality",
                 1,
             )],
         ),
         (
             r#"ex:note "hearsay" ; ex:seen true ; logic:provenance ex:first"#,
-            vec![qualified("https://example.org/claims/note", 2)],
+            vec![qualified(CLAIM, "https://example.org/claims/note", 2)],
         ),
         (
             "a ex:Rumour ; logic:provenance ex:first",
             vec![qualified(
+                CLAIM,
                 "http://www.w3.org/1999/02/22-rdf-syntax-ns#type",
                 1,
             )],
         ),
         (
             "logic:provenance ex:first . ex:denial ex:denies ex:claim",
-            vec![qualified("https://example.org/claims/denies", 1)],
+            vec![qualified(CLAIM, "https://example.org/claims/denies", 1)],
         ),
         (
             "logic:modality logic:none ; logic:provenance ex:first",
-            vec![qualified(MODALITY, 1)],
+            vec![qualified(CLAIM, MODALITY, 1)],
         ),
         (
             "logic:modality logic:none, logic:deontic ; logic:provenance ex:first",
             vec![
                 UnreadReason::Context(vec!["logic:modality"]),
-                qualified(MODALITY, 2),
+                qualified(CLAIM, MODALITY, 2),
             ],
         ),
     ] {
@@ -486,5 +521,94 @@ fn a_classic_statement_carrier_is_read_only_when_it_is_evidence_only() {
     let (result, ingress) = decide(&placed);
     assert!(consistent(&result.expect("the selected theory executes")));
     assert_eq!(ingress.read().len(), 1);
-    assert_eq!(unread_reasons(&ingress), [qualified(ACCORDING_TO, 1)]);
+    assert_eq!(
+        unread_reasons(&ingress),
+        [qualified(
+            "https://example.org/claims/second",
+            ACCORDING_TO,
+            1
+        )]
+    );
+}
+
+const R1: &str = "https://example.org/claims/r1";
+const R2: &str = "https://example.org/claims/r2";
+
+/// An assertion, and an evidence-only claim `ex:r1` that would contradict it.
+const CONTESTED: &str = r#"
+ex:a logic:instanceOf ex:Left .
+ex:r1 rdf:reifies <<( ex:a logic:instanceOf ex:Right )>> ; logic:provenance ex:first .
+"#;
+
+/// PROTECTS: a statement about a claim keeps that claim out even when the statement
+/// is itself only carried by another reifier. A second evidence-only claim that
+/// refutes the first claim's reifier, or that names it as an object, sits inside a
+/// triple term; the first claim is then not read, so the theory is not inconsistent,
+/// and it is named with the reifier that mentions it. The same holds when the
+/// mention is a bare quotation, is nested deeper in a triple term, or is made by a
+/// classic statement node.
+#[test]
+fn a_claim_another_carried_statement_mentions_is_named_and_adds_no_fact() {
+    for mention in [
+        "ex:r2 rdf:reifies <<( ex:r1 gmeow:standpointModality gmeow:refuted )>> ; logic:provenance ex:second .",
+        "ex:r2 rdf:reifies <<( ex:auditor ex:retracts ex:r1 )>> ; logic:provenance ex:audit .",
+        "ex:r2 rdf:reifies <<( ex:auditor ex:retracts ex:r1 )>> .",
+        "ex:r2 rdf:reifies <<( ex:auditor ex:says <<( ex:r1 ex:is ex:Wrong )>> )>> ; logic:provenance ex:audit .",
+        "ex:r2 a rdf:Statement ; rdf:subject ex:r1 ; rdf:predicate ex:is ; rdf:object ex:Wrong ; logic:provenance ex:audit .",
+    ] {
+        let theory = compile(&format!("{CONTESTED}{mention}"));
+        let (result, ingress) = decide(&theory);
+
+        assert!(
+            consistent(&result.expect("the selected theory executes")),
+            "{mention}"
+        );
+        assert_eq!(
+            unread_reasons(&ingress),
+            [mentioned(R1, R2, 1)],
+            "{mention}"
+        );
+    }
+}
+
+/// PROTECTS: a mention counts whoever makes it, so no fixpoint is taken. In a chain
+/// where `ex:r3` speaks about `ex:r2` and `ex:r2` speaks about `ex:r1`, both
+/// mentioned claims stay out, although the claim that mentions `ex:r1` is itself
+/// not read; only the unmentioned `ex:r3` is read.
+#[test]
+fn a_chain_of_claims_about_claims_reads_only_the_unmentioned_one() {
+    let theory = compile(&format!(
+        "{CONTESTED}
+         ex:r2 rdf:reifies <<( ex:r1 gmeow:standpointModality gmeow:refuted )>> ; logic:provenance ex:second .
+         ex:r3 rdf:reifies <<( ex:r2 gmeow:standpointModality gmeow:refuted )>> ; logic:provenance ex:third ."
+    ));
+    let (result, ingress) = decide(&theory);
+
+    assert!(consistent(&result.expect("the selected theory executes")));
+    assert_eq!(ingress.read().len(), 1);
+    let mut reasons = unread_reasons(&ingress);
+    reasons.sort_by_key(|reason| reason.to_string());
+    assert_eq!(
+        reasons,
+        [
+            mentioned(R1, R2, 1),
+            mentioned(R2, "https://example.org/claims/r3", 1)
+        ]
+    );
+}
+
+/// PROTECTS: only a mention of a claim's carrier keeps a claim out. A carried
+/// statement about an ordinary resource, here the source of the first claim, leaves
+/// both claims read, and the contradiction is found.
+#[test]
+fn a_claim_about_an_ordinary_resource_leaves_other_claims_read() {
+    let theory = compile(&format!(
+        "{CONTESTED}
+         ex:r2 rdf:reifies <<( ex:auditor ex:trusts ex:first )>> ; logic:provenance ex:audit ."
+    ));
+    let (result, ingress) = decide(&theory);
+
+    assert!(!consistent(&result.expect("the selected theory executes")));
+    assert_eq!(ingress.read().len(), 2);
+    assert!(ingress.unread().is_empty());
 }

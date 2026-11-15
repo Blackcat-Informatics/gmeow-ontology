@@ -11,8 +11,9 @@
 //! a claim exists, and it fails closed twice over:
 //!
 //! * a carrier resolves only when everything said about it is on the evidence
-//!   allow-list of [`evidence_only`]; any other statement about the carrier may
-//!   place, deny or qualify the claim, so the claim is not resolved;
+//!   allow-list of [`evidence_only`]; any other statement about the carrier, and
+//!   any mention of it in another carried statement, may place, deny or qualify
+//!   the claim, so the claim is not resolved;
 //! * a carrier resolves only when exactly one statement it holds lowers to the
 //!   axiom and no term of that statement is a typed term carrier.
 
@@ -38,11 +39,21 @@ pub enum ClaimStatement {
         predicate: TermId,
         object: TermId,
     },
-    /// Something other than evidence is said about the carrier. `predicate` is the
+    /// Something other than evidence is said about `carrier`. `predicate` is the
     /// first such predicate IRI in sorted order and `statements` is how many
     /// statements about the carrier are outside the evidence allow-list.
     Qualified {
+        carrier: String,
         predicate: String,
+        statements: usize,
+    },
+    /// `carrier` occurs inside a triple term, or is the subject, predicate or object
+    /// of a classic statement node: someone says something about the claim. `by` is
+    /// the first node, in sorted order, whose statement mentions it and `statements`
+    /// is how many mentions there are.
+    Mentioned {
+        carrier: String,
+        by: String,
         statements: usize,
     },
     /// No carrier, a carrier outside the default graph, or not exactly one carried
@@ -64,6 +75,14 @@ pub enum ClaimStatement {
 /// standpoint, a stance or denial, a time, a modality (including `logic:modality
 /// logic:none`), a module, an attribution, a second type, or an annotation this
 /// reader has never heard of may each change where or whether the claim holds.
+///
+/// The rule has two more arms, applied by [`ClaimResolver`] because they concern
+/// statements the carrier is not the subject of. A default-graph statement whose
+/// object is the carrier keeps the claim out. So does any mention of the carrier in
+/// a carried statement: inside a triple term at any depth, or as the subject,
+/// predicate or object of a classic statement node. A mention counts whoever makes
+/// it, whether that other node is itself read, left unread, or a bare quotation,
+/// so no fixpoint is needed: a claim that is mentioned is out.
 fn evidence_only(predicate: &str, object: &Node) -> bool {
     match predicate {
         RDF_REIFIES | RDF_SUBJECT | RDF_PREDICATE | RDF_OBJECT => true,
@@ -72,15 +91,41 @@ fn evidence_only(predicate: &str, object: &Node) -> bool {
     }
 }
 
+/// What the default graph says about one claim carrier from outside it.
+#[derive(Debug, Default)]
+struct CarrierUses {
+    /// Predicates of statements whose object is the carrier.
+    references: Vec<String>,
+    /// Nodes whose carried statement mentions the carrier.
+    mentions: Vec<String>,
+}
+
 /// Resolves the scoped claims of one compiled source.
 ///
-/// Built once per source: it holds the default-graph statements that point at a
-/// claim carrier, so resolving every claim reads the dataset a single time.
+/// Built once per source: it holds every outside use of a claim carrier, so
+/// resolving every claim reads the dataset a single time.
 #[derive(Debug)]
 pub struct ClaimResolver<'source, S> {
     compiled: &'source CompiledSource<S>,
-    /// Predicates of default-graph statements whose object is a claim carrier.
-    references: BTreeMap<TermId, Vec<String>>,
+    uses: BTreeMap<TermId, CarrierUses>,
+}
+
+/// A node as a drop names it: its IRI, or `_:label` for a blank node.
+fn node_name(store: &RdfDataset, node: TermId) -> String {
+    match subject_of(store, node) {
+        Subject::Iri(iri) => iri,
+        Subject::Blank { label, .. } => format!("_:{label}"),
+    }
+}
+
+/// Every term inside the triple term `term`, at any depth. Nothing for other terms.
+fn triple_term_parts(store: &RdfDataset, term: TermId, parts: &mut Vec<TermId>) {
+    if let TermRef::Triple { s, p, o } = store.resolve(term) {
+        for part in [s, p, o] {
+            parts.push(part);
+            triple_term_parts(store, part, parts);
+        }
+    }
 }
 
 impl<S: std::borrow::Borrow<PreparedLogicSource>> CompiledSource<S> {
@@ -88,25 +133,38 @@ impl<S: std::borrow::Borrow<PreparedLogicSource>> CompiledSource<S> {
     #[must_use]
     pub fn claim_resolver(&self) -> ClaimResolver<'_, S> {
         let store = self.source().dataset();
-        let mut references: BTreeMap<TermId, Vec<String>> = self
+        let mut uses: BTreeMap<TermId, CarrierUses> = self
             .axiom_sources()
             .iter()
             .flatten()
             .filter_map(|source| match source {
-                AxiomSource::Reification(node) => Some((node.term, Vec::new())),
+                AxiomSource::Reification(node) => Some((node.term, CarrierUses::default())),
                 _ => None,
             })
             .collect();
-        if !references.is_empty() {
+        if !uses.is_empty() {
+            let mut parts = Vec::new();
             for quad in default_graph_pattern(store, None, None, None) {
-                if let Some(predicates) = references.get_mut(&quad.o) {
-                    predicates.push(iri_of(store, quad.p).as_str().to_owned());
+                if let Some(carrier) = uses.get_mut(&quad.o) {
+                    let predicate = iri_of(store, quad.p);
+                    if matches!(predicate.as_str(), RDF_SUBJECT | RDF_PREDICATE | RDF_OBJECT) {
+                        carrier.mentions.push(node_name(store, quad.s));
+                    } else {
+                        carrier.references.push(predicate.as_str().to_owned());
+                    }
+                }
+                parts.clear();
+                triple_term_parts(store, quad.o, &mut parts);
+                for part in &parts {
+                    if let Some(carrier) = uses.get_mut(part) {
+                        carrier.mentions.push(node_name(store, quad.s));
+                    }
                 }
             }
         }
         ClaimResolver {
             compiled: self,
-            references,
+            uses,
         }
     }
 }
@@ -114,9 +172,9 @@ impl<S: std::borrow::Borrow<PreparedLogicSource>> CompiledSource<S> {
 impl<S: std::borrow::Borrow<PreparedLogicSource>> ClaimResolver<'_, S> {
     /// The native statement of the scoped claim at `index` of `program().axioms`.
     ///
-    /// Every reification source of the axiom must be an evidence-only carrier and
-    /// must resolve to the same statement. An axiom with any other kind of source,
-    /// or with none, is unresolved.
+    /// Every reification source of the axiom must be an evidence-only carrier that
+    /// nothing mentions, and all must resolve to the same statement. An axiom with
+    /// any other kind of source, or with none, is unresolved.
     #[must_use]
     pub fn statement(&self, index: usize) -> ClaimStatement {
         let (Some(axiom), Some(sources)) = (
@@ -134,8 +192,8 @@ impl<S: std::borrow::Borrow<PreparedLogicSource>> ClaimResolver<'_, S> {
             if node.graph.is_some() {
                 return ClaimStatement::Unresolved;
             }
-            if let Some(qualified) = self.qualified(store, node.term) {
-                return qualified;
+            if let Some(refused) = self.said_about(store, node.term) {
+                return refused;
             }
             match carried_statement(store, *node, axiom) {
                 statement @ ClaimStatement::Resolved { .. } => {
@@ -150,26 +208,36 @@ impl<S: std::borrow::Borrow<PreparedLogicSource>> ClaimResolver<'_, S> {
         resolved.unwrap_or(ClaimStatement::Unresolved)
     }
 
-    /// Every statement about `carrier` that is not evidence: the ones it is the
-    /// subject of and fails [`evidence_only`], and every one it is the object of.
-    fn qualified(&self, store: &RdfDataset, carrier: TermId) -> Option<ClaimStatement> {
+    /// What is said about `carrier` beyond evidence, if anything: a statement it is
+    /// the subject of that fails [`evidence_only`] or a statement it is the object
+    /// of (`Qualified`), else a carried statement that mentions it (`Mentioned`).
+    fn said_about(&self, store: &RdfDataset, carrier: TermId) -> Option<ClaimStatement> {
+        let uses = self.uses.get(&carrier);
         let mut outside: Vec<String> = default_graph_pattern(store, Some(carrier), None, None)
             .filter_map(|quad| {
                 let predicate = iri_of(store, quad.p);
                 (!evidence_only(predicate.as_str(), &node_of(store, quad.o)))
                     .then(|| predicate.as_str().to_owned())
             })
-            .chain(self.references.get(&carrier).into_iter().flatten().cloned())
+            .chain(
+                uses.into_iter()
+                    .flat_map(|uses| uses.references.iter().cloned()),
+            )
             .collect();
         outside.sort();
-        let statements = outside.len();
-        outside
-            .into_iter()
-            .next()
-            .map(|predicate| ClaimStatement::Qualified {
-                predicate,
-                statements,
-            })
+        if let Some(predicate) = outside.first() {
+            return Some(ClaimStatement::Qualified {
+                carrier: node_name(store, carrier),
+                predicate: predicate.clone(),
+                statements: outside.len(),
+            });
+        }
+        let by = uses?.mentions.iter().min()?;
+        Some(ClaimStatement::Mentioned {
+            carrier: node_name(store, carrier),
+            by: by.clone(),
+            statements: uses?.mentions.len(),
+        })
     }
 }
 

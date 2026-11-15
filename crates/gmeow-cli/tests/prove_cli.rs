@@ -704,3 +704,41 @@ ex:A logic:disjointWith ex:B .
         "{report:#}"
     );
 }
+
+/// A statement about a claim keeps the claim out even when another reifier carries
+/// it. Here a second evidence-only claim refutes the first claim's reifier; the
+/// first claim is not read, so its statement does not contradict the assertion, and
+/// the drop names the reifier that mentions it.
+#[test]
+fn a_claim_refuted_by_another_claim_is_not_read() {
+    let (report, code) = prove_json(
+        "claim-about-claim.logic.ttl",
+        r#"
+ex:A logic:disjointWith ex:B .
+ex:a logic:instanceOf ex:A .
+ex:r1 rdf:reifies <<( ex:a logic:instanceOf ex:B )>> ; logic:provenance ex:first .
+ex:r2 rdf:reifies <<( ex:r1 <https://blackcatinformatics.ca/gmeow/standpointModality>
+        <https://blackcatinformatics.ca/gmeow/refuted> )>> ; logic:provenance ex:second .
+"#,
+        &["--gate"],
+    );
+    assert_eq!(report["verdict"], "not-decided", "{report:#}");
+    assert_eq!(code, 3);
+    assert_eq!(report["engines"]["native"]["verdict"], "no-clash");
+    assert_eq!(report["selection"]["claims_read"], 1);
+    let unread: Vec<&str> = report["selection"]["drops"]
+        .as_array()
+        .expect("selection drops")
+        .iter()
+        .filter(|drop| drop["code"] == "SCOPED_CLAIM_NOT_READ")
+        .map(|drop| drop["detail"].as_str().expect("drop detail"))
+        .collect();
+    assert!(
+        matches!(
+            unread[..],
+            [detail] if detail.contains("its carrier https://example.org/prove/r1 is mentioned")
+                && detail.contains("that of https://example.org/prove/r2")
+        ),
+        "{report:#}"
+    );
+}

@@ -298,11 +298,15 @@ The rule engine reads the asserted statements of the theory. It also reads an ev
 reified claim: one about whose reifier nothing is said except the reification itself
 (`rdf:reifies`, or the classic `rdf:Statement` form), `logic:provenance` and
 `logic:confidence`. Such a claim is a statement of the same theory; the report counts these as
-`claims_read` and lists each under `claims` with its source. Any other statement about the
-reifier keeps the claim unread: a standpoint (`gmeow:accordingTo`, `logic:standpoint`), a
-stance or denial, a time, a modality, a module, another type, or an annotation `prove` does
-not know. Each unread claim is a `SCOPED_CLAIM_NOT_READ` drop that names what kept it out. A
-reifier with no scope coordinate is a quotation and is never read.
+`claims_read` and lists each under `claims` with its source. Any other default-graph
+statement about the reifier keeps the claim unread: a standpoint (`gmeow:accordingTo`,
+`logic:standpoint`), a stance or denial, a time, a modality, a module, another type, or an
+annotation `prove` does not know. So does any mention of the reifier in a statement another
+reifier carries, including a bare quotation. Each unread claim is a `SCOPED_CLAIM_NOT_READ`
+drop that names what kept it out, so `prove` may leave an assertion unread but always names
+it. A reifier that states neither provenance nor confidence is a quotation and is never
+read. The value of `logic:provenance` is not interpreted: a claim whose source is itself a
+retraction is still read as reported.
 
 | Exit code | Meaning |
 |---|---|
