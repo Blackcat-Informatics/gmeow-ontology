@@ -1,0 +1,43 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Worked example: a claim, the citation that supports it, and the snapshot of
+# the web page the citation points at (Principles 2, 4 and 7).
+#
+# The live page may change or vanish. The citation therefore names the snapshot,
+# a gmeow:Item exemplifying the page, and its quoted passage is anchored to the
+# retrieved bytes. The snapshot carries the digest of those bytes, the instant
+# of retrieval, the address they were fetched from and the immutable address of
+# the stored copy. Retrieval time is its own clock: the page's last
+# modification, gmeow:sourceModifiedAt, is a different instant and is not
+# required.
+
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix rdf:   <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+@prefix ex:    <https://example.org/snapshot/> .
+
+ex:acme a gmeow:Organization .
+ex:analystView a gmeow:Standpoint .
+
+ex:aboutPage a gmeow:WebPage .
+
+ex:foundedClaim rdf:reifies <<( ex:acme gmeow:foundedBy ex:founder )>> ;
+    gmeow:accordingTo ex:analystView .
+ex:founder a gmeow:Agent .
+
+ex:pageSnapshot a gmeow:SourceSnapshot ;
+    gmeow:exemplifies      ex:aboutPage ;
+    gmeow:sourceLocation   "https://acme.example/about" ;
+    gmeow:retrievedAt      "2026-09-30T17:00:00Z"^^xsd:dateTime ;
+    gmeow:contentDigest    "5f8d1e2a9c4b7d0e3f6a1b8c5d2e9f0a3b6c7d4e1f8a2b5c9d0e3f6a7b4c1d8e"^^gmeow:blake3_256Digest ;
+    gmeow:immutableAddress "https://archive.example.org/blake3/5f8d1e2a9c4b7d0e3f6a1b8c5d2e9f0a3b6c7d4e1f8a2b5c9d0e3f6a7b4c1d8e"^^xsd:anyURI .
+
+ex:foundedQuote a gmeow:Selector ;
+    gmeow:selectorTextQuote "Acme was founded by Alice Moreau" .
+
+ex:foundedCite a gmeow:CitationAct ;
+    gmeow:citingEntity   ex:foundedClaim ;
+    gmeow:citedEntity    ex:pageSnapshot ;
+    gmeow:citationIntent gmeow:intentSupports ;
+    gmeow:viaSelector    ex:foundedQuote .
