@@ -7,6 +7,6 @@
 @prefix math:  <https://blackcatinformatics.ca/math/> .
 @prefix logic: <https://blackcatinformatics.ca/logic/> .
 
-math:actingGroupFunctionality a logic:PropertyCharacteristicAssertion ;
+[] a logic:PropertyCharacteristicAssertion ;
     logic:characterizes math:actingGroup ;
     logic:characteristicSort logic:functionalProperty .

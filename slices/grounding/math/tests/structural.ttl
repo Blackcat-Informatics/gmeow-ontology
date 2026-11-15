@@ -1605,6 +1605,7 @@ ex:saGroupActionActorIsAGroup a gmeow:StructuralAssertion ;
     gmeow:saFailWitness "tests/counter-examples/group-action-actor-wrong-kind.ttl" ;
     gmeow:saPattern """PREFIX m: <https://blackcatinformatics.ca/math/>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX l: <https://blackcatinformatics.ca/logic/>
 ASK {
     ?action a m:GroupAction ;
         m:actingGroup ?actor .
@@ -1620,6 +1621,7 @@ ex:saGroupActionIsNotItsActor a gmeow:StructuralAssertion ;
     gmeow:saFailWitness "tests/counter-examples/group-action-typed-as-group.ttl" ;
     gmeow:saPattern """PREFIX m: <https://blackcatinformatics.ca/math/>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX l: <https://blackcatinformatics.ca/logic/>
 ASK {
     ?action a m:GroupAction .
     { ?action a ?kind . ?kind (rdfs:subClassOf|l:subClassOf)* m:Group }

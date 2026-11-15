@@ -150,8 +150,7 @@ Three kinds of control read the declaration without evaluating a law:
 | `cqActingGroupsOnRootSystem` (asserted competency question) | `examples/a2-acting-groups.ttl` | an action recorded under another group, or the A2 Weyl group given the full-automorphism role |
 | structural assertions with fail-witness fixtures | the module and every worked example | a missing, repeated or non-Group actor, a descriptor typed as a group, a wrong actor or dropped law link on the E8 record, or an axiom that characterizes or derives `math:actingGroup` |
 
-These controls check what is declared. They do not show that the generated validation view rejects
-the same inputs, which the four actor conformance cells cover, and they prove no action law.
+These controls check what is declared. The four actor conformance cells cover the generated validation view for a missing, a repeated and a non-Group actor. A different actor on the named E8 record and a law named by one link only are well formed to that view by design, so only these declared-data controls catch them. None of the controls proves an action law.
 
 ## Homomorphic encryption — the HE flagship
 
