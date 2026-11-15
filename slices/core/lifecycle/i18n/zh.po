@@ -86,8 +86,8 @@ msgid "superseded by"
 msgstr "被取代"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/supersededBy|skos:definition"
-msgid "Links an entity to the entity that replaced it — Constantinople supersededBy Istanbul, the Soviet Union supersededBy the Russian Federation, a deprecated software release supersededBy its successor. Directional, NOT symmetric. The superseded entity is retained (never deleted) and may carry gmeow:displayable false."
-msgstr "将一个实体与取代它的实体相连——君士坦丁堡被伊斯坦布尔取代、苏联被俄罗斯联邦取代、一个被弃用的软件发行版被其后继者取代。有方向性，并非对称。被取代的实体被保留（从不删除），并可携带 gmeow:displayable false。"
+msgid "Links an entity to the entity that replaced it — Constantinople supersededBy Istanbul, the Soviet Union supersededBy the Russian Federation, a deprecated software release supersededBy its successor. Directional, NOT symmetric. The superseded entity is retained (never deleted) and takes no display flag from the succession: whether a reader is shown it is that reader's policy, decided at projection. Only a superseded name or identity label, which its holder hides from every reader, sets gmeow:displayable false."
+msgstr "将一个实体与取代它的实体相连——君士坦丁堡被伊斯坦布尔取代、苏联被俄罗斯联邦取代、一个被弃用的软件发行版被其后继者取代。有方向性，并非对称。被取代的实体被保留（从不删除），且不因被取代而获得显示标记：读者是否看到它由该读者自己的政策在投影时决定。只有其持有者对所有读者隐藏的被取代名称或身份标签才设置 gmeow:displayable false。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/existenceEntityFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "existenceEntity is functional"

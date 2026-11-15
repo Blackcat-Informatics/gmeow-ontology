@@ -86,8 +86,8 @@ msgid "superseded by"
 msgstr "remplacé par"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/supersededBy|skos:definition"
-msgid "Links an entity to the entity that replaced it — Constantinople supersededBy Istanbul, the Soviet Union supersededBy the Russian Federation, a deprecated software release supersededBy its successor. Directional, NOT symmetric. The superseded entity is retained (never deleted) and may carry gmeow:displayable false."
-msgstr "Relie une entité à l'entité qui l'a remplacée — Constantinople supersededBy Istanbul, l'Union soviétique supersededBy la Fédération de Russie, une version logicielle obsolète supersededBy son successeur. Directionnel, NON symétrique. L'entité remplacée est conservée (jamais supprimée) et peut porter gmeow:displayable false."
+msgid "Links an entity to the entity that replaced it — Constantinople supersededBy Istanbul, the Soviet Union supersededBy the Russian Federation, a deprecated software release supersededBy its successor. Directional, NOT symmetric. The superseded entity is retained (never deleted) and takes no display flag from the succession: whether a reader is shown it is that reader's policy, decided at projection. Only a superseded name or identity label, which its holder hides from every reader, sets gmeow:displayable false."
+msgstr "Relie une entité à l'entité qui l'a remplacée — Constantinople supersededBy Istanbul, l'Union soviétique supersededBy la Fédération de Russie, une version logicielle obsolète supersededBy son successeur. Directionnel, NON symétrique. L'entité remplacée est conservée (jamais supprimée) et ne reçoit aucun indicateur d'affichage du fait de la succession : la politique de lecture de chaque lecteur, appliquée à la projection, décide s'il le voit. Seul un nom ou une étiquette d'identité remplacé, que son titulaire masque à tout lecteur, porte gmeow:displayable false."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/existenceEntityFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "existenceEntity is functional"
