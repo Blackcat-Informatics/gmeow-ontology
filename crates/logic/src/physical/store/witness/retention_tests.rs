@@ -283,3 +283,80 @@ fn retained_introductions_wait_for_the_producer_and_every_committed_premise() {
             .is_err()
     );
 }
+
+/// PROTECTS: the witness identity of a program under the world-local profile. The
+/// witness contract hashes the debug text of the program admission, and that
+/// contract is part of every minted witness IRI, so a changed rendering of the
+/// admission silently renames every existing witness. The expected values were
+/// computed by this same test body on the revision before the admission owner
+/// became a typed value.
+#[test]
+fn world_local_admission_keeps_its_witness_contract_and_witness_iri() {
+    use gmeow_logic_compile::ir::{
+        AtomicTerm, ContextualScope, LogicAxiom, LogicModality, LogicProgram, LogicRule,
+    };
+    let atom = |predicate: &str| {
+        LogicAxiom::new(
+            "?x",
+            predicate,
+            AtomicTerm::Var("?y".to_owned()),
+            false,
+            ContextualScope::default(),
+        )
+        .expect("a well-formed atom")
+    };
+    let evidence = ContextualScope::new(
+        None,
+        None,
+        Some(0.5),
+        LogicModality::None,
+        Some("urn:pin:source".to_owned()),
+        None,
+    )
+    .expect("a well-formed scope");
+    let program = LogicProgram::new(
+        vec![
+            LogicAxiom::new(
+                "urn:pin:a",
+                "urn:pin:p",
+                AtomicTerm::Iri("urn:pin:b".to_owned()),
+                false,
+                evidence,
+            )
+            .expect("a well-formed axiom"),
+        ],
+        vec![LogicRule::new(
+            atom("urn:pin:head"),
+            vec![atom("urn:pin:body")],
+            vec![],
+            ContextualScope::default(),
+        )],
+        vec![],
+        Some("urn:pin:program".to_owned()),
+    );
+    let admission = crate::native_semantics::ProgramAdmission::capture(
+        &program,
+        crate::native_semantics::SourceAdmissionProfile::WorldLocalTemplatesV1,
+    );
+    let contract = WitnessContract([7; 32]).with_source(&admission);
+    let witness = SkolemTerm {
+        scope: contract.scope("urn:pin:world", [9; 32]),
+        rule_iri: "urn:pin:rule".to_owned(),
+        ordinal: 0,
+        frontier: vec![TermValue::iri("urn:pin:x")],
+    }
+    .witness_iri();
+
+    assert_eq!(
+        (
+            purrdf_hash::hex::Digest32::new(contract.0)
+                .to_hex()
+                .as_str(),
+            witness.as_str()
+        ),
+        (
+            "557e3decf3ffc8568e0ec53d4a10097917a25c9d36aff5d895382186ad0f0f23",
+            "https://blackcatinformatics.ca/gmeow/skolem/132617f77e1d48986e28788518667a14e308e26e"
+        )
+    );
+}

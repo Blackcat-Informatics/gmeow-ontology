@@ -140,7 +140,11 @@ fn admit_rule_structure(rule: &LogicRule) -> gmeow_errors::Result<()> {
 /// Lower rules for immediate execution or certification under the declared native
 /// world-local template profile. Every source context must first be admitted.
 pub(crate) fn lower_eval_rules(program: &LogicProgram) -> gmeow_errors::Result<Vec<EvalRule>> {
-    crate::native_semantics::ProgramAdmission::capture(program).admit_world_local_template()?;
+    crate::native_semantics::ProgramAdmission::capture(
+        program,
+        crate::native_semantics::SourceAdmissionProfile::WorldLocalTemplatesV1,
+    )
+    .admit()?;
     prepare_rule_templates(program)
 }
 

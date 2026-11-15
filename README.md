@@ -294,6 +294,22 @@ engine, with the OWL 2 DL tableau as a second refuter over the theory's OWL view
 | `inconsistent` | a clash is derived; the report names the engine, the law that clashed, and the premises used |
 | `not-decided` | anything else, including an exhausted `--max-steps` or `--step-cap` budget and a program the rule engine declines for a reason it names, such as an existential chase it cannot certify; every drop is listed with its engine, code, and detail |
 
+The rule engine reads the asserted statements of the theory. It also reads an evidence-only
+reified claim: one about whose reifier nothing is said except the reification itself
+(`rdf:reifies`, or the classic `rdf:Statement` form), `logic:provenance` and
+`logic:confidence`. Such a claim is a statement of the same theory; the report counts these as
+`claims_read` and lists each under `claims` with its source. Any other statement about
+the reifier, in any graph of the input, keeps the claim unread: a standpoint (`gmeow:accordingTo`,
+`logic:standpoint`), a stance or denial, a time, a modality, a module, another type, or an
+annotation `prove` does not know. So does any mention of the reifier in
+another statement, in any graph: as its object or predicate, inside a statement another
+reifier carries (a bare quotation included), or as a graph name. A named graph can only keep
+a claim out; provenance or confidence stated there is not evidence. Each unread claim is a `SCOPED_CLAIM_NOT_READ`
+drop that names what kept it out, so `prove` may leave an assertion unread but always names
+it. A reifier that states neither provenance nor confidence is a quotation and is never
+read. The value of `logic:provenance` is not interpreted: a claim whose source is itself a
+retraction is still read as reported.
+
 | Exit code | Meaning |
 |---|---|
 | 0 | the run completed (any verdict) without `--gate`; with `--gate`, `consistent` |

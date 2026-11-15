@@ -152,7 +152,7 @@ fn direct_execution_and_certification_enforce_the_retained_context_admission() {
                 _ => scope.modality = LogicModality::Deontic,
             }
             let prepared = crate::program_analysis::prepare_program(&changed).unwrap();
-            assert!(prepared.admission.admit_world_local_template().is_err());
+            assert!(prepared.admission.admit().is_err());
             assert!(lower_eval_rules(&changed).is_err());
             assert!(crate::certify::certify_program(&changed, "positive-horn").is_err());
             assert_session_refuses_source(&changed, "world-local template admission");

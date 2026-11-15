@@ -28,6 +28,7 @@ use gmeow_logic_compile::frontend::{
     AxiomSource, PreparedLogicSource, SemanticUnitDisposition, SourceAdmission,
     SourceAdmissionStatus, SourceBase, SourceBaseOrigin, SourceDocument, SourceSelection,
 };
+use gmeow_logic_compile::ir::TheorySelection;
 use gmeow_logic_compile::tptp::{FofProjectionBlocker, FofProjectionStatus, project_tptp_fof};
 use purrdf::entail::Question;
 use purrdf::{CompositeDatasetView, RdfDataset, TermRef, ViewLimits};
@@ -103,9 +104,33 @@ struct SelectionReport {
     selection_digest: String,
     documents: usize,
     units: usize,
+    /// How many scoped claims the native engine read as facts. Every other scoped
+    /// claim is a `SCOPED_CLAIM_NOT_READ` drop.
+    claims_read: usize,
+    /// Each claim read as a fact, in program order, with its source. The statement is
+    /// in the compiler's spelling, the one a `SCOPED_CLAIM_NOT_READ` drop uses; a
+    /// refutation premise renders its terms differently, so the two are matched by
+    /// reading, not by string equality.
+    claims: Vec<ReadClaimReport>,
     /// Admission and native-accounting drops, sorted and de-duplicated. The OWL
     /// leg's own state is reported under that leg, never here.
     drops: Vec<DropRecord>,
+}
+
+/// One scoped claim the native engine read as a fact of the selected world, with the
+/// evidence its carrier states.
+#[derive(Debug, Clone, Serialize)]
+struct ReadClaimReport {
+    /// `program:axiom:N`, the claim's place in the compiled program.
+    anchor: String,
+    subject: String,
+    predicate: String,
+    object: String,
+    /// The `logic:provenance` of the report, when stated.
+    provenance: Option<String>,
+    /// The `logic:confidence` of the report, when stated. It is metadata, never a
+    /// truth degree.
+    confidence: Option<f64>,
 }
 
 /// The native rule engine's own account of the selection.
@@ -123,6 +148,9 @@ struct NativeLeg {
     coverage: Option<DlCoverage>,
     /// Each clash: the law that derived it and its witness premises.
     refutations: Vec<Refutation>,
+    /// Scoped claims read as facts; reported under `selection.claims`.
+    #[serde(skip)]
+    claims_read: Vec<ReadClaimReport>,
 }
 
 impl NativeLeg {
@@ -247,7 +275,7 @@ struct TptpExport {
 }
 
 /// The reference semantics of every verdict this command prints.
-const PROVE_SEMANTICS: &str = "GMEOW native logic: semantics of the selection's default graph, decided by the native rule engine's accounting; the OWL 2 DL tableau over the selection's OWL view is a second refuter only. Authored reasoning-contract configuration is catalogued, not executed. A native consistent verdict has no replayable proof and is reproduced by re-running on the same inputs; a native inconsistent verdict carries its law and witness premises; only the tableau's answer carries a replayable proof. This is not a verdict about the classical first-order export written by --out.";
+const PROVE_SEMANTICS: &str = "GMEOW native logic: semantics of the selection's default graph, decided by the native rule engine's accounting; a reified claim is read as a statement of that graph only when it states logic:provenance or logic:confidence, nothing else is stated about its reifier in any graph of the input except the reification itself, and no statement of any graph has that reifier as its object, mentions it inside a triple term or a statement node, or uses it as a predicate or a graph name; every other scoped claim is a named drop, so an assertion may be left unread but is always named, and a quotation is never read; a provenance value is not interpreted; the OWL 2 DL tableau over the selection's OWL view is a second refuter only. Authored reasoning-contract configuration is catalogued, not executed. A native consistent verdict has no replayable proof and is reproduced by re-running on the same inputs; a native inconsistent verdict carries its law and witness premises; only the tableau's answer carries a replayable proof. This is not a verdict about the classical first-order export written by --out.";
 
 #[derive(Debug, Clone, Serialize)]
 struct ProveReport {
@@ -521,7 +549,7 @@ pub(crate) fn prove(reporter: &dyn Reporter, request: &ProveRequest<'_>) -> i32 
     let mut drops = admission_drops(&admission);
     drops.extend(unread_program_axioms(&loaded.theory));
     drops.extend(accounting_drops(&admission, &loaded.theory));
-    let legs = native_leg(&loaded.theory, canonical, request.max_steps, &mut drops)
+    let legs = native_leg(&loaded.theory, request.max_steps, &mut drops)
         .and_then(|native| owl_dl_leg(canonical, request.step_cap).map(|owl| (native, owl)));
     let (native, (owl_dl, proof)) = match legs {
         Ok(legs) => legs,
@@ -645,6 +673,8 @@ pub(crate) fn prove(reporter: &dyn Reporter, request: &ProveRequest<'_>) -> i32 
             selection_digest: admission.selection_digest.clone(),
             documents,
             units: admission.units.len(),
+            claims_read: native.claims_read.len(),
+            claims: native.claims_read.clone(),
             drops,
         }),
         semantics: PROVE_SEMANTICS,
@@ -777,30 +807,80 @@ fn unread_program_axioms(
 }
 
 /// Run the native rule engine over the whole selection and add every construct it
-/// did not decide to `drops`. An engine that declines the program for a reason it
-/// names did not fail: the leg is `refused` and the reasons are drops, so the
-/// selection is not decided. Any other engine error is an execution failure, never
-/// a drop: a canonicalization search that reached its limit is
-/// `SOURCE_CANONICALIZATION_LIMIT`, and every other error is
-/// `NATIVE_EXECUTION_FAILED`.
+/// did not decide to `drops`. The engine reads the asserted statements of the default
+/// graph and, with them, each evidence-only claim: a reified claim about whose
+/// carrier nothing is said except the reification itself, `logic:provenance` and
+/// `logic:confidence` is a statement of the same theory. Any other statement about
+/// the carrier (a standpoint, a stance, a time, a modality, a module, an unknown
+/// annotation), and any mention of the carrier in another statement, in any graph
+/// of the input, keeps the claim unread, as a `SCOPED_CLAIM_NOT_READ` drop that names
+/// what kept it out. A reifier with no scope coordinate is a quotation, never read.
+/// An engine that declines the program for a reason it names did not fail: the leg
+/// is `refused` and the reasons are drops, so the selection is not decided. Any
+/// other engine error is an execution failure, never a drop: a canonicalization
+/// search that reached its limit is `SOURCE_CANONICALIZATION_LIMIT`, and every other
+/// error is `NATIVE_EXECUTION_FAILED`.
 fn native_leg(
     theory: &gmeow_logic_compile::frontend::CompiledTheory,
-    canonical: &RdfDataset,
     max_steps: Option<u64>,
     drops: &mut BTreeSet<DropRecord>,
 ) -> Result<NativeLeg, Diag> {
+    // Every scoped claim of the compiled theory is read into the selected world or
+    // named here before the engine starts; the engine then ignores axiom scopes.
+    let prepared = gmeow_logic::reason::prepare_selected_theory_input(
+        theory,
+        &LogicalGraph::Default,
+        &TheorySelection::top_level_only(),
+    );
+    let mut claims_read = Vec::new();
+    if let Ok((_, ingress)) = &prepared {
+        // The ledger classifies every scoped axiom of this same compiled program, and
+        // the engine entry refuses a ledger that does not cover the program it runs,
+        // so no separate coverage check is repeated here.
+        claims_read = ingress
+            .read()
+            .iter()
+            .map(|claim| {
+                let axiom = &theory.program().axioms[claim.axiom];
+                ReadClaimReport {
+                    anchor: format!("program:axiom:{}", claim.axiom),
+                    subject: axiom.subject.clone(),
+                    predicate: axiom.predicate.clone(),
+                    object: axiom.obj.key(),
+                    provenance: axiom.scope.provenance.clone(),
+                    confidence: axiom.scope.confidence,
+                }
+            })
+            .collect();
+        for claim in ingress.unread() {
+            let axiom = &theory.program().axioms[claim.axiom];
+            drops.insert(DropRecord::new(
+                ENGINE_NATIVE,
+                "SCOPED_CLAIM_NOT_READ",
+                format!(
+                    "program:axiom:{}: {} {} {}: {}",
+                    claim.axiom,
+                    axiom.subject,
+                    axiom.predicate,
+                    axiom.obj.key(),
+                    claim.reason
+                ),
+            ));
+        }
+    }
     let run = (|| {
-        let input = gmeow_logic::reason::prepare_reasoning_input(canonical)?;
+        let (input, ingress) = prepared?;
         let domains = SelectedDomains::new([SelectedLogicalWorld::new(
             LogicalGraph::Default,
             DomainProfile::NonemptyObjectDomainV1,
             PROVE_WORLD_AUTHORITY.to_owned(),
             *input.ingress_contract(),
         )?])?;
-        let result = gmeow_logic::reason::reason_program_within(
-            theory.program(),
+        let result = gmeow_logic::reason::reason_selected_theory_within(
+            theory,
             input,
             &domains,
+            &ingress,
             &gmeow_logic::query_ir::Budget {
                 max_answers: None,
                 max_steps,
@@ -845,6 +925,7 @@ fn native_leg(
                     unsatisfiable_classes: Vec::new(),
                     coverage: None,
                     refutations: Vec::new(),
+                    claims_read,
                 });
             }
             return Err(caused_diagnostic(
@@ -1015,6 +1096,7 @@ fn native_leg(
         unsatisfiable_classes,
         coverage: Some(verdict.coverage),
         refutations,
+        claims_read,
     })
 }
 
@@ -1053,7 +1135,9 @@ fn open_owl_view(
 
 /// Ask the tableau for consistency of the OWL view and record its proof bytes. Only
 /// a canonicalization limit is an execution failure; every other outcome is a state
-/// of this leg.
+/// of this leg. The OWL view holds the asserted statements only; it does not see the
+/// scoped claims the native leg reads. This leg is a second refuter, so deciding
+/// over fewer premises cannot make it report a clash the selection does not have.
 fn owl_dl_leg(
     canonical: &RdfDataset,
     step_cap: Option<u64>,
@@ -2319,6 +2403,7 @@ fn render_text(report: &ProveReport) {
         println!("program-digest {}", selection.program_digest);
         println!("selection-digest {}", selection.selection_digest);
         println!("semantic-units {}", selection.units);
+        println!("claims-read {}", selection.claims_read);
         // `complete` is the one computed value; these lines only spell it. It covers
         // the native accounting; the OWL leg's state is printed under that leg.
         if selection.complete {

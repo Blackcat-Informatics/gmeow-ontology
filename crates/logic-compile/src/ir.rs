@@ -536,6 +536,92 @@ impl fmt::Display for ComplexityClass {
     }
 }
 
+/// A scope coordinate that says who reported a claim and how sure the reporter is.
+///
+/// Evidence does not select the context a claim holds in; the other four
+/// coordinates (standpoint, time, modality, module) do.
+#[derive(
+    Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, serde::Serialize, serde::Deserialize,
+)]
+#[serde(rename_all = "lowercase")]
+pub enum EvidenceCoordinate {
+    /// `logic:provenance`: the source that reported the claim.
+    Provenance,
+    /// `logic:confidence`: how sure the reporter is.
+    Confidence,
+}
+
+impl EvidenceCoordinate {
+    /// The `logic:` name of the coordinate.
+    #[must_use]
+    pub const fn name(self) -> &'static str {
+        match self {
+            Self::Provenance => "logic:provenance",
+            Self::Confidence => "logic:confidence",
+        }
+    }
+}
+
+/// Where a scope places its statement relative to a selected theory.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum ScopeMembership {
+    /// The statement holds where an unscoped statement of the theory holds. Its
+    /// evidence coordinates are metadata about the report, not a context.
+    InTheory {
+        /// The evidence coordinates the scope carries.
+        evidence: BTreeSet<EvidenceCoordinate>,
+    },
+    /// The scope selects a context the selection does not translate. The `logic:`
+    /// names of the selecting coordinates are listed in a fixed order.
+    UntranslatedContext {
+        /// The context coordinates that keep the statement out.
+        coordinates: Vec<&'static str>,
+    },
+}
+
+/// The theory a reasoning operation decides, stated as the scopes it contains.
+///
+/// The single composition is the top-level theory: every statement whose scope
+/// selects no context. A statement placed in a module, a standpoint, a time or a
+/// modality is outside it.
+#[derive(Debug, Clone, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
+pub struct TheorySelection {
+    composition: TheoryComposition,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
+enum TheoryComposition {
+    TopLevelOnly,
+}
+
+impl TheorySelection {
+    /// The theory of every statement whose scope selects no context.
+    #[must_use]
+    pub const fn top_level_only() -> Self {
+        Self {
+            composition: TheoryComposition::TopLevelOnly,
+        }
+    }
+
+    /// Classify one scope. This is the one predicate that decides whether a scoped
+    /// statement belongs to the selected theory.
+    #[must_use]
+    pub fn membership(&self, scope: &ContextualScope) -> ScopeMembership {
+        match self.composition {
+            TheoryComposition::TopLevelOnly => {
+                let coordinates = scope.context_coordinates();
+                if coordinates.is_empty() {
+                    ScopeMembership::InTheory {
+                        evidence: scope.evidence_coordinates(),
+                    }
+                } else {
+                    ScopeMembership::UntranslatedContext { coordinates }
+                }
+            }
+        }
+    }
+}
+
 /// Contextual scope annotations shared by axioms and rules.
 ///
 /// All fields are optional (`None` = not declared).  Note: the scope is **not**
@@ -585,6 +671,51 @@ impl ContextualScope {
             provenance,
             module,
         })
+    }
+
+    /// The context coordinates this scope selects, as their `logic:` names, in a
+    /// fixed order. Standpoint, time, modality and module select the context a
+    /// claim holds in; an empty list means the scope selects no context.
+    #[must_use]
+    pub fn context_coordinates(&self) -> Vec<&'static str> {
+        let mut selected = Vec::new();
+        if self.standpoint.is_some() {
+            selected.push("logic:standpoint");
+        }
+        if self.time.is_some() {
+            selected.push("logic:time");
+        }
+        if self.modality != LogicModality::None {
+            selected.push("logic:modality");
+        }
+        if self.module.is_some() {
+            selected.push("logic:inModule");
+        }
+        selected
+    }
+
+    /// The evidence coordinates this scope carries: who reported the claim and how
+    /// sure the reporter is. They never select a context.
+    #[must_use]
+    pub fn evidence_coordinates(&self) -> BTreeSet<EvidenceCoordinate> {
+        let mut carried = BTreeSet::new();
+        if self.provenance.is_some() {
+            carried.insert(EvidenceCoordinate::Provenance);
+        }
+        if self.confidence.is_some() {
+            carried.insert(EvidenceCoordinate::Confidence);
+        }
+        carried
+    }
+
+    /// True when the scope selects no context, whatever evidence it carries: the
+    /// claim holds in the same context as an unscoped claim.
+    #[must_use]
+    pub fn selects_no_context(&self) -> bool {
+        self.standpoint.is_none()
+            && self.time.is_none()
+            && self.module.is_none()
+            && self.modality == LogicModality::None
     }
 
     /// A deterministic content key for this scope (used by the canonical content

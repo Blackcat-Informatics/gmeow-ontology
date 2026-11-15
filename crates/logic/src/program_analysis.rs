@@ -16,6 +16,7 @@ use std::sync::{Arc, Mutex, OnceLock};
 
 use gmeow_logic_compile::ir::LogicProgram;
 
+use crate::native_semantics::SourceAdmissionProfile;
 use crate::physical::{
     ExistentialRule, JointInput, JointProgram, JointTemplate, NativeOutcome, PreparedPropertyRule,
 };
@@ -148,8 +149,12 @@ impl PreparedProgram {
         }
     }
 
-    fn lower(program: &LogicProgram, identity: [u8; 32]) -> gmeow_errors::Result<Self> {
-        let admission = crate::native_semantics::ProgramAdmission::capture(program);
+    fn lower(
+        program: &LogicProgram,
+        identity: [u8; 32],
+        profile: SourceAdmissionProfile,
+    ) -> gmeow_errors::Result<Self> {
+        let admission = crate::native_semantics::ProgramAdmission::capture(program, profile);
         let lowering = crate::relational_core::lower_formulas(program);
         let mut rules = crate::lower::prepare_rule_templates(program)?;
         rules.extend(lowering.rules);
@@ -196,7 +201,7 @@ impl PreparedProgram {
     ) -> gmeow_errors::Result<JointInput<'a>> {
         let input_facts = facts.values().map(Vec::len).sum::<usize>();
         let trace_large_input = input_facts >= 100_000;
-        self.admission.admit_world_local_template()?;
+        self.admission.admit()?;
         let key = crate::physical::metadata_identity(
             "gmeow-schema-source-domain-selection-v2",
             &(
@@ -275,7 +280,7 @@ impl PreparedProgram {
         &self,
         input: &JointInput<'_>,
     ) -> gmeow_errors::Result<NativeOutcome<Arc<JointProgram>>> {
-        self.admission.admit_world_local_template()?;
+        self.admission.admit()?;
         let key = *input.identity();
         let lock_error = |_| {
             gmeow_errors::Diag::of_kind(crate::error::Physical {
@@ -302,7 +307,7 @@ impl PreparedProgram {
         rules: impl FnOnce() -> Vec<EvalRule>,
         semantics: crate::native_semantics::SemanticVocabulary,
     ) -> gmeow_errors::Result<NativeOutcome<Arc<JointProgram>>> {
-        self.admission.admit_world_local_template()?;
+        self.admission.admit()?;
         let mut cached = cache.lock().map_err(|_| {
             gmeow_errors::Diag::of_kind(crate::error::Physical {
                 detail: "joint preparation lock poisoned".to_owned(),
@@ -392,17 +397,38 @@ impl PreparationCache {
 pub(crate) fn prepare_program(
     program: &LogicProgram,
 ) -> gmeow_errors::Result<Arc<PreparedProgram>> {
+    prepare_program_under(program, SourceAdmissionProfile::WorldLocalTemplatesV1)
+}
+
+/// Prepare under an explicit source admission profile. The profile is part of the
+/// preparation identity, so a program prepared for one profile is never served to a
+/// request for another.
+pub(crate) fn prepare_program_under(
+    program: &LogicProgram,
+    profile: SourceAdmissionProfile,
+) -> gmeow_errors::Result<Arc<PreparedProgram>> {
     static CACHE: OnceLock<Mutex<PreparationCache>> = OnceLock::new();
     let cache = CACHE.get_or_init(|| Mutex::new(PreparationCache::default()));
+    let unidentified = |error: &dyn std::fmt::Display| {
+        gmeow_errors::Diag::of_kind(crate::error::Lower {
+            detail: format!("cannot identify the complete native program: {error}"),
+        })
+    };
     let mut digest = ProgramDigest::default();
     digest
         .hasher
         .update(b"gmeow-native-program-preparation-v1\0");
-    ciborium::ser::into_writer(program, &mut digest).map_err(|error| {
-        gmeow_errors::Diag::of_kind(crate::error::Lower {
-            detail: format!("cannot identify the complete native program: {error}"),
-        })
-    })?;
+    ciborium::ser::into_writer(program, &mut digest).map_err(|error| unidentified(&error))?;
+    // The program is one self-delimiting item, so a profile written after it cannot
+    // be mistaken for part of any program. The world-local profile writes nothing
+    // and so keeps the identity it has always had.
+    match &profile {
+        SourceAdmissionProfile::WorldLocalTemplatesV1 => {}
+        SourceAdmissionProfile::SelectedTheoryV1 { .. } => {
+            ciborium::ser::into_writer(&profile, &mut digest)
+                .map_err(|error| unidentified(&error))?;
+        }
+    }
     let key = *digest.hasher.finalize().as_bytes();
     if let Some(prepared) = cache
         .lock()
@@ -411,7 +437,7 @@ pub(crate) fn prepare_program(
     {
         return Ok(prepared);
     }
-    let prepared = Arc::new(PreparedProgram::lower(program, key)?);
+    let prepared = Arc::new(PreparedProgram::lower(program, key, profile)?);
     if !prepared.cacheable() {
         return Ok(prepared);
     }
