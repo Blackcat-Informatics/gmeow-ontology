@@ -108,15 +108,17 @@ and `reclaim.elapsed_us`. Returns never overlap, but other threads go on allocat
 freeing between the two readings, so their difference is what the return gave back net
 of that activity, and it can be small or negative beside a busy stage. A return
 frees whole pages only, so fragmented free bytes stay resident. The allocator totals
-are glibc's `mallinfo2`: live bytes are allocations not yet freed, and free bytes are
+are glibc's `mallinfo2`: live bytes are what it reports as in use, and free bytes are
 the free chunks the allocator keeps, including pages a return already handed back. The
 resident size and the live bytes measure different scopes: the resident size also
 counts code, thread stacks and resident file and shared mappings, which the allocator
-totals do not. The resident size less the live bytes is therefore an upper bound on the
-resident memory the allocator holds unused, not on all of its free bytes, some of which
-are pages already handed back, and not a measure of what a return can recover. The
-bound holds only when the two readings describe the same moment and the live bytes are
-themselves resident: live pages that are swapped out or never touched lower it. Each record
+totals do not. The resident size less the live bytes is therefore an indication of the
+resident memory the allocator holds unused, and is neither a bound on it nor a measure
+of what a return can recover. It reads high by the resident memory the allocator does
+not own. It reads low because glibc counts chunks freed into its per-thread caches as
+still in use, so they are inside the live bytes, and because live pages that are swapped
+out or never touched are not resident; the two readings are also not taken at one
+moment. Each record
 costs one read of `/proc/self/status` and one `mallinfo2` call, which walks each
 arena's free lists under that arena's lock; a `reclaim` record reads the status file
 twice. The records of a run make at most five such reads per executed stage plus two
