@@ -131,8 +131,9 @@ pub struct ReclaimedMemory {
 /// `pipeline/` ones.
 ///
 /// Nothing here sizes a typed handle payload (the reasoning result, a compiled
-/// program, diagnostics) or a dataset's lookup indexes: neither states its own size,
-/// and a record does not walk or serialize a structure to find one.
+/// program, diagnostics) or a dataset's lookup indexes: no payload states its own
+/// size, PurRDF states an index capacity only for a query graph, which a stage carrier
+/// is not, and a record does not walk or serialize a structure to find one.
 #[derive(Debug, Clone, Copy, Default, PartialEq, Eq)]
 pub struct ProductFootprint {
     /// Quads in the frozen dataset.

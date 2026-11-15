@@ -1570,7 +1570,8 @@ impl<Bytes: AsRef<[u8]> + Into<Vec<u8>>> CachedBundle<Bytes> {
             let subgraph = bundle
                 .dataset()
                 .project_graph(Some(&purrdf::RdfTerm::iri(&h.graph)))?;
-            // Derive the pin and typed payload from the SAME live graph projection.
+            // Derive the pin from the live graph projection; the typed payload is rebuilt
+            // from its persisted bytes and checked against its own recorded digest below.
             // `pin_handle` independently checks that pin against the restored carrier,
             // preserving the hard-fail invariant without a duplicate persisted graph.
             let pinned = restored_handle_graph_pin(&subgraph).map_err(|e| {
