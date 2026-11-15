@@ -1,0 +1,67 @@
+{
+  "assignees": [],
+  "author": {
+    "id": "MDQ6VXNlcjUyNzU1NQ==",
+    "is_bot": false,
+    "login": "paudley",
+    "name": "Patrick Audley"
+  },
+  "body": "## Request\n\nA consumer publishing claim records as RDF 1.2 statement reifiers needs to say, on the claim itself, what kind of assertion it is. Three cases are needed:\n\n1. self-description by the subject of the claim;\n2. a statement resting on externally published evidence;\n3. a derived interpretation (inferred or computed from other statements).\n\n## What exists\n\n`gmeow:hasEvidenceClass` with `gmeow:evidenceSELF`, `gmeow:evidenceSelfControlledSite`, `gmeow:evidenceOfficialSource`, `gmeow:evidenceIndependentTradePress` and `gmeow:sourceIndependence` (evidence slice) describe the warrant of a citation, on a `gmeow:CitationAct`. `gmeow:observationType gmeow:observationTypeDerived` (observations slice) marks an observation as derived. Nothing states the category for a claim that is a bare statement reifier.\n\n## Required\n\n- One way to state the assertion category on a statement reifier, grounded in the existing evidence and observation vocabulary; no second, competing category vocabulary. Either the existing properties are admitted on a reifier with their definitions revised, or one property is added whose values are related to the existing individuals by axioms.\n- The three cases above are each expressible, and the relation between a claim's category and the evidence classes of the citations it rests on is stated (they may differ: a self-description can cite an official source).\n- A worked example with one claim of each category, a competency question that returns claims by category, and translations.\n- The category never ranks claims: co-equal claims of different categories stay co-equal (Principle 9).\n\nPrinciples 2, 4, 9.\n",
+  "closedAt": null,
+  "comments": [
+    {
+      "id": "IC_kwDOSwdn1s8AAAABmod-zw",
+      "author": {
+        "login": "paudley"
+      },
+      "authorAssociation": "MEMBER",
+      "body": "Blocks: #2795 (Release 0.4.0), by the maintainer's decision.",
+      "createdAt": "2026-11-15T01:49:51Z",
+      "includesCreatedEdit": false,
+      "isMinimized": false,
+      "minimizedReason": "",
+      "reactionGroups": [],
+      "url": "https://github.com/Blackcat-Informatics/gmeow-ontology/issues/2800#issuecomment-6887538383",
+      "viewerDidAuthor": true
+    }
+  ],
+  "createdAt": "2026-11-15T01:17:32Z",
+  "labels": [
+    {
+      "id": "LA_kwDOSwdn1s8AAAACl8ZKsg",
+      "name": "documentation",
+      "description": "Improvements or additions to documentation",
+      "color": "0075ca"
+    },
+    {
+      "id": "LA_kwDOSwdn1s8AAAACl8ZKwA",
+      "name": "enhancement",
+      "description": "New feature or request",
+      "color": "a2eeef"
+    },
+    {
+      "id": "LA_kwDOSwdn1s8AAAACmTvTOg",
+      "name": "foundational",
+      "description": "Foundational / kernel construct",
+      "color": "b60205"
+    },
+    {
+      "id": "LA_kwDOSwdn1s8AAAACnasmrQ",
+      "name": "logic",
+      "description": "logic: reasoning layer (the RDF 1.2-native logic; OWL is a projection)",
+      "color": "5319e7"
+    },
+    {
+      "id": "LA_kwDOSwdn1s8AAAADBPkJyQ",
+      "name": "terms",
+      "description": "",
+      "color": "ededed"
+    }
+  ],
+  "milestone": null,
+  "number": 2800,
+  "state": "OPEN",
+  "title": "[term] Assertion category on a claim: self-description, published evidence, derived interpretation",
+  "updatedAt": "2026-11-15T01:49:51Z",
+  "url": "https://github.com/Blackcat-Informatics/gmeow-ontology/issues/2800"
+}

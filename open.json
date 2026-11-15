@@ -1,0 +1,30 @@
+{
+  "schema": 1,
+  "issue": 2800,
+  "repo": "gmeow-ontology",
+  "forge": "github",
+  "nwo": "Blackcat-Informatics/gmeow-ontology",
+  "read_access": "anon-read",
+  "main_root": "/home/paudley/Active/gmeow-ontology",
+  "worktree": "/home/paudley/Active/gmeow-ontology/.worktrees/2800-term-assertion-category-on-a-claim-self",
+  "branch": "paudley/2800-term-assertion-category-on-a-claim-self",
+  "slug": "term-assertion-category-on-a-claim-self",
+  "slug_drift": false,
+  "stage_dir": "/home/paudley/Active/gmeow-ontology/.worktrees/2800-term-assertion-category-on-a-claim-self/.stage/term-assertion-category-on-a-claim-self",
+  "stage_tracked": true,
+  "base": "origin/main",
+  "base_oid": "1198be05c9e85367ebd85fd6ea45c3f520c76ffb",
+  "reused": false,
+  "adr_repo": false,
+  "created": [
+    "worktree:/home/paudley/Active/gmeow-ontology/.worktrees/2800-term-assertion-category-on-a-claim-self",
+    "branch:paudley/2800-term-assertion-category-on-a-claim-self",
+    "ignored:8264 files (8264 reflinked, 0 written)",
+    "rust-caches:skipping busy source /opt/.cargo/96/6065c8dc4fe136: /opt/.cargo/96/6065c8dc4fe136/pipeline/.cargo-build-lock; reflinked /home/paudley/Active/gmeow-ontology/.worktrees/2696-snapshot-digest-without-text caches into /home/paudley/Active/gmeow-ontology/.worktrees/2800-term-assertion-category-on-a-claim-self plus 0 dependency units from 0 other checkouts in 277.4s; 12959 unchanged files keep their built mtimes; 37 other files take the seed time and rebuild; 252 units naming another checkout rebuild",
+    "stage:/home/paudley/Active/gmeow-ontology/.worktrees/2800-term-assertion-category-on-a-claim-self/.stage/term-assertion-category-on-a-claim-self",
+    "issue:/home/paudley/Active/gmeow-ontology/.worktrees/2800-term-assertion-category-on-a-claim-self/.stage/term-assertion-category-on-a-claim-self/issue.md"
+  ],
+  "warnings": [],
+  "timestamp": "2026-11-15T01:49:28-0600",
+  "seed_error": ""
+}
