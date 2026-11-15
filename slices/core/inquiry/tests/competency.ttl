@@ -112,51 +112,94 @@ ex:cqInquiryAxisCarriersRowInquiryStatusinquiryStatus a gmeow:ExpectedRow ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri gmeow:inquiryStatus ] .
 
 # "Which questions about the organisation are unanswered, and why?" One row per
-# absence record: the property concerned and the reason. Runs without reasoning;
-# the later answer is a StandpointClaim, not an absence record, so it is not a
-# row, and no row carries a value.
+# thing asked and per record: the question when a record names one, the property
+# when it names one, both rows when it names both. Runs without reasoning; the
+# later answer is a StandpointClaim, not an absence record, so it is not a row,
+# and no row carries a value.
 ex:cqUnansweredQuestions a gmeow:CompetencyQuestion ;
     gmeow:cqReasoning gmeow:reasoningNone ;
     gmeow:cqDataFile "examples/absence-records.ttl" ;
     gmeow:cqQuery """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
 PREFIX case: <https://example.org/absence/>
-SELECT ?record ?property ?reason WHERE {
+SELECT ?record ?asked ?reason WHERE {
     ?record a gmeow:AbsenceRecord ;
         gmeow:observedFeature case:acme ;
-        gmeow:absentProperty ?property ;
         gmeow:absenceReason ?reason .
+    { ?record gmeow:absenceQuestion ?asked }
+    UNION
+    { ?record gmeow:absentProperty ?asked }
 }""" ;
-    gmeow:cqRationale "A consumer must be able to list what is unanswered about a subject together with the reason, as data and without any value or negation: not found in a searched register, retrieval failed, not published and not applicable each come back as their own attributed record." ;
+    gmeow:cqRationale "A consumer must be able to list what is unanswered about a subject together with the reason, as data and without any value or negation, whether a record names a question, a property or both: not found in a searched register, retrieval failed, not published and not applicable each come back as their own attributed record, and a record that names only a question is not dropped." ;
     gmeow:cqExactRows true ;
     gmeow:cqResultShape ex:cqUnansweredQuestionsShape ;
-    gmeow:cqExpectRow ex:uqNotFound , ex:uqFailed , ex:uqNotPublished , ex:uqNotApplicable .
+    gmeow:cqExpectRow ex:uqFoundedQuestion , ex:uqFoundedProperty , ex:uqFailed , ex:uqNotPublished , ex:uqNotApplicable , ex:uqLeaderQuestion .
 
 ex:cqUnansweredQuestionsShape a logic:ResultShape ;
     logic:declaresColumn
         [ logic:columnVariable "record" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
-        [ logic:columnVariable "property" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "asked" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
         [ logic:columnVariable "reason" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ;
     logic:shapeCardinality logic:RowsExact .
 
-ex:uqNotFound a gmeow:ExpectedRow ;
+ex:uqFoundedQuestion a gmeow:ExpectedRow ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "record" ; gmeow:cellValueIri case:foundedNotFound ] ,
-        [ a gmeow:ExpectedCell ; gmeow:cellVar "property" ; gmeow:cellValueIri gmeow:foundedOn ] ,
+        [ a gmeow:ExpectedCell ; gmeow:cellVar "asked" ; gmeow:cellValueIri case:whoFounded ] ,
+        [ a gmeow:ExpectedCell ; gmeow:cellVar "reason" ; gmeow:cellValueIri gmeow:absenceReasonNotFound ] .
+
+ex:uqFoundedProperty a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "record" ; gmeow:cellValueIri case:foundedNotFound ] ,
+        [ a gmeow:ExpectedCell ; gmeow:cellVar "asked" ; gmeow:cellValueIri gmeow:foundedBy ] ,
         [ a gmeow:ExpectedCell ; gmeow:cellVar "reason" ; gmeow:cellValueIri gmeow:absenceReasonNotFound ] .
 
 ex:uqFailed a gmeow:ExpectedRow ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "record" ; gmeow:cellValueIri case:membersFetchFailed ] ,
-        [ a gmeow:ExpectedCell ; gmeow:cellVar "property" ; gmeow:cellValueIri gmeow:memberOf ] ,
+        [ a gmeow:ExpectedCell ; gmeow:cellVar "asked" ; gmeow:cellValueIri gmeow:hasMember ] ,
         [ a gmeow:ExpectedCell ; gmeow:cellVar "reason" ; gmeow:cellValueIri gmeow:absenceReasonRetrievalFailed ] .
 
 ex:uqNotPublished a gmeow:ExpectedRow ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "record" ; gmeow:cellValueIri case:revenueNotPublished ] ,
-        [ a gmeow:ExpectedCell ; gmeow:cellVar "property" ; gmeow:cellValueIri case:annualRevenue ] ,
+        [ a gmeow:ExpectedCell ; gmeow:cellVar "asked" ; gmeow:cellValueIri case:annualRevenue ] ,
         [ a gmeow:ExpectedCell ; gmeow:cellVar "reason" ; gmeow:cellValueIri gmeow:absenceReasonNotPublished ] .
 
 ex:uqNotApplicable a gmeow:ExpectedRow ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "record" ; gmeow:cellValueIri case:dissolutionNotApplicable ] ,
-        [ a gmeow:ExpectedCell ; gmeow:cellVar "property" ; gmeow:cellValueIri case:dissolvedOn ] ,
+        [ a gmeow:ExpectedCell ; gmeow:cellVar "asked" ; gmeow:cellValueIri case:dissolvedOn ] ,
         [ a gmeow:ExpectedCell ; gmeow:cellVar "reason" ; gmeow:cellValueIri gmeow:absenceReasonNotApplicable ] .
+
+ex:uqLeaderQuestion a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "record" ; gmeow:cellValueIri case:leaderNotFound ] ,
+        [ a gmeow:ExpectedCell ; gmeow:cellVar "asked" ; gmeow:cellValueIri case:whoLeads ] ,
+        [ a gmeow:ExpectedCell ; gmeow:cellVar "reason" ; gmeow:cellValueIri gmeow:absenceReasonNotFound ] .
+
+# "Does any absence record entail a value or a negative for the property it
+# asks about?" Under the native reasoning logic, every statement about the
+# subject that could stem from a record is looked for: a value of the asked
+# property, a denial, or a refutation. None is asserted in the example, so any
+# row would be an entailment from a record. Expected: none.
+ex:cqAbsenceEntailsNothing a gmeow:CompetencyQuestion ;
+    gmeow:cqReasoning gmeow:reasoningLogic ;
+    gmeow:cqDataFile "examples/absence-records.ttl" ;
+    gmeow:cqQuery """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+SELECT ?record ?kind WHERE {
+    ?record a gmeow:AbsenceRecord ;
+        gmeow:observedFeature ?subject ;
+        gmeow:absentProperty ?property .
+    { ?subject ?property ?value . BIND("value" AS ?kind) }
+    UNION
+    { ?claim gmeow:observedFeature ?subject ; gmeow:claimPolarity gmeow:polarityDeny . BIND("denial" AS ?kind) }
+    UNION
+    { ?claim gmeow:observedFeature ?subject ; gmeow:claimModality gmeow:refuted . BIND("refutation" AS ?kind) }
+}""" ;
+    gmeow:cqRationale "An absence record gives no value for the property it asks about and negates none (an unanswered question is unknown, never false). The query pairs each record with its subject and asked property and looks for a value of that property, a denied claim or a refuted claim about the subject after closure under the native reasoner; the example asserts none of them, so an empty result shows nothing was entailed from the records, including the not-applicable and not-published ones." ;
+    gmeow:cqResultShape ex:cqAbsenceEntailsNothingShape ;
+    gmeow:cqExpectRowCount 0 .
+
+ex:cqAbsenceEntailsNothingShape a logic:ResultShape ;
+    logic:shapeCardinality logic:RowsCount ;
+    logic:shapeRowCount 0 ;
+    logic:declaresColumn
+        [ logic:columnVariable "record" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "kind" ; logic:columnTermKind logic:TermKindLiteral ; logic:columnBinding logic:BindingRequired ] .
 
 # "What was determined about the founding question, and when?" The earlier
 # not-found record and the later answer both come back with their own times: an
@@ -167,9 +210,9 @@ ex:cqAbsenceAndLaterAnswer a gmeow:CompetencyQuestion ;
     gmeow:cqQuery """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
 PREFIX case: <https://example.org/absence/>
 SELECT ?item ?at WHERE {
-    { ?item a gmeow:AbsenceRecord ; gmeow:absenceQuestion case:whenFounded ; gmeow:observedAt ?at . }
+    { ?item a gmeow:AbsenceRecord ; gmeow:absenceQuestion case:whoFounded ; gmeow:observedAt ?at . }
     UNION
-    { ?item gmeow:answers case:whenFounded ; gmeow:observedAt ?at . }
+    { ?item gmeow:answers case:whoFounded ; gmeow:observedAt ?at . }
 }""" ;
     gmeow:cqRationale "A later answer does not contradict an earlier absence record (Principle 9): the not-found record and the answer that followed are both retained, each with its own time, so the history of what was known when stays queryable." ;
     gmeow:cqExactRows true ;

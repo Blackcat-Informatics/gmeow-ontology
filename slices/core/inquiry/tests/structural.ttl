@@ -339,9 +339,10 @@ ASK {
 }""" ;
     gmeow:saRationale "None of isResolved / isAnswered / answerValue / isTrue / isFalse may appear in any subject, predicate, or object position — a question is resolved by reusing the epistemics spine over an answers-claim (Principle 6), never by a resolution bit." .
 
-# --- Absence records (Principles 4 and 9) --------------------------------------
+# --- Absence records (Principles 4, 9 and 10) ----------------------------------
 # An unanswered question is recorded as an attributed, dated observation with a
-# reason from one value vocabulary. It asserts no value and no negation.
+# reason from one value vocabulary. It gives no value for the property asked
+# about and negates none; one record carries exactly one reason.
 ex:saAbsenceVocabulary a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:must ; gmeow:saScope gmeow:scopeModule ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
@@ -362,22 +363,24 @@ ex:saAbsenceDerivesNothing a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:mustNot ; gmeow:saScope gmeow:scopeModule ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
 PREFIX logic: <https://blackcatinformatics.ca/logic/>
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
-PREFIX owl: <http://www.w3.org/2002/07/owl#>
 ASK {
     VALUES ?p { gmeow:absenceReason gmeow:absenceQuestion gmeow:absentProperty gmeow:consultedSource }
-    VALUES ?link { rdfs:subPropertyOf logic:subPropertyOf owl:inverseOf owl:propertyChainAxiom owl:equivalentProperty }
-    { ?p ?link ?q } UNION { ?q ?link ?p }
+    VALUES ?link { rdfs:subPropertyOf logic:subPropertyOf logic:inverseOf logic:equivalentProperty }
+    { ?p ?link ?q }
+    UNION { ?q ?link ?p }
+    UNION { ?p logic:propertyChainAxiom ?chain }
+    UNION { ?q logic:propertyChainAxiom ?chain . ?chain rdf:rest*/rdf:first ?p }
 }""" ;
-    gmeow:saRationale "The properties of an absence record MUST NOT be a sub-property, inverse, chain or equivalent of anything: no value, negation or other statement is derived from an absence record (an unanswered question is unknown, never false)." .
+    gmeow:saRationale "The properties of an absence record MUST NOT be a sub-property, inverse, chain or equivalent of anything, nor a member of anything's property chain: no value, negation or other statement is derived from an absence record (an unanswered question is unknown, never false)." .
 
-ex:saAbsenceReasonNotFunctional a gmeow:StructuralAssertion ;
-    gmeow:saPolarity gmeow:mustNot ; gmeow:saScope gmeow:scopeModule ;
+ex:saAbsenceReasonFunctional a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ; gmeow:saScope gmeow:scopeModule ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
 PREFIX logic: <https://blackcatinformatics.ca/logic/>
-PREFIX owl: <http://www.w3.org/2002/07/owl#>
-ASK { gmeow:absenceReason a ?kind . VALUES ?kind { owl:FunctionalProperty logic:FunctionalProperty } }""" ;
-    gmeow:saRationale "Reasons from different vantages coexist and none is privileged (Principle 9)." .
+ASK { ?rec logic:characterizes gmeow:absenceReason ; logic:characteristicSort logic:functionalProperty . }""" ;
+    gmeow:saRationale "One record carries exactly one reason. Competing reasons for the same question are separate records from separate vantages, which coexist and none is privileged (Principles 9 and 10)." .
 
 ex:saAbsenceExample a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:must ; gmeow:saScope gmeow:scopeModuleAndExamples ;
@@ -388,13 +391,12 @@ ASK {
     ex:membersFetchFailed a gmeow:AbsenceRecord ; gmeow:absenceReason gmeow:absenceReasonRetrievalFailed ; gmeow:consultedSource ex:acmeWebsite .
     ex:revenueNotPublished a gmeow:AbsenceRecord ; gmeow:absenceReason gmeow:absenceReasonNotPublished .
     ex:dissolutionNotApplicable a gmeow:AbsenceRecord ; gmeow:absenceReason gmeow:absenceReasonNotApplicable .
-    ex:foundedAnswer gmeow:answers ex:whenFounded ; gmeow:observedAt ?t2 .
-    FILTER NOT EXISTS { ?r a gmeow:AbsenceRecord ; gmeow:observationResult ?v }
-    FILTER NOT EXISTS { ex:acme gmeow:foundedOn ?d }
-    FILTER NOT EXISTS { ex:acme gmeow:memberOf ?m }
-    FILTER NOT EXISTS { ex:acme ex:annualRevenue ?x }
-    FILTER NOT EXISTS { ex:acme ex:dissolvedOn ?y }
-    FILTER NOT EXISTS { ?s gmeow:displayable ?flag }
-    FILTER NOT EXISTS { ?later gmeow:supersedes ?earlier }
+    ex:leaderNotFound a gmeow:AbsenceRecord ; gmeow:absenceQuestion ex:whoLeads ; gmeow:absenceReason gmeow:absenceReasonNotFound .
+    ex:foundedAnswer gmeow:answers ex:whoFounded ; gmeow:observedAt ?t2 .
+    FILTER NOT EXISTS { ?rec a gmeow:AbsenceRecord ; gmeow:observedFeature ?subject ; gmeow:absentProperty ?property . ?subject ?property ?value }
+    FILTER NOT EXISTS { ?rec2 a gmeow:AbsenceRecord ; gmeow:observationResult ?result }
+    FILTER NOT EXISTS { ?rec3 a gmeow:AbsenceRecord ; gmeow:displayable ?flag }
+    FILTER NOT EXISTS { ?rec4 a gmeow:AbsenceRecord ; gmeow:supersedes ?earlier }
+    FILTER NOT EXISTS { ?rec5 a gmeow:AbsenceRecord ; gmeow:absenceReason ?r1 , ?r2 . FILTER(?r1 != ?r2) }
 }""" ;
-    gmeow:saRationale "Counter-example: the four absence records assert no value and no negation about the subject (no result on any record, no asserted founding date, membership, revenue or dissolution date), the later answer sits beside the earlier not-found record, and nothing is suppressed or superseded." .
+    gmeow:saRationale "Counter-example: the absence records name their asked properties, yet no subject carries a value for any asked property, no record carries a result, display flag or supersession, and no record carries two reasons; the later answer sits beside the earlier not-found record, and a record may name only a question. The negative clauses are tied to the records, so deleting the records fails the assertion." .

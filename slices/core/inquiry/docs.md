@@ -274,14 +274,15 @@ that a question went unanswered, with the reason:
 |---|---|
 | who determined it | `gmeow:vantage` |
 | when | `gmeow:observedAt` |
-| the subject | `gmeow:observedFeature` |
-| the question, or the property asked about | `gmeow:absenceQuestion`, `gmeow:absentProperty` |
-| why | `gmeow:absenceReason` |
+| the subject (exactly one) | `gmeow:observedFeature` |
+| the question, or the property asked about (at least one of the two) | `gmeow:absenceQuestion`, `gmeow:absentProperty` |
+| why (exactly one reason) | `gmeow:absenceReason` |
 | the scope searched, or the source that could not be fetched | `gmeow:consultedSource` |
 
-A record asserts no value and no negation, and nothing is derived from it. It is a claim
-like any other: records from different vantages coexist, and none is privileged
-(Principle 9). Mint one record per determination.
+A record gives no value for the property asked about and negates none, and nothing is derived
+from it. It is a claim like any other: records from different vantages coexist, and none is
+privileged (Principles 9 and 10). Mint one record per determination. A record carries exactly
+one reason; a competing reason for the same question is a separate record from its own vantage.
 
 ### gmeow:AbsenceReason
 
@@ -289,22 +290,26 @@ like any other: records from different vantages coexist, and none is privileged
 |---|---|
 | `absenceReasonNotFound` | the sources searched were read and hold no answer; the record carries the scope searched |
 | `absenceReasonRetrievalFailed` | the source could not be fetched, so it was not read; the record points at the attempted source, and no source snapshot exists |
-| `absenceReasonNotPublished` | the answer exists but its holder has not made it public |
-| `absenceReasonNotApplicable` | the question does not apply to this subject |
+| `absenceReasonNotPublished` | the determiner holds that an answer exists and that its holder has not made it public |
+| `absenceReasonNotApplicable` | the question's presupposition does not hold for this subject |
 
 Withholding by a disclosure policy is not a reason here: it is a `gmeow:DisclosureOutcome`
 of applying a policy to a reader, while not-published means the holder never made the
-answer public. Not-applicable differs from the others in kind: it is a claim about the
-subject, not about the search, so it can be disputed by another vantage like any claim.
+answer public. Not found and retrieval failed describe the search. Not applicable and not
+published differ in kind: each is a claim from a vantage (that the question's presupposition
+fails for the subject, that an answer exists and is not public), so another vantage can dispute
+it like any claim. Neither gives a value for the property asked about. Not applicable is
+presupposition failure: see `gmeow:presupposes`, which links a question to what it presupposes.
 
 ### A later answer
 
 An answer that arrives later is a separate claim (`gmeow:answers`) with its own time. It does
 not contradict, replace or hide the earlier record; both are kept, so what was known when
 stays queryable. The worked example `examples/absence-records.ttl` holds one record for each
-reason and a later answer; the competency questions list the unanswered questions about a
-subject with their reasons and return a record beside the answer that followed it, and a
-structural assertion shows that no value or negation is asserted.
+reason, one record that names only a question, and a later answer; the competency questions
+list the unanswered questions about a subject with their reasons, return a record beside the
+answer that followed it, and show under the native reasoner that no value, denial or refutation
+follows from any record.
 
 ### Relation to the absence terms of other slices
 
@@ -312,8 +317,8 @@ Each of these is scoped to another domain and is left as it is:
 
 - `gmeow:StructuredNull` is a source's own explicit null, not a determination that a
   question has no answer;
-- `gmeow:recallVerdictNotFound` is an asker's verdict on one recall answer, not a record of
-  what was searched;
+- `gmeow:recallVerdictNotFound` is an asker's grade of one recall answer, one value of a
+  feedback vocabulary, not a record of a determination about the subject;
 - `gmeow:lossValueMissing` is a loss cause in a query input, not a property of the world;
 - `gmeow:dispositionTypedAbsence` is a pipeline stage's typed nothing, not a research finding;
 - `gmeow:qualityNotApplicable` places a slice-quality axis outside a corpus profile;
