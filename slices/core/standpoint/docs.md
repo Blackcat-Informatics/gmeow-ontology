@@ -87,10 +87,13 @@ What is not enforced: the checks read the record as it stands and compare no dat
 they do not judge the order at an evaluation instant. A cycle among the claims selected
 at an instant `t` below (for example among claims that were all in force before one of
 them was superseded) is reported by the consumer. The checks apply to a claim whose
-first standpoint is typed `gmeow:Standpoint`. They do not check who made a succession or
-a retraction. The pair check exempts two claims of one ranker when either corrects the
-other and does not check who made that link. The closure check counts a correction only
-when the annotation on the `gmeow:correctsClaim` statement names that ranker.
+first standpoint is typed `gmeow:Standpoint`. Only the ranker's own acts count: the pair
+check exempts two claims of one ranker when either succeeds or corrects the other through
+a statement whose annotation names that ranker, or when an activity associated with that
+ranker retracts either. The closure check counts a succession, a correction or a
+retraction in the same way. A succession, correction or retraction by another party is
+that party's statement about the ranking; it exempts nothing and ends no claim's
+liveness.
 
 A ranker who changes or withdraws a ranking keeps the earlier claim and uses the claim
 lifecycle relations on the reifier of the ranking statement: `gmeow:succeedsClaim` for a
@@ -98,8 +101,9 @@ reversal or replacement (the earlier claim stays valid for its earlier interval)
 `gmeow:correctsClaim` for a ranking made in error, and `gmeow:retractsClaim` for a
 withdrawal, each annotated with the same ranker and an effective time. There is no
 separate end instant for a ranking. Name the reifier of each ranking statement so these
-relations can reach it; the constraints do not check who made a succession or a
-retraction. A ranker's own correction of a ranking looks like this, with the ranker on
+relations can reach it; the constraints read only the ranker's own succession, correction
+and retraction, so name the ranker on each annotation and on the retracting activity with
+`gmeow:wasAssociatedWith`. A ranker's own correction of a ranking looks like this, with the ranker on
 the annotation of the correction statement:
 
 ```turtle
@@ -160,7 +164,10 @@ own claim is `gmeow:retractsClaim`; neither is a dispute.
 
 The suppression warning on a standpoint tenure (`gmeow:WithdrawnStandpointSuppressionConstraint`)
 concerns a holder withdrawing its own position: it fires only for a tenure whose interval has
-ended and that a withdrawal activity retracts. A tenure whose interval merely ended is not
+ended and whose held claim (`gmeow:standpointClaim`) is retracted by an activity that
+`gmeow:wasAssociatedWith` the claim's own `gmeow:vantage`, which is the tenure's standpoint.
+The retraction is read on the claim, the canonical encoding; a retraction with no stated
+actor, or by another party, does not fire it. A tenure whose interval merely ended is not
 reported, and a correction or dispute by another party never prompts a display flag.
 
 ```turtle

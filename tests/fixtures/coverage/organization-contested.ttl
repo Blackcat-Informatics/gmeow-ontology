@@ -58,7 +58,8 @@ ex:claimSuccessionAcquirer a owl:Axiom ;
     gmeow:standpointModality gmeow:conceivable ;
     gmeow:confidence 0.5 .
 
-# A withdrawn recognition — a StandpointTenure closed with displayable false.
+# A withdrawn recognition: the jurisdiction retracts its own held claim, and the closed
+# StandpointTenure carries displayable false because its holder withdrew it.
 ex:withdrawnRecognition a gmeow:StandpointTenure ;
     gmeow:tenureStandpoint ex:standpoint-jurisdiction-x ;
     gmeow:standpointClaim ex:withdrawnClaim ;
@@ -74,3 +75,7 @@ ex:withdrawnClaim a gmeow:StandpointClaim ;
     gmeow:observedFeature ex:orgA ;
     gmeow:claimModality gmeow:refuted ;
     gmeow:observationMethod gmeow:methodExpertJudgement .
+
+ex:recognitionWithdrawal a gmeow:Activity ;
+    gmeow:wasAssociatedWith ex:standpoint-jurisdiction-x ;
+    gmeow:retractsClaim ex:withdrawnClaim .

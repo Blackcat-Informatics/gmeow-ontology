@@ -35,6 +35,11 @@ is red, you are wrong, I checked" does not erase the evidence of blue.
   projection. Principle 10 names the cases that do prompt suppression.
 - A succession or a retraction is a standpoint changing its own position. Neither
   is a dispute, and neither is weakened by the rule above.
+- Only the claim's own holder ends its liveness or supersedes it. A succession or a
+  retraction asserted by another party is that party's claim about the target and
+  neither ends the target's liveness for a reader nor prompts its suppression. The
+  ranking constraints read a succession, correction or retraction only when it is made
+  by the ranker of the claim.
 
 Choose the pattern by what happened:
 
