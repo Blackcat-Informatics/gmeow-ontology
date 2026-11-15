@@ -760,3 +760,64 @@ fn refuted_claim_is_unread(report: &serde_json::Value, code: i32, claims_read: u
         "{report:#}"
     );
 }
+
+/// `forall A. Src(A) -> (first and second)`, with `second` spelled by the caller.
+fn conjunctive_consequent(second: &str) -> String {
+    format!(
+        r#"
+ex:a logic:instanceOf ex:Src .
+ex:law a logic:Formula ; logic:quantifiedVariable [ a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "A" ] ; logic:forall ex:imp .
+ex:imp a logic:Formula ; logic:antecedent ex:g ; logic:consequent ex:c .
+ex:g a logic:Formula ; logic:relation logic:instanceOf ; logic:argument [ a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "A" ], [ a logic:TermCarrier ; logic:termIndex 1 ; logic:termIri ex:Src ] .
+ex:c a logic:Formula ; logic:and ex:c1, ex:c2 .
+ex:c1 a logic:Formula ; logic:relation logic:instanceOf ; logic:argument [ a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "A" ], [ a logic:TermCarrier ; logic:termIndex 1 ; logic:termIri ex:Dst ] .
+ex:c2 a logic:Formula ; {second} .
+"#
+    )
+}
+
+/// A consequent that conjoins a unary atom with an atom of arity three is one
+/// dependency the native engine executes: the run is decided, not an execution
+/// failure, and no drop names the formula.
+#[test]
+fn a_consequent_mixing_a_unary_and_a_ternary_atom_is_executed() {
+    let (report, code) = prove_json(
+        "mixed-head.logic.ttl",
+        &conjunctive_consequent(
+            r#"logic:relation ex:tern ; logic:argument [ a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "A" ], [ a logic:TermCarrier ; logic:termIndex 1 ; logic:termVariable "A" ], [ a logic:TermCarrier ; logic:termIndex 2 ; logic:termVariable "A" ]"#,
+        ),
+        &["--gate"],
+    );
+    assert_eq!(report["verdict"], "consistent", "{report:#}");
+    assert_eq!(code, 0);
+    assert_eq!(report["selection"]["drops"], serde_json::json!([]));
+}
+
+/// A head the native engine cannot carry, here a positional argument atom on a
+/// variable the antecedent binds, is a named drop that states the rule and its head
+/// relations. The selection is not decided; it is not an execution failure.
+#[test]
+fn a_rule_head_the_engine_cannot_carry_is_a_named_drop() {
+    let (report, code) = prove_json(
+        "refused-head.logic.ttl",
+        &conjunctive_consequent(
+            r#"logic:relation logic:naryArg0 ; logic:argument [ a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "A" ], [ a logic:TermCarrier ; logic:termIndex 1 ; logic:termVariable "A" ]"#,
+        ),
+        &["--gate"],
+    );
+    assert_eq!(report["verdict"], "not-decided", "{report:#}");
+    assert_eq!(code, 3);
+    assert!(
+        report["selection"]["drops"]
+            .as_array()
+            .expect("drops")
+            .iter()
+            .any(|drop| drop["code"] == "UNSUPPORTED_CONSTRUCT"
+                && drop["detail"].as_str().is_some_and(|detail| {
+                    detail
+                        .contains("rule <https://blackcatinformatics.ca/logic/formula-existential/")
+                        && detail.contains("head relations [<https://example.org/prove/Dst>]")
+                })),
+        "{report:#}"
+    );
+}

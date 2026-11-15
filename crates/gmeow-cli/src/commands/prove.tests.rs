@@ -87,3 +87,47 @@ fn source_refusal_retains_the_shared_diagnostic_projection() {
         serde_json::to_value(&report).expect("repeated report projection")
     );
 }
+
+/// PROTECTS: an engine that fails to execute does not erase the account made before
+/// it. The report keeps the selection identities, the claims read and the drops named
+/// before the failure, marks the selection incomplete, and stays an execution failure.
+#[test]
+fn an_engine_failure_keeps_the_selection_and_the_drops_named_before_it() {
+    let directory = tempfile::tempdir().expect("scratch directory");
+    let source = directory.path().join("a.logic.ttl");
+    std::fs::write(
+        &source,
+        "<urn:a> <https://blackcatinformatics.ca/logic/instanceOf> <urn:A> .",
+    )
+    .expect("source");
+    let Ok(loaded) = super::load_theory(&[source]) else {
+        panic!("a one-fact theory loads");
+    };
+    let selection = super::SourceSelection::all_classical_roots(&loaded.theory);
+    let admission = super::SourceAdmission::classical_fof(&loaded.theory, selection);
+    let digest = admission.selection_digest.clone();
+    let units = admission.units.len();
+    let named = super::DropRecord::new(super::ENGINE_NATIVE, "SCOPED_CLAIM_NOT_READ", "before");
+    let report = super::ProveReport::engine_failure(
+        super::EngineFailure {
+            diagnostic: super::failure("NATIVE_EXECUTION_FAILED", "the engine stopped"),
+            claims_read: Vec::new(),
+        },
+        &loaded.identities,
+        admission,
+        1,
+        std::collections::BTreeSet::from([named.clone()]),
+    );
+    assert_eq!(
+        report.common.decision,
+        super::DecisionClass::ExecutionFailure
+    );
+    assert_eq!(report.common.inputs.len(), 1);
+    assert_eq!(report.common.exit_code(true), 5);
+    let selection = report.selection.expect("the selection block is kept");
+    assert!(!selection.complete);
+    assert_eq!(selection.selection_digest, digest);
+    assert_eq!(selection.units, units);
+    assert_eq!(selection.drops, [named]);
+    assert!(report.admission.is_some());
+}

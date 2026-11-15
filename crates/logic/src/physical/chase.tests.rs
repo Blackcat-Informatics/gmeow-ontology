@@ -99,96 +99,176 @@ fn duplicate_heads_keep_the_first_standalone_proof_and_raw_budget() {
         );
     }
 }
+const REL: &str = "http://ex/rel/op";
 
-/// A well-formed reified head extracts its args in positional order regardless of the
-/// head-atom authoring order.
-#[test]
-fn reified_nary_head_accepts_a_contiguous_shape() {
-    let rel = "http://ex/rel/op";
-    let a0 = format!("{LOGIC_NAMESPACE}naryArg0");
-    let a1 = format!("{LOGIC_NAMESPACE}naryArg1");
-    let rule = ExistentialRule {
-        numeric: Vec::new(),
-        rule_iri: "http://ex/rule/nary".to_owned(),
-        body: vec![atom(var("?x"), P, var("?a")), atom(var("?x"), P, var("?b"))],
-        // naryArg1 authored BEFORE naryArg0 — the extractor must sort to positional order.
-        head: vec![
-            atom(
-                var("?r"),
-                &instance_of_iri(),
-                EvalTerm::ConstNamed(rel.to_owned()),
-            ),
-            atom(var("?r"), &a1, var("?b")),
-            atom(var("?r"), &a0, var("?a")),
-        ],
-        distinct: vec![],
-        witness_frontier: None,
-        witness_policy: WitnessPolicy::FrontierSkolem,
-    };
-    let (reifier, got_rel, args) = reified_nary_head(&rule).unwrap().unwrap();
-    assert_eq!(reifier, "?r");
-    assert_eq!(got_rel, rel);
-    assert_eq!(args, vec![var("?a"), var("?b")]);
+fn nary_arg(index: usize) -> String {
+    format!("{LOGIC_NAMESPACE}naryArg{index}")
 }
 
-/// A gapped positional index (naryArg0 + naryArg2, no naryArg1) is a HARD ERROR — the
-/// ordered arg vector feeds `mint_nary_reifier`, so a gap would mint a wrong reifier.
-#[test]
-fn reified_nary_head_rejects_a_gapped_positional_index() {
-    let rel = "http://ex/rel/op";
-    let a0 = format!("{LOGIC_NAMESPACE}naryArg0");
-    let a2 = format!("{LOGIC_NAMESPACE}naryArg2");
-    let rule = ExistentialRule {
+/// `type(x, C) → extra ∧ op(x, x, x)`: one ternary tuple reified onto `?r`, with
+/// `extra` as further head atoms of the same dependency.
+fn tuple_rule(extra: Vec<EvalAtom>) -> ExistentialRule {
+    let mut head = extra;
+    head.push(atom(
+        var("?r"),
+        &instance_of_iri(),
+        EvalTerm::ConstNamed(REL.to_owned()),
+    ));
+    // Positional atoms out of order: the recognizer restores argument order.
+    for index in [2, 0, 1] {
+        head.push(atom(var("?r"), &nary_arg(index), var("?x")));
+    }
+    ExistentialRule {
         numeric: Vec::new(),
-        rule_iri: "http://ex/rule/nary".to_owned(),
-        body: vec![atom(var("?x"), P, var("?a")), atom(var("?x"), P, var("?c"))],
-        head: vec![
-            atom(
-                var("?r"),
-                &instance_of_iri(),
-                EvalTerm::ConstNamed(rel.to_owned()),
-            ),
-            atom(var("?r"), &a0, var("?a")),
-            atom(var("?r"), &a2, var("?c")),
-        ],
+        rule_iri: "http://ex/rule/tuple".to_owned(),
+        body: vec![atom(var("?x"), TYPE, EvalTerm::ConstNamed(C.to_owned()))],
+        head,
         distinct: vec![],
         witness_frontier: None,
         witness_policy: WitnessPolicy::FrontierSkolem,
+    }
+}
+
+/// The typed payload of a refused head.
+fn refused(rule: &ExistentialRule) -> crate::error::RefusedRuleHead {
+    chase_world(W, &[], std::slice::from_ref(rule), None)
+        .expect_err("the head is refused when the rule is prepared")
+        .downcast_ref::<crate::error::RefusedRuleHead>()
+        .expect("a refused head carries its typed payload")
+        .clone()
+}
+
+/// A head mixing ordinary atoms with a reified tuple is one dependency: the firing
+/// derives the ordinary fact and the tuple, and the tuple's node is the same
+/// content-addressed reifier a head holding the tuple alone mints. The ordinary atom
+/// may have a frontier, an existential or a constant subject, or the reifier as object.
+#[test]
+fn a_head_mixing_ordinary_atoms_and_a_reified_tuple_derives_both() {
+    let a = "http://ex/a";
+    let reifier = iri(&mint_nary_reifier(REL, &[iri(a), iri(a), iri(a)]).expect("tuple identity"));
+    let class_d = EvalTerm::ConstNamed(D.to_owned());
+    type Expect = fn(&DerivedRow, &TermValue) -> bool;
+    let cases: [(&str, Option<EvalAtom>, Expect); 5] = [
+        ("tuple alone", None, |_, _| true),
+        (
+            "frontier subject",
+            Some(atom(var("?x"), &instance_of_iri(), class_d.clone())),
+            |row, _| row.subject == iri("http://ex/a") && row.object == iri(D),
+        ),
+        (
+            "existential subject",
+            Some(atom(var("?z"), &instance_of_iri(), class_d)),
+            |row, reifier| {
+                row.object == iri(D) && row.subject != iri("http://ex/a") && row.subject != *reifier
+            },
+        ),
+        (
+            "constant subject",
+            Some(atom(
+                EvalTerm::ConstNamed("http://ex/k".to_owned()),
+                P,
+                var("?x"),
+            )),
+            |row, _| row.subject == iri("http://ex/k") && row.object == iri("http://ex/a"),
+        ),
+        (
+            "reifier as object",
+            Some(atom(var("?x"), P, var("?r"))),
+            |row, reifier| row.subject == iri("http://ex/a") && row.object == *reifier,
+        ),
+    ];
+    for (name, extra, expect) in cases {
+        let ordinary = extra.as_ref().map(|atom| atom.predicate.clone());
+        let rule = tuple_rule(extra.into_iter().collect());
+        let b = decided(
+            chase_world(W, &[fact(a, TYPE, C)], &[rule], None)
+                .unwrap_or_else(|error| panic!("{name}: {error}")),
+        );
+        assert_eq!(b.status, BudgetStatus::Ok, "{name}");
+        let on_reifier: BTreeSet<(&str, &TermValue)> = b
+            .rows
+            .iter()
+            .filter(|row| row.subject == reifier)
+            .map(|row| (row.predicate.as_str(), &row.object))
+            .collect();
+        let relation = iri(REL);
+        let (a0, a1, a2) = (nary_arg(0), nary_arg(1), nary_arg(2));
+        let argument = iri(a);
+        let instance_of = instance_of_iri();
+        assert_eq!(
+            on_reifier,
+            BTreeSet::from([
+                (instance_of.as_str(), &relation),
+                (a0.as_str(), &argument),
+                (a1.as_str(), &argument),
+                (a2.as_str(), &argument),
+            ]),
+            "{name}: the tuple is reified onto its content-addressed node"
+        );
+        if let Some(predicate) = ordinary {
+            let derived = b
+                .rows
+                .iter()
+                .filter(|row| row.predicate == predicate && expect(row, &reifier))
+                .count();
+            assert_eq!(derived, 1, "{name}: the ordinary head fact is derived once");
+        }
+    }
+}
+
+/// A tuple whose reifier the body binds is refused, and the refusal names the rule
+/// and the head relations as data. The neighbouring head with a fresh reifier is the
+/// accepted case above.
+#[test]
+fn a_refused_head_names_its_rule_and_head_relations() {
+    let rule = ExistentialRule {
+        head: vec![
+            atom(
+                var("?x"),
+                &instance_of_iri(),
+                EvalTerm::ConstNamed(D.to_owned()),
+            ),
+            atom(
+                var("?x"),
+                &instance_of_iri(),
+                EvalTerm::ConstNamed(REL.to_owned()),
+            ),
+            atom(var("?x"), &nary_arg(0), var("?x")),
+        ],
+        ..tuple_rule(Vec::new())
     };
-    let err = reified_nary_head(&rule).unwrap_err();
-    assert!(
-        err.message().contains("non-contiguous or duplicate"),
-        "{err}"
+    let refusal = refused(&rule);
+    assert_eq!(refusal.rule, "http://ex/rule/tuple");
+    assert_eq!(refusal.head_relations, [D, REL]);
+    assert!(refusal.detail.contains("bound by the body"), "{refusal}");
+    assert_eq!(
+        validate_head_shape(&rule)
+            .expect_err("lowering runs the same check")
+            .message(),
+        refusal.to_string()
     );
 }
 
-/// A duplicate positional index (two naryArg0) is a HARD ERROR for the same reason.
+/// A gapped or duplicated positional index is refused: the ordered argument vector
+/// feeds `mint_nary_reifier`, so either would mint a wrong reifier.
 #[test]
-fn reified_nary_head_rejects_a_duplicate_positional_index() {
-    let rel = "http://ex/rel/op";
-    let a0 = format!("{LOGIC_NAMESPACE}naryArg0");
-    let rule = ExistentialRule {
-        numeric: Vec::new(),
-        rule_iri: "http://ex/rule/nary".to_owned(),
-        body: vec![atom(var("?x"), P, var("?a")), atom(var("?x"), P, var("?b"))],
-        head: vec![
-            atom(
-                var("?r"),
-                &instance_of_iri(),
-                EvalTerm::ConstNamed(rel.to_owned()),
-            ),
-            atom(var("?r"), &a0, var("?a")),
-            atom(var("?r"), &a0, var("?b")),
-        ],
-        distinct: vec![],
-        witness_frontier: None,
-        witness_policy: WitnessPolicy::FrontierSkolem,
-    };
-    let err = reified_nary_head(&rule).unwrap_err();
-    assert!(
-        err.message().contains("non-contiguous or duplicate"),
-        "{err}"
-    );
+fn a_reified_tuple_with_gapped_or_duplicate_indices_is_refused() {
+    for indices in [[0, 2], [0, 0]] {
+        let mut head = vec![atom(
+            var("?r"),
+            &instance_of_iri(),
+            EvalTerm::ConstNamed(REL.to_owned()),
+        )];
+        head.extend(indices.map(|index| atom(var("?r"), &nary_arg(index), var("?x"))));
+        let refusal = refused(&ExistentialRule {
+            head,
+            ..tuple_rule(Vec::new())
+        });
+        assert!(
+            refusal.detail.contains("non-contiguous or duplicate"),
+            "{refusal}"
+        );
+    }
 }
 
 #[test]

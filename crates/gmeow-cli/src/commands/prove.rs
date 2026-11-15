@@ -97,7 +97,9 @@ impl DropRecord {
 /// The selection inventory and everything the deciding engine did not decide.
 #[derive(Debug, Clone, Serialize)]
 struct SelectionReport {
-    /// True exactly when the admission is complete and `drops` is empty.
+    /// True exactly when both engines ran to an end, the admission is complete and
+    /// `drops` is empty. An execution failure leaves it false: `drops` then holds
+    /// only what was named before the failure, not the full account.
     complete: bool,
     source_digest: String,
     program_digest: String,
@@ -131,6 +133,36 @@ struct ReadClaimReport {
     /// The `logic:confidence` of the report, when stated. It is metadata, never a
     /// truth degree.
     confidence: Option<f64>,
+}
+
+impl SelectionReport {
+    /// The selection block of a run: the admission's identities, the claims the
+    /// native engine read and the drops named so far.
+    fn new(
+        admission: &SourceAdmission,
+        documents: usize,
+        complete: bool,
+        claims: Vec<ReadClaimReport>,
+        drops: Vec<DropRecord>,
+    ) -> Self {
+        Self {
+            complete,
+            source_digest: admission.source_digest.clone(),
+            program_digest: admission.program_digest.clone(),
+            selection_digest: admission.selection_digest.clone(),
+            documents,
+            units: admission.units.len(),
+            claims_read: claims.len(),
+            claims,
+            drops,
+        }
+    }
+}
+
+/// An engine that failed to execute, with the scoped claims read before it failed.
+struct EngineFailure {
+    diagnostic: Diag,
+    claims_read: Vec<ReadClaimReport>,
 }
 
 /// The native rule engine's own account of the selection.
@@ -315,6 +347,31 @@ impl ProveReport {
             engines: None,
             export: None,
         }
+    }
+
+    /// The report of an engine that failed to execute. The selection block keeps
+    /// what was established before the failure, marked incomplete, so the drops
+    /// already named are not lost with the verdict.
+    fn engine_failure(
+        failure: EngineFailure,
+        inputs: &[InputIdentity],
+        admission: SourceAdmission,
+        documents: usize,
+        drops: BTreeSet<DropRecord>,
+    ) -> Self {
+        let mut report = Self::blank(
+            DecisionClass::ExecutionFailure,
+            with_inputs(failure.diagnostic, inputs),
+        );
+        report.selection = Some(SelectionReport::new(
+            &admission,
+            documents,
+            false,
+            failure.claims_read,
+            drops.into_iter().collect(),
+        ));
+        report.admission = Some(admission);
+        report
     }
 
     fn execution_failure(&mut self, diagnostic: Diag) {
@@ -549,16 +606,27 @@ pub(crate) fn prove(reporter: &dyn Reporter, request: &ProveRequest<'_>) -> i32 
     let mut drops = admission_drops(&admission);
     drops.extend(unread_program_axioms(&loaded.theory));
     drops.extend(accounting_drops(&admission, &loaded.theory));
-    let legs = native_leg(&loaded.theory, request.max_steps, &mut drops)
-        .and_then(|native| owl_dl_leg(canonical, request.step_cap).map(|owl| (native, owl)));
+    let documents = loaded.theory.source().origins().len();
+    let legs =
+        native_leg(&loaded.theory, request.max_steps, &mut drops).and_then(
+            |native| match owl_dl_leg(canonical, request.step_cap) {
+                Ok(owl) => Ok((native, owl)),
+                Err(diagnostic) => Err(EngineFailure {
+                    diagnostic,
+                    claims_read: native.claims_read,
+                }),
+            },
+        );
     let (native, (owl_dl, proof)) = match legs {
         Ok(legs) => legs,
-        Err(diagnostic) => {
-            let mut report = ProveReport::blank(
-                DecisionClass::ExecutionFailure,
-                with_inputs(diagnostic, &loaded.identities),
+        Err(failure) => {
+            let report = ProveReport::engine_failure(
+                failure,
+                &loaded.identities,
+                admission,
+                documents,
+                drops,
             );
-            report.admission = Some(admission);
             return publish_failure(reporter, report, request);
         }
     };
@@ -632,7 +700,6 @@ pub(crate) fn prove(reporter: &dyn Reporter, request: &ProveRequest<'_>) -> i32 
                 .collect(),
         )
     };
-    let documents = loaded.theory.source().origins().len();
     let mut report = ProveReport {
         common: ReasoningReportCore {
             schema_version: 1,
@@ -666,17 +733,13 @@ pub(crate) fn prove(reporter: &dyn Reporter, request: &ProveRequest<'_>) -> i32 
             boundaries,
             diagnostics: Vec::new(),
         },
-        selection: Some(SelectionReport {
-            complete,
-            source_digest: admission.source_digest.clone(),
-            program_digest: admission.program_digest.clone(),
-            selection_digest: admission.selection_digest.clone(),
+        selection: Some(SelectionReport::new(
+            &admission,
             documents,
-            units: admission.units.len(),
-            claims_read: native.claims_read.len(),
-            claims: native.claims_read.clone(),
+            complete,
+            native.claims_read.clone(),
             drops,
-        }),
+        )),
         semantics: PROVE_SEMANTICS,
         refutations,
         engines: Some(EngineReports { native, owl_dl }),
@@ -819,12 +882,13 @@ fn unread_program_axioms(
 /// is `refused` and the reasons are drops, so the selection is not decided. Any
 /// other engine error is an execution failure, never a drop: a canonicalization
 /// search that reached its limit is `SOURCE_CANONICALIZATION_LIMIT`, and every other
-/// error is `NATIVE_EXECUTION_FAILED`.
+/// error is `NATIVE_EXECUTION_FAILED`. The failure carries the claims read before it,
+/// and `drops` keeps what was named before it.
 fn native_leg(
     theory: &gmeow_logic_compile::frontend::CompiledTheory,
     max_steps: Option<u64>,
     drops: &mut BTreeSet<DropRecord>,
-) -> Result<NativeLeg, Diag> {
+) -> Result<NativeLeg, EngineFailure> {
     // Every scoped claim of the compiled theory is read into the selected world or
     // named here before the engine starts; the engine then ignores axiom scopes.
     let prepared = gmeow_logic::reason::prepare_selected_theory_input(
@@ -894,12 +958,15 @@ fn native_leg(
         Ok(outcome) => outcome,
         Err(error) => {
             if let Some(budget) = diag_canonicalization_limit(&error).copied() {
-                return Err(canonicalization_limit_failure(
-                    &budget,
-                    "native closure",
-                    error,
-                    &[],
-                ));
+                return Err(EngineFailure {
+                    diagnostic: canonicalization_limit_failure(
+                        &budget,
+                        "native closure",
+                        error,
+                        &[],
+                    ),
+                    claims_read,
+                });
             }
             if let Some(refusal) = error.downcast_ref::<gmeow_logic::error::NativeRefusal>() {
                 drops.insert(DropRecord::new(
@@ -928,12 +995,24 @@ fn native_leg(
                     claims_read,
                 });
             }
-            return Err(caused_diagnostic(
-                "NATIVE_EXECUTION_FAILED",
-                error,
-                "run the native engine over the selection",
-                serde_json::Value::Null,
-            ));
+            // A refused rule head names its rule and head relations as data.
+            let evidence = error
+                .downcast_ref::<gmeow_logic::error::RefusedRuleHead>()
+                .map_or(serde_json::Value::Null, |refused| {
+                    serde_json::json!({
+                        "rule": refused.rule,
+                        "head_relations": refused.head_relations,
+                    })
+                });
+            return Err(EngineFailure {
+                diagnostic: caused_diagnostic(
+                    "NATIVE_EXECUTION_FAILED",
+                    error,
+                    "run the native engine over the selection",
+                    evidence,
+                ),
+                claims_read,
+            });
         }
     };
     let gap_lines: BTreeSet<String> = verdict
@@ -2408,6 +2487,11 @@ fn render_text(report: &ProveReport) {
         // the native accounting; the OWL leg's state is printed under that leg.
         if selection.complete {
             println!("selection complete zero-drops (native accounting)");
+        } else if report.common.decision == DecisionClass::ExecutionFailure {
+            println!(
+                "selection incomplete drops={} (named before the execution failure)",
+                selection.drops.len()
+            );
         } else {
             println!(
                 "selection incomplete drops={} (native accounting)",
