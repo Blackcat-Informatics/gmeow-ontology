@@ -143,7 +143,7 @@ impl ReasoningSession {
         annotation: &AnnotationContract,
     ) -> gmeow_errors::Result<Self> {
         let (program, prepared) = preparation.means_end_preparation();
-        prepared.admission.admit_world_local_template()?;
+        prepared.admission.admit()?;
         let data_generation = mint_edb_generation(edb)?;
         let (disposition, inner) =
             classify_disposition_rules(program, edb, annotation, &prepared.rules)?;

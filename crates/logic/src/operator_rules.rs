@@ -113,10 +113,8 @@ impl PreparedOperatorRules {
                 diagnostic.code, diagnostic.message
             )));
         }
-        self.lowering.admission.admit_world_local_template()?;
-        self.means_end_lowering
-            .admission
-            .admit_world_local_template()?;
+        self.lowering.admission.admit()?;
+        self.means_end_lowering.admission.admit()?;
         if self.means_end.rules.is_empty()
             || self.means_end_lowering.rules.is_empty()
             || !self.means_end_lowering.existential_rules.is_empty()
