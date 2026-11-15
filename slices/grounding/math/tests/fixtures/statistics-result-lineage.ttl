@@ -20,8 +20,9 @@
 @prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
 @prefix ex:    <http://example.org/math/> .
 
-# process — the analysis run that produced the estimate.
+# process — the analysis run that read the dataset (gmeow:used) and produced the estimate.
 ex:analysisRun a math:InferenceRun , gmeow:Activity ;
+    gmeow:used ex:trialDataset ;
     math:usedAnalysisPlan ex:planV2 .
 
 ex:trialDataset a math:DatasetMatrix .

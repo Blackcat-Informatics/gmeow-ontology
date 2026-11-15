@@ -250,6 +250,7 @@ produced, and the **held claim** from a vantage. None is typed as another — an
 # process
 ex:analysisActivity
     a math:InferenceRun , gmeow:Activity ;
+    gmeow:used ex:trialDatasetV3 ;
     math:usedAnalysisPlan ex:planV2 ;
     gmeow:usedSoftwareCommit ex:analysisPipelineCommitA1B2 .
 
