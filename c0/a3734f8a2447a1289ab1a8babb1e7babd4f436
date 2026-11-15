@@ -1,0 +1,23 @@
+ghprsq structured squash audit metadata
+
+parent_hashes: fb460b557b6517f435b6773f57363ecf0c6fd64e
+
+GhpRsq-Schema: 1
+GhpRsq-Merge-Style: structured-squash
+GhpRsq-GitHub-Repo: Blackcat-Informatics/gmeow-ontology
+GhpRsq-GitHub-Pull-Request: 2814
+GhpRsq-GitHub-PR-URL: https://github.com/Blackcat-Informatics/gmeow-ontology/pull/2814
+GhpRsq-Base-Ref: main
+GhpRsq-Base-OID: e4cf55688adc665e0285b4d09b22d7c9804b395f
+GhpRsq-Head-Ref: paudley/2802-term-reasons-a-question-has-no-answer
+GhpRsq-Head-OID: fb460b557b6517f435b6773f57363ecf0c6fd64e
+GhpRsq-Result-Tree: f009d816df286520f44b29adf3711e3e080bfac4
+GhpRsq-Result-Commit: c0a3734f8a2447a1289ab1a8babb1e7babd4f436
+GhpRsq-Parent-Hashes: fb460b557b6517f435b6773f57363ecf0c6fd64e
+GhpRsq-Squash-Notes-SHA256: 0cd6198d24b012b74994b9427bd0ca941bf1dc7e214b2210b96aafa8e78b8d5d
+GhpRsq-Stage-Tree: 504b8b70c5e00eff9f4b607c245ddc49bda660b9
+GhpRsq-Stage-Commit: 786dd592793617628e70b06233a332a805805da5
+GhpRsq-Stage-Tag: refs/tags/ghprsq/artifacts/786dd592793617628e70b06233a332a805805da5
+GhpRsq-Stage-Ref: refs/ghprsq/pr/2814/stage
+GhpRsq-Stage-Files: 8
+GhpRsq-Stage-URL: https://github.com/Blackcat-Informatics/gmeow-ontology/tree/786dd592793617628e70b06233a332a805805da5
