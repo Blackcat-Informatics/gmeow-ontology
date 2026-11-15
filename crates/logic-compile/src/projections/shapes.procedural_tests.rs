@@ -2074,3 +2074,65 @@ fn consent_exactly_one_and_at_least_one_lowers_without_aggregates() {
         "a non-consent statement must NOT fire: {flagged:?}"
     );
 }
+
+/// An integrity guard that places the focus in OBJECT position (`logic:argument(owner, this)`)
+/// targets the objects of that predicate and executes: an operand with no `logic:termIndex` is
+/// flagged, while an unindexed carrier that no `logic:argument` edge reaches is not a focus node.
+/// This is the lowering the argument and binder index constraints of the logic slice depend on.
+#[test]
+fn objects_of_guard_over_argument_lowers_to_an_executable_target_objects_of_constraint() {
+    let block = project_sugar(
+        "ex:argumentIndex a logic:Constraint ;\n\
+           logic:formalizes logic:TermCarrier ;\n\
+           logic:integrity [ a logic:Formula ;\n\
+             logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable \"this\" ] ,\n\
+               [ logic:termIndex 1 ; logic:termVariable \"owner\" ] ;\n\
+             logic:forall [ a logic:Formula ;\n\
+               logic:antecedent [ a logic:Formula ; logic:relation logic:argument ;\n\
+                 logic:argument [ logic:termIndex 0 ; logic:termVariable \"owner\" ] ,\n\
+                   [ logic:termIndex 1 ; logic:termVariable \"this\" ] ] ;\n\
+               logic:consequent [ a logic:Formula ;\n\
+                 logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable \"index\" ] ;\n\
+                 logic:exists [ a logic:Formula ; logic:relation logic:termIndex ;\n\
+                   logic:argument [ logic:termIndex 0 ; logic:termVariable \"this\" ] ,\n\
+                     [ logic:termIndex 1 ; logic:termVariable \"index\" ] ] ] ] ] .",
+    );
+    assert!(
+        block.contains("sh:targetObjectsOf <https://blackcatinformatics.ca/logic/argument>"),
+        "{block}"
+    );
+    assert!(
+        block.contains(
+            "SELECT $this WHERE { ?owner <https://blackcatinformatics.ca/logic/argument> $this . \
+             FILTER NOT EXISTS { $this <https://blackcatinformatics.ca/logic/termIndex> ?index . } }"
+        ),
+        "{block}"
+    );
+    let flagged = flagged_over_turtle(
+        &format!("{PROCEDURAL_HEADER}\n{block}"),
+        "@prefix logic: <https://blackcatinformatics.ca/logic/> .\n\
+         @prefix ex: <https://ex/> .\n\
+         ex:atom logic:argument ex:indexed , ex:unindexed , [ logic:termVariable \"blank\" ] .\n\
+         ex:indexed logic:termIndex 0 ; logic:termVariable \"x\" .\n\
+         ex:unindexed logic:termVariable \"y\" .\n\
+         ex:free a logic:TermCarrier ; logic:termVariable \"z\" .\n",
+    );
+    // Exactly two focus nodes: the named unindexed operand by its full IRI, and the blank-node
+    // operand, which the report renders as a `_:` label.
+    let named: Vec<&str> = flagged
+        .iter()
+        .map(String::as_str)
+        .filter(|focus| !focus.starts_with("_:"))
+        .collect();
+    assert_eq!(named, ["<https://ex/unindexed>"], "{flagged:?}");
+    let blank = flagged
+        .iter()
+        .filter(|focus| focus.starts_with("_:"))
+        .count();
+    assert_eq!(blank, 1, "{flagged:?}");
+    assert_eq!(flagged.len(), 2, "{flagged:?}");
+    assert!(
+        !flagged.iter().any(|focus| focus == "<https://ex/indexed>"),
+        "{flagged:?}"
+    );
+}

@@ -10431,12 +10431,44 @@ msgid "Term Carrier Index Constraint"
 msgstr "词项载体索引约束"
 
 msgctxt "https://blackcatinformatics.ca/logic/TermCarrierIndexConstraint|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Requires every declared logic:TermCarrier to carry a logic:termIndex. It is not the list-level ordering check: uniqueness and zero-based contiguity are verified across all sibling carriers by the typed-IR frontend."
-msgstr "要求每个已声明的 logic:TermCarrier 都携带 logic:termIndex。它不是列表层级的排序检查；类型化 IR 前端会跨所有同级载体验证索引的唯一性以及从零开始的连续性。"
+msgid "Requires every carrier that is the object of logic:argument (an atomic formula operand, a function-term operand or a rule inequality-guard operand) to carry a logic:termIndex. It is not a requirement on a carrier occupying an RDF 1.2 triple-term position of a rule atom, which needs no index, and it is not the list-level ordering check: uniqueness and zero-based contiguity are verified across sibling carriers by the typed-IR frontend."
+msgstr "要求作为 logic:argument 宾语的每个载体（原子公式的操作数、函数项的操作数或规则不等式守卫的操作数）都携带 logic:termIndex。它不是对占据规则原子中 RDF 1.2 三元组词项位置的载体的要求，这类载体无需索引；它也不是列表层级的排序检查：类型化 IR 前端会跨同级载体验证索引的唯一性以及从零开始的连续性。"
 
 msgctxt "https://blackcatinformatics.ca/logic/TermCarrierIndexConstraint|http://www.w3.org/2004/02/skos/core#example"
-msgid "A logic:TermCarrier with logic:termVariable 'x' but no logic:termIndex violates this constraint."
-msgstr "具有 logic:termVariable 'x' 但没有 logic:termIndex 的 logic:TermCarrier 违反此约束。"
+msgid "ex:atom logic:argument ex:slot . ex:slot logic:termVariable 'x' . violates this constraint because ex:slot has no logic:termIndex."
+msgstr "ex:atom logic:argument ex:slot . ex:slot logic:termVariable 'x' . 违反此约束，因为 ex:slot 没有 logic:termIndex。"
+
+msgctxt "https://blackcatinformatics.ca/logic/TermCarrierIndexConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when validating the ordered argument lists of atoms, function terms and rule inequality guards."
+msgstr "在验证原子、函数项和规则不等式守卫的有序参数列表时使用。"
+
+msgctxt "https://blackcatinformatics.ca/logic/TermCarrierIndexConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Require one non-negative integer index on each logic:argument carrier, then validate the sibling index set as 0 through n minus 1."
+msgstr "要求每个 logic:argument 载体都带有一个非负整数索引，然后验证同级载体的索引集合恰为 0 到 n 减 1。"
+
+msgctxt "https://blackcatinformatics.ca/logic/BoundVariableCarrierIndexConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Bound Variable Carrier Index Constraint"
+msgstr "约束变量载体索引约束"
+
+msgctxt "https://blackcatinformatics.ca/logic/BoundVariableCarrierIndexConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Requires every carrier that is the object of logic:quantifiedVariable to carry a logic:termIndex fixing its place in the binding block of its quantifier. It is not the check that the carrier names a variable, which the typed-IR frontend makes when it reads the block, and it is not the list-level ordering check: uniqueness and zero-based contiguity across the block are verified by the same frontend."
+msgstr "要求作为 logic:quantifiedVariable 宾语的每个载体都携带 logic:termIndex，以固定其在所属量词绑定块中的位置。它不是对载体是否命名一个变量的检查，该检查由类型化 IR 前端在读取绑定块时完成；它也不是列表层级的排序检查：绑定块内索引的唯一性以及从零开始的连续性由同一前端验证。"
+
+msgctxt "https://blackcatinformatics.ca/logic/BoundVariableCarrierIndexConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:quantifier logic:quantifiedVariable ex:binding . ex:binding logic:termVariable 'x' . violates this constraint because ex:binding has no logic:termIndex."
+msgstr "ex:quantifier logic:quantifiedVariable ex:binding . ex:binding logic:termVariable 'x' . 违反此约束，因为 ex:binding 没有 logic:termIndex。"
+
+msgctxt "https://blackcatinformatics.ca/logic/BoundVariableCarrierIndexConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when validating the ordered binding block of a logic:forall or logic:exists quantifier."
+msgstr "在验证 logic:forall 或 logic:exists 量词的有序绑定块时使用。"
+
+msgctxt "https://blackcatinformatics.ca/logic/BoundVariableCarrierIndexConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Do not infer the order of bound variables from RDF statement order; reordering a quantifier prefix can change the meaning of the formula."
+msgstr "不要根据 RDF 语句顺序推断约束变量的顺序；重排量词前缀可能改变公式的含义。"
+
+msgctxt "https://blackcatinformatics.ca/logic/BoundVariableCarrierIndexConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Require one non-negative integer index on each bound-variable carrier, then validate the index set of the binding block as 0 through n minus 1."
+msgstr "要求每个约束变量载体都带有一个非负整数索引，然后验证绑定块的索引集合恰为 0 到 n 减 1。"
 
 msgctxt "https://blackcatinformatics.ca/logic/TermCarrierValueConstraint|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "Term Carrier Value Constraint"

@@ -1,0 +1,26 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+
+@prefix ex: <https://blackcatinformatics.ca/gmeow/examples/logic/tests/> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+
+# The quantifier's body atom is well formed; its only bound-variable carrier names a variable
+# but has no explicit zero-based position in the binding block.
+ex:unpositionedQuantifier
+    a logic:Formula ;
+    logic:exists ex:unpositionedQuantifierBody ;
+    logic:quantifiedVariable ex:unpositionedBinding .
+
+ex:unpositionedBinding
+    a logic:TermCarrier ;
+    logic:termVariable "person" .
+
+ex:unpositionedQuantifierBody
+    a logic:Formula ;
+    logic:argument ex:unpositionedQuantifierOperand ;
+    logic:relation ex:eligible .
+
+ex:unpositionedQuantifierOperand
+    a logic:TermCarrier ;
+    logic:termIndex 0 ;
+    logic:termVariable "person" .
