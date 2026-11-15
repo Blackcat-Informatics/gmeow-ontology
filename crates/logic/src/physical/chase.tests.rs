@@ -100,13 +100,14 @@ fn duplicate_heads_keep_the_first_standalone_proof_and_raw_budget() {
     }
 }
 const REL: &str = "http://ex/rel/op";
+const INNER: &str = "http://ex/rel/inner";
 
 fn nary_arg(index: usize) -> String {
     format!("{LOGIC_NAMESPACE}naryArg{index}")
 }
 
-/// `type(x, C) → extra ∧ op(x, x, x)`: one ternary tuple reified onto `?r`, with
-/// `extra` as further head atoms of the same dependency.
+/// `type(x, C) ∧ p(x, y) → extra ∧ op(x, y, x)`: one ternary tuple reified onto `?r`,
+/// with `extra` as further head atoms of the same dependency.
 fn tuple_rule(extra: Vec<EvalAtom>) -> ExistentialRule {
     let mut head = extra;
     head.push(atom(
@@ -115,13 +116,16 @@ fn tuple_rule(extra: Vec<EvalAtom>) -> ExistentialRule {
         EvalTerm::ConstNamed(REL.to_owned()),
     ));
     // Positional atoms out of order: the recognizer restores argument order.
-    for index in [2, 0, 1] {
-        head.push(atom(var("?r"), &nary_arg(index), var("?x")));
+    for (index, argument) in [(2, "?x"), (0, "?x"), (1, "?y")] {
+        head.push(atom(var("?r"), &nary_arg(index), var(argument)));
     }
     ExistentialRule {
         numeric: Vec::new(),
         rule_iri: "http://ex/rule/tuple".to_owned(),
-        body: vec![atom(var("?x"), TYPE, EvalTerm::ConstNamed(C.to_owned()))],
+        body: vec![
+            atom(var("?x"), TYPE, EvalTerm::ConstNamed(C.to_owned())),
+            atom(var("?x"), Q, var("?y")),
+        ],
         head,
         distinct: vec![],
         witness_frontier: None,
@@ -145,7 +149,9 @@ fn refused(rule: &ExistentialRule) -> crate::error::RefusedRuleHead {
 #[test]
 fn a_head_mixing_ordinary_atoms_and_a_reified_tuple_derives_both() {
     let a = "http://ex/a";
-    let reifier = iri(&mint_nary_reifier(REL, &[iri(a), iri(a), iri(a)]).expect("tuple identity"));
+    let b_value = "http://ex/b";
+    let reifier =
+        iri(&mint_nary_reifier(REL, &[iri(a), iri(b_value), iri(a)]).expect("tuple identity"));
     let class_d = EvalTerm::ConstNamed(D.to_owned());
     type Expect = fn(&DerivedRow, &TermValue) -> bool;
     let cases: [(&str, Option<EvalAtom>, Expect); 5] = [
@@ -181,7 +187,7 @@ fn a_head_mixing_ordinary_atoms_and_a_reified_tuple_derives_both() {
         let ordinary = extra.as_ref().map(|atom| atom.predicate.clone());
         let rule = tuple_rule(extra.into_iter().collect());
         let b = decided(
-            chase_world(W, &[fact(a, TYPE, C)], &[rule], None)
+            chase_world(W, &[fact(a, TYPE, C), fact(a, Q, b_value)], &[rule], None)
                 .unwrap_or_else(|error| panic!("{name}: {error}")),
         );
         assert_eq!(b.status, BudgetStatus::Ok, "{name}");
@@ -193,14 +199,14 @@ fn a_head_mixing_ordinary_atoms_and_a_reified_tuple_derives_both() {
             .collect();
         let relation = iri(REL);
         let (a0, a1, a2) = (nary_arg(0), nary_arg(1), nary_arg(2));
-        let argument = iri(a);
+        let (argument, middle) = (iri(a), iri(b_value));
         let instance_of = instance_of_iri();
         assert_eq!(
             on_reifier,
             BTreeSet::from([
                 (instance_of.as_str(), &relation),
                 (a0.as_str(), &argument),
-                (a1.as_str(), &argument),
+                (a1.as_str(), &middle),
                 (a2.as_str(), &argument),
             ]),
             "{name}: the tuple is reified onto its content-addressed node"
@@ -2237,4 +2243,67 @@ fn a_thing_filler_family_is_blocked_by_its_inverse_back_edge() {
         matches!(admission, ChaseAdmission::RestrictedJointlyAcyclic { .. }),
         "a Thing filler's trigger is any successor: {admission:?}"
     );
+}
+
+/// `type(x, C) → outer(inner(x), x)`: the tuple on `outer` takes the node of the tuple
+/// on `inner` as its first argument. `inner_argument` is the argument of the inner tuple.
+fn nested_tuples(outer: &str, inner: &str, inner_argument: &str) -> ExistentialRule {
+    let typing = |reifier: &str, relation: &str| {
+        atom(
+            var(reifier),
+            &instance_of_iri(),
+            EvalTerm::ConstNamed(relation.to_owned()),
+        )
+    };
+    ExistentialRule {
+        head: vec![
+            typing(outer, REL),
+            atom(var(outer), &nary_arg(0), var(inner)),
+            atom(var(outer), &nary_arg(1), var("?x")),
+            typing(inner, INNER),
+            atom(var(inner), &nary_arg(0), var(inner_argument)),
+        ],
+        body: vec![atom(var("?x"), TYPE, EvalTerm::ConstNamed(C.to_owned()))],
+        ..tuple_rule(Vec::new())
+    }
+}
+
+/// A tuple that takes another tuple's node as an argument is minted after it, whatever
+/// the two reifier variables are called: both spellings derive the same facts, and the
+/// outer node is the content address of the relation, the inner node and the argument.
+#[test]
+fn a_tuple_inside_a_tuple_is_minted_in_dependency_order_for_either_variable_order() {
+    let a = "http://ex/a";
+    let inner = iri(&mint_nary_reifier(INNER, &[iri(a)]).expect("inner tuple identity"));
+    let outer = iri(&mint_nary_reifier(REL, &[inner.clone(), iri(a)]).expect("outer identity"));
+    let derived = |outer_var: &str, inner_var: &str| {
+        let rule = nested_tuples(outer_var, inner_var, "?x");
+        let b = decided(chase_world(W, &[fact(a, TYPE, C)], &[rule], None).expect("the chase"));
+        assert_eq!(b.status, BudgetStatus::Ok);
+        b.rows
+            .into_iter()
+            .map(|row| {
+                (
+                    term_display(&row.subject),
+                    row.predicate,
+                    term_display(&row.object),
+                )
+            })
+            .collect::<BTreeSet<_>>()
+    };
+    let facts = derived("?m", "?n");
+    assert_eq!(facts, derived("?n", "?m"));
+    assert!(facts.contains(&(term_display(&outer), nary_arg(0), term_display(&inner))));
+    assert!(facts.contains(&(term_display(&inner), nary_arg(0), term_display(&iri(a)))));
+}
+
+/// Two tuples that take each other's node as an argument have no mint order. The head
+/// is refused when the rule is prepared, naming the rule and both relations; the
+/// neighbouring nested head above is accepted.
+#[test]
+fn tuples_that_take_each_others_node_are_refused() {
+    let refusal = refused(&nested_tuples("?m", "?n", "?m"));
+    assert_eq!(refusal.rule, "http://ex/rule/tuple");
+    assert_eq!(refusal.head_relations, [INNER, REL]);
+    assert!(refusal.detail.contains("each other's reifier"), "{refusal}");
 }

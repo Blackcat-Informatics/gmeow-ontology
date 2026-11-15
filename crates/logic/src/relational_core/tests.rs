@@ -496,8 +496,52 @@ fn a_head_the_chase_refuses_is_named_residue_and_a_mixed_head_lowers_exactly() {
         .expect("one named residue");
     assert!(
         residue.contains(&format!("rule <{LOGIC}formula-existential/"))
-            && residue.contains(&format!("head relations [<{LOGIC}q>]"))
+            && residue.contains(&format!("head relations [<{LOGIC}naryArg0>, <{LOGIC}q>]"))
             && residue.contains("bound by the body"),
+        "{residue}"
+    );
+}
+
+/// `∀x. (p(x, a) → ∃u,v. (r1(v, x) on node u ∧ r2(inner) on node v))`, both tuples
+/// spelled in the reified vocabulary.
+fn tuple_inside_a_tuple(inner: &str) -> Formula {
+    Formula::Forall {
+        vars: vec!["x".into()],
+        body: Box::new(Formula::Implies(
+            Box::new(atom("p", vec![var("x"), con("a")])),
+            Box::new(Formula::Exists {
+                vars: vec!["u".into(), "v".into()],
+                body: Box::new(Formula::And(vec![
+                    atom("instanceOf", vec![var("u"), con("r1")]),
+                    atom("naryArg0", vec![var("u"), var("v")]),
+                    atom("naryArg1", vec![var("u"), var("x")]),
+                    atom("instanceOf", vec![var("v"), con("r2")]),
+                    atom("naryArg0", vec![var("v"), var(inner)]),
+                ])),
+            }),
+        )),
+    }
+}
+
+/// A tuple that takes another tuple's node as an argument lowers exactly, because the
+/// chase mints the inner node first. Two tuples that take each other's node have no
+/// node to mint: that head is residue naming the rule and both relations.
+#[test]
+fn a_tuple_inside_a_tuple_lowers_and_a_cycle_of_tuples_is_named_residue() {
+    let out = lower_formulas(&program_with(vec![tuple_inside_a_tuple("x")]));
+    assert_eq!(out.existential_rules.len(), 1);
+    assert!(out.preservation.unsupported_constructs.is_empty());
+
+    let out = lower_formulas(&program_with(vec![tuple_inside_a_tuple("u")]));
+    assert!(out.existential_rules.is_empty());
+    let residue = out
+        .preservation
+        .unsupported_constructs
+        .first()
+        .expect("the cycle is named residue");
+    assert!(
+        residue.contains(&format!("head relations [<{LOGIC}r1>, <{LOGIC}r2>]"))
+            && residue.contains("each other's reifier"),
         "{residue}"
     );
 }

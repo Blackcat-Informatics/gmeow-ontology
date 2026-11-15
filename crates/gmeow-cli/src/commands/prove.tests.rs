@@ -106,6 +106,7 @@ fn an_engine_failure_keeps_the_selection_and_the_drops_named_before_it() {
     let selection = super::SourceSelection::all_classical_roots(&loaded.theory);
     let admission = super::SourceAdmission::classical_fof(&loaded.theory, selection);
     let digest = admission.selection_digest.clone();
+    let program = admission.program_digest.clone();
     let units = admission.units.len();
     let named = super::DropRecord::new(super::ENGINE_NATIVE, "SCOPED_CLAIM_NOT_READ", "before");
     let report = super::ProveReport::engine_failure(
@@ -124,6 +125,7 @@ fn an_engine_failure_keeps_the_selection_and_the_drops_named_before_it() {
     );
     assert_eq!(report.common.inputs.len(), 1);
     assert_eq!(report.common.exit_code(true), 5);
+    assert_eq!(report.common.program.content_digest, program);
     let selection = report.selection.expect("the selection block is kept");
     assert!(!selection.complete);
     assert_eq!(selection.selection_digest, digest);

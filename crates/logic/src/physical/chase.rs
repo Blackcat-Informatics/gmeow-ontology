@@ -462,7 +462,9 @@ pub(super) fn chase_round<'a>(
                     // reifier whose ordered argument list references such a null resolves it
                     // BEFORE the tuple-identity mint. Then mint each reifier group by
                     // content-addressed tuple identity over the (now fully bound) argument
-                    // values. The tuple mint reads only the relation and those values, so
+                    // values, in the recognizer's mint order: a tuple that takes another
+                    // tuple's node as an argument is minted after it.
+                    // The tuple mint reads only the relation and those values, so
                     // ordinary atoms in the same head never change a reifier's identity.
                     let reifier_vars: BTreeSet<&str> =
                         reifier_groups.iter().map(|(v, _, _)| v.as_str()).collect();
@@ -883,12 +885,19 @@ fn nary_arg_index(predicate: &str) -> Option<usize> {
 /// head relations, so an author can find the formula the engine could not carry.
 fn refused_head(rule: &ExistentialRule, detail: String) -> gmeow_errors::Diag {
     let instance_of = instance_of_iri();
-    // A typing atom names its relation in the object slot; a positional argument atom
-    // names none of its own; every other atom names its predicate.
+    // A typing atom names its relation in the object slot. A positional argument atom
+    // is named by the typing atom on its subject; without one its own predicate is the
+    // only relation the author wrote. Every other atom names its predicate.
+    let typed: Vec<&EvalTerm> = rule
+        .head
+        .iter()
+        .filter(|atom| atom.predicate == instance_of)
+        .map(|atom| &atom.subject)
+        .collect();
     let head_relations: BTreeSet<String> = rule
         .head
         .iter()
-        .filter(|atom| nary_arg_index(&atom.predicate).is_none())
+        .filter(|atom| nary_arg_index(&atom.predicate).is_none() || !typed.contains(&&atom.subject))
         .map(|atom| match &atom.object {
             EvalTerm::ConstNamed(relation) if atom.predicate == instance_of => relation.clone(),
             _ => atom.predicate.clone(),
@@ -923,15 +932,19 @@ pub(crate) fn validate_head_shape(rule: &ExistentialRule) -> gmeow_errors::Resul
 /// contiguous index set `{0..n-1}`, over its own existential reifier subject `R`. The
 /// reifiers are exactly the subjects of the `naryArg{i}` atoms. A multi-head rule
 /// `m1(?a,?e,?c) ∧ m2(?e,?d) ← …` has one group per tuple, and each is minted by tuple
-/// identity (`mint_nary_reifier`), not by the frontier-addressed Skolem witness. Groups
-/// are returned in sorted reifier-variable order.
+/// identity (`mint_nary_reifier`), not by the frontier-addressed Skolem witness.
+///
+/// Groups are returned in mint order, a pure function of the head: a tuple that takes
+/// another tuple's reifier as an argument follows that tuple, and tuples with no such
+/// constraint between them keep sorted reifier-variable order. The firing mints in this
+/// order, after the value nulls, so every argument is bound when its tuple is minted.
 ///
 /// Every other head atom is an ordinary head atom of the same dependency, whatever its
 /// subject: a frontier variable, an existential value null, a constant, or a reifier
-/// used under another predicate. The firing loop grounds it with the same solution,
-/// which binds each reifier to its minted node. An `instanceOf` atom is a typing atom
-/// only when its subject is a reifier; on any other subject it types an ordinary
-/// individual or witness.
+/// used under another predicate. The firing grounds the head only after every value
+/// null and every reifier is bound, so such an atom receives the minted node. An
+/// `instanceOf` atom is a typing atom only when its subject is a reifier; on any other
+/// subject it types an ordinary individual or witness.
 ///
 /// Returns `Ok(vec![])` for a head with no `naryArg{i}` atom (a plain DL
 /// `some_values_from` / `≥n` head), which keeps every existential on the default
@@ -940,8 +953,9 @@ pub(crate) fn validate_head_shape(rule: &ExistentialRule) -> gmeow_errors::Resul
 /// Refuses a malformed tuple, naming the rule and its head relations: a non-variable
 /// reifier subject, a reifier the body binds (an invented reifier is always fresh), a
 /// typing atom whose relation is not a constant IRI, a tuple with no typing atom or
-/// with more than one, or non-contiguous or duplicate positional indices (which would
-/// mint a wrong reifier).
+/// with more than one, non-contiguous or duplicate positional indices (which would
+/// mint a wrong reifier), or tuples that take each other's reifier as an argument, a
+/// tuple that takes its own included (no mint order exists for a cycle).
 fn reified_nary_head_groups(
     rule: &ExistentialRule,
 ) -> gmeow_errors::Result<Vec<(String, String, Vec<EvalTerm>)>> {
@@ -1053,13 +1067,45 @@ fn reified_nary_head_groups(
         let ordered: Vec<EvalTerm> = args.into_iter().map(|(_, t)| t).collect();
         out.push((reifier, rel, ordered));
     }
-    Ok(out)
+    mint_order(rule, out)
+}
+
+/// Order the tuples of a head so each follows every tuple whose reifier it takes as an
+/// argument. Each step takes the first tuple, in sorted reifier-variable order, whose
+/// arguments name no tuple still waiting; a head with no tuple inside another therefore
+/// keeps sorted order. Tuples that wait on each other have no mint order and are refused.
+fn mint_order(
+    rule: &ExistentialRule,
+    mut waiting: Vec<(String, String, Vec<EvalTerm>)>,
+) -> gmeow_errors::Result<Vec<(String, String, Vec<EvalTerm>)>> {
+    let mut ordered = Vec::with_capacity(waiting.len());
+    while !waiting.is_empty() {
+        let ready = waiting.iter().position(|(_, _, args)| {
+            !args.iter().any(|arg| {
+                matches!(arg, EvalTerm::Var(name)
+                    if waiting.iter().any(|(reifier, _, _)| reifier == name))
+            })
+        });
+        let Some(ready) = ready else {
+            let relations: Vec<&str> = waiting.iter().map(|(_, rel, _)| rel.as_str()).collect();
+            return Err(refused_head(
+                rule,
+                format!(
+                    "reified n-ary tuples for relations {relations:?} take each other's reifier \
+                     as an argument — a tuple's node is minted from its argument values, so a \
+                     cycle of tuples has no node"
+                ),
+            ));
+        };
+        ordered.push(waiting.remove(ready));
+    }
+    Ok(ordered)
 }
 
 /// The [`purrdf::TermValue`] an [`EvalTerm`] denotes under solution `sol`: a named/literal
-/// constant directly, or a variable's native bound value (a hard error if
-/// the variable is unbound — a range-restricted head argument is bound by the body by
-/// construction).
+/// constant directly, or a variable's native bound value. An unbound variable is a
+/// broken invariant, never a property of the head: a tuple argument is a body variable,
+/// a value null minted before the tuples, or a reifier the mint order places earlier.
 fn eval_term_value(term: &EvalTerm, sol: &Solution) -> gmeow_errors::Result<purrdf::TermValue> {
     match term {
         EvalTerm::ConstNamed(iri) => Ok(purrdf::TermValue::iri(iri)),

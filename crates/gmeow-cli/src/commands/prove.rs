@@ -98,8 +98,10 @@ impl DropRecord {
 #[derive(Debug, Clone, Serialize)]
 struct SelectionReport {
     /// True exactly when both engines ran to an end, the admission is complete and
-    /// `drops` is empty. An execution failure leaves it false: `drops` then holds
-    /// only what was named before the failure, not the full account.
+    /// `drops` is empty. When an engine failed to execute, the report has no `engines`
+    /// block, this is false and `drops` holds only what was named before the failure.
+    /// A failure after both engines ended (writing the export, the proof or the
+    /// evidence file) leaves this block as the completed run computed it.
     complete: bool,
     source_digest: String,
     program_digest: String,
@@ -363,6 +365,10 @@ impl ProveReport {
             DecisionClass::ExecutionFailure,
             with_inputs(failure.diagnostic, inputs),
         );
+        report.common.program = ProgramIdentity {
+            profile: PROVE_PROFILE.to_owned(),
+            content_digest: admission.program_digest.clone(),
+        };
         report.selection = Some(SelectionReport::new(
             &admission,
             documents,
@@ -2487,9 +2493,10 @@ fn render_text(report: &ProveReport) {
         // the native accounting; the OWL leg's state is printed under that leg.
         if selection.complete {
             println!("selection complete zero-drops (native accounting)");
-        } else if report.common.decision == DecisionClass::ExecutionFailure {
+        } else if report.engines.is_none() {
+            // Only an engine failure reports a selection without its engines.
             println!(
-                "selection incomplete drops={} (named before the execution failure)",
+                "selection incomplete drops={} (named before the engine failure)",
                 selection.drops.len()
             );
         } else {

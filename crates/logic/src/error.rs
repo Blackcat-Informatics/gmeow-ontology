@@ -236,8 +236,9 @@ impl std::error::Error for Numeric {}
 pub struct RefusedRuleHead {
     /// The content-addressed firing identity of the refused rule.
     pub rule: String,
-    /// The relation IRIs of the head: the predicate of each plain atom and the typed
-    /// relation of each reified tuple, sorted and de-duplicated.
+    /// The relation IRIs of the head: the predicate of each plain atom, the typed
+    /// relation of each reified tuple, and the predicate of a positional argument atom
+    /// whose subject has no typing atom; sorted and de-duplicated.
     pub head_relations: Vec<String>,
     /// Which requirement of a reified tuple the head does not meet.
     pub detail: String,

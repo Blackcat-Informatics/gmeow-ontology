@@ -320,7 +320,9 @@ retraction is still read as reported.
 
 When an engine fails after the selection was admitted, the report still carries the
 selection and the drops named before the failure, with `selection.complete` false. That
-list is what was known when the engine stopped, not the full account.
+list is what was known when the engine stopped, not the full account. A failure after both
+engines ended, while writing the `--out` export, the proof or the evidence file, keeps the
+completed report and replaces only its verdict.
 
 The report has no wall-clock field, so rerunning `prove` on the same inputs and comparing
 the bytes is a valid second-party check. `--proof-out <file>` records the proof and
