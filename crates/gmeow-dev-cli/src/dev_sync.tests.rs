@@ -191,3 +191,54 @@ fn generated_and_docs_selection_exclude_unrequested_runtime_outputs() {
         2
     );
 }
+
+/// The timings JSON is where a finished hosted run is read from: each memory record
+/// carries the allocator's live and free totals, and a return of freed pages carries the
+/// resident size before it beside the one after. A figure the host could not supply is
+/// written as `null`, never as zero.
+#[test]
+fn stage_memory_observation_carries_allocator_totals_and_the_reclaim_figures() {
+    use gmeow_pipeline::memory_record::{
+        AllocatorMemory, MemoryEvent, MemoryRecord, ProcessMemory, ReclaimedMemory,
+    };
+    use purrdf_lex::json::Value;
+    let returned = MemoryRecord {
+        pid: 7,
+        seq: 3,
+        stage_id: "stage-mappings".to_owned(),
+        event: MemoryEvent::Reclaim,
+        phase: None,
+        process: ProcessMemory {
+            rss_kib: Some(600),
+            peak_rss_kib: Some(1_300),
+        },
+        allocator: Some(AllocatorMemory {
+            live_bytes: 500,
+            free_bytes: 90,
+        }),
+        product: None,
+        released: None,
+        reclaim: Some(ReclaimedMemory {
+            rss_before_kib: Some(1_300),
+            elapsed_us: 42,
+        }),
+    };
+    let written = stage_memory_observation(&returned);
+    assert_eq!(written["event"], Value::from("reclaim"));
+    assert_eq!(written["rss_kib"], Value::from(600_u64));
+    assert_eq!(written["allocator_live_bytes"], Value::from(500_u64));
+    assert_eq!(written["allocator_free_bytes"], Value::from(90_u64));
+    assert_eq!(written["reclaim"]["rss_before_kib"], Value::from(1_300_u64));
+    assert_eq!(written["reclaim"]["elapsed_us"], Value::from(42_u64));
+
+    let unsupported = MemoryRecord {
+        event: MemoryEvent::Dispatch,
+        allocator: None,
+        reclaim: None,
+        ..returned
+    };
+    let written = stage_memory_observation(&unsupported);
+    assert_eq!(written["allocator_live_bytes"], Value::from(None::<u64>));
+    assert_eq!(written["allocator_free_bytes"], Value::from(None::<u64>));
+    assert_eq!(written["reclaim"], Value::from(None::<u64>));
+}

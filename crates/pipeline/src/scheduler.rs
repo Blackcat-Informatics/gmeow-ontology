@@ -28,10 +28,7 @@ use crate::cache::{
 };
 use crate::graph::StageGraph;
 use crate::memory_record::{MemoryEvent, MemoryRecord, ProcessMemory};
-use crate::node::{
-    CachePolicy, SERIALIZATION_BUFFER_RESOURCE, Stage, StageInput, StageProduct, StageRunTiming,
-    StageStability,
-};
+use crate::node::{CachePolicy, Stage, StageInput, StageProduct, StageRunTiming, StageStability};
 use crate::provenance::register_stage_unit;
 use gmeow_cli_core::Reporter;
 use purrdf::provenance::DatasetProvenance;
@@ -59,18 +56,42 @@ fn resource_lock(resource: &str) -> Arc<Mutex<()>> {
     )
 }
 
-/// Return wholly free allocator pages at an explicit pipeline phase handoff.
+/// Admits one return of freed pages at a time in this process. A permit, not data.
+static RECLAIM_IN_PROGRESS: Mutex<()> = Mutex::new(());
+
+/// Return wholly free allocator pages to the system and record what that gave back.
 ///
-/// Dropping phase-local owners makes their allocations unreachable, but glibc may
-/// retain their pages in process arenas. Callers use this after canonical input
-/// preparation and at declared serialization-resource handoffs. The GNU hint scans
-/// all arenas for whole free pages; fragmented free bytes may remain resident.
-/// `malloc_trim` is MT-Safe, including when sibling stages still allocate, although
-/// its arena locks and reclamation work can contend with them. It cannot change a
-/// product, cache key, or stage order. Allocators without this interface retain
-/// ordinary drop behavior.
+/// Dropping a stage's owners makes their allocations unreachable, but glibc may
+/// retain their pages in process arenas. The scheduler calls this once after each
+/// stage's publication, and the reasoning stage calls it at the handoffs inside its
+/// body, naming the phase that just ended. The GNU hint scans all arenas for whole
+/// free pages; fragmented free bytes may remain resident. `malloc_trim` is MT-Safe,
+/// including when sibling stages still allocate, although it holds each arena's lock
+/// in turn while it walks that arena, so it can delay a thread allocating there. It
+/// cannot change a product, cache key, or stage order. Allocators without this
+/// interface retain ordinary drop behavior, and the record then shows two equal
+/// resident sizes.
+///
+/// The return is process-wide, so two at once would walk the same arenas for the same
+/// pages and neither resident reading would belong to one of them. Callers therefore
+/// take turns. The waiters are bounded by the callers that exist: one coordinator for
+/// each pipeline run in the process and each reasoning body in flight, never one per
+/// worker.
+///
+/// The returned record is an observation: resident size immediately before and after,
+/// and the time the return took. See [`crate::memory_record`].
+pub(crate) fn reclaim_allocator_slack(stage_id: &str, phase: Option<&str>) -> MemoryRecord {
+    let _turn = RECLAIM_IN_PROGRESS
+        .lock()
+        .unwrap_or_else(std::sync::PoisonError::into_inner);
+    let rss_before_kib = ProcessMemory::sample().rss_kib;
+    let started = std::time::Instant::now();
+    return_free_allocator_pages();
+    crate::memory_record::reclaimed(stage_id, phase, rss_before_kib, started.elapsed())
+}
+
 #[cfg(all(target_os = "linux", target_env = "gnu"))]
-pub(crate) fn reclaim_allocator_slack() {
+fn return_free_allocator_pages() {
     // SAFETY: glibc documents `malloc_trim` as MT-Safe. The argument merely requests
     // release of whole free pages in all arenas; no live Rust allocation is exposed
     // or accessed. Returning zero is a valid result when no pages can be returned.
@@ -80,7 +101,7 @@ pub(crate) fn reclaim_allocator_slack() {
 }
 
 #[cfg(not(all(target_os = "linux", target_env = "gnu")))]
-pub(crate) fn reclaim_allocator_slack() {}
+fn return_free_allocator_pages() {}
 
 /// What the scheduler does with a stage's carrier once its LAST declared carrier
 /// consumer has run and no artifact-lane view of it is in flight.
@@ -317,7 +338,8 @@ pub struct RunResult {
     /// its recorded reads, in completion order. Cache hits contribute nothing.
     pub recorded_reads: Vec<Arc<crate::reads::EdgeAccess>>,
     /// The memory records of this run in the order they were made: one at each stage's
-    /// dispatch, publication and carrier release, and the measured phase boundaries that
+    /// dispatch, publication and carrier release, one for the return of freed allocator
+    /// pages after each publication, and the measured phase boundaries that
     /// were crossed on a thread running a stage body. A boundary crossed on a pool thread
     /// that was running no stage body is not kept here; it reaches the log when the
     /// `pipeline_memory` target is on. Observations only:
@@ -1073,6 +1095,14 @@ pub fn run_without(
                     }
                 }
 
+                // The stage is complete here: its worker has dropped the stage body's
+                // state and its views of upstream products, its product is published,
+                // and every carrier its completion made dead has been swapped for its
+                // residue. All of that is freed memory the allocator may still hold, so
+                // it is returned to the system now, before the next stage is dispatched.
+                // Only this coordinator thread reaches this point, one stage at a time.
+                memory.push(reclaim_allocator_slack(&stage_id, None));
+
                 if let Some(consumers) = dependents.get(&stage_id) {
                     for consumer in consumers {
                         let remaining = remaining_dependencies
@@ -1385,15 +1415,10 @@ fn exec_stage(
             })
         })?);
     }
-    // Carrier-scale serializers share this permit because each owns a whole-document
-    // buffer. Once a sibling releases the permit its Rust temporaries are dead, but a
-    // cold glibc arena may still retain those pages. Reclaim at the handoff before the
-    // next serializer allocates, while the common permit proves no competing serializer
-    // is live. This scales with the declared resource, never a fixed thread cap or stage
-    // name list.
-    if resources.contains(&SERIALIZATION_BUFFER_RESOURCE) {
-        reclaim_allocator_slack();
-    }
+    // Carrier-scale serializers share one permit because each owns a whole-document
+    // buffer. The pages a sibling serializer freed are returned to the system when the
+    // coordinator publishes that sibling, which is before it dispatches the next holder
+    // of the permit.
     let out = stage.run(input)?;
     drop(_guards);
 

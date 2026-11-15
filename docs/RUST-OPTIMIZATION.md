@@ -90,20 +90,32 @@ Cold CI producers select
 so the reasoning boundaries, large-input value-flow details and glossary/snapshot
 subphases remain visible before a stage completes. The `pipeline_memory` target emits
 the per-stage memory record: the process id, its resident size and its lifetime peak
-resident size, at each stage's dispatch, publication and carrier release, with the
+resident size, and the allocator's live and free byte totals, at each stage's dispatch,
+publication and carrier release, with the
 product's quad, term and artifact-byte counts and what a release removed. A record is
 also made at the start and end of each phase a stage runs through `measure_stage_phase`
 and at the end of each timed phase of the snapshot serializer. A phase that is only
 logged makes no record of its own: that includes the phases the logic crate logs inside
 reasoning and projection, the receipt encode among them, which fall inside the enclosing
-measured stage phase. No trim follows a release, so resident size after one includes
-pages the allocator kept. Each record costs one read of `/proc/self/status`, and the
-records of a run make at most three such reads per executed stage plus two per measured
-phase execution. The scheduler's records, and the phase records crossed on a thread that
+measured stage phase. No trim follows a release directly, so resident size in a release
+record includes pages the allocator kept. Freed pages are returned to the system once
+after each stage's publication and the releases it caused, and inside the reasoning
+stage after its input is prepared and after `reason-all`; each return makes a `reclaim`
+record with the resident size immediately before it (`reclaim_rss_before_kib`), the
+resident size after it (`rss_kib`) and the time it took (`reclaim_elapsed_us`). A return
+frees whole pages only, so fragmented free bytes stay resident. The allocator totals
+are glibc's `mallinfo2`: live bytes are allocations not yet freed, and free bytes are
+the free chunks the allocator keeps, including pages a return already handed back, so
+resident memory held but unused is the resident size less the live bytes. Each record
+costs one read of `/proc/self/status` and one `mallinfo2` call, which walks each
+arena's free lists under that arena's lock; a `reclaim` record reads the status file
+twice. The records of a run make at most five such reads per executed stage plus two
+per measured phase execution. The scheduler's records, and the phase records crossed on a thread that
 is running a stage body, are made whether or not the target is selected, and a completed
 `--timings-json` run carries those, resident sizes included, as
-`observations.stage_memory`; on a host without Linux procfs the two resident figures are
-null. A measured phase crossed on a pool thread that is running no stage body makes no
+`observations.stage_memory`; on a host without Linux procfs the resident figures are
+null, and on a target without glibc the allocator totals are null and a return of freed
+pages does nothing. A measured phase crossed on a pool thread that is running no stage body makes no
 kept record: with the target selected it is logged, and with the target off it is
 dropped. Selecting the target writes each record to the log as it is made, and
 `GMEOW_STAGE_MEMORY_LOG=<file>` appends each one to that file as one line whatever
