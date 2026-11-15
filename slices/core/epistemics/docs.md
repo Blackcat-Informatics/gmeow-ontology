@@ -233,7 +233,8 @@ ex:skyStatement rdf:reifies <<( ex:sky ex:hasColour ex:blue )>> ;
     gmeow:putForwardByClaim ex:aliceSaysBlue .
 ex:aliceSaysBlue a gmeow:ClaimToken ;
     gmeow:wasAssociatedWith ex:alice ;
-    gmeow:accordingTo ex:aliceStandpoint .
+    gmeow:accordingTo ex:aliceStandpoint ;
+    gmeow:expresses ex:skyIsBlue .
 
 ex:bobEvaluation a gmeow:ClaimEvaluation ;
     gmeow:evaluates ex:aliceSaysBlue ;
@@ -243,7 +244,7 @@ ex:bobEvaluation a gmeow:ClaimEvaluation ;
 ```
 
 To read it back, follow `gmeow:evaluates` from the evaluation to the token and
-`gmeow:putForwardByClaim` from the reifier to the same token. The full worked example is
+`gmeow:putForwardByClaim` from the reifier to the same token. Give the token the proposition it conveys with `gmeow:expresses`: the observation-claim view is built from tokens that express a proposition, so a token without one is absent from it, although the reifier-to-token readback still works. The full worked example is
 [`examples/evaluating-a-reified-statement.ttl`](./examples/evaluating-a-reified-statement.ttl).
 
 **An evaluation acts on nothing.** It never suppresses, ranks or replaces the claim it evaluates.

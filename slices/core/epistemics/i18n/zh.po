@@ -151,7 +151,7 @@ msgstr "在规范载体上断言 gmeow:underStandard 是函数性的:一个具�
 
 msgctxt "https://blackcatinformatics.ca/gmeow/adequacyUnderStandardFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
 msgid "Use when the native coherence gate must enforce that gmeow:adequacyUnderStandard names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
-msgstr "当原生一致性门必须强制 gmeow:adequacyUnderStandard 恰好命名一个值 时使用；该记录是门所连接的规范载体，因此该义务是被推理出来的，而非在形状表面上重述。"
+msgstr "当原生一致性门必须强制 gmeow:adequacyUnderStandard 至多命名一个值时使用；该记录是门所连接的规范载体，因此该义务是被推理出来的，而非在形状表面上重述。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/adequacyUnderStandardFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
 msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
@@ -526,7 +526,7 @@ msgid "putForwardByClaim is functional"
 msgstr "putForwardByClaim 具有函数性"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/putForwardByClaimFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
-msgid "Use when the native coherence gate must enforce that gmeow:putForwardByClaim names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
+msgid "Use when the native coherence gate must enforce that gmeow:putForwardByClaim names at most one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
 msgstr "当原生一致性门必须强制 gmeow:putForwardByClaim 恰好命名一个值 时使用；该记录是门所连接的规范载体，因此该义务是被推理出来的，而非在形状表面上重述。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/putForwardByClaimFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"

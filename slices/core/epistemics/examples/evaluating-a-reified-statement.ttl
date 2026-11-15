@@ -37,7 +37,11 @@ ex:skyStatement rdf:reifies <<( ex:sky ex:hasColour ex:blue )>> ;
 #       bridge from the reifier to it.
 ex:aliceSaysBlue a gmeow:ClaimToken ;
     gmeow:wasAssociatedWith ex:alice ;
-    gmeow:accordingTo       ex:aliceStandpoint .
+    gmeow:accordingTo       ex:aliceStandpoint ;
+    gmeow:expresses         ex:skyIsBlue .
+
+ex:skyIsBlue a gmeow:Proposition ;
+    rdfs:label "the sky is blue"@x-gmeow-english .
 
 ex:skyStatement gmeow:putForwardByClaim ex:aliceSaysBlue .
 
