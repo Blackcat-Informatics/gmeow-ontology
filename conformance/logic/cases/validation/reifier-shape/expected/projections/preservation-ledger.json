@@ -111,7 +111,8 @@
       "a shape surface validates but does not entail (ValidationOnly)",
       "everything SHACL Core drops (regex dialect, external terminology) is also dropped by ShEx, plus the ShEx-only drops above (a strictly larger residue set)",
       "actual: RDF-1.2 reifier/reification-required condition on https://blackcatinformatics.ca/gmeow/provenance/asserts has no ShEx form; carried in the canonical logic: layer",
-      "actual: sh:class https://blackcatinformatics.ca/gmeow/provenance/Agent on https://blackcatinformatics.ca/gmeow/provenance/endorsedBy has no ShEx facet; ShEx constrains the value to an IRI only, the class membership is carried in the canonical logic: layer"
+      "actual: sh:class https://blackcatinformatics.ca/gmeow/provenance/Agent on https://blackcatinformatics.ca/gmeow/provenance/endorsedBy has no ShEx facet; ShEx constrains the value to an IRI only, the class membership is carried in the canonical logic: layer",
+      "actual: the exclusion of schema-level reification obligation declarations from the focus set has no ShEx form (ShEx associates shapes via an external ShapeMap); carried in the canonical logic: layer"
     ],
     "preservation": "ValidationOnly"
   },
