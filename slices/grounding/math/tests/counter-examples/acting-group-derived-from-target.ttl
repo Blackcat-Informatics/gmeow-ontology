@@ -1,0 +1,10 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Fail-witness for ex:saActingGroupIsNeverDerived: a property chain that would give
+# every action on a root system that root system's Weyl group as its actor, so an
+# action of a subgroup would acquire the full Weyl group as a second actor.
+@prefix math:  <https://blackcatinformatics.ca/math/> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+
+math:actingGroup logic:propertyChainAxiom ( math:actsOn math:weylGroup ) .
