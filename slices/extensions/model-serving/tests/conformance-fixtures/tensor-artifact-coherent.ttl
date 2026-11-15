@@ -1,0 +1,31 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Passing control for gmeow:TensorArtifactCoherenceConstraint: a tensor artifact whose
+# computation graph describes the artifact's own learned model, whose one computation
+# node is an application expression, and whose weight lives in a parameter space of
+# that same model. Every part of the law holds and the artifact names no training
+# problem. A conformance cell of this slice reads this module and this fixture only,
+# so the fixture restates the types of the math-owned resources it names.
+# Bound by ex:ecTensorArtifactCoherent.
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix math:  <https://blackcatinformatics.ca/math/> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/model-serving/tensor-controls/> .
+
+ex:artifact a gmeow:TensorModelArtifact ;
+    gmeow:artifactLearnedModel ex:model ;
+    gmeow:artifactComputationGraph ex:graph ;
+    gmeow:artifactWeightTensor ex:weights .
+ex:model a math:LearnedModel .
+ex:graph a math:TensorComputationGraph ;
+    math:architectureOf ex:model ; math:computationNode ex:forward .
+ex:forward a math:ApplicationExpression ; math:operator math:matrixProduct ;
+    math:argumentSlot ex:slot0, ex:slot1 .
+ex:slot0 a math:ArgumentSlot ; math:slotIndex 0 ; math:slotExpression ex:weightRef .
+ex:slot1 a math:ArgumentSlot ; math:slotIndex 1 ; math:slotExpression ex:inputRef .
+ex:weightRef a math:SymbolReference ; math:hasMathematicalSymbol ex:weightSymbol .
+ex:inputRef a math:SymbolReference ; math:hasMathematicalSymbol ex:inputSymbol .
+ex:weightSymbol a math:MathematicalSymbol .
+ex:inputSymbol a math:MathematicalSymbol .
+ex:weights a math:WeightTensor ; math:inParameterSpace ex:parameters .
+ex:parameters a math:ParameterSpace ; math:parameterSpaceOf ex:model .

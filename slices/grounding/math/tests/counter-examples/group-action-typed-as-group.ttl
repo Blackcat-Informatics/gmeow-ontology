@@ -1,0 +1,12 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Fail-witness for ex:saGroupActionIsNotItsActor: an action descriptor is also typed
+# as a Weyl group and names itself as its actor, so no separate group is identified.
+@prefix math: <https://blackcatinformatics.ca/math/> .
+@prefix ex:   <http://example.org/math/group-action-actor/> .
+
+ex:action a math:GroupAction , math:WeylGroup ;
+    math:actingGroup ex:action ;
+    math:actsOn ex:target .
+ex:target a math:Set .

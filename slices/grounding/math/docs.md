@@ -142,6 +142,16 @@ over their n-ary predication is a relational-core capability, not an algebra-sli
   the derived equality. A different genuine Group can satisfy the generic actor rule without
   becoming the actor of this named E8 descriptor. Neither the actor edge nor that witness proves
   identity action, faithfulness or a constructed complete E8 root action.
+  The actor is also checked as data, apart from the validation view. `examples/a2-acting-groups.ttl`
+  records three actions on the six A2 roots — by the full automorphism group (order 12), by the Weyl
+  group (order 6) and by its rotation subgroup (order 3) — so one target has three actors and the
+  A2 Weyl group is not the full automorphism group. Two asserted competency questions return the
+  declared actor: `cqE8ActingGroup` over `e8-symmetry.ttl` and `cqActingGroupsOnRootSystem` over the
+  A2 example. Structural assertions over the module and its examples require the E8 record link
+  for link and ban a missing, repeated or non-Group actor, a descriptor typed as a group, a
+  different actor on `exa:e8WeylAction`, and a dropped law link; at module scope they ban a
+  characteristic, a global domain or range, and any axiom or rule that would derive
+  `math:actingGroup`. Each ban has a fail-witness fixture under `tests/counter-examples/`.
 - **Homomorphic encryption (flagship 2) and secret sharing** — `math:HomomorphicEncryptionScheme` (a
   `math:RingHomomorphism`) with `math:homomorphicOver`, `math:securityAssumption` (LWE/RLWE), and
   `math:noiseModel`; encrypt/evaluate/decrypt as `gmeow:Activity` processes. `Dec(E(a) ⊗ E(b)) = a ⊕ b`

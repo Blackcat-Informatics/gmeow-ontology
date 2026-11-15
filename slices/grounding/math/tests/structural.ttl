@@ -1524,3 +1524,172 @@ ASK {
      l:consequent/l:relation l:termEqual .
 }""" ;
     gmeow:saRationale "The three tensor-shape laws authored as formula trees MUST end in the comparison that states them. The presence law is guarded by a rank above zero and concludes that a math:shapeAxis exists. The range law reads the rank of the shape that owns the axis, through math:tensorRank and math:shapeAxis, and concludes that the math:axisIndex is strictly less than it. The uniqueness law is guarded by numeric equality of two indices under one shape and concludes that the two axis nodes are equal. Removing a guard relation or replacing a concluding comparison leaves a law that accepts the input its conformance cell rejects." .
+
+# --- Group-action actors: the declaration, the named E8 record and their boundaries ---
+# An action descriptor names the group that acts through math:actingGroup. The target,
+# a label or a nearby Weyl link never stands in for that link, a subgroup's action is
+# not the full group's action, and the E8 agreement between the Weyl group and the full
+# automorphism group is a fact about E8, not a rule. Every ban below carries a
+# fail-witness fixture that supplies the banned pattern.
+ex:saGroupActionActorDeclaration a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ; gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX m: <https://blackcatinformatics.ca/math/>
+PREFIX l: <https://blackcatinformatics.ca/logic/>
+PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+ASK {
+ m:actingGroup a l:ObjectProperty .
+ m:GroupAction l:subClassOf [ l:onProperty m:actingGroup ; l:allValuesFrom m:Group ] ,
+     [ l:onProperty m:actingGroup ; l:maxQualifiedCardinality 1 ; l:onClass l:Thing ] ;
+     gmeow:enforcesFailureClass m:MalformedGroupActionActor .
+ [] a l:ClosureEntry ; l:onClass m:GroupAction ; l:closureKey "https://blackcatinformatics.ca/math/actingGroup" ; l:closureValue l:ClosedWorldClosure .
+ m:MalformedGroupActionActor l:subClassOf m:MathConformanceFailure .
+}""" ;
+    gmeow:saRationale "A math:GroupAction MUST carry the three class-local actor obligations together: every math:actingGroup value is a math:Group, at most one value is declared, and the path is closed so that a missing actor is a finding rather than an unknown. The failure owner MUST be math:MalformedGroupActionActor, a math:MathConformanceFailure. Removing any one of the three leaves a missing, wrongly typed or repeated actor unreported." .
+
+ex:saActingGroupHasNoGlobalAxiom a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:mustNot ; gmeow:saScope gmeow:scopeModule ;
+    gmeow:saFailWitness "tests/counter-examples/acting-group-functional.ttl" ;
+    gmeow:saPattern """PREFIX m: <https://blackcatinformatics.ca/math/>
+PREFIX l: <https://blackcatinformatics.ca/logic/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    { ?record l:characterizes m:actingGroup ; l:characteristicSort ?sort }
+    UNION { m:actingGroup (rdfs:domain|l:domain|rdfs:range|l:range) ?kind }
+}""" ;
+    gmeow:saRationale "math:actingGroup MUST NOT carry a property characteristic or a global domain or range. A functional characteristic would make two actors declared on one action the same individual, identifying a subgroup with the full group instead of reporting the second actor. A global range would type whatever resource is named as a math:Group, and a global domain would type every subject as a math:GroupAction, so a wrongly typed actor or a retyped descriptor would be inferred correct instead of reported. The single typed actor is a class-local obligation on math:GroupAction." .
+
+ex:saActingGroupIsNeverDerived a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:mustNot ; gmeow:saScope gmeow:scopeModule ;
+    gmeow:saFailWitness "tests/counter-examples/acting-group-derived-from-target.ttl" ;
+    gmeow:saPattern """PREFIX m: <https://blackcatinformatics.ca/math/>
+PREFIX l: <https://blackcatinformatics.ca/logic/>
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    VALUES ?link { rdfs:subPropertyOf l:subPropertyOf l:inverseOf l:equivalentProperty }
+    { m:actingGroup ?link ?other }
+    UNION { ?other ?link m:actingGroup }
+    UNION { m:actingGroup l:propertyChainAxiom ?chain }
+    UNION { ?rule a l:Rule ; l:head ?atom . ?atom rdf:reifies <<( ?s m:actingGroup ?o )>> }
+}""" ;
+    gmeow:saRationale "No axiom or rule in the module derives a math:actingGroup link: the property MUST NOT be a sub-property, super-property, inverse or equivalent of another property, the conclusion of a property chain, or the head of a logic:Rule. The actor of an action is therefore only ever the one its author declared. A chain through math:actsOn and math:weylGroup, as in the fail-witness, would give the action of a subgroup the full Weyl group as a second actor. Axioms authored in another slice are outside the reach of a module-scope assertion." .
+
+ex:saE8WeylActionRecord a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ; gmeow:saScope gmeow:scopeModuleAndExamples ;
+    gmeow:saPattern """PREFIX m: <https://blackcatinformatics.ca/math/>
+PREFIX l: <https://blackcatinformatics.ca/logic/>
+PREFIX exa: <https://blackcatinformatics.ca/gmeow/examples/math/algebra/>
+ASK {
+    exa:e8WeylAction a m:GroupAction ;
+        m:actingGroup exa:e8Weyl ;
+        m:actsOn exa:e8Roots ;
+        m:preservedOperation exa:rootReflection ;
+        m:preservationLaw exa:groupActionLaw ;
+        m:satisfiesAxiom exa:groupActionLaw .
+    exa:e8Weyl a m:WeylGroup , m:AutomorphismGroup ;
+        m:hasRootSystem exa:e8Roots ;
+        m:automorphismGroupOf exa:e8Roots .
+    exa:e8Roots a m:RootSystem ;
+        m:weylGroup exa:e8Weyl .
+    exa:groupActionLaw a l:Formula ;
+        l:forall ?body .
+}""" ;
+    gmeow:saRationale "The authored E8 record MUST identify its actor explicitly: exa:e8WeylAction names exa:e8Weyl through math:actingGroup, and that same resource is the group exa:e8Roots declares as its Weyl group and the group declared as the full automorphism group of those roots. The descriptor keeps its target, its preserved operation and both links to the quantified compatibility formula. Deleting the actor link, pointing it elsewhere, or dropping either law link fails this assertion. It reads the declaration and does not evaluate the law." .
+
+ex:saE8WeylActionActorIsItsWeylGroup a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:mustNot ; gmeow:saScope gmeow:scopeModuleAndExamples ;
+    gmeow:saFailWitness "tests/counter-examples/e8-action-subgroup-as-actor.ttl" ;
+    gmeow:saPattern """PREFIX m: <https://blackcatinformatics.ca/math/>
+PREFIX exa: <https://blackcatinformatics.ca/gmeow/examples/math/algebra/>
+ASK {
+    exa:e8WeylAction m:actingGroup ?actor .
+    FILTER(?actor != exa:e8Weyl)
+}""" ;
+    gmeow:saRationale "The named E8 Weyl action MUST NOT declare any actor other than exa:e8Weyl. The fail-witness names a fully framed proper subgroup: it satisfies the generic rule that an actor is a math:Group and is still the wrong actor for this action, which is the difference between a declaration that is well formed and one that is right. A second actor beside exa:e8Weyl fails here as well as under the declaration count." .
+
+ex:saE8WeylActionKeepsBothLawLinks a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:mustNot ; gmeow:saScope gmeow:scopeModuleAndExamples ;
+    gmeow:saFailWitness "tests/counter-examples/e8-action-law-link-missing.ttl" ;
+    gmeow:saPattern """PREFIX m: <https://blackcatinformatics.ca/math/>
+PREFIX l: <https://blackcatinformatics.ca/logic/>
+PREFIX exa: <https://blackcatinformatics.ca/gmeow/examples/math/algebra/>
+ASK {
+    exa:e8WeylAction a m:GroupAction .
+    FILTER NOT EXISTS {
+        exa:e8WeylAction m:preservationLaw ?law ;
+            m:satisfiesAxiom ?law .
+        ?law a l:Formula ;
+            l:forall ?body .
+    }
+}""" ;
+    gmeow:saRationale "Identifying the actor MUST NOT cost the named E8 action its law: the descriptor names one quantified logic:Formula through both math:preservationLaw and math:satisfiesAxiom. The fail-witness keeps the actor, the target, the operation and one law link and drops the other, and the ban holds over it. The native competency question joins the same links to a derived equality, where a dropped link cannot be told apart from a law that did not fire; this assertion reads the links alone." .
+
+ex:saEveryGroupActionNamesItsActor a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:mustNot ; gmeow:saScope gmeow:scopeModuleAndExamples ;
+    gmeow:saFailWitness "tests/counter-examples/group-action-actor-missing.ttl" ;
+    gmeow:saPattern """PREFIX m: <https://blackcatinformatics.ca/math/>
+ASK {
+    ?action a m:GroupAction .
+    FILTER NOT EXISTS { ?action m:actingGroup ?actor }
+}""" ;
+    gmeow:saRationale "No authored math:GroupAction in the module or its worked examples may omit math:actingGroup. The actor is not recoverable from the target: the three actions on the A2 roots share one target and have three different actors. The fail-witness is the action that has a target and no actor." .
+
+ex:saGroupActionNamesOneActor a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:mustNot ; gmeow:saScope gmeow:scopeModuleAndExamples ;
+    gmeow:saFailWitness "tests/counter-examples/group-action-actor-multiple.ttl" ;
+    gmeow:saPattern """PREFIX m: <https://blackcatinformatics.ca/math/>
+ASK {
+    ?action a m:GroupAction ;
+        m:actingGroup ?first , ?second .
+    FILTER(?first != ?second)
+}""" ;
+    gmeow:saRationale "No authored math:GroupAction may name two different resources as its actor. Two groups acting on one target are two actions, as the Weyl group and the full automorphism group of the A2 roots are recorded; one descriptor naming both would leave the acting group undetermined. The comparison is between the resources as written and claims no equality reasoning." .
+
+ex:saGroupActionActorIsAGroup a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:mustNot ; gmeow:saScope gmeow:scopeModuleAndExamples ;
+    gmeow:saFailWitness "tests/counter-examples/group-action-actor-wrong-kind.ttl" ;
+    gmeow:saPattern """PREFIX m: <https://blackcatinformatics.ca/math/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX l: <https://blackcatinformatics.ca/logic/>
+ASK {
+    ?action a m:GroupAction ;
+        m:actingGroup ?actor .
+    FILTER NOT EXISTS {
+        ?actor a ?kind .
+        ?kind (rdfs:subClassOf|l:subClassOf)* m:Group .
+    }
+}""" ;
+    gmeow:saRationale "Every actor named by an authored math:GroupAction MUST carry a declared type that is math:Group or one of its declared subclasses, such as math:WeylGroup or math:AutomorphismGroup. The fail-witness names the root system acted on as the actor: the target has been substituted for the group. The check follows declared types and subclass links as written and infers no type." .
+
+ex:saGroupActionIsNotItsActor a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:mustNot ; gmeow:saScope gmeow:scopeModuleAndExamples ;
+    gmeow:saFailWitness "tests/counter-examples/group-action-typed-as-group.ttl" ;
+    gmeow:saPattern """PREFIX m: <https://blackcatinformatics.ca/math/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX l: <https://blackcatinformatics.ca/logic/>
+ASK {
+    ?action a m:GroupAction .
+    { ?action a ?kind . ?kind (rdfs:subClassOf|l:subClassOf)* m:Group }
+    UNION { ?action m:actingGroup ?action }
+    UNION { m:GroupAction (rdfs:subClassOf|l:subClassOf)+ m:Group }
+}""" ;
+    gmeow:saRationale "An action descriptor MUST NOT be typed as a group, name itself as its actor, or belong to a class placed under math:Group. Retyping the descriptor would satisfy the actor rule without identifying any group, so the descriptor and the group that acts stay two resources with two roles. A group acting on itself by multiplication or conjugation is still recorded as a descriptor whose actor and target are that group." .
+
+ex:saA2ActionsShareATargetNotAnActor a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ; gmeow:saScope gmeow:scopeModuleAndExamples ;
+    gmeow:saPattern """PREFIX m: <https://blackcatinformatics.ca/math/>
+PREFIX exag: <https://blackcatinformatics.ca/gmeow/examples/math/acting-groups/>
+ASK {
+    exag:a2AutomorphismAction a m:GroupAction ; m:actingGroup exag:a2Automorphisms ; m:actsOn exag:a2Roots .
+    exag:a2WeylAction a m:GroupAction ; m:actingGroup exag:a2Weyl ; m:actsOn exag:a2Roots .
+    exag:a2RotationAction a m:GroupAction ; m:actingGroup exag:a2Rotations ; m:actsOn exag:a2Roots .
+    exag:a2Roots m:weylGroup exag:a2Weyl .
+    exag:a2Automorphisms a m:AutomorphismGroup ; m:automorphismGroupOf exag:a2Roots .
+    exag:a2Weyl a m:WeylGroup ; m:normalSubgroupOf exag:a2Automorphisms .
+    exag:a2Rotations m:normalSubgroupOf exag:a2Weyl .
+    FILTER NOT EXISTS { exag:a2Weyl a m:AutomorphismGroup }
+    FILTER NOT EXISTS { exag:a2Weyl m:automorphismGroupOf ?structure }
+    FILTER NOT EXISTS { exag:a2Rotations a m:WeylGroup }
+    FILTER NOT EXISTS { ?roots m:weylGroup exag:a2Rotations }
+}""" ;
+    gmeow:saRationale "The worked A2 example MUST keep three actions on one target with three different actors, and MUST keep the roles apart: the Weyl group of A2 is a proper normal subgroup of the full automorphism group and is not itself typed or anchored as an automorphism group, and the rotation subgroup is neither the Weyl group of any root system nor a Weyl group by type. Typing the A2 Weyl group as the full automorphism group, as is right for E8, fails this assertion." .
