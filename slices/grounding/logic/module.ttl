@@ -17123,20 +17123,80 @@ logic:ReasoningProgramQueryConstraint
     gmeow:useWhen "Use when validating an authored logic:ReasoningProgram before compiling it to the native engine's goal resolution."@x-gmeow-english .
 
 logic:TermCarrierIndexConstraint
-    a logic:GuardedImplicationConstraint ;
+    a logic:Constraint ;
     logic:formalizes logic:TermCarrier ;
-    logic:onClass logic:TermCarrier ;
-    logic:requires logic:termIndex ;
-    logic:trigger rdf:type ;
-    logic:triggerValue logic:TermCarrier ;
+    logic:severity "Violation" ;
+    logic:message "A carrier linked by logic:argument requires a logic:termIndex; RDF statement order never supplies an argument position." ;
+    logic:integrity [
+        a logic:Formula ;
+        logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ,
+            [ logic:termIndex 1 ; logic:termVariable "owner" ] ;
+        logic:forall [
+            a logic:Formula ;
+            logic:antecedent [
+                a logic:Formula ;
+                logic:relation logic:argument ;
+                logic:argument [ logic:termIndex 0 ; logic:termVariable "owner" ] ,
+                    [ logic:termIndex 1 ; logic:termVariable "this" ]
+            ] ;
+            logic:consequent [
+                a logic:Formula ;
+                logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "index" ] ;
+                logic:exists [
+                    a logic:Formula ;
+                    logic:relation logic:termIndex ;
+                    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] ,
+                        [ logic:termIndex 1 ; logic:termVariable "index" ]
+                ]
+            ]
+        ]
+    ] ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "Term Carrier Index Constraint"@x-gmeow-english ;
-    skos:definition "Requires every declared logic:TermCarrier to carry a logic:termIndex. It is not the list-level ordering check: uniqueness and zero-based contiguity are verified across all sibling carriers by the typed-IR frontend."@x-gmeow-english ;
-    skos:example "A logic:TermCarrier with logic:termVariable 'x' but no logic:termIndex violates this constraint."@x-gmeow-english ;
+    skos:definition "Requires every carrier that is the object of logic:argument (an atomic formula operand, a function-term operand or a rule inequality-guard operand) to carry a logic:termIndex. It is not a requirement on a carrier occupying an RDF 1.2 triple-term position of a rule atom, which needs no index, and it is not the list-level ordering check: uniqueness and zero-based contiguity are verified across sibling carriers by the typed-IR frontend."@x-gmeow-english ;
+    skos:example "ex:atom logic:argument ex:slot . ex:slot logic:termVariable 'x' . violates this constraint because ex:slot has no logic:termIndex."@x-gmeow-english ;
     gmeow:avoidWhen "Do not infer an omitted index from RDF statement order, which has no semantic ordering."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxCBox ;
     gmeow:howToUse "Require one non-negative integer index on each carrier, then validate the sibling index set as 0 through n minus 1."@x-gmeow-english ;
-    gmeow:useWhen "Use when validating ordered argument lists and quantifier binding blocks."@x-gmeow-english .
+    gmeow:useWhen "Use when validating the ordered argument lists of atoms, function terms and rule inequality guards."@x-gmeow-english .
+
+logic:BoundVariableCarrierIndexConstraint
+    a logic:Constraint ;
+    logic:formalizes logic:quantifiedVariable ;
+    logic:severity "Violation" ;
+    logic:message "A carrier linked by logic:quantifiedVariable requires a logic:termIndex; RDF statement order never supplies a binder position." ;
+    logic:integrity [
+        a logic:Formula ;
+        logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ,
+            [ logic:termIndex 1 ; logic:termVariable "binder" ] ;
+        logic:forall [
+            a logic:Formula ;
+            logic:antecedent [
+                a logic:Formula ;
+                logic:relation logic:quantifiedVariable ;
+                logic:argument [ logic:termIndex 0 ; logic:termVariable "binder" ] ,
+                    [ logic:termIndex 1 ; logic:termVariable "this" ]
+            ] ;
+            logic:consequent [
+                a logic:Formula ;
+                logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "index" ] ;
+                logic:exists [
+                    a logic:Formula ;
+                    logic:relation logic:termIndex ;
+                    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] ,
+                        [ logic:termIndex 1 ; logic:termVariable "index" ]
+                ]
+            ]
+        ]
+    ] ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Bound Variable Carrier Index Constraint"@x-gmeow-english ;
+    skos:definition "Requires every carrier that is the object of logic:quantifiedVariable to carry a logic:termIndex fixing its place in the binding block of its quantifier. It is not the check that the carrier names a variable, which the typed-IR frontend makes when it reads the block, and it is not the list-level ordering check: uniqueness and zero-based contiguity across the block are verified by the same frontend."@x-gmeow-english ;
+    skos:example "ex:quantifier logic:quantifiedVariable ex:binding . ex:binding logic:termVariable 'x' . violates this constraint because ex:binding has no logic:termIndex."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not infer the order of bound variables from RDF statement order; reordering a quantifier prefix can change the meaning of the formula."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxCBox ;
+    gmeow:howToUse "Require one non-negative integer index on each bound-variable carrier, then validate the index set of the binding block as 0 through n minus 1."@x-gmeow-english ;
+    gmeow:useWhen "Use when validating the ordered binding block of a logic:forall or logic:exists quantifier."@x-gmeow-english .
 
 logic:LiteralDatatypeConstraint
     a logic:GuardedImplicationConstraint ;

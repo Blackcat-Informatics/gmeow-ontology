@@ -10431,12 +10431,40 @@ msgid "Term Carrier Index Constraint"
 msgstr "Contrainte d'indice du porteur de terme"
 
 msgctxt "https://blackcatinformatics.ca/logic/TermCarrierIndexConstraint|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Requires every declared logic:TermCarrier to carry a logic:termIndex. It is not the list-level ordering check: uniqueness and zero-based contiguity are verified across all sibling carriers by the typed-IR frontend."
-msgstr "Exige que chaque logic:TermCarrier déclaré porte un logic:termIndex. Ce n'est pas le contrôle d'ordre au niveau de la liste : l'unicité et la contiguïté à partir de zéro sont vérifiées sur l'ensemble des porteurs frères par le frontal de l'IR typé."
+msgid "Requires every carrier that is the object of logic:argument (an atomic formula operand, a function-term operand or a rule inequality-guard operand) to carry a logic:termIndex. It is not a requirement on a carrier occupying an RDF 1.2 triple-term position of a rule atom, which needs no index, and it is not the list-level ordering check: uniqueness and zero-based contiguity are verified across sibling carriers by the typed-IR frontend."
+msgstr "Exige que chaque porteur qui est l'objet de logic:argument (opérande d'une formule atomique, opérande d'un terme fonctionnel ou opérande d'une garde d'inégalité de règle) porte un logic:termIndex. Ce n'est pas une exigence pesant sur un porteur qui occupe une position de terme de triplet RDF 1.2 dans un atome de règle, lequel n'a besoin d'aucun indice, et ce n'est pas le contrôle d'ordre au niveau de la liste : l'unicité et la contiguïté à partir de zéro sont vérifiées sur l'ensemble des porteurs frères par le frontal de l'IR typé."
 
 msgctxt "https://blackcatinformatics.ca/logic/TermCarrierIndexConstraint|http://www.w3.org/2004/02/skos/core#example"
-msgid "A logic:TermCarrier with logic:termVariable 'x' but no logic:termIndex violates this constraint."
-msgstr "Un logic:TermCarrier ayant logic:termVariable 'x' mais aucun logic:termIndex viole cette contrainte."
+msgid "ex:atom logic:argument ex:slot . ex:slot logic:termVariable 'x' . violates this constraint because ex:slot has no logic:termIndex."
+msgstr "ex:atom logic:argument ex:slot . ex:slot logic:termVariable 'x' . enfreint cette contrainte parce que ex:slot n'a aucun logic:termIndex."
+
+msgctxt "https://blackcatinformatics.ca/logic/TermCarrierIndexConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when validating the ordered argument lists of atoms, function terms and rule inequality guards."
+msgstr "À utiliser pour valider les listes ordonnées d'arguments des atomes, des termes fonctionnels et des gardes d'inégalité de règle."
+
+msgctxt "https://blackcatinformatics.ca/logic/BoundVariableCarrierIndexConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Bound Variable Carrier Index Constraint"
+msgstr "Contrainte d'indice du porteur de variable liée"
+
+msgctxt "https://blackcatinformatics.ca/logic/BoundVariableCarrierIndexConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Requires every carrier that is the object of logic:quantifiedVariable to carry a logic:termIndex fixing its place in the binding block of its quantifier. It is not the check that the carrier names a variable, which the typed-IR frontend makes when it reads the block, and it is not the list-level ordering check: uniqueness and zero-based contiguity across the block are verified by the same frontend."
+msgstr "Exige que chaque porteur qui est l'objet de logic:quantifiedVariable porte un logic:termIndex fixant sa place dans le bloc de lieurs de son quantificateur. Ce n'est pas le contrôle que le porteur nomme une variable, que le frontal de l'IR typé effectue en lisant le bloc, et ce n'est pas le contrôle d'ordre au niveau de la liste : l'unicité et la contiguïté à partir de zéro dans le bloc sont vérifiées par ce même frontal."
+
+msgctxt "https://blackcatinformatics.ca/logic/BoundVariableCarrierIndexConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:quantifier logic:quantifiedVariable ex:binding . ex:binding logic:termVariable 'x' . violates this constraint because ex:binding has no logic:termIndex."
+msgstr "ex:quantifier logic:quantifiedVariable ex:binding . ex:binding logic:termVariable 'x' . enfreint cette contrainte parce que ex:binding n'a aucun logic:termIndex."
+
+msgctxt "https://blackcatinformatics.ca/logic/BoundVariableCarrierIndexConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when validating the ordered binding block of a logic:forall or logic:exists quantifier."
+msgstr "À utiliser pour valider le bloc de lieurs ordonné d'un quantificateur logic:forall ou logic:exists."
+
+msgctxt "https://blackcatinformatics.ca/logic/BoundVariableCarrierIndexConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Do not infer the order of bound variables from RDF statement order; reordering a quantifier prefix can change the meaning of the formula."
+msgstr "Ne pas déduire l'ordre des variables liées de l'ordre des énoncés RDF ; réordonner un préfixe de quantificateurs peut changer le sens de la formule."
+
+msgctxt "https://blackcatinformatics.ca/logic/BoundVariableCarrierIndexConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Require one non-negative integer index on each bound-variable carrier, then validate the index set of the binding block as 0 through n minus 1."
+msgstr "Exiger un indice entier non négatif sur chaque porteur de variable liée, puis valider l'ensemble des indices du bloc de lieurs comme allant de 0 à n moins 1."
 
 msgctxt "https://blackcatinformatics.ca/logic/TermCarrierValueConstraint|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "Term Carrier Value Constraint"

@@ -4,7 +4,12 @@
 @prefix ex: <https://blackcatinformatics.ca/gmeow/examples/logic/tests/> .
 @prefix logic: <https://blackcatinformatics.ca/logic/> .
 
-# The carrier has exactly one value kind but no explicit zero-based position.
+# The atom's only operand has exactly one value kind but no explicit zero-based position.
+ex:unpositionedAtom
+    a logic:Formula ;
+    logic:argument ex:unpositionedCarrier ;
+    logic:relation ex:eligible .
+
 ex:unpositionedCarrier
     a logic:TermCarrier ;
     logic:termVariable "person" .
