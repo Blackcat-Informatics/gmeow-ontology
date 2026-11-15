@@ -37,8 +37,9 @@ ex:ledger a gmeow:TracePacketLedger ;
     gmeow:tracePacket ex:packetOne , ex:packetTwo , ex:packetThree ;
     gmeow:wasAttributedTo ex:recorder .
 
-# The memory service declares that its own marking is final up to and including packet one;
-# marks of any other producer are not covered.
+# The memory service declares that marking is final up to and including packet
+# one: no mark will name a packet at or below it. The watermark belongs to the
+# memory service.
 ex:cut a gmeow:TraceWatermark ;
     gmeow:traceFinalityLedger ex:ledger ;
     gmeow:traceFinalityProducer ex:memoryService ;
@@ -46,7 +47,9 @@ ex:cut a gmeow:TraceWatermark ;
     gmeow:wasAttributedTo ex:memoryService .
 
 # A derivation that marks events later states how far it has committed. Its
-# point is a packet key that is not a member of the ledger.
+# point is a packet key that is not a member of the ledger. The watermark above
+# must not pass an applicable late-producer frontier such as this one; nothing
+# here decides which frontiers apply or compares the times.
 ex:pointKey a gmeow:TraceAnchor ;
     gmeow:anchorPacket "4444444444444444444444444444444444444444444444444444444444444444"^^xsd:hexBinary ;
     gmeow:anchorSourceProfile ex:profile ;

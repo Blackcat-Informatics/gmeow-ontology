@@ -1,0 +1,13 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Fail-witness for ex:saTraceFinalityDerivesNothing. The cut-packet role is made a
+# sub-property of another role, so a statement would be derived from a watermark.
+# Unioned with the module, it makes the ban's ASK hold. The real module never
+# carries it.
+
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix ce:    <https://example.org/trace-finality/counter-examples/> .
+
+gmeow:watermarkPacket logic:subPropertyOf ce:finalizedPacket .

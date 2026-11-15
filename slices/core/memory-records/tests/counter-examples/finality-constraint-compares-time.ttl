@@ -1,0 +1,19 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Fail-witness for ex:saTraceFinalityNoComparison. A constraint that formalizes
+# TraceWatermark and compares a cut time with a frontier time through the numeric
+# comparison, exactly the comparison the finality records must not make. Unioned
+# with the module, it makes the ban's ASK hold. The real module never carries it.
+
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix rdf:   <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix ce:    <https://example.org/trace-finality/counter-examples/> .
+
+ce:watermarkTimeComparison a logic:Constraint ;
+    logic:formalizes gmeow:TraceWatermark ;
+    logic:integrity [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "cut" ] , [ logic:termIndex 1 ; logic:termVariable "cutTime" ] , [ logic:termIndex 2 ; logic:termVariable "frontierTime" ] ;
+        logic:forall [ a logic:Formula ;
+            logic:antecedent [ a logic:Formula ; logic:relation rdf:type ; logic:argument [ logic:termIndex 0 ; logic:termVariable "cut" ] , [ logic:termIndex 1 ; logic:termIri gmeow:TraceWatermark ] ] ;
+            logic:consequent [ a logic:Formula ; logic:relation logic:termLessEqual ; logic:argument [ logic:termIndex 0 ; logic:termVariable "cutTime" ] , [ logic:termIndex 1 ; logic:termVariable "frontierTime" ] ] ] ] .

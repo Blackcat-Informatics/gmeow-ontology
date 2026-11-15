@@ -59,6 +59,7 @@ ASK {
 
 ex:saTraceFinalityNoComparison a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:mustNot ; gmeow:saScope gmeow:scopeModule ;
+    gmeow:saFailWitness "tests/counter-examples/finality-constraint-compares-time.ttl" ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
 PREFIX logic: <https://blackcatinformatics.ca/logic/>
 PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
@@ -73,6 +74,7 @@ ASK {
 
 ex:saTraceFinalityDerivesNothing a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:mustNot ; gmeow:saScope gmeow:scopeModule ;
+    gmeow:saFailWitness "tests/counter-examples/finality-role-subproperty.ttl" ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
 PREFIX logic: <https://blackcatinformatics.ca/logic/>
 PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
@@ -89,6 +91,7 @@ ASK {
 
 ex:saTraceFinalityNoRuleBody a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:mustNot ; gmeow:saScope gmeow:scopeModule ;
+    gmeow:saFailWitness "tests/counter-examples/finality-role-in-rule-body.ttl" ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
 PREFIX logic: <https://blackcatinformatics.ca/logic/>
 PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
@@ -101,6 +104,7 @@ ASK {
 
 ex:saTraceFinalityNoFormulaOutsideConstraint a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:mustNot ; gmeow:saScope gmeow:scopeModule ;
+    gmeow:saFailWitness "tests/counter-examples/finality-formula-outside-constraint.ttl" ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
 PREFIX logic: <https://blackcatinformatics.ca/logic/>
 ASK {
@@ -143,6 +147,7 @@ ASK {
 
 ex:saTraceFinalityNotFunctional a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:mustNot ; gmeow:saScope gmeow:scopeModule ;
+    gmeow:saFailWitness "tests/counter-examples/finality-role-functional.ttl" ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
 PREFIX logic: <https://blackcatinformatics.ca/logic/>
 ASK {

@@ -10,18 +10,19 @@
 @prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/memory-records/tests/> .
 @prefix tf:    <https://example.org/trace-finality/> .
 
-# "Whose marks does each watermark finalize, in which ledger, and up to which packet?"
+# "Which producer does each watermark belong to, who declared it, in which ledger, and up to which packet?"
 ex:cqWatermarkDeclared a gmeow:CompetencyQuestion ;
     gmeow:cqReasoning gmeow:reasoningNone ;
     gmeow:cqDataFile "examples/trace-finality.ttl" ;
     gmeow:cqQuery """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
-SELECT ?watermark ?ledger ?producer ?packet WHERE {
+SELECT ?watermark ?ledger ?producer ?declarer ?packet WHERE {
     ?watermark a gmeow:TraceWatermark ;
         gmeow:traceFinalityLedger ?ledger ;
         gmeow:traceFinalityProducer ?producer ;
+        gmeow:wasAttributedTo ?declarer ;
         gmeow:watermarkPacket ?packet .
 }""" ;
-    gmeow:cqRationale "A recorder must be able to read, as data, which producer's marks a watermark finalizes, in which ledger and up to which recorded packet, without the answer implying that the declaration was checked against the ledger's order or that it covers any other producer." ;
+    gmeow:cqRationale "A recorder must be able to read, as data, up to which recorded packet of which ledger a watermark declares marking final, which producer it belongs to and who declared it, without the answer implying that the declaration was checked against the ledger's order or against any late-producer frontier." ;
     gmeow:cqExactRows true ;
     gmeow:cqResultShape ex:cqWatermarkDeclaredShape ;
     gmeow:cqExpectRow ex:wdCut .
@@ -31,6 +32,7 @@ ex:cqWatermarkDeclaredShape a logic:ResultShape ;
         [ logic:columnVariable "watermark" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
         [ logic:columnVariable "ledger" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
         [ logic:columnVariable "producer" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "declarer" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
         [ logic:columnVariable "packet" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ;
     logic:shapeCardinality logic:RowsExact .
 
@@ -38,6 +40,7 @@ ex:wdCut a gmeow:ExpectedRow ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "watermark" ; gmeow:cellValueIri tf:cut ] ,
         [ a gmeow:ExpectedCell ; gmeow:cellVar "ledger" ; gmeow:cellValueIri tf:ledger ] ,
         [ a gmeow:ExpectedCell ; gmeow:cellVar "producer" ; gmeow:cellValueIri tf:memoryService ] ,
+        [ a gmeow:ExpectedCell ; gmeow:cellVar "declarer" ; gmeow:cellValueIri tf:memoryService ] ,
         [ a gmeow:ExpectedCell ; gmeow:cellVar "packet" ; gmeow:cellValueIri tf:packetOne ] .
 
 # "Which committed point has each late producer stated?"
@@ -50,7 +53,7 @@ SELECT ?frontier ?producer ?point WHERE {
         gmeow:traceFinalityProducer ?producer ;
         gmeow:frontierPoint ?point .
 }""" ;
-    gmeow:cqRationale "A recorder deciding whether a producer's watermark may advance needs that producer's stated committed point as data. The question returns the stated point per producer and does not decide whether the watermark passes it, since no order is evaluated." ;
+    gmeow:cqRationale "A recorder deciding whether a watermark may advance needs the committed point each late producer stated as data. The question returns the stated point per late producer and decides neither which frontiers apply nor whether the watermark passes them, since no order is evaluated." ;
     gmeow:cqExactRows true ;
     gmeow:cqResultShape ex:cqFrontierCommittedShape ;
     gmeow:cqExpectRow ex:fcLate .
