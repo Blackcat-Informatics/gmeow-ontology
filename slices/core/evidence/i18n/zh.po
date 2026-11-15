@@ -17,8 +17,8 @@ msgid "Assertion Category"
 msgstr "断言类别"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/AssertionCategory|http://www.w3.org/2004/02/skos/core#definition"
-msgid "The kind of assertion a claim is — a value vocabulary (individuals, never subclasses) that says what the claim is, not how well it is supported: a self-description by the subject of the claim, a statement resting on externally published evidence, or a derived interpretation inferred or computed from other statements. A category classifies a claim and never ranks it; claims of different categories about the same matter are co-equal and coexist (Principle 9). It is a different axis from gmeow:EvidenceClass, which grades the warrant of one citation, and the two may differ: a self-description may cite an official source."
-msgstr "声明所属的断言种类——一个值词汇表（由个体构成，绝不使用子类），说明声明是什么，而不是它得到多大程度的支持：声明主体的自我描述、依赖外部公开证据的陈述，或由其他陈述推断或计算得出的派生解释。类别只对声明分类，从不为其排序；就同一事项而言，不同类别的声明地位平等并共存（原则 9）。它与 gmeow:EvidenceClass 是不同的维度，后者评定单条引用的依据强度，二者可以不同：自我描述可以引用官方来源。"
+msgid "The kind of assertion a claim is — a value vocabulary (individuals, never subclasses) that says what the claim is, not how well it is supported: a self-description by the subject of the claim, a statement resting on externally published evidence, or a derived interpretation inferred or computed from other statements. A category classifies a claim and never ranks it; claims of different categories about the same matter are co-equal and coexist (Principle 9). Each category is related by a mapping relation to the gmeow:EvidenceClass, gmeow:SourceIndependence and gmeow:ObservationType individuals that say the same of a citation or an observation. Those relations hold between the values, never between a claim and its citations, so a claim's category and the evidence classes of its citations may differ: a self-description may cite an official source."
+msgstr "声明所属的断言种类——一个值词汇表（由个体构成，绝不使用子类），说明声明是什么，而不是它得到多大程度的支持：声明主体的自我描述、依赖外部公开证据的陈述，或由其他陈述推断或计算得出的派生解释。类别只对声明分类，从不为其排序；就同一事项而言，不同类别的声明地位平等并共存（原则 9）。每个类别都通过映射关系与对引用或观测作出同样说明的 gmeow:EvidenceClass、gmeow:SourceIndependence 和 gmeow:ObservationType 个体相关联。这些关系存在于值与值之间，绝不存在于声明与其引用之间，因此声明的类别与其引用的证据类别可以不同：自我描述可以引用官方来源。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/AssertionCategory|http://www.w3.org/2004/02/skos/core#example"
 msgid "ex:claim gmeow:assertionCategory gmeow:assertionCategorySelfDescription ."
@@ -41,8 +41,8 @@ msgid "assertion category"
 msgstr "断言类别"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/assertionCategory|http://www.w3.org/2004/02/skos/core#definition"
-msgid "The category of the assertion a claim makes — self-description, published evidence or derived interpretation — stated on the claim itself, whether that claim is a statement reifier or a claim record. It has no domain class because a reifier has none. Non-functional: competing categorisations by different standpoints coexist, and a claim that is both a self-description and a derived interpretation carries both. It is independent of gmeow:hasEvidenceClass: no category follows from the evidence classes of a claim's citations and none implies them."
-msgstr "声明所作断言的类别——自我描述、公开证据或派生解释——直接写在声明本身上，无论该声明是陈述具体化节点还是声明记录。它没有定义域类，因为具体化节点没有类。非函数性：不同立场的相互竞争的归类并存，既是自我描述又是派生解释的声明同时带有两者。它独立于 gmeow:hasEvidenceClass：类别不由声明引用的证据类别推出，也不蕴含这些证据类别。"
+msgid "The category of the assertion a claim makes — self-description, published evidence or derived interpretation — stated on the claim itself. It declares no domain, so it applies alike to a bare statement reifier and to a claim record such as a gmeow:ClaimToken, without typing either. Non-functional: competing categorisations by different standpoints coexist, and a claim that is both a self-description and a derived interpretation carries both. No category follows from the evidence classes of a claim's citations and none implies them; the correspondence with gmeow:hasEvidenceClass and gmeow:observationType is stated between their values."
+msgstr "声明所作断言的类别——自我描述、公开证据或派生解释——直接写在声明本身上。它不声明定义域，因此同样适用于单纯的陈述具体化节点和 gmeow:ClaimToken 之类的声明记录，且不为二者指定类型。非函数性：不同立场的相互竞争的归类并存，既是自我描述又是派生解释的声明同时带有两者。类别不由声明引用的证据类别推出，也不蕴含这些证据类别；它与 gmeow:hasEvidenceClass 和 gmeow:observationType 的对应关系是在它们的值之间陈述的。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/assertionCategory|http://www.w3.org/2004/02/skos/core#example"
 msgid "ex:claim gmeow:assertionCategory gmeow:assertionCategoryPublishedEvidence ."
@@ -53,8 +53,8 @@ msgid "Avoid using it as a rank, a trust level or a display flag, avoid reading 
 msgstr "避免把它当作排名、可信度等级或显示标志，避免据此推读声明引用的证据类别，也避免强制只取一个值；它是非函数性的（原则 9）。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/assertionCategory|https://blackcatinformatics.ca/gmeow/howToUse"
-msgid "Annotate the claim's statement reifier with one or more gmeow:AssertionCategory individuals; keep the evidence class on each gmeow:CitationAct the claim rests on, and let claims of different categories coexist without ordering."
-msgstr "用一个或多个 gmeow:AssertionCategory 个体标注声明的陈述具体化节点；证据类别仍保留在声明所依赖的每个 gmeow:CitationAct 上，并让不同类别的声明不分先后地共存。"
+msgid "Annotate the claim's statement reifier or claim record with one or more gmeow:AssertionCategory individuals; keep the evidence class on each gmeow:CitationAct the claim rests on, and let claims of different categories coexist without ordering. A categorisation is itself a claim: annotate it with gmeow:accordingTo when it matters which standpoint made it."
+msgstr "用一个或多个 gmeow:AssertionCategory 个体标注声明的陈述具体化节点或声明记录；证据类别仍保留在声明所依赖的每个 gmeow:CitationAct 上，并让不同类别的声明不分先后地共存。归类本身也是一条声明：当需要说明由哪个立场作出归类时，用 gmeow:accordingTo 标注它。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/assertionCategory|https://blackcatinformatics.ca/gmeow/useWhen"
 msgid "Use to say, on the claim itself, what kind of assertion it is, so a consumer can list or select claims by category without inspecting their citations."
@@ -65,21 +65,21 @@ msgid "derived interpretation"
 msgstr "派生解释"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/assertionCategoryDerivedInterpretation|http://www.w3.org/2004/02/skos/core#definition"
-msgid "The claim is an interpretation inferred or computed from other statements rather than stated by its subject or read from a source; it is the claim-level counterpart of an observation typed gmeow:observationTypeDerived, and the statements it was derived from are carried by its provenance."
-msgstr "该声明是由其他陈述推断或计算得出的解释，而不是由其主体陈述或从来源中读取；它是类型为 gmeow:observationTypeDerived 的观测在声明层面的对应物，其所依据的陈述由它的出处记录携带。"
+msgid "The claim is an interpretation inferred or computed from other statements rather than stated by its subject or read from a source. It is the claim-level counterpart of gmeow:observationTypeDerived, which says the same of an observation: categorise the bare claim and type the observation record, and infer neither from the other. The statements it was derived from are carried by its provenance."
+msgstr "该声明是由其他陈述推断或计算得出的解释，而不是由其主体陈述或从来源中读取。它是 gmeow:observationTypeDerived 在声明层面的对应物，后者对观测作出同样的说明：对单纯的声明进行归类，对观测记录指定类型，二者互不推出。其所依据的陈述由它的出处记录携带。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/assertionCategoryPublishedEvidence|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "published evidence"
 msgstr "公开证据"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/assertionCategoryPublishedEvidence|http://www.w3.org/2004/02/skos/core#definition"
-msgid "The claim is a statement that rests on externally published evidence: the claim reports what a source outside the claim's own standpoint says, and each such source is cited through a gmeow:CitationAct that carries its own gmeow:hasEvidenceClass."
-msgstr "该声明是依赖外部公开证据的陈述：它转述声明自身立场之外的某个来源所说的内容，每个这样的来源都通过带有自身 gmeow:hasEvidenceClass 的 gmeow:CitationAct 被引用。"
+msgid "The claim is a statement that rests on externally published evidence: it reports what a source outside the claim's own standpoint has published, and each such source is cited through a gmeow:CitationAct that carries its own gmeow:hasEvidenceClass. The evidence classes that name a kind of published source — gmeow:evidenceOfficialSource, gmeow:evidenceIndependentTradePress, gmeow:evidencePublicRegistry and gmeow:evidenceNewspaperLead — are narrower cases of it, related as values: the category does not fix which of them a citation of the claim carries, and a claim of another category may cite such a source."
+msgstr "该声明是依赖外部公开证据的陈述：它转述声明自身立场之外的某个来源已公开的内容，每个这样的来源都通过带有自身 gmeow:hasEvidenceClass 的 gmeow:CitationAct 被引用。指明某种公开来源的证据类别——gmeow:evidenceOfficialSource、gmeow:evidenceIndependentTradePress、gmeow:evidencePublicRegistry 和 gmeow:evidenceNewspaperLead——是它的较窄情形，作为值相互关联：类别并不决定声明的某条引用带有其中哪一个，其他类别的声明也可以引用这样的来源。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/assertionCategorySelfDescription|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "self-description"
 msgstr "自我描述"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/assertionCategorySelfDescription|http://www.w3.org/2004/02/skos/core#definition"
-msgid "The claim is a description of the subject made by the subject itself. Its citations may still carry any evidence class, so a self-description that cites an official source is both this category and gmeow:evidenceOfficialSource on that citation; the category and the evidence class answer different questions, and gmeow:evidenceSELF on a citation does not by itself make a claim a self-description."
-msgstr "该声明是主体对自身所作的描述。它的引用仍可带有任何证据类别，因此引用官方来源的自我描述既属于本类别，其引用上又带有 gmeow:evidenceOfficialSource；类别与证据类别回答的是不同的问题，引用上的 gmeow:evidenceSELF 本身并不使声明成为自我描述。"
+msgid "The claim is a description of the subject made by the subject itself. It is the claim-level counterpart of gmeow:evidenceSELF on a citation; gmeow:evidenceSelfControlledSite is a narrower case and gmeow:sourceIndependenceSelfOrIssuerOriginated a broader one, which also covers an issuer or affiliated party. These relations hold between the values, not between a claim and its citations: a self-description that cites an official source carries this category while that citation carries gmeow:evidenceOfficialSource, and gmeow:evidenceSELF on a citation does not by itself make a claim a self-description. A statement or identity facet marked gmeow:selfAsserted true is a self-description; that flag also marks the authority of a subject over its own identity facets (Principle 9), which this category does not assert."
+msgstr "该声明是主体对自身所作的描述。它是引用上的 gmeow:evidenceSELF 在声明层面的对应物；gmeow:evidenceSelfControlledSite 是它的较窄情形，gmeow:sourceIndependenceSelfOrIssuerOriginated 是较宽情形，后者还涵盖发行方或关联方。这些关系存在于值与值之间，而不在声明与其引用之间：引用官方来源的自我描述带有本类别，而该引用带有 gmeow:evidenceOfficialSource，引用上的 gmeow:evidenceSELF 本身并不使声明成为自我描述。标有 gmeow:selfAsserted true 的陈述或身份刻面是自我描述；该标志还表明主体对其自身身份刻面的权威（原则 9），本类别并不作此断言。"

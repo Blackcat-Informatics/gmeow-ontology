@@ -353,9 +353,11 @@ ASK {
     gmeow:saRationale "No evidence property (hasEvidenceClass, sourceIndependence, sourceTier, coverageDepth) MUST carry any rdfs:subPropertyOf or owl:equivalentProperty bridge to truth/trust properties (observationResult, trustor, trustee, endorses) -- evidence is a warrant annotation, never an inferential truth bridge." .
 
 # --- Assertion category (Principles 2, 4 and 9) --------------------------------
-# gmeow:AssertionCategory is a value vocabulary with exactly the three seeded
-# individuals, and gmeow:assertionCategory carries them on a claim without
-# becoming a second evidence vocabulary and without ranking claims.
+# gmeow:AssertionCategory is a value vocabulary with the three seeded individuals,
+# gmeow:assertionCategory carries them on a claim, and each individual is related
+# to the existing evidence-class, source-independence and observation-type
+# individuals. The relations hold between values; no property axiom derives a
+# claim's category from its citations, and the category never ranks claims.
 ex:saAssertionCategoryVocabulary a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:must ;
     gmeow:saScope gmeow:scopeModule ;
@@ -371,16 +373,34 @@ ASK {
 }""" ;
     gmeow:saRationale "The three assertion categories are individuals of one value vocabulary reached through one property whose range is that vocabulary (Principle 4: one way to state the category on a claim)." .
 
+ex:saAssertionCategoryRelatedToExistingValues a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
+ASK {
+    gmeow:assertionCategorySelfDescription skos:closeMatch gmeow:evidenceSELF ;
+        skos:narrowMatch gmeow:evidenceSelfControlledSite ;
+        skos:broadMatch gmeow:sourceIndependenceSelfOrIssuerOriginated ;
+        rdfs:seeAlso gmeow:selfAsserted .
+    gmeow:assertionCategoryPublishedEvidence skos:narrowMatch gmeow:evidenceOfficialSource ,
+        gmeow:evidenceIndependentTradePress ,
+        gmeow:evidencePublicRegistry ,
+        gmeow:evidenceNewspaperLead .
+    gmeow:assertionCategoryDerivedInterpretation skos:closeMatch gmeow:observationTypeDerived .
+}""" ;
+    gmeow:saRationale "Every assertion category MUST be related to the existing individuals that say the same of a citation or an observation, so the category is grounded in the evidence and observation vocabulary and is not a second, unrelated one (Principle 4); the self-description category MUST point at gmeow:selfAsserted, the other carrier of a subject's own statement." .
+
 ex:saAssertionCategoryNotFunctional a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:mustNot ;
     gmeow:saScope gmeow:scopeModule ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
 PREFIX logic: <https://blackcatinformatics.ca/logic/>
-PREFIX owl: <http://www.w3.org/2002/07/owl#>
-ASK { gmeow:assertionCategory a ?kind . VALUES ?kind { owl:FunctionalProperty logic:FunctionalProperty } }""" ;
+ASK { ?rec logic:characterizes gmeow:assertionCategory ; logic:characteristicSort logic:functionalProperty . }""" ;
     gmeow:saRationale "gmeow:assertionCategory MUST NOT be functional: competing categorisations by different standpoints coexist, and no single category is forced onto a claim (Principle 9)." .
 
-ex:saAssertionCategoryIsNotEvidenceClass a gmeow:StructuralAssertion ;
+ex:saAssertionCategoryNotDerivedFromCitations a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:mustNot ;
     gmeow:saScope gmeow:scopeModule ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
@@ -388,19 +408,14 @@ PREFIX logic: <https://blackcatinformatics.ca/logic/>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 PREFIX owl: <http://www.w3.org/2002/07/owl#>
 ASK {
+    VALUES ?other { gmeow:hasEvidenceClass gmeow:sourceIndependence gmeow:observationType gmeow:selfAsserted }
     {
-        gmeow:assertionCategory (rdfs:subPropertyOf|logic:subPropertyOf|owl:equivalentProperty) gmeow:hasEvidenceClass .
+        gmeow:assertionCategory (rdfs:subPropertyOf|logic:subPropertyOf|owl:equivalentProperty|logic:equivalentProperty) ?other .
     } UNION {
-        gmeow:hasEvidenceClass (rdfs:subPropertyOf|logic:subPropertyOf|owl:equivalentProperty) gmeow:assertionCategory .
-    } UNION {
-        ?category a gmeow:AssertionCategory , gmeow:EvidenceClass .
-    } UNION {
-        gmeow:AssertionCategory (rdfs:subClassOf|logic:subClassOf|owl:equivalentClass) gmeow:EvidenceClass .
-    } UNION {
-        gmeow:EvidenceClass (rdfs:subClassOf|logic:subClassOf|owl:equivalentClass) gmeow:AssertionCategory .
+        ?other (rdfs:subPropertyOf|logic:subPropertyOf|owl:equivalentProperty|logic:equivalentProperty) gmeow:assertionCategory .
     }
 }""" ;
-    gmeow:saRationale "The assertion category and the evidence class are independent axes: no property bridge, no shared individual and no class bridge may tie them, so a claim's category never follows from the evidence classes of its citations and never implies them." .
+    gmeow:saRationale "The relations between the category values and the existing values MUST NOT become a property bridge: with a sub-property or equivalent-property edge a claim's category would follow from the evidence classes of its citations, and a self-description that cites an official source could no longer be stated." .
 
 ex:saAssertionCategoryExample a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:must ;

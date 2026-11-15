@@ -11,10 +11,12 @@
 # - an analyst reports what a published registry entry says (published evidence);
 # - the analyst infers a third membership from the first (derived interpretation).
 #
-# The citations carry the evidence classes, which are a different axis: the
-# organisation's own self-description cites an official source, so its category
-# and the evidence class of its citation differ. No claim is ranked, hidden or
-# superseded by another.
+# The citations carry the evidence classes. The category values are related to the
+# evidence-class values in the module, but a claim's category is not read off its
+# citations: the organisation's own self-description cites an official source, so
+# its category and the evidence class of its citation differ. A categorisation is
+# itself a claim, so the third one is attributed to the standpoint that made it.
+# No claim is ranked, hidden or superseded by another.
 
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
 @prefix rdf:   <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
@@ -45,10 +47,11 @@ ex:evidencedClaim rdf:reifies <<( ex:acme gmeow:memberOf ex:chamberOfCommerce )>
 # Derived interpretation: inferred from the self-described membership.
 ex:derivedClaim rdf:reifies <<( ex:acme gmeow:memberOf ex:industryGroup )>> ;
     gmeow:accordingTo       ex:analystView ;
-    gmeow:assertionCategory gmeow:assertionCategoryDerivedInterpretation .
+    gmeow:assertionCategory gmeow:assertionCategoryDerivedInterpretation
+        {| gmeow:accordingTo ex:analystView |} .
 
 # The evidence class belongs to each citation, not to the claim. The
-# self-description cites an official source, so the two axes differ.
+# self-description cites an official source, so the two differ.
 ex:selfCite a gmeow:CitationAct ;
     gmeow:citingEntity     ex:selfClaim ;
     gmeow:citedEntity      ex:registryEntry ;

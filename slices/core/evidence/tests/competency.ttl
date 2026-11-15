@@ -132,7 +132,7 @@ ex:cqCategoryRowDerived a gmeow:ExpectedRow ;
 # ── A claim's category beside the evidence classes of its citations ───────────
 # "For each claim that cites a source, what category is the claim and what
 # evidence class does the citation carry?" The self-description cites an official
-# source, so the two axes differ for it; the claim with no citation does not
+# source, so the two differ for it; the claim with no citation does not
 # appear because the question asks about cited claims only.
 ex:cqCategoryBesideEvidenceClass a gmeow:CompetencyQuestion ;
     gmeow:cqReasoning gmeow:reasoningNone ;
@@ -146,7 +146,7 @@ SELECT ?object ?category ?evidenceClass WHERE {
     ?citation gmeow:citingEntity ?claim ;
         gmeow:hasEvidenceClass ?evidenceClass .
 }""" ;
-    gmeow:cqRationale "The category of a claim and the evidence class of the citations it rests on are two axes that may differ: the organisation's self-description cites an official source, so a consumer reads the category from the claim and the warrant from each citation, and neither is derived from the other." ;
+    gmeow:cqRationale "The category of a claim and the evidence class of the citations it rests on are stated on different nodes and may differ: the organisation's self-description cites an official source, so a consumer reads the category from the claim and the warrant from each citation. The category values are related to the evidence-class values in the module, but neither statement is derived from the other." ;
     gmeow:cqExactRows true ;
     gmeow:cqResultShape ex:cqCategoryBesideEvidenceClassShape ;
     gmeow:cqExpectRow
