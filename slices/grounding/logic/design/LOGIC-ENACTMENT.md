@@ -216,6 +216,12 @@ The reifier shape has its own required reason path; merely omitting the type on 
 reasonless reifier does not satisfy it. Language-presence integrity conditions
 also distinguish actual native reifiers from the schema declarations.
 
+The declaration is not a focus node of the validation shape derived for its reifier
+class or for that class's ancestors: those shapes exclude it by its IRI and exclude
+nothing else, so it needs no reason of its own while every actual exclusion record
+of the class is still validated. A blank-node declaration cannot be named and is
+refused.
+
 ## The seven orthogonal axes
 
 An operational record has several independent things true of it at once, and every attempt to fold

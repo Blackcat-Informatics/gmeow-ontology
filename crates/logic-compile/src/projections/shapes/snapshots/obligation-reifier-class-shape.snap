@@ -1,0 +1,7 @@
+---
+source: crates/logic-compile/src/projections/shapes/obligation_declaration_tests.rs
+expression: forward
+---
+<https://blackcatinformatics.ca/gmeow/Claim-shape> a sh:NodeShape ;
+    sh:target [ a sh:SPARQLTarget ; sh:select """SELECT DISTINCT ?this WHERE { ?this <http://www.w3.org/1999/02/22-rdf-syntax-ns#type>/<http://www.w3.org/2000/01/rdf-schema#subClassOf>* <https://blackcatinformatics.ca/gmeow/Claim> . FILTER ( ?this NOT IN ( <https://blackcatinformatics.ca/gmeow/AnotherClaimObligation>, <https://blackcatinformatics.ca/gmeow/ClaimObligation> ) ) }""" ] ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/rank> ; sh:minCount 1 ; sh:datatype <http://www.w3.org/2001/XMLSchema#integer> ] .

@@ -3812,8 +3812,11 @@ pub fn derive_validation_shapes(
     // property-scoped SubjectsOf(P) domain shape AND — so the declarative class-node reader
     // (Pydantic / ShEx) narrows the field to scalar — every rdfs:domain class node shape of P. A
     // property with NO rdfs:domain (e.g. gmeow:unit) keeps ONLY the property-scoped cap; no class
-    // node shape is fabricated. The merge (`merge_same_path_properties`) folds the class-scoped cap
-    // cleanly into any restriction the class already authored on P.
+    // node shape is fabricated. A domain or range class outside the authoring namespaces likewise
+    // gets no class node shape (a derived shape is named only in an authoring namespace); the
+    // property-scoped cap still bounds every subject (object) of P, whatever its class. The merge
+    // (`merge_same_path_properties`) folds the class-scoped cap cleanly into any restriction the
+    // class already authored on P.
     let char_assertion_ty = Node::iri(logic_iri("PropertyCharacteristicAssertion"));
     let functional_sort = Node::iri(logic_iri("functionalProperty"));
     let inverse_functional_sort = Node::iri(logic_iri("inverseFunctionalProperty"));
@@ -3845,6 +3848,7 @@ pub fn derive_validation_shapes(
             for c in restriction_objects(&prop_subj, &p_domain, &p_logic_domain) {
                 if let Node::Iri(c) = c
                     && matches!(classify(&c), Some(ConstraintComponent::Class(_)))
+                    && is_authoring_ns(&c)
                 {
                     let pc = PropertyConstraintIr::new(
                         &prop,
@@ -3874,6 +3878,7 @@ pub fn derive_validation_shapes(
             for c in restriction_objects(&prop_subj, &p_range, &p_logic_range) {
                 if let Node::Iri(c) = c
                     && matches!(classify(&c), Some(ConstraintComponent::Class(_)))
+                    && is_authoring_ns(&c)
                 {
                     let pc = PropertyConstraintIr::new(
                         &prop,
@@ -3945,6 +3950,13 @@ pub fn derive_validation_shapes(
     // No parallel shape vocabulary is minted; `C` must be a constrained GMEOW class so FAMILY 1
     // derives the `{C}-shape` node the `sh:reifierShape` reference resolves to. Lowered to a
     // property shape on path `P` carrying `sh:reifierShape {C}-shape` + `sh:reificationRequired true`.
+    //
+    // The declaration needs its type `C` to name that shape, which also makes it an instance of
+    // `C` (and of every superclass of `C`) without being a reifier occurrence: it is schema
+    // metadata. Each recognized declaration is therefore recorded under every class it is an
+    // instance of, and the class shapes built below exclude exactly those declarations, by IRI,
+    // from their focus sets. No other node is excluded, whatever form it is written in.
+    let mut obligation_declarations: BTreeMap<String, BTreeSet<String>> = BTreeMap::new();
     let p_rdf_subject = nn(RDF_SUBJECT);
     let p_rdf_predicate = nn(RDF_PREDICATE);
     for r in subjects_with(store, &nn(RDF_TYPE), &Node::iri(RDF_STATEMENT)) {
@@ -3971,6 +3983,41 @@ pub fn derive_validation_shapes(
         else {
             continue;
         };
+        // A shape can exclude a node only by naming it, so a declaration must have an IRI.
+        let Subject::Iri(declaration) = &r else {
+            return Err(Diag::of_kind(crate::error::Frontend::new(format!(
+                "reification obligation on subject class <{k}> and predicate <{p}> is declared \
+                 by a blank node; the declaration must be an IRI so the shape derived for its \
+                 reifier class <{c}> can exclude it from validation by identity"
+            )))
+            .with_focus(subject_str(&r)));
+        };
+        let mut pending: Vec<String> = objects(store, &r, &nn(RDF_TYPE))
+            .into_iter()
+            .filter_map(|t| match t {
+                Node::Iri(i) if is_authoring_ns(&i) => Some(i),
+                _ => None,
+            })
+            .collect();
+        let mut seen: BTreeSet<String> = BTreeSet::new();
+        while let Some(class) = pending.pop() {
+            if !seen.insert(class.clone()) {
+                continue;
+            }
+            obligation_declarations
+                .entry(class.clone())
+                .or_default()
+                .insert(declaration.clone());
+            let class = Subject::Iri(class);
+            pending.extend(
+                restriction_objects(&class, &p_subclass, &p_logic_subclass)
+                    .into_iter()
+                    .filter_map(|superclass| match superclass {
+                        Node::Iri(i) if is_authoring_ns(&i) => Some(i),
+                        _ => None,
+                    }),
+            );
+        }
         let property = PropertyConstraintIr::new(p.clone(), None, None, None, vec![])?
             .with_reifier(Some(format!("{c}-shape")), true)?;
         entry_for(&mut acc, ShapeTarget::Class(k.clone()))
@@ -4192,6 +4239,12 @@ pub fn derive_validation_shapes(
         }
         let mut shape = ValidationShapeIr::new(iri, target.clone(), properties, None)?
             .with_node_components(node_components)?;
+        if let ShapeTarget::Class(class) = &target
+            && let Some(declarations) = obligation_declarations.get(class)
+        {
+            shape = shape
+                .with_obligation_declarations_excluded(declarations.iter().cloned().collect())?;
+        }
         // Failure metadata belongs to the canonical target term, never to a hand-authored SHACL
         // node. For a class-targeted shape that term is the CLASS; for the domain/range shapes
         // derived from `rdfs:domain P …` / `rdfs:range P …` it is the PROPERTY — the shape's whole

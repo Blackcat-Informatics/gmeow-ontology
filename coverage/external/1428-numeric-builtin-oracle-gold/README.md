@@ -29,8 +29,8 @@ engine's answer matches the independently-derived gold.
 
 This corpus lives under `coverage/external/`, OUTSIDE
 `conformance/logic/cases/`, specifically so it can **never** be reached by
-`crates/conformance/src/bless.rs` (`GMEOW_CONFORMANCE_BLESS`), which only
-sweeps `conformance/logic/cases/*/expected/` and re-writes `expected/` from
+`crates/conformance/src/bless.rs` (`gmeow-dev conformance-bless`), which only
+re-writes the `expected/` of a named case under `conformance/logic/cases/` from
 the engine's own live output. A corpus the bless sweep can reach is not an
 independent oracle; this one is architecturally unreachable by it.
 

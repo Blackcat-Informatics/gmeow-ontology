@@ -52,7 +52,11 @@ Actual instance records use rdf:reifies with native triple terms. Schema-level
 reification obligations use the existing classic declaration form consumed by the
 validation-shape derivation: rdf:Statement, subject class, predicate and typed
 reifier class. These declarations are metadata about required reifiers, not
-pretend exclusions, returned records or assignment occurrences.
+pretend exclusions, returned records or assignment occurrences. The
+validation shape derived for a reifier class, and for each of its ancestors,
+excludes each declaration by its IRI and excludes nothing else, so a declaration
+carries no rank, attribution or reason while every actual record of the class is
+still validated. A blank-node declaration cannot be named and is refused.
 
 The per-record assembly profile lives in grounding logic so its generic
 reification and reason contracts introduce no dependency on this domain owner.

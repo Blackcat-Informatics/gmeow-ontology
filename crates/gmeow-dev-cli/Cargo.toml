@@ -28,6 +28,8 @@ gmeow-ns = { path = "../ns" }
 gmeow-errors = { path = "../errors" }
 # The repo-maintenance engines the dev toolchain drives (default features, no python).
 gmeow-pipeline = { path = "../pipeline" }
+# The conformance runner and its golden writer, for `conformance-bless`.
+gmeow-conformance = { path = "../conformance" }
 # The DEVELOPER MCP surface `gmeow-dev mcp` serves: the consumer engine (pulled in
 # transitively) plus the four repo-reading tools this crate's checkout makes
 # possible, registered through the MCP extension seam.
