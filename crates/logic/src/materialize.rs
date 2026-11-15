@@ -42,7 +42,7 @@ pub struct NonQuadRow {
     pub is_edb: bool,
 }
 
-pub use crate::physical::{ChaseAdmission, SPECIALIZATION_MARK};
+pub use crate::physical::ChaseAdmission;
 
 /// A typed conjunctive-head existential rule for the native restricted chase.
 ///

@@ -1551,6 +1551,15 @@ impl StatementRule {
 /// reason rather than attempted.
 const MODEL_SUMMARIZING_MAX_RULES: usize = 64;
 
+/// Why model-summarizing acyclicity did not certify.
+#[derive(Debug, Clone, PartialEq, Eq)]
+enum MsaRefusal {
+    /// An analysis bound stopped the check; the text names it and its measured size.
+    Bound(String),
+    /// The check does not apply or found a cycle: a refusal, not a bound.
+    Refused,
+}
+
 /// The critical instance (`predicates × domain²` facts) model-summarizing acyclicity may
 /// materialize.
 const MSA_CRITICAL_INSTANCE_CAP: usize = 1 << 20;
@@ -1567,7 +1576,7 @@ const REPORTED_DETAILS: usize = 4;
 
 /// The marker an input-specific specialization appends to the name of the rule it
 /// specializes, followed by its ordinal.
-pub const SPECIALIZATION_MARK: &str = ":immutable-binding:";
+pub(crate) const SPECIALIZATION_MARK: &str = ":immutable-binding:";
 
 /// The rule a specialization was made from; any other name is its own rule.
 fn specialized_from(name: &str) -> &str {
@@ -2053,10 +2062,11 @@ impl ChaseAdmission {
                         Ladder::Complete if tuples.len() <= MODEL_SUMMARIZING_MAX_RULES => {
                             match Self::certify_model_summarizing(tuples) {
                                 Ok(admission) => Some(admission),
-                                Err(bound) => {
-                                    bounds.extend(bound);
+                                Err(MsaRefusal::Bound(bound)) => {
+                                    bounds.push(bound);
                                     None
                                 }
+                                Err(MsaRefusal::Refused) => None,
                             }
                         }
                         Ladder::Complete => {
@@ -2448,10 +2458,13 @@ impl ChaseAdmission {
     /// the whole `dep` relation; MSA holds iff **no null depends on itself** (no cycle in
     /// `dep`) — a self-dependency is the summarized signature of an unbounded skolem term.
     ///
-    /// `Err(Some(bound))` names the analysis bound that stopped it (the critical-instance
-    /// cap, or the fixpoint's step budget); `Err(None)` is a refusal that is not a bound
-    /// (negation, no nulls, an obstruction, or an engine error).
-    fn certify_model_summarizing(rules: &[ExistentialRule]) -> Result<Self, Option<String>> {
+    /// `Err(MsaRefusal::Bound)` names the analysis bound that stopped it (the
+    /// critical-instance cap, or the fixpoint's step budget); `Err(MsaRefusal::Refused)`
+    /// is a refusal that is not a bound (negation, no nulls, or a found cycle). The
+    /// check is positive and builtin-free, so a compile failure, an engine error or an
+    /// unsupported outcome is an invariant break and panics rather than reading as a
+    /// refusal.
+    fn certify_model_summarizing(rules: &[ExistentialRule]) -> Result<Self, MsaRefusal> {
         Self::certify_model_summarizing_within(rules, MSA_STEPS_PER_FACT, MSA_MIN_STEPS)
     }
 
@@ -2461,7 +2474,7 @@ impl ChaseAdmission {
         rules: &[ExistentialRule],
         steps_per_fact: u64,
         min_steps: u64,
-    ) -> Result<Self, Option<String>> {
+    ) -> Result<Self, MsaRefusal> {
         const STAR: &str = "https://blackcatinformatics.ca/gmeow/msa#star";
         const IS_NULL: &str = "https://blackcatinformatics.ca/gmeow/msa#isNull";
         const MSA_TRUE: &str = "https://blackcatinformatics.ca/gmeow/msa#true";
@@ -2471,7 +2484,7 @@ impl ChaseAdmission {
 
         // Negation is outside the summarizable positive-existential fragment.
         if rules.iter().any(|r| r.body.iter().any(|a| a.negated)) {
-            return Err(None);
+            return Err(MsaRefusal::Refused);
         }
 
         // Summarizing null constants, one per (rule, existential).
@@ -2482,7 +2495,7 @@ impl ChaseAdmission {
             }
         }
         if nulls.is_empty() {
-            return Err(None);
+            return Err(MsaRefusal::Refused);
         }
 
         // Predicates and the constant domain (constants of Σ ∪ the special constant `*`).
@@ -2577,7 +2590,7 @@ impl ChaseAdmission {
             .saturating_mul(domain_terms.len())
             .saturating_mul(domain_terms.len());
         if projected_facts > MSA_CRITICAL_INSTANCE_CAP {
-            return Err(Some(format!(
+            return Err(MsaRefusal::Bound(format!(
                 "model-summarizing acyclicity not attempted: its critical instance of \
                  {projected_facts} facts ({} predicates over {} constants) exceeds the \
                  {MSA_CRITICAL_INSTANCE_CAP}-fact bound",
@@ -2588,7 +2601,7 @@ impl ChaseAdmission {
 
         let executable = crate::physical::plan::compile_cached("gmeow-msa-critical-v1", program)
             .executable
-            .ok_or(None)?;
+            .expect("INVARIANT: the positive builtin-free model-summarizing program stratifies");
 
         // Seek a concrete obstruction on a small SUBSET of the critical instance first.
         // Each original body atom is seeded with all variables bound to STAR; authored
@@ -2621,7 +2634,7 @@ impl ChaseAdmission {
             Some(MSA_OBSTRUCTION_PROBE_STEPS),
         ) && msa_dependency_summary(&result.rows, DEP).1
         {
-            return Err(None);
+            return Err(MsaRefusal::Refused);
         }
 
         // The critical instance: every predicate over the whole constant domain, plus the
@@ -2653,27 +2666,37 @@ impl ChaseAdmission {
         let budget = (critical_facts as u64)
             .saturating_mul(steps_per_fact)
             .max(min_steps);
-        let facts =
-            match crate::physical::seminaive::evaluate(store, executable.as_ref(), Some(budget)) {
-                Ok(crate::physical::NativeOutcome::Decided(budgeted))
-                    if matches!(budgeted.status, crate::seam::BudgetStatus::Ok) =>
-                {
-                    budgeted.rows
-                }
-                Ok(crate::physical::NativeOutcome::Decided(_)) => {
-                    return Err(Some(format!(
-                        "model-summarizing acyclicity not decided: its fixpoint over \
+        let facts = match crate::physical::seminaive::evaluate(
+            store,
+            executable.as_ref(),
+            Some(budget),
+        ) {
+            Ok(crate::physical::NativeOutcome::Decided(budgeted))
+                if matches!(budgeted.status, crate::seam::BudgetStatus::Ok) =>
+            {
+                budgeted.rows
+            }
+            Ok(crate::physical::NativeOutcome::Decided(_)) => {
+                return Err(MsaRefusal::Bound(format!(
+                    "model-summarizing acyclicity not decided: its fixpoint over \
                          {critical_facts} critical-instance facts did not finish within its \
                          {budget}-step budget"
-                    )));
-                }
-                _ => return Err(None),
-            };
+                )));
+            }
+            Ok(crate::physical::NativeOutcome::Unsupported(kind)) => {
+                panic!(
+                    "INVARIANT: the builtin-free model-summarizing program is supported: {kind:?}"
+                )
+            }
+            Err(error) => panic!(
+                "INVARIANT: the model-summarizing fixpoint over a well-formed program does not fail: {error:?}"
+            ),
+        };
 
         // Only the complete full critical model may authorize this sufficient class.
         let (edge_count, cyclic) = msa_dependency_summary(&facts, DEP);
         if cyclic {
-            return Err(None);
+            return Err(MsaRefusal::Refused);
         }
         Ok(Self::ModelSummarizingAcyclic {
             evidence: format!(

@@ -322,3 +322,62 @@ fn a_relation_written_from_an_open_relation_is_open() {
         closure.predicates
     );
 }
+
+fn cell_fact(index: usize) -> Fact {
+    Fact {
+        subject: TermValue::iri(format!("urn:cell:s{index}")),
+        predicate: "urn:cell:p".to_owned(),
+        object: TermValue::iri(format!("urn:cell:o{index}")),
+    }
+}
+
+#[test]
+fn interning_cut_measures_the_cells_and_the_rows_actually_read() {
+    let flow = ValueFlow::new(&[], &[], SEMANTICS);
+    let own = flow.with_source_constants_measured(std::iter::empty(), usize::MAX);
+    assert!(own.is_ok());
+    let facts: Vec<_> = (0..10).map(cell_fact).collect();
+    // One cell for the flow, three for the first fact, then two per fact (the predicate
+    // is shared): eight cells are passed while reading the fourth.
+    let cut = flow
+        .with_source_constants_measured(facts.iter(), 8)
+        .err()
+        .expect("ten facts pass an eight-cell bound");
+    assert_eq!((cut.facts_read, cut.cells), (4, 10), "{cut:?}");
+    assert!(cut.cells > 8 && cut.cells > cut.flow_cells, "{cut:?}");
+    // A bound already passed by the flow's own constants reads no row at all.
+    let own_cells = cut.flow_cells;
+    let cut = flow
+        .with_source_constants_measured(facts.iter(), own_cells - 1)
+        .err()
+        .expect("the flow's own cells pass the bound");
+    assert_eq!((cut.facts_read, cut.cells), (0, own_cells), "{cut:?}");
+}
+
+#[test]
+fn the_interning_note_states_cells_and_inputs_not_a_row_count_as_cells() {
+    let cut = InterningCut {
+        flow_cells: 600,
+        cells: 600,
+        facts_read: 0,
+    };
+    let note = interning_note(&cut, false, 7, 3);
+    assert!(
+        note.contains("512-value-cell interning bound at 600 cells"),
+        "{note}"
+    );
+    assert!(note.contains("600 are the flow's own constants"), "{note}");
+    assert!(note.contains("after reading 0 of the 10 facts supplied (7 proved-immutable rows, then 3 possible fact(s))"), "{note}");
+    let note = interning_note(&cut, true, 7, 0);
+    assert!(note.contains("7 selector rows, then 0 possible"), "{note}");
+}
+
+#[test]
+fn the_enrichment_rows_note_states_the_measured_rows_and_bytes() {
+    let note = enrichment_rows_note(5000, 123_456);
+    assert!(
+        note.contains("5000 selector rows (123456 bytes)")
+            && note.contains("4096-row / 1048576-byte bound"),
+        "{note}"
+    );
+}

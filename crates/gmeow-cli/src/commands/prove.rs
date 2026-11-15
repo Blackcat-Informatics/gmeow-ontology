@@ -904,8 +904,8 @@ fn name_authored_rules(
     if authored.is_empty() {
         return text.to_owned();
     }
-    // One pass over the `<...>` terms: each is looked up whole, or without the
-    // specialization suffix an input-specific analysis adds to a rule's identity.
+    // One pass over the `<...>` terms. Every reason that reaches here names a rule by its
+    // merged identity, so each term is looked up whole.
     let mut named = String::with_capacity(text.len());
     let mut rest = text;
     while let Some(open) = rest.find('<') {
@@ -914,10 +914,7 @@ fn name_authored_rules(
         };
         let close = open + length;
         named.push_str(&rest[..=close]);
-        let term = &rest[open + 1..close];
-        let rule = term
-            .split_once(gmeow_logic::materialize::SPECIALIZATION_MARK)
-            .map_or(term, |(rule, _)| rule);
+        let rule = &rest[open + 1..close];
         if let Some(formulas) = authored.get(rule) {
             let formulas = formulas
                 .iter()

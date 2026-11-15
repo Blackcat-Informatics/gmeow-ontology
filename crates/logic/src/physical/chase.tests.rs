@@ -971,7 +971,7 @@ fn certify_msa_refuses_oversized_critical_instance_without_materializing() {
     // refuses before materialization. This returns near-instantly; a pre-cap build
     // would allocate millions of facts.
     let refused = ChaseAdmission::certify_model_summarizing(&build(1100));
-    let Err(Some(bound)) = refused else {
+    let Err(MsaRefusal::Bound(bound)) = refused else {
         panic!("an oversized critical instance must refuse and name its bound: {refused:?}");
     };
     assert!(
@@ -1003,7 +1003,7 @@ fn certify_cyclic_defeats_msa() {
     // refuses, and the ladder falls through to Uncertified.
     let cyclic = vec![restriction_rule("http://ex/rule/cyclic", D, P, D)];
     assert!(
-        ChaseAdmission::certify_model_summarizing(&cyclic) == Err(None),
+        ChaseAdmission::certify_model_summarizing(&cyclic) == Err(MsaRefusal::Refused),
         "MSA must refuse the self-cycle D ⊑ ∃p.D"
     );
     assert!(!ChaseAdmission::certify(&cyclic).admits_native());
@@ -2365,7 +2365,7 @@ fn a_model_summarizing_fixpoint_out_of_budget_names_its_bound_and_never_certifie
     let program = model_summarizing_beyond_structural();
     assert!(ChaseAdmission::certify_model_summarizing(&program).is_ok());
     let starved = ChaseAdmission::certify_model_summarizing_within(&program, 0, 1);
-    let Err(Some(bound)) = starved else {
+    let Err(MsaRefusal::Bound(bound)) = starved else {
         panic!("an exhausted fixpoint must name its bound: {starved:?}");
     };
     assert!(bound.contains("1-step budget"), "{bound}");

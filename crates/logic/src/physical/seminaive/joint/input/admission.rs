@@ -15,7 +15,8 @@ use crate::physical::chase::{
     ChaseAdmission, ExistentialRule, Ladder, StatementRule, firing_statements, join,
 };
 use crate::physical::effects::{
-    ProducerEffect, StatementPattern, WorldProducerEffect, value_flow::ValueFlow,
+    ProducerEffect, StatementPattern, WorldProducerEffect,
+    value_flow::{InterningCut, ValueFlow},
 };
 use crate::physical::store::RelationStore;
 use crate::rule_ir::{EvalAtom, EvalRule, EvalTerm, Fact, Solution};
@@ -305,7 +306,7 @@ impl Template {
         // Derived selector edges need not be immutable to have a finite value
         // domain. Reuse the same abstract interpreter, with at most 512 exact
         // value cells. This never executes a concrete closure or lowers a rule.
-        let enriched = flow.with_source_constants(
+        let enriched = flow.with_source_constants_measured(
             evidence
                 .enrichment
                 .as_ref()
@@ -320,17 +321,17 @@ impl Template {
         // coarsening can leave a program refused that a finer flow would certify, so a
         // refusal names it.
         if evidence.enrichment.is_none() {
-            notes.push(format!(
-                "source-constant enrichment read the proved-immutable rows only: {} selector \
-                 rows ({} bytes) exceed its {ENRICHMENT_ROWS}-row / {ENRICHMENT_BYTES}-byte bound",
-                evidence.selector_rows, evidence.selector_bytes
+            notes.push(enrichment_rows_note(
+                evidence.selector_rows,
+                evidence.selector_bytes,
             ));
         }
-        if enriched.is_none() {
-            notes.push(format!(
-                "source-constant enrichment read no source values: the {} selector rows exceed \
-                 its {ENRICHMENT_VALUE_CELLS}-value-cell interning bound",
-                evidence.selector_rows
+        if let Err(cut) = &enriched {
+            notes.push(interning_note(
+                cut,
+                evidence.enrichment.is_some(),
+                evidence.facts.len(),
+                possible.len(),
             ));
         }
         let enriched = enriched.as_ref().unwrap_or(flow);
@@ -779,6 +780,41 @@ fn push_analysis(
     }
     analysis.push(specialized);
     true
+}
+
+/// The note for source-constant enrichment that read the proved-immutable rows only.
+fn enrichment_rows_note(selector_rows: usize, selector_bytes: usize) -> String {
+    format!(
+        "source-constant enrichment read the proved-immutable rows only: {selector_rows} \
+         selector rows ({selector_bytes} bytes) exceed its {ENRICHMENT_ROWS}-row / \
+         {ENRICHMENT_BYTES}-byte bound"
+    )
+}
+
+/// The note for source-constant enrichment that interned nothing because the value
+/// universe passed its cell bound. `all_selector_rows` says whether the interned rows were
+/// every selector row or only the proved-immutable ones.
+fn interning_note(
+    cut: &InterningCut,
+    all_selector_rows: bool,
+    row_count: usize,
+    possible: usize,
+) -> String {
+    let rows = if all_selector_rows {
+        "selector rows"
+    } else {
+        "proved-immutable rows"
+    };
+    format!(
+        "source-constant enrichment read no source values: the value universe passed its \
+         {ENRICHMENT_VALUE_CELLS}-value-cell interning bound at {} cells, of which {} are the \
+         flow's own constants, after reading {} of the {} facts supplied ({row_count} {rows}, \
+         then {possible} possible fact(s))",
+        cut.cells,
+        cut.flow_cells,
+        cut.facts_read,
+        row_count + possible
+    )
 }
 
 /// Why an input's specific termination certificate was not decided. The
