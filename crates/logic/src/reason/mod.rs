@@ -649,11 +649,12 @@ impl SelectedProgram {
     }
 }
 
-/// Lower one selected theory for native execution.
+/// Lower one selected theory for native execution, under the source admission of the
+/// selection `ingress` records. It does not check the ingress against an input; that is
+/// [`reason_prepared_theory_within`].
 ///
 /// # Errors
-/// Returns a refusal when `ingress` does not account for this theory's own selection,
-/// and the lowering failures of [`reason_program_within`].
+/// Returns the lowering failures of [`reason_program_within`].
 pub fn prepare_selected_theory(
     theory: &gmeow_logic_compile::frontend::CompiledTheory,
     ingress: &ClaimIngress,

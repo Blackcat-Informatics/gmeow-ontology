@@ -34,6 +34,8 @@ const MAX_BYTES: usize = 128 << 20;
 /// value cells, so more rows than this cannot sharpen it further.
 const ENRICHMENT_ROWS: usize = 4096;
 const ENRICHMENT_BYTES: usize = 1 << 20;
+/// The exact value cells source-constant enrichment may intern.
+const ENRICHMENT_VALUE_CELLS: usize = 512;
 /// The retained template rule metadata a cacheable joint template may carry. It bounds
 /// what is retained between runs only; it never decides whether a certificate is tried.
 pub(super) const CACHEABLE_BYTES: usize = 1 << 20;
@@ -189,6 +191,7 @@ impl Template {
         let mut selected = Vec::new();
         let mut enrichment = Some(Vec::new());
         let mut enrichment_bytes = 0usize;
+        let mut selector_rows = 0usize;
         let mut retained = 0usize;
         let mut per_predicate: BTreeMap<&str, usize> = BTreeMap::new();
         let mut bytes = 0usize;
@@ -212,6 +215,7 @@ impl Template {
                 // its own bound; past it the enrichment reads the immutable rows only,
                 // the same coarsening the 512-cell interning cap already applies.
                 enrichment_bytes = enrichment_bytes.saturating_add(size.1);
+                selector_rows += 1;
                 if let Some(rows) = &mut enrichment {
                     if rows.len() < ENRICHMENT_ROWS && enrichment_bytes <= ENRICHMENT_BYTES {
                         rows.push(fact);
@@ -265,6 +269,8 @@ impl Template {
             predicates,
             facts: selected,
             enrichment,
+            selector_rows,
+            selector_bytes: enrichment_bytes,
             closable: closable_rows
                 .map(|facts| Closable { candidates, facts })
                 .ok_or(EvidenceGap::ClosureSourceBound {
@@ -286,23 +292,16 @@ impl Template {
         external: &[WorldProducerEffect],
         semantics: SemanticVocabulary,
     ) -> gmeow_errors::Result<Result<ChaseAdmission, EvidenceGap>> {
-        let Settled { admission, notes } =
-            match self.certify_settled(evidence, facts, possible, external, semantics)? {
-                Ok(settled) => settled,
-                Err(reason) => return Ok(Err(reason)),
-            };
+        let Settled {
+            admission,
+            mut notes,
+        } = match self.certify_settled(evidence, facts, possible, external, semantics)? {
+            Ok(settled) => settled,
+            Err(reason) => return Ok(Err(reason)),
+        };
         if admission.admits_native() {
             return Ok(Ok(admission));
         }
-        // Each bound that kept a finer analysis from completing is named on the refusal.
-        let refused = |mut admission: ChaseAdmission, extra: Option<String>| {
-            if let ChaseAdmission::Uncertified { bounds, .. } = &mut admission {
-                for (index, note) in notes.iter().chain(extra.as_ref()).enumerate() {
-                    bounds.insert(index, note.clone());
-                }
-            }
-            admission
-        };
         // Derived selector edges need not be immutable to have a finite value
         // domain. Reuse the same abstract interpreter, with at most 512 exact
         // value cells. This never executes a concrete closure or lowers a rule.
@@ -314,11 +313,36 @@ impl Template {
                 .iter()
                 .copied()
                 .chain(possible.iter().map(|(_, fact)| fact)),
-            512,
+            ENRICHMENT_VALUE_CELLS,
         );
         // The source-selected metadata flow remains a sound finite refinement
-        // when interning every other source value would exceed the analysis cap.
+        // when interning every other source value would exceed the analysis cap. Either
+        // coarsening can leave a program refused that a finer flow would certify, so a
+        // refusal names it.
+        if evidence.enrichment.is_none() {
+            notes.push(format!(
+                "source-constant enrichment read the proved-immutable rows only: {} selector \
+                 rows ({} bytes) exceed its {ENRICHMENT_ROWS}-row / {ENRICHMENT_BYTES}-byte bound",
+                evidence.selector_rows, evidence.selector_bytes
+            ));
+        }
+        if enriched.is_none() {
+            notes.push(format!(
+                "source-constant enrichment read no source values: the {} selector rows exceed \
+                 its {ENRICHMENT_VALUE_CELLS}-value-cell interning bound",
+                evidence.selector_rows
+            ));
+        }
         let enriched = enriched.as_ref().unwrap_or(flow);
+        // Each bound that kept a finer analysis from completing is named on the refusal.
+        let refused = |mut admission: ChaseAdmission, extra: Option<String>| {
+            if let ChaseAdmission::Uncertified { bounds, .. } = &mut admission {
+                for (index, note) in notes.iter().chain(extra.as_ref()).enumerate() {
+                    bounds.insert(index, note.clone());
+                }
+            }
+            admission
+        };
         let bindings = enriched.finite_bindings_with_patterns(
             facts
                 .values()
@@ -856,6 +880,9 @@ pub(super) struct Evidence<'a> {
     facts: Vec<&'a Fact>,
     /// Every selector row for source-constant enrichment, when within bound.
     enrichment: Option<Vec<&'a Fact>>,
+    /// The selector rows and bytes the enrichment bound was measured against.
+    selector_rows: usize,
+    selector_bytes: usize,
     /// The candidate closed relations and their source rows, or why they exceed
     /// the analysis bound.
     closable: Result<Closable<'a>, EvidenceGap>,
@@ -1016,7 +1043,7 @@ fn bind_list_cells(
     true
 }
 
-/// The first-pass certificate and the notes a refusal must carry.
+/// The first-pass certificate and the analysis-bound notes a refusal must carry.
 pub(super) struct Settled {
     pub(super) admission: ChaseAdmission,
     notes: Vec<String>,

@@ -781,6 +781,28 @@ fn inert_padding(rules: usize) -> Vec<Formula> {
 /// How many inert rules the padded programs carry: past the 1 MiB template bound.
 const PADDING: usize = 700;
 
+/// The padding alone must pass the cacheable bound, or a padded fixture would protect
+/// nothing: the template the run builds also carries the program's own rules.
+fn assert_padding_passes_the_cacheable_bound(padding: usize) {
+    let program =
+        LogicProgram::new(vec![], vec![], vec![], None).with_formulas(inert_padding(padding));
+    let prepared = crate::program_analysis::prepare_program(&program).unwrap();
+    let template = crate::physical::JointTemplate::with_sources(
+        &prepared.rules,
+        &prepared.existential_rules,
+        &[],
+        crate::native_semantics::SemanticVocabulary::Exact,
+        &[],
+        None,
+        &crate::physical::SelectedDomains::new([]).unwrap(),
+    )
+    .unwrap();
+    assert!(
+        !template.cacheable(),
+        "{padding} inert rules no longer pass the cacheable bound; raise PADDING"
+    );
+}
+
 fn run_formulas(
     rows: Vec<RdfQuad>,
     formulas: Vec<Formula>,
@@ -802,6 +824,7 @@ fn a_program_padded_past_the_cacheable_bound_is_certified_and_runs() {
     // input-specific termination certificate is tried. The minimum laws certify only
     // that way, so padding them with inert rules must not turn a decided program into a
     // refusal.
+    assert_padding_passes_the_cacheable_bound(PADDING);
     let result = run_formulas(
         request(MIN, "2", C),
         inert_padding(PADDING)
@@ -849,6 +872,7 @@ fn exists(vars: &[&str], body: Formula) -> Formula {
 /// Every refusal of a genuine value-invention cycle names the offending rule by its
 /// compiler-produced identity and the relations it writes, padded or not.
 fn assert_cycle_refusal_names_its_rules(laws: Vec<Formula>, relations: &[&str]) {
+    assert_padding_passes_the_cacheable_bound(PADDING);
     for padding in [0, PADDING] {
         let formulas: Vec<Formula> = laws.iter().cloned().chain(inert_padding(padding)).collect();
         let error = run_formulas(vec![fact(S, TYPE, SRC)], formulas, None)
@@ -875,6 +899,17 @@ fn assert_cycle_refusal_names_its_rules(laws: Vec<Formula>, relations: &[&str]) 
                 "padding {padding}: the cycle's relation {relation} is named: {refusal:?}"
             );
         }
+        for gap in &named {
+            let list = gap
+                .split("head relations [")
+                .nth(1)
+                .and_then(|rest| rest.split(']').next())
+                .unwrap_or_default();
+            assert!(
+                !list.contains("naryArg") && !list.contains("/instanceOf>"),
+                "head relations never name the reified encoding: {gap}"
+            );
+        }
         assert!(
             refusal.gaps.len() <= 20,
             "the reasons stay bounded in number: {refusal:?}"
@@ -897,10 +932,7 @@ fn a_direct_existential_cycle_stays_refused_and_names_its_rule() {
                 ]),
             ),
         )],
-        &[
-            "https://blackcatinformatics.ca/logic/instanceOf",
-            "urn:minimum:rel",
-        ],
+        &[SRC, "urn:minimum:rel"],
     );
 }
 
@@ -926,5 +958,26 @@ fn an_existential_cycle_through_an_nary_argument_stays_refused_and_names_its_rul
             ),
         ],
         &["urn:minimum:p"],
+    );
+}
+
+#[test]
+fn a_cycle_through_a_reified_nary_head_names_the_relation_not_its_encoding() {
+    // r(a, b, c) -> exists y. r(b, y, c): the head is a reified ternary tuple, so the
+    // refusal reports the relation `r`, never `instanceOf` and `naryArg0..`.
+    assert_cycle_refusal_names_its_rules(
+        vec![
+            law(
+                &["a"],
+                relation(TYPE, &["?a", SRC]),
+                relation("urn:minimum:r", &["?a", "?a", "?a"]),
+            ),
+            law(
+                &["a", "b", "c"],
+                relation("urn:minimum:r", &["?a", "?b", "?c"]),
+                exists(&["y"], relation("urn:minimum:r", &["?b", "?y", "?c"])),
+            ),
+        ],
+        &["urn:minimum:r"],
     );
 }

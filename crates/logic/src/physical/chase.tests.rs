@@ -916,7 +916,7 @@ fn certify_model_summarizing_non_vacuous_beyond_structural() {
         ChaseAdmission::certify_super_weak_acyclic(&prog).is_none(),
         "super-weak acyclicity must refuse the swap-diagonal program"
     );
-    match ChaseAdmission::certify_model_summarizing(&prog) {
+    match ChaseAdmission::certify_model_summarizing(&prog).ok() {
         Some(ChaseAdmission::ModelSummarizingAcyclic { .. }) => {}
         other => panic!("MSA must certify the swap-diagonal program, got {other:?}"),
     }
@@ -930,7 +930,7 @@ fn certify_model_summarizing_non_vacuous_beyond_structural() {
 fn certify_msa_runs_the_engine_fixpoint() {
     // The self-hosting actually executed the engine's own fixpoint over a non-empty
     // critical instance (not a syntactic shortcut).
-    match ChaseAdmission::certify_model_summarizing(&model_summarizing_beyond_structural()) {
+    match ChaseAdmission::certify_model_summarizing(&model_summarizing_beyond_structural()).ok() {
         Some(ChaseAdmission::ModelSummarizingAcyclic { evidence }) => assert!(
             !evidence.contains("0 critical-instance fact"),
             "MSA must run the engine fixpoint over a non-empty critical instance: {evidence}"
@@ -963,16 +963,20 @@ fn certify_msa_refuses_oversized_critical_instance_without_materializing() {
             .collect()
     };
     // Small domain: MSA certifies (the fixpoint actually runs, no self-dependency).
-    match ChaseAdmission::certify_model_summarizing(&build(3)) {
+    match ChaseAdmission::certify_model_summarizing(&build(3)).ok() {
         Some(ChaseAdmission::ModelSummarizingAcyclic { .. }) => {}
         other => panic!("a small acyclic invent program must certify as MSA, got {other:?}"),
     }
     // Oversized domain (> 1024 constants ⇒ predicates × domain² > 1 << 20): the cap
     // refuses before materialization. This returns near-instantly; a pre-cap build
     // would allocate millions of facts.
+    let refused = ChaseAdmission::certify_model_summarizing(&build(1100));
+    let Err(Some(bound)) = refused else {
+        panic!("an oversized critical instance must refuse and name its bound: {refused:?}");
+    };
     assert!(
-        ChaseAdmission::certify_model_summarizing(&build(1100)).is_none(),
-        "an oversized critical instance must conservatively refuse (None), not OOM/hang"
+        bound.contains("critical instance") && bound.contains("1048576-fact bound"),
+        "{bound}"
     );
 }
 
@@ -999,7 +1003,7 @@ fn certify_cyclic_defeats_msa() {
     // refuses, and the ladder falls through to Uncertified.
     let cyclic = vec![restriction_rule("http://ex/rule/cyclic", D, P, D)];
     assert!(
-        ChaseAdmission::certify_model_summarizing(&cyclic).is_none(),
+        ChaseAdmission::certify_model_summarizing(&cyclic) == Err(None),
         "MSA must refuse the self-cycle D ⊑ ∃p.D"
     );
     assert!(!ChaseAdmission::certify(&cyclic).admits_native());
@@ -1034,7 +1038,7 @@ fn sparse_obstruction_absence_cannot_authorize_msa() {
         witness_frontier: None,
         witness_policy: WitnessPolicy::FrontierSkolem,
     };
-    assert!(ChaseAdmission::certify_model_summarizing(&[invent, feedback]).is_none());
+    assert!(ChaseAdmission::certify_model_summarizing(&[invent, feedback]).is_err());
 }
 
 // ── Nemo-free soundness self-oracle: every certified program terminates ────────
@@ -2351,4 +2355,18 @@ fn tuples_that_take_each_others_node_are_refused() {
     assert_eq!(refusal.rule, "http://ex/rule/tuple");
     assert_eq!(refusal.head_relations, [INNER, REL]);
     assert!(refusal.detail.contains("each other's reifier"), "{refusal}");
+}
+
+#[test]
+fn a_model_summarizing_fixpoint_out_of_budget_names_its_bound_and_never_certifies() {
+    // The same small acyclic program certifies under the real budget; starved of steps it
+    // must refuse, say that the budget stopped it, and not read the partial model as a
+    // certificate.
+    let program = model_summarizing_beyond_structural();
+    assert!(ChaseAdmission::certify_model_summarizing(&program).is_ok());
+    let starved = ChaseAdmission::certify_model_summarizing_within(&program, 0, 1);
+    let Err(Some(bound)) = starved else {
+        panic!("an exhausted fixpoint must name its bound: {starved:?}");
+    };
+    assert!(bound.contains("1-step budget"), "{bound}");
 }
