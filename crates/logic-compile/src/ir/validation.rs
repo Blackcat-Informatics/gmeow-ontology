@@ -856,12 +856,13 @@ pub struct ValidationShapeIr {
     /// projected to `gmeow:enforcesFailureClass`, but excluded from semantic identity.
     pub failure_class: Option<String>,
     /// The schema-level reification obligation declarations excluded from the focus set of this
-    /// class-targeted shape, by IRI, sorted and distinct. An obligation is declared as a classic
+    /// class-targeted shape, by IRI. An obligation is declared as a classic
     /// `rdf:Statement` record typed with its reifier class, so the declaration is an instance of
     /// the class (and of its ancestors) without being a reifier occurrence; exactly these nodes,
-    /// and no others, are removed from the focus set. Set only by
-    /// [`Self::with_obligation_declarations_excluded`]; empty leaves the content key
-    /// byte-identical.
+    /// and no others, are removed from the focus set. Built by
+    /// [`Self::with_obligation_declarations_excluded`], which sorts and deduplicates; a decoded
+    /// record keeps the order it was supplied in, like the other collections of this record.
+    /// Empty leaves the content key byte-identical.
     pub excluded_obligation_declarations: Vec<String>,
 }
 
