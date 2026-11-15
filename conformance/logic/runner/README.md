@@ -16,8 +16,8 @@ machine-checked guarantee rather than a hope.
 > using the three comparison modes below. It replaced the retired Python `logic_runner.py`
 > (the `gmeow-dev conformance` command), whose 31/31 pass-set it reproduced before deletion.
 > The **Rust core is the reasoning authority**: every committed `expected/` artifact is the
-> output it produces. Golden regeneration is `GMEOW_CONFORMANCE_BLESS=1 cargo nextest run -p
-> gmeow-conformance`. This file fixes the adapter interface every engine obeys.
+> output it produces. Golden regeneration is `gmeow-dev conformance-bless <case>…`, which always
+> names its cases. This file fixes the adapter interface every engine obeys.
 
 ## The adapter
 
@@ -65,15 +65,27 @@ The runner is the native Rust `gmeow-conformance` datatest harness, wired into `
 (`cargo nextest run -p gmeow-conformance`) and run automatically by the workspace `cargo nextest`
 in CI and `make check`. The corpus is an active gate: every `expected/` artifact is committed from
 the native solver's output, and the harness fails if the current engine diverges from those
-committed artifacts. The native solver output defines the canonical `expected/` files — re-bless by
-running `GMEOW_CONFORMANCE_BLESS=1 cargo nextest run -p gmeow-conformance` and committing its output.
+committed artifacts. The native solver output defines the canonical `expected/` files. Re-bless with
+the maintenance command, naming each case by its id under `conformance/logic/cases` or by path
+(`make maint-conformance-bless CASES="validation/reifier-shape"` runs the same command):
+
+```sh
+gmeow-dev conformance-bless validation/reifier-shape
+```
+
+The command runs each named case through the same `run_case` the producer uses, rewrites its
+goldens, and prints every file that differs; read that diff before committing it. It reads only the
+case directory and needs no producer output. It has no form that blesses every case, refuses an
+unknown case, and writes nothing if any named case fails to run. A case that selects
+`shipped_rules` needs the compiled rule library and is refused. No test may bless: the test runner
+only compares.
 
 Bless is **deterministic and idempotent**: because blank labels are canonicalized at the front-end,
 re-blessing a fresh checkout produces a byte-identical tree (`bless → git diff` is clean; a second
 bless is a no-op). It is also **refresh-only** — each case commits a *curated* subset of goldens (a
 query case pins only its `answers/`; a projection case pins the projection set), and bless rewrites
 **only goldens that already exist**, so it never spawns a target a case deliberately omits. To seed a
-**brand-new** case, set `GMEOW_CONFORMANCE_BLESS_INIT=1` to write the full produced set, then curate
+**brand-new** case, set `GMEOW_CONFORMANCE_BLESS_INIT=1` on that command to write the full produced set, then curate
 (delete) the targets that case should not gate.
 
 > The `expected/explanation/*.md` skeletons (content-hash-named, prose-bearing) and the

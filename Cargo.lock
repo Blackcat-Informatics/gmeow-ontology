@@ -1502,6 +1502,7 @@ dependencies = [
  "gmeow-action-cache",
  "gmeow-bundle-import",
  "gmeow-cli-core",
+ "gmeow-conformance",
  "gmeow-docs",
  "gmeow-docs-model",
  "gmeow-errors",

@@ -256,8 +256,10 @@ Following the `imports/targets/` snapshot pattern:
    corpus-scoped re-bless as `corpus.json`'s `refresh_command`.
 
    ```sh
-   GMEOW_CONFORMANCE_BLESS=1 cargo nextest run -p gmeow-conformance -E 'test(/external\//)'
+   gmeow-dev conformance-bless external/w3c-mini/positive-entailment
    ```
+
+   The command always names its cases; there is no form that blesses a whole corpus.
 
 4. `make conformance` must stay green and sub-second; the soundness gate
    (`tests/external_soundness.rs`) cross-checks every committed verdict against its

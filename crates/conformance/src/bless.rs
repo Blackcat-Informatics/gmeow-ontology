@@ -3,9 +3,10 @@
 
 //! Golden regeneration ("bless") mode.
 //!
-//! Activated by `GMEOW_CONFORMANCE_BLESS=1`, [`write_expected`] writes a case's
-//! `expected/` goldens from a fresh [`CaseOutputs`] instead of asserting against
-//! them. This is the native regeneration path for the conformance corpus.
+//! [`write_expected`] writes a case's `expected/` goldens from a fresh [`CaseOutputs`]
+//! instead of asserting against them. Its one caller is the maintenance command
+//! `gmeow-dev conformance-bless`, which names each case explicitly; no test and no gate
+//! reaches it. This is the native regeneration path for the conformance corpus.
 //!
 //! Comparison is canonical-JSON / graph-isomorphism, so bless writes a clean,
 //! deterministic canonical form (sorted-key pretty JSON; the compiler's

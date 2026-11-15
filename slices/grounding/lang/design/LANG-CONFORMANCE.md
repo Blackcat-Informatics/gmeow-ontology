@@ -184,7 +184,7 @@ a new preservation kind.
 ## The fixture corpus
 
 Conformance is demonstrated on a positive/negative fixture corpus in the established
-bless-discipline (`GMEOW_CONFORMANCE_BLESS` + `_BLESS_INIT` for new cases), sized to the flagship
+bless-discipline (`gmeow-dev conformance-bless`, with `GMEOW_CONFORMANCE_BLESS_INIT` for new cases), sized to the flagship
 scenarios of the manifesto:
 
 - **Positive**: the worked examples of each charter (the *cats chase mice* form and its lowering;
