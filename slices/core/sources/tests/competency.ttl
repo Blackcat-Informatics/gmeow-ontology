@@ -6,6 +6,8 @@
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
 @prefix logic: <https://blackcatinformatics.ca/logic/> .
 @prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/sources/tests/> .
+@prefix case:  <https://example.org/snapshot/> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
 
 # Empty over the TBox-only merged graph: no logic:Enactment instances exist, so
 # the ingestion query returns no rows. Pinning count 0 verifies the query parses
@@ -47,3 +49,47 @@ ex:ipContentDigest a gmeow:ExpectedRow ;
 
 ex:ipSourceLocation a gmeow:ExpectedRow ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "property" ; gmeow:cellValueIri gmeow:sourceLocation ] .
+
+# "What is the evidence chain of the claim?" Claim, citation, quoted passage and
+# the snapshot the passage is anchored to, with the snapshot's digest, retrieval
+# instant, retrieval address and immutable address. The citation points at the
+# snapshot, not at the live page.
+ex:cqSnapshotEvidenceChain a gmeow:CompetencyQuestion ;
+    gmeow:cqReasoning gmeow:reasoningNone ;
+    gmeow:cqDataFile "examples/source-snapshot.ttl" ;
+    gmeow:cqQuery """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX case: <https://example.org/snapshot/>
+SELECT ?quote ?snapshot ?digest ?retrievedAt ?liveAddress ?immutableAddress WHERE {
+    ?citation gmeow:citingEntity case:foundedClaim ;
+        gmeow:citedEntity ?snapshot ;
+        gmeow:viaSelector ?selector .
+    ?selector gmeow:selectorTextQuote ?quote .
+    ?snapshot a gmeow:SourceSnapshot ;
+        gmeow:contentDigest ?digest ;
+        gmeow:retrievedAt ?retrievedAt ;
+        gmeow:sourceLocation ?liveAddress ;
+        gmeow:immutableAddress ?immutableAddress .
+}""" ;
+    gmeow:cqRationale "A web citation is only re-checkable if the quoted passage is anchored to the bytes that were retrieved: the chain from the claim through its citation to the snapshot returns the digest of those bytes, when they were retrieved, the live address they came from and the immutable address they are stored at, kept apart." ;
+    gmeow:cqExactRows true ;
+    gmeow:cqResultShape ex:cqSnapshotEvidenceChainShape ;
+    gmeow:cqExpectRow ex:scChain .
+
+ex:cqSnapshotEvidenceChainShape a logic:ResultShape ;
+    logic:declaresColumn
+        [ logic:columnVariable "quote" ; logic:columnTermKind logic:TermKindLiteral ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "snapshot" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "digest" ; logic:columnTermKind logic:TermKindLiteral ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "retrievedAt" ; logic:columnTermKind logic:TermKindLiteral ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "liveAddress" ; logic:columnTermKind logic:TermKindLiteral ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "immutableAddress" ; logic:columnTermKind logic:TermKindLiteral ; logic:columnBinding logic:BindingRequired ] ;
+    logic:shapeCardinality logic:RowsExact .
+
+ex:scChain a gmeow:ExpectedRow ;
+    gmeow:rowCell
+        [ a gmeow:ExpectedCell ; gmeow:cellVar "quote" ; gmeow:cellValueLiteral "Acme was founded on 12 March 1998" ] ,
+        [ a gmeow:ExpectedCell ; gmeow:cellVar "snapshot" ; gmeow:cellValueIri case:pageSnapshot ] ,
+        [ a gmeow:ExpectedCell ; gmeow:cellVar "digest" ; gmeow:cellValueLiteral "5f8d1e2a9c4b7d0e3f6a1b8c5d2e9f0a3b6c7d4e1f8a2b5c9d0e3f6a7b4c1d8e"^^gmeow:blake3_256Digest ] ,
+        [ a gmeow:ExpectedCell ; gmeow:cellVar "retrievedAt" ; gmeow:cellValueLiteral "2026-09-30T17:00:00Z"^^xsd:dateTime ] ,
+        [ a gmeow:ExpectedCell ; gmeow:cellVar "liveAddress" ; gmeow:cellValueLiteral "https://acme.example/about" ] ,
+        [ a gmeow:ExpectedCell ; gmeow:cellVar "immutableAddress" ; gmeow:cellValueLiteral "https://archive.example.org/blake3/5f8d1e2a9c4b7d0e3f6a1b8c5d2e9f0a3b6c7d4e1f8a2b5c9d0e3f6a7b4c1d8e"^^xsd:anyURI ] .

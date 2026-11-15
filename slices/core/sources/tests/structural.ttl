@@ -46,3 +46,44 @@ ASK {
     ?rec logic:characterizes ?p ; logic:characteristicSort logic:functionalProperty .
 }""" ;
     gmeow:saRationale "None of the three carrier properties MUST be functional: an artifact may carry digests under several algorithms, and copies/syncs of identical bytes may report different locations and mtimes — all must coexist rather than force an inconsistency. VALUES ranges over the closed set of three properties the slice declares." .
+
+# --- Source snapshot (Principles 2, 4 and 7) ----------------------------------
+# A snapshot is a copy (gmeow:Item), not a new work, expression or manifestation,
+# and it reuses the existing digest and live-address properties.
+ex:saSourceSnapshotShape a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    gmeow:SourceSnapshot (rdfs:subClassOf|logic:subClassOf) gmeow:Item .
+    gmeow:retrievedAt (rdfs:domain|logic:domain) gmeow:SourceSnapshot .
+    gmeow:immutableAddress (rdfs:domain|logic:domain) gmeow:SourceSnapshot .
+}""" ;
+    gmeow:saRationale "A source snapshot is placed in the document layering as one particular copy and carries its own retrieval instant and immutable address; the digest and the live address stay on gmeow:contentDigest and gmeow:sourceLocation." .
+
+ex:saSourceSnapshotNotWork a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:mustNot ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    VALUES ?tier { gmeow:Work gmeow:Expression gmeow:Manifestation }
+    gmeow:SourceSnapshot (rdfs:subClassOf|logic:subClassOf) ?tier .
+}""" ;
+    gmeow:saRationale "A snapshot MUST NOT be declared a Work, Expression or Manifestation directly: it is a copy of a manifestation, never a new work." .
+
+ex:saSourceSnapshotRequired a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
+ASK {
+    [] a logic:ClosureEntry ; logic:onClass gmeow:SourceSnapshot ; logic:closureKey "https://blackcatinformatics.ca/gmeow/contentDigest" .
+    [] a logic:ClosureEntry ; logic:onClass gmeow:SourceSnapshot ; logic:closureKey "https://blackcatinformatics.ca/gmeow/retrievedAt" .
+    [] a logic:ClosureEntry ; logic:onClass gmeow:SourceSnapshot ; logic:closureKey "https://blackcatinformatics.ca/gmeow/sourceLocation" .
+    [] a logic:ClosureEntry ; logic:onClass gmeow:SourceSnapshot ; logic:closureKey "https://blackcatinformatics.ca/gmeow/immutableAddress" .
+}""" ;
+    gmeow:saRationale "A failed retrieval is not a snapshot: the digest, retrieval instant, retrieval address and immutable address are each a closed-world requirement on gmeow:SourceSnapshot." .
