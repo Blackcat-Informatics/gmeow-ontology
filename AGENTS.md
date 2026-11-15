@@ -45,6 +45,8 @@ commit messages, pull requests and reviews.
 
 ### When requests conflict
 
+These decide between competing requests. They do not replace the standing rules of this file.
+
 * **Greenfield:** correct the mistakes of the past. Others' mistakes are lessons, not limits.
 * **State of the art** over the bones of the past.
 * **Optimal:** the Pareto frontier of quality, speed and efficiency.
@@ -141,8 +143,11 @@ OWL, SHACL, ShEx and Datalog are generated lossy projections of the `logic:` cor
   `shapes/`. It is a second source of truth that no reasoner backs, sealed off by the
   projection-purity gate. A shape that remains must carry a `logic:formalizes` back-reference. The
   legacy `shapes.ttl` blocks are debt being migrated under equivalence-before-deletion, not a pattern.
-* **Never author `owl:` or `rdfs:` signatures in a `module.ttl`.** That spelling is a generated view;
-  reintroducing it fails the source lint.
+* **Never author `owl:` in a `module.ttl`.** That spelling is a generated view, and reintroducing it
+  fails the source lint. New terms state their signature with `logic:domain` and `logic:range`.
+  Older modules still author two semantic `rdfs:` forms, and neither is a pattern: subsumption
+  (`rdfs:subClassOf`, `rdfs:subPropertyOf`) is counted by the ratchet below; the `rdfs:domain` and
+  `rdfs:range` signatures are not counted, and are moved to `logic:` when the term is touched.
 * **Declarative checks** (cardinality, class, datatype, node kind, value set) are EL-safe `logic:`
   axioms in the slice's `module.ttl`: `logic:domain`, `logic:range`, `logic:allValuesFrom`,
   `logic:someValuesFrom`, `logic:hasValue`, `logic:oneOf`, `logic:disjointWith`,
@@ -155,14 +160,20 @@ OWL, SHACL, ShEx and Datalog are generated lossy projections of the `logic:` cor
   logic:ClosedWorldClosure`), never a bare existential.
 * **Procedural and cross-node checks** (comparisons, guarded existence, uniqueness, forbidden
   patterns) are a `logic:Constraint` whose `logic:integrity` is a real `logic:Formula` tree, with
-  `logic:formalizes` and `logic:message`. The pipeline lowers it to a SPARQL constraint. Worked
-  examples: [slices/core/ai/module.ttl](./slices/core/ai/module.ttl).
+  `logic:formalizes` and `logic:message`. The pipeline lowers it to a SPARQL constraint. Slice
+  sugar exists (`logic:GuardedImplicationConstraint`, `logic:ChoiceGroupConstraint`,
+  `logic:ForbiddenPatternConstraint`). Worked examples:
+  [slices/core/ai/module.ttl](./slices/core/ai/module.ttl).
 * **Laws** are first-order `logic:Formula` trees. A property that truly is not first-order
   axiomatizable is an honest `logic:expressivenessBoundary` record, never a faked formula, and never
   a record for something that could have been authored.
 * **The projection-vocabulary ratchet** holds a non-increasing ceiling per slice and guarded
-  vocabulary on hand-authored constructs with no `logic:formalizes`. New second-source authoring
-  fails the gate; no tool creates headroom; a raise is a maintainer decision made out of band. See
+  vocabulary on hand-authored constructs with no `logic:formalizes`: SHACL, gUFO, the BFO, OBO,
+  DOLCE and SUMO bridge vocabularies, RDFS subsumption (`rdfs:subClassOf`, `rdfs:subPropertyOf`)
+  and the alignment stack. New second-source authoring fails the gate; no tool creates headroom; a
+  raise is a maintainer decision made out of band. Moving constructs between slices is declared
+  with a dated `gmeow:CeilingRelocation`, which adjusts the base a ceiling is compared with; axis
+  floors are not adjusted by a move. See
   [docs/PROJECTION-VOCABULARY-RATCHET.md](./docs/PROJECTION-VOCABULARY-RATCHET.md).
 * A check that cannot be an EL-safe axiom or a `logic:Constraint` is flagged residue in the loss
   ledger and a stop-and-ask, never a self-granted exception.
@@ -175,17 +186,19 @@ OWL, SHACL, ShEx and Datalog are generated lossy projections of the `logic:` cor
 
 * **Never work in the top-level checkout.** It is shared and a daemon resets it to clean `main`;
   uncommitted work there is wiped. All git work happens in a worktree under `.worktrees/<slug>/`.
-* **Working files live under `.stage/`** (ignored): notes, evidence, logs, patches, scratch. Nothing
-  you need goes in `/tmp`, in another repository's tree or anywhere else on the host.
+* **Working files live under the main checkout's `.stage/`** (git-ignored): notes, evidence, logs,
+  patches, scratch. A worktree's own `.stage/` goes when the
+  worktree is removed, so nothing that must outlive it stays there. Nothing you need goes in
+  `/tmp`, in another repository's tree or anywhere else on the host.
 * **Do not accumulate worktrees or pull requests.** The only measure of work done is a merge to
-  `main`. With more than three open, land what is open, oldest first, before starting anything.
-  Work held more than twelve hours is reported with the one thing it waits on.
+  `main`. A contributor or agent session with more than three of its own open lands those, oldest
+  first, before starting anything new.
 
 ### Deal-breakers
 
 Never: `git checkout --theirs .` or `--ours .`; `git merge -X theirs` or `-X ours`; bypassing a
 commit hook; skipping or mocking the component under test; resolving conflicts in bulk to save time;
-`git add -f generated/`; rebasing, amending or force-pushing a shared branch. Never run `gpg` or
+`git add -f generated/`; rebasing, amending or force-pushing a pushed branch. Never run `gpg` or
 `gpgconf` or touch keys: Git's configured signing does the signing, and a step that needs more is
 handed to the maintainer.
 
@@ -213,8 +226,10 @@ A call that raises a permission prompt stops the session until a person looks.
   `git rev-parse HEAD`. A result from the wrong directory proves nothing.
 * **Evidence matches the gate** flag for flag. A hand-written command that differs from the gate
   proves nothing about the gate.
-* **One heavy command at a time.** Builds and test runs from several agents are serialized with
-  `flock` on one lock file. The cargo command is a managed wrapper: do not work around it.
+* **One heavy command at a time.** Several builds or test runs at once on one machine starve each
+  other. A session that runs agents in parallel serializes their builds and test runs with
+  `flock` on one lock file of its own. The gate takes its own host-wide lock; there is no
+  override.
 * **Times are read from the clock** when you write them, never estimated.
 * **No time or effort estimates.** Reason in dependency order and relative risk. The throughput aim
   is an average of six elapsed hours per issue from intake to merge; record what blocked and for
@@ -356,6 +371,9 @@ produces the corpus blocks review, commit and merge.
   with no produced fixtures and is not a regression.
 * Repository slice specifications are producer work with recorded receipts, not test cases. Tests
   verify the aggregate verdict read-only.
+* A test binary may be compiled under another Cargo profile, but it loads the producer-selected
+  action; it never derives a key from its own profile. Slice tests do not call the repository
+  sweep, its worker or its corpus stores.
 * There is no automatic retry: a failed whole-bundle consumer is terminal.
 
 ### Tests must earn their keep
@@ -398,14 +416,16 @@ Optimize for reading, maintenance and compile-time guarantees. Performance work 
 prefer data, dispatch and ownership changes to compiler flags, and keep debug assertions, overflow
 checks and the no-debug-symbol policy.
 
-* **Workspace.** Small crates with strict layering; `make crate-check` rejects a cycle. Domain crates
-  never depend on infrastructure crates. Dependency versions are declared once in the root
-  `Cargo.toml` and inherited. Binaries are thin: they parse arguments and wire libraries.
+* **Workspace.** Small crates with strict layering; `make crate-check` rejects a cycle. As a design
+  rule, a crate that holds domain logic does not depend on one that does I/O or orchestration. New
+  dependencies are declared once in the root `Cargo.toml` and inherited; a crate that still pins
+  its own version is moved when you touch it. Binaries are thin: they parse arguments and wire
+  libraries.
 * **Visibility.** Private by default, `pub(crate)` before `pub`. Every `pub` item is a maintenance
   commitment.
-* **Reuse before writing.** Prefer what PurRDF, the shared Rust foundations and this workspace
-  already provide to a new local solution, and never re-implement their mechanisms. `make helpers-hygiene`
-  counts duplicated helpers and its debt only falls.
+* **Reuse before writing.** Prefer what PurRDF and this workspace already provide to a new local
+  solution, and never re-implement PurRDF's mechanisms. `make helpers-hygiene` counts duplicated
+  helpers and its debt only falls.
 * **Files** stay under 5,000 lines; split a larger one when you are working in it.
 * **SOLID.** Review for it before planning and in review. Refactor code you are already changing when
   it helps.
@@ -416,14 +436,17 @@ checks and the no-debug-symbol policy.
   changes its input. Put `#[must_use]` on pure functions, builders and result types. Use
   `let … else` for early returns.
 * **Errors.** Library code returns the workspace's typed diagnostics (`gmeow-errors`): a kind for
-  each failure mode, bound to a failure class in the ontology. No `Result<_, String>`. Keep the
+  each failure mode, bound to a failure class in the ontology where one exists. No
+  `Result<_, String>`. Keep the
   source of an error; never swallow it.
 * **No panics in production paths.** No `.unwrap()`. An `.expect()` states the invariant that makes
   failure impossible. In tests, `.expect("why the setup is valid")`.
-* **Logging.** Diagnostics go through `tracing` with structured fields (`info!(stage = %id, quads,
-  "product published")`), never interpolated strings, `dbg!` or stray `println!`. A CLI's report on
-  standard output is its product and is the only printing. Instrument boundaries, not inner loops,
-  and keep secrets and large buffers out of spans.
+* **Logging.** Diagnostics go through `tracing` with structured fields, as
+  `tracing::info!(target: "pipeline_phase", stage, phase, event = "start", "producer phase
+  boundary")` does, never interpolated strings, `dbg!` or stray `println!`. The printing that
+  belongs is a CLI's report on standard output, which is its product, and a build script's cargo
+  directives. Instrument boundaries, not inner loops, and keep secrets and large buffers out of
+  spans.
 * **Determinism.** Generated bytes and digests do not change unless a digest domain is deliberately
   versioned and the change is named. A nondeterministic artifact is a compiler bug to fix, never an
   output to normalize by hand.
@@ -467,7 +490,7 @@ never committed. `ontology-docs/` at the root is a generated documentation tree,
 on demand. Everything else is authored.
 
 ```text
-slices/<group>/<name>/   the unit of the ontology. <group> (core, extensions, grounding) is
+slices/<group>/<name>/   the unit of the ontology. <group> (core, extensions, grounding, profile) is
                          organization only; manifest.ttl is the sole source of identity and tier.
                          Anatomy: manifest.ttl, module.ttl, shapes.ttl, mappings/, queries/,
                          examples/, tests/, i18n/, docs.md
@@ -475,8 +498,8 @@ slices/vocabulary.ttl    the slice-manifest authoring vocabulary
 ontology/gmeow.ttl       root ontology: the core profile (generated imports)
 dsl/mappings/            shared mapping vocabulary and cross-cutting sets
 dsl/statements/          statement DSL
-shapes/                  authored SHACL (legacy; see § 2)
-queries/                 authored SPARQL: competency, verify, qc, codecs
+shapes/                  the annotation-completeness and DSL shapes the gates run
+queries/                 authored SPARQL: competency, verify, qc, codecs, audit
 imports/                 vendored externals
 metadata/                citations and release records
 docs/                    cross-slice doctrine (a slice's guide lives in the slice)
@@ -498,7 +521,7 @@ A work item is well formed only if one branch can land it as a single squash-mer
 green. An issue no single pull request can close is a planning defect.
 
 * **Decompose before writing code.** Each child is one landable unit. Children name what blocks them
-  and what they block. The original becomes a tracking epic with no code of its own, closed when
+  and what they block. The original becomes a tracking epic (label `epic`) with no code of its own, closed when
   every child has closed. Every requirement maps to exactly one child.
 * **Deferral is banned; decomposition is required.** Deferral leaves a requirement of the unit being
   landed unbuilt, stubbed or marked for later. Decomposition splits an oversized unit so that every
@@ -512,7 +535,7 @@ green. An issue no single pull request can close is a planning defect.
 ## 10. Pull request lifecycle
 
 1. **Integrate `main` by merging it into the branch, never by rebasing.** `git fetch origin main`
-   then `git merge origin/main` (or the session's sync tool, which saves each conflict for review).
+   then `git merge origin/main`.
    The branch may hold merge commits; the squash collapses them.
 2. **Resolve each conflict by reading both sides** and keeping the most function. Never take one
    side wholesale. In translation catalogs keep every entry from both sides exactly once.
@@ -521,8 +544,9 @@ green. An issue no single pull request can close is a planning defect.
    Re-materialize with `make check` after integrating.
 4. **Read all feedback.** `gh pr view <n> --json reviews` gives review summaries; inline comments,
    where most findings are, come from `gh api repos/<owner>/<repo>/pulls/<n>/comments`.
-   Read both automated (CodeRabbit, Gemini) and human reviews. An actionable automated finding is binding unless it
-   contradicts the Constitution. A reply to a reviewer must be true of the named commit.
+   Read both automated (CodeRabbit, Gemini) and human reviews.
+   An actionable automated finding is binding unless it contradicts the Constitution. A reply to a
+   reviewer must be true of the named commit.
 5. **Fix in canonical sources only**, then regenerate:
 
    | Review target | Edit |
@@ -536,7 +560,8 @@ green. An issue no single pull request can close is a planning defect.
    verification, Rust tests. CI builds the branch merged into `main`, so integrate first.
 7. **Push.** Stage explicit paths (never `git add -A`), commit through the hooks, plain `git push`.
    No amend, no force.
-8. **Land by squash-merge with `ghprsq`**, never `git merge` or `gh pr merge`. `main` stays linear.
+8. **Land by squash-merge with `ghprsq`**, never by `git merge` into `main` or `gh pr merge`. `main`
+   stays linear.
    The description states only what was run and shown, and lists what was not.
 
 No tool or agent credits in source, commits, issues or pull requests.

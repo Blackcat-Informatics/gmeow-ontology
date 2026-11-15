@@ -165,9 +165,10 @@ serde_json.workspace = true
 # The tracked term-changelog authority is bound to an ordered ontology release
 # identity; arbitrary same-release boundary rewrites are rejected.
 semver.workspace = true
-# Reclaim glibc arena slack at explicit preparation and serialization handoffs,
-# and support selected all-arena observations. Non-glibc targets retain ordinary
-# drop behavior for reclamation; selecting unsupported observations fails.
+# Reclaim glibc arena slack at each stage completion and at the reasoning stage's
+# handoffs, read the allocator totals of each memory record, and support selected
+# all-arena observations. Non-glibc targets retain ordinary drop behavior for
+# reclamation and report no totals; selecting unsupported observations fails.
 libc.workspace = true
 # The release-as-evidence fold and the medium audit read GTS frames and the snapshot's
 # blob `pub` metadata maps as the substrate's CBOR `Value` the gts_compose author wrote.

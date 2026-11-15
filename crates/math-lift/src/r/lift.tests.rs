@@ -385,8 +385,8 @@ fn every_lowered_formula_selects_exactly_one_constructor() {
 #[test]
 fn a_lowered_atom_carries_a_typed_relation_and_an_indexed_argument() {
     // logic:relation's range is a reified logic:Type; logic:TermCarrierIndexConstraint
-    // requires an index on every carrier; logic:TermCarrierValueConstraint requires
-    // exactly one term-value kind on it.
+    // requires an index on every logic:argument carrier; logic:TermCarrierValueConstraint
+    // requires exactly one term-value kind on it.
     let ttl = turtle("fit <- lm(mpg ~ wt, data = mtcars)\nz <- log(wt)\nfor (i in 1:3) print(i)\n");
     assert!(ttl.contains(&format!("<{}> .", logic("Type"))), "{ttl}");
     assert!(

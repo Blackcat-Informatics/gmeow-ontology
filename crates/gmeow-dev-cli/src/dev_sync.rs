@@ -659,39 +659,7 @@ pub fn sync(
         let stage_memory = report
             .stage_memory
             .iter()
-            .map(|made| {
-                let product = made.product.map(|footprint| {
-                    purrdf_lex::json::Value::from(
-                        purrdf_lex::json::Object::new()
-                            .with("quads", footprint.quads)
-                            .with("terms", footprint.terms)
-                            .with("committed_lane_bytes", footprint.committed_lane_bytes)
-                            .with("internal_lane_bytes", footprint.internal_lane_bytes)
-                            .with("carrier_released", footprint.carrier_released),
-                    )
-                });
-                let released = made.released.map(|freed| {
-                    purrdf_lex::json::Value::from(
-                        purrdf_lex::json::Object::new()
-                            .with("quads", freed.quads)
-                            .with("terms", freed.terms)
-                            .with("committed_lane_bytes", freed.committed_lane_bytes)
-                            .with("internal_lane_bytes", freed.internal_lane_bytes),
-                    )
-                });
-                purrdf_lex::json::Value::from(
-                    purrdf_lex::json::Object::new()
-                        .with("pid", made.pid)
-                        .with("seq", made.seq)
-                        .with("stage", made.stage_id.as_str())
-                        .with("event", made.event.as_str())
-                        .with("phase", made.phase.as_deref())
-                        .with("rss_kib", made.process.rss_kib)
-                        .with("peak_rss_kib", made.process.peak_rss_kib)
-                        .with("product", product)
-                        .with("released", released),
-                )
-            })
+            .map(stage_memory_observation)
             .collect::<Vec<_>>();
         let critical_path_ms = report
             .level_timings
@@ -795,6 +763,61 @@ pub fn sync(
         total_removed
     );
     0
+}
+
+/// One memory record as it is written to `observations.stage_memory` of the timings
+/// JSON. A figure the host could not supply is `null`: the resident sizes without Linux
+/// procfs, and the allocator totals without glibc.
+fn stage_memory_observation(
+    made: &gmeow_pipeline::memory_record::MemoryRecord,
+) -> purrdf_lex::json::Value {
+    let product = made.product.map(|footprint| {
+        purrdf_lex::json::Value::from(
+            purrdf_lex::json::Object::new()
+                .with("quads", footprint.quads)
+                .with("terms", footprint.terms)
+                .with("committed_lane_bytes", footprint.committed_lane_bytes)
+                .with("internal_lane_bytes", footprint.internal_lane_bytes)
+                .with("carrier_released", footprint.carrier_released),
+        )
+    });
+    let released = made.released.map(|freed| {
+        purrdf_lex::json::Value::from(
+            purrdf_lex::json::Object::new()
+                .with("quads", freed.quads)
+                .with("terms", freed.terms)
+                .with("committed_lane_bytes", freed.committed_lane_bytes)
+                .with("internal_lane_bytes", freed.internal_lane_bytes),
+        )
+    });
+    let reclaim = made.reclaim.map(|returned| {
+        purrdf_lex::json::Value::from(
+            purrdf_lex::json::Object::new()
+                .with("rss_before_kib", returned.rss_before_kib)
+                .with("elapsed_us", returned.elapsed_us),
+        )
+    });
+    purrdf_lex::json::Value::from(
+        purrdf_lex::json::Object::new()
+            .with("pid", made.pid)
+            .with("seq", made.seq)
+            .with("stage", made.stage_id.as_str())
+            .with("event", made.event.as_str())
+            .with("phase", made.phase.as_deref())
+            .with("rss_kib", made.process.rss_kib)
+            .with("peak_rss_kib", made.process.peak_rss_kib)
+            .with(
+                "allocator_live_bytes",
+                made.allocator.map(|totals| totals.live_bytes),
+            )
+            .with(
+                "allocator_free_bytes",
+                made.allocator.map(|totals| totals.free_bytes),
+            )
+            .with("product", product)
+            .with("released", released)
+            .with("reclaim", reclaim),
+    )
 }
 
 fn default_mode() -> SyncMode {

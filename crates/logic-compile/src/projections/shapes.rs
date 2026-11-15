@@ -29,6 +29,12 @@ use crate::ir::{
 use super::sparql_lower::{sparql_literal, sparql_predicate};
 
 #[cfg(test)]
+mod foreign_domain_tests;
+
+#[cfg(test)]
+mod obligation_declaration_tests;
+
+#[cfg(test)]
 mod qualified_tests;
 
 /// Build a projection-grade [`Diag`] (the sole first-party error type — the Phase-6 Diag
@@ -519,6 +525,12 @@ pub fn project_validation_shape_shacl(shape: &ValidationShapeIr) -> String {
         ));
     }
     match &shape.target {
+        ShapeTarget::Class(c) if !shape.excluded_obligation_declarations.is_empty() => {
+            pos.push(obligation_free_class_target_clause(
+                c,
+                &shape.excluded_obligation_declarations,
+            ));
+        }
         ShapeTarget::Class(c) => pos.push(format!("sh:targetClass {}", iri_term(c))),
         ShapeTarget::SubjectsOf(p) => pos.push(format!("sh:targetSubjectsOf {}", iri_term(p))),
         ShapeTarget::ObjectsOf(p) => pos.push(format!("sh:targetObjectsOf {}", iri_term(p))),
@@ -917,6 +929,14 @@ pub fn shex_residue(shape: &ValidationShapeIr) -> Vec<String> {
              shape-level form; carried in the canonical logic: layer",
             shape.node_components.len()
         ));
+    }
+    if !shape.excluded_obligation_declarations.is_empty() {
+        residue.push(
+            "the exclusion of schema-level reification obligation declarations from the focus \
+             set has no ShEx form (ShEx associates shapes via an external ShapeMap); carried in \
+             the canonical logic: layer"
+                .to_owned(),
+        );
     }
     for p in &shape.properties {
         if p.reifier_shape.is_some() || p.reification_required {
@@ -1849,6 +1869,24 @@ fn direct_class_target_clause(c: &str) -> String {
         "sh:target [ a sh:SPARQLTarget ; sh:select \"\"\"SELECT ?this WHERE {{ ?this a {ct} . \
          FILTER NOT EXISTS {{ ?this a ?sub . ?sub \
          <http://www.w3.org/2000/01/rdf-schema#subClassOf>+ {ct} . FILTER ( ?sub != {ct} ) }} }}\"\"\" ]"
+    )
+}
+
+/// The `sh:target [ a sh:SPARQLTarget … ]` clause selecting every instance of a class EXCEPT the
+/// named schema-level reification obligation declarations.
+///
+/// The instance selection is the one `sh:targetClass` makes (`rdf:type` closed over
+/// `rdfs:subClassOf`). The exclusion is by identity: only the listed declaration IRIs are
+/// removed, in the order the shape carries them, so every other node of the class is selected
+/// whatever form it is written in.
+fn obligation_free_class_target_clause(c: &str, declarations: &[String]) -> String {
+    let excluded: Vec<String> = declarations.iter().map(|iri| iri_term(iri)).collect();
+    format!(
+        "sh:target [ a sh:SPARQLTarget ; sh:select \"\"\"SELECT DISTINCT ?this WHERE {{ \
+         ?this <{RDF_TYPE}>/<{RDFS_SUBCLASS_OF}>* {ct} . \
+         FILTER ( ?this NOT IN ( {excluded} ) ) }}\"\"\" ]",
+        ct = iri_term(c),
+        excluded = excluded.join(", "),
     )
 }
 

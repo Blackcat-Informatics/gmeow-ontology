@@ -48,10 +48,13 @@ The full-FOL core is a reified `logic:Formula` tree. A formula node is one of:
 
 A **sequence marker** (`logic:SequenceMarker`, carried by `logic:termSequenceMarker`) is a variadic
 argument that binds a *sequence* of terms, generalizing the fixed arity-three atom to predications of
-any arity. Each term-carrier fixes its position with `logic:termIndex` and holds exactly one of
-`logic:termIri` / `logic:termVariable` / `logic:termLiteral` (+ `logic:termLiteralDatatype`) /
-`logic:termSequenceMarker`, so the variadic, order-significant lists round-trip independent of RDF
-statement order.
+any arity. Each ordered argument term-carrier fixes its position with `logic:termIndex`, as does each
+`logic:quantifiedVariable` binder, and every term-carrier holds exactly one of
+`logic:termApplication` / `logic:termIri` / `logic:termLiteral` (+ `logic:termLiteralDatatype`) /
+`logic:termSequenceMarker` / `logic:termVariable`, so the variadic, order-significant lists round-trip
+independent of RDF statement order. A `logic:termApplication` value names a `logic:FunctionTerm`: one
+function symbol applied to its own ordered `logic:argument` term-carriers. A carrier in an RDF 1.2
+triple-term position of a rule atom needs no index: that position already fixes its role.
 
 Horn+NAF derivation rules remain a recognized **sub-fragment** carried by `logic:Rule`: a program's
 trivially-Horn facts and rules stay in the rule/axiom collections, and only what genuinely exceeds
