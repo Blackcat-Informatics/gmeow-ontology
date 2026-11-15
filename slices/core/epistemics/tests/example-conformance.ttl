@@ -41,3 +41,17 @@ ex:ecDoxasticStateMissingAgent a gmeow:ExampleConformance ;
 # in that narrow scope (it emits shacl.ClassConstraintComponent). It is validated
 # in full by `make validate` against the merged ontology, and its parse + content
 # are covered by test_flagship_example_parses / test_suppression_round_trip.
+
+# --- Conforming: evaluating a claim that exists only as a reified statement ---
+ex:ecEvaluatingReifiedStatementConforms a gmeow:ExampleConformance ;
+    gmeow:exampleFile "examples/evaluating-a-reified-statement.ttl" ;
+    gmeow:expectedOutcome gmeow:conforms ;
+    gmeow:conformanceRationale "The worked example links the statement reifier to a gmeow:ClaimToken with gmeow:putForwardByClaim and points gmeow:evaluates at that token, so the evaluation's single target is a claim token and the reifier has one token. It validates with no findings." .
+
+# --- Violating: gmeow:evaluates aimed directly at a statement reifier ---------
+ex:ecEvaluatesStatementReifier a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/evaluates-statement-reifier.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.ClassConstraintComponent" ;
+    gmeow:expectedSourceShape gmeow:ClaimEvaluation-shape ;
+    gmeow:conformanceRationale "The counter-example points gmeow:evaluates at the reifier of a reified statement. The reifier is not a gmeow:ClaimToken and is not retyped as one. The gmeow:ClaimEvaluation restriction on gmeow:evaluates derives sh:class gmeow:ClaimToken on gmeow:ClaimEvaluation-shape, so validation MUST emit shacl.ClassConstraintComponent from that shape." .

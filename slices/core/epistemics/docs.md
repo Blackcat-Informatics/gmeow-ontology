@@ -182,6 +182,79 @@ This is the same suppression pattern used by `inference:InferenceTenure` (Princi
 
 Example: see `slices/core/epistemics/examples/belief-revision.ttl`.
 
+## Evaluating a claim
+
+A `gmeow:ClaimEvaluation` is one party's judgment of another claim, made as a claim of its own.
+It points `gmeow:evaluates` at the single `gmeow:ClaimToken` it judges, is held according to the
+evaluator's `gmeow:Standpoint` through `gmeow:accordingTo`, and carries its verdict as the
+`gmeow:Proposition` it `gmeow:expresses`. Verdicts are open: each consumer mints the proposition
+it needs ("this claim is wrong", "this claim is unwarranted"); no closed set of verdict values is
+provided.
+
+**Where the reason goes.** The evaluator's reason goes on the evaluation, in its own words, with
+`gmeow:statedRationale` from the record-metadata slice. Keep the supplied wording and language
+tag. The text is an attributed explanation, not a computed cause and not proof that the verdict
+is right. There is no separate reason property for evaluations. A reason that is itself an
+argument with premises belongs in the inference slice and reaches the evaluated token with
+`gmeow:attacksClaim` or `gmeow:supportsClaim`.
+
+**A claim that exists only as a reified statement.** Many claims are recorded as an RDF 1.2
+reified statement: a quoted triple with a reifier that carries its attribution. Such a reifier is
+not a claim token, and `gmeow:evaluates` pointed at it is rejected by validation. Mint a
+`gmeow:ClaimToken` for the act that put the statement forward and link the reifier to it with
+`gmeow:putForwardByClaim`; then evaluate the token. The reifier stays a reifier and is never
+retyped as a claim token or an activity.
+
+| Direction | Bound | Why |
+|---|---|---|
+| reifier → claim token | at most one (functional) | holds for a reifier that names one attributed occurrence of a statement: one source, one occasion, one assertion act |
+| claim token → reifier | any number | one assertion act may put several statements forward; evaluating its token judges all of them |
+
+**Precondition: one named reifier per assertion act.** The bound is a requirement on the data,
+not a fact about every reifier. A reifier can be shared: when a statement names no reifier, the
+statement compiler mints one from the triple alone, so two sources that state the same triple
+share that reifier and it carries both sources' annotations. A shared reifier names no single
+assertion act. Never link it to a claim token, and do not expect to evaluate one source's claim
+through it: that cannot be done per source. Give each act that is to be evaluated its own named
+reifier of the triple, and link each reifier to its own token. RDF 1.2 allows any number of
+reifiers for one triple, and the separately named claims coexist (Principle 9).
+
+**Evaluating a token judges the whole act.** An evaluation targets the claim token, so it judges
+everything that act put forward: every statement whose reifier is linked to the token. To judge
+one statement apart from the others, record it under an act, a token and a reifier of its own.
+
+```turtle
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix ex: <https://example.org/reified-evaluation/> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+
+ex:skyStatement rdf:reifies <<( ex:sky ex:hasColour ex:blue )>> ;
+    gmeow:accordingTo ex:aliceStandpoint ;
+    gmeow:putForwardByClaim ex:aliceSaysBlue .
+ex:aliceSaysBlue a gmeow:ClaimToken ;
+    gmeow:wasAssociatedWith ex:alice ;
+    gmeow:accordingTo ex:aliceStandpoint ;
+    gmeow:expresses ex:skyIsBlue .
+
+ex:bobEvaluation a gmeow:ClaimEvaluation ;
+    gmeow:evaluates ex:aliceSaysBlue ;
+    gmeow:accordingTo ex:bobStandpoint ;
+    gmeow:expresses ex:skyClaimIsWrong ;
+    gmeow:statedRationale "No, it is red. I checked at sunset."@en .
+```
+
+To read it back, follow `gmeow:evaluates` from the evaluation to the token and
+`gmeow:putForwardByClaim` from the reifier to the same token. Give the token the proposition it conveys with `gmeow:expresses`: the observation-claim view is built from tokens that express a proposition, so a token without one is absent from it, although the reifier-to-token readback still works. The full worked example is
+[`examples/evaluating-a-reified-statement.ttl`](./examples/evaluating-a-reified-statement.ttl).
+
+**An evaluation acts on nothing.** It never suppresses, ranks or replaces the claim it evaluates.
+The evaluated claim, token and statement are retained unchanged and stay retrievable beside the
+evaluation, and several evaluations of one claim under different standpoints coexist
+(Principle 9). An evaluation is no ground for setting `gmeow:displayable false` on the evaluated
+claim, and no reader should infer from an unfavourable verdict that the claim is withdrawn,
+superseded or lower in any order. What a particular reader is shown is that reader's policy,
+decided at projection.
+
 ## Flagship worked example
 
 [`slices/core/epistemics/examples/flagship-epistemic-ledger.ttl`](./examples/flagship-epistemic-ledger.ttl)
