@@ -855,6 +855,13 @@ pub struct ValidationShapeIr {
     /// Typed conformance failure raised by this validation shape. Annotation-level metadata:
     /// projected to `gmeow:enforcesFailureClass`, but excluded from semantic identity.
     pub failure_class: Option<String>,
+    /// Whether schema-level reification obligation declarations are excluded from the focus set of
+    /// this class-targeted shape. An obligation is declared as a classic `rdf:Statement` record
+    /// typed with its reifier class, so the declaration is an instance of the class without being
+    /// a reifier occurrence; the validation surface must not select it. Set only by
+    /// [`Self::with_obligation_declarations_excluded`]; `false` leaves the content key
+    /// byte-identical.
+    pub excludes_obligation_declarations: bool,
 }
 
 impl ValidationShapeIr {
@@ -931,6 +938,7 @@ impl ValidationShapeIr {
             node_components: Vec::new(),
             label: None,
             failure_class: None,
+            excludes_obligation_declarations: false,
         })
     }
 
@@ -988,6 +996,24 @@ impl ValidationShapeIr {
         Ok(self)
     }
 
+    /// Exclude schema-level reification obligation declarations from this shape's focus set.
+    /// Only a class target has instances a declaration can be mistaken for, so every other
+    /// target is refused.
+    ///
+    /// # Errors
+    /// Refuses a shape whose target is not [`ShapeTarget::Class`].
+    pub fn with_obligation_declarations_excluded(mut self) -> gmeow_errors::Result<Self> {
+        if !matches!(self.target, ShapeTarget::Class(_)) {
+            return Err(Diag::of_kind(crate::error::Validation::new(format!(
+                "ValidationShapeIr {}: obligation declarations can be excluded only from a \
+                 class-targeted shape",
+                self.iri
+            ))));
+        }
+        self.excludes_obligation_declarations = true;
+        Ok(self)
+    }
+
     /// Stable sort key for canonical ordering — the shape IRI is unique.
     pub fn sort_key(&self) -> String {
         self.iri.clone()
@@ -1035,6 +1061,9 @@ impl ValidationShapeIr {
         }
         if let Some(label) = &self.label {
             key.push_str(&format!("{SEP}label={}", key_field(label)));
+        }
+        if self.excludes_obligation_declarations {
+            key.push_str(&format!("{SEP}xobligation=true"));
         }
         key
     }

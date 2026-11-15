@@ -57,13 +57,18 @@ pub fn enforcement_key(shape: &ValidationShapeIr) -> String {
         .map(|c| c.enforcement_key())
         .collect();
     nodes.sort();
-    format!(
+    let mut key = format!(
         "target={}\u{1f}sp={}\u{1f}props={}\u{1f}nodes={}",
         key_field(&shape.target.enforcement_key()),
         key_field(shape.standpoint.as_deref().unwrap_or("")),
         key_list(&props),
         key_list(&nodes),
-    )
+    );
+    // Excluding obligation declarations narrows the focus set, so it is enforcement content.
+    if shape.excludes_obligation_declarations {
+        key.push_str("\u{1f}xobligation=true");
+    }
+    key
 }
 
 /// Exact enforcement equivalence (`≡`): the two shapes flag exactly the same focus nodes over
@@ -144,7 +149,9 @@ fn property_subsumes(strong: &PropertyConstraintIr, weak: &PropertyConstraintIr)
 /// are equivalent yet syntactically distinct. By construction `equivalent(a, b)` implies
 /// `subsumes(a, b) && subsumes(b, a)`.
 pub fn subsumes(strong: &ValidationShapeIr, weak: &ValidationShapeIr) -> bool {
-    if strong.target != weak.target {
+    if strong.target != weak.target
+        || strong.excludes_obligation_declarations != weak.excludes_obligation_declarations
+    {
         return false;
     }
     // A standpoint-scoped shape holds only under its world; a differing (or missing) scope means

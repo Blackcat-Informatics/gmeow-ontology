@@ -273,6 +273,7 @@ impl FromJson for PropertyConstraintIr {
     "node_components" => node_components,
     "label" => label,
     "failure_class" => failure_class,
+    "excludes_obligation_declarations" => excludes_obligation_declarations,
 });
 impl FromJson for ValidationShapeIr {
     fn from_json(value: &Value) -> Result<Self, DecodeError> {
@@ -286,6 +287,8 @@ impl FromJson for ValidationShapeIr {
             node_components: fields.required("node_components")?,
             label: fields.optional("label")?,
             failure_class: fields.optional("failure_class")?,
+            excludes_obligation_declarations: fields
+                .required("excludes_obligation_declarations")?,
         })
     }
 }
