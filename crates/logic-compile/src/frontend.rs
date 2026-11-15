@@ -63,6 +63,9 @@ pub use emission::{
     OwnerFamily, OwnerLowering, SourceCompilation,
 };
 
+mod claims;
+pub use claims::ClaimStatement;
+
 mod prepared;
 pub use crate::graphutil::default_graph_pattern as default_source_statements;
 pub use crate::graphutil::source_graph_pattern as selected_source_statements;

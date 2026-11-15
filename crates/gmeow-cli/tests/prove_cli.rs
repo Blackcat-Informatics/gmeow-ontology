@@ -571,3 +571,85 @@ ex:subject ex:property ex:object .
         "{report:#}"
     );
 }
+
+/// Two reports from different sources that type one individual into two disjoint
+/// classes.
+const PROVENANCE_CLASH: &str = r#"
+ex:A logic:disjointWith ex:B .
+[] rdf:reifies <<( ex:a logic:instanceOf ex:A )>> ; logic:provenance ex:first .
+[] rdf:reifies <<( ex:a logic:instanceOf ex:B )>> ; logic:provenance ex:second .
+"#;
+
+/// A claim that carries only provenance is a statement of the selected theory, so
+/// two such claims that contradict each other refute the selection even though
+/// source admission has not admitted either one.
+#[test]
+fn provenance_only_contradiction_is_inconsistent() {
+    let (report, code) = prove_json("provenance-clash.logic.ttl", PROVENANCE_CLASH, &["--gate"]);
+    assert_eq!(report["verdict"], "inconsistent", "{report:#}");
+    assert_eq!(code, 1);
+    assert_eq!(report["engines"]["native"]["verdict"], "clash");
+    assert_eq!(report["selection"]["claims_read"], 2);
+}
+
+/// Reading a claim never decides `consistent` on its own: while source admission
+/// still blocks a reified claim, a selection of claims with no clash is not decided,
+/// the engine ran rather than refused, and the report counts the claims it read.
+#[test]
+fn provenance_only_claims_without_a_clash_are_not_decided_until_admitted() {
+    let (report, code) = prove_json(
+        "provenance-agree.logic.ttl",
+        r#"
+[] rdf:reifies <<( ex:a logic:instanceOf ex:A )>> ; logic:provenance ex:first .
+[] rdf:reifies <<( ex:b logic:instanceOf ex:A )>> ; logic:provenance ex:second .
+"#,
+        &["--gate"],
+    );
+    assert_eq!(report["verdict"], "not-decided", "{report:#}");
+    assert_eq!(code, 3);
+    assert_eq!(report["engines"]["native"]["verdict"], "no-clash");
+    assert_eq!(report["selection"]["claims_read"], 2);
+    assert!(
+        drop_codes(&report)
+            .iter()
+            .any(|code| code == "CONTEXTUAL_REIFICATION_REQUIRES_TYPED_TRANSLATION"),
+        "{report:#}"
+    );
+}
+
+/// A claim placed in a module is outside the selected theory: it is a named drop
+/// that states the coordinate, it is not read, and it no longer makes the native
+/// engine refuse the whole selection.
+#[test]
+fn a_module_scoped_claim_is_named_unread_and_the_engine_still_runs() {
+    let (report, code) = prove_json(
+        "module-claim.logic.ttl",
+        r#"
+ex:A logic:disjointWith ex:B .
+ex:a logic:instanceOf ex:A .
+[] rdf:reifies <<( ex:a logic:instanceOf ex:B )>> ; logic:inModule ex:module .
+"#,
+        &["--gate"],
+    );
+    assert_eq!(report["verdict"], "not-decided", "{report:#}");
+    assert_eq!(code, 3);
+    assert_eq!(report["engines"]["native"]["verdict"], "no-clash");
+    assert_eq!(report["selection"]["claims_read"], 0);
+    let unread: Vec<&str> = report["selection"]["drops"]
+        .as_array()
+        .expect("selection drops")
+        .iter()
+        .filter(|drop| drop["code"] == "SCOPED_CLAIM_NOT_READ")
+        .map(|drop| drop["detail"].as_str().expect("drop detail"))
+        .collect();
+    assert!(
+        matches!(unread[..], [detail] if detail.contains("logic:inModule")),
+        "{report:#}"
+    );
+    assert!(
+        !drop_codes(&report)
+            .iter()
+            .any(|code| code == "NATIVE_REFUSED"),
+        "{report:#}"
+    );
+}

@@ -28,6 +28,10 @@ pub mod math_gate;
 pub mod perf_ledger;
 mod program;
 pub use program::{PreparedReasoningInput, prepare_reasoning_input};
+mod claims;
+pub use claims::{
+    ClaimIngress, ReadClaim, UnreadClaim, UnreadReason, prepare_selected_theory_input,
+};
 pub mod refute;
 pub mod rl;
 mod schema;
@@ -570,6 +574,37 @@ pub fn reason_program_within(
     budget: &Budget,
 ) -> gmeow_errors::Result<ReasoningResult> {
     Ok(reason_program_budgeted(program, input, domains, budget.max_steps)?.0)
+}
+
+/// Execute one selected theory: the compiled program over the input prepared by
+/// [`prepare_selected_theory_input`], whose ledger accounts for every scoped axiom.
+///
+/// The bare-program entries refuse a program whose axioms carry a context
+/// coordinate, because they never read a source axiom. Here each scoped axiom was
+/// already read into the selected world or recorded as unread, so an axiom's scope
+/// does not refuse the program. A rule, head or body atom scoped outside the
+/// selected theory still does.
+///
+/// # Errors
+/// Returns a refusal when `ingress` does not account for exactly this input, this
+/// program and its own selection, and otherwise the same lowering, admission and
+/// execution failures as [`reason_program_within`].
+pub fn reason_selected_theory_within(
+    theory: &gmeow_logic_compile::frontend::CompiledTheory,
+    input: PreparedReasoningInput,
+    domains: &crate::physical::SelectedDomains,
+    ingress: &ClaimIngress,
+    budget: &Budget,
+) -> gmeow_errors::Result<ReasoningResult> {
+    ingress.authorize(theory.program(), &input)?;
+    let prepared = crate::program_analysis::prepare_program_under(
+        theory.program(),
+        crate::native_semantics::SourceAdmissionProfile::SelectedTheoryV1 {
+            theory: ingress.selection().clone(),
+        },
+    )?;
+    let closure = program::execute(&prepared, input, domains, budget.max_steps)?;
+    Ok(result_from_closure(&prepared, closure, budget.max_steps)?.0)
 }
 
 /// The sole producer-to-result fold for the governed native operation. The typed

@@ -529,7 +529,17 @@ the substrate does not.
   RDF term roles, and binds its full contextual envelope into reifier identity. Its scope
   fields belong to that envelope, not to the domain axiom set. Canonical projection never
   adds an unscoped assertion for a scoped claim; a separately authored global claim is
-  retained as an independent assertion.
+  retained as an independent assertion. Native execution has two source profiles. The
+  bare-program profile reads no scoped claim and refuses a program in which any axiom,
+  rule, head or body atom carries a standpoint, time, modality or module coordinate. The
+  selected-theory profile first accounts for every scoped claim in a claim ingress ledger:
+  a positive, ground claim whose scope selects no context (it carries only provenance or
+  confidence) is read as a fact of the selected world, built from the RDF terms its
+  carrier holds, with its envelope left on the carrier as evidence; every other scoped
+  claim is recorded as not read with the coordinate or reason that kept it out. Under
+  that profile an axiom's scope does not refuse the program, while a rule, head or body
+  atom scoped outside the selected theory still does. A reifier with no scope coordinate
+  is a quotation under both profiles and is never read as a fact.
 
 **Validation, not trust.** Transforms are validated, not trusted: a round-trip/witness-preservation
 check (the analogue of compiler `debugify`) and a refinement check against the declared preservation
@@ -614,6 +624,10 @@ time or theory membership. A negative rule head is likewise residue, never a
 positive consequence. The original typed logic program remains the canonical
 owner of these constructs. This explicit boundary does not complete the separate
 contextual source/model calculus or authorize optimizations across its scope.
+The selected-theory native profile is a different operation and does not change
+this lowering: it reads an evidence-only scoped claim as a fact of the selected
+world and names every other scoped claim, and it writes no unscoped statement
+into any projection.
 
 ### Interpreted finite RDF numeric relations
 

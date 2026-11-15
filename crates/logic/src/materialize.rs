@@ -662,7 +662,7 @@ fn admit_materialization(
     prepared: &crate::program_analysis::PreparedProgram,
     profile: gmeow_logic_compile::ir::SemanticProfileId,
 ) -> gmeow_errors::Result<()> {
-    prepared.admission.admit_world_local_template()?;
+    prepared.admission.admit()?;
     if prepared.rules.iter().any(|rule| rule.reduction.is_some())
         && profile != gmeow_logic_compile::ir::SemanticProfileId::StratifiedNaf
     {
