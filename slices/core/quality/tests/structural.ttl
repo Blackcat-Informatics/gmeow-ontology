@@ -128,3 +128,27 @@ PREFIX owl: <http://www.w3.org/2002/07/owl#>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 ASK { g:QualityAssessment rdfs:subClassOf [ owl:onProperty g:observationResult ; owl:allValuesFrom ?mathematicalResultKind ] . }""" ;
     gmeow:saRationale "The base quality assessment must still admit categorical verdicts; magnitude-only contracts belong to explicit subkinds." .
+
+ex:saAggregateConstraintNamesEveryRequiredRelation a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX g: <https://blackcatinformatics.ca/gmeow/>
+PREFIX l: <https://blackcatinformatics.ca/logic/>
+PREFIX m: <https://blackcatinformatics.ca/math/>
+ASK {
+  g:AggregateQualityResultsConstraint a l:Constraint ; l:formalizes g:AggregateQualityAssessment ; l:integrity ?root .
+  ?root (l:and|l:or|l:forall|l:exists|l:antecedent|l:consequent)* ?valueNode . ?valueNode l:relation m:estimateValue .
+  ?root (l:and|l:or|l:forall|l:exists|l:antecedent|l:consequent)* ?estimatorNode . ?estimatorNode l:relation m:estimator .
+  ?root (l:and|l:or|l:forall|l:exists|l:antecedent|l:consequent)* ?estimandNode . ?estimandNode l:relation m:estimatesEstimand .
+  ?root (l:and|l:or|l:forall|l:exists|l:antecedent|l:consequent)* ?parameterNode . ?parameterNode l:relation m:estimatedParameter .
+}""" ;
+    gmeow:saRationale "The aggregate result law MUST be a logic:Constraint over the aggregate assessment whose formula tree reaches the value, estimator and both target relations, so each obligation is authored in the canonical core and the generated validation view is only its projection." .
+
+ex:saQualityDimensionIsNotAQuantityDimension a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:mustNot ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saFailWitness "tests/counter-examples/quality-dimension-with-physical-dimension.ttl" ;
+    gmeow:saPattern """PREFIX g: <https://blackcatinformatics.ca/gmeow/>
+PREFIX m: <https://blackcatinformatics.ca/math/>
+ASK { ?dimension a g:QualityDimension ; m:hasDimension ?physical . }""" ;
+    gmeow:saRationale "A quality dimension is an open ISO 19157 category and MUST NOT carry a fixed physical math:hasDimension; each result quantity carries its own." .

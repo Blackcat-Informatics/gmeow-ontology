@@ -54,3 +54,88 @@ ex:aggregateResultRow a gmeow:ExpectedRow ;
       [ a gmeow:ExpectedCell ; gmeow:cellVar "procedure" ; gmeow:cellValueIri <https://blackcatinformatics.ca/gmeow/examples/quality/aggregate/sampleMean> ],
       [ a gmeow:ExpectedCell ; gmeow:cellVar "dimension" ; gmeow:cellValueIri <https://blackcatinformatics.ca/math/dimensionless> ],
       [ a gmeow:ExpectedCell ; gmeow:cellVar "target" ; gmeow:cellValueIri <https://blackcatinformatics.ca/gmeow/examples/quality/aggregate/populationMeanCompleteness> ] .
+
+ex:cqQuantitativeResultCarriesDimensionAndValue a gmeow:CompetencyQuestion ;
+    gmeow:cqDataFile "examples/dataset-completeness.ttl" ;
+    gmeow:cqQuery """PREFIX g: <https://blackcatinformatics.ca/gmeow/>
+PREFIX m: <https://blackcatinformatics.ca/math/>
+SELECT ?dimension ?value WHERE {
+  ?assessment a g:QuantitativeQualityAssessment ; g:observationResult ?result .
+  ?result a m:Quantity ; m:hasDimension ?dimension ; m:quantityValue ?value .
+}""" ;
+    gmeow:cqRationale "A measured quality magnitude is a dimensioned quantity: the completeness ratio is dimensionless and its value is the quantity's own, not a bare number on the assessment." ;
+    gmeow:cqResultShape ex:quantitativeResultShape ;
+    gmeow:cqExpectRow ex:quantitativeResultRow .
+
+ex:quantitativeResultShape a logic:ResultShape ;
+    logic:shapeCardinality logic:RowsExact ;
+    logic:declaresColumn
+      [ logic:columnVariable "dimension" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ],
+      [ logic:columnVariable "value" ; logic:columnTermKind logic:TermKindLiteral ; logic:columnBinding logic:BindingRequired ] .
+ex:quantitativeResultRow a gmeow:ExpectedRow ;
+    gmeow:rowCell
+      [ a gmeow:ExpectedCell ; gmeow:cellVar "dimension" ; gmeow:cellValueIri <https://blackcatinformatics.ca/math/dimensionless> ],
+      [ a gmeow:ExpectedCell ; gmeow:cellVar "value" ; gmeow:cellValueLiteral 0.985 ] .
+
+ex:cqCategoricalVerdictIsNotAQuantity a gmeow:CompetencyQuestion ;
+    gmeow:cqDataFile "examples/aggregate-and-categorical.ttl" ;
+    gmeow:cqQuery """PREFIX g: <https://blackcatinformatics.ca/gmeow/>
+PREFIX m: <https://blackcatinformatics.ca/math/>
+SELECT ?verdict WHERE {
+  ?assessment a g:QualityAssessment ; g:observationResult ?verdict .
+  FILTER NOT EXISTS { ?assessment a g:QuantitativeQualityAssessment }
+  FILTER NOT EXISTS { ?assessment a g:AggregateQualityAssessment }
+  FILTER NOT EXISTS { ?verdict a m:Quantity }
+  FILTER NOT EXISTS { ?verdict a m:Estimate }
+}""" ;
+    gmeow:cqRationale "A conformance verdict stays a legal result of the base quality assessment: it is neither a quantity nor an estimate, and neither explicit subkind claims it." ;
+    gmeow:cqResultShape ex:categoricalVerdictShape ;
+    gmeow:cqExpectRow ex:categoricalVerdictRow .
+
+ex:categoricalVerdictShape a logic:ResultShape ;
+    logic:shapeCardinality logic:RowsExact ;
+    logic:declaresColumn
+      [ logic:columnVariable "verdict" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] .
+ex:categoricalVerdictRow a gmeow:ExpectedRow ;
+    gmeow:rowCell
+      [ a gmeow:ExpectedCell ; gmeow:cellVar "verdict" ; gmeow:cellValueIri <https://blackcatinformatics.ca/gmeow/examples/quality/aggregate/conforms> ] .
+
+ex:cqMultiDimensionReportKeepsEveryClassification a gmeow:CompetencyQuestion ;
+    gmeow:cqDataFile "examples/multi-result-multi-dimension.ttl" ;
+    gmeow:cqQuery """PREFIX g: <https://blackcatinformatics.ca/gmeow/>
+SELECT ?dimension WHERE {
+  ?assessment a g:QuantitativeQualityAssessment ; g:qualityDimension ?dimension .
+}""" ;
+    gmeow:cqRationale "Dimension classifications coexist on one assessment; a second classification never replaces or narrows the first." ;
+    gmeow:cqResultShape ex:multiDimensionShape ;
+    gmeow:cqExpectRow ex:multiDimensionPositional , ex:multiDimensionCompleteness .
+
+ex:multiDimensionShape a logic:ResultShape ;
+    logic:shapeCardinality logic:RowsExact ;
+    logic:declaresColumn
+      [ logic:columnVariable "dimension" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] .
+ex:multiDimensionPositional a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "dimension" ; gmeow:cellValueIri <https://blackcatinformatics.ca/gmeow/qualityDimensionPositionalAccuracy> ] .
+ex:multiDimensionCompleteness a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "dimension" ; gmeow:cellValueIri <https://blackcatinformatics.ca/gmeow/qualityDimensionCompleteness> ] .
+
+ex:cqMultiResultReportKeepsEveryDimensionedQuantity a gmeow:CompetencyQuestion ;
+    gmeow:cqDataFile "examples/multi-result-multi-dimension.ttl" ;
+    gmeow:cqQuery """PREFIX g: <https://blackcatinformatics.ca/gmeow/>
+PREFIX m: <https://blackcatinformatics.ca/math/>
+SELECT ?physicalDimension WHERE {
+  ?assessment a g:QuantitativeQualityAssessment ; g:observationResult ?result .
+  ?result a m:Quantity ; m:hasDimension ?physicalDimension .
+}""" ;
+    gmeow:cqRationale "Each result of a multi-result report carries its own dimension: a length and a dimensionless ratio coexist without a fixed physical dimension imposed on the quality category." ;
+    gmeow:cqResultShape ex:multiResultShape ;
+    gmeow:cqExpectRow ex:multiResultLength , ex:multiResultRatio .
+
+ex:multiResultShape a logic:ResultShape ;
+    logic:shapeCardinality logic:RowsExact ;
+    logic:declaresColumn
+      [ logic:columnVariable "physicalDimension" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] .
+ex:multiResultLength a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "physicalDimension" ; gmeow:cellValueIri <https://blackcatinformatics.ca/math/lengthDimension> ] .
+ex:multiResultRatio a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "physicalDimension" ; gmeow:cellValueIri <https://blackcatinformatics.ca/math/dimensionless> ] .

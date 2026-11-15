@@ -61,8 +61,11 @@ assessments of the same entity when their result contracts differ.
 
 Categorical verdicts remain ordinary `QualityAssessment` results. Neither new
 subkind classifies every positional, temporal, or completeness assessment as
-quantitative. See [dataset-completeness.ttl](examples/dataset-completeness.ttl)
-and [aggregate-and-categorical.ttl](examples/aggregate-and-categorical.ttl).
+quantitative. See [dataset-completeness.ttl](examples/dataset-completeness.ttl),
+[aggregate-and-categorical.ttl](examples/aggregate-and-categorical.ttl) and
+[multi-result-multi-dimension.ttl](examples/multi-result-multi-dimension.ttl), which
+reports a length and a dimensionless ratio under two dimension classifications and a
+two-verdict categorical report.
 
 ### gmeow:assessedEntity
 
