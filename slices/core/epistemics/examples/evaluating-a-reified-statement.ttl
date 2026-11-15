@@ -9,7 +9,9 @@
 # gmeow:evaluates ranges over gmeow:ClaimToken, so the evaluation does not point
 # at the reifier. A claim token is minted for Alice's assertion act, and the
 # reifier is linked to it with gmeow:putForwardByClaim. The reifier stays a
-# reifier: it is not typed as a claim token or an activity.
+# reifier: it is not typed as a claim token or an activity. The reifier is named
+# here and belongs to Alice's act alone; a reifier shared by several sources is
+# never linked to a claim token.
 #
 # The evaluation is Bob's own claim, held according to Bob's standpoint. Its
 # verdict is a proposition minted here, and its reason is Bob's verbatim wording

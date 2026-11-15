@@ -207,8 +207,21 @@ retyped as a claim token or an activity.
 
 | Direction | Bound | Why |
 |---|---|---|
-| reifier → claim token | at most one (functional) | a reifier is one attributed occurrence of a statement, so one assertion act stands behind it; the same triple put forward by someone else, or again later, has its own reifier and its own token |
-| claim token → reifier | any number | one assertion act may put several statements forward |
+| reifier → claim token | at most one (functional) | holds for a reifier that names one attributed occurrence of a statement: one source, one occasion, one assertion act |
+| claim token → reifier | any number | one assertion act may put several statements forward; evaluating its token judges all of them |
+
+**Precondition: one named reifier per assertion act.** The bound is a requirement on the data,
+not a fact about every reifier. A reifier can be shared: when a statement names no reifier, the
+statement compiler mints one from the triple alone, so two sources that state the same triple
+share that reifier and it carries both sources' annotations. A shared reifier names no single
+assertion act. Never link it to a claim token, and do not expect to evaluate one source's claim
+through it: that cannot be done per source. Give each act that is to be evaluated its own named
+reifier of the triple, and link each reifier to its own token. RDF 1.2 allows any number of
+reifiers for one triple, and the separately named claims coexist (Principle 9).
+
+**Evaluating a token judges the whole act.** An evaluation targets the claim token, so it judges
+everything that act put forward: every statement whose reifier is linked to the token. To judge
+one statement apart from the others, record it under an act, a token and a reifier of its own.
 
 ```turtle
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .

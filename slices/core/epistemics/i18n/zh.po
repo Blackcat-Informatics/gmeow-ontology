@@ -509,10 +509,6 @@ msgctxt "https://blackcatinformatics.ca/gmeow/putForwardByClaim|http://www.w3.or
 msgid "put forward by claim"
 msgstr "由主张提出"
 
-msgctxt "https://blackcatinformatics.ca/gmeow/putForwardByClaim|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Relates the reifier of an RDF 1.2 reified statement to the gmeow:ClaimToken, the datable assertion act, by which that statement was put forward. It bridges a claim that exists only as a reified statement to the claim apparatus, so that a gmeow:ClaimEvaluation can judge it through gmeow:evaluates, whose target stays a claim token. The reifier remains a reifier: the relation does not make it a claim token or an activity, and it does not assert the reified triple. Functional: a reifier names one occurrence of a statement, attributed to one source on one occasion, so it has at most one claim token; the same triple put forward by another source or on another occasion has its own reifier and its own token, and the two coexist (Principle 9). Not inverse functional: one assertion act may put forward several statements, so several reifiers may share one claim token."
-msgstr "将 RDF 1.2 具体化陈述的具体化者关联到提出该陈述的 gmeow:ClaimToken，即可标注日期的断言行为。它把仅以具体化陈述形式存在的主张接入主张机制，使 gmeow:ClaimEvaluation 能够通过 gmeow:evaluates 对其作出评判，而 gmeow:evaluates 的目标仍是主张令牌。具体化者仍然是具体化者：该关系不会使其成为主张令牌或活动，也不断言被具体化的三元组。函数性：一个具体化者命名陈述的一次出现，归属于某一来源在某一场合的提出，因此至多有一个主张令牌；由另一来源或在另一场合提出的同一三元组拥有自己的具体化者和自己的令牌，二者并存（原则 9）。非反函数性：一次断言行为可以提出多条陈述，因此多个具体化者可以共用一个主张令牌。"
-
 msgctxt "https://blackcatinformatics.ca/gmeow/putForwardByClaim|http://www.w3.org/2004/02/skos/core#example"
 msgid "ex:skyStatement rdf:reifies <<( ex:sky ex:hasColour ex:blue )>> ; gmeow:putForwardByClaim ex:aliceSaysBlue ."
 msgstr "ex:skyStatement rdf:reifies <<( ex:sky ex:hasColour ex:blue )>> ; gmeow:putForwardByClaim ex:aliceSaysBlue ."
@@ -521,14 +517,6 @@ msgctxt "https://blackcatinformatics.ca/gmeow/putForwardByClaim|http://www.w3.or
 msgid "The relation links a statement reifier to its claim token and does nothing else. It copies no annotation between the two, entails no gmeow:expresses proposition, and has no display, ranking or lifecycle effect on either end. The at-most-one-token obligation is carried by gmeow:putForwardByClaimFunctionality."
 msgstr "该关系只把陈述的具体化者关联到其主张令牌，别无其他作用。它不在二者之间复制任何标注，不蕴含任何 gmeow:expresses 命题，对任何一端都没有显示、排序或生命周期方面的效果。至多一个令牌的义务由 gmeow:putForwardByClaimFunctionality 承载。"
 
-msgctxt "https://blackcatinformatics.ca/gmeow/putForwardByClaim|https://blackcatinformatics.ca/gmeow/avoidWhen"
-msgid "Avoid pointing gmeow:evaluates at the reifier itself, typing the reifier as a gmeow:ClaimToken, or linking one reifier to two claim tokens. Avoid it for the propositional content a token conveys (gmeow:expresses) and for the event in which a token was uttered (gmeow:producesClaim)."
-msgstr "避免让 gmeow:evaluates 直接指向具体化者本身，避免将具体化者类型化为 gmeow:ClaimToken，也避免把一个具体化者关联到两个主张令牌。不要将其用于令牌所传达的命题内容（gmeow:expresses），也不要用于令牌被说出时所在的事件（gmeow:producesClaim）。"
-
-msgctxt "https://blackcatinformatics.ca/gmeow/putForwardByClaim|https://blackcatinformatics.ca/gmeow/howToUse"
-msgid "Name the reifier of the statement, mint one gmeow:ClaimToken for the act that put the statement forward, give the token its performing agent with gmeow:wasAssociatedWith and its frame with gmeow:accordingTo, and assert this relation from the reifier to the token. Point gmeow:evaluates at the token. To reach the evaluated statement from an evaluation, follow gmeow:evaluates to the token and this relation back to the reifier."
-msgstr "为陈述的具体化者命名，为提出该陈述的行为创建一个 gmeow:ClaimToken，用 gmeow:wasAssociatedWith 给出令牌的执行主体，用 gmeow:accordingTo 给出其框架，然后断言从具体化者到令牌的这一关系。让 gmeow:evaluates 指向该令牌。要从一项评估找到被评估的陈述，先沿 gmeow:evaluates 到达令牌，再沿这一关系反向回到具体化者。"
-
 msgctxt "https://blackcatinformatics.ca/gmeow/putForwardByClaim|https://blackcatinformatics.ca/gmeow/useWhen"
 msgid "Use when a claim recorded only as an RDF 1.2 reified statement must be evaluated, supported or attacked as an assertion act: mint the claim token that stands for the act and link the reifier of the statement to it."
 msgstr "当仅以 RDF 1.2 具体化陈述形式记录的主张必须作为断言行为被评估、支持或攻击时使用：创建代表该行为的主张令牌，并将陈述的具体化者关联到它。"
@@ -536,10 +524,6 @@ msgstr "当仅以 RDF 1.2 具体化陈述形式记录的主张必须作为断言
 msgctxt "https://blackcatinformatics.ca/gmeow/putForwardByClaimFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "putForwardByClaim is functional"
 msgstr "putForwardByClaim 具有函数性"
-
-msgctxt "https://blackcatinformatics.ca/gmeow/putForwardByClaimFunctionality|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Asserts on the canonical carrier that gmeow:putForwardByClaim is functional: one statement reifier is put forward by at most one gmeow:ClaimToken, the single assertion act behind that occurrence of the statement, so an evaluation of the token judges one identifiable claim. The inverse direction is deliberately not constrained: one assertion act may put forward several statements, so several reifiers may share one token. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
-msgstr "在规范载体上断言 gmeow:putForwardByClaim 是函数性的：一个陈述具体化者至多由一个 gmeow:ClaimToken 提出，即该陈述这一次出现背后的唯一断言行为，因此对该令牌的评估所评判的是一个可识别的主张。反方向有意不加约束：一次断言行为可以提出多条陈述，因此多个具体化者可以共用一个令牌。该记录不是该术语的定义，也绝不是形状：该义务是由该记录推理得出的，而非在别处重述。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/putForwardByClaimFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
 msgid "Use when the native coherence gate must enforce that gmeow:putForwardByClaim names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
@@ -572,3 +556,19 @@ msgstr "不要用于单纯的击败标记（直接在主张上使用 gmeow:hasDe
 msgctxt "https://blackcatinformatics.ca/gmeow/evaluates|https://blackcatinformatics.ca/gmeow/avoidWhen"
 msgid "Avoid pointing it at a bare gmeow:Proposition (evaluate the token, not the content) or at a gmeow:DoxasticState; the target is the assertion act (gmeow:ClaimToken). Avoid pointing it at the reifier of a reified statement; evaluate the claim token the reifier is linked to by gmeow:putForwardByClaim."
 msgstr "避免让它指向单纯的 gmeow:Proposition（评估的是令牌而非内容）或 gmeow:DoxasticState；其目标是断言行为（gmeow:ClaimToken）。避免让它指向具体化陈述的具体化者；应评估该具体化者经 gmeow:putForwardByClaim 所关联的主张令牌。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/putForwardByClaim|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Relates the reifier of an RDF 1.2 reified statement to the gmeow:ClaimToken, the datable assertion act, by which that statement was put forward. It bridges a claim that exists only as a reified statement to the claim apparatus, so that a gmeow:ClaimEvaluation can judge it through gmeow:evaluates, whose target stays a claim token. The reifier remains a reifier: the relation does not make it a claim token or an activity, and it does not assert the reified triple. Functional: the relation applies to a reifier that names one attributed occurrence of a statement, the statement as one source put it forward on one occasion, and such a reifier has at most one claim token. This is a precondition on the data, not a property of every reifier: give each assertion act that is to be evaluated its own named reifier. A reifier shared by several sources, including the content-addressed reifier the statement compiler mints from the triple alone when no reifier is named, is never linked to a claim token; when two sources state the same triple, name a separate reifier of that triple for each act and link each to its own token, and the acts coexist (Principle 9). Not inverse functional: one assertion act may put forward several statements, so several reifiers may share one claim token, and an evaluation of that token judges everything the act put forward."
+msgstr "将 RDF 1.2 具体化陈述的具体化者关联到提出该陈述的 gmeow:ClaimToken，即可标注日期的断言行为。它把仅以具体化陈述形式存在的主张接入主张机制，使 gmeow:ClaimEvaluation 能够通过 gmeow:evaluates 对其作出评判，而 gmeow:evaluates 的目标仍是主张令牌。具体化者仍然是具体化者：该关系不会使其成为主张令牌或活动，也不断言被具体化的三元组。函数性：该关系适用于命名陈述的一次有归属的出现的具体化者，即某一来源在某一场合提出的该陈述，这样的具体化者至多有一个主张令牌。这是对数据的前提条件，而不是所有具体化者都具有的性质：应为每一个需要被评估的断言行为提供它自己的具名具体化者。由多个来源共用的具体化者，包括在未命名具体化者时陈述编译器仅根据三元组生成的按内容寻址的具体化者，绝不关联到主张令牌；当两个来源陈述同一三元组时，应为每个行为各命名该三元组的一个独立具体化者，并将其各自关联到自己的令牌，这些行为并存（原则 9）。非反函数性：一次断言行为可以提出多条陈述，因此多个具体化者可以共用一个主张令牌，而对该令牌的评估所评判的是该行为提出的全部内容。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/putForwardByClaim|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid pointing gmeow:evaluates at the reifier itself, typing the reifier as a gmeow:ClaimToken, or linking one reifier to two claim tokens. Avoid linking a reifier that several sources share, such as a content-addressed reifier minted from the triple alone: it names no single assertion act, so name a reifier for each act instead. Avoid it for the propositional content a token conveys (gmeow:expresses) and for the event in which a token was uttered (gmeow:producesClaim)."
+msgstr "避免让 gmeow:evaluates 直接指向具体化者本身，避免将具体化者类型化为 gmeow:ClaimToken，也避免把一个具体化者关联到两个主张令牌。避免关联由多个来源共用的具体化者，例如仅根据三元组生成的按内容寻址的具体化者：它不命名任何单一的断言行为，应改为给每个行为各命名一个具体化者。不要将其用于令牌所传达的命题内容（gmeow:expresses），也不要用于令牌被说出时所在的事件（gmeow:producesClaim）。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/putForwardByClaim|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Give the statement a named reifier of its own for the one assertion act to be evaluated, mint one gmeow:ClaimToken for that act, give the token its performing agent with gmeow:wasAssociatedWith and its frame with gmeow:accordingTo, and assert this relation from the reifier to the token. Point gmeow:evaluates at the token; the evaluation judges everything that act put forward, so link to one token only the statements of one act. To reach the evaluated statement from an evaluation, follow gmeow:evaluates to the token and this relation back to the reifier."
+msgstr "为需要被评估的那一个断言行为给陈述提供它自己的具名具体化者，为该行为创建一个 gmeow:ClaimToken，用 gmeow:wasAssociatedWith 给出令牌的执行主体，用 gmeow:accordingTo 给出其框架，然后断言从具体化者到令牌的这一关系。让 gmeow:evaluates 指向该令牌；评估所评判的是该行为提出的全部内容，因此只把同一行为的陈述关联到同一个令牌。要从一项评估找到被评估的陈述，先沿 gmeow:evaluates 到达令牌，再沿这一关系反向回到具体化者。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/putForwardByClaimFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:putForwardByClaim is functional: one statement reifier is linked to at most one gmeow:ClaimToken, so the assertion act behind a reified statement is never ambiguous. The bound presupposes a reifier that names one attributed occurrence of a statement; a reifier shared by several sources is not linked to a token at all. The inverse direction is deliberately not constrained: one assertion act may put forward several statements, so several reifiers may share one token, and an evaluation of that token judges the whole act and every statement linked to it, not one statement. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "在规范载体上断言 gmeow:putForwardByClaim 是函数性的：一个陈述具体化者至多关联到一个 gmeow:ClaimToken，因此具体化陈述背后的断言行为绝不含糊。该上限以具体化者命名陈述的一次有归属的出现为前提；由多个来源共用的具体化者根本不关联到任何令牌。反方向有意不加约束：一次断言行为可以提出多条陈述，因此多个具体化者可以共用一个令牌，而对该令牌的评估所评判的是整个行为以及关联到它的每一条陈述，而不是单独一条陈述。该记录不是该术语的定义，也绝不是形状：该义务是由该记录推理得出的，而非在别处重述。"

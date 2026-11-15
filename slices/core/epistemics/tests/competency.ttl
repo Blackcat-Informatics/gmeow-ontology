@@ -389,7 +389,7 @@ ex:cqRoleRowWritingReviewEditing a gmeow:ExpectedRow ;
 ex:cqEvaluationOfReifiedStatement a gmeow:CompetencyQuestion ;
     gmeow:cqDataFile "examples/evaluating-a-reified-statement.ttl" ;
     gmeow:cqQuery "PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/> PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> SELECT ?evaluation ?statement ?subject ?predicate ?object ?reason WHERE { ?evaluation a gmeow:ClaimEvaluation ; gmeow:evaluates ?token ; gmeow:statedRationale ?reason . ?statement gmeow:putForwardByClaim ?token ; rdf:reifies <<( ?subject ?predicate ?object )>> . }" ;
-    gmeow:cqRationale "GMEOW must be able to answer 'which evaluation judges this reified statement, and for what stated reason?'. The evaluation targets a claim token, the statement reifier is linked to that token, and the evaluator's reason is retained verbatim, so one row returns the evaluation, the evaluated statement with its quoted triple, and the reason." ;
+    gmeow:cqRationale "GMEOW must be able to answer 'which evaluation judges the assertion act behind this reified statement, and for what stated reason?'. The evaluation targets a claim token and so judges the whole act; each statement reifier linked to that token is returned with its quoted triple, one row per statement, beside the evaluator's reason retained verbatim. The act in the example put forward one statement under a named reifier of its own, so exactly one row is expected." ;
     gmeow:cqExactRows true ;
     gmeow:cqResultShape ex:cqEvaluationOfReifiedStatementShape ;
     gmeow:cqExpectRow ex:cqEvaluationOfReifiedStatementRow .
