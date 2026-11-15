@@ -1,0 +1,58 @@
+{
+  "assignees": [
+    {
+      "id": "MDQ6VXNlcjUyNzU1NQ==",
+      "login": "paudley",
+      "name": "Patrick Audley",
+      "databaseId": 527555
+    }
+  ],
+  "author": {
+    "id": "MDQ6VXNlcjUyNzU1NQ==",
+    "is_bot": false,
+    "login": "paudley",
+    "name": "Patrick Audley"
+  },
+  "body": "The estimate-provenance competency query currently assigns a fitted-model-only data role to an inference activity and treats shared data as proof that a model produced an estimate. Work stays in gmeow-ontology. Principles 4, 7, 9, 17 and 19.\n\nSource inspected at 543ba10866ab5d17a2ff9c9c0f9e81d32ce57293:\n\n- slices/grounding/math/module.ttl reserves fittedToData for FittedModel, but the InferenceRun definition refers to that predicate as the activity's fitting link.\n- slices/grounding/math/tests/fixtures/statistics-estimate-provenance.ttl attaches fittedToData directly to ex:analysisRun, an InferenceRun/Activity.\n- slices/grounding/math/queries/competency/statistics-estimate-provenance.rq joins that run's data to every FittedModel using the same data. An unrelated model on that dataset therefore satisfies the model/assumption join despite no asserted producing-model association with the estimate. The current single-model fixture cannot expose this error.\n- The query also selects estimatesEstimand only. It is a scoped competency query, not a general admission classifier: the canonical Estimate target contract admits an estimand OR a model parameter, plus a required estimator.\n\nAcceptance:\n\n- Keep fittedToData on its intended fitted-model subject. Repair the fixture, query and conflicting InferenceRun prose together without widening the predicate to activities merely to preserve the example.\n- Trace the model association through actual declared provenance or a properly grounded relation. Shared input data alone must not manufacture a producing-model link. Preserve genuine ambiguity rather than claiming uniqueness or choosing a convenient model.\n- Preserve the competency question's full method, target, process, data, model and assumption evidence. State whether its selected profile intentionally covers estimand-bearing estimates only; do not treat a valid parameter-only estimate as structurally invalid.\n- Add a bounded adversarial fixture with another model on the same data and verify that unrelated model/assumption rows are not presented as the estimate's producing provenance. Cover the chosen ambiguity boundary when a run involves multiple models. Tests may consume existing authenticated corpus inputs or tiny synthetic data, never produce the corpus.\n- Preserve process/result/held-claim separation and dataset-by-reference semantics. Do not invent a numerical fit, data payload, unsupported relationship or successful execution to make the query answerable.\n- Complete focused product qualification and normal configured signed hooks. Keep broader #1656/#1717, numeric, native source-fidelity and CI requirements open. No executed reproduction or runtime pass is claimed by this source diagnosis.\n\n",
+  "closedAt": null,
+  "comments": [],
+  "createdAt": "2026-11-08T07:50:25Z",
+  "labels": [
+    {
+      "id": "LA_kwDOSwdn1s8AAAACl8ZKrA",
+      "name": "bug",
+      "description": "Something isn't working",
+      "color": "d73a4a"
+    },
+    {
+      "id": "LA_kwDOSwdn1s8AAAACmTvT1A",
+      "name": "module-enhancement",
+      "description": "Enhancement to an existing module",
+      "color": "c5def5"
+    },
+    {
+      "id": "LA_kwDOSwdn1s8AAAACmjuimw",
+      "name": "quality",
+      "description": "Quality gate or completeness/correctness invariant",
+      "color": "0e8a16"
+    },
+    {
+      "id": "LA_kwDOSwdn1s8AAAACnasmrQ",
+      "name": "logic",
+      "description": "logic: reasoning layer (the RDF 1.2-native logic; OWL is a projection)",
+      "color": "5319e7"
+    },
+    {
+      "id": "LA_kwDOSwdn1s8AAAADBPkJyQ",
+      "name": "terms",
+      "description": "",
+      "color": "ededed"
+    }
+  ],
+  "milestone": null,
+  "number": 2674,
+  "state": "OPEN",
+  "title": "Repair estimate provenance model association and data roles",
+  "updatedAt": "2026-11-08T07:52:55Z",
+  "url": "https://github.com/Blackcat-Informatics/gmeow-ontology/issues/2674"
+}

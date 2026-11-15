@@ -1,0 +1,14 @@
+== pr2691 c75d1c6e4
+-- quality failure
+   [failure] Process completed with exit code 1.
+   [failure] a quality job did not succeed (skipped)
+   [notice] "The ubuntu-latest label will migrate to Ubuntu 26 beginning October 19, 2026. For more information, see https://github.com/actions/runner-images/issues/14748"
+-- fixture-prefix failure
+   [failure] The operation was canceled.
+   [notice] "The ubuntu-latest label will migrate to Ubuntu 26 beginning October 19, 2026. For more information, see https://github.com/actions/runner-images/issues/14748"
+-- generation (b) failure
+   [failure] The operation was canceled.
+   [notice] "The ubuntu-latest label will migrate to Ubuntu 26 beginning October 19, 2026. For more information, see https://github.com/actions/runner-images/issues/14748"
+-- generation (a) failure
+   [failure] The operation was canceled.
+   [notice] "The ubuntu-latest label will migrate to Ubuntu 26 beginning October 19, 2026. For more information, see https://github.com/actions/runner-images/issues/14748"
