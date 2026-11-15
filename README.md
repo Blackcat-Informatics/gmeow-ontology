@@ -322,7 +322,10 @@ When an engine fails after the selection was admitted, the report still carries 
 selection and the drops named before the failure, with `selection.complete` false. That
 list is what was known when the engine stopped, not the full account. A failure after both
 engines ended, while writing the `--out` export, the proof or the evidence file, keeps the
-completed report and replaces only its verdict.
+completed selection and engine blocks. It sets the verdict and decision to
+`execution-failure`, marks the evaluation failed, its completeness unknown and its
+information state not evaluated, refuses the evidence grade and gate admission, and adds
+the failure diagnostic.
 
 The report has no wall-clock field, so rerunning `prove` on the same inputs and comparing
 the bytes is a valid second-party check. `--proof-out <file>` records the proof and

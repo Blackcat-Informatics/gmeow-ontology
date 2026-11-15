@@ -188,6 +188,23 @@ struct NativeLeg {
 }
 
 impl NativeLeg {
+    /// The leg of an engine that declined the program: it executed nothing.
+    fn refused(claims_read: Vec<ReadClaimReport>) -> Self {
+        Self {
+            verdict: "refused",
+            information_state: None,
+            evaluation: None,
+            completeness: None,
+            consumed_steps: None,
+            allowance: None,
+            inconsistencies: Vec::new(),
+            unsatisfiable_classes: Vec::new(),
+            coverage: None,
+            refutations: Vec::new(),
+            claims_read,
+        }
+    }
+
     fn clash(&self) -> bool {
         self.verdict == "clash"
     }
@@ -885,7 +902,9 @@ fn unread_program_axioms(
 /// of the input, keeps the claim unread, as a `SCOPED_CLAIM_NOT_READ` drop that names
 /// what kept it out. A reifier with no scope coordinate is a quotation, never read.
 /// An engine that declines the program for a reason it names did not fail: the leg
-/// is `refused` and the reasons are drops, so the selection is not decided. Any
+/// is `refused` and the reasons are drops, so the selection is not decided. A rule
+/// head the chase refuses is declined the same way, as an `UNSUPPORTED_CONSTRUCT`
+/// drop that names the rule and its head relations. Any
 /// other engine error is an execution failure, never a drop: a canonicalization
 /// search that reached its limit is `SOURCE_CANONICALIZATION_LIMIT`, and every other
 /// error is `NATIVE_EXECUTION_FAILED`. The failure carries the claims read before it,
@@ -987,35 +1006,26 @@ fn native_leg(
                         gap.clone(),
                     ));
                 }
-                return Ok(NativeLeg {
-                    verdict: "refused",
-                    information_state: None,
-                    evaluation: None,
-                    completeness: None,
-                    consumed_steps: None,
-                    allowance: None,
-                    inconsistencies: Vec::new(),
-                    unsatisfiable_classes: Vec::new(),
-                    coverage: None,
-                    refutations: Vec::new(),
-                    claims_read,
-                });
+                return Ok(NativeLeg::refused(claims_read));
             }
-            // A refused rule head names its rule and head relations as data.
-            let evidence = error
-                .downcast_ref::<gmeow_logic::error::RefusedRuleHead>()
-                .map_or(serde_json::Value::Null, |refused| {
-                    serde_json::json!({
-                        "rule": refused.rule,
-                        "head_relations": refused.head_relations,
-                    })
-                });
+            // A rule head the chase cannot carry is a construct the engine does not
+            // support, wherever the rule was authored. The chase's own check decides
+            // it; the whole program is then unexecuted, so the selection cannot be
+            // read as decided without this rule.
+            if let Some(refused) = error.downcast_ref::<gmeow_logic::error::RefusedRuleHead>() {
+                drops.insert(DropRecord::new(
+                    ENGINE_NATIVE,
+                    "UNSUPPORTED_CONSTRUCT",
+                    refused.to_string(),
+                ));
+                return Ok(NativeLeg::refused(claims_read));
+            }
             return Err(EngineFailure {
                 diagnostic: caused_diagnostic(
                     "NATIVE_EXECUTION_FAILED",
                     error,
                     "run the native engine over the selection",
-                    evidence,
+                    serde_json::Value::Null,
                 ),
                 claims_read,
             });

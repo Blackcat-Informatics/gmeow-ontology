@@ -915,12 +915,12 @@ fn tuples_that_take_each_others_node_are_a_named_drop() {
     );
 }
 
-/// An authored existential rule record whose head the engine refuses is an execution
-/// failure, not a drop: the record grammar is executed as written. The report still
-/// carries the selection, marked incomplete, with the claim drop named before the
-/// engine ran, and the failure names the rule and its head relation as data.
+/// An authored existential rule record whose head the engine cannot carry is declined
+/// like any other unsupported construct: a named drop that states the rule and its
+/// head relation, beside the drops named before the engine ran. The selection is not
+/// decided; it is not an execution failure.
 #[test]
-fn an_engine_failure_reports_the_selection_and_the_drops_named_before_it() {
+fn an_authored_rule_record_the_engine_cannot_carry_is_a_named_drop() {
     let (report, code) = prove_json(
         "refused-record.logic.ttl",
         r#"
@@ -933,21 +933,17 @@ ex:h1 lx:s "?x" ; lx:p logic:naryArg0 ; lx:o "?x" .
 "#,
         &["--gate"],
     );
-    assert_eq!(report["verdict"], "execution-failure", "{report:#}");
-    assert_eq!(code, 5);
-    assert!(report["engines"].is_null(), "{report:#}");
+    assert_eq!(report["verdict"], "not-decided", "{report:#}");
+    assert_eq!(code, 3);
+    assert_eq!(report["engines"]["native"]["verdict"], "refused");
     assert_eq!(report["selection"]["complete"], false);
     assert!(
-        has_drop(&report, "SCOPED_CLAIM_NOT_READ", "logic:inModule"),
+        has_drop(&report, "SCOPED_CLAIM_NOT_READ", "logic:inModule")
+            && has_drop(
+                &report,
+                "UNSUPPORTED_CONSTRUCT",
+                "rule <https://example.org/prove/r> with head relations [<https://blackcatinformatics.ca/logic/naryArg0>]"
+            ),
         "{report:#}"
-    );
-    let evidence = &report["diagnostics"][0]["diagnostic"]["fields"]["evidence"];
-    assert_eq!(
-        evidence["rule"], "https://example.org/prove/r",
-        "{report:#}"
-    );
-    assert_eq!(
-        evidence["head_relations"],
-        serde_json::json!(["https://blackcatinformatics.ca/logic/naryArg0"])
     );
 }
