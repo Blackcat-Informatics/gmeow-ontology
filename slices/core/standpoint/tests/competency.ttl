@@ -11,10 +11,12 @@
 @prefix case:  <https://example.org/correction/> .
 
 # "Which claims does the inspector's correction involve, and what does each say?"
-# The answer holds BOTH the corrected claim and the claim that corrects it. A
-# claim hidden with gmeow:displayable false or superseded by the other would be
-# filtered out, so a correction that suppressed the corrected claim would return
-# one row and fail the exact-row contract.
+# The answer holds BOTH the corrected claim and the claim that corrects it, each
+# with its content: the worked example keeps the two retrievable together. The
+# question runs without reasoning, so its filters see only an ASSERTED
+# gmeow:displayable false or supersession in the example data; it cannot detect
+# a supersession that an axiom would derive. That guard is the structural
+# assertion that gmeow:correctsClaim is not a sub-property of gmeow:supersedes.
 ex:cqCorrectionRetainsBothClaims a gmeow:CompetencyQuestion ;
     gmeow:cqReasoning gmeow:reasoningNone ;
     gmeow:cqDataFile "examples/correction-and-disagreement.ttl" ;

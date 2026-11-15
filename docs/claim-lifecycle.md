@@ -30,10 +30,9 @@ is red, you are wrong, I checked" does not erase the evidence of blue.
 - A correction derives no `gmeow:supersedes` and no `gmeow:supersededBy`, and it is
   no reason to set `gmeow:displayable false` on the corrected claim. The corrected
   claim and its correction are both retrievable.
-- `gmeow:displayable false` is a global safety control: a deadname or another
-  superseded label, and a standpoint's own closed tenure or withdrawn claim. No data
-  sets it because a claim is disputed, corrected or evaluated. What a particular
-  reader sees of a disputed claim is decided at projection.
+- No data sets `gmeow:displayable false` because a claim is disputed, corrected or
+  evaluated. What a particular reader sees of a disputed claim is decided at
+  projection. Principle 10 names the cases that do prompt suppression.
 - A succession or a retraction is a standpoint changing its own position. Neither
   is a dispute, and neither is weakened by the rule above.
 
