@@ -34,12 +34,17 @@
 //! the single-entry claim was false. A narrow-waist leaf is what makes the claim true
 //! rather than aspirational.
 //!
+//! [`canon_profile`] is the second claim this leaf owns about the substrate: the
+//! canonicalization profile that every persisted GMEOW identity and digest assumes,
+//! pinned at compile time for the same reason as the dist level below.
+//!
 //! Its diagnostics live in [`error`] under the leaf's own `gts-profile.*` code
 //! namespace. Raising `gmeow-pipeline`'s `pipeline.transform` from here would either
 //! relocate the very dependency cycle the extraction breaks, or leave a code whose
 //! name misreports which crate owns it.
 
 pub mod archive;
+pub mod canon_profile;
 pub mod error;
 mod ingestion_receipt;
 pub use ingestion_receipt::{
