@@ -276,13 +276,25 @@ fn term_kind_tag(t: &RdfTerm) -> u8 {
     }
 }
 
+/// The datatype IRI a literal denotes — the ONE place this codec reads a literal's
+/// datatype to derive bytes, record order or a reference key.
+///
+/// One RDF literal has two owned spellings: the datatype a language tag or a plain string
+/// implies may be absent (how a dataset hands a literal back) or written out (how a
+/// hand-built or decoded literal may carry it). Everything the codec derives must agree
+/// for both, so every site asks for the expanded IRI here and none reads the optional
+/// field itself.
+fn literal_datatype(lit: &RdfLiteral) -> &str {
+    lit.datatype_iri()
+}
+
 fn term_sort_string(t: &RdfTerm) -> String {
     match t {
         RdfTerm::Iri(s) | RdfTerm::BlankNode(s) => s.clone(),
         RdfTerm::Literal(l) => format!(
             "{}\u{1f}{}\u{1f}{}",
             l.lexical_form,
-            l.datatype.as_deref().unwrap_or(""),
+            literal_datatype(l),
             l.language.as_deref().unwrap_or("")
         ),
         RdfTerm::Triple(t) => format!(
@@ -2040,7 +2052,8 @@ enum RefPayload {
     /// A literal payload, named by an `r_<hash>` value-position token.
     Literal {
         lexical: String,
-        datatype: Option<String>,
+        /// The expanded datatype IRI ([`literal_datatype`]), never the optional spelling.
+        datatype: String,
         language: Option<String>,
     },
     /// A raw external IRI, named by an `x_<hash>` reference-position token.
@@ -2188,16 +2201,10 @@ fn encode_embedded_term(
 /// [`classify_literal`] via [`intern_literal_ref`].
 fn encode_embedded_literal(lit: &RdfLiteral, refs: &mut BTreeMap<String, RefPayload>) -> String {
     let numeric = lit.language.is_none() && lit.direction.is_none();
-    if numeric
-        && lit.datatype.as_deref() == Some(XSD_INTEGER)
-        && is_integer_token(&lit.lexical_form)
-    {
+    if numeric && literal_datatype(lit) == XSD_INTEGER && is_integer_token(&lit.lexical_form) {
         return lit.lexical_form.clone();
     }
-    if numeric
-        && lit.datatype.as_deref() == Some(XSD_DECIMAL)
-        && is_decimal_token(&lit.lexical_form)
-    {
+    if numeric && literal_datatype(lit) == XSD_DECIMAL && is_decimal_token(&lit.lexical_form) {
         return lit.lexical_form.clone();
     }
     intern_literal_ref(lit, refs)
@@ -2391,12 +2398,8 @@ fn classify_literal(
     lit: &RdfLiteral,
     refs: &mut BTreeMap<String, RefPayload>,
 ) -> (String, Gmn1ConstructCategory) {
-    // A plain string names `xsd:string` either explicitly or by omission: a literal read
-    // back from a dataset carries no datatype when it is the implied one, while a
-    // hand-built or decoded literal spells it out. Both are the same RDF term.
-    let plain_string = lit.language.is_none()
-        && lit.direction.is_none()
-        && lit.datatype.as_deref().is_none_or(|d| d == XSD_STRING);
+    let plain_string =
+        lit.language.is_none() && lit.direction.is_none() && literal_datatype(lit) == XSD_STRING;
     if plain_string
         && is_identifier(&lit.lexical_form)
         && !lit.lexical_form.starts_with(BLANK_PREFIX)
@@ -2410,7 +2413,7 @@ fn classify_literal(
     }
     let integer_or_decimal = lit.language.is_none() && lit.direction.is_none();
     if integer_or_decimal
-        && lit.datatype.as_deref() == Some(XSD_INTEGER)
+        && literal_datatype(lit) == XSD_INTEGER
         && is_integer_token(&lit.lexical_form)
     {
         return (
@@ -2419,7 +2422,7 @@ fn classify_literal(
         );
     }
     if integer_or_decimal
-        && lit.datatype.as_deref() == Some(XSD_DECIMAL)
+        && literal_datatype(lit) == XSD_DECIMAL
         && is_decimal_token(&lit.lexical_form)
     {
         return (
@@ -2447,7 +2450,7 @@ fn intern_literal_ref(lit: &RdfLiteral, refs: &mut BTreeMap<String, RefPayload>)
             &format!(
                 "{}\u{1f}{}\u{1f}{}",
                 lit.lexical_form,
-                lit.datatype.as_deref().unwrap_or(""),
+                literal_datatype(lit),
                 lit.language.as_deref().unwrap_or("")
             )
         )
@@ -2455,7 +2458,7 @@ fn intern_literal_ref(lit: &RdfLiteral, refs: &mut BTreeMap<String, RefPayload>)
     refs.entry(key.clone())
         .or_insert_with(|| RefPayload::Literal {
             lexical: lit.lexical_form.clone(),
-            datatype: lit.datatype.clone(),
+            datatype: literal_datatype(lit).to_owned(),
             language: lit.language.clone(),
         });
     key
@@ -2598,7 +2601,9 @@ fn payload_to_term(payload: &RefPayload) -> RdfTerm {
             language,
         } => RdfTerm::Literal(RdfLiteral {
             lexical_form: lexical.clone(),
-            datatype: datatype.clone(),
+            // A language tag implies its own datatype; the payload's IRI is carried only
+            // for a literal without one.
+            datatype: language.is_none().then(|| datatype.clone()),
             language: language.clone(),
             direction: None,
         }),

@@ -742,9 +742,11 @@ fn identifier_shaped_plain_string_is_inline_for_implied_and_explicit_datatype() 
     );
 }
 
-/// INVARIANT: a literal the inline identifier form cannot carry losslessly stays by
-/// reference — a language tag would be dropped, a reserved prefix would be read back as a
-/// blank node or reference key, and a non-identifier shape is not a single token.
+/// INVARIANT: a literal outside the inline identifier form stays by reference. A language
+/// tag would be dropped, an `r_` token would be read back as a reference key, and a
+/// non-identifier shape is not a single token. The writer also keeps the other two
+/// reserved prefixes (`x_`, `_b`) out of the inline form; the value-slot reader would
+/// read those back as plain strings, so that exclusion is conservative, not required.
 #[test]
 fn plain_string_outside_the_inline_identifier_form_stays_by_reference() {
     for literal in [
@@ -763,6 +765,73 @@ fn plain_string_outside_the_inline_identifier_form_stays_by_reference() {
         );
         assert_eq!(doc.refs.len(), 1, "{literal:?} carries one payload entry");
     }
+}
+
+/// A default-graph model, read back out of a frozen dataset, giving one subject and
+/// predicate every literal in `objects`.
+fn dataset_model_with_sibling_literals(objects: &[RdfLiteral]) -> Gmn0Model {
+    let mut b = RdfDatasetBuilder::new();
+    let s = b.intern_iri(&format!("{GMEOW_NS}gate1")).unwrap();
+    let p = b.intern_iri(&format!("{GMEOW_NS}statusLabel")).unwrap();
+    for object in objects {
+        let o = b.intern_literal(object.clone()).unwrap();
+        b.push_quad(s, p, o, None).unwrap();
+    }
+    Gmn0Model::from_dataset(&b.freeze().expect("freeze"))
+}
+
+/// INVARIANT: a document the writer produced from a dataset decodes to a model that
+/// re-encodes to the same bytes, even when sibling objects share a lexical form and
+/// differ only in datatype or language. Record order must not depend on whether a plain
+/// string's datatype is implied (dataset) or written out (decoded).
+#[test]
+fn sibling_literals_sharing_a_lexical_form_reencode_to_identical_bytes() {
+    let dict = empty_dict();
+    for siblings in [
+        [
+            RdfLiteral::simple("open"),
+            RdfLiteral::language_tagged("open", "en"),
+        ],
+        [
+            RdfLiteral::simple("true"),
+            RdfLiteral::typed("true", "http://www.w3.org/2001/XMLSchema#boolean"),
+        ],
+    ] {
+        let model = dataset_model_with_sibling_literals(&siblings);
+        assert_eq!(model.quads.len(), 2, "{siblings:?}");
+        crate::gmn1_witness::round_trip_with_claims_check(&model, &dict)
+            .unwrap_or_else(|error| panic!("{siblings:?} must round-trip: {error:?}"));
+        let doc = gmn1_write(&model, &dict).expect("write");
+        crate::gmn1_witness::idempotence_check(&doc, &dict)
+            .unwrap_or_else(|error| panic!("{siblings:?} must re-encode identically: {error:?}"));
+    }
+}
+
+/// INVARIANT: a by-reference plain string has one reference key and one document whether
+/// its `xsd:string` datatype is implied (dataset) or written out, and that key is the one
+/// derived from the written-out datatype — the value the frozen conformance vectors pin.
+#[test]
+fn by_reference_plain_string_has_one_key_for_implied_and_explicit_datatype() {
+    let text = "Mint one entry per aliased term; changelog and provenance notes ride by reference.";
+    let implied = dataset_model_with_literal_object(RdfLiteral::simple(text));
+    let explicit = Gmn0Model {
+        quads: vec![RdfQuad::new(
+            RdfTerm::Iri(format!("{GMEOW_NS}formula1")),
+            format!("{GMEOW_NS}hasState"),
+            RdfTerm::Literal(RdfLiteral::typed(text, XSD_STRING)),
+        )],
+    };
+    let (_, implied_doc) = object_category_and_document(&implied);
+    let (_, explicit_doc) = object_category_and_document(&explicit);
+    assert_eq!(
+        implied_doc, explicit_doc,
+        "both spellings must give one document"
+    );
+    assert!(
+        implied_doc.refs.contains_key("r_45c4ffaf2bdc2a4f"),
+        "the key must be the explicit-datatype key: {}",
+        implied_doc.text
+    );
 }
 
 #[test]
