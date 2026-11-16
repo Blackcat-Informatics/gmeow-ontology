@@ -1165,8 +1165,8 @@ fn ci_reuses_one_authenticated_nextest_archive_without_coverage_loss() {
     );
     assert_eq!(
         ci.matches("key: rust-prebuild-v1-").count(),
-        3,
-        "prebuild producer, archive consumer, and static Rust consumer must name the same exact cache lineage"
+        4,
+        "prebuild producer, archive consumer, and both static Rust consumers must name the same exact cache lineage"
     );
     let compact_ci = without_horizontal_whitespace(&ci);
     assert!(
@@ -1669,7 +1669,7 @@ fn ci_cold_producer_build_supplies_measurement_prerequisites() {
         .find("> dist/producer-build-recipe.json")
         .expect("persist recipe identity before any corpus exists");
     let nextest = job
-        .find("tool: cargo-nextest@0.9.137")
+        .find("cargo install --locked --version 0.9.137")
         .expect("the evidence sampler inspects a pinned nextest");
     let measurement = job
         .find("make perf-sample PERF_SAMPLE_ARGS=")
