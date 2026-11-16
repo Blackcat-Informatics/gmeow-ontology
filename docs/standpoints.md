@@ -5,7 +5,7 @@
 
 GMEOW records a contested fact as **several standpoint-indexed claims that
 coexist, none privileged** — never one ground truth with a winner. This is the
-doctrine document for the standpoint facility (`ontology/modules/standpoint.ttl`);
+doctrine document for the standpoint facility (`slices/core/standpoint/module.ttl`);
 its companion is the [alignment & projection reference](../slices/core/standpoint/docs.md).
 
 ## The epistemic thesis
@@ -58,8 +58,11 @@ must stay separate:
 The lightweight case rides `validFrom`/`validUntil` on the statement. When the
 *change of position itself* is the fact of interest, promote to a reified
 `gmeow:StandpointTenure` (the `AddressTenure` idiom): recognition granted in 2008
-and withdrawn in 2030 is an opened-then-closed tenure with `gmeow:displayable
-false` — retained, never deleted (suppression, not erasure).
+and withdrawn in 2030 is an opened-then-closed tenure, retained and never deleted.
+A tenure whose holder withdrew the position (a retraction by the holder of the
+held claim) is suppressed with `gmeow:displayable false`; a tenure that merely
+closed, or whose claim another party retracted, takes no flag, and what a reader
+is shown of it is reader policy decided at projection.
 
 ## StandpointClaim as Observation
 
@@ -196,8 +199,9 @@ The transcendences worth naming: **static viewpoints → `StandpointTenure`**;
   standpoint-indexed claims; there is no `preferredRank`/`primary*`. Enforced three
   ways: the `NoPreferredClaimShape` (SHACL), the `no_preferred_rank` statement lint,
   and a term-absence test.
-- **Principle 10 — suppression for revision; governed erasure.** A withdrawn claim or a closed
-  `StandpointTenure` sets `gmeow:displayable false` during ordinary revision. Separately authorized erasure follows the [claim lifecycle contract](./claim-lifecycle.md).
+- **Principle 10 — suppression for revision; governed erasure.** A claim its holder withdrew, or a
+  `StandpointTenure` whose held claim its holder retracted, sets `gmeow:displayable false` during
+  ordinary revision; a tenure that merely closed takes no flag. Separately authorized erasure follows the [claim lifecycle contract](./claim-lifecycle.md).
 - **Principles 2/3 — RDF-1.2-first, DL-clean.** The axis is an annotation property;
   the OWL downcast stays OWL 2 DL.
 - **Principle 4 — one canonical source.** The Standpoint-OWL 2 projection is

@@ -78,6 +78,9 @@ pub mod projections;
 pub mod relational_core;
 pub mod restriction;
 pub mod result_shape;
+// The RDF 1.2 statement-metadata lowering, shared by the reasoning world and every SHACL
+// validation view: one owner below both, so neither can carry a second copy.
+pub mod statement_lowering;
 pub(crate) mod typing_vocab;
 // The XCL (eXtended Common Logic Markup Language) XML dialect: a bidirectional,
 // PreservationKind::Exact XML FOL surface (writer + reader), sibling of clif/cgif.

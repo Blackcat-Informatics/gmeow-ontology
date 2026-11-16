@@ -155,7 +155,7 @@ fn seeded_refinement_reuses_unseeded_fixed_point_without_changing_result() {
         SemanticVocabulary::Exact,
     )
     .with_source_constants(facts.iter(), 128)
-    .unwrap();
+    .expect("the cap admits the facts");
     let state = analysis.summarize(facts.iter());
     let lowered = &analysis.rules[0];
     let upper = analysis.bindings(lowered, &state).unwrap();
@@ -1483,7 +1483,7 @@ fn source_constant_enrichment_preserves_unbounded_native_generation_and_known_al
     }
     let analysis = ValueFlow::new(&[flow], &[effect], SemanticVocabulary::GroundedLogicV1)
         .with_source_constants(facts.values().flatten(), 128)
-        .unwrap();
+        .expect("the cap admits the facts");
     let domain = analysis.universe.native_witness_domain();
     for value in actual_generated_values() {
         assert!(domain.contains(analysis.universe.value(&value)));

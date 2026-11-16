@@ -48,7 +48,7 @@ use gmeow_test_batch_macros::batch_cases;
     // surface (generated/shapes/validation-shapes.ttl GenderIdentity-shape / NameUsage-shape),
     // which the fixture corpus deliberately excludes — their witnesses ride the production
     // shape union below (`malformed_relator_gender_value_bounds_on_union`). The suppression
-    // warning likewise migrated to gmeow:SupersededFacetSuppressionConstraint on that union.
+    // warning likewise migrated to gmeow:SupersededGenderIdentitySuppressionConstraint on that union.
     // What remains authored on the fixture corpus is the orthogonality disjointness check.
     Case::file("shapes", "relator-malformed")
         .fails()
@@ -59,6 +59,13 @@ use gmeow_test_batch_macros::batch_cases;
 #[case::suppression_warning_does_not_fail_validation(
     Case::file("shapes", "suppression-warning-only")
         .warnings(&["should set gmeow:displayable false"])
+)]
+#[case::deadname_without_flag_draws_the_suppression_warning(
+    Case::file("shapes", "deadname-unsuppressed-warning")
+        .warnings(&["should set gmeow:displayable false"])
+)]
+#[case::ended_observation_draws_no_suppression_warning(
+    Case::file("shapes", "observation-ended-no-warning").no_warning("displayable false")
 )]
 // Closed-world dual of the OWL 2 DL oracle's two-axis inconsistency check (no reasoner).
 #[case::orthogonality_data_check_rejects_two_axes(

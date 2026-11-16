@@ -84,3 +84,25 @@ ex:chosenDenotation a lang:Denotation ;
 
 ex:everydayAddressContext
     rdfs:label "everyday self-identifying address"@x-gmeow-english .
+
+# --- A disputed name (reader policy, not suppression). A registry records the
+#     person as "Robin Chan"; the person's own usage of "Robin Avery Chen" is the
+#     other claim. Two NameUsage relators, each with its own authority, coexist.
+#     The registry's appellation carries no deadname purpose and no
+#     gmeow:displayable value: another party's dispute sets neither, and which
+#     of the two claims a reader is shown is decided at projection (P9, P10).
+ex:nameRegistry a gmeow:PersonName ;
+    gmeow:fullName "Robin Chan"@x-gmeow-english ;
+    gmeow:namePurpose gmeow:namePurposeLegal .
+
+ex:usageRegistry a gmeow:NameUsage ;
+    gmeow:usageNamed ex:robin ;
+    gmeow:usageAppellation ex:nameRegistry ;
+    gmeow:usageAuthority ex:registryOffice .
+
+ex:usageSelf a gmeow:NameUsage ;
+    gmeow:usageNamed ex:robin ;
+    gmeow:usageAppellation ex:nameChosen ;
+    gmeow:usageAuthority ex:robin .
+
+ex:registryOffice a gmeow:Agent .

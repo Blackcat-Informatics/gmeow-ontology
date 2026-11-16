@@ -145,16 +145,19 @@ pub fn dl_gap_rows(gaps: &[DlGap]) -> Vec<LedgerRow> {
 /// shared model's unsupported constructs, never from [`existential_gap_rows`].
 pub const EXISTENTIAL_CHASE_CATEGORY: &str = "existential-chase";
 
-/// Emit one [`DivergenceKind::DlGap`] row per weak-acyclicity violation of a refused
-/// (uncertified, unbudgeted) native existential-chase program.
+/// Emit one [`DivergenceKind::DlGap`] row per reason (a rule on a termination cycle, or
+/// an analysis bound that coarsened or stopped part of the analysis, so a finer one might
+/// have decided) of a refused (uncertified,
+/// unbudgeted) native existential-chase program.
 ///
-/// The native restricted chase refuses a program it cannot certify terminating — a
-/// special existential edge lies in a cycle — rather than loop.  Each such refusal is a
+/// The native restricted chase refuses a program it cannot certify terminating — an
+/// existential edge lies in a cycle of the analysis, which an analysis bound may have
+/// coarsened or stopped — rather than loop.  Each such refusal is a
 /// native capability-gap (a construct the native path did not decide), so it is exactly a
 /// [`DivergenceKind::DlGap`], reusing the counted divergence-ledger kind rather than a
-/// parallel one.  Each `violation` string (the offending special-edge-in-cycle evidence,
-/// already deterministically sorted by the `ChaseAdmission` certifier) rides verbatim in
-/// the row's `detail`.  The rows carry [`EXISTENTIAL_CHASE_CATEGORY`], so
+/// parallel one.  Each `violation` string (a rule with its head relations and the evidence
+/// that puts it on a cycle, or the named bound, as the `ChaseAdmission` certifier wrote
+/// it) rides verbatim in the row's `detail`.  The rows carry [`EXISTENTIAL_CHASE_CATEGORY`], so
 /// [`build_ledger`] / [`enforce`] COUNT them as gaps when a caller routes them into a
 /// ledger, while their disjoint category keeps them out of the DL/EL crosscheck corpus.
 pub fn existential_gap_rows(violations: &[String]) -> Vec<LedgerRow> {

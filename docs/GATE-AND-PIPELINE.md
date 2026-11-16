@@ -973,14 +973,28 @@ triple term and the fact surface carries IRIs, blank nodes and literals. Rather
 than change `term_codec`, the EDB shape or the join keys, that single edge is
 decomposed into three ordinary joinable edges —
 `logic:reifiedStatementSubject` / `…Predicate` / `…Object` — in
-`crates/logic/src/statement_lowering.rs`. The authored dataset is never mutated;
-no triple term is ever encoded, because it is decomposed before the codec sees
-one (commit `8aca67364`).
+`crates/logic-compile/src/statement_lowering.rs`. The authored dataset is never
+mutated; no triple term is ever encoded, because it is decomposed before the
+codec sees one (commit `8aca67364`).
 
 **It is not decorative.** A rule now derives that a recommendation is CONTESTED
 when two co-equal vantages take opposing stances on the same statement — a rule
 whose two halves shared **no variable** before the lowering, so it could not even
 have been written — and it fires on the shipped example through the CLI.
+
+**A lowering applies wherever its edges are read.** A `logic:Constraint` whose
+formula joins an attribution to the statement it is about is enforced through
+its derived SHACL, and that SHACL reads the same three edges. When only the
+reasoning world was lowered, every validation view lacked them: a correctly
+attributed RDF 1.2 ranking drew a false violation, and a ranker holding both
+directions drew none. The lowering therefore lives in the compiler crate, below
+both the reasoner and the wasm-clean validator, and `validation_view` is the one
+constructor through which these SHACL validations build their data view:
+`gmeow validate` and its LSP and MCP twins, the dev authoring gate,
+`stage-validate` and the pipeline's fixture validation, the slice conformance
+cells and the slice-brief exemplar gate. A new validation of authored or user
+data goes through it too. The view is validation input only; it never reaches
+the user's data, a bundle or a fanned-out artifact.
 
 **The boundary is narrow and true.** `logic:rdf12-nested-triple-term` names
 exactly two residues: a statement whose own subject or object is itself a triple
@@ -988,8 +1002,12 @@ term (nothing is emitted for it, and it is returned in
 `StatementLowering::nested` so the residue is named rather than flattened into a
 malformed IRI), and the statement's identity **as a term** — a rule may join on
 the components and may not quantify over the statement itself. The boundary is
-mirrored in `crate::reason::refute::retained_boundaries`, and the CLI warning
-now raises only on that residue instead of on the whole surface. **A lowering
+mirrored in `gmeow_logic::reason::refute::retained_boundaries`. The CLI warning
+raises only on that residue instead of on the whole surface, and a validation
+report names each unlowered statement as a
+`validate.nested-triple-term-not-lowered` warning (a slice conformance cell
+refuses to claim conformance over one), because a constraint over the components
+cannot match it and its silence is not conformance. **A lowering
 whose `logic:expressivenessBoundary` is broader than its actual residue is a
 false claim (P11); one with no boundary record at all is worse.**
 

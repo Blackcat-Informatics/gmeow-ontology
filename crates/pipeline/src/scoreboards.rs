@@ -1132,9 +1132,30 @@ fn validate_claim_shapes(
     shapes: &purrdf::shapes::shapes::Shapes,
     classes: &gmeow_validate::findings::FailureClassIndex,
 ) -> gmeow_errors::Result<DiagLedger> {
-    let report = purrdf::shapes::engine::validate_dataset(store, shapes)
+    // The shared store door validates the statement-lowering view, so a reified claim
+    // is checked over its components; the residue it cannot lower is named below.
+    let validation = gmeow_validate::store::shacl_validate_dataset(store, shapes)
         .ctx("claim audit SHACL validation")?;
+    let report = validation.report;
     let mut ledger = DiagLedger::new();
+    for reifier in &validation.nested {
+        ledger.attach(
+            Diag::new(
+                register_code(gmeow_validate::codes::VALIDATE_NESTED_TRIPLE_TERM_NOT_LOWERED),
+                Grade::new(
+                    Severity::Warning,
+                    FindingCategory::PolicyWarning,
+                    Standpoint::Perspectival,
+                ),
+                format!(
+                    "{reifier} reifies a statement that nests a triple term; no constraint over \
+                     its components was evaluated against it."
+                ),
+            )
+            .with_focus(reifier.to_string()),
+            StageId::new("scoreboard.audit.shacl"),
+        );
+    }
     // Conformance is not permission to discard collected non-fatal observations.
     for result in report.results {
         ledger.attach(

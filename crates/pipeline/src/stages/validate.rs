@@ -200,6 +200,7 @@ pub fn on_disk_shacl_input_digest(root: &Path) -> Result<String, gmeow_errors::D
 fn diagnostics_report(
     report: &purrdf::shapes::report::ValidationReport,
     failure_classes: &gmeow_validate::findings::FailureClassIndex,
+    unlowered: Vec<Finding>,
 ) -> Report {
     let mut ledger = DiagLedger::new();
     let stage = StageId::new("stage-validate");
@@ -210,6 +211,11 @@ fn diagnostics_report(
         );
     }
     let mut out = ledger.project_report("shacl");
+    // The statements the validation view could not lower are part of the verdict: a run
+    // that names one is not reported as clean.
+    for finding in unlowered {
+        out.add_finding(finding);
+    }
     out.metadata.insert(
         "category".to_owned(),
         gmeow_errors::JsonEvidence::from("shacl"),
@@ -326,16 +332,11 @@ fn validate_parsed_source_graph(
     fresh: &BTreeMap<String, impl AsRef<[u8]>>,
 ) -> Result<(Report, Vec<gmeow_validate::advisory::Advisory>), gmeow_errors::Diag> {
     let (shape_store, shapes) = crate::stages::shape_union_fresh::load_shapes_fresh(root, fresh)?;
-    let mut report = purrdf::shapes::engine::validate_dataset(dataset, &shapes).map_err(|m| {
-        gmeow_errors::Diag::of_kind(crate::error::Parse {
-            message: m.to_string(),
-        })
-    })?;
-    // The stage calls the engine directly (it needs the shape store for the advisory
-    // split), so it applies the same result-set collapse
-    // `gmeow_validate::store::shacl_validate_dataset` does: a violation the engine
-    // reports once per SPARQL solution is ONE violation in the recorded verdict.
-    gmeow_validate::store::dedupe_validation_results(&mut report);
+    // The one SHACL door: the source graph's statement-lowering view, the result-set
+    // collapse, and the residue the lowering could not reach.
+    let validation = gmeow_validate::store::shacl_validate_dataset(dataset, &shapes)?;
+    let unlowered = validation.nested_findings(None);
+    let report = validation.report;
     // The shape union's typed-failure-class annotations, read from the SAME store the
     // shapes were parsed from (this run's fresh product bytes, never the stale disk).
     let failure_classes =
@@ -347,7 +348,10 @@ fn validate_parsed_source_graph(
     // source `dataset` carries the formalized terms' howToUse/useWhen prose the advisory surfaces.
     let (retained, advisories) =
         gmeow_validate::advisory::split_advisory_results(report, &shape_store, dataset);
-    Ok((diagnostics_report(&retained, &failure_classes), advisories))
+    Ok((
+        diagnostics_report(&retained, &failure_classes, unlowered),
+        advisories,
+    ))
 }
 
 /// The IRI namespace every substrate reconciliation node (component / claim /
@@ -505,7 +509,9 @@ impl Stage for ValidateStage {
         // corpus so the derived PinAgreement/PinCoverage constraints target it on the
         // production path; the substrate build inputs join the recorded shaclInputDigest.
         // The bump busts the stage cache so the wider corpus is validated on cached inputs.
-        "validate.v14-shipped-norm-claims-reasoning"
+        // v15: validate the statement-lowering view, so a constraint over a reified
+        // statement's components sees them, and name each unlowered nested statement.
+        "validate.v15-lowered-statement-components"
     }
     fn input_files(&self, root: &Path) -> Result<Vec<std::path::PathBuf>, gmeow_errors::Diag> {
         // The AUTHORED half of the shape union only — the GENERATED members are

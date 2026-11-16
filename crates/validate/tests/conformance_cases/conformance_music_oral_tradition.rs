@@ -20,7 +20,7 @@
 //!   oral-tradition guarantee — exactly as the original.
 //! * The two competency queries (`music-oral-works.rq` with COUNT/GROUP BY/HAVING/
 //!   `FILTER NOT EXISTS`, and `music-gharana-memberships.rq` with the
-//!   `gmeow:displayable true` gate) run over the same store.
+//!   authority selection) run over the same store.
 
 use crate::conformance_support::*;
 use purrdf::TermValue;
@@ -163,9 +163,11 @@ fn versionset_reused_unchanged() {
 }
 
 /// Twin of `test_contested_membership_is_suppressed_not_deleted`: the contested
-/// membership is `displayable false` and retained in the graph.
+/// membership is retained in the graph and attributed to the rival scholar's
+/// standpoint, not to the Kirana tradition, and being contested sets no display flag
+/// on it (Principles 9 and 10).
 #[gmeow_test_batch_macros::batch_test]
-fn contested_membership_is_suppressed_not_deleted() {
+fn contested_membership_is_retained_attributed_and_unflagged() {
     let g = GraphStore::ontology();
     let membership = gm("fixtureRagaYamanContestedMembership");
     assert!(g.has(
@@ -173,7 +175,20 @@ fn contested_membership_is_suppressed_not_deleted() {
         Some(RDF_TYPE),
         Some(&gm("VersionMembership"))
     ));
-    assert!(g.has_literal(&membership, &gm("displayable"), "false", XSD_BOOLEAN));
+    assert!(g.has(
+        Some(&membership),
+        Some(&gm("membershipAuthority")),
+        Some(&gm("fixtureRivalScholarStandpoint")),
+    ));
+    assert!(!g.has(
+        Some(&membership),
+        Some(&gm("membershipAuthority")),
+        Some(&gm("fixtureKiranaGharanaStandpoint")),
+    ));
+    assert!(
+        !g.has_literal(&membership, &gm("displayable"), "false", XSD_BOOLEAN),
+        "a contested membership takes no display flag from being contested"
+    );
 }
 
 /// Twin of `test_transmission_event_and_roles`: the transmission event uses
@@ -475,8 +490,9 @@ fn competency_query_oral_works() {
 }
 
 /// Twin of `test_competency_query_gharana_memberships` (CQ7): exactly three
-/// Kirana-gharana memberships, with the suppressed (displayable-false) membership
-/// excluded. The `gmeow:displayable true` gate is the suppression mechanism.
+/// Kirana-gharana memberships, selected by membership authority: the rival scholar's
+/// contested membership is retained but is not the tradition's own, so it is not
+/// returned here.
 #[gmeow_test_batch_macros::batch_test]
 fn competency_query_gharana_memberships() {
     let g = GraphStore::ontology();
@@ -484,7 +500,7 @@ fn competency_query_gharana_memberships() {
     assert_eq!(
         rows.len(),
         3,
-        "Expected 3 displayed memberships, got {}: {rows:?}",
+        "Expected 3 memberships held by the Kirana tradition, got {}: {rows:?}",
         rows.len()
     );
 
@@ -494,8 +510,15 @@ fn competency_query_gharana_memberships() {
         .collect();
     assert!(
         !memberships.contains(gm("fixtureRagaYamanContestedMembership").as_str()),
-        "contested membership must be excluded: {memberships:?}"
+        "contested membership is not the tradition's own: {memberships:?}"
     );
+    for row in &rows {
+        assert_eq!(
+            iri_of(row.get(2).unwrap_or(&None)),
+            Some(gm("fixtureKiranaGharanaStandpoint").as_str()),
+            "every returned membership is attributed to the Kirana tradition: {row:?}"
+        );
+    }
 
     let performances: HashSet<&str> = rows
         .iter()

@@ -103,7 +103,7 @@ gmeow:mapSosaSensoryResult a gmeow:ProjectionMapping ;
         gmeow:edoalSource gmeow:sensoryResult ] ;
     gmeow:hasBinding [
         gmeow:profile "sosa" ; gmeow:toPredicate sosa:hasResult ; gmeow:relation "<=" ; gmeow:confidence 0.85 ;
-        gmeow:lossyDrop "the unit, determinacy, granularity, reference frame, and standpoint on the result are dropped; only the scalar value node survives. Non-displayable/superseded observations are suppressed." ] .
+        gmeow:lossyDrop "the unit, determinacy, granularity, reference frame, and standpoint on the result are dropped; only the scalar value node survives. Observations flagged gmeow:displayable false are suppressed." ] .
 
 # --------------------------------------------------------------------------- #
 # Vantage (sensor as observer) → sosa:madeBySensor

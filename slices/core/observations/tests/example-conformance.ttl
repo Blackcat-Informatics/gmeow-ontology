@@ -1,0 +1,43 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Example-conformance cells for the shared monetary amount owner: a conforming amount, and
+# one counter-example for each of a dimension that is not dimensionless and a currency frame
+# outside the currency realm.
+#
+# Each cell unions the observations module with the one named file and validates it against
+# the generated shapes that the observations module owns (crates/slicetest). The math and
+# places modules are not loaded for this slice, so every fixture types locally the
+# cross-slice individuals the observations-owned shapes check (the dimension as a
+# math:Dimension, the currency frame as a gmeow:ReferenceFrame). Each counter-example is the
+# conforming fixture with exactly one change and pins the one law it breaks by IRI.
+#
+# A monetary amount with no currency at all is not a cell here: the requirement that a
+# gmeow:MonetaryAmount carry a currency frame is the generated frame-relativity shape,
+# which is a separate generated surface that the conformance harness does not load, and the
+# class's open existential on gmeow:currency is not a closed-world minimum. The wrong-realm
+# cell below controls the currency frame that is present.
+
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/observations/tests/> .
+
+ex:ecMonetaryAmount a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/conformance-fixtures/monetary-amount.ttl" ;
+    gmeow:expectedOutcome gmeow:conforms ;
+    gmeow:conformanceRationale "A gmeow:MonetaryAmount with an exact decimal math:quantityValue, math:hasDimension math:dimensionless and one scalar currency frame in the currency realm validates with no finding. The fixture types math:dimensionless as a math:Dimension and the currency as a gmeow:ReferenceFrame itself, because a conformance cell validates only the observations module plus this one file, and the math and places modules that declare those individuals are not loaded; without the local typing the amount's class checks would report an untyped dimension and frame that are well formed in the full corpus." .
+
+ex:ecMonetaryAmountNotDimensionless a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/monetary-amount-not-dimensionless.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.HasValueConstraintComponent" ;
+    gmeow:expectedSourceShape gmeow:MonetaryAmount-shape ;
+    gmeow:expectedSoleFinding true ;
+    gmeow:conformanceRationale "The counter-example is the conforming fixture with one change: the gmeow:MonetaryAmount gives math:hasDimension as math:lengthDimension, so money would carry a physical dimension and currency would be treated as one. The derived gmeow:MonetaryAmount-shape requires the value math:dimensionless on math:hasDimension (sh:hasValue), so validation MUST emit shacl.HasValueConstraintComponent from that shape and no other finding. The other checks on the path hold: the value is typed math:Dimension and there is exactly one." .
+
+ex:ecMonetaryAmountWrongCurrencyRealm a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/monetary-amount-wrong-currency-realm.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.SPARQLConstraintComponent" ;
+    gmeow:expectedSourceShape <Urn:gmeow:finance:constraint:currency-realmProceduralConstraintShape> ;
+    gmeow:expectedSoleFinding true ;
+    gmeow:conformanceRationale "The counter-example is the conforming fixture with one change: the frame named by gmeow:currency is a scalar frame in the temporal realm instead of the currency realm. The constraint urn:gmeow:finance:constraint:currency-realm requires every currency frame of a gmeow:MonetaryAmount to be a scalar frame in the currency realm, so validation MUST emit shacl.SPARQLConstraintComponent from the shape that constraint projects to, pinned by IRI, and no other finding. The frame is still a gmeow:ReferenceFrame and the amount has exactly one currency, so the class-typing and cardinality checks hold." .

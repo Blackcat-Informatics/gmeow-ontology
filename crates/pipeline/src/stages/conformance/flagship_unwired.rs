@@ -60,9 +60,10 @@ pub struct Finding {
 pub fn observe(prepared: &PreparedProductionShapes) -> gmeow_errors::Result<Observation> {
     let data =
         purrdf::parse_dataset(UNWIRED_SCENARIO.as_bytes(), "text/turtle", None).map_err(fail)?;
+    let view = gmeow_logic_compile::statement_lowering::validation_view(&data)?;
     let mut report = prepared
         .shapes
-        .bind_dataset(&data)
+        .bind_dataset(view.dataset())
         .map_err(fail)?
         .validate()
         .map_err(fail)?;

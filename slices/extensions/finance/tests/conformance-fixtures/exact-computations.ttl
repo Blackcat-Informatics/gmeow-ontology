@@ -1,0 +1,42 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Conforming control: the worked simple-interest and holding-period-return computations.
+
+@prefix g:    <https://blackcatinformatics.ca/gmeow/> .
+@prefix m:    <https://blackcatinformatics.ca/math/> .
+@prefix ex:   <https://blackcatinformatics.ca/gmeow/examples/finance/tests/> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+
+# Cross-slice individuals the finance-owned shapes check, typed locally because a cell
+# validates only the finance module plus this one file.
+m:dimensionless a m:Dimension .
+ex:contractYear a g:ReferenceFrame ;
+    rdfs:label "one contractual interest period"@en ;
+    g:frameRealm g:frameRealmTemporal ; g:frameKind g:frameKindScalar .
+
+ex:alice a g:Entity .
+ex:account a g:Entity .
+
+ex:opening a g:MonetaryAmount ;
+    m:quantityValue 1000.00 ; m:hasDimension m:dimensionless ; g:currency g:referenceFrameUSD .
+ex:closing a g:MonetaryAmount ;
+    m:quantityValue 1200.00 ; m:hasDimension m:dimensionless ; g:currency g:referenceFrameUSD .
+ex:rate a g:FinancialPeriodRate ;
+    m:quantityValue 0.05 ; m:hasDimension m:dimensionless ; g:hasReferenceFrame ex:contractYear .
+ex:periods a g:FinancialPeriodCount ;
+    m:quantityValue 2.0 ; m:hasDimension m:dimensionless ; g:hasReferenceFrame ex:contractYear .
+
+ex:interest a g:SimpleInterestCalculation ;
+    g:vantage ex:alice ; g:observedFeature ex:account ;
+    g:observationMethod g:methodSimpleInterest ;
+    g:calculationExpression <urn:gmeow:finance:simple:recipe> ;
+    g:calculationPeriodBasis ex:contractYear ;
+    g:principalAmount ex:opening ; g:interestRate ex:rate ; g:interestPeriodCount ex:periods .
+
+ex:return a g:HoldingPeriodReturnCalculation ;
+    g:vantage ex:alice ; g:observedFeature ex:account ;
+    g:observationMethod g:methodHoldingPeriodReturn ;
+    g:calculationExpression <urn:gmeow:finance:return:recipe> ;
+    g:calculationPeriodBasis ex:contractYear ;
+    g:openingAmount ex:opening ; g:closingAmount ex:closing .

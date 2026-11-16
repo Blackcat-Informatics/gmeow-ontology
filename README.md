@@ -38,8 +38,8 @@ disagreement as coexisting standpoints instead of overwriting the loser.
   analogy, where a deduction's substrate is a real proof trace; calibration and
   reality-monitoring (over/under-confidence, known-unknowns, an `originGenerated`
   confabulation flag) are modeled directly.
-- **Revision is suppression, never deletion.** A fired defeater marks the old conclusion
-  `displayable false` and closes its tenure while keeping the inference as audit — which
+- **Revision is suppression, never deletion.** A holder that accepts a defeater closes its tenure and withdraws its own old conclusion
+  (`displayable false`, set by that holder alone), keeping the inference as audit — which
   *is* the memory's `revise()` operation.
 - **Authored once, then projected and linked widely.** Every fact is stated once across
   GMEOW's **self-contained slices** and generated outward as lossy projections — OWL,
@@ -292,7 +292,7 @@ engine, with the OWL 2 DL tableau as a second refuter over the theory's OWL view
 |---|---|
 | `consistent` | the rule engine's closure completed, every unit of the selection is accounted for by the engine, and nothing was dropped |
 | `inconsistent` | a clash is derived; the report names the engine, the law that clashed, and the premises used |
-| `not-decided` | anything else, including an exhausted `--max-steps` or `--step-cap` budget and a program the rule engine declines for a reason it names, such as an existential chase it cannot certify; every drop is listed with its engine, code, and detail |
+| `not-decided` | anything else, including an exhausted `--max-steps` or `--step-cap` budget and a program the rule engine declines for a reason it names, such as an existential chase it cannot certify, which the report answers by naming the rules on the cycle, and, under `NATIVE_ANALYSIS_BOUND`, any analysis bound that coarsened or stopped part of the termination analysis (a finer analysis might have decided; with a bound present, the rules then named are the cycles the coarser analysis found, not proof that the program cycles); every drop is listed with its engine, code, and detail |
 
 The rule engine reads the asserted statements of the theory. It also reads an evidence-only
 reified claim: one about whose reifier nothing is said except the reification itself
@@ -316,7 +316,7 @@ retraction is still read as reported.
 | 1 | with `--gate`, `inconsistent` |
 | 3 | with `--gate`, `not-decided` |
 | 4 | malformed input |
-| 5 | execution failure: an engine crashed, hit an internal fault or reached a resource limit |
+| 5 | execution failure: an engine crashed, hit an internal fault or reached a resource limit of its own; an analysis bound of the termination proof is a `not-decided` drop, never this exit |
 
 When an engine fails after the selection was admitted, the report still carries the
 selection and the drops named before the failure, with `selection.complete` false. That
@@ -865,8 +865,8 @@ wizard's tower (full rationale in [`docs/location-mapping.md`](./docs/location-m
   parent containment are time-indexed and disputed. `JurisdictionTenure` and `ContainmentTenure`
   reify sovereignty and border changes as `gufo:SituationType` relators; contested claims
   (Crimea-class) coexist as standpoint-indexed instances, none privileged (Principle 9).
-  Superseded places (Constantinople → Istanbul) are retained with `gmeow:displayable false`,
-  never deleted (Principle 10).
+  Superseded places (Constantinople → Istanbul) are retained, never deleted (Principle 10); which
+  name a reader is shown is that reader's policy, decided at projection.
 - **Pose, motion, and trajectories.** A `gmeow:Pose` carries position + orientation as peers
   (quaternion, Euler angles, heading/bearing, or homogeneous matrix). `LocationState` captures
   position, velocity, and pose at an instant; `Trajectory` chains states into a space-time path.

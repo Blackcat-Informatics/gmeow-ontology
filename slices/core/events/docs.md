@@ -19,7 +19,8 @@ never a subproperty. **Four orthogonal axes** — eventType ⟂ participationRol
 temporal ⟂ location — with no inferential bridge. **Flat-first, reify on demand** —
 `gmeow:hasParticipant` for the 80 % case, `gmeow:Participation` when role, period,
 confidence, or evidence matters. **Co-equal conflicting claims coexist** — no primary
-date; corrections use `gmeow:displayable` false, never deletion (Principle 10).
+date; a correction or dispute by another party keeps both claims retrievable and sets
+no display flag, and nothing is deleted (Principle 10).
 **Source precision is retained** — point placements keep their supplied XSD date/time
 precision without invented clock fields.
 
@@ -52,7 +53,8 @@ spine: `gmeow:conferredByEvent` ranges over it.
 The reified, time-scoped, evidence-bearing fact that an entity took part in an event
 in a role — the NameUsage/IdentityFacet idiom, one per (event, participant, role)
 tuple. A disputed role is several standpoint-indexed Participations, none privileged; a
-withdrawn one keeps `gmeow:displayable` false. EL axioms require some event and
+withdrawn one is kept, never deleted; a role another party disputes or corrects takes no
+display flag, because what a reader is shown is decided at projection. EL axioms require some event and
 participant; closed-world cardinality is SHACL's.
 
 ### gmeow:participationEvent · gmeow:participationParticipant · gmeow:participationRole · gmeow:participationInterval

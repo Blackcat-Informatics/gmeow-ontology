@@ -145,13 +145,13 @@ gmeow:Participation
             logic:onProperty gmeow:participationParticipant ;
             logic:someValuesFrom gmeow:Entity ;
         ] ;
-    skos:definition "A reified participation of an entity in an event, in a role, over a period, on some evidence — the same relator idiom as gmeow:NameUsage. Mint one Participation per (event, participant, role) tuple when role / period / confidence / evidence must be recorded; the 80% case uses the flat gmeow:hasParticipant. Perspectival and co-equal: a disputed role is several standpoint-indexed Participations that coexist, none privileged; a withdrawn one is kept with gmeow:displayable false, never deleted."@x-gmeow-english ;
+    skos:definition "A reified participation of an entity in an event, in a role, over a period, on some evidence — the same relator idiom as gmeow:NameUsage. Mint one Participation per (event, participant, role) tuple when role / period / confidence / evidence must be recorded; the 80% case uses the flat gmeow:hasParticipant. Perspectival and co-equal: a disputed role is several standpoint-indexed Participations that coexist, none privileged; a role a source has withdrawn is kept, never deleted, and a role that another party disputes or corrects takes no display flag from that act: which of the coexisting roles a reader is shown is reader policy, decided at projection."@x-gmeow-english ;
     skos:example "ex:p1 a gmeow:Participation ; gmeow:participationEvent ex:wedding ; gmeow:participationParticipant ex:priest ; gmeow:participationRole gmeow:roleOfficiant ."@x-gmeow-english ;
     gmeow:avoidForConsumer gmeow:consumerFoafExport ,
         gmeow:consumerSchemaOrgJsonLd ;
     gmeow:avoidWhen "Avoid it for the 80% case where an event simply has a participant with no role or period to record — use the flat gmeow:hasParticipant and promote only on demand (the hasMet / InterpersonalRelationship duality); never mint a per-role subclass."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox ;
-    gmeow:howToUse "Mint one Participation per (event, participant, role) tuple, bind the players with gmeow:participationEvent and gmeow:participationParticipant, add gmeow:participationRole / gmeow:participationInterval / evidence as needed, and index a contested role with gmeow:accordingTo + gmeow:confidence; retract with gmeow:displayable false rather than deletion (Principle 10)."@x-gmeow-english ;
+    gmeow:howToUse "Mint one Participation per (event, participant, role) tuple, bind the players with gmeow:participationEvent and gmeow:participationParticipant, add gmeow:participationRole / gmeow:participationInterval / evidence as needed, and index a contested role with gmeow:accordingTo + gmeow:confidence; keep a withdrawn role rather than deleting it (Principle 10), and never set gmeow:displayable false because another party disputes or corrects it: that is reader policy, decided at projection."@x-gmeow-english ;
     gmeow:useForConsumer gmeow:consumerAgentMemory ,
         gmeow:consumerInternalArchive ,
         gmeow:consumerResearchQueue ;
@@ -1564,7 +1564,7 @@ DOCTRINE (the no-mess rules).
   * Role is a VALUE on a relator, not a subproperty: participation is reified as gmeow:Participation (the NameUsage / IdentityFacet idiom), and the role is a gmeow:ParticipantRole value — never a hasWitness-style subproperty.
   * Four orthogonal axes, no inferential bridge: eventType ⟂ participationRole ⟂ temporal ⟂ location.
   * Flat-first, reify on demand: a flat gmeow:hasParticipant covers the 80% case; promote to a gmeow:Participation when role / period / confidence / evidence is needed (the hasMet / InterpersonalRelationship duality).
-  * Co-equal conflicting claims coexist: no primary date / canonical occurrence; competing dates, types and roles are confidence-weighted, standpoint-indexed statements (consume the standpoint module, standpoint facility), never one ground truth. Corrections use gmeow:displayable false, never deletion (Principle 10).
+  * Co-equal conflicting claims coexist: no primary date / canonical occurrence; competing dates, types and roles are confidence-weighted, standpoint-indexed statements (consume the standpoint module, standpoint facility), never one ground truth. A correction or dispute by another party keeps both claims retrievable and sets no display flag; nothing is deleted (Principle 10), and which claim a reader is shown is decided at projection.
   * DL-clean time (Principle 3): base-triple datatypes are xsd:dateTime, never xsd:date; fuzzy / approximate time is carried by gmeow:earliestStart / gmeow:latestEnd bounds + a gmeow:temporalPrecision value, not a free-text date.
 
 This module ABSORBS the former genealogy event hierarchy (Principle 6 — refactor forward): the ~30 gmeow:LifeEvent subclasses became gmeow:eventType value individuals and the hasPrincipal / hasWitness / hasOfficiant subproperties became gmeow:ParticipantRole values."""@x-gmeow-english ;
@@ -1611,40 +1611,7 @@ gmeow:ParticipationParticipantPresenceConstraint
     logic:formalizes gmeow:Participation ;
     logic:message "A Participation must have at least one participant (gmeow:participationParticipant)." .
 
-# =========================================================================== #
-# Suppression constraint — projection of CorrectedEventSuppressionShape.
-# A superseded participation (one carrying gmeow:validUntil) that is not         #
-# suppressed (gmeow:displayable false) is a Warning — a source may lag the flag. #
-# =========================================================================== #
-
-gmeow:SupersededParticipationSuppressionConstraint
-    a logic:Constraint ;
-    rdfs:label "Superseded participation suppression constraint"@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/events> ;
-    gmeow:graphBoxRole gmeow:boxTBox ;
-    skos:definition "A closed-world integrity constraint: a superseded gmeow:Participation (one carrying gmeow:validUntil) should set gmeow:displayable false — suppressed from display, never deleted (Principle 10)."@x-gmeow-english ;
-    logic:formalizes gmeow:CorrectedEventSuppressionShape ;
-    logic:severity "Warning" ;
-    logic:message "A superseded participation (one with gmeow:validUntil) should set gmeow:displayable false — suppressed from display, never deleted." ;
-    logic:integrity logic:supPtForall .
-logic:supPtForall a logic:Formula ;
-    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ;
-    logic:forall logic:supPtImpl .
-logic:supPtImpl a logic:Formula ; logic:antecedent logic:supPtGuard ; logic:consequent logic:supPtPhi .
-logic:supPtGuard a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ;
-    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri gmeow:Participation ] .
-logic:supPtPhi a logic:Formula ; logic:not logic:supPtEx .
-logic:supPtEx a logic:Formula ;
-    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "u" ] ;
-    logic:exists logic:supPtBody .
-logic:supPtBody a logic:Formula ; logic:and logic:supPtValid , logic:supPtNotSuppressed .
-logic:supPtValid a logic:Formula ; logic:relation gmeow:validUntil ;
-    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "u" ] .
-logic:supPtNotSuppressed a logic:Formula ; logic:not logic:supPtDisp .
-logic:supPtDisp a logic:Formula ; logic:relation gmeow:displayable ;
-    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termLiteral "false" ; logic:termLiteralDatatype xsd:boolean ] .
-
-# --- Wave B1 shape-drain: event well-formedness + participation/occurrence suppression ---
+# --- event well-formedness ---
 # gmeow:EventHasTypeOrTimeShape (Warning): an event should carry at least a type or some temporal
 # placement — otherwise it is an unanchored occurrence carrying neither a kind nor a time.
 gmeow:EventHasTypeOrTimeConstraint

@@ -708,3 +708,55 @@ fn subclass_shortcut_injection_is_transitive_across_two_hops() {
         report.findings.iter().map(|f| &f.code).collect::<Vec<_>>()
     );
 }
+
+/// INVARIANT: the consumer validator (`gmeow validate`, through [`Tier1Shapes::validate`] and
+/// the [`run_with`] composition the CLI and MCP share) names a reified statement that nests
+/// a triple term as a `validate.nested-triple-term-not-lowered` warning instead of passing
+/// silently, while the flat reification beside it lowers and raises nothing. The shipped
+/// standpoint constraints over RDF 1.2 data are pinned by the standpoint slice's
+/// conformance cells, not here.
+#[test]
+fn consumer_validation_names_a_nested_triple_term_it_could_not_lower() {
+    let tier1 = tier1_from_ttl("", "");
+    let empty = purrdf::RdfDatasetBuilder::new()
+        .freeze()
+        .expect("an empty dataset freezes");
+    const NS: &str = "https://blackcatinformatics.ca/gmeow/";
+    const CLAIM: &str =
+        "{| gmeow:accordingTo ex:ranker ; gmeow:validFrom \"2026-01-01\"^^xsd:date |}";
+    let nested = format!(
+        "@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .\n\
+         @prefix ex: <https://example.org/> .\n\
+         @prefix xsd: <http://www.w3.org/2001/XMLSchema#> .\n\
+         ex:a a gmeow:Standpoint . ex:b a gmeow:Standpoint .\n\
+         ex:quoted <http://www.w3.org/1999/02/22-rdf-syntax-ns#reifies> \
+         <<( ex:a ex:says <<( ex:a gmeow:moreEntrenchedThan ex:b )>> )>> .\n\
+         ex:a gmeow:moreEntrenchedThan ex:b ~ ex:rankAB {CLAIM} .\n"
+    );
+    let bytes = nested.as_bytes();
+    let through_validate = tier1
+        .validate(bytes, "text/turtle", NS, "ranking.ttl")
+        .expect("the consumer validator runs");
+    let through_run_with = run_with(
+        BundleParts {
+            native_gates: None,
+            shapes: &tier1,
+            dataset: empty.as_ref(),
+        },
+        bytes,
+        "text/turtle",
+        NS,
+        "ranking.ttl",
+        false,
+    )
+    .expect("the shared CLI and MCP composition runs");
+    for report in [through_validate, through_run_with] {
+        assert_eq!(report.findings.len(), 1, "{:?}", report.findings);
+        let finding = &report.findings[0];
+        assert_eq!(
+            finding.code,
+            crate::codes::VALIDATE_NESTED_TRIPLE_TERM_NOT_LOWERED
+        );
+        assert!(finding.message.contains("https://example.org/quoted"));
+    }
+}

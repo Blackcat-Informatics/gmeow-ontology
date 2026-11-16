@@ -1,0 +1,17 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# One ranker holds gmeow:moreEntrenchedThan in both directions between two standpoints,
+# each as a fully attributed RDF 1.2 reified statement, with no succession, correction or
+# retraction linking them.
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/standpoint/tests/> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+
+ex:orthodoxy a gmeow:Standpoint .
+ex:revisionists a gmeow:Standpoint .
+
+ex:orthodoxy gmeow:moreEntrenchedThan ex:revisionists ~ ex:rankOrthodoxyOverRevisionists
+    {| gmeow:accordingTo ex:editor ; gmeow:validFrom "2026-01-01T00:00:00Z"^^xsd:dateTime |} .
+ex:revisionists gmeow:moreEntrenchedThan ex:orthodoxy ~ ex:rankRevisionistsOverOrthodoxy
+    {| gmeow:accordingTo ex:editor ; gmeow:validFrom "2026-01-01T00:00:00Z"^^xsd:dateTime |} .

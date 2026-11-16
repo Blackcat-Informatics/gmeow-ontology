@@ -109,12 +109,16 @@ define_diag_kind! {
 
 define_diag_kind! {
     /// The native engine declined to execute a program for a reason it names. It did
-    /// not fail and it decided nothing: `reason` says what was declined and `gaps` are
-    /// the particulars the refusing step reported.
-    pub struct NativeRefusal { reason: String, gaps: Vec<String> }
+    /// not fail and it decided nothing: `reason` says what was declined, `gaps` are
+    /// the particulars the refusing step reported, and `bounds` are the analysis bounds
+    /// that coarsened or stopped part of the analysis, so a finer one might have decided (each
+    /// names the bound and its measured size). A bound is not itself a gap in the program: it
+    /// says the analysis was coarser, so with a bound present the gaps are the cycles the
+    /// coarser analysis found, not proof that the program is at fault.
+    pub struct NativeRefusal { reason: String, gaps: Vec<String>, bounds: Vec<String> }
     code = "logic.reason.native-refusal";
     grade = logic_grade!();
-    message = "{}: {:?}", reason, gaps;
+    message = "{}: {:?}; analysis bounds: {:?}", reason, gaps, bounds;
 }
 
 define_diag_kind! {

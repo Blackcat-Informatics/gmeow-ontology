@@ -1,0 +1,31 @@
+# Retraction-by-another-party counter-example. A StandpointTenure whose interval has ENDED,
+# whose held claim is retracted by an activity associated with ANOTHER party, not with the
+# claim's own vantage. That retraction is the other party's statement about the claim; it is
+# not the holder withdrawing its position, so the tenure draws no suppression warning and
+# carries no gmeow:displayable value. Validation must conform with no such warning.
+
+@prefix ex:    <https://example.org/shapes/> .
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+
+ex:un-recognition a gmeow:StandpointTenure ;
+    gmeow:tenureStandpoint ex:standpoint-un ;
+    gmeow:standpointClaim ex:heldClaim ;
+    gmeow:duringInterval [ a gmeow:TimeInterval ;
+        gmeow:startedAtTime "2008-02-17T00:00:00Z"^^xsd:dateTime ;
+        gmeow:endedAtTime   "2030-01-01T00:00:00Z"^^xsd:dateTime ] .
+
+gmeow:methodExpertJudgement a gmeow:ObservationMethod .
+
+ex:heldClaim a gmeow:StandpointClaim ;
+    gmeow:vantage ex:standpoint-un ;
+    gmeow:observedFeature ex:un-recognition ;
+    gmeow:claimModality gmeow:refuted ;
+    gmeow:observationMethod gmeow:methodExpertJudgement .
+
+ex:standpoint-un a gmeow:Standpoint .
+ex:standpoint-other a gmeow:Standpoint .
+
+ex:otherRetraction a gmeow:Activity ;
+    gmeow:wasAssociatedWith ex:standpoint-other ;
+    gmeow:retractsClaim ex:heldClaim .

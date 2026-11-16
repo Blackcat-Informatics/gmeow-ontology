@@ -49,7 +49,7 @@ statements. The interval carries its frame per Principle 11.
 Links an entity to the entity that replaced it — Constantinople `supersededBy`
 Istanbul, a deprecated release `supersededBy` its successor. The declared inverse of
 the coreference slice's `gmeow:supersedes`; directional, never symmetric. The
-superseded entity is retained (Principle 10) and may carry `gmeow:displayable` false;
+superseded entity is retained (Principle 10) and takes no display flag from the succession;
 the replacement itself may be recorded as an event typed
 `gmeow:eventTypeSupersession` when it needs a date or participants.
 
