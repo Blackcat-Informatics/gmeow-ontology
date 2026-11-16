@@ -1,0 +1,23 @@
+ghprsq structured squash audit metadata
+
+parent_hashes: e05d25a35a3e09607d04c0f554b27b0faeb7984b
+
+GhpRsq-Schema: 1
+GhpRsq-Merge-Style: structured-squash
+GhpRsq-GitHub-Repo: Blackcat-Informatics/gmeow-ontology
+GhpRsq-GitHub-Pull-Request: 2851
+GhpRsq-GitHub-PR-URL: https://github.com/Blackcat-Informatics/gmeow-ontology/pull/2851
+GhpRsq-Base-Ref: main
+GhpRsq-Base-OID: eb70487c68557b287a4387d0d5e3fbc1745106ac
+GhpRsq-Head-Ref: paudley/2850-amend-constitution-md-221-222-to-agree
+GhpRsq-Head-OID: e05d25a35a3e09607d04c0f554b27b0faeb7984b
+GhpRsq-Result-Tree: ed8277e53cdce31c52781b96837d58065e5ea760
+GhpRsq-Result-Commit: eff6e9853154f9ad5904e931e9ec731ed1fcdcee
+GhpRsq-Parent-Hashes: e05d25a35a3e09607d04c0f554b27b0faeb7984b
+GhpRsq-Squash-Notes-SHA256: 726081114f8d896ba895a1e361d459edc0b3bc99361b732db4c18ecf10f0b5c4
+GhpRsq-Stage-Tree: 3b8beced48b1577e9c791d6400c4579ae2100705
+GhpRsq-Stage-Commit: 18e109eb3e282b6cd71fcf378658008ac6a0b734
+GhpRsq-Stage-Tag: refs/tags/ghprsq/artifacts/18e109eb3e282b6cd71fcf378658008ac6a0b734
+GhpRsq-Stage-Ref: refs/ghprsq/pr/2851/stage
+GhpRsq-Stage-Files: 5
+GhpRsq-Stage-URL: https://github.com/Blackcat-Informatics/gmeow-ontology/tree/18e109eb3e282b6cd71fcf378658008ac6a0b734
