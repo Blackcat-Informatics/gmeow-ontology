@@ -1,0 +1,16 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Fail-witness for ex:saTraceFinalityNoRuleBody. A rule whose body atom reifies a
+# watermarkPacket statement, in the reified-atom form rule bodies use, derives a
+# statement from a watermark. Unioned with the module, it makes the ban's ASK
+# hold. The real module never carries it.
+
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix rdf:   <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix ce:    <https://example.org/trace-finality/counter-examples/> .
+
+ce:finalizedFromWatermark a logic:Rule ;
+    logic:head [ rdf:reifies <<( ce:someCut ce:finalizes ce:somePacket )>> ] ;
+    logic:body [ rdf:reifies <<( ce:someCut gmeow:watermarkPacket ce:somePacket )>> ] .

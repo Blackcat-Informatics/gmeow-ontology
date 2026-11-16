@@ -1,0 +1,47 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Worked example: one report may classify itself under several quality dimensions
+# and carry several results. The dimension classifications are an open set and
+# are not paired with result values: ex:magnitudes reports two dimensioned
+# quantities (a length and a dimensionless ratio) under two dimensions without
+# saying which result belongs to which dimension. The categorical assessment of
+# the same dataset is a base gmeow:QualityAssessment with two verdicts; its
+# results are not quantities, which the base class does not require.
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix math:  <https://blackcatinformatics.ca/math/> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/quality/multi/> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+
+ex:dataset a gmeow:Dataset .
+ex:auditor a gmeow:Organization .
+
+ex:magnitudes a gmeow:QuantitativeQualityAssessment ;
+    gmeow:assessedEntity    ex:dataset ;
+    gmeow:qualityDimension  gmeow:qualityDimensionPositionalAccuracy ,
+                            gmeow:qualityDimensionCompleteness ;
+    gmeow:observationMethod gmeow:methodComputationalModel ;
+    gmeow:vantage           ex:auditor ;
+    gmeow:observationResult ex:positionError , ex:completenessRatio .
+
+ex:positionError a math:Quantity ;
+    math:hasDimension math:lengthDimension ;
+    gmeow:unit <http://qudt.org/vocab/unit/M> ;
+    gmeow:hasReferenceFrame gmeow:referenceFrameSI ;
+    math:quantityValue "5.0"^^xsd:decimal .
+
+ex:completenessRatio a math:Quantity ;
+    math:hasDimension math:dimensionless ;
+    math:quantityValue "0.985"^^xsd:decimal .
+
+ex:verdicts a gmeow:QualityAssessment ;
+    gmeow:assessedEntity    ex:dataset ;
+    gmeow:qualityDimension  gmeow:qualityDimensionLogicalConsistency ,
+                            gmeow:qualityDimensionTopologicalConsistency ;
+    gmeow:observationMethod gmeow:methodComputationalModel ;
+    gmeow:vantage           ex:auditor ;
+    gmeow:observationResult ex:domainConforms , ex:topologyConforms .
+
+ex:domainConforms a logic:Individual .
+ex:topologyConforms a logic:Individual .
