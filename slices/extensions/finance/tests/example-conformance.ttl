@@ -13,12 +13,14 @@
 # as a math:Dimension, the period frames as gmeow:ReferenceFrame). The counter-examples are
 # copies of the conforming fixture that differ by exactly one defect, and each pins the
 # one law it breaks by IRI. A logic:Constraint projects to the shape named by the
-# constraint's namespace (the text up to its last "/" or "#"), then its local name with the
+# constraint's namespace (the text up to and including its last "/" or "#"), then its local name with the
 # first letter upper-cased, then "ProceduralConstraintShape"
 # (crates/logic-compile projections/shapes.rs, procedural_shape_iri). A constraint IRI that
 # has neither character, as the urn: identifiers do, has no namespace, so the whole IRI is
 # the local name and the shape begins "Urn:". The monetary amount's own dimension and currency-frame
-# obligations are owned and controlled by the observations slice.
+# obligations are owned and controlled by the observations slice. A posting amount with no value
+# or no currency is outside the balance law and is controlled by the presence obligations the
+# observations slice owns for a monetary amount.
 
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
 @prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/finance/tests/> .
@@ -79,7 +81,7 @@ ex:ecJournalUnbalanced a gmeow:ExampleConformance ;
     gmeow:expectedViolationCode "shacl.SPARQLConstraintComponent" ;
     gmeow:expectedSourceShape gmeow:JournalEntryBalanceConstraintProceduralConstraintShape ;
     gmeow:expectedSoleFinding true ;
-    gmeow:conformanceRationale "The counter-example is the conforming fixture with one change: the credit posting's amount is 4000.00 in the same currency while the debit posting's amount is 5000.00. The gmeow:JournalEntryBalanceConstraint sums debit and credit posting values per currency over gmeow:postingAmount and math:quantityValue, so the currency bucket is off by 1000.00 and validation MUST emit shacl.SPARQLConstraintComponent from the shape that constraint projects to, pinned by IRI, and no other finding. The entry still has two postings, each posting is well formed, and no other shape reads the posting amounts." .
+    gmeow:conformanceRationale "The counter-example is the conforming fixture with one change: the credit posting's amount is 4000.00 in the same currency while the debit posting's amount is 5000.00. The gmeow:JournalEntryBalanceConstraint sums debit and credit posting values per currency over gmeow:postingAmount and math:quantityValue, so the currency bucket is off by 1000.00 and validation MUST emit shacl.SPARQLConstraintComponent from the shape that constraint projects to, pinned by IRI, and no other finding. The entry still has two postings, each posting is well formed, and no other shape reads the amount values." .
 
 ex:ecJournalCurrencySplit a gmeow:ExampleConformance ;
     gmeow:exampleFile "tests/counter-examples/journal-currency-split.ttl" ;
