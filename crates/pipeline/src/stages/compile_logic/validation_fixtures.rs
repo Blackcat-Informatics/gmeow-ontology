@@ -125,7 +125,7 @@ pub(super) fn record(
                 .chain(validation.nested.iter().map(|reifier| {
                     (
                         reifier.to_string(),
-                        gmeow_validate::store::NESTED_TRIPLE_TERM_CODE.to_owned(),
+                        gmeow_validate::codes::VALIDATE_NESTED_TRIPLE_TERM_NOT_LOWERED.to_owned(),
                     )
                 }))
                 .collect())

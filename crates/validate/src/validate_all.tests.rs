@@ -1692,7 +1692,7 @@ ex:LoweredComponentsDetector a sh:NodeShape ;
     );
     let nested: Vec<_> = findings
         .iter()
-        .filter(|finding| finding.code == crate::store::NESTED_TRIPLE_TERM_CODE)
+        .filter(|finding| finding.code == crate::codes::VALIDATE_NESTED_TRIPLE_TERM_NOT_LOWERED)
         .collect();
     assert_eq!(nested.len(), 1, "{findings:?}");
     assert!(nested[0].message.contains("https://example.org/quoted"));

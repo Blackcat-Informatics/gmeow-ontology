@@ -709,209 +709,54 @@ fn subclass_shortcut_injection_is_transitive_across_two_hops() {
     );
 }
 
-/// The two standpoint ranking constraints, reduced to what the constraint compiler reads:
-/// the formula, message and severity of `gmeow:moreEntrenchedThanAttributionConstraint`
-/// and `gmeow:moreEntrenchedThanRankerOrderConstraint` exactly as the standpoint slice
-/// authors them. Embedded, never read from the slice, so the test needs no produced corpus.
-const STANDPOINT_RANKING_CONSTRAINTS: &str = r#"
-@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
-@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
-@prefix logic: <https://blackcatinformatics.ca/logic/> .
-
-gmeow:moreEntrenchedThanAttributionConstraint
-    a logic:Constraint ;
-    logic:formalizes gmeow:moreEntrenchedThan ;
-    logic:message "Every gmeow:moreEntrenchedThan edge from a gmeow:Standpoint must have a reifier carrying both gmeow:accordingTo (the ranker) and gmeow:validFrom (the instant the ranking holds)." ;
-    logic:severity "Violation" ;
-    logic:integrity [ a logic:Formula ;
-        logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "other" ] ;
-        logic:forall [ a logic:Formula ;
-            logic:antecedent [ a logic:Formula ;
-                logic:and [ a logic:Formula ; logic:relation rdf:type ;
-                        logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri gmeow:Standpoint ] ] ,
-                    [ a logic:Formula ; logic:relation gmeow:moreEntrenchedThan ;
-                        logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "other" ] ] ] ;
-            logic:consequent [ a logic:Formula ;
-                logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "claim" ] , [ logic:termIndex 1 ; logic:termVariable "ranker" ] , [ logic:termIndex 2 ; logic:termVariable "from" ] ;
-                logic:exists [ a logic:Formula ;
-                    logic:and [ a logic:Formula ; logic:relation logic:reifiedStatementSubject ;
-                            logic:argument [ logic:termIndex 0 ; logic:termVariable "claim" ] , [ logic:termIndex 1 ; logic:termVariable "this" ] ] ,
-                        [ a logic:Formula ; logic:relation logic:reifiedStatementPredicate ;
-                            logic:argument [ logic:termIndex 0 ; logic:termVariable "claim" ] , [ logic:termIndex 1 ; logic:termIri gmeow:moreEntrenchedThan ] ] ,
-                        [ a logic:Formula ; logic:relation logic:reifiedStatementObject ;
-                            logic:argument [ logic:termIndex 0 ; logic:termVariable "claim" ] , [ logic:termIndex 1 ; logic:termVariable "other" ] ] ,
-                        [ a logic:Formula ; logic:relation gmeow:accordingTo ;
-                            logic:argument [ logic:termIndex 0 ; logic:termVariable "claim" ] , [ logic:termIndex 1 ; logic:termVariable "ranker" ] ] ,
-                        [ a logic:Formula ; logic:relation gmeow:validFrom ;
-                            logic:argument [ logic:termIndex 0 ; logic:termVariable "claim" ] , [ logic:termIndex 1 ; logic:termVariable "from" ] ] ] ] ] ] .
-
-gmeow:moreEntrenchedThanRankerOrderConstraint
-    a logic:Constraint ;
-    logic:formalizes gmeow:moreEntrenchedThan ;
-    logic:message "One ranker may not hold gmeow:moreEntrenchedThan in both directions between two standpoints unless one claim succeeds or corrects the other or is retracted." ;
-    logic:severity "Violation" ;
-    logic:integrity [ a logic:Formula ;
-        logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ;
-        logic:forall [ a logic:Formula ;
-            logic:antecedent [ a logic:Formula ; logic:relation rdf:type ;
-                logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri gmeow:Standpoint ] ] ;
-            logic:consequent [ a logic:Formula ;
-                logic:not [ a logic:Formula ;
-                    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "other" ] , [ logic:termIndex 1 ; logic:termVariable "first" ] , [ logic:termIndex 2 ; logic:termVariable "second" ] , [ logic:termIndex 3 ; logic:termVariable "ranker" ] ;
-                    logic:exists [ a logic:Formula ;
-                        logic:and [ a logic:Formula ; logic:relation logic:reifiedStatementSubject ;
-                                logic:argument [ logic:termIndex 0 ; logic:termVariable "first" ] , [ logic:termIndex 1 ; logic:termVariable "this" ] ] ,
-                            [ a logic:Formula ; logic:relation logic:reifiedStatementPredicate ;
-                                logic:argument [ logic:termIndex 0 ; logic:termVariable "first" ] , [ logic:termIndex 1 ; logic:termIri gmeow:moreEntrenchedThan ] ] ,
-                            [ a logic:Formula ; logic:relation logic:reifiedStatementObject ;
-                                logic:argument [ logic:termIndex 0 ; logic:termVariable "first" ] , [ logic:termIndex 1 ; logic:termVariable "other" ] ] ,
-                            [ a logic:Formula ; logic:relation gmeow:accordingTo ;
-                                logic:argument [ logic:termIndex 0 ; logic:termVariable "first" ] , [ logic:termIndex 1 ; logic:termVariable "ranker" ] ] ,
-                            [ a logic:Formula ; logic:relation logic:reifiedStatementSubject ;
-                                logic:argument [ logic:termIndex 0 ; logic:termVariable "second" ] , [ logic:termIndex 1 ; logic:termVariable "other" ] ] ,
-                            [ a logic:Formula ; logic:relation logic:reifiedStatementPredicate ;
-                                logic:argument [ logic:termIndex 0 ; logic:termVariable "second" ] , [ logic:termIndex 1 ; logic:termIri gmeow:moreEntrenchedThan ] ] ,
-                            [ a logic:Formula ; logic:relation logic:reifiedStatementObject ;
-                                logic:argument [ logic:termIndex 0 ; logic:termVariable "second" ] , [ logic:termIndex 1 ; logic:termVariable "this" ] ] ,
-                            [ a logic:Formula ; logic:relation gmeow:accordingTo ;
-                                logic:argument [ logic:termIndex 0 ; logic:termVariable "second" ] , [ logic:termIndex 1 ; logic:termVariable "ranker" ] ] ,
-                            [ a logic:Formula ; logic:not [ a logic:Formula ; logic:relation gmeow:succeedsClaim ;
-                                logic:argument [ logic:termIndex 0 ; logic:termVariable "first" ] , [ logic:termIndex 1 ; logic:termVariable "second" ] ] ] ,
-                            [ a logic:Formula ; logic:not [ a logic:Formula ; logic:relation gmeow:succeedsClaim ;
-                                logic:argument [ logic:termIndex 0 ; logic:termVariable "second" ] , [ logic:termIndex 1 ; logic:termVariable "first" ] ] ] ,
-                            [ a logic:Formula ; logic:not [ a logic:Formula ; logic:relation gmeow:correctsClaim ;
-                                logic:argument [ logic:termIndex 0 ; logic:termVariable "first" ] , [ logic:termIndex 1 ; logic:termVariable "second" ] ] ] ,
-                            [ a logic:Formula ; logic:not [ a logic:Formula ; logic:relation gmeow:correctsClaim ;
-                                logic:argument [ logic:termIndex 0 ; logic:termVariable "second" ] , [ logic:termIndex 1 ; logic:termVariable "first" ] ] ] ,
-                            [ a logic:Formula ; logic:not [ a logic:Formula ;
-                                logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "withdrawal" ] ;
-                                logic:exists [ a logic:Formula ; logic:relation gmeow:retractsClaim ;
-                                    logic:argument [ logic:termIndex 0 ; logic:termVariable "withdrawal" ] , [ logic:termIndex 1 ; logic:termVariable "first" ] ] ] ] ,
-                            [ a logic:Formula ; logic:not [ a logic:Formula ;
-                                logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "withdrawal" ] ;
-                                logic:exists [ a logic:Formula ; logic:relation gmeow:retractsClaim ;
-                                    logic:argument [ logic:termIndex 0 ; logic:termVariable "withdrawal" ] , [ logic:termIndex 1 ; logic:termVariable "second" ] ] ] ] ] ] ] ] ] .
-"#;
-
-/// The SHACL the constraint compiler derives from [`STANDPOINT_RANKING_CONSTRAINTS`], through
-/// the same extraction and per-constraint projection the producer runs.
-fn standpoint_ranking_shapes() -> String {
-    let records = purrdf::parse_dataset(
-        STANDPOINT_RANKING_CONSTRAINTS.as_bytes(),
-        "text/turtle",
-        None,
-    )
-    .expect("the embedded constraint records parse");
-    let (constraints, diagnostics) =
-        gmeow_logic_compile::frontend::extract_all_constraints(&records)
-            .expect("the embedded constraint records extract");
-    assert!(diagnostics.is_empty(), "{diagnostics:?}");
-    assert_eq!(constraints.len(), 2, "both ranking constraints extract");
-    let mut shapes = String::from(
-        "@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .\n\
-         @prefix logic: <https://blackcatinformatics.ca/logic/> .\n\
-         @prefix sh: <http://www.w3.org/ns/shacl#> .\n\
-         @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .\n",
-    );
-    for constraint in &constraints {
-        shapes.push('\n');
-        shapes.push_str(
-            &gmeow_logic_compile::projections::shapes::project_procedural_constraint(constraint),
-        );
-    }
-    shapes
-}
-
 /// INVARIANT: the consumer validator (`gmeow validate`, through [`Tier1Shapes::validate`] and
-/// the [`run_with`] composition the CLI and MCP share) checks a `logic:Constraint` written
-/// over a reified statement's lowered components against data authored ONLY as RDF 1.2: a
-/// correctly attributed ranking conforms, a ranker holding both directions is reported by
-/// the order constraint and by nothing else, and a statement nesting a triple term is
-/// named as a `validate.nested-triple-term-not-lowered` warning instead of passing silently.
+/// the [`run_with`] composition the CLI and MCP share) names a reified statement that nests
+/// a triple term as a `validate.nested-triple-term-not-lowered` warning instead of passing
+/// silently, while the flat reification beside it lowers and raises nothing. The shipped
+/// standpoint constraints over RDF 1.2 data are pinned by the standpoint slice's
+/// conformance cells, not here.
 #[test]
-fn consumer_validation_reads_rdf12_rankings_through_their_lowered_components() {
-    let tier1 = tier1_from_ttl(&standpoint_ranking_shapes(), "");
+fn consumer_validation_names_a_nested_triple_term_it_could_not_lower() {
+    let tier1 = tier1_from_ttl("", "");
     let empty = purrdf::RdfDatasetBuilder::new()
         .freeze()
         .expect("an empty dataset freezes");
     const NS: &str = "https://blackcatinformatics.ca/gmeow/";
-    const PREFIXES: &str = "@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .\n\
-        @prefix ex: <https://example.org/> .\n\
-        @prefix xsd: <http://www.w3.org/2001/XMLSchema#> .\n\
-        ex:a a gmeow:Standpoint . ex:b a gmeow:Standpoint .\n";
     const CLAIM: &str =
         "{| gmeow:accordingTo ex:ranker ; gmeow:validFrom \"2026-01-01\"^^xsd:date |}";
-    let codes_and_messages = |data: &str| -> Vec<Vec<(String, String)>> {
-        let bytes = data.as_bytes();
-        let through_validate = tier1
-            .validate(bytes, "text/turtle", NS, "ranking.ttl")
-            .expect("the consumer validator runs");
-        let through_run_with = run_with(
-            BundleParts {
-                native_gates: None,
-                shapes: &tier1,
-                dataset: empty.as_ref(),
-            },
-            bytes,
-            "text/turtle",
-            NS,
-            "ranking.ttl",
-            false,
-        )
-        .expect("the shared CLI and MCP composition runs");
-        [through_validate, through_run_with]
-            .iter()
-            .map(|report| {
-                report
-                    .findings
-                    .iter()
-                    .map(|finding| (finding.code.clone(), finding.message.clone()))
-                    .collect()
-            })
-            .collect()
-    };
-
-    let attributed =
-        format!("{PREFIXES}ex:a gmeow:moreEntrenchedThan ex:b ~ ex:rankAB {CLAIM} .\n");
-    for findings in codes_and_messages(&attributed) {
-        assert!(
-            findings.is_empty(),
-            "a correctly attributed RDF 1.2 ranking conforms: {findings:?}"
-        );
-    }
-
-    let reversed = format!(
-        "{PREFIXES}ex:a gmeow:moreEntrenchedThan ex:b ~ ex:rankAB {CLAIM} .\n\
-         ex:b gmeow:moreEntrenchedThan ex:a ~ ex:rankBA {CLAIM} .\n"
-    );
-    for findings in codes_and_messages(&reversed) {
-        assert_eq!(
-            findings.len(),
-            2,
-            "one finding per standpoint: {findings:?}"
-        );
-        assert!(
-            findings
-                .iter()
-                .all(|(_, message)| message.starts_with("One ranker may not hold")),
-            "only the per-ranker order constraint reports the reversed pair: {findings:?}"
-        );
-    }
-
     let nested = format!(
-        "{PREFIXES}ex:quoted <http://www.w3.org/1999/02/22-rdf-syntax-ns#reifies> \
+        "@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .\n\
+         @prefix ex: <https://example.org/> .\n\
+         @prefix xsd: <http://www.w3.org/2001/XMLSchema#> .\n\
+         ex:a a gmeow:Standpoint . ex:b a gmeow:Standpoint .\n\
+         ex:quoted <http://www.w3.org/1999/02/22-rdf-syntax-ns#reifies> \
          <<( ex:a ex:says <<( ex:a gmeow:moreEntrenchedThan ex:b )>> )>> .\n\
          ex:a gmeow:moreEntrenchedThan ex:b ~ ex:rankAB {CLAIM} .\n"
     );
-    for findings in codes_and_messages(&nested) {
+    let bytes = nested.as_bytes();
+    let through_validate = tier1
+        .validate(bytes, "text/turtle", NS, "ranking.ttl")
+        .expect("the consumer validator runs");
+    let through_run_with = run_with(
+        BundleParts {
+            native_gates: None,
+            shapes: &tier1,
+            dataset: empty.as_ref(),
+        },
+        bytes,
+        "text/turtle",
+        NS,
+        "ranking.ttl",
+        false,
+    )
+    .expect("the shared CLI and MCP composition runs");
+    for report in [through_validate, through_run_with] {
+        assert_eq!(report.findings.len(), 1, "{:?}", report.findings);
+        let finding = &report.findings[0];
         assert_eq!(
-            findings,
-            vec![(
-                crate::store::NESTED_TRIPLE_TERM_CODE.to_owned(),
-                findings[0].1.clone()
-            )],
-            "the nested statement is named, and the flat ranking beside it still conforms"
+            finding.code,
+            crate::codes::VALIDATE_NESTED_TRIPLE_TERM_NOT_LOWERED
         );
-        assert!(findings[0].1.contains("https://example.org/quoted"));
+        assert!(finding.message.contains("https://example.org/quoted"));
     }
 }

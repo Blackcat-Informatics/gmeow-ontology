@@ -896,7 +896,9 @@ ex:LoweredComponentsDetector a sh:NodeShape ;
     let nested: Vec<_> = report
         .findings
         .iter()
-        .filter(|finding| finding.code == gmeow_validate::store::NESTED_TRIPLE_TERM_CODE)
+        .filter(|finding| {
+            finding.code == gmeow_validate::codes::VALIDATE_NESTED_TRIPLE_TERM_NOT_LOWERED
+        })
         .collect();
     assert_eq!(nested.len(), 1, "{:?}", report.findings);
     assert_eq!(nested[0].severity, Severity::Warning);

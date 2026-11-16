@@ -31,8 +31,8 @@
 //!   [`lower_reifiers`]'s rows into its single world; and
 //! * the SHACL validations of authored and user data, through [`validation_view`]: the consumer
 //!   `gmeow validate` path and its LSP and MCP twins, the dev authoring gate, the pipeline
-//!   `stage-validate` and fixture validation, the slice conformance cells, and the
-//!   slice-brief exemplar gate. A `logic:Constraint` over the lowered components is
+//!   `stage-validate` and fixture validation, the claim audit, the producer controls over
+//!   production shapes, the slice conformance cells, and the slice-brief exemplar gate. A `logic:Constraint` over the lowered components is
 //!   enforced only through its derived SHACL, so a validation view without these edges
 //!   reports a correctly attributed statement as unattributed and never matches a
 //!   forbidden pattern over two attributions.
@@ -177,6 +177,13 @@ impl ValidationView<'_> {
     #[must_use]
     pub fn dataset(&self) -> &RdfDataset {
         self.lowered.as_deref().unwrap_or(self.authored)
+    }
+
+    /// The shared lowered dataset, for a caller that binds an already-projected snapshot;
+    /// `None` when there was nothing to lower and the authored dataset stands.
+    #[must_use]
+    pub fn lowered_shared(&self) -> Option<Arc<RdfDataset>> {
+        self.lowered.clone()
     }
 }
 

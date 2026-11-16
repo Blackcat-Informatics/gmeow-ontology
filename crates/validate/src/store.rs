@@ -26,9 +26,6 @@ use purrdf::{RdfDataset, RdfDatasetBuilder, parse_dataset};
 
 use crate::model::{logic, owl};
 
-/// The finding code naming a reified statement the validation view could not lower.
-pub const NESTED_TRIPLE_TERM_CODE: &str = "validate.nested-triple-term-not-lowered";
-
 /// One SHACL validation of a data view: the result set, and the RDF 1.2 statements the
 /// view could not lower.
 #[derive(Debug)]
@@ -65,7 +62,7 @@ pub fn nested_findings(
             let reifier = reifier.to_string();
             let mut finding = gmeow_errors::Finding::new(
                 gmeow_errors::Severity::Warning,
-                NESTED_TRIPLE_TERM_CODE,
+                crate::codes::VALIDATE_NESTED_TRIPLE_TERM_NOT_LOWERED,
                 format!(
                     "{reifier} reifies a statement that nests a triple term. It has no \
                          non-term component to lower into logic:reifiedStatementSubject / \
