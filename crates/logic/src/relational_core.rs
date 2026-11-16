@@ -147,7 +147,7 @@ fn rc_rule_to_existential(rc: &RcRule) -> gmeow_errors::Result<crate::physical::
         .iter()
         .map(rc_atom_to_eval)
         .collect::<gmeow_errors::Result<Vec<_>>>()?;
-    Ok(crate::physical::ExistentialRule {
+    let rule = crate::physical::ExistentialRule {
         numeric: rc.numeric.clone(),
         rule_iri: format!(
             "{LOGIC_NAMESPACE}formula-existential/{}",
@@ -158,7 +158,11 @@ fn rc_rule_to_existential(rc: &RcRule) -> gmeow_errors::Result<crate::physical::
         distinct: rc.distinct_pairs.clone(),
         witness_frontier: None,
         witness_policy: crate::physical::WitnessPolicy::FrontierSkolem,
-    })
+    };
+    // The chase's own head-shape check, run here so a head it would refuse is named
+    // residue of the lowering rather than a failure of the execution.
+    crate::physical::validate_head_shape(&rule)?;
+    Ok(rule)
 }
 
 /// Map a lane [`RcAtom`] to an [`EvalAtom`] (native predicate IRI string + [`EvalTerm`]s).

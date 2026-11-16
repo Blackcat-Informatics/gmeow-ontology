@@ -760,3 +760,190 @@ fn refuted_claim_is_unread(report: &serde_json::Value, code: i32, claims_read: u
         "{report:#}"
     );
 }
+
+/// `forall A. Src(A) -> (first and second)`, with `second` spelled by the caller.
+fn conjunctive_consequent(second: &str) -> String {
+    format!(
+        r#"
+ex:a logic:instanceOf ex:Src .
+ex:law a logic:Formula ; logic:quantifiedVariable [ a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "A" ] ; logic:forall ex:imp .
+ex:imp a logic:Formula ; logic:antecedent ex:g ; logic:consequent ex:c .
+ex:g a logic:Formula ; logic:relation logic:instanceOf ; logic:argument [ a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "A" ], [ a logic:TermCarrier ; logic:termIndex 1 ; logic:termIri ex:Src ] .
+ex:c a logic:Formula ; logic:and ex:c1, ex:c2 .
+ex:c1 a logic:Formula ; logic:relation logic:instanceOf ; logic:argument [ a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "A" ], [ a logic:TermCarrier ; logic:termIndex 1 ; logic:termIri ex:Dst ] .
+ex:c2 a logic:Formula ; {second} .
+"#
+    )
+}
+
+/// A consequent that conjoins a unary atom with an atom of arity three is one
+/// dependency the native engine executes: the run is decided, not an execution
+/// failure, and no drop names the formula.
+#[test]
+fn a_consequent_mixing_a_unary_and_a_ternary_atom_is_executed() {
+    let (report, code) = prove_json(
+        "mixed-head.logic.ttl",
+        &conjunctive_consequent(
+            r#"logic:relation ex:tern ; logic:argument [ a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "A" ], [ a logic:TermCarrier ; logic:termIndex 1 ; logic:termVariable "A" ], [ a logic:TermCarrier ; logic:termIndex 2 ; logic:termVariable "A" ]"#,
+        ),
+        &["--gate"],
+    );
+    assert_eq!(report["verdict"], "consistent", "{report:#}");
+    assert_eq!(code, 0);
+    assert_eq!(report["selection"]["drops"], serde_json::json!([]));
+}
+
+/// A head the native engine cannot carry, here a positional argument atom on a
+/// variable the antecedent binds, is a named drop that states the rule and its head
+/// relations. The selection is not decided; it is not an execution failure.
+#[test]
+fn a_rule_head_the_engine_cannot_carry_is_a_named_drop() {
+    let (report, code) = prove_json(
+        "refused-head.logic.ttl",
+        &conjunctive_consequent(
+            r#"logic:relation logic:naryArg0 ; logic:argument [ a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "A" ], [ a logic:TermCarrier ; logic:termIndex 1 ; logic:termVariable "A" ]"#,
+        ),
+        &["--gate"],
+    );
+    assert_eq!(report["verdict"], "not-decided", "{report:#}");
+    assert_eq!(code, 3);
+    assert!(
+        report["selection"]["drops"]
+            .as_array()
+            .expect("drops")
+            .iter()
+            .any(|drop| drop["code"] == "UNSUPPORTED_CONSTRUCT"
+                && drop["detail"].as_str().is_some_and(|detail| {
+                    detail
+                        .contains("rule <https://blackcatinformatics.ca/logic/formula-existential/")
+                        && detail.contains("head relations [<https://example.org/prove/Dst>]")
+                })),
+        "{report:#}"
+    );
+}
+
+/// `forall A. Src(A) -> exists U, V. (R1(V, A) on node U and R2(inner) on node V)`,
+/// with both tuples spelled in the reified vocabulary. `inner` is the term the tuple
+/// on `V` takes as its argument.
+fn tuple_inside_a_tuple(inner: &str) -> String {
+    let term = |index: usize, body: &str| {
+        format!("[ a logic:TermCarrier ; logic:termIndex {index} ; {body} ]")
+    };
+    let var = |index: usize, name: &str| term(index, &format!(r#"logic:termVariable "{name}""#));
+    let iri = |index: usize, name: &str| term(index, &format!("logic:termIri {name}"));
+    let atom = |name: &str, relation: &str, first: String, second: String| {
+        format!(
+            "ex:{name} a logic:Formula ; logic:relation {relation} ; logic:argument {first}, {second} .\n"
+        )
+    };
+    [
+        "\nex:a logic:instanceOf ex:Src .\n".to_owned(),
+        format!(
+            "ex:law a logic:Formula ; logic:quantifiedVariable {} ; logic:forall ex:imp .\n",
+            var(0, "A")
+        ),
+        "ex:imp a logic:Formula ; logic:antecedent ex:g ; logic:consequent ex:some .\n".to_owned(),
+        atom("g", "logic:instanceOf", var(0, "A"), iri(1, "ex:Src")),
+        format!(
+            "ex:some a logic:Formula ; logic:quantifiedVariable {}, {} ; logic:exists ex:all .\n",
+            var(0, "U"),
+            var(1, "V")
+        ),
+        "ex:all a logic:Formula ; logic:and ex:t1, ex:t2, ex:t3, ex:t4, ex:t5 .\n".to_owned(),
+        atom("t1", "logic:instanceOf", var(0, "U"), iri(1, "ex:R1")),
+        atom("t2", "logic:naryArg0", var(0, "U"), var(1, "V")),
+        atom("t3", "logic:naryArg1", var(0, "U"), var(1, "A")),
+        atom("t4", "logic:instanceOf", var(0, "V"), iri(1, "ex:R2")),
+        atom("t5", "logic:naryArg0", var(0, "V"), var(1, inner)),
+    ]
+    .concat()
+}
+
+fn has_drop(report: &serde_json::Value, code: &str, detail: &str) -> bool {
+    report["selection"]["drops"]
+        .as_array()
+        .expect("drops")
+        .iter()
+        .any(|drop| {
+            drop["code"] == code
+                && drop["detail"]
+                    .as_str()
+                    .is_some_and(|text| text.contains(detail))
+        })
+}
+
+/// A tuple that takes another tuple's node as an argument is executed whatever order
+/// its two nodes were quantified in; it is not an execution failure and its rule is
+/// not dropped at lowering.
+#[test]
+fn a_tuple_that_takes_another_tuples_node_is_executed() {
+    let (report, code) = prove_json(
+        "nested-tuple.logic.ttl",
+        &tuple_inside_a_tuple("A"),
+        &["--gate"],
+    );
+    assert_ne!(code, 5, "{report:#}");
+    assert_eq!(
+        report["engines"]["native"]["verdict"], "no-clash",
+        "{report:#}"
+    );
+    assert!(
+        !has_drop(&report, "UNSUPPORTED_CONSTRUCT", ""),
+        "{report:#}"
+    );
+}
+
+/// Two tuples that take each other's node have no node to mint. The rule is a named
+/// drop that states both relations, and the selection is not decided.
+#[test]
+fn tuples_that_take_each_others_node_are_a_named_drop() {
+    let (report, code) = prove_json(
+        "tuple-cycle.logic.ttl",
+        &tuple_inside_a_tuple("U"),
+        &["--gate"],
+    );
+    assert_eq!(report["verdict"], "not-decided", "{report:#}");
+    assert_eq!(code, 3);
+    assert!(
+        has_drop(&report, "UNSUPPORTED_CONSTRUCT", "each other's reifier")
+            && has_drop(
+                &report,
+                "UNSUPPORTED_CONSTRUCT",
+                "head relations [<https://example.org/prove/R1>, <https://example.org/prove/R2>]"
+            ),
+        "{report:#}"
+    );
+}
+
+/// An authored existential rule record whose head the engine cannot carry is declined
+/// like any other unsupported construct: a named drop that states the rule and its
+/// head relation, beside the drops named before the engine ran. The selection is not
+/// decided; it is not an execution failure.
+#[test]
+fn an_authored_rule_record_the_engine_cannot_carry_is_a_named_drop() {
+    let (report, code) = prove_json(
+        "refused-record.logic.ttl",
+        r#"
+@prefix lx: <https://blackcatinformatics.ca/gmeow/logic/existential#> .
+ex:a ex:p ex:a .
+[] rdf:reifies <<( ex:a logic:instanceOf ex:B )>> ; logic:inModule ex:module .
+ex:r a lx:ExistentialRule ; lx:body ex:b1 ; lx:head ex:h1 .
+ex:b1 lx:s "?x" ; lx:p ex:p ; lx:o "?x" .
+ex:h1 lx:s "?x" ; lx:p logic:naryArg0 ; lx:o "?x" .
+"#,
+        &["--gate"],
+    );
+    assert_eq!(report["verdict"], "not-decided", "{report:#}");
+    assert_eq!(code, 3);
+    assert_eq!(report["engines"]["native"]["verdict"], "refused");
+    assert_eq!(report["selection"]["complete"], false);
+    assert!(
+        has_drop(&report, "SCOPED_CLAIM_NOT_READ", "logic:inModule")
+            && has_drop(
+                &report,
+                "UNSUPPORTED_CONSTRUCT",
+                "rule <https://example.org/prove/r> with head relations [<https://blackcatinformatics.ca/logic/naryArg0>]"
+            ),
+        "{report:#}"
+    );
+}
