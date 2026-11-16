@@ -1,0 +1,23 @@
+ghprsq structured squash audit metadata
+
+parent_hashes: 0721853ddea9c37117856a000a20ef240cb20ea6
+
+GhpRsq-Schema: 1
+GhpRsq-Merge-Style: structured-squash
+GhpRsq-GitHub-Repo: Blackcat-Informatics/gmeow-ontology
+GhpRsq-GitHub-Pull-Request: 2835
+GhpRsq-GitHub-PR-URL: https://github.com/Blackcat-Informatics/gmeow-ontology/pull/2835
+GhpRsq-Base-Ref: main
+GhpRsq-Base-OID: 65208b1021f3f2c0c5cd6bdc41d232d4ea652859
+GhpRsq-Head-Ref: paudley/2820-cache-size-bound-makes-prove-refuse-a
+GhpRsq-Head-OID: 0721853ddea9c37117856a000a20ef240cb20ea6
+GhpRsq-Result-Tree: 2abca929733b69bfd5ce11e2c91e75d3ac8d759e
+GhpRsq-Result-Commit: 9593e6ede31bea852e4a807ff3ae5e6396211eb9
+GhpRsq-Parent-Hashes: 0721853ddea9c37117856a000a20ef240cb20ea6
+GhpRsq-Squash-Notes-SHA256: 4113606c869ed9f2068bc0f778c5af0028eb840c26c88de6b693f3cd868039f1
+GhpRsq-Stage-Tree: 3ca2310ef2acf45516ca0e64473c5c59a4ae4724
+GhpRsq-Stage-Commit: 80f8ef69591a841240adccfebffbbd22634b9191
+GhpRsq-Stage-Tag: refs/tags/ghprsq/artifacts/80f8ef69591a841240adccfebffbbd22634b9191
+GhpRsq-Stage-Ref: refs/ghprsq/pr/2835/stage
+GhpRsq-Stage-Files: 6
+GhpRsq-Stage-URL: https://github.com/Blackcat-Informatics/gmeow-ontology/tree/80f8ef69591a841240adccfebffbbd22634b9191
