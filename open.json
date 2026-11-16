@@ -1,0 +1,30 @@
+{
+  "schema": 1,
+  "issue": 2267,
+  "repo": "gmeow-ontology",
+  "forge": "github",
+  "nwo": "Blackcat-Informatics/gmeow-ontology",
+  "read_access": "anon-read",
+  "main_root": "/home/paudley/Active/gmeow-ontology",
+  "worktree": "/home/paudley/Active/gmeow-ontology/.worktrees/2267-marks-on-an-agent-s-important-events",
+  "branch": "paudley/2267-marks-on-an-agent-s-important-events",
+  "slug": "marks-on-an-agent-s-important-events",
+  "slug_drift": false,
+  "stage_dir": "/home/paudley/Active/gmeow-ontology/.worktrees/2267-marks-on-an-agent-s-important-events/.stage/marks-on-an-agent-s-important-events",
+  "stage_tracked": true,
+  "base": "origin/main",
+  "base_oid": "b4804439f00c86b4e234cb5084341c66f18d3451",
+  "reused": false,
+  "adr_repo": false,
+  "created": [
+    "worktree:/home/paudley/Active/gmeow-ontology/.worktrees/2267-marks-on-an-agent-s-important-events",
+    "branch:paudley/2267-marks-on-an-agent-s-important-events",
+    "ignored:8264 files (8264 reflinked, 0 written)",
+    "rust-caches:reflinked /home/paudley/Active/gmeow-ontology/.worktrees/2820-cache-size-bound-makes-prove-refuse-a caches into /home/paudley/Active/gmeow-ontology/.worktrees/2267-marks-on-an-agent-s-important-events plus 0 dependency units from 0 other checkouts in 331.1s; 12979 unchanged files keep their built mtimes; 30 other files take the seed time and rebuild; 298 units naming another checkout rebuild",
+    "stage:/home/paudley/Active/gmeow-ontology/.worktrees/2267-marks-on-an-agent-s-important-events/.stage/marks-on-an-agent-s-important-events",
+    "issue:/home/paudley/Active/gmeow-ontology/.worktrees/2267-marks-on-an-agent-s-important-events/.stage/marks-on-an-agent-s-important-events/issue.md"
+  ],
+  "warnings": [],
+  "timestamp": "2026-11-15T13:13:09-0600",
+  "seed_error": ""
+}
