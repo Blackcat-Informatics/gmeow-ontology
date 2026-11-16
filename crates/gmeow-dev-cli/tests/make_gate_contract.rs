@@ -1388,8 +1388,8 @@ fn ci_reuses_one_authenticated_nextest_archive_without_coverage_loss() {
     );
     assert_eq!(
         ci.matches("      GMEOW_DEV: ./dist/bin/gmeow-dev").count(),
-        8,
-        "ontology, heavy, and fixture production lanes must use the authenticated producer binary"
+        9,
+        "maintenance, fixture, archive, ontology, and heavy lanes must use the authenticated producer binary"
     );
     assert!(
         console_producer_spec
