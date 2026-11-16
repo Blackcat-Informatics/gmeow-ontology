@@ -95,7 +95,9 @@ fn has_triple(ds: &RdfDataset, subj_iri: &str, pred_iri: &str, obj_iri: &str) ->
     let Some(sid) = term_id(ds, subj_iri) else {
         return false;
     };
-    iri_objects(ds, sid, pred_iri).contains(&obj_iri.to_string())
+    iri_objects(ds, sid, pred_iri)
+        .iter()
+        .any(|object| object == obj_iri)
 }
 
 fn principle_result_iri(number: i64) -> String {

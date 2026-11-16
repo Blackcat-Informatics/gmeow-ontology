@@ -129,6 +129,11 @@ pub const STATIC_RULES: &[(&str, Severity, Enforcement)] = &[
         Severity::Error,
         Enforcement::Shacl,
     ),
+    (
+        codes::VALIDATE_NESTED_TRIPLE_TERM_NOT_LOWERED,
+        Severity::Warning,
+        Enforcement::Shacl,
+    ),
     // ── Bundle trust / signature ──
     (
         codes::SIGNATURE_VERIFY,
@@ -758,6 +763,10 @@ pub const REMEDIATIONS: &[(&str, &str)] = &[
     (
         codes::STATEMENT_COMPILE_LOSSLESS_ROUND_TRIP,
         "Adjust the RDF-1.2 statement so the OWL round-trip is lossless, or record the loss in the projection-loss ledger.",
+    ),
+    (
+        codes::VALIDATE_NESTED_TRIPLE_TERM_NOT_LOWERED,
+        "Restate the reified statement with a non-term component (an IRI, blank node or literal), or accept that the constraints over its subject, predicate and object are not evaluated against it.",
     ),
     // ── Bundle ontology completeness (`gmeow verify`) ──
     (

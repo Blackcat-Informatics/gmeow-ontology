@@ -3,6 +3,7 @@
 
 use super::*;
 use gmeow_logic_compile::ir::{ConstraintComponent, ShapeTarget};
+use purrdf::shapes::engine::validate_dataset;
 
 fn compile(text: &str) -> ModuleProduct {
     let dataset = purrdf::parse_dataset(text.as_bytes(), "text/turtle", None).unwrap();

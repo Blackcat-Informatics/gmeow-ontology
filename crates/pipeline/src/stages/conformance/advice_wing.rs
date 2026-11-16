@@ -75,9 +75,10 @@ pub fn observe(
 ) -> gmeow_errors::Result<Observation> {
     let data =
         purrdf::parse_dataset(INPUT.as_bytes(), "application/n-triples", None).map_err(fail)?;
+    let view = gmeow_logic_compile::statement_lowering::validation_view(&data)?;
     let report = prepared
         .shapes
-        .bind_dataset(&data)
+        .bind_dataset(view.dataset())
         .map_err(fail)?
         .validate()
         .map_err(fail)?;

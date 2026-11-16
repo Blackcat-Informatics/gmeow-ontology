@@ -4,6 +4,7 @@
 use super::*;
 use crate::dsl::{CompetencyQuestion, ExpectedCell, ExpectedRow};
 use gmeow_logic_compile::result_shape::{ColumnKind, ResultColumn, ResultShape, RowCardinality};
+use purrdf::shapes::engine::validate_dataset;
 
 #[test]
 fn source_shape_pins_preserve_laws_without_namespace_or_shared_owner_guessing() {
@@ -442,6 +443,68 @@ fn sole_finding_contract_has_both_pinned_and_unpinned_teeth() {
         &baseline,
     )
     .expect("the correctly pinned sole finding passes");
+}
+
+/// INVARIANT: a slice conformance cell validates its data through the shipped validator's
+/// statement-lowering view. A counter-example authored only as an RDF 1.2 reification is
+/// reported by a law over the lowered `logic:reifiedStatement*` components, and a cell
+/// that claims conformance over a reification nesting a triple term is refused, because no
+/// such law could have been evaluated against that statement.
+#[test]
+fn conformance_cells_read_rdf12_reifications_through_their_lowered_components() {
+    let directory = tempfile::tempdir().expect("synthetic slice");
+    let module = store_from_turtle("");
+    let baseline = NativeChannelBaseline::measure(&module).expect("empty synthetic baseline");
+    // gmeow-test-input: synthetic-only
+    let shapes = ConformanceShapes::new(parse_shapes(r#"
+        @prefix sh: <http://www.w3.org/ns/shacl#> .
+        @prefix ex: <https://example.org/> .
+        ex:LoweredComponentsDetector a sh:NodeShape ; sh:targetNode ex:a ;
+            sh:sparql [ sh:select "SELECT $this WHERE { ?claim <https://blackcatinformatics.ca/logic/reifiedStatementSubject> $this ; <https://blackcatinformatics.ca/logic/reifiedStatementPredicate> <https://example.org/p> ; <https://blackcatinformatics.ca/logic/reifiedStatementObject> <https://example.org/b> . }" ] .
+    "#, None).expect("one synthetic law"));
+    let cell = |outcome, code: Option<&str>| ExampleConformance {
+        iri: "https://example.org/loweringProbe".to_owned(),
+        file: "case.ttl".to_owned(),
+        outcome,
+        violation_code: code.map(ToOwned::to_owned),
+        expected_source_shape: None,
+        expected_sole_finding: None,
+        expected_failure_class: None,
+        rationales: Vec::new(),
+    };
+    std::fs::write(
+        directory.path().join("case.ttl"),
+        "@prefix ex: <https://example.org/> .\nex:a ex:p ex:b ~ ex:claim {| ex:by ex:someone |} .\n",
+    )
+    .expect("write an RDF 1.2 counter-example");
+    run_conformance_cell(
+        &cell(Outcome::Violates, Some("shacl.SPARQLConstraintComponent")),
+        directory.path(),
+        &module,
+        &shapes,
+        &baseline,
+    )
+    .expect("the law over the lowered components reports the RDF 1.2 statement");
+    std::fs::write(
+        directory.path().join("case.ttl"),
+        "@prefix ex: <https://example.org/> .\n\
+         ex:quoted <http://www.w3.org/1999/02/22-rdf-syntax-ns#reifies> \
+         <<( ex:c ex:says <<( ex:c ex:p ex:d )>> )>> .\n",
+    )
+    .expect("write a nested reification");
+    let error = run_conformance_cell(
+        &cell(Outcome::Conforms, None),
+        directory.path(),
+        &module,
+        &shapes,
+        &baseline,
+    )
+    .expect_err("conformance over an unlowered nested statement is not claimed");
+    assert!(
+        error.message().contains("logic:rdf12-nested-triple-term")
+            && error.message().contains("https://example.org/quoted"),
+        "{error}"
+    );
 }
 
 #[test]
