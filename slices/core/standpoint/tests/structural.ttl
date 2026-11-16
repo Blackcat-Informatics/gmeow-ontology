@@ -507,7 +507,7 @@ ASK {
  UNION
  { gmeow:correctsClaim (rdfs:subPropertyOf|logic:subPropertyOf)+ gmeow:supersededBy }
 }""" ;
-    gmeow:saRationale "gmeow:correctsClaim MUST NOT be a sub-property of gmeow:supersedes or gmeow:supersededBy, in either spelling of the sub-property edge. A correction is a statement by the correcting standpoint that another claim is wrong; were it a supersession, every correction would derive that the corrected claim is superseded and would prompt its suppression, which lets one standpoint remove another standpoint's claim from view (Principles 9 and 10)." .
+    gmeow:saRationale "gmeow:correctsClaim MUST NOT be a sub-property of gmeow:supersedes or gmeow:supersededBy, in either spelling of the sub-property edge. A correction is a statement by the correcting standpoint that another claim is wrong; were it a supersession, every correction would derive that the corrected claim is superseded, and a superseded name would then prompt its suppression, which lets one standpoint remove another standpoint's name from view (Principles 9 and 10)." .
 
 <https://example.org/lifecycle/tests/lifecycle-examples> a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:must ;

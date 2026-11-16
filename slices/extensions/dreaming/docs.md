@@ -96,8 +96,9 @@ whole unsegmented report, coequal recollections and an actual phase/call tree.
 A recollection experience in which an agent reports or recalls a dream — a
 `gmeow:Experience` whose mental-process kind is `gmeow:processRecollection` and whose
 content originates in imagination (`gmeow:contentOrigin gmeow:originImagined`). A
-standpoint-indexed, low-metacognitive-reliability claim: competing reports coexist and
-superseded reports are suppressed, not deleted.
+standpoint-indexed, low-metacognitive-reliability claim: competing reports coexist; a
+report its own author withdrew or replaced is suppressed, not deleted, and a report
+another party disputes or corrects takes no display flag.
 
 ### `gmeow:dreamElement`
 

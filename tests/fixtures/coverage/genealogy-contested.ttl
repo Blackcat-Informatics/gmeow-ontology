@@ -1,4 +1,4 @@
-# Coverage slice (#51): contested genealogy facts — standpoint-indexed,
+# Coverage slice: contested genealogy facts — standpoint-indexed,
 # coexisting, NO winner. Exercises contested parentage (civil register vs parish
 # record), contested birth date on a LifeEvent, and a withdrawn parentage claim
 # suppressed with gmeow:displayable false (Principle 10). Native GMEOW terms only.

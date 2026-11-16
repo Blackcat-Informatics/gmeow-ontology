@@ -190,8 +190,8 @@ ex:alexFormer a gmeow:PersonName ;
 ```
 
 There is no priority ranking — `displayable false` is a hard suppression, and the
-chosen name surfaces by locale match. The `DeadnameSuppressionShape`
-(`shapes/gmeow-shapes.ttl`) warns when a superseded/deadname omits the flag.
+chosen name surfaces by locale match. The `gmeow:SupersededNameSuppressionConstraint`
+warns when a superseded/deadname omits the flag.
 
 `gmeow:displayable false` is a global safety control, not a verdict on a claim.
 It belongs on a name its holder has superseded, because every reader must be kept

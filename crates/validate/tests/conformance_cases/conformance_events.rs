@@ -319,9 +319,9 @@ fn schema_role_projection_keys_by_role() {
 
 /// Twin of `test_schema_role_projection_suppresses_withdrawn_participation`.
 ///
-/// A superseded participation (`gmeow:displayable false`) is NOT projected — the
-/// flat downcast honours suppression-not-erasure (Principle 10). ex:erin's attendee
-/// participation is displayable false, so it must be dropped.
+/// A participation flagged `gmeow:displayable false` (its recorder's own withdrawal)
+/// is NOT projected — the flat downcast honours suppression-not-erasure (Principle 10).
+/// ex:erin's attendee participation is displayable false, so it must be dropped.
 #[gmeow_test_batch_macros::batch_test]
 fn schema_role_projection_suppresses_withdrawn_participation() {
     let out = events_projected(SCHEMA_ORG_RQ_REL);

@@ -26,7 +26,7 @@ Dream reports are co-equal vantage-indexed claims with low metacognitive reliabi
             logic:hasValue gmeow:originImagined ;
             logic:onProperty gmeow:contentOrigin ;
         ] ;
-    skos:definition "A recollection experience in which an agent reports or recalls a dream — a gmeow:Experience whose mental-process kind is gmeow:processRecollection and whose content originates in imagination (gmeow:contentOrigin gmeow:originImagined). A standpoint-indexed, low-metacognitive-reliability claim: competing reports coexist and superseded reports are suppressed, not deleted."@x-gmeow-english ;
+    skos:definition "A recollection experience in which an agent reports or recalls a dream — a gmeow:Experience whose mental-process kind is gmeow:processRecollection and whose content originates in imagination (gmeow:contentOrigin gmeow:originImagined). A standpoint-indexed, low-metacognitive-reliability claim: competing reports coexist; a report its own author withdrew or replaced is suppressed, not deleted, and a report another party disputes or corrects takes no display flag."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 gmeow:dreamElement

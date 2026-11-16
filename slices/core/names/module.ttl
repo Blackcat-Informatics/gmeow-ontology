@@ -1543,7 +1543,7 @@ gmeow:usageInterval
     rdfs:range gmeow:TimeInterval ;
     skos:definition "The time interval over which a name-usage held. (A relator carries its period this way — matching contacts' relationshipInterval — rather than via duringInterval.)"@x-gmeow-english ;
     skos:example "ex:usageFamily gmeow:usageInterval ex:childhoodYears ."@x-gmeow-english ;
-    gmeow:avoidWhen "Avoid gmeow:duringInterval for a relator's own period (use this, matching contacts' relationshipInterval) and avoid deleting a lapsed usage — set gmeow:displayable false on a superseded name instead."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid gmeow:duringInterval for a relator's own period (use this, matching contacts' relationshipInterval) and avoid deleting a lapsed usage: it stays in the data with its interval closed and takes no display flag from lapsing; set gmeow:displayable false only on a name its holder superseded."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox ;
     gmeow:howToUse "Point gmeow:usageInterval at a gmeow:TimeInterval; for a simple bearing without a full relator, carry validity with gmeow:validFrom/validUntil on the statement instead."@x-gmeow-english ;
     gmeow:useWhen "Use to carry the period over which a gmeow:NameUsage held — a former, historical, or life-stage-scoped name use that needs an explicit interval."@x-gmeow-english .
