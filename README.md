@@ -292,7 +292,7 @@ engine, with the OWL 2 DL tableau as a second refuter over the theory's OWL view
 |---|---|
 | `consistent` | the rule engine's closure completed, every unit of the selection is accounted for by the engine, and nothing was dropped |
 | `inconsistent` | a clash is derived; the report names the engine, the law that clashed, and the premises used |
-| `not-decided` | anything else, including an exhausted `--max-steps` or `--step-cap` budget and a program the rule engine declines for a reason it names, such as an existential chase it cannot certify; every drop is listed with its engine, code, and detail |
+| `not-decided` | anything else, including an exhausted `--max-steps` or `--step-cap` budget and a program the rule engine declines for a reason it names, such as an existential chase it cannot certify, which the report answers by naming the rules on the cycle, and, under `NATIVE_ANALYSIS_BOUND`, any analysis bound that coarsened or stopped part of the termination analysis (a finer analysis might have decided; with a bound present, the rules then named are the cycles the coarser analysis found, not proof that the program cycles); every drop is listed with its engine, code, and detail |
 
 The rule engine reads the asserted statements of the theory. It also reads an evidence-only
 reified claim: one about whose reifier nothing is said except the reification itself
@@ -316,7 +316,7 @@ retraction is still read as reported.
 | 1 | with `--gate`, `inconsistent` |
 | 3 | with `--gate`, `not-decided` |
 | 4 | malformed input |
-| 5 | execution failure: an engine crashed, hit an internal fault or reached a resource limit |
+| 5 | execution failure: an engine crashed, hit an internal fault or reached a resource limit of its own; an analysis bound of the termination proof is a `not-decided` drop, never this exit |
 
 When an engine fails after the selection was admitted, the report still carries the
 selection and the drops named before the failure, with `selection.complete` false. That

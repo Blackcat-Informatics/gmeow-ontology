@@ -1652,6 +1652,17 @@ pub(crate) struct ValueFlow {
     possible_writes: Vec<StatementPattern>,
 }
 
+/// Where source-constant interning passed its value-cell bound: the cells the flow already
+/// holds before any supplied row is interned (its own constants and source-selected values),
+/// the cells counted at the cut, and how many supplied rows had been interned when the cut
+/// fired (the one that crossed the bound included; 0 when the flow alone passes the bound).
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub(crate) struct InterningCut {
+    pub(crate) flow_cells: usize,
+    pub(crate) cells: usize,
+    pub(crate) rows_interned: usize,
+}
+
 impl ValueFlow {
     pub(crate) fn new(
         rules: &[FlowRule],
@@ -3478,17 +3489,23 @@ impl ValueFlow {
 
     /// Add bounded exact selector cells without re-lowering a native rule. The
     /// existing constant indices remain stable; Other still covers every value
-    /// outside the enriched vocabulary, including arbitrary future witnesses.
+    /// outside the enriched vocabulary, including arbitrary future witnesses. When
+    /// the value universe passes `limit` the error names what it measured.
     pub(crate) fn with_source_constants<'a>(
         &self,
         facts: impl Iterator<Item = &'a Fact>,
         limit: usize,
-    ) -> Option<Self> {
+    ) -> Result<Self, InterningCut> {
         let mut universe = self.universe.clone();
-        if universe.size() > limit {
-            return None;
+        let flow_cells = universe.size();
+        if flow_cells > limit {
+            return Err(InterningCut {
+                flow_cells,
+                cells: flow_cells,
+                rows_interned: 0,
+            });
         }
-        for fact in facts {
+        for (read, fact) in facts.enumerate() {
             for term in [
                 EvalTerm::ConstLit(fact.subject.clone()),
                 EvalTerm::named(&fact.predicate),
@@ -3496,7 +3513,11 @@ impl ValueFlow {
             ] {
                 universe.observe(&term);
                 if universe.size() > limit {
-                    return None;
+                    return Err(InterningCut {
+                        flow_cells,
+                        cells: universe.size(),
+                        rows_interned: read + 1,
+                    });
                 }
             }
         }
@@ -3513,7 +3534,7 @@ impl ValueFlow {
                 }
             }
         }
-        Some(Self {
+        Ok(Self {
             native_witness_domain: universe.native_witness_domain(),
             cardinality_domains: cardinality_domains(&universe, &rules),
             conditioned: self.conditioned.resized(universe.size()),

@@ -49,11 +49,13 @@ impl ExecutionCbor for ChaseAdmission {
                 head::write_text(out, "evidence")?;
                 ExecutionCbor::write_cbor(evidence, out)
             }
-            Self::Uncertified { violations } => {
+            Self::Uncertified { violations, bounds } => {
                 head::write_text(out, "Uncertified")?;
-                head::write_head(out, head::MAP, 1)?;
+                head::write_head(out, head::MAP, 2)?;
                 head::write_text(out, "violations")?;
-                ExecutionCbor::write_cbor(violations, out)
+                ExecutionCbor::write_cbor(violations, out)?;
+                head::write_text(out, "bounds")?;
+                ExecutionCbor::write_cbor(bounds, out)
             }
         }
     }
@@ -70,7 +72,10 @@ impl ExecutionCbor for ChaseAdmission {
             | Self::ModelSummarizingAcyclic { evidence } => {
                 ExecutionCbor::check_depth(evidence, remaining)
             }
-            Self::Uncertified { violations } => ExecutionCbor::check_depth(violations, remaining),
+            Self::Uncertified { violations, bounds } => {
+                ExecutionCbor::check_depth(violations, remaining)?;
+                ExecutionCbor::check_depth(bounds, remaining)
+            }
         }
     }
 
@@ -127,12 +132,15 @@ impl ExecutionCbor for ChaseAdmission {
                     })
                 }),
                 "Uncertified" => input.map(|input, length| {
-                    if length != 1 {
+                    if length != 2 {
                         return Err(input.invalid("wrong ChaseAdmission payload field count"));
                     }
                     input.field("violations")?;
+                    let violations = ExecutionCbor::read_cbor(input)?;
+                    input.field("bounds")?;
                     Ok(Self::Uncertified {
-                        violations: ExecutionCbor::read_cbor(input)?,
+                        violations,
+                        bounds: ExecutionCbor::read_cbor(input)?,
                     })
                 }),
                 _ => Err(input.invalid("unknown ChaseAdmission variant")),

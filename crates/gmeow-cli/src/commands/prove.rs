@@ -892,6 +892,76 @@ fn unread_program_axioms(
         .collect()
 }
 
+/// The drop code naming an analysis bound that coarsened or stopped part of the termination
+/// analysis, so a finer analysis might have decided. It does not say the bound caused a
+/// refusal. It sits beside the refusal reasons (`NATIVE_REFUSAL_REASON`) or, on a budgeted
+/// run, beside `CHASE_UNCERTIFIED`, where nothing may have been refused. With a bound present
+/// those reasons are the cycles the coarser analysis found, which a finer one might have ruled
+/// out, so neither the bound nor the reasons alone say whether the program cycles.
+const ANALYSIS_BOUND: &str = "NATIVE_ANALYSIS_BOUND";
+
+/// Name the authored formula behind a compiler-produced rule identity, wherever `text`
+/// writes the identity as `<iri>`. A rule with no named authored formula is left as is.
+fn name_authored_rules(
+    text: &str,
+    authored: &std::collections::BTreeMap<String, Vec<String>>,
+) -> String {
+    if authored.is_empty() {
+        return text.to_owned();
+    }
+    // One pass over the `<...>` terms. Every reason that reaches here names a rule by its
+    // merged identity, so each term is looked up whole.
+    let mut named = String::with_capacity(text.len());
+    let mut rest = text;
+    while let Some(open) = rest.find('<') {
+        let Some(length) = rest[open..].find('>') else {
+            break;
+        };
+        let close = open + length;
+        named.push_str(&rest[..=close]);
+        let rule = &rest[open + 1..close];
+        if let Some(formulas) = authored.get(rule) {
+            let formulas = formulas
+                .iter()
+                .map(|formula| format!("<{formula}>"))
+                .collect::<Vec<_>>()
+                .join(", ");
+            named.push_str(&format!(" (authored formula {formulas})"));
+        }
+        rest = &rest[close + 1..];
+    }
+    named.push_str(rest);
+    named
+}
+
+/// Every construct the lowering could not carry is a drop, unless a later check already
+/// names it. A completed run and a refused run read the same preparation through this.
+fn insert_unsupported_constructs(
+    drops: &mut BTreeSet<DropRecord>,
+    constructs: &BTreeSet<String>,
+    already_named: impl Fn(&String) -> bool,
+) {
+    for construct in constructs {
+        if !already_named(construct) {
+            drops.insert(DropRecord::new(
+                ENGINE_NATIVE,
+                "UNSUPPORTED_CONSTRUCT",
+                construct.clone(),
+            ));
+        }
+    }
+}
+
+/// The lowering residue of a refused run, from the preparation the run used.
+fn insert_lowering_residue(
+    drops: &mut BTreeSet<DropRecord>,
+    selected: Option<&gmeow_logic::reason::SelectedProgram>,
+) {
+    if let Some(selected) = selected {
+        insert_unsupported_constructs(drops, selected.lowering_residue(), |_| false);
+    }
+}
+
 /// Run the native rule engine over the whole selection and add every construct it
 /// did not decide to `drops`. The engine reads the asserted statements of the default
 /// graph and, with them, each evidence-only claim: a reified claim about whose
@@ -957,16 +1027,22 @@ fn native_leg(
             ));
         }
     }
+    // The lowering is prepared once and kept: a run that is refused reports the same
+    // lowering residue a completed run does, from the same preparation.
+    let mut selected: Option<gmeow_logic::reason::SelectedProgram> = None;
     let run = (|| {
         let (input, ingress) = prepared?;
+        let program = gmeow_logic::reason::prepare_selected_theory(theory, &ingress)?;
+        selected = Some(program.clone());
         let domains = SelectedDomains::new([SelectedLogicalWorld::new(
             LogicalGraph::Default,
             DomainProfile::NonemptyObjectDomainV1,
             PROVE_WORLD_AUTHORITY.to_owned(),
             *input.ingress_contract(),
         )?])?;
-        let result = gmeow_logic::reason::reason_selected_theory_within(
+        let result = gmeow_logic::reason::reason_prepared_theory_within(
             theory,
+            &program,
             input,
             &domains,
             &ingress,
@@ -993,6 +1069,10 @@ fn native_leg(
                     claims_read,
                 });
             }
+            let authored = selected
+                .as_ref()
+                .map(|program| program.authored_rule_formulas(theory))
+                .unwrap_or_default();
             if let Some(refusal) = error.downcast_ref::<gmeow_logic::error::NativeRefusal>() {
                 drops.insert(DropRecord::new(
                     ENGINE_NATIVE,
@@ -1003,9 +1083,17 @@ fn native_leg(
                     drops.insert(DropRecord::new(
                         ENGINE_NATIVE,
                         "NATIVE_REFUSAL_REASON",
-                        gap.clone(),
+                        name_authored_rules(gap, &authored),
                     ));
                 }
+                for bound in &refusal.bounds {
+                    drops.insert(DropRecord::new(
+                        ENGINE_NATIVE,
+                        ANALYSIS_BOUND,
+                        bound.clone(),
+                    ));
+                }
+                insert_lowering_residue(drops, selected.as_ref());
                 return Ok(NativeLeg::refused(claims_read));
             }
             // A rule head the chase cannot carry is a construct the engine does not
@@ -1016,8 +1104,9 @@ fn native_leg(
                 drops.insert(DropRecord::new(
                     ENGINE_NATIVE,
                     "UNSUPPORTED_CONSTRUCT",
-                    refused.to_string(),
+                    name_authored_rules(&refused.to_string(), &authored),
                 ));
+                insert_lowering_residue(drops, selected.as_ref());
                 return Ok(NativeLeg::refused(claims_read));
             }
             return Err(EngineFailure {
@@ -1031,6 +1120,10 @@ fn native_leg(
             });
         }
     };
+    let authored = selected
+        .as_ref()
+        .map(|program| program.authored_rule_formulas(theory))
+        .unwrap_or_default();
     let gap_lines: BTreeSet<String> = verdict
         .gaps
         .iter()
@@ -1058,15 +1151,13 @@ fn native_leg(
         ));
     }
     // Lowering residue and withheld reads are on the preservation axis only.
-    for construct in &result.preservation.unsupported_constructs {
-        if !verdict.coverage.unsupported.contains(construct) && !gap_lines.contains(construct) {
-            drops.insert(DropRecord::new(
-                ENGINE_NATIVE,
-                "UNSUPPORTED_CONSTRUCT",
-                construct.clone(),
-            ));
-        }
-    }
+    insert_unsupported_constructs(
+        drops,
+        &result.preservation.unsupported_constructs,
+        |construct| {
+            verdict.coverage.unsupported.contains(construct) || gap_lines.contains(construct)
+        },
+    );
     if result.evaluation != gmeow_logic::result::EvaluationStatus::Completed {
         drops.insert(DropRecord::new(
             ENGINE_NATIVE,
@@ -1084,16 +1175,23 @@ fn native_leg(
         ));
     }
     for certificate in &chase_certificates {
-        if let gmeow_logic::materialize::ChaseAdmission::Uncertified { violations } =
+        if let gmeow_logic::materialize::ChaseAdmission::Uncertified { violations, bounds } =
             &certificate.admission
         {
+            for bound in bounds {
+                drops.insert(DropRecord::new(
+                    ENGINE_NATIVE,
+                    ANALYSIS_BOUND,
+                    bound.clone(),
+                ));
+            }
             drops.insert(DropRecord::new(
                 ENGINE_NATIVE,
                 "CHASE_UNCERTIFIED",
                 format!(
                     "world {}: the existential chase has no termination certificate: {}",
                     certificate.world,
-                    violations.join("; ")
+                    name_authored_rules(&violations.join("; "), &authored)
                 ),
             ));
         }

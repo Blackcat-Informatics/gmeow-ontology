@@ -55,6 +55,9 @@ pub(crate) struct RelationalCoreLowering {
     /// An honest preservation claim: `{exact}` when every formula lowered, else
     /// `{sound-under}` carrying a description of each unsupported formula.
     pub(crate) preservation: PreservationClaim,
+    /// The rule identity of every lowered formula rule, with the indices into
+    /// `program.formulas` of the formulas that produced it.
+    pub(crate) formula_rules: BTreeMap<String, BTreeSet<usize>>,
 }
 
 /// Lower every full-FOL formula in `program` to the evaluable engine IR, delegating the
@@ -63,8 +66,22 @@ pub(crate) struct RelationalCoreLowering {
 /// `RcRule` that cannot be mapped onward is itself flagged as residue rather than
 /// mis-lowered (legalization, total).
 pub(crate) fn lower_formulas(program: &LogicProgram) -> RelationalCoreLowering {
-    let (rc_rules, lane_residue) =
-        gmeow_logic_compile::relational_core::lower_formulas_to_rc(program);
+    let (attributed, lane_residue) =
+        gmeow_logic_compile::relational_core::lower_formulas_to_rc_attributed(program);
+    let mut formula_rules: BTreeMap<String, BTreeSet<usize>> = BTreeMap::new();
+    let mut rc_rules = Vec::with_capacity(attributed.len());
+    for (rule, origins) in attributed {
+        let family = if !rule.head_conjuncts.is_empty() || rule.has_existential_head() {
+            "formula-existential"
+        } else {
+            "formula-rule"
+        };
+        formula_rules.insert(
+            format!("{LOGIC_NAMESPACE}{family}/{}", sha1_hex(&rule.key())),
+            origins,
+        );
+        rc_rules.push(rule);
+    }
 
     let mut rules: Vec<EvalRule> = Vec::new();
     let mut residue: BTreeSet<String> = lane_residue.into_iter().collect();
@@ -97,6 +114,7 @@ pub(crate) fn lower_formulas(program: &LogicProgram) -> RelationalCoreLowering {
         preservation: PreservationClaim::for_unsupported(residue),
         rules,
         existential_rules,
+        formula_rules,
     }
 }
 
