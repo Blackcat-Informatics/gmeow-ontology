@@ -12,6 +12,18 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
+msgctxt "https://blackcatinformatics.ca/gmeow/credence|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Scope: a credence is an agent's graded degree of belief, a subjective measure with no probability model attached. It is not a logic:probability, which needs a declared logic:probabilityModel, and not a logic:confidence, which says how sure an asserter is of a statement. A credence is read as a probability only through an explicit mapping to logic:probability that names the model; without one, do not add or multiply credences by a probabilistic rule."
+msgstr "范围：信念度是主体的分级信念程度，是一种未附带概率模型的主观度量。它不是 logic:probability（后者需要声明 logic:probabilityModel），也不是 logic:confidence（后者说明断言者对某一陈述有多确定）。只有通过与 logic:probability 的明确映射并指明模型，信念度才可被当作概率读取；否则不要按概率规则对信念度做加法或乘法。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/supportStrength|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Scope: the assessment-level measure of evidential warrant, the counterpart of logic:evidenceStrength, the canonical warrant axis. It is neither a logic:probability, which needs a declared logic:probabilityModel, nor a logic:confidence, which says how sure an asserter is, nor a logic:weight, which ranks for a solver. No interval is declared for its values, so a value between 0 and 1 is not thereby a probability."
+msgstr "范围：评估层面的证据担保度量，对应规范的担保轴 logic:evidenceStrength。它既不是 logic:probability（需要声明 logic:probabilityModel），也不是 logic:confidence（说明断言者有多确定），更不是 logic:weight（为求解器排序）。它的取值未声明区间，因此介于 0 和 1 之间的值并不因此成为概率。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/supportStrength|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid it for a probability (use logic:probability under a logic:probabilityModel), for an asserter's confidence in a statement (use gmeow:confidence) and for an adequacy verdict (use gmeow:meetsThreshold)."
+msgstr "避免用于概率（应在 logic:probabilityModel 之下使用 logic:probability）、断言者对某一陈述的置信度（应使用 gmeow:confidence）以及充分性裁决（应使用 gmeow:meetsThreshold）。"
+
 
 msgctxt "https://blackcatinformatics.ca/gmeow/adequacyUnderStandardFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "adequacyUnderStandard is functional"

@@ -178,12 +178,16 @@ gmeow:confidence
     a logic:AnnotationProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/provenance> ;
     rdfs:label "confidence"@x-gmeow-english ;
-    logic:instantiatesFramework logic:ProbabilisticFramework ;
-    skos:definition "Confidence in a claim, in the closed interval [0,1], attached to the statement it qualifies."@x-gmeow-english ;
+    skos:definition "Epistemic confidence in a claim, in the closed interval [0,1], attached to the statement it qualifies: how sure the asserter or recording process is. It is not a probability and is not to be read as one unless an explicit mapping to logic:probability is declared."@x-gmeow-english ;
+    skos:example "ex:alice ex:knows ex:bob {| gmeow:confidence 0.8 |} ."@x-gmeow-english ;
+    skos:scopeNote "Scope: the statement-level carrier of epistemic confidence, whose canonical cross-layer surface is logic:confidence; logic:confidence owns the meaning and keeps it distinct from logic:probability, logic:weight and logic:evidenceStrength. The link is carried by logic:formalizes on logic:confidence and is not asserted as a subproperty edge, because gmeow:confidence is authored as an annotation property and logic:confidence as a datatype property, and the OWL 2 DL downcast must stay clean. A number in [0,1] does not make a probability: reading it as one needs a declared mapping to logic:probability and a logic:probabilityModel, and no framework is declared for this term, as for logic:confidence. Confidence says how sure, never who says (gmeow:accordingTo) or who recorded it (gmeow:reportedBy)."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid reading or storing it as a probability or a calibrated score (use logic:probability under a logic:probabilityModel), as a solver ranking (logic:weight), as the warrant of the evidence (logic:evidenceStrength) or as a trust level; avoid it to say whose frame holds a claim (use gmeow:accordingTo) or who recorded it (use gmeow:reportedBy)."@x-gmeow-english ;
     gmeow:docsConcern gmeow:concernProvenanceEvidence ,
         gmeow:concernStatementMetadata ;
     gmeow:graphBoxRole gmeow:boxCBox ,
-        gmeow:boxRBox .
+        gmeow:boxRBox ;
+    gmeow:howToUse "Attach one number in [0,1] to the statement it qualifies as an annotation on that statement; compare or combine values only by an explicit declared rule, and declare a mapping to logic:probability together with a logic:probabilityModel before anything reads the number as a probability."@x-gmeow-english ;
+    gmeow:useWhen "Use to say how sure the asserter or recording process is of one statement, as a number in [0,1] attached to that statement."@x-gmeow-english .
 
 gmeow:importanceLevel
     a logic:AnnotationProperty ;

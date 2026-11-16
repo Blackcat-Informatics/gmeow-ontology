@@ -80,6 +80,14 @@ annotation property so the OWL downcast stays DL-clean (Principle 3). Confidence
 orthogonal to standpoint and to source (the standpoint doctrine three-axis doctrine) — it answers
 "how sure", never "who says" or "who recorded".
 
+A confidence is not a probability (Principle 19). The canonical epistemic-confidence surface is
+`logic:confidence`, which the logic slice keeps distinct from `logic:probability`, `logic:weight`
+and `logic:evidenceStrength`; `gmeow:confidence` is its statement-level carrier and declares no
+framework, as `logic:confidence` declares none. A number in [0,1] is read as a probability only through a declared
+mapping to `logic:probability` together with a `logic:probabilityModel`. The link is carried by `logic:formalizes` on
+`logic:confidence`, not asserted as a subproperty edge: `gmeow:confidence` is an
+annotation property and `logic:confidence` a datatype property, and the DL downcast stays clean.
+
 ### gmeow:importanceLevel · gmeow:mappedFrom
 
 The remaining statement-level audit pair: relative importance on a 0–10 scale (projection

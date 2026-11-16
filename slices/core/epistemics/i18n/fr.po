@@ -12,6 +12,18 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
+msgctxt "https://blackcatinformatics.ca/gmeow/credence|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Scope: a credence is an agent's graded degree of belief, a subjective measure with no probability model attached. It is not a logic:probability, which needs a declared logic:probabilityModel, and not a logic:confidence, which says how sure an asserter is of a statement. A credence is read as a probability only through an explicit mapping to logic:probability that names the model; without one, do not add or multiply credences by a probabilistic rule."
+msgstr "Portée : une crédence est le degré de croyance gradué d’un agent, une mesure subjective sans modèle de probabilité attaché. Ce n’est pas une logic:probability, qui exige un logic:probabilityModel déclaré, ni une logic:confidence, qui dit à quel point un affirmant est sûr d’un énoncé. Une crédence n’est lue comme une probabilité que par une correspondance explicite avec logic:probability qui nomme le modèle ; sans elle, ne pas additionner ni multiplier des crédences selon une règle probabiliste."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/supportStrength|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Scope: the assessment-level measure of evidential warrant, the counterpart of logic:evidenceStrength, the canonical warrant axis. It is neither a logic:probability, which needs a declared logic:probabilityModel, nor a logic:confidence, which says how sure an asserter is, nor a logic:weight, which ranks for a solver. No interval is declared for its values, so a value between 0 and 1 is not thereby a probability."
+msgstr "Portée : la mesure de la garantie probante au niveau de l’évaluation, pendant de logic:evidenceStrength, l’axe canonique de garantie. Ce n’est ni une logic:probability, qui exige un logic:probabilityModel déclaré, ni une logic:confidence, qui dit à quel point un affirmant est sûr, ni un logic:weight, qui classe pour un solveur. Aucun intervalle n’est déclaré pour ses valeurs : une valeur entre 0 et 1 n’est donc pas pour autant une probabilité."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/supportStrength|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid it for a probability (use logic:probability under a logic:probabilityModel), for an asserter's confidence in a statement (use gmeow:confidence) and for an adequacy verdict (use gmeow:meetsThreshold)."
+msgstr "À éviter pour une probabilité (utiliser logic:probability sous un logic:probabilityModel), pour la confiance d’un affirmant dans un énoncé (utiliser gmeow:confidence) et pour un verdict d’adéquation (utiliser gmeow:meetsThreshold)."
+
 
 msgctxt "https://blackcatinformatics.ca/gmeow/adequacyUnderStandardFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "adequacyUnderStandard is functional"
