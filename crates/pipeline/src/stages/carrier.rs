@@ -387,11 +387,11 @@ const REP_VALIDATION_SHEX: &str = "generated/shapes/validation-shapes.shex";
 // The rep label and the surface's logical path are ONE value with two names; a drift
 // between them is a compile failure rather than a bundle whose sidecar rep no longer
 // matches the path the classifier keys on.
-const _: () = assert!(gmeow_gts_profile::canon_profile::const_str_eq(
+const _: () = assert!(gmeow_gts_profile::const_str::const_str_eq(
     REP_VALIDATION_SHACL,
     crate::stages::compile_logic::VALIDATION_SHAPES_TTL_PATH
 ));
-const _: () = assert!(gmeow_gts_profile::canon_profile::const_str_eq(
+const _: () = assert!(gmeow_gts_profile::const_str::const_str_eq(
     REP_VALIDATION_SHEX,
     crate::stages::compile_logic::VALIDATION_SHAPES_SHEX_PATH
 ));

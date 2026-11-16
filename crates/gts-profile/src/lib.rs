@@ -45,6 +45,7 @@
 
 pub mod archive;
 pub mod canon_profile;
+pub mod const_str;
 pub mod error;
 mod ingestion_receipt;
 pub use ingestion_receipt::{
