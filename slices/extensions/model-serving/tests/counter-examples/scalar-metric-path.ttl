@@ -1,0 +1,13 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Fail-witness for ex:saNoScalarTensorOrMetricPath: a literal-valued property that
+# would put an accuracy score directly on the artifact, bypassing the held
+# gmeow:ModelMetricObservation and its dimensioned math:Quantity result.
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+
+gmeow:artifactAccuracyScore a logic:DatatypeProperty ;
+    logic:domain gmeow:ModelArtifact ;
+    logic:range xsd:decimal .

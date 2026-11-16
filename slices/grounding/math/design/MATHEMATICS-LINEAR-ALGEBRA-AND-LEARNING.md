@@ -275,6 +275,9 @@ validation projections are derived, never second authoring surfaces.
 The [ordinary example](../examples/tensor-shapes.ttl) records unknown shape,
 scalar rank zero, symbolic and concrete axes, an unstated extent and a disclosed
 zero extent. It is source data, not an executed validation result. The
+slice tests hold the controls: one conforming fixture that satisfies all eight
+laws, one counter-example per law that breaks that law alone, and two
+structural assertions over the laws' own parameters and comparisons. The
 `expressionValueSpace` seam and ONNX construction behavior remain separate
 existing owners; these laws claim no tensor payload/operator validation or
 native, produced or installed-consumer completion.

@@ -1,0 +1,11 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# FAIL WITNESS (intentionally banned content). Lives under tests/counter-examples/,
+# never under examples/. The structural assertion ex:saQualityDimensionIsNotAQuantityDimension
+# runs its ban over the module unioned with this file and requires the ban to trip:
+# a broad ISO 19157 category given one fixed physical dimension.
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix math:  <https://blackcatinformatics.ca/math/> .
+
+gmeow:qualityDimensionCompleteness math:hasDimension math:dimensionless .

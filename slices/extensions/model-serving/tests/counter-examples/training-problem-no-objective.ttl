@@ -1,0 +1,16 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Failing control for gmeow:ArtifactTrainingObjectiveConstraint, objective-present
+# part: the artifact declares a training problem that names no math:objectiveFunction.
+# The artifact is distinct from its model, so the missing objective is the only defect.
+# Bound by ex:ecTrainingProblemNoObjective.
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix math:  <https://blackcatinformatics.ca/math/> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/model-serving/tensor-controls/> .
+
+ex:artifact a gmeow:LearnedModelArtifact ;
+    gmeow:artifactLearnedModel ex:model ;
+    gmeow:artifactTrainingProblem ex:problem .
+ex:model a math:LearnedModel .
+ex:problem a math:OptimizationProblem .

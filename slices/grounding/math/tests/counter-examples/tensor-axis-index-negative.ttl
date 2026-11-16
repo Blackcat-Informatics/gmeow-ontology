@@ -1,0 +1,13 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Failing control for math:TensorAxisIndexNonNegativeConstraint: the one axis of a
+# rank-1 shape declares index -1. One axis under rank 1 satisfies the count and
+# presence laws, -1 is below the rank so the upper index bound holds, and a single
+# axis cannot repeat an index; the negative index is the only defect.
+# Bound by ex:ecTensorAxisIndexNegative.
+@prefix math: <https://blackcatinformatics.ca/math/> .
+@prefix ex:   <http://example.org/math/tensor-shape-controls/> .
+
+ex:shape a math:TensorShape ; math:tensorRank 1 ; math:shapeAxis ex:axis .
+ex:axis a math:TensorAxis ; math:axisIndex -1 .
