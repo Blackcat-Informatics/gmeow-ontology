@@ -1,0 +1,23 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Failing control for gmeow:ModelMetricResultConstraint, magnitude part: the accuracy
+# reading names a result that carries the declared dimension and no math:quantityValue.
+# The dimension agrees and the observation names its evaluator, artifact, method and
+# metric, so the missing magnitude is the only defect.
+# Bound by ex:ecMetricResultNoMagnitude.
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix math:  <https://blackcatinformatics.ca/math/> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/model-serving/metric-controls/> .
+
+math:dimensionless a math:Dimension .
+
+ex:artifact a gmeow:ModelArtifact .
+ex:evaluator a gmeow:Entity .
+ex:benchmark a gmeow:ObservationMethod .
+ex:accuracy a gmeow:ModelMetric ; gmeow:metricDimension math:dimensionless .
+ex:reading a gmeow:ModelMetricObservation ;
+    gmeow:vantage ex:evaluator ; gmeow:observedFeature ex:artifact ;
+    gmeow:observationMethod ex:benchmark ; gmeow:evaluatedMetric ex:accuracy ;
+    gmeow:observationResult ex:emptyScore .
+ex:emptyScore a math:Quantity ; math:hasDimension math:dimensionless .

@@ -1,0 +1,11 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Failing control for math:TensorPositiveRankAxisConstraint: a shape declares rank 2
+# and no axis at all. The count law groups a shape by its axes, so a shape with none
+# forms no group and that law stays silent; the index laws have no axis to read. The
+# missing axis family is the only defect. Bound by ex:ecTensorPositiveRankNoAxis.
+@prefix math: <https://blackcatinformatics.ca/math/> .
+@prefix ex:   <http://example.org/math/tensor-shape-controls/> .
+
+ex:shape a math:TensorShape ; math:tensorRank 2 .

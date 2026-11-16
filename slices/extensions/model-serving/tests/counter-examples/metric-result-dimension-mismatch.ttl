@@ -1,0 +1,24 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Failing control for gmeow:ModelMetricResultConstraint, dimension part: the latency
+# metric declares math:timeDimension, and its reading reports a bare number typed
+# math:dimensionless. The result has exactly one finite numeric magnitude and the
+# observation names its evaluator, artifact, method and metric, so the dimension
+# disagreement is the only defect. Bound by ex:ecMetricResultDimensionMismatch.
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix math:  <https://blackcatinformatics.ca/math/> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/model-serving/metric-controls/> .
+
+math:dimensionless a math:Dimension .
+math:timeDimension a math:Dimension .
+
+ex:artifact a gmeow:ModelArtifact .
+ex:evaluator a gmeow:Entity .
+ex:benchmark a gmeow:ObservationMethod .
+ex:latency a gmeow:ModelMetric ; gmeow:metricDimension math:timeDimension .
+ex:reading a gmeow:ModelMetricObservation ;
+    gmeow:vantage ex:evaluator ; gmeow:observedFeature ex:artifact ;
+    gmeow:observationMethod ex:benchmark ; gmeow:evaluatedMetric ex:latency ;
+    gmeow:observationResult ex:bareNumber .
+ex:bareNumber a math:Quantity ; math:hasDimension math:dimensionless ; math:quantityValue 0.024 .

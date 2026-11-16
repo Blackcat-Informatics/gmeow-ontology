@@ -437,6 +437,19 @@ execute operators, prove symbolic dimensions equal or establish whole-graph
 shape inference. Native, produced and installed-consumer acceptance requires
 its own actual evidence; no such execution is claimed by these declarations.
 
+Each law has a control in the slice tests. One conforming fixture,
+[tensor-shape-consistent.ttl](tests/conformance-fixtures/tensor-shape-consistent.ttl),
+satisfies all eight laws, and eight counter-examples under
+`tests/counter-examples/` each break one law while keeping the others:
+a negative rank, a negative index, a negative extent, a rank that disagrees
+with the number of axes, a positive rank with no axis, an index equal to the
+rank, an index used by two axes of one shape, and an axis with both extent
+forms. Each conformance cell names the shape its law projects to. The cells
+for the three bounds name the class shape and make no claim that it is the
+only reporter, because a bound is also carried by its own constraint shape.
+Two structural assertions pin the parameters and concluding comparisons of
+the laws themselves.
+
 ## Algorithm-tagged digest literals
 
 `gmeow:blake3_256Digest` names the plain unkeyed BLAKE3 hash mode with its

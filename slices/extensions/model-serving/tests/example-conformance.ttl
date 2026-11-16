@@ -7,8 +7,8 @@
 # (crates/slicetest). gmeow:exampleFile is SLICE-RELATIVE; gmeow:expectedViolationCode
 # is the native finding code finding_from_shacl builds as
 # "shacl.<ConstraintComponentLocalName>" (crates/validate/src/findings.rs). These
-# pin the counter-examples that MUST reject; the conformant examples/*.ttl are
-# exercised as competency cqDataFiles.
+# pin the counter-examples that MUST reject and the conforming fixtures; the worked
+# examples/*.ttl are exercised as competency cqDataFiles.
 
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
 @prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/model-serving/tests/> .
@@ -25,3 +25,103 @@ ex:ecDeploymentTwoArtifacts a gmeow:ExampleConformance ;
 # tests/structural.ttl, NOT by a SHACL sh:not counter-example here — a node-level
 # sh:not (or a second NodeShape) on gmeow:ModelDeployment would suppress the
 # closed-world JSON-schema property projection for the class.
+
+# --- Metric results: the held reading carries its metric's dimension and one magnitude ---
+# gmeow:ModelMetricResultConstraint is this slice's law over the math terms
+# math:hasDimension and math:quantityValue. One fixture satisfies it and two
+# counter-examples each break one part of it. A cell of this slice reads this module
+# and one fixture, so each fixture restates the type of the math-owned dimension it
+# names; the tensor-shape laws belong to the math slice and are controlled there.
+
+ex:ecMetricObservationDimensioned a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/conformance-fixtures/metric-observation-dimensioned.ttl" ;
+    gmeow:expectedOutcome gmeow:conforms ;
+    gmeow:conformanceRationale "One gmeow:ModelMetricObservation names its evaluator, artifact, method, metric and result. The metric declares math:dimensionless and the math:Quantity result carries math:dimensionless and exactly one finite numeric math:quantityValue, 0.91, so every part of gmeow:ModelMetricResultConstraint holds and the observation's own profile is complete. The fixture validates with no findings; it records a reading and computes no benchmark." .
+
+ex:ecMetricResultDimensionMismatch a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/metric-result-dimension-mismatch.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.SPARQLConstraintComponent" ;
+    gmeow:expectedSourceShape gmeow:ModelMetricResultConstraintProceduralConstraintShape ;
+    gmeow:expectedSoleFinding true ;
+    gmeow:conformanceRationale "The latency metric declares math:timeDimension and its reading's result is typed math:dimensionless, a bare number where a duration is expected. gmeow:ModelMetricResultConstraint requires each result to carry the dimension its own metric declares, so validation MUST emit shacl.SPARQLConstraintComponent from the shape that constraint projects to. The result has exactly one finite numeric magnitude and the observation names every required participant with its declared type, so no other law of this slice is broken and the cell declares soleness." .
+
+ex:ecMetricResultNoMagnitude a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/metric-result-no-magnitude.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.SPARQLConstraintComponent" ;
+    gmeow:expectedSourceShape gmeow:ModelMetricResultConstraintProceduralConstraintShape ;
+    gmeow:expectedSoleFinding true ;
+    gmeow:conformanceRationale "The accuracy reading's result carries the declared math:dimensionless and no math:quantityValue. gmeow:ModelMetricResultConstraint requires each result to have a magnitude, so validation MUST emit shacl.SPARQLConstraintComponent from the shape that constraint projects to. The dimension agrees with the metric and the observation names every required participant with its declared type, so no other law of this slice is broken and the cell declares soleness." .
+
+# --- Tensor artifacts: graph, node and parameter-space ownership ---
+# gmeow:TensorArtifactCoherenceConstraint requires an artifact's computation graph to
+# describe the artifact's own learned model and no other, every computation node to be
+# an application expression, and every weight's parameter space to belong to that model
+# or that graph. One fixture satisfies it and four counter-examples break it: two with a
+# wrong owner and two with an additional incompatible owner, each once on the graph and
+# once on the parameter space.
+
+ex:ecTensorArtifactCoherent a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/conformance-fixtures/tensor-artifact-coherent.ttl" ;
+    gmeow:expectedOutcome gmeow:conforms ;
+    gmeow:conformanceRationale "One gmeow:TensorModelArtifact names a learned model, a math:TensorComputationGraph that is the architecture of that same model with one application-expression node, and a math:WeightTensor in a math:ParameterSpace of that model. Every part of gmeow:TensorArtifactCoherenceConstraint holds, the artifact is distinct from its model, and it names no training problem, so the fixture validates with no findings." .
+
+ex:ecTensorGraphOtherModel a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/tensor-graph-other-model.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.SPARQLConstraintComponent" ;
+    gmeow:expectedSourceShape gmeow:TensorArtifactCoherenceConstraintProceduralConstraintShape ;
+    gmeow:expectedSoleFinding true ;
+    gmeow:conformanceRationale "The artifact declares ex:model as its learned model but its computation graph is the architecture of a different model. gmeow:TensorArtifactCoherenceConstraint requires the graph to describe the artifact's own model and no other, so validation MUST emit shacl.SPARQLConstraintComponent from the shape that constraint projects to. The graph node is an application expression and the weight's parameter space belongs to the artifact's model, so no other part of the law, and no other law of this slice, is broken; the cell declares soleness." .
+
+ex:ecTensorWeightOtherModelSpace a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/tensor-weight-other-model-space.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.SPARQLConstraintComponent" ;
+    gmeow:expectedSourceShape gmeow:TensorArtifactCoherenceConstraintProceduralConstraintShape ;
+    gmeow:expectedSoleFinding true ;
+    gmeow:conformanceRationale "The artifact's weight lives in a math:ParameterSpace that is the parameter space of a different model, neither the artifact's learned model nor its graph. gmeow:TensorArtifactCoherenceConstraint requires every parameter space of a declared weight to name that model or graph, so validation MUST emit shacl.SPARQLConstraintComponent from the shape that constraint projects to. The graph describes the artifact's own model and its node is an application expression, so no other part of the law, and no other law of this slice, is broken; the cell declares soleness." .
+
+ex:ecTensorGraphExtraOwner a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/tensor-graph-extra-owner.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.SPARQLConstraintComponent" ;
+    gmeow:expectedSourceShape gmeow:TensorArtifactCoherenceConstraintProceduralConstraintShape ;
+    gmeow:expectedSoleFinding true ;
+    gmeow:conformanceRationale "The computation graph is the architecture of the artifact's own learned model and also of a second, different model. The required owner is present, so only the clause of gmeow:TensorArtifactCoherenceConstraint that checks every supplied architecture owner of the graph is broken: an expected owner cannot hide an additional one, and validation MUST emit shacl.SPARQLConstraintComponent from the shape that constraint projects to. The graph node is an application expression and the weight's parameter space belongs to the artifact's model, so no other part of the law, and no other law of this slice, is broken; the cell declares soleness." .
+
+ex:ecTensorWeightExtraOwnerSpace a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/tensor-weight-extra-owner-space.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.SPARQLConstraintComponent" ;
+    gmeow:expectedSourceShape gmeow:TensorArtifactCoherenceConstraintProceduralConstraintShape ;
+    gmeow:expectedSoleFinding true ;
+    gmeow:conformanceRationale "The weight's math:ParameterSpace is the parameter space of the artifact's own learned model and also of a second, different model. The required owner is present, so only the clause of gmeow:TensorArtifactCoherenceConstraint that checks every supplied parameter-space owner is broken: an expected owner cannot hide an additional one, and validation MUST emit shacl.SPARQLConstraintComponent from the shape that constraint projects to. The graph describes the artifact's own model and its node is an application expression, so no other part of the law, and no other law of this slice, is broken; the cell declares soleness." .
+
+# --- Training objectives: a declared training problem names a loss function ---
+# gmeow:ArtifactTrainingObjectiveConstraint keeps a learned artifact distinct from its
+# model and requires every declared training problem to name an objective that is a
+# math:LossFunction. The fixtures use the plain learned profile so the tensor-artifact
+# law does not apply to them.
+
+ex:ecArtifactTrainingObjectiveLoss a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/conformance-fixtures/artifact-training-objective-loss.ttl" ;
+    gmeow:expectedOutcome gmeow:conforms ;
+    gmeow:conformanceRationale "One gmeow:LearnedModelArtifact names a distinct math:LearnedModel and one math:OptimizationProblem whose math:objectiveFunction is a math:LossFunction. The artifact is not its model, the problem has an objective and the objective has the loss type, so every part of gmeow:ArtifactTrainingObjectiveConstraint holds and the fixture validates with no findings." .
+
+ex:ecTrainingProblemNoObjective a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/training-problem-no-objective.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.SPARQLConstraintComponent" ;
+    gmeow:expectedSourceShape gmeow:ArtifactTrainingObjectiveConstraintProceduralConstraintShape ;
+    gmeow:expectedSoleFinding true ;
+    gmeow:conformanceRationale "The artifact declares a training problem that names no math:objectiveFunction. gmeow:ArtifactTrainingObjectiveConstraint requires every declared training problem to have an objective, so validation MUST emit shacl.SPARQLConstraintComponent from the shape that constraint projects to. The artifact is distinct from its model and no objective exists to be mistyped, so no other part of the law, and no other law of this slice, is broken; the cell declares soleness." .
+
+ex:ecTrainingObjectiveNotLoss a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/training-objective-not-loss.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.SPARQLConstraintComponent" ;
+    gmeow:expectedSourceShape gmeow:ArtifactTrainingObjectiveConstraintProceduralConstraintShape ;
+    gmeow:expectedSoleFinding true ;
+    gmeow:conformanceRationale "The training problem names an objective that is a math:Function and not a math:LossFunction. gmeow:ArtifactTrainingObjectiveConstraint requires every declared objective to be typed as a loss function, so validation MUST emit shacl.SPARQLConstraintComponent from the shape that constraint projects to. The problem does name an objective and the artifact is distinct from its model, so no other part of the law, and no other law of this slice, is broken; the cell declares soleness." .
