@@ -436,3 +436,33 @@ ex:saCredenceNotFunctional a gmeow:StructuralAssertion ;
 PREFIX logic: <https://blackcatinformatics.ca/logic/>
 ASK { ?rec logic:characterizes gmeow:credence ; logic:characteristicSort logic:functionalProperty . }""" ;
     gmeow:saRationale "gmeow:credence MUST NOT be functional — an agent's credence may be reported by multiple sources or updated over time, and those reports coexist (Principle 9)." .
+
+# --- putForwardByClaim: statement reifier → ClaimToken, functional (MUST hold) -
+ex:saPutForwardByClaimReifierToToken a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    gmeow:putForwardByClaim (logic:domain|rdfs:domain) rdf:Statement ;
+        (logic:range|rdfs:range) gmeow:ClaimToken .
+    ?rec logic:characterizes gmeow:putForwardByClaim ;
+        logic:characteristicSort logic:functionalProperty .
+}""" ;
+    gmeow:saRationale "gmeow:putForwardByClaim bridges the reifier of a reified statement to the single gmeow:ClaimToken that put it forward, so gmeow:evaluates can keep its claim-token range. It MUST run from a statement reifier to a claim token and MUST be functional: one reifier is one attributed occurrence of a statement and has at most one assertion act behind it." .
+
+# --- putForwardByClaim is not inverse functional (MUST-NOT hold) --------------
+ex:saPutForwardByClaimNotInverseFunctional a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:mustNot ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+ASK {
+    { ?rec logic:characterizes gmeow:putForwardByClaim ; logic:characteristicSort logic:inverseFunctionalProperty . }
+    UNION { gmeow:putForwardByClaim a owl:InverseFunctionalProperty . }
+    UNION { gmeow:putForwardByClaim a logic:inverseFunctionalProperty . }
+}""" ;
+    gmeow:saRationale "One assertion act may put several statements forward (a gmeow:ClaimToken conveys one or more propositions), so several reifiers may share one claim token. gmeow:putForwardByClaim MUST NOT be inverse functional." .

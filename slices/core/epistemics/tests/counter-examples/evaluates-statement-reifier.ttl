@@ -1,0 +1,34 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# COUNTER-EXAMPLE (intentionally invalid). Lives under tests/counter-examples/,
+# NEVER under examples/, so the conforming-examples validation gate does NOT load
+# it as data. Its expected validation outcome is pinned by the gmeow:violates
+# fixture ex:ecEvaluatesStatementReifier in ../example-conformance.ttl.
+#
+# gmeow:evaluates takes a gmeow:ClaimToken. Here the evaluation points straight
+# at the reifier of a reified statement, which is not a claim token and is not
+# linked to one, so validation MUST report shacl.ClassConstraintComponent. The
+# conforming form is examples/evaluating-a-reified-statement.ttl, which reaches
+# the same statement through gmeow:putForwardByClaim.
+
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/epistemics/counter/> .
+@prefix rdf:   <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+
+ex:carolStandpoint a gmeow:Standpoint ;
+    rdfs:label "Carol's standpoint"@x-gmeow-english .
+
+ex:seaStatement rdf:reifies <<( ex:sea ex:hasColour ex:green )>> ;
+    gmeow:accordingTo ex:carolStandpoint .
+
+ex:seaClaimIsWrong a gmeow:Proposition ;
+    rdfs:label "the claim that the sea is green is wrong"@x-gmeow-english .
+
+# Invalid: the evaluation targets the reifier, not a claim token.
+ex:evaluationOfReifier a gmeow:ClaimEvaluation ;
+    rdfs:label "an evaluation aimed at a statement reifier (counter-example)"@x-gmeow-english ;
+    gmeow:evaluates ex:seaStatement ;
+    gmeow:expresses ex:seaClaimIsWrong ;
+    gmeow:statedRationale "It is grey today."@en .

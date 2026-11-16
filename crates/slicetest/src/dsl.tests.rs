@@ -12,7 +12,11 @@ fn epistemics_tests_dir() -> std::path::PathBuf {
 fn parses_competency_exemplars() {
     let spec = load_spec(&epistemics_tests_dir().join("competency.ttl"))
         .expect("competency.ttl must parse");
-    assert_eq!(spec.competency.len(), 2, "two competency questions");
+    assert_eq!(
+        spec.competency.len(),
+        3,
+        "three competency questions: agent kinds, contribution roles, and the evaluation of a reified statement"
+    );
 
     let agents = spec
         .competency
@@ -91,21 +95,27 @@ fn parses_structural_exemplars() {
 fn parses_conformance_exemplars() {
     let spec = load_spec(&epistemics_tests_dir().join("example-conformance.ttl"))
         .expect("example-conformance.ttl must parse");
-    assert_eq!(spec.conformance.len(), 2);
+    assert_eq!(
+        spec.conformance.len(),
+        4,
+        "two conforming and two violating cells"
+    );
 
     let conforms = spec
         .conformance
         .iter()
-        .find(|c| c.outcome == Outcome::Conforms)
+        .find(|c| c.iri.ends_with("ecJustificationConforms"))
         .expect("conforming fixture present");
+    assert_eq!(conforms.outcome, Outcome::Conforms);
     assert_eq!(conforms.file, "examples/justification-and-defeat.ttl");
     assert!(conforms.violation_code.is_none());
 
     let violates = spec
         .conformance
         .iter()
-        .find(|c| c.outcome == Outcome::Violates)
+        .find(|c| c.iri.ends_with("ecDoxasticStateMissingAgent"))
         .expect("violating fixture present");
+    assert_eq!(violates.outcome, Outcome::Violates);
     assert_eq!(
         violates.violation_code.as_deref(),
         Some("shacl.MinCountConstraintComponent")
