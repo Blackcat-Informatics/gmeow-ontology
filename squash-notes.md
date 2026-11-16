@@ -1,0 +1,3 @@
+fix(provenance): ground evidence and trust strengths without conflating their axes (Principles 4, 7, 19)
+
+gmeow:confidence declares no framework, as logic:confidence declares none, and its link to logic:confidence is authored as logic:formalizes in the logic slice. gmeow:supportStrength says no interval is declared for its values. The Chinese credence and French trust-level translations name the right axis, every changed literal has matching French and Chinese entries, and a structural assertion with its witness keeps the confidence term from declaring a framework. The reviewed-coverage golden is regenerated.
