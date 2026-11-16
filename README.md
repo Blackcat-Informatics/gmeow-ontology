@@ -865,8 +865,8 @@ wizard's tower (full rationale in [`docs/location-mapping.md`](./docs/location-m
   parent containment are time-indexed and disputed. `JurisdictionTenure` and `ContainmentTenure`
   reify sovereignty and border changes as `gufo:SituationType` relators; contested claims
   (Crimea-class) coexist as standpoint-indexed instances, none privileged (Principle 9).
-  Superseded places (Constantinople → Istanbul) are retained with `gmeow:displayable false`,
-  never deleted (Principle 10).
+  Superseded places (Constantinople → Istanbul) are retained, never deleted (Principle 10); which
+  name a reader is shown is that reader's policy, decided at projection.
 - **Pose, motion, and trajectories.** A `gmeow:Pose` carries position + orientation as peers
   (quaternion, Euler angles, heading/bearing, or homogeneous matrix). `LocationState` captures
   position, velocity, and pose at an instant; `Trajectory` chains states into a space-time path.

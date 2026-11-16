@@ -383,7 +383,7 @@ gmeow:candidateHypothesis
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inference> ;
     rdfs:label "candidate hypothesis"@x-gmeow-english ;
     rdfs:range gmeow:StandpointClaim ;
-    skos:definition "A candidate explanation considered by an abductive gmeow:InferenceCommitment — one of the competing hypotheses (gmeow:competesWith) among which the inference selects the best. NOT functional: inference-to-the-best-explanation weighs several. The winner is promoted conceivable->probable — the axis transition gmeow:polaritySuspend->gmeow:polarityAffirm + gmeow:modalForcePossible->gmeow:modalForceActual + gmeow:credencePossible->gmeow:credenceLikely, whose legacy gmeow:claimModality projection is conceivable->probable; the losers are suppressed (gmeow:displayable false), never erased."@x-gmeow-english ;
+    skos:definition "A candidate explanation considered by an abductive gmeow:InferenceCommitment — one of the competing hypotheses (gmeow:competesWith) among which the inference selects the best. NOT functional: inference-to-the-best-explanation weighs several. The winner is promoted conceivable->probable — the axis transition gmeow:polaritySuspend->gmeow:polarityAffirm + gmeow:modalForcePossible->gmeow:modalForceActual + gmeow:credencePossible->gmeow:credenceLikely, whose legacy gmeow:claimModality projection is conceivable->probable; the losers stay retrievable at their lower modality, never erased; losing the ranking sets no gmeow:displayable flag (only a hypothesis's own holder withdrawing it does)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:competesWith
@@ -457,7 +457,7 @@ gmeow:explanatoryScore
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inference> ;
     rdfs:label "explanatory score"@x-gmeow-english ;
     rdfs:range xsd:decimal ;
-    skos:definition "A solver-computed score of how well a candidate hypothesis explains its explanandum (simplicity, scope, coherence) — the basis on which inference-to-the-best-explanation ranks rivals. A solver-layer value (Principle 12), not an asserted truth: there is no isBest bit; the ranking promotes the winner's modality and suppresses the losers. NOT functional."@x-gmeow-english ;
+    skos:definition "A solver-computed score of how well a candidate hypothesis explains its explanandum (simplicity, scope, coherence) — the basis on which inference-to-the-best-explanation ranks rivals. A solver-layer value (Principle 12), not an asserted truth: there is no isBest bit; the ranking promotes the winner's modality, and the losers stay retrievable at their lower modality, with no display flag set by the ranking. NOT functional."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:extensionMember
@@ -628,7 +628,7 @@ gmeow:systematicity
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inference> ;
     rdfs:label "systematicity"@x-gmeow-english ;
     rdfs:range xsd:decimal ;
-    skos:definition "A solver-computed measure of a gmeow:Analogy's structural consistency (Gentner's systematicity principle: deep, interconnected relational mappings beat shallow attribute matches) — the basis on which the best analogy is selected. A solver-layer value (Principle 12); best-analogy selection promotes the winner's modality and suppresses rival mappings, never an asserted isBest bit. NOT functional."@x-gmeow-english ;
+    skos:definition "A solver-computed measure of a gmeow:Analogy's structural consistency (Gentner's systematicity principle: deep, interconnected relational mappings beat shallow attribute matches) — the basis on which the best analogy is selected. A solver-layer value (Principle 12); best-analogy selection promotes the winner's modality, rival mappings stay retrievable with no display flag set by the selection, and there is never an asserted isBest bit. NOT functional."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:tenureOf
