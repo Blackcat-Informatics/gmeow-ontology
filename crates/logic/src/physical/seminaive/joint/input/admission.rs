@@ -792,10 +792,12 @@ fn enrichment_rows_note(selector_rows: usize, selector_bytes: usize) -> String {
 }
 
 /// The note for source-constant enrichment abandoned because the value universe passed its
-/// cell bound, so the coarser flow decided. `cut.cells` is the universe size at the cut and
-/// `cut.flow_cells` the part the flow already held before any supplied row; `cut.rows_interned`
-/// counts the supplied rows the interner had taken when it stopped. `row_count` and `possible`
-/// are the rows supplied: `row_count` selector rows, then `possible` possible facts.
+/// cell bound, so the second pass used the coarser flow without the supplied rows. The note
+/// says the bound coarsened the analysis, so a finer one might have decided; it does not say
+/// the bound caused the refusal it is attached to. `cut.cells` is the universe size at the
+/// cut and `cut.flow_cells` the part the flow already held before any supplied row;
+/// `cut.rows_interned` counts the supplied rows the interner had begun when it stopped, the
+/// last possibly only in part. `row_count` and `possible` are the rows supplied: `row_count` selector rows, then `possible` possible facts.
 /// `all_selector_rows` says whether those selector rows were every selector row or only the
 /// proved-immutable ones.
 fn interning_note(
@@ -812,8 +814,9 @@ fn interning_note(
     format!(
         "source-constant enrichment was abandoned: the value universe passed its \
          {ENRICHMENT_VALUE_CELLS}-value-cell interning bound at {} cells, of which {} were \
-         already held by the flow before any supplied row, and the interner stopped after {} of \
-         the {} rows supplied ({row_count} {rows}, then {possible} possible fact(s))",
+         already held by the flow before any supplied row, and the interner stopped with {} of \
+         the {} rows supplied begun, the last possibly only in part \
+         ({row_count} {rows}, then {possible} possible fact(s))",
         cut.cells,
         cut.flow_cells,
         cut.rows_interned,

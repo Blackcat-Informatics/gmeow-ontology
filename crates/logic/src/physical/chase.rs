@@ -1377,7 +1377,8 @@ pub enum ChaseAdmission {
         violations: Vec<String>,
         /// The analysis bounds that kept a finer certificate from being decided, each
         /// naming the bound and its measured size. A bound is not a cycle: it is reported
-        /// apart from `violations` so a reader can tell which of the two refused.
+        /// apart from `violations`. It does not by itself say the bound caused the refusal; a
+        /// refusal with violations is also the program's own.
         bounds: Vec<String>,
     },
 }

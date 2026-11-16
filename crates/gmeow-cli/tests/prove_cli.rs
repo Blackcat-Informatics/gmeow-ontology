@@ -972,7 +972,10 @@ ex:a logic:instanceOf ex:Src .
 "#;
 
 /// A termination refusal names the rule of the cycle by its compiler-produced identity
-/// and, because the compiled theory has one, the authored formula it came from.
+/// and, because the compiled theory has one, the authored formula it came from. The
+/// expectation of no analysis bound holds while this program's value flow stays under the
+/// interning bound; a cycle in a program whose flow passed that bound would also carry the bound
+/// drop beside its own reasons.
 #[test]
 fn a_real_existential_cycle_is_a_named_refusal_with_its_authored_formula() {
     let (report, code) = prove_json("self-feeding.logic.ttl", SELF_FEEDING_FORMULA, &["--gate"]);
@@ -999,7 +1002,7 @@ fn a_real_existential_cycle_is_a_named_refusal_with_its_authored_formula() {
         !drop_codes(&report)
             .iter()
             .any(|code| code == "NATIVE_ANALYSIS_BOUND"),
-        "a cycle is not an analysis bound: {report:#}"
+        "this program's flow is under the interning bound, so no bound drop is expected: {report:#}"
     );
 }
 
