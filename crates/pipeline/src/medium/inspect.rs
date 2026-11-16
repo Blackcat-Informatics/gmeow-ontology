@@ -746,6 +746,9 @@ fn verify_snapshot_envelope(
     dataset: &purrdf::RdfDataset,
     envelope: &MediumEnvelope,
 ) -> Result<(), gmeow_errors::Diag> {
+    // The profile BEFORE the digest: the stratum digest is a function of canonical RDF, so
+    // a profile change must not surface as corruption.
+    super::envelope::check_canon_profile(envelope)?;
     let stratum = crate::stages::carrier::snapshot_stratum_nquads(dataset)?;
     let expected = blake3_digest(stratum.as_bytes());
     if expected != envelope.strata_digest {

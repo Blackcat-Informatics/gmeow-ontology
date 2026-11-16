@@ -49,7 +49,7 @@ fn every_medium_kind_carries_its_ontology_failure_class() {
     use gmeow_errors::DiagKind;
 
     const GMEOW: &str = "https://blackcatinformatics.ca/gmeow/";
-    let bound: [(&str, Option<&'static str>, Option<&'static str>); 7] = [
+    let bound: [(&str, Option<&'static str>, Option<&'static str>); 8] = [
         (
             "MediumUndeclaredDictionary",
             MediumUndeclaredDictionary::FAILURE_CLASS,
@@ -78,6 +78,14 @@ fn every_medium_kind_carries_its_ontology_failure_class() {
             "MediumDigestMismatch",
             MediumDigestMismatch::FAILURE_CLASS,
             MediumDigestMismatch {
+                detail: String::new(),
+            }
+            .failure_class(),
+        ),
+        (
+            "MediumProfileMismatch",
+            MediumProfileMismatch::FAILURE_CLASS,
+            MediumProfileMismatch {
                 detail: String::new(),
             }
             .failure_class(),

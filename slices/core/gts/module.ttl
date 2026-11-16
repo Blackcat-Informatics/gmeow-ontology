@@ -1684,6 +1684,70 @@ gmeow:strataDigest
     gmeow:termStability gmeow:stabilityExperimental ;
     gmeow:useWhen "Use to commit to a sub-payload whose digest a whole-payload digest cannot stably express."@x-gmeow-english .
 
+gmeow:canonProfileId
+    a logic:DatatypeProperty ;
+    logic:domain gmeow:MediumEnvelope ;
+    logic:range xsd:string ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
+    rdfs:label "canonical profile identifier"@x-gmeow-english ;
+    skos:definition "The identifier of the canonicalization profile under which the digests an envelope carries were produced. Exactly one per envelope, recorded with gmeow:canonProfileVersion beside gmeow:strataDigest, because the stratum digest of the snapshot envelope is a function of canonical RDF: a reader built on a different profile can then tell a profile change from corruption. A reader compares it with the profile it implements before it compares any digest."@x-gmeow-english ;
+    skos:example "ex:record gmeow:canonProfileId \"example-profile\" ."@x-gmeow-english ;
+    skos:scopeNote "Scope: this property names the canonicalization profile only. The profile's version is gmeow:canonProfileVersion, the presentation of the statement layer is gmeow:canonPresentationId, and the digest itself is gmeow:strataDigest."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid asserting it on a frame whose digests do not depend on canonical RDF without also asserting its version, and avoid defaulting an absent value to the reader's own profile."@x-gmeow-english ;
+    gmeow:docsConcern gmeow:concernGTSPackaging ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:howToUse "Write it from the one constant the build links, beside the digests that depend on it; read it back and refuse the envelope when it differs from the linked constant."@x-gmeow-english ;
+    gmeow:termStability gmeow:stabilityExperimental ;
+    gmeow:useWhen "Use to record which canonicalization profile produced the digests of an envelope."@x-gmeow-english .
+
+gmeow:canonProfileVersion
+    a logic:DatatypeProperty ;
+    logic:domain gmeow:MediumEnvelope ;
+    logic:range xsd:nonNegativeInteger ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
+    rdfs:label "canonical profile version"@x-gmeow-english ;
+    skos:definition "The version of the canonicalization profile named by gmeow:canonProfileId. Exactly one per envelope. The profile increments its version for any change to canonical bytes, so two digests are comparable only when the identifier and the version both agree."@x-gmeow-english ;
+    skos:example "ex:record gmeow:canonProfileVersion 1 ."@x-gmeow-english ;
+    skos:scopeNote "Scope: this property versions the profile named by gmeow:canonProfileId and nothing else; it is not the version of a dictionary, a slice or a release."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid comparing it across different profile identifiers, and avoid treating a higher number as compatible with a lower one."@x-gmeow-english ;
+    gmeow:docsConcern gmeow:concernGTSPackaging ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:howToUse "Write it with gmeow:canonProfileId and compare both with the linked constants before comparing any digest."@x-gmeow-english ;
+    gmeow:termStability gmeow:stabilityExperimental ;
+    gmeow:useWhen "Use to record the version of the canonicalization profile that produced the digests of an envelope."@x-gmeow-english .
+
+gmeow:canonPresentationId
+    a logic:DatatypeProperty ;
+    logic:domain gmeow:MediumEnvelope ;
+    logic:range xsd:string ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
+    rdfs:label "canonical presentation identifier"@x-gmeow-english ;
+    skos:definition "The identifier of the presentation of the RDF 1.2 statement layer the canonical form behind gmeow:strataDigest was taken over, for example the flat-assertion presentation that lowers statements to ordinary quads. Exactly one per envelope, recorded with gmeow:canonPresentationVersion."@x-gmeow-english ;
+    skos:example "ex:record gmeow:canonPresentationId \"example-presentation\" ."@x-gmeow-english ;
+    skos:scopeNote "Scope: this property names the presentation only; the profile is gmeow:canonProfileId."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid asserting it without gmeow:canonProfileId, which it refines."@x-gmeow-english ;
+    gmeow:docsConcern gmeow:concernGTSPackaging ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:howToUse "Write it from the linked constant beside the profile identifier and compare it before any digest."@x-gmeow-english ;
+    gmeow:termStability gmeow:stabilityExperimental ;
+    gmeow:useWhen "Use to record which presentation of the statement layer an envelope's canonical digest was taken over."@x-gmeow-english .
+
+gmeow:canonPresentationVersion
+    a logic:DatatypeProperty ;
+    logic:domain gmeow:MediumEnvelope ;
+    logic:range xsd:nonNegativeInteger ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
+    rdfs:label "canonical presentation version"@x-gmeow-english ;
+    skos:definition "The version of the presentation named by gmeow:canonPresentationId. Exactly one per envelope."@x-gmeow-english ;
+    skos:example "ex:record gmeow:canonPresentationVersion 1 ."@x-gmeow-english ;
+    skos:scopeNote "Scope: this property versions the presentation only, not the profile."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid comparing it across different presentation identifiers."@x-gmeow-english ;
+    gmeow:docsConcern gmeow:concernGTSPackaging ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:howToUse "Write it with gmeow:canonPresentationId and compare both before any digest."@x-gmeow-english ;
+    gmeow:termStability gmeow:stabilityExperimental ;
+    gmeow:useWhen "Use to record the version of the presentation an envelope's canonical digest was taken over."@x-gmeow-english .
+
 gmeow:trainsOverCorpus
     a logic:ObjectProperty ;
     rdfs:domain gmeow:CompressionDictionary ;
@@ -2719,6 +2783,22 @@ gmeow:MediumDictionaryRegression
     gmeow:termStability gmeow:stabilityExperimental ;
     gmeow:useWhen "Use to name the loss of a dictionary version that shipped artifacts still depend on."@x-gmeow-english .
 
+gmeow:MediumProfileMismatch
+    a logic:Category ,
+        logic:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
+    rdfs:label "Medium Profile Mismatch"@x-gmeow-english ;
+    logic:subClassOf gmeow:GtsConformanceFailure ;
+    skos:definition "The failure raised when a medium envelope records a canonicalization profile other than the one the reader implements, or records none. HARD FAIL, raised BEFORE any digest is compared: the stratum digest of the snapshot envelope is a function of canonical RDF, so a reader on a different profile would otherwise report a profile change as corruption. An envelope with no marker says nothing about how its digests were made and is refused, never assumed to match."@x-gmeow-english ;
+    skos:example "ex:env a gmeow:MediumProfileMismatch ."@x-gmeow-english ;
+    skos:scopeNote "Scope: this failure covers a disagreement between the PROFILE an envelope records and the profile the reader implements, or the absence of that record. It is not a disagreement between a digest and its bytes (gmeow:MediumDigestMismatch): here the digest is never compared."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid resolving it by editing the recorded profile to match the reader (that asserts a provenance nothing measured) and avoid using it for a digest that disagrees with its bytes under an agreeing profile; that is gmeow:MediumDigestMismatch."@x-gmeow-english ;
+    gmeow:docsConcern gmeow:concernGTSPackaging ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    gmeow:howToUse "Raised by the envelope reader and the snapshot-envelope verifier before any digest comparison; resolve it by regenerating the artifact with a build that implements the recorded profile, or by reading it with such a build."@x-gmeow-english ;
+    gmeow:termStability gmeow:stabilityExperimental ;
+    gmeow:useWhen "Use to name an envelope whose recorded canonical profile is absent or is not the profile the reader implements."@x-gmeow-english .
+
 gmeow:MediumDigestMismatch
     a logic:Category ,
         logic:Class ;
@@ -3070,6 +3150,20 @@ logic:MediumStrataDigestFormConstraint
     gmeow:enforcesFailureClass gmeow:MediumDigestMismatch ;
     logic:message "A gmeow:strataDigest requires 64 lowercase hexadecimal digits without a prefix and the BLAKE3-256 digest datatype." .
 
+logic:MediumCanonProfileFormConstraint
+    a logic:StringPatternConstraint ;
+    rdfs:label "Medium canonical-profile form constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "The lexical check for a supplied canonProfileId: lowercase alphanumeric words joined by single hyphens. It does not compare the identifier with the profile a reader implements; that comparison is the reader's, and it runs before any digest."@x-gmeow-english ;
+    logic:onClass gmeow:MediumEnvelope ;
+    logic:valuePath gmeow:canonProfileId ;
+    logic:stringOp "regexRequired" ;
+    logic:stringPattern "^[a-z0-9]+(-[a-z0-9]+)*$" ;
+    logic:formalizes gmeow:MediumEnvelope ;
+    gmeow:enforcesFailureClass gmeow:MediumProfileMismatch ;
+    logic:message "A gmeow:canonProfileId requires lowercase alphanumeric words joined by single hyphens." .
+
 logic:MediumDictionaryDigestFormConstraint
     a logic:StringPatternConstraint ;
     rdfs:label "Medium dictionary-digest form constraint"@x-gmeow-english ;
@@ -3253,8 +3347,9 @@ gmeow:payloadSchemaDictionaryRangeClosure
     logic:closureValue logic:ClosedWorldClosure ;
     gmeow:enforcesFailureClass gmeow:MediumUnknownDictionary .
 
-# The medium-envelope contract. SIX fields are unconditionally exactly-one; the
-# seventh — gmeow:envelopeDictionary — is exactly-one IFF the envelope's medium
+# The medium-envelope contract. Ten fields are unconditionally exactly-one (the six
+# payload coordinates and the four canonical-profile coordinates); the
+# remaining one — gmeow:envelopeDictionary — is exactly-one IFF the envelope's medium
 # declares a dictionary at all. An unconditional min-1 here would make
 # gmeow:mediumProfileBaselineL12 INEXPRESSIBLE as an envelope: that medium
 # declares an EMPTY gmeow:mediumDictionary set on purpose, and "no dictionary" is
@@ -3279,7 +3374,15 @@ gmeow:MediumEnvelope logic:subClassOf
     [ a logic:Restriction ; logic:onProperty gmeow:envelopeDigestStratum ; logic:minQualifiedCardinality 1 ; logic:onClass logic:Thing ] ,
     [ a logic:Restriction ; logic:onProperty gmeow:envelopeDigestStratum ; logic:maxQualifiedCardinality 1 ; logic:onClass logic:Thing ] ,
     [ a logic:Restriction ; logic:onProperty gmeow:strataDigest ; logic:minQualifiedCardinality 1 ; logic:onDataRange gmeow:blake3_256Digest ] ,
-    [ a logic:Restriction ; logic:onProperty gmeow:strataDigest ; logic:maxQualifiedCardinality 1 ; logic:onDataRange gmeow:blake3_256Digest ] .
+    [ a logic:Restriction ; logic:onProperty gmeow:strataDigest ; logic:maxQualifiedCardinality 1 ; logic:onDataRange gmeow:blake3_256Digest ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:canonProfileId ; logic:minQualifiedCardinality 1 ; logic:onDataRange xsd:string ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:canonProfileId ; logic:maxQualifiedCardinality 1 ; logic:onDataRange xsd:string ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:canonProfileVersion ; logic:minQualifiedCardinality 1 ; logic:onDataRange xsd:nonNegativeInteger ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:canonProfileVersion ; logic:maxQualifiedCardinality 1 ; logic:onDataRange xsd:nonNegativeInteger ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:canonPresentationId ; logic:minQualifiedCardinality 1 ; logic:onDataRange xsd:string ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:canonPresentationId ; logic:maxQualifiedCardinality 1 ; logic:onDataRange xsd:string ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:canonPresentationVersion ; logic:minQualifiedCardinality 1 ; logic:onDataRange xsd:nonNegativeInteger ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:canonPresentationVersion ; logic:maxQualifiedCardinality 1 ; logic:onDataRange xsd:nonNegativeInteger ] .
 
 # A medium is exactly one codec, one resolution rule, and one judged crossing.
 gmeow:Medium logic:subClassOf

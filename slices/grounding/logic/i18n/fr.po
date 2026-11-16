@@ -24282,3 +24282,35 @@ msgstr "Éviter d’affirmer ce prédicat comme donnée, de l’utiliser pour li
 msgctxt "https://blackcatinformatics.ca/logic/termGreater|https://blackcatinformatics.ca/gmeow/howToUse"
 msgid "Supply exactly two ordered operands and bind every variable through positive stored relations. Native evaluation compares shared finite numeric values; procedural projection emits greater-than or its less-than-or-equal negation. Retain explicit numeric admission for equivalence within a finite numeric profile."
 msgstr "Fournir exactement deux opérandes ordonnées et lier chaque variable par des relations stockées positives. L’évaluation native compare les valeurs numériques finies partagées ; la projection procédurale émet une comparaison strictement supérieure ou sa négation inférieure ou égale. Conserver l’admission numérique explicite pour l’équivalence dans un profil numérique fini."
+
+msgctxt "https://blackcatinformatics.ca/logic/canonProfileId|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "canonical profile identifier"
+msgstr "identifiant du profil canonique"
+
+msgctxt "https://blackcatinformatics.ca/logic/canonProfileId|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The identifier of the canonicalization profile under which the digests a coherence outcome pins (logic:bundleHash and logic:axiomHash) were produced. A reader built on a different profile can tell a profile change from corruption by comparing it with its own. Single-valued; recorded with logic:canonProfileVersion and covered by the outcome's content identity. Domain logic:CoherenceCertificate or logic:CoherenceCheckAttestation (stated in prose)."
+msgstr "L’identifiant du profil de canonicalisation sous lequel les condensats qu’un résultat de cohérence épingle (logic:bundleHash et logic:axiomHash) ont été produits. Un lecteur construit sur un autre profil peut distinguer un changement de profil d’une corruption en le comparant au sien. Mono-valuée ; consignée avec logic:canonProfileVersion et couverte par l’identité de contenu du résultat. Domaine logic:CoherenceCertificate ou logic:CoherenceCheckAttestation (précisé en prose)."
+
+msgctxt "https://blackcatinformatics.ca/logic/canonProfileVersion|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "canonical profile version"
+msgstr "version du profil canonique"
+
+msgctxt "https://blackcatinformatics.ca/logic/canonProfileVersion|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The version of the canonicalization profile named by logic:canonProfileId, as an xsd:nonNegativeInteger. The profile increments it for any change to canonical bytes, so two digests are comparable only when the version agrees. Single-valued. Domain logic:CoherenceCertificate or logic:CoherenceCheckAttestation (stated in prose)."
+msgstr "La version du profil de canonicalisation nommé par logic:canonProfileId, sous forme d’xsd:nonNegativeInteger. Le profil l’incrémente pour tout changement des octets canoniques ; deux condensats ne sont donc comparables que si la version concorde. Mono-valuée. Domaine logic:CoherenceCertificate ou logic:CoherenceCheckAttestation (précisé en prose)."
+
+msgctxt "https://blackcatinformatics.ca/logic/canonPresentationId|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "canonical presentation identifier"
+msgstr "identifiant de la présentation canonique"
+
+msgctxt "https://blackcatinformatics.ca/logic/canonPresentationId|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The identifier of the presentation of the RDF 1.2 statement layer the canonical form behind logic:bundleHash was taken over (for example the flat-assertion presentation, which lowers statements to ordinary quads). Single-valued; recorded with logic:canonPresentationVersion. Domain logic:CoherenceCertificate or logic:CoherenceCheckAttestation (stated in prose)."
+msgstr "L’identifiant de la présentation de la couche d’énoncés RDF 1.2 sur laquelle la forme canonique derrière logic:bundleHash a été calculée (par exemple la présentation à assertions plates, qui abaisse les énoncés en quadruplets ordinaires). Mono-valuée ; consignée avec logic:canonPresentationVersion. Domaine logic:CoherenceCertificate ou logic:CoherenceCheckAttestation (précisé en prose)."
+
+msgctxt "https://blackcatinformatics.ca/logic/canonPresentationVersion|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "canonical presentation version"
+msgstr "version de la présentation canonique"
+
+msgctxt "https://blackcatinformatics.ca/logic/canonPresentationVersion|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The version of the presentation named by logic:canonPresentationId, as an xsd:nonNegativeInteger. Single-valued. Domain logic:CoherenceCertificate or logic:CoherenceCheckAttestation (stated in prose)."
+msgstr "La version de la présentation nommée par logic:canonPresentationId, sous forme d’xsd:nonNegativeInteger. Mono-valuée. Domaine logic:CoherenceCertificate ou logic:CoherenceCheckAttestation (précisé en prose)."

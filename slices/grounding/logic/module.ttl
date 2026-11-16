@@ -3997,6 +3997,30 @@ logic:bundleHash
     rdfs:label "bundle hash"@x-gmeow-english ;
     skos:definition "The content-addressed identity (a blake3 digest) of the exact bundle a coherence outcome was checked over. The outcome is invalid for any bundle whose canonical hash differs. Single-valued. Domain logic:CoherenceCertificate or logic:CoherenceCheckAttestation (stated in prose)."@x-gmeow-english .
 
+logic:canonProfileId
+    a logic:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "canonical profile identifier"@x-gmeow-english ;
+    skos:definition "The identifier of the canonicalization profile under which the digests a coherence outcome pins (logic:bundleHash and logic:axiomHash) were produced. A reader built on a different profile can tell a profile change from corruption by comparing it with its own. Single-valued; recorded with logic:canonProfileVersion and covered by the outcome's content identity. Domain logic:CoherenceCertificate or logic:CoherenceCheckAttestation (stated in prose)."@x-gmeow-english .
+
+logic:canonProfileVersion
+    a logic:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "canonical profile version"@x-gmeow-english ;
+    skos:definition "The version of the canonicalization profile named by logic:canonProfileId, as an xsd:nonNegativeInteger. The profile increments it for any change to canonical bytes, so two digests are comparable only when the version agrees. Single-valued. Domain logic:CoherenceCertificate or logic:CoherenceCheckAttestation (stated in prose)."@x-gmeow-english .
+
+logic:canonPresentationId
+    a logic:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "canonical presentation identifier"@x-gmeow-english ;
+    skos:definition "The identifier of the presentation of the RDF 1.2 statement layer the canonical form behind logic:bundleHash was taken over (for example the flat-assertion presentation, which lowers statements to ordinary quads). Single-valued; recorded with logic:canonPresentationVersion. Domain logic:CoherenceCertificate or logic:CoherenceCheckAttestation (stated in prose)."@x-gmeow-english .
+
+logic:canonPresentationVersion
+    a logic:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "canonical presentation version"@x-gmeow-english ;
+    skos:definition "The version of the presentation named by logic:canonPresentationId, as an xsd:nonNegativeInteger. Single-valued. Domain logic:CoherenceCertificate or logic:CoherenceCheckAttestation (stated in prose)."@x-gmeow-english .
+
 logic:axiomHash
     a logic:DatatypeProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;

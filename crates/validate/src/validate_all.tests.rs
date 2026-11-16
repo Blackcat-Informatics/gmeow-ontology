@@ -767,6 +767,16 @@ fn deep_pass_permitted_glut_stays_green_with_certificate() {
     );
 }
 
+/// A fixed canonical-profile marker for certificate fixtures.
+fn canon_profile_fixture() -> gmeow_logic::certificate::CanonProfileMarker {
+    gmeow_logic::certificate::CanonProfileMarker {
+        profile_id: "fixture-profile".to_owned(),
+        profile_version: 1,
+        presentation_id: "fixture-presentation".to_owned(),
+        presentation_version: 1,
+    }
+}
+
 /// H3 (forbidding side): the SAME glut under a glut-FORBIDDING declared contract
 /// (`ForbidGapAndGlut`) yields an Error-severity ContradictionWitness (gate fails),
 /// and the release-lane certificate build REFUSES (Err) on the same bundle.
@@ -825,6 +835,7 @@ fn deep_pass_forbidden_glut_fails_and_release_refuses() {
         policy,
         "2026-06-28T00:00:00Z",
         projection_loss_codes,
+        canon_profile_fixture(),
     )
     .expect("outcome build");
     assert!(

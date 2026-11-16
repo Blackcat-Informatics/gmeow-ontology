@@ -88,7 +88,7 @@ const SHIPPED_DICTIONARY_IDS: [&str; 6] = [
 
 /// The classes the medium axis mints. Each must carry exactly one `logic:` UFO
 /// meta-type and a `gmeow:docsConcern`.
-const MEDIUM_AXIS_CLASSES: [&str; 19] = [
+const MEDIUM_AXIS_CLASSES: [&str; 20] = [
     "CompressionDictionary",
     "CompressionDictionaryRealization",
     "CorpusTrainingSplit",
@@ -102,6 +102,7 @@ const MEDIUM_AXIS_CLASSES: [&str; 19] = [
     "MediumDigestMismatch",
     "MediumEnvelope",
     "MediumOpaqueFrame",
+    "MediumProfileMismatch",
     "MediumSourceKind",
     "MediumUndeclaredDictionary",
     "MediumUnknownDictionary",
