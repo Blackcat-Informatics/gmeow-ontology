@@ -1,4 +1,4 @@
-# Coverage slice (#51): contested organization facts — standpoint-indexed,
+# Coverage slice: contested organization facts — standpoint-indexed,
 # coexisting, NO winner. Exercises contested membership (memberOf), contested
 # succession (subOrganizationOf), and a withdrawn recognition via StandpointTenure
 # with gmeow:displayable false (Principle 10). Native GMEOW terms only.

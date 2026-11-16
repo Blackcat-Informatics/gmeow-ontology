@@ -1,4 +1,4 @@
-# Coverage slice (#43): the standpoint / contested-claims facility. Exercises every
+# Coverage slice: the standpoint / contested-claims facility. Exercises every
 # new term — the standpoint axis (gmeow:accordingTo) on reified statements, the
 # modality (□/◊), the standpoint poset (gmeow:sharpens → gmeow:universalStandpoint),
 # and the reified gmeow:StandpointTenure with suppression-not-erasure. Native GMEOW

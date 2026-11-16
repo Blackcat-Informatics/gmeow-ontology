@@ -293,7 +293,7 @@ ASK {
     gmeow:assertoricAssume     a gmeow:AssertoricForce .
     gmeow:assertoricRetract    a gmeow:AssertoricForce .
 }""" ;
-    gmeow:saRationale "The four gmeow:AssertoricForce values (assert/conjecture/assume/retract) MUST exist -- the speech-act force axis; gmeow:assertoricRetract closes a withdrawn assertion without erasure (Principle 10)." .
+    gmeow:saRationale "The four gmeow:AssertoricForce values (assert/conjecture/assume/retract) MUST exist -- the speech-act force axis; gmeow:assertoricRetract describes a withdrawal utterance and changes no lifecycle state (Principle 10)." .
 
 # --- 20. TruthDirectedness value individuals exist (MUST) --------------------
 ex:saTruthDirectednessValues a gmeow:StructuralAssertion ;
