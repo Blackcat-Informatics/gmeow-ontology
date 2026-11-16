@@ -306,8 +306,8 @@ impl Template {
         // Derived selector edges need not be immutable to have a finite value
         // domain. Reuse the same abstract interpreter, with at most 512 exact
         // value cells. This never executes a concrete closure or lowers a rule.
-        // The rows read are the enrichment rows when every selector row was kept, else
-        // the proved-immutable rows; the note must count the ones actually read.
+        // The rows supplied to the interner are the enrichment rows when every selector row
+        // was kept, else the proved-immutable rows; the note counts the ones supplied.
         let source_rows = evidence.enrichment.as_ref().unwrap_or(&evidence.facts);
         let enriched = flow.with_source_constants(
             source_rows
@@ -791,9 +791,13 @@ fn enrichment_rows_note(selector_rows: usize, selector_bytes: usize) -> String {
     )
 }
 
-/// The note for source-constant enrichment that interned nothing because the value
-/// universe passed its cell bound. `all_selector_rows` says whether the interned rows were
-/// every selector row or only the proved-immutable ones.
+/// The note for source-constant enrichment abandoned because the value universe passed its
+/// cell bound, so the coarser flow decided. `cut.cells` is the universe size at the cut and
+/// `cut.flow_cells` the part the flow already held before any supplied row; `cut.rows_interned`
+/// counts the supplied rows the interner had taken when it stopped. `row_count` and `possible`
+/// are the rows supplied: `row_count` selector rows, then `possible` possible facts.
+/// `all_selector_rows` says whether those selector rows were every selector row or only the
+/// proved-immutable ones.
 fn interning_note(
     cut: &InterningCut,
     all_selector_rows: bool,
@@ -806,13 +810,13 @@ fn interning_note(
         "proved-immutable rows"
     };
     format!(
-        "source-constant enrichment read no source values: the value universe passed its \
-         {ENRICHMENT_VALUE_CELLS}-value-cell interning bound at {} cells, of which {} are the \
-         flow's own constants, after reading {} of the {} facts supplied ({row_count} {rows}, \
-         then {possible} possible fact(s))",
+        "source-constant enrichment was abandoned: the value universe passed its \
+         {ENRICHMENT_VALUE_CELLS}-value-cell interning bound at {} cells, of which {} were \
+         already held by the flow before any supplied row, and the interner stopped after {} of \
+         the {} rows supplied ({row_count} {rows}, then {possible} possible fact(s))",
         cut.cells,
         cut.flow_cells,
-        cut.facts_read,
+        cut.rows_interned,
         row_count + possible
     )
 }

@@ -332,7 +332,7 @@ fn cell_fact(index: usize) -> Fact {
 }
 
 #[test]
-fn interning_cut_measures_the_cells_and_the_rows_actually_read() {
+fn interning_cut_measures_the_cells_and_the_rows_interned() {
     let flow = ValueFlow::new(&[], &[], SEMANTICS);
     let own = flow.with_source_constants(std::iter::empty(), usize::MAX);
     assert!(own.is_ok());
@@ -343,14 +343,14 @@ fn interning_cut_measures_the_cells_and_the_rows_actually_read() {
     let cut = flow
         .with_source_constants(facts.iter(), 8)
         .expect_err("ten facts pass an eight-cell bound");
-    assert_eq!((cut.facts_read, cut.cells), (4, 9), "{cut:?}");
+    assert_eq!((cut.rows_interned, cut.cells), (4, 9), "{cut:?}");
     assert!(cut.cells > 8 && cut.cells > cut.flow_cells, "{cut:?}");
-    // A bound already passed by the flow's own constants reads no row at all.
+    // A bound already passed by the cells the flow holds interns no supplied row at all.
     let own_cells = cut.flow_cells;
     let cut = flow
         .with_source_constants(facts.iter(), own_cells - 1)
         .expect_err("the flow's own cells pass the bound");
-    assert_eq!((cut.facts_read, cut.cells), (0, own_cells), "{cut:?}");
+    assert_eq!((cut.rows_interned, cut.cells), (0, own_cells), "{cut:?}");
 }
 
 #[test]
@@ -358,15 +358,18 @@ fn the_interning_note_states_cells_and_inputs_not_a_row_count_as_cells() {
     let cut = InterningCut {
         flow_cells: 600,
         cells: 600,
-        facts_read: 0,
+        rows_interned: 0,
     };
     let note = interning_note(&cut, false, 7, 3);
     assert!(
         note.contains("512-value-cell interning bound at 600 cells"),
         "{note}"
     );
-    assert!(note.contains("600 are the flow's own constants"), "{note}");
-    assert!(note.contains("after reading 0 of the 10 facts supplied (7 proved-immutable rows, then 3 possible fact(s))"), "{note}");
+    assert!(
+        note.contains("600 were already held by the flow before any supplied row"),
+        "{note}"
+    );
+    assert!(note.contains("the interner stopped after 0 of the 10 rows supplied (7 proved-immutable rows, then 3 possible fact(s))"), "{note}");
     let note = interning_note(&cut, true, 7, 0);
     assert!(note.contains("7 selector rows, then 0 possible"), "{note}");
 }
@@ -382,11 +385,12 @@ fn the_enrichment_rows_note_states_the_measured_rows_and_bytes() {
 }
 
 #[test]
-fn a_refusal_names_the_selector_rows_the_interning_cut_actually_read() {
-    // `urn:property rdfs:range urn:restriction` with `restriction ⊑ ≥1 property`
-    // cycles, and 600 members make the enriched value universe pass its cell bound
-    // while every selector row is retained. The note must count those retained rows,
-    // not the smaller proved-immutable subset.
+fn a_refusal_counts_the_selector_rows_supplied_to_the_interner() {
+    // Protects the interning note's row count: it states the rows handed to the interner (every
+    // selector row when all were kept), not the smaller proved-immutable subset. `urn:property
+    // rdfs:range urn:restriction` with `restriction ⊑ ≥1 property` cycles, and 600 members make
+    // the value universe pass its cell bound before any supplied row is interned, so the note
+    // reports 0 rows interned of all those supplied.
     let mut rows = restriction("urn:restriction");
     rows.push(fact(
         "urn:property",
@@ -402,14 +406,14 @@ fn a_refusal_names_the_selector_rows_the_interning_cut_actually_read() {
     let Some(Ok(evidence)) = &input.evidence else {
         panic!("no input-specific evidence was observed");
     };
-    let read = evidence
+    let supplied = evidence
         .enrichment
         .as_ref()
         .expect("every selector row is within the enrichment bound")
         .len();
     assert!(
-        read > evidence.facts.len(),
-        "the rows read ({read}) must differ from the immutable subset ({})",
+        supplied > evidence.facts.len(),
+        "the rows supplied ({supplied}) must differ from the immutable subset ({})",
         evidence.facts.len()
     );
     let crate::physical::seminaive::NativeOutcome::Decided(plan) = input.prepare().unwrap() else {
@@ -427,7 +431,9 @@ fn a_refusal_names_the_selector_rows_the_interning_cut_actually_read() {
         .find(|note| note.contains("interning bound"))
         .unwrap_or_else(|| panic!("no interning note: {bounds:?} {violations:?}"));
     assert!(
-        note.contains(&format!("({read} selector rows, then 0 possible fact(s))")),
+        note.contains(&format!(
+            "the interner stopped after 0 of the {supplied} rows supplied ({supplied} selector rows, then 0 possible fact(s))"
+        )),
         "{note}"
     );
 }

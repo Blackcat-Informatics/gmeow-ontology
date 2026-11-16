@@ -1652,14 +1652,15 @@ pub(crate) struct ValueFlow {
     possible_writes: Vec<StatementPattern>,
 }
 
-/// Where source-constant interning passed its value-cell bound: the cells the flow's own
-/// constants already hold, the cells counted at the cut, and how many supplied facts had
-/// been read (the one that crossed the bound included).
+/// Where source-constant interning passed its value-cell bound: the cells the flow already
+/// holds before any supplied row is interned (its own constants and source-selected values),
+/// the cells counted at the cut, and how many supplied rows had been interned when the cut
+/// fired (the one that crossed the bound included; 0 when the flow alone passes the bound).
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub(crate) struct InterningCut {
     pub(crate) flow_cells: usize,
     pub(crate) cells: usize,
-    pub(crate) facts_read: usize,
+    pub(crate) rows_interned: usize,
 }
 
 impl ValueFlow {
@@ -3501,7 +3502,7 @@ impl ValueFlow {
             return Err(InterningCut {
                 flow_cells,
                 cells: flow_cells,
-                facts_read: 0,
+                rows_interned: 0,
             });
         }
         for (read, fact) in facts.enumerate() {
@@ -3515,7 +3516,7 @@ impl ValueFlow {
                     return Err(InterningCut {
                         flow_cells,
                         cells: universe.size(),
-                        facts_read: read + 1,
+                        rows_interned: read + 1,
                     });
                 }
             }
