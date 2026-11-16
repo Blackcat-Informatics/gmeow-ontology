@@ -1,0 +1,30 @@
+{
+  "schema": 1,
+  "issue": 2820,
+  "repo": "gmeow-ontology",
+  "forge": "github",
+  "nwo": "Blackcat-Informatics/gmeow-ontology",
+  "read_access": "anon-read",
+  "main_root": "/home/paudley/Active/gmeow-ontology",
+  "worktree": "/home/paudley/Active/gmeow-ontology/.worktrees/2820-cache-size-bound-makes-prove-refuse-a",
+  "branch": "paudley/2820-cache-size-bound-makes-prove-refuse-a",
+  "slug": "cache-size-bound-makes-prove-refuse-a",
+  "slug_drift": false,
+  "stage_dir": "/home/paudley/Active/gmeow-ontology/.worktrees/2820-cache-size-bound-makes-prove-refuse-a/.stage/cache-size-bound-makes-prove-refuse-a",
+  "stage_tracked": true,
+  "base": "origin/main",
+  "base_oid": "c0a3734f8a2447a1289ab1a8babb1e7babd4f436",
+  "reused": false,
+  "adr_repo": false,
+  "created": [
+    "worktree:/home/paudley/Active/gmeow-ontology/.worktrees/2820-cache-size-bound-makes-prove-refuse-a",
+    "branch:paudley/2820-cache-size-bound-makes-prove-refuse-a",
+    "ignored:8264 files (8264 reflinked, 0 written)",
+    "rust-caches:reflinked /home/paudley/Active/gmeow-ontology/.worktrees/2812-native-engine-refuses-a-rule-head caches into /home/paudley/Active/gmeow-ontology/.worktrees/2820-cache-size-bound-makes-prove-refuse-a plus 0 dependency units from 0 other checkouts in 337.7s; 12918 unchanged files keep their built mtimes; 85 other files take the seed time and rebuild; 267 units naming another checkout rebuild",
+    "stage:/home/paudley/Active/gmeow-ontology/.worktrees/2820-cache-size-bound-makes-prove-refuse-a/.stage/cache-size-bound-makes-prove-refuse-a",
+    "issue:/home/paudley/Active/gmeow-ontology/.worktrees/2820-cache-size-bound-makes-prove-refuse-a/.stage/cache-size-bound-makes-prove-refuse-a/issue.md"
+  ],
+  "warnings": [],
+  "timestamp": "2026-11-15T11:07:42-0600",
+  "seed_error": ""
+}

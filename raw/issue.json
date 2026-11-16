@@ -1,0 +1,45 @@
+{
+  "assignees": [],
+  "author": {
+    "id": "MDQ6VXNlcjUyNzU1NQ==",
+    "is_bot": false,
+    "login": "paudley",
+    "name": "Patrick Audley"
+  },
+  "body": "## Problem\n\n`gmeow prove` reports the native engine as refused with reason `NonTerminatingExistential` for a large program whose rules have no non-terminating cycle. The cause is a size bound, not the rules, and the report names neither.\n\nThe joint executor refuses a program that has no termination certificate and no step budget (`crates/logic/src/physical/seminaive/joint.rs`, the `!self.admission.admits_native() && governor.remaining().is_none()` branch). Two certificates exist. The template certificate is tried first. When it fails, the input-specific certificate would be tried next, but `crates/logic/src/physical/seminaive/joint/input.rs` returns `EvidenceGap::uncacheable` without attempting it whenever the template's metadata is larger than `CACHEABLE_BYTES` (1 MiB, `joint/input/admission.rs`). A limit meant to decide what may be cached decides instead whether a program may be certified.\n\nObserved with the built binary:\n\n- A program that certifies and runs is refused once enough unrelated, inert Horn rules are added to push its template metadata over the bound.\n- On a large program, a set of sources just over the bound is refused; removing any one source lets the native leg complete with a certificate.\n- The same large program run with an explicit step allowance completes in a few thousand steps with no clash.\n- Programs with a real existential cycle (`Src(A) -> exists Y. Src(Y) and rel(A, Y)`, and the same through an n-ary argument) are refused, correctly.\n\nThree further defects on the same path:\n\n1. The refusal reasons do not name a rule. Each weak-acyclicity position edge is one reason with no rule identity; the members of a restricted-joint-acyclicity cycle are only logged; a compiler-produced rule is identified by a content hash that is not mapped back to the authored formula.\n2. The bound itself is reported as one reason among hundreds, with the same code as the others, although it is the cause.\n3. When the engine refuses, the report omits the lowering-residue drops (`UNSUPPORTED_CONSTRUCT`) that a completed run shows, so the refused report understates what the selection contains.\n\n## Acceptance\n\n- [ ] The input-specific certificate is attempted whatever the template's size; only caching is skipped above the bound. Every other analysis bound still applies.\n- [ ] A program padded over the bound with inert rules certifies and runs; the genuine-cycle programs stay refused. Tests cover both, at the engine and through `prove`.\n- [ ] A termination refusal names the rules of the offending cycle and their relations, with a compiler-produced rule mapped back to its authored formula where one exists.\n- [ ] A refusal caused by an analysis bound has its own drop code and says which bound.\n- [ ] A refused report carries the same lowering-residue drops a completed run of the same selection carries.\n\nPrinciples 7, 17.\n",
+  "closedAt": null,
+  "comments": [],
+  "createdAt": "2026-11-15T17:01:15Z",
+  "labels": [
+    {
+      "id": "LA_kwDOSwdn1s8AAAACl8ZKrA",
+      "name": "bug",
+      "description": "Something isn't working",
+      "color": "d73a4a"
+    },
+    {
+      "id": "LA_kwDOSwdn1s8AAAACmTvThA",
+      "name": "cross-cutting",
+      "description": "Cross-cutting concern",
+      "color": "fbca04"
+    },
+    {
+      "id": "LA_kwDOSwdn1s8AAAACnasmrQ",
+      "name": "logic",
+      "description": "logic: reasoning layer (the RDF 1.2-native logic; OWL is a projection)",
+      "color": "5319e7"
+    },
+    {
+      "id": "LA_kwDOSwdn1s8AAAACndNfoA",
+      "name": "rust",
+      "description": "Pull requests that update rust code",
+      "color": "000000"
+    }
+  ],
+  "milestone": null,
+  "number": 2820,
+  "state": "OPEN",
+  "title": "A cache size bound makes prove refuse a large terminating program as non-terminating, naming no rule",
+  "updatedAt": "2026-11-15T17:01:40Z",
+  "url": "https://github.com/Blackcat-Informatics/gmeow-ontology/issues/2820"
+}

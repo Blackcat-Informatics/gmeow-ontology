@@ -1,0 +1,3 @@
+fix(logic): a cache size bound no longer makes prove refuse a program whose rules do not cycle (Principles 1, 4, 7)
+
+The size of the joint template no longer decides whether a program's termination is certified: the input-specific certificate is attempted whatever the template's size. Every analysis bound that coarsens or stops the termination analysis is reported as a bound, with what it measured, including the interning cut and the list-cell binding bound. A refusal names every cyclic rule with its head relations, and a prepared program runs only for the theory and selection it was made from. A fault while summarizing a model is an invariant break, not a refusal, and the words describing the bound drop say what the code does.
