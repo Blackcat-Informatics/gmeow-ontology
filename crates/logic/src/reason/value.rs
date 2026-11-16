@@ -198,7 +198,17 @@ impl LiteralValue {
                 .map(LiteralMeaning::Rational)
                 .unwrap_or_else(|_| opaque())
         } else {
-            match purrdf::xsd::parse_by_iri(lexical_form, datatype) {
+            // The numeric lexical mappings do not trim: the XSD whiteSpace facet
+            // (collapse) is applied here, before parsing, as purrdf requires.
+            let collapsed;
+            let lexical = match purrdf::xsd::XsdDatatype::from_iri(datatype) {
+                Some(numeric) if numeric.is_numeric() => {
+                    collapsed = purrdf::xsd::normalize_whitespace_collapse(lexical_form);
+                    collapsed.as_str()
+                }
+                _ => lexical_form,
+            };
+            match purrdf::xsd::parse_by_iri(lexical, datatype) {
                 Ok(Some(value)) => match Rational::from_xsd(&value) {
                     Some(value) => LiteralMeaning::Rational(value),
                     None => LiteralMeaning::Native(value),
