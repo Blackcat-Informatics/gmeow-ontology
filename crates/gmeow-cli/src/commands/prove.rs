@@ -893,9 +893,11 @@ fn unread_program_axioms(
 }
 
 /// The drop code naming an analysis bound that coarsened or stopped part of the termination
-/// analysis, so a finer analysis might have decided. It does not say the bound caused the
-/// refusal: the refusal's other reasons (`NATIVE_REFUSAL_REASON`) say whether the program
-/// itself is at fault, for example by a genuine cycle.
+/// analysis, so a finer analysis might have decided. It does not say the bound caused a
+/// refusal. It sits beside the refusal reasons (`NATIVE_REFUSAL_REASON`) or, on a budgeted
+/// run, beside `CHASE_UNCERTIFIED`, where nothing may have been refused. With a bound present
+/// those reasons are the cycles the coarser analysis found, which a finer one might have ruled
+/// out, so neither the bound nor the reasons alone say whether the program cycles.
 const ANALYSIS_BOUND: &str = "NATIVE_ANALYSIS_BOUND";
 
 /// Name the authored formula behind a compiler-produced rule identity, wherever `text`

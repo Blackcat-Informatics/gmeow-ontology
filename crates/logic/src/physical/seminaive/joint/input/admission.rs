@@ -796,9 +796,11 @@ fn enrichment_rows_note(selector_rows: usize, selector_bytes: usize) -> String {
 /// says the bound coarsened the analysis, so a finer one might have decided; it does not say
 /// the bound caused the refusal it is attached to. `cut.cells` is the universe size at the
 /// cut and `cut.flow_cells` the part the flow already held before any supplied row;
-/// `cut.rows_interned` counts the supplied rows the interner had begun when it stopped, the
-/// last possibly only in part. `row_count` and `possible` are the rows supplied: `row_count` selector rows, then `possible` possible facts.
-/// `all_selector_rows` says whether those selector rows were every selector row or only the
+/// `cut.rows_interned` counts the supplied rows the interner had begun when it stopped. When
+/// it is zero the note says no row was begun; otherwise the note says the last begun row may
+/// be only in part, since the cut can fall inside a row or on its boundary. `row_count` and
+/// `possible` are the rows supplied: `row_count` selector rows, then `possible` possible
+/// facts. `all_selector_rows` says whether those selector rows were every selector row or only the
 /// proved-immutable ones.
 fn interning_note(
     cut: &InterningCut,
@@ -811,16 +813,22 @@ fn interning_note(
     } else {
         "proved-immutable rows"
     };
+    let supplied = row_count + possible;
+    let progress = if cut.rows_interned == 0 {
+        format!("the interner stopped before beginning any of the {supplied} rows supplied")
+    } else {
+        format!(
+            "the interner stopped with {} of the {supplied} rows supplied begun, the last \
+             possibly only in part",
+            cut.rows_interned
+        )
+    };
     format!(
         "source-constant enrichment was abandoned: the value universe passed its \
          {ENRICHMENT_VALUE_CELLS}-value-cell interning bound at {} cells, of which {} were \
-         already held by the flow before any supplied row, and the interner stopped with {} of \
-         the {} rows supplied begun, the last possibly only in part \
+         already held by the flow before any supplied row, and {progress} \
          ({row_count} {rows}, then {possible} possible fact(s))",
-        cut.cells,
-        cut.flow_cells,
-        cut.rows_interned,
-        row_count + possible
+        cut.cells, cut.flow_cells
     )
 }
 

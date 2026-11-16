@@ -113,7 +113,8 @@ define_diag_kind! {
     /// the particulars the refusing step reported, and `bounds` are the analysis bounds
     /// that coarsened or stopped part of the analysis, so a finer one might have decided (each
     /// names the bound and its measured size). A bound is not itself a gap in the program: it
-    /// says the analysis was coarser, and the gaps say whether the program is at fault.
+    /// says the analysis was coarser, so with a bound present the gaps are the cycles the
+    /// coarser analysis found, not proof that the program is at fault.
     pub struct NativeRefusal { reason: String, gaps: Vec<String>, bounds: Vec<String> }
     code = "logic.reason.native-refusal";
     grade = logic_grade!();

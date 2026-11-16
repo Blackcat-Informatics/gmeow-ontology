@@ -146,12 +146,13 @@ pub fn dl_gap_rows(gaps: &[DlGap]) -> Vec<LedgerRow> {
 pub const EXISTENTIAL_CHASE_CATEGORY: &str = "existential-chase";
 
 /// Emit one [`DivergenceKind::DlGap`] row per reason (a rule on a termination cycle, or
-/// an analysis bound that kept the analysis from deciding) of a refused (uncertified,
+/// an analysis bound that coarsened or stopped part of the analysis, so a finer one might
+/// have decided) of a refused (uncertified,
 /// unbudgeted) native existential-chase program.
 ///
 /// The native restricted chase refuses a program it cannot certify terminating — an
-/// existential edge lies in a cycle, or an analysis bound stopped the proof — rather
-/// than loop.  Each such refusal is a
+/// existential edge lies in a cycle of the analysis, which an analysis bound may have
+/// coarsened or stopped — rather than loop.  Each such refusal is a
 /// native capability-gap (a construct the native path did not decide), so it is exactly a
 /// [`DivergenceKind::DlGap`], reusing the counted divergence-ledger kind rather than a
 /// parallel one.  Each `violation` string (a rule with its head relations and the evidence

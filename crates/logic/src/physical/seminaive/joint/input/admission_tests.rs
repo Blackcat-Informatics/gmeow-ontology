@@ -369,7 +369,7 @@ fn the_interning_note_states_cells_and_inputs_not_a_row_count_as_cells() {
         note.contains("600 were already held by the flow before any supplied row"),
         "{note}"
     );
-    assert!(note.contains("the interner stopped with 0 of the 10 rows supplied begun, the last possibly only in part (7 proved-immutable rows, then 3 possible fact(s))"), "{note}");
+    assert!(note.contains("the interner stopped before beginning any of the 10 rows supplied (7 proved-immutable rows, then 3 possible fact(s))"), "{note}");
     let note = interning_note(&cut, true, 7, 0);
     assert!(note.contains("7 selector rows, then 0 possible"), "{note}");
 }
@@ -388,8 +388,8 @@ fn the_enrichment_rows_note_states_the_measured_rows_and_bytes() {
 /// selector row when all were kept), not the smaller proved-immutable subset. `urn:property
 /// rdfs:range urn:restriction` with `restriction ⊑ ≥1 property` is a genuine cycle, refused
 /// whatever the member count; 600 members make the value universe pass its cell bound before
-/// any supplied row is interned, so that refusal also carries a note reporting 0 of all the
-/// rows supplied begun.
+/// any supplied row is interned, so that refusal also carries a note reporting that the interner
+/// stopped before beginning any of the rows supplied.
 #[test]
 fn a_refusal_counts_the_selector_rows_supplied_to_the_interner() {
     let mut rows = restriction("urn:restriction");
@@ -433,7 +433,7 @@ fn a_refusal_counts_the_selector_rows_supplied_to_the_interner() {
         .unwrap_or_else(|| panic!("no interning note: {bounds:?} {violations:?}"));
     assert!(
         note.contains(&format!(
-            "the interner stopped with 0 of the {supplied} rows supplied begun, the last possibly only in part ({supplied} selector rows, then 0 possible fact(s))"
+            "the interner stopped before beginning any of the {supplied} rows supplied ({supplied} selector rows, then 0 possible fact(s))"
         )),
         "{note}"
     );
