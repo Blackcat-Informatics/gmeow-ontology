@@ -562,6 +562,19 @@ fn a_refusal_naming_many_cyclic_rules_stays_bounded_and_names_every_rule() {
             "{rule} is named: {weak:?}"
         );
     }
+    // The rule past the cap (the seventeenth, sorted by identity) is named with its head
+    // relation exactly as the first sixteen are, not by identity alone.
+    let seventeenth = format!("<http://ex/rule/cyclic{REPORTED_RULES:02}> with head relations [");
+    let listed = weak
+        .iter()
+        .find_map(|reason| reason.split_once(&seventeenth).map(|(_, rest)| rest))
+        .and_then(|rest| rest.split_once(']'))
+        .map(|(relations, _)| relations)
+        .unwrap_or_else(|| panic!("the seventeenth rule carries a relation list: {weak:?}"));
+    assert!(
+        listed.contains(&format!("<{P}>")),
+        "the seventeenth rule's head relations include p: {listed}"
+    );
 }
 
 #[test]

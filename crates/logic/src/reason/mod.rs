@@ -671,7 +671,9 @@ pub fn prepare_selected_theory(
 /// Execute a selected theory whose lowering [`prepare_selected_theory`] already made.
 ///
 /// # Errors
-/// As [`reason_selected_theory_within`].
+/// Refuses a `selected` that was not made from this `theory` under the selection
+/// `ingress` records, and otherwise returns the failures of
+/// [`reason_selected_theory_within`].
 pub fn reason_prepared_theory_within(
     theory: &gmeow_logic_compile::frontend::CompiledTheory,
     selected: &SelectedProgram,
@@ -681,6 +683,17 @@ pub fn reason_prepared_theory_within(
     budget: &Budget,
 ) -> gmeow_errors::Result<ReasoningResult> {
     ingress.authorize(theory.program(), &input)?;
+    let expected = crate::program_analysis::preparation_identity(
+        theory.program(),
+        &crate::native_semantics::SourceAdmissionProfile::SelectedTheoryV1 {
+            theory: ingress.selection().clone(),
+        },
+    )?;
+    if selected.prepared.identity != expected {
+        return Err(reason_err(
+            "the prepared program was not made from this theory under this selection".to_owned(),
+        ));
+    }
     let closure = program::execute(&selected.prepared, input, domains, budget.max_steps)?;
     Ok(result_from_closure(&selected.prepared, closure, budget.max_steps)?.0)
 }

@@ -414,27 +414,7 @@ pub(crate) fn prepare_program_under(
 ) -> gmeow_errors::Result<Arc<PreparedProgram>> {
     static CACHE: OnceLock<Mutex<PreparationCache>> = OnceLock::new();
     let cache = CACHE.get_or_init(|| Mutex::new(PreparationCache::default()));
-    let unidentified = |error: &dyn std::fmt::Display| {
-        gmeow_errors::Diag::of_kind(crate::error::Lower {
-            detail: format!("cannot identify the complete native program: {error}"),
-        })
-    };
-    let mut digest = ProgramDigest::default();
-    digest
-        .hasher
-        .update(b"gmeow-native-program-preparation-v1\0");
-    ciborium::ser::into_writer(program, &mut digest).map_err(|error| unidentified(&error))?;
-    // The program is one self-delimiting item, so a profile written after it cannot
-    // be mistaken for part of any program. The world-local profile writes nothing
-    // and so keeps the identity it has always had.
-    match &profile {
-        SourceAdmissionProfile::WorldLocalTemplatesV1 => {}
-        SourceAdmissionProfile::SelectedTheoryV1 { .. } => {
-            ciborium::ser::into_writer(&profile, &mut digest)
-                .map_err(|error| unidentified(&error))?;
-        }
-    }
-    let key = *digest.hasher.finalize().as_bytes();
+    let key = preparation_identity(program, &profile)?;
     if let Some(prepared) = cache
         .lock()
         .expect("native program cache poisoned")
@@ -450,6 +430,37 @@ pub(crate) fn prepare_program_under(
         .lock()
         .expect("native program cache poisoned")
         .insert(key, prepared))
+}
+
+/// The identity [`prepare_program_under`] gives the preparation of `program` under
+/// `profile`: the digest of the complete typed program and the profile. A preparation
+/// carries it as [`PreparedProgram::identity`], so a caller can tell whether a preparation
+/// was made from a given program and profile.
+pub(crate) fn preparation_identity(
+    program: &LogicProgram,
+    profile: &SourceAdmissionProfile,
+) -> gmeow_errors::Result<[u8; 32]> {
+    let unidentified = |error: &dyn std::fmt::Display| {
+        gmeow_errors::Diag::of_kind(crate::error::Lower {
+            detail: format!("cannot identify the complete native program: {error}"),
+        })
+    };
+    let mut digest = ProgramDigest::default();
+    digest
+        .hasher
+        .update(b"gmeow-native-program-preparation-v1\0");
+    ciborium::ser::into_writer(program, &mut digest).map_err(|error| unidentified(&error))?;
+    // The program is one self-delimiting item, so a profile written after it cannot
+    // be mistaken for part of any program. The world-local profile writes nothing
+    // and so keeps the identity it has always had.
+    match profile {
+        SourceAdmissionProfile::WorldLocalTemplatesV1 => {}
+        SourceAdmissionProfile::SelectedTheoryV1 { .. } => {
+            ciborium::ser::into_writer(profile, &mut digest)
+                .map_err(|error| unidentified(&error))?;
+        }
+    }
+    Ok(*digest.hasher.finalize().as_bytes())
 }
 
 #[path = "program_analysis.tests.rs"]

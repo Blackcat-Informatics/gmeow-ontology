@@ -1589,7 +1589,8 @@ fn specialized_from(name: &str) -> &str {
 /// Group a refusal's findings by rule, bounded in number: one reason for each of the
 /// first [`REPORTED_RULES`] rules (sorted by rule identity) naming the rule, its head
 /// relations and up to [`REPORTED_DETAILS`] of its findings, then at most one reason that
-/// names every remaining rule. No rule that lies on a cycle goes unnamed.
+/// names every remaining rule with its head relations (their findings are not listed). No
+/// rule that lies on a cycle goes unnamed.
 fn grouped_rule_reasons(
     kind: &str,
     what: &str,
@@ -1621,6 +1622,9 @@ fn grouped_rule_reasons(
             .collect::<Vec<_>>()
             .join(", ")
     };
+    let identify = |rule: &str, relations: &[String]| {
+        format!("<{rule}> with head relations [{}]", render(relations))
+    };
     let mut reasons: Vec<String> = groups
         .iter()
         .take(REPORTED_RULES)
@@ -1638,15 +1642,15 @@ fn grouped_rule_reasons(
                 format!(" (and {more} more)")
             };
             format!(
-                "{kind}: rule <{rule}> with head relations [{}] {what}: {listed}{more}",
-                render(relations)
+                "{kind}: rule {} {what}: {listed}{more}",
+                identify(rule, relations)
             )
         })
         .collect();
     if groups.len() > REPORTED_RULES {
         let rest: Vec<String> = groups[REPORTED_RULES..]
             .iter()
-            .map(|(rule, ..)| format!("<{rule}>"))
+            .map(|(rule, relations, _)| identify(rule, relations))
             .collect();
         reasons.push(format!(
             "{kind}: {} further rule(s) {what}: {}",

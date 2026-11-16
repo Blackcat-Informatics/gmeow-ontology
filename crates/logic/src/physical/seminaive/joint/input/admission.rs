@@ -444,11 +444,17 @@ impl Template {
             Ok(closable) => self.close(evidence, closable, semantics)?,
             Err(reason) => Err(reason.clone()),
         };
-        let (closure, rel, list_cells_bound) = closed.unwrap_or_else(|reason| {
+        let (closure, rel, list_cells) = closed.unwrap_or_else(|reason| {
             notes.push(format!("witness-free relations were not closed: {reason}"));
             let (rel, cells) = Self::store(evidence, &[], semantics);
             (Closure::empty(), rel, cells)
         });
+        // Whichever store the analysis joins, a list-cell binding that reached its bound
+        // left member cells unconstrained, which is coarser and is named.
+        if let Some(note) = list_cells.note() {
+            notes.push(note);
+        }
+        let list_cells_bound = list_cells.is_bound();
         let analysis = match self.specialize_all(
             &rel,
             &evidence.predicates,
@@ -492,12 +498,12 @@ impl Template {
     }
 
     /// The proved-immutable rows, with `extra` rows, as one join store. Returns
-    /// whether list member cells were bound to the cells of their own lists.
+    /// how list member cells were bound to the cells of their own lists.
     fn store(
         evidence: &Evidence<'_>,
         extra: &[&Fact],
         semantics: SemanticVocabulary,
-    ) -> (RelationStore, bool) {
+    ) -> (RelationStore, ListCells) {
         let mut rel = RelationStore::with_semantics(semantics);
         for fact in evidence.facts.iter().chain(extra) {
             rel.insert(&fact.predicate, &fact.subject, &fact.object);
@@ -505,11 +511,18 @@ impl Template {
         // A list operator reads members of ITS list. When list structure is proved
         // immutable, bind each member cell to the cells reachable from that list
         // head, instead of to every cell of every list.
-        let list_cells_bound = [LIST_FIRST, LIST_REST]
+        let proved = [LIST_FIRST, LIST_REST]
             .iter()
-            .all(|predicate| evidence.predicates.contains(semantics.predicate(predicate)))
-            && bind_list_cells(&mut rel, &evidence.facts, semantics);
-        (rel, list_cells_bound)
+            .all(|predicate| evidence.predicates.contains(semantics.predicate(predicate)));
+        let list_cells = if !proved {
+            ListCells::Unproved
+        } else {
+            match bind_list_cells(&mut rel, &evidence.facts, semantics) {
+                Ok(()) => ListCells::Bound,
+                Err(associations) => ListCells::Cut { associations },
+            }
+        };
+        (rel, list_cells)
     }
 
     /// Whether a body atom reads only an immutable or closed relation.
@@ -563,7 +576,7 @@ impl Template {
         evidence: &Evidence<'_>,
         closable: &Closable<'_>,
         semantics: SemanticVocabulary,
-    ) -> gmeow_errors::Result<Result<(Closure, RelationStore, bool), EvidenceGap>> {
+    ) -> gmeow_errors::Result<Result<(Closure, RelationStore, ListCells), EvidenceGap>> {
         let mut closure = closable.candidates.clone();
         loop {
             let rows: Vec<&Fact> = closable
@@ -587,7 +600,12 @@ impl Template {
                 .iter()
                 .enumerate()
                 .filter(|(_, rule)| Self::eligible(rule, &evidence.predicates, &closure, semantics))
-                .map(|(index, rule)| (index, join_atoms(rule, &vec![true; rule.body.len()], cells)))
+                .map(|(index, rule)| {
+                    (
+                        index,
+                        join_atoms(rule, &vec![true; rule.body.len()], cells.is_bound()),
+                    )
+                })
                 .collect();
             if let Err(reason) = derive(&mut store, &self.rules, &eligible, &closure, semantics)? {
                 return Ok(Err(reason));
@@ -992,14 +1010,15 @@ fn specialize(
 
 /// Add `(head, cell)` admission rows for every cell reachable through `rdf:rest`
 /// from every cell, so a list operator bound to any head (shared tails included)
-/// reads exactly its own cells. Returns `false`, adding nothing, when the rows would
-/// exceed the analysis bound; member cells then stay unconstrained, which is coarser
-/// but still covers every firing.
+/// reads exactly its own cells. Returns `Err` with the association count reached, adding
+/// nothing, when the rows would exceed the analysis bound: the walk stops at the first
+/// component that crosses it, so the count is a lower bound on the full one. Member cells
+/// then stay unconstrained, which is coarser but still covers every firing.
 fn bind_list_cells(
     rel: &mut RelationStore,
     facts: &[&Fact],
     semantics: SemanticVocabulary,
-) -> bool {
+) -> Result<(), usize> {
     let first = semantics.predicate(LIST_FIRST);
     let rest = semantics.predicate(LIST_REST);
     let mut cells = BTreeSet::new();
@@ -1013,7 +1032,7 @@ fn bind_list_cells(
         }
     }
     if cells.is_empty() {
-        return true;
+        return Ok(());
     }
     // Discover the union of all heads' reachable nodes once. Incoming or
     // disconnected rest-only components cannot contribute a head/cell row.
@@ -1072,15 +1091,12 @@ fn bind_list_cells(
                 Arc::make_mut(&mut known).extend(reachable[tail].iter().copied());
             }
         }
-        let Some(total) = members[current]
+        let total = members[current]
             .len()
-            .checked_mul(known.len())
-            .and_then(|added| rows.checked_add(added))
-        else {
-            return false;
-        };
+            .saturating_mul(known.len())
+            .saturating_add(rows);
         if total > MAX_BINDINGS {
-            return false;
+            return Err(total);
         }
         rows = total;
         reachable[current] = known;
@@ -1091,7 +1107,40 @@ fn bind_list_cells(
             rel.insert(LIST_CELL, head, nodes[cell]);
         }
     }
-    true
+    Ok(())
+}
+
+/// How the join store related list member cells to the cells of their own lists.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+enum ListCells {
+    /// Each list head is bound to the cells reachable from it.
+    Bound,
+    /// List structure was not proved immutable, so no binding was attempted.
+    Unproved,
+    /// The binding reached its analysis bound and was dropped; member cells are
+    /// unconstrained. `associations` is the head/cell association count at the stop.
+    Cut { associations: usize },
+}
+
+impl ListCells {
+    fn is_bound(self) -> bool {
+        self == Self::Bound
+    }
+
+    /// The bound note for a binding that reached its bound. It says the bound coarsened
+    /// the analysis, so a finer one might have decided; it does not say the bound caused
+    /// the refusal it is attached to. The walk stops at the first list component that
+    /// crosses the bound, so `associations` is a lower bound on the full count.
+    fn note(self) -> Option<String> {
+        let Self::Cut { associations } = self else {
+            return None;
+        };
+        Some(format!(
+            "list member cells were left unconstrained: binding each list head to the cells of \
+             its own list stopped at {associations} head/cell associations, past its \
+             {MAX_BINDINGS}-association bound (the full count is at least that)"
+        ))
+    }
 }
 
 /// The first-pass certificate and the analysis-bound notes a refusal must carry.
