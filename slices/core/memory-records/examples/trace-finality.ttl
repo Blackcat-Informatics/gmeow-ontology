@@ -7,12 +7,11 @@
 @prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
 
 # A memory service marks important events and a separate recorder keeps the
-# traces around them. The recorder's ledger lists three packets it observed. The
+# traces around them. The memory service's ledger lists the three packets it saw. The
 # records below hold what each party declared about finality; none compares a
 # time or a digest, and none says a trace was recorded or deleted.
 ex:memoryService a gmeow:SoftwareAgent .
 ex:lateDeriver a gmeow:SoftwareAgent .
-ex:recorder a gmeow:SoftwareAgent .
 
 ex:profile a gmeow:InformationObject ;
     dcterms:description "Each packet digest is the digest of the packet's bytes as the memory service wrote them; the packet's time is its write time."@en .
@@ -35,7 +34,7 @@ ex:packetThree a gmeow:TracePacket ;
 
 ex:ledger a gmeow:TracePacketLedger ;
     gmeow:tracePacket ex:packetOne , ex:packetTwo , ex:packetThree ;
-    gmeow:wasAttributedTo ex:recorder .
+    gmeow:wasAttributedTo ex:memoryService .
 
 # The memory service declares that marking is final up to and including packet
 # one: no mark will name a packet at or below it. The watermark belongs to the

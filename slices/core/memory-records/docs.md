@@ -285,7 +285,7 @@ remains distinct from the raw term and its interpretation.
 A mark, flag, profile or anchor is not a time/digest comparator, a finality
 watermark, a producer committed frontier or a give-up of lost marks.
 Without-packet status is not evidence that in-memory marks were lost, a producer
-committed, or a recorder may advance a frontier or discard traces. The
+committed, or a watermark may advance or traces may be discarded. The
 declarations that carry those meanings are the finality records below. The
 vocabulary computes no digest, performs no join, authenticates no source and
 executes no storage action. Unknown source interpretation remains unknown rather
@@ -359,16 +359,21 @@ inclusive of that packet: no mark will name such a packet. It belongs to the
 producer named through `traceFinalityProducer`, and it must not pass any
 applicable late-producer frontier. The watermark names its ledger
 (`traceFinalityLedger`), its producer and its cut packet (`watermarkPacket`);
-each is required, and a validation constraint rejects two distinct cut packets
-on one watermark. A further cut is a separate watermark.
+each is required, a validation constraint rejects two distinct cut packets on
+one watermark, and a second constraint rejects a watermark whose own ledger does
+not list its cut packet through `tracePacket`. The second is a plain join of
+three roles and compares no time or digest. It checks listing only: it does not
+check that the ledger lists every packet it observed. A further cut is a
+separate watermark.
 
 `TraceMarkFrontier` is the committed point that a producer marking events later
 has declared for a ledger. It names the ledger and that late producer in the
 same way and one `frontierPoint`, a `TraceAnchor` packet key that need not be a
 recorded ledger member; a validation constraint rejects two distinct points on
-one frontier. A frontier declares nothing final. What it adds beyond a
-watermark is a bound: a watermark must not pass it. Each late producer states
-its own frontier, and none is preferred.
+one frontier. A frontier declares no ledger-wide finality and makes no packet
+eligible for discard. What it adds beyond a watermark is a bound: a watermark
+must not pass it. Each late producer states its own frontier, and none is
+preferred.
 
 `TraceMarksGivenUp` is the explicit give-up of marks a producer held only in
 memory and lost, for example on a restart. `givenUpReason` is required and keeps
@@ -376,18 +381,19 @@ the producer's own wording; `givenUpPacket` may name each packet whose marks are
 given up, and the ledger and producer may be named through the shared roles. A
 give-up is not a mark, not a without-packet flag and not a deletion.
 
-Neither single-valued role is a functional property: a functional axiom would
-make a second cut packet or point the same individual as the first instead of
-reporting the declaration, so a constraint is used.
+Neither single-valued role is a functional property: in the OWL projection a
+functional axiom would make a second cut packet or point the same individual as
+the first instead of reporting the declaration, so a constraint is used.
 
 The order is time, then digest. A watermark is meant never to move backward, to
 respect every applicable late-producer frontier before it advances, and not to
 pass a packet with lost marks that were not given up. These records declare no
 such law. Checking them needs a typed comparison of times and digests, which no
 constraint here makes; the numeric integrity comparison is not a substitute.
-Consequently nothing verifies that a cut belongs to its ledger, that one
-watermark is at or above another, that a watermark stays at or below every
-applicable late-producer frontier, or that a give-up came first.
+Consequently nothing verifies that one watermark is at or above another, that a
+watermark stays at or below every applicable late-producer frontier, or that a
+give-up came first. Listing of the cut packet in its ledger is not among these
+laws: it needs no comparison and is checked as described above.
 
 An unmarked packet at or below a watermark that is old enough under the
 recorder's own policy is eligible for discard only on those conditions. The

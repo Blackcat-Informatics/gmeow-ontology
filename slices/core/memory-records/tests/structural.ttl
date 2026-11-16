@@ -68,9 +68,9 @@ ASK {
     ?constraint a logic:Constraint ; logic:formalizes ?term ; logic:integrity ?root .
     ?root (logic:forall|logic:exists|logic:not|logic:and|logic:or|logic:antecedent|logic:consequent)* ?formula .
     ?formula logic:relation ?relation .
-    FILTER(?relation NOT IN (rdf:type, gmeow:watermarkPacket, gmeow:frontierPoint, logic:termDistinct))
+    FILTER(?relation NOT IN (rdf:type, gmeow:traceFinalityLedger, gmeow:watermarkPacket, gmeow:tracePacket, gmeow:frontierPoint, logic:termDistinct))
 }""" ;
-    gmeow:saRationale "No constraint on a finality class or role uses a relation other than the type test, the role being limited and term distinctness. In particular none compares a time or a digest, and none uses the numeric comparison, so a constraint added later that compares them fails this assertion." .
+    gmeow:saRationale "No constraint on a finality class or role uses a relation other than the type test, the finality roles being limited, the ledger-membership link (tracePacket) and term distinctness. Each of those is a structural link or an identity test, not a comparison. In particular none compares a time or a digest, and none uses the numeric comparison, so a constraint added later that compares them fails this assertion." .
 
 ex:saTraceFinalityDerivesNothing a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:mustNot ; gmeow:saScope gmeow:scopeModule ;
@@ -145,6 +145,34 @@ ASK {
 }""" ;
     gmeow:saRationale "One watermark names one cut packet and one frontier one committed point, each as a closed-world constraint that rejects two distinct values. The check is on term distinctness, not on order." .
 
+ex:saTraceFinalityLedgerMembership a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ; gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+ASK {
+    gmeow:TraceWatermarkLedgerMembershipConstraint a logic:Constraint ; logic:formalizes gmeow:watermarkPacket ; logic:integrity ?mRoot .
+    ?mRoot logic:forall ?mImplies .
+    ?mImplies logic:antecedent ?mAnd ; logic:consequent ?mMember .
+    ?mAnd logic:and ?mType , ?mLedger , ?mCut .
+    ?mType logic:relation rdf:type .
+    ?mLedger logic:relation gmeow:traceFinalityLedger .
+    ?mCut logic:relation gmeow:watermarkPacket .
+    ?mMember logic:relation gmeow:tracePacket .
+    FILTER(?mType != ?mLedger && ?mType != ?mCut && ?mLedger != ?mCut)
+}""" ;
+    gmeow:saRationale "A watermark's cut packet must be listed by the watermark's own ledger: the constraint binds the watermark, its ledger and its cut packet and requires the ledger to list the packet through tracePacket. It is a join over three roles and compares no time or digest. Removing the membership consequent or either binding fails the assertion." .
+
+ex:saTraceFinalityCutListed a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:mustNot ; gmeow:saScope gmeow:scopeModuleAndExamples ;
+    gmeow:saFailWitness "tests/counter-examples/finality-cut-outside-ledger.ttl" ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+ASK {
+    ?w a gmeow:TraceWatermark ; gmeow:traceFinalityLedger ?ledger ; gmeow:watermarkPacket ?cut .
+    FILTER NOT EXISTS { ?ledger gmeow:tracePacket ?cut }
+}""" ;
+    gmeow:saRationale "Conforming control: every worked watermark names a cut that its own ledger lists, so the ASK is false over the module and examples. Violating control: the fail-witness watermark names a cut its ledger does not list, so the same ASK holds there and the ban has teeth." .
+
 ex:saTraceFinalityNotFunctional a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:mustNot ; gmeow:saScope gmeow:scopeModule ;
     gmeow:saFailWitness "tests/counter-examples/finality-role-functional.ttl" ;
@@ -154,7 +182,7 @@ ASK {
     VALUES ?p { gmeow:traceFinalityLedger gmeow:traceFinalityProducer gmeow:watermarkPacket gmeow:frontierPoint gmeow:givenUpPacket gmeow:givenUpReason }
     ?rec logic:characterizes ?p ; logic:characteristicSort logic:functionalProperty .
 }""" ;
-    gmeow:saRationale "A functional property would make a second cut packet or committed point the same individual as the first instead of reporting the declaration, so single-valuedness is a validation constraint and no functional characteristic may characterize a finality role." .
+    gmeow:saRationale "A functional property would, in the OWL projection, make a second cut packet or committed point the same individual as the first instead of reporting the declaration, so single-valuedness is a validation constraint and no functional characteristic may characterize a finality role." .
 
 ex:saTraceFinalityExample a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:must ; gmeow:saScope gmeow:scopeModuleAndExamples ;

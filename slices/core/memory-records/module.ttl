@@ -1223,11 +1223,11 @@ gmeow:TraceWatermark
     gmeow:graphBoxRole gmeow:boxTBox ;
     rdfs:label "Trace marking watermark"@x-gmeow-english ;
     skos:definition "A declaration that marking is final for every packet of one TracePacketLedger at or below one named TracePacket in the ledger's order: no mark will name such a packet. It belongs to the producer named through traceFinalityProducer, it must not pass any applicable late-producer frontier, and it records what its declarer stated rather than a verified order."@x-gmeow-english ;
-    skos:scopeNote "A watermark names its ledger (traceFinalityLedger), the producer it belongs to (traceFinalityProducer), one cut packet (watermarkPacket; the cut includes that packet) and its declarer through wasAttributedTo, who may be that producer or another agent. The ledger's order is time, then digest, and every applicable late-producer frontier is to be respected before the watermark advances. Without a typed time and digest comparison nothing here checks that order, that the cut packet is a member of the ledger, that the cut never moves backward between watermarks, that the cut does not pass any applicable late-producer frontier, or that lost marks were given up before the cut passed their packet. Several watermarks may coexist as separate attributed declarations."@x-gmeow-english ;
+    skos:scopeNote "A watermark names its ledger (traceFinalityLedger), the producer it belongs to (traceFinalityProducer), one cut packet (watermarkPacket; the cut includes that packet) and its declarer through wasAttributedTo, who may be that producer or another agent. The ledger's order is time, then digest, and every applicable late-producer frontier is to be respected before the watermark advances. A constraint checks that the cut packet is a member of the declared ledger, a plain join that compares no time or digest, so a watermark whose cut packet its ledger does not list is rejected. Without a typed time and digest comparison nothing here checks that order, that the cut never moves backward between watermarks, that the cut does not pass any applicable late-producer frontier, or that lost marks were given up before the cut passed their packet. Several watermarks may coexist as separate attributed declarations."@x-gmeow-english ;
     skos:example "The memory service declares its own cut: ex:cut a gmeow:TraceWatermark ; gmeow:traceFinalityLedger ex:ledger ; gmeow:traceFinalityProducer ex:memoryService ; gmeow:watermarkPacket ex:packetOne ; gmeow:wasAttributedTo ex:memoryService ."@x-gmeow-english ;
     gmeow:useWhen "Use when a recorder or memory service actually declares that marking is final up to a named packet of a named ledger."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid inferring a watermark from the newest packet, from missing marks or from age, and avoid reading it as proof that marking is final, that it respects every applicable late-producer frontier, that a trace was recorded, or that any trace was or may be deleted."@x-gmeow-english ;
-    gmeow:howToUse "Name the ledger, the producer the watermark belongs to, the cut packet and the declarer through wasAttributedTo. An unmarked packet at or below the cut that is old enough under the recorder's own policy is eligible for discard only on those conditions; the watermark records neither the policy's verdict, a recording nor a deletion. Keep every comparison of time and digest outside this record."@x-gmeow-english ;
+    gmeow:howToUse "Name the ledger, the producer the watermark belongs to, the cut packet, which the ledger must list through tracePacket, and the declarer through wasAttributedTo. An unmarked packet at or below the cut that is old enough under the recorder's own policy is eligible for discard only on those conditions; the watermark records neither the policy's verdict, a recording nor a deletion. Keep every comparison of time and digest outside this record."@x-gmeow-english ;
     logic:subClassOf gmeow:InformationObject .
 
 gmeow:TraceMarkFrontier
@@ -1235,8 +1235,8 @@ gmeow:TraceMarkFrontier
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/memory-records> ;
     gmeow:graphBoxRole gmeow:boxTBox ;
     rdfs:label "Trace mark frontier"@x-gmeow-english ;
-    skos:definition "A declaration of the committed point in one TracePacketLedger up to which a producer that marks events later, the one named through traceFinalityProducer, has finished marking. Where a watermark declares marking final up to its cut, a frontier declares nothing final: it states a late producer's committed point, which a watermark must not pass. It records the point its declarer stated, not a verified position."@x-gmeow-english ;
-    skos:scopeNote "A frontier names its ledger (traceFinalityLedger), the late producer it belongs to (traceFinalityProducer), one committed point (frontierPoint), a packet key that need not be a recorded ledger member, and its declarer through wasAttributedTo, who may be that producer or another agent. A watermark must not pass any applicable late-producer frontier, but without a typed time and digest comparison nothing here checks that. A producer that has committed nothing states no frontier; absence is not a frontier at the start of the order."@x-gmeow-english ;
+    skos:definition "A declaration of the committed point in one TracePacketLedger up to which a producer that marks events later, the one named through traceFinalityProducer, has finished marking. Where a watermark declares marking final up to its cut, a frontier declares no ledger-wide finality and makes no packet eligible for discard: it states a late producer's committed point, which a watermark must not pass. It records the point its declarer stated, not a verified position."@x-gmeow-english ;
+    skos:scopeNote "A frontier names its ledger (traceFinalityLedger), the late producer it belongs to (traceFinalityProducer), one committed point (frontierPoint), a packet key that need not be a recorded ledger member, and its declarer through wasAttributedTo, who may be that producer or another agent. A watermark must not pass any applicable late-producer frontier, but without a typed time and digest comparison nothing here checks that, or that the ledger's order is time, then digest. A producer that has committed nothing states no frontier; absence is not a frontier at the start of the order."@x-gmeow-english ;
     skos:example "A late derivation states its own committed point: ex:lateFrontier a gmeow:TraceMarkFrontier ; gmeow:traceFinalityLedger ex:ledger ; gmeow:traceFinalityProducer ex:lateDeriver ; gmeow:frontierPoint ex:pointKey ; gmeow:wasAttributedTo ex:lateDeriver ."@x-gmeow-english ;
     gmeow:useWhen "Use when a producer that marks events later actually states how far it has committed its marking for a ledger."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid manufacturing a frontier for a producer that stated none, and avoid reading one as proof that marking up to the point is complete or that a watermark may advance."@x-gmeow-english ;
@@ -1248,12 +1248,12 @@ gmeow:TraceMarksGivenUp
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/memory-records> ;
     gmeow:graphBoxRole gmeow:boxTBox ;
     rdfs:label "Trace marks given up"@x-gmeow-english ;
-    skos:definition "An explicit declaration that marks a producer held only in memory were lost, for example on a restart, and are given up for named packets, with the reason. It is not an absence of marks, not a without-packet status on a mark, and not a deletion of anything."@x-gmeow-english ;
-    skos:scopeNote "A give-up requires its reason (givenUpReason) and its declarer through wasAttributedTo; it may name the packets whose marks are given up (givenUpPacket), and the ledger and the producer whose marks were lost through traceFinalityLedger and traceFinalityProducer. Without a typed time and digest comparison nothing here checks that a give-up precedes a watermark passing its packets. A give-up does not mark the packets and does not make them eligible for discard."@x-gmeow-english ;
+    skos:definition "An explicit declaration that marks a producer held only in memory were lost, for example on a restart, and are given up, with the reason and, where the producer names them, the packets concerned. It is not an absence of marks, not a without-packet status on a mark, and not a deletion of anything."@x-gmeow-english ;
+    skos:scopeNote "A give-up requires its reason (givenUpReason) and its declarer through wasAttributedTo; it may name the packets whose marks are given up (givenUpPacket), and the ledger and the producer whose marks were lost through traceFinalityLedger and traceFinalityProducer. Without a typed time and digest comparison nothing here checks that a give-up precedes a watermark passing its packets, or that the ledger's order is time, then digest. A give-up does not mark the packets and does not make them eligible for discard."@x-gmeow-english ;
     skos:example "The service gives up its lost marks: ex:lost a gmeow:TraceMarksGivenUp ; gmeow:traceFinalityProducer ex:memoryService ; gmeow:givenUpPacket ex:packetTwo ; gmeow:givenUpReason \"Marks held only in memory were lost when the service restarted.\"@en ; gmeow:wasAttributedTo ex:memoryService ."@x-gmeow-english ;
     gmeow:useWhen "Use when a producer explicitly states that its in-memory marks for named packets were lost and gives the reason."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid inferring a give-up from missing marks, from a without-packet flag or from a restart nobody reported, and avoid reading one as a mark, as finality or as permission to delete."@x-gmeow-english ;
-    gmeow:howToUse "Keep the original wording of the reason, name every packet whose marks are given up, and attribute the declaration through wasAttributedTo. Record the later watermark separately; this record does not advance it."@x-gmeow-english ;
+    gmeow:howToUse "Keep the original wording of the reason, name the packets whose marks are given up where the producer states them, and attribute the declaration through wasAttributedTo. Record the later watermark separately; this record does not advance it."@x-gmeow-english ;
     logic:subClassOf gmeow:InformationObject .
 
 gmeow:traceFinalityLedger
@@ -1290,7 +1290,7 @@ gmeow:watermarkPacket
     gmeow:graphBoxRole gmeow:boxRBox ;
     rdfs:label "watermark packet"@x-gmeow-english ;
     skos:definition "The recorded TracePacket at or below which this watermark declares marking final, inclusive of that packet and not of the packets above it."@x-gmeow-english ;
-    skos:scopeNote "Required on a TraceWatermark; one value is meant, enforced by a validation constraint rather than a functional axiom. The packet is a TracePacket, so it carries its ordering time and frame, but nothing here checks that it belongs to the declared ledger or compares it with another packet."@x-gmeow-english ;
+    skos:scopeNote "Required on a TraceWatermark; one value is meant, enforced by a validation constraint rather than a functional axiom. The packet is a TracePacket, so it carries its ordering time and frame, and a constraint checks that the declared ledger lists it through tracePacket; nothing here compares it with another packet."@x-gmeow-english ;
     skos:example "The cut names its packet: ex:cut gmeow:watermarkPacket ex:packetOne ."@x-gmeow-english ;
     gmeow:useWhen "Use to name the cut packet the watermark's declaration is inclusive of."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid naming a packet that was not recorded, and avoid using it to say that packets above the cut are not final."@x-gmeow-english ;
@@ -1381,7 +1381,7 @@ gmeow:TraceWatermarkPacketUniqueConstraint
     gmeow:graphBoxRole gmeow:boxTBox ;
     rdfs:label "Trace watermark single cut packet"@x-gmeow-english ;
     skos:definition "A TraceWatermark names at most one watermarkPacket; two distinct cut packets on one watermark are rejected rather than merged into one individual."@x-gmeow-english ;
-    skos:scopeNote "A validation constraint is used instead of a functional axiom so that a second packet is reported, not inferred to be the same packet. A further cut is a separate watermark. Nothing compares the packets' times or digests."@x-gmeow-english ;
+    skos:scopeNote "A validation constraint is used instead of a functional axiom so that a second packet is reported rather than, as with the OWL projection of a functional axiom, inferred to be the same packet. A further cut is a separate watermark. Nothing compares the packets' times or digests."@x-gmeow-english ;
     skos:example "A watermark with two cut packets is rejected: ex:badCut a gmeow:TraceWatermark ; gmeow:watermarkPacket ex:packetOne , ex:packetTwo ."@x-gmeow-english ;
     gmeow:useWhen "Use to check that one watermark declaration states one cut."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid reading it as an order check or as a check that a later watermark stays at or above an earlier one."@x-gmeow-english ;
@@ -1401,7 +1401,7 @@ gmeow:TraceMarkFrontierPointUniqueConstraint
     gmeow:graphBoxRole gmeow:boxTBox ;
     rdfs:label "Trace mark frontier single committed point"@x-gmeow-english ;
     skos:definition "A TraceMarkFrontier names at most one frontierPoint; two distinct committed points on one frontier are rejected rather than merged into one individual."@x-gmeow-english ;
-    skos:scopeNote "A validation constraint is used instead of a functional axiom so that a second point is reported, not inferred to be the same point. A producer's later committed point is a separate frontier. Nothing compares the points' times or digests."@x-gmeow-english ;
+    skos:scopeNote "A validation constraint is used instead of a functional axiom so that a second point is reported rather than, as with the OWL projection of a functional axiom, inferred to be the same point. A producer's later committed point is a separate frontier. Nothing compares the points' times or digests."@x-gmeow-english ;
     skos:example "A frontier with two committed points is rejected: ex:badFrontier a gmeow:TraceMarkFrontier ; gmeow:frontierPoint ex:pointKey , ex:otherKey ."@x-gmeow-english ;
     gmeow:useWhen "Use to check that one frontier declaration states one committed point."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid reading it as an order check or as a check that a frontier never moves backward."@x-gmeow-english ;
@@ -1414,3 +1414,23 @@ gmeow:TraceMarkFrontierPointUniqueConstraint
                 logic:exists [ a logic:Formula ; logic:and [ a logic:Formula ; logic:relation gmeow:frontierPoint ; logic:argument [ logic:termIndex 0 ; logic:termVariable "pointFrontier" ] , [ logic:termIndex 1 ; logic:termVariable "pointFirst" ] ] ,
                     [ a logic:Formula ; logic:relation gmeow:frontierPoint ; logic:argument [ logic:termIndex 0 ; logic:termVariable "pointFrontier" ] , [ logic:termIndex 1 ; logic:termVariable "pointSecond" ] ] ,
                     [ a logic:Formula ; logic:relation logic:termDistinct ; logic:argument [ logic:termIndex 0 ; logic:termVariable "pointFirst" ] , [ logic:termIndex 1 ; logic:termVariable "pointSecond" ] ] ] ] ] ] ] .
+
+gmeow:TraceWatermarkLedgerMembershipConstraint
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/memory-records> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "Trace watermark cut listed in its ledger"@x-gmeow-english ;
+    skos:definition "A TraceWatermark whose cut packet is not listed through tracePacket by the watermark's own ledger is rejected: the cut packet must be a member of the declared TracePacketLedger."@x-gmeow-english ;
+    skos:scopeNote "A plain structural join of the watermark, its ledger and its cut packet, so nothing compares a time or a digest. It checks membership only: it does not check that the cut is at or below any other packet, that the ledger lists every packet it observed, or that the ledger's order is time, then digest. A ledger that is silent about a packet fails a watermark naming that packet; the declarer lists the packet or names another cut."@x-gmeow-english ;
+    skos:example "A watermark whose ledger does not list its cut is rejected: ex:ledger gmeow:tracePacket ex:packetOne . ex:badCut a gmeow:TraceWatermark ; gmeow:traceFinalityLedger ex:ledger ; gmeow:watermarkPacket ex:unlistedPacket ."@x-gmeow-english ;
+    gmeow:useWhen "Use to check that the packet a watermark names as its cut is one the declared ledger lists."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid reading it as an order check, as proof that the ledger is complete or as a check that the cut respects any frontier."@x-gmeow-english ;
+    gmeow:howToUse "Positively bind the watermark, its ledger and its cut packet, and require the ledger to list that packet through tracePacket; the check uses no comparison relation."@x-gmeow-english ;
+    logic:formalizes gmeow:watermarkPacket ;
+    logic:message "A TraceWatermark's cut packet must be a tracePacket member of its declared traceFinalityLedger."@x-gmeow-english ;
+    logic:integrity [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "memberWatermark" ] , [ logic:termIndex 1 ; logic:termVariable "memberLedger" ] , [ logic:termIndex 2 ; logic:termVariable "memberPacket" ] ;
+        logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:and
+                [ a logic:Formula ; logic:relation rdf:type ; logic:argument [ logic:termIndex 0 ; logic:termVariable "memberWatermark" ] , [ logic:termIndex 1 ; logic:termIri gmeow:TraceWatermark ] ] ,
+                [ a logic:Formula ; logic:relation gmeow:traceFinalityLedger ; logic:argument [ logic:termIndex 0 ; logic:termVariable "memberWatermark" ] , [ logic:termIndex 1 ; logic:termVariable "memberLedger" ] ] ,
+                [ a logic:Formula ; logic:relation gmeow:watermarkPacket ; logic:argument [ logic:termIndex 0 ; logic:termVariable "memberWatermark" ] , [ logic:termIndex 1 ; logic:termVariable "memberPacket" ] ] ] ;
+            logic:consequent [ a logic:Formula ; logic:relation gmeow:tracePacket ; logic:argument [ logic:termIndex 0 ; logic:termVariable "memberLedger" ] , [ logic:termIndex 1 ; logic:termVariable "memberPacket" ] ] ] ] .

@@ -245,9 +245,9 @@ Their union domain also admits the give-up, where both roles are optional. A
 watermark declares that marking is final for every packet of its ledger at or
 below its cut: no mark will name such a packet. It belongs to the producer it
 names, and it must not pass any applicable late-producer frontier. A frontier is
-the committed point of a producer that marks events later. It declares nothing
-final; what it adds beyond a watermark is a bound that the watermark must not
-pass. A watermark adds watermarkPacket over TracePacket, so its cut carries the
+the committed point of a producer that marks events later. It declares no
+ledger-wide finality and makes no packet eligible for discard; what it adds
+beyond a watermark is a bound that the watermark must not pass. A watermark adds watermarkPacket over TracePacket, so its cut carries the
 packet's ordering time and frame; a frontier adds frontierPoint over
 TraceAnchor, so its committed point is a packet key that need not be a recorded
 ledger member. A give-up requires givenUpReason, a literal that keeps the
@@ -258,14 +258,19 @@ recorded packet use. The six roles each receive property-global endpoint
 closure.
 
 Single-valued cut and point are two validation constraints over term
-distinctness, not functional axioms. A functional axiom would make a second
-value the same individual as the first, and the declaration should be reported
-instead. The constraints compare no time and no digest. A structural assertion
-rejects any constraint on a finality role or class that uses a relation other
-than the type test, the role under test and term distinctness, and others
-reject sub-property, inverse, chain, rule-body and non-constraint formula use of
-the roles, so nothing is derived from a declaration. Each of those bans carries
-a fail-witness fixture that supplies the banned pattern, so the ban is shown to
+distinctness, not functional axioms. In the OWL projection a functional axiom
+would make a second value the same individual as the first, and the declaration
+should be reported instead. A third constraint requires a watermark's ledger to
+list its cut packet through tracePacket: a join of the watermark, its ledger and
+its cut that checks listing only, and does not check that the ledger lists every
+packet it observed. None of the three constraints compares a time or a
+digest. A structural assertion rejects any constraint on a finality role or
+class that uses a relation other than the type test, the finality roles, the
+ledger-membership link (tracePacket) and term distinctness, and others reject
+sub-property, inverse, chain, rule-body and non-constraint formula use of the
+roles, so nothing is derived from a declaration. Another rejects any worked
+watermark whose ledger does not list its cut. Each of those bans carries a
+fail-witness fixture that supplies the banned pattern, so the ban is shown to
 match.
 
 Deferred laws, and why. Four laws are not authored: that the ledger's order is
@@ -277,9 +282,11 @@ as a bound integrity relation. The existing numeric comparison handles finite
 numbers only, and relabeling it would compare lexical or numeric forms instead
 of times and digests; a formula that cannot be evaluated is not a law. Until
 that comparison exists, the terms and their notes say that the order is
-recorded, not checked. Consequently nothing verifies that the cut belongs to its
-ledger, that one watermark is at or above another, that a watermark stays at or
-below every applicable late-producer frontier or that a give-up came first.
+recorded, not checked. Consequently nothing verifies that one watermark is at or above another, that a
+watermark stays at or below every applicable late-producer frontier or that a
+give-up came first. Listing of the cut packet in its ledger is not among the
+deferred laws: it is a plain join that needs no comparison, so it is authored
+here.
 
 Conditional discard eligibility is preserved as prose on the watermark: an
 unmarked packet at or below the cut that is old enough under the recorder's own
