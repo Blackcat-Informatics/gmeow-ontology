@@ -514,7 +514,7 @@ When the claim itself must be a node (provenance, confidence, temporal scope, or
 - `assertionFacet` — the AccessibilityFacet.
 - `assertionPolarity` — `polarityFeature`, `polarityBarrier`, or `polarityLimited`.
 
-A retracted or disputed assertion sets `gmeow:displayable false` — suppressed from projection, never deleted (Principle 10).
+An assertion its own author retracted is kept and may be suppressed with `gmeow:displayable false`, never deleted (Principle 10); an assertion that another party disputes sets no display flag, because which assertion a reader is shown is decided at projection.
 
 ### Accessible routes
 

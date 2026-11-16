@@ -51,6 +51,8 @@ fn results(shapes: &str, data: &str) -> purrdf::shapes::report::ValidationReport
     let (_, shapes) = crate::store::parse_validation_shapes(shapes).unwrap();
     let dataset = purrdf::parse_dataset(data.as_bytes(), "text/turtle", None).unwrap();
     crate::store::shacl_validate_dataset(&dataset, &shapes)
+        .expect("the synthetic rationale fixture validates")
+        .report
 }
 
 #[test]

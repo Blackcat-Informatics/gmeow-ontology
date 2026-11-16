@@ -89,8 +89,9 @@ fn contested_birth_date_coexists() {
     );
 }
 
-/// `test_withdrawn_parentage_suppressed_not_deleted`: a refuted/withdrawn claim
-/// is retained with `displayable false` (Principle 10 — suppression, not erasure).
+/// `test_withdrawn_parentage_suppressed_not_deleted`: a claim its own standpoint
+/// withdrew (claim modality refuted) is retained with `displayable false`
+/// (Principle 10 — suppression, not erasure).
 #[gmeow_test_batch_macros::batch_test]
 fn withdrawn_parentage_suppressed_not_deleted() {
     let store = GraphStore::parse_ttl_file(&repo_root().join(CONTESTED_FIXTURE));

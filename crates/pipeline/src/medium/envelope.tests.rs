@@ -278,3 +278,46 @@ fn the_digest_stratum_individuals_are_the_ontology_ones() {
         "https://blackcatinformatics.ca/gmeow/stratumWholePayload"
     );
 }
+
+/// A profile change must not read as corruption: an envelope recorded under another
+/// canonical profile is refused as a profile mismatch, naming both profiles, BEFORE any
+/// digest is compared (the bytes handed in here would also fail the digests).
+#[test]
+fn an_envelope_recorded_under_another_profile_is_refused_before_its_digests() {
+    let registry = registry();
+    let mut sealed = seal(
+        &registry,
+        &MediumSelection::Authored,
+        &facts("cells-archive", Some("gmeow-core-v1")),
+    )
+    .expect("seal");
+    sealed.canon_profile.profile_version += 1;
+    let recorded = sealed.canon_profile.profile_version;
+    let expected = linked_canon_profile();
+
+    let diag = open(
+        &sealed,
+        &registry,
+        &capabilities(&["zstd-dictionary", "zstd-rsyncable"]),
+        b"different bytes",
+        b"different stratum",
+    )
+    .expect_err("a foreign profile must refuse");
+    assert_eq!(
+        diag.code(),
+        crate::error::MediumProfileMismatch::register(),
+        "{diag}"
+    );
+    let text = diag.to_string();
+    assert!(
+        text.contains(&format!("{}/{recorded}", expected.profile_id)),
+        "{text}"
+    );
+    assert!(
+        text.contains(&format!(
+            "{}/{}",
+            expected.profile_id, expected.profile_version
+        )),
+        "{text}"
+    );
+}

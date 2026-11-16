@@ -306,3 +306,43 @@ fn the_default_form_passes_a_bundle_with_no_records_and_still_refuses_a_stale_on
         assert!(diag.to_string().contains("gmeow-core-v1"), "{diag}");
     }
 }
+
+/// An envelope that records no canonical profile is refused with an actionable message
+/// rather than assumed to match the reader; the same envelope with its marker reads back.
+#[test]
+fn an_unmarked_envelope_is_refused() {
+    let registry = registry();
+    let envelope = seal(
+        &registry,
+        &crate::medium::registry::MediumSelection::Authored,
+        &FrameFacts {
+            frame: "https://e/frame7",
+            rep: "cells-archive",
+            payload: b"payload",
+            stratum_bytes: b"stratum",
+            stratum: DigestStratum::PayloadExcludingMediumEnvelope,
+            dictionary_id: Some("gmeow-core-v1"),
+        },
+    )
+    .expect("seal");
+    let quads = project(&registry, &[], std::slice::from_ref(&envelope)).expect("project");
+
+    let marked = purrdf::dataset_from_quads(&quads).expect("freeze");
+    let read = envelopes(marked.as_ref()).expect("a marked envelope reads back");
+    assert_eq!(read, vec![envelope]);
+
+    let unmarked: Vec<RdfQuad> = quads
+        .into_iter()
+        .filter(|q| {
+            !q.predicate.contains("canonProfile") && !q.predicate.contains("canonPresentation")
+        })
+        .collect();
+    let dataset = purrdf::dataset_from_quads(&unmarked).expect("freeze");
+    let diag = envelopes(dataset.as_ref()).expect_err("an unmarked envelope must refuse");
+    assert_eq!(
+        diag.code(),
+        crate::error::MediumProfileMismatch::register(),
+        "{diag}"
+    );
+    assert!(diag.to_string().contains("regenerate"), "{diag}");
+}

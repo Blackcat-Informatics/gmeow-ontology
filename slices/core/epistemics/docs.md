@@ -122,7 +122,7 @@ spine to a `gmeow:DoxasticState`.
 | `gmeow:epistemicAgent` | The believer (functional, domain `DoxasticState`, range `Agent`). |
 | `gmeow:doxasticContent` | The believed `gmeow:Proposition` (functional). |
 | `gmeow:doxasticClaim` | Links to a `standpoint:StandpointClaim` carrying the qualitative `claimModality`. |
-| `gmeow:credence` | Graded degree-of-belief `[0,1]` as `xsd:decimal` (non-functional). |
+| `gmeow:credence` | Graded degree-of-belief `[0,1]` as `xsd:decimal` (non-functional). A subjective degree of belief, not a `logic:probability` and not a `gmeow:confidence`; read it as a probability only through a declared mapping that names its `logic:probabilityModel`. |
 | `gmeow:DoxasticTenure` | Time-scoped belief-revision history — a `temporal:TimeScopedRelation`. |
 | `gmeow:tenureOfDoxasticState` | The `DoxasticState` whose holding interval the tenure records (functional). |
 
@@ -139,6 +139,8 @@ competing values coexist (Principle 9):
 | support under a standard | `gmeow:supportsUnder` | `gmeow:SupportAssessment` | solver adjudication | how strongly the evidence warrants the content, relative to a named `gmeow:EpistemicStandard` (Principle 12) |
 | adequacy | `gmeow:adequateUnder` | `gmeow:AdequacyAssessment` | solver adjudication | whether that support meets the standard's threshold (`gmeow:meetsThreshold` → `gmeow:AdequacyVerdict`) (Principle 12) |
 | defeat | `gmeow:defeatedBy` / `gmeow:hasDefeatStatus` | `gmeow:Defeater` / `gmeow:JustificationStatus` | structural / solver adjudication | the structural defeater (what defeats — asserted) vs the solver-set verdict flag (the adjudicated outcome, Principle 12) |
+
+The number a solver computes for the support row, `gmeow:supportStrength`, is the assessment-level counterpart of `logic:evidenceStrength`, the canonical evidential-warrant axis. It is neither a probability nor a confidence, and no interval is declared for its values.
 
 The `gmeow:EpistemicStandard` vocabulary names the bar — `gmeow:standardOrdinary`,
 `gmeow:standardScientific`, and the legal `gmeow:standardLegalPreponderance` /
@@ -179,6 +181,11 @@ Revising a belief closes the prior `gmeow:DoxasticTenure` by setting `gmeow:ende
 interval and marks the **tenure** `gmeow:displayable false`. The original `gmeow:DoxasticState` is
 retained as audit. A new `DoxasticState` (and a new open `DoxasticTenure`) records the revised belief.
 This is the same suppression pattern used by `inference:InferenceTenure` (Principle 10).
+
+This is a holder revising its own belief, which stays a global suppression case, and
+`gmeow:WithdrawnDoxasticTenureSuppressionConstraint` concerns exactly that act. Another party's
+dispute of a belief closes no tenure and sets no `gmeow:displayable` value: both stay
+retrievable and a reader's projection decides what is shown.
 
 Example: see `slices/core/epistemics/examples/belief-revision.ttl`.
 

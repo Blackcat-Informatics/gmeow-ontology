@@ -858,3 +858,16 @@ ASK {
         rdfs:subClassOf gmeow:Activity .
 }""" ;
     gmeow:saRationale "gmeow:ObservationalActivity MUST be an owl:Class typed logic:Event and a direct subclass of gmeow:Activity. The subject is defined in the events slice; gmeow:Activity itself is in the provenance slice, so this is a cross-slice structural assertion authored in the subject's owning slice." .
+
+# --- A participation takes no display flag from being disputed (MUST-NOT) ---
+ex:saNoSuppressionConstraintOnParticipationValidity a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:mustNot ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
+ASK {
+    ?constraint a logic:Constraint ; logic:integrity ?root .
+    ?root (logic:forall|logic:exists|logic:not|logic:and|logic:or|logic:antecedent|logic:consequent)* ?formula .
+    ?formula logic:relation gmeow:displayable .
+}""" ;
+    gmeow:saRationale "No constraint in the events module prompts gmeow:displayable false: a participation that is disputed, corrected or whose validity ended is retained, and what a reader is shown is decided at projection (Principles 9 and 10)." .

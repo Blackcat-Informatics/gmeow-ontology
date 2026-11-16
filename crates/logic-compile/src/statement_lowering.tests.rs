@@ -5,7 +5,7 @@ use super::{
     REIFIED_STATEMENT_OBJECT, REIFIED_STATEMENT_PREDICATE, REIFIED_STATEMENT_SUBJECT,
     lower_reifiers,
 };
-use purrdf::RdfTerm;
+use purrdf::{RdfQuad, RdfTerm};
 
 fn parse(ttl: &str) -> std::sync::Arc<purrdf::RdfDataset> {
     purrdf::parse_dataset(ttl.as_bytes(), "text/turtle", None).expect("valid RDF 1.2 Turtle")
@@ -43,24 +43,24 @@ ex:onCallSays rdf:reifies <<( ex:rollback gmeow:strictlyOver ex:hotfix )>> ;
         "https://example.org/cmdrSays",
         "https://example.org/onCallSays",
     ] {
-        let mine: Vec<&(RdfTerm, String, RdfTerm)> = lowering
+        let mine: Vec<&RdfQuad> = lowering
             .rows
             .iter()
-            .filter(|(s, _, _)| matches!(s, RdfTerm::Iri(iri) if iri == reifier))
+            .filter(|row| matches!(&row.subject, RdfTerm::Iri(iri) if iri == reifier))
             .collect();
         assert_eq!(mine.len(), 3, "{reifier} must yield all three components");
         let subject = mine
             .iter()
-            .find(|(_, p, _)| p == REIFIED_STATEMENT_SUBJECT)
-            .map(|(_, _, o)| o.clone());
+            .find(|row| row.predicate == REIFIED_STATEMENT_SUBJECT)
+            .map(|row| row.object.clone());
         let predicate = mine
             .iter()
-            .find(|(_, p, _)| p == REIFIED_STATEMENT_PREDICATE)
-            .map(|(_, _, o)| o.clone());
+            .find(|row| row.predicate == REIFIED_STATEMENT_PREDICATE)
+            .map(|row| row.object.clone());
         let object = mine
             .iter()
-            .find(|(_, p, _)| p == REIFIED_STATEMENT_OBJECT)
-            .map(|(_, _, o)| o.clone());
+            .find(|row| row.predicate == REIFIED_STATEMENT_OBJECT)
+            .map(|row| row.object.clone());
         assert_eq!(
             subject,
             Some(RdfTerm::Iri("https://example.org/rollback".to_owned()))
@@ -108,7 +108,7 @@ ex:nested rdf:reifies <<( ex:a ex:p <<( ex:c ex:q ex:d )>> )>> .
         lowering
             .rows
             .iter()
-            .all(|(s, _, _)| !matches!(s, RdfTerm::Iri(iri) if iri.ends_with("/nested"))),
+            .all(|row| !matches!(&row.subject, RdfTerm::Iri(iri) if iri.ends_with("/nested"))),
         "not one component edge may be emitted for a nested statement: {:?}",
         lowering.rows
     );
@@ -126,4 +126,44 @@ fn a_dataset_with_no_reifier_lowers_to_nothing() {
     let ds = parse("@prefix ex: <https://example.org/> .\nex:a ex:p ex:b .\n");
     let lowering = lower_reifiers(&ds);
     assert!(lowering.rows.is_empty() && lowering.nested.is_empty());
+}
+
+/// An un-folded flat dataset carries a reification as an `rdf:reifies` base quad rather
+/// than in the reifier side table. It is the same RDF graph, so it lowers to the same rows:
+/// a validation view built from flat N-Triples sees the components exactly as one built
+/// from parsed Turtle does.
+#[test]
+fn an_unfolded_rdf_reifies_quad_lowers_exactly_like_its_folded_form() {
+    let folded = parse(
+        r#"
+@prefix rdf:   <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix ex:    <https://example.org/> .
+
+ex:says rdf:reifies <<( ex:a ex:p ex:b )>> .
+ex:nested rdf:reifies <<( ex:a ex:p <<( ex:c ex:q ex:d )>> )>> .
+"#,
+    );
+    let flat = purrdf::flat_dataset_from_quads(&purrdf::flat_rdf_quads_from_dataset(&folded))
+        .expect("the un-folded stream freezes");
+    assert_eq!(
+        flat.owned_reifiers().count(),
+        0,
+        "the flat form must hold the declaration as a base quad"
+    );
+    let from_folded = lower_reifiers(&folded);
+    let from_flat = lower_reifiers(&flat);
+    assert_eq!(from_flat.rows.len(), 3, "{:?}", from_flat.rows);
+    assert_eq!(
+        from_flat
+            .rows
+            .iter()
+            .map(|row| (&row.subject, &row.predicate, &row.object))
+            .collect::<Vec<_>>(),
+        from_folded
+            .rows
+            .iter()
+            .map(|row| (&row.subject, &row.predicate, &row.object))
+            .collect::<Vec<_>>()
+    );
+    assert_eq!(from_flat.nested, from_folded.nested);
 }

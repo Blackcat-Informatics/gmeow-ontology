@@ -767,6 +767,16 @@ fn deep_pass_permitted_glut_stays_green_with_certificate() {
     );
 }
 
+/// A fixed canonical-profile marker for certificate fixtures.
+fn canon_profile_fixture() -> gmeow_logic::certificate::CanonProfileMarker {
+    gmeow_logic::certificate::CanonProfileMarker {
+        profile_id: "fixture-profile".to_owned(),
+        profile_version: 1,
+        presentation_id: "fixture-presentation".to_owned(),
+        presentation_version: 1,
+    }
+}
+
 /// H3 (forbidding side): the SAME glut under a glut-FORBIDDING declared contract
 /// (`ForbidGapAndGlut`) yields an Error-severity ContradictionWitness (gate fails),
 /// and the release-lane certificate build REFUSES (Err) on the same bundle.
@@ -825,6 +835,7 @@ fn deep_pass_forbidden_glut_fails_and_release_refuses() {
         policy,
         "2026-06-28T00:00:00Z",
         projection_loss_codes,
+        canon_profile_fixture(),
     )
     .expect("outcome build");
     assert!(
@@ -1635,4 +1646,65 @@ fn distinct_lines_of_same_constraint_do_not_hash_cons_merge() {
         lines.contains(&10) && lines.contains(&40),
         "both violated line numbers must survive the ledger round-trip; got {lines:?}"
     );
+}
+
+/// INVARIANT: the dev gate's per-example SHACL pass validates each example through its
+/// statement-lowering view. An example authored only as an RDF 1.2 reification reaches the
+/// derived SHACL with its `logic:reifiedStatement*` component edges (the detector reports
+/// exactly when all three are present), and a reification nesting a triple term is named
+/// as a `validate.nested-triple-term-not-lowered` warning against that example.
+#[test]
+fn example_validation_sees_the_lowered_components_of_an_rdf12_example() {
+    let base = parse_dataset(
+        b"@prefix ex: <https://example.org/> . ex:a a ex:Thing .",
+        "text/turtle",
+        None,
+    )
+    .unwrap();
+    let base = gmeow_logic_compile::projections::reader_view::shacl_reader_view(&base).unwrap();
+    let shapes = purrdf::shapes::engine::parse_shapes(
+        r#"@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix ex: <https://example.org/> .
+ex:LoweredComponentsDetector a sh:NodeShape ;
+    sh:targetNode ex:a ;
+    sh:sparql [ sh:message "lowered components present" ; sh:select """
+        SELECT $this WHERE {
+            ?claim <https://blackcatinformatics.ca/logic/reifiedStatementSubject> $this ;
+                <https://blackcatinformatics.ca/logic/reifiedStatementPredicate> <https://example.org/p> ;
+                <https://blackcatinformatics.ca/logic/reifiedStatementObject> <https://example.org/b> .
+        }""" ] .
+"#,
+        None,
+    )
+    .unwrap();
+    let shapes = purrdf::shapes::engine::PreparedShapes::new(Arc::new(shapes));
+    let (_dir, example) = write_tmp(
+        "reified.ttl",
+        "@prefix ex: <https://example.org/> .\n\
+         ex:a ex:p ex:b ~ ex:claim {| ex:by ex:someone |} .\n\
+         ex:quoted <http://www.w3.org/1999/02/22-rdf-syntax-ns#reifies> \
+         <<( ex:a ex:says <<( ex:a ex:p ex:b )>> )>> .\n",
+    );
+    let (findings, _) = run_example_shacl(
+        &base,
+        &shapes,
+        &FailureClassIndex::empty(),
+        &example,
+        "reified",
+    )
+    .unwrap();
+    assert_eq!(
+        findings
+            .iter()
+            .filter(|finding| finding.message.contains("lowered components present"))
+            .count(),
+        1,
+        "{findings:?}"
+    );
+    let nested: Vec<_> = findings
+        .iter()
+        .filter(|finding| finding.code == crate::codes::VALIDATE_NESTED_TRIPLE_TERM_NOT_LOWERED)
+        .collect();
+    assert_eq!(nested.len(), 1, "{findings:?}");
+    assert!(nested[0].message.contains("https://example.org/quoted"));
 }

@@ -6664,6 +6664,16 @@ gmeow_test_batch_macros::batch_mcp_items! {
 
     // ── coherence_certificate (R6) ─────────────────────────────────────────────────
 
+    /// A fixed canonical-profile marker for certificate fixtures.
+    fn canon_profile_fixture() -> gmeow_logic::certificate::CanonProfileMarker {
+        gmeow_logic::certificate::CanonProfileMarker {
+            profile_id: "fixture-profile".to_owned(),
+            profile_version: 1,
+            presentation_id: "fixture-presentation".to_owned(),
+            presentation_version: 1,
+        }
+    }
+
     /// A consistent native [`ReasoningResult`], with the given evaluation/completeness
     /// axes and optional certified fragment — the minimum a coherence outcome reads.
     fn coherence_result(
@@ -6759,6 +6769,7 @@ gmeow_test_batch_macros::batch_mcp_items! {
             ContradictionPolicy::ForbidGapAndGlut,
             "1970-01-01T00:00:00Z",
             std::collections::BTreeSet::new(),
+            canon_profile_fixture()
         )
         .unwrap();
         assert!(outcome.issues_certificate(), "the fixture must certify");
@@ -6819,6 +6830,7 @@ gmeow_test_batch_macros::batch_mcp_items! {
             ContradictionPolicy::ForbidGapAndGlut,
             "1970-01-01T00:00:00Z",
             std::collections::BTreeSet::new(),
+            canon_profile_fixture()
         )
         .unwrap();
         assert!(!outcome.issues_certificate());
@@ -6868,6 +6880,7 @@ gmeow_test_batch_macros::batch_mcp_items! {
             ContradictionPolicy::ForbidGapAndGlut,
             "1970-01-01T00:00:00Z",
             std::collections::BTreeSet::new(),
+            canon_profile_fixture()
         )
         .unwrap();
         let b = CoherenceOutcome::from_reasoning_result(
@@ -6881,6 +6894,7 @@ gmeow_test_batch_macros::batch_mcp_items! {
             ContradictionPolicy::ForbidGapAndGlut,
             "1970-01-01T00:00:00Z",
             std::collections::BTreeSet::new(),
+            canon_profile_fixture()
         )
         .unwrap();
         let both = format!("{}{}", a.to_nquads(graph), b.to_nquads(graph));
@@ -6917,6 +6931,7 @@ gmeow_test_batch_macros::batch_mcp_items! {
             ContradictionPolicy::ForbidGapAndGlut,
             "1970-01-01T00:00:00Z",
             std::collections::BTreeSet::new(),
+            canon_profile_fixture()
         )
         .unwrap();
         let nquads = outcome.to_nquads(graph);
@@ -6974,6 +6989,7 @@ gmeow_test_batch_macros::batch_mcp_items! {
             ContradictionPolicy::ForbidGapAndGlut,
             "1970-01-01T00:00:00Z",
             std::collections::BTreeSet::new(),
+            canon_profile_fixture()
         )
         .unwrap();
         assert!(
@@ -6993,6 +7009,10 @@ gmeow_test_batch_macros::batch_mcp_items! {
             "engine",
             "contradictionPolicy",
             "summarizesResult",
+            "canonProfileId",
+            "canonProfileVersion",
+            "canonPresentationId",
+            "canonPresentationVersion",
             "certifiedFragment",
             "resultCompleteness",
             "resultEvaluation",
@@ -7048,6 +7068,7 @@ gmeow_test_batch_macros::batch_mcp_items! {
             ContradictionPolicy::ForbidGapAndGlut,
             "1970-01-01T00:00:00Z",
             std::collections::BTreeSet::new(),
+            canon_profile_fixture()
         )
         .unwrap();
 

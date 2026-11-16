@@ -68,3 +68,15 @@ ASK {
         rdfs:subClassOf gmeow:Event .
 }""" ;
     gmeow:saRationale "gmeow:Activity MUST be an owl:Class typed logic:Event and a direct subclass of gmeow:Event. The subject is defined in the provenance slice; gmeow:Event itself is in the events slice, so this is a cross-slice structural assertion authored in the subject's owning slice." .
+
+# --- 4. gmeow:confidence instantiates no framework (MUST-NOT) --
+ex:saConfidenceDeclaresNoFramework a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:mustNot ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saFailWitness "tests/counter-examples/confidence-framework.ttl" ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
+ASK {
+    gmeow:confidence logic:instantiatesFramework ?framework .
+}""" ;
+    gmeow:saRationale "gmeow:confidence MUST NOT instantiate any logic: framework. Its canonical owner logic:confidence declares none: a confidence says how sure an asserter is of a statement, and it is metadata about a claim, not reasoning machinery. Declaring the probabilistic framework would present every confidence as a probability over a declared logic:ProbabilityModel (Principle 19), and declaring the epistemic framework would classify it into a discipline its owner does not claim. An explicit mapping to logic:probability with a model is the only route from a confidence to a probability. The fail-witness supplies a banned declaration and the ban holds over it. Declarations authored in another slice are outside the reach of a module-scope assertion." .

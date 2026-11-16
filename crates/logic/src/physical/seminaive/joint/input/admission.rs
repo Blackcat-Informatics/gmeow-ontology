@@ -15,7 +15,8 @@ use crate::physical::chase::{
     ChaseAdmission, ExistentialRule, Ladder, StatementRule, firing_statements, join,
 };
 use crate::physical::effects::{
-    ProducerEffect, StatementPattern, WorldProducerEffect, value_flow::ValueFlow,
+    ProducerEffect, StatementPattern, WorldProducerEffect,
+    value_flow::{InterningCut, ValueFlow},
 };
 use crate::physical::store::RelationStore;
 use crate::rule_ir::{EvalAtom, EvalRule, EvalTerm, Fact, Solution};
@@ -34,7 +35,10 @@ const MAX_BYTES: usize = 128 << 20;
 /// value cells, so more rows than this cannot sharpen it further.
 const ENRICHMENT_ROWS: usize = 4096;
 const ENRICHMENT_BYTES: usize = 1 << 20;
-/// The retained template rule metadata a cacheable joint template may carry.
+/// The exact value cells source-constant enrichment may intern.
+const ENRICHMENT_VALUE_CELLS: usize = 512;
+/// The retained template rule metadata a cacheable joint template may carry. It bounds
+/// what is retained between runs only; it never decides whether a certificate is tried.
 pub(super) const CACHEABLE_BYTES: usize = 1 << 20;
 
 /// Retained rule metadata only; no source facts or per-world closure is cached.
@@ -188,6 +192,7 @@ impl Template {
         let mut selected = Vec::new();
         let mut enrichment = Some(Vec::new());
         let mut enrichment_bytes = 0usize;
+        let mut selector_rows = 0usize;
         let mut retained = 0usize;
         let mut per_predicate: BTreeMap<&str, usize> = BTreeMap::new();
         let mut bytes = 0usize;
@@ -211,6 +216,7 @@ impl Template {
                 // its own bound; past it the enrichment reads the immutable rows only,
                 // the same coarsening the 512-cell interning cap already applies.
                 enrichment_bytes = enrichment_bytes.saturating_add(size.1);
+                selector_rows += 1;
                 if let Some(rows) = &mut enrichment {
                     if rows.len() < ENRICHMENT_ROWS && enrichment_bytes <= ENRICHMENT_BYTES {
                         rows.push(fact);
@@ -264,6 +270,8 @@ impl Template {
             predicates,
             facts: selected,
             enrichment,
+            selector_rows,
+            selector_bytes: enrichment_bytes,
             closable: closable_rows
                 .map(|facts| Closable { candidates, facts })
                 .ok_or(EvidenceGap::ClosureSourceBound {
@@ -285,38 +293,57 @@ impl Template {
         external: &[WorldProducerEffect],
         semantics: SemanticVocabulary,
     ) -> gmeow_errors::Result<Result<ChaseAdmission, EvidenceGap>> {
-        let Settled { admission, notes } =
-            match self.certify_settled(evidence, facts, possible, external, semantics)? {
-                Ok(settled) => settled,
-                Err(reason) => return Ok(Err(reason)),
-            };
+        let Settled {
+            admission,
+            mut notes,
+        } = match self.certify_settled(evidence, facts, possible, external, semantics)? {
+            Ok(settled) => settled,
+            Err(reason) => return Ok(Err(reason)),
+        };
         if admission.admits_native() {
             return Ok(Ok(admission));
         }
-        let refused = |mut admission: ChaseAdmission| {
-            if let ChaseAdmission::Uncertified { violations } = &mut admission {
-                for (index, note) in notes.iter().enumerate() {
-                    violations.insert(index, note.clone());
+        // Derived selector edges need not be immutable to have a finite value
+        // domain. Reuse the same abstract interpreter, with at most 512 exact
+        // value cells. This never executes a concrete closure or lowers a rule.
+        // The rows supplied to the interner are the enrichment rows when every selector row
+        // was kept, else the proved-immutable rows; the note counts the ones supplied.
+        let source_rows = evidence.enrichment.as_ref().unwrap_or(&evidence.facts);
+        let enriched = flow.with_source_constants(
+            source_rows
+                .iter()
+                .copied()
+                .chain(possible.iter().map(|(_, fact)| fact)),
+            ENRICHMENT_VALUE_CELLS,
+        );
+        // The source-selected metadata flow remains a sound finite refinement
+        // when interning every other source value would exceed the analysis cap. Either
+        // coarsening can leave a program refused that a finer flow would certify, so a
+        // refusal names it.
+        if evidence.enrichment.is_none() {
+            notes.push(enrichment_rows_note(
+                evidence.selector_rows,
+                evidence.selector_bytes,
+            ));
+        }
+        if let Err(cut) = &enriched {
+            notes.push(interning_note(
+                cut,
+                evidence.enrichment.is_some(),
+                source_rows.len(),
+                possible.len(),
+            ));
+        }
+        let enriched = enriched.as_ref().unwrap_or(flow);
+        // Each bound that kept a finer analysis from completing is named on the refusal.
+        let refused = |mut admission: ChaseAdmission, extra: Option<String>| {
+            if let ChaseAdmission::Uncertified { bounds, .. } = &mut admission {
+                for (index, note) in notes.iter().chain(extra.as_ref()).enumerate() {
+                    bounds.insert(index, note.clone());
                 }
             }
             admission
         };
-        // Derived selector edges need not be immutable to have a finite value
-        // domain. Reuse the same abstract interpreter, with at most 512 exact
-        // value cells. This never executes a concrete closure or lowers a rule.
-        let enriched = flow.with_source_constants(
-            evidence
-                .enrichment
-                .as_ref()
-                .unwrap_or(&evidence.facts)
-                .iter()
-                .copied()
-                .chain(possible.iter().map(|(_, fact)| fact)),
-            512,
-        );
-        // The source-selected metadata flow remains a sound finite refinement
-        // when interning every other source value would exceed the analysis cap.
-        let enriched = enriched.as_ref().unwrap_or(flow);
         let bindings = enriched.finite_bindings_with_patterns(
             facts
                 .values()
@@ -345,7 +372,14 @@ impl Template {
             }) else {
                 // The decided first-pass certificate stands when the finer
                 // enumeration cannot complete.
-                return Ok(Ok(refused(admission)));
+                return Ok(Ok(refused(
+                    admission,
+                    Some(format!(
+                        "the source-enumerated second pass was not attempted: rule {} has more \
+                         than {MAX_BINDINGS} value bindings",
+                        rule.name
+                    )),
+                )));
             };
             for ordinal in 0..count {
                 let mut cursor = ordinal;
@@ -361,7 +395,16 @@ impl Template {
                     source_facts: Vec::new(),
                 };
                 if !push_analysis(&mut analysis, &mut bytes, rule, &solution, &[]) {
-                    return Ok(Ok(refused(admission)));
+                    return Ok(Ok(refused(
+                        admission,
+                        Some(format!(
+                            "the source-enumerated second pass stopped at rule {} after {} \
+                             specialized statements ({bytes} bytes): its bound is {MAX_BINDINGS} \
+                             statements and {MAX_BYTES} bytes",
+                            rule.name,
+                            analysis.len()
+                        )),
+                    )));
                 }
             }
         }
@@ -372,11 +415,10 @@ impl Template {
         );
         let seeds = firing_seeds(facts, possible, external, semantics);
         let firing = firing_statements(&analysis, seeds.as_ref(), semantics);
-        Ok(Ok(refused(ChaseAdmission::certify_statements(
-            &firing,
-            semantics,
-            Ladder::Complete,
-        ))))
+        Ok(Ok(refused(
+            ChaseAdmission::certify_statements(&firing, semantics, Ladder::Complete),
+            None,
+        )))
     }
 
     /// The first pass: specialize every producer on its settled (immutable or
@@ -402,11 +444,17 @@ impl Template {
             Ok(closable) => self.close(evidence, closable, semantics)?,
             Err(reason) => Err(reason.clone()),
         };
-        let (closure, rel, list_cells_bound) = closed.unwrap_or_else(|reason| {
+        let (closure, rel, list_cells) = closed.unwrap_or_else(|reason| {
             notes.push(format!("witness-free relations were not closed: {reason}"));
             let (rel, cells) = Self::store(evidence, &[], semantics);
             (Closure::empty(), rel, cells)
         });
+        // Whichever store the analysis joins, a list-cell binding that reached its bound
+        // left member cells unconstrained, which is coarser and is named.
+        if let Some(note) = list_cells.note() {
+            notes.push(note);
+        }
+        let list_cells_bound = list_cells.is_bound();
         let analysis = match self.specialize_all(
             &rel,
             &evidence.predicates,
@@ -450,12 +498,12 @@ impl Template {
     }
 
     /// The proved-immutable rows, with `extra` rows, as one join store. Returns
-    /// whether list member cells were bound to the cells of their own lists.
+    /// how list member cells were bound to the cells of their own lists.
     fn store(
         evidence: &Evidence<'_>,
         extra: &[&Fact],
         semantics: SemanticVocabulary,
-    ) -> (RelationStore, bool) {
+    ) -> (RelationStore, ListCells) {
         let mut rel = RelationStore::with_semantics(semantics);
         for fact in evidence.facts.iter().chain(extra) {
             rel.insert(&fact.predicate, &fact.subject, &fact.object);
@@ -463,11 +511,18 @@ impl Template {
         // A list operator reads members of ITS list. When list structure is proved
         // immutable, bind each member cell to the cells reachable from that list
         // head, instead of to every cell of every list.
-        let list_cells_bound = [LIST_FIRST, LIST_REST]
+        let proved = [LIST_FIRST, LIST_REST]
             .iter()
-            .all(|predicate| evidence.predicates.contains(semantics.predicate(predicate)))
-            && bind_list_cells(&mut rel, &evidence.facts, semantics);
-        (rel, list_cells_bound)
+            .all(|predicate| evidence.predicates.contains(semantics.predicate(predicate)));
+        let list_cells = if !proved {
+            ListCells::Unproved
+        } else {
+            match bind_list_cells(&mut rel, &evidence.facts, semantics) {
+                Ok(()) => ListCells::Bound,
+                Err(associations) => ListCells::Cut { associations },
+            }
+        };
+        (rel, list_cells)
     }
 
     /// Whether a body atom reads only an immutable or closed relation.
@@ -521,7 +576,7 @@ impl Template {
         evidence: &Evidence<'_>,
         closable: &Closable<'_>,
         semantics: SemanticVocabulary,
-    ) -> gmeow_errors::Result<Result<(Closure, RelationStore, bool), EvidenceGap>> {
+    ) -> gmeow_errors::Result<Result<(Closure, RelationStore, ListCells), EvidenceGap>> {
         let mut closure = closable.candidates.clone();
         loop {
             let rows: Vec<&Fact> = closable
@@ -545,7 +600,12 @@ impl Template {
                 .iter()
                 .enumerate()
                 .filter(|(_, rule)| Self::eligible(rule, &evidence.predicates, &closure, semantics))
-                .map(|(index, rule)| (index, join_atoms(rule, &vec![true; rule.body.len()], cells)))
+                .map(|(index, rule)| {
+                    (
+                        index,
+                        join_atoms(rule, &vec![true; rule.body.len()], cells.is_bound()),
+                    )
+                })
                 .collect();
             if let Err(reason) = derive(&mut store, &self.rules, &eligible, &closure, semantics)? {
                 return Ok(Err(reason));
@@ -740,15 +800,63 @@ fn push_analysis(
     true
 }
 
-/// Why an input's specific termination certificate was not attempted. The
+/// The note for source-constant enrichment that read the proved-immutable rows only.
+fn enrichment_rows_note(selector_rows: usize, selector_bytes: usize) -> String {
+    format!(
+        "source-constant enrichment read the proved-immutable rows only: {selector_rows} \
+         selector rows ({selector_bytes} bytes) exceed its {ENRICHMENT_ROWS}-row / \
+         {ENRICHMENT_BYTES}-byte bound"
+    )
+}
+
+/// The note for source-constant enrichment abandoned because the value universe passed its
+/// cell bound, so the second pass used the coarser flow without the supplied rows. The note
+/// says the bound coarsened the analysis, so a finer one might have decided; it does not say
+/// the bound caused the refusal it is attached to. `cut.cells` is the universe size at the
+/// cut and `cut.flow_cells` the part the flow already held before any supplied row;
+/// `cut.rows_interned` counts the supplied rows the interner had begun when it stopped. When
+/// it is zero the note says no row was begun; otherwise the note says the last begun row may
+/// be only in part, since the cut can fall inside a row or on its boundary. `row_count` and
+/// `possible` are the rows supplied: `row_count` selector rows, then `possible` possible
+/// facts. `all_selector_rows` says whether those selector rows were every selector row or only the
+/// proved-immutable ones.
+fn interning_note(
+    cut: &InterningCut,
+    all_selector_rows: bool,
+    row_count: usize,
+    possible: usize,
+) -> String {
+    let rows = if all_selector_rows {
+        "selector rows"
+    } else {
+        "proved-immutable rows"
+    };
+    let supplied = row_count + possible;
+    let progress = if cut.rows_interned == 0 {
+        format!("the interner stopped before beginning any of the {supplied} rows supplied")
+    } else {
+        format!(
+            "the interner stopped with {} of the {supplied} rows supplied begun, the last \
+             possibly only in part",
+            cut.rows_interned
+        )
+    };
+    format!(
+        "source-constant enrichment was abandoned: the value universe passed its \
+         {ENRICHMENT_VALUE_CELLS}-value-cell interning bound at {} cells, of which {} were \
+         already held by the flow before any supplied row, and {progress} \
+         ({row_count} {rows}, then {possible} possible fact(s))",
+        cut.cells, cut.flow_cells
+    )
+}
+
+/// Why an input's specific termination certificate was not decided. The
 /// source-independent template certificate then decides alone, and a refusal
 /// names this gap rather than presenting the template's ledger as the input's.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub(super) enum EvidenceGap {
     /// No input-specific observation was supplied.
     Unobserved,
-    /// The retained rule metadata exceeds the cacheable bound.
-    Uncacheable { metadata_bytes: usize },
     /// The proved-immutable selector rows exceed the analysis bound.
     Bound {
         facts: usize,
@@ -777,11 +885,6 @@ impl std::fmt::Display for EvidenceGap {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
             Self::Unobserved => f.write_str("no input-specific evidence was observed"),
-            Self::Uncacheable { metadata_bytes } => write!(
-                f,
-                "the joint template's rule metadata ({metadata_bytes} bytes) exceeds the \
-                 {CACHEABLE_BYTES}-byte cacheable bound"
-            ),
             Self::Bound {
                 facts,
                 bytes,
@@ -834,8 +937,10 @@ impl gmeow_errors::DiagKind for EvidenceGap {
 }
 
 impl EvidenceGap {
-    pub(super) fn uncacheable(metadata_bytes: usize) -> Self {
-        Self::Uncacheable { metadata_bytes }
+    /// Whether an analysis bound, rather than an absent observation, left the
+    /// input-specific certificate undecided.
+    pub(super) fn is_bound(&self) -> bool {
+        !matches!(self, Self::Unobserved)
     }
 }
 
@@ -844,6 +949,9 @@ pub(super) struct Evidence<'a> {
     facts: Vec<&'a Fact>,
     /// Every selector row for source-constant enrichment, when within bound.
     enrichment: Option<Vec<&'a Fact>>,
+    /// The selector rows and bytes the enrichment bound was measured against.
+    selector_rows: usize,
+    selector_bytes: usize,
     /// The candidate closed relations and their source rows, or why they exceed
     /// the analysis bound.
     closable: Result<Closable<'a>, EvidenceGap>,
@@ -868,7 +976,11 @@ fn specialize(
     };
     let substitute = |atom: &[EvalTerm; 3]| atom.each_ref().map(substitute_term);
     StatementRule {
-        name: format!("{}:immutable-binding:{ordinal}", rule.name),
+        name: format!(
+            "{}{}{ordinal}",
+            rule.name,
+            crate::physical::chase::SPECIALIZATION_MARK
+        ),
         body: rule
             .body
             .iter()
@@ -898,14 +1010,15 @@ fn specialize(
 
 /// Add `(head, cell)` admission rows for every cell reachable through `rdf:rest`
 /// from every cell, so a list operator bound to any head (shared tails included)
-/// reads exactly its own cells. Returns `false`, adding nothing, when the rows would
-/// exceed the analysis bound; member cells then stay unconstrained, which is coarser
-/// but still covers every firing.
+/// reads exactly its own cells. Returns `Err` with the association count reached, adding
+/// nothing, when the rows would exceed the analysis bound: the walk stops at the first
+/// component that crosses it, so the count is a lower bound on the full one. Member cells
+/// then stay unconstrained, which is coarser but still covers every firing.
 fn bind_list_cells(
     rel: &mut RelationStore,
     facts: &[&Fact],
     semantics: SemanticVocabulary,
-) -> bool {
+) -> Result<(), usize> {
     let first = semantics.predicate(LIST_FIRST);
     let rest = semantics.predicate(LIST_REST);
     let mut cells = BTreeSet::new();
@@ -919,7 +1032,7 @@ fn bind_list_cells(
         }
     }
     if cells.is_empty() {
-        return true;
+        return Ok(());
     }
     // Discover the union of all heads' reachable nodes once. Incoming or
     // disconnected rest-only components cannot contribute a head/cell row.
@@ -978,15 +1091,12 @@ fn bind_list_cells(
                 Arc::make_mut(&mut known).extend(reachable[tail].iter().copied());
             }
         }
-        let Some(total) = members[current]
+        let total = members[current]
             .len()
-            .checked_mul(known.len())
-            .and_then(|added| rows.checked_add(added))
-        else {
-            return false;
-        };
+            .saturating_mul(known.len())
+            .saturating_add(rows);
         if total > MAX_BINDINGS {
-            return false;
+            return Err(total);
         }
         rows = total;
         reachable[current] = known;
@@ -997,10 +1107,43 @@ fn bind_list_cells(
             rel.insert(LIST_CELL, head, nodes[cell]);
         }
     }
-    true
+    Ok(())
 }
 
-/// The first-pass certificate and the notes a refusal must carry.
+/// How the join store related list member cells to the cells of their own lists.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+enum ListCells {
+    /// Each list head is bound to the cells reachable from it.
+    Bound,
+    /// List structure was not proved immutable, so no binding was attempted.
+    Unproved,
+    /// The binding reached its analysis bound and was dropped; member cells are
+    /// unconstrained. `associations` is the head/cell association count at the stop.
+    Cut { associations: usize },
+}
+
+impl ListCells {
+    fn is_bound(self) -> bool {
+        self == Self::Bound
+    }
+
+    /// The bound note for a binding that reached its bound. It says the bound coarsened
+    /// the analysis, so a finer one might have decided; it does not say the bound caused
+    /// the refusal it is attached to. The walk stops at the first list component that
+    /// crosses the bound, so `associations` is a lower bound on the full count.
+    fn note(self) -> Option<String> {
+        let Self::Cut { associations } = self else {
+            return None;
+        };
+        Some(format!(
+            "list member cells were left unconstrained: binding each list head to the cells of \
+             its own list stopped at {associations} head/cell associations, past its \
+             {MAX_BINDINGS}-association bound (the full count is at least that)"
+        ))
+    }
+}
+
+/// The first-pass certificate and the analysis-bound notes a refusal must carry.
 pub(super) struct Settled {
     pub(super) admission: ChaseAdmission,
     notes: Vec<String>,

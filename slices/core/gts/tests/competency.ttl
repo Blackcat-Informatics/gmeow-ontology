@@ -46,6 +46,7 @@ ex:cqMediumFailureClasses a gmeow:CompetencyQuestion ;
         ex:rowFailure09 ,
         ex:rowFailure10 ,
         ex:rowFailure11 ,
+        ex:rowFailure12 ,
         ex:rowFailureUnpinnedStore ,
         ex:rowFailureBundleUnreadable ,
         ex:rowFailureBundleUnparsable ,
@@ -126,6 +127,10 @@ ex:rowFailure11 a gmeow:ExpectedRow ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "failure" ; gmeow:cellValueIri gmeow:MediumUnknownSchema ] ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "gate" ; gmeow:cellValueIri logic:MediumSchemaMediumFunctionalityConstraint ] ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "family" ; gmeow:cellValueIri gmeow:GtsConformanceFailure ] .
+ex:rowFailure12 a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "failure" ; gmeow:cellValueIri gmeow:MediumProfileMismatch ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "gate" ; gmeow:cellValueIri logic:MediumCanonProfileFormConstraint ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "family" ; gmeow:cellValueIri gmeow:GtsConformanceFailure ] .
 
 # =========================================================================== #
 # 2. What is each medium-axis record OBLIGED to carry?                        #
@@ -172,6 +177,10 @@ ex:cqMediumRecordContracts a gmeow:CompetencyQuestion ;
         ex:rowContract33 ,
         ex:rowContract34 ,
         ex:rowContract35 ,
+        ex:rowContractCanonPresentationId ,
+        ex:rowContractCanonPresentationVersion ,
+        ex:rowContractCanonProfileId ,
+        ex:rowContractCanonProfileVersion ,
         ex:rowContract36 ,
         ex:rowContract37 ,
         ex:rowContract38 ,
@@ -289,6 +298,18 @@ ex:rowContract34 a gmeow:ExpectedRow ;
 ex:rowContract35 a gmeow:ExpectedRow ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "record" ; gmeow:cellValueIri gmeow:MediumEnvelope ] ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "coordinate" ; gmeow:cellValueIri gmeow:strataDigest ] .
+ex:rowContractCanonPresentationId a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "record" ; gmeow:cellValueIri gmeow:MediumEnvelope ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "coordinate" ; gmeow:cellValueIri gmeow:canonPresentationId ] .
+ex:rowContractCanonPresentationVersion a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "record" ; gmeow:cellValueIri gmeow:MediumEnvelope ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "coordinate" ; gmeow:cellValueIri gmeow:canonPresentationVersion ] .
+ex:rowContractCanonProfileId a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "record" ; gmeow:cellValueIri gmeow:MediumEnvelope ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "coordinate" ; gmeow:cellValueIri gmeow:canonProfileId ] .
+ex:rowContractCanonProfileVersion a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "record" ; gmeow:cellValueIri gmeow:MediumEnvelope ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "coordinate" ; gmeow:cellValueIri gmeow:canonProfileVersion ] .
 ex:rowContract36 a gmeow:ExpectedRow ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "record" ; gmeow:cellValueIri gmeow:PayloadSchema ] ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "coordinate" ; gmeow:cellValueIri gmeow:payloadSchemaId ] .

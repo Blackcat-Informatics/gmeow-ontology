@@ -243,7 +243,11 @@ impl Tier1Shapes {
         // bundle's TBox. See the `ontology` field doc for why this is necessary.
         let dataset = inject_subclass_shortcuts(dataset, &self.ontology)?;
 
-        let shacl_report = store::shacl_validate_dataset(&dataset, &self.shapes);
+        // The SHACL door validates the statement-lowering view of this graph; the residue it
+        // could not lower is named as warnings below rather than passing unremarked.
+        let validation = store::shacl_validate_dataset(&dataset, &self.shapes)?;
+        let nested_findings = validation.nested_findings(Some(origin));
+        let shacl_report = validation.report;
 
         // Split the advisory tier out of the raw SHACL results BEFORE building the flat
         // findings: an Info-severity result whose source shape carries a
@@ -271,7 +275,7 @@ impl Tier1Shapes {
         let discipline_findings = gufo::reasoning_findings(&dataset, &cfg);
 
         let mut report = Report::new("validate");
-        for finding in shacl_findings {
+        for finding in shacl_findings.into_iter().chain(nested_findings) {
             report.add_finding(finding);
         }
         for mut f in discipline_findings {
@@ -391,7 +395,8 @@ pub fn shacl_report_via_ledger(
 
     let tier1 = Tier1Shapes::from_gts(gts_bytes)?;
     let dataset = data_dataset_flat(data_bytes, data_format)?;
-    let shacl_report = store::shacl_validate_dataset(&dataset, &tier1.shapes);
+    let validation = store::shacl_validate_dataset(&dataset, &tier1.shapes)?;
+    let shacl_report = &validation.report;
 
     // The single carrier: every SHACL result interns onto ONE hash-consed ledger via
     // the ledger-native `diag_from_shacl` (which carries the result-path / offending
@@ -404,7 +409,11 @@ pub fn shacl_report_via_ledger(
             StageId::new("validate.data.shacl"),
         );
     }
-    Ok(ledger.project_report(tool))
+    let mut report = ledger.project_report(tool);
+    for finding in validation.nested_findings(None) {
+        report.add_finding(finding);
+    }
+    Ok(report)
 }
 
 /// Run Tier-1 conformance and return the [`Report`] as a JSON string — the

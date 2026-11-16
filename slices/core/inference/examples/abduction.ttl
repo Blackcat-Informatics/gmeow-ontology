@@ -19,7 +19,7 @@
 # candidate hypotheses compete (gmeow:competesWith); each is scored by a
 # solver-layer gmeow:explanatoryScore (Principle 12 — there is no isBest bit).
 # The winner's modality is promoted gmeow:conceivable -> gmeow:probable; the
-# loser is SUPPRESSED (gmeow:displayable false), never deleted (Principle 10).
+# loser stays at gmeow:conceivable, retrievable and never deleted (Principle 10).
 
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
 @prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/inference/> .
@@ -54,7 +54,7 @@ ex:hypInfluenza a gmeow:StandpointClaim ;
     gmeow:explanatoryScore "0.86"^^xsd:decimal ; # solver-layer (Principle 12)
     gmeow:competesWith ex:hypCold .              # symmetric; irreflexive by SHACL
 
-# Loser: common cold — a weaker explanation of a high fever; SUPPRESSED.
+# Loser: common cold — a weaker explanation of a high fever; it loses the ranking and stays at conceivable, retrievable.
 ex:hypCold a gmeow:StandpointClaim ;
     rdfs:label "Hypothesis: common cold (rejected, retained as audit)"@x-gmeow-english ;
     gmeow:vantage ex:clinician ;
@@ -62,8 +62,7 @@ ex:hypCold a gmeow:StandpointClaim ;
     gmeow:observationMethod gmeow:methodExpertJudgement ;
     gmeow:claimModality gmeow:conceivable ;      # never promoted
     gmeow:explains ex:fever ;
-    gmeow:explanatoryScore "0.41"^^xsd:decimal ;
-    gmeow:displayable false .                    # Principle 10: suppressed, not erased
+    gmeow:explanatoryScore "0.41"^^xsd:decimal .  # no display flag: losing the ranking sets none (Principle 10)
 
 # --- The reified argument (endurant relator) -------------------------------- #
 ex:abductiveCommitment a gmeow:InferenceCommitment ;

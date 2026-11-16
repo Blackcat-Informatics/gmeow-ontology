@@ -524,14 +524,57 @@ fn certify_cyclic_restriction_is_uncertified() {
     let cyclic = restriction_rule("http://ex/rule/cyclic", D, P, D);
     let admission = ChaseAdmission::certify(&[cyclic]);
     match admission {
-        ChaseAdmission::Uncertified { violations } => {
+        ChaseAdmission::Uncertified { violations, .. } => {
             assert!(!violations.is_empty());
-            assert!(violations[0].contains("lies in a cycle"));
+            assert!(
+                violations
+                    .iter()
+                    .any(|reason| reason.contains("<http://ex/rule/cyclic>")
+                        && reason.contains("cycle")),
+                "the refusal names the rule on the cycle: {violations:?}"
+            );
         }
         certified => {
             panic!("cyclic D⊑∃p.D must NOT certify by any class, got: {certified:?}")
         }
     }
+}
+
+#[test]
+fn a_refusal_naming_many_cyclic_rules_stays_bounded_and_names_every_rule() {
+    // Forty self-feeding rules: one reason each would be forty reasons. The reasons are
+    // grouped by rule and capped, and the rules past the cap are still all named.
+    let rules: Vec<_> = (0..40)
+        .map(|index| restriction_rule(&format!("http://ex/rule/cyclic{index:02}"), D, P, D))
+        .collect();
+    let ChaseAdmission::Uncertified { violations, .. } = ChaseAdmission::certify(&rules) else {
+        panic!("self-feeding rules must not certify");
+    };
+    let weak: Vec<_> = violations
+        .iter()
+        .filter(|reason| reason.starts_with("weak-acyclicity"))
+        .collect();
+    assert!(weak.len() <= REPORTED_RULES + 1, "{} reasons", weak.len());
+    for index in 0..40 {
+        let rule = format!("<http://ex/rule/cyclic{index:02}>");
+        assert!(
+            weak.iter().any(|reason| reason.contains(&rule)),
+            "{rule} is named: {weak:?}"
+        );
+    }
+    // The rule past the cap (the seventeenth, sorted by identity) is named with its head
+    // relation exactly as the first sixteen are, not by identity alone.
+    let seventeenth = format!("<http://ex/rule/cyclic{REPORTED_RULES:02}> with head relations [");
+    let listed = weak
+        .iter()
+        .find_map(|reason| reason.split_once(&seventeenth).map(|(_, rest)| rest))
+        .and_then(|rest| rest.split_once(']'))
+        .map(|(relations, _)| relations)
+        .unwrap_or_else(|| panic!("the seventeenth rule carries a relation list: {weak:?}"));
+    assert!(
+        listed.contains(&format!("<{P}>")),
+        "the seventeenth rule's head relations include p: {listed}"
+    );
 }
 
 #[test]
@@ -886,7 +929,7 @@ fn certify_model_summarizing_non_vacuous_beyond_structural() {
         ChaseAdmission::certify_super_weak_acyclic(&prog).is_none(),
         "super-weak acyclicity must refuse the swap-diagonal program"
     );
-    match ChaseAdmission::certify_model_summarizing(&prog) {
+    match ChaseAdmission::certify_model_summarizing(&prog).ok() {
         Some(ChaseAdmission::ModelSummarizingAcyclic { .. }) => {}
         other => panic!("MSA must certify the swap-diagonal program, got {other:?}"),
     }
@@ -900,7 +943,7 @@ fn certify_model_summarizing_non_vacuous_beyond_structural() {
 fn certify_msa_runs_the_engine_fixpoint() {
     // The self-hosting actually executed the engine's own fixpoint over a non-empty
     // critical instance (not a syntactic shortcut).
-    match ChaseAdmission::certify_model_summarizing(&model_summarizing_beyond_structural()) {
+    match ChaseAdmission::certify_model_summarizing(&model_summarizing_beyond_structural()).ok() {
         Some(ChaseAdmission::ModelSummarizingAcyclic { evidence }) => assert!(
             !evidence.contains("0 critical-instance fact"),
             "MSA must run the engine fixpoint over a non-empty critical instance: {evidence}"
@@ -933,16 +976,20 @@ fn certify_msa_refuses_oversized_critical_instance_without_materializing() {
             .collect()
     };
     // Small domain: MSA certifies (the fixpoint actually runs, no self-dependency).
-    match ChaseAdmission::certify_model_summarizing(&build(3)) {
+    match ChaseAdmission::certify_model_summarizing(&build(3)).ok() {
         Some(ChaseAdmission::ModelSummarizingAcyclic { .. }) => {}
         other => panic!("a small acyclic invent program must certify as MSA, got {other:?}"),
     }
     // Oversized domain (> 1024 constants ⇒ predicates × domain² > 1 << 20): the cap
     // refuses before materialization. This returns near-instantly; a pre-cap build
     // would allocate millions of facts.
+    let refused = ChaseAdmission::certify_model_summarizing(&build(1100));
+    let Err(MsaRefusal::Bound(bound)) = refused else {
+        panic!("an oversized critical instance must refuse and name its bound: {refused:?}");
+    };
     assert!(
-        ChaseAdmission::certify_model_summarizing(&build(1100)).is_none(),
-        "an oversized critical instance must conservatively refuse (None), not OOM/hang"
+        bound.contains("critical instance") && bound.contains("1048576-fact bound"),
+        "{bound}"
     );
 }
 
@@ -969,7 +1016,7 @@ fn certify_cyclic_defeats_msa() {
     // refuses, and the ladder falls through to Uncertified.
     let cyclic = vec![restriction_rule("http://ex/rule/cyclic", D, P, D)];
     assert!(
-        ChaseAdmission::certify_model_summarizing(&cyclic).is_none(),
+        ChaseAdmission::certify_model_summarizing(&cyclic) == Err(MsaRefusal::Refused),
         "MSA must refuse the self-cycle D ⊑ ∃p.D"
     );
     assert!(!ChaseAdmission::certify(&cyclic).admits_native());
@@ -1004,7 +1051,7 @@ fn sparse_obstruction_absence_cannot_authorize_msa() {
         witness_frontier: None,
         witness_policy: WitnessPolicy::FrontierSkolem,
     };
-    assert!(ChaseAdmission::certify_model_summarizing(&[invent, feedback]).is_none());
+    assert!(ChaseAdmission::certify_model_summarizing(&[invent, feedback]).is_err());
 }
 
 // ── Nemo-free soundness self-oracle: every certified program terminates ────────
@@ -1111,7 +1158,11 @@ fn certify_lattice_ranks_are_strictly_ordered() {
     // increase Uncertified < WA < JA < SWA < MSA.
     let ev = |s: &str| s.to_owned();
     let ranks = [
-        ChaseAdmission::Uncertified { violations: vec![] }.rank(),
+        ChaseAdmission::Uncertified {
+            violations: vec![],
+            bounds: vec![],
+        }
+        .rank(),
         ChaseAdmission::WeaklyAcyclic { evidence: ev("wa") }.rank(),
         ChaseAdmission::JointlyAcyclic { evidence: ev("ja") }.rank(),
         ChaseAdmission::SuperWeaklyAcyclic {
@@ -1166,12 +1217,14 @@ fn certify_lattice_combine_merges_uncertified_violations() {
     // sorted, deduped — so no termination-failure diagnostic is dropped by the meet.
     let a = ChaseAdmission::Uncertified {
         violations: vec!["edge y -> z in cycle".to_owned(), "shared".to_owned()],
+        bounds: vec![],
     };
     let b = ChaseAdmission::Uncertified {
         violations: vec!["edge p -> q in cycle".to_owned(), "shared".to_owned()],
+        bounds: vec![],
     };
     match a.combine(b) {
-        ChaseAdmission::Uncertified { violations } => assert_eq!(
+        ChaseAdmission::Uncertified { violations, .. } => assert_eq!(
             violations,
             vec![
                 "edge p -> q in cycle".to_owned(),
@@ -1241,6 +1294,7 @@ fn certify_lattice_combine_is_the_strength_poset_meet() {
     // Any certified class meets Uncertified down to Uncertified.
     let uncertified = ChaseAdmission::Uncertified {
         violations: vec![ev("v")],
+        bounds: vec![],
     };
     for cert in [wa(), ja(), swa(), msa()] {
         assert!(!cert.clone().combine(uncertified.clone()).admits_native());
@@ -1301,22 +1355,30 @@ fn refused_existential_program_counts_a_reason_ledger_dlgap() {
     );
 
     let rows = admission.capability_gap_rows();
-    assert_eq!(rows.len(), 1, "one DlGap row per violation");
-    assert_eq!(rows[0].kind, crate::reason::ledger::DivergenceKind::DlGap);
     assert_eq!(
-        rows[0].category,
-        crate::reason::ledger::EXISTENTIAL_CHASE_CATEGORY,
-        "scoped out of the DL/EL crosscheck corpus by category"
+        rows.len(),
+        admission.violations().len() + admission.bounds().len(),
+        "one DlGap row per violation"
     );
+    assert!(!rows.is_empty());
+    for row in &rows {
+        assert_eq!(row.kind, crate::reason::ledger::DivergenceKind::DlGap);
+        assert_eq!(
+            row.category,
+            crate::reason::ledger::EXISTENTIAL_CHASE_CATEGORY,
+            "scoped out of the DL/EL crosscheck corpus by category"
+        );
+    }
     assert!(
-        rows[0].detail.contains("lies in a cycle"),
-        "the violation evidence rides in detail: {:?}",
-        rows[0].detail
+        rows.iter()
+            .any(|row| row.detail.contains("<http://ex/rule/cyclic>")
+                && row.detail.contains("in a cycle")),
+        "the violation evidence names its rule in detail: {rows:?}"
     );
 
     // Routed into the counted divergence ledger it IS tallied and fails enforce…
     let ledger = crate::reason::ledger::build_ledger(Vec::new(), rows, Vec::new());
-    assert_eq!(ledger.dl_gap, 1, "counted as a DL gap in reason::ledger");
+    assert_eq!(ledger.dl_gap, 2, "counted as a DL gap in reason::ledger");
     assert!(!crate::reason::ledger::enforce(&ledger).passed);
 
     // …but a CERTIFIED program contributes no gap rows.
@@ -1385,7 +1447,7 @@ fn certificate_finding_carries_evidence_or_violations() {
     assert_eq!(bad_finding.severity, Severity::Error);
     assert_eq!(bad_finding.code, "chase.certificate.uncertified");
     assert!(
-        bad_finding.message.contains("lies in a cycle"),
+        bad_finding.message.contains("in a cycle"),
         "the Uncertified finding carries its violations: {}",
         bad_finding.message
     );
@@ -2172,11 +2234,11 @@ fn a_summarized_consumer_never_blocks_a_restricted_trigger() {
         families: &empty,
         semantics: crate::native_semantics::SemanticVocabulary::Exact,
     };
-    assert!(ChaseAdmission::certify_restricted_joint_acyclic(&rules, &program).is_some());
+    assert!(ChaseAdmission::certify_restricted_joint_acyclic(&rules, &program).is_ok());
     let summarized = BTreeSet::from(["http://ex/rule/entry", "http://ex/rule/posting"]);
     program.nonblocking = &summarized;
     assert!(
-        ChaseAdmission::certify_restricted_joint_acyclic(&rules, &program).is_none(),
+        ChaseAdmission::certify_restricted_joint_acyclic(&rules, &program).is_err(),
         "a summarized consumer's trigger is never blocked"
     );
 }
@@ -2306,4 +2368,18 @@ fn tuples_that_take_each_others_node_are_refused() {
     assert_eq!(refusal.rule, "http://ex/rule/tuple");
     assert_eq!(refusal.head_relations, [INNER, REL]);
     assert!(refusal.detail.contains("each other's reifier"), "{refusal}");
+}
+
+#[test]
+fn a_model_summarizing_fixpoint_out_of_budget_names_its_bound_and_never_certifies() {
+    // The same small acyclic program certifies under the real budget; starved of steps it
+    // must refuse, say that the budget stopped it, and not read the partial model as a
+    // certificate.
+    let program = model_summarizing_beyond_structural();
+    assert!(ChaseAdmission::certify_model_summarizing(&program).is_ok());
+    let starved = ChaseAdmission::certify_model_summarizing_within(&program, 0, 1);
+    let Err(MsaRefusal::Bound(bound)) = starved else {
+        panic!("an exhausted fixpoint must name its bound: {starved:?}");
+    };
+    assert!(bound.contains("1-step budget"), "{bound}");
 }

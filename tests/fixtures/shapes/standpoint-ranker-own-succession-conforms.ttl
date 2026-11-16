@@ -1,0 +1,40 @@
+# Ranker lifecycle conforming case, written in the lowered component form the ranker
+# constraints' projected query reads (each ranking is a reifier node carrying
+# logic:reifiedStatementSubject / Predicate / Object plus gmeow:accordingTo and
+# gmeow:validFrom). One ranker holds A over B, then records that B over A succeeds that
+# earlier ranking, with the succession annotated by the same ranker. The earlier ranking is no
+# longer live and the reversed pair is exempt, so the projected query reports nothing. This
+# case exercises that query over data already written in the lowered form. Data written as
+# RDF 1.2 reified statements does not reach these constraints on the validation paths: no
+# validation path produces the lowered edges from RDF 1.2 input.
+
+@prefix ex:    <https://example.org/shapes/> .
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+
+ex:standpoint-a a gmeow:Standpoint ; gmeow:sharpens gmeow:universalStandpoint .
+ex:standpoint-b a gmeow:Standpoint ; gmeow:sharpens gmeow:universalStandpoint .
+ex:ranker       a gmeow:Standpoint ; gmeow:sharpens gmeow:universalStandpoint .
+
+ex:standpoint-a gmeow:moreEntrenchedThan ex:standpoint-b .
+ex:standpoint-b gmeow:moreEntrenchedThan ex:standpoint-a .
+
+ex:rankAB logic:reifiedStatementSubject   ex:standpoint-a ;
+    logic:reifiedStatementPredicate       gmeow:moreEntrenchedThan ;
+    logic:reifiedStatementObject          ex:standpoint-b ;
+    gmeow:accordingTo ex:ranker ;
+    gmeow:validFrom "2020-01-01T00:00:00Z"^^xsd:dateTime .
+
+ex:rankBA logic:reifiedStatementSubject   ex:standpoint-b ;
+    logic:reifiedStatementPredicate       gmeow:moreEntrenchedThan ;
+    logic:reifiedStatementObject          ex:standpoint-a ;
+    gmeow:accordingTo ex:ranker ;
+    gmeow:validFrom "2021-01-01T00:00:00Z"^^xsd:dateTime .
+
+# The ranker's own statement: the second ranking succeeds the first.
+ex:ownSuccession logic:reifiedStatementSubject ex:rankBA ;
+    logic:reifiedStatementPredicate       gmeow:succeedsClaim ;
+    logic:reifiedStatementObject          ex:rankAB ;
+    gmeow:accordingTo ex:ranker ;
+    gmeow:validFrom "2021-01-01T00:00:00Z"^^xsd:dateTime .

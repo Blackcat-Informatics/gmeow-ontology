@@ -785,8 +785,11 @@ impl ValidationRun {
                     // `sh:SPARQLTarget` body now reads class membership through the `a/<subClassOf>*`
                     // property path (constraint projector + the legacy shape bodies), so the raw dataset
                     // is validated directly.
-                    let report = store::shacl_validate_dataset(&dataset, &shapes);
-                    Ok(shacl_findings_from_report(&report, None, &failure_classes))
+                    let validation = store::shacl_validate_dataset(&dataset, &shapes)?;
+                    let mut findings =
+                        shacl_findings_from_report(&validation.report, None, &failure_classes);
+                    findings.extend(validation.nested_findings(None));
+                    Ok(findings)
                 })?
             }
             // The verdict the pipeline already recorded over the same inputs, proven
@@ -1233,6 +1236,14 @@ fn deep_semantic_findings_dataset(
         // Injected, never sampled — the deep pass certificate stays deterministic.
         DETERMINISTIC_ISSUED_AT,
         projection_loss_codes,
+        gmeow_logic::certificate::CanonProfileMarker {
+            profile_id: gmeow_gts_profile::canon_profile::GMEOW_CANON_PROFILE_ID.to_owned(),
+            profile_version: gmeow_gts_profile::canon_profile::GMEOW_CANON_PROFILE_VERSION,
+            presentation_id: gmeow_gts_profile::canon_profile::GMEOW_CANON_FLAT_PRESENTATION_ID
+                .to_owned(),
+            presentation_version:
+                gmeow_gts_profile::canon_profile::GMEOW_CANON_FLAT_PRESENTATION_VERSION,
+        },
     )
     .map_err(|e| {
         Diag::of_kind(crate::error::Engine {
@@ -1952,11 +1963,12 @@ fn check_examples(
     // view ONCE, then each example only projects its own small graph before binding
     // a composite view under fresh blank scopes. No combined dataset is frozen.
     let examples = find_example_files(slices_dir)?;
-    // Older entries were computed with an unsound touched-term filter. They
-    // cannot certify complete example validation even when input bytes match.
+    // Older entries were computed with an unsound touched-term filter, or over a view
+    // without the lowered statement components. They cannot certify complete example
+    // validation even when input bytes match.
     let base_key = ValidationCache::cache_key(&[
         base_key.as_bytes(),
-        b"gmeow-example-shacl-canonical-complete-targets-v3",
+        b"gmeow-example-shacl-lowered-statement-components-v4",
     ]);
 
     // Fast path: if every example's SHACL result is already cached, skip the
@@ -1991,7 +2003,11 @@ fn check_examples(
     }
 
     let start = Instant::now();
-    let base_projected = gmeow_logic_compile::projections::reader_view::shacl_reader_view(dataset)?;
+    // The base is projected from its statement-lowering view, once, like each example
+    // below: a constraint over a reified statement's components joins on those edges.
+    let base_view = gmeow_logic_compile::statement_lowering::validation_view(dataset)?;
+    let base_projected =
+        gmeow_logic_compile::projections::reader_view::shacl_reader_view(base_view.dataset())?;
     let base_projection_us = start.elapsed().as_micros();
     let start = Instant::now();
     let prepared_shapes = PreparedShapes::new(Arc::new(shapes.clone()));
@@ -2114,8 +2130,9 @@ fn run_example_shacl(
         }
     };
     let start = Instant::now();
+    let example_view = gmeow_logic_compile::statement_lowering::validation_view(&example_ds)?;
     let example_projected =
-        gmeow_logic_compile::projections::reader_view::shacl_reader_view(&example_ds)?;
+        gmeow_logic_compile::projections::reader_view::shacl_reader_view(example_view.dataset())?;
     work.projection_us = start.elapsed().as_micros();
     let start = Instant::now();
     let limits = ViewLimits::default();
@@ -2163,10 +2180,9 @@ fn run_example_shacl(
     // `store::shacl_validate_dataset` does — a violation reported twice is one
     // violation on every validate surface, not just the bundle-driven one.
     store::dedupe_validation_results(&mut report);
-    Ok((
-        shacl_findings_from_report(&report, Some(name), failure_classes),
-        work,
-    ))
+    let mut findings = shacl_findings_from_report(&report, Some(name), failure_classes);
+    findings.extend(store::nested_findings(&example_view.nested, Some(name)));
+    Ok((findings, work))
 }
 
 /// Phase 11/12/13: validate a merged set of DSL Turtle sources against dedicated

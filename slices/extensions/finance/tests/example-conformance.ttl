@@ -1,0 +1,92 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Example-conformance cells for the finance slice's exact computations: a conforming
+# simple-interest and holding-period-return pair, and one counter-example for each of a
+# malformed dimension, a malformed frame and a malformed computation, plus a conforming set of
+# total prices and a balanced journal entry with a counter-example for each way they break.
+#
+# Each cell unions the finance module with the one named file and validates it against the
+# generated shapes that the finance module owns (crates/slicetest). Shapes owned by the
+# observations, places and math slices are not loaded for this slice, so every fixture
+# types locally the cross-slice individuals the finance-owned shapes check (the dimension
+# as a math:Dimension, the period frames as gmeow:ReferenceFrame). The counter-examples are
+# copies of the conforming fixture that differ by exactly one defect, and each pins the
+# one law it breaks by IRI. A logic:Constraint projects to the shape named by the
+# constraint's namespace (the text up to and including its last "/" or "#"), then its local name with the
+# first letter upper-cased, then "ProceduralConstraintShape"
+# (crates/logic-compile projections/shapes.rs, procedural_shape_iri). A constraint IRI that
+# has neither character, as the urn: identifiers do, has no namespace, so the whole IRI is
+# the local name and the shape begins "Urn:". The monetary amount's own dimension and currency-frame
+# obligations are owned and controlled by the observations slice. A posting amount with no value
+# or no currency is outside the balance law and is controlled by the presence obligations the
+# observations slice owns for a monetary amount.
+
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/finance/tests/> .
+
+ex:ecExactComputations a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/conformance-fixtures/exact-computations.ttl" ;
+    gmeow:expectedOutcome gmeow:conforms ;
+    gmeow:conformanceRationale "A gmeow:SimpleInterestCalculation and a gmeow:HoldingPeriodReturnCalculation, with a gmeow:FinancialPeriodRate and a gmeow:FinancialPeriodCount that share the calculation's period frame, and two gmeow:MonetaryAmount values in one currency, validate with no finding. The fixture types math:dimensionless as a math:Dimension and the contract period as a gmeow:ReferenceFrame itself, because a conformance cell validates only the finance module plus this one file, and the math and places modules that declare those individuals are not loaded; without the local typing the finance-owned class checks on the rate and count would report an untyped dimension and frame that are well formed in the full corpus." .
+
+ex:ecRateNotDimensionless a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/rate-not-dimensionless.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.HasValueConstraintComponent" ;
+    gmeow:expectedSourceShape gmeow:FinancialPeriodRate-shape ;
+    gmeow:expectedSoleFinding true ;
+    gmeow:conformanceRationale "The counter-example is the conforming fixture with one change: the gmeow:FinancialPeriodRate gives math:hasDimension as math:lengthDimension, a math:Dimension that is not math:dimensionless, so a rate would carry a physical dimension. The derived gmeow:FinancialPeriodRate-shape requires the value math:dimensionless on math:hasDimension (sh:hasValue), so validation MUST emit shacl.HasValueConstraintComponent from that shape and no other finding. The other value checks on the same path hold: the value is typed math:Dimension and there is exactly one." .
+
+ex:ecRateFrameDiffersFromBasis a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/rate-frame-differs-from-basis.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.SPARQLConstraintComponent" ;
+    gmeow:expectedSourceShape <Urn:gmeow:finance:constraint:simple-interestRate-basisProceduralConstraintShape> ;
+    gmeow:expectedSoleFinding true ;
+    gmeow:conformanceRationale "The counter-example is the conforming fixture with one change: the gmeow:FinancialPeriodRate is stated on a second period frame while the gmeow:SimpleInterestCalculation names the original frame as its gmeow:calculationPeriodBasis. The constraint urn:gmeow:finance:constraint:simple-interestRate-basis requires the rate's gmeow:hasReferenceFrame to equal the calculation's period basis, so validation MUST emit shacl.SPARQLConstraintComponent from the shape that constraint projects to, pinned by IRI, and no other finding. The second frame is a complete scalar temporal frame, so the rate's own frame constraint holds, and the count still matches the basis, so the count's basis constraint holds." .
+
+ex:ecReturnCurrencyMismatch a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/return-currency-mismatch.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.SPARQLConstraintComponent" ;
+    gmeow:expectedSourceShape <Urn:gmeow:finance:constraint:return-currency-matchProceduralConstraintShape> ;
+    gmeow:expectedSoleFinding true ;
+    gmeow:conformanceRationale "The counter-example is the conforming fixture with one change: the closing gmeow:MonetaryAmount of the gmeow:HoldingPeriodReturnCalculation is in the euro frame while the opening amount is in the dollar frame, so the return would divide a difference of unlike currencies. The constraint urn:gmeow:finance:constraint:return-currency-match requires the closing amount to share the opening amount's currency frame, so validation MUST emit shacl.SPARQLConstraintComponent from the shape that constraint projects to, pinned by IRI, and no other finding. The simple-interest calculation uses only the dollar principal, so it is unaffected." .
+
+ex:ecTotalsAndJournal a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/conformance-fixtures/totals-and-journal.ttl" ;
+    gmeow:expectedOutcome gmeow:conforms ;
+    gmeow:conformanceRationale "A gmeow:Invoice and a gmeow:Order, each totalled by a gmeow:MonetaryAmount, and a gmeow:JournalEntry with one debit and one credit posting of the same amount in one currency, validate with no finding. The fixture types the issuer, recipient, buyer, seller and account holders as gmeow:Agent itself, because a conformance cell validates only the finance module plus this one file and the organization class that makes them agents is declared in another slice. Debit and credit are equal, so the balance constraint holds, and the entry has the two postings its count constraint requires." .
+
+ex:ecInvoiceTotalBareDecimal a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/invoice-total-bare-decimal.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.ClassConstraintComponent" ;
+    gmeow:expectedSourceShape gmeow:Invoice-shape ;
+    gmeow:expectedSoleFinding true ;
+    gmeow:conformanceRationale "The counter-example is the conforming fixture with one change: the gmeow:Invoice gives gmeow:invoiceAmount as a bare xsd:decimal instead of a gmeow:MonetaryAmount, the retired scalar idiom that carries no currency frame. The derived gmeow:Invoice-shape requires every gmeow:invoiceAmount value to be a gmeow:MonetaryAmount (sh:class), so validation MUST emit shacl.ClassConstraintComponent from that shape and no other finding. The invoice still has exactly one total, so the required-path minimum holds, and its subject satisfies the property's domain shape." .
+
+ex:ecOrderTotalBareDecimal a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/order-total-bare-decimal.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.ClassConstraintComponent" ;
+    gmeow:expectedSourceShape gmeow:Order-shape ;
+    gmeow:expectedSoleFinding true ;
+    gmeow:conformanceRationale "The counter-example is the conforming fixture with one change: the gmeow:Order gives gmeow:orderAmount as a bare xsd:decimal instead of a gmeow:MonetaryAmount. The gmeow:Order class carries its own restriction on gmeow:orderAmount, separate from the invoice's, so the derived gmeow:Order-shape requires every gmeow:orderAmount value to be a gmeow:MonetaryAmount (sh:class) and validation MUST emit shacl.ClassConstraintComponent from that shape and no other finding. The order still has exactly one total, so the required-path minimum holds." .
+
+ex:ecJournalUnbalanced a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/journal-unbalanced.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.SPARQLConstraintComponent" ;
+    gmeow:expectedSourceShape gmeow:JournalEntryBalanceConstraintProceduralConstraintShape ;
+    gmeow:expectedSoleFinding true ;
+    gmeow:conformanceRationale "The counter-example is the conforming fixture with one change: the credit posting's amount is 4000.00 in the same currency while the debit posting's amount is 5000.00. The gmeow:JournalEntryBalanceConstraint sums debit and credit posting values per currency over gmeow:postingAmount and math:quantityValue, so the currency bucket is off by 1000.00 and validation MUST emit shacl.SPARQLConstraintComponent from the shape that constraint projects to, pinned by IRI, and no other finding. The entry still has two postings, each posting is well formed, and no other shape reads the amount values." .
+
+ex:ecJournalCurrencySplit a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/journal-currency-split.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.SPARQLConstraintComponent" ;
+    gmeow:expectedSourceShape gmeow:JournalEntryBalanceConstraintProceduralConstraintShape ;
+    gmeow:expectedSoleFinding true ;
+    gmeow:conformanceRationale "The counter-example is the conforming fixture with one change: the credit posting has the same value, 5000.00, as the debit posting but in the dollar frame while the debit is in the Canadian dollar frame. The balance constraint partitions by currency and never converts, so the Canadian dollar bucket has debits only and the dollar bucket has credits only; neither balances, both buckets report the same entry, and validation MUST emit shacl.SPARQLConstraintComponent from the pinned shape and no other finding. Equal totals across different currencies are therefore not a balanced entry." .

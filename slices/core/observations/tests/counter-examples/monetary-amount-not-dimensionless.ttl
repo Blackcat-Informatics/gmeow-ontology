@@ -1,0 +1,19 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Counter-example: the amount carries a physical dimension instead of the dimensionless one.
+
+@prefix g:    <https://blackcatinformatics.ca/gmeow/> .
+@prefix m:    <https://blackcatinformatics.ca/math/> .
+@prefix ex:   <https://blackcatinformatics.ca/gmeow/examples/observations/tests/> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+
+# Typed locally: a cell validates only the observations module plus this one file.
+m:dimensionless a m:Dimension .
+m:lengthDimension a m:Dimension .
+ex:usd a g:ReferenceFrame ;
+    rdfs:label "United States dollar"@en ;
+    g:frameRealm g:frameRealmCurrency ; g:frameKind g:frameKindScalar .
+
+ex:price a g:MonetaryAmount ;
+    m:quantityValue 19.99 ; m:hasDimension m:lengthDimension ; g:currency ex:usd .

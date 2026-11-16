@@ -107,8 +107,11 @@ pub(crate) fn record(
             builder.push_dataset(module)?;
             builder.push_dataset(&instance)?;
             let data = builder.freeze().map_err(gmeow_errors::Diag::from)?;
+            // The lowering is the one door a SHACL data view passes through.
+            let lowered =
+                gmeow_logic_compile::statement_lowering::validation_view(&data)?.lowered_shared();
             let report = shapes
-                .bind_projected_dataset(data)
+                .bind_projected_dataset(lowered.unwrap_or(data))
                 .map_err(super::production_shapes::fail)?
                 .validate()
                 .map_err(super::production_shapes::fail)?;

@@ -161,7 +161,7 @@ fn assemble_selects_conforming_exemplars_and_never_the_violating_one() {
         "only the conforming terms are exemplars, ordered by (rank desc, IRI asc)"
     );
     assert!(
-        !packet.exemplars.contains(&BRAVO.to_string()),
+        !packet.exemplars.iter().any(|term| term == BRAVO),
         "the full-coat but SHACL-violating term must never be surfaced as an exemplar"
     );
     // Two eligible against a target of three: the shortfall is recorded, never faked.

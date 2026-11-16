@@ -43,6 +43,10 @@ pub const SHACL_NONCONFORMING: &str = "shacl.nonconforming";
 /// is not a constraint violation. Deliberately NOT a `STATIC_RULES` row: a success
 /// sentinel is not an enforced constraint, so it never enters the constraint catalog.
 pub const SHACL_CLEAN: &str = "shacl.clean";
+/// `crates/validate/src/store.rs` - a reified statement that nests a triple term, which
+/// the validation view cannot lower into component edges; no constraint over those
+/// components was evaluated against it. A non-blocking Warning.
+pub const VALIDATE_NESTED_TRIPLE_TERM_NOT_LOWERED: &str = "validate.nested-triple-term-not-lowered";
 /// Family base for `format!("shacl.{ConstraintComponentLocalName}")`
 /// (`crates/validate/src/findings.rs`).
 pub const SHACL_FAMILY: &str = "shacl.";
@@ -313,6 +317,7 @@ pub const ALL_CODES: &[&str] = &[
     DISCIPLINE_FRAME_COMPLETENESS,
     SHACL_NONCONFORMING,
     SHACL_CLEAN,
+    VALIDATE_NESTED_TRIPLE_TERM_NOT_LOWERED,
     SIGNATURE_VERIFY,
     SIGNATURE_INVALID,
     SIGNATURE_MISSING,

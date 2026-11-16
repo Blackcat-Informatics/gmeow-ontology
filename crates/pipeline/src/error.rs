@@ -377,9 +377,9 @@ define_diag_kind! {
     message = "docs-distribution error: {}", message;
 }
 
-// --- The medium axis's seven named failure classes ----------------------------
+// --- The medium axis's eight named failure classes ----------------------------
 //
-// Each of these seven kinds is the SOLE Rust producer of one `gmeow:Medium*`
+// Each of these eight kinds is the SOLE Rust producer of one `gmeow:Medium*`
 // failure-class individual in `slices/core/gts/module.ttl`, bound to it by the
 // `failure_class` clause. The binding is not decoration: the repo-static
 // bijection gate (`crates/validate/src/repo_static.rs`) proves each declared IRI
@@ -438,6 +438,19 @@ define_diag_kind! {
     grade = Grade::new(Severity::Error, FindingCategory::ModelingDisciplineViolation, Standpoint::Binding);
     message = "medium: digest mismatch — {}", detail;
     failure_class = "https://blackcatinformatics.ca/gmeow/MediumDigestMismatch";
+}
+
+define_diag_kind! {
+    /// A medium envelope recorded under a canonical profile (identifier, version or
+    /// presentation) other than the one this reader implements, or recording none. The
+    /// digests an envelope carries are functions of that profile, so a reader on a
+    /// different profile cannot tell a profile change from corruption unless the profile
+    /// is compared FIRST; it refuses before any digest is compared.
+    pub struct MediumProfileMismatch { detail: String }
+    code = "pipeline.medium.profile-mismatch";
+    grade = Grade::new(Severity::Error, FindingCategory::ModelingDisciplineViolation, Standpoint::Binding);
+    message = "medium: canonical profile mismatch — {}", detail;
+    failure_class = "https://blackcatinformatics.ca/gmeow/MediumProfileMismatch";
 }
 
 define_diag_kind! {
@@ -520,6 +533,7 @@ pub const PIPELINE_DIAG_CODES: &[&str] = &[
     MediumUnknownDictionary::CODE,
     MediumUnknownSchema::CODE,
     MediumDigestMismatch::CODE,
+    MediumProfileMismatch::CODE,
     MediumOpaqueFrame::CODE,
     MediumDictionaryRegression::CODE,
     MediumCorpusDrift::CODE,
@@ -572,6 +586,7 @@ pub fn register_all() -> Vec<Code> {
         MediumUnknownDictionary::register(),
         MediumUnknownSchema::register(),
         MediumDigestMismatch::register(),
+        MediumProfileMismatch::register(),
         MediumOpaqueFrame::register(),
         MediumDictionaryRegression::register(),
         MediumCorpusDrift::register(),

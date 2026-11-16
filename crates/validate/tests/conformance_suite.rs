@@ -212,3 +212,37 @@ fn maint_heavy_conformance_contracts_share_one_authenticated_corpus_heavy_offgat
         conformance_support::ConformanceLane::MaintHeavy,
     );
 }
+
+/// INVARIANT: the conformance harness validates through the shipped validator's
+/// statement-lowering view. Its fixtures are flat N-Triples, in which an RDF 1.2
+/// reification is an `rdf:reifies` base quad rather than a reifier-table row; a fixture
+/// authored only in that form still reaches the shapes with its `logic:reifiedStatement*`
+/// component edges (the detector reports exactly when all three are present). Synthetic:
+/// no authenticated corpus is read.
+#[test]
+fn conformance_harness_sees_the_lowered_components_of_an_rdf12_fixture() {
+    // gmeow-test-input: synthetic-only
+    let shapes = purrdf::shapes::engine::parse_shapes(
+        r#"@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix ex: <https://example.org/> .
+ex:LoweredComponentsDetector a sh:NodeShape ;
+    sh:targetNode ex:a ;
+    sh:sparql [ sh:message "lowered components present" ; sh:select """
+        SELECT $this WHERE {
+            ?claim <https://blackcatinformatics.ca/logic/reifiedStatementSubject> $this ;
+                <https://blackcatinformatics.ca/logic/reifiedStatementPredicate> <https://example.org/p> ;
+                <https://blackcatinformatics.ca/logic/reifiedStatementObject> <https://example.org/b> .
+        }""" ] .
+"#,
+        None,
+    )
+    .expect("the detector parses");
+    let fixture = conformance_support::nt_to_dataset(&conformance_support::ttl_str_to_nt(
+        "@prefix ex: <https://example.org/> .\nex:a ex:p ex:b ~ ex:claim {| ex:by ex:someone |} .\n",
+    ));
+    let report = conformance_support::validate_dataset_sharded(&fixture, &shapes);
+    assert_eq!(
+        conformance_support::violations(&report),
+        vec!["lowered components present".to_owned()]
+    );
+}

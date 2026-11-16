@@ -16,7 +16,7 @@ use gmeow_logic_compile::ir::{LogicProgram, ValidationShapeIr};
 use gmeow_logic_compile::projections::shapes::{
     project_procedural_constraints, project_validation_shape_shacl,
 };
-use purrdf::shapes::engine::{parse_shapes, validate_dataset};
+use purrdf::shapes::engine::parse_shapes;
 mod json;
 
 use crate::stages::parse_sources::SourceCatalog;
@@ -108,8 +108,12 @@ pub(super) fn record(
             let bytes = std::fs::read(root.join(input)).map_err(super::record_failure)?;
             let data = purrdf::parse_dataset(&bytes, "text/turtle", None)
                 .map_err(super::record_failure)?;
-            let report = validate_dataset(&data, shapes).map_err(super::record_failure)?;
-            Ok(report
+            // Every engine result is observed (no collapse), over the statement-lowering
+            // view; a statement the lowering could not reach is observed by name.
+            let validation = gmeow_validate::store::shacl_validate_view(&data, shapes)
+                .map_err(super::record_failure)?;
+            Ok(validation
+                .report
                 .results
                 .iter()
                 .map(|finding| {
@@ -118,6 +122,12 @@ pub(super) fn record(
                         finding.source_shape.to_string(),
                     )
                 })
+                .chain(validation.nested.iter().map(|reifier| {
+                    (
+                        reifier.to_string(),
+                        gmeow_validate::codes::VALIDATE_NESTED_TRIPLE_TERM_NOT_LOWERED.to_owned(),
+                    )
+                }))
                 .collect())
         })();
         cases.push(CaseObservation {

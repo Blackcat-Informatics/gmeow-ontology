@@ -28,7 +28,7 @@ use gmeow_logic::reason::math_gate::dimension_gate_markers;
 use gmeow_logic_compile::result_shape::{ObservedBinding, ObservedTerm};
 use gmeow_validate::findings::{FailureClassIndex, finding_from_shacl};
 use gmeow_validate::lint::{LintConfig, structural_lint_dataset};
-use purrdf::shapes::engine::{parse_shapes, validate_dataset};
+use purrdf::shapes::engine::parse_shapes;
 use purrdf::shapes::shapes::Shapes;
 use purrdf::{DatasetView, GraphMatch, RdfDataset, RdfTerm, SparqlResult, TermValue};
 
@@ -839,18 +839,16 @@ fn run_conformance_cell(
     // into a fresh dataset (blanks standardized apart) and validate that — exactly
     // the validation-path example idiom, no shared store to restore.
     let data = union(&[module.as_ref(), example.as_ref()])?;
-    let mut report = validate_dataset(&data, shapes).map_err(|e| {
+    // The shipped validator's own door: the statement-lowering view of the cell's data,
+    // so a constraint over a reified statement's components sees them, and the collapsed
+    // result SET a cell's rationale counts ("MUST emit exactly one …").
+    let validation = gmeow_validate::store::shacl_validate_dataset(&data, shapes).map_err(|e| {
         Diag::of_kind(ShapeValidation {
             detail: format!("native SHACL validation failed: {e}"),
         })
     })?;
-    // A cell's rationale counts findings ("MUST emit exactly one …"), so it must count
-    // the same result SET the shipped validator reports. This harness calls the engine
-    // directly (it needs the raw report for the per-shape soleness reading below), so it
-    // applies the same collapse `gmeow_validate::store::shacl_validate_dataset` does:
-    // a violation the engine reports N times over is ONE violation, and a cell counting
-    // findings against an uncollapsed report counts binding combinations instead.
-    gmeow_validate::store::dedupe_validation_results(&mut report);
+    let nested = validation.nested;
+    let report = validation.report;
 
     let codes: BTreeSet<String> = report
         .results
@@ -859,6 +857,20 @@ fn run_conformance_cell(
         .collect();
 
     match ec.outcome {
+        Outcome::Conforms if !nested.is_empty() => Err(Diag::of_kind(ConformanceCell {
+            detail: format!(
+                "expected conformance, but the cell reifies {} statement(s) that nest a triple \
+                 term ({}); the lowering cannot decompose them, so no constraint over a \
+                 reified statement's components was evaluated against them \
+                 (logic:rdf12-nested-triple-term)",
+                nested.len(),
+                nested
+                    .iter()
+                    .map(ToString::to_string)
+                    .collect::<Vec<_>>()
+                    .join(", ")
+            ),
+        })),
         Outcome::Conforms => {
             // SHACL conformance is gated by `sh:Violation` results ONLY — `Info`/
             // `Warning` results (e.g. the advisory-tier `logic:severity "Info"`

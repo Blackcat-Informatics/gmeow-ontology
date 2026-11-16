@@ -1,8 +1,12 @@
-# Competency question 7 (Music EPIC #306): Kirana-gharana memberships of
-# Raga Yaman performances, with suppressed memberships excluded by displayable.
+# Competency question 7 (Music): Kirana-gharana memberships of Raga Yaman
+# performances held by the Kirana tradition itself, selected by membership
+# authority.
 #
-# Expected fixture bindings: three memberships for 1960, 1975, and 1980;
-# the contested membership with displayable false must be excluded.
+# Expected fixture bindings: three memberships for 1960, 1975, and 1980,
+# each with the Kirana gharana standpoint as authority. A rival scholar's
+# contested membership is a retained, attributed claim with a different
+# authority; it is not selected here because it is not the tradition's own,
+# and it carries no display flag.
 
 PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
 
@@ -12,7 +16,7 @@ WHERE {
                 gmeow:versionSet gmeow:fixtureRagaYamanKiranaSet ;
                 gmeow:versionMember ?performance ;
                 gmeow:membershipAuthority ?authority ;
-                gmeow:confidence ?confidence ;
-                gmeow:displayable true .
+                gmeow:confidence ?confidence .
+    FILTER ( ?authority = gmeow:fixtureKiranaGharanaStandpoint )
 }
 ORDER BY ?membership

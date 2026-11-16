@@ -6823,6 +6823,10 @@ fn coherence_certificate_envelope(dataset: &purrdf::RdfDataset) -> gmeow_errors:
         pred_loss,
         pred_forbidden,
         pred_summarizes,
+        pred_profile_id,
+        pred_profile_version,
+        pred_presentation_id,
+        pred_presentation_version,
     ) = (
         p("bundleHash"),
         p("axiomHash"),
@@ -6833,6 +6837,10 @@ fn coherence_certificate_envelope(dataset: &purrdf::RdfDataset) -> gmeow_errors:
         p("projectionLoss"),
         p("forbiddenViolationWitness"),
         p("summarizesResult"),
+        p("canonProfileId"),
+        p("canonProfileVersion"),
+        p("canonPresentationId"),
+        p("canonPresentationVersion"),
     );
     let mut bundle_hash: Option<String> = None;
     let mut contract_hash: Option<String> = None;
@@ -6840,6 +6848,10 @@ fn coherence_certificate_envelope(dataset: &purrdf::RdfDataset) -> gmeow_errors:
     let mut certified_fragment: Option<String> = None;
     let mut contradiction_policy: Option<String> = None;
     let mut result_node: Option<String> = None;
+    let mut canon_profile_id: Option<String> = None;
+    let mut canon_profile_version: Option<String> = None;
+    let mut canon_presentation_id: Option<String> = None;
+    let mut canon_presentation_version: Option<String> = None;
     let mut axiom_hashes: std::collections::BTreeSet<String> = std::collections::BTreeSet::new();
     let mut projection_losses: std::collections::BTreeSet<String> =
         std::collections::BTreeSet::new();
@@ -6874,6 +6886,14 @@ fn coherence_certificate_envelope(dataset: &purrdf::RdfDataset) -> gmeow_errors:
             }
         } else if pred == pred_summarizes {
             result_node = iri_of(&q.object);
+        } else if pred == pred_profile_id {
+            canon_profile_id = literal_of(&q.object);
+        } else if pred == pred_profile_version {
+            canon_profile_version = literal_of(&q.object);
+        } else if pred == pred_presentation_id {
+            canon_presentation_id = literal_of(&q.object);
+        } else if pred == pred_presentation_version {
+            canon_presentation_version = literal_of(&q.object);
         }
     }
 
@@ -6933,6 +6953,21 @@ fn coherence_certificate_envelope(dataset: &purrdf::RdfDataset) -> gmeow_errors:
     let Some(contradiction_policy) = contradiction_policy else {
         return Err(missing("contradictionPolicy"));
     };
+    // The canonical profile the pinned digests were produced under is written
+    // unconditionally; an artifact without it cannot say which profile its hashes assume.
+    let Some(canon_profile_id) = canon_profile_id.filter(|v| !v.is_empty()) else {
+        return Err(missing("canonProfileId"));
+    };
+    let Some(canon_profile_version) = canon_profile_version.filter(|v| !v.is_empty()) else {
+        return Err(missing("canonProfileVersion"));
+    };
+    let Some(canon_presentation_id) = canon_presentation_id.filter(|v| !v.is_empty()) else {
+        return Err(missing("canonPresentationId"));
+    };
+    let Some(canon_presentation_version) = canon_presentation_version.filter(|v| !v.is_empty())
+    else {
+        return Err(missing("canonPresentationVersion"));
+    };
     // logic:summarizesResult is written unconditionally (M2, single-valued) and is the
     // only path to the two completeness-gate axes below; its absence is corruption.
     if result_node.is_none() {
@@ -6962,6 +6997,10 @@ fn coherence_certificate_envelope(dataset: &purrdf::RdfDataset) -> gmeow_errors:
         "is_refused": false,
         "class_local_name": class_local,
         "bundle_hash": bundle_hash,
+        "canon_profile_id": canon_profile_id,
+        "canon_profile_version": canon_profile_version,
+        "canon_presentation_id": canon_presentation_id,
+        "canon_presentation_version": canon_presentation_version,
         "axiom_hashes": axiom_hashes.into_iter().collect::<Vec<_>>(),
         "contract_hash": contract_hash,
         "engine": engine,
