@@ -666,7 +666,7 @@ fn intersection_membership_uses_only_its_selected_list_classes() {
 }
 
 #[test]
-fn equivalent_abstract_shapes_reuse_a_plan_without_reusing_concrete_values() {
+fn equivalent_abstract_shapes_share_a_plan_but_materialize_their_own_values() {
     let template = template(TYPE);
     let first = source("urn:OtherClassA", TYPE);
     let second = source("urn:OtherClassB", TYPE);
@@ -677,7 +677,6 @@ fn equivalent_abstract_shapes_reuse_a_plan_without_reusing_concrete_values() {
         .input(&second, std::sync::Arc::from([]), &[])
         .unwrap();
     assert!(Arc::ptr_eq(&left.template, &right.template));
-    assert!(Arc::ptr_eq(&left.effects, &right.effects));
     assert_eq!(
         left.identity(),
         right.identity(),
