@@ -54,8 +54,28 @@ const RDF_TYPE: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
 const RDFS_LABEL: &str = "http://www.w3.org/2000/01/rdf-schema#label";
 const RDFS_IS_DEFINED_BY: &str = "http://www.w3.org/2000/01/rdf-schema#isDefinedBy";
 const XSD_DATETIME: &str = "http://www.w3.org/2001/XMLSchema#dateTime";
+const XSD_NON_NEGATIVE_INTEGER: &str = "http://www.w3.org/2001/XMLSchema#nonNegativeInteger";
 /// The slice IRI the `logic:` coherence vocabulary is defined by.
 const LOGIC_SLICE: &str = "https://blackcatinformatics.ca/gmeow/slices/logic";
+
+/// The canonical-profile coordinates a persisted digest was produced under.
+///
+/// The bundle hash and axiom hashes a certificate pins are functions of the
+/// canonicalization profile of the substrate that produced them, so the certificate
+/// records the profile beside them: a consumer built on a different profile can then
+/// tell a profile change from corruption. The caller supplies the values from the one
+/// constant owner (`gmeow_gts_profile::canon_profile`); this crate holds no copy.
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
+pub struct CanonProfileMarker {
+    /// The canonicalization profile identifier.
+    pub profile_id: String,
+    /// The version of [`Self::profile_id`].
+    pub profile_version: u32,
+    /// The presentation of the statement layer the digests are taken over.
+    pub presentation_id: String,
+    /// The version of [`Self::presentation_id`].
+    pub presentation_version: u32,
+}
 
 /// The full scoped payload a coherence outcome carries — the signed evidence the
 /// certificate vouches over. Every field is load-bearing for the assertion; the
@@ -65,6 +85,8 @@ const LOGIC_SLICE: &str = "https://blackcatinformatics.ca/gmeow/slices/logic";
 pub struct CoherencePayload {
     /// The content-addressed identity of the exact bundle that was checked (`H`).
     pub bundle_hash: String,
+    /// The canonical profile the bundle and axiom hashes were produced under.
+    pub canon_profile: CanonProfileMarker,
     /// Content-addressed digests of the axiom sets inspected (one per fragment part).
     pub axiom_hashes: BTreeSet<String>,
     /// The reasoning-contract identity the check ran under (`C`).
@@ -134,6 +156,10 @@ impl CoherenceOutcome {
     /// `issued_at` is injected (never sampled) so re-running with the same inputs is
     /// byte-identical.
     ///
+    /// `canon_profile` records the canonical profile the bundle and axiom hashes were
+    /// produced under; it is folded into the content identity, so a certificate cannot
+    /// be re-issued under a different profile without changing its identity.
+    ///
     /// # Certificate-requires-fragment gate
     /// A conclusive, violation-free check would issue a [`Self::Certificate`], but a
     /// scoped certificate that names no certified fragment `F` cannot honour the
@@ -152,6 +178,7 @@ impl CoherenceOutcome {
         contradiction_policy: ContradictionPolicy,
         issued_at: impl Into<String>,
         projection_loss_codes: BTreeSet<String>,
+        canon_profile: CanonProfileMarker,
     ) -> gmeow_errors::Result<Self> {
         // Partition the witnesses purely on the policy: a glut is permitted iff the
         // valuation admits a glut, otherwise it is a forbidden violation.
@@ -170,6 +197,7 @@ impl CoherenceOutcome {
 
         let payload = CoherencePayload {
             bundle_hash: bundle_hash.into(),
+            canon_profile,
             axiom_hashes: axiom_hashes.into_iter().map(Into::into).collect(),
             contract_hash: result.provenance.contract_hash.clone(),
             engine: result.provenance.engine.clone(),
@@ -433,6 +461,27 @@ impl CoherenceOutcome {
             &format!("{LOGIC_NAMESPACE}bundleHash"),
             &format!("\"{}\"", nq_escape(&payload.bundle_hash)),
         );
+        let canon = &payload.canon_profile;
+        for (local, text) in [
+            ("canonProfileId", canon.profile_id.as_str()),
+            ("canonPresentationId", canon.presentation_id.as_str()),
+        ] {
+            triple(
+                &subject,
+                &format!("{LOGIC_NAMESPACE}{local}"),
+                &format!("\"{}\"", nq_escape(text)),
+            );
+        }
+        for (local, version) in [
+            ("canonProfileVersion", canon.profile_version),
+            ("canonPresentationVersion", canon.presentation_version),
+        ] {
+            triple(
+                &subject,
+                &format!("{LOGIC_NAMESPACE}{local}"),
+                &format!("\"{version}\"^^<{XSD_NON_NEGATIVE_INTEGER}>"),
+            );
+        }
         for axiom_hash in &payload.axiom_hashes {
             triple(
                 &subject,
@@ -592,6 +641,19 @@ fn content_id_canonical(class_local: &str, payload: &CoherencePayload) -> String
     writeln!(buf, "class={class_local}").unwrap();
     // bundle + contract
     writeln!(buf, "bundle_hash={}", payload.bundle_hash).unwrap();
+    let canon = &payload.canon_profile;
+    writeln!(
+        buf,
+        "canon_profile={}/{}",
+        canon.profile_id, canon.profile_version
+    )
+    .unwrap();
+    writeln!(
+        buf,
+        "canon_presentation={}/{}",
+        canon.presentation_id, canon.presentation_version
+    )
+    .unwrap();
     // axiom_hashes: BTreeSet is already sorted
     for h in &payload.axiom_hashes {
         writeln!(buf, "axiom_hash={h}").unwrap();
@@ -650,7 +712,7 @@ fn content_id_canonical(class_local: &str, payload: &CoherencePayload) -> String
 
 /// A deterministic content-addressed local id for the artifact's subject IRI:
 /// a blake3 digest (hex, first 16 bytes = 32 hex chars) over the FULL canonical
-/// payload. Covers class/outcome kind, bundle_hash, all axiom_hashes (sorted),
+/// payload. Covers class/outcome kind, bundle_hash, the canonical profile and presentation, all axiom_hashes (sorted),
 /// contract_hash, contradiction_policy, certified_fragment, budget,
 /// completeness/evaluation status, projection_losses (sorted),
 /// unsupported_constructs (sorted), permitted-conflict and forbidden-violation

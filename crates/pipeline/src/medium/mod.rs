@@ -145,6 +145,14 @@ pub(crate) fn digest_mismatch(detail: impl Into<String>) -> Diag {
     })
 }
 
+/// An envelope recorded under a canonical profile other than the one this reader
+/// implements, or recording none.
+pub(crate) fn profile_mismatch(detail: impl Into<String>) -> Diag {
+    Diag::of_kind(crate::error::MediumProfileMismatch {
+        detail: detail.into(),
+    })
+}
+
 /// A frame whose medium demands a reader capability that is not held.
 pub(crate) fn opaque_frame(detail: impl Into<String>) -> Diag {
     Diag::of_kind(crate::error::MediumOpaqueFrame {

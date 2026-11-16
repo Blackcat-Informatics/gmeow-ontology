@@ -284,6 +284,7 @@ pub(crate) fn build_coherence_outcome(
         policy,
         issued_at,
         projection_loss_codes,
+        crate::medium::envelope::linked_canon_profile(),
     )
     .map_err(|e| {
         Diag::of_kind(Release {

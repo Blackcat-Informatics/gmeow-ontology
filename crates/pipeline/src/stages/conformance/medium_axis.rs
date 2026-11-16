@@ -18,7 +18,7 @@ pub(super) const CHANNEL: &str = "pipeline/medium-axis-observations.json";
 const SOURCE: &str = crate::medium::source_observation::SOURCE;
 const GM: &str = "https://blackcatinformatics.ca/gmeow/";
 const RDF_TYPE: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
-const CLASSES: [&str; 19] = [
+const CLASSES: [&str; 20] = [
     "CompressionDictionary",
     "CompressionDictionaryRealization",
     "CorpusTrainingSplit",
@@ -32,6 +32,7 @@ const CLASSES: [&str; 19] = [
     "MediumDigestMismatch",
     "MediumEnvelope",
     "MediumOpaqueFrame",
+    "MediumProfileMismatch",
     "MediumSourceKind",
     "MediumUndeclaredDictionary",
     "MediumUnknownDictionary",

@@ -150,9 +150,19 @@ not enforced, so a blank node added to either needs this paragraph checked again
 `crates/docs/assets/reason/WITNESS.conjecture.nq`.
 
 A stored proof file or a bundle produced under another profile may not verify
-against this one: `gmeow prove --check-proof` and `gmeow medium verify` recompute
-canonical digests, which move whenever the profile change alters canonical bytes.
-A version bump that leaves canonical bytes unchanged does not move them. Values
+against this one. `gmeow prove --check-proof` recomputes the canonical identity of
+the OWL view and compares it with the identity the proof records for its input.
+`gmeow medium verify` recomputes canonical RDF only for the strata digest of the
+snapshot envelope of a self-describing bundle; its frame digests are BLAKE3 over
+decoded bytes. A PACK header also embeds a SHA-256 of the canonical N-Quads of its
+dataset, so a profile change that alters canonical bytes changes pack bytes; the
+pack dictionary keeps the dataset's own blank-node labels, not canonical ones. A
+version bump that leaves canonical bytes unchanged moves none of them. The medium
+envelope and the coherence certificate record the profile and presentation they were
+produced under. The medium envelope reader refuses an envelope whose recorded profile
+differs from the one it implements, or that records none, before it compares any
+digest; the MCP certificate reader refuses a certificate that records none, and does
+not compare the recorded value. Values
 held outside this repository that a profile change moves and `make check` cannot
 regenerate include the genid IRIs written by `gmeow transpile`, the dev transpile
 and OKF import, and so a profile change is also a release-note item.

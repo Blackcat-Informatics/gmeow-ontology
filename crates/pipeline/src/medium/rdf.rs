@@ -23,6 +23,8 @@ use std::collections::BTreeMap;
 
 use purrdf::{RdfLiteral, RdfQuad, RdfTerm};
 
+use gmeow_logic::certificate::CanonProfileMarker;
+
 use super::envelope::{DigestStratum, MediumEnvelope};
 use super::registry::{DictionaryDef, DictionaryStrategy, MediumRegistry};
 use super::{MEDIUM_REGISTRY_GRAPH, blake3_digest, dictionary_regression, is_canonical_digest};
@@ -400,6 +402,27 @@ pub fn project(
                 &envelope.content_digest,
             )?),
         );
+        let canon = &envelope.canon_profile;
+        emit(
+            &subject,
+            gm("canonProfileId"),
+            RdfTerm::literal(RdfLiteral::simple(&canon.profile_id)),
+        );
+        emit(
+            &subject,
+            gm("canonProfileVersion"),
+            non_negative_integer(canon.profile_version as usize),
+        );
+        emit(
+            &subject,
+            gm("canonPresentationId"),
+            RdfTerm::literal(RdfLiteral::simple(&canon.presentation_id)),
+        );
+        emit(
+            &subject,
+            gm("canonPresentationVersion"),
+            non_negative_integer(canon.presentation_version as usize),
+        );
     }
 
     Ok(quads)
@@ -767,7 +790,8 @@ fn blake3_digest_value(
 /// re-derived from the bytes it claims to commit to is a comment.
 ///
 /// # Errors
-/// An envelope missing one of its six unconditional coordinates, or naming a
+/// An envelope missing one of its six payload coordinates (`invalid_declaration`) or any of
+/// its four canonical-profile coordinates (`MediumProfileMismatch`), or naming a
 /// `gmeow:DigestStratum` individual the vocabulary does not declare.
 pub fn envelopes(graph: &purrdf::RdfDataset) -> Result<Vec<MediumEnvelope>, gmeow_errors::Diag> {
     use purrdf::RdfTerm as T;
@@ -797,12 +821,14 @@ pub fn envelopes(graph: &purrdf::RdfDataset) -> Result<Vec<MediumEnvelope>, gmeo
             |value: Option<String>, predicate: &str| -> Result<String, gmeow_errors::Diag> {
                 value.ok_or_else(|| {
                     super::invalid_declaration(format!(
-                        "the envelope <{subject}> carries no gmeow:{predicate} — six of the seven \
-                     envelope fields are unconditionally exactly-one, because a projection \
+                        "the envelope <{subject}> carries no gmeow:{predicate} — ten of the eleven \
+                     envelope fields are unconditionally exactly-one (the four canonical-profile \
+                     coordinates are read separately), because a projection \
                      missing a coordinate is a different claim rather than a weaker one"
                     ))
                 })
             };
+        let canon_profile = read_canon_profile(&quads, subject)?;
         let stratum_iri = required(iri_of("envelopeDigestStratum"), "envelopeDigestStratum")?;
         let stratum = if stratum_iri == DigestStratum::WholePayload.iri() {
             DigestStratum::WholePayload
@@ -823,10 +849,56 @@ pub fn envelopes(graph: &purrdf::RdfDataset) -> Result<Vec<MediumEnvelope>, gmeo
             stratum,
             strata_digest: blake3_digest_value(&quads, subject, "strataDigest")?,
             content_digest: blake3_digest_value(&quads, subject, "contentDigest")?,
+            canon_profile,
         });
     }
     out.sort();
     Ok(out)
+}
+
+/// Read the canonical profile an envelope records, refusing an envelope that records none.
+///
+/// A missing or malformed coordinate is refused as a profile mismatch rather than
+/// defaulted to the profile this build implements: assuming the reader's own profile
+/// would turn an unmarked artifact into a silent claim about how its digests were made.
+fn read_canon_profile(
+    quads: &[RdfQuad],
+    subject: &str,
+) -> Result<CanonProfileMarker, gmeow_errors::Diag> {
+    use purrdf::RdfTerm as T;
+
+    let literal_of = |local: &str| -> Result<String, gmeow_errors::Diag> {
+        quads
+            .iter()
+            .find(|q| q.subject == T::iri(subject) && q.predicate == gm(local))
+            .and_then(|q| match &q.object {
+                T::Literal(literal) => Some(literal.lexical_form.clone()),
+                _ => None,
+            })
+            .ok_or_else(|| {
+                super::profile_mismatch(format!(
+                    "the envelope <{subject}> records no gmeow:{local} — an unmarked envelope \
+                     does not say which canonical profile its digests were produced under, so \
+                     it is refused rather than assumed to match this reader; regenerate the \
+                     artifact with a build that records the profile"
+                ))
+            })
+    };
+    let version_of = |local: &str| -> Result<u32, gmeow_errors::Diag> {
+        let lexical = literal_of(local)?;
+        lexical.parse::<u32>().map_err(|_| {
+            super::profile_mismatch(format!(
+                "the envelope <{subject}> records gmeow:{local} {lexical:?}, which is not a \
+                 non-negative integer version"
+            ))
+        })
+    };
+    Ok(CanonProfileMarker {
+        profile_id: literal_of("canonProfileId")?,
+        profile_version: version_of("canonProfileVersion")?,
+        presentation_id: literal_of("canonPresentationId")?,
+        presentation_version: version_of("canonPresentationVersion")?,
+    })
 }
 
 /// The envelope individual's IRI: derived from the frame it describes, so an

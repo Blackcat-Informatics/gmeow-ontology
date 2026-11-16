@@ -6,6 +6,15 @@ use crate::result::{
     InformationState, InputStatus, PreservationClaim, ResultPayload, ResultProvenance,
 };
 
+fn canon_profile_fixture() -> CanonProfileMarker {
+    CanonProfileMarker {
+        profile_id: "fixture-profile".to_owned(),
+        profile_version: 1,
+        presentation_id: "fixture-presentation".to_owned(),
+        presentation_version: 1,
+    }
+}
+
 /// A consistent native result (no contradiction witnesses), with the given
 /// evaluation/completeness axes.
 fn consistent_result(
@@ -56,6 +65,7 @@ fn conclusive_consistent_yields_certificate() {
         ContradictionPolicy::ForbidGapAndGlut,
         "2026-06-28T00:00:00Z",
         BTreeSet::new(),
+        canon_profile_fixture(),
     )
     .unwrap();
     assert!(outcome.issues_certificate());
@@ -79,6 +89,7 @@ fn conclusive_consistent_without_fragment_downgrades_to_attestation() {
         ContradictionPolicy::ForbidGapAndGlut,
         "2026-06-28T00:00:00Z",
         BTreeSet::new(),
+        canon_profile_fixture(),
     )
     .unwrap();
     assert!(
@@ -105,6 +116,7 @@ fn bounded_incomplete_yields_attestation_never_certificate() {
         ContradictionPolicy::ForbidGapAndGlut,
         "2026-06-28T00:00:00Z",
         BTreeSet::new(),
+        canon_profile_fixture(),
     )
     .unwrap();
     assert!(!outcome.issues_certificate());
@@ -130,6 +142,7 @@ fn budget_exhausted_but_complete_for_fragment_still_certifies() {
         ContradictionPolicy::ForbidGapAndGlut,
         "2026-06-28T00:00:00Z",
         BTreeSet::new(),
+        canon_profile_fixture(),
     )
     .unwrap();
     assert!(outcome.issues_certificate());
@@ -146,6 +159,7 @@ fn permitted_glut_keeps_the_certificate() {
         ContradictionPolicy::ForbidGap, // admits a glut
         "2026-06-28T00:00:00Z",
         BTreeSet::new(),
+        canon_profile_fixture(),
     )
     .unwrap();
     assert!(
@@ -167,6 +181,7 @@ fn forbidden_glut_refuses_and_issues_no_certificate() {
         ContradictionPolicy::ForbidGapAndGlut, // forbids a glut
         "2026-06-28T00:00:00Z",
         BTreeSet::new(),
+        canon_profile_fixture(),
     )
     .unwrap();
     assert!(outcome.is_refused());
@@ -194,6 +209,7 @@ fn bounded_forbidden_glut_attests_and_discloses_the_forbidden_witness() {
         ContradictionPolicy::ForbidGapAndGlut, // forbids a glut
         "2026-06-28T00:00:00Z",
         BTreeSet::new(),
+        canon_profile_fixture(),
     )
     .unwrap();
     assert!(matches!(outcome, CoherenceOutcome::Attestation(_)));
@@ -214,6 +230,7 @@ fn nquads_are_well_formed_and_byte_stable() {
         ContradictionPolicy::ForbidGap,
         "2026-06-28T00:00:00Z",
         BTreeSet::new(),
+        canon_profile_fixture(),
     )
     .unwrap();
     let graph = "https://blackcatinformatics.ca/gmeow/graph/attestations";
@@ -258,6 +275,7 @@ fn content_id_discriminates_on_axiom_hashes() {
         ContradictionPolicy::ForbidGap,
         "2026-06-28T00:00:00Z",
         BTreeSet::new(),
+        canon_profile_fixture(),
     )
     .unwrap();
     let outcome_b = CoherenceOutcome::from_reasoning_result(
@@ -267,6 +285,7 @@ fn content_id_discriminates_on_axiom_hashes() {
         ContradictionPolicy::ForbidGap,
         "2026-06-28T00:00:00Z",
         BTreeSet::new(),
+        canon_profile_fixture(),
     )
     .unwrap();
     let graph = "https://blackcatinformatics.ca/gmeow/graph/attestations";
@@ -312,6 +331,7 @@ fn projection_losses_sourced_from_ledger_codes_not_unsupported_constructs() {
         ContradictionPolicy::ForbidGapAndGlut,
         "2026-06-28T00:00:00Z",
         ledger_codes.clone(),
+        canon_profile_fixture(),
     )
     .unwrap();
 
@@ -368,6 +388,7 @@ fn nquads_emits_unsupported_construct_and_projection_loss_as_separate_properties
         ContradictionPolicy::ForbidGapAndGlut,
         "2026-06-28T00:00:00Z",
         ledger_codes,
+        canon_profile_fixture(),
     )
     .unwrap();
 

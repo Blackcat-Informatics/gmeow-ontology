@@ -789,11 +789,11 @@ gmeow:MediumEnvelope
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
     rdfs:label "Medium Envelope"@x-gmeow-english ;
     logic:subClassOf gmeow:AttestationArtifact ;
-    skos:definition "The RDF PROJECTION of the medium facts a frame ALREADY carries in band — never a second copy, and never an independently recomputed one. An envelope names the dictionary the payload was primed with (gmeow:envelopeDictionary), the registered payload schema of the blob (gmeow:envelopeSchema), the byte-exact identity the frame itself states (gmeow:contentDigest, projected verbatim from the frame's in-band pub.digest / snapshot_content_id — reused from attestation, never recomputed and stored), the medium the bytes were written through (gmeow:envelopeMedium), the frame it describes (gmeow:envelopePayloadFrame), and the stratified digest pair (gmeow:envelopeDigestStratum + gmeow:strataDigest) that makes the SELF-REFERENTIAL snapshot envelope converge in exactly two passes. SIX of the seven fields are unconditionally exactly-one: a projection missing a coordinate is not a weaker projection, it is a different claim. The seventh, gmeow:envelopeDictionary, is exactly-one IFF the envelope's medium declares a dictionary at all (logic:MediumEnvelopeDictionaryConstraint) and at-most-one always — an unconditional obligation there would make the explicitly dictionary-LESS gmeow:mediumProfileBaselineL12 inexpressible as an envelope, and 'no dictionary' is that medium's selection rather than a missing coordinate. Its failure classes are HARD FAILS — an envelope that cannot resolve its dictionary, its schema, or its digest refuses, and never falls back to dictionary-less decode."@x-gmeow-english ;
+    skos:definition "The RDF PROJECTION of the medium facts a frame ALREADY carries in band — never a second copy, and never an independently recomputed one. An envelope names the dictionary the payload was primed with (gmeow:envelopeDictionary), the registered payload schema of the blob (gmeow:envelopeSchema), the byte-exact identity the frame itself states (gmeow:contentDigest, projected verbatim from the frame's in-band pub.digest / snapshot_content_id — reused from attestation, never recomputed and stored), the medium the bytes were written through (gmeow:envelopeMedium), the frame it describes (gmeow:envelopePayloadFrame), and the stratified digest pair (gmeow:envelopeDigestStratum + gmeow:strataDigest) that makes the SELF-REFERENTIAL snapshot envelope converge in exactly two passes. TEN of the eleven fields are unconditionally exactly-one: a projection missing a coordinate is not a weaker projection, it is a different claim. Four of the ten are the canonical-profile coordinates (gmeow:canonProfileId, gmeow:canonProfileVersion, gmeow:canonPresentationId, gmeow:canonPresentationVersion): the derived contract shape classes an absent one as gmeow:MediumUndeclaredDictionary, while the envelope reader refuses an absent or foreign marker as gmeow:MediumProfileMismatch before any digest is compared. The eleventh, gmeow:envelopeDictionary, is exactly-one IFF the envelope's medium declares a dictionary at all (logic:MediumEnvelopeDictionaryConstraint) and at-most-one always — an unconditional obligation there would make the explicitly dictionary-LESS gmeow:mediumProfileBaselineL12 inexpressible as an envelope, and 'no dictionary' is that medium's selection rather than a missing coordinate. Its failure classes are HARD FAILS — an envelope that cannot resolve its dictionary, its schema, or its digest refuses, and never falls back to dictionary-less decode."@x-gmeow-english ;
     skos:example "ex:env a gmeow:MediumEnvelope ; gmeow:envelopeSchema gmeow:payloadSchemaCellsArchive ; gmeow:envelopeMedium gmeow:mediumProfileDistL12 ."@x-gmeow-english ;
     skos:scopeNote "Scope: this class covers the PROJECTION of the medium facts one frame already carries in band — a read of the wire, made queryable. It is not the authored assignment that decided those facts (gmeow:PayloadSchema, with gmeow:payloadSchemaMedium and gmeow:payloadSchemaDictionary), not a place to store settings the frame does not carry, and not the medium itself. Deriving the assignment from an envelope would make the governing rule a product of the emission it governs."@x-gmeow-english ;
     gmeow:addedInVersion "0.1.0" ;
-    gmeow:avoidWhen "Avoid recomputing and storing a digest here (project the frame's in-band digest verbatim — an independently computed value is a second source that can silently disagree), avoid using it as a place to STORE medium settings the frame does not carry, and avoid omitting any field its medium makes obligatory (all six unconditional ones always, plus gmeow:envelopeDictionary whenever the medium declares a dictionary set)."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid recomputing and storing a digest here (project the frame's in-band digest verbatim — an independently computed value is a second source that can silently disagree), avoid using it as a place to STORE medium settings the frame does not carry, and avoid omitting any field its medium makes obligatory (all ten unconditional ones always, plus gmeow:envelopeDictionary whenever the medium declares a dictionary set)."@x-gmeow-english ;
     gmeow:docsConcern gmeow:concernGTSPackaging ;
     gmeow:graphBoxRole gmeow:boxCBox ,
         gmeow:boxTBox ;
@@ -1683,6 +1683,70 @@ gmeow:strataDigest
     gmeow:howToUse "Compute it over exactly the named stratum in the first emission pass and write it in the second; keep gmeow:contentDigest beside it carrying the frame's own in-band digest."@x-gmeow-english ;
     gmeow:termStability gmeow:stabilityExperimental ;
     gmeow:useWhen "Use to commit to a sub-payload whose digest a whole-payload digest cannot stably express."@x-gmeow-english .
+
+gmeow:canonProfileId
+    a logic:DatatypeProperty ;
+    logic:domain gmeow:MediumEnvelope ;
+    logic:range xsd:string ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
+    rdfs:label "canonical profile identifier"@x-gmeow-english ;
+    skos:definition "The identifier of the canonicalization profile under which the digests an envelope carries were produced. Exactly one per envelope, recorded with gmeow:canonProfileVersion beside gmeow:strataDigest, because the stratum digest of the snapshot envelope is a function of canonical RDF: a reader built on a different profile can then tell a profile change from corruption. A reader compares it with the profile it implements before it compares any digest."@x-gmeow-english ;
+    skos:example "ex:record gmeow:canonProfileId \"example-profile\" ."@x-gmeow-english ;
+    skos:scopeNote "Scope: this property names the canonicalization profile only. The profile's version is gmeow:canonProfileVersion, the presentation of the statement layer is gmeow:canonPresentationId, and the digest itself is gmeow:strataDigest."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid asserting it on a frame whose digests do not depend on canonical RDF without also asserting its version, and avoid defaulting an absent value to the reader's own profile."@x-gmeow-english ;
+    gmeow:docsConcern gmeow:concernGTSPackaging ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:howToUse "Write it from the one constant the build links, beside the digests that depend on it; read it back and refuse the envelope when it differs from the linked constant."@x-gmeow-english ;
+    gmeow:termStability gmeow:stabilityExperimental ;
+    gmeow:useWhen "Use to record which canonicalization profile produced the digests of an envelope."@x-gmeow-english .
+
+gmeow:canonProfileVersion
+    a logic:DatatypeProperty ;
+    logic:domain gmeow:MediumEnvelope ;
+    logic:range xsd:nonNegativeInteger ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
+    rdfs:label "canonical profile version"@x-gmeow-english ;
+    skos:definition "The version of the canonicalization profile named by gmeow:canonProfileId. Exactly one per envelope. The profile increments its version for any change to canonical bytes, so two digests are comparable only when the identifier and the version both agree."@x-gmeow-english ;
+    skos:example "ex:record gmeow:canonProfileVersion 1 ."@x-gmeow-english ;
+    skos:scopeNote "Scope: this property versions the profile named by gmeow:canonProfileId and nothing else; it is not the version of a dictionary, a slice or a release."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid comparing it across different profile identifiers, and avoid treating a higher number as compatible with a lower one."@x-gmeow-english ;
+    gmeow:docsConcern gmeow:concernGTSPackaging ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:howToUse "Write it with gmeow:canonProfileId and compare both with the linked constants before comparing any digest."@x-gmeow-english ;
+    gmeow:termStability gmeow:stabilityExperimental ;
+    gmeow:useWhen "Use to record the version of the canonicalization profile that produced the digests of an envelope."@x-gmeow-english .
+
+gmeow:canonPresentationId
+    a logic:DatatypeProperty ;
+    logic:domain gmeow:MediumEnvelope ;
+    logic:range xsd:string ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
+    rdfs:label "canonical presentation identifier"@x-gmeow-english ;
+    skos:definition "The identifier of the presentation of the RDF 1.2 statement layer the canonical form behind gmeow:strataDigest was taken over, for example the flat-assertion presentation that lowers statements to ordinary quads. Exactly one per envelope, recorded with gmeow:canonPresentationVersion."@x-gmeow-english ;
+    skos:example "ex:record gmeow:canonPresentationId \"example-presentation\" ."@x-gmeow-english ;
+    skos:scopeNote "Scope: this property names the presentation only; the profile is gmeow:canonProfileId."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid asserting it without gmeow:canonProfileId, which it refines."@x-gmeow-english ;
+    gmeow:docsConcern gmeow:concernGTSPackaging ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:howToUse "Write it from the linked constant beside the profile identifier and compare it before any digest."@x-gmeow-english ;
+    gmeow:termStability gmeow:stabilityExperimental ;
+    gmeow:useWhen "Use to record which presentation of the statement layer an envelope's canonical digest was taken over."@x-gmeow-english .
+
+gmeow:canonPresentationVersion
+    a logic:DatatypeProperty ;
+    logic:domain gmeow:MediumEnvelope ;
+    logic:range xsd:nonNegativeInteger ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
+    rdfs:label "canonical presentation version"@x-gmeow-english ;
+    skos:definition "The version of the presentation named by gmeow:canonPresentationId. Exactly one per envelope."@x-gmeow-english ;
+    skos:example "ex:record gmeow:canonPresentationVersion 1 ."@x-gmeow-english ;
+    skos:scopeNote "Scope: this property versions the presentation only, not the profile."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid comparing it across different presentation identifiers."@x-gmeow-english ;
+    gmeow:docsConcern gmeow:concernGTSPackaging ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:howToUse "Write it with gmeow:canonPresentationId and compare both before any digest."@x-gmeow-english ;
+    gmeow:termStability gmeow:stabilityExperimental ;
+    gmeow:useWhen "Use to record the version of the presentation an envelope's canonical digest was taken over."@x-gmeow-english .
 
 gmeow:trainsOverCorpus
     a logic:ObjectProperty ;
@@ -2719,6 +2783,22 @@ gmeow:MediumDictionaryRegression
     gmeow:termStability gmeow:stabilityExperimental ;
     gmeow:useWhen "Use to name the loss of a dictionary version that shipped artifacts still depend on."@x-gmeow-english .
 
+gmeow:MediumProfileMismatch
+    a logic:Category ,
+        logic:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
+    rdfs:label "Medium Profile Mismatch"@x-gmeow-english ;
+    logic:subClassOf gmeow:GtsConformanceFailure ;
+    skos:definition "The failure raised when a medium envelope records a canonicalization profile other than the one the reader implements, or records none. HARD FAIL, raised BEFORE any digest is compared: the stratum digest of the snapshot envelope is a function of canonical RDF, so a reader on a different profile would otherwise report a profile change as corruption. An envelope with no marker says nothing about how its digests were made and is refused, never assumed to match."@x-gmeow-english ;
+    skos:example "ex:env a gmeow:MediumProfileMismatch ."@x-gmeow-english ;
+    skos:scopeNote "Scope: this failure covers a disagreement between the PROFILE an envelope records and the profile the reader implements, or the absence of that record. It is not a disagreement between a digest and its bytes (gmeow:MediumDigestMismatch): here the digest is never compared."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid resolving it by editing the recorded profile to match the reader (that asserts a provenance nothing measured) and avoid using it for a digest that disagrees with its bytes under an agreeing profile; that is gmeow:MediumDigestMismatch."@x-gmeow-english ;
+    gmeow:docsConcern gmeow:concernGTSPackaging ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    gmeow:howToUse "Raised by the envelope reader and the snapshot-envelope verifier before any digest comparison; resolve it by regenerating the artifact with a build that implements the recorded profile, or by reading it with such a build."@x-gmeow-english ;
+    gmeow:termStability gmeow:stabilityExperimental ;
+    gmeow:useWhen "Use to name an envelope whose recorded canonical profile is absent or is not the profile the reader implements."@x-gmeow-english .
+
 gmeow:MediumDigestMismatch
     a logic:Category ,
         logic:Class ;
@@ -2759,14 +2839,14 @@ gmeow:MediumUndeclaredDictionary
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
     rdfs:label "Medium Undeclared Dictionary"@x-gmeow-english ;
     logic:subClassOf gmeow:GtsConformanceFailure ;
-    skos:definition "The failure raised when a gmeow:MediumEnvelope does not declare its contract — canonically a payload primed with a dictionary whose frame declares none, and equally any of the six unconditionally exactly-one envelope fields being absent or duplicated, or a missing gmeow:envelopeDictionary on an envelope whose medium declares one, since a projection missing a coordinate is a different claim rather than a weaker one. It is ALSO the failure of a registered gmeow:PayloadSchema carrying no gmeow:payloadSchemaMedium: the rep-to-medium assignment is total, so a missing row is a missing DECLARATION rather than permission to encode the rep unmediated. HARD FAIL: an undeclared dictionary is undiscoverable, so the payload is permanently undecodable even though its bytes are intact. It is distinct from gmeow:MediumUnknownDictionary (a dictionary IS declared but does not resolve): here nothing was declared at all, and there is no fallback to dictionary-less decode because the bytes were not written that way. This is the failure the DERIVED gmeow:MediumEnvelope contract shape raises, which is why it is the class wired directly from gmeow:MediumEnvelope."@x-gmeow-english ;
+    skos:definition "The failure raised when a gmeow:MediumEnvelope does not declare its contract — canonically a payload primed with a dictionary whose frame declares none, and equally any of the ten unconditionally exactly-one envelope fields being absent or duplicated, or a missing gmeow:envelopeDictionary on an envelope whose medium declares one, since a projection missing a coordinate is a different claim rather than a weaker one. It is ALSO the failure of a registered gmeow:PayloadSchema carrying no gmeow:payloadSchemaMedium: the rep-to-medium assignment is total, so a missing row is a missing DECLARATION rather than permission to encode the rep unmediated. HARD FAIL: an undeclared dictionary is undiscoverable, so the payload is permanently undecodable even though its bytes are intact. It is distinct from gmeow:MediumUnknownDictionary (a dictionary IS declared but does not resolve): here nothing was declared at all, and there is no fallback to dictionary-less decode because the bytes were not written that way. This is the failure the DERIVED gmeow:MediumEnvelope contract shape raises, which is why it is the class wired directly from gmeow:MediumEnvelope. A missing canonical-profile coordinate is classed this way by the derived shape, while the envelope reader refuses it as gmeow:MediumProfileMismatch before any digest is compared."@x-gmeow-english ;
     skos:example "ex:env a gmeow:MediumUndeclaredDictionary ."@x-gmeow-english ;
-    skos:scopeNote "Scope: this failure covers a MISSING or DUPLICATED declaration — an envelope field of the seven-field contract absent or repeated, or a registered schema carrying no medium assignment. It is not a declaration that fails to resolve (gmeow:MediumUnknownDictionary) and not an unregistered payload rep (gmeow:MediumUnknownSchema): nothing was written down at all, so there is nothing to look up. Declaring no dictionary under the dictionary-less baseline medium is a SELECTION and stays outside this failure."@x-gmeow-english ;
+    skos:scopeNote "Scope: this failure covers a MISSING or DUPLICATED declaration — an envelope field of the eleven-field contract absent or repeated, or a registered schema carrying no medium assignment. It is not a declaration that fails to resolve (gmeow:MediumUnknownDictionary) and not an unregistered payload rep (gmeow:MediumUnknownSchema): nothing was written down at all, so there is nothing to look up. Declaring no dictionary under the dictionary-less baseline medium is a SELECTION and stays outside this failure."@x-gmeow-english ;
     gmeow:addedInVersion "0.1.0" ;
     gmeow:avoidWhen "Avoid using it for the explicitly dictionary-less gmeow:mediumProfileBaselineL12 (declaring no dictionary is that medium's SELECTION, not an omission) and avoid confusing it with an unresolvable declaration."@x-gmeow-english ;
     gmeow:docsConcern gmeow:concernGTSPackaging ;
     gmeow:graphBoxRole gmeow:boxTBox ;
-    gmeow:howToUse "Raised by the derived gmeow:MediumEnvelope contract shape whenever a field of the seven-field contract is absent or duplicated; the fix is to emit the declaration, never to decode without it."@x-gmeow-english ;
+    gmeow:howToUse "Raised by the derived gmeow:MediumEnvelope contract shape whenever a field of the eleven-field contract is absent or duplicated; the fix is to emit the declaration, never to decode without it."@x-gmeow-english ;
     gmeow:termStability gmeow:stabilityExperimental ;
     gmeow:useWhen "Use to name a primed payload whose priming dictionary was never written down."@x-gmeow-english .
 
@@ -3070,6 +3150,20 @@ logic:MediumStrataDigestFormConstraint
     gmeow:enforcesFailureClass gmeow:MediumDigestMismatch ;
     logic:message "A gmeow:strataDigest requires 64 lowercase hexadecimal digits without a prefix and the BLAKE3-256 digest datatype." .
 
+logic:MediumCanonProfileFormConstraint
+    a logic:StringPatternConstraint ;
+    rdfs:label "Medium canonical-profile form constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "The lexical check for a supplied canonProfileId: lowercase alphanumeric words joined by single hyphens. It does not compare the identifier with the profile a reader implements; that comparison is the reader's, and it runs before any digest."@x-gmeow-english ;
+    logic:onClass gmeow:MediumEnvelope ;
+    logic:valuePath gmeow:canonProfileId ;
+    logic:stringOp "regexRequired" ;
+    logic:stringPattern "^[a-z0-9]+(-[a-z0-9]+)*$" ;
+    logic:formalizes gmeow:MediumEnvelope ;
+    gmeow:enforcesFailureClass gmeow:MediumProfileMismatch ;
+    logic:message "A gmeow:canonProfileId requires lowercase alphanumeric words joined by single hyphens." .
+
 logic:MediumDictionaryDigestFormConstraint
     a logic:StringPatternConstraint ;
     rdfs:label "Medium dictionary-digest form constraint"@x-gmeow-english ;
@@ -3253,8 +3347,9 @@ gmeow:payloadSchemaDictionaryRangeClosure
     logic:closureValue logic:ClosedWorldClosure ;
     gmeow:enforcesFailureClass gmeow:MediumUnknownDictionary .
 
-# The medium-envelope contract. SIX fields are unconditionally exactly-one; the
-# seventh — gmeow:envelopeDictionary — is exactly-one IFF the envelope's medium
+# The medium-envelope contract. Ten fields are unconditionally exactly-one (the six
+# payload coordinates and the four canonical-profile coordinates); the
+# remaining one — gmeow:envelopeDictionary — is exactly-one IFF the envelope's medium
 # declares a dictionary at all. An unconditional min-1 here would make
 # gmeow:mediumProfileBaselineL12 INEXPRESSIBLE as an envelope: that medium
 # declares an EMPTY gmeow:mediumDictionary set on purpose, and "no dictionary" is
@@ -3279,7 +3374,15 @@ gmeow:MediumEnvelope logic:subClassOf
     [ a logic:Restriction ; logic:onProperty gmeow:envelopeDigestStratum ; logic:minQualifiedCardinality 1 ; logic:onClass logic:Thing ] ,
     [ a logic:Restriction ; logic:onProperty gmeow:envelopeDigestStratum ; logic:maxQualifiedCardinality 1 ; logic:onClass logic:Thing ] ,
     [ a logic:Restriction ; logic:onProperty gmeow:strataDigest ; logic:minQualifiedCardinality 1 ; logic:onDataRange gmeow:blake3_256Digest ] ,
-    [ a logic:Restriction ; logic:onProperty gmeow:strataDigest ; logic:maxQualifiedCardinality 1 ; logic:onDataRange gmeow:blake3_256Digest ] .
+    [ a logic:Restriction ; logic:onProperty gmeow:strataDigest ; logic:maxQualifiedCardinality 1 ; logic:onDataRange gmeow:blake3_256Digest ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:canonProfileId ; logic:minQualifiedCardinality 1 ; logic:onDataRange xsd:string ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:canonProfileId ; logic:maxQualifiedCardinality 1 ; logic:onDataRange xsd:string ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:canonProfileVersion ; logic:minQualifiedCardinality 1 ; logic:onDataRange xsd:nonNegativeInteger ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:canonProfileVersion ; logic:maxQualifiedCardinality 1 ; logic:onDataRange xsd:nonNegativeInteger ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:canonPresentationId ; logic:minQualifiedCardinality 1 ; logic:onDataRange xsd:string ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:canonPresentationId ; logic:maxQualifiedCardinality 1 ; logic:onDataRange xsd:string ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:canonPresentationVersion ; logic:minQualifiedCardinality 1 ; logic:onDataRange xsd:nonNegativeInteger ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:canonPresentationVersion ; logic:maxQualifiedCardinality 1 ; logic:onDataRange xsd:nonNegativeInteger ] .
 
 # A medium is exactly one codec, one resolution rule, and one judged crossing.
 gmeow:Medium logic:subClassOf

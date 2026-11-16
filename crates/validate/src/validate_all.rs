@@ -1236,6 +1236,14 @@ fn deep_semantic_findings_dataset(
         // Injected, never sampled — the deep pass certificate stays deterministic.
         DETERMINISTIC_ISSUED_AT,
         projection_loss_codes,
+        gmeow_logic::certificate::CanonProfileMarker {
+            profile_id: gmeow_gts_profile::canon_profile::GMEOW_CANON_PROFILE_ID.to_owned(),
+            profile_version: gmeow_gts_profile::canon_profile::GMEOW_CANON_PROFILE_VERSION,
+            presentation_id: gmeow_gts_profile::canon_profile::GMEOW_CANON_FLAT_PRESENTATION_ID
+                .to_owned(),
+            presentation_version:
+                gmeow_gts_profile::canon_profile::GMEOW_CANON_FLAT_PRESENTATION_VERSION,
+        },
     )
     .map_err(|e| {
         Diag::of_kind(crate::error::Engine {

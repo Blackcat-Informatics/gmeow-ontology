@@ -31,6 +31,12 @@
 
 use std::collections::BTreeSet;
 
+use gmeow_gts_profile::canon_profile::{
+    GMEOW_CANON_FLAT_PRESENTATION_ID, GMEOW_CANON_FLAT_PRESENTATION_VERSION,
+    GMEOW_CANON_PROFILE_ID, GMEOW_CANON_PROFILE_VERSION,
+};
+use gmeow_logic::certificate::CanonProfileMarker;
+
 use super::registry::{DictSelection, DictionaryDef, MediumRegistry, MediumSelection};
 use super::{
     GMEOW, blake3_digest, digest_mismatch, is_canonical_digest, opaque_frame,
@@ -121,7 +127,7 @@ pub(crate) struct OwnedFrameDigestFacts<'a> {
     pub dictionary_id: Option<&'a str>,
 }
 
-/// The seven-field medium-envelope contract, as a typed record.
+/// The eleven-field medium-envelope contract, as a typed record.
 ///
 /// Every field is exactly-one because a projection missing a coordinate is a
 /// DIFFERENT claim rather than a weaker one. [`Self::dictionary`] is the single
@@ -146,6 +152,10 @@ pub struct MediumEnvelope {
     /// `gmeow:contentDigest` — the frame's own in-band byte identity, carried
     /// beside the stratum digest rather than replaced by it.
     pub content_digest: String,
+    /// `gmeow:canonProfileId`, `gmeow:canonProfileVersion`, `gmeow:canonPresentationId`
+    /// and `gmeow:canonPresentationVersion` — the canonical profile the digests above
+    /// were produced under, so a reader can tell a profile change from corruption.
+    pub canon_profile: CanonProfileMarker,
 }
 
 /// Project a `gmeow:MediumEnvelope` from the facts a frame already carries, under the
@@ -279,7 +289,50 @@ pub(crate) fn seal_owned_digests(
         stratum: facts.stratum,
         strata_digest: facts.strata_digest,
         content_digest: facts.content_digest,
+        canon_profile: linked_canon_profile(),
     })
+}
+
+/// The canonical profile this build implements, read from the one constant owner.
+#[must_use]
+pub(crate) fn linked_canon_profile() -> CanonProfileMarker {
+    CanonProfileMarker {
+        profile_id: GMEOW_CANON_PROFILE_ID.to_owned(),
+        profile_version: GMEOW_CANON_PROFILE_VERSION,
+        presentation_id: GMEOW_CANON_FLAT_PRESENTATION_ID.to_owned(),
+        presentation_version: GMEOW_CANON_FLAT_PRESENTATION_VERSION,
+    }
+}
+
+/// Refuse an envelope recorded under a canonical profile other than the one this build
+/// implements.
+///
+/// Run BEFORE any digest comparison: a digest taken over canonical output moves when the
+/// profile moves, and without this check the two causes are indistinguishable.
+///
+/// # Errors
+/// `MediumProfileMismatch` naming the recorded and the expected profile.
+pub(crate) fn check_canon_profile(envelope: &MediumEnvelope) -> Result<(), gmeow_errors::Diag> {
+    let expected = linked_canon_profile();
+    if envelope.canon_profile == expected {
+        return Ok(());
+    }
+    let recorded = &envelope.canon_profile;
+    Err(super::profile_mismatch(format!(
+        "envelope for frame <{}> was recorded under canonical profile {}/{} with presentation \
+         {}/{}, but this reader implements {}/{} with presentation {}/{} — its digests are \
+         functions of that profile, so they are not compared; regenerate the artifact with this \
+         build or read it with a build that implements the recorded profile",
+        envelope.frame,
+        recorded.profile_id,
+        recorded.profile_version,
+        recorded.presentation_id,
+        recorded.presentation_version,
+        expected.profile_id,
+        expected.profile_version,
+        expected.presentation_id,
+        expected.presentation_version,
+    )))
 }
 
 /// The reader capabilities a decoder holds, checked against a medium's
@@ -305,6 +358,7 @@ pub fn open<'r>(
     payload: &[u8],
     stratum_bytes: &[u8],
 ) -> Result<Option<&'r DictionaryDef>, gmeow_errors::Diag> {
+    check_canon_profile(envelope)?;
     let schema = registry.schemas().get(&envelope.schema).ok_or_else(|| {
         super::unknown_schema(format!(
             "envelope for frame <{}> names schema <{}>, which is not a registered \
