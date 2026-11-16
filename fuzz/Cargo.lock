@@ -357,7 +357,7 @@ checksum = "e4eba85ea1d0a966a983acd07deee566e67395d2d96b6fb39e62b5a833f1eb0b"
 
 [[package]]
 name = "gmeow-build-inputs"
-version = "0.3.0"
+version = "0.4.0"
 dependencies = [
  "cargo-config2",
  "glob",
@@ -373,7 +373,7 @@ dependencies = [
 
 [[package]]
 name = "gmeow-errors"
-version = "0.3.0"
+version = "0.4.0"
 dependencies = [
  "purrdf-core",
  "purrdf-hash",
@@ -383,7 +383,7 @@ dependencies = [
 
 [[package]]
 name = "gmeow-fuzz"
-version = "0.0.0"
+version = "0.4.0"
 dependencies = [
  "gmeow-logic",
  "gmeow-logic-compile",
@@ -393,7 +393,7 @@ dependencies = [
 
 [[package]]
 name = "gmeow-gts-profile"
-version = "0.3.0"
+version = "0.4.0"
 dependencies = [
  "gmeow-errors",
  "purrdf",
@@ -403,7 +403,7 @@ dependencies = [
 
 [[package]]
 name = "gmeow-lang-form"
-version = "0.3.0"
+version = "0.4.0"
 dependencies = [
  "purrdf-hash",
  "sha2 0.10.9",
@@ -411,7 +411,7 @@ dependencies = [
 
 [[package]]
 name = "gmeow-logic"
-version = "0.3.0"
+version = "0.4.0"
 dependencies = [
  "chrono",
  "ciborium",
@@ -440,7 +440,7 @@ dependencies = [
 
 [[package]]
 name = "gmeow-logic-compile"
-version = "0.3.0"
+version = "0.4.0"
 dependencies = [
  "gmeow-errors",
  "gmeow-gts-profile",
@@ -457,7 +457,7 @@ dependencies = [
 
 [[package]]
 name = "gmeow-math"
-version = "0.3.0"
+version = "0.4.0"
 dependencies = [
  "gmeow-errors",
  "gmeow-gts-profile",
@@ -467,7 +467,7 @@ dependencies = [
 
 [[package]]
 name = "gmeow-math-lift"
-version = "0.3.0"
+version = "0.4.0"
 dependencies = [
  "gmeow-errors",
  "gmeow-term-arena",
@@ -479,14 +479,14 @@ dependencies = [
 
 [[package]]
 name = "gmeow-ns"
-version = "0.3.0"
+version = "0.4.0"
 dependencies = [
  "purrdf",
 ]
 
 [[package]]
 name = "gmeow-term-arena"
-version = "0.3.0"
+version = "0.4.0"
 dependencies = [
  "foldhash",
  "hashbrown 0.15.5",
