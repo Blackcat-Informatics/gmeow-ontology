@@ -138,11 +138,12 @@ The reasoner witnesses are refreshed with a substrate bump but do not derive fro
 the profile. They move with the substrate because their skolem IRIs fold the native
 contract hash, which folds the linked PurRDF's substrate identity. They do not move
 with the profile because no canonical label reaches a witness identity, for two
-different reasons. The conjecture formulas do hold blank nodes, as argument nodes,
-and those are read into a formula over IRIs and variables, whose terms have no
-blank-node form. The closure input and both knowledge bases hold no blank node;
-that is true of the inputs as they stand and is not enforced, so a blank node added
-to either needs this paragraph checked again. `make maint-refresh-reason-witness` writes
+different reasons. The conjecture formulas do hold blank nodes, as argument and
+quantified-variable nodes, and those are read into a formula over IRIs and
+variables, whose terms have no blank-node form. The closure input and both
+knowledge bases hold no blank node; that is true of the inputs as they stand and is
+not enforced, so a blank node added to either needs this paragraph checked again.
+`make maint-refresh-reason-witness` writes
 `crates/reason-wasm/tests/WITNESS.reason.nq` and `WITNESS.conjecture.nq`, and
 `make maint-prepare-wasm-assets` copies `WITNESS.reason.nq` into
 `crates/docs/assets/reason/`. No target copies
