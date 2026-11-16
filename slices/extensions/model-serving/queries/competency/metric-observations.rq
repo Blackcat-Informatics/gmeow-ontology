@@ -4,10 +4,12 @@
 # Which metric readings are held about an artifact, by whom, and in what dimension?
 # Each row follows one observation to its own metric and its own result, and keeps the
 # row only when the result carries the dimension that metric declares. The magnitude is
-# returned as its lexical form and the unit is returned where the result names one.
+# returned as its lexical form and the unit is returned where the result names
+# one. The result itself is returned too, so two results that carry the same dimension,
+# magnitude and unit stay two rows.
 PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
 PREFIX math: <https://blackcatinformatics.ca/math/>
-SELECT ?observation ?artifact ?evaluator ?metric ?dimension (STR(?magnitude) AS ?value) ?unit WHERE {
+SELECT ?observation ?artifact ?evaluator ?metric ?dimension ?result (STR(?magnitude) AS ?value) ?unit WHERE {
     ?observation a gmeow:ModelMetricObservation ;
         gmeow:vantage ?evaluator ;
         gmeow:observedFeature ?artifact ;
@@ -20,4 +22,4 @@ SELECT ?observation ?artifact ?evaluator ?metric ?dimension (STR(?magnitude) AS 
         math:quantityValue ?magnitude .
     OPTIONAL { ?result gmeow:unit ?unit }
 }
-ORDER BY ?observation
+ORDER BY ?observation ?result

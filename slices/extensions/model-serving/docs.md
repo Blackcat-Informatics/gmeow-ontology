@@ -149,15 +149,17 @@ ordinary declaration, not an executed conformance result.
 
 Two competency questions read the worked example through the math terms. One
 returns each weight tensor of a tensor artifact with its learned model, the rank
-of its shape and the index and extent of every axis. The other returns each held
-metric reading with its artifact, evaluator, metric, dimension, magnitude and,
+of its shape and every axis with its index and extent. The other returns each held
+metric reading with its artifact, evaluator, metric, dimension, result, magnitude and,
 where the result names one, its unit; it keeps a reading only when the result
 carries the dimension its own metric declares. The metric result law has a
 conforming fixture and two counter-examples under `tests/`: a latency reported
 as a bare dimensionless number, and a result with no magnitude.
 The two artifact laws have controls too. `gmeow:TensorArtifactCoherenceConstraint` has a
-conforming tensor artifact and two counter-examples, one whose computation graph describes a
-different model and one whose weight lives in the parameter space of a different model.
+conforming tensor artifact and four counter-examples: one whose computation graph describes a
+different model, one whose weight lives in the parameter space of a different model, and two
+that add a second, different model as an extra owner beside the correct one, once on the
+computation graph and once on the parameter space.
 `gmeow:ArtifactTrainingObjectiveConstraint` has a conforming learned artifact and two
 counter-examples, a training problem with no objective and an objective that is a plain function
 rather than a loss function. Every resource a fixture types with a math class

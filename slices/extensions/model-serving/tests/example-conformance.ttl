@@ -58,7 +58,8 @@ ex:ecMetricResultNoMagnitude a gmeow:ExampleConformance ;
 # gmeow:TensorArtifactCoherenceConstraint requires an artifact's computation graph to
 # describe the artifact's own learned model and no other, every computation node to be
 # an application expression, and every weight's parameter space to belong to that model
-# or that graph. One fixture satisfies it and two counter-examples each break one part.
+# or that graph. One fixture satisfies it and four counter-examples each break one part: a wrong owner
+or an additional incompatible owner, on the graph and on the parameter space.
 
 ex:ecTensorArtifactCoherent a gmeow:ExampleConformance ;
     gmeow:exampleFile "tests/conformance-fixtures/tensor-artifact-coherent.ttl" ;
@@ -80,6 +81,22 @@ ex:ecTensorWeightOtherModelSpace a gmeow:ExampleConformance ;
     gmeow:expectedSourceShape gmeow:TensorArtifactCoherenceConstraintProceduralConstraintShape ;
     gmeow:expectedSoleFinding true ;
     gmeow:conformanceRationale "The artifact's weight lives in a math:ParameterSpace that is the parameter space of a different model, neither the artifact's learned model nor its graph. gmeow:TensorArtifactCoherenceConstraint requires every parameter space of a declared weight to name that model or graph, so validation MUST emit shacl.SPARQLConstraintComponent from the shape that constraint projects to. The graph describes the artifact's own model and its node is an application expression, so no other part of the law, and no other law of this slice, is broken; the cell declares soleness." .
+
+ex:ecTensorGraphExtraOwner a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/tensor-graph-extra-owner.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.SPARQLConstraintComponent" ;
+    gmeow:expectedSourceShape gmeow:TensorArtifactCoherenceConstraintProceduralConstraintShape ;
+    gmeow:expectedSoleFinding true ;
+    gmeow:conformanceRationale "The computation graph is the architecture of the artifact's own learned model and also of a second, different model. The required owner is present, so only the clause of gmeow:TensorArtifactCoherenceConstraint that checks every supplied architecture owner of the graph is broken: an expected owner cannot hide an additional one, and validation MUST emit shacl.SPARQLConstraintComponent from the shape that constraint projects to. The graph node is an application expression and the weight's parameter space belongs to the artifact's model, so no other part of the law, and no other law of this slice, is broken; the cell declares soleness." .
+
+ex:ecTensorWeightExtraOwnerSpace a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/tensor-weight-extra-owner-space.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.SPARQLConstraintComponent" ;
+    gmeow:expectedSourceShape gmeow:TensorArtifactCoherenceConstraintProceduralConstraintShape ;
+    gmeow:expectedSoleFinding true ;
+    gmeow:conformanceRationale "The weight's math:ParameterSpace is the parameter space of the artifact's own learned model and also of a second, different model. The required owner is present, so only the clause of gmeow:TensorArtifactCoherenceConstraint that checks every supplied parameter-space owner is broken: an expected owner cannot hide an additional one, and validation MUST emit shacl.SPARQLConstraintComponent from the shape that constraint projects to. The graph describes the artifact's own model and its node is an application expression, so no other part of the law, and no other law of this slice, is broken; the cell declares soleness." .
 
 # --- Training objectives: a declared training problem names a loss function ---
 # gmeow:ArtifactTrainingObjectiveConstraint keeps a learned artifact distinct from its
