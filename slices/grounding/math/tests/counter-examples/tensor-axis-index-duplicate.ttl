@@ -1,0 +1,14 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Failing control for math:TensorAxisIndexUniquenessConstraint: a rank-2 shape declares
+# two distinct axis nodes that both claim index 0. Two axes agree with the rank and
+# index 0 is zero or greater and below 2, so the count, bound and range laws hold; the
+# repeated position is the only defect. Bound by ex:ecTensorAxisIndexDuplicate.
+@prefix math: <https://blackcatinformatics.ca/math/> .
+@prefix ex:   <http://example.org/math/tensor-shape-controls/> .
+
+ex:shape a math:TensorShape ; math:tensorRank 2 ;
+    math:shapeAxis ex:left, ex:right .
+ex:left a math:TensorAxis ; math:axisIndex 0 .
+ex:right a math:TensorAxis ; math:axisIndex 0 .

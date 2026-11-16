@@ -166,3 +166,41 @@ ASK {
     ?p rdfs:range ?anyRange .
 }""" ;
     gmeow:saRationale "The inhabitation-facing projections and session properties MUST NOT declare an rdfs:range — a range axiom to an inhabitation term would make this extension depend on core/inhabitation, breaking 'reusable beyond inhabitation' (INHABITED-CONSUMER.md). The terminus is typed at the instance level in the agent-runtime profile, where both slices are present." .
+
+# --- 12. No literal-valued tensor or metric path on the artifact family (MUST-NOT) ---
+ex:saNoScalarTensorOrMetricPath a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:mustNot ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saFailWitness "tests/counter-examples/scalar-metric-path.ttl" ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    VALUES ?kind { owl:DatatypeProperty logic:DatatypeProperty }
+    VALUES ?carrier { gmeow:ModelArtifact gmeow:LearnedModelArtifact gmeow:TensorModelArtifact
+                      gmeow:ModelMetric gmeow:ModelMetricObservation }
+    ?path a ?kind ;
+        (rdfs:domain|logic:domain) ?carrier .
+}""" ;
+    gmeow:saRationale "The model-serving module MUST NOT declare a literal-valued property on an artifact, a metric or a metric observation. A tensor's rank, axes and extents are stated on a math:TensorShape reached through gmeow:artifactWeightTensor, and a metric magnitude is the math:quantityValue of a math:Quantity result held by a gmeow:ModelMetricObservation with a declared math:Dimension. A literal-valued property on one of these classes would be a second path for the same magnitude, with no dimension, no evaluator and no shape law. The module declares no datatype property at all; the fail-witness supplies one on gmeow:ModelArtifact." .
+
+# --- 13. The metric and tensor profiles range over the math owners (MUST) ---------
+ex:saProfilesRangeOverMathOwners a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
+PREFIX math: <https://blackcatinformatics.ca/math/>
+ASK {
+    gmeow:artifactLearnedModel logic:range math:LearnedModel .
+    gmeow:artifactComputationGraph logic:range math:TensorComputationGraph .
+    gmeow:artifactWeightTensor logic:range math:WeightTensor .
+    gmeow:artifactTrainingProblem logic:range math:OptimizationProblem .
+    gmeow:metricDimension logic:range math:Dimension .
+    gmeow:ModelMetricObservation logic:subClassOf [ logic:onProperty gmeow:observationResult ; logic:allValuesFrom math:Quantity ] .
+    gmeow:ModelMetricResultConstraint a logic:Constraint ; logic:formalizes gmeow:ModelMetricObservation ;
+        logic:integrity/logic:forall/logic:consequent/logic:and/logic:forall/logic:consequent ?conclusion .
+    ?conclusion logic:relation math:hasDimension .
+}""" ;
+    gmeow:saRationale "Each mathematical role of the artifact and metric profiles MUST range over its math owner: the learned model, the forward computation graph, the weight tensor, the training problem and the metric dimension, with every metric result a math:Quantity. The result law MUST conclude math:hasDimension of the result against the dimension its metric declares. A role re-ranged to a class of this slice, or a result law that no longer concludes the dimension, would let a tensor or a metric be stated without the math terms." .

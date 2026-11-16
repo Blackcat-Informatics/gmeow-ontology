@@ -1,0 +1,20 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Passing control for gmeow:ArtifactTrainingObjectiveConstraint: a learned artifact
+# distinct from its learned model declares one training problem whose objective is a
+# math:LossFunction. Every part of the law holds. The artifact is a plain learned
+# profile, so the tensor-artifact law does not apply to it.
+# Bound by ex:ecArtifactTrainingObjectiveLoss.
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix math:  <https://blackcatinformatics.ca/math/> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/model-serving/tensor-controls/> .
+
+ex:artifact a gmeow:LearnedModelArtifact ;
+    gmeow:artifactLearnedModel ex:model ;
+    gmeow:artifactTrainingProblem ex:problem .
+ex:model a math:LearnedModel .
+ex:problem a math:OptimizationProblem ; math:objectiveFunction ex:loss .
+ex:loss a math:LossFunction ; math:domain ex:predictionSet ; math:codomain ex:lossValueSet .
+ex:predictionSet a math:Set .
+ex:lossValueSet a math:Set .

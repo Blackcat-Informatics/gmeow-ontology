@@ -1,0 +1,38 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Failing control for gmeow:TensorArtifactCoherenceConstraint, extra graph owner: a copy
+# of the conforming artifact whose computation graph declares math:architectureOf for the
+# artifact's own learned model and also for a second, different model. The expected owner
+# is present and the node, weight and parameter space are unchanged, so the additional
+# incompatible owner is the only defect.
+# Bound by ex:ecTensorGraphExtraOwner.
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix math:  <https://blackcatinformatics.ca/math/> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/model-serving/tensor-controls/> .
+
+ex:artifact a gmeow:TensorModelArtifact ;
+    gmeow:artifactLearnedModel ex:model ;
+    gmeow:artifactComputationGraph ex:graph ;
+    gmeow:artifactWeightTensor ex:weights .
+ex:model a math:LearnedModel .
+ex:otherModel a math:LearnedModel .
+ex:graph a math:TensorComputationGraph ;
+    math:architectureOf ex:model, ex:otherModel ; math:computationNode ex:forward .
+ex:forward a math:ApplicationExpression ; math:operator math:matrixProduct ;
+    math:argumentSlot ex:slot0, ex:slot1 .
+ex:slot0 a math:ArgumentSlot ; math:slotIndex 0 ; math:slotExpression ex:weightRef .
+ex:slot1 a math:ArgumentSlot ; math:slotIndex 1 ; math:slotExpression ex:inputRef .
+ex:weightRef a math:SymbolReference ; math:hasMathematicalSymbol ex:weightSymbol .
+ex:inputRef a math:SymbolReference ; math:hasMathematicalSymbol ex:inputSymbol .
+ex:weightSymbol a math:MathematicalSymbol .
+ex:inputSymbol a math:MathematicalSymbol .
+ex:weights a math:WeightTensor ; math:inParameterSpace ex:parameters .
+ex:parameters a math:ParameterSpace ; math:parameterSpaceOf ex:model ;
+    math:underlyingSet ex:parameterSet ;
+    math:structureOperation ex:parameterAddition ;
+    math:satisfiesAxiom ex:additionAssociativity, ex:additionCommutativity .
+ex:parameterSet a math:Set .
+ex:parameterAddition a math:Operation .
+ex:additionAssociativity a math:Axiom .
+ex:additionCommutativity a math:Axiom .

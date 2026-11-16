@@ -1,0 +1,15 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Failing control for math:TensorShapeCountConstraint: a shape declares rank 3 and two
+# axis nodes. The indices 0 and 1 are distinct, zero or greater and below 3, and a
+# positive rank has an axis, so every other tensor-shape law holds; the disagreement
+# between the rank and the number of axes is the only defect.
+# Bound by ex:ecTensorRankAxisCountMismatch.
+@prefix math: <https://blackcatinformatics.ca/math/> .
+@prefix ex:   <http://example.org/math/tensor-shape-controls/> .
+
+ex:shape a math:TensorShape ; math:tensorRank 3 ;
+    math:shapeAxis ex:first, ex:second .
+ex:first a math:TensorAxis ; math:axisIndex 0 .
+ex:second a math:TensorAxis ; math:axisIndex 1 .

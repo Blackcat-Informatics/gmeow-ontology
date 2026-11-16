@@ -1,0 +1,32 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Passing control for the eight tensor-shape laws. Every shape below satisfies all of
+# them, and each law has a declaration that would break it if changed:
+#   rank, index and extent bounds   every value is zero or greater, zero included;
+#   axis count                      ex:matrix declares rank 2 and two axis nodes;
+#   positive-rank axis presence     ex:scalar declares rank 0 and no axis, and every
+#                                   shape of positive rank declares an axis;
+#   index below rank                the indices of ex:matrix are 0 and 1 under rank 2;
+#   index uniqueness                ex:matrix and ex:vector each use index 0 once, and
+#                                   reuse of index 0 across the two shapes is allowed;
+#   extent choice                   ex:row has only a symbolic extent, ex:column only a
+#                                   concrete one, ex:openAxis neither.
+# Bound by ex:ecTensorShapeConsistent.
+@prefix math: <https://blackcatinformatics.ca/math/> .
+@prefix ex:   <http://example.org/math/tensor-shape-controls/> .
+
+ex:scalar a math:TensorShape ; math:tensorRank 0 .
+
+ex:matrix a math:TensorShape ; math:tensorRank 2 ;
+    math:shapeAxis ex:row, ex:column .
+ex:row a math:TensorAxis ; math:axisIndex 0 ; math:symbolicExtent ex:batch .
+ex:column a math:TensorAxis ; math:axisIndex 1 ; math:axisExtent 4 .
+ex:batch a math:FreeVariableDeclaration ; math:variableDomain math:naturalNumbers .
+
+ex:vector a math:TensorShape ; math:tensorRank 1 ; math:shapeAxis ex:openAxis .
+ex:openAxis a math:TensorAxis ; math:axisIndex 0 .
+
+# Zero is a disclosed length and satisfies the extent bound.
+ex:emptyVector a math:TensorShape ; math:tensorRank 1 ; math:shapeAxis ex:emptyAxis .
+ex:emptyAxis a math:TensorAxis ; math:axisIndex 0 ; math:axisExtent 0 .
