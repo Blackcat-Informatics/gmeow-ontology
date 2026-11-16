@@ -384,31 +384,14 @@ const REP_VALIDATION_SHACL: &str = "generated/shapes/validation-shapes.ttl";
 /// [`REP_VALIDATION_SHACL`]).
 const REP_VALIDATION_SHEX: &str = "generated/shapes/validation-shapes.shex";
 
-/// Byte equality of two `&'static str` in const context — the compile-time proof that
-/// a rep constant and the path constant it must mirror have not drifted apart.
-const fn const_str_eq(a: &str, b: &str) -> bool {
-    let (a, b) = (a.as_bytes(), b.as_bytes());
-    if a.len() != b.len() {
-        return false;
-    }
-    let mut i = 0;
-    while i < a.len() {
-        if a[i] != b[i] {
-            return false;
-        }
-        i += 1;
-    }
-    true
-}
-
 // The rep label and the surface's logical path are ONE value with two names; a drift
 // between them is a compile failure rather than a bundle whose sidecar rep no longer
 // matches the path the classifier keys on.
-const _: () = assert!(const_str_eq(
+const _: () = assert!(gmeow_gts_profile::const_str::const_str_eq(
     REP_VALIDATION_SHACL,
     crate::stages::compile_logic::VALIDATION_SHAPES_TTL_PATH
 ));
-const _: () = assert!(const_str_eq(
+const _: () = assert!(gmeow_gts_profile::const_str::const_str_eq(
     REP_VALIDATION_SHEX,
     crate::stages::compile_logic::VALIDATION_SHAPES_SHEX_PATH
 ));
