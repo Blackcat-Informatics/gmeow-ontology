@@ -1,0 +1,30 @@
+{
+  "schema": 1,
+  "issue": 2850,
+  "repo": "gmeow-ontology",
+  "forge": "github",
+  "nwo": "Blackcat-Informatics/gmeow-ontology",
+  "read_access": "anon-read",
+  "main_root": "/home/paudley/Active/gmeow-ontology",
+  "worktree": "/home/paudley/Active/gmeow-ontology/.worktrees/2850-amend-constitution-md-221-222-to-agree",
+  "branch": "paudley/2850-amend-constitution-md-221-222-to-agree",
+  "slug": "amend-constitution-md-221-222-to-agree",
+  "slug_drift": false,
+  "stage_dir": "/home/paudley/Active/gmeow-ontology/.worktrees/2850-amend-constitution-md-221-222-to-agree/.stage/amend-constitution-md-221-222-to-agree",
+  "stage_tracked": true,
+  "base": "origin/main",
+  "base_oid": "eb70487c68557b287a4387d0d5e3fbc1745106ac",
+  "reused": false,
+  "adr_repo": false,
+  "created": [
+    "worktree:/home/paudley/Active/gmeow-ontology/.worktrees/2850-amend-constitution-md-221-222-to-agree",
+    "branch:paudley/2850-amend-constitution-md-221-222-to-agree",
+    "ignored:8265 files (8265 reflinked, 0 written)",
+    "rust-caches:skipping busy source /opt/.cargo/d6/9f9573965bef53: /opt/.cargo/d6/9f9573965bef53/pipeline/.cargo-build-lock; skipping busy source /opt/.cargo/d6/9f9573965bef53: /opt/.cargo/d6/9f9573965bef53/pipeline/.cargo-build-lock; reflinked /home/paudley/Active/gmeow-ontology/.worktrees/2834-release-ci-publishes-a-github-release caches into /home/paudley/Active/gmeow-ontology/.worktrees/2850-amend-constitution-md-221-222-to-agree plus 0 dependency units from 0 other checkouts in 10.9s; 12829 unchanged files keep their built mtimes; 250 other files take the seed time and rebuild; 0 units naming another checkout rebuild",
+    "stage:/home/paudley/Active/gmeow-ontology/.worktrees/2850-amend-constitution-md-221-222-to-agree/.stage/amend-constitution-md-221-222-to-agree",
+    "issue:/home/paudley/Active/gmeow-ontology/.worktrees/2850-amend-constitution-md-221-222-to-agree/.stage/amend-constitution-md-221-222-to-agree/issue.md"
+  ],
+  "warnings": [],
+  "timestamp": "2026-11-16T09:30:32-0600",
+  "seed_error": ""
+}

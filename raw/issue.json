@@ -1,0 +1,43 @@
+{
+  "assignees": [],
+  "author": {
+    "id": "MDQ6VXNlcjUyNzU1NQ==",
+    "is_bot": false,
+    "login": "paudley",
+    "name": "Patrick Audley"
+  },
+  "body": "Amend CONSTITUTION.md lines 221-222 so the standpoint suppression rule agrees with decision D3\n\nLines 221-222 say a withdrawn standpoint or closed gmeow:StandpointTenure is suppressed, not deleted. Decision D3 separates a tenure whose holder withdrew it (suppressed) from one that merely closed (not suppressed). The same lines cite tests/test_standpoint.py and tests/test_suppress_gen.py, which no longer exist.\n",
+  "closedAt": null,
+  "comments": [
+    {
+      "id": "IC_kwDOSwdn1s8AAAABnIOZjw",
+      "author": {
+        "login": "coderabbitai"
+      },
+      "authorAssociation": "CONTRIBUTOR",
+      "body": "<!-- coderabbit-bot-generated:v1 -->\n\n<!-- This is an auto-generated issue plan by CodeRabbit -->\n<details>\n<summary>\ud83d\udd17 Related PRs</summary>\n<dl>\n<dd>\n<br>\n\nBlackcat-Informatics/gmeow-ontology#2843 - Set the display flag only for a holder's own withdrawal [open]\n</dd>\n</dl>\n</details>\n\n---\n<details>\n<summary>\ud83d\udcdd Issue Planner</summary>\n<dl>\n<dd>\n<br>\n\n<sub>Check the box below or use the `@coderabbitai plan` command to generate an implementation plan and prompts that you can use with your favorite coding assistant.</sub>\n\n- [ ] <!-- {\"checkboxId\":\"8d4f2b9c-3e1a-4f7c-a9b2-d5e8f1c4a7b9\"} --> Create Plan\n</dd>\n</dl>\n</details>\n\n\n---\n<details>\n<summary> \ud83e\uddea Issue enrichment is currently in open beta.</summary>\n<dl>\n<dd>\n<br>\n\n\nYou can configure auto-planning by selecting labels in the issue_enrichment configuration.\n\nTo disable automatic issue enrichment, add the following to your `.coderabbit.yaml`:\n```yaml\nissue_enrichment:\n  auto_enrich:\n    enabled: false\n```\n</dd>\n</dl>\n</details>\n\n\ud83d\udcac Have feedback or questions? Drop into our [discord](https://discord.gg/coderabbit)!",
+      "createdAt": "2026-11-16T15:30:29Z",
+      "includesCreatedEdit": false,
+      "isMinimized": false,
+      "minimizedReason": "",
+      "reactionGroups": [],
+      "url": "https://github.com/Blackcat-Informatics/gmeow-ontology/issues/2850#issuecomment-6920837519",
+      "viewerDidAuthor": false
+    }
+  ],
+  "createdAt": "2026-11-16T15:29:34Z",
+  "labels": [
+    {
+      "id": "LA_kwDOSwdn1s8AAAACl8ZKsg",
+      "name": "documentation",
+      "description": "Improvements or additions to documentation",
+      "color": "0075ca"
+    }
+  ],
+  "milestone": null,
+  "number": 2850,
+  "state": "OPEN",
+  "title": "Amend CONSTITUTION.md 221-222 to agree with standpoint decision D3",
+  "updatedAt": "2026-11-16T15:30:30Z",
+  "url": "https://github.com/Blackcat-Informatics/gmeow-ontology/issues/2850"
+}
