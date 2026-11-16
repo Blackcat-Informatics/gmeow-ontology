@@ -1,0 +1,15 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Fail-witness for ex:saTraceFinalityNotFunctional. A characteristic record that
+# makes the cut-packet role functional, so a second cut packet would be inferred
+# to be the first. Unioned with the module, it makes the ban's ASK hold. The real
+# module never carries it.
+
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix ce:    <https://example.org/trace-finality/counter-examples/> .
+
+ce:watermarkPacketFunctionality a logic:PropertyCharacteristicAssertion ;
+    logic:characterizes gmeow:watermarkPacket ;
+    logic:characteristicSort logic:functionalProperty .
