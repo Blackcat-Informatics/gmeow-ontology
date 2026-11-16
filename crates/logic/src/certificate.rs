@@ -712,7 +712,7 @@ fn content_id_canonical(class_local: &str, payload: &CoherencePayload) -> String
 
 /// A deterministic content-addressed local id for the artifact's subject IRI:
 /// a blake3 digest (hex, first 16 bytes = 32 hex chars) over the FULL canonical
-/// payload. Covers class/outcome kind, bundle_hash, all axiom_hashes (sorted),
+/// payload. Covers class/outcome kind, bundle_hash, the canonical profile and presentation, all axiom_hashes (sorted),
 /// contract_hash, contradiction_policy, certified_fragment, budget,
 /// completeness/evaluation status, projection_losses (sorted),
 /// unsupported_constructs (sorted), permitted-conflict and forbidden-violation

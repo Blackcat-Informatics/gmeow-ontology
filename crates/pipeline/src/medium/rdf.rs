@@ -790,7 +790,8 @@ fn blake3_digest_value(
 /// re-derived from the bytes it claims to commit to is a comment.
 ///
 /// # Errors
-/// An envelope missing one of its six unconditional coordinates, or naming a
+/// An envelope missing one of its six payload coordinates (`invalid_declaration`) or any of
+/// its four canonical-profile coordinates (`MediumProfileMismatch`), or naming a
 /// `gmeow:DigestStratum` individual the vocabulary does not declare.
 pub fn envelopes(graph: &purrdf::RdfDataset) -> Result<Vec<MediumEnvelope>, gmeow_errors::Diag> {
     use purrdf::RdfTerm as T;
@@ -820,8 +821,9 @@ pub fn envelopes(graph: &purrdf::RdfDataset) -> Result<Vec<MediumEnvelope>, gmeo
             |value: Option<String>, predicate: &str| -> Result<String, gmeow_errors::Diag> {
                 value.ok_or_else(|| {
                     super::invalid_declaration(format!(
-                        "the envelope <{subject}> carries no gmeow:{predicate} — six of the seven \
-                     envelope fields are unconditionally exactly-one, because a projection \
+                        "the envelope <{subject}> carries no gmeow:{predicate} — ten of the eleven \
+                     envelope fields are unconditionally exactly-one (the four canonical-profile \
+                     coordinates are read separately), because a projection \
                      missing a coordinate is a different claim rather than a weaker one"
                     ))
                 })

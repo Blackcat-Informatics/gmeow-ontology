@@ -3062,6 +3062,7 @@ fn the_live_bound_kinds_resolve_to_their_ontology_classes() {
             "pipeline.medium.dictionary-regression",
             "pipeline.medium.digest-mismatch",
             "pipeline.medium.opaque-frame",
+            "pipeline.medium.profile-mismatch",
             "pipeline.medium.undeclared-dictionary",
             "pipeline.medium.unknown-dictionary",
             "pipeline.medium.unknown-schema",

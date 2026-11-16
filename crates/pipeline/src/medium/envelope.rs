@@ -127,7 +127,7 @@ pub(crate) struct OwnedFrameDigestFacts<'a> {
     pub dictionary_id: Option<&'a str>,
 }
 
-/// The seven-field medium-envelope contract, as a typed record.
+/// The eleven-field medium-envelope contract, as a typed record.
 ///
 /// Every field is exactly-one because a projection missing a coordinate is a
 /// DIFFERENT claim rather than a weaker one. [`Self::dictionary`] is the single

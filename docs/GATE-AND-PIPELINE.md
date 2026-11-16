@@ -159,8 +159,10 @@ dataset, so a profile change that alters canonical bytes changes pack bytes; the
 pack dictionary keeps the dataset's own blank-node labels, not canonical ones. A
 version bump that leaves canonical bytes unchanged moves none of them. The medium
 envelope and the coherence certificate record the profile and presentation they were
-produced under, and a reader refuses an artifact whose recorded profile differs from
-the one it implements, or that records none, before it compares any digest. Values
+produced under. The medium envelope reader refuses an envelope whose recorded profile
+differs from the one it implements, or that records none, before it compares any
+digest; the MCP certificate reader refuses a certificate that records none, and does
+not compare the recorded value. Values
 held outside this repository that a profile change moves and `make check` cannot
 regenerate include the genid IRIs written by `gmeow transpile`, the dev transpile
 and OKF import, and so a profile change is also a release-note item.
