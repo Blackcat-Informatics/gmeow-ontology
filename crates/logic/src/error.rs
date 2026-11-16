@@ -227,6 +227,38 @@ impl std::fmt::Display for Numeric {
 
 impl std::error::Error for Numeric {}
 
+/// Typed evidence for a rule head the restricted chase refuses.
+///
+/// This value is the downcastable source payload of the [`Physical`] diagnostic the
+/// head-shape check returns, at formula lowering and at rule preparation alike. It
+/// names the rule and its head relations, so an author can find the formula.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct RefusedRuleHead {
+    /// The content-addressed firing identity of the refused rule.
+    pub rule: String,
+    /// The relation IRIs of the head: the predicate of each plain atom, the typed
+    /// relation of each reified tuple, and the predicate of a positional argument atom
+    /// whose subject has no typing atom; sorted and de-duplicated.
+    pub head_relations: Vec<String>,
+    /// Which requirement of a reified tuple the head does not meet.
+    pub detail: String,
+}
+
+impl std::fmt::Display for RefusedRuleHead {
+    fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(formatter, "rule <{}> with head relations [", self.rule)?;
+        for (index, relation) in self.head_relations.iter().enumerate() {
+            if index > 0 {
+                formatter.write_str(", ")?;
+            }
+            write!(formatter, "<{relation}>")?;
+        }
+        write!(formatter, "]: {}", self.detail)
+    }
+}
+
+impl std::error::Error for RefusedRuleHead {}
+
 define_diag_kind! {
     /// A teleology derivation precondition does not hold: a goal, plan, outcome,
     /// action-schema, gate-probe, or deontic node missing a required property, an

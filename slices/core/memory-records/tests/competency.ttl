@@ -1,0 +1,98 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Competency questions for the trace-finality records of the memory-records slice.
+# Each runs over the asserted worked example without reasoning; none asks for, and
+# none returns, an order, a verified watermark or a deletion.
+
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/memory-records/tests/> .
+@prefix tf:    <https://example.org/trace-finality/> .
+
+# "Which producer does each watermark belong to, who declared it, in which ledger, and up to which packet?"
+ex:cqWatermarkDeclared a gmeow:CompetencyQuestion ;
+    gmeow:cqReasoning gmeow:reasoningNone ;
+    gmeow:cqDataFile "examples/trace-finality.ttl" ;
+    gmeow:cqQuery """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+SELECT ?watermark ?ledger ?producer ?declarer ?packet WHERE {
+    ?watermark a gmeow:TraceWatermark ;
+        gmeow:traceFinalityLedger ?ledger ;
+        gmeow:traceFinalityProducer ?producer ;
+        gmeow:wasAttributedTo ?declarer ;
+        gmeow:watermarkPacket ?packet .
+}""" ;
+    gmeow:cqRationale "A recorder must be able to read, as data, up to which recorded packet of which ledger a watermark declares marking final, which producer it belongs to and who declared it, without the answer implying that the declaration was checked against the ledger's order or against any late-producer frontier." ;
+    gmeow:cqExactRows true ;
+    gmeow:cqResultShape ex:cqWatermarkDeclaredShape ;
+    gmeow:cqExpectRow ex:wdCut .
+
+ex:cqWatermarkDeclaredShape a logic:ResultShape ;
+    logic:declaresColumn
+        [ logic:columnVariable "watermark" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "ledger" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "producer" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "declarer" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "packet" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ;
+    logic:shapeCardinality logic:RowsExact .
+
+ex:wdCut a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "watermark" ; gmeow:cellValueIri tf:cut ] ,
+        [ a gmeow:ExpectedCell ; gmeow:cellVar "ledger" ; gmeow:cellValueIri tf:ledger ] ,
+        [ a gmeow:ExpectedCell ; gmeow:cellVar "producer" ; gmeow:cellValueIri tf:memoryService ] ,
+        [ a gmeow:ExpectedCell ; gmeow:cellVar "declarer" ; gmeow:cellValueIri tf:memoryService ] ,
+        [ a gmeow:ExpectedCell ; gmeow:cellVar "packet" ; gmeow:cellValueIri tf:packetOne ] .
+
+# "Which committed point has each late producer stated?"
+ex:cqFrontierCommitted a gmeow:CompetencyQuestion ;
+    gmeow:cqReasoning gmeow:reasoningNone ;
+    gmeow:cqDataFile "examples/trace-finality.ttl" ;
+    gmeow:cqQuery """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+SELECT ?frontier ?producer ?point WHERE {
+    ?frontier a gmeow:TraceMarkFrontier ;
+        gmeow:traceFinalityProducer ?producer ;
+        gmeow:frontierPoint ?point .
+}""" ;
+    gmeow:cqRationale "A recorder deciding whether a watermark may advance needs the committed point each late producer stated as data. The question returns the stated point per late producer and decides neither which frontiers apply nor whether the watermark passes them, since no order is evaluated." ;
+    gmeow:cqExactRows true ;
+    gmeow:cqResultShape ex:cqFrontierCommittedShape ;
+    gmeow:cqExpectRow ex:fcLate .
+
+ex:cqFrontierCommittedShape a logic:ResultShape ;
+    logic:declaresColumn
+        [ logic:columnVariable "frontier" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "producer" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "point" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ;
+    logic:shapeCardinality logic:RowsExact .
+
+ex:fcLate a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "frontier" ; gmeow:cellValueIri tf:lateFrontier ] ,
+        [ a gmeow:ExpectedCell ; gmeow:cellVar "producer" ; gmeow:cellValueIri tf:lateDeriver ] ,
+        [ a gmeow:ExpectedCell ; gmeow:cellVar "point" ; gmeow:cellValueIri tf:pointKey ] .
+
+# "Which packets' marks were given up, and why?"
+ex:cqMarksGivenUp a gmeow:CompetencyQuestion ;
+    gmeow:cqReasoning gmeow:reasoningNone ;
+    gmeow:cqDataFile "examples/trace-finality.ttl" ;
+    gmeow:cqQuery """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+SELECT ?giveUp ?packet ?reason WHERE {
+    ?giveUp a gmeow:TraceMarksGivenUp ;
+        gmeow:givenUpPacket ?packet ;
+        gmeow:givenUpReason ?reason .
+}""" ;
+    gmeow:cqRationale "Lost in-memory marks are given up explicitly, so the packets and the stated reason must come back together. The result is a statement the producer made; it does not mark the packet, finalize it or make it eligible for discard." ;
+    gmeow:cqExactRows true ;
+    gmeow:cqResultShape ex:cqMarksGivenUpShape ;
+    gmeow:cqExpectRow ex:guLost .
+
+ex:cqMarksGivenUpShape a logic:ResultShape ;
+    logic:declaresColumn
+        [ logic:columnVariable "giveUp" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "packet" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "reason" ; logic:columnTermKind logic:TermKindLiteral ; logic:columnBinding logic:BindingRequired ] ;
+    logic:shapeCardinality logic:RowsExact .
+
+ex:guLost a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "giveUp" ; gmeow:cellValueIri tf:lost ] ,
+        [ a gmeow:ExpectedCell ; gmeow:cellVar "packet" ; gmeow:cellValueIri tf:packetTwo ] ,
+        [ a gmeow:ExpectedCell ; gmeow:cellVar "reason" ; gmeow:cellValueLiteral "Marks held only in memory were lost when the service restarted."@en ] .

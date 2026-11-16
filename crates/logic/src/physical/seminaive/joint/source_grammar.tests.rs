@@ -92,6 +92,11 @@ fn constructor_grammar_does_not_reject_compatible_repeated_heads() {
     assert!(closed_head(&rule, SemanticVocabulary::GroundedLogicV1));
 }
 
+/// PROTECTS: list ownership is granted only to cells addressed by their frontier. A
+/// head that also reifies a tuple onto the cell prepares, because ordinary atoms may
+/// share a head with a tuple, but its cell is minted by tuple identity, so the route
+/// reports that it does not use only frontier Skolems and the grammar refuses it. A
+/// tuple with no typing atom is still refused when the rule is prepared.
 #[test]
 fn constructor_grammar_checks_the_prepared_allocation_route() {
     let mut rule = rule();
@@ -113,7 +118,19 @@ fn constructor_grammar_checks_the_prepared_allocation_route() {
         ),
     ];
     rule.head.extend(tuple.clone());
-    assert!(PreparedChaseRule::new(rule.clone()).is_err());
+    let mixed = PreparedChaseRule::new(rule.clone()).unwrap();
+    assert_eq!(mixed.rule.witness_policy, WitnessPolicy::FrontierSkolem);
+    assert!(!mixed.uses_only_frontier_skolems());
+    assert!(certificate(self::rule(), &[]).is_some());
+    assert!(
+        certificate(rule.clone(), &[]).is_none(),
+        "a cell minted by tuple identity is not admitted to the closed-list proof"
+    );
+    rule.head.retain(|atom| atom != &tuple[0]);
+    assert!(
+        PreparedChaseRule::new(rule.clone()).is_err(),
+        "a tuple whose relation is unknown has no node to mint"
+    );
     rule.head = tuple;
     let prepared = PreparedChaseRule::new(rule).unwrap();
     assert_eq!(prepared.rule.witness_policy, WitnessPolicy::FrontierSkolem);
@@ -142,7 +159,13 @@ fn constructor_alias_scan_visits_nested_quote_predicates_and_datatypes() {
 }
 
 fn certificate_with_external(external: &[WorldProducerEffect]) -> Option<ConstructorClosedLists> {
-    let rule = rule();
+    certificate(rule(), external)
+}
+
+fn certificate(
+    rule: ExistentialRule,
+    external: &[WorldProducerEffect],
+) -> Option<ConstructorClosedLists> {
     let mut effects =
         super::super::producer_effects(&[], std::slice::from_ref(&rule), &[]).unwrap();
     let statement = |atom: &EvalAtom| {
