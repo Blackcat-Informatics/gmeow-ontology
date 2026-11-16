@@ -199,8 +199,9 @@ The transcendences worth naming: **static viewpoints → `StandpointTenure`**;
   standpoint-indexed claims; there is no `preferredRank`/`primary*`. Enforced three
   ways: the `NoPreferredClaimShape` (SHACL), the `no_preferred_rank` statement lint,
   and a term-absence test.
-- **Principle 10 — suppression for revision; governed erasure.** A withdrawn claim or a closed
-  `StandpointTenure` sets `gmeow:displayable false` during ordinary revision. Separately authorized erasure follows the [claim lifecycle contract](./claim-lifecycle.md).
+- **Principle 10 — suppression for revision; governed erasure.** A claim its holder withdrew, or a
+  `StandpointTenure` whose held claim its holder retracted, sets `gmeow:displayable false` during
+  ordinary revision; a tenure that merely closed takes no flag. Separately authorized erasure follows the [claim lifecycle contract](./claim-lifecycle.md).
 - **Principles 2/3 — RDF-1.2-first, DL-clean.** The axis is an annotation property;
   the OWL downcast stays OWL 2 DL.
 - **Principle 4 — one canonical source.** The Standpoint-OWL 2 projection is

@@ -1,10 +1,14 @@
-# Ranker lifecycle counter-example, in the lowered form the ranker constraints read (each
-# ranking is a reifier node carrying logic:reifiedStatementSubject / Predicate / Object plus
-# gmeow:accordingTo and gmeow:validFrom). One ranker holds A over B and B over A. A third
-# party records that the second ranking succeeds the first. That is the third party's own
-# statement about the claim: only the ranker's own succession, correction or retraction ends
-# a ranking's liveness or exempts the reversed pair, so the pair stands and validation must
-# report the reversed pair and the missing closure claim.
+# Ranker lifecycle counter-example, written in the lowered component form the ranker
+# constraints' projected query reads (each ranking is a reifier node carrying
+# logic:reifiedStatementSubject / Predicate / Object plus gmeow:accordingTo and
+# gmeow:validFrom). One ranker holds A over B and B over A. A third party records that the
+# second ranking succeeds the first. That is the third party's own statement about the claim:
+# only the ranker's own succession, correction or retraction ends a ranking's liveness or
+# exempts the reversed pair, so the pair stands and the projected query reports the reversed
+# pair and the missing closure claim. This case exercises that query over data already
+# written in the lowered form. Data written as RDF 1.2 reified statements does not reach
+# these constraints on the validation paths: no validation path produces the lowered edges
+# from RDF 1.2 input.
 
 @prefix ex:    <https://example.org/shapes/> .
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .

@@ -60,11 +60,16 @@ use purrdf::slice::rdf_query::{Object, Subject};
     Case::file("shapes", "standpoint-other-party-retraction-conforms")
         .no_warning("displayable false")
 )]
+// Exercises the ranker constraints' projected query over data already written in the lowered
+// component form (logic:reifiedStatementSubject / Predicate / Object edges). Data written as
+// RDF 1.2 reified statements does not reach these constraints on the validation paths yet.
 #[case::ranker_pair_with_another_partys_succession_is_flagged(
     Case::file("shapes", "standpoint-ranker-other-party-succession")
         .fails()
         .violations(&["in both directions", "must also hold a live claim"])
 )]
+// Same scope as the case above: the projected query over pre-lowered data, not a check of
+// RDF 1.2 input.
 #[case::ranker_pair_with_the_rankers_own_succession_conforms(Case::file(
     "shapes",
     "standpoint-ranker-own-succession-conforms"

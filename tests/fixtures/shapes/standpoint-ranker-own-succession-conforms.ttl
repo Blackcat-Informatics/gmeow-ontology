@@ -1,9 +1,12 @@
-# Ranker lifecycle conforming case, in the lowered form the ranker constraints read (each
-# ranking is a reifier node carrying logic:reifiedStatementSubject / Predicate / Object plus
-# gmeow:accordingTo and gmeow:validFrom). One ranker holds A over B, then records that B over
-# A succeeds that earlier ranking, with the succession annotated by the same ranker. The
-# earlier ranking is no longer live and the reversed pair is exempt, so validation must
-# conform.
+# Ranker lifecycle conforming case, written in the lowered component form the ranker
+# constraints' projected query reads (each ranking is a reifier node carrying
+# logic:reifiedStatementSubject / Predicate / Object plus gmeow:accordingTo and
+# gmeow:validFrom). One ranker holds A over B, then records that B over A succeeds that
+# earlier ranking, with the succession annotated by the same ranker. The earlier ranking is no
+# longer live and the reversed pair is exempt, so the projected query reports nothing. This
+# case exercises that query over data already written in the lowered form. Data written as
+# RDF 1.2 reified statements does not reach these constraints on the validation paths: no
+# validation path produces the lowered edges from RDF 1.2 input.
 
 @prefix ex:    <https://example.org/shapes/> .
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
