@@ -1,0 +1,30 @@
+{
+  "schema": 1,
+  "issue": 2812,
+  "repo": "gmeow-ontology",
+  "forge": "github",
+  "nwo": "Blackcat-Informatics/gmeow-ontology",
+  "read_access": "anon-read",
+  "main_root": "/home/paudley/Active/gmeow-ontology",
+  "worktree": "/home/paudley/Active/gmeow-ontology/.worktrees/2812-native-engine-refuses-a-rule-head",
+  "branch": "paudley/2812-native-engine-refuses-a-rule-head",
+  "slug": "native-engine-refuses-a-rule-head",
+  "slug_drift": false,
+  "stage_dir": "/home/paudley/Active/gmeow-ontology/.worktrees/2812-native-engine-refuses-a-rule-head/.stage/native-engine-refuses-a-rule-head",
+  "stage_tracked": true,
+  "base": "origin/main",
+  "base_oid": "862638ad8d2c47448484a00e2ac21ac38c69ec0e",
+  "reused": false,
+  "adr_repo": false,
+  "created": [
+    "worktree:/home/paudley/Active/gmeow-ontology/.worktrees/2812-native-engine-refuses-a-rule-head",
+    "branch:paudley/2812-native-engine-refuses-a-rule-head",
+    "ignored:8264 files (8264 reflinked, 0 written)",
+    "rust-caches:reflinked /home/paudley/Active/gmeow-ontology/.worktrees/2800-term-assertion-category-on-a-claim-self caches into /home/paudley/Active/gmeow-ontology/.worktrees/2812-native-engine-refuses-a-rule-head plus 0 dependency units from 0 other checkouts in 479.3s; 12989 unchanged files keep their built mtimes; 7 other files take the seed time and rebuild; 252 units naming another checkout rebuild",
+    "stage:/home/paudley/Active/gmeow-ontology/.worktrees/2812-native-engine-refuses-a-rule-head/.stage/native-engine-refuses-a-rule-head",
+    "issue:/home/paudley/Active/gmeow-ontology/.worktrees/2812-native-engine-refuses-a-rule-head/.stage/native-engine-refuses-a-rule-head/issue.md"
+  ],
+  "warnings": [],
+  "timestamp": "2026-11-15T03:50:24-0600",
+  "seed_error": ""
+}

@@ -1,0 +1,45 @@
+{
+  "assignees": [],
+  "author": {
+    "id": "MDQ6VXNlcjUyNzU1NQ==",
+    "is_bot": false,
+    "login": "paudley",
+    "name": "Patrick Audley"
+  },
+  "body": "## Problem\n\nA formula whose consequent is a conjunction of a unary or binary atom and an atom of arity three or more cannot be executed by the native engine, and `gmeow prove` ends in `execution-failure` (exit 5) with a message that names a variable and no rule:\n\n```\nrun the native engine over the selection: reified n-ary head reifier \"?A\" is bound by the body (not existential) \u2014 an invented tuple's reifier node must be a fresh existential, never a frontier variable\n```\n\nThe formula is valid. `LOGIC-IR.md` says a head conjunction mixing binary and reified n-ary atoms is one dependency. The compiler emits arity-1 and arity-2 head atoms plainly and reifies only atoms of arity three or more, so such a consequent becomes a mixed head. `reified_nary_head_groups` in `crates/logic/src/physical/chase.rs` requires every head atom to have an existential subject as soon as the head contains any `naryArg` atom, and refuses the mixed head from `PreparedChaseRule::new`. The same recogniser gives other messages when the plain atom has an existential or a constant subject.\n\nThree further defects show on the same path:\n\n1. The error names neither the rule nor its head relations, so an author cannot find the formula.\n2. A shape the engine cannot carry should be a named drop and a `not-decided` verdict (exit 3); exit 5 is for broken invariants. Nothing checks the head shape before execution.\n3. When the engine fails, the `prove` report is built blank: the drops already computed for the selection are discarded and the selection block is empty.\n\n## Reproduction\n\nA module with one fact `Src(a)` and one formula of the form `forall A. Src(A) -> (Dst(A) and r(A, A, A))` gives exit 5 and the message above. A head with only the ternary atom executes.\n\n## Acceptance\n\n- [ ] A head mixing plain and reified n-ary atoms executes: only subjects of `naryArg` atoms are treated as reifiers, every other head atom is an ordinary head atom, and the existing group-level refusals remain. A chase test covers the mixed head with a frontier subject, an existential subject and a constant subject on the plain atom.\n- [ ] A head the chase still refuses is refused with the rule identity and the head relation IRIs in the diagnostic.\n- [ ] The same shape check runs at lowering, so a head the chase would refuse is a named `UNSUPPORTED_CONSTRUCT` drop and the verdict is `not-decided`, never an execution failure.\n- [ ] When the native engine fails, the `prove` report still carries the selection and the drops computed before the failure, marked incomplete.\n- [ ] A `prove` CLI test runs the reproduction above and expects a decided or `not-decided` verdict, not exit 5.\n\nPrinciples 7, 17.\n",
+  "closedAt": null,
+  "comments": [],
+  "createdAt": "2026-11-15T09:41:06Z",
+  "labels": [
+    {
+      "id": "LA_kwDOSwdn1s8AAAACl8ZKrA",
+      "name": "bug",
+      "description": "Something isn't working",
+      "color": "d73a4a"
+    },
+    {
+      "id": "LA_kwDOSwdn1s8AAAACmTvThA",
+      "name": "cross-cutting",
+      "description": "Cross-cutting concern",
+      "color": "fbca04"
+    },
+    {
+      "id": "LA_kwDOSwdn1s8AAAACnasmrQ",
+      "name": "logic",
+      "description": "logic: reasoning layer (the RDF 1.2-native logic; OWL is a projection)",
+      "color": "5319e7"
+    },
+    {
+      "id": "LA_kwDOSwdn1s8AAAACndNfoA",
+      "name": "rust",
+      "description": "Pull requests that update rust code",
+      "color": "000000"
+    }
+  ],
+  "milestone": null,
+  "number": 2812,
+  "state": "OPEN",
+  "title": "Native engine refuses a rule head mixing plain and reified n-ary atoms; prove fails without naming the rule",
+  "updatedAt": "2026-11-15T09:42:22Z",
+  "url": "https://github.com/Blackcat-Informatics/gmeow-ontology/issues/2812"
+}
