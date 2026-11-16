@@ -1611,7 +1611,7 @@ gmeow:ParticipationParticipantPresenceConstraint
     logic:formalizes gmeow:Participation ;
     logic:message "A Participation must have at least one participant (gmeow:participationParticipant)." .
 
-# --- Wave B1 shape-drain: event well-formedness ---
+# --- event well-formedness ---
 # gmeow:EventHasTypeOrTimeShape (Warning): an event should carry at least a type or some temporal
 # placement — otherwise it is an unanchored occurrence carrying neither a kind nor a time.
 gmeow:EventHasTypeOrTimeConstraint

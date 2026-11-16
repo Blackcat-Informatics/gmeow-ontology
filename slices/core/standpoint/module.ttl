@@ -1099,7 +1099,7 @@ logic:npcPreferred a logic:Formula ; logic:relation logic:termStrStarts ;
 [ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/gmeow/StandpointTenure> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/gmeow/tenureStandpoint" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .
 
 
-# --- Wave B1 shape-drain: standpoint-tenure cardinality restoration ---
+# --- standpoint-tenure cardinality restoration ---
 # gmeow:StandpointTenureShape — a StandpointTenure records exactly one standpoint and exactly one
 # generated StandpointClaim.
 gmeow:StandpointTenure logic:subClassOf

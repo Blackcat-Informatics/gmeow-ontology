@@ -38,8 +38,8 @@ disagreement as coexisting standpoints instead of overwriting the loser.
   analogy, where a deduction's substrate is a real proof trace; calibration and
   reality-monitoring (over/under-confidence, known-unknowns, an `originGenerated`
   confabulation flag) are modeled directly.
-- **Revision is suppression, never deletion.** A fired defeater marks the old conclusion
-  `displayable false` and closes its tenure while keeping the inference as audit — which
+- **Revision is suppression, never deletion.** A holder that accepts a defeater closes its tenure and withdraws its own old conclusion
+  (`displayable false`, set by that holder alone), keeping the inference as audit — which
   *is* the memory's `revise()` operation.
 - **Authored once, then projected and linked widely.** Every fact is stated once across
   GMEOW's **self-contained slices** and generated outward as lossy projections — OWL,
