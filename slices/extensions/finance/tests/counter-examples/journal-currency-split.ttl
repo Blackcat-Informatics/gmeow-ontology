@@ -1,0 +1,44 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Counter-example: the credit posting has the debit's value but in another currency, so no currency balances.
+
+@prefix g:   <https://blackcatinformatics.ca/gmeow/> .
+@prefix m:   <https://blackcatinformatics.ca/math/> .
+@prefix ex:  <https://blackcatinformatics.ca/gmeow/examples/finance/tests/> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+# Typed locally: a cell validates only the finance module plus this one file, and the
+# agent class that its organizations belong to is declared in another slice.
+ex:acme   a g:Agent .
+ex:client a g:Agent .
+
+# Total prices: an invoice and an order, each totalled by a monetary amount.
+ex:invoice a g:Invoice ;
+    g:invoiceIssuer ex:acme ; g:invoiceRecipient ex:client ;
+    g:invoiceAmount ex:amount .
+ex:order a g:Order ;
+    g:orderBuyer ex:client ; g:orderSeller ex:acme ;
+    g:orderAmount ex:amount .
+
+ex:amount a g:MonetaryAmount ;
+    m:quantityValue 5000.00 ; m:hasDimension m:dimensionless ; g:currency g:referenceFrameCAD .
+
+ex:otherCurrencyAmount a g:MonetaryAmount ;
+    m:quantityValue 5000.00 ; m:hasDimension m:dimensionless ; g:currency g:referenceFrameUSD .
+
+# Double entry: one debit and one credit that balance within the currency.
+ex:journal a g:JournalEntry ;
+    g:journalEntryPostings ex:debitReceivable , ex:creditRevenue .
+
+ex:debitReceivable a g:Posting ;
+    g:postingJournalEntry ex:journal ; g:postingAccount ex:receivable ;
+    g:postingDirection g:postingDirectionDebit ; g:postingAmount ex:amount .
+ex:creditRevenue a g:Posting ;
+    g:postingJournalEntry ex:journal ; g:postingAccount ex:revenue ;
+    g:postingDirection g:postingDirectionCredit ; g:postingAmount ex:otherCurrencyAmount .
+
+ex:receivable a g:LedgerAccount ;
+    g:ledgerAccountType g:ledgerAccountTypeAsset ; g:ledgerAccountHolder ex:acme .
+ex:revenue a g:LedgerAccount ;
+    g:ledgerAccountType g:ledgerAccountTypeRevenue ; g:ledgerAccountHolder ex:acme .
