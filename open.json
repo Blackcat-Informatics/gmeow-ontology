@@ -1,0 +1,30 @@
+{
+  "schema": 1,
+  "issue": 2847,
+  "repo": "gmeow-ontology",
+  "forge": "github",
+  "nwo": "Blackcat-Informatics/gmeow-ontology",
+  "read_access": "anon-read",
+  "main_root": "/home/paudley/Active/gmeow-ontology",
+  "worktree": "/home/paudley/Active/gmeow-ontology/.worktrees/2847-change-the-recorded-version-to-0-4-0",
+  "branch": "paudley/2847-change-the-recorded-version-to-0-4-0",
+  "slug": "change-the-recorded-version-to-0-4-0",
+  "slug_drift": false,
+  "stage_dir": "/home/paudley/Active/gmeow-ontology/.worktrees/2847-change-the-recorded-version-to-0-4-0/.stage/change-the-recorded-version-to-0-4-0",
+  "stage_tracked": true,
+  "base": "origin/main",
+  "base_oid": "65208b1021f3f2c0c5cd6bdc41d232d4ea652859",
+  "reused": false,
+  "adr_repo": false,
+  "created": [
+    "worktree:/home/paudley/Active/gmeow-ontology/.worktrees/2847-change-the-recorded-version-to-0-4-0",
+    "branch:paudley/2847-change-the-recorded-version-to-0-4-0",
+    "ignored:8265 files (8265 reflinked, 0 written)",
+    "rust-caches:skipping busy source /opt/.cargo/52/aa6d82d7c04ea6: /opt/.cargo/52/aa6d82d7c04ea6/pipeline/.cargo-build-lock; reflinked /home/paudley/Active/gmeow-ontology/.worktrees/2831-constraints-over-reified-statements caches into /home/paudley/Active/gmeow-ontology/.worktrees/2847-change-the-recorded-version-to-0-4-0 plus 0 dependency units from 0 other checkouts in 526.2s; 12965 unchanged files keep their built mtimes; 90 other files take the seed time and rebuild; 348 units naming another checkout rebuild",
+    "stage:/home/paudley/Active/gmeow-ontology/.worktrees/2847-change-the-recorded-version-to-0-4-0/.stage/change-the-recorded-version-to-0-4-0",
+    "issue:/home/paudley/Active/gmeow-ontology/.worktrees/2847-change-the-recorded-version-to-0-4-0/.stage/change-the-recorded-version-to-0-4-0/issue.md"
+  ],
+  "warnings": [],
+  "timestamp": "2026-11-16T03:40:23-0600",
+  "seed_error": ""
+}

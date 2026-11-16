@@ -1,0 +1,33 @@
+{
+  "assignees": [],
+  "author": {
+    "id": "MDQ6VXNlcjUyNzU1NQ==",
+    "is_bot": false,
+    "login": "paudley",
+    "name": "Patrick Audley"
+  },
+  "body": "## Why\n\nRelease 0.4.0 needs every place that records the workspace and ontology version to say 0.4.0 before the tag.\n\n## What\n\nChange the version from 0.3.0 to 0.4.0 at each site that records it: the workspace package version and the fuzz crate in their Cargo manifests, the lockfile entries of the workspace crates, the five wasm package manifests and the docs console package manifest, the citation file, and the ontology header's version info and version IRI. Read how the term release authority treats a release change before editing the ontology header, and do whatever that mechanism requires in the same change.\n\n## Acceptance\n\n- Every site above reads 0.4.0 and nothing else changed.\n- The lockfile agrees with the manifests (checked without building).\n- The pull request carries no unrelated change.\n\nPart of the 0.4.0 release.\n",
+  "closedAt": null,
+  "comments": [],
+  "createdAt": "2026-11-16T09:30:47Z",
+  "labels": [
+    {
+      "id": "LA_kwDOSwdn1s8AAAACl8ZKwA",
+      "name": "enhancement",
+      "description": "New feature or request",
+      "color": "a2eeef"
+    },
+    {
+      "id": "LA_kwDOSwdn1s8AAAACndNfoA",
+      "name": "rust",
+      "description": "Pull requests that update rust code",
+      "color": "000000"
+    }
+  ],
+  "milestone": null,
+  "number": 2847,
+  "state": "OPEN",
+  "title": "Change the recorded version to 0.4.0",
+  "updatedAt": "2026-11-16T09:31:24Z",
+  "url": "https://github.com/Blackcat-Informatics/gmeow-ontology/issues/2847"
+}
