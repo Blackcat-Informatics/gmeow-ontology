@@ -161,10 +161,12 @@ fn normalized_whitespace(source: &str) -> String {
 ///     CI steps publish the exact fixture receipts before archive construction,
 ///     `rust-archive` completes and authenticates that one build lineage, and `rust`
 ///     runs its exact slice union. No test target invokes a fixture producer.
-///   - `doctests`: the parallel `rust-static` job runs `cargo test --doc
-///     --workspace` directly because nextest archives do not carry doctests.
-///   - `clippy`: the parallel `rust-static` job runs the identical all-target
-///     clippy command once on its existing Rust/generated runner.
+///   - `doctests`: the parallel `rust-static-source` job runs `cargo test --doc` over
+///     every crate that compiles from source, and `rust-static` runs it over the four
+///     producer-embedding crates, directly because nextest archives do not carry
+///     doctests.
+///   - `clippy`: the same two parallel jobs run the all-target clippy command, split
+///     by that crate partition, each on its own Rust runner.
 ///   - `check-lint`: the source-only `lint` job runs `make lint`, which is exactly
 ///     the same fast pre-commit hygiene inventory without a compiled Rust hook.
 ///   - `console`: it is the declared Make PREREQUISITE of `console-smoke`,
@@ -200,6 +202,7 @@ const REQUIRED_QUALITY_JOBS: &[&str] = &[
     "rust-archive",
     "rust",
     "rust-static",
+    "rust-static-source",
     "heavy",
     "medium-consumer-surface",
     "ontology-validate",
@@ -331,7 +334,7 @@ fn browser_codebook_builds_require_exact_read_only_producer_selection() {
     for (job_name, compilation, download) in [
         (
             "rust-static",
-            "- name: Workspace clippy",
+            "- name: Clippy over the producer-embedding crates",
             "Download the producer-selected prefix fixtures",
         ),
         (
@@ -1239,7 +1242,7 @@ fn ci_reuses_one_authenticated_nextest_archive_without_coverage_loss() {
         .expect("ontology gate lanes follow the static Rust job")
         .0;
     assert!(
-        rust_static_job.contains("cargo clippy --all-targets -- -D warnings")
+        rust_static_job.contains("cargo clippy -p gmeow-cli -p gmeow-lsp -p gmeow-gmn-wasm -p gmeow-validate-wasm --all-targets -- -D warnings")
             && !rust_static_job.contains("cargo-nextest")
             && !rust_static_job.contains("make carrier-purity"),
         "rust-static must own clippy without compiling or replaying tests from the authenticated archive"
@@ -1444,7 +1447,10 @@ fn ci_reuses_one_authenticated_nextest_archive_without_coverage_loss() {
         );
     }
     assert!(
-        ci.contains("  rust-static:") && ci.contains("run: cargo test --doc --workspace"),
+        ci.contains("  rust-static:")
+            && ci.contains("  rust-static-source:")
+            && ci.contains("run: cargo test --doc --workspace --exclude gmeow-cli")
+            && ci.contains("run: cargo test --doc -p gmeow-cli"),
         "doctests and rustdoc must remain required parallel static surfaces"
     );
     let nextest = std::fs::read_to_string(repo_root().join(".config/nextest.toml"))

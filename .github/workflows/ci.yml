@@ -1470,14 +1470,10 @@ jobs:
           path: target/nextest/maint-heavy/junit.xml
           reporter: java-junit
 
-  # Static Rust surfaces over every crate that compiles from source alone. The four
-  # crates that embed producer output at build time (gmeow-cli, gmeow-lsp,
-  # gmeow-gmn-wasm, gmeow-validate-wasm) are excluded here and covered by rust-static.
-  # Static Rust surfaces are a sibling of archive construction, not serial work on
-  # test shard 1. This one runner owns all-target clippy, rustdoc/doctests, and the
-  # report-only diagnostics projection instead of cold-building clippy in lint. It
-  # restores the exact same-run prebuild target so docs and static surfaces reuse the
-  # already-compiled dependency graph; Cargo still fingerprints every additional unit.
+  # Static Rust surfaces over every crate that compiles from source alone: all-target
+  # clippy, rustdoc and doctests. The four crates that embed producer output at build
+  # time (gmeow-cli, gmeow-lsp, gmeow-gmn-wasm, gmeow-validate-wasm) are excluded here
+  # and covered by rust-static. This job needs only the same-run prebuild target.
   rust-static-source:
     needs: [rust-prebuild]
     runs-on: ubuntu-latest
@@ -1526,12 +1522,11 @@ jobs:
       - name: Workspace doctests
         run: cargo test --doc --workspace --exclude gmeow-cli --exclude gmeow-lsp --exclude gmeow-gmn-wasm --exclude gmeow-validate-wasm
 
-  # The four producer-embedding crates (rust-static-source covers the rest) need the
-  # producer artifacts. Static Rust surfaces are a sibling of archive construction, not serial work on
-  # test shard 1. This one runner owns all-target clippy, rustdoc/doctests, and the
-  # report-only diagnostics projection instead of cold-building clippy in lint. It
-  # restores the exact same-run prebuild target so docs and static surfaces reuse the
-  # already-compiled dependency graph; Cargo still fingerprints every additional unit.
+  # Static Rust surfaces for the four crates that embed producer output at build time
+  # (gmeow-cli, gmeow-lsp, gmeow-gmn-wasm, gmeow-validate-wasm): all-target clippy,
+  # rustdoc and doctests over those crates only, after the producer codebook is
+  # authenticated, plus the report-only diagnostics projection. Every other crate is
+  # covered by rust-static-source.
   rust-static:
     needs: [producer, rust-prebuild, fixture-prefix]
     runs-on: ubuntu-latest
@@ -1608,7 +1603,7 @@ jobs:
           echo "${FIXTURE_MANIFEST_SHA256}  .cache/gmeow-sync/test-fixture-manifest-v2.json" | sha256sum -c -
           make verify-wasm-codebook
 
-      - name: Workspace clippy
+      - name: Clippy over the producer-embedding crates
         run: cargo clippy -p gmeow-cli -p gmeow-lsp -p gmeow-gmn-wasm -p gmeow-validate-wasm --all-targets -- -D warnings
 
       - name: Rust API docs (broken-link gate)
