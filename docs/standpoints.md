@@ -58,8 +58,11 @@ must stay separate:
 The lightweight case rides `validFrom`/`validUntil` on the statement. When the
 *change of position itself* is the fact of interest, promote to a reified
 `gmeow:StandpointTenure` (the `AddressTenure` idiom): recognition granted in 2008
-and withdrawn in 2030 is an opened-then-closed tenure with `gmeow:displayable
-false` — retained, never deleted (suppression, not erasure).
+and withdrawn in 2030 is an opened-then-closed tenure, retained and never deleted.
+A tenure whose holder withdrew the position (a retraction by the holder of the
+held claim) is suppressed with `gmeow:displayable false`; a tenure that merely
+closed, or whose claim another party retracted, takes no flag, and what a reader
+is shown of it is reader policy decided at projection.
 
 ## StandpointClaim as Observation
 

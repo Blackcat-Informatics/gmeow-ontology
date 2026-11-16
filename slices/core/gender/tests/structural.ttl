@@ -260,14 +260,16 @@ ex:saSupersededFacetWarningGuardIsTyped a gmeow:StructuralAssertion ;
     gmeow:saScope gmeow:scopeModule ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
 PREFIX logic: <https://blackcatinformatics.ca/logic/>
-PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
 ASK {
     gmeow:SupersededGenderIdentitySuppressionConstraint logic:severity "Warning" ; logic:integrity ?root .
     ?root logic:forall ?implies .
     ?implies logic:antecedent ?guard .
-    ?guard logic:and ?typeAtom , ?untilAtom .
-    ?typeAtom logic:relation rdf:type ; logic:argument ?arg .
-    ?arg logic:termIri gmeow:IdentityFacet .
-    ?untilAtom logic:relation gmeow:validUntil .
+    ?guard logic:relation logic:sparqlTarget ; logic:argument ?arg .
+    ?arg logic:termLiteral ?select .
+    FILTER ( CONTAINS(?select, "<https://blackcatinformatics.ca/gmeow/validUntil>")
+        && CONTAINS(?select, "<https://blackcatinformatics.ca/gmeow/GenderIdentity>")
+        && CONTAINS(?select, "<https://blackcatinformatics.ca/gmeow/GenderExpression>")
+        && CONTAINS(?select, "<https://blackcatinformatics.ca/gmeow/SexualOrientation>")
+        && CONTAINS(?select, "<https://blackcatinformatics.ca/gmeow/RomanticOrientation>") )
 }""" ;
-    gmeow:saRationale "The warning that prompts gmeow:displayable false on a superseded facet carries the gmeow:IdentityFacet type atom beside gmeow:validUntil. Without it the lowering targets every node with a validity end, and an ended observation or participation would be told to hide itself (Principles 9 and 10)." .
+    gmeow:saRationale "The warning that prompts gmeow:displayable false on a superseded facet selects its focus by the facet classes named explicitly together with gmeow:validUntil. Without that selector the lowering targets every node with a validity end, and an ended observation or participation would be told to hide itself; naming the classes keeps the warning independent of any class hierarchy being loaded (Principles 9 and 10)." .

@@ -1,0 +1,18 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Fail-witness for ex:saE8WeylActionKeepsBothLawLinks: the named E8 Weyl action keeps
+# its actor, target, operation and math:preservationLaw, and drops math:satisfiesAxiom.
+# The law is still a quantified logic:Formula; only one descriptor link is missing.
+@prefix math:  <https://blackcatinformatics.ca/math/> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix exa:   <https://blackcatinformatics.ca/gmeow/examples/math/algebra/> .
+
+exa:e8WeylAction a math:GroupAction ;
+    math:actingGroup exa:e8Weyl ;
+    math:actsOn exa:e8Roots ;
+    math:preservedOperation exa:rootReflection ;
+    math:preservationLaw exa:groupActionLaw .
+
+exa:groupActionLaw a math:Axiom , logic:Formula ;
+    logic:forall exa:actImpl .

@@ -2844,3 +2844,11 @@ msgstr "contrainte de plage du dénominateur d'intervalle divisé d'un TuningSys
 msgctxt "https://blackcatinformatics.ca/gmeow/TuningSystemDividedIntervalDenominatorRangeConstraint|http://www.w3.org/2004/02/skos/core#definition"
 msgid "A validation-only integrity constraint: when present, a TuningSystem's gmeow:dividedIntervalDenominator is a positive integer."
 msgstr "Une contrainte d'intégrité réservée à la validation : lorsqu'il est présent, le gmeow:dividedIntervalDenominator d'un TuningSystem est un entier strictement positif."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/fixtureRagaYamanContestedMembership|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Raga Yaman contested membership"
+msgstr "Appartenance contestée du raga Yaman"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/fixtureRagaYamanContestedMembership|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A rival scholar's contested membership claim, retained and attributed to that scholar's standpoint beside the memberships the Kirana tradition itself holds. It takes no display flag from being contested; a reader's projection decides what is shown."
+msgstr "Revendication d’appartenance contestée d’un spécialiste rival, conservée et attribuée au point de vue de ce spécialiste, à côté des appartenances que la tradition Kirana elle-même tient. Elle ne reçoit aucun indicateur d’affichage du fait d’être contestée ; la projection d’un lecteur décide de ce qui est montré."

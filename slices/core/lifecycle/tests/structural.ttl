@@ -129,7 +129,7 @@ ASK {
         logic:argument ?arg .
     ?arg logic:termIri gmeow:Entity .
 }""" ;
-    gmeow:saRationale "A renamed place, a dissolved organization or a replaced release takes no display flag from being superseded: which entities a reader is shown is reader policy decided at projection, so the warning MUST NOT type its subject as gmeow:Entity (Principles 9 and 10)." .
+    gmeow:saRationale "The lifecycle warning is limited to names: a dissolved organization or a replaced release takes no display flag from being superseded here, because which entities a reader is shown is reader policy decided at projection, so the warning MUST NOT type its subject as gmeow:Entity (Principles 9 and 10)." .
 
 # --- The worked example keeps a superseded organization with no display flag (MUST) ---
 ex:saSupersededOrganizationKeepsNoDisplayFlag a gmeow:StructuralAssertion ;

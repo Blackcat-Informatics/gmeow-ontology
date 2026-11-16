@@ -60,6 +60,15 @@ use purrdf::slice::rdf_query::{Object, Subject};
     Case::file("shapes", "standpoint-other-party-retraction-conforms")
         .no_warning("displayable false")
 )]
+#[case::ranker_pair_with_another_partys_succession_is_flagged(
+    Case::file("shapes", "standpoint-ranker-other-party-succession")
+        .fails()
+        .violations(&["in both directions", "must also hold a live claim"])
+)]
+#[case::ranker_pair_with_the_rankers_own_succession_conforms(Case::file(
+    "shapes",
+    "standpoint-ranker-own-succession-conforms"
+))]
 #[case::variety_coexistence_fixture_conforms(Case::file("shapes", "variety-coexistence"))]
 #[case::etymology_coexistence_fixture_conforms(Case::file("shapes", "etymology-coexistence"))]
 #[case::credence_band_and_decimal_consistent_conforms(Case::file(

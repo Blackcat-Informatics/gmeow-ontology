@@ -21,7 +21,7 @@ ex:bornPart a gmeow:Participation ;
 
 # A participation whose validity ended. It is retained and carries no display flag:
 # an ended validity interval is not a reason to hide a record (Principle 10).
-ex:correctedPart a gmeow:Participation ;
+ex:endedPart a gmeow:Participation ;
     gmeow:participationEvent ex:birth ;
     gmeow:participationParticipant ex:wrongMidwife ;
     gmeow:participationRole gmeow:roleWitness ;

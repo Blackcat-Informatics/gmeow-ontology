@@ -1845,10 +1845,9 @@ gmeow:fixturePreparedPianoConfiguration
 gmeow:fixtureRagaYamanContestedMembership
     a gmeow:VersionMembership ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
-    rdfs:label "Raga Yaman contested membership (suppressed)"@x-gmeow-english ;
-    skos:definition "A rival scholar's contested membership claim, retained but suppressed from display."@x-gmeow-english ;
+    rdfs:label "Raga Yaman contested membership"@x-gmeow-english ;
+    skos:definition "A rival scholar's contested membership claim, retained and attributed to that scholar's standpoint beside the memberships the Kirana tradition itself holds. It takes no display flag from being contested; a reader's projection decides what is shown."@x-gmeow-english ;
     gmeow:confidence 0.35 ;
-    gmeow:displayable false ;
     gmeow:graphBoxRole gmeow:boxABox ;
     gmeow:membershipAuthority gmeow:fixtureRivalScholarStandpoint ;
     gmeow:versionMember gmeow:fixtureRagaYamanImprovised1975 ;

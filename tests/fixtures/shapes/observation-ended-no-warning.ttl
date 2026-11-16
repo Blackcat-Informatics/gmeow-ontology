@@ -1,11 +1,17 @@
-# Ended-observation counter-example. An Observation whose validity interval has ended and
-# that carries no gmeow:displayable value. An ended validity interval is not a reason to hide
-# a record, so validation must conform and draw no display-suppression warning.
+# Ended-observation counter-example. A well-formed Observation (one vantage, one observed
+# feature) whose validity interval has ended and that carries no gmeow:displayable value. An
+# ended validity interval is not a reason to hide a record, so validation must conform and
+# draw no display-suppression warning.
 
 @prefix ex:    <https://example.org/shapes/> .
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
 @prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
 
 ex:endedObservation a gmeow:Observation ;
+    gmeow:vantage ex:endedObserver ;
+    gmeow:observedFeature ex:endedFeature ;
     gmeow:validFrom  "2018-01-01T00:00:00Z"^^xsd:dateTime ;
     gmeow:validUntil "2019-01-01T00:00:00Z"^^xsd:dateTime .
+
+ex:endedObserver a gmeow:Standpoint .
+ex:endedFeature a gmeow:Place .

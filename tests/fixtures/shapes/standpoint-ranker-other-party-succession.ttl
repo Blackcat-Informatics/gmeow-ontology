@@ -1,0 +1,39 @@
+# Ranker lifecycle counter-example, in the lowered form the ranker constraints read (each
+# ranking is a reifier node carrying logic:reifiedStatementSubject / Predicate / Object plus
+# gmeow:accordingTo and gmeow:validFrom). One ranker holds A over B and B over A. A third
+# party records that the second ranking succeeds the first. That is the third party's own
+# statement about the claim: only the ranker's own succession, correction or retraction ends
+# a ranking's liveness or exempts the reversed pair, so the pair stands and validation must
+# report the reversed pair and the missing closure claim.
+
+@prefix ex:    <https://example.org/shapes/> .
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+
+ex:standpoint-a a gmeow:Standpoint ; gmeow:sharpens gmeow:universalStandpoint .
+ex:standpoint-b a gmeow:Standpoint ; gmeow:sharpens gmeow:universalStandpoint .
+ex:ranker       a gmeow:Standpoint ; gmeow:sharpens gmeow:universalStandpoint .
+ex:third-party  a gmeow:Standpoint ; gmeow:sharpens gmeow:universalStandpoint .
+
+ex:standpoint-a gmeow:moreEntrenchedThan ex:standpoint-b .
+ex:standpoint-b gmeow:moreEntrenchedThan ex:standpoint-a .
+
+ex:rankAB logic:reifiedStatementSubject   ex:standpoint-a ;
+    logic:reifiedStatementPredicate       gmeow:moreEntrenchedThan ;
+    logic:reifiedStatementObject          ex:standpoint-b ;
+    gmeow:accordingTo ex:ranker ;
+    gmeow:validFrom "2020-01-01T00:00:00Z"^^xsd:dateTime .
+
+ex:rankBA logic:reifiedStatementSubject   ex:standpoint-b ;
+    logic:reifiedStatementPredicate       gmeow:moreEntrenchedThan ;
+    logic:reifiedStatementObject          ex:standpoint-a ;
+    gmeow:accordingTo ex:ranker ;
+    gmeow:validFrom "2021-01-01T00:00:00Z"^^xsd:dateTime .
+
+# The third party's statement: the second ranking succeeds the first.
+ex:thirdPartySuccession logic:reifiedStatementSubject ex:rankBA ;
+    logic:reifiedStatementPredicate       gmeow:succeedsClaim ;
+    logic:reifiedStatementObject          ex:rankAB ;
+    gmeow:accordingTo ex:third-party ;
+    gmeow:validFrom "2022-01-01T00:00:00Z"^^xsd:dateTime .
