@@ -1,0 +1,3 @@
+feat(gts-profile): pin the canonical labelling profile persisted values assume (Principles 4, 7)
+
+GMEOW persists values derived from PurRDF's canonical blank-node labels and canonical documents. A new module in the gts-profile leaf states the profile identifier, version, vector corpus digest and the two presentation identifiers and versions those values assume, and asserts each against the linked PurRDF at compile time, so a profile change stops the build. The const string comparison moves to that leaf and the carrier stage reuses it. The gate and pipeline document lists every persisted value that depends on the profile and how each is regenerated.
