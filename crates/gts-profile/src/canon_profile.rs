@@ -19,9 +19,10 @@
 //! # When an assertion in this module fails
 //!
 //! The canonical labelling or digest profile changed upstream. Changing a constant
-//! here is only the last step: every persisted value derived from the profile must
-//! be regenerated or re-blessed in the same change. The classes of such values,
-//! and how each is regenerated (or that none can be), are listed in
+//! here is only the last step: the persisted values derived from the profile are
+//! regenerated or re-blessed in the same change, except those the document says
+//! must not be refreshed (the term release authority file is one). The classes of
+//! such values, how each is regenerated, and the exceptions are listed in
 //! `docs/GATE-AND-PIPELINE.md` under "Values derived from the canonical profile".
 
 use crate::const_str::const_str_eq;
@@ -58,18 +59,19 @@ pub const GMEOW_CANON_FLAT_PRESENTATION_VERSION: u32 = 1;
 
 // A failure of any assertion below means the canonical labelling or digest
 // profile of the linked PurRDF differs from the one GMEOW's persisted values were
-// produced under. Regenerate every value listed in `docs/GATE-AND-PIPELINE.md`
-// under "Values derived from the canonical profile" in the same change that
-// updates the constant; never update the constant alone. The corpus digest is the
+// produced under. Follow `docs/GATE-AND-PIPELINE.md`, section "Values derived from
+// the canonical profile", in the same change that updates the constant: it lists
+// what to regenerate and what must not be refreshed. Never update the constant
+// alone. The corpus digest is the
 // exception: no persisted value is derived from the vector corpus, so its message
 // asks for confirmation rather than regeneration.
 const _: () = assert!(
     const_str_eq(purrdf::CANON_PROFILE_ID, GMEOW_CANON_PROFILE_ID),
-    "PurRDF canonical profile identifier changed: regenerate every persisted value derived from it; see docs/GATE-AND-PIPELINE.md, Values derived from the canonical profile"
+    "PurRDF canonical profile identifier changed: follow docs/GATE-AND-PIPELINE.md, section \"Values derived from the canonical profile\", which lists what to regenerate and what not to refresh"
 );
 const _: () = assert!(
     purrdf::CANON_PROFILE_VERSION == GMEOW_CANON_PROFILE_VERSION,
-    "PurRDF canonical profile version changed: regenerate every persisted value derived from it; see docs/GATE-AND-PIPELINE.md, Values derived from the canonical profile"
+    "PurRDF canonical profile version changed: follow docs/GATE-AND-PIPELINE.md, section \"Values derived from the canonical profile\", which lists what to regenerate and what not to refresh"
 );
 const _: () = assert!(
     const_str_eq(purrdf::CANON_CORPUS_DIGEST, GMEOW_CANON_CORPUS_DIGEST),
@@ -80,20 +82,20 @@ const _: () = assert!(
         purrdf::CANON_PRESENTATION_OVERLAY_ID,
         GMEOW_CANON_OVERLAY_PRESENTATION_ID
     ),
-    "PurRDF overlay presentation identifier changed: regenerate every persisted value derived from it; see docs/GATE-AND-PIPELINE.md, Values derived from the canonical profile"
+    "PurRDF overlay presentation identifier changed: follow docs/GATE-AND-PIPELINE.md, section \"Values derived from the canonical profile\", which lists what to regenerate and what not to refresh"
 );
 const _: () = assert!(
     purrdf::CANON_PRESENTATION_OVERLAY_VERSION == GMEOW_CANON_OVERLAY_PRESENTATION_VERSION,
-    "PurRDF overlay presentation version changed: regenerate every persisted value derived from it; see docs/GATE-AND-PIPELINE.md, Values derived from the canonical profile"
+    "PurRDF overlay presentation version changed: follow docs/GATE-AND-PIPELINE.md, section \"Values derived from the canonical profile\", which lists what to regenerate and what not to refresh"
 );
 const _: () = assert!(
     const_str_eq(
         purrdf::CANON_PRESENTATION_FLAT_ASSERTION_ID,
         GMEOW_CANON_FLAT_PRESENTATION_ID
     ),
-    "PurRDF flat-assertion presentation identifier changed: regenerate every persisted value derived from it; see docs/GATE-AND-PIPELINE.md, Values derived from the canonical profile"
+    "PurRDF flat-assertion presentation identifier changed: follow docs/GATE-AND-PIPELINE.md, section \"Values derived from the canonical profile\", which lists what to regenerate and what not to refresh"
 );
 const _: () = assert!(
     purrdf::CANON_PRESENTATION_FLAT_ASSERTION_VERSION == GMEOW_CANON_FLAT_PRESENTATION_VERSION,
-    "PurRDF flat-assertion presentation version changed: regenerate every persisted value derived from it; see docs/GATE-AND-PIPELINE.md, Values derived from the canonical profile"
+    "PurRDF flat-assertion presentation version changed: follow docs/GATE-AND-PIPELINE.md, section \"Values derived from the canonical profile\", which lists what to regenerate and what not to refresh"
 );

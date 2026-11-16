@@ -123,8 +123,8 @@ change, except where the table says that no producer exists.
 | The pinned admission publication, whose label anchors and digests are compared with a freshly compiled one | `crates/logic-compile/src/tptp/fixtures/canon-publication-v1.json` | hand edit; the test reads it with `include_bytes!` and no producer writes it |
 | Test literals that spell a canonical label or a skolem IRI | Rust test sources | hand edit |
 
-The term release authority has no re-bless mode. `make
-maint-refresh-term-release-authority` does not re-bless a digest: it appends the
+The term release authority has no re-bless mode.
+`make maint-refresh-term-release-authority` does not re-bless a digest: it appends the
 current release to the changed versions of every term whose digest moved, so it
 would record a definition change for each term the profile moved. It also refuses
 to write while the authored ontology release equals the authority's release and
@@ -135,8 +135,10 @@ manifest records each moved term as changed in the current release. Do not use t
 target to settle a profile move.
 
 The reasoner witnesses are refreshed with a substrate bump but do not derive from
-the profile: their skolem IRIs fold the native contract hash, which folds the
-linked PurRDF's substrate identity. `make maint-refresh-reason-witness` writes
+the profile. They move with the substrate because their skolem IRIs fold the native
+contract hash, which folds the linked PurRDF's substrate identity. They do not move
+with the profile because their inputs hold no blank node, so no canonical label
+reaches a witness identity. `make maint-refresh-reason-witness` writes
 `crates/reason-wasm/tests/WITNESS.reason.nq` and `WITNESS.conjecture.nq`, and
 `make maint-prepare-wasm-assets` copies `WITNESS.reason.nq` into
 `crates/docs/assets/reason/`. No target copies
