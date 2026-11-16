@@ -1,0 +1,30 @@
+{
+  "schema": 1,
+  "issue": 2831,
+  "repo": "gmeow-ontology",
+  "forge": "github",
+  "nwo": "Blackcat-Informatics/gmeow-ontology",
+  "read_access": "anon-read",
+  "main_root": "/home/paudley/Active/gmeow-ontology",
+  "worktree": "/home/paudley/Active/gmeow-ontology/.worktrees/2831-constraints-over-reified-statements",
+  "branch": "paudley/2831-constraints-over-reified-statements",
+  "slug": "constraints-over-reified-statements",
+  "slug_drift": false,
+  "stage_dir": "/home/paudley/Active/gmeow-ontology/.worktrees/2831-constraints-over-reified-statements/.stage/constraints-over-reified-statements",
+  "stage_tracked": true,
+  "base": "origin/main",
+  "base_oid": "e32f90c96c80902acd0fe00e0ef70baeec25ea0c",
+  "reused": false,
+  "adr_repo": false,
+  "created": [
+    "worktree:/home/paudley/Active/gmeow-ontology/.worktrees/2831-constraints-over-reified-statements",
+    "branch:paudley/2831-constraints-over-reified-statements",
+    "ignored:8265 files (8265 reflinked, 0 written)",
+    "rust-caches:reflinked /home/paudley/Active/gmeow-ontology/.worktrees/2727-displayable-is-not-scoped-to-a caches into /home/paudley/Active/gmeow-ontology/.worktrees/2831-constraints-over-reified-statements plus 0 dependency units from 0 other checkouts in 396.3s; 12962 unchanged files keep their built mtimes; 57 other files take the seed time and rebuild; 295 units naming another checkout rebuild",
+    "stage:/home/paudley/Active/gmeow-ontology/.worktrees/2831-constraints-over-reified-statements/.stage/constraints-over-reified-statements",
+    "issue:/home/paudley/Active/gmeow-ontology/.worktrees/2831-constraints-over-reified-statements/.stage/constraints-over-reified-statements/issue.md"
+  ],
+  "warnings": [],
+  "timestamp": "2026-11-15T18:51:50-0600",
+  "seed_error": ""
+}

@@ -1,0 +1,79 @@
+{
+  "assignees": [],
+  "author": {
+    "id": "MDQ6VXNlcjUyNzU1NQ==",
+    "is_bot": false,
+    "login": "paudley",
+    "name": "Patrick Audley"
+  },
+  "body": "## Problem\n\nSeveral `logic:Constraint` records are written over the lowered components of an RDF 1.2 reified statement: `logic:reifiedStatementSubject`, `logic:reifiedStatementPredicate` and `logic:reifiedStatementObject`. Those edges are produced only by `statement_lowering::lower_reifiers` (`crates/logic/src/statement_lowering.rs:83-111`), and its only caller is `cli_world_dataset` in `crates/logic/src/operator.rs:566`, the operator CLI's reasoning world.\n\nThe validation paths never add them. `gmeow validate` builds a flat data view (`data_dataset_flat` / `flatten_to_default_graph`, `data_validate.rs:899-933`) that keeps base statements, reifiers and annotations and adds no component edge. The conformance `validate()` path (`conformance_support/mod.rs:183-187, 534-537`) and the pipeline fixture validation do the same. A constraint with no `gmeow:enforcesFailureClass` is enforced only through its derived SHACL, which runs on that flat view.\n\nSo for data written the way these constraints' own definitions prescribe (`ex:a gmeow:moreEntrenchedThan ex:b ~ ex:rankAB {| gmeow:accordingTo ex:ranker ; gmeow:validFrom \u2026 |}`):\n\n- `moreEntrenchedThanRankerOrderConstraint` and `moreEntrenchedThanRankerClosureConstraint` never match: a reversed pair or a missing closure is never reported.\n- `moreEntrenchedThanAttributionConstraint` reports every correctly attributed ranking as a Violation, because its consequent finds no component edge.\n\nThe same form is used by constraints in other slices (affect, dreaming, record-metadata and others), which are affected the same way.\n\nThis is established by reading the code at `cd0a85620` (and the same code on `main`), not by a run. The existing cases pass because their fixtures write the lowered edges by hand, a form no validation entry point produces from RDF 1.2 input.\n\n## Acceptance\n\n- [ ] One run confirms or refutes the reading: a correctly attributed RDF 1.2 ranking validated through the consumer path, with the findings recorded.\n- [ ] The lowered component edges are present in every validation view that derived SHACL runs on (the consumer validate path, the conformance path, the pipeline fixture validation), from the one lowering, not a second implementation.\n- [ ] Every constraint that reads lowered components is listed, by slice, and each has a control written as RDF 1.2 reified statements: one conforming, one violating.\n- [ ] No correctly formed reified statement draws a finding from such a constraint.\n- [ ] Fixtures that hand-write lowered edges are replaced by, or paired with, their RDF 1.2 form.\n\nPrinciples 2, 7, 17.\n",
+  "closedAt": null,
+  "comments": [
+    {
+      "id": "IC_kwDOSwdn1s8AAAABm4Waiw",
+      "author": {
+        "login": "coderabbitai"
+      },
+      "authorAssociation": "CONTRIBUTOR",
+      "body": "<!-- coderabbit-bot-generated:v1 -->\n\n<!-- This is an auto-generated issue plan by CodeRabbit -->\n\n<details>\n<summary>\u26a0\ufe0f Possible Duplicate Issue(s)</summary>\n<dl>\n<dd>\n<br>\n\n- https://github.com/Blackcat-Informatics/gmeow-ontology/issues/2807\n</dd>\n</dl>\n</details>\n<details>\n<summary>\ud83d\udd17 Related PRs</summary>\n<dl>\n<dd>\n<br>\n\nBlackcat-Informatics/gmeow-ontology#2688 - docs(standpoint): add a per-ranker partial order between standpoints [merged]\n</dd>\n</dl>\n</details>\n\n---\n<details>\n<summary>\ud83d\udcdd Issue Planner</summary>\n<dl>\n<dd>\n<br>\n\n<sub>Check the box below or use the `@coderabbitai plan` command to generate an implementation plan and prompts that you can use with your favorite coding assistant.</sub>\n\n- [ ] <!-- {\"checkboxId\":\"8d4f2b9c-3e1a-4f7c-a9b2-d5e8f1c4a7b9\"} --> Create Plan\n</dd>\n</dl>\n</details>\n\n\n---\n<details>\n<summary> \ud83e\uddea Issue enrichment is currently in open beta.</summary>\n<dl>\n<dd>\n<br>\n\n\nYou can configure auto-planning by selecting labels in the issue_enrichment configuration.\n\nTo disable automatic issue enrichment, add the following to your `.coderabbit.yaml`:\n```yaml\nissue_enrichment:\n  auto_enrich:\n    enabled: false\n```\n</dd>\n</dl>\n</details>\n\n\ud83d\udcac Have feedback or questions? Drop into our [discord](https://discord.gg/coderabbit)!",
+      "createdAt": "2026-11-16T00:44:11Z",
+      "includesCreatedEdit": false,
+      "isMinimized": false,
+      "minimizedReason": "",
+      "reactionGroups": [],
+      "url": "https://github.com/Blackcat-Informatics/gmeow-ontology/issues/2831#issuecomment-6904191627",
+      "viewerDidAuthor": false
+    }
+  ],
+  "createdAt": "2026-11-16T00:43:46Z",
+  "labels": [
+    {
+      "id": "LA_kwDOSwdn1s8AAAACl8ZKrA",
+      "name": "bug",
+      "description": "Something isn't working",
+      "color": "d73a4a"
+    },
+    {
+      "id": "LA_kwDOSwdn1s8AAAACl8ZKsg",
+      "name": "documentation",
+      "description": "Improvements or additions to documentation",
+      "color": "0075ca"
+    },
+    {
+      "id": "LA_kwDOSwdn1s8AAAACmTvThA",
+      "name": "cross-cutting",
+      "description": "Cross-cutting concern",
+      "color": "fbca04"
+    },
+    {
+      "id": "LA_kwDOSwdn1s8AAAACmjuimw",
+      "name": "quality",
+      "description": "Quality gate or completeness/correctness invariant",
+      "color": "0e8a16"
+    },
+    {
+      "id": "LA_kwDOSwdn1s8AAAACnasmrQ",
+      "name": "logic",
+      "description": "logic: reasoning layer (the RDF 1.2-native logic; OWL is a projection)",
+      "color": "5319e7"
+    },
+    {
+      "id": "LA_kwDOSwdn1s8AAAACndNfoA",
+      "name": "rust",
+      "description": "Pull requests that update rust code",
+      "color": "000000"
+    },
+    {
+      "id": "LA_kwDOSwdn1s8AAAACoIO76w",
+      "name": "complexity-hard",
+      "description": "Foundational/cross-cutting/research; large coordination or new semantics",
+      "color": "b60205"
+    }
+  ],
+  "milestone": null,
+  "number": 2831,
+  "state": "OPEN",
+  "title": "Constraints over reified statements never see RDF 1.2 data on the validation paths",
+  "updatedAt": "2026-11-16T00:44:19Z",
+  "url": "https://github.com/Blackcat-Informatics/gmeow-ontology/issues/2831"
+}
