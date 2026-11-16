@@ -2909,6 +2909,7 @@ logic:confidence
     a logic:DatatypeProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "confidence"@x-gmeow-english ;
+    logic:formalizes gmeow:confidence ;
     skos:definition "Epistemic confidence assigned to a statement by a source or process — how sure the asserter is. Normatively distinct from logic:probability: a confidence score is NOT a probability and MUST NOT be interpreted as one unless an explicit mapping to logic:probability is declared. Also distinct from logic:weight (a solver ranking) and logic:evidenceStrength (evidential warrant)."@x-gmeow-english .
 
 logic:constraintOverride

@@ -747,7 +747,7 @@ gmeow:supportStrength
     rdfs:label "support strength"@x-gmeow-english ;
     rdfs:range xsd:decimal ;
     skos:definition "A solver-computed measure of how strongly a gmeow:SupportAssessment's ground warrants its content under the named standard. A solver-layer value (Principle 12), not an asserted adequacy verdict (that is gmeow:meetsThreshold). NOT functional."@x-gmeow-english ;
-    skos:scopeNote "Scope: the assessment-level measure of evidential warrant, the counterpart of logic:evidenceStrength, the canonical warrant axis. It is neither a logic:probability, which needs a declared logic:probabilityModel, nor a logic:confidence, which says how sure an asserter is, nor a logic:weight, which ranks for a solver. No range is declared for it, so a value between 0 and 1 is not thereby a probability."@x-gmeow-english ;
+    skos:scopeNote "Scope: the assessment-level measure of evidential warrant, the counterpart of logic:evidenceStrength, the canonical warrant axis. It is neither a logic:probability, which needs a declared logic:probabilityModel, nor a logic:confidence, which says how sure an asserter is, nor a logic:weight, which ranks for a solver. No interval is declared for its values, so a value between 0 and 1 is not thereby a probability."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid it for a probability (use logic:probability under a logic:probabilityModel), for an asserter's confidence in a statement (use gmeow:confidence) and for an adequacy verdict (use gmeow:meetsThreshold)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 

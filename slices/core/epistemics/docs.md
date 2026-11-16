@@ -140,7 +140,7 @@ competing values coexist (Principle 9):
 | adequacy | `gmeow:adequateUnder` | `gmeow:AdequacyAssessment` | solver adjudication | whether that support meets the standard's threshold (`gmeow:meetsThreshold` → `gmeow:AdequacyVerdict`) (Principle 12) |
 | defeat | `gmeow:defeatedBy` / `gmeow:hasDefeatStatus` | `gmeow:Defeater` / `gmeow:JustificationStatus` | structural / solver adjudication | the structural defeater (what defeats — asserted) vs the solver-set verdict flag (the adjudicated outcome, Principle 12) |
 
-The number a solver computes for the support row, `gmeow:supportStrength`, is the assessment-level counterpart of `logic:evidenceStrength`, the canonical evidential-warrant axis. It is neither a probability nor a confidence, and no range is declared for it.
+The number a solver computes for the support row, `gmeow:supportStrength`, is the assessment-level counterpart of `logic:evidenceStrength`, the canonical evidential-warrant axis. It is neither a probability nor a confidence, and no interval is declared for its values.
 
 The `gmeow:EpistemicStandard` vocabulary names the bar — `gmeow:standardOrdinary`,
 `gmeow:standardScientific`, and the legal `gmeow:standardLegalPreponderance` /
