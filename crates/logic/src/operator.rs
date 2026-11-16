@@ -413,7 +413,7 @@ pub fn derive(
             .0 = true;
     }
     // The residue, and ONLY the residue. The rule set now DOES run over flat statement
-    // metadata: `crate::statement_lowering` decomposes each `rdf:reifies` triple term
+    // metadata: `gmeow_logic_compile::statement_lowering` decomposes each `rdf:reifies` triple term
     // into three ordinary joinable edges before the world is built, so an attribution's
     // subject, predicate and object are premises like any other. What survives as a
     // withhold is exactly what `logic:rdf12-nested-triple-term` records — a statement whose
@@ -563,9 +563,19 @@ fn cli_world_dataset(parsed: &purrdf::RdfDataset) -> gmeow_errors::Result<CliWor
     // withheld — a term is not a fact — while its three components enter the world as
     // ordinary triples, so a rule can join a reifier to the statement it reifies. The
     // authored dataset is untouched; this is derived from it, on the way in.
-    let lowering = crate::statement_lowering::lower_reifiers(parsed);
-    for (subject, predicate, object) in lowering.rows {
-        push(&mut builder, &mut unreasoned, subject, predicate, object)?;
+    let lowering = gmeow_logic_compile::statement_lowering::lower_reifiers(parsed);
+    for row in lowering.rows {
+        if let Some(g) = &row.graph_name {
+            named_graphs.insert(RowTerm::from_rdf_term(g).display());
+            continue;
+        }
+        push(
+            &mut builder,
+            &mut unreasoned,
+            row.subject,
+            row.predicate,
+            row.object,
+        )?;
     }
     let nested_statements = lowering.nested;
     for annotation in parsed.owned_annotations() {

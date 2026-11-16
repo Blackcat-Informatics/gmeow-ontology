@@ -5,9 +5,11 @@
 # Each axis is a reified gmeow:IdentityFacet (the NameUsage relator idiom), never a
 # flat enum column. Four tenets are visible here:
 #   • SELF-ASSERTION is the top authority — a self-asserted facet (selfAsserted
-#     true) outranks an external registry record (selfAsserted false), which is
+#     true) is the person's own word. An external registry label about the person
+#     (selfAsserted false) that the person has superseded by self-asserting is
 #     SUPPRESSED, never deleted (gmeow:displayable false, P10): kept for provenance,
-#     never leaked or displayed.
+#     never leaked or displayed. The flag marks the facet subject's own
+#     supersession of an imposed label, not precedence over another party's record.
 #   • CO-EQUALITY — gender identity and gender expression are separate facets with
 #     no primary/preferred slot; expression is never inferred from identity.
 #   • SEX ≠ GENDER — gmeow:sexAssignedAtBirth is a RECORDED administrative datum,
@@ -37,8 +39,8 @@ ex:selfId a gmeow:GenderIdentity ;
     gmeow:displayable   true .
 
 # --- An external registry's conflicting record: its vantage is the REGISTRY,
-#     not Robin — kept for provenance but SUPPRESSED (P10) and never self-
-#     asserted, because self-assertion outranks an imported datum.
+#     not Robin — a label about Robin that Robin has superseded by self-asserting,
+#     kept for provenance but SUPPRESSED (P10) and never self-asserted.
 ex:registryId a gmeow:GenderIdentity ;
     gmeow:facetSubject ex:robin ;
     gmeow:facetVantage ex:registry ;

@@ -9,8 +9,10 @@
 # assert the negation, it removes the warrant (the failure no longer licenses
 # 'broken') by attacking the gmeow:InferenceApplication. Revision does NOT delete
 # anything:
-#   * the argument is evaluated OUT by the solver (gmeow:ArgumentEvaluation);
-#   * the conclusion-claim is set gmeow:displayable false (suppressed from view);
+#   * the argument is evaluated OUT by the solver (gmeow:ArgumentEvaluation) — a status,
+#     which sets no display flag on anything;
+#   * the operator, who holds the conclusion, withdraws its own conclusion-claim by setting
+#     gmeow:displayable false on it (its own act, not the attack's or the solver's);
 #   * the gmeow:InferenceTenure is CLOSED (an gmeow:endedAtTime on its interval);
 #   * the gmeow:InferenceCommitment / gmeow:Argument are RETAINED as audit.
 # The whole episode remains queryable — how the agent believed, and why it stopped.
@@ -35,7 +37,7 @@ ex:premDidNotPrint a gmeow:StandpointClaim ;
     gmeow:observationMethod gmeow:methodDirectObservation ;
     gmeow:claimModality gmeow:unequivocal .
 
-# The conclusion — now SUPPRESSED, but retained.
+# The conclusion — withdrawn by its own holder, the operator, but retained.
 ex:conclPrinterBroken a gmeow:StandpointClaim ;
     rdfs:label "Concluded (then retracted): the printer is broken"@x-gmeow-english ;
     gmeow:vantage ex:operator ;
@@ -44,7 +46,7 @@ ex:conclPrinterBroken a gmeow:StandpointClaim ;
     gmeow:claimModality gmeow:probable ;
     gmeow:inferenceMode gmeow:modeInduction ;
     gmeow:inferredFrom ex:premDidNotPrint ;
-    gmeow:displayable false .                     # Principle 10: suppressed by the fired attack
+    gmeow:displayable false .                     # Principle 10: the operator withdrew its own conclusion
 
 # --- The reified argument, retained as audit -------------------------------- #
 ex:revisedCommitment a gmeow:InferenceCommitment ;
@@ -87,7 +89,7 @@ ex:undercut a gmeow:Attack ;
     gmeow:attackTarget ex:inductiveStep ;          # the rule-application, not the premise or conclusion
     gmeow:attackKind gmeow:attackUndercut .
 
-# --- The solver-set verdict: the argument is OUT (suppressed, not erased) ---- #
+# --- The solver verdict: the argument is OUT (a status; sets no display flag) -- #
 ex:revisionEvaluation a gmeow:ArgumentEvaluation ;
     rdfs:label "Grounded evaluation after the undercut: the argument is out"@x-gmeow-english ;
     gmeow:evaluatesArgument ex:brokenArgument ;
@@ -102,4 +104,4 @@ ex:brokenBeliefTenure a gmeow:InferenceTenure ;
 
 ex:tenureInterval a gmeow:TimeInterval ;
     gmeow:startedAtTime "2026-06-15T11:00:00Z"^^xsd:dateTime ;
-    gmeow:endedAtTime   "2026-06-15T11:18:00Z"^^xsd:dateTime .  # closed when the attack fired
+    gmeow:endedAtTime   "2026-06-15T11:18:00Z"^^xsd:dateTime .  # closed when the operator accepted the undercut

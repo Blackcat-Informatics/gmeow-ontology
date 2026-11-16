@@ -133,15 +133,18 @@ An abductive `gmeow:InferenceCommitment` names the fact to explain (`gmeow:expla
 competing `gmeow:candidateHypothesis` claims; each hypothesis `gmeow:explains` the explanandum (a
 solver back-check) and carries a solver-layer `gmeow:explanatoryScore`. There is **no `isBest` bit**
 (Principle 12): the winner's `gmeow:claimModality` is promoted `conceivable`→`probable`, and the losers
-are suppressed (`gmeow:displayable false`), never erased. Rivals are linked by the symmetric
+stay retrievable at their lower modality, never erased; losing the ranking sets no `gmeow:displayable`
+flag on a hypothesis (only the hypothesis's own holder withdrawing it does). Rivals are linked by the symmetric
 `gmeow:competesWith` (irreflexive by SHACL, keeping the DL profile clean).
 
 ## Belief revision is suppression
 
-When the solver evaluates a `gmeow:Argument` as `gmeow:acceptanceOut` via a
-`gmeow:ArgumentEvaluation` — a verdict to which a `gmeow:Attack` contributes — suppression follows:
-the conclusion-claim is marked `gmeow:displayable false` and the `gmeow:InferenceTenure` is
-**closed** (an end on its interval); the `gmeow:InferenceCommitment` and its `gmeow:Argument` are
+When the agent that holds a conclusion accepts a defeater, it revises: it **closes** the
+`gmeow:InferenceTenure` (an end on its interval) and, withdrawing its own conclusion, sets
+`gmeow:displayable false` on its own conclusion-claim. That flag is the holder's own act. A
+`gmeow:ArgumentEvaluation` of `gmeow:acceptanceOut`, a `gmeow:Attack` from any party, and a lost
+abductive ranking are each carried by their own status term and set no flag on anyone's claim; what a
+reader is shown of a defeated claim is decided at projection. The `gmeow:InferenceCommitment` and its `gmeow:Argument` are
 retained as audit (Principle 10). The whole episode — how the agent believed, and why it stopped —
 stays queryable. This is the headline demonstration for the agent-memory consumer (Principle 15): an
 LLM stating *how* it reached a claim and revising belief without deleting history.

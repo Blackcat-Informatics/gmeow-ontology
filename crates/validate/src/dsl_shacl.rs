@@ -38,9 +38,11 @@ pub fn validate_dsl(
     let merge = dsl::merge_with_provenance(paths)?;
     let (shapes_dataset, shapes) = store::parse_validation_shapes(shapes_ttl)?;
     let classes = FailureClassIndex::from_shapes_dataset(&shapes_dataset);
-    let report = store::shacl_validate_dataset(&merge.dataset, &shapes);
+    let validation = store::shacl_validate_dataset(&merge.dataset, &shapes)?;
     let focus_to_file: HashMap<String, String> = merge.focus_to_file.into_iter().collect();
-    Ok(dsl_findings(&report, &focus_to_file, label, &classes))
+    let mut findings = dsl_findings(&validation.report, &focus_to_file, label, &classes);
+    findings.extend(validation.nested_findings(None));
+    Ok(findings)
 }
 
 fn dsl_findings(

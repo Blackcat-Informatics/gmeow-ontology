@@ -97,3 +97,48 @@ ASK {
         owl:inverseOf gmeow:supersedes .
 }""" ;
     gmeow:saRationale "gmeow:supersededBy MUST be an owl:ObjectProperty with domain and range gmeow:Entity and declare owl:inverseOf gmeow:supersedes — it is directional (predecessor→successor) and non-symmetric; the superseded entity is retained, never deleted (Principle 10)." .
+
+# --- The superseded-entity warning is limited to names (MUST) ---
+ex:saSupersededEntityWarningIsLimitedToNames a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+ASK {
+    gmeow:SupersededEntitySuppressionConstraint logic:severity "Warning" ; logic:integrity ?root .
+    ?root logic:forall ?implies .
+    ?implies logic:antecedent ?guard .
+    ?guard logic:relation rdf:type ;
+        logic:argument ?arg .
+    ?arg logic:termIri gmeow:Appellation .
+}""" ;
+    gmeow:saRationale "The warning that prompts gmeow:displayable false on a superseded node applies to a gmeow:Appellation, the global safety case, and to nothing wider (Principle 10)." .
+
+# --- The superseded-entity warning does not range over every entity (MUST-NOT) ---
+ex:saSupersededEntityWarningIsNotForAllEntities a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:mustNot ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+ASK {
+    gmeow:SupersededEntitySuppressionConstraint logic:integrity ?root .
+    ?root (logic:forall|logic:exists|logic:not|logic:and|logic:or|logic:antecedent|logic:consequent)* ?formula .
+    ?formula logic:relation rdf:type ;
+        logic:argument ?arg .
+    ?arg logic:termIri gmeow:Entity .
+}""" ;
+    gmeow:saRationale "The lifecycle warning is limited to names: a dissolved organization or a replaced release takes no display flag from being superseded here, because which entities a reader is shown is reader policy decided at projection, so the warning MUST NOT type its subject as gmeow:Entity (Principles 9 and 10)." .
+
+# --- The worked example keeps a superseded organization with no display flag (MUST) ---
+ex:saSupersededOrganizationKeepsNoDisplayFlag a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModuleAndExamples ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX ex: <https://blackcatinformatics.ca/gmeow/examples/lifecycle/>
+ASK {
+    ex:meridian gmeow:supersededBy ex:apex ; gmeow:hasDestructionEvent ex:dissolution .
+    FILTER NOT EXISTS { ex:meridian gmeow:displayable ?flag }
+}""" ;
+    gmeow:saRationale "The dissolved company is superseded and retained, and carries no display flag: succession is not a reason to hide a record (Principle 10)." .

@@ -86,8 +86,8 @@ msgid "superseded by"
 msgstr "被取代"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/supersededBy|skos:definition"
-msgid "Links an entity to the entity that replaced it — Constantinople supersededBy Istanbul, the Soviet Union supersededBy the Russian Federation, a deprecated software release supersededBy its successor. Directional, NOT symmetric. The superseded entity is retained (never deleted) and may carry gmeow:displayable false."
-msgstr "将一个实体与取代它的实体相连——君士坦丁堡被伊斯坦布尔取代、苏联被俄罗斯联邦取代、一个被弃用的软件发行版被其后继者取代。有方向性，并非对称。被取代的实体被保留（从不删除），并可携带 gmeow:displayable false。"
+msgid "Links an entity to the entity that replaced it — Constantinople supersededBy Istanbul, the Soviet Union supersededBy the Russian Federation, a deprecated software release supersededBy its successor. Directional, NOT symmetric. The superseded entity is retained (never deleted). The relation itself prompts no display flag: whether a reader is shown the predecessor is that reader's policy, decided at projection, and the only suppression the lifecycle slice prompts is for a superseded name or identity label, which its holder hides from every reader. A more specific relation may state a stricter display rule of its own."
+msgstr "将一个实体与取代它的实体相连——君士坦丁堡被伊斯坦布尔取代、苏联被俄罗斯联邦取代、一个被弃用的软件发行版被其后继者取代。有方向性，并非对称。被取代的实体被保留（从不删除）。该关系本身不引发任何显示标记：读者是否看到前任由该读者自己的政策在投影时决定，生命周期切片唯一引发的隐藏针对被取代的名称或身份标签，其持有者会对所有读者隐藏它。更具体的关系可以另行规定其自身更严格的显示规则。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/existenceEntityFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "existenceEntity is functional"
@@ -116,3 +116,19 @@ msgstr "gmeow:existenceEntityFunctionality logic:characterizes gmeow:existenceEn
 msgctxt "https://blackcatinformatics.ca/gmeow/existenceEntityFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
 msgid "Scope: this record carries ONE integrity obligation about gmeow:existenceEntity and nothing else. It is not a definition of gmeow:existenceEntity (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
 msgstr "范围：该记录仅承载关于 gmeow:existenceEntity 的一项完整性义务，别无其他。它不是 gmeow:existenceEntity 的定义（定义位于术语自身），不是形状，也不是重述该术语含义的第二处位置——应撤回该记录而非扩大其范围。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/hasDestructionEvent|gmeow:howToUse"
+msgid "Assert gmeow:hasDestructionEvent from the entity to a gmeow:Event co-typed with the right EventType (gmeow:eventTypeDeath, dissolution, …); retain the entity; whether a projection shows it is reader policy, decided at projection, not data."
+msgstr "从实体向与正确 EventType（gmeow:eventTypeDeath、解散等）共同类型化的 gmeow:Event 断言 gmeow:hasDestructionEvent；保留该实体；投影是否展示它属于读者策略，在投影时决定，而不是数据。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/supersededBy|gmeow:avoidWhen"
+msgid "Avoid treating it as symmetric (it is directional; the inverse is gmeow:supersedes) and avoid deleting the superseded entity — retain it and link it forward, and avoid reading this relation by itself as a ground for gmeow:displayable false: the lifecycle slice prompts that only for a superseded name or identity label, and what a reader is shown of anything else is reader policy, not data."
+msgstr "避免将其视为对称关系（它有方向；逆关系是 gmeow:supersedes），避免删除被取代的实体——应保留并向前链接——也避免仅凭这一关系就将其视为设置 gmeow:displayable false 的理由：生命周期切片只对被取代的名称或身份标签引发这一点，读者对其他任何事物看到什么属于读者策略，而不是数据。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/supersededBy|gmeow:howToUse"
+msgid "Assert gmeow:supersededBy from predecessor to successor; optionally record the change itself as a gmeow:Event typed gmeow:eventTypeSupersession, and leave forward-facing display to each reader's projection; the lifecycle slice itself prompts gmeow:displayable false only on a superseded name or identity label."
+msgstr "从前任向继任者断言 gmeow:supersededBy；可选择把变更本身记录为类型为 gmeow:eventTypeSupersession 的 gmeow:Event，并把面向未来的显示留给每位读者的投影；生命周期切片本身只对被取代的名称或身份标签引发 gmeow:displayable false。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/SupersededEntitySuppressionConstraint|skos:definition"
+msgid "A closed-world integrity constraint: a superseded gmeow:Appellation (a name carrying gmeow:supersededBy) should set gmeow:displayable false — suppressed from display for every reader, never deleted (Principle 10). It is limited to names, the global safety case. A superseded entity of any other kind and a claim that another party disputes or corrects are not reported by this constraint: what a reader is shown of them is reader policy, decided at projection, unless a more specific constraint states a stricter rule of its own."
+msgstr "封闭世界完整性约束：被取代的 gmeow:Appellation（带有 gmeow:supersededBy 的名称）应设置 gmeow:displayable false——对所有读者隐藏，绝不删除（原则 10）。它仅限于名称，即全局安全的情形。任何其他类型的被取代实体，以及被另一方质疑或更正的主张，都不会被此约束报告：读者对它们看到什么属于读者策略，在投影时决定，除非更具体的约束另行规定其自身更严格的规则。"

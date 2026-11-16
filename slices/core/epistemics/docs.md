@@ -182,6 +182,11 @@ interval and marks the **tenure** `gmeow:displayable false`. The original `gmeow
 retained as audit. A new `DoxasticState` (and a new open `DoxasticTenure`) records the revised belief.
 This is the same suppression pattern used by `inference:InferenceTenure` (Principle 10).
 
+This is a holder revising its own belief, which stays a global suppression case, and
+`gmeow:WithdrawnDoxasticTenureSuppressionConstraint` concerns exactly that act. Another party's
+dispute of a belief closes no tenure and sets no `gmeow:displayable` value: both stay
+retrievable and a reader's projection decides what is shown.
+
 Example: see `slices/core/epistemics/examples/belief-revision.ttl`.
 
 ## Evaluating a claim

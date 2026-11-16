@@ -1595,12 +1595,13 @@ type FindingKey = (String, Option<String>, String);
 fn finding_keys(
     dataset: &RdfDataset,
     shapes: &purrdf::shapes::shapes::Shapes,
-) -> BTreeSet<FindingKey> {
-    crate::store::shacl_validate_dataset(dataset, shapes)
+) -> gmeow_errors::Result<BTreeSet<FindingKey>> {
+    Ok(crate::store::shacl_validate_dataset(dataset, shapes)?
+        .report
         .result_tuples()
         .into_iter()
         .map(|(focus, path, _value, component, _shape, _severity)| (focus, path, component))
-        .collect()
+        .collect())
 }
 
 /// A deterministic divergence message naming the symmetric difference of two finding sets.
@@ -1649,8 +1650,8 @@ pub fn cross_check(
     let mut focus_nodes: BTreeSet<String> = BTreeSet::new();
 
     // Base run over the data graph alone.
-    let base_p = finding_keys(data_graph, &projected);
-    let base_l = finding_keys(data_graph, &legacy);
+    let base_p = finding_keys(data_graph, &projected)?;
+    let base_l = finding_keys(data_graph, &legacy)?;
     if base_p != base_l {
         return Err(parse_err(divergence_message(
             "the base data graph",
@@ -1674,8 +1675,8 @@ pub fn cross_check(
         builder.push_dataset(&witness_ds)?;
         let dataset = builder.freeze().map_err(gmeow_errors::Diag::from)?;
 
-        let p = finding_keys(&dataset, &projected);
-        let l = finding_keys(&dataset, &legacy);
+        let p = finding_keys(&dataset, &projected)?;
+        let l = finding_keys(&dataset, &legacy)?;
         if p != l {
             return Err(parse_err(divergence_message(
                 &format!("witness '{}'", w.component),
@@ -2914,7 +2915,7 @@ pub fn semantic_cross_check(
             ))
         })?;
         let focus = format!("<{}>", w.focus);
-        let legacy_flagged = finding_keys(&ds, &legacy)
+        let legacy_flagged = finding_keys(&ds, &legacy)?
             .iter()
             .any(|(f, _, _)| *f == focus);
         if legacy_flagged != w.expect_flagged {
@@ -2925,7 +2926,7 @@ pub fn semantic_cross_check(
                 w.label, w.expect_flagged
             )));
         }
-        let projected_flagged = finding_keys(&ds, &projected)
+        let projected_flagged = finding_keys(&ds, &projected)?
             .iter()
             .any(|(f, _, _)| *f == focus);
         if projected_flagged != w.expect_flagged {

@@ -69,11 +69,11 @@ gmeow:supersedes
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/coreference> ;
     rdfs:label "supersedes"@x-gmeow-english ;
     rdfs:range gmeow:Entity ;
-    skos:definition "Relates a newer entity, version, record, or claim-bearing artifact to a prior one it supersedes. Non-functional: one successor may consolidate several predecessors. Superseded entities remain first-class and usable; suppression from display is handled separately with gmeow:displayable false when appropriate."@x-gmeow-english ;
+    skos:definition "Relates a newer entity, version, record, or claim-bearing artifact to a prior one it supersedes. Non-functional: one successor may consolidate several predecessors. Superseded entities remain first-class and usable; the relation itself prompts no display flag, and what a reader is shown of a predecessor is that reader's policy, decided at projection."@x-gmeow-english ;
     skos:example "ex:policyV2 gmeow:supersedes ex:policyV1 ."@x-gmeow-english ;
-    gmeow:avoidWhen "Avoid for lineage containment (use gmeow:versionOf or gmeow:editionOf) and for cross-realm equivalence (use gmeow:counterpartOf); never delete or OWL sameAs the predecessor — suppress it from display with gmeow:displayable false if it should no longer surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid for lineage containment (use gmeow:versionOf or gmeow:editionOf) and for cross-realm equivalence (use gmeow:counterpartOf); never delete or OWL sameAs the predecessor, and do not read this relation by itself as a ground for gmeow:displayable false (that flag is only its holder withdrawing or replacing its own record)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox ;
-    gmeow:howToUse "Assert gmeow:supersedes from the successor to each predecessor (non-functional, so one successor may consolidate several); keep the superseded entities in the graph and mark them gmeow:displayable false when they should drop out of projections."@x-gmeow-english ;
+    gmeow:howToUse "Assert gmeow:supersedes from the successor to each predecessor (non-functional, so one successor may consolidate several); keep the superseded entities in the graph and leave their display to each reader's projection; set gmeow:displayable false only where the holder of a superseded record withdrew it itself."@x-gmeow-english ;
     gmeow:useWhen "Use to record that a newer entity, version, record, or claim replaces one or more prior ones — a revised policy over its draft, a merged record consolidating several predecessors — while the superseded items stay first-class and resolvable."@x-gmeow-english .
 
 gmeow:versionOf

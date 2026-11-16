@@ -579,7 +579,9 @@ fn declined_correspondence_shape_has_teeth() {
     // POSITIVE: the real declined-bridge ledger conforms to the real shape.
     let ledger_path = repo_root.join("slices/core/affect/mappings/declined-bridges.ttl");
     let ledger_dataset = parse_file_dataset(&ledger_path).expect("declined-bridges.ttl must parse");
-    let ledger_report = shacl_validate_dataset(&ledger_dataset, &shapes);
+    let ledger_report = shacl_validate_dataset(&ledger_dataset, &shapes)
+        .expect("the fixture validates")
+        .report;
     assert!(
         ledger_report.conforms,
         "the real declined-bridges.ttl ledger must conform to the real \
@@ -595,7 +597,9 @@ fn declined_correspondence_shape_has_teeth() {
     let efo_ttl = declined_correspondence_fixture("EFO", true);
     let (_efo_tmp, efo_path) = write_tmp("gmeow_validate_declined_efo.ttl", &efo_ttl);
     let efo_dataset = parse_file_dataset(&efo_path).expect("EFO fixture must parse");
-    let efo_report = shacl_validate_dataset(&efo_dataset, &shapes);
+    let efo_report = shacl_validate_dataset(&efo_dataset, &shapes)
+        .expect("the fixture validates")
+        .report;
     assert!(
         !efo_report.conforms,
         "a declinedTarget of bare \"EFO\" must violate DeclinedCorrespondenceShape"
@@ -605,7 +609,9 @@ fn declined_correspondence_shape_has_teeth() {
     let uri_ttl = declined_correspondence_fixture("http://dead.example/term", true);
     let (_uri_tmp, uri_path) = write_tmp("gmeow_validate_declined_uri.ttl", &uri_ttl);
     let uri_dataset = parse_file_dataset(&uri_path).expect("URI fixture must parse");
-    let uri_report = shacl_validate_dataset(&uri_dataset, &shapes);
+    let uri_report = shacl_validate_dataset(&uri_dataset, &shapes)
+        .expect("the fixture validates")
+        .report;
     assert!(
         !uri_report.conforms,
         "a declinedTarget shaped as a URI must violate DeclinedCorrespondenceShape"
@@ -620,7 +626,9 @@ fn declined_correspondence_shape_has_teeth() {
     );
     let missing_probe_dataset =
         parse_file_dataset(&missing_probe_path).expect("missing-probeVerdict fixture must parse");
-    let missing_probe_report = shacl_validate_dataset(&missing_probe_dataset, &shapes);
+    let missing_probe_report = shacl_validate_dataset(&missing_probe_dataset, &shapes)
+        .expect("the fixture validates")
+        .report;
     assert!(
         !missing_probe_report.conforms,
         "a DeclinedCorrespondence missing gmeow:probeVerdict must violate \

@@ -556,19 +556,39 @@ pub fn lower_program_with_formulas(program: &LogicProgram) -> RelationalCoreProg
 /// reason strings. The physical-engine adapter uses this to evaluate the formula layer
 /// without re-lowering the program's already-Horn `rules`.
 pub fn lower_formulas_to_rc(program: &LogicProgram) -> (Vec<RcRule>, Vec<String>) {
-    let mut rules: Vec<RcRule> = Vec::new();
+    let (rules, residue) = lower_formulas_to_rc_attributed(program);
+    (rules.into_iter().map(|(rule, _)| rule).collect(), residue)
+}
+
+/// [`lower_formulas_to_rc`] with each rule's origin: the indices into `program.formulas`
+/// of every formula that clausified to it. A rule two formulas share keeps both.
+pub fn lower_formulas_to_rc_attributed(
+    program: &LogicProgram,
+) -> (Vec<(RcRule, BTreeSet<usize>)>, Vec<String>) {
+    let mut rules: Vec<(RcRule, usize)> = Vec::new();
     let mut residue: BTreeSet<String> = BTreeSet::new();
-    for formula in &program.formulas {
+    for (index, formula) in program.formulas.iter().enumerate() {
         let analysis = formula_analysis::analyze(formula);
-        rules.extend(analysis.rules.iter().cloned());
+        rules.extend(analysis.rules.iter().cloned().map(|rule| (rule, index)));
         residue.extend(analysis.residue.iter().cloned());
     }
     // Dedup by content key (stable first-wins, preserving canonical formula-source order).
     // Authored Horn rules use the same relational atom order and rule key. Must NOT use `rules.sort(); rules.dedup()` — derived `Ord` orders
     // by `RcTerm` variant-declaration order (not lexically), which would reorder rules.
-    let mut seen: std::collections::BTreeSet<String> = std::collections::BTreeSet::new();
-    rules.retain(|rc| seen.insert(rc.key()));
-    (rules, residue.into_iter().collect())
+    let mut seen: std::collections::BTreeMap<String, usize> = std::collections::BTreeMap::new();
+    let mut kept: Vec<(RcRule, BTreeSet<usize>)> = Vec::new();
+    for (rule, index) in rules {
+        match seen.entry(rule.key()) {
+            std::collections::btree_map::Entry::Occupied(entry) => {
+                kept[*entry.get()].1.insert(index);
+            }
+            std::collections::btree_map::Entry::Vacant(entry) => {
+                entry.insert(kept.len());
+                kept.push((rule, BTreeSet::from([index])));
+            }
+        }
+    }
+    (kept, residue.into_iter().collect())
 }
 
 // --------------------------------------------------------------------------- //

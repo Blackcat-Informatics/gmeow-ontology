@@ -7,7 +7,10 @@
 use super::*;
 use crate::physical::{DomainProfile, SelectedDomains, SelectedLogicalWorld};
 use crate::query_ir::Budget;
-use crate::reason::{reason_program_within, reason_selected_theory_within};
+use crate::reason::{
+    prepare_selected_theory, reason_prepared_theory_within, reason_program_within,
+    reason_selected_theory_within,
+};
 use crate::result::ReasoningResult;
 use gmeow_logic_compile::frontend::PreparedLogicSource;
 
@@ -672,4 +675,38 @@ fn a_named_graph_can_keep_a_claim_out_but_is_never_its_evidence() {
     assert!(!consistent(&result.expect("the selected theory executes")));
     assert_eq!(ingress.read().len(), 1);
     assert!(ingress.unread().is_empty());
+}
+
+/// PROTECTS: a preparation is executed only for the theory and selection it was made
+/// from. The ingress and input of the run authorize the second theory, so only the
+/// preparation's own identity can refuse the first theory's lowering; the same
+/// preparation still runs for its own theory.
+#[test]
+fn a_preparation_made_from_another_theory_is_refused() {
+    let theory = compile(EVIDENCE_CLASH);
+    let other = compile(&format!(
+        "{EVIDENCE_CLASH}\nex:Third logic:disjointWith ex:Fourth ."
+    ));
+    let (_, ingress) = ingest(&theory);
+    let foreign = prepare_selected_theory(&other, &ingress).expect("the other theory prepares");
+
+    let (input, ingress) = ingest(&theory);
+    let domains = default_domain(&input);
+    let refusal =
+        reason_prepared_theory_within(&theory, &foreign, input, &domains, &ingress, &UNBOUNDED)
+            .expect_err("a preparation of another theory must not run");
+    assert!(
+        refusal
+            .to_string()
+            .contains("not made from this theory under this selection"),
+        "{refusal}"
+    );
+
+    let own = prepare_selected_theory(&theory, &ingress).expect("the theory prepares");
+    let (input, ingress) = ingest(&theory);
+    let domains = default_domain(&input);
+    let result =
+        reason_prepared_theory_within(&theory, &own, input, &domains, &ingress, &UNBOUNDED)
+            .expect("its own preparation runs");
+    assert!(!consistent(&result));
 }

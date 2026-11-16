@@ -450,11 +450,15 @@ fn correspondence_is_carried_but_not_reasoned() {
         "the meta-level correspondence graph must stay outside object-level closure"
     );
     assert!(
-        carrier_entity_list().contains(&GRAPH_CORRESPONDENCE.to_string()),
+        carrier_entity_list()
+            .iter()
+            .any(|graph| graph == GRAPH_CORRESPONDENCE),
         "validation/cache dataflow must still see the complete compiled carrier"
     );
     assert!(
-        !object_level_entity_list().contains(&GRAPH_CORRESPONDENCE.to_string()),
+        !object_level_entity_list()
+            .iter()
+            .any(|graph| graph == GRAPH_CORRESPONDENCE),
         "reasoning dataflow must not consume correspondence target IRIs"
     );
 }

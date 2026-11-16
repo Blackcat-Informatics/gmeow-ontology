@@ -293,7 +293,7 @@ ASK {
     gmeow:assertoricAssume     a gmeow:AssertoricForce .
     gmeow:assertoricRetract    a gmeow:AssertoricForce .
 }""" ;
-    gmeow:saRationale "The four gmeow:AssertoricForce values (assert/conjecture/assume/retract) MUST exist -- the speech-act force axis; gmeow:assertoricRetract closes a withdrawn assertion without erasure (Principle 10)." .
+    gmeow:saRationale "The four gmeow:AssertoricForce values (assert/conjecture/assume/retract) MUST exist -- the speech-act force axis; gmeow:assertoricRetract describes a withdrawal utterance and changes no lifecycle state (Principle 10)." .
 
 # --- 20. TruthDirectedness value individuals exist (MUST) --------------------
 ex:saTruthDirectednessValues a gmeow:StructuralAssertion ;
@@ -507,7 +507,7 @@ ASK {
  UNION
  { gmeow:correctsClaim (rdfs:subPropertyOf|logic:subPropertyOf)+ gmeow:supersededBy }
 }""" ;
-    gmeow:saRationale "gmeow:correctsClaim MUST NOT be a sub-property of gmeow:supersedes or gmeow:supersededBy, in either spelling of the sub-property edge. A correction is a statement by the correcting standpoint that another claim is wrong; were it a supersession, every correction would derive that the corrected claim is superseded and would prompt its suppression, which lets one standpoint remove another standpoint's claim from view (Principles 9 and 10)." .
+    gmeow:saRationale "gmeow:correctsClaim MUST NOT be a sub-property of gmeow:supersedes or gmeow:supersededBy, in either spelling of the sub-property edge. A correction is a statement by the correcting standpoint that another claim is wrong; were it a supersession, every correction would derive that the corrected claim is superseded, and a superseded name would then prompt its suppression, which lets one standpoint remove another standpoint's name from view (Principles 9 and 10)." .
 
 <https://example.org/lifecycle/tests/lifecycle-examples> a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:must ;
@@ -555,3 +555,17 @@ ASK {
  FILTER NOT EXISTS { ex:neighbourDoubt gmeow:correctsClaim ?any }
 }""" ;
     gmeow:saRationale "A plain disagreement is a gmeow:ClaimEvaluation and a correction is gmeow:correctsClaim indexed to the correcting standpoint. Neither one puts a display flag or a supersession on the claim it is about, so the disputed claim, the evaluation and the correction are all retrievable together (Principles 9 and 10)." .
+
+<https://example.org/lifecycle/tests/withdrawn-standpoint-warning-needs-a-retraction> a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
+ASK {
+    gmeow:WithdrawnStandpointSuppressionConstraint logic:integrity ?root .
+    ?root (logic:forall|logic:exists|logic:not|logic:and|logic:or|logic:antecedent|logic:consequent)* ?atom .
+    ?atom logic:relation gmeow:retractsClaim .
+    ?root (logic:forall|logic:exists|logic:not|logic:and|logic:or|logic:antecedent|logic:consequent)* ?actor .
+    ?actor logic:relation gmeow:wasAssociatedWith .
+}""" ;
+    gmeow:saRationale "The warning that prompts gmeow:displayable false on a standpoint tenure reads a retraction of the held claim by an activity associated with the claim's own vantage, so an interval that merely ended, or a retraction by another party, draws no warning; it reads no correction, supersession or evaluation by another party (Principles 9 and 10)." .

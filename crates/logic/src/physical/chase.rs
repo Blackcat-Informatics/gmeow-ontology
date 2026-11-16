@@ -881,9 +881,10 @@ fn nary_arg_index(predicate: &str) -> Option<usize> {
     crate::provenance::nary_arg_index(predicate)
 }
 
-/// A refused rule head, as a typed diagnostic whose payload names the rule and the
-/// head relations, so an author can find the formula the engine could not carry.
-fn refused_head(rule: &ExistentialRule, detail: String) -> gmeow_errors::Diag {
+/// The relations a rule's head writes, as every report names them: the relation of each
+/// reified tuple (not its `instanceOf` and `naryArg` encoding), the class of a typing
+/// atom, and the predicate of every other atom; sorted and de-duplicated.
+fn head_relations(rule: &ExistentialRule) -> Vec<String> {
     let instance_of = instance_of_iri();
     // A typing atom names its relation in the object slot. A positional argument atom
     // is named by the typing atom on its subject; without one its own predicate is the
@@ -894,18 +895,24 @@ fn refused_head(rule: &ExistentialRule, detail: String) -> gmeow_errors::Diag {
         .filter(|atom| atom.predicate == instance_of)
         .map(|atom| &atom.subject)
         .collect();
-    let head_relations: BTreeSet<String> = rule
-        .head
+    rule.head
         .iter()
         .filter(|atom| nary_arg_index(&atom.predicate).is_none() || !typed.contains(&&atom.subject))
         .map(|atom| match &atom.object {
             EvalTerm::ConstNamed(relation) if atom.predicate == instance_of => relation.clone(),
             _ => atom.predicate.clone(),
         })
-        .collect();
+        .collect::<BTreeSet<_>>()
+        .into_iter()
+        .collect()
+}
+
+/// A refused rule head, as a typed diagnostic whose payload names the rule and the
+/// head relations, so an author can find the formula the engine could not carry.
+fn refused_head(rule: &ExistentialRule, detail: String) -> gmeow_errors::Diag {
     let payload = crate::error::RefusedRuleHead {
         rule: rule.rule_iri.clone(),
-        head_relations: head_relations.into_iter().collect(),
+        head_relations: head_relations(rule),
         detail,
     };
     let mut diagnostic = physical_err(payload.to_string());
@@ -1359,11 +1366,21 @@ pub enum ChaseAdmission {
         /// Human-readable proof summary folded into the divergence ledger.
         evidence: String,
     },
-    /// Not certified terminating; `violations` names each existential-edge-in-cycle,
-    /// deterministically sorted — the router refuses or budgets it.
+    /// Not certified terminating — the router refuses or budgets it. `violations` are the
+    /// reasons, each a rule on a cycle with its head relations (the cycles the restricted
+    /// rung computed lead, then the weak-acyclicity edges), preceded by any context or
+    /// evidence note the caller prepends; `bounds` are the analysis bounds that kept a
+    /// finer rung from deciding.
     Uncertified {
-        /// The offending special edges, sorted.
+        /// The reasons the program is refused, in report order: grouped per rule and
+        /// bounded in number (see [`REPORTED_RULES`]), not sorted as a whole.
         violations: Vec<String>,
+        /// The analysis bounds that kept a finer certificate from being decided, each
+        /// naming the bound and its measured size. A bound is not a cycle: it is reported
+        /// apart from `violations`. It does not say whether the bound caused the refusal; with a
+        /// bound present, `violations` are what the coarser analysis found and may be artifacts
+        /// of it.
+        bounds: Vec<String>,
     },
 }
 
@@ -1535,6 +1552,114 @@ impl StatementRule {
 /// spans every constant of the program, so larger programs are refused with that
 /// reason rather than attempted.
 const MODEL_SUMMARIZING_MAX_RULES: usize = 64;
+
+/// Why model-summarizing acyclicity did not certify.
+#[derive(Debug, Clone, PartialEq, Eq)]
+enum MsaRefusal {
+    /// An analysis bound stopped the check; the text names it and its measured size.
+    Bound(String),
+    /// The check does not apply or found a cycle: a refusal, not a bound.
+    Refused,
+}
+
+/// The critical instance (`predicates × domain²` facts) model-summarizing acyclicity may
+/// materialize.
+const MSA_CRITICAL_INSTANCE_CAP: usize = 1 << 20;
+/// Its fixpoint's step budget: this many steps per critical-instance fact, and at least
+/// [`MSA_MIN_STEPS`].
+const MSA_STEPS_PER_FACT: u64 = 16;
+const MSA_MIN_STEPS: u64 = 1 << 20;
+
+/// The offending rules a termination refusal lists with a reason of their own. Past this
+/// many, the remaining rules are still all named, together in one further reason.
+const REPORTED_RULES: usize = 16;
+/// The edges or members one rule's reason lists before it counts the rest.
+const REPORTED_DETAILS: usize = 4;
+
+/// The marker an input-specific specialization appends to the name of the rule it
+/// specializes, followed by its ordinal.
+pub(crate) const SPECIALIZATION_MARK: &str = ":immutable-binding:";
+
+/// The rule a specialization was made from; any other name is its own rule.
+fn specialized_from(name: &str) -> &str {
+    name.split_once(SPECIALIZATION_MARK)
+        .map_or(name, |(rule, _)| rule)
+}
+
+/// Group a refusal's findings by rule, bounded in number: one reason for each of the
+/// first [`REPORTED_RULES`] rules (sorted by rule identity) naming the rule, its head
+/// relations and up to [`REPORTED_DETAILS`] of its findings, then at most one reason that
+/// names every remaining rule with its head relations (their findings are not listed). No
+/// rule that lies on a cycle goes unnamed.
+fn grouped_rule_reasons(
+    kind: &str,
+    what: &str,
+    groups: impl IntoIterator<Item = (String, Vec<String>, Vec<String>)>,
+) -> Vec<String> {
+    // Specializations of one rule are one rule to a reader.
+    let mut merged: BTreeMap<String, (BTreeSet<String>, BTreeSet<String>)> = BTreeMap::new();
+    for (rule, relations, details) in groups {
+        let entry = merged
+            .entry(specialized_from(&rule).to_owned())
+            .or_default();
+        entry.0.extend(relations);
+        entry.1.extend(details);
+    }
+    let groups: Vec<(String, Vec<String>, Vec<String>)> = merged
+        .into_iter()
+        .map(|(rule, (relations, details))| {
+            (
+                rule,
+                relations.into_iter().collect(),
+                details.into_iter().collect(),
+            )
+        })
+        .collect();
+    let render = |relations: &[String]| {
+        relations
+            .iter()
+            .map(|relation| format!("<{relation}>"))
+            .collect::<Vec<_>>()
+            .join(", ")
+    };
+    let identify = |rule: &str, relations: &[String]| {
+        format!("<{rule}> with head relations [{}]", render(relations))
+    };
+    let mut reasons: Vec<String> = groups
+        .iter()
+        .take(REPORTED_RULES)
+        .map(|(rule, relations, details)| {
+            let listed = details
+                .iter()
+                .take(REPORTED_DETAILS)
+                .cloned()
+                .collect::<Vec<_>>()
+                .join("; ");
+            let more = details.len().saturating_sub(REPORTED_DETAILS);
+            let more = if more == 0 {
+                String::new()
+            } else {
+                format!(" (and {more} more)")
+            };
+            format!(
+                "{kind}: rule {} {what}: {listed}{more}",
+                identify(rule, relations)
+            )
+        })
+        .collect();
+    if groups.len() > REPORTED_RULES {
+        let rest: Vec<String> = groups[REPORTED_RULES..]
+            .iter()
+            .map(|(rule, relations, _)| identify(rule, relations))
+            .collect();
+        reasons.push(format!(
+            "{kind}: {} further rule(s) {what}: {}",
+            rest.len(),
+            rest.join(", ")
+        ));
+    }
+    reasons
+}
 
 /// Which rungs of the termination-class ladder a certification may climb.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -1828,8 +1953,15 @@ impl ChaseAdmission {
                         "checked joint acyclicity"
                     );
                     joint
-                        .or_else(|| Self::certify_restricted_joint_acyclic(&analysis, &rja))
-                        .unwrap_or(Self::Uncertified { violations })
+                        .map(Ok)
+                        .unwrap_or_else(|| Self::certify_restricted_joint_acyclic(&analysis, &rja))
+                        .unwrap_or_else(|mut cycles| {
+                            cycles.extend(violations);
+                            Self::Uncertified {
+                                violations: cycles,
+                                bounds: Vec::new(),
+                            }
+                        })
                 }
             }
         };
@@ -1854,7 +1986,7 @@ impl ChaseAdmission {
             | Self::ModelSummarizingAcyclic { evidence } => {
                 *evidence = format!("{context}; {evidence}");
             }
-            Self::Uncertified { violations } => {
+            Self::Uncertified { violations, .. } => {
                 violations.insert(0, format!("{context} has no joint termination certificate"));
             }
         }
@@ -1867,8 +1999,9 @@ impl ChaseAdmission {
     /// EXPTIME model-summarizing check, which is reached only when the structural
     /// rungs all refuse. Restricted joint acyclicity runs last: it certifies only programs
     /// whose skolem chase may not terminate but whose Datalog-first restricted chase does,
-    /// so every program the skolem-chase rungs certify keeps its class. When no class certifies, return `Uncertified` carrying the
-    /// weak-acyclicity position-graph violations (the canonical diagnostic).
+    /// so every program the skolem-chase rungs certify keeps its class. When no class
+    /// certifies, return `Uncertified` carrying the restricted rung's cycles, then the
+    /// weak-acyclicity position-graph reasons, and the analysis bounds a rung reached.
     pub(crate) fn certify(rules: &[ExistentialRule]) -> Self {
         Self::certify_on(rules, Ladder::Complete)
     }
@@ -1889,8 +2022,12 @@ impl ChaseAdmission {
                 }
                 rule.numeric.clear();
             }
-            return Self::certify_weakly_acyclic(&abstraction)
-                .unwrap_or_else(|violations| Self::Uncertified { violations });
+            return Self::certify_weakly_acyclic(&abstraction).unwrap_or_else(|violations| {
+                Self::Uncertified {
+                    violations,
+                    bounds: Vec::new(),
+                }
+            });
         }
         let empty = BTreeSet::new();
         let guarded: BTreeSet<_> = rules
@@ -1922,45 +2059,67 @@ impl ChaseAdmission {
     ) -> Self {
         match Self::certify_weakly_acyclic(weak) {
             Ok(admission) => admission,
-            Err(mut violations) => Self::certify_joint_acyclic(weak)
-                .or_else(|| Self::certify_super_weak_acyclic(tuples))
-                .or_else(|| match ladder {
-                    Ladder::Complete if tuples.len() <= MODEL_SUMMARIZING_MAX_RULES => {
-                        Self::certify_model_summarizing(tuples)
-                    }
-                    Ladder::Complete => {
-                        violations.insert(
-                            0,
-                            format!(
-                                "model-summarizing acyclicity not attempted: {} rules exceed its \
-                                 {MODEL_SUMMARIZING_MAX_RULES}-rule bound",
+            Err(violations) => {
+                let mut bounds = Vec::new();
+                let mut cycles = Vec::new();
+                Self::certify_joint_acyclic(weak)
+                    .or_else(|| Self::certify_super_weak_acyclic(tuples))
+                    .or_else(|| match ladder {
+                        Ladder::Complete if tuples.len() <= MODEL_SUMMARIZING_MAX_RULES => {
+                            match Self::certify_model_summarizing(tuples) {
+                                Ok(admission) => Some(admission),
+                                Err(MsaRefusal::Bound(bound)) => {
+                                    bounds.push(bound);
+                                    None
+                                }
+                                Err(MsaRefusal::Refused) => None,
+                            }
+                        }
+                        Ladder::Complete => {
+                            bounds.push(format!(
+                                "model-summarizing acyclicity not attempted: {} rules exceed \
+                                 its {MODEL_SUMMARIZING_MAX_RULES}-rule bound",
                                 tuples.len()
-                            ),
-                        );
-                        None
-                    }
-                    Ladder::Polynomial => None,
-                })
-                .or_else(|| Self::certify_restricted_joint_acyclic(weak, rja))
-                .unwrap_or(Self::Uncertified { violations }),
+                            ));
+                            None
+                        }
+                        Ladder::Polynomial => None,
+                    })
+                    .or_else(|| match Self::certify_restricted_joint_acyclic(weak, rja) {
+                        Ok(admission) => Some(admission),
+                        Err(found) => {
+                            cycles = found;
+                            None
+                        }
+                    })
+                    .unwrap_or_else(|| {
+                        // The restricted rung computes the sharpest cycle, so it leads.
+                        cycles.extend(violations);
+                        Self::Uncertified {
+                            violations: cycles,
+                            bounds,
+                        }
+                    })
+            }
         }
     }
 
     /// Constant-refined **weak acyclicity** of the position graph: `Ok(WeaklyAcyclic)`
-    /// when no existential edge lies in a cycle, else `Err(violations)` (the sorted
-    /// edge-in-cycle diagnostics, reused as the `Uncertified` fallback).
+    /// when no existential edge lies in a cycle, else `Err(violations)`: one reason per
+    /// rule that has an existential edge in a cycle (see [`grouped_rule_reasons`]), reused
+    /// as the `Uncertified` fallback.
     fn certify_weakly_acyclic(rules: &[ExistentialRule]) -> Result<Self, Vec<String>> {
         // Adjacency (normal ∪ special) and the special-edge list.
         let mut adj: std::collections::BTreeMap<Position, BTreeSet<Position>> =
             std::collections::BTreeMap::new();
-        let mut special: Vec<(Position, Position)> = Vec::new();
+        let mut special: Vec<(Position, Position, usize)> = Vec::new();
         let mut all_nodes: BTreeSet<Position> = BTreeSet::new();
         // Positions a head writes and a body reads: cross-rule flow joins a written
         // position to every read position its values can match.
         let mut written: BTreeSet<Position> = BTreeSet::new();
         let mut read: BTreeSet<Position> = BTreeSet::new();
 
-        for rule in rules {
+        for (rule_index, rule) in rules.iter().enumerate() {
             let body_vars = rule.body_vars();
             let existentials: BTreeSet<String> = rule.existentials().into_iter().collect();
 
@@ -1997,7 +2156,7 @@ impl ChaseAdmission {
                             read.insert(b.clone());
                             written.insert(h.clone());
                             adj.entry(b.clone()).or_default().insert(h.clone());
-                            special.push((b.clone(), h.clone()));
+                            special.push((b.clone(), h.clone(), rule_index));
                         }
                     }
                 }
@@ -2012,18 +2171,30 @@ impl ChaseAdmission {
         // graph, so that holds exactly when u and v share a strongly connected
         // component: one linear pass decides every edge.
         let component = position_components(&adj);
-        let mut violations: Vec<String> = Vec::new();
-        for (u, v) in &special {
+        // One reason per offending rule, never one per edge: a conflated position graph
+        // can put hundreds of edges on a cycle, and the reader needs the rules.
+        let mut offending: BTreeMap<usize, BTreeSet<String>> = BTreeMap::new();
+        for (u, v, rule) in &special {
             if component[u] == component[v] {
-                violations.push(format!(
-                    "weak-acyclicity: existential edge {} -> {} lies in a cycle (the restricted chase may not terminate)",
+                offending.entry(*rule).or_default().insert(format!(
+                    "{} -> {}",
                     u.render(),
                     v.render()
                 ));
             }
         }
-        violations.sort();
-        violations.dedup();
+        let violations = grouped_rule_reasons(
+            "weak-acyclicity",
+            "has existential edge(s) in a cycle (the restricted chase may not terminate)",
+            offending.into_iter().map(|(rule, edges)| {
+                let rule = &rules[rule];
+                (
+                    rule.rule_iri.clone(),
+                    head_relations(rule),
+                    edges.into_iter().collect(),
+                )
+            }),
+        );
 
         if violations.is_empty() {
             Ok(Self::WeaklyAcyclic {
@@ -2108,8 +2279,8 @@ impl ChaseAdmission {
     fn certify_restricted_joint_acyclic(
         rules: &[ExistentialRule],
         program: &RjaProgram<'_>,
-    ) -> Option<Self> {
-        let graph = JointGraph::new(rules)?;
+    ) -> Result<Self, Vec<String>> {
+        let graph = JointGraph::new(rules).ok_or_else(Vec::new)?;
         // Joint acyclicity's edges, each with the frontiers that carry it. Every
         // restricted edge is one of these, so a restricted cycle lies inside one
         // strongly connected component of this graph: only an edge within a component
@@ -2180,35 +2351,33 @@ impl ChaseAdmission {
         }
         let edge_count = edges.iter().map(BTreeSet::len).sum::<usize>();
         let acyclic = acyclic(&edges);
+        // The surviving cycles, as reasons: the rules on them, with their relations.
+        let mut cycles: BTreeMap<usize, BTreeSet<String>> = BTreeMap::new();
         if !acyclic {
             let remaining = strongly_connected_components(&edges);
             let mut members: BTreeMap<usize, Vec<usize>> = BTreeMap::new();
             for (node, &c) in remaining.iter().enumerate() {
                 members.entry(c).or_default().push(node);
             }
+            let mut cycle = 0usize;
             for nodes in members.values() {
                 let looped = nodes.len() > 1 || edges[nodes[0]].contains(&nodes[0]);
                 if !looped {
                     continue;
                 }
-                let names: Vec<String> = nodes
-                    .iter()
-                    .map(|&node| {
-                        let (rule, null) = &graph.existentials[node];
-                        let iri = rules[*rule].rule_iri.as_str();
-                        let mark = if program.nonblocking.contains(iri) {
-                            " (non-blockable)"
-                        } else {
-                            ""
-                        };
-                        format!("{iri} {null}{mark}")
-                    })
-                    .collect();
-                tracing::info!(
-                    target: "termination_certificate",
-                    members = ?names,
-                    "restricted joint acyclicity cycle"
-                );
+                cycle += 1;
+                for &node in nodes {
+                    let (rule, null) = &graph.existentials[node];
+                    let mark = if program.nonblocking.contains(rules[*rule].rule_iri.as_str()) {
+                        " (non-blockable)"
+                    } else {
+                        ""
+                    };
+                    cycles.entry(*rule).or_default().insert(format!(
+                        "existential {null}{mark} lies on cycle {cycle} of {} existential(s)",
+                        nodes.len()
+                    ));
+                }
             }
         }
         tracing::info!(
@@ -2221,16 +2390,31 @@ impl ChaseAdmission {
             acyclic,
             "checked restricted joint acyclicity"
         );
-        acyclic.then(|| Self::RestrictedJointlyAcyclic {
-            evidence: format!(
-                "restricted jointly acyclic: {} existential variable(s), {} dependency \
-                 edge(s), {} trigger(s) blocked by the Datalog-closed premise, no \
-                 existential depends on itself",
-                graph.existentials.len(),
-                edge_count,
-                blocked
-            ),
-        })
+        if acyclic {
+            Ok(Self::RestrictedJointlyAcyclic {
+                evidence: format!(
+                    "restricted jointly acyclic: {} existential variable(s), {} dependency \
+                     edge(s), {} trigger(s) blocked by the Datalog-closed premise, no \
+                     existential depends on itself",
+                    graph.existentials.len(),
+                    edge_count,
+                    blocked
+                ),
+            })
+        } else {
+            Err(grouped_rule_reasons(
+                "restricted-joint-acyclicity",
+                "invents a value that can trigger itself",
+                cycles.into_iter().map(|(rule, details)| {
+                    let rule = &rules[rule];
+                    (
+                        rule.rule_iri.clone(),
+                        head_relations(rule),
+                        details.into_iter().collect(),
+                    )
+                }),
+            ))
+        }
     }
 
     /// **Super-weak acyclicity** (Marnette, 2009): strictly broader than weak acyclicity,
@@ -2279,7 +2463,24 @@ impl ChaseAdmission {
     /// populated over the program's constants plus one special constant `*`) materializes
     /// the whole `dep` relation; MSA holds iff **no null depends on itself** (no cycle in
     /// `dep`) — a self-dependency is the summarized signature of an unbounded skolem term.
-    fn certify_model_summarizing(rules: &[ExistentialRule]) -> Option<Self> {
+    ///
+    /// `Err(MsaRefusal::Bound)` names the analysis bound that stopped it (the
+    /// critical-instance cap, or the fixpoint's step budget); `Err(MsaRefusal::Refused)`
+    /// is a refusal that is not a bound (negation, no nulls, or a found cycle). The
+    /// check is positive and builtin-free, so a compile failure, an engine error or an
+    /// unsupported outcome is an invariant break and panics rather than reading as a
+    /// refusal.
+    fn certify_model_summarizing(rules: &[ExistentialRule]) -> Result<Self, MsaRefusal> {
+        Self::certify_model_summarizing_within(rules, MSA_STEPS_PER_FACT, MSA_MIN_STEPS)
+    }
+
+    /// [`Self::certify_model_summarizing`] under an explicit fixpoint budget of
+    /// `max(critical facts × steps_per_fact, min_steps)` steps.
+    fn certify_model_summarizing_within(
+        rules: &[ExistentialRule],
+        steps_per_fact: u64,
+        min_steps: u64,
+    ) -> Result<Self, MsaRefusal> {
         const STAR: &str = "https://blackcatinformatics.ca/gmeow/msa#star";
         const IS_NULL: &str = "https://blackcatinformatics.ca/gmeow/msa#isNull";
         const MSA_TRUE: &str = "https://blackcatinformatics.ca/gmeow/msa#true";
@@ -2289,7 +2490,7 @@ impl ChaseAdmission {
 
         // Negation is outside the summarizable positive-existential fragment.
         if rules.iter().any(|r| r.body.iter().any(|a| a.negated)) {
-            return None;
+            return Err(MsaRefusal::Refused);
         }
 
         // Summarizing null constants, one per (rule, existential).
@@ -2300,7 +2501,7 @@ impl ChaseAdmission {
             }
         }
         if nulls.is_empty() {
-            return None;
+            return Err(MsaRefusal::Refused);
         }
 
         // Predicates and the constant domain (constants of Σ ∪ the special constant `*`).
@@ -2386,21 +2587,27 @@ impl ChaseAdmission {
         // by the authored program, so a pathological (and typically *rejected*) program
         // could allocate an enormous store — exhausting memory or hanging certification —
         // before the fixpoint step budget below ever applies. If the projected size exceeds
-        // the cap we conservatively return `None` (the ladder falls through to
+        // the cap we conservatively refuse, naming the bound (the ladder falls through to
         // `Uncertified` → budget) WITHOUT allocating: a HARD refusal, never a silent admit
         // and never an OOM. The cap is generous for real authored programs (a handful of
         // predicates over a handful of constants) and only trips on pathological blow-ups.
-        const MSA_CRITICAL_INSTANCE_CAP: usize = 1 << 20;
         let projected_facts = predicates
             .len()
             .saturating_mul(domain_terms.len())
             .saturating_mul(domain_terms.len());
         if projected_facts > MSA_CRITICAL_INSTANCE_CAP {
-            return None;
+            return Err(MsaRefusal::Bound(format!(
+                "model-summarizing acyclicity not attempted: its critical instance of \
+                 {projected_facts} facts ({} predicates over {} constants) exceeds the \
+                 {MSA_CRITICAL_INSTANCE_CAP}-fact bound",
+                predicates.len(),
+                domain_terms.len()
+            )));
         }
 
-        let executable =
-            crate::physical::plan::compile_cached("gmeow-msa-critical-v1", program).executable?;
+        let executable = crate::physical::plan::compile_cached("gmeow-msa-critical-v1", program)
+            .executable
+            .expect("INVARIANT: the positive builtin-free model-summarizing program stratifies");
 
         // Seek a concrete obstruction on a small SUBSET of the critical instance first.
         // Each original body atom is seeded with all variables bound to STAR; authored
@@ -2433,7 +2640,7 @@ impl ChaseAdmission {
             Some(MSA_OBSTRUCTION_PROBE_STEPS),
         ) && msa_dependency_summary(&result.rows, DEP).1
         {
-            return None;
+            return Err(MsaRefusal::Refused);
         }
 
         // The critical instance: every predicate over the whole constant domain, plus the
@@ -2455,26 +2662,49 @@ impl ChaseAdmission {
         // Run the engine's own fixpoint under an explicit step budget. The MSA Datalog
         // program is pure positive Datalog over a finite domain (the summarizing nulls are
         // constants, never invented), so its least model is finite; the budget bounds the
-        // cost of a large authored program during `stage-reason`. A non-stratifiable
-        // program, an engine error, OR a budget cut is a conservative `None` (the ladder
-        // falls through to `Uncertified` → budget) — never a silent admit. Crucially, a
+        // cost of a large authored program during `stage-reason`. A budget cut
+        // refuses and names the budget (the ladder falls through to `Uncertified` →
+        // budget) — never a silent admit. A compile failure or an engine error is an
+        // invariant break and panics rather than reading as a refusal. Crucially, a
         // budget-`Exhausted` run leaves a PARTIAL least model: a `dep(n,n)` edge it never
         // reached would read as absent and MIS-certify, so `Exhausted` must REFUSE, never
         // certify on an incomplete fixpoint.
-        let budget = (critical_facts as u64).saturating_mul(16).max(1 << 20);
-        let facts =
-            match crate::physical::seminaive::evaluate(store, executable.as_ref(), Some(budget)) {
-                Ok(crate::physical::NativeOutcome::Decided(budgeted))
-                    if matches!(budgeted.status, crate::seam::BudgetStatus::Ok) =>
-                {
-                    budgeted.rows
-                }
-                _ => return None,
-            };
+        let budget = (critical_facts as u64)
+            .saturating_mul(steps_per_fact)
+            .max(min_steps);
+        let facts = match crate::physical::seminaive::evaluate(
+            store,
+            executable.as_ref(),
+            Some(budget),
+        ) {
+            Ok(crate::physical::NativeOutcome::Decided(budgeted))
+                if matches!(budgeted.status, crate::seam::BudgetStatus::Ok) =>
+            {
+                budgeted.rows
+            }
+            Ok(crate::physical::NativeOutcome::Decided(_)) => {
+                return Err(MsaRefusal::Bound(format!(
+                    "model-summarizing acyclicity not decided: its fixpoint over \
+                         {critical_facts} critical-instance facts did not finish within its \
+                         {budget}-step budget"
+                )));
+            }
+            Ok(crate::physical::NativeOutcome::Unsupported(kind)) => {
+                panic!(
+                    "INVARIANT: the builtin-free model-summarizing program is supported: {kind:?}"
+                )
+            }
+            Err(error) => panic!(
+                "INVARIANT: the model-summarizing fixpoint over a well-formed program does not fail: {error:?}"
+            ),
+        };
 
         // Only the complete full critical model may authorize this sufficient class.
         let (edge_count, cyclic) = msa_dependency_summary(&facts, DEP);
-        (!cyclic).then(|| Self::ModelSummarizingAcyclic {
+        if cyclic {
+            return Err(MsaRefusal::Refused);
+        }
+        Ok(Self::ModelSummarizingAcyclic {
             evidence: format!(
                 "model-summarizing acyclic: {critical_facts} critical-instance fact(s), {} summarizing null(s), {edge_count} dependency edge(s), no null re-mints itself",
                 nulls.len()
@@ -2495,9 +2725,26 @@ impl ChaseAdmission {
         )
     }
 
+    /// The reasons an uncertified program was refused: its per-rule cycle reasons and any
+    /// context or evidence note prepended to them. Analysis bounds are [`Self::bounds`].
+    pub(crate) fn violations(&self) -> &[String] {
+        match self {
+            Self::Uncertified { violations, .. } => violations,
+            _ => &[],
+        }
+    }
+
+    /// The analysis bounds that kept a finer certificate from being decided.
+    pub(crate) fn bounds(&self) -> &[String] {
+        match self {
+            Self::Uncertified { bounds, .. } => bounds,
+            _ => &[],
+        }
+    }
+
     /// The COUNTED capability-gap rows for this certificate: one
-    /// [`crate::reason::ledger::DivergenceKind::DlGap`] row per weak-acyclicity violation
-    /// when [`Self::Uncertified`], and NONE when [`Self::WeaklyAcyclic`] (a certified
+    /// [`crate::reason::ledger::DivergenceKind::DlGap`] row per violation and per analysis
+    /// bound when [`Self::Uncertified`], and NONE for a certified class (a certified
     /// program has no gap).
     ///
     /// A refused existential program is a native coverage defect, so its gap is routed to
@@ -2507,8 +2754,11 @@ impl ChaseAdmission {
     /// committed DL/EL crosscheck `gapCount == 0` gate.
     pub(crate) fn capability_gap_rows(&self) -> Vec<crate::reason::ledger::LedgerRow> {
         match self {
-            Self::Uncertified { violations } => {
+            Self::Uncertified { violations, bounds } => {
                 crate::reason::ledger::existential_gap_rows(violations)
+                    .into_iter()
+                    .chain(crate::reason::ledger::existential_gap_rows(bounds))
+                    .collect()
             }
             Self::WeaklyAcyclic { .. }
             | Self::JointlyAcyclic { .. }
@@ -2523,8 +2773,8 @@ impl ChaseAdmission {
     /// canonical Finding machinery the divergence ledger uses, never an internal boolean.
     ///
     /// A [`Self::WeaklyAcyclic`] certificate is an informational finding carrying its proof
-    /// evidence; an [`Self::Uncertified`] one is an error finding carrying the joined
-    /// weak-acyclicity violations.
+    /// evidence; an [`Self::Uncertified`] one is an error finding carrying its joined
+    /// violations and analysis bounds.
     pub fn to_finding(&self) -> Finding {
         match self {
             Self::WeaklyAcyclic { evidence } => Finding::new(
@@ -2557,10 +2807,15 @@ impl ChaseAdmission {
                 evidence.clone(),
             )
             .with_tool("chase"),
-            Self::Uncertified { violations } => Finding::new(
+            Self::Uncertified { violations, bounds } => Finding::new(
                 Severity::Error,
                 "chase.certificate.uncertified".to_owned(),
-                violations.join("; "),
+                violations
+                    .iter()
+                    .chain(bounds)
+                    .cloned()
+                    .collect::<Vec<_>>()
+                    .join("; "),
             )
             .with_tool("chase"),
         }
@@ -2647,13 +2902,23 @@ impl ChaseAdmission {
             (
                 Self::Uncertified {
                     violations: mut merged,
+                    bounds: mut merged_bounds,
                 },
-                Self::Uncertified { violations: rhs },
+                Self::Uncertified {
+                    violations: rhs,
+                    bounds: rhs_bounds,
+                },
             ) => {
                 merged.extend(rhs);
                 merged.sort();
                 merged.dedup();
-                Self::Uncertified { violations: merged }
+                merged_bounds.extend(rhs_bounds);
+                merged_bounds.sort();
+                merged_bounds.dedup();
+                Self::Uncertified {
+                    violations: merged,
+                    bounds: merged_bounds,
+                }
             }
             // Any Uncertified part forces the whole to Uncertified, keeping its violations.
             (u @ Self::Uncertified { .. }, _) | (_, u @ Self::Uncertified { .. }) => u,

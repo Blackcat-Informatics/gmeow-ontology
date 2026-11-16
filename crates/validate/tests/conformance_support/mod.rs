@@ -180,10 +180,25 @@ pub fn whole_shapes() -> &'static Shapes {
 }
 
 /// Parse N-Triples into a frozen native dataset (flattened to the default graph).
-fn nt_to_dataset(nt: &str) -> Arc<RdfDataset> {
+pub fn nt_to_dataset(nt: &str) -> Arc<RdfDataset> {
     let dataset = parse_dataset(nt.as_bytes(), "application/n-triples", None)
         .unwrap_or_else(|e| panic!("N-Triples parse failed: {e}"));
-    flatten_to_default_graph(&dataset)
+    let flat = flatten_to_default_graph(&dataset);
+    refuse_nested_statements(&flat);
+    flat
+}
+
+/// Refuse a fixture that reifies a statement nesting a triple term: the lowering cannot
+/// decompose it (`logic:rdf12-nested-triple-term`), so no constraint over a reified
+/// statement's components could be evaluated against it, and a verdict over it would be
+/// silent rather than conforming.
+fn refuse_nested_statements(fixture: &RdfDataset) {
+    let nested = gmeow_logic_compile::statement_lowering::lower_reifiers(fixture).nested;
+    assert!(
+        nested.is_empty(),
+        "the fixture reifies statements that nest a triple term ({nested:?}); the lowering \
+         cannot decompose them (logic:rdf12-nested-triple-term)"
+    );
 }
 
 /// Merge a small N-Triples fixture into the real repository ontology.
@@ -210,6 +225,7 @@ fn ontology_with_native_fixture(fixture: &RdfDataset) -> Arc<RdfDataset> {
 
 /// Validate an already-produced native fixture with the same complete shape set.
 pub fn validate_native_with_ontology(fixture: &RdfDataset) -> ValidationReport {
+    refuse_nested_statements(fixture);
     let dataset = ontology_with_native_fixture(fixture);
     validate_dataset_sharded(&dataset, whole_shapes())
 }
@@ -268,8 +284,13 @@ where
 {
     use purrdf::shapes::engine::{project_dataset, validate_projected_dataset_with_focus_filter};
 
-    let projected =
-        project_dataset(dataset).expect("SHACL projection of the merged dataset must freeze");
+    // The shipped validator's statement-lowering view, so a constraint over a reified
+    // statement's components joins on the lowered edges exactly as `gmeow validate` does.
+    // A fixture's own nested residue is refused where the fixture is built.
+    let view = gmeow_logic_compile::statement_lowering::validation_view(dataset)
+        .expect("the statement-lowering view of the merged dataset must freeze");
+    let projected = project_dataset(view.dataset())
+        .expect("SHACL projection of the merged dataset must freeze");
     let workers = std::thread::available_parallelism()
         .map(std::num::NonZeroUsize::get)
         .unwrap_or(1);
@@ -530,10 +551,14 @@ pub fn ok(report: &ValidationReport) -> bool {
     violations(report).is_empty()
 }
 
-/// Run validation of `data_nt` (N-Triples) against the whole shapes corpus.
+/// Run validation of `data_nt` (N-Triples) against the whole shapes corpus, through the
+/// shipped validator's SHACL door: its statement-lowering view lets a constraint over a
+/// reified statement's components see the edges an RDF 1.2 fixture's `rdf:reifies` lowers
+/// to. Every engine result is kept (no collapse).
 pub fn validate(data_nt: &str) -> ValidationReport {
-    let dataset = nt_to_dataset(data_nt);
-    validate_dataset(&dataset, whole_shapes()).expect("native SHACL validation must succeed")
+    gmeow_validate::store::shacl_validate_view(&nt_to_dataset(data_nt), whole_shapes())
+        .expect("native SHACL validation must succeed")
+        .report
 }
 
 // ── Graph query helpers ───────────────────────────────────────────────────────

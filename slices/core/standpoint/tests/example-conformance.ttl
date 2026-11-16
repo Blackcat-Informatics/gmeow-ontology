@@ -1,0 +1,28 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Example-conformance cells for the standpoint ranking constraints over RDF 1.2 data.
+# The harness (crates/slicetest run_conformance_cell) unions standpoint/module.ttl with the
+# one bound gmeow:exampleFile, lowers each RDF 1.2 reifier into its
+# logic:reifiedStatementSubject / Predicate / Object edges, and validates against the
+# DERIVED procedural constraints, so these cells run the shipped
+# gmeow:moreEntrenchedThanAttributionConstraint and
+# gmeow:moreEntrenchedThanRankerOrderConstraint, never a copy. The conforming fixture lives
+# under tests/conformance-fixtures/ and the counter-example under tests/counter-examples/, so
+# the global make validate gate never loads them as data.
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/standpoint/tests/> .
+
+# --- Conforming: an attributed, dated ranking ----------------------------------
+ex:ecAttributedRankingConforms a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/conformance-fixtures/attributed-ranking-holds.ttl" ;
+    gmeow:expectedOutcome gmeow:conforms ;
+    gmeow:conformanceRationale "The only gmeow:moreEntrenchedThan edge has an RDF 1.2 reifier carrying both gmeow:accordingTo and gmeow:validFrom, so gmeow:moreEntrenchedThanAttributionConstraint finds its reifier through the lowered components, and no ranker holds the reverse edge, so gmeow:moreEntrenchedThanRankerOrderConstraint finds no reversed pair." .
+
+# --- Violating: one ranker holds both directions --------------------------------
+ex:ecRankerHoldsBothDirections a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/ranker-holds-both-directions.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.SPARQLConstraintComponent" ;
+    gmeow:expectedSourceShape gmeow:MoreEntrenchedThanRankerOrderConstraintProceduralConstraintShape ;
+    gmeow:conformanceRationale "One ranker states gmeow:moreEntrenchedThan between the same two standpoints in both directions through two RDF 1.2 reifiers, with no gmeow:succeedsClaim, gmeow:correctsClaim or gmeow:retractsClaim linking them, so gmeow:moreEntrenchedThanRankerOrderConstraint's projected sh:sparql constraint MUST emit shacl.SPARQLConstraintComponent from gmeow:MoreEntrenchedThanRankerOrderConstraintProceduralConstraintShape." .

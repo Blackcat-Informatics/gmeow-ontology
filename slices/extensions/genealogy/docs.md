@@ -14,8 +14,9 @@ records are standpoint-indexed claims that **coexist**, none privileged (Princip
 contested parentage is two `accordingTo`-annotated `hasParent` triples, or two reified
 `ParentChildRelationship` instances each carrying `gmeow:accordingTo`. There is no
 genealogy-specific dispute mechanism, no `preferredParent`, no `primaryKinship` — only
-the cross-cutting standpoint facility. A withdrawn claim sets `gmeow:displayable false`,
-never deletion (Principle 10).
+the cross-cutting standpoint facility. A claim its own holder withdrew sets `gmeow:displayable false`,
+never deletion (Principle 10); a tenure that merely closed, or a claim another party
+disputes or corrects, takes no flag.
 
 Equally important is what the slice does *not* own. Life events belong to the universal
 events module (`LifeEvent` occurrences carrying `eventTypeBirth` / `…Marriage` /

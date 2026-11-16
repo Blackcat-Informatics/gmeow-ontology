@@ -217,8 +217,10 @@ content-hash-sorted, and perf timings ride as data, never as a gate.
    `proof` maps to `hasSignature` → `CryptographicSignature`.
 5. **Contested / revoked** — a revoked attestation does not disappear.  It gains a
    `VerificationResult` with `verificationStatusRevoked`, and the original
-   `Attestation` remains in the graph with its history intact.  For suppression of
-   superseded labels (e.g. a corrected issuer name), use `gmeow:displayable false`.
+   `Attestation` remains in the graph with its history intact.  A corrected
+   issuer name is a correction by another party: keep both names and set no display flag;
+   which one a reader is shown is decided at projection. A label its holder has superseded
+   is suppressed with `gmeow:displayable false`.
 
 ## Terms
 
