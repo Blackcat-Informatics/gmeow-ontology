@@ -957,7 +957,7 @@ dependencies = [
 
 [[package]]
 name = "docs-print"
-version = "0.3.0"
+version = "0.4.0"
 dependencies = [
  "gmeow-docs",
  "gmeow-errors",
@@ -1319,7 +1319,7 @@ checksum = "e4eba85ea1d0a966a983acd07deee566e67395d2d96b6fb39e62b5a833f1eb0b"
 
 [[package]]
 name = "gmeow-action-cache"
-version = "0.3.0"
+version = "0.4.0"
 dependencies = [
  "gmeow-build-inputs",
  "gmeow-errors",
@@ -1333,7 +1333,7 @@ dependencies = [
 
 [[package]]
 name = "gmeow-affect"
-version = "0.3.0"
+version = "0.4.0"
 dependencies = [
  "gmeow-bundle-import",
  "gmeow-errors",
@@ -1344,7 +1344,7 @@ dependencies = [
 
 [[package]]
 name = "gmeow-affect-ingest"
-version = "0.3.0"
+version = "0.4.0"
 dependencies = [
  "gmeow-errors",
  "gmeow-math",
@@ -1354,7 +1354,7 @@ dependencies = [
 
 [[package]]
 name = "gmeow-bench-engines"
-version = "0.3.0"
+version = "0.4.0"
 dependencies = [
  "gmeow-conformance",
  "gmeow-cost-measure",
@@ -1369,7 +1369,7 @@ dependencies = [
 
 [[package]]
 name = "gmeow-build-inputs"
-version = "0.3.0"
+version = "0.4.0"
 dependencies = [
  "cargo-config2",
  "glob",
@@ -1386,7 +1386,7 @@ dependencies = [
 
 [[package]]
 name = "gmeow-bundle-import"
-version = "0.3.0"
+version = "0.4.0"
 dependencies = [
  "gmeow-action-cache",
  "gmeow-build-inputs",
@@ -1402,7 +1402,7 @@ dependencies = [
 
 [[package]]
 name = "gmeow-bundle-view"
-version = "0.3.0"
+version = "0.4.0"
 dependencies = [
  "gmeow-bundle-import",
  "gmeow-docs-model",
@@ -1420,7 +1420,7 @@ dependencies = [
 
 [[package]]
 name = "gmeow-cli"
-version = "0.3.0"
+version = "0.4.0"
 dependencies = [
  "assert_cmd",
  "clap",
@@ -1457,7 +1457,7 @@ dependencies = [
 
 [[package]]
 name = "gmeow-cli-core"
-version = "0.3.0"
+version = "0.4.0"
 dependencies = [
  "anstream 0.6.21",
  "anstyle",
@@ -1471,7 +1471,7 @@ dependencies = [
 
 [[package]]
 name = "gmeow-conformance"
-version = "0.3.0"
+version = "0.4.0"
 dependencies = [
  "gmeow-bundle-import",
  "gmeow-cli-core",
@@ -1490,11 +1490,11 @@ dependencies = [
 
 [[package]]
 name = "gmeow-cost-measure"
-version = "0.3.0"
+version = "0.4.0"
 
 [[package]]
 name = "gmeow-dev-cli"
-version = "0.3.0"
+version = "0.4.0"
 dependencies = [
  "assert_cmd",
  "clap",
@@ -1535,7 +1535,7 @@ dependencies = [
 
 [[package]]
 name = "gmeow-docs"
-version = "0.3.0"
+version = "0.4.0"
 dependencies = [
  "gmeow-action-cache",
  "gmeow-bundle-import",
@@ -1561,7 +1561,7 @@ dependencies = [
 
 [[package]]
 name = "gmeow-docs-catalog"
-version = "0.3.0"
+version = "0.4.0"
 dependencies = [
  "gmeow-bundle-view",
  "gmeow-errors",
@@ -1571,7 +1571,7 @@ dependencies = [
 
 [[package]]
 name = "gmeow-docs-model"
-version = "0.3.0"
+version = "0.4.0"
 dependencies = [
  "gmeow-action-cache",
  "gmeow-build-inputs",
@@ -1593,7 +1593,7 @@ dependencies = [
 
 [[package]]
 name = "gmeow-errors"
-version = "0.3.0"
+version = "0.4.0"
 dependencies = [
  "insta",
  "purrdf-core",
@@ -1606,7 +1606,7 @@ dependencies = [
 
 [[package]]
 name = "gmeow-foundation-corpus"
-version = "0.3.0"
+version = "0.4.0"
 dependencies = [
  "purrdf",
  "serde",
@@ -1618,7 +1618,7 @@ dependencies = [
 
 [[package]]
 name = "gmeow-gmn-cost-matrix"
-version = "0.3.0"
+version = "0.4.0"
 dependencies = [
  "gmeow-errors",
  "gmeow-lang-bridge",
@@ -1630,7 +1630,7 @@ dependencies = [
 
 [[package]]
 name = "gmeow-gmn-wasm"
-version = "0.3.0"
+version = "0.4.0"
 dependencies = [
  "gmeow-action-cache",
  "gmeow-lang-bridge",
@@ -1641,7 +1641,7 @@ dependencies = [
 
 [[package]]
 name = "gmeow-gts-profile"
-version = "0.3.0"
+version = "0.4.0"
 dependencies = [
  "gmeow-errors",
  "purrdf",
@@ -1651,7 +1651,7 @@ dependencies = [
 
 [[package]]
 name = "gmeow-lang-bridge"
-version = "0.3.0"
+version = "0.4.0"
 dependencies = [
  "gmeow-errors",
  "gmeow-lang-form",
@@ -1673,7 +1673,7 @@ dependencies = [
 
 [[package]]
 name = "gmeow-lang-form"
-version = "0.3.0"
+version = "0.4.0"
 dependencies = [
  "insta",
  "proptest",
@@ -1683,11 +1683,11 @@ dependencies = [
 
 [[package]]
 name = "gmeow-license"
-version = "0.3.0"
+version = "0.4.0"
 
 [[package]]
 name = "gmeow-logic"
-version = "0.3.0"
+version = "0.4.0"
 dependencies = [
  "chrono",
  "ciborium",
@@ -1726,7 +1726,7 @@ dependencies = [
 
 [[package]]
 name = "gmeow-logic-compile"
-version = "0.3.0"
+version = "0.4.0"
 dependencies = [
  "gmeow-errors",
  "gmeow-gts-profile",
@@ -1744,7 +1744,7 @@ dependencies = [
 
 [[package]]
 name = "gmeow-lsp"
-version = "0.3.0"
+version = "0.4.0"
 dependencies = [
  "gmeow-cli-core",
  "gmeow-errors",
@@ -1762,7 +1762,7 @@ dependencies = [
 
 [[package]]
 name = "gmeow-math"
-version = "0.3.0"
+version = "0.4.0"
 dependencies = [
  "gmeow-errors",
  "gmeow-gts-profile",
@@ -1772,7 +1772,7 @@ dependencies = [
 
 [[package]]
 name = "gmeow-math-lift"
-version = "0.3.0"
+version = "0.4.0"
 dependencies = [
  "gmeow-errors",
  "gmeow-term-arena",
@@ -1784,7 +1784,7 @@ dependencies = [
 
 [[package]]
 name = "gmeow-mcp"
-version = "0.3.0"
+version = "0.4.0"
 dependencies = [
  "gmeow-action-cache",
  "gmeow-bundle-import",
@@ -1814,7 +1814,7 @@ dependencies = [
 
 [[package]]
 name = "gmeow-mcp-core-wasm"
-version = "0.3.0"
+version = "0.4.0"
 dependencies = [
  "gmeow-bundle-import",
  "gmeow-mcp",
@@ -1824,7 +1824,7 @@ dependencies = [
 
 [[package]]
 name = "gmeow-mcp-dev"
-version = "0.3.0"
+version = "0.4.0"
 dependencies = [
  "gmeow-bundle-import",
  "gmeow-errors",
@@ -1838,7 +1838,7 @@ dependencies = [
 
 [[package]]
 name = "gmeow-mcp-wasm"
-version = "0.3.0"
+version = "0.4.0"
 dependencies = [
  "gmeow-bundle-import",
  "gmeow-mcp",
@@ -1849,7 +1849,7 @@ dependencies = [
 
 [[package]]
 name = "gmeow-music"
-version = "0.3.0"
+version = "0.4.0"
 dependencies = [
  "gmeow-errors",
  "gmeow-gts-profile",
@@ -1860,14 +1860,14 @@ dependencies = [
 
 [[package]]
 name = "gmeow-ns"
-version = "0.3.0"
+version = "0.4.0"
 dependencies = [
  "purrdf",
 ]
 
 [[package]]
 name = "gmeow-perf-evidence"
-version = "0.3.0"
+version = "0.4.0"
 dependencies = [
  "libc",
  "purrdf-lex",
@@ -1877,7 +1877,7 @@ dependencies = [
 
 [[package]]
 name = "gmeow-pipeline"
-version = "0.3.0"
+version = "0.4.0"
 dependencies = [
  "ahash",
  "bincode",
@@ -1925,7 +1925,7 @@ dependencies = [
 
 [[package]]
 name = "gmeow-query-wasm"
-version = "0.3.0"
+version = "0.4.0"
 dependencies = [
  "gmeow-gts-profile",
  "purrdf",
@@ -1936,7 +1936,7 @@ dependencies = [
 
 [[package]]
 name = "gmeow-reason-wasm"
-version = "0.3.0"
+version = "0.4.0"
 dependencies = [
  "gmeow-errors",
  "gmeow-logic",
@@ -1946,7 +1946,7 @@ dependencies = [
 
 [[package]]
 name = "gmeow-slice-brief"
-version = "0.3.0"
+version = "0.4.0"
 dependencies = [
  "gmeow-docs",
  "gmeow-errors",
@@ -1962,7 +1962,7 @@ dependencies = [
 
 [[package]]
 name = "gmeow-slice-quality"
-version = "0.3.0"
+version = "0.4.0"
 dependencies = [
  "gmeow-action-cache",
  "gmeow-build-inputs",
@@ -1989,7 +1989,7 @@ dependencies = [
 
 [[package]]
 name = "gmeow-slicetest"
-version = "0.3.0"
+version = "0.4.0"
 dependencies = [
  "gmeow-action-cache",
  "gmeow-build-inputs",
@@ -2008,7 +2008,7 @@ dependencies = [
 
 [[package]]
 name = "gmeow-term-arena"
-version = "0.3.0"
+version = "0.4.0"
 dependencies = [
  "foldhash",
  "hashbrown 0.15.5",
@@ -2020,7 +2020,7 @@ dependencies = [
 
 [[package]]
 name = "gmeow-test-batch-macros"
-version = "0.3.0"
+version = "0.4.0"
 dependencies = [
  "inventory",
  "proc-macro2",
@@ -2030,7 +2030,7 @@ dependencies = [
 
 [[package]]
 name = "gmeow-transcode"
-version = "0.3.0"
+version = "0.4.0"
 dependencies = [
  "gmeow-errors",
  "gmeow-gts-profile",
@@ -2041,7 +2041,7 @@ dependencies = [
 
 [[package]]
 name = "gmeow-validate"
-version = "0.3.0"
+version = "0.4.0"
 dependencies = [
  "criterion",
  "gmeow-action-cache",
@@ -2078,7 +2078,7 @@ dependencies = [
 
 [[package]]
 name = "gmeow-validate-wasm"
-version = "0.3.0"
+version = "0.4.0"
 dependencies = [
  "gmeow-action-cache",
  "gmeow-lang-bridge",
@@ -2182,7 +2182,7 @@ checksum = "2304e00983f87ffb38b55b444b5e3b60a884b5d30c0fca7d82fe33449bbe55ea"
 
 [[package]]
 name = "helper-census"
-version = "0.3.0"
+version = "0.4.0"
 dependencies = [
  "gmeow-errors",
  "proc-macro2",
@@ -5991,7 +5991,7 @@ checksum = "9440ea3e5aeabb0ac63af70daf835274065238cdd0cec83418f417eae38bacee"
 
 [[package]]
 name = "xtask"
-version = "0.3.0"
+version = "0.4.0"
 dependencies = [
  "cargo-config2",
  "gmeow-action-cache",
