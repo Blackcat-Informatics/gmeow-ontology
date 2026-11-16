@@ -1,4 +1,4 @@
-# Coverage slice (#43): the standpoint / contested-claims facility. Exercises every
+# Coverage slice: the standpoint / contested-claims facility. Exercises every
 # new term — the standpoint axis (gmeow:accordingTo) on reified statements, the
 # modality (□/◊), the standpoint poset (gmeow:sharpens → gmeow:universalStandpoint),
 # and the reified gmeow:StandpointTenure with suppression-not-erasure. Native GMEOW
@@ -45,8 +45,10 @@ ex:ax-deny a owl:Axiom ;
     gmeow:standpointModality gmeow:refuted ;
     gmeow:confidence 0.95 .
 
-# A reified standpoint tenure whose position was withdrawn (closed interval) —
-# suppressed, never deleted (Principle 10).
+# A reified standpoint tenure flagged as withdrawn by its own holder; the flag stands for
+# that withdrawal, whose retracting activity this fixture does not model. It is retained and
+# suppressed (gmeow:displayable false), never deleted (Principle 10). A closed interval alone
+# would not prompt the flag.
 ex:recognition a gmeow:StandpointTenure ;
     gmeow:tenureStandpoint ex:standpoint-un ;
     gmeow:duringInterval [ a gmeow:TimeInterval ;

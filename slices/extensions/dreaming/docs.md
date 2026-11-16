@@ -28,8 +28,9 @@ otherwise offline episode.
 (`gmeow:mentalProcessType gmeow:processRecollection`,
 `gmeow:contentOrigin gmeow:originImagined`) that reports or recalls a dream. It is a
 low-metacognitive-reliability, standpoint-indexed claim: competing reports coexist
-(Principle 9) and superseded reports are suppressed with `gmeow:displayable false`
-(Principle 10) rather than deleted.
+(Principle 9) and a report its own author withdrew or replaced is suppressed with
+`gmeow:displayable false` (Principle 10) rather than deleted. A report that another
+party disputes or corrects takes no display flag; a reader's projection decides which is shown.
 
 `gmeow:dreamElement` links a dream experience to its imagined constituents. The range
 is deliberately open: a dream element may be any entity, description, or proposition
@@ -95,8 +96,9 @@ whole unsegmented report, coequal recollections and an actual phase/call tree.
 A recollection experience in which an agent reports or recalls a dream — a
 `gmeow:Experience` whose mental-process kind is `gmeow:processRecollection` and whose
 content originates in imagination (`gmeow:contentOrigin gmeow:originImagined`). A
-standpoint-indexed, low-metacognitive-reliability claim: competing reports coexist and
-superseded reports are suppressed, not deleted.
+standpoint-indexed, low-metacognitive-reliability claim: competing reports coexist; a
+report its own author withdrew or replaced is suppressed, not deleted, and a report
+another party disputes or corrects takes no display flag.
 
 ### `gmeow:dreamElement`
 

@@ -154,7 +154,7 @@ gmeow:mapSchemaPlaceName a gmeow:ProjectionMapping ;
     gmeow:hasBinding [
         gmeow:profile "schema-org" ; gmeow:toPredicate schema:name ; gmeow:relation "<=" ;
         gmeow:transform gmeow:fnSelectEndonym ; gmeow:confidence 0.8 ;
-        gmeow:lossyDrop "projection frame = endonym-preferred; co-equal exonyms projected as schema:alternateName; non-displayable/superseded and competing-standpoint names dropped" ] .
+        gmeow:lossyDrop "projection frame = endonym-preferred; co-equal exonyms projected as schema:alternateName; names flagged gmeow:displayable false and competing-standpoint names dropped" ] .
 
 gmeow:mapSchemaPlaceAltName a gmeow:ProjectionMapping ;
     rdfs:label "displayable exonym PlaceName → schema:alternateName"@x-gmeow-english ;
@@ -619,7 +619,7 @@ gmeow:mapSchemaMaximumAttendeeCapacity a gmeow:ProjectionMapping ;
     gmeow:hasBinding [
         gmeow:profile "schema-org" ; gmeow:toPredicate schema:maximumAttendeeCapacity ; gmeow:relation "<=" ;
         gmeow:confidence 0.7 ;
-        gmeow:lossyDrop "the Capacity relator (provenance, unit, temporal scope, standpoint) collapses to a flat schema:maximumAttendeeCapacity integer; non-displayable/superseded capacities are suppressed; restricted to gmeow:Place to avoid projecting byte capacities from StorageLocation" ] .
+        gmeow:lossyDrop "the Capacity relator (provenance, unit, temporal scope, standpoint) collapses to a flat schema:maximumAttendeeCapacity integer; capacities flagged gmeow:displayable false are suppressed; restricted to gmeow:Place to avoid projecting byte capacities from StorageLocation" ] .
 
 gmeow:mapSchemaOccupancy a gmeow:ProjectionMapping ;
     rdfs:label "Occupancy Measurement → schema:occupancy (lossy)"@x-gmeow-english ;
@@ -635,7 +635,7 @@ gmeow:mapSchemaOccupancy a gmeow:ProjectionMapping ;
     gmeow:hasBinding [
         gmeow:profile "schema-org" ; gmeow:toPredicate schema:occupancy ; gmeow:relation "<=" ;
         gmeow:confidence 0.7 ;
-        gmeow:lossyDrop "the Occupancy relator (provenance, unit, temporal scope, standpoint) collapses to a flat schema:occupancy integer; non-displayable/superseded occupancies are suppressed; restricted to gmeow:Place to avoid projecting byte occupancies from StorageLocation" ] .
+        gmeow:lossyDrop "the Occupancy relator (provenance, unit, temporal scope, standpoint) collapses to a flat schema:occupancy integer; occupancies flagged gmeow:displayable false are suppressed; restricted to gmeow:Place to avoid projecting byte occupancies from StorageLocation" ] .
 
 # --------------------------------------------------------------------------- #
 # Schema.org location enrichments
@@ -696,7 +696,7 @@ gmeow:mapSchemaCoordinateObservation a gmeow:ProjectionMapping ;
         gmeow:suppressWhen [ gmeow:subjectVar "obs" ; gmeow:predicate gmeow:displayable ; gmeow:objectLiteral false ] ] ;
     gmeow:hasBinding [
         gmeow:profile "schema-org" ; gmeow:relation "<=" ;
-        gmeow:lossyDrop "the CoordinateObservation relator (vantage, confidence, reference frame, temporal scope) collapses to a flat schema:geo edge; non-displayable/superseded observations are suppressed" ;
+        gmeow:lossyDrop "the CoordinateObservation relator (vantage, confidence, reference frame, temporal scope) collapses to a flat schema:geo edge; observations flagged gmeow:displayable false are suppressed" ;
         gmeow:templateAtoms (
             [ gmeow:tSubj "place" ; gmeow:tPred schema:geo ; gmeow:tObj "coords" ]
             [ gmeow:tSubj "coords" ; gmeow:tPred rdf:type ; gmeow:tObjValue schema:GeoCoordinates ]

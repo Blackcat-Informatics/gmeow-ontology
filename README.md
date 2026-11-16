@@ -38,8 +38,8 @@ disagreement as coexisting standpoints instead of overwriting the loser.
   analogy, where a deduction's substrate is a real proof trace; calibration and
   reality-monitoring (over/under-confidence, known-unknowns, an `originGenerated`
   confabulation flag) are modeled directly.
-- **Revision is suppression, never deletion.** A fired defeater marks the old conclusion
-  `displayable false` and closes its tenure while keeping the inference as audit — which
+- **Revision is suppression, never deletion.** A holder that accepts a defeater closes its tenure and withdraws its own old conclusion
+  (`displayable false`, set by that holder alone), keeping the inference as audit — which
   *is* the memory's `revise()` operation.
 - **Authored once, then projected and linked widely.** Every fact is stated once across
   GMEOW's **self-contained slices** and generated outward as lossy projections — OWL,
@@ -865,8 +865,8 @@ wizard's tower (full rationale in [`docs/location-mapping.md`](./docs/location-m
   parent containment are time-indexed and disputed. `JurisdictionTenure` and `ContainmentTenure`
   reify sovereignty and border changes as `gufo:SituationType` relators; contested claims
   (Crimea-class) coexist as standpoint-indexed instances, none privileged (Principle 9).
-  Superseded places (Constantinople → Istanbul) are retained with `gmeow:displayable false`,
-  never deleted (Principle 10).
+  Superseded places (Constantinople → Istanbul) are retained, never deleted (Principle 10); which
+  name a reader is shown is that reader's policy, decided at projection.
 - **Pose, motion, and trajectories.** A `gmeow:Pose` carries position + orientation as peers
   (quaternion, Euler angles, heading/bearing, or homogeneous matrix). `LocationState` captures
   position, velocity, and pose at an instant; `Trajectory` chains states into a space-time path.

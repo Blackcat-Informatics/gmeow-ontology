@@ -427,17 +427,17 @@ gmeow:SupersededGenderIdentitySuppressionConstraint
     rdfs:label "Superseded gender-identity facet suppression constraint"@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gender> ;
     gmeow:graphBoxRole gmeow:boxTBox ;
-    skos:definition "A closed-world integrity constraint (Warning): a superseded identity facet — a gmeow:GenderIdentity, gmeow:GenderExpression, gmeow:SexualOrientation, or gmeow:RomanticOrientation carrying gmeow:validUntil — should set gmeow:displayable false, suppressed from display, never deleted (Principle 10). The gmeow:validUntil trigger the retired multi-target gmeow:SupersededFacetSuppressionShape keyed on is the guard; every facet kind that carries a validity end is covered."@x-gmeow-english ;
+    skos:definition "A closed-world integrity constraint (Warning): a superseded identity facet — a gmeow:GenderIdentity, gmeow:GenderExpression, gmeow:SexualOrientation, or gmeow:RomanticOrientation carrying gmeow:validUntil — should set gmeow:displayable false, suppressed from display, never deleted (Principle 10). The guard names the facet classes explicitly (gmeow:GenderIdentity, gmeow:GenderExpression, gmeow:SexualOrientation, gmeow:RomanticOrientation and gmeow:IdentityFacet itself) and requires gmeow:validUntil, so it selects a facet by its own recorded type, needs no class hierarchy to be loaded, and reaches nothing else: an observation, a participation or any other node whose validity ended is not reported, and a facet that another party disputes or corrects, with no validity end of its own, is not reported either. It is a global safety case, hidden from every reader."@x-gmeow-english ;
     logic:formalizes gmeow:SupersededFacetSuppressionShape ;
     logic:severity "Warning" ;
     logic:message "A superseded identity facet (one with gmeow:validUntil) should set gmeow:displayable false — suppressed from display, never deleted." ;
     logic:integrity logic:supGiForall .
 logic:supGiForall a logic:Formula ;
-    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "u" ] ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ;
     logic:forall logic:supGiImpl .
 logic:supGiImpl a logic:Formula ; logic:antecedent logic:supGiGuard ; logic:consequent logic:supGiDisp .
-logic:supGiGuard a logic:Formula ; logic:relation gmeow:validUntil ;
-    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "u" ] .
+logic:supGiGuard a logic:Formula ; logic:relation logic:sparqlTarget ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termLiteral "SELECT DISTINCT ?this WHERE { ?this a ?facetClass ; <https://blackcatinformatics.ca/gmeow/validUntil> ?until . FILTER ( ?facetClass IN (<https://blackcatinformatics.ca/gmeow/GenderIdentity>, <https://blackcatinformatics.ca/gmeow/GenderExpression>, <https://blackcatinformatics.ca/gmeow/SexualOrientation>, <https://blackcatinformatics.ca/gmeow/RomanticOrientation>, <https://blackcatinformatics.ca/gmeow/IdentityFacet>) ) }" ] .
 logic:supGiDisp a logic:Formula ; logic:relation gmeow:displayable ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termLiteral "false" ; logic:termLiteralDatatype xsd:boolean ] .
 
@@ -449,7 +449,7 @@ logic:supGiDisp a logic:Formula ; logic:relation gmeow:displayable ;
 [ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/gmeow/GenderExpression> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/gmeow/facetSubject" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .
 [ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/gmeow/GenderExpression> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/gmeow/facetVantage" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .
 
-# --- Wave B1 shape-drain: identity-facet cardinality + suppression grounding ---
+# --- identity-facet cardinality + suppression grounding ---
 # gmeow:GenderExpressionFacetShape — a GenderExpression facet mediates exactly one value.
 gmeow:GenderExpression logic:subClassOf
     [ a logic:Restriction ; logic:onProperty gmeow:expressionValue ; logic:maxQualifiedCardinality 1 ; logic:onClass logic:Thing ] .
@@ -534,4 +534,4 @@ gmeow:genderValueFunctionality
     skos:example "gmeow:genderValueFunctionality logic:characterizes gmeow:genderValue ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 
-<https://blackcatinformatics.ca/gmeow/slices/gender> skos:scopeNote "Suppression retains superseded records during ordinary revision. Separately authorized governed erasure removes exactly selected named objects, including its forget request, without retained deletion receipts or cascading through references. Unselected references may dangle and answer gone. Succession preserves prior fact-time validity; correction rejects the earlier claim only in the correcting standpoint."@x-gmeow-english .
+<https://blackcatinformatics.ca/gmeow/slices/gender> skos:scopeNote "Suppression retains superseded records during ordinary revision. Separately authorized governed erasure removes exactly selected named objects, including its forget request, without retained deletion receipts or cascading through references. Unselected references may dangle and answer gone. Succession preserves prior fact-time validity; a correction states that another claim is wrong only in the correcting standpoint, and neither supersedes nor suppresses the corrected claim."@x-gmeow-english .

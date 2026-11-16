@@ -2844,3 +2844,11 @@ msgstr "TuningSystem 被分音程分母取值范围约束"
 msgctxt "https://blackcatinformatics.ca/gmeow/TuningSystemDividedIntervalDenominatorRangeConstraint|http://www.w3.org/2004/02/skos/core#definition"
 msgid "A validation-only integrity constraint: when present, a TuningSystem's gmeow:dividedIntervalDenominator is a positive integer."
 msgstr "仅用于验证的完整性约束：TuningSystem 的 gmeow:dividedIntervalDenominator 若存在，则是正整数。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/fixtureRagaYamanContestedMembership|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Raga Yaman contested membership"
+msgstr "拉格 Yaman 的有争议归属"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/fixtureRagaYamanContestedMembership|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A rival scholar's contested membership claim, retained and attributed to that scholar's standpoint beside the memberships the Kirana tradition itself holds. It takes no display flag from being contested; a reader's projection decides what is shown."
+msgstr "一位对立学者提出的有争议的归属主张，被保留并归属于该学者的立场，与基拉纳传统自身持有的归属并列。它不因被质疑而获得显示标记；向读者展示什么由读者的投影决定。"

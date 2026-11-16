@@ -1,4 +1,4 @@
-# Worked example + coverage slice (#41): the universal events facility. Exercises
+# Worked example + coverage slice: the universal events facility. Exercises
 # every new term — gmeow:Event / LifeEvent, the gmeow:eventType + gmeow:ParticipantRole
 # + gmeow:TemporalPrecision value vocabularies, the gmeow:Participation relator and
 # its players, the flat gmeow:hasParticipant shortcut, structured + fuzzy time,
@@ -76,8 +76,9 @@ ex:partPerformer a gmeow:Participation ;
     gmeow:participationParticipant ex:band ;
     gmeow:participationRole gmeow:rolePerformer .
 
-# A superseded participation claim — a mistaken attendee, corrected by SUPPRESSION
-# (gmeow:displayable false), never deletion (Principle 10). validUntil closes it.
+# A participation flagged as withdrawn by its recorder as mistaken; the flag stands for the
+# recorder's own retraction, which this fixture does not model. It is suppressed
+# (gmeow:displayable false) and retained, never deleted (Principle 10).
 ex:partMistaken a gmeow:Participation ;
     gmeow:participationEvent ex:reception ;
     gmeow:participationParticipant ex:erin ;
@@ -165,7 +166,7 @@ ex:eventTypeMeeting a gmeow:EventType ; rdfs:label "meeting"@en .
 
 # --------------------------------------------------------------------------- #
 # TEMPORAL RELATIONS (Allen) + Duration + recurrence + tense/aspect — exercises
-# the temporal-deepening layer (#41 ⨯ OWL-Time/TEO/ISO-TimeML). A qualitative
+# the temporal-deepening layer (OWL-Time/TEO/ISO-TimeML). A qualitative
 # ordering chain (transitivity), the contact relations, a duration, an RFC-5545
 # recurrence on the standup series, and the ISO-TimeML linguistic attributes.
 # --------------------------------------------------------------------------- #
@@ -201,7 +202,7 @@ ex:reportedClash a gmeow:Event ;
     gmeow:eventAspect gmeow:aspectPerfective .
 
 # --------------------------------------------------------------------------- #
-# VIRTUAL / ONLINE EVENT (#106) — eventLocation ranges over the full Location
+# VIRTUAL / ONLINE EVENT — eventLocation ranges over the full Location
 # superset, including VirtualLocation.
 # --------------------------------------------------------------------------- #
 
@@ -217,8 +218,8 @@ ex:zoomRoom a gmeow:VirtualLocation ;
     gmeow:virtualPlatform "ExampleMeet" .
 
 # --------------------------------------------------------------------------- #
-# MOVING EVENT — parade with trajectory and spacetime slices (#106).
-# Reuses LocationState and Trajectory from the locations module (#94).
+# MOVING EVENT — parade with trajectory and spacetime slices.
+# Reuses LocationState and Trajectory from the locations module.
 # Note: stateOf / trajectoryOf range over gmeow:Entity (Endurant), so they are
 # omitted here — an Event is a gufo:Event and is disjoint from Endurant. The
 # event→slice linkage is carried by gmeow:eventSpacetime / gmeow:eventTrajectory.
@@ -273,7 +274,7 @@ ex:paradeEndCoords a gmeow:SpatialCoordinates ;
     gmeow:coordinateFrame gmeow:referenceFrameWGS84 .
 
 # --------------------------------------------------------------------------- #
-# CELESTIAL EVENT — solar eclipse located in a celestial frame (#106).
+# CELESTIAL EVENT — solar eclipse located in a celestial frame.
 # eventLocation accepts any Location, including a Place expressed in a celestial
 # reference frame.
 # --------------------------------------------------------------------------- #

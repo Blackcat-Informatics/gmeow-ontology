@@ -1359,7 +1359,7 @@ gmeow:treeEntryObjectFunctionality
     skos:example "gmeow:treeEntryObjectFunctionality logic:characterizes gmeow:treeEntryObject ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 
-<https://blackcatinformatics.ca/gmeow/slices/software> skos:scopeNote "Suppression retains superseded records during ordinary revision. Separately authorized governed erasure removes exactly selected named objects, including its forget request, without retained deletion receipts or cascading through references. Unselected references may dangle and answer gone. Succession preserves prior fact-time validity; correction rejects the earlier claim only in the correcting standpoint."@x-gmeow-english .
+<https://blackcatinformatics.ca/gmeow/slices/software> skos:scopeNote "Suppression retains superseded records during ordinary revision. Separately authorized governed erasure removes exactly selected named objects, including its forget request, without retained deletion receipts or cascading through references. Unselected references may dangle and answer gone. Succession preserves prior fact-time validity; a correction states that another claim is wrong only in the correcting standpoint, and neither supersedes nor suppresses the corrected claim."@x-gmeow-english .
 
 # Repository object formats, ordered parent occurrences and observed working views.
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .

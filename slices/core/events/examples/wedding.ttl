@@ -33,8 +33,8 @@ ex:witnessA a gmeow:Person ; gmeow:name "Jordan Vance"@x-gmeow-english .
 ex:witnessB a gmeow:Person ; gmeow:name "Priya Raman"@x-gmeow-english .
 
 # --- Reified participations: the two principals and the officiant, with roles.
-#     A withdrawn or disputed role would coexist as another Participation
-#     (displayable false, or standpoint-indexed) — never overwritten (P9/P10).
+#     A disputed role would coexist as another standpoint-indexed Participation,
+#     with no display flag on either — never overwritten (P9/P10).
 ex:partAlex a gmeow:Participation ;
     gmeow:participationEvent ex:wedding ;
     gmeow:participationParticipant ex:alex ;

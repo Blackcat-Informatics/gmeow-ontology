@@ -16,15 +16,15 @@
 @prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
 
 # --- The dissolved company: still here, with its full lifecycle attached.
-#     Superseded AND no longer extant, so gmeow:displayable false suppresses it
-#     from default display — the record is retained, never deleted (P10).
+#     Superseded AND no longer extant, yet the record is retained, never deleted
+#     (P10). It carries no display flag: whether a reader is shown a dissolved
+#     company is that reader's policy, decided at projection, not data.
 ex:meridian a gmeow:Organization ;
     gmeow:name "Meridian Systems Ltd."@x-gmeow-english ;
     gmeow:hasCreationEvent ex:founding ;
     gmeow:hasDestructionEvent ex:dissolution ;
     gmeow:existenceInterval ex:meridianLife ;
-    gmeow:supersededBy ex:apex ;
-    gmeow:displayable false .
+    gmeow:supersededBy ex:apex .
 
 # --- Creation: a founding event, value-typed both Founding-as-Creation.
 ex:founding a gmeow:Event ;

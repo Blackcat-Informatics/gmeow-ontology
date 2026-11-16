@@ -111,8 +111,8 @@ gmeow:mapIcalAttendee a gmeow:ProjectionMapping ;
 
 # Reified Participation → ATTENDEE (events whose participants are recorded only via
 # the gmeow:Participation relator, not the flat shortcut, still get ATTENDEEs). The
-# role/period/confidence/standpoint collapse; a superseded (displayable false)
-# participation is suppressed (Principle 10).
+# role/period/confidence/standpoint collapse; a participation flagged
+# gmeow:displayable false is suppressed (Principle 10).
 gmeow:mapIcalAttendeeReified a gmeow:ProjectionMapping ;
     rdfs:label "Participation participant → iCalendar ATTENDEE"@x-gmeow-english ;
     gmeow:hasMappingPattern [
@@ -128,7 +128,7 @@ gmeow:mapIcalAttendeeReified a gmeow:ProjectionMapping ;
         gmeow:lossyDrop "role / period / confidence / standpoint of the participation are dropped; the participant becomes a bare ATTENDEE" ] .
 
 # =========================================================================== #
-# Calendar / scheduling slice projections (#62)
+# Calendar / scheduling slice projections
 # =========================================================================== #
 
 # Task → VTODO (inherits VEVENT time/location via the Event superclass, adds

@@ -1,0 +1,10 @@
+# Deadname WARNING fixture. A PersonName whose purpose is namePurposeDeadname and that does
+# not carry gmeow:displayable false: its holder superseded it, so it must be hidden from every
+# reader. Validation must report the suppression warning and still pass (no violation).
+
+@prefix ex:    <https://example.org/shapes/> .
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+
+ex:formerName a gmeow:PersonName ;
+    gmeow:fullName "Former Name" ;
+    gmeow:namePurpose gmeow:namePurposeDeadname .

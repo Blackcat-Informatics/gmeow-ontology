@@ -69,9 +69,9 @@ gmeow:StandpointTenure
             logic:onProperty gmeow:standpointClaim ;
             logic:someValuesFrom gmeow:StandpointClaim ;
         ] ;
-    skos:definition "The reified, time-scoped fact that a standpoint held a particular position over an interval — recognition granted in 2008 and withdrawn in 2030 is an opened-then-closed tenure, never a deletion (Principle 10). Use only when the adoption / withdrawal of the position is itself worth modelling; the common case is a bare gmeow:accordingTo annotation. Carries its standpoint-time interval via gmeow:duringInterval (temporal module). A StandpointTenure generates a gmeow:standpointClaim observation. The tenure is the time-scoped fact; the claim is the observation of that fact. The tenureStandpoint maps to the claim's vantage; the tenurePosition maps to the claim's observedFeature."@x-gmeow-english ;
+    skos:definition "The reified, time-scoped fact that a standpoint held a particular position over an interval — recognition granted in 2008 and ended in 2030 is an opened-then-closed tenure, never a deletion (Principle 10). A closed tenure is not by itself a withdrawn one: the interval can end for any reason, and only a holder retracting its own held claim is a withdrawal. Use only when the adoption / withdrawal of the position is itself worth modelling; the common case is a bare gmeow:accordingTo annotation. Carries its standpoint-time interval via gmeow:duringInterval (temporal module). A StandpointTenure generates a gmeow:standpointClaim observation. The tenure is the time-scoped fact; the claim is the observation of that fact. The tenureStandpoint maps to the claim's vantage; the tenurePosition maps to the claim's observedFeature."@x-gmeow-english ;
     skos:example "ex:recognition a gmeow:StandpointTenure ; gmeow:tenureStandpoint ex:stateA ; gmeow:duringInterval ex:2008to2030 ."@x-gmeow-english ;
-    gmeow:avoidWhen "Avoid reifying a tenure for an ordinary perspectival claim — the common case is a bare gmeow:accordingTo annotation, reify on demand (Principle 4) — and avoid deleting a withdrawn position; close the tenure with gmeow:displayable false instead, and never elevate one tenure as the authoritative position."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid reifying a tenure for an ordinary perspectival claim — the common case is a bare gmeow:accordingTo annotation, reify on demand (Principle 4) — and avoid deleting a position: close the tenure with gmeow:endedAtTime, keep it, set gmeow:displayable false on it only when its own holder withdrew it, and never elevate one tenure as the authoritative position."@x-gmeow-english ;
     gmeow:docsConcern gmeow:concernDisclosure ,
         gmeow:concernStandpoints ;
     gmeow:graphBoxRole gmeow:boxCBox ,
@@ -819,7 +819,7 @@ DOCTRINE.
   * Three orthogonal axes, no inferential bridge: gmeow:accordingTo (whose frame) ⟂ gmeow:wasAttributedTo (which source recorded it) ⟂ gmeow:confidence (how sure we are).
   * Two clocks kept apart: fact-time (gmeow:validFrom / gmeow:validUntil — when the claimed fact holds) ⟂ standpoint-time (when the standpoint held the position — light via validFrom/Until on the statement, heavy via a reified gmeow:StandpointTenure).
   * No single slot to win (CONSTITUTION Principle 9): a contested fact is several standpoint-indexed claims that coexist; there is no preferredRank / primary* selector.
-  * Suppression for ordinary revision (Principle 10): a withdrawn claim or a closed tenure sets gmeow:displayable false; it is retained, not deleted.
+  * Suppression for ordinary revision (Principle 10): a claim its holder withdrew, or a tenure whose held claim its holder retracted, sets gmeow:displayable false; a tenure that merely closed takes no flag; nothing is deleted.
   * DL-clean by construction (Principle 3): the standpoint axis is an OWL AnnotationProperty, so the generated OWL downcast stays OWL 2 DL.
   * Factored modality: claim modality is six orthogonal canonical axes — gmeow:Polarity (affirm/deny/suspend) ⟂ gmeow:ModalForce (necessary/actual/possible/counterfactual) ⟂ gmeow:CredenceLevel + numeric gmeow:standpointCredence ⟂ gmeow:AssertoricForce (assert/conjecture/assume/retract) ⟂ gmeow:TruthDirectedness (truth-aimed/indifferent/strategic) ⟂ gmeow:SupportStatus (Belnap supported/opposed/both/neither). The legacy five-value gmeow:StandpointModality is RETAINED as a lossless projection of the axes (each value carries its canonical decomposition via gmeow:decomposesToAxis; absence supplies no legacy value; an axis tuple without an exact declared decomposition has no lossless legacy equivalent). bullshit = truthDirectedness indifferent (not a truth value); refuted = polarity deny (frame-relative, never global-false). The logic: machinery (Standpoint-Logic □/◊, Belnap support) stays central in slices/grounding/logic, referenced here by prose only — no asserted logic: triples.
 
@@ -946,22 +946,25 @@ logic:scuGuard a logic:Formula ; logic:relation gmeow:standpointCredence ;
 logic:scuHigh a logic:Formula ; logic:relation logic:termLessEqual ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "v" ] , [ logic:termIndex 1 ; logic:termLiteral "1.0" ; logic:termLiteralDatatype xsd:decimal ] .
 
-# A withdrawn standpoint (a gmeow:StandpointTenure whose interval has ended)
-# should set gmeow:displayable false — suppressed from display, never deleted. Warning.
+# A standpoint its own holder withdrew (a gmeow:StandpointTenure whose interval has
+# ended and whose held claim is retracted by an activity associated with that claim's
+# vantage) should set gmeow:displayable false — suppressed from display, never deleted.
+# Warning. An interval that merely ended, and a retraction by another party, are not
+# a withdrawal.
 gmeow:WithdrawnStandpointSuppressionConstraint
     a logic:Constraint ;
     rdfs:label "Withdrawn standpoint suppression constraint"@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/standpoint> ;
     gmeow:graphBoxRole gmeow:boxTBox ;
-    skos:definition "A closed-world integrity constraint: a gmeow:StandpointTenure whose interval has ended sets gmeow:displayable false."@x-gmeow-english ;
+    skos:definition "A closed-world integrity constraint: a gmeow:StandpointTenure whose interval has ended and whose held claim (gmeow:standpointClaim) is retracted through gmeow:retractsClaim by an activity that gmeow:wasAssociatedWith the claim's own gmeow:vantage should set gmeow:displayable false. It concerns a holder withdrawing its own position, which is hidden from every reader. A tenure whose interval merely ended, a retraction by another party, a retraction with no stated actor, and a claim that another party disputes or corrects are not reported: what a reader is shown of them is reader policy, decided at projection."@x-gmeow-english ;
     logic:formalizes gmeow:WithdrawnStandpointSuppressionShape ;
     logic:severity "Warning" ;
-    logic:message "A withdrawn standpoint (a StandpointTenure whose interval has ended) should set gmeow:displayable false — suppressed from display, never deleted." ;
+    logic:message "A standpoint tenure whose interval has ended and whose held claim its own holder retracted should set gmeow:displayable false — suppressed from display, never deleted." ;
     logic:integrity logic:wssForall .
 logic:wssForall a logic:Formula ;
     logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "iv" ] , [ logic:termIndex 2 ; logic:termVariable "end" ] ;
     logic:forall logic:wssImpl .
-logic:wssImpl a logic:Formula ; logic:antecedent logic:wssGuard ; logic:consequent logic:wssDisp .
+logic:wssImpl a logic:Formula ; logic:antecedent logic:wssGuard ; logic:consequent logic:wssPhi .
 logic:wssGuard a logic:Formula ; logic:and logic:wssType , logic:wssDuring , logic:wssEnded .
 logic:wssType a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri gmeow:StandpointTenure ] .
@@ -969,6 +972,21 @@ logic:wssDuring a logic:Formula ; logic:relation gmeow:duringInterval ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "iv" ] .
 logic:wssEnded a logic:Formula ; logic:relation gmeow:endedAtTime ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "iv" ] , [ logic:termIndex 1 ; logic:termVariable "end" ] .
+# Consequent: there is no holder-made retraction of the held claim while the tenure is unsuppressed.
+logic:wssPhi a logic:Formula ; logic:not logic:wssEx .
+logic:wssEx a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "claim" ] , [ logic:termIndex 1 ; logic:termVariable "holder" ] , [ logic:termIndex 2 ; logic:termVariable "act" ] ;
+    logic:exists logic:wssBody .
+logic:wssBody a logic:Formula ; logic:and logic:wssHeld , logic:wssVantage , logic:wssRetracts , logic:wssActor , logic:wssNotSuppressed .
+logic:wssHeld a logic:Formula ; logic:relation gmeow:standpointClaim ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "claim" ] .
+logic:wssVantage a logic:Formula ; logic:relation gmeow:vantage ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "claim" ] , [ logic:termIndex 1 ; logic:termVariable "holder" ] .
+logic:wssRetracts a logic:Formula ; logic:relation gmeow:retractsClaim ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "act" ] , [ logic:termIndex 1 ; logic:termVariable "claim" ] .
+logic:wssActor a logic:Formula ; logic:relation gmeow:wasAssociatedWith ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "act" ] , [ logic:termIndex 1 ; logic:termVariable "holder" ] .
+logic:wssNotSuppressed a logic:Formula ; logic:not logic:wssDisp .
 logic:wssDisp a logic:Formula ; logic:relation gmeow:displayable ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termLiteral "false" ; logic:termLiteralDatatype <http://www.w3.org/2001/XMLSchema#boolean> ] .
 
@@ -1081,7 +1099,7 @@ logic:npcPreferred a logic:Formula ; logic:relation logic:termStrStarts ;
 [ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/gmeow/StandpointTenure> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/gmeow/tenureStandpoint" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .
 
 
-# --- Wave B1 shape-drain: standpoint-tenure cardinality restoration ---
+# --- standpoint-tenure cardinality restoration ---
 # gmeow:StandpointTenureShape — a StandpointTenure records exactly one standpoint and exactly one
 # generated StandpointClaim.
 gmeow:StandpointTenure logic:subClassOf
@@ -1169,8 +1187,8 @@ gmeow:moreEntrenchedThanRankerOrderConstraint
     a logic:Constraint ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/standpoint> ;
     rdfs:label "More entrenched than per-ranker order constraint"@x-gmeow-english ;
-    skos:definition "A closed-world integrity constraint: one ranker may not hold both gmeow:moreEntrenchedThan(a, b) and gmeow:moreEntrenchedThan(b, a) as live claims, the reversed pair that would make the strict order symmetric. Both edges are matched through their RDF 1.2 reifiers, which must name the same ranker with gmeow:accordingTo, so two different rankers ranking a pair in opposite directions is the legal co-equal conflict of Principle 9 and is never rejected. A pair is exempt when one claim is linked to the other by gmeow:succeedsClaim or gmeow:correctsClaim in either direction, or when either claim is the object of a gmeow:retractsClaim, because those relations are the repository's encoding of a ranker changing or withdrawing a ranking. An edge from a standpoint to itself is the degenerate reversed pair. Only the pair of two claims is checked here: gmeow:moreEntrenchedThanRankerClosureConstraint requires the claim that spans a longer chain of live claims, and that claim meets the claim closing a longer cycle as a reversed pair."@x-gmeow-english ;
-    gmeow:avoidWhen "Avoid reading it as a check across rankers, who may legitimately disagree, as a check of a cycle longer than two, or as a check of who made a lifecycle link: any claim-lifecycle link between the two claims exempts the pair."@x-gmeow-english ;
+    skos:definition "A closed-world integrity constraint: one ranker may not hold both gmeow:moreEntrenchedThan(a, b) and gmeow:moreEntrenchedThan(b, a) as live claims, the reversed pair that would make the strict order symmetric. Both edges are matched through their RDF 1.2 reifiers, which must name the same ranker with gmeow:accordingTo, so two different rankers ranking a pair in opposite directions is the legal co-equal conflict of Principle 9 and is never rejected. A pair is exempt when one claim is linked to the other, in either direction, by a gmeow:succeedsClaim or gmeow:correctsClaim statement whose reifier names the same ranker with gmeow:accordingTo, or when either claim is the object of a gmeow:retractsClaim by an activity that gmeow:wasAssociatedWith that ranker, because those are the ranker changing or withdrawing its own ranking. A succession, correction or retraction made by another party is that party's claim about the ranking and exempts nothing. An edge from a standpoint to itself is the degenerate reversed pair. Only the pair of two claims is checked here: gmeow:moreEntrenchedThanRankerClosureConstraint requires the claim that spans a longer chain of live claims, and that claim meets the claim closing a longer cycle as a reversed pair."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid reading it as a check across rankers, who may legitimately disagree, as a check of a cycle longer than two, or as a derivation of who made a lifecycle link: only a link made by the same ranker exempts the pair."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox ;
     gmeow:howToUse "Record a reversal as a new ranking statement that gmeow:succeedsClaim the earlier one, a mistaken ranking with gmeow:correctsClaim, and a withdrawal with a gmeow:Activity that gmeow:retractsClaim the earlier claim; name the reifier of each ranking statement so that the lifecycle relation can reach it."@x-gmeow-english ;
     gmeow:useWhen "Use to reject a ranker who ranks the same two frames in both directions at once without recording a succession, correction or withdrawal."@x-gmeow-english ;
@@ -1202,29 +1220,71 @@ gmeow:moreEntrenchedThanRankerOrderConstraint
                                 logic:argument [ logic:termIndex 0 ; logic:termVariable "second" ] , [ logic:termIndex 1 ; logic:termVariable "this" ] ] ,
                             [ a logic:Formula ; logic:relation gmeow:accordingTo ;
                                 logic:argument [ logic:termIndex 0 ; logic:termVariable "second" ] , [ logic:termIndex 1 ; logic:termVariable "ranker" ] ] ,
-                            [ a logic:Formula ; logic:not [ a logic:Formula ; logic:relation gmeow:succeedsClaim ;
-                                logic:argument [ logic:termIndex 0 ; logic:termVariable "first" ] , [ logic:termIndex 1 ; logic:termVariable "second" ] ] ] ,
-                            [ a logic:Formula ; logic:not [ a logic:Formula ; logic:relation gmeow:succeedsClaim ;
-                                logic:argument [ logic:termIndex 0 ; logic:termVariable "second" ] , [ logic:termIndex 1 ; logic:termVariable "first" ] ] ] ,
-                            [ a logic:Formula ; logic:not [ a logic:Formula ; logic:relation gmeow:correctsClaim ;
-                                logic:argument [ logic:termIndex 0 ; logic:termVariable "first" ] , [ logic:termIndex 1 ; logic:termVariable "second" ] ] ] ,
-                            [ a logic:Formula ; logic:not [ a logic:Formula ; logic:relation gmeow:correctsClaim ;
-                                logic:argument [ logic:termIndex 0 ; logic:termVariable "second" ] , [ logic:termIndex 1 ; logic:termVariable "first" ] ] ] ,
+                            [ a logic:Formula ; logic:not [ a logic:Formula ;
+                                    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "ordersucceedsClaimfirstsecondLink" ] ;
+                                    logic:exists [ a logic:Formula ;
+                                        logic:and [ a logic:Formula ; logic:relation logic:reifiedStatementSubject ;
+                                                logic:argument [ logic:termIndex 0 ; logic:termVariable "ordersucceedsClaimfirstsecondLink" ] , [ logic:termIndex 1 ; logic:termVariable "first" ] ] ,
+                                            [ a logic:Formula ; logic:relation logic:reifiedStatementPredicate ;
+                                                logic:argument [ logic:termIndex 0 ; logic:termVariable "ordersucceedsClaimfirstsecondLink" ] , [ logic:termIndex 1 ; logic:termIri gmeow:succeedsClaim ] ] ,
+                                            [ a logic:Formula ; logic:relation logic:reifiedStatementObject ;
+                                                logic:argument [ logic:termIndex 0 ; logic:termVariable "ordersucceedsClaimfirstsecondLink" ] , [ logic:termIndex 1 ; logic:termVariable "second" ] ] ,
+                                            [ a logic:Formula ; logic:relation gmeow:accordingTo ;
+                                                logic:argument [ logic:termIndex 0 ; logic:termVariable "ordersucceedsClaimfirstsecondLink" ] , [ logic:termIndex 1 ; logic:termVariable "ranker" ] ] ] ] ] ,
+                            [ a logic:Formula ; logic:not [ a logic:Formula ;
+                                    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "ordersucceedsClaimsecondfirstLink" ] ;
+                                    logic:exists [ a logic:Formula ;
+                                        logic:and [ a logic:Formula ; logic:relation logic:reifiedStatementSubject ;
+                                                logic:argument [ logic:termIndex 0 ; logic:termVariable "ordersucceedsClaimsecondfirstLink" ] , [ logic:termIndex 1 ; logic:termVariable "second" ] ] ,
+                                            [ a logic:Formula ; logic:relation logic:reifiedStatementPredicate ;
+                                                logic:argument [ logic:termIndex 0 ; logic:termVariable "ordersucceedsClaimsecondfirstLink" ] , [ logic:termIndex 1 ; logic:termIri gmeow:succeedsClaim ] ] ,
+                                            [ a logic:Formula ; logic:relation logic:reifiedStatementObject ;
+                                                logic:argument [ logic:termIndex 0 ; logic:termVariable "ordersucceedsClaimsecondfirstLink" ] , [ logic:termIndex 1 ; logic:termVariable "first" ] ] ,
+                                            [ a logic:Formula ; logic:relation gmeow:accordingTo ;
+                                                logic:argument [ logic:termIndex 0 ; logic:termVariable "ordersucceedsClaimsecondfirstLink" ] , [ logic:termIndex 1 ; logic:termVariable "ranker" ] ] ] ] ] ,
+                            [ a logic:Formula ; logic:not [ a logic:Formula ;
+                                    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "ordercorrectsClaimfirstsecondLink" ] ;
+                                    logic:exists [ a logic:Formula ;
+                                        logic:and [ a logic:Formula ; logic:relation logic:reifiedStatementSubject ;
+                                                logic:argument [ logic:termIndex 0 ; logic:termVariable "ordercorrectsClaimfirstsecondLink" ] , [ logic:termIndex 1 ; logic:termVariable "first" ] ] ,
+                                            [ a logic:Formula ; logic:relation logic:reifiedStatementPredicate ;
+                                                logic:argument [ logic:termIndex 0 ; logic:termVariable "ordercorrectsClaimfirstsecondLink" ] , [ logic:termIndex 1 ; logic:termIri gmeow:correctsClaim ] ] ,
+                                            [ a logic:Formula ; logic:relation logic:reifiedStatementObject ;
+                                                logic:argument [ logic:termIndex 0 ; logic:termVariable "ordercorrectsClaimfirstsecondLink" ] , [ logic:termIndex 1 ; logic:termVariable "second" ] ] ,
+                                            [ a logic:Formula ; logic:relation gmeow:accordingTo ;
+                                                logic:argument [ logic:termIndex 0 ; logic:termVariable "ordercorrectsClaimfirstsecondLink" ] , [ logic:termIndex 1 ; logic:termVariable "ranker" ] ] ] ] ] ,
+                            [ a logic:Formula ; logic:not [ a logic:Formula ;
+                                    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "ordercorrectsClaimsecondfirstLink" ] ;
+                                    logic:exists [ a logic:Formula ;
+                                        logic:and [ a logic:Formula ; logic:relation logic:reifiedStatementSubject ;
+                                                logic:argument [ logic:termIndex 0 ; logic:termVariable "ordercorrectsClaimsecondfirstLink" ] , [ logic:termIndex 1 ; logic:termVariable "second" ] ] ,
+                                            [ a logic:Formula ; logic:relation logic:reifiedStatementPredicate ;
+                                                logic:argument [ logic:termIndex 0 ; logic:termVariable "ordercorrectsClaimsecondfirstLink" ] , [ logic:termIndex 1 ; logic:termIri gmeow:correctsClaim ] ] ,
+                                            [ a logic:Formula ; logic:relation logic:reifiedStatementObject ;
+                                                logic:argument [ logic:termIndex 0 ; logic:termVariable "ordercorrectsClaimsecondfirstLink" ] , [ logic:termIndex 1 ; logic:termVariable "first" ] ] ,
+                                            [ a logic:Formula ; logic:relation gmeow:accordingTo ;
+                                                logic:argument [ logic:termIndex 0 ; logic:termVariable "ordercorrectsClaimsecondfirstLink" ] , [ logic:termIndex 1 ; logic:termVariable "ranker" ] ] ] ] ] ,
                             [ a logic:Formula ; logic:not [ a logic:Formula ;
                                 logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "withdrawal" ] ;
-                                logic:exists [ a logic:Formula ; logic:relation gmeow:retractsClaim ;
-                                    logic:argument [ logic:termIndex 0 ; logic:termVariable "withdrawal" ] , [ logic:termIndex 1 ; logic:termVariable "first" ] ] ] ] ,
+                                logic:exists [ a logic:Formula ;
+                                        logic:and [ a logic:Formula ; logic:relation gmeow:retractsClaim ;
+                                            logic:argument [ logic:termIndex 0 ; logic:termVariable "withdrawal" ] , [ logic:termIndex 1 ; logic:termVariable "first" ] ] ,
+                                        [ a logic:Formula ; logic:relation gmeow:wasAssociatedWith ;
+                                            logic:argument [ logic:termIndex 0 ; logic:termVariable "withdrawal" ] , [ logic:termIndex 1 ; logic:termVariable "ranker" ] ] ] ] ] ,
                             [ a logic:Formula ; logic:not [ a logic:Formula ;
                                 logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "withdrawal" ] ;
-                                logic:exists [ a logic:Formula ; logic:relation gmeow:retractsClaim ;
-                                    logic:argument [ logic:termIndex 0 ; logic:termVariable "withdrawal" ] , [ logic:termIndex 1 ; logic:termVariable "second" ] ] ] ] ] ] ] ] ] .
+                                logic:exists [ a logic:Formula ;
+                                        logic:and [ a logic:Formula ; logic:relation gmeow:retractsClaim ;
+                                            logic:argument [ logic:termIndex 0 ; logic:termVariable "withdrawal" ] , [ logic:termIndex 1 ; logic:termVariable "second" ] ] ,
+                                        [ a logic:Formula ; logic:relation gmeow:wasAssociatedWith ;
+                                            logic:argument [ logic:termIndex 0 ; logic:termVariable "withdrawal" ] , [ logic:termIndex 1 ; logic:termVariable "ranker" ] ] ] ] ] ] ] ] ] ] .
 
 gmeow:moreEntrenchedThanRankerClosureConstraint
     a logic:Constraint ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/standpoint> ;
     rdfs:label "More entrenched than per-ranker closure constraint"@x-gmeow-english ;
-    skos:definition "A closed-world integrity constraint: when one ranker holds a live claim gmeow:moreEntrenchedThan(a, b) and a live claim gmeow:moreEntrenchedThan(b, c), that ranker must also hold a live claim gmeow:moreEntrenchedThan(a, c), so that each ranker's live claims are closed under transitivity. All three edges are matched through their RDF 1.2 reifiers, which must name the same ranker with gmeow:accordingTo, so the claims of different rankers are never chained (Principle 9). A claim is live when it is the object of no gmeow:succeedsClaim, of no gmeow:retractsClaim, and of no gmeow:correctsClaim statement whose reifier names the same ranker with gmeow:accordingTo. The ranker is read from the annotation on the correction statement, not from the correcting claim: a correction statement that names another party leaves the claim live, whichever claim it is made from, because a correction does not supersede or suppress the claim it corrects. A premise that is superseded, retracted or corrected by a statement that names its own ranker does not oblige, and the concluding claim must itself be live: the live claims are the ones a displayed order keeps once every recorded lifecycle relation has taken effect, so they then already contain every ranking that closing them derives. Together with gmeow:moreEntrenchedThanIrreflexivity and gmeow:moreEntrenchedThanRankerOrderConstraint this rejects a cycle of any length among one ranker's live claims: the closure forces a live claim from the first standpoint of the cycle to its last, and that claim meets the claim closing the cycle as a reversed pair. The check reads the record as it stands and compares no dates, so it does not judge the order at an evaluation instant. logic:transitiveReach is not used, because it follows one fixed property over asserted edges and cannot be restricted to the reifiers that name one ranker. A universal-to-existential formula over the lowered reifier components."@x-gmeow-english ;
-    gmeow:avoidWhen "Avoid reading it as a closure across rankers, as a derivation that adds the missing claim for you, as a check of the order at an evaluation instant, or as a check of who made a succession or a retraction: any gmeow:succeedsClaim or gmeow:retractsClaim link to a claim makes that claim not live, while a gmeow:correctsClaim statement does so only when its reifier names the same ranker with gmeow:accordingTo. It applies to a chain whose first standpoint is typed gmeow:Standpoint."@x-gmeow-english ;
+    skos:definition "A closed-world integrity constraint: when one ranker holds a live claim gmeow:moreEntrenchedThan(a, b) and a live claim gmeow:moreEntrenchedThan(b, c), that ranker must also hold a live claim gmeow:moreEntrenchedThan(a, c), so that each ranker's live claims are closed under transitivity. All three edges are matched through their RDF 1.2 reifiers, which must name the same ranker with gmeow:accordingTo, so the claims of different rankers are never chained (Principle 9). A claim is live when it is the object of no gmeow:succeedsClaim or gmeow:correctsClaim statement whose reifier names the same ranker with gmeow:accordingTo, and of no gmeow:retractsClaim by an activity that gmeow:wasAssociatedWith that ranker. The ranker is read from the annotation on the correction statement, not from the correcting claim: a correction statement that names another party leaves the claim live, whichever claim it is made from, because a correction does not supersede or suppress the claim it corrects. A premise that is superseded, retracted or corrected by a statement that names its own ranker does not oblige, and the concluding claim must itself be live: the live claims are the ones a displayed order keeps once every recorded lifecycle relation has taken effect, so they then already contain every ranking that closing them derives. Together with gmeow:moreEntrenchedThanIrreflexivity and gmeow:moreEntrenchedThanRankerOrderConstraint this rejects a cycle of any length among one ranker's live claims: the closure forces a live claim from the first standpoint of the cycle to its last, and that claim meets the claim closing the cycle as a reversed pair. The check reads the record as it stands and compares no dates, so it does not judge the order at an evaluation instant. logic:transitiveReach is not used, because it follows one fixed property over asserted edges and cannot be restricted to the reifiers that name one ranker. A universal-to-existential formula over the lowered reifier components."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid reading it as a closure across rankers, as a derivation that adds the missing claim for you, as a check of the order at an evaluation instant, or as a derivation of who made a lifecycle link: a gmeow:succeedsClaim or gmeow:correctsClaim statement makes a claim not live only when its reifier names the same ranker with gmeow:accordingTo, and a gmeow:retractsClaim only when its activity gmeow:wasAssociatedWith that ranker. It applies to a chain whose first standpoint is typed gmeow:Standpoint."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox ;
     gmeow:howToUse "When a ranker ranks a over b and b over c, record that ranker's dated claim ranking a over c as its own annotated statement. When a premise is succeeded, retracted or corrected by a statement annotated with the same ranker the obligation lapses, and the concluding claim can then be changed or withdrawn with the same claim-lifecycle relations."@x-gmeow-english ;
     gmeow:useWhen "Use to reject a ranker whose live claims rank a over b and b over c without a live claim that ranks a over c."@x-gmeow-english ;
@@ -1254,9 +1314,16 @@ gmeow:moreEntrenchedThanRankerClosureConstraint
                     [ a logic:Formula ; logic:relation gmeow:accordingTo ;
                         logic:argument [ logic:termIndex 0 ; logic:termVariable "second" ] , [ logic:termIndex 1 ; logic:termVariable "ranker" ] ] ,
                     [ a logic:Formula ; logic:not [ a logic:Formula ;
-                        logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "firstSuccessor" ] ;
-                        logic:exists [ a logic:Formula ; logic:relation gmeow:succeedsClaim ;
-                            logic:argument [ logic:termIndex 0 ; logic:termVariable "firstSuccessor" ] , [ logic:termIndex 1 ; logic:termVariable "first" ] ] ] ] ,
+                        logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "firstSuccessor" ] , [ logic:termIndex 1 ; logic:termVariable "firstSuccessorLink" ] ;
+                        logic:exists [ a logic:Formula ;
+                            logic:and [ a logic:Formula ; logic:relation logic:reifiedStatementSubject ;
+                                    logic:argument [ logic:termIndex 0 ; logic:termVariable "firstSuccessorLink" ] , [ logic:termIndex 1 ; logic:termVariable "firstSuccessor" ] ] ,
+                                [ a logic:Formula ; logic:relation logic:reifiedStatementPredicate ;
+                                    logic:argument [ logic:termIndex 0 ; logic:termVariable "firstSuccessorLink" ] , [ logic:termIndex 1 ; logic:termIri gmeow:succeedsClaim ] ] ,
+                                [ a logic:Formula ; logic:relation logic:reifiedStatementObject ;
+                                    logic:argument [ logic:termIndex 0 ; logic:termVariable "firstSuccessorLink" ] , [ logic:termIndex 1 ; logic:termVariable "first" ] ] ,
+                                [ a logic:Formula ; logic:relation gmeow:accordingTo ;
+                                    logic:argument [ logic:termIndex 0 ; logic:termVariable "firstSuccessorLink" ] , [ logic:termIndex 1 ; logic:termVariable "ranker" ] ] ] ] ] ,
                     [ a logic:Formula ; logic:not [ a logic:Formula ;
                         logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "firstCorrection" ] , [ logic:termIndex 1 ; logic:termVariable "firstCorrectionLink" ] ;
                         logic:exists [ a logic:Formula ;
@@ -1270,12 +1337,22 @@ gmeow:moreEntrenchedThanRankerClosureConstraint
                                     logic:argument [ logic:termIndex 0 ; logic:termVariable "firstCorrectionLink" ] , [ logic:termIndex 1 ; logic:termVariable "ranker" ] ] ] ] ] ,
                     [ a logic:Formula ; logic:not [ a logic:Formula ;
                         logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "firstWithdrawal" ] ;
-                        logic:exists [ a logic:Formula ; logic:relation gmeow:retractsClaim ;
-                            logic:argument [ logic:termIndex 0 ; logic:termVariable "firstWithdrawal" ] , [ logic:termIndex 1 ; logic:termVariable "first" ] ] ] ] ,
+                        logic:exists [ a logic:Formula ;
+                                logic:and [ a logic:Formula ; logic:relation gmeow:retractsClaim ;
+                                    logic:argument [ logic:termIndex 0 ; logic:termVariable "firstWithdrawal" ] , [ logic:termIndex 1 ; logic:termVariable "first" ] ] ,
+                                [ a logic:Formula ; logic:relation gmeow:wasAssociatedWith ;
+                                    logic:argument [ logic:termIndex 0 ; logic:termVariable "firstWithdrawal" ] , [ logic:termIndex 1 ; logic:termVariable "ranker" ] ] ] ] ] ,
                     [ a logic:Formula ; logic:not [ a logic:Formula ;
-                        logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "secondSuccessor" ] ;
-                        logic:exists [ a logic:Formula ; logic:relation gmeow:succeedsClaim ;
-                            logic:argument [ logic:termIndex 0 ; logic:termVariable "secondSuccessor" ] , [ logic:termIndex 1 ; logic:termVariable "second" ] ] ] ] ,
+                        logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "secondSuccessor" ] , [ logic:termIndex 1 ; logic:termVariable "secondSuccessorLink" ] ;
+                        logic:exists [ a logic:Formula ;
+                            logic:and [ a logic:Formula ; logic:relation logic:reifiedStatementSubject ;
+                                    logic:argument [ logic:termIndex 0 ; logic:termVariable "secondSuccessorLink" ] , [ logic:termIndex 1 ; logic:termVariable "secondSuccessor" ] ] ,
+                                [ a logic:Formula ; logic:relation logic:reifiedStatementPredicate ;
+                                    logic:argument [ logic:termIndex 0 ; logic:termVariable "secondSuccessorLink" ] , [ logic:termIndex 1 ; logic:termIri gmeow:succeedsClaim ] ] ,
+                                [ a logic:Formula ; logic:relation logic:reifiedStatementObject ;
+                                    logic:argument [ logic:termIndex 0 ; logic:termVariable "secondSuccessorLink" ] , [ logic:termIndex 1 ; logic:termVariable "second" ] ] ,
+                                [ a logic:Formula ; logic:relation gmeow:accordingTo ;
+                                    logic:argument [ logic:termIndex 0 ; logic:termVariable "secondSuccessorLink" ] , [ logic:termIndex 1 ; logic:termVariable "ranker" ] ] ] ] ] ,
                     [ a logic:Formula ; logic:not [ a logic:Formula ;
                         logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "secondCorrection" ] , [ logic:termIndex 1 ; logic:termVariable "secondCorrectionLink" ] ;
                         logic:exists [ a logic:Formula ;
@@ -1289,8 +1366,11 @@ gmeow:moreEntrenchedThanRankerClosureConstraint
                                     logic:argument [ logic:termIndex 0 ; logic:termVariable "secondCorrectionLink" ] , [ logic:termIndex 1 ; logic:termVariable "ranker" ] ] ] ] ] ,
                     [ a logic:Formula ; logic:not [ a logic:Formula ;
                         logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "secondWithdrawal" ] ;
-                        logic:exists [ a logic:Formula ; logic:relation gmeow:retractsClaim ;
-                            logic:argument [ logic:termIndex 0 ; logic:termVariable "secondWithdrawal" ] , [ logic:termIndex 1 ; logic:termVariable "second" ] ] ] ] ] ;
+                        logic:exists [ a logic:Formula ;
+                                logic:and [ a logic:Formula ; logic:relation gmeow:retractsClaim ;
+                                    logic:argument [ logic:termIndex 0 ; logic:termVariable "secondWithdrawal" ] , [ logic:termIndex 1 ; logic:termVariable "second" ] ] ,
+                                [ a logic:Formula ; logic:relation gmeow:wasAssociatedWith ;
+                                    logic:argument [ logic:termIndex 0 ; logic:termVariable "secondWithdrawal" ] , [ logic:termIndex 1 ; logic:termVariable "ranker" ] ] ] ] ] ] ;
             logic:consequent [ a logic:Formula ;
                 logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "third" ] ;
                 logic:exists [ a logic:Formula ;
@@ -1303,9 +1383,16 @@ gmeow:moreEntrenchedThanRankerClosureConstraint
                         [ a logic:Formula ; logic:relation gmeow:accordingTo ;
                             logic:argument [ logic:termIndex 0 ; logic:termVariable "third" ] , [ logic:termIndex 1 ; logic:termVariable "ranker" ] ] ,
                         [ a logic:Formula ; logic:not [ a logic:Formula ;
-                            logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "thirdSuccessor" ] ;
-                            logic:exists [ a logic:Formula ; logic:relation gmeow:succeedsClaim ;
-                                logic:argument [ logic:termIndex 0 ; logic:termVariable "thirdSuccessor" ] , [ logic:termIndex 1 ; logic:termVariable "third" ] ] ] ] ,
+                            logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "thirdSuccessor" ] , [ logic:termIndex 1 ; logic:termVariable "thirdSuccessorLink" ] ;
+                            logic:exists [ a logic:Formula ;
+                                logic:and [ a logic:Formula ; logic:relation logic:reifiedStatementSubject ;
+                                        logic:argument [ logic:termIndex 0 ; logic:termVariable "thirdSuccessorLink" ] , [ logic:termIndex 1 ; logic:termVariable "thirdSuccessor" ] ] ,
+                                    [ a logic:Formula ; logic:relation logic:reifiedStatementPredicate ;
+                                        logic:argument [ logic:termIndex 0 ; logic:termVariable "thirdSuccessorLink" ] , [ logic:termIndex 1 ; logic:termIri gmeow:succeedsClaim ] ] ,
+                                    [ a logic:Formula ; logic:relation logic:reifiedStatementObject ;
+                                        logic:argument [ logic:termIndex 0 ; logic:termVariable "thirdSuccessorLink" ] , [ logic:termIndex 1 ; logic:termVariable "third" ] ] ,
+                                    [ a logic:Formula ; logic:relation gmeow:accordingTo ;
+                                        logic:argument [ logic:termIndex 0 ; logic:termVariable "thirdSuccessorLink" ] , [ logic:termIndex 1 ; logic:termVariable "ranker" ] ] ] ] ] ,
                         [ a logic:Formula ; logic:not [ a logic:Formula ;
                             logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "thirdCorrection" ] , [ logic:termIndex 1 ; logic:termVariable "thirdCorrectionLink" ] ;
                             logic:exists [ a logic:Formula ;
@@ -1319,8 +1406,11 @@ gmeow:moreEntrenchedThanRankerClosureConstraint
                                         logic:argument [ logic:termIndex 0 ; logic:termVariable "thirdCorrectionLink" ] , [ logic:termIndex 1 ; logic:termVariable "ranker" ] ] ] ] ] ,
                         [ a logic:Formula ; logic:not [ a logic:Formula ;
                             logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "thirdWithdrawal" ] ;
-                            logic:exists [ a logic:Formula ; logic:relation gmeow:retractsClaim ;
-                                logic:argument [ logic:termIndex 0 ; logic:termVariable "thirdWithdrawal" ] , [ logic:termIndex 1 ; logic:termVariable "third" ] ] ] ] ] ] ] ] .
+                            logic:exists [ a logic:Formula ;
+                                    logic:and [ a logic:Formula ; logic:relation gmeow:retractsClaim ;
+                                        logic:argument [ logic:termIndex 0 ; logic:termVariable "thirdWithdrawal" ] , [ logic:termIndex 1 ; logic:termVariable "third" ] ] ,
+                                    [ a logic:Formula ; logic:relation gmeow:wasAssociatedWith ;
+                                        logic:argument [ logic:termIndex 0 ; logic:termVariable "thirdWithdrawal" ] , [ logic:termIndex 1 ; logic:termVariable "ranker" ] ] ] ] ] ] ] ] ] .
 
 gmeow:claimAssertoricForceFunctionality
     a logic:NamedIndividual ,
@@ -1483,7 +1573,7 @@ gmeow:succeedsClaim
     skos:definition "Relates a successor claim-bearing entity to its predecessor when the claimed state changes. The predecessor remains valid during its earlier fact-time interval according to the stated standpoint."@x-gmeow-english ;
     gmeow:howToUse "Annotate the relation with accordingTo and validFrom for its effective time; retain separate fact-time intervals on the claims or name usages."@x-gmeow-english ;
     gmeow:useWhen "Relates a successor claim-bearing entity to its predecessor when the claimed state changes. The predecessor remains valid during its earlier fact-time interval according to the stated standpoint."@x-gmeow-english ;
-    gmeow:avoidWhen "Do not infer global truth, deletion, a preferred claim or a change in another standpoint."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not infer global truth, deletion, a preferred claim or a change in another standpoint. A succession asserted by another party is that party's claim about the target: it does not end the target's liveness for a reader, and no constraint reads it as the holder revising its own record."@x-gmeow-english ;
     skos:scopeNote "The effective time of a lifecycle relation is distinct from the fact-time interval of the proposition. Display suppression is a projection policy, not a global truth judgment."@x-gmeow-english ;
     skos:example "ex:janet gmeow:succeedsClaim ex:bob ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
@@ -1511,7 +1601,7 @@ gmeow:retractsClaim
     skos:definition "Relates a withdrawal activity to the claim-bearing entity it withdraws in a stated standpoint. This relation is the canonical lifecycle encoding; a speech-act force alone performs no withdrawal."@x-gmeow-english ;
     gmeow:howToUse "Type the subject Activity, name its actor with wasAssociatedWith, and annotate the relation with accordingTo and validFrom. Retraction suppresses retained history for ordinary revision; erasure requires separate authorization."@x-gmeow-english ;
     gmeow:useWhen "Relates a withdrawal activity to the claim-bearing entity it withdraws in a stated standpoint. This relation is the canonical lifecycle encoding; a speech-act force alone performs no withdrawal."@x-gmeow-english ;
-    gmeow:avoidWhen "Do not infer global truth, deletion, a preferred claim or a change in another standpoint."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not infer global truth, deletion, a preferred claim or a change in another standpoint. Only the claim's own holder withdraws it: a retraction by an activity associated with another party is that party's statement about the claim and does not end its liveness or prompt its suppression."@x-gmeow-english ;
     skos:scopeNote "The effective time of a lifecycle relation is distinct from the fact-time interval of the proposition. Display suppression is a projection policy, not a global truth judgment."@x-gmeow-english ;
     skos:example "ex:withdrawal a gmeow:Activity ; gmeow:retractsClaim ex:claim ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
