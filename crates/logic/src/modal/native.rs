@@ -358,11 +358,14 @@ impl NativeModalProgram {
                 source.subject.as_iri() == Some(frame.w0.as_str())
                     && source.predicate == frame.relation
             }) {
-                let target = source.object.as_iri().ok_or_else(|| {
-                    modal_err("selected modal accessibility endpoint must be an IRI".into())
-                })?;
+                // Same typed diagnostic as the legacy evaluator: a non-IRI endpoint is
+                // refused by the shared accessibility-target binding, never a second wording.
+                let target = source.object.as_iri().map_or_else(
+                    || crate::provenance::term_display(&source.object),
+                    str::to_owned,
+                );
                 admit(iri_binding(
-                    target,
+                    &target,
                     "typed accessibility edge target world",
                 )?);
             }
