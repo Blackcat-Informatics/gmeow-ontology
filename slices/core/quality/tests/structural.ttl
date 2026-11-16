@@ -177,7 +177,6 @@ ASK {
     l:exists ?parameterRelation .
   ?parameterRelation l:relation m:estimatedParameter ;
     l:argument [ l:termIndex 0 ; l:termVariable ?result ] , [ l:termIndex 1 ; l:termVariable ?parameter ] .
-}
 }""" ;
     gmeow:saRationale "The aggregate result law MUST be a logic:Constraint over the aggregate assessment whose per-result obligations are five distinct conjuncts: a value exists, every value is a math:Quantity, an estimator exists, every estimator is a math:Estimator, and an estimand or a parameter target exists. The pattern also pins how each conjunct is wired: every relation (math:estimateValue, math:estimator, math:estimatesEstimand, math:estimatedParameter) takes the law's quantified result variable as its first argument; each existence witness is the quantified variable that relation binds as its second argument; and each typing conjunct is guarded by math:estimateValue (for math:Quantity) or math:estimator (for math:Estimator) on that result, quantifies the variable the guard binds, and types that same variable. Removing a conjunct, swapping a typing guard to the other relation, or typing a different variable falsifies the assertion." .
 
