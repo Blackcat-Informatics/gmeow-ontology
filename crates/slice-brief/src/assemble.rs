@@ -590,7 +590,11 @@ pub fn exemplar_tiers(
     // The SHACL per-term conformance gate: validate the slice's authoring dataset
     // against the repo shape union and collect the focus-node term IRIs that carry a
     // Violation-severity result. A term "passed the gate" iff it is NOT in this set.
-    let report = purrdf::shapes::engine::validate_dataset(&ds, shapes).map_err(|e| {
+    // Through the statement-lowering view, like every SHACL data view: a constraint over a
+    // reified statement's components joins on the lowered edges. A nested statement's
+    // residue names a reifier, never a defined term, so it cannot move a term's tier.
+    let view = gmeow_logic_compile::statement_lowering::validation_view(&ds)?;
+    let report = purrdf::shapes::engine::validate_dataset(view.dataset(), shapes).map_err(|e| {
         gmeow_errors::Diag::of_kind(error::Io {
             detail: format!("{}: SHACL validation failed: {e}", slice_dir.display()),
         })

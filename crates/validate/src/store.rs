@@ -26,21 +26,107 @@ use purrdf::{RdfDataset, RdfDatasetBuilder, parse_dataset};
 
 use crate::model::{logic, owl};
 
+/// The finding code naming a reified statement the validation view could not lower.
+pub const NESTED_TRIPLE_TERM_CODE: &str = "validate.nested-triple-term-not-lowered";
+
+/// One SHACL validation of a data view: the result set, and the RDF 1.2 statements the
+/// view could not lower.
+#[derive(Debug)]
+#[must_use]
+pub struct ShaclValidation {
+    /// The engine's report over the lowered view, indistinguishable results collapsed.
+    pub report: purrdf::shapes::report::ValidationReport,
+    /// The reifiers whose statement nests a triple term (`logic:rdf12-nested-triple-term`).
+    /// No constraint over `logic:reifiedStatementSubject` / `…Predicate` / `…Object` can
+    /// match such a statement, so the report is silent about it whatever it says.
+    pub nested: Vec<purrdf::RdfTerm>,
+}
+
+impl ShaclValidation {
+    /// [`nested_findings`] over this validation's residue.
+    #[must_use]
+    pub fn nested_findings(&self, origin: Option<&str>) -> Vec<gmeow_errors::Finding> {
+        nested_findings(&self.nested, origin)
+    }
+}
+
+/// One warning finding per unlowered statement, so a report that carries findings names
+/// the residue instead of presenting the statement as checked. A warning, not an error:
+/// the data is well formed RDF 1.2, and the boundary is the lowering's, exactly as the
+/// reasoning CLI warns over the same residue. `origin` is the validated file's display path.
+#[must_use]
+pub fn nested_findings(
+    nested: &[purrdf::RdfTerm],
+    origin: Option<&str>,
+) -> Vec<gmeow_errors::Finding> {
+    nested
+        .iter()
+        .map(|reifier| {
+            let reifier = reifier.to_string();
+            let mut finding = gmeow_errors::Finding::new(
+                gmeow_errors::Severity::Warning,
+                NESTED_TRIPLE_TERM_CODE,
+                format!(
+                    "{reifier} reifies a statement that nests a triple term. It has no \
+                         non-term component to lower into logic:reifiedStatementSubject / \
+                         logic:reifiedStatementPredicate / logic:reifiedStatementObject, so no \
+                         constraint over those components was evaluated against it \
+                         (logic:rdf12-nested-triple-term)."
+                ),
+            );
+            finding.add_location(gmeow_errors::model::Location {
+                path: origin.map(str::to_owned),
+                logical: Some(reifier),
+                ..gmeow_errors::model::Location::default()
+            });
+            finding
+        })
+        .collect()
+}
+
 /// Validate a native [`RdfDataset`] against parsed SHACL
-/// [`purrdf::shapes::shapes::Shapes`] over the native
-/// IR engine.
+/// [`purrdf::shapes::shapes::Shapes`] over the native IR engine.
 ///
-/// The SHACL engine is fully native (it takes an `RdfDataset` directly), so this is a
-/// thin wrapper that surfaces the validation report and treats engine failure as
-/// infallible for a frozen, validated dataset.
+/// The data is validated through its statement-lowering view
+/// ([`gmeow_logic_compile::statement_lowering::validation_view`]): every RDF 1.2
+/// reification gains its `logic:reifiedStatementSubject` / `…Predicate` / `…Object`
+/// edges, which the SHACL derived from a `logic:Constraint` over a reified statement's
+/// components joins on. Those edges exist only in the view; `dataset` is not changed.
+/// Indistinguishable results are collapsed ([`dedupe_validation_results`]).
+///
+/// # Errors
+///
+/// Returns `Err` if the view fails to freeze or the engine refuses the validation.
 pub fn shacl_validate_dataset(
     dataset: &RdfDataset,
     shapes: &purrdf::shapes::shapes::Shapes,
-) -> purrdf::shapes::report::ValidationReport {
-    let mut report = purrdf::shapes::engine::validate_dataset(dataset, shapes)
-        .expect("validation over a frozen dataset is infallible");
-    dedupe_validation_results(&mut report);
-    report
+) -> gmeow_errors::Result<ShaclValidation> {
+    let mut validation = shacl_validate_view(dataset, shapes)?;
+    dedupe_validation_results(&mut validation.report);
+    Ok(validation)
+}
+
+/// [`shacl_validate_dataset`] without the result-set collapse, for a harness that must
+/// see every result the engine emitted ([`duplicate_validation_results`] audits them).
+///
+/// # Errors
+///
+/// As [`shacl_validate_dataset`].
+pub fn shacl_validate_view(
+    dataset: &RdfDataset,
+    shapes: &purrdf::shapes::shapes::Shapes,
+) -> gmeow_errors::Result<ShaclValidation> {
+    let view = gmeow_logic_compile::statement_lowering::validation_view(dataset)?;
+    let report =
+        purrdf::shapes::engine::validate_dataset(view.dataset(), shapes).map_err(|error| {
+            Diag::of_kind(crate::error::Dataset {
+                detail: format!("SHACL validation failed: {error}"),
+            })
+        })?;
+    Ok(ShaclValidation {
+        report,
+        nested: view.nested,
+    })
 }
 
 /// The total, order-preserving identity of a SHACL result: every field a consumer can

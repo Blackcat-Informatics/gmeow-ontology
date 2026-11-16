@@ -57,16 +57,22 @@ fn fresh_bytes_win_over_stale_disk_bytes() {
     let (_store, shapes) = load_shapes_fresh(repo.path(), &fresh).expect("fresh union loads");
     let classes = target_classes(&shapes);
     assert!(
-        classes.contains(&"https://example.test/Fresh".to_string()),
+        classes
+            .iter()
+            .any(|class| class == "https://example.test/Fresh"),
         "the union must carry THIS run's fresh generated shape; got {classes:?}"
     );
     assert!(
-        !classes.contains(&"https://example.test/Stale".to_string()),
+        !classes
+            .iter()
+            .any(|class| class == "https://example.test/Stale"),
         "the union must NOT carry the previous run's on-disk bytes (the \
              stale-disk-fold class); got {classes:?}"
     );
     assert!(
-        classes.contains(&"https://example.test/Authored".to_string()),
+        classes
+            .iter()
+            .any(|class| class == "https://example.test/Authored"),
         "the authored disk member still joins the union; got {classes:?}"
     );
 }
@@ -87,12 +93,16 @@ fn stale_disk_generated_member_without_fresh_entry_is_ignored() {
         .expect("union loads with no fresh generated members");
     let classes = target_classes(&shapes);
     assert!(
-        !classes.contains(&"https://example.test/Stale".to_string()),
+        !classes
+            .iter()
+            .any(|class| class == "https://example.test/Stale"),
         "a stale on-disk generated member with no fresh entry must NOT join the union \
              (fresh keys are the sole generated authority); got {classes:?}"
     );
     assert!(
-        classes.contains(&"https://example.test/Authored".to_string()),
+        classes
+            .iter()
+            .any(|class| class == "https://example.test/Authored"),
         "the authored disk member still joins; got {classes:?}"
     );
 }
@@ -119,7 +129,9 @@ fn fresh_only_member_joins_the_union() {
     let (_store, shapes) = load_shapes_fresh(repo.path(), &fresh).expect("fresh union loads");
     let classes = target_classes(&shapes);
     assert!(
-        classes.contains(&"https://example.test/FirstRun".to_string()),
+        classes
+            .iter()
+            .any(|class| class == "https://example.test/FirstRun"),
         "a product-only generated member (absent on disk) must join the union; got {classes:?}"
     );
 }

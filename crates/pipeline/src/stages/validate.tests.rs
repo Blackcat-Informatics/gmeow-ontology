@@ -861,3 +861,44 @@ fn stage_validate_hard_fails_without_the_reasoned_upstream() {
         "the hard-fail must name the missing stage-reason upstream: {err:?}"
     );
 }
+
+/// INVARIANT: `stage-validate` validates the statement-lowering view of the source graph.
+/// A source authored only as an RDF 1.2 reification reaches the derived SHACL with its
+/// `logic:reifiedStatement*` component edges (the detector below reports exactly when
+/// all three are present), and a reification nesting a triple term is named as a
+/// `validate.nested-triple-term-not-lowered` warning in the recorded verdict.
+#[test]
+fn stage_validate_sees_the_lowered_components_of_an_rdf12_source() {
+    let repo = mock_repo(
+        r#"@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix ex: <https://example.org/> .
+ex:LoweredComponentsDetector a sh:NodeShape ;
+    sh:targetNode ex:a ;
+    sh:sparql [ sh:message "lowered components present" ; sh:select """
+        SELECT $this WHERE {
+            ?claim <https://blackcatinformatics.ca/logic/reifiedStatementSubject> $this ;
+                <https://blackcatinformatics.ca/logic/reifiedStatementPredicate> <https://example.org/p> ;
+                <https://blackcatinformatics.ca/logic/reifiedStatementObject> <https://example.org/b> .
+        }""" ] .
+"#,
+    );
+    let source = b"<https://example.org/a> <https://example.org/p> <https://example.org/b> .\n\
+<https://example.org/claim> <http://www.w3.org/1999/02/22-rdf-syntax-ns#reifies> <<( <https://example.org/a> <https://example.org/p> <https://example.org/b> )>> .\n\
+<https://example.org/quoted> <http://www.w3.org/1999/02/22-rdf-syntax-ns#reifies> <<( <https://example.org/a> <https://example.org/says> <<( <https://example.org/a> <https://example.org/p> <https://example.org/b> )>> )>> .\n";
+    let (report, _advisories) =
+        validate_source_graph(repo.path(), source, &mock_fresh()).expect("stage validation runs");
+    let lowered: Vec<_> = report
+        .findings
+        .iter()
+        .filter(|finding| finding.message.contains("lowered components present"))
+        .collect();
+    assert_eq!(lowered.len(), 1, "{:?}", report.findings);
+    let nested: Vec<_> = report
+        .findings
+        .iter()
+        .filter(|finding| finding.code == gmeow_validate::store::NESTED_TRIPLE_TERM_CODE)
+        .collect();
+    assert_eq!(nested.len(), 1, "{:?}", report.findings);
+    assert_eq!(nested[0].severity, Severity::Warning);
+    assert!(nested[0].message.contains("https://example.org/quoted"));
+}

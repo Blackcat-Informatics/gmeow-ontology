@@ -17970,7 +17970,9 @@ logic:has-self-membership
 # The three predicates below are that edge, DECOMPOSED. They are a GENERATED LOWERING in the
 # Principle-17 sense, exactly as SSSOM, EDOAL and FnO are: canonical RDF 1.2 stays the
 # authority, the authored data is never rewritten, and the lowering is derived from it on
-# the way into the reasoning world (gmeow_logic::statement_lowering). What the lowering
+# the way into the reasoning world and into the SHACL validations of authored and user data
+# (gmeow_logic_compile::statement_lowering), so a logic:Constraint over these components is
+# enforced through its derived SHACL as well as reasoned over. What the lowering
 # does not preserve is recorded, narrowly, as logic:rdf12-nested-triple-term below — not as
 # a blanket claim that RDF 1.2 is outside the reasoner, which is what the CLI used to say
 # and is no longer true.
