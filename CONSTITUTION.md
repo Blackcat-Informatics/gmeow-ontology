@@ -218,9 +218,9 @@ stores. See [claim lifecycle](./docs/claim-lifecycle.md).
 the `gmeow:GranularityLevel` axis, `fnCoarsenToGranularity` (coarsen — aligned to
 `dpv:Generalisation`); [`docs/projections.md`](./docs/projections.md);
 [`docs/identity-mapping.md`](./docs/identity-mapping.md);
-[`docs/standpoints.md`](./docs/standpoints.md) (a withdrawn standpoint / closed
-`gmeow:StandpointTenure` is suppressed, not deleted). *Tested by:* the projection
-suppression tests; `tests/test_suppress_gen.py`; `tests/test_standpoint.py`.
+[`docs/standpoints.md`](./docs/standpoints.md) (a standpoint tenure whose holder withdrew
+it is suppressed, not deleted; a tenure that merely closed is not). *Tested by:* the projection
+suppression tests.
 
 ## 11. Frame-relativity — values live in an explicit reference system
 
