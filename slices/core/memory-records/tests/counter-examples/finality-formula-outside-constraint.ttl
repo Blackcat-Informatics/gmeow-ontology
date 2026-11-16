@@ -1,0 +1,15 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Fail-witness for ex:saTraceFinalityNoFormulaOutsideConstraint. A formula on the
+# committed-point role that is not a node of any constraint's integrity tree, as
+# a law or definition authored elsewhere would be. Unioned with the module, it
+# makes the ban's ASK hold. The real module never carries it.
+
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix ce:    <https://example.org/trace-finality/counter-examples/> .
+
+ce:frontierPointLaw a logic:Formula ;
+    logic:relation gmeow:frontierPoint ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "frontier" ] , [ logic:termIndex 1 ; logic:termVariable "point" ] .

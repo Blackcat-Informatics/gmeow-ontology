@@ -1708,3 +1708,351 @@ msgstr "不要根据行顺序、时间戳、摘要或缺失数据推导此描述
 msgctxt "https://blackcatinformatics.ca/gmeow/tracePacketPosition|https://blackcatinformatics.ca/gmeow/howToUse"
 msgid "Preserve the complete supplied literal, including datatype and lexical form, and interpret it through this anchor's actual anchorSourceProfile. On the exact-statement reifier retain supplied source through wasDerivedFrom, declaring perspective through accordingTo and recorder through wasAttributedTo. Existing TraceAnchor obligations still require anchorPacket and anchorSourceProfile; invent no missing profile."
 msgstr "保留完整的来源字面量，包括数据类型和词法形式，并通过该锚点实际的 anchorSourceProfile 解释。在精确语句的重述节点上，通过 wasDerivedFrom 保留提供的来源，通过 accordingTo 保留声明视角，通过 wasAttributedTo 保留记录者。TraceAnchor 的现有义务仍要求 anchorPacket 和 anchorSourceProfile；不得编造缺失配置。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/TraceWatermark|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Trace marking watermark"
+msgstr "轨迹标记水位线"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/TraceWatermark|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A declaration that marking is final for every packet of one TracePacketLedger at or below one named TracePacket in the ledger's order: no mark will name such a packet. It belongs to the producer named through traceFinalityProducer, it must not pass any applicable late-producer frontier, and it records what its declarer stated rather than a verified order."
+msgstr "声明：在某个 TracePacketLedger 的顺序中位于所指定 TracePacket 及其之前的每个数据包，标记均已终结，即不会再有标记指向这样的数据包。它属于由 traceFinalityProducer 指明的生产者，不得越过任何适用的事后标记生产者前沿，并且它记录的是其声明者所陈述的内容，而不是经过验证的顺序。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/TraceWatermark|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "A watermark names its ledger (traceFinalityLedger), the producer it belongs to (traceFinalityProducer), one cut packet (watermarkPacket; the cut includes that packet) and its declarer through wasAttributedTo, who may be that producer or another agent. The ledger's order is time, then digest, and every applicable late-producer frontier is to be respected before the watermark advances. A constraint checks that the cut packet is a member of the declared ledger, a plain join that compares no time or digest, so a watermark whose cut packet its ledger does not list is rejected. Without a typed time and digest comparison nothing here checks that order, that the cut never moves backward between watermarks, that the cut does not pass any applicable late-producer frontier, or that lost marks were given up before the cut passed their packet. Several watermarks may coexist as separate attributed declarations."
+msgstr "水位线指明其账本（traceFinalityLedger）、其所属的生产者（traceFinalityProducer）、一个截断数据包（watermarkPacket；截断包含该数据包本身）以及通过 wasAttributedTo 指明的声明者，声明者可以是该生产者，也可以是其他主体。账本的顺序是先按时间、再按摘要，并且在水位线推进之前，应遵守每个适用的事后标记生产者前沿。一项约束会检查截断数据包是否为所声明账本的成员，这是一个不比较任何时间或摘要的简单连接，因此其账本未列出该截断数据包的水位线会被拒绝。在没有带类型的时间与摘要比较的情况下，这里不会检查该顺序、截断位置在不同水位线之间是否从不后退、截断位置是否未越过任何适用的事后标记生产者前沿，也不会检查丢失的标记是否在截断位置越过其数据包之前已被放弃。多个水位线可以作为各自独立、带归属的声明并存。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/TraceWatermark|http://www.w3.org/2004/02/skos/core#example"
+msgid "The memory service declares its own cut: ex:cut a gmeow:TraceWatermark ; gmeow:traceFinalityLedger ex:ledger ; gmeow:traceFinalityProducer ex:memoryService ; gmeow:watermarkPacket ex:packetOne ; gmeow:wasAttributedTo ex:memoryService ."
+msgstr "记忆服务声明其自身的截断位置：ex:cut a gmeow:TraceWatermark ; gmeow:traceFinalityLedger ex:ledger ; gmeow:traceFinalityProducer ex:memoryService ; gmeow:watermarkPacket ex:packetOne ; gmeow:wasAttributedTo ex:memoryService ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/TraceWatermark|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when a recorder or memory service actually declares that marking is final up to a named packet of a named ledger."
+msgstr "当记录器或记忆服务确实声明某个指定账本中直至某个指定数据包的标记已终结时使用。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/TraceWatermark|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring a watermark from the newest packet, from missing marks or from age, and avoid reading it as proof that marking is final, that it respects every applicable late-producer frontier, that a trace was recorded, or that any trace was or may be deleted."
+msgstr "避免根据最新数据包、缺失的标记或时间长短推断水位线，也避免把它当作标记已终结、它遵守每个适用的事后标记生产者前沿、某条轨迹已被记录、或某条轨迹已被或可以被删除的证明。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/TraceWatermark|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Name the ledger, the producer the watermark belongs to, the cut packet, which the ledger must list through tracePacket, and the declarer through wasAttributedTo. An unmarked packet at or below the cut that is old enough under the recorder's own policy is eligible for discard only on those conditions; the watermark records neither the policy's verdict, a recording nor a deletion. Keep every comparison of time and digest outside this record."
+msgstr "指明账本、水位线所属的生产者、截断数据包（账本必须通过 tracePacket 列出该数据包），并通过 wasAttributedTo 指明声明者。位于截断处或其之前、未被标记且按记录器自身策略已足够旧的数据包，仅在这些条件下才具备被丢弃的资格；水位线既不记录该策略的裁定，也不记录某次记录或某次删除。把所有时间与摘要的比较都留在此记录之外。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/TraceMarkFrontier|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Trace mark frontier"
+msgstr "轨迹标记前沿"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/TraceMarkFrontier|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A declaration of the committed point in one TracePacketLedger up to which a producer that marks events later, the one named through traceFinalityProducer, has finished marking. Where a watermark declares marking final up to its cut, a frontier declares no ledger-wide finality and makes no packet eligible for discard: it states a late producer's committed point, which a watermark must not pass. It records the point its declarer stated, not a verified position."
+msgstr "声明：由 traceFinalityProducer 指明的事后标记事件的生产者在某个 TracePacketLedger 中已完成标记所达到的已提交点。水位线声明直至其截断位置的标记已终结，而前沿不声明整个账本范围内的终结，也不使任何数据包具备被丢弃的资格：它陈述事后标记生产者的已提交点，水位线不得越过该点。它记录其声明者所陈述的点，而不是经过验证的位置。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/TraceMarkFrontier|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "A frontier names its ledger (traceFinalityLedger), the late producer it belongs to (traceFinalityProducer), one committed point (frontierPoint), a packet key that need not be a recorded ledger member, and its declarer through wasAttributedTo, who may be that producer or another agent. A watermark must not pass any applicable late-producer frontier, but without a typed time and digest comparison nothing here checks that, or that the ledger's order is time, then digest. A producer that has committed nothing states no frontier; absence is not a frontier at the start of the order."
+msgstr "前沿指明其账本（traceFinalityLedger）、其所属的事后标记生产者（traceFinalityProducer）、一个已提交点（frontierPoint，即不一定是账本中已记录成员的数据包键）以及通过 wasAttributedTo 指明的声明者，声明者可以是该生产者，也可以是其他主体。水位线不得越过任何适用的事后标记生产者前沿，但在没有带类型的时间与摘要比较的情况下，这里不会检查这一点，也不会检查账本的顺序是否为先按时间、再按摘要。尚未提交任何内容的生产者不陈述前沿；缺失并不等于顺序起点处的前沿。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/TraceMarkFrontier|http://www.w3.org/2004/02/skos/core#example"
+msgid "A late derivation states its own committed point: ex:lateFrontier a gmeow:TraceMarkFrontier ; gmeow:traceFinalityLedger ex:ledger ; gmeow:traceFinalityProducer ex:lateDeriver ; gmeow:frontierPoint ex:pointKey ; gmeow:wasAttributedTo ex:lateDeriver ."
+msgstr "后期推导陈述其自身的已提交点：ex:lateFrontier a gmeow:TraceMarkFrontier ; gmeow:traceFinalityLedger ex:ledger ; gmeow:traceFinalityProducer ex:lateDeriver ; gmeow:frontierPoint ex:pointKey ; gmeow:wasAttributedTo ex:lateDeriver ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/TraceMarkFrontier|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when a producer that marks events later actually states how far it has committed its marking for a ledger."
+msgstr "当事后标记事件的生产者确实陈述其针对某个账本的标记已提交到何处时使用。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/TraceMarkFrontier|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid manufacturing a frontier for a producer that stated none, and avoid reading one as proof that marking up to the point is complete or that a watermark may advance."
+msgstr "避免为未陈述前沿的生产者凭空制造前沿，也避免把它当作直至该点的标记已完成或水位线可以前移的证明。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/TraceMarkFrontier|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Name the ledger, the producer, the committed point and the declarer through wasAttributedTo, and keep one frontier per producer and statement. Each producer's frontier is a separate record; none is chosen as the preferred one."
+msgstr "指明账本、生产者、已提交点，并通过 wasAttributedTo 指明声明者，并且每个生产者、每次陈述保留一个前沿。每个生产者的前沿都是单独的记录；不选择其中任何一个作为首选。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/TraceMarksGivenUp|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Trace marks given up"
+msgstr "已放弃的轨迹标记"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/TraceMarksGivenUp|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An explicit declaration that marks a producer held only in memory were lost, for example on a restart, and are given up, with the reason and, where the producer names them, the packets concerned. It is not an absence of marks, not a without-packet status on a mark, and not a deletion of anything."
+msgstr "明确声明生产者仅保存在内存中的标记已经丢失（例如因重启），并予以放弃，同时给出原因，以及在生产者指明时所涉及的数据包。它不是标记的缺失，不是标记上的无数据包状态，也不是对任何内容的删除。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/TraceMarksGivenUp|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "A give-up requires its reason (givenUpReason) and its declarer through wasAttributedTo; it may name the packets whose marks are given up (givenUpPacket), and the ledger and the producer whose marks were lost through traceFinalityLedger and traceFinalityProducer. Without a typed time and digest comparison nothing here checks that a give-up precedes a watermark passing its packets, or that the ledger's order is time, then digest. A give-up does not mark the packets and does not make them eligible for discard."
+msgstr "放弃声明必须给出原因（givenUpReason）和通过 wasAttributedTo 指明的声明者；它可以指明被放弃标记所属的数据包（givenUpPacket），也可以通过 traceFinalityLedger 和 traceFinalityProducer 指明账本以及标记丢失的生产者。在没有带类型的时间与摘要比较的情况下，这里不会检查放弃声明是否先于水位线越过这些数据包，也不会检查账本的顺序是否为先按时间、再按摘要。放弃声明不会标记这些数据包，也不会使其具备被丢弃的资格。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/TraceMarksGivenUp|http://www.w3.org/2004/02/skos/core#example"
+msgid "The service gives up its lost marks: ex:lost a gmeow:TraceMarksGivenUp ; gmeow:traceFinalityProducer ex:memoryService ; gmeow:givenUpPacket ex:packetTwo ; gmeow:givenUpReason \"Marks held only in memory were lost when the service restarted.\"@en ; gmeow:wasAttributedTo ex:memoryService ."
+msgstr "服务放弃其丢失的标记：ex:lost a gmeow:TraceMarksGivenUp ; gmeow:traceFinalityProducer ex:memoryService ; gmeow:givenUpPacket ex:packetTwo ; gmeow:givenUpReason \"Marks held only in memory were lost when the service restarted.\"@en ; gmeow:wasAttributedTo ex:memoryService ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/TraceMarksGivenUp|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when a producer explicitly states that its in-memory marks for named packets were lost and gives the reason."
+msgstr "当生产者明确声明其针对指定数据包、保存在内存中的标记已丢失并给出原因时使用。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/TraceMarksGivenUp|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring a give-up from missing marks, from a without-packet flag or from a restart nobody reported, and avoid reading one as a mark, as finality or as permission to delete."
+msgstr "避免根据缺失的标记、无数据包标志或无人报告的重启推断放弃声明，也避免把它当作标记、终结或删除许可。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/TraceMarksGivenUp|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Keep the original wording of the reason, name the packets whose marks are given up where the producer states them, and attribute the declaration through wasAttributedTo. Record the later watermark separately; this record does not advance it."
+msgstr "保留原因的原始措辞，在生产者指明时指出被放弃标记的数据包，并通过 wasAttributedTo 为该声明标明归属。后续的水位线单独记录；本记录不会使其前移。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/traceFinalityLedger|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "finality ledger"
+msgstr "终结账本"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/traceFinalityLedger|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The TracePacketLedger whose packet order a watermark, frontier or give-up declaration is about, not a claim that the ledger lists every packet."
+msgstr "水位线、前沿或放弃声明所针对的、其数据包顺序所属的 TracePacketLedger，而不是账本列出了每个数据包的主张。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/traceFinalityLedger|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Required on a TraceWatermark and a TraceMarkFrontier, optional on a TraceMarksGivenUp. Naming a ledger does not make the ledger complete, and the declaration is not a member of it."
+msgstr "对 TraceWatermark 和 TraceMarkFrontier 为必需，对 TraceMarksGivenUp 为可选。指明账本并不使该账本完整，该声明也不是账本的成员。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/traceFinalityLedger|http://www.w3.org/2004/02/skos/core#example"
+msgid "The cut names the ledger it concerns: ex:cut gmeow:traceFinalityLedger ex:ledger ."
+msgstr "截断声明指明其所涉及的账本：ex:cut gmeow:traceFinalityLedger ex:ledger ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/traceFinalityLedger|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to say which ledger's packet order a finality declaration concerns."
+msgstr "用于说明某个终结声明所涉及的是哪个账本的数据包顺序。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/traceFinalityLedger|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid using it to claim that the ledger lists every packet or that its membership is closed."
+msgstr "避免用它来声称账本列出了所有数据包或其成员已封闭。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/traceFinalityLedger|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Link the declaration to the actual ledger record whose tracePacket members it refers to; do not copy the ledger's members onto the declaration."
+msgstr "把声明链接到其所指的实际账本记录及其 tracePacket 成员；不要把账本的成员复制到声明上。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/traceFinalityProducer|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "finality producer"
+msgstr "终结生产者"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/traceFinalityProducer|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The producer Agent a watermark, frontier or give-up declaration belongs to, such as the memory service or a derivation that marks events later: the producer a watermark belongs to, the late producer whose committed point a frontier states, or the producer whose in-memory marks a give-up gives up. It is not the agent that made the declaration, although the same agent may be both."
+msgstr "水位线、前沿或放弃声明所属的生产者 Agent，例如记忆服务或事后标记事件的推导：水位线所属的生产者、前沿陈述其已提交点的事后标记生产者，或放弃声明放弃其内存中标记的生产者。它不是作出该声明的主体，但同一个主体可以兼任二者。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/traceFinalityProducer|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Required on a TraceWatermark and a TraceMarkFrontier, optional on a TraceMarksGivenUp. Each late producer states its own frontier, and a watermark must not pass any applicable one. The declarer is recorded separately through wasAttributedTo and may be the same agent."
+msgstr "对 TraceWatermark 和 TraceMarkFrontier 为必需，对 TraceMarksGivenUp 为可选。每个事后标记生产者陈述其自己的前沿，水位线不得越过任何适用的前沿。声明者通过 wasAttributedTo 另行记录，可以是同一个主体。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/traceFinalityProducer|http://www.w3.org/2004/02/skos/core#example"
+msgid "The frontier names the producer it concerns: ex:lateFrontier gmeow:traceFinalityProducer ex:lateDeriver ."
+msgstr "前沿声明指明其所涉及的生产者：ex:lateFrontier gmeow:traceFinalityProducer ex:lateDeriver ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/traceFinalityProducer|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to say which producer a watermark, frontier or give-up belongs to."
+msgstr "用于说明水位线、前沿或放弃声明属于哪个生产者。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/traceFinalityProducer|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid using it to identify who declared the record, to rank producers or to claim the producer has finished marking."
+msgstr "避免用它来标识记录的作者、为生产者排序，或声称生产者已完成标记。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/traceFinalityProducer|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Link the actual producer agent; give each producer that applies its own frontier rather than choosing one."
+msgstr "链接实际的生产者主体；为每个适用的生产者分别给出其自己的前沿，而不是只选其一。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/watermarkPacket|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "watermark packet"
+msgstr "水位线数据包"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/watermarkPacket|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The recorded TracePacket at or below which this watermark declares marking final, inclusive of that packet and not of the packets above it."
+msgstr "该水位线声明标记已终结的、位于其处或其之前的已记录 TracePacket，包含该数据包本身，而不包含其之后的数据包。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/watermarkPacket|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Required on a TraceWatermark; one value is meant, enforced by a validation constraint rather than a functional axiom. The packet is a TracePacket, so it carries its ordering time and frame, and a constraint checks that the declared ledger lists it through tracePacket; nothing here compares it with another packet."
+msgstr "对 TraceWatermark 为必需；意图是单一取值，由验证约束而不是函数性公理来保证。该数据包是 TracePacket，因此带有其排序时间和参照框架，并且有一项约束会检查所声明的账本是否通过 tracePacket 列出它；这里不会将其与其他数据包比较。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/watermarkPacket|http://www.w3.org/2004/02/skos/core#example"
+msgid "The cut names its packet: ex:cut gmeow:watermarkPacket ex:packetOne ."
+msgstr "截断声明指明其数据包：ex:cut gmeow:watermarkPacket ex:packetOne ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/watermarkPacket|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to name the cut packet the watermark's declaration is inclusive of."
+msgstr "用于指明水位线声明所包含的截断数据包。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/watermarkPacket|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid naming a packet that was not recorded, and avoid using it to say that packets above the cut are not final."
+msgstr "避免指明未被记录的数据包，也避免用它来说明截断之上的数据包尚未终结。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/watermarkPacket|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Link the actual recorded packet, with its tracePacketAt and reference frame, that the declarer named as the cut."
+msgstr "链接声明者所指定为截断点的实际已记录数据包，连同其 tracePacketAt 和参照框架。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/frontierPoint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "frontier committed point"
+msgstr "前沿已提交点"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/frontierPoint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The packet key, a TraceAnchor, up to which the producer of this TraceMarkFrontier states it has committed its marking, not a position anyone verified."
+msgstr "此 TraceMarkFrontier 的生产者声称其标记已提交到的数据包键（一个 TraceAnchor），而不是任何人验证过的位置。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/frontierPoint|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Required on a TraceMarkFrontier; one value is meant, enforced by a validation constraint rather than a functional axiom. The key keeps its own packet digest and, when supplied, its ordering time, and need not be a recorded ledger member."
+msgstr "对 TraceMarkFrontier 为必需；意图是单一取值，由验证约束而不是函数性公理来保证。该键保留其自身的数据包摘要，并在提供时保留其排序时间，不一定是账本中已记录的成员。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/frontierPoint|http://www.w3.org/2004/02/skos/core#example"
+msgid "The frontier names its committed point: ex:lateFrontier gmeow:frontierPoint ex:pointKey ."
+msgstr "前沿声明指明其已提交点：ex:lateFrontier gmeow:frontierPoint ex:pointKey ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/frontierPoint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to name the committed point a producer stated for its marking."
+msgstr "用于指明生产者针对其标记所陈述的已提交点。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/frontierPoint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid choosing a point for a producer that stated none, and avoid reading it as proof that the producer has marked everything up to it."
+msgstr "避免为未陈述已提交点的生产者选定一个点，也避免把它当作生产者已标记直至该点的全部内容的证明。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/frontierPoint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Link the actual TraceAnchor the producer stated, with its digest and profile; add tracePacketAt when the source supplies the time that places it."
+msgstr "链接生产者所陈述的实际 TraceAnchor，连同其摘要和配置；当来源提供了确定其位置的时间时，添加 tracePacketAt。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/givenUpPacket|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "given-up packet"
+msgstr "被放弃的数据包"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/givenUpPacket|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A packet, identified by its TraceAnchor, whose in-memory marks this give-up declares lost, not a packet that merely has no marks."
+msgstr "一个由其 TraceAnchor 标识的数据包，此放弃声明宣布其内存中的标记已丢失，而不是仅仅没有标记的数据包。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/givenUpPacket|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Optional and nonfunctional: a give-up may name several packets, and several give-ups may name one packet. Naming a packet neither marks it nor makes it eligible for discard."
+msgstr "可选且非函数性：一个放弃声明可以指明多个数据包，多个放弃声明也可以指明同一个数据包。指明数据包既不会标记它，也不会使其具备被丢弃的资格。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/givenUpPacket|http://www.w3.org/2004/02/skos/core#example"
+msgid "The give-up names a packet whose marks were lost: ex:lost gmeow:givenUpPacket ex:packetTwo ."
+msgstr "放弃声明指明其标记已丢失的数据包：ex:lost gmeow:givenUpPacket ex:packetTwo ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/givenUpPacket|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to name each packet whose marks the producer says it lost."
+msgstr "用于指明生产者称其标记已丢失的每个数据包。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/givenUpPacket|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid naming a packet to hide an unmarked one, or inferring one from a packet that merely has no marks."
+msgstr "避免通过指明数据包来掩盖未被标记的数据包，也避免根据仅仅没有标记的数据包推断被放弃的数据包。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/givenUpPacket|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Link the actual packet anchor or recorded packet for every packet the producer states it lost marks for."
+msgstr "为生产者声称丢失了标记的每个数据包，链接其实际数据包锚点或已记录数据包。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/givenUpReason|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "given-up reason"
+msgstr "放弃原因"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/givenUpReason|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The producer's stated reason, in its own words, why the marks of this TraceMarksGivenUp are lost and given up, not a coded category."
+msgstr "生产者用自己的话陈述的、此 TraceMarksGivenUp 的标记丢失并被放弃的原因，而不是编码的类别。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/givenUpReason|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Required on a TraceMarksGivenUp; the wording is kept as supplied and is not a coded category, so reasons from different producers may coexist. An empty reason satisfies the structure but states nothing."
+msgstr "对 TraceMarksGivenUp 为必需；措辞按所提供的原样保留，不是编码的类别，因此不同生产者的原因可以并存。空的原因满足结构要求，但什么也没有陈述。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/givenUpReason|http://www.w3.org/2004/02/skos/core#example"
+msgid "The give-up states why: ex:lost gmeow:givenUpReason \"Marks held only in memory were lost when the service restarted.\"@en ."
+msgstr "放弃声明说明原因：ex:lost gmeow:givenUpReason \"Marks held only in memory were lost when the service restarted.\"@en ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/givenUpReason|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use whenever a give-up is recorded, with the reason as the producer gave it."
+msgstr "每当记录放弃声明时使用，并按生产者给出的原样填写原因。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/givenUpReason|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inventing a reason, normalizing the wording into a category, or leaving a give-up without one."
+msgstr "避免编造原因、把措辞规范化为类别，或让放弃声明没有原因。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/givenUpReason|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Keep the original text and its language tag when it has one; one reason per statement, with a further reason as a further statement or a separate give-up."
+msgstr "保留原文，并在其带有语言标签时保留该标签；每条语句一个原因，另一个原因应作为另一条语句或另一个放弃声明。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/TraceWatermarkPacketUniqueConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Trace watermark single cut packet"
+msgstr "轨迹水位线单一截断数据包"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/TraceWatermarkPacketUniqueConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A TraceWatermark names at most one watermarkPacket; two distinct cut packets on one watermark are rejected rather than merged into one individual."
+msgstr "一个 TraceWatermark 至多指明一个 watermarkPacket；同一水位线上的两个不同截断数据包会被拒绝，而不是合并为同一个个体。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/TraceWatermarkPacketUniqueConstraint|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "A validation constraint is used instead of a functional axiom so that a second packet is reported rather than, as with the OWL projection of a functional axiom, inferred to be the same packet. A further cut is a separate watermark. Nothing compares the packets' times or digests."
+msgstr "这里使用验证约束而不是函数性公理，使第二个数据包被报告，而不是像函数性公理的 OWL 投影那样被推断为同一个数据包。另一次截断是单独的水位线。不会比较这些数据包的时间或摘要。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/TraceWatermarkPacketUniqueConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "A watermark with two cut packets is rejected: ex:badCut a gmeow:TraceWatermark ; gmeow:watermarkPacket ex:packetOne , ex:packetTwo ."
+msgstr "带有两个截断数据包的水位线会被拒绝：ex:badCut a gmeow:TraceWatermark ; gmeow:watermarkPacket ex:packetOne , ex:packetTwo ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/TraceWatermarkPacketUniqueConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to check that one watermark declaration states one cut."
+msgstr "用于检查一个水位线声明只陈述一个截断位置。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/TraceWatermarkPacketUniqueConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid reading it as an order check or as a check that a later watermark stays at or above an earlier one."
+msgstr "避免把它当作顺序检查，或当作后一个水位线不低于前一个水位线的检查。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/TraceWatermarkPacketUniqueConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Positively bind the watermark and two watermarkPacket values and forbid their being distinct; the check uses term distinctness only."
+msgstr "对水位线及两个 watermarkPacket 取值进行正向绑定，并禁止二者不同；该检查只使用词项相异性。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/TraceWatermarkPacketUniqueConstraint|https://blackcatinformatics.ca/logic/message"
+msgid "A TraceWatermark names at most one watermarkPacket; a further cut is a separate watermark."
+msgstr "一个 TraceWatermark 至多指明一个 watermarkPacket；另一次截断是单独的水位线。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/TraceMarkFrontierPointUniqueConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Trace mark frontier single committed point"
+msgstr "轨迹标记前沿单一已提交点"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/TraceMarkFrontierPointUniqueConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A TraceMarkFrontier names at most one frontierPoint; two distinct committed points on one frontier are rejected rather than merged into one individual."
+msgstr "一个 TraceMarkFrontier 至多指明一个 frontierPoint；同一前沿上的两个不同已提交点会被拒绝，而不是合并为同一个个体。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/TraceMarkFrontierPointUniqueConstraint|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "A validation constraint is used instead of a functional axiom so that a second point is reported rather than, as with the OWL projection of a functional axiom, inferred to be the same point. A producer's later committed point is a separate frontier. Nothing compares the points' times or digests."
+msgstr "这里使用验证约束而不是函数性公理，使第二个点被报告，而不是像函数性公理的 OWL 投影那样被推断为同一个点。生产者之后的已提交点是单独的前沿。不会比较这些点的时间或摘要。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/TraceMarkFrontierPointUniqueConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "A frontier with two committed points is rejected: ex:badFrontier a gmeow:TraceMarkFrontier ; gmeow:frontierPoint ex:pointKey , ex:otherKey ."
+msgstr "带有两个已提交点的前沿会被拒绝：ex:badFrontier a gmeow:TraceMarkFrontier ; gmeow:frontierPoint ex:pointKey , ex:otherKey ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/TraceMarkFrontierPointUniqueConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to check that one frontier declaration states one committed point."
+msgstr "用于检查一个前沿声明只陈述一个已提交点。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/TraceMarkFrontierPointUniqueConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid reading it as an order check or as a check that a frontier never moves backward."
+msgstr "避免把它当作顺序检查，或当作前沿从不后退的检查。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/TraceMarkFrontierPointUniqueConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Positively bind the frontier and two frontierPoint values and forbid their being distinct; the check uses term distinctness only."
+msgstr "对前沿及两个 frontierPoint 取值进行正向绑定，并禁止二者不同；该检查只使用词项相异性。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/TraceMarkFrontierPointUniqueConstraint|https://blackcatinformatics.ca/logic/message"
+msgid "A TraceMarkFrontier names at most one frontierPoint; a later committed point is a separate frontier."
+msgstr "一个 TraceMarkFrontier 至多指明一个 frontierPoint；之后的已提交点是单独的前沿。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/TraceWatermarkLedgerMembershipConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Trace watermark cut listed in its ledger"
+msgstr "水位线截断数据包列于其账本中"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/TraceWatermarkLedgerMembershipConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A TraceWatermark whose cut packet is not listed through tracePacket by the watermark's own ledger is rejected: the cut packet must be a member of the declared TracePacketLedger."
+msgstr "若水位线自身的账本未通过 tracePacket 列出其截断数据包，则该 TraceWatermark 会被拒绝：截断数据包必须是所声明 TracePacketLedger 的成员。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/TraceWatermarkLedgerMembershipConstraint|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "A plain structural join of the watermark, its ledger and its cut packet, so nothing compares a time or a digest. It checks membership only: it does not check that the cut is at or below any other packet, that the ledger lists every packet it observed, or that the ledger's order is time, then digest. A ledger that is silent about a packet fails a watermark naming that packet; the declarer lists the packet or names another cut."
+msgstr "水位线、其账本与其截断数据包之间的简单结构连接，因此不会比较任何时间或摘要。它只检查成员关系：不检查截断位置是否位于其他数据包处或之前，不检查账本是否列出了其观察到的每个数据包，也不检查账本的顺序是否为先按时间、再按摘要。对某个数据包未作记载的账本，会使指明该数据包的水位线检查失败；声明者应列出该数据包，或指明另一个截断位置。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/TraceWatermarkLedgerMembershipConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "A watermark whose ledger does not list its cut is rejected: ex:ledger gmeow:tracePacket ex:packetOne . ex:badCut a gmeow:TraceWatermark ; gmeow:traceFinalityLedger ex:ledger ; gmeow:watermarkPacket ex:unlistedPacket ."
+msgstr "其账本未列出截断数据包的水位线会被拒绝：ex:ledger gmeow:tracePacket ex:packetOne . ex:badCut a gmeow:TraceWatermark ; gmeow:traceFinalityLedger ex:ledger ; gmeow:watermarkPacket ex:unlistedPacket ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/TraceWatermarkLedgerMembershipConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to check that the packet a watermark names as its cut is one the declared ledger lists."
+msgstr "用于检查水位线指明为截断位置的数据包是否被所声明的账本列出。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/TraceWatermarkLedgerMembershipConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid reading it as an order check, as proof that the ledger is complete or as a check that the cut respects any frontier."
+msgstr "避免将其视为顺序检查、账本完整的证明，或截断位置遵守某个前沿的检查。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/TraceWatermarkLedgerMembershipConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Positively bind the watermark, its ledger and its cut packet, and require the ledger to list that packet through tracePacket; the check uses no comparison relation."
+msgstr "以正向方式绑定水位线、其账本及其截断数据包，并要求该账本通过 tracePacket 列出该数据包；该检查不使用任何比较关系。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/TraceWatermarkLedgerMembershipConstraint|https://blackcatinformatics.ca/logic/message"
+msgid "A TraceWatermark's cut packet must be a tracePacket member of its declared traceFinalityLedger."
+msgstr "TraceWatermark 的截断数据包必须是其所声明 traceFinalityLedger 的 tracePacket 成员。"

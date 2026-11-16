@@ -1,0 +1,19 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Fail-witness for ex:saTraceFinalityCutListed. A watermark whose cut packet is not
+# listed by the watermark's own ledger, the declaration the ledger-membership
+# constraint rejects. Unioned with the module, it makes the ban's ASK hold. The real
+# module and examples never carry it.
+
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix ce:    <https://example.org/trace-finality/counter-examples/> .
+
+ce:ledger a gmeow:TracePacketLedger ;
+    gmeow:tracePacket ce:listedPacket .
+
+ce:cutOutsideLedger a gmeow:TraceWatermark ;
+    gmeow:traceFinalityLedger ce:ledger ;
+    gmeow:traceFinalityProducer ce:producer ;
+    gmeow:watermarkPacket ce:unlistedPacket ;
+    gmeow:wasAttributedTo ce:producer .

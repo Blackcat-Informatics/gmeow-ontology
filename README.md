@@ -318,6 +318,15 @@ retraction is still read as reported.
 | 4 | malformed input |
 | 5 | execution failure: an engine crashed, hit an internal fault or reached a resource limit |
 
+When an engine fails after the selection was admitted, the report still carries the
+selection and the drops named before the failure, with `selection.complete` false. That
+list is what was known when the engine stopped, not the full account. A failure after both
+engines ended, while writing the `--out` export, the proof or the evidence file, keeps the
+completed selection and engine blocks. It sets the verdict and decision to
+`execution-failure`, marks the evaluation failed, its completeness unknown and its
+information state not evaluated, refuses the evidence grade and gate admission, and adds
+the failure diagnostic.
+
 The report has no wall-clock field, so rerunning `prove` on the same inputs and comparing
 the bytes is a valid second-party check. `--proof-out <file>` records the proof and
 `--check-proof <file>` replays it, rejecting a proof recorded against different inputs.

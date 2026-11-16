@@ -280,16 +280,17 @@ selected scalar identifier/ordinal roles; an empty carrier fails instead of
 becoming a default value. Independently supplied resolved episode/round evidence
 remains distinct from the raw term and its interpretation.
 
-### Trace finality remains a separate contract
+### A mark, flag, profile or anchor declares no finality
 
-A mark, flag, profile or anchor implements no ordered packet ledger, time/digest
-comparator, monotonic finality watermark, producer committed frontier or explicit
-lost-mark give-up with its reason. Without-packet status is not evidence that
-in-memory marks were lost, a producer committed, or a recorder may advance a
-frontier or discard traces. The vocabulary computes no digest, performs no
-join, authenticates no source and executes no storage action. Unknown source
-interpretation remains unknown rather than being hidden by a successful
-structural result (Principles 4, 7, 9, 11, 12, 17 and 19).
+A mark, flag, profile or anchor is not a time/digest comparator, a finality
+watermark, a producer committed frontier or a give-up of lost marks.
+Without-packet status is not evidence that in-memory marks were lost, a producer
+committed, or a watermark may advance or traces may be discarded. The
+declarations that carry those meanings are the finality records below. The
+vocabulary computes no digest, performs no join, authenticates no source and
+executes no storage action. Unknown source interpretation remains unknown rather
+than being hidden by a successful structural result (Principles 4, 7, 9, 11, 12,
+17 and 19).
 
 ## Recorded trace-packet ledger evidence
 
@@ -324,9 +325,9 @@ or use a frame to reinterpret an XSD datatype's calendar.
 The role's domain is `TraceAnchor`, not `TracePacket`. A source-backed key time
 on an anchor therefore does not assert that its packet was observed or entered
 in a ledger. Required time/frame remains local to recorded `TracePacket`;
-unrelated anchors acquire no required time. A future genuine frontier key can
-retain an actual source time without manufacturing a recorded-packet row, but
-this unit supplies no frontier protocol or cursor interpretation.
+unrelated anchors acquire no required time. A frontier's committed point is such
+a key: it retains an actual source time without manufacturing a recorded-packet
+row, and the frontier record below adds no cursor interpretation to it.
 
 Ordering time is distinct from the marked event's `traceMarkAt`, an occurrence's
 `eventTime` and record transaction `recordedAt`. It neither specializes those
@@ -340,17 +341,68 @@ These terms retain ordering inputs; they execute no time-then-digest comparator
 and add no pairwise order relation, ordinal or commit-history requirement.
 The native integrity ordering path currently handles finite numeric values;
 it cannot be relabeled as timestamp or digest-byte comparison. The existing
-PurRDF temporal/binary owner and any future GMEOW comparison exposure retain
-their separate qualification requirements. No order-verification result is
-asserted by a supplied timestamp or structurally valid ledger membership.
+PurRDF temporal/binary owner and a GMEOW comparison exposure retain their
+separate qualification requirements. No order-verification result is asserted
+by a supplied timestamp or structurally valid ledger membership.
 
-The full finality protocol remains separate: inclusive never-backward marking
-watermarks, complete applicable producer frontiers, and explicit give-up with
-reason for lost in-memory marks before advancement. Without-packet status is
-not a give-up receipt. Missing membership is not unmarkedness, finality, an
-age-policy verdict or permission to discard traces. No trace join, retention,
+## Finality declarations: watermark, frontier and give-up
+
+Three records hold what a recorder or producer declared about when marking is
+final. They are structural vocabulary only: each says what was declared, and none
+checks an order. A declaration is a claim by someone, so each requires its
+declarer through `wasAttributedTo`. The declarer is distinct from the producer
+the declaration belongs to, although the same agent may be both.
+
+`TraceWatermark` declares that marking is final for every packet of one
+`TracePacketLedger` at or below one named `TracePacket` in the ledger's order,
+inclusive of that packet: no mark will name such a packet. It belongs to the
+producer named through `traceFinalityProducer`, and it must not pass any
+applicable late-producer frontier. The watermark names its ledger
+(`traceFinalityLedger`), its producer and its cut packet (`watermarkPacket`);
+each is required, a validation constraint rejects two distinct cut packets on
+one watermark, and a second constraint rejects a watermark whose own ledger does
+not list its cut packet through `tracePacket`. The second is a plain join of
+three roles and compares no time or digest. It checks listing only: it does not
+check that the ledger lists every packet it observed. A further cut is a
+separate watermark.
+
+`TraceMarkFrontier` is the committed point that a producer marking events later
+has declared for a ledger. It names the ledger and that late producer in the
+same way and one `frontierPoint`, a `TraceAnchor` packet key that need not be a
+recorded ledger member; a validation constraint rejects two distinct points on
+one frontier. A frontier declares no ledger-wide finality and makes no packet
+eligible for discard. What it adds beyond a watermark is a bound: a watermark
+must not pass it. Each late producer states its own frontier, and none is
+preferred.
+
+`TraceMarksGivenUp` is the explicit give-up of marks a producer held only in
+memory and lost, for example on a restart. `givenUpReason` is required and keeps
+the producer's own wording; `givenUpPacket` may name each packet whose marks are
+given up, and the ledger and producer may be named through the shared roles. A
+give-up is not a mark, not a without-packet flag and not a deletion.
+
+Neither single-valued role is a functional property: in the OWL projection a
+functional axiom would make a second cut packet or point the same individual as
+the first instead of reporting the declaration, so a constraint is used.
+
+The order is time, then digest. A watermark is meant never to move backward, to
+respect every applicable late-producer frontier before it advances, and not to
+pass a packet with lost marks that were not given up. These records declare no
+such law. Checking them needs a typed comparison of times and digests, which no
+constraint here makes; the numeric integrity comparison is not a substitute.
+Consequently nothing verifies that one watermark is at or above another, that a
+watermark stays at or below every applicable late-producer frontier, or that a
+give-up came first. Listing of the cut packet in its ledger is not among these
+laws: it needs no comparison and is checked as described above.
+
+An unmarked packet at or below a watermark that is old enough under the
+recorder's own policy is eligible for discard only on those conditions. The
+watermark records neither that policy's verdict, nor that a trace was recorded,
+nor that any deletion happened or is permitted. Missing membership is not
+unmarkedness, finality or an age-policy verdict. No trace join, retention,
 deletion action, producer commitment, completeness proof or consumer adoption
-follows (Principles 4, 7, 9, 11, 12, 17 and 19).
+follows. The worked example is [trace-finality.ttl](examples/trace-finality.ttl)
+(Principles 4, 7, 9, 11, 12, 17 and 19).
 
 ## Reported trace feed positions
 
