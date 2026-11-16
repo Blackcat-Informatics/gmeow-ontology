@@ -509,6 +509,7 @@ https://blackcatinformatics.ca/gmeow/pronounReflexive
 https://blackcatinformatics.ca/gmeow/pronounSubject
 https://blackcatinformatics.ca/gmeow/prototypeFor
 https://blackcatinformatics.ca/gmeow/proximityTo
+https://blackcatinformatics.ca/gmeow/putForwardByClaim
 https://blackcatinformatics.ca/gmeow/quantityUncertainty
 https://blackcatinformatics.ca/gmeow/ratioDenominator
 https://blackcatinformatics.ca/gmeow/ratioNumerator

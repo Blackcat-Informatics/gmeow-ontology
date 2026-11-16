@@ -195,11 +195,13 @@ fn generated_and_docs_selection_exclude_unrequested_runtime_outputs() {
 /// The timings JSON is where a finished hosted run is read from: each memory record
 /// carries the allocator's live and free totals, and a return of freed pages carries the
 /// resident size before it beside the one after. A figure the host could not supply is
-/// written as `null`, never as zero.
+/// written as `null`, never as zero. A publication record carries its product's
+/// footprint, the dataset's payload bytes among it.
 #[test]
 fn stage_memory_observation_carries_allocator_totals_and_the_reclaim_figures() {
     use gmeow_pipeline::memory_record::{
-        AllocatorMemory, MemoryEvent, MemoryRecord, ProcessMemory, ReclaimedMemory,
+        AllocatorMemory, MemoryEvent, MemoryRecord, ProcessMemory, ProductFootprint,
+        ReclaimedMemory,
     };
     use purrdf_lex::json::Value;
     let returned = MemoryRecord {
@@ -230,6 +232,26 @@ fn stage_memory_observation_carries_allocator_totals_and_the_reclaim_figures() {
     assert_eq!(written["allocator_free_bytes"], Value::from(90_u64));
     assert_eq!(written["reclaim"]["rss_before_kib"], Value::from(1_300_u64));
     assert_eq!(written["reclaim"]["elapsed_us"], Value::from(42_u64));
+
+    let published = MemoryRecord {
+        event: MemoryEvent::Complete,
+        product: Some(ProductFootprint {
+            quads: 11,
+            terms: 7,
+            dataset_payload_bytes: 4_096,
+            committed_lane_bytes: 30,
+            internal_lane_bytes: 20,
+            carrier_released: false,
+        }),
+        reclaim: None,
+        ..returned.clone()
+    };
+    let written = stage_memory_observation(&published);
+    assert_eq!(written["product"]["quads"], Value::from(11_u64));
+    assert_eq!(
+        written["product"]["dataset_payload_bytes"],
+        Value::from(4_096_u64)
+    );
 
     let unsupported = MemoryRecord {
         event: MemoryEvent::Dispatch,

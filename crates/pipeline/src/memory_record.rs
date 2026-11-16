@@ -18,7 +18,8 @@
 //! * The reasoning stage makes one for each return of freed pages inside its body.
 //! * A stage body makes one at the start and one at the end of each phase it runs
 //!   through [`measure_stage_phase`](crate::node::measure_stage_phase), and the snapshot
-//!   serializer makes one at the end of each of its timed phases.
+//!   serializer makes one at the end of each of its timed phases and one at the start
+//!   of the phase that canonicalizes the stratum.
 //!
 //! A phase that is only logged makes no record of its own. That includes every phase
 //! the `gmeow-logic` crate logs on the `pipeline_phase` target, the native receipt
@@ -135,14 +136,26 @@ pub struct ReclaimedMemory {
 /// The size of one stage product's carrier, in structural counts.
 ///
 /// These are counts of what the carrier holds, not resident bytes: a dataset's quads
-/// and terms, and the payload bytes of its byte-artifact lane split into the committed
-/// artifacts and the internal `pipeline/` ones.
+/// and terms, the bytes of its term text and record tables, and the payload bytes of
+/// its byte-artifact lane split into the committed artifacts and the internal
+/// `pipeline/` ones.
+///
+/// Nothing here sizes a typed handle payload (the reasoning result, a compiled
+/// program, diagnostics) or a dataset's lookup indexes: no payload states its own
+/// size, PurRDF states an index capacity only for a query graph, which a stage carrier
+/// is not, and a record does not walk or serialize a structure to find one.
 #[derive(Debug, Clone, Copy, Default, PartialEq, Eq)]
 pub struct ProductFootprint {
     /// Quads in the frozen dataset.
     pub quads: u64,
     /// Terms in the frozen dataset's term table.
     pub terms: u64,
+    /// Bytes of the frozen dataset's term text, term table, quad, reifier and
+    /// annotation tables and graph declarations, as the dataset's own accounting
+    /// states them (`RdfDataset::rdf_payload_bytes`). It leaves out allocator
+    /// overhead and the lookup indexes, so it is a lower bound on what the dataset
+    /// holds, not its resident size.
+    pub dataset_payload_bytes: u64,
     /// Payload bytes of the committed byte artifacts.
     pub committed_lane_bytes: u64,
     /// Payload bytes of the internal `pipeline/` byte artifacts.
@@ -160,6 +173,7 @@ impl ProductFootprint {
         Self {
             quads: u64::try_from(dataset.quad_count()).unwrap_or(u64::MAX),
             terms: u64::try_from(dataset.term_count()).unwrap_or(u64::MAX),
+            dataset_payload_bytes: u64::try_from(dataset.rdf_payload_bytes()).unwrap_or(u64::MAX),
             committed_lane_bytes,
             internal_lane_bytes,
             carrier_released,
@@ -341,6 +355,7 @@ fn make(
         reclaim_elapsed_us = reclaim.map(|returned| returned.elapsed_us),
         quads = product.map(|footprint| footprint.quads),
         terms = product.map(|footprint| footprint.terms),
+        dataset_payload_bytes = product.map(|footprint| footprint.dataset_payload_bytes),
         committed_lane_bytes = product.map(|footprint| footprint.committed_lane_bytes),
         internal_lane_bytes = product.map(|footprint| footprint.internal_lane_bytes),
         carrier_released = product.map(|footprint| footprint.carrier_released),

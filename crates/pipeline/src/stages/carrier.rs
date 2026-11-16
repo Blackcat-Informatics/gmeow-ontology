@@ -1897,6 +1897,13 @@ fn serialize_snapshot(
             }
             None => {
                 let phase_started = std::time::Instant::now();
+                // The end of this phase is recorded by its timing below; the start
+                // is recorded here so the pair brackets the canonical document.
+                crate::memory_record::phase(
+                    SNAPSHOT_SERIALIZER,
+                    "canonicalize-stratum",
+                    crate::memory_record::MemoryEvent::PhaseStart,
+                );
                 let (stratum_digest, stratum_len) =
                     snapshot_stratum_digest(carrier_handle, &strata)?;
                 timings.push(sink_phase_timing(

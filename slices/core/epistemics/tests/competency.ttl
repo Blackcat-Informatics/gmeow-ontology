@@ -381,3 +381,34 @@ ex:cqRoleRowWritingReviewEditing a gmeow:ExpectedRow ;
     gmeow:rowCell [ a gmeow:ExpectedCell ;
         gmeow:cellVar "role" ;
         gmeow:cellValueIri gmeow:roleWritingReviewEditing ] .
+
+# --- C. Evaluation of a claim that exists only as a reified statement ---------
+# Runs over examples/evaluating-a-reified-statement.ttl overlaid on the asserted
+# merged graph. The evaluation reaches the statement through the claim token:
+# gmeow:evaluates to the token, gmeow:putForwardByClaim back to the reifier.
+ex:cqEvaluationOfReifiedStatement a gmeow:CompetencyQuestion ;
+    gmeow:cqDataFile "examples/evaluating-a-reified-statement.ttl" ;
+    gmeow:cqQuery "PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/> PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> SELECT ?evaluation ?statement ?subject ?predicate ?object ?reason WHERE { ?evaluation a gmeow:ClaimEvaluation ; gmeow:evaluates ?token ; gmeow:statedRationale ?reason . ?statement gmeow:putForwardByClaim ?token ; rdf:reifies <<( ?subject ?predicate ?object )>> . }" ;
+    gmeow:cqRationale "GMEOW must be able to answer 'which evaluation judges the assertion act behind this reified statement, and for what stated reason?'. The evaluation targets a claim token and so judges the whole act; each statement reifier linked to that token is returned with its quoted triple, one row per statement, beside the evaluator's reason retained verbatim. The act in the example put forward one statement under a named reifier of its own, so exactly one row is expected." ;
+    gmeow:cqExactRows true ;
+    gmeow:cqResultShape ex:cqEvaluationOfReifiedStatementShape ;
+    gmeow:cqExpectRow ex:cqEvaluationOfReifiedStatementRow .
+
+ex:cqEvaluationOfReifiedStatementShape a logic:ResultShape ;
+    logic:declaresColumn
+        [ logic:columnVariable "evaluation" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "statement" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "subject" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "predicate" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "object" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "reason" ; logic:columnTermKind logic:TermKindLiteral ; logic:columnBinding logic:BindingRequired ] ;
+    logic:shapeCardinality logic:RowsExact .
+
+ex:cqEvaluationOfReifiedStatementRow a gmeow:ExpectedRow ;
+    gmeow:rowCell
+        [ a gmeow:ExpectedCell ; gmeow:cellVar "evaluation" ; gmeow:cellValueIri <https://example.org/reified-evaluation/bobEvaluation> ] ,
+        [ a gmeow:ExpectedCell ; gmeow:cellVar "statement" ; gmeow:cellValueIri <https://example.org/reified-evaluation/skyStatement> ] ,
+        [ a gmeow:ExpectedCell ; gmeow:cellVar "subject" ; gmeow:cellValueIri <https://example.org/reified-evaluation/sky> ] ,
+        [ a gmeow:ExpectedCell ; gmeow:cellVar "predicate" ; gmeow:cellValueIri <https://example.org/reified-evaluation/hasColour> ] ,
+        [ a gmeow:ExpectedCell ; gmeow:cellVar "object" ; gmeow:cellValueIri <https://example.org/reified-evaluation/blue> ] ,
+        [ a gmeow:ExpectedCell ; gmeow:cellVar "reason" ; gmeow:cellValueLiteral "No, it is red. I checked at sunset."@en ] .
