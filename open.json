@@ -1,0 +1,30 @@
+{
+  "schema": 1,
+  "issue": 2836,
+  "repo": "gmeow-ontology",
+  "forge": "github",
+  "nwo": "Blackcat-Informatics/gmeow-ontology",
+  "read_access": "anon-read",
+  "main_root": "/home/paudley/Active/gmeow-ontology",
+  "worktree": "/home/paudley/Active/gmeow-ontology/.worktrees/2836-reviewed-coverage-golden-on-main-is-out",
+  "branch": "paudley/2836-reviewed-coverage-golden-on-main-is-out",
+  "slug": "reviewed-coverage-golden-on-main-is-out",
+  "slug_drift": false,
+  "stage_dir": "/home/paudley/Active/gmeow-ontology/.worktrees/2836-reviewed-coverage-golden-on-main-is-out/.stage/reviewed-coverage-golden-on-main-is-out",
+  "stage_tracked": true,
+  "base": "origin/main",
+  "base_oid": "0e4e859527a9cbb029ec6281dd19d3b6d63a3699",
+  "reused": false,
+  "adr_repo": false,
+  "created": [
+    "worktree:/home/paudley/Active/gmeow-ontology/.worktrees/2836-reviewed-coverage-golden-on-main-is-out",
+    "branch:paudley/2836-reviewed-coverage-golden-on-main-is-out",
+    "ignored:8265 files (8265 reflinked, 0 written)",
+    "rust-caches:reflinked /home/paudley/Active/gmeow-ontology/.worktrees/2831-constraints-over-reified-statements caches into /home/paudley/Active/gmeow-ontology/.worktrees/2836-reviewed-coverage-golden-on-main-is-out plus 0 dependency units from 0 other checkouts in 440.8s; 12984 unchanged files keep their built mtimes; 44 other files take the seed time and rebuild; 338 units naming another checkout rebuild",
+    "stage:/home/paudley/Active/gmeow-ontology/.worktrees/2836-reviewed-coverage-golden-on-main-is-out/.stage/reviewed-coverage-golden-on-main-is-out",
+    "issue:/home/paudley/Active/gmeow-ontology/.worktrees/2836-reviewed-coverage-golden-on-main-is-out/.stage/reviewed-coverage-golden-on-main-is-out/issue.md"
+  ],
+  "warnings": [],
+  "timestamp": "2026-11-15T22:15:28-0600",
+  "seed_error": ""
+}

@@ -1,0 +1,33 @@
+{
+  "assignees": [],
+  "author": {
+    "id": "MDQ6VXNlcjUyNzU1NQ==",
+    "is_bot": false,
+    "login": "paudley",
+    "name": "Patrick Audley"
+  },
+  "body": "## Problem\n\n`crates/docs/tests/fixtures/reviewed_coverage_golden.json` on `main` is out of date against the translation catalogs. Regenerating it with its own target, `make maint-refresh-reviewed-coverage-golden`, which reads only the catalogs, changes about 70 catalogs it already lists and adds about 40 it lacks. The test that compares the two, `corpus_reviewed_coverage_matches_frozen_golden`, is on the default lane and is a whole-map equality check, so it cannot pass on `main` as the file stands; no hosted run reaches the Rust test shards, so nothing has reported it.\n\nThree open branches have each had to rewrite this single-line file for their own catalog keys, each differently, so they will conflict with one another on it.\n\n## Acceptance\n\n- [ ] The golden on `main` equals what its target produces from the catalogs on `main`.\n- [ ] The change contains that file and nothing else.\n- [ ] The open branches that touched the file merge `main` and regenerate, so each carries only its own keys.\n\nPrinciples 4, 7.\n",
+  "closedAt": null,
+  "comments": [],
+  "createdAt": "2026-11-16T04:05:11Z",
+  "labels": [
+    {
+      "id": "LA_kwDOSwdn1s8AAAACl8ZKrA",
+      "name": "bug",
+      "description": "Something isn't working",
+      "color": "d73a4a"
+    },
+    {
+      "id": "LA_kwDOSwdn1s8AAAACmjuimw",
+      "name": "quality",
+      "description": "Quality gate or completeness/correctness invariant",
+      "color": "0e8a16"
+    }
+  ],
+  "milestone": null,
+  "number": 2836,
+  "state": "OPEN",
+  "title": "The reviewed-coverage golden on main is out of date against the catalogs",
+  "updatedAt": "2026-11-16T04:06:09Z",
+  "url": "https://github.com/Blackcat-Informatics/gmeow-ontology/issues/2836"
+}
