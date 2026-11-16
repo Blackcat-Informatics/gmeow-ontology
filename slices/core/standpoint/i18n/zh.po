@@ -12,6 +12,14 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
+msgctxt "https://blackcatinformatics.ca/gmeow/standpointCredence|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Scope: a credence is one standpoint's graded degree of belief, not a probability. It is not a logic:probability, which needs a declared logic:probabilityModel; its bands are thresholds on a credence scale, not probability intervals; and it is not gmeow:confidence, which says how sure the recorder is of the statement. Read it as a probability only through an explicit mapping to logic:probability that names the model."
+msgstr "范围：信念度是某一立场的分级置信程度，而不是概率。它不是 logic:probability（后者需要声明 logic:probabilityModel）；其区间带是信念度尺度上的阈值，而不是概率区间；它也不是 gmeow:confidence（后者说明记录者对该陈述有多确定）。只有通过与 logic:probability 的明确映射并指明模型，才可将其当作概率读取。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/claimCredence|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Scope: a credence is one standpoint's graded degree of belief on a claim, not a probability. It is not a logic:probability, which needs a declared logic:probabilityModel; its bands are thresholds on a credence scale, not probability intervals; and it is not gmeow:confidence, which says how sure the recorder is of the statement. Read it as a probability only through an explicit mapping to logic:probability that names the model."
+msgstr "范围：信念度是某一立场对某一断言的分级置信程度，而不是概率。它不是 logic:probability（后者需要声明 logic:probabilityModel）；其区间带是信念度尺度上的阈值，而不是概率区间；它也不是 gmeow:confidence（后者说明记录者对该陈述有多确定）。只有通过与 logic:probability 的明确映射并指明模型，才可将其当作概率读取。"
+
 msgctxt "https://blackcatinformatics.ca/gmeow/claimAssertoricForceFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "claimAssertoricForce is functional"
 msgstr "claimAssertoricForce 具有函数性"

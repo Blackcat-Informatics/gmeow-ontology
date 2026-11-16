@@ -1,0 +1,12 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Fail-witness for ex:saConfidenceIsNotProbabilistic: it declares gmeow:confidence an instance
+# of the probabilistic framework, the conflation of an asserter's confidence with a probability
+# over a declared model. Unioned with the provenance module by the gmeow:saFailWitness teeth
+# check, it makes the ban's ASK hold, proving the ban catches the declaration rather than passing
+# vacuously. The real module must never carry this triple.
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+
+gmeow:confidence logic:instantiatesFramework logic:ProbabilisticFramework .

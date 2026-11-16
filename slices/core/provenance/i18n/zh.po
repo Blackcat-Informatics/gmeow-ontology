@@ -12,6 +12,30 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
+msgctxt "https://blackcatinformatics.ca/gmeow/confidence|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Epistemic confidence in a claim, in the closed interval [0,1], attached to the statement it qualifies: how sure the asserter or recording process is. It is not a probability and is not to be read as one unless an explicit mapping to a probability model is declared."
+msgstr "对某一断言的认知置信度，取闭区间 [0,1] 内的数值，附加在它所限定的陈述上：即断言者或记录过程有多确定。它不是概率，除非声明了与概率模型的明确映射，否则不得当作概率解读。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/confidence|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:alice ex:knows ex:bob {| gmeow:confidence 0.8 |} ."
+msgstr "ex:alice ex:knows ex:bob {| gmeow:confidence 0.8 |} ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/confidence|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Scope: the statement-level carrier of epistemic confidence, whose canonical cross-layer surface is logic:confidence; logic:confidence owns the meaning and keeps it distinct from logic:probability, logic:weight and logic:evidenceStrength. The link is documented here and not asserted as a subproperty edge, because gmeow:confidence is authored as an annotation property and logic:confidence as a datatype property, and the OWL 2 DL downcast must stay clean. A number in [0,1] does not make a probability: reading it as one needs a declared mapping to logic:probability and a logic:probabilityModel, and no probabilistic framework is declared for this term. Confidence says how sure, never who says (gmeow:accordingTo) or who recorded it (gmeow:reportedBy)."
+msgstr "范围：认知置信度在陈述层面的承载者，其跨层的规范表面是 logic:confidence；logic:confidence 拥有其含义，并使之区别于 logic:probability、logic:weight 和 logic:evidenceStrength。该联系在此处以文字记录，而不断言为子属性边，因为 gmeow:confidence 作为注解属性编写，而 logic:confidence 是数据类型属性，OWL 2 DL 降级必须保持整洁。[0,1] 中的数值并不构成概率：要把它当作概率解读，需要声明与 logic:probability 的映射以及 logic:probabilityModel，且此术语不声明任何概率框架。置信度说明有多确定，绝不说明由谁断言（gmeow:accordingTo）或由谁记录（gmeow:reportedBy）。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/confidence|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid reading or storing it as a probability or a calibrated score (use logic:probability under a logic:probabilityModel), as a solver ranking (logic:weight), as the warrant of the evidence (logic:evidenceStrength) or as a trust level; avoid it to say whose frame holds a claim (use gmeow:accordingTo) or who recorded it (use gmeow:reportedBy)."
+msgstr "避免将其当作概率或校准分数来读取或存储（应在 logic:probabilityModel 之下使用 logic:probability），避免当作求解器排序（logic:weight）、证据的保证（logic:evidenceStrength）或信任等级；避免用它说明某一断言由哪个框架持有（应使用 gmeow:accordingTo）或由谁记录（应使用 gmeow:reportedBy）。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/confidence|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Attach one number in [0,1] to the statement it qualifies as an annotation on that statement; compare or combine values only by an explicit declared rule, and declare a mapping to logic:probability together with a logic:probabilityModel before anything reads the number as a probability."
+msgstr "将一个 [0,1] 内的数值作为注解附加到它所限定的陈述上；仅依据明确声明的规则比较或组合各个值，并且在任何事物把该数值当作概率读取之前，先声明与 logic:probability 的映射以及 logic:probabilityModel。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/confidence|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to say how sure the asserter or recording process is of one statement, as a number in [0,1] attached to that statement."
+msgstr "用于说明断言者或记录过程对某一陈述有多确定，以附加在该陈述上的 [0,1] 内数值表示。"
+
 
 msgctxt "https://blackcatinformatics.ca/gmeow/ingestedAtFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "ingestedAt is functional"
