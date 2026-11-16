@@ -55,7 +55,7 @@ ex:claimBirth1896 a owl:Axiom ;
     gmeow:accordingTo ex:standpoint-parish ;
     gmeow:confidence 0.6 .
 
-# A withdrawn parentage claim — a mistaken attribution, corrected by suppression.
+# A withdrawn parentage claim — a mistaken attribution withdrawn by its own standpoint, so suppressed.
 # The base triple is still asserted but annotated as withdrawn.
 ex:withdrawnClaim a owl:Axiom ;
     owl:annotatedSource   ex:child ;

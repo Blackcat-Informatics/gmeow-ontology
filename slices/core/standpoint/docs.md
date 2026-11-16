@@ -117,7 +117,7 @@ claim participates when it names the ranker with `gmeow:accordingTo` and carries
 `gmeow:validFrom` not later than `t`. Two uses differ on suppression:
 
 - A displayed order leaves out any claim suppressed with `gmeow:displayable false`, since
-  suppression is how superseded and withdrawn records leave display (Principle 10); it
+  suppression is how a record its holder withdrew leaves display (Principle 10); it
   also leaves out a claim corrected by a correction statement that names the ranker with
   `gmeow:accordingTo`, a claim whose retraction has taken effect by `t`, and a claim
   whose successor has taken effect by `t`.

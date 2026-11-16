@@ -62,7 +62,7 @@ use purrdf::slice::rdf_query::{Object, Subject};
 )]
 // Exercises the ranker constraints' projected query over data already written in the lowered
 // component form (logic:reifiedStatementSubject / Predicate / Object edges). Data written as
-// RDF 1.2 reified statements does not reach these constraints on the validation paths yet.
+// RDF 1.2 reified statements does not reach these constraints on the validation paths.
 #[case::ranker_pair_with_another_partys_succession_is_flagged(
     Case::file("shapes", "standpoint-ranker-other-party-succession")
         .fails()

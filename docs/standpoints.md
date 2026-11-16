@@ -5,7 +5,7 @@
 
 GMEOW records a contested fact as **several standpoint-indexed claims that
 coexist, none privileged** — never one ground truth with a winner. This is the
-doctrine document for the standpoint facility (`ontology/modules/standpoint.ttl`);
+doctrine document for the standpoint facility (`slices/core/standpoint/module.ttl`);
 its companion is the [alignment & projection reference](../slices/core/standpoint/docs.md).
 
 ## The epistemic thesis

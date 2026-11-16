@@ -45,8 +45,9 @@ ex:ax-deny a owl:Axiom ;
     gmeow:standpointModality gmeow:refuted ;
     gmeow:confidence 0.95 .
 
-# A reified standpoint tenure whose position was withdrawn (closed interval) —
-# suppressed, never deleted (Principle 10).
+# A reified standpoint tenure whose holder withdrew its position: retained and suppressed
+# (gmeow:displayable false), never deleted (Principle 10). A closed interval alone would
+# not prompt the flag.
 ex:recognition a gmeow:StandpointTenure ;
     gmeow:tenureStandpoint ex:standpoint-un ;
     gmeow:duringInterval [ a gmeow:TimeInterval ;

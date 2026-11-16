@@ -3,8 +3,8 @@
 
 # Claim lifecycle
 
-Ordinary revision retains history and suppresses superseded or withdrawn records
-from display with `gmeow:displayable false` (Constitution Principle 10). Suppression
+Ordinary revision retains history and suppresses a record its holder withdrew or
+superseded from display with `gmeow:displayable false` (Constitution Principle 10). Suppression
 does not establish whether the earlier claim was valid. Lifecycle relations carry
 that distinction, indexed to the standpoint making it.
 

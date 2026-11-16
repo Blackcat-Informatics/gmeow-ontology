@@ -48,7 +48,7 @@ use gmeow_test_batch_macros::batch_cases;
     // surface (generated/shapes/validation-shapes.ttl GenderIdentity-shape / NameUsage-shape),
     // which the fixture corpus deliberately excludes — their witnesses ride the production
     // shape union below (`malformed_relator_gender_value_bounds_on_union`). The suppression
-    // warning likewise migrated to gmeow:SupersededFacetSuppressionConstraint on that union.
+    // warning likewise migrated to gmeow:SupersededGenderIdentitySuppressionConstraint on that union.
     // What remains authored on the fixture corpus is the orthogonality disjointness check.
     Case::file("shapes", "relator-malformed")
         .fails()

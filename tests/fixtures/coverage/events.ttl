@@ -76,8 +76,8 @@ ex:partPerformer a gmeow:Participation ;
     gmeow:participationParticipant ex:band ;
     gmeow:participationRole gmeow:rolePerformer .
 
-# A superseded participation claim — a mistaken attendee, corrected by SUPPRESSION
-# (gmeow:displayable false), never deletion (Principle 10). validUntil closes it.
+# A participation its recorder withdrew as mistaken: the recorder's own retraction,
+# so it is suppressed (gmeow:displayable false) and retained, never deleted (Principle 10).
 ex:partMistaken a gmeow:Participation ;
     gmeow:participationEvent ex:reception ;
     gmeow:participationParticipant ex:erin ;
