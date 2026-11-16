@@ -58,8 +58,9 @@ ex:ecMetricResultNoMagnitude a gmeow:ExampleConformance ;
 # gmeow:TensorArtifactCoherenceConstraint requires an artifact's computation graph to
 # describe the artifact's own learned model and no other, every computation node to be
 # an application expression, and every weight's parameter space to belong to that model
-# or that graph. One fixture satisfies it and four counter-examples each break one part: a wrong owner
-or an additional incompatible owner, on the graph and on the parameter space.
+# or that graph. One fixture satisfies it and four counter-examples break it: two with a
+# wrong owner and two with an additional incompatible owner, each once on the graph and
+# once on the parameter space.
 
 ex:ecTensorArtifactCoherent a gmeow:ExampleConformance ;
     gmeow:exampleFile "tests/conformance-fixtures/tensor-artifact-coherent.ttl" ;
