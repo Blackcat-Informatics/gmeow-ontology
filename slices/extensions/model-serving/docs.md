@@ -154,7 +154,14 @@ metric reading with its artifact, evaluator, metric, dimension, magnitude and,
 where the result names one, its unit; it keeps a reading only when the result
 carries the dimension its own metric declares. The metric result law has a
 conforming fixture and two counter-examples under `tests/`: a latency reported
-as a bare dimensionless number, and a result with no magnitude. A structural
-assertion keeps literal-valued properties off the artifact, metric and metric
+as a bare dimensionless number, and a result with no magnitude.
+The two artifact laws have controls too. `gmeow:TensorArtifactCoherenceConstraint` has a
+conforming tensor artifact and two counter-examples, one whose computation graph describes a
+different model and one whose weight lives in the parameter space of a different model.
+`gmeow:ArtifactTrainingObjectiveConstraint` has a conforming learned artifact and two
+counter-examples, a training problem with no objective and an objective that is a plain function
+rather than a loss function. Every resource a fixture types with a math class
+carries the members that class requires, so each counter-example breaks its one law only.
+A structural assertion keeps literal-valued properties off the artifact, metric and metric
 observation classes, so a magnitude has one path, and a second pins each
 mathematical role to its math owner.

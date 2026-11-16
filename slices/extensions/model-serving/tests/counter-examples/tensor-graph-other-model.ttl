@@ -28,4 +28,11 @@ ex:inputRef a math:SymbolReference ; math:hasMathematicalSymbol ex:inputSymbol .
 ex:weightSymbol a math:MathematicalSymbol .
 ex:inputSymbol a math:MathematicalSymbol .
 ex:weights a math:WeightTensor ; math:inParameterSpace ex:parameters .
-ex:parameters a math:ParameterSpace ; math:parameterSpaceOf ex:model .
+ex:parameters a math:ParameterSpace ; math:parameterSpaceOf ex:model ;
+    math:underlyingSet ex:parameterSet ;
+    math:structureOperation ex:parameterAddition ;
+    math:satisfiesAxiom ex:additionAssociativity, ex:additionCommutativity .
+ex:parameterSet a math:Set .
+ex:parameterAddition a math:Operation .
+ex:additionAssociativity a math:Axiom .
+ex:additionCommutativity a math:Axiom .

@@ -15,4 +15,6 @@ ex:artifact a gmeow:LearnedModelArtifact ;
     gmeow:artifactTrainingProblem ex:problem .
 ex:model a math:LearnedModel .
 ex:problem a math:OptimizationProblem ; math:objectiveFunction ex:loss .
-ex:loss a math:LossFunction .
+ex:loss a math:LossFunction ; math:domain ex:predictionSet ; math:codomain ex:lossValueSet .
+ex:predictionSet a math:Set .
+ex:lossValueSet a math:Set .
