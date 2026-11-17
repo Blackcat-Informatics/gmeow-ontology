@@ -27,6 +27,7 @@ mod dev_i18n;
 mod dev_logic;
 mod dev_medium_sweep;
 mod dev_pipeline_reads;
+mod dev_pipeline_scope;
 mod dev_producer;
 mod dev_project;
 mod dev_reason;
@@ -858,6 +859,8 @@ pub enum Commands {
     /// `--out`.
     #[command(name = "pipeline-reads")]
     PipelineReads(PipelineReadsArgs),
+    /// Compare the authored output-scope query with every executable build profile.
+    PipelineScopeCheck,
     /// Write a declaration-only bootstrap table with zero measured evidence.
     MediumSeed(MediumSeedArgs),
     /// Advance the computed term-changelog authority at an accepted release boundary.
@@ -1294,6 +1297,7 @@ pub fn run() -> i32 {
         Commands::PipelineReads(PipelineReadsArgs { out, jobs }) => {
             dev_pipeline_reads::run(&out, jobs)
         }
+        Commands::PipelineScopeCheck => dev_pipeline_scope::run(),
         Commands::TermReleaseAuthority(TermReleaseAuthorityArgs { bootstrap }) => {
             dev_term_release_authority::run(bootstrap)
         }

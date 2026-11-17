@@ -5,6 +5,7 @@
 
 use super::*;
 use crate::cache::{StageKeyContext, stage_key};
+use crate::default_registry;
 
 fn report(mode: RunMode, ledger: DiagLedger) -> RunReport {
     RunReport {

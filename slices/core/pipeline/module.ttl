@@ -2189,53 +2189,53 @@ gmeow:pipeline-build
 # The production DAG's cache algebra. Every build stage is deterministic for the
 # same declared inputs. Independently bounded contributions are persistable; the
 # four cumulative carrier aggregates are reconstructed from the live frontier.
-gmeow:stage-parse-sources gmeow:stageStability gmeow:stabilityStablePrefix ; gmeow:stageCacheDisposition gmeow:cacheRecomputeAggregate .
-gmeow:stage-source-load gmeow:stageStability gmeow:stabilityStablePrefix ; gmeow:stageCacheDisposition gmeow:cachePersistentContribution .
-gmeow:stage-statements gmeow:stageStability gmeow:stabilityStablePrefix ; gmeow:stageCacheDisposition gmeow:cachePersistentContribution .
-gmeow:stage-compile-logic gmeow:stageStability gmeow:stabilityStablePrefix ; gmeow:stageCacheDisposition gmeow:cachePersistentContribution .
-gmeow:stage-mappings gmeow:stageStability gmeow:stabilityStablePrefix ; gmeow:stageCacheDisposition gmeow:cachePersistentContribution .
-gmeow:stage-native-codebook gmeow:stageStability gmeow:stabilityStablePrefix ; gmeow:stageCacheDisposition gmeow:cachePersistentContribution .
-gmeow:stage-math-producers gmeow:stageStability gmeow:stabilityStablePrefix ; gmeow:stageCacheDisposition gmeow:cachePersistentContribution .
-gmeow:stage-gmn-training-corpus gmeow:stageStability gmeow:stabilityStablePrefix ; gmeow:stageCacheDisposition gmeow:cachePersistentContribution .
-gmeow:stage-slice-brief gmeow:stageStability gmeow:stabilityStablePrefix ; gmeow:stageCacheDisposition gmeow:cachePersistentContribution .
-gmeow:stage-reason gmeow:stageStability gmeow:stabilityStablePrefix ; gmeow:stageCacheDisposition gmeow:cacheRecomputeAggregate .
-gmeow:stage-verify-attestation gmeow:stageStability gmeow:stabilityStablePrefix ; gmeow:stageCacheDisposition gmeow:cachePersistentContribution .
-gmeow:stage-goal-directed gmeow:stageStability gmeow:stabilityStablePrefix ; gmeow:stageCacheDisposition gmeow:cachePersistentContribution .
-gmeow:stage-validate gmeow:stageStability gmeow:stabilityStablePrefix ; gmeow:stageCacheDisposition gmeow:cachePersistentContribution .
-gmeow:stage-conformance gmeow:stageStability gmeow:stabilityStablePrefix ; gmeow:stageCacheDisposition gmeow:cachePersistentContribution .
-gmeow:stage-constraint-catalog gmeow:stageStability gmeow:stabilityStablePrefix ; gmeow:stageCacheDisposition gmeow:cachePersistentContribution .
-gmeow:stage-term-manifest gmeow:stageStability gmeow:stabilityStablePrefix ; gmeow:stageCacheDisposition gmeow:cachePersistentContribution .
-gmeow:stage-docs-render gmeow:stageStability gmeow:stabilityStablePrefix ; gmeow:stageCacheDisposition gmeow:cacheRecomputeAggregate .
-gmeow:stage-snapshot gmeow:stageStability gmeow:stabilityStablePrefix ; gmeow:stageCacheDisposition gmeow:cacheRecomputeAggregate .
-gmeow:stage-export-schemas gmeow:stageStability gmeow:stabilityStablePrefix ; gmeow:stageCacheDisposition gmeow:cachePersistentContribution .
-gmeow:stage-export-catalog gmeow:stageStability gmeow:stabilityStablePrefix ; gmeow:stageCacheDisposition gmeow:cachePersistentContribution .
-gmeow:stage-export-profiles gmeow:stageStability gmeow:stabilityStablePrefix ; gmeow:stageCacheDisposition gmeow:cachePersistentContribution .
-gmeow:stage-export-export gmeow:stageStability gmeow:stabilityStablePrefix ; gmeow:stageCacheDisposition gmeow:cacheRecomputeAggregate .
-gmeow:stage-export-okf gmeow:stageStability gmeow:stabilityStablePrefix ; gmeow:stageCacheDisposition gmeow:cacheRecomputeAggregate .
-gmeow:stage-export-apache gmeow:stageStability gmeow:stabilityStablePrefix ; gmeow:stageCacheDisposition gmeow:cachePersistentContribution .
-gmeow:stage-export-frame-shapes gmeow:stageStability gmeow:stabilityStablePrefix ; gmeow:stageCacheDisposition gmeow:cachePersistentContribution .
-gmeow:stage-export-constraint-shapes gmeow:stageStability gmeow:stabilityStablePrefix ; gmeow:stageCacheDisposition gmeow:cachePersistentContribution .
-gmeow:stage-export-governance-floors gmeow:stageStability gmeow:stabilityStablePrefix ; gmeow:stageCacheDisposition gmeow:cachePersistentContribution .
-gmeow:stage-export-projection-ceilings gmeow:stageStability gmeow:stabilityStablePrefix ; gmeow:stageCacheDisposition gmeow:cachePersistentContribution .
-gmeow:stage-export-result-shapes gmeow:stageStability gmeow:stabilityStablePrefix ; gmeow:stageCacheDisposition gmeow:cachePersistentContribution .
-gmeow:stage-validate-result-shape-composition gmeow:stageStability gmeow:stabilityStablePrefix ; gmeow:stageCacheDisposition gmeow:cachePersistentContribution .
-gmeow:stage-export-json-schema gmeow:stageStability gmeow:stabilityStablePrefix ; gmeow:stageCacheDisposition gmeow:cachePersistentContribution .
-gmeow:stage-export-pydantic gmeow:stageStability gmeow:stabilityStablePrefix ; gmeow:stageCacheDisposition gmeow:cachePersistentContribution .
-gmeow:stage-export-matrix gmeow:stageStability gmeow:stabilityStablePrefix ; gmeow:stageCacheDisposition gmeow:cachePersistentContribution .
-gmeow:stage-export-glossary gmeow:stageStability gmeow:stabilityStablePrefix ; gmeow:stageCacheDisposition gmeow:cacheRecomputeAggregate .
-gmeow:stage-export-skos-surface gmeow:stageStability gmeow:stabilityStablePrefix ; gmeow:stageCacheDisposition gmeow:cachePersistentContribution .
-gmeow:stage-export-metadata gmeow:stageStability gmeow:stabilityStablePrefix ; gmeow:stageCacheDisposition gmeow:cachePersistentContribution .
-gmeow:stage-export-research-objects gmeow:stageStability gmeow:stabilityStablePrefix ; gmeow:stageCacheDisposition gmeow:cachePersistentContribution .
-gmeow:stage-export-references gmeow:stageStability gmeow:stabilityStablePrefix ; gmeow:stageCacheDisposition gmeow:cachePersistentContribution .
-gmeow:stage-export-evals gmeow:stageStability gmeow:stabilityStablePrefix ; gmeow:stageCacheDisposition gmeow:cachePersistentContribution .
-gmeow:stage-export-bench gmeow:stageStability gmeow:stabilityStablePrefix ; gmeow:stageCacheDisposition gmeow:cachePersistentContribution .
-gmeow:stage-export-cost-ledger gmeow:stageStability gmeow:stabilityStablePrefix ; gmeow:stageCacheDisposition gmeow:cachePersistentContribution .
-gmeow:stage-export-agreement gmeow:stageStability gmeow:stabilityStablePrefix ; gmeow:stageCacheDisposition gmeow:cachePersistentContribution .
-gmeow:stage-export-lpg gmeow:stageStability gmeow:stabilityStablePrefix ; gmeow:stageCacheDisposition gmeow:cachePersistentContribution .
-gmeow:stage-export-yaml-ld gmeow:stageStability gmeow:stabilityStablePrefix ; gmeow:stageCacheDisposition gmeow:cacheRecomputeAggregate .
-gmeow:stage-archive-blobs gmeow:stageStability gmeow:stabilityStablePrefix ; gmeow:stageCacheDisposition gmeow:cachePersistentContribution .
-gmeow:stage-medium-dictionaries gmeow:stageStability gmeow:stabilityStablePrefix ; gmeow:stageCacheDisposition gmeow:cachePersistentContribution .
-gmeow:stage-gts-sink gmeow:stageStability gmeow:stabilityStablePrefix ; gmeow:stageCacheDisposition gmeow:cachePersistentContribution .
+gmeow:stage-parse-sources gmeow:stageStability gmeow:stabilityStablePrefix ; gmeow:stageCacheDisposition gmeow:cacheRecomputeAggregate ; gmeow:stageOutputFamily gmeow:outputGenerated .
+gmeow:stage-source-load gmeow:stageStability gmeow:stabilityStablePrefix ; gmeow:stageCacheDisposition gmeow:cachePersistentContribution ; gmeow:stageOutputFamily gmeow:outputGenerated .
+gmeow:stage-statements gmeow:stageStability gmeow:stabilityStablePrefix ; gmeow:stageCacheDisposition gmeow:cachePersistentContribution ; gmeow:stageOutputFamily gmeow:outputGenerated .
+gmeow:stage-compile-logic gmeow:stageStability gmeow:stabilityStablePrefix ; gmeow:stageCacheDisposition gmeow:cachePersistentContribution ; gmeow:stageOutputFamily gmeow:outputGenerated .
+gmeow:stage-mappings gmeow:stageStability gmeow:stabilityStablePrefix ; gmeow:stageCacheDisposition gmeow:cachePersistentContribution ; gmeow:stageOutputFamily gmeow:outputGenerated .
+gmeow:stage-native-codebook gmeow:stageStability gmeow:stabilityStablePrefix ; gmeow:stageCacheDisposition gmeow:cachePersistentContribution ; gmeow:stageOutputFamily gmeow:outputGenerated .
+gmeow:stage-math-producers gmeow:stageStability gmeow:stabilityStablePrefix ; gmeow:stageCacheDisposition gmeow:cachePersistentContribution ; gmeow:stageOutputFamily gmeow:outputGenerated .
+gmeow:stage-gmn-training-corpus gmeow:stageStability gmeow:stabilityStablePrefix ; gmeow:stageCacheDisposition gmeow:cachePersistentContribution ; gmeow:stageOutputFamily gmeow:outputGenerated .
+gmeow:stage-slice-brief gmeow:stageStability gmeow:stabilityStablePrefix ; gmeow:stageCacheDisposition gmeow:cachePersistentContribution ; gmeow:stageOutputFamily gmeow:outputGenerated .
+gmeow:stage-reason gmeow:stageStability gmeow:stabilityStablePrefix ; gmeow:stageCacheDisposition gmeow:cacheRecomputeAggregate ; gmeow:stageOutputFamily gmeow:outputGenerated .
+gmeow:stage-verify-attestation gmeow:stageStability gmeow:stabilityStablePrefix ; gmeow:stageCacheDisposition gmeow:cachePersistentContribution ; gmeow:stageOutputFamily gmeow:outputGenerated .
+gmeow:stage-goal-directed gmeow:stageStability gmeow:stabilityStablePrefix ; gmeow:stageCacheDisposition gmeow:cachePersistentContribution ; gmeow:stageOutputFamily gmeow:outputGenerated .
+gmeow:stage-validate gmeow:stageStability gmeow:stabilityStablePrefix ; gmeow:stageCacheDisposition gmeow:cachePersistentContribution ; gmeow:stageOutputFamily gmeow:outputGenerated .
+gmeow:stage-conformance gmeow:stageStability gmeow:stabilityStablePrefix ; gmeow:stageCacheDisposition gmeow:cachePersistentContribution ; gmeow:stageOutputFamily gmeow:outputGenerated .
+gmeow:stage-constraint-catalog gmeow:stageStability gmeow:stabilityStablePrefix ; gmeow:stageCacheDisposition gmeow:cachePersistentContribution ; gmeow:stageOutputFamily gmeow:outputGenerated .
+gmeow:stage-term-manifest gmeow:stageStability gmeow:stabilityStablePrefix ; gmeow:stageCacheDisposition gmeow:cachePersistentContribution ; gmeow:stageOutputFamily gmeow:outputGenerated .
+gmeow:stage-docs-render gmeow:stageStability gmeow:stabilityStablePrefix ; gmeow:stageCacheDisposition gmeow:cacheRecomputeAggregate ; gmeow:stageOutputFamily gmeow:outputGenerated .
+gmeow:stage-snapshot gmeow:stageStability gmeow:stabilityStablePrefix ; gmeow:stageCacheDisposition gmeow:cacheRecomputeAggregate ; gmeow:stageOutputFamily gmeow:outputGenerated .
+gmeow:stage-export-schemas gmeow:stageStability gmeow:stabilityStablePrefix ; gmeow:stageCacheDisposition gmeow:cachePersistentContribution ; gmeow:stageOutputFamily gmeow:outputGenerated .
+gmeow:stage-export-catalog gmeow:stageStability gmeow:stabilityStablePrefix ; gmeow:stageCacheDisposition gmeow:cachePersistentContribution ; gmeow:stageOutputFamily gmeow:outputGenerated .
+gmeow:stage-export-profiles gmeow:stageStability gmeow:stabilityStablePrefix ; gmeow:stageCacheDisposition gmeow:cachePersistentContribution ; gmeow:stageOutputFamily gmeow:outputGenerated .
+gmeow:stage-export-export gmeow:stageStability gmeow:stabilityStablePrefix ; gmeow:stageCacheDisposition gmeow:cacheRecomputeAggregate ; gmeow:stageOutputFamily gmeow:outputRuntimeProjection .
+gmeow:stage-export-okf gmeow:stageStability gmeow:stabilityStablePrefix ; gmeow:stageCacheDisposition gmeow:cacheRecomputeAggregate ; gmeow:stageOutputFamily gmeow:outputRuntimeProjection .
+gmeow:stage-export-apache gmeow:stageStability gmeow:stabilityStablePrefix ; gmeow:stageCacheDisposition gmeow:cachePersistentContribution ; gmeow:stageOutputFamily gmeow:outputGenerated .
+gmeow:stage-export-frame-shapes gmeow:stageStability gmeow:stabilityStablePrefix ; gmeow:stageCacheDisposition gmeow:cachePersistentContribution ; gmeow:stageOutputFamily gmeow:outputGenerated .
+gmeow:stage-export-constraint-shapes gmeow:stageStability gmeow:stabilityStablePrefix ; gmeow:stageCacheDisposition gmeow:cachePersistentContribution ; gmeow:stageOutputFamily gmeow:outputGenerated .
+gmeow:stage-export-governance-floors gmeow:stageStability gmeow:stabilityStablePrefix ; gmeow:stageCacheDisposition gmeow:cachePersistentContribution ; gmeow:stageOutputFamily gmeow:outputGenerated .
+gmeow:stage-export-projection-ceilings gmeow:stageStability gmeow:stabilityStablePrefix ; gmeow:stageCacheDisposition gmeow:cachePersistentContribution ; gmeow:stageOutputFamily gmeow:outputGenerated .
+gmeow:stage-export-result-shapes gmeow:stageStability gmeow:stabilityStablePrefix ; gmeow:stageCacheDisposition gmeow:cachePersistentContribution ; gmeow:stageOutputFamily gmeow:outputGenerated .
+gmeow:stage-validate-result-shape-composition gmeow:stageStability gmeow:stabilityStablePrefix ; gmeow:stageCacheDisposition gmeow:cachePersistentContribution ; gmeow:stageOutputFamily gmeow:outputGenerated .
+gmeow:stage-export-json-schema gmeow:stageStability gmeow:stabilityStablePrefix ; gmeow:stageCacheDisposition gmeow:cachePersistentContribution ; gmeow:stageOutputFamily gmeow:outputGenerated .
+gmeow:stage-export-pydantic gmeow:stageStability gmeow:stabilityStablePrefix ; gmeow:stageCacheDisposition gmeow:cachePersistentContribution ; gmeow:stageOutputFamily gmeow:outputGenerated .
+gmeow:stage-export-matrix gmeow:stageStability gmeow:stabilityStablePrefix ; gmeow:stageCacheDisposition gmeow:cachePersistentContribution ; gmeow:stageOutputFamily gmeow:outputGenerated .
+gmeow:stage-export-glossary gmeow:stageStability gmeow:stabilityStablePrefix ; gmeow:stageCacheDisposition gmeow:cacheRecomputeAggregate ; gmeow:stageOutputFamily gmeow:outputGenerated .
+gmeow:stage-export-skos-surface gmeow:stageStability gmeow:stabilityStablePrefix ; gmeow:stageCacheDisposition gmeow:cachePersistentContribution ; gmeow:stageOutputFamily gmeow:outputGenerated .
+gmeow:stage-export-metadata gmeow:stageStability gmeow:stabilityStablePrefix ; gmeow:stageCacheDisposition gmeow:cachePersistentContribution ; gmeow:stageOutputFamily gmeow:outputGenerated .
+gmeow:stage-export-research-objects gmeow:stageStability gmeow:stabilityStablePrefix ; gmeow:stageCacheDisposition gmeow:cachePersistentContribution ; gmeow:stageOutputFamily gmeow:outputGenerated .
+gmeow:stage-export-references gmeow:stageStability gmeow:stabilityStablePrefix ; gmeow:stageCacheDisposition gmeow:cachePersistentContribution ; gmeow:stageOutputFamily gmeow:outputGenerated .
+gmeow:stage-export-evals gmeow:stageStability gmeow:stabilityStablePrefix ; gmeow:stageCacheDisposition gmeow:cachePersistentContribution ; gmeow:stageOutputFamily gmeow:outputGenerated .
+gmeow:stage-export-bench gmeow:stageStability gmeow:stabilityStablePrefix ; gmeow:stageCacheDisposition gmeow:cachePersistentContribution ; gmeow:stageOutputFamily gmeow:outputGenerated .
+gmeow:stage-export-cost-ledger gmeow:stageStability gmeow:stabilityStablePrefix ; gmeow:stageCacheDisposition gmeow:cachePersistentContribution ; gmeow:stageOutputFamily gmeow:outputGenerated .
+gmeow:stage-export-agreement gmeow:stageStability gmeow:stabilityStablePrefix ; gmeow:stageCacheDisposition gmeow:cachePersistentContribution ; gmeow:stageOutputFamily gmeow:outputGenerated .
+gmeow:stage-export-lpg gmeow:stageStability gmeow:stabilityStablePrefix ; gmeow:stageCacheDisposition gmeow:cachePersistentContribution ; gmeow:stageOutputFamily gmeow:outputGenerated .
+gmeow:stage-export-yaml-ld gmeow:stageStability gmeow:stabilityStablePrefix ; gmeow:stageCacheDisposition gmeow:cacheRecomputeAggregate ; gmeow:stageOutputFamily gmeow:outputRuntimeProjection .
+gmeow:stage-archive-blobs gmeow:stageStability gmeow:stabilityStablePrefix ; gmeow:stageCacheDisposition gmeow:cachePersistentContribution ; gmeow:stageOutputFamily gmeow:outputGenerated .
+gmeow:stage-medium-dictionaries gmeow:stageStability gmeow:stabilityStablePrefix ; gmeow:stageCacheDisposition gmeow:cachePersistentContribution ; gmeow:stageOutputFamily gmeow:outputGenerated .
+gmeow:stage-gts-sink gmeow:stageStability gmeow:stabilityStablePrefix ; gmeow:stageCacheDisposition gmeow:cachePersistentContribution ; gmeow:stageOutputFamily gmeow:outputGenerated .
 
 # ── Spine ──
 
@@ -4024,6 +4024,57 @@ gmeow:stabilityPerTurnVariance
     skos:definition "The stage's output VARIES turn to turn (a live fetch, a sampled model call, a timestamped record) and therefore cannot be prefix-cached: it must be placed after the stable prefix, and everything downstream of it inherits the variance."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 
+gmeow:StageOutputFamily
+    a logic:Kind , logic:Class ;
+    logic:subClassOf logic:QualityValue ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
+    rdfs:label "Stage Output Family"@x-gmeow-english ;
+    skos:definition "A class of quality values describing which explicit output scopes select a pipeline stage as a root. The stage profile admits generated output and runtime projection values; each scope also retains every transitive producer of its selected roots. This classification controls stage selection, while selected stages and their required outputs remain mandatory."@x-gmeow-english ;
+    skos:example "gmeow:stage-export-yaml-ld gmeow:stageOutputFamily gmeow:outputRuntimeProjection ."@x-gmeow-english ;
+    skos:scopeNote "Scope: output selection for a declared pipeline stage. A runtime projection can still be required by a generated stage; the two profile values do not close this class globally."@x-gmeow-english ;
+    gmeow:useWhen "Use a Stage Output Family to describe the scope roots of a stage without inferring its role from file names or execution timings."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not use an output family as a success status, cache policy, effect class or permission to omit a dependency."@x-gmeow-english ;
+    gmeow:howToUse "Declare exactly one allowed family for each pipeline stage. Admit its implementation identity and family before filtering, then retain the complete producer closure."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+gmeow:stageOutputFamily
+    a logic:ObjectProperty ;
+    logic:domain gmeow:PipelineStage ;
+    logic:range gmeow:StageOutputFamily ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
+    rdfs:label "stage output family"@x-gmeow-english ;
+    skos:definition "Relates a pipeline stage to the output family used to select it as a scope root. Every stage declares exactly one allowed value. Native admission checks its identity and family against the selected executable registry before either output scope can filter stages, so a false runtime projection declaration cannot hide a required generated stage."@x-gmeow-english ;
+    skos:example "gmeow:stage-gts-sink gmeow:stageOutputFamily gmeow:outputGenerated ."@x-gmeow-english ;
+    skos:scopeNote "Scope: the declared output selection role of one stage, separate from its cache disposition, dependencies and execution outcome."@x-gmeow-english ;
+    gmeow:useWhen "Use this property to make scope selection readable from the same authored graph that declares the pipeline."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not omit this property on an internal stage or use it to erase a required producer from a selected scope."@x-gmeow-english ;
+    gmeow:howToUse "Set outputGenerated or outputRuntimeProjection on every stage. Select generated roots for the committed scope and all roots for the all scope, retaining their transitive dataflowConsumes producers."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+gmeow:outputGenerated
+    a gmeow:StageOutputFamily ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
+    rdfs:label "output: generated"@x-gmeow-english ;
+    skos:definition "The stage output family selected as a root by both the committed/generated scope and the all scope. A member can supply an internal intermediate rather than write a committed path itself. Selection always includes its transitive producers and does not change the stage's computation or required outputs."@x-gmeow-english ;
+    skos:example "gmeow:stage-parse-sources gmeow:stageOutputFamily gmeow:outputGenerated ."@x-gmeow-english ;
+    skos:scopeNote "Scope: selection of generated output roots, including internal work in that family. This value does not assert that every member writes a file."@x-gmeow-english ;
+    gmeow:useWhen "Use outputGenerated for a stage whose contribution belongs to the generated output branch."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not infer a committed file path or successful artifact publication from this family value."@x-gmeow-english ;
+    gmeow:howToUse "Declare this value explicitly and keep the executable family identical. Retain every declared upstream producer when deriving the committed scope."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:outputRuntimeProjection
+    a gmeow:StageOutputFamily ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
+    rdfs:label "output: runtime projection"@x-gmeow-english ;
+    skos:definition "The stage output family selected as a direct runtime projection root by the all scope. The committed/generated scope also retains a member when a selected generated stage needs it as a transitive producer. This family classifies selection roots, not whether a stage is allowed to run or whether its outputs are optional."@x-gmeow-english ;
+    skos:example "gmeow:stage-export-okf gmeow:stageOutputFamily gmeow:outputRuntimeProjection ."@x-gmeow-english ;
+    skos:scopeNote "Scope: direct runtime projection roots. The current independent runtime exporters are omitted from committed selection because no generated root needs them."@x-gmeow-english ;
+    gmeow:useWhen "Use outputRuntimeProjection for a stage dedicated to runtime presentation output selected by the all scope."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not treat this value as a promise that the stage can never occur in a committed producer closure."@x-gmeow-english ;
+    gmeow:howToUse "Declare this value explicitly, admit agreement with the selected executable registry and retain the stage whenever a selected root transitively consumes it."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
 gmeow:StageCacheDisposition
     a logic:Kind ,
         logic:Class ;
@@ -4065,6 +4116,12 @@ gmeow:cacheRecomputeAggregate
     rdfs:label "cache: recompute aggregate"@x-gmeow-english ;
     skos:definition "Rebuild this stage's large aggregate from its already-live upstream products on every admitted DAG run because persisting and hydrating its canonical representation would duplicate the carrier and cost at least as much as the native assembly. The stage still emits an immutable receipt and remains fully verified."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:PipelineStage logic:subClassOf
+    [ a logic:Restriction ; logic:onProperty gmeow:stageOutputFamily ; logic:allValuesFrom [ logic:oneOf ( gmeow:outputGenerated gmeow:outputRuntimeProjection ) ] ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:stageOutputFamily ; logic:minQualifiedCardinality 1 ; logic:onClass gmeow:StageOutputFamily ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:stageOutputFamily ; logic:maxQualifiedCardinality 1 ; logic:onClass gmeow:StageOutputFamily ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:PipelineStage ; logic:closureKey "https://blackcatinformatics.ca/gmeow/stageOutputFamily" ; logic:closureValue logic:ClosedWorldClosure ] .
 
 # ── (4) Per-stage resource budgets ─────────────────────────────────────────── #
 

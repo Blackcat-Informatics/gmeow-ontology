@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 
 use super::*;
+use crate::default_registry;
 
 /// The implementation the authored pipeline binds to stage `id` under the default
 /// registry, so a test reads the declarations the production stage reports.

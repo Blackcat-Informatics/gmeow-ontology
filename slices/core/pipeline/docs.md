@@ -35,10 +35,57 @@ Each `gmeow:PipelineStage` is a `logic:ActionSchema` and declares:
 | `gmeow:requiresResource` | The shared `gmeow:Resource`s it must hold exclusively while running (e.g. `gmeow:engineResource`); stages competing for one serialize. |
 | `gmeow:hasCapability` | The `gmeow:StageCapability`s it holds — the executor reads these in place of a kind enum. |
 | `gmeow:producesFormat` | Output-format tags (export leaves). |
+| `gmeow:stageOutputFamily` | Required scope-root classification, admitted against the selected executable registry before filtering. |
 
 Reified `gmeow:BuildDataFlow` edges (`gmeow:buildFlowFrom` / `gmeow:buildFlowTo` / `gmeow:flowEntity`)
 narrow a consumer's dependency to the specific named graphs it reads, so the executor keys that
 stage's cache on only those graphs' digests — artifact-level incremental rebuild.
+
+## Output families and scope selection
+
+`gmeow:StageOutputFamily` grounds a stage's selection role in `logic:QualityValue`.
+Every stage declares exactly one `gmeow:stageOutputFamily`. Native logic axioms
+restrict that path to the two profile values and require it under explicit
+closed-world closure; generated shapes project those authored axioms.
+
+| Family | Selected roots |
+| --- | --- |
+| `gmeow:outputGenerated` | Both the committed/generated scope and the all scope. Internal intermediates can belong to this family without writing a committed file themselves. |
+| `gmeow:outputRuntimeProjection` | Direct runtime presentation roots in the all scope. Other scopes retain a member whenever a selected root needs it as a transitive producer. |
+
+The committed scope starts with generated roots and follows the complete
+`gmeow:dataflowConsumes` producer closure. The all scope selects every declared
+stage. The current independent export, OKF and YAML-LD exporters have runtime
+projection families and are outside the committed closure. This is explicit
+branch selection; every selected stage, dependency, gate and output remains
+mandatory. Families do not describe success, effect classes or cache policy.
+
+The loader checks each stage's implementation identity and family against the
+actual Ordinary or Release registry before either scope can omit a stage. The
+same admission applies to direct binding by fixture and synchronization consumers.
+Missing, unknown, conflicting and mismatched declarations fail explicitly. Bound
+stages and scope selection then read the admitted authored value.
+
+Run the authored query
+[`output-scope-stages.rq`](queries/competency/output-scope-stages.rq) to derive both
+scope sets for `gmeow:pipeline-build` directly from its family and dependency facts.
+After `make producer-build`, run
+`make pipeline-scope-check GMEOW_DEV=./dist/bin/gmeow-dev` to compare that source
+query with native scope selection on the current build description. The command
+authenticates the optimized producer, checks authored/compiled spec identity and
+full binding, and compares exact stage sets for both Ordinary and Release profiles.
+It prints deterministic profile/scope/stage rows after every comparison succeeds;
+it never schedules stage bodies or produces the ontology corpus.
+
+A tiny caller-owned synthetic regression separately keeps a runtime producer
+needed by a generated root, omits an independent runtime leaf from committed
+selection and excludes another pipeline's stages. Tests parse only that controlled
+input; the real-module RDF query check is an explicit production-side operation.
+
+Scope membership does not change a selected stage's computation. Its existing
+implementation/input/upstream identity continues to govern product reuse.
+Synchronization manifest admission separately binds the selected output scope and
+profile, build identity, exact declared source inputs and stage receipt root.
 
 ## Stage capabilities
 
@@ -61,7 +108,7 @@ the level keeps full parallelism.
 
 The loader proves, before scheduling: the DAG is **acyclic** and **complete** (no dangling
 `gmeow:dataflowConsumes`); there is **exactly one** stage holding `gmeow:sinkCapability`; and every
-bound stage's `capabilities` / `consumes` / `requiresResource` / typed dataflow **agree** with its RDF
+bound stage's `capabilities` / `consumes` / `requiresResource` / output family / typed dataflow **agree** with its RDF
 declaration (single source of truth — RDF and Rust cannot disagree). None of these is optional or
 repairable.
 

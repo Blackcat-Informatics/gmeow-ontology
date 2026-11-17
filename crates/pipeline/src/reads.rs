@@ -328,10 +328,14 @@ pub fn observed_turtle(edges: &[Arc<EdgeAccess>]) -> String {
 /// # Errors
 /// Any failure of the pipeline run itself.
 pub fn record_run(root: &std::path::Path, jobs: usize) -> Result<String, gmeow_errors::Diag> {
-    let spec =
-        crate::run::spec_for_scope(crate::full_spec(), crate::run::RunOutputScope::Committed)?;
+    let registry = crate::default_registry();
+    let spec = crate::run::spec_for_scope(
+        crate::full_spec(),
+        crate::run::RunOutputScope::Committed,
+        &registry,
+    )?;
     let graph = spec.validate()?;
-    let bound = crate::bind(&spec, &graph, &crate::default_registry())?;
+    let bound = crate::bind(&spec, &graph, &registry)?;
     let mut ctx = crate::RunContext::open_uncached(root, jobs);
     ctx.read_policy = ReadPolicy::Record;
     let result = crate::scheduler::run(&graph, &bound, &mut ctx)?;

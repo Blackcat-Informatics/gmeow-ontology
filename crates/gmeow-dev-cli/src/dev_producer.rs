@@ -39,6 +39,7 @@ pub(crate) fn requires_admission(command: &Commands) -> bool {
         Commands::Fanout(_)
         | Commands::MediumSweep(_)
         | Commands::PipelineReads(_)
+        | Commands::PipelineScopeCheck
         | Commands::MediumSeed(_)
         | Commands::TermReleaseAuthority(_)
         | Commands::DocsMeasure
