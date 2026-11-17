@@ -18110,3 +18110,171 @@ msgstr "不要用字面量、未归一化特征值或奇异值替代此结果资
 msgctxt "https://blackcatinformatics.ca/math/explainedVarianceRatio|https://blackcatinformatics.ca/gmeow/howToUse"
 msgid "Point the property from the analysis to the supplied math:ExplainedVariance resource. Preserve its actual source value and component association without inferring order, repeated occurrences or a default ratio. The link alone performs no normalization or numeric validation."
 msgstr "使用此属性从分析指向已提供的 math:ExplainedVariance 资源。保留其实际源值和分量对应关系，不推断顺序、重复出现次数或默认比率。此链接本身不执行归一化或数值验证。"
+
+msgctxt "https://blackcatinformatics.ca/math/PrincipalComponent|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Principal Component"
+msgstr "主成分"
+
+msgctxt "https://blackcatinformatics.ca/math/PrincipalComponent|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A principal component: one orthonormal direction of maximal remaining variance produced by a math:PCAAnalysis — an eigenvector of the math:CovarianceOperator. A subclass of math:MathematicalObject, named by an analysis through math:principalComponent, carrying a math:LoadingVector (its coefficients) and explaining a share of variance (math:ExplainedVariance). Its MEANING is never an intrinsic property: what a component encodes is a math:ResidualInterpretationClaim held from a vantage."
+msgstr "一个主成分：math:PCAAnalysis 产生的正交归一方向之一，在剩余方向中具有最大方差——即 math:CovarianceOperator 的特征向量。它是 math:MathematicalObject 的子类，由分析通过 math:principalComponent 命名，带有 math:LoadingVector（其系数），并解释一部分方差（math:ExplainedVariance）。其含义绝不是固有属性：某个成分编码什么，是从一个立场持有的 math:ResidualInterpretationClaim。"
+
+msgctxt "https://blackcatinformatics.ca/math/PrincipalComponent|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "GMEOW uses the direction convention: a normalized nonzero covariance eigenvector in a declared geometry. The PCA review also uses component for a linear combination of variables. Keep that score-variable usage distinct from this direction and its LoadingVector coefficient representation; these roles impose no class disjointness or resource inequality."
+msgstr "GMEOW 采用方向约定：在已声明几何结构中的归一化非零协方差特征向量。PCA 综述也用成分指变量的线性组合。应将这种得分变量用法与这里的方向及其 LoadingVector 系数表示区分开；这些角色不施加类不相交或资源不相等要求。"
+
+msgctxt "https://blackcatinformatics.ca/math/PrincipalComponent|http://www.w3.org/2004/02/skos/core#example"
+msgid "For real covariance diag(3,1,0) in the standard Euclidean basis, the coordinate directions have eigenvalues 3, 1 and 0. The third unit direction is still a valid component direction; its zero eigenvalue does not make the vector zero."
+msgstr "对于标准欧氏基下的实协方差 diag(3,1,0)，各坐标方向的特征值分别为 3、1 和 0。第三个单位方向仍是有效的成分方向；其零特征值不会使向量变成零向量。"
+
+msgctxt "https://blackcatinformatics.ca/math/PrincipalComponent|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for a justified PCA output direction, retaining the covariance, scalar field, inner product, preprocessing, normalization and selected component family in the source evidence."
+msgstr "用于有依据的 PCA 输出方向，并在源证据中保留协方差、标量域、内积、预处理、归一化及所选成分族。"
+
+msgctxt "https://blackcatinformatics.ca/math/PrincipalComponent|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Do not infer semantic importance, computed scores or a unique preferred direction from this type. Repeated eigenvalues permit different eigenspace bases, sign or complex phase choices persist, and a truncated family need not span the input. Zero dimension supplies no nonzero component."
+msgstr "不要从此类型推断语义重要性、已计算的得分或唯一优先方向。重复特征值允许特征空间采用不同的基，符号或复相位选择仍然存在，截断成分族未必张成输入空间。零维空间不提供非零成分。"
+
+msgctxt "https://blackcatinformatics.ca/math/PrincipalComponent|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Link the analysis through math:principalComponent and retain ordered component and coefficient associations in the source representation. Keep any interpretation in a vantage-bearing math:ResidualInterpretationClaim; an output descriptor alone proves neither orthonormality nor an executed eigendecomposition."
+msgstr "通过 math:principalComponent 从分析建立链接，并在源表示中保留有序成分及系数关联。将任何解释放在带有立场的 math:ResidualInterpretationClaim 中；仅有输出描述符既不能证明正交归一性，也不能证明已执行特征分解。"
+
+msgctxt "https://blackcatinformatics.ca/math/principalComponent|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "principal component"
+msgstr "主成分"
+
+msgctxt "https://blackcatinformatics.ca/math/principalComponent|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Relates a math:PCAAnalysis to one of the math:PrincipalComponent directions it produces. Domain math:PCAAnalysis, range math:PrincipalComponent (stated in prose). The declared component outputs; a PCA producing none is ill-formed (math:IncompletePCAAnalysis)."
+msgstr "将 math:PCAAnalysis 关联到它产生的一个 math:PrincipalComponent 方向。定义域为 math:PCAAnalysis，值域为 math:PrincipalComponent（以文字说明）。这是已声明的成分输出；不产生任何成分的 PCA 是结构不完整的（math:IncompletePCAAnalysis）。"
+
+msgctxt "https://blackcatinformatics.ca/math/principalComponent|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This analysis-to-direction relation has a prose-only signature. The PCA-local generic Thing minimum, all-values restriction and required-path closure supply no dedicated maximum, automatic PrincipalComponent target typing, numerical normalization or variance ordering."
+msgstr "这个从分析指向方向的关系只有文字说明的签名。PCA 局部针对通用 Thing 的最小数量限制、所有值限制和必需路径闭包，不提供专用最大数量、自动 PrincipalComponent 目标类型标注、数值归一化或方差排序。"
+
+msgctxt "https://blackcatinformatics.ca/math/principalComponent|http://www.w3.org/2004/02/skos/core#example"
+msgid "An analysis can declare two supplied directions through math:principalComponent. The two unordered links retain those output roles without saying which has greater variance or which loading and score resources belong to either direction."
+msgstr "一个分析可以通过 math:principalComponent 声明两个已提供的方向。这两个无序链接保留其输出角色，但不说明哪个方向方差更大，也不说明哪些载荷和得分资源属于其中任一方向。"
+
+msgctxt "https://blackcatinformatics.ca/math/principalComponent|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to record the principal directions that a supplied PCA reports, preserving their identities and the actual field, covariance and component-selection evidence."
+msgstr "用于记录所提供 PCA 报告的主方向，保留它们的身份以及实际标量域、协方差和成分选择证据。"
+
+msgctxt "https://blackcatinformatics.ca/math/principalComponent|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Do not treat resource counts, IRI names or repeated RDF assertions as component rank, multiplicity, ordering or a complete basis. Missing directions are not zero directions; never invent a component merely to fill the required role."
+msgstr "不要将资源计数、IRI 名称或重复 RDF 断言视为成分排名、重数、顺序或完整基。缺失方向不是零方向；绝不为填充必需角色而虚构成分。"
+
+msgctxt "https://blackcatinformatics.ca/math/principalComponent|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Keep math:loadingVector, math:scoreVector and math:explainedVarianceRatio as separate analysis-output roles, with their actual associations retained in the source. The current competency query joins components and variance descriptors independently; its IRI ordering establishes no numeric pairing."
+msgstr "将 math:loadingVector、math:scoreVector 和 math:explainedVarianceRatio 保留为独立的分析输出角色，并在源中保留其实际关联。当前能力查询分别连接成分与方差描述符；其中的 IRI 排序不建立数值配对。"
+
+msgctxt "https://blackcatinformatics.ca/math/LoadingVector|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Loading Vector"
+msgstr "载荷向量"
+
+msgctxt "https://blackcatinformatics.ca/math/LoadingVector|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A loading vector: the coefficients of a math:PrincipalComponent in the original coordinates — how each input feature contributes to the component. A subclass of math:MathematicalObject named by a PCA through math:loadingVector. Loadings are the eigenvectors of the math:CovarianceOperator; their INTERPRETATION is a math:ResidualInterpretationClaim, not an intrinsic property."
+msgstr "一个载荷向量：math:PrincipalComponent 在原始坐标中的系数——各输入特征对该成分的贡献。它是 math:MathematicalObject 的子类，由 PCA 通过 math:loadingVector 命名。载荷是 math:CovarianceOperator 的特征向量；其解释是 math:ResidualInterpretationClaim，而不是固有属性。"
+
+msgctxt "https://blackcatinformatics.ca/math/LoadingVector|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This is the coefficient-vector convention: the coordinates of a component direction in a supplied ordered feature basis for the prepared input. Retain the normalization convention; a coordinate representation is distinct from the geometric direction without requiring different RDF resources."
+msgstr "这里采用系数向量约定：在针对已预处理输入所提供的有序特征基下，一个成分方向的坐标。应保留归一化约定；坐标表示与几何方向是不同角色，但不要求使用不同的 RDF 资源。"
+
+msgctxt "https://blackcatinformatics.ca/math/LoadingVector|http://www.w3.org/2004/02/skos/core#example"
+msgid "In the standard real basis, a component with loading coefficients (1,0,0) selects the first prepared feature. The zero entries are valid coefficients of a nonzero unit vector; they are not missing data or zero-variance conclusions."
+msgstr "在标准实数基下，载荷系数为 (1,0,0) 的成分选取第一个已预处理特征。其中的零值是非零单位向量的有效系数；它们既不是缺失数据，也不是零方差结论。"
+
+msgctxt "https://blackcatinformatics.ca/math/LoadingVector|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for supplied component coefficients with feature identities, basis order, field, units, centering/scaling and normalization evidence. Coefficients in standardized features are not automatically coefficients in unprocessed physical units."
+msgstr "用于已提供的成分系数，并保留特征身份、基顺序、标量域、单位、中心化/缩放及归一化证据。标准化特征中的系数不会自动成为未经处理的物理单位下的系数。"
+
+msgctxt "https://blackcatinformatics.ca/math/LoadingVector|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Do not silently substitute correlation-scaled loadings, biplot markers, factor-analysis loadings or importance scores. Correlation needs nonzero feature and component-score variances; a zero eigenvalue leaves the corresponding correlation undefined, not zero. A zero feature scale licenses no division."
+msgstr "不要悄然替换为按相关性缩放的载荷、双标图标记、因子分析载荷或重要性得分。相关性要求特征方差和成分得分方差均非零；零特征值使相应相关性无定义，而不是为零。特征尺度为零不允许进行除法。"
+
+msgctxt "https://blackcatinformatics.ca/math/LoadingVector|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Name the supplied result from its analysis with math:loadingVector and retain component/feature associations and any coordinate transformation in the source representation. Changes of sign, phase or tied-eigenspace basis require consistent score coordinates; interpretation remains a vantage-bearing claim."
+msgstr "从分析通过 math:loadingVector 命名所提供的结果，并在源表示中保留成分/特征关联和任何坐标变换。符号、相位或重复特征值所对应特征空间的基发生变化时，得分坐标必须一致地变化；解释仍是带有立场的主张。"
+
+msgctxt "https://blackcatinformatics.ca/math/loadingVector|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "loading vector"
+msgstr "载荷向量"
+
+msgctxt "https://blackcatinformatics.ca/math/loadingVector|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Relates a math:PCAAnalysis to a math:LoadingVector it produces — the coefficients of a component in the original features. Domain math:PCAAnalysis, range math:LoadingVector (stated in prose). A declared output of the analysis."
+msgstr "将 math:PCAAnalysis 关联到它产生的 math:LoadingVector——一个成分在原始特征中的系数。定义域为 math:PCAAnalysis，值域为 math:LoadingVector（以文字说明）。这是分析的一项已声明输出。"
+
+msgctxt "https://blackcatinformatics.ca/math/loadingVector|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The direction is analysis to coefficient resource. Its signature is stated in prose; the generic PCA-local Thing minimum, all-values restriction and closure establish no typed target, dedicated maximum, coordinate length or component-to-loading pairing."
+msgstr "方向是从分析指向系数资源。其签名以文字说明；PCA 局部针对通用 Thing 的最小数量限制、所有值限制和闭包，不建立目标类型、专用最大数量、坐标长度或成分与载荷之间的配对。"
+
+msgctxt "https://blackcatinformatics.ca/math/loadingVector|http://www.w3.org/2004/02/skos/core#example"
+msgid "The exact Gram/PCA producer links its analysis to pc1Loadings and types that descriptor math:LoadingVector. It supplies no numeric loading coefficients, so the declaration is not evidence that a covariance eigenvector was computed."
+msgstr "精确 Gram/PCA 生成器将分析链接到 pc1Loadings，并将该描述符标注为 math:LoadingVector。它不提供数值载荷系数，因此该声明不能证明已计算协方差特征向量。"
+
+msgctxt "https://blackcatinformatics.ca/math/loadingVector|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain identified loading outputs of the stated analysis, alongside the source's component, feature-order, preprocessing and coefficient-normalization context."
+msgstr "用于保留所述分析中已标识的载荷输出，以及源中的成分、特征顺序、预处理和系数归一化上下文。"
+
+msgctxt "https://blackcatinformatics.ca/math/loadingVector|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Do not infer one loading per component, an ordered association or a numeric payload from link counts or matching resource names. This relation does not compute coefficients or convert correlation-scaled loadings into the selected coefficient convention."
+msgstr "不要从链接计数或资源名称对应推断每个成分恰有一个载荷、存在有序关联或存在数值载荷内容。这个关系既不计算系数，也不将按相关性缩放的载荷转换为所选系数约定。"
+
+msgctxt "https://blackcatinformatics.ca/math/loadingVector|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Describe a justified LoadingVector result and preserve its supplied coordinates and associations through the existing source representation. Retain the actual input transformation and its scale conditions; neither a link nor a policy label performs centering, scaling or spectral analysis."
+msgstr "描述有依据的 LoadingVector 结果，并通过现有源表示保留其已提供的坐标与关联。应保留实际输入变换及其尺度条件；链接和策略标签都不执行中心化、缩放或谱分析。"
+
+msgctxt "https://blackcatinformatics.ca/math/ScoreVector|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Score Vector"
+msgstr "得分向量"
+
+msgctxt "https://blackcatinformatics.ca/math/ScoreVector|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A score vector: the coordinates of a data point projected onto the principal components — the representation of a sample in the PCA basis. A subclass of math:MathematicalObject named by a PCA through math:scoreVector. Scores are inputs projected through the loadings."
+msgstr "一个得分向量：一个数据点投影到各主成分所得的坐标——一个样本在 PCA 基下的表示。它是 math:MathematicalObject 的子类，由 PCA 通过 math:scoreVector 命名。得分是输入通过载荷投影所得的结果。"
+
+msgctxt "https://blackcatinformatics.ca/math/ScoreVector|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "GMEOW uses one sample's tuple across retained components. A component's scores across samples are a different view of the score matrix. Preserve sample identity and component order; neither this role nor the loading/direction roles imply global class disjointness."
+msgstr "GMEOW 使用一个样本在保留成分上的坐标元组。一个成分在各样本上的得分是得分矩阵的另一种视图。应保留样本身份和成分顺序；此角色与载荷/方向角色都不蕴含全局类不相交。"
+
+msgctxt "https://blackcatinformatics.ca/math/ScoreVector|http://www.w3.org/2004/02/skos/core#example"
+msgid "For prepared real sample (2,-1,4) and ordered loading columns (1,0,0) and (0,1,0), the sample score tuple is (2,-1). It retains two projection coordinates, not the omitted third coordinate or a complete reconstruction."
+msgstr "对于已预处理的实数样本 (2,-1,4)，若有序载荷列为 (1,0,0) 和 (0,1,0)，该样本的得分元组为 (2,-1)。它保留两个投影坐标，不保留被省略的第三个坐标，也不构成完整重建。"
+
+msgctxt "https://blackcatinformatics.ca/math/ScoreVector|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for supplied coordinates of an identified sample in a declared retained PCA frame, keeping its input transformation, field, geometry, component order and projection evidence."
+msgstr "用于一个已标识样本在已声明的保留 PCA 坐标框架中的已提供坐标，并保留输入变换、标量域、几何结构、成分顺序及投影证据。"
+
+msgctxt "https://blackcatinformatics.ca/math/ScoreVector|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Do not read scores as nonnegative variance ratios, loading coefficients or semantic importance. Zero tuples and negative entries can be valid. A zero score tuple is not an invalid zero eigenvector, and a truncated tuple need not recover the input."
+msgstr "不要将得分理解为非负方差比例、载荷系数或语义重要性。零元组和负数条目可以是有效的。零得分元组不是无效的零特征向量，截断元组也未必能恢复输入。"
+
+msgctxt "https://blackcatinformatics.ca/math/ScoreVector|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "In a finite real Euclidean convention with prepared observation rows X and ordered loading columns A, T = X A has sample tuples in rows and one component's scores in each column. Retain those associations in the source; complex or other geometries need their actual conjugation and inner-product conventions."
+msgstr "在有限维实欧氏约定下，若 X 的行是已预处理的观测，A 的列是有序载荷，则 T = X A 的行是样本元组，每列是一个成分的得分。应在源中保留这些关联；复数或其他几何结构需要其实际共轭和内积约定。"
+
+msgctxt "https://blackcatinformatics.ca/math/scoreVector|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "score vector"
+msgstr "得分向量"
+
+msgctxt "https://blackcatinformatics.ca/math/scoreVector|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Relates a math:PCAAnalysis to a math:ScoreVector it produces — a data point's coordinates in the principal-component basis. Domain math:PCAAnalysis, range math:ScoreVector (stated in prose). A declared output of the analysis."
+msgstr "将 math:PCAAnalysis 关联到它产生的 math:ScoreVector——一个数据点在主成分基下的坐标。定义域为 math:PCAAnalysis，值域为 math:ScoreVector（以文字说明）。这是分析的一项已声明输出。"
+
+msgctxt "https://blackcatinformatics.ca/math/scoreVector|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This links an analysis to a supplied sample-coordinate resource, not a numeric literal. Its prose-only signature and PCA-local generic Thing minimum, all-values restriction and closure establish no typed target, dedicated maximum, sample association or tuple-dimension proof."
+msgstr "此属性将分析链接到已提供的样本坐标资源，而不是数值字面量。仅以文字说明的签名和 PCA 局部针对通用 Thing 的最小数量限制、所有值限制及闭包，不建立目标类型、专用最大数量、样本关联或元组维度证明。"
+
+msgctxt "https://blackcatinformatics.ca/math/scoreVector|http://www.w3.org/2004/02/skos/core#example"
+msgid "The ordinary scene names sampleScores through math:scoreVector and types it math:ScoreVector. It gives no numeric tuple or sample-association structure; the resource name alone does not supply either."
+msgstr "普通场景通过 math:scoreVector 命名 sampleScores，并将其标注为 math:ScoreVector。它既不提供数值元组，也不提供样本关联结构；仅靠资源名称不能补出其中任一项。"
+
+msgctxt "https://blackcatinformatics.ca/math/scoreVector|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to catalogue supplied sample-score outputs of the declared analysis, retaining each sample identity, component-position correspondence and preprocessing/projection context in the source evidence."
+msgstr "用于编目已声明分析中已提供的样本得分输出，并在源证据中保留各样本身份、成分位置对应及预处理/投影上下文。"
+
+msgctxt "https://blackcatinformatics.ca/math/scoreVector|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Do not replace absent scores with zero tuples or infer that all samples were projected. This output link and the producer's Gram/LDL calculations do not compute sample scores or establish feature/component pairing."
+msgstr "不要以零元组替换缺失得分，也不要推断所有样本都已投影。这个输出链接和生成器的 Gram/LDL 计算既不计算样本得分，也不建立特征/成分配对。"
+
+msgctxt "https://blackcatinformatics.ca/math/scoreVector|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Keep the result linked from its analysis and retain its actual sample, ordered components, coefficient representation and prepared input together in the source. The current competency query retrieves component and variance roles without retrieving or validating score coordinates."
+msgstr "保持从分析到结果的链接，并在源中一同保留其实际样本、有序成分、系数表示和已预处理输入。当前能力查询提取成分与方差角色，但不提取或验证得分坐标。"

@@ -2209,11 +2209,12 @@ math:TangentSpace skos:relatedMatch <https://leanprover-community.github.io/math
 # External anchors to Wikidata (identity where the concept coincides, closeMatch
 # where GMEOW's object is a facet of a broader concept). Every QID curl-validated by
 # sense (HTTP 200 + English label match). The decomposition/latent/tensor terms with
-# no external concept — math:LatentSpace, math:EmbeddingDimension, math:ScoreVector,
+# no selected external correspondence — math:LatentSpace, math:EmbeddingDimension, math:ScoreVector,
 # math:LoadingVector, math:ProjectionResidual, math:ResidualInterpretationClaim,
 # math:TensorComputationGraph, math:ParameterSpace, math:WeightTensor,
-# math:AttentionOperation — are GMEOW-original and are left
-# unanchored rather than aligned to an approximate match.
+# math:AttentionOperation — are left unanchored rather than aligned to an
+# unsupported match. This mapping choice asserts neither mathematical novelty
+# nor the absence of an external concept.
 # math:CovarianceOperator has a validation-only conceptual close match below.
 # The OpenMath eigen content
 # dictionary (linalgeig) does not resolve, so eigen alignment rides Wikidata alone.
@@ -2957,6 +2958,19 @@ math:ExplainedVariance skos:relatedMatch wd:Q2510752 {|
     gmeow:comment "The canonical term names a normalized PCA component share. The target covers broader modelling-based explained variation. This related match retains conceptual context only; it supplies no identity, R-squared equivalence, numeric conversion or executed ratio result." ;
     logic:sourceEndpoint math:ExplainedVariance ;
     logic:targetEndpoint wd:Q2510752 ;
+    logic:morphismClass logic:AffineCorrespondence ;
+    logic:morphismKind logic:InstitutionMorphism ;
+    logic:preservationKind logic:ValidationOnly
+|} .
+
+math:PrincipalComponent skos:relatedMatch wd:Q3555174 {|
+    a logic:GroundingCorrespondence ;
+    gmeow:sssomFile "gmeow-wikidata.sssom.tsv" ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:objectLabel "eigenvector" ;
+    gmeow:comment "The canonical term names a normalized covariance eigenvector direction reported by a PCA. The target names the generic eigenvector concept without that covariance or analysis-output specialization. This related match retains conceptual context only; it supplies no identity, coordinate conversion, computed coefficient or executed spectral result." ;
+    logic:sourceEndpoint math:PrincipalComponent ;
+    logic:targetEndpoint wd:Q3555174 ;
     logic:morphismClass logic:AffineCorrespondence ;
     logic:morphismKind logic:InstitutionMorphism ;
     logic:preservationKind logic:ValidationOnly

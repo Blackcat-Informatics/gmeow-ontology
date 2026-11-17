@@ -421,6 +421,91 @@ conceptual context, not proof of this centered complex-adjoint convention or
 equivalence across analytic settings. The correspondence supplies no numerical
 construction, spectral result or execution certificate.
 
+### Directions, loading coefficients and sample scores
+
+`math:PrincipalComponent` uses the direction convention: a normalized nonzero
+eigenvector of the supplied covariance in the declared geometry.
+`math:LoadingVector` names its coefficient representation in the supplied
+ordered feature basis. These are distinct descriptive roles without a global
+disjointness or resource-inequality rule. In
+[Jolliffe and Cadima's PCA review](https://doi.org/10.1098/rsta.2015.0202),
+section 2(a), equation 2.1 and the following terminology discussion, the
+linear combinations of variables are called principal components and their
+coefficient eigenvectors supply the loadings. The review explicitly notes the
+alternate direction usage retained here. Neither naming convention turns a
+geometric direction into its data-dependent projected scores.
+
+For a finite real Euclidean example, let the prepared matrix `X` have `n`
+observation rows and `p` feature columns, and let `A` have `k` ordered loading
+columns in that feature basis. The score matrix `T = X A` has `n` rows and
+`k` columns. Each column contains one component's scores across observations;
+each row contains one observation's coordinates across retained components.
+GMEOW's `math:ScoreVector` uses the latter sample-tuple convention. The review's
+`X*A = U L` discussion after equation 2.3 describes the former column view;
+the two views do not identify a sample with a component.
+
+For a prepared sample `(2,-1,4)` with retained loading columns `(1,0,0)` and
+`(0,1,0)`, the sample tuple is `(2,-1)`. Its two coordinates omit the third
+input coordinate; a truncated representation does not certify complete input
+recovery. A zero score tuple is legitimate and is distinct from a zero vector
+wrongly offered as an eigenvector. Individual coefficient entries may be zero
+or negative without making the whole normalized eigenvector zero. A zero
+covariance eigenvalue remains valid. For zero covariance in positive dimension,
+orthonormal direction choices remain possible; zero dimension supplies no
+nonzero component. The required-output profile does not license fabricated
+directions or removed input when a mathematical case cannot satisfy it.
+
+Repeated covariance eigenvalues allow different orthonormal bases within their
+eigenspaces. Real signs, complex phases and such tied-basis choices do not select
+a preferred representative; corresponding loading and score coordinates must
+transform consistently. The finite real matrix example assumes its stated
+Euclidean conventions. Other inner products, complex conjugation conventions,
+observation orientations and coordinate bases need their actual supplied
+transformations. Infinite-dimensional inputs need their own analytic and
+spectral hypotheses, not an automatic finite-coordinate eigenbasis.
+
+Retain feature identities and units, sample identity, component order, actual
+preprocessing and normalization evidence. In particular, coefficient loadings
+of standardized features are not automatically coefficients in unprocessed
+physical units. Section 2(c)(i), equations 2.7 and 2.8 of the review describe
+standardization and correlation-scaled loadings. A feature-to-component-score
+correlation requires both feature variance and component-score variance to be
+nonzero. A zero covariance eigenvalue makes the corresponding score variance
+zero, so that correlation is undefined even if a formal scaling expression
+looks like zero. A zero feature scale likewise licenses no division. Preserve
+the supplied convention rather than substituting zeros, correlation loadings,
+biplot markers, factor-analysis loadings or importance values. Mathematical
+coefficients and variance retention do not supply semantic interpretation;
+that remains a vantage-bearing `math:ResidualInterpretationClaim`.
+
+`math:principalComponent`, `math:loadingVector` and `math:scoreVector` point
+from the analysis to their separate supplied output resources. Their signatures
+are stated in prose. The existing PCA-local generic `logic:Thing` minima and
+all-values restrictions, with required-path closures, supply no dedicated
+maxima, target typing, normalization, orthogonality, coordinate lengths or
+sample/feature/component association proofs. Unordered links, matching IRI
+names, output counts and repeated RDF assertions do not encode those facts.
+Retain the actual associations and ordered numeric data in the existing source
+representation; this vocabulary supplies no dedicated coordinate or pairing predicate.
+
+The ordinary example declares three component directions but only the named
+`pc1Loadings` and `sampleScores` descriptors, without numeric coefficients or
+sample associations. The `exact_pca_residual` producer computes its fixed
+metric-dominant coordinate index and LDL pivots, then emits direction, loading
+and score descriptors. It computes no covariance eigenvector, loading array or
+sample-score tuple. The current competency query independently joins component
+and variance roles; it does not retrieve loading/score values, establish their
+pairing or sort components by variance. These are inspected implementation
+boundaries, not fresh numerical execution claims.
+
+The native grounding for `math:PrincipalComponent` is `skos:relatedMatch`
+to [Wikidata Q3555174](https://www.wikidata.org/wiki/Q3555174), eigenvector,
+with `logic:AffineCorrespondence`, `logic:InstitutionMorphism` and
+`logic:ValidationOnly` preservation. The generic concept omits the selected
+covariance/PCA-output specialization; this relation asserts neither identity,
+coordinate conversion nor numerical execution. The PCAAnalysis method
+correspondence is separate, and no loading/score correspondence is asserted here.
+
 ### Explained-variance shares and declared results
 
 In this vocabulary, `math:ExplainedVariance` is the dimensionless per-component
