@@ -14,6 +14,8 @@ use std::collections::{BTreeMap, BTreeSet, HashSet};
 use std::sync::{Arc, OnceLock};
 
 use gmeow_errors::ResultExt;
+use gmeow_logic_compile::ir::CorrespondenceRelation;
+use gmeow_logic_compile::projections::sssom::sssom_relation;
 use purrdf::{RdfDataset, RdfQuad, RdfTerm};
 
 pub(crate) const GM: &str = "https://blackcatinformatics.ca/gmeow/";
@@ -204,15 +206,16 @@ pub fn classify_sssom(subj: &str, pred: &str, obj: &str) -> SssomClass {
     let bucket = match rel {
         "exactMatch" | "equivalentClass" | "equivalentProperty" | "sameAs" => "clean-reversible",
         "closeMatch" => "liftable-with-claim",
-        "broadMatch" | "narrowMatch" => {
-            let gmeow_is_broader = gmeow_is_subject == (rel == "broadMatch");
+        "broadMatch" | "narrowMatch" | "subClassOf" | "subPropertyOf" => {
+            let gmeow_is_broader = gmeow_is_subject
+                == matches!(sssom_relation(pred), CorrespondenceRelation::Subsumes);
             if gmeow_is_broader {
                 "liftable-generalizing"
             } else {
                 "down-only-narrowing"
             }
         }
-        "relatedMatch" | "subClassOf" => "down-only-related",
+        "relatedMatch" => "down-only-related",
         _ => {
             return SssomClass {
                 bucket: format!("other:{rel}"),

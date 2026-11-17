@@ -170,10 +170,18 @@ pub fn lower_sssom(
 /// overclaim gate refuse, e.g., a `relatedMatch`-classed predicate masquerading as an
 /// `exactMatch` token were the two ever to disagree.
 ///
-/// `pub(crate)` so the `logic:Correspondence` frontend transpiler
-/// ([`crate::projections::correspondence_frontend`]) materializes its typed relation from
-/// THE SAME logic the SSSOM ledger gate uses — one derivation, never a fork.
-pub(crate) fn sssom_relation(predicate: &str) -> CorrespondenceRelation {
+/// Direction is relative to the statement's subject (the source) and object (the
+/// view). SKOS `broadMatch` points to a broader object, while `narrowMatch` points
+/// to a narrower object. RDFS subclass and subproperty statements put the narrower
+/// term in subject position. These are non-strict inclusions, not evidence that
+/// the converse is false.
+///
+/// Accepts full IRIs, CURIEs and local names. Unrecognized local names retain the
+/// weak `RelatedMatch` classification; this function does not admit source syntax
+/// or replace [`is_alignment_predicate`]. The native correspondence frontend and
+/// endpoint-relative pipeline audit share this interpretation.
+#[must_use]
+pub fn sssom_relation(predicate: &str) -> CorrespondenceRelation {
     let local = predicate
         .rsplit(['#', '/', ':'])
         .next()
@@ -182,8 +190,8 @@ pub(crate) fn sssom_relation(predicate: &str) -> CorrespondenceRelation {
         "exactMatch" | "equivalentClass" | "equivalentProperty" | "sameAs" => {
             CorrespondenceRelation::Equiv
         }
-        "broadMatch" | "subClassOf" | "subPropertyOf" => CorrespondenceRelation::Subsumes,
-        "narrowMatch" => CorrespondenceRelation::SubsumedBy,
+        "broadMatch" | "subClassOf" | "subPropertyOf" => CorrespondenceRelation::SubsumedBy,
+        "narrowMatch" => CorrespondenceRelation::Subsumes,
         "closeMatch" => CorrespondenceRelation::Overlaps,
         _ => CorrespondenceRelation::RelatedMatch,
     }

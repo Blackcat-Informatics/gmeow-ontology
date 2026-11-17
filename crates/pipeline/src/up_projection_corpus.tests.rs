@@ -3,8 +3,9 @@
 
 use super::*;
 
+/// Imported rows use SKOS object direction while preserving diagnostic relation buckets.
 #[test]
-fn sssom_relation_buckets_match_python_contract() {
+fn sssom_relation_buckets_follow_skos_direction() {
     assert_eq!(
         classify_sssom("gmeow:Person", "skos:exactMatch", "foaf:Person").bucket,
         "clean-reversible"
@@ -19,11 +20,11 @@ fn sssom_relation_buckets_match_python_contract() {
     );
     assert_eq!(
         classify_sssom("gmeow:Appellation", "skos:broadMatch", "schema:name").bucket,
-        "liftable-generalizing"
+        "down-only-narrowing"
     );
     assert_eq!(
         classify_sssom("gmeow:X", "skos:narrowMatch", "schema:Y").bucket,
-        "down-only-narrowing"
+        "liftable-generalizing"
     );
     assert_eq!(
         classify_sssom(
@@ -42,6 +43,59 @@ fn sssom_relation_buckets_match_python_contract() {
         )
         .bucket,
         "liftable-with-claim"
+    );
+    for (predicate, gmeow_subject, gmeow_object) in [
+        (
+            "skos:broadMatch",
+            "down-only-narrowing",
+            "liftable-generalizing",
+        ),
+        (
+            "skos:narrowMatch",
+            "liftable-generalizing",
+            "down-only-narrowing",
+        ),
+        (
+            "rdfs:subClassOf",
+            "down-only-narrowing",
+            "liftable-generalizing",
+        ),
+        (
+            "rdfs:subPropertyOf",
+            "down-only-narrowing",
+            "liftable-generalizing",
+        ),
+        (
+            "skos:relatedMatch",
+            "down-only-related",
+            "down-only-related",
+        ),
+        ("custom:unknown", "other:unknown", "other:unknown"),
+    ] {
+        assert_eq!(
+            classify_sssom("gmeow:X", predicate, "schema:Y").bucket,
+            gmeow_subject,
+            "{predicate}, GMEOW subject"
+        );
+        assert_eq!(
+            classify_sssom("schema:Y", predicate, "gmeow:X").bucket,
+            gmeow_object,
+            "{predicate}, GMEOW object"
+        );
+    }
+    assert_eq!(
+        classify_sssom("gmeow:X", "skos:broadMatch", "schema:Y").bucket,
+        classify_sssom("schema:Y", "skos:narrowMatch", "gmeow:X").bucket,
+        "inverse encodings agree"
+    );
+    assert_eq!(
+        classify_sssom(
+            &format!("{GM}X"),
+            &format!("{SKOS}narrowMatch"),
+            "https://schema.org/Y"
+        )
+        .bucket,
+        "liftable-generalizing"
     );
 }
 

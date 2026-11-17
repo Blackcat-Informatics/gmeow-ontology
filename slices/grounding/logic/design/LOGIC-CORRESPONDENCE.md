@@ -103,8 +103,30 @@ These declarations are evidence disclosures, not discharged laws or fusion certi
 
 The correspondence's relation is a typed `logic:CorrespondenceRelation` on an ordered lattice, not a
 free string: `equiv` ⊐ {`subsumes`, `subsumedBy`} ⊐ `overlaps` ⊐ `relatedMatch`, with `disjoint` as
-the negative pole. The lattice lets the compiler **derive** the SSSOM predicate, the EDOAL relation
-symbol, and the OWL-alignment-axiom strength from one authored relation, so the artifacts cannot drift.
+the negative pole. The lattice supplies typed relation strength for projection overclaim checks;
+each lowering retains its documented preservation limits.
+
+Directional predicates describe the object relative to the subject. The
+[SKOS Reference, sections 8 and 10](https://www.w3.org/TR/skos-reference/)
+defines `broadMatch` as a specialization of `broader` and `narrowMatch` as a
+specialization of `narrower`. With the source in subject position, the directions are:
+
+| Canonical relation | Inclusion | Directional SKOS row | Corresponding class edge | EDOAL |
+| --- | --- | --- | --- | --- |
+| `SubsumedBy` | source ⊆ view | source `skos:broadMatch` view | source `subClassOf` view | `<=` |
+| `Subsumes` | source ⊇ view | source `skos:narrowMatch` view | view `subClassOf` source | `>=` |
+
+These inclusions are non-strict: selecting one direction does not assert the
+converse or require that the extensions differ. RDFS subclass and subproperty
+statements likewise place the narrower term in subject position.
+
+This table states semantic direction, not an unconditional export guarantee. The
+canonical correspondence graph retains `Subsumes` or `SubsumedBy`; its conservative
+positive-match projection emits `skos:relatedMatch` for either. The SSSOM lowering
+retains an admitted native cell's original predicate and endpoints, while EDOAL
+profile bindings retain their declared `<=` or `>=` direction. A native alignment
+cell acquires no executable get/put legs, mnemomorphic claim or discharged law from
+its directional predicate. The law-spine and its evidence obligations remain separate.
 
 ### Frontend versus canonical form
 
@@ -423,7 +445,7 @@ integer, decimal, float and double values within the native datatype's supported
 precision; confidence, evidence strength and probability additionally require
 `[0, 1]`. Unsupported precision, a nonnumeric datatype or a conflicting scalar
 fails admission. Range validation uses the declared numeric value, without first
-rounding an exact decimal through binary64. SSSOM and EDOAL's binary64 measures
+rounding an exact decimal through `binary64`. SSSOM and EDOAL's `binary64` measures
 are explicit lossy export boundaries whose loss records name the dropped RDF
 identity; those export values never become canonical input coordinates.
 

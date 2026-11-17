@@ -150,6 +150,7 @@ gmeow:Foo skos:exactMatch gmeow:Bar {|
     );
 }
 
+/// Profile bindings preserve source-to-view direction across typed IR, SSSOM and EDOAL.
 #[test]
 fn lower_sssom_emits_projection_binding_rows() {
     let ttl = br#"
@@ -158,6 +159,9 @@ fn lower_sssom_emits_projection_binding_rows() {
 @prefix skos:  <http://www.w3.org/2004/02/skos/core#> .
 @prefix schema: <https://schema.org/> .
 @prefix odrl:  <http://www.w3.org/ns/odrl/2/> .
+@prefix owl:   <http://www.w3.org/2002/07/owl#> .
+
+gmeow:name a owl:DatatypeProperty .
 
 gmeow:set1 a gmeow:MappingSet ;
     gmeow:sssomFile "demo.sssom.tsv" ;
@@ -168,7 +172,7 @@ gmeow:mapName a gmeow:ProjectionMapping ;
     gmeow:subjectLabel "GMEOW name" ;
     gmeow:objectLabel "schema.org name" ;
     gmeow:justification <https://w3id.org/semapv/vocab/ManualMappingCuration> ;
-    gmeow:comment "Curated exact property correspondence." ;
+    gmeow:comment "Curated property correspondence." ;
     gmeow:hasMappingPattern [
         gmeow:anchor "s" ; gmeow:value "name" ;
         gmeow:atom ( [ gmeow:subjectVar "s" ; gmeow:predicate gmeow:name ; gmeow:objectVar "name" ] ) ;
@@ -176,8 +180,8 @@ gmeow:mapName a gmeow:ProjectionMapping ;
     ] ;
     gmeow:hasBinding [
         gmeow:profile "schema-org" ; gmeow:toPredicate schema:name ;
-        gmeow:relation "=" ; gmeow:confidence 0.9 ;
-        gmeow:emitSssom true ; gmeow:sssomPredicate skos:exactMatch ;
+        gmeow:relation "__RELATION__" ; gmeow:confidence 0.9 ;
+        gmeow:emitSssom true ; gmeow:sssomPredicate skos:__PREDICATE__ ;
         gmeow:sssomFile "demo.sssom.tsv"
     ] .
 
@@ -193,37 +197,80 @@ gmeow:mapActionReproduce a gmeow:ProjectionMapping ;
         gmeow:templateAtoms ( [ gmeow:tSubj "rule" ; gmeow:tPred odrl:action ; gmeow:tObjValue odrl:reproduce ] )
     ] .
 "#;
-    let ds = purrdf::parse_dataset(ttl, "text/turtle", None).expect("parse projection ttl");
-    let view = DslView::new(&ds);
-    let (_program, lookup) =
-        crate::projections::correspondence_frontend::transpile_correspondences_indexed(
-            &view,
-            &view,
-            &[],
-        )
-        .expect("transpile lookup");
+    for (token, predicate, relation) in [
+        ("=", "exactMatch", CorrespondenceRelation::Equiv),
+        ("<=", "broadMatch", CorrespondenceRelation::SubsumedBy),
+        (">=", "narrowMatch", CorrespondenceRelation::Subsumes),
+    ] {
+        let ttl = std::str::from_utf8(ttl)
+            .expect("fixture is UTF-8")
+            .replace("__RELATION__", token)
+            .replace("__PREDICATE__", predicate);
+        let ds = purrdf::parse_dataset(ttl.as_bytes(), "text/turtle", None)
+            .expect("parse projection ttl");
+        let view = DslView::new(&ds);
+        let (_program, lookup) =
+            crate::projections::correspondence_frontend::transpile_correspondences_indexed(
+                &view,
+                &view,
+                &[],
+            )
+            .expect("transpile lookup");
 
-    let out = lower_sssom(&view, "0.1.0", "2026-06-03", &lookup).expect("lower sssom");
-    let tsv = out.sets.get("demo.sssom.tsv").expect("one set emitted");
-    assert!(tsv.contains(
+        let out = lower_sssom(&view, "0.1.0", "2026-06-03", &lookup).expect("lower sssom");
+        let tsv = out.sets.get("demo.sssom.tsv").expect("one set emitted");
+        assert!(tsv.contains(
             "subject_id\tsubject_label\tpredicate_id\tobject_id\tobject_label\tmapping_justification\tconfidence\tcomment"
         ));
-    assert!(tsv.contains(
-            "gmeow:name\tGMEOW name\tskos:exactMatch\tschema:name\tschema.org name\tsemapv:ManualMappingCuration\t0.9\tCurated exact property correspondence."
+        assert!(tsv.contains(
+            &format!("gmeow:name\tGMEOW name\tskos:{predicate}\tschema:name\tschema.org name\tsemapv:ManualMappingCuration\t0.9\tCurated property correspondence.")
         ));
-    assert!(tsv.contains(
+        let cell = lookup
+            .projection_cells()
+            .iter()
+            .find(|cell| cell.iri == format!("{GMEOW}mapName"))
+            .expect("name binding exists");
+        assert_eq!(
+            lookup
+                .binding(cell, &cell.bindings[0])
+                .expect("binding is admitted")
+                .relation,
+            relation
+        );
+        let edoal = crate::projections::edoal::lower_edoal(&view, &lookup).expect("lower EDOAL");
+        let graph = purrdf::parse_dataset(
+            edoal.alignments["schema-org.edoal.ttl"].as_bytes(),
+            "text/turtle",
+            None,
+        )
+        .expect("parse EDOAL");
+        let edoal_view = DslView::new(&graph);
+        let relations: Vec<_> = edoal_view
+            .quads_with_predicate(
+                "http://knowledgeweb.semanticweb.org/heterogeneity/alignment#relation",
+            )
+            .into_iter()
+            .map(|(_, object)| {
+                crate::ingest::literal_lexical(&object)
+                    .expect("EDOAL relation is literal")
+                    .to_owned()
+            })
+            .collect();
+        assert_eq!(relations, [token]);
+        assert!(tsv.contains(
             "gmeow:actionReproduce\t\tskos:exactMatch\todrl:reproduce\t\tsemapv:ManualMappingCuration\t0.85\t"
         ));
-    assert_eq!(out.ledger.len(), 2);
-    assert_eq!(
-        alignment_terms(&lookup).unwrap(),
-        BTreeSet::from([
-            format!("{GMEOW}actionReproduce"),
-            format!("{GMEOW}name"),
-            "http://www.w3.org/ns/odrl/2/reproduce".to_owned(),
-            "https://schema.org/name".to_owned(),
-        ])
-    );
+        assert_eq!(out.ledger.len(), 2);
+        assert_eq!(
+            alignment_terms(&lookup).unwrap(),
+            BTreeSet::from([
+                format!("{GMEOW}actionReproduce"),
+                format!("{GMEOW}name"),
+                "http://www.w3.org/ns/odrl/2/reproduce".to_owned(),
+                "https://schema.org/name".to_owned(),
+            ])
+        );
+    }
 }
 
 /// Transpile + lower a native-form corpus, returning the typed program and the SSSOM
@@ -282,13 +329,13 @@ fn native_owl_and_rdfs_alignment_predicates_are_read() {
         (
             "rdfs",
             "subClassOf",
-            CorrespondenceRelation::Subsumes,
+            CorrespondenceRelation::SubsumedBy,
             MorphismClass::LossyLens,
         ),
         (
             "rdfs",
             "subPropertyOf",
-            CorrespondenceRelation::Subsumes,
+            CorrespondenceRelation::SubsumedBy,
             MorphismClass::LossyLens,
         ),
     ];
@@ -312,6 +359,7 @@ gmeow:OnlineAccount {pfx}:{local} schema:Thing {{|
     }
 }
 
+/// Native alignments retain their direction and endpoints without manufacturing lens laws.
 #[test]
 fn native_five_match_predicates_materialize_row_and_correspondence() {
     use crate::ir::{CorrespondenceRelation, MorphismClass};
@@ -329,12 +377,12 @@ fn native_five_match_predicates_materialize_row_and_correspondence() {
         ),
         (
             "broadMatch",
-            CorrespondenceRelation::Subsumes,
+            CorrespondenceRelation::SubsumedBy,
             MorphismClass::LossyLens,
         ),
         (
             "narrowMatch",
-            CorrespondenceRelation::SubsumedBy,
+            CorrespondenceRelation::Subsumes,
             MorphismClass::LossyLens,
         ),
         (
@@ -360,18 +408,45 @@ gmeow:VirtualLocation skos:{local} schema:VirtualLocation {{|
         let corr = &program.correspondences[0];
         assert_eq!(corr.relation, *relation, "{local} relation");
         assert_eq!(corr.morphism_class, *mclass, "{local} class");
+        assert!(
+            corr.get_leg.is_none() && corr.put_leg.is_none(),
+            "{local} has no executable legs"
+        );
+        assert!(
+            !corr.mnemomorphic && corr.law_claims.is_empty(),
+            "{local} has no lens-law evidence"
+        );
+        let graph = crate::projections::correspondence::project_correspondence_dataset(&program)
+            .expect("project correspondence graph");
+        let restored = crate::projections::correspondence::parse_correspondence(&graph)
+            .expect("read correspondence graph");
+        assert_eq!(
+            restored.correspondences, program.correspondences,
+            "{local} graph transport"
+        );
 
         // One SSSOM row into the discriminator's file.
         let tsv = lowering
             .sets
             .get("gmeow-places.sssom.tsv")
             .unwrap_or_else(|| panic!("{local}: set emitted"));
-        assert!(
-                tsv.contains(&format!(
-                    "gmeow:VirtualLocation\tskos:{local}\tschema:VirtualLocation\tsemapv:ManualMappingCuration\t0.9\t"
-                )),
-                "{local} row:\n{tsv}"
-            );
+        let row: Vec<_> = tsv
+            .lines()
+            .find(|line| line.starts_with("gmeow:VirtualLocation\t"))
+            .expect("one source row")
+            .split('\t')
+            .collect();
+        assert_eq!(
+            &row[..5],
+            [
+                "gmeow:VirtualLocation",
+                &format!("skos:{local}"),
+                "schema:VirtualLocation",
+                "semapv:ManualMappingCuration",
+                "0.9"
+            ],
+            "{local} source endpoints, predicate and metadata"
+        );
     }
 }
 
