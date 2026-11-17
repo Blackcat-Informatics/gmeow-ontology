@@ -70,8 +70,8 @@ Required solver capabilities:
 The runtime is composed from a small set of distinct, well-scoped substrate roles. Each role is
 filled by a component optimized for that purpose; the architecture does not conflate them.
 
-- **Storage, SPARQL, and RDF 1.2 triple terms.** A high-performance, RDF-1.2-native quad store
-  fills this role. It serves SPARQL evaluation, constraint evaluation, and goal-as-query
+- **Storage, SPARQL, and RDF 1.2 triple terms.** PurRDF's native RDF 1.2 datasets and views
+  fill this role. They serve SPARQL evaluation, constraint evaluation, and goal-as-query
   resolution over materialized named graphs. RDF 1.2 places triple terms only in object position;
   the canonical interchange surface is normative RDF 1.2 Full (see
   [LOGIC-SEMANTICS.md § RDF 1.2 triple terms, precisely](LOGIC-SEMANTICS.md#rdf-12-triple-terms-precisely)).
@@ -95,16 +95,21 @@ filled by a component optimized for that purpose; the architecture does not conf
 
 ### Substrate lineage
 
-Production forward and backward reasoning are implemented by the native Rust relational core;
-storage and SPARQL use a Rust-native RDF 1.2 quad store (**oxigraph**). The former external forward
-and backward substrates have both been retired: there is no embedded fallback. External
-reasoners remain available for
-checking the OWL projections of the IR, but they are secondary validators of their projected
-fragments — not authorities over the canonical `logic:` semantics.
+Production forward and backward reasoning are native Rust. Storage and SPARQL use PurRDF's native
+RDF 1.2 dataset and query interfaces, consumed through `purrdf` by the
+[logic runtime](../../../../crates/logic/Cargo.toml) and
+[pipeline](../../../../crates/pipeline/Cargo.toml). Oxigraph is a historical substrate, absent from
+the current workspace lock.
 
-**Trajectory.** Both substrates are fully subsumed. Production existential reasoning runs on the
-typed native restricted chase, and captured external corpora remain evidence rather than runtime
-dependencies.
+The [mechanism ownership rule](../../../../AGENTS.md#reasoning) assigns generic RDF, datatype,
+Datalog/chase and OWL-Direct mechanisms to PurRDF. GMEOW owns `logic:` semantics, compilation,
+world scope, grounding and proof-ledger policy. This ownership boundary also governs the remaining
+local mechanism adoption; current RDF/SPARQL integration does not establish that adoption is complete.
+
+**Trajectory.** The former external forward and backward engines are retired, with no embedded
+external fallback. Native reasoning is the single authority in the runtime and required gate.
+Frozen external corpora remain independent evidence; they do not select a live second reasoner or
+an external projection-validation mode in the reasoning commands.
 
 > Ownership boundary. The existential-rule substrate provides the chase *mechanism* used by
 > `logic:` typed-context construction — it is not, by itself, a context-construction engine.
@@ -389,7 +394,7 @@ the native chase, and the RL `triple/4` fragment is evaluated by the native gene
 router are deleted. Native results remain **corpus-gated** by the divergence ledger
 ([LOGIC-CONFORMANCE.md](LOGIC-CONFORMANCE.md)); captured external expectations keep the native core
 honest without shipping another executable reasoner. Native's consistency verdict is gated on-gate by
-`reason-verify` (`ReasoningResult::is_consistent`); an independent OWL-Direct tableau consistency
+`reason-verify` (`ReasoningResult::is_decided_consistent`); an independent OWL-Direct tableau consistency
 differential was evaluated as an off-gate arm and retired as empirically intractable at bundle scale
 (per-world OWL-Direct consistency does not complete).
 
@@ -525,9 +530,9 @@ The compiler follows the same typed-IR projection pattern the rest of the system
 [LOGIC-IR.md](LOGIC-IR.md), then emit the canonical artifact and every projection from it. Each
 projection carries the preservation judgment produced by the lowering — exact, sound-but-incomplete,
 complete-but-possibly-unsound, validation-only, or unsupported — and the aggregate of those
-judgments is the loss/preservation ledger in `projection-report.ttl`. External OWL reasoners
-running over the OWL projection artifacts prove only the projected subset, never full `logic:`
-consistency.
+judgments is the loss/preservation ledger in `projection-report.ttl`. Validation of an OWL
+projection concerns only its preserved subset. Canonical `logic:` consistency is established by
+the native reasoning result under its declared contract; a projected artifact cannot establish it.
 
 ## Explanation as projection: logic to prose
 
@@ -563,20 +568,26 @@ The **compile role** drives the compiler core: parse `logic:` source → constru
 emit the canonical artifact and projections → check those artifacts for drift. It is the compiler
 half of the compiler/runtime split and may run without the reasoning runtime.
 
-The **reason role** drives the full reasoning runtime: it selects the engine and the fragment via
-the reasoning contract. The native solver (the full runtime described here) is the authority for
-canonical `logic:` semantics. OWL-projection reasoning (DL or EL fragment) runs the respective
-OWL reasoner over the corresponding projected artifact — a secondary validator of that fragment,
-not an authority over `logic:` itself. A Datalog-projection mode similarly reasons over the
-Datalog projection.
+The **reason role** drives the native reasoning runtime: the reasoning contract selects the
+fragment and physical strategy, as specified in [LOGIC-CONTRACT.md](LOGIC-CONTRACT.md). A contract's
+projection facet requests output views; it does not select an external reasoning engine.
+
+The repository's `gmeow-dev reason` and `gmeow-dev verify` commands accept only `--mode native`.
+By default they reuse the shipped typed reasoning result after checking its contract hash;
+`--fresh` evaluates the snapshot's selected object-level reasoning input with the native engine.
+`gmeow-dev reason-verify` uses the same result for reasoning and verification. These
+[entry points](../../../../crates/gmeow-dev-cli/src/dev_reason.rs) expose no OWL-reasoner or
+Datalog-projection execution mode. OWL DL/EL and Datalog remain generated typed views with their
+own preservation judgments.
 
 The **explain and query roles** expose derivation traces and backward goal resolution,
 respectively, as first-class operations on the running solver.
 
 ---
 
-*Engines and tools named here — oxigraph, ProbLog, EYE/cwm — are
-listed in [LOGIC-REFERENCES.md](LOGIC-REFERENCES.md).*
+*Historical substrates and research influences, including Oxigraph, ProbLog and EYE/cwm, are
+listed in [LOGIC-REFERENCES.md](LOGIC-REFERENCES.md#engines-and-tools-intentbridgedbyreference).
+Their citation records describe lineage, not the current dependency or command surface.*
 
 ## Private satisfaction support for integrity joins
 
