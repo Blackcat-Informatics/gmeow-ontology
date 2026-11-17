@@ -2948,3 +2948,16 @@ math:CombinatorialLaplacian skos:relatedMatch wd:Q772067 {|
     logic:morphismKind logic:InstitutionMorphism ;
     logic:preservationKind logic:ValidationOnly
 |} .
+
+math:ExplainedVariance skos:relatedMatch wd:Q2510752 {|
+    a logic:GroundingCorrespondence ;
+    gmeow:sssomFile "gmeow-wikidata.sssom.tsv" ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:objectLabel "Explained variation" ;
+    gmeow:comment "The canonical term names a normalized PCA component share. The target covers broader modelling-based explained variation. This related match retains conceptual context only; it supplies no identity, R-squared equivalence, numeric conversion or executed ratio result." ;
+    logic:sourceEndpoint math:ExplainedVariance ;
+    logic:targetEndpoint wd:Q2510752 ;
+    logic:morphismClass logic:AffineCorrespondence ;
+    logic:morphismKind logic:InstitutionMorphism ;
+    logic:preservationKind logic:ValidationOnly
+|} .

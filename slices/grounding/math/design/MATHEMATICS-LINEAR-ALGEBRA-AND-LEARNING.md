@@ -421,6 +421,61 @@ conceptual context, not proof of this centered complex-adjoint convention or
 equivalence across analytic settings. The correspondence supplies no numerical
 construction, spectral result or execution certificate.
 
+### Explained-variance shares and declared results
+
+In this vocabulary, `math:ExplainedVariance` is the dimensionless per-component
+share, distinct from an unnormalized variance amount. For a supplied
+positive-semidefinite covariance with positive finite total variance `t`,
+the share is `λ/t`, where `λ` is that component's nonnegative covariance
+eigenvalue and `t` is the covariance trace. This is the ratio described by
+[Jolliffe and Cadima's 2016 PCA review](https://doi.org/10.1098/rsta.2015.0202),
+section 2(a), equation 2.6. The
+[public full text](https://pmc.ncbi.nlm.nih.gov/articles/PMC4792409/) also
+distinguishes individual shares from the proportion of a retained component set.
+
+For covariance `diag(3,1,0)`, total variance is `4` and the associated component
+ratios are `3/4`, `1/4` and `0`. Retaining the first direction retains `3/4`
+of total variance. A complete justified component family sums to one, but
+omitting only zero-variance components can leave that same sum. A sum of one
+alone therefore proves no complete basis. Zero covariance has zero total
+variance and an undefined normalized ratio; absence is not a supplied zero,
+and `0/0` supplies neither zero nor one.
+
+Keep normalized shares, cumulative retained variance, covariance eigenvalues
+and singular values separate. Retain the actual covariance, scalar field,
+basis, centering/scaling and normalization convention with the result evidence.
+Infinite-dimensional use needs its actual finite-trace spectral hypotheses;
+this definition does not provide a complete eigenbasis for arbitrary operators.
+Variance retained is not semantic importance, information completeness or
+predictive quality; interpretation still needs its own evidence and standpoint.
+
+`math:explainedVarianceRatio` points from an analysis to its supplied
+`math:ExplainedVariance` resource. The property signature remains prose-only.
+Its existing PCA-local generic `logic:Thing` minimum and all-values restriction,
+with required-path closure, supplies no dedicated maximum, automatic target
+typing or numeric denominator/range proof. There is no dedicated ratio-value
+or component-pairing predicate here; preserve supplied values, associations,
+order and occurrence evidence in the existing source representation.
+
+The ordinary example and `exact_pca_residual` producer name `pc1Variance` as
+an `ExplainedVariance` descriptor without a numeric ratio. The producer's fixed
+Gram, dominant-axis and LDL results do not supply a PCA eigenvalue family or
+normalization result. The current PCA competency query independently joins
+`math:principalComponent` and `math:explainedVarianceRatio` on the analysis.
+It retrieves declared roles without establishing which component a ratio
+belongs to. Repeated RDF assertions and resource counts add no association,
+order or mathematical multiplicity.
+
+The native `skos:relatedMatch` to
+[Wikidata Q2510752](https://www.wikidata.org/wiki/Q2510752), Explained variation,
+has `logic:AffineCorrespondence`, `logic:InstitutionMorphism` and
+`logic:ValidationOnly` preservation. The target's linked
+[explained-variation reference](https://en.wikipedia.org/wiki/Explained_variation)
+spans modelling/dispersion contexts and mentions PCA. That broader context
+supplies neither identity with the canonical per-component ratio nor a universal
+R-squared interpretation, analytic equivalence, numeric conversion or execution
+certificate. The original GMEOW definition remains the local authority.
+
 Core classes: `math:PCAAnalysis`, `math:PrincipalComponent`, `math:LoadingVector`,
 `math:ScoreVector`, `math:ExplainedVariance`, `math:ProjectionResidual`, and
 `math:ResidualInterpretationClaim`.

@@ -402,6 +402,35 @@ The conservative `skos:closeMatch` to
 `logic:ValidationOnly` preservation; conceptual overlap supplies no executable
 algorithm or analytic equivalence.
 
+`math:ExplainedVariance` names a normalized per-component share. For a supplied
+positive-semidefinite covariance with positive finite total variance `t`, the
+ratio is its component eigenvalue divided by `t`, the covariance trace. A zero
+eigenvalue can give ratio zero when `t` is positive; zero total variance makes
+the normalization undefined. Missing data, a supplied zero ratio and an
+undefined ratio remain distinct. The formula is grounded in
+[Jolliffe and Cadima's PCA review](https://doi.org/10.1098/rsta.2015.0202),
+section 2(a), equation 2.6.
+
+The [explained-variance contract](./design/MATHEMATICS-LINEAR-ALGEBRA-AND-LEARNING.md#explained-variance-shares-and-declared-results)
+separates shares, variance amounts, singular values and cumulative retained
+variance. Preserve actual component association, order, occurrence and analysis
+context. A sum of one can omit zero-variance components and proves no complete
+basis or semantic importance.
+
+`math:explainedVarianceRatio` links the analysis to a result resource, rather
+than a numeric literal. Its current generic PCA-local presence/all-values/closure
+profile supplies no dedicated maximum, target-type proof or numeric denominator
+check. The ordinary example and exact Gram/PCA producer publish descriptors
+without ratio values. The competency query joins component and variance roles
+independently; its rows do not establish their numeric association.
+
+The conservative `skos:relatedMatch` to
+[Wikidata Q2510752](https://www.wikidata.org/wiki/Q2510752), Explained variation,
+carries `logic:AffineCorrespondence`, `logic:InstitutionMorphism` and
+`logic:ValidationOnly` preservation. It retains broader conceptual context
+without identifying every modelling measure with the canonical PCA ratio,
+providing a conversion or certifying numerical execution.
+
 - **Inner-product spaces and decompositions** — `math:InnerProductSpace`, `math:HermitianInnerProduct`,
   `math:Subspace`, `math:OrthogonalComplement` (⊑ `math:Complement`, so it realizes the geometry
   charter's complement contract — ambient space, orthogonal semantics, and now `math:definedByInnerProduct`),
