@@ -14,22 +14,30 @@ fn standalone_artifacts_cannot_replace_library_data_or_lock() {
     let directory = tempfile::tempdir().expect("isolated library paths");
     let data = directory.path().join("library.gts");
     let lock = directory.path().join("library.gts.lock");
-    fs::write(&data, b"existing library history").unwrap();
-    fs::write(&lock, b"stable lock identity").unwrap();
+    fs::write(&data, b"existing library history").expect("seed the protected library history");
+    fs::write(&lock, b"stable lock identity").expect("seed the protected stable lock");
     let library = fs_segment_library(data.clone());
     for (target, name) in [(&data, "data-alias.gts"), (&lock, "lock-alias.gts")] {
         let alias = directory.path().join(name);
-        symlink(target, &alias).unwrap();
+        symlink(target, &alias).expect("create an alias of the protected destination");
         for output in [target, &alias] {
-            let error = library.ensure_distinct_output(output).unwrap_err();
+            let error = library
+                .ensure_distinct_output(output)
+                .expect_err("the active library and its lock cannot be standalone outputs");
             assert!(
                 error.message().contains("would replace the active"),
                 "{error}"
             );
         }
     }
-    assert_eq!(fs::read(&data).unwrap(), b"existing library history");
-    assert_eq!(fs::read(&lock).unwrap(), b"stable lock identity");
+    assert_eq!(
+        fs::read(&data).expect("read the preserved library history"),
+        b"existing library history"
+    );
+    assert_eq!(
+        fs::read(&lock).expect("read the preserved stable lock"),
+        b"stable lock identity"
+    );
 
     let output = directory.path().join("standalone.gts");
     let first_use = directory.path().join("new-library-parent");
@@ -44,8 +52,10 @@ fn standalone_artifacts_cannot_replace_library_data_or_lock() {
         .ensure_distinct_output(&data)
         .expect_err("a future parent traversal must not hide the owned data destination");
     let other = directory.path().join("other");
-    fs::create_dir_all(other.join("child")).unwrap();
-    symlink(other.join("child"), directory.path().join("link")).unwrap();
+    fs::create_dir_all(other.join("child"))
+        .expect("create a nested directory for symlink traversal");
+    symlink(other.join("child"), directory.path().join("link"))
+        .expect("create the directory symlink exposed by parent traversal");
     fs_segment_library(directory.path().join("missing/../link/../library.gts"))
         .ensure_distinct_output(&other.join("library.gts"))
         .expect_err("an exposed symlink must be resolved before its parent traversal");
@@ -53,7 +63,7 @@ fn standalone_artifacts_cannot_replace_library_data_or_lock() {
 
     let future_data = directory.path().join("future-library.gts");
     let dangling = directory.path().join("future-library-alias.gts");
-    symlink(&future_data, &dangling).unwrap();
+    symlink(&future_data, &dangling).expect("create an alias to the future library destination");
     fs_segment_library(dangling)
         .ensure_distinct_output(&future_data)
         .expect_err("a dangling library symlink still protects its future data destination");

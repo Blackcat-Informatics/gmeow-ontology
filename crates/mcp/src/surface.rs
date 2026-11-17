@@ -196,8 +196,10 @@ fn builtin_tool_descriptors() -> Vec<Value> {
                  (CoherenceCertificate for a conclusive coherent closure, \
                  CoherenceCheckAttestation for a budget-cut closure, Refused for a witnessed \
                  forbidden contradiction), the completeness/evaluation axes, the verify \
-                 findings, the cited IRIs, and judgment_nquads (the grounded \
-                 logic:ReasoningResult). An overlay exceeding the size ceiling, and a missing \
+                 findings, the cited IRIs, judgment_nquads (the grounded \
+                 logic:ReasoningResult), and artifact (the complete binary GTS envelope). \
+                 Admit artifact natively before consuming projected text or facets. \
+                 An overlay exceeding the size ceiling, and a missing \
                  or unrecognized `format`, is a hard error — the format is never guessed.",
             &[
                 ("data", "string"),
@@ -219,7 +221,9 @@ fn builtin_tool_descriptors() -> Vec<Value> {
                  (max_steps bounds the derivation budget, max_answers the answer cap), and the \
                  completeness/evaluation axes plus judgment_nquads ride the response so a \
                  budget-cut closure is legible as CUT rather than as small. Returns {ok, \
-                 entailed_count, closure_nquads, completeness, evaluation, judgment_nquads}. An \
+                 entailed_count, closure_nquads, completeness, evaluation, judgment_nquads, \
+                 artifact}. The complete binary GTS artifact requires native admission before \
+                 consuming projected text or facets. An \
                  unrecognized format, or an input above the size/quad ceiling, is a hard error.",
             &[
                 ("data", "string"),
@@ -239,9 +243,12 @@ fn builtin_tool_descriptors() -> Vec<Value> {
                  step_skeleton (target first, each step carrying its rule, derivation id, \
                  (S,P,O), world, asserted flag, depth, antecedent step ids, and cited term \
                  IRIs), the complete cited_iris set, a Markdown rendering, the world_iri, the \
-                 completeness class (CoherenceCertificate for a conclusive closure, \
-                 CoherenceCheckAttestation for a budget-cut one), and judgment_nquads (the \
-                 grounded logic:ReasoningResult). `object_kind` is `iri` or `literal` (inferred \
+                 class_local_name classification (CoherenceCertificate for a conclusive \
+                 coherent closure, CoherenceCheckAttestation for a budget-cut one, Refused \
+                 for a witnessed forbidden contradiction), the separate completeness axis, \
+                 judgment_nquads (the grounded logic:ReasoningResult), and artifact (the \
+                 complete binary GTS envelope). Admit artifact natively before consuming \
+                 projected text or facets. `object_kind` is `iri` or `literal` (inferred \
                  from object_value when omitted); `object_datatype` types a literal object. This \
                  is DISTINCT from explain_finding: explain_finding addresses a PUBLISHED \
                  diagnostic by its fingerprint/anchor IRI over the graph/diagnostics projection, \
@@ -376,7 +383,9 @@ fn builtin_tool_descriptors() -> Vec<Value> {
                  (P9); math_conjecture optionally names the math:Conjecture twin. max_steps / \
                  max_answers optionally bound the isolated scenario evaluation (a \
                  derived-closure-size ceiling: exceeding it stamps BudgetExhausted → lifecycle \
-                 open). For the committing counterpart, see store_conjecture.",
+                 open). Every evaluation carries artifact, the complete binary GTS envelope; \
+                 admit it natively before consuming projected judgment text or verdict facets. \
+                 For the committing counterpart, see store_conjecture.",
             &[
                 ("formula", "string"),
                 ("kb", "string"),
@@ -397,7 +406,9 @@ fn builtin_tool_descriptors() -> Vec<Value> {
                  isolated scenario evaluation (a derived-closure-size ceiling: exceeding it \
                  stamps BudgetExhausted → lifecycle open). Pass dry_run=true for a \
                  non-committing sandbox run (verdict only, nothing written) — a \
-                 hypothetical-commit witness.",
+                 hypothetical-commit witness. Every evaluated outcome, including a refused \
+                 or hypothetical persist, carries artifact, the complete binary GTS envelope; \
+                 admit it natively before consuming projected judgment text or verdict facets.",
             &[
                 ("formula", "string"),
                 ("kb", "string"),

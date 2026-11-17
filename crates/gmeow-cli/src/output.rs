@@ -59,13 +59,13 @@ pub(crate) fn write_bytes(path: &Path, bytes: &[u8]) -> gmeow_errors::Result<()>
         builder.permissions(std::fs::Permissions::from_mode(0o666));
     }
     let mut file = builder.tempfile_in(parent)?;
-    file.write_all(bytes)?;
-    file.flush()?;
     match std::fs::metadata(path) {
         Ok(metadata) => file.as_file().set_permissions(metadata.permissions())?,
         Err(error) if error.kind() == std::io::ErrorKind::NotFound => {}
         Err(error) => return Err(error.into()),
     }
+    file.write_all(bytes)?;
+    file.flush()?;
     file.persist(path)?;
     Ok(())
 }

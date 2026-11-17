@@ -2507,7 +2507,8 @@ impl McpView {
             "cited_iris": explanation.cited_iris.iter().cloned().collect::<Vec<_>>(),
             "step_skeleton": step_skeleton,
             "world_iri": explanation.world_iri,
-            "completeness": completeness_class(result),
+            "class_local_name": completeness_class(result),
+            "completeness": result.completeness.wire(),
             "judgment_nquads": publication.0,
             "artifact": artifact_envelope(publication.1),
         }))
@@ -3205,7 +3206,9 @@ pub fn candidate_submission_descriptor() -> Value {
          isolated-world verdict corroborates it. Refuted or open candidates stage nothing. \
          kb_format selects the KB codec (default text/turtle); for_slice and for_packet \
          record target provenance. max_steps and max_answers select reasoning limits. \
-         dry_run returns the verdict without writing.",
+         dry_run returns the verdict without writing. Every evaluated outcome carries \
+         artifact, the complete binary GTS envelope; admit it natively before consuming \
+         projected judgment text or verdict facets.",
         &[
             ("formula", "string"),
             ("kb", "string"),

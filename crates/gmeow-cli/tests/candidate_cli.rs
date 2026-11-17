@@ -76,9 +76,10 @@ fn staged(formula: &str, kb: &str) -> (tempfile::TempDir, PathBuf, PathBuf, Path
     (tmp, fpath, kpath, store)
 }
 
+/// Candidate lifecycle records remain recoverable when standalone artifact publication fails.
 #[test]
 fn candidate_submit_list_withdraw_full_lifecycle() {
-    let (_tmp, formula, kb, store) = staged(corroborating_formula(), corroborating_kb());
+    let (directory, formula, kb, store) = staged(corroborating_formula(), corroborating_kb());
     let standpoint = "http://ex/standpoint/alice";
 
     // list on an empty (absent) library is an empty list, not an error.
@@ -159,6 +160,33 @@ fn candidate_submit_list_withdraw_full_lifecycle() {
         .env("GMEOW_CANDIDATE_PATH", &store)
         .assert()
         .failure();
+
+    // A failed standalone export still identifies the candidate that was committed.
+    let failed_export_store = directory.path().join("persisted-without-export.gts");
+    let failed = gmeow()
+        .args(["candidate", "submit", "--out"])
+        .arg(directory.path())
+        .arg("--formula")
+        .arg(&formula)
+        .arg("--kb")
+        .arg(&kb)
+        .args(["--standpoint", standpoint])
+        .env("GMEOW_CANDIDATE_PATH", &failed_export_store)
+        .assert()
+        .failure()
+        .stderr(predicate::str::contains("committed=true; dry_run=false"));
+    let diagnostic = String::from_utf8_lossy(&failed.get_output().stderr);
+    let saved_candidate = diagnostic
+        .split_once("; candidate ")
+        .and_then(|(_, fields)| fields.split_once("; committed="))
+        .map(|(identity, _)| identity)
+        .expect("an export failure reports the evaluated candidate identity");
+    gmeow()
+        .args(["candidate", "list"])
+        .env("GMEOW_CANDIDATE_PATH", &failed_export_store)
+        .assert()
+        .success()
+        .stdout(predicate::str::contains(saved_candidate));
 }
 
 #[test]

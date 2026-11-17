@@ -6,7 +6,8 @@
 use super::*;
 
 /// The shared producer/runtime explanation exit preserves genuine native proof
-/// premises and refuses an absent target without starting another execution.
+/// premises, distinct certificate/completeness facets and an absent-target refusal
+/// without starting another execution.
 #[test]
 fn explain_native_result_preserves_the_selected_proof_and_refuses_absent_target() {
     // gmeow-test-input: synthetic-only
@@ -31,14 +32,27 @@ fn explain_native_result_preserves_the_selected_proof_and_refuses_absent_target(
         McpView::explain_native_result(&result, "urn:proof:x", predicate, "<urn:proof:A>", graph)
             .expect("asserted proof");
     assert_eq!(asserted["faithful"], true);
-    assert_eq!(asserted["step_skeleton"].as_array().unwrap().len(), 1);
+    assert_eq!(
+        asserted["step_skeleton"]
+            .as_array()
+            .expect("the asserted proof carries a step array")
+            .len(),
+        1
+    );
     assert_eq!(asserted["step_skeleton"][0]["is_asserted"], true);
     let derived =
         McpView::explain_native_result(&result, "urn:proof:x", predicate, "<urn:proof:B>", graph)
             .expect("derived proof");
     assert_eq!(derived["faithful"], true);
-    let steps = derived["step_skeleton"].as_array().unwrap();
-    assert!(!steps[0]["is_asserted"].as_bool().unwrap());
+    assert_eq!(derived["class_local_name"], completeness_class(&result));
+    let steps = derived["step_skeleton"]
+        .as_array()
+        .expect("the derived proof carries a step array");
+    assert!(
+        !steps[0]["is_asserted"]
+            .as_bool()
+            .expect("the derived proof step declares whether it is asserted")
+    );
     assert!(
         steps.len() > 1,
         "a genuine derivation retains its premises: {derived}"
@@ -52,6 +66,11 @@ fn explain_native_result_preserves_the_selected_proof_and_refuses_absent_target(
     let admitted = gmeow_logic::result_rdf::parse_reasoning_artifact(&artifact)
         .expect("the actual proof artifact passes complete native transport admission");
     assert_eq!(
+        derived["completeness"],
+        admitted.completeness.wire(),
+        "the completeness facet retains the admitted execution axis"
+    );
+    assert_eq!(
         admitted
             .native_execution()
             .expect("admitted native evidence"),
@@ -59,7 +78,9 @@ fn explain_native_result_preserves_the_selected_proof_and_refuses_absent_target(
         "the binary proof artifact retains the caller-owned native execution"
     );
     assert_eq!(
-        derived["judgment_nquads"].as_str().unwrap(),
+        derived["judgment_nquads"]
+            .as_str()
+            .expect("the derived proof carries its textual judgment projection"),
         ResultProjection::reasoning(&result)
             .expect("project the original native result")
             .to_ntriples(),

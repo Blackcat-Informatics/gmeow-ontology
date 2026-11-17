@@ -141,16 +141,30 @@ fn contextual_resource_components_keep_proof_witness_and_native_receipts() {
 fn contextual_resource_components_refuse_nonresources_and_untyped_targets() {
     // gmeow-test-input: synthetic-only
     let assessment = component_assessment();
+    let (sink, subject) =
+        contextual_assessment_sink(&assessment).expect("admitted contextual assessment");
+    let contextual = native_dataset(sink).expect("unmodified contextual dataset");
+    parse_reasoning_dataset(&contextual, GraphMatch::Default, &NoNativeReceipts)
+        .expect("the unmodified contextual assessment is valid as a contextual result");
+    parse_reasoning_dataset_subject(
+        &contextual,
+        GraphMatch::Default,
+        &subject,
+        &NoNativeReceipts,
+    )
+    .expect_err("a valid contextual child cannot be selected as an artifact aggregate");
     for predicate in ["resultNativeExecution", "resultClosureBlob"] {
-        let (mut sink, subject) = contextual_assessment_sink(&assessment).unwrap();
+        let (mut sink, subject) = contextual_assessment_sink(&assessment)
+            .expect("admitted contextual assessment before forbidden attachment");
         sink.push(
             Node::iri(&subject),
             logic(predicate),
             Node::string(format!("blake3:{}", "0".repeat(64))),
         );
-        let dataset = native_dataset(sink).unwrap();
-        let error =
-            parse_reasoning_dataset(&dataset, GraphMatch::Default, &NoNativeReceipts).unwrap_err();
+        let dataset = native_dataset(sink)
+            .expect("contextual dataset with a syntactically valid forbidden attachment");
+        let error = parse_reasoning_dataset(&dataset, GraphMatch::Default, &NoNativeReceipts)
+            .expect_err("contextual projections must reject native attachments");
         assert!(
             error
                 .message()
@@ -188,11 +202,12 @@ fn contextual_resource_components_refuse_nonresources_and_untyped_targets() {
             sink.triples
                 .iter_mut()
                 .find(|row| row.predicate.as_ref() == logic(predicate))
-                .unwrap()
+                .expect("the assessment declares the selected evidence component link")
                 .object = replacement;
-            let dataset = native_dataset(sink).unwrap();
+            let dataset = native_dataset(sink)
+                .expect("contextual dataset with a syntactically valid replacement term");
             let error = parse_reasoning_dataset(&dataset, GraphMatch::Default, &NoNativeReceipts)
-                .unwrap_err();
+                .expect_err("evidence links must reject nonresources and untyped targets");
             assert!(error.message().contains(predicate), "{predicate}: {error}");
         }
     }

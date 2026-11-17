@@ -849,6 +849,7 @@ fn conjecture_test_refutes_persists_and_grows_the_library() {
 
 /// A `--dry-run` computes the SAME verdict but WRITES NOTHING to the library.
 /// Its standalone artifact cannot alias and replace the selected library.
+/// A failed artifact export still discloses its identity and non-persisting state.
 #[test]
 fn conjecture_test_dry_run_writes_nothing() {
     let (_tmp, dir) = scratch("conjecture-dry");
@@ -885,7 +886,27 @@ fn conjecture_test_dry_run_writes_nothing() {
         result.information,
         gmeow_logic::result::InformationState::Opposed
     );
-    std::fs::write(&lib, b"preserved conjecture history").unwrap();
+    gmeow()
+        .env("GMEOW_CONJECTURE_PATH", &lib)
+        .args(["conjecture", "test", "--out"])
+        .arg(&dir)
+        .arg("--formula")
+        .arg(&formula)
+        .arg("--kb")
+        .arg(&kb)
+        .args(["--standpoint", "http://ex/standpoint/alice", "--dry-run"])
+        .assert()
+        .failure()
+        .stderr(
+            predicate::str::contains("; conjecture ")
+                .and(predicate::str::contains("committed=false; dry_run=true")),
+        );
+    assert!(
+        !lib.exists(),
+        "failed dry-run export must not create a library"
+    );
+    std::fs::write(&lib, b"preserved conjecture history")
+        .expect("seed the protected conjecture history");
     gmeow()
         .env("GMEOW_CONJECTURE_PATH", &lib)
         .args(["conjecture", "test", "--out"])
@@ -899,7 +920,7 @@ fn conjecture_test_dry_run_writes_nothing() {
         .failure()
         .stderr(predicate::str::contains("would replace the active library"));
     assert_eq!(
-        std::fs::read(&lib).unwrap(),
+        std::fs::read(&lib).expect("read the protected conjecture history"),
         b"preserved conjecture history"
     );
 }

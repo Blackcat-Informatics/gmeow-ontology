@@ -188,7 +188,7 @@ pub fn conjecture_test(
         },
         &medium,
         &policy,
-        library,
+        Arc::clone(&library),
     ) {
         Ok(out) => out,
         Err(e) => {
@@ -200,13 +200,19 @@ pub fn conjecture_test(
         }
     };
 
-    if let Err(error) = crate::output::write_bytes(&artifact_path, &out.artifact) {
+    if let Err(error) = library
+        .ensure_distinct_output(&artifact_path)
+        .and_then(|()| crate::output::write_bytes(&artifact_path, &out.artifact))
+    {
         return fail(
             reporter,
             "gmeow-cli.conjecture.output",
             format!(
-                "cannot write complete GTS artifact {}: {error}",
-                artifact_path.display()
+                "cannot publish complete GTS artifact {}: {error}; conjecture {}; committed={}; dry_run={}",
+                artifact_path.display(),
+                out.node_iri,
+                out.committed,
+                out.dry_run,
             ),
         );
     }
@@ -353,7 +359,7 @@ pub fn candidate_submit(
         },
         &medium,
         &policy,
-        library,
+        Arc::clone(&library),
     ) {
         Ok(out) => out,
         Err(e) => {
@@ -365,13 +371,19 @@ pub fn candidate_submit(
         }
     };
 
-    if let Err(error) = crate::output::write_bytes(&artifact_path, &out.artifact) {
+    if let Err(error) = library
+        .ensure_distinct_output(&artifact_path)
+        .and_then(|()| crate::output::write_bytes(&artifact_path, &out.artifact))
+    {
         return fail(
             reporter,
             "gmeow-cli.candidate.output",
             format!(
-                "cannot write complete GTS artifact {}: {error}",
-                artifact_path.display()
+                "cannot publish complete GTS artifact {}: {error}; candidate {}; committed={}; dry_run={}",
+                artifact_path.display(),
+                out.node_iri,
+                out.committed,
+                out.dry_run,
             ),
         );
     }
