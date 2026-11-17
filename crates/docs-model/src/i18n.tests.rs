@@ -111,6 +111,18 @@ fn translation_integrity_rejects_copied_and_hybrid_english() {
 /// Preserved technical text is data; surrounding prose still requires translation.
 #[test]
 fn translation_integrity_admits_preserved_code_and_notation_literals() {
+    // Each native grammar must preserve its own meaning of `/`: a SPARQL path
+    // separator versus a character in a Turtle prefixed local name.
+    let path_query = "SELECT ?value WHERE { : a:first/b:second ?value . }";
+    let bindings = "PREFIX : <urn:default:>\nPREFIX a: <urn:first:>\nPREFIX b: <urn:second:>\n";
+    assert!(
+        purrdf::sparql::SparqlParser::new()
+            .parse_query(&format!("{bindings}{path_query}"))
+            .is_ok()
+    );
+    let slash_turtle = "ex: ex:p ex:a/b .";
+    let document = format!("PREFIX ex: <urn:example:>\n{slash_turtle}");
+    assert!(purrdf::parse_dataset(document.as_bytes(), "text/turtle", None).is_ok());
     // Faithful translations must keep SPARQL queries, wire values, and SPARQL
     // variables verbatim; the English keywords inside them (this/where/use/when)
     // must NOT be counted as copied English prose.
@@ -137,6 +149,14 @@ fn translation_integrity_admits_preserved_code_and_notation_literals() {
         "R-hat",
         "x-hat",
         "ex: a owl:Class .",
+        "ex:s ex:p ex:o .",
+        "é: ex:p ex:o .",
+        "e\u{301}: ex:p ex:o .",
+        "ex.part: ex:p ex:o .",
+        "e·x: ex:p ex:o .",
+        "ex: ex:p _:b .",
+        path_query,
+        slash_turtle,
         ": a :Class .",
         "PREFIX logic: <https://blackcatinformatics.ca/logic/> SELECT ?record WHERE { ?record a logic:CorrespondenceSource . }",
     ] {
@@ -384,16 +404,18 @@ fn legacy_is_technical_invariant(text: &str) -> bool {
 
 #[test]
 fn synthesized_prefixes_does_not_panic_on_multibyte_delimiter_against_a_curie() {
-    // The zh catalogues place CJK directly against a CURIE with no ASCII
-    // separator, e.g. "线路值gmeow:useWhen". `rfind` returns the byte offset of
-    // the START of the (3-byte) CJK char immediately before the prefix; naive
-    // `+ 1` arithmetic lands one byte into that codepoint and panics the slice.
+    // CJK characters are legal prefix material, not delimiters. Preserve the
+    // whole native prefix; an actual multibyte non-PN boundary fails lexing
+    // rather than slicing into a UTF-8 codepoint or inventing a suffix prefix.
     let text = "线路值gmeow:useWhen";
-    let prefixes = synthesized_prefixes(text);
+    let tokens = purrdf::sparql::lexer::tokenize_turtle(text)
+        .expect("CJK characters are legal prefix material");
+    let prefixes = synthesized_prefixes(&tokens);
     assert!(
-        prefixes.contains("PREFIX gmeow: "),
-        "expected the `gmeow` prefix to be extracted cleanly, got: {prefixes:?}"
+        prefixes.contains("PREFIX 线路值gmeow: "),
+        "expected the whole Unicode prefix, got: {prefixes:?}"
     );
+    assert!(purrdf::sparql::lexer::tokenize_turtle("×gmeow:useWhen").is_err());
 }
 
 /// Catalogue-wide notation admissions must have syntax independent of prose.

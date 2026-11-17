@@ -210,9 +210,9 @@ fn is_notation_token(token: &str) -> bool {
 ///    This arm is load-bearing: without it the `!tokens.is_empty()` guard makes a
 ///    pure-quoted-literal input return `false`, so the function would get STRICTER
 ///    for exactly the input the quote-stripping is meant to admit;
-/// 3. otherwise every surviving token must be notation ([`is_notation_token`]).
-/// A namespace-only token such as `ex:` is ambiguous with a prose introduction.
-/// Only that lexical case additionally requires native Turtle or SPARQL syntax.
+/// 3. a namespace-only token such as `ex:` is ambiguous with a prose introduction
+///    and requires complete native Turtle or SPARQL syntax; otherwise every
+///    surviving token must be notation ([`is_notation_token`]).
 #[must_use]
 pub fn is_technical_invariant(text: &str) -> bool {
     if text.eq_ignore_ascii_case("Creative Commons") {
@@ -232,33 +232,25 @@ pub fn is_technical_invariant(text: &str) -> bool {
     if tokens.is_empty() {
         return true;
     }
-    tokens.iter().all(|token| is_notation_token(token))
-        && (!tokens.iter().any(|token| token.ends_with(':'))
-            || parses_as_turtle(text)
-            || parses_as_sparql(text))
+    if tokens.iter().any(|token| token.ends_with(':')) {
+        parses_as_turtle(text) || parses_as_sparql(text)
+    } else {
+        tokens.iter().all(|token| is_notation_token(token))
+    }
 }
 
 /// Prefix bindings used only to validate snippet syntax, never emitted as data.
 /// Standard PREFIX declarations are accepted by both Turtle and SPARQL.
-fn synthesized_prefixes(text: &str) -> String {
-    let bytes = text.as_bytes();
-    let mut names: std::collections::BTreeSet<String> = std::collections::BTreeSet::new();
-    for (i, &c) in bytes.iter().enumerate() {
-        if c != b':' || text[i..].starts_with("://") {
-            continue;
+fn synthesized_prefixes(tokens: &[purrdf::sparql::lexer::Spanned<'_>]) -> String {
+    use purrdf::sparql::lexer::Token;
+
+    let mut names = std::collections::BTreeSet::new();
+    for token in tokens {
+        // Each language's native lexer owns prefix boundaries and distinguishes
+        // blank-node labels, IRIs, quoted values and comments from names.
+        if let Token::PrefixedName(name, _) = &token.token {
+            names.insert(*name);
         }
-        // Step past the full delimiter, including multibyte characters adjacent
-        // to a prefixed name. An empty name denotes the default prefix.
-        let start = text[..i]
-            .char_indices()
-            .rev()
-            .find(|(_, ch)| !(ch.is_ascii_alphanumeric() || *ch == '_' || *ch == '-'))
-            .map_or(0, |(j, ch)| j + ch.len_utf8());
-        let name = &text[start..i];
-        if name.starts_with(|ch: char| ch.is_ascii_digit()) {
-            continue;
-        }
-        names.insert(name.to_owned());
     }
     let mut out = String::new();
     for name in names {
@@ -271,7 +263,10 @@ fn synthesized_prefixes(text: &str) -> String {
 
 /// Validate complete Turtle statements or one RDF term in object position.
 fn parses_as_turtle(text: &str) -> bool {
-    let prefixes = synthesized_prefixes(text);
+    let Ok(tokens) = purrdf::sparql::lexer::tokenize_turtle(text) else {
+        return false;
+    };
+    let prefixes = synthesized_prefixes(&tokens);
     let as_document = format!("{prefixes}{text}\n");
     if purrdf::parse_dataset(as_document.as_bytes(), "text/turtle", None).is_ok() {
         return true;
@@ -282,7 +277,11 @@ fn parses_as_turtle(text: &str) -> bool {
 
 /// Validate a complete SPARQL query with the same snippet prefix bindings.
 fn parses_as_sparql(text: &str) -> bool {
-    let query = format!("{}{text}\n", synthesized_prefixes(text));
+    let Ok(tokens) = purrdf::sparql::lexer::tokenize(text) else {
+        return false;
+    };
+    let prefixes = synthesized_prefixes(&tokens);
+    let query = format!("{prefixes}{text}\n");
     purrdf::sparql::SparqlParser::new()
         .parse_query(&query)
         .is_ok()
