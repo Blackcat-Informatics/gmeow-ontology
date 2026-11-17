@@ -303,6 +303,21 @@ The exact Gram/PCA producer emits an eigensolver descriptor and PCA roles, with
 no eigenvalue/eigenvector result triples. Neither those records nor the grounding
 certifies numerical execution of an eigendecomposition.
 
+`math:SingularValueDecomposition` uses the finite real/complex inner-product
+factorization `A = UΣV*` in supplied orthonormal coordinates. The
+[singular-value contract](./design/MATHEMATICS-LINEAR-ALGEBRA-AND-LEARNING.md#singular-value-factors-dimensions-and-multiplicities)
+states explicit full, thin and rank-compact factor dimensions and zero treatment,
+separately from rank-truncated approximations and numerical tolerance policies.
+Exact rank counts positive singular-value occurrences with multiplicity, not
+distinct positive values or RDF resources. Unordered `math:singularValue` links
+supply neither occurrence counts nor factor order or completeness.
+
+The registered SVD `skos:exactMatch` to Wikidata `wd:Q420904` carries
+`logic:WellBehavedLens`, `logic:InstitutionMorphism` and
+`logic:SoundUnderApproximation` preservation. It supplies no numerical factors
+or execution certificate. The source scene and PCA fixtures name solver
+descriptors; the exact Gram/PCA producer emits no singular-value result triples.
+
 - **Inner-product spaces and decompositions** — `math:InnerProductSpace`, `math:HermitianInnerProduct`,
   `math:Subspace`, `math:OrthogonalComplement` (⊑ `math:Complement`, so it realizes the geometry
   charter's complement contract — ambient space, orthogonal semantics, and now `math:definedByInnerProduct`),

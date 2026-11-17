@@ -17690,3 +17690,59 @@ msgstr "Ne pas traiter le vecteur nul comme un vecteur propre ni déduire de ce 
 msgctxt "https://blackcatinformatics.ca/math/eigenvector|https://blackcatinformatics.ca/gmeow/howToUse"
 msgid "Link the decomposition to the supplied vector resource and retain its coordinates, basis, normalization and association evidence as provided. Keep eigenvalue associations explicit in the source representation; separate unordered output links neither construct eigenpairs nor execute a solver."
 msgstr "Relier la décomposition à la ressource vectorielle fournie et conserver ses coordonnées, sa base, sa normalisation et les éléments d’association tels qu’ils sont fournis. Garder les associations aux valeurs propres explicites dans la représentation de la source ; des liens de sortie distincts et non ordonnés ne construisent aucun couple propre et n’exécutent aucun solveur."
+
+msgctxt "https://blackcatinformatics.ca/math/SingularValueDecomposition|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Singular Value Decomposition"
+msgstr "Décomposition en valeurs singulières"
+
+msgctxt "https://blackcatinformatics.ca/math/SingularValueDecomposition|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A factorization of a linear map between finite-dimensional real or complex inner-product spaces. In orthonormal coordinates A = UΣV*, with orthonormal factor columns appropriate to the declared form, nonnegative real diagonal entries in Σ and V* the conjugate transpose (ordinary transpose over the reals)."
+msgstr "Une factorisation d’une application linéaire entre espaces préhilbertiens réels ou complexes de dimension finie. En coordonnées orthonormées, A = UΣV*, avec des colonnes de facteurs orthonormées adaptées à la forme déclarée, des entrées diagonales réelles non négatives dans Σ et V* la transposée conjuguée (la transposée ordinaire sur les réels)."
+
+msgctxt "https://blackcatinformatics.ca/math/SingularValueDecomposition|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "For m×n A, a full form has U m×m, Σ m×n and V n×n; a thin form may use k = min(m,n) columns, retaining zeros. A compact rank-r form retains the r positive singular-value occurrences. Names vary: retain supplied dimensions and zero treatment. Rectangular and singular maps are admitted; no eigenbasis or inverse is required."
+msgstr "Pour A de taille m×n, une forme complète a U de taille m×m, Σ de taille m×n et V de taille n×n ; une forme mince peut utiliser k = min(m,n) colonnes en conservant les zéros. Une forme compacte de rang r conserve les r occurrences de valeurs singulières strictement positives. Les noms varient : conserver les dimensions et le traitement des zéros fournis. Les applications rectangulaires et singulières sont admises ; aucune base propre ni aucun inverse n’est requis."
+
+msgctxt "https://blackcatinformatics.ca/math/SingularValueDecomposition|http://www.w3.org/2004/02/skos/core#example"
+msgid "For A = diag(3,3,0) over the reals with the standard Euclidean inner product and an ordered orthonormal basis, U = V = I and Σ = A give an exact SVD. The two occurrences of singular value 3 give rank two, despite there being only one distinct positive value."
+msgstr "Pour A = diag(3,3,0) sur les réels avec le produit scalaire euclidien standard et une base orthonormée ordonnée, U = V = I et Σ = A donnent une SVD exacte. Les deux occurrences de la valeur singulière 3 donnent un rang de deux, bien qu’il n’existe qu’une seule valeur strictement positive distincte."
+
+msgctxt "https://blackcatinformatics.ca/math/SingularValueDecomposition|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to describe supplied singular-value factors or results, retaining the linear map, scalar field, actual inner products, ordered coordinate bases and the precise dimensions and completeness of the declared form."
+msgstr "Utiliser pour décrire des facteurs ou résultats fournis de décomposition en valeurs singulières, en conservant l’application linéaire, le corps des scalaires, les produits scalaires effectifs, les bases de coordonnées ordonnées et les dimensions et la complétude précises de la forme déclarée."
+
+msgctxt "https://blackcatinformatics.ca/math/SingularValueDecomposition|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Do not treat a rank-truncated approximation as a complete exact factorization or identify a numerical tolerance-based rank with exact rank. Unordered singularValue links supply no multiplicity, ordering or left/right-vector association. Changing the inner products may change the singular values; the finite matrix statement does not cover arbitrary infinite-dimensional operators."
+msgstr "Ne pas traiter une approximation tronquée en rang comme une factorisation exacte complète ni identifier un rang numérique fondé sur une tolérance au rang exact. Des liens singularValue non ordonnés ne fournissent ni multiplicité, ni ordre, ni association aux vecteurs gauches et droits. Modifier les produits scalaires peut modifier les valeurs singulières ; l’énoncé matriciel fini ne couvre pas les opérateurs arbitraires en dimension infinie."
+
+msgctxt "https://blackcatinformatics.ca/math/SingularValueDecomposition|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Preserve supplied factor matrices, their shared ordering, multiplicities and exact or approximate status in the source representation. The registered skos:exactMatch to wd:Q420904 carries logic:SoundUnderApproximation preservation; a mapping, type or randomizedSVD descriptor does not certify an executed factorization."
+msgstr "Conserver les matrices de facteurs fournies, leur ordre commun, les multiplicités et le statut exact ou approché dans la représentation de la source. Le skos:exactMatch enregistré vers wd:Q420904 porte la préservation logic:SoundUnderApproximation ; une correspondance, un type ou un descripteur randomizedSVD ne certifie aucune factorisation exécutée."
+
+msgctxt "https://blackcatinformatics.ca/math/singularValue|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "singular value"
+msgstr "valeur singulière"
+
+msgctxt "https://blackcatinformatics.ca/math/singularValue|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Relates a math:SingularValueDecomposition to a math:Number representing one nonnegative real singular value σ, including zero when retained by the declared form. In orthonormal coordinates these values occupy the diagonal of Σ in A = UΣV*; the number is a resource rather than a bare literal."
+msgstr "Relie une math:SingularValueDecomposition à un math:Number représentant une valeur singulière réelle non négative σ, y compris zéro lorsque la forme déclarée le conserve. En coordonnées orthonormées, ces valeurs occupent la diagonale de Σ dans A = UΣV* ; le nombre est une ressource plutôt qu’un simple littéral."
+
+msgctxt "https://blackcatinformatics.ca/math/singularValue|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "For m×n A, its k = min(m,n) singular values are the nonnegative square roots of the largest k eigenvalues of A* A, counting multiplicity. When m < n, the other n-m eigenvalues of A* A are forced zeros. Singular values depend on the supplied inner products; they are not generally eigenvalues of A, their squares or explained-variance ratios."
+msgstr "Pour A de taille m×n, ses k = min(m,n) valeurs singulières sont les racines carrées non négatives des k plus grandes valeurs propres de A* A, comptées avec leur multiplicité. Lorsque m < n, les n-m autres valeurs propres de A* A sont nécessairement nulles. Les valeurs singulières dépendent des produits scalaires fournis ; elles ne sont pas en général les valeurs propres de A, leurs propres carrés ni des rapports de variance expliquée."
+
+msgctxt "https://blackcatinformatics.ca/math/singularValue|http://www.w3.org/2004/02/skos/core#example"
+msgid "For real A = diag(3,3,0) with the standard Euclidean inner product, the singular-value sequence is 3, 3, 0 and exact rank is two. One unordered link to the number 3 cannot record both occurrences, and repeating the same RDF assertion does not add multiplicity."
+msgstr "Pour A = diag(3,3,0) réelle avec le produit scalaire euclidien standard, la suite des valeurs singulières est 3, 3, 0 et le rang exact est deux. Un lien non ordonné vers le nombre 3 ne peut pas consigner les deux occurrences, et répéter la même assertion RDF n’ajoute aucune multiplicité."
+
+msgctxt "https://blackcatinformatics.ca/math/singularValue|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain a supplied singular value as a number resource with its exact or approximate representation, decomposition context and source evidence for any occurrence multiplicity or factor position."
+msgstr "Utiliser pour conserver une valeur singulière fournie comme ressource numérique avec sa représentation exacte ou approchée, le contexte de décomposition et les éléments de source établissant toute multiplicité d’occurrence ou position dans les facteurs."
+
+msgctxt "https://blackcatinformatics.ca/math/singularValue|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Do not count distinct positive values or distinct RDF resources as exact rank. A truncated output set does not disclose omitted values, and absence of a zero output is not evidence of full rank. A numerical zero threshold is a supplied policy, never an implicit mathematical equality."
+msgstr "Ne pas compter les valeurs strictement positives distinctes ni les ressources RDF distinctes comme rang exact. Un ensemble de sorties tronqué ne révèle pas les valeurs omises, et l’absence de sortie nulle ne prouve pas le plein rang. Un seuil de zéro numérique est une politique fournie, jamais une égalité mathématique implicite."
+
+msgctxt "https://blackcatinformatics.ca/math/singularValue|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Link the decomposition to the supplied math:Number and preserve source ordering, occurrence multiplicities, factor associations and any numerical tolerance separately. This output relation supplies no left/right-vector pairing, default order, completeness witness or numerical computation."
+msgstr "Relier la décomposition au math:Number fourni et conserver séparément l’ordre de source, les multiplicités d’occurrence, les associations aux facteurs et toute tolérance numérique. Cette relation de sortie ne fournit ni appariement aux vecteurs gauches et droits, ni ordre par défaut, ni témoin de complétude, ni calcul numérique."

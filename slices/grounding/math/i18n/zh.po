@@ -17690,3 +17690,59 @@ msgstr "不要将零向量视为特征向量，也不要从此链接推断单位
 msgctxt "https://blackcatinformatics.ca/math/eigenvector|https://blackcatinformatics.ca/gmeow/howToUse"
 msgid "Link the decomposition to the supplied vector resource and retain its coordinates, basis, normalization and association evidence as provided. Keep eigenvalue associations explicit in the source representation; separate unordered output links neither construct eigenpairs nor execute a solver."
 msgstr "将分解关联到已提供的向量资源，并按来源保留其坐标、基、归一化及关联依据。在来源表示中显式保留特征值关联；分开且无序的输出链接既不构造特征对，也不执行求解器。"
+
+msgctxt "https://blackcatinformatics.ca/math/SingularValueDecomposition|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Singular Value Decomposition"
+msgstr "奇异值分解"
+
+msgctxt "https://blackcatinformatics.ca/math/SingularValueDecomposition|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A factorization of a linear map between finite-dimensional real or complex inner-product spaces. In orthonormal coordinates A = UΣV*, with orthonormal factor columns appropriate to the declared form, nonnegative real diagonal entries in Σ and V* the conjugate transpose (ordinary transpose over the reals)."
+msgstr "有限维实或复内积空间之间线性映射的分解。在标准正交坐标下，A = UΣV*，其中因子矩阵的列按所声明形式满足标准正交条件，Σ 的对角元素为非负实数，V* 表示共轭转置（实数情形下为普通转置）。"
+
+msgctxt "https://blackcatinformatics.ca/math/SingularValueDecomposition|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "For m×n A, a full form has U m×m, Σ m×n and V n×n; a thin form may use k = min(m,n) columns, retaining zeros. A compact rank-r form retains the r positive singular-value occurrences. Names vary: retain supplied dimensions and zero treatment. Rectangular and singular maps are admitted; no eigenbasis or inverse is required."
+msgstr "对于 m×n 的 A，完整形式中 U 为 m×m、Σ 为 m×n、V 为 n×n；薄形式可以使用 k = min(m,n) 列并保留零值。秩为 r 的紧致形式保留 r 个正奇异值出现项。命名惯例各异，应保留来源提供的维数及零值处理方式。矩形映射和奇异映射均可采用此分解，无需特征向量基或逆。"
+
+msgctxt "https://blackcatinformatics.ca/math/SingularValueDecomposition|http://www.w3.org/2004/02/skos/core#example"
+msgid "For A = diag(3,3,0) over the reals with the standard Euclidean inner product and an ordered orthonormal basis, U = V = I and Σ = A give an exact SVD. The two occurrences of singular value 3 give rank two, despite there being only one distinct positive value."
+msgstr "对于实数域上采用标准欧氏内积及有序标准正交基的 A = diag(3,3,0)，U = V = I 和 Σ = A 给出精确 SVD。奇异值 3 出现两次，因此秩为二，尽管不同的正值只有一个。"
+
+msgctxt "https://blackcatinformatics.ca/math/SingularValueDecomposition|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to describe supplied singular-value factors or results, retaining the linear map, scalar field, actual inner products, ordered coordinate bases and the precise dimensions and completeness of the declared form."
+msgstr "用于描述已提供的奇异值分解因子或结果，保留线性映射、标量域、实际内积、有序坐标基以及所声明形式的确切维数和完整性。"
+
+msgctxt "https://blackcatinformatics.ca/math/SingularValueDecomposition|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Do not treat a rank-truncated approximation as a complete exact factorization or identify a numerical tolerance-based rank with exact rank. Unordered singularValue links supply no multiplicity, ordering or left/right-vector association. Changing the inner products may change the singular values; the finite matrix statement does not cover arbitrary infinite-dimensional operators."
+msgstr "不要将截断秩近似视为完整精确分解，也不要将基于数值容差的秩等同于精确秩。无序的 singularValue 链接不提供重数、顺序或与左右奇异向量的关联。改变内积可能改变奇异值；有限矩阵结论不适用于任意无限维算子。"
+
+msgctxt "https://blackcatinformatics.ca/math/SingularValueDecomposition|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Preserve supplied factor matrices, their shared ordering, multiplicities and exact or approximate status in the source representation. The registered skos:exactMatch to wd:Q420904 carries logic:SoundUnderApproximation preservation; a mapping, type or randomizedSVD descriptor does not certify an executed factorization."
+msgstr "在来源表示中保留已提供的因子矩阵、共同顺序、重数及精确或近似状态。已登记的、指向 wd:Q420904 的 skos:exactMatch 采用 logic:SoundUnderApproximation 保持判定；对应关系、类型或 randomizedSVD 描述符均不能认证已执行的分解。"
+
+msgctxt "https://blackcatinformatics.ca/math/singularValue|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "singular value"
+msgstr "奇异值"
+
+msgctxt "https://blackcatinformatics.ca/math/singularValue|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Relates a math:SingularValueDecomposition to a math:Number representing one nonnegative real singular value σ, including zero when retained by the declared form. In orthonormal coordinates these values occupy the diagonal of Σ in A = UΣV*; the number is a resource rather than a bare literal."
+msgstr "将 math:SingularValueDecomposition 关联到表示一个非负实奇异值 σ 的 math:Number；若声明的形式保留零值，则包括零。在标准正交坐标下，这些值位于 A = UΣV* 中 Σ 的对角线上；该数以资源而非裸字面量表示。"
+
+msgctxt "https://blackcatinformatics.ca/math/singularValue|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "For m×n A, its k = min(m,n) singular values are the nonnegative square roots of the largest k eigenvalues of A* A, counting multiplicity. When m < n, the other n-m eigenvalues of A* A are forced zeros. Singular values depend on the supplied inner products; they are not generally eigenvalues of A, their squares or explained-variance ratios."
+msgstr "对于 m×n 的 A，其 k = min(m,n) 个奇异值是 A* A 按重数计算的最大 k 个特征值的非负平方根。当 m < n 时，A* A 的其余 n-m 个特征值必为零。奇异值依赖于已提供的内积；一般而言，它们不同于 A 的特征值、自身的平方或解释方差比。"
+
+msgctxt "https://blackcatinformatics.ca/math/singularValue|http://www.w3.org/2004/02/skos/core#example"
+msgid "For real A = diag(3,3,0) with the standard Euclidean inner product, the singular-value sequence is 3, 3, 0 and exact rank is two. One unordered link to the number 3 cannot record both occurrences, and repeating the same RDF assertion does not add multiplicity."
+msgstr "对于采用标准欧氏内积的实矩阵 A = diag(3,3,0)，奇异值序列为 3、3、0，精确秩为二。指向数值 3 的一个无序链接不能记录两次出现，重复同一 RDF 断言也不会增加重数。"
+
+msgctxt "https://blackcatinformatics.ca/math/singularValue|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain a supplied singular value as a number resource with its exact or approximate representation, decomposition context and source evidence for any occurrence multiplicity or factor position."
+msgstr "用于将已提供的奇异值保留为数值资源，并保留其精确或近似表示、分解上下文以及来源提供的任何出现重数或因子位置依据。"
+
+msgctxt "https://blackcatinformatics.ca/math/singularValue|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Do not count distinct positive values or distinct RDF resources as exact rank. A truncated output set does not disclose omitted values, and absence of a zero output is not evidence of full rank. A numerical zero threshold is a supplied policy, never an implicit mathematical equality."
+msgstr "不要将不同的正值数量或不同 RDF 资源数量作为精确秩。截断的输出集合不披露被省略的值，未输出零值也不构成满秩依据。数值零阈值是已提供的策略，绝不意味着隐含的数学相等。"
+
+msgctxt "https://blackcatinformatics.ca/math/singularValue|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Link the decomposition to the supplied math:Number and preserve source ordering, occurrence multiplicities, factor associations and any numerical tolerance separately. This output relation supplies no left/right-vector pairing, default order, completeness witness or numerical computation."
+msgstr "将分解关联到已提供的 math:Number，并单独保留来源顺序、出现重数、因子关联及任何数值容差。该输出关系不提供左右奇异向量配对、默认顺序、完整性见证或数值计算。"

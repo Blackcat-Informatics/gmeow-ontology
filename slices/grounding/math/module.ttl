@@ -6242,7 +6242,12 @@ math:SingularValueDecomposition
     rdfs:subClassOf math:MathematicalObject ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "Singular Value Decomposition"@x-gmeow-english ;
-    skos:definition "The singular value decomposition of a linear map: a first-class object factoring it as A = UΣV* with declared math:singularValue outputs and left/right singular vectors. A subclass of math:MathematicalObject. GMEOW-original in structure (no external ontology models SVD); the count of non-zero singular values is the math:Rank, and a randomized SVD is a common math:eigensolver for PCA."@x-gmeow-english ;
+    skos:definition "A factorization of a linear map between finite-dimensional real or complex inner-product spaces. In orthonormal coordinates A = UΣV*, with orthonormal factor columns appropriate to the declared form, nonnegative real diagonal entries in Σ and V* the conjugate transpose (ordinary transpose over the reals)."@x-gmeow-english ;
+    skos:scopeNote "For m×n A, a full form has U m×m, Σ m×n and V n×n; a thin form may use k = min(m,n) columns, retaining zeros. A compact rank-r form retains the r positive singular-value occurrences. Names vary: retain supplied dimensions and zero treatment. Rectangular and singular maps are admitted; no eigenbasis or inverse is required."@x-gmeow-english ;
+    skos:example "For A = diag(3,3,0) over the reals with the standard Euclidean inner product and an ordered orthonormal basis, U = V = I and Σ = A give an exact SVD. The two occurrences of singular value 3 give rank two, despite there being only one distinct positive value."@x-gmeow-english ;
+    gmeow:useWhen "Use to describe supplied singular-value factors or results, retaining the linear map, scalar field, actual inner products, ordered coordinate bases and the precise dimensions and completeness of the declared form."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not treat a rank-truncated approximation as a complete exact factorization or identify a numerical tolerance-based rank with exact rank. Unordered singularValue links supply no multiplicity, ordering or left/right-vector association. Changing the inner products may change the singular values; the finite matrix statement does not cover arbitrary infinite-dimensional operators."@x-gmeow-english ;
+    gmeow:howToUse "Preserve supplied factor matrices, their shared ordering, multiplicities and exact or approximate status in the source representation. The registered skos:exactMatch to wd:Q420904 carries logic:SoundUnderApproximation preservation; a mapping, type or randomizedSVD descriptor does not certify an executed factorization."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 math:CovarianceOperator
@@ -6341,7 +6346,12 @@ math:singularValue
     a logic:ObjectProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "singular value"@x-gmeow-english ;
-    skos:definition "Relates a math:SingularValueDecomposition to one of its singular values σ ≥ 0 (the diagonal of Σ). Domain math:SingularValueDecomposition, range a non-negative math:Number (stated in prose). The count of non-zero singular values is the math:Rank."@x-gmeow-english ;
+    skos:definition "Relates a math:SingularValueDecomposition to a math:Number representing one nonnegative real singular value σ, including zero when retained by the declared form. In orthonormal coordinates these values occupy the diagonal of Σ in A = UΣV*; the number is a resource rather than a bare literal."@x-gmeow-english ;
+    skos:scopeNote "For m×n A, its k = min(m,n) singular values are the nonnegative square roots of the largest k eigenvalues of A* A, counting multiplicity. When m < n, the other n-m eigenvalues of A* A are forced zeros. Singular values depend on the supplied inner products; they are not generally eigenvalues of A, their squares or explained-variance ratios."@x-gmeow-english ;
+    skos:example "For real A = diag(3,3,0) with the standard Euclidean inner product, the singular-value sequence is 3, 3, 0 and exact rank is two. One unordered link to the number 3 cannot record both occurrences, and repeating the same RDF assertion does not add multiplicity."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain a supplied singular value as a number resource with its exact or approximate representation, decomposition context and source evidence for any occurrence multiplicity or factor position."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not count distinct positive values or distinct RDF resources as exact rank. A truncated output set does not disclose omitted values, and absence of a zero output is not evidence of full rank. A numerical zero threshold is a supplied policy, never an implicit mathematical equality."@x-gmeow-english ;
+    gmeow:howToUse "Link the decomposition to the supplied math:Number and preserve source ordering, occurrence multiplicities, factor associations and any numerical tolerance separately. This output relation supplies no left/right-vector pairing, default order, completeness witness or numerical computation."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 # --- Bilinear forms, matrices, norms, and exact numeric carriers ------------ #
