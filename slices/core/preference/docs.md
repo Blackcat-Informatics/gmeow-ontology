@@ -45,7 +45,25 @@ onto `gmeow:Rubric` and `gmeow:Criterion`, the one canonical owner (Principle 4)
 remaining evaluative primitives are named by-reference as native alignment cells in
 `mappings/equivalences.ttl`.
 
-model-serving (`ModelArtifact`/`ModelDeployment`), semantic-topology, and
+The preference-to-learning specialization points to its broader target with
+`skos:broadMatch`, agreeing with the canonical `logic:subClassOf` direction.
+The remaining six composition links are associative; they assert neither
+subsumption nor equivalence:
+
+| Preference source | Core target | Match |
+| --- | --- | --- |
+| `PreferenceLearningEvent` | `LearningEvent` | `broadMatch` |
+| `verifierOutcome` | `EvaluationVerdict` | `relatedMatch` |
+| `verifierContract` | `Condition` | `relatedMatch` |
+| `candidateGeneratedBy` | `ModelInvocation` | `relatedMatch` |
+| `deltaPromptIdentity` | `Prompt` | `relatedMatch` |
+| `recordsProjectionPreservation` | `wasDerivedFrom` | `relatedMatch` |
+| `deltaEvaluationEvidence` | `EvidenceSpan` | `relatedMatch` |
+
+The [canonical correspondence direction contract](../../grounding/logic/design/LOGIC-CORRESPONDENCE.md)
+separates these source/view meanings from each generated projection's preservation claim.
+
+Model serving (`ModelArtifact`/`ModelDeployment`), semantic topology, and
 embedding-projection (`VectorSpaceContract`) are **extensions**, and the tier model
 is stricter about them than "no subclass/range axiom": a mapping cell and a competency query
 are each a *semantic dependency edge*, so naming an extension's term in either would

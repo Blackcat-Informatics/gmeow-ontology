@@ -7492,7 +7492,7 @@ logic:CorrespondenceRelation
     a logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "Correspondence Relation"@x-gmeow-english ;
-    skos:definition "The typed, closed value class of a logic:Correspondence's relation, on an ordered lattice rather than a free string: logic:Equiv ⊐ { logic:Subsumes, logic:SubsumedBy } ⊐ logic:Overlaps ⊐ logic:RelatedMatch, with logic:Disjoint the negative pole. From one authored relation the compiler derives the SSSOM predicate, the EDOAL relation symbol and the OWL-alignment-axiom strength, so the generated alignment artifacts cannot drift apart. The set is closed, so a misspelt relation names no declared value and is rejected (design/LOGIC-CORRESPONDENCE.md, the relation-lattice section)."@x-gmeow-english ;
+    skos:definition "The typed, closed value class of a logic:Correspondence's relation, on an ordered lattice rather than a free string: logic:Equiv ⊐ { logic:Subsumes, logic:SubsumedBy } ⊐ logic:Overlaps ⊐ logic:RelatedMatch, with logic:Disjoint the negative pole. The lattice supplies typed relation strength for projection overclaim checks; each lowering retains its documented preservation limits. The set is closed, so a misspelt relation names no declared value and is rejected (design/LOGIC-CORRESPONDENCE.md, the relation-lattice section)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 logic:Equiv
@@ -7507,14 +7507,14 @@ logic:Subsumes
         logic:CorrespondenceRelation ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "subsumes"@x-gmeow-english ;
-    skos:definition "The source pattern is broader than the view: every view instance is a source instance but not conversely. Lowers to sssom:broadMatch and an OWL subClassOf with the view as the subclass. One of the two mid-lattice directional relations under logic:Equiv."@x-gmeow-english .
+    skos:definition "The source pattern subsumes the view: every view instance is a source instance, without asserting the converse. A directional SKOS row uses skos:narrowMatch from source to view, matching an OWL subClassOf from view to source. This semantic orientation does not strengthen the conservative canonical alignment projection, which emits skos:relatedMatch. One of the two mid-lattice directional relations under logic:Equiv."@x-gmeow-english .
 
 logic:SubsumedBy
     a logic:NamedIndividual ,
         logic:CorrespondenceRelation ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "subsumed by"@x-gmeow-english ;
-    skos:definition "The source pattern is narrower than the view: every source instance is a view instance but not conversely. Lowers to sssom:narrowMatch and an OWL subClassOf with the source as the subclass. The converse direction of logic:Subsumes, the second mid-lattice relation under logic:Equiv."@x-gmeow-english .
+    skos:definition "The source pattern is subsumed by the view: every source instance is a view instance, without asserting the converse. A directional SKOS row uses skos:broadMatch from source to view, matching an OWL subClassOf from source to view. The conservative canonical alignment projection emits skos:relatedMatch rather than a subsumption edge. The converse direction of logic:Subsumes, the second mid-lattice relation under logic:Equiv."@x-gmeow-english .
 
 logic:Overlaps
     a logic:NamedIndividual ,
@@ -8189,10 +8189,10 @@ logic:targetEndpoint
 
 logic:correspondenceRelation
     a logic:ObjectProperty ;
-    rdfs:range logic:CorrespondenceRelation ;
+    logic:range logic:CorrespondenceRelation ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "correspondence relation"@x-gmeow-english ;
-    skos:definition "Relates a logic:Correspondence to its logic:CorrespondenceRelation on the ordered lattice (equiv ⊐ subsumes / subsumedBy ⊐ overlaps ⊐ relatedMatch, disjoint the negative pole). The single authored relation from which the SSSOM predicate, EDOAL symbol and OWL-alignment strength are derived. Range logic:CorrespondenceRelation (domain stated in prose)."@x-gmeow-english ;
+    skos:definition "Relates a logic:Correspondence to its logic:CorrespondenceRelation on the ordered lattice (equiv ⊐ subsumes / subsumedBy ⊐ overlaps ⊐ relatedMatch, disjoint the negative pole). This typed relation supplies strength for projection overclaim checks; each lowering retains its documented preservation limits. Range logic:CorrespondenceRelation (domain stated in prose)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 logic:morphismClass
