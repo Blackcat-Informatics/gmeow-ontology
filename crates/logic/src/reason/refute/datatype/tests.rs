@@ -486,3 +486,316 @@ fn malformed_or_cyclic_definitions_do_not_become_empty_prefix_enumerations() {
         assert_eq!(decision(facts), None);
     }
 }
+
+const EQUIVALENT: &str = "http://www.w3.org/2002/07/owl#equivalentClass";
+const UNION: &str = "http://www.w3.org/2002/07/owl#unionOf";
+
+/// A world whose class model carries an equivalence obstruction: one individual,
+/// one datatype property value, and `A equivalentClass (B or C)`.
+fn obstructed_world(property: &str, range: &str, value: &str, datatype: &str) -> Vec<RdfQuad> {
+    vec![
+        fact(property, TYPE, DATATYPE_PROPERTY),
+        fact(property, RANGE, range),
+        literal(S, property, value, datatype),
+        fact(S, TYPE, "urn:carrier"),
+        fact("urn:A", EQUIVALENT, "urn:union"),
+        fact("urn:union", UNION, "urn:u1"),
+        fact("urn:u1", FIRST, "urn:B"),
+        fact("urn:u1", REST, "urn:u2"),
+        fact("urn:u2", FIRST, "urn:C"),
+        fact("urn:u2", REST, NIL),
+    ]
+}
+
+/// Execute the real source-owned program and retain its committed native evidence.
+fn joint_result(
+    facts: Vec<RdfQuad>,
+    rules: Vec<gmeow_logic_compile::ir::LogicRule>,
+) -> crate::reason::program::ProgramClosure {
+    let program = gmeow_logic_compile::ir::LogicProgram::new(Vec::new(), rules, Vec::new(), None);
+    crate::reason::program::execute(
+        &crate::program_analysis::prepare_program(&program).expect("tiny native source program"),
+        crate::reason::prepare_reasoning_input(source(facts).as_ref())
+            .expect("tiny original source admission"),
+        &crate::physical::SelectedDomains::new([]).expect("no implicit domain selection"),
+        None,
+    )
+    .expect("the finite source-owned joint graph executes")
+}
+
+fn property_outcomes<'a>(
+    result: &'a crate::reason::program::ProgramClosure,
+    property: &str,
+) -> Vec<(&'a NativeFamilyLedger, &'a NativeFamilyOutcome)> {
+    result
+        .native_families
+        .iter()
+        .flat_map(|ledger| ledger.outcomes.iter().map(move |outcome| (ledger, outcome)))
+        .filter(|(_, outcome)| outcome.family == NativeRefutationFamily::Datatype)
+        .filter(|(_, outcome)| {
+            matches!(&outcome.obligation, NativeObligationScope::Property { property: p, .. }
+                if *p == TermValue::iri(property))
+        })
+        .collect()
+}
+
+/// A real completed input boundary delays this writer; its head can already exist.
+fn late_writer(subject: &str, predicate: &str, object: &str) -> gmeow_logic_compile::ir::LogicRule {
+    use gmeow_logic_compile::ir::{AtomicTerm, ContextualScope, LogicAxiom, LogicRule};
+    let atom = |subject: &str, predicate: &str, object: &str, negated| {
+        LogicAxiom::new(
+            subject,
+            predicate,
+            AtomicTerm::Iri(object.to_owned()),
+            negated,
+            ContextualScope::default(),
+        )
+        .expect("well-formed source-owned atom")
+    };
+    LogicRule::new(
+        atom(subject, predicate, object, false),
+        vec![
+            atom(S, "urn:publication:seed", "urn:publication:start", false),
+            atom(S, "urn:publication:absent", "urn:publication:never", true),
+        ],
+        Vec::new(),
+        ContextualScope::default(),
+    )
+}
+
+/// Unrelated class failure cannot hold a property's final value assessment. A
+/// duplicate late writer also closes its boundary without adding a row.
+#[test]
+fn an_unrelated_class_obstruction_does_not_block_an_unrestricted_property() {
+    const UNION_RANGE: &str = "urn:string-or-token";
+    const TOKEN: &str = "http://www.w3.org/2001/XMLSchema#token";
+    for (property, range, value, datatype) in [
+        (
+            "urn:termIndex",
+            "http://www.w3.org/2001/XMLSchema#nonNegativeInteger",
+            "0",
+            INTEGER,
+        ),
+        ("urn:termVariable", UNION_RANGE, "x", STRING),
+    ] {
+        let mut facts = obstructed_world(property, range, value, datatype);
+        facts.push(fact(S, "urn:publication:seed", "urn:publication:start"));
+        if range == UNION_RANGE {
+            facts.extend([
+                fact(UNION_RANGE, UNION, "urn:range:u1"),
+                fact("urn:range:u1", FIRST, STRING),
+                fact("urn:range:u1", REST, "urn:range:u2"),
+                fact("urn:range:u2", FIRST, TOKEN),
+                fact("urn:range:u2", REST, NIL),
+            ]);
+        }
+        let result = joint_result(facts, vec![late_writer(property, RANGE, range)]);
+        assert!(
+            matches!(
+                result.native_status,
+                super::super::native::NativeClosureStatus::Blocked { .. }
+            ),
+            "the unrelated world obstruction is retained: {:?}",
+            result.native_status
+        );
+        let outcomes = property_outcomes(&result, property);
+        assert!(!outcomes.is_empty(), "{property} has a real obligation");
+        for (_, outcome) in outcomes {
+            assert_eq!(
+                outcome.completion,
+                NativeFamilyCompletion::Complete,
+                "{property}"
+            );
+            assert!(outcome.conclusions.is_empty());
+            assert!(
+                outcome.publication_reads.iter().any(|read| {
+                    matches!(&read.pattern, super::super::native::NativeReadPattern::Statement {
+                    subject: Some(subject), predicate: Some(predicate), object: None,
+                } if *subject == TermValue::iri(property) && predicate == RANGE)
+                }),
+                "the complete publication inventory survives a completed boundary"
+            );
+        }
+        assert!(
+            !result
+                .inferred
+                .iter()
+                .any(|row| !row.is_edb && row.predicate == RANGE),
+            "the real late duplicate writer adds no row"
+        );
+        assert!(
+            result
+                .native_families
+                .iter()
+                .flat_map(|ledger| &ledger.outcomes)
+                .any(|outcome| outcome.family == NativeRefutationFamily::HasSelf
+                    && matches!(outcome.completion, NativeFamilyCompletion::Blocked { .. })),
+            "an unreached nonwriting owner cannot claim completion"
+        );
+    }
+
+    // With no property firing, the scheduled nonwriting owners must still
+    // interpret standalone definitions and establish actual unengaged outcomes.
+    let standalone = joint_result(vec![fact(D, ONE_OF, NIL)], Vec::new());
+    assert!(standalone.native_families.iter().flat_map(|ledger| &ledger.outcomes).any(|outcome|
+        outcome.family == NativeRefutationFamily::Datatype
+        && matches!(&outcome.obligation, NativeObligationScope::Definition { owner } if *owner == TermValue::iri(D))
+        && outcome.completion == NativeFamilyCompletion::Complete));
+    assert!(
+        standalone
+            .native_families
+            .iter()
+            .flat_map(|ledger| &ledger.outcomes)
+            .any(|outcome| outcome.family == NativeRefutationFamily::HasSelf
+                && outcome.completion == NativeFamilyCompletion::NotEngaged)
+    );
+}
+
+/// Late membership, range and restriction selectors must cause the real family
+/// to commit its supported clash before publication-only reads can settle.
+#[test]
+fn a_restricting_class_that_can_still_be_asserted_keeps_the_property_waiting() {
+    use super::super::native::{NativeProofOrigin, NativeReadPattern};
+    const INSTANCE: &str = "https://blackcatinformatics.ca/logic/instanceOf";
+    const NOTHING: &str = "https://blackcatinformatics.ca/logic/Nothing";
+    for late in [(S, TYPE, R), (P, RANGE, INTEGER), (R, PROPERTY, P)] {
+        let mut facts = obstructed_world(P, STRING, "x", STRING);
+        facts.push(fact(S, "urn:publication:seed", "urn:publication:start"));
+        match late.1 {
+            TYPE => facts.extend([fact(R, PROPERTY, P), fact(R, ALL, INTEGER)]),
+            RANGE => {}
+            PROPERTY => facts.extend([fact(S, TYPE, R), fact(R, ALL, INTEGER)]),
+            _ => unreachable!("the three relevant writer roles are explicit"),
+        }
+        let result = joint_result(facts, vec![late_writer(late.0, late.1, late.2)]);
+        let outcomes = property_outcomes(&result, P);
+        let (ledger, outcome, clash) = outcomes
+            .iter()
+            .find_map(|(ledger, outcome)| {
+                outcome
+                    .conclusions
+                    .iter()
+                    .find(|clash| clash.committed.is_some())
+                    .map(|clash| (*ledger, *outcome, clash))
+            })
+            .expect("the scheduled datatype family committed its late-row clash");
+        let committed = clash
+            .committed
+            .expect("the actual clash head was committed");
+        let proof = ledger
+            .proofs
+            .iter()
+            .find(|proof| proof.id == committed)
+            .expect("the committed head has its original native proof");
+        assert_eq!(proof.statement.subject, TermValue::iri(S));
+        assert_eq!(proof.statement.predicate, INSTANCE);
+        assert_eq!(proof.statement.object, TermValue::iri(NOTHING));
+        assert!(
+            matches!(&proof.origin, NativeProofOrigin::Derived { rule, .. } if rule == RULE_NAME)
+        );
+        let sources = ledger
+            .source_leaves(&clash.support)
+            .expect("all original positive support resolves");
+        assert!(
+            sources
+                .iter()
+                .any(|source| source.subject == TermValue::iri(S)
+                    && source.predicate == "urn:publication:seed"
+                    && source.object == TermValue::iri("urn:publication:start"))
+        );
+        assert!(sources.iter().any(|source| source.subject == TermValue::iri(S)
+            && source.predicate == P
+            && matches!(&source.object, TermValue::Literal { lexical_form, .. } if lexical_form == "x")));
+        let original = |subject: &str, predicate: &str, object: &str| {
+            sources.iter().any(|source| {
+                source.subject == TermValue::iri(subject)
+                    && source.predicate == predicate
+                    && source.object == TermValue::iri(object)
+            })
+        };
+        assert!(
+            original(P, TYPE, DATATYPE_PROPERTY),
+            "the exact datatype declaration supports the clash"
+        );
+        assert!(
+            original(P, RANGE, STRING),
+            "the original range selector survives alongside the late row"
+        );
+        if late.1 != RANGE {
+            assert!(
+                original(R, ALL, INTEGER),
+                "the selected universal restriction supports the clash"
+            );
+        }
+        if late.1 == TYPE {
+            assert!(
+                original(R, PROPERTY, P),
+                "the restriction's property selector is retained"
+            );
+        } else if late.1 == PROPERTY {
+            assert!(
+                original(S, TYPE, R),
+                "the restriction's exact source membership is retained"
+            );
+        }
+        assert!(
+            clash
+                .support
+                .iter()
+                .filter_map(|id| ledger.proofs.iter().find(|proof| proof.id == *id))
+                .any(|proof| proof.statement.subject == TermValue::iri(late.0)
+                    && (proof.statement.predicate == late.1
+                        || (late.1 == TYPE && proof.statement.predicate == INSTANCE))
+                    && proof.statement.object == TermValue::iri(late.2)
+                    && matches!(proof.origin, NativeProofOrigin::Derived { .. })),
+            "the exact late selector/membership is a committed derived premise of the clash"
+        );
+        assert!(outcome.publication_reads.iter().any(|read| {
+            matches!(&read.pattern, NativeReadPattern::Statement { predicate: Some(predicate), .. }
+                if predicate == late.1)
+        }), "the relevant late writer remains in publication evidence");
+        assert!(
+            result.inferred.iter().any(|row| !row.is_edb
+                && row.subject == S
+                && row.predicate == INSTANCE
+                && row.object == TermValue::iri(NOTHING)),
+            "publication refresh cannot stand in for a real committed positive row"
+        );
+    }
+
+    // This is the class owner's actual possible head, unlike an arbitrary B
+    // membership. Its ordinary obstruction withholds a relevant writer.
+    let mut facts = obstructed_world(P, STRING, "x", STRING);
+    facts.extend([fact(NOTHING, PROPERTY, P), fact(NOTHING, ALL, INTEGER)]);
+    let held = joint_result(facts, Vec::new());
+    assert!(matches!(
+        held.native_status,
+        super::super::native::NativeClosureStatus::Blocked { .. }
+    ));
+    assert!(
+        held.classes
+            .iter()
+            .any(|class| !class.obstructions.is_empty()),
+        "the actual class owner retained its obstruction"
+    );
+    let outcomes = property_outcomes(&held, P);
+    assert!(!outcomes.is_empty());
+    for (_, outcome) in outcomes {
+        let pending = match &outcome.completion {
+            NativeFamilyCompletion::Awaiting { reads }
+            | NativeFamilyCompletion::Blocked { reads } => reads,
+            other => panic!("the relevant writer is unfinished: {other:?}"),
+        };
+        assert!(pending.iter().any(|read| matches!(&read.pattern,
+            NativeReadPattern::Statement { subject: None, predicate: Some(predicate), object: Some(TermValue::Iri(object)) }
+                if predicate == TYPE && object == NOTHING)), "the exact pending TYPE/Nothing envelope is retained");
+        assert!(
+            outcome.conclusions.is_empty(),
+            "a pending class membership cannot fabricate a clash"
+        );
+    }
+    assert!(!held.inferred.iter().any(|row| !row.is_edb
+        && row.subject == S
+        && row.predicate == INSTANCE
+        && row.object == TermValue::iri(NOTHING)));
+}

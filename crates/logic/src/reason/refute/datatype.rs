@@ -10,7 +10,7 @@ use super::BoundKind;
 use super::native::{
     NativeBoundEvidence, NativeFamilyCompletion, NativeFamilyInput, NativeFamilyLedger,
     NativeFamilyOutcome, NativeObligationScope, NativeObstructionKind, NativeRead, NativeReadKind,
-    NativeRefutationFamily, NativeSupportedClash,
+    NativeRefutationFamily, NativeSupportedClash, world_completion_reads,
 };
 use crate::facts::TermId;
 use crate::physical::SchemaValues;
@@ -292,6 +292,62 @@ impl Obligation {
         }
     }
 
+    /// Publication observes every possible range/restriction selector, including
+    /// absent fields. These boundaries never gate inventory or clash computation.
+    fn reads(&self, model: &Model<'_>) -> Vec<NativeRead> {
+        let completed = NativeReadKind::Completed;
+        let property = model.term(self.property);
+        let mut reads = vec![
+            NativeRead::predicate(model.name(self.property), completed),
+            NativeRead::statement(
+                Some(property.clone()),
+                Some(RANGE.to_owned()),
+                None,
+                completed,
+            ),
+            NativeRead::statement(
+                None,
+                Some(PROPERTY.to_owned()),
+                Some(property.clone()),
+                completed,
+            ),
+        ];
+        let mut declaration = NativeRead::declaration(TYPE, DATATYPE_PROPERTY);
+        if let super::native::NativeReadPattern::Declaration { subject, .. } =
+            &mut declaration.pattern
+        {
+            *subject = Some(property.clone());
+        }
+        reads.push(declaration);
+        for class in model
+            .restrictions
+            .iter()
+            .filter(|class| model.objects(**class, PROPERTY).contains(&self.property))
+        {
+            let owner = model.term(*class);
+            reads.push(NativeRead::statement(
+                None,
+                Some(TYPE.to_owned()),
+                Some(owner.clone()),
+                completed,
+            ));
+            reads.push(NativeRead::predicate(SUBCLASS, completed));
+            reads.extend(RESTRICTION_FIELDS.iter().map(|field| {
+                NativeRead::statement(
+                    Some(owner.clone()),
+                    Some((*field).to_owned()),
+                    None,
+                    completed,
+                )
+            }));
+        }
+        reads
+            .into_iter()
+            .collect::<BTreeSet<_>>()
+            .into_iter()
+            .collect()
+    }
+
     fn premises(
         &self,
         model: &Model<'_>,
@@ -429,7 +485,8 @@ impl Obligation {
             }
         }
         if !definitions_ready {
-            output.finish(model.input, reads(), ledger);
+            output.await_computation(model.input, preparation_reads());
+            output.finish(model.input, self.reads(model), ledger);
             return Ok(output);
         }
         let mut plans = Vec::new();
@@ -587,7 +644,7 @@ impl Obligation {
             output.obstruct(NativeObstructionKind::UnsupportedCombination, "datatype upper-bound consistency requires the complete native cardinality obligation",
                 model.input.support(&self.premises(model, &plans, None), ledger)?);
         }
-        output.finish(model.input, reads(), ledger);
+        output.finish(model.input, self.reads(model), ledger);
         Ok(output)
     }
 }
@@ -597,20 +654,8 @@ impl Obligation {
 /// current source presence cannot trim that dynamic dependency.
 pub(crate) fn preparation_reads() -> Vec<NativeRead> {
     SchemaValues::datatype_reads()
-        .map(|predicate| NativeRead {
-            marker: None,
-            predicate: Some(predicate.to_owned()),
-            kind: NativeReadKind::Completed,
-        })
+        .map(|predicate| NativeRead::predicate(predicate.to_owned(), NativeReadKind::Completed))
         .collect()
-}
-
-pub(crate) fn reads() -> Vec<NativeRead> {
-    vec![NativeRead {
-        marker: None,
-        predicate: None,
-        kind: NativeReadKind::Completed,
-    }]
 }
 
 pub(crate) fn analyze(
@@ -630,7 +675,7 @@ pub(crate) fn analyze(
     if obligations.is_empty() && model.definitions.is_empty() && model.enumerations.is_empty() {
         world.completion = NativeFamilyCompletion::NotEngaged;
     }
-    world.finish(input, reads(), ledger);
+    world.finish(input, world_completion_reads(), ledger);
     ledger.outcomes.push(world);
     for root in model.definitions.clone() {
         let mut outcome = NativeFamilyOutcome::new(
@@ -662,6 +707,7 @@ pub(crate) fn analyze(
                 input.support(&fields, ledger)?,
             );
         }
+        outcome.await_computation(input, definition_reads.clone());
         outcome.finish(input, definition_reads.clone(), ledger);
         ledger.outcomes.push(outcome);
     }

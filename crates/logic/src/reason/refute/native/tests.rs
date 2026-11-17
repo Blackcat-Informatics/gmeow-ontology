@@ -84,11 +84,7 @@ impl Frame {
     }
     fn ledger(&self, completed: bool, allowance: Option<u64>) -> NativeFamilyLedger {
         let completion = if completed {
-            BTreeSet::from([NativeRead {
-                marker: None,
-                predicate: None,
-                kind: NativeReadKind::Completed,
-            }])
+            BTreeSet::from([NativeRead::world(NativeReadKind::Completed)])
         } else {
             BTreeSet::new()
         };

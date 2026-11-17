@@ -742,13 +742,6 @@
   {
    "kind": "body",
    "members": [
-    "gmeow_logic::reason::refute::counting::reads",
-    "gmeow_logic::reason::refute::datatype::reads"
-   ]
-  },
-  {
-   "kind": "body",
-   "members": [
     "gmeow_logic::result::CompletenessStatus::from_local",
     "gmeow_logic::result::CompletenessStatus::from_wire"
    ]

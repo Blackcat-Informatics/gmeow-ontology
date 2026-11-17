@@ -82,11 +82,7 @@ impl Frame {
         complete: bool,
     ) -> ClassExecutionOutcome {
         let completed = if complete {
-            BTreeSet::from([NativeRead {
-                predicate: None,
-                marker: None,
-                kind: NativeReadKind::Completed,
-            }])
+            BTreeSet::from([NativeRead::world(NativeReadKind::Completed)])
         } else {
             BTreeSet::new()
         };
