@@ -20,25 +20,60 @@ fn dataset_from(ttl: &str) -> std::sync::Arc<purrdf::RdfDataset> {
         .expect("parse contract turtle")
 }
 
+/// The production policy must resolve identically over owned and resident-composite
+/// carriers, including defaults, conservative conflicts and malformed declarations.
+fn policy_resolutions(
+    dataset: std::sync::Arc<purrdf::RdfDataset>,
+) -> [gmeow_errors::Result<ContradictionPolicy>; 2] {
+    let view = purrdf::CompositeDatasetView::new(
+        vec![std::sync::Arc::clone(&dataset)],
+        purrdf::ViewLimits::default(),
+    )
+    .expect("compose synthetic contract carrier");
+    [
+        ContradictionPolicy::resolve_from_dataset(dataset.as_ref()),
+        ContradictionPolicy::resolve_from_dataset(&view),
+    ]
+}
+
 #[test]
 fn resolve_from_dataset_reads_the_declared_valuation() {
     let ds = dataset_from(
         "logic:c rdf:type logic:ReasoningContract ; logic:admissibleValuation logic:ForbidGap .",
     );
-    assert_eq!(
-        ContradictionPolicy::resolve_from_dataset(ds.as_ref()).unwrap(),
-        ContradictionPolicy::ForbidGap
-    );
+    for policy in policy_resolutions(ds) {
+        assert_eq!(
+            policy.expect("declared valuation"),
+            ContradictionPolicy::ForbidGap
+        );
+    }
+    for kind in ["ReasoningContract", "ReasoningPreset"] {
+        let view = purrdf::CompositeDatasetView::new(
+            vec![
+                dataset_from(&format!("logic:c rdf:type logic:{kind} .")),
+                dataset_from("logic:c logic:admissibleValuation logic:ForbidGap ."),
+            ],
+            purrdf::ViewLimits::default(),
+        )
+        .expect("compose split declaration and valuation");
+        assert_eq!(
+            ContradictionPolicy::resolve_from_dataset(&view).expect("cross-source valuation"),
+            ContradictionPolicy::ForbidGap,
+            "a declared subject governs even when its valuation comes from another source"
+        );
+    }
 }
 
 #[test]
 fn resolve_from_dataset_defaults_to_classical_when_none_declared() {
     // No contract / no valuation ⇒ the conservative classical DEFAULT.
     let ds = dataset_from("logic:x rdf:type logic:Anything .");
-    assert_eq!(
-        ContradictionPolicy::resolve_from_dataset(ds.as_ref()).unwrap(),
-        ContradictionPolicy::DEFAULT
-    );
+    for policy in policy_resolutions(ds) {
+        assert_eq!(
+            policy.expect("default valuation"),
+            ContradictionPolicy::DEFAULT
+        );
+    }
 }
 
 #[test]
@@ -50,10 +85,12 @@ fn resolve_from_dataset_picks_the_most_conservative_of_conflicting_contracts() {
 logic:permissive rdf:type logic:ReasoningContract ; logic:admissibleValuation logic:ForbidGap .
 logic:strict rdf:type logic:ReasoningContract ; logic:admissibleValuation logic:ForbidGapAndGlut .",
     );
-    assert_eq!(
-        ContradictionPolicy::resolve_from_dataset(ds.as_ref()).unwrap(),
-        ContradictionPolicy::ForbidGapAndGlut
-    );
+    for policy in policy_resolutions(ds) {
+        assert_eq!(
+            policy.expect("conservative valuation"),
+            ContradictionPolicy::ForbidGapAndGlut
+        );
+    }
 }
 
 #[test]
@@ -61,7 +98,9 @@ fn resolve_from_dataset_hard_fails_on_a_garbled_valuation() {
     let ds = dataset_from(
         "logic:c rdf:type logic:ReasoningContract ; logic:admissibleValuation logic:Nonsense .",
     );
-    assert!(ContradictionPolicy::resolve_from_dataset(ds.as_ref()).is_err());
+    for policy in policy_resolutions(ds) {
+        assert!(policy.is_err());
+    }
 }
 
 // ── Forbidden combinations each fire with the right reason ───────────────

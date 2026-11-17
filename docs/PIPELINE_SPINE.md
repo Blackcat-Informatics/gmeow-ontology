@@ -188,6 +188,22 @@ input blank scopes remain distinct. These producer inputs carry locations in the
 RDF and report payloads; unexpected physical row-location attachments fail admission
 before publication. Diagnostics retain their selected graph placement.
 
+Snapshot assembly derives finding verdicts over the composed resident sources, then
+assesses coherence over a second read-only view with those verdicts appended. The
+shared release/pipeline outcome builder reads the governing policy and per-graph
+axiom hashes directly from that view. Hashing inventories only graph ids reached by
+ordinary statements and reads each graph through its pattern index; it retains no
+whole-carrier quad vector. Flat canonical bytes, blank labels and scope-sensitive
+axiom hashes are identical to materializing the same ordered sources. The certificate
+then joins those sources, and only the final certified carrier is materialized.
+This removes the temporary owned pre-certificate dataset, including its term tables
+and row indexes. Canonical output bytes, the largest graph's hash text, composite
+alias maps and the final owned carrier still allocate; no process-memory reduction
+is implied without an authenticated producer measurement.
+The pre-certificate size observation reports retained source rows before suppression
+and deduplication; it is neither the logical carrier's quad count nor an RSS bound.
+The final owned-carrier observation retains its exact quad and term counts.
+
 `stage-validate` declares the same native catalog as an input. It validates that
 complete root/module/import dataset directly and reuses the shared compilation
 for its gate and meta-rule folds. The authored-only presentation graph remains a
