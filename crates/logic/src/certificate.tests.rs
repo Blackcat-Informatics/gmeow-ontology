@@ -433,6 +433,7 @@ fn per_graph_axiom_hashes_match_the_line_per_quad_reference() {
     let dataset = purrdf::parse_dataset(
         br#"@prefix ex: <https://example.org/> .
             ex:a ex:p "plain" .
+            ex:a ex:p "plain"^^ex:custom .
             ex:g1 { ex:a ex:p "tag\n\"quoted\""@en . ex:b ex:p ex:c . _:x ex:p _:x . }
             ex:g2 { ex:b ex:p ex:c . ex:r ex:q <<( ex:a ex:p ex:b )>> . }
             _:graph { ex:a ex:p ex:z . }"#,
@@ -481,5 +482,5 @@ fn per_graph_axiom_hashes_match_the_line_per_quad_reference() {
     expected.sort_unstable();
 
     assert_eq!(expected.len(), 4);
-    assert_eq!(per_graph_axiom_hashes(&dataset, digest), expected);
+    assert_eq!(per_graph_axiom_hashes(dataset.as_ref(), digest), expected);
 }

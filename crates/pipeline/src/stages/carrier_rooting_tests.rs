@@ -426,9 +426,11 @@ fn composed_carrier_certifies_exactly_what_the_rooted_union_did() {
         parts.push_graph("stage-beta", MISSING).unwrap();
         parts.push_placed(Arc::clone(&alpha), WHOLE);
         parts.push_dataset(Arc::clone(&spanning));
-        parts.materialize().expect("composed carrier")
+        parts
     };
-    let composed = compose();
+    let parts = compose();
+    let view = parts.view().expect("pre-certificate carrier view");
+    let composed = parts.materialize().expect("composed carrier");
 
     let canonical = |dataset: &RdfDataset| {
         purrdf::canonical_flat_nquads(
@@ -440,6 +442,45 @@ fn composed_carrier_certifies_exactly_what_the_rooted_union_did() {
         .to_owned()
     };
     assert_eq!(canonical(composed.as_ref()), canonical(&former));
+    let view_canonical = purrdf::try_canonicalize_flat_view(
+        &view,
+        purrdf::CanonHash::Sha256,
+        &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None),
+    )
+    .expect("pre-certificate view canonicalizes");
+    let owned_canonical = canonical(composed.as_ref());
+    assert_eq!(view_canonical.nquads(), owned_canonical);
+    let digest = purrdf::gts::writer::digest_string;
+    assert_eq!(
+        gmeow_logic::certificate::per_graph_axiom_hashes(&view, digest),
+        gmeow_logic::certificate::per_graph_axiom_hashes(composed.as_ref(), digest),
+        "scope-bearing axiom hashes must match exactly, including duplicate contributions"
+    );
+    let reasoned = crate::stages::reason::reason_artifacts(
+        b"<https://example.org/A> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://example.org/B> .",
+    )
+    .expect("reason synthetic consistent EDB");
+    let view_outcome = crate::stages::release::build_coherence_outcome(
+        &view,
+        &reasoned.result,
+        digest(view_canonical.nquads().as_bytes()),
+        super::COHERENCE_ISSUED_AT,
+    )
+    .expect("assess pre-certificate view");
+    let owned_outcome = crate::stages::release::build_coherence_outcome(
+        composed.as_ref(),
+        &reasoned.result,
+        digest(owned_canonical.as_bytes()),
+        super::COHERENCE_ISSUED_AT,
+    )
+    .expect("assess materialized carrier");
+    assert!(!view_outcome.is_refused());
+    assert_eq!(view_outcome, owned_outcome);
+    assert_eq!(
+        view_outcome.to_nquads(crate::stages::release::GRAPH_ATTESTATIONS),
+        owned_outcome.to_nquads(crate::stages::release::GRAPH_ATTESTATIONS),
+        "the complete outcome identity and bytes must match, not merely graph isomorphism"
+    );
     let graph_names = |dataset: &RdfDataset| {
         dataset
             .owned_named_graphs()
@@ -506,7 +547,7 @@ fn composed_carrier_certifies_exactly_what_the_rooted_union_did() {
     drop(composed);
 
     let bundle_bytes = || {
-        let carrier = compose();
+        let carrier = compose().materialize().expect("composed carrier");
         let mut builder = purrdf::gts_compose::SnapshotBuilder::new();
         let _ingestion = builder
             .add_view(carrier.as_ref())
@@ -570,7 +611,20 @@ fn axiom_hashes_distinguish_producers_blank_nodes_that_share_a_label() {
         let mut parts = CarrierParts::new(&upstream);
         parts.push_graph("stage-alpha", G).unwrap();
         parts.push_graph("stage-beta", G).unwrap();
-        parts.materialize().expect("composed carrier")
+        let view = parts.view().expect("pre-certificate view");
+        let owned = parts.materialize().expect("composed carrier");
+        assert_eq!(
+            gmeow_logic::certificate::per_graph_axiom_hashes(
+                &view,
+                purrdf::gts::writer::digest_string,
+            ),
+            gmeow_logic::certificate::per_graph_axiom_hashes(
+                owned.as_ref(),
+                purrdf::gts::writer::digest_string,
+            ),
+            "view and materialized carrier must preserve digest-bearing labels and scopes"
+        );
+        owned
     };
     let hashes = |dataset: &RdfDataset| {
         gmeow_logic::certificate::per_graph_axiom_hashes(

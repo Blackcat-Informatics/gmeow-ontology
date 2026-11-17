@@ -38,7 +38,8 @@
 use std::collections::{BTreeMap, BTreeSet};
 
 use gmeow_logic_compile::ir::LOGIC_NAMESPACE;
-use purrdf::prelude::{RdfDataset, TermRef};
+use purrdf::dataset_view::TermGuard;
+use purrdf::{GraphMatch, TermRef};
 
 // Re-export so consumers (e.g. the validator) reach the contradiction policy
 // through the coherence module rather than depending on logic-compile directly.
@@ -767,13 +768,13 @@ fn result_content_id(payload: &CoherencePayload) -> String {
 ///
 /// Shared by the validate `--deep` lane and the release lane so both pin axiom sets
 /// identically (one construction, no drift).
-pub fn per_graph_axiom_hashes(
-    dataset: &RdfDataset,
+pub fn per_graph_axiom_hashes<D: purrdf::DatasetView<ReadError = std::convert::Infallible>>(
+    dataset: &D,
     digest: impl Fn(&[u8]) -> String,
 ) -> Vec<String> {
     use std::fmt::Write as _;
 
-    fn render_into(out: &mut String, term: TermRef<'_>) {
+    fn render_into<Id>(out: &mut String, term: TermRef<'_, Id>) {
         match term {
             TermRef::Iri(iri) => write!(out, "<{iri}>"),
             TermRef::Blank { label, scope } => write!(out, "_:{}", scope.qualify_label(label)),
@@ -788,18 +789,18 @@ pub fn per_graph_axiom_hashes(
         .expect("writing to a String cannot fail");
     }
 
-    // Quads are grouped by graph-name id first (an integer key), then the ids that render
-    // to the same graph key are merged, so no per-quad key string is built. A graph's
-    // lines are rendered, sorted, hashed and released before the next graph's are
-    // rendered, so only the largest graph's text is ever resident.
-    let mut by_graph_id: BTreeMap<Option<purrdf::TermId>, Vec<purrdf::QuadIds>> = BTreeMap::new();
-    for q in dataset.quads() {
-        by_graph_id.entry(q.g).or_default().push(q);
-    }
-    let mut by_graph_key: BTreeMap<String, Vec<Vec<purrdf::QuadIds>>> = BTreeMap::new();
-    for (graph, quads) in by_graph_id {
+    // Inventory only graph ids reached by ordinary quads: an empty declared graph has
+    // no axiom hash. Merge ids that render to the same key, then read one graph at a
+    // time through the view's pattern index without retaining a carrier-sized quad list.
+    let graph_ids: BTreeSet<Option<D::Id>> = dataset.quads().map(|q| q.g).collect();
+    let mut by_graph_key: BTreeMap<String, Vec<Option<D::Id>>> = BTreeMap::new();
+    for graph in graph_ids {
         let graph_key = match graph {
-            Some(g) => match dataset.resolve(g) {
+            Some(g) => match dataset
+                .resolve(g)
+                .unwrap_or_else(|never| match never {})
+                .term()
+            {
                 TermRef::Iri(iri) => iri.to_owned(),
                 other => {
                     let mut key = String::new();
@@ -809,24 +810,44 @@ pub fn per_graph_axiom_hashes(
             },
             None => String::new(),
         };
-        by_graph_key.entry(graph_key).or_default().push(quads);
+        by_graph_key.entry(graph_key).or_default().push(graph);
     }
 
     let mut hashes: Vec<String> = Vec::with_capacity(by_graph_key.len());
     for groups in by_graph_key.into_values() {
         let mut text = String::new();
         let mut spans: Vec<(usize, usize)> = Vec::new();
-        for q in groups.iter().flatten() {
-            let start = text.len();
-            render_into(&mut text, dataset.resolve(q.s));
-            text.push(' ');
-            render_into(&mut text, dataset.resolve(q.p));
-            text.push(' ');
-            render_into(&mut text, dataset.resolve(q.o));
-            text.push_str(" .");
-            spans.push((start, text.len()));
+        for graph in groups {
+            let graph = graph.map_or(GraphMatch::Default, GraphMatch::Named);
+            for q in dataset.quads_for_pattern(None, None, None, graph) {
+                let start = text.len();
+                render_into(
+                    &mut text,
+                    dataset
+                        .resolve(q.s)
+                        .unwrap_or_else(|never| match never {})
+                        .term(),
+                );
+                text.push(' ');
+                render_into(
+                    &mut text,
+                    dataset
+                        .resolve(q.p)
+                        .unwrap_or_else(|never| match never {})
+                        .term(),
+                );
+                text.push(' ');
+                render_into(
+                    &mut text,
+                    dataset
+                        .resolve(q.o)
+                        .unwrap_or_else(|never| match never {})
+                        .term(),
+                );
+                text.push_str(" .");
+                spans.push((start, text.len()));
+            }
         }
-        drop(groups);
         spans.sort_unstable_by(|a, b| text[a.0..a.1].cmp(&text[b.0..b.1]));
         let mut joined = String::with_capacity(text.len());
         for (index, &(start, end)) in spans.iter().enumerate() {

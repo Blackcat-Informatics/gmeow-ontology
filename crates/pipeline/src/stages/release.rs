@@ -246,8 +246,10 @@ const COHERENCE_REP: &str = "coherence";
 /// (`logic:admissibleValuation`), not pinned: no contract / no valuation ⇒ conservative
 /// classical DEFAULT, multiple conflicting valuations ⇒ the MOST CONSERVATIVE governs, a
 /// garbled valuation HARD-FAILS.
-pub(crate) fn build_coherence_outcome(
-    dataset: &purrdf::RdfDataset,
+pub(crate) fn build_coherence_outcome<
+    D: purrdf::DatasetView<ReadError = std::convert::Infallible>,
+>(
+    dataset: &D,
     result: &gmeow_logic::result::ReasoningResult,
     bundle_hash: String,
     issued_at: &str,
