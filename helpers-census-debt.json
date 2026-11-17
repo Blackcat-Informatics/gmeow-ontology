@@ -1774,7 +1774,7 @@
    "members": [
     "gmeow_dev_cli::dev_sync::sha256",
     "gmeow_logic::conjecture_eval::sha256_hex",
-    "gmeow_mcp::sha256_hex"
+    "gmeow_mcp::libraries::sha256_hex"
    ]
   },
   {
