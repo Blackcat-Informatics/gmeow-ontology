@@ -16659,7 +16659,7 @@ msgstr "Conserver la ressource DatasetMatrix et la liaison fittedToData effectiv
 
 msgctxt "https://blackcatinformatics.ca/math/modelFormula|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "model formula"
-msgstr "formule du modèle"
+msgstr "formule de modèle"
 
 msgctxt "https://blackcatinformatics.ca/math/modelFormula|http://www.w3.org/2004/02/skos/core#definition"
 msgid "Relates a math:StatisticalModel or math:FittedModel to its structured math:ModelFormula specification. Domain a math:StatisticalModel, range math:ModelFormula (stated in prose). The specification is a mathematical expression resource; the R tilde representation uses a math:BindingExpression AST rather than a source string. A fitted model without its formula link is ill-formed (math:UnfittedModel)."

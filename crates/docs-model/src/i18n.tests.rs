@@ -21,6 +21,7 @@ fn expand_predicate_handles_curies_and_iris() {
     );
 }
 
+/// Real translations and language-independent notation remain admissible.
 #[test]
 fn translation_integrity_accepts_real_translations_and_invariants() {
     assert!(translation_has_integrity(
@@ -42,6 +43,7 @@ fn translation_integrity_accepts_real_translations_and_invariants() {
     assert!(translation_has_integrity("zh", "OWL 2 DL", "OWL 2 DL"));
 }
 
+/// Technical fragments must not hide copied or mixed English prose or missing Han.
 #[test]
 fn translation_integrity_rejects_copied_and_hybrid_english() {
     assert_eq!(
@@ -72,8 +74,41 @@ fn translation_integrity_rejects_copied_and_hybrid_english() {
         translation_integrity_issue("zh-Hans", "Permission", "Permission"),
         Some("Chinese prose translation contains no Han characters")
     );
+    for text in [
+        "The value is false.",
+        "The R-hat must converge.",
+        "red-hat",
+        "Example: ex:record a logic:JournalBoundary .",
+        "Illustration: ex:M math:manifoldStructureKind math:smoothStructure .",
+    ] {
+        assert_eq!(
+            translation_integrity_issue("fr", text, text),
+            Some("multi-word English source text was copied into msgstr"),
+            "{text}"
+        );
+    }
+    for text in [
+        "Un graphe. Use this <https://example.org/where/this> only.",
+        "Un graphe. <where this>",
+        "Un graphe. <https://example.org/where/this",
+    ] {
+        assert_eq!(
+            translation_integrity_issue("fr", "A graph.", text),
+            Some("msgstr retains multiple English prose tokens"),
+            "{text}"
+        );
+    }
+    assert_eq!(
+        translation_integrity_issue(
+            "zh-Hans",
+            "Lifecycle state",
+            "Lifecycle status <https://example.org/where/this>"
+        ),
+        Some("Chinese prose translation contains no Han characters")
+    );
 }
 
+/// Preserved technical text is data; surrounding prose still requires translation.
 #[test]
 fn translation_integrity_admits_preserved_code_and_notation_literals() {
     // Faithful translations must keep SPARQL queries, wire values, and SPARQL
@@ -93,6 +128,29 @@ fn translation_integrity_admits_preserved_code_and_notation_literals() {
         "fr",
         "lowered to a SELECT $this ?far … GROUP BY $this ?far HAVING(…)",
         "abaissée en un SELECT $this ?far … GROUP BY $this ?far HAVING(…)"
+    ));
+    for text in [
+        "ex:record gmeow:evidenceCorpusStale false .",
+        "ex:record gmeow:evidenceCorpusStale true .",
+        "gmeow:pipeline-dataflow-mappings-compile-logic gmeow:flowReadsHandle <https://blackcatinformatics.ca/gmeow/graph/logic> .",
+        "<urn:example:where:this>",
+        "R-hat",
+        "x-hat",
+        "ex: a owl:Class .",
+        ": a :Class .",
+        "PREFIX logic: <https://blackcatinformatics.ca/logic/> SELECT ?record WHERE { ?record a logic:CorrespondenceSource . }",
+    ] {
+        for language in ["fr", "zh"] {
+            assert!(
+                translation_has_integrity(language, text, text),
+                "{language}: {text}"
+            );
+        }
+    }
+    assert!(translation_has_integrity(
+        "fr",
+        "The graph <https://example.org/where/this>.",
+        "Le graphe <https://example.org/where/this>."
     ));
     // But copied English PROSE outside any code span is still rejected.
     assert_eq!(
@@ -324,41 +382,6 @@ fn legacy_is_technical_invariant(text: &str) -> bool {
         })
 }
 
-/// `@prefix` declarations for every `prefix:` token `text` uses, so a bare CURIE
-/// snippet can be parsed as a self-contained Turtle document.
-fn synthesized_prefixes(text: &str) -> String {
-    let bytes = text.as_bytes();
-    let mut names: std::collections::BTreeSet<String> = std::collections::BTreeSet::new();
-    for (i, &c) in bytes.iter().enumerate() {
-        if c != b':' {
-            continue;
-        }
-        // `://` is an IRI scheme, not a CURIE prefix.
-        if text[i..].starts_with("://") {
-            continue;
-        }
-        // `rfind` on a `char` predicate returns the byte offset of the START of a
-        // (possibly multi-byte) matching char; `j + 1` would land mid-codepoint for
-        // any non-ASCII delimiter and panic on the slice below. Walk `char_indices`
-        // instead and step past the FULL matched char's byte length.
-        let start = text[..i]
-            .char_indices()
-            .rev()
-            .find(|(_, ch)| !(ch.is_ascii_alphanumeric() || *ch == '_' || *ch == '-'))
-            .map_or(0, |(j, ch)| j + ch.len_utf8());
-        let name = &text[start..i];
-        if name.is_empty() || name.starts_with(|ch: char| ch.is_ascii_digit()) {
-            continue;
-        }
-        names.insert(name.to_owned());
-    }
-    let mut out = String::new();
-    for name in names {
-        out.push_str(&format!("@prefix {name}: <urn:x-gmeow-test:{name}#> .\n"));
-    }
-    out
-}
-
 #[test]
 fn synthesized_prefixes_does_not_panic_on_multibyte_delimiter_against_a_curie() {
     // The zh catalogues place CJK directly against a CURIE with no ASCII
@@ -368,30 +391,18 @@ fn synthesized_prefixes_does_not_panic_on_multibyte_delimiter_against_a_curie() 
     let text = "线路值gmeow:useWhen";
     let prefixes = synthesized_prefixes(text);
     assert!(
-        prefixes.contains("@prefix gmeow: "),
+        prefixes.contains("PREFIX gmeow: "),
         "expected the `gmeow` prefix to be extracted cleanly, got: {prefixes:?}"
     );
 }
 
-/// Whether `text` is well-formed Turtle SYNTAX under the repo's own parser —
-/// either as a standalone statement (or set of statements), or as a single term
-/// in object position (which is what a bare literal or bare CURIE is).
-fn parses_as_turtle(text: &str) -> bool {
-    let prefixes = synthesized_prefixes(text);
-    let as_document = format!("{prefixes}{text}\n");
-    if purrdf::parse_dataset(as_document.as_bytes(), "text/turtle", None).is_ok() {
-        return true;
-    }
-    let as_object = format!("{prefixes}<urn:x-gmeow-test:s> <urn:x-gmeow-test:p> {text} .\n");
-    purrdf::parse_dataset(as_object.as_bytes(), "text/turtle", None).is_ok()
-}
-
+/// Catalogue-wide notation admissions must have syntax independent of prose.
 #[test]
-fn every_msgid_the_fix_reclassifies_is_real_turtle_notation() {
-    // CORPUS-WIDE, not a sample of three: sweep every committed catalogue entry,
-    // emit the exact set of msgids whose classification FLIPS, and prove each one
-    // is genuinely Turtle notation under purrdf — the repo's own parser, never an
-    // eyeball or a regex. A hand-picked negative cannot see a hole; this can.
+fn every_reclassified_catalog_msgid_is_technical_notation() {
+    // Compare every committed catalogue msgid with the frozen lexical baseline.
+    // Newly admitted values must have Turtle, SPARQL, symbol-only or single-letter
+    // hat syntax. Native parsers validate both languages. Baseline notation stays
+    // admitted; baseline prose must retain its translation requirement.
     let root = repo_root();
     let paths = catalog_paths(&root);
     assert!(
@@ -416,15 +427,31 @@ fn every_msgid_the_fix_reclassifies_is_real_turtle_notation() {
         .iter()
         .filter(|msgid| is_technical_invariant(msgid) && !legacy_is_technical_invariant(msgid))
         .collect();
-    // Direction check: the fix only ever ADMITS notation; nothing that used to be
-    // an invariant may stop being one.
+    // The frozen lexical baseline can mistake prose introductions for namespaces.
+    // No withdrawal may discard independently valid notation; every withdrawn
+    // source must instead trigger the existing copied-prose refusal.
     let regressed: Vec<&String> = msgids
         .iter()
         .filter(|msgid| legacy_is_technical_invariant(msgid) && !is_technical_invariant(msgid))
         .collect();
-    assert!(
-        regressed.is_empty(),
-        "the fix must only ADMIT notation, never withdraw it; withdrew: {regressed:#?}"
+    for msgid in &regressed {
+        assert!(
+            !parses_as_turtle(msgid)
+                && !parses_as_sparql(msgid)
+                && !ascii_words(msgid).is_empty()
+                && !matches!(msgid.as_bytes(), [letter, b'-', b'h', b'a', b't'] if letter.is_ascii_alphabetic()),
+            "independently valid baseline notation must remain admitted: {msgid}"
+        );
+        assert_eq!(
+            translation_integrity_issue("fr", msgid, msgid),
+            Some("multi-word English source text was copied into msgstr"),
+            "withdrawn prose must still require translation: {msgid}"
+        );
+        println!("  WITHDRAWN → prose (native syntax refused): {msgid}");
+    }
+    println!(
+        "{} baseline prose msgid(s) withdrawn; no independently valid notation withdrawn",
+        regressed.len()
     );
 
     println!(
@@ -433,35 +460,47 @@ fn every_msgid_the_fix_reclassifies_is_real_turtle_notation() {
         msgids.len(),
         paths.len()
     );
-    // Every flip must land in ONE of two structurally-checkable classes; anything
-    // else is a hole in the fix and reds this test:
+    // Every newly admitted value must belong to one of four syntax categories:
     //
-    //  (a) valid Turtle under purrdf — the snippets the fix exists to admit;
-    //  (b) carrying NO ASCII word at all (a symbol-only literal such as `−∞`),
+    //  (a) valid Turtle under purrdf;
+    //  (b) a valid SPARQL query under the native parser;
+    //  (c) carrying NO ASCII word at all (a symbol-only literal such as `−∞`),
     //      admitted by the empty-after-stripping arm. English prose is ASCII
     //      words by construction, so a msgid with none cannot be prose.
+    //  (d) one ASCII letter followed by `-hat`, the conventional notation spelling.
     //
-    // Both classes are ENUMERATED in the output, never quietly waved through.
+    // All classes are ENUMERATED in the output, never quietly waved through.
     let mut symbol_only: Vec<&String> = Vec::new();
+    let mut hat_notation: Vec<&String> = Vec::new();
+    let mut sparql: Vec<&String> = Vec::new();
     let mut unexplained: Vec<&String> = Vec::new();
     for msgid in &flipped {
         if parses_as_turtle(msgid) {
             println!("  FLIPPED → invariant (valid Turtle): {msgid}");
+        } else if parses_as_sparql(msgid) {
+            println!("  FLIPPED → invariant (valid SPARQL): {msgid}");
+            sparql.push(msgid);
         } else if ascii_words(msgid).is_empty() {
             println!("  FLIPPED → invariant (symbol-only, no ASCII word): {msgid}");
             symbol_only.push(msgid);
+        } else if matches!(msgid.as_bytes(), [letter, b'-', b'h', b'a', b't'] if letter.is_ascii_alphabetic())
+        {
+            println!("  FLIPPED → invariant (single-letter hat notation): {msgid}");
+            hat_notation.push(msgid);
         } else {
             unexplained.push(msgid);
         }
     }
     println!(
-        "  {} flipped msgid(s) are valid Turtle; {} are symbol-only",
-        flipped.len() - symbol_only.len(),
-        symbol_only.len()
+        "  {} flipped msgid(s) are valid Turtle; {} are valid SPARQL; {} are symbol-only; {} are single-letter hat notation",
+        flipped.len() - sparql.len() - symbol_only.len() - hat_notation.len() - unexplained.len(),
+        sparql.len(),
+        symbol_only.len(),
+        hat_notation.len()
     );
     assert!(
         unexplained.is_empty(),
-        "every reclassified msgid must be valid Turtle under purrdf or carry no ASCII word at all; these are neither: {unexplained:#?}"
+        "every reclassified msgid must be native Turtle/SPARQL, carry no ASCII word or be single-letter hat notation; these match none: {unexplained:#?}"
     );
 }
 

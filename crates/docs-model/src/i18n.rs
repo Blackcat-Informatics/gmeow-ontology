@@ -81,8 +81,8 @@ pub fn translation_integrity_issue(
     // Count English PROSE leaks only — a faithful translation must preserve code and
     // notation literals verbatim (SPARQL queries, wire values, CURIEs), and those may
     // legitimately contain English-looking keywords (`SELECT ?this WHERE`, `use-when`,
-    // `$this`). Strip backtick/quote-delimited code spans and SPARQL variables before
-    // counting, so preserving a literal is never mistaken for copied English prose.
+    // `$this`). Strip delimited code, valid angle-bracketed IRIs and SPARQL variables
+    // before counting, so preserving a literal is never mistaken for copied prose.
     let prose = strip_code_and_notation(target);
     let english_leaks = ascii_words(&prose)
         .iter()
@@ -110,30 +110,46 @@ pub fn translation_has_integrity(language: &str, msgid: &str, msgstr: &str) -> b
 
 /// Remove code/notation literals from prose before English-leak counting:
 /// backtick-delimited spans (`` `use-when` ``), double-quote-delimited spans
-/// (an embedded `"SELECT ?this WHERE { … }"`), and SPARQL-style variables
-/// (`$this`, `?far`). These carry English-looking keywords that a faithful
-/// translation MUST preserve verbatim; counting them as copied English would
-/// reward corrupting the literal. Prose outside these spans is left intact, so a
-/// genuinely copied English sentence is still caught.
+/// (an embedded `"SELECT ?this WHERE { … }"`), valid angle-bracketed absolute
+/// IRIs, and SPARQL-style variables (`$this`, `?far`). These carry English-looking
+/// keywords that a faithful translation MUST preserve verbatim; counting them as
+/// copied English would reward corrupting the literal. Prose outside these spans
+/// is left intact, so a genuinely copied English sentence is still caught.
 fn strip_code_and_notation(text: &str) -> String {
     let mut out = String::with_capacity(text.len());
-    let mut chars = text.chars().peekable();
-    while let Some(ch) = chars.next() {
+    let mut chars = text.char_indices().peekable();
+    while let Some((index, ch)) = chars.next() {
         match ch {
             '`' | '"' => {
                 // Drop everything up to the matching delimiter (or end of string).
-                for c in chars.by_ref() {
+                for (_, c) in chars.by_ref() {
                     if c == ch {
                         break;
                     }
                 }
                 out.push(' ');
             }
+            '<' => {
+                let rest = &text[index + 1..];
+                if let Some(end) = rest.find(['<', '>'])
+                    && rest.as_bytes()[end] == b'>'
+                    && purrdf_core::BaseIri::parse(&rest[..end]).is_ok()
+                {
+                    for (_, c) in chars.by_ref() {
+                        if c == '>' {
+                            break;
+                        }
+                    }
+                    out.push(' ');
+                } else {
+                    out.push(ch);
+                }
+            }
             '$' | '?' => {
                 // Drop a following SPARQL-variable identifier, if any.
                 while chars
                     .peek()
-                    .is_some_and(|c| c.is_ascii_alphanumeric() || *c == '_')
+                    .is_some_and(|(_, c)| c.is_ascii_alphanumeric() || *c == '_')
                 {
                     chars.next();
                 }
@@ -159,10 +175,15 @@ fn ascii_words(text: &str) -> Vec<String> {
 /// and dragged whole Turtle snippets into the "English prose" class.
 const TURTLE_TYPE_KEYWORD: &str = "a";
 
-/// Whether ONE token carries no English prose: the Turtle `a` keyword, an integer,
-/// a CURIE/IRI-ish token (contains `:`), or an all-uppercase acronym of length > 1.
+/// Whether ONE token carries no English prose: a Turtle keyword or Boolean value,
+/// an integer, a CURIE/IRI-ish token (contains `:`), single-letter hat notation,
+/// or an all-uppercase acronym of length > 1.
 fn is_notation_token(token: &str) -> bool {
     token == TURTLE_TYPE_KEYWORD
+        || matches!(token, "true" | "false")
+        || token
+            .strip_suffix("-hat")
+            .is_some_and(|symbol| symbol.len() == 1 && symbol.as_bytes()[0].is_ascii_alphabetic())
         || token.chars().all(|ch| ch.is_ascii_digit())
         || token.contains(':')
         || (token.len() > 1
@@ -190,6 +211,8 @@ fn is_notation_token(token: &str) -> bool {
 ///    pure-quoted-literal input return `false`, so the function would get STRICTER
 ///    for exactly the input the quote-stripping is meant to admit;
 /// 3. otherwise every surviving token must be notation ([`is_notation_token`]).
+/// A namespace-only token such as `ex:` is ambiguous with a prose introduction.
+/// Only that lexical case additionally requires native Turtle or SPARQL syntax.
 #[must_use]
 pub fn is_technical_invariant(text: &str) -> bool {
     if text.eq_ignore_ascii_case("Creative Commons") {
@@ -210,6 +233,59 @@ pub fn is_technical_invariant(text: &str) -> bool {
         return true;
     }
     tokens.iter().all(|token| is_notation_token(token))
+        && (!tokens.iter().any(|token| token.ends_with(':'))
+            || parses_as_turtle(text)
+            || parses_as_sparql(text))
+}
+
+/// Prefix bindings used only to validate snippet syntax, never emitted as data.
+/// Standard PREFIX declarations are accepted by both Turtle and SPARQL.
+fn synthesized_prefixes(text: &str) -> String {
+    let bytes = text.as_bytes();
+    let mut names: std::collections::BTreeSet<String> = std::collections::BTreeSet::new();
+    for (i, &c) in bytes.iter().enumerate() {
+        if c != b':' || text[i..].starts_with("://") {
+            continue;
+        }
+        // Step past the full delimiter, including multibyte characters adjacent
+        // to a prefixed name. An empty name denotes the default prefix.
+        let start = text[..i]
+            .char_indices()
+            .rev()
+            .find(|(_, ch)| !(ch.is_ascii_alphanumeric() || *ch == '_' || *ch == '-'))
+            .map_or(0, |(j, ch)| j + ch.len_utf8());
+        let name = &text[start..i];
+        if name.starts_with(|ch: char| ch.is_ascii_digit()) {
+            continue;
+        }
+        names.insert(name.to_owned());
+    }
+    let mut out = String::new();
+    for name in names {
+        out.push_str(&format!(
+            "PREFIX {name}: <urn:gmeow:notation-prefix:{name}#>\n"
+        ));
+    }
+    out
+}
+
+/// Validate complete Turtle statements or one RDF term in object position.
+fn parses_as_turtle(text: &str) -> bool {
+    let prefixes = synthesized_prefixes(text);
+    let as_document = format!("{prefixes}{text}\n");
+    if purrdf::parse_dataset(as_document.as_bytes(), "text/turtle", None).is_ok() {
+        return true;
+    }
+    let as_object = format!("{prefixes}<urn:gmeow:notation:s> <urn:gmeow:notation:p> {text} .\n");
+    purrdf::parse_dataset(as_object.as_bytes(), "text/turtle", None).is_ok()
+}
+
+/// Validate a complete SPARQL query with the same snippet prefix bindings.
+fn parses_as_sparql(text: &str) -> bool {
+    let query = format!("{}{text}\n", synthesized_prefixes(text));
+    purrdf::sparql::SparqlParser::new()
+        .parse_query(&query)
+        .is_ok()
 }
 
 fn is_english_prose_token(word: &str) -> bool {
