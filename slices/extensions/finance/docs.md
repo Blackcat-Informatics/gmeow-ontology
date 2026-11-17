@@ -201,6 +201,15 @@ observed feature and explicit scalar temporal `calculationPeriodBasis`.
 There is no implicit conversion of calendar years to days. Signed rates and
 returns are permitted; they are not probabilities or confidence values.
 
+The finance Module owns the selected recipes and their mathematical symbols,
+`SymbolReference` leaves, applications and indexed argument slots. Each semantic
+record declares that physical owner, a label and a definition. The structures use
+the [canonical math expression model](../../grounding/math/design/MATHEMATICS-EXPRESSIONS.md#the-expression-ast-layer):
+slot indexes determine operand order, and symbol references retain the identity of
+their local symbol. Keep the callable parameter, mathematical symbol and supplied
+quantity distinct. FnO preserves the signature's symbol and recipe references
+only through their verified Module declarations; it does not execute the AST.
+
 `UnitPriceTotalCalculation` uses the canonical price-times-count AST and requires
 no artificial temporal period. Its `methodUnitPriceTotal` callable interface is
 authored in `mappings/callable-signatures.ttl`; the installed command reads that

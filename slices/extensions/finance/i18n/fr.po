@@ -1221,3 +1221,179 @@ msgstr "contrat d’identité monétaire du prix unitaire violé."
 msgctxt "https://blackcatinformatics.ca/gmeow/examples/finance/tests/ecExactComputations|https://blackcatinformatics.ca/gmeow/conformanceRationale"
 msgid "Simple-interest, holding-period-return and unit-price-total calculations validate with no finding. Temporal inputs share the calculation's period frame; monetary amounts share one currency. The unit price has a scalar quotient frame whose numerator is that currency and whose denominator is the priced quantity's count frame, and both inputs name the same asset. The fixture supplies the math and places class assertions needed by finance-owned checks because each conformance cell loads only the finance module and this file."
 msgstr "Les calculs d’intérêt simple, de rendement sur la période de détention et de montant total à partir du prix unitaire se valident sans constat. Les entrées temporelles partagent le référentiel de période du calcul ; les montants monétaires partagent une même monnaie. Le prix unitaire possède un référentiel quotient scalaire dont le numérateur est cette monnaie et le dénominateur est le référentiel de comptage de la quantité tarifée, et les deux entrées nomment le même actif. Le jeu de données fournit les assertions de classe math et places nécessaires aux contrôles de finance, car chaque cellule de conformité ne charge que le module finance et ce fichier."
+
+msgctxt "urn:gmeow:finance:simple:principal:symbol|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "simple interest principal symbol"
+msgstr "symbole du capital de l’intérêt simple"
+
+msgctxt "urn:gmeow:finance:simple:principal:symbol|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The mathematical symbol for the principal MonetaryAmount operand in the canonical simple-interest recipe."
+msgstr "Le symbole mathématique de l’opérande MonetaryAmount du capital dans la recette canonique d’intérêt simple."
+
+msgctxt "urn:gmeow:finance:simple:principal:expression|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "simple interest principal reference"
+msgstr "référence au capital de l’intérêt simple"
+
+msgctxt "urn:gmeow:finance:simple:principal:expression|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The SymbolReference leaf naming the principal symbol in the canonical simple-interest multiplication expression."
+msgstr "La feuille SymbolReference nommant le symbole du capital dans l’expression canonique de multiplication de l’intérêt simple."
+
+msgctxt "urn:gmeow:finance:simple:rate:symbol|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "simple interest period rate symbol"
+msgstr "symbole du taux par période de l’intérêt simple"
+
+msgctxt "urn:gmeow:finance:simple:rate:symbol|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The mathematical symbol for the FinancialPeriodRate operand in the canonical simple-interest recipe."
+msgstr "Le symbole mathématique de l’opérande FinancialPeriodRate dans la recette canonique d’intérêt simple."
+
+msgctxt "urn:gmeow:finance:simple:rate:expression|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "simple interest period rate reference"
+msgstr "référence au taux par période de l’intérêt simple"
+
+msgctxt "urn:gmeow:finance:simple:rate:expression|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The SymbolReference leaf naming the period-rate symbol in the canonical simple-interest multiplication expression."
+msgstr "La feuille SymbolReference nommant le symbole du taux par période dans l’expression canonique de multiplication de l’intérêt simple."
+
+msgctxt "urn:gmeow:finance:simple:count:symbol|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "simple interest period count symbol"
+msgstr "symbole du nombre de périodes de l’intérêt simple"
+
+msgctxt "urn:gmeow:finance:simple:count:symbol|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The mathematical symbol for the FinancialPeriodCount operand in the canonical simple-interest recipe."
+msgstr "Le symbole mathématique de l’opérande FinancialPeriodCount dans la recette canonique d’intérêt simple."
+
+msgctxt "urn:gmeow:finance:simple:count:expression|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "simple interest period count reference"
+msgstr "référence au nombre de périodes de l’intérêt simple"
+
+msgctxt "urn:gmeow:finance:simple:count:expression|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The SymbolReference leaf naming the period-count symbol in the canonical simple-interest multiplication expression."
+msgstr "La feuille SymbolReference nommant le symbole du nombre de périodes dans l’expression canonique de multiplication de l’intérêt simple."
+
+msgctxt "urn:gmeow:finance:simple:principal-rate|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "simple interest principal times rate expression"
+msgstr "expression du capital multiplié par le taux de l’intérêt simple"
+
+msgctxt "urn:gmeow:finance:simple:principal-rate|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The binary Multiplication AST for principal times period rate, used as the first operand of the canonical simple-interest recipe."
+msgstr "L’AST de Multiplication binaire du capital par le taux par période, utilisé comme premier opérande de la recette canonique d’intérêt simple."
+
+msgctxt "urn:gmeow:finance:simple:principal-rate:0|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "simple interest principal operand slot"
+msgstr "emplacement de l’opérande capital de l’intérêt simple"
+
+msgctxt "urn:gmeow:finance:simple:principal-rate:0|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The index-zero operand slot of the principal-times-rate expression, referencing the principal operand."
+msgstr "L’emplacement d’opérande d’indice zéro de l’expression capital multiplié par taux, référençant l’opérande capital."
+
+msgctxt "urn:gmeow:finance:simple:principal-rate:1|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "simple interest period rate operand slot"
+msgstr "emplacement de l’opérande taux par période de l’intérêt simple"
+
+msgctxt "urn:gmeow:finance:simple:principal-rate:1|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The index-one operand slot of the principal-times-rate expression, referencing the period-rate operand."
+msgstr "L’emplacement d’opérande d’indice un de l’expression capital multiplié par taux, référençant l’opérande taux par période."
+
+msgctxt "urn:gmeow:finance:simple:recipe|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "simple interest expression"
+msgstr "expression de l’intérêt simple"
+
+msgctxt "urn:gmeow:finance:simple:recipe|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The canonical binary Multiplication AST for principal times period rate times period count. Its ordered operand slots assert no precomputed interest amount."
+msgstr "L’AST canonique de Multiplication binaire du capital par le taux par période puis par le nombre de périodes. Ses emplacements d’opérandes ordonnés n’affirment aucun montant d’intérêt précalculé."
+
+msgctxt "urn:gmeow:finance:simple:recipe:0|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "simple interest principal times rate operand slot"
+msgstr "emplacement de l’opérande capital multiplié par taux de l’intérêt simple"
+
+msgctxt "urn:gmeow:finance:simple:recipe:0|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The index-zero operand slot of the canonical simple-interest recipe, referencing the principal-times-rate subexpression."
+msgstr "L’emplacement d’opérande d’indice zéro de la recette canonique d’intérêt simple, référençant la sous-expression capital multiplié par taux."
+
+msgctxt "urn:gmeow:finance:simple:recipe:1|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "simple interest period count operand slot"
+msgstr "emplacement de l’opérande nombre de périodes de l’intérêt simple"
+
+msgctxt "urn:gmeow:finance:simple:recipe:1|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The index-one operand slot of the canonical simple-interest recipe, referencing the period-count operand."
+msgstr "L’emplacement d’opérande d’indice un de la recette canonique d’intérêt simple, référençant l’opérande nombre de périodes."
+
+msgctxt "urn:gmeow:finance:return:opening:symbol|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "holding-period return opening amount symbol"
+msgstr "symbole du montant initial du rendement sur la période de détention"
+
+msgctxt "urn:gmeow:finance:return:opening:symbol|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The mathematical symbol for the opening MonetaryAmount operand shared by the subtraction and denominator of the canonical holding-period-return recipe."
+msgstr "Le symbole mathématique de l’opérande MonetaryAmount initial partagé par la soustraction et le dénominateur de la recette canonique de rendement sur la période de détention."
+
+msgctxt "urn:gmeow:finance:return:opening:expression|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "holding-period return opening amount reference"
+msgstr "référence au montant initial du rendement sur la période de détention"
+
+msgctxt "urn:gmeow:finance:return:opening:expression|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The SymbolReference leaf naming the opening symbol, reused by the subtraction and denominator of the canonical holding-period-return recipe."
+msgstr "La feuille SymbolReference nommant le symbole initial, réutilisée par la soustraction et le dénominateur de la recette canonique de rendement sur la période de détention."
+
+msgctxt "urn:gmeow:finance:return:closing:symbol|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "holding-period return closing amount symbol"
+msgstr "symbole du montant final du rendement sur la période de détention"
+
+msgctxt "urn:gmeow:finance:return:closing:symbol|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The mathematical symbol for the closing MonetaryAmount operand in the canonical holding-period-return recipe."
+msgstr "Le symbole mathématique de l’opérande MonetaryAmount final dans la recette canonique de rendement sur la période de détention."
+
+msgctxt "urn:gmeow:finance:return:closing:expression|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "holding-period return closing amount reference"
+msgstr "référence au montant final du rendement sur la période de détention"
+
+msgctxt "urn:gmeow:finance:return:closing:expression|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The SymbolReference leaf naming the closing symbol in the canonical holding-period-return subtraction expression."
+msgstr "La feuille SymbolReference nommant le symbole final dans l’expression canonique de soustraction du rendement sur la période de détention."
+
+msgctxt "urn:gmeow:finance:return:difference|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "holding-period return amount difference expression"
+msgstr "expression de la différence des montants du rendement sur la période de détention"
+
+msgctxt "urn:gmeow:finance:return:difference|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The binary Subtraction AST for closing amount minus opening amount in the canonical holding-period-return recipe."
+msgstr "L’AST de Subtraction binaire du montant initial soustrait au montant final dans la recette canonique de rendement sur la période de détention."
+
+msgctxt "urn:gmeow:finance:return:difference:0|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "holding-period return closing amount operand slot"
+msgstr "emplacement de l’opérande montant final du rendement sur la période de détention"
+
+msgctxt "urn:gmeow:finance:return:difference:0|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The index-zero operand slot of the holding-period-return subtraction, referencing the closing amount."
+msgstr "L’emplacement d’opérande d’indice zéro de la soustraction du rendement sur la période de détention, référençant le montant final."
+
+msgctxt "urn:gmeow:finance:return:difference:1|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "holding-period return opening amount subtraction slot"
+msgstr "emplacement du montant initial dans la soustraction du rendement sur la période de détention"
+
+msgctxt "urn:gmeow:finance:return:difference:1|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The index-one operand slot of the holding-period-return subtraction, referencing the opening amount."
+msgstr "L’emplacement d’opérande d’indice un de la soustraction du rendement sur la période de détention, référençant le montant initial."
+
+msgctxt "urn:gmeow:finance:return:recipe|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "holding-period return expression"
+msgstr "expression du rendement sur la période de détention"
+
+msgctxt "urn:gmeow:finance:return:recipe|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The canonical binary Division AST for closing-minus-opening divided by opening. Its denominator reuses the opening SymbolReference leaf and asserts no precomputed return ratio."
+msgstr "L’AST canonique de Division binaire de la différence entre montant final et montant initial par le montant initial. Son dénominateur réutilise la feuille SymbolReference initiale et n’affirme aucun ratio de rendement précalculé."
+
+msgctxt "urn:gmeow:finance:return:recipe:0|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "holding-period return numerator operand slot"
+msgstr "emplacement de l’opérande numérateur du rendement sur la période de détention"
+
+msgctxt "urn:gmeow:finance:return:recipe:0|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The index-zero operand slot of the canonical holding-period-return division, referencing the closing-minus-opening subexpression."
+msgstr "L’emplacement d’opérande d’indice zéro de la division canonique du rendement sur la période de détention, référençant la sous-expression montant final moins montant initial."
+
+msgctxt "urn:gmeow:finance:return:recipe:1|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "holding-period return denominator operand slot"
+msgstr "emplacement de l’opérande dénominateur du rendement sur la période de détention"
+
+msgctxt "urn:gmeow:finance:return:recipe:1|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The index-one operand slot of the canonical holding-period-return division, referencing the same opening-amount leaf used by the subtraction."
+msgstr "L’emplacement d’opérande d’indice un de la division canonique du rendement sur la période de détention, référençant la même feuille de montant initial que la soustraction."

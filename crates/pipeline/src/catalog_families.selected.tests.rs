@@ -37,6 +37,137 @@ fn rows() -> Vec<(&'static str, &'static str)> {
     ]
 }
 
+/// Mathematical callable references require real Module ownership even when a
+/// local or foreign view supplies the expected types. Both symbol inputs and the
+/// method recipe must survive only with their original physical authority.
+#[test]
+fn canonical_callable_targets_require_physical_module_authority() {
+    use gmeow_logic_compile::ingest::DslView;
+    use gmeow_logic_compile::projections::correspondence_frontend::transpile_correspondences_indexed;
+    use gmeow_logic_compile::projections::fno::{CallableTargetTyping, lower_fno};
+
+    const PREFIXES: &str = "@prefix ex: <https://example.org/> .
+        @prefix logic: <https://blackcatinformatics.ca/logic/> .
+        @prefix math: <https://blackcatinformatics.ca/math/> .
+        @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+        @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+        @prefix skos: <http://www.w3.org/2004/02/skos/core#> .
+        @prefix xsd: <http://www.w3.org/2001/XMLSchema#> .";
+    let owner = "https://blackcatinformatics.ca/gmeow/slices/finance";
+    let path = "slices/extensions/finance/module.ttl";
+    let module = format!(
+        "{PREFIXES}
+        ex:price a math:MathematicalSymbol ; rdfs:isDefinedBy <{owner}> .
+        ex:count a math:MathematicalSymbol ; rdfs:isDefinedBy <{owner}> .
+        ex:recipe a math:ApplicationExpression ; rdfs:isDefinedBy <{owner}> ."
+    );
+    let interface = format!(
+        "{PREFIXES}
+        ex:method a logic:CallableSignature, gmeow:ObservationMethod ;
+            logic:inputParameters ( ex:priceInput ex:countInput ) ;
+            logic:outputParameters ( ex:result ) ;
+            gmeow:calculationExpression ex:recipe ;
+            rdfs:label \"method\"@en ; skos:definition \"exact method\"@en ;
+            rdfs:isDefinedBy <{owner}> .
+        ex:priceInput a logic:CallParameter ; math:hasMathematicalSymbol ex:price ;
+            logic:parameterPredicate ex:unitPrice ; logic:parameterValueType xsd:decimal ;
+            logic:parameterRequired true ; rdfs:label \"price\"@en ;
+            skos:definition \"price operand\"@en ; rdfs:isDefinedBy <{owner}> .
+        ex:countInput a logic:CallParameter ; math:hasMathematicalSymbol ex:count ;
+            logic:parameterPredicate ex:countedQuantity ; logic:parameterValueType xsd:decimal ;
+            logic:parameterRequired true ; rdfs:label \"count\"@en ;
+            skos:definition \"count operand\"@en ; rdfs:isDefinedBy <{owner}> .
+        ex:result a logic:CallResult ;
+            logic:parameterPredicate ex:total ; logic:parameterValueType xsd:decimal ;
+            rdfs:label \"result\"@en ; skos:definition \"total result\"@en ;
+            rdfs:isDefinedBy <{owner}> ."
+    );
+    let parse = |source: &str| {
+        purrdf::parse_dataset(source.as_bytes(), "text/turtle", None)
+            .expect("synthetic callable source")
+    };
+    let ontology = parse(&module);
+    let lower = |source: &str, authority: &native_kernel::SourceOwnership| {
+        let mapping = parse(source);
+        let view = DslView::new(&mapping);
+        let (_, analysis) =
+            transpile_correspondences_indexed(&view, &DslView::new(&ontology), &[])?;
+        lower_fno(
+            &view,
+            &DslView::new(&ontology),
+            &analysis,
+            CallableTargetTyping::CanonicalModules(authority),
+        )
+    };
+    let mut authority = native_kernel::SourceOwnership::default();
+    authority.record_module(owner, path, module.as_bytes(), &ontology);
+    let lowering = lower(&interface, &authority).expect("original finance Module authority");
+    let catalog = parse(&lowering.catalog);
+    let catalog = DslView::new(&catalog);
+    for (subject, predicate, target) in [
+        ("priceInput", "math/hasMathematicalSymbol", "price"),
+        ("countInput", "math/hasMathematicalSymbol", "count"),
+        ("method", "gmeow/calculationExpression", "recipe"),
+    ] {
+        assert_eq!(
+            catalog.object_iri(
+                &format!("https://example.org/{subject}"),
+                &format!("https://blackcatinformatics.ca/{predicate}"),
+            ),
+            Some(format!("https://example.org/{target}")),
+        );
+    }
+
+    // Even complete local type/owner annotations cannot conceal a failed physical
+    // authority selection. The foreign ontology remains well-typed throughout.
+    let locally_typed = format!("{interface}\n{module}");
+    let missing = native_kernel::SourceOwnership::default();
+    assert!(lower(&locally_typed, &missing).is_err());
+    for source in [
+        module.replace(&format!("; rdfs:isDefinedBy <{owner}>"), ""),
+        module.replace(&format!("<{owner}>"), "\"malformed owner\""),
+        module.replace(owner, "https://example.org/foreignOwner"),
+        module.replace("math:MathematicalSymbol", "math:ApplicationExpression"),
+        module.replace("math:ApplicationExpression", "math:MathematicalSymbol"),
+    ] {
+        let dataset = parse(&source);
+        let mut bad = native_kernel::SourceOwnership::default();
+        bad.record_module(owner, path, source.as_bytes(), &dataset);
+        assert!(
+            lower(&locally_typed, &bad).is_err(),
+            "malformed selected Module authority cannot use local or foreign typing: {source}"
+        );
+    }
+    let mut duplicate = native_kernel::SourceOwnership::default();
+    duplicate.record_module(owner, path, module.as_bytes(), &ontology);
+    duplicate.record_module(
+        owner,
+        "slices/extensions/finance/other.ttl",
+        module.as_bytes(),
+        &ontology,
+    );
+    assert!(lower(&locally_typed, &duplicate).is_err());
+    let foreign_owner = "https://example.org/foreignOwner";
+    let conflict = module.replace(owner, foreign_owner);
+    authority.record_module(
+        foreign_owner,
+        "slices/extensions/foreign/module.ttl",
+        conflict.as_bytes(),
+        &parse(&conflict),
+    );
+    assert!(lower(&locally_typed, &authority).is_err());
+    let mut example_only = native_kernel::SourceOwnership::default();
+    example_only
+        .record_example(
+            "https://blackcatinformatics.ca/gmeow/slices/math",
+            "slices/grounding/math/examples/callable.ttl",
+            module.as_bytes(),
+            &ontology,
+        )
+        .expect("valid physical Example artifact");
+    assert!(lower(&locally_typed, &example_only).is_err());
+}
+
 #[test]
 fn projection_literal_catalog_partitions_seven_procedure_and_two_value_bridges() {
     let dataset = purrdf::parse_dataset(REGISTRY.as_bytes(), "text/turtle", None).unwrap();

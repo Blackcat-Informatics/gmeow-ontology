@@ -169,6 +169,16 @@ statistics share this admission and preserve per-file memberships even when the
 canonical program deduplicates a correspondence. This analysis lives only for the
 lowering invocation; it neither adds a persistent carrier nor certifies a rewrite.
 
+Canonical callable interfaces remain complete within their original Mapping or
+Module view. Their mathematical-symbol and observation-method recipe references
+use explicit physical Module authority: the mappings producer borrows the actual
+manifest owner, original path, source digest and declared types already admitted
+from the owning Module. A type in an unrelated view, a Mapping annotation or an
+Example declaration cannot supply that authority. Missing, ambiguous or wrong-kind
+Module evidence is a hard failure even when the interface view contains a type.
+Self-contained compiler input selects source-local typing explicitly and receives
+no target authority from another view.
+
 Mappings publishes its admitted grounding catalog as a native handle pinned to
 `graph/correspondence-laws`. The complete payload retains the final law-bearing
 program, every admitted property value and the exact physical-source cell

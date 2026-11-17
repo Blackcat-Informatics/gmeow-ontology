@@ -73,9 +73,14 @@ fn lower_fno_extracts_nested_collection_atoms() {
         &[],
     )
     .expect("admit mappings");
-    let nt = lower_fno(&DslView::new(&dsl), &DslView::new(&onto), &analysis)
-        .expect("lower")
-        .catalog;
+    let nt = lower_fno(
+        &DslView::new(&dsl),
+        &DslView::new(&onto),
+        &analysis,
+        CallableTargetTyping::SourceLocal,
+    )
+    .expect("lower")
+    .catalog;
     // The param-mapping for (fnX, schema-org, paramEventTime ↦ ?bdate) must appear.
     assert!(
         nt.contains("functionParameter> <https://blackcatinformatics.ca/gmeow/paramEventTime>"),
@@ -159,9 +164,14 @@ fn fno_abox_individuals_carry_full_structural_annotations() {
         &[],
     )
     .expect("admit mappings");
-    let catalog = lower_fno(&DslView::new(&dsl), &DslView::new(&onto), &analysis)
-        .expect("lower")
-        .catalog;
+    let catalog = lower_fno(
+        &DslView::new(&dsl),
+        &DslView::new(&onto),
+        &analysis,
+        CallableTargetTyping::SourceLocal,
+    )
+    .expect("lower")
+    .catalog;
 
     let catalog_ds = parse_dataset(
         catalog.as_bytes(),
@@ -341,7 +351,12 @@ fn lower_callable_fixture(source: &str) -> gmeow_errors::Result<FnoLowering> {
         &view,
         &[],
     )?;
-    lower_fno(&view, &DslView::new(&onto), &analysis)
+    lower_fno(
+        &view,
+        &DslView::new(&onto),
+        &analysis,
+        CallableTargetTyping::SourceLocal,
+    )
 }
 
 #[test]
@@ -465,7 +480,8 @@ fn canonical_callable_slot_metadata_preserves_authored_input_and_output_values()
     let original = purrdf::parse_dataset(CALLABLE_FIXTURE.as_bytes(), "text/turtle", None).unwrap();
     let original = DslView::new(&original);
     for (dsl, ontology) in [(CALLABLE_FIXTURE, ""), ("", CALLABLE_FIXTURE)] {
-        let lowering = lower_callable_views(dsl, ontology).expect("complete authored slot coats");
+        let lowering = lower_callable_views(dsl, ontology, CallableTargetTyping::SourceLocal)
+            .expect("complete authored slot coats");
         let dataset =
             purrdf::parse_dataset(lowering.catalog.as_bytes(), "text/turtle", None).unwrap();
         let view = DslView::new(&dataset);
@@ -620,6 +636,7 @@ fn canonical_callable_identity_cannot_collide_with_a_derived_projection_node() {
 fn lower_callable_views(
     dsl_source: &str,
     ontology_source: &str,
+    target_typing: CallableTargetTyping<'_>,
 ) -> gmeow_errors::Result<FnoLowering> {
     let dsl = purrdf::parse_dataset(dsl_source.as_bytes(), "text/turtle", None)
         .expect("synthetic mapping view");
@@ -631,7 +648,7 @@ fn lower_callable_views(
         &view,
         &[],
     )?;
-    lower_fno(&view, &DslView::new(&ontology), &analysis)
+    lower_fno(&view, &DslView::new(&ontology), &analysis, target_typing)
 }
 
 /// Independent reference-only method contract: FnO preserves its links, while
@@ -647,6 +664,32 @@ fn mathematical_callable_fixture() -> String {
     )
 }
 
+struct MathematicalModuleTargets {
+    symbol_types: BTreeSet<String>,
+    recipe_types: BTreeSet<String>,
+    digest: String,
+}
+
+impl CanonicalModuleTargets for MathematicalModuleTargets {
+    fn module_target(&self, target: &str) -> gmeow_errors::Result<CanonicalModuleTarget<'_>> {
+        let types = match target {
+            "https://example.org/symbol" => &self.symbol_types,
+            "https://example.org/recipe" => &self.recipe_types,
+            _ => {
+                return Err(Diag::of_kind(crate::error::Fno {
+                    detail: format!("missing synthetic Module target {target}"),
+                }));
+            }
+        };
+        Ok(CanonicalModuleTarget {
+            owner: "https://example.org/owner",
+            path: "slices/extensions/example/module.ttl",
+            digest: &self.digest,
+            types,
+        })
+    }
+}
+
 /// Preserve source references and role types without inventing FnO recipe or
 /// symbol predicates. Metadata keeps language, datatype and direction identities.
 #[test]
@@ -655,7 +698,8 @@ fn canonical_callables_preserve_selected_mathematical_extensions_from_both_views
     let original = purrdf::parse_dataset(source.as_bytes(), "text/turtle", None).unwrap();
     let original = DslView::new(&original);
     for (dsl, ontology) in [(&source[..], ""), ("", &source[..])] {
-        let lowering = lower_callable_views(dsl, ontology).expect("selected source extensions");
+        let lowering = lower_callable_views(dsl, ontology, CallableTargetTyping::SourceLocal)
+            .expect("selected source extensions");
         let dataset =
             purrdf::parse_dataset(lowering.catalog.as_bytes(), "text/turtle", None).unwrap();
         let view = DslView::new(&dataset);
@@ -738,7 +782,8 @@ fn canonical_callables_preserve_selected_mathematical_extensions_from_both_views
         assert_eq!(lowering.ledger.len(), 1);
     }
     let other = source.replace("https://example.org/", "https://second.example.org/");
-    let merged = lower_callable_views(&source, &other).expect("distinct owners from both views");
+    let merged = lower_callable_views(&source, &other, CallableTargetTyping::SourceLocal)
+        .expect("distinct owners from both views");
     let dataset = purrdf::parse_dataset(merged.catalog.as_bytes(), "text/turtle", None).unwrap();
     let view = DslView::new(&dataset);
     for base in ["https://example.org/", "https://second.example.org/"] {
@@ -759,8 +804,62 @@ fn canonical_callables_preserve_selected_mathematical_extensions_from_both_views
     }
     assert_eq!(merged.ledger.len(), 2);
     assert!(
-        lower_callable_views(&source, &source).is_err(),
+        lower_callable_views(&source, &source, CallableTargetTyping::SourceLocal).is_err(),
         "extensions must not bypass duplicate owner refusal"
+    );
+
+    // The complete interface stays in its Mapping view; only the original Module
+    // authority may admit mathematical targets declared outside that view.
+    let symbol = "ex:symbol a <https://blackcatinformatics.ca/math/MathematicalSymbol> .";
+    let recipe = "ex:recipe a <https://blackcatinformatics.ca/math/ApplicationExpression> .";
+    let mapping = source.replace(symbol, "").replace(recipe, "");
+    let module = format!("@prefix ex: <https://example.org/> . {symbol}\n{recipe}");
+    let authority = MathematicalModuleTargets {
+        symbol_types: BTreeSet::from([
+            "https://blackcatinformatics.ca/math/MathematicalSymbol".to_owned()
+        ]),
+        recipe_types: BTreeSet::from([
+            "https://blackcatinformatics.ca/math/ApplicationExpression".to_owned()
+        ]),
+        digest: {
+            use sha2::Digest;
+            purrdf_hash::hex::encode(&sha2::Sha256::digest(module.as_bytes()))
+        },
+    };
+    let lowering = lower_callable_views(
+        &mapping,
+        &module,
+        CallableTargetTyping::CanonicalModules(&authority),
+    )
+    .expect("explicit canonical Module authority admits split mathematical targets");
+    let dataset = purrdf::parse_dataset(lowering.catalog.as_bytes(), "text/turtle", None)
+        .expect("generated FnO catalog");
+    let view = DslView::new(&dataset);
+    for (subject, predicate, target) in [
+        (
+            "z",
+            "https://blackcatinformatics.ca/math/hasMathematicalSymbol",
+            "symbol",
+        ),
+        (
+            "call",
+            "https://blackcatinformatics.ca/gmeow/calculationExpression",
+            "recipe",
+        ),
+    ] {
+        assert_eq!(
+            view.object_iri(&format!("https://example.org/{subject}"), predicate),
+            Some(format!("https://example.org/{target}")),
+        );
+    }
+    assert!(
+        lower_callable_views(
+            &source,
+            &source,
+            CallableTargetTyping::CanonicalModules(&authority),
+        )
+        .is_err(),
+        "Module target authority must not relax duplicate interface ownership"
     );
 }
 
@@ -807,7 +906,8 @@ fn canonical_callables_refuse_malformed_mathematical_extension_targets() {
     }
     for (source, expected) in cases {
         for (dsl, ontology) in [(&source[..], ""), ("", &source[..])] {
-            let error = match lower_callable_views(dsl, ontology) {
+            let error = match lower_callable_views(dsl, ontology, CallableTargetTyping::SourceLocal)
+            {
                 Ok(_) => panic!("malformed target must fail: {source}"),
                 Err(error) => error,
             };
@@ -818,7 +918,7 @@ fn canonical_callables_refuse_malformed_mathematical_extension_targets() {
     let untyped = source.replace(declaration, "");
     let foreign_target = format!("@prefix ex: <https://example.org/> . {declaration}");
     assert!(
-        lower_callable_views(&untyped, &foreign_target).is_err(),
+        lower_callable_views(&untyped, &foreign_target, CallableTargetTyping::SourceLocal).is_err(),
         "a separate source view cannot supply implicit target ownership"
     );
 }
@@ -930,7 +1030,8 @@ const CALLABLE_DECLARATION: &str = r#"
 #[test]
 fn callable_declarations_keep_identity_and_metadata_without_inventing_a_signature() {
     for (dsl, onto) in [(CALLABLE_DECLARATION, ""), ("", CALLABLE_DECLARATION)] {
-        let result = lower_callable_views(dsl, onto).expect("project operation declaration");
+        let result = lower_callable_views(dsl, onto, CallableTargetTyping::SourceLocal)
+            .expect("project operation declaration");
         let dataset =
             purrdf::parse_dataset(result.catalog.as_bytes(), "text/turtle", None).unwrap();
         let view = DslView::new(&dataset);
@@ -965,7 +1066,7 @@ fn callable_declarations_keep_identity_and_metadata_without_inventing_a_signatur
         "ex:operation a logic:Callable ;",
         "ex:operation a logic:Callable ; logic:inputParameters () ;",
     );
-    let error = match lower_callable_views(&source, "") {
+    let error = match lower_callable_views(&source, "", CallableTargetTyping::SourceLocal) {
         Ok(_) => panic!("interface data must not be silently omitted"),
         Err(error) => error,
     };
@@ -981,7 +1082,8 @@ fn canonical_interfaces_are_admitted_from_ontology_sources_without_duplicate_own
         "a logic:CallableSignature ;",
         "a logic:CallableSignature, logic:Callable ;",
     );
-    let actual = lower_callable_views("", &source).expect("ontology-owned interface");
+    let actual = lower_callable_views("", &source, CallableTargetTyping::SourceLocal)
+        .expect("ontology-owned interface");
     let ds = purrdf::parse_dataset(actual.catalog.as_bytes(), "text/turtle", None).unwrap();
     let view = DslView::new(&ds);
     assert!(
@@ -989,7 +1091,7 @@ fn canonical_interfaces_are_admitted_from_ontology_sources_without_duplicate_own
             .contains(&"https://example.org/call".to_owned())
     );
     assert_eq!(actual.ledger.len(), 1);
-    let error = match lower_callable_views(&source, &source) {
+    let error = match lower_callable_views(&source, &source, CallableTargetTyping::SourceLocal) {
         Ok(_) => panic!("two interface owners must be refused"),
         Err(error) => error,
     };
