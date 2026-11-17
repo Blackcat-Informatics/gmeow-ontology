@@ -171,6 +171,7 @@ pub enum NativeReadKind {
 }
 
 mod read;
+pub(crate) use read::world_completion_reads;
 pub use read::{NativeRead, NativeReadPattern};
 
 /// Typed source and capability failures, never semantic contradictions.

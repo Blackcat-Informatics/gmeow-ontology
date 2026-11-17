@@ -539,7 +539,7 @@ pub(super) fn initial(ledger: &mut NativeFamilyLedger, exhausted: bool) {
             NativeFamilyCompletion::Exhausted
         } else {
             NativeFamilyCompletion::Awaiting {
-                reads: vec![NativeRead::world(NativeReadKind::Completed)],
+                reads: crate::reason::refute::native::world_completion_reads(),
             }
         };
         ledger.outcomes.push(outcome);
@@ -727,7 +727,7 @@ impl State {
                 NativeFamilyCompletion::Exhausted
             } else {
                 NativeFamilyCompletion::Awaiting {
-                    reads: crate::reason::refute::class_completion_reads(),
+                    reads: crate::reason::refute::native::world_completion_reads(),
                 }
             },
         };

@@ -46,6 +46,12 @@ pub struct NativeRead {
     pub kind: NativeReadKind,
 }
 
+/// Non-writing model finalization requires the completed shared world extension.
+#[must_use]
+pub(crate) fn world_completion_reads() -> Vec<NativeRead> {
+    vec![NativeRead::world(NativeReadKind::Completed)]
+}
+
 impl NativeRead {
     /// Observe every statement in the selected world.
     #[must_use]

@@ -9,7 +9,7 @@ use super::BoundKind;
 use super::native::{
     NativeBoundEvidence, NativeFamilyCompletion, NativeFamilyInput, NativeFamilyLedger,
     NativeFamilyOutcome, NativeObligationScope, NativeObstructionKind, NativeRead, NativeReadKind,
-    NativeRefutationFamily, NativeSupportedClash,
+    NativeRefutationFamily, NativeSupportedClash, world_completion_reads,
 };
 use crate::facts::TermId;
 use crate::physical::SchemaValues;
@@ -202,10 +202,6 @@ pub(crate) fn preparation_reads() -> Vec<NativeRead> {
         .collect()
 }
 
-pub(crate) fn reads() -> Vec<NativeRead> {
-    vec![NativeRead::world(NativeReadKind::Completed)]
-}
-
 struct BoundRow {
     node: TermId,
     property: TermId,
@@ -333,7 +329,7 @@ fn cardinality(
         world.completion = NativeFamilyCompletion::NotEngaged;
     }
 
-    world.finish(model.input, reads(), ledger);
+    world.finish(model.input, world_completion_reads(), ledger);
     ledger.outcomes.push(world);
     if restrictions.is_empty() {
         return Ok(());
@@ -353,7 +349,7 @@ fn cardinality(
             &mut output,
             ledger,
         )?;
-        output.finish(model.input, reads(), ledger);
+        output.finish(model.input, world_completion_reads(), ledger);
         ledger.outcomes.push(output);
     }
     // A clash between a lower and an upper bound depends only on the asserted class:
@@ -395,7 +391,7 @@ fn cardinality(
                     support: model.input.support(&facts, ledger)?,
                 });
             }
-            obligation.finish(model.input, reads(), ledger);
+            obligation.finish(model.input, world_completion_reads(), ledger);
             ledger.outcomes.push(obligation);
         }
     }
@@ -429,7 +425,7 @@ fn class_clashes(
     );
     let paths = model.reach(class, lists, &mut discovery, ledger)?;
     if !discovery.obstructions.is_empty() {
-        discovery.finish(model.input, reads(), ledger);
+        discovery.finish(model.input, world_completion_reads(), ledger);
         ledger.outcomes.push(discovery);
     }
     let nodes: BTreeMap<_, _> = paths
@@ -590,7 +586,7 @@ fn identity(
             }
         }
     }
-    output.finish(model.input, reads(), ledger);
+    output.finish(model.input, world_completion_reads(), ledger);
     ledger.outcomes.push(output);
     Ok(())
 }
@@ -609,7 +605,7 @@ fn has_self(
         world.completion = NativeFamilyCompletion::NotEngaged;
     }
 
-    world.finish(model.input, reads(), ledger);
+    world.finish(model.input, world_completion_reads(), ledger);
     ledger.outcomes.push(world);
     let (values, _) = values.parts();
     for field in fields {
@@ -621,7 +617,7 @@ fn has_self(
             },
         );
         if !model.input.admit_selector(&field, &mut output, ledger)? {
-            output.finish(model.input, reads(), ledger);
+            output.finish(model.input, world_completion_reads(), ledger);
             ledger.outcomes.push(output);
             continue;
         }
@@ -692,7 +688,7 @@ fn has_self(
                 }
             }
         }
-        output.finish(model.input, reads(), ledger);
+        output.finish(model.input, world_completion_reads(), ledger);
         ledger.outcomes.push(output);
     }
     Ok(())

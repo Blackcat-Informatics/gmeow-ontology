@@ -75,7 +75,7 @@ impl ClassExecutionOutcome {
     }
 }
 
-use super::super::native::NativeFamilyInput;
+use super::super::native::{NativeFamilyInput, world_completion_reads};
 use super::super::{NativeObstructionKind, NativeRead, NativeReadKind, NativeSupportedClash};
 use super::{PreparedClassAnalysis, Support, WorldOutcome, proof::SourcePool};
 use crate::rule_ir::Fact;
@@ -124,11 +124,6 @@ pub(crate) fn positive_reads() -> Vec<NativeRead> {
     .into_iter()
     .map(|predicate| NativeRead::predicate(predicate.to_owned(), NativeReadKind::Positive))
     .collect()
-}
-
-/// Non-writing model finalization requires the completed shared current extension.
-pub(crate) fn completion_reads() -> Vec<NativeRead> {
-    vec![NativeRead::world(NativeReadKind::Completed)]
 }
 
 pub(super) struct NativeClassState {
@@ -228,7 +223,7 @@ impl PreparedClassAnalysis {
                 | NativeFamilyCompletion::NotEngaged
                 | NativeFamilyCompletion::Awaiting { .. }
         ) {
-            let reads: Vec<_> = completion_reads()
+            let reads: Vec<_> = world_completion_reads()
                 .into_iter()
                 .filter(|read| !input.completed(read))
                 .collect();
@@ -466,7 +461,7 @@ impl PreparedClassAnalysis {
                 | NativeFamilyCompletion::NotEngaged
                 | NativeFamilyCompletion::Awaiting { .. }
         ) {
-            let reads: Vec<_> = completion_reads()
+            let reads: Vec<_> = world_completion_reads()
                 .into_iter()
                 .filter(|read| !input.completed(read))
                 .collect();

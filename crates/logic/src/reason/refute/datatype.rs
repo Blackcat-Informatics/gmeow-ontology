@@ -10,7 +10,7 @@ use super::BoundKind;
 use super::native::{
     NativeBoundEvidence, NativeFamilyCompletion, NativeFamilyInput, NativeFamilyLedger,
     NativeFamilyOutcome, NativeObligationScope, NativeObstructionKind, NativeRead, NativeReadKind,
-    NativeRefutationFamily, NativeSupportedClash,
+    NativeRefutationFamily, NativeSupportedClash, world_completion_reads,
 };
 use crate::facts::TermId;
 use crate::physical::SchemaValues;
@@ -658,10 +658,6 @@ pub(crate) fn preparation_reads() -> Vec<NativeRead> {
         .collect()
 }
 
-pub(crate) fn reads() -> Vec<NativeRead> {
-    vec![NativeRead::world(NativeReadKind::Completed)]
-}
-
 pub(crate) fn analyze(
     input: &NativeFamilyInput<'_>,
     values: &mut SchemaValues,
@@ -679,7 +675,7 @@ pub(crate) fn analyze(
     if obligations.is_empty() && model.definitions.is_empty() && model.enumerations.is_empty() {
         world.completion = NativeFamilyCompletion::NotEngaged;
     }
-    world.finish(input, reads(), ledger);
+    world.finish(input, world_completion_reads(), ledger);
     ledger.outcomes.push(world);
     for root in model.definitions.clone() {
         let mut outcome = NativeFamilyOutcome::new(
