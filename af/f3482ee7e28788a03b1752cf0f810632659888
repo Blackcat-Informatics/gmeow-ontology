@@ -1,0 +1,19 @@
+ghprsq structured squash audit metadata
+
+parent_hashes: 0a631f9dc1b4371bff4d536d62c91fd8a997c42f
+
+GhpRsq-Schema: 1
+GhpRsq-Merge-Style: structured-squash
+GhpRsq-GitHub-Repo: Blackcat-Informatics/gmeow-ontology
+GhpRsq-GitHub-Pull-Request: 2912
+GhpRsq-GitHub-PR-URL: https://github.com/Blackcat-Informatics/gmeow-ontology/pull/2912
+GhpRsq-Base-Ref: main
+GhpRsq-Base-OID: 4b5aad715eccbd0cc96d2e13a6f011b9c15db7e7
+GhpRsq-Head-Ref: paudley/2909-docs-design-purrdf-backend-contract-md
+GhpRsq-Head-OID: 0a631f9dc1b4371bff4d536d62c91fd8a997c42f
+GhpRsq-Result-Tree: aac955798f8db5ed3a7b1bbc4b38c938e6782ea4
+GhpRsq-Result-Commit: aff3482ee7e28788a03b1752cf0f810632659888
+GhpRsq-Parent-Hashes: 0a631f9dc1b4371bff4d536d62c91fd8a997c42f
+GhpRsq-Squash-Notes-SHA256: 4c7418108c7db9dee2dbad7fabda0d2615fbdb231a01e9c4d279f334afed0878
+GhpRsq-Defect-Class: documentation-drift
+GhpRsq-Stage-Evidence: none
