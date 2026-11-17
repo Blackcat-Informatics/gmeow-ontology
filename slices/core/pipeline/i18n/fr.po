@@ -1300,3 +1300,119 @@ msgstr "L'arête de flux de données de gmeow:stage-snapshot à gmeow:stage-expo
 msgctxt "https://blackcatinformatics.ca/gmeow/flowReasonDataflow|http://www.w3.org/2004/02/skos/core#definition"
 msgid "The edge exists because BYTES genuinely flow producer → consumer: the consumer reads the producer's product (the ordinary gmeow:dataflowConsumes case). A dataflow reasoner may key the consumer's cache on the flowing entities' digests and is free to schedule producers first. The default and most common reason; most of the build DAG's own edges carry it, and the edges that carry no bytes declare gmeow:flowReasonAuthority instead. Distinct from gmeow:flowReasonAuthority, whose edge carries no bytes and exists purely to order two stages."
 msgstr "L'arête existe parce que des OCTETS circulent réellement du producteur vers le consommateur : le consommateur lit le produit du producteur (le cas ordinaire de gmeow:dataflowConsumes). Un raisonneur de flux de données peut indexer le cache du consommateur sur les condensats des entités qui circulent et est libre d'ordonnancer d'abord les producteurs. C'est la raison par défaut et la plus courante ; la plupart des arêtes du DAG de construction la portent, et les arêtes qui ne transportent aucun octet déclarent plutôt gmeow:flowReasonAuthority. À distinguer de gmeow:flowReasonAuthority, dont l'arête ne transporte aucun octet et n'existe que pour ordonner deux étapes."
+
+#: module.ttl
+msgid "Stage Output Family"
+msgstr "Famille de sorties d’une étape"
+
+#: module.ttl
+msgid "A class of quality values describing which explicit output scopes select a pipeline stage as a root. The stage profile admits generated output and runtime projection values; each scope also retains every transitive producer of its selected roots. This classification controls stage selection, while selected stages and their required outputs remain mandatory."
+msgstr "Classe de valeurs de qualité décrivant les portées de sortie explicites qui sélectionnent une étape de pipeline comme racine. Le profil des étapes admet les valeurs de sortie générée et de projection d’exécution ; chaque portée conserve aussi tous les producteurs transitifs de ses racines sélectionnées. Cette classification commande la sélection des étapes ; les étapes sélectionnées et leurs sorties requises restent obligatoires."
+
+#: module.ttl
+msgid "gmeow:stage-export-yaml-ld gmeow:stageOutputFamily gmeow:outputRuntimeProjection ."
+msgstr "gmeow:stage-export-yaml-ld gmeow:stageOutputFamily gmeow:outputRuntimeProjection ."
+
+#: module.ttl
+msgid "Scope: output selection for a declared pipeline stage. A runtime projection can still be required by a generated stage; the two profile values do not close this class globally."
+msgstr "Portée : sélection des sorties d’une étape de pipeline déclarée. Une projection d’exécution peut rester nécessaire à une étape générée ; les deux valeurs du profil ne ferment pas globalement cette classe."
+
+#: module.ttl
+msgid "Use a Stage Output Family to describe the scope roots of a stage without inferring its role from file names or execution timings."
+msgstr "Utiliser une famille de sorties d’étape pour décrire les racines d’une portée sans déduire le rôle de l’étape des noms de fichiers ou des durées d’exécution."
+
+#: module.ttl
+msgid "Do not use an output family as a success status, cache policy, effect class or permission to omit a dependency."
+msgstr "Ne pas utiliser une famille de sorties comme état de réussite, politique de cache, classe d’effet ou autorisation d’omettre une dépendance."
+
+#: module.ttl
+msgid "Declare exactly one allowed family for each pipeline stage. Admit its implementation identity and family before filtering, then retain the complete producer closure."
+msgstr "Déclarer exactement une famille autorisée pour chaque étape du pipeline. Admettre l’identité de son implémentation et sa famille avant tout filtrage, puis conserver la fermeture complète des producteurs."
+
+#: module.ttl
+msgid "stage output family"
+msgstr "famille de sorties de l’étape"
+
+#: module.ttl
+msgid "Relates a pipeline stage to the output family used to select it as a scope root. Every stage declares exactly one allowed value. Native admission checks its identity and family against the selected executable registry before either output scope can filter stages, so a false runtime projection declaration cannot hide a required generated stage."
+msgstr "Relie une étape de pipeline à la famille de sorties utilisée pour la sélectionner comme racine d’une portée. Chaque étape déclare exactement une valeur autorisée. L’admission native vérifie son identité et sa famille par rapport au registre exécutable sélectionné avant que l’une ou l’autre portée puisse filtrer les étapes ; une fausse déclaration de projection d’exécution ne peut donc pas masquer une étape générée requise."
+
+#: module.ttl
+msgid "gmeow:stage-gts-sink gmeow:stageOutputFamily gmeow:outputGenerated ."
+msgstr "gmeow:stage-gts-sink gmeow:stageOutputFamily gmeow:outputGenerated ."
+
+#: module.ttl
+msgid "Scope: the declared output selection role of one stage, separate from its cache disposition, dependencies and execution outcome."
+msgstr "Portée : rôle déclaré d’une étape dans la sélection des sorties, distinct de sa disposition de cache, de ses dépendances et du résultat de son exécution."
+
+#: module.ttl
+msgid "Use this property to make scope selection readable from the same authored graph that declares the pipeline."
+msgstr "Utiliser cette propriété pour rendre la sélection de portée lisible dans le graphe rédigé qui déclare le pipeline."
+
+#: module.ttl
+msgid "Do not omit this property on an internal stage or use it to erase a required producer from a selected scope."
+msgstr "Ne pas omettre cette propriété sur une étape interne ni l’utiliser pour supprimer d’une portée sélectionnée un producteur requis."
+
+#: module.ttl
+msgid "Set outputGenerated or outputRuntimeProjection on every stage. Select generated roots for the committed scope and all roots for the all scope, retaining their transitive dataflowConsumes producers."
+msgstr "Définir outputGenerated ou outputRuntimeProjection sur chaque étape. Sélectionner les racines générées pour la portée committed et toutes les racines pour la portée all, en conservant leurs producteurs dataflowConsumes transitifs."
+
+#: module.ttl
+msgid "output: generated"
+msgstr "sortie : générée"
+
+#: module.ttl
+msgid "The stage output family selected as a root by both the committed/generated scope and the all scope. A member can supply an internal intermediate rather than write a committed path itself. Selection always includes its transitive producers and does not change the stage's computation or required outputs."
+msgstr "Famille de sorties d’étape sélectionnée comme racine par la portée committed/generated et par la portée all. Un membre peut fournir un intermédiaire interne sans écrire lui-même de chemin de sortie de cette portée. La sélection inclut toujours ses producteurs transitifs et ne modifie ni le calcul de l’étape ni ses sorties requises."
+
+#: module.ttl
+msgid "gmeow:stage-parse-sources gmeow:stageOutputFamily gmeow:outputGenerated ."
+msgstr "gmeow:stage-parse-sources gmeow:stageOutputFamily gmeow:outputGenerated ."
+
+#: module.ttl
+msgid "Scope: selection of generated output roots, including internal work in that family. This value does not assert that every member writes a file."
+msgstr "Portée : sélection des racines de sortie générée, y compris le travail interne de cette famille. Cette valeur n’affirme pas que chaque membre écrit un fichier."
+
+#: module.ttl
+msgid "Use outputGenerated for a stage whose contribution belongs to the generated output branch."
+msgstr "Utiliser outputGenerated pour une étape dont la contribution appartient à la branche des sorties générées."
+
+#: module.ttl
+msgid "Do not infer a committed file path or successful artifact publication from this family value."
+msgstr "Ne pas déduire de cette valeur de famille un chemin de fichier de cette portée ou une publication réussie d’artefact."
+
+#: module.ttl
+msgid "Declare this value explicitly and keep the executable family identical. Retain every declared upstream producer when deriving the committed scope."
+msgstr "Déclarer explicitement cette valeur et conserver une famille exécutable identique. Garder chaque producteur amont déclaré lors de la dérivation de la portée committed."
+
+#: module.ttl
+msgid "output: runtime projection"
+msgstr "sortie : projection d’exécution"
+
+#: module.ttl
+msgid "The stage output family selected as a direct runtime projection root by the all scope. The committed/generated scope also retains a member when a selected generated stage needs it as a transitive producer. This family classifies selection roots, not whether a stage is allowed to run or whether its outputs are optional."
+msgstr "Famille de sorties d’étape sélectionnée comme racine de projection d’exécution directe par la portée all. La portée committed/generated conserve aussi un membre lorsqu’une étape générée sélectionnée en a besoin comme producteur transitif. Cette famille classe les racines de sélection, et non l’autorisation d’exécuter une étape ou le caractère facultatif de ses sorties."
+
+#: module.ttl
+msgid "gmeow:stage-export-okf gmeow:stageOutputFamily gmeow:outputRuntimeProjection ."
+msgstr "gmeow:stage-export-okf gmeow:stageOutputFamily gmeow:outputRuntimeProjection ."
+
+#: module.ttl
+msgid "Scope: direct runtime projection roots. The current independent runtime exporters are omitted from committed selection because no generated root needs them."
+msgstr "Portée : racines de projection d’exécution directe. Les exportateurs d’exécution indépendants actuels sont exclus de la sélection committed car aucune racine générée n’en a besoin."
+
+#: module.ttl
+msgid "Use outputRuntimeProjection for a stage dedicated to runtime presentation output selected by the all scope."
+msgstr "Utiliser outputRuntimeProjection pour une étape consacrée à une sortie de présentation d’exécution sélectionnée par la portée all."
+
+#: module.ttl
+msgid "Do not treat this value as a promise that the stage can never occur in a committed producer closure."
+msgstr "Ne pas considérer cette valeur comme une garantie que l’étape ne pourra jamais figurer dans une fermeture de producteurs committed."
+
+#: module.ttl
+msgid "Declare this value explicitly, admit agreement with the selected executable registry and retain the stage whenever a selected root transitively consumes it."
+msgstr "Déclarer explicitement cette valeur, admettre sa concordance avec le registre exécutable sélectionné et conserver l’étape lorsqu’une racine sélectionnée la consomme transitivement."
+
+#: tests/structural.ttl
+msgid "Output scope selection must follow the same authored pipeline's family declarations and complete producer closure. A generated root keeps its required runtime projection producer, while an independent runtime exporter remains outside the committed scope. Exact native family admission and explicit closed-world requirements prevent an absent or false declaration from silently dropping work."
+msgstr "La sélection de portée de sortie doit suivre les déclarations de famille et la fermeture complète des producteurs du même pipeline rédigé. Une racine générée conserve le producteur de projection d’exécution dont elle a besoin, tandis qu’un exportateur d’exécution indépendant reste hors de la portée committed. L’admission exacte des familles natives et les exigences explicites de monde clos empêchent qu’une déclaration absente ou fausse supprime silencieusement du travail."

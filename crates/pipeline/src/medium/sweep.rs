@@ -1323,7 +1323,11 @@ pub const CODEC_SWEEP_EXCLUDED_REPS: [&str; 4] =
 /// # Errors
 /// A stage whose implementation is not registered.
 pub fn sweep_spec() -> Result<crate::loader::PipelineSpec, gmeow_errors::Diag> {
-    crate::run::spec_for_scope(crate::full_spec(), crate::run::RunOutputScope::Committed)
+    crate::run::spec_for_scope(
+        crate::full_spec(),
+        crate::run::RunOutputScope::Committed,
+        &crate::default_registry(),
+    )
 }
 
 /// Run the whole sweep over a repository: the committed-scope DAG once ([`sweep_spec`]),
