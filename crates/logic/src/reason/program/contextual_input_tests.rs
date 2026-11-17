@@ -17,6 +17,8 @@ ex:formula a logic:Formula ; logic:relation ex:predicate ;
 ex:item ex:predicate ex:value .
 "#;
 
+/// Source edits are atomic and preserve distinct original assertions even when
+/// their blank and skolem subjects share one executable fact.
 #[test]
 fn contextual_preparation_is_shared_until_a_successful_source_edit() {
     let dataset = purrdf::parse_dataset(SOURCE.as_bytes(), "text/turtle", None).unwrap();
@@ -58,5 +60,38 @@ fn contextual_preparation_is_shared_until_a_successful_source_edit() {
     assert!(!Arc::ptr_eq(&input.contextual, &edited.contextual));
     let replacement = Arc::clone(&edited.contextual);
     assert!(!edited.retract_axiom(&ordinary).unwrap());
+    assert!(Arc::ptr_eq(&replacement, &edited.contextual));
+
+    let world = crate::reason::rl::DEFAULT_WORLD;
+    let blank = input.occurrences[world]
+        .iter()
+        .find(|source| matches!(source.subject, TermValue::Blank { .. }))
+        .expect("the contextual formula has blank argument nodes")
+        .subject
+        .clone();
+    let original = Fact {
+        subject: blank,
+        predicate: "urn:prepared-context:evidence".to_owned(),
+        object: TermValue::iri("urn:prepared-context:value"),
+    };
+    let executable = Fact {
+        subject: crate::facts::skolemize(&original.subject).into_owned(),
+        ..original.clone()
+    };
+    let source_count = edited.occurrences[world].len();
+    let fact_count = edited.facts[world].len();
+    let graph = crate::physical::LogicalGraph::Default;
+    assert!(
+        edited
+            .assert_facts(&graph, [original.clone(), executable.clone()])
+            .unwrap()
+    );
+    assert_eq!(edited.occurrences[world].len(), source_count + 2);
+    assert_eq!(edited.facts[world].len(), fact_count + 1);
+    assert!(edited.facts[world].contains(&executable));
+    let contract = *edited.ingress_contract();
+    let replacement = Arc::clone(&edited.contextual);
+    assert!(!edited.assert_facts(&graph, [original, executable]).unwrap());
+    assert_eq!(*edited.ingress_contract(), contract);
     assert!(Arc::ptr_eq(&replacement, &edited.contextual));
 }
