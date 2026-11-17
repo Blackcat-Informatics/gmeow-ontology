@@ -86,8 +86,8 @@ msgid "superseded by"
 msgstr "被取代"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/supersededBy|skos:definition"
-msgid "Links an entity to the entity that replaced it — Constantinople supersededBy Istanbul, the Soviet Union supersededBy the Russian Federation, a deprecated software release supersededBy its successor. Directional, NOT symmetric. The superseded entity is retained (never deleted). The relation itself prompts no display flag: whether a reader is shown the predecessor is that reader's policy, decided at projection, and the only suppression the lifecycle slice prompts is for a superseded name or identity label, which its holder hides from every reader. A more specific relation may state a stricter display rule of its own."
-msgstr "将一个实体与取代它的实体相连——君士坦丁堡被伊斯坦布尔取代、苏联被俄罗斯联邦取代、一个被弃用的软件发行版被其后继者取代。有方向性，并非对称。被取代的实体被保留（从不删除）。该关系本身不引发任何显示标记：读者是否看到前任由该读者自己的政策在投影时决定，生命周期切片唯一引发的隐藏针对被取代的名称或身份标签，其持有者会对所有读者隐藏它。更具体的关系可以另行规定其自身更严格的显示规则。"
+msgid "Links a resource to the resource that replaced it — Constantinople supersededBy Istanbul, the Soviet Union supersededBy the Russian Federation, a deprecated software release supersededBy its successor. Directional, NOT symmetric. The superseded resource is retained (never deleted). The universal logic:Thing signatures preserve the types of entities, claim tokens and reifiers. The relation itself prompts no display flag: whether a reader is shown the predecessor is that reader's policy, decided at projection, and the only suppression the lifecycle slice prompts is for a superseded name or identity label, which its holder hides from every reader. A more specific relation may state a stricter display rule of its own."
+msgstr "将一个资源与取代它的资源相连——君士坦丁堡被伊斯坦布尔取代、苏联被俄罗斯联邦取代、一个被弃用的软件发行版被其后继者取代。有方向性，并非对称。被取代的资源被保留（从不删除）。通用的 logic:Thing 签名保留实体、声明令牌和重述标识节点的类型。该关系本身不引发任何显示标记：读者是否看到前任由该读者自己的政策在投影时决定，生命周期切片唯一引发的隐藏针对被取代的名称或身份标签，其持有者会对所有读者隐藏它。更具体的关系可以另行规定其自身更严格的显示规则。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/existenceEntityFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "existenceEntity is functional"

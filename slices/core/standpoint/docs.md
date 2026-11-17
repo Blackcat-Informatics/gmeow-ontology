@@ -144,6 +144,14 @@ given the same four select the same claims and derive the same order.
 
 ### gmeow:correctsClaim
 
+The claim lifecycle accepts assertion-act tokens, claim-bearing records and RDF
+reifiers without converting between them. `succeedsClaim` and `correctsClaim` have
+universal `logic:Thing` domains and ranges; `retractsClaim` has an `Activity` domain
+and a universal range. These universal bounds add no `gmeow:Entity` type to a
+claim token and no `ClaimToken` or `Activity` type to a record or reifier. The
+withdrawal subject still acquires its `Activity` type. The generic
+supersession relation and its inverse keep the same universal bound.
+
 Correction and suppression are two different acts. "It is blue" answered by "No, it is
 red, you are wrong, I checked" does not erase the evidence of blue. Two patterns cover
 the cases, and neither one touches the claim it is about.

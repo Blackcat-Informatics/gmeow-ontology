@@ -103,12 +103,12 @@ gmeow:hasDestructionEvent
 
 gmeow:supersededBy
     a logic:ObjectProperty ;
-    rdfs:domain gmeow:Entity ;
+    logic:domain logic:Thing ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lifecycle> ;
     rdfs:label "superseded by"@x-gmeow-english ;
-    rdfs:range gmeow:Entity ;
+    logic:range logic:Thing ;
     logic:inverseOf gmeow:supersedes ;
-    skos:definition "Links an entity to the entity that replaced it — Constantinople supersededBy Istanbul, the Soviet Union supersededBy the Russian Federation, a deprecated software release supersededBy its successor. Directional, NOT symmetric. The superseded entity is retained (never deleted). The relation itself prompts no display flag: whether a reader is shown the predecessor is that reader's policy, decided at projection, and the only suppression the lifecycle slice prompts is for a superseded name or identity label, which its holder hides from every reader. A more specific relation may state a stricter display rule of its own."@x-gmeow-english ;
+    skos:definition "Links a resource to the resource that replaced it — Constantinople supersededBy Istanbul, the Soviet Union supersededBy the Russian Federation, a deprecated software release supersededBy its successor. Directional, NOT symmetric. The superseded resource is retained (never deleted). The universal logic:Thing signatures preserve the types of entities, claim tokens and reifiers. The relation itself prompts no display flag: whether a reader is shown the predecessor is that reader's policy, decided at projection, and the only suppression the lifecycle slice prompts is for a superseded name or identity label, which its holder hides from every reader. A more specific relation may state a stricter display rule of its own."@x-gmeow-english ;
     skos:example "ex:constantinople gmeow:supersededBy ex:istanbul ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid treating it as symmetric (it is directional; the inverse is gmeow:supersedes) and avoid deleting the superseded entity — retain it and link it forward, and avoid reading this relation by itself as a ground for gmeow:displayable false: the lifecycle slice prompts that only for a superseded name or identity label, and what a reader is shown of anything else is reader policy, not data."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox ;

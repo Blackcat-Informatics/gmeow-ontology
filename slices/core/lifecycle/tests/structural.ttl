@@ -83,20 +83,21 @@ ASK {
 }""" ;
     gmeow:saRationale "gmeow:EntityExistence MUST carry an open-world EL someValuesFrom restriction on gmeow:existenceEntity to gmeow:Entity — the situation binds exactly one entity and the someValuesFrom axiom is the relator-mediation gate that makes it visible to reasoners and generators." .
 
-# --- 5. supersededBy is a directed owl:ObjectProperty with domain+range Entity (MUST) ---
+# --- 5. supersededBy preserves resource sorts through the inverse (MUST) ---
 ex:saSupersededByIsObjectProperty a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:must ;
     gmeow:saScope gmeow:scopeModule ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
 PREFIX owl: <http://www.w3.org/2002/07/owl#>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
 ASK {
     gmeow:supersededBy a owl:ObjectProperty ;
-        rdfs:domain gmeow:Entity ;
-        rdfs:range gmeow:Entity ;
+        logic:domain logic:Thing ;
+        logic:range logic:Thing ;
         owl:inverseOf gmeow:supersedes .
 }""" ;
-    gmeow:saRationale "gmeow:supersededBy MUST be an owl:ObjectProperty with domain and range gmeow:Entity and declare owl:inverseOf gmeow:supersedes — it is directional (predecessor→successor) and non-symmetric; the superseded entity is retained, never deleted (Principle 10)." .
+    gmeow:saRationale "The inverse of supersedes preserves the sorts of enduring entities, claim tokens and reifiers through universal logic:Thing bounds. Inferring an inverse succession edge must not retype an assertion activity as an Entity. The relation remains directional and the predecessor is retained (Principle 10)." .
 
 # --- The superseded-entity warning is limited to names (MUST) ---
 ex:saSupersededEntityWarningIsLimitedToNames a gmeow:StructuralAssertion ;

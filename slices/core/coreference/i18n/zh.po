@@ -376,3 +376,7 @@ msgstr "避免将 IRI 检查视为网络查询、身份证明、匹配断言，�
 msgctxt "https://blackcatinformatics.ca/gmeow/AuthorityReferenceTargetIriConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
 msgid "Bind each value through authorityReferenceTarget and require termIsIri. Report failure without coercion or fallback; retain the separate presence and cardinality laws."
 msgstr "通过 authorityReferenceTarget 绑定每个值并要求 termIsIri。报告失败，不强制转换或回退；保留独立的存在性和基数规则。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/supersedes|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Relates a successor resource to a prior one it supersedes, including enduring entities, records and claim tokens. Its universal logic:Thing signatures preserve their existing types. Non-functional: one successor may consolidate several predecessors. Superseded resources remain first-class and usable; the relation itself prompts no display flag, and what a reader is shown of a predecessor is that reader's policy, decided at projection."
+msgstr "将后继资源关联到其所取代的前驱资源，包括持续实体、记录和声明令牌。通用的 logic:Thing 签名保留它们已有的类型。该关系非函数性：一个后继可合并多个前驱。被取代的资源仍保持完整身份且可使用；关系本身不引发显示标记，读者看到前驱资源的哪些内容由该读者的政策在投影时决定。"

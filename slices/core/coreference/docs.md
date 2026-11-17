@@ -59,9 +59,12 @@ provenance. Bridges directly to the WEMI spine in `documents`/`creative-works`.
 
 ### gmeow:supersedes
 
-Relates a newer entity, version, record, or claim-bearing artifact to a prior one it
+Relates a newer resource, including an entity, version, record or claim token, to a prior one it
 replaces. Non-functional: one successor may consolidate several predecessors. The
-superseded entity is retained and usable (Principle 10); the relation itself prompts no display flag: what a reader is shown of the predecessor is
+universal `logic:Thing` domain and range preserve the resource's existing sort:
+superseding an assertion-act token does not make it an enduring `gmeow:Entity`,
+and superseding a record or reifier does not make it an activity. The
+superseded resource is retained and usable (Principle 10); the relation itself prompts no display flag: what a reader is shown of the predecessor is
 that reader's policy, decided at projection (`gmeow:displayable` false is only a holder's own
 withdrawal or replacement of its own record). The lifecycle slice supplies the inverse
 (`gmeow:supersededBy`) and the event-shaped view (`gmeow:eventTypeSupersession`) when

@@ -321,20 +321,20 @@ msgid "succeeds claim"
 msgstr "接续声明"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/succeedsClaim|skos:definition"
-msgid "Relates a successor claim-bearing entity to its predecessor when the claimed state changes. The predecessor remains valid during its earlier fact-time interval according to the stated standpoint."
-msgstr "当所声明状态发生变化时，将后继声明承载实体关联到前驱。根据所述立场，前驱在其较早的事实时间区间内仍有效。"
+msgid "Relates a successor claim to its predecessor when the claimed state changes. The predecessor remains valid during its earlier fact-time interval according to the stated standpoint."
+msgstr "当所声明状态发生变化时，将后继声明关联到前驱声明。根据所述立场，前驱声明在其较早的事实时间区间内仍有效。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/succeedsClaim|gmeow:howToUse"
 msgid "Annotate the relation with accordingTo and validFrom for its effective time; retain separate fact-time intervals on the claims or name usages."
 msgstr "以 accordingTo 和 validFrom 标注关系的立场及生效时间；在声明或名称使用上保留独立的事实时间区间。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/succeedsClaim|gmeow:useWhen"
-msgid "Relates a successor claim-bearing entity to its predecessor when the claimed state changes. The predecessor remains valid during its earlier fact-time interval according to the stated standpoint."
-msgstr "当所声明状态发生变化时，将后继声明承载实体关联到前驱。根据所述立场，前驱在其较早的事实时间区间内仍有效。"
+msgid "Relates a successor claim to its predecessor when the claimed state changes. The predecessor remains valid during its earlier fact-time interval according to the stated standpoint."
+msgstr "当所声明状态发生变化时，将后继声明关联到前驱声明。根据所述立场，前驱声明在其较早的事实时间区间内仍有效。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/succeedsClaim|skos:scopeNote"
-msgid "The effective time of a lifecycle relation is distinct from the fact-time interval of the proposition. Display suppression is a projection policy, not a global truth judgment."
-msgstr "生命周期关系的生效时间与命题的事实时间区间不同。显示抑制是投影政策，而非全局真值判断。"
+msgid "The universal logic:Thing bound accepts claim tokens, claim-bearing records and RDF reifiers without converting one into another or inferring gmeow:Entity. The effective time of a lifecycle relation is distinct from the fact-time interval of the proposition. Display suppression is a projection policy, not a global truth judgment."
+msgstr "通用的 logic:Thing 边界接受声明令牌、承载声明的记录和 RDF 重述标识节点，不会将它们相互转换，也不会推断 gmeow:Entity。生命周期关系的生效时间与命题的事实时间区间不同。显示抑制是投影政策，而非全局真值判断。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/succeedsClaim|skos:example"
 msgid "ex:janet gmeow:succeedsClaim ex:bob ."
@@ -345,8 +345,8 @@ msgid "corrects claim"
 msgstr "纠正声明"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/correctsClaim|skos:definition"
-msgid "Relates a correcting claim-bearing entity to a claim that the correcting standpoint states is wrong, including its purported earlier validity. A correction is a statement by that standpoint and nothing more: the corrected claim is retained unchanged, is not superseded, is not suppressed from display, and is not made false in any other standpoint."
-msgstr "将纠正声明承载实体关联到纠正立场认定有误的声明，包括其声称的早期有效性。纠正只是该立场作出的一项陈述：被纠正的声明原样保留，不被取代，不被抑制显示，也不会在任何其他立场下变为假。"
+msgid "Relates a correcting claim to a claim that the correcting standpoint states is wrong, including its purported earlier validity. A correction is a statement by that standpoint and nothing more: the corrected claim is retained unchanged, is not superseded, is not suppressed from display, and is not made false in any other standpoint."
+msgstr "将纠正声明关联到纠正立场认定有误的声明，包括其声称的早期有效性。纠正只是该立场作出的一项陈述：被纠正的声明原样保留，不被取代，不被抑制显示，也不会在任何其他立场下变为假。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/correctsClaim|gmeow:howToUse"
 msgid "Annotate the relation with accordingTo for the standpoint that makes the correction and with validFrom for when the correction took effect. Leave the corrected claim as it stands: do not set gmeow:displayable false on it and do not assert gmeow:supersedes because of the correction. Which of the two claims a reader is shown is decided at projection, not in the data."
@@ -361,8 +361,8 @@ msgid "Do not infer global truth, deletion, a preferred claim, a supersession or
 msgstr "不要推断全局真值、删除、首选声明、取代关系或另一立场中的变化。所声明的状态发生变化时不要使用（应使用 gmeow:succeedsClaim），立场撤回自己的声明时也不要使用（应使用 gmeow:retractsClaim）。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/correctsClaim|skos:scopeNote"
-msgid "The effective time of a lifecycle relation is distinct from the fact-time interval of the proposition. A correction is not a display instruction: whether a reader is shown the corrected claim is reader policy applied at projection."
-msgstr "生命周期关系的生效时间与命题的事实时间区间不同。纠正不是显示指令：是否向读者展示被纠正的声明，属于在投影时适用的读者政策。"
+msgid "The universal logic:Thing bound accepts claim tokens, claim-bearing records and RDF reifiers without converting one into another or inferring gmeow:Entity. The effective time of a lifecycle relation is distinct from the fact-time interval of the proposition. A correction is not a display instruction: whether a reader is shown the corrected claim is reader policy applied at projection."
+msgstr "通用的 logic:Thing 边界接受声明令牌、承载声明的记录和 RDF 重述标识节点，不会将它们相互转换，也不会推断 gmeow:Entity。生命周期关系的生效时间与命题的事实时间区间不同。纠正不是显示指令：是否向读者展示被纠正的声明，属于在投影时适用的读者政策。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/correctsClaim|skos:example"
 msgid "ex:correction gmeow:correctsClaim ex:mistakenName ."
@@ -373,20 +373,20 @@ msgid "retracts claim"
 msgstr "撤回声明"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/retractsClaim|skos:definition"
-msgid "Relates a withdrawal activity to the claim-bearing entity it withdraws in a stated standpoint. This relation is the canonical lifecycle encoding; a speech-act force alone performs no withdrawal."
-msgstr "将撤回活动关联到其在所述立场下撤回的声明承载实体。此关系是规范的生命周期编码；仅有言语行为力度不执行撤回。"
+msgid "Relates a withdrawal activity to the claim it withdraws in a stated standpoint. This relation is the canonical lifecycle encoding; a speech-act force alone performs no withdrawal."
+msgstr "将撤回活动关联到其在所述立场下撤回的声明。此关系是规范的生命周期编码；仅有言语行为力度不执行撤回。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/retractsClaim|gmeow:howToUse"
 msgid "Type the subject Activity, name its actor with wasAssociatedWith, and annotate the relation with accordingTo and validFrom. Retraction suppresses retained history for ordinary revision; erasure requires separate authorization."
 msgstr "将主语定型为 Activity，以 wasAssociatedWith 指定行为者，并以 accordingTo 和 validFrom 标注关系。普通修订中的撤回抑制历史显示并保留记录；删除需要独立授权。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/retractsClaim|gmeow:useWhen"
-msgid "Relates a withdrawal activity to the claim-bearing entity it withdraws in a stated standpoint. This relation is the canonical lifecycle encoding; a speech-act force alone performs no withdrawal."
-msgstr "将撤回活动关联到其在所述立场下撤回的声明承载实体。此关系是规范的生命周期编码；仅有言语行为力度不执行撤回。"
+msgid "Relates a withdrawal activity to the claim it withdraws in a stated standpoint. This relation is the canonical lifecycle encoding; a speech-act force alone performs no withdrawal."
+msgstr "将撤回活动关联到其在所述立场下撤回的声明。此关系是规范的生命周期编码；仅有言语行为力度不执行撤回。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/retractsClaim|skos:scopeNote"
-msgid "The effective time of a lifecycle relation is distinct from the fact-time interval of the proposition. Display suppression is a projection policy, not a global truth judgment."
-msgstr "生命周期关系的生效时间与命题的事实时间区间不同。显示抑制是投影政策，而非全局真值判断。"
+msgid "The universal logic:Thing bound accepts claim tokens, claim-bearing records and RDF reifiers without converting one into another or inferring gmeow:Entity. The effective time of a lifecycle relation is distinct from the fact-time interval of the proposition. Display suppression is a projection policy, not a global truth judgment."
+msgstr "通用的 logic:Thing 边界接受声明令牌、承载声明的记录和 RDF 重述标识节点，不会将它们相互转换，也不会推断 gmeow:Entity。生命周期关系的生效时间与命题的事实时间区间不同。显示抑制是投影政策，而非全局真值判断。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/retractsClaim|skos:example"
 msgid "ex:withdrawal a gmeow:Activity ; gmeow:retractsClaim ex:claim ."
