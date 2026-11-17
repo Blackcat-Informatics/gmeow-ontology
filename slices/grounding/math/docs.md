@@ -285,6 +285,24 @@ remain distinct from a complete basis inventory or a proof of independence and
 spanning. The [basis identity and coordinate-order contract](./design/MATHEMATICS-LINEAR-ALGEBRA-AND-LEARNING.md#basis-identity-and-coordinate-order)
 also scopes orthonormal eigenbasis claims to their actual mathematical setting.
 
+`math:Eigendecomposition` describes eigenvalue and nonzero eigenvector data for a
+declared operator, space and scalar field. The finite-dimensional factorization
+`A = QΛQ⁻¹` requires a complete eigenbasis and invertible `Q`, with corresponding
+column and diagonal order; `A` itself may be singular. Preserve source association,
+order and multiplicity evidence separately: unordered `math:eigenvalue` and
+`math:eigenvector` links supply neither eigenpair pairing nor completeness. The
+[eigenvalue and eigenvector contract](./design/MATHEMATICS-LINEAR-ALGEBRA-AND-LEARNING.md#eigenvalue-and-eigenvector-associations)
+distinguishes zero eigenvalues, nonzero vectors, algebraic and geometric
+multiplicities, normalization and scalar-field assumptions.
+
+The registered eigen grounding is a `skos:closeMatch` to Wikidata `wd:Q190524`
+with `logic:AffineCorrespondence`, `logic:InstitutionMorphism` and
+`logic:ValidationOnly` preservation. It relates concepts without identifying the
+decomposition with the target or supplying an OpenMath eigen correspondence.
+The exact Gram/PCA producer emits an eigensolver descriptor and PCA roles, with
+no eigenvalue/eigenvector result triples. Neither those records nor the grounding
+certifies numerical execution of an eigendecomposition.
+
 - **Inner-product spaces and decompositions** — `math:InnerProductSpace`, `math:HermitianInnerProduct`,
   `math:Subspace`, `math:OrthogonalComplement` (⊑ `math:Complement`, so it realizes the geometry
   charter's complement contract — ambient space, orthogonal semantics, and now `math:definedByInnerProduct`),

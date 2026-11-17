@@ -40,8 +40,13 @@ inner product (a `math:HermitianInnerProduct` for the complex case). The
 its `math:ambientSpace` and is `math:definedByInnerProduct`, so "the orthogonal complement" is never
 ambiguous ([`MATHEMATICS-ANALYSIS-AND-GEOMETRY.md`](MATHEMATICS-ANALYSIS-AND-GEOMETRY.md)).
 Decompositions — `math:Eigendecomposition`, `math:SingularValueDecomposition` — are first-class
-objects with declared operands and outputs. External anchor: only OpenMath `linalg`/`linalgeig`
-names eigen symbols; SVD/PCA are authored.
+objects with declared operands and outputs. The registered eigen grounding in
+[`mappings/equivalences.ttl`](../mappings/equivalences.ttl) is a `skos:closeMatch`
+from `math:Eigendecomposition` to Wikidata `wd:Q190524`, eigenvectors and eigenvalues,
+with `logic:AffineCorrespondence`, `logic:InstitutionMorphism` and
+`logic:ValidationOnly` preservation. It relates the decomposition to the broader
+eigenvalue/eigenvector concept; it asserts neither identity nor executable numerical
+lowering. There is no authored OpenMath eigen correspondence in this mapping.
 
 ### Basis identity and coordinate order
 
@@ -72,6 +77,44 @@ finite-dimensional real or complex inner-product space admits an orthonormal
 eigenbasis; this does not make every basis an eigenbasis. Arbitrary
 infinite-dimensional self-adjoint operators need not admit an eigenvector basis.
 A truncated PCA component family need not span the full input space.
+
+### Eigenvalue and eigenvector associations
+
+An eigenvector is a nonzero vector `v` satisfying `Av = λv` for the supplied
+operator on the declared vector space over its scalar field. The eigenvalue `λ`
+may be zero. A real operator need not have real eigenvalues; an extension of
+scalars is explicit, never inferred from a number or vector label.
+
+In finite dimension, `A = QΛQ⁻¹` requires a complete eigenbasis. The columns of
+invertible `Q` are the eigenvectors, and diagonal `Λ` lists their eigenvalues in
+matching order. The operator `A` need not be invertible: in a supplied ordered
+real basis, `A = diag(0,3)` has `Q = I`, `Λ = diag(0,3)` and the nonzero
+eigenvector `(1,0)` for eigenvalue zero. General operators need not be
+diagonalizable. Orthonormality or a unitary `Q` requires the corresponding
+inner-product and operator hypotheses; the finite-dimensional formula does not
+supply a discrete eigenvector basis for arbitrary infinite-dimensional operators.
+
+`math:eigenvalue` and `math:eigenvector` are separate unordered output relations.
+Preserve actual associations and ordering in the source representation. The
+relations do not construct eigenpairs: neither equal output counts nor RDF order
+identifies a pairing, and the Cartesian product of the outputs is not a set of
+valid eigenpairs. Repeated identical RDF assertions carry no additional count.
+Distinct number resources do not establish algebraic multiplicity, which counts
+roots of the characteristic polynomial. Geometric multiplicity is the dimension
+of an eigenspace, established by a basis of that eigenspace rather than resource count.
+Nonzero scalar multiples share an eigendirection; normalization and representative
+selection do not change either multiplicity. A partial output family establishes
+no complete diagonalization.
+
+The `exact_pca_residual` producer in
+[`crates/math/src/producers.rs`](../../../../crates/math/src/producers.rs) computes
+a dominant axis and LDL pivots for fixed Gram inputs and emits PCA role records
+with `math:eigensolver p:exactLDLT`. That descriptor is typed as
+`math:MathematicalObject`; the producer emits no `math:eigenvalue` or
+`math:eigenvector` result triples. The ordinary example's `ex:randomizedSVD`
+descriptor names a `math:SingularValueDecomposition`. Neither descriptor, a type
+declaration nor the validation-only grounding certifies an executed
+eigendecomposition or a complete eigenbasis.
 
 ## The exact numeric layer — bilinear forms, matrices, norms, and rational carriers
 
