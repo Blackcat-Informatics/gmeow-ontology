@@ -333,6 +333,24 @@ with `logic:WellBehavedLens`, `logic:InstitutionMorphism` and
 `logic:SoundUnderApproximation` preservation. This concept relation proves no
 individual map's linearity, image or rank.
 
+`math:CovarianceOperator` describes centered second moments under supplied field,
+inner-product and moment assumptions. The
+[covariance contract](./design/MATHEMATICS-LINEAR-ALGEBRA-AND-LEARNING.md#covariance-operators-and-declared-analysis-operands)
+distinguishes population and empirical covariance, conjugate-transpose and sample
+orientation conventions, centering/scaling and normalization evidence, and
+positive semidefiniteness from positive definiteness. Singular or zero covariance
+is valid; a missing operator is not zero covariance.
+
+`math:covarianceOperator` records the analysis-to-operator role. The current
+generic source minimum and closure do not establish exact-one or typed-target
+enforcement, covariance construction or a numerical spectral result. The fixed
+Gram/PCA producer supplies role records without observed-sample construction.
+The conservative `skos:closeMatch` to
+[Wikidata Q5178900](https://www.wikidata.org/wiki/Q5178900) carries
+`logic:AffineCorrespondence`, `logic:InstitutionMorphism` and
+`logic:ValidationOnly` preservation; conceptual overlap supplies no executable
+algorithm or analytic equivalence.
+
 - **Inner-product spaces and decompositions** — `math:InnerProductSpace`, `math:HermitianInnerProduct`,
   `math:Subspace`, `math:OrthogonalComplement` (⊑ `math:Complement`, so it realizes the geometry
   charter's complement contract — ambient space, orthogonal semantics, and now `math:definedByInnerProduct`),

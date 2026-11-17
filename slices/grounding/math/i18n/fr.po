@@ -17830,3 +17830,59 @@ msgstr "Ne pas remplacer un rang inconnu ou infini par zéro, une grande valeur 
 msgctxt "https://blackcatinformatics.ca/math/rankValue|https://blackcatinformatics.ca/gmeow/howToUse"
 msgid "Attach the supplied nonnegative integer to the math:Rank resource and retain the map, field and supporting evidence in the existing source representation. Keep omission distinct from zero and preserve any separate approximation policy. The relation alone supplies no specialized validation gate or rank computation."
 msgstr "Attacher l’entier non négatif fourni à la ressource math:Rank et conserver l’application, le corps et les éléments justificatifs dans la représentation de source existante. Distinguer l’omission de zéro et préserver toute politique d’approximation distincte. La relation seule ne fournit aucun contrôle de validation spécialisé ni aucun calcul de rang."
+
+msgctxt "https://blackcatinformatics.ca/math/CovarianceOperator|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Covariance Operator"
+msgstr "Opérateur de covariance"
+
+msgctxt "https://blackcatinformatics.ca/math/CovarianceOperator|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A self-adjoint positive-semidefinite linear operator representing centered second moments in a declared real or complex inner-product setting. For finite-dimensional column coordinates with E[‖X‖²] finite, μ = E[X] and C = E[(X-μ)(X-μ)*], where * is conjugate transpose, or ordinary transpose over the reals."
+msgstr "Un opérateur linéaire autoadjoint positif semi-défini représentant les moments centrés d’ordre deux dans un cadre préhilbertien réel ou complexe déclaré. Pour des coordonnées colonnes de dimension finie avec E[‖X‖²] finie, μ = E[X] et C = E[(X-μ)(X-μ)*], où * est la transposée conjuguée, ou la transposée ordinaire sur les réels."
+
+msgctxt "https://blackcatinformatics.ca/math/CovarianceOperator|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The coordinate formula uses supplied orthonormal bases and the complex convention ⟨u,v⟩ = u* v, conjugate-linear in the first argument. Infinite-dimensional use requires stated existence, boundedness and spectral hypotheses; this type does not assert a discrete eigenvector basis for an arbitrary operator. An unconjugated complex second moment is a different construction."
+msgstr "La formule en coordonnées utilise des bases orthonormées fournies et la convention complexe ⟨u,v⟩ = u* v, antilinéaire dans le premier argument. L’usage en dimension infinie exige des hypothèses déclarées d’existence, de bornitude et de spectre ; ce type n’affirme pas l’existence d’une base discrète de vecteurs propres pour un opérateur arbitraire. Un moment d’ordre deux complexe sans conjugaison est une autre construction."
+
+msgctxt "https://blackcatinformatics.ca/math/CovarianceOperator|http://www.w3.org/2004/02/skos/core#example"
+msgid "A real random vector equally likely to be (1,0) or (-1,0) has mean zero and covariance diag(1,0) under the standard Euclidean inner product. This covariance is positive semidefinite and singular; its zero eigenvalue is valid, and no inverse is required."
+msgstr "Un vecteur aléatoire réel prenant (1,0) ou (-1,0) avec la même probabilité a une moyenne nulle et une covariance diag(1,0) pour le produit scalaire euclidien standard. Cette covariance est positive semi-définie et singulière ; sa valeur propre nulle est valide et aucun inverse n’est requis."
+
+msgctxt "https://blackcatinformatics.ca/math/CovarianceOperator|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for a justified population or empirical covariance operator, retaining the observations or probability model, scalar field, inner product, centering, scaling and actual normalization convention in the source representation."
+msgstr "Utiliser pour un opérateur de covariance de population ou empirique justifié, en conservant les observations ou le modèle probabiliste, le corps des scalaires, le produit scalaire, le centrage, la mise à l’échelle et la convention de normalisation effective dans la représentation de source."
+
+msgctxt "https://blackcatinformatics.ca/math/CovarianceOperator|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Do not infer covariance from a Gram-matrix or symmetry label alone, require positive definiteness, or replace a missing operator with zero covariance. Repeated eigenvalues do not select unique eigenvectors. A declared covariance role or solver descriptor does not establish centering, covariance construction or numerical spectral analysis."
+msgstr "Ne pas déduire une covariance d’un simple libellé de matrice de Gram ou de symétrie, exiger que l’opérateur soit défini positif ni remplacer un opérateur absent par une covariance nulle. Des valeurs propres répétées ne sélectionnent pas de vecteurs propres uniques. Un rôle de covariance déclaré ou un descripteur de solveur n’établit ni le centrage, ni la construction de covariance, ni une analyse spectrale numérique."
+
+msgctxt "https://blackcatinformatics.ca/math/CovarianceOperator|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the inherited LinearMap and Function carrier-set frame separately from the vector-space structure. Use math:covarianceOperator from the analysis to this operator. Preserve sample orientation and divisor: empirical 1/N requires N > 0, while 1/(N-1) requires N > 1. Those choices and their evidence are supplied data, not defaults or new validation gates."
+msgstr "Conserver le cadre hérité d’ensembles supports de LinearMap et Function séparément de la structure vectorielle. Utiliser math:covarianceOperator de l’analyse vers cet opérateur. Préserver l’orientation des échantillons et le diviseur : la convention empirique 1/N exige N > 0, tandis que 1/(N-1) exige N > 1. Ces choix et leurs éléments justificatifs sont des données fournies, pas des valeurs par défaut ni de nouveaux contrôles de validation."
+
+msgctxt "https://blackcatinformatics.ca/math/covarianceOperator|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "covariance operator"
+msgstr "opérateur de covariance"
+
+msgctxt "https://blackcatinformatics.ca/math/covarianceOperator|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Relates a math:PCAAnalysis to the supplied math:CovarianceOperator that is its declared decomposition operand. The analysis process, its input data, the covariance operator and any reported numerical outputs retain separate roles; this link records the operator role rather than constructing it."
+msgstr "Relie une math:PCAAnalysis au math:CovarianceOperator fourni qui est son opérande déclaré de décomposition. Le processus d’analyse, ses données d’entrée, l’opérateur de covariance et toute sortie numérique rapportée conservent des rôles distincts ; ce lien consigne le rôle d’opérateur plutôt que de le construire."
+
+msgctxt "https://blackcatinformatics.ca/math/covarianceOperator|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The current PCA source contract requires at least one covariance-operator resource through its generic minimum and existing closure, associated with math:IncompletePCAAnalysis. This is not an exact-one or typed-target enforcement claim. The mathematical covariance meaning and the inherited operator frame still need their own evidence."
+msgstr "Le contrat source actuel de PCA exige au moins une ressource d’opérateur de covariance par son minimum générique et sa fermeture existante, associés à math:IncompletePCAAnalysis. Cela n’affirme pas un contrôle d’exactement une valeur ou de type de cible. Le sens mathématique de covariance et le cadre hérité de l’opérateur exigent encore leurs propres éléments justificatifs."
+
+msgctxt "https://blackcatinformatics.ca/math/covarianceOperator|http://www.w3.org/2004/02/skos/core#example"
+msgid "The exact-pca producer emits p:residualPCA math:covarianceOperator p:residualCovariance and gives that CovarianceOperator domain and codomain p:covSpace. Its fixed Gram, dominant-axis and LDL calculations do not supply observed samples, an executed centering step or a sample-covariance normalization."
+msgstr "Le producteur exact-pca émet p:residualPCA math:covarianceOperator p:residualCovariance et donne à ce CovarianceOperator le domaine et le codomaine p:covSpace. Ses calculs sur un Gram fixe, d’axe dominant et de LDL ne fournissent ni échantillons observés, ni étape de centrage exécutée, ni normalisation de covariance d’échantillon."
+
+msgctxt "https://blackcatinformatics.ca/math/covarianceOperator|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain the actual covariance operand named by an analysis, together with independently supplied input, preprocessing, scalar-field, inner-product and normalization context."
+msgstr "Utiliser pour conserver l’opérande effectif de covariance nommé par une analyse, avec les contextes d’entrée, de prétraitement, de corps des scalaires, de produit scalaire et de normalisation fournis indépendamment."
+
+msgctxt "https://blackcatinformatics.ca/math/covarianceOperator|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Do not reverse the analysis-to-operator direction, substitute the dataset or solver for the operator, or infer an executed spectral decomposition from the edge. Missing covariance differs from a supplied operator, which may be zero or singular; no absent operand is repaired by inventing a zero operator or undeclared preprocessing."
+msgstr "Ne pas inverser la direction de l’analyse vers l’opérateur, substituer le jeu de données ou le solveur à l’opérateur ni déduire une décomposition spectrale exécutée de l’arête. Une covariance absente diffère d’un opérateur fourni, qui peut être nul ou singulier ; aucun opérande absent n’est réparé en inventant un opérateur nul ou un prétraitement non déclaré."
+
+msgctxt "https://blackcatinformatics.ca/math/covarianceOperator|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Link the analysis to its justified CovarianceOperator resource and preserve that operator’s carrier-set frame and actual construction evidence. Keep centering and scaling declarations on the analysis distinct from proof that those operations ran. The relation supplies no additional maximum, automatic target typing, covariance computation or numerical validation result."
+msgstr "Relier l’analyse à sa ressource CovarianceOperator justifiée et conserver le cadre d’ensembles supports de cet opérateur et les éléments de sa construction effective. Distinguer les déclarations de centrage et de mise à l’échelle sur l’analyse des preuves que ces opérations ont été exécutées. La relation ne fournit aucun maximum supplémentaire, typage automatique de cible, calcul de covariance ni résultat de validation numérique."

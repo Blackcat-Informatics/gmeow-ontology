@@ -6265,7 +6265,12 @@ math:CovarianceOperator
     rdfs:subClassOf math:LinearMap ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "Covariance Operator"@x-gmeow-english ;
-    skos:definition "The covariance operator of a centered data distribution — a self-adjoint, positive-semidefinite linear map whose spectral decomposition yields the principal directions. A subclass of math:LinearMap. A math:PCAAnalysis names the math:CovarianceOperator it decomposes through math:covarianceOperator; its eigenvectors are the loadings and its eigenvalues the explained variances."@x-gmeow-english ;
+    skos:definition "A self-adjoint positive-semidefinite linear operator representing centered second moments in a declared real or complex inner-product setting. For finite-dimensional column coordinates with E[‖X‖²] finite, μ = E[X] and C = E[(X-μ)(X-μ)*], where * is conjugate transpose, or ordinary transpose over the reals."@x-gmeow-english ;
+    skos:scopeNote "The coordinate formula uses supplied orthonormal bases and the complex convention ⟨u,v⟩ = u* v, conjugate-linear in the first argument. Infinite-dimensional use requires stated existence, boundedness and spectral hypotheses; this type does not assert a discrete eigenvector basis for an arbitrary operator. An unconjugated complex second moment is a different construction."@x-gmeow-english ;
+    skos:example "A real random vector equally likely to be (1,0) or (-1,0) has mean zero and covariance diag(1,0) under the standard Euclidean inner product. This covariance is positive semidefinite and singular; its zero eigenvalue is valid, and no inverse is required."@x-gmeow-english ;
+    gmeow:useWhen "Use for a justified population or empirical covariance operator, retaining the observations or probability model, scalar field, inner product, centering, scaling and actual normalization convention in the source representation."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not infer covariance from a Gram-matrix or symmetry label alone, require positive definiteness, or replace a missing operator with zero covariance. Repeated eigenvalues do not select unique eigenvectors. A declared covariance role or solver descriptor does not establish centering, covariance construction or numerical spectral analysis."@x-gmeow-english ;
+    gmeow:howToUse "Retain the inherited LinearMap and Function carrier-set frame separately from the vector-space structure. Use math:covarianceOperator from the analysis to this operator. Preserve sample orientation and divisor: empirical 1/N requires N > 0, while 1/(N-1) requires N > 1. Those choices and their evidence are supplied data, not defaults or new validation gates."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 math:PrincipalComponent
@@ -6804,7 +6809,12 @@ math:covarianceOperator
     a logic:ObjectProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "covariance operator"@x-gmeow-english ;
-    skos:definition "Relates a math:PCAAnalysis to the math:CovarianceOperator it decomposes. Domain math:PCAAnalysis, range math:CovarianceOperator (stated in prose). The operator whose spectral decomposition yields the principal components; a PCA without it is ill-formed (math:IncompletePCAAnalysis)."@x-gmeow-english ;
+    skos:definition "Relates a math:PCAAnalysis to the supplied math:CovarianceOperator that is its declared decomposition operand. The analysis process, its input data, the covariance operator and any reported numerical outputs retain separate roles; this link records the operator role rather than constructing it."@x-gmeow-english ;
+    skos:scopeNote "The current PCA source contract requires at least one covariance-operator resource through its generic minimum and existing closure, associated with math:IncompletePCAAnalysis. This is not an exact-one or typed-target enforcement claim. The mathematical covariance meaning and the inherited operator frame still need their own evidence."@x-gmeow-english ;
+    skos:example "The exact-pca producer emits p:residualPCA math:covarianceOperator p:residualCovariance and gives that CovarianceOperator domain and codomain p:covSpace. Its fixed Gram, dominant-axis and LDL calculations do not supply observed samples, an executed centering step or a sample-covariance normalization."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain the actual covariance operand named by an analysis, together with independently supplied input, preprocessing, scalar-field, inner-product and normalization context."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not reverse the analysis-to-operator direction, substitute the dataset or solver for the operator, or infer an executed spectral decomposition from the edge. Missing covariance differs from a supplied operator, which may be zero or singular; no absent operand is repaired by inventing a zero operator or undeclared preprocessing."@x-gmeow-english ;
+    gmeow:howToUse "Link the analysis to its justified CovarianceOperator resource and preserve that operator’s carrier-set frame and actual construction evidence. Keep centering and scaling declarations on the analysis distinct from proof that those operations ran. The relation supplies no additional maximum, automatic target typing, covariance computation or numerical validation result."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 math:eigensolver
