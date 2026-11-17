@@ -116,6 +116,57 @@ descriptor names a `math:SingularValueDecomposition`. Neither descriptor, a type
 declaration nor the validation-only grounding certifies an executed
 eigendecomposition or a complete eigenbasis.
 
+### Singular-value factors, dimensions and multiplicities
+
+`math:SingularValueDecomposition` describes a linear map between finite-dimensional
+real or complex inner-product spaces. In supplied orthonormal coordinate bases,
+`A = UΣV*`; `V*` is the conjugate transpose, or ordinary transpose over the reals.
+The diagonal entries of `Σ` are real and nonnegative. Singular and rectangular
+maps admit this factorization without an inverse or an eigenbasis of `A`.
+Preserve both inner products: changing them may change the singular values. This
+finite matrix statement supplies no SVD for an arbitrary infinite-dimensional
+operator.
+
+For `m×n` matrix `A`, `k = min(m,n)` and exact rank `r`, the following conventions
+make factor dimensions and zero treatment explicit. Source names vary; preserve
+the actual dimensions and retained occurrences rather than interpreting a name
+alone.
+
+| Form | U | Σ | V | Retained diagonal occurrences |
+| --- | --- | --- | --- | --- |
+| Full | m×m | m×n | n×n | k, including zeros |
+| Thin | m×k | k×k | n×k | k, including zeros |
+| Rank-compact | m×r | r×r | n×r | r, all strictly positive |
+
+The columns of each `U` and `V` are orthonormal, and corresponding columns share
+the diagonal order of `Σ`. For rank zero, the compact convention has empty
+column families and an empty diagonal; it still represents the zero map. A
+truncation that discards positive singular values approximates `A` rather than
+factoring it exactly. Numeric rank based on a supplied tolerance is a separate
+reported policy and result, not mathematical rank or an implicit zero test.
+
+For real `A = diag(3,3,0)` with the standard Euclidean inner product and an
+ordered orthonormal basis, `U = V = I` and `Σ = A` give the full exact SVD.
+The singular-value sequence `3,3,0` has two positive occurrences and rank two,
+although it has only one distinct positive value. An unordered
+`math:singularValue` link does not encode these occurrences. Repeating an RDF
+assertion adds no multiplicity; distinct number resources prove no multiplicity
+either. Preserve supplied occurrence, factor association, order, dimensions and
+completeness evidence in its source representation. Missing zero outputs do not
+establish full rank, and a truncated output family does not disclose omitted
+values. Singular values, their squares and explained-variance ratios retain
+distinct mathematical roles even when particular numbers coincide.
+
+The registered SVD grounding in
+[`mappings/equivalences.ttl`](../mappings/equivalences.ttl) is `skos:exactMatch`
+to Wikidata `wd:Q420904`, with `logic:WellBehavedLens`,
+`logic:InstitutionMorphism` and `logic:SoundUnderApproximation` preservation.
+This concept relation supplies no factor matrices, numerical algorithm or
+execution certificate. The ordinary scene and PCA fixtures name SVD descriptors
+without publishing factor or `math:singularValue` results. The exact Gram/PCA
+producer emits its LDL descriptor and PCA role records, with no singular-value
+output triples; those declarations do not establish an executed SVD.
+
 ## The exact numeric layer — bilinear forms, matrices, norms, and rational carriers
 
 Core classes: `math:BilinearForm`, `math:SymmetricBilinearForm`, `math:Matrix`, `math:SymmetricMatrix`,
