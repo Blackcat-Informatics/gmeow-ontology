@@ -23,6 +23,7 @@ pub mod code;
 pub mod dag;
 pub mod diag;
 pub mod error;
+mod first_diagnostic;
 pub mod grade;
 pub mod json;
 mod json_evidence;
@@ -44,6 +45,7 @@ pub use diag::{
     GuidanceSource, Label, PipelineLocus, PreservedDiagnostic, ResultExt, ResultIterExt, Slot,
     SourceContext, StageId, TermRole,
 };
+pub use first_diagnostic::FirstDiagnostic;
 pub use grade::{
     Belnap, Blocking, BoundedLattice, GateVerdict, Grade, GradeMerge, Standpoint, gate,
 };

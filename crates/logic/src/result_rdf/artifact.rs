@@ -318,19 +318,13 @@ struct Audit<'a> {
     restored: Option<ReasoningResult>,
     probe: Option<NativeReceiptRef<'a>>,
     dedicated_blob: bool,
-    first_refusal: Option<gmeow_errors::Diag>,
+    first_refusal: gmeow_errors::FirstDiagnostic,
     role: Role,
     closures: BTreeMap<NativeReceiptAddress, Required>,
     restored_closure: Option<Arc<RdfDataset>>,
 }
 
 impl Audit<'_> {
-    fn record(&mut self, result: gmeow_errors::Result<()>) {
-        if self.first_refusal.is_none() {
-            self.first_refusal = result.err();
-        }
-    }
-
     fn payload(&mut self, mut payload: BlobPayload<'_>) -> gmeow_errors::Result<()> {
         let Some((address, required)) = self.required.get_key_value(payload.digest) else {
             return Ok(());
@@ -504,19 +498,19 @@ impl StreamingSink for Audit<'_> {
             if valid && value.is_some() {
                 required.declared = true;
             }
-            self.record(result);
+            self.first_refusal.record(result);
         }
     }
     fn blob_payload(&mut self, payload: BlobPayload<'_>) {
         let result = self.payload(payload);
-        self.record(result);
+        self.first_refusal.record(result);
     }
     fn blob_refused(&mut self, refusal: BlobRefusal<'_>) {
         if refusal
             .digest
             .is_some_and(|digest| self.required.contains_key(digest))
         {
-            self.record(Err(result_err(format!(
+            self.first_refusal.record(Err(result_err(format!(
                 "required native receipt payload refused: {}",
                 refusal.detail
             ))));
@@ -591,7 +585,7 @@ fn admit(
         restored,
         probe,
         dedicated_blob: false,
-        first_refusal: None,
+        first_refusal: gmeow_errors::FirstDiagnostic::default(),
         role: Role::Native,
         closures,
         restored_closure: None,

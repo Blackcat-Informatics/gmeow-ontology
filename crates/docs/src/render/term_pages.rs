@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 
 use super::*;
+use gmeow_docs_model::slug::{pydantic_class_name, pydantic_module_slug};
 
 /// Standard Base64 (RFC 4648, `+`/`/`, `=` padding) — used to carry a fixture's
 /// Turtle verbatim inside a `data-` attribute for the in-browser "run validation"
@@ -964,53 +965,6 @@ const SYNTAX_TAB_PROVIDERS: &[SyntaxTabProvider] = &[
     python_syntax_tab,
     rust_syntax_tab,
 ];
-
-/// The generated `gmeow_models` module slug for a slice IRI (the last IRI segment,
-/// lowercased, non-identifier chars → `_`) — the same routing the Pydantic emitter
-/// uses, so `gmeow_models.<slice>` resolves to the term's model module.
-fn pydantic_module_slug(slice_iri: &str) -> String {
-    let local = slice_iri.rsplit(['#', '/']).next().unwrap_or(slice_iri);
-    let mut out = String::new();
-    for ch in local.chars() {
-        out.push(if ch == '_' || ch.is_ascii_alphanumeric() {
-            ch.to_ascii_lowercase()
-        } else {
-            '_'
-        });
-    }
-    while out.contains("__") {
-        out = out.replace("__", "_");
-    }
-    out.trim_matches('_').to_string()
-}
-
-/// The generated Pydantic class name for a class IRI: the CamelCase of its local
-/// name (mirroring the emitter's `sanitize_type`), guarded against a leading digit.
-fn pydantic_class_name(iri: &str) -> String {
-    let local = iri.rsplit(['#', '/']).next().unwrap_or(iri);
-    let mut ident = String::new();
-    for ch in local.chars() {
-        ident.push(if ch == '_' || ch.is_ascii_alphanumeric() {
-            ch
-        } else {
-            '_'
-        });
-    }
-    while ident.contains("__") {
-        ident = ident.replace("__", "_");
-    }
-    ident = ident.trim_matches('_').to_string();
-    let mut chars = ident.chars();
-    let name = match chars.next() {
-        Some(c) => format!("{}{}", c.to_ascii_uppercase(), chars.as_str()),
-        None => "GmeowModel".to_string(),
-    };
-    if name.chars().next().is_some_and(|c| c.is_ascii_digit()) {
-        format!("N{name}")
-    } else {
-        name
-    }
-}
 
 /// Escape `text` for embedding as a non-raw, double-quoted Python string
 /// literal: backslash and `"` are the only two characters a Python string

@@ -61,16 +61,10 @@ fn refusal(message: impl Into<String>) -> gmeow_errors::Diag {
 #[derive(Default)]
 struct Audit {
     census: OpaqueTransport,
-    first_refusal: Option<gmeow_errors::Diag>,
+    first_refusal: gmeow_errors::FirstDiagnostic,
 }
 
 impl Audit {
-    fn record(&mut self, result: gmeow_errors::Result<()>) {
-        if self.first_refusal.is_none() {
-            self.first_refusal = result.err();
-        }
-    }
-
     fn metadata(metadata: Option<&Value>) -> gmeow_errors::Result<()> {
         if let Some(metadata) = metadata {
             let bytes = purrdf_lex::cbor::encoded_len(metadata);
@@ -151,18 +145,18 @@ impl Audit {
 impl StreamingSink for Audit {
     fn blob(&mut self, _segment: u64, _digest: &str, metadata: Option<&Value>) {
         self.census.has_blobs = true;
-        self.record(Self::metadata(metadata));
+        self.first_refusal.record(Self::metadata(metadata));
     }
 
     fn blob_payload(&mut self, payload: BlobPayload<'_>) {
         // Never deduplicate before physical bytes have been decoded and hashed.
         // Even after refusal, the native reader must complete its integrity audit.
         let result = Self::payload(payload);
-        self.record(result);
+        self.first_refusal.record(result);
     }
 
     fn blob_refused(&mut self, refusal: BlobRefusal<'_>) {
-        self.record(Err(self::refusal(format!("opaque payload {} refused under selected encoded/decoded limits {MAX_OPAQUE_ENCODED_BYTES}/{MAX_OPAQUE_BYTES}: {}", refusal.digest.unwrap_or("<undeclared>"), refusal.detail))));
+        self.first_refusal.record(Err(self::refusal(format!("opaque payload {} refused under selected encoded/decoded limits {MAX_OPAQUE_ENCODED_BYTES}/{MAX_OPAQUE_BYTES}: {}", refusal.digest.unwrap_or("<undeclared>"), refusal.detail))));
     }
 
     fn blob_encoded_limit(&self) -> Option<usize> {
@@ -194,7 +188,7 @@ pub fn audit_opaque_transport(bytes: &[u8]) -> gmeow_errors::Result<OpaqueTransp
             diagnostic: std::sync::Arc::new(diagnostic),
         }));
     }
-    if let Some(refusal) = audit.first_refusal {
+    if let Some(refusal) = audit.first_refusal.take() {
         return Err(refusal);
     }
     if result.torn.is_some() {

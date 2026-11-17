@@ -11,7 +11,7 @@ mod conjecture_witness;
 #[path = "../tests/support/closure_witness.rs"]
 mod closure_witness;
 
-fn main() -> Result<(), Box<dyn std::error::Error>> {
+fn main() -> gmeow_errors::Result<()> {
     let artifact = closure_witness::reason_artifact(closure_witness::INPUT, "turtle");
     assert_eq!(
         artifact,
@@ -19,9 +19,9 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         "native closure must be deterministic"
     );
     let response: serde_json::Value = serde_json::from_str(&artifact)?;
-    let closure = response["closure_nquads"]
-        .as_str()
-        .ok_or("missing admitted RDF closure")?;
+    let closure = response["closure_nquads"].as_str().ok_or_else(|| {
+        conjecture_witness::contract_failure("native reason response lacks admitted RDF closure")
+    })?;
     assert_eq!(
         closure.lines().count(),
         7,

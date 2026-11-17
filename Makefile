@@ -911,6 +911,7 @@ maint-refresh-reason-asset: ## Refresh both native witnesses, prove Node parity,
 	$(MAKE) reason-wasm-pkg
 	cd crates/reason-wasm/js && node --test tests/*.test.mjs
 	@echo "OK: gmeow-reason-wasm Node native↔wasm parity witness lane passed"
+	cp crates/reason-wasm/tests/WITNESS.reason.json crates/docs/assets/reason/WITNESS.reason.json
 	$(call REVENDOR_WASM_ASSET,reason,REASON)
 
 reason-wasm-pkg-test: reason-wasm-pkg ## Build the reasoner npm package and run its Node native↔wasm parity witness lane.

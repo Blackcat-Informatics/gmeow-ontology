@@ -18,7 +18,7 @@
    "kind": "body",
    "members": [
     "docs_print::doc_render::find_backtick_run",
-    "gmeow_docs::render::find_backtick_run"
+    "gmeow_docs::render::catalog_pages::find_backtick_run"
    ]
   },
   {
@@ -379,27 +379,6 @@
    "members": [
     "gmeow_docs::render::precompute_alignment_facets",
     "gmeow_docs_model::slug::precompute_alignment_facets"
-   ]
-  },
-  {
-   "kind": "body",
-   "members": [
-    "gmeow_docs::render::provenance_chain",
-    "gmeow_docs_model::slug::provenance_chain"
-   ]
-  },
-  {
-   "kind": "body",
-   "members": [
-    "gmeow_docs::render::pydantic_class_name",
-    "gmeow_docs_model::slug::pydantic_class_name"
-   ]
-  },
-  {
-   "kind": "body",
-   "members": [
-    "gmeow_docs::render::pydantic_module_slug",
-    "gmeow_docs_model::slug::pydantic_module_slug"
    ]
   },
   {
@@ -2349,8 +2328,7 @@
    "members": [
     "gmeow_mcp::example_crate::refresh_witness_describe::explorer_describe::fail",
     "gmeow_mcp::example_crate::refresh_witness_describe::fail",
-    "gmeow_mcp_wasm::example_crate::refresh_witness_mcp::fail",
-    "gmeow_reason_wasm::example_crate::refresh_witness_reason::conjecture_witness::fail"
+    "gmeow_mcp_wasm::example_crate::refresh_witness_mcp::fail"
    ]
   },
   {
@@ -2713,7 +2691,7 @@
   "fixed-hasher-everywhere": 701,
   "fnv1a64": 5,
   "frame-le": 52,
-  "grammar-ws": 14,
+  "grammar-ws": 13,
   "hash-domain": 45,
   "hex": 1,
   "json-pointer": 2,
