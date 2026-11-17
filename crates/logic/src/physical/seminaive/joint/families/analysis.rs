@@ -6,6 +6,7 @@
 
 use super::*;
 use crate::reason::dl::{NativeConstructAdmission, SourceCoverageWorld};
+use crate::reason::refute::NativeClosureStatus;
 
 #[derive(Default)]
 pub(super) struct Observations {
@@ -109,9 +110,9 @@ impl Observations {
             if reusable {
                 observation.reused += 1;
             } else {
-                // This view defers only the wildcard observation made by outcome
-                // finish. Actual constructor/list/admission reads are unchanged.
-                let raw = input.defer_world_completion();
+                // Finish-read publication never gates the raw computation.
+                // Constructor/list/admission reads keep the actual frontier.
+                let raw = input.defer_publication_completion();
                 let started = crate::timing::Instant::now();
                 super::evaluate(&[*family], &raw, values, lists, ledger)?;
                 observation.evaluated += 1;
@@ -142,6 +143,74 @@ impl Observations {
             for raw in &current.outcomes {
                 let mut outcome = raw.clone();
                 observe_completion(&mut outcome, input)?;
+                ledger.outcomes.push(outcome);
+            }
+        }
+        ledger.validate()
+    }
+
+    /// Reobserve only computations that actually ran; publication cannot create
+    /// a new obligation, consume analysis work or introduce a positive head.
+    pub(super) fn refresh(
+        &self,
+        input: &NativeFamilyInput<'_>,
+        ledger: &mut NativeFamilyLedger,
+    ) -> gmeow_errors::Result<()> {
+        self.reobserve(input, ledger, None)
+    }
+
+    /// A real cut can follow a committed delta without another scheduled gather.
+    /// Retain its attained evidence without certifying the unexamined suffix.
+    pub(super) fn finish(
+        &self,
+        input: &NativeFamilyInput<'_>,
+        ledger: &mut NativeFamilyLedger,
+        terminal: &NativeClosureStatus,
+    ) -> gmeow_errors::Result<()> {
+        self.reobserve(input, ledger, Some(terminal))
+    }
+
+    fn reobserve(
+        &self,
+        input: &NativeFamilyInput<'_>,
+        ledger: &mut NativeFamilyLedger,
+        terminal: Option<&NativeClosureStatus>,
+    ) -> gmeow_errors::Result<()> {
+        for (family, observation) in &self.families {
+            let Some(current) = &observation.current else {
+                continue;
+            };
+            if current.rows > input.store.row_count() {
+                return Err(super::super::seminaive_err(
+                    "family publication moved behind its computed prefix",
+                ));
+            }
+            let dirty = input.store.facts()[current.rows..].iter().any(|fact| {
+                observation
+                    .reads
+                    .iter()
+                    .any(|read| read.matches_fact(fact, input.rel.semantics))
+            });
+            if dirty && !matches!(terminal, Some(NativeClosureStatus::Exhausted)) {
+                return Err(super::super::seminaive_err(
+                    "family publication found an unevaluated committed input",
+                ));
+            }
+            ledger.outcomes.retain(|outcome| outcome.family != *family);
+            for raw in &current.outcomes {
+                let mut outcome = raw.clone();
+                if dirty {
+                    if matches!(
+                        outcome.completion,
+                        NativeFamilyCompletion::Complete
+                            | NativeFamilyCompletion::NotEngaged
+                            | NativeFamilyCompletion::Awaiting { .. }
+                    ) {
+                        outcome.completion = NativeFamilyCompletion::Exhausted;
+                    }
+                } else {
+                    observe_completion(&mut outcome, input)?;
+                }
                 ledger.outcomes.push(outcome);
             }
         }
@@ -243,11 +312,6 @@ fn observe_completion(
     outcome: &mut NativeFamilyOutcome,
     input: &NativeFamilyInput<'_>,
 ) -> gmeow_errors::Result<()> {
-    let world = NativeRead {
-        marker: None,
-        predicate: None,
-        kind: NativeReadKind::Completed,
-    };
     let mut pending = match &outcome.completion {
         NativeFamilyCompletion::Complete | NativeFamilyCompletion::NotEngaged => Vec::new(),
         NativeFamilyCompletion::Awaiting { reads } => {
@@ -262,9 +326,13 @@ fn observe_completion(
         }
         _ => return Ok(()),
     };
-    if !input.completed(&world) {
-        pending.push(world);
-    }
+    pending.extend(
+        outcome
+            .publication_reads
+            .iter()
+            .filter(|read| !input.completed(read))
+            .cloned(),
+    );
     if !pending.is_empty() {
         pending.sort();
         pending.dedup();

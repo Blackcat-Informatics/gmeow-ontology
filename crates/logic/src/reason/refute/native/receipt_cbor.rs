@@ -13,8 +13,8 @@ use super::{
     NativeAnalysisUsage, NativeBoundEvidence, NativeClosureStatus, NativeFamilyCompletion,
     NativeFamilyLedger, NativeFamilyObstruction, NativeFamilyOutcome, NativeObligationScope,
     NativeObstructionKind, NativeProducerObstruction, NativeProofId, NativeProofNode,
-    NativeProofOrigin, NativeRead, NativeReadKind, NativeRefutationFamily, NativeSourceTerms,
-    NativeSupportedClash,
+    NativeProofOrigin, NativeRead, NativeReadKind, NativeReadPattern, NativeRefutationFamily,
+    NativeSourceTerms, NativeSupportedClash,
 };
 
 // NativeProofId is a Serde newtype over the retained integer-array digest.
@@ -544,11 +544,9 @@ impl ExecutionCbor for NativeRead {
         &'data self,
         out: &mut W,
     ) -> io::Result<()> {
-        head::write_head(out, head::MAP, 3)?;
-        head::write_text(out, "predicate")?;
-        ExecutionCbor::write_cbor(&self.predicate, out)?;
-        head::write_text(out, "marker")?;
-        ExecutionCbor::write_cbor(&self.marker, out)?;
+        head::write_head(out, head::MAP, 2)?;
+        head::write_text(out, "pattern")?;
+        ExecutionCbor::write_cbor(&self.pattern, out)?;
         head::write_text(out, "kind")?;
         ExecutionCbor::write_cbor(&self.kind, out)?;
         Ok(())
@@ -556,27 +554,124 @@ impl ExecutionCbor for NativeRead {
 
     fn check_depth(&self, remaining: usize) -> WireResult<()> {
         let remaining = descend(remaining)?;
-        ExecutionCbor::check_depth(&self.predicate, remaining)?;
-        ExecutionCbor::check_depth(&self.marker, remaining)?;
+        ExecutionCbor::check_depth(&self.pattern, remaining)?;
         ExecutionCbor::check_depth(&self.kind, remaining)?;
         Ok(())
     }
 
     fn read_cbor(input: &mut Reader<'_>) -> WireResult<Self> {
         input.map(|input, length| {
-            if length != 3 {
+            if length != 2 {
                 return Err(input.invalid("expected complete NativeRead record"));
             }
-            input.field("predicate")?;
-            let predicate = ExecutionCbor::read_cbor(input)?;
-            input.field("marker")?;
-            let marker = ExecutionCbor::read_cbor(input)?;
+            input.field("pattern")?;
+            let pattern = ExecutionCbor::read_cbor(input)?;
             input.field("kind")?;
             let kind = ExecutionCbor::read_cbor(input)?;
-            Ok(Self {
+            Ok(Self { pattern, kind })
+        })
+    }
+}
+
+impl ExecutionCbor for NativeReadPattern {
+    fn write_cbor<'data, W: crate::execution_cbor::LeafWrite<'data> + ?Sized>(
+        &'data self,
+        out: &mut W,
+    ) -> io::Result<()> {
+        head::write_head(out, head::MAP, 1)?;
+        match self {
+            Self::Statement {
+                subject,
+                predicate,
+                object,
+            } => {
+                head::write_text(out, "Statement")?;
+                head::write_head(out, head::MAP, 3)?;
+                head::write_text(out, "subject")?;
+                subject.write_cbor(out)?;
+                head::write_text(out, "predicate")?;
+                predicate.write_cbor(out)?;
+                head::write_text(out, "object")?;
+                object.write_cbor(out)?;
+            }
+            Self::Declaration {
+                subject,
                 predicate,
                 marker,
-                kind,
+            } => {
+                head::write_text(out, "Declaration")?;
+                head::write_head(out, head::MAP, 3)?;
+                head::write_text(out, "subject")?;
+                subject.write_cbor(out)?;
+                head::write_text(out, "predicate")?;
+                predicate.write_cbor(out)?;
+                head::write_text(out, "marker")?;
+                marker.write_cbor(out)?;
+            }
+        }
+        Ok(())
+    }
+
+    fn check_depth(&self, remaining: usize) -> WireResult<()> {
+        let remaining = descend(descend(remaining)?)?;
+        match self {
+            Self::Statement {
+                subject,
+                predicate,
+                object,
+            } => {
+                subject.check_depth(remaining)?;
+                predicate.check_depth(remaining)?;
+                object.check_depth(remaining)
+            }
+            Self::Declaration {
+                subject,
+                predicate,
+                marker,
+            } => {
+                subject.check_depth(remaining)?;
+                predicate.check_depth(remaining)?;
+                marker.check_depth(remaining)
+            }
+        }
+    }
+
+    fn read_cbor(input: &mut Reader<'_>) -> WireResult<Self> {
+        input.variant(|input, name, tagged| {
+            if !tagged {
+                return Err(input.invalid("expected tagged NativeReadPattern"));
+            }
+            let declaration = match name {
+                "Statement" => false,
+                "Declaration" => true,
+                _ => return Err(input.invalid("unknown NativeReadPattern variant")),
+            };
+            input.map(|input, length| {
+                if length != 3 {
+                    return Err(input.invalid("expected complete NativeReadPattern"));
+                }
+                input.field("subject")?;
+                let subject = ExecutionCbor::read_cbor(input)?;
+                input.field("predicate")?;
+                if declaration {
+                    let predicate = ExecutionCbor::read_cbor(input)?;
+                    input.field("marker")?;
+                    let marker = ExecutionCbor::read_cbor(input)?;
+                    Ok(Self::Declaration {
+                        subject,
+                        predicate,
+                        marker,
+                    })
+                } else {
+                    let predicate = ExecutionCbor::read_cbor(input)?;
+                    input.field("object")?;
+                    let object = ExecutionCbor::read_cbor(input)?;
+                    Ok(Self::Statement {
+                        subject,
+                        predicate,
+                        object,
+                    })
+                }
             })
         })
     }
@@ -776,7 +871,7 @@ impl ExecutionCbor for NativeFamilyOutcome {
         &'data self,
         out: &mut W,
     ) -> io::Result<()> {
-        head::write_head(out, head::MAP, 6)?;
+        head::write_head(out, head::MAP, 7)?;
         head::write_text(out, "family")?;
         ExecutionCbor::write_cbor(&self.family, out)?;
         head::write_text(out, "obligation")?;
@@ -787,6 +882,8 @@ impl ExecutionCbor for NativeFamilyOutcome {
         ExecutionCbor::write_cbor(&self.conclusions, out)?;
         head::write_text(out, "obstructions")?;
         ExecutionCbor::write_cbor(&self.obstructions, out)?;
+        head::write_text(out, "publication_reads")?;
+        ExecutionCbor::write_cbor(&self.publication_reads, out)?;
         head::write_text(out, "completion")?;
         ExecutionCbor::write_cbor(&self.completion, out)?;
         Ok(())
@@ -799,13 +896,14 @@ impl ExecutionCbor for NativeFamilyOutcome {
         ExecutionCbor::check_depth(&self.bounds, remaining)?;
         ExecutionCbor::check_depth(&self.conclusions, remaining)?;
         ExecutionCbor::check_depth(&self.obstructions, remaining)?;
+        ExecutionCbor::check_depth(&self.publication_reads, remaining)?;
         ExecutionCbor::check_depth(&self.completion, remaining)?;
         Ok(())
     }
 
     fn read_cbor(input: &mut Reader<'_>) -> WireResult<Self> {
         input.map(|input, length| {
-            if length != 6 {
+            if length != 7 {
                 return Err(input.invalid("expected complete NativeFamilyOutcome record"));
             }
             input.field("family")?;
@@ -818,6 +916,8 @@ impl ExecutionCbor for NativeFamilyOutcome {
             let conclusions = ExecutionCbor::read_cbor(input)?;
             input.field("obstructions")?;
             let obstructions = ExecutionCbor::read_cbor(input)?;
+            input.field("publication_reads")?;
+            let publication_reads = ExecutionCbor::read_cbor(input)?;
             input.field("completion")?;
             let completion = ExecutionCbor::read_cbor(input)?;
             Ok(Self {
@@ -826,6 +926,7 @@ impl ExecutionCbor for NativeFamilyOutcome {
                 bounds,
                 conclusions,
                 obstructions,
+                publication_reads,
                 completion,
             })
         })

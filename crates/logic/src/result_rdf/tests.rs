@@ -208,7 +208,7 @@ fn transported_projection_matches_the_reencoding_path_byte_for_byte() {
 fn terminal_result_retains_native_execution_and_requires_the_separate_closure() {
     let result = native_conflict_result();
     let projection = ResultProjection::reasoning(&result).unwrap();
-    let reference: Vec<_> = include_str!("fixtures/native-execution-cbor-v3.txt")
+    let reference: Vec<_> = include_str!("fixtures/native-execution-cbor-v4.txt")
         .lines()
         .next()
         .unwrap()
@@ -217,8 +217,37 @@ fn terminal_result_retains_native_execution_and_requires_the_separate_closure() 
     assert_eq!(reference[0], "conflict");
     // Historical records retain their originating engine contract. Check their
     // complete wire without promoting that contract to current execution authority.
+    let obsolete = include_str!("fixtures/native-execution-cbor-v3.txt")
+        .lines()
+        .next()
+        .unwrap()
+        .split('|')
+        .nth(1)
+        .unwrap();
+    assert!(
+        native::decode(obsolete).is_err(),
+        "the obsolete native schema is refused"
+    );
     let historical = native::decode(reference[1]).unwrap();
     assert_eq!(native::encode(&historical).unwrap(), reference[1]);
+    // Exact ordinary objects and interpreted declarations must survive the
+    // actual receipt boundary as distinct evidence, including a scoped wildcard.
+    use crate::reason::refute::native::{NativeRead, NativeReadKind};
+    let mut scoped = result.native_execution().unwrap().clone();
+    scoped.families[0].outcomes[0].publication_reads = vec![
+        NativeRead::statement(
+            Some(purrdf::TermValue::iri("urn:receipt:owner")),
+            None,
+            Some(purrdf::TermValue::simple_literal("exact object")),
+            NativeReadKind::Completed,
+        ),
+        NativeRead::declaration(
+            "http://www.w3.org/1999/02/22-rdf-syntax-ns#type",
+            "https://blackcatinformatics.ca/logic/Thing",
+        ),
+    ];
+    let scoped_wire = native::encode(&scoped).unwrap();
+    assert_eq!(native::decode(&scoped_wire).unwrap().as_ref(), &scoped);
     let wire = projection.to_ntriples();
     assert!(wire.contains(projection.node_iri()));
     let restored = parse_reasoning_graph(&wire).unwrap();
@@ -481,7 +510,7 @@ fn native_execution_publication_refuses_an_envelope_its_reader_cannot_admit() {
     // A directional literal adds a typed enum visit without adding a container.
     // These altered evidence packets exercise the codec, not semantic admission;
     // no RDF result identity is claimed for a deliberately modified proof.
-    let mut references = include_str!("fixtures/native-execution-cbor-v3.txt").lines();
+    let mut references = include_str!("fixtures/native-execution-cbor-v4.txt").lines();
     let historical_base =
         native::decode(references.next().unwrap().split('|').nth(1).unwrap()).unwrap();
     for profile in ["ordinary", "directional", "ordinary-u128"] {
@@ -510,6 +539,7 @@ fn native_execution_publication_refuses_an_envelope_its_reader_cannot_admit() {
                     }],
                     conclusions: Vec::new(),
                     obstructions: Vec::new(),
+                    publication_reads: Vec::new(),
                     completion: NativeFamilyCompletion::NotEngaged,
                 });
             }
@@ -561,7 +591,7 @@ fn native_execution_publication_refuses_an_envelope_its_reader_cannot_admit() {
                     if profile == "directional" && depth == 26 {
                         // Compact references must not hide the original occurrence depth.
                         // Construct an adversarial packet below the publication preflight.
-                        let schema = "gmeow-native-execution-v3";
+                        let schema = "gmeow-native-execution-v4";
                         let tables = Tables::prepare(&packet, schema).unwrap();
                         let mut hostile = Vec::new();
                         head::write_head(&mut hostile, head::ARRAY, 4).unwrap();
@@ -588,7 +618,7 @@ fn native_execution_publication_refuses_an_envelope_its_reader_cannot_admit() {
     let leaf = std::sync::Arc::new("x".repeat(1024 * 1024));
     for (count, admitted) in [(510, true), (511, false)] {
         let occurrences = vec![std::sync::Arc::clone(&leaf); count];
-        let planned = Tables::prepare(&occurrences, "gmeow-native-execution-v3");
+        let planned = Tables::prepare(&occurrences, "gmeow-native-execution-v4");
         assert_eq!(planned.is_ok(), admitted);
         if let Err(error) = planned {
             let cause = std::error::Error::source(&error)
@@ -608,7 +638,7 @@ fn native_execution_publication_refuses_an_envelope_its_reader_cannot_admit() {
         }
         let mut wire = Vec::new();
         head::write_head(&mut wire, head::ARRAY, 4).unwrap();
-        head::write_text(&mut wire, "gmeow-native-execution-v3").unwrap();
+        head::write_text(&mut wire, "gmeow-native-execution-v4").unwrap();
         head::write_head(&mut wire, head::ARRAY, 1).unwrap();
         head::write_text(&mut wire, &leaf).unwrap();
         head::write_head(&mut wire, head::ARRAY, 0).unwrap();
@@ -619,7 +649,7 @@ fn native_execution_publication_refuses_an_envelope_its_reader_cannot_admit() {
         let mut reader = Reader::for_definitions(&wire).unwrap();
         let decoded = reader.array(|input, length| {
             assert_eq!(length, 4);
-            assert_eq!(input.text()?, "gmeow-native-execution-v3");
+            assert_eq!(input.text()?, "gmeow-native-execution-v4");
             input.read_tables()?;
             input.array(|input, length| {
                 assert_eq!(length, count);
