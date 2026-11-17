@@ -12751,6 +12751,8 @@ repo:CONTRIBUTING.md a gmeow:CreativeWork ;
 
 <https://blackcatinformatics.ca/gmeow/repo/slices/extensions/finance/docs.md> a gmeow:CreativeWork ;
     rdfs:label "slices/extensions/finance/docs.md"@en ;
+    skos:definition "The finance guide explaining exact monetary calculations and their framed unit-price inputs."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/citations> ;
     gmeow:sourceLocation "slices/extensions/finance/docs.md" .
 
 <https://blackcatinformatics.ca/gmeow/repo/slices/extensions/software/mappings/equivalences.ttl> a gmeow:CreativeWork ;
@@ -14113,3 +14115,54 @@ repo:README.md a gmeow:CreativeWork ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/citations> ;
     gmeow:selectorLocator "Section 8.1; section 10.3, conditions S41 and S43; section 10.6.1" ;
     gmeow:sourceLocation "https://www.w3.org/TR/skos-reference/#semantic-relations", "https://www.w3.org/TR/skos-reference/#mapping" .
+
+<https://qudt.org/schema/qudt/FactorUnit> a gmeow:CreativeWork ;
+    rdfs:label "QUDT FactorUnit schema reference"@en ;
+    skos:definition "The QUDT schema reference describing how derived-unit declarations retain their individual unit factors."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/citations> ;
+    gmeow:bibliographicCitation "QUDT Schema 3.5.3, FactorUnit." ;
+    gmeow:sourceLocation "https://qudt.org/schema/qudt/FactorUnit" .
+
+<https://blackcatinformatics.ca/gmeow/repo/slices/grounding/math/design/MATHEMATICS-MEASURE-AND-DIMENSION.md> a gmeow:CreativeWork ;
+    rdfs:label "slices/grounding/math/design/MATHEMATICS-MEASURE-AND-DIMENSION.md"@en ;
+    skos:definition "The mathematical quantity and dimension charter explaining quotient reference frames and their component identities."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/citations> ;
+    gmeow:sourceLocation "slices/grounding/math/design/MATHEMATICS-MEASURE-AND-DIMENSION.md" .
+
+<https://blackcatinformatics.ca/gmeow/references/citation/math-quotient-frame-factors> a gmeow:CitationAct ;
+    rdfs:label "Quotient-frame design cites QUDT unit factors"@en ;
+    skos:definition "The measure-and-dimension charter cites the QUDT component model while distinguishing a unit factor from a complete quotient reference frame."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/citations> ;
+    gmeow:citationIntent gmeow:intentCitesAsDataSource ;
+    gmeow:citingEntity <https://blackcatinformatics.ca/gmeow/repo/slices/grounding/math/design/MATHEMATICS-MEASURE-AND-DIMENSION.md> ;
+    gmeow:citedEntity <https://qudt.org/schema/qudt/FactorUnit> ;
+    gmeow:viaSelector <https://blackcatinformatics.ca/gmeow/references/selector/qudt-factor-unit-composition> .
+
+<https://blackcatinformatics.ca/gmeow/references/selector/qudt-factor-unit-composition> a gmeow:Selector ;
+    rdfs:label "QUDT derived-unit factor structure"@en ;
+    skos:definition "The FactorUnit declaration and its unit and exponent roles used as partial external context for frame composition."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/citations> ;
+    gmeow:selectorLocator "FactorUnit declaration; hasUnit and exponent roles" ;
+    gmeow:sourceLocation "https://qudt.org/schema/qudt/FactorUnit" .
+
+<https://schema.org/UnitPriceSpecification> a gmeow:CreativeWork ;
+    rdfs:label "Schema.org UnitPriceSpecification reference"@en ;
+    skos:definition "The schema.org vocabulary page specifying price offers and their separately expressed reference quantities."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/citations> ;
+    gmeow:sourceLocation "https://schema.org/UnitPriceSpecification" .
+
+<https://blackcatinformatics.ca/gmeow/references/citation/finance-unit-price-reference-quantity> a gmeow:CitationAct ;
+    rdfs:label "Finance guide cites schema.org reference quantities"@en ;
+    skos:definition "The finance guide cites the referenceQuantity surface while distinguishing an external offer specification from the canonical ratio quantity and selected exact multiplication."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/citations> ;
+    gmeow:citationIntent gmeow:intentCitesAsDataSource ;
+    gmeow:citingEntity <https://blackcatinformatics.ca/gmeow/repo/slices/extensions/finance/docs.md> ;
+    gmeow:citedEntity <https://schema.org/UnitPriceSpecification> ;
+    gmeow:viaSelector <https://blackcatinformatics.ca/gmeow/references/selector/schema-unit-price-reference-quantity> .
+
+<https://blackcatinformatics.ca/gmeow/references/selector/schema-unit-price-reference-quantity> a gmeow:Selector ;
+    rdfs:label "Schema.org price reference quantity"@en ;
+    skos:definition "The referenceQuantity property and its QuantitativeValue range on the UnitPriceSpecification vocabulary page."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/citations> ;
+    gmeow:selectorLocator "referenceQuantity property; QuantitativeValue range" ;
+    gmeow:sourceLocation "https://schema.org/UnitPriceSpecification" .

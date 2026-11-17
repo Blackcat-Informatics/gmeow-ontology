@@ -1037,3 +1037,187 @@ msgstr "emplacement de résultat du ratio de rendement sur période de détentio
 msgctxt "urn:gmeow:finance:return:result|http://www.w3.org/2004/02/skos/core#definition"
 msgid "The FinancialReturnRatio output slot of methodHoldingPeriodReturn, returned through observationResult. Native execution derives (closing-opening)/opening on the calculation's explicit period basis; this slot defines the result role rather than asserting a ratio."
 msgstr "L’emplacement de sortie FinancialReturnRatio de methodHoldingPeriodReturn, renvoyé par observationResult. L’exécution native dérive (closing-opening)/opening selon la base de période explicite du calcul ; cet emplacement définit le rôle du résultat plutôt que d’affirmer un ratio."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/UnitPrice|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "unit price"
+msgstr "prix unitaire"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/UnitPrice|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An exact decimal ratio quantity expressing money per one counted unit of its pricedAsset. Its quotient reference frame retains a currency numerator and a mathematical count-frame denominator. The selected exact financial profile uses a crisp, unhosted scalar quotient frame with one scalar axis. It is not a MonetaryAmount; multiplying by a quantity of the same asset in the same count frame derives a MonetaryAmount without currency conversion."
+msgstr "Une quantité de rapport décimale exacte exprimant de l’argent par unité comptée de son pricedAsset. Son référentiel quotient conserve un numérateur monétaire et un dénominateur de comptage mathématique. Le profil financier exact sélectionné utilise un référentiel quotient scalaire net, sans hôte, avec un seul axe scalaire. Ce n’est pas un MonetaryAmount ; la multiplication par une quantité du même actif dans le même référentiel de comptage produit un MonetaryAmount sans conversion monétaire."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/UnitPriceTotalCalculation|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "unit price total calculation"
+msgstr "calcul du montant total à partir du prix unitaire"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/UnitPriceTotalCalculation|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An explicitly selected computational measurement multiplying unitPrice by pricedQuantity. The price asset and denominator frame must exactly match the counted asset and count frame. The request declares its output currency through hasReferenceFrame, equal to the price numerator frame, and requires no temporal calculationPeriodBasis. Native execution derives one MonetaryAmount observationResult with proof."
+msgstr "Une mesure computationnelle explicitement sélectionnée multipliant unitPrice par pricedQuantity. L’actif du prix et son référentiel dénominateur doivent correspondre exactement à l’actif compté et au référentiel de comptage. La demande déclare sa monnaie de sortie par hasReferenceFrame, identique au référentiel numérateur du prix, et ne requiert aucun calculationPeriodBasis temporel. L’exécution native produit un observationResult de type MonetaryAmount avec preuve."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/unitPrice|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "unit price input"
+msgstr "prix unitaire en entrée"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/unitPrice|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The UnitPrice input to a UnitPriceTotalCalculation, retaining its exact magnitude, priced asset and compound frame. It is not the total amount or a bare decimal."
+msgstr "Le UnitPrice fourni à un UnitPriceTotalCalculation, conservant sa grandeur exacte, l’actif tarifé et le référentiel composé. Ce n’est ni le montant total ni un simple décimal."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pricedQuantity|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "priced quantity"
+msgstr "quantité tarifée"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pricedQuantity|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The exact HoldingAssetQuantity multiplied by a unit price. Its countedAsset and reference-frame identities must match the price asset and denominator frame; fractional and signed positions are retained."
+msgstr "Le HoldingAssetQuantity exact multiplié par un prix unitaire. Ses identités countedAsset et de référentiel doivent correspondre à l’actif du prix et au référentiel dénominateur ; les positions fractionnaires et signées sont conservées."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pricedAsset|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "priced asset"
+msgstr "actif tarifé"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pricedAsset|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The specific Asset whose counted units a UnitPrice prices. It must equal pricedQuantity countedAsset before multiplication; shared labels, dimensions or count frames do not equate distinct assets."
+msgstr "L’Asset précis dont un UnitPrice tarife les unités comptées. Il doit être identique au countedAsset de pricedQuantity avant la multiplication ; des libellés, dimensions ou référentiels de comptage communs n’identifient pas des actifs distincts."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/UnitPriceUnitMismatch|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "unit price unit mismatch"
+msgstr "incompatibilité d’unité du prix unitaire"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/UnitPriceUnitMismatch|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A conformance failure for an invalid selected unit-price frame profile or a multiplication whose counted input has a different asset identity or count frame, or is not a dimensionless counted asset quantity. Physical dimensionlessness alone never makes different units interchangeable."
+msgstr "Un échec de conformité dû à un profil de référentiel de prix unitaire sélectionné invalide, ou à une multiplication dont l’entrée comptée présente une identité d’actif ou un référentiel de comptage différent, ou n’est pas une quantité comptée d’actif sans dimension. Le seul fait d’être physiquement sans dimension ne rend jamais des unités différentes interchangeables."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/UnitPriceCurrencyMismatch|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "unit price currency mismatch"
+msgstr "incompatibilité monétaire du prix unitaire"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/UnitPriceCurrencyMismatch|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A conformance failure for a requested unit-price output context that is not a scalar currency frame identical to the quote numerator frame. Equal currency codes or physical dimensions never authorize conversion or frame substitution."
+msgstr "Un échec de conformité lorsque le contexte de sortie demandé pour un prix unitaire n’est pas un référentiel monétaire scalaire identique au référentiel numérateur du prix. Des codes monétaires ou dimensions physiques identiques n’autorisent jamais une conversion ni une substitution de référentiel."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/methodUnitPriceTotal|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "unit price total method"
+msgstr "méthode de calcul du montant total à partir du prix unitaire"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/methodUnitPriceTotal|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The selected exact-decimal method multiplying a UnitPrice by its compatible HoldingAssetQuantity. Its canonical callable defines two required inputs and one MonetaryAmount observationResult. The installed financial caller admits exact frame and asset identities before shared native arithmetic."
+msgstr "La méthode décimale exacte sélectionnée multipliant un UnitPrice par son HoldingAssetQuantity compatible. Son interface canonique définit deux entrées requises et un observationResult de type MonetaryAmount. L’appelant financier installé valide les identités exactes des référentiels et de l’actif avant l’arithmétique native partagée."
+
+msgctxt "urn:gmeow:finance:unit-price:price|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "unit price parameter"
+msgstr "paramètre de prix unitaire"
+
+msgctxt "urn:gmeow:finance:unit-price:price|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The required UnitPrice input slot of methodUnitPriceTotal, supplied through unitPrice and bound to the price symbol. The parameter is distinct from the quoted quantity and its magnitude."
+msgstr "Le paramètre d’entrée UnitPrice requis de methodUnitPriceTotal, fourni par unitPrice et lié au symbole de prix. Le paramètre est distinct de la quantité tarifée et de sa grandeur."
+
+msgctxt "urn:gmeow:finance:unit-price:price:symbol|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "unit price symbol"
+msgstr "symbole du prix unitaire"
+
+msgctxt "urn:gmeow:finance:unit-price:price:symbol|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The mathematical symbol for the required UnitPrice operand in the authenticated total-price recipe."
+msgstr "Le symbole mathématique de l’opérande UnitPrice requis dans la recette authentifiée du montant total."
+
+msgctxt "urn:gmeow:finance:unit-price:price:expression|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "unit price reference"
+msgstr "référence au prix unitaire"
+
+msgctxt "urn:gmeow:finance:unit-price:price:expression|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The SymbolReference leaf naming the price symbol in the canonical unit-price multiplication expression."
+msgstr "La feuille SymbolReference nommant le symbole de prix dans l’expression canonique de multiplication du prix unitaire."
+
+msgctxt "urn:gmeow:finance:unit-price:recipe:0|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "unit price operand slot"
+msgstr "emplacement de l’opérande prix unitaire"
+
+msgctxt "urn:gmeow:finance:unit-price:recipe:0|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The index-zero operand slot of the canonical unit-price total expression, referencing the price operand."
+msgstr "L’emplacement d’opérande d’indice zéro de l’expression canonique du montant total à partir du prix unitaire, référençant l’opérande de prix."
+
+msgctxt "urn:gmeow:finance:unit-price:count|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "priced count parameter"
+msgstr "paramètre de quantité comptée tarifée"
+
+msgctxt "urn:gmeow:finance:unit-price:count|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The required HoldingAssetQuantity input slot of methodUnitPriceTotal. Its bound quantity supplies the exact count, counted asset and denominator-compatible frame."
+msgstr "Le paramètre d’entrée HoldingAssetQuantity requis de methodUnitPriceTotal. Sa quantité liée fournit le compte exact, l’actif compté et le référentiel compatible avec le dénominateur."
+
+msgctxt "urn:gmeow:finance:unit-price:count:symbol|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "priced count symbol"
+msgstr "symbole de la quantité comptée tarifée"
+
+msgctxt "urn:gmeow:finance:unit-price:count:symbol|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The mathematical symbol for the required counted-asset operand in the authenticated total-price recipe."
+msgstr "Le symbole mathématique de l’opérande de quantité comptée d’actif requis dans la recette authentifiée du montant total."
+
+msgctxt "urn:gmeow:finance:unit-price:count:expression|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "priced count reference"
+msgstr "référence à la quantité comptée tarifée"
+
+msgctxt "urn:gmeow:finance:unit-price:count:expression|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The SymbolReference leaf naming the count symbol in the canonical unit-price multiplication expression."
+msgstr "La feuille SymbolReference nommant le symbole de comptage dans l’expression canonique de multiplication du prix unitaire."
+
+msgctxt "urn:gmeow:finance:unit-price:recipe:1|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "priced count operand slot"
+msgstr "emplacement de l’opérande quantité comptée"
+
+msgctxt "urn:gmeow:finance:unit-price:recipe:1|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The index-one operand slot of the canonical unit-price total expression, referencing the counted-asset operand."
+msgstr "L’emplacement d’opérande d’indice un de l’expression canonique du montant total à partir du prix unitaire, référençant l’opérande de quantité comptée d’actif."
+
+msgctxt "urn:gmeow:finance:unit-price:recipe|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "unit price total expression"
+msgstr "expression du montant total à partir du prix unitaire"
+
+msgctxt "urn:gmeow:finance:unit-price:recipe|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The canonical binary Multiplication AST for unit price times compatible counted quantity. It names the price and count symbols through ordered argument slots and supplies no conversion or precomputed monetary result."
+msgstr "L’AST canonique de Multiplication binaire du prix unitaire par une quantité comptée compatible. Il nomme les symboles de prix et de comptage par des emplacements d’arguments ordonnés et ne fournit aucune conversion ni résultat monétaire précalculé."
+
+msgctxt "urn:gmeow:finance:unit-price:result|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "unit price total result slot"
+msgstr "emplacement du résultat du montant total à partir du prix unitaire"
+
+msgctxt "urn:gmeow:finance:unit-price:result|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The MonetaryAmount output slot of methodUnitPriceTotal, returned through observationResult in the quote numerator currency after exact unit and asset admission. It defines the output role rather than asserting a calculated amount."
+msgstr "L’emplacement de sortie MonetaryAmount de methodUnitPriceTotal, retourné par observationResult dans la monnaie du numérateur du prix après validation exacte de l’unité et de l’actif. Il définit le rôle de sortie sans affirmer un montant calculé."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/UnitPriceFrameConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "unit price compound frame contract"
+msgstr "contrat du référentiel composé du prix unitaire"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/UnitPriceFrameConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Requires the selected UnitPrice quotient to retain the crisp unhosted scalar mathematical profile, a scalar currency numerator and a scalar mathematical count denominator. Ordinary complete component-frame validation remains owned by places."
+msgstr "Exige que le quotient UnitPrice sélectionné conserve le profil mathématique scalaire net et sans hôte, un numérateur monétaire scalaire et un dénominateur de comptage mathématique scalaire. La validation ordinaire complète des référentiels composants reste sous l’autorité de places."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/UnitPriceUnitMatchConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "unit price count identity contract"
+msgstr "contrat d’identité du comptage du prix unitaire"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/UnitPriceUnitMatchConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Requires the priced quantity to use exactly the price denominator frame and priced asset. Dimensionless physical dimensions, matching labels and equal magnitudes do not discharge these identity obligations."
+msgstr "Exige que la quantité tarifée utilise exactement le référentiel dénominateur et l’actif du prix. Des dimensions physiques sans dimension, des libellés concordants et des grandeurs égales ne satisfont pas ces obligations d’identité."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/UnitPriceCurrencyMatchConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "unit price currency identity contract"
+msgstr "contrat d’identité monétaire du prix unitaire"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/UnitPriceCurrencyMatchConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Requires the request output frame to be a scalar currency frame identical to the price numerator frame. The constraint performs no currency-code matching or conversion."
+msgstr "Exige que le référentiel de sortie demandé soit un référentiel monétaire scalaire identique au référentiel numérateur du prix. La contrainte n’effectue ni rapprochement de codes monétaires ni conversion."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/UnitPriceFrameConstraint|https://blackcatinformatics.ca/logic/message"
+msgid "unit price compound frame contract violated."
+msgstr "contrat du référentiel composé du prix unitaire violé."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/UnitPriceUnitMatchConstraint|https://blackcatinformatics.ca/logic/message"
+msgid "unit price count identity contract violated."
+msgstr "contrat d’identité du comptage du prix unitaire violé."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/UnitPriceCurrencyMatchConstraint|https://blackcatinformatics.ca/logic/message"
+msgid "unit price currency identity contract violated."
+msgstr "contrat d’identité monétaire du prix unitaire violé."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/examples/finance/tests/ecExactComputations|https://blackcatinformatics.ca/gmeow/conformanceRationale"
+msgid "Simple-interest, holding-period-return and unit-price-total calculations validate with no finding. Temporal inputs share the calculation's period frame; monetary amounts share one currency. The unit price has a scalar quotient frame whose numerator is that currency and whose denominator is the priced quantity's count frame, and both inputs name the same asset. The fixture supplies the math and places class assertions needed by finance-owned checks because each conformance cell loads only the finance module and this file."
+msgstr "Les calculs d’intérêt simple, de rendement sur la période de détention et de montant total à partir du prix unitaire se valident sans constat. Les entrées temporelles partagent le référentiel de période du calcul ; les montants monétaires partagent une même monnaie. Le prix unitaire possède un référentiel quotient scalaire dont le numérateur est cette monnaie et le dénominateur est le référentiel de comptage de la quantité tarifée, et les deux entrées nomment le même actif. Le jeu de données fournit les assertions de classe math et places nécessaires aux contrôles de finance, car chaque cellule de conformité ne charge que le module finance et ce fichier."

@@ -1,0 +1,52 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix math: <https://blackcatinformatics.ca/math/> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix skos: <http://www.w3.org/2004/02/skos/core#> .
+
+# The installed financial caller consumes this authenticated canonical interface.
+
+gmeow:methodUnitPriceTotal
+    a gmeow:ObservationMethod , logic:CallableSignature ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/finance> ;
+    rdfs:label "unit price total method"@x-gmeow-english ;
+    skos:definition "The selected exact-decimal method multiplying a UnitPrice by its compatible HoldingAssetQuantity. Its canonical callable defines two required inputs and one MonetaryAmount observationResult. The installed financial caller admits exact frame and asset identities before shared native arithmetic."@x-gmeow-english ;
+    logic:inputParameters <urn:gmeow:finance:unit-price:inputs:0> ;
+    logic:outputParameters <urn:gmeow:finance:unit-price:outputs:0> ;
+    gmeow:calculationExpression <urn:gmeow:finance:unit-price:recipe> .
+
+<urn:gmeow:finance:unit-price:price>
+    a logic:CallParameter ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/finance> ;
+    rdfs:label "unit price parameter"@x-gmeow-english ;
+    skos:definition "The required UnitPrice input slot of methodUnitPriceTotal, supplied through unitPrice and bound to the price symbol. The parameter is distinct from the quoted quantity and its magnitude."@x-gmeow-english ;
+    logic:parameterPredicate gmeow:unitPrice ;
+    logic:parameterValueType gmeow:UnitPrice ;
+    logic:parameterRequired true ;
+    math:hasMathematicalSymbol <urn:gmeow:finance:unit-price:price:symbol> .
+
+<urn:gmeow:finance:unit-price:count>
+    a logic:CallParameter ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/finance> ;
+    rdfs:label "priced count parameter"@x-gmeow-english ;
+    skos:definition "The required HoldingAssetQuantity input slot of methodUnitPriceTotal. Its bound quantity supplies the exact count, counted asset and denominator-compatible frame."@x-gmeow-english ;
+    logic:parameterPredicate gmeow:pricedQuantity ;
+    logic:parameterValueType gmeow:HoldingAssetQuantity ;
+    logic:parameterRequired true ;
+    math:hasMathematicalSymbol <urn:gmeow:finance:unit-price:count:symbol> .
+
+<urn:gmeow:finance:unit-price:result>
+    a logic:CallResult ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/finance> ;
+    rdfs:label "unit price total result slot"@x-gmeow-english ;
+    skos:definition "The MonetaryAmount output slot of methodUnitPriceTotal, returned through observationResult in the quote numerator currency after exact unit and asset admission. It defines the output role rather than asserting a calculated amount."@x-gmeow-english ;
+    logic:parameterPredicate gmeow:observationResult ;
+    logic:parameterValueType gmeow:MonetaryAmount .
+
+<urn:gmeow:finance:unit-price:inputs:0> rdf:first <urn:gmeow:finance:unit-price:price> ; rdf:rest <urn:gmeow:finance:unit-price:inputs:1> .
+<urn:gmeow:finance:unit-price:inputs:1> rdf:first <urn:gmeow:finance:unit-price:count> ; rdf:rest rdf:nil .
+<urn:gmeow:finance:unit-price:outputs:0> rdf:first <urn:gmeow:finance:unit-price:result> ; rdf:rest rdf:nil .

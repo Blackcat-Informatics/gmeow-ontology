@@ -40,3 +40,38 @@ ex:return a g:HoldingPeriodReturnCalculation ;
     g:calculationExpression <urn:gmeow:finance:return:recipe> ;
     g:calculationPeriodBasis ex:contractYear ;
     g:openingAmount ex:opening ; g:closingAmount ex:closing .
+
+# Required cross-slice identities for this standalone finance validation scope.
+g:methodUnitPriceTotal a g:ObservationMethod .
+g:referenceFrameUSD a g:ReferenceFrame ;
+    g:frameKind g:frameKindScalar ; g:frameRealm g:frameRealmCurrency ;
+    g:dimensionCount 1 ; g:hasAxis g:axisScalar ;
+    g:determinacyModel g:determinacyCrisp ; g:requiresHost false .
+<urn:finance:alice> a g:Entity .
+
+<urn:finance:unit-price-total> a g:UnitPriceTotalCalculation ;
+    g:vantage <urn:finance:alice> ; g:observedFeature <urn:finance:priced-asset> ;
+    g:observationMethod g:methodUnitPriceTotal ;
+    g:calculationExpression <urn:gmeow:finance:unit-price:recipe> ;
+    g:hasReferenceFrame g:referenceFrameUSD ;
+    g:unitPrice <urn:finance:unit-price> ; g:pricedQuantity <urn:finance:priced-shares> .
+<urn:finance:priced-asset> a g:Asset .
+<urn:finance:unit-price> a g:UnitPrice ;
+    m:quantityValue 12.50 ; m:hasDimension m:dimensionless ;
+    g:pricedAsset <urn:finance:priced-asset> ; g:hasReferenceFrame <urn:finance:unit-price-frame> .
+<urn:finance:priced-shares> a g:HoldingAssetQuantity ;
+    m:quantityValue 4.0 ; m:hasDimension m:dimensionless ;
+    g:countedAsset <urn:finance:priced-asset> ; g:hasReferenceFrame <urn:finance:asset-count-frame> .
+<urn:finance:unit-price-frame> a m:QuotientReferenceFrame , g:ReferenceFrame ;
+    m:numeratorFrame g:referenceFrameUSD ; m:denominatorFrame <urn:finance:asset-count-frame> ;
+    g:frameKind g:frameKindScalar ; g:frameRealm g:frameRealmMathematical ;
+    g:dimensionCount 1 ; g:hasAxis g:axisScalar ;
+    g:determinacyModel g:determinacyCrisp ; g:requiresHost false .
+<urn:finance:asset-count-frame> a g:ReferenceFrame ;
+    g:frameKind g:frameKindScalar ; g:frameRealm g:frameRealmMathematical ;
+    g:dimensionCount 1 ; g:hasAxis g:axisScalar ;
+    g:determinacyModel g:determinacyCrisp ; g:requiresHost false .
+<urn:finance:other-asset-count-frame> a g:ReferenceFrame ;
+    g:frameKind g:frameKindScalar ; g:frameRealm g:frameRealmMathematical ;
+    g:dimensionCount 1 ; g:hasAxis g:axisScalar ;
+    g:determinacyModel g:determinacyCrisp ; g:requiresHost false .
