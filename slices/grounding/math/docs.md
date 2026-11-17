@@ -285,6 +285,30 @@ remain distinct from a complete basis inventory or a proof of independence and
 spanning. The [basis identity and coordinate-order contract](./design/MATHEMATICS-LINEAR-ALGEBRA-AND-LEARNING.md#basis-identity-and-coordinate-order)
 also scopes orthonormal eigenbasis claims to their actual mathematical setting.
 
+`math:InnerProductSpace` carries a justified real symmetric positive-definite
+bilinear form or a complex positive-definite Hermitian sesquilinear form.
+`math:HermitianInnerProduct` retains the complex argument convention; it is
+not complex bilinear. Keep the roles of space, carrier, field, basis and form separate.
+Zero, finite and infinite dimension are allowed; completeness needs separate
+Hilbert-space justification. Zero-vector angles are undefined and complex
+angles need their actual convention.
+
+`math:innerProduct` records the space-to-form role with a prose-only signature.
+`math:definedByInnerProduct` records the complement-to-form role, with an
+existing OrthogonalComplement-local generic resource min/max/all-values profile
+and closure. Neither link proves the form laws or computes a complement.
+The [inner-product contract](./design/MATHEMATICS-LINEAR-ALGEBRA-AND-LEARNING.md#inner-products-and-defining-forms)
+explains form-dependent orthogonality and the actual finite real rational
+numeric path: constructor shape checking, caller symmetry/positivity conditions
+and explicit LDL certification. Fixed-precision decimal square-root output
+and floating `acos` angle output have separate approximation boundaries.
+
+The existing InnerProductSpace exact match to
+[Wikidata Q214159](https://www.wikidata.org/wiki/Q214159) carries
+`logic:WellBehavedLens`, `logic:InstitutionMorphism` and
+`logic:SoundUnderApproximation` preservation. It grounds the concept without
+proving an individual form or certifying executed complex numerical geometry.
+
 `math:Eigendecomposition` describes eigenvalue and nonzero eigenvector data for a
 declared operator, space and scalar field. The finite-dimensional factorization
 `A = QΛQ⁻¹` requires a complete eigenbasis and invertible `Q`, with corresponding

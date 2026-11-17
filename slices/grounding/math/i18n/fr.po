@@ -3266,8 +3266,8 @@ msgid "Bilinear Form"
 msgstr "Forme bilinéaire"
 
 msgctxt "https://blackcatinformatics.ca/math/BilinearForm|http://www.w3.org/2004/02/skos/core#definition"
-msgid "A bilinear form B on a vector space: a map B(·, ·) that is linear in each argument separately. A subclass of math:MathematicalObject. Its definiteness (math:definiteness) records whether it is positive-definite, positive-semidefinite, indefinite, or negative-definite; represented in a math:Basis it becomes a math:Matrix. An inner product is a positive-definite symmetric (or Hermitian) bilinear form; the symmetric case is math:SymmetricBilinearForm."
-msgstr "Une forme bilinéaire B sur un espace vectoriel : une application B(·, ·) linéaire séparément en chacun de ses arguments. Sous-classe de math:MathematicalObject. Sa classification selon le signe (math:definiteness) indique si elle est définie positive, semi-définie positive, indéfinie ou définie négative ; représentée dans une math:Basis, elle devient une math:Matrix. Un produit scalaire est une forme bilinéaire symétrique (ou hermitienne) définie positive ; le cas symétrique est math:SymmetricBilinearForm."
+msgid "A bilinear form B on a vector space: a map B(·, ·) that is linear in each argument separately. A subclass of math:MathematicalObject. Its definiteness (math:definiteness) records whether it is positive-definite, positive-semidefinite, indefinite, or negative-definite; represented in a math:Basis it becomes a math:Matrix. A real inner product is a positive-definite symmetric bilinear form; a complex inner product is a positive-definite Hermitian sesquilinear form. The symmetric bilinear case is math:SymmetricBilinearForm."
+msgstr "Une forme bilinéaire B sur un espace vectoriel : une application B(·, ·) linéaire séparément en chacun de ses arguments. Sous-classe de math:MathematicalObject. Sa classification selon le signe (math:definiteness) indique si elle est définie positive, semi-définie positive, indéfinie ou définie négative ; représentée dans une math:Basis, elle devient une math:Matrix. Un produit scalaire réel est une forme bilinéaire symétrique définie positive ; un produit scalaire complexe est une forme sesquilinéaire hermitienne définie positive. Le cas bilinéaire symétrique est math:SymmetricBilinearForm."
 
 msgctxt "https://blackcatinformatics.ca/math/BilinearForm|https://blackcatinformatics.ca/gmeow/useWhen"
 msgid "Use for a scalar-valued pairing that is linear in each of its two vector arguments, independently of the coordinates chosen to represent it."
@@ -17942,3 +17942,115 @@ msgstr "Ne pas inverser la relation, substituer un ensemble support ou un corps 
 msgctxt "https://blackcatinformatics.ca/math/subspaceOf|https://blackcatinformatics.ca/gmeow/howToUse"
 msgid "Link the supplied math:Subspace to its ambient math:VectorSpace and preserve the source justification of zero, addition and same-field scalar closure. For orthogonal-complement descriptions retain the separate operand, ambient and inner-product roles. Neither this edge nor a retrieved competency answer calculates a residual subspace."
 msgstr "Relier le math:Subspace fourni à son math:VectorSpace ambiant et conserver la justification de source pour zéro, l’addition et la stabilité scalaire sur le même corps. Pour décrire un complément orthogonal, conserver les rôles distincts d’opérande, d’espace ambiant et de produit scalaire. Ni cette arête ni une réponse de compétence extraite ne calcule un sous-espace résiduel."
+
+msgctxt "https://blackcatinformatics.ca/math/InnerProductSpace|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Inner Product Space"
+msgstr "Espace préhilbertien"
+
+msgctxt "https://blackcatinformatics.ca/math/InnerProductSpace|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A vector space equipped with an inner product — a math:VectorSpace carrying a math:innerProduct that assigns lengths and angles, so orthogonality and orthogonal complements are defined. A subclass of math:VectorSpace; the complex case carries a math:HermitianInnerProduct. It names the inner product it carries through math:innerProduct."
+msgstr "Un espace vectoriel muni d’un produit scalaire — un math:VectorSpace portant un math:innerProduct qui détermine longueurs et angles, de sorte que l’orthogonalité et les compléments orthogonaux sont définis. Sous-classe de math:VectorSpace ; le cas complexe porte un math:HermitianInnerProduct. Il nomme le produit scalaire dont il est muni par math:innerProduct."
+
+msgctxt "https://blackcatinformatics.ca/math/InnerProductSpace|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The real case uses a symmetric positive-definite bilinear form; the complex case uses a conjugate-symmetric positive-definite sesquilinear form. Zero dimension, finite and infinite dimension are allowed. Completeness is an additional Hilbert-space condition, not a consequence of this type."
+msgstr "Le cas réel utilise une forme bilinéaire symétrique définie positive ; le cas complexe utilise une forme sesquilinéaire à symétrie hermitienne définie positive. La dimension nulle et les dimensions finies ou infinies sont admises. La complétude est une condition supplémentaire d’espace de Hilbert, pas une conséquence de ce type."
+
+msgctxt "https://blackcatinformatics.ca/math/InnerProductSpace|http://www.w3.org/2004/02/skos/core#example"
+msgid "On real R², h(u,v) = u1 v1 + 2 u2 v2 is an inner product with h(v,v) = v1² + 2 v2², positive for every nonzero v. The coordinate formula presupposes the supplied ordered basis and real scalar interpretation."
+msgstr "Sur R² réel, h(u,v) = u1 v1 + 2 u2 v2 est un produit scalaire avec h(v,v) = v1² + 2 v2², strictement positif pour tout v non nul. La formule en coordonnées suppose la base ordonnée fournie et l’interprétation réelle des scalaires."
+
+msgctxt "https://blackcatinformatics.ca/math/InnerProductSpace|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when a vector space carries a justified inner product needed for lengths, norms or orthogonality. Retain the space, carrier set, scalar field, coordinate basis and form as separate roles."
+msgstr "Utiliser lorsqu’un espace vectoriel porte un produit scalaire justifié nécessaire aux longueurs, normes ou à l’orthogonalité. Conserver des rôles distincts pour l’espace, l’ensemble support, le corps des scalaires, la base de coordonnées et la forme."
+
+msgctxt "https://blackcatinformatics.ca/math/InnerProductSpace|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Do not infer an inner product from a vector-space, norm or symmetric-matrix label alone, or treat positive-semidefinite or indefinite forms as positive-definite. An angle involving a zero vector is undefined, and complex angle conventions must be stated."
+msgstr "Ne pas déduire un produit scalaire d’un simple libellé d’espace vectoriel, de norme ou de matrice symétrique, ni traiter une forme positive semi-définie ou indéfinie comme définie positive. Un angle impliquant un vecteur nul est indéfini, et les conventions d’angle complexe doivent être précisées."
+
+msgctxt "https://blackcatinformatics.ca/math/InnerProductSpace|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Describe the vector-space structure and link its supplied form with math:innerProduct. Keep the inherited carrier, operation and law evidence explicit. A class or form link proves neither the inner-product laws nor completeness and does not invoke the finite real rational numeric core."
+msgstr "Décrire la structure vectorielle et relier sa forme fournie par math:innerProduct. Garder explicites le support, les opérations et les éléments justificatifs des lois hérités. Une classe ou un lien vers une forme ne prouve ni les lois du produit scalaire ni la complétude et n’invoque pas le noyau numérique rationnel réel de dimension finie."
+
+msgctxt "https://blackcatinformatics.ca/math/HermitianInnerProduct|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Hermitian Inner Product"
+msgstr "Produit scalaire hermitien"
+
+msgctxt "https://blackcatinformatics.ca/math/HermitianInnerProduct|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A conjugate-symmetric, positive-definite sesquilinear form on a complex vector space — the inner product ⟨·,·⟩ of the complex case, linear in one argument and conjugate-linear in the other. A subclass of math:MathematicalObject carried by a math:InnerProductSpace through math:innerProduct; it is the structure that defines a math:OrthogonalComplement in the complex (S⊥) case (math:definedByInnerProduct)."
+msgstr "Une forme sesquilinéaire à symétrie hermitienne définie positive sur un espace vectoriel complexe — le produit scalaire ⟨·,·⟩ du cas complexe, linéaire en un argument et antilinéaire en l’autre. Sous-classe de math:MathematicalObject portée par un math:InnerProductSpace via math:innerProduct ; c’est la structure qui définit un math:OrthogonalComplement dans le cas complexe (S⊥), par math:definedByInnerProduct."
+
+msgctxt "https://blackcatinformatics.ca/math/HermitianInnerProduct|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Preserve which argument is conjugate-linear. Under the first-conjugate convention, h(au,bv) = conjugate(a) b h(u,v) and h(v,u) = conjugate(h(u,v)). Positive definiteness requires real h(v,v) > 0 for nonzero v, with h(0,0) = 0."
+msgstr "Préserver l’argument qui est antilinéaire. Selon la convention antilinéaire au premier argument, h(au,bv) = conjugate(a) b h(u,v) et h(v,u) = conjugate(h(u,v)). Le caractère défini positif exige h(v,v) réel et strictement positif pour v non nul, avec h(0,0) = 0."
+
+msgctxt "https://blackcatinformatics.ca/math/HermitianInnerProduct|http://www.w3.org/2004/02/skos/core#example"
+msgid "On C with h(z,w) = conjugate(z) w, h(i,1) = -i, h(1,i) = i and h(i,i) = 1. This form is conjugate-linear in the first argument and linear in the second; it is not complex bilinear."
+msgstr "Sur C avec h(z,w) = conjugate(z) w, h(i,1) = -i, h(1,i) = i et h(i,i) = 1. Cette forme est antilinéaire au premier argument et linéaire au second ; elle n’est pas bilinéaire sur les complexes."
+
+msgctxt "https://blackcatinformatics.ca/math/HermitianInnerProduct|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for a justified positive-definite Hermitian inner product on a complex vector space, retaining its actual scalar field, argument convention and coordinate representation independently."
+msgstr "Utiliser pour un produit scalaire hermitien défini positif justifié sur un espace vectoriel complexe, en conservant indépendamment son corps des scalaires effectif, sa convention d’arguments et sa représentation en coordonnées."
+
+msgctxt "https://blackcatinformatics.ca/math/HermitianInnerProduct|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Do not identify complex sesquilinearity with bilinearity or ordinary symmetry. A Hermitian matrix can be indefinite or positive semidefinite; its label or conjugate symmetry alone does not establish an inner product."
+msgstr "Ne pas identifier la sesquilinéarité complexe à la bilinéarité ou à la symétrie ordinaire. Une matrice hermitienne peut être indéfinie ou positive semi-définie ; son libellé ou sa seule symétrie hermitienne n’établit pas un produit scalaire."
+
+msgctxt "https://blackcatinformatics.ca/math/HermitianInnerProduct|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Name the form as its own math:HermitianInnerProduct resource. Use math:innerProduct from its space and math:definedByInnerProduct from a complement where applicable. Retain evidence for the laws; these declarations do not execute a complex Hermitian calculation or construct a complement."
+msgstr "Nommer la forme comme sa propre ressource math:HermitianInnerProduct. Utiliser math:innerProduct depuis son espace et math:definedByInnerProduct depuis un complément le cas échéant. Conserver les éléments justificatifs des lois ; ces déclarations n’exécutent pas de calcul hermitien complexe et ne construisent pas de complément."
+
+msgctxt "https://blackcatinformatics.ca/math/innerProduct|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "inner product"
+msgstr "produit scalaire"
+
+msgctxt "https://blackcatinformatics.ca/math/innerProduct|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Relates a math:InnerProductSpace to the inner product it carries — a math:HermitianInnerProduct in the complex case. Domain math:InnerProductSpace, range a math:HermitianInnerProduct or a real inner-product structure (stated in prose). The inner product is what makes orthogonality, and hence a math:OrthogonalComplement, well-defined."
+msgstr "Relie un math:InnerProductSpace au produit scalaire dont il est muni — un math:HermitianInnerProduct dans le cas complexe. Domaine math:InnerProductSpace, portée math:HermitianInnerProduct ou une structure de produit scalaire réel (indiqués en prose). Le produit scalaire rend bien définies l’orthogonalité et donc un math:OrthogonalComplement."
+
+msgctxt "https://blackcatinformatics.ca/math/innerProduct|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The direction is space to form. The source states domain and range in prose without a native global functionality or typed-target rule for this property. Several supplied form descriptions do not select a preferred form or establish their equality."
+msgstr "La direction va de l’espace vers la forme. La source énonce le domaine et la portée en prose, sans règle native de fonctionnalité globale ou de typage de cible pour cette propriété. Plusieurs descriptions de formes fournies ne sélectionnent pas de forme privilégiée et n’établissent pas leur égalité."
+
+msgctxt "https://blackcatinformatics.ca/math/innerProduct|http://www.w3.org/2004/02/skos/core#example"
+msgid "For real u = (1,1) and v = (1,-1), the standard dot product is zero, while h(u,v) = u1 v1 + 2 u2 v2 is -1. Linking the intended form matters: the same vectors are orthogonal under one inner product and not the other."
+msgstr "Pour les vecteurs réels u = (1,1) et v = (1,-1), le produit scalaire usuel est nul, tandis que h(u,v) = u1 v1 + 2 u2 v2 vaut -1. Relier la forme voulue est essentiel : les mêmes vecteurs sont orthogonaux pour un produit scalaire et pas pour l’autre."
+
+msgctxt "https://blackcatinformatics.ca/math/innerProduct|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to identify the actual inner product carried by a vector-space description, retaining the real or complex setting and the supplied form laws rather than inferring them from dimensions or labels."
+msgstr "Utiliser pour identifier le produit scalaire effectif porté par une description d’espace vectoriel, en conservant le cadre réel ou complexe et les lois de forme fournies plutôt que les déduire de dimensions ou de libellés."
+
+msgctxt "https://blackcatinformatics.ca/math/innerProduct|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Do not substitute a scalar pairing result, coordinate matrix, basis or residual for the form. The edge neither transforms coordinates nor proves symmetry, sesquilinearity or positive definiteness."
+msgstr "Ne pas substituer un résultat scalaire d’appariement, une matrice de coordonnées, une base ou un résidu à la forme. L’arête ne transforme pas les coordonnées et ne prouve ni symétrie, ni sesquilinéarité, ni caractère défini positif."
+
+msgctxt "https://blackcatinformatics.ca/math/innerProduct|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Point math:innerProduct from the space to its supplied form resource. Preserve the carrier, scalar field, basis and argument convention separately. Retain each justified description without a preferred-form rule; a link does not invoke a numerical evaluator."
+msgstr "Diriger math:innerProduct de l’espace vers sa ressource de forme fournie. Préserver séparément le support, le corps des scalaires, la base et la convention d’arguments. Conserver chaque description justifiée sans règle de forme privilégiée ; un lien n’invoque pas d’évaluateur numérique."
+
+msgctxt "https://blackcatinformatics.ca/math/definedByInnerProduct|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "defined by inner product"
+msgstr "défini par le produit scalaire"
+
+msgctxt "https://blackcatinformatics.ca/math/definedByInnerProduct|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Relates a math:OrthogonalComplement to the inner product that defines orthogonality for it — the math:HermitianInnerProduct in the complex case. Domain math:OrthogonalComplement, range a math:HermitianInnerProduct or real inner-product structure (stated in prose). An orthogonal complement without a named inner product is ambiguous and ill-formed (math:UnqualifiedOrthogonalComplement)."
+msgstr "Relie un math:OrthogonalComplement au produit scalaire qui définit son orthogonalité — le math:HermitianInnerProduct dans le cas complexe. Domaine math:OrthogonalComplement, portée math:HermitianInnerProduct ou une structure de produit scalaire réel (indiqués en prose). Un complément orthogonal sans produit scalaire nommé est ambigu et mal formé (math:UnqualifiedOrthogonalComplement)."
+
+msgctxt "https://blackcatinformatics.ca/math/definedByInnerProduct|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The existing OrthogonalComplement-local source profile has minimum one, maximum one and all-values restrictions with logic:Thing, plus required-path closure and the associated math:UnqualifiedOrthogonalComplement diagnostic. This generic resource contract does not prove that the target is a positive-definite Hermitian form."
+msgstr "Le profil source existant propre à OrthogonalComplement comporte des restrictions de minimum un, maximum un et de toutes les valeurs avec logic:Thing, ainsi qu’une fermeture de chemin requis et le diagnostic associé math:UnqualifiedOrthogonalComplement. Ce contrat générique de ressource ne prouve pas que la cible est une forme hermitienne définie positive."
+
+msgctxt "https://blackcatinformatics.ca/math/definedByInnerProduct|http://www.w3.org/2004/02/skos/core#example"
+msgid "The ordinary linear-algebra-and-learning example states ex:residualSubspace math:definedByInnerProduct ex:hermitianInnerProduct, separately from its operand and ambient links. This names a defining form without evaluating it or proving the complement equation."
+msgstr "L’exemple ordinaire linear-algebra-and-learning énonce ex:residualSubspace math:definedByInnerProduct ex:hermitianInnerProduct, séparément de ses liens d’opérande et d’espace ambiant. Cela nomme une forme définissante sans l’évaluer ni prouver l’équation du complément."
+
+msgctxt "https://blackcatinformatics.ca/math/definedByInnerProduct|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when an orthogonal-complement description needs to retain the actual form defining orthogonality within its declared ambient space. Keep that form consistent with the supplied mathematical construction and argument convention."
+msgstr "Utiliser lorsqu’une description de complément orthogonal doit conserver la forme effective qui définit l’orthogonalité dans son espace ambiant déclaré. Garder cette forme cohérente avec la construction mathématique fournie et la convention d’arguments."
+
+msgctxt "https://blackcatinformatics.ca/math/definedByInnerProduct|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Do not confuse the complement-to-form direction with math:innerProduct from the ambient space. The class-local restriction is not global property functionality, automatic Hermitian target typing or proof that every complement vector is orthogonal to the operand."
+msgstr "Ne pas confondre la direction du complément vers la forme avec math:innerProduct depuis l’espace ambiant. La restriction locale à la classe n’est ni une fonctionnalité globale de propriété, ni un typage hermitien automatique de cible, ni une preuve que tout vecteur du complément est orthogonal à l’opérande."
+
+msgctxt "https://blackcatinformatics.ca/math/definedByInnerProduct|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Link the complement to its supplied form and retain math:orthogonalComplementOf, math:ambientSpace and math:complementSemantics math:orthogonalComplement separately. Those roles need not have distinct referents. The competency query retrieves declarations; mathematical justification and computation remain separate evidence."
+msgstr "Relier le complément à sa forme fournie et conserver séparément math:orthogonalComplementOf, math:ambientSpace et math:complementSemantics math:orthogonalComplement. Les référents de ces rôles ne sont pas nécessairement distincts. La requête de compétence extrait des déclarations ; justification mathématique et calcul restent des éléments justificatifs séparés."

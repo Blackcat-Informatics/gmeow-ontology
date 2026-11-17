@@ -48,6 +48,59 @@ with `logic:AffineCorrespondence`, `logic:InstitutionMorphism` and
 eigenvalue/eigenvector concept; it asserts neither identity nor executable numerical
 lowering. There is no authored OpenMath eigen correspondence in this mapping.
 
+### Inner products and defining forms
+
+`math:InnerProductSpace` retains a vector space with a justified inner product.
+Over the reals the form is symmetric, positive definite and bilinear. Over the
+complex numbers, `math:HermitianInnerProduct` is conjugate-symmetric, positive
+definite and sesquilinear. Preserve the source convention for which argument
+is conjugate-linear. With the first-conjugate convention on `C`,
+`h(z,w) = conjugate(z) w` gives `h(i,1) = -i`, `h(1,i) = i` and `h(i,i) = 1`.
+This is not complex bilinearity. A Hermitian or symmetric matrix alone need
+not be positive definite; semidefinite and indefinite forms do not become
+inner products through their labels.
+
+Keep the space, its `math:underlyingSet` carrier, scalar field, form and chosen
+coordinate basis separate. Inner-product spaces may have zero, finite or
+infinite dimension. Completeness is an additional Hilbert-space condition.
+The induced norm is `sqrt(h(v,v))`; a normalized angle involving zero is
+undefined, and complex angles require an explicit convention. Orthogonality
+depends on the form: for real `(1,1)` and `(1,-1)`, the usual dot product is
+zero, while `h(u,v) = u1 v1 + 2 u2 v2` is `-1`.
+
+`math:innerProduct` points from the space to its form. Its domain and range
+are stated in prose, without a native global functionality or typed-target
+rule. Several justified form descriptions do not select a preferred form,
+establish equality or compute a change of coordinates. The separate
+`math:definedByInnerProduct` relation points from a complement to the form
+defining its orthogonality. The existing OrthogonalComplement-local profile
+has generic `logic:Thing` minimum-one, maximum-one and all-values restrictions,
+plus required-path closure and `math:UnqualifiedOrthogonalComplement` as the
+associated diagnostic. This resource contract does not prove a Hermitian
+target's laws or the universal orthogonality condition. Operand, ambient and
+form links retain their separate roles without requiring distinct referents.
+The ordinary example declares those links; its competency query retrieves
+them without evaluating a form or constructing a complement.
+
+The native numeric type in
+[`crates/math/src/lib.rs`](../../../../crates/math/src/lib.rs) is a finite real
+coordinate implementation using checked `i128` rational arithmetic and
+`xᵀGy`. Its constructor checks square shape; symmetry and positive definiteness
+remain the caller's contract, with LDL pivots providing an explicit certificate
+for symmetric inputs. The current logic Gram consumer checks explicit
+transpose conflicts before symmetric fill, then invokes LDL for forms claimed
+positive definite. This is not a general complex Hermitian or Hilbert engine.
+Its square-root outputs use deterministic fixed-precision decimal arithmetic;
+`angle` separately parses the decimal cosine to `f64` and applies `acos`,
+without a general cross-platform byte-identity claim for that output.
+These implementation boundaries describe inspected source, not fresh execution.
+
+The existing native grounding is `math:InnerProductSpace skos:exactMatch`
+to [Wikidata Q214159](https://www.wikidata.org/wiki/Q214159), inner product
+space, with `logic:WellBehavedLens`, `logic:InstitutionMorphism` and
+`logic:SoundUnderApproximation` preservation. The concept correspondence
+supplies neither a form-law proof nor a numerical execution certificate.
+
 ### Subspaces and ambient structure
 
 A `math:Subspace` W of a vector space V over F contains zero and is closed
