@@ -283,6 +283,7 @@ fn foreign_or_changed_program_analysis_is_refused() {
         .provenance
         .native_execution
         .as_mut()
+        .map(std::sync::Arc::make_mut)
         .unwrap()
         .reachability = first.native_execution().unwrap().reachability.clone();
     let error =
@@ -318,6 +319,7 @@ fn changed_import_input_and_engine_recipe_invalidate_analysis() {
         .provenance
         .native_execution
         .as_mut()
+        .map(std::sync::Arc::make_mut)
         .unwrap()
         .reachability = base.native_execution().unwrap().reachability.clone();
     assert!(assess_non_entailment_obligations(&changed_source).is_err());

@@ -23,6 +23,7 @@
 
 import { test } from "node:test";
 import assert from "node:assert/strict";
+import { Buffer } from "node:buffer";
 import { readFile } from "node:fs/promises";
 import { fileURLToPath } from "node:url";
 
@@ -45,6 +46,7 @@ import {
   storeReading,
 } from "../session.mjs";
 import { VIGNETTES } from "../examples/gallery.mjs";
+import { admitReasoningArtifact } from "../../reasoning-artifact.mjs";
 
 const here = (rel) => fileURLToPath(new URL(rel, import.meta.url));
 
@@ -298,6 +300,37 @@ test("session_annotations_are_quoted_triples", async () => {
     format: "turtle",
   });
   assert.ok(answer.entailed_count > 0, "the chase must entail something to annotate");
+  assert.deepEqual(
+    session.calls[0].result.artifact,
+    answer.artifact,
+    "the in-memory recorded response retains the complete admitted artifact envelope",
+  );
+
+  // Drive the same native admission owner the transport uses, then attempt the
+  // worker's recording continuation. Neither absent nor corrupt evidence can
+  // reach that continuation; no substitute parser or admission callback is used.
+  const { admit_artifact } = await import("../../mcp/index.mjs");
+  const recordEnvelope = (envelope) => {
+    const admitted = admitReasoningArtifact(envelope, admit_artifact);
+    session.record({
+      tool: "reason_graph",
+      schema: "https://example.org/gmeow/console/schema/reason_graph",
+      args: {},
+      result: admitted,
+      ...derivationsFrom(admitted),
+    });
+  };
+  const corrupted = Uint8Array.from(atob(answer.artifact.output), (byte) => byte.charCodeAt(0));
+  corrupted[corrupted.length - 1] ^= 1;
+  const corruptEnvelope = {
+    ...answer.artifact,
+    output: Buffer.from(corrupted).toString("base64"),
+  };
+  const recorded = session.calls.length;
+  for (const envelope of [undefined, corruptEnvelope]) {
+    assert.throws(() => recordEnvelope(envelope), "invalid evidence must refuse before recording");
+    assert.equal(session.calls.length, recorded, "refused evidence contributes no recorded call");
+  }
 
   const nquads = session.trajectoryNQuads();
   const quads = parseNQuads(nquads);

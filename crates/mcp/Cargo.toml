@@ -169,4 +169,4 @@ gmeow-action-cache = { path = "../action-cache" }
 # Register the native tool contracts behind one required and one maint-heavy libtest
 # runner. Nextest otherwise restores the same authenticated 140 MiB pack once per test.
 gmeow-test-batch-macros = { path = "../test-batch-macros" }
-inventory = "0.3"
+inventory.workspace = true

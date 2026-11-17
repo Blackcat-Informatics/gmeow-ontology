@@ -131,6 +131,8 @@ pub struct ConjecturePureOutput {
     pub node_iri: String,
     /// The deterministic N-Triples body `project_conjecture_verdict` emitted.
     pub verdict_nt: String,
+    /// Complete authenticated GTS, including required binary execution evidence.
+    pub artifact: Vec<u8>,
 }
 
 /// The outcome of a [`run_conjecture_test`] call: the projected verdict facets, the refutation
@@ -162,6 +164,8 @@ pub struct ConjectureRunOutput {
     pub node_iri: String,
     /// The deterministic N-Triples body `project_conjecture_verdict` emitted.
     pub verdict_nt: String,
+    /// Complete artifact, also present when persistence is refused or hypothetical.
+    pub artifact: Vec<u8>,
     /// The TR receipt gating the persist (rendered as the transaction summary by callers).
     pub receipt: TxReceipt,
 }
@@ -178,6 +182,7 @@ struct ConjectureEvaluation {
     witness: Option<ConjectureRunWitness>,
     node_iri: String,
     verdict_nt: String,
+    artifact: Vec<u8>,
     /// The candidate's content-addressing key, needed by the persisting tail's audit call id.
     content_key: String,
 }
@@ -233,6 +238,7 @@ fn evaluate_conjecture(
         witness,
         node_iri: projection.node_iri,
         verdict_nt: projection.verdict_nt,
+        artifact: projection.artifact,
         content_key: projection.content_key,
     })
 }
@@ -275,6 +281,7 @@ pub fn run_conjecture_test_pure(
         witness: eval.witness,
         node_iri: eval.node_iri,
         verdict_nt: eval.verdict_nt,
+        artifact: eval.artifact,
     })
 }
 
@@ -299,6 +306,21 @@ pub fn run_conjecture_test(
     policy: &PreparedActionPolicy,
 ) -> gmeow_errors::Result<ConjectureRunOutput> {
     run_conjecture_test_with_library(input, medium, policy, conjecture_library)
+}
+
+/// Evaluate against the already selected library, preserving its identity from
+/// standalone output validation through the existing locked persistence workflow.
+///
+/// # Errors
+/// The same evaluation, policy or persistence failures as [`run_conjecture_test`].
+#[cfg(feature = "reasoning")]
+pub fn run_conjecture_test_in(
+    input: &ConjectureRunInput,
+    medium: &StoreMedium,
+    policy: &PreparedActionPolicy,
+    library: Arc<dyn SegmentLibrary>,
+) -> gmeow_errors::Result<ConjectureRunOutput> {
+    run_conjecture_test_with_library(input, medium, policy, || Ok(library))
 }
 
 #[cfg(feature = "reasoning")]
@@ -327,6 +349,7 @@ fn run_conjecture_test_with_library(
         witness,
         node_iri,
         verdict_nt,
+        artifact,
         content_key,
     } = evaluate_conjecture(
         formula_ttl,
@@ -355,6 +378,7 @@ fn run_conjecture_test_with_library(
         witness,
         node_iri,
         verdict_nt,
+        artifact,
         receipt,
     };
 
@@ -376,7 +400,8 @@ fn run_conjecture_test_with_library(
     with_library_lock(library.as_ref(), || {
         // The lock binds both continuations to the tail this transaction commits.
         let existing = library.read_bytes()?;
-        let verdict_segment = build_nt_segment(&existing, medium, &out.verdict_nt)?;
+        let verdict_segment =
+            build_verdict_segment(&existing, medium, &out.verdict_nt, &out.artifact)?;
         let mut body_image = existing.clone();
         body_image.extend_from_slice(&verdict_segment);
         let call_id = format!(
@@ -465,6 +490,8 @@ pub struct CandidateSubmitOutput {
     pub node_iri: String,
     /// The deterministic N-Triples verdict body (before the candidate role/provenance lines).
     pub verdict_nt: String,
+    /// Complete evaluation and candidate-provenance artifact on every outcome.
+    pub artifact: Vec<u8>,
     /// The TR receipt gating the append.
     pub receipt: TxReceipt,
 }
@@ -493,6 +520,47 @@ fn candidate_provenance_nt(
     s
 }
 
+#[cfg(feature = "reasoning")]
+fn candidate_artifact(mut artifact: Vec<u8>, provenance: &str) -> gmeow_errors::Result<Vec<u8>> {
+    let expected = gmeow_logic::result_rdf::parse_reasoning_artifact(&artifact)?;
+    let dataset = purrdf::parse_dataset(provenance.as_bytes(), "application/n-triples", None)?;
+    // A standalone response explicitly selects the unprimed runtime profile.
+    // Library continuations below retain their supplied StoreMedium instead.
+    let writer = gmeow_gts_profile::GmeowGtsWriter::new("runtime");
+    let provenance = writer.finish_view_scoped(dataset.as_ref(), "candidate-provenance")?;
+    artifact.extend_from_slice(&provenance.bytes);
+    if gmeow_logic::result_rdf::parse_reasoning_artifact(&artifact)? != expected {
+        return Err(gmeow_errors::Diag::of_kind(crate::error::Mcp::new(
+            "candidate provenance changed its authenticated reasoning verdict".into(),
+        )));
+    }
+    Ok(artifact)
+}
+
+#[cfg(feature = "reasoning")]
+fn build_verdict_segment(
+    existing: &[u8],
+    medium: &StoreMedium,
+    body: &str,
+    artifact: &[u8],
+) -> gmeow_errors::Result<Vec<u8>> {
+    use gmeow_logic::result_rdf::{NativeReceiptRef, import_native_receipt};
+    let incoming = import_native_receipt(artifact, None)?;
+    let receipt = incoming
+        .as_ref()
+        .map(|(address, bytes)| NativeReceiptRef::admit(address, bytes))
+        .transpose()?;
+    let reused = if existing.is_empty() {
+        false
+    } else if let Some(receipt) = receipt {
+        gmeow_logic::result_rdf::contains_admitted_native_receipt(existing, receipt)?
+    } else {
+        gmeow_logic::result_rdf::admit_reasoning_artifact(existing)?;
+        false
+    };
+    build_nt_segment_with_receipt(existing, medium, body, receipt.filter(|_| !reused))
+}
+
 /// Submit one candidate end-to-end — the neurosymbolic propose/verify seam: evaluate the
 /// candidate against the KB (reusing [`evaluate_conjecture`] verbatim), POLARITY-gate the write
 /// on the `submitCandidate` schema (admissible iff corroborated), and — on a committed,
@@ -514,6 +582,21 @@ pub fn run_submit_candidate(
     policy: &PreparedActionPolicy,
 ) -> gmeow_errors::Result<CandidateSubmitOutput> {
     run_submit_candidate_with_library(input, medium, policy, candidate_library)
+}
+
+/// Evaluate against the already selected candidate library, preserving its identity
+/// from output validation through the existing locked persistence workflow.
+///
+/// # Errors
+/// The same evaluation, policy or persistence failures as [`run_submit_candidate`].
+#[cfg(feature = "reasoning")]
+pub fn run_submit_candidate_in(
+    input: &CandidateSubmitInput,
+    medium: &StoreMedium,
+    policy: &PreparedActionPolicy,
+    library: Arc<dyn SegmentLibrary>,
+) -> gmeow_errors::Result<CandidateSubmitOutput> {
+    run_submit_candidate_with_library(input, medium, policy, || Ok(library))
 }
 
 #[cfg(feature = "reasoning")]
@@ -545,6 +628,7 @@ fn run_submit_candidate_with_library(
         witness,
         node_iri,
         verdict_nt,
+        artifact,
         content_key,
     } = evaluate_conjecture(
         formula_ttl,
@@ -568,6 +652,8 @@ fn run_submit_candidate_with_library(
     };
     let receipt = execute_memory_txn(policy, MCP_SUBMIT_CANDIDATE_SCHEMA, obtains, dry_run)?;
 
+    let provenance = candidate_provenance_nt(&node_iri, for_slice, for_packet);
+    let artifact = candidate_artifact(artifact, &provenance)?;
     let mut out = CandidateSubmitOutput {
         committed: false,
         dry_run,
@@ -581,6 +667,7 @@ fn run_submit_candidate_with_library(
         witness,
         node_iri,
         verdict_nt,
+        artifact,
         receipt,
     };
 
@@ -599,15 +686,11 @@ fn run_submit_candidate_with_library(
     // segment to the append-only candidate library — TOGETHER, as ONE atomic file replace under
     // ONE held lock (reusing the same GTS-library primitives the conjecture library uses).
     let library = resolve_library()?;
-    let body = format!(
-        "{}\n{}",
-        out.verdict_nt.trim_end(),
-        candidate_provenance_nt(&out.node_iri, for_slice, for_packet)
-    );
+    let body = format!("{}\n{}", out.verdict_nt.trim_end(), provenance,);
     with_library_lock(library.as_ref(), || {
         // Read and author against the same live tail under this library's lock.
         let existing = library.read_bytes()?;
-        let verdict_segment = build_nt_segment(&existing, medium, &body)?;
+        let verdict_segment = build_verdict_segment(&existing, medium, &body, &out.artifact)?;
         let mut body_image = existing.clone();
         body_image.extend_from_slice(&verdict_segment);
         let call_id = format!(
@@ -1301,6 +1384,16 @@ pub(super) fn build_nt_segment(
     medium: &StoreMedium,
     nt_body: &str,
 ) -> gmeow_errors::Result<Vec<u8>> {
+    build_nt_segment_with_receipt(existing, medium, nt_body, None)
+}
+
+#[cfg(feature = "reasoning")]
+fn build_nt_segment_with_receipt(
+    existing: &[u8],
+    medium: &StoreMedium,
+    nt_body: &str,
+    receipt: Option<gmeow_logic::result_rdf::NativeReceiptRef<'_>>,
+) -> gmeow_errors::Result<Vec<u8>> {
     let mut terms: Vec<GtsTerm> = Vec::new();
     let mut quads: Vec<(usize, usize, usize, Option<usize>)> = Vec::new();
     let mut seen: HashMap<purrdf::TermValue, usize> = HashMap::new();
@@ -1346,7 +1439,13 @@ pub(super) fn build_nt_segment(
     }
 
     let (mut writer, header) = library_writer(existing, medium)?;
-
+    if let Some(receipt) = receipt {
+        writer.add_blob(
+            receipt.bytes().to_vec(),
+            gmeow_logic::result_rdf::NATIVE_RECEIPT_MEDIA_TYPE,
+            gmeow_logic::result_rdf::NATIVE_RECEIPT_REPRESENTATION,
+        )?;
+    }
     writer.add_terms(&terms)?;
     writer.add_quads(&quads)?;
     let mut out = header;
@@ -1400,6 +1499,7 @@ pub(super) fn append_library_segments(
     for segment in segments {
         bytes.extend_from_slice(segment);
     }
+    gmeow_logic::result_rdf::admit_reasoning_artifact(&bytes)?;
     library.replace_bytes(&bytes)
 }
 
@@ -1498,6 +1598,10 @@ pub(super) fn read_library(
         // refute of an unknown id), not an error.
         return Ok(BTreeMap::new());
     }
+
+    // Preserve operational file-order lifecycle folding below; separately admit
+    // every exact aggregate and all required physical receipt occurrences first.
+    gmeow_logic::result_rdf::admit_reasoning_artifact(&bytes)?;
 
     let mut sink = ConjectureSegments::default();
     let result = purrdf::gts::reader::read_to_sink(&bytes, true, None, &mut sink);
@@ -1611,6 +1715,7 @@ pub fn compact_store(
     let library = crate::storage::fs_segment_library(path.to_path_buf());
     with_library_lock(library.as_ref(), move || {
         let bytes = std::fs::read(path)?;
+        gmeow_logic::result_rdf::admit_reasoning_artifact(&bytes)?;
         let compacted = gmeow_gts_profile::compact_gmeow_gts(
             &bytes,
             timestamp,
@@ -1618,6 +1723,7 @@ pub fn compact_store(
             purrdf::gts::compact::DictStrategy::Pinned(medium.bytes.clone()),
             packaging_signer,
         )?;
+        gmeow_logic::result_rdf::admit_reasoning_artifact(&compacted)?;
         let dir = path
             .parent()
             .filter(|parent| !parent.as_os_str().is_empty())

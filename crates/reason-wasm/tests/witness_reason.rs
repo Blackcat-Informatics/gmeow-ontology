@@ -1,38 +1,30 @@
 // SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 // SPDX-License-Identifier: AGPL-3.0-only
 
-//! Native half of the W4b reasoner `reason` WITNESS (T1/F3).
-//!
-//! `gmeow-reason-wasm::reason` is a thin shim over exactly this pipeline (parse →
-//! `gmeow_logic::reason::reason_closure_dataset` → serialize N-Quads), so the browser
-//! reasoner produces byte-identical output to native. This test pins the NATIVE
-//! reasoned closure of a fixed input to a committed content-addressed attestation
-//! (`crates/reason-wasm/tests/WITNESS.reason.nq`); the Node lane runs the WASM
-//! `reason` over the SAME input and asserts byte-identity with that attestation.
-//! Both matching the one attestation proves native ≡ wasm. The attestation is
-//! refreshed only by an explicit maintainer producer.
+//! Native complete-artifact identity for the shipped browser reason operation.
+//! The matching WASM case consumes the same producer-owned frozen JSON witness.
 
 use std::path::PathBuf;
 
 #[path = "support/closure_witness.rs"]
 mod closure_witness;
-use closure_witness::{INPUT, reason_nquads};
+use closure_witness::{INPUT, reason_artifact};
 
 fn attestation_path() -> PathBuf {
     PathBuf::from(env!("CARGO_MANIFEST_DIR"))
         .join("../..")
         .canonicalize()
         .expect("repo root")
-        .join("crates/reason-wasm/tests/WITNESS.reason.nq")
+        .join("crates/reason-wasm/tests/WITNESS.reason.json")
 }
 
 #[test]
 fn native_reason_closure_matches_the_witness_attestation() {
-    let out = reason_nquads(INPUT, "turtle");
+    let out = reason_artifact(INPUT, "turtle");
     // Deterministic + non-empty: the closure must carry the entailed memberships.
     assert_eq!(
         out,
-        reason_nquads(INPUT, "turtle"),
+        reason_artifact(INPUT, "turtle"),
         "reasoning is deterministic"
     );
     assert!(

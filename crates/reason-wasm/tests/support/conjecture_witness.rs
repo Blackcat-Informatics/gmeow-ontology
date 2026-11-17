@@ -48,11 +48,7 @@ pub const REFUTE_KB: &str = "@prefix ex:  <http://ex/> .\n\
      ex:a rdf:type ex:A .\n\
      ex:A owl:disjointWith ex:B .\n";
 
-/// The exact byte delimiter shared with the browser parity lane.
-pub const DELIMITER: &str =
-    "# ── conjecture witness · counterproof leg ──────────────────────────────\n";
-
-/// Both verified legs and the byte-exact joined attestation.
+/// Both verified legs and their complete artifact response attestation.
 pub struct ConjectureWitness {
     pub proof: ConjectureVerdictProjection,
     pub refutation: ConjectureVerdictProjection,
@@ -110,22 +106,11 @@ pub fn verified_witness() -> Result<ConjectureWitness, Box<dyn std::error::Error
         return Err(fail("conjecture refutation witness is not deterministic"));
     }
 
-    let attestation = format!("{}{DELIMITER}{}", proof.verdict_nt, refutation.verdict_nt);
-    if attestation
-        .chars()
-        .any(|c| c.is_control() && !matches!(c, '\n' | '\r' | '\t'))
-    {
-        return Err(fail(
-            "conjecture attestation contains a raw control scalar instead of an RDF UCHAR escape",
-        ));
-    }
-    purrdf::parse_dataset(attestation.as_bytes(), "application/n-triples", None).map_err(
-        |error| {
-            fail(format!(
-                "conjecture attestation is not valid N-Triples: {error}"
-            ))
-        },
-    )?;
+    let proof_artifact = gmeow_logic::result_rdf::admit_reasoning_response(&proof.artifact)?;
+    let refutation_artifact =
+        gmeow_logic::result_rdf::admit_reasoning_response(&refutation.artifact)?;
+    let attestation =
+        serde_json::json!({"proof": proof_artifact, "refutation": refutation_artifact}).to_string();
     Ok(ConjectureWitness {
         proof,
         refutation,

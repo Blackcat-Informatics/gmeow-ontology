@@ -839,16 +839,11 @@ pub(crate) fn finance(reporter: &dyn Reporter, command: &FinanceCommands) -> i32
             },
             subject,
         )?;
-        let mut turtle = gmeow_logic::reason::artifacts::build_inferred_closure_ttl(
-            &evaluation.result,
-            None,
-            &[],
-        )?;
-        turtle.push_str(&gmeow_logic::result_rdf::project_reasoning_result(
-            &evaluation.result,
-        )?);
-        let output = math_output_path(out)?;
-        write_math_bytes(&output, turtle.as_bytes())?;
+        let artifact =
+            gmeow_logic::result_rdf::ResultProjection::reasoning_with_closure(&evaluation.result)?
+                .into_gts()?;
+        let output = crate::output::resolve_path(out)?;
+        crate::output::write_bytes(&output, &artifact.bytes)?;
         Ok(())
     })();
     match result {
@@ -1012,71 +1007,6 @@ fn math_reference(
         .map_err(|error| math_diag_at(error.into(), path, leaf))
 }
 
-/// Resolve existing parents and final symlinks, including a dangling link to a new output.
-fn math_output_path(path: &Path) -> std::io::Result<PathBuf> {
-    let mut selected = std::path::absolute(path)?;
-    let mut seen = std::collections::HashSet::with_hasher(purrdf_hash::fixed::FixedState::new());
-    loop {
-        let name = selected.file_name().ok_or_else(|| {
-            std::io::Error::new(std::io::ErrorKind::InvalidInput, "output needs a file name")
-        })?;
-        let parent = selected.parent().ok_or_else(|| {
-            std::io::Error::new(
-                std::io::ErrorKind::InvalidInput,
-                "output needs a parent directory",
-            )
-        })?;
-        let parent = std::fs::canonicalize(parent)?;
-        let candidate = parent.join(name);
-        if !seen.insert(candidate.clone()) {
-            return Err(std::io::Error::new(
-                std::io::ErrorKind::InvalidInput,
-                "cyclic output symlink",
-            ));
-        }
-        match std::fs::symlink_metadata(&candidate) {
-            Ok(metadata) if metadata.file_type().is_symlink() => {
-                let target = std::fs::read_link(&candidate)?;
-                selected = if target.is_absolute() {
-                    target
-                } else {
-                    parent.join(target)
-                };
-            }
-            Ok(_) => return std::fs::canonicalize(candidate),
-            Err(error) if error.kind() == std::io::ErrorKind::NotFound => return Ok(candidate),
-            Err(error) => return Err(error),
-        }
-    }
-}
-
-fn write_math_bytes(path: &Path, bytes: &[u8]) -> gmeow_errors::Result<()> {
-    use std::io::Write;
-    let parent = path.parent().ok_or_else(|| {
-        std::io::Error::new(
-            std::io::ErrorKind::InvalidInput,
-            "output needs a parent directory",
-        )
-    })?;
-    let mut builder = tempfile::Builder::new();
-    #[cfg(unix)]
-    {
-        use std::os::unix::fs::PermissionsExt;
-        // Creation applies the caller's umask, just as an ordinary output write does.
-        builder.permissions(std::fs::Permissions::from_mode(0o666));
-    }
-    let mut file = builder.tempfile_in(parent)?;
-    file.write_all(bytes)?;
-    file.flush()?;
-    match std::fs::metadata(path) {
-        Ok(metadata) => file.as_file().set_permissions(metadata.permissions())?,
-        Err(error) if error.kind() == std::io::ErrorKind::NotFound => {}
-        Err(error) => return Err(error.into()),
-    }
-    file.persist(path)?;
-    Ok(())
-}
-
 fn require_distinct_math_outputs(out: &Path, ledger: &Path) -> gmeow_errors::Result<()> {
     if out == ledger {
         return Err(gmeow_errors::Diag::of_kind(
@@ -1135,17 +1065,13 @@ fn math_interchange(reporter: &dyn Reporter, command: &MathCommands) -> i32 {
                 let evaluation =
                     gmeow_logic::math_evaluation::evaluate(&dataset, subject, &selected)
                         .map_err(|diag| math_diag_at(diag, source, "evaluate"))?;
-                let mut turtle = gmeow_logic::reason::artifacts::build_inferred_closure_ttl(
+                let artifact = gmeow_logic::result_rdf::ResultProjection::reasoning_with_closure(
                     &evaluation.result,
-                    None,
-                    &[],
-                )?;
-                turtle.push_str(&gmeow_logic::result_rdf::project_reasoning_result(
-                    &evaluation.result,
-                )?);
-                let output = math_output_path(out)
+                )?
+                .into_gts()?;
+                let output = crate::output::resolve_path(out)
                     .map_err(|error| math_diag_at(error.into(), out, "evaluate"))?;
-                write_math_bytes(&output, turtle.as_bytes())
+                crate::output::write_bytes(&output, &artifact.bytes)
                     .map_err(|diag| math_diag_at(diag, out, "evaluate"))?;
             }
             MathCommands::Project {
@@ -1156,9 +1082,9 @@ fn math_interchange(reporter: &dyn Reporter, command: &MathCommands) -> i32 {
                 out,
                 ledger,
             } => {
-                let output = math_output_path(out)
+                let output = crate::output::resolve_path(out)
                     .map_err(|error| math_diag_at(error.into(), out, "project"))?;
-                let ledger_output = math_output_path(ledger)
+                let ledger_output = crate::output::resolve_path(ledger)
                     .map_err(|error| math_diag_at(error.into(), ledger, "project"))?;
                 require_distinct_math_outputs(&output, &ledger_output)
                     .map_err(|diag| math_diag_at(diag, out, "project"))?;
@@ -1170,16 +1096,16 @@ fn math_interchange(reporter: &dyn Reporter, command: &MathCommands) -> i32 {
                 let emission =
                     projection::project(&dataset, subject, Target::parse(to)?, &reference)
                         .map_err(|diag| math_diag_at(diag, source, "project"))?;
-                write_math_bytes(&ledger_output, emission.ledger.as_bytes())
+                crate::output::write_bytes(&ledger_output, emission.ledger.as_bytes())
                     .map_err(|diag| math_diag_at(diag, ledger, "project"))?;
                 // Publishing the ledger can expose a previously absent case-insensitive alias.
-                let output = math_output_path(&output)
+                let output = crate::output::resolve_path(&output)
                     .map_err(|error| math_diag_at(error.into(), out, "project"))?;
-                let ledger_output = math_output_path(&ledger_output)
+                let ledger_output = crate::output::resolve_path(&ledger_output)
                     .map_err(|error| math_diag_at(error.into(), ledger, "project"))?;
                 require_distinct_math_outputs(&output, &ledger_output)
                     .map_err(|diag| math_diag_at(diag, out, "project"))?;
-                write_math_bytes(&output, &emission.bytes)
+                crate::output::write_bytes(&output, &emission.bytes)
                     .map_err(|diag| math_diag_at(diag, out, "project"))?;
                 let published_ledger = std::fs::read(&ledger_output)
                     .map_err(|error| math_diag_at(error.into(), ledger, "project"))?;

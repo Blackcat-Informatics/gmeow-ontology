@@ -12,12 +12,16 @@ mod conjecture_witness;
 mod closure_witness;
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
-    let closure = closure_witness::reason_nquads(closure_witness::INPUT, "turtle");
+    let artifact = closure_witness::reason_artifact(closure_witness::INPUT, "turtle");
     assert_eq!(
-        closure,
-        closure_witness::reason_nquads(closure_witness::INPUT, "turtle"),
+        artifact,
+        closure_witness::reason_artifact(closure_witness::INPUT, "turtle"),
         "native closure must be deterministic"
     );
+    let response: serde_json::Value = serde_json::from_str(&artifact)?;
+    let closure = response["closure_nquads"]
+        .as_str()
+        .ok_or("missing admitted RDF closure")?;
     assert_eq!(
         closure.lines().count(),
         7,
@@ -38,14 +42,15 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     }
     assert!(closure.lines().any(|line| line.starts_with("<https://blackcatinformatics.ca/gmeow/skolem/") && line.ends_with(" <https://blackcatinformatics.ca/logic/instanceOf> <https://blackcatinformatics.ca/logic/Thing> .")), "missing nonempty-domain witness");
     let witness = conjecture_witness::verified_witness()?;
-    let output = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("tests/WITNESS.conjecture.nq");
+    let output = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("tests/WITNESS.conjecture.json");
     std::fs::write(&output, witness.attestation.as_bytes())?;
-    let closure_output = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("tests/WITNESS.reason.nq");
-    std::fs::write(&closure_output, closure.as_bytes())?;
+    let closure_output =
+        PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("tests/WITNESS.reason.json");
+    std::fs::write(&closure_output, artifact.as_bytes())?;
     println!(
         "refreshed {} ({} bytes)",
         closure_output.display(),
-        closure.len()
+        artifact.len()
     );
     println!(
         "refreshed {} from verified {} + {} verdicts ({} bytes)",

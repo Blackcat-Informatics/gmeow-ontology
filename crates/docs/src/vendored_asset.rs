@@ -120,7 +120,7 @@ pub struct VendoredWasmAsset {
     /// The `make` target that rebuilds + re-vendors this asset (referenced in
     /// failure messages).
     pub refresh_target: &'static str,
-    /// A per-asset native↔wasm parity attestation path (e.g. `WITNESS.reason.nq`): the
+    /// A per-asset native↔wasm parity attestation path (e.g. `WITNESS.reason.json`): the
     /// committed native output the shipped wasm engine reproduces byte-for-byte. Its
     /// presence + digest-currency is gated by [`attestation_status`](Self::attestation_status)
     /// (F4/F5). For ALL FOUR engines the byte-identity is additionally EXECUTED on
@@ -752,11 +752,11 @@ pub static REASON_ASSET: VendoredWasmAsset = VendoredWasmAsset {
         },
     ],
     refresh_target: "maint-refresh-reason-asset",
-    // The native↔wasm reasoning parity attestation (`WITNESS.reason.nq`): the reasoned
+    // The native↔wasm reasoning parity attestation (`WITNESS.reason.json`): the reasoned
     // closure the native chase produces and the wasm engine reproduces (proven by
     // `crates/reason-wasm/tests/witness_reason.rs` + the Node lane). The live reasoner consumes
     // it to gate the LiveReasoning capability.
-    witness_attestation: Some("WITNESS.reason.nq"),
+    witness_attestation: Some("WITNESS.reason.json"),
 };
 
 /// The vendored `gmeow-gmn-wasm` engine — the shipped GMN-0↔GMN-1 codec + glyph

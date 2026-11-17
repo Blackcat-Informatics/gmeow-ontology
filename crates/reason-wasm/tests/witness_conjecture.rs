@@ -10,7 +10,7 @@
 //! output to native. This test pins the NATIVE verdict of TWO curated conjectures — one
 //! CORROBORATED (the proof leg `KB ⊨ φ` fires) and one REFUTED-IN-STANDPOINT (the
 //! counterproof leg `KB ∪ {φ} ⊨ ⊥` fires, with a concrete contradiction witness) — to a
-//! committed content-addressed attestation (`crates/reason-wasm/tests/WITNESS.conjecture.nq`).
+//! committed complete-artifact attestation (`crates/reason-wasm/tests/WITNESS.conjecture.json`).
 //! The Node lane runs the WASM `conjecture` over the SAME inputs and asserts byte-identity with
 //! that attestation. Both matching the one attestation proves native ≡ wasm. The
 //! attestation is refreshed only by `make maint-refresh-reason-witness`.
@@ -27,7 +27,7 @@ fn attestation_path() -> PathBuf {
         .join("../..")
         .canonicalize()
         .expect("repo root")
-        .join("crates/reason-wasm/tests/WITNESS.conjecture.nq")
+        .join("crates/reason-wasm/tests/WITNESS.conjecture.json")
 }
 
 #[test]

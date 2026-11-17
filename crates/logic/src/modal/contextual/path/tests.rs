@@ -323,8 +323,12 @@ fn explicit_atomic_and_temporal_anchors_keep_the_full_observation_and_provenance
             observation = Some(basis.clone());
         }
         let native = crate::result_rdf::project_contextual_assessment_dataset(&assessment).unwrap();
-        let restored =
-            crate::result_rdf::parse_reasoning_dataset(&native, GraphMatch::Default).unwrap();
+        let restored = crate::result_rdf::parse_reasoning_dataset(
+            &native,
+            GraphMatch::Default,
+            &crate::result_rdf::NoNativeReceipts,
+        )
+        .unwrap();
         assert_eq!(restored.provenance, assessment.result.provenance);
     }
     for (anchor, expected) in [

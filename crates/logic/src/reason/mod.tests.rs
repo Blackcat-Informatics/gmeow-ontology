@@ -2163,8 +2163,10 @@ fn modal_contexts_survive_native_receipts_rdf_and_explanation_without_absent_pre
             .any(|q| q.world == "urn:context:alternate"
                 && q.predicate == modal::MODAL_NECESSITY_HOLDS)
     );
-    let wire = crate::result_rdf::project_reasoning_result(&result).unwrap();
-    let recovered = crate::result_rdf::parse_reasoning_graph(&wire).unwrap();
+    let publication = crate::result_rdf::ResultProjection::reasoning(&result).unwrap();
+    let wire = publication.to_ntriples();
+    let recovered =
+        crate::result_rdf::parse_reasoning_graph(&wire, &publication.receipt()).unwrap();
     let recovered_rows: Vec<_> = recovered
         .inferred()
         .iter()

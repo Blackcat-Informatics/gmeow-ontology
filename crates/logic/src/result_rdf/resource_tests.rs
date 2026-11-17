@@ -98,7 +98,7 @@ fn component_assessment() -> crate::contextual::ContextualAssessment {
 fn contextual_resource_components_keep_proof_witness_and_native_receipts() {
     // gmeow-test-input: synthetic-only
     let assessment = component_assessment();
-    let ordinary = project_reasoning_dataset(&assessment.result).unwrap();
+    let (ordinary, _receipt) = project_reasoning_dataset(&assessment.result).unwrap();
     let contextual = project_contextual_assessment_dataset(&assessment).unwrap();
     assert!(contextual.owned_quads().any(
         |row| matches!(row.subject, purrdf::RdfTerm::Iri(ref iri) if iri.contains("/component/"))
@@ -109,7 +109,8 @@ fn contextual_resource_components_keep_proof_witness_and_native_receipts() {
             .all(|row| !matches!(row.subject, purrdf::RdfTerm::BlankNode(_)))
     );
     for dataset in [&ordinary, &contextual] {
-        let restored = parse_reasoning_dataset(dataset, GraphMatch::Default).unwrap();
+        let restored =
+            parse_reasoning_dataset(dataset, GraphMatch::Default, &NoNativeReceipts).unwrap();
         assert_eq!(restored.provenance, assessment.result.provenance);
         assert_eq!(restored.information, InformationState::Both);
         assert_eq!(
@@ -123,21 +124,50 @@ fn contextual_resource_components_keep_proof_witness_and_native_receipts() {
         .as_ref()
         .term_id_by_value(&TermValue::iri(GRAPH_REASONING))
         .unwrap();
-    let restored = parse_reasoning_dataset(&named, GraphMatch::Named(graph)).unwrap();
+    let restored =
+        parse_reasoning_dataset(&named, GraphMatch::Named(graph), &NoNativeReceipts).unwrap();
     assert_eq!(restored.provenance, assessment.result.provenance);
     assert_eq!(
         restored.inferred().iter().collect::<BTreeSet<_>>(),
         assessment.result.inferred().iter().collect::<BTreeSet<_>>()
     );
-    assert!(parse_reasoning_dataset(&named, GraphMatch::Default).is_err());
+    assert!(parse_reasoning_dataset(&named, GraphMatch::Default, &NoNativeReceipts).is_err());
 }
 
 /// A selected evidence link cannot silently disappear merely because its
 /// object is a literal, quotation or a resource missing the declared role.
+/// A contextual result also refuses native attachments and independent aggregate selection.
 #[test]
 fn contextual_resource_components_refuse_nonresources_and_untyped_targets() {
     // gmeow-test-input: synthetic-only
     let assessment = component_assessment();
+    for predicate in ["resultNativeExecution", "resultClosureBlob"] {
+        let (mut sink, subject) = contextual_assessment_sink(&assessment).unwrap();
+        sink.push(
+            Node::iri(&subject),
+            logic(predicate),
+            Node::string(format!("blake3:{}", "0".repeat(64))),
+        );
+        let dataset = native_dataset(sink).unwrap();
+        let error =
+            parse_reasoning_dataset(&dataset, GraphMatch::Default, &NoNativeReceipts).unwrap_err();
+        assert!(
+            error
+                .message()
+                .contains("contextual projection cannot carry"),
+            "{predicate}: {error}"
+        );
+        assert!(
+            parse_reasoning_dataset_subject(
+                &dataset,
+                GraphMatch::Default,
+                &subject,
+                &NoNativeReceipts,
+            )
+            .is_err(),
+            "a contextual child cannot become an artifact aggregate"
+        );
+    }
     for predicate in [
         "resultProof",
         "resultCounterproof",
@@ -161,7 +191,8 @@ fn contextual_resource_components_refuse_nonresources_and_untyped_targets() {
                 .unwrap()
                 .object = replacement;
             let dataset = native_dataset(sink).unwrap();
-            let error = parse_reasoning_dataset(&dataset, GraphMatch::Default).unwrap_err();
+            let error = parse_reasoning_dataset(&dataset, GraphMatch::Default, &NoNativeReceipts)
+                .unwrap_err();
             assert!(error.message().contains(predicate), "{predicate}: {error}");
         }
     }
@@ -198,7 +229,8 @@ fn contextual_resource_components_do_not_borrow_a_role_from_another_graph() {
         .as_ref()
         .term_id_by_value(&TermValue::iri(GRAPH_REASONING))
         .unwrap();
-    let error = parse_reasoning_dataset(&dataset, GraphMatch::Named(graph)).unwrap_err();
+    let error =
+        parse_reasoning_dataset(&dataset, GraphMatch::Named(graph), &NoNativeReceipts).unwrap_err();
     assert!(
         error
             .message()
@@ -261,7 +293,8 @@ fn contextual_resource_components_refuse_missing_ambiguous_or_erased_fields() {
             }
         }
         let dataset = native_dataset(sink).unwrap();
-        let error = parse_reasoning_dataset(&dataset, GraphMatch::Default).unwrap_err();
+        let error =
+            parse_reasoning_dataset(&dataset, GraphMatch::Default, &NoNativeReceipts).unwrap_err();
         let expected = [
             "derivationId",
             "single-valued",

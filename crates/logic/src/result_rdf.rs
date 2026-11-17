@@ -64,7 +64,23 @@ use gmeow_logic_compile::ir::{LOGIC_NAMESPACE, PreservationKind};
 use purrdf::{DatasetView, GraphMatch, QuadIds, RdfDataset, TermId, TermRef};
 use sha2::{Digest, Sha256};
 
+mod artifact;
+mod closure;
 mod native;
+mod receipt;
+mod snapshot;
+
+pub use artifact::{
+    admit_reasoning_artifact, admit_reasoning_response, artifact_envelope,
+    contains_admitted_native_receipt, import_native_receipt, parse_reasoning_artifact,
+    parse_reasoning_artifact_graph, parse_reasoning_artifact_with_closure,
+};
+pub use closure::{CLOSURE_MEDIA_TYPE, CLOSURE_REPRESENTATION};
+pub use receipt::{
+    NATIVE_RECEIPT_MEDIA_TYPE, NATIVE_RECEIPT_REPRESENTATION, NativeReceipt, NativeReceiptAddress,
+    NativeReceiptRef, NativeReceiptResolver, NoNativeReceipts,
+};
+pub use snapshot::{ReasoningSnapshotScope, reasoning_snapshot_summary};
 
 use crate::conjecture::{ConjectureAnswer, ConjectureDischarge, ConjectureLifecycleState};
 use crate::explain::{
@@ -140,25 +156,12 @@ enum Node {
         lex: String,
         datatype: String,
     },
-    /// An already encoded native execution receipt, shared with its other holder. It is
-    /// the same RDF term as a [`Node::Lit`] of that text and the `xsd:hexBinary` datatype.
-    Receipt(ReceiptText),
 }
-
-/// The datatype of the `logic:resultNativeExecution` receipt literal.
-const XSD_HEX_BINARY: &str = "http://www.w3.org/2001/XMLSchema#hexBinary";
-
-/// The lexical form of one encoded native execution receipt, held once and shared.
-///
-/// Only [`transport_reasoning`] makes one, from the text it has proved the transported
-/// result's own receipt encodes to, so a projection given one never needs to encode again.
-#[derive(Clone)]
-pub(crate) struct ReceiptText(Arc<String>);
 
 /// Write one typed literal in N-Triples form, escaping its lexical form.
 fn write_typed_literal(f: &mut fmt::Formatter<'_>, lex: &str, datatype: &str) -> fmt::Result {
     f.write_str("\"")?;
-    // Write unchanged spans together so large hex receipts need no escaped copy.
+    // Write unchanged spans without allocating a second escaped string.
     let mut start = 0;
     for (index, ch) in lex.char_indices() {
         if matches!(ch, '\\' | '"') || ch.is_control() {
@@ -220,7 +223,6 @@ impl fmt::Display for Node {
             Node::Blank(id) => write!(f, "_:{id}"),
             Node::Value(value) => f.write_str(&crate::provenance::term_display(value)),
             Node::Lit { lex, datatype } => write_typed_literal(f, lex, datatype),
-            Node::Receipt(text) => write_typed_literal(f, &text.0, XSD_HEX_BINARY),
         }
     }
 }
@@ -548,34 +550,94 @@ pub fn project_reasoning_result(result: &ReasoningResult) -> gmeow_errors::Resul
 
 /// One validated terminal projection, shared by its content address and output
 /// sinks. The producer retains the typed result through all intermediate stages.
-pub struct ResultProjection {
+pub struct ResultProjection<'a> {
     node_iri: String,
     sink: Sink,
+    receipt: Option<NativeReceipt<'a>>,
+    closure: Option<closure::ClosurePublication>,
+    native_execution: Option<Arc<crate::result::NativeExecutionEvidence>>,
 }
 
-impl ResultProjection {
+struct ProjectionResolver<'a> {
+    receipt: Option<NativeReceiptRef<'a>>,
+    closure: Option<&'a closure::ClosurePublication>,
+}
+
+impl NativeReceiptResolver for ProjectionResolver<'_> {
+    fn resolve(&self, address: &NativeReceiptAddress) -> gmeow_errors::Result<&[u8]> {
+        self.receipt.resolve(address)
+    }
+
+    fn admit_closure(
+        &self,
+        address: &NativeReceiptAddress,
+        worlds: &[crate::physical::LogicalGraph],
+    ) -> gmeow_errors::Result<()> {
+        let closure = self
+            .closure
+            .filter(|closure| closure.address == *address)
+            .ok_or_else(|| result_err("required RDF closure publication is absent".into()))?;
+        closure::admit_leaf(address, &closure.bytes, worlds)?;
+        Ok(())
+    }
+}
+
+impl<'a> ResultProjection<'a> {
     /// Prepare the complete selected result projection once.
     ///
     /// # Errors
     /// Rejects invalid result evidence or an unrepresentable native receipt.
     pub fn reasoning(result: &ReasoningResult) -> gmeow_errors::Result<Self> {
-        Self::reasoning_with(result, None)
+        let receipt = result
+            .provenance
+            .native_execution
+            .as_deref()
+            .map(NativeReceipt::publish)
+            .transpose()?;
+        Self::reasoning_with(result, receipt)
     }
 
-    /// Prepare the projection of a transported result, reusing the receipt text its
-    /// transport already holds instead of encoding the receipt again. The projection is
+    /// Prepare the projection of a transported result, borrowing its published binary
+    /// receipt instead of encoding it again. The projection is
     /// the one [`Self::reasoning`] makes of the same result.
     ///
     /// # Errors
     /// Rejects invalid result evidence.
-    pub fn transported(transported: &TransportedReasoning) -> gmeow_errors::Result<Self> {
-        Self::reasoning_with(&transported.result, transported.receipt.as_ref())
+    pub fn transported(transported: &TransportedReasoning<'a>) -> gmeow_errors::Result<Self> {
+        Self::reasoning_with(
+            &transported.result,
+            transported.receipt.map(NativeReceipt::borrowed),
+        )
     }
 
-    /// `receipt`, when given, is the text `result`'s native execution encodes to.
+    /// Reuse an existing immutable publication when the result was already published.
+    ///
+    /// # Errors
+    /// Rejects a result whose receipt presence, complete native evidence pairing
+    /// or governed summary is invalid.
+    pub fn reasoning_with_receipt(
+        result: &ReasoningResult,
+        receipt: Option<NativeReceiptRef<'a>>,
+    ) -> gmeow_errors::Result<Self> {
+        if let (Some(execution), Some(receipt)) =
+            (result.provenance.native_execution.as_deref(), receipt)
+        {
+            receipt.verify_execution(execution)?;
+        }
+        Self::reasoning_with(result, receipt.map(NativeReceipt::borrowed))
+    }
+
     fn reasoning_with(
         result: &ReasoningResult,
-        receipt: Option<&ReceiptText>,
+        receipt: Option<NativeReceipt<'a>>,
+    ) -> gmeow_errors::Result<Self> {
+        Self::reasoning_with_attachments(result, receipt, None)
+    }
+
+    fn reasoning_with_attachments(
+        result: &ReasoningResult,
+        receipt: Option<NativeReceipt<'a>>,
+        closure: Option<closure::ClosurePublication>,
     ) -> gmeow_errors::Result<Self> {
         let started = crate::timing::Instant::now();
         tracing::info!(
@@ -595,7 +657,14 @@ impl ResultProjection {
             elapsed_ms = started.elapsed().as_millis(),
             "reason phase boundary",
         );
-        let sink = reasoning_sink(result, receipt)?;
+        let mut sink = reasoning_sink(result, receipt.as_ref().map(NativeReceipt::as_ref))?;
+        if let Some(closure) = &closure {
+            sink.push(
+                Node::SelfReference(RESULT_PLACEHOLDER.to_owned()),
+                logic("resultClosureBlob"),
+                Node::string(closure.address.as_str()),
+            );
+        }
         let started = crate::timing::Instant::now();
         tracing::info!(
             target: "pipeline_phase",
@@ -626,7 +695,29 @@ impl ResultProjection {
                 Node::Value(Box::new(axiom.object.clone())),
             );
         }
-        Ok(Self { node_iri, sink })
+        Ok(Self {
+            node_iri,
+            sink,
+            receipt,
+            closure,
+            native_execution: result.provenance.native_execution.clone(),
+        })
+    }
+
+    /// Publish the full RDF closure from this exact original native execution.
+    /// The isolated leaf cannot collide with caller-authored result-looking RDF.
+    ///
+    /// # Errors
+    /// Rejects invalid closure evidence or any incomplete native transport.
+    pub fn reasoning_with_closure(result: &ReasoningResult) -> gmeow_errors::Result<Self> {
+        let closure = closure::ClosurePublication::publish(result)?;
+        let receipt = result
+            .provenance
+            .native_execution
+            .as_deref()
+            .map(NativeReceipt::publish)
+            .transpose()?;
+        Self::reasoning_with_attachments(result, receipt, Some(closure))
     }
 
     /// Prepare one conjecture and its embedded reasoning evidence. The node
@@ -635,13 +726,25 @@ impl ResultProjection {
     /// # Errors
     /// Rejects invalid result evidence or an incomplete conjecture contract.
     pub fn conjecture(input: &ConjectureVerdictInput) -> gmeow_errors::Result<Self> {
-        let (sink, node_iri) = conjecture_projection_sink(input)?;
-        Ok(Self { node_iri, sink })
+        let (sink, node_iri, receipt) = conjecture_projection_sink(input)?;
+        Ok(Self {
+            node_iri,
+            sink,
+            receipt,
+            closure: None,
+            native_execution: input.answer.verdict.provenance.native_execution.clone(),
+        })
     }
 
     /// Borrow the address minted during this exact projection.
     pub fn node_iri(&self) -> &str {
         &self.node_iri
+    }
+
+    /// Borrow this projection's required binary publication.
+    #[must_use]
+    pub fn receipt(&self) -> Option<NativeReceiptRef<'_>> {
+        self.receipt.as_ref().map(NativeReceipt::as_ref)
     }
 
     /// Serialize only at the selected terminal text boundary.
@@ -653,8 +756,69 @@ impl ResultProjection {
     ///
     /// # Errors
     /// Rejects malformed RDF terms or statement metadata.
-    pub fn into_dataset(self) -> gmeow_errors::Result<std::sync::Arc<RdfDataset>> {
-        native_dataset(self.sink)
+    pub fn into_dataset(
+        self,
+    ) -> gmeow_errors::Result<(std::sync::Arc<RdfDataset>, Option<NativeReceipt<'a>>)> {
+        if self.closure.is_some() {
+            return Err(result_err("full-closure publication requires its complete GTS terminal; a dataset-only transfer would discard its required attachment".into()));
+        }
+        Ok((native_dataset(self.sink)?, self.receipt))
+    }
+
+    /// Publish a complete standalone artifact through the mandatory GTS writer.
+    /// Compare the actual pre-emission transport summary with readback from
+    /// these exact emitted bytes before returning a successful publication.
+    ///
+    /// # Errors
+    /// Refuses incomplete binary evidence, native authorship failures and any
+    /// exact governed-summary round-trip difference.
+    pub fn into_gts(self) -> gmeow_errors::Result<gmeow_gts_profile::GmeowGtsEmission> {
+        let dataset = native_dataset(self.sink)?;
+        let resolver = ProjectionResolver {
+            receipt: self.receipt.as_ref().map(NativeReceipt::as_ref),
+            closure: self.closure.as_ref(),
+        };
+        let mut normalized = read_reasoning_result_expecting(
+            &ResultGraph::new(&dataset, GraphMatch::Default)?,
+            &resolver,
+            RootSelection::Aggregate(None),
+            None,
+        )?;
+        if normalized.provenance.native_execution != self.native_execution {
+            return Err(result_err("standalone publication receipt differs from the complete original native execution evidence".into()));
+        }
+        normalized.provenance.native_execution = self.native_execution;
+        let transported = TransportedReasoning {
+            result: normalized,
+            receipt: resolver.receipt,
+        };
+        let expected =
+            reasoning_snapshot_summary(transported.result, ReasoningSnapshotScope::Runtime)?;
+        let mut writer = gmeow_gts_profile::GmeowGtsWriter::new("runtime");
+        if let Some(receipt) = self.receipt {
+            writer.add_blob(
+                receipt.into_emission_bytes(),
+                NATIVE_RECEIPT_MEDIA_TYPE,
+                NATIVE_RECEIPT_REPRESENTATION,
+            )?;
+        }
+        if let Some(closure) = self.closure {
+            writer.add_blob(closure.bytes, CLOSURE_MEDIA_TYPE, CLOSURE_REPRESENTATION)?;
+        }
+        let emission = writer.finish_view_scoped(
+            dataset.as_ref(),
+            ReasoningSnapshotScope::Runtime
+                .prefix()
+                .expect("runtime snapshot has its fixed namespace"),
+        )?;
+        let actual = parse_reasoning_artifact(&emission.bytes)?;
+        if actual != expected {
+            return Err(result_err(
+                "emitted GTS changed the complete actual transport-normalized reasoning result"
+                    .into(),
+            ));
+        }
+        Ok(emission)
     }
 
     /// Move this projection's complete statement layers into a caller-owned carrier.
@@ -671,8 +835,12 @@ impl ResultProjection {
         builder: &mut purrdf::RdfDatasetBuilder,
         graph: Option<&str>,
         blank_scope: purrdf::BlankScope,
-    ) -> gmeow_errors::Result<()> {
-        append_native_dataset(self.sink, builder, graph, blank_scope)
+    ) -> gmeow_errors::Result<Option<NativeReceipt<'a>>> {
+        if self.closure.is_some() {
+            return Err(result_err("full-closure publication requires its complete GTS terminal; an RDF-only append would discard its required attachment".into()));
+        }
+        append_native_dataset(self.sink, builder, graph, blank_scope)?;
+        Ok(self.receipt)
     }
 }
 
@@ -687,7 +855,7 @@ impl ResultProjection {
 /// Rejects a summary that cannot form a valid native RDF dataset.
 pub fn project_reasoning_dataset(
     result: &ReasoningResult,
-) -> gmeow_errors::Result<std::sync::Arc<RdfDataset>> {
+) -> gmeow_errors::Result<(std::sync::Arc<RdfDataset>, Option<NativeReceipt<'static>>)> {
     ResultProjection::reasoning(result)?.into_dataset()
 }
 
@@ -714,12 +882,6 @@ pub(crate) fn contextual_assessment_facts(
             Node::Lit { lex, datatype } => Ok(purrdf::TermValue::Literal {
                 lexical_form: lex,
                 datatype,
-                language: None,
-                direction: None,
-            }),
-            Node::Receipt(text) => Ok(purrdf::TermValue::Literal {
-                lexical_form: text.0.as_str().to_owned(),
-                datatype: XSD_HEX_BINARY.to_owned(),
                 language: None,
                 direction: None,
             }),
@@ -882,11 +1044,6 @@ fn append_native_dataset(
             Node::Lit { lex, datatype } => {
                 purrdf::RdfTerm::Literal(purrdf::RdfLiteral::typed(lex, datatype))
             }
-            // The dataset's term table owns its text, so this is the one copy made.
-            Node::Receipt(text) => purrdf::RdfTerm::Literal(purrdf::RdfLiteral::typed(
-                text.0.as_str().to_owned(),
-                XSD_HEX_BINARY,
-            )),
         })
     };
     let graph = graph.map(purrdf::RdfTerm::iri);
@@ -917,7 +1074,7 @@ fn append_native_dataset(
 
 fn reasoning_sink(
     result: &ReasoningResult,
-    receipt: Option<&ReceiptText>,
+    receipt: Option<NativeReceiptRef<'_>>,
 ) -> gmeow_errors::Result<Sink> {
     let mut sink = Sink::default();
     let subject = Node::SelfReference(RESULT_PLACEHOLDER.to_owned());
@@ -1015,13 +1172,13 @@ fn project_preservation(sink: &mut Sink, subject: &Node, claim: &PreservationCla
 }
 
 /// Emit the full provenance bundle (every field, sorted where it is a set/list).
-/// `receipt`, when given, is the text `prov.native_execution` encodes to; it is used
-/// as the receipt literal and the receipt is not encoded.
+/// The explicit publication is required exactly when native execution occurred.
+/// This layer only references its address and never re-encodes published evidence.
 fn project_provenance(
     sink: &mut Sink,
     subject: &Node,
     prov: &ResultProvenance,
-    receipt: Option<&ReceiptText>,
+    receipt: Option<NativeReceiptRef<'_>>,
 ) -> gmeow_errors::Result<()> {
     sink.push(
         subject.clone(),
@@ -1076,41 +1233,18 @@ fn project_provenance(
     for witness in sorted_witnesses {
         project_witness(sink, subject, witness);
     }
-    if let Some(text) = receipt.filter(|_| prov.native_execution.is_some()) {
-        sink.push(
+    match (prov.native_execution.as_ref(), receipt) {
+        (Some(_), Some(receipt)) => sink.push(
             subject.clone(),
             logic("resultNativeExecution"),
-            Node::Receipt(text.clone()),
-        );
-    } else if let Some(execution) = &prov.native_execution {
-        sink.push(
-            subject.clone(),
-            logic("resultNativeExecution"),
-            Node::Lit {
-                lex: {
-                    let started = crate::timing::Instant::now();
-                    tracing::info!(
-                        target: "pipeline_phase",
-                        stage = "stage-reason",
-                        phase = "encode-native-reasoning-receipt",
-                        event = "start",
-                        "reason phase boundary",
-                    );
-                    let encoded = native::encode(execution)?;
-                    tracing::info!(
-                        target: "pipeline_phase",
-                        stage = "stage-reason",
-                        phase = "encode-native-reasoning-receipt",
-                        event = "end",
-                        elapsed_ms = started.elapsed().as_millis(),
-                        encoded_bytes = encoded.len(),
-                        "reason phase boundary",
-                    );
-                    encoded
-                },
-                datatype: XSD_HEX_BINARY.into(),
-            },
-        );
+            Node::string(receipt.address().as_str()),
+        ),
+        (None, None) => {}
+        _ => {
+            return Err(result_err(
+                "native result and required binary receipt publication disagree".into(),
+            ));
+        }
     }
     Ok(())
 }
@@ -1462,7 +1596,7 @@ fn budget_limit_from_wire(wire: &str) -> Option<BudgetLimit> {
 // ── The parser: graph/reasoning → ReasoningResult (verdict + provenance) ─────────
 
 /// Re-derive the verdict-and-provenance [`ReasoningResult`] from a `graph/reasoning`
-/// N-Triples body (the cache / handle re-derivation path).
+/// N-Triples body.
 ///
 /// **Faithful subset** (Principle 17): this reconstructs the five axes, the
 /// preservation claim, and the entire provenance bundle exactly. The inferred payload
@@ -1475,32 +1609,61 @@ fn budget_limit_from_wire(wire: &str) -> Option<BudgetLimit> {
 /// # Errors
 /// Returns `Err` if the body is missing the result subject, an axis IRI is
 /// unrecognized, or a required scalar provenance field is absent (fail-closed).
-pub fn parse_reasoning_graph(nt_body: &str) -> gmeow_errors::Result<ReasoningResult> {
+pub fn parse_reasoning_graph(
+    nt_body: &str,
+    resolver: &dyn NativeReceiptResolver,
+) -> gmeow_errors::Result<ReasoningResult> {
     let dataset = parse_nt(nt_body)?;
-    parse_reasoning_dataset(&dataset, GraphMatch::Default)
+    parse_reasoning_dataset(&dataset, GraphMatch::Default, resolver)
 }
 
 /// Recover a reasoning handle directly from one selected graph in a native dataset.
 /// PurRDF's indexes and borrowed terms are reused; no graph copy, RDF text, or
 /// second triple index is constructed. Derived rows retain every receipt check.
+/// A sole standalone contextual projection is readable without native attachments;
+/// aggregate artifact readers apply their separate strict root selection.
 ///
 /// # Errors
 /// Rejects malformed result projections and missing required provenance.
 pub fn parse_reasoning_dataset(
     dataset: &RdfDataset,
     graph: GraphMatch,
+    resolver: &dyn NativeReceiptResolver,
 ) -> gmeow_errors::Result<ReasoningResult> {
-    read_reasoning_result(&ResultGraph::new(dataset, graph)?)
+    read_reasoning_result_expecting(
+        &ResultGraph::new(dataset, graph)?,
+        resolver,
+        RootSelection::DatasetProjection,
+        None,
+    )
 }
 
-/// A reasoning result as a consumer recovers it from `graph/reasoning`, together with
-/// the receipt text that transport carried.
-pub struct TransportedReasoning {
+/// Admit one exact aggregate in the selected graph of a multi-result artifact.
+/// Contextual children cannot be selected as independent aggregate roots.
+///
+/// # Errors
+/// Rejects absent/ambiguous bindings, contextual roots and invalid native evidence.
+pub fn parse_reasoning_dataset_subject(
+    dataset: &RdfDataset,
+    graph: GraphMatch,
+    subject: &str,
+    resolver: &dyn NativeReceiptResolver,
+) -> gmeow_errors::Result<ReasoningResult> {
+    read_reasoning_result_expecting(
+        &ResultGraph::new(dataset, graph)?,
+        resolver,
+        RootSelection::Aggregate(Some(subject)),
+        None,
+    )
+}
+
+/// The exact transport-normalized result, borrowing its already published bytes.
+pub struct TransportedReasoning<'a> {
     result: ReasoningResult,
-    receipt: Option<ReceiptText>,
+    receipt: Option<NativeReceiptRef<'a>>,
 }
 
-impl TransportedReasoning {
+impl TransportedReasoning<'_> {
     /// The result read back from the projection.
     #[must_use]
     pub fn result(&self) -> &ReasoningResult {
@@ -1508,47 +1671,61 @@ impl TransportedReasoning {
     }
 }
 
-/// Project `result` to its `graph/reasoning` dataset and read it back, as a consumer of
-/// the shipped bundle does, encoding the native execution receipt once.
-///
-/// The returned value equals `parse_reasoning_dataset(&project_reasoning_dataset(result)?,
-/// GraphMatch::Default)`. The receipt text it keeps is the literal the reader admitted:
-/// the reader decodes that literal and refuses it unless the decoded evidence encodes
-/// back to the same bytes, and the literal is compared with the kept text here. So
-/// [`ResultProjection::transported`] may write the kept text where re-encoding the
-/// transported evidence would produce it.
+/// Read the actual governed projection with its existing binary publication.
+/// Require full original native-evidence equality before sharing that immutable
+/// evidence with the normalized summary. Publication encoding never occurs here.
 ///
 /// # Errors
 /// Rejects an invalid result, an unrepresentable receipt, or a projection the reader
 /// does not admit.
-pub fn transport_reasoning(result: &ReasoningResult) -> gmeow_errors::Result<TransportedReasoning> {
-    let receipt = result
-        .provenance
-        .native_execution
-        .as_ref()
-        .map(|execution| native::encode(execution).map(|text| ReceiptText(Arc::new(text))))
-        .transpose()?;
-    let dataset = ResultProjection::reasoning_with(result, receipt.as_ref())?.into_dataset()?;
-    let transported = read_reasoning_result_expecting(
+pub fn transport_reasoning<'a>(
+    result: &ReasoningResult,
+    receipt: Option<NativeReceiptRef<'a>>,
+) -> gmeow_errors::Result<TransportedReasoning<'a>> {
+    let (dataset, _borrowed_publication) =
+        ResultProjection::reasoning_with(result, receipt.map(NativeReceipt::borrowed))?
+            .into_dataset()?;
+    let mut transported = read_reasoning_result_expecting(
         &ResultGraph::new(&dataset, GraphMatch::Default)?,
-        Some(receipt.as_ref().map(|text| text.0.as_str())),
+        &receipt,
+        RootSelection::Aggregate(None),
+        Some(receipt.map(NativeReceiptRef::address)),
     )
     .map_err(|error| error.with_context("read native graph/reasoning summary"))?;
+    if transported.provenance.native_execution != result.provenance.native_execution {
+        return Err(result_err(
+            "authenticated native receipt differs from complete original execution evidence".into(),
+        ));
+    }
+    transported.provenance.native_execution = result.provenance.native_execution.clone();
     Ok(TransportedReasoning {
         result: transported,
         receipt,
     })
 }
 
-fn read_reasoning_result(triples: &ResultGraph<'_>) -> gmeow_errors::Result<ReasoningResult> {
-    read_reasoning_result_expecting(triples, None)
+fn read_reasoning_result(
+    triples: &ResultGraph<'_>,
+    resolver: &dyn NativeReceiptResolver,
+) -> gmeow_errors::Result<ReasoningResult> {
+    read_reasoning_result_expecting(triples, resolver, RootSelection::Aggregate(None), None)
+}
+
+/// Dataset projections include standalone contextual requests. Complete artifact
+/// owners and native transport callers require an independently selected aggregate.
+#[derive(Clone, Copy)]
+enum RootSelection<'a> {
+    DatasetProjection,
+    Aggregate(Option<&'a str>),
 }
 
 /// Read the result. `expected_receipt`, when given, is what the receipt literal must
 /// be: the exact text, or no literal at all.
 fn read_reasoning_result_expecting(
     triples: &ResultGraph<'_>,
-    expected_receipt: Option<Option<&str>>,
+    resolver: &dyn NativeReceiptResolver,
+    selection: RootSelection<'_>,
+    expected_receipt: Option<Option<&NativeReceiptAddress>>,
 ) -> gmeow_errors::Result<ReasoningResult> {
     let results = triples
         .iter()
@@ -1562,26 +1739,50 @@ fn read_reasoning_result_expecting(
     }
     // An aggregate can also carry contextual children. Their request links
     // distinguish them from the aggregate handle; row order cannot choose it.
-    let candidates = if results.len() > 1 {
-        let contextual = triples
-            .iter()
-            .filter(|t| t.predicate == logic("contextualResult"))
-            .filter_map(|t| t.object_node())
-            .collect::<BTreeSet<_>>();
-        results
+    let contextual = triples
+        .iter()
+        .filter(|t| t.predicate == logic("contextualResult"))
+        .filter_map(|t| t.object_node())
+        .collect::<BTreeSet<_>>();
+    let candidates = match selection {
+        RootSelection::DatasetProjection if results.len() == 1 => results,
+        _ => results
             .difference(&contextual)
             .copied()
-            .collect::<BTreeSet<_>>()
-    } else {
-        results
+            .collect::<BTreeSet<_>>(),
     };
-    if candidates.len() != 1 {
+    let subject = if let RootSelection::Aggregate(Some(selected)) = selection {
+        let selected = candidates
+            .iter()
+            .copied()
+            .filter(
+                |id| matches!(triples.dataset.resolve(*id), TermRef::Iri(iri) if iri == selected),
+            )
+            .collect::<Vec<_>>();
+        let [subject] = selected.as_slice() else {
+            return Err(result_err(
+                "graph/reasoning: selected subject is absent or is a contextual child".into(),
+            ));
+        };
+        *subject
+    } else if candidates.len() != 1 {
         return Err(result_err(format!(
             "graph/reasoning: expected one aggregate logic:ReasoningResult subject, found {}",
             candidates.len(),
         )));
+    } else {
+        candidates.into_iter().next().expect("one result")
+    };
+    if contextual.contains(&subject)
+        && triples.for_subject(subject).any(|row| {
+            row.predicate == logic("resultNativeExecution")
+                || row.predicate == logic("resultClosureBlob")
+        })
+    {
+        return Err(result_err(
+            "graph/reasoning: standalone contextual projection cannot carry native receipt or closure attachments".into(),
+        ));
     }
-    let subject = candidates.into_iter().next().expect("one result");
 
     let one_iri = |local: &str| -> Option<String> {
         triples
@@ -1674,23 +1875,22 @@ fn read_reasoning_result_expecting(
                 datatype,
                 language: None,
                 direction: None,
-            } if matches!(
-                triples.dataset.resolve(datatype),
-                TermRef::Iri("http://www.w3.org/2001/XMLSchema#hexBinary")
-            ) =>
-            {
-                if expected_receipt.is_some_and(|expected| expected != Some(lexical)) {
+            } if matches!(triples.dataset.resolve(datatype), TermRef::Iri(XSD_STRING)) => {
+                let address = NativeReceiptAddress::parse(lexical)?;
+                if expected_receipt.is_some_and(|expected| expected != Some(&address)) {
                     return Err(result_err(
                         "graph/reasoning: resultNativeExecution differs from the receipt its \
                          projection was given"
                             .into(),
                     ));
                 }
-                Some(native::decode(lexical)?)
+                let bytes = resolver.resolve(&address)?;
+                let receipt = NativeReceiptRef::admit(&address, bytes)?;
+                Some(native::decode(receipt.bytes())?)
             }
             _ => {
                 return Err(result_err(
-                    "graph/reasoning: resultNativeExecution requires hexBinary".into(),
+                    "graph/reasoning: resultNativeExecution requires a canonical xsd:string blob address".into(),
                 ));
             }
         },
@@ -1773,6 +1973,38 @@ fn read_reasoning_result_expecting(
         row_schema: None,
     };
     result.validate()?;
+    let closures = triples
+        .for_subject(subject)
+        .filter(|row| row.predicate == logic("resultClosureBlob"))
+        .collect::<Vec<_>>();
+    match closures.as_slice() {
+        [] => {}
+        [row] => {
+            let TermRef::Literal {
+                lexical,
+                datatype,
+                language: None,
+                direction: None,
+            } = row.object
+            else {
+                return Err(result_err(
+                    "resultClosureBlob requires a canonical xsd:string address".into(),
+                ));
+            };
+            if !matches!(triples.dataset.resolve(datatype), TermRef::Iri(XSD_STRING)) {
+                return Err(result_err("resultClosureBlob requires xsd:string".into()));
+            }
+            let address = NativeReceiptAddress::parse(lexical)?;
+            let worlds = result
+                .native_execution()?
+                .worlds
+                .values()
+                .cloned()
+                .collect::<Vec<_>>();
+            resolver.admit_closure(&address, &worlds)?;
+        }
+        _ => return Err(result_err("duplicate resultClosureBlob binding".into())),
+    }
     Ok(result)
 }
 
@@ -2345,7 +2577,7 @@ pub fn project_conjecture_verdict(input: &ConjectureVerdictInput) -> gmeow_error
 
 fn conjecture_projection_sink(
     input: &ConjectureVerdictInput,
-) -> gmeow_errors::Result<(Sink, String)> {
+) -> gmeow_errors::Result<(Sink, String, Option<NativeReceipt<'static>>)> {
     let answer = input.answer;
     let result_projection = ResultProjection::reasoning(&answer.verdict)?;
     let result_iri = result_projection.node_iri;
@@ -2504,7 +2736,7 @@ fn conjecture_projection_sink(
             scoped(triple.object, &result_iri),
         );
     }
-    Ok((sink, node_iri))
+    Ok((sink, node_iri, result_projection.receipt))
 }
 
 /// Project an AUTHOR-driven conjecture WITHDRAWAL onto an EXISTING library node.
@@ -2759,7 +2991,10 @@ pub struct ObligationCandidateRecord {
 /// Returns `Err` if the body is missing the `logic:Conjecture` subject, a required scalar
 /// (formula / standpoint / KB-world hash) is absent, a lifecycle / discharge IRI is
 /// unrecognized, or the embedded reasoning-result graph does not parse (fail-closed).
-pub fn parse_conjecture_verdict(nt_body: &str) -> gmeow_errors::Result<ConjectureVerdictRecord> {
+pub fn parse_conjecture_verdict(
+    nt_body: &str,
+    resolver: &dyn NativeReceiptResolver,
+) -> gmeow_errors::Result<ConjectureVerdictRecord> {
     let dataset = parse_nt(nt_body)?;
     let triples = ResultGraph::new(&dataset, GraphMatch::Default)?;
     let subject = triples
@@ -2809,7 +3044,7 @@ pub fn parse_conjecture_verdict(nt_body: &str) -> gmeow_errors::Result<Conjectur
 
     // The embedded reasoning-result graph re-derives via the existing reader (it keys off
     // the logic:ReasoningResult subject, so the conjecture node's triples do not interfere).
-    let verdict = read_reasoning_result(&triples)?;
+    let verdict = read_reasoning_result(&triples, resolver)?;
 
     // The refutation witness (linked via conjectureRefutationWitness, not resultContradiction).
     let witness = optional_component(

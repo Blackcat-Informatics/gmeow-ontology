@@ -17846,14 +17846,28 @@ logic:resultNativeExecution
     a logic:DatatypeProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     logic:domain logic:ReasoningResult ;
-    logic:range xsd:hexBinary ;
+    logic:range xsd:string ;
     rdfs:label "result native execution evidence"@x-gmeow-english ;
-    skos:definition "A terminal CBOR encoding of the complete native execution record under schema gmeow-native-execution-v3. Deterministic string and complete RDF-term tables preserve every occurrence, order, proof, witness, blank scope and literal facet. Admission requires at most 256 MiB of published wire, 512 MiB of expanded logical encoding including table definitions and every payload occurrence, and the existing typed and structural depth bounds of 64. These are encoding bounds, not measured host RSS or a guarantee that a particular record fits. The live typed result remains the owner; carriage grants no theorem or rewrite authority."@x-gmeow-english ;
+    skos:definition "The canonical BLAKE3 address of the complete binary native execution receipt under schema gmeow-native-execution-v3. The required dedicated GTS blob uses representation native-execution-receipt and media type application/cbor. Admission authenticates every physical payload occurrence, the exact owning result and its complete typed evidence. Compact bytes are bounded by 256 MiB, expanded logical encoding by 512 MiB, and typed and structural depth by 64; these bounds do not measure host RSS. The live typed result remains the owner; carriage grants no theorem or rewrite authority."@x-gmeow-english ;
     gmeow:useWhen "Use when publishing or validating the provenance scope of a native reasoning result."@x-gmeow-english ;
     gmeow:avoidWhen "Do not treat contextual evidence as a proof of an unrelated proposition or as permission for unrestricted rewrites."@x-gmeow-english ;
     gmeow:howToUse "Bind the selected proposition scope to the complete typed result and preserve its exact world and proof identities."@x-gmeow-english ;
     skos:scopeNote "This is provenance and evidence framing, independent of the five orthogonal result axes."@x-gmeow-english ;
     skos:example "A terminal receipt retains both a supported conflict and an independently exhausted sibling obligation."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:resultClosureBlob
+    a logic:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    logic:domain logic:ReasoningResult ;
+    logic:range xsd:string ;
+    rdfs:label "result RDF closure blob"@x-gmeow-english ;
+    skos:definition "The canonical BLAKE3 address of an isolated native GTS leaf containing the complete RDF closure from the same native execution as the owning result. The dedicated outer blob has representation reasoned-closure and media type application/vnd.blackcat.gts+cbor-seq. Both layers require the mandated compression profile. The authenticated execution world catalog restores declaration-only graphs in the native transport namespace; source statements resembling result metadata remain ordinary data."@x-gmeow-english ;
+    gmeow:useWhen "Use when publishing the complete asserted and inferred RDF closure of one native execution."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not substitute a normalized result summary for the complete RDF closure or infer rich proof fields from RDF rows."@x-gmeow-english ;
+    gmeow:howToUse "Bind the address before computing the aggregate result identity and admit every required closure occurrence against that result's authenticated world catalog."@x-gmeow-english ;
+    skos:scopeNote "The closure leaf has one completed segment and no application blob payload or external blob reference. Its decoded size is bounded by 1 GiB. Original typed world identities remain in the separate native execution receipt."@x-gmeow-english ;
+    skos:example "A reasoned document preserves a caller graph named graph/reasoning inside the isolated closure while its outer aggregate binds the required closure address."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 # ── logic:RefutationPattern individuals (the decision-procedure schemata) ─────────

@@ -64,6 +64,7 @@ const producer = (process.env.GMEOW_DEV ?? "cargo run -q -p gmeow-dev-cli --")
  */
 const REQUIRED = [
   "mcp-transport.mjs",
+  "reasoning-artifact.mjs",
   "blake3.mjs",
   "bundle-manifest.json",
   "gmeow.gts",

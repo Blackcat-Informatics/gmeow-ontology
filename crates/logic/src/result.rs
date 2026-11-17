@@ -752,7 +752,7 @@ pub struct ResultProvenance {
     /// Complete retained forward-native evidence when this operation executed a
     /// native closure. No native closure result may omit it; operations without
     /// such an execution carry their existing proof/counterproof evidence.
-    pub native_execution: Option<Box<NativeExecutionEvidence>>,
+    pub native_execution: Option<std::sync::Arc<NativeExecutionEvidence>>,
     /// The declared closure/identity/revision/witness-policy assumptions (sorted).
     pub assumptions: BTreeSet<Assumption>,
 }
@@ -1054,7 +1054,7 @@ impl ReasoningResult {
             .map(ContradictionWitness::from)
             .collect();
         provenance.contradiction_witnesses.sort();
-        provenance.native_execution = Some(Box::new(execution));
+        provenance.native_execution = Some(std::sync::Arc::new(execution));
         preservation.validate()?;
         let result = Self {
             input: InputStatus::Valid,

@@ -3,6 +3,65 @@
 
 use super::*;
 
+/// Standalone artifacts must not replace the selected append-only library or
+/// its stable lock, including aliases; unrelated first-use libraries stay usable.
+#[cfg(unix)]
+#[test]
+fn standalone_artifacts_cannot_replace_library_data_or_lock() {
+    use std::fs;
+    use std::os::unix::fs::symlink;
+
+    let directory = tempfile::tempdir().expect("isolated library paths");
+    let data = directory.path().join("library.gts");
+    let lock = directory.path().join("library.gts.lock");
+    fs::write(&data, b"existing library history").unwrap();
+    fs::write(&lock, b"stable lock identity").unwrap();
+    let library = fs_segment_library(data.clone());
+    for (target, name) in [(&data, "data-alias.gts"), (&lock, "lock-alias.gts")] {
+        let alias = directory.path().join(name);
+        symlink(target, &alias).unwrap();
+        for output in [target, &alias] {
+            let error = library.ensure_distinct_output(output).unwrap_err();
+            assert!(
+                error.message().contains("would replace the active"),
+                "{error}"
+            );
+        }
+    }
+    assert_eq!(fs::read(&data).unwrap(), b"existing library history");
+    assert_eq!(fs::read(&lock).unwrap(), b"stable lock identity");
+
+    let output = directory.path().join("standalone.gts");
+    let first_use = directory.path().join("new-library-parent");
+    fs_segment_library(first_use.join("nested/library.gts"))
+        .ensure_distinct_output(&output)
+        .expect("an unrelated future library does not block standalone output");
+    assert!(
+        !first_use.exists(),
+        "destination checking creates no directories"
+    );
+    fs_segment_library(first_use.join("../library.gts"))
+        .ensure_distinct_output(&data)
+        .expect_err("a future parent traversal must not hide the owned data destination");
+    let other = directory.path().join("other");
+    fs::create_dir_all(other.join("child")).unwrap();
+    symlink(other.join("child"), directory.path().join("link")).unwrap();
+    fs_segment_library(directory.path().join("missing/../link/../library.gts"))
+        .ensure_distinct_output(&other.join("library.gts"))
+        .expect_err("an exposed symlink must be resolved before its parent traversal");
+    assert!(!directory.path().join("missing").exists());
+
+    let future_data = directory.path().join("future-library.gts");
+    let dangling = directory.path().join("future-library-alias.gts");
+    symlink(&future_data, &dangling).unwrap();
+    fs_segment_library(dangling)
+        .ensure_distinct_output(&future_data)
+        .expect_err("a dangling library symlink still protects its future data destination");
+    fs_segment_library(data.join("not-a-directory/library.gts"))
+        .ensure_distinct_output(&output)
+        .expect_err("a non-directory IO refusal must not be treated as distinctness");
+}
+
 /// The `xsd:dateTime` datatype IRI, so the clock is validated by a REAL XSD parser
 /// rather than by a shape assertion written here.
 const XSD_DATE_TIME: &str = "http://www.w3.org/2001/XMLSchema#dateTime";

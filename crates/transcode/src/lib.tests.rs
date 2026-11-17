@@ -85,6 +85,119 @@ fn roundtrip_star_through_gts() {
     assert!(out.realized.is_empty(), "gts is lossless for turtle input");
 }
 
+/// Complete artifact conversion preserves opaque receipts, signed repeated
+/// history and exact bytes, while refusing a profile change that would drop blobs.
+#[test]
+fn gts_identity_preserves_complete_history_and_refuses_blob_loss() {
+    let dataset = purrdf::parse_dataset(
+        STAR_FIXTURE_TTL.as_bytes(),
+        STAR_FIXTURE_FORMAT.name(),
+        None,
+    )
+    .unwrap();
+    let receipt = vec![0x80]; // Opaque CBOR; transcode never claims native proof admission.
+    let mut snapshot = purrdf::gts_compose::SnapshotBuilder::new();
+    let _ingestion = snapshot.add_view(dataset.as_ref()).unwrap();
+    // gmeow-test-input: synthetic-only
+    let signed = gmeow_gts_profile::emit_gmeow_gts(
+        snapshot,
+        vec![purrdf::gts_compose::BlobRow {
+            data: receipt.clone(),
+            media_type: "application/cbor".into(),
+            rep: "native-execution-receipt".into(),
+        }],
+        Vec::new(),
+        Some(gmeow_gts_profile::GmeowGtsSigning {
+            secret: [7; 32],
+            key_id: "transport-identity-test".into(),
+            public_key_armor: "test-public-key-armor".into(),
+        }),
+        &gmeow_gts_profile::baseline_medium_plan(),
+    )
+    .unwrap();
+    let mut history = signed.bytes.clone();
+    history.extend_from_slice(&signed.bytes);
+    let identity = transcode(&history, Codec::Gts, Codec::Gts, None).unwrap();
+    assert_eq!(
+        identity.bytes, history,
+        "identity preserves every signed physical occurrence"
+    );
+    assert!(
+        identity.gts_ingestion.is_none(),
+        "byte identity performs no new ingestion"
+    );
+
+    // This foreign-profile input is deliberately authored by the native generic
+    // writer, rather than falsely labeling it as GMEOW production output.
+    // gmeow-test-input: synthetic-only
+    let no_blobs = purrdf::gts_write::to_gts(
+        dataset.as_ref(),
+        &purrdf::RdfLookaside::default(),
+        "runtime",
+    )
+    .unwrap();
+    let converted = transcode(&no_blobs, Codec::Gts, Codec::Gts, None).unwrap();
+    assert!(
+        converted.gts_ingestion.is_some(),
+        "RDF re-emission carries its actual ingestion"
+    );
+    gmeow_gts_profile::validate_mandated_frames(&converted.bytes).unwrap();
+    let mut generic = purrdf::gts_write::to_writer(
+        dataset.as_ref(),
+        &purrdf::RdfLookaside::default(),
+        "runtime",
+    )
+    .unwrap();
+    generic.add_blob(
+        &receipt,
+        Some("application/cbor"),
+        Some("native-execution-receipt"),
+    );
+    assert!(
+        transcode(&generic.into_bytes(), Codec::Gts, Codec::Gts, None).is_err(),
+        "a profile change cannot silently drop opaque content"
+    );
+
+    let mut repeated = purrdf::gts::writer::Writer::with_options(
+        "runtime",
+        purrdf::gts::writer::WriterOptions {
+            zstd_level: Some(12),
+            ..Default::default()
+        },
+    )
+    .unwrap();
+    use purrdf_lex::cbor::Value;
+    repeated
+        .add_frame_with_options(
+            "blob",
+            purrdf::gts::writer::FrameOptions {
+                raw: Some(vec![0x81]),
+                transform: vec![gmeow_gts_profile::GMEOW_GTS_FRAME_TRANSFORM.into()],
+                pub_meta: Some(Value::Map(vec![
+                    (
+                        Value::Text("digest".into()),
+                        Value::Text(purrdf::gts::wire::digest_str(&receipt)),
+                    ),
+                    (
+                        Value::Text("rep".into()),
+                        Value::Text("native-execution-receipt".into()),
+                    ),
+                    (
+                        Value::Text("mt".into()),
+                        Value::Text("application/cbor".into()),
+                    ),
+                ])),
+                ..Default::default()
+            },
+        )
+        .unwrap();
+    history.extend(repeated.into_bytes());
+    assert!(
+        transcode(&history, Codec::Gts, Codec::Gts, None).is_err(),
+        "a proved earlier digest cannot excuse corrupt later physical bytes"
+    );
+}
+
 /// Transformed consumer output is authored GMEOW GTS: the bytes `gmeow convert
 /// --to gts` writes carry the one mandated transform on every payload frame.
 /// This is the exact function the shipped CLI's `convert` verb calls, so the

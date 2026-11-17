@@ -74,6 +74,9 @@ fn clean_and_poisoned_queries_have_attestation_teeth_without_re_reasoning() {
 #[test]
 fn output_receipt_records_zero_closure_constructions() {
     let (edb, reasoning) = fixture();
+    let publication = gmeow_logic::result_rdf::ResultProjection::reasoning(&reasoning)
+        .expect("publish tiny native evidence");
+    let receipt = publication.receipt();
     let queries = vec![(
         "clean.rq".to_string(),
         "SELECT ?s WHERE { ?s <urn:missing> <urn:o> . }".to_string(),
@@ -82,6 +85,7 @@ fn output_receipt_records_zero_closure_constructions() {
         "stage-verify-attestation",
         edb.as_ref(),
         &reasoning,
+        receipt,
         &queries,
         &gmeow_logic::verify::PreparedVerification::new(&queries, &test_gates())
             .expect("prepare tiny query"),
@@ -102,6 +106,9 @@ fn output_receipt_records_zero_closure_constructions() {
 #[test]
 fn independent_grader_accepts_exact_outputs_and_rejects_stale_projections() {
     let (edb, reasoning) = fixture();
+    let publication = gmeow_logic::result_rdf::ResultProjection::reasoning(&reasoning)
+        .expect("publish tiny native evidence");
+    let receipt = publication.receipt();
     let queries = vec![(
         "clean.rq".to_string(),
         "SELECT ?s WHERE { ?s <urn:missing> <urn:o> . }".to_string(),
@@ -115,6 +122,7 @@ fn independent_grader_accepts_exact_outputs_and_rejects_stale_projections() {
         "stage-verify-attestation",
         edb.as_ref(),
         &reasoning,
+        receipt,
         &queries,
         report.clone(),
         &gates,
@@ -130,6 +138,7 @@ fn independent_grader_accepts_exact_outputs_and_rejects_stale_projections() {
         snapshot,
         edb.as_ref(),
         &reasoning,
+        receipt,
         &queries,
         &report,
         record,
@@ -145,6 +154,7 @@ fn independent_grader_accepts_exact_outputs_and_rejects_stale_projections() {
         snapshot,
         edb.as_ref(),
         &reasoning,
+        receipt,
         &queries,
         &report,
         &tampered_record,
@@ -160,6 +170,7 @@ fn independent_grader_accepts_exact_outputs_and_rejects_stale_projections() {
         snapshot,
         edb.as_ref(),
         &reasoning,
+        receipt,
         &queries,
         &report,
         &stale_record,
@@ -179,6 +190,7 @@ fn independent_grader_accepts_exact_outputs_and_rejects_stale_projections() {
         empty_snapshot.as_ref(),
         edb.as_ref(),
         &reasoning,
+        receipt,
         &queries,
         &report,
         record,

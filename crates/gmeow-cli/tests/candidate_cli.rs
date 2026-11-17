@@ -91,7 +91,9 @@ fn candidate_submit_list_withdraw_full_lifecycle() {
 
     // submit an ADMISSIBLE (corroborated) candidate — it commits.
     let submit = gmeow()
-        .args(["candidate", "submit", "--formula"])
+        .args(["candidate", "submit", "--out"])
+        .arg(store.with_extension("verdict.gts"))
+        .arg("--formula")
         .arg(&formula)
         .arg("--kb")
         .arg(&kb)
@@ -108,6 +110,14 @@ fn candidate_submit_list_withdraw_full_lifecycle() {
         .stdout(predicate::str::contains("admissible true"))
         .stdout(predicate::str::contains("persisted committed"));
     assert!(store.exists(), "the admissible candidate was appended");
+    let bytes = fs::read(store.with_extension("verdict.gts"))
+        .expect("complete candidate evaluation artifact");
+    let result = gmeow_logic::result_rdf::parse_reasoning_artifact(&bytes)
+        .expect("admitted persisted candidate result");
+    assert_eq!(
+        result.information,
+        gmeow_logic::result::InformationState::Supported
+    );
 
     // Extract the candidate node IRI from stdout ("candidate <iri>").
     let out = submit.get_output();
@@ -155,7 +165,9 @@ fn candidate_submit_list_withdraw_full_lifecycle() {
 fn candidate_submit_refuted_hard_fails_and_writes_nothing() {
     let (_tmp, formula, kb, store) = staged(refuting_formula(), refuting_kb());
     gmeow()
-        .args(["candidate", "submit", "--formula"])
+        .args(["candidate", "submit", "--out"])
+        .arg(store.with_extension("verdict.gts"))
+        .arg("--formula")
         .arg(&formula)
         .arg("--kb")
         .arg(&kb)
@@ -169,13 +181,25 @@ fn candidate_submit_refuted_hard_fails_and_writes_nothing() {
         !Path::new(&store).exists(),
         "a refuted candidate must write nothing to the library"
     );
+    let bytes = fs::read(store.with_extension("verdict.gts"))
+        .expect("refused admission retains the complete evaluation");
+    let result = gmeow_logic::result_rdf::parse_reasoning_artifact(&bytes)
+        .expect("admitted refuted candidate evaluation");
+    assert_eq!(
+        result.information,
+        gmeow_logic::result::InformationState::Opposed
+    );
 }
 
+/// A dry-run candidate publishes its artifact while preserving the selected library,
+/// including refusal when the requested artifact would replace that library.
 #[test]
 fn candidate_submit_dry_run_writes_nothing() {
     let (_tmp, formula, kb, store) = staged(corroborating_formula(), corroborating_kb());
     gmeow()
-        .args(["candidate", "submit", "--formula"])
+        .args(["candidate", "submit", "--out"])
+        .arg(store.with_extension("verdict.gts"))
+        .arg("--formula")
         .arg(&formula)
         .arg("--kb")
         .arg(&kb)
@@ -186,6 +210,28 @@ fn candidate_submit_dry_run_writes_nothing() {
         .stdout(predicate::str::contains("persisted dry-run"));
     assert!(
         !Path::new(&store).exists(),
-        "a dry-run submit must write nothing"
+        "a dry-run submit must write nothing to the library"
     );
+    let bytes = fs::read(store.with_extension("verdict.gts"))
+        .expect("dry run publishes its complete evaluation");
+    let result = gmeow_logic::result_rdf::parse_reasoning_artifact(&bytes)
+        .expect("admitted dry-run candidate evaluation");
+    assert_eq!(
+        result.information,
+        gmeow_logic::result::InformationState::Supported
+    );
+    fs::write(&store, b"preserved candidate history").unwrap();
+    gmeow()
+        .args(["candidate", "submit", "--out"])
+        .arg(&store)
+        .arg("--formula")
+        .arg(&formula)
+        .arg("--kb")
+        .arg(&kb)
+        .args(["--standpoint", "http://ex/standpoint/alice", "--dry-run"])
+        .env("GMEOW_CANDIDATE_PATH", &store)
+        .assert()
+        .failure()
+        .stderr(predicate::str::contains("would replace the active library"));
+    assert_eq!(fs::read(&store).unwrap(), b"preserved candidate history");
 }

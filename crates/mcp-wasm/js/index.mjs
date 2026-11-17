@@ -10,7 +10,7 @@
 // installed?) is therefore re-exported here as `loaded()` — one rename at the JS wrapper,
 // rather than two different meanings for one name.
 
-import wasmInit, { init, mcp, ready as snapshotLoaded, version } from "./pkg/gmeow_mcp_wasm.js";
+import wasmInit, { admit_artifact, init, mcp, ready as snapshotLoaded, version } from "./pkg/gmeow_mcp_wasm.js";
 
 // Cache the in-flight instantiation PROMISE, not a post-resolution boolean: two
 // callers that both reach `ready()` before the first `wasmInit()` resolves must share
@@ -41,7 +41,7 @@ export function ready(wasmBytesOrUrl) {
   return _ready;
 }
 
-export { init, loaded, mcp, version };
+export { admit_artifact, init, loaded, mcp, version };
 
 // The wasm module's own `ready()` — whether a snapshot has been installed by `init`.
 function loaded() {

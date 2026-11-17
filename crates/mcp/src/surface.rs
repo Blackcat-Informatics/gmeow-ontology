@@ -28,7 +28,7 @@ use gmeow_logic::reason::{
     reason_all_budgeted,
 };
 #[cfg(feature = "reasoning")]
-use gmeow_logic::result_rdf::{project_conjecture_withdrawal, project_reasoning_result};
+use gmeow_logic::result_rdf::project_conjecture_withdrawal;
 #[cfg(feature = "reasoning")]
 use gmeow_logic::transaction::execute::TxReceipt;
 #[cfg(feature = "core")]
@@ -554,7 +554,10 @@ fn builtin_tool_descriptors() -> Vec<Value> {
                  this edge, empty for a lossless pair. Quoted triples survive to every \
                  star-capable target; a target that cannot carry them says so in `loss`. An \
                  unknown codec, an undecodable source, or a failed serialization is a hard \
-                 error.",
+                 error. Conforming GTS-to-GTS conversion preserves the complete artifact \
+                 byte for byte. Blob-free sources can be re-emitted under the mandated \
+                 profile; nonconforming blob-bearing sources refuse rather than discard \
+                 content. Text RDF outputs are projections, without complete proof carriage.",
             &[
                 ("data", "string"),
                 ("from", "string"),
@@ -1276,27 +1279,10 @@ impl McpServer {
                 .collect::<gmeow_errors::Result<Vec<_>>>()?,
         )?;
         let result = reason_all_budgeted(input, &domains, &budget)?;
-        let closure = gmeow_logic::reason::native_closure_to_dataset(&result)?;
-        let bytes = purrdf::serialize_dataset(
-            closure.as_ref(),
-            "application/n-quads",
-            purrdf::SerializeGraph::Dataset,
-        )
-        .with_ctx(|| "serialize reasoned closure".to_string())?;
-        let closure_nquads = String::from_utf8(bytes).map_err(|e| {
-            gmeow_errors::Diag::of_kind(crate::error::Mcp::new(format!(
-                "reason_graph: closure N-Quads are not UTF-8: {e}"
-            )))
-        })?;
-        Ok(json!({
-            "ok": true,
-            "entailed_count": closure.quad_count(),
-            "closure_nquads": closure_nquads,
-            "completeness": result.completeness.wire(),
-            "evaluation": result.evaluation.wire(),
-            "judgment_nquads": project_reasoning_result(&result)?,
-        })
-        .to_string())
+        let artifact = gmeow_logic::result_rdf::ResultProjection::reasoning_with_closure(&result)?
+            .into_gts()?
+            .bytes;
+        Ok(gmeow_logic::result_rdf::admit_reasoning_response(&artifact)?.to_string())
     }
 
     /// Reason-and-verify the bundle UNIONED with a READ-ONLY inline overlay graph,
@@ -2138,6 +2124,7 @@ impl McpServer {
             // here the embedded `logic:ReasoningResult` the engine's verdict was read from,
             // wrapped in the content-addressed `logic:Conjecture` node.
             "judgment_nquads": out.verdict_nt,
+            "artifact": gmeow_logic::result_rdf::artifact_envelope(&out.artifact),
         })
     }
 
@@ -2224,6 +2211,7 @@ impl McpServer {
                 "witness": witness_json,
                 "transaction": txn_json(&out.receipt),
                 "judgment_nquads": out.verdict_nt,
+            "artifact": gmeow_logic::result_rdf::artifact_envelope(&out.artifact),
             });
         }
         if out.dry_run {
@@ -2235,6 +2223,7 @@ impl McpServer {
                 "conjecture": out.node_iri,
                 "transaction": txn_json(&out.receipt),
                 "judgment_nquads": out.verdict_nt,
+            "artifact": gmeow_logic::result_rdf::artifact_envelope(&out.artifact),
             });
         }
 
@@ -2245,6 +2234,7 @@ impl McpServer {
             "conjecture": out.node_iri,
             "transaction": txn_json(&out.receipt),
             "judgment_nquads": out.verdict_nt,
+            "artifact": gmeow_logic::result_rdf::artifact_envelope(&out.artifact),
         })
     }
 
@@ -2509,6 +2499,7 @@ impl McpServer {
                 "witness": witness_json,
                 "transaction": txn_json(&out.receipt),
                 "judgment_nquads": out.verdict_nt,
+            "artifact": gmeow_logic::result_rdf::artifact_envelope(&out.artifact),
             })
             .to_string());
         }
@@ -2522,6 +2513,7 @@ impl McpServer {
                 "candidate": out.node_iri,
                 "transaction": txn_json(&out.receipt),
                 "judgment_nquads": out.verdict_nt,
+            "artifact": gmeow_logic::result_rdf::artifact_envelope(&out.artifact),
             })
             .to_string());
         }
@@ -2536,6 +2528,7 @@ impl McpServer {
             "candidate": out.node_iri,
             "transaction": txn_json(&out.receipt),
             "judgment_nquads": out.verdict_nt,
+            "artifact": gmeow_logic::result_rdf::artifact_envelope(&out.artifact),
         })
         .to_string())
     }

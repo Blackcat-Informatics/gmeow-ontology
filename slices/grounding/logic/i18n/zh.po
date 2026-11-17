@@ -22690,8 +22690,8 @@ msgid "result native execution evidence"
 msgstr "结果的原生执行证据"
 
 msgctxt "https://blackcatinformatics.ca/logic/resultNativeExecution|http://www.w3.org/2004/02/skos/core#definition"
-msgid "A terminal CBOR encoding of the complete native execution record under schema gmeow-native-execution-v3. Deterministic string and complete RDF-term tables preserve every occurrence, order, proof, witness, blank scope and literal facet. Admission requires at most 256 MiB of published wire, 512 MiB of expanded logical encoding including table definitions and every payload occurrence, and the existing typed and structural depth bounds of 64. These are encoding bounds, not measured host RSS or a guarantee that a particular record fits. The live typed result remains the owner; carriage grants no theorem or rewrite authority."
-msgstr "在 gmeow-native-execution-v3 模式下对完整原生执行记录的终端 CBOR 编码。确定性的字符串表和完整 RDF 项表保留每次出现、顺序、证明、见证、空白节点作用域及字面量的全部方面。准入要求发布编码至多 256 MiB，展开逻辑编码至多 512 MiB（包括表定义和每次载荷出现），并保留现有的类型深度及结构深度上限 64。这些是编码边界，并非测得的主机 RSS，也不保证特定记录一定能够容纳。实时带类型结果仍是所有者；传输不会授予定理或重写权限。"
+msgid "The canonical BLAKE3 address of the complete binary native execution receipt under schema gmeow-native-execution-v3. The required dedicated GTS blob uses representation native-execution-receipt and media type application/cbor. Admission authenticates every physical payload occurrence, the exact owning result and its complete typed evidence. Compact bytes are bounded by 256 MiB, expanded logical encoding by 512 MiB, and typed and structural depth by 64; these bounds do not measure host RSS. The live typed result remains the owner; carriage grants no theorem or rewrite authority."
+msgstr "完整二进制原生执行凭据的规范 BLAKE3 地址，采用 gmeow-native-execution-v3 模式。必需的专用 GTS 二进制对象使用 native-execution-receipt 表示及 application/cbor 媒体类型。准入认证每个物理载荷出现、确切的所属结果及其完整类型化证据。紧凑字节上限为 256 MiB，展开逻辑编码上限为 512 MiB，类型深度和结构深度上限为 64；这些限制不度量主机 RSS。实时类型化结果仍是所有者；传输不授予定理或重写权限。"
 
 msgctxt "https://blackcatinformatics.ca/logic/resultNativeExecution|https://blackcatinformatics.ca/gmeow/useWhen"
 msgid "Use when publishing or validating the provenance scope of a native reasoning result."
@@ -24314,3 +24314,31 @@ msgstr "规范呈现版本"
 msgctxt "https://blackcatinformatics.ca/logic/canonPresentationVersion|http://www.w3.org/2004/02/skos/core#definition"
 msgid "The version of the presentation named by logic:canonPresentationId, as an xsd:nonNegativeInteger. Single-valued. Domain logic:CoherenceCertificate or logic:CoherenceCheckAttestation (stated in prose)."
 msgstr "由 logic:canonPresentationId 命名的呈现的版本，类型为 xsd:nonNegativeInteger。单值。定义域为 logic:CoherenceCertificate 或 logic:CoherenceCheckAttestation（以散文形式说明）。"
+
+msgctxt "https://blackcatinformatics.ca/logic/resultClosureBlob|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "result RDF closure blob"
+msgstr "结果的 RDF 闭包二进制对象"
+
+msgctxt "https://blackcatinformatics.ca/logic/resultClosureBlob|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The canonical BLAKE3 address of an isolated native GTS leaf containing the complete RDF closure from the same native execution as the owning result. The dedicated outer blob has representation reasoned-closure and media type application/vnd.blackcat.gts+cbor-seq. Both layers require the mandated compression profile. The authenticated execution world catalog restores declaration-only graphs in the native transport namespace; source statements resembling result metadata remain ordinary data."
+msgstr "隔离的原生 GTS 叶节点的规范 BLAKE3 地址；该叶节点包含与所属结果来自同一次原生执行的完整 RDF 闭包。专用外层二进制对象采用 reasoned-closure 表示和 application/vnd.blackcat.gts+cbor-seq 媒体类型。两层均要求规定的压缩配置。经认证的执行世界目录在原生传输命名空间内恢复仅有声明的图；形似结果元数据的源语句仍是普通数据。"
+
+msgctxt "https://blackcatinformatics.ca/logic/resultClosureBlob|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when publishing the complete asserted and inferred RDF closure of one native execution."
+msgstr "用于发布一次原生执行的完整断言和推导 RDF 闭包。"
+
+msgctxt "https://blackcatinformatics.ca/logic/resultClosureBlob|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Do not substitute a normalized result summary for the complete RDF closure or infer rich proof fields from RDF rows."
+msgstr "不得以规范化结果摘要替代完整 RDF 闭包，也不得从 RDF 行推造丰富的证明字段。"
+
+msgctxt "https://blackcatinformatics.ca/logic/resultClosureBlob|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Bind the address before computing the aggregate result identity and admit every required closure occurrence against that result's authenticated world catalog."
+msgstr "在计算聚合结果身份之前绑定地址，并依据该结果经认证的世界目录准入每个必需闭包出现。"
+
+msgctxt "https://blackcatinformatics.ca/logic/resultClosureBlob|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The closure leaf has one completed segment and no application blob payload or external blob reference. Its decoded size is bounded by 1 GiB. Original typed world identities remain in the separate native execution receipt."
+msgstr "闭包叶节点具有一个已完成的分段，不包含应用二进制载荷或外部二进制引用。解码大小上限为 1 GiB。原始类型化世界身份保留在独立的原生执行凭据中。"
+
+msgctxt "https://blackcatinformatics.ca/logic/resultClosureBlob|http://www.w3.org/2004/02/skos/core#example"
+msgid "A reasoned document preserves a caller graph named graph/reasoning inside the isolated closure while its outer aggregate binds the required closure address."
+msgstr "经推理的文档在隔离闭包中保留调用者命名为 graph/reasoning 的图，同时其外层聚合绑定必需的闭包地址。"

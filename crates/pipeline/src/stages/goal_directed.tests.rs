@@ -95,13 +95,26 @@ fn reason_upstream_with_math_tower() -> StageProduct {
         }),
         "math:Integer subClassOf math:RealNumber must be genuinely DERIVED by the reasoner"
     );
-    let reasoning = gmeow_logic::result_rdf::project_reasoning_dataset(&reasoned.result)
-        .expect("project the native reasoning result");
+    let (reasoning, _borrowed_receipt) =
+        gmeow_logic::result_rdf::ResultProjection::reasoning_with_receipt(
+            &reasoned.result,
+            Some(reasoned.native_receipt.as_ref()),
+        )
+        .expect("reuse native publication")
+        .into_dataset()
+        .expect("project native reasoning result");
+    drop(_borrowed_receipt);
     let dataset = crate::stages::carrier::rooted_in_graph(&reasoning, GRAPH_REASONING)
         .expect("route the complete graph/reasoning projection");
     let mut bundle = crate::bundle::bundle_from_artifacts_over(
         dataset,
-        BTreeMap::new(),
+        BTreeMap::from([(
+            crate::stages::reason::NATIVE_RECEIPT_PATH.to_owned(),
+            reasoned
+                .native_receipt
+                .into_owned_bytes()
+                .expect("original publication owns its bytes"),
+        )]),
         purrdf::provenance::DatasetProvenance::new(),
     );
     let pinned = bundle

@@ -11,10 +11,22 @@ use std::sync::Arc;
 /// handle pinned to `graph/reasoning` — the SAME shape `stage-reason` emits, which
 /// `fold_coherence_certificate` reuses instead of reasoning a second time.
 fn reason_product(result: &gmeow_logic::result::ReasoningResult) -> StageProduct {
-    let reasoning = project_reasoning_dataset(result).expect("project the native result");
+    let (reasoning, native_receipt) =
+        project_reasoning_dataset(result).expect("project the native result");
     let dataset = rooted_in_graph(&reasoning, GRAPH_REASONING)
         .expect("route the complete reasoning projection");
-    let mut bundle = bundle_from_artifacts_over(dataset, BTreeMap::new(), DatasetProvenance::new());
+    let artifacts = native_receipt
+        .map(|receipt| {
+            (
+                crate::stages::reason::NATIVE_RECEIPT_PATH.to_owned(),
+                receipt
+                    .into_owned_bytes()
+                    .expect("initial publication owns its bytes"),
+            )
+        })
+        .into_iter()
+        .collect();
+    let mut bundle = bundle_from_artifacts_over(dataset, artifacts, DatasetProvenance::new());
     let pinned = bundle
         .graph_digest(
             GRAPH_REASONING,

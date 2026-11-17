@@ -1348,3 +1348,11 @@ msgstr "Contrainte de forme du profil canonique de médium"
 msgctxt "https://blackcatinformatics.ca/logic/MediumCanonProfileFormConstraint|http://www.w3.org/2004/02/skos/core#definition"
 msgid "The lexical check for a supplied canonProfileId: lowercase alphanumeric words joined by single hyphens. It does not compare the identifier with the profile a reader implements; that comparison is the reader's, and it runs before any digest."
 msgstr "La vérification lexicale d’un canonProfileId fourni : des mots alphanumériques minuscules joints par des traits d’union simples. Elle ne compare pas l’identifiant au profil qu’un lecteur implémente ; cette comparaison revient au lecteur et s’exécute avant tout condensat."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/payloadSchemaNativeExecutionReceipt|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "payload schema — native execution receipt"
+msgstr "schéma de charge utile — reçu d’exécution native"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/payloadSchemaNativeExecutionReceipt|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The complete binary native execution receipt addressed by a reasoning result. Every physical dedicated blob retains its canonical digest, native-execution-receipt representation and application/cbor media type. The distribution frame uses the prooftrace dictionary; its training corpus remains the separately declared textual report family."
+msgstr "Le reçu binaire complet d’exécution native adressé par un résultat de raisonnement. Chaque blob physique dédié conserve son empreinte canonique, sa représentation native-execution-receipt et son type de média application/cbor. La trame de distribution utilise le dictionnaire prooftrace ; son corpus d’entraînement reste la famille de rapports textuels déclarée séparément."

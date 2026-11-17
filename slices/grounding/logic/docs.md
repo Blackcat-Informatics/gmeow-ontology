@@ -14,6 +14,44 @@ The `logic:` namespace is the authoritative ground; the full UFO⁺ foundational
 minted here. External formalisms are projections or typed bridge views of that ground, never a
 second source of truth.
 
+## Complete reasoning artifacts
+
+`logic:resultNativeExecution` carries a canonical `blake3:` address as `xsd:string`.
+The complete native execution v3 record lives in the required binary GTS blob with
+representation `native-execution-receipt` and media type `application/cbor`.
+Readers authenticate the address, each physical payload occurrence, and its exact owning
+aggregate before exposing a verdict. A standalone RDF summary cannot authenticate that
+receipt. The inner schema retains its compact 256 MiB, expanded 512 MiB, and depth 64
+admission bounds; these are encoding limits, not host memory measurements.
+
+Operations publishing a complete closure additionally bind `logic:resultClosureBlob`
+before computing the aggregate identity. Its `reasoned-closure` blob is an isolated,
+single-segment native GTS leaf containing the asserted and inferred RDF from that same
+engine run. Its authenticated world catalog restores empty named graphs. Imported blank
+identities use the native transport namespace while original typed identities remain in
+the execution receipt. Caller graphs named `graph/reasoning` and source statements that
+resemble result metadata remain ordinary closure data. A closure leaf contains no nested
+application blobs or external blob references; its decoded limit is 1 GiB.
+
+Same-run RDF closure equivalence uses PurRDF's complete dataset-state digest, including
+empty declarations and one global blank bijection. Its equality relies on BLAKE3
+collision resistance, and the forward-mapped graph catalog is checked exactly. This
+comparison accepts arbitrary source IRIs. Native execution evidence and the actual
+transport summary retain separate exact typed comparisons. Publication temporarily
+retains the original/imported datasets and native canonical-state workspace; item
+budgets exclude those allocations and do not establish a host RSS limit.
+
+Before emission, typed inferred-object summary values are normalized into the selected
+native snapshot namespace. This includes blanks inside quoted triples and composite
+literals. The standalone runtime prefix and the pipeline carrier namespace are explicit
+selections; emitted-byte readback must equal that expected summary. The original native
+execution evidence is compared exactly and retains its original identities.
+
+The typed result remains authoritative for binding rows, marginals, rich inference fields
+and complete native evidence. The transport summary preserves its governed axes and
+provenance, and the separate closure preserves RDF. Neither projection invents the fields
+the other omits. All payload-bearing frames use the mandated rsyncable level 12 profile.
+
 The vocabulary covers the UFO⁺ foundational sorts
 (`Kind`/`SubKind`/`Phase`/`Role`/`Category`/`Mixin`/`RoleMixin`/`PhaseMixin`/`Relator`/`Event`/`Situation`
 and the wider superset spine), the foundation relations

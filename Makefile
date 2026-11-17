@@ -959,7 +959,7 @@ maint-prepare-wasm-assets: ## Prepare all six browser assets and stamps; verific
 	cp crates/mcp-wasm/tests/WITNESS.mcp.json crates/docs/assets/mcp/WITNESS.mcp.json
 	cp crates/mcp-core-wasm/js/index.mjs crates/docs/assets/mcp-core/index.mjs
 	cp crates/mcp-core-wasm/tests/WITNESS.core-deferral.json crates/docs/assets/mcp-core/WITNESS.core-deferral.json
-	cp crates/reason-wasm/tests/WITNESS.reason.nq crates/docs/assets/reason/WITNESS.reason.nq
+	cp crates/reason-wasm/tests/WITNESS.reason.json crates/docs/assets/reason/WITNESS.reason.json
 	@# Refresh all metadata in one process, after every embedded asset has changed.
 	cargo run -p gmeow-docs --example refresh-vendored-asset -- all
 	@echo "Prepared assets only; the full gate and six parity lanes are still required."

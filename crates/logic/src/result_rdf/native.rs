@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 
 //! Lossless terminal carriage of the native execution record. Live consumers
-//! borrow the typed result; this codec runs only at an RDF publication boundary.
+//! borrow the typed result; this codec runs only at a binary publication boundary.
 
 use std::io::Write;
 
@@ -45,7 +45,7 @@ fn write_envelope<W: Write + ?Sized>(
 
 /// Preserve native terms, proof DAGs and finite u128 cardinalities at the actual
 /// RDF boundary. Semantic ownership and source admission remain with the caller.
-pub(super) fn encode(execution: &NativeExecutionEvidence) -> gmeow_errors::Result<String> {
+pub(super) fn encode(execution: &NativeExecutionEvidence) -> gmeow_errors::Result<Vec<u8>> {
     // The original directional-term boundary could pass structural validation
     // while its typed enum visitor exceeded the reader's budget. Check borrowed
     // records before recursive emission without allocating a second execution record.
@@ -75,27 +75,26 @@ pub(super) fn encode(execution: &NativeExecutionEvidence) -> gmeow_errors::Resul
             error,
         )
     })?;
-    Ok(purrdf_hash::hex::encode(&output.0))
+    Ok(output.0)
 }
 
 /// Admit the selected schema and exact original emitted wire. The enclosing
 /// result admission remains responsible for semantic scope and source authority.
-pub(super) fn decode(text: &str) -> gmeow_errors::Result<Box<NativeExecutionEvidence>> {
-    if text.len() > MAX_RECEIPT_BYTES * 2 || !text.len().is_multiple_of(2) {
+pub(super) fn decode(
+    bytes: &[u8],
+) -> gmeow_errors::Result<std::sync::Arc<NativeExecutionEvidence>> {
+    if bytes.len() > MAX_RECEIPT_BYTES {
         return Err(result_err(
             "native execution receipt has an invalid byte length".into(),
         ));
     }
-    let bytes = purrdf_hash::hex::decode_canonical(text).map_err(|_| {
-        result_err("native execution receipt requires canonical lowercase hex".into())
-    })?;
-    check_structure(&bytes).map_err(|error| {
+    check_structure(bytes).map_err(|error| {
         codec_err(
             format!("native execution receipt exceeds its structural bound: {error}"),
             error,
         )
     })?;
-    let mut input = Reader::for_definitions(&bytes).map_err(|error| {
+    let mut input = Reader::for_definitions(bytes).map_err(|error| {
         codec_err(
             format!("native execution receipt decoding failed: {error}"),
             error,
@@ -107,7 +106,7 @@ pub(super) fn decode(text: &str) -> gmeow_errors::Result<Box<NativeExecutionEvid
                 return Err(input.invalid("native execution receipt has the wrong schema"));
             }
             input.read_tables()?;
-            Box::<NativeExecutionEvidence>::read_cbor(input)
+            std::sync::Arc::<NativeExecutionEvidence>::read_cbor(input)
         })
         .map_err(|error| {
             codec_err(
@@ -122,7 +121,7 @@ pub(super) fn decode(text: &str) -> gmeow_errors::Result<Box<NativeExecutionEvid
         )
     })?;
     let mut canonical = ReceiptVerifier {
-        expected: &bytes,
+        expected: bytes,
         consumed: 0,
     };
     write_envelope(&execution, &mut canonical).map_err(|error| {

@@ -66,10 +66,17 @@ pub struct NativeObservation {
 }
 
 impl NativeObservation {
-    fn observe(result: &ReasoningResult) -> gmeow_errors::Result<Self> {
+    fn observe(result: &ReasoningResult, artifact: &[u8]) -> gmeow_errors::Result<Self> {
         result.validate_native_closure()?;
+        use gmeow_logic::result_rdf::{NativeReceiptRef, ResultProjection, import_native_receipt};
+        let owned = import_native_receipt(artifact, None)?;
+        let receipt = owned
+            .as_ref()
+            .map(|(address, bytes)| NativeReceiptRef::admit(address, bytes))
+            .transpose()?;
         Ok(Self {
-            judgment_nquads: gmeow_logic::result_rdf::project_reasoning_result(result)?,
+            judgment_nquads: ResultProjection::reasoning_with_receipt(result, receipt)?
+                .to_ntriples(),
             completeness: result.completeness,
             evaluation: result.evaluation,
             consumed_budget: result.provenance.consumed_budget,
@@ -119,6 +126,8 @@ pub struct Observation {
 struct ExplainRun {
     result: ReasoningResult,
     rows: Vec<Row>,
+    judgment: String,
+    artifact: Vec<u8>,
 }
 
 /// Invocation-local producer state. It shares the already imported snapshot,
@@ -184,7 +193,13 @@ impl Producer {
             )?;
             result.validate_native_closure()?;
             let rows = explain::rows_for_result(&result)?;
-            Ok(ExplainRun { result, rows })
+            let (judgment, artifact) = McpView::publish_native_judgment(&result)?;
+            Ok(ExplainRun {
+                result,
+                rows,
+                judgment,
+                artifact,
+            })
         })
     }
 
@@ -220,12 +235,20 @@ impl Producer {
                             "request allowance differs from its selected native execution",
                         ));
                     }
-                    McpView::explain_native_rows(&run.result, &run.rows, s, p, o, graph)
+                    McpView::explain_native_rows(
+                        &run.result,
+                        &run.rows,
+                        s,
+                        p,
+                        o,
+                        graph,
+                        (&run.judgment, &run.artifact),
+                    )
                 })??;
         Ok(Observation {
             request,
             response,
-            native: Some(NativeObservation::observe(&run.result)?),
+            native: Some(NativeObservation::observe(&run.result, &run.artifact)?),
             target: Some(Target {
                 rule_iri: row.rule_iri.clone(),
                 obj: row.obj.clone(),
@@ -246,7 +269,15 @@ impl Producer {
         let outcome = self
             .server
             .with_explain_quad_request(&request, |_, s, p, o, graph, _| {
-                McpView::explain_native_rows(&run.result, &run.rows, s, p, o, graph)
+                McpView::explain_native_rows(
+                    &run.result,
+                    &run.rows,
+                    s,
+                    p,
+                    o,
+                    graph,
+                    (&run.judgment, &run.artifact),
+                )
             })?;
         let response = match outcome {
             Ok(value) => value,
@@ -285,7 +316,7 @@ impl Producer {
         };
         let before = Arc::clone(&self.server.view.dataset);
         let before_quads = before.quad_count();
-        let (response, native) = self
+        let (response, native, artifact) = self
             .server
             .with_verify_graph_request(&request, McpView::run_verify_graph)??;
         let isolation = Isolation {
@@ -299,7 +330,7 @@ impl Producer {
         Ok(Observation {
             request,
             response,
-            native: Some(NativeObservation::observe(&native)?),
+            native: Some(NativeObservation::observe(&native, &artifact)?),
             target: None,
             isolation: Some(isolation),
         })

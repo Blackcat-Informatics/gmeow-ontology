@@ -56,7 +56,7 @@ fn result(inferred: Vec<InferredAxiom>) -> ReasoningResult {
 
 /// Build a genuine governed native summary and pin the complete payload to it.
 pub(crate) fn product(result: ReasoningResult) -> StageProduct {
-    let summary = project_reasoning_dataset(&result).expect("valid tiny native result");
+    let (summary, _receipt) = project_reasoning_dataset(&result).expect("valid tiny native result");
     product_over(result, &summary)
 }
 
@@ -350,7 +350,7 @@ fn unsupported_native_observation_keeps_all_axes_and_gate_refusal() {
 fn invalid_native_contradiction_without_evidence_refuses() {
     // gmeow-test-input: synthetic-only
     let mut native = result(Vec::new());
-    let summary = project_reasoning_dataset(&native).unwrap();
+    let (summary, _receipt) = project_reasoning_dataset(&native).unwrap();
     native.information = InformationState::Both;
     let error =
         reasoning_verdict_from_reason(&upstream(product_over(native, &summary))).unwrap_err();

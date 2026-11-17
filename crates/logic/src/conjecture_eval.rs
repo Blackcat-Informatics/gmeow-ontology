@@ -108,6 +108,8 @@ pub struct ConjectureVerdictProjection {
     pub node_iri: String,
     /// The deterministic N-Triples body from the validated [`ResultProjection`].
     pub verdict_nt: String,
+    /// Complete authenticated GTS artifact, including any required native receipt.
+    pub artifact: Vec<u8>,
     /// The candidate's content-addressing key (formula identity across standpoints).
     pub content_key: String,
 }
@@ -293,6 +295,7 @@ pub fn evaluate_conjecture_eval(
     let projection = ResultProjection::conjecture(&verdict_input)?;
     let verdict_nt = projection.to_ntriples();
     let node_iri = projection.node_iri().to_owned();
+    let artifact = projection.into_gts()?.bytes;
 
     let verdict = &answer.verdict;
     let witness = answer.witness.as_ref().map(|w| ConjectureVerdictWitness {
@@ -327,6 +330,7 @@ pub fn evaluate_conjecture_eval(
         witness,
         node_iri,
         verdict_nt,
+        artifact,
         content_key: content_key.into_string(),
     })
 }

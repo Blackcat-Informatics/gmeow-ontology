@@ -28,5 +28,8 @@ export function loaded(): boolean;
  */
 export function mcp(request_json: string): string;
 
+/** Admit the complete native artifact before rendering or recording its facets. */
+export function admit_artifact(bytes: Uint8Array): string;
+
 /** The engine version (the crate's SemVer). */
 export function version(): string;

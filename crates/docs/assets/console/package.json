@@ -39,6 +39,7 @@
     "examples/gallery.mjs",
     "README.md",
     "pkg/mcp-transport.mjs",
+    "pkg/reasoning-artifact.mjs",
     "pkg/blake3.mjs",
     "pkg/bundle-manifest.json",
     "pkg/gmeow.gts",

@@ -191,6 +191,10 @@ The installed command `gmeow finance evaluate SOURCE --subject CALCULATION
 signatures, recipes and full generated validation products from its authenticated
 embedded bundle; no repository recipe file or alternate evaluator is consulted.
 `examples/exact-computations.ttl` supplies three independently named requests.
+The required output is a complete binary GTS artifact, conventionally named
+`result.gts`, containing the derived quantities, native execution receipt and full
+asserted and inferred RDF closure. Retain that artifact for independent evidence
+admission; exporting text RDF projects the RDF facets without carrying the receipt.
 
 `SimpleInterestCalculation` uses the canonical P*r*n AST.
 `HoldingPeriodReturnCalculation` uses (closing-opening)/opening, repeating the
