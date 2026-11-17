@@ -17830,3 +17830,59 @@ msgstr "不要用零、大的哨兵值或环境维数代替未知秩或无限秩
 msgctxt "https://blackcatinformatics.ca/math/rankValue|https://blackcatinformatics.ca/gmeow/howToUse"
 msgid "Attach the supplied nonnegative integer to the math:Rank resource and retain the map, field and supporting evidence in the existing source representation. Keep omission distinct from zero and preserve any separate approximation policy. The relation alone supplies no specialized validation gate or rank computation."
 msgstr "将已提供的非负整数附加到 math:Rank 资源，并在现有来源表示中保留映射、标量域及支持依据。将省略与零分开，并保留任何独立的近似策略。该关系本身不提供专门的验证关卡或秩计算。"
+
+msgctxt "https://blackcatinformatics.ca/math/CovarianceOperator|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Covariance Operator"
+msgstr "协方差算子"
+
+msgctxt "https://blackcatinformatics.ca/math/CovarianceOperator|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A self-adjoint positive-semidefinite linear operator representing centered second moments in a declared real or complex inner-product setting. For finite-dimensional column coordinates with E[‖X‖²] finite, μ = E[X] and C = E[(X-μ)(X-μ)*], where * is conjugate transpose, or ordinary transpose over the reals."
+msgstr "在已声明的实或复内积背景下表示中心二阶矩的自伴半正定线性算子。对于有限维列坐标，若 E[‖X‖²] 有限，则 μ = E[X]，C = E[(X-μ)(X-μ)*]，其中 * 表示共轭转置，在实数情形下为普通转置。"
+
+msgctxt "https://blackcatinformatics.ca/math/CovarianceOperator|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The coordinate formula uses supplied orthonormal bases and the complex convention ⟨u,v⟩ = u* v, conjugate-linear in the first argument. Infinite-dimensional use requires stated existence, boundedness and spectral hypotheses; this type does not assert a discrete eigenvector basis for an arbitrary operator. An unconjugated complex second moment is a different construction."
+msgstr "坐标公式使用已提供的标准正交基以及复内积约定 ⟨u,v⟩ = u* v，第一个变量为共轭线性的。无限维使用需要声明存在性、有界性和谱方面的假设；该类型不声称任意算子都存在离散特征向量基。不带共轭的复二阶矩属于不同构造。"
+
+msgctxt "https://blackcatinformatics.ca/math/CovarianceOperator|http://www.w3.org/2004/02/skos/core#example"
+msgid "A real random vector equally likely to be (1,0) or (-1,0) has mean zero and covariance diag(1,0) under the standard Euclidean inner product. This covariance is positive semidefinite and singular; its zero eigenvalue is valid, and no inverse is required."
+msgstr "一个以相同概率取 (1,0) 或 (-1,0) 的实随机向量，均值为零，在标准欧氏内积下的协方差为 diag(1,0)。该协方差半正定且奇异；零特征值有效，也不要求存在逆。"
+
+msgctxt "https://blackcatinformatics.ca/math/CovarianceOperator|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for a justified population or empirical covariance operator, retaining the observations or probability model, scalar field, inner product, centering, scaling and actual normalization convention in the source representation."
+msgstr "用于有依据的总体或经验协方差算子，在来源表示中保留观测或概率模型、标量域、内积、中心化、缩放以及实际归一化约定。"
+
+msgctxt "https://blackcatinformatics.ca/math/CovarianceOperator|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Do not infer covariance from a Gram-matrix or symmetry label alone, require positive definiteness, or replace a missing operator with zero covariance. Repeated eigenvalues do not select unique eigenvectors. A declared covariance role or solver descriptor does not establish centering, covariance construction or numerical spectral analysis."
+msgstr "不要仅从 Gram 矩阵或对称性标签推断协方差，不要要求正定性，也不要用零协方差代替缺失的算子。重复特征值不选定唯一特征向量。已声明的协方差角色或求解器描述符不能证明已执行中心化、协方差构造或数值谱分析。"
+
+msgctxt "https://blackcatinformatics.ca/math/CovarianceOperator|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the inherited LinearMap and Function carrier-set frame separately from the vector-space structure. Use math:covarianceOperator from the analysis to this operator. Preserve sample orientation and divisor: empirical 1/N requires N > 0, while 1/(N-1) requires N > 1. Those choices and their evidence are supplied data, not defaults or new validation gates."
+msgstr "将继承的 LinearMap 和 Function 载体集合框架与向量空间结构分开保留。使用 math:covarianceOperator 从分析关联到此算子。保留样本排列方向和除数：经验约定 1/N 要求 N > 0，而 1/(N-1) 要求 N > 1。这些选择及其依据属于已提供的数据，不是默认值或新的验证关卡。"
+
+msgctxt "https://blackcatinformatics.ca/math/covarianceOperator|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "covariance operator"
+msgstr "协方差算子"
+
+msgctxt "https://blackcatinformatics.ca/math/covarianceOperator|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Relates a math:PCAAnalysis to the supplied math:CovarianceOperator that is its declared decomposition operand. The analysis process, its input data, the covariance operator and any reported numerical outputs retain separate roles; this link records the operator role rather than constructing it."
+msgstr "将 math:PCAAnalysis 关联到已提供的 math:CovarianceOperator，后者作为其已声明的分解操作数。分析过程、输入数据、协方差算子及任何已报告的数值输出保持不同角色；该链接记录算子角色，而不构造算子。"
+
+msgctxt "https://blackcatinformatics.ca/math/covarianceOperator|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The current PCA source contract requires at least one covariance-operator resource through its generic minimum and existing closure, associated with math:IncompletePCAAnalysis. This is not an exact-one or typed-target enforcement claim. The mathematical covariance meaning and the inherited operator frame still need their own evidence."
+msgstr "当前 PCA 来源契约通过通用最小基数及现有闭世界闭包要求至少一个协方差算子资源，并关联到 math:IncompletePCAAnalysis。这不意味着已强制恰好一个值或目标类型。协方差的数学含义及继承的算子框架仍各自需要依据。"
+
+msgctxt "https://blackcatinformatics.ca/math/covarianceOperator|http://www.w3.org/2004/02/skos/core#example"
+msgid "The exact-pca producer emits p:residualPCA math:covarianceOperator p:residualCovariance and gives that CovarianceOperator domain and codomain p:covSpace. Its fixed Gram, dominant-axis and LDL calculations do not supply observed samples, an executed centering step or a sample-covariance normalization."
+msgstr "exact-pca 生成器输出 p:residualPCA math:covarianceOperator p:residualCovariance，并将该 CovarianceOperator 的定义域和陪域均设为 p:covSpace。其固定 Gram 矩阵、主导轴和 LDL 计算不提供实际观测样本、已执行的中心化步骤或样本协方差归一化。"
+
+msgctxt "https://blackcatinformatics.ca/math/covarianceOperator|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain the actual covariance operand named by an analysis, together with independently supplied input, preprocessing, scalar-field, inner-product and normalization context."
+msgstr "用于保留分析所命名的实际协方差操作数，以及独立提供的输入、预处理、标量域、内积和归一化上下文。"
+
+msgctxt "https://blackcatinformatics.ca/math/covarianceOperator|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Do not reverse the analysis-to-operator direction, substitute the dataset or solver for the operator, or infer an executed spectral decomposition from the edge. Missing covariance differs from a supplied operator, which may be zero or singular; no absent operand is repaired by inventing a zero operator or undeclared preprocessing."
+msgstr "不要颠倒从分析到算子的方向，不要用数据集或求解器代替算子，也不要从此边推断已执行谱分解。缺失的协方差不同于已提供的算子，后者可以是零算子或奇异算子；不能通过虚构零算子或未声明的预处理来补全缺失操作数。"
+
+msgctxt "https://blackcatinformatics.ca/math/covarianceOperator|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Link the analysis to its justified CovarianceOperator resource and preserve that operator’s carrier-set frame and actual construction evidence. Keep centering and scaling declarations on the analysis distinct from proof that those operations ran. The relation supplies no additional maximum, automatic target typing, covariance computation or numerical validation result."
+msgstr "将分析关联到有依据的 CovarianceOperator 资源，并保留该算子的载体集合框架及实际构造依据。将分析上的中心化和缩放声明与这些操作已执行的证明分开。该关系不提供额外的最大基数、自动目标定型、协方差计算或数值验证结果。"

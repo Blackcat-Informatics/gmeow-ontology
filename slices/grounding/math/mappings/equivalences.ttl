@@ -2212,8 +2212,10 @@ math:TangentSpace skos:relatedMatch <https://leanprover-community.github.io/math
 # no external concept — math:LatentSpace, math:EmbeddingDimension, math:ScoreVector,
 # math:LoadingVector, math:ProjectionResidual, math:ResidualInterpretationClaim,
 # math:TensorComputationGraph, math:ParameterSpace, math:WeightTensor,
-# math:CovarianceOperator, math:AttentionOperation — are GMEOW-original and are left
-# unanchored rather than aligned to an approximate match. The OpenMath eigen content
+# math:AttentionOperation — are GMEOW-original and are left
+# unanchored rather than aligned to an approximate match.
+# math:CovarianceOperator has a validation-only conceptual close match below.
+# The OpenMath eigen content
 # dictionary (linalgeig) does not resolve, so eigen alignment rides Wikidata alone.
 
 math:InnerProductSpace skos:exactMatch wd:Q214159 {|
@@ -2270,6 +2272,19 @@ math:LinearMap skos:exactMatch wd:Q207643 {|
     logic:morphismClass logic:WellBehavedLens ;
     logic:morphismKind logic:InstitutionMorphism ;
     logic:preservationKind logic:SoundUnderApproximation
+|} .
+
+math:CovarianceOperator skos:closeMatch wd:Q5178900 {|
+    a logic:GroundingCorrespondence ;
+    gmeow:sssomFile "gmeow-wikidata.sssom.tsv" ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:objectLabel "covariance operator" ;
+    gmeow:comment "The canonical centered self-adjoint positive-semidefinite operator is related to the external covariance-operator concept. The relation preserves conceptual context only; it supplies no equivalence of analytic settings, numerical construction or spectral result." ;
+    logic:sourceEndpoint math:CovarianceOperator ;
+    logic:targetEndpoint wd:Q5178900 ;
+    logic:morphismClass logic:AffineCorrespondence ;
+    logic:morphismKind logic:InstitutionMorphism ;
+    logic:preservationKind logic:ValidationOnly
 |} .
 
 math:Eigendecomposition skos:closeMatch wd:Q190524 {|

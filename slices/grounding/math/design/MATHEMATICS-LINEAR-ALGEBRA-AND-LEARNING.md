@@ -253,6 +253,69 @@ individuals, never `owl:oneOf`), the object-layer counterpart of a `math:MetricS
 
 ## PCA and the KG-projection flagship
 
+### Covariance operators and declared analysis operands
+
+`math:CovarianceOperator` represents centered second moments as a self-adjoint
+positive-semidefinite linear operator in a supplied real or complex inner-product
+setting. For a finite-dimensional column random vector `X` with `E[‖X‖²] < ∞`,
+write `μ = E[X]`, `Y = X-μ` and `C = E[YY*]` in supplied orthonormal coordinates.
+Here `*` is conjugate transpose, ordinary transpose over the reals, and the complex
+inner-product convention is `⟨u,v⟩ = u* v`, conjugate-linear in the first argument.
+An unconjugated complex second moment is a different construction. Retain the
+actual field, inner product and coordinate bases rather than infer them from a
+matrix label.
+
+Population covariance and empirical covariance retain their own source evidence.
+If a data matrix has `N` centered observation columns, its empirical covariance
+has the form `YY*/D` for the supplied divisor `D`. Divisors `N` and `N-1` give
+different conventions and require `N > 0` and `N > 1`, respectively. Preserve
+sample orientation, centering, scaling and denominator in the existing source
+representation; no default divisor, sample count or preprocessing execution is
+implicit. An unbiasedness claim additionally needs the appropriate sampling
+assumptions. A Gram matrix, symmetry or positive definiteness alone supplies
+neither observations nor evidence that the selected covariance convention ran.
+
+Positive semidefiniteness permits singular and zero covariance. For a real random
+vector equally likely to be `(1,0)` or `(-1,0)` under the standard Euclidean inner
+product, `μ = 0` and `C = diag(1,0)`. Its zero eigenvalue is legitimate, and no
+inverse is needed. Missing covariance is distinct from zero covariance. Repeated
+eigenvalues do not choose unique eigenvectors; preserve supplied component and
+normalization evidence independently of the operator declaration.
+
+The class is not limited to finite matrices. Infinite-dimensional use states its
+analytic assumptions; a strongly measurable Hilbert-valued random element with
+finite second moment supplies a standard sufficient setting for the bounded
+covariance construction. Do not transfer a finite-dimensional eigenbasis or
+spectral result to an arbitrary operator without its hypotheses.
+
+`math:covarianceOperator` points from the analysis to its declared covariance
+operand, distinct from its data input, solver and reported outputs. The current
+PCA source profile has a generic at-least-one resource minimum and its existing
+closed-world closure, associated with `math:IncompletePCAAnalysis`. This source
+contract supplies neither an exact-one maximum nor a typed-target enforcement
+claim. Retain a justified CovarianceOperator description and its inherited
+LinearMap/Function carrier-set frame, separately from the vector-space structure
+and evidence for the covariance laws.
+
+The `exact_pca_residual` producer computes a dominant axis and LDL pivots from its
+fixed rational Gram matrix and emits PCA role declarations. Its
+`p:residualCovariance` has domain and codomain `p:covSpace`; these identify the
+carrier frame. Neither the fixed matrix nor its emitted centering/scaling labels
+establish observed samples, an executed centering step, a sample normalization
+or an executed spectral decomposition. The ordinary scene and competency query
+retain and retrieve the declared operator role; they do not perform those
+statistical operations.
+
+The native grounding is a `skos:closeMatch` from `math:CovarianceOperator` to
+[Wikidata Q5178900](https://www.wikidata.org/wiki/Q5178900), with
+`logic:AffineCorrespondence`, `logic:InstitutionMorphism` and
+`logic:ValidationOnly` preservation. The target's linked
+[covariance-operator reference](https://en.wikipedia.org/wiki/Covariance_operator)
+discusses Hilbert operators and broader Banach covariance forms. It supplies
+conceptual context, not proof of this centered complex-adjoint convention or
+equivalence across analytic settings. The correspondence supplies no numerical
+construction, spectral result or execution certificate.
+
 Core classes: `math:PCAAnalysis`, `math:PrincipalComponent`, `math:LoadingVector`,
 `math:ScoreVector`, `math:ExplainedVariance`, `math:ProjectionResidual`, and
 `math:ResidualInterpretationClaim`.
