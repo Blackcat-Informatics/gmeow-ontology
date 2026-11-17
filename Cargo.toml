@@ -191,6 +191,8 @@ resolver = "2"
 
 [workspace.dependencies]
 cargo-config2 = "0.1.45"
+# CLI argument parsing; consumers select their own derive feature.
+clap = "4"
 # Compatible PurRDF releases or exact official Git revisions. Cargo.lock is the
 # exact version/source authority (a checksum for registry releases, a commit for Git).
 # fuzz/Cargo.lock must select the same substrate, and every shipped
