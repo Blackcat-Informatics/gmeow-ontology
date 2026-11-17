@@ -48,6 +48,59 @@ with `logic:AffineCorrespondence`, `logic:InstitutionMorphism` and
 eigenvalue/eigenvector concept; it asserts neither identity nor executable numerical
 lowering. There is no authored OpenMath eigen correspondence in this mapping.
 
+### Inner products and defining forms
+
+`math:InnerProductSpace` retains a vector space with a justified inner product.
+Over the reals the form is symmetric, positive definite and bilinear. Over the
+complex numbers, `math:HermitianInnerProduct` is conjugate-symmetric, positive
+definite and sesquilinear. Preserve the source convention for which argument
+is conjugate-linear. With the first-conjugate convention on `C`,
+`h(z,w) = conjugate(z) w` gives `h(i,1) = -i`, `h(1,i) = i` and `h(i,i) = 1`.
+This is not complex bilinearity. A Hermitian or symmetric matrix alone need
+not be positive definite; semidefinite and indefinite forms do not become
+inner products through their labels.
+
+Keep the space, its `math:underlyingSet` carrier, scalar field, form and chosen
+coordinate basis separate. Inner-product spaces may have zero, finite or
+infinite dimension. Completeness is an additional Hilbert-space condition.
+The induced norm is `sqrt(h(v,v))`; a normalized angle involving zero is
+undefined, and complex angles require an explicit convention. Orthogonality
+depends on the form: for real `(1,1)` and `(1,-1)`, the usual dot product is
+zero, while `h(u,v) = u1 v1 + 2 u2 v2` is `-1`.
+
+`math:innerProduct` points from the space to its form. Its domain and range
+are stated in prose, without a native global functionality or typed-target
+rule. Several justified form descriptions do not select a preferred form,
+establish equality or compute a change of coordinates. The separate
+`math:definedByInnerProduct` relation points from a complement to the form
+defining its orthogonality. The existing OrthogonalComplement-local profile
+has generic `logic:Thing` minimum-one, maximum-one and all-values restrictions,
+plus required-path closure and `math:UnqualifiedOrthogonalComplement` as the
+associated diagnostic. This resource contract does not prove a Hermitian
+target's laws or the universal orthogonality condition. Operand, ambient and
+form links retain their separate roles without requiring distinct referents.
+The ordinary example declares those links; its competency query retrieves
+them without evaluating a form or constructing a complement.
+
+The native numeric type in
+[`crates/math/src/lib.rs`](../../../../crates/math/src/lib.rs) is a finite real
+coordinate implementation using checked `i128` rational arithmetic and
+`xᵀGy`. Its constructor checks square shape; symmetry and positive definiteness
+remain the caller's contract, with LDL pivots providing an explicit certificate
+for symmetric inputs. The current logic Gram consumer checks explicit
+transpose conflicts before symmetric fill, then invokes LDL for forms claimed
+positive definite. This is not a general complex Hermitian or Hilbert engine.
+Its square-root outputs use deterministic fixed-precision decimal arithmetic;
+`angle` separately parses the decimal cosine to `f64` and applies `acos`,
+without a general cross-platform byte-identity claim for that output.
+These implementation boundaries describe inspected source, not fresh execution.
+
+The existing native grounding is `math:InnerProductSpace skos:exactMatch`
+to [Wikidata Q214159](https://www.wikidata.org/wiki/Q214159), inner product
+space, with `logic:WellBehavedLens`, `logic:InstitutionMorphism` and
+`logic:SoundUnderApproximation` preservation. The concept correspondence
+supplies neither a form-law proof nor a numerical execution certificate.
+
 ### Subspaces and ambient structure
 
 A `math:Subspace` W of a vector space V over F contains zero and is closed
@@ -367,6 +420,146 @@ discusses Hilbert operators and broader Banach covariance forms. It supplies
 conceptual context, not proof of this centered complex-adjoint convention or
 equivalence across analytic settings. The correspondence supplies no numerical
 construction, spectral result or execution certificate.
+
+### Directions, loading coefficients and sample scores
+
+`math:PrincipalComponent` uses the direction convention: a normalized nonzero
+eigenvector of the supplied covariance in the declared geometry.
+`math:LoadingVector` names its coefficient representation in the supplied
+ordered feature basis. These are distinct descriptive roles without a global
+disjointness or resource-inequality rule. In
+[Jolliffe and Cadima's PCA review](https://doi.org/10.1098/rsta.2015.0202),
+section 2(a), equation 2.1 and the following terminology discussion, the
+linear combinations of variables are called principal components and their
+coefficient eigenvectors supply the loadings. The review explicitly notes the
+alternate direction usage retained here. Neither naming convention turns a
+geometric direction into its data-dependent projected scores.
+
+For a finite real Euclidean example, let the prepared matrix `X` have `n`
+observation rows and `p` feature columns, and let `A` have `k` ordered loading
+columns in that feature basis. The score matrix `T = X A` has `n` rows and
+`k` columns. Each column contains one component's scores across observations;
+each row contains one observation's coordinates across retained components.
+GMEOW's `math:ScoreVector` uses the latter sample-tuple convention. The review's
+`X*A = U L` discussion after equation 2.3 describes the former column view;
+the two views do not identify a sample with a component.
+
+For a prepared sample `(2,-1,4)` with retained loading columns `(1,0,0)` and
+`(0,1,0)`, the sample tuple is `(2,-1)`. Its two coordinates omit the third
+input coordinate; a truncated representation does not certify complete input
+recovery. A zero score tuple is legitimate and is distinct from a zero vector
+wrongly offered as an eigenvector. Individual coefficient entries may be zero
+or negative without making the whole normalized eigenvector zero. A zero
+covariance eigenvalue remains valid. For zero covariance in positive dimension,
+orthonormal direction choices remain possible; zero dimension supplies no
+nonzero component. The required-output profile does not license fabricated
+directions or removed input when a mathematical case cannot satisfy it.
+
+Repeated covariance eigenvalues allow different orthonormal bases within their
+eigenspaces. Real signs, complex phases and such tied-basis choices do not select
+a preferred representative; corresponding loading and score coordinates must
+transform consistently. The finite real matrix example assumes its stated
+Euclidean conventions. Other inner products, complex conjugation conventions,
+observation orientations and coordinate bases need their actual supplied
+transformations. Infinite-dimensional inputs need their own analytic and
+spectral hypotheses, not an automatic finite-coordinate eigenbasis.
+
+Retain feature identities and units, sample identity, component order, actual
+preprocessing and normalization evidence. In particular, coefficient loadings
+of standardized features are not automatically coefficients in unprocessed
+physical units. Section 2(c)(i), equations 2.7 and 2.8 of the review describe
+standardization and correlation-scaled loadings. A feature-to-component-score
+correlation requires both feature variance and component-score variance to be
+nonzero. A zero covariance eigenvalue makes the corresponding score variance
+zero, so that correlation is undefined even if a formal scaling expression
+looks like zero. A zero feature scale likewise licenses no division. Preserve
+the supplied convention rather than substituting zeros, correlation loadings,
+biplot markers, factor-analysis loadings or importance values. Mathematical
+coefficients and variance retention do not supply semantic interpretation;
+that remains a vantage-bearing `math:ResidualInterpretationClaim`.
+
+`math:principalComponent`, `math:loadingVector` and `math:scoreVector` point
+from the analysis to their separate supplied output resources. Their signatures
+are stated in prose. The existing PCA-local generic `logic:Thing` minima and
+all-values restrictions, with required-path closures, supply no dedicated
+maxima, target typing, normalization, orthogonality, coordinate lengths or
+sample/feature/component association proofs. Unordered links, matching IRI
+names, output counts and repeated RDF assertions do not encode those facts.
+Retain the actual associations and ordered numeric data in the existing source
+representation; this vocabulary supplies no dedicated coordinate or pairing predicate.
+
+The ordinary example declares three component directions but only the named
+`pc1Loadings` and `sampleScores` descriptors, without numeric coefficients or
+sample associations. The `exact_pca_residual` producer computes its fixed
+metric-dominant coordinate index and LDL pivots, then emits direction, loading
+and score descriptors. It computes no covariance eigenvector, loading array or
+sample-score tuple. The current competency query independently joins component
+and variance roles; it does not retrieve loading/score values, establish their
+pairing or sort components by variance. These are inspected implementation
+boundaries, not fresh numerical execution claims.
+
+The native grounding for `math:PrincipalComponent` is `skos:relatedMatch`
+to [Wikidata Q3555174](https://www.wikidata.org/wiki/Q3555174), eigenvector,
+with `logic:AffineCorrespondence`, `logic:InstitutionMorphism` and
+`logic:ValidationOnly` preservation. The generic concept omits the selected
+covariance/PCA-output specialization; this relation asserts neither identity,
+coordinate conversion nor numerical execution. The PCAAnalysis method
+correspondence is separate, and no loading/score correspondence is asserted here.
+
+### Explained-variance shares and declared results
+
+In this vocabulary, `math:ExplainedVariance` is the dimensionless per-component
+share, distinct from an unnormalized variance amount. For a supplied
+positive-semidefinite covariance with positive finite total variance `t`,
+the share is `λ/t`, where `λ` is that component's nonnegative covariance
+eigenvalue and `t` is the covariance trace. This is the ratio described by
+[Jolliffe and Cadima's 2016 PCA review](https://doi.org/10.1098/rsta.2015.0202),
+section 2(a), equation 2.6. The
+[public full text](https://pmc.ncbi.nlm.nih.gov/articles/PMC4792409/) also
+distinguishes individual shares from the proportion of a retained component set.
+
+For covariance `diag(3,1,0)`, total variance is `4` and the associated component
+ratios are `3/4`, `1/4` and `0`. Retaining the first direction retains `3/4`
+of total variance. A complete justified component family sums to one, but
+omitting only zero-variance components can leave that same sum. A sum of one
+alone therefore proves no complete basis. Zero covariance has zero total
+variance and an undefined normalized ratio; absence is not a supplied zero,
+and `0/0` supplies neither zero nor one.
+
+Keep normalized shares, cumulative retained variance, covariance eigenvalues
+and singular values separate. Retain the actual covariance, scalar field,
+basis, centering/scaling and normalization convention with the result evidence.
+Infinite-dimensional use needs its actual finite-trace spectral hypotheses;
+this definition does not provide a complete eigenbasis for arbitrary operators.
+Variance retained is not semantic importance, information completeness or
+predictive quality; interpretation still needs its own evidence and standpoint.
+
+`math:explainedVarianceRatio` points from an analysis to its supplied
+`math:ExplainedVariance` resource. The property signature remains prose-only.
+Its existing PCA-local generic `logic:Thing` minimum and all-values restriction,
+with required-path closure, supplies no dedicated maximum, automatic target
+typing or numeric denominator/range proof. There is no dedicated ratio-value
+or component-pairing predicate here; preserve supplied values, associations,
+order and occurrence evidence in the existing source representation.
+
+The ordinary example and `exact_pca_residual` producer name `pc1Variance` as
+an `ExplainedVariance` descriptor without a numeric ratio. The producer's fixed
+Gram, dominant-axis and LDL results do not supply a PCA eigenvalue family or
+normalization result. The current PCA competency query independently joins
+`math:principalComponent` and `math:explainedVarianceRatio` on the analysis.
+It retrieves declared roles without establishing which component a ratio
+belongs to. Repeated RDF assertions and resource counts add no association,
+order or mathematical multiplicity.
+
+The native `skos:relatedMatch` to
+[Wikidata Q2510752](https://www.wikidata.org/wiki/Q2510752), Explained variation,
+has `logic:AffineCorrespondence`, `logic:InstitutionMorphism` and
+`logic:ValidationOnly` preservation. The target's linked
+[explained-variation reference](https://en.wikipedia.org/wiki/Explained_variation)
+spans modelling/dispersion contexts and mentions PCA. That broader context
+supplies neither identity with the canonical per-component ratio nor a universal
+R-squared interpretation, analytic equivalence, numeric conversion or execution
+certificate. The original GMEOW definition remains the local authority.
 
 Core classes: `math:PCAAnalysis`, `math:PrincipalComponent`, `math:LoadingVector`,
 `math:ScoreVector`, `math:ExplainedVariance`, `math:ProjectionResidual`, and

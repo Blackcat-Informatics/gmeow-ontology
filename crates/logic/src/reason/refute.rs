@@ -46,15 +46,14 @@ pub use native::{
     NativeAnalysisUsage, NativeBoundEvidence, NativeClosureStatus, NativeFamilyCompletion,
     NativeFamilyLedger, NativeFamilyObstruction, NativeFamilyOutcome, NativeObligationScope,
     NativeObstructionKind, NativeProducerObstruction, NativeProofId, NativeProofNode,
-    NativeProofOrigin, NativeRead, NativeReadKind, NativeRefutationFamily, NativeSourceTerms,
-    NativeSupportedClash,
+    NativeProofOrigin, NativeRead, NativeReadKind, NativeReadPattern, NativeRefutationFamily,
+    NativeSourceTerms, NativeSupportedClash,
 };
 mod diagnostic;
 pub use diagnostic::{ClassDiagnosticObservation, ClassDiagnosticOutcome, class_diagnostic};
 
 pub(crate) use casesplit::execution::{
-    completion_reads as class_completion_reads, positive_reads as class_positive_reads,
-    preparation_reads as class_preparation_reads,
+    positive_reads as class_positive_reads, preparation_reads as class_preparation_reads,
 };
 pub use casesplit::{
     ClassAdmissionObservation, ClassAdmissionSourceWorld, ClassAdmissionWorld,

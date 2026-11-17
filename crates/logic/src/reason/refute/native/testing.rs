@@ -44,11 +44,7 @@ pub(crate) fn fixtures(
             &domains,
         )
         .unwrap();
-        let completed = BTreeSet::from([NativeRead {
-            marker: None,
-            predicate: None,
-            kind: NativeReadKind::Completed,
-        }]);
+        let completed = BTreeSet::from([NativeRead::world(NativeReadKind::Completed)]);
         let input = NativeFamilyInput::new(&store, &rel, &[], &evidence, &completed).unwrap();
         let mut ledger = NativeFamilyLedger::new(world, graph.clone(), contract, None);
         let mut coverage = crate::reason::dl::SourceCoverageWorld {

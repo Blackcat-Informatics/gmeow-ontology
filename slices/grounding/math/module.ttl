@@ -6164,6 +6164,11 @@ math:InnerProductSpace
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "Inner Product Space"@x-gmeow-english ;
     skos:definition "A vector space equipped with an inner product — a math:VectorSpace carrying a math:innerProduct that assigns lengths and angles, so orthogonality and orthogonal complements are defined. A subclass of math:VectorSpace; the complex case carries a math:HermitianInnerProduct. It names the inner product it carries through math:innerProduct."@x-gmeow-english ;
+    skos:scopeNote "The real case uses a symmetric positive-definite bilinear form; the complex case uses a conjugate-symmetric positive-definite sesquilinear form. Zero dimension, finite and infinite dimension are allowed. Completeness is an additional Hilbert-space condition, not a consequence of this type."@x-gmeow-english ;
+    skos:example "On real R², h(u,v) = u1 v1 + 2 u2 v2 is an inner product with h(v,v) = v1² + 2 v2², positive for every nonzero v. The coordinate formula presupposes the supplied ordered basis and real scalar interpretation."@x-gmeow-english ;
+    gmeow:useWhen "Use when a vector space carries a justified inner product needed for lengths, norms or orthogonality. Retain the space, carrier set, scalar field, coordinate basis and form as separate roles."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not infer an inner product from a vector-space, norm or symmetric-matrix label alone, or treat positive-semidefinite or indefinite forms as positive-definite. An angle involving a zero vector is undefined, and complex angle conventions must be stated."@x-gmeow-english ;
+    gmeow:howToUse "Describe the vector-space structure and link its supplied form with math:innerProduct. Keep the inherited carrier, operation and law evidence explicit. A class or form link proves neither the inner-product laws nor completeness and does not invoke the finite real rational numeric core."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 math:HermitianInnerProduct
@@ -6172,6 +6177,11 @@ math:HermitianInnerProduct
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "Hermitian Inner Product"@x-gmeow-english ;
     skos:definition "A conjugate-symmetric, positive-definite sesquilinear form on a complex vector space — the inner product ⟨·,·⟩ of the complex case, linear in one argument and conjugate-linear in the other. A subclass of math:MathematicalObject carried by a math:InnerProductSpace through math:innerProduct; it is the structure that defines a math:OrthogonalComplement in the complex (S⊥) case (math:definedByInnerProduct)."@x-gmeow-english ;
+    skos:scopeNote "Preserve which argument is conjugate-linear. Under the first-conjugate convention, h(au,bv) = conjugate(a) b h(u,v) and h(v,u) = conjugate(h(u,v)). Positive definiteness requires real h(v,v) > 0 for nonzero v, with h(0,0) = 0."@x-gmeow-english ;
+    skos:example "On C with h(z,w) = conjugate(z) w, h(i,1) = -i, h(1,i) = i and h(i,i) = 1. This form is conjugate-linear in the first argument and linear in the second; it is not complex bilinear."@x-gmeow-english ;
+    gmeow:useWhen "Use for a justified positive-definite Hermitian inner product on a complex vector space, retaining its actual scalar field, argument convention and coordinate representation independently."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not identify complex sesquilinearity with bilinearity or ordinary symmetry. A Hermitian matrix can be indefinite or positive semidefinite; its label or conjugate symmetry alone does not establish an inner product."@x-gmeow-english ;
+    gmeow:howToUse "Name the form as its own math:HermitianInnerProduct resource. Use math:innerProduct from its space and math:definedByInnerProduct from a complement where applicable. Retain evidence for the laws; these declarations do not execute a complex Hermitian calculation or construct a complement."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 math:Subspace
@@ -6284,6 +6294,11 @@ math:PrincipalComponent
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "Principal Component"@x-gmeow-english ;
     skos:definition "A principal component: one orthonormal direction of maximal remaining variance produced by a math:PCAAnalysis — an eigenvector of the math:CovarianceOperator. A subclass of math:MathematicalObject, named by an analysis through math:principalComponent, carrying a math:LoadingVector (its coefficients) and explaining a share of variance (math:ExplainedVariance). Its MEANING is never an intrinsic property: what a component encodes is a math:ResidualInterpretationClaim held from a vantage."@x-gmeow-english ;
+    skos:scopeNote "GMEOW uses the direction convention: a normalized nonzero covariance eigenvector in a declared geometry. The PCA review also uses component for a linear combination of variables. Keep that score-variable usage distinct from this direction and its LoadingVector coefficient representation; these roles impose no class disjointness or resource inequality."@x-gmeow-english ;
+    skos:example "For real covariance diag(3,1,0) in the standard Euclidean basis, the coordinate directions have eigenvalues 3, 1 and 0. The third unit direction is still a valid component direction; its zero eigenvalue does not make the vector zero."@x-gmeow-english ;
+    gmeow:useWhen "Use for a justified PCA output direction, retaining the covariance, scalar field, inner product, preprocessing, normalization and selected component family in the source evidence."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not infer semantic importance, computed scores or a unique preferred direction from this type. Repeated eigenvalues permit different eigenspace bases, sign or complex phase choices persist, and a truncated family need not span the input. Zero dimension supplies no nonzero component."@x-gmeow-english ;
+    gmeow:howToUse "Link the analysis through math:principalComponent and retain ordered component and coefficient associations in the source representation. Keep any interpretation in a vantage-bearing math:ResidualInterpretationClaim; an output descriptor alone proves neither orthonormality nor an executed eigendecomposition."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 math:innerProduct
@@ -6291,6 +6306,11 @@ math:innerProduct
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "inner product"@x-gmeow-english ;
     skos:definition "Relates a math:InnerProductSpace to the inner product it carries — a math:HermitianInnerProduct in the complex case. Domain math:InnerProductSpace, range a math:HermitianInnerProduct or a real inner-product structure (stated in prose). The inner product is what makes orthogonality, and hence a math:OrthogonalComplement, well-defined."@x-gmeow-english ;
+    skos:scopeNote "The direction is space to form. The source states domain and range in prose without a native global functionality or typed-target rule for this property. Several supplied form descriptions do not select a preferred form or establish their equality."@x-gmeow-english ;
+    skos:example "For real u = (1,1) and v = (1,-1), the standard dot product is zero, while h(u,v) = u1 v1 + 2 u2 v2 is -1. Linking the intended form matters: the same vectors are orthogonal under one inner product and not the other."@x-gmeow-english ;
+    gmeow:useWhen "Use to identify the actual inner product carried by a vector-space description, retaining the real or complex setting and the supplied form laws rather than inferring them from dimensions or labels."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not substitute a scalar pairing result, coordinate matrix, basis or residual for the form. The edge neither transforms coordinates nor proves symmetry, sesquilinearity or positive definiteness."@x-gmeow-english ;
+    gmeow:howToUse "Point math:innerProduct from the space to its supplied form resource. Preserve the carrier, scalar field, basis and argument convention separately. Retain each justified description without a preferred-form rule; a link does not invoke a numerical evaluator."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 math:subspaceOf
@@ -6322,6 +6342,11 @@ math:definedByInnerProduct
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "defined by inner product"@x-gmeow-english ;
     skos:definition "Relates a math:OrthogonalComplement to the inner product that defines orthogonality for it — the math:HermitianInnerProduct in the complex case. Domain math:OrthogonalComplement, range a math:HermitianInnerProduct or real inner-product structure (stated in prose). An orthogonal complement without a named inner product is ambiguous and ill-formed (math:UnqualifiedOrthogonalComplement)."@x-gmeow-english ;
+    skos:scopeNote "The existing OrthogonalComplement-local source profile has minimum one, maximum one and all-values restrictions with logic:Thing, plus required-path closure and the associated math:UnqualifiedOrthogonalComplement diagnostic. This generic resource contract does not prove that the target is a positive-definite Hermitian form."@x-gmeow-english ;
+    skos:example "The ordinary linear-algebra-and-learning example states ex:residualSubspace math:definedByInnerProduct ex:hermitianInnerProduct, separately from its operand and ambient links. This names a defining form without evaluating it or proving the complement equation."@x-gmeow-english ;
+    gmeow:useWhen "Use when an orthogonal-complement description needs to retain the actual form defining orthogonality within its declared ambient space. Keep that form consistent with the supplied mathematical construction and argument convention."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not confuse the complement-to-form direction with math:innerProduct from the ambient space. The class-local restriction is not global property functionality, automatic Hermitian target typing or proof that every complement vector is orthogonal to the operand."@x-gmeow-english ;
+    gmeow:howToUse "Link the complement to its supplied form and retain math:orthogonalComplementOf, math:ambientSpace and math:complementSemantics math:orthogonalComplement separately. Those roles need not have distinct referents. The competency query retrieves declarations; mathematical justification and computation remain separate evidence."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 math:hasBasis
@@ -6401,7 +6426,7 @@ math:BilinearForm
     rdfs:subClassOf math:MathematicalObject ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "Bilinear Form"@x-gmeow-english ;
-    skos:definition "A bilinear form B on a vector space: a map B(·, ·) that is linear in each argument separately. A subclass of math:MathematicalObject. Its definiteness (math:definiteness) records whether it is positive-definite, positive-semidefinite, indefinite, or negative-definite; represented in a math:Basis it becomes a math:Matrix. An inner product is a positive-definite symmetric (or Hermitian) bilinear form; the symmetric case is math:SymmetricBilinearForm."@x-gmeow-english ;
+    skos:definition "A bilinear form B on a vector space: a map B(·, ·) that is linear in each argument separately. A subclass of math:MathematicalObject. Its definiteness (math:definiteness) records whether it is positive-definite, positive-semidefinite, indefinite, or negative-definite; represented in a math:Basis it becomes a math:Matrix. A real inner product is a positive-definite symmetric bilinear form; a complex inner product is a positive-definite Hermitian sesquilinear form. The symmetric bilinear case is math:SymmetricBilinearForm."@x-gmeow-english ;
     gmeow:useWhen "Use for a scalar-valued pairing that is linear in each of its two vector arguments, independently of the coordinates chosen to represent it."@x-gmeow-english ;
     gmeow:avoidWhen "Do not classify an arbitrary two-argument function as bilinear, or infer symmetry or positive-definiteness from bilinearity alone."@x-gmeow-english ;
     gmeow:howToUse "Name the form separately from its coordinate matrix. Record its definiteness with math:definiteness; use math:SymmetricBilinearForm when exchanging the arguments preserves the value."@x-gmeow-english ;
@@ -6722,6 +6747,11 @@ math:LoadingVector
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "Loading Vector"@x-gmeow-english ;
     skos:definition "A loading vector: the coefficients of a math:PrincipalComponent in the original coordinates — how each input feature contributes to the component. A subclass of math:MathematicalObject named by a PCA through math:loadingVector. Loadings are the eigenvectors of the math:CovarianceOperator; their INTERPRETATION is a math:ResidualInterpretationClaim, not an intrinsic property."@x-gmeow-english ;
+    skos:scopeNote "This is the coefficient-vector convention: the coordinates of a component direction in a supplied ordered feature basis for the prepared input. Retain the normalization convention; a coordinate representation is distinct from the geometric direction without requiring different RDF resources."@x-gmeow-english ;
+    skos:example "In the standard real basis, a component with loading coefficients (1,0,0) selects the first prepared feature. The zero entries are valid coefficients of a nonzero unit vector; they are not missing data or zero-variance conclusions."@x-gmeow-english ;
+    gmeow:useWhen "Use for supplied component coefficients with feature identities, basis order, field, units, centering/scaling and normalization evidence. Coefficients in standardized features are not automatically coefficients in unprocessed physical units."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not silently substitute correlation-scaled loadings, biplot markers, factor-analysis loadings or importance scores. Correlation needs nonzero feature and component-score variances; a zero eigenvalue leaves the corresponding correlation undefined, not zero. A zero feature scale licenses no division."@x-gmeow-english ;
+    gmeow:howToUse "Name the supplied result from its analysis with math:loadingVector and retain component/feature associations and any coordinate transformation in the source representation. Changes of sign, phase or tied-eigenspace basis require consistent score coordinates; interpretation remains a vantage-bearing claim."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 math:ScoreVector
@@ -6730,6 +6760,11 @@ math:ScoreVector
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "Score Vector"@x-gmeow-english ;
     skos:definition "A score vector: the coordinates of a data point projected onto the principal components — the representation of a sample in the PCA basis. A subclass of math:MathematicalObject named by a PCA through math:scoreVector. Scores are inputs projected through the loadings."@x-gmeow-english ;
+    skos:scopeNote "GMEOW uses one sample's tuple across retained components. A component's scores across samples are a different view of the score matrix. Preserve sample identity and component order; neither this role nor the loading/direction roles imply global class disjointness."@x-gmeow-english ;
+    skos:example "For prepared real sample (2,-1,4) and ordered loading columns (1,0,0) and (0,1,0), the sample score tuple is (2,-1). It retains two projection coordinates, not the omitted third coordinate or a complete reconstruction."@x-gmeow-english ;
+    gmeow:useWhen "Use for supplied coordinates of an identified sample in a declared retained PCA frame, keeping its input transformation, field, geometry, component order and projection evidence."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not read scores as nonnegative variance ratios, loading coefficients or semantic importance. Zero tuples and negative entries can be valid. A zero score tuple is not an invalid zero eigenvector, and a truncated tuple need not recover the input."@x-gmeow-english ;
+    gmeow:howToUse "In a finite real Euclidean convention with prepared observation rows X and ordered loading columns A, T = X A has sample tuples in rows and one component's scores in each column. Retain those associations in the source; complex or other geometries need their actual conjugation and inner-product conventions."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 math:ExplainedVariance
@@ -6737,7 +6772,12 @@ math:ExplainedVariance
     rdfs:subClassOf math:MathematicalObject ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "Explained Variance"@x-gmeow-english ;
-    skos:definition "The share of total variance a math:PrincipalComponent accounts for — the component's eigenvalue over the trace, a ratio in [0, 1]. A subclass of math:MathematicalObject named by a PCA through math:explainedVarianceRatio; the ratios across retained components measure how much structure the projection keeps."@x-gmeow-english ;
+    skos:definition "The share of positive finite total variance accounted for by a math:PrincipalComponent: its nonnegative covariance eigenvalue divided by the covariance trace, a dimensionless ratio in [0, 1]. A zero total variance leaves the ratio undefined. A subclass of math:MathematicalObject named by a PCA through math:explainedVarianceRatio; the ratios across retained components quantify retained variance."@x-gmeow-english ;
+    skos:scopeNote "This class records a normalized per-component share, distinct from an unnormalized variance amount. Finite covariance matrices use their trace as total variance. Infinite-dimensional use needs justified finite-trace spectral assumptions; no complete eigenbasis follows from this type."@x-gmeow-english ;
+    skos:example "For covariance diag(3,1,0), total variance is 4 and the associated component ratios are 3/4, 1/4 and 0. Retaining only the first component retains 3/4 of total variance. Zero covariance instead gives an undefined ratio, not a ratio of zero."@x-gmeow-english ;
+    gmeow:useWhen "Use for a supplied component share justified by its nonnegative covariance eigenvalue and positive finite total variance. Preserve the actual covariance, scalar field, basis, preprocessing and normalization evidence together with the source component association."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not replace missing data or zero-total undefined normalization with zero or one. A ratio sum of one can omit zero-variance components and does not prove a complete basis, semantic importance or predictive quality. Retained variance and cumulative shares are separate claims."@x-gmeow-english ;
+    gmeow:howToUse "Name the result as math:ExplainedVariance and link it from the analysis with math:explainedVarianceRatio. Preserve its supplied magnitude, component association, order and multiplicity in the existing source representation. A descriptor alone supplies no numeric value or normalization computation."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 math:ProjectionResidual
@@ -6839,6 +6879,11 @@ math:principalComponent
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "principal component"@x-gmeow-english ;
     skos:definition "Relates a math:PCAAnalysis to one of the math:PrincipalComponent directions it produces. Domain math:PCAAnalysis, range math:PrincipalComponent (stated in prose). The declared component outputs; a PCA producing none is ill-formed (math:IncompletePCAAnalysis)."@x-gmeow-english ;
+    skos:scopeNote "This analysis-to-direction relation has a prose-only signature. The PCA-local generic Thing minimum, all-values restriction and required-path closure supply no dedicated maximum, automatic PrincipalComponent target typing, numerical normalization or variance ordering."@x-gmeow-english ;
+    skos:example "An analysis can declare two supplied directions through math:principalComponent. The two unordered links retain those output roles without saying which has greater variance or which loading and score resources belong to either direction."@x-gmeow-english ;
+    gmeow:useWhen "Use to record the principal directions that a supplied PCA reports, preserving their identities and the actual field, covariance and component-selection evidence."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not treat resource counts, IRI names or repeated RDF assertions as component rank, multiplicity, ordering or a complete basis. Missing directions are not zero directions; never invent a component merely to fill the required role."@x-gmeow-english ;
+    gmeow:howToUse "Keep math:loadingVector, math:scoreVector and math:explainedVarianceRatio as separate analysis-output roles, with their actual associations retained in the source. The current competency query joins components and variance descriptors independently; its IRI ordering establishes no numeric pairing."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 math:loadingVector
@@ -6846,6 +6891,11 @@ math:loadingVector
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "loading vector"@x-gmeow-english ;
     skos:definition "Relates a math:PCAAnalysis to a math:LoadingVector it produces — the coefficients of a component in the original features. Domain math:PCAAnalysis, range math:LoadingVector (stated in prose). A declared output of the analysis."@x-gmeow-english ;
+    skos:scopeNote "The direction is analysis to coefficient resource. Its signature is stated in prose; the generic PCA-local Thing minimum, all-values restriction and closure establish no typed target, dedicated maximum, coordinate length or component-to-loading pairing."@x-gmeow-english ;
+    skos:example "The exact Gram/PCA producer links its analysis to pc1Loadings and types that descriptor math:LoadingVector. It supplies no numeric loading coefficients, so the declaration is not evidence that a covariance eigenvector was computed."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain identified loading outputs of the stated analysis, alongside the source's component, feature-order, preprocessing and coefficient-normalization context."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not infer one loading per component, an ordered association or a numeric payload from link counts or matching resource names. This relation does not compute coefficients or convert correlation-scaled loadings into the selected coefficient convention."@x-gmeow-english ;
+    gmeow:howToUse "Describe a justified LoadingVector result and preserve its supplied coordinates and associations through the existing source representation. Retain the actual input transformation and its scale conditions; neither a link nor a policy label performs centering, scaling or spectral analysis."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 math:scoreVector
@@ -6853,6 +6903,11 @@ math:scoreVector
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "score vector"@x-gmeow-english ;
     skos:definition "Relates a math:PCAAnalysis to a math:ScoreVector it produces — a data point's coordinates in the principal-component basis. Domain math:PCAAnalysis, range math:ScoreVector (stated in prose). A declared output of the analysis."@x-gmeow-english ;
+    skos:scopeNote "This links an analysis to a supplied sample-coordinate resource, not a numeric literal. Its prose-only signature and PCA-local generic Thing minimum, all-values restriction and closure establish no typed target, dedicated maximum, sample association or tuple-dimension proof."@x-gmeow-english ;
+    skos:example "The ordinary scene names sampleScores through math:scoreVector and types it math:ScoreVector. It gives no numeric tuple or sample-association structure; the resource name alone does not supply either."@x-gmeow-english ;
+    gmeow:useWhen "Use to catalogue supplied sample-score outputs of the declared analysis, retaining each sample identity, component-position correspondence and preprocessing/projection context in the source evidence."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not replace absent scores with zero tuples or infer that all samples were projected. This output link and the producer's Gram/LDL calculations do not compute sample scores or establish feature/component pairing."@x-gmeow-english ;
+    gmeow:howToUse "Keep the result linked from its analysis and retain its actual sample, ordered components, coefficient representation and prepared input together in the source. The current competency query retrieves component and variance roles without retrieving or validating score coordinates."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 math:explainedVarianceRatio
@@ -6860,6 +6915,11 @@ math:explainedVarianceRatio
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "explained variance ratio"@x-gmeow-english ;
     skos:definition "Relates a math:PCAAnalysis to a math:ExplainedVariance it produces — the share of total variance a component accounts for. Domain math:PCAAnalysis, range math:ExplainedVariance (stated in prose). A declared output of the analysis."@x-gmeow-english ;
+    skos:scopeNote "The property signature is stated in prose. The existing PCA-local profile has a generic logic:Thing minimum and all-values restriction plus required-path closure, without a dedicated maximum, typed-target rule or numeric denominator/range proof."@x-gmeow-english ;
+    skos:example "The exact-pca producer emits p:residualPCA math:explainedVarianceRatio p:pc1Variance and types that descriptor as math:ExplainedVariance. Its fixed Gram, dominant-axis and LDL results supply neither a numeric ratio nor a PCA eigenvalue family."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain a justified normalized component-result resource declared by a PCA analysis. Keep the source evidence identifying its actual component, covariance and normalization context independently of the other output relations."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not substitute a literal, eigenvalue amount or singular value for this result resource. Unordered component and variance links do not establish pairings. The current competency query joins those roles independently; its rows are not numeric association certificates."@x-gmeow-english ;
+    gmeow:howToUse "Point the property from the analysis to the supplied math:ExplainedVariance resource. Preserve its actual source value and component association without inferring order, repeated occurrences or a default ratio. The link alone performs no normalization or numeric validation."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 math:residualSubspace

@@ -75,6 +75,62 @@ fn marker_aliases_apply_only_to_the_read_operator_role() {
     let write = StatementPattern::atom(&typing(INSTANCE, projected).head);
     assert!(read.reads_write(&write, SemanticVocabulary::GroundedLogicV1));
     assert!(!read.reads_write(&write, SemanticVocabulary::Exact));
+    let flow = value_flow::ValueFlow::with_observations(
+        &[],
+        &[],
+        SemanticVocabulary::GroundedLogicV1,
+        &[read.clone(), write.clone()],
+    );
+    let ranged_write = flow.ranged_pattern(write.clone());
+    assert!(
+        flow.ranged_pattern(read.clone())
+            .reads_write(&ranged_write, SemanticVocabulary::GroundedLogicV1)
+    );
+    let mut exact_atom = typing(TYPE, canonical).head;
+    exact_atom.object = EvalTerm::ConstLit(TermValue::iri(canonical));
+    let exact = StatementPattern::atom(&exact_atom);
+    assert!(!exact.reads_write(&write, SemanticVocabulary::GroundedLogicV1));
+    assert!(
+        !flow
+            .ranged_pattern(exact)
+            .reads_write(&ranged_write, SemanticVocabulary::GroundedLogicV1)
+    );
+    use crate::reason::refute::native::{NativeRead, NativeReadKind};
+    let declaration = NativeRead::declaration(TYPE, canonical);
+    let exact = NativeRead::statement(
+        None,
+        Some(TYPE.to_owned()),
+        Some(TermValue::iri(projected)),
+        NativeReadKind::Completed,
+    );
+    assert!(
+        declaration
+            .pattern
+            .covers(&exact.pattern, SemanticVocabulary::GroundedLogicV1)
+    );
+    assert!(
+        !exact
+            .pattern
+            .covers(&declaration.pattern, SemanticVocabulary::GroundedLogicV1)
+    );
+    assert!(
+        flow.ranged_pattern(StatementPattern::native(&declaration.pattern))
+            .reads_write(&ranged_write, SemanticVocabulary::GroundedLogicV1)
+    );
+    let unknown = NativeRead::statement(
+        Some(TermValue::iri("urn:unrepresented-subject")),
+        None,
+        None,
+        NativeReadKind::Completed,
+    );
+    assert!(
+        flow.ranged_pattern(StatementPattern::native(&unknown.pattern))
+            .reads_write(
+                &flow.ranged_pattern(StatementPattern::relation(None, None)),
+                SemanticVocabulary::GroundedLogicV1,
+            ),
+        "a constant outside the frozen vocabulary must retain possible Other writers"
+    );
     let mut data_read = read.clone();
     let mut data_write = write.clone();
     data_read.predicate = Some("urn:data".to_owned());
@@ -107,6 +163,7 @@ fn native_constants_distinguish_blank_scope_literals_and_nested_statements() {
                 subject: None,
                 predicate: Some(TYPE.to_owned()),
                 object: Some(value.clone()),
+                object_role: ObjectRole::Exact,
                 ranges: None,
             };
             assert_eq!(

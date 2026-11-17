@@ -129,9 +129,7 @@ impl JointProgram {
         let admission_reads = crate::reason::dl::source_admission_reads();
         let observations: Vec<_> = admission_reads
             .iter()
-            .map(|read| {
-                StatementPattern::relation(read.predicate.as_deref(), read.marker.as_deref())
-            })
+            .map(|read| StatementPattern::native(&read.pattern))
             .collect();
         let Ok(schedule) = crate::physical::effects::schedule_observed(
             &effects,
@@ -443,8 +441,7 @@ impl JointProgram {
                 }),
             );
             observations.extend(self.layout.family_reads.iter().map(|read| {
-                let pattern =
-                    StatementPattern::relation(read.predicate.as_deref(), read.marker.as_deref());
+                let pattern = StatementPattern::native(&read.pattern);
                 let pattern = if let Some(flow) = observation_flow {
                     flow.ranged_pattern(pattern)
                 } else {
@@ -611,6 +608,12 @@ impl JointProgram {
             return Ok(NativeOutcome::Unsupported(UnsupportedKind::NonStratifiable));
         };
         let total = schedule.strata.iter().copied().max().unwrap_or(0) + 1;
+        let read_plan = crate::physical::effects::WorldReadPlan::new(
+            &effects,
+            &schedule,
+            self.semantics,
+            observation_flow,
+        );
         tracing::info!(
             target: "pipeline_phase",
             stage = "stage-reason",
@@ -741,6 +744,7 @@ impl JointProgram {
                         world,
                         self.witness_contract,
                         generative,
+                        &read_plan,
                     )?;
                     truncated |= round.truncated;
                     inference_cut |= round.inference_cut;
@@ -963,6 +967,7 @@ impl JointProgram {
                     rows: &runtime.rows,
                     registry,
                     complete: &runtime.progress.saturated_preds,
+                    observed: &runtime.completed_reads,
                     terminal: &terminal,
                 },
                 &mut runtime.values,
@@ -1238,7 +1243,7 @@ fn producer_effects(
         ));
         reads.extend(property.admission_reads().into_iter().map(|read| {
             (
-                StatementPattern::relation(read.predicate.as_deref(), read.marker.as_deref()),
+                StatementPattern::native(&read.pattern),
                 ReadDependency::Completed,
             )
         }));
@@ -1309,6 +1314,9 @@ pub(crate) struct WorldRuntime {
     /// `None` reads every predicate.
     generative_changed: Option<BTreeSet<String>>,
     completed_reads: BTreeSet<crate::reason::refute::native::NativeRead>,
+    /// Publication observations registered against this exact world's frozen writers.
+    publication_completion:
+        std::collections::BTreeMap<crate::reason::refute::native::NativeRead, Option<usize>>,
 }
 impl WorldRuntime {
     fn new(
@@ -1345,6 +1353,7 @@ impl WorldRuntime {
             generative_lo: 0,
             generative_changed: None,
             completed_reads: BTreeSet::new(),
+            publication_completion: Default::default(),
         })
     }
     fn fixpoint(&mut self) -> FixpointState<'_> {
@@ -1369,6 +1378,38 @@ impl WorldRuntime {
             .collect();
         self.completed_reads
             .extend(families::completed(&self.progress.saturated_preds, false));
+        self.advance_publication();
+    }
+
+    fn register_publication(
+        &mut self,
+        plan: &crate::physical::effects::WorldReadPlan<'_>,
+        world: &str,
+    ) {
+        use crate::reason::refute::native::NativeReadKind;
+        for read in self
+            .family
+            .ledger
+            .outcomes
+            .iter()
+            .flat_map(|outcome| &outcome.publication_reads)
+        {
+            if read.kind == NativeReadKind::Completed && !read.pattern.is_world() {
+                self.publication_completion
+                    .entry(read.clone())
+                    .or_insert_with(|| plan.completion(world, read));
+            }
+        }
+        self.advance_publication();
+    }
+
+    fn advance_publication(&mut self) {
+        self.completed_reads.extend(
+            self.publication_completion
+                .iter()
+                .filter(|(_, rank)| rank.is_none_or(|rank| rank < self.progress.completed))
+                .map(|(read, _)| read.clone()),
+        );
     }
     fn complete_stratum(&mut self, plan: &JointProgram, index: usize) {
         self.progress.completed += 1;
@@ -1387,6 +1428,15 @@ impl WorldRuntime {
                     .map(str::to_owned),
             );
         }
+        self.completed_reads.extend(
+            plan.read_completion
+                .iter()
+                .filter(|(_, rank)| rank.is_none_or(|rank| rank < self.progress.completed))
+                .map(|(read, _)| read.clone()),
+        );
+        self.completed_reads
+            .extend(families::completed(&self.progress.saturated_preds, false));
+        self.advance_publication();
     }
     pub(crate) fn native_snapshot(&mut self) -> gmeow_errors::Result<NativeWorldSnapshot<'_>> {
         self.family
@@ -1479,6 +1529,7 @@ impl JointStratum {
         world: &str,
         contract: WitnessContract,
         generative: bool,
+        read_plan: &crate::physical::effects::WorldReadPlan<'_>,
     ) -> gmeow_errors::Result<WorldRound> {
         let snapshot = RoundSnapshot {
             store: &state.store,
@@ -1728,6 +1779,13 @@ impl JointStratum {
             &mut state.values,
             &mut state.lists,
             &mut round,
+        )?;
+        state.register_publication(read_plan, world);
+        state.family.refresh_publication(
+            &state.store,
+            &state.rel,
+            &state.rows,
+            &state.completed_reads,
         )?;
         tracing::info!(
             target: "pipeline_phase",

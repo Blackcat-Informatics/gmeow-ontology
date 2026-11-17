@@ -1214,11 +1214,8 @@ pub(crate) fn source_admission_reads_for(
     family: DlConstructFamily,
 ) -> Vec<super::refute::NativeRead> {
     use super::refute::{NativeRead, NativeReadKind};
-    let completed = |predicate: &str| NativeRead {
-        predicate: Some(predicate.to_owned()),
-        marker: None,
-        kind: NativeReadKind::Completed,
-    };
+    let completed =
+        |predicate: &str| NativeRead::predicate(predicate.to_owned(), NativeReadKind::Completed);
     let mut reads = BTreeSet::new();
     for &(selected, iri, role) in CONSTRUCTS {
         if selected != family {

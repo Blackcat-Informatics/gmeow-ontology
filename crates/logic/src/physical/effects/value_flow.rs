@@ -17,7 +17,7 @@ use std::collections::{BTreeMap, BTreeSet, HashMap, VecDeque};
 use purrdf::TermValue;
 use rayon::prelude::*;
 
-use super::{ProducerEffect, StatementPattern, constant};
+use super::{ObjectRole, ProducerEffect, StatementPattern, constant};
 use crate::native_semantics::SemanticVocabulary;
 use crate::rule_ir::{EvalTerm, Fact};
 
@@ -205,14 +205,14 @@ pub(crate) struct FlowSelectedRead {
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 enum Slot {
-    Constant(usize),
+    Constant(usize, ObjectRole),
     Variable(usize),
 }
 
 impl Slot {
     fn domain(&self, bindings: &[Domain], size: usize) -> Domain {
         match self {
-            Self::Constant(index) => Domain::one(size, *index),
+            Self::Constant(index, _) => Domain::one(size, *index),
             Self::Variable(index) => bindings[*index].clone(),
         }
     }
@@ -865,7 +865,7 @@ impl Universe {
             .map(|slot| slot.domain(bindings, self.size()));
         if read {
             domains[1] = self.predicates(&domains[1]);
-            if let Slot::Constant(value) = atom[2] {
+            if let Slot::Constant(value, ObjectRole::Marker) = atom[2] {
                 domains[2] = self.marker(value, &domains[1]);
             }
         }
@@ -1743,7 +1743,14 @@ impl ValueFlow {
                             let next = variables.len();
                             Slot::Variable(*variables.entry(name.clone()).or_insert(next))
                         }
-                        _ => Slot::Constant(universe.value(&constant(term).expect("constant"))),
+                        _ => Slot::Constant(
+                            universe.value(&constant(term).expect("constant")),
+                            if matches!(term, EvalTerm::ConstNamed(_)) {
+                                ObjectRole::Marker
+                            } else {
+                                ObjectRole::Exact
+                            },
+                        ),
                     })
                 };
                 let body = source.body.iter().map(&mut lower).collect();
@@ -1780,6 +1787,7 @@ impl ValueFlow {
                             }
                             term => Slot::Constant(
                                 universe.value(&constant(term).expect("constant guard term")),
+                                ObjectRole::Exact,
                             ),
                         };
                         (slot, guard.count)
@@ -1854,7 +1862,13 @@ impl ValueFlow {
                 let object = universe.value(object);
                 conditioned.union(&predicates.map_or_else(
                     || Domain::one(universe.size(), object),
-                    |predicates| universe.marker(object, &predicates),
+                    |predicates| {
+                        if pattern.object_role == ObjectRole::Marker {
+                            universe.marker(object, &predicates)
+                        } else {
+                            Domain::one(universe.size(), object)
+                        }
+                    },
                 ));
             }
         }
@@ -2275,8 +2289,8 @@ impl ValueFlow {
                 Slot::Variable(variable) => {
                     bindings[*variable].intersect(allowed);
                 }
-                Slot::Constant(value) if !allowed.contains(*value) => return None,
-                Slot::Constant(_) => {}
+                Slot::Constant(value, _) if !allowed.contains(*value) => return None,
+                Slot::Constant(_, _) => {}
             }
         }
         for &(variable, value) in seeds {
@@ -2343,7 +2357,7 @@ impl ValueFlow {
                 let mut possible: [Domain; 3] = std::array::from_fn(|_| Domain::empty(size));
                 // Fixed predicates already select their relation and semantic alias.
                 // Only a dynamic predicate benefits from the reverse value index.
-                let indexed_predicates = if matches!(atom[1], Slot::Constant(_)) {
+                let indexed_predicates = if matches!(atom[1], Slot::Constant(_, _)) {
                     None
                 } else {
                     state.predicates_for_singleton(&required, &self.conditioned, size)
@@ -2422,7 +2436,7 @@ impl ValueFlow {
         upper: &[Domain],
     ) -> Option<Vec<Domain>> {
         match head[slot] {
-            Slot::Constant(constant) => (constant == value).then(|| upper.to_vec()),
+            Slot::Constant(constant, _) => (constant == value).then(|| upper.to_vec()),
             Slot::Variable(variable) => {
                 self.bindings_seeded_from(rule, state, upper, &[(variable, value)])
             }
@@ -2438,7 +2452,7 @@ impl ValueFlow {
     fn has_symmetric_value_sides(&self, rule: &Rule, head: &[Slot; 3]) -> bool {
         let [
             Slot::Variable(subject),
-            Slot::Constant(_),
+            Slot::Constant(_, _),
             Slot::Variable(object),
         ] = head
         else {
@@ -2626,7 +2640,7 @@ impl ValueFlow {
         for atom in &rule.body {
             let required = self.universe.domains(atom, upper, true);
             for (slot, values) in atom.iter().zip(&required) {
-                if matches!(slot, Slot::Constant(_)) {
+                if matches!(slot, Slot::Constant(_, _)) {
                     for value in values.indices().filter_map(candidate) {
                         singletons[value] = true;
                     }
@@ -2640,7 +2654,7 @@ impl ValueFlow {
             .flatten()
             .chain(rule.cardinality_guards.iter().map(|(slot, _)| slot))
         {
-            if let Slot::Constant(value) = slot
+            if let Slot::Constant(value, _) = slot
                 && let Some(index) = candidate(*value)
             {
                 singletons[index] = true;
@@ -3250,13 +3264,14 @@ impl ValueFlow {
                 let allowed = match list_read.read_column {
                     0 => members.clone(),
                     1 => self.universe.predicates(members),
-                    2 => {
+                    2 if pattern.object_role == ObjectRole::Marker => {
                         let mut markers = Domain::empty(self.universe.size());
                         for value in members.indices() {
                             markers.union(&self.universe.marker(value, &domains[1]));
                         }
                         markers
                     }
+                    2 => members.clone(),
                     _ => unreachable!("validated statement read column"),
                 };
                 domains[list_read.read_column].intersect(&allowed);
@@ -3289,13 +3304,14 @@ impl ValueFlow {
                 let allowed = match selected_read.read_column {
                     0 => values.clone(),
                     1 => self.universe.predicates(values),
-                    2 => {
+                    2 if pattern.object_role == ObjectRole::Marker => {
                         let mut markers = Domain::empty(self.universe.size());
                         for value in values.indices() {
                             markers.union(&self.universe.marker(value, &domains[1]));
                         }
                         markers
                     }
+                    2 => values.clone(),
                     _ => unreachable!("validated statement read column"),
                 };
                 domains[selected_read.read_column].intersect(&allowed);
@@ -3348,7 +3364,7 @@ impl ValueFlow {
             }
             for atom in &rule.body {
                 match atom[1] {
-                    Slot::Constant(predicate) => {
+                    Slot::Constant(predicate, _) => {
                         let predicates = self
                             .universe
                             .predicates(&Domain::one(self.universe.size(), predicate));
@@ -3384,7 +3400,7 @@ impl ValueFlow {
                 let mut dependents = BTreeSet::<usize>::new();
                 for head in &self.rules[writer].heads {
                     match head[1] {
-                        Slot::Constant(predicate) => {
+                        Slot::Constant(predicate, _) => {
                             dependents.extend(readers.get(&predicate).into_iter().flatten());
                             dependents.extend(&dynamic_readers);
                         }
@@ -3604,7 +3620,13 @@ impl ValueFlow {
         );
         let object = pattern.object.as_ref().map_or_else(
             || value(&None),
-            |term| self.universe.marker(self.universe.value(term), &predicates),
+            |term| {
+                if pattern.object_role == ObjectRole::Marker {
+                    self.universe.marker(self.universe.value(term), &predicates)
+                } else {
+                    Domain::one(self.universe.size(), self.universe.value(term))
+                }
+            },
         );
         [
             value(&pattern.subject),

@@ -3266,8 +3266,8 @@ msgid "Bilinear Form"
 msgstr "Forme bilinéaire"
 
 msgctxt "https://blackcatinformatics.ca/math/BilinearForm|http://www.w3.org/2004/02/skos/core#definition"
-msgid "A bilinear form B on a vector space: a map B(·, ·) that is linear in each argument separately. A subclass of math:MathematicalObject. Its definiteness (math:definiteness) records whether it is positive-definite, positive-semidefinite, indefinite, or negative-definite; represented in a math:Basis it becomes a math:Matrix. An inner product is a positive-definite symmetric (or Hermitian) bilinear form; the symmetric case is math:SymmetricBilinearForm."
-msgstr "Une forme bilinéaire B sur un espace vectoriel : une application B(·, ·) linéaire séparément en chacun de ses arguments. Sous-classe de math:MathematicalObject. Sa classification selon le signe (math:definiteness) indique si elle est définie positive, semi-définie positive, indéfinie ou définie négative ; représentée dans une math:Basis, elle devient une math:Matrix. Un produit scalaire est une forme bilinéaire symétrique (ou hermitienne) définie positive ; le cas symétrique est math:SymmetricBilinearForm."
+msgid "A bilinear form B on a vector space: a map B(·, ·) that is linear in each argument separately. A subclass of math:MathematicalObject. Its definiteness (math:definiteness) records whether it is positive-definite, positive-semidefinite, indefinite, or negative-definite; represented in a math:Basis it becomes a math:Matrix. A real inner product is a positive-definite symmetric bilinear form; a complex inner product is a positive-definite Hermitian sesquilinear form. The symmetric bilinear case is math:SymmetricBilinearForm."
+msgstr "Une forme bilinéaire B sur un espace vectoriel : une application B(·, ·) linéaire séparément en chacun de ses arguments. Sous-classe de math:MathematicalObject. Sa classification selon le signe (math:definiteness) indique si elle est définie positive, semi-définie positive, indéfinie ou définie négative ; représentée dans une math:Basis, elle devient une math:Matrix. Un produit scalaire réel est une forme bilinéaire symétrique définie positive ; un produit scalaire complexe est une forme sesquilinéaire hermitienne définie positive. Le cas bilinéaire symétrique est math:SymmetricBilinearForm."
 
 msgctxt "https://blackcatinformatics.ca/math/BilinearForm|https://blackcatinformatics.ca/gmeow/useWhen"
 msgid "Use for a scalar-valued pairing that is linear in each of its two vector arguments, independently of the coordinates chosen to represent it."
@@ -17942,3 +17942,339 @@ msgstr "Ne pas inverser la relation, substituer un ensemble support ou un corps 
 msgctxt "https://blackcatinformatics.ca/math/subspaceOf|https://blackcatinformatics.ca/gmeow/howToUse"
 msgid "Link the supplied math:Subspace to its ambient math:VectorSpace and preserve the source justification of zero, addition and same-field scalar closure. For orthogonal-complement descriptions retain the separate operand, ambient and inner-product roles. Neither this edge nor a retrieved competency answer calculates a residual subspace."
 msgstr "Relier le math:Subspace fourni à son math:VectorSpace ambiant et conserver la justification de source pour zéro, l’addition et la stabilité scalaire sur le même corps. Pour décrire un complément orthogonal, conserver les rôles distincts d’opérande, d’espace ambiant et de produit scalaire. Ni cette arête ni une réponse de compétence extraite ne calcule un sous-espace résiduel."
+
+msgctxt "https://blackcatinformatics.ca/math/InnerProductSpace|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Inner Product Space"
+msgstr "Espace préhilbertien"
+
+msgctxt "https://blackcatinformatics.ca/math/InnerProductSpace|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A vector space equipped with an inner product — a math:VectorSpace carrying a math:innerProduct that assigns lengths and angles, so orthogonality and orthogonal complements are defined. A subclass of math:VectorSpace; the complex case carries a math:HermitianInnerProduct. It names the inner product it carries through math:innerProduct."
+msgstr "Un espace vectoriel muni d’un produit scalaire — un math:VectorSpace portant un math:innerProduct qui détermine longueurs et angles, de sorte que l’orthogonalité et les compléments orthogonaux sont définis. Sous-classe de math:VectorSpace ; le cas complexe porte un math:HermitianInnerProduct. Il nomme le produit scalaire dont il est muni par math:innerProduct."
+
+msgctxt "https://blackcatinformatics.ca/math/InnerProductSpace|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The real case uses a symmetric positive-definite bilinear form; the complex case uses a conjugate-symmetric positive-definite sesquilinear form. Zero dimension, finite and infinite dimension are allowed. Completeness is an additional Hilbert-space condition, not a consequence of this type."
+msgstr "Le cas réel utilise une forme bilinéaire symétrique définie positive ; le cas complexe utilise une forme sesquilinéaire à symétrie hermitienne définie positive. La dimension nulle et les dimensions finies ou infinies sont admises. La complétude est une condition supplémentaire d’espace de Hilbert, pas une conséquence de ce type."
+
+msgctxt "https://blackcatinformatics.ca/math/InnerProductSpace|http://www.w3.org/2004/02/skos/core#example"
+msgid "On real R², h(u,v) = u1 v1 + 2 u2 v2 is an inner product with h(v,v) = v1² + 2 v2², positive for every nonzero v. The coordinate formula presupposes the supplied ordered basis and real scalar interpretation."
+msgstr "Sur R² réel, h(u,v) = u1 v1 + 2 u2 v2 est un produit scalaire avec h(v,v) = v1² + 2 v2², strictement positif pour tout v non nul. La formule en coordonnées suppose la base ordonnée fournie et l’interprétation réelle des scalaires."
+
+msgctxt "https://blackcatinformatics.ca/math/InnerProductSpace|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when a vector space carries a justified inner product needed for lengths, norms or orthogonality. Retain the space, carrier set, scalar field, coordinate basis and form as separate roles."
+msgstr "Utiliser lorsqu’un espace vectoriel porte un produit scalaire justifié nécessaire aux longueurs, normes ou à l’orthogonalité. Conserver des rôles distincts pour l’espace, l’ensemble support, le corps des scalaires, la base de coordonnées et la forme."
+
+msgctxt "https://blackcatinformatics.ca/math/InnerProductSpace|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Do not infer an inner product from a vector-space, norm or symmetric-matrix label alone, or treat positive-semidefinite or indefinite forms as positive-definite. An angle involving a zero vector is undefined, and complex angle conventions must be stated."
+msgstr "Ne pas déduire un produit scalaire d’un simple libellé d’espace vectoriel, de norme ou de matrice symétrique, ni traiter une forme positive semi-définie ou indéfinie comme définie positive. Un angle impliquant un vecteur nul est indéfini, et les conventions d’angle complexe doivent être précisées."
+
+msgctxt "https://blackcatinformatics.ca/math/InnerProductSpace|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Describe the vector-space structure and link its supplied form with math:innerProduct. Keep the inherited carrier, operation and law evidence explicit. A class or form link proves neither the inner-product laws nor completeness and does not invoke the finite real rational numeric core."
+msgstr "Décrire la structure vectorielle et relier sa forme fournie par math:innerProduct. Garder explicites le support, les opérations et les éléments justificatifs des lois hérités. Une classe ou un lien vers une forme ne prouve ni les lois du produit scalaire ni la complétude et n’invoque pas le noyau numérique rationnel réel de dimension finie."
+
+msgctxt "https://blackcatinformatics.ca/math/HermitianInnerProduct|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Hermitian Inner Product"
+msgstr "Produit scalaire hermitien"
+
+msgctxt "https://blackcatinformatics.ca/math/HermitianInnerProduct|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A conjugate-symmetric, positive-definite sesquilinear form on a complex vector space — the inner product ⟨·,·⟩ of the complex case, linear in one argument and conjugate-linear in the other. A subclass of math:MathematicalObject carried by a math:InnerProductSpace through math:innerProduct; it is the structure that defines a math:OrthogonalComplement in the complex (S⊥) case (math:definedByInnerProduct)."
+msgstr "Une forme sesquilinéaire à symétrie hermitienne définie positive sur un espace vectoriel complexe — le produit scalaire ⟨·,·⟩ du cas complexe, linéaire en un argument et antilinéaire en l’autre. Sous-classe de math:MathematicalObject portée par un math:InnerProductSpace via math:innerProduct ; c’est la structure qui définit un math:OrthogonalComplement dans le cas complexe (S⊥), par math:definedByInnerProduct."
+
+msgctxt "https://blackcatinformatics.ca/math/HermitianInnerProduct|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Preserve which argument is conjugate-linear. Under the first-conjugate convention, h(au,bv) = conjugate(a) b h(u,v) and h(v,u) = conjugate(h(u,v)). Positive definiteness requires real h(v,v) > 0 for nonzero v, with h(0,0) = 0."
+msgstr "Préserver l’argument qui est antilinéaire. Selon la convention antilinéaire au premier argument, h(au,bv) = conjugate(a) b h(u,v) et h(v,u) = conjugate(h(u,v)). Le caractère défini positif exige h(v,v) réel et strictement positif pour v non nul, avec h(0,0) = 0."
+
+msgctxt "https://blackcatinformatics.ca/math/HermitianInnerProduct|http://www.w3.org/2004/02/skos/core#example"
+msgid "On C with h(z,w) = conjugate(z) w, h(i,1) = -i, h(1,i) = i and h(i,i) = 1. This form is conjugate-linear in the first argument and linear in the second; it is not complex bilinear."
+msgstr "Sur C avec h(z,w) = conjugate(z) w, h(i,1) = -i, h(1,i) = i et h(i,i) = 1. Cette forme est antilinéaire au premier argument et linéaire au second ; elle n’est pas bilinéaire sur les complexes."
+
+msgctxt "https://blackcatinformatics.ca/math/HermitianInnerProduct|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for a justified positive-definite Hermitian inner product on a complex vector space, retaining its actual scalar field, argument convention and coordinate representation independently."
+msgstr "Utiliser pour un produit scalaire hermitien défini positif justifié sur un espace vectoriel complexe, en conservant indépendamment son corps des scalaires effectif, sa convention d’arguments et sa représentation en coordonnées."
+
+msgctxt "https://blackcatinformatics.ca/math/HermitianInnerProduct|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Do not identify complex sesquilinearity with bilinearity or ordinary symmetry. A Hermitian matrix can be indefinite or positive semidefinite; its label or conjugate symmetry alone does not establish an inner product."
+msgstr "Ne pas identifier la sesquilinéarité complexe à la bilinéarité ou à la symétrie ordinaire. Une matrice hermitienne peut être indéfinie ou positive semi-définie ; son libellé ou sa seule symétrie hermitienne n’établit pas un produit scalaire."
+
+msgctxt "https://blackcatinformatics.ca/math/HermitianInnerProduct|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Name the form as its own math:HermitianInnerProduct resource. Use math:innerProduct from its space and math:definedByInnerProduct from a complement where applicable. Retain evidence for the laws; these declarations do not execute a complex Hermitian calculation or construct a complement."
+msgstr "Nommer la forme comme sa propre ressource math:HermitianInnerProduct. Utiliser math:innerProduct depuis son espace et math:definedByInnerProduct depuis un complément le cas échéant. Conserver les éléments justificatifs des lois ; ces déclarations n’exécutent pas de calcul hermitien complexe et ne construisent pas de complément."
+
+msgctxt "https://blackcatinformatics.ca/math/innerProduct|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "inner product"
+msgstr "produit scalaire"
+
+msgctxt "https://blackcatinformatics.ca/math/innerProduct|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Relates a math:InnerProductSpace to the inner product it carries — a math:HermitianInnerProduct in the complex case. Domain math:InnerProductSpace, range a math:HermitianInnerProduct or a real inner-product structure (stated in prose). The inner product is what makes orthogonality, and hence a math:OrthogonalComplement, well-defined."
+msgstr "Relie un math:InnerProductSpace au produit scalaire dont il est muni — un math:HermitianInnerProduct dans le cas complexe. Domaine math:InnerProductSpace, portée math:HermitianInnerProduct ou une structure de produit scalaire réel (indiqués en prose). Le produit scalaire rend bien définies l’orthogonalité et donc un math:OrthogonalComplement."
+
+msgctxt "https://blackcatinformatics.ca/math/innerProduct|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The direction is space to form. The source states domain and range in prose without a native global functionality or typed-target rule for this property. Several supplied form descriptions do not select a preferred form or establish their equality."
+msgstr "La direction va de l’espace vers la forme. La source énonce le domaine et la portée en prose, sans règle native de fonctionnalité globale ou de typage de cible pour cette propriété. Plusieurs descriptions de formes fournies ne sélectionnent pas de forme privilégiée et n’établissent pas leur égalité."
+
+msgctxt "https://blackcatinformatics.ca/math/innerProduct|http://www.w3.org/2004/02/skos/core#example"
+msgid "For real u = (1,1) and v = (1,-1), the standard dot product is zero, while h(u,v) = u1 v1 + 2 u2 v2 is -1. Linking the intended form matters: the same vectors are orthogonal under one inner product and not the other."
+msgstr "Pour les vecteurs réels u = (1,1) et v = (1,-1), le produit scalaire usuel est nul, tandis que h(u,v) = u1 v1 + 2 u2 v2 vaut -1. Relier la forme voulue est essentiel : les mêmes vecteurs sont orthogonaux pour un produit scalaire et pas pour l’autre."
+
+msgctxt "https://blackcatinformatics.ca/math/innerProduct|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to identify the actual inner product carried by a vector-space description, retaining the real or complex setting and the supplied form laws rather than inferring them from dimensions or labels."
+msgstr "Utiliser pour identifier le produit scalaire effectif porté par une description d’espace vectoriel, en conservant le cadre réel ou complexe et les lois de forme fournies plutôt que les déduire de dimensions ou de libellés."
+
+msgctxt "https://blackcatinformatics.ca/math/innerProduct|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Do not substitute a scalar pairing result, coordinate matrix, basis or residual for the form. The edge neither transforms coordinates nor proves symmetry, sesquilinearity or positive definiteness."
+msgstr "Ne pas substituer un résultat scalaire d’appariement, une matrice de coordonnées, une base ou un résidu à la forme. L’arête ne transforme pas les coordonnées et ne prouve ni symétrie, ni sesquilinéarité, ni caractère défini positif."
+
+msgctxt "https://blackcatinformatics.ca/math/innerProduct|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Point math:innerProduct from the space to its supplied form resource. Preserve the carrier, scalar field, basis and argument convention separately. Retain each justified description without a preferred-form rule; a link does not invoke a numerical evaluator."
+msgstr "Diriger math:innerProduct de l’espace vers sa ressource de forme fournie. Préserver séparément le support, le corps des scalaires, la base et la convention d’arguments. Conserver chaque description justifiée sans règle de forme privilégiée ; un lien n’invoque pas d’évaluateur numérique."
+
+msgctxt "https://blackcatinformatics.ca/math/definedByInnerProduct|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "defined by inner product"
+msgstr "défini par le produit scalaire"
+
+msgctxt "https://blackcatinformatics.ca/math/definedByInnerProduct|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Relates a math:OrthogonalComplement to the inner product that defines orthogonality for it — the math:HermitianInnerProduct in the complex case. Domain math:OrthogonalComplement, range a math:HermitianInnerProduct or real inner-product structure (stated in prose). An orthogonal complement without a named inner product is ambiguous and ill-formed (math:UnqualifiedOrthogonalComplement)."
+msgstr "Relie un math:OrthogonalComplement au produit scalaire qui définit son orthogonalité — le math:HermitianInnerProduct dans le cas complexe. Domaine math:OrthogonalComplement, portée math:HermitianInnerProduct ou une structure de produit scalaire réel (indiqués en prose). Un complément orthogonal sans produit scalaire nommé est ambigu et mal formé (math:UnqualifiedOrthogonalComplement)."
+
+msgctxt "https://blackcatinformatics.ca/math/definedByInnerProduct|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The existing OrthogonalComplement-local source profile has minimum one, maximum one and all-values restrictions with logic:Thing, plus required-path closure and the associated math:UnqualifiedOrthogonalComplement diagnostic. This generic resource contract does not prove that the target is a positive-definite Hermitian form."
+msgstr "Le profil source existant propre à OrthogonalComplement comporte des restrictions de minimum un, maximum un et de toutes les valeurs avec logic:Thing, ainsi qu’une fermeture de chemin requis et le diagnostic associé math:UnqualifiedOrthogonalComplement. Ce contrat générique de ressource ne prouve pas que la cible est une forme hermitienne définie positive."
+
+msgctxt "https://blackcatinformatics.ca/math/definedByInnerProduct|http://www.w3.org/2004/02/skos/core#example"
+msgid "The ordinary linear-algebra-and-learning example states ex:residualSubspace math:definedByInnerProduct ex:hermitianInnerProduct, separately from its operand and ambient links. This names a defining form without evaluating it or proving the complement equation."
+msgstr "L’exemple ordinaire linear-algebra-and-learning énonce ex:residualSubspace math:definedByInnerProduct ex:hermitianInnerProduct, séparément de ses liens d’opérande et d’espace ambiant. Cela nomme une forme définissante sans l’évaluer ni prouver l’équation du complément."
+
+msgctxt "https://blackcatinformatics.ca/math/definedByInnerProduct|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when an orthogonal-complement description needs to retain the actual form defining orthogonality within its declared ambient space. Keep that form consistent with the supplied mathematical construction and argument convention."
+msgstr "Utiliser lorsqu’une description de complément orthogonal doit conserver la forme effective qui définit l’orthogonalité dans son espace ambiant déclaré. Garder cette forme cohérente avec la construction mathématique fournie et la convention d’arguments."
+
+msgctxt "https://blackcatinformatics.ca/math/definedByInnerProduct|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Do not confuse the complement-to-form direction with math:innerProduct from the ambient space. The class-local restriction is not global property functionality, automatic Hermitian target typing or proof that every complement vector is orthogonal to the operand."
+msgstr "Ne pas confondre la direction du complément vers la forme avec math:innerProduct depuis l’espace ambiant. La restriction locale à la classe n’est ni une fonctionnalité globale de propriété, ni un typage hermitien automatique de cible, ni une preuve que tout vecteur du complément est orthogonal à l’opérande."
+
+msgctxt "https://blackcatinformatics.ca/math/definedByInnerProduct|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Link the complement to its supplied form and retain math:orthogonalComplementOf, math:ambientSpace and math:complementSemantics math:orthogonalComplement separately. Those roles need not have distinct referents. The competency query retrieves declarations; mathematical justification and computation remain separate evidence."
+msgstr "Relier le complément à sa forme fournie et conserver séparément math:orthogonalComplementOf, math:ambientSpace et math:complementSemantics math:orthogonalComplement. Les référents de ces rôles ne sont pas nécessairement distincts. La requête de compétence extrait des déclarations ; justification mathématique et calcul restent des éléments justificatifs séparés."
+
+msgctxt "https://blackcatinformatics.ca/math/ExplainedVariance|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Explained Variance"
+msgstr "Variance expliquée"
+
+msgctxt "https://blackcatinformatics.ca/math/ExplainedVariance|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The share of positive finite total variance accounted for by a math:PrincipalComponent: its nonnegative covariance eigenvalue divided by the covariance trace, a dimensionless ratio in [0, 1]. A zero total variance leaves the ratio undefined. A subclass of math:MathematicalObject named by a PCA through math:explainedVarianceRatio; the ratios across retained components quantify retained variance."
+msgstr "La part de la variance totale strictement positive et finie dont rend compte une math:PrincipalComponent : sa valeur propre de covariance non négative divisée par la trace de la covariance, un rapport sans dimension dans [0, 1]. Une variance totale nulle laisse le rapport indéfini. Sous-classe de math:MathematicalObject nommée par une PCA via math:explainedVarianceRatio ; les rapports des composantes retenues quantifient la variance conservée."
+
+msgctxt "https://blackcatinformatics.ca/math/ExplainedVariance|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This class records a normalized per-component share, distinct from an unnormalized variance amount. Finite covariance matrices use their trace as total variance. Infinite-dimensional use needs justified finite-trace spectral assumptions; no complete eigenbasis follows from this type."
+msgstr "Cette classe consigne une part normalisée par composante, distincte d’une quantité de variance non normalisée. Les matrices de covariance de dimension finie utilisent leur trace comme variance totale. L’usage en dimension infinie exige des hypothèses spectrales justifiées de trace finie ; ce type n’implique aucune base propre complète."
+
+msgctxt "https://blackcatinformatics.ca/math/ExplainedVariance|http://www.w3.org/2004/02/skos/core#example"
+msgid "For covariance diag(3,1,0), total variance is 4 and the associated component ratios are 3/4, 1/4 and 0. Retaining only the first component retains 3/4 of total variance. Zero covariance instead gives an undefined ratio, not a ratio of zero."
+msgstr "Pour la covariance diag(3,1,0), la variance totale vaut 4 et les rapports des composantes associées valent 3/4, 1/4 et 0. Ne retenir que la première composante conserve 3/4 de la variance totale. Une covariance nulle donne au contraire un rapport indéfini, pas un rapport nul."
+
+msgctxt "https://blackcatinformatics.ca/math/ExplainedVariance|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for a supplied component share justified by its nonnegative covariance eigenvalue and positive finite total variance. Preserve the actual covariance, scalar field, basis, preprocessing and normalization evidence together with the source component association."
+msgstr "Utiliser pour une part de composante fournie, justifiée par sa valeur propre de covariance non négative et une variance totale strictement positive et finie. Préserver la covariance effective, le corps des scalaires, la base, les éléments justificatifs du prétraitement et de la normalisation, ainsi que l’association de source à la composante."
+
+msgctxt "https://blackcatinformatics.ca/math/ExplainedVariance|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Do not replace missing data or zero-total undefined normalization with zero or one. A ratio sum of one can omit zero-variance components and does not prove a complete basis, semantic importance or predictive quality. Retained variance and cumulative shares are separate claims."
+msgstr "Ne pas remplacer des données manquantes ou une normalisation indéfinie due à un total nul par zéro ou un. Une somme de rapports égale à un peut omettre des composantes de variance nulle et ne prouve ni une base complète, ni une importance sémantique, ni une qualité prédictive. La variance conservée et les parts cumulées sont des affirmations distinctes."
+
+msgctxt "https://blackcatinformatics.ca/math/ExplainedVariance|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Name the result as math:ExplainedVariance and link it from the analysis with math:explainedVarianceRatio. Preserve its supplied magnitude, component association, order and multiplicity in the existing source representation. A descriptor alone supplies no numeric value or normalization computation."
+msgstr "Nommer le résultat math:ExplainedVariance et le relier depuis l’analyse par math:explainedVarianceRatio. Préserver sa grandeur fournie, son association à la composante, son ordre et sa multiplicité dans la représentation de source existante. Un descripteur seul ne fournit ni valeur numérique ni calcul de normalisation."
+
+msgctxt "https://blackcatinformatics.ca/math/explainedVarianceRatio|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "explained variance ratio"
+msgstr "rapport de variance expliquée"
+
+msgctxt "https://blackcatinformatics.ca/math/explainedVarianceRatio|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Relates a math:PCAAnalysis to a math:ExplainedVariance it produces — the share of total variance a component accounts for. Domain math:PCAAnalysis, range math:ExplainedVariance (stated in prose). A declared output of the analysis."
+msgstr "Relie une math:PCAAnalysis à une math:ExplainedVariance qu’elle produit — la part de variance totale dont rend compte une composante. Domaine math:PCAAnalysis, portée math:ExplainedVariance (indiqués en prose). Une sortie déclarée de l’analyse."
+
+msgctxt "https://blackcatinformatics.ca/math/explainedVarianceRatio|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The property signature is stated in prose. The existing PCA-local profile has a generic logic:Thing minimum and all-values restriction plus required-path closure, without a dedicated maximum, typed-target rule or numeric denominator/range proof."
+msgstr "La signature de la propriété est énoncée en prose. Le profil existant propre à PCA comporte un minimum générique et une restriction de toutes les valeurs avec logic:Thing, ainsi qu’une fermeture de chemin requis, sans maximum dédié, règle de typage de cible ou preuve numérique du dénominateur ou de l’intervalle."
+
+msgctxt "https://blackcatinformatics.ca/math/explainedVarianceRatio|http://www.w3.org/2004/02/skos/core#example"
+msgid "The exact-pca producer emits p:residualPCA math:explainedVarianceRatio p:pc1Variance and types that descriptor as math:ExplainedVariance. Its fixed Gram, dominant-axis and LDL results supply neither a numeric ratio nor a PCA eigenvalue family."
+msgstr "Le producteur exact-pca émet p:residualPCA math:explainedVarianceRatio p:pc1Variance et type ce descripteur math:ExplainedVariance. Ses résultats sur un Gram fixe, d’axe dominant et de LDL ne fournissent ni rapport numérique ni famille de valeurs propres de PCA."
+
+msgctxt "https://blackcatinformatics.ca/math/explainedVarianceRatio|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain a justified normalized component-result resource declared by a PCA analysis. Keep the source evidence identifying its actual component, covariance and normalization context independently of the other output relations."
+msgstr "Utiliser pour conserver une ressource de résultat normalisé de composante justifiée, déclarée par une analyse PCA. Garder les éléments de source identifiant sa composante effective, sa covariance et son contexte de normalisation indépendamment des autres relations de sortie."
+
+msgctxt "https://blackcatinformatics.ca/math/explainedVarianceRatio|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Do not substitute a literal, eigenvalue amount or singular value for this result resource. Unordered component and variance links do not establish pairings. The current competency query joins those roles independently; its rows are not numeric association certificates."
+msgstr "Ne pas substituer un littéral, une valeur propre non normalisée ou une valeur singulière à cette ressource de résultat. Des liens non ordonnés de composante et de variance n’établissent pas d’appariements. La requête de compétence actuelle joint ces rôles indépendamment ; ses lignes ne certifient pas les associations numériques."
+
+msgctxt "https://blackcatinformatics.ca/math/explainedVarianceRatio|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Point the property from the analysis to the supplied math:ExplainedVariance resource. Preserve its actual source value and component association without inferring order, repeated occurrences or a default ratio. The link alone performs no normalization or numeric validation."
+msgstr "Diriger la propriété de l’analyse vers la ressource math:ExplainedVariance fournie. Préserver sa valeur de source effective et son association à la composante sans déduire d’ordre, d’occurrences répétées ou de rapport par défaut. Le lien seul n’effectue ni normalisation ni validation numérique."
+
+msgctxt "https://blackcatinformatics.ca/math/PrincipalComponent|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Principal Component"
+msgstr "Composante principale"
+
+msgctxt "https://blackcatinformatics.ca/math/PrincipalComponent|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A principal component: one orthonormal direction of maximal remaining variance produced by a math:PCAAnalysis — an eigenvector of the math:CovarianceOperator. A subclass of math:MathematicalObject, named by an analysis through math:principalComponent, carrying a math:LoadingVector (its coefficients) and explaining a share of variance (math:ExplainedVariance). Its MEANING is never an intrinsic property: what a component encodes is a math:ResidualInterpretationClaim held from a vantage."
+msgstr "Une composante principale : une direction d’un ensemble orthonormé, de variance restante maximale, produite par une math:PCAAnalysis — un vecteur propre du math:CovarianceOperator. Sous-classe de math:MathematicalObject, nommée par une analyse via math:principalComponent, portant un math:LoadingVector (ses coefficients) et expliquant une part de variance (math:ExplainedVariance). Sa SIGNIFICATION n’est jamais une propriété intrinsèque : ce qu’une composante encode est une math:ResidualInterpretationClaim tenue depuis un point de vue."
+
+msgctxt "https://blackcatinformatics.ca/math/PrincipalComponent|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "GMEOW uses the direction convention: a normalized nonzero covariance eigenvector in a declared geometry. The PCA review also uses component for a linear combination of variables. Keep that score-variable usage distinct from this direction and its LoadingVector coefficient representation; these roles impose no class disjointness or resource inequality."
+msgstr "GMEOW adopte la convention de direction : un vecteur propre de covariance normalisé et non nul dans une géométrie déclarée. La revue sur la PCA emploie aussi composante pour une combinaison linéaire de variables. Distinguer cet usage de variable de scores de cette direction et de sa représentation en coefficients LoadingVector ; ces rôles n’imposent ni disjonction de classes ni inégalité de ressources."
+
+msgctxt "https://blackcatinformatics.ca/math/PrincipalComponent|http://www.w3.org/2004/02/skos/core#example"
+msgid "For real covariance diag(3,1,0) in the standard Euclidean basis, the coordinate directions have eigenvalues 3, 1 and 0. The third unit direction is still a valid component direction; its zero eigenvalue does not make the vector zero."
+msgstr "Pour la covariance réelle diag(3,1,0) dans la base euclidienne standard, les directions coordonnées ont pour valeurs propres 3, 1 et 0. La troisième direction unitaire reste une direction de composante valide ; sa valeur propre nulle ne rend pas le vecteur nul."
+
+msgctxt "https://blackcatinformatics.ca/math/PrincipalComponent|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for a justified PCA output direction, retaining the covariance, scalar field, inner product, preprocessing, normalization and selected component family in the source evidence."
+msgstr "Utiliser pour une direction de sortie PCA justifiée, en conservant dans les éléments de source la covariance, le corps des scalaires, le produit scalaire, le prétraitement, la normalisation et la famille de composantes sélectionnée."
+
+msgctxt "https://blackcatinformatics.ca/math/PrincipalComponent|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Do not infer semantic importance, computed scores or a unique preferred direction from this type. Repeated eigenvalues permit different eigenspace bases, sign or complex phase choices persist, and a truncated family need not span the input. Zero dimension supplies no nonzero component."
+msgstr "Ne pas déduire de ce type une importance sémantique, des scores calculés ou une direction préférée unique. Les valeurs propres répétées permettent différentes bases d’espace propre, les choix de signe ou de phase complexe subsistent, et une famille tronquée ne couvre pas nécessairement l’espace d’entrée. La dimension zéro ne fournit aucune composante non nulle."
+
+msgctxt "https://blackcatinformatics.ca/math/PrincipalComponent|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Link the analysis through math:principalComponent and retain ordered component and coefficient associations in the source representation. Keep any interpretation in a vantage-bearing math:ResidualInterpretationClaim; an output descriptor alone proves neither orthonormality nor an executed eigendecomposition."
+msgstr "Relier l’analyse via math:principalComponent et conserver les associations ordonnées entre composantes et coefficients dans la représentation de source. Garder toute interprétation dans une math:ResidualInterpretationClaim portée par un point de vue ; un descripteur de sortie seul ne prouve ni l’orthonormalité ni l’exécution d’une décomposition propre."
+
+msgctxt "https://blackcatinformatics.ca/math/principalComponent|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "principal component"
+msgstr "composante principale"
+
+msgctxt "https://blackcatinformatics.ca/math/principalComponent|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Relates a math:PCAAnalysis to one of the math:PrincipalComponent directions it produces. Domain math:PCAAnalysis, range math:PrincipalComponent (stated in prose). The declared component outputs; a PCA producing none is ill-formed (math:IncompletePCAAnalysis)."
+msgstr "Relie une math:PCAAnalysis à l’une des directions math:PrincipalComponent qu’elle produit. Domaine math:PCAAnalysis, portée math:PrincipalComponent (indiqués en prose). Les sorties de composantes déclarées ; une PCA n’en produisant aucune est mal formée (math:IncompletePCAAnalysis)."
+
+msgctxt "https://blackcatinformatics.ca/math/principalComponent|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This analysis-to-direction relation has a prose-only signature. The PCA-local generic Thing minimum, all-values restriction and required-path closure supply no dedicated maximum, automatic PrincipalComponent target typing, numerical normalization or variance ordering."
+msgstr "Cette relation de l’analyse vers la direction possède une signature énoncée uniquement en prose. Le minimum générique sur Thing, la restriction de toutes les valeurs et la fermeture de chemin requis propres à PCA ne fournissent ni maximum dédié, ni typage automatique des cibles PrincipalComponent, ni normalisation numérique, ni ordre de variance."
+
+msgctxt "https://blackcatinformatics.ca/math/principalComponent|http://www.w3.org/2004/02/skos/core#example"
+msgid "An analysis can declare two supplied directions through math:principalComponent. The two unordered links retain those output roles without saying which has greater variance or which loading and score resources belong to either direction."
+msgstr "Une analyse peut déclarer deux directions fournies via math:principalComponent. Ces deux liens non ordonnés conservent les rôles de sortie sans indiquer laquelle a la plus grande variance ni quelles ressources de coefficients et de scores appartiennent à chaque direction."
+
+msgctxt "https://blackcatinformatics.ca/math/principalComponent|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to record the principal directions that a supplied PCA reports, preserving their identities and the actual field, covariance and component-selection evidence."
+msgstr "Utiliser pour consigner les directions principales rapportées par une PCA fournie, en préservant leurs identités ainsi que les éléments effectifs concernant le corps, la covariance et la sélection des composantes."
+
+msgctxt "https://blackcatinformatics.ca/math/principalComponent|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Do not treat resource counts, IRI names or repeated RDF assertions as component rank, multiplicity, ordering or a complete basis. Missing directions are not zero directions; never invent a component merely to fill the required role."
+msgstr "Ne pas traiter les nombres de ressources, les noms d’IRI ou les assertions RDF répétées comme un rang de composante, une multiplicité, un ordre ou une base complète. Des directions manquantes ne sont pas des directions nulles ; ne jamais inventer une composante pour remplir le rôle requis."
+
+msgctxt "https://blackcatinformatics.ca/math/principalComponent|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Keep math:loadingVector, math:scoreVector and math:explainedVarianceRatio as separate analysis-output roles, with their actual associations retained in the source. The current competency query joins components and variance descriptors independently; its IRI ordering establishes no numeric pairing."
+msgstr "Garder math:loadingVector, math:scoreVector et math:explainedVarianceRatio comme des rôles de sortie d’analyse séparés, avec leurs associations effectives conservées dans la source. La requête de compétence actuelle joint indépendamment les composantes et les descripteurs de variance ; son ordre d’IRI n’établit aucun appariement numérique."
+
+msgctxt "https://blackcatinformatics.ca/math/LoadingVector|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Loading Vector"
+msgstr "Vecteur de coefficients"
+
+msgctxt "https://blackcatinformatics.ca/math/LoadingVector|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A loading vector: the coefficients of a math:PrincipalComponent in the original coordinates — how each input feature contributes to the component. A subclass of math:MathematicalObject named by a PCA through math:loadingVector. Loadings are the eigenvectors of the math:CovarianceOperator; their INTERPRETATION is a math:ResidualInterpretationClaim, not an intrinsic property."
+msgstr "Un vecteur de coefficients : les coefficients d’une math:PrincipalComponent dans les coordonnées d’origine — la contribution de chaque caractéristique d’entrée à la composante. Sous-classe de math:MathematicalObject nommée par une PCA via math:loadingVector. Ces vecteurs de coefficients sont les vecteurs propres du math:CovarianceOperator ; leur INTERPRÉTATION est une math:ResidualInterpretationClaim, pas une propriété intrinsèque."
+
+msgctxt "https://blackcatinformatics.ca/math/LoadingVector|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This is the coefficient-vector convention: the coordinates of a component direction in a supplied ordered feature basis for the prepared input. Retain the normalization convention; a coordinate representation is distinct from the geometric direction without requiring different RDF resources."
+msgstr "Il s’agit de la convention de vecteur de coefficients : les coordonnées d’une direction de composante dans une base ordonnée de caractéristiques fournie pour l’entrée préparée. Conserver la convention de normalisation ; une représentation en coordonnées est distincte de la direction géométrique sans exiger des ressources RDF différentes."
+
+msgctxt "https://blackcatinformatics.ca/math/LoadingVector|http://www.w3.org/2004/02/skos/core#example"
+msgid "In the standard real basis, a component with loading coefficients (1,0,0) selects the first prepared feature. The zero entries are valid coefficients of a nonzero unit vector; they are not missing data or zero-variance conclusions."
+msgstr "Dans la base réelle standard, une composante de coefficients (1,0,0) sélectionne la première caractéristique préparée. Les entrées nulles sont des coefficients valides d’un vecteur unitaire non nul ; ce ne sont ni des données manquantes ni des conclusions de variance nulle."
+
+msgctxt "https://blackcatinformatics.ca/math/LoadingVector|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for supplied component coefficients with feature identities, basis order, field, units, centering/scaling and normalization evidence. Coefficients in standardized features are not automatically coefficients in unprocessed physical units."
+msgstr "Utiliser pour des coefficients de composante fournis, avec les identités des caractéristiques, l’ordre de base, le corps, les unités et les éléments justificatifs du centrage, de la mise à l’échelle et de la normalisation. Des coefficients de caractéristiques standardisées ne sont pas automatiquement des coefficients dans les unités physiques non traitées."
+
+msgctxt "https://blackcatinformatics.ca/math/LoadingVector|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Do not silently substitute correlation-scaled loadings, biplot markers, factor-analysis loadings or importance scores. Correlation needs nonzero feature and component-score variances; a zero eigenvalue leaves the corresponding correlation undefined, not zero. A zero feature scale licenses no division."
+msgstr "Ne pas substituer silencieusement des coefficients redimensionnés en corrélations, des marqueurs de biplot, des coefficients d’analyse factorielle ou des scores d’importance. Une corrélation exige des variances non nulles de la caractéristique et des scores de composante ; une valeur propre nulle laisse la corrélation correspondante indéfinie, pas nulle. Une échelle de caractéristique nulle n’autorise aucune division."
+
+msgctxt "https://blackcatinformatics.ca/math/LoadingVector|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Name the supplied result from its analysis with math:loadingVector and retain component/feature associations and any coordinate transformation in the source representation. Changes of sign, phase or tied-eigenspace basis require consistent score coordinates; interpretation remains a vantage-bearing claim."
+msgstr "Nommer le résultat fourni depuis son analyse avec math:loadingVector et conserver les associations composante/caractéristique et toute transformation de coordonnées dans la représentation de source. Les changements de signe, de phase ou de base dans un espace propre de valeur répétée exigent des coordonnées de scores cohérentes ; l’interprétation reste une affirmation portée par un point de vue."
+
+msgctxt "https://blackcatinformatics.ca/math/loadingVector|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "loading vector"
+msgstr "vecteur de coefficients"
+
+msgctxt "https://blackcatinformatics.ca/math/loadingVector|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Relates a math:PCAAnalysis to a math:LoadingVector it produces — the coefficients of a component in the original features. Domain math:PCAAnalysis, range math:LoadingVector (stated in prose). A declared output of the analysis."
+msgstr "Relie une math:PCAAnalysis à un math:LoadingVector qu’elle produit — les coefficients d’une composante dans les caractéristiques d’origine. Domaine math:PCAAnalysis, portée math:LoadingVector (indiqués en prose). Une sortie déclarée de l’analyse."
+
+msgctxt "https://blackcatinformatics.ca/math/loadingVector|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The direction is analysis to coefficient resource. Its signature is stated in prose; the generic PCA-local Thing minimum, all-values restriction and closure establish no typed target, dedicated maximum, coordinate length or component-to-loading pairing."
+msgstr "La direction va de l’analyse à la ressource de coefficients. Sa signature est énoncée en prose ; le minimum générique sur Thing, la restriction de toutes les valeurs et la fermeture propres à PCA n’établissent ni cible typée, ni maximum dédié, ni longueur de coordonnées, ni appariement composante-vecteur de coefficients."
+
+msgctxt "https://blackcatinformatics.ca/math/loadingVector|http://www.w3.org/2004/02/skos/core#example"
+msgid "The exact Gram/PCA producer links its analysis to pc1Loadings and types that descriptor math:LoadingVector. It supplies no numeric loading coefficients, so the declaration is not evidence that a covariance eigenvector was computed."
+msgstr "Le producteur exact Gram/PCA relie son analyse à pc1Loadings et type ce descripteur math:LoadingVector. Il ne fournit aucun coefficient numérique ; cette déclaration ne prouve donc pas qu’un vecteur propre de covariance a été calculé."
+
+msgctxt "https://blackcatinformatics.ca/math/loadingVector|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain identified loading outputs of the stated analysis, alongside the source's component, feature-order, preprocessing and coefficient-normalization context."
+msgstr "Utiliser pour conserver les sorties de coefficients identifiées de l’analyse indiquée, avec le contexte de source des composantes, de l’ordre des caractéristiques, du prétraitement et de la normalisation des coefficients."
+
+msgctxt "https://blackcatinformatics.ca/math/loadingVector|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Do not infer one loading per component, an ordered association or a numeric payload from link counts or matching resource names. This relation does not compute coefficients or convert correlation-scaled loadings into the selected coefficient convention."
+msgstr "Ne pas déduire un vecteur de coefficients par composante, une association ordonnée ou une charge utile numérique du nombre de liens ou de noms de ressources concordants. Cette relation ne calcule pas les coefficients et ne convertit pas les coefficients redimensionnés en corrélations dans la convention de coefficients sélectionnée."
+
+msgctxt "https://blackcatinformatics.ca/math/loadingVector|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Describe a justified LoadingVector result and preserve its supplied coordinates and associations through the existing source representation. Retain the actual input transformation and its scale conditions; neither a link nor a policy label performs centering, scaling or spectral analysis."
+msgstr "Décrire un résultat LoadingVector justifié et préserver ses coordonnées et associations fournies dans la représentation de source existante. Conserver la transformation effective de l’entrée et ses conditions d’échelle ; ni un lien ni une étiquette de politique n’effectuent le centrage, la mise à l’échelle ou l’analyse spectrale."
+
+msgctxt "https://blackcatinformatics.ca/math/ScoreVector|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Score Vector"
+msgstr "Vecteur de scores"
+
+msgctxt "https://blackcatinformatics.ca/math/ScoreVector|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A score vector: the coordinates of a data point projected onto the principal components — the representation of a sample in the PCA basis. A subclass of math:MathematicalObject named by a PCA through math:scoreVector. Scores are inputs projected through the loadings."
+msgstr "Un vecteur de scores : les coordonnées d’un point de données projeté sur les composantes principales — la représentation d’une observation dans la base PCA. Sous-classe de math:MathematicalObject nommée par une PCA via math:scoreVector. Les scores sont les entrées projetées au moyen des coefficients."
+
+msgctxt "https://blackcatinformatics.ca/math/ScoreVector|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "GMEOW uses one sample's tuple across retained components. A component's scores across samples are a different view of the score matrix. Preserve sample identity and component order; neither this role nor the loading/direction roles imply global class disjointness."
+msgstr "GMEOW utilise le tuple d’une observation sur les composantes retenues. Les scores d’une composante sur les observations sont une vue différente de la matrice des scores. Préserver l’identité de l’observation et l’ordre des composantes ; ni ce rôle ni ceux de coefficients/direction n’impliquent une disjonction globale de classes."
+
+msgctxt "https://blackcatinformatics.ca/math/ScoreVector|http://www.w3.org/2004/02/skos/core#example"
+msgid "For prepared real sample (2,-1,4) and ordered loading columns (1,0,0) and (0,1,0), the sample score tuple is (2,-1). It retains two projection coordinates, not the omitted third coordinate or a complete reconstruction."
+msgstr "Pour l’observation réelle préparée (2,-1,4) et les colonnes ordonnées de coefficients (1,0,0) et (0,1,0), le tuple de scores de l’observation est (2,-1). Il conserve deux coordonnées de projection, pas la troisième coordonnée omise ni une reconstruction complète."
+
+msgctxt "https://blackcatinformatics.ca/math/ScoreVector|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for supplied coordinates of an identified sample in a declared retained PCA frame, keeping its input transformation, field, geometry, component order and projection evidence."
+msgstr "Utiliser pour les coordonnées fournies d’une observation identifiée dans un repère PCA retenu déclaré, en conservant la transformation de l’entrée, le corps, la géométrie, l’ordre des composantes et les éléments justificatifs de la projection."
+
+msgctxt "https://blackcatinformatics.ca/math/ScoreVector|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Do not read scores as nonnegative variance ratios, loading coefficients or semantic importance. Zero tuples and negative entries can be valid. A zero score tuple is not an invalid zero eigenvector, and a truncated tuple need not recover the input."
+msgstr "Ne pas lire les scores comme des rapports de variance non négatifs, des coefficients de composante ou une importance sémantique. Les tuples nuls et les entrées négatives peuvent être valides. Un tuple de scores nul n’est pas un vecteur propre nul invalide, et un tuple tronqué ne permet pas nécessairement de retrouver l’entrée."
+
+msgctxt "https://blackcatinformatics.ca/math/ScoreVector|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "In a finite real Euclidean convention with prepared observation rows X and ordered loading columns A, T = X A has sample tuples in rows and one component's scores in each column. Retain those associations in the source; complex or other geometries need their actual conjugation and inner-product conventions."
+msgstr "Dans une convention euclidienne réelle de dimension finie, avec les observations préparées en lignes de X et les coefficients ordonnés en colonnes de A, T = X A contient les tuples d’observation en lignes et les scores d’une composante dans chaque colonne. Conserver ces associations dans la source ; les géométries complexes ou autres exigent leurs conventions effectives de conjugaison et de produit scalaire."
+
+msgctxt "https://blackcatinformatics.ca/math/scoreVector|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "score vector"
+msgstr "vecteur de scores"
+
+msgctxt "https://blackcatinformatics.ca/math/scoreVector|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Relates a math:PCAAnalysis to a math:ScoreVector it produces — a data point's coordinates in the principal-component basis. Domain math:PCAAnalysis, range math:ScoreVector (stated in prose). A declared output of the analysis."
+msgstr "Relie une math:PCAAnalysis à un math:ScoreVector qu’elle produit — les coordonnées d’un point de données dans la base de composantes principales. Domaine math:PCAAnalysis, portée math:ScoreVector (indiqués en prose). Une sortie déclarée de l’analyse."
+
+msgctxt "https://blackcatinformatics.ca/math/scoreVector|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This links an analysis to a supplied sample-coordinate resource, not a numeric literal. Its prose-only signature and PCA-local generic Thing minimum, all-values restriction and closure establish no typed target, dedicated maximum, sample association or tuple-dimension proof."
+msgstr "Cette propriété relie une analyse à une ressource fournie de coordonnées d’observation, pas à un littéral numérique. Sa signature uniquement en prose et le minimum générique sur Thing, la restriction de toutes les valeurs et la fermeture propres à PCA n’établissent ni cible typée, ni maximum dédié, ni association à une observation, ni preuve de dimension du tuple."
+
+msgctxt "https://blackcatinformatics.ca/math/scoreVector|http://www.w3.org/2004/02/skos/core#example"
+msgid "The ordinary scene names sampleScores through math:scoreVector and types it math:ScoreVector. It gives no numeric tuple or sample-association structure; the resource name alone does not supply either."
+msgstr "La scène ordinaire nomme sampleScores via math:scoreVector et le type math:ScoreVector. Elle ne donne ni tuple numérique ni structure d’association à une observation ; le nom de la ressource ne fournit à lui seul ni l’un ni l’autre."
+
+msgctxt "https://blackcatinformatics.ca/math/scoreVector|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to catalogue supplied sample-score outputs of the declared analysis, retaining each sample identity, component-position correspondence and preprocessing/projection context in the source evidence."
+msgstr "Utiliser pour cataloguer les sorties de scores d’observation fournies de l’analyse déclarée, en conservant dans les éléments de source chaque identité d’observation, la correspondance des positions de composantes et le contexte de prétraitement/projection."
+
+msgctxt "https://blackcatinformatics.ca/math/scoreVector|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Do not replace absent scores with zero tuples or infer that all samples were projected. This output link and the producer's Gram/LDL calculations do not compute sample scores or establish feature/component pairing."
+msgstr "Ne pas remplacer des scores absents par des tuples nuls ni déduire que toutes les observations ont été projetées. Ce lien de sortie et les calculs Gram/LDL du producteur ne calculent pas les scores d’observation et n’établissent pas d’appariement caractéristique/composante."
+
+msgctxt "https://blackcatinformatics.ca/math/scoreVector|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Keep the result linked from its analysis and retain its actual sample, ordered components, coefficient representation and prepared input together in the source. The current competency query retrieves component and variance roles without retrieving or validating score coordinates."
+msgstr "Garder le résultat relié depuis son analyse et conserver ensemble dans la source son observation effective, les composantes ordonnées, la représentation en coefficients et l’entrée préparée. La requête de compétence actuelle extrait les rôles de composante et de variance sans extraire ni valider les coordonnées de scores."

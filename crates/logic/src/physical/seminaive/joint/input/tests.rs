@@ -41,10 +41,7 @@ fn dependency_cycle(input: &JointInput) -> crate::physical::dependency::Dependen
                 crate::physical::effects::WorldStatementObservation {
                     world: world.clone(),
                     pattern: input.flow.ranged_pattern(
-                        crate::physical::effects::StatementPattern::relation(
-                            read.predicate.as_deref(),
-                            read.marker.as_deref(),
-                        ),
+                        crate::physical::effects::StatementPattern::native(&read.pattern),
                     ),
                 }
             })
