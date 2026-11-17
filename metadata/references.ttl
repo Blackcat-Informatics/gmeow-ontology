@@ -14388,3 +14388,115 @@ repo:README.md a gmeow:CreativeWork ;
     gmeow:citingEntity <https://github.com/Blackcat-Informatics/gmeow-ontology/issues/1656#issuecomment-6956725730> ;
     gmeow:citedEntity <https://www.wikidata.org/wiki/Q2510752> ;
     gmeow:viaSelector <https://blackcatinformatics.ca/gmeow/references/selector/wikidata-explained-variation-record> .
+
+<https://www.wikidata.org/wiki/Q3555174> a gmeow:CreativeWork ;
+    rdfs:label "Wikidata eigenvector concept"@en ;
+    skos:definition "The Wikidata eigenvector record used as a generic conceptual target for a covariance principal direction, without its PCA-output specialization."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/citations> ;
+    gmeow:sourceLocation "https://www.wikidata.org/wiki/Q3555174",
+        "https://www.wikidata.org/w/index.php?title=Q3555174&oldid=2559971917" .
+
+<https://blackcatinformatics.ca/gmeow/references/selector/pca-review-directions-loadings-scores> a gmeow:Selector ;
+    rdfs:label "PCA directions, loading coefficients and score conventions"@en ;
+    skos:definition "Section 2(a) identifies normalized covariance eigenvectors, loading coefficients and score linear combinations; section 2(c)(i) distinguishes standardization and correlation-scaled loading normalization."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/citations> ;
+    gmeow:selectorLocator "Section 2(a); equation 2.1 and adjacent direction/loading/score terminology; X*A=UL discussion following equation 2.3; section 2(c)(i); equations 2.7 and 2.8 and their normalization discussion" ;
+    gmeow:sourceLocation "https://doi.org/10.1098/rsta.2015.0202",
+        "https://pmc.ncbi.nlm.nih.gov/articles/PMC4792409/" .
+
+<https://blackcatinformatics.ca/gmeow/references/selector/wikidata-eigenvector-record> a gmeow:Selector ;
+    rdfs:label "Wikidata generic eigenvector identity"@en ;
+    skos:definition "The Q3555174 record at revision 2559971917 identifies the generic eigenvector concept through its English, French and Chinese labels and mathematical reference identifier."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/citations> ;
+    gmeow:selectorLocator "Q3555174; revision 2559971917; English eigenvector, French vecteur propre and Chinese 特征向量 labels; MathWorld Eigenvector identifier" ;
+    gmeow:sourceLocation "https://www.wikidata.org/w/index.php?title=Q3555174&oldid=2559971917" .
+
+<https://blackcatinformatics.ca/gmeow/references/citation/math-pca-outputs-module-conventions> a gmeow:CitationAct ;
+    rdfs:label "PCA-output guidance cites direction and coordinate conventions"@en ;
+    skos:definition "The canonical guidance distinguishes principal directions, coefficient loadings and sample-coordinate tuples using the primary PCA terminology and normalization discussion."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/citations> ;
+    gmeow:citationIntent gmeow:intentCitesAsDataSource ;
+    gmeow:citingEntity <https://blackcatinformatics.ca/gmeow/repo/slices/grounding/math/module.ttl> ;
+    gmeow:citedEntity <https://doi.org/10.1098/rsta.2015.0202> ;
+    gmeow:viaSelector <https://blackcatinformatics.ca/gmeow/references/selector/pca-review-directions-loadings-scores> .
+
+<https://blackcatinformatics.ca/gmeow/references/citation/math-pca-outputs-guide-conventions> a gmeow:CitationAct ;
+    rdfs:label "Math guide cites PCA-output conventions"@en ;
+    skos:definition "The Math guide cites the primary direction/loading/score terminology and correlation normalization while distinguishing sample rows from component-score columns."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/citations> ;
+    gmeow:citationIntent gmeow:intentCitesAsDataSource ;
+    gmeow:citingEntity <https://blackcatinformatics.ca/gmeow/repo/slices/grounding/math/docs.md> ;
+    gmeow:citedEntity <https://doi.org/10.1098/rsta.2015.0202> ;
+    gmeow:viaSelector <https://blackcatinformatics.ca/gmeow/references/selector/pca-review-directions-loadings-scores> .
+
+<https://blackcatinformatics.ca/gmeow/references/citation/math-pca-outputs-charter-conventions> a gmeow:CitationAct ;
+    rdfs:label "Linear-algebra charter cites PCA-output mathematics"@en ;
+    skos:definition "The charter cites the reviewed eigenvector, coefficient, score and correlation conventions while preserving explicit geometry, preprocessing and association evidence."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/citations> ;
+    gmeow:citationIntent gmeow:intentCitesAsDataSource ;
+    gmeow:citingEntity <https://blackcatinformatics.ca/gmeow/repo/slices/grounding/math/design/MATHEMATICS-LINEAR-ALGEBRA-AND-LEARNING.md> ;
+    gmeow:citedEntity <https://doi.org/10.1098/rsta.2015.0202> ;
+    gmeow:viaSelector <https://blackcatinformatics.ca/gmeow/references/selector/pca-review-directions-loadings-scores> .
+
+<https://blackcatinformatics.ca/gmeow/references/citation/math-pca-outputs-grounding-record> a gmeow:CitationAct ;
+    rdfs:label "Principal-direction grounding cites the eigenvector record"@en ;
+    skos:definition "The native related-match cell cites the verified generic eigenvector record without claiming identity with its specialized PCA output role."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/citations> ;
+    gmeow:citationIntent gmeow:intentBridgedByReference ;
+    gmeow:citingEntity <https://blackcatinformatics.ca/gmeow/repo/slices/grounding/math/mappings/equivalences.ttl> ;
+    gmeow:citedEntity <https://www.wikidata.org/wiki/Q3555174> ;
+    gmeow:viaSelector <https://blackcatinformatics.ca/gmeow/references/selector/wikidata-eigenvector-record> .
+
+<https://blackcatinformatics.ca/gmeow/references/citation/math-pca-outputs-guide-grounding> a gmeow:CitationAct ;
+    rdfs:label "Math guide cites generic eigenvector grounding"@en ;
+    skos:definition "The Math guide cites the external eigenvector concept while preserving the validation-only association and the local PCA/covariance specialization."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/citations> ;
+    gmeow:citationIntent gmeow:intentBridgedByReference ;
+    gmeow:citingEntity <https://blackcatinformatics.ca/gmeow/repo/slices/grounding/math/docs.md> ;
+    gmeow:citedEntity <https://www.wikidata.org/wiki/Q3555174> ;
+    gmeow:viaSelector <https://blackcatinformatics.ca/gmeow/references/selector/wikidata-eigenvector-record> .
+
+<https://blackcatinformatics.ca/gmeow/references/citation/math-pca-outputs-charter-grounding> a gmeow:CitationAct ;
+    rdfs:label "Linear-algebra charter cites generic eigenvector grounding"@en ;
+    skos:definition "The charter cites the verified eigenvector record without transferring the selected analysis role or asserting coordinate conversion or numerical execution."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/citations> ;
+    gmeow:citationIntent gmeow:intentBridgedByReference ;
+    gmeow:citingEntity <https://blackcatinformatics.ca/gmeow/repo/slices/grounding/math/design/MATHEMATICS-LINEAR-ALGEBRA-AND-LEARNING.md> ;
+    gmeow:citedEntity <https://www.wikidata.org/wiki/Q3555174> ;
+    gmeow:viaSelector <https://blackcatinformatics.ca/gmeow/references/selector/wikidata-eigenvector-record> .
+
+<https://blackcatinformatics.ca/gmeow/references/citation/math-pca-outputs-source-conventions> a gmeow:CitationAct ;
+    rdfs:label "PCA-output source cites mathematical conventions"@en ;
+    skos:definition "The source document cites the primary PCA review and its direction, loading, score and normalization locators."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/citations> ;
+    gmeow:citationIntent gmeow:intentCitesAsDataSource ;
+    gmeow:citingEntity <https://github.com/Blackcat-Informatics/gmeow-ontology/issues/2915> ;
+    gmeow:citedEntity <https://doi.org/10.1098/rsta.2015.0202> ;
+    gmeow:viaSelector <https://blackcatinformatics.ca/gmeow/references/selector/pca-review-directions-loadings-scores> .
+
+<https://blackcatinformatics.ca/gmeow/references/citation/math-pca-outputs-source-grounding> a gmeow:CitationAct ;
+    rdfs:label "PCA-output source cites the eigenvector concept"@en ;
+    skos:definition "The source document cites the verified Wikidata eigenvector record as the conservative principal-direction grounding target."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/citations> ;
+    gmeow:citationIntent gmeow:intentBridgedByReference ;
+    gmeow:citingEntity <https://github.com/Blackcat-Informatics/gmeow-ontology/issues/2915> ;
+    gmeow:citedEntity <https://www.wikidata.org/wiki/Q3555174> ;
+    gmeow:viaSelector <https://blackcatinformatics.ca/gmeow/references/selector/wikidata-eigenvector-record> .
+
+<https://blackcatinformatics.ca/gmeow/references/citation/math-pca-outputs-comment-conventions> a gmeow:CitationAct ;
+    rdfs:label "GitHub comment issuecomment-6958491880 by paudley"@en ;
+    skos:definition "The comment cites the primary PCA review with the direction/loading/score and normalization selectors."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/citations> ;
+    gmeow:citationIntent gmeow:intentCitesAsDataSource ;
+    gmeow:citingEntity <https://github.com/Blackcat-Informatics/gmeow-ontology/issues/1656#issuecomment-6958491880> ;
+    gmeow:citedEntity <https://doi.org/10.1098/rsta.2015.0202> ;
+    gmeow:viaSelector <https://blackcatinformatics.ca/gmeow/references/selector/pca-review-directions-loadings-scores> .
+
+<https://blackcatinformatics.ca/gmeow/references/citation/math-pca-outputs-comment-grounding> a gmeow:CitationAct ;
+    rdfs:label "GitHub comment issuecomment-6958491880 by paudley"@en ;
+    skos:definition "The comment cites Wikidata Q3555174 and its verified revision for the generic eigenvector association."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/citations> ;
+    gmeow:citationIntent gmeow:intentBridgedByReference ;
+    gmeow:citingEntity <https://github.com/Blackcat-Informatics/gmeow-ontology/issues/1656#issuecomment-6958491880> ;
+    gmeow:citedEntity <https://www.wikidata.org/wiki/Q3555174> ;
+    gmeow:viaSelector <https://blackcatinformatics.ca/gmeow/references/selector/wikidata-eigenvector-record> .

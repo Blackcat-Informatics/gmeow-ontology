@@ -402,6 +402,45 @@ The conservative `skos:closeMatch` to
 `logic:ValidationOnly` preservation; conceptual overlap supplies no executable
 algorithm or analytic equivalence.
 
+`math:PrincipalComponent` names a direction, `math:LoadingVector` its feature
+coefficients, and `math:ScoreVector` one sample's coordinates across retained
+components. The [PCA-output contract](./design/MATHEMATICS-LINEAR-ALGEBRA-AND-LEARNING.md#directions-loading-coefficients-and-sample-scores)
+distinguishes GMEOW's direction convention from the score-variable usage in
+[Jolliffe and Cadima's review](https://doi.org/10.1098/rsta.2015.0202), section
+2(a), equation 2.1 and the adjacent terminology and matrix-product discussion.
+With prepared real Euclidean observation rows `X` and ordered loading columns
+`A`, `T = X A` has sample score tuples in rows and one component's scores
+across samples in each column. Preserve both orientations and their actual
+sample, feature and component associations.
+
+Keep preprocessing, basis, field, inner product and normalization explicit.
+Coefficient loadings are not automatically correlation-scaled loadings, biplot
+markers, factor-analysis loadings or importance values. The review's section
+2(c)(i), equations 2.7 and 2.8, describes standardization and the correlation
+normalization. Correlation needs nonzero feature and component-score variances;
+a zero eigenvalue leaves the corresponding score correlation undefined.
+Zero coefficient entries, zero score tuples and negative real scores remain
+valid. Zero feature scale licenses no implicit division or fabricated result.
+Repeated eigenvalues, sign/phase choices and truncated families establish no
+preferred basis, complete input recovery or intrinsic semantic importance.
+
+`math:principalComponent`, `math:loadingVector` and `math:scoreVector` link
+the analysis to their separate supplied output resources. Their prose-only
+signatures and PCA-local generic `logic:Thing` minimum/all-values/closure
+profiles supply no dedicated maxima, target-type proofs, coordinate dimensions,
+numeric calculations or output pairings. The ordinary example and exact
+Gram/PCA producer publish descriptors without computed PCA direction, loading
+or score payloads. The current competency query independently joins component
+and variance roles; it neither retrieves loadings/scores nor ranks variance.
+
+The native `math:PrincipalComponent skos:relatedMatch` to
+[Wikidata Q3555174](https://www.wikidata.org/wiki/Q3555174), eigenvector,
+carries `logic:AffineCorrespondence`, `logic:InstitutionMorphism` and
+`logic:ValidationOnly` preservation. The generic target omits the local
+PCA/covariance specialization. This conceptual relation supplies neither
+identity nor a coordinate conversion or execution certificate. It supplies no
+loading/score correspondence; PCAAnalysis has its separate method grounding.
+
 `math:ExplainedVariance` names a normalized per-component share. For a supplied
 positive-semidefinite covariance with positive finite total variance `t`, the
 ratio is its component eigenvalue divided by `t`, the covariance trace. A zero
@@ -447,8 +486,7 @@ providing a conversion or certifying numerical execution.
   property-form is unauthorable).
 - **Learning, embeddings, and latent spaces** — `math:LearnedModel`, `math:LossFunction`,
   `math:OptimizationProblem`, `math:Embedding`, `math:KnowledgeGraphEmbedding`, `math:LatentSpace`, and
-  `math:EmbeddingDimension`. An embedding names its source, target space, function, and model; latent-space
-  and dimension semantics are GMEOW-original.
+  `math:EmbeddingDimension`. An embedding names its source, target space, function, and model.
 - **Reduction, information, and vector-symbolic structure** — `math:DimensionalReduction` with
   UMAP/Isomap, spectral initialization, ordered reduction paths, reconstruction maps, and target
   dimensions; entropy, cross-entropy, mutual information, KL divergence, Fisher information, and
@@ -462,8 +500,7 @@ providing a conversion or certifying numerical execution.
   (`logic:MetaLevelFormula`), self-reference without paradox across the grounding layers — the dogfooding apex.
 
 The distinguished hard rule is **residual meaning as an observation, not a property**: semantic meaning read
-off geometry is inference from a standpoint (Principle 9). Every rule is SHACL Core (or the inherited
-argument-slot uniqueness gate the tensor graph rides), so `native_contract_hash` is untouched.
+off geometry is inference from a standpoint (Principle 9).
 
 | Rule | Shape | Failure class |
 |---|---|---|

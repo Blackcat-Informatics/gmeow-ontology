@@ -6294,6 +6294,11 @@ math:PrincipalComponent
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "Principal Component"@x-gmeow-english ;
     skos:definition "A principal component: one orthonormal direction of maximal remaining variance produced by a math:PCAAnalysis — an eigenvector of the math:CovarianceOperator. A subclass of math:MathematicalObject, named by an analysis through math:principalComponent, carrying a math:LoadingVector (its coefficients) and explaining a share of variance (math:ExplainedVariance). Its MEANING is never an intrinsic property: what a component encodes is a math:ResidualInterpretationClaim held from a vantage."@x-gmeow-english ;
+    skos:scopeNote "GMEOW uses the direction convention: a normalized nonzero covariance eigenvector in a declared geometry. The PCA review also uses component for a linear combination of variables. Keep that score-variable usage distinct from this direction and its LoadingVector coefficient representation; these roles impose no class disjointness or resource inequality."@x-gmeow-english ;
+    skos:example "For real covariance diag(3,1,0) in the standard Euclidean basis, the coordinate directions have eigenvalues 3, 1 and 0. The third unit direction is still a valid component direction; its zero eigenvalue does not make the vector zero."@x-gmeow-english ;
+    gmeow:useWhen "Use for a justified PCA output direction, retaining the covariance, scalar field, inner product, preprocessing, normalization and selected component family in the source evidence."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not infer semantic importance, computed scores or a unique preferred direction from this type. Repeated eigenvalues permit different eigenspace bases, sign or complex phase choices persist, and a truncated family need not span the input. Zero dimension supplies no nonzero component."@x-gmeow-english ;
+    gmeow:howToUse "Link the analysis through math:principalComponent and retain ordered component and coefficient associations in the source representation. Keep any interpretation in a vantage-bearing math:ResidualInterpretationClaim; an output descriptor alone proves neither orthonormality nor an executed eigendecomposition."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 math:innerProduct
@@ -6742,6 +6747,11 @@ math:LoadingVector
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "Loading Vector"@x-gmeow-english ;
     skos:definition "A loading vector: the coefficients of a math:PrincipalComponent in the original coordinates — how each input feature contributes to the component. A subclass of math:MathematicalObject named by a PCA through math:loadingVector. Loadings are the eigenvectors of the math:CovarianceOperator; their INTERPRETATION is a math:ResidualInterpretationClaim, not an intrinsic property."@x-gmeow-english ;
+    skos:scopeNote "This is the coefficient-vector convention: the coordinates of a component direction in a supplied ordered feature basis for the prepared input. Retain the normalization convention; a coordinate representation is distinct from the geometric direction without requiring different RDF resources."@x-gmeow-english ;
+    skos:example "In the standard real basis, a component with loading coefficients (1,0,0) selects the first prepared feature. The zero entries are valid coefficients of a nonzero unit vector; they are not missing data or zero-variance conclusions."@x-gmeow-english ;
+    gmeow:useWhen "Use for supplied component coefficients with feature identities, basis order, field, units, centering/scaling and normalization evidence. Coefficients in standardized features are not automatically coefficients in unprocessed physical units."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not silently substitute correlation-scaled loadings, biplot markers, factor-analysis loadings or importance scores. Correlation needs nonzero feature and component-score variances; a zero eigenvalue leaves the corresponding correlation undefined, not zero. A zero feature scale licenses no division."@x-gmeow-english ;
+    gmeow:howToUse "Name the supplied result from its analysis with math:loadingVector and retain component/feature associations and any coordinate transformation in the source representation. Changes of sign, phase or tied-eigenspace basis require consistent score coordinates; interpretation remains a vantage-bearing claim."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 math:ScoreVector
@@ -6750,6 +6760,11 @@ math:ScoreVector
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "Score Vector"@x-gmeow-english ;
     skos:definition "A score vector: the coordinates of a data point projected onto the principal components — the representation of a sample in the PCA basis. A subclass of math:MathematicalObject named by a PCA through math:scoreVector. Scores are inputs projected through the loadings."@x-gmeow-english ;
+    skos:scopeNote "GMEOW uses one sample's tuple across retained components. A component's scores across samples are a different view of the score matrix. Preserve sample identity and component order; neither this role nor the loading/direction roles imply global class disjointness."@x-gmeow-english ;
+    skos:example "For prepared real sample (2,-1,4) and ordered loading columns (1,0,0) and (0,1,0), the sample score tuple is (2,-1). It retains two projection coordinates, not the omitted third coordinate or a complete reconstruction."@x-gmeow-english ;
+    gmeow:useWhen "Use for supplied coordinates of an identified sample in a declared retained PCA frame, keeping its input transformation, field, geometry, component order and projection evidence."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not read scores as nonnegative variance ratios, loading coefficients or semantic importance. Zero tuples and negative entries can be valid. A zero score tuple is not an invalid zero eigenvector, and a truncated tuple need not recover the input."@x-gmeow-english ;
+    gmeow:howToUse "In a finite real Euclidean convention with prepared observation rows X and ordered loading columns A, T = X A has sample tuples in rows and one component's scores in each column. Retain those associations in the source; complex or other geometries need their actual conjugation and inner-product conventions."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 math:ExplainedVariance
@@ -6864,6 +6879,11 @@ math:principalComponent
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "principal component"@x-gmeow-english ;
     skos:definition "Relates a math:PCAAnalysis to one of the math:PrincipalComponent directions it produces. Domain math:PCAAnalysis, range math:PrincipalComponent (stated in prose). The declared component outputs; a PCA producing none is ill-formed (math:IncompletePCAAnalysis)."@x-gmeow-english ;
+    skos:scopeNote "This analysis-to-direction relation has a prose-only signature. The PCA-local generic Thing minimum, all-values restriction and required-path closure supply no dedicated maximum, automatic PrincipalComponent target typing, numerical normalization or variance ordering."@x-gmeow-english ;
+    skos:example "An analysis can declare two supplied directions through math:principalComponent. The two unordered links retain those output roles without saying which has greater variance or which loading and score resources belong to either direction."@x-gmeow-english ;
+    gmeow:useWhen "Use to record the principal directions that a supplied PCA reports, preserving their identities and the actual field, covariance and component-selection evidence."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not treat resource counts, IRI names or repeated RDF assertions as component rank, multiplicity, ordering or a complete basis. Missing directions are not zero directions; never invent a component merely to fill the required role."@x-gmeow-english ;
+    gmeow:howToUse "Keep math:loadingVector, math:scoreVector and math:explainedVarianceRatio as separate analysis-output roles, with their actual associations retained in the source. The current competency query joins components and variance descriptors independently; its IRI ordering establishes no numeric pairing."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 math:loadingVector
@@ -6871,6 +6891,11 @@ math:loadingVector
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "loading vector"@x-gmeow-english ;
     skos:definition "Relates a math:PCAAnalysis to a math:LoadingVector it produces — the coefficients of a component in the original features. Domain math:PCAAnalysis, range math:LoadingVector (stated in prose). A declared output of the analysis."@x-gmeow-english ;
+    skos:scopeNote "The direction is analysis to coefficient resource. Its signature is stated in prose; the generic PCA-local Thing minimum, all-values restriction and closure establish no typed target, dedicated maximum, coordinate length or component-to-loading pairing."@x-gmeow-english ;
+    skos:example "The exact Gram/PCA producer links its analysis to pc1Loadings and types that descriptor math:LoadingVector. It supplies no numeric loading coefficients, so the declaration is not evidence that a covariance eigenvector was computed."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain identified loading outputs of the stated analysis, alongside the source's component, feature-order, preprocessing and coefficient-normalization context."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not infer one loading per component, an ordered association or a numeric payload from link counts or matching resource names. This relation does not compute coefficients or convert correlation-scaled loadings into the selected coefficient convention."@x-gmeow-english ;
+    gmeow:howToUse "Describe a justified LoadingVector result and preserve its supplied coordinates and associations through the existing source representation. Retain the actual input transformation and its scale conditions; neither a link nor a policy label performs centering, scaling or spectral analysis."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 math:scoreVector
@@ -6878,6 +6903,11 @@ math:scoreVector
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "score vector"@x-gmeow-english ;
     skos:definition "Relates a math:PCAAnalysis to a math:ScoreVector it produces — a data point's coordinates in the principal-component basis. Domain math:PCAAnalysis, range math:ScoreVector (stated in prose). A declared output of the analysis."@x-gmeow-english ;
+    skos:scopeNote "This links an analysis to a supplied sample-coordinate resource, not a numeric literal. Its prose-only signature and PCA-local generic Thing minimum, all-values restriction and closure establish no typed target, dedicated maximum, sample association or tuple-dimension proof."@x-gmeow-english ;
+    skos:example "The ordinary scene names sampleScores through math:scoreVector and types it math:ScoreVector. It gives no numeric tuple or sample-association structure; the resource name alone does not supply either."@x-gmeow-english ;
+    gmeow:useWhen "Use to catalogue supplied sample-score outputs of the declared analysis, retaining each sample identity, component-position correspondence and preprocessing/projection context in the source evidence."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not replace absent scores with zero tuples or infer that all samples were projected. This output link and the producer's Gram/LDL calculations do not compute sample scores or establish feature/component pairing."@x-gmeow-english ;
+    gmeow:howToUse "Keep the result linked from its analysis and retain its actual sample, ordered components, coefficient representation and prepared input together in the source. The current competency query retrieves component and variance roles without retrieving or validating score coordinates."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 math:explainedVarianceRatio
