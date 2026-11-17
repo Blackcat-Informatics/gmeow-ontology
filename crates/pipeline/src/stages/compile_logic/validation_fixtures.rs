@@ -24,7 +24,7 @@ use crate::stages::parse_sources::SourceCatalog;
 mod migration;
 mod selection;
 
-const CHANNEL: &str = "pipeline/module-validation-fixtures.json";
+pub(crate) const CHANNEL: &str = "pipeline/module-validation-fixtures.json";
 const SH_HEADER: &str = "@prefix sh: <http://www.w3.org/ns/shacl#> .\n";
 
 #[derive(Debug)]

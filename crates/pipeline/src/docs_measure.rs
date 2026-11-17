@@ -545,12 +545,13 @@ fn yaml_ld_tree(carrier: &RdfDataset) -> Result<BTreeMap<String, Vec<u8>>, Diag>
 /// committed scope, but opens an uncached context (no per-stage cache I/O) and
 /// performs no post-run disk reconciliation, so it never writes to the tree.
 fn run_pipeline_products(root: &Path, jobs: usize) -> Result<BTreeMap<String, StageProduct>, Diag> {
+    let registry = crate::registry::default_registry();
     let spec = crate::run::spec_for_scope(
         crate::run::full_spec(),
         crate::run::RunOutputScope::Committed,
+        &registry,
     )?;
     let graph = spec.validate()?;
-    let registry = crate::registry::default_registry();
     let bound = crate::loader::bind(&spec, &graph, &registry)?;
     let mut ctx = crate::scheduler::RunContext::open_uncached(root, jobs);
     // After the DAG this module reads two carriers: the snapshot dataset, and the

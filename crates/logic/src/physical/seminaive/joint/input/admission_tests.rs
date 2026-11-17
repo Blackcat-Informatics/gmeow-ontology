@@ -8,7 +8,9 @@ use std::sync::Arc;
 use purrdf::TermValue;
 
 use super::*;
+use crate::physical::cursor::LendingIterator;
 use crate::physical::seminaive::joint::input::JointTemplate;
+use crate::physical::store::Bound;
 
 const TYPE: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
 const SUBCLASS: &str = "http://www.w3.org/2000/01/rdf-schema#subClassOf";
@@ -273,8 +275,13 @@ fn a_marker_a_witness_may_carry_is_open() {
     );
 }
 
+/// Witness-free closure is complete and commits duplicate-producing rounds in
+/// first-seen order, independently of lexical key order.
 #[test]
 fn the_closure_of_a_witness_free_relation_is_complete() {
+    const SEED: &str = "urn:order:seed";
+    const OUT: &str = "urn:order:out";
+
     // EL subclass transitivity writes `subClassOf` from `subClassOf` alone: the
     // relation is closed, and its extension holds the derived `a ⊑ c`.
     let mut rows = restriction("urn:witness-class");
@@ -287,6 +294,152 @@ fn the_closure_of_a_witness_free_relation_is_complete() {
         closure.predicates
     );
     assert!(store.contains(SUBCLASS, &TermValue::iri("urn:a"), &TermValue::iri("urn:c")));
+
+    let seed = EvalAtom::positive(
+        EvalTerm::named("urn:seed"),
+        SEED,
+        EvalTerm::named("urn:input"),
+    );
+    let read = |subject: &str| {
+        EvalAtom::positive(EvalTerm::named(subject), OUT, EvalTerm::named("urn:first"))
+    };
+    let rule = |name: &str, subject: &str, object: &str, body: EvalAtom| {
+        EvalRule::positive(
+            name,
+            EvalAtom::positive(EvalTerm::named(subject), OUT, EvalTerm::named(object)),
+            vec![body],
+        )
+    };
+    let rules = [
+        rule("urn:initial:z", "urn:z", "urn:first", seed.clone()),
+        rule("urn:initial:a", "urn:a", "urn:first", seed.clone()),
+        rule("urn:initial:z-again", "urn:z", "urn:first", seed.clone()),
+        rule("urn:initial:m", "urn:m", "urn:first", seed),
+        rule("urn:later:z", "urn:second:z", "urn:second", read("urn:z")),
+        rule(
+            "urn:later:z-again",
+            "urn:second:z",
+            "urn:second",
+            read("urn:a"),
+        ),
+        rule("urn:later:a", "urn:second:a", "urn:second", read("urn:m")),
+    ];
+    let (_, store) = closed(&rules, vec![fact("urn:seed", SEED, "urn:input")]);
+    let mut rows = store.select(OUT, Bound::Any);
+    let mut subjects = Vec::new();
+    while let Some((subject, _, _)) = rows.next() {
+        subjects.push(store.interner().resolve(subject).clone());
+    }
+    assert_eq!(
+        subjects,
+        ["urn:z", "urn:a", "urn:m", "urn:second:z", "urn:second:a"].map(TermValue::iri),
+        "duplicates cannot change first-seen commit order across rounds"
+    );
+}
+
+/// Protects the admission closure's pending-row ceiling in both its initial pass
+/// and a semi-naive round. Two rules queue the same output for every Cartesian
+/// match. Payload sharing keeps one exact fact, but logical candidate accounting
+/// still admits exactly 2^18 occurrences; the next must stop the analysis even
+/// when its payload is already shared. Both passes retain the original refusal.
+#[test]
+fn closure_pending_rows_are_bounded_before_the_drain_in_both_passes() {
+    const LEFT: &str = "urn:left";
+    const RIGHT: &str = "urn:right";
+    const READY: &str = "urn:ready";
+    for delayed in [false, true] {
+        for right_count in [256, 257] {
+            let mut rows: Vec<_> = (0..512)
+                .map(|index| fact(&format!("urn:left:{index}"), LEFT, "urn:input"))
+                .collect();
+            rows.extend(
+                (0..right_count)
+                    .map(|index| fact(&format!("urn:right:{index}"), RIGHT, "urn:input")),
+            );
+            let mut body = vec![
+                EvalAtom::positive(EvalTerm::var("?left"), LEFT, EvalTerm::named("urn:input")),
+                EvalAtom::positive(EvalTerm::var("?right"), RIGHT, EvalTerm::named("urn:input")),
+            ];
+            let mut rules = Vec::new();
+            if delayed {
+                rules.push(EvalRule::positive(
+                    "urn:seed",
+                    EvalAtom::positive(
+                        EvalTerm::named("urn:seed"),
+                        READY,
+                        EvalTerm::named("urn:ready"),
+                    ),
+                    vec![EvalAtom::positive(
+                        EvalTerm::named("urn:left:0"),
+                        LEFT,
+                        EvalTerm::named("urn:input"),
+                    )],
+                ));
+                body.insert(
+                    0,
+                    EvalAtom::positive(
+                        EvalTerm::named("urn:seed"),
+                        READY,
+                        EvalTerm::named("urn:ready"),
+                    ),
+                );
+            }
+            for name in ["urn:expand:a", "urn:expand:b"] {
+                rules.push(EvalRule::positive(
+                    name,
+                    EvalAtom::positive(
+                        EvalTerm::named("urn:output"),
+                        LEFT,
+                        EvalTerm::named("urn:output"),
+                    ),
+                    body.clone(),
+                ));
+            }
+            let template = template(&rules);
+            let data = BTreeMap::from([(WORLD.to_owned(), rows)]);
+            let input = template
+                .input(&data, Arc::from([]), &[])
+                .expect("synthetic source and producer selection is valid");
+            let Some(Ok(evidence)) = &input.evidence else {
+                panic!("the bounded source inventory supplies input-specific evidence");
+            };
+            let result = template
+                .termination
+                .as_ref()
+                .expect("native rules have a termination template")
+                .close(
+                    evidence,
+                    evidence
+                        .closable
+                        .as_ref()
+                        .expect("the small source inventory is within its own bound"),
+                    SEMANTICS,
+                )
+                .expect("closure analysis has no operational failure");
+            if right_count == 256 {
+                let Ok((_, store, _)) = result else {
+                    panic!("exactly {MAX_BINDINGS} pending rows fit the inclusive bound");
+                };
+                assert!(store.contains(
+                    LEFT,
+                    &TermValue::iri("urn:output"),
+                    &TermValue::iri("urn:output")
+                ));
+            } else {
+                let Err(EvidenceGap::ClosurePendingBound {
+                    rule,
+                    committed_rows,
+                    pending_rows,
+                }) = result
+                else {
+                    panic!("the first candidate past the pending bound must be named");
+                };
+                assert_eq!(rule, "urn:expand:b");
+                assert_eq!(committed_rows, usize::from(delayed));
+                assert_eq!(pending_rows, MAX_BINDINGS);
+            }
+        }
+    }
 }
 
 #[test]

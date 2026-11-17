@@ -6,7 +6,7 @@
 //! statements remain available to the selected program in their original world.
 
 use crate::timing::Instant;
-use std::collections::BTreeMap;
+use std::collections::{BTreeMap, BTreeSet};
 
 #[cfg(test)]
 mod test_support;
@@ -155,19 +155,26 @@ impl PreparedReasoningInput {
     }
 
     fn refresh_world(&mut self, world: &str) {
-        let rows: BTreeMap<_, _> = self.occurrences[world]
+        let rows: BTreeSet<FactKey> = self.occurrences[world]
             .iter()
             .map(|source| {
-                let fact = Fact {
-                    subject: crate::facts::skolemize(&source.subject).into_owned(),
-                    predicate: source.predicate.clone(),
-                    object: crate::facts::skolemize(&source.object).into_owned(),
-                };
-                (fact.key(), fact)
+                (
+                    crate::facts::skolemize(&source.subject).into_owned(),
+                    source.predicate.clone(),
+                    crate::facts::skolemize(&source.object).into_owned(),
+                )
             })
             .collect();
-        self.facts
-            .insert(world.to_owned(), rows.into_values().collect());
+        self.facts.insert(
+            world.to_owned(),
+            rows.into_iter()
+                .map(|(subject, predicate, object)| Fact {
+                    subject,
+                    predicate,
+                    object,
+                })
+                .collect(),
+        );
     }
 
     fn refresh_source_contract(&mut self) {
@@ -243,12 +250,12 @@ pub fn prepare_reasoning_input(
     edb: &impl purrdf::DatasetView<ReadError = std::convert::Infallible>,
 ) -> gmeow_errors::Result<PreparedReasoningInput> {
     let mut sources = super::source_existentials::Collector::default();
-    let mut partitions = BTreeMap::<String, BTreeMap<FactKey, Fact>>::new();
+    let mut partitions = BTreeMap::<String, BTreeSet<FactKey>>::new();
     let mut origins = BTreeMap::<String, Option<TermValue>>::new();
     let mut occurrences =
         BTreeMap::<String, std::collections::BTreeSet<super::refute::RefutationPremise>>::new();
     let default = super::rl::DEFAULT_WORLD.to_owned();
-    partitions.insert(default.clone(), BTreeMap::new());
+    partitions.insert(default.clone(), BTreeSet::new());
     origins.insert(default, None);
 
     let mut admit_world = |graph: Option<TermValue>| -> gmeow_errors::Result<String> {
@@ -299,12 +306,7 @@ pub fn prepare_reasoning_input(
             });
         let object = crate::facts::skolemize(&source_object);
         let facts = partitions.entry(world).or_default();
-        let fact = Fact {
-            subject: subject.as_ref().clone(),
-            predicate,
-            object: object.as_ref().clone(),
-        };
-        facts.entry(fact.key()).or_insert(fact);
+        facts.insert((subject.into_owned(), predicate, object.into_owned()));
     }
     let occurrences = partitions
         .keys()
@@ -328,7 +330,19 @@ pub fn prepare_reasoning_input(
         occurrences,
         facts: partitions
             .into_iter()
-            .map(|(world, facts)| (world, facts.into_values().collect()))
+            .map(|(world, facts)| {
+                (
+                    world,
+                    facts
+                        .into_iter()
+                        .map(|(subject, predicate, object)| Fact {
+                            subject,
+                            predicate,
+                            object,
+                        })
+                        .collect(),
+                )
+            })
             .collect(),
         graphs: origins,
         sources,
@@ -339,12 +353,12 @@ pub fn prepare_reasoning_input(
 /// The abstract domain is the small set of constants required by the native laws,
 /// not a retained corpus or a sample. Ordinary rule constants and newly enabled
 /// law heads participate until this finite analysis reaches its fixed point.
-pub(super) fn applicable_schema_laws(
+pub(super) fn applicable_schema_laws<'a>(
     prepared: &crate::program_analysis::PreparedProgram,
     facts: &BTreeMap<String, Vec<Fact>>,
     sources: &super::source_existentials::PreparedSources,
     domains: &crate::physical::SelectedDomains,
-    possible: &[(String, Fact)],
+    possible: impl IntoIterator<Item = &'a (String, Fact)>,
     contextual_effects: &[crate::physical::WorldProducerEffect],
 ) -> Vec<PreparedPropertyRule> {
     use crate::rule_ir::EvalTerm;
@@ -402,7 +416,7 @@ pub(super) fn applicable_schema_laws(
     for fact in facts
         .values()
         .flatten()
-        .chain(possible.iter().map(|(_, fact)| fact))
+        .chain(possible.into_iter().map(|(_, fact)| fact))
     {
         observe_predicate(&fact.predicate, &mut predicates);
         observe(&fact.predicate, &mut present);
@@ -608,13 +622,12 @@ pub(super) fn execute_transaction(
             .or_default()
             .push(source.rule.clone());
     }
-    let selected_potential: Vec<_> = possible.iter().chain(potential).cloned().collect();
     let properties = applicable_schema_laws(
         prepared,
         &facts,
         &sources,
         domains,
-        &selected_potential,
+        possible.iter().chain(potential),
         contextual.effects(),
     );
     tracing::info!(
@@ -623,7 +636,7 @@ pub(super) fn execute_transaction(
         phase = "prepare-native-schema-input",
         event = "end",
         elapsed_ms = schema_started.elapsed().as_millis(),
-        selected_potential = selected_potential.len(),
+        selected_potential = possible.len() + potential.len(),
         selected_schema_laws = properties.len(),
         contextual_effects = contextual.effects().len(),
         "reason phase boundary",

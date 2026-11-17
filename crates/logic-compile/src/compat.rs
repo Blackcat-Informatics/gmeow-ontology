@@ -36,7 +36,8 @@
 //! carries no per-world modality, only its revision policy.
 
 use gmeow_errors::Diag;
-use purrdf::{RdfDataset, TermRef};
+use purrdf::dataset_view::TermGuard;
+use purrdf::{DatasetView, TermRef};
 
 use super::ir::{LOGIC_NAMESPACE, ReasoningContract};
 
@@ -137,24 +138,27 @@ impl ContradictionPolicy {
     /// # Errors
     /// Propagates the [`Self::from_local`] error if ANY declared valuation is a
     /// garbled / unknown policy name — a HARD FAIL, never a silent fallback.
-    pub fn resolve_from_dataset(dataset: &RdfDataset) -> gmeow_errors::Result<Self> {
+    pub fn resolve_from_dataset<D: DatasetView<ReadError = std::convert::Infallible>>(
+        dataset: &D,
+    ) -> gmeow_errors::Result<Self> {
         let admissible_valuation = format!("{LOGIC_NAMESPACE}admissibleValuation");
         let contract_type = format!("{LOGIC_NAMESPACE}ReasoningContract");
         let preset_type = format!("{LOGIC_NAMESPACE}ReasoningPreset");
 
         // First pass: collect the subjects typed as a reasoning contract / preset.
-        let mut contract_subjects: std::collections::BTreeSet<String> =
-            std::collections::BTreeSet::new();
+        let mut contract_subjects = std::collections::BTreeSet::new();
         for q in dataset.quads() {
-            let (TermRef::Iri(p), TermRef::Iri(o)) = (dataset.resolve(q.p), dataset.resolve(q.o))
-            else {
+            let s = dataset.resolve(q.s).unwrap_or_else(|never| match never {});
+            let p = dataset.resolve(q.p).unwrap_or_else(|never| match never {});
+            let o = dataset.resolve(q.o).unwrap_or_else(|never| match never {});
+            let (TermRef::Iri(p), TermRef::Iri(o)) = (p.term(), o.term()) else {
                 continue;
             };
             if p == RDF_TYPE
                 && (o == contract_type || o == preset_type)
-                && let TermRef::Iri(s) = dataset.resolve(q.s)
+                && let TermRef::Iri(s) = s.term()
             {
-                contract_subjects.insert(s.to_string());
+                contract_subjects.insert(s.to_owned());
             }
         }
 
@@ -163,11 +167,12 @@ impl ContradictionPolicy {
         // contract governs.
         let mut governing: Option<Self> = None;
         for q in dataset.quads() {
-            let (TermRef::Iri(s), TermRef::Iri(p), TermRef::Iri(o)) = (
-                dataset.resolve(q.s),
-                dataset.resolve(q.p),
-                dataset.resolve(q.o),
-            ) else {
+            let s = dataset.resolve(q.s).unwrap_or_else(|never| match never {});
+            let p = dataset.resolve(q.p).unwrap_or_else(|never| match never {});
+            let o = dataset.resolve(q.o).unwrap_or_else(|never| match never {});
+            let (TermRef::Iri(s), TermRef::Iri(p), TermRef::Iri(o)) =
+                (s.term(), p.term(), o.term())
+            else {
                 continue;
             };
             if p != admissible_valuation || !contract_subjects.contains(s) {

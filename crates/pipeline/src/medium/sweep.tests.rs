@@ -427,13 +427,16 @@ fn the_sweep_schedules_exactly_the_committed_output_scope() {
         .into_iter()
         .map(|stage| stage.id)
         .collect();
-    let committed: BTreeSet<String> =
-        crate::run::spec_for_scope(crate::full_spec(), crate::run::RunOutputScope::Committed)
-            .expect("committed scope")
-            .stages
-            .into_iter()
-            .map(|stage| stage.id)
-            .collect();
+    let committed: BTreeSet<String> = crate::run::spec_for_scope(
+        crate::full_spec(),
+        crate::run::RunOutputScope::Committed,
+        &crate::default_registry(),
+    )
+    .expect("committed scope")
+    .stages
+    .into_iter()
+    .map(|stage| stage.id)
+    .collect();
     assert_eq!(selected, committed);
     for runtime_only in [
         "stage-export-yaml-ld",

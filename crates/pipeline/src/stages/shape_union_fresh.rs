@@ -21,7 +21,7 @@
 //!
 //! The merge semantics replicate `purrdf::shapes::shape_union::load_shapes` EXACTLY:
 //! the ordered `shape_files` file list, per-file Turtle parse via
-//! [`parse_dataset`], per-file blank-label scoping via [`RdfDataset::union`], document
+//! [`parse_dataset_with`], per-file blank-label scoping via [`RdfDataset::union`], document
 //! `@prefix` map from that same parse with last-declaration-wins over the sorted file
 //! order, each member parsed against its RFC-8089 `file://` retrieval IRI and declared
 //! as a loaded import, and the final [`from_dataset_with_base`] typing. Only the BYTE

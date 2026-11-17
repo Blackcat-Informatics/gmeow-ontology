@@ -25,8 +25,8 @@
 //! ## The conclusion-shape calculus (the one negation waist)
 //!
 //! A conclusion is a set of RDF triples. Each triple is normalized into a
-//! [`ConclusionShape`](crate::entail::ConclusionShape) and negated by one shared
-//! [`negate`](crate::entail::negate) primitive:
+//! [`ConclusionShape`] and negated by one shared
+//! [`negate`] primitive:
 //!
 //! * a ground membership `a rdf:type C` → assert a counter-model `a ∈ C̄` with
 //!   `C owl:disjointWith C̄` (`C̄` a fresh complement); the EDB clashes iff `A ⊨ C(a)`;
@@ -43,7 +43,7 @@
 //!
 //! Refuting `P ⊑ Q` needs a counter-model `∃x,y.(P(x,y) ∧ ¬Q(x,y))`, whose role
 //! complement `¬Q` is NOT EL-expressible — so subproperty entailment cannot go through
-//! the [`negate`](crate::entail::negate)/[`crate::reason::reason_all`] refutation
+//! the [`negate`]/[`crate::reason::reason_all`] refutation
 //! waist at all. It is
 //! instead decided directly (`decide_subproperty`) by REFLEXIVE-TRANSITIVE
 //! reachability over the premise's property hierarchy: `A ⊨ (P ⊑ Q)` iff `Q` is reachable
@@ -58,12 +58,12 @@
 //! characteristic type, a property-expression endpoint, a named-graph or class-level
 //! axiom that could derive further subproperty facts or make the premise inconsistent),
 //! the reachability closure is not a complete account, so an unreachable `Q` yields an
-//! honest [`GapShape::NativeCoverage`](crate::entail::GapShape::NativeCoverage) gap — never a guessed `NotEntailed`.
+//! honest [`GapShape::NativeCoverage`] gap — never a guessed `NotEntailed`.
 //!
 //! ## Sound fresh-symbol minting (the soundness floor)
 //!
 //! The fresh complement/witness IRIs are minted in a reserved namespace
-//! ([`ENTAIL_RESERVED_NS`](crate::entail::ENTAIL_RESERVED_NS)) with a blake3-of-input suffix, and [`Minter::new`](crate::entail::Minter::new)
+//! ([`ENTAIL_RESERVED_NS`]) with a blake3-of-input suffix, and [`Minter::new`](crate::entail::Minter::new)
 //! HARD-FAILS if the premise∪conclusion vocabulary already contains any reserved
 //! IRI. This is load-bearing for soundness: a premise legitimately mentioning a
 //! would-be complement IRI must never collide with a minted one, because a
@@ -77,7 +77,7 @@
 //! A conclusion shape the native DL fragment cannot soundly refute — a role /
 //! property assertion (role negation is not EL-expressible), a blank-node
 //! (existential) subject/object that needs Skolemization, a malformed triple — is
-//! an [`EntailmentGap`](crate::entail::EntailmentGap) carrying a structured [`GapShape`](crate::entail::GapShape) token, never a silent
+//! an [`EntailmentGap`] carrying a structured [`GapShape`] token, never a silent
 //! skip and never a guessed verdict.
 
 use std::collections::{BTreeMap, BTreeSet};

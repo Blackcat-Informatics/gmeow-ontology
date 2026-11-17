@@ -3,126 +3,104 @@ SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinform
 SPDX-License-Identifier: CC-BY-4.0
 -->
 
-# purrdf backend contract (P2)
+# GMEOW requirements for the PurRDF backend
 
-Companion to [`PURRDF-PLAN.md`](./PURRDF-PLAN.md). PurRDF owns the physical RDF
-dataset, paging, pack, parser/serializer, and operation-evidence contracts; this
-document records the boundary GMEOW consumes. GMEOW owns the RDF 1.2 semantic
-language, calculus, and conformance layered over that boundary.
+The [PurRDF Backend Contract](https://github.com/Blackcat-Informatics/purrdf/blob/main/docs/design/purrdf-backend-contract.md)
+is the authority for PurRDF's backend traits and their invariants. PurRDF owns
+the generic RDF, dataset, storage, parser, query and serialization mechanisms.
+GMEOW owns its ontology semantics, compilation, world scope, grounding and
+proof-ledger policy above those mechanisms.
 
-This document is normative for the purrdf backend traits (`DatasetView`,
-`DatasetMut`, `TermFactory`, `RdfParserBackend`, `SparqlEngine`, and
-`RdfSerializer`). `DatasetView` landed with the P2b crate split (then in
-`rdf-core/src/dataset_view.rs`, a path that no longer exists here — see the note
-below); `DatasetMut` landed as the P5 write substrate; the remaining four narrow
-seams land in P2d.
+This document specifies what GMEOW requires when integrating that backend.
+Trait definitions and API details belong to PurRDF's contract and source.
+Use the dependency selected by [`Cargo.toml`](../../Cargo.toml) and resolved by
+[`Cargo.lock`](../../Cargo.lock); this document does not define a separate
+trait contract or override the upstream one.
 
-> **Historical record.** The kernel crates named here were subsequently extracted into the sibling
-> **`purrdf`** package, so `crates/rdf-core` and its siblings no longer exist in this repository —
-> these traits are now reached through the single `purrdf` dependency. The boundary this document
-> defines is unchanged; only its location is.
+## Required backend integration
 
-## C1 — Backend-selection: compile-time, single, required
+GMEOW requires one backend selected at compile time for the chosen operation.
+A missing backend is a hard build/link failure. There is no backend-free mode,
+runtime backend registry or degraded alternate implementation. Explicit resident,
+paged and pack read paths are representations consumed through PurRDF's supported
+interfaces, rather than optional fallback engines. Static generic integration
+does not impose an additional erased or object-safe trait layer on PurRDF.
 
-GMEOW is **no-optionality / hard-fail** (`.goals`). Therefore:
+## Borrowed reads and scoped identity
 
-- Exactly **one** backend is wired and **required**. A missing backend is a hard
-  build/link failure, never a degraded runtime fallback. There is no "no backend"
-  mode and no parallel optional backend.
-- Backend selection is **compile-time**, not runtime. The kernel names a single
-  concrete backend through a crate-boundary (P2b); it does not dispatch over a
-  registry of backends at runtime.
+GMEOW consumers must use the upstream borrowed and id-based read seam without
+introducing per-row heap allocation or term-string cloning merely to traverse a
+view. Keep borrowed values and cursors within their owner or read-guard lifetimes;
+do not mutate through a shared read handle.
 
-**Consequence (load-bearing):** because selection is compile-time, the **static**
-trait layer (`DatasetView`, generic `impl Trait`, RPITIT, allocation-free) is the
-*only* mandatory layer. The **erased** layer (`&mut dyn DatasetView`-style object
-safety, a runtime parser/format registry) is **deferred** — it is added only if and
-when a genuine runtime-plugin need appears (e.g. a C-ABI host loading formats at
-runtime). P2a therefore ships the static trait and does **not** force object safety.
+An id is meaningful only within the upstream identity owner or dictionary
+generation that issued it. Resolve and re-intern term values when crossing those
+boundaries. Do not persist, compare or reinterpret unrelated owners' numeric ids
+as durable RDF identities.
 
-## C2 — Read view: ownership, lifetimes, cursor model
+## Pattern and graph selection
 
-- The read view borrows; it never owns. `DatasetView` yields `QuadIds` (`Copy`,
-  id-only) and `QuadRef<'a>` (borrowed term bytes from the backing term table). No
-  per-quad heap allocation, no term-string clones (this kills the owned
-  `rdf_quad_from_oxigraph` double-tax).
-- A cursor (the returned iterator) borrows the view for `'a`; it cannot outlive the
-  view and does not pin a snapshot beyond the borrow. Concurrent mutation during
-  iteration is impossible by construction (the read view is `&self`; mutation needs
-  `&mut self` via `DatasetMut`, P2c/P5).
-- Identity is dataset-local (`TermId`, C0.8): ids and `GraphMatch::Named(TermId)`
-  are only meaningful against the *same* view that minted them. Cross-view queries
-  resolve through values (`term_id_by_value`, P4) first.
+Use upstream pattern lookup and resolve values into the selected view's identity
+space before applying id-based filters. Preserve the distinction between any
+graph, the default graph and a specific named graph. GMEOW's world scope must
+select the intended graph; an unsupported graph operation must fail explicitly
+rather than silently widening or narrowing the request.
 
-## C3 — Pattern matching: id-based, `GraphMatch` for the graph slot
+## Mutations and updates
 
-`quads_for_pattern(s, p, o: Option<TermId>, g: GraphMatch)` filters by **id
-equality** (zero string resolution on the hot path). The graph slot needs its own
-type because storage keeps `g: Option<TermId>` where `None` = the default graph, and
-`Option<TermId>` cannot distinguish *"any graph"* from *"the default graph"*. Hence
-`enum GraphMatch { Any, Default, Named(TermId) }`. The P2a default impl is a linear
-scan; P4 overrides it with the lazy access-pattern indexes.
+Keep writes on the upstream mutation or update interface, separate from borrowed
+reads. Cross-owner mutation inputs carry term values, not foreign local ids.
+A selected GMEOW update requires atomic application under the backend's declared
+transaction semantics; callers must retain those semantics when composing the
+operation. This requirement does not introduce a GMEOW-owned storage or
+transaction implementation.
 
-## C4 — Write side (DatasetMut): deferred to P2c/P5
+## Cancellation and complete results
 
-`DatasetMut` (insert/remove, `Base`/`Delta` COW handles) is delivered as the P5
-substrate. SPARQL **UPDATE** and **transactions** are a backend concern
-(oxigraph provides them); the contract: UPDATE APIs live on the SPARQL backend
-trait (P2d), never on `DatasetView` (read-only), and an UPDATE is atomic per the
-backend's transaction semantics (oxigraph: serializable in-memory).
+Dropping a resident read cursor must stop further pull-based work. A lazy or
+paged operation must retain its declared provider, generation, page/byte budgets,
+cancellation and deadline context. Use the upstream fallible operation boundary
+when reads can fail and inspect its status before execution and after result
+materialization. Preserve the first operational failure and its evidence.
+Iterator exhaustion alone must never certify completeness after a provider
+failure, exhausted budget, cancellation, deadline or generation mismatch.
 
-## C5 — Cancellation and bounded lazy reads
+## Diagnostics
 
-Resident iterators remain pull-based: dropping a cursor stops further work. A lazy
-paged operation additionally exposes provider, page/byte-budget, cancellation,
-deadline, and generation failures through its operation-scoped fallible view. The
-first failure is sticky; iterators stop, and an engine must sample the operation
-status after all result materialization before it can certify completeness.
+Preserve PurRDF's structured errors and original causes when presenting GMEOW
+diagnostics for parsing, loading, querying, updating or serializing. Operational
+incompleteness and invalid data must remain distinguishable from a complete empty
+answer. Do not swallow a backend failure, replace it with an empty RDF graph or
+publish partial internal output as complete.
 
-## C6 — Error model
+## Required capabilities
 
-- The resident read view is **infallible** for a frozen, validated `RdfDataset`:
-  `quads`, `quad_refs`, `resolve`, `quads_for_pattern` cannot fail (validation
-  happened at freeze). They therefore return values/iterators, not `Result`.
-- `FallibleDatasetView` preserves that iterator shape for lazy providers while making
-  the operational result explicit through preflight/final `operation_status`
-  checkpoints. A provider failure or exhausted resource budget means computational
-  incompleteness, never an empty RDF graph.
-- Fallible backend operations (parse, load, SPARQL eval, serialize) return
-  `Result<_, RdfDiagnostic>` — the kernel's structured, SARIF-free diagnostic type
-  (the single error currency; backends map their native errors into it). This keeps
-  the error type concrete (object-safe-friendly) for the future erased layer.
+Use PurRDF's capability and support probes for the selected operation, including
+its RDF 1.2 statement and graph requirements. A required capability that is absent
+causes an explicit refusal. An explicitly selected operation that does not use
+that capability may proceed under its own complete contract. Never silently drop
+triple terms, reifiers, annotations, source context, loss records or lookaside
+data to make a selected path appear successful.
 
-## C7 — Capability negotiation
+## Shared reads and exclusive writes
 
-Views advertise representational support via `RdfStoreCapabilities` (named graphs,
-triple terms, reifiers, annotations, source locations, loss records, lookaside).
-The backend never silently drops data. A GMEOW operation that requires a missing
-capability refuses explicitly; an operation whose declared DAG path does not use that
-capability continues normally. This is operation selection, not an optional-dependency
-fallback or a half-capable alternate implementation.
+Share read handles across threads only under the upstream types' supported
+`Send`/`Sync` bounds. Keep each mutable handle exclusively borrowed, and use the
+appropriate frozen snapshot before parallel reads. GMEOW must preserve the
+backend's ownership and synchronization guarantees rather than assume every
+possible backend or mutable store is concurrently shareable.
 
-## C8 — Thread-safety
+## Consumed interfaces
 
-A frozen `RdfDataset` (and `TermId`/`QuadIds`) is `Send + Sync` (asserted at compile
-time) so a read view can be shared across threads for parallel reasoning.
-Per-handle: a `DatasetView` is `Sync` when its backing data is; mutable backends
-(`DatasetMut`) are `Send` but a single handle is not concurrently mutable (`&mut self`).
-Rayon-style fan-out over a shared `&RdfDataset` is sound today.
+These names identify the upstream seams GMEOW consumes; their signatures,
+invariants and object-safety properties are defined upstream.
 
-## Trait summary (SOLID-I: narrow traits, not one fat `Backend`)
-
-| Trait | Layer | Parcel | Object-safe? |
-| --- | --- | --- | --- |
-| `DatasetView` | static read | **P2a** | no (RPITIT) — fine, selection is compile-time |
-| `FallibleDatasetView` | operation-scoped lazy read | PurRDF paging | no; static view plus typed status/evidence |
-| `DatasetMut` | static write | **P5** | no |
-| `TermFactory` | interning | **P2d** | no object-safety requirement |
-| `RdfParserBackend` | ingress | **P2d** over P6 events | erased only if runtime registry needed |
-| `SparqlEngine` | query/update | **P2d** | no object-safety requirement |
-| `RdfSerializer` | egress | **P2d** | no object-safety requirement |
-
-The first concrete P2d adapter is `OxigraphBackend` in
-[`crates/rdf/src/oxigraph/backend.rs`](../../crates/rdf/src/oxigraph/backend.rs).
-It implements parser ingress over `gmeow-rdf-events`, SPARQL query/update, and
-serializer egress without exposing oxigraph types through `gmeow-rdf-core`.
+| Interface | GMEOW use |
+| --- | --- |
+| `DatasetView` | Borrowed, id-based reads and selected graph access |
+| `FallibleDatasetView` | Operation status and evidence when reads can fail |
+| `DatasetMut` | Value-based mutations of the selected dataset |
+| `TermFactory` | Interning at an explicitly owned identity boundary |
+| `RdfParserBackend` | Parser ingress with structured failure |
+| `SparqlEngine` | Query/update execution under the selected contract |
+| `RdfSerializer` | Selected egress with explicit representation failures |

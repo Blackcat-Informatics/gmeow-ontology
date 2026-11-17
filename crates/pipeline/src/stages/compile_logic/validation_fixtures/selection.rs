@@ -3,13 +3,17 @@
 
 //! Exact standalone module and counterexample selections owned by the producer.
 
-pub(super) const INPUTS: &[&str] = &["slices/extensions/finance/examples/exact-computations.ttl"];
+pub(super) const INPUTS: &[&str] = &[
+    "slices/extensions/finance/examples/exact-computations.ttl",
+    gmeow_logic::finance_evaluation::CALLABLE_SOURCE_PATH,
+];
 
 pub(super) const MODULES: &[&str] = &[
     "slices/core/attestation/module.ttl",
     super::migration::MODULE,
     "slices/core/gender/module.ttl",
     "slices/core/gts/module.ttl",
+    "slices/core/kernel/module.ttl",
     "slices/core/norms/module.ttl",
     "slices/core/observations/module.ttl",
     "slices/core/pipeline/module.ttl",

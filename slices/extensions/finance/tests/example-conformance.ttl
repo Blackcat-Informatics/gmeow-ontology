@@ -1,9 +1,9 @@
 # SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 # SPDX-License-Identifier: CC-BY-4.0
 #
-# Example-conformance cells for the finance slice's exact computations: a conforming
-# simple-interest and holding-period-return pair, and one counter-example for each of a
-# malformed dimension, a malformed frame and a malformed computation, plus a conforming set of
+# Example-conformance cells for the finance slice's exact computations: conforming
+# simple-interest, holding-period-return and unit-price-total calculations, and counter-examples
+# for malformed dimensions, frames and computations, plus a conforming set of
 # total prices and a balanced journal entry with a counter-example for each way they break.
 #
 # Each cell unions the finance module with the one named file and validates it against the
@@ -28,7 +28,7 @@
 ex:ecExactComputations a gmeow:ExampleConformance ;
     gmeow:exampleFile "tests/conformance-fixtures/exact-computations.ttl" ;
     gmeow:expectedOutcome gmeow:conforms ;
-    gmeow:conformanceRationale "A gmeow:SimpleInterestCalculation and a gmeow:HoldingPeriodReturnCalculation, with a gmeow:FinancialPeriodRate and a gmeow:FinancialPeriodCount that share the calculation's period frame, and two gmeow:MonetaryAmount values in one currency, validate with no finding. The fixture types math:dimensionless as a math:Dimension and the contract period as a gmeow:ReferenceFrame itself, because a conformance cell validates only the finance module plus this one file, and the math and places modules that declare those individuals are not loaded; without the local typing the finance-owned class checks on the rate and count would report an untyped dimension and frame that are well formed in the full corpus." .
+    gmeow:conformanceRationale "Simple-interest, holding-period-return and unit-price-total calculations validate with no finding. Temporal inputs share the calculation's period frame; monetary amounts share one currency. The unit price has a scalar quotient frame whose numerator is that currency and whose denominator is the priced quantity's count frame, and both inputs name the same asset. The fixture supplies the math and places class assertions needed by finance-owned checks because each conformance cell loads only the finance module and this file."@x-gmeow-english .
 
 ex:ecRateNotDimensionless a gmeow:ExampleConformance ;
     gmeow:exampleFile "tests/counter-examples/rate-not-dimensionless.ttl" ;

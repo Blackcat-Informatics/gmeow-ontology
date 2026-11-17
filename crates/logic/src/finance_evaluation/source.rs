@@ -11,10 +11,12 @@
 
 use super::{G, L, M, PROFILE, TYPE};
 use gmeow_logic_compile::ir::{Formula, Term};
+use purrdf::dataset_view::TermGuard;
 use purrdf::{
     DatasetView, GraphMatch, RdfDataset, RdfDatasetBuilder, RdfLiteral, RdfQuad, RdfTerm, TermRef,
 };
 use std::collections::{BTreeMap, BTreeSet};
+use std::convert::Infallible;
 
 #[derive(Default)]
 pub(super) struct Records(
@@ -75,6 +77,8 @@ fn execution_predicate(predicate: &str) -> bool {
                 "hasMathematicalSymbol",
                 "operatorDomain",
                 "operatorCodomain",
+                "numeratorFrame",
+                "denominatorFrame",
             ][..],
         ),
         (
@@ -88,6 +92,10 @@ fn execution_predicate(predicate: &str) -> bool {
                 "hasAxis",
                 "requiresHost",
                 "currencyCode",
+                "hasReferenceFrame",
+                "currency",
+                "pricedAsset",
+                "countedAsset",
             ][..],
         ),
     ]
@@ -100,7 +108,10 @@ fn execution_predicate(predicate: &str) -> bool {
 }
 
 impl Records {
-    pub(super) fn read(dataset: &RdfDataset, owner: bool) -> gmeow_errors::Result<Self> {
+    pub(super) fn read(
+        dataset: &impl DatasetView<ReadError = Infallible>,
+        owner: bool,
+    ) -> gmeow_errors::Result<Self> {
         let mut records = Self::default();
         for quad in dataset.quads_for_pattern(None, None, None, GraphMatch::Any) {
             if !owner && quad.g.is_some() {
@@ -109,8 +120,16 @@ impl Records {
                     "finance profile requires one explicit default-graph source",
                 ));
             }
+            let subject = match dataset.resolve(quad.s) {
+                Ok(term) => term,
+                Err(never) => match never {},
+            };
+            let predicate = match dataset.resolve(quad.p) {
+                Ok(term) => term,
+                Err(never) => match never {},
+            };
             let (TermRef::Iri(subject), TermRef::Iri(predicate)) =
-                (dataset.resolve(quad.s), dataset.resolve(quad.p))
+                (subject.term(), predicate.term())
             else {
                 // Only named operation records are selected. Blank restriction
                 // bodies and quoted statement metadata belong to the full owner
@@ -127,6 +146,10 @@ impl Records {
                 continue;
             }
             let object = match dataset.resolve(quad.o) {
+                Ok(term) => term,
+                Err(never) => match never {},
+            };
+            let object = match object.term() {
                 TermRef::Iri(value) => Term::Iri(value.into()),
                 TermRef::Literal {
                     lexical,
@@ -134,8 +157,15 @@ impl Records {
                     language,
                     direction,
                 } => {
-                    let TermRef::Iri(datatype) = dataset.resolve(datatype) else {
-                        unreachable!("RDF datatype is IRI")
+                    let datatype = match dataset.resolve(datatype) {
+                        Ok(term) => term,
+                        Err(never) => match never {},
+                    };
+                    let TermRef::Iri(datatype) = datatype.term() else {
+                        return Err(crate::error::profile_result(
+                            PROFILE,
+                            "required native RDF literal datatype is not an IRI",
+                        ));
                     };
                     Term::Literal(RdfLiteral {
                         lexical_form: lexical.into(),
@@ -301,11 +331,17 @@ impl Records {
             format!("{M}hasMathematicalSymbol"),
             format!("{M}operatorDomain"),
             format!("{M}operatorCodomain"),
+            format!("{M}numeratorFrame"),
+            format!("{M}denominatorFrame"),
             format!("{G}calculationExpression"),
             format!("{G}determinacyModel"),
             format!("{G}frameKind"),
             format!("{G}frameRealm"),
             format!("{G}hasAxis"),
+            format!("{G}hasReferenceFrame"),
+            format!("{G}currency"),
+            format!("{G}pricedAsset"),
+            format!("{G}countedAsset"),
         ];
         let mut pending: Vec<_> = roots.into_iter().collect();
         let mut seen = BTreeSet::new();

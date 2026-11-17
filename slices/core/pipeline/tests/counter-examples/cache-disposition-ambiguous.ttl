@@ -9,6 +9,7 @@
 @prefix ex: <https://blackcatinformatics.ca/gmeow/examples/pipeline/tests/cache/> .
 
 ex:ambiguousVerify a gmeow:PipelineStage ;
+    gmeow:stageOutputFamily gmeow:outputGenerated ;
     rdfs:seeAlso
         gmeow:StageCacheDisposition ,
         gmeow:stageCacheDisposition ,

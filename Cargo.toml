@@ -191,6 +191,8 @@ resolver = "2"
 
 [workspace.dependencies]
 cargo-config2 = "0.1.45"
+# CLI argument parsing; consumers select their own derive feature.
+clap = "4"
 # Compatible PurRDF releases or exact official Git revisions. Cargo.lock is the
 # exact version/source authority (a checksum for registry releases, a commit for Git).
 # fuzz/Cargo.lock must select the same substrate, and every shipped
@@ -226,6 +228,12 @@ gmeow-cost-measure = { path = "crates/cost-measure" }
 # CBOR value codec: the gts snapshot's per-blob metadata maps and segment payloads
 # are read and written with it, so every reader and writer must share one codec.
 ciborium = "0.2"
+# Developer command configuration, network maintenance and CLI contract harnesses.
+toml = "0.8"
+ureq = "3"
+assert_cmd = "2"
+trycmd = "0.15"
+predicates = "3"
 # Snapshot goldens. The version is fixed here; a crate that asserts JSON snapshots
 # adds `features = ["json"]` at its own site, since not every consumer needs it.
 insta = { version = "1.48" }

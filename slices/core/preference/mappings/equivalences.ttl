@@ -69,11 +69,11 @@ gmeow:deltaPromptIdentity skos:relatedMatch gmeow:Prompt {|
 |} .
 
 # ── learning: the learning event, specialized by-reference ────────────────────
-gmeow:PreferenceLearningEvent skos:narrowMatch gmeow:LearningEvent {|
+gmeow:PreferenceLearningEvent skos:broadMatch gmeow:LearningEvent {|
     gmeow:sssomFile "gmeow-preference.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.9 ;
-    gmeow:comment "gmeow:PreferenceLearningEvent specializes the learning gmeow:LearningEvent — it reuses the shipped learning-event term by reference (Principle 16) rather than minting a parallel training vocabulary; a preference-learning run IS a kind of learning event, so the alignment is skos:narrowMatch (the preference term is strictly narrower than the learning-slice term), not a symmetric closeMatch."
+    gmeow:comment "gmeow:PreferenceLearningEvent specializes the learning gmeow:LearningEvent — it reuses the shipped learning-event term by reference (Principle 16) rather than minting a parallel training vocabulary. The alignment is skos:broadMatch because its object, gmeow:LearningEvent, is the broader term. This agrees with the canonical subclass direction and asserts no converse inclusion or symmetric closeMatch."
 |} .
 
 # ── provenance: the derivation spine, reused by-reference ──────────────────────

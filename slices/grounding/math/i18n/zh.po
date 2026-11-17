@@ -2826,13 +2826,13 @@ msgctxt "https://blackcatinformatics.ca/math/metricSignature|skos:definition"
 msgid "Relates a math:MetricTensor, math:QuadraticSpace, math:QuadraticForm, or math:CliffordAlgebra to its shared math:MetricSignature (p, q). Range math:MetricSignature (stated in prose). Structured, not an opaque string, so metric and Clifford consumers read the same exact sign convention."
 msgstr "将 math:MetricTensor、math:QuadraticSpace、math:QuadraticForm 或 math:CliffordAlgebra 关联到其共享的 math:MetricSignature (p, q)。值域为 math:MetricSignature（以文字说明）。它是结构化对象而非不透明字符串，因此度量和 Clifford 使用方读取完全相同的符号约定。"
 
-msgctxt "https://blackcatinformatics.ca/math/hasBasis|rdfs:label"
+msgctxt "https://blackcatinformatics.ca/math/hasBasis|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "has basis"
 msgstr "具有基"
 
-msgctxt "https://blackcatinformatics.ca/math/hasBasis|skos:definition"
-msgid "Relates a math:VectorSpace, math:QuadraticSpace, or math:CliffordAlgebra to a math:Basis of its carrier. Range math:Basis (stated in prose). A space or algebra may carry several bases; a Clifford basis fixes the ordered generators used by its exact products and blade witnesses."
-msgstr "将向量空间、二次空间或 Clifford 代数关联到其载体的 math:Basis；Clifford 基确定精确乘积所用的有序生成元。"
+msgctxt "https://blackcatinformatics.ca/math/hasBasis|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Relates a math:VectorSpace, math:QuadraticSpace or math:CliffordAlgebra to a math:Basis of its vector-space carrier. The relation names a basis choice and permits several choices; it does not enumerate or order basis elements. A Clifford algebra carrier basis is distinct from its ordered grade-one generators."
+msgstr "将 math:VectorSpace、math:QuadraticSpace 或 math:CliffordAlgebra 关联到其向量空间载体的 math:Basis。该关系命名一个基的选择，并允许多个选择；它不枚举基元素，也不规定其顺序。Clifford 代数载体的基与其有序一级生成元不同。"
 
 msgctxt "https://blackcatinformatics.ca/math/analysisInput|rdfs:label"
 msgid "analysis input"
@@ -3266,8 +3266,8 @@ msgid "Bilinear Form"
 msgstr "双线性型"
 
 msgctxt "https://blackcatinformatics.ca/math/BilinearForm|http://www.w3.org/2004/02/skos/core#definition"
-msgid "A bilinear form B on a vector space: a map B(·, ·) that is linear in each argument separately. A subclass of math:MathematicalObject. Its definiteness (math:definiteness) records whether it is positive-definite, positive-semidefinite, indefinite, or negative-definite; represented in a math:Basis it becomes a math:Matrix. An inner product is a positive-definite symmetric (or Hermitian) bilinear form; the symmetric case is math:SymmetricBilinearForm."
-msgstr "向量空间上的双线性型 B：映射 B(·, ·) 对每个参数分别线性。它是 math:MathematicalObject 的子类。其定号性（math:definiteness）记录正定、半正定、不定或负定；在某个 math:Basis 中表示时得到 math:Matrix。内积是正定的对称（或埃尔米特）双线性型；对称情形为 math:SymmetricBilinearForm。"
+msgid "A bilinear form B on a vector space: a map B(·, ·) that is linear in each argument separately. A subclass of math:MathematicalObject. Its definiteness (math:definiteness) records whether it is positive-definite, positive-semidefinite, indefinite, or negative-definite; represented in a math:Basis it becomes a math:Matrix. A real inner product is a positive-definite symmetric bilinear form; a complex inner product is a positive-definite Hermitian sesquilinear form. The symmetric bilinear case is math:SymmetricBilinearForm."
+msgstr "向量空间上的双线性型 B：映射 B(·, ·) 对每个参数分别线性。它是 math:MathematicalObject 的子类。其定号性（math:definiteness）记录正定、半正定、不定或负定；在某个 math:Basis 中表示时得到 math:Matrix。实内积是正定对称双线性型；复内积是正定厄米半双线性型。对称双线性情形为 math:SymmetricBilinearForm。"
 
 msgctxt "https://blackcatinformatics.ca/math/BilinearForm|https://blackcatinformatics.ca/gmeow/useWhen"
 msgid "Use for a scalar-valued pairing that is linear in each of its two vector arguments, independently of the coordinates chosen to represent it."
@@ -17478,3 +17478,803 @@ msgstr "策略有助于规定目标问题。在提供分析方法及其缺失数
 msgctxt "https://blackcatinformatics.ca/math/missingnessMechanism|skos:scopeNote"
 msgid "Declares a missingness assumption, distinct from math:hasMissingnessIndicator recording absence, math:missingDataPolicy describing supplied analysis handling, and an event-specific target strategy named through math:intercurrentEventHandling. An assumption is not itself a handling procedure."
 msgstr "声明缺失机制假设，区别于记录缺失的 math:hasMissingnessIndicator、描述已提供分析处理方式的 math:missingDataPolicy，以及通过 math:intercurrentEventHandling 命名的事件专属目标策略。假设本身不是处理程序。"
+
+msgctxt "https://blackcatinformatics.ca/math/RatioQuantity|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Ratio quantity"
+msgstr "比值量"
+
+msgctxt "https://blackcatinformatics.ca/math/RatioQuantity|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A quantity interpreted in a quotient reference frame with explicit numerator and denominator frames. Its magnitude uses math:quantityValue and its dimension uses math:hasDimension; frame composition preserves the two unit contexts rather than making every dimensionless ratio interchangeable. This quantity form is distinct from the integer representation of math:RationalValue."
+msgstr "在商参考系中解释的量，明确保留分子与分母参考系。其量值使用 math:quantityValue，量纲使用 math:hasDimension；参考系组合保留两个单位语境，并不使所有无量纲比值都可互换。这种量形式不同于 math:RationalValue 的整数表示。"
+
+msgctxt "https://blackcatinformatics.ca/math/QuotientReferenceFrame|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Quotient reference frame"
+msgstr "商参考系"
+
+msgctxt "https://blackcatinformatics.ca/math/QuotientReferenceFrame|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A reference frame whose unit interpretation is one explicitly identified numerator frame per one explicitly identified denominator frame. It retains the ordinary reference-frame profile and both component identities. This structural composition supplies no implicit scale factor, currency conversion, frame equivalence or general quotient evaluator."
+msgstr "其单位解释为一个明确标识的分子参考系除以一个明确标识的分母参考系的参考系。它保留普通参考系描述及两个组成参考系的身份。这种结构组合不提供隐含比例因子、货币兑换、参考系等价关系或通用商求值器。"
+
+msgctxt "https://blackcatinformatics.ca/math/numeratorFrame|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "numerator frame"
+msgstr "分子参考系"
+
+msgctxt "https://blackcatinformatics.ca/math/numeratorFrame|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The numerator reference frame of a math:QuotientReferenceFrame. For a selected unit-price quantity this is the currency frame, not a monetary amount or a numeric numerator."
+msgstr "math:QuotientReferenceFrame 的分子参考系。对于选定的单价量，它是货币参考系，而不是货币金额或数值分子。"
+
+msgctxt "https://blackcatinformatics.ca/math/denominatorFrame|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "denominator frame"
+msgstr "分母参考系"
+
+msgctxt "https://blackcatinformatics.ca/math/denominatorFrame|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The denominator reference frame of a math:QuotientReferenceFrame. For a selected unit-price quantity this identifies the counted-unit frame; equality of physical dimensions alone does not identify that frame."
+msgstr "math:QuotientReferenceFrame 的分母参考系。对于选定的单价量，它标识所计单位的参考系；仅有物理量纲相等并不能确定该参考系。"
+
+msgctxt "https://blackcatinformatics.ca/math/IncompleteRatioFrame|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Incomplete ratio frame"
+msgstr "不完整的比值参考系"
+
+msgctxt "https://blackcatinformatics.ca/math/IncompleteRatioFrame|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A conformance failure in which a RatioQuantity lacks its unique quotient reference frame or a QuotientReferenceFrame lacks a unique, correctly typed numerator or denominator frame. It identifies missing or conflicting structure, not a failed numerical division."
+msgstr "RatioQuantity 缺少唯一商参考系，或 QuotientReferenceFrame 缺少唯一且类型正确的分子或分母参考系时发生的符合性失败。它标识缺失或冲突的结构，而不是数值除法失败。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/examples/math/tests/ecRatioQuantityFramed|https://blackcatinformatics.ca/gmeow/conformanceRationale"
+msgid "A dimensioned RatioQuantity declares one QuotientReferenceFrame with one typed numerator and denominator frame. Its complete component contexts remain distinct and no arithmetic result is asserted."
+msgstr "带有维度的 RatioQuantity 声明一个 QuotientReferenceFrame，其中分子和分母各有一个已定型的参考系。完整的分量上下文保持彼此独立，且不声明任何算术结果。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/examples/math/tests/ecRatioQuantityMissingFrame|https://blackcatinformatics.ca/gmeow/conformanceRationale"
+msgid "The framed control with only the RatioQuantity hasReferenceFrame edge removed must raise IncompleteRatioFrame from the canonical closed required path. Its dimension and the unused complete quotient remain valid."
+msgstr "仅移除了 RatioQuantity 的 hasReferenceFrame 边的参考系对照必须由规范的封闭必需路径报告 IncompleteRatioFrame。其维度和未使用的完整商参考系仍然有效。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/examples/math/tests/ecQuotientFrameMissingDenominator|https://blackcatinformatics.ca/gmeow/conformanceRationale"
+msgid "The framed control with only denominatorFrame removed must raise IncompleteRatioFrame from the quotient's closed required denominator path. The numerator, quantity frame and ordinary reference profiles remain supplied."
+msgstr "仅移除了 denominatorFrame 的参考系对照必须由商参考系的封闭必需分母路径报告 IncompleteRatioFrame。分子、数量参考系及普通参考系配置仍然齐全。"
+
+msgctxt "https://blackcatinformatics.ca/math/Basis|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Basis"
+msgstr "基"
+
+msgctxt "https://blackcatinformatics.ca/math/Basis|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An algebraic basis of a vector space over its scalar field: a linearly independent spanning family. Every vector has unique finitely supported coefficients indexed by the basis elements. The basis is distinct from an ordering of its elements, a coordinate array and an inner product."
+msgstr "向量空间在其标量域上的代数基，即线性无关且张成该空间的族。每个向量都具有以基元素为索引的唯一有限支撑系数。基与其元素的排序、坐标数组及内积彼此不同。"
+
+msgctxt "https://blackcatinformatics.ca/math/Basis|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Uniqueness is relative to the vector space and scalar field. Indexed coefficients need not form an ordered tuple; positional coordinates additionally require a correspondence between positions and basis elements. A named Basis record alone does not establish independence or spanning."
+msgstr "唯一性相对于向量空间及标量域而言。带索引的系数不一定构成有序元组；位置坐标还需要位置与基元素之间的对应关系。仅命名一个 Basis 记录不能证明线性无关性或张成性。"
+
+msgctxt "https://blackcatinformatics.ca/math/Basis|http://www.w3.org/2004/02/skos/core#example"
+msgid "The exact-pca producer declares p:covBasis as math:Basis and links its Gram matrix to that resource through math:inBasis. The RDF names the context but does not enumerate basis elements or their order."
+msgstr "exact-pca 生成器将 p:covBasis 声明为 math:Basis，并通过 math:inBasis 将其 Gram 矩阵关联到该资源。RDF 命名了上下文，但没有枚举基元素或其顺序。"
+
+msgctxt "https://blackcatinformatics.ca/math/Basis|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to name a supplied basis underlying vectors, coordinate arrays or an algebra carrier, retaining the actual vector space and scalar field."
+msgstr "用于命名向量、坐标数组或代数载体所依据的已提供基，同时保留实际的向量空间及标量域。"
+
+msgctxt "https://blackcatinformatics.ca/math/Basis|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Do not infer orthonormality or eigenvector roles from the Basis type. A self-adjoint operator on a finite-dimensional real or complex inner-product space admits an orthonormal eigenbasis; not every basis is an eigenbasis. Do not extend that conclusion to arbitrary infinite-dimensional self-adjoint operators or assume that truncated PCA components span the full input space."
+msgstr "不要从 Basis 类型推断标准正交性或特征向量角色。有限维实或复内积空间上的自伴算子具有标准正交特征向量基，但并非每个基都是特征向量基。不要将该结论推广到任意无限维自伴算子，也不要假定截断的主成分张成整个输入空间。"
+
+msgctxt "https://blackcatinformatics.ca/math/Basis|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Describe the basis as its own resource. Use math:hasBasis on the supplied space or algebra and math:inBasis on a vector or Gram matrix. Preserve any supplied element inventory and ordering evidence; neither link constructs a basis or computes a coordinate transform."
+msgstr "将基描述为独立资源。在已提供的空间或代数上使用 math:hasBasis，在向量或 Gram 矩阵上使用 math:inBasis。保留任何已提供的元素清单及顺序证据；这两个链接都不会构造基或计算坐标变换。"
+
+msgctxt "https://blackcatinformatics.ca/math/hasBasis|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "In the finite real Cl(p,q) profile, the algebra carrier has dimension 2^(p+q), while there are p+q grade-one generators. The producer emits selected generator records through math:hasBasisBlade; those records do not enumerate the complete carrier basis or prove independence and spanning."
+msgstr "在有限实 Cl(p,q) 配置中，代数载体的维数为 2^(p+q)，而一级生成元有 p+q 个。生成器通过 math:hasBasisBlade 输出选定的生成元记录；这些记录既未枚举载体的完整基，也不证明线性无关性或张成性。"
+
+msgctxt "https://blackcatinformatics.ca/math/hasBasis|http://www.w3.org/2004/02/skos/core#example"
+msgid "The Clifford producer names a separate BladeBasis through math:hasBasis and emits grade-one math:BasisBlade records with math:generatorIndex. The named carrier basis and the indexed generator records retain different roles."
+msgstr "Clifford 生成器通过 math:hasBasis 命名独立的 BladeBasis，并输出带有 math:generatorIndex 的一级 math:BasisBlade 记录。已命名的载体基与带索引的生成元记录保持不同角色。"
+
+msgctxt "https://blackcatinformatics.ca/math/hasBasis|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to record an actual basis choice for a vector space, quadratic space or algebra carrier, including several supplied choices without selecting a preferred basis."
+msgstr "用于记录向量空间、二次空间或代数载体的实际基选择，包括保留多个已提供的选择而不选出首选基。"
+
+msgctxt "https://blackcatinformatics.ca/math/hasBasis|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Do not count the emitted grade-one generator records as the full algebra carrier basis or treat generator order as a complete blade-basis order. A hasBasis link alone does not prove linear independence or spanning and does not choose an unrecorded default."
+msgstr "不要将输出的一级生成元记录计为代数载体的完整基，也不要将生成元顺序视为完整基刃的排序。单独的 hasBasis 链接不能证明线性无关性或张成性，也不会选取未记录的默认基。"
+
+msgctxt "https://blackcatinformatics.ca/math/hasBasis|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Link the supplied space or algebra to its Basis resource with math:hasBasis. Retain the CliffordAlgebra class-local requirement for a typed basis without making this property globally functional. Record supplied generator indices separately and use math:inBasis for coordinate representations."
+msgstr "通过 math:hasBasis 将已提供的空间或代数关联到其 Basis 资源。保留 CliffordAlgebra 类局部要求的已定型基，而不将该属性设为全局函数属性。单独记录已提供的生成元索引，并使用 math:inBasis 描述坐标表示。"
+
+msgctxt "https://blackcatinformatics.ca/math/inBasis|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "in basis"
+msgstr "在基下"
+
+msgctxt "https://blackcatinformatics.ca/math/inBasis|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Relates a math:GramMatrix or math:Vector to the math:Basis relative to which its entries or coordinates are recorded. The link identifies the declared basis context; it does not supply the element inventory, its order or a coordinate transformation."
+msgstr "将 math:GramMatrix 或 math:Vector 关联到记录其元素或坐标时所依据的 math:Basis。该链接标识已声明的基上下文，但不提供元素清单、元素顺序或坐标变换。"
+
+msgctxt "https://blackcatinformatics.ca/math/inBasis|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Matrix row/column indices and vector component indices are positions. Interpreting them as basis elements additionally requires the supplied position-to-element correspondence. The exact producer names p:covBasis only as Basis, so its inBasis edge alone does not publish such an ordered inventory."
+msgstr "矩阵行列索引与向量分量索引表示位置。要将其解释为基元素，还需要已提供的位置与元素对应关系。精确生成器仅将 p:covBasis 命名为 Basis，因此单独的 inBasis 边不会发布这样的有序清单。"
+
+msgctxt "https://blackcatinformatics.ca/math/inBasis|http://www.w3.org/2004/02/skos/core#example"
+msgid "The exact-pca producer emits p:pcaGram math:inBasis p:covBasis and separately p:pcaGram math:representsForm p:covForm. These identify the coordinate context and represented form, without enumerating the basis elements or their order."
+msgstr "exact-pca 生成器输出 p:pcaGram math:inBasis p:covBasis，并单独输出 p:pcaGram math:representsForm p:covForm。这些链接标识坐标上下文与所表示的形式，但不枚举基元素或其顺序。"
+
+msgctxt "https://blackcatinformatics.ca/math/inBasis|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to preserve the actual basis context of supplied Gram-matrix entries or vector coordinates, separately from the coordinate-independent vector or bilinear form."
+msgstr "用于保留已提供的 Gram 矩阵元素或向量坐标的实际基上下文，并与不依赖坐标的向量或双线性形式分开描述。"
+
+msgctxt "https://blackcatinformatics.ca/math/inBasis|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Do not treat a basis label or inBasis link as proof that an indexed array is complete, correctly ordered or expressed in that basis. Changing the link alone does not transform the entries, and no conversion between differently based arrays is implicit."
+msgstr "不要将基的标签或 inBasis 链接视为索引数组完整、排序正确或在该基下表示的证明。仅修改链接不会变换数组元素，不同基下的数组之间也不隐含任何转换。"
+
+msgctxt "https://blackcatinformatics.ca/math/inBasis|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Attach math:inBasis to the supplied vector or Gram matrix and retain any explicit basis-element ordering with its indexed components or entries. Keep math:representsForm separate from the coordinate context. A basis change needs an actual transformation and its inputs; this relation records no such execution."
+msgstr "在已提供的向量或 Gram 矩阵上附加 math:inBasis，并将任何显式基元素顺序与带索引的分量或元素一同保留。将 math:representsForm 与坐标上下文分开。基变换需要实际的变换及其输入；此关系不记录这样的执行。"
+
+msgctxt "https://blackcatinformatics.ca/math/Eigendecomposition|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Eigendecomposition"
+msgstr "特征分解"
+
+msgctxt "https://blackcatinformatics.ca/math/Eigendecomposition|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A decomposition of a linear operator into eigenvalue and nonzero eigenvector data. In finite dimension, the diagonalization A = QΛQ⁻¹ requires a complete eigenbasis: Q is invertible, its columns are eigenvectors, and the diagonal entries of Λ are their eigenvalues in matching order."
+msgstr "将线性算子分解为特征值和非零特征向量数据的分解。在有限维情形下，对角化 A = QΛQ⁻¹ 要求完整的特征向量基：Q 可逆，其列为特征向量，Λ 的对角元素是按相同顺序对应的特征值。"
+
+msgctxt "https://blackcatinformatics.ca/math/Eigendecomposition|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The operator acts on the declared vector space over its scalar field; any extension of scalars is explicit. Not every operator is diagonalizable. Orthonormal or unitary eigenbasis claims require additional inner-product and operator hypotheses; the finite-dimensional formula does not assert an eigenvector basis for arbitrary infinite-dimensional operators."
+msgstr "算子作用于已声明标量域上的已声明向量空间；任何标量扩张都应显式给出。并非每个算子都可对角化。声称标准正交特征向量基或酉特征向量矩阵需要额外的内积和算子假设；有限维公式并不声称任意无限维算子都存在特征向量基。"
+
+msgctxt "https://blackcatinformatics.ca/math/Eigendecomposition|http://www.w3.org/2004/02/skos/core#example"
+msgid "For A = diag(0,3) over the real numbers in a supplied ordered basis, Q = I and Λ = diag(0,3) give a complete diagonalization. Q is invertible although A is singular; the zero eigenvalue has the nonzero eigenvector (1,0)."
+msgstr "对于实数域上在已提供有序基下的 A = diag(0,3)，Q = I 和 Λ = diag(0,3) 给出完整对角化。虽然 A 是奇异矩阵，Q 仍可逆；零特征值具有非零特征向量 (1,0)。"
+
+msgctxt "https://blackcatinformatics.ca/math/Eigendecomposition|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to describe supplied eigenvalue and eigenvector data for an operator, retaining the operator, vector space, scalar field and evidence for any claimed complete diagonalization."
+msgstr "用于描述已提供的算子特征值和特征向量数据，保留算子、向量空间、标量域以及任何完整对角化声明的依据。"
+
+msgctxt "https://blackcatinformatics.ca/math/Eigendecomposition|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Do not infer pairing, order, multiplicity or completeness from separate unordered math:eigenvalue and math:eigenvector links. Equal output counts, distinct node identities or repeated RDF assertions do not establish these facts, and the two output sets do not imply a Cartesian product of valid eigenpairs."
+msgstr "不要从分开且无序的 math:eigenvalue 和 math:eigenvector 链接推断配对、顺序、重数或完整性。输出数量相等、节点标识不同或重复的 RDF 断言均不能证明这些事实；两个输出集合也不意味着其笛卡尔积中的所有配对都是有效特征对。"
+
+msgctxt "https://blackcatinformatics.ca/math/Eigendecomposition|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain actual source associations and ordering in their supplied representation. The registered skos:closeMatch to wd:Q190524 has logic:ValidationOnly preservation; it neither supplies an OpenMath eigen correspondence nor certifies numerical execution. A type or eigensolver descriptor alone proves no result."
+msgstr "在来源所提供的表示中保留实际的关联和顺序。已登记的、指向 wd:Q190524 的 skos:closeMatch 采用 logic:ValidationOnly 保持判定；它既不提供 OpenMath 特征对应关系，也不认证数值执行。仅有类型或特征求解器描述符不能证明任何结果。"
+
+msgctxt "https://blackcatinformatics.ca/math/eigenvalue|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "eigenvalue"
+msgstr "特征值"
+
+msgctxt "https://blackcatinformatics.ca/math/eigenvalue|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Relates a math:Eigendecomposition to a math:Number representing a scalar λ for which Av = λv holds for some nonzero vector v in the declared vector space. The scalar belongs to the declared field, which may be real or complex; the number is a resource rather than a bare literal."
+msgstr "将 math:Eigendecomposition 关联到表示标量 λ 的 math:Number，且已声明向量空间中存在非零向量 v 使 Av = λv 成立。标量属于已声明的域，该域可以是实数域或复数域；该数以资源而非裸字面量表示。"
+
+msgctxt "https://blackcatinformatics.ca/math/eigenvalue|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Zero is a valid eigenvalue. In finite dimension, algebraic multiplicity counts a root of the characteristic polynomial, while geometric multiplicity is the dimension of its eigenspace. Neither is a count of distinct RDF number resources, and repeated identical RDF edges do not record multiplicity."
+msgstr "零是有效特征值。在有限维情形下，代数重数是特征多项式根的重数，几何重数则是对应特征子空间的维数。两者都不是不同 RDF 数值资源的数量，重复相同的 RDF 边也不记录重数。"
+
+msgctxt "https://blackcatinformatics.ca/math/eigenvalue|http://www.w3.org/2004/02/skos/core#example"
+msgid "For the real matrix A = diag(0,3), λ = 0 is an eigenvalue associated with v = (1,0). A math:eigenvalue link to the number resource records the scalar output; its association with this vector still needs the supplied source evidence."
+msgstr "对于实矩阵 A = diag(0,3)，λ = 0 是与 v = (1,0) 关联的特征值。指向数值资源的 math:eigenvalue 链接记录标量输出；它与此向量的关联仍需来源所提供的依据。"
+
+msgctxt "https://blackcatinformatics.ca/math/eigenvalue|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain a supplied eigenvalue as a number resource with its exact or approximate representation and the operator and scalar-field context of the decomposition."
+msgstr "用于将已提供的特征值保留为数值资源，并保留其精确或近似表示，以及分解的算子和标量域上下文。"
+
+msgctxt "https://blackcatinformatics.ca/math/eigenvalue|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Do not reject λ = 0, assume every real operator has real eigenvalues, or silently extend the scalar field. Do not pair this output with every math:eigenvector output or infer pairings from equal counts or RDF order."
+msgstr "不要排除 λ = 0，不要假定每个实算子都具有实特征值，也不要静默扩张标量域。不要将此输出与每个 math:eigenvector 输出配对，也不要从数量相等或 RDF 顺序推断配对。"
+
+msgctxt "https://blackcatinformatics.ca/math/eigenvalue|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Link the decomposition to the supplied math:Number. Preserve its numeric representation and any source association, ordering and multiplicity evidence separately; this property alone supplies none of them and performs no eigensolver computation."
+msgstr "将分解关联到已提供的 math:Number。单独保留其数值表示以及任何来源提供的关联、顺序和重数依据；该属性本身不提供这些信息，也不执行特征求解计算。"
+
+msgctxt "https://blackcatinformatics.ca/math/eigenvector|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "eigenvector"
+msgstr "特征向量"
+
+msgctxt "https://blackcatinformatics.ca/math/eigenvector|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Relates a math:Eigendecomposition to a nonzero vector v satisfying Av = λv for an associated scalar λ, relative to the declared operator, vector space and scalar field. The vector is a mathematical object; its coordinates additionally depend on the supplied basis."
+msgstr "将 math:Eigendecomposition 关联到非零向量 v；相对于已声明的算子、向量空间和标量域，该向量与关联标量 λ 满足 Av = λv。向量是数学对象；其坐标还依赖于已提供的基。"
+
+msgctxt "https://blackcatinformatics.ca/math/eigenvector|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "A nonzero scalar multiple remains an eigenvector for the same eigenvalue. Normalization and choice of representatives are additional data. Several independent vectors may share an eigenvalue, and a list of output resources alone establishes neither their independence nor the dimension of that eigenspace."
+msgstr "非零标量倍数仍是同一特征值的特征向量。归一化和代表元选择属于额外数据。多个线性无关向量可以共享一个特征值，仅有输出资源列表既不能证明其线性无关性，也不能确定该特征子空间的维数。"
+
+msgctxt "https://blackcatinformatics.ca/math/eigenvector|http://www.w3.org/2004/02/skos/core#example"
+msgid "For the real matrix A = diag(0,3), v = (1,0) is a nonzero eigenvector with λ = 0, and 2v is another representative of the same eigendirection. The zero vector satisfies the equation but is not an eigenvector."
+msgstr "对于实矩阵 A = diag(0,3)，v = (1,0) 是对应 λ = 0 的非零特征向量，2v 则是同一特征方向的另一个代表元。零向量满足方程，但不是特征向量。"
+
+msgctxt "https://blackcatinformatics.ca/math/eigenvector|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain a supplied nonzero eigenvector output with its vector-space and scalar-field context, preserving any coordinate basis and actual source association to its eigenvalue."
+msgstr "用于保留已提供的非零特征向量输出及其向量空间和标量域上下文，并保留任何坐标基以及来源提供的与其特征值的实际关联。"
+
+msgctxt "https://blackcatinformatics.ca/math/eigenvector|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Do not treat the zero vector as an eigenvector or infer unit norm, orthogonality, a complete eigenbasis or an eigenvalue pairing from this link. A selected or truncated component family need not span the input space."
+msgstr "不要将零向量视为特征向量，也不要从此链接推断单位范数、正交性、完整特征向量基或与某个特征值的配对。选定或截断的分量族不一定张成输入空间。"
+
+msgctxt "https://blackcatinformatics.ca/math/eigenvector|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Link the decomposition to the supplied vector resource and retain its coordinates, basis, normalization and association evidence as provided. Keep eigenvalue associations explicit in the source representation; separate unordered output links neither construct eigenpairs nor execute a solver."
+msgstr "将分解关联到已提供的向量资源，并按来源保留其坐标、基、归一化及关联依据。在来源表示中显式保留特征值关联；分开且无序的输出链接既不构造特征对，也不执行求解器。"
+
+msgctxt "https://blackcatinformatics.ca/math/SingularValueDecomposition|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Singular Value Decomposition"
+msgstr "奇异值分解"
+
+msgctxt "https://blackcatinformatics.ca/math/SingularValueDecomposition|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A factorization of a linear map between finite-dimensional real or complex inner-product spaces. In orthonormal coordinates A = UΣV*, with orthonormal factor columns appropriate to the declared form, nonnegative real diagonal entries in Σ and V* the conjugate transpose (ordinary transpose over the reals)."
+msgstr "有限维实或复内积空间之间线性映射的分解。在标准正交坐标下，A = UΣV*，其中因子矩阵的列按所声明形式满足标准正交条件，Σ 的对角元素为非负实数，V* 表示共轭转置（实数情形下为普通转置）。"
+
+msgctxt "https://blackcatinformatics.ca/math/SingularValueDecomposition|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "For m×n A, a full form has U m×m, Σ m×n and V n×n; a thin form may use k = min(m,n) columns, retaining zeros. A compact rank-r form retains the r positive singular-value occurrences. Names vary: retain supplied dimensions and zero treatment. Rectangular and singular maps are admitted; no eigenbasis or inverse is required."
+msgstr "对于 m×n 的 A，完整形式中 U 为 m×m、Σ 为 m×n、V 为 n×n；薄形式可以使用 k = min(m,n) 列并保留零值。秩为 r 的紧致形式保留 r 个正奇异值出现项。命名惯例各异，应保留来源提供的维数及零值处理方式。矩形映射和奇异映射均可采用此分解，无需特征向量基或逆。"
+
+msgctxt "https://blackcatinformatics.ca/math/SingularValueDecomposition|http://www.w3.org/2004/02/skos/core#example"
+msgid "For A = diag(3,3,0) over the reals with the standard Euclidean inner product and an ordered orthonormal basis, U = V = I and Σ = A give an exact SVD. The two occurrences of singular value 3 give rank two, despite there being only one distinct positive value."
+msgstr "对于实数域上采用标准欧氏内积及有序标准正交基的 A = diag(3,3,0)，U = V = I 和 Σ = A 给出精确 SVD。奇异值 3 出现两次，因此秩为二，尽管不同的正值只有一个。"
+
+msgctxt "https://blackcatinformatics.ca/math/SingularValueDecomposition|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to describe supplied singular-value factors or results, retaining the linear map, scalar field, actual inner products, ordered coordinate bases and the precise dimensions and completeness of the declared form."
+msgstr "用于描述已提供的奇异值分解因子或结果，保留线性映射、标量域、实际内积、有序坐标基以及所声明形式的确切维数和完整性。"
+
+msgctxt "https://blackcatinformatics.ca/math/SingularValueDecomposition|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Do not treat a rank-truncated approximation as a complete exact factorization or identify a numerical tolerance-based rank with exact rank. Unordered singularValue links supply no multiplicity, ordering or left/right-vector association. Changing the inner products may change the singular values; the finite matrix statement does not cover arbitrary infinite-dimensional operators."
+msgstr "不要将截断秩近似视为完整精确分解，也不要将基于数值容差的秩等同于精确秩。无序的 singularValue 链接不提供重数、顺序或与左右奇异向量的关联。改变内积可能改变奇异值；有限矩阵结论不适用于任意无限维算子。"
+
+msgctxt "https://blackcatinformatics.ca/math/SingularValueDecomposition|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Preserve supplied factor matrices, their shared ordering, multiplicities and exact or approximate status in the source representation. The registered skos:exactMatch to wd:Q420904 carries logic:SoundUnderApproximation preservation; a mapping, type or randomizedSVD descriptor does not certify an executed factorization."
+msgstr "在来源表示中保留已提供的因子矩阵、共同顺序、重数及精确或近似状态。已登记的、指向 wd:Q420904 的 skos:exactMatch 采用 logic:SoundUnderApproximation 保持判定；对应关系、类型或 randomizedSVD 描述符均不能认证已执行的分解。"
+
+msgctxt "https://blackcatinformatics.ca/math/singularValue|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "singular value"
+msgstr "奇异值"
+
+msgctxt "https://blackcatinformatics.ca/math/singularValue|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Relates a math:SingularValueDecomposition to a math:Number representing one nonnegative real singular value σ, including zero when retained by the declared form. In orthonormal coordinates these values occupy the diagonal of Σ in A = UΣV*; the number is a resource rather than a bare literal."
+msgstr "将 math:SingularValueDecomposition 关联到表示一个非负实奇异值 σ 的 math:Number；若声明的形式保留零值，则包括零。在标准正交坐标下，这些值位于 A = UΣV* 中 Σ 的对角线上；该数以资源而非裸字面量表示。"
+
+msgctxt "https://blackcatinformatics.ca/math/singularValue|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "For m×n A, its k = min(m,n) singular values are the nonnegative square roots of the largest k eigenvalues of A* A, counting multiplicity. When m < n, the other n-m eigenvalues of A* A are forced zeros. Singular values depend on the supplied inner products; they are not generally eigenvalues of A, their squares or explained-variance ratios."
+msgstr "对于 m×n 的 A，其 k = min(m,n) 个奇异值是 A* A 按重数计算的最大 k 个特征值的非负平方根。当 m < n 时，A* A 的其余 n-m 个特征值必为零。奇异值依赖于已提供的内积；一般而言，它们不同于 A 的特征值、自身的平方或解释方差比。"
+
+msgctxt "https://blackcatinformatics.ca/math/singularValue|http://www.w3.org/2004/02/skos/core#example"
+msgid "For real A = diag(3,3,0) with the standard Euclidean inner product, the singular-value sequence is 3, 3, 0 and exact rank is two. One unordered link to the number 3 cannot record both occurrences, and repeating the same RDF assertion does not add multiplicity."
+msgstr "对于采用标准欧氏内积的实矩阵 A = diag(3,3,0)，奇异值序列为 3、3、0，精确秩为二。指向数值 3 的一个无序链接不能记录两次出现，重复同一 RDF 断言也不会增加重数。"
+
+msgctxt "https://blackcatinformatics.ca/math/singularValue|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain a supplied singular value as a number resource with its exact or approximate representation, decomposition context and source evidence for any occurrence multiplicity or factor position."
+msgstr "用于将已提供的奇异值保留为数值资源，并保留其精确或近似表示、分解上下文以及来源提供的任何出现重数或因子位置依据。"
+
+msgctxt "https://blackcatinformatics.ca/math/singularValue|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Do not count distinct positive values or distinct RDF resources as exact rank. A truncated output set does not disclose omitted values, and absence of a zero output is not evidence of full rank. A numerical zero threshold is a supplied policy, never an implicit mathematical equality."
+msgstr "不要将不同的正值数量或不同 RDF 资源数量作为精确秩。截断的输出集合不披露被省略的值，未输出零值也不构成满秩依据。数值零阈值是已提供的策略，绝不意味着隐含的数学相等。"
+
+msgctxt "https://blackcatinformatics.ca/math/singularValue|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Link the decomposition to the supplied math:Number and preserve source ordering, occurrence multiplicities, factor associations and any numerical tolerance separately. This output relation supplies no left/right-vector pairing, default order, completeness witness or numerical computation."
+msgstr "将分解关联到已提供的 math:Number，并单独保留来源顺序、出现重数、因子关联及任何数值容差。该输出关系不提供左右奇异向量配对、默认顺序、完整性见证或数值计算。"
+
+msgctxt "https://blackcatinformatics.ca/math/LinearMap|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Linear Map"
+msgstr "线性映射"
+
+msgctxt "https://blackcatinformatics.ca/math/LinearMap|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A total function T from a vector space V to a vector space W over the same scalar field, preserving linear combinations: T(av+bw) = aT(v)+bT(w). Its source and target vector-space structures are distinct in role from their carrier sets and from a matrix representing the map in chosen bases."
+msgstr "从同一标量域上的向量空间 V 到向量空间 W 的全函数 T，保持线性组合：T(av+bw) = aT(v)+bT(w)。源和目标的向量空间结构在角色上不同于各自的载体集合，也不同于在选定基下表示该映射的矩阵。"
+
+msgctxt "https://blackcatinformatics.ca/math/LinearMap|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Linearity needs no inner product or finite-dimensional assumption. A finite matrix representation additionally needs ordered source and target bases. Changing coordinates for the same map over the same field preserves rank; a matrix label, frame or finite sample alone does not establish the universal linearity law."
+msgstr "线性性不需要内积或有限维假设。有限矩阵表示还需要有序的源基和目标基。对同一域上的同一映射改变坐标会保持秩；仅有矩阵标签、框架或有限样本不能证明普遍的线性规律。"
+
+msgctxt "https://blackcatinformatics.ca/math/LinearMap|http://www.w3.org/2004/02/skos/core#example"
+msgid "Over the real numbers, T: R³ → R² given by T(x,y,z) = (x,y) is linear. In the standard ordered bases its matrix is [[1,0,0],[0,1,0]], its image is R², its rank is two and its kernel has dimension one."
+msgstr "在实数域上，T: R³ → R²，T(x,y,z) = (x,y)，是线性映射。在标准有序基下，其矩阵为 [[1,0,0],[0,1,0]]，像为 R²，秩为二，核的维数为一。"
+
+msgctxt "https://blackcatinformatics.ca/math/LinearMap|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for a justified linear map with declared source and target vector spaces over the same field, preserving their carriers, scalar actions and actual representation or defining rule."
+msgstr "用于有依据的线性映射，其源和目标向量空间应声明在同一域上，并保留它们的载体、标量作用及实际表示或定义规则。"
+
+msgctxt "https://blackcatinformatics.ca/math/LinearMap|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Do not infer linearity from a matrix-shaped dataset or a neural-layer label. A nonzero bias translation is affine rather than linear, and a nonlinear activation does not become linear merely because its input has a weight matrix. Do not confuse a mathematical function with a functional RDF predicate or an executed method."
+msgstr "不要从矩阵形状的数据集或神经网络层标签推断线性性。非零偏置平移是仿射而非线性的，非线性激活也不会仅因其输入具有权重矩阵而变为线性。不要将数学函数与函数型 RDF 谓词或已执行的方法混淆。"
+
+msgctxt "https://blackcatinformatics.ca/math/LinearMap|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the inherited math:Function frame through math:domain and math:codomain carrier-set resources; describe the vector-space structures and scalar field separately with existing vocabulary. Preserve any justified math:image. The registered skos:exactMatch to wd:Q207643 has logic:SoundUnderApproximation preservation; neither it nor the frame executes the map or proves linearity."
+msgstr "通过 math:domain 和 math:codomain 指向载体集合资源，保留继承的 math:Function 框架；使用现有词汇单独描述向量空间结构及标量域。保留任何有依据的 math:image。已登记的、指向 wd:Q207643 的 skos:exactMatch 采用 logic:SoundUnderApproximation 保持判定；该对应关系及框架均不执行映射，也不证明线性性。"
+
+msgctxt "https://blackcatinformatics.ca/math/Rank|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Rank"
+msgstr "秩"
+
+msgctxt "https://blackcatinformatics.ca/math/Rank|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The dimension of the image of a math:LinearMap over its declared scalar field. A finite rank is a nonnegative integer, including zero, recorded through math:rankValue. The general image dimension may instead be infinite; the finite numeric property supplies no infinite-cardinal encoding."
+msgstr "math:LinearMap 的像在其已声明标量域上的维数。有限秩是非负整数，包括零，通过 math:rankValue 记录。一般的像维数也可能是无限的；有限数值属性不提供无限基数编码。"
+
+msgctxt "https://blackcatinformatics.ca/math/Rank|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Rank concerns the attained image, not the declared source or target dimension. For a finite-dimensional source V, dim(V) = rank(T) + dim(kernel(T)); no finite-source conclusion is inferred for an arbitrary infinite-dimensional map. Rank also depends on the scalar-field interpretation of the vector spaces."
+msgstr "秩描述实际达到的像，而非已声明的源或目标维数。对于有限维源空间 V，dim(V) = rank(T) + dim(kernel(T))；不能对任意无限维映射推断仅适用于有限维源的结论。秩还依赖于向量空间的标量域解释。"
+
+msgctxt "https://blackcatinformatics.ca/math/Rank|http://www.w3.org/2004/02/skos/core#example"
+msgid "The real projection T: R³ → R², T(x,y,z) = (x,y), has rank two and nullity one. The zero map has rank zero, even when its source and target are nonzero vector spaces."
+msgstr "实投影 T: R³ → R²，T(x,y,z) = (x,y)，秩为二，零度为一。零映射的秩为零，即使其源和目标都是非零向量空间。"
+
+msgctxt "https://blackcatinformatics.ca/math/Rank|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to describe the justified image dimension of an identified linear map in its actual field and vector-space context, keeping any finite numeric value separate from the map and its coordinate matrix."
+msgstr "用于在已标识线性映射的实际域和向量空间上下文中描述有依据的像维数，并将任何有限数值与映射及其坐标矩阵分开保留。"
+
+msgctxt "https://blackcatinformatics.ca/math/Rank|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Do not substitute tensor-axis count, root-system rank, matrix size or a count of distinct output resources. In the finite-dimensional real or complex inner-product SVD setting, exact rank counts positive singular-value occurrences with multiplicity. Numerical tolerance and rank truncation are separate policies, not exact-rank proofs."
+msgstr "不要用张量轴数、根系的秩、矩阵大小或不同输出资源的数量代替秩。在有限维实或复内积空间的 SVD 情形下，精确秩按重数计算正奇异值的出现项。数值容差和秩截断属于独立策略，不构成精确秩证明。"
+
+msgctxt "https://blackcatinformatics.ca/math/Rank|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Describe the rank as its own math:Rank resource and use math:rankValue for a justified finite value. Preserve the source identification of the relevant map and field in the existing representation; no dedicated rank-of property is supplied here. A type, number or grounding link alone does not calculate rank."
+msgstr "将秩描述为独立的 math:Rank 资源，并用 math:rankValue 记录有依据的有限值。在现有表示中保留来源对相关映射及标量域的标识；此处不提供专用的秩所属映射属性。仅有类型、数值或对应关系链接不会计算秩。"
+
+msgctxt "https://blackcatinformatics.ca/math/rankValue|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "rank value"
+msgstr "秩值"
+
+msgctxt "https://blackcatinformatics.ca/math/rankValue|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The nonnegative-integer value of a finite math:Rank: the dimension of the image of its associated linear map over the declared scalar field. Zero is an actual finite value. This datatype property records a supplied mathematical value; it does not compute or verify rank."
+msgstr "有限 math:Rank 的非负整数值，即其关联线性映射的像在已声明标量域上的维数。零是实际的有限值。该数据类型属性记录已提供的数学值，不计算或验证秩。"
+
+msgctxt "https://blackcatinformatics.ca/math/rankValue|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The finite value contract has no fixed machine-width ceiling and no encoding for infinite-cardinal or unknown rank. The declared nonnegative-integer meaning is distinct from an executed lexical, range or cardinality check; no generated SHACL or native rank-validation result follows from this annotation."
+msgstr "有限值契约不设固定机器位宽上限，也不编码无限基数秩或未知秩。已声明的非负整数含义与已执行的词法、范围或基数检查不同；不能从此注释推断已生成 SHACL 或原生秩验证的结果。"
+
+msgctxt "https://blackcatinformatics.ca/math/rankValue|http://www.w3.org/2004/02/skos/core#example"
+msgid "For the real projection (x,y,z) ↦ (x,y), a supplied math:Rank resource can carry math:rankValue 2. The literal records the justified image dimension; the property does not infer the projection, its field or the argument establishing that value."
+msgstr "对于实投影 (x,y,z) ↦ (x,y)，已提供的 math:Rank 资源可以携带 math:rankValue 2。该字面量记录有依据的像维数；属性不会推断投影、标量域或确立该值的论证。"
+
+msgctxt "https://blackcatinformatics.ca/math/rankValue|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when a finite image dimension is actually supplied and justified, preserving its integer literal and the source context that identifies the linear map and scalar field."
+msgstr "用于实际提供且有依据的有限像维数，保留整数字面量以及标识线性映射和标量域的来源上下文。"
+
+msgctxt "https://blackcatinformatics.ca/math/rankValue|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Do not replace an unknown or infinite rank with zero, a large sentinel or an ambient dimension. Do not attach a rounded estimate or tolerance-based numerical rank as if it established the exact mathematical image dimension."
+msgstr "不要用零、大的哨兵值或环境维数代替未知秩或无限秩。不要将四舍五入估计或基于容差的数值秩附加为已确立精确数学像维数的值。"
+
+msgctxt "https://blackcatinformatics.ca/math/rankValue|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Attach the supplied nonnegative integer to the math:Rank resource and retain the map, field and supporting evidence in the existing source representation. Keep omission distinct from zero and preserve any separate approximation policy. The relation alone supplies no specialized validation gate or rank computation."
+msgstr "将已提供的非负整数附加到 math:Rank 资源，并在现有来源表示中保留映射、标量域及支持依据。将省略与零分开，并保留任何独立的近似策略。该关系本身不提供专门的验证关卡或秩计算。"
+
+msgctxt "https://blackcatinformatics.ca/math/CovarianceOperator|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Covariance Operator"
+msgstr "协方差算子"
+
+msgctxt "https://blackcatinformatics.ca/math/CovarianceOperator|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A self-adjoint positive-semidefinite linear operator representing centered second moments in a declared real or complex inner-product setting. For finite-dimensional column coordinates with E[‖X‖²] finite, μ = E[X] and C = E[(X-μ)(X-μ)*], where * is conjugate transpose, or ordinary transpose over the reals."
+msgstr "在已声明的实或复内积背景下表示中心二阶矩的自伴半正定线性算子。对于有限维列坐标，若 E[‖X‖²] 有限，则 μ = E[X]，C = E[(X-μ)(X-μ)*]，其中 * 表示共轭转置，在实数情形下为普通转置。"
+
+msgctxt "https://blackcatinformatics.ca/math/CovarianceOperator|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The coordinate formula uses supplied orthonormal bases and the complex convention ⟨u,v⟩ = u* v, conjugate-linear in the first argument. Infinite-dimensional use requires stated existence, boundedness and spectral hypotheses; this type does not assert a discrete eigenvector basis for an arbitrary operator. An unconjugated complex second moment is a different construction."
+msgstr "坐标公式使用已提供的标准正交基以及复内积约定 ⟨u,v⟩ = u* v，第一个变量为共轭线性的。无限维使用需要声明存在性、有界性和谱方面的假设；该类型不声称任意算子都存在离散特征向量基。不带共轭的复二阶矩属于不同构造。"
+
+msgctxt "https://blackcatinformatics.ca/math/CovarianceOperator|http://www.w3.org/2004/02/skos/core#example"
+msgid "A real random vector equally likely to be (1,0) or (-1,0) has mean zero and covariance diag(1,0) under the standard Euclidean inner product. This covariance is positive semidefinite and singular; its zero eigenvalue is valid, and no inverse is required."
+msgstr "一个以相同概率取 (1,0) 或 (-1,0) 的实随机向量，均值为零，在标准欧氏内积下的协方差为 diag(1,0)。该协方差半正定且奇异；零特征值有效，也不要求存在逆。"
+
+msgctxt "https://blackcatinformatics.ca/math/CovarianceOperator|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for a justified population or empirical covariance operator, retaining the observations or probability model, scalar field, inner product, centering, scaling and actual normalization convention in the source representation."
+msgstr "用于有依据的总体或经验协方差算子，在来源表示中保留观测或概率模型、标量域、内积、中心化、缩放以及实际归一化约定。"
+
+msgctxt "https://blackcatinformatics.ca/math/CovarianceOperator|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Do not infer covariance from a Gram-matrix or symmetry label alone, require positive definiteness, or replace a missing operator with zero covariance. Repeated eigenvalues do not select unique eigenvectors. A declared covariance role or solver descriptor does not establish centering, covariance construction or numerical spectral analysis."
+msgstr "不要仅从 Gram 矩阵或对称性标签推断协方差，不要要求正定性，也不要用零协方差代替缺失的算子。重复特征值不选定唯一特征向量。已声明的协方差角色或求解器描述符不能证明已执行中心化、协方差构造或数值谱分析。"
+
+msgctxt "https://blackcatinformatics.ca/math/CovarianceOperator|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the inherited LinearMap and Function carrier-set frame separately from the vector-space structure. Use math:covarianceOperator from the analysis to this operator. Preserve sample orientation and divisor: empirical 1/N requires N > 0, while 1/(N-1) requires N > 1. Those choices and their evidence are supplied data, not defaults or new validation gates."
+msgstr "将继承的 LinearMap 和 Function 载体集合框架与向量空间结构分开保留。使用 math:covarianceOperator 从分析关联到此算子。保留样本排列方向和除数：经验约定 1/N 要求 N > 0，而 1/(N-1) 要求 N > 1。这些选择及其依据属于已提供的数据，不是默认值或新的验证关卡。"
+
+msgctxt "https://blackcatinformatics.ca/math/covarianceOperator|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "covariance operator"
+msgstr "协方差算子"
+
+msgctxt "https://blackcatinformatics.ca/math/covarianceOperator|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Relates a math:PCAAnalysis to the supplied math:CovarianceOperator that is its declared decomposition operand. The analysis process, its input data, the covariance operator and any reported numerical outputs retain separate roles; this link records the operator role rather than constructing it."
+msgstr "将 math:PCAAnalysis 关联到已提供的 math:CovarianceOperator，后者作为其已声明的分解操作数。分析过程、输入数据、协方差算子及任何已报告的数值输出保持不同角色；该链接记录算子角色，而不构造算子。"
+
+msgctxt "https://blackcatinformatics.ca/math/covarianceOperator|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The current PCA source contract requires at least one covariance-operator resource through its generic minimum and existing closure, associated with math:IncompletePCAAnalysis. This is not an exact-one or typed-target enforcement claim. The mathematical covariance meaning and the inherited operator frame still need their own evidence."
+msgstr "当前 PCA 来源契约通过通用最小基数及现有闭世界闭包要求至少一个协方差算子资源，并关联到 math:IncompletePCAAnalysis。这不意味着已强制恰好一个值或目标类型。协方差的数学含义及继承的算子框架仍各自需要依据。"
+
+msgctxt "https://blackcatinformatics.ca/math/covarianceOperator|http://www.w3.org/2004/02/skos/core#example"
+msgid "The exact-pca producer emits p:residualPCA math:covarianceOperator p:residualCovariance and gives that CovarianceOperator domain and codomain p:covSpace. Its fixed Gram, dominant-axis and LDL calculations do not supply observed samples, an executed centering step or a sample-covariance normalization."
+msgstr "exact-pca 生成器输出 p:residualPCA math:covarianceOperator p:residualCovariance，并将该 CovarianceOperator 的定义域和陪域均设为 p:covSpace。其固定 Gram 矩阵、主导轴和 LDL 计算不提供实际观测样本、已执行的中心化步骤或样本协方差归一化。"
+
+msgctxt "https://blackcatinformatics.ca/math/covarianceOperator|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain the actual covariance operand named by an analysis, together with independently supplied input, preprocessing, scalar-field, inner-product and normalization context."
+msgstr "用于保留分析所命名的实际协方差操作数，以及独立提供的输入、预处理、标量域、内积和归一化上下文。"
+
+msgctxt "https://blackcatinformatics.ca/math/covarianceOperator|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Do not reverse the analysis-to-operator direction, substitute the dataset or solver for the operator, or infer an executed spectral decomposition from the edge. Missing covariance differs from a supplied operator, which may be zero or singular; no absent operand is repaired by inventing a zero operator or undeclared preprocessing."
+msgstr "不要颠倒从分析到算子的方向，不要用数据集或求解器代替算子，也不要从此边推断已执行谱分解。缺失的协方差不同于已提供的算子，后者可以是零算子或奇异算子；不能通过虚构零算子或未声明的预处理来补全缺失操作数。"
+
+msgctxt "https://blackcatinformatics.ca/math/covarianceOperator|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Link the analysis to its justified CovarianceOperator resource and preserve that operator’s carrier-set frame and actual construction evidence. Keep centering and scaling declarations on the analysis distinct from proof that those operations ran. The relation supplies no additional maximum, automatic target typing, covariance computation or numerical validation result."
+msgstr "将分析关联到有依据的 CovarianceOperator 资源，并保留该算子的载体集合框架及实际构造依据。将分析上的中心化和缩放声明与这些操作已执行的证明分开。该关系不提供额外的最大基数、自动目标定型、协方差计算或数值验证结果。"
+
+msgctxt "https://blackcatinformatics.ca/math/Subspace|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Subspace"
+msgstr "线性子空间"
+
+msgctxt "https://blackcatinformatics.ca/math/Subspace|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A vector subspace: a subset of a vector space closed under addition and scalar multiplication, itself a math:VectorSpace. A subclass of math:VectorSpace naming the space it sits in through math:subspaceOf. The image of a linear map is a subspace; an arbitrary embedding image or projection residual needs separate subspace justification. A math:OrthogonalComplement is the subspace orthogonal to an operand subspace within a declared inner-product space."
+msgstr "向量子空间：向量空间中对加法和标量乘法封闭的子集，其本身也是 math:VectorSpace。它是 math:VectorSpace 的子类，通过 math:subspaceOf 指明所在空间。线性映射的像是子空间；任意嵌入的像或投影残差需要另行论证其子空间结构。math:OrthogonalComplement 是在已声明的内积空间中与操作数子空间正交的子空间。"
+
+msgctxt "https://blackcatinformatics.ca/math/Subspace|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "For W to be a subspace of V over F, W contains zero and uses the induced addition and scalar action of V, closed under every scalar in the same field F. Zero and whole-space subspaces, finite and infinite dimension are allowed. Algebraic closure here does not require topological closedness."
+msgstr "若 W 是域 F 上向量空间 V 的子空间，则 W 包含零向量，使用 V 诱导的加法和标量作用，并对同一域 F 中的每个标量封闭。允许零子空间、整个空间以及有限维和无限维情形。此处的代数封闭性不要求拓扑闭性。"
+
+msgctxt "https://blackcatinformatics.ca/math/Subspace|http://www.w3.org/2004/02/skos/core#example"
+msgid "In the real vector space R³ with its usual operations, W = {(x,y,0) : x,y in R} is a subspace, including zero and closed under real linear combinations. The affine plane {(x,y,1) : x,y in R} is not a subspace because it lacks zero."
+msgstr "在使用通常运算的实向量空间 R³ 中，W = {(x,y,0) : x,y 属于 R} 是子空间，包含零向量并对实线性组合封闭。仿射平面 {(x,y,1) : x,y 属于 R} 不是子空间，因为它不包含零向量。"
+
+msgctxt "https://blackcatinformatics.ca/math/Subspace|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for a justified vector subspace with its ambient vector-space structure and common scalar field retained. A linear-map image or a supplied span can establish a subspace; sampled vectors alone do not establish closure of the sample set."
+msgstr "用于有依据的向量子空间，并保留其环境向量空间结构及共同的标量域。线性映射的像或已提供的线性包可以确立子空间；仅有向量样本并不能确立样本集合的封闭性。"
+
+msgctxt "https://blackcatinformatics.ca/math/Subspace|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Do not infer a subspace from an embedding label, a dimension, an arbitrary nonlinear image or residual data. An orthogonal complement requires the declared ambient inner product; a global orthogonal direct-sum decomposition needs its own hypotheses in infinite dimension."
+msgstr "不要从嵌入标签、维数、任意非线性映射的像或残差数据推断子空间。正交补需要已声明的环境内积；在无限维情形中，整个空间的正交直和分解还需要其自身的假设。"
+
+msgctxt "https://blackcatinformatics.ca/math/Subspace|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Describe W as math:Subspace and link each justified ambient V with math:subspaceOf. Retain math:underlyingSet, math:structureOperation and math:satisfiesAxiom evidence separately from descriptive math:scalarField links. A type or ambient link supplies no automatic closure proof or subspace computation."
+msgstr "将 W 描述为 math:Subspace，并通过 math:subspaceOf 关联到每个有依据的环境空间 V。将 math:underlyingSet、math:structureOperation 和 math:satisfiesAxiom 的依据与描述性的 math:scalarField 链接分开保留。类型或环境链接不提供自动的封闭性证明或子空间计算。"
+
+msgctxt "https://blackcatinformatics.ca/math/subspaceOf|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "subspace of"
+msgstr "是其子空间"
+
+msgctxt "https://blackcatinformatics.ca/math/subspaceOf|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Relates a math:Subspace to the vector space it is a subspace of. Domain math:Subspace, range math:VectorSpace (stated in prose). The ambient space a subspace sits in, and against which its orthogonal complement is taken."
+msgstr "将 math:Subspace 关联到以它为子空间的向量空间。定义域为 math:Subspace，值域为 math:VectorSpace（以文字说明）。该关系指明子空间所在的环境空间，其正交补也在该环境空间中取定。"
+
+msgctxt "https://blackcatinformatics.ca/math/subspaceOf|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The direction is W to ambient V, with a common scalar field and induced operations justified separately. Several ambient links may be valid, including W to itself. The source states domain and range in prose without native typing, cardinality, inclusion, transitivity or closure rules for this property."
+msgstr "方向从 W 指向环境空间 V，共同的标量域和诱导运算需另行论证。可以存在多个有效的环境链接，包括 W 指向自身。源定义以文字说明定义域和值域，未为此属性提供原生的类型、基数、包含、传递性或封闭性规则。"
+
+msgctxt "https://blackcatinformatics.ca/math/subspaceOf|http://www.w3.org/2004/02/skos/core#example"
+msgid "The linear-algebra-and-learning example states ex:embeddedSubspace math:subspaceOf ex:complexSpace4096. This records an asserted ambient relationship; the dataset supplies neither an embedding-image link to that subspace nor a proof of linear closure."
+msgstr "linear-algebra-and-learning 示例声明 ex:embeddedSubspace math:subspaceOf ex:complexSpace4096。这记录了一条断言的环境关系；该数据集既未提供从嵌入的像到此子空间的链接，也未提供线性封闭性证明。"
+
+msgctxt "https://blackcatinformatics.ca/math/subspaceOf|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain each justified ambient vector space of a subspace without choosing a preferred ambient. Preserve the actual scalar-field interpretation and induced operations rather than infer them from shared dimensions or carrier labels."
+msgstr "用于保留子空间的每个有依据的环境向量空间，不选择优先的环境空间。保留实际的标量域解释及诱导运算，而不是从相同维数或载体标签推断它们。"
+
+msgctxt "https://blackcatinformatics.ca/math/subspaceOf|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Do not reverse the relationship, substitute a carrier set or scalar field for the ambient vector-space structure, or treat the edge as a closure certificate. Keep math:orthogonalComplementOf for the operand subspace, math:ambientSpace for its enclosing space and math:definedByInnerProduct for its form; those role referents may coincide."
+msgstr "不要颠倒此关系，用载体集合或标量域替代环境向量空间结构，也不要将此边视为封闭性证明。以 math:orthogonalComplementOf 指明操作数子空间，math:ambientSpace 指明其所在空间，math:definedByInnerProduct 指明其形式；这些角色的指称对象可以重合。"
+
+msgctxt "https://blackcatinformatics.ca/math/subspaceOf|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Link the supplied math:Subspace to its ambient math:VectorSpace and preserve the source justification of zero, addition and same-field scalar closure. For orthogonal-complement descriptions retain the separate operand, ambient and inner-product roles. Neither this edge nor a retrieved competency answer calculates a residual subspace."
+msgstr "将已提供的 math:Subspace 关联到其环境 math:VectorSpace，并保留源中关于零向量、加法及同域标量封闭性的论证。描述正交补时，保留操作数、环境空间和内积的独立角色。此边或检索出的能力问题答案均不计算残差子空间。"
+
+msgctxt "https://blackcatinformatics.ca/math/InnerProductSpace|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Inner Product Space"
+msgstr "内积空间"
+
+msgctxt "https://blackcatinformatics.ca/math/InnerProductSpace|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A vector space equipped with an inner product — a math:VectorSpace carrying a math:innerProduct that assigns lengths and angles, so orthogonality and orthogonal complements are defined. A subclass of math:VectorSpace; the complex case carries a math:HermitianInnerProduct. It names the inner product it carries through math:innerProduct."
+msgstr "配备内积的向量空间：带有 math:innerProduct 的 math:VectorSpace，该内积确定长度和角度，使正交性和正交补得以定义。它是 math:VectorSpace 的子类；复数情形带有 math:HermitianInnerProduct。通过 math:innerProduct 指明其配备的内积。"
+
+msgctxt "https://blackcatinformatics.ca/math/InnerProductSpace|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The real case uses a symmetric positive-definite bilinear form; the complex case uses a conjugate-symmetric positive-definite sesquilinear form. Zero dimension, finite and infinite dimension are allowed. Completeness is an additional Hilbert-space condition, not a consequence of this type."
+msgstr "实数情形使用对称正定双线性型；复数情形使用共轭对称的正定半双线性型。允许零维、有限维和无限维情形。完备性是成为希尔伯特空间的额外条件，不是此类型的推论。"
+
+msgctxt "https://blackcatinformatics.ca/math/InnerProductSpace|http://www.w3.org/2004/02/skos/core#example"
+msgid "On real R², h(u,v) = u1 v1 + 2 u2 v2 is an inner product with h(v,v) = v1² + 2 v2², positive for every nonzero v. The coordinate formula presupposes the supplied ordered basis and real scalar interpretation."
+msgstr "在实数空间 R² 上，h(u,v) = u1 v1 + 2 u2 v2 是内积，且 h(v,v) = v1² + 2 v2² 对每个非零 v 均为正。该坐标公式以已提供的有序基和实标量解释为前提。"
+
+msgctxt "https://blackcatinformatics.ca/math/InnerProductSpace|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when a vector space carries a justified inner product needed for lengths, norms or orthogonality. Retain the space, carrier set, scalar field, coordinate basis and form as separate roles."
+msgstr "用于向量空间带有有依据的内积，且需要描述长度、范数或正交性的情形。保留空间、载体集合、标量域、坐标基和形式的独立角色。"
+
+msgctxt "https://blackcatinformatics.ca/math/InnerProductSpace|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Do not infer an inner product from a vector-space, norm or symmetric-matrix label alone, or treat positive-semidefinite or indefinite forms as positive-definite. An angle involving a zero vector is undefined, and complex angle conventions must be stated."
+msgstr "不要仅凭向量空间、范数或对称矩阵标签推断内积，也不要将半正定型或不定型当作正定型。涉及零向量的角度未定义；复数角度约定必须明确说明。"
+
+msgctxt "https://blackcatinformatics.ca/math/InnerProductSpace|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Describe the vector-space structure and link its supplied form with math:innerProduct. Keep the inherited carrier, operation and law evidence explicit. A class or form link proves neither the inner-product laws nor completeness and does not invoke the finite real rational numeric core."
+msgstr "描述向量空间结构，并通过 math:innerProduct 关联到已提供的形式。明确保留继承的载体、运算和定律依据。类或形式链接既不证明内积定律或完备性，也不调用有限维实有理数值核心。"
+
+msgctxt "https://blackcatinformatics.ca/math/HermitianInnerProduct|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Hermitian Inner Product"
+msgstr "厄米内积"
+
+msgctxt "https://blackcatinformatics.ca/math/HermitianInnerProduct|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A conjugate-symmetric, positive-definite sesquilinear form on a complex vector space — the inner product ⟨·,·⟩ of the complex case, linear in one argument and conjugate-linear in the other. A subclass of math:MathematicalObject carried by a math:InnerProductSpace through math:innerProduct; it is the structure that defines a math:OrthogonalComplement in the complex (S⊥) case (math:definedByInnerProduct)."
+msgstr "复向量空间上的共轭对称正定半双线性型，即复数情形的内积 ⟨·,·⟩，对一个参数线性，对另一个参数共轭线性。它是 math:MathematicalObject 的子类，由 math:InnerProductSpace 通过 math:innerProduct 配备；在复数情形（S⊥）中，它是通过 math:definedByInnerProduct 定义 math:OrthogonalComplement 的结构。"
+
+msgctxt "https://blackcatinformatics.ca/math/HermitianInnerProduct|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Preserve which argument is conjugate-linear. Under the first-conjugate convention, h(au,bv) = conjugate(a) b h(u,v) and h(v,u) = conjugate(h(u,v)). Positive definiteness requires real h(v,v) > 0 for nonzero v, with h(0,0) = 0."
+msgstr "保留哪个参数为共轭线性的约定。在第一参数共轭线性的约定下，h(au,bv) = conjugate(a) b h(u,v)，且 h(v,u) = conjugate(h(u,v))。正定性要求非零 v 的 h(v,v) 为正实数，并满足 h(0,0) = 0。"
+
+msgctxt "https://blackcatinformatics.ca/math/HermitianInnerProduct|http://www.w3.org/2004/02/skos/core#example"
+msgid "On C with h(z,w) = conjugate(z) w, h(i,1) = -i, h(1,i) = i and h(i,i) = 1. This form is conjugate-linear in the first argument and linear in the second; it is not complex bilinear."
+msgstr "在 C 上取 h(z,w) = conjugate(z) w，则 h(i,1) = -i、h(1,i) = i 且 h(i,i) = 1。该形式对第一参数共轭线性，对第二参数线性；它不是复双线性型。"
+
+msgctxt "https://blackcatinformatics.ca/math/HermitianInnerProduct|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for a justified positive-definite Hermitian inner product on a complex vector space, retaining its actual scalar field, argument convention and coordinate representation independently."
+msgstr "用于复向量空间上有依据的正定厄米内积，并独立保留其实际标量域、参数约定和坐标表示。"
+
+msgctxt "https://blackcatinformatics.ca/math/HermitianInnerProduct|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Do not identify complex sesquilinearity with bilinearity or ordinary symmetry. A Hermitian matrix can be indefinite or positive semidefinite; its label or conjugate symmetry alone does not establish an inner product."
+msgstr "不要将复半双线性等同于双线性或通常的对称性。厄米矩阵可以是不定的或半正定的；仅凭其标签或共轭对称性不能确立内积。"
+
+msgctxt "https://blackcatinformatics.ca/math/HermitianInnerProduct|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Name the form as its own math:HermitianInnerProduct resource. Use math:innerProduct from its space and math:definedByInnerProduct from a complement where applicable. Retain evidence for the laws; these declarations do not execute a complex Hermitian calculation or construct a complement."
+msgstr "将形式命名为独立的 math:HermitianInnerProduct 资源。使用 math:innerProduct 从其空间关联到它，并在适用时使用 math:definedByInnerProduct 从补对象关联到它。保留定律依据；这些声明不执行复厄米计算，也不构造补空间。"
+
+msgctxt "https://blackcatinformatics.ca/math/innerProduct|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "inner product"
+msgstr "内积"
+
+msgctxt "https://blackcatinformatics.ca/math/innerProduct|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Relates a math:InnerProductSpace to the inner product it carries — a math:HermitianInnerProduct in the complex case. Domain math:InnerProductSpace, range a math:HermitianInnerProduct or a real inner-product structure (stated in prose). The inner product is what makes orthogonality, and hence a math:OrthogonalComplement, well-defined."
+msgstr "将 math:InnerProductSpace 关联到其配备的内积；复数情形使用 math:HermitianInnerProduct。定义域为 math:InnerProductSpace，值域为 math:HermitianInnerProduct 或实内积结构（以文字说明）。内积使正交性及 math:OrthogonalComplement 得以明确定义。"
+
+msgctxt "https://blackcatinformatics.ca/math/innerProduct|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The direction is space to form. The source states domain and range in prose without a native global functionality or typed-target rule for this property. Several supplied form descriptions do not select a preferred form or establish their equality."
+msgstr "方向从空间指向形式。源定义以文字说明定义域和值域，未为此属性提供原生的全局函数性或目标类型规则。多个已提供的形式描述不会选定优先形式，也不确立它们相等。"
+
+msgctxt "https://blackcatinformatics.ca/math/innerProduct|http://www.w3.org/2004/02/skos/core#example"
+msgid "For real u = (1,1) and v = (1,-1), the standard dot product is zero, while h(u,v) = u1 v1 + 2 u2 v2 is -1. Linking the intended form matters: the same vectors are orthogonal under one inner product and not the other."
+msgstr "对于实向量 u = (1,1) 和 v = (1,-1)，标准点积为零，而 h(u,v) = u1 v1 + 2 u2 v2 为 -1。关联到所需形式至关重要：相同向量在一个内积下正交，在另一个内积下不正交。"
+
+msgctxt "https://blackcatinformatics.ca/math/innerProduct|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to identify the actual inner product carried by a vector-space description, retaining the real or complex setting and the supplied form laws rather than inferring them from dimensions or labels."
+msgstr "用于指明向量空间描述实际配备的内积，保留实数或复数背景及已提供的形式定律，而不是从维数或标签推断它们。"
+
+msgctxt "https://blackcatinformatics.ca/math/innerProduct|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Do not substitute a scalar pairing result, coordinate matrix, basis or residual for the form. The edge neither transforms coordinates nor proves symmetry, sesquilinearity or positive definiteness."
+msgstr "不要用标量配对结果、坐标矩阵、基或残差替代形式。此边既不变换坐标，也不证明对称性、半双线性或正定性。"
+
+msgctxt "https://blackcatinformatics.ca/math/innerProduct|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Point math:innerProduct from the space to its supplied form resource. Preserve the carrier, scalar field, basis and argument convention separately. Retain each justified description without a preferred-form rule; a link does not invoke a numerical evaluator."
+msgstr "使用 math:innerProduct 从空间指向其已提供的形式资源。分别保留载体、标量域、基和参数约定。保留每个有依据的描述，不设优先形式规则；链接不会调用数值求值器。"
+
+msgctxt "https://blackcatinformatics.ca/math/definedByInnerProduct|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "defined by inner product"
+msgstr "由内积定义"
+
+msgctxt "https://blackcatinformatics.ca/math/definedByInnerProduct|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Relates a math:OrthogonalComplement to the inner product that defines orthogonality for it — the math:HermitianInnerProduct in the complex case. Domain math:OrthogonalComplement, range a math:HermitianInnerProduct or real inner-product structure (stated in prose). An orthogonal complement without a named inner product is ambiguous and ill-formed (math:UnqualifiedOrthogonalComplement)."
+msgstr "将 math:OrthogonalComplement 关联到定义其正交性的内积；复数情形使用 math:HermitianInnerProduct。定义域为 math:OrthogonalComplement，值域为 math:HermitianInnerProduct 或实内积结构（以文字说明）。未指明内积的正交补含义不明且结构不完整（math:UnqualifiedOrthogonalComplement）。"
+
+msgctxt "https://blackcatinformatics.ca/math/definedByInnerProduct|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The existing OrthogonalComplement-local source profile has minimum one, maximum one and all-values restrictions with logic:Thing, plus required-path closure and the associated math:UnqualifiedOrthogonalComplement diagnostic. This generic resource contract does not prove that the target is a positive-definite Hermitian form."
+msgstr "现有仅针对 OrthogonalComplement 的源配置具有以 logic:Thing 为限定的最少一个、最多一个及所有值限制，并有必需路径闭包和相应诊断 math:UnqualifiedOrthogonalComplement。这一通用资源契约不证明目标是正定厄米型。"
+
+msgctxt "https://blackcatinformatics.ca/math/definedByInnerProduct|http://www.w3.org/2004/02/skos/core#example"
+msgid "The ordinary linear-algebra-and-learning example states ex:residualSubspace math:definedByInnerProduct ex:hermitianInnerProduct, separately from its operand and ambient links. This names a defining form without evaluating it or proving the complement equation."
+msgstr "普通 linear-algebra-and-learning 示例声明 ex:residualSubspace math:definedByInnerProduct ex:hermitianInnerProduct，并另行声明操作数和环境链接。这指明了定义形式，但不对其求值，也不证明补空间等式。"
+
+msgctxt "https://blackcatinformatics.ca/math/definedByInnerProduct|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when an orthogonal-complement description needs to retain the actual form defining orthogonality within its declared ambient space. Keep that form consistent with the supplied mathematical construction and argument convention."
+msgstr "用于正交补描述需要保留在其已声明环境空间中定义正交性的实际形式的情形。该形式须与已提供的数学构造及参数约定一致。"
+
+msgctxt "https://blackcatinformatics.ca/math/definedByInnerProduct|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Do not confuse the complement-to-form direction with math:innerProduct from the ambient space. The class-local restriction is not global property functionality, automatic Hermitian target typing or proof that every complement vector is orthogonal to the operand."
+msgstr "不要将从补对象到形式的方向与从环境空间出发的 math:innerProduct 混淆。类局部限制不是全局属性函数性、自动厄米目标类型推断，也不证明补空间中每个向量均与操作数正交。"
+
+msgctxt "https://blackcatinformatics.ca/math/definedByInnerProduct|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Link the complement to its supplied form and retain math:orthogonalComplementOf, math:ambientSpace and math:complementSemantics math:orthogonalComplement separately. Those roles need not have distinct referents. The competency query retrieves declarations; mathematical justification and computation remain separate evidence."
+msgstr "将补对象关联到其已提供的形式，并分别保留 math:orthogonalComplementOf、math:ambientSpace 和 math:complementSemantics math:orthogonalComplement。这些角色的指称对象不必不同。能力问题查询检索声明；数学论证和计算仍须作为独立依据。"
+
+msgctxt "https://blackcatinformatics.ca/math/ExplainedVariance|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Explained Variance"
+msgstr "解释方差"
+
+msgctxt "https://blackcatinformatics.ca/math/ExplainedVariance|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The share of positive finite total variance accounted for by a math:PrincipalComponent: its nonnegative covariance eigenvalue divided by the covariance trace, a dimensionless ratio in [0, 1]. A zero total variance leaves the ratio undefined. A subclass of math:MathematicalObject named by a PCA through math:explainedVarianceRatio; the ratios across retained components quantify retained variance."
+msgstr "math:PrincipalComponent 所占的正且有限的总方差份额：将其非负协方差特征值除以协方差迹，得到 [0, 1] 中的无量纲比率。总方差为零时，该比率未定义。它是 math:MathematicalObject 的子类，由 PCA 通过 math:explainedVarianceRatio 命名；各保留分量的比率量化保留的方差。"
+
+msgctxt "https://blackcatinformatics.ca/math/ExplainedVariance|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This class records a normalized per-component share, distinct from an unnormalized variance amount. Finite covariance matrices use their trace as total variance. Infinite-dimensional use needs justified finite-trace spectral assumptions; no complete eigenbasis follows from this type."
+msgstr "此类记录归一化的单分量份额，与未归一化的方差量不同。有限维协方差矩阵以其迹作为总方差。无限维用法需要有依据的有限迹谱假设；此类型不蕴含完整特征基。"
+
+msgctxt "https://blackcatinformatics.ca/math/ExplainedVariance|http://www.w3.org/2004/02/skos/core#example"
+msgid "For covariance diag(3,1,0), total variance is 4 and the associated component ratios are 3/4, 1/4 and 0. Retaining only the first component retains 3/4 of total variance. Zero covariance instead gives an undefined ratio, not a ratio of zero."
+msgstr "对于协方差 diag(3,1,0)，总方差为 4，对应分量的比率为 3/4、1/4 和 0。仅保留第一分量可保留总方差的 3/4。零协方差则产生未定义的比率，而不是零比率。"
+
+msgctxt "https://blackcatinformatics.ca/math/ExplainedVariance|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for a supplied component share justified by its nonnegative covariance eigenvalue and positive finite total variance. Preserve the actual covariance, scalar field, basis, preprocessing and normalization evidence together with the source component association."
+msgstr "用于已提供的分量份额，其依据为非负协方差特征值及正且有限的总方差。保留实际协方差、标量域、基、预处理和归一化依据，以及源中的分量对应关系。"
+
+msgctxt "https://blackcatinformatics.ca/math/ExplainedVariance|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Do not replace missing data or zero-total undefined normalization with zero or one. A ratio sum of one can omit zero-variance components and does not prove a complete basis, semantic importance or predictive quality. Retained variance and cumulative shares are separate claims."
+msgstr "不要将缺失数据或因总量为零而未定义的归一化替换为零或一。比率之和为一时仍可能遗漏零方差分量，不能证明基的完整性、语义重要性或预测质量。保留方差与累计份额是不同的声明。"
+
+msgctxt "https://blackcatinformatics.ca/math/ExplainedVariance|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Name the result as math:ExplainedVariance and link it from the analysis with math:explainedVarianceRatio. Preserve its supplied magnitude, component association, order and multiplicity in the existing source representation. A descriptor alone supplies no numeric value or normalization computation."
+msgstr "将结果命名为 math:ExplainedVariance，并通过 math:explainedVarianceRatio 从分析关联到它。在现有源表示中保留已提供的数值大小、分量对应关系、顺序和重数。单独的描述符不提供数值或归一化计算。"
+
+msgctxt "https://blackcatinformatics.ca/math/explainedVarianceRatio|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "explained variance ratio"
+msgstr "解释方差比率"
+
+msgctxt "https://blackcatinformatics.ca/math/explainedVarianceRatio|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Relates a math:PCAAnalysis to a math:ExplainedVariance it produces — the share of total variance a component accounts for. Domain math:PCAAnalysis, range math:ExplainedVariance (stated in prose). A declared output of the analysis."
+msgstr "将 math:PCAAnalysis 关联到它产生的 math:ExplainedVariance，即某分量所占的总方差份额。定义域为 math:PCAAnalysis，值域为 math:ExplainedVariance（以文字说明）。它是分析声明的一项输出。"
+
+msgctxt "https://blackcatinformatics.ca/math/explainedVarianceRatio|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The property signature is stated in prose. The existing PCA-local profile has a generic logic:Thing minimum and all-values restriction plus required-path closure, without a dedicated maximum, typed-target rule or numeric denominator/range proof."
+msgstr "属性签名以文字说明。现有仅针对 PCA 的配置具有通用 logic:Thing 最小数量及所有值限制，并有必需路径闭包，但没有专用的最大数量、目标类型规则或数值分母及范围证明。"
+
+msgctxt "https://blackcatinformatics.ca/math/explainedVarianceRatio|http://www.w3.org/2004/02/skos/core#example"
+msgid "The exact-pca producer emits p:residualPCA math:explainedVarianceRatio p:pc1Variance and types that descriptor as math:ExplainedVariance. Its fixed Gram, dominant-axis and LDL results supply neither a numeric ratio nor a PCA eigenvalue family."
+msgstr "exact-pca 生成器输出 p:residualPCA math:explainedVarianceRatio p:pc1Variance，并将该描述符标为 math:ExplainedVariance。其固定 Gram 矩阵、主导轴和 LDL 结果既不提供数值比率，也不提供 PCA 特征值族。"
+
+msgctxt "https://blackcatinformatics.ca/math/explainedVarianceRatio|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain a justified normalized component-result resource declared by a PCA analysis. Keep the source evidence identifying its actual component, covariance and normalization context independently of the other output relations."
+msgstr "用于保留 PCA 分析声明的、有依据的归一化分量结果资源。将源中识别其实际分量、协方差和归一化背景的依据与其他输出关系独立保留。"
+
+msgctxt "https://blackcatinformatics.ca/math/explainedVarianceRatio|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Do not substitute a literal, eigenvalue amount or singular value for this result resource. Unordered component and variance links do not establish pairings. The current competency query joins those roles independently; its rows are not numeric association certificates."
+msgstr "不要用字面量、未归一化特征值或奇异值替代此结果资源。无序的分量和方差链接不能确立配对。当前能力问题查询独立连接这些角色；其结果行不是数值对应关系的证明。"
+
+msgctxt "https://blackcatinformatics.ca/math/explainedVarianceRatio|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Point the property from the analysis to the supplied math:ExplainedVariance resource. Preserve its actual source value and component association without inferring order, repeated occurrences or a default ratio. The link alone performs no normalization or numeric validation."
+msgstr "使用此属性从分析指向已提供的 math:ExplainedVariance 资源。保留其实际源值和分量对应关系，不推断顺序、重复出现次数或默认比率。此链接本身不执行归一化或数值验证。"
+
+msgctxt "https://blackcatinformatics.ca/math/PrincipalComponent|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Principal Component"
+msgstr "主成分"
+
+msgctxt "https://blackcatinformatics.ca/math/PrincipalComponent|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A principal component: one orthonormal direction of maximal remaining variance produced by a math:PCAAnalysis — an eigenvector of the math:CovarianceOperator. A subclass of math:MathematicalObject, named by an analysis through math:principalComponent, carrying a math:LoadingVector (its coefficients) and explaining a share of variance (math:ExplainedVariance). Its MEANING is never an intrinsic property: what a component encodes is a math:ResidualInterpretationClaim held from a vantage."
+msgstr "一个主成分：math:PCAAnalysis 产生的正交归一方向之一，在剩余方向中具有最大方差——即 math:CovarianceOperator 的特征向量。它是 math:MathematicalObject 的子类，由分析通过 math:principalComponent 命名，带有 math:LoadingVector（其系数），并解释一部分方差（math:ExplainedVariance）。其含义绝不是固有属性：某个成分编码什么，是从一个立场持有的 math:ResidualInterpretationClaim。"
+
+msgctxt "https://blackcatinformatics.ca/math/PrincipalComponent|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "GMEOW uses the direction convention: a normalized nonzero covariance eigenvector in a declared geometry. The PCA review also uses component for a linear combination of variables. Keep that score-variable usage distinct from this direction and its LoadingVector coefficient representation; these roles impose no class disjointness or resource inequality."
+msgstr "GMEOW 采用方向约定：在已声明几何结构中的归一化非零协方差特征向量。PCA 综述也用成分指变量的线性组合。应将这种得分变量用法与这里的方向及其 LoadingVector 系数表示区分开；这些角色不施加类不相交或资源不相等要求。"
+
+msgctxt "https://blackcatinformatics.ca/math/PrincipalComponent|http://www.w3.org/2004/02/skos/core#example"
+msgid "For real covariance diag(3,1,0) in the standard Euclidean basis, the coordinate directions have eigenvalues 3, 1 and 0. The third unit direction is still a valid component direction; its zero eigenvalue does not make the vector zero."
+msgstr "对于标准欧氏基下的实协方差 diag(3,1,0)，各坐标方向的特征值分别为 3、1 和 0。第三个单位方向仍是有效的成分方向；其零特征值不会使向量变成零向量。"
+
+msgctxt "https://blackcatinformatics.ca/math/PrincipalComponent|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for a justified PCA output direction, retaining the covariance, scalar field, inner product, preprocessing, normalization and selected component family in the source evidence."
+msgstr "用于有依据的 PCA 输出方向，并在源证据中保留协方差、标量域、内积、预处理、归一化及所选成分族。"
+
+msgctxt "https://blackcatinformatics.ca/math/PrincipalComponent|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Do not infer semantic importance, computed scores or a unique preferred direction from this type. Repeated eigenvalues permit different eigenspace bases, sign or complex phase choices persist, and a truncated family need not span the input. Zero dimension supplies no nonzero component."
+msgstr "不要从此类型推断语义重要性、已计算的得分或唯一优先方向。重复特征值允许特征空间采用不同的基，符号或复相位选择仍然存在，截断成分族未必张成输入空间。零维空间不提供非零成分。"
+
+msgctxt "https://blackcatinformatics.ca/math/PrincipalComponent|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Link the analysis through math:principalComponent and retain ordered component and coefficient associations in the source representation. Keep any interpretation in a vantage-bearing math:ResidualInterpretationClaim; an output descriptor alone proves neither orthonormality nor an executed eigendecomposition."
+msgstr "通过 math:principalComponent 从分析建立链接，并在源表示中保留有序成分及系数关联。将任何解释放在带有立场的 math:ResidualInterpretationClaim 中；仅有输出描述符既不能证明正交归一性，也不能证明已执行特征分解。"
+
+msgctxt "https://blackcatinformatics.ca/math/principalComponent|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "principal component"
+msgstr "主成分"
+
+msgctxt "https://blackcatinformatics.ca/math/principalComponent|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Relates a math:PCAAnalysis to one of the math:PrincipalComponent directions it produces. Domain math:PCAAnalysis, range math:PrincipalComponent (stated in prose). The declared component outputs; a PCA producing none is ill-formed (math:IncompletePCAAnalysis)."
+msgstr "将 math:PCAAnalysis 关联到它产生的一个 math:PrincipalComponent 方向。定义域为 math:PCAAnalysis，值域为 math:PrincipalComponent（以文字说明）。这是已声明的成分输出；不产生任何成分的 PCA 是结构不完整的（math:IncompletePCAAnalysis）。"
+
+msgctxt "https://blackcatinformatics.ca/math/principalComponent|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This analysis-to-direction relation has a prose-only signature. The PCA-local generic Thing minimum, all-values restriction and required-path closure supply no dedicated maximum, automatic PrincipalComponent target typing, numerical normalization or variance ordering."
+msgstr "这个从分析指向方向的关系只有文字说明的签名。PCA 局部针对通用 Thing 的最小数量限制、所有值限制和必需路径闭包，不提供专用最大数量、自动 PrincipalComponent 目标类型标注、数值归一化或方差排序。"
+
+msgctxt "https://blackcatinformatics.ca/math/principalComponent|http://www.w3.org/2004/02/skos/core#example"
+msgid "An analysis can declare two supplied directions through math:principalComponent. The two unordered links retain those output roles without saying which has greater variance or which loading and score resources belong to either direction."
+msgstr "一个分析可以通过 math:principalComponent 声明两个已提供的方向。这两个无序链接保留其输出角色，但不说明哪个方向方差更大，也不说明哪些载荷和得分资源属于其中任一方向。"
+
+msgctxt "https://blackcatinformatics.ca/math/principalComponent|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to record the principal directions that a supplied PCA reports, preserving their identities and the actual field, covariance and component-selection evidence."
+msgstr "用于记录所提供 PCA 报告的主方向，保留它们的身份以及实际标量域、协方差和成分选择证据。"
+
+msgctxt "https://blackcatinformatics.ca/math/principalComponent|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Do not treat resource counts, IRI names or repeated RDF assertions as component rank, multiplicity, ordering or a complete basis. Missing directions are not zero directions; never invent a component merely to fill the required role."
+msgstr "不要将资源计数、IRI 名称或重复 RDF 断言视为成分排名、重数、顺序或完整基。缺失方向不是零方向；绝不为填充必需角色而虚构成分。"
+
+msgctxt "https://blackcatinformatics.ca/math/principalComponent|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Keep math:loadingVector, math:scoreVector and math:explainedVarianceRatio as separate analysis-output roles, with their actual associations retained in the source. The current competency query joins components and variance descriptors independently; its IRI ordering establishes no numeric pairing."
+msgstr "将 math:loadingVector、math:scoreVector 和 math:explainedVarianceRatio 保留为独立的分析输出角色，并在源中保留其实际关联。当前能力查询分别连接成分与方差描述符；其中的 IRI 排序不建立数值配对。"
+
+msgctxt "https://blackcatinformatics.ca/math/LoadingVector|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Loading Vector"
+msgstr "载荷向量"
+
+msgctxt "https://blackcatinformatics.ca/math/LoadingVector|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A loading vector: the coefficients of a math:PrincipalComponent in the original coordinates — how each input feature contributes to the component. A subclass of math:MathematicalObject named by a PCA through math:loadingVector. Loadings are the eigenvectors of the math:CovarianceOperator; their INTERPRETATION is a math:ResidualInterpretationClaim, not an intrinsic property."
+msgstr "一个载荷向量：math:PrincipalComponent 在原始坐标中的系数——各输入特征对该成分的贡献。它是 math:MathematicalObject 的子类，由 PCA 通过 math:loadingVector 命名。载荷是 math:CovarianceOperator 的特征向量；其解释是 math:ResidualInterpretationClaim，而不是固有属性。"
+
+msgctxt "https://blackcatinformatics.ca/math/LoadingVector|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This is the coefficient-vector convention: the coordinates of a component direction in a supplied ordered feature basis for the prepared input. Retain the normalization convention; a coordinate representation is distinct from the geometric direction without requiring different RDF resources."
+msgstr "这里采用系数向量约定：在针对已预处理输入所提供的有序特征基下，一个成分方向的坐标。应保留归一化约定；坐标表示与几何方向是不同角色，但不要求使用不同的 RDF 资源。"
+
+msgctxt "https://blackcatinformatics.ca/math/LoadingVector|http://www.w3.org/2004/02/skos/core#example"
+msgid "In the standard real basis, a component with loading coefficients (1,0,0) selects the first prepared feature. The zero entries are valid coefficients of a nonzero unit vector; they are not missing data or zero-variance conclusions."
+msgstr "在标准实数基下，载荷系数为 (1,0,0) 的成分选取第一个已预处理特征。其中的零值是非零单位向量的有效系数；它们既不是缺失数据，也不是零方差结论。"
+
+msgctxt "https://blackcatinformatics.ca/math/LoadingVector|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for supplied component coefficients with feature identities, basis order, field, units, centering/scaling and normalization evidence. Coefficients in standardized features are not automatically coefficients in unprocessed physical units."
+msgstr "用于已提供的成分系数，并保留特征身份、基顺序、标量域、单位、中心化/缩放及归一化证据。标准化特征中的系数不会自动成为未经处理的物理单位下的系数。"
+
+msgctxt "https://blackcatinformatics.ca/math/LoadingVector|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Do not silently substitute correlation-scaled loadings, biplot markers, factor-analysis loadings or importance scores. Correlation needs nonzero feature and component-score variances; a zero eigenvalue leaves the corresponding correlation undefined, not zero. A zero feature scale licenses no division."
+msgstr "不要悄然替换为按相关性缩放的载荷、双标图标记、因子分析载荷或重要性得分。相关性要求特征方差和成分得分方差均非零；零特征值使相应相关性无定义，而不是为零。特征尺度为零不允许进行除法。"
+
+msgctxt "https://blackcatinformatics.ca/math/LoadingVector|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Name the supplied result from its analysis with math:loadingVector and retain component/feature associations and any coordinate transformation in the source representation. Changes of sign, phase or tied-eigenspace basis require consistent score coordinates; interpretation remains a vantage-bearing claim."
+msgstr "从分析通过 math:loadingVector 命名所提供的结果，并在源表示中保留成分/特征关联和任何坐标变换。符号、相位或重复特征值所对应特征空间的基发生变化时，得分坐标必须一致地变化；解释仍是带有立场的主张。"
+
+msgctxt "https://blackcatinformatics.ca/math/loadingVector|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "loading vector"
+msgstr "载荷向量"
+
+msgctxt "https://blackcatinformatics.ca/math/loadingVector|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Relates a math:PCAAnalysis to a math:LoadingVector it produces — the coefficients of a component in the original features. Domain math:PCAAnalysis, range math:LoadingVector (stated in prose). A declared output of the analysis."
+msgstr "将 math:PCAAnalysis 关联到它产生的 math:LoadingVector——一个成分在原始特征中的系数。定义域为 math:PCAAnalysis，值域为 math:LoadingVector（以文字说明）。这是分析的一项已声明输出。"
+
+msgctxt "https://blackcatinformatics.ca/math/loadingVector|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The direction is analysis to coefficient resource. Its signature is stated in prose; the generic PCA-local Thing minimum, all-values restriction and closure establish no typed target, dedicated maximum, coordinate length or component-to-loading pairing."
+msgstr "方向是从分析指向系数资源。其签名以文字说明；PCA 局部针对通用 Thing 的最小数量限制、所有值限制和闭包，不建立目标类型、专用最大数量、坐标长度或成分与载荷之间的配对。"
+
+msgctxt "https://blackcatinformatics.ca/math/loadingVector|http://www.w3.org/2004/02/skos/core#example"
+msgid "The exact Gram/PCA producer links its analysis to pc1Loadings and types that descriptor math:LoadingVector. It supplies no numeric loading coefficients, so the declaration is not evidence that a covariance eigenvector was computed."
+msgstr "精确 Gram/PCA 生成器将分析链接到 pc1Loadings，并将该描述符标注为 math:LoadingVector。它不提供数值载荷系数，因此该声明不能证明已计算协方差特征向量。"
+
+msgctxt "https://blackcatinformatics.ca/math/loadingVector|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain identified loading outputs of the stated analysis, alongside the source's component, feature-order, preprocessing and coefficient-normalization context."
+msgstr "用于保留所述分析中已标识的载荷输出，以及源中的成分、特征顺序、预处理和系数归一化上下文。"
+
+msgctxt "https://blackcatinformatics.ca/math/loadingVector|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Do not infer one loading per component, an ordered association or a numeric payload from link counts or matching resource names. This relation does not compute coefficients or convert correlation-scaled loadings into the selected coefficient convention."
+msgstr "不要从链接计数或资源名称对应推断每个成分恰有一个载荷、存在有序关联或存在数值载荷内容。这个关系既不计算系数，也不将按相关性缩放的载荷转换为所选系数约定。"
+
+msgctxt "https://blackcatinformatics.ca/math/loadingVector|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Describe a justified LoadingVector result and preserve its supplied coordinates and associations through the existing source representation. Retain the actual input transformation and its scale conditions; neither a link nor a policy label performs centering, scaling or spectral analysis."
+msgstr "描述有依据的 LoadingVector 结果，并通过现有源表示保留其已提供的坐标与关联。应保留实际输入变换及其尺度条件；链接和策略标签都不执行中心化、缩放或谱分析。"
+
+msgctxt "https://blackcatinformatics.ca/math/ScoreVector|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Score Vector"
+msgstr "得分向量"
+
+msgctxt "https://blackcatinformatics.ca/math/ScoreVector|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A score vector: the coordinates of a data point projected onto the principal components — the representation of a sample in the PCA basis. A subclass of math:MathematicalObject named by a PCA through math:scoreVector. Scores are inputs projected through the loadings."
+msgstr "一个得分向量：一个数据点投影到各主成分所得的坐标——一个样本在 PCA 基下的表示。它是 math:MathematicalObject 的子类，由 PCA 通过 math:scoreVector 命名。得分是输入通过载荷投影所得的结果。"
+
+msgctxt "https://blackcatinformatics.ca/math/ScoreVector|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "GMEOW uses one sample's tuple across retained components. A component's scores across samples are a different view of the score matrix. Preserve sample identity and component order; neither this role nor the loading/direction roles imply global class disjointness."
+msgstr "GMEOW 使用一个样本在保留成分上的坐标元组。一个成分在各样本上的得分是得分矩阵的另一种视图。应保留样本身份和成分顺序；此角色与载荷/方向角色都不蕴含全局类不相交。"
+
+msgctxt "https://blackcatinformatics.ca/math/ScoreVector|http://www.w3.org/2004/02/skos/core#example"
+msgid "For prepared real sample (2,-1,4) and ordered loading columns (1,0,0) and (0,1,0), the sample score tuple is (2,-1). It retains two projection coordinates, not the omitted third coordinate or a complete reconstruction."
+msgstr "对于已预处理的实数样本 (2,-1,4)，若有序载荷列为 (1,0,0) 和 (0,1,0)，该样本的得分元组为 (2,-1)。它保留两个投影坐标，不保留被省略的第三个坐标，也不构成完整重建。"
+
+msgctxt "https://blackcatinformatics.ca/math/ScoreVector|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for supplied coordinates of an identified sample in a declared retained PCA frame, keeping its input transformation, field, geometry, component order and projection evidence."
+msgstr "用于一个已标识样本在已声明的保留 PCA 坐标框架中的已提供坐标，并保留输入变换、标量域、几何结构、成分顺序及投影证据。"
+
+msgctxt "https://blackcatinformatics.ca/math/ScoreVector|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Do not read scores as nonnegative variance ratios, loading coefficients or semantic importance. Zero tuples and negative entries can be valid. A zero score tuple is not an invalid zero eigenvector, and a truncated tuple need not recover the input."
+msgstr "不要将得分理解为非负方差比例、载荷系数或语义重要性。零元组和负数条目可以是有效的。零得分元组不是无效的零特征向量，截断元组也未必能恢复输入。"
+
+msgctxt "https://blackcatinformatics.ca/math/ScoreVector|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "In a finite real Euclidean convention with prepared observation rows X and ordered loading columns A, T = X A has sample tuples in rows and one component's scores in each column. Retain those associations in the source; complex or other geometries need their actual conjugation and inner-product conventions."
+msgstr "在有限维实欧氏约定下，若 X 的行是已预处理的观测，A 的列是有序载荷，则 T = X A 的行是样本元组，每列是一个成分的得分。应在源中保留这些关联；复数或其他几何结构需要其实际共轭和内积约定。"
+
+msgctxt "https://blackcatinformatics.ca/math/scoreVector|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "score vector"
+msgstr "得分向量"
+
+msgctxt "https://blackcatinformatics.ca/math/scoreVector|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Relates a math:PCAAnalysis to a math:ScoreVector it produces — a data point's coordinates in the principal-component basis. Domain math:PCAAnalysis, range math:ScoreVector (stated in prose). A declared output of the analysis."
+msgstr "将 math:PCAAnalysis 关联到它产生的 math:ScoreVector——一个数据点在主成分基下的坐标。定义域为 math:PCAAnalysis，值域为 math:ScoreVector（以文字说明）。这是分析的一项已声明输出。"
+
+msgctxt "https://blackcatinformatics.ca/math/scoreVector|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This links an analysis to a supplied sample-coordinate resource, not a numeric literal. Its prose-only signature and PCA-local generic Thing minimum, all-values restriction and closure establish no typed target, dedicated maximum, sample association or tuple-dimension proof."
+msgstr "此属性将分析链接到已提供的样本坐标资源，而不是数值字面量。仅以文字说明的签名和 PCA 局部针对通用 Thing 的最小数量限制、所有值限制及闭包，不建立目标类型、专用最大数量、样本关联或元组维度证明。"
+
+msgctxt "https://blackcatinformatics.ca/math/scoreVector|http://www.w3.org/2004/02/skos/core#example"
+msgid "The ordinary scene names sampleScores through math:scoreVector and types it math:ScoreVector. It gives no numeric tuple or sample-association structure; the resource name alone does not supply either."
+msgstr "普通场景通过 math:scoreVector 命名 sampleScores，并将其标注为 math:ScoreVector。它既不提供数值元组，也不提供样本关联结构；仅靠资源名称不能补出其中任一项。"
+
+msgctxt "https://blackcatinformatics.ca/math/scoreVector|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to catalogue supplied sample-score outputs of the declared analysis, retaining each sample identity, component-position correspondence and preprocessing/projection context in the source evidence."
+msgstr "用于编目已声明分析中已提供的样本得分输出，并在源证据中保留各样本身份、成分位置对应及预处理/投影上下文。"
+
+msgctxt "https://blackcatinformatics.ca/math/scoreVector|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Do not replace absent scores with zero tuples or infer that all samples were projected. This output link and the producer's Gram/LDL calculations do not compute sample scores or establish feature/component pairing."
+msgstr "不要以零元组替换缺失得分，也不要推断所有样本都已投影。这个输出链接和生成器的 Gram/LDL 计算既不计算样本得分，也不建立特征/成分配对。"
+
+msgctxt "https://blackcatinformatics.ca/math/scoreVector|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Keep the result linked from its analysis and retain its actual sample, ordered components, coefficient representation and prepared input together in the source. The current competency query retrieves component and variance roles without retrieving or validating score coordinates."
+msgstr "保持从分析到结果的链接，并在源中一同保留其实际样本、有序成分、系数表示和已预处理输入。当前能力查询提取成分与方差角色，但不提取或验证得分坐标。"

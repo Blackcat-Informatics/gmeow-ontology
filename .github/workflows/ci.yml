@@ -1470,11 +1470,63 @@ jobs:
           path: target/nextest/maint-heavy/junit.xml
           reporter: java-junit
 
-  # Static Rust surfaces are a sibling of archive construction, not serial work on
-  # test shard 1. This one runner owns all-target clippy, rustdoc/doctests, and the
-  # report-only diagnostics projection instead of cold-building clippy in lint. It
-  # restores the exact same-run prebuild target so docs and static surfaces reuse the
-  # already-compiled dependency graph; Cargo still fingerprints every additional unit.
+  # Static Rust surfaces over every crate that compiles from source alone: all-target
+  # clippy, rustdoc and doctests. The four crates that embed producer output at build
+  # time (gmeow-cli, gmeow-lsp, gmeow-gmn-wasm, gmeow-validate-wasm) are excluded here
+  # and covered by rust-static. This job needs only the same-run prebuild target.
+  rust-static-source:
+    needs: [rust-prebuild]
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Install Rust (nightly)
+        uses: dtolnay/rust-toolchain@29eef336d9b2848a0b548edc03f92a220660cdb8 # nightly
+        with:
+          toolchain: nightly-2026-09-05
+          components: clippy
+
+      - name: Cache Cargo registry
+        uses: Swatinem/rust-cache@d1527c8f67ef9af357290475d4af4b0fab8f12e0 # v2.9.3
+        with:
+          cache-targets: false
+
+      - name: Resolve exact Rust toolchain cache identity
+        id: rust-prebuild-identity
+        run: |
+          set -euo pipefail
+          echo "rustc=$(rustc -Vv | sha256sum | cut -d ' ' -f1)" >> "$GITHUB_OUTPUT"
+
+      - name: Restore same-run producer-independent Rust build products
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: target
+          key: rust-prebuild-v1-${{runner.os}}-${{runner.arch}}-${{steps.rust-prebuild-identity.outputs.rustc}}-${{hashFiles('Cargo.lock','Cargo.toml','crates/**/Cargo.toml','.cargo/config.toml','rust-toolchain.toml','.config/nextest.toml')}}-${{github.sha}}-${{github.run_id}}-${{github.run_attempt}}
+          restore-keys: |
+            rust-prebuild-v1-${{runner.os}}-${{runner.arch}}-${{steps.rust-prebuild-identity.outputs.rustc}}-${{hashFiles('Cargo.lock','Cargo.toml','crates/**/Cargo.toml','.cargo/config.toml','rust-toolchain.toml','.config/nextest.toml')}}-${{github.sha}}-
+            rust-prebuild-v1-${{runner.os}}-${{runner.arch}}-${{steps.rust-prebuild-identity.outputs.rustc}}-${{hashFiles('Cargo.lock','Cargo.toml','crates/**/Cargo.toml','.cargo/config.toml','rust-toolchain.toml','.config/nextest.toml')}}-
+
+      - name: Workspace clippy
+        run: cargo clippy --workspace --exclude gmeow-cli --exclude gmeow-lsp --exclude gmeow-gmn-wasm --exclude gmeow-validate-wasm --all-targets -- -D warnings
+
+      - name: Rust API docs (broken-link gate)
+        env:
+          RUSTDOCFLAGS: -D rustdoc::broken_intra_doc_links -D rustdoc::redundant_explicit_links -A rustdoc::private_intra_doc_links
+        run: cargo doc --workspace --exclude gmeow-cli --exclude gmeow-lsp --exclude gmeow-gmn-wasm --exclude gmeow-validate-wasm --no-deps
+
+      - name: Workspace doctests
+        run: cargo test --doc --workspace --exclude gmeow-cli --exclude gmeow-lsp --exclude gmeow-gmn-wasm --exclude gmeow-validate-wasm
+
+  # Static Rust surfaces for the four crates that embed producer output at build time
+  # (gmeow-cli, gmeow-lsp, gmeow-gmn-wasm, gmeow-validate-wasm): all-target clippy,
+  # rustdoc and doctests over those crates only, after the producer codebook is
+  # authenticated, plus the report-only diagnostics projection. Every other crate is
+  # covered by rust-static-source.
   rust-static:
     needs: [producer, rust-prebuild, fixture-prefix]
     runs-on: ubuntu-latest
@@ -1551,14 +1603,18 @@ jobs:
           echo "${FIXTURE_MANIFEST_SHA256}  .cache/gmeow-sync/test-fixture-manifest-v2.json" | sha256sum -c -
           make verify-wasm-codebook
 
-      - name: Workspace clippy
-        run: cargo clippy --all-targets -- -D warnings
+      - name: Clippy over the producer-embedding crates
+        run: cargo clippy -p gmeow-cli -p gmeow-lsp -p gmeow-gmn-wasm -p gmeow-validate-wasm --all-targets -- -D warnings
 
       - name: Rust API docs (broken-link gate)
-        run: make rust-docs
+        env:
+          RUSTDOCFLAGS: -D rustdoc::broken_intra_doc_links -D rustdoc::redundant_explicit_links -A rustdoc::private_intra_doc_links
+        run: |
+          make verify-wasm-codebook
+          cargo doc -p gmeow-cli -p gmeow-lsp -p gmeow-gmn-wasm -p gmeow-validate-wasm --no-deps
 
       - name: Workspace doctests
-        run: cargo test --doc --workspace
+        run: cargo test --doc -p gmeow-cli -p gmeow-lsp -p gmeow-gmn-wasm -p gmeow-validate-wasm
 
       - name: gmeow-lsp rust diagnostics SARIF (non-gating projection)
         continue-on-error: true
@@ -2030,6 +2086,7 @@ jobs:
       - rust-archive
       - rust
       - rust-static
+      - rust-static-source
       - heavy
       - medium-consumer-surface
       - ontology-validate
@@ -2052,6 +2109,7 @@ jobs:
           RUST_ARCHIVE: ${{ needs.rust-archive.result }}
           RUST: ${{ needs.rust.result }}
           RUST_STATIC: ${{ needs.rust-static.result }}
+          RUST_STATIC_SOURCE: ${{ needs.rust-static-source.result }}
           HEAVY: ${{ needs.heavy.result }}
           MEDIUM_CONSUMER_SURFACE: ${{ needs.medium-consumer-surface.result }}
           ONTOLOGY_VALIDATE: ${{ needs.ontology-validate.result }}
@@ -2061,7 +2119,7 @@ jobs:
         run: |
           printf '%s\n' \
             "results: producer=$PRODUCER lint=$LINT helpers=$HELPERS" \
-            "rust-archive=$RUST_ARCHIVE rust=$RUST rust-static=$RUST_STATIC" \
+            "rust-archive=$RUST_ARCHIVE rust=$RUST rust-static=$RUST_STATIC rust-static-source=$RUST_STATIC_SOURCE" \
             "heavy=$HEAVY medium-consumer-surface=$MEDIUM_CONSUMER_SURFACE" \
             "ontology-validate=$ONTOLOGY_VALIDATE" \
             "ontology-generated=$ONTOLOGY_GENERATED" \
@@ -2073,6 +2131,7 @@ jobs:
             "$RUST_ARCHIVE" \
             "$RUST" \
             "$RUST_STATIC" \
+            "$RUST_STATIC_SOURCE" \
             "$HEAVY" \
             "$MEDIUM_CONSUMER_SURFACE" \
             "$ONTOLOGY_VALIDATE" \

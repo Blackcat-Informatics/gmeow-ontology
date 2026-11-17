@@ -73,8 +73,9 @@ than by the change under test. It is CI-only by construction (it hard-fails with
 scheduling decision and never a coverage cut.
 
 Local `make check` owns update-mode synchronization, so a developer does not need
-to run `make check` first. The whole-run manifest makes a clean fixed point a fast
-no-op; after relevant source changes, check pays the one required regeneration.
+to materialize generated outputs separately first. The whole-run manifest makes a
+clean fixed point a fast no-op; after relevant source changes, check pays the one
+required regeneration.
 CI invokes the internal `make check-sync` target in read-only mode so committed
 drift remains a hard failure.
 
@@ -283,6 +284,60 @@ are consumed through its public Rust API:
   payload bounds. Its digest streams the full typed program, including contextual
   scope and provenance, directly into the hasher. No dataset, result or serialized
   carrier is retained; eviction recomputes the same lowering and cannot weaken it.
+- Native reasoning input ownership: `prepare_reasoning_input` and source-edit
+  refresh retain one ordered set of executable `FactKey` tuples, then move their
+  fields into the final `Fact` vectors. Original native statements, source
+  contexts, ingress identity and contextual preparation remain separate from
+  executable deduplication. A synthetic all-IRI input with 4,096 distinct rows,
+  the default world and a declared empty world retained 4,096 keys without a
+  second 4,096 `Fact` values. At the final conversion boundary, initialized
+  key/value bytes fell from 1,507,328 to 753,664 and owned IRI string capacity
+  from 671,744 to 335,872 bytes. A real source assertion refreshed 4,097 rows:
+  initialized key/value bytes fell from 1,507,696 to 753,848 and IRI capacity
+  from 671,908 to 335,954 bytes. Both paths preserved the exact ingress and
+  ordered-fact digests. These selected live-entry observations exclude B-tree
+  node slack and links, original-source evidence, contextual storage, transient
+  and probe allocations, allocator overhead and process RSS; they establish no
+  full-pipeline memory reduction.
+- Schema-law vocabulary selection borrows modal possibilities followed by
+  caller-owned candidate rows without collecting a combined owned vector. The
+  modal Arc and session's candidates retain their ownership; visitation order,
+  duplicate occurrences and the logged combined row count are unchanged. A
+  four-fact finite-union leave-one-out fixture, with a named list cell and no
+  padding, entered the public native fallback. Both its session base and
+  retraction selected `dl:union-member` from zero modal and four candidate rows.
+  Each removed copy had vector capacity four (832 backing bytes), 88 world-string
+  capacity bytes and 406 fact-IRI capacity bytes. The final answer, status,
+  budgets, proof statements and proof-edge relationships matched. Complete raw
+  receipt comparison exposed changed native-source pins, their derived input
+  contracts and reachability identities, proof IDs and references, and diagnostic
+  strings carrying those proof IDs; this is not whole-receipt digest parity.
+  These selected ownership observations exclude caller-owned rows, iterator stack
+  storage, other reasoning stores, transient/probe allocations, allocator overhead
+  and RSS. They establish neither current producer volume nor full-pipeline fit.
+- Bounded termination analysis: witness-free relation closure admits at most
+  262,144 pending candidate occurrences in both the initial and semi-naive passes.
+  Exact native fact payloads are shared in first-seen order; a borrowed-field index
+  holds only row positions. Logical occurrence accounting remains separate from
+  payload storage: the cap is checked before duplicate lookup, so even another
+  duplicate at the full bound stops the analysis with the same producer, committed
+  count and `pending_rows` occurrence count. The index and count reset at the
+  complete batch drain; unique facts enter the unchanged committed-row accounting
+  in first-seen order. The existing immutable-only analysis remains available and
+  retains the bound observation on refusal; incomplete closure never becomes a
+  termination certificate. The bounds count occurrences and committed rows, not
+  their byte size, and establish no full-pipeline memory reduction.
+  A synthetic two-producer 512 by 256 fanout retained 262,144 logical occurrences
+  with one shared payload instead of 262,144 copies. At the drain/refusal checkpoint,
+  row-vector capacity fell from 262,144 to 4 (48,234,496 to 736 backing bytes), and
+  IRI string capacity from 7,340,032 to 28 bytes; the index held capacity 3 and
+  allocated 52 bytes. An all-distinct control with 131,072 outputs retained the same
+  vector capacity and 24,117,248 backing bytes plus 5,289,472 IRI string capacity
+  bytes, and added an index of capacity 229,376 with 2,359,312 allocated bytes.
+  These selected pending-storage observations exclude other stores, transient
+  grounding and probe allocations, allocator overhead and process RSS. They show
+  duplicate-payload sharing and its distinct-output index overhead, not universal
+  memory savings.
 - Selected reasoned projections: `crates/logic/src/verify.rs` builds asserted plus
   native-derived closure, checks DL completeness and the observed-not-derived
   boundary, and attaches expression identity through one shared materializer.

@@ -12751,6 +12751,8 @@ repo:CONTRIBUTING.md a gmeow:CreativeWork ;
 
 <https://blackcatinformatics.ca/gmeow/repo/slices/extensions/finance/docs.md> a gmeow:CreativeWork ;
     rdfs:label "slices/extensions/finance/docs.md"@en ;
+    skos:definition "The finance guide explaining exact monetary calculations and their framed unit-price inputs."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/citations> ;
     gmeow:sourceLocation "slices/extensions/finance/docs.md" .
 
 <https://blackcatinformatics.ca/gmeow/repo/slices/extensions/software/mappings/equivalences.ttl> a gmeow:CreativeWork ;
@@ -14092,17 +14094,409 @@ repo:README.md a gmeow:CreativeWork ;
     gmeow:selectorLocator "A.1, printed page 3; A.3.1, pages 5–6; A.3.2, pages 7–9; A.3.3, pages 9–10; A.5.1, pages 15–17" ;
     gmeow:sourceLocation "https://database.ich.org/sites/default/files/E9-R1_Step4_Guideline_2019_1203.pdf" .
 
-<https://github.com/Blackcat-Informatics/gmeow-ontology/issues/2679> a gmeow:CreativeWork ;
-    rdfs:label "Estimand-framing source requirements"@en ;
-    skos:definition "The repository requirements citing the final ICH guideline for event-specific target strategies, estimand attributes and separate missing-data analysis."@en ;
+<https://blackcatinformatics.ca/gmeow/repo/slices/grounding/logic/design/LOGIC-CORRESPONDENCE.md> a gmeow:CreativeWork ;
+    rdfs:label "slices/grounding/logic/design/LOGIC-CORRESPONDENCE.md"@en ;
+    skos:definition "The correspondence design contract specifying source-to-view inclusion and directional alignment projections."@en ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/citations> ;
-    gmeow:sourceLocation "https://github.com/Blackcat-Informatics/gmeow-ontology/issues/2679" .
+    gmeow:sourceLocation "slices/grounding/logic/design/LOGIC-CORRESPONDENCE.md" .
 
-<https://blackcatinformatics.ca/gmeow/references/citation/estimand-framing-requirements-ich> a gmeow:CitationAct ;
-    rdfs:label "Estimand-framing requirements cite the final ICH guideline"@en ;
-    skos:definition "The estimand-framing requirements cite the official ICH source to distinguish target-defining event strategies, five estimand attributes and analysis handling of missing data."@en ;
+<https://blackcatinformatics.ca/gmeow/references/citation/correspondence-skos-direction> a gmeow:CitationAct ;
+    rdfs:label "Correspondence direction cites the SKOS Reference"@en ;
+    skos:definition "The correspondence design contract cites the normative SKOS inclusion orientation and inverse mapping relation when relating source and view endpoints."@en ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/citations> ;
     gmeow:citationIntent gmeow:intentCitesAsDataSource ;
-    gmeow:citingEntity <https://github.com/Blackcat-Informatics/gmeow-ontology/issues/2679> ;
-    gmeow:citedEntity <https://database.ich.org/sites/default/files/E9-R1_Step4_Guideline_2019_1203.pdf> ;
-    gmeow:viaSelector <https://blackcatinformatics.ca/gmeow/references/selector/math-statistics-estimand-event-strategies-sections> .
+    gmeow:citingEntity <https://blackcatinformatics.ca/gmeow/repo/slices/grounding/logic/design/LOGIC-CORRESPONDENCE.md> ;
+    gmeow:citedEntity <https://www.w3.org/TR/skos-reference/> ;
+    gmeow:viaSelector <https://blackcatinformatics.ca/gmeow/references/selector/skos-mapping-direction> .
+
+<https://blackcatinformatics.ca/gmeow/references/selector/skos-mapping-direction> a gmeow:Selector ;
+    rdfs:label "SKOS hierarchical and mapping relation direction"@en ;
+    skos:definition "The SKOS Reference sections defining broader and narrower object orientation, mapping subproperties and the inverse relationship between broadMatch and narrowMatch."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/citations> ;
+    gmeow:selectorLocator "Section 8.1; section 10.3, conditions S41 and S43; section 10.6.1" ;
+    gmeow:sourceLocation "https://www.w3.org/TR/skos-reference/#semantic-relations", "https://www.w3.org/TR/skos-reference/#mapping" .
+
+<https://qudt.org/schema/qudt/FactorUnit> a gmeow:CreativeWork ;
+    rdfs:label "QUDT FactorUnit schema reference"@en ;
+    skos:definition "The QUDT schema reference describing how derived-unit declarations retain their individual unit factors."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/citations> ;
+    gmeow:bibliographicCitation "QUDT Schema 3.5.3, FactorUnit." ;
+    gmeow:sourceLocation "https://qudt.org/schema/qudt/FactorUnit" .
+
+<https://blackcatinformatics.ca/gmeow/repo/slices/grounding/math/design/MATHEMATICS-MEASURE-AND-DIMENSION.md> a gmeow:CreativeWork ;
+    rdfs:label "slices/grounding/math/design/MATHEMATICS-MEASURE-AND-DIMENSION.md"@en ;
+    skos:definition "The mathematical quantity and dimension charter explaining quotient reference frames and their component identities."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/citations> ;
+    gmeow:sourceLocation "slices/grounding/math/design/MATHEMATICS-MEASURE-AND-DIMENSION.md" .
+
+<https://blackcatinformatics.ca/gmeow/references/citation/math-quotient-frame-factors> a gmeow:CitationAct ;
+    rdfs:label "Quotient-frame design cites QUDT unit factors"@en ;
+    skos:definition "The measure-and-dimension charter cites the QUDT component model while distinguishing a unit factor from a complete quotient reference frame."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/citations> ;
+    gmeow:citationIntent gmeow:intentCitesAsDataSource ;
+    gmeow:citingEntity <https://blackcatinformatics.ca/gmeow/repo/slices/grounding/math/design/MATHEMATICS-MEASURE-AND-DIMENSION.md> ;
+    gmeow:citedEntity <https://qudt.org/schema/qudt/FactorUnit> ;
+    gmeow:viaSelector <https://blackcatinformatics.ca/gmeow/references/selector/qudt-factor-unit-composition> .
+
+<https://blackcatinformatics.ca/gmeow/references/selector/qudt-factor-unit-composition> a gmeow:Selector ;
+    rdfs:label "QUDT derived-unit factor structure"@en ;
+    skos:definition "The FactorUnit declaration and its unit and exponent roles used as partial external context for frame composition."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/citations> ;
+    gmeow:selectorLocator "FactorUnit declaration; hasUnit and exponent roles" ;
+    gmeow:sourceLocation "https://qudt.org/schema/qudt/FactorUnit" .
+
+<https://schema.org/UnitPriceSpecification> a gmeow:CreativeWork ;
+    rdfs:label "Schema.org UnitPriceSpecification reference"@en ;
+    skos:definition "The schema.org vocabulary page specifying price offers and their separately expressed reference quantities."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/citations> ;
+    gmeow:sourceLocation "https://schema.org/UnitPriceSpecification" .
+
+<https://blackcatinformatics.ca/gmeow/references/citation/finance-unit-price-reference-quantity> a gmeow:CitationAct ;
+    rdfs:label "Finance guide cites schema.org reference quantities"@en ;
+    skos:definition "The finance guide cites the referenceQuantity surface while distinguishing an external offer specification from the canonical ratio quantity and selected exact multiplication."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/citations> ;
+    gmeow:citationIntent gmeow:intentCitesAsDataSource ;
+    gmeow:citingEntity <https://blackcatinformatics.ca/gmeow/repo/slices/extensions/finance/docs.md> ;
+    gmeow:citedEntity <https://schema.org/UnitPriceSpecification> ;
+    gmeow:viaSelector <https://blackcatinformatics.ca/gmeow/references/selector/schema-unit-price-reference-quantity> .
+
+<https://blackcatinformatics.ca/gmeow/references/selector/schema-unit-price-reference-quantity> a gmeow:Selector ;
+    rdfs:label "Schema.org price reference quantity"@en ;
+    skos:definition "The referenceQuantity property and its QuantitativeValue range on the UnitPriceSpecification vocabulary page."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/citations> ;
+    gmeow:selectorLocator "referenceQuantity property; QuantitativeValue range" ;
+    gmeow:sourceLocation "https://schema.org/UnitPriceSpecification" .
+
+<https://www.wikidata.org/wiki/Q5178900> a gmeow:CreativeWork ;
+    rdfs:label "Wikidata covariance operator record"@en ;
+    skos:definition "The documentary Wikidata record identifying the covariance-operator concept, distinct from the mathematical entity it describes."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/citations> ;
+    gmeow:sourceLocation "https://www.wikidata.org/wiki/Q5178900",
+        "https://www.wikidata.org/w/index.php?title=Q5178900&oldid=2127108525" .
+
+<https://en.wikipedia.org/wiki/Covariance_operator> a gmeow:CreativeWork ;
+    rdfs:label "Covariance operator reference"@en ;
+    skos:definition "The English covariance-operator reference discussing Hilbert operators and broader Banach-space covariance forms as external conceptual context."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/citations> ;
+    gmeow:sourceLocation "https://en.wikipedia.org/wiki/Covariance_operator" .
+
+<https://blackcatinformatics.ca/gmeow/references/selector/wikidata-covariance-operator-record> a gmeow:Selector ;
+    rdfs:label "Wikidata covariance-operator concept identity"@en ;
+    skos:definition "The Q5178900 record at revision 2127108525, whose English label and probability-operator description identify the external concept without supplying a numerical implementation."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/citations> ;
+    gmeow:selectorLocator "Q5178900; revision 2127108525; English label and description; linked covariance-operator reference" ;
+    gmeow:sourceLocation "https://www.wikidata.org/w/index.php?title=Q5178900&oldid=2127108525" .
+
+<https://blackcatinformatics.ca/gmeow/references/selector/covariance-operator-analytic-context> a gmeow:Selector ;
+    rdfs:label "Covariance-operator Hilbert and Banach context"@en ;
+    skos:definition "The reference's Hilbert covariance-operator and broader Banach covariance-form discussion, used as conceptual context rather than proof of the canonical centered complex convention."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/citations> ;
+    gmeow:selectorLocator "Hilbert covariance-operator definition and Banach covariance-form discussion" ;
+    gmeow:sourceLocation "https://en.wikipedia.org/wiki/Covariance_operator" .
+
+<https://blackcatinformatics.ca/gmeow/references/citation/math-covariance-operator-grounding> a gmeow:CitationAct ;
+    rdfs:label "Covariance grounding cites its Wikidata concept record"@en ;
+    skos:definition "The native covariance-operator correspondence cites the documented external concept identity for its validation-only close match."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/citations> ;
+    gmeow:citationIntent gmeow:intentBridgedByReference ;
+    gmeow:citingEntity <https://blackcatinformatics.ca/gmeow/repo/slices/grounding/math/mappings/equivalences.ttl> ;
+    gmeow:citedEntity <https://www.wikidata.org/wiki/Q5178900> ;
+    gmeow:viaSelector <https://blackcatinformatics.ca/gmeow/references/selector/wikidata-covariance-operator-record> .
+
+<https://blackcatinformatics.ca/gmeow/references/citation/math-covariance-guide-grounding> a gmeow:CitationAct ;
+    rdfs:label "Math guide cites covariance-operator grounding"@en ;
+    skos:definition "The math guide cites the external covariance-operator record while preserving the distinction between conceptual overlap and numerical execution."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/citations> ;
+    gmeow:citationIntent gmeow:intentBridgedByReference ;
+    gmeow:citingEntity <https://blackcatinformatics.ca/gmeow/repo/slices/grounding/math/docs.md> ;
+    gmeow:citedEntity <https://www.wikidata.org/wiki/Q5178900> ;
+    gmeow:viaSelector <https://blackcatinformatics.ca/gmeow/references/selector/wikidata-covariance-operator-record> .
+
+<https://blackcatinformatics.ca/gmeow/references/citation/math-covariance-charter-grounding> a gmeow:CitationAct ;
+    rdfs:label "Linear-algebra charter cites covariance-operator grounding"@en ;
+    skos:definition "The linear-algebra charter cites the covariance-operator concept record with its conservative validation-only correspondence boundary."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/citations> ;
+    gmeow:citationIntent gmeow:intentBridgedByReference ;
+    gmeow:citingEntity <https://blackcatinformatics.ca/gmeow/repo/slices/grounding/math/design/MATHEMATICS-LINEAR-ALGEBRA-AND-LEARNING.md> ;
+    gmeow:citedEntity <https://www.wikidata.org/wiki/Q5178900> ;
+    gmeow:viaSelector <https://blackcatinformatics.ca/gmeow/references/selector/wikidata-covariance-operator-record> .
+
+<https://blackcatinformatics.ca/gmeow/references/citation/math-covariance-charter-analytic-context> a gmeow:CitationAct ;
+    rdfs:label "Linear-algebra charter cites external covariance context"@en ;
+    skos:definition "The charter cites the Hilbert and Banach discussion as external conceptual context while retaining its independently stated centered second-moment and complex-adjoint assumptions."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/citations> ;
+    gmeow:citationIntent gmeow:intentCitesAsDataSource ;
+    gmeow:citingEntity <https://blackcatinformatics.ca/gmeow/repo/slices/grounding/math/design/MATHEMATICS-LINEAR-ALGEBRA-AND-LEARNING.md> ;
+    gmeow:citedEntity <https://en.wikipedia.org/wiki/Covariance_operator> ;
+    gmeow:viaSelector <https://blackcatinformatics.ca/gmeow/references/selector/covariance-operator-analytic-context> .
+
+<https://blackcatinformatics.ca/gmeow/references/citation/math-covariance-source-scope-grounding> a gmeow:CitationAct ;
+    rdfs:label "Covariance source scope cites its external target"@en ;
+    skos:definition "The bounded covariance source scope cites the documentary Wikidata record as evidence for the proposed conceptual correspondence."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/citations> ;
+    gmeow:citationIntent gmeow:intentBridgedByReference ;
+    gmeow:citingEntity <https://github.com/Blackcat-Informatics/gmeow-ontology/issues/2899> ;
+    gmeow:citedEntity <https://www.wikidata.org/wiki/Q5178900> ;
+    gmeow:viaSelector <https://blackcatinformatics.ca/gmeow/references/selector/wikidata-covariance-operator-record> .
+
+<https://www.wikidata.org/wiki/Q2510752> a gmeow:CreativeWork ;
+    rdfs:label "Wikidata explained-variation record"@en ;
+    skos:definition "The documentary Wikidata record identifying Explained variation, distinct from the mathematical concept it describes."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/citations> ;
+    gmeow:sourceLocation "https://www.wikidata.org/wiki/Q2510752",
+        "https://www.wikidata.org/w/index.php?title=Q2510752&oldid=2459935836" .
+
+<https://doi.org/10.1098/rsta.2015.0202> a gmeow:CreativeWork ;
+    rdfs:label "Principal component analysis review"@en ;
+    skos:definition "Jolliffe and Cadima’s 2016 review of principal component analysis, used as the mathematical reference for individual and retained-set proportions of total variance."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/citations> ;
+    gmeow:sourceLocation "https://doi.org/10.1098/rsta.2015.0202",
+        "https://pmc.ncbi.nlm.nih.gov/articles/PMC4792409/" .
+
+<https://en.wikipedia.org/wiki/Explained_variation> a gmeow:CreativeWork ;
+    rdfs:label "Explained-variation conceptual reference"@en ;
+    skos:definition "The English reference describing broader modelling-based explained variation and its principal-component-analysis context."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/citations> ;
+    gmeow:sourceLocation "https://en.wikipedia.org/wiki/Explained_variation" .
+
+<https://blackcatinformatics.ca/gmeow/references/selector/wikidata-explained-variation-record> a gmeow:Selector ;
+    rdfs:label "Wikidata explained-variation concept identity"@en ;
+    skos:definition "The Q2510752 record at revision 2459935836, whose English label, modelling description and linked reference identify the broader external concept."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/citations> ;
+    gmeow:selectorLocator "Q2510752; revision 2459935836; English label and description; English reference link" ;
+    gmeow:sourceLocation "https://www.wikidata.org/w/index.php?title=Q2510752&oldid=2459935836" .
+
+<https://blackcatinformatics.ca/gmeow/references/selector/pca-review-component-variance-ratio> a gmeow:Selector ;
+    rdfs:label "PCA component proportion of total variance"@en ;
+    skos:definition "Section 2(a), equation 2.6 and its surrounding discussion identify a component eigenvalue divided by total covariance trace and distinguish individual from retained-set proportions."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/citations> ;
+    gmeow:selectorLocator "Section 2(a); equation 2.6; total variance as covariance trace; individual and retained-set proportions" ;
+    gmeow:sourceLocation "https://doi.org/10.1098/rsta.2015.0202",
+        "https://pmc.ncbi.nlm.nih.gov/articles/PMC4792409/" .
+
+<https://blackcatinformatics.ca/gmeow/references/selector/explained-variation-modelling-context> a gmeow:Selector ;
+    rdfs:label "Explained variation across modelling and PCA"@en ;
+    skos:definition "The introduction and principal-component-analysis section supply broader modelling context without establishing identity with every per-component PCA ratio."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/citations> ;
+    gmeow:selectorLocator "Introduction; In principal component analysis; regression-specific qualifications" ;
+    gmeow:sourceLocation "https://en.wikipedia.org/wiki/Explained_variation" .
+
+<https://blackcatinformatics.ca/gmeow/references/citation/math-explained-variance-module-formula> a gmeow:CitationAct ;
+    rdfs:label "Explained-variance guidance cites the PCA ratio formula"@en ;
+    skos:definition "The canonical class definition and guidance use the reviewed component-to-total-variance formula while stating its denominator conditions."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/citations> ;
+    gmeow:citationIntent gmeow:intentCitesAsDataSource ;
+    gmeow:citingEntity <https://blackcatinformatics.ca/gmeow/repo/slices/grounding/math/module.ttl> ;
+    gmeow:citedEntity <https://doi.org/10.1098/rsta.2015.0202> ;
+    gmeow:viaSelector <https://blackcatinformatics.ca/gmeow/references/selector/pca-review-component-variance-ratio> .
+
+<https://blackcatinformatics.ca/gmeow/references/citation/math-explained-variance-guide-formula> a gmeow:CitationAct ;
+    rdfs:label "Math guide cites component variance proportions"@en ;
+    skos:definition "The Math guide cites the primary PCA formula while distinguishing positive total variance, zero ratios and undefined zero-total normalization."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/citations> ;
+    gmeow:citationIntent gmeow:intentCitesAsDataSource ;
+    gmeow:citingEntity <https://blackcatinformatics.ca/gmeow/repo/slices/grounding/math/docs.md> ;
+    gmeow:citedEntity <https://doi.org/10.1098/rsta.2015.0202> ;
+    gmeow:viaSelector <https://blackcatinformatics.ca/gmeow/references/selector/pca-review-component-variance-ratio> .
+
+<https://blackcatinformatics.ca/gmeow/references/citation/math-explained-variance-charter-formula> a gmeow:CitationAct ;
+    rdfs:label "Linear-algebra charter cites explained-variance mathematics"@en ;
+    skos:definition "The charter cites the reviewed individual and retained-set proportions while preserving actual component associations and spectral assumptions."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/citations> ;
+    gmeow:citationIntent gmeow:intentCitesAsDataSource ;
+    gmeow:citingEntity <https://blackcatinformatics.ca/gmeow/repo/slices/grounding/math/design/MATHEMATICS-LINEAR-ALGEBRA-AND-LEARNING.md> ;
+    gmeow:citedEntity <https://doi.org/10.1098/rsta.2015.0202> ;
+    gmeow:viaSelector <https://blackcatinformatics.ca/gmeow/references/selector/pca-review-component-variance-ratio> .
+
+<https://blackcatinformatics.ca/gmeow/references/citation/math-explained-variance-grounding-record> a gmeow:CitationAct ;
+    rdfs:label "Explained-variance grounding cites its external concept record"@en ;
+    skos:definition "The native related-match cell cites the documentary Wikidata record for the broader Explained variation concept."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/citations> ;
+    gmeow:citationIntent gmeow:intentBridgedByReference ;
+    gmeow:citingEntity <https://blackcatinformatics.ca/gmeow/repo/slices/grounding/math/mappings/equivalences.ttl> ;
+    gmeow:citedEntity <https://www.wikidata.org/wiki/Q2510752> ;
+    gmeow:viaSelector <https://blackcatinformatics.ca/gmeow/references/selector/wikidata-explained-variation-record> .
+
+<https://blackcatinformatics.ca/gmeow/references/citation/math-explained-variance-guide-grounding> a gmeow:CitationAct ;
+    rdfs:label "Math guide cites explained-variation grounding"@en ;
+    skos:definition "The Math guide cites the verified external concept while retaining the validation-only related-match boundary."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/citations> ;
+    gmeow:citationIntent gmeow:intentBridgedByReference ;
+    gmeow:citingEntity <https://blackcatinformatics.ca/gmeow/repo/slices/grounding/math/docs.md> ;
+    gmeow:citedEntity <https://www.wikidata.org/wiki/Q2510752> ;
+    gmeow:viaSelector <https://blackcatinformatics.ca/gmeow/references/selector/wikidata-explained-variation-record> .
+
+<https://blackcatinformatics.ca/gmeow/references/citation/math-explained-variance-charter-grounding> a gmeow:CitationAct ;
+    rdfs:label "Linear-algebra charter cites explained-variation grounding"@en ;
+    skos:definition "The charter cites the concept record without identifying all modelling measures with the canonical normalized component share."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/citations> ;
+    gmeow:citationIntent gmeow:intentBridgedByReference ;
+    gmeow:citingEntity <https://blackcatinformatics.ca/gmeow/repo/slices/grounding/math/design/MATHEMATICS-LINEAR-ALGEBRA-AND-LEARNING.md> ;
+    gmeow:citedEntity <https://www.wikidata.org/wiki/Q2510752> ;
+    gmeow:viaSelector <https://blackcatinformatics.ca/gmeow/references/selector/wikidata-explained-variation-record> .
+
+<https://blackcatinformatics.ca/gmeow/references/citation/math-explained-variance-grounding-context> a gmeow:CitationAct ;
+    rdfs:label "Explained-variance grounding cites broader modelling context"@en ;
+    skos:definition "The related-match justification uses the broader modelling and PCA discussion as context, without an identity or numerical conversion claim."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/citations> ;
+    gmeow:citationIntent gmeow:intentCitesAsDataSource ;
+    gmeow:citingEntity <https://blackcatinformatics.ca/gmeow/repo/slices/grounding/math/mappings/equivalences.ttl> ;
+    gmeow:citedEntity <https://en.wikipedia.org/wiki/Explained_variation> ;
+    gmeow:viaSelector <https://blackcatinformatics.ca/gmeow/references/selector/explained-variation-modelling-context> .
+
+<https://blackcatinformatics.ca/gmeow/references/citation/math-explained-variance-charter-context> a gmeow:CitationAct ;
+    rdfs:label "Linear-algebra charter cites broader explained variation"@en ;
+    skos:definition "The charter cites the broader modelling reference while keeping regression hypotheses and PCA component ratios distinct."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/citations> ;
+    gmeow:citationIntent gmeow:intentCitesAsDataSource ;
+    gmeow:citingEntity <https://blackcatinformatics.ca/gmeow/repo/slices/grounding/math/design/MATHEMATICS-LINEAR-ALGEBRA-AND-LEARNING.md> ;
+    gmeow:citedEntity <https://en.wikipedia.org/wiki/Explained_variation> ;
+    gmeow:viaSelector <https://blackcatinformatics.ca/gmeow/references/selector/explained-variation-modelling-context> .
+
+<https://blackcatinformatics.ca/gmeow/references/citation/math-explained-variance-source-formula> a gmeow:CitationAct ;
+    rdfs:label "Explained-variance source cites the PCA ratio reference"@en ;
+    skos:definition "The source document cites the primary component-to-total-variance formula and its exact equation locator."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/citations> ;
+    gmeow:citationIntent gmeow:intentCitesAsDataSource ;
+    gmeow:citingEntity <https://github.com/Blackcat-Informatics/gmeow-ontology/issues/2913> ;
+    gmeow:citedEntity <https://doi.org/10.1098/rsta.2015.0202> ;
+    gmeow:viaSelector <https://blackcatinformatics.ca/gmeow/references/selector/pca-review-component-variance-ratio> .
+
+<https://blackcatinformatics.ca/gmeow/references/citation/math-explained-variance-source-grounding> a gmeow:CitationAct ;
+    rdfs:label "Explained-variance source cites the external concept"@en ;
+    skos:definition "The source document cites the verified broader Explained variation concept as the related-match target."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/citations> ;
+    gmeow:citationIntent gmeow:intentBridgedByReference ;
+    gmeow:citingEntity <https://github.com/Blackcat-Informatics/gmeow-ontology/issues/2913> ;
+    gmeow:citedEntity <https://www.wikidata.org/wiki/Q2510752> ;
+    gmeow:viaSelector <https://blackcatinformatics.ca/gmeow/references/selector/wikidata-explained-variation-record> .
+
+<https://blackcatinformatics.ca/gmeow/references/citation/math-explained-variance-comment-formula> a gmeow:CitationAct ;
+    rdfs:label "GitHub comment issuecomment-6956725730 by paudley"@en ;
+    skos:definition "The comment cites the primary PCA review, section 2(a), equation 2.6, for the component ratio formula."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/citations> ;
+    gmeow:citationIntent gmeow:intentCitesAsDataSource ;
+    gmeow:citingEntity <https://github.com/Blackcat-Informatics/gmeow-ontology/issues/1656#issuecomment-6956725730> ;
+    gmeow:citedEntity <https://doi.org/10.1098/rsta.2015.0202> ;
+    gmeow:viaSelector <https://blackcatinformatics.ca/gmeow/references/selector/pca-review-component-variance-ratio> .
+
+<https://blackcatinformatics.ca/gmeow/references/citation/math-explained-variance-comment-grounding> a gmeow:CitationAct ;
+    rdfs:label "GitHub comment issuecomment-6956725730 by paudley"@en ;
+    skos:definition "The comment cites Wikidata Q2510752 as the broader Explained variation concept for conservative related grounding."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/citations> ;
+    gmeow:citationIntent gmeow:intentBridgedByReference ;
+    gmeow:citingEntity <https://github.com/Blackcat-Informatics/gmeow-ontology/issues/1656#issuecomment-6956725730> ;
+    gmeow:citedEntity <https://www.wikidata.org/wiki/Q2510752> ;
+    gmeow:viaSelector <https://blackcatinformatics.ca/gmeow/references/selector/wikidata-explained-variation-record> .
+
+<https://www.wikidata.org/wiki/Q3555174> a gmeow:CreativeWork ;
+    rdfs:label "Wikidata eigenvector concept"@en ;
+    skos:definition "The Wikidata eigenvector record used as a generic conceptual target for a covariance principal direction, without its PCA-output specialization."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/citations> ;
+    gmeow:sourceLocation "https://www.wikidata.org/wiki/Q3555174",
+        "https://www.wikidata.org/w/index.php?title=Q3555174&oldid=2559971917" .
+
+<https://blackcatinformatics.ca/gmeow/references/selector/pca-review-directions-loadings-scores> a gmeow:Selector ;
+    rdfs:label "PCA directions, loading coefficients and score conventions"@en ;
+    skos:definition "Section 2(a) identifies normalized covariance eigenvectors, loading coefficients and score linear combinations; section 2(c)(i) distinguishes standardization and correlation-scaled loading normalization."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/citations> ;
+    gmeow:selectorLocator "Section 2(a); equation 2.1 and adjacent direction/loading/score terminology; X*A=UL discussion following equation 2.3; section 2(c)(i); equations 2.7 and 2.8 and their normalization discussion" ;
+    gmeow:sourceLocation "https://doi.org/10.1098/rsta.2015.0202",
+        "https://pmc.ncbi.nlm.nih.gov/articles/PMC4792409/" .
+
+<https://blackcatinformatics.ca/gmeow/references/selector/wikidata-eigenvector-record> a gmeow:Selector ;
+    rdfs:label "Wikidata generic eigenvector identity"@en ;
+    skos:definition "The Q3555174 record at revision 2559971917 identifies the generic eigenvector concept through its English, French and Chinese labels and mathematical reference identifier."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/citations> ;
+    gmeow:selectorLocator "Q3555174; revision 2559971917; English eigenvector, French vecteur propre and Chinese 特征向量 labels; MathWorld Eigenvector identifier" ;
+    gmeow:sourceLocation "https://www.wikidata.org/w/index.php?title=Q3555174&oldid=2559971917" .
+
+<https://blackcatinformatics.ca/gmeow/references/citation/math-pca-outputs-module-conventions> a gmeow:CitationAct ;
+    rdfs:label "PCA-output guidance cites direction and coordinate conventions"@en ;
+    skos:definition "The canonical guidance distinguishes principal directions, coefficient loadings and sample-coordinate tuples using the primary PCA terminology and normalization discussion."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/citations> ;
+    gmeow:citationIntent gmeow:intentCitesAsDataSource ;
+    gmeow:citingEntity <https://blackcatinformatics.ca/gmeow/repo/slices/grounding/math/module.ttl> ;
+    gmeow:citedEntity <https://doi.org/10.1098/rsta.2015.0202> ;
+    gmeow:viaSelector <https://blackcatinformatics.ca/gmeow/references/selector/pca-review-directions-loadings-scores> .
+
+<https://blackcatinformatics.ca/gmeow/references/citation/math-pca-outputs-guide-conventions> a gmeow:CitationAct ;
+    rdfs:label "Math guide cites PCA-output conventions"@en ;
+    skos:definition "The Math guide cites the primary direction/loading/score terminology and correlation normalization while distinguishing sample rows from component-score columns."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/citations> ;
+    gmeow:citationIntent gmeow:intentCitesAsDataSource ;
+    gmeow:citingEntity <https://blackcatinformatics.ca/gmeow/repo/slices/grounding/math/docs.md> ;
+    gmeow:citedEntity <https://doi.org/10.1098/rsta.2015.0202> ;
+    gmeow:viaSelector <https://blackcatinformatics.ca/gmeow/references/selector/pca-review-directions-loadings-scores> .
+
+<https://blackcatinformatics.ca/gmeow/references/citation/math-pca-outputs-charter-conventions> a gmeow:CitationAct ;
+    rdfs:label "Linear-algebra charter cites PCA-output mathematics"@en ;
+    skos:definition "The charter cites the reviewed eigenvector, coefficient, score and correlation conventions while preserving explicit geometry, preprocessing and association evidence."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/citations> ;
+    gmeow:citationIntent gmeow:intentCitesAsDataSource ;
+    gmeow:citingEntity <https://blackcatinformatics.ca/gmeow/repo/slices/grounding/math/design/MATHEMATICS-LINEAR-ALGEBRA-AND-LEARNING.md> ;
+    gmeow:citedEntity <https://doi.org/10.1098/rsta.2015.0202> ;
+    gmeow:viaSelector <https://blackcatinformatics.ca/gmeow/references/selector/pca-review-directions-loadings-scores> .
+
+<https://blackcatinformatics.ca/gmeow/references/citation/math-pca-outputs-grounding-record> a gmeow:CitationAct ;
+    rdfs:label "Principal-direction grounding cites the eigenvector record"@en ;
+    skos:definition "The native related-match cell cites the verified generic eigenvector record without claiming identity with its specialized PCA output role."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/citations> ;
+    gmeow:citationIntent gmeow:intentBridgedByReference ;
+    gmeow:citingEntity <https://blackcatinformatics.ca/gmeow/repo/slices/grounding/math/mappings/equivalences.ttl> ;
+    gmeow:citedEntity <https://www.wikidata.org/wiki/Q3555174> ;
+    gmeow:viaSelector <https://blackcatinformatics.ca/gmeow/references/selector/wikidata-eigenvector-record> .
+
+<https://blackcatinformatics.ca/gmeow/references/citation/math-pca-outputs-guide-grounding> a gmeow:CitationAct ;
+    rdfs:label "Math guide cites generic eigenvector grounding"@en ;
+    skos:definition "The Math guide cites the external eigenvector concept while preserving the validation-only association and the local PCA/covariance specialization."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/citations> ;
+    gmeow:citationIntent gmeow:intentBridgedByReference ;
+    gmeow:citingEntity <https://blackcatinformatics.ca/gmeow/repo/slices/grounding/math/docs.md> ;
+    gmeow:citedEntity <https://www.wikidata.org/wiki/Q3555174> ;
+    gmeow:viaSelector <https://blackcatinformatics.ca/gmeow/references/selector/wikidata-eigenvector-record> .
+
+<https://blackcatinformatics.ca/gmeow/references/citation/math-pca-outputs-charter-grounding> a gmeow:CitationAct ;
+    rdfs:label "Linear-algebra charter cites generic eigenvector grounding"@en ;
+    skos:definition "The charter cites the verified eigenvector record without transferring the selected analysis role or asserting coordinate conversion or numerical execution."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/citations> ;
+    gmeow:citationIntent gmeow:intentBridgedByReference ;
+    gmeow:citingEntity <https://blackcatinformatics.ca/gmeow/repo/slices/grounding/math/design/MATHEMATICS-LINEAR-ALGEBRA-AND-LEARNING.md> ;
+    gmeow:citedEntity <https://www.wikidata.org/wiki/Q3555174> ;
+    gmeow:viaSelector <https://blackcatinformatics.ca/gmeow/references/selector/wikidata-eigenvector-record> .
+
+<https://blackcatinformatics.ca/gmeow/references/citation/math-pca-outputs-source-conventions> a gmeow:CitationAct ;
+    rdfs:label "PCA-output source cites mathematical conventions"@en ;
+    skos:definition "The source document cites the primary PCA review and its direction, loading, score and normalization locators."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/citations> ;
+    gmeow:citationIntent gmeow:intentCitesAsDataSource ;
+    gmeow:citingEntity <https://github.com/Blackcat-Informatics/gmeow-ontology/issues/2915> ;
+    gmeow:citedEntity <https://doi.org/10.1098/rsta.2015.0202> ;
+    gmeow:viaSelector <https://blackcatinformatics.ca/gmeow/references/selector/pca-review-directions-loadings-scores> .
+
+<https://blackcatinformatics.ca/gmeow/references/citation/math-pca-outputs-source-grounding> a gmeow:CitationAct ;
+    rdfs:label "PCA-output source cites the eigenvector concept"@en ;
+    skos:definition "The source document cites the verified Wikidata eigenvector record as the conservative principal-direction grounding target."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/citations> ;
+    gmeow:citationIntent gmeow:intentBridgedByReference ;
+    gmeow:citingEntity <https://github.com/Blackcat-Informatics/gmeow-ontology/issues/2915> ;
+    gmeow:citedEntity <https://www.wikidata.org/wiki/Q3555174> ;
+    gmeow:viaSelector <https://blackcatinformatics.ca/gmeow/references/selector/wikidata-eigenvector-record> .
+
+<https://blackcatinformatics.ca/gmeow/references/citation/math-pca-outputs-comment-conventions> a gmeow:CitationAct ;
+    rdfs:label "GitHub comment issuecomment-6958491880 by paudley"@en ;
+    skos:definition "The comment cites the primary PCA review with the direction/loading/score and normalization selectors."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/citations> ;
+    gmeow:citationIntent gmeow:intentCitesAsDataSource ;
+    gmeow:citingEntity <https://github.com/Blackcat-Informatics/gmeow-ontology/issues/1656#issuecomment-6958491880> ;
+    gmeow:citedEntity <https://doi.org/10.1098/rsta.2015.0202> ;
+    gmeow:viaSelector <https://blackcatinformatics.ca/gmeow/references/selector/pca-review-directions-loadings-scores> .
+
+<https://blackcatinformatics.ca/gmeow/references/citation/math-pca-outputs-comment-grounding> a gmeow:CitationAct ;
+    rdfs:label "GitHub comment issuecomment-6958491880 by paudley"@en ;
+    skos:definition "The comment cites Wikidata Q3555174 and its verified revision for the generic eigenvector association."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/citations> ;
+    gmeow:citationIntent gmeow:intentBridgedByReference ;
+    gmeow:citingEntity <https://github.com/Blackcat-Informatics/gmeow-ontology/issues/1656#issuecomment-6958491880> ;
+    gmeow:citedEntity <https://www.wikidata.org/wiki/Q3555174> ;
+    gmeow:viaSelector <https://blackcatinformatics.ca/gmeow/references/selector/wikidata-eigenvector-record> .

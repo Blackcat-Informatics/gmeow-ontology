@@ -5,19 +5,52 @@ use clap::Parser;
 
 use super::*;
 
-/// Classify parsed producer commands without executing them or constructing a corpus.
+/// Classify source-bound operations without executing them or constructing a corpus.
 #[test]
-fn production_commands_require_admission_without_dispatching_them() {
+fn source_bound_commands_require_admission_without_dispatching_them() {
     for arguments in [
         vec!["gmeow-dev", "sync"],
         vec!["gmeow-dev", "project", "--profile", "gmeow"],
         vec!["gmeow-dev", "test-fixtures", "produce"],
+        vec![
+            "gmeow-dev",
+            "test-fixtures",
+            "produce",
+            "--scope",
+            "compiler-owner",
+        ],
+        vec![
+            "gmeow-dev",
+            "test-fixtures",
+            "verify",
+            "--scope",
+            "compiler-owner",
+        ],
         vec!["gmeow-dev", "feedback"],
         vec!["gmeow-dev", "logic", "compile"],
         vec!["gmeow-dev", "mcp"],
         vec!["gmeow-dev", "medium-sweep"],
         vec!["gmeow-dev", "medium-seed"],
         vec!["gmeow-dev", "docs-measure-verify"],
+        vec![
+            "gmeow-dev",
+            "slice-quality",
+            "--all",
+            "--format",
+            "json",
+            "--min-tier",
+            "Grounded",
+            "--diagnostics-console",
+            "human",
+            "--diagnostics-artifacts",
+            "json,sarif",
+            "--diagnostics-dir",
+            "selected/diagnostics",
+            "--diagnostics-stem",
+            "quality",
+            "--diagnostics-category",
+            "selected-quality",
+        ],
         vec!["gmeow-dev", "slice-quality-gate"],
         vec!["gmeow-dev", "slice-quality-seed-floors", "--all-axes"],
         vec![
@@ -70,9 +103,21 @@ fn production_commands_require_admission_without_dispatching_them() {
         let cli = crate::Cli::try_parse_from(arguments).expect("parse production operation");
         assert!(requires_admission(&cli.command));
     }
-    let cli = crate::Cli::try_parse_from(["gmeow-dev", "sync", "--metadata"])
-        .expect("parse metadata inspection");
-    assert!(!requires_admission(&cli.command));
+    for arguments in [
+        vec!["gmeow-dev", "sync", "--metadata"],
+        vec!["gmeow-dev", "sync", "--list-paths"],
+        vec!["gmeow-dev", "test-fixtures", "verify"],
+        vec!["gmeow-dev", "console-assemble"],
+    ] {
+        let cli =
+            crate::Cli::try_parse_from(arguments).expect("parse deferred-admission operation");
+        assert!(!requires_admission(&cli.command));
+    }
+    assert!(
+        crate::Cli::try_parse_from(["gmeow-dev", "slice-quality", "selected/slice", "--all",])
+            .is_err(),
+        "a single slice path conflicts with the whole-repository selection"
+    );
     let cli = crate::Cli::try_parse_from([
         "gmeow-dev",
         "logic",
@@ -94,8 +139,8 @@ fn medium_maintenance_selects_its_output_before_producer_admission() {
                 .expect("parse maintenance selection without running the producer");
         assert!(requires_admission(&cli.command));
         let (out, seed) = match cli.command {
-            Commands::MediumSweep { out, .. } => (out, false),
-            Commands::MediumSeed { out } => (out, true),
+            Commands::MediumSweep(crate::MediumSweepArgs { out, .. }) => (out, false),
+            Commands::MediumSeed(crate::MediumSeedArgs { out }) => (out, true),
             _ => panic!("selected a different maintenance operation"),
         };
         assert_eq!(out, std::path::Path::new("selected/medium.json"));

@@ -169,6 +169,16 @@ statistics share this admission and preserve per-file memberships even when the
 canonical program deduplicates a correspondence. This analysis lives only for the
 lowering invocation; it neither adds a persistent carrier nor certifies a rewrite.
 
+Canonical callable interfaces remain complete within their original Mapping or
+Module view. Their mathematical-symbol and observation-method recipe references
+use explicit physical Module authority: the mappings producer borrows the actual
+manifest owner, original path, source digest and declared types already admitted
+from the owning Module. A type in an unrelated view, a Mapping annotation or an
+Example declaration cannot supply that authority. Missing, ambiguous or wrong-kind
+Module evidence is a hard failure even when the interface view contains a type.
+Self-contained compiler input selects source-local typing explicitly and receives
+no target authority from another view.
+
 Mappings publishes its admitted grounding catalog as a native handle pinned to
 `graph/correspondence-laws`. The complete payload retains the final law-bearing
 program, every admitted property value and the exact physical-source cell
@@ -187,6 +197,22 @@ declaration; an IRI used as a provenance value remains that value. Independent
 input blank scopes remain distinct. These producer inputs carry locations in their
 RDF and report payloads; unexpected physical row-location attachments fail admission
 before publication. Diagnostics retain their selected graph placement.
+
+Snapshot assembly derives finding verdicts over the composed resident sources, then
+assesses coherence over a second read-only view with those verdicts appended. The
+shared release/pipeline outcome builder reads the governing policy and per-graph
+axiom hashes directly from that view. Hashing inventories only graph ids reached by
+ordinary statements and reads each graph through its pattern index; it retains no
+whole-carrier quad vector. Flat canonical bytes, blank labels and scope-sensitive
+axiom hashes are identical to materializing the same ordered sources. The certificate
+then joins those sources, and only the final certified carrier is materialized.
+This removes the temporary owned pre-certificate dataset, including its term tables
+and row indexes. Canonical output bytes, the largest graph's hash text, composite
+alias maps and the final owned carrier still allocate; no process-memory reduction
+is implied without an authenticated producer measurement.
+The pre-certificate size observation reports retained source rows before suppression
+and deduplication; it is neither the logical carrier's quad count nor an RSS bound.
+The final owned-carrier observation retains its exact quad and term counts.
 
 `stage-validate` declares the same native catalog as an input. It validates that
 complete root/module/import dataset directly and reuses the shared compilation

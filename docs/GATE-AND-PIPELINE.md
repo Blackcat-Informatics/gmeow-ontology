@@ -29,7 +29,7 @@
 | You want | Run | Notes |
 | --- | --- | --- |
 | To verify your work | `make check` | THE entry point. Its DAG runs the producer in update mode as its first node, then gates. One hold of the host-global lock. |
-| Artifacts, no gate | `make check-sync SYNC_MODE=update` | Rarely what you want. Scope with `SYNC_OUTPUTS={generated,docs,all}`; the scope selects the stages (the runtime-only `stage-export-yaml-ld`, `stage-export-export` and `stage-export-okf` run under `all` only). |
+| Artifacts, no gate | `make check-sync SYNC_MODE=update` | Rarely what you want. Scope with `SYNC_OUTPUTS={generated,docs,all}`; authored output families select stage roots, followed by their complete producer closure. The current independent `stage-export-yaml-ld`, `stage-export-export` and `stage-export-okf` roots run under `all`. |
 | Read-only drift verification | `make check-sync` | `SYNC_MODE=check` is the default, so a bare invocation can never mutate the tree. |
 | The external docs fanout | `make check-sync SYNC_MODE=update SYNC_OUTPUTS=docs` | Adds the materialize-then-`build` ordering that scope alone needs. |
 | A clean-clone bootstrap | `make install` | Builds only the producer, materializes, then builds the consumer CLIs. |
@@ -100,6 +100,31 @@ the codebook into its independently cached contribution.
 Mappings retains its mandatory SPDX substrate reconciliation. Browser bootstrap
 therefore requires a codebook receipt, rather than a mappings receipt that also
 depends on the shipped engines being replaced.
+
+Compiler-owner qualification has a separate explicit producer:
+`make produce-compiler-owner-test-fixtures`. It selects only `stage-compile-logic`
+and its `stage-parse-sources` dependency through the authored production DAG, and
+requires `pipeline/module-validation-fixtures.json`. Its independent selector is
+`.cache/gmeow-sync/compiler-owner-fixture-manifest-v2.json`; publication preserves
+the full finalized selector and warm candidate. The read-only
+`make verify-compiler-owner-test-fixtures` authenticates the existing optimized
+executable and its current checkout source inventory without building or repairing it.
+It rebinds current raw inputs, implementation, toolchain, profile, features and exact
+closure, then authenticates the cached compiler
+product and required artifact commitment. The parser has receipt-only source-catalog
+graph and typed-handle commitments; verification never rebuilds that catalog.
+
+Run existing compiler-owner cases with
+`make nextest-compiler-owner NEXTEST_FILTER='test(finance_grounding)'`. This runner
+binds the separate selector and its exact digest and never invokes a producer. Test
+binaries consume the selected producer identity across build profiles. Missing,
+stale, incomplete or wrong-scope selections fail without searching another selector.
+This scope qualifies generated owner profiles and retained callable inputs.
+Consumers assembling a cross-module owner must select every required canonical record,
+such as kernel determinacy seeds. They must not synthesize missing type evidence.
+Registered slice-spec verdicts, main World reasoning, constraint-shapes export, whole-bundle
+runtime and installed consumer acceptance retain their separate requirements; the full
+fixture profile and normal gate still require their complete outputs.
 
 ### Values derived from the canonical profile
 

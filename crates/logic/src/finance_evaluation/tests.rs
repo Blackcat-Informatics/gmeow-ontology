@@ -35,8 +35,13 @@ g:MonetaryAmount l:subClassOf m:Quantity .
 g:FinancialPeriodRate l:subClassOf m:Quantity .
 g:FinancialPeriodCount l:subClassOf m:Quantity .
 g:FinancialReturnRatio l:subClassOf m:Quantity .
+g:HoldingAssetQuantity l:subClassOf m:Quantity .
+g:UnitPrice l:subClassOf m:RatioQuantity .
+m:RatioQuantity l:subClassOf m:Quantity .
+m:QuotientReferenceFrame l:subClassOf g:ReferenceFrame .
 g:SimpleInterestCalculation l:subClassOf g:Measurement .
 g:HoldingPeriodReturnCalculation l:subClassOf g:Measurement .
+g:UnitPriceTotalCalculation l:subClassOf g:Measurement .
 g:Measurement l:subClassOf g:Observation .
 g:referenceFrameUSD a g:ReferenceFrame ; g:frameKind g:frameKindScalar ; g:frameRealm g:frameRealmCurrency ; g:dimensionCount 1 ; g:determinacyModel g:determinacyCrisp ; g:hasAxis g:axisScalar ; g:requiresHost false .
 g:referenceFrameEUR a g:ReferenceFrame ; g:frameKind g:frameKindScalar ; g:frameRealm g:frameRealmCurrency ; g:dimensionCount 1 ; g:determinacyModel g:determinacyCrisp ; g:hasAxis g:axisScalar ; g:requiresHost false .
@@ -61,6 +66,15 @@ g:referenceFrameEUR a g:ReferenceFrame ; g:frameKind g:frameKindScalar ; g:frame
                 ("closingAmount", "MonetaryAmount"),
             ],
             "FinancialReturnRatio",
+        ),
+        (
+            "methodUnitPriceTotal",
+            "unit-price",
+            vec![
+                ("unitPrice", "UnitPrice"),
+                ("pricedQuantity", "HoldingAssetQuantity"),
+            ],
+            "MonetaryAmount",
         ),
     ] {
         text.push_str(&format!("g:{method} a g:ObservationMethod, l:CallableSignature ; l:inputParameters <urn:{prefix}:list:0> ; l:outputParameters <urn:{prefix}:out:list> ; g:calculationExpression <urn:{prefix}:recipe> .\n"));
@@ -103,6 +117,12 @@ g:referenceFrameEUR a g:ReferenceFrame ; g:frameKind g:frameKindScalar ; g:frame
             "return:difference",
             "return:leaf:0",
         ),
+        (
+            "unit-price:recipe",
+            "Multiplication",
+            "unit-price:leaf:0",
+            "unit-price:leaf:1",
+        ),
     ] {
         text.push_str(&format!("<urn:{node}> a m:ApplicationExpression ; m:operator m:{op} ; m:argumentSlot <urn:{node}:0>, <urn:{node}:1> .\n<urn:{node}:0> a m:ArgumentSlot ; m:slotIndex 0 ; m:slotExpression <urn:{left}> .\n<urn:{node}:1> a m:ArgumentSlot ; m:slotIndex 1 ; m:slotExpression <urn:{right}> .\n"));
     }
@@ -130,6 +150,21 @@ fn input(return_case: bool) -> String {
     )
 }
 
+fn unit_price_input() -> String {
+    let mut source = input(false)
+        .replace("a g:SimpleInterestCalculation ; g:observationMethod g:methodSimpleInterest ; g:calculationExpression <urn:simple:recipe> ; g:principalAmount <urn:opening> ; g:interestRate <urn:rate> ; g:interestPeriodCount <urn:periods>", "a g:UnitPriceTotalCalculation ; g:observationMethod g:methodUnitPriceTotal ; g:calculationExpression <urn:unit-price:recipe> ; g:unitPrice <urn:price> ; g:pricedQuantity <urn:shares>")
+        .replace("g:calculationPeriodBasis <urn:basis>", "g:hasReferenceFrame g:referenceFrameUSD");
+    source.push_str(r#"
+<urn:asset> a g:Asset .
+<urn:price> a g:UnitPrice ; m:quantityValue 12.50 ; m:hasDimension m:dimensionless ; g:hasReferenceFrame <urn:price-frame> ; g:pricedAsset <urn:asset> .
+<urn:shares> a g:HoldingAssetQuantity ; m:quantityValue 4.0 ; m:hasDimension m:dimensionless ; g:hasReferenceFrame <urn:share-frame> ; g:countedAsset <urn:asset> .
+<urn:price-frame> a m:QuotientReferenceFrame ; g:frameKind g:frameKindScalar ; g:frameRealm g:frameRealmMathematical ; g:dimensionCount 1 ; g:determinacyModel g:determinacyCrisp ; g:hasAxis g:axisScalar ; g:requiresHost false ; m:numeratorFrame g:referenceFrameUSD ; m:denominatorFrame <urn:share-frame> .
+<urn:share-frame> a g:ReferenceFrame ; g:frameKind g:frameKindScalar ; g:frameRealm g:frameRealmMathematical ; g:dimensionCount 1 ; g:determinacyModel g:determinacyCrisp ; g:hasAxis g:axisScalar ; g:requiresHost false .
+<urn:other-share-frame> a g:ReferenceFrame ; g:frameKind g:frameKindScalar ; g:frameRealm g:frameRealmMathematical ; g:dimensionCount 1 ; g:determinacyModel g:determinacyCrisp ; g:hasAxis g:axisScalar ; g:requiresHost false .
+"#);
+    source
+}
+
 fn shapes() -> Shapes {
     let mut text = String::from("@prefix sh: <http://www.w3.org/ns/shacl#> .\n");
     for class in [
@@ -146,6 +181,11 @@ fn shapes() -> Shapes {
         format!("{G}FinancialPeriodRate"),
         format!("{G}FinancialPeriodCount"),
         format!("{G}FinancialReturnRatio"),
+        format!("{M}RatioQuantity"),
+        format!("{M}QuotientReferenceFrame"),
+        format!("{G}UnitPrice"),
+        format!("{G}HoldingAssetQuantity"),
+        format!("{G}UnitPriceTotalCalculation"),
     ] {
         text.push_str(&format!(
             "<{class}/synthetic-shape> a sh:NodeShape ; sh:targetClass <{class}> .\n"
@@ -510,6 +550,50 @@ fn finance_evaluation_derives_money_and_return_with_owned_quantity_typing_proof(
         }
         evaluation.result.validate_native_closure().unwrap();
     }
+    let evaluation = run(&unit_price_input(), &owner(), "synthetic-owner-v1").unwrap();
+    magnitude(&evaluation, "50");
+    for (subject, predicate, object) in [
+        ("urn:price", TYPE, format!("{M}Quantity")),
+        ("urn:shares", TYPE, format!("{M}Quantity")),
+        (
+            evaluation.quantity.as_str(),
+            TYPE,
+            format!("{G}MonetaryAmount"),
+        ),
+        (
+            evaluation.quantity.as_str(),
+            &format!("{G}currency"),
+            format!("{G}referenceFrameUSD"),
+        ),
+        (
+            "urn:calculation",
+            &format!("{G}observationResult"),
+            evaluation.quantity.clone(),
+        ),
+    ] {
+        assert!(
+            evaluation.result.inferred().iter().any(|row| !row.is_edb
+                && row.subject == subject
+                && row.predicate == predicate
+                && row.object == TermValue::iri(&object)),
+            "missing derived {subject} {predicate} {object}"
+        );
+    }
+    let proof = crate::result_rdf::project_reasoning_result(&evaluation.result).unwrap();
+    for witness in [
+        "RatioQuantity",
+        "numeratorFrame",
+        "denominatorFrame",
+        "pricedAsset",
+        "countedAsset",
+        "urn:unit-price:recipe",
+    ] {
+        assert!(
+            proof.contains(witness),
+            "missing unit-price source support {witness}"
+        );
+    }
+    evaluation.result.validate_native_closure().unwrap();
 }
 
 #[test]
@@ -523,6 +607,35 @@ fn finance_evaluation_refuses_missing_or_wrong_owned_quantity_axiom() {
     ] {
         assert!(run(&input(false), &invalid, "synthetic-owner-v1").is_err());
     }
+    for edge in [
+        "g:UnitPrice l:subClassOf m:RatioQuantity .",
+        "m:RatioQuantity l:subClassOf m:Quantity .",
+    ] {
+        assert!(
+            run(
+                &unit_price_input(),
+                &owner().replace(edge, ""),
+                "synthetic-owner-v1"
+            )
+            .is_err(),
+            "missing owned ancestry {edge}"
+        );
+    }
+    let valid = owner();
+    let recipe = valid
+        .lines()
+        .find(|line| line.starts_with("<urn:unit-price:recipe> "))
+        .expect("independent owner supplies the recipe root");
+    let absent = valid
+        .lines()
+        .filter(|line| !line.starts_with("<urn:unit-price:recipe> "))
+        .collect::<Vec<_>>()
+        .join("\n");
+    let source_filled = format!("{}\n{recipe}\n", unit_price_input());
+    assert!(
+        run(&source_filled, &absent, "synthetic-owner-v1").is_err(),
+        "source cannot fill an entirely absent authenticated recipe root"
+    );
 }
 
 #[test]
@@ -543,6 +656,65 @@ fn finance_evaluation_refuses_conflicting_frames_roles_recipes_and_inexact_resul
         format!("{interest}\n<urn:opening> g:monetaryValue 1000.00 ."),
         format!("{interest}\n<urn:simple:recipe> m:operator m:Addition ."),
     ] { assert!(run(&invalid, &owner(), "synthetic-owner-v1").is_err(), "must reject {invalid}"); }
+    let source = unit_price_input();
+    for (from, to, failure) in [
+        (
+            "g:countedAsset <urn:asset>",
+            "g:countedAsset <urn:other-asset>",
+            "UnitPriceUnitMismatch",
+        ),
+        (
+            "m:denominatorFrame <urn:share-frame>",
+            "m:denominatorFrame <urn:other-share-frame>",
+            "UnitPriceUnitMismatch",
+        ),
+        (
+            "m:numeratorFrame g:referenceFrameUSD",
+            "m:numeratorFrame g:referenceFrameEUR",
+            "UnitPriceCurrencyMismatch",
+        ),
+        (
+            "<urn:shares> a g:HoldingAssetQuantity",
+            "<urn:shares> a m:Quantity",
+            "UnitPriceUnitMismatch",
+        ),
+        (
+            "m:quantityValue 4.0 ; m:hasDimension m:dimensionless",
+            "m:quantityValue 4.0 ; m:hasDimension m:massDimension",
+            "UnitPriceUnitMismatch",
+        ),
+    ] {
+        let invalid = source.replace(from, to);
+        assert_ne!(source, invalid);
+        let error = run(&invalid, &owner(), "synthetic-owner-v1")
+            .err()
+            .expect("incompatible unit price refuses");
+        assert_eq!(
+            error.inner().failure_class.as_deref(),
+            Some(format!("{G}{failure}").as_str()),
+            "{error}"
+        );
+    }
+    for invalid in [
+        source.replace(
+            "m:denominatorFrame <urn:share-frame>",
+            "m:denominatorFrame <urn:share-frame>, <urn:other-share-frame>",
+        ),
+        source.replace(
+            "g:hasReferenceFrame g:referenceFrameUSD",
+            "g:hasReferenceFrame g:referenceFrameUSD ; g:observationResult <urn:answer>",
+        ),
+        source.replace("a g:UnitPrice ;", "a g:UnitPrice, g:MonetaryAmount ;"),
+        source.replace(
+            "g:observationMethod g:methodUnitPriceTotal",
+            "g:observationMethod g:methodSimpleInterest",
+        ),
+    ] {
+        assert!(
+            run(&invalid, &owner(), "synthetic-owner-v1").is_err(),
+            "must reject malformed quote request {invalid}"
+        );
+    }
 }
 
 #[test]

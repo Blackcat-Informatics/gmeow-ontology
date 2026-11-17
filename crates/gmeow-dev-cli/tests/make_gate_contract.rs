@@ -161,10 +161,12 @@ fn normalized_whitespace(source: &str) -> String {
 ///     CI steps publish the exact fixture receipts before archive construction,
 ///     `rust-archive` completes and authenticates that one build lineage, and `rust`
 ///     runs its exact slice union. No test target invokes a fixture producer.
-///   - `doctests`: the parallel `rust-static` job runs `cargo test --doc
-///     --workspace` directly because nextest archives do not carry doctests.
-///   - `clippy`: the parallel `rust-static` job runs the identical all-target
-///     clippy command once on its existing Rust/generated runner.
+///   - `doctests`: the parallel `rust-static-source` job runs `cargo test --doc` over
+///     every crate that compiles from source, and `rust-static` runs it over the four
+///     producer-embedding crates, directly because nextest archives do not carry
+///     doctests.
+///   - `clippy`: the same two parallel jobs run the all-target clippy command, split
+///     by that crate partition, each on its own Rust runner.
 ///   - `check-lint`: the source-only `lint` job runs `make lint`, which is exactly
 ///     the same fast pre-commit hygiene inventory without a compiled Rust hook.
 ///   - `console`: it is the declared Make PREREQUISITE of `console-smoke`,
@@ -200,6 +202,7 @@ const REQUIRED_QUALITY_JOBS: &[&str] = &[
     "rust-archive",
     "rust",
     "rust-static",
+    "rust-static-source",
     "heavy",
     "medium-consumer-surface",
     "ontology-validate",
@@ -331,7 +334,7 @@ fn browser_codebook_builds_require_exact_read_only_producer_selection() {
     for (job_name, compilation, download) in [
         (
             "rust-static",
-            "- name: Workspace clippy",
+            "- name: Clippy over the producer-embedding crates",
             "Download the producer-selected prefix fixtures",
         ),
         (
@@ -1162,8 +1165,21 @@ fn ci_reuses_one_authenticated_nextest_archive_without_coverage_loss() {
     );
     assert_eq!(
         ci.matches("key: rust-prebuild-v1-").count(),
-        3,
-        "prebuild producer, archive consumer, and static Rust consumer must name the same exact cache lineage"
+        4,
+        "prebuild producer, archive consumer, and both static Rust consumers must name the same exact cache lineage"
+    );
+    let exact_keys: BTreeSet<&str> = ci
+        .lines()
+        .filter_map(|line| line.trim().strip_prefix("key: rust-prebuild-v1-"))
+        .collect();
+    let restore_keys: BTreeSet<&str> = ci
+        .lines()
+        .filter_map(|line| line.trim().strip_prefix("rust-prebuild-v1-"))
+        .collect();
+    assert_eq!(
+        (exact_keys.len(), restore_keys.len()),
+        (1, 2),
+        "every rust-prebuild consumer must use one exact key and the same two restore keys; a drifting hash input or suffix changes this set"
     );
     let compact_ci = without_horizontal_whitespace(&ci);
     assert!(
@@ -1239,7 +1255,7 @@ fn ci_reuses_one_authenticated_nextest_archive_without_coverage_loss() {
         .expect("ontology gate lanes follow the static Rust job")
         .0;
     assert!(
-        rust_static_job.contains("cargo clippy --all-targets -- -D warnings")
+        rust_static_job.contains("cargo clippy -p gmeow-cli -p gmeow-lsp -p gmeow-gmn-wasm -p gmeow-validate-wasm --all-targets -- -D warnings")
             && !rust_static_job.contains("cargo-nextest")
             && !rust_static_job.contains("make carrier-purity"),
         "rust-static must own clippy without compiling or replaying tests from the authenticated archive"
@@ -1385,8 +1401,8 @@ fn ci_reuses_one_authenticated_nextest_archive_without_coverage_loss() {
     );
     assert_eq!(
         ci.matches("      GMEOW_DEV: ./dist/bin/gmeow-dev").count(),
-        8,
-        "ontology, heavy, and fixture production lanes must use the authenticated producer binary"
+        9,
+        "maintenance, fixture, archive, ontology, and heavy lanes must use the authenticated producer binary"
     );
     assert!(
         console_producer_spec
@@ -1443,10 +1459,6 @@ fn ci_reuses_one_authenticated_nextest_archive_without_coverage_loss() {
             "test shards must not serialize the static lane `{duplicate}`"
         );
     }
-    assert!(
-        ci.contains("  rust-static:") && ci.contains("run: cargo test --doc --workspace"),
-        "doctests and rustdoc must remain required parallel static surfaces"
-    );
     let nextest = std::fs::read_to_string(repo_root().join(".config/nextest.toml"))
         .expect("read nextest config");
     assert!(
@@ -1663,7 +1675,7 @@ fn ci_cold_producer_build_supplies_measurement_prerequisites() {
         .find("> dist/producer-build-recipe.json")
         .expect("persist recipe identity before any corpus exists");
     let nextest = job
-        .find("tool: cargo-nextest@0.9.137")
+        .find("cargo install --locked --version 0.9.137")
         .expect("the evidence sampler inspects a pinned nextest");
     let measurement = job
         .find("make perf-sample PERF_SAMPLE_ARGS=")
@@ -1924,6 +1936,94 @@ fn every_release_entry_point_selects_the_release_profile() {
         assert!(
             !workflow.contains(forbidden),
             "the release workflow must not run the pipeline directly ({forbidden})"
+        );
+    }
+}
+
+/// The two hosted static jobs partition the workspace exactly: the source job takes every
+/// member except the four producer-embedding crates, and rust-static takes exactly those four.
+/// Each job runs the clippy, rustdoc and doctest commands with the Makefile's own arguments
+/// and rustdoc flags, so neither can narrow or drop a check without failing this test.
+#[test]
+fn hosted_static_rust_jobs_partition_the_workspace_with_the_makefile_arguments() {
+    let ci = ci_workflow();
+    let makefile = makefile();
+    let source = ci
+        .split_once("\n  rust-static-source:\n")
+        .and_then(|(_, tail)| tail.split_once("\n  # Static Rust surfaces for the four"))
+        .map(|(job, _)| job)
+        .expect("source static job is bounded by the producer-embedding job header");
+    let embedded = ci
+        .split_once("\n  rust-static:\n")
+        .and_then(|(_, tail)| tail.split_once("\n  # === ONTOLOGY GATE LANES ==="))
+        .map(|(job, _)| job)
+        .expect("producer-embedding static job is bounded by the ontology lanes");
+
+    let args = makefile
+        .lines()
+        .find_map(|line| line.strip_prefix("RUST_PREBUILD_WORKSPACE_ARGS := "))
+        .expect("Makefile declares the source-only workspace arguments");
+    assert!(
+        args.starts_with("--workspace "),
+        "source-only selection is the whole workspace minus exclusions"
+    );
+    let excluded: BTreeSet<&str> = args
+        .split_whitespace()
+        .collect::<Vec<_>>()
+        .windows(2)
+        .filter(|pair| pair[0] == "--exclude")
+        .map(|pair| pair[1])
+        .collect();
+    assert_eq!(
+        excluded,
+        BTreeSet::from([
+            "gmeow-cli",
+            "gmeow-gmn-wasm",
+            "gmeow-lsp",
+            "gmeow-validate-wasm"
+        ]),
+        "the source-only exclusion set is exactly the four producer-embedding crates"
+    );
+
+    let rustdoc_flags = makefile
+        .lines()
+        .find_map(|line| line.trim_start().strip_prefix("RUSTDOCFLAGS=\""))
+        .and_then(|rest| rest.split_once('"'))
+        .map(|(flags, _)| flags)
+        .expect("rust-docs recipe declares its RUSTDOCFLAGS");
+    for (job_name, job) in [("rust-static-source", source), ("rust-static", embedded)] {
+        assert!(
+            job.contains(&format!("RUSTDOCFLAGS: {rustdoc_flags}\n")),
+            "{job_name} rustdoc flags must equal the rust-docs recipe in the Makefile"
+        );
+    }
+
+    let source_commands = [
+        format!("run: cargo clippy {args} --all-targets -- -D warnings"),
+        format!("run: cargo doc {args} --no-deps"),
+        format!("run: cargo test --doc {args}"),
+    ];
+    for command in &source_commands {
+        assert!(
+            source.lines().any(|line| line.trim() == command),
+            "rust-static-source must run `{command}`"
+        );
+    }
+
+    let packages = "-p gmeow-cli -p gmeow-lsp -p gmeow-gmn-wasm -p gmeow-validate-wasm";
+    for command in [
+        format!("cargo clippy {packages} --all-targets -- -D warnings"),
+        format!("cargo doc {packages} --no-deps"),
+        format!("cargo test --doc {packages}"),
+    ] {
+        assert_eq!(
+            embedded
+                .lines()
+                .map(|line| line.trim().strip_prefix("run: ").unwrap_or(line.trim()))
+                .filter(|line| *line == command)
+                .count(),
+            1,
+            "rust-static must run `{command}` exactly once"
         );
     }
 }

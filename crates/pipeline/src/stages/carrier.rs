@@ -1335,17 +1335,11 @@ fn assemble_carrier(
     drop(authored_default);
     drop(composed);
     parts.release_views();
-    // The verdicts, when there are any, join the same composition, and the carrier is
-    // built once from the same parts in the same order as before.
-    let phase = if verdicts.quad_count() == 0 {
-        "materialize-carrier-graphs"
-    } else {
+    // Verdicts join the same ordered parts before coherence is assessed. The final
+    // certified carrier is the only owned carrier this assembly materializes.
+    if verdicts.quad_count() != 0 {
         parts.push_dataset(verdicts);
-        "materialize-carrier-with-verdicts"
-    };
-    let composed_final =
-        crate::node::measure_stage_phase("stage-snapshot", phase, || parts.materialize())?;
-    log_carrier_size(phase, &composed_final);
+    }
 
     // Fold the SCOPED COHERENCE CERTIFICATE into the terminal bundle (graph/attestations),
     // so EVERY gmeow.gts carries a budget-free, proof-carrying coherence attestation the
@@ -1353,7 +1347,7 @@ fn assemble_carrier(
     // computed ONCE here, over the fully-composed carrier, reusing stage-reason's single
     // reasoning pass (no second reason) and the ONE `build_coherence_outcome` construction
     // the release lane also uses.
-    fold_coherence_certificate(composed_final, parts, upstream)
+    fold_coherence_certificate(parts, upstream)
 }
 
 /// Parse the three code-authored termination-class worlds through one shared boundary.
@@ -1402,7 +1396,6 @@ const COHERENCE_ISSUED_AT: &str = "1970-01-01T00:00:00Z";
 /// attestation folds as `graph/attestations` — always present, so the consumer read tool
 /// never needs a recompute path.
 fn fold_coherence_certificate(
-    composed: std::sync::Arc<purrdf::RdfDataset>,
     mut parts: CarrierParts<'_>,
     upstream: &BTreeMap<String, StageProduct>,
 ) -> Result<std::sync::Arc<purrdf::RdfDataset>, gmeow_errors::Diag> {
@@ -1419,6 +1412,11 @@ fn fold_coherence_certificate(
             "stage-reason handle for graph/reasoning is not the Reasoning arm",
         ));
     };
+    let composed = crate::node::measure_stage_phase(
+        "stage-snapshot",
+        "compose-coherence-carrier-view",
+        || parts.view(),
+    )?;
 
     // Bundle identity = digest of the composed carrier's canonical N-Quads, pinned with the
     // SAME digest primitive as the axiom-set hashes (so the certificate's bundle_hash and
@@ -1427,13 +1425,20 @@ fn fold_coherence_certificate(
         "stage-snapshot",
         "canonicalize-coherence-carrier",
         || {
-            purrdf::canonical_flat_nquads(
-                composed.as_ref(),
+            purrdf::try_canonicalize_flat_view(
+                &composed,
+                purrdf::CanonHash::Sha256,
                 &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None),
             )
         },
     )
     .map_err(|e| {
+        // Resident views cannot become unavailable. Preserve the original refusal
+        // exactly as canonical_flat_nquads did for the formerly owned carrier.
+        let e = match e {
+            purrdf::ViewCanonError::Refused(refused) => refused,
+            purrdf::ViewCanonError::NotReady { error, .. } => match error {},
+        };
         stage_err(&format!(
             "serialize composed carrier for the coherence certificate: {e}"
         ))
@@ -1441,7 +1446,8 @@ fn fold_coherence_certificate(
     let bundle_hash = purrdf::gts::writer::digest_string(composed_nq.nquads().as_bytes());
     tracing::info!(
         target: "pipeline_phase", stage = "stage-snapshot",
-        carrier_quads = composed.quad_count(), canonical_bytes = composed_nq.nquads().len(),
+        retained_source_rows = composed.stats().retained_rows,
+        canonical_bytes = composed_nq.nquads().len(),
         "coherence input size"
     );
     // Only the digest is needed by the certificate and the final carrier.
@@ -1452,7 +1458,7 @@ fn fold_coherence_certificate(
     let outcome =
         crate::node::measure_stage_phase("stage-snapshot", "assess-coherence-certificate", || {
             crate::stages::release::build_coherence_outcome(
-                composed.as_ref(),
+                &composed,
                 result.as_ref(),
                 bundle_hash,
                 COHERENCE_ISSUED_AT,
@@ -1460,7 +1466,7 @@ fn fold_coherence_certificate(
         })?;
     tracing::info!(
         target: "pipeline_phase", stage = "stage-snapshot",
-        "coherence outcome assessed; releasing the verdict-bearing carrier next"
+        "coherence outcome assessed; releasing the verdict-bearing carrier view next"
     );
     if outcome.is_refused() {
         return Err(stage_err(
@@ -1478,8 +1484,8 @@ fn fold_coherence_certificate(
     }
     let cert = parse_dataset(nquads.as_bytes(), "application/n-quads", None)
         .map_err(|e| stage_err(&format!("parse coherence certificate quads: {e}")))?;
-    // The certificate joins the same composition as the carrier it certifies. That
-    // carrier is released first, so only one owned carrier is ever resident.
+    // The certificate joins the same ordered composition it certifies. Release the
+    // pre-certificate view before building the only owned carrier.
     drop(composed);
     parts.push_dataset(cert);
     let certified = crate::node::measure_stage_phase(

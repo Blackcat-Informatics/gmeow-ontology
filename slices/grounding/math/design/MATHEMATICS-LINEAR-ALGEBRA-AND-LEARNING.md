@@ -40,8 +40,290 @@ inner product (a `math:HermitianInnerProduct` for the complex case). The
 its `math:ambientSpace` and is `math:definedByInnerProduct`, so "the orthogonal complement" is never
 ambiguous ([`MATHEMATICS-ANALYSIS-AND-GEOMETRY.md`](MATHEMATICS-ANALYSIS-AND-GEOMETRY.md)).
 Decompositions — `math:Eigendecomposition`, `math:SingularValueDecomposition` — are first-class
-objects with declared operands and outputs. External anchor: only OpenMath `linalg`/`linalgeig`
-names eigen symbols; SVD/PCA are authored.
+objects with declared operands and outputs. The registered eigen grounding in
+[`mappings/equivalences.ttl`](../mappings/equivalences.ttl) is a `skos:closeMatch`
+from `math:Eigendecomposition` to Wikidata `wd:Q190524`, eigenvectors and eigenvalues,
+with `logic:AffineCorrespondence`, `logic:InstitutionMorphism` and
+`logic:ValidationOnly` preservation. It relates the decomposition to the broader
+eigenvalue/eigenvector concept; it asserts neither identity nor executable numerical
+lowering. There is no authored OpenMath eigen correspondence in this mapping.
+
+### Inner products and defining forms
+
+`math:InnerProductSpace` retains a vector space with a justified inner product.
+Over the reals the form is symmetric, positive definite and bilinear. Over the
+complex numbers, `math:HermitianInnerProduct` is conjugate-symmetric, positive
+definite and sesquilinear. Preserve the source convention for which argument
+is conjugate-linear. With the first-conjugate convention on `C`,
+`h(z,w) = conjugate(z) w` gives `h(i,1) = -i`, `h(1,i) = i` and `h(i,i) = 1`.
+This is not complex bilinearity. A Hermitian or symmetric matrix alone need
+not be positive definite; semidefinite and indefinite forms do not become
+inner products through their labels.
+
+Keep the space, its `math:underlyingSet` carrier, scalar field, form and chosen
+coordinate basis separate. Inner-product spaces may have zero, finite or
+infinite dimension. Completeness is an additional Hilbert-space condition.
+The induced norm is `sqrt(h(v,v))`; a normalized angle involving zero is
+undefined, and complex angles require an explicit convention. Orthogonality
+depends on the form: for real `(1,1)` and `(1,-1)`, the usual dot product is
+zero, while `h(u,v) = u1 v1 + 2 u2 v2` is `-1`.
+
+`math:innerProduct` points from the space to its form. Its domain and range
+are stated in prose, without a native global functionality or typed-target
+rule. Several justified form descriptions do not select a preferred form,
+establish equality or compute a change of coordinates. The separate
+`math:definedByInnerProduct` relation points from a complement to the form
+defining its orthogonality. The existing OrthogonalComplement-local profile
+has generic `logic:Thing` minimum-one, maximum-one and all-values restrictions,
+plus required-path closure and `math:UnqualifiedOrthogonalComplement` as the
+associated diagnostic. This resource contract does not prove a Hermitian
+target's laws or the universal orthogonality condition. Operand, ambient and
+form links retain their separate roles without requiring distinct referents.
+The ordinary example declares those links; its competency query retrieves
+them without evaluating a form or constructing a complement.
+
+The native numeric type in
+[`crates/math/src/lib.rs`](../../../../crates/math/src/lib.rs) is a finite real
+coordinate implementation using checked `i128` rational arithmetic and
+`xᵀGy`. Its constructor checks square shape; symmetry and positive definiteness
+remain the caller's contract, with LDL pivots providing an explicit certificate
+for symmetric inputs. The current logic Gram consumer checks explicit
+transpose conflicts before symmetric fill, then invokes LDL for forms claimed
+positive definite. This is not a general complex Hermitian or Hilbert engine.
+Its square-root outputs use deterministic fixed-precision decimal arithmetic;
+`angle` separately parses the decimal cosine to `f64` and applies `acos`,
+without a general cross-platform byte-identity claim for that output.
+These implementation boundaries describe inspected source, not fresh execution.
+
+The existing native grounding is `math:InnerProductSpace skos:exactMatch`
+to [Wikidata Q214159](https://www.wikidata.org/wiki/Q214159), inner product
+space, with `logic:WellBehavedLens`, `logic:InstitutionMorphism` and
+`logic:SoundUnderApproximation` preservation. The concept correspondence
+supplies neither a form-law proof nor a numerical execution certificate.
+
+### Subspaces and ambient structure
+
+A `math:Subspace` W of a vector space V over F contains zero and is closed
+under V's addition and multiplication by every scalar in that same field F,
+using the induced operations. The zero subspace and W = V are valid, as are
+finite-dimensional and infinite-dimensional subspaces. For example, the plane
+`{(x,y,0) : x,y in R}` is a subspace of real `R³` with its usual operations;
+the affine plane `{(x,y,1) : x,y in R}` lacks zero and is not a subspace.
+An arbitrary vector sample or a dimension label does not establish closure.
+
+`math:subspaceOf` points from W to each justified ambient V, allowing several
+ambient relationships and W to itself without a preferred ambient. Preserve
+the structures separately from their `math:underlyingSet` carriers and retain
+the operation and law evidence through `math:structureOperation` and
+`math:satisfiesAxiom`. The descriptive `math:scalarField` relation can retain
+the supplied field interpretation; the current source does not require that
+edge on every module or impose a universal `math:Field` target. The same-field
+requirement and induced operations still need mathematical justification.
+
+The property's domain and range are stated in prose only. No native typing,
+cardinality, inclusion, transitivity or closure rule is authored for it.
+The existing Subspace class hierarchy and abstract-individual type do not
+classify arbitrary datasets as subspaces or prove their linear closure.
+
+The image of a linear map is a subspace of its target. An arbitrary nonlinear
+embedding need not have a subspace image, and a residual vector or dataset
+does not automatically constitute a residual subspace. An orthogonal complement
+additionally needs a declared ambient inner product: `math:orthogonalComplementOf`
+names the operand S, `math:ambientSpace` names V and `math:definedByInnerProduct`
+names the form. Those roles may have coincident referents; no distinctness is
+implied. Algebraic subspaces need not be topologically closed. The decomposition
+`V = S ⊕ S⊥` holds in finite-dimensional inner-product spaces and for closed
+subspaces of Hilbert spaces, but is not guaranteed in arbitrary infinite dimension.
+
+The [ordinary example](../examples/linear-algebra-and-learning.ttl) asserts
+`ex:embeddedSubspace math:subspaceOf ex:complexSpace4096` and separately
+describes an embedding and an orthogonal complement. It supplies no image link
+identifying that subspace with the embedding image and no closure proof.
+The orthogonal-complement competency query retrieves the declared operand,
+ambient space and form; it neither proves closure nor constructs a complement.
+The `exact_pca_residual` producer retains its `p:residualSubspace` as
+`math:MathematicalObject`; its fixed Gram calculations supply no generic
+subspace classifier or complex orthogonal-complement construction.
+
+The native grounding in
+[`mappings/equivalences.ttl`](../mappings/equivalences.ttl) is a
+`skos:exactMatch` from `math:Subspace` to
+[Wikidata Q728435](https://www.wikidata.org/wiki/Q728435), linear subspace,
+with `logic:WellBehavedLens`, `logic:InstitutionMorphism` and
+`logic:SoundUnderApproximation` preservation. This concept correspondence
+supplies no individual closure proof, numerical construction or execution receipt.
+
+### Basis identity and coordinate order
+
+`math:Basis` names an algebraic basis of a vector space over its scalar field.
+Each vector has unique finitely supported coefficients indexed by the basis
+elements. An ordered coordinate tuple additionally needs a correspondence from
+positions to those elements. Preserve that correspondence with the source
+representation; a basis label or IRI does not supply an ordering.
+
+`math:hasBasis` records a basis choice for a space or algebra carrier and permits
+several supplied choices. `math:inBasis` identifies the basis context of a vector
+or Gram matrix. Keep the coordinate-independent vector or bilinear form separate
+from its coordinate array, and retain `math:representsForm` as the separate form
+relation. Changing the basis link does not transform the entries; a basis change
+requires the actual transformation and its ordered input/output conventions.
+
+The exact Gram producer names `p:covBasis` as `math:Basis` and gives `p:pcaGram`
+that `math:inBasis` context. Its RDF does not enumerate the basis elements or their
+order, so the link alone does not certify an unambiguous indexed matrix. The
+Clifford producer separately names an algebra carrier's `BladeBasis` and indexed
+grade-one generator records. In the finite real `Cl(p,q)` profile the carrier
+dimension is `2^(p+q)`, while the generating quadratic space has `p+q` basis
+vectors. The emitted `math:hasBasisBlade` generator records do not enumerate all
+carrier basis elements or prove linear independence and spanning.
+
+Orthonormality also requires an inner product. A self-adjoint operator on a
+finite-dimensional real or complex inner-product space admits an orthonormal
+eigenbasis; this does not make every basis an eigenbasis. Arbitrary
+infinite-dimensional self-adjoint operators need not admit an eigenvector basis.
+A truncated PCA component family need not span the full input space.
+
+### Eigenvalue and eigenvector associations
+
+An eigenvector is a nonzero vector `v` satisfying `Av = λv` for the supplied
+operator on the declared vector space over its scalar field. The eigenvalue `λ`
+may be zero. A real operator need not have real eigenvalues; an extension of
+scalars is explicit, never inferred from a number or vector label.
+
+In finite dimension, `A = QΛQ⁻¹` requires a complete eigenbasis. The columns of
+invertible `Q` are the eigenvectors, and diagonal `Λ` lists their eigenvalues in
+matching order. The operator `A` need not be invertible: in a supplied ordered
+real basis, `A = diag(0,3)` has `Q = I`, `Λ = diag(0,3)` and the nonzero
+eigenvector `(1,0)` for eigenvalue zero. General operators need not be
+diagonalizable. Orthonormality or a unitary `Q` requires the corresponding
+inner-product and operator hypotheses; the finite-dimensional formula does not
+supply a discrete eigenvector basis for arbitrary infinite-dimensional operators.
+
+`math:eigenvalue` and `math:eigenvector` are separate unordered output relations.
+Preserve actual associations and ordering in the source representation. The
+relations do not construct eigenpairs: neither equal output counts nor RDF order
+identifies a pairing, and the Cartesian product of the outputs is not a set of
+valid eigenpairs. Repeated identical RDF assertions carry no additional count.
+Distinct number resources do not establish algebraic multiplicity, which counts
+roots of the characteristic polynomial. Geometric multiplicity is the dimension
+of an eigenspace, established by a basis of that eigenspace rather than resource count.
+Nonzero scalar multiples share an eigendirection; normalization and representative
+selection do not change either multiplicity. A partial output family establishes
+no complete diagonalization.
+
+The `exact_pca_residual` producer in
+[`crates/math/src/producers.rs`](../../../../crates/math/src/producers.rs) computes
+a dominant axis and LDL pivots for fixed Gram inputs and emits PCA role records
+with `math:eigensolver p:exactLDLT`. That descriptor is typed as
+`math:MathematicalObject`; the producer emits no `math:eigenvalue` or
+`math:eigenvector` result triples. The ordinary example's `ex:randomizedSVD`
+descriptor names a `math:SingularValueDecomposition`. Neither descriptor, a type
+declaration nor the validation-only grounding certifies an executed
+eigendecomposition or a complete eigenbasis.
+
+### Singular-value factors, dimensions and multiplicities
+
+`math:SingularValueDecomposition` describes a linear map between finite-dimensional
+real or complex inner-product spaces. In supplied orthonormal coordinate bases,
+`A = UΣV*`; `V*` is the conjugate transpose, or ordinary transpose over the reals.
+The diagonal entries of `Σ` are real and nonnegative. Singular and rectangular
+maps admit this factorization without an inverse or an eigenbasis of `A`.
+Preserve both inner products: changing them may change the singular values. This
+finite matrix statement supplies no SVD for an arbitrary infinite-dimensional
+operator.
+
+For `m×n` matrix `A`, `k = min(m,n)` and exact rank `r`, the following conventions
+make factor dimensions and zero treatment explicit. Source names vary; preserve
+the actual dimensions and retained occurrences rather than interpreting a name
+alone.
+
+| Form | U | Σ | V | Retained diagonal occurrences |
+| --- | --- | --- | --- | --- |
+| Full | m×m | m×n | n×n | k, including zeros |
+| Thin | m×k | k×k | n×k | k, including zeros |
+| Rank-compact | m×r | r×r | n×r | r, all strictly positive |
+
+The columns of each `U` and `V` are orthonormal, and corresponding columns share
+the diagonal order of `Σ`. For rank zero, the compact convention has empty
+column families and an empty diagonal; it still represents the zero map. A
+truncation that discards positive singular values approximates `A` rather than
+factoring it exactly. Numeric rank based on a supplied tolerance is a separate
+reported policy and result, not mathematical rank or an implicit zero test.
+
+For real `A = diag(3,3,0)` with the standard Euclidean inner product and an
+ordered orthonormal basis, `U = V = I` and `Σ = A` give the full exact SVD.
+The singular-value sequence `3,3,0` has two positive occurrences and rank two,
+although it has only one distinct positive value. An unordered
+`math:singularValue` link does not encode these occurrences. Repeating an RDF
+assertion adds no multiplicity; distinct number resources prove no multiplicity
+either. Preserve supplied occurrence, factor association, order, dimensions and
+completeness evidence in its source representation. Missing zero outputs do not
+establish full rank, and a truncated output family does not disclose omitted
+values. Singular values, their squares and explained-variance ratios retain
+distinct mathematical roles even when particular numbers coincide.
+
+The registered SVD grounding in
+[`mappings/equivalences.ttl`](../mappings/equivalences.ttl) is `skos:exactMatch`
+to Wikidata `wd:Q420904`, with `logic:WellBehavedLens`,
+`logic:InstitutionMorphism` and `logic:SoundUnderApproximation` preservation.
+This concept relation supplies no factor matrices, numerical algorithm or
+execution certificate. The ordinary scene and PCA fixtures name SVD descriptors
+without publishing factor or `math:singularValue` results. The exact Gram/PCA
+producer emits its LDL descriptor and PCA role records, with no singular-value
+output triples; those declarations do not establish an executed SVD.
+
+### Linear maps and finite rank values
+
+`math:LinearMap` is a total map `T: V → W` between vector spaces over the same
+scalar field, with `T(av+bw) = aT(v)+bT(w)`. Neither finite dimension nor an
+inner product is needed for linearity. Preserve the vector-space structures,
+their scalar actions and their carriers separately: the inherited
+`math:Function` source profile requires `math:domain` and `math:codomain` to
+identify carrier sets, while `math:underlyingSet` relates the algebraic structures
+to their carriers. Source and target roles may share a set without becoming the
+same role. A class, frame, label or finite sample does not prove the universal
+preservation law or execute the map.
+
+A finite matrix representation needs ordered bases for both source and target.
+Its column coordinates use the target basis, and column positions correspond to
+the ordered source basis. Coordinate changes for the same map over the same
+field preserve rank; they require actual transformations and their conventions.
+A matrix-shaped dataset supplies no such map or basis evidence. A neural layer
+may also contain an affine bias or a nonlinear activation; its weight matrix
+does not establish linearity of the whole layer.
+
+`math:Rank` is the dimension of the attained image over the declared field,
+which can differ from either ambient dimension. A finite-dimensional source
+obeys `dim(V) = rank(T) + dim(kernel(T))`. For the real projection
+`T: R³ → R²`, `(x,y,z) ↦ (x,y)`, the rank is two and the kernel has dimension
+one. The zero map has rank zero even between nonzero spaces. Infinite-dimensional
+spaces can have finite-rank maps, while an infinite-dimensional image has
+infinite rank; do not replace an unknown or infinite rank with a guessed finite
+number. Preserve the actual scalar-field interpretation when comparing ranks.
+
+`math:rankValue` records only a supplied finite nonnegative-integer value. Its
+mathematical value contract has no fixed machine-width cap or infinity marker.
+Omission is distinct from zero. Numerical tolerance-based rank and rank-truncated
+approximations retain their policies and evidence separately. In the
+finite-dimensional real or complex inner-product SVD setting, exact rank counts
+positive singular-value occurrences with multiplicity, as the
+[singular-value contract](#singular-value-factors-dimensions-and-multiplicities)
+states. Distinct values or RDF resources do not supply that count. Tensor-axis
+count and root-system rank are separate invariants.
+
+Keep the `math:Rank` resource distinct from the map, its matrix and its numeric
+value. These terms supply no dedicated rank-of relation; preserve the source
+identification of the relevant map and field in its existing representation.
+The finite-value annotation alone certifies neither a specialized lexical/range
+or cardinality guard nor an executed generated/native validation or rank
+calculation.
+
+The registered LinearMap grounding in
+[`mappings/equivalences.ttl`](../mappings/equivalences.ttl) is `skos:exactMatch`
+to Wikidata `wd:Q207643`, with `logic:WellBehavedLens`,
+`logic:InstitutionMorphism` and `logic:SoundUnderApproximation` preservation.
+It relates the linear-map concept; it does not prove an individual map's laws,
+calculate its image or rank, or certify an executable implementation.
 
 ## The exact numeric layer — bilinear forms, matrices, norms, and rational carriers
 
@@ -76,6 +358,209 @@ individuals, never `owl:oneOf`), the object-layer counterpart of a `math:MetricS
 
 ## PCA and the KG-projection flagship
 
+### Covariance operators and declared analysis operands
+
+`math:CovarianceOperator` represents centered second moments as a self-adjoint
+positive-semidefinite linear operator in a supplied real or complex inner-product
+setting. For a finite-dimensional column random vector `X` with `E[‖X‖²] < ∞`,
+write `μ = E[X]`, `Y = X-μ` and `C = E[YY*]` in supplied orthonormal coordinates.
+Here `*` is conjugate transpose, ordinary transpose over the reals, and the complex
+inner-product convention is `⟨u,v⟩ = u* v`, conjugate-linear in the first argument.
+An unconjugated complex second moment is a different construction. Retain the
+actual field, inner product and coordinate bases rather than infer them from a
+matrix label.
+
+Population covariance and empirical covariance retain their own source evidence.
+If a data matrix has `N` centered observation columns, its empirical covariance
+has the form `YY*/D` for the supplied divisor `D`. Divisors `N` and `N-1` give
+different conventions and require `N > 0` and `N > 1`, respectively. Preserve
+sample orientation, centering, scaling and denominator in the existing source
+representation; no default divisor, sample count or preprocessing execution is
+implicit. An unbiasedness claim additionally needs the appropriate sampling
+assumptions. A Gram matrix, symmetry or positive definiteness alone supplies
+neither observations nor evidence that the selected covariance convention ran.
+
+Positive semidefiniteness permits singular and zero covariance. For a real random
+vector equally likely to be `(1,0)` or `(-1,0)` under the standard Euclidean inner
+product, `μ = 0` and `C = diag(1,0)`. Its zero eigenvalue is legitimate, and no
+inverse is needed. Missing covariance is distinct from zero covariance. Repeated
+eigenvalues do not choose unique eigenvectors; preserve supplied component and
+normalization evidence independently of the operator declaration.
+
+The class is not limited to finite matrices. Infinite-dimensional use states its
+analytic assumptions; a strongly measurable Hilbert-valued random element with
+finite second moment supplies a standard sufficient setting for the bounded
+covariance construction. Do not transfer a finite-dimensional eigenbasis or
+spectral result to an arbitrary operator without its hypotheses.
+
+`math:covarianceOperator` points from the analysis to its declared covariance
+operand, distinct from its data input, solver and reported outputs. The current
+PCA source profile has a generic at-least-one resource minimum and its existing
+closed-world closure, associated with `math:IncompletePCAAnalysis`. This source
+contract supplies neither an exact-one maximum nor a typed-target enforcement
+claim. Retain a justified CovarianceOperator description and its inherited
+LinearMap/Function carrier-set frame, separately from the vector-space structure
+and evidence for the covariance laws.
+
+The `exact_pca_residual` producer computes a dominant axis and LDL pivots from its
+fixed rational Gram matrix and emits PCA role declarations. Its
+`p:residualCovariance` has domain and codomain `p:covSpace`; these identify the
+carrier frame. Neither the fixed matrix nor its emitted centering/scaling labels
+establish observed samples, an executed centering step, a sample normalization
+or an executed spectral decomposition. The ordinary scene and competency query
+retain and retrieve the declared operator role; they do not perform those
+statistical operations.
+
+The native grounding is a `skos:closeMatch` from `math:CovarianceOperator` to
+[Wikidata Q5178900](https://www.wikidata.org/wiki/Q5178900), with
+`logic:AffineCorrespondence`, `logic:InstitutionMorphism` and
+`logic:ValidationOnly` preservation. The target's linked
+[covariance-operator reference](https://en.wikipedia.org/wiki/Covariance_operator)
+discusses Hilbert operators and broader Banach covariance forms. It supplies
+conceptual context, not proof of this centered complex-adjoint convention or
+equivalence across analytic settings. The correspondence supplies no numerical
+construction, spectral result or execution certificate.
+
+### Directions, loading coefficients and sample scores
+
+`math:PrincipalComponent` uses the direction convention: a normalized nonzero
+eigenvector of the supplied covariance in the declared geometry.
+`math:LoadingVector` names its coefficient representation in the supplied
+ordered feature basis. These are distinct descriptive roles without a global
+disjointness or resource-inequality rule. In
+[Jolliffe and Cadima's PCA review](https://doi.org/10.1098/rsta.2015.0202),
+section 2(a), equation 2.1 and the following terminology discussion, the
+linear combinations of variables are called principal components and their
+coefficient eigenvectors supply the loadings. The review explicitly notes the
+alternate direction usage retained here. Neither naming convention turns a
+geometric direction into its data-dependent projected scores.
+
+For a finite real Euclidean example, let the prepared matrix `X` have `n`
+observation rows and `p` feature columns, and let `A` have `k` ordered loading
+columns in that feature basis. The score matrix `T = X A` has `n` rows and
+`k` columns. Each column contains one component's scores across observations;
+each row contains one observation's coordinates across retained components.
+GMEOW's `math:ScoreVector` uses the latter sample-tuple convention. The review's
+`X*A = U L` discussion after equation 2.3 describes the former column view;
+the two views do not identify a sample with a component.
+
+For a prepared sample `(2,-1,4)` with retained loading columns `(1,0,0)` and
+`(0,1,0)`, the sample tuple is `(2,-1)`. Its two coordinates omit the third
+input coordinate; a truncated representation does not certify complete input
+recovery. A zero score tuple is legitimate and is distinct from a zero vector
+wrongly offered as an eigenvector. Individual coefficient entries may be zero
+or negative without making the whole normalized eigenvector zero. A zero
+covariance eigenvalue remains valid. For zero covariance in positive dimension,
+orthonormal direction choices remain possible; zero dimension supplies no
+nonzero component. The required-output profile does not license fabricated
+directions or removed input when a mathematical case cannot satisfy it.
+
+Repeated covariance eigenvalues allow different orthonormal bases within their
+eigenspaces. Real signs, complex phases and such tied-basis choices do not select
+a preferred representative; corresponding loading and score coordinates must
+transform consistently. The finite real matrix example assumes its stated
+Euclidean conventions. Other inner products, complex conjugation conventions,
+observation orientations and coordinate bases need their actual supplied
+transformations. Infinite-dimensional inputs need their own analytic and
+spectral hypotheses, not an automatic finite-coordinate eigenbasis.
+
+Retain feature identities and units, sample identity, component order, actual
+preprocessing and normalization evidence. In particular, coefficient loadings
+of standardized features are not automatically coefficients in unprocessed
+physical units. Section 2(c)(i), equations 2.7 and 2.8 of the review describe
+standardization and correlation-scaled loadings. A feature-to-component-score
+correlation requires both feature variance and component-score variance to be
+nonzero. A zero covariance eigenvalue makes the corresponding score variance
+zero, so that correlation is undefined even if a formal scaling expression
+looks like zero. A zero feature scale likewise licenses no division. Preserve
+the supplied convention rather than substituting zeros, correlation loadings,
+biplot markers, factor-analysis loadings or importance values. Mathematical
+coefficients and variance retention do not supply semantic interpretation;
+that remains a vantage-bearing `math:ResidualInterpretationClaim`.
+
+`math:principalComponent`, `math:loadingVector` and `math:scoreVector` point
+from the analysis to their separate supplied output resources. Their signatures
+are stated in prose. The existing PCA-local generic `logic:Thing` minima and
+all-values restrictions, with required-path closures, supply no dedicated
+maxima, target typing, normalization, orthogonality, coordinate lengths or
+sample/feature/component association proofs. Unordered links, matching IRI
+names, output counts and repeated RDF assertions do not encode those facts.
+Retain the actual associations and ordered numeric data in the existing source
+representation; this vocabulary supplies no dedicated coordinate or pairing predicate.
+
+The ordinary example declares three component directions but only the named
+`pc1Loadings` and `sampleScores` descriptors, without numeric coefficients or
+sample associations. The `exact_pca_residual` producer computes its fixed
+metric-dominant coordinate index and LDL pivots, then emits direction, loading
+and score descriptors. It computes no covariance eigenvector, loading array or
+sample-score tuple. The current competency query independently joins component
+and variance roles; it does not retrieve loading/score values, establish their
+pairing or sort components by variance. These are inspected implementation
+boundaries, not fresh numerical execution claims.
+
+The native grounding for `math:PrincipalComponent` is `skos:relatedMatch`
+to [Wikidata Q3555174](https://www.wikidata.org/wiki/Q3555174), eigenvector,
+with `logic:AffineCorrespondence`, `logic:InstitutionMorphism` and
+`logic:ValidationOnly` preservation. The generic concept omits the selected
+covariance/PCA-output specialization; this relation asserts neither identity,
+coordinate conversion nor numerical execution. The PCAAnalysis method
+correspondence is separate, and no loading/score correspondence is asserted here.
+
+### Explained-variance shares and declared results
+
+In this vocabulary, `math:ExplainedVariance` is the dimensionless per-component
+share, distinct from an unnormalized variance amount. For a supplied
+positive-semidefinite covariance with positive finite total variance `t`,
+the share is `λ/t`, where `λ` is that component's nonnegative covariance
+eigenvalue and `t` is the covariance trace. This is the ratio described by
+[Jolliffe and Cadima's 2016 PCA review](https://doi.org/10.1098/rsta.2015.0202),
+section 2(a), equation 2.6. The
+[public full text](https://pmc.ncbi.nlm.nih.gov/articles/PMC4792409/) also
+distinguishes individual shares from the proportion of a retained component set.
+
+For covariance `diag(3,1,0)`, total variance is `4` and the associated component
+ratios are `3/4`, `1/4` and `0`. Retaining the first direction retains `3/4`
+of total variance. A complete justified component family sums to one, but
+omitting only zero-variance components can leave that same sum. A sum of one
+alone therefore proves no complete basis. Zero covariance has zero total
+variance and an undefined normalized ratio; absence is not a supplied zero,
+and `0/0` supplies neither zero nor one.
+
+Keep normalized shares, cumulative retained variance, covariance eigenvalues
+and singular values separate. Retain the actual covariance, scalar field,
+basis, centering/scaling and normalization convention with the result evidence.
+Infinite-dimensional use needs its actual finite-trace spectral hypotheses;
+this definition does not provide a complete eigenbasis for arbitrary operators.
+Variance retained is not semantic importance, information completeness or
+predictive quality; interpretation still needs its own evidence and standpoint.
+
+`math:explainedVarianceRatio` points from an analysis to its supplied
+`math:ExplainedVariance` resource. The property signature remains prose-only.
+Its existing PCA-local generic `logic:Thing` minimum and all-values restriction,
+with required-path closure, supplies no dedicated maximum, automatic target
+typing or numeric denominator/range proof. There is no dedicated ratio-value
+or component-pairing predicate here; preserve supplied values, associations,
+order and occurrence evidence in the existing source representation.
+
+The ordinary example and `exact_pca_residual` producer name `pc1Variance` as
+an `ExplainedVariance` descriptor without a numeric ratio. The producer's fixed
+Gram, dominant-axis and LDL results do not supply a PCA eigenvalue family or
+normalization result. The current PCA competency query independently joins
+`math:principalComponent` and `math:explainedVarianceRatio` on the analysis.
+It retrieves declared roles without establishing which component a ratio
+belongs to. Repeated RDF assertions and resource counts add no association,
+order or mathematical multiplicity.
+
+The native `skos:relatedMatch` to
+[Wikidata Q2510752](https://www.wikidata.org/wiki/Q2510752), Explained variation,
+has `logic:AffineCorrespondence`, `logic:InstitutionMorphism` and
+`logic:ValidationOnly` preservation. The target's linked
+[explained-variation reference](https://en.wikipedia.org/wiki/Explained_variation)
+spans modelling/dispersion contexts and mentions PCA. That broader context
+supplies neither identity with the canonical per-component ratio nor a universal
+R-squared interpretation, analytic equivalence, numeric conversion or execution
+certificate. The original GMEOW definition remains the local authority.
+
 Core classes: `math:PCAAnalysis`, `math:PrincipalComponent`, `math:LoadingVector`,
 `math:ScoreVector`, `math:ExplainedVariance`, `math:ProjectionResidual`, and
 `math:ResidualInterpretationClaim`.
@@ -86,11 +571,13 @@ and `math:residualSubspace`.
 
 A `math:PCAAnalysis` declares its input matrix/tensor, its centering and scaling policy, the
 `math:CovarianceOperator` it decomposes, the `math:eigensolver` used, and its outputs — principal
-components, loadings, scores, explained-variance ratios, and residuals. The KG flagship —
-*embed a knowledge graph into a complex space, take the orthogonal complement of the embedded
-subspace, run PCA on the residuals, interpret the residual meaning* — composes cleanly: the embedding
-(below) produces a subspace, the geometry charter's `math:OrthogonalComplement` (defined by the
-Hermitian inner product) names the residual subspace, and the PCA decomposes it.
+components, loadings, scores, explained-variance ratios, and residuals. The KG flagship
+declares an embedding into a complex space and a separately asserted subspace in
+that ambient space. Its `math:OrthogonalComplement` names the operand, ambient
+space and Hermitian inner product. The embedding alone does not produce a vector
+subspace; residual data needs its own identification and justification before it
+is described as a residual subspace. The PCA frame names its declared operand
+and outputs without itself certifying those mathematical constructions.
 
 > **Hard rule — residual meaning is a claim, not a property.** A `math:ResidualInterpretationClaim`
 > (what a residual subspace or a latent dimension *means*) is a `gmeow:Observation` with a

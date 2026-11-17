@@ -23,7 +23,7 @@ purrdf-hash.workspace = true
 gmeow-action-cache = { path = "../action-cache" }
 gmeow-lang-bridge = { path = "../lang-bridge" }
 gmeow-cli-core = { path = "../cli-core" }
-clap = { version = "4", features = ["derive"] }
+clap = { workspace = true, features = ["derive"] }
 gmeow-ns = { path = "../ns" }
 gmeow-errors = { path = "../errors" }
 # The repo-maintenance engines the dev toolchain drives (default features, no python).
@@ -73,14 +73,14 @@ sha2.workspace = true
 # The dependency-free license-token policy classifier the `extract` guard uses.
 gmeow-license = { path = "../license" }
 # The trust-policy TOML the signed-bundle `validate` pre-gate reads.
-toml = "0.8"
+toml.workspace = true
 # The repo HTTP client for the `refresh-target-axioms` re-vendor lane.
-ureq = "3"
+ureq.workspace = true
 # The substrate CBOR value a GTS blob's public metadata is read as (feedback-bundle reader).
 purrdf-lex.workspace = true
 
 [dev-dependencies]
 gmeow-music = { path = "../music" }
-assert_cmd = "2"
-trycmd = "0.15"
-predicates = "3"
+assert_cmd.workspace = true
+trycmd.workspace = true
+predicates.workspace = true

@@ -270,6 +270,206 @@ off a residual or a latent dimension is a claim from a vantage, never a property
 the most author-heavy charter (the survey found almost no external ontology for decompositions, latent
 spaces, or representation geometry) and it carries two flagships.
 
+`math:Basis` describes an algebraic basis, with unique finitely supported
+coefficients indexed by its elements. `math:hasBasis` records the basis chosen for
+a space or algebra carrier; `math:inBasis` names the context of a vector or Gram
+matrix's coordinates. Preserve the correspondence from coordinate positions to
+basis elements separately. A type, label or basis link supplies no element order
+and executes no change of coordinates.
+
+The exact Gram producer names `p:covBasis` without enumerating its elements or
+their order. The Clifford producer names a carrier `BladeBasis` separately from
+its indexed grade-one generators: the finite real `Cl(p,q)` carrier has dimension
+`2^(p+q)`, while the generating quadratic space has dimension `p+q`. These roles
+remain distinct from a complete basis inventory or a proof of independence and
+spanning. The [basis identity and coordinate-order contract](./design/MATHEMATICS-LINEAR-ALGEBRA-AND-LEARNING.md#basis-identity-and-coordinate-order)
+also scopes orthonormal eigenbasis claims to their actual mathematical setting.
+
+`math:InnerProductSpace` carries a justified real symmetric positive-definite
+bilinear form or a complex positive-definite Hermitian sesquilinear form.
+`math:HermitianInnerProduct` retains the complex argument convention; it is
+not complex bilinear. Keep the roles of space, carrier, field, basis and form separate.
+Zero, finite and infinite dimension are allowed; completeness needs separate
+Hilbert-space justification. Zero-vector angles are undefined and complex
+angles need their actual convention.
+
+`math:innerProduct` records the space-to-form role with a prose-only signature.
+`math:definedByInnerProduct` records the complement-to-form role, with an
+existing OrthogonalComplement-local generic resource min/max/all-values profile
+and closure. Neither link proves the form laws or computes a complement.
+The [inner-product contract](./design/MATHEMATICS-LINEAR-ALGEBRA-AND-LEARNING.md#inner-products-and-defining-forms)
+explains form-dependent orthogonality and the actual finite real rational
+numeric path: constructor shape checking, caller symmetry/positivity conditions
+and explicit LDL certification. Fixed-precision decimal square-root output
+and floating `acos` angle output have separate approximation boundaries.
+
+The existing InnerProductSpace exact match to
+[Wikidata Q214159](https://www.wikidata.org/wiki/Q214159) carries
+`logic:WellBehavedLens`, `logic:InstitutionMorphism` and
+`logic:SoundUnderApproximation` preservation. It grounds the concept without
+proving an individual form or certifying executed complex numerical geometry.
+
+`math:Eigendecomposition` describes eigenvalue and nonzero eigenvector data for a
+declared operator, space and scalar field. The finite-dimensional factorization
+`A = QΛQ⁻¹` requires a complete eigenbasis and invertible `Q`, with corresponding
+column and diagonal order; `A` itself may be singular. Preserve source association,
+order and multiplicity evidence separately: unordered `math:eigenvalue` and
+`math:eigenvector` links supply neither eigenpair pairing nor completeness. The
+[eigenvalue and eigenvector contract](./design/MATHEMATICS-LINEAR-ALGEBRA-AND-LEARNING.md#eigenvalue-and-eigenvector-associations)
+distinguishes zero eigenvalues, nonzero vectors, algebraic and geometric
+multiplicities, normalization and scalar-field assumptions.
+
+The registered eigen grounding is a `skos:closeMatch` to Wikidata `wd:Q190524`
+with `logic:AffineCorrespondence`, `logic:InstitutionMorphism` and
+`logic:ValidationOnly` preservation. It relates concepts without identifying the
+decomposition with the target or supplying an OpenMath eigen correspondence.
+The exact Gram/PCA producer emits an eigensolver descriptor and PCA roles, with
+no eigenvalue/eigenvector result triples. Neither those records nor the grounding
+certifies numerical execution of an eigendecomposition.
+
+`math:SingularValueDecomposition` uses the finite real/complex inner-product
+factorization `A = UΣV*` in supplied orthonormal coordinates. The
+[singular-value contract](./design/MATHEMATICS-LINEAR-ALGEBRA-AND-LEARNING.md#singular-value-factors-dimensions-and-multiplicities)
+states explicit full, thin and rank-compact factor dimensions and zero treatment,
+separately from rank-truncated approximations and numerical tolerance policies.
+Exact rank counts positive singular-value occurrences with multiplicity, not
+distinct positive values or RDF resources. Unordered `math:singularValue` links
+supply neither occurrence counts nor factor order or completeness.
+
+The registered SVD `skos:exactMatch` to Wikidata `wd:Q420904` carries
+`logic:WellBehavedLens`, `logic:InstitutionMorphism` and
+`logic:SoundUnderApproximation` preservation. It supplies no numerical factors
+or execution certificate. The source scene and PCA fixtures name solver
+descriptors; the exact Gram/PCA producer emits no singular-value result triples.
+
+`math:LinearMap` preserves linear combinations between vector spaces over the
+same field. Retain their algebraic structures separately from the carrier sets
+of the inherited `math:Function` frame, and preserve distinct ordered source
+and target basis roles for any matrix representation. The
+[linear-map and rank contract](./design/MATHEMATICS-LINEAR-ALGEBRA-AND-LEARNING.md#linear-maps-and-finite-rank-values)
+distinguishes image dimension from ambient dimension, finite rank from infinite
+or unknown rank, and exact rank from numerical policies. `math:rankValue`
+records a supplied finite nonnegative integer; omission is not zero, and the
+annotation supplies no rank computation or executed specialized validation.
+
+The registered LinearMap grounding is `skos:exactMatch` to Wikidata `wd:Q207643`
+with `logic:WellBehavedLens`, `logic:InstitutionMorphism` and
+`logic:SoundUnderApproximation` preservation. This concept relation proves no
+individual map's linearity, image or rank.
+
+`math:Subspace` describes a vector subspace W of V over the same field F:
+W contains zero and is closed under induced addition and multiplication by
+every scalar in F. The zero subspace, the whole space, and finite or infinite
+dimension are allowed. `math:subspaceOf` retains each justified ambient
+relationship, including W to itself, without choosing a preferred ambient.
+Keep the algebraic structures, their carrier sets and their scalar field
+separate. The existing descriptive `math:scalarField` relation does not impose
+a required field edge or a universal `math:Field` target.
+
+The [subspace contract](./design/MATHEMATICS-LINEAR-ALGEBRA-AND-LEARNING.md#subspaces-and-ambient-structure)
+distinguishes linear-map images from arbitrary nonlinear embedding images,
+and residual data from residual subspaces. Orthogonal complements also need
+the ambient inner product; algebraic subspaces need not be topologically closed.
+The current `math:subspaceOf` source states its domain and range only in prose,
+without native typing, cardinality, inclusion, transitivity or closure rules.
+An asserted type, ambient link or retrieved competency answer supplies no
+subspace computation or proof of closure.
+
+The existing Subspace `skos:exactMatch` to
+[Wikidata Q728435](https://www.wikidata.org/wiki/Q728435), linear subspace,
+carries `logic:WellBehavedLens`, `logic:InstitutionMorphism` and
+`logic:SoundUnderApproximation` preservation. It grounds the concept without
+certifying an individual subspace or an executed construction. The ordinary
+example asserts an ambient link but no embedding-image identity or closure
+proof. The exact Gram/PCA producer retains `p:residualSubspace` as
+`math:MathematicalObject`; its name does not establish a verified subspace.
+
+`math:CovarianceOperator` describes centered second moments under supplied field,
+inner-product and moment assumptions. The
+[covariance contract](./design/MATHEMATICS-LINEAR-ALGEBRA-AND-LEARNING.md#covariance-operators-and-declared-analysis-operands)
+distinguishes population and empirical covariance, conjugate-transpose and sample
+orientation conventions, centering/scaling and normalization evidence, and
+positive semidefiniteness from positive definiteness. Singular or zero covariance
+is valid; a missing operator is not zero covariance.
+
+`math:covarianceOperator` records the analysis-to-operator role. The current
+generic source minimum and closure do not establish exact-one or typed-target
+enforcement, covariance construction or a numerical spectral result. The fixed
+Gram/PCA producer supplies role records without observed-sample construction.
+The conservative `skos:closeMatch` to
+[Wikidata Q5178900](https://www.wikidata.org/wiki/Q5178900) carries
+`logic:AffineCorrespondence`, `logic:InstitutionMorphism` and
+`logic:ValidationOnly` preservation; conceptual overlap supplies no executable
+algorithm or analytic equivalence.
+
+`math:PrincipalComponent` names a direction, `math:LoadingVector` its feature
+coefficients, and `math:ScoreVector` one sample's coordinates across retained
+components. The [PCA-output contract](./design/MATHEMATICS-LINEAR-ALGEBRA-AND-LEARNING.md#directions-loading-coefficients-and-sample-scores)
+distinguishes GMEOW's direction convention from the score-variable usage in
+[Jolliffe and Cadima's review](https://doi.org/10.1098/rsta.2015.0202), section
+2(a), equation 2.1 and the adjacent terminology and matrix-product discussion.
+With prepared real Euclidean observation rows `X` and ordered loading columns
+`A`, `T = X A` has sample score tuples in rows and one component's scores
+across samples in each column. Preserve both orientations and their actual
+sample, feature and component associations.
+
+Keep preprocessing, basis, field, inner product and normalization explicit.
+Coefficient loadings are not automatically correlation-scaled loadings, biplot
+markers, factor-analysis loadings or importance values. The review's section
+2(c)(i), equations 2.7 and 2.8, describes standardization and the correlation
+normalization. Correlation needs nonzero feature and component-score variances;
+a zero eigenvalue leaves the corresponding score correlation undefined.
+Zero coefficient entries, zero score tuples and negative real scores remain
+valid. Zero feature scale licenses no implicit division or fabricated result.
+Repeated eigenvalues, sign/phase choices and truncated families establish no
+preferred basis, complete input recovery or intrinsic semantic importance.
+
+`math:principalComponent`, `math:loadingVector` and `math:scoreVector` link
+the analysis to their separate supplied output resources. Their prose-only
+signatures and PCA-local generic `logic:Thing` minimum/all-values/closure
+profiles supply no dedicated maxima, target-type proofs, coordinate dimensions,
+numeric calculations or output pairings. The ordinary example and exact
+Gram/PCA producer publish descriptors without computed PCA direction, loading
+or score payloads. The current competency query independently joins component
+and variance roles; it neither retrieves loadings/scores nor ranks variance.
+
+The native `math:PrincipalComponent skos:relatedMatch` to
+[Wikidata Q3555174](https://www.wikidata.org/wiki/Q3555174), eigenvector,
+carries `logic:AffineCorrespondence`, `logic:InstitutionMorphism` and
+`logic:ValidationOnly` preservation. The generic target omits the local
+PCA/covariance specialization. This conceptual relation supplies neither
+identity nor a coordinate conversion or execution certificate. It supplies no
+loading/score correspondence; PCAAnalysis has its separate method grounding.
+
+`math:ExplainedVariance` names a normalized per-component share. For a supplied
+positive-semidefinite covariance with positive finite total variance `t`, the
+ratio is its component eigenvalue divided by `t`, the covariance trace. A zero
+eigenvalue can give ratio zero when `t` is positive; zero total variance makes
+the normalization undefined. Missing data, a supplied zero ratio and an
+undefined ratio remain distinct. The formula is grounded in
+[Jolliffe and Cadima's PCA review](https://doi.org/10.1098/rsta.2015.0202),
+section 2(a), equation 2.6.
+
+The [explained-variance contract](./design/MATHEMATICS-LINEAR-ALGEBRA-AND-LEARNING.md#explained-variance-shares-and-declared-results)
+separates shares, variance amounts, singular values and cumulative retained
+variance. Preserve actual component association, order, occurrence and analysis
+context. A sum of one can omit zero-variance components and proves no complete
+basis or semantic importance.
+
+`math:explainedVarianceRatio` links the analysis to a result resource, rather
+than a numeric literal. Its current generic PCA-local presence/all-values/closure
+profile supplies no dedicated maximum, target-type proof or numeric denominator
+check. The ordinary example and exact Gram/PCA producer publish descriptors
+without ratio values. The competency query joins component and variance roles
+independently; its rows do not establish their numeric association.
+
+The conservative `skos:relatedMatch` to
+[Wikidata Q2510752](https://www.wikidata.org/wiki/Q2510752), Explained variation,
+carries `logic:AffineCorrespondence`, `logic:InstitutionMorphism` and
+`logic:ValidationOnly` preservation. It retains broader conceptual context
+without identifying every modelling measure with the canonical PCA ratio,
+providing a conversion or certifying numerical execution.
+
 - **Inner-product spaces and decompositions** — `math:InnerProductSpace`, `math:HermitianInnerProduct`,
   `math:Subspace`, `math:OrthogonalComplement` (⊑ `math:Complement`, so it realizes the geometry
   charter's complement contract — ambient space, orthogonal semantics, and now `math:definedByInnerProduct`),
@@ -278,15 +478,15 @@ spaces, or representation geometry) and it carries two flagships.
 - **PCA and the KG-projection flagship** — `math:PCAAnalysis` (a `gmeow:Activity`), `math:PrincipalComponent`,
   `math:LoadingVector`, `math:ScoreVector`, `math:ExplainedVariance`, `math:ProjectionResidual`, and
   `math:ResidualInterpretationClaim`. A PCA names its input, centering/scaling policy, covariance operator,
-  eigensolver, and its component/loading/score/variance/residual outputs. The flagship — embed a knowledge
-  graph, take the orthogonal complement of the embedded subspace, run PCA on the residuals, interpret the
-  residual — composes cleanly, and the *meaning* of a component is a `math:ResidualInterpretationClaim`: a
+  eigensolver, and its component/loading/score/variance/residual outputs. The flagship declares a knowledge
+  graph embedding and a separately asserted subspace, its inner-product-defined orthogonal complement,
+  PCA operands and residual outputs. The embedding alone does not establish that subspace or turn residual
+  data into a subspace. The *meaning* of a component is a `math:ResidualInterpretationClaim`: a
   `gmeow:Observation` with a `gmeow:vantage`, never a property (no direct meaning property is minted, so the
   property-form is unauthorable).
 - **Learning, embeddings, and latent spaces** — `math:LearnedModel`, `math:LossFunction`,
   `math:OptimizationProblem`, `math:Embedding`, `math:KnowledgeGraphEmbedding`, `math:LatentSpace`, and
-  `math:EmbeddingDimension`. An embedding names its source, target space, function, and model; latent-space
-  and dimension semantics are GMEOW-original.
+  `math:EmbeddingDimension`. An embedding names its source, target space, function, and model.
 - **Reduction, information, and vector-symbolic structure** — `math:DimensionalReduction` with
   UMAP/Isomap, spectral initialization, ordered reduction paths, reconstruction maps, and target
   dimensions; entropy, cross-entropy, mutual information, KL divergence, Fisher information, and
@@ -300,8 +500,7 @@ spaces, or representation geometry) and it carries two flagships.
   (`logic:MetaLevelFormula`), self-reference without paradox across the grounding layers — the dogfooding apex.
 
 The distinguished hard rule is **residual meaning as an observation, not a property**: semantic meaning read
-off geometry is inference from a standpoint (Principle 9). Every rule is SHACL Core (or the inherited
-argument-slot uniqueness gate the tensor graph rides), so `native_contract_hash` is untouched.
+off geometry is inference from a standpoint (Principle 9).
 
 | Rule | Shape | Failure class |
 |---|---|---|

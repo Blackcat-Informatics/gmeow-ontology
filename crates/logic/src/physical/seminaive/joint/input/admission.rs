@@ -10,6 +10,8 @@ use std::collections::BTreeSet;
 use std::fmt::Write as _;
 use std::sync::Arc;
 
+use hashbrown::HashTable;
+
 use super::{BTreeMap, MetadataDigest, PreparedPropertyRule, SemanticVocabulary};
 use crate::physical::chase::{
     ChaseAdmission, ExistentialRule, Ladder, StatementRule, firing_statements, join,
@@ -19,16 +21,16 @@ use crate::physical::effects::{
     value_flow::{InterningCut, ValueFlow},
 };
 use crate::physical::store::RelationStore;
-use crate::rule_ir::{EvalAtom, EvalRule, EvalTerm, Fact, Solution};
+use crate::rule_ir::{EvalAtom, EvalRule, EvalTerm, Fact, Solution, fact_parts_hash};
 
-/// The proved-immutable selector rows, specialized statements and per-rule join
-/// matches one input-specific certificate may analyse. Weak acyclicity, the rung a
-/// position-only cardinality program uses, is linear in the specialized program.
 const LIST_FIRST: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#first";
 const LIST_REST: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#rest";
 /// Admission-only relation `(list head, cell)`: the cell is reachable from the head
 /// through `rdf:rest`. It never enters a source, effect or value-flow read.
 const LIST_CELL: &str = "https://blackcatinformatics.ca/gmeow/termination/list-cell";
+/// Shared row, association, match and specialization ceiling for source-specific
+/// termination analysis. Pending rows count logical admitted candidate occurrences,
+/// including occurrences whose exact fact payload is shared.
 const MAX_BINDINGS: usize = 1 << 18;
 const MAX_BYTES: usize = 128 << 20;
 /// The selector rows feeding source-constant enrichment. Its interning stops at 512
@@ -870,6 +872,14 @@ pub(super) enum EvidenceGap {
     ClosureBound {
         rule: Option<String>,
         committed_rows: usize,
+        /// Logical admitted candidate occurrences, including shared duplicate payloads.
+        pending_rows: usize,
+    },
+    /// Another candidate would exceed the logical pending-occurrence envelope.
+    ClosurePendingBound {
+        rule: String,
+        committed_rows: usize,
+        /// Logical admitted candidate occurrences, including shared duplicate payloads.
         pending_rows: usize,
     },
     /// Specialization stopped with its exact rule and observed inventory.
@@ -911,6 +921,14 @@ impl std::fmt::Display for EvidenceGap {
             } => write!(
                 f,
                 "the closure of witness-free relations exceeded its bound of {MAX_BINDINGS} matches or derived rows (rule {rule:?}, {committed_rows} committed rows, {pending_rows} pending rows)"
+            ),
+            Self::ClosurePendingBound {
+                rule,
+                committed_rows,
+                pending_rows,
+            } => write!(
+                f,
+                "the closure of witness-free relations reached its bound of {MAX_BINDINGS} pending rows and rejected the next candidate (rule {rule:?}, {committed_rows} committed rows, {pending_rows} retained pending rows)"
             ),
             Self::SpecializationBound {
                 rule,
@@ -1284,6 +1302,43 @@ fn join_atoms(rule: &StatementRule, discharged: &[bool], list_cells_bound: bool)
         .collect()
 }
 
+/// One payload per exact native fact, kept in first-seen order. Occurrence accounting
+/// preserves the analysis envelope independently of how many payloads are shared.
+#[derive(Default)]
+struct PendingFacts {
+    facts: Vec<Fact>,
+    /// Borrowed-field membership only; emission follows the vector, never this index.
+    index: HashTable<usize>,
+    /// Admitted candidate occurrences in this batch, including duplicates.
+    occurrences: usize,
+}
+
+impl PendingFacts {
+    /// Count one candidate occurrence and retain its payload on first admission. A
+    /// duplicate at a full bound refuses before the membership probe.
+    fn admit(&mut self, fact: Fact) -> bool {
+        if self.occurrences == MAX_BINDINGS {
+            return false;
+        }
+        self.occurrences += 1;
+        let hash = fact_parts_hash(&fact.subject, &fact.predicate, &fact.object);
+        if self
+            .index
+            .find(hash, |&row| self.facts[row] == fact)
+            .is_none()
+        {
+            let row = self.facts.len();
+            self.facts.push(fact);
+            let facts = &self.facts;
+            self.index.insert_unique(hash, row, |&row| {
+                let fact = &facts[row];
+                fact_parts_hash(&fact.subject, &fact.predicate, &fact.object)
+            });
+        }
+        true
+    }
+}
+
 /// Close `store` under the `eligible` producers (indices into `rules`, with their
 /// join atoms), retaining only the derived facts of closed relations. Semi-naive:
 /// after one complete pass, every further derivation joins at least one fact new
@@ -1309,45 +1364,59 @@ fn derive(
         committed_rows,
         pending_rows,
     };
-    let emit =
-        |store: &RelationStore, rule: &StatementRule, solution: &Solution, out: &mut Vec<Fact>| {
-            for head in &rule.heads {
-                let (Some(subject), Some(purrdf::TermValue::Iri(predicate)), Some(object)) = (
-                    ground(&head[0], solution),
-                    ground(&head[1], solution),
-                    ground(&head[2], solution),
-                ) else {
-                    continue;
-                };
-                if closure.holds(
-                    semantics.predicate(&predicate),
-                    constant_value_iri(&object),
-                    semantics,
-                ) && !store.contains(&predicate, &subject, &object)
-                {
-                    out.push(Fact {
-                        subject,
-                        predicate,
-                        object,
-                    });
-                }
+    let emit = |store: &RelationStore,
+                rule: &StatementRule,
+                solution: &Solution,
+                out: &mut PendingFacts| {
+        for head in &rule.heads {
+            let (Some(subject), Some(purrdf::TermValue::Iri(predicate)), Some(object)) = (
+                ground(&head[0], solution),
+                ground(&head[1], solution),
+                ground(&head[2], solution),
+            ) else {
+                continue;
+            };
+            if closure.holds(
+                semantics.predicate(&predicate),
+                constant_value_iri(&object),
+                semantics,
+            ) && !store.contains(&predicate, &subject, &object)
+                && !out.admit(Fact {
+                    subject,
+                    predicate,
+                    object,
+                })
+            {
+                return false;
             }
-        };
-    let mut pending = Vec::new();
+        }
+        true
+    };
+    let mut pending = PendingFacts::default();
     for (index, atoms) in eligible {
         let rule = &rules[*index];
         let outcome = join::walk(atoms, store, &empty, policy(), |solution| {
-            emit(store, rule, &solution, &mut pending);
-            Ok(true)
+            Ok(emit(store, rule, &solution, &mut pending))
         })?;
+        if outcome == join::Outcome::Stopped {
+            return Ok(Err(EvidenceGap::ClosurePendingBound {
+                rule: rule.name.clone(),
+                committed_rows: 0,
+                pending_rows: pending.occurrences,
+            }));
+        }
         if outcome != join::Outcome::Complete {
-            return Ok(Err(exhausted(Some(&rule.name), 0, pending.len())));
+            return Ok(Err(exhausted(Some(&rule.name), 0, pending.occurrences)));
         }
     }
     let mut derived = 0usize;
     loop {
         let mut fresh = Vec::new();
-        for fact in pending.drain(..) {
+        // Invalidate row handles before draining their payloads. The logical length
+        // resets at this complete batch boundary.
+        pending.index.clear();
+        pending.occurrences = 0;
+        for fact in pending.facts.drain(..) {
             if store
                 .insert(&fact.predicate, &fact.subject, &fact.object)
                 .is_some()
@@ -1357,7 +1426,7 @@ fn derive(
             }
         }
         if derived > MAX_BINDINGS {
-            return Ok(Err(exhausted(None, derived, pending.len())));
+            return Ok(Err(exhausted(None, derived, pending.occurrences)));
         }
         if fresh.is_empty() {
             return Ok(Ok(()));
@@ -1376,11 +1445,21 @@ fn derive(
                         .map(|(_, atom)| atom.clone())
                         .collect();
                     let outcome = join::walk(&rest, store, &seed, policy(), |solution| {
-                        emit(store, rule, &solution, &mut pending);
-                        Ok(true)
+                        Ok(emit(store, rule, &solution, &mut pending))
                     })?;
+                    if outcome == join::Outcome::Stopped {
+                        return Ok(Err(EvidenceGap::ClosurePendingBound {
+                            rule: rule.name.clone(),
+                            committed_rows: derived,
+                            pending_rows: pending.occurrences,
+                        }));
+                    }
                     if outcome != join::Outcome::Complete {
-                        return Ok(Err(exhausted(Some(&rule.name), derived, pending.len())));
+                        return Ok(Err(exhausted(
+                            Some(&rule.name),
+                            derived,
+                            pending.occurrences,
+                        )));
                     }
                 }
             }

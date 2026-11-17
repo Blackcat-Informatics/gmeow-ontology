@@ -1,0 +1,23 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+
+@prefix math: <https://blackcatinformatics.ca/math/> .
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix ex: <urn:ratio-frame:> .
+
+math:dimensionless a math:Dimension .
+ex:quantity a math:RatioQuantity ; math:quantityValue 2.5 ;
+    math:hasDimension math:dimensionless ; gmeow:hasReferenceFrame ex:quotient .
+ex:quotient a math:QuotientReferenceFrame , gmeow:ReferenceFrame ;
+    math:numeratorFrame ex:numerator ; math:denominatorFrame ex:denominator ;
+    gmeow:frameKind gmeow:frameKindScalar ; gmeow:frameRealm gmeow:frameRealmMathematical ;
+    gmeow:dimensionCount 1 ; gmeow:hasAxis gmeow:axisScalar ;
+    gmeow:determinacyModel gmeow:determinacyCrisp ; gmeow:requiresHost false .
+ex:numerator a gmeow:ReferenceFrame ;
+    gmeow:frameKind gmeow:frameKindScalar ; gmeow:frameRealm gmeow:frameRealmCurrency ;
+    gmeow:dimensionCount 1 ; gmeow:hasAxis gmeow:axisScalar ;
+    gmeow:determinacyModel gmeow:determinacyCrisp ; gmeow:requiresHost false .
+ex:denominator a gmeow:ReferenceFrame ;
+    gmeow:frameKind gmeow:frameKindScalar ; gmeow:frameRealm gmeow:frameRealmMathematical ;
+    gmeow:dimensionCount 1 ; gmeow:hasAxis gmeow:axisScalar ;
+    gmeow:determinacyModel gmeow:determinacyCrisp ; gmeow:requiresHost false .

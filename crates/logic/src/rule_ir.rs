@@ -99,7 +99,8 @@ pub(crate) fn fact_key_hash(key: &FactKey) -> u64 {
     fact_parts_hash(&key.0, &key.1, &key.2)
 }
 
-fn fact_parts_hash(subject: &TermValue, predicate: &str, object: &TermValue) -> u64 {
+/// Fixed-seed membership hash over borrowed native fact fields, without an owned key.
+pub(crate) fn fact_parts_hash(subject: &TermValue, predicate: &str, object: &TermValue) -> u64 {
     let mut hasher = FixedState::default().build_hasher();
     subject.hash(&mut hasher);
     predicate.hash(&mut hasher);
@@ -222,7 +223,7 @@ impl EvalRule {
     }
 }
 
-// ── Ground fact + store (oxigraph-term based, insertion-ordered, first-wins) ─────
+// ── Ground fact + store (native-term based, insertion-ordered, first-wins) ───────
 
 /// A fully-ground fact `(subject, predicate, object)` over native terms.
 #[derive(Debug, Clone, PartialEq, Eq)]

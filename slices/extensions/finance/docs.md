@@ -40,6 +40,8 @@ This document covers **all phases** (A–D) of the design.
 |---|---|---|
 | `FinancialAccount` | `logic:Kind` | `InformationObject` |
 | `MonetaryAmount` | `logic:AbstractIndividualType` | `math:Quantity` |
+| `UnitPrice` | `logic:AbstractIndividualType` | `math:RatioQuantity` |
+| `UnitPriceTotalCalculation` | `logic:Class` | `Measurement` |
 | `FinancialAccountType` | `logic:AbstractIndividualType` | `logic:QualityValue` |
 | `TransactionType` | `logic:AbstractIndividualType` | `logic:QualityValue` |
 | `TransactionStatus` | `logic:AbstractIndividualType` | `logic:QualityValue` |
@@ -130,6 +132,8 @@ names, rather than promises that legacy hand-authored shape IRIs remain public.
 | Contract | What it enforces |
 |---|---|
 | `MonetaryAmount` | Exactly one exact decimal magnitude, dimensionless dimension and complete scalar currency frame |
+| `UnitPrice` | Exact decimal per counted asset unit, a math-owned quotient frame, currency numerator and count-frame denominator |
+| `UnitPriceTotalCalculation` | Exact asset/frame identity and output-currency agreement before price-times-count computation |
 | `FinancialAccount` | ≥1 holder, ≤1 type, currencies are ReferenceFrames |
 | `FinancialTransaction` | ≥1 participant |
 | `LedgerAccount` | ≥1 holder, exactly 1 type |
@@ -153,14 +157,40 @@ invoice amounts, salaries, account balances and postings retain this shared owne
 explicit dimension and scalar mathematical frame. Its `countedAsset` must equal
 `holdingAsset`; the object preserves fractional and signed positions. A count of
 one asset cannot substitute for a count of another. Cost basis remains a separate
-MonetaryAmount. Per-unit price computation is not supplied by the selected scalar
-finance profile; total monetary price roles remain supported.
+MonetaryAmount.
+
+`UnitPrice` specializes the math-owned `RatioQuantity`. Its exact decimal value is
+money per one counted unit of `pricedAsset`; it is distinct from `MonetaryAmount`.
+The `QuotientReferenceFrame` retains a currency `numeratorFrame` and a mathematical
+count `denominatorFrame`. For this financial profile the quotient has scalar kind,
+mathematical realm, one `axisScalar`, `dimensionCount` one, crisp determinacy and
+`requiresHost false`. The numerator and denominator retain their complete scalar
+currency and count-frame profiles. A scalar coordinate can have this compound
+interpretation; physical dimensionlessness does not erase either component.
+
+`UnitPriceTotalCalculation` supplies `unitPrice`, a `pricedQuantity` using the
+existing `HoldingAssetQuantity`, and the requested output currency through
+`hasReferenceFrame`. Both the denominator frame and the priced/counted asset
+identities must match exactly. The currency must equal the quote's numerator frame.
+For example, 12.50 USD per share multiplied by four shares of the same asset in
+that count frame derives exactly 50 USD. Different asset or count-frame identities
+raise `UnitPriceUnitMismatch`; a different requested currency raises
+`UnitPriceCurrencyMismatch`. Fractional and signed counts are retained. There is
+no implicit unit scaling, asset substitution or currency conversion.
+
+The generic form and its missing-frame controls belong to the
+[math measure-and-dimension contract](../../grounding/math/design/MATHEMATICS-MEASURE-AND-DIMENSION.md).
+Schema.org's [UnitPriceSpecification](https://schema.org/UnitPriceSpecification)
+can describe a price applying to several units through `referenceQuantity`.
+That offer specification is a partial external surface, not an identity with the
+canonical ratio quantity. This selected profile takes a price per one explicit
+count-frame unit and does not silently normalize external quote records.
 
 The installed command `gmeow finance evaluate SOURCE --subject CALCULATION
 --out RESULT` selects `finance-exact-decimal-v1`. It reads methods, callable
 signatures, recipes and full generated validation products from its authenticated
 embedded bundle; no repository recipe file or alternate evaluator is consulted.
-`examples/exact-computations.ttl` supplies two independently named requests.
+`examples/exact-computations.ttl` supplies three independently named requests.
 
 `SimpleInterestCalculation` uses the canonical P*r*n AST.
 `HoldingPeriodReturnCalculation` uses (closing-opening)/opening, repeating the
@@ -171,8 +201,23 @@ observed feature and explicit scalar temporal `calculationPeriodBasis`.
 There is no implicit conversion of calendar years to days. Signed rates and
 returns are permitted; they are not probabilities or confidence values.
 
+The finance Module owns the selected recipes and their mathematical symbols,
+`SymbolReference` leaves, applications and indexed argument slots. Each semantic
+record declares that physical owner, a label and a definition. The structures use
+the [canonical math expression model](../../grounding/math/design/MATHEMATICS-EXPRESSIONS.md#the-expression-ast-layer):
+slot indexes determine operand order, and symbol references retain the identity of
+their local symbol. Keep the callable parameter, mathematical symbol and supplied
+quantity distinct. FnO preserves the signature's symbol and recipe references
+only through their verified Module declarations; it does not execute the AST.
+
+`UnitPriceTotalCalculation` uses the canonical price-times-count AST and requires
+no artificial temporal period. Its `methodUnitPriceTotal` callable interface is
+authored in `mappings/callable-signatures.ttl`; the installed command reads that
+required interface and its recipe from the same authenticated bundle. Evaluate
+the worked request with `--subject urn:finance:unit-price-total`.
+
 The caller checks exact role cardinality, complete quantity/frame/observation
-profiles, currency equality, period-basis equality and structural identity with
+profiles, currency equality, period-basis or unit/asset equality, and structural identity with
 the authenticated recipe before arithmetic. Source expressions with wrong
 operators, topology, symbol roles or slot indexes fail. Extra, conflicting or
 precomputed request result roles fail. Retired monetaryValue declaration/use is
@@ -191,7 +236,7 @@ implicit currency conversion and unselected financial recipes are unsupported.
 
 The native program consumes an explicit operation-contract projection of the
 authenticated owner: named callable parameters/lists, recipe nodes/slots/symbols,
-named subclass premises, and scalar frame/category facts. Anonymous declarative
+named subclass premises, quotient components, asset identities and frame/category facts. Anonymous declarative
 restrictions and quoted metadata are not silently treated as native executable
 facts. Their admission obligations remain mandatory through the complete actual
 generated owner shapes, including required active procedural products. Required

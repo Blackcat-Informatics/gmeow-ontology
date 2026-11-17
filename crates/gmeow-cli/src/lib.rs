@@ -1512,7 +1512,7 @@ pub enum AffectCommands {
 /// Financial computations admitted against authenticated installed owner contracts.
 #[derive(Debug, Subcommand)]
 pub enum FinanceCommands {
-    /// Derive exact simple interest or holding-period return from a complete financial contract.
+    /// Derive exact simple interest, holding-period return or unit-price totals from a complete financial contract.
     Evaluate {
         /// User Turtle input; '-' reads standard input. No checkout is needed.
         source: PathBuf,

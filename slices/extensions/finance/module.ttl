@@ -1723,32 +1723,98 @@ gmeow:closingAmount logic:range gmeow:MonetaryAmount .
 gmeow:calculationPeriodBasis logic:range gmeow:ReferenceFrame .
 gmeow:calculationExpression logic:range math:ApplicationExpression .
 <urn:gmeow:finance:simple:principal> a logic:CallParameter ; logic:parameterPredicate gmeow:principalAmount ; logic:parameterValueType gmeow:MonetaryAmount ; logic:parameterRequired true ; math:hasMathematicalSymbol <urn:gmeow:finance:simple:principal:symbol> .
-<urn:gmeow:finance:simple:principal:symbol> a math:MathematicalSymbol .
-<urn:gmeow:finance:simple:principal:expression> a math:SymbolReference ; math:hasMathematicalSymbol <urn:gmeow:finance:simple:principal:symbol> .
+<urn:gmeow:finance:simple:principal:symbol> a math:MathematicalSymbol ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/finance> ;
+    rdfs:label "simple interest principal symbol"@x-gmeow-english ;
+    skos:definition "The mathematical symbol for the principal MonetaryAmount operand in the canonical simple-interest recipe."@x-gmeow-english .
+<urn:gmeow:finance:simple:principal:expression> a math:SymbolReference ; math:hasMathematicalSymbol <urn:gmeow:finance:simple:principal:symbol> ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/finance> ;
+    rdfs:label "simple interest principal reference"@x-gmeow-english ;
+    skos:definition "The SymbolReference leaf naming the principal symbol in the canonical simple-interest multiplication expression."@x-gmeow-english .
 <urn:gmeow:finance:simple:rate> a logic:CallParameter ; logic:parameterPredicate gmeow:interestRate ; logic:parameterValueType gmeow:FinancialPeriodRate ; logic:parameterRequired true ; math:hasMathematicalSymbol <urn:gmeow:finance:simple:rate:symbol> .
-<urn:gmeow:finance:simple:rate:symbol> a math:MathematicalSymbol .
-<urn:gmeow:finance:simple:rate:expression> a math:SymbolReference ; math:hasMathematicalSymbol <urn:gmeow:finance:simple:rate:symbol> .
+<urn:gmeow:finance:simple:rate:symbol> a math:MathematicalSymbol ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/finance> ;
+    rdfs:label "simple interest period rate symbol"@x-gmeow-english ;
+    skos:definition "The mathematical symbol for the FinancialPeriodRate operand in the canonical simple-interest recipe."@x-gmeow-english .
+<urn:gmeow:finance:simple:rate:expression> a math:SymbolReference ; math:hasMathematicalSymbol <urn:gmeow:finance:simple:rate:symbol> ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/finance> ;
+    rdfs:label "simple interest period rate reference"@x-gmeow-english ;
+    skos:definition "The SymbolReference leaf naming the period-rate symbol in the canonical simple-interest multiplication expression."@x-gmeow-english .
 <urn:gmeow:finance:simple:count> a logic:CallParameter ; logic:parameterPredicate gmeow:interestPeriodCount ; logic:parameterValueType gmeow:FinancialPeriodCount ; logic:parameterRequired true ; math:hasMathematicalSymbol <urn:gmeow:finance:simple:count:symbol> .
-<urn:gmeow:finance:simple:count:symbol> a math:MathematicalSymbol .
-<urn:gmeow:finance:simple:count:expression> a math:SymbolReference ; math:hasMathematicalSymbol <urn:gmeow:finance:simple:count:symbol> .
-<urn:gmeow:finance:simple:principal-rate> a math:ApplicationExpression ; math:operator math:Multiplication ; math:argumentSlot <urn:gmeow:finance:simple:principal-rate:0>, <urn:gmeow:finance:simple:principal-rate:1> .
-<urn:gmeow:finance:simple:principal-rate:0> a math:ArgumentSlot ; math:slotIndex 0 ; math:slotExpression <urn:gmeow:finance:simple:principal:expression> .
-<urn:gmeow:finance:simple:principal-rate:1> a math:ArgumentSlot ; math:slotIndex 1 ; math:slotExpression <urn:gmeow:finance:simple:rate:expression> .
-<urn:gmeow:finance:simple:recipe> a math:ApplicationExpression ; math:operator math:Multiplication ; math:argumentSlot <urn:gmeow:finance:simple:recipe:0>, <urn:gmeow:finance:simple:recipe:1> .
-<urn:gmeow:finance:simple:recipe:0> a math:ArgumentSlot ; math:slotIndex 0 ; math:slotExpression <urn:gmeow:finance:simple:principal-rate> .
-<urn:gmeow:finance:simple:recipe:1> a math:ArgumentSlot ; math:slotIndex 1 ; math:slotExpression <urn:gmeow:finance:simple:count:expression> .
+<urn:gmeow:finance:simple:count:symbol> a math:MathematicalSymbol ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/finance> ;
+    rdfs:label "simple interest period count symbol"@x-gmeow-english ;
+    skos:definition "The mathematical symbol for the FinancialPeriodCount operand in the canonical simple-interest recipe."@x-gmeow-english .
+<urn:gmeow:finance:simple:count:expression> a math:SymbolReference ; math:hasMathematicalSymbol <urn:gmeow:finance:simple:count:symbol> ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/finance> ;
+    rdfs:label "simple interest period count reference"@x-gmeow-english ;
+    skos:definition "The SymbolReference leaf naming the period-count symbol in the canonical simple-interest multiplication expression."@x-gmeow-english .
+<urn:gmeow:finance:simple:principal-rate> a math:ApplicationExpression ; math:operator math:Multiplication ; math:argumentSlot <urn:gmeow:finance:simple:principal-rate:0>, <urn:gmeow:finance:simple:principal-rate:1> ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/finance> ;
+    rdfs:label "simple interest principal times rate expression"@x-gmeow-english ;
+    skos:definition "The binary Multiplication AST for principal times period rate, used as the first operand of the canonical simple-interest recipe."@x-gmeow-english .
+<urn:gmeow:finance:simple:principal-rate:0> a math:ArgumentSlot ; math:slotIndex 0 ; math:slotExpression <urn:gmeow:finance:simple:principal:expression> ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/finance> ;
+    rdfs:label "simple interest principal operand slot"@x-gmeow-english ;
+    skos:definition "The index-zero operand slot of the principal-times-rate expression, referencing the principal operand."@x-gmeow-english .
+<urn:gmeow:finance:simple:principal-rate:1> a math:ArgumentSlot ; math:slotIndex 1 ; math:slotExpression <urn:gmeow:finance:simple:rate:expression> ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/finance> ;
+    rdfs:label "simple interest period rate operand slot"@x-gmeow-english ;
+    skos:definition "The index-one operand slot of the principal-times-rate expression, referencing the period-rate operand."@x-gmeow-english .
+<urn:gmeow:finance:simple:recipe> a math:ApplicationExpression ; math:operator math:Multiplication ; math:argumentSlot <urn:gmeow:finance:simple:recipe:0>, <urn:gmeow:finance:simple:recipe:1> ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/finance> ;
+    rdfs:label "simple interest expression"@x-gmeow-english ;
+    skos:definition "The canonical binary Multiplication AST for principal times period rate times period count. Its ordered operand slots assert no precomputed interest amount."@x-gmeow-english .
+<urn:gmeow:finance:simple:recipe:0> a math:ArgumentSlot ; math:slotIndex 0 ; math:slotExpression <urn:gmeow:finance:simple:principal-rate> ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/finance> ;
+    rdfs:label "simple interest principal times rate operand slot"@x-gmeow-english ;
+    skos:definition "The index-zero operand slot of the canonical simple-interest recipe, referencing the principal-times-rate subexpression."@x-gmeow-english .
+<urn:gmeow:finance:simple:recipe:1> a math:ArgumentSlot ; math:slotIndex 1 ; math:slotExpression <urn:gmeow:finance:simple:count:expression> ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/finance> ;
+    rdfs:label "simple interest period count operand slot"@x-gmeow-english ;
+    skos:definition "The index-one operand slot of the canonical simple-interest recipe, referencing the period-count operand."@x-gmeow-english .
 <urn:gmeow:finance:return:opening> a logic:CallParameter ; logic:parameterPredicate gmeow:openingAmount ; logic:parameterValueType gmeow:MonetaryAmount ; logic:parameterRequired true ; math:hasMathematicalSymbol <urn:gmeow:finance:return:opening:symbol> .
-<urn:gmeow:finance:return:opening:symbol> a math:MathematicalSymbol .
-<urn:gmeow:finance:return:opening:expression> a math:SymbolReference ; math:hasMathematicalSymbol <urn:gmeow:finance:return:opening:symbol> .
+<urn:gmeow:finance:return:opening:symbol> a math:MathematicalSymbol ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/finance> ;
+    rdfs:label "holding-period return opening amount symbol"@x-gmeow-english ;
+    skos:definition "The mathematical symbol for the opening MonetaryAmount operand shared by the subtraction and denominator of the canonical holding-period-return recipe."@x-gmeow-english .
+<urn:gmeow:finance:return:opening:expression> a math:SymbolReference ; math:hasMathematicalSymbol <urn:gmeow:finance:return:opening:symbol> ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/finance> ;
+    rdfs:label "holding-period return opening amount reference"@x-gmeow-english ;
+    skos:definition "The SymbolReference leaf naming the opening symbol, reused by the subtraction and denominator of the canonical holding-period-return recipe."@x-gmeow-english .
 <urn:gmeow:finance:return:closing> a logic:CallParameter ; logic:parameterPredicate gmeow:closingAmount ; logic:parameterValueType gmeow:MonetaryAmount ; logic:parameterRequired true ; math:hasMathematicalSymbol <urn:gmeow:finance:return:closing:symbol> .
-<urn:gmeow:finance:return:closing:symbol> a math:MathematicalSymbol .
-<urn:gmeow:finance:return:closing:expression> a math:SymbolReference ; math:hasMathematicalSymbol <urn:gmeow:finance:return:closing:symbol> .
-<urn:gmeow:finance:return:difference> a math:ApplicationExpression ; math:operator math:Subtraction ; math:argumentSlot <urn:gmeow:finance:return:difference:0>, <urn:gmeow:finance:return:difference:1> .
-<urn:gmeow:finance:return:difference:0> a math:ArgumentSlot ; math:slotIndex 0 ; math:slotExpression <urn:gmeow:finance:return:closing:expression> .
-<urn:gmeow:finance:return:difference:1> a math:ArgumentSlot ; math:slotIndex 1 ; math:slotExpression <urn:gmeow:finance:return:opening:expression> .
-<urn:gmeow:finance:return:recipe> a math:ApplicationExpression ; math:operator math:Division ; math:argumentSlot <urn:gmeow:finance:return:recipe:0>, <urn:gmeow:finance:return:recipe:1> .
-<urn:gmeow:finance:return:recipe:0> a math:ArgumentSlot ; math:slotIndex 0 ; math:slotExpression <urn:gmeow:finance:return:difference> .
-<urn:gmeow:finance:return:recipe:1> a math:ArgumentSlot ; math:slotIndex 1 ; math:slotExpression <urn:gmeow:finance:return:opening:expression> .
+<urn:gmeow:finance:return:closing:symbol> a math:MathematicalSymbol ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/finance> ;
+    rdfs:label "holding-period return closing amount symbol"@x-gmeow-english ;
+    skos:definition "The mathematical symbol for the closing MonetaryAmount operand in the canonical holding-period-return recipe."@x-gmeow-english .
+<urn:gmeow:finance:return:closing:expression> a math:SymbolReference ; math:hasMathematicalSymbol <urn:gmeow:finance:return:closing:symbol> ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/finance> ;
+    rdfs:label "holding-period return closing amount reference"@x-gmeow-english ;
+    skos:definition "The SymbolReference leaf naming the closing symbol in the canonical holding-period-return subtraction expression."@x-gmeow-english .
+<urn:gmeow:finance:return:difference> a math:ApplicationExpression ; math:operator math:Subtraction ; math:argumentSlot <urn:gmeow:finance:return:difference:0>, <urn:gmeow:finance:return:difference:1> ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/finance> ;
+    rdfs:label "holding-period return amount difference expression"@x-gmeow-english ;
+    skos:definition "The binary Subtraction AST for closing amount minus opening amount in the canonical holding-period-return recipe."@x-gmeow-english .
+<urn:gmeow:finance:return:difference:0> a math:ArgumentSlot ; math:slotIndex 0 ; math:slotExpression <urn:gmeow:finance:return:closing:expression> ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/finance> ;
+    rdfs:label "holding-period return closing amount operand slot"@x-gmeow-english ;
+    skos:definition "The index-zero operand slot of the holding-period-return subtraction, referencing the closing amount."@x-gmeow-english .
+<urn:gmeow:finance:return:difference:1> a math:ArgumentSlot ; math:slotIndex 1 ; math:slotExpression <urn:gmeow:finance:return:opening:expression> ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/finance> ;
+    rdfs:label "holding-period return opening amount subtraction slot"@x-gmeow-english ;
+    skos:definition "The index-one operand slot of the holding-period-return subtraction, referencing the opening amount."@x-gmeow-english .
+<urn:gmeow:finance:return:recipe> a math:ApplicationExpression ; math:operator math:Division ; math:argumentSlot <urn:gmeow:finance:return:recipe:0>, <urn:gmeow:finance:return:recipe:1> ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/finance> ;
+    rdfs:label "holding-period return expression"@x-gmeow-english ;
+    skos:definition "The canonical binary Division AST for closing-minus-opening divided by opening. Its denominator reuses the opening SymbolReference leaf and asserts no precomputed return ratio."@x-gmeow-english .
+<urn:gmeow:finance:return:recipe:0> a math:ArgumentSlot ; math:slotIndex 0 ; math:slotExpression <urn:gmeow:finance:return:difference> ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/finance> ;
+    rdfs:label "holding-period return numerator operand slot"@x-gmeow-english ;
+    skos:definition "The index-zero operand slot of the canonical holding-period-return division, referencing the closing-minus-opening subexpression."@x-gmeow-english .
+<urn:gmeow:finance:return:recipe:1> a math:ArgumentSlot ; math:slotIndex 1 ; math:slotExpression <urn:gmeow:finance:return:opening:expression> ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/finance> ;
+    rdfs:label "holding-period return denominator operand slot"@x-gmeow-english ;
+    skos:definition "The index-one operand slot of the canonical holding-period-return division, referencing the same opening-amount leaf used by the subtraction."@x-gmeow-english .
 <urn:gmeow:finance:simple:inputs:0> rdf:first <urn:gmeow:finance:simple:principal> ; rdf:rest <urn:gmeow:finance:simple:inputs:1> .
 <urn:gmeow:finance:simple:inputs:1> rdf:first <urn:gmeow:finance:simple:rate> ; rdf:rest <urn:gmeow:finance:simple:inputs:2> .
 <urn:gmeow:finance:simple:inputs:2> rdf:first <urn:gmeow:finance:simple:count> ; rdf:rest rdf:nil .
@@ -1909,3 +1975,255 @@ gmeow:calculationPeriodBasis skos:scopeNote "Scope: this financial input, frame 
 gmeow:methodSimpleInterest skos:scopeNote "Scope: finite exact-decimal execution. Method/signature, AST, parameter definitions and bound quantity values have distinct identities; unsupported results fail."@x-gmeow-english .
 
 gmeow:methodHoldingPeriodReturn skos:scopeNote "Scope: finite exact-decimal execution. Method/signature, AST, parameter definitions and bound quantity values have distinct identities; unsupported results fail."@x-gmeow-english .
+
+# Exact prices per counted asset unit use the math-owned quotient form.
+
+gmeow:UnitPrice
+    a logic:Class , logic:AbstractIndividualType ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/finance> ;
+    rdfs:label "unit price"@x-gmeow-english ;
+    skos:definition "An exact decimal ratio quantity expressing money per one counted unit of its pricedAsset. Its quotient reference frame retains a currency numerator and a mathematical count-frame denominator. The selected exact financial profile uses a crisp, unhosted scalar quotient frame with one scalar axis. It is not a MonetaryAmount; multiplying by a quantity of the same asset in the same count frame derives a MonetaryAmount without currency conversion."@x-gmeow-english ;
+    logic:subClassOf math:RatioQuantity ;
+    logic:disjointWith gmeow:MonetaryAmount ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+gmeow:UnitPriceTotalCalculation
+    a logic:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/finance> ;
+    rdfs:label "unit price total calculation"@x-gmeow-english ;
+    skos:definition "An explicitly selected computational measurement multiplying unitPrice by pricedQuantity. The price asset and denominator frame must exactly match the counted asset and count frame. The request declares its output currency through hasReferenceFrame, equal to the price numerator frame, and requires no temporal calculationPeriodBasis. Native execution derives one MonetaryAmount observationResult with proof."@x-gmeow-english ;
+    logic:subClassOf gmeow:Measurement ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+gmeow:unitPrice
+    a logic:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/finance> ;
+    rdfs:label "unit price input"@x-gmeow-english ;
+    skos:definition "The UnitPrice input to a UnitPriceTotalCalculation, retaining its exact magnitude, priced asset and compound frame. It is not the total amount or a bare decimal."@x-gmeow-english ;
+    logic:domain gmeow:UnitPriceTotalCalculation ;
+    logic:range gmeow:UnitPrice ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+gmeow:pricedQuantity
+    a logic:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/finance> ;
+    rdfs:label "priced quantity"@x-gmeow-english ;
+    skos:definition "The exact HoldingAssetQuantity multiplied by a unit price. Its countedAsset and reference-frame identities must match the price asset and denominator frame; fractional and signed positions are retained."@x-gmeow-english ;
+    logic:domain gmeow:UnitPriceTotalCalculation ;
+    logic:range gmeow:HoldingAssetQuantity ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+gmeow:pricedAsset
+    a logic:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/finance> ;
+    rdfs:label "priced asset"@x-gmeow-english ;
+    skos:definition "The specific Asset whose counted units a UnitPrice prices. It must equal pricedQuantity countedAsset before multiplication; shared labels, dimensions or count frames do not equate distinct assets."@x-gmeow-english ;
+    logic:domain gmeow:UnitPrice ;
+    logic:range gmeow:Asset ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+gmeow:UnitPriceUnitMismatch
+    a logic:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/finance> ;
+    rdfs:label "unit price unit mismatch"@x-gmeow-english ;
+    skos:definition "A conformance failure for an invalid selected unit-price frame profile or a multiplication whose counted input has a different asset identity or count frame, or is not a dimensionless counted asset quantity. Physical dimensionlessness alone never makes different units interchangeable."@x-gmeow-english ;
+    logic:subClassOf math:MathConformanceFailure ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+gmeow:UnitPriceCurrencyMismatch
+    a logic:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/finance> ;
+    rdfs:label "unit price currency mismatch"@x-gmeow-english ;
+    skos:definition "A conformance failure for a requested unit-price output context that is not a scalar currency frame identical to the quote numerator frame. Equal currency codes or physical dimensions never authorize conversion or frame substitution."@x-gmeow-english ;
+    logic:subClassOf math:MathConformanceFailure ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+gmeow:UnitPrice logic:subClassOf
+    [ a logic:Restriction ; logic:onProperty math:quantityValue ; logic:allValuesFrom xsd:decimal ] ,
+    [ a logic:Restriction ; logic:onProperty math:quantityValue ; logic:maxQualifiedCardinality 1 ; logic:onDataRange xsd:decimal ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:UnitPrice ; logic:closureKey "https://blackcatinformatics.ca/math/quantityValue" ; logic:closureValue logic:ClosedWorldClosure ] .
+
+gmeow:UnitPrice logic:subClassOf
+    [ a logic:Restriction ; logic:onProperty math:hasDimension ; logic:allValuesFrom math:Dimension ] ,
+    [ a logic:Restriction ; logic:onProperty math:hasDimension ; logic:maxQualifiedCardinality 1 ; logic:onClass logic:Thing ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:UnitPrice ; logic:closureKey "https://blackcatinformatics.ca/math/hasDimension" ; logic:closureValue logic:ClosedWorldClosure ] .
+
+gmeow:UnitPrice logic:subClassOf [ a logic:Restriction ; logic:onProperty math:hasDimension ; logic:hasValue math:dimensionless ] .
+
+gmeow:UnitPrice logic:subClassOf
+    [ a logic:Restriction ; logic:onProperty gmeow:pricedAsset ; logic:allValuesFrom gmeow:Asset ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:pricedAsset ; logic:maxQualifiedCardinality 1 ; logic:onClass logic:Thing ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:UnitPrice ; logic:closureKey "https://blackcatinformatics.ca/gmeow/pricedAsset" ; logic:closureValue logic:ClosedWorldClosure ] .
+
+gmeow:UnitPriceTotalCalculation logic:subClassOf
+    [ a logic:Restriction ; logic:onProperty gmeow:unitPrice ; logic:allValuesFrom gmeow:UnitPrice ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:unitPrice ; logic:maxQualifiedCardinality 1 ; logic:onClass logic:Thing ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:UnitPriceTotalCalculation ; logic:closureKey "https://blackcatinformatics.ca/gmeow/unitPrice" ; logic:closureValue logic:ClosedWorldClosure ] .
+
+gmeow:UnitPriceTotalCalculation logic:subClassOf
+    [ a logic:Restriction ; logic:onProperty gmeow:pricedQuantity ; logic:allValuesFrom gmeow:HoldingAssetQuantity ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:pricedQuantity ; logic:maxQualifiedCardinality 1 ; logic:onClass logic:Thing ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:UnitPriceTotalCalculation ; logic:closureKey "https://blackcatinformatics.ca/gmeow/pricedQuantity" ; logic:closureValue logic:ClosedWorldClosure ] .
+
+gmeow:UnitPriceTotalCalculation logic:subClassOf
+    [ a logic:Restriction ; logic:onProperty gmeow:hasReferenceFrame ; logic:allValuesFrom gmeow:ReferenceFrame ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:hasReferenceFrame ; logic:maxQualifiedCardinality 1 ; logic:onClass logic:Thing ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:UnitPriceTotalCalculation ; logic:closureKey "https://blackcatinformatics.ca/gmeow/hasReferenceFrame" ; logic:closureValue logic:ClosedWorldClosure ] .
+
+gmeow:UnitPriceTotalCalculation logic:subClassOf
+    [ a logic:Restriction ; logic:onProperty gmeow:vantage ; logic:allValuesFrom gmeow:Entity ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:vantage ; logic:maxQualifiedCardinality 1 ; logic:onClass logic:Thing ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:UnitPriceTotalCalculation ; logic:closureKey "https://blackcatinformatics.ca/gmeow/vantage" ; logic:closureValue logic:ClosedWorldClosure ] .
+
+gmeow:UnitPriceTotalCalculation logic:subClassOf
+    [ a logic:Restriction ; logic:onProperty gmeow:observedFeature ; logic:allValuesFrom logic:Thing ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:observedFeature ; logic:maxQualifiedCardinality 1 ; logic:onClass logic:Thing ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:UnitPriceTotalCalculation ; logic:closureKey "https://blackcatinformatics.ca/gmeow/observedFeature" ; logic:closureValue logic:ClosedWorldClosure ] .
+
+gmeow:UnitPriceTotalCalculation logic:subClassOf
+    [ a logic:Restriction ; logic:onProperty gmeow:observationMethod ; logic:allValuesFrom gmeow:ObservationMethod ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:observationMethod ; logic:maxQualifiedCardinality 1 ; logic:onClass logic:Thing ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:UnitPriceTotalCalculation ; logic:closureKey "https://blackcatinformatics.ca/gmeow/observationMethod" ; logic:closureValue logic:ClosedWorldClosure ] .
+
+gmeow:UnitPriceTotalCalculation logic:subClassOf
+    [ a logic:Restriction ; logic:onProperty gmeow:calculationExpression ; logic:allValuesFrom math:ApplicationExpression ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:calculationExpression ; logic:maxQualifiedCardinality 1 ; logic:onClass logic:Thing ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:UnitPriceTotalCalculation ; logic:closureKey "https://blackcatinformatics.ca/gmeow/calculationExpression" ; logic:closureValue logic:ClosedWorldClosure ] .
+
+gmeow:UnitPriceTotalCalculation logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:observationMethod ; logic:hasValue gmeow:methodUnitPriceTotal ] , [ a logic:Restriction ; logic:onProperty gmeow:observationResult ; logic:allValuesFrom gmeow:MonetaryAmount ] .
+
+
+# The unit-price callable uses one shared exact multiplication recipe.
+
+<urn:gmeow:finance:unit-price:price:symbol>
+    a math:MathematicalSymbol ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/finance> ;
+    rdfs:label "unit price symbol"@x-gmeow-english ;
+    skos:definition "The mathematical symbol for the required UnitPrice operand in the authenticated total-price recipe."@x-gmeow-english .
+
+<urn:gmeow:finance:unit-price:price:expression>
+    a math:SymbolReference ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/finance> ;
+    rdfs:label "unit price reference"@x-gmeow-english ;
+    skos:definition "The SymbolReference leaf naming the price symbol in the canonical unit-price multiplication expression."@x-gmeow-english ;
+    math:hasMathematicalSymbol <urn:gmeow:finance:unit-price:price:symbol> .
+
+<urn:gmeow:finance:unit-price:recipe:0>
+    a math:ArgumentSlot ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/finance> ;
+    rdfs:label "unit price operand slot"@x-gmeow-english ;
+    skos:definition "The index-zero operand slot of the canonical unit-price total expression, referencing the price operand."@x-gmeow-english ;
+    math:slotIndex 0 ;
+    math:slotExpression <urn:gmeow:finance:unit-price:price:expression> .
+
+<urn:gmeow:finance:unit-price:count:symbol>
+    a math:MathematicalSymbol ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/finance> ;
+    rdfs:label "priced count symbol"@x-gmeow-english ;
+    skos:definition "The mathematical symbol for the required counted-asset operand in the authenticated total-price recipe."@x-gmeow-english .
+
+<urn:gmeow:finance:unit-price:count:expression>
+    a math:SymbolReference ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/finance> ;
+    rdfs:label "priced count reference"@x-gmeow-english ;
+    skos:definition "The SymbolReference leaf naming the count symbol in the canonical unit-price multiplication expression."@x-gmeow-english ;
+    math:hasMathematicalSymbol <urn:gmeow:finance:unit-price:count:symbol> .
+
+<urn:gmeow:finance:unit-price:recipe:1>
+    a math:ArgumentSlot ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/finance> ;
+    rdfs:label "priced count operand slot"@x-gmeow-english ;
+    skos:definition "The index-one operand slot of the canonical unit-price total expression, referencing the counted-asset operand."@x-gmeow-english ;
+    math:slotIndex 1 ;
+    math:slotExpression <urn:gmeow:finance:unit-price:count:expression> .
+
+<urn:gmeow:finance:unit-price:recipe>
+    a math:ApplicationExpression ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/finance> ;
+    rdfs:label "unit price total expression"@x-gmeow-english ;
+    skos:definition "The canonical binary Multiplication AST for unit price times compatible counted quantity. It names the price and count symbols through ordered argument slots and supplies no conversion or precomputed monetary result."@x-gmeow-english ;
+    math:operator math:Multiplication ;
+    math:argumentSlot <urn:gmeow:finance:unit-price:recipe:0> , <urn:gmeow:finance:unit-price:recipe:1> .
+
+gmeow:UnitPriceFrameConstraint
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/finance> ;
+    rdfs:label "unit price compound frame contract"@x-gmeow-english ;
+    skos:definition "Requires the selected UnitPrice quotient to retain the crisp unhosted scalar mathematical profile, a scalar currency numerator and a scalar mathematical count denominator. Ordinary complete component-frame validation remains owned by places."@x-gmeow-english ;
+    logic:onClass gmeow:UnitPrice ;
+    logic:formalizes gmeow:UnitPrice ;
+    gmeow:enforcesFailureClass gmeow:UnitPriceUnitMismatch ;
+    logic:integrity <urn:gmeow:finance:UnitPriceFrameConstraint:forall> ;
+    logic:message "unit price compound frame contract violated."@x-gmeow-english .
+
+<urn:gmeow:finance:UnitPriceFrameConstraint:forall> a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "frame" ] , [ logic:termIndex 2 ; logic:termVariable "numerator" ] , [ logic:termIndex 3 ; logic:termVariable "denominator" ] , [ logic:termIndex 4 ; logic:termVariable "dimensions" ] , [ logic:termIndex 5 ; logic:termVariable "host" ] ; logic:forall <urn:gmeow:finance:UnitPriceFrameConstraint:implication> .
+<urn:gmeow:finance:UnitPriceFrameConstraint:implication> a logic:Formula ; logic:antecedent <urn:gmeow:finance:UnitPriceFrameConstraint:guard> ; logic:consequent <urn:gmeow:finance:UnitPriceFrameConstraint:consequent> .
+<urn:gmeow:finance:UnitPriceFrameConstraint:guard> a logic:Formula ; logic:and <urn:gmeow:finance:UnitPriceFrameConstraint:g0> , <urn:gmeow:finance:UnitPriceFrameConstraint:g1> , <urn:gmeow:finance:UnitPriceFrameConstraint:g2> , <urn:gmeow:finance:UnitPriceFrameConstraint:g3> , <urn:gmeow:finance:UnitPriceFrameConstraint:g4> , <urn:gmeow:finance:UnitPriceFrameConstraint:g5> .
+<urn:gmeow:finance:UnitPriceFrameConstraint:consequent> a logic:Formula ; logic:and <urn:gmeow:finance:UnitPriceFrameConstraint:guard> , <urn:gmeow:finance:UnitPriceFrameConstraint:t0> , <urn:gmeow:finance:UnitPriceFrameConstraint:t1> , <urn:gmeow:finance:UnitPriceFrameConstraint:t2> , <urn:gmeow:finance:UnitPriceFrameConstraint:t3> , <urn:gmeow:finance:UnitPriceFrameConstraint:t4> , <urn:gmeow:finance:UnitPriceFrameConstraint:t5> , <urn:gmeow:finance:UnitPriceFrameConstraint:t6> , <urn:gmeow:finance:UnitPriceFrameConstraint:t7> , <urn:gmeow:finance:UnitPriceFrameConstraint:t8> , <urn:gmeow:finance:UnitPriceFrameConstraint:t9> , <urn:gmeow:finance:UnitPriceFrameConstraint:t10> , <urn:gmeow:finance:UnitPriceFrameConstraint:t11> , <urn:gmeow:finance:UnitPriceFrameConstraint:t12> .
+<urn:gmeow:finance:UnitPriceFrameConstraint:g0> a logic:Formula ; logic:relation rdf:type ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri gmeow:UnitPrice ] .
+<urn:gmeow:finance:UnitPriceFrameConstraint:g1> a logic:Formula ; logic:relation gmeow:hasReferenceFrame ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "frame" ] .
+<urn:gmeow:finance:UnitPriceFrameConstraint:g2> a logic:Formula ; logic:relation math:numeratorFrame ; logic:argument [ logic:termIndex 0 ; logic:termVariable "frame" ] , [ logic:termIndex 1 ; logic:termVariable "numerator" ] .
+<urn:gmeow:finance:UnitPriceFrameConstraint:g3> a logic:Formula ; logic:relation math:denominatorFrame ; logic:argument [ logic:termIndex 0 ; logic:termVariable "frame" ] , [ logic:termIndex 1 ; logic:termVariable "denominator" ] .
+<urn:gmeow:finance:UnitPriceFrameConstraint:g4> a logic:Formula ; logic:relation gmeow:dimensionCount ; logic:argument [ logic:termIndex 0 ; logic:termVariable "frame" ] , [ logic:termIndex 1 ; logic:termVariable "dimensions" ] .
+<urn:gmeow:finance:UnitPriceFrameConstraint:g5> a logic:Formula ; logic:relation gmeow:requiresHost ; logic:argument [ logic:termIndex 0 ; logic:termVariable "frame" ] , [ logic:termIndex 1 ; logic:termVariable "host" ] .
+<urn:gmeow:finance:UnitPriceFrameConstraint:t0> a logic:Formula ; logic:relation rdf:type ; logic:argument [ logic:termIndex 0 ; logic:termVariable "frame" ] , [ logic:termIndex 1 ; logic:termIri math:QuotientReferenceFrame ] .
+<urn:gmeow:finance:UnitPriceFrameConstraint:t1> a logic:Formula ; logic:relation gmeow:frameKind ; logic:argument [ logic:termIndex 0 ; logic:termVariable "frame" ] , [ logic:termIndex 1 ; logic:termIri gmeow:frameKindScalar ] .
+<urn:gmeow:finance:UnitPriceFrameConstraint:t2> a logic:Formula ; logic:relation gmeow:frameRealm ; logic:argument [ logic:termIndex 0 ; logic:termVariable "frame" ] , [ logic:termIndex 1 ; logic:termIri gmeow:frameRealmMathematical ] .
+<urn:gmeow:finance:UnitPriceFrameConstraint:t3> a logic:Formula ; logic:relation gmeow:hasAxis ; logic:argument [ logic:termIndex 0 ; logic:termVariable "frame" ] , [ logic:termIndex 1 ; logic:termIri gmeow:axisScalar ] .
+<urn:gmeow:finance:UnitPriceFrameConstraint:t4> a logic:Formula ; logic:relation gmeow:determinacyModel ; logic:argument [ logic:termIndex 0 ; logic:termVariable "frame" ] , [ logic:termIndex 1 ; logic:termIri gmeow:determinacyCrisp ] .
+<urn:gmeow:finance:UnitPriceFrameConstraint:t5> a logic:Formula ; logic:relation logic:termEqual ; logic:argument [ logic:termIndex 0 ; logic:termVariable "dimensions" ] , [ logic:termIndex 1 ; logic:termLiteral "1" ; logic:termLiteralDatatype xsd:integer ] .
+<urn:gmeow:finance:UnitPriceFrameConstraint:t6> a logic:Formula ; logic:relation logic:termEqual ; logic:argument [ logic:termIndex 0 ; logic:termVariable "host" ] , [ logic:termIndex 1 ; logic:termLiteral "false" ; logic:termLiteralDatatype xsd:boolean ] .
+<urn:gmeow:finance:UnitPriceFrameConstraint:t7> a logic:Formula ; logic:relation rdf:type ; logic:argument [ logic:termIndex 0 ; logic:termVariable "numerator" ] , [ logic:termIndex 1 ; logic:termIri gmeow:ReferenceFrame ] .
+<urn:gmeow:finance:UnitPriceFrameConstraint:t8> a logic:Formula ; logic:relation gmeow:frameKind ; logic:argument [ logic:termIndex 0 ; logic:termVariable "numerator" ] , [ logic:termIndex 1 ; logic:termIri gmeow:frameKindScalar ] .
+<urn:gmeow:finance:UnitPriceFrameConstraint:t9> a logic:Formula ; logic:relation gmeow:frameRealm ; logic:argument [ logic:termIndex 0 ; logic:termVariable "numerator" ] , [ logic:termIndex 1 ; logic:termIri gmeow:frameRealmCurrency ] .
+<urn:gmeow:finance:UnitPriceFrameConstraint:t10> a logic:Formula ; logic:relation rdf:type ; logic:argument [ logic:termIndex 0 ; logic:termVariable "denominator" ] , [ logic:termIndex 1 ; logic:termIri gmeow:ReferenceFrame ] .
+<urn:gmeow:finance:UnitPriceFrameConstraint:t11> a logic:Formula ; logic:relation gmeow:frameKind ; logic:argument [ logic:termIndex 0 ; logic:termVariable "denominator" ] , [ logic:termIndex 1 ; logic:termIri gmeow:frameKindScalar ] .
+<urn:gmeow:finance:UnitPriceFrameConstraint:t12> a logic:Formula ; logic:relation gmeow:frameRealm ; logic:argument [ logic:termIndex 0 ; logic:termVariable "denominator" ] , [ logic:termIndex 1 ; logic:termIri gmeow:frameRealmMathematical ] .
+
+gmeow:UnitPriceUnitMatchConstraint
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/finance> ;
+    rdfs:label "unit price count identity contract"@x-gmeow-english ;
+    skos:definition "Requires the priced quantity to use exactly the price denominator frame and priced asset. Dimensionless physical dimensions, matching labels and equal magnitudes do not discharge these identity obligations."@x-gmeow-english ;
+    logic:onClass gmeow:UnitPriceTotalCalculation ;
+    logic:formalizes gmeow:UnitPriceTotalCalculation ;
+    gmeow:enforcesFailureClass gmeow:UnitPriceUnitMismatch ;
+    logic:integrity <urn:gmeow:finance:UnitPriceUnitMatchConstraint:forall> ;
+    logic:message "unit price count identity contract violated."@x-gmeow-english .
+
+<urn:gmeow:finance:UnitPriceUnitMatchConstraint:forall> a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "price" ] , [ logic:termIndex 2 ; logic:termVariable "count" ] , [ logic:termIndex 3 ; logic:termVariable "frame" ] , [ logic:termIndex 4 ; logic:termVariable "denominator" ] , [ logic:termIndex 5 ; logic:termVariable "asset" ] ; logic:forall <urn:gmeow:finance:UnitPriceUnitMatchConstraint:implication> .
+<urn:gmeow:finance:UnitPriceUnitMatchConstraint:implication> a logic:Formula ; logic:antecedent <urn:gmeow:finance:UnitPriceUnitMatchConstraint:guard> ; logic:consequent <urn:gmeow:finance:UnitPriceUnitMatchConstraint:consequent> .
+<urn:gmeow:finance:UnitPriceUnitMatchConstraint:guard> a logic:Formula ; logic:and <urn:gmeow:finance:UnitPriceUnitMatchConstraint:g0> , <urn:gmeow:finance:UnitPriceUnitMatchConstraint:g1> , <urn:gmeow:finance:UnitPriceUnitMatchConstraint:g2> , <urn:gmeow:finance:UnitPriceUnitMatchConstraint:g3> , <urn:gmeow:finance:UnitPriceUnitMatchConstraint:g4> , <urn:gmeow:finance:UnitPriceUnitMatchConstraint:g5> .
+<urn:gmeow:finance:UnitPriceUnitMatchConstraint:consequent> a logic:Formula ; logic:and <urn:gmeow:finance:UnitPriceUnitMatchConstraint:guard> , <urn:gmeow:finance:UnitPriceUnitMatchConstraint:t0> , <urn:gmeow:finance:UnitPriceUnitMatchConstraint:t1> .
+<urn:gmeow:finance:UnitPriceUnitMatchConstraint:g0> a logic:Formula ; logic:relation rdf:type ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri gmeow:UnitPriceTotalCalculation ] .
+<urn:gmeow:finance:UnitPriceUnitMatchConstraint:g1> a logic:Formula ; logic:relation gmeow:unitPrice ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "price" ] .
+<urn:gmeow:finance:UnitPriceUnitMatchConstraint:g2> a logic:Formula ; logic:relation gmeow:pricedQuantity ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "count" ] .
+<urn:gmeow:finance:UnitPriceUnitMatchConstraint:g3> a logic:Formula ; logic:relation gmeow:hasReferenceFrame ; logic:argument [ logic:termIndex 0 ; logic:termVariable "price" ] , [ logic:termIndex 1 ; logic:termVariable "frame" ] .
+<urn:gmeow:finance:UnitPriceUnitMatchConstraint:g4> a logic:Formula ; logic:relation math:denominatorFrame ; logic:argument [ logic:termIndex 0 ; logic:termVariable "frame" ] , [ logic:termIndex 1 ; logic:termVariable "denominator" ] .
+<urn:gmeow:finance:UnitPriceUnitMatchConstraint:g5> a logic:Formula ; logic:relation gmeow:pricedAsset ; logic:argument [ logic:termIndex 0 ; logic:termVariable "price" ] , [ logic:termIndex 1 ; logic:termVariable "asset" ] .
+<urn:gmeow:finance:UnitPriceUnitMatchConstraint:t0> a logic:Formula ; logic:relation gmeow:hasReferenceFrame ; logic:argument [ logic:termIndex 0 ; logic:termVariable "count" ] , [ logic:termIndex 1 ; logic:termVariable "denominator" ] .
+<urn:gmeow:finance:UnitPriceUnitMatchConstraint:t1> a logic:Formula ; logic:relation gmeow:countedAsset ; logic:argument [ logic:termIndex 0 ; logic:termVariable "count" ] , [ logic:termIndex 1 ; logic:termVariable "asset" ] .
+
+gmeow:UnitPriceCurrencyMatchConstraint
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/finance> ;
+    rdfs:label "unit price currency identity contract"@x-gmeow-english ;
+    skos:definition "Requires the request output frame to be a scalar currency frame identical to the price numerator frame. The constraint performs no currency-code matching or conversion."@x-gmeow-english ;
+    logic:onClass gmeow:UnitPriceTotalCalculation ;
+    logic:formalizes gmeow:UnitPriceTotalCalculation ;
+    gmeow:enforcesFailureClass gmeow:UnitPriceCurrencyMismatch ;
+    logic:integrity <urn:gmeow:finance:UnitPriceCurrencyMatchConstraint:forall> ;
+    logic:message "unit price currency identity contract violated."@x-gmeow-english .
+
+<urn:gmeow:finance:UnitPriceCurrencyMatchConstraint:forall> a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "price" ] , [ logic:termIndex 2 ; logic:termVariable "frame" ] , [ logic:termIndex 3 ; logic:termVariable "currency" ] ; logic:forall <urn:gmeow:finance:UnitPriceCurrencyMatchConstraint:implication> .
+<urn:gmeow:finance:UnitPriceCurrencyMatchConstraint:implication> a logic:Formula ; logic:antecedent <urn:gmeow:finance:UnitPriceCurrencyMatchConstraint:guard> ; logic:consequent <urn:gmeow:finance:UnitPriceCurrencyMatchConstraint:consequent> .
+<urn:gmeow:finance:UnitPriceCurrencyMatchConstraint:guard> a logic:Formula ; logic:and <urn:gmeow:finance:UnitPriceCurrencyMatchConstraint:g0> , <urn:gmeow:finance:UnitPriceCurrencyMatchConstraint:g1> , <urn:gmeow:finance:UnitPriceCurrencyMatchConstraint:g2> , <urn:gmeow:finance:UnitPriceCurrencyMatchConstraint:g3> .
+<urn:gmeow:finance:UnitPriceCurrencyMatchConstraint:consequent> a logic:Formula ; logic:and <urn:gmeow:finance:UnitPriceCurrencyMatchConstraint:guard> , <urn:gmeow:finance:UnitPriceCurrencyMatchConstraint:t0> , <urn:gmeow:finance:UnitPriceCurrencyMatchConstraint:t1> , <urn:gmeow:finance:UnitPriceCurrencyMatchConstraint:t2> , <urn:gmeow:finance:UnitPriceCurrencyMatchConstraint:t3> .
+<urn:gmeow:finance:UnitPriceCurrencyMatchConstraint:g0> a logic:Formula ; logic:relation rdf:type ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri gmeow:UnitPriceTotalCalculation ] .
+<urn:gmeow:finance:UnitPriceCurrencyMatchConstraint:g1> a logic:Formula ; logic:relation gmeow:unitPrice ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "price" ] .
+<urn:gmeow:finance:UnitPriceCurrencyMatchConstraint:g2> a logic:Formula ; logic:relation gmeow:hasReferenceFrame ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "currency" ] .
+<urn:gmeow:finance:UnitPriceCurrencyMatchConstraint:g3> a logic:Formula ; logic:relation gmeow:hasReferenceFrame ; logic:argument [ logic:termIndex 0 ; logic:termVariable "price" ] , [ logic:termIndex 1 ; logic:termVariable "frame" ] .
+<urn:gmeow:finance:UnitPriceCurrencyMatchConstraint:t0> a logic:Formula ; logic:relation math:numeratorFrame ; logic:argument [ logic:termIndex 0 ; logic:termVariable "frame" ] , [ logic:termIndex 1 ; logic:termVariable "currency" ] .
+<urn:gmeow:finance:UnitPriceCurrencyMatchConstraint:t1> a logic:Formula ; logic:relation rdf:type ; logic:argument [ logic:termIndex 0 ; logic:termVariable "currency" ] , [ logic:termIndex 1 ; logic:termIri gmeow:ReferenceFrame ] .
+<urn:gmeow:finance:UnitPriceCurrencyMatchConstraint:t2> a logic:Formula ; logic:relation gmeow:frameKind ; logic:argument [ logic:termIndex 0 ; logic:termVariable "currency" ] , [ logic:termIndex 1 ; logic:termIri gmeow:frameKindScalar ] .
+<urn:gmeow:finance:UnitPriceCurrencyMatchConstraint:t3> a logic:Formula ; logic:relation gmeow:frameRealm ; logic:argument [ logic:termIndex 0 ; logic:termVariable "currency" ] , [ logic:termIndex 1 ; logic:termIri gmeow:frameRealmCurrency ] .

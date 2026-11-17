@@ -175,8 +175,13 @@ pub fn lower_all(
 
     let sssom = sssom::lower_sssom(&dsl_view, &version, &release_date, &lookup)
         .map_err(|e| crate::error::parse_diag(e.to_string()))?;
-    let fno = fno::lower_fno(&dsl_view, &onto_view, &lookup)
-        .map_err(|e| crate::error::parse_diag(e.to_string()))?;
+    let fno = fno::lower_fno(
+        &dsl_view,
+        &onto_view,
+        &lookup,
+        fno::CallableTargetTyping::CanonicalModules(&ownership),
+    )
+    .map_err(|e| crate::error::parse_diag(e.to_string()))?;
     let edoal = edoal::lower_edoal(&onto_view, &lookup)
         .map_err(|e| crate::error::parse_diag(e.to_string()))?;
     let sparql = sparql::lower_sparql(

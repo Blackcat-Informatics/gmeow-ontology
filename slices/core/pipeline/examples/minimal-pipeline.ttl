@@ -31,6 +31,7 @@ ex:minimalBuild a gmeow:Pipeline ;
 # logic:capability (the executional precondition — the bound Rust Stage can run),
 # both shared individuals from the pipeline module.
 ex:load a gmeow:PipelineStage ;
+    gmeow:stageOutputFamily gmeow:outputGenerated ;
     gmeow:hasCapability gmeow:sourceOrigin ;
     logic:precondition gmeow:stageInputsAvailable ;
     logic:capability gmeow:stageExecutorCapability ;
@@ -39,6 +40,7 @@ ex:load a gmeow:PipelineStage ;
     gmeow:stageImpl "source_load" .
 
 ex:reason a gmeow:PipelineStage ;
+    gmeow:stageOutputFamily gmeow:outputGenerated ;
     logic:precondition gmeow:stageInputsAvailable ;
     logic:capability gmeow:stageExecutorCapability ;
     gmeow:stageStability gmeow:stabilityStablePrefix ;
@@ -51,6 +53,7 @@ ex:reason a gmeow:PipelineStage ;
 # the cache-policy class, property, and production stage discoverable from this worked
 # instance without pretending those vocabulary terms are additional pipeline members.
 ex:verify a gmeow:PipelineStage ;
+    gmeow:stageOutputFamily gmeow:outputGenerated ;
     rdfs:seeAlso
         gmeow:StageCacheDisposition ,
         gmeow:stageCacheDisposition ,
@@ -63,6 +66,7 @@ ex:verify a gmeow:PipelineStage ;
     gmeow:dataflowConsumes ex:reason .
 
 ex:sink a gmeow:PipelineStage ;
+    gmeow:stageOutputFamily gmeow:outputGenerated ;
     gmeow:hasCapability gmeow:sinkCapability ;
     logic:precondition gmeow:stageInputsAvailable ;
     logic:capability gmeow:stageExecutorCapability ;

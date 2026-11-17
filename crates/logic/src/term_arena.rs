@@ -7,10 +7,10 @@
 //!
 //! The arena itself is [`gmeow_term_arena`] — a reasoner-free substrate crate, so a parser
 //! front-end can intern terms without linking this runtime. Its façade
-//! ([`ContentKey`](gmeow_term_arena::ContentKey),
-//! [`TermArena`](gmeow_term_arena::TermArena),
-//! [`StructNode`](gmeow_term_arena::StructNode),
-//! [`InterningStats`](gmeow_term_arena::InterningStats)) is re-exported below so a
+//! ([`ContentKey`],
+//! [`TermArena`],
+//! [`StructNode`],
+//! [`InterningStats`]) is re-exported below so a
 //! consumer that already depends on `gmeow-logic` names one surface.
 //!
 //! `intern_math_root` is the one addition. It writes NO interning logic — it composes the

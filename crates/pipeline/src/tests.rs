@@ -16,8 +16,8 @@ use crate::cache::{
 };
 use crate::loader::{PipelineSpec, StageSpec, bind};
 use crate::node::{
-    CachePolicy, ENGINE_RESOURCE, SINK_CAPABILITY, SOURCE_ORIGIN, Stage, StageInput, StageOutput,
-    StageProduct, StageStability,
+    CachePolicy, ENGINE_RESOURCE, OutputFamily, SINK_CAPABILITY, SOURCE_ORIGIN, Stage, StageInput,
+    StageOutput, StageProduct, StageStability,
 };
 use crate::provenance::register_stage_unit;
 use crate::registry::StageRegistry;
@@ -54,6 +54,7 @@ fn spec(id: &str, consumes: &[&str]) -> StageSpec {
         resources: resources_for(id),
         stability: StageStability::StablePrefix,
         cache_disposition: CachePolicy::Persistent,
+        output_family: OutputFamily::Generated,
         dataflow_entities: Vec::new(),
         // These synthetic stages fold only the identity of what they consume.
         reads: consumes
@@ -679,12 +680,14 @@ gmeow:pipeline-test a gmeow:Pipeline ;
     gmeow:hasStage gmeow:stageSource , gmeow:stageReason , gmeow:stageSink .
 
 gmeow:stageSource a gmeow:PipelineStage ;
+    gmeow:stageOutputFamily gmeow:outputGenerated ;
     gmeow:hasCapability gmeow:sourceOrigin ;
     gmeow:stageStability gmeow:stabilityStablePrefix ;
     gmeow:stageCacheDisposition gmeow:cachePersistentContribution ;
     gmeow:stageImpl "source_load" .
 
 gmeow:stageReason a gmeow:PipelineStage ;
+    gmeow:stageOutputFamily gmeow:outputGenerated ;
     gmeow:stageImpl "reason" ;
     gmeow:stageStability gmeow:stabilityStablePrefix ;
     gmeow:stageCacheDisposition gmeow:cacheRecomputeAggregate ;
@@ -692,6 +695,7 @@ gmeow:stageReason a gmeow:PipelineStage ;
     gmeow:requiresResource gmeow:engineResource .
 
 gmeow:stageSink a gmeow:PipelineStage ;
+    gmeow:stageOutputFamily gmeow:outputGenerated ;
     gmeow:hasCapability gmeow:sinkCapability ;
     gmeow:stageImpl "gts_sink" ;
     gmeow:stageStability gmeow:stabilityStablePrefix ;
@@ -906,6 +910,43 @@ fn stage_cache_declarations_fail_closed() {
         err.to_string()
             .contains("must declare exactly one gmeow:stageStability; found 0")
     );
+}
+
+/// Scope selection cannot guess a family from absent, malformed or conflicting RDF.
+#[test]
+fn stage_output_family_declarations_fail_closed() {
+    let declaration = "    gmeow:stageOutputFamily gmeow:outputGenerated ;\n";
+    for (replacement, expected) in [
+        ("", "found 0"),
+        (
+            "    gmeow:stageOutputFamily gmeow:unknown ;\n",
+            "unknown gmeow:stageOutputFamily",
+        ),
+        (
+            "    gmeow:stageOutputFamily \"generated\" ;\n",
+            "must name a closed-vocabulary IRI",
+        ),
+        (
+            "    gmeow:stageOutputFamily [] ;\n",
+            "must name a closed-vocabulary IRI",
+        ),
+        (
+            "    gmeow:stageOutputFamily gmeow:outputGenerated, gmeow:outputRuntimeProjection ;\n",
+            "found 2",
+        ),
+        (
+            "    gmeow:stageOutputFamily gmeow:outputGenerated, \"generated\" ;\n",
+            "found 2",
+        ),
+    ] {
+        let ttl = DAG_TTL.replacen(declaration, replacement, 1);
+        let error = PipelineSpec::from_turtle(&[&ttl])
+            .expect_err("invalid family must fail before scope selection")
+            .to_string();
+        assert!(error.contains("stageSource"), "{error}");
+        assert!(error.contains("stageOutputFamily"), "{error}");
+        assert!(error.contains(expected), "{error}");
+    }
 }
 
 // ── Cache key ─────────────────────────────────────────────────────────────────
@@ -2783,6 +2824,7 @@ fn retention_chain() -> PipelineSpec {
         // recomputes, so the RDF half must make the same declaration and let the
         // binding parity gate remain load-bearing.
         cache_disposition: CachePolicy::Recompute,
+        output_family: OutputFamily::Generated,
         dataflow_entities: Vec::new(),
         // Every chain stage reads the dataset of what it consumes.
         reads: {

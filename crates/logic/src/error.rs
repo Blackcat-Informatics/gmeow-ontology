@@ -79,6 +79,24 @@ gmeow_errors::impl_diag_kind! {
 }
 
 define_diag_kind! {
+    /// A unit-price multiplication used a different counted asset or count frame.
+    pub struct UnitPriceUnitMismatch { price: String, quantity: String, detail: String }
+    code = "logic.finance.unit-price-unit-mismatch";
+    grade = logic_grade!();
+    message = "unit price {} and counted quantity {} have incompatible units: {}", price, quantity, detail;
+    failure_class = "https://blackcatinformatics.ca/gmeow/UnitPriceUnitMismatch";
+}
+
+define_diag_kind! {
+    /// A unit-price multiplication requested a currency other than its numerator frame.
+    pub struct UnitPriceCurrencyMismatch { price: String, quoted: String, requested: String }
+    code = "logic.finance.unit-price-currency-mismatch";
+    grade = logic_grade!();
+    message = "unit price {} uses currency frame {}, but the calculation requests {}", price, quoted, requested;
+    failure_class = "https://blackcatinformatics.ca/gmeow/UnitPriceCurrencyMismatch";
+}
+
+define_diag_kind! {
     /// A runtime intermediate-representation constructor rejected its input: a
     /// malformed rule/query IR node, an empty term name, or a well-formedness
     /// precondition on the runtime AST that does not hold.

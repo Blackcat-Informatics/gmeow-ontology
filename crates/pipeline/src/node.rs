@@ -749,8 +749,8 @@ impl StageStability {
 
 /// The output family of a stage: which output scopes need what it produces.
 ///
-/// Every stage declares one; the trait method has no default, so a stage added without a
-/// declaration does not compile. A run selects its stages from these declarations
+/// The authored description declares one and admission proves agreement with each
+/// executable stage. A run selects its stages from the admitted description
 /// ([`crate::run::spec_for_scope`]): the committed scope runs the stages whose outputs it
 /// selects and their transitive producers.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
@@ -758,9 +758,34 @@ pub enum OutputFamily {
     /// Contributes to what every scope selects: the bundle, the committed `generated/`
     /// tree, the codebook and whatever those need.
     Generated,
-    /// Produces only gitignored `dist/` runtime projections, which only the scope that
-    /// materializes them (`all`) selects, and that no `Generated` stage consumes.
+    /// Produces direct gitignored `dist/` runtime projections. The all scope selects
+    /// these as roots; another scope still retains one when a selected stage needs it.
     RuntimeProjection,
+}
+
+impl OutputFamily {
+    /// Admit one individual from the stage profile's allowed output families.
+    #[must_use]
+    pub(crate) fn from_iri(value: &str) -> Option<Self> {
+        match value {
+            "https://blackcatinformatics.ca/gmeow/outputGenerated" => Some(Self::Generated),
+            "https://blackcatinformatics.ca/gmeow/outputRuntimeProjection" => {
+                Some(Self::RuntimeProjection)
+            }
+            _ => None,
+        }
+    }
+
+    /// The authored individual naming this output family.
+    #[must_use]
+    pub(crate) const fn iri(self) -> &'static str {
+        match self {
+            Self::Generated => "https://blackcatinformatics.ca/gmeow/outputGenerated",
+            Self::RuntimeProjection => {
+                "https://blackcatinformatics.ca/gmeow/outputRuntimeProjection"
+            }
+        }
+    }
 }
 
 /// Whether a stage product should use the persistent structural cache.

@@ -194,6 +194,8 @@ BUNDLE_IMPORT_CACHE_ENV = GMEOW_BUNDLE_IMPORT_CACHE="$(BUNDLE_IMPORT_CACHE_ROOT)
 BUNDLE_IMPORT_CACHE_ARGS = --bundle-import-cache-root "$(BUNDLE_IMPORT_CACHE_ROOT)" --expected-source-digest "$$(sha256sum generated/dist/gmeow.gts | cut -d ' ' -f1)"
 TEST_FIXTURE_MANIFEST ?= $(abspath .cache/gmeow-sync/test-fixture-manifest-v2.json)
 WASM_CODEBOOK_MANIFEST := $(abspath .cache/gmeow-sync/wasm-codebook-manifest-v2.json)
+COMPILER_OWNER_MANIFEST := $(abspath .cache/gmeow-sync/compiler-owner-fixture-manifest-v2.json)
+COMPILER_OWNER_FIXTURE_ENV = GMEOW_TEST_FIXTURE_MANIFEST="$(COMPILER_OWNER_MANIFEST)" GMEOW_TEST_FIXTURE_MANIFEST_SHA256="$$(sha256sum "$(COMPILER_OWNER_MANIFEST)" | cut -d ' ' -f1)"
 # The selector is written only by the explicit producer. Each consumer receives its
 # exact digest before process start, so a missing, stale, or test-mutated selector fails
 # rather than causing a dependency walk or producer fallback.
@@ -343,6 +345,10 @@ producer-build: ## Build and authenticate the O3/full-LTO producer independently
 
 producer-verify: ## Authenticate the staged producer against the current build recipe without compiling it.
 	cargo xtask producer verify
+
+.PHONY: pipeline-scope-check
+pipeline-scope-check: ## Compare the authored pipeline scope query with both executable build profiles without running stage bodies.
+	$(GMEOW_DEV) pipeline-scope-check
 
 producer-recipe: ## Print the resolved producer recipe digest for exact binary-cache admission.
 	@cargo xtask producer recipe
@@ -692,6 +698,17 @@ produce-producer-independent-test-fixtures: ## Explicitly produce optimized DAG-
 .PHONY: produce-wasm-codebook
 produce-wasm-codebook: ## Produce only the authenticated browser codebook closure before rebuilding assets.
 	$(GMEOW_DEV) test-fixtures produce --scope wasm-codebook $(FIXTURE_TIMINGS_ARG)
+
+.PHONY: produce-compiler-owner-test-fixtures verify-compiler-owner-test-fixtures nextest-compiler-owner
+produce-compiler-owner-test-fixtures: ## Explicitly produce only authenticated compiler-owned module fixtures.
+	$(GMEOW_DEV) test-fixtures produce --scope compiler-owner $(FIXTURE_TIMINGS_ARG)
+
+verify-compiler-owner-test-fixtures: ## Authenticate the compiler-owner closure and outputs against current inputs read-only.
+	$(COMPILER_OWNER_FIXTURE_ENV) $(TEST_FIXTURE_TOOL) test-fixtures verify --scope compiler-owner
+
+nextest-compiler-owner: test-corpus-purity verify-compiler-owner-test-fixtures ## Run an explicit NEXTEST_FILTER against compiler-owner fixtures without any producer path.
+	@test -n "$(strip $(NEXTEST_FILTER))" || { echo "NEXTEST_FILTER is required for nextest-compiler-owner"; exit 2; }
+	$(COMPILER_OWNER_FIXTURE_ENV) cargo nextest run --manifest-path $(CURDIR)/Cargo.toml --profile ci -p gmeow-pipeline --lib $(NEXTEST_FILTER_ARG) --no-tests=fail
 
 produce-producer-bound-test-fixtures: ## Explicitly produce docs plus exact generated-bundle import fixtures before archive/test execution.
 	$(BUNDLE_IMPORT_CACHE_ENV) $(GMEOW_DEV) test-fixtures produce --scope producer-bound $(BUNDLE_IMPORT_CACHE_ARGS) $(FIXTURE_TIMINGS_ARG)

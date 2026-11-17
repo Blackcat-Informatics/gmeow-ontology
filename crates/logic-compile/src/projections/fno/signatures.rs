@@ -108,12 +108,13 @@ fn check_fields(
 }
 
 /// Retain an optional selected source reference only after admitting its complete
-/// scalar identity and explicitly declared target kind in the same source view.
+/// scalar identity and target kind through the explicitly selected authority.
 fn typed_reference(
     view: &DslView<'_>,
     subject: &str,
     predicate: &str,
     target_type: &str,
+    target_typing: CallableTargetTyping<'_>,
 ) -> gmeow_errors::Result<Option<RdfQuad>> {
     let values = view.objects_of(subject, predicate);
     if values.is_empty() {
@@ -125,11 +126,26 @@ fn typed_reference(
             format!("{predicate} requires exactly one named IRI"),
         ));
     };
-    if !view
-        .object_iris(target, gmeow_errors::abox::RDF_TYPE)
-        .iter()
-        .any(|kind| kind == target_type)
-    {
+    let declared = match target_typing {
+        CallableTargetTyping::SourceLocal => view
+            .object_iris(target, gmeow_errors::abox::RDF_TYPE)
+            .iter()
+            .any(|kind| kind == target_type),
+        CallableTargetTyping::CanonicalModules(authority) => {
+            let declaration = authority.module_target(target)?;
+            if !declaration.types.contains(target_type) {
+                return Err(refusal(
+                    subject,
+                    format!(
+                        "{predicate} target {target} must be declared {target_type} in canonical Module {} (owner {}, SHA-256 {})",
+                        declaration.path, declaration.owner, declaration.digest
+                    ),
+                ));
+            }
+            true
+        }
+    };
+    if !declared {
         return Err(refusal(
             subject,
             format!("{predicate} target {target} must be declared {target_type}"),
@@ -144,8 +160,12 @@ fn typed_reference(
 
 /// An observation-method signature selects a recipe; ordinary interfaces select
 /// neither. Retain the paired type and reference without lowering its AST to FnO.
-fn method_extensions(view: &DslView<'_>, subject: &str) -> gmeow_errors::Result<Vec<RdfQuad>> {
-    let recipe = typed_reference(view, subject, RECIPE, APPLICATION)?;
+fn method_extensions(
+    view: &DslView<'_>,
+    subject: &str,
+    target_typing: CallableTargetTyping<'_>,
+) -> gmeow_errors::Result<Vec<RdfQuad>> {
+    let recipe = typed_reference(view, subject, RECIPE, APPLICATION, target_typing)?;
     let method = view
         .object_iris(subject, gmeow_errors::abox::RDF_TYPE)
         .iter()
@@ -251,7 +271,10 @@ fn literal(view: &DslView<'_>, subject: &str, predicate: &str) -> gmeow_errors::
 }
 
 impl Signatures {
-    pub fn admit(view: &DslView<'_>) -> gmeow_errors::Result<Self> {
+    pub fn admit(
+        view: &DslView<'_>,
+        target_typing: CallableTargetTyping<'_>,
+    ) -> gmeow_errors::Result<Self> {
         let mut out = Self {
             functions: Vec::new(),
             params: Vec::new(),
@@ -271,7 +294,9 @@ impl Signatures {
                     "parameterRequired",
                 ],
             )?;
-            if let Some(binding) = typed_reference(view, &subject, SYMBOL, SYMBOL_TYPE)? {
+            if let Some(binding) =
+                typed_reference(view, &subject, SYMBOL, SYMBOL_TYPE, target_typing)?
+            {
                 out.extensions.push(binding);
                 out.extensions.push(RdfQuad::new(
                     RdfTerm::iri(subject.clone()),
@@ -320,7 +345,8 @@ impl Signatures {
                 SIGNATURE,
                 &["inputParameters", "outputParameters"],
             )?;
-            out.extensions.extend(method_extensions(view, &subject)?);
+            out.extensions
+                .extend(method_extensions(view, &subject, target_typing)?);
             if !out.subjects.insert(subject.clone()) {
                 return Err(refusal(
                     &subject,
