@@ -17746,3 +17746,87 @@ msgstr "不要将不同的正值数量或不同 RDF 资源数量作为精确秩�
 msgctxt "https://blackcatinformatics.ca/math/singularValue|https://blackcatinformatics.ca/gmeow/howToUse"
 msgid "Link the decomposition to the supplied math:Number and preserve source ordering, occurrence multiplicities, factor associations and any numerical tolerance separately. This output relation supplies no left/right-vector pairing, default order, completeness witness or numerical computation."
 msgstr "将分解关联到已提供的 math:Number，并单独保留来源顺序、出现重数、因子关联及任何数值容差。该输出关系不提供左右奇异向量配对、默认顺序、完整性见证或数值计算。"
+
+msgctxt "https://blackcatinformatics.ca/math/LinearMap|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Linear Map"
+msgstr "线性映射"
+
+msgctxt "https://blackcatinformatics.ca/math/LinearMap|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A total function T from a vector space V to a vector space W over the same scalar field, preserving linear combinations: T(av+bw) = aT(v)+bT(w). Its source and target vector-space structures are distinct in role from their carrier sets and from a matrix representing the map in chosen bases."
+msgstr "从同一标量域上的向量空间 V 到向量空间 W 的全函数 T，保持线性组合：T(av+bw) = aT(v)+bT(w)。源和目标的向量空间结构在角色上不同于各自的载体集合，也不同于在选定基下表示该映射的矩阵。"
+
+msgctxt "https://blackcatinformatics.ca/math/LinearMap|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Linearity needs no inner product or finite-dimensional assumption. A finite matrix representation additionally needs ordered source and target bases. Changing coordinates for the same map over the same field preserves rank; a matrix label, frame or finite sample alone does not establish the universal linearity law."
+msgstr "线性性不需要内积或有限维假设。有限矩阵表示还需要有序的源基和目标基。对同一域上的同一映射改变坐标会保持秩；仅有矩阵标签、框架或有限样本不能证明普遍的线性规律。"
+
+msgctxt "https://blackcatinformatics.ca/math/LinearMap|http://www.w3.org/2004/02/skos/core#example"
+msgid "Over the real numbers, T: R³ → R² given by T(x,y,z) = (x,y) is linear. In the standard ordered bases its matrix is [[1,0,0],[0,1,0]], its image is R², its rank is two and its kernel has dimension one."
+msgstr "在实数域上，T: R³ → R²，T(x,y,z) = (x,y)，是线性映射。在标准有序基下，其矩阵为 [[1,0,0],[0,1,0]]，像为 R²，秩为二，核的维数为一。"
+
+msgctxt "https://blackcatinformatics.ca/math/LinearMap|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for a justified linear map with declared source and target vector spaces over the same field, preserving their carriers, scalar actions and actual representation or defining rule."
+msgstr "用于有依据的线性映射，其源和目标向量空间应声明在同一域上，并保留它们的载体、标量作用及实际表示或定义规则。"
+
+msgctxt "https://blackcatinformatics.ca/math/LinearMap|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Do not infer linearity from a matrix-shaped dataset or a neural-layer label. A nonzero bias translation is affine rather than linear, and a nonlinear activation does not become linear merely because its input has a weight matrix. Do not confuse a mathematical function with a functional RDF predicate or an executed method."
+msgstr "不要从矩阵形状的数据集或神经网络层标签推断线性性。非零偏置平移是仿射而非线性的，非线性激活也不会仅因其输入具有权重矩阵而变为线性。不要将数学函数与函数型 RDF 谓词或已执行的方法混淆。"
+
+msgctxt "https://blackcatinformatics.ca/math/LinearMap|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the inherited math:Function frame through math:domain and math:codomain carrier-set resources; describe the vector-space structures and scalar field separately with existing vocabulary. Preserve any justified math:image. The registered skos:exactMatch to wd:Q207643 has logic:SoundUnderApproximation preservation; neither it nor the frame executes the map or proves linearity."
+msgstr "通过 math:domain 和 math:codomain 指向载体集合资源，保留继承的 math:Function 框架；使用现有词汇单独描述向量空间结构及标量域。保留任何有依据的 math:image。已登记的、指向 wd:Q207643 的 skos:exactMatch 采用 logic:SoundUnderApproximation 保持判定；该对应关系及框架均不执行映射，也不证明线性性。"
+
+msgctxt "https://blackcatinformatics.ca/math/Rank|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Rank"
+msgstr "秩"
+
+msgctxt "https://blackcatinformatics.ca/math/Rank|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The dimension of the image of a math:LinearMap over its declared scalar field. A finite rank is a nonnegative integer, including zero, recorded through math:rankValue. The general image dimension may instead be infinite; the finite numeric property supplies no infinite-cardinal encoding."
+msgstr "math:LinearMap 的像在其已声明标量域上的维数。有限秩是非负整数，包括零，通过 math:rankValue 记录。一般的像维数也可能是无限的；有限数值属性不提供无限基数编码。"
+
+msgctxt "https://blackcatinformatics.ca/math/Rank|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Rank concerns the attained image, not the declared source or target dimension. For a finite-dimensional source V, dim(V) = rank(T) + dim(kernel(T)); no finite-source conclusion is inferred for an arbitrary infinite-dimensional map. Rank also depends on the scalar-field interpretation of the vector spaces."
+msgstr "秩描述实际达到的像，而非已声明的源或目标维数。对于有限维源空间 V，dim(V) = rank(T) + dim(kernel(T))；不能对任意无限维映射推断仅适用于有限维源的结论。秩还依赖于向量空间的标量域解释。"
+
+msgctxt "https://blackcatinformatics.ca/math/Rank|http://www.w3.org/2004/02/skos/core#example"
+msgid "The real projection T: R³ → R², T(x,y,z) = (x,y), has rank two and nullity one. The zero map has rank zero, even when its source and target are nonzero vector spaces."
+msgstr "实投影 T: R³ → R²，T(x,y,z) = (x,y)，秩为二，零度为一。零映射的秩为零，即使其源和目标都是非零向量空间。"
+
+msgctxt "https://blackcatinformatics.ca/math/Rank|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to describe the justified image dimension of an identified linear map in its actual field and vector-space context, keeping any finite numeric value separate from the map and its coordinate matrix."
+msgstr "用于在已标识线性映射的实际域和向量空间上下文中描述有依据的像维数，并将任何有限数值与映射及其坐标矩阵分开保留。"
+
+msgctxt "https://blackcatinformatics.ca/math/Rank|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Do not substitute tensor-axis count, root-system rank, matrix size or a count of distinct output resources. In the finite-dimensional real or complex inner-product SVD setting, exact rank counts positive singular-value occurrences with multiplicity. Numerical tolerance and rank truncation are separate policies, not exact-rank proofs."
+msgstr "不要用张量轴数、根系的秩、矩阵大小或不同输出资源的数量代替秩。在有限维实或复内积空间的 SVD 情形下，精确秩按重数计算正奇异值的出现项。数值容差和秩截断属于独立策略，不构成精确秩证明。"
+
+msgctxt "https://blackcatinformatics.ca/math/Rank|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Describe the rank as its own math:Rank resource and use math:rankValue for a justified finite value. Preserve the source identification of the relevant map and field in the existing representation; no dedicated rank-of property is supplied here. A type, number or grounding link alone does not calculate rank."
+msgstr "将秩描述为独立的 math:Rank 资源，并用 math:rankValue 记录有依据的有限值。在现有表示中保留来源对相关映射及标量域的标识；此处不提供专用的秩所属映射属性。仅有类型、数值或对应关系链接不会计算秩。"
+
+msgctxt "https://blackcatinformatics.ca/math/rankValue|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "rank value"
+msgstr "秩值"
+
+msgctxt "https://blackcatinformatics.ca/math/rankValue|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The nonnegative-integer value of a finite math:Rank: the dimension of the image of its associated linear map over the declared scalar field. Zero is an actual finite value. This datatype property records a supplied mathematical value; it does not compute or verify rank."
+msgstr "有限 math:Rank 的非负整数值，即其关联线性映射的像在已声明标量域上的维数。零是实际的有限值。该数据类型属性记录已提供的数学值，不计算或验证秩。"
+
+msgctxt "https://blackcatinformatics.ca/math/rankValue|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The finite value contract has no fixed machine-width ceiling and no encoding for infinite-cardinal or unknown rank. The declared nonnegative-integer meaning is distinct from an executed lexical, range or cardinality check; no generated SHACL or native rank-validation result follows from this annotation."
+msgstr "有限值契约不设固定机器位宽上限，也不编码无限基数秩或未知秩。已声明的非负整数含义与已执行的词法、范围或基数检查不同；不能从此注释推断已生成 SHACL 或原生秩验证的结果。"
+
+msgctxt "https://blackcatinformatics.ca/math/rankValue|http://www.w3.org/2004/02/skos/core#example"
+msgid "For the real projection (x,y,z) ↦ (x,y), a supplied math:Rank resource can carry math:rankValue 2. The literal records the justified image dimension; the property does not infer the projection, its field or the argument establishing that value."
+msgstr "对于实投影 (x,y,z) ↦ (x,y)，已提供的 math:Rank 资源可以携带 math:rankValue 2。该字面量记录有依据的像维数；属性不会推断投影、标量域或确立该值的论证。"
+
+msgctxt "https://blackcatinformatics.ca/math/rankValue|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when a finite image dimension is actually supplied and justified, preserving its integer literal and the source context that identifies the linear map and scalar field."
+msgstr "用于实际提供且有依据的有限像维数，保留整数字面量以及标识线性映射和标量域的来源上下文。"
+
+msgctxt "https://blackcatinformatics.ca/math/rankValue|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Do not replace an unknown or infinite rank with zero, a large sentinel or an ambient dimension. Do not attach a rounded estimate or tolerance-based numerical rank as if it established the exact mathematical image dimension."
+msgstr "不要用零、大的哨兵值或环境维数代替未知秩或无限秩。不要将四舍五入估计或基于容差的数值秩附加为已确立精确数学像维数的值。"
+
+msgctxt "https://blackcatinformatics.ca/math/rankValue|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Attach the supplied nonnegative integer to the math:Rank resource and retain the map, field and supporting evidence in the existing source representation. Keep omission distinct from zero and preserve any separate approximation policy. The relation alone supplies no specialized validation gate or rank computation."
+msgstr "将已提供的非负整数附加到 math:Rank 资源，并在现有来源表示中保留映射、标量域及支持依据。将省略与零分开，并保留任何独立的近似策略。该关系本身不提供专门的验证关卡或秩计算。"

@@ -318,6 +318,21 @@ The registered SVD `skos:exactMatch` to Wikidata `wd:Q420904` carries
 or execution certificate. The source scene and PCA fixtures name solver
 descriptors; the exact Gram/PCA producer emits no singular-value result triples.
 
+`math:LinearMap` preserves linear combinations between vector spaces over the
+same field. Retain their algebraic structures separately from the carrier sets
+of the inherited `math:Function` frame, and preserve distinct ordered source
+and target basis roles for any matrix representation. The
+[linear-map and rank contract](./design/MATHEMATICS-LINEAR-ALGEBRA-AND-LEARNING.md#linear-maps-and-finite-rank-values)
+distinguishes image dimension from ambient dimension, finite rank from infinite
+or unknown rank, and exact rank from numerical policies. `math:rankValue`
+records a supplied finite nonnegative integer; omission is not zero, and the
+annotation supplies no rank computation or executed specialized validation.
+
+The registered LinearMap grounding is `skos:exactMatch` to Wikidata `wd:Q207643`
+with `logic:WellBehavedLens`, `logic:InstitutionMorphism` and
+`logic:SoundUnderApproximation` preservation. This concept relation proves no
+individual map's linearity, image or rank.
+
 - **Inner-product spaces and decompositions** — `math:InnerProductSpace`, `math:HermitianInnerProduct`,
   `math:Subspace`, `math:OrthogonalComplement` (⊑ `math:Complement`, so it realizes the geometry
   charter's complement contract — ambient space, orthogonal semantics, and now `math:definedByInnerProduct`),

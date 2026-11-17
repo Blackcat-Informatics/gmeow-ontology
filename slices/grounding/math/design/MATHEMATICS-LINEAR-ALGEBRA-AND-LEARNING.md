@@ -167,6 +167,59 @@ without publishing factor or `math:singularValue` results. The exact Gram/PCA
 producer emits its LDL descriptor and PCA role records, with no singular-value
 output triples; those declarations do not establish an executed SVD.
 
+### Linear maps and finite rank values
+
+`math:LinearMap` is a total map `T: V → W` between vector spaces over the same
+scalar field, with `T(av+bw) = aT(v)+bT(w)`. Neither finite dimension nor an
+inner product is needed for linearity. Preserve the vector-space structures,
+their scalar actions and their carriers separately: the inherited
+`math:Function` source profile requires `math:domain` and `math:codomain` to
+identify carrier sets, while `math:underlyingSet` relates the algebraic structures
+to their carriers. Source and target roles may share a set without becoming the
+same role. A class, frame, label or finite sample does not prove the universal
+preservation law or execute the map.
+
+A finite matrix representation needs ordered bases for both source and target.
+Its column coordinates use the target basis, and column positions correspond to
+the ordered source basis. Coordinate changes for the same map over the same
+field preserve rank; they require actual transformations and their conventions.
+A matrix-shaped dataset supplies no such map or basis evidence. A neural layer
+may also contain an affine bias or a nonlinear activation; its weight matrix
+does not establish linearity of the whole layer.
+
+`math:Rank` is the dimension of the attained image over the declared field,
+which can differ from either ambient dimension. A finite-dimensional source
+obeys `dim(V) = rank(T) + dim(kernel(T))`. For the real projection
+`T: R³ → R²`, `(x,y,z) ↦ (x,y)`, the rank is two and the kernel has dimension
+one. The zero map has rank zero even between nonzero spaces. Infinite-dimensional
+spaces can have finite-rank maps, while an infinite-dimensional image has
+infinite rank; do not replace an unknown or infinite rank with a guessed finite
+number. Preserve the actual scalar-field interpretation when comparing ranks.
+
+`math:rankValue` records only a supplied finite nonnegative-integer value. Its
+mathematical value contract has no fixed machine-width cap or infinity marker.
+Omission is distinct from zero. Numerical tolerance-based rank and rank-truncated
+approximations retain their policies and evidence separately. In the
+finite-dimensional real or complex inner-product SVD setting, exact rank counts
+positive singular-value occurrences with multiplicity, as the
+[singular-value contract](#singular-value-factors-dimensions-and-multiplicities)
+states. Distinct values or RDF resources do not supply that count. Tensor-axis
+count and root-system rank are separate invariants.
+
+Keep the `math:Rank` resource distinct from the map, its matrix and its numeric
+value. These terms supply no dedicated rank-of relation; preserve the source
+identification of the relevant map and field in its existing representation.
+The finite-value annotation alone certifies neither a specialized lexical/range
+or cardinality guard nor an executed generated/native validation or rank
+calculation.
+
+The registered LinearMap grounding in
+[`mappings/equivalences.ttl`](../mappings/equivalences.ttl) is `skos:exactMatch`
+to Wikidata `wd:Q207643`, with `logic:WellBehavedLens`,
+`logic:InstitutionMorphism` and `logic:SoundUnderApproximation` preservation.
+It relates the linear-map concept; it does not prove an individual map's laws,
+calculate its image or rank, or certify an executable implementation.
+
 ## The exact numeric layer — bilinear forms, matrices, norms, and rational carriers
 
 Core classes: `math:BilinearForm`, `math:SymmetricBilinearForm`, `math:Matrix`, `math:SymmetricMatrix`,
