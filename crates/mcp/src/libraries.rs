@@ -127,7 +127,7 @@ pub struct ConjecturePureOutput {
     pub discharge: String,
     /// The refutation witness, present exactly when refuted.
     pub witness: Option<ConjectureRunWitness>,
-    /// The content-addressed `(formula × standpoint × KB-world)` conjecture node IRI.
+    /// The content-addressed conjecture node IRI of the complete projected verdict.
     pub node_iri: String,
     /// The deterministic N-Triples body `project_conjecture_verdict` emitted.
     pub verdict_nt: String,
@@ -158,7 +158,7 @@ pub struct ConjectureRunOutput {
     pub discharge: String,
     /// The refutation witness, present exactly when refuted.
     pub witness: Option<ConjectureRunWitness>,
-    /// The content-addressed `(formula × standpoint × KB-world)` conjecture node IRI.
+    /// The content-addressed conjecture node IRI of the complete projected verdict.
     pub node_iri: String,
     /// The deterministic N-Triples body `project_conjecture_verdict` emitted.
     pub verdict_nt: String,
@@ -298,6 +298,16 @@ pub fn run_conjecture_test(
     medium: &StoreMedium,
     policy: &PreparedActionPolicy,
 ) -> gmeow_errors::Result<ConjectureRunOutput> {
+    run_conjecture_test_with_library(input, medium, policy, conjecture_library)
+}
+
+#[cfg(feature = "reasoning")]
+fn run_conjecture_test_with_library(
+    input: &ConjectureRunInput,
+    medium: &StoreMedium,
+    policy: &PreparedActionPolicy,
+    resolve_library: impl FnOnce() -> gmeow_errors::Result<Arc<dyn SegmentLibrary>>,
+) -> gmeow_errors::Result<ConjectureRunOutput> {
     let ConjectureRunInput {
         formula_ttl,
         kb_ttl,
@@ -362,26 +372,25 @@ pub fn run_conjecture_test(
     //     (keyed to a content-addressed call id) to the append-only library — TOGETHER, as ONE
     //     atomic file replace under ONE held lock, so a failure building or committing either
     //     segment can never leave the library holding the verdict without its audit record.
-    let library = conjecture_library()?;
-    let existing = library.read_bytes()?;
-    let verdict_segment = build_nt_segment(&existing, medium, &out.verdict_nt)?;
-    // The audit continues the BODY, so it is authored against the bytes the body
-    // leaves behind — not against the pre-commit library, which the body already moved past.
-    let mut body_image = existing.clone();
-    body_image.extend_from_slice(&verdict_segment);
-    let call_id = format!(
-        "urn:gmeow:conjecture-call:{}",
-        sha256_hex(format!("{}\u{1}{content_key}", out.node_iri).as_bytes())
-    );
-    let audit_segment = build_audit_segment(
-        &body_image,
-        medium,
-        &call_id,
-        MCP_PERSIST_CONJECTURE_SCHEMA,
-        &obtains,
-        "1970-01-01T00:00:00Z",
-    )?;
+    let library = resolve_library()?;
     with_library_lock(library.as_ref(), || {
+        // The lock binds both continuations to the tail this transaction commits.
+        let existing = library.read_bytes()?;
+        let verdict_segment = build_nt_segment(&existing, medium, &out.verdict_nt)?;
+        let mut body_image = existing.clone();
+        body_image.extend_from_slice(&verdict_segment);
+        let call_id = format!(
+            "urn:gmeow:conjecture-call:{}",
+            sha256_hex(format!("{}\u{1}{content_key}", out.node_iri).as_bytes())
+        );
+        let audit_segment = build_audit_segment(
+            &body_image,
+            medium,
+            &call_id,
+            MCP_PERSIST_CONJECTURE_SCHEMA,
+            &obtains,
+            "1970-01-01T00:00:00Z",
+        )?;
         append_library_segments(library.as_ref(), &[verdict_segment, audit_segment])
     })?;
     out.committed = true;
@@ -391,14 +400,12 @@ pub fn run_conjecture_test(
 // ── Candidate submission: the neurosymbolic propose/verify seam ───────────────
 //
 // A candidate is a proposed authoring contribution — a candidate `logic:` formula tested
-// against a KB, exactly like a conjecture — whose ADMISSIBILITY (a corroborated isolated-world
-// verdict) gates its append to the SEPARATE, append-only candidate library. It reuses
-// `evaluate_conjecture` VERBATIM for the verdict (the trusted symbolic half of propose/verify)
-// and differs from `run_conjecture_test` in exactly two ways: (1) the TR precondition is
-// DERIVED FROM VERDICT POLARITY (`candidateAdmissible` obtains iff corroborated) rather than set
-// unconditionally, so a refuted/open candidate stages nothing (AC5/AC6); (2) the appended node
-// carries its authoring role (`gmeow:AuthoringCandidate`) and target provenance, and lands in
-// `candidates.gts`, not `conjectures.gts`.
+// against a KB — whose admissibility (a corroborated isolated-world verdict) gates its
+// append to the separate, append-only candidate library. It reuses `evaluate_conjecture`
+// for the verdict (the trusted symbolic half of propose/verify). The TR precondition
+// `candidateAdmissible` obtains iff corroborated, so a refuted/open candidate stages nothing.
+// The appended node carries its authoring role (`gmeow:AuthoringCandidate`) and target
+// provenance, and lands in `candidates.gts`.
 
 /// The inputs to one candidate submission: [`ConjectureRunInput`]'s test fields plus the
 /// optional target provenance (`for_slice` / `for_packet`) recorded on the admitted node.
@@ -506,6 +513,16 @@ pub fn run_submit_candidate(
     medium: &StoreMedium,
     policy: &PreparedActionPolicy,
 ) -> gmeow_errors::Result<CandidateSubmitOutput> {
+    run_submit_candidate_with_library(input, medium, policy, candidate_library)
+}
+
+#[cfg(feature = "reasoning")]
+fn run_submit_candidate_with_library(
+    input: &CandidateSubmitInput,
+    medium: &StoreMedium,
+    policy: &PreparedActionPolicy,
+    resolve_library: impl FnOnce() -> gmeow_errors::Result<Arc<dyn SegmentLibrary>>,
+) -> gmeow_errors::Result<CandidateSubmitOutput> {
     let CandidateSubmitInput {
         formula_ttl,
         kb_ttl,
@@ -539,7 +556,7 @@ pub fn run_submit_candidate(
         max_answers,
     )?;
 
-    // Polarity gate (AC5/AC6): the candidate is ADMISSIBLE iff the isolated-world verdict
+    // Polarity gate: the candidate is ADMISSIBLE iff the isolated-world verdict
     // CORROBORATED it. A refuted or open verdict is NOT admissible, so the `candidateAdmissible`
     // precondition does not obtain, the executional-entailment commit FAILS, and nothing is
     // appended — the score moves only via gate-passing content.
@@ -581,31 +598,30 @@ pub fn run_submit_candidate(
     // authoring-role/provenance lines on the same node) plus its cold-auditable trajectory
     // segment to the append-only candidate library — TOGETHER, as ONE atomic file replace under
     // ONE held lock (reusing the same GTS-library primitives the conjecture library uses).
-    let library = candidate_library()?;
+    let library = resolve_library()?;
     let body = format!(
         "{}\n{}",
         out.verdict_nt.trim_end(),
         candidate_provenance_nt(&out.node_iri, for_slice, for_packet)
     );
-    let existing = library.read_bytes()?;
-    let verdict_segment = build_nt_segment(&existing, medium, &body)?;
-    // The audit continues the BODY, so it is authored against the bytes the body
-    // leaves behind — not against the pre-commit library, which the body already moved past.
-    let mut body_image = existing.clone();
-    body_image.extend_from_slice(&verdict_segment);
-    let call_id = format!(
-        "urn:gmeow:candidate-call:{}",
-        sha256_hex(format!("{}\u{1}{content_key}", out.node_iri).as_bytes())
-    );
-    let audit_segment = build_audit_segment(
-        &body_image,
-        medium,
-        &call_id,
-        MCP_SUBMIT_CANDIDATE_SCHEMA,
-        obtains,
-        "1970-01-01T00:00:00Z",
-    )?;
     with_library_lock(library.as_ref(), || {
+        // Read and author against the same live tail under this library's lock.
+        let existing = library.read_bytes()?;
+        let verdict_segment = build_nt_segment(&existing, medium, &body)?;
+        let mut body_image = existing.clone();
+        body_image.extend_from_slice(&verdict_segment);
+        let call_id = format!(
+            "urn:gmeow:candidate-call:{}",
+            sha256_hex(format!("{}\u{1}{content_key}", out.node_iri).as_bytes())
+        );
+        let audit_segment = build_audit_segment(
+            &body_image,
+            medium,
+            &call_id,
+            MCP_SUBMIT_CANDIDATE_SCHEMA,
+            obtains,
+            "1970-01-01T00:00:00Z",
+        )?;
         append_library_segments(library.as_ref(), &[verdict_segment, audit_segment])
     })?;
     out.committed = true;
@@ -869,7 +885,7 @@ pub(super) const MCP_CONJECTURE_IN_LIBRARY: &str =
 /// executional-entailment verdict over the precondition gates the append to the candidate
 /// library. Unlike `persistConjecture`'s `conjectureVerdictPresented`, the precondition
 /// `candidateAdmissible` is DERIVED FROM VERDICT POLARITY (corroborated, not merely present),
-/// so a refuted or open candidate never obtains it and stages nothing (AC5/AC6).
+/// so a refuted or open candidate never obtains it and stages nothing.
 #[cfg(feature = "reasoning")]
 const MCP_SUBMIT_CANDIDATE_SCHEMA: &str =
     "https://blackcatinformatics.ca/gmeow/examples/agentic/mcp-policy/submitCandidate";
@@ -1616,3 +1632,7 @@ pub fn compact_store(
         Ok(())
     })
 }
+
+#[cfg(all(test, feature = "reasoning", not(target_arch = "wasm32")))]
+#[path = "libraries.tests.rs"]
+mod tests;
