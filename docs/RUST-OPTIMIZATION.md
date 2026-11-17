@@ -284,14 +284,28 @@ are consumed through its public Rust API:
   scope and provenance, directly into the hasher. No dataset, result or serialized
   carrier is retained; eviction recomputes the same lowering and cannot weaken it.
 - Bounded termination analysis: witness-free relation closure admits at most
-  262,144 pending candidate rows, checked before each enqueue in both the initial
-  and semi-naive passes. Several producers or delta seeds can queue the same row
-  before it is committed, so the distinct committed-row bound cannot protect this
-  allocation. The first additional candidate stops that closure analysis with its
-  producer, committed-row count and retained pending-row count. The existing
-  immutable-only analysis remains available and retains the bound observation on refusal;
-  incomplete closure never becomes a termination certificate. This limits row
-  retention, not row byte size, and establishes no full-pipeline memory reduction.
+  262,144 pending candidate occurrences in both the initial and semi-naive passes.
+  Exact native fact payloads are shared in first-seen order; a borrowed-field index
+  holds only row positions. Logical occurrence accounting remains separate from
+  payload storage: the cap is checked before duplicate lookup, so even another
+  duplicate at the full bound stops the analysis with the same producer, committed
+  count and `pending_rows` occurrence count. The index and count reset at the
+  complete batch drain; unique facts enter the unchanged committed-row accounting
+  in first-seen order. The existing immutable-only analysis remains available and
+  retains the bound observation on refusal; incomplete closure never becomes a
+  termination certificate. The bounds count occurrences and committed rows, not
+  their byte size, and establish no full-pipeline memory reduction.
+  A synthetic two-producer 512 by 256 fanout retained 262,144 logical occurrences
+  with one shared payload instead of 262,144 copies. At the drain/refusal checkpoint,
+  row-vector capacity fell from 262,144 to 4 (48,234,496 to 736 backing bytes), and
+  IRI string capacity from 7,340,032 to 28 bytes; the index held capacity 3 and
+  allocated 52 bytes. An all-distinct control with 131,072 outputs retained the same
+  vector capacity and 24,117,248 backing bytes plus 5,289,472 IRI string capacity
+  bytes, and added an index of capacity 229,376 with 2,359,312 allocated bytes.
+  These selected pending-storage observations exclude other stores, transient
+  grounding and probe allocations, allocator overhead and process RSS. They show
+  duplicate-payload sharing and its distinct-output index overhead, not universal
+  memory savings.
 - Selected reasoned projections: `crates/logic/src/verify.rs` builds asserted plus
   native-derived closure, checks DL completeness and the observed-not-derived
   boundary, and attaches expression identity through one shared materializer.
