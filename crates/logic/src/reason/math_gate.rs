@@ -11,25 +11,20 @@
 //! checking, so a `math:DimensionalInhomogeneity` marker is REASONER-derived from the
 //! authored laws, never a Rust side-channel decision.
 //!
-//! # Why a standalone chase, not `reason_program`
+//! # A dedicated dimensional-verification profile
 //!
-//! The production reasoning entrypoints ([`crate::reason::reason_all`],
-//! [`crate::reason::reason_program`]) require a NAMED-GRAPH world
-//! ([`crate::reason::build_edb_facts`] silently drops default-graph quads — a
-//! deliberate multi-world-DL scoping decision elsewhere in the reasoner, untouched
-//! here) and, for `reason_program`, drop literal-object quads from the typed EDB fact
-//! stream entirely (the DL/EL calculi never need a literal). The dimension-gate builtins
-//! need BOTH: the data `verify()` checks is typically default-graph Turtle (as its own
-//! fixtures are), and the exact-rational exponent cells
-//! (`math:exponentNumerator`/`math:exponentDenominator`) are literal facts a builtin
-//! reads on demand. This module therefore promotes every quad (default OR named graph)
-//! into ONE canonical scratch world — exactly as the SPARQL verify queries already
-//! flatten every quad into one graph — and drives `physical::materialize_native`
-//! directly over a literal-preserving [`crate::store::WorldStore`]
-//! ([`crate::store::WorldStore::load_dataset`], the SAME full-fidelity load
-//! [`crate::reason::run_nary_head_chase`] already uses for its n-ary head chase), rather
-//! than through the literal-dropping [`crate::reason::build_edb_facts`] typed-fact-set
-//! path.
+//! [`crate::reason::prepare_reasoning_input`] preserves native literal identity and
+//! default and named source contexts in [`crate::reason::PreparedReasoningInput`].
+//! This gate selects a union of dimension-relevant asserted statements and the
+//! caller's derived edges for its own violation rules.
+//!
+//! [`promote_to_single_world`] retains predicates read by the compiled rules and
+//! dimension builtins, plus the dimension-classification `rdf:type` values. It
+//! preserves the selected terms, including exact-rational exponent literals, and
+//! places them in one scratch world. [`WorldStore::from_dataset`] loads that
+//! projection; [`compile_cached`] prepares the rules and [`materialize_native`]
+//! derives the violation markers. The scratch world belongs to this gate and does
+//! not alter the caller's source contexts.
 //!
 //! # Module and [`dimension_gate_markers`] visibility
 //!
@@ -64,11 +59,10 @@ pub(crate) const MATH_MODULE_SOURCE_IRI: &str = "https://blackcatinformatics.ca/
 const RDF_TYPE: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
 /// `rdfs:seeAlso` — the HiLog-reflection → object-level-property bridge predicate.
 const RDFS_SEE_ALSO: &str = "http://www.w3.org/2000/01/rdf-schema#seeAlso";
-/// The canonical scratch named graph every caller-supplied quad (default OR named
-/// graph) is promoted into before the forward chase runs — a single world, so the
-/// world-indexed engine (which only reasons over named-graph worlds) sees the whole
-/// dataset regardless of how its source graphs were named. Never leaks into a caller's
-/// data: it exists only inside this module's own transient [`WorldStore`].
+/// The canonical scratch named graph every dimension-relevant caller-supplied
+/// statement is promoted into before the forward chase runs. Dimensional dependencies
+/// from all original contexts participate in this shared world. It exists only in
+/// this module's transient [`WorldStore`] and never leaks into the caller's data.
 const MATH_GATE_WORLD: &str = "https://blackcatinformatics.ca/gmeow/graph/math-dimension-gate";
 /// The plan-cache contract-hash namespace for the compiled violation rules — distinct
 /// from [`crate::reason::native_contract_hash`]'s DL/EL contract, so the two never
@@ -166,18 +160,11 @@ fn gate_read_predicates(rules: &[EvalRule]) -> BTreeSet<String> {
 /// dimension triple is gated whether it was asserted or derived — matching the verify
 /// queries that evaluate the same closure.
 ///
-/// Two reasons the whole quad set is NOT promoted verbatim:
-/// 1. The world-indexed engine only reasons over named-graph worlds, so a caller's plain
-///    default-graph Turtle (the common case for `verify()`'s own fixtures) must be
-///    re-graphed to participate at all.
-/// 2. **Projection.** The gate's rules and ℚ⁷ cell-builtins read ONLY the predicates in
-///    `keep_predicates` plus the `rdf:type` triples that classify a dimension node
-///    ([`DIMENSION_TYPE_OBJECTS`]); every other triple is inert to the gate — its rules
-///    never match it and its builtins never read it — so dropping it cannot change any
-///    materialized marker. Over a ~100k-triple whole-bundle `verify()` this is the
-///    difference between a bounded chase and a pathological one, with identical results.
-///    The `derived` set is small (only the reasoner's non-EDB output), so unioning it in
-///    adds negligibly to the projected chase.
+/// The scratch world's IRI makes every retained assertion addressable through the
+/// [`WorldStore`] world API, including input default-graph statements. The projection
+/// keeps the predicates in `keep_predicates` plus the `rdf:type` triples that classify
+/// a dimension node ([`DIMENSION_TYPE_OBJECTS`]). Other statements are inert to these
+/// rules and ℚ⁷ cell-builtins, so they are excluded from the gate's working set.
 ///
 /// # Errors
 ///

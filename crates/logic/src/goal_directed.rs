@@ -5,18 +5,18 @@
 //! the proof-carrying full-FOL backward engine non-dark.
 //!
 //! The proof-carrying backward engine is PurRDF's order-sorted
-//! [`resolve_fol`](purrdf::datalog::resolve_fol::resolve_fol), paired with its
-//! Curry–Howard [`check_fol_proof`](purrdf::datalog::resolve_fol::check_fol_proof).
+//! [`resolve_fol`], paired with its
+//! Curry–Howard [`check_fol_proof`].
 //! This module is the single thin, honest `pub` façade over that shared substrate: it
 //! lowers the AUTHORED `logic:ReasoningProgram` corpus (structured — function-symbol —
 //! logic programs the flat query text-parser cannot express) into PurRDF's
-//! [`TermDag`](purrdf::datalog::term::TermDag), evaluates each program through
-//! [`evaluate_reasoning_programs`](crate::goal_directed::evaluate_reasoning_programs),
+//! [`TermDag`], evaluates each program through
+//! [`evaluate_reasoning_programs`],
 //! validates every answer's proof, and projects the checked answers plus their
 //! content-addressed derivation IRIs into RDF-serializable data the `gmeow-pipeline`
 //! `stage-goal-directed` folds into `graph/goal-directed` of `gmeow.gts`.
 //!
-//! It is NOT a fork of the engine: it constructs PurRDF [`FolProgram`](purrdf::datalog::resolve_fol::FolProgram)s, reads back
+//! It is NOT a fork of the engine: it constructs PurRDF [`FolProgram`]s, reads back
 //! PurRDF [`FolProof`](purrdf::datalog::resolve_fol::FolProof)s, and never re-implements
 //! resolution or proof checking. There is
 //! exactly ONE production source of goal-directed programs — the authored

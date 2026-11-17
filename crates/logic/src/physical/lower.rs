@@ -11,7 +11,7 @@
 //! to the SAME [`NodeId`] and the SAME content key:
 //!
 //! - **`logic:`** — the Rust [`Formula`]/[`Term`] IR of
-//!   [`gmeow_logic_compile::ir`](gmeow_logic_compile::ir). Lowered directly:
+//!   [`gmeow_logic_compile::ir`]. Lowered directly:
 //!   [`lower_logic_formula`] / [`lower_logic_term`].
 //! - **`math:`** — the RDF-authored application/binding expression vocabulary
 //!   (`math:ApplicationExpression`, `math:ArgumentSlot`, `math:slotIndex`,

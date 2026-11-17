@@ -34,7 +34,7 @@
 //!   `∀x. body → head` the negation `∃x. body ∧ ¬head` is EXISTENTIAL and chase-inexpressible
 //!   to *lower*, yet is decided WITHOUT lowering it — the clash on the asserted rule
 //!   materializes the body-instance witness that forces the head false. The first
-//!   [`ContradictionWitness`](crate::result::ContradictionWitness) is surfaced.
+//!   [`ContradictionWitness`] is surfaced.
 //!
 //! Because the two legs are independent, a KB that both entails `φ` (redundant) AND refutes
 //! it (asserting `φ` clashes) yields the Belnap glut `Both`. That co-support is exactly a
