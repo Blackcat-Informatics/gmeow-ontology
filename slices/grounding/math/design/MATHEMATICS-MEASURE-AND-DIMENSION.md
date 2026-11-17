@@ -87,6 +87,36 @@ truth anchor is the **BIPM D-SI** PID set ([`MATHEMATICS-REFERENCES.md`](MATHEMA
 GMEOW's differentiator over QUDT/OM is that dimensional soundness is a **reasoned gate**, not asserted
 data.
 
+### Ratio quantities and quotient frames
+
+`math:RatioQuantity` uses the existing quantity magnitude and dimension, with one
+`math:QuotientReferenceFrame` retaining a `math:numeratorFrame` and a
+`math:denominatorFrame`. Both are explicit ordinary reference frames. The
+composition preserves unit context that a physical dimension vector alone cannot
+identify: currency per counted unit remains distinct from a currency amount and
+from a ratio using a different counted unit. `math:numerator` and
+`math:denominator` continue to describe the integer representation of
+`math:RationalValue`; they are not frame components.
+
+The quotient retains the ordinary complete reference-frame profile. Its generic
+form does not impose finance-specific scalar, currency or counted-asset choices.
+It declares composition without computing a scale, converting a currency,
+identifying distinct frames or proving general quotient algebra. The
+[finance guide](../../../extensions/finance/docs.md) applies this form to exact
+unit-price multiplication with an explicit scalar selection and identity checks.
+
+The [QUDT FactorUnit model](https://qudt.org/schema/qudt/FactorUnit) supplies a
+partial external reference for unit/exponent components of derived units. A
+factor component is not identical to a complete quotient reference frame; no
+equivalence is asserted. The existing math-owned Quantity correspondence retains
+the broader QUDT quantity/value bridge.
+
+Canonical restrictions and closed required paths require the ratio's frame and
+both quotient components. Missing, conflicting or incorrectly typed context is
+`math:IncompleteRatioFrame`. The registered `ratio-quantity-framed` control and
+its missing-frame and missing-denominator variants cover this structural contract
+without asserting an arithmetic result.
+
 ### Dimensional homogeneity as a gate
 
 Dimension is not a domain silo; it is a hard-fail that fires across the whole layer:

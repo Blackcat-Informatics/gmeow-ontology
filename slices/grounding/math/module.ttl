@@ -19791,3 +19791,64 @@ math:tangentSpaceOf
     gmeow:useWhen "Use to retain the actual base manifold of a tangent space."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid substituting a point, coordinate space, metric or entire tangent bundle for the base, inferring transport from equal dimensions, or claiming complete value-equality admission from the supplied-term comparator."@x-gmeow-english ;
     gmeow:howToUse "Link the tangent fibre to its actual manifold and retain tangentSpaceAt. Preserve the declared spaceDimension and manifoldDimension under their actual conventions; do not fill missing values or silently convert real and complex tangent dimensions."@x-gmeow-english .
+
+# Quotient quantities retain both component reference-frame identities.
+
+math:RatioQuantity
+    a logic:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Ratio quantity"@x-gmeow-english ;
+    skos:definition "A quantity interpreted in a quotient reference frame with explicit numerator and denominator frames. Its magnitude uses math:quantityValue and its dimension uses math:hasDimension; frame composition preserves the two unit contexts rather than making every dimensionless ratio interchangeable. This quantity form is distinct from the integer representation of math:RationalValue."@x-gmeow-english ;
+    logic:subClassOf math:Quantity ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    gmeow:enforcesFailureClass math:IncompleteRatioFrame .
+
+math:QuotientReferenceFrame
+    a logic:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Quotient reference frame"@x-gmeow-english ;
+    skos:definition "A reference frame whose unit interpretation is one explicitly identified numerator frame per one explicitly identified denominator frame. It retains the ordinary reference-frame profile and both component identities. This structural composition supplies no implicit scale factor, currency conversion, frame equivalence or general quotient evaluator."@x-gmeow-english ;
+    logic:subClassOf gmeow:ReferenceFrame ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    gmeow:enforcesFailureClass math:IncompleteRatioFrame .
+
+math:numeratorFrame
+    a logic:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "numerator frame"@x-gmeow-english ;
+    skos:definition "The numerator reference frame of a math:QuotientReferenceFrame. For a selected unit-price quantity this is the currency frame, not a monetary amount or a numeric numerator."@x-gmeow-english ;
+    logic:domain math:QuotientReferenceFrame ;
+    logic:range gmeow:ReferenceFrame ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:denominatorFrame
+    a logic:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "denominator frame"@x-gmeow-english ;
+    skos:definition "The denominator reference frame of a math:QuotientReferenceFrame. For a selected unit-price quantity this identifies the counted-unit frame; equality of physical dimensions alone does not identify that frame."@x-gmeow-english ;
+    logic:domain math:QuotientReferenceFrame ;
+    logic:range gmeow:ReferenceFrame ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:IncompleteRatioFrame
+    a logic:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Incomplete ratio frame"@x-gmeow-english ;
+    skos:definition "A conformance failure in which a RatioQuantity lacks its unique quotient reference frame or a QuotientReferenceFrame lacks a unique, correctly typed numerator or denominator frame. It identifies missing or conflicting structure, not a failed numerical division."@x-gmeow-english ;
+    logic:subClassOf math:MathConformanceFailure ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:RatioQuantity logic:subClassOf
+    [ a logic:Restriction ; logic:onProperty gmeow:hasReferenceFrame ; logic:allValuesFrom math:QuotientReferenceFrame ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:hasReferenceFrame ; logic:maxQualifiedCardinality 1 ; logic:onClass logic:Thing ] .
+[ a logic:ClosureEntry ; logic:onClass math:RatioQuantity ; logic:closureKey "https://blackcatinformatics.ca/gmeow/hasReferenceFrame" ; logic:closureValue logic:ClosedWorldClosure ] .
+
+math:QuotientReferenceFrame logic:subClassOf
+    [ a logic:Restriction ; logic:onProperty math:numeratorFrame ; logic:allValuesFrom gmeow:ReferenceFrame ] ,
+    [ a logic:Restriction ; logic:onProperty math:numeratorFrame ; logic:maxQualifiedCardinality 1 ; logic:onClass logic:Thing ] .
+[ a logic:ClosureEntry ; logic:onClass math:QuotientReferenceFrame ; logic:closureKey "https://blackcatinformatics.ca/math/numeratorFrame" ; logic:closureValue logic:ClosedWorldClosure ] .
+
+math:QuotientReferenceFrame logic:subClassOf
+    [ a logic:Restriction ; logic:onProperty math:denominatorFrame ; logic:allValuesFrom gmeow:ReferenceFrame ] ,
+    [ a logic:Restriction ; logic:onProperty math:denominatorFrame ; logic:maxQualifiedCardinality 1 ; logic:onClass logic:Thing ] .
+[ a logic:ClosureEntry ; logic:onClass math:QuotientReferenceFrame ; logic:closureKey "https://blackcatinformatics.ca/math/denominatorFrame" ; logic:closureValue logic:ClosedWorldClosure ] .

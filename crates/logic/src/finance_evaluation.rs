@@ -12,6 +12,7 @@ use purrdf::shapes::{
 };
 use purrdf::{RdfDataset, TermValue};
 use std::collections::{BTreeMap, BTreeSet};
+use std::convert::Infallible;
 
 mod source;
 use source::Records;
@@ -22,6 +23,10 @@ const L: &str = "https://blackcatinformatics.ca/logic/";
 const TYPE: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
 /// Explicit finite exact-decimal financial operation selection.
 pub const PROFILE: &str = "finance-exact-decimal-v1";
+/// Canonical financial callable member shared by the bundle caller and fixture producer.
+pub const CALLABLE_SOURCE_PATH: &str = "slices/extensions/finance/mappings/callable-signatures.ttl";
+/// The selected callable member is bounded independently of the surrounding bundle.
+pub const CALLABLE_SOURCE_MAX_BYTES: usize = 256 * 1024;
 
 // Exact generated product identities, not merely class targets: losing a
 // procedural product must never silently select declarative-only admission.
@@ -43,6 +48,9 @@ const PROCEDURAL_PRODUCTS: &[&str] = &[
     "https://blackcatinformatics.ca/math/ArgumentSlotIndexUniquenessConstraintProceduralConstraintShape",
     "https://blackcatinformatics.ca/math/ArgumentSlotContiguityConstraintProceduralConstraintShape",
     "https://blackcatinformatics.ca/math/ArgumentSlotIndexNonNegativeConstraintProceduralConstraintShape",
+    "https://blackcatinformatics.ca/gmeow/UnitPriceFrameConstraintProceduralConstraintShape",
+    "https://blackcatinformatics.ca/gmeow/UnitPriceUnitMatchConstraintProceduralConstraintShape",
+    "https://blackcatinformatics.ca/gmeow/UnitPriceCurrencyMatchConstraintProceduralConstraintShape",
 ];
 
 fn atom(subject: &str, predicate: &str, object: &str) -> Formula {
@@ -53,11 +61,11 @@ fn atom(subject: &str, predicate: &str, object: &str) -> Formula {
 }
 
 /// Complete read-only owner artifacts selected independently of the user's data.
-pub struct FinanceOwner<'a> {
+pub struct FinanceOwner<'a, D: purrdf::DatasetView<ReadError = Infallible> = RdfDataset> {
     /// Authenticated complete canonical owner dataset, including actual recipes.
     /// The native arithmetic program selects an explicit named operation-contract
     /// projection; it does not claim a complete ontology-native reasoning verdict.
-    pub dataset: &'a RdfDataset,
+    pub dataset: &'a D,
     /// The actual generated owner projections, never authored runtime substitutes.
     pub shapes: &'a Shapes,
     /// Exact bundle or producer-selected owner identity, bound into native proof.
@@ -99,6 +107,11 @@ fn require_shapes(shapes: &Shapes) -> gmeow_errors::Result<()> {
         format!("{G}FinancialPeriodRate"),
         format!("{G}FinancialPeriodCount"),
         format!("{G}FinancialReturnRatio"),
+        format!("{M}RatioQuantity"),
+        format!("{M}QuotientReferenceFrame"),
+        format!("{G}UnitPrice"),
+        format!("{G}HoldingAssetQuantity"),
+        format!("{G}UnitPriceTotalCalculation"),
     ] {
         if !shapes.node_shapes.iter().any(|shape| {
             active_definition(shape).is_some()
@@ -164,6 +177,10 @@ fn validate(records: &Records, shapes: &Shapes, phase: &str) -> gmeow_errors::Re
 
 fn scalar_frame(records: &Records, frame: &str, realm: &str) -> gmeow_errors::Result<()> {
     records.require_type(frame, &format!("{G}ReferenceFrame"))?;
+    scalar_frame_profile(records, frame, realm)
+}
+
+fn scalar_frame_profile(records: &Records, frame: &str, realm: &str) -> gmeow_errors::Result<()> {
     if records.reference(frame, &format!("{G}frameKind"))? != format!("{G}frameKindScalar")
         || records.reference(frame, &format!("{G}frameRealm"))? != format!("{G}{realm}")
     {
@@ -186,7 +203,42 @@ fn scalar_frame(records: &Records, frame: &str, realm: &str) -> gmeow_errors::Re
     Ok(())
 }
 
+#[derive(Clone, Copy, PartialEq, Eq)]
+enum Operation {
+    SimpleInterest,
+    HoldingPeriodReturn,
+    UnitPriceTotal,
+}
+
+impl Operation {
+    fn from_method(method: &str) -> gmeow_errors::Result<Self> {
+        match method.strip_prefix(G) {
+            Some("methodSimpleInterest") => Ok(Self::SimpleInterest),
+            Some("methodHoldingPeriodReturn") => Ok(Self::HoldingPeriodReturn),
+            Some("methodUnitPriceTotal") => Ok(Self::UnitPriceTotal),
+            _ => Err(crate::error::profile_result(
+                PROFILE,
+                format!("unsupported financial method {method}"),
+            )),
+        }
+    }
+
+    fn request_class(self) -> &'static str {
+        match self {
+            Self::SimpleInterest => "SimpleInterestCalculation",
+            Self::HoldingPeriodReturn => "HoldingPeriodReturnCalculation",
+            Self::UnitPriceTotal => "UnitPriceTotalCalculation",
+        }
+    }
+}
+
+enum FrameContext {
+    Period(String),
+    PriceCurrency(String),
+}
+
 struct Signature {
+    operation: Operation,
     method: String,
     recipe: String,
     parameters: Vec<(String, String, String)>, // source predicate, value type, distinct symbol
@@ -194,17 +246,7 @@ struct Signature {
 }
 
 fn signature(owner: &Records, method: String) -> gmeow_errors::Result<Signature> {
-    if ![
-        format!("{G}methodSimpleInterest"),
-        format!("{G}methodHoldingPeriodReturn"),
-    ]
-    .contains(&method)
-    {
-        return Err(crate::error::profile_result(
-            PROFILE,
-            format!("unsupported financial method {method}"),
-        ));
-    }
+    let operation = Operation::from_method(&method)?;
     owner.require_type(&method, &format!("{L}CallableSignature"))?;
     owner.require_type(&method, &format!("{G}ObservationMethod"))?;
     let recipe = owner.reference(&method, &format!("{G}calculationExpression"))?;
@@ -257,18 +299,19 @@ fn signature(owner: &Records, method: String) -> gmeow_errors::Result<Signature>
         ));
     }
     let result_type = owner.reference(output, &format!("{L}parameterValueType"))?;
-    if ![
-        format!("{G}MonetaryAmount"),
-        format!("{G}FinancialReturnRatio"),
-    ]
-    .contains(&result_type)
-    {
+    let expected_result = if operation == Operation::HoldingPeriodReturn {
+        format!("{G}FinancialReturnRatio")
+    } else {
+        format!("{G}MonetaryAmount")
+    };
+    if result_type != expected_result {
         return Err(crate::error::profile_result(
             PROFILE,
             "unsupported financial result type",
         ));
     }
     Ok(Signature {
+        operation,
         method,
         recipe,
         parameters,
@@ -284,12 +327,17 @@ fn check_request(
     let classes = [
         "SimpleInterestCalculation",
         "HoldingPeriodReturnCalculation",
+        "UnitPriceTotalCalculation",
     ];
     if classes
         .iter()
         .filter(|class| records.typed(request, &format!("{G}{class}")))
         .count()
         != 1
+        || !records.typed(
+            request,
+            &format!("{G}{}", signature.operation.request_class()),
+        )
     {
         return Err(crate::error::profile_result(
             PROFILE,
@@ -302,9 +350,14 @@ fn check_request(
         format!("{G}observedFeature"),
         format!("{G}observationMethod"),
         format!("{G}calculationExpression"),
-        format!("{G}calculationPeriodBasis"),
         format!("{G}observedAt"),
     ]);
+    let context_role = if signature.operation == Operation::UnitPriceTotal {
+        "hasReferenceFrame"
+    } else {
+        "calculationPeriodBasis"
+    };
+    allowed.insert(format!("{G}{context_role}"));
     allowed.extend(signature.parameters.iter().map(|(role, _, _)| role.clone()));
     for ((subject, predicate), _) in records.0.range((request.into(), String::new())..) {
         if subject != request {
@@ -324,7 +377,7 @@ fn check_request(
         "observedFeature",
         "observationMethod",
         "calculationExpression",
-        "calculationPeriodBasis",
+        context_role,
     ] {
         records.one(request, &format!("{G}{property}"))?;
     }
@@ -337,7 +390,35 @@ struct BoundInputs {
     currency: String,
 }
 
-fn bind_inputs(
+fn require_quantity_owner(owner: &Records, class: &str) -> gmeow_errors::Result<()> {
+    let quantity = format!("{M}Quantity");
+    let parent = if class == format!("{G}UnitPrice") {
+        format!("{M}RatioQuantity")
+    } else {
+        quantity.clone()
+    };
+    let mut edges = vec![(class, parent.as_str())];
+    if parent != quantity {
+        edges.push((parent.as_str(), quantity.as_str()));
+    }
+    for (child, parent) in edges {
+        if !gmeow_ns::SUB_CLASS_OF.iter().any(|predicate| {
+            owner
+                .values(child, predicate)
+                .contains(&Term::Iri(parent.into()))
+        }) {
+            return Err(crate::error::profile_result(
+                PROFILE,
+                format!(
+                    "authenticated owner lacks required Quantity ancestry edge {child} to {parent}"
+                ),
+            ));
+        }
+    }
+    Ok(())
+}
+
+fn bind_period_inputs(
     records: &Records,
     owner: &Records,
     request: &str,
@@ -352,18 +433,7 @@ fn bind_inputs(
         records.require_type(&quantity, value_type)?;
         // The owned axiom is retained as a source fact; the native program must
         // derive Quantity membership before its arithmetic premise can fire.
-        if !gmeow_ns::SUB_CLASS_OF.iter().any(|predicate| {
-            owner
-                .values(value_type, predicate)
-                .contains(&Term::Iri(format!("{M}Quantity")))
-        }) {
-            return Err(crate::error::profile_result(
-                PROFILE,
-                format!(
-                    "authenticated owner does not ground {value_type} directly in math:Quantity"
-                ),
-            ));
-        }
+        require_quantity_owner(owner, value_type)?;
         classes.insert(value_type.clone());
         if value_type == &format!("{G}MonetaryAmount") {
             let currency = records.reference(&quantity, &format!("{G}currency"))?;
@@ -405,18 +475,157 @@ fn bind_inputs(
     })
 }
 
+fn unit_mismatch(price: &str, quantity: &str, detail: impl Into<String>) -> gmeow_errors::Diag {
+    gmeow_errors::Diag::of_kind(crate::error::UnitPriceUnitMismatch {
+        price: price.into(),
+        quantity: quantity.into(),
+        detail: detail.into(),
+    })
+}
+
+fn bind_unit_price_inputs(
+    records: &Records,
+    owner: &Records,
+    request: &str,
+    signature: &Signature,
+    currency: &str,
+) -> gmeow_errors::Result<BoundInputs> {
+    if signature.parameters.len() != 2 {
+        return Err(crate::error::profile_result(
+            PROFILE,
+            "unit-price signature requires its price and counted-quantity inputs",
+        ));
+    }
+    let price = records.reference(request, &format!("{G}unitPrice"))?;
+    let count = records.reference(request, &format!("{G}pricedQuantity"))?;
+    let mut bindings = BTreeMap::new();
+    let mut classes = BTreeSet::new();
+    for (role, class, quantity) in [
+        ("unitPrice", "UnitPrice", &price),
+        ("pricedQuantity", "HoldingAssetQuantity", &count),
+    ] {
+        let value_type = format!("{G}{class}");
+        let (_, declared_type, symbol) = signature
+            .parameters
+            .iter()
+            .find(|(predicate, _, _)| predicate == &format!("{G}{role}"))
+            .ok_or_else(|| {
+                crate::error::profile_result(
+                    PROFILE,
+                    format!("unit-price signature lacks required {role} input"),
+                )
+            })?;
+        if declared_type != &value_type {
+            return Err(crate::error::profile_result(
+                PROFILE,
+                format!("unit-price input {role} requires owned type {value_type}"),
+            ));
+        }
+        if role == "pricedQuantity" && !records.typed(quantity, &value_type) {
+            return Err(unit_mismatch(
+                &price,
+                &count,
+                "the selected multiplication requires an explicit HoldingAssetQuantity, never a mass or bare scalar",
+            ));
+        }
+        records.require_type(quantity, &value_type)?;
+        require_quantity_owner(owner, &value_type)?;
+        classes.insert(value_type);
+        bindings.insert(symbol.clone(), quantity.clone());
+    }
+    if records.typed(&price, &format!("{G}MonetaryAmount"))
+        || !records.values(&price, &format!("{G}currency")).is_empty()
+    {
+        return Err(crate::error::profile_result(
+            PROFILE,
+            "a UnitPrice is a ratio quantity; its currency is the numerator frame, never a MonetaryAmount currency assertion",
+        ));
+    }
+    let frame = records.reference(&price, &format!("{G}hasReferenceFrame"))?;
+    records.require_type(&frame, &format!("{M}QuotientReferenceFrame"))?;
+    scalar_frame_profile(records, &frame, "frameRealmMathematical")?;
+    if records.reference(&frame, &format!("{G}determinacyModel"))? != format!("{G}determinacyCrisp")
+        || records.values(&frame, &format!("{G}hasAxis")) != [Term::Iri(format!("{G}axisScalar"))]
+    {
+        return Err(crate::error::profile_result(
+            PROFILE,
+            "unit-price quotient frame requires the crisp scalar-axis profile",
+        ));
+    }
+    let Term::Literal(host) = records.one(&frame, &format!("{G}requiresHost"))? else {
+        return Err(crate::error::profile_result(
+            PROFILE,
+            "unit-price quotient requiresHost must be false",
+        ));
+    };
+    let host =
+        purrdf::xsd::parse_by_iri(&host.lexical_form, host.datatype_iri()).map_err(|error| {
+            crate::error::profile_result(
+                PROFILE,
+                format!("unit-price quotient requiresHost: {error}"),
+            )
+        })?;
+    if !matches!(host, Some(purrdf::xsd::XsdValue::Boolean(false))) {
+        return Err(crate::error::profile_result(
+            PROFILE,
+            "unit-price quotient requiresHost must be false",
+        ));
+    }
+    let numerator = records.reference(&frame, &format!("{M}numeratorFrame"))?;
+    let denominator = records.reference(&frame, &format!("{M}denominatorFrame"))?;
+    scalar_frame(records, &numerator, "frameRealmCurrency")?;
+    scalar_frame(records, &denominator, "frameRealmMathematical")?;
+    if numerator != currency {
+        return Err(gmeow_errors::Diag::of_kind(
+            crate::error::UnitPriceCurrencyMismatch {
+                price: price.clone(),
+                quoted: numerator,
+                requested: currency.into(),
+            },
+        ));
+    }
+    if records.reference(&count, &format!("{G}hasReferenceFrame"))? != denominator {
+        return Err(unit_mismatch(
+            &price,
+            &count,
+            "count frame differs from the quotient's denominator frame",
+        ));
+    }
+    if records.reference(&count, &format!("{M}hasDimension"))? != format!("{M}dimensionless") {
+        return Err(unit_mismatch(
+            &price,
+            &count,
+            "the selected count must be physically dimensionless, not a mass or other dimensioned quantity",
+        ));
+    }
+    if records.reference(&price, &format!("{G}pricedAsset"))?
+        != records.reference(&count, &format!("{G}countedAsset"))?
+    {
+        return Err(unit_mismatch(
+            &price,
+            &count,
+            "priced and counted asset identities differ",
+        ));
+    }
+    Ok(BoundInputs {
+        bindings,
+        quantity_classes: classes,
+        currency: currency.into(),
+    })
+}
+
 struct Admission {
     records: Records,
     signature: Signature,
-    period: String,
+    context: FrameContext,
     expression: String,
     inputs: BoundInputs,
     canonical: String,
 }
 
-fn admit(
+fn admit<D: purrdf::DatasetView<ReadError = Infallible>>(
     source: &RdfDataset,
-    owner: &FinanceOwner<'_>,
+    owner: &FinanceOwner<'_, D>,
     request: &str,
 ) -> gmeow_errors::Result<Admission> {
     if owner.identity.is_empty() {
@@ -442,12 +651,18 @@ fn admit(
         records.reference(request, &format!("{G}observationMethod"))?,
     )?;
     check_request(&records, request, &signature)?;
-    let period = records.reference(request, &format!("{G}calculationPeriodBasis"))?;
+    let context = if signature.operation == Operation::UnitPriceTotal {
+        FrameContext::PriceCurrency(records.reference(request, &format!("{G}hasReferenceFrame"))?)
+    } else {
+        FrameContext::Period(records.reference(request, &format!("{G}calculationPeriodBasis"))?)
+    };
     let expression = records.reference(request, &format!("{G}calculationExpression"))?;
     let mut roots = vec![
         signature.method.clone(),
         expression.clone(),
-        period.clone(),
+        match &context {
+            FrameContext::Period(frame) | FrameContext::PriceCurrency(frame) => frame.clone(),
+        },
         format!("{G}currency"),
     ];
     roots.extend(
@@ -466,17 +681,27 @@ fn admit(
         }
     }));
     records.admit_owner(&trusted, roots)?;
-    scalar_frame(&records, &period, "frameRealmTemporal")?;
-    let inputs = bind_inputs(&records, &trusted, request, &signature, &period)?;
+    let inputs = match &context {
+        FrameContext::Period(period) => {
+            scalar_frame(&records, period, "frameRealmTemporal")?;
+            bind_period_inputs(&records, &trusted, request, &signature, period)?
+        }
+        FrameContext::PriceCurrency(currency) => {
+            scalar_frame(&records, currency, "frameRealmCurrency")?;
+            bind_unit_price_inputs(&records, &trusted, request, &signature, currency)?
+        }
+    };
     validate(&records, owner.shapes, "input")?;
     let effective = records.dataset(false)?;
     let selected = crate::math_expression::analysis::structural_key_at(&effective, &expression)
         .map_err(|error| crate::error::profile_result(PROFILE, error.to_string()))?;
-    let canonical =
-        crate::math_expression::analysis::structural_key_at(owner.dataset, &signature.recipe)
-            .map_err(|error| {
-                crate::error::profile_result(PROFILE, format!("authenticated recipe: {error}"))
-            })?;
+    let mut recipe = Records::default();
+    recipe.admit_owner(&trusted, [signature.recipe.clone()])?;
+    let recipe = recipe.dataset(false)?;
+    let canonical = crate::math_expression::analysis::structural_key_at(&recipe, &signature.recipe)
+        .map_err(|error| {
+            crate::error::profile_result(PROFILE, format!("authenticated recipe: {error}"))
+        })?;
     if selected != canonical {
         return Err(crate::error::profile_result(
             PROFILE,
@@ -486,7 +711,7 @@ fn admit(
     Ok(Admission {
         records,
         signature,
-        period,
+        context,
         expression,
         inputs,
         canonical,
@@ -498,21 +723,21 @@ fn admit(
 /// # Errors
 /// Fails closed for unavailable owner artifacts, malformed roles/frames/ASTs,
 /// recipe mismatch, non-exact arithmetic, zero divisors and incomplete proof.
-pub fn evaluate(
+pub fn evaluate<D: purrdf::DatasetView<ReadError = Infallible>>(
     source: &RdfDataset,
-    owner: FinanceOwner<'_>,
+    owner: FinanceOwner<'_, D>,
     request: &str,
 ) -> gmeow_errors::Result<Evaluation> {
     let Admission {
         records,
         signature,
-        period,
+        context,
         expression,
         inputs,
         canonical,
     } = admit(source, &owner, request)?;
     let effective = records.dataset(false)?;
-    let context = EvaluationContext {
+    let execution_context = EvaluationContext {
         identity: format!(
             "{PROFILE}|{}|{request}|{}|{canonical}",
             owner.identity, signature.method
@@ -520,8 +745,12 @@ pub fn evaluate(
         premises: records.premises(),
         quantity_classes: inputs.quantity_classes,
     };
-    let mut prepared =
-        math_evaluation::prepare(&effective, &expression, &inputs.bindings, &context)?;
+    let mut prepared = math_evaluation::prepare(
+        &effective,
+        &expression,
+        &inputs.bindings,
+        &execution_context,
+    )?;
     // Keep the selected finance profile visible in the ordinary program receipt;
     // the shared preparation digest already binds the complete caller identity.
     prepared.program.source_iri = Some(format!(
@@ -549,10 +778,16 @@ pub fn evaluate(
             &inputs.currency,
         ));
     } else {
+        let FrameContext::Period(period) = &context else {
+            return Err(crate::error::profile_result(
+                PROFILE,
+                "authenticated nonmonetary result requires a temporal calculation context",
+            ));
+        };
         conclusions.push(atom(
             &prepared.quantity,
             &format!("{G}hasReferenceFrame"),
-            &period,
+            period,
         ));
     }
     conclusions.push(atom(

@@ -2651,3 +2651,27 @@ ex:ecLimitResultNonnumeric a gmeow:ExampleConformance ;
     gmeow:expectedSourceShape math:LimitResultOutcomeValueConstraintProceduralConstraintShape ;
     gmeow:expectedSoleFinding true ;
     gmeow:conformanceRationale "A LimitResult declares convergesFinitely and one text value. The projected finite numeric witness requirement must reject it through LimitResultOutcomeValueConstraint; literal-kind checking alone would incorrectly accept it. This cell pins the component, source shape and sole-finding expectation through the code-only conformance branch; it does not certify whole-law native execution." .
+
+# Quotient context is a math-owned quantity invariant, independent of finance execution.
+ex:ecRatioQuantityFramed a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/conformance-fixtures/ratio-quantity-framed.ttl" ;
+    gmeow:expectedOutcome gmeow:conforms ;
+    gmeow:conformanceRationale "A dimensioned RatioQuantity declares one QuotientReferenceFrame with one typed numerator and denominator frame. Its complete component contexts remain distinct and no arithmetic result is asserted."@x-gmeow-english .
+
+ex:ecRatioQuantityMissingFrame a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/ratio-quantity-missing-frame.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedFailureClass math:IncompleteRatioFrame ;
+    gmeow:expectedViolationCode "shacl.MinCountConstraintComponent" ;
+    gmeow:expectedSourceShape math:RatioQuantity-shape ;
+    gmeow:expectedSoleFinding true ;
+    gmeow:conformanceRationale "The framed control with only the RatioQuantity hasReferenceFrame edge removed must raise IncompleteRatioFrame from the canonical closed required path. Its dimension and the unused complete quotient remain valid."@x-gmeow-english .
+
+ex:ecQuotientFrameMissingDenominator a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/quotient-frame-missing-denominator.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedFailureClass math:IncompleteRatioFrame ;
+    gmeow:expectedViolationCode "shacl.MinCountConstraintComponent" ;
+    gmeow:expectedSourceShape math:QuotientReferenceFrame-shape ;
+    gmeow:expectedSoleFinding true ;
+    gmeow:conformanceRationale "The framed control with only denominatorFrame removed must raise IncompleteRatioFrame from the quotient's closed required denominator path. The numerator, quantity frame and ordinary reference profiles remain supplied."@x-gmeow-english .

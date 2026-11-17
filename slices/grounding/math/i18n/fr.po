@@ -17478,3 +17478,55 @@ msgstr "La stratégie contribue à spécifier la question cible. La méthode d�
 msgctxt "https://blackcatinformatics.ca/math/missingnessMechanism|skos:scopeNote"
 msgid "Declares a missingness assumption, distinct from math:hasMissingnessIndicator recording absence, math:missingDataPolicy describing supplied analysis handling, and an event-specific target strategy named through math:intercurrentEventHandling. An assumption is not itself a handling procedure."
 msgstr "Déclare une hypothèse de manque, distincte de math:hasMissingnessIndicator qui consigne l’absence, de math:missingDataPolicy qui décrit le traitement analytique fourni et d’une stratégie cible propre à un événement nommée par math:intercurrentEventHandling. Une hypothèse n’est pas elle-même une procédure de traitement."
+
+msgctxt "https://blackcatinformatics.ca/math/RatioQuantity|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Ratio quantity"
+msgstr "Quantité de rapport"
+
+msgctxt "https://blackcatinformatics.ca/math/RatioQuantity|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A quantity interpreted in a quotient reference frame with explicit numerator and denominator frames. Its magnitude uses math:quantityValue and its dimension uses math:hasDimension; frame composition preserves the two unit contexts rather than making every dimensionless ratio interchangeable. This quantity form is distinct from the integer representation of math:RationalValue."
+msgstr "Une quantité interprétée dans un référentiel quotient dont les référentiels du numérateur et du dénominateur sont explicites. Sa grandeur utilise math:quantityValue et sa dimension math:hasDimension ; la composition des référentiels conserve les deux contextes d’unité sans rendre tous les rapports sans dimension interchangeables. Cette forme de quantité est distincte de la représentation entière de math:RationalValue."
+
+msgctxt "https://blackcatinformatics.ca/math/QuotientReferenceFrame|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Quotient reference frame"
+msgstr "Référentiel quotient"
+
+msgctxt "https://blackcatinformatics.ca/math/QuotientReferenceFrame|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A reference frame whose unit interpretation is one explicitly identified numerator frame per one explicitly identified denominator frame. It retains the ordinary reference-frame profile and both component identities. This structural composition supplies no implicit scale factor, currency conversion, frame equivalence or general quotient evaluator."
+msgstr "Un référentiel dont l’interprétation d’unité est un référentiel numérateur explicitement identifié par un référentiel dénominateur explicitement identifié. Il conserve le profil ordinaire d’un référentiel et les deux identités composantes. Cette composition structurelle ne fournit aucun facteur d’échelle implicite, conversion monétaire, équivalence de référentiels ni évaluateur général de quotient."
+
+msgctxt "https://blackcatinformatics.ca/math/numeratorFrame|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "numerator frame"
+msgstr "référentiel du numérateur"
+
+msgctxt "https://blackcatinformatics.ca/math/numeratorFrame|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The numerator reference frame of a math:QuotientReferenceFrame. For a selected unit-price quantity this is the currency frame, not a monetary amount or a numeric numerator."
+msgstr "Le référentiel du numérateur d’un math:QuotientReferenceFrame. Pour une quantité de prix unitaire sélectionnée, il s’agit du référentiel monétaire, non d’un montant monétaire ni d’un numérateur numérique."
+
+msgctxt "https://blackcatinformatics.ca/math/denominatorFrame|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "denominator frame"
+msgstr "référentiel du dénominateur"
+
+msgctxt "https://blackcatinformatics.ca/math/denominatorFrame|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The denominator reference frame of a math:QuotientReferenceFrame. For a selected unit-price quantity this identifies the counted-unit frame; equality of physical dimensions alone does not identify that frame."
+msgstr "Le référentiel du dénominateur d’un math:QuotientReferenceFrame. Pour une quantité de prix unitaire sélectionnée, il identifie le référentiel de l’unité comptée ; l’égalité des dimensions physiques ne suffit pas à identifier ce référentiel."
+
+msgctxt "https://blackcatinformatics.ca/math/IncompleteRatioFrame|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Incomplete ratio frame"
+msgstr "Référentiel de rapport incomplet"
+
+msgctxt "https://blackcatinformatics.ca/math/IncompleteRatioFrame|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A conformance failure in which a RatioQuantity lacks its unique quotient reference frame or a QuotientReferenceFrame lacks a unique, correctly typed numerator or denominator frame. It identifies missing or conflicting structure, not a failed numerical division."
+msgstr "Un échec de conformité où une RatioQuantity ne possède pas son unique référentiel quotient, ou où un QuotientReferenceFrame ne possède pas un référentiel numérateur ou dénominateur unique et correctement typé. Il identifie une structure absente ou contradictoire, non une division numérique échouée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/examples/math/tests/ecRatioQuantityFramed|https://blackcatinformatics.ca/gmeow/conformanceRationale"
+msgid "A dimensioned RatioQuantity declares one QuotientReferenceFrame with one typed numerator and denominator frame. Its complete component contexts remain distinct and no arithmetic result is asserted."
+msgstr "Une RatioQuantity dimensionnée déclare un QuotientReferenceFrame avec un référentiel typé au numérateur et un au dénominateur. Les contextes complets des composants demeurent distincts et aucun résultat arithmétique n’est affirmé."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/examples/math/tests/ecRatioQuantityMissingFrame|https://blackcatinformatics.ca/gmeow/conformanceRationale"
+msgid "The framed control with only the RatioQuantity hasReferenceFrame edge removed must raise IncompleteRatioFrame from the canonical closed required path. Its dimension and the unused complete quotient remain valid."
+msgstr "Le témoin avec référentiel dont seule l’arête hasReferenceFrame de RatioQuantity a été retirée doit produire IncompleteRatioFrame à partir du chemin requis fermé canonique. Sa dimension et le quotient complet inutilisé restent valides."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/examples/math/tests/ecQuotientFrameMissingDenominator|https://blackcatinformatics.ca/gmeow/conformanceRationale"
+msgid "The framed control with only denominatorFrame removed must raise IncompleteRatioFrame from the quotient's closed required denominator path. The numerator, quantity frame and ordinary reference profiles remain supplied."
+msgstr "Le témoin avec référentiel dont seul denominatorFrame a été retiré doit produire IncompleteRatioFrame à partir du chemin fermé du dénominateur requis du quotient. Le numérateur, le référentiel de la quantité et les profils de référence ordinaires restent fournis."

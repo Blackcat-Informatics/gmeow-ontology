@@ -1037,3 +1037,187 @@ msgstr "持有期收益比率结果槽"
 msgctxt "urn:gmeow:finance:return:result|http://www.w3.org/2004/02/skos/core#definition"
 msgid "The FinancialReturnRatio output slot of methodHoldingPeriodReturn, returned through observationResult. Native execution derives (closing-opening)/opening on the calculation's explicit period basis; this slot defines the result role rather than asserting a ratio."
 msgstr "methodHoldingPeriodReturn 的 FinancialReturnRatio 输出槽，通过 observationResult 返回。原生执行按计算的显式期间基准推导 (closing-opening)/opening；此槽定义结果角色，而非断言比率。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/UnitPrice|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "unit price"
+msgstr "单价"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/UnitPrice|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An exact decimal ratio quantity expressing money per one counted unit of its pricedAsset. Its quotient reference frame retains a currency numerator and a mathematical count-frame denominator. The selected exact financial profile uses a crisp, unhosted scalar quotient frame with one scalar axis. It is not a MonetaryAmount; multiplying by a quantity of the same asset in the same count frame derives a MonetaryAmount without currency conversion."
+msgstr "表示其 pricedAsset 每一个计数单位所对应货币的精确十进制比值量。其商参考系保留货币分子和数学计数参考系分母。选定的精确金融配置使用确定、无宿主且仅有一个标量轴的标量商参考系。它不是 MonetaryAmount；与同一计数参考系中同一资产的数量相乘，会推导出 MonetaryAmount，且不进行货币兑换。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/UnitPriceTotalCalculation|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "unit price total calculation"
+msgstr "按单价计算总额"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/UnitPriceTotalCalculation|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An explicitly selected computational measurement multiplying unitPrice by pricedQuantity. The price asset and denominator frame must exactly match the counted asset and count frame. The request declares its output currency through hasReferenceFrame, equal to the price numerator frame, and requires no temporal calculationPeriodBasis. Native execution derives one MonetaryAmount observationResult with proof."
+msgstr "显式选定的计算测量，将 unitPrice 与 pricedQuantity 相乘。价格所指资产及其分母参考系必须与计数资产和计数参考系完全一致。请求通过 hasReferenceFrame 声明输出货币，且必须等于价格的分子参考系；无需时间性的 calculationPeriodBasis。原生执行会推导出一个带有证明的 MonetaryAmount observationResult。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/unitPrice|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "unit price input"
+msgstr "单价输入"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/unitPrice|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The UnitPrice input to a UnitPriceTotalCalculation, retaining its exact magnitude, priced asset and compound frame. It is not the total amount or a bare decimal."
+msgstr "UnitPriceTotalCalculation 的 UnitPrice 输入，保留精确量值、定价资产和复合参考系。它不是总金额，也不是裸十进制数。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pricedQuantity|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "priced quantity"
+msgstr "计价数量"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pricedQuantity|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The exact HoldingAssetQuantity multiplied by a unit price. Its countedAsset and reference-frame identities must match the price asset and denominator frame; fractional and signed positions are retained."
+msgstr "与单价相乘的精确 HoldingAssetQuantity。其 countedAsset 身份和参考系身份必须与价格资产及分母参考系一致；分数和带符号的持仓数量均予保留。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pricedAsset|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "priced asset"
+msgstr "定价资产"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pricedAsset|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The specific Asset whose counted units a UnitPrice prices. It must equal pricedQuantity countedAsset before multiplication; shared labels, dimensions or count frames do not equate distinct assets."
+msgstr "UnitPrice 对其计数单位进行定价的特定 Asset。相乘前，它必须等于 pricedQuantity 的 countedAsset；相同标签、量纲或计数参考系不能使不同资产等同。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/UnitPriceUnitMismatch|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "unit price unit mismatch"
+msgstr "单价单位不匹配"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/UnitPriceUnitMismatch|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A conformance failure for an invalid selected unit-price frame profile or a multiplication whose counted input has a different asset identity or count frame, or is not a dimensionless counted asset quantity. Physical dimensionlessness alone never makes different units interchangeable."
+msgstr "由于选定的单价参考系配置无效，或乘法的计数输入具有不同的资产身份或计数参考系，或并非无量纲资产计数数量，而发生的符合性失败。仅仅物理上无量纲，绝不使不同单位可互换。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/UnitPriceCurrencyMismatch|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "unit price currency mismatch"
+msgstr "单价货币不匹配"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/UnitPriceCurrencyMismatch|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A conformance failure for a requested unit-price output context that is not a scalar currency frame identical to the quote numerator frame. Equal currency codes or physical dimensions never authorize conversion or frame substitution."
+msgstr "请求的单价输出语境并非与报价分子参考系完全相同的标量货币参考系时发生的符合性失败。相同货币代码或物理量纲绝不授权兑换或参考系替换。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/methodUnitPriceTotal|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "unit price total method"
+msgstr "按单价计算总额的方法"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/methodUnitPriceTotal|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The selected exact-decimal method multiplying a UnitPrice by its compatible HoldingAssetQuantity. Its canonical callable defines two required inputs and one MonetaryAmount observationResult. The installed financial caller admits exact frame and asset identities before shared native arithmetic."
+msgstr "将 UnitPrice 与兼容的 HoldingAssetQuantity 相乘的选定精确十进制方法。其规范可调用接口定义两个必需输入和一个 MonetaryAmount observationResult。安装后的金融调用方在执行共享原生算术之前验证参考系及资产身份完全一致。"
+
+msgctxt "urn:gmeow:finance:unit-price:price|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "unit price parameter"
+msgstr "单价参数"
+
+msgctxt "urn:gmeow:finance:unit-price:price|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The required UnitPrice input slot of methodUnitPriceTotal, supplied through unitPrice and bound to the price symbol. The parameter is distinct from the quoted quantity and its magnitude."
+msgstr "methodUnitPriceTotal 所需的 UnitPrice 输入槽，通过 unitPrice 提供并绑定到价格符号。该参数不同于报价量及其量值。"
+
+msgctxt "urn:gmeow:finance:unit-price:price:symbol|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "unit price symbol"
+msgstr "单价符号"
+
+msgctxt "urn:gmeow:finance:unit-price:price:symbol|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The mathematical symbol for the required UnitPrice operand in the authenticated total-price recipe."
+msgstr "经认证的总价配方中必需的 UnitPrice 操作数所对应的数学符号。"
+
+msgctxt "urn:gmeow:finance:unit-price:price:expression|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "unit price reference"
+msgstr "单价引用"
+
+msgctxt "urn:gmeow:finance:unit-price:price:expression|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The SymbolReference leaf naming the price symbol in the canonical unit-price multiplication expression."
+msgstr "在规范单价乘法表达式中命名价格符号的 SymbolReference 叶节点。"
+
+msgctxt "urn:gmeow:finance:unit-price:recipe:0|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "unit price operand slot"
+msgstr "单价操作数槽"
+
+msgctxt "urn:gmeow:finance:unit-price:recipe:0|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The index-zero operand slot of the canonical unit-price total expression, referencing the price operand."
+msgstr "规范单价总额表达式中索引为零的操作数槽，引用价格操作数。"
+
+msgctxt "urn:gmeow:finance:unit-price:count|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "priced count parameter"
+msgstr "计价计数参数"
+
+msgctxt "urn:gmeow:finance:unit-price:count|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The required HoldingAssetQuantity input slot of methodUnitPriceTotal. Its bound quantity supplies the exact count, counted asset and denominator-compatible frame."
+msgstr "methodUnitPriceTotal 所需的 HoldingAssetQuantity 输入槽。其绑定数量提供精确计数、计数资产以及与分母兼容的参考系。"
+
+msgctxt "urn:gmeow:finance:unit-price:count:symbol|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "priced count symbol"
+msgstr "计价计数符号"
+
+msgctxt "urn:gmeow:finance:unit-price:count:symbol|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The mathematical symbol for the required counted-asset operand in the authenticated total-price recipe."
+msgstr "经认证的总价配方中必需的资产计数操作数所对应的数学符号。"
+
+msgctxt "urn:gmeow:finance:unit-price:count:expression|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "priced count reference"
+msgstr "计价计数引用"
+
+msgctxt "urn:gmeow:finance:unit-price:count:expression|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The SymbolReference leaf naming the count symbol in the canonical unit-price multiplication expression."
+msgstr "在规范单价乘法表达式中命名计数符号的 SymbolReference 叶节点。"
+
+msgctxt "urn:gmeow:finance:unit-price:recipe:1|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "priced count operand slot"
+msgstr "计价计数操作数槽"
+
+msgctxt "urn:gmeow:finance:unit-price:recipe:1|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The index-one operand slot of the canonical unit-price total expression, referencing the counted-asset operand."
+msgstr "规范单价总额表达式中索引为一的操作数槽，引用资产计数操作数。"
+
+msgctxt "urn:gmeow:finance:unit-price:recipe|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "unit price total expression"
+msgstr "单价总额表达式"
+
+msgctxt "urn:gmeow:finance:unit-price:recipe|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The canonical binary Multiplication AST for unit price times compatible counted quantity. It names the price and count symbols through ordered argument slots and supplies no conversion or precomputed monetary result."
+msgstr "单价乘以兼容计数数量的规范二元 Multiplication AST。它通过有序参数槽命名价格和计数符号，不提供兑换，也不提供预先计算的货币结果。"
+
+msgctxt "urn:gmeow:finance:unit-price:result|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "unit price total result slot"
+msgstr "单价总额结果槽"
+
+msgctxt "urn:gmeow:finance:unit-price:result|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The MonetaryAmount output slot of methodUnitPriceTotal, returned through observationResult in the quote numerator currency after exact unit and asset admission. It defines the output role rather than asserting a calculated amount."
+msgstr "methodUnitPriceTotal 的 MonetaryAmount 输出槽，在精确验证单位和资产之后，通过 observationResult 以报价分子的货币返回。它定义输出角色，而不直接断言已计算的金额。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/UnitPriceFrameConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "unit price compound frame contract"
+msgstr "单价复合参考系契约"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/UnitPriceFrameConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Requires the selected UnitPrice quotient to retain the crisp unhosted scalar mathematical profile, a scalar currency numerator and a scalar mathematical count denominator. Ordinary complete component-frame validation remains owned by places."
+msgstr "要求选定的 UnitPrice 商保留确定、无宿主的标量数学配置，以及标量货币分子和标量数学计数分母。普通组成参考系的完整验证仍由 places 负责。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/UnitPriceUnitMatchConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "unit price count identity contract"
+msgstr "单价计数身份契约"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/UnitPriceUnitMatchConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Requires the priced quantity to use exactly the price denominator frame and priced asset. Dimensionless physical dimensions, matching labels and equal magnitudes do not discharge these identity obligations."
+msgstr "要求计价数量使用与价格完全相同的分母参考系和定价资产。物理上无量纲、标签相同或量值相等，都不能满足这些身份义务。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/UnitPriceCurrencyMatchConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "unit price currency identity contract"
+msgstr "单价货币身份契约"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/UnitPriceCurrencyMatchConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Requires the request output frame to be a scalar currency frame identical to the price numerator frame. The constraint performs no currency-code matching or conversion."
+msgstr "要求请求的输出参考系是与价格分子参考系完全相同的标量货币参考系。该约束不按货币代码匹配，也不进行兑换。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/UnitPriceFrameConstraint|https://blackcatinformatics.ca/logic/message"
+msgid "unit price compound frame contract violated."
+msgstr "违反单价复合参考系契约。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/UnitPriceUnitMatchConstraint|https://blackcatinformatics.ca/logic/message"
+msgid "unit price count identity contract violated."
+msgstr "违反单价计数身份契约。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/UnitPriceCurrencyMatchConstraint|https://blackcatinformatics.ca/logic/message"
+msgid "unit price currency identity contract violated."
+msgstr "违反单价货币身份契约。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/examples/finance/tests/ecExactComputations|https://blackcatinformatics.ca/gmeow/conformanceRationale"
+msgid "Simple-interest, holding-period-return and unit-price-total calculations validate with no finding. Temporal inputs share the calculation's period frame; monetary amounts share one currency. The unit price has a scalar quotient frame whose numerator is that currency and whose denominator is the priced quantity's count frame, and both inputs name the same asset. The fixture supplies the math and places class assertions needed by finance-owned checks because each conformance cell loads only the finance module and this file."
+msgstr "单利、持有期收益和单价总额计算均通过验证且不产生任何发现项。时间输入共享该计算的期间参考系；货币金额共享同一种货币。单价具有标量商参考系，其分子是该货币，分母是计价数量的计数参考系，且两个输入指向同一资产。由于每个合规单元仅加载 finance 模块与本文件，此测试数据提供 finance 所有的检查所需的 math 与 places 类断言。"

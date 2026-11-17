@@ -40,6 +40,14 @@ fn owner() -> (
         identity.update(product.procedural_shacl.as_bytes());
         shapes.push_str(&product.procedural_shacl);
     }
+    let callable = super::fixtures()
+        .inputs
+        .get(gmeow_logic::finance_evaluation::CALLABLE_SOURCE_PATH)
+        .expect("authenticated producer selected the canonical financial callable source");
+    identity.update(callable);
+    let callable = purrdf::parse_dataset(callable, "text/turtle", None)
+        .expect("authenticated canonical financial callable source parses");
+    quads.extend(purrdf::flat_rdf_quads_from_dataset(&callable));
     (
         purrdf::native_quads::flat_dataset_from_quads(&quads).expect("retained owner records"),
         parse_shapes(&shapes, None).expect("complete actual generated financial profiles"),
@@ -57,6 +65,7 @@ fn finance_grounding_actual_owned_recipes_derive_interest_and_return() {
     for (subject, expected) in [
         ("urn:finance:interest", "100"),
         ("urn:finance:return", "0.2"),
+        ("urn:finance:unit-price-total", "50"),
     ] {
         let evaluated = evaluate(
             &source,
@@ -200,6 +209,46 @@ fn finance_grounding_actual_owner_refuses_bad_admission_and_computation() {
             )
             .is_err(),
             "{name}"
+        );
+    }
+    for (from, to, failure) in [
+        (
+            "g:countedAsset <urn:finance:priced-asset>",
+            "g:countedAsset <urn:finance:different-asset>",
+            "UnitPriceUnitMismatch",
+        ),
+        (
+            "m:denominatorFrame <urn:finance:asset-count-frame>",
+            "m:denominatorFrame <urn:finance:other-asset-count-frame>",
+            "UnitPriceUnitMismatch",
+        ),
+        (
+            "m:numeratorFrame g:referenceFrameUSD",
+            "m:numeratorFrame g:referenceFrameEUR",
+            "UnitPriceCurrencyMismatch",
+        ),
+    ] {
+        assert!(
+            example().contains(from),
+            "control changes the selected unit-price input"
+        );
+        let input = example().replace(from, to);
+        let source = purrdf::parse_dataset(input.as_bytes(), "text/turtle", None).unwrap();
+        let error = evaluate(
+            &source,
+            FinanceOwner {
+                dataset: &dataset,
+                shapes: &shapes,
+                identity: &identity,
+            },
+            "urn:finance:unit-price-total",
+        )
+        .err()
+        .expect("incompatible unit-price operation is refused");
+        assert_eq!(
+            error.inner().failure_class.as_deref(),
+            Some(format!("https://blackcatinformatics.ca/gmeow/{failure}").as_str()),
+            "{error}"
         );
     }
 }

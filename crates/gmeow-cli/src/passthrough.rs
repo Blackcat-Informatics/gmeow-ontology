@@ -793,6 +793,25 @@ pub(crate) fn finance(reporter: &dyn Reporter, command: &FinanceCommands) -> i32
         // from this exact authenticated installed snapshot, never a checkout.
         let bundle = gmeow_pipeline::bundle_blobs::Bundle::from_snapshot(BUNDLE_GTS)?;
         let owner = bundle.dataset()?;
+        let callable = bundle.required_archive_member(
+            gmeow_pipeline::bundle_blobs::REP_CELLS,
+            gmeow_logic::finance_evaluation::CALLABLE_SOURCE_PATH,
+            gmeow_logic::finance_evaluation::CALLABLE_SOURCE_MAX_BYTES,
+        )?;
+        let callable = purrdf::parse_dataset(&callable, "text/turtle", None)?;
+        let owner = purrdf::CompositeDatasetView::new(
+            vec![owner, callable],
+            purrdf::ViewLimits {
+                max_sources: 2,
+                ..purrdf::ViewLimits::default()
+            },
+        )
+        .map_err(|error| {
+            gmeow_errors::Diag::of_kind(gmeow_logic::error::Result::new(
+                "cannot compose authenticated financial owner and callable source".to_owned(),
+            ))
+            .with_source(error)
+        })?;
         let mut shapes_text = String::new();
         for (path, bytes) in bundle.shapes()? {
             shapes_text.push_str(std::str::from_utf8(&bytes).map_err(|error| {

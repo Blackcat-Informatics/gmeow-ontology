@@ -17478,3 +17478,55 @@ msgstr "策略有助于规定目标问题。在提供分析方法及其缺失数
 msgctxt "https://blackcatinformatics.ca/math/missingnessMechanism|skos:scopeNote"
 msgid "Declares a missingness assumption, distinct from math:hasMissingnessIndicator recording absence, math:missingDataPolicy describing supplied analysis handling, and an event-specific target strategy named through math:intercurrentEventHandling. An assumption is not itself a handling procedure."
 msgstr "声明缺失机制假设，区别于记录缺失的 math:hasMissingnessIndicator、描述已提供分析处理方式的 math:missingDataPolicy，以及通过 math:intercurrentEventHandling 命名的事件专属目标策略。假设本身不是处理程序。"
+
+msgctxt "https://blackcatinformatics.ca/math/RatioQuantity|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Ratio quantity"
+msgstr "比值量"
+
+msgctxt "https://blackcatinformatics.ca/math/RatioQuantity|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A quantity interpreted in a quotient reference frame with explicit numerator and denominator frames. Its magnitude uses math:quantityValue and its dimension uses math:hasDimension; frame composition preserves the two unit contexts rather than making every dimensionless ratio interchangeable. This quantity form is distinct from the integer representation of math:RationalValue."
+msgstr "在商参考系中解释的量，明确保留分子与分母参考系。其量值使用 math:quantityValue，量纲使用 math:hasDimension；参考系组合保留两个单位语境，并不使所有无量纲比值都可互换。这种量形式不同于 math:RationalValue 的整数表示。"
+
+msgctxt "https://blackcatinformatics.ca/math/QuotientReferenceFrame|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Quotient reference frame"
+msgstr "商参考系"
+
+msgctxt "https://blackcatinformatics.ca/math/QuotientReferenceFrame|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A reference frame whose unit interpretation is one explicitly identified numerator frame per one explicitly identified denominator frame. It retains the ordinary reference-frame profile and both component identities. This structural composition supplies no implicit scale factor, currency conversion, frame equivalence or general quotient evaluator."
+msgstr "其单位解释为一个明确标识的分子参考系除以一个明确标识的分母参考系的参考系。它保留普通参考系描述及两个组成参考系的身份。这种结构组合不提供隐含比例因子、货币兑换、参考系等价关系或通用商求值器。"
+
+msgctxt "https://blackcatinformatics.ca/math/numeratorFrame|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "numerator frame"
+msgstr "分子参考系"
+
+msgctxt "https://blackcatinformatics.ca/math/numeratorFrame|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The numerator reference frame of a math:QuotientReferenceFrame. For a selected unit-price quantity this is the currency frame, not a monetary amount or a numeric numerator."
+msgstr "math:QuotientReferenceFrame 的分子参考系。对于选定的单价量，它是货币参考系，而不是货币金额或数值分子。"
+
+msgctxt "https://blackcatinformatics.ca/math/denominatorFrame|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "denominator frame"
+msgstr "分母参考系"
+
+msgctxt "https://blackcatinformatics.ca/math/denominatorFrame|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The denominator reference frame of a math:QuotientReferenceFrame. For a selected unit-price quantity this identifies the counted-unit frame; equality of physical dimensions alone does not identify that frame."
+msgstr "math:QuotientReferenceFrame 的分母参考系。对于选定的单价量，它标识所计单位的参考系；仅有物理量纲相等并不能确定该参考系。"
+
+msgctxt "https://blackcatinformatics.ca/math/IncompleteRatioFrame|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Incomplete ratio frame"
+msgstr "不完整的比值参考系"
+
+msgctxt "https://blackcatinformatics.ca/math/IncompleteRatioFrame|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A conformance failure in which a RatioQuantity lacks its unique quotient reference frame or a QuotientReferenceFrame lacks a unique, correctly typed numerator or denominator frame. It identifies missing or conflicting structure, not a failed numerical division."
+msgstr "RatioQuantity 缺少唯一商参考系，或 QuotientReferenceFrame 缺少唯一且类型正确的分子或分母参考系时发生的符合性失败。它标识缺失或冲突的结构，而不是数值除法失败。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/examples/math/tests/ecRatioQuantityFramed|https://blackcatinformatics.ca/gmeow/conformanceRationale"
+msgid "A dimensioned RatioQuantity declares one QuotientReferenceFrame with one typed numerator and denominator frame. Its complete component contexts remain distinct and no arithmetic result is asserted."
+msgstr "带有维度的 RatioQuantity 声明一个 QuotientReferenceFrame，其中分子和分母各有一个已定型的参考系。完整的分量上下文保持彼此独立，且不声明任何算术结果。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/examples/math/tests/ecRatioQuantityMissingFrame|https://blackcatinformatics.ca/gmeow/conformanceRationale"
+msgid "The framed control with only the RatioQuantity hasReferenceFrame edge removed must raise IncompleteRatioFrame from the canonical closed required path. Its dimension and the unused complete quotient remain valid."
+msgstr "仅移除了 RatioQuantity 的 hasReferenceFrame 边的参考系对照必须由规范的封闭必需路径报告 IncompleteRatioFrame。其维度和未使用的完整商参考系仍然有效。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/examples/math/tests/ecQuotientFrameMissingDenominator|https://blackcatinformatics.ca/gmeow/conformanceRationale"
+msgid "The framed control with only denominatorFrame removed must raise IncompleteRatioFrame from the quotient's closed required denominator path. The numerator, quantity frame and ordinary reference profiles remain supplied."
+msgstr "仅移除了 denominatorFrame 的参考系对照必须由商参考系的封闭必需分母路径报告 IncompleteRatioFrame。分子、数量参考系及普通参考系配置仍然齐全。"

@@ -49,7 +49,11 @@ fn run(directory: &Path, subject: &str) -> Output {
 fn finance_evaluation_cli_uses_embedded_recipes_without_a_checkout() {
     let directory = tempfile::tempdir().unwrap();
     std::fs::write(directory.path().join("source.ttl"), input()).unwrap();
-    for subject in ["urn:finance:interest", "urn:finance:return"] {
+    for subject in [
+        "urn:finance:interest",
+        "urn:finance:return",
+        "urn:finance:unit-price-total",
+    ] {
         let output = run(directory.path(), subject);
         assert!(
             output.status.success(),
@@ -74,7 +78,7 @@ fn finance_evaluation_cli_uses_embedded_recipes_without_a_checkout() {
 }
 
 #[test]
-fn finance_evaluation_cli_refuses_incompatible_currency_without_replacing_output() {
+fn finance_evaluation_cli_refuses_incompatible_inputs_without_replacing_output() {
     let directory = tempfile::tempdir().unwrap();
     let original = input();
     let input = original.replace(
@@ -97,4 +101,23 @@ fn finance_evaluation_cli_refuses_incompatible_currency_without_replacing_output
         std::fs::read_to_string(directory.path().join("result.ttl")).unwrap(),
         "previous complete result"
     );
+    for input in [
+        original.replace(
+            "m:numeratorFrame g:referenceFrameUSD",
+            "m:numeratorFrame g:referenceFrameEUR",
+        ),
+        original.replace(
+            "m:denominatorFrame <urn:finance:asset-count-frame>",
+            "m:denominatorFrame <urn:finance:other-asset-count-frame>",
+        ),
+    ] {
+        assert_ne!(input, original);
+        std::fs::write(directory.path().join("source.ttl"), input).unwrap();
+        let output = run(directory.path(), "urn:finance:unit-price-total");
+        assert!(!output.status.success());
+        assert_eq!(
+            std::fs::read_to_string(directory.path().join("result.ttl")).unwrap(),
+            "previous complete result"
+        );
+    }
 }
