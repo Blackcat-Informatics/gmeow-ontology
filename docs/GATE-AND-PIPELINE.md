@@ -101,6 +101,31 @@ Mappings retains its mandatory SPDX substrate reconciliation. Browser bootstrap
 therefore requires a codebook receipt, rather than a mappings receipt that also
 depends on the shipped engines being replaced.
 
+Compiler-owner qualification has a separate explicit producer:
+`make produce-compiler-owner-test-fixtures`. It selects only `stage-compile-logic`
+and its `stage-parse-sources` dependency through the authored production DAG, and
+requires `pipeline/module-validation-fixtures.json`. Its independent selector is
+`.cache/gmeow-sync/compiler-owner-fixture-manifest-v2.json`; publication preserves
+the full finalized selector and warm candidate. The read-only
+`make verify-compiler-owner-test-fixtures` authenticates the existing optimized
+executable and its current checkout source inventory without building or repairing it.
+It rebinds current raw inputs, implementation, toolchain, profile, features and exact
+closure, then authenticates the cached compiler
+product and required artifact commitment. The parser has receipt-only source-catalog
+graph and typed-handle commitments; verification never rebuilds that catalog.
+
+Run existing compiler-owner cases with
+`make nextest-compiler-owner NEXTEST_FILTER='test(finance_grounding)'`. This runner
+binds the separate selector and its exact digest and never invokes a producer. Test
+binaries consume the selected producer identity across build profiles. Missing,
+stale, incomplete or wrong-scope selections fail without searching another selector.
+This scope qualifies generated owner profiles and retained callable inputs.
+Consumers assembling a cross-module owner must select every required canonical record,
+such as kernel determinacy seeds. They must not synthesize missing type evidence.
+Registered slice-spec verdicts, main World reasoning, constraint-shapes export, whole-bundle
+runtime and installed consumer acceptance retain their separate requirements; the full
+fixture profile and normal gate still require their complete outputs.
+
 ### Values derived from the canonical profile
 
 Blank-node labels and canonical documents come from PurRDF's canonicalization

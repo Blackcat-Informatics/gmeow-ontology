@@ -116,6 +116,8 @@ pub enum TestFixtureScope {
     ConformanceHeavy,
     /// Produce only the native browser codebook closure, or verify its embedding read-only.
     WasmCodebook,
+    /// Produce or authenticate only compiler-owned module projections and callable inputs.
+    CompilerOwner,
 }
 
 impl SyncOutput {

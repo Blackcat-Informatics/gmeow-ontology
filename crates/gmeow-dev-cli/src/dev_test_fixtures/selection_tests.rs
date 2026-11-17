@@ -346,30 +346,47 @@ fn heavy_extension_preserves_all_selected_actions_until_publication() {
     assert_eq!(read_document(&bytes).unwrap(), expected);
 }
 
-/// Browser bootstrap publication must not replace or depend on full-suite credentials.
+/// Isolated publication must not replace or depend on full-suite or warm-candidate bytes.
 #[test]
-fn codebook_publication_preserves_present_or_absent_full_fixture_selection() {
+fn isolated_publication_preserves_present_or_absent_full_fixture_selection() {
     for full_bytes in [None, Some(b"corrupt or stale full selection".as_slice())] {
-        let root = tempfile::tempdir().unwrap();
-        let full_path = root
-            .path()
-            .join(gmeow_pipeline::fixture::STAGE_FIXTURE_MANIFEST_RELATIVE_PATH);
-        if let Some(bytes) = full_bytes {
-            write_bytes_atomic(&full_path, bytes).unwrap();
-        }
-        let selection = prefix();
-        let prepared = prepare_wasm_codebook_selector(root.path(), selection.clone()).unwrap();
-        let finalized = prepared.publish().unwrap();
-        assert_eq!(
-            finalized.path,
-            root.path().join(WASM_CODEBOOK_MANIFEST_RELATIVE_PATH)
-        );
-        let bytes = std::fs::read(&finalized.path).unwrap();
-        assert_eq!(read_document(&bytes).unwrap(), selection);
-        assert_eq!(finalized.sha256, ContentDigest::of(&bytes).to_hex());
-        match full_bytes {
-            Some(expected) => assert_eq!(std::fs::read(&full_path).unwrap(), expected),
-            None => assert!(!full_path.exists()),
+        for compiler_owner in [false, true] {
+            let root = tempfile::tempdir().unwrap();
+            let full_path = root
+                .path()
+                .join(gmeow_pipeline::fixture::STAGE_FIXTURE_MANIFEST_RELATIVE_PATH);
+            if let Some(bytes) = full_bytes {
+                write_bytes_atomic(&full_path, bytes).unwrap();
+            }
+            let candidate = root
+                .path()
+                .join(gmeow_pipeline::fixture::STAGE_FIXTURE_CANDIDATE_RELATIVE_PATH);
+            let original_candidate = b"unrelated warm candidate";
+            write_bytes_atomic(&candidate, original_candidate).unwrap();
+            let selection = prefix();
+            let prepared = if compiler_owner {
+                prepare_compiler_owner_selector(root.path(), selection.clone())
+            } else {
+                prepare_wasm_codebook_selector(root.path(), selection.clone())
+            }
+            .unwrap();
+            let finalized = prepared.publish().unwrap();
+            assert_eq!(
+                finalized.path,
+                root.path().join(if compiler_owner {
+                    gmeow_pipeline::fixture::COMPILER_OWNER_MANIFEST_RELATIVE_PATH
+                } else {
+                    WASM_CODEBOOK_MANIFEST_RELATIVE_PATH
+                })
+            );
+            let bytes = std::fs::read(&finalized.path).unwrap();
+            assert_eq!(read_document(&bytes).unwrap(), selection);
+            assert_eq!(finalized.sha256, ContentDigest::of(&bytes).to_hex());
+            match full_bytes {
+                Some(expected) => assert_eq!(std::fs::read(&full_path).unwrap(), expected),
+                None => assert!(!full_path.exists()),
+            }
+            assert_eq!(std::fs::read(candidate).unwrap(), original_candidate);
         }
     }
 }

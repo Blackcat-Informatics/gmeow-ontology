@@ -69,7 +69,7 @@ pub(crate) mod list_corpus;
 mod native_carrier;
 mod projection_fixtures;
 mod roundtrip;
-mod validation_fixtures;
+pub(crate) mod validation_fixtures;
 mod vocabulary_fixtures;
 
 /// The grounding vocabulary document within the complete admitted source catalog.

@@ -57,6 +57,7 @@ impl TestFixtureScope {
             Self::Bundle => "bundle",
             Self::ConformanceHeavy => "conformance-heavy",
             Self::WasmCodebook => "wasm-codebook",
+            Self::CompilerOwner => "compiler-owner",
         }
     }
 }
@@ -74,6 +75,18 @@ pub(crate) fn run(
     expected_source_digest: Option<&str>,
 ) -> i32 {
     let root = crate::dev_common::project_root();
+    if scope == TestFixtureScope::CompilerOwner {
+        let result = match mode {
+            TestFixtureMode::Verify => {
+                gmeow_pipeline::fixture::verify_compiler_owner_fixtures(&root)
+            }
+            TestFixtureMode::Produce => produce_compiler_owner(&root, timings_path),
+        };
+        return result.map_or_else(
+            |error| crate::dev_common::fail(format!("compiler owner fixtures: {error}")),
+            |()| 0,
+        );
+    }
     if scope == TestFixtureScope::WasmCodebook {
         let result = match mode {
             TestFixtureMode::Verify => verify_wasm_codebook(&root),
@@ -217,6 +230,35 @@ fn produce_wasm_codebook(root: &Path, timings_path: Option<&Path>) -> FixtureRes
         codebook.len(),
         finalized.path.display(),
         finalized.sha256,
+    );
+    Ok(())
+}
+
+/// Publish compiler-owner credentials only after its selected output and telemetry succeed.
+fn produce_compiler_owner(root: &Path, timings_path: Option<&Path>) -> FixtureResult<()> {
+    let started = Instant::now();
+    let jobs = std::thread::available_parallelism()
+        .map(std::num::NonZeroUsize::get)
+        .unwrap_or(1);
+    let selection = gmeow_pipeline::fixture::prepare_compiler_owner_fixtures(root, jobs)?;
+    let prepared = prepare_compiler_owner_selector(root, selection)?;
+    if let Some(path) = timings_path {
+        write_json_atomic(
+            path,
+            &Object::new()
+                .with("schema_version", 1)
+                .with("scope", TestFixtureScope::CompilerOwner.name())
+                .with("elapsed_ms", started.elapsed().as_millis())
+                .with("manifest_sha256", prepared.sha256.clone())
+                .into(),
+        )
+        .map_err(fail)?;
+    }
+    let finalized = prepared.publish()?;
+    println!(
+        "compiler owner fixtures produced: selector={} sha256={}",
+        finalized.path.display(),
+        finalized.sha256
     );
     Ok(())
 }
@@ -798,6 +840,17 @@ fn prepare_wasm_codebook_selector(
 ) -> FixtureResult<PreparedFixtureSelector> {
     prepare_fixture_selector_at_path(
         root.join(WASM_CODEBOOK_MANIFEST_RELATIVE_PATH),
+        Some(stage_selection),
+        BTreeMap::new(),
+    )
+}
+
+fn prepare_compiler_owner_selector(
+    root: &Path,
+    stage_selection: Value,
+) -> FixtureResult<PreparedFixtureSelector> {
+    prepare_fixture_selector_at_path(
+        root.join(gmeow_pipeline::fixture::COMPILER_OWNER_MANIFEST_RELATIVE_PATH),
         Some(stage_selection),
         BTreeMap::new(),
     )

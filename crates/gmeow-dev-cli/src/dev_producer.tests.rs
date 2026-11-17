@@ -5,13 +5,27 @@ use clap::Parser;
 
 use super::*;
 
-/// Classify parsed producer commands without executing them or constructing a corpus.
+/// Classify source-bound operations without executing them or constructing a corpus.
 #[test]
-fn production_commands_require_admission_without_dispatching_them() {
+fn source_bound_commands_require_admission_without_dispatching_them() {
     for arguments in [
         vec!["gmeow-dev", "sync"],
         vec!["gmeow-dev", "project", "--profile", "gmeow"],
         vec!["gmeow-dev", "test-fixtures", "produce"],
+        vec![
+            "gmeow-dev",
+            "test-fixtures",
+            "produce",
+            "--scope",
+            "compiler-owner",
+        ],
+        vec![
+            "gmeow-dev",
+            "test-fixtures",
+            "verify",
+            "--scope",
+            "compiler-owner",
+        ],
         vec!["gmeow-dev", "feedback"],
         vec!["gmeow-dev", "logic", "compile"],
         vec!["gmeow-dev", "mcp"],

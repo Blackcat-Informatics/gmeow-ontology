@@ -9,7 +9,7 @@ use gmeow_action_cache::ProducerIdentity;
 use gmeow_action_cache::executable::ExecutableReceipt;
 use gmeow_errors::Diag;
 
-use crate::{Commands, LogicCommands, TestFixtureMode};
+use crate::{Commands, LogicCommands, TestFixtureMode, TestFixtureScope};
 
 static ADMITTED_IDENTITY: OnceLock<ProducerIdentity> = OnceLock::new();
 
@@ -23,7 +23,8 @@ pub(crate) fn admitted_identity() -> gmeow_errors::Result<ProducerIdentity> {
 
 /// Classify commands that must authenticate the optimized producer before dispatch.
 ///
-/// Metadata inspection and fixture verification remain read-only. Console assembly
+/// Metadata inspection and fixture verification remain read-only. Compiler-owner
+/// verification also requires current executable and source admission. Console assembly
 /// performs its own admission after refusing output paths owned by synchronization.
 pub(crate) fn requires_admission(command: &Commands) -> bool {
     match command {
@@ -32,8 +33,8 @@ pub(crate) fn requires_admission(command: &Commands) -> bool {
             list_paths,
             ..
         }) => !metadata && !list_paths,
-        Commands::TestFixtures(crate::TestFixturesArgs { mode, .. }) => {
-            matches!(mode, TestFixtureMode::Produce)
+        Commands::TestFixtures(crate::TestFixturesArgs { mode, scope, .. }) => {
+            matches!(mode, TestFixtureMode::Produce) || *scope == TestFixtureScope::CompilerOwner
         }
         Commands::Fanout(_)
         | Commands::MediumSweep(_)
