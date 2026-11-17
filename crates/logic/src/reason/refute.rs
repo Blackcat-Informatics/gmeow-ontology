@@ -46,8 +46,8 @@ pub use native::{
     NativeAnalysisUsage, NativeBoundEvidence, NativeClosureStatus, NativeFamilyCompletion,
     NativeFamilyLedger, NativeFamilyObstruction, NativeFamilyOutcome, NativeObligationScope,
     NativeObstructionKind, NativeProducerObstruction, NativeProofId, NativeProofNode,
-    NativeProofOrigin, NativeRead, NativeReadKind, NativeRefutationFamily, NativeSourceTerms,
-    NativeSupportedClash,
+    NativeProofOrigin, NativeRead, NativeReadKind, NativeReadPattern, NativeRefutationFamily,
+    NativeSourceTerms, NativeSupportedClash,
 };
 mod diagnostic;
 pub use diagnostic::{ClassDiagnosticObservation, ClassDiagnosticOutcome, class_diagnostic};

@@ -35,6 +35,7 @@ pub(super) struct FinalEvidence<'a> {
     pub(super) rows: &'a [crate::rule_ir::DerivedRow],
     pub(super) registry: &'a crate::physical::SkolemRegistry,
     pub(super) complete: &'a BTreeSet<String>,
+    pub(super) observed: &'a BTreeSet<NativeRead>,
     pub(super) terminal: &'a crate::reason::refute::native::NativeClosureStatus,
 }
 
@@ -54,7 +55,9 @@ const REST: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#rest";
 #[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord)]
 pub(super) enum Producer {
     Obligation(NativeRefutationFamily),
+    Observation(NativeRefutationFamily),
     Class,
+    ClassObservation,
     Admission(crate::reason::dl::DlConstructFamily),
 }
 
@@ -134,7 +137,7 @@ fn producer_arm(
         .collect();
     patterns.extend(implicit.iter().map(|read| {
         (
-            StatementPattern::relation(read.predicate.as_deref(), read.marker.as_deref()),
+            StatementPattern::native(&read.pattern),
             match read.kind {
                 NativeReadKind::Positive => ReadDependency::Positive,
                 NativeReadKind::Completed => ReadDependency::Completed,
@@ -183,7 +186,8 @@ fn producer_arm(
 fn admission_families(family: Producer) -> Vec<crate::reason::dl::DlConstructFamily> {
     use crate::reason::dl::DlConstructFamily as F;
     match family {
-        Producer::Obligation(NativeRefutationFamily::Cardinality) => vec![
+        Producer::Obligation(NativeRefutationFamily::Cardinality)
+        | Producer::Observation(NativeRefutationFamily::Cardinality) => vec![
             F::Cardinality,
             F::MinCardinality,
             F::MaxCardinality,
@@ -192,9 +196,12 @@ fn admission_families(family: Producer) -> Vec<crate::reason::dl::DlConstructFam
             F::MaxQualifiedCardinality,
             F::IntersectionOf,
         ],
-        Producer::Obligation(NativeRefutationFamily::HasSelf) => vec![F::HasSelf],
-        Producer::Obligation(NativeRefutationFamily::Identity) => vec![F::AllDifferent],
-        Producer::Obligation(NativeRefutationFamily::Datatype) => vec![
+        Producer::Obligation(NativeRefutationFamily::HasSelf)
+        | Producer::Observation(NativeRefutationFamily::HasSelf) => vec![F::HasSelf],
+        Producer::Obligation(NativeRefutationFamily::Identity)
+        | Producer::Observation(NativeRefutationFamily::Identity) => vec![F::AllDifferent],
+        Producer::Obligation(NativeRefutationFamily::Datatype)
+        | Producer::Observation(NativeRefutationFamily::Datatype) => vec![
             F::SomeValuesFrom,
             F::AllValuesFrom,
             F::Cardinality,
@@ -206,17 +213,13 @@ fn admission_families(family: Producer) -> Vec<crate::reason::dl::DlConstructFam
             F::OneOf,
             F::WithRestrictions,
         ],
-        Producer::Class | Producer::Admission(_) => Vec::new(),
+        Producer::Class | Producer::ClassObservation | Producer::Admission(_) => Vec::new(),
     }
 }
 fn reads(predicates: impl IntoIterator<Item = String>, kind: NativeReadKind) -> Vec<NativeRead> {
     predicates
         .into_iter()
-        .map(|predicate| NativeRead {
-            marker: None,
-            predicate: Some(predicate),
-            kind,
-        })
+        .map(|predicate| NativeRead::predicate(predicate, kind))
         .collect()
 }
 /// Every positive subfamily is present independently of initial source presence.
@@ -259,8 +262,11 @@ pub(super) fn arms() -> Vec<Arm> {
     ]
     .into_iter()
     .map(|marker| NativeRead {
-        predicate: Some(TYPE.to_owned()),
-        marker: Some(owl(marker)),
+        pattern: crate::reason::refute::native::NativeReadPattern::Declaration {
+            subject: None,
+            predicate: TYPE.to_owned(),
+            marker: owl(marker),
+        },
         kind: NativeReadKind::Positive,
     })
     .collect::<Vec<_>>();
@@ -362,7 +368,94 @@ pub(super) fn arms() -> Vec<Arm> {
             class_reads.clone(),
         ));
     }
+    let observations = observation_arms(&result);
+    result.extend(observations);
     result
+}
+
+/// Every owner has a nonwriting observation at its actual preparation boundary.
+/// Source refinement retains it only when all positive arms are unreachable.
+fn observation_arms(arms: &[Arm]) -> Vec<Arm> {
+    ALL.into_iter()
+        .map(|family| (Producer::Obligation(family), Producer::Observation(family)))
+        .chain([(Producer::Class, Producer::ClassObservation)])
+        .map(|(owner, observation)| {
+            let selected: Vec<_> = arms.iter().filter(|arm| arm.family == owner).collect();
+            let mut reads = Vec::new();
+            for read in selected.iter().flat_map(|arm| &arm.effect.reads) {
+                let read = (read.0.clone(), ReadDependency::Completed);
+                if !reads.contains(&read) {
+                    reads.push(read);
+                }
+            }
+            let preparation = selected
+                .iter()
+                .flat_map(|arm| &arm.preparation)
+                .cloned()
+                .collect::<BTreeSet<_>>()
+                .into_iter()
+                .collect();
+            let name = format!("native-family-observation:{owner:?}");
+            Arm {
+                family: observation,
+                statement: StatementRule {
+                    name: name.clone(),
+                    body: Vec::new(),
+                    heads: Vec::new(),
+                    frontier: None,
+                    position_only: false,
+                    list_cells: Vec::new(),
+                    witness_family: None,
+                    rja_exact: false,
+                },
+                flow: FlowRule {
+                    body: Vec::new(),
+                    heads: Vec::new(),
+                    native_witnesses: Vec::new(),
+                    reads: vec![None; reads.len()],
+                    cardinality_guards: Vec::new(),
+                    list_reads: Vec::new(),
+                    selected_reads: Vec::new(),
+                },
+                effect: ProducerEffect::new(name, Vec::new(), reads),
+                preparation,
+            }
+        })
+        .collect()
+}
+
+/// Choose observations once from the complete source-refined positive arm set.
+pub(super) fn select_observations(
+    arms: &[Arm],
+    effects: &mut [ProducerEffect],
+) -> gmeow_errors::Result<()> {
+    if arms.len() != effects.len() {
+        return Err(super::seminaive_err(
+            "native family observation lost its source effect inventory",
+        ));
+    }
+    let positive: BTreeSet<_> = arms
+        .iter()
+        .zip(effects.iter())
+        .filter_map(|(arm, effect)| match arm.family {
+            Producer::Obligation(family) if effect.reachable() => Some(family),
+            _ => None,
+        })
+        .collect();
+    let class = arms
+        .iter()
+        .zip(effects.iter())
+        .any(|(arm, effect)| arm.family == Producer::Class && effect.reachable());
+    for (arm, effect) in arms.iter().zip(effects) {
+        if matches!(arm.family, Producer::Observation(family) if positive.contains(&family))
+            || (arm.family == Producer::ClassObservation && class)
+        {
+            effect.reads.clear();
+            effect.writes.clear();
+            effect.completion_for.clear();
+        }
+    }
+    Ok(())
 }
 
 /// Source shape completion is a typed non-writing dependency. A missing field
@@ -393,10 +486,7 @@ pub(super) fn admission_arms(
                 )];
                 reads.extend(preparation.iter().map(|read| {
                     (
-                        StatementPattern::relation(
-                            read.predicate.as_deref(),
-                            read.marker.as_deref(),
-                        ),
+                        StatementPattern::native(&read.pattern),
                         ReadDependency::Completed,
                     )
                 }));
@@ -449,11 +539,7 @@ pub(super) fn initial(ledger: &mut NativeFamilyLedger, exhausted: bool) {
             NativeFamilyCompletion::Exhausted
         } else {
             NativeFamilyCompletion::Awaiting {
-                reads: vec![NativeRead {
-                    marker: None,
-                    predicate: None,
-                    kind: NativeReadKind::Completed,
-                }],
+                reads: vec![NativeRead::world(NativeReadKind::Completed)],
             }
         };
         ledger.outcomes.push(outcome);
@@ -545,19 +631,11 @@ pub(super) fn completed(
     final_snapshot: bool,
 ) -> BTreeSet<NativeRead> {
     if final_snapshot {
-        BTreeSet::from([NativeRead {
-            marker: None,
-            predicate: None,
-            kind: NativeReadKind::Completed,
-        }])
+        BTreeSet::from([NativeRead::world(NativeReadKind::Completed)])
     } else {
         predicates
             .iter()
-            .map(|predicate| NativeRead {
-                marker: None,
-                predicate: Some(predicate.clone()),
-                kind: NativeReadKind::Completed,
-            })
+            .map(|predicate| NativeRead::predicate(predicate.clone(), NativeReadKind::Completed))
             .collect()
     }
 }
@@ -592,6 +670,19 @@ pub(super) struct State {
     constructor_lists: Option<std::sync::Arc<super::source_grammar::ConstructorClosedLists>>,
 }
 impl State {
+    pub(super) fn refresh_publication(
+        &mut self,
+        store: &crate::rule_ir::FactStore,
+        rel: &crate::physical::RelationStore,
+        rows: &[crate::rule_ir::DerivedRow],
+        observed: &BTreeSet<NativeRead>,
+    ) -> gmeow_errors::Result<()> {
+        let evidence = self.evidence.as_ref().ok_or_else(|| {
+            super::seminaive_err("publication preceded original source admission")
+        })?;
+        let input = NativeFamilyInput::new(store, rel, rows, evidence, observed)?;
+        self.analyses.refresh(&input, &mut self.ledger)
+    }
     pub(super) fn new(
         binding: &super::input::NativeInputBinding<'_>,
         world: &str,
@@ -921,7 +1012,7 @@ impl State {
         let families: Vec<_> = producers
             .iter()
             .filter_map(|producer| match producer {
-                Producer::Obligation(family) => Some(*family),
+                Producer::Obligation(family) | Producer::Observation(family) => Some(*family),
                 _ => None,
             })
             .collect();
@@ -935,6 +1026,14 @@ impl State {
             lists,
             &mut self.ledger,
         )?;
+        if self.ledger.outcomes.iter().any(|outcome| {
+            producers.contains(&Producer::Observation(outcome.family))
+                && !outcome.conclusions.is_empty()
+        }) {
+            return Err(super::seminaive_err(
+                "a source-proven nonwriting family observation produced a positive head",
+            ));
+        }
         trace_boundary(
             "evaluate-native-family-analyses",
             "end",
@@ -953,13 +1052,20 @@ impl State {
             "end",
             publication_started.elapsed().as_millis(),
         );
-        if producers.contains(&Producer::Class) {
+        if producers.contains(&Producer::Class) || producers.contains(&Producer::ClassObservation) {
             let class = self.class.as_mut().ok_or_else(|| {
                 super::seminaive_err("selected class producer lacks source admission")
             })?;
             let class_started = crate::timing::Instant::now();
             trace_boundary("evaluate-native-class-family", "start", 0);
             let outcome = class.evaluate(&input, &mut self.ledger)?;
+            if producers.contains(&Producer::ClassObservation)
+                && !outcome.local_conclusions().is_empty()
+            {
+                return Err(super::seminaive_err(
+                    "a source-proven nonwriting class observation produced a positive head",
+                ));
+            }
             trace_boundary(
                 "evaluate-native-class-family",
                 "end",
@@ -1096,6 +1202,7 @@ impl State {
             rows,
             registry,
             complete,
+            observed,
             terminal,
         } = source;
         let evidence = self.evidence.as_mut().ok_or_else(|| {
@@ -1106,7 +1213,8 @@ impl State {
             terminal,
             crate::reason::refute::native::NativeClosureStatus::Completed
         );
-        let complete = completed(complete, finished);
+        let mut complete = completed(complete, finished);
+        complete.extend(observed.iter().cloned());
         let input = NativeFamilyInput::new(store, rel, rows, evidence, &complete)?;
         for fact in store.facts().iter().skip(self.coverage_rows) {
             crate::reason::dl::observe_construct(
@@ -1141,24 +1249,15 @@ impl State {
         // Final observations retain their outcomes in the ledger and classes.
         // Release computation caches before validating and publishing that evidence;
         // contextual finalization reads the evidence index, not these preparations.
-        let mut analyses = std::mem::take(&mut self.analyses);
-        if finished && self.operation == super::JointOperation::Forward {
-            analyses.evaluate(
-                &ALL,
-                &input,
-                &self.coverage,
-                values,
-                lists,
-                &mut self.ledger,
-            )?;
-        }
+        let analyses = std::mem::take(&mut self.analyses);
+        analyses.finish(&input, &mut self.ledger, terminal)?;
         drop(analyses);
-        if finished {
-            if let Some(mut class) = self.class.take() {
-                self.classes = Some(class.evaluate(&input, &mut self.ledger)?);
-            }
-        } else {
-            self.class = None;
+        if let Some(class) = self.class.take()
+            && let Some(observed) = class.refresh_completion(&input, &self.ledger, terminal)?
+        {
+            self.classes = Some(observed);
+        }
+        if !finished {
             for outcome in &mut self.ledger.outcomes {
                 if let NativeFamilyCompletion::Awaiting { reads } = &outcome.completion {
                     outcome.completion = match terminal {

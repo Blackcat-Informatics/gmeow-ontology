@@ -16,10 +16,10 @@ use crate::result::NativeExecutionEvidence;
 
 use super::result_err;
 
-// V3 bounds compact wire at 256 MiB, separately from the mandatory 512 MiB
+// V4 bounds compact wire at 256 MiB, separately from the mandatory 512 MiB
 // expanded logical encoding (inline definitions plus every payload occurrence).
 // Neither number claims to be a measured host RSS limit.
-const SCHEMA: &str = "gmeow-native-execution-v3";
+const SCHEMA: &str = "gmeow-native-execution-v4";
 
 /// Preserve the typed projection kind as the direct diagnostic source and retain
 /// the native refusal beneath it, rather than replacing that kind's downcast.

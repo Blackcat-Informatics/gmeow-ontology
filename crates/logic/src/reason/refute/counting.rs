@@ -198,20 +198,12 @@ impl Model<'_> {
 pub(crate) fn preparation_reads() -> Vec<NativeRead> {
     [RDF_FIRST, RDF_REST]
         .into_iter()
-        .map(|predicate| NativeRead {
-            marker: None,
-            predicate: Some(predicate.to_owned()),
-            kind: NativeReadKind::Completed,
-        })
+        .map(|predicate| NativeRead::predicate(predicate.to_owned(), NativeReadKind::Completed))
         .collect()
 }
 
 pub(crate) fn reads() -> Vec<NativeRead> {
-    vec![NativeRead {
-        marker: None,
-        predicate: None,
-        kind: NativeReadKind::Completed,
-    }]
+    vec![NativeRead::world(NativeReadKind::Completed)]
 }
 
 struct BoundRow {

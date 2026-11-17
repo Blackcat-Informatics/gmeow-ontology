@@ -123,11 +123,10 @@ fn has_iri(receipt: &NativeContextualReceipt, property: &str, iri: &str) -> bool
 
 #[test]
 fn every_upstream_stop_preserves_unvisited_requests_and_actual_inference_allowance() {
-    let reads = vec![NativeRead {
-        predicate: Some("urn:example:unfinished-role".into()),
-        marker: None,
-        kind: NativeReadKind::Completed,
-    }];
+    let reads = vec![NativeRead::predicate(
+        "urn:example:unfinished-role",
+        NativeReadKind::Completed,
+    )];
     let usage = NativeAnalysisUsage {
         allowance: Some(3),
         consumed: 2,
@@ -330,7 +329,18 @@ fn every_upstream_stop_preserves_unvisited_requests_and_actual_inference_allowan
                 }
                 NativeContextualUpstreamStop::Blocked { reads } => {
                     let mut changed = reads.clone();
-                    changed[0].predicate = Some("urn:example:different-role".into());
+                    match &mut changed[0].pattern {
+                        crate::reason::refute::NativeReadPattern::Statement {
+                            predicate, ..
+                        } => {
+                            *predicate = Some("urn:example:different-role".into());
+                        }
+                        crate::reason::refute::NativeReadPattern::Declaration {
+                            predicate, ..
+                        } => {
+                            *predicate = "urn:example:different-role".into();
+                        }
+                    }
                     assert!(
                         receipt
                             .judgment

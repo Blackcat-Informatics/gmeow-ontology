@@ -417,7 +417,13 @@ impl JointTemplate {
             super::JointOperation::Forward => super::families::arms(),
             super::JointOperation::ClassDiagnostic => super::families::arms()
                 .into_iter()
-                .filter(|arm| arm.family == super::families::Producer::Class)
+                .filter(|arm| {
+                    matches!(
+                        arm.family,
+                        super::families::Producer::Class
+                            | super::families::Producer::ClassObservation
+                    )
+                })
                 .collect(),
         };
         match operation {
@@ -513,7 +519,7 @@ impl JointTemplate {
             admission::Template::new(rules, producers, properties, &families)
         };
         let mut digest = MetadataDigest(purrdf_hash::blake3::Hasher::new(), 0);
-        digest.0.update(b"gmeow-native-joint-value-flow-v5\0");
+        digest.0.update(b"gmeow-native-joint-value-flow-v6\0");
         write!(digest, "{rules:?}").expect("digest-only formatter");
         for property in properties {
             write!(digest, "{:?}", property.source).expect("digest-only formatter");
@@ -748,6 +754,11 @@ impl JointTemplate {
                 enabled[self.rules.keys().len() + index] = producer.owns_world(world)?;
             }
             let mut scoped = flow.refine_enabled(&self.effects, &summary, &enabled);
+            let family_start = scoped
+                .len()
+                .checked_sub(self.families.len())
+                .ok_or_else(|| seminaive_err("native family source effects are missing"))?;
+            super::families::select_observations(&self.families, &mut scoped[family_start..])?;
             if let Some(contract) = &self.definitions {
                 for pattern in &contract.patterns {
                     if let Some(writer) = flow.overlapping_writer(pattern, &scoped) {
@@ -1219,10 +1230,9 @@ impl JointInput<'_> {
                 template.family_reads.iter().map(move |read| {
                     crate::physical::effects::WorldStatementObservation {
                         world: world.clone(),
-                        pattern: self.flow.ranged_pattern(StatementPattern::relation(
-                            read.predicate.as_deref(),
-                            read.marker.as_deref(),
-                        )),
+                        pattern: self
+                            .flow
+                            .ranged_pattern(StatementPattern::native(&read.pattern)),
                     }
                 })
             })

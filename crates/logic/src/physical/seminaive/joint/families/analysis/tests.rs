@@ -142,11 +142,7 @@ fn fact(subject: &str, predicate: &str, object: TermValue) -> Fact {
 }
 
 fn complete() -> BTreeSet<NativeRead> {
-    BTreeSet::from([NativeRead {
-        marker: None,
-        predicate: None,
-        kind: NativeReadKind::Completed,
-    }])
+    BTreeSet::from([NativeRead::world(NativeReadKind::Completed)])
 }
 
 fn prepared(family: NativeRefutationFamily) -> BTreeSet<NativeRead> {
@@ -263,7 +259,7 @@ fn pending_source_preparation_is_not_certified_by_cached_observation() {
     world.evaluate(family, &BTreeSet::new());
     let prior = world.ledger.outcomes.clone();
     assert!(prior.iter().any(|outcome| matches!(&outcome.completion,
-        NativeFamilyCompletion::Awaiting { reads } if reads.iter().any(|read| read.predicate.is_some()))));
+        NativeFamilyCompletion::Awaiting { reads } if reads.iter().any(|read| read.pattern.predicate().is_some()))));
     let consumed = world.ledger.work.consumed;
     world.evaluate(family, &BTreeSet::new());
     assert_eq!(world.ledger.outcomes, prior);
@@ -401,4 +397,110 @@ fn partial_analysis_of_new_facts_keeps_earlier_supported_clashes() {
             .all(|id| world.ledger.proofs.iter().any(|proof| proof.id == *id))
     );
     world.ledger.validate().unwrap();
+
+    // The real driver can commit a relevant prefix and cut before the next
+    // family gather. Final publication must retain the earlier supported clash.
+    use gmeow_logic_compile::ir::{
+        AtomicTerm, ContextualScope, LogicAxiom, LogicProgram, LogicRule,
+    };
+    const DIFFERENT: &str = "http://www.w3.org/2002/07/owl#differentFrom";
+    let atom = |subject: &str| {
+        LogicAxiom::new(
+            subject,
+            DIFFERENT,
+            AtomicTerm::Iri(subject.to_owned()),
+            false,
+            ContextualScope::default(),
+        )
+        .expect("well-formed finite self-distinctness atom")
+    };
+    let program = LogicProgram::new(
+        Vec::new(),
+        vec![LogicRule::new(
+            atom("urn:a"),
+            vec![
+                atom("urn:z"),
+                LogicAxiom::new(
+                    "urn:z",
+                    "urn:cut:absent",
+                    AtomicTerm::Iri("urn:z".to_owned()),
+                    true,
+                    ContextualScope::default(),
+                )
+                .expect("a real closed input dependency delays the ordinary writer"),
+            ],
+            Vec::new(),
+            ContextualScope::default(),
+        )],
+        Vec::new(),
+        None,
+    );
+    let source = purrdf::parse_dataset(
+        b"<urn:z> <http://www.w3.org/2002/07/owl#differentFrom> <urn:z> .",
+        "turtle",
+        None,
+    )
+    .expect("one original source fact");
+    let cut = crate::reason::reason_program_within(
+        &program,
+        crate::reason::prepare_reasoning_input(&source).expect("source-owned native input"),
+        &SelectedDomains::new([]).expect("no implicit domains"),
+        &crate::query_ir::Budget {
+            max_steps: Some(1),
+            ..Default::default()
+        },
+    )
+    .expect("an exhausted committed prefix finalizes without skipping or recomputing analysis");
+    let evidence = cut
+        .native_execution()
+        .expect("the actual cut retains native evidence");
+    assert_eq!(
+        evidence.status,
+        crate::reason::refute::NativeClosureStatus::Exhausted
+    );
+    assert_eq!(evidence.frontier.consumed_steps, 1);
+    assert!(
+        cut.inferred().iter().any(|row| !row.is_edb
+            && row.subject == "urn:a"
+            && row.predicate == DIFFERENT
+            && row.object == TermValue::iri("urn:a")),
+        "the relevant row was committed before the terminal observation"
+    );
+    let (ledger, outcome, clash) = evidence
+        .families
+        .iter()
+        .find_map(|ledger| {
+            ledger
+                .outcomes
+                .iter()
+                .filter(|outcome| outcome.family == family)
+                .find_map(|outcome| {
+                    outcome
+                        .conclusions
+                        .iter()
+                        .find(|clash| clash.subject == TermValue::iri("urn:z"))
+                        .map(|clash| (ledger, outcome, clash))
+                })
+        })
+        .expect("the previous frozen round's supported clash survives the cut");
+    assert_eq!(outcome.completion, NativeFamilyCompletion::Exhausted);
+    let leaves = ledger
+        .source_leaves(&clash.support)
+        .expect("the exact earlier positive support survives");
+    assert!(
+        leaves
+            .iter()
+            .any(|source| source.subject == TermValue::iri("urn:z")
+                && source.predicate == DIFFERENT
+                && source.object == TermValue::iri("urn:z"))
+    );
+    assert!(
+        !evidence
+            .families
+            .iter()
+            .flat_map(|ledger| &ledger.outcomes)
+            .flat_map(|outcome| &outcome.conclusions)
+            .any(|clash| clash.subject == TermValue::iri("urn:a")),
+        "terminal publication does not analyze the newly committed obligation"
+    );
 }

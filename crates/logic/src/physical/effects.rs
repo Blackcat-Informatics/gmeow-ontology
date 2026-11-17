@@ -21,12 +21,19 @@ pub(crate) mod reachability;
 pub(super) mod value_flow;
 
 /// Unknown slots are explicit over-approximations, never evidence of no effects.
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub(crate) struct StatementPattern {
     subject: Option<TermValue>,
     predicate: Option<String>,
     object: Option<TermValue>,
+    object_role: ObjectRole,
     ranges: Option<[value_flow::Domain; 3]>,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+enum ObjectRole {
+    Exact,
+    Marker,
 }
 
 impl StatementPattern {
@@ -35,6 +42,11 @@ impl StatementPattern {
             subject: constant(&atom.subject),
             predicate: Some(atom.predicate.clone()),
             object: constant(&atom.object),
+            object_role: if matches!(atom.object, EvalTerm::ConstNamed(_)) {
+                ObjectRole::Marker
+            } else {
+                ObjectRole::Exact
+            },
             ranges: None,
         }
     }
@@ -55,6 +67,11 @@ impl StatementPattern {
                 _ => None,
             },
             object: constant(&terms[2]),
+            object_role: if matches!(terms[2], EvalTerm::ConstNamed(_)) {
+                ObjectRole::Marker
+            } else {
+                ObjectRole::Exact
+            },
             ranges: None,
         }
     }
@@ -64,6 +81,7 @@ impl StatementPattern {
             subject: None,
             predicate: predicate.map(str::to_owned),
             object: object.map(TermValue::iri),
+            object_role: ObjectRole::Marker,
             ranges: None,
         }
     }
@@ -75,6 +93,7 @@ impl StatementPattern {
             subject: Some(subject),
             predicate: None,
             object: None,
+            object_role: ObjectRole::Exact,
             ranges: None,
         }
     }
@@ -82,14 +101,62 @@ impl StatementPattern {
     /// A sound predicate/marker completion envelope for this possible head. A
     /// literal or unknown object conservatively requires the whole predicate.
     pub(crate) fn completion_read(&self) -> crate::reason::refute::native::NativeRead {
-        crate::reason::refute::native::NativeRead {
-            predicate: self.predicate.clone(),
-            marker: self
-                .object
-                .as_ref()
-                .and_then(TermValue::as_iri)
-                .map(str::to_owned),
-            kind: crate::reason::refute::native::NativeReadKind::Completed,
+        use crate::reason::refute::native::{NativeRead, NativeReadKind, NativeReadPattern};
+        let pattern = if self.object_role == ObjectRole::Marker {
+            match (
+                &self.predicate,
+                self.object.as_ref().and_then(TermValue::as_iri),
+            ) {
+                (Some(predicate), Some(marker)) => NativeReadPattern::Declaration {
+                    subject: self.subject.clone(),
+                    predicate: predicate.clone(),
+                    marker: marker.to_owned(),
+                },
+                _ => NativeReadPattern::Statement {
+                    subject: self.subject.clone(),
+                    predicate: self.predicate.clone(),
+                    object: None,
+                },
+            }
+        } else {
+            NativeReadPattern::Statement {
+                subject: self.subject.clone(),
+                predicate: self.predicate.clone(),
+                object: self.object.clone(),
+            }
+        };
+        NativeRead {
+            pattern,
+            kind: NativeReadKind::Completed,
+        }
+    }
+
+    /// Preserve native exact objects and explicit declaration roles at admission.
+    pub(crate) fn native(pattern: &crate::reason::refute::native::NativeReadPattern) -> Self {
+        use crate::reason::refute::native::NativeReadPattern;
+        match pattern {
+            NativeReadPattern::Statement {
+                subject,
+                predicate,
+                object,
+            } => Self {
+                subject: subject.clone(),
+                predicate: predicate.clone(),
+                object: object.clone(),
+                object_role: ObjectRole::Exact,
+                ranges: None,
+            },
+            NativeReadPattern::Declaration {
+                subject,
+                predicate,
+                marker,
+            } => Self {
+                subject: subject.clone(),
+                predicate: Some(predicate.clone()),
+                object: Some(TermValue::iri(marker)),
+                object_role: ObjectRole::Marker,
+                ranges: None,
+            },
         }
     }
 
@@ -161,11 +228,17 @@ impl StatementPattern {
         match (self.object.as_ref(), object) {
             (Some(read), Some(written)) if read != written => {
                 match (read, written, self.predicate.as_deref().or(predicate)) {
-                    (TermValue::Iri(read), TermValue::Iri(written), Some(predicate)) => {
+                    (TermValue::Iri(read), TermValue::Iri(written), Some(predicate))
+                        if self.object_role == ObjectRole::Marker =>
+                    {
                         semantics.alternate_marker(predicate, read) == Some(written.as_str())
                     }
                     // Unknown operators retain both marker and ordinary roles.
-                    (TermValue::Iri(_), TermValue::Iri(_), None) => true,
+                    (TermValue::Iri(_), TermValue::Iri(_), None)
+                        if self.object_role == ObjectRole::Marker =>
+                    {
+                        true
+                    }
                     _ => false,
                 }
             }
@@ -439,6 +512,56 @@ impl WorldProducerEffect {
 pub(crate) struct WorldStatementObservation {
     pub(crate) world: String,
     pub(crate) pattern: StatementPattern,
+}
+
+/// Borrow the exact frozen writer authority; observations never alter its ranks
+/// or enrich its value universe. A registered None rank proves no actual writer.
+pub(crate) struct WorldReadPlan<'a> {
+    effects: &'a [WorldProducerEffect],
+    strata: &'a [usize],
+    semantics: SemanticVocabulary,
+    flow: Option<&'a value_flow::ValueFlow>,
+}
+
+impl<'a> WorldReadPlan<'a> {
+    pub(crate) fn new(
+        effects: &'a [WorldProducerEffect],
+        schedule: &'a WorldEffectSchedule,
+        semantics: SemanticVocabulary,
+        flow: Option<&'a value_flow::ValueFlow>,
+    ) -> Self {
+        Self {
+            effects,
+            strata: &schedule.strata,
+            semantics,
+            flow,
+        }
+    }
+
+    pub(crate) fn completion(
+        &self,
+        world: &str,
+        read: &crate::reason::refute::native::NativeRead,
+    ) -> Option<usize> {
+        let pattern = StatementPattern::native(&read.pattern);
+        let pattern = self.flow.map_or_else(
+            || pattern.clone(),
+            |flow| flow.ranged_pattern(pattern.clone()),
+        );
+        self.effects
+            .iter()
+            .zip(self.strata)
+            .filter(|(producer, _)| {
+                producer.owner == world
+                    && producer
+                        .effect
+                        .writes
+                        .iter()
+                        .any(|write| pattern.reads_write(write, self.semantics))
+            })
+            .map(|(_, rank)| *rank)
+            .max()
+    }
 }
 
 pub(crate) struct WorldEffectSchedule {

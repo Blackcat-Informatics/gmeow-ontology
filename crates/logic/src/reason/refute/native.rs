@@ -170,29 +170,8 @@ pub enum NativeReadKind {
     Completed,
 }
 
-/// Predicate roles are matched under the admitted native vocabulary; None means
-/// every predicate, including a dynamically produced property relation.
-#[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]
-pub struct NativeRead {
-    /// Exact predicate role, or every dynamically available predicate.
-    pub predicate: Option<String>,
-    /// Exact declaration marker object, interpreted only in its predicate role.
-    pub marker: Option<String>,
-    /// Whether present support or final extension is required.
-    pub kind: NativeReadKind,
-}
-
-impl NativeRead {
-    /// Completion of one exact declaration role, independent of unrelated type memberships.
-    #[must_use]
-    pub fn declaration(predicate: &str, marker: &str) -> Self {
-        Self {
-            predicate: Some(predicate.to_owned()),
-            marker: Some(marker.to_owned()),
-            kind: NativeReadKind::Completed,
-        }
-    }
-}
+mod read;
+pub use read::{NativeRead, NativeReadPattern};
 
 /// Typed source and capability failures, never semantic contradictions.
 #[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]
@@ -269,6 +248,8 @@ pub struct NativeFamilyOutcome {
     pub conclusions: Vec<NativeSupportedClash>,
     /// All retained source and capability boundaries.
     pub obstructions: Vec<NativeFamilyObstruction>,
+    /// Full publication dependencies, including boundaries already completed.
+    pub publication_reads: Vec<NativeRead>,
     /// Current completion state, independent of positive conclusions.
     pub completion: NativeFamilyCompletion,
 }
@@ -646,6 +627,7 @@ impl NativeFamilyOutcome {
             bounds: Vec::new(),
             conclusions: Vec::new(),
             obstructions: Vec::new(),
+            publication_reads: Vec::new(),
             completion: NativeFamilyCompletion::Complete,
         }
     }
@@ -662,29 +644,55 @@ impl NativeFamilyOutcome {
         });
         self.completion = NativeFamilyCompletion::Obstructed;
     }
+    /// Preserve a real skipped constructor/admission computation independently
+    /// of publication reads, which can settle without repeating that computation.
+    pub(crate) fn await_computation(
+        &mut self,
+        input: &NativeFamilyInput<'_>,
+        reads: Vec<NativeRead>,
+    ) {
+        let mut pending = match &self.completion {
+            NativeFamilyCompletion::Awaiting { reads } => reads.clone(),
+            NativeFamilyCompletion::Complete | NativeFamilyCompletion::NotEngaged => Vec::new(),
+            _ => return,
+        };
+        pending.extend(reads.into_iter().filter(|read| !input.completed(read)));
+        if !pending.is_empty() {
+            self.completion = NativeFamilyCompletion::Awaiting {
+                reads: pending
+                    .into_iter()
+                    .collect::<BTreeSet<_>>()
+                    .into_iter()
+                    .collect(),
+            };
+        }
+    }
     pub(crate) fn finish(
         &mut self,
         input: &NativeFamilyInput<'_>,
         reads: Vec<NativeRead>,
         ledger: &NativeFamilyLedger,
     ) {
+        self.publication_reads = reads
+            .into_iter()
+            .collect::<BTreeSet<_>>()
+            .into_iter()
+            .collect();
         if ledger.work.exhausted {
             self.completion = NativeFamilyCompletion::Exhausted;
         } else if !self.obstructions.is_empty() {
             self.completion = NativeFamilyCompletion::Obstructed;
         } else {
-            let mut required = reads;
+            let mut required = if input.defer_publication_completion {
+                Vec::new()
+            } else {
+                self.publication_reads.clone()
+            };
             if let NativeFamilyCompletion::Awaiting { reads } = &self.completion {
                 required.extend(reads.iter().cloned());
             }
             let pending: Vec<_> = required
                 .into_iter()
-                .filter(|read| {
-                    !input.defer_world_completion
-                        || read.kind != NativeReadKind::Completed
-                        || read.predicate.is_some()
-                        || read.marker.is_some()
-                })
                 .filter(|read| !input.completed(read))
                 .collect::<BTreeSet<_>>()
                 .into_iter()
@@ -1097,7 +1105,7 @@ pub(crate) struct NativeFamilyInput<'a> {
     evidence: &'a NativeEvidenceIndex,
     completed_reads: &'a BTreeSet<NativeRead>,
     admissions: Option<&'a crate::reason::dl::SourceCoverageWorld>,
-    defer_world_completion: bool,
+    defer_publication_completion: bool,
 }
 
 impl<'a> NativeFamilyInput<'a> {
@@ -1120,7 +1128,7 @@ impl<'a> NativeFamilyInput<'a> {
             evidence,
             completed_reads,
             admissions: None,
-            defer_world_completion: false,
+            defer_publication_completion: false,
         })
     }
     /// Bind the source-preparation phase on the same frozen state. There is no
@@ -1133,10 +1141,9 @@ impl<'a> NativeFamilyInput<'a> {
         self
     }
 
-    /// Compute a reusable family analysis before observing whole-world closure.
-    /// Only the outcome's final wildcard observation is deferred; constructor,
-    /// list and source-admission readers still use the real completed frontier.
-    pub(crate) fn defer_world_completion(&self) -> Self {
+    /// Retain final publication reads separately from the reusable computation.
+    /// Constructor, list and source-admission queries still use the real frontier.
+    pub(crate) fn defer_publication_completion(&self) -> Self {
         Self {
             store: self.store,
             rel: self.rel,
@@ -1144,7 +1151,7 @@ impl<'a> NativeFamilyInput<'a> {
             evidence: self.evidence,
             completed_reads: self.completed_reads,
             admissions: self.admissions,
-            defer_world_completion: true,
+            defer_publication_completion: true,
         }
     }
 
@@ -1229,26 +1236,8 @@ impl<'a> NativeFamilyInput<'a> {
             return true;
         }
         self.completed_reads.iter().any(|done| {
-            if done.kind != NativeReadKind::Completed {
-                return false;
-            }
-            let Some(predicate) = done.predicate.as_deref() else {
-                return done.marker.is_none();
-            };
-            let Some(needed) = read.predicate.as_deref() else {
-                return false;
-            };
-            if self.rel.semantics.predicate(predicate) != self.rel.semantics.predicate(needed) {
-                return false;
-            }
-            match (done.marker.as_deref(), read.marker.as_deref()) {
-                (None, _) => true,
-                (Some(_), None) => false,
-                (Some(left), Some(right)) => {
-                    left == right
-                        || self.rel.semantics.alternate_marker(predicate, left) == Some(right)
-                }
-            }
+            done.kind == NativeReadKind::Completed
+                && done.pattern.covers(&read.pattern, self.rel.semantics)
         })
     }
     pub(crate) fn support(

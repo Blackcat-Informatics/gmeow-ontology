@@ -96,19 +96,18 @@ pub(crate) fn preparation_reads() -> Vec<NativeRead> {
             super::OWL_MEMBERS,
             super::OWL_DISTINCT_MEMBERS,
         ])
-        .map(|predicate| NativeRead {
-            predicate: Some(predicate.to_owned()),
-            marker: None,
-            kind: NativeReadKind::Completed,
-        })
+        .map(|predicate| NativeRead::predicate(predicate.to_owned(), NativeReadKind::Completed))
         .collect();
     for marker in super::DECLARATION_TYPE_OBJECTS
         .iter()
         .chain(super::CONSISTENT_BLOCKING_TYPE_OBJECTS)
     {
         reads.insert(NativeRead {
-            predicate: Some(super::RDF_TYPE.to_owned()),
-            marker: Some((*marker).to_owned()),
+            pattern: crate::reason::refute::native::NativeReadPattern::Declaration {
+                subject: None,
+                predicate: super::RDF_TYPE.to_owned(),
+                marker: (*marker).to_owned(),
+            },
             kind: NativeReadKind::Completed,
         });
     }
@@ -123,21 +122,13 @@ pub(crate) fn positive_reads() -> Vec<NativeRead> {
         super::OWL_DIFFERENT_FROM,
     ]
     .into_iter()
-    .map(|predicate| NativeRead {
-        predicate: Some(predicate.to_owned()),
-        marker: None,
-        kind: NativeReadKind::Positive,
-    })
+    .map(|predicate| NativeRead::predicate(predicate.to_owned(), NativeReadKind::Positive))
     .collect()
 }
 
 /// Non-writing model finalization requires the completed shared current extension.
 pub(crate) fn completion_reads() -> Vec<NativeRead> {
-    vec![NativeRead {
-        predicate: None,
-        marker: None,
-        kind: NativeReadKind::Completed,
-    }]
+    vec![NativeRead::world(NativeReadKind::Completed)]
 }
 
 pub(super) struct NativeClassState {
@@ -191,6 +182,68 @@ fn relevant(predicate: &str) -> bool {
 }
 
 impl PreparedClassAnalysis {
+    /// Publish only the last scheduled class computation at the attained frontier.
+    pub(crate) fn refresh_completion(
+        &self,
+        input: &NativeFamilyInput<'_>,
+        ledger: &NativeFamilyLedger,
+        terminal: &crate::reason::refute::NativeClosureStatus,
+    ) -> gmeow_errors::Result<Option<ClassExecutionOutcome>> {
+        let Some(native) = &self.native else {
+            return Ok(None);
+        };
+        let Some(mut result) = native.last.clone() else {
+            return Ok(None);
+        };
+        if input.store.row_count() < native.observed_rows {
+            return Err(failure(
+                "class publication moved behind its computed prefix",
+            ));
+        }
+        let dirty = input.store.facts()[native.observed_rows..]
+            .iter()
+            .any(|fact| relevant(&super::semantic_predicate(&fact.predicate)));
+        if dirty
+            && !matches!(
+                terminal,
+                crate::reason::refute::NativeClosureStatus::Exhausted
+            )
+        {
+            return Err(failure(
+                "class publication found an unevaluated committed input",
+            ));
+        }
+        if dirty {
+            if matches!(
+                result.completion,
+                NativeFamilyCompletion::Complete
+                    | NativeFamilyCompletion::NotEngaged
+                    | NativeFamilyCompletion::Awaiting { .. }
+            ) {
+                result.completion = NativeFamilyCompletion::Exhausted;
+            }
+        } else if matches!(
+            result.completion,
+            NativeFamilyCompletion::Complete
+                | NativeFamilyCompletion::NotEngaged
+                | NativeFamilyCompletion::Awaiting { .. }
+        ) {
+            let reads: Vec<_> = completion_reads()
+                .into_iter()
+                .filter(|read| !input.completed(read))
+                .collect();
+            result.completion = if !reads.is_empty() {
+                NativeFamilyCompletion::Awaiting { reads }
+            } else if self.scan.engages() {
+                NativeFamilyCompletion::Complete
+            } else {
+                NativeFamilyCompletion::NotEngaged
+            };
+        }
+        result.validate(ledger)?;
+        Ok(Some(result))
+    }
+
     /// Freeze schema only after its declared writers finish; bind the existing
     /// source analysis to the shared proof DAG and admit actual derived schema once.
     pub(crate) fn prepare(
