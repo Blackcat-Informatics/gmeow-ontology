@@ -353,12 +353,12 @@ pub fn prepare_reasoning_input(
 /// The abstract domain is the small set of constants required by the native laws,
 /// not a retained corpus or a sample. Ordinary rule constants and newly enabled
 /// law heads participate until this finite analysis reaches its fixed point.
-pub(super) fn applicable_schema_laws(
+pub(super) fn applicable_schema_laws<'a>(
     prepared: &crate::program_analysis::PreparedProgram,
     facts: &BTreeMap<String, Vec<Fact>>,
     sources: &super::source_existentials::PreparedSources,
     domains: &crate::physical::SelectedDomains,
-    possible: &[(String, Fact)],
+    possible: impl IntoIterator<Item = &'a (String, Fact)>,
     contextual_effects: &[crate::physical::WorldProducerEffect],
 ) -> Vec<PreparedPropertyRule> {
     use crate::rule_ir::EvalTerm;
@@ -416,7 +416,7 @@ pub(super) fn applicable_schema_laws(
     for fact in facts
         .values()
         .flatten()
-        .chain(possible.iter().map(|(_, fact)| fact))
+        .chain(possible.into_iter().map(|(_, fact)| fact))
     {
         observe_predicate(&fact.predicate, &mut predicates);
         observe(&fact.predicate, &mut present);
@@ -622,13 +622,12 @@ pub(super) fn execute_transaction(
             .or_default()
             .push(source.rule.clone());
     }
-    let selected_potential: Vec<_> = possible.iter().chain(potential).cloned().collect();
     let properties = applicable_schema_laws(
         prepared,
         &facts,
         &sources,
         domains,
-        &selected_potential,
+        possible.iter().chain(potential),
         contextual.effects(),
     );
     tracing::info!(
@@ -637,7 +636,7 @@ pub(super) fn execute_transaction(
         phase = "prepare-native-schema-input",
         event = "end",
         elapsed_ms = schema_started.elapsed().as_millis(),
-        selected_potential = selected_potential.len(),
+        selected_potential = possible.len() + potential.len(),
         selected_schema_laws = properties.len(),
         contextual_effects = contextual.effects().len(),
         "reason phase boundary",
