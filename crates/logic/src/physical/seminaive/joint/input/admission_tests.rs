@@ -289,6 +289,111 @@ fn the_closure_of_a_witness_free_relation_is_complete() {
     assert!(store.contains(SUBCLASS, &TermValue::iri("urn:a"), &TermValue::iri("urn:c")));
 }
 
+/// Protects the admission closure's pending-row ceiling in both its initial pass
+/// and a semi-naive round. Two rules queue the same output for every Cartesian
+/// match: only one distinct row would survive the drain, so bounding distinct
+/// committed rows cannot protect this allocation. Exactly 2^18 candidates fit;
+/// the next candidate must stop the analysis without being retained.
+#[test]
+fn closure_pending_rows_are_bounded_before_the_drain_in_both_passes() {
+    const LEFT: &str = "urn:left";
+    const RIGHT: &str = "urn:right";
+    const READY: &str = "urn:ready";
+    for delayed in [false, true] {
+        for right_count in [256, 257] {
+            let mut rows: Vec<_> = (0..512)
+                .map(|index| fact(&format!("urn:left:{index}"), LEFT, "urn:input"))
+                .collect();
+            rows.extend(
+                (0..right_count)
+                    .map(|index| fact(&format!("urn:right:{index}"), RIGHT, "urn:input")),
+            );
+            let mut body = vec![
+                EvalAtom::positive(EvalTerm::var("?left"), LEFT, EvalTerm::named("urn:input")),
+                EvalAtom::positive(EvalTerm::var("?right"), RIGHT, EvalTerm::named("urn:input")),
+            ];
+            let mut rules = Vec::new();
+            if delayed {
+                rules.push(EvalRule::positive(
+                    "urn:seed",
+                    EvalAtom::positive(
+                        EvalTerm::named("urn:seed"),
+                        READY,
+                        EvalTerm::named("urn:ready"),
+                    ),
+                    vec![EvalAtom::positive(
+                        EvalTerm::named("urn:left:0"),
+                        LEFT,
+                        EvalTerm::named("urn:input"),
+                    )],
+                ));
+                body.insert(
+                    0,
+                    EvalAtom::positive(
+                        EvalTerm::named("urn:seed"),
+                        READY,
+                        EvalTerm::named("urn:ready"),
+                    ),
+                );
+            }
+            for name in ["urn:expand:a", "urn:expand:b"] {
+                rules.push(EvalRule::positive(
+                    name,
+                    EvalAtom::positive(
+                        EvalTerm::named("urn:output"),
+                        LEFT,
+                        EvalTerm::named("urn:output"),
+                    ),
+                    body.clone(),
+                ));
+            }
+            let template = template(&rules);
+            let data = BTreeMap::from([(WORLD.to_owned(), rows)]);
+            let input = template
+                .input(&data, Arc::from([]), &[])
+                .expect("synthetic source and producer selection is valid");
+            let Some(Ok(evidence)) = &input.evidence else {
+                panic!("the bounded source inventory supplies input-specific evidence");
+            };
+            let result = template
+                .termination
+                .as_ref()
+                .expect("native rules have a termination template")
+                .close(
+                    evidence,
+                    evidence
+                        .closable
+                        .as_ref()
+                        .expect("the small source inventory is within its own bound"),
+                    SEMANTICS,
+                )
+                .expect("closure analysis has no operational failure");
+            if right_count == 256 {
+                let Ok((_, store, _)) = result else {
+                    panic!("exactly {MAX_BINDINGS} pending rows fit the inclusive bound");
+                };
+                assert!(store.contains(
+                    LEFT,
+                    &TermValue::iri("urn:output"),
+                    &TermValue::iri("urn:output")
+                ));
+            } else {
+                let Err(EvidenceGap::ClosurePendingBound {
+                    rule,
+                    committed_rows,
+                    pending_rows,
+                }) = result
+                else {
+                    panic!("the first candidate past the pending bound must be named");
+                };
+                assert_eq!(rule, "urn:expand:b");
+                assert_eq!(committed_rows, usize::from(delayed));
+                assert_eq!(pending_rows, MAX_BINDINGS);
+            }
+        }
+    }
+}
+
 #[test]
 fn a_relation_written_from_an_open_relation_is_open() {
     // `type(x, Meta) → subClassOf(x, Top)` writes `subClassOf` from `instanceOf

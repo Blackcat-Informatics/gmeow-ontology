@@ -283,6 +283,15 @@ are consumed through its public Rust API:
   payload bounds. Its digest streams the full typed program, including contextual
   scope and provenance, directly into the hasher. No dataset, result or serialized
   carrier is retained; eviction recomputes the same lowering and cannot weaken it.
+- Bounded termination analysis: witness-free relation closure admits at most
+  262,144 pending candidate rows, checked before each enqueue in both the initial
+  and semi-naive passes. Several producers or delta seeds can queue the same row
+  before it is committed, so the distinct committed-row bound cannot protect this
+  allocation. The first additional candidate stops that closure analysis with its
+  producer, committed-row count and retained pending-row count. The existing
+  immutable-only analysis remains available and retains the bound observation on refusal;
+  incomplete closure never becomes a termination certificate. This limits row
+  retention, not row byte size, and establishes no full-pipeline memory reduction.
 - Selected reasoned projections: `crates/logic/src/verify.rs` builds asserted plus
   native-derived closure, checks DL completeness and the observed-not-derived
   boundary, and attaches expression identity through one shared materializer.
