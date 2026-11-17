@@ -333,6 +333,33 @@ with `logic:WellBehavedLens`, `logic:InstitutionMorphism` and
 `logic:SoundUnderApproximation` preservation. This concept relation proves no
 individual map's linearity, image or rank.
 
+`math:Subspace` describes a vector subspace W of V over the same field F:
+W contains zero and is closed under induced addition and multiplication by
+every scalar in F. The zero subspace, the whole space, and finite or infinite
+dimension are allowed. `math:subspaceOf` retains each justified ambient
+relationship, including W to itself, without choosing a preferred ambient.
+Keep the algebraic structures, their carrier sets and their scalar field
+separate. The existing descriptive `math:scalarField` relation does not impose
+a required field edge or a universal `math:Field` target.
+
+The [subspace contract](./design/MATHEMATICS-LINEAR-ALGEBRA-AND-LEARNING.md#subspaces-and-ambient-structure)
+distinguishes linear-map images from arbitrary nonlinear embedding images,
+and residual data from residual subspaces. Orthogonal complements also need
+the ambient inner product; algebraic subspaces need not be topologically closed.
+The current `math:subspaceOf` source states its domain and range only in prose,
+without native typing, cardinality, inclusion, transitivity or closure rules.
+An asserted type, ambient link or retrieved competency answer supplies no
+subspace computation or proof of closure.
+
+The existing Subspace `skos:exactMatch` to
+[Wikidata Q728435](https://www.wikidata.org/wiki/Q728435), linear subspace,
+carries `logic:WellBehavedLens`, `logic:InstitutionMorphism` and
+`logic:SoundUnderApproximation` preservation. It grounds the concept without
+certifying an individual subspace or an executed construction. The ordinary
+example asserts an ambient link but no embedding-image identity or closure
+proof. The exact Gram/PCA producer retains `p:residualSubspace` as
+`math:MathematicalObject`; its name does not establish a verified subspace.
+
 `math:CovarianceOperator` describes centered second moments under supplied field,
 inner-product and moment assumptions. The
 [covariance contract](./design/MATHEMATICS-LINEAR-ALGEBRA-AND-LEARNING.md#covariance-operators-and-declared-analysis-operands)
@@ -359,9 +386,10 @@ algorithm or analytic equivalence.
 - **PCA and the KG-projection flagship** — `math:PCAAnalysis` (a `gmeow:Activity`), `math:PrincipalComponent`,
   `math:LoadingVector`, `math:ScoreVector`, `math:ExplainedVariance`, `math:ProjectionResidual`, and
   `math:ResidualInterpretationClaim`. A PCA names its input, centering/scaling policy, covariance operator,
-  eigensolver, and its component/loading/score/variance/residual outputs. The flagship — embed a knowledge
-  graph, take the orthogonal complement of the embedded subspace, run PCA on the residuals, interpret the
-  residual — composes cleanly, and the *meaning* of a component is a `math:ResidualInterpretationClaim`: a
+  eigensolver, and its component/loading/score/variance/residual outputs. The flagship declares a knowledge
+  graph embedding and a separately asserted subspace, its inner-product-defined orthogonal complement,
+  PCA operands and residual outputs. The embedding alone does not establish that subspace or turn residual
+  data into a subspace. The *meaning* of a component is a `math:ResidualInterpretationClaim`: a
   `gmeow:Observation` with a `gmeow:vantage`, never a property (no direct meaning property is minted, so the
   property-form is unauthorable).
 - **Learning, embeddings, and latent spaces** — `math:LearnedModel`, `math:LossFunction`,

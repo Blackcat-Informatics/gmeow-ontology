@@ -6179,7 +6179,12 @@ math:Subspace
     rdfs:subClassOf math:VectorSpace ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "Subspace"@x-gmeow-english ;
-    skos:definition "A vector subspace: a subset of a vector space closed under addition and scalar multiplication, itself a math:VectorSpace. A subclass of math:VectorSpace naming the space it sits in through math:subspaceOf. The embedded image of an embedding and the residual of a projection are subspaces; a math:OrthogonalComplement is the subspace orthogonal to one."@x-gmeow-english ;
+    skos:definition "A vector subspace: a subset of a vector space closed under addition and scalar multiplication, itself a math:VectorSpace. A subclass of math:VectorSpace naming the space it sits in through math:subspaceOf. The image of a linear map is a subspace; an arbitrary embedding image or projection residual needs separate subspace justification. A math:OrthogonalComplement is the subspace orthogonal to an operand subspace within a declared inner-product space."@x-gmeow-english ;
+    skos:scopeNote "For W to be a subspace of V over F, W contains zero and uses the induced addition and scalar action of V, closed under every scalar in the same field F. Zero and whole-space subspaces, finite and infinite dimension are allowed. Algebraic closure here does not require topological closedness."@x-gmeow-english ;
+    skos:example "In the real vector space R³ with its usual operations, W = {(x,y,0) : x,y in R} is a subspace, including zero and closed under real linear combinations. The affine plane {(x,y,1) : x,y in R} is not a subspace because it lacks zero."@x-gmeow-english ;
+    gmeow:useWhen "Use for a justified vector subspace with its ambient vector-space structure and common scalar field retained. A linear-map image or a supplied span can establish a subspace; sampled vectors alone do not establish closure of the sample set."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not infer a subspace from an embedding label, a dimension, an arbitrary nonlinear image or residual data. An orthogonal complement requires the declared ambient inner product; a global orthogonal direct-sum decomposition needs its own hypotheses in infinite dimension."@x-gmeow-english ;
+    gmeow:howToUse "Describe W as math:Subspace and link each justified ambient V with math:subspaceOf. Retain math:underlyingSet, math:structureOperation and math:satisfiesAxiom evidence separately from descriptive math:scalarField links. A type or ambient link supplies no automatic closure proof or subspace computation."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 math:OrthogonalComplement
@@ -6293,6 +6298,11 @@ math:subspaceOf
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "subspace of"@x-gmeow-english ;
     skos:definition "Relates a math:Subspace to the vector space it is a subspace of. Domain math:Subspace, range math:VectorSpace (stated in prose). The ambient space a subspace sits in, and against which its orthogonal complement is taken."@x-gmeow-english ;
+    skos:scopeNote "The direction is W to ambient V, with a common scalar field and induced operations justified separately. Several ambient links may be valid, including W to itself. The source states domain and range in prose without native typing, cardinality, inclusion, transitivity or closure rules for this property."@x-gmeow-english ;
+    skos:example "The linear-algebra-and-learning example states ex:embeddedSubspace math:subspaceOf ex:complexSpace4096. This records an asserted ambient relationship; the dataset supplies neither an embedding-image link to that subspace nor a proof of linear closure."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain each justified ambient vector space of a subspace without choosing a preferred ambient. Preserve the actual scalar-field interpretation and induced operations rather than infer them from shared dimensions or carrier labels."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not reverse the relationship, substitute a carrier set or scalar field for the ambient vector-space structure, or treat the edge as a closure certificate. Keep math:orthogonalComplementOf for the operand subspace, math:ambientSpace for its enclosing space and math:definedByInnerProduct for its form; those role referents may coincide."@x-gmeow-english ;
+    gmeow:howToUse "Link the supplied math:Subspace to its ambient math:VectorSpace and preserve the source justification of zero, addition and same-field scalar closure. For orthogonal-complement descriptions retain the separate operand, ambient and inner-product roles. Neither this edge nor a retrieved competency answer calculates a residual subspace."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 math:orthogonalComplementOf

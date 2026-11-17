@@ -17886,3 +17886,59 @@ msgstr "Ne pas inverser la direction de l’analyse vers l’opérateur, substit
 msgctxt "https://blackcatinformatics.ca/math/covarianceOperator|https://blackcatinformatics.ca/gmeow/howToUse"
 msgid "Link the analysis to its justified CovarianceOperator resource and preserve that operator’s carrier-set frame and actual construction evidence. Keep centering and scaling declarations on the analysis distinct from proof that those operations ran. The relation supplies no additional maximum, automatic target typing, covariance computation or numerical validation result."
 msgstr "Relier l’analyse à sa ressource CovarianceOperator justifiée et conserver le cadre d’ensembles supports de cet opérateur et les éléments de sa construction effective. Distinguer les déclarations de centrage et de mise à l’échelle sur l’analyse des preuves que ces opérations ont été exécutées. La relation ne fournit aucun maximum supplémentaire, typage automatique de cible, calcul de covariance ni résultat de validation numérique."
+
+msgctxt "https://blackcatinformatics.ca/math/Subspace|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Subspace"
+msgstr "Sous-espace vectoriel"
+
+msgctxt "https://blackcatinformatics.ca/math/Subspace|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A vector subspace: a subset of a vector space closed under addition and scalar multiplication, itself a math:VectorSpace. A subclass of math:VectorSpace naming the space it sits in through math:subspaceOf. The image of a linear map is a subspace; an arbitrary embedding image or projection residual needs separate subspace justification. A math:OrthogonalComplement is the subspace orthogonal to an operand subspace within a declared inner-product space."
+msgstr "Un sous-espace vectoriel : une partie d’un espace vectoriel stable par addition et multiplication scalaire, elle-même un math:VectorSpace. Sous-classe de math:VectorSpace nommant l’espace qui la contient par math:subspaceOf. L’image d’une application linéaire est un sous-espace ; l’image d’un plongement arbitraire ou un résidu de projection exige une justification distincte de sa structure de sous-espace. Un math:OrthogonalComplement est le sous-espace orthogonal à un sous-espace opérande dans un espace à produit scalaire déclaré."
+
+msgctxt "https://blackcatinformatics.ca/math/Subspace|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "For W to be a subspace of V over F, W contains zero and uses the induced addition and scalar action of V, closed under every scalar in the same field F. Zero and whole-space subspaces, finite and infinite dimension are allowed. Algebraic closure here does not require topological closedness."
+msgstr "Pour que W soit un sous-espace de V sur F, W contient zéro et utilise l’addition et l’action scalaire induites de V, avec stabilité pour tout scalaire du même corps F. Le sous-espace nul, l’espace entier et les dimensions finies ou infinies sont admis. Cette stabilité algébrique n’exige pas que le sous-espace soit topologiquement fermé."
+
+msgctxt "https://blackcatinformatics.ca/math/Subspace|http://www.w3.org/2004/02/skos/core#example"
+msgid "In the real vector space R³ with its usual operations, W = {(x,y,0) : x,y in R} is a subspace, including zero and closed under real linear combinations. The affine plane {(x,y,1) : x,y in R} is not a subspace because it lacks zero."
+msgstr "Dans l’espace vectoriel réel R³ muni des opérations usuelles, W = {(x,y,0) : x,y dans R} est un sous-espace, contenant zéro et stable par combinaisons linéaires réelles. Le plan affine {(x,y,1) : x,y dans R} n’est pas un sous-espace, car il ne contient pas zéro."
+
+msgctxt "https://blackcatinformatics.ca/math/Subspace|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for a justified vector subspace with its ambient vector-space structure and common scalar field retained. A linear-map image or a supplied span can establish a subspace; sampled vectors alone do not establish closure of the sample set."
+msgstr "Utiliser pour un sous-espace vectoriel justifié, en conservant la structure de l’espace vectoriel ambiant et le corps des scalaires commun. L’image d’une application linéaire ou un espace engendré fourni peut établir un sous-espace ; des vecteurs échantillonnés seuls n’établissent pas la stabilité de l’ensemble des échantillons."
+
+msgctxt "https://blackcatinformatics.ca/math/Subspace|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Do not infer a subspace from an embedding label, a dimension, an arbitrary nonlinear image or residual data. An orthogonal complement requires the declared ambient inner product; a global orthogonal direct-sum decomposition needs its own hypotheses in infinite dimension."
+msgstr "Ne pas déduire un sous-espace d’un libellé de plongement, d’une dimension, d’une image non linéaire arbitraire ou de données résiduelles. Un complément orthogonal exige le produit scalaire ambiant déclaré ; une décomposition globale en somme directe orthogonale nécessite ses propres hypothèses en dimension infinie."
+
+msgctxt "https://blackcatinformatics.ca/math/Subspace|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Describe W as math:Subspace and link each justified ambient V with math:subspaceOf. Retain math:underlyingSet, math:structureOperation and math:satisfiesAxiom evidence separately from descriptive math:scalarField links. A type or ambient link supplies no automatic closure proof or subspace computation."
+msgstr "Décrire W comme math:Subspace et relier chaque espace ambiant V justifié par math:subspaceOf. Conserver les éléments justificatifs math:underlyingSet, math:structureOperation et math:satisfiesAxiom séparément des liens descriptifs math:scalarField. Un type ou un lien ambiant ne fournit ni preuve automatique de stabilité ni calcul de sous-espace."
+
+msgctxt "https://blackcatinformatics.ca/math/subspaceOf|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "subspace of"
+msgstr "sous-espace de"
+
+msgctxt "https://blackcatinformatics.ca/math/subspaceOf|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Relates a math:Subspace to the vector space it is a subspace of. Domain math:Subspace, range math:VectorSpace (stated in prose). The ambient space a subspace sits in, and against which its orthogonal complement is taken."
+msgstr "Relie un math:Subspace à l’espace vectoriel dont il est un sous-espace. Domaine math:Subspace, portée math:VectorSpace (indiqués en prose). L’espace ambiant qui contient le sous-espace et au sein duquel son complément orthogonal est pris."
+
+msgctxt "https://blackcatinformatics.ca/math/subspaceOf|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The direction is W to ambient V, with a common scalar field and induced operations justified separately. Several ambient links may be valid, including W to itself. The source states domain and range in prose without native typing, cardinality, inclusion, transitivity or closure rules for this property."
+msgstr "La direction va de W vers l’espace ambiant V, le corps des scalaires commun et les opérations induites étant justifiés séparément. Plusieurs liens ambiants peuvent être valides, y compris de W vers lui-même. La source énonce le domaine et la portée en prose, sans règles natives de typage, cardinalité, inclusion, transitivité ou stabilité pour cette propriété."
+
+msgctxt "https://blackcatinformatics.ca/math/subspaceOf|http://www.w3.org/2004/02/skos/core#example"
+msgid "The linear-algebra-and-learning example states ex:embeddedSubspace math:subspaceOf ex:complexSpace4096. This records an asserted ambient relationship; the dataset supplies neither an embedding-image link to that subspace nor a proof of linear closure."
+msgstr "L’exemple linear-algebra-and-learning énonce ex:embeddedSubspace math:subspaceOf ex:complexSpace4096. Cela consigne une relation ambiante affirmée ; le jeu de données ne fournit ni lien entre l’image du plongement et ce sous-espace ni preuve de stabilité linéaire."
+
+msgctxt "https://blackcatinformatics.ca/math/subspaceOf|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain each justified ambient vector space of a subspace without choosing a preferred ambient. Preserve the actual scalar-field interpretation and induced operations rather than infer them from shared dimensions or carrier labels."
+msgstr "Utiliser pour conserver chaque espace vectoriel ambiant justifié d’un sous-espace sans choisir d’espace ambiant privilégié. Préserver l’interprétation effective du corps des scalaires et les opérations induites plutôt que les déduire de dimensions communes ou de libellés de supports."
+
+msgctxt "https://blackcatinformatics.ca/math/subspaceOf|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Do not reverse the relationship, substitute a carrier set or scalar field for the ambient vector-space structure, or treat the edge as a closure certificate. Keep math:orthogonalComplementOf for the operand subspace, math:ambientSpace for its enclosing space and math:definedByInnerProduct for its form; those role referents may coincide."
+msgstr "Ne pas inverser la relation, substituer un ensemble support ou un corps des scalaires à la structure vectorielle ambiante, ni traiter l’arête comme un certificat de stabilité. Conserver math:orthogonalComplementOf pour le sous-espace opérande, math:ambientSpace pour l’espace qui l’englobe et math:definedByInnerProduct pour sa forme ; les référents de ces rôles peuvent coïncider."
+
+msgctxt "https://blackcatinformatics.ca/math/subspaceOf|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Link the supplied math:Subspace to its ambient math:VectorSpace and preserve the source justification of zero, addition and same-field scalar closure. For orthogonal-complement descriptions retain the separate operand, ambient and inner-product roles. Neither this edge nor a retrieved competency answer calculates a residual subspace."
+msgstr "Relier le math:Subspace fourni à son math:VectorSpace ambiant et conserver la justification de source pour zéro, l’addition et la stabilité scalaire sur le même corps. Pour décrire un complément orthogonal, conserver les rôles distincts d’opérande, d’espace ambiant et de produit scalaire. Ni cette arête ni une réponse de compétence extraite ne calcule un sous-espace résiduel."

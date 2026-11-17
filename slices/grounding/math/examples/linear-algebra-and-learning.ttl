@@ -5,8 +5,8 @@
 # one dataset:
 #
 #   (1) KG-projection / PCA-of-residuals: a knowledge-graph embedding into a complex
-#       latent space, the orthogonal complement of the embedded subspace (defined by a
-#       Hermitian inner product) as the residual subspace, a PCA over the residuals
+#       latent space, a separately asserted subspace and its orthogonal complement
+#       (defined by a Hermitian inner product), a PCA over the declared residuals
 #       declaring its inputs/policy/outputs, and the MEANING of a principal component
 #       held as a gmeow:Observation from a vantage (never a property of the vector).
 #   (2) AI self-structure: the same model's forward pass AS a math:TensorComputationGraph
@@ -51,8 +51,10 @@ ex:nodeRelFn a math:Function ;
 ex:hyperbolicComplexModelV3 a math:LearnedModel .
 
 # --- The residual subspace: an orthogonal complement (Q1) ------------------- #
-# The embedded image is a subspace; its orthogonal complement (defined by the
-# Hermitian inner product, within the complex ambient space) is the residual.
+# The subspace and ambient link below are assertions, not a linear-closure proof.
+# No image link identifies this subspace with the embedding image. The complement
+# names the operand, complex ambient space and Hermitian inner product separately;
+# these declarations do not construct a complement or turn residual data into one.
 
 ex:embeddedSubspace a math:Subspace ;
     math:subspaceOf ex:complexSpace4096 .
