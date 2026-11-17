@@ -80,6 +80,8 @@ fn translation_integrity_rejects_copied_and_hybrid_english() {
         "red-hat",
         "Example: ex:record a logic:JournalBoundary .",
         "Illustration: ex:M math:manifoldStructureKind math:smoothStructure .",
+        "INSERT DATA { ex: ex:p . }",
+        "Example: INSERT DATA { ex: ex:p ex:o . }",
     ] {
         assert_eq!(
             translation_integrity_issue("fr", text, text),
@@ -155,6 +157,8 @@ fn translation_integrity_admits_preserved_code_and_notation_literals() {
         "ex.part: ex:p ex:o .",
         "e·x: ex:p ex:o .",
         "ex: ex:p _:b .",
+        "INSERT DATA { ex: ex:p ex:o . }",
+        "DELETE WHERE { ex: ex:p ex:o . }",
         path_query,
         slash_turtle,
         ": a :Class .",

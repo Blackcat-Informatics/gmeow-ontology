@@ -275,16 +275,15 @@ fn parses_as_turtle(text: &str) -> bool {
     purrdf::parse_dataset(as_object.as_bytes(), "text/turtle", None).is_ok()
 }
 
-/// Validate a complete SPARQL query with the same snippet prefix bindings.
+/// Validate a complete SPARQL query or update with the same snippet prefix bindings.
 fn parses_as_sparql(text: &str) -> bool {
     let Ok(tokens) = purrdf::sparql::lexer::tokenize(text) else {
         return false;
     };
     let prefixes = synthesized_prefixes(&tokens);
-    let query = format!("{prefixes}{text}\n");
-    purrdf::sparql::SparqlParser::new()
-        .parse_query(&query)
-        .is_ok()
+    let request = format!("{prefixes}{text}\n");
+    let parser = purrdf::sparql::SparqlParser::new();
+    parser.parse_query(&request).is_ok() || parser.parse_update(&request).is_ok()
 }
 
 fn is_english_prose_token(word: &str) -> bool {
