@@ -2826,13 +2826,13 @@ msgctxt "https://blackcatinformatics.ca/math/metricSignature|skos:definition"
 msgid "Relates a math:MetricTensor, math:QuadraticSpace, math:QuadraticForm, or math:CliffordAlgebra to its shared math:MetricSignature (p, q). Range math:MetricSignature (stated in prose). Structured, not an opaque string, so metric and Clifford consumers read the same exact sign convention."
 msgstr "Relie un math:MetricTensor, un math:QuadraticSpace, une math:QuadraticForm ou une math:CliffordAlgebra à sa math:MetricSignature (p, q) partagée. Portée math:MetricSignature (indiquée en prose). Elle est structurée, et non une chaîne opaque, de sorte que les consommateurs métriques et de Clifford lisent exactement la même convention de signe."
 
-msgctxt "https://blackcatinformatics.ca/math/hasBasis|rdfs:label"
+msgctxt "https://blackcatinformatics.ca/math/hasBasis|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "has basis"
 msgstr "a pour base"
 
-msgctxt "https://blackcatinformatics.ca/math/hasBasis|skos:definition"
-msgid "Relates a math:VectorSpace, math:QuadraticSpace, or math:CliffordAlgebra to a math:Basis of its carrier. Range math:Basis (stated in prose). A space or algebra may carry several bases; a Clifford basis fixes the ordered generators used by its exact products and blade witnesses."
-msgstr "Relie un espace vectoriel, espace quadratique ou algèbre de Clifford à une math:Basis de son support ; une base de Clifford fixe les générateurs ordonnés de ses produits exacts."
+msgctxt "https://blackcatinformatics.ca/math/hasBasis|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Relates a math:VectorSpace, math:QuadraticSpace or math:CliffordAlgebra to a math:Basis of its vector-space carrier. The relation names a basis choice and permits several choices; it does not enumerate or order basis elements. A Clifford algebra carrier basis is distinct from its ordered grade-one generators."
+msgstr "Relie un math:VectorSpace, un math:QuadraticSpace ou une math:CliffordAlgebra à une math:Basis de son support vectoriel. La relation nomme un choix de base et permet plusieurs choix ; elle n’énumère ni n’ordonne les éléments de la base. La base du support d’une algèbre de Clifford est distincte de ses générateurs ordonnés de grade un."
 
 msgctxt "https://blackcatinformatics.ca/math/analysisInput|rdfs:label"
 msgid "analysis input"
@@ -17530,3 +17530,79 @@ msgstr "Le témoin avec référentiel dont seule l’arête hasReferenceFrame de
 msgctxt "https://blackcatinformatics.ca/gmeow/examples/math/tests/ecQuotientFrameMissingDenominator|https://blackcatinformatics.ca/gmeow/conformanceRationale"
 msgid "The framed control with only denominatorFrame removed must raise IncompleteRatioFrame from the quotient's closed required denominator path. The numerator, quantity frame and ordinary reference profiles remain supplied."
 msgstr "Le témoin avec référentiel dont seul denominatorFrame a été retiré doit produire IncompleteRatioFrame à partir du chemin fermé du dénominateur requis du quotient. Le numérateur, le référentiel de la quantité et les profils de référence ordinaires restent fournis."
+
+msgctxt "https://blackcatinformatics.ca/math/Basis|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Basis"
+msgstr "Base"
+
+msgctxt "https://blackcatinformatics.ca/math/Basis|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An algebraic basis of a vector space over its scalar field: a linearly independent spanning family. Every vector has unique finitely supported coefficients indexed by the basis elements. The basis is distinct from an ordering of its elements, a coordinate array and an inner product."
+msgstr "Une base algébrique d’un espace vectoriel sur son corps des scalaires : une famille libre et génératrice. Chaque vecteur possède des coefficients uniques à support fini, indexés par les éléments de la base. La base est distincte d’un ordre sur ses éléments, d’un tableau de coordonnées et d’un produit scalaire."
+
+msgctxt "https://blackcatinformatics.ca/math/Basis|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Uniqueness is relative to the vector space and scalar field. Indexed coefficients need not form an ordered tuple; positional coordinates additionally require a correspondence between positions and basis elements. A named Basis record alone does not establish independence or spanning."
+msgstr "L’unicité est relative à l’espace vectoriel et au corps des scalaires. Des coefficients indexés ne forment pas nécessairement un tuple ordonné ; des coordonnées positionnelles exigent en plus une correspondance entre positions et éléments de la base. Un enregistrement Basis nommé ne suffit pas à établir que la famille est libre ou génératrice."
+
+msgctxt "https://blackcatinformatics.ca/math/Basis|http://www.w3.org/2004/02/skos/core#example"
+msgid "The exact-pca producer declares p:covBasis as math:Basis and links its Gram matrix to that resource through math:inBasis. The RDF names the context but does not enumerate basis elements or their order."
+msgstr "Le producteur exact-pca déclare p:covBasis comme math:Basis et relie sa matrice de Gram à cette ressource par math:inBasis. Le RDF nomme le contexte sans énumérer les éléments de la base ni leur ordre."
+
+msgctxt "https://blackcatinformatics.ca/math/Basis|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to name a supplied basis underlying vectors, coordinate arrays or an algebra carrier, retaining the actual vector space and scalar field."
+msgstr "Utiliser pour nommer une base fournie pour des vecteurs, des tableaux de coordonnées ou le support d’une algèbre, en conservant l’espace vectoriel et le corps des scalaires effectifs."
+
+msgctxt "https://blackcatinformatics.ca/math/Basis|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Do not infer orthonormality or eigenvector roles from the Basis type. A self-adjoint operator on a finite-dimensional real or complex inner-product space admits an orthonormal eigenbasis; not every basis is an eigenbasis. Do not extend that conclusion to arbitrary infinite-dimensional self-adjoint operators or assume that truncated PCA components span the full input space."
+msgstr "Ne pas déduire l’orthonormalité ni un rôle de vecteur propre du type Basis. Un opérateur autoadjoint sur un espace préhilbertien réel ou complexe de dimension finie admet une base orthonormée de vecteurs propres ; toute base n’est pas une telle base. Ne pas étendre cette conclusion aux opérateurs autoadjoints arbitraires en dimension infinie ni supposer que des composantes principales tronquées engendrent tout l’espace d’entrée."
+
+msgctxt "https://blackcatinformatics.ca/math/Basis|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Describe the basis as its own resource. Use math:hasBasis on the supplied space or algebra and math:inBasis on a vector or Gram matrix. Preserve any supplied element inventory and ordering evidence; neither link constructs a basis or computes a coordinate transform."
+msgstr "Décrire la base comme une ressource distincte. Utiliser math:hasBasis sur l’espace ou l’algèbre fournis et math:inBasis sur un vecteur ou une matrice de Gram. Conserver tout inventaire d’éléments et toute preuve d’ordre fournis ; aucun de ces liens ne construit une base ni ne calcule une transformation de coordonnées."
+
+msgctxt "https://blackcatinformatics.ca/math/hasBasis|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "In the finite real Cl(p,q) profile, the algebra carrier has dimension 2^(p+q), while there are p+q grade-one generators. The producer emits selected generator records through math:hasBasisBlade; those records do not enumerate the complete carrier basis or prove independence and spanning."
+msgstr "Dans le profil réel fini Cl(p,q), le support de l’algèbre a pour dimension 2^(p+q), alors qu’il existe p+q générateurs de grade un. Le producteur émet des enregistrements de générateurs sélectionnés par math:hasBasisBlade ; ils n’énumèrent pas la base complète du support et ne prouvent pas que ses éléments sont libres et générateurs."
+
+msgctxt "https://blackcatinformatics.ca/math/hasBasis|http://www.w3.org/2004/02/skos/core#example"
+msgid "The Clifford producer names a separate BladeBasis through math:hasBasis and emits grade-one math:BasisBlade records with math:generatorIndex. The named carrier basis and the indexed generator records retain different roles."
+msgstr "Le producteur Clifford nomme une BladeBasis distincte par math:hasBasis et émet des enregistrements math:BasisBlade de grade un avec math:generatorIndex. La base nommée du support et les enregistrements de générateurs indexés conservent des rôles distincts."
+
+msgctxt "https://blackcatinformatics.ca/math/hasBasis|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to record an actual basis choice for a vector space, quadratic space or algebra carrier, including several supplied choices without selecting a preferred basis."
+msgstr "Utiliser pour consigner un choix effectif de base pour un espace vectoriel, un espace quadratique ou le support d’une algèbre, y compris plusieurs choix fournis sans sélectionner une base préférée."
+
+msgctxt "https://blackcatinformatics.ca/math/hasBasis|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Do not count the emitted grade-one generator records as the full algebra carrier basis or treat generator order as a complete blade-basis order. A hasBasis link alone does not prove linear independence or spanning and does not choose an unrecorded default."
+msgstr "Ne pas compter les enregistrements émis de générateurs de grade un comme la base complète du support de l’algèbre, ni traiter l’ordre des générateurs comme un ordre complet de base de lames. Un lien hasBasis seul ne prouve pas que la famille est libre et génératrice et ne choisit aucune base par défaut non consignée."
+
+msgctxt "https://blackcatinformatics.ca/math/hasBasis|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Link the supplied space or algebra to its Basis resource with math:hasBasis. Retain the CliffordAlgebra class-local requirement for a typed basis without making this property globally functional. Record supplied generator indices separately and use math:inBasis for coordinate representations."
+msgstr "Relier l’espace ou l’algèbre fournis à leur ressource Basis par math:hasBasis. Conserver l’exigence locale à la classe CliffordAlgebra d’une base typée sans rendre cette propriété globalement fonctionnelle. Consigner séparément les indices de générateurs fournis et utiliser math:inBasis pour les représentations en coordonnées."
+
+msgctxt "https://blackcatinformatics.ca/math/inBasis|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "in basis"
+msgstr "dans la base"
+
+msgctxt "https://blackcatinformatics.ca/math/inBasis|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Relates a math:GramMatrix or math:Vector to the math:Basis relative to which its entries or coordinates are recorded. The link identifies the declared basis context; it does not supply the element inventory, its order or a coordinate transformation."
+msgstr "Relie une math:GramMatrix ou un math:Vector à la math:Basis relativement à laquelle ses entrées ou coordonnées sont consignées. Le lien identifie le contexte de base déclaré ; il ne fournit ni l’inventaire des éléments, ni leur ordre, ni une transformation de coordonnées."
+
+msgctxt "https://blackcatinformatics.ca/math/inBasis|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Matrix row/column indices and vector component indices are positions. Interpreting them as basis elements additionally requires the supplied position-to-element correspondence. The exact producer names p:covBasis only as Basis, so its inBasis edge alone does not publish such an ordered inventory."
+msgstr "Les indices de ligne et de colonne d’une matrice et les indices de composantes d’un vecteur sont des positions. Leur interprétation comme éléments d’une base exige en plus la correspondance fournie entre positions et éléments. Le producteur exact nomme p:covBasis uniquement comme Basis ; son arête inBasis ne publie donc pas à elle seule un tel inventaire ordonné."
+
+msgctxt "https://blackcatinformatics.ca/math/inBasis|http://www.w3.org/2004/02/skos/core#example"
+msgid "The exact-pca producer emits p:pcaGram math:inBasis p:covBasis and separately p:pcaGram math:representsForm p:covForm. These identify the coordinate context and represented form, without enumerating the basis elements or their order."
+msgstr "Le producteur exact-pca émet p:pcaGram math:inBasis p:covBasis et, séparément, p:pcaGram math:representsForm p:covForm. Ces liens identifient le contexte de coordonnées et la forme représentée, sans énumérer les éléments de la base ni leur ordre."
+
+msgctxt "https://blackcatinformatics.ca/math/inBasis|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to preserve the actual basis context of supplied Gram-matrix entries or vector coordinates, separately from the coordinate-independent vector or bilinear form."
+msgstr "Utiliser pour conserver le contexte de base effectif des entrées de matrice de Gram ou des coordonnées de vecteur fournies, séparément du vecteur ou de la forme bilinéaire indépendants des coordonnées."
+
+msgctxt "https://blackcatinformatics.ca/math/inBasis|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Do not treat a basis label or inBasis link as proof that an indexed array is complete, correctly ordered or expressed in that basis. Changing the link alone does not transform the entries, and no conversion between differently based arrays is implicit."
+msgstr "Ne pas considérer un libellé de base ou un lien inBasis comme une preuve qu’un tableau indexé est complet, correctement ordonné ou exprimé dans cette base. Modifier le lien seul ne transforme pas les entrées et aucune conversion entre tableaux exprimés dans des bases différentes n’est implicite."
+
+msgctxt "https://blackcatinformatics.ca/math/inBasis|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Attach math:inBasis to the supplied vector or Gram matrix and retain any explicit basis-element ordering with its indexed components or entries. Keep math:representsForm separate from the coordinate context. A basis change needs an actual transformation and its inputs; this relation records no such execution."
+msgstr "Attacher math:inBasis au vecteur ou à la matrice de Gram fournis et conserver tout ordre explicite des éléments de base avec les composantes ou entrées indexées. Séparer math:representsForm du contexte de coordonnées. Un changement de base exige une transformation effective et ses entrées ; cette relation ne consigne aucune exécution de ce type."

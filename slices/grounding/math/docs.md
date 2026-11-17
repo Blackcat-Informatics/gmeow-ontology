@@ -270,6 +270,21 @@ off a residual or a latent dimension is a claim from a vantage, never a property
 the most author-heavy charter (the survey found almost no external ontology for decompositions, latent
 spaces, or representation geometry) and it carries two flagships.
 
+`math:Basis` describes an algebraic basis, with unique finitely supported
+coefficients indexed by its elements. `math:hasBasis` records the basis chosen for
+a space or algebra carrier; `math:inBasis` names the context of a vector or Gram
+matrix's coordinates. Preserve the correspondence from coordinate positions to
+basis elements separately. A type, label or basis link supplies no element order
+and executes no change of coordinates.
+
+The exact Gram producer names `p:covBasis` without enumerating its elements or
+their order. The Clifford producer names a carrier `BladeBasis` separately from
+its indexed grade-one generators: the finite real `Cl(p,q)` carrier has dimension
+`2^(p+q)`, while the generating quadratic space has dimension `p+q`. These roles
+remain distinct from a complete basis inventory or a proof of independence and
+spanning. The [basis identity and coordinate-order contract](./design/MATHEMATICS-LINEAR-ALGEBRA-AND-LEARNING.md#basis-identity-and-coordinate-order)
+also scopes orthonormal eigenbasis claims to their actual mathematical setting.
+
 - **Inner-product spaces and decompositions** — `math:InnerProductSpace`, `math:HermitianInnerProduct`,
   `math:Subspace`, `math:OrthogonalComplement` (⊑ `math:Complement`, so it realizes the geometry
   charter's complement contract — ambient space, orthogonal semantics, and now `math:definedByInnerProduct`),

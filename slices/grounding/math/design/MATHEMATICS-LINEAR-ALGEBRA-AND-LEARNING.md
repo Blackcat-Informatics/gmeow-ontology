@@ -43,6 +43,36 @@ Decompositions — `math:Eigendecomposition`, `math:SingularValueDecomposition` 
 objects with declared operands and outputs. External anchor: only OpenMath `linalg`/`linalgeig`
 names eigen symbols; SVD/PCA are authored.
 
+### Basis identity and coordinate order
+
+`math:Basis` names an algebraic basis of a vector space over its scalar field.
+Each vector has unique finitely supported coefficients indexed by the basis
+elements. An ordered coordinate tuple additionally needs a correspondence from
+positions to those elements. Preserve that correspondence with the source
+representation; a basis label or IRI does not supply an ordering.
+
+`math:hasBasis` records a basis choice for a space or algebra carrier and permits
+several supplied choices. `math:inBasis` identifies the basis context of a vector
+or Gram matrix. Keep the coordinate-independent vector or bilinear form separate
+from its coordinate array, and retain `math:representsForm` as the separate form
+relation. Changing the basis link does not transform the entries; a basis change
+requires the actual transformation and its ordered input/output conventions.
+
+The exact Gram producer names `p:covBasis` as `math:Basis` and gives `p:pcaGram`
+that `math:inBasis` context. Its RDF does not enumerate the basis elements or their
+order, so the link alone does not certify an unambiguous indexed matrix. The
+Clifford producer separately names an algebra carrier's `BladeBasis` and indexed
+grade-one generator records. In the finite real `Cl(p,q)` profile the carrier
+dimension is `2^(p+q)`, while the generating quadratic space has `p+q` basis
+vectors. The emitted `math:hasBasisBlade` generator records do not enumerate all
+carrier basis elements or prove linear independence and spanning.
+
+Orthonormality also requires an inner product. A self-adjoint operator on a
+finite-dimensional real or complex inner-product space admits an orthonormal
+eigenbasis; this does not make every basis an eigenbasis. Arbitrary
+infinite-dimensional self-adjoint operators need not admit an eigenvector basis.
+A truncated PCA component family need not span the full input space.
+
 ## The exact numeric layer — bilinear forms, matrices, norms, and rational carriers
 
 Core classes: `math:BilinearForm`, `math:SymmetricBilinearForm`, `math:Matrix`, `math:SymmetricMatrix`,
