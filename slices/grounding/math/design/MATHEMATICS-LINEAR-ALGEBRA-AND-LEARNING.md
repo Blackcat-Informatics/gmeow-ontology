@@ -48,6 +48,58 @@ with `logic:AffineCorrespondence`, `logic:InstitutionMorphism` and
 eigenvalue/eigenvector concept; it asserts neither identity nor executable numerical
 lowering. There is no authored OpenMath eigen correspondence in this mapping.
 
+### Subspaces and ambient structure
+
+A `math:Subspace` W of a vector space V over F contains zero and is closed
+under V's addition and multiplication by every scalar in that same field F,
+using the induced operations. The zero subspace and W = V are valid, as are
+finite-dimensional and infinite-dimensional subspaces. For example, the plane
+`{(x,y,0) : x,y in R}` is a subspace of real `R³` with its usual operations;
+the affine plane `{(x,y,1) : x,y in R}` lacks zero and is not a subspace.
+An arbitrary vector sample or a dimension label does not establish closure.
+
+`math:subspaceOf` points from W to each justified ambient V, allowing several
+ambient relationships and W to itself without a preferred ambient. Preserve
+the structures separately from their `math:underlyingSet` carriers and retain
+the operation and law evidence through `math:structureOperation` and
+`math:satisfiesAxiom`. The descriptive `math:scalarField` relation can retain
+the supplied field interpretation; the current source does not require that
+edge on every module or impose a universal `math:Field` target. The same-field
+requirement and induced operations still need mathematical justification.
+
+The property's domain and range are stated in prose only. No native typing,
+cardinality, inclusion, transitivity or closure rule is authored for it.
+The existing Subspace class hierarchy and abstract-individual type do not
+classify arbitrary datasets as subspaces or prove their linear closure.
+
+The image of a linear map is a subspace of its target. An arbitrary nonlinear
+embedding need not have a subspace image, and a residual vector or dataset
+does not automatically constitute a residual subspace. An orthogonal complement
+additionally needs a declared ambient inner product: `math:orthogonalComplementOf`
+names the operand S, `math:ambientSpace` names V and `math:definedByInnerProduct`
+names the form. Those roles may have coincident referents; no distinctness is
+implied. Algebraic subspaces need not be topologically closed. The decomposition
+`V = S ⊕ S⊥` holds in finite-dimensional inner-product spaces and for closed
+subspaces of Hilbert spaces, but is not guaranteed in arbitrary infinite dimension.
+
+The [ordinary example](../examples/linear-algebra-and-learning.ttl) asserts
+`ex:embeddedSubspace math:subspaceOf ex:complexSpace4096` and separately
+describes an embedding and an orthogonal complement. It supplies no image link
+identifying that subspace with the embedding image and no closure proof.
+The orthogonal-complement competency query retrieves the declared operand,
+ambient space and form; it neither proves closure nor constructs a complement.
+The `exact_pca_residual` producer retains its `p:residualSubspace` as
+`math:MathematicalObject`; its fixed Gram calculations supply no generic
+subspace classifier or complex orthogonal-complement construction.
+
+The native grounding in
+[`mappings/equivalences.ttl`](../mappings/equivalences.ttl) is a
+`skos:exactMatch` from `math:Subspace` to
+[Wikidata Q728435](https://www.wikidata.org/wiki/Q728435), linear subspace,
+with `logic:WellBehavedLens`, `logic:InstitutionMorphism` and
+`logic:SoundUnderApproximation` preservation. This concept correspondence
+supplies no individual closure proof, numerical construction or execution receipt.
+
 ### Basis identity and coordinate order
 
 `math:Basis` names an algebraic basis of a vector space over its scalar field.
@@ -326,11 +378,13 @@ and `math:residualSubspace`.
 
 A `math:PCAAnalysis` declares its input matrix/tensor, its centering and scaling policy, the
 `math:CovarianceOperator` it decomposes, the `math:eigensolver` used, and its outputs — principal
-components, loadings, scores, explained-variance ratios, and residuals. The KG flagship —
-*embed a knowledge graph into a complex space, take the orthogonal complement of the embedded
-subspace, run PCA on the residuals, interpret the residual meaning* — composes cleanly: the embedding
-(below) produces a subspace, the geometry charter's `math:OrthogonalComplement` (defined by the
-Hermitian inner product) names the residual subspace, and the PCA decomposes it.
+components, loadings, scores, explained-variance ratios, and residuals. The KG flagship
+declares an embedding into a complex space and a separately asserted subspace in
+that ambient space. Its `math:OrthogonalComplement` names the operand, ambient
+space and Hermitian inner product. The embedding alone does not produce a vector
+subspace; residual data needs its own identification and justification before it
+is described as a residual subspace. The PCA frame names its declared operand
+and outputs without itself certifying those mathematical constructions.
 
 > **Hard rule — residual meaning is a claim, not a property.** A `math:ResidualInterpretationClaim`
 > (what a residual subspace or a latent dimension *means*) is a `gmeow:Observation` with a

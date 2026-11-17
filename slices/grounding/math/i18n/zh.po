@@ -17886,3 +17886,59 @@ msgstr "不要颠倒从分析到算子的方向，不要用数据集或求解器
 msgctxt "https://blackcatinformatics.ca/math/covarianceOperator|https://blackcatinformatics.ca/gmeow/howToUse"
 msgid "Link the analysis to its justified CovarianceOperator resource and preserve that operator’s carrier-set frame and actual construction evidence. Keep centering and scaling declarations on the analysis distinct from proof that those operations ran. The relation supplies no additional maximum, automatic target typing, covariance computation or numerical validation result."
 msgstr "将分析关联到有依据的 CovarianceOperator 资源，并保留该算子的载体集合框架及实际构造依据。将分析上的中心化和缩放声明与这些操作已执行的证明分开。该关系不提供额外的最大基数、自动目标定型、协方差计算或数值验证结果。"
+
+msgctxt "https://blackcatinformatics.ca/math/Subspace|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Subspace"
+msgstr "线性子空间"
+
+msgctxt "https://blackcatinformatics.ca/math/Subspace|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A vector subspace: a subset of a vector space closed under addition and scalar multiplication, itself a math:VectorSpace. A subclass of math:VectorSpace naming the space it sits in through math:subspaceOf. The image of a linear map is a subspace; an arbitrary embedding image or projection residual needs separate subspace justification. A math:OrthogonalComplement is the subspace orthogonal to an operand subspace within a declared inner-product space."
+msgstr "向量子空间：向量空间中对加法和标量乘法封闭的子集，其本身也是 math:VectorSpace。它是 math:VectorSpace 的子类，通过 math:subspaceOf 指明所在空间。线性映射的像是子空间；任意嵌入的像或投影残差需要另行论证其子空间结构。math:OrthogonalComplement 是在已声明的内积空间中与操作数子空间正交的子空间。"
+
+msgctxt "https://blackcatinformatics.ca/math/Subspace|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "For W to be a subspace of V over F, W contains zero and uses the induced addition and scalar action of V, closed under every scalar in the same field F. Zero and whole-space subspaces, finite and infinite dimension are allowed. Algebraic closure here does not require topological closedness."
+msgstr "若 W 是域 F 上向量空间 V 的子空间，则 W 包含零向量，使用 V 诱导的加法和标量作用，并对同一域 F 中的每个标量封闭。允许零子空间、整个空间以及有限维和无限维情形。此处的代数封闭性不要求拓扑闭性。"
+
+msgctxt "https://blackcatinformatics.ca/math/Subspace|http://www.w3.org/2004/02/skos/core#example"
+msgid "In the real vector space R³ with its usual operations, W = {(x,y,0) : x,y in R} is a subspace, including zero and closed under real linear combinations. The affine plane {(x,y,1) : x,y in R} is not a subspace because it lacks zero."
+msgstr "在使用通常运算的实向量空间 R³ 中，W = {(x,y,0) : x,y 属于 R} 是子空间，包含零向量并对实线性组合封闭。仿射平面 {(x,y,1) : x,y 属于 R} 不是子空间，因为它不包含零向量。"
+
+msgctxt "https://blackcatinformatics.ca/math/Subspace|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for a justified vector subspace with its ambient vector-space structure and common scalar field retained. A linear-map image or a supplied span can establish a subspace; sampled vectors alone do not establish closure of the sample set."
+msgstr "用于有依据的向量子空间，并保留其环境向量空间结构及共同的标量域。线性映射的像或已提供的线性包可以确立子空间；仅有向量样本并不能确立样本集合的封闭性。"
+
+msgctxt "https://blackcatinformatics.ca/math/Subspace|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Do not infer a subspace from an embedding label, a dimension, an arbitrary nonlinear image or residual data. An orthogonal complement requires the declared ambient inner product; a global orthogonal direct-sum decomposition needs its own hypotheses in infinite dimension."
+msgstr "不要从嵌入标签、维数、任意非线性映射的像或残差数据推断子空间。正交补需要已声明的环境内积；在无限维情形中，整个空间的正交直和分解还需要其自身的假设。"
+
+msgctxt "https://blackcatinformatics.ca/math/Subspace|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Describe W as math:Subspace and link each justified ambient V with math:subspaceOf. Retain math:underlyingSet, math:structureOperation and math:satisfiesAxiom evidence separately from descriptive math:scalarField links. A type or ambient link supplies no automatic closure proof or subspace computation."
+msgstr "将 W 描述为 math:Subspace，并通过 math:subspaceOf 关联到每个有依据的环境空间 V。将 math:underlyingSet、math:structureOperation 和 math:satisfiesAxiom 的依据与描述性的 math:scalarField 链接分开保留。类型或环境链接不提供自动的封闭性证明或子空间计算。"
+
+msgctxt "https://blackcatinformatics.ca/math/subspaceOf|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "subspace of"
+msgstr "是其子空间"
+
+msgctxt "https://blackcatinformatics.ca/math/subspaceOf|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Relates a math:Subspace to the vector space it is a subspace of. Domain math:Subspace, range math:VectorSpace (stated in prose). The ambient space a subspace sits in, and against which its orthogonal complement is taken."
+msgstr "将 math:Subspace 关联到以它为子空间的向量空间。定义域为 math:Subspace，值域为 math:VectorSpace（以文字说明）。该关系指明子空间所在的环境空间，其正交补也在该环境空间中取定。"
+
+msgctxt "https://blackcatinformatics.ca/math/subspaceOf|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The direction is W to ambient V, with a common scalar field and induced operations justified separately. Several ambient links may be valid, including W to itself. The source states domain and range in prose without native typing, cardinality, inclusion, transitivity or closure rules for this property."
+msgstr "方向从 W 指向环境空间 V，共同的标量域和诱导运算需另行论证。可以存在多个有效的环境链接，包括 W 指向自身。源定义以文字说明定义域和值域，未为此属性提供原生的类型、基数、包含、传递性或封闭性规则。"
+
+msgctxt "https://blackcatinformatics.ca/math/subspaceOf|http://www.w3.org/2004/02/skos/core#example"
+msgid "The linear-algebra-and-learning example states ex:embeddedSubspace math:subspaceOf ex:complexSpace4096. This records an asserted ambient relationship; the dataset supplies neither an embedding-image link to that subspace nor a proof of linear closure."
+msgstr "linear-algebra-and-learning 示例声明 ex:embeddedSubspace math:subspaceOf ex:complexSpace4096。这记录了一条断言的环境关系；该数据集既未提供从嵌入的像到此子空间的链接，也未提供线性封闭性证明。"
+
+msgctxt "https://blackcatinformatics.ca/math/subspaceOf|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain each justified ambient vector space of a subspace without choosing a preferred ambient. Preserve the actual scalar-field interpretation and induced operations rather than infer them from shared dimensions or carrier labels."
+msgstr "用于保留子空间的每个有依据的环境向量空间，不选择优先的环境空间。保留实际的标量域解释及诱导运算，而不是从相同维数或载体标签推断它们。"
+
+msgctxt "https://blackcatinformatics.ca/math/subspaceOf|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Do not reverse the relationship, substitute a carrier set or scalar field for the ambient vector-space structure, or treat the edge as a closure certificate. Keep math:orthogonalComplementOf for the operand subspace, math:ambientSpace for its enclosing space and math:definedByInnerProduct for its form; those role referents may coincide."
+msgstr "不要颠倒此关系，用载体集合或标量域替代环境向量空间结构，也不要将此边视为封闭性证明。以 math:orthogonalComplementOf 指明操作数子空间，math:ambientSpace 指明其所在空间，math:definedByInnerProduct 指明其形式；这些角色的指称对象可以重合。"
+
+msgctxt "https://blackcatinformatics.ca/math/subspaceOf|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Link the supplied math:Subspace to its ambient math:VectorSpace and preserve the source justification of zero, addition and same-field scalar closure. For orthogonal-complement descriptions retain the separate operand, ambient and inner-product roles. Neither this edge nor a retrieved competency answer calculates a residual subspace."
+msgstr "将已提供的 math:Subspace 关联到其环境 math:VectorSpace，并保留源中关于零向量、加法及同域标量封闭性的论证。描述正交补时，保留操作数、环境空间和内积的独立角色。此边或检索出的能力问题答案均不计算残差子空间。"
