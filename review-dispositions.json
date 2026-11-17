@@ -1,0 +1,16 @@
+{
+  "github:comment:IC_kwDOSwdn1s8AAAABnvD3UQ": {
+    "resolution": "acknowledged",
+    "reason": "The revised item is a processing notice with no source finding. Complete independent local source, terminal, integration and helper/debt reviews cover the change; no completed hosted verdict is claimed. Later substantive findings remain actionable.",
+    "commit": "3e09ba7488d7b4b93320459c2b3ee95d51c65642",
+    "reply_url": null,
+    "revision": {
+      "updated_at": "2026-11-17T21:48:44Z",
+      "state": null,
+      "commit": null,
+      "path": null,
+      "line": null,
+      "body_sha256": "39298deb33b4d2c3b788b0a02c0b12b7bcc10e00454838df8d266e601f8ffb01"
+    }
+  }
+}

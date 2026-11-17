@@ -1,0 +1,20 @@
+{
+  "schema": 1,
+  "worktree": "/home/paudley/Active/gmeow-ontology/.worktrees/2853-scope-the-native-datatype-wait-to-the",
+  "branch": "paudley/2853-scope-the-native-datatype-wait-to-the",
+  "base_ref": "origin/main",
+  "head": "a7c61bb8fd84627dae1d04d27c14916a92ccab5e",
+  "attempt": "/home/paudley/Active/gmeow-ontology/.worktrees/2853-scope-the-native-datatype-wait-to-the/.stage/scope-the-native-datatype-wait-to-the/sync/20261117T212714-b4da3b9e92384095966b17e7628ea102",
+  "conflicts": [],
+  "status": "completed",
+  "base": "61d637e75add31f5f8ebf6c086adfc0c89f4d5ed",
+  "merge_bases": [
+    "eff6e9853154f9ad5904e931e9ec731ed1fcdcee"
+  ],
+  "merge_index": "d5f15c56ea72c6db001ba4f78ddbcc1e9102285f396b15f58fd3150e3e24855b",
+  "candidate_tree": "17684dc2e73930b9fbdd95017203c68cf952c53e",
+  "candidate_patch": "candidate-359a77edd1794c37a58bc38442443324.patch",
+  "validation_records": [],
+  "commit": "f1f9b98278704e4b65684552f2b062308d3af1d0",
+  "tree": "17684dc2e73930b9fbdd95017203c68cf952c53e"
+}

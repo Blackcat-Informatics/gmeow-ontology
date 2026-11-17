@@ -1,0 +1,30 @@
+{
+  "schema": 1,
+  "issue": 2853,
+  "repo": "gmeow-ontology",
+  "forge": "github",
+  "nwo": "Blackcat-Informatics/gmeow-ontology",
+  "read_access": "anon-read",
+  "main_root": "/home/paudley/Active/gmeow-ontology",
+  "worktree": "/home/paudley/Active/gmeow-ontology/.worktrees/2853-scope-the-native-datatype-wait-to-the",
+  "branch": "paudley/2853-scope-the-native-datatype-wait-to-the",
+  "slug": "scope-the-native-datatype-wait-to-the",
+  "slug_drift": false,
+  "stage_dir": "/home/paudley/Active/gmeow-ontology/.worktrees/2853-scope-the-native-datatype-wait-to-the/.stage/scope-the-native-datatype-wait-to-the",
+  "stage_tracked": true,
+  "base": "origin/main",
+  "base_oid": "eff6e9853154f9ad5904e931e9ec731ed1fcdcee",
+  "reused": false,
+  "adr_repo": false,
+  "created": [
+    "worktree:/home/paudley/Active/gmeow-ontology/.worktrees/2853-scope-the-native-datatype-wait-to-the",
+    "branch:paudley/2853-scope-the-native-datatype-wait-to-the",
+    "ignored:8265 files (8265 reflinked, 0 written)",
+    "rust-caches:skipping busy source /opt/.cargo/48/a7d26fbbb4c611: /opt/.cargo/48/a7d26fbbb4c611/debug/.cargo-build-lock; reflinked /home/paudley/Active/gmeow-ontology/.worktrees/2815-five-reasoner-tests-fail-on-assertions caches into /home/paudley/Active/gmeow-ontology/.worktrees/2853-scope-the-native-datatype-wait-to-the plus 654 dependency units from 1 other checkouts in 55.6s; 13075 unchanged files keep their built mtimes; 4 other files take the seed time and rebuild; 155 units naming another checkout rebuild",
+    "stage:/home/paudley/Active/gmeow-ontology/.worktrees/2853-scope-the-native-datatype-wait-to-the/.stage/scope-the-native-datatype-wait-to-the",
+    "issue:/home/paudley/Active/gmeow-ontology/.worktrees/2853-scope-the-native-datatype-wait-to-the/.stage/scope-the-native-datatype-wait-to-the/issue.md"
+  ],
+  "warnings": [],
+  "timestamp": "2026-11-16T15:55:03-0600",
+  "seed_error": ""
+}
