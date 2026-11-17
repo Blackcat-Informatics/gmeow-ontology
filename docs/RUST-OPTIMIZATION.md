@@ -283,6 +283,21 @@ are consumed through its public Rust API:
   payload bounds. Its digest streams the full typed program, including contextual
   scope and provenance, directly into the hasher. No dataset, result or serialized
   carrier is retained; eviction recomputes the same lowering and cannot weaken it.
+- Native reasoning input ownership: `prepare_reasoning_input` and source-edit
+  refresh retain one ordered set of executable `FactKey` tuples, then move their
+  fields into the final `Fact` vectors. Original native statements, source
+  contexts, ingress identity and contextual preparation remain separate from
+  executable deduplication. A synthetic all-IRI input with 4,096 distinct rows,
+  the default world and a declared empty world retained 4,096 keys without a
+  second 4,096 `Fact` values. At the final conversion boundary, initialized
+  key/value bytes fell from 1,507,328 to 753,664 and owned IRI string capacity
+  from 671,744 to 335,872 bytes. A real source assertion refreshed 4,097 rows:
+  initialized key/value bytes fell from 1,507,696 to 753,848 and IRI capacity
+  from 671,908 to 335,954 bytes. Both paths preserved the exact ingress and
+  ordered-fact digests. These selected live-entry observations exclude B-tree
+  node slack and links, original-source evidence, contextual storage, transient
+  and probe allocations, allocator overhead and process RSS; they establish no
+  full-pipeline memory reduction.
 - Bounded termination analysis: witness-free relation closure admits at most
   262,144 pending candidate occurrences in both the initial and semi-naive passes.
   Exact native fact payloads are shared in first-seen order; a borrowed-field index
