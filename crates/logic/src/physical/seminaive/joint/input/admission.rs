@@ -872,6 +872,12 @@ pub(super) enum EvidenceGap {
         committed_rows: usize,
         pending_rows: usize,
     },
+    /// Another candidate would exceed the retained pending-row envelope.
+    ClosurePendingBound {
+        rule: String,
+        committed_rows: usize,
+        pending_rows: usize,
+    },
     /// Specialization stopped with its exact rule and observed inventory.
     SpecializationBound {
         rule: String,
@@ -911,6 +917,14 @@ impl std::fmt::Display for EvidenceGap {
             } => write!(
                 f,
                 "the closure of witness-free relations exceeded its bound of {MAX_BINDINGS} matches or derived rows (rule {rule:?}, {committed_rows} committed rows, {pending_rows} pending rows)"
+            ),
+            Self::ClosurePendingBound {
+                rule,
+                committed_rows,
+                pending_rows,
+            } => write!(
+                f,
+                "the closure of witness-free relations reached its bound of {MAX_BINDINGS} pending rows and rejected the next candidate (rule {rule:?}, {committed_rows} committed rows, {pending_rows} retained pending rows)"
             ),
             Self::SpecializationBound {
                 rule,
@@ -1325,6 +1339,12 @@ fn derive(
                     semantics,
                 ) && !store.contains(&predicate, &subject, &object)
                 {
+                    // Several rules or delta seeds can queue the same uncommitted
+                    // row. Bound that allocation before another head or match,
+                    // rather than waiting for the distinct-row count at the drain.
+                    if out.len() == MAX_BINDINGS {
+                        return false;
+                    }
                     out.push(Fact {
                         subject,
                         predicate,
@@ -1332,14 +1352,21 @@ fn derive(
                     });
                 }
             }
+            true
         };
     let mut pending = Vec::new();
     for (index, atoms) in eligible {
         let rule = &rules[*index];
         let outcome = join::walk(atoms, store, &empty, policy(), |solution| {
-            emit(store, rule, &solution, &mut pending);
-            Ok(true)
+            Ok(emit(store, rule, &solution, &mut pending))
         })?;
+        if outcome == join::Outcome::Stopped {
+            return Ok(Err(EvidenceGap::ClosurePendingBound {
+                rule: rule.name.clone(),
+                committed_rows: 0,
+                pending_rows: pending.len(),
+            }));
+        }
         if outcome != join::Outcome::Complete {
             return Ok(Err(exhausted(Some(&rule.name), 0, pending.len())));
         }
@@ -1376,9 +1403,15 @@ fn derive(
                         .map(|(_, atom)| atom.clone())
                         .collect();
                     let outcome = join::walk(&rest, store, &seed, policy(), |solution| {
-                        emit(store, rule, &solution, &mut pending);
-                        Ok(true)
+                        Ok(emit(store, rule, &solution, &mut pending))
                     })?;
+                    if outcome == join::Outcome::Stopped {
+                        return Ok(Err(EvidenceGap::ClosurePendingBound {
+                            rule: rule.name.clone(),
+                            committed_rows: derived,
+                            pending_rows: pending.len(),
+                        }));
+                    }
                     if outcome != join::Outcome::Complete {
                         return Ok(Err(exhausted(Some(&rule.name), derived, pending.len())));
                     }
