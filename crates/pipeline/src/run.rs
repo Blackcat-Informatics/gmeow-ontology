@@ -39,7 +39,6 @@ use gmeow_logic::result::ReasoningResult;
 use crate::cache::StageReceipt;
 use crate::loader::{PipelineSpec, bind};
 use crate::node::{SINK_CAPABILITY, StageProduct};
-use crate::registry::default_registry;
 use crate::scheduler::{
     CarrierRetention, LevelTiming, RunContext, StagePhaseTiming, StageTiming, run,
 };
@@ -157,8 +156,8 @@ pub enum RunMode {
 /// stage's declared [`crate::node::OutputFamily`]. [`All`](Self::All) runs every stage and
 /// writes the gitignored `dist/*` runtime projections. [`Committed`](Self::Committed) runs
 /// the stages whose outputs the committed scope selects (the bundle, the `generated/`
-/// tree and the codebook) and their transitive producers, so the runtime-only exporters
-/// do not execute. Every selected stage and every gate the selected stages feed stays
+/// tree and the codebook) and their transitive producers. A runtime projection still
+/// runs when a selected stage needs it. Every selected stage and its gates stay
 /// mandatory.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum RunOutputScope {
@@ -339,28 +338,24 @@ pub fn full_spec() -> PipelineSpec {
 ///
 /// [`RunOutputScope::All`] keeps every stage. [`RunOutputScope::Committed`] keeps the
 /// stages of the `Generated` family plus all of their transitive producers, so a
-/// runtime-projection stage that a selected stage consumes still runs. A stage whose
-/// implementation is not registered is a hard error: a family cannot be read for it.
+/// runtime-projection stage that a selected stage consumes still runs. Every described
+/// stage must agree with the selected executable registry before either scope can
+/// return or filter, including stages the committed scope omits.
 pub fn spec_for_scope(
     spec: PipelineSpec,
     scope: RunOutputScope,
+    registry: &crate::registry::StageRegistry,
 ) -> Result<PipelineSpec, gmeow_errors::Diag> {
+    for stage in &spec.stages {
+        crate::loader::admit_output_family(stage, registry)?;
+    }
     if scope == RunOutputScope::All {
         return Ok(spec);
     }
-    let registry = default_registry();
     let mut selected: std::collections::BTreeSet<String> = std::collections::BTreeSet::new();
     let mut pending: Vec<String> = Vec::new();
     for stage in &spec.stages {
-        let implementation = registry.get(&stage.impl_key).ok_or_else(|| {
-            gmeow_errors::Diag::of_kind(crate::error::InvalidDag {
-                message: format!(
-                    "stage {} binds unregistered implementation {}; its output family is unknown",
-                    stage.id, stage.impl_key
-                ),
-            })
-        })?;
-        if implementation.output_family() == crate::node::OutputFamily::Generated {
+        if stage.output_family == crate::node::OutputFamily::Generated {
             pending.push(stage.id.clone());
         }
     }
@@ -463,14 +458,14 @@ pub fn run_full_scoped_with_progress(
         progress.stage_end("pipeline:canonical-abstract", canonical_elapsed);
     }
 
-    let spec = spec_for_scope(full_spec(), output_scope)?;
+    let registry = crate::registry::registry_for(profile);
+    let spec = spec_for_scope(full_spec(), output_scope, &registry)?;
 
     // Single-pass: the schemas leaf is now a normal carrier-reading
     // export leaf (it consumes `stage-snapshot`, not the sink bytes), so the whole selected
     // DAG — the terminal gts sink and the schemas tail included — runs in ONE scheduler pass.
     // No producer/serialization re-derivation, no SINK_STAGE-only sub-run.
     let graph = spec.validate()?;
-    let registry = crate::registry::registry_for(profile);
     let bound = bind(&spec, &graph, &registry)?;
     // The whole-run manifest remains the zero-work fixed-point boundary. On a manifest
     // miss, the DAG's exact-one cache dispositions admit independently bounded stage

@@ -307,3 +307,32 @@ ASK {
     ?scdOne logic:oneOf/rdf:rest*/rdf:first gmeow:cachePersistentContribution .
 }""" ;
     gmeow:saRationale "The runtime-DAG value vocabularies MUST stay closed by declarative axioms in module.ttl, because the projected sh:in enumerations and qualified cardinalities are DERIVED from exactly these (projection-purity: never hand-authored on a shape surface). This assertion pins gmeow:BuildDataFlow's exact-one gmeow:flowReason, the existing flow/disposition/obligation/stability closures, and gmeow:PipelineStage's exact-one closed gmeow:stageCacheDisposition. A dropped cache closure or cardinality would otherwise let the executable scheduler choose a persistence policy that the authored DAG did not state." .
+
+# The output-family profile is authored natively, with an explicit required path.
+ex:saOutputFamilyProfile a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+ASK {
+    gmeow:StageOutputFamily a logic:Kind, logic:Class ;
+        logic:subClassOf logic:QualityValue .
+    gmeow:stageOutputFamily a logic:ObjectProperty ;
+        logic:domain gmeow:PipelineStage ; logic:range gmeow:StageOutputFamily .
+    gmeow:outputGenerated a gmeow:StageOutputFamily .
+    gmeow:outputRuntimeProjection a gmeow:StageOutputFamily .
+    gmeow:PipelineStage logic:subClassOf ?minimum, ?maximum, ?allowed .
+    ?minimum logic:onProperty gmeow:stageOutputFamily ;
+        logic:minQualifiedCardinality 1 ; logic:onClass gmeow:StageOutputFamily .
+    ?maximum logic:onProperty gmeow:stageOutputFamily ;
+        logic:maxQualifiedCardinality 1 ; logic:onClass gmeow:StageOutputFamily .
+    ?allowed logic:onProperty gmeow:stageOutputFamily ; logic:allValuesFrom ?values .
+    ?values logic:oneOf ?list .
+    ?list rdf:first gmeow:outputGenerated ; rdf:rest ?tail .
+    ?tail rdf:first gmeow:outputRuntimeProjection ; rdf:rest rdf:nil .
+    ?closure a logic:ClosureEntry ; logic:onClass gmeow:PipelineStage ;
+        logic:closureKey "https://blackcatinformatics.ca/gmeow/stageOutputFamily" ;
+        logic:closureValue logic:ClosedWorldClosure .
+}""" ;
+    gmeow:saRationale "Output scope selection must follow the same authored pipeline's family declarations and complete producer closure. A generated root keeps its required runtime projection producer, while an independent runtime exporter remains outside the committed scope. Exact native family admission and explicit closed-world requirements prevent an absent or false declaration from silently dropping work."@x-gmeow-english .

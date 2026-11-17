@@ -1308,3 +1308,119 @@ msgstr "从 gmeow:stage-reason 到 gmeow:stage-verify-attestation 的类型化�
 msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-verify-reason|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "dataflow: reason → verify attestation"
 msgstr "数据流：推理 → 验证凭证"
+
+#: module.ttl
+msgid "Stage Output Family"
+msgstr "阶段输出族"
+
+#: module.ttl
+msgid "A class of quality values describing which explicit output scopes select a pipeline stage as a root. The stage profile admits generated output and runtime projection values; each scope also retains every transitive producer of its selected roots. This classification controls stage selection, while selected stages and their required outputs remain mandatory."
+msgstr "一种质量值类，用于说明哪些显式输出范围将流水线阶段选为根。阶段配置允许生成输出和运行时投影两种值；每个范围还保留其所选根的全部传递生产者。此分类控制阶段选择，而所选阶段及其必需输出始终是强制的。"
+
+#: module.ttl
+msgid "gmeow:stage-export-yaml-ld gmeow:stageOutputFamily gmeow:outputRuntimeProjection ."
+msgstr "gmeow:stage-export-yaml-ld gmeow:stageOutputFamily gmeow:outputRuntimeProjection ."
+
+#: module.ttl
+msgid "Scope: output selection for a declared pipeline stage. A runtime projection can still be required by a generated stage; the two profile values do not close this class globally."
+msgstr "范围：已声明流水线阶段的输出选择。运行时投影仍可能是生成阶段所必需的；配置中的两个值并未在全局封闭此类。"
+
+#: module.ttl
+msgid "Use a Stage Output Family to describe the scope roots of a stage without inferring its role from file names or execution timings."
+msgstr "使用阶段输出族描述某个输出范围的根，而不根据文件名或执行耗时推断阶段的角色。"
+
+#: module.ttl
+msgid "Do not use an output family as a success status, cache policy, effect class or permission to omit a dependency."
+msgstr "不要将输出族用作成功状态、缓存策略、效果类别或省略依赖的许可。"
+
+#: module.ttl
+msgid "Declare exactly one allowed family for each pipeline stage. Admit its implementation identity and family before filtering, then retain the complete producer closure."
+msgstr "为每个流水线阶段声明且仅声明一个允许的输出族。过滤前先核准其实现身份和输出族，再保留完整的生产者闭包。"
+
+#: module.ttl
+msgid "stage output family"
+msgstr "阶段的输出族"
+
+#: module.ttl
+msgid "Relates a pipeline stage to the output family used to select it as a scope root. Every stage declares exactly one allowed value. Native admission checks its identity and family against the selected executable registry before either output scope can filter stages, so a false runtime projection declaration cannot hide a required generated stage."
+msgstr "将流水线阶段关联到用于将其选为范围根的输出族。每个阶段声明且仅声明一个允许的值。在任何输出范围过滤阶段之前，原生准入都会根据所选可执行注册表检查其身份和输出族，因此虚假的运行时投影声明不能隐藏必需的生成阶段。"
+
+#: module.ttl
+msgid "gmeow:stage-gts-sink gmeow:stageOutputFamily gmeow:outputGenerated ."
+msgstr "gmeow:stage-gts-sink gmeow:stageOutputFamily gmeow:outputGenerated ."
+
+#: module.ttl
+msgid "Scope: the declared output selection role of one stage, separate from its cache disposition, dependencies and execution outcome."
+msgstr "范围：单个阶段在输出选择中的已声明角色，与其缓存处置、依赖和执行结果分开。"
+
+#: module.ttl
+msgid "Use this property to make scope selection readable from the same authored graph that declares the pipeline."
+msgstr "使用此属性，使范围选择能够从声明流水线的同一份编写图中读取。"
+
+#: module.ttl
+msgid "Do not omit this property on an internal stage or use it to erase a required producer from a selected scope."
+msgstr "不要在内部阶段上省略此属性，也不要用它从所选范围中删除必需的生产者。"
+
+#: module.ttl
+msgid "Set outputGenerated or outputRuntimeProjection on every stage. Select generated roots for the committed scope and all roots for the all scope, retaining their transitive dataflowConsumes producers."
+msgstr "在每个阶段上设置 outputGenerated 或 outputRuntimeProjection。committed 范围选择生成根，all 范围选择全部根，并保留它们通过 dataflowConsumes 关联的传递生产者。"
+
+#: module.ttl
+msgid "output: generated"
+msgstr "输出：生成"
+
+#: module.ttl
+msgid "The stage output family selected as a root by both the committed/generated scope and the all scope. A member can supply an internal intermediate rather than write a committed path itself. Selection always includes its transitive producers and does not change the stage's computation or required outputs."
+msgstr "committed/generated 范围和 all 范围都会选为根的阶段输出族。成员可以提供内部中间结果，而不自行写入某个已纳入输出契约的路径。选择始终包含其传递生产者，且不改变阶段的计算或必需输出。"
+
+#: module.ttl
+msgid "gmeow:stage-parse-sources gmeow:stageOutputFamily gmeow:outputGenerated ."
+msgstr "gmeow:stage-parse-sources gmeow:stageOutputFamily gmeow:outputGenerated ."
+
+#: module.ttl
+msgid "Scope: selection of generated output roots, including internal work in that family. This value does not assert that every member writes a file."
+msgstr "范围：生成输出根的选择，包括此输出族中的内部工作。此值并不声称每个成员都写入文件。"
+
+#: module.ttl
+msgid "Use outputGenerated for a stage whose contribution belongs to the generated output branch."
+msgstr "对于贡献属于生成输出分支的阶段，使用 outputGenerated。"
+
+#: module.ttl
+msgid "Do not infer a committed file path or successful artifact publication from this family value."
+msgstr "不要根据此输出族的值推断已纳入输出契约的文件路径或成功的产物发布。"
+
+#: module.ttl
+msgid "Declare this value explicitly and keep the executable family identical. Retain every declared upstream producer when deriving the committed scope."
+msgstr "显式声明此值，并保持可执行实现的输出族一致。推导 committed 范围时，保留每个已声明的上游生产者。"
+
+#: module.ttl
+msgid "output: runtime projection"
+msgstr "输出：运行时投影"
+
+#: module.ttl
+msgid "The stage output family selected as a direct runtime projection root by the all scope. The committed/generated scope also retains a member when a selected generated stage needs it as a transitive producer. This family classifies selection roots, not whether a stage is allowed to run or whether its outputs are optional."
+msgstr "由 all 范围选为直接运行时投影根的阶段输出族。当所选生成阶段需要某个成员作为传递生产者时，committed/generated 范围也保留该成员。此输出族分类的是选择根，而不是阶段是否获准执行或其输出是否可选。"
+
+#: module.ttl
+msgid "gmeow:stage-export-okf gmeow:stageOutputFamily gmeow:outputRuntimeProjection ."
+msgstr "gmeow:stage-export-okf gmeow:stageOutputFamily gmeow:outputRuntimeProjection ."
+
+#: module.ttl
+msgid "Scope: direct runtime projection roots. The current independent runtime exporters are omitted from committed selection because no generated root needs them."
+msgstr "范围：直接运行时投影根。当前独立的运行时导出阶段未纳入 committed 选择，因为没有生成根需要它们。"
+
+#: module.ttl
+msgid "Use outputRuntimeProjection for a stage dedicated to runtime presentation output selected by the all scope."
+msgstr "对于专门提供由 all 范围选择的运行时呈现输出的阶段，使用 outputRuntimeProjection。"
+
+#: module.ttl
+msgid "Do not treat this value as a promise that the stage can never occur in a committed producer closure."
+msgstr "不要将此值视为该阶段永远不能出现在 committed 生产者闭包中的保证。"
+
+#: module.ttl
+msgid "Declare this value explicitly, admit agreement with the selected executable registry and retain the stage whenever a selected root transitively consumes it."
+msgstr "显式声明此值，核准它与所选可执行注册表的一致性，并在某个所选根传递消费该阶段时保留该阶段。"
+
+#: tests/structural.ttl
+msgid "Output scope selection must follow the same authored pipeline's family declarations and complete producer closure. A generated root keeps its required runtime projection producer, while an independent runtime exporter remains outside the committed scope. Exact native family admission and explicit closed-world requirements prevent an absent or false declaration from silently dropping work."
+msgstr "输出范围选择必须遵循同一份已编写流水线的输出族声明和完整生产者闭包。生成根保留其必需的运行时投影生产者，而独立的运行时导出阶段仍处于 committed 范围之外。精确的原生输出族准入与显式封闭世界要求可防止缺失或虚假的声明静默丢弃工作。"

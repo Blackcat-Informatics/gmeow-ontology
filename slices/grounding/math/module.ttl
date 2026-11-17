@@ -6179,7 +6179,12 @@ math:Subspace
     rdfs:subClassOf math:VectorSpace ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "Subspace"@x-gmeow-english ;
-    skos:definition "A vector subspace: a subset of a vector space closed under addition and scalar multiplication, itself a math:VectorSpace. A subclass of math:VectorSpace naming the space it sits in through math:subspaceOf. The embedded image of an embedding and the residual of a projection are subspaces; a math:OrthogonalComplement is the subspace orthogonal to one."@x-gmeow-english ;
+    skos:definition "A vector subspace: a subset of a vector space closed under addition and scalar multiplication, itself a math:VectorSpace. A subclass of math:VectorSpace naming the space it sits in through math:subspaceOf. The image of a linear map is a subspace; an arbitrary embedding image or projection residual needs separate subspace justification. A math:OrthogonalComplement is the subspace orthogonal to an operand subspace within a declared inner-product space."@x-gmeow-english ;
+    skos:scopeNote "For W to be a subspace of V over F, W contains zero and uses the induced addition and scalar action of V, closed under every scalar in the same field F. Zero and whole-space subspaces, finite and infinite dimension are allowed. Algebraic closure here does not require topological closedness."@x-gmeow-english ;
+    skos:example "In the real vector space R³ with its usual operations, W = {(x,y,0) : x,y in R} is a subspace, including zero and closed under real linear combinations. The affine plane {(x,y,1) : x,y in R} is not a subspace because it lacks zero."@x-gmeow-english ;
+    gmeow:useWhen "Use for a justified vector subspace with its ambient vector-space structure and common scalar field retained. A linear-map image or a supplied span can establish a subspace; sampled vectors alone do not establish closure of the sample set."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not infer a subspace from an embedding label, a dimension, an arbitrary nonlinear image or residual data. An orthogonal complement requires the declared ambient inner product; a global orthogonal direct-sum decomposition needs its own hypotheses in infinite dimension."@x-gmeow-english ;
+    gmeow:howToUse "Describe W as math:Subspace and link each justified ambient V with math:subspaceOf. Retain math:underlyingSet, math:structureOperation and math:satisfiesAxiom evidence separately from descriptive math:scalarField links. A type or ambient link supplies no automatic closure proof or subspace computation."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 math:OrthogonalComplement
@@ -6213,7 +6218,12 @@ math:LinearMap
     rdfs:subClassOf math:Function ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "Linear Map"@x-gmeow-english ;
-    skos:definition "A linear map (linear transformation) between vector spaces — a math:Function preserving addition and scalar multiplication. A subclass of math:Function; a matrix (its object-layer representation) realizes one relative to chosen bases. Its math:Rank measures the dimension of its image; a math:CovarianceOperator and the weight action of a neural layer are linear maps."@x-gmeow-english ;
+    skos:definition "A total function T from a vector space V to a vector space W over the same scalar field, preserving linear combinations: T(av+bw) = aT(v)+bT(w). Its source and target vector-space structures are distinct in role from their carrier sets and from a matrix representing the map in chosen bases."@x-gmeow-english ;
+    skos:scopeNote "Linearity needs no inner product or finite-dimensional assumption. A finite matrix representation additionally needs ordered source and target bases. Changing coordinates for the same map over the same field preserves rank; a matrix label, frame or finite sample alone does not establish the universal linearity law."@x-gmeow-english ;
+    skos:example "Over the real numbers, T: R³ → R² given by T(x,y,z) = (x,y) is linear. In the standard ordered bases its matrix is [[1,0,0],[0,1,0]], its image is R², its rank is two and its kernel has dimension one."@x-gmeow-english ;
+    gmeow:useWhen "Use for a justified linear map with declared source and target vector spaces over the same field, preserving their carriers, scalar actions and actual representation or defining rule."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not infer linearity from a matrix-shaped dataset or a neural-layer label. A nonzero bias translation is affine rather than linear, and a nonlinear activation does not become linear merely because its input has a weight matrix. Do not confuse a mathematical function with a functional RDF predicate or an executed method."@x-gmeow-english ;
+    gmeow:howToUse "Retain the inherited math:Function frame through math:domain and math:codomain carrier-set resources; describe the vector-space structures and scalar field separately with existing vocabulary. Preserve any justified math:image. The registered skos:exactMatch to wd:Q207643 has logic:SoundUnderApproximation preservation; neither it nor the frame executes the map or proves linearity."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 math:Rank
@@ -6221,7 +6231,12 @@ math:Rank
     rdfs:subClassOf math:MathematicalObject ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "Rank"@x-gmeow-english ;
-    skos:definition "The rank of a math:LinearMap — the dimension of its image, a non-negative integer invariant. A subclass of math:MathematicalObject carrying its value through math:rankValue. It bounds how much of the source a map preserves and is the count of non-zero singular values of a math:SingularValueDecomposition."@x-gmeow-english ;
+    skos:definition "The dimension of the image of a math:LinearMap over its declared scalar field. A finite rank is a nonnegative integer, including zero, recorded through math:rankValue. The general image dimension may instead be infinite; the finite numeric property supplies no infinite-cardinal encoding."@x-gmeow-english ;
+    skos:scopeNote "Rank concerns the attained image, not the declared source or target dimension. For a finite-dimensional source V, dim(V) = rank(T) + dim(kernel(T)); no finite-source conclusion is inferred for an arbitrary infinite-dimensional map. Rank also depends on the scalar-field interpretation of the vector spaces."@x-gmeow-english ;
+    skos:example "The real projection T: R³ → R², T(x,y,z) = (x,y), has rank two and nullity one. The zero map has rank zero, even when its source and target are nonzero vector spaces."@x-gmeow-english ;
+    gmeow:useWhen "Use to describe the justified image dimension of an identified linear map in its actual field and vector-space context, keeping any finite numeric value separate from the map and its coordinate matrix."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not substitute tensor-axis count, root-system rank, matrix size or a count of distinct output resources. In the finite-dimensional real or complex inner-product SVD setting, exact rank counts positive singular-value occurrences with multiplicity. Numerical tolerance and rank truncation are separate policies, not exact-rank proofs."@x-gmeow-english ;
+    gmeow:howToUse "Describe the rank as its own math:Rank resource and use math:rankValue for a justified finite value. Preserve the source identification of the relevant map and field in the existing representation; no dedicated rank-of property is supplied here. A type, number or grounding link alone does not calculate rank."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 math:Eigendecomposition
@@ -6255,7 +6270,12 @@ math:CovarianceOperator
     rdfs:subClassOf math:LinearMap ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "Covariance Operator"@x-gmeow-english ;
-    skos:definition "The covariance operator of a centered data distribution — a self-adjoint, positive-semidefinite linear map whose spectral decomposition yields the principal directions. A subclass of math:LinearMap. A math:PCAAnalysis names the math:CovarianceOperator it decomposes through math:covarianceOperator; its eigenvectors are the loadings and its eigenvalues the explained variances."@x-gmeow-english ;
+    skos:definition "A self-adjoint positive-semidefinite linear operator representing centered second moments in a declared real or complex inner-product setting. For finite-dimensional column coordinates with E[‖X‖²] finite, μ = E[X] and C = E[(X-μ)(X-μ)*], where * is conjugate transpose, or ordinary transpose over the reals."@x-gmeow-english ;
+    skos:scopeNote "The coordinate formula uses supplied orthonormal bases and the complex convention ⟨u,v⟩ = u* v, conjugate-linear in the first argument. Infinite-dimensional use requires stated existence, boundedness and spectral hypotheses; this type does not assert a discrete eigenvector basis for an arbitrary operator. An unconjugated complex second moment is a different construction."@x-gmeow-english ;
+    skos:example "A real random vector equally likely to be (1,0) or (-1,0) has mean zero and covariance diag(1,0) under the standard Euclidean inner product. This covariance is positive semidefinite and singular; its zero eigenvalue is valid, and no inverse is required."@x-gmeow-english ;
+    gmeow:useWhen "Use for a justified population or empirical covariance operator, retaining the observations or probability model, scalar field, inner product, centering, scaling and actual normalization convention in the source representation."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not infer covariance from a Gram-matrix or symmetry label alone, require positive definiteness, or replace a missing operator with zero covariance. Repeated eigenvalues do not select unique eigenvectors. A declared covariance role or solver descriptor does not establish centering, covariance construction or numerical spectral analysis."@x-gmeow-english ;
+    gmeow:howToUse "Retain the inherited LinearMap and Function carrier-set frame separately from the vector-space structure. Use math:covarianceOperator from the analysis to this operator. Preserve sample orientation and divisor: empirical 1/N requires N > 0, while 1/(N-1) requires N > 1. Those choices and their evidence are supplied data, not defaults or new validation gates."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 math:PrincipalComponent
@@ -6278,6 +6298,11 @@ math:subspaceOf
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "subspace of"@x-gmeow-english ;
     skos:definition "Relates a math:Subspace to the vector space it is a subspace of. Domain math:Subspace, range math:VectorSpace (stated in prose). The ambient space a subspace sits in, and against which its orthogonal complement is taken."@x-gmeow-english ;
+    skos:scopeNote "The direction is W to ambient V, with a common scalar field and induced operations justified separately. Several ambient links may be valid, including W to itself. The source states domain and range in prose without native typing, cardinality, inclusion, transitivity or closure rules for this property."@x-gmeow-english ;
+    skos:example "The linear-algebra-and-learning example states ex:embeddedSubspace math:subspaceOf ex:complexSpace4096. This records an asserted ambient relationship; the dataset supplies neither an embedding-image link to that subspace nor a proof of linear closure."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain each justified ambient vector space of a subspace without choosing a preferred ambient. Preserve the actual scalar-field interpretation and induced operations rather than infer them from shared dimensions or carrier labels."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not reverse the relationship, substitute a carrier set or scalar field for the ambient vector-space structure, or treat the edge as a closure certificate. Keep math:orthogonalComplementOf for the operand subspace, math:ambientSpace for its enclosing space and math:definedByInnerProduct for its form; those role referents may coincide."@x-gmeow-english ;
+    gmeow:howToUse "Link the supplied math:Subspace to its ambient math:VectorSpace and preserve the source justification of zero, addition and same-field scalar closure. For orthogonal-complement descriptions retain the separate operand, ambient and inner-product roles. Neither this edge nor a retrieved competency answer calculates a residual subspace."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 math:orthogonalComplementOf
@@ -6315,7 +6340,12 @@ math:rankValue
     a logic:DatatypeProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "rank value"@x-gmeow-english ;
-    skos:definition "The non-negative-integer value of a math:Rank — the dimension of the image of the linear map it is the rank of. Domain math:Rank, range xsd:nonNegativeInteger (stated in prose; SHACL enforces xsd:integer with minInclusive 0)."@x-gmeow-english ;
+    skos:definition "The nonnegative-integer value of a finite math:Rank: the dimension of the image of its associated linear map over the declared scalar field. Zero is an actual finite value. This datatype property records a supplied mathematical value; it does not compute or verify rank."@x-gmeow-english ;
+    skos:scopeNote "The finite value contract has no fixed machine-width ceiling and no encoding for infinite-cardinal or unknown rank. The declared nonnegative-integer meaning is distinct from an executed lexical, range or cardinality check; no generated SHACL or native rank-validation result follows from this annotation."@x-gmeow-english ;
+    skos:example "For the real projection (x,y,z) ↦ (x,y), a supplied math:Rank resource can carry math:rankValue 2. The literal records the justified image dimension; the property does not infer the projection, its field or the argument establishing that value."@x-gmeow-english ;
+    gmeow:useWhen "Use when a finite image dimension is actually supplied and justified, preserving its integer literal and the source context that identifies the linear map and scalar field."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not replace an unknown or infinite rank with zero, a large sentinel or an ambient dimension. Do not attach a rounded estimate or tolerance-based numerical rank as if it established the exact mathematical image dimension."@x-gmeow-english ;
+    gmeow:howToUse "Attach the supplied nonnegative integer to the math:Rank resource and retain the map, field and supporting evidence in the existing source representation. Keep omission distinct from zero and preserve any separate approximation policy. The relation alone supplies no specialized validation gate or rank computation."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 math:eigenvalue
@@ -6789,7 +6819,12 @@ math:covarianceOperator
     a logic:ObjectProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "covariance operator"@x-gmeow-english ;
-    skos:definition "Relates a math:PCAAnalysis to the math:CovarianceOperator it decomposes. Domain math:PCAAnalysis, range math:CovarianceOperator (stated in prose). The operator whose spectral decomposition yields the principal components; a PCA without it is ill-formed (math:IncompletePCAAnalysis)."@x-gmeow-english ;
+    skos:definition "Relates a math:PCAAnalysis to the supplied math:CovarianceOperator that is its declared decomposition operand. The analysis process, its input data, the covariance operator and any reported numerical outputs retain separate roles; this link records the operator role rather than constructing it."@x-gmeow-english ;
+    skos:scopeNote "The current PCA source contract requires at least one covariance-operator resource through its generic minimum and existing closure, associated with math:IncompletePCAAnalysis. This is not an exact-one or typed-target enforcement claim. The mathematical covariance meaning and the inherited operator frame still need their own evidence."@x-gmeow-english ;
+    skos:example "The exact-pca producer emits p:residualPCA math:covarianceOperator p:residualCovariance and gives that CovarianceOperator domain and codomain p:covSpace. Its fixed Gram, dominant-axis and LDL calculations do not supply observed samples, an executed centering step or a sample-covariance normalization."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain the actual covariance operand named by an analysis, together with independently supplied input, preprocessing, scalar-field, inner-product and normalization context."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not reverse the analysis-to-operator direction, substitute the dataset or solver for the operator, or infer an executed spectral decomposition from the edge. Missing covariance differs from a supplied operator, which may be zero or singular; no absent operand is repaired by inventing a zero operator or undeclared preprocessing."@x-gmeow-english ;
+    gmeow:howToUse "Link the analysis to its justified CovarianceOperator resource and preserve that operator’s carrier-set frame and actual construction evidence. Keep centering and scaling declarations on the analysis distinct from proof that those operations ran. The relation supplies no additional maximum, automatic target typing, covariance computation or numerical validation result."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 math:eigensolver

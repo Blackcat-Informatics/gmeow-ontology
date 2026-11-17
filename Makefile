@@ -346,6 +346,10 @@ producer-build: ## Build and authenticate the O3/full-LTO producer independently
 producer-verify: ## Authenticate the staged producer against the current build recipe without compiling it.
 	cargo xtask producer verify
 
+.PHONY: pipeline-scope-check
+pipeline-scope-check: ## Compare the authored pipeline scope query with both executable build profiles without running stage bodies.
+	$(GMEOW_DEV) pipeline-scope-check
+
 producer-recipe: ## Print the resolved producer recipe digest for exact binary-cache admission.
 	@cargo xtask producer recipe
 

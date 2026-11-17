@@ -17746,3 +17746,199 @@ msgstr "Ne pas compter les valeurs strictement positives distinctes ni les resso
 msgctxt "https://blackcatinformatics.ca/math/singularValue|https://blackcatinformatics.ca/gmeow/howToUse"
 msgid "Link the decomposition to the supplied math:Number and preserve source ordering, occurrence multiplicities, factor associations and any numerical tolerance separately. This output relation supplies no left/right-vector pairing, default order, completeness witness or numerical computation."
 msgstr "Relier la décomposition au math:Number fourni et conserver séparément l’ordre de source, les multiplicités d’occurrence, les associations aux facteurs et toute tolérance numérique. Cette relation de sortie ne fournit ni appariement aux vecteurs gauches et droits, ni ordre par défaut, ni témoin de complétude, ni calcul numérique."
+
+msgctxt "https://blackcatinformatics.ca/math/LinearMap|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Linear Map"
+msgstr "Application linéaire"
+
+msgctxt "https://blackcatinformatics.ca/math/LinearMap|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A total function T from a vector space V to a vector space W over the same scalar field, preserving linear combinations: T(av+bw) = aT(v)+bT(w). Its source and target vector-space structures are distinct in role from their carrier sets and from a matrix representing the map in chosen bases."
+msgstr "Une fonction totale T d’un espace vectoriel V vers un espace vectoriel W sur le même corps des scalaires, préservant les combinaisons linéaires : T(av+bw) = aT(v)+bT(w). Les structures vectorielles source et cible sont distinctes dans leur rôle de leurs ensembles supports et d’une matrice représentant l’application dans des bases choisies."
+
+msgctxt "https://blackcatinformatics.ca/math/LinearMap|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Linearity needs no inner product or finite-dimensional assumption. A finite matrix representation additionally needs ordered source and target bases. Changing coordinates for the same map over the same field preserves rank; a matrix label, frame or finite sample alone does not establish the universal linearity law."
+msgstr "La linéarité ne requiert ni produit scalaire ni hypothèse de dimension finie. Une représentation matricielle finie exige en plus des bases ordonnées à la source et à la cible. Changer les coordonnées d’une même application sur un même corps préserve le rang ; un libellé de matrice, un cadre ou un échantillon fini ne suffit pas à établir la loi universelle de linéarité."
+
+msgctxt "https://blackcatinformatics.ca/math/LinearMap|http://www.w3.org/2004/02/skos/core#example"
+msgid "Over the real numbers, T: R³ → R² given by T(x,y,z) = (x,y) is linear. In the standard ordered bases its matrix is [[1,0,0],[0,1,0]], its image is R², its rank is two and its kernel has dimension one."
+msgstr "Sur les réels, T: R³ → R² définie par T(x,y,z) = (x,y) est linéaire. Dans les bases ordonnées standard, sa matrice est [[1,0,0],[0,1,0]], son image est R², son rang est deux et son noyau a pour dimension un."
+
+msgctxt "https://blackcatinformatics.ca/math/LinearMap|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for a justified linear map with declared source and target vector spaces over the same field, preserving their carriers, scalar actions and actual representation or defining rule."
+msgstr "Utiliser pour une application linéaire justifiée avec des espaces vectoriels source et cible déclarés sur le même corps, en conservant leurs supports, leurs actions scalaires et la représentation ou règle de définition effective."
+
+msgctxt "https://blackcatinformatics.ca/math/LinearMap|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Do not infer linearity from a matrix-shaped dataset or a neural-layer label. A nonzero bias translation is affine rather than linear, and a nonlinear activation does not become linear merely because its input has a weight matrix. Do not confuse a mathematical function with a functional RDF predicate or an executed method."
+msgstr "Ne pas déduire la linéarité d’un jeu de données en forme de matrice ou d’un libellé de couche neuronale. Une translation par un biais non nul est affine plutôt que linéaire, et une activation non linéaire ne devient pas linéaire simplement parce que son entrée comporte une matrice de poids. Ne pas confondre une fonction mathématique avec un prédicat RDF fonctionnel ou une méthode exécutée."
+
+msgctxt "https://blackcatinformatics.ca/math/LinearMap|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the inherited math:Function frame through math:domain and math:codomain carrier-set resources; describe the vector-space structures and scalar field separately with existing vocabulary. Preserve any justified math:image. The registered skos:exactMatch to wd:Q207643 has logic:SoundUnderApproximation preservation; neither it nor the frame executes the map or proves linearity."
+msgstr "Conserver le cadre math:Function hérité au moyen de ressources d’ensembles supports liées par math:domain et math:codomain ; décrire séparément les structures vectorielles et le corps des scalaires avec le vocabulaire existant. Préserver toute math:image justifiée. Le skos:exactMatch enregistré vers wd:Q207643 a pour préservation logic:SoundUnderApproximation ; ni lui ni le cadre n’exécute l’application et ne prouve la linéarité."
+
+msgctxt "https://blackcatinformatics.ca/math/Rank|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Rank"
+msgstr "Rang"
+
+msgctxt "https://blackcatinformatics.ca/math/Rank|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The dimension of the image of a math:LinearMap over its declared scalar field. A finite rank is a nonnegative integer, including zero, recorded through math:rankValue. The general image dimension may instead be infinite; the finite numeric property supplies no infinite-cardinal encoding."
+msgstr "La dimension de l’image d’une math:LinearMap sur son corps des scalaires déclaré. Un rang fini est un entier non négatif, y compris zéro, consigné par math:rankValue. La dimension générale de l’image peut au contraire être infinie ; la propriété numérique finie ne fournit aucun encodage de cardinal infini."
+
+msgctxt "https://blackcatinformatics.ca/math/Rank|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Rank concerns the attained image, not the declared source or target dimension. For a finite-dimensional source V, dim(V) = rank(T) + dim(kernel(T)); no finite-source conclusion is inferred for an arbitrary infinite-dimensional map. Rank also depends on the scalar-field interpretation of the vector spaces."
+msgstr "Le rang concerne l’image atteinte, pas la dimension déclarée de la source ou de la cible. Pour une source V de dimension finie, dim(V) = rang(T) + dim(noyau(T)) ; aucune conclusion propre à une source finie n’est déduite pour une application arbitraire en dimension infinie. Le rang dépend aussi de l’interprétation des espaces vectoriels sur leur corps des scalaires."
+
+msgctxt "https://blackcatinformatics.ca/math/Rank|http://www.w3.org/2004/02/skos/core#example"
+msgid "The real projection T: R³ → R², T(x,y,z) = (x,y), has rank two and nullity one. The zero map has rank zero, even when its source and target are nonzero vector spaces."
+msgstr "La projection réelle T: R³ → R², T(x,y,z) = (x,y), a pour rang deux et pour nullité un. L’application nulle a pour rang zéro, même lorsque sa source et sa cible sont des espaces vectoriels non nuls."
+
+msgctxt "https://blackcatinformatics.ca/math/Rank|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to describe the justified image dimension of an identified linear map in its actual field and vector-space context, keeping any finite numeric value separate from the map and its coordinate matrix."
+msgstr "Utiliser pour décrire la dimension justifiée de l’image d’une application linéaire identifiée dans son contexte effectif de corps et d’espaces vectoriels, en séparant toute valeur numérique finie de l’application et de sa matrice de coordonnées."
+
+msgctxt "https://blackcatinformatics.ca/math/Rank|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Do not substitute tensor-axis count, root-system rank, matrix size or a count of distinct output resources. In the finite-dimensional real or complex inner-product SVD setting, exact rank counts positive singular-value occurrences with multiplicity. Numerical tolerance and rank truncation are separate policies, not exact-rank proofs."
+msgstr "Ne pas substituer le nombre d’axes d’un tenseur, le rang d’un système de racines, la taille d’une matrice ou un nombre de ressources de sortie distinctes. Dans le cadre SVD préhilbertien réel ou complexe de dimension finie, le rang exact compte les occurrences de valeurs singulières strictement positives avec leur multiplicité. La tolérance numérique et la troncature en rang sont des politiques distinctes, pas des preuves du rang exact."
+
+msgctxt "https://blackcatinformatics.ca/math/Rank|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Describe the rank as its own math:Rank resource and use math:rankValue for a justified finite value. Preserve the source identification of the relevant map and field in the existing representation; no dedicated rank-of property is supplied here. A type, number or grounding link alone does not calculate rank."
+msgstr "Décrire le rang comme sa propre ressource math:Rank et utiliser math:rankValue pour une valeur finie justifiée. Conserver l’identification de source de l’application concernée et du corps dans la représentation existante ; aucune propriété dédiée reliant le rang à son application n’est fournie ici. Un type, un nombre ou un lien de correspondance seul ne calcule pas le rang."
+
+msgctxt "https://blackcatinformatics.ca/math/rankValue|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "rank value"
+msgstr "valeur du rang"
+
+msgctxt "https://blackcatinformatics.ca/math/rankValue|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The nonnegative-integer value of a finite math:Rank: the dimension of the image of its associated linear map over the declared scalar field. Zero is an actual finite value. This datatype property records a supplied mathematical value; it does not compute or verify rank."
+msgstr "La valeur entière non négative d’un math:Rank fini : la dimension de l’image de son application linéaire associée sur le corps des scalaires déclaré. Zéro est une véritable valeur finie. Cette propriété de données consigne une valeur mathématique fournie ; elle ne calcule ni ne vérifie le rang."
+
+msgctxt "https://blackcatinformatics.ca/math/rankValue|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The finite value contract has no fixed machine-width ceiling and no encoding for infinite-cardinal or unknown rank. The declared nonnegative-integer meaning is distinct from an executed lexical, range or cardinality check; no generated SHACL or native rank-validation result follows from this annotation."
+msgstr "Le contrat de valeur finie ne comporte aucun plafond de largeur machine fixe ni aucun encodage de rang cardinal infini ou inconnu. Le sens déclaré d’entier non négatif est distinct d’un contrôle lexical, de plage ou de cardinalité exécuté ; cette annotation n’implique aucun résultat de validation du rang par SHACL généré ou par le moteur natif."
+
+msgctxt "https://blackcatinformatics.ca/math/rankValue|http://www.w3.org/2004/02/skos/core#example"
+msgid "For the real projection (x,y,z) ↦ (x,y), a supplied math:Rank resource can carry math:rankValue 2. The literal records the justified image dimension; the property does not infer the projection, its field or the argument establishing that value."
+msgstr "Pour la projection réelle (x,y,z) ↦ (x,y), une ressource math:Rank fournie peut porter math:rankValue 2. Le littéral consigne la dimension justifiée de l’image ; la propriété ne déduit ni la projection, ni son corps, ni l’argument établissant cette valeur."
+
+msgctxt "https://blackcatinformatics.ca/math/rankValue|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when a finite image dimension is actually supplied and justified, preserving its integer literal and the source context that identifies the linear map and scalar field."
+msgstr "Utiliser lorsqu’une dimension finie de l’image est effectivement fournie et justifiée, en conservant son littéral entier et le contexte de source qui identifie l’application linéaire et le corps des scalaires."
+
+msgctxt "https://blackcatinformatics.ca/math/rankValue|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Do not replace an unknown or infinite rank with zero, a large sentinel or an ambient dimension. Do not attach a rounded estimate or tolerance-based numerical rank as if it established the exact mathematical image dimension."
+msgstr "Ne pas remplacer un rang inconnu ou infini par zéro, une grande valeur sentinelle ou une dimension ambiante. Ne pas attacher une estimation arrondie ou un rang numérique fondé sur une tolérance comme s’il établissait la dimension mathématique exacte de l’image."
+
+msgctxt "https://blackcatinformatics.ca/math/rankValue|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Attach the supplied nonnegative integer to the math:Rank resource and retain the map, field and supporting evidence in the existing source representation. Keep omission distinct from zero and preserve any separate approximation policy. The relation alone supplies no specialized validation gate or rank computation."
+msgstr "Attacher l’entier non négatif fourni à la ressource math:Rank et conserver l’application, le corps et les éléments justificatifs dans la représentation de source existante. Distinguer l’omission de zéro et préserver toute politique d’approximation distincte. La relation seule ne fournit aucun contrôle de validation spécialisé ni aucun calcul de rang."
+
+msgctxt "https://blackcatinformatics.ca/math/CovarianceOperator|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Covariance Operator"
+msgstr "Opérateur de covariance"
+
+msgctxt "https://blackcatinformatics.ca/math/CovarianceOperator|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A self-adjoint positive-semidefinite linear operator representing centered second moments in a declared real or complex inner-product setting. For finite-dimensional column coordinates with E[‖X‖²] finite, μ = E[X] and C = E[(X-μ)(X-μ)*], where * is conjugate transpose, or ordinary transpose over the reals."
+msgstr "Un opérateur linéaire autoadjoint positif semi-défini représentant les moments centrés d’ordre deux dans un cadre préhilbertien réel ou complexe déclaré. Pour des coordonnées colonnes de dimension finie avec E[‖X‖²] finie, μ = E[X] et C = E[(X-μ)(X-μ)*], où * est la transposée conjuguée, ou la transposée ordinaire sur les réels."
+
+msgctxt "https://blackcatinformatics.ca/math/CovarianceOperator|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The coordinate formula uses supplied orthonormal bases and the complex convention ⟨u,v⟩ = u* v, conjugate-linear in the first argument. Infinite-dimensional use requires stated existence, boundedness and spectral hypotheses; this type does not assert a discrete eigenvector basis for an arbitrary operator. An unconjugated complex second moment is a different construction."
+msgstr "La formule en coordonnées utilise des bases orthonormées fournies et la convention complexe ⟨u,v⟩ = u* v, antilinéaire dans le premier argument. L’usage en dimension infinie exige des hypothèses déclarées d’existence, de bornitude et de spectre ; ce type n’affirme pas l’existence d’une base discrète de vecteurs propres pour un opérateur arbitraire. Un moment d’ordre deux complexe sans conjugaison est une autre construction."
+
+msgctxt "https://blackcatinformatics.ca/math/CovarianceOperator|http://www.w3.org/2004/02/skos/core#example"
+msgid "A real random vector equally likely to be (1,0) or (-1,0) has mean zero and covariance diag(1,0) under the standard Euclidean inner product. This covariance is positive semidefinite and singular; its zero eigenvalue is valid, and no inverse is required."
+msgstr "Un vecteur aléatoire réel prenant (1,0) ou (-1,0) avec la même probabilité a une moyenne nulle et une covariance diag(1,0) pour le produit scalaire euclidien standard. Cette covariance est positive semi-définie et singulière ; sa valeur propre nulle est valide et aucun inverse n’est requis."
+
+msgctxt "https://blackcatinformatics.ca/math/CovarianceOperator|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for a justified population or empirical covariance operator, retaining the observations or probability model, scalar field, inner product, centering, scaling and actual normalization convention in the source representation."
+msgstr "Utiliser pour un opérateur de covariance de population ou empirique justifié, en conservant les observations ou le modèle probabiliste, le corps des scalaires, le produit scalaire, le centrage, la mise à l’échelle et la convention de normalisation effective dans la représentation de source."
+
+msgctxt "https://blackcatinformatics.ca/math/CovarianceOperator|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Do not infer covariance from a Gram-matrix or symmetry label alone, require positive definiteness, or replace a missing operator with zero covariance. Repeated eigenvalues do not select unique eigenvectors. A declared covariance role or solver descriptor does not establish centering, covariance construction or numerical spectral analysis."
+msgstr "Ne pas déduire une covariance d’un simple libellé de matrice de Gram ou de symétrie, exiger que l’opérateur soit défini positif ni remplacer un opérateur absent par une covariance nulle. Des valeurs propres répétées ne sélectionnent pas de vecteurs propres uniques. Un rôle de covariance déclaré ou un descripteur de solveur n’établit ni le centrage, ni la construction de covariance, ni une analyse spectrale numérique."
+
+msgctxt "https://blackcatinformatics.ca/math/CovarianceOperator|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the inherited LinearMap and Function carrier-set frame separately from the vector-space structure. Use math:covarianceOperator from the analysis to this operator. Preserve sample orientation and divisor: empirical 1/N requires N > 0, while 1/(N-1) requires N > 1. Those choices and their evidence are supplied data, not defaults or new validation gates."
+msgstr "Conserver le cadre hérité d’ensembles supports de LinearMap et Function séparément de la structure vectorielle. Utiliser math:covarianceOperator de l’analyse vers cet opérateur. Préserver l’orientation des échantillons et le diviseur : la convention empirique 1/N exige N > 0, tandis que 1/(N-1) exige N > 1. Ces choix et leurs éléments justificatifs sont des données fournies, pas des valeurs par défaut ni de nouveaux contrôles de validation."
+
+msgctxt "https://blackcatinformatics.ca/math/covarianceOperator|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "covariance operator"
+msgstr "opérateur de covariance"
+
+msgctxt "https://blackcatinformatics.ca/math/covarianceOperator|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Relates a math:PCAAnalysis to the supplied math:CovarianceOperator that is its declared decomposition operand. The analysis process, its input data, the covariance operator and any reported numerical outputs retain separate roles; this link records the operator role rather than constructing it."
+msgstr "Relie une math:PCAAnalysis au math:CovarianceOperator fourni qui est son opérande déclaré de décomposition. Le processus d’analyse, ses données d’entrée, l’opérateur de covariance et toute sortie numérique rapportée conservent des rôles distincts ; ce lien consigne le rôle d’opérateur plutôt que de le construire."
+
+msgctxt "https://blackcatinformatics.ca/math/covarianceOperator|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The current PCA source contract requires at least one covariance-operator resource through its generic minimum and existing closure, associated with math:IncompletePCAAnalysis. This is not an exact-one or typed-target enforcement claim. The mathematical covariance meaning and the inherited operator frame still need their own evidence."
+msgstr "Le contrat source actuel de PCA exige au moins une ressource d’opérateur de covariance par son minimum générique et sa fermeture existante, associés à math:IncompletePCAAnalysis. Cela n’affirme pas un contrôle d’exactement une valeur ou de type de cible. Le sens mathématique de covariance et le cadre hérité de l’opérateur exigent encore leurs propres éléments justificatifs."
+
+msgctxt "https://blackcatinformatics.ca/math/covarianceOperator|http://www.w3.org/2004/02/skos/core#example"
+msgid "The exact-pca producer emits p:residualPCA math:covarianceOperator p:residualCovariance and gives that CovarianceOperator domain and codomain p:covSpace. Its fixed Gram, dominant-axis and LDL calculations do not supply observed samples, an executed centering step or a sample-covariance normalization."
+msgstr "Le producteur exact-pca émet p:residualPCA math:covarianceOperator p:residualCovariance et donne à ce CovarianceOperator le domaine et le codomaine p:covSpace. Ses calculs sur un Gram fixe, d’axe dominant et de LDL ne fournissent ni échantillons observés, ni étape de centrage exécutée, ni normalisation de covariance d’échantillon."
+
+msgctxt "https://blackcatinformatics.ca/math/covarianceOperator|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain the actual covariance operand named by an analysis, together with independently supplied input, preprocessing, scalar-field, inner-product and normalization context."
+msgstr "Utiliser pour conserver l’opérande effectif de covariance nommé par une analyse, avec les contextes d’entrée, de prétraitement, de corps des scalaires, de produit scalaire et de normalisation fournis indépendamment."
+
+msgctxt "https://blackcatinformatics.ca/math/covarianceOperator|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Do not reverse the analysis-to-operator direction, substitute the dataset or solver for the operator, or infer an executed spectral decomposition from the edge. Missing covariance differs from a supplied operator, which may be zero or singular; no absent operand is repaired by inventing a zero operator or undeclared preprocessing."
+msgstr "Ne pas inverser la direction de l’analyse vers l’opérateur, substituer le jeu de données ou le solveur à l’opérateur ni déduire une décomposition spectrale exécutée de l’arête. Une covariance absente diffère d’un opérateur fourni, qui peut être nul ou singulier ; aucun opérande absent n’est réparé en inventant un opérateur nul ou un prétraitement non déclaré."
+
+msgctxt "https://blackcatinformatics.ca/math/covarianceOperator|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Link the analysis to its justified CovarianceOperator resource and preserve that operator’s carrier-set frame and actual construction evidence. Keep centering and scaling declarations on the analysis distinct from proof that those operations ran. The relation supplies no additional maximum, automatic target typing, covariance computation or numerical validation result."
+msgstr "Relier l’analyse à sa ressource CovarianceOperator justifiée et conserver le cadre d’ensembles supports de cet opérateur et les éléments de sa construction effective. Distinguer les déclarations de centrage et de mise à l’échelle sur l’analyse des preuves que ces opérations ont été exécutées. La relation ne fournit aucun maximum supplémentaire, typage automatique de cible, calcul de covariance ni résultat de validation numérique."
+
+msgctxt "https://blackcatinformatics.ca/math/Subspace|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Subspace"
+msgstr "Sous-espace vectoriel"
+
+msgctxt "https://blackcatinformatics.ca/math/Subspace|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A vector subspace: a subset of a vector space closed under addition and scalar multiplication, itself a math:VectorSpace. A subclass of math:VectorSpace naming the space it sits in through math:subspaceOf. The image of a linear map is a subspace; an arbitrary embedding image or projection residual needs separate subspace justification. A math:OrthogonalComplement is the subspace orthogonal to an operand subspace within a declared inner-product space."
+msgstr "Un sous-espace vectoriel : une partie d’un espace vectoriel stable par addition et multiplication scalaire, elle-même un math:VectorSpace. Sous-classe de math:VectorSpace nommant l’espace qui la contient par math:subspaceOf. L’image d’une application linéaire est un sous-espace ; l’image d’un plongement arbitraire ou un résidu de projection exige une justification distincte de sa structure de sous-espace. Un math:OrthogonalComplement est le sous-espace orthogonal à un sous-espace opérande dans un espace à produit scalaire déclaré."
+
+msgctxt "https://blackcatinformatics.ca/math/Subspace|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "For W to be a subspace of V over F, W contains zero and uses the induced addition and scalar action of V, closed under every scalar in the same field F. Zero and whole-space subspaces, finite and infinite dimension are allowed. Algebraic closure here does not require topological closedness."
+msgstr "Pour que W soit un sous-espace de V sur F, W contient zéro et utilise l’addition et l’action scalaire induites de V, avec stabilité pour tout scalaire du même corps F. Le sous-espace nul, l’espace entier et les dimensions finies ou infinies sont admis. Cette stabilité algébrique n’exige pas que le sous-espace soit topologiquement fermé."
+
+msgctxt "https://blackcatinformatics.ca/math/Subspace|http://www.w3.org/2004/02/skos/core#example"
+msgid "In the real vector space R³ with its usual operations, W = {(x,y,0) : x,y in R} is a subspace, including zero and closed under real linear combinations. The affine plane {(x,y,1) : x,y in R} is not a subspace because it lacks zero."
+msgstr "Dans l’espace vectoriel réel R³ muni des opérations usuelles, W = {(x,y,0) : x,y dans R} est un sous-espace, contenant zéro et stable par combinaisons linéaires réelles. Le plan affine {(x,y,1) : x,y dans R} n’est pas un sous-espace, car il ne contient pas zéro."
+
+msgctxt "https://blackcatinformatics.ca/math/Subspace|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for a justified vector subspace with its ambient vector-space structure and common scalar field retained. A linear-map image or a supplied span can establish a subspace; sampled vectors alone do not establish closure of the sample set."
+msgstr "Utiliser pour un sous-espace vectoriel justifié, en conservant la structure de l’espace vectoriel ambiant et le corps des scalaires commun. L’image d’une application linéaire ou un espace engendré fourni peut établir un sous-espace ; des vecteurs échantillonnés seuls n’établissent pas la stabilité de l’ensemble des échantillons."
+
+msgctxt "https://blackcatinformatics.ca/math/Subspace|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Do not infer a subspace from an embedding label, a dimension, an arbitrary nonlinear image or residual data. An orthogonal complement requires the declared ambient inner product; a global orthogonal direct-sum decomposition needs its own hypotheses in infinite dimension."
+msgstr "Ne pas déduire un sous-espace d’un libellé de plongement, d’une dimension, d’une image non linéaire arbitraire ou de données résiduelles. Un complément orthogonal exige le produit scalaire ambiant déclaré ; une décomposition globale en somme directe orthogonale nécessite ses propres hypothèses en dimension infinie."
+
+msgctxt "https://blackcatinformatics.ca/math/Subspace|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Describe W as math:Subspace and link each justified ambient V with math:subspaceOf. Retain math:underlyingSet, math:structureOperation and math:satisfiesAxiom evidence separately from descriptive math:scalarField links. A type or ambient link supplies no automatic closure proof or subspace computation."
+msgstr "Décrire W comme math:Subspace et relier chaque espace ambiant V justifié par math:subspaceOf. Conserver les éléments justificatifs math:underlyingSet, math:structureOperation et math:satisfiesAxiom séparément des liens descriptifs math:scalarField. Un type ou un lien ambiant ne fournit ni preuve automatique de stabilité ni calcul de sous-espace."
+
+msgctxt "https://blackcatinformatics.ca/math/subspaceOf|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "subspace of"
+msgstr "sous-espace de"
+
+msgctxt "https://blackcatinformatics.ca/math/subspaceOf|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Relates a math:Subspace to the vector space it is a subspace of. Domain math:Subspace, range math:VectorSpace (stated in prose). The ambient space a subspace sits in, and against which its orthogonal complement is taken."
+msgstr "Relie un math:Subspace à l’espace vectoriel dont il est un sous-espace. Domaine math:Subspace, portée math:VectorSpace (indiqués en prose). L’espace ambiant qui contient le sous-espace et au sein duquel son complément orthogonal est pris."
+
+msgctxt "https://blackcatinformatics.ca/math/subspaceOf|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The direction is W to ambient V, with a common scalar field and induced operations justified separately. Several ambient links may be valid, including W to itself. The source states domain and range in prose without native typing, cardinality, inclusion, transitivity or closure rules for this property."
+msgstr "La direction va de W vers l’espace ambiant V, le corps des scalaires commun et les opérations induites étant justifiés séparément. Plusieurs liens ambiants peuvent être valides, y compris de W vers lui-même. La source énonce le domaine et la portée en prose, sans règles natives de typage, cardinalité, inclusion, transitivité ou stabilité pour cette propriété."
+
+msgctxt "https://blackcatinformatics.ca/math/subspaceOf|http://www.w3.org/2004/02/skos/core#example"
+msgid "The linear-algebra-and-learning example states ex:embeddedSubspace math:subspaceOf ex:complexSpace4096. This records an asserted ambient relationship; the dataset supplies neither an embedding-image link to that subspace nor a proof of linear closure."
+msgstr "L’exemple linear-algebra-and-learning énonce ex:embeddedSubspace math:subspaceOf ex:complexSpace4096. Cela consigne une relation ambiante affirmée ; le jeu de données ne fournit ni lien entre l’image du plongement et ce sous-espace ni preuve de stabilité linéaire."
+
+msgctxt "https://blackcatinformatics.ca/math/subspaceOf|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain each justified ambient vector space of a subspace without choosing a preferred ambient. Preserve the actual scalar-field interpretation and induced operations rather than infer them from shared dimensions or carrier labels."
+msgstr "Utiliser pour conserver chaque espace vectoriel ambiant justifié d’un sous-espace sans choisir d’espace ambiant privilégié. Préserver l’interprétation effective du corps des scalaires et les opérations induites plutôt que les déduire de dimensions communes ou de libellés de supports."
+
+msgctxt "https://blackcatinformatics.ca/math/subspaceOf|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Do not reverse the relationship, substitute a carrier set or scalar field for the ambient vector-space structure, or treat the edge as a closure certificate. Keep math:orthogonalComplementOf for the operand subspace, math:ambientSpace for its enclosing space and math:definedByInnerProduct for its form; those role referents may coincide."
+msgstr "Ne pas inverser la relation, substituer un ensemble support ou un corps des scalaires à la structure vectorielle ambiante, ni traiter l’arête comme un certificat de stabilité. Conserver math:orthogonalComplementOf pour le sous-espace opérande, math:ambientSpace pour l’espace qui l’englobe et math:definedByInnerProduct pour sa forme ; les référents de ces rôles peuvent coïncider."
+
+msgctxt "https://blackcatinformatics.ca/math/subspaceOf|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Link the supplied math:Subspace to its ambient math:VectorSpace and preserve the source justification of zero, addition and same-field scalar closure. For orthogonal-complement descriptions retain the separate operand, ambient and inner-product roles. Neither this edge nor a retrieved competency answer calculates a residual subspace."
+msgstr "Relier le math:Subspace fourni à son math:VectorSpace ambiant et conserver la justification de source pour zéro, l’addition et la stabilité scalaire sur le même corps. Pour décrire un complément orthogonal, conserver les rôles distincts d’opérande, d’espace ambiant et de produit scalaire. Ni cette arête ni une réponse de compétence extraite ne calcule un sous-espace résiduel."

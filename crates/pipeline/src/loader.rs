@@ -21,7 +21,7 @@ use purrdf::{
 };
 
 use crate::graph::StageGraph;
-use crate::node::{CachePolicy, GMEOW, SINK_CAPABILITY, Stage, StageStability};
+use crate::node::{CachePolicy, GMEOW, OutputFamily, SINK_CAPABILITY, Stage, StageStability};
 use crate::reads::{Read, ReadSet};
 use crate::registry::StageRegistry;
 
@@ -63,6 +63,9 @@ pub struct StageSpec {
     /// declaration decides whether the independently bounded stage contribution is
     /// admitted to the persistent cache or recomputed from live upstream products.
     pub cache_disposition: CachePolicy,
+    /// Exactly one `gmeow:stageOutputFamily` value. Scope admission checks the
+    /// executable stage's identity and family before any stage can be filtered out.
+    pub output_family: OutputFamily,
     /// Reified `gmeow:BuildDataFlow` typed dataflow: for each upstream producer this
     /// stage reads only SPECIFIC named-graph entities from, the `(producer-local-name,
     /// sorted entity IRIs)`, the list sorted by producer. Empty = every consumed
@@ -316,6 +319,15 @@ fn parse_stage(ds: &RdfDataset, stage_iri: &str) -> Result<StageSpec, gmeow_erro
         })
     })?;
 
+    let output_family_iri = required_named_declaration(ds, stage_iri, "stageOutputFamily", &id)?;
+    let output_family = OutputFamily::from_iri(&output_family_iri).ok_or_else(|| {
+        gmeow_errors::Diag::of_kind(crate::error::InvalidDeclaration {
+            message: format!(
+                "stage {id} has unknown gmeow:stageOutputFamily value {output_family_iri}"
+            ),
+        })
+    })?;
+
     // gmeow:dataflowConsumes (zero or more stage IRIs → local names).
     let mut consumes: Vec<String> = objects(ds, stage_iri, &iri(GMEOW, "dataflowConsumes"))
         .into_iter()
@@ -351,6 +363,7 @@ fn parse_stage(ds: &RdfDataset, stage_iri: &str) -> Result<StageSpec, gmeow_erro
         resources,
         stability,
         cache_disposition,
+        output_family,
         // Filled in by from_store from the reified gmeow:BuildDataFlow edges.
         dataflow_entities: Vec::new(),
         reads: BTreeMap::new(),
@@ -536,9 +549,52 @@ fn parse_edge_reads(ds: &RdfDataset, edge: &str) -> Result<ReadSet, gmeow_errors
     Ok(reads)
 }
 
+/// Admit the executable identity and family before a scope may omit any stage.
+/// Direct binding uses this same boundary, including fixture and manifest callers.
+pub(crate) fn admit_output_family(
+    spec: &StageSpec,
+    registry: &StageRegistry,
+) -> Result<Arc<dyn Stage>, gmeow_errors::Diag> {
+    let stage = registry.get(&spec.impl_key).ok_or_else(|| {
+        gmeow_errors::Diag::of_kind(crate::error::UnknownStageImpl {
+            stage: spec.id.clone(),
+            impl_key: spec.impl_key.clone(),
+        })
+    })?;
+    if stage.id() != spec.id {
+        return Err(gmeow_errors::Diag::of_kind(
+            crate::error::InvalidDeclaration {
+                message: format!(
+                    "stage {}: gmeow:stageImpl \"{}\" names an implementation whose own id \
+                     is \"{}\"; a stage is bound only to the implementation that carries \
+                     its id",
+                    spec.id,
+                    spec.impl_key,
+                    stage.id()
+                ),
+            },
+        ));
+    }
+    if stage.output_family() != spec.output_family {
+        return Err(gmeow_errors::Diag::of_kind(
+            crate::error::InvalidDeclaration {
+                message: format!(
+                    "stage {}: RDF gmeow:stageOutputFamily {} disagrees with the Rust \
+                     executable twin {}",
+                    spec.id,
+                    spec.output_family.iri(),
+                    stage.output_family().iri()
+                ),
+            },
+        ));
+    }
+    Ok(stage)
+}
+
 /// Resolve every stage's `gmeow:stageImpl` against the registry and prove the
 /// Rust impl agrees with the RDF declaration (its own id + capabilities + consumes +
-/// resources + stability + cache disposition + typed dataflow + attach sets). Returns the bound stages in the validated topological order.
+/// resources + stability + cache disposition + output family + typed dataflow + attach
+/// sets). Returns the bound stages in the validated topological order.
 pub fn bind(
     spec: &PipelineSpec,
     graph: &StageGraph,
@@ -547,31 +603,7 @@ pub fn bind(
     let mut bound: Vec<Arc<dyn Stage>> = Vec::with_capacity(graph.len());
     for id in graph.order() {
         let s = spec.stage(&id).expect("graph id is a spec stage");
-        let stage = registry.get(&s.impl_key).ok_or_else(|| {
-            gmeow_errors::Diag::of_kind(crate::error::UnknownStageImpl {
-                stage: s.id.clone(),
-                impl_key: s.impl_key.clone(),
-            })
-        })?;
-
-        // Identity agreement: the implementation a stage is bound to must be the stage
-        // the description names. The bound stage answers to the description's id, so
-        // without this check two implementations whose other declarations are equal
-        // could be swapped and each would run the other's body under the other's id.
-        if stage.id() != s.id {
-            return Err(gmeow_errors::Diag::of_kind(
-                crate::error::InvalidDeclaration {
-                    message: format!(
-                        "stage {}: gmeow:stageImpl \"{}\" names an implementation whose own id \
-                         is \"{}\"; a stage is bound only to the implementation that carries \
-                         its id",
-                        s.id,
-                        s.impl_key,
-                        stage.id()
-                    ),
-                },
-            ));
-        }
+        let stage = admit_output_family(s, registry)?;
 
         // Capability agreement (both sides sorted+deduped): the executable twin must
         // declare exactly the capabilities the RDF does, or the executor would read a
@@ -714,7 +746,7 @@ pub fn bind(
 ///
 /// Every declaration the scheduler reads comes from the description. The implementation
 /// supplies only what a description cannot hold: its body, its implementation version,
-/// the source files it reads from the working tree, and its output family. What the
+/// and the source files it reads from the working tree. What the
 /// description declares about reads also decides retention: which consumed products
 /// keep a live carrier for this stage, which internal artifacts survive a release for
 /// it, and whether it reads the source-span table.
@@ -755,7 +787,7 @@ impl Stage for BoundStage {
         &self.spec.id
     }
     fn output_family(&self) -> crate::node::OutputFamily {
-        self.body.output_family()
+        self.spec.output_family
     }
     fn consumes(&self) -> &[String] {
         &self.spec.consumes

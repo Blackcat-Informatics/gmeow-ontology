@@ -1,0 +1,21 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+# The build pipeline's roots and their required producer closure, for each scope.
+
+PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+
+SELECT DISTINCT ?scope ?stage WHERE {
+    VALUES ?pipeline { gmeow:pipeline-build }
+    ?pipeline a gmeow:Pipeline ; gmeow:hasStage ?stage .
+    {
+        BIND("all" AS ?scope)
+    }
+    UNION
+    {
+        BIND("committed" AS ?scope)
+        ?pipeline gmeow:hasStage ?root .
+        ?root gmeow:stageOutputFamily gmeow:outputGenerated ;
+              gmeow:dataflowConsumes* ?stage .
+    }
+}
+ORDER BY ?scope ?stage

@@ -17746,3 +17746,199 @@ msgstr "不要将不同的正值数量或不同 RDF 资源数量作为精确秩�
 msgctxt "https://blackcatinformatics.ca/math/singularValue|https://blackcatinformatics.ca/gmeow/howToUse"
 msgid "Link the decomposition to the supplied math:Number and preserve source ordering, occurrence multiplicities, factor associations and any numerical tolerance separately. This output relation supplies no left/right-vector pairing, default order, completeness witness or numerical computation."
 msgstr "将分解关联到已提供的 math:Number，并单独保留来源顺序、出现重数、因子关联及任何数值容差。该输出关系不提供左右奇异向量配对、默认顺序、完整性见证或数值计算。"
+
+msgctxt "https://blackcatinformatics.ca/math/LinearMap|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Linear Map"
+msgstr "线性映射"
+
+msgctxt "https://blackcatinformatics.ca/math/LinearMap|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A total function T from a vector space V to a vector space W over the same scalar field, preserving linear combinations: T(av+bw) = aT(v)+bT(w). Its source and target vector-space structures are distinct in role from their carrier sets and from a matrix representing the map in chosen bases."
+msgstr "从同一标量域上的向量空间 V 到向量空间 W 的全函数 T，保持线性组合：T(av+bw) = aT(v)+bT(w)。源和目标的向量空间结构在角色上不同于各自的载体集合，也不同于在选定基下表示该映射的矩阵。"
+
+msgctxt "https://blackcatinformatics.ca/math/LinearMap|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Linearity needs no inner product or finite-dimensional assumption. A finite matrix representation additionally needs ordered source and target bases. Changing coordinates for the same map over the same field preserves rank; a matrix label, frame or finite sample alone does not establish the universal linearity law."
+msgstr "线性性不需要内积或有限维假设。有限矩阵表示还需要有序的源基和目标基。对同一域上的同一映射改变坐标会保持秩；仅有矩阵标签、框架或有限样本不能证明普遍的线性规律。"
+
+msgctxt "https://blackcatinformatics.ca/math/LinearMap|http://www.w3.org/2004/02/skos/core#example"
+msgid "Over the real numbers, T: R³ → R² given by T(x,y,z) = (x,y) is linear. In the standard ordered bases its matrix is [[1,0,0],[0,1,0]], its image is R², its rank is two and its kernel has dimension one."
+msgstr "在实数域上，T: R³ → R²，T(x,y,z) = (x,y)，是线性映射。在标准有序基下，其矩阵为 [[1,0,0],[0,1,0]]，像为 R²，秩为二，核的维数为一。"
+
+msgctxt "https://blackcatinformatics.ca/math/LinearMap|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for a justified linear map with declared source and target vector spaces over the same field, preserving their carriers, scalar actions and actual representation or defining rule."
+msgstr "用于有依据的线性映射，其源和目标向量空间应声明在同一域上，并保留它们的载体、标量作用及实际表示或定义规则。"
+
+msgctxt "https://blackcatinformatics.ca/math/LinearMap|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Do not infer linearity from a matrix-shaped dataset or a neural-layer label. A nonzero bias translation is affine rather than linear, and a nonlinear activation does not become linear merely because its input has a weight matrix. Do not confuse a mathematical function with a functional RDF predicate or an executed method."
+msgstr "不要从矩阵形状的数据集或神经网络层标签推断线性性。非零偏置平移是仿射而非线性的，非线性激活也不会仅因其输入具有权重矩阵而变为线性。不要将数学函数与函数型 RDF 谓词或已执行的方法混淆。"
+
+msgctxt "https://blackcatinformatics.ca/math/LinearMap|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the inherited math:Function frame through math:domain and math:codomain carrier-set resources; describe the vector-space structures and scalar field separately with existing vocabulary. Preserve any justified math:image. The registered skos:exactMatch to wd:Q207643 has logic:SoundUnderApproximation preservation; neither it nor the frame executes the map or proves linearity."
+msgstr "通过 math:domain 和 math:codomain 指向载体集合资源，保留继承的 math:Function 框架；使用现有词汇单独描述向量空间结构及标量域。保留任何有依据的 math:image。已登记的、指向 wd:Q207643 的 skos:exactMatch 采用 logic:SoundUnderApproximation 保持判定；该对应关系及框架均不执行映射，也不证明线性性。"
+
+msgctxt "https://blackcatinformatics.ca/math/Rank|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Rank"
+msgstr "秩"
+
+msgctxt "https://blackcatinformatics.ca/math/Rank|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The dimension of the image of a math:LinearMap over its declared scalar field. A finite rank is a nonnegative integer, including zero, recorded through math:rankValue. The general image dimension may instead be infinite; the finite numeric property supplies no infinite-cardinal encoding."
+msgstr "math:LinearMap 的像在其已声明标量域上的维数。有限秩是非负整数，包括零，通过 math:rankValue 记录。一般的像维数也可能是无限的；有限数值属性不提供无限基数编码。"
+
+msgctxt "https://blackcatinformatics.ca/math/Rank|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Rank concerns the attained image, not the declared source or target dimension. For a finite-dimensional source V, dim(V) = rank(T) + dim(kernel(T)); no finite-source conclusion is inferred for an arbitrary infinite-dimensional map. Rank also depends on the scalar-field interpretation of the vector spaces."
+msgstr "秩描述实际达到的像，而非已声明的源或目标维数。对于有限维源空间 V，dim(V) = rank(T) + dim(kernel(T))；不能对任意无限维映射推断仅适用于有限维源的结论。秩还依赖于向量空间的标量域解释。"
+
+msgctxt "https://blackcatinformatics.ca/math/Rank|http://www.w3.org/2004/02/skos/core#example"
+msgid "The real projection T: R³ → R², T(x,y,z) = (x,y), has rank two and nullity one. The zero map has rank zero, even when its source and target are nonzero vector spaces."
+msgstr "实投影 T: R³ → R²，T(x,y,z) = (x,y)，秩为二，零度为一。零映射的秩为零，即使其源和目标都是非零向量空间。"
+
+msgctxt "https://blackcatinformatics.ca/math/Rank|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to describe the justified image dimension of an identified linear map in its actual field and vector-space context, keeping any finite numeric value separate from the map and its coordinate matrix."
+msgstr "用于在已标识线性映射的实际域和向量空间上下文中描述有依据的像维数，并将任何有限数值与映射及其坐标矩阵分开保留。"
+
+msgctxt "https://blackcatinformatics.ca/math/Rank|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Do not substitute tensor-axis count, root-system rank, matrix size or a count of distinct output resources. In the finite-dimensional real or complex inner-product SVD setting, exact rank counts positive singular-value occurrences with multiplicity. Numerical tolerance and rank truncation are separate policies, not exact-rank proofs."
+msgstr "不要用张量轴数、根系的秩、矩阵大小或不同输出资源的数量代替秩。在有限维实或复内积空间的 SVD 情形下，精确秩按重数计算正奇异值的出现项。数值容差和秩截断属于独立策略，不构成精确秩证明。"
+
+msgctxt "https://blackcatinformatics.ca/math/Rank|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Describe the rank as its own math:Rank resource and use math:rankValue for a justified finite value. Preserve the source identification of the relevant map and field in the existing representation; no dedicated rank-of property is supplied here. A type, number or grounding link alone does not calculate rank."
+msgstr "将秩描述为独立的 math:Rank 资源，并用 math:rankValue 记录有依据的有限值。在现有表示中保留来源对相关映射及标量域的标识；此处不提供专用的秩所属映射属性。仅有类型、数值或对应关系链接不会计算秩。"
+
+msgctxt "https://blackcatinformatics.ca/math/rankValue|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "rank value"
+msgstr "秩值"
+
+msgctxt "https://blackcatinformatics.ca/math/rankValue|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The nonnegative-integer value of a finite math:Rank: the dimension of the image of its associated linear map over the declared scalar field. Zero is an actual finite value. This datatype property records a supplied mathematical value; it does not compute or verify rank."
+msgstr "有限 math:Rank 的非负整数值，即其关联线性映射的像在已声明标量域上的维数。零是实际的有限值。该数据类型属性记录已提供的数学值，不计算或验证秩。"
+
+msgctxt "https://blackcatinformatics.ca/math/rankValue|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The finite value contract has no fixed machine-width ceiling and no encoding for infinite-cardinal or unknown rank. The declared nonnegative-integer meaning is distinct from an executed lexical, range or cardinality check; no generated SHACL or native rank-validation result follows from this annotation."
+msgstr "有限值契约不设固定机器位宽上限，也不编码无限基数秩或未知秩。已声明的非负整数含义与已执行的词法、范围或基数检查不同；不能从此注释推断已生成 SHACL 或原生秩验证的结果。"
+
+msgctxt "https://blackcatinformatics.ca/math/rankValue|http://www.w3.org/2004/02/skos/core#example"
+msgid "For the real projection (x,y,z) ↦ (x,y), a supplied math:Rank resource can carry math:rankValue 2. The literal records the justified image dimension; the property does not infer the projection, its field or the argument establishing that value."
+msgstr "对于实投影 (x,y,z) ↦ (x,y)，已提供的 math:Rank 资源可以携带 math:rankValue 2。该字面量记录有依据的像维数；属性不会推断投影、标量域或确立该值的论证。"
+
+msgctxt "https://blackcatinformatics.ca/math/rankValue|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when a finite image dimension is actually supplied and justified, preserving its integer literal and the source context that identifies the linear map and scalar field."
+msgstr "用于实际提供且有依据的有限像维数，保留整数字面量以及标识线性映射和标量域的来源上下文。"
+
+msgctxt "https://blackcatinformatics.ca/math/rankValue|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Do not replace an unknown or infinite rank with zero, a large sentinel or an ambient dimension. Do not attach a rounded estimate or tolerance-based numerical rank as if it established the exact mathematical image dimension."
+msgstr "不要用零、大的哨兵值或环境维数代替未知秩或无限秩。不要将四舍五入估计或基于容差的数值秩附加为已确立精确数学像维数的值。"
+
+msgctxt "https://blackcatinformatics.ca/math/rankValue|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Attach the supplied nonnegative integer to the math:Rank resource and retain the map, field and supporting evidence in the existing source representation. Keep omission distinct from zero and preserve any separate approximation policy. The relation alone supplies no specialized validation gate or rank computation."
+msgstr "将已提供的非负整数附加到 math:Rank 资源，并在现有来源表示中保留映射、标量域及支持依据。将省略与零分开，并保留任何独立的近似策略。该关系本身不提供专门的验证关卡或秩计算。"
+
+msgctxt "https://blackcatinformatics.ca/math/CovarianceOperator|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Covariance Operator"
+msgstr "协方差算子"
+
+msgctxt "https://blackcatinformatics.ca/math/CovarianceOperator|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A self-adjoint positive-semidefinite linear operator representing centered second moments in a declared real or complex inner-product setting. For finite-dimensional column coordinates with E[‖X‖²] finite, μ = E[X] and C = E[(X-μ)(X-μ)*], where * is conjugate transpose, or ordinary transpose over the reals."
+msgstr "在已声明的实或复内积背景下表示中心二阶矩的自伴半正定线性算子。对于有限维列坐标，若 E[‖X‖²] 有限，则 μ = E[X]，C = E[(X-μ)(X-μ)*]，其中 * 表示共轭转置，在实数情形下为普通转置。"
+
+msgctxt "https://blackcatinformatics.ca/math/CovarianceOperator|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The coordinate formula uses supplied orthonormal bases and the complex convention ⟨u,v⟩ = u* v, conjugate-linear in the first argument. Infinite-dimensional use requires stated existence, boundedness and spectral hypotheses; this type does not assert a discrete eigenvector basis for an arbitrary operator. An unconjugated complex second moment is a different construction."
+msgstr "坐标公式使用已提供的标准正交基以及复内积约定 ⟨u,v⟩ = u* v，第一个变量为共轭线性的。无限维使用需要声明存在性、有界性和谱方面的假设；该类型不声称任意算子都存在离散特征向量基。不带共轭的复二阶矩属于不同构造。"
+
+msgctxt "https://blackcatinformatics.ca/math/CovarianceOperator|http://www.w3.org/2004/02/skos/core#example"
+msgid "A real random vector equally likely to be (1,0) or (-1,0) has mean zero and covariance diag(1,0) under the standard Euclidean inner product. This covariance is positive semidefinite and singular; its zero eigenvalue is valid, and no inverse is required."
+msgstr "一个以相同概率取 (1,0) 或 (-1,0) 的实随机向量，均值为零，在标准欧氏内积下的协方差为 diag(1,0)。该协方差半正定且奇异；零特征值有效，也不要求存在逆。"
+
+msgctxt "https://blackcatinformatics.ca/math/CovarianceOperator|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for a justified population or empirical covariance operator, retaining the observations or probability model, scalar field, inner product, centering, scaling and actual normalization convention in the source representation."
+msgstr "用于有依据的总体或经验协方差算子，在来源表示中保留观测或概率模型、标量域、内积、中心化、缩放以及实际归一化约定。"
+
+msgctxt "https://blackcatinformatics.ca/math/CovarianceOperator|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Do not infer covariance from a Gram-matrix or symmetry label alone, require positive definiteness, or replace a missing operator with zero covariance. Repeated eigenvalues do not select unique eigenvectors. A declared covariance role or solver descriptor does not establish centering, covariance construction or numerical spectral analysis."
+msgstr "不要仅从 Gram 矩阵或对称性标签推断协方差，不要要求正定性，也不要用零协方差代替缺失的算子。重复特征值不选定唯一特征向量。已声明的协方差角色或求解器描述符不能证明已执行中心化、协方差构造或数值谱分析。"
+
+msgctxt "https://blackcatinformatics.ca/math/CovarianceOperator|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the inherited LinearMap and Function carrier-set frame separately from the vector-space structure. Use math:covarianceOperator from the analysis to this operator. Preserve sample orientation and divisor: empirical 1/N requires N > 0, while 1/(N-1) requires N > 1. Those choices and their evidence are supplied data, not defaults or new validation gates."
+msgstr "将继承的 LinearMap 和 Function 载体集合框架与向量空间结构分开保留。使用 math:covarianceOperator 从分析关联到此算子。保留样本排列方向和除数：经验约定 1/N 要求 N > 0，而 1/(N-1) 要求 N > 1。这些选择及其依据属于已提供的数据，不是默认值或新的验证关卡。"
+
+msgctxt "https://blackcatinformatics.ca/math/covarianceOperator|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "covariance operator"
+msgstr "协方差算子"
+
+msgctxt "https://blackcatinformatics.ca/math/covarianceOperator|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Relates a math:PCAAnalysis to the supplied math:CovarianceOperator that is its declared decomposition operand. The analysis process, its input data, the covariance operator and any reported numerical outputs retain separate roles; this link records the operator role rather than constructing it."
+msgstr "将 math:PCAAnalysis 关联到已提供的 math:CovarianceOperator，后者作为其已声明的分解操作数。分析过程、输入数据、协方差算子及任何已报告的数值输出保持不同角色；该链接记录算子角色，而不构造算子。"
+
+msgctxt "https://blackcatinformatics.ca/math/covarianceOperator|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The current PCA source contract requires at least one covariance-operator resource through its generic minimum and existing closure, associated with math:IncompletePCAAnalysis. This is not an exact-one or typed-target enforcement claim. The mathematical covariance meaning and the inherited operator frame still need their own evidence."
+msgstr "当前 PCA 来源契约通过通用最小基数及现有闭世界闭包要求至少一个协方差算子资源，并关联到 math:IncompletePCAAnalysis。这不意味着已强制恰好一个值或目标类型。协方差的数学含义及继承的算子框架仍各自需要依据。"
+
+msgctxt "https://blackcatinformatics.ca/math/covarianceOperator|http://www.w3.org/2004/02/skos/core#example"
+msgid "The exact-pca producer emits p:residualPCA math:covarianceOperator p:residualCovariance and gives that CovarianceOperator domain and codomain p:covSpace. Its fixed Gram, dominant-axis and LDL calculations do not supply observed samples, an executed centering step or a sample-covariance normalization."
+msgstr "exact-pca 生成器输出 p:residualPCA math:covarianceOperator p:residualCovariance，并将该 CovarianceOperator 的定义域和陪域均设为 p:covSpace。其固定 Gram 矩阵、主导轴和 LDL 计算不提供实际观测样本、已执行的中心化步骤或样本协方差归一化。"
+
+msgctxt "https://blackcatinformatics.ca/math/covarianceOperator|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain the actual covariance operand named by an analysis, together with independently supplied input, preprocessing, scalar-field, inner-product and normalization context."
+msgstr "用于保留分析所命名的实际协方差操作数，以及独立提供的输入、预处理、标量域、内积和归一化上下文。"
+
+msgctxt "https://blackcatinformatics.ca/math/covarianceOperator|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Do not reverse the analysis-to-operator direction, substitute the dataset or solver for the operator, or infer an executed spectral decomposition from the edge. Missing covariance differs from a supplied operator, which may be zero or singular; no absent operand is repaired by inventing a zero operator or undeclared preprocessing."
+msgstr "不要颠倒从分析到算子的方向，不要用数据集或求解器代替算子，也不要从此边推断已执行谱分解。缺失的协方差不同于已提供的算子，后者可以是零算子或奇异算子；不能通过虚构零算子或未声明的预处理来补全缺失操作数。"
+
+msgctxt "https://blackcatinformatics.ca/math/covarianceOperator|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Link the analysis to its justified CovarianceOperator resource and preserve that operator’s carrier-set frame and actual construction evidence. Keep centering and scaling declarations on the analysis distinct from proof that those operations ran. The relation supplies no additional maximum, automatic target typing, covariance computation or numerical validation result."
+msgstr "将分析关联到有依据的 CovarianceOperator 资源，并保留该算子的载体集合框架及实际构造依据。将分析上的中心化和缩放声明与这些操作已执行的证明分开。该关系不提供额外的最大基数、自动目标定型、协方差计算或数值验证结果。"
+
+msgctxt "https://blackcatinformatics.ca/math/Subspace|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Subspace"
+msgstr "线性子空间"
+
+msgctxt "https://blackcatinformatics.ca/math/Subspace|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A vector subspace: a subset of a vector space closed under addition and scalar multiplication, itself a math:VectorSpace. A subclass of math:VectorSpace naming the space it sits in through math:subspaceOf. The image of a linear map is a subspace; an arbitrary embedding image or projection residual needs separate subspace justification. A math:OrthogonalComplement is the subspace orthogonal to an operand subspace within a declared inner-product space."
+msgstr "向量子空间：向量空间中对加法和标量乘法封闭的子集，其本身也是 math:VectorSpace。它是 math:VectorSpace 的子类，通过 math:subspaceOf 指明所在空间。线性映射的像是子空间；任意嵌入的像或投影残差需要另行论证其子空间结构。math:OrthogonalComplement 是在已声明的内积空间中与操作数子空间正交的子空间。"
+
+msgctxt "https://blackcatinformatics.ca/math/Subspace|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "For W to be a subspace of V over F, W contains zero and uses the induced addition and scalar action of V, closed under every scalar in the same field F. Zero and whole-space subspaces, finite and infinite dimension are allowed. Algebraic closure here does not require topological closedness."
+msgstr "若 W 是域 F 上向量空间 V 的子空间，则 W 包含零向量，使用 V 诱导的加法和标量作用，并对同一域 F 中的每个标量封闭。允许零子空间、整个空间以及有限维和无限维情形。此处的代数封闭性不要求拓扑闭性。"
+
+msgctxt "https://blackcatinformatics.ca/math/Subspace|http://www.w3.org/2004/02/skos/core#example"
+msgid "In the real vector space R³ with its usual operations, W = {(x,y,0) : x,y in R} is a subspace, including zero and closed under real linear combinations. The affine plane {(x,y,1) : x,y in R} is not a subspace because it lacks zero."
+msgstr "在使用通常运算的实向量空间 R³ 中，W = {(x,y,0) : x,y 属于 R} 是子空间，包含零向量并对实线性组合封闭。仿射平面 {(x,y,1) : x,y 属于 R} 不是子空间，因为它不包含零向量。"
+
+msgctxt "https://blackcatinformatics.ca/math/Subspace|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for a justified vector subspace with its ambient vector-space structure and common scalar field retained. A linear-map image or a supplied span can establish a subspace; sampled vectors alone do not establish closure of the sample set."
+msgstr "用于有依据的向量子空间，并保留其环境向量空间结构及共同的标量域。线性映射的像或已提供的线性包可以确立子空间；仅有向量样本并不能确立样本集合的封闭性。"
+
+msgctxt "https://blackcatinformatics.ca/math/Subspace|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Do not infer a subspace from an embedding label, a dimension, an arbitrary nonlinear image or residual data. An orthogonal complement requires the declared ambient inner product; a global orthogonal direct-sum decomposition needs its own hypotheses in infinite dimension."
+msgstr "不要从嵌入标签、维数、任意非线性映射的像或残差数据推断子空间。正交补需要已声明的环境内积；在无限维情形中，整个空间的正交直和分解还需要其自身的假设。"
+
+msgctxt "https://blackcatinformatics.ca/math/Subspace|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Describe W as math:Subspace and link each justified ambient V with math:subspaceOf. Retain math:underlyingSet, math:structureOperation and math:satisfiesAxiom evidence separately from descriptive math:scalarField links. A type or ambient link supplies no automatic closure proof or subspace computation."
+msgstr "将 W 描述为 math:Subspace，并通过 math:subspaceOf 关联到每个有依据的环境空间 V。将 math:underlyingSet、math:structureOperation 和 math:satisfiesAxiom 的依据与描述性的 math:scalarField 链接分开保留。类型或环境链接不提供自动的封闭性证明或子空间计算。"
+
+msgctxt "https://blackcatinformatics.ca/math/subspaceOf|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "subspace of"
+msgstr "是其子空间"
+
+msgctxt "https://blackcatinformatics.ca/math/subspaceOf|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Relates a math:Subspace to the vector space it is a subspace of. Domain math:Subspace, range math:VectorSpace (stated in prose). The ambient space a subspace sits in, and against which its orthogonal complement is taken."
+msgstr "将 math:Subspace 关联到以它为子空间的向量空间。定义域为 math:Subspace，值域为 math:VectorSpace（以文字说明）。该关系指明子空间所在的环境空间，其正交补也在该环境空间中取定。"
+
+msgctxt "https://blackcatinformatics.ca/math/subspaceOf|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The direction is W to ambient V, with a common scalar field and induced operations justified separately. Several ambient links may be valid, including W to itself. The source states domain and range in prose without native typing, cardinality, inclusion, transitivity or closure rules for this property."
+msgstr "方向从 W 指向环境空间 V，共同的标量域和诱导运算需另行论证。可以存在多个有效的环境链接，包括 W 指向自身。源定义以文字说明定义域和值域，未为此属性提供原生的类型、基数、包含、传递性或封闭性规则。"
+
+msgctxt "https://blackcatinformatics.ca/math/subspaceOf|http://www.w3.org/2004/02/skos/core#example"
+msgid "The linear-algebra-and-learning example states ex:embeddedSubspace math:subspaceOf ex:complexSpace4096. This records an asserted ambient relationship; the dataset supplies neither an embedding-image link to that subspace nor a proof of linear closure."
+msgstr "linear-algebra-and-learning 示例声明 ex:embeddedSubspace math:subspaceOf ex:complexSpace4096。这记录了一条断言的环境关系；该数据集既未提供从嵌入的像到此子空间的链接，也未提供线性封闭性证明。"
+
+msgctxt "https://blackcatinformatics.ca/math/subspaceOf|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain each justified ambient vector space of a subspace without choosing a preferred ambient. Preserve the actual scalar-field interpretation and induced operations rather than infer them from shared dimensions or carrier labels."
+msgstr "用于保留子空间的每个有依据的环境向量空间，不选择优先的环境空间。保留实际的标量域解释及诱导运算，而不是从相同维数或载体标签推断它们。"
+
+msgctxt "https://blackcatinformatics.ca/math/subspaceOf|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Do not reverse the relationship, substitute a carrier set or scalar field for the ambient vector-space structure, or treat the edge as a closure certificate. Keep math:orthogonalComplementOf for the operand subspace, math:ambientSpace for its enclosing space and math:definedByInnerProduct for its form; those role referents may coincide."
+msgstr "不要颠倒此关系，用载体集合或标量域替代环境向量空间结构，也不要将此边视为封闭性证明。以 math:orthogonalComplementOf 指明操作数子空间，math:ambientSpace 指明其所在空间，math:definedByInnerProduct 指明其形式；这些角色的指称对象可以重合。"
+
+msgctxt "https://blackcatinformatics.ca/math/subspaceOf|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Link the supplied math:Subspace to its ambient math:VectorSpace and preserve the source justification of zero, addition and same-field scalar closure. For orthogonal-complement descriptions retain the separate operand, ambient and inner-product roles. Neither this edge nor a retrieved competency answer calculates a residual subspace."
+msgstr "将已提供的 math:Subspace 关联到其环境 math:VectorSpace，并保留源中关于零向量、加法及同域标量封闭性的论证。描述正交补时，保留操作数、环境空间和内积的独立角色。此边或检索出的能力问题答案均不计算残差子空间。"
