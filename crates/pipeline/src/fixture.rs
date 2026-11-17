@@ -48,6 +48,10 @@ pub const STAGE_FIXTURE_MANIFEST_RELATIVE_PATH: &str =
 pub const STAGE_FIXTURE_CANDIDATE_RELATIVE_PATH: &str =
     ".cache/gmeow-sync/stage-fixture-candidate-v2.json";
 
+/// Independent selector for authenticated compiler-owned module projections.
+pub const COMPILER_OWNER_MANIFEST_RELATIVE_PATH: &str =
+    ".cache/gmeow-sync/compiler-owner-fixture-manifest-v2.json";
+
 /// Runner-supplied path to the immutable stage-fixture selector.
 pub const STAGE_FIXTURE_MANIFEST_PATH_ENV: &str = gmeow_action_cache::selection::MANIFEST_PATH_ENV;
 
@@ -96,6 +100,8 @@ pub const AUTHENTICATED_TEST_STAGE_IDS: &[&str] = &[
 ];
 
 const WASM_CODEBOOK_STAGE_IDS: &[&str] = &[crate::stages::mappings::native_codebook::STAGE_ID];
+const COMPILER_OWNER_STAGE_IDS: &[&str] = &["stage-compile-logic"];
+const COMPILER_OWNER_CLOSURE: &[&str] = &["stage-parse-sources", "stage-compile-logic"];
 const WASM_CODEBOOK_CLOSURE: &[&str] = &[
     "stage-parse-sources",
     crate::stages::mappings::native_codebook::STAGE_ID,
@@ -305,6 +311,38 @@ fn validate_stage_fixture_manifest(
     manifest: &StageFixtureManifest,
 ) -> Result<(), gmeow_errors::Diag> {
     validate_stage_fixture_selection(manifest, AUTHENTICATED_TEST_STAGE_IDS)
+}
+
+fn validate_compiler_owner_closure(actual: &BTreeSet<String>) -> gmeow_errors::Result<()> {
+    let expected: BTreeSet<String> = COMPILER_OWNER_CLOSURE
+        .iter()
+        .map(|id| (*id).to_owned())
+        .collect();
+    if actual != &expected {
+        return Err(fixture_manifest_error(format!(
+            "compiler owner dependency closure mismatch: expected={expected:?} actual={actual:?}"
+        )));
+    }
+    Ok(())
+}
+
+fn validate_compiler_owner_manifest(manifest: &StageFixtureManifest) -> gmeow_errors::Result<()> {
+    validate_stage_fixture_selection(manifest, COMPILER_OWNER_STAGE_IDS)?;
+    validate_compiler_owner_closure(&manifest.closure_receipts.keys().cloned().collect())
+}
+
+/// Common readers admit only the complete prefix or the exact compiler-owner scope.
+fn validate_consumer_manifest(manifest: &StageFixtureManifest) -> gmeow_errors::Result<()> {
+    if manifest
+        .stages
+        .keys()
+        .map(String::as_str)
+        .eq(COMPILER_OWNER_STAGE_IDS.iter().copied())
+    {
+        validate_compiler_owner_manifest(manifest)
+    } else {
+        validate_stage_fixture_manifest(manifest)
+    }
 }
 
 /// Refuse missing or additional bootstrap actions beyond the parser and native encoder.
@@ -607,6 +645,159 @@ pub fn prepare_wasm_codebook_fixtures(
     Ok((selection, codebook))
 }
 
+/// Produce only the authored parser/compiler closure and its mandatory module fixtures.
+/// The caller atomically publishes this selection separately from the full prefix.
+///
+/// # Errors
+/// Refuses closure drift, missing output or invalid production receipts.
+pub fn prepare_compiler_owner_fixtures(
+    root: &Path,
+    jobs: usize,
+) -> gmeow_errors::Result<json::Value> {
+    validate_compiler_owner_closure(
+        &bound_selected_fixture_closure(COMPILER_OWNER_STAGE_IDS)?.required,
+    )?;
+    let run = prime_stage_fixtures(root, jobs, COMPILER_OWNER_STAGE_IDS)?;
+    let manifest = selected_fixture_manifest(&run.stage_receipts, COMPILER_OWNER_STAGE_IDS)?;
+    drop(run);
+    validate_compiler_owner_manifest(&manifest)?;
+    verify_compiler_owner_artifact(root, &manifest)?;
+    Ok(manifest.to_json())
+}
+
+/// Compare a current action with its recorded producer identity and persistent bytes.
+/// Recomputed ancestors have receipt-only metadata and no cache payload to inspect.
+#[derive(Debug, PartialEq, Eq)]
+enum FixtureReceiptAdmission {
+    Current,
+    ContextChanged,
+    CacheEntryAbsent,
+}
+
+fn admit_current_fixture_receipt(
+    cache: &PipelineCache,
+    stage: &dyn crate::node::Stage,
+    current: &crate::cache::StageKeyContext,
+    recorded: &StageReceipt,
+) -> gmeow_errors::Result<FixtureReceiptAdmission> {
+    if recorded.schema_version != current.schema_version
+        || recorded.context != *current
+        || recorded.stability != stage.stability().iri()
+        || recorded.cache_disposition != stage.cache_policy().iri()
+    {
+        return Ok(FixtureReceiptAdmission::ContextChanged);
+    }
+    if stage.cache_policy() == CachePolicy::Recompute
+        && (recorded.product_blob_digest.is_some() || recorded.product_blob_bytes != 0)
+    {
+        return Err(fixture_manifest_error(format!(
+            "recomputed {} receipt unexpectedly names a persistent product blob",
+            stage.id()
+        )));
+    }
+    if stage.stability() == StageStability::StablePrefix
+        && stage.cache_policy() == CachePolicy::Persistent
+    {
+        let Some(cached) = cache.inspect_receipt(current)? else {
+            return Ok(FixtureReceiptAdmission::CacheEntryAbsent);
+        };
+        if cached != *recorded {
+            return Err(gmeow_errors::Diag::of_kind(crate::error::CacheMismatch {
+                expected: recorded.digest(),
+                actual: cached.digest(),
+            }));
+        }
+    }
+    Ok(FixtureReceiptAdmission::Current)
+}
+
+fn verify_compiler_owner_artifact(
+    root: &Path,
+    manifest: &StageFixtureManifest,
+) -> gmeow_errors::Result<()> {
+    let receipt = manifest
+        .stages
+        .get("stage-compile-logic")
+        .ok_or_else(|| fixture_miss("stage-compile-logic"))?;
+    let path = crate::stages::compile_logic::validation_fixtures::CHANNEL;
+    if !receipt
+        .logical_artifacts
+        .iter()
+        .any(|entity| entity.identity == path)
+    {
+        return Err(fixture_manifest_error(format!(
+            "compiler owner receipt omitted {path}"
+        )));
+    }
+    let cache = PipelineCache::open_existing_default_read_only(root)?;
+    let selected = cache
+        .get_selected_artifacts(&receipt.context, &[path])?
+        .ok_or_else(|| fixture_miss("stage-compile-logic"))?;
+    if selected.receipt != *receipt {
+        return Err(gmeow_errors::Diag::of_kind(crate::error::CacheMismatch {
+            expected: receipt.digest(),
+            actual: selected.receipt.digest(),
+        }));
+    }
+    Ok(())
+}
+
+/// Verify the exact selected compiler-owner closure against current authored inputs.
+/// No source parsing, stage execution, lifecycle witness or selector write occurs.
+///
+/// # Errors
+/// Rejects stale contexts, wrong scopes, missing commitments and corrupt products.
+pub fn verify_compiler_owner_fixtures(root: &Path) -> gmeow_errors::Result<()> {
+    let manifest = load_stage_fixture_manifest(root)?;
+    validate_compiler_owner_manifest(&manifest)?;
+    let BoundFixtureClosure {
+        graph,
+        stages,
+        required,
+    } = bound_selected_fixture_closure(COMPILER_OWNER_STAGE_IDS)?;
+    validate_compiler_owner_closure(&required)?;
+    let cache = PipelineCache::open_existing_default_read_only(root)?;
+    let mut admitted = BTreeMap::new();
+    let mut raw_input_digests = BTreeMap::new();
+    for id in graph.order().into_iter().filter(|id| required.contains(id)) {
+        let stage = stages
+            .iter()
+            .find(|stage| stage.id() == id)
+            .expect("bound graph contains its closure");
+        let upstream = stage
+            .consumes()
+            .iter()
+            .map(|producer| {
+                admitted
+                    .get(producer)
+                    .cloned()
+                    .map(|receipt| (producer.clone(), receipt))
+                    .ok_or_else(|| {
+                        fixture_manifest_error(format!(
+                            "compiler closure reached {id} before {producer}"
+                        ))
+                    })
+            })
+            .collect::<gmeow_errors::Result<BTreeMap<_, _>>>()?;
+        let current = action_key_context_from_receipts_cached(
+            stage.as_ref(),
+            root,
+            &upstream,
+            &mut raw_input_digests,
+        )?;
+        let recorded = &manifest.closure_receipts[&id];
+        if admit_current_fixture_receipt(&cache, stage.as_ref(), &current, recorded)?
+            != FixtureReceiptAdmission::Current
+        {
+            return Err(fixture_manifest_error(format!(
+                "compiler owner fixture is absent or stale: {id}; run the explicit compiler-owner producer"
+            )));
+        }
+        admitted.insert(id, recorded.clone());
+    }
+    verify_compiler_owner_artifact(root, &manifest)
+}
+
 /// Admit an unchanged producer closure without hydrating or rebuilding any carrier.
 ///
 /// The recorded receipt metadata is only a candidate. This function rebinds the current authored
@@ -723,10 +914,14 @@ pub fn reuse_stage_fixture_candidate(
             .closure_receipts
             .get(&stage_id)
             .expect("closure set equality proved receipt presence");
-        if recorded.context != current_context
-            || recorded.stability != stage.stability().iri()
-            || recorded.cache_disposition != stage.cache_policy().iri()
-        {
+        let admission =
+            admit_current_fixture_receipt(&cache, stage.as_ref(), &current_context, recorded)?;
+        if admission == FixtureReceiptAdmission::CacheEntryAbsent {
+            return Ok(warm_manifest_miss(format_args!(
+                "stage-cache-entry-absent stage={stage_id}"
+            )));
+        }
+        if admission == FixtureReceiptAdmission::ContextChanged {
             let recorded_upstream = recorded
                 .context
                 .upstream
@@ -764,21 +959,6 @@ pub fn reuse_stage_fixture_candidate(
                 "stage-context-changed stage={stage_id}"
             )));
         }
-        if stage.stability() == StageStability::StablePrefix
-            && stage.cache_policy() == CachePolicy::Persistent
-        {
-            let Some(cached) = cache.inspect_receipt(&current_context)? else {
-                return Ok(warm_manifest_miss(format_args!(
-                    "stage-cache-entry-absent stage={stage_id}"
-                )));
-            };
-            if cached != *recorded {
-                return Err(gmeow_errors::Diag::of_kind(crate::error::CacheMismatch {
-                    expected: recorded.digest(),
-                    actual: cached.digest(),
-                }));
-            }
-        }
         admitted.insert(stage_id, recorded.clone());
     }
 
@@ -798,7 +978,7 @@ pub fn reuse_stage_fixture_candidate(
 fn load_stage_fixture_manifest(root: &Path) -> Result<StageFixtureManifest, gmeow_errors::Diag> {
     let manifest: StageFixtureManifest = gmeow_action_cache::selection::load_manifest(root)
         .map_err(|error| fixture_manifest_error(error.to_string()))?;
-    validate_stage_fixture_manifest(&manifest)?;
+    validate_consumer_manifest(&manifest)?;
     Ok(manifest)
 }
 

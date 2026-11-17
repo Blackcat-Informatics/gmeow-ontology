@@ -27,6 +27,7 @@ fn owner() -> (
         "slices/core/observations/module.ttl",
         "slices/grounding/math/module.ttl",
         "slices/core/places/module.ttl",
+        "slices/core/kernel/module.ttl",
     ] {
         let product = super::module(path);
         identity.update(product.source_rdf.as_bytes());

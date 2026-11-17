@@ -55,13 +55,13 @@
 <urn:finance:unit-price-frame> a m:QuotientReferenceFrame , g:ReferenceFrame ;
     m:numeratorFrame g:referenceFrameUSD ; m:denominatorFrame <urn:finance:asset-count-frame> ;
     g:frameKind g:frameKindScalar ; g:frameRealm g:frameRealmMathematical ;
-    g:dimensionCount 1 ; g:hasAxis g:axisScalar ;
+    g:dimensionCount "1"^^xsd:nonNegativeInteger ; g:hasAxis g:axisScalar ;
     g:determinacyModel g:determinacyCrisp ; g:requiresHost false .
 <urn:finance:asset-count-frame> a g:ReferenceFrame ;
     g:frameKind g:frameKindScalar ; g:frameRealm g:frameRealmMathematical ;
-    g:dimensionCount 1 ; g:hasAxis g:axisScalar ;
+    g:dimensionCount "1"^^xsd:nonNegativeInteger ; g:hasAxis g:axisScalar ;
     g:determinacyModel g:determinacyCrisp ; g:requiresHost false .
 <urn:finance:other-asset-count-frame> a g:ReferenceFrame ;
     g:frameKind g:frameKindScalar ; g:frameRealm g:frameRealmMathematical ;
-    g:dimensionCount 1 ; g:hasAxis g:axisScalar ;
+    g:dimensionCount "1"^^xsd:nonNegativeInteger ; g:hasAxis g:axisScalar ;
     g:determinacyModel g:determinacyCrisp ; g:requiresHost false .

@@ -228,6 +228,12 @@ gmeow-cost-measure = { path = "crates/cost-measure" }
 # CBOR value codec: the gts snapshot's per-blob metadata maps and segment payloads
 # are read and written with it, so every reader and writer must share one codec.
 ciborium = "0.2"
+# Developer command configuration, network maintenance and CLI contract harnesses.
+toml = "0.8"
+ureq = "3"
+assert_cmd = "2"
+trycmd = "0.15"
+predicates = "3"
 # Snapshot goldens. The version is fixed here; a crate that asserts JSON snapshots
 # adds `features = ["json"]` at its own site, since not every consumer needs it.
 insta = { version = "1.48" }
