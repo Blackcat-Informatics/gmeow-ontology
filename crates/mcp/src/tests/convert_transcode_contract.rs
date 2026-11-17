@@ -189,7 +189,7 @@ fn the_cli_convert_verb_routes_through_the_gmeow_transcode_crate() {
 /// from `gmeow-pipeline` (which it may not depend on at all).
 #[gmeow_test_batch_macros::batch_mcp_test]
 fn the_mcp_convert_tool_routes_through_the_same_gmeow_transcode_crate() {
-    let mcp = read("crates/mcp/src/lib.rs");
+    let mcp = read("crates/mcp/src/surface.rs");
     assert!(
         mcp.contains(
             "use gmeow_transcode::{Codec, realized_loss_json, transcode as run_transcode};"

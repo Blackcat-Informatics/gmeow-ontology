@@ -1977,7 +1977,7 @@ gmeow:gtsProducerRuntimeStores
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
     rdfs:label "GTS producer — the append-only runtime stores"@x-gmeow-english ;
     skos:definition "The MCP agent-memory, conjecture-library and compaction lanes. They carry no graph/medium-registry — they cite bundle dictionaries by id, read out of the shipped pack's in-band \"dct\" map — so they resolve their dictionary from the segment header, which is what gmeow:mediumProfileStoreL12 declares."@x-gmeow-english ;
-    gmeow:producerCallSite "crates/mcp/src/lib.rs" ;
+    gmeow:producerCallSite "crates/mcp/src/libraries.rs" ;
     gmeow:producerMedium gmeow:mediumProfileStoreL12 ;
     gmeow:graphBoxRole gmeow:boxABox ,
         gmeow:boxConfigBox .

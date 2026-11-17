@@ -141,7 +141,7 @@ fn the_wasm_shim_carries_no_second_legend_implementation() {
         "the wasm shim must marshal over the hoisted gmeow-lang-bridge implementation"
     );
 
-    let mcp = read("crates/mcp/src/lib.rs");
+    let mcp = read("crates/mcp/src/surface.rs");
     let composition = read("crates/mcp/src/glyph_legend.rs");
     assert!(
         mcp.contains("glyph_legend::response(dict.glyph_registry())")

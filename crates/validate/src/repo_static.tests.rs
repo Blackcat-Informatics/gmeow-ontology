@@ -2222,7 +2222,7 @@ fn live_repo_producer_map_is_total_and_exercises_all_three_source_kinds() {
         "crates/music/src/lib.rs",
         // The MCP engine is its own leaf crate now, and its runtime store opens its own
         // segment, so the census must find BOTH of its authorship doors.
-        "crates/mcp/src/lib.rs",
+        "crates/mcp/src/libraries.rs",
         "crates/mcp/src/storage.rs",
         "crates/pipeline/src/stages/carrier.rs",
         "crates/transcode/src/lib.rs",
