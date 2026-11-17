@@ -146,6 +146,664 @@ pub struct Cli {
     pub command: Commands,
 }
 
+// Field-bearing commands delegate their argument builders through Args.
+
+/// Arguments for [`Commands::TestFixtures`].
+#[derive(Debug, clap::Args)]
+#[group(id = "TestFixtures")]
+pub struct TestFixturesArgs {
+    #[arg(value_enum)]
+    mode: TestFixtureMode,
+    #[arg(long = "scope", value_enum, default_value_t = TestFixtureScope::All)]
+    scope: TestFixtureScope,
+    #[arg(long = "timings-json")]
+    timings_json: Option<PathBuf>,
+    #[arg(long = "bundle-import-cache-root")]
+    bundle_import_cache_root: Option<PathBuf>,
+    #[arg(long = "expected-source-digest")]
+    expected_source_digest: Option<String>,
+}
+
+/// Arguments for [`Commands::SliceSpecWorker`].
+#[derive(Debug, clap::Args)]
+#[group(id = "SliceSpecWorker")]
+pub struct SliceSpecWorkerArgs {
+    #[arg(long)]
+    kind: String,
+    #[arg(long = "spec", required = true)]
+    specs: Vec<PathBuf>,
+    #[arg(long, default_value_t = 1)]
+    workers: usize,
+}
+
+/// Arguments for [`Commands::Sync`].
+#[derive(Debug, clap::Args)]
+#[group(id = "Sync")]
+pub struct SyncArgs {
+    /// Update locally or verify read-only. Defaults to check in CI, update elsewhere.
+    #[arg(long = "mode", value_enum)]
+    mode: Option<SyncMode>,
+    /// Projection set. All outputs are made by default.
+    #[arg(long = "outputs", value_enum, default_value_t = SyncOutput::All)]
+    outputs: SyncOutput,
+    /// Build profile. `release` refuses stale dictionary sweep evidence; the
+    /// ordinary default records it on the bundle and warns.
+    #[arg(long = "profile", value_enum, default_value_t = SyncProfile::Ordinary)]
+    profile: SyncProfile,
+    #[arg(short = 'j', long = "jobs")]
+    jobs: Option<usize>,
+    #[arg(long = "metadata")]
+    metadata: bool,
+    #[arg(long = "list-paths")]
+    list_paths: bool,
+    #[arg(long = "lang")]
+    lang: Option<String>,
+    #[arg(long = "timings-json")]
+    timings_json: Option<PathBuf>,
+    /// Stream live DAG stages and synchronization boundaries.
+    #[arg(short = 'v', long = "verbose")]
+    verbose: bool,
+}
+
+/// Arguments for [`Commands::Fanout`].
+#[derive(Debug, clap::Args)]
+#[group(id = "Fanout")]
+pub struct FanoutArgs {
+    #[arg(short = 'j', long = "jobs")]
+    jobs: Option<usize>,
+    #[arg(long = "timings-json")]
+    timings_json: Option<PathBuf>,
+}
+
+/// Arguments for [`Commands::ConsoleAssemble`].
+#[derive(Debug, clap::Args)]
+#[group(id = "ConsoleAssemble")]
+pub struct ConsoleAssembleArgs {
+    #[arg(long = "out", default_value = "dist/console-smoke")]
+    out: PathBuf,
+}
+
+/// Arguments for [`Commands::DocsPackage`].
+#[derive(Debug, clap::Args)]
+#[group(id = "DocsPackage")]
+pub struct DocsPackageArgs {
+    #[arg(long = "out", default_value = "dist/gmeow-docs.tar")]
+    out: PathBuf,
+}
+
+/// Arguments for [`Commands::ReleaseBundle`].
+#[derive(Debug, clap::Args)]
+#[group(id = "ReleaseBundle")]
+pub struct ReleaseBundleArgs {
+    #[arg(long = "out", default_value = "dist/gmeow.gts")]
+    out: PathBuf,
+    #[arg(long = "sign-key")]
+    sign_key: PathBuf,
+    #[arg(long = "public-key")]
+    public_key: PathBuf,
+    /// Source GTS; its adjacent .ingestion.cbor receipt is required and retained.
+    #[arg(long = "source", default_value = "generated/dist/gmeow.gts")]
+    source: PathBuf,
+    #[arg(long = "issued-at")]
+    issued_at: String,
+    #[arg(
+        long = "attester",
+        default_value = "https://blackcatinformatics.ca/gmeow/agent/release-lane"
+    )]
+    attester: String,
+    #[arg(
+        long = "release-subject",
+        default_value = "https://blackcatinformatics.ca/gmeow/release/gmeow.gts"
+    )]
+    release_subject: String,
+    #[arg(long = "evidence")]
+    evidence: Vec<String>,
+}
+
+/// Arguments for [`Commands::GtsFrameProfile`].
+#[derive(Debug, clap::Args)]
+#[group(id = "GtsFrameProfile")]
+pub struct GtsFrameProfileArgs {
+    #[arg(default_value = "generated/dist/gmeow.gts")]
+    gts: PathBuf,
+}
+
+/// Arguments for [`Commands::MediumGate`].
+#[derive(Debug, clap::Args)]
+#[group(id = "MediumGate")]
+pub struct MediumGateArgs {
+    #[arg(default_value = "generated/dist/gmeow.gts")]
+    gts: PathBuf,
+    /// The bundle whose medium registry an artifact that carries none of its own
+    /// (a runtime store) is audited against — the bundle its dictionaries came from.
+    #[arg(long = "registry", default_value = "generated/dist/gmeow.gts")]
+    registry: PathBuf,
+}
+
+/// Arguments for [`Commands::MediumSweep`].
+#[derive(Debug, clap::Args)]
+#[group(id = "MediumSweep")]
+pub struct MediumSweepArgs {
+    /// Write the complete measurement evidence to this path.
+    #[arg(long, default_value = "bench/medium-baseline.json")]
+    out: PathBuf,
+    /// Scheduler width for the measured pipeline run. Defaults to every CPU.
+    #[arg(short = 'j', long = "jobs")]
+    jobs: Option<usize>,
+}
+
+/// Arguments for [`Commands::PipelineReads`].
+#[derive(Debug, clap::Args)]
+#[group(id = "PipelineReads")]
+pub struct PipelineReadsArgs {
+    /// Write the Turtle declarations to this path.
+    #[arg(long)]
+    out: PathBuf,
+    /// Scheduler width for the recorded pipeline run. Defaults to every CPU.
+    #[arg(short = 'j', long = "jobs")]
+    jobs: Option<usize>,
+}
+
+/// Arguments for [`Commands::MediumSeed`].
+#[derive(Debug, clap::Args)]
+#[group(id = "MediumSeed")]
+pub struct MediumSeedArgs {
+    /// Write the temporary seed table to this path; it is not measurement evidence.
+    #[arg(long, default_value = "bench/medium-baseline.json")]
+    out: PathBuf,
+}
+
+/// Arguments for [`Commands::TermReleaseAuthority`].
+#[derive(Debug, clap::Args)]
+#[group(id = "TermReleaseAuthority")]
+pub struct TermReleaseAuthorityArgs {
+    /// Initialize the authority once; refuse to overwrite an existing authority.
+    #[arg(long)]
+    bootstrap: bool,
+}
+
+/// Arguments for [`Commands::Validate`].
+#[derive(Debug, clap::Args)]
+#[group(id = "Validate")]
+pub struct ValidateArgs {
+    #[arg(long = "timings")]
+    timings: bool,
+    #[arg(long = "timings-json")]
+    timings_json: Option<PathBuf>,
+    #[arg(long = "gts")]
+    gts: Option<PathBuf>,
+    #[arg(long = "trust-policy")]
+    trust_policy: Option<PathBuf>,
+    #[arg(long = "require-signed")]
+    require_signed: bool,
+    #[arg(long = "trusted-key")]
+    trusted_key: Option<PathBuf>,
+    #[arg(long = "deep")]
+    deep: bool,
+}
+
+/// Arguments for [`Commands::Feedback`].
+#[derive(Debug, clap::Args)]
+#[group(id = "Feedback")]
+pub struct FeedbackArgs {
+    #[arg(long = "diagnostics-console")]
+    diagnostics_console: Option<String>,
+    #[arg(long = "diagnostics-artifacts")]
+    diagnostics_artifacts: Option<String>,
+    #[arg(long = "diagnostics-dir")]
+    diagnostics_dir: Option<PathBuf>,
+    #[arg(long = "diagnostics-stem")]
+    diagnostics_stem: Option<String>,
+    #[arg(long = "diagnostics-category")]
+    diagnostics_category: Option<String>,
+    #[arg(long = "timings")]
+    timings: bool,
+}
+
+/// Arguments for [`Commands::ExternalTool`].
+#[derive(Debug, clap::Args)]
+#[group(id = "ExternalTool")]
+pub struct ExternalToolArgs {
+    #[arg(long = "name")]
+    name: String,
+    #[arg(long = "diagnostics-console")]
+    diagnostics_console: Option<String>,
+    #[arg(long = "diagnostics-artifacts")]
+    diagnostics_artifacts: Option<String>,
+    #[arg(long = "diagnostics-dir")]
+    diagnostics_dir: Option<PathBuf>,
+    #[arg(long = "diagnostics-stem")]
+    diagnostics_stem: Option<String>,
+    #[arg(long = "diagnostics-category")]
+    diagnostics_category: Option<String>,
+    /// The external command to run, e.g. `-- mypy src`.
+    #[arg(trailing_var_arg = true, allow_hyphen_values = true)]
+    command: Vec<String>,
+}
+
+/// Arguments for [`Commands::Audit`].
+#[derive(Debug, clap::Args)]
+#[group(id = "Audit")]
+pub struct AuditArgs {
+    files: Vec<PathBuf>,
+    #[arg(long = "json")]
+    json: bool,
+    #[arg(long = "strict")]
+    strict: bool,
+}
+
+/// Arguments for [`Commands::ComplianceReport`].
+#[derive(Debug, clap::Args)]
+#[group(id = "ComplianceReport")]
+pub struct ComplianceReportArgs {
+    #[arg(long = "from-passing-check")]
+    from_passing_check: bool,
+}
+
+/// Arguments for [`Commands::Reason`].
+#[derive(Debug, clap::Args)]
+#[group(id = "Reason")]
+pub struct ReasonArgs {
+    #[arg(long = "mode", default_value = "native")]
+    mode: String,
+    /// Recompute the closure instead of reusing the shipped graph/reasoning verdict.
+    #[arg(long = "fresh")]
+    fresh: bool,
+    #[arg(long = "merge")]
+    merge: bool,
+    #[arg(long = "profile", default_value = "DL")]
+    profile: String,
+    #[arg(long = "full")]
+    full: bool,
+    #[arg(long = "exclude-tautologies")]
+    exclude_tautologies: Option<String>,
+    #[arg(long = "timings-json")]
+    timings_json: Option<PathBuf>,
+}
+
+/// Arguments for [`Commands::Verify`].
+#[derive(Debug, clap::Args)]
+#[group(id = "Verify")]
+pub struct VerifyArgs {
+    #[arg(long = "mode", default_value = "native")]
+    mode: String,
+    /// Recompute the closure instead of reusing the shipped graph/reasoning verdict.
+    #[arg(long = "fresh")]
+    fresh: bool,
+    #[arg(long = "reasoned-input")]
+    reasoned_input: Option<PathBuf>,
+    #[arg(long = "timings-json")]
+    timings_json: Option<PathBuf>,
+}
+
+/// Arguments for [`Commands::ReasonVerify`].
+#[derive(Debug, clap::Args)]
+#[group(id = "ReasonVerify")]
+pub struct ReasonVerifyArgs {
+    /// Recompute the closure instead of reusing the shipped graph/reasoning verdict.
+    #[arg(long = "fresh")]
+    fresh: bool,
+    #[arg(long = "merge")]
+    merge: bool,
+    #[arg(long = "timings-json")]
+    timings_json: Option<PathBuf>,
+}
+
+/// Arguments for [`Commands::Temporal`].
+#[derive(Debug, clap::Args)]
+#[group(id = "Temporal")]
+pub struct TemporalArgs {
+    query: String,
+    #[arg(long = "data")]
+    data: Option<PathBuf>,
+    #[arg(long = "focus")]
+    focus: Option<String>,
+    /// Zoned xsd:dateTime window start in the default UTC-Gregorian frame.
+    #[arg(long = "window-start")]
+    window_start: Option<String>,
+    /// Zoned xsd:dateTime window end in the default UTC-Gregorian frame.
+    #[arg(long = "window-end")]
+    window_end: Option<String>,
+    #[arg(long = "valid-at")]
+    valid_at: Option<String>,
+    #[arg(long = "as-of")]
+    as_of: Option<String>,
+}
+
+/// Arguments for [`Commands::Extract`].
+#[derive(Debug, clap::Args)]
+#[group(id = "Extract")]
+pub struct ExtractArgs {
+    #[arg(long = "target")]
+    target: String,
+}
+
+/// Arguments for [`Commands::LintAlignment`].
+#[derive(Debug, clap::Args)]
+#[group(id = "LintAlignment")]
+pub struct LintAlignmentArgs {
+    #[arg(long = "network")]
+    network: bool,
+    #[arg(long = "strict")]
+    strict: bool,
+}
+
+/// Arguments for [`Commands::RefreshTargetAxioms`].
+#[derive(Debug, clap::Args)]
+#[group(id = "RefreshTargetAxioms")]
+pub struct RefreshTargetAxiomsArgs {
+    #[arg(long = "target", default_value = "all")]
+    target: String,
+}
+
+/// Arguments for [`Commands::Wikidata`].
+#[derive(Debug, clap::Args)]
+#[group(id = "Wikidata")]
+pub struct WikidataArgs {
+    #[arg(long = "existence")]
+    existence: bool,
+    #[arg(long = "fixtures")]
+    fixtures: bool,
+}
+
+/// Arguments for [`Commands::WikidataCoverage`].
+#[derive(Debug, clap::Args)]
+#[group(id = "WikidataCoverage")]
+pub struct WikidataCoverageArgs {
+    #[arg(long = "json")]
+    json: bool,
+    #[arg(long = "threshold", default_value_t = 0.5)]
+    threshold: f64,
+}
+
+/// Arguments for [`Commands::DcCoverage`].
+#[derive(Debug, clap::Args)]
+#[group(id = "DcCoverage")]
+pub struct DcCoverageArgs {
+    #[arg(long = "json")]
+    json: bool,
+    #[arg(long = "threshold", default_value_t = 0.5)]
+    threshold: f64,
+}
+
+/// Arguments for [`Commands::UpProjectionAudit`].
+#[derive(Debug, clap::Args)]
+#[group(id = "UpProjectionAudit")]
+pub struct UpProjectionAuditArgs {
+    #[arg(long = "report")]
+    report: Option<PathBuf>,
+    #[arg(long = "gaps")]
+    gaps: bool,
+}
+
+/// Arguments for [`Commands::Coverage`].
+#[derive(Debug, clap::Args)]
+#[group(id = "Coverage")]
+pub struct CoverageArgs {
+    #[arg(long = "gaps")]
+    gaps: bool,
+    #[arg(long = "min-class")]
+    min_class: Option<f64>,
+    #[arg(long = "min-predicate")]
+    min_predicate: Option<f64>,
+}
+
+/// Arguments for [`Commands::Project`].
+#[derive(Debug, clap::Args)]
+#[group(id = "Project")]
+pub struct ProjectArgs {
+    source: Option<PathBuf>,
+    #[arg(long = "profile", default_value = "all")]
+    profile: String,
+    #[arg(long = "data", default_value = "")]
+    data: String,
+    #[arg(long = "lang", short = 'l')]
+    lang: Option<String>,
+}
+
+/// Arguments for [`Commands::Transform`].
+#[derive(Debug, clap::Args)]
+#[group(id = "Transform")]
+pub struct TransformArgs {
+    abox: PathBuf,
+    #[arg(long = "out", short = 'o')]
+    out: Option<PathBuf>,
+    #[arg(long = "profiles", default_value = "all")]
+    profiles: String,
+    #[arg(long = "diff-target")]
+    diff_target: Option<PathBuf>,
+    #[arg(long = "report")]
+    report: Option<PathBuf>,
+    #[arg(long = "lang", short = 'l')]
+    lang: Option<String>,
+}
+
+/// Arguments for [`Commands::UpProject`].
+#[derive(Debug, clap::Args)]
+#[group(id = "UpProject")]
+pub struct UpProjectArgs {
+    source: PathBuf,
+    #[arg(long = "out", short = 'o')]
+    out: Option<PathBuf>,
+}
+
+/// Arguments for [`Commands::Acceptance`].
+#[derive(Debug, clap::Args)]
+#[group(id = "Acceptance")]
+pub struct AcceptanceArgs {
+    source: Option<PathBuf>,
+    #[arg(long = "out", short = 'o')]
+    out: Option<PathBuf>,
+    #[arg(long = "min-recall")]
+    min_recall: Option<f64>,
+}
+
+/// Arguments for [`Commands::Quality`].
+#[derive(Debug, clap::Args)]
+#[group(id = "Quality")]
+pub struct QualityArgs {
+    #[arg(long = "foops-url", default_value = "")]
+    foops_url: String,
+    #[arg(long = "strict")]
+    strict: bool,
+}
+
+/// Arguments for [`Commands::CompileGts`].
+#[derive(Debug, clap::Args)]
+#[group(id = "CompileGts")]
+pub struct CompileGtsArgs {
+    #[arg(long = "out", short = 'o')]
+    out: Option<PathBuf>,
+    #[arg(long = "sign-key")]
+    sign_key: Option<PathBuf>,
+    #[arg(long = "public-key")]
+    public_key: Option<PathBuf>,
+    /// The build profile the snapshot is regenerated under. Signing requires `release`.
+    #[arg(long = "profile", value_enum, default_value = "ordinary")]
+    profile: SyncProfile,
+}
+
+/// Arguments for [`Commands::ImportFoundation`].
+#[derive(Debug, clap::Args)]
+#[group(id = "ImportFoundation")]
+pub struct ImportFoundationArgs {
+    jsonl: PathBuf,
+    #[arg(long = "out", default_value = "build/foundation")]
+    out: PathBuf,
+    #[arg(long = "nq")]
+    nq: Option<PathBuf>,
+}
+
+/// Arguments for [`Commands::Describe`].
+#[derive(Debug, clap::Args)]
+#[group(id = "Describe")]
+pub struct DescribeArgs {
+    term: String,
+    #[arg(long = "gts")]
+    gts: Option<PathBuf>,
+    #[arg(long = "lang", short = 'l')]
+    lang: Option<String>,
+}
+
+/// Arguments for [`Commands::ShapeEquivalence`].
+#[derive(Debug, clap::Args)]
+#[group(id = "ShapeEquivalence")]
+pub struct ShapeEquivalenceArgs {
+    /// Restrict the scan (and the exit code) to legacy `shapes.ttl` under this directory
+    /// (repo-relative or absolute); default scans every slice.
+    #[arg(long = "path")]
+    path: Option<PathBuf>,
+}
+
+/// Arguments for [`Commands::ConformanceBless`].
+#[derive(Debug, clap::Args)]
+#[group(id = "ConformanceBless")]
+pub struct ConformanceBlessArgs {
+    /// The cases to refresh; at least one is required.
+    #[arg(required = true)]
+    cases: Vec<PathBuf>,
+    /// Seed a new case: write the full produced golden set, not only the goldens it commits.
+    #[arg(long)]
+    init: bool,
+}
+
+/// Arguments for [`Commands::ShapeLift`].
+#[derive(Debug, clap::Args)]
+#[group(id = "ShapeLift")]
+pub struct ShapeLiftArgs {
+    /// Restrict the scan (and the exit code) to legacy `shapes.ttl` under this directory
+    /// (repo-relative or absolute); default scans every slice.
+    #[arg(long = "path")]
+    path: Option<PathBuf>,
+}
+
+/// Arguments for [`Commands::ShapeMigrate`].
+#[derive(Debug, clap::Args)]
+#[group(id = "ShapeMigrate")]
+pub struct ShapeMigrateArgs {
+    /// Restrict the scan to legacy `shapes.ttl` under this directory (repo-relative or absolute);
+    /// default scans every slice.
+    #[arg(long = "path")]
+    path: Option<PathBuf>,
+    /// Write the changes (inject axioms, or delete blocks under `--prune`); default is dry-run.
+    #[arg(long = "apply")]
+    apply: bool,
+    /// Prune phase: delete `shapes.ttl` blocks the projector already reproduces (run after a
+    /// regenerate) instead of injecting grounding.
+    #[arg(long = "prune")]
+    prune: bool,
+}
+
+/// Arguments for [`Commands::Certify`].
+#[derive(Debug, clap::Args)]
+#[group(id = "Certify")]
+pub struct CertifyArgs {
+    input_path: PathBuf,
+    #[arg(long = "profile")]
+    profile: Option<String>,
+}
+
+/// Arguments for [`Commands::SliceQualitySeedFloors`].
+#[derive(Debug, clap::Args)]
+#[group(id = "SliceQualitySeedFloors")]
+pub struct SliceQualitySeedFloorsArgs {
+    /// Seed exactly one named rubric axis (its IRI local name, e.g.
+    /// axisShapeMigration). Exactly one of --axis / --all-axes is required.
+    #[arg(long = "axis")]
+    axis: Option<String>,
+    /// Seed every rubric axis that lacks a committed floor for a given slice.
+    /// Exactly one of --axis / --all-axes is required.
+    #[arg(long = "all-axes")]
+    all_axes: bool,
+}
+
+/// Arguments for [`Commands::SliceQualityRelocationPreview`].
+#[derive(Debug, clap::Args)]
+#[group(id = "SliceQualityRelocationPreview")]
+pub struct SliceQualityRelocationPreviewArgs {
+    /// A term IRI that would move. Repeatable; at least one is required.
+    #[arg(long = "term", required = true)]
+    term: Vec<String>,
+    /// The slice IRI (or slice local name) the terms would depart.
+    #[arg(long = "from")]
+    from: String,
+    /// The slice IRI (or slice local name) the terms would arrive at.
+    #[arg(long = "to")]
+    to: String,
+}
+
+/// Arguments for [`Commands::SliceFixDeps`].
+#[derive(Debug, clap::Args)]
+#[group(id = "SliceFixDeps")]
+pub struct SliceFixDepsArgs {
+    #[arg(long = "apply")]
+    apply: bool,
+    #[arg(long = "slices-dir")]
+    slices_dir: Option<PathBuf>,
+}
+
+/// Arguments for [`Commands::BoxRoles`].
+#[derive(Debug, clap::Args)]
+#[group(id = "BoxRoles")]
+pub struct BoxRolesArgs {
+    #[command(subcommand)]
+    command: BoxRolesCommands,
+}
+
+/// Arguments for [`Commands::Logic`].
+#[derive(Debug, clap::Args)]
+#[group(id = "Logic")]
+pub struct LogicArgs {
+    #[command(subcommand)]
+    command: LogicCommands,
+}
+
+/// Arguments for [`Commands::I18n`].
+#[derive(Debug, clap::Args)]
+#[group(id = "I18n")]
+pub struct I18nArgs {
+    #[command(subcommand)]
+    command: I18nCommands,
+}
+
+/// Score a slice against the slice-quality rubric and emit ranked uplift advice.
+// Keep this field-rich command's builder outside Commands::augment_subcommands.
+#[derive(Debug, clap::Args)]
+#[group(id = "SliceQuality")]
+pub struct SliceQualityArgs {
+    /// The slice directory to score (omit with --all).
+    #[arg(conflicts_with = "all")]
+    path: Option<PathBuf>,
+    /// Sweep every slice under slices/ instead of one path.
+    #[arg(long = "all")]
+    all: bool,
+    /// Output rendering: text (default), json, sarif, or rdf.
+    #[arg(long = "format")]
+    format: Option<String>,
+    /// Gate this run at an explicit tier: exit non-zero if the measured
+    /// roll-up is below TIER (a tier local name or label, e.g. Grounded,
+    /// Linked, Exemplified, Maximal, Registered). Unset = advisory (always
+    /// exit 0). With --all, fails if ANY swept slice is below TIER, naming
+    /// each. Render/emit still happen first; the gate only sets the exit code.
+    #[arg(long = "min-tier")]
+    min_tier: Option<String>,
+    /// Diagnostics console surface (flag > env > auto).
+    #[arg(long = "diagnostics-console")]
+    diagnostics_console: Option<String>,
+    /// Comma-separated diagnostics artifacts to write: json,sarif,html.
+    #[arg(long = "diagnostics-artifacts")]
+    diagnostics_artifacts: Option<String>,
+    /// Directory the diagnostics artifacts are written under.
+    #[arg(long = "diagnostics-dir")]
+    diagnostics_dir: Option<PathBuf>,
+    /// Filename stem for the written diagnostics artifacts.
+    #[arg(long = "diagnostics-stem")]
+    diagnostics_stem: Option<String>,
+    /// Diagnostics category stamped into the report metadata.
+    #[arg(long = "diagnostics-category")]
+    diagnostics_category: Option<String>,
+}
+
 /// The developer subcommands.
 #[derive(Debug, Subcommand)]
 pub enum Commands {
@@ -158,61 +816,14 @@ pub enum Commands {
     Info,
     /// Produce or authenticate the exact pre-test fixture DAG.
     #[command(name = "test-fixtures", hide = true)]
-    TestFixtures {
-        #[arg(value_enum)]
-        mode: TestFixtureMode,
-        #[arg(long = "scope", value_enum, default_value_t = TestFixtureScope::All)]
-        scope: TestFixtureScope,
-        #[arg(long = "timings-json")]
-        timings_json: Option<PathBuf>,
-        #[arg(long = "bundle-import-cache-root")]
-        bundle_import_cache_root: Option<PathBuf>,
-        #[arg(long = "expected-source-digest")]
-        expected_source_digest: Option<String>,
-    },
+    TestFixtures(TestFixturesArgs),
     /// Private child-process executor for one producer-owned declarative-spec wave.
     #[command(name = "slice-spec-worker", hide = true)]
-    SliceSpecWorker {
-        #[arg(long)]
-        kind: String,
-        #[arg(long = "spec", required = true)]
-        specs: Vec<PathBuf>,
-        #[arg(long, default_value_t = 1)]
-        workers: usize,
-    },
+    SliceSpecWorker(SliceSpecWorkerArgs),
     /// Run the canonical one-pass pipeline, strict gates, and output projections.
-    Sync {
-        /// Update locally or verify read-only. Defaults to check in CI, update elsewhere.
-        #[arg(long = "mode", value_enum)]
-        mode: Option<SyncMode>,
-        /// Projection set. All outputs are made by default.
-        #[arg(long = "outputs", value_enum, default_value_t = SyncOutput::All)]
-        outputs: SyncOutput,
-        /// Build profile. `release` refuses stale dictionary sweep evidence; the
-        /// ordinary default records it on the bundle and warns.
-        #[arg(long = "profile", value_enum, default_value_t = SyncProfile::Ordinary)]
-        profile: SyncProfile,
-        #[arg(short = 'j', long = "jobs")]
-        jobs: Option<usize>,
-        #[arg(long = "metadata")]
-        metadata: bool,
-        #[arg(long = "list-paths")]
-        list_paths: bool,
-        #[arg(long = "lang")]
-        lang: Option<String>,
-        #[arg(long = "timings-json")]
-        timings_json: Option<PathBuf>,
-        /// Stream live DAG stages and synchronization boundaries.
-        #[arg(short = 'v', long = "verbose")]
-        verbose: bool,
-    },
+    Sync(SyncArgs),
     /// Project the flat consumer tree back out of gmeow.gts.
-    Fanout {
-        #[arg(short = 'j', long = "jobs")]
-        jobs: Option<usize>,
-        #[arg(long = "timings-json")]
-        timings_json: Option<PathBuf>,
-    },
+    Fanout(FanoutArgs),
     /// Measure real, deterministic per-format documentation byte sizes and the
     /// three external-distribution design totals.
     #[command(name = "docs-measure")]
@@ -222,237 +833,64 @@ pub enum Commands {
     /// Assemble the standalone `<gmeow-console>` tree (shell + shared engine assets)
     /// into a directory, off the same bundle-backed exec the site render uses.
     #[command(name = "console-assemble")]
-    ConsoleAssemble {
-        #[arg(long = "out", default_value = "dist/console-smoke")]
-        out: PathBuf,
-    },
+    ConsoleAssemble(ConsoleAssembleArgs),
     /// Package the materialized `dist/gmeow-docs/` external documentation
     /// distribution into one deterministic content-addressed release asset,
     /// alongside a `.blake3` sidecar for the DCAT release manifest.
     #[command(name = "docs-package")]
-    DocsPackage {
-        #[arg(long = "out", default_value = "dist/gmeow-docs.tar")]
-        out: PathBuf,
-    },
+    DocsPackage(DocsPackageArgs),
     /// Fold evidence into a signed GTS output with its mandatory ingestion companion.
     #[command(name = "release-bundle")]
-    ReleaseBundle {
-        #[arg(long = "out", default_value = "dist/gmeow.gts")]
-        out: PathBuf,
-        #[arg(long = "sign-key")]
-        sign_key: PathBuf,
-        #[arg(long = "public-key")]
-        public_key: PathBuf,
-        /// Source GTS; its adjacent .ingestion.cbor receipt is required and retained.
-        #[arg(long = "source", default_value = "generated/dist/gmeow.gts")]
-        source: PathBuf,
-        #[arg(long = "issued-at")]
-        issued_at: String,
-        #[arg(
-            long = "attester",
-            default_value = "https://blackcatinformatics.ca/gmeow/agent/release-lane"
-        )]
-        attester: String,
-        #[arg(
-            long = "release-subject",
-            default_value = "https://blackcatinformatics.ca/gmeow/release/gmeow.gts"
-        )]
-        release_subject: String,
-        #[arg(long = "evidence")]
-        evidence: Vec<String>,
-    },
+    ReleaseBundle(ReleaseBundleArgs),
     /// Audit the mandatory zstd-rsyncable frame profile of a GTS bundle.
     #[command(name = "gts-frame-profile")]
-    GtsFrameProfile {
-        #[arg(default_value = "generated/dist/gmeow.gts")]
-        gts: PathBuf,
-    },
+    GtsFrameProfile(GtsFrameProfileArgs),
     /// Audit the whole MEDIUM axis of any GMEOW-authored GTS artifact — the dist
     /// bundle, a runtime `~/.gmeow/*.gts` store, or a whole-artifact product.
     #[command(name = "medium-gate")]
-    MediumGate {
-        #[arg(default_value = "generated/dist/gmeow.gts")]
-        gts: PathBuf,
-        /// The bundle whose medium registry an artifact that carries none of its own
-        /// (a runtime store) is audited against — the bundle its dictionaries came from.
-        #[arg(long = "registry", default_value = "generated/dist/gmeow.gts")]
-        registry: PathBuf,
-    },
+    MediumGate(MediumGateArgs),
     /// Measure the complete dictionary and codec grids on the optimized producer.
-    MediumSweep {
-        /// Write the complete measurement evidence to this path.
-        #[arg(long, default_value = "bench/medium-baseline.json")]
-        out: PathBuf,
-        /// Scheduler width for the measured pipeline run. Defaults to every CPU.
-        #[arg(short = 'j', long = "jobs")]
-        jobs: Option<usize>,
-    },
+    MediumSweep(MediumSweepArgs),
     /// Run the pipeline once recording what every stage body reads through every
     /// dataflow edge, and write the declarations those reads need to the file named by
     /// `--out`.
     #[command(name = "pipeline-reads")]
-    PipelineReads {
-        /// Write the Turtle declarations to this path.
-        #[arg(long)]
-        out: PathBuf,
-        /// Scheduler width for the recorded pipeline run. Defaults to every CPU.
-        #[arg(short = 'j', long = "jobs")]
-        jobs: Option<usize>,
-    },
+    PipelineReads(PipelineReadsArgs),
     /// Write a declaration-only bootstrap table with zero measured evidence.
-    MediumSeed {
-        /// Write the temporary seed table to this path; it is not measurement evidence.
-        #[arg(long, default_value = "bench/medium-baseline.json")]
-        out: PathBuf,
-    },
+    MediumSeed(MediumSeedArgs),
     /// Advance the computed term-changelog authority at an accepted release boundary.
-    TermReleaseAuthority {
-        /// Initialize the authority once; refuse to overwrite an existing authority.
-        #[arg(long)]
-        bootstrap: bool,
-    },
+    TermReleaseAuthority(TermReleaseAuthorityArgs),
     /// Validate Turtle syntax, term annotations, and SHACL conformance.
-    Validate {
-        #[arg(long = "timings")]
-        timings: bool,
-        #[arg(long = "timings-json")]
-        timings_json: Option<PathBuf>,
-        #[arg(long = "gts")]
-        gts: Option<PathBuf>,
-        #[arg(long = "trust-policy")]
-        trust_policy: Option<PathBuf>,
-        #[arg(long = "require-signed")]
-        require_signed: bool,
-        #[arg(long = "trusted-key")]
-        trusted_key: Option<PathBuf>,
-        #[arg(long = "deep")]
-        deep: bool,
-    },
+    Validate(ValidateArgs),
     /// Write first-class diagnostics artifacts for the whole dev gate.
-    Feedback {
-        #[arg(long = "diagnostics-console")]
-        diagnostics_console: Option<String>,
-        #[arg(long = "diagnostics-artifacts")]
-        diagnostics_artifacts: Option<String>,
-        #[arg(long = "diagnostics-dir")]
-        diagnostics_dir: Option<PathBuf>,
-        #[arg(long = "diagnostics-stem")]
-        diagnostics_stem: Option<String>,
-        #[arg(long = "diagnostics-category")]
-        diagnostics_category: Option<String>,
-        #[arg(long = "timings")]
-        timings: bool,
-    },
+    Feedback(FeedbackArgs),
     /// Run an external gate tool and represent a failure as a canonical finding.
     #[command(name = "external-tool")]
-    ExternalTool {
-        #[arg(long = "name")]
-        name: String,
-        #[arg(long = "diagnostics-console")]
-        diagnostics_console: Option<String>,
-        #[arg(long = "diagnostics-artifacts")]
-        diagnostics_artifacts: Option<String>,
-        #[arg(long = "diagnostics-dir")]
-        diagnostics_dir: Option<PathBuf>,
-        #[arg(long = "diagnostics-stem")]
-        diagnostics_stem: Option<String>,
-        #[arg(long = "diagnostics-category")]
-        diagnostics_category: Option<String>,
-        /// The external command to run, e.g. `-- mypy src`.
-        #[arg(trailing_var_arg = true, allow_hyphen_values = true)]
-        command: Vec<String>,
-    },
+    ExternalTool(ExternalToolArgs),
     /// Verify every constitutional principle has live enforcement.
     #[command(name = "constitution-check")]
     ConstitutionCheck,
     /// Audit claims (ungrounded / contradicted / stale) over data files.
-    Audit {
-        files: Vec<PathBuf>,
-        #[arg(long = "json")]
-        json: bool,
-        #[arg(long = "strict")]
-        strict: bool,
-    },
+    Audit(AuditArgs),
     /// Emit the RDF compliance report.
     #[command(name = "compliance-report")]
-    ComplianceReport {
-        #[arg(long = "from-passing-check")]
-        from_passing_check: bool,
-    },
+    ComplianceReport(ComplianceReportArgs),
     /// Reason over the ontology (native EL/DL, Docker-free).
-    Reason {
-        #[arg(long = "mode", default_value = "native")]
-        mode: String,
-        /// Recompute the closure instead of reusing the shipped graph/reasoning verdict.
-        #[arg(long = "fresh")]
-        fresh: bool,
-        #[arg(long = "merge")]
-        merge: bool,
-        #[arg(long = "profile", default_value = "DL")]
-        profile: String,
-        #[arg(long = "full")]
-        full: bool,
-        #[arg(long = "exclude-tautologies")]
-        exclude_tautologies: Option<String>,
-        #[arg(long = "timings-json")]
-        timings_json: Option<PathBuf>,
-    },
+    Reason(ReasonArgs),
     /// Explain unsatisfiable classes / inconsistency.
     Explain,
     /// Run reasoned-graph negative tests (native).
-    Verify {
-        #[arg(long = "mode", default_value = "native")]
-        mode: String,
-        /// Recompute the closure instead of reusing the shipped graph/reasoning verdict.
-        #[arg(long = "fresh")]
-        fresh: bool,
-        #[arg(long = "reasoned-input")]
-        reasoned_input: Option<PathBuf>,
-        #[arg(long = "timings-json")]
-        timings_json: Option<PathBuf>,
-    },
+    Verify(VerifyArgs),
     /// Run native reasoning followed by reasoned-graph verify.
     #[command(name = "reason-verify")]
-    ReasonVerify {
-        /// Recompute the closure instead of reusing the shipped graph/reasoning verdict.
-        #[arg(long = "fresh")]
-        fresh: bool,
-        #[arg(long = "merge")]
-        merge: bool,
-        #[arg(long = "timings-json")]
-        timings_json: Option<PathBuf>,
-    },
+    ReasonVerify(ReasonVerifyArgs),
     /// Run TQL: typed placement display or scoped zoned UTC-Gregorian timestamp comparisons.
-    Temporal {
-        query: String,
-        #[arg(long = "data")]
-        data: Option<PathBuf>,
-        #[arg(long = "focus")]
-        focus: Option<String>,
-        /// Zoned xsd:dateTime window start in the default UTC-Gregorian frame.
-        #[arg(long = "window-start")]
-        window_start: Option<String>,
-        /// Zoned xsd:dateTime window end in the default UTC-Gregorian frame.
-        #[arg(long = "window-end")]
-        window_end: Option<String>,
-        #[arg(long = "valid-at")]
-        valid_at: Option<String>,
-        #[arg(long = "as-of")]
-        as_of: Option<String>,
-    },
+    Temporal(TemporalArgs),
     /// Report the import/extract policy for an alignment target.
-    Extract {
-        #[arg(long = "target")]
-        target: String,
-    },
+    Extract(ExtractArgs),
     /// Lint SSSOM property mappings for direction/domain-range mismatches.
     #[command(name = "lint-alignment")]
-    LintAlignment {
-        #[arg(long = "network")]
-        network: bool,
-        #[arg(long = "strict")]
-        strict: bool,
-    },
+    LintAlignment(LintAlignmentArgs),
     /// Lint the rust-rendered ontology-docs site.
     #[command(name = "doc-lint")]
     DocLint,
@@ -464,52 +902,22 @@ pub enum Commands {
     FuzzSubstrateCheck,
     /// Re-vendor minimal target-axiom snapshots (network).
     #[command(name = "refresh-target-axioms")]
-    RefreshTargetAxioms {
-        #[arg(long = "target", default_value = "all")]
-        target: String,
-    },
+    RefreshTargetAxioms(RefreshTargetAxiomsArgs),
     /// Build alignment axioms + VoID linksets from SSSOM.
     Mappings,
     /// Validate the Wikidata QIDs/PIDs used in the mappings.
-    Wikidata {
-        #[arg(long = "existence")]
-        existence: bool,
-        #[arg(long = "fixtures")]
-        fixtures: bool,
-    },
+    Wikidata(WikidataArgs),
     /// Report Wikidata mapping coverage by domain/module.
     #[command(name = "wikidata-coverage")]
-    WikidataCoverage {
-        #[arg(long = "json")]
-        json: bool,
-        #[arg(long = "threshold", default_value_t = 0.5)]
-        threshold: f64,
-    },
+    WikidataCoverage(WikidataCoverageArgs),
     /// Report Dublin Core mapping coverage by namespace.
     #[command(name = "dc-coverage")]
-    DcCoverage {
-        #[arg(long = "json")]
-        json: bool,
-        #[arg(long = "threshold", default_value_t = 0.5)]
-        threshold: f64,
-    },
+    DcCoverage(DcCoverageArgs),
     /// Audit consumer→GMEOW up-projection invertibility.
     #[command(name = "up-projection-audit")]
-    UpProjectionAudit {
-        #[arg(long = "report")]
-        report: Option<PathBuf>,
-        #[arg(long = "gaps")]
-        gaps: bool,
-    },
+    UpProjectionAudit(UpProjectionAuditArgs),
     /// Report how much of the vendored entity slice GMEOW covers.
-    Coverage {
-        #[arg(long = "gaps")]
-        gaps: bool,
-        #[arg(long = "min-class")]
-        min_class: Option<f64>,
-        #[arg(long = "min-predicate")]
-        min_predicate: Option<f64>,
-    },
+    Coverage(CoverageArgs),
     /// Generate the CrossRef DOI deposit XML.
     Crossref,
     /// Canonicalize the authored ontology sources.
@@ -517,168 +925,46 @@ pub enum Commands {
     /// Build serializations and OWL-native syntaxes into dist/.
     Build,
     /// Project GMEOW to a pure vocabulary profile.
-    Project {
-        source: Option<PathBuf>,
-        #[arg(long = "profile", default_value = "all")]
-        profile: String,
-        #[arg(long = "data", default_value = "")]
-        data: String,
-        #[arg(long = "lang", short = 'l')]
-        lang: Option<String>,
-    },
+    Project(ProjectArgs),
     /// Transpile an A-Box to MAXIMAL(G).
-    Transform {
-        abox: PathBuf,
-        #[arg(long = "out", short = 'o')]
-        out: Option<PathBuf>,
-        #[arg(long = "profiles", default_value = "all")]
-        profiles: String,
-        #[arg(long = "diff-target")]
-        diff_target: Option<PathBuf>,
-        #[arg(long = "report")]
-        report: Option<PathBuf>,
-        #[arg(long = "lang", short = 'l')]
-        lang: Option<String>,
-    },
+    Transform(TransformArgs),
     /// Lift a consumer-vocabulary RDF file UP into pure GMEOW.
     #[command(name = "up-project")]
-    UpProject {
-        source: PathBuf,
-        #[arg(long = "out", short = 'o')]
-        out: Option<PathBuf>,
-    },
+    UpProject(UpProjectArgs),
     /// Score the full transpile against real data.
-    Acceptance {
-        source: Option<PathBuf>,
-        #[arg(long = "out", short = 'o')]
-        out: Option<PathBuf>,
-        #[arg(long = "min-recall")]
-        min_recall: Option<f64>,
-    },
+    Acceptance(AcceptanceArgs),
     /// Run OOPS! (pitfalls) and optionally FOOPS! (FAIR).
-    Quality {
-        #[arg(long = "foops-url", default_value = "")]
-        foops_url: String,
-        #[arg(long = "strict")]
-        strict: bool,
-    },
+    Quality(QualityArgs),
     /// Compile the statement-complete GTS snapshot and its ingestion companion.
     #[command(name = "compile-gts")]
-    CompileGts {
-        #[arg(long = "out", short = 'o')]
-        out: Option<PathBuf>,
-        #[arg(long = "sign-key")]
-        sign_key: Option<PathBuf>,
-        #[arg(long = "public-key")]
-        public_key: Option<PathBuf>,
-        /// The build profile the snapshot is regenerated under. Signing requires `release`.
-        #[arg(long = "profile", value_enum, default_value = "ordinary")]
-        profile: SyncProfile,
-    },
+    CompileGts(CompileGtsArgs),
     /// Start the GMEOW MCP server (wired in the MCP task).
     Mcp,
     /// Import the foundation corpus.
     #[command(name = "import-foundation")]
-    ImportFoundation {
-        jsonl: PathBuf,
-        #[arg(long = "out", default_value = "build/foundation")]
-        out: PathBuf,
-        #[arg(long = "nq")]
-        nq: Option<PathBuf>,
-    },
+    ImportFoundation(ImportFoundationArgs),
     /// Describe a GMEOW term as useful prose.
-    Describe {
-        term: String,
-        #[arg(long = "gts")]
-        gts: Option<PathBuf>,
-        #[arg(long = "lang", short = 'l')]
-        lang: Option<String>,
-    },
+    Describe(DescribeArgs),
     /// Prove legacy `shapes.ttl` blocks are reproduced by the projected validation shapes.
     #[command(name = "shape-equivalence")]
-    ShapeEquivalence {
-        /// Restrict the scan (and the exit code) to legacy `shapes.ttl` under this directory
-        /// (repo-relative or absolute); default scans every slice.
-        #[arg(long = "path")]
-        path: Option<PathBuf>,
-    },
+    ShapeEquivalence(ShapeEquivalenceArgs),
     /// Refresh the expected outputs of the named conformance cases from the native runner.
     /// Every case is named explicitly, by path or by its id under `conformance/logic/cases`.
     #[command(name = "conformance-bless")]
-    ConformanceBless {
-        /// The cases to refresh; at least one is required.
-        #[arg(required = true)]
-        cases: Vec<PathBuf>,
-        /// Seed a new case: write the full produced golden set, not only the goldens it commits.
-        #[arg(long)]
-        init: bool,
-    },
+    ConformanceBless(ConformanceBlessArgs),
     /// Propose (and certify) the OWL antecedent that would ground each legacy `shapes.ttl` block.
     #[command(name = "shape-lift")]
-    ShapeLift {
-        /// Restrict the scan (and the exit code) to legacy `shapes.ttl` under this directory
-        /// (repo-relative or absolute); default scans every slice.
-        #[arg(long = "path")]
-        path: Option<PathBuf>,
-    },
+    ShapeLift(ShapeLiftArgs),
     /// Automated shape migration: inject the lifted OWL grounding into each class's module.ttl
     /// (`--apply`), then delete the now-equivalent `shapes.ttl` blocks (`--prune`, after a
     /// regenerate). Default is a dry-run report.
     #[command(name = "shape-migrate")]
-    ShapeMigrate {
-        /// Restrict the scan to legacy `shapes.ttl` under this directory (repo-relative or absolute);
-        /// default scans every slice.
-        #[arg(long = "path")]
-        path: Option<PathBuf>,
-        /// Write the changes (inject axioms, or delete blocks under `--prune`); default is dry-run.
-        #[arg(long = "apply")]
-        apply: bool,
-        /// Prune phase: delete `shapes.ttl` blocks the projector already reproduces (run after a
-        /// regenerate) instead of injecting grounding.
-        #[arg(long = "prune")]
-        prune: bool,
-    },
+    ShapeMigrate(ShapeMigrateArgs),
     /// Statically certify a logic program against its declared profile.
-    Certify {
-        input_path: PathBuf,
-        #[arg(long = "profile")]
-        profile: Option<String>,
-    },
+    Certify(CertifyArgs),
     /// Score a slice against the slice-quality rubric and emit ranked uplift advice.
     #[command(name = "slice-quality")]
-    SliceQuality {
-        /// The slice directory to score (omit with --all).
-        #[arg(conflicts_with = "all")]
-        path: Option<PathBuf>,
-        /// Sweep every slice under slices/ instead of one path.
-        #[arg(long = "all")]
-        all: bool,
-        /// Output rendering: text (default), json, sarif, or rdf.
-        #[arg(long = "format")]
-        format: Option<String>,
-        /// Gate this run at an explicit tier: exit non-zero if the measured
-        /// roll-up is below TIER (a tier local name or label, e.g. Grounded,
-        /// Linked, Exemplified, Maximal, Registered). Unset = advisory (always
-        /// exit 0). With --all, fails if ANY swept slice is below TIER, naming
-        /// each. Render/emit still happen first; the gate only sets the exit code.
-        #[arg(long = "min-tier")]
-        min_tier: Option<String>,
-        /// Diagnostics console surface (flag > env > auto).
-        #[arg(long = "diagnostics-console")]
-        diagnostics_console: Option<String>,
-        /// Comma-separated diagnostics artifacts to write: json,sarif,html.
-        #[arg(long = "diagnostics-artifacts")]
-        diagnostics_artifacts: Option<String>,
-        /// Directory the diagnostics artifacts are written under.
-        #[arg(long = "diagnostics-dir")]
-        diagnostics_dir: Option<PathBuf>,
-        /// Filename stem for the written diagnostics artifacts.
-        #[arg(long = "diagnostics-stem")]
-        diagnostics_stem: Option<String>,
-        /// Diagnostics category stamped into the report metadata.
-        #[arg(long = "diagnostics-category")]
-        diagnostics_category: Option<String>,
-    },
+    SliceQuality(SliceQualityArgs),
     /// Enforce the opt-in slice-quality tier ratchet (a `make check` gate).
     #[command(name = "slice-quality-gate")]
     SliceQualityGate,
@@ -691,16 +977,7 @@ pub enum Commands {
     /// deliberate hand-edit of the individual, never a seeder re-run. Emit-only: the
     /// TTL goes to stdout for the human to commit.
     #[command(name = "slice-quality-seed-floors")]
-    SliceQualitySeedFloors {
-        /// Seed exactly one named rubric axis (its IRI local name, e.g.
-        /// axisShapeMigration). Exactly one of --axis / --all-axes is required.
-        #[arg(long = "axis")]
-        axis: Option<String>,
-        /// Seed every rubric axis that lacks a committed floor for a given slice.
-        /// Exactly one of --axis / --all-axes is required.
-        #[arg(long = "all-axes")]
-        all_axes: bool,
-    },
+    SliceQualitySeedFloors(SliceQualitySeedFloorsArgs),
     /// Emit `gmeow:ProjectionCeilingCommitment` TTL at the CURRENT measured
     /// ungrounded residue for every (slice, guarded-vocabulary) pair with nonzero
     /// residue, so a human can grandfather the existing residue into
@@ -742,41 +1019,17 @@ pub enum Commands {
     /// measurement errors still fail non-zero. Its numbers are never fed back into a
     /// ceiling.
     #[command(name = "slice-quality-relocation-preview")]
-    SliceQualityRelocationPreview {
-        /// A term IRI that would move. Repeatable; at least one is required.
-        #[arg(long = "term", required = true)]
-        term: Vec<String>,
-        /// The slice IRI (or slice local name) the terms would depart.
-        #[arg(long = "from")]
-        from: String,
-        /// The slice IRI (or slice local name) the terms would arrive at.
-        #[arg(long = "to")]
-        to: String,
-    },
+    SliceQualityRelocationPreview(SliceQualityRelocationPreviewArgs),
     /// Propose manifest dependency edits as a reviewable unified diff.
     #[command(name = "slice-fix-deps")]
-    SliceFixDeps {
-        #[arg(long = "apply")]
-        apply: bool,
-        #[arg(long = "slices-dir")]
-        slices_dir: Option<PathBuf>,
-    },
+    SliceFixDeps(SliceFixDepsArgs),
     /// Audit graph-box role coverage in authored sources.
     #[command(name = "box-roles")]
-    BoxRoles {
-        #[command(subcommand)]
-        command: BoxRolesCommands,
-    },
+    BoxRoles(BoxRolesArgs),
     /// Logic-stack operations.
-    Logic {
-        #[command(subcommand)]
-        command: LogicCommands,
-    },
+    Logic(LogicArgs),
     /// Internationalization toolchain.
-    I18n {
-        #[command(subcommand)]
-        command: I18nCommands,
-    },
+    I18n(I18nArgs),
 }
 
 /// `gmeow-dev box-roles` subcommands.
@@ -960,25 +1213,25 @@ pub fn run() -> i32 {
             0
         }
         Commands::Info => info(),
-        Commands::TestFixtures {
+        Commands::TestFixtures(TestFixturesArgs {
             mode,
             scope,
             timings_json,
             bundle_import_cache_root,
             expected_source_digest,
-        } => dev_test_fixtures::run(
+        }) => dev_test_fixtures::run(
             mode,
             scope,
             timings_json.as_deref(),
             bundle_import_cache_root.as_deref(),
             expected_source_digest.as_deref(),
         ),
-        Commands::SliceSpecWorker {
+        Commands::SliceSpecWorker(SliceSpecWorkerArgs {
             kind,
             specs,
             workers,
-        } => dev_test_fixtures::run_slice_spec_worker(&kind, &specs, workers),
-        Commands::Sync {
+        }) => dev_test_fixtures::run_slice_spec_worker(&kind, &specs, workers),
+        Commands::Sync(SyncArgs {
             mode,
             outputs,
             profile,
@@ -988,7 +1241,7 @@ pub fn run() -> i32 {
             lang,
             timings_json,
             verbose,
-        } => dev_sync::sync(
+        }) => dev_sync::sync(
             mode,
             outputs,
             profile,
@@ -1000,14 +1253,16 @@ pub fn run() -> i32 {
             verbose,
             console,
         ),
-        Commands::Fanout { jobs, timings_json } => {
+        Commands::Fanout(FanoutArgs { jobs, timings_json }) => {
             dev_build::fanout(jobs, timings_json.as_deref(), console)
         }
         Commands::DocsMeasure => dev_docs_measure::docs_measure(),
         Commands::DocsMeasureVerify => dev_docs_measure::docs_measure_verify(),
-        Commands::ConsoleAssemble { out } => dev_project::console_assemble(&out),
-        Commands::DocsPackage { out } => dev_docs_package::docs_package(&out),
-        Commands::ReleaseBundle {
+        Commands::ConsoleAssemble(ConsoleAssembleArgs { out }) => {
+            dev_project::console_assemble(&out)
+        }
+        Commands::DocsPackage(DocsPackageArgs { out }) => dev_docs_package::docs_package(&out),
+        Commands::ReleaseBundle(ReleaseBundleArgs {
             out,
             sign_key,
             public_key,
@@ -1016,7 +1271,7 @@ pub fn run() -> i32 {
             attester,
             release_subject,
             evidence,
-        } => dev_build::release_bundle(
+        }) => dev_build::release_bundle(
             &out,
             &sign_key,
             &public_key,
@@ -1026,13 +1281,21 @@ pub fn run() -> i32 {
             &release_subject,
             &evidence,
         ),
-        Commands::GtsFrameProfile { gts } => dev_validate::gts_frame_profile(&gts),
-        Commands::MediumGate { gts, registry } => dev_validate::medium_gate(&gts, &registry),
-        Commands::MediumSweep { out, jobs } => dev_medium_sweep::run(&out, jobs),
-        Commands::MediumSeed { out } => dev_medium_sweep::seed(&out),
-        Commands::PipelineReads { out, jobs } => dev_pipeline_reads::run(&out, jobs),
-        Commands::TermReleaseAuthority { bootstrap } => dev_term_release_authority::run(bootstrap),
-        Commands::Validate {
+        Commands::GtsFrameProfile(GtsFrameProfileArgs { gts }) => {
+            dev_validate::gts_frame_profile(&gts)
+        }
+        Commands::MediumGate(MediumGateArgs { gts, registry }) => {
+            dev_validate::medium_gate(&gts, &registry)
+        }
+        Commands::MediumSweep(MediumSweepArgs { out, jobs }) => dev_medium_sweep::run(&out, jobs),
+        Commands::MediumSeed(MediumSeedArgs { out }) => dev_medium_sweep::seed(&out),
+        Commands::PipelineReads(PipelineReadsArgs { out, jobs }) => {
+            dev_pipeline_reads::run(&out, jobs)
+        }
+        Commands::TermReleaseAuthority(TermReleaseAuthorityArgs { bootstrap }) => {
+            dev_term_release_authority::run(bootstrap)
+        }
+        Commands::Validate(ValidateArgs {
             timings,
             timings_json,
             gts,
@@ -1040,7 +1303,7 @@ pub fn run() -> i32 {
             require_signed,
             trusted_key,
             deep,
-        } => dev_validate::validate(
+        }) => dev_validate::validate(
             timings,
             timings_json.as_deref(),
             gts.as_deref(),
@@ -1049,21 +1312,21 @@ pub fn run() -> i32 {
             trusted_key.as_deref(),
             deep,
         ),
-        Commands::Feedback {
+        Commands::Feedback(FeedbackArgs {
             diagnostics_console,
             diagnostics_artifacts,
             diagnostics_dir,
             diagnostics_stem,
             diagnostics_category,
             timings: _,
-        } => dev_feedback::feedback(
+        }) => dev_feedback::feedback(
             diagnostics_console.and_then(parse_console),
             diagnostics_artifacts.as_deref(),
             diagnostics_dir.as_deref(),
             diagnostics_stem.as_deref(),
             diagnostics_category.as_deref(),
         ),
-        Commands::ExternalTool {
+        Commands::ExternalTool(ExternalToolArgs {
             name,
             diagnostics_console,
             diagnostics_artifacts,
@@ -1071,7 +1334,7 @@ pub fn run() -> i32 {
             diagnostics_stem,
             diagnostics_category,
             command,
-        } => dev_feedback::external_tool(
+        }) => dev_feedback::external_tool(
             &command,
             &name,
             diagnostics_console.and_then(parse_console),
@@ -1081,33 +1344,33 @@ pub fn run() -> i32 {
             diagnostics_category.as_deref(),
         ),
         Commands::ConstitutionCheck => dev_gates::constitution_check(),
-        Commands::Audit {
+        Commands::Audit(AuditArgs {
             files,
             json,
             strict,
-        } => dev_gates::audit(&files, json, strict),
-        Commands::ComplianceReport { from_passing_check } => {
+        }) => dev_gates::audit(&files, json, strict),
+        Commands::ComplianceReport(ComplianceReportArgs { from_passing_check }) => {
             dev_project::compliance_report(from_passing_check)
         }
-        Commands::Reason {
+        Commands::Reason(ReasonArgs {
             mode,
             fresh,
             timings_json,
             ..
-        } => dev_reason::reason(&mode, fresh, timings_json.as_deref()),
+        }) => dev_reason::reason(&mode, fresh, timings_json.as_deref()),
         Commands::Explain => dev_reason::explain(),
-        Commands::Verify {
+        Commands::Verify(VerifyArgs {
             mode,
             fresh,
             timings_json,
             ..
-        } => dev_reason::verify(&mode, fresh, timings_json.as_deref()),
-        Commands::ReasonVerify {
+        }) => dev_reason::verify(&mode, fresh, timings_json.as_deref()),
+        Commands::ReasonVerify(ReasonVerifyArgs {
             fresh,
             merge: _,
             timings_json,
-        } => dev_reason::reason_verify(fresh, timings_json.as_deref()),
-        Commands::Temporal {
+        }) => dev_reason::reason_verify(fresh, timings_json.as_deref()),
+        Commands::Temporal(TemporalArgs {
             query,
             data,
             focus,
@@ -1115,7 +1378,7 @@ pub fn run() -> i32 {
             window_end,
             valid_at,
             as_of,
-        } => dev_project::temporal(
+        }) => dev_project::temporal(
             &query,
             data.as_deref(),
             focus.as_deref(),
@@ -1124,46 +1387,52 @@ pub fn run() -> i32 {
             valid_at.as_deref(),
             as_of.as_deref(),
         ),
-        Commands::Extract { target } => dev_gates::extract(&target),
-        Commands::LintAlignment { network, strict } => dev_gates::lint_alignment(network, strict),
+        Commands::Extract(ExtractArgs { target }) => dev_gates::extract(&target),
+        Commands::LintAlignment(LintAlignmentArgs { network, strict }) => {
+            dev_gates::lint_alignment(network, strict)
+        }
         Commands::DocLint => dev_gates::doc_lint(),
         Commands::CrateCheck => dev_gates::crate_check(),
         Commands::FuzzSubstrateCheck => dev_gates::fuzz_substrate_check(),
-        Commands::RefreshTargetAxioms { target } => dev_project::refresh_target_axioms(&target),
+        Commands::RefreshTargetAxioms(RefreshTargetAxiomsArgs { target }) => {
+            dev_project::refresh_target_axioms(&target)
+        }
         Commands::Mappings => dev_build::mappings(),
-        Commands::Wikidata {
+        Commands::Wikidata(WikidataArgs {
             existence,
             fixtures,
-        } => dev_gates::wikidata(existence, fixtures),
-        Commands::WikidataCoverage { json, threshold } => {
+        }) => dev_gates::wikidata(existence, fixtures),
+        Commands::WikidataCoverage(WikidataCoverageArgs { json, threshold }) => {
             dev_gates::wikidata_coverage(json, threshold)
         }
-        Commands::DcCoverage { json, threshold } => dev_gates::dc_coverage(json, threshold),
-        Commands::UpProjectionAudit { report, gaps } => {
+        Commands::DcCoverage(DcCoverageArgs { json, threshold }) => {
+            dev_gates::dc_coverage(json, threshold)
+        }
+        Commands::UpProjectionAudit(UpProjectionAuditArgs { report, gaps }) => {
             dev_project::up_projection_audit(report.as_deref(), gaps)
         }
-        Commands::Coverage {
+        Commands::Coverage(CoverageArgs {
             gaps,
             min_class,
             min_predicate,
-        } => dev_gates::coverage(gaps, min_class, min_predicate),
+        }) => dev_gates::coverage(gaps, min_class, min_predicate),
         Commands::Crossref => dev_project::crossref(),
         Commands::Normalize => dev_build::normalize(),
         Commands::Build => dev_transpile::build(),
-        Commands::Project {
+        Commands::Project(ProjectArgs {
             source,
             profile,
             data,
             lang,
-        } => dev_transpile::project(source.as_deref(), &profile, &data, lang.as_deref()),
-        Commands::Transform {
+        }) => dev_transpile::project(source.as_deref(), &profile, &data, lang.as_deref()),
+        Commands::Transform(TransformArgs {
             abox,
             out,
             profiles,
             diff_target,
             report,
             lang,
-        } => dev_transpile::transform(
+        }) => dev_transpile::transform(
             &abox,
             out.as_deref(),
             &profiles,
@@ -1171,48 +1440,54 @@ pub fn run() -> i32 {
             report.as_deref(),
             lang.as_deref(),
         ),
-        Commands::UpProject { source, out } => dev_transpile::up_project(&source, out.as_deref()),
-        Commands::Acceptance {
+        Commands::UpProject(UpProjectArgs { source, out }) => {
+            dev_transpile::up_project(&source, out.as_deref())
+        }
+        Commands::Acceptance(AcceptanceArgs {
             source,
             out,
             min_recall,
-        } => dev_gates::acceptance(source.as_deref(), out.as_deref(), min_recall),
-        Commands::Quality { foops_url, strict } => dev_gates::quality(&foops_url, strict),
-        Commands::CompileGts {
+        }) => dev_gates::acceptance(source.as_deref(), out.as_deref(), min_recall),
+        Commands::Quality(QualityArgs { foops_url, strict }) => {
+            dev_gates::quality(&foops_url, strict)
+        }
+        Commands::CompileGts(CompileGtsArgs {
             out,
             sign_key,
             public_key,
             profile,
-        } => dev_build::compile_gts(
+        }) => dev_build::compile_gts(
             out.as_deref(),
             sign_key.as_deref(),
             public_key.as_deref(),
             profile.build_profile(),
         ),
         Commands::Mcp => mcp(),
-        Commands::ImportFoundation { jsonl, out, nq } => {
+        Commands::ImportFoundation(ImportFoundationArgs { jsonl, out, nq }) => {
             dev_project::import_foundation(&jsonl, &out, nq.as_deref())
         }
-        Commands::Describe { term, gts, lang } => {
+        Commands::Describe(DescribeArgs { term, gts, lang }) => {
             dev_project::describe(&term, gts.as_deref(), lang.as_deref())
         }
-        Commands::ShapeEquivalence { path } => dev_shapes::shape_equivalence(path.as_deref()),
-        Commands::ConformanceBless { cases, init } => {
+        Commands::ShapeEquivalence(ShapeEquivalenceArgs { path }) => {
+            dev_shapes::shape_equivalence(path.as_deref())
+        }
+        Commands::ConformanceBless(ConformanceBlessArgs { cases, init }) => {
             dev_conformance::conformance_bless(&cases, init)
         }
-        Commands::ShapeLift { path } => dev_shapes::shape_lift(path.as_deref()),
-        Commands::ShapeMigrate { path, apply, prune } => {
+        Commands::ShapeLift(ShapeLiftArgs { path }) => dev_shapes::shape_lift(path.as_deref()),
+        Commands::ShapeMigrate(ShapeMigrateArgs { path, apply, prune }) => {
             if prune {
                 dev_shapes::shape_prune(path.as_deref(), apply)
             } else {
                 dev_shapes::shape_migrate(path.as_deref(), apply)
             }
         }
-        Commands::Certify {
+        Commands::Certify(CertifyArgs {
             input_path,
             profile,
-        } => dev_reason::certify(&input_path, profile.as_deref()),
-        Commands::SliceQuality {
+        }) => dev_reason::certify(&input_path, profile.as_deref()),
+        Commands::SliceQuality(SliceQualityArgs {
             path,
             all,
             format,
@@ -1222,7 +1497,7 @@ pub fn run() -> i32 {
             diagnostics_dir,
             diagnostics_stem,
             diagnostics_category,
-        } => dev_slice_quality::slice_quality(
+        }) => dev_slice_quality::slice_quality(
             path.as_deref(),
             all,
             format.as_deref(),
@@ -1234,23 +1509,25 @@ pub fn run() -> i32 {
             diagnostics_category.as_deref(),
         ),
         Commands::SliceQualityGate => dev_slice_quality::slice_quality_gate(),
-        Commands::SliceQualitySeedFloors { axis, all_axes } => {
+        Commands::SliceQualitySeedFloors(SliceQualitySeedFloorsArgs { axis, all_axes }) => {
             dev_slice_quality::slice_quality_seed_floors(axis.as_deref(), all_axes)
         }
         Commands::SliceQualitySeedCeilings {} => dev_slice_quality::slice_quality_seed_ceilings(),
         Commands::SliceQualityProjectionDebt {} => {
             dev_slice_quality::slice_quality_projection_debt()
         }
-        Commands::SliceQualityRelocationPreview { term, from, to } => {
-            dev_slice_quality::slice_quality_relocation_preview(&term, &from, &to)
-        }
-        Commands::SliceFixDeps { apply, slices_dir } => {
+        Commands::SliceQualityRelocationPreview(SliceQualityRelocationPreviewArgs {
+            term,
+            from,
+            to,
+        }) => dev_slice_quality::slice_quality_relocation_preview(&term, &from, &to),
+        Commands::SliceFixDeps(SliceFixDepsArgs { apply, slices_dir }) => {
             dev_feedback::slice_fix_deps(apply, slices_dir.as_deref())
         }
-        Commands::BoxRoles { command } => match command {
+        Commands::BoxRoles(BoxRolesArgs { command }) => match command {
             BoxRolesCommands::Audit { json } => dev_gates::box_roles_audit(json),
         },
-        Commands::Logic { command } => match command {
+        Commands::Logic(LogicArgs { command }) => match command {
             LogicCommands::Query {
                 world,
                 query_file,
@@ -1270,7 +1547,7 @@ pub fn run() -> i32 {
             ),
             LogicCommands::Compile { check, mode } => dev_logic::compile(check, mode.as_deref()),
         },
-        Commands::I18n { command } => match command {
+        Commands::I18n(I18nArgs { command }) => match command {
             I18nCommands::Extract {
                 root,
                 output_dir,

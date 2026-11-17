@@ -27,88 +27,90 @@ pub(crate) fn admitted_identity() -> gmeow_errors::Result<ProducerIdentity> {
 /// performs its own admission after refusing output paths owned by synchronization.
 pub(crate) fn requires_admission(command: &Commands) -> bool {
     match command {
-        Commands::Sync {
+        Commands::Sync(crate::SyncArgs {
             metadata,
             list_paths,
             ..
-        } => !metadata && !list_paths,
-        Commands::TestFixtures { mode, .. } => matches!(mode, TestFixtureMode::Produce),
-        Commands::Fanout { .. }
-        | Commands::MediumSweep { .. }
-        | Commands::PipelineReads { .. }
-        | Commands::MediumSeed { .. }
-        | Commands::TermReleaseAuthority { .. }
+        }) => !metadata && !list_paths,
+        Commands::TestFixtures(crate::TestFixturesArgs { mode, .. }) => {
+            matches!(mode, TestFixtureMode::Produce)
+        }
+        Commands::Fanout(_)
+        | Commands::MediumSweep(_)
+        | Commands::PipelineReads(_)
+        | Commands::MediumSeed(_)
+        | Commands::TermReleaseAuthority(_)
         | Commands::DocsMeasure
         | Commands::DocsMeasureVerify
-        | Commands::DocsPackage { .. }
+        | Commands::DocsPackage(_)
         | Commands::DocLint
         | Commands::Normalize
-        | Commands::Transform { .. }
-        | Commands::UpProject { .. }
+        | Commands::Transform(_)
+        | Commands::UpProject(_)
         | Commands::Crossref
-        | Commands::ImportFoundation { .. }
-        | Commands::SliceSpecWorker { .. }
-        | Commands::ReleaseBundle { .. }
-        | Commands::Validate { .. }
-        | Commands::Reason { .. }
-        | Commands::Verify { .. }
-        | Commands::ReasonVerify { .. }
+        | Commands::ImportFoundation(_)
+        | Commands::SliceSpecWorker(_)
+        | Commands::ReleaseBundle(_)
+        | Commands::Validate(_)
+        | Commands::Reason(_)
+        | Commands::Verify(_)
+        | Commands::ReasonVerify(_)
         | Commands::Explain
         | Commands::Mappings
         | Commands::Build
-        | Commands::Project { .. }
-        | Commands::Acceptance { .. }
-        | Commands::CompileGts { .. }
-        | Commands::Feedback { .. }
-        | Commands::Logic {
+        | Commands::Project(_)
+        | Commands::Acceptance(_)
+        | Commands::CompileGts(_)
+        | Commands::Feedback(_)
+        | Commands::Logic(crate::LogicArgs {
             command: LogicCommands::Compile { .. },
-        }
+        })
         | Commands::Mcp
-        | Commands::SliceQuality { .. }
+        | Commands::SliceQuality(_)
         | Commands::SliceQualityGate
-        | Commands::SliceQualitySeedFloors { .. }
+        | Commands::SliceQualitySeedFloors(_)
         | Commands::SliceQualitySeedCeilings { .. }
-        | Commands::SliceQualityRelocationPreview { .. } => true,
+        | Commands::SliceQualityRelocationPreview(_) => true,
         // Console output-path refusal precedes admission; the handler admits
         // the producer before opening the bundle or rendering any output.
-        Commands::ConsoleAssemble { .. } => false,
+        Commands::ConsoleAssemble(_) => false,
         // Source inspection, user-input queries, and authoring maintenance do
         // not produce the corpus. Keep this exhaustive so new commands must
         // explicitly declare their producer boundary.
         Commands::BuildIdentity
         | Commands::Version
         | Commands::Info
-        | Commands::GtsFrameProfile { .. }
-        | Commands::MediumGate { .. }
-        | Commands::ExternalTool { .. }
+        | Commands::GtsFrameProfile(_)
+        | Commands::MediumGate(_)
+        | Commands::ExternalTool(_)
         | Commands::ConstitutionCheck
-        | Commands::Audit { .. }
-        | Commands::ComplianceReport { .. }
-        | Commands::Temporal { .. }
-        | Commands::Extract { .. }
-        | Commands::LintAlignment { .. }
+        | Commands::Audit(_)
+        | Commands::ComplianceReport(_)
+        | Commands::Temporal(_)
+        | Commands::Extract(_)
+        | Commands::LintAlignment(_)
         | Commands::CrateCheck
         | Commands::FuzzSubstrateCheck
-        | Commands::RefreshTargetAxioms { .. }
-        | Commands::Wikidata { .. }
-        | Commands::WikidataCoverage { .. }
-        | Commands::DcCoverage { .. }
-        | Commands::UpProjectionAudit { .. }
-        | Commands::Coverage { .. }
-        | Commands::Quality { .. }
-        | Commands::Describe { .. }
-        | Commands::ShapeEquivalence { .. }
-        | Commands::ShapeLift { .. }
-        | Commands::ShapeMigrate { .. }
-        | Commands::ConformanceBless { .. }
-        | Commands::Certify { .. }
+        | Commands::RefreshTargetAxioms(_)
+        | Commands::Wikidata(_)
+        | Commands::WikidataCoverage(_)
+        | Commands::DcCoverage(_)
+        | Commands::UpProjectionAudit(_)
+        | Commands::Coverage(_)
+        | Commands::Quality(_)
+        | Commands::Describe(_)
+        | Commands::ShapeEquivalence(_)
+        | Commands::ShapeLift(_)
+        | Commands::ShapeMigrate(_)
+        | Commands::ConformanceBless(_)
+        | Commands::Certify(_)
         | Commands::SliceQualityProjectionDebt { .. }
-        | Commands::SliceFixDeps { .. }
-        | Commands::BoxRoles { .. }
-        | Commands::Logic {
+        | Commands::SliceFixDeps(_)
+        | Commands::BoxRoles(_)
+        | Commands::Logic(crate::LogicArgs {
             command: LogicCommands::Query { .. },
-        }
-        | Commands::I18n { .. } => false,
+        })
+        | Commands::I18n(_) => false,
     }
 }
 

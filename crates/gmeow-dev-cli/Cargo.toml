@@ -23,7 +23,7 @@ purrdf-hash.workspace = true
 gmeow-action-cache = { path = "../action-cache" }
 gmeow-lang-bridge = { path = "../lang-bridge" }
 gmeow-cli-core = { path = "../cli-core" }
-clap = { version = "4", features = ["derive"] }
+clap = { workspace = true, features = ["derive"] }
 gmeow-ns = { path = "../ns" }
 gmeow-errors = { path = "../errors" }
 # The repo-maintenance engines the dev toolchain drives (default features, no python).
