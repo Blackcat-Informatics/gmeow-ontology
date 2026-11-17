@@ -20,6 +20,9 @@
 //! definitions. Recipe ASTs remain with their canonical mathematical owner.
 
 mod signatures;
+mod targets;
+
+pub use targets::{CallableTargetTyping, CanonicalModuleTarget, CanonicalModuleTargets};
 
 use std::collections::{BTreeMap, BTreeSet};
 
@@ -88,15 +91,7 @@ struct ProjectionCell {
     transform_bindings: Vec<(String, String)>,
 }
 
-/// Lower the FnO catalog to its full-IRI N-Triples text from the DSL view (functions
-/// + cells) and the ontology view (`rdfs:range` typing + the language-tag map).
-///
-/// # Errors
-///
-/// A malformed function declaration, an input predicate with no ontology `rdfs:range`
-/// (the fail-closed `fno:type` guard), or a param-IRI minting collision is a hard
-/// error — no degraded fallback.
-/// The artifacts + per-correspondence loss ledger of the FnO lowering.
+/// The catalog artifacts and per-correspondence loss ledger of the FnO lowering.
 pub struct FnoLowering {
     /// The single FnO catalog N-Triples text.
     pub catalog: String,
@@ -111,16 +106,29 @@ pub struct FnoLowering {
     pub loss: LossLedger,
 }
 
+/// Lower the FnO catalog to full-IRI N-Triples from the DSL functions and cells,
+/// ontology ranges and language tags, and explicit mathematical-target authority.
+///
+/// Interface declarations remain independently admitted in their original source
+/// views. Repository producers must select verified physical Module authority;
+/// source-local input cannot borrow target typing from an unrelated view.
+///
+/// # Errors
+///
+/// Refuses malformed interfaces, ambiguous source owners, target authority or kind
+/// failures, missing input-predicate ranges, parameter-IRI minting collisions and
+/// collisions with derived projection identities.
 pub fn lower_fno(
     dsl: &DslView,
     onto: &DslView,
     analysis: &CorrespondenceAnalysis,
+    target_typing: CallableTargetTyping<'_>,
 ) -> gmeow_errors::Result<FnoLowering> {
     let functions = extract_functions(dsl)?;
     let cells = extract_cells(analysis.projection_cells())?;
     let mut catalog_input = build_catalog(&functions, &cells, onto)?;
-    let mut signatures = signatures::Signatures::admit(dsl)?;
-    let mut onto_signatures = signatures::Signatures::admit(onto)?;
+    let mut signatures = signatures::Signatures::admit(dsl, target_typing)?;
+    let mut onto_signatures = signatures::Signatures::admit(onto, target_typing)?;
     if let Some(collision) = onto_signatures
         .subjects
         .iter()

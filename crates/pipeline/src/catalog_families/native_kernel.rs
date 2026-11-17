@@ -7,6 +7,7 @@ use std::collections::{BTreeMap, BTreeSet};
 
 use gmeow_logic_compile::ingest::DslView;
 use gmeow_logic_compile::projections::correspondence::CorrespondenceProgram;
+use gmeow_logic_compile::projections::fno::{CanonicalModuleTarget, CanonicalModuleTargets};
 use gmeow_logic_compile::projections::grounding_catalog::{GroundingCatalog, OwnedGroundingSource};
 use gmeow_logic_compile::projections::sssom;
 use purrdf::{RdfDataset, RdfTerm, TermRef};
@@ -260,6 +261,32 @@ impl SourceOwnership {
                 });
         }
         Ok(())
+    }
+}
+
+impl CanonicalModuleTargets for SourceOwnership {
+    fn module_target(&self, target: &str) -> gmeow_errors::Result<CanonicalModuleTarget<'_>> {
+        if !self.module_subjects.contains(target) {
+            return Err(registry_err(format!(
+                "canonical callable target <{target}> requires a physical Module declaration"
+            )));
+        }
+        let declaration = self.source(target)?.ok_or_else(|| {
+            registry_err(format!(
+                "canonical callable target <{target}> has no canonical Module declaration"
+            ))
+        })?;
+        if declaration.role != "module" {
+            return Err(registry_err(format!(
+                "canonical callable target <{target}> must be declared in a Module-role artifact"
+            )));
+        }
+        Ok(CanonicalModuleTarget {
+            owner: &declaration.owner,
+            path: &declaration.path,
+            digest: &declaration.digest,
+            types: &declaration.types,
+        })
     }
 }
 

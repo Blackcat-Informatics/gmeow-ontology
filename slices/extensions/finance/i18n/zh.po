@@ -1221,3 +1221,179 @@ msgstr "违反单价货币身份契约。"
 msgctxt "https://blackcatinformatics.ca/gmeow/examples/finance/tests/ecExactComputations|https://blackcatinformatics.ca/gmeow/conformanceRationale"
 msgid "Simple-interest, holding-period-return and unit-price-total calculations validate with no finding. Temporal inputs share the calculation's period frame; monetary amounts share one currency. The unit price has a scalar quotient frame whose numerator is that currency and whose denominator is the priced quantity's count frame, and both inputs name the same asset. The fixture supplies the math and places class assertions needed by finance-owned checks because each conformance cell loads only the finance module and this file."
 msgstr "单利、持有期收益和单价总额计算均通过验证且不产生任何发现项。时间输入共享该计算的期间参考系；货币金额共享同一种货币。单价具有标量商参考系，其分子是该货币，分母是计价数量的计数参考系，且两个输入指向同一资产。由于每个合规单元仅加载 finance 模块与本文件，此测试数据提供 finance 所有的检查所需的 math 与 places 类断言。"
+
+msgctxt "urn:gmeow:finance:simple:principal:symbol|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "simple interest principal symbol"
+msgstr "单利本金符号"
+
+msgctxt "urn:gmeow:finance:simple:principal:symbol|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The mathematical symbol for the principal MonetaryAmount operand in the canonical simple-interest recipe."
+msgstr "规范单利配方中本金 MonetaryAmount 操作数的数学符号。"
+
+msgctxt "urn:gmeow:finance:simple:principal:expression|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "simple interest principal reference"
+msgstr "单利本金引用"
+
+msgctxt "urn:gmeow:finance:simple:principal:expression|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The SymbolReference leaf naming the principal symbol in the canonical simple-interest multiplication expression."
+msgstr "规范单利乘法表达式中指向本金符号的 SymbolReference 叶节点。"
+
+msgctxt "urn:gmeow:finance:simple:rate:symbol|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "simple interest period rate symbol"
+msgstr "单利期间利率符号"
+
+msgctxt "urn:gmeow:finance:simple:rate:symbol|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The mathematical symbol for the FinancialPeriodRate operand in the canonical simple-interest recipe."
+msgstr "规范单利配方中 FinancialPeriodRate 操作数的数学符号。"
+
+msgctxt "urn:gmeow:finance:simple:rate:expression|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "simple interest period rate reference"
+msgstr "单利期间利率引用"
+
+msgctxt "urn:gmeow:finance:simple:rate:expression|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The SymbolReference leaf naming the period-rate symbol in the canonical simple-interest multiplication expression."
+msgstr "规范单利乘法表达式中指向期间利率符号的 SymbolReference 叶节点。"
+
+msgctxt "urn:gmeow:finance:simple:count:symbol|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "simple interest period count symbol"
+msgstr "单利期数符号"
+
+msgctxt "urn:gmeow:finance:simple:count:symbol|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The mathematical symbol for the FinancialPeriodCount operand in the canonical simple-interest recipe."
+msgstr "规范单利配方中 FinancialPeriodCount 操作数的数学符号。"
+
+msgctxt "urn:gmeow:finance:simple:count:expression|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "simple interest period count reference"
+msgstr "单利期数引用"
+
+msgctxt "urn:gmeow:finance:simple:count:expression|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The SymbolReference leaf naming the period-count symbol in the canonical simple-interest multiplication expression."
+msgstr "规范单利乘法表达式中指向期数符号的 SymbolReference 叶节点。"
+
+msgctxt "urn:gmeow:finance:simple:principal-rate|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "simple interest principal times rate expression"
+msgstr "单利本金乘利率表达式"
+
+msgctxt "urn:gmeow:finance:simple:principal-rate|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The binary Multiplication AST for principal times period rate, used as the first operand of the canonical simple-interest recipe."
+msgstr "本金乘期间利率的二元 Multiplication 抽象语法树，用作规范单利配方的第一个操作数。"
+
+msgctxt "urn:gmeow:finance:simple:principal-rate:0|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "simple interest principal operand slot"
+msgstr "单利本金操作数槽"
+
+msgctxt "urn:gmeow:finance:simple:principal-rate:0|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The index-zero operand slot of the principal-times-rate expression, referencing the principal operand."
+msgstr "本金乘利率表达式中索引为零的操作数槽，引用本金操作数。"
+
+msgctxt "urn:gmeow:finance:simple:principal-rate:1|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "simple interest period rate operand slot"
+msgstr "单利期间利率操作数槽"
+
+msgctxt "urn:gmeow:finance:simple:principal-rate:1|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The index-one operand slot of the principal-times-rate expression, referencing the period-rate operand."
+msgstr "本金乘利率表达式中索引为一的操作数槽，引用期间利率操作数。"
+
+msgctxt "urn:gmeow:finance:simple:recipe|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "simple interest expression"
+msgstr "单利表达式"
+
+msgctxt "urn:gmeow:finance:simple:recipe|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The canonical binary Multiplication AST for principal times period rate times period count. Its ordered operand slots assert no precomputed interest amount."
+msgstr "本金乘期间利率再乘期数的规范二元 Multiplication 抽象语法树。其有序操作数槽不声明任何预先计算的利息金额。"
+
+msgctxt "urn:gmeow:finance:simple:recipe:0|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "simple interest principal times rate operand slot"
+msgstr "单利本金乘利率操作数槽"
+
+msgctxt "urn:gmeow:finance:simple:recipe:0|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The index-zero operand slot of the canonical simple-interest recipe, referencing the principal-times-rate subexpression."
+msgstr "规范单利配方中索引为零的操作数槽，引用本金乘利率子表达式。"
+
+msgctxt "urn:gmeow:finance:simple:recipe:1|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "simple interest period count operand slot"
+msgstr "单利期数操作数槽"
+
+msgctxt "urn:gmeow:finance:simple:recipe:1|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The index-one operand slot of the canonical simple-interest recipe, referencing the period-count operand."
+msgstr "规范单利配方中索引为一的操作数槽，引用期数操作数。"
+
+msgctxt "urn:gmeow:finance:return:opening:symbol|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "holding-period return opening amount symbol"
+msgstr "持有期收益期初金额符号"
+
+msgctxt "urn:gmeow:finance:return:opening:symbol|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The mathematical symbol for the opening MonetaryAmount operand shared by the subtraction and denominator of the canonical holding-period-return recipe."
+msgstr "规范持有期收益配方中由减法与分母共享的期初 MonetaryAmount 操作数的数学符号。"
+
+msgctxt "urn:gmeow:finance:return:opening:expression|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "holding-period return opening amount reference"
+msgstr "持有期收益期初金额引用"
+
+msgctxt "urn:gmeow:finance:return:opening:expression|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The SymbolReference leaf naming the opening symbol, reused by the subtraction and denominator of the canonical holding-period-return recipe."
+msgstr "指向期初符号的 SymbolReference 叶节点，由规范持有期收益配方中的减法与分母复用。"
+
+msgctxt "urn:gmeow:finance:return:closing:symbol|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "holding-period return closing amount symbol"
+msgstr "持有期收益期末金额符号"
+
+msgctxt "urn:gmeow:finance:return:closing:symbol|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The mathematical symbol for the closing MonetaryAmount operand in the canonical holding-period-return recipe."
+msgstr "规范持有期收益配方中期末 MonetaryAmount 操作数的数学符号。"
+
+msgctxt "urn:gmeow:finance:return:closing:expression|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "holding-period return closing amount reference"
+msgstr "持有期收益期末金额引用"
+
+msgctxt "urn:gmeow:finance:return:closing:expression|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The SymbolReference leaf naming the closing symbol in the canonical holding-period-return subtraction expression."
+msgstr "规范持有期收益减法表达式中指向期末符号的 SymbolReference 叶节点。"
+
+msgctxt "urn:gmeow:finance:return:difference|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "holding-period return amount difference expression"
+msgstr "持有期收益金额差表达式"
+
+msgctxt "urn:gmeow:finance:return:difference|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The binary Subtraction AST for closing amount minus opening amount in the canonical holding-period-return recipe."
+msgstr "规范持有期收益配方中期末金额减期初金额的二元 Subtraction 抽象语法树。"
+
+msgctxt "urn:gmeow:finance:return:difference:0|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "holding-period return closing amount operand slot"
+msgstr "持有期收益期末金额操作数槽"
+
+msgctxt "urn:gmeow:finance:return:difference:0|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The index-zero operand slot of the holding-period-return subtraction, referencing the closing amount."
+msgstr "持有期收益减法中索引为零的操作数槽，引用期末金额。"
+
+msgctxt "urn:gmeow:finance:return:difference:1|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "holding-period return opening amount subtraction slot"
+msgstr "持有期收益期初金额减法槽"
+
+msgctxt "urn:gmeow:finance:return:difference:1|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The index-one operand slot of the holding-period-return subtraction, referencing the opening amount."
+msgstr "持有期收益减法中索引为一的操作数槽，引用期初金额。"
+
+msgctxt "urn:gmeow:finance:return:recipe|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "holding-period return expression"
+msgstr "持有期收益表达式"
+
+msgctxt "urn:gmeow:finance:return:recipe|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The canonical binary Division AST for closing-minus-opening divided by opening. Its denominator reuses the opening SymbolReference leaf and asserts no precomputed return ratio."
+msgstr "期末减期初再除以期初的规范二元 Division 抽象语法树。其分母复用期初 SymbolReference 叶节点，不声明任何预先计算的收益率。"
+
+msgctxt "urn:gmeow:finance:return:recipe:0|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "holding-period return numerator operand slot"
+msgstr "持有期收益分子操作数槽"
+
+msgctxt "urn:gmeow:finance:return:recipe:0|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The index-zero operand slot of the canonical holding-period-return division, referencing the closing-minus-opening subexpression."
+msgstr "规范持有期收益除法中索引为零的操作数槽，引用期末减期初子表达式。"
+
+msgctxt "urn:gmeow:finance:return:recipe:1|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "holding-period return denominator operand slot"
+msgstr "持有期收益分母操作数槽"
+
+msgctxt "urn:gmeow:finance:return:recipe:1|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The index-one operand slot of the canonical holding-period-return division, referencing the same opening-amount leaf used by the subtraction."
+msgstr "规范持有期收益除法中索引为一的操作数槽，引用减法所用的同一个期初金额叶节点。"
