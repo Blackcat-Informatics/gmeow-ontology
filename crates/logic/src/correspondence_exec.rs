@@ -12,14 +12,14 @@
 //! algebra, admitted by PurRDF before execution. Only the explicit text-query entry
 //! points parse SPARQL; generated recovery legs have no serialization/parsing boundary.
 //!
-//! A first-class [`RecoveryCaseIr`](gmeow_logic_compile::ir::RecoveryCaseIr) supplies the complete query-class source pattern and its
+//! A first-class [`RecoveryCaseIr`] supplies the complete query-class source pattern and its
 //! ordered source-to-view transform as canonical `logic:Formula`.  The supported execution
 //! fragment is `forall(vars, source -> view)`, where both sides are positive conjunctions of
 //! binary RDF atoms.  The executor deterministically instantiates the source, lowers the
 //! implication to get/put `CONSTRUCT`s, runs both, and returns a countermodel on information
 //! loss.  Recovery evidence is not an independent semantic source: the executor also runs the
 //! correspondence's resolved `get` and `put`
-//! [`LegPath`](gmeow_logic_compile::ir::LegPath) bodies on that same complete seed,
+//! [`LegPath`] bodies on that same complete seed,
 //! requires their endpoint relations to agree under inversion, and requires every variable-bound
 //! endpoint selected by the executable `get` relation to survive in the formula's view.  This
 //! makes the evidence neutral: the same mechanism proves a genuine recovery and refutes either a
