@@ -73,8 +73,9 @@ than by the change under test. It is CI-only by construction (it hard-fails with
 scheduling decision and never a coverage cut.
 
 Local `make check` owns update-mode synchronization, so a developer does not need
-to run `make check` first. The whole-run manifest makes a clean fixed point a fast
-no-op; after relevant source changes, check pays the one required regeneration.
+to materialize generated outputs separately first. The whole-run manifest makes a
+clean fixed point a fast no-op; after relevant source changes, check pays the one
+required regeneration.
 CI invokes the internal `make check-sync` target in read-only mode so committed
 drift remains a hard failure.
 
@@ -298,6 +299,22 @@ are consumed through its public Rust API:
   node slack and links, original-source evidence, contextual storage, transient
   and probe allocations, allocator overhead and process RSS; they establish no
   full-pipeline memory reduction.
+- Schema-law vocabulary selection borrows modal possibilities followed by
+  caller-owned candidate rows without collecting a combined owned vector. The
+  modal Arc and session's candidates retain their ownership; visitation order,
+  duplicate occurrences and the logged combined row count are unchanged. A
+  four-fact finite-union leave-one-out fixture, with a named list cell and no
+  padding, entered the public native fallback. Both its session base and
+  retraction selected `dl:union-member` from zero modal and four candidate rows.
+  Each removed copy had vector capacity four (832 backing bytes), 88 world-string
+  capacity bytes and 406 fact-IRI capacity bytes. The final answer, status,
+  budgets, proof statements and proof-edge relationships matched. Complete raw
+  receipt comparison exposed changed native-source pins, their derived input
+  contracts and reachability identities, proof IDs and references, and diagnostic
+  strings carrying those proof IDs; this is not whole-receipt digest parity.
+  These selected ownership observations exclude caller-owned rows, iterator stack
+  storage, other reasoning stores, transient/probe allocations, allocator overhead
+  and RSS. They establish neither current producer volume nor full-pipeline fit.
 - Bounded termination analysis: witness-free relation closure admits at most
   262,144 pending candidate occurrences in both the initial and semi-naive passes.
   Exact native fact payloads are shared in first-seen order; a borrowed-field index
