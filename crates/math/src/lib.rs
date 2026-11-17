@@ -10,10 +10,12 @@
 //! `⟨x,y⟩ = xᵀGy` inner product / norm / distance / cosine / projection / LDLᵀ
 //! positive-definiteness certificate, and the pure `math:`-vocabulary graph loaders
 //! ([`load_gram`], [`load_vector`]) that read exact rational cells out of an RDF
-//! graph. All arithmetic is exact rational — the ONLY approximation is the final
-//! square root, emitted as a fixed-precision decimal ([`SQRT_DECIMALS`]) via an
-//! integer floor-sqrt, never `f64::sqrt` — so the output strings are deterministic
-//! and byte-identical across runs.
+//! graph. Rational arithmetic is exact within checked `i128` bounds. Square-root
+//! outputs use a fixed-precision decimal ([`SQRT_DECIMALS`]) computed via integer
+//! floor-sqrt, never `f64::sqrt`; those strings are deterministic and byte-identical
+//! across runs. [`InnerProductSpace::angle`] separately parses the decimal cosine
+//! to `f64` and applies floating-point `acos`; no cross-platform byte identity is
+//! claimed for that angle output.
 //!
 //! This is the shared layer that domain grounders (affect intensity, and the
 //! native `math:` conformance gates) compute THROUGH, rather than each re-deriving
@@ -419,8 +421,9 @@ fn format_decimal(value: Rational) -> Result<String> {
 // ---------------------------------------------------------------------------
 
 /// A finite-dimensional real inner-product space presented by a symmetric,
-/// positive-definite Gram matrix `G`. The inner product is `⟨x,y⟩ = xᵀGy`; all
-/// operations are exact rational except the final square root at the output edge.
+/// positive-definite Gram matrix `G`. The inner product is `⟨x,y⟩ = xᵀGy` with
+/// checked exact-rational arithmetic. Square-root outputs use fixed-precision
+/// decimals; [`Self::angle`] additionally uses floating-point `acos`.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct InnerProductSpace {
     gram: Vec<Vec<Rational>>,

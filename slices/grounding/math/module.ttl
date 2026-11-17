@@ -6164,6 +6164,11 @@ math:InnerProductSpace
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "Inner Product Space"@x-gmeow-english ;
     skos:definition "A vector space equipped with an inner product — a math:VectorSpace carrying a math:innerProduct that assigns lengths and angles, so orthogonality and orthogonal complements are defined. A subclass of math:VectorSpace; the complex case carries a math:HermitianInnerProduct. It names the inner product it carries through math:innerProduct."@x-gmeow-english ;
+    skos:scopeNote "The real case uses a symmetric positive-definite bilinear form; the complex case uses a conjugate-symmetric positive-definite sesquilinear form. Zero dimension, finite and infinite dimension are allowed. Completeness is an additional Hilbert-space condition, not a consequence of this type."@x-gmeow-english ;
+    skos:example "On real R², h(u,v) = u1 v1 + 2 u2 v2 is an inner product with h(v,v) = v1² + 2 v2², positive for every nonzero v. The coordinate formula presupposes the supplied ordered basis and real scalar interpretation."@x-gmeow-english ;
+    gmeow:useWhen "Use when a vector space carries a justified inner product needed for lengths, norms or orthogonality. Retain the space, carrier set, scalar field, coordinate basis and form as separate roles."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not infer an inner product from a vector-space, norm or symmetric-matrix label alone, or treat positive-semidefinite or indefinite forms as positive-definite. An angle involving a zero vector is undefined, and complex angle conventions must be stated."@x-gmeow-english ;
+    gmeow:howToUse "Describe the vector-space structure and link its supplied form with math:innerProduct. Keep the inherited carrier, operation and law evidence explicit. A class or form link proves neither the inner-product laws nor completeness and does not invoke the finite real rational numeric core."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 math:HermitianInnerProduct
@@ -6172,6 +6177,11 @@ math:HermitianInnerProduct
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "Hermitian Inner Product"@x-gmeow-english ;
     skos:definition "A conjugate-symmetric, positive-definite sesquilinear form on a complex vector space — the inner product ⟨·,·⟩ of the complex case, linear in one argument and conjugate-linear in the other. A subclass of math:MathematicalObject carried by a math:InnerProductSpace through math:innerProduct; it is the structure that defines a math:OrthogonalComplement in the complex (S⊥) case (math:definedByInnerProduct)."@x-gmeow-english ;
+    skos:scopeNote "Preserve which argument is conjugate-linear. Under the first-conjugate convention, h(au,bv) = conjugate(a) b h(u,v) and h(v,u) = conjugate(h(u,v)). Positive definiteness requires real h(v,v) > 0 for nonzero v, with h(0,0) = 0."@x-gmeow-english ;
+    skos:example "On C with h(z,w) = conjugate(z) w, h(i,1) = -i, h(1,i) = i and h(i,i) = 1. This form is conjugate-linear in the first argument and linear in the second; it is not complex bilinear."@x-gmeow-english ;
+    gmeow:useWhen "Use for a justified positive-definite Hermitian inner product on a complex vector space, retaining its actual scalar field, argument convention and coordinate representation independently."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not identify complex sesquilinearity with bilinearity or ordinary symmetry. A Hermitian matrix can be indefinite or positive semidefinite; its label or conjugate symmetry alone does not establish an inner product."@x-gmeow-english ;
+    gmeow:howToUse "Name the form as its own math:HermitianInnerProduct resource. Use math:innerProduct from its space and math:definedByInnerProduct from a complement where applicable. Retain evidence for the laws; these declarations do not execute a complex Hermitian calculation or construct a complement."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 math:Subspace
@@ -6291,6 +6301,11 @@ math:innerProduct
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "inner product"@x-gmeow-english ;
     skos:definition "Relates a math:InnerProductSpace to the inner product it carries — a math:HermitianInnerProduct in the complex case. Domain math:InnerProductSpace, range a math:HermitianInnerProduct or a real inner-product structure (stated in prose). The inner product is what makes orthogonality, and hence a math:OrthogonalComplement, well-defined."@x-gmeow-english ;
+    skos:scopeNote "The direction is space to form. The source states domain and range in prose without a native global functionality or typed-target rule for this property. Several supplied form descriptions do not select a preferred form or establish their equality."@x-gmeow-english ;
+    skos:example "For real u = (1,1) and v = (1,-1), the standard dot product is zero, while h(u,v) = u1 v1 + 2 u2 v2 is -1. Linking the intended form matters: the same vectors are orthogonal under one inner product and not the other."@x-gmeow-english ;
+    gmeow:useWhen "Use to identify the actual inner product carried by a vector-space description, retaining the real or complex setting and the supplied form laws rather than inferring them from dimensions or labels."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not substitute a scalar pairing result, coordinate matrix, basis or residual for the form. The edge neither transforms coordinates nor proves symmetry, sesquilinearity or positive definiteness."@x-gmeow-english ;
+    gmeow:howToUse "Point math:innerProduct from the space to its supplied form resource. Preserve the carrier, scalar field, basis and argument convention separately. Retain each justified description without a preferred-form rule; a link does not invoke a numerical evaluator."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 math:subspaceOf
@@ -6322,6 +6337,11 @@ math:definedByInnerProduct
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "defined by inner product"@x-gmeow-english ;
     skos:definition "Relates a math:OrthogonalComplement to the inner product that defines orthogonality for it — the math:HermitianInnerProduct in the complex case. Domain math:OrthogonalComplement, range a math:HermitianInnerProduct or real inner-product structure (stated in prose). An orthogonal complement without a named inner product is ambiguous and ill-formed (math:UnqualifiedOrthogonalComplement)."@x-gmeow-english ;
+    skos:scopeNote "The existing OrthogonalComplement-local source profile has minimum one, maximum one and all-values restrictions with logic:Thing, plus required-path closure and the associated math:UnqualifiedOrthogonalComplement diagnostic. This generic resource contract does not prove that the target is a positive-definite Hermitian form."@x-gmeow-english ;
+    skos:example "The ordinary linear-algebra-and-learning example states ex:residualSubspace math:definedByInnerProduct ex:hermitianInnerProduct, separately from its operand and ambient links. This names a defining form without evaluating it or proving the complement equation."@x-gmeow-english ;
+    gmeow:useWhen "Use when an orthogonal-complement description needs to retain the actual form defining orthogonality within its declared ambient space. Keep that form consistent with the supplied mathematical construction and argument convention."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not confuse the complement-to-form direction with math:innerProduct from the ambient space. The class-local restriction is not global property functionality, automatic Hermitian target typing or proof that every complement vector is orthogonal to the operand."@x-gmeow-english ;
+    gmeow:howToUse "Link the complement to its supplied form and retain math:orthogonalComplementOf, math:ambientSpace and math:complementSemantics math:orthogonalComplement separately. Those roles need not have distinct referents. The competency query retrieves declarations; mathematical justification and computation remain separate evidence."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 math:hasBasis
@@ -6401,7 +6421,7 @@ math:BilinearForm
     rdfs:subClassOf math:MathematicalObject ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "Bilinear Form"@x-gmeow-english ;
-    skos:definition "A bilinear form B on a vector space: a map B(·, ·) that is linear in each argument separately. A subclass of math:MathematicalObject. Its definiteness (math:definiteness) records whether it is positive-definite, positive-semidefinite, indefinite, or negative-definite; represented in a math:Basis it becomes a math:Matrix. An inner product is a positive-definite symmetric (or Hermitian) bilinear form; the symmetric case is math:SymmetricBilinearForm."@x-gmeow-english ;
+    skos:definition "A bilinear form B on a vector space: a map B(·, ·) that is linear in each argument separately. A subclass of math:MathematicalObject. Its definiteness (math:definiteness) records whether it is positive-definite, positive-semidefinite, indefinite, or negative-definite; represented in a math:Basis it becomes a math:Matrix. A real inner product is a positive-definite symmetric bilinear form; a complex inner product is a positive-definite Hermitian sesquilinear form. The symmetric bilinear case is math:SymmetricBilinearForm."@x-gmeow-english ;
     gmeow:useWhen "Use for a scalar-valued pairing that is linear in each of its two vector arguments, independently of the coordinates chosen to represent it."@x-gmeow-english ;
     gmeow:avoidWhen "Do not classify an arbitrary two-argument function as bilinear, or infer symmetry or positive-definiteness from bilinearity alone."@x-gmeow-english ;
     gmeow:howToUse "Name the form separately from its coordinate matrix. Record its definiteness with math:definiteness; use math:SymmetricBilinearForm when exchanging the arguments preserves the value."@x-gmeow-english ;
