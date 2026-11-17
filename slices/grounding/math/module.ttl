@@ -6757,7 +6757,12 @@ math:ExplainedVariance
     rdfs:subClassOf math:MathematicalObject ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "Explained Variance"@x-gmeow-english ;
-    skos:definition "The share of total variance a math:PrincipalComponent accounts for — the component's eigenvalue over the trace, a ratio in [0, 1]. A subclass of math:MathematicalObject named by a PCA through math:explainedVarianceRatio; the ratios across retained components measure how much structure the projection keeps."@x-gmeow-english ;
+    skos:definition "The share of positive finite total variance accounted for by a math:PrincipalComponent: its nonnegative covariance eigenvalue divided by the covariance trace, a dimensionless ratio in [0, 1]. A zero total variance leaves the ratio undefined. A subclass of math:MathematicalObject named by a PCA through math:explainedVarianceRatio; the ratios across retained components quantify retained variance."@x-gmeow-english ;
+    skos:scopeNote "This class records a normalized per-component share, distinct from an unnormalized variance amount. Finite covariance matrices use their trace as total variance. Infinite-dimensional use needs justified finite-trace spectral assumptions; no complete eigenbasis follows from this type."@x-gmeow-english ;
+    skos:example "For covariance diag(3,1,0), total variance is 4 and the associated component ratios are 3/4, 1/4 and 0. Retaining only the first component retains 3/4 of total variance. Zero covariance instead gives an undefined ratio, not a ratio of zero."@x-gmeow-english ;
+    gmeow:useWhen "Use for a supplied component share justified by its nonnegative covariance eigenvalue and positive finite total variance. Preserve the actual covariance, scalar field, basis, preprocessing and normalization evidence together with the source component association."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not replace missing data or zero-total undefined normalization with zero or one. A ratio sum of one can omit zero-variance components and does not prove a complete basis, semantic importance or predictive quality. Retained variance and cumulative shares are separate claims."@x-gmeow-english ;
+    gmeow:howToUse "Name the result as math:ExplainedVariance and link it from the analysis with math:explainedVarianceRatio. Preserve its supplied magnitude, component association, order and multiplicity in the existing source representation. A descriptor alone supplies no numeric value or normalization computation."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 math:ProjectionResidual
@@ -6880,6 +6885,11 @@ math:explainedVarianceRatio
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "explained variance ratio"@x-gmeow-english ;
     skos:definition "Relates a math:PCAAnalysis to a math:ExplainedVariance it produces — the share of total variance a component accounts for. Domain math:PCAAnalysis, range math:ExplainedVariance (stated in prose). A declared output of the analysis."@x-gmeow-english ;
+    skos:scopeNote "The property signature is stated in prose. The existing PCA-local profile has a generic logic:Thing minimum and all-values restriction plus required-path closure, without a dedicated maximum, typed-target rule or numeric denominator/range proof."@x-gmeow-english ;
+    skos:example "The exact-pca producer emits p:residualPCA math:explainedVarianceRatio p:pc1Variance and types that descriptor as math:ExplainedVariance. Its fixed Gram, dominant-axis and LDL results supply neither a numeric ratio nor a PCA eigenvalue family."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain a justified normalized component-result resource declared by a PCA analysis. Keep the source evidence identifying its actual component, covariance and normalization context independently of the other output relations."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not substitute a literal, eigenvalue amount or singular value for this result resource. Unordered component and variance links do not establish pairings. The current competency query joins those roles independently; its rows are not numeric association certificates."@x-gmeow-english ;
+    gmeow:howToUse "Point the property from the analysis to the supplied math:ExplainedVariance resource. Preserve its actual source value and component association without inferring order, repeated occurrences or a default ratio. The link alone performs no normalization or numeric validation."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 math:residualSubspace

@@ -18054,3 +18054,59 @@ msgstr "Ne pas confondre la direction du complément vers la forme avec math:inn
 msgctxt "https://blackcatinformatics.ca/math/definedByInnerProduct|https://blackcatinformatics.ca/gmeow/howToUse"
 msgid "Link the complement to its supplied form and retain math:orthogonalComplementOf, math:ambientSpace and math:complementSemantics math:orthogonalComplement separately. Those roles need not have distinct referents. The competency query retrieves declarations; mathematical justification and computation remain separate evidence."
 msgstr "Relier le complément à sa forme fournie et conserver séparément math:orthogonalComplementOf, math:ambientSpace et math:complementSemantics math:orthogonalComplement. Les référents de ces rôles ne sont pas nécessairement distincts. La requête de compétence extrait des déclarations ; justification mathématique et calcul restent des éléments justificatifs séparés."
+
+msgctxt "https://blackcatinformatics.ca/math/ExplainedVariance|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Explained Variance"
+msgstr "Variance expliquée"
+
+msgctxt "https://blackcatinformatics.ca/math/ExplainedVariance|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The share of positive finite total variance accounted for by a math:PrincipalComponent: its nonnegative covariance eigenvalue divided by the covariance trace, a dimensionless ratio in [0, 1]. A zero total variance leaves the ratio undefined. A subclass of math:MathematicalObject named by a PCA through math:explainedVarianceRatio; the ratios across retained components quantify retained variance."
+msgstr "La part de la variance totale strictement positive et finie dont rend compte une math:PrincipalComponent : sa valeur propre de covariance non négative divisée par la trace de la covariance, un rapport sans dimension dans [0, 1]. Une variance totale nulle laisse le rapport indéfini. Sous-classe de math:MathematicalObject nommée par une PCA via math:explainedVarianceRatio ; les rapports des composantes retenues quantifient la variance conservée."
+
+msgctxt "https://blackcatinformatics.ca/math/ExplainedVariance|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This class records a normalized per-component share, distinct from an unnormalized variance amount. Finite covariance matrices use their trace as total variance. Infinite-dimensional use needs justified finite-trace spectral assumptions; no complete eigenbasis follows from this type."
+msgstr "Cette classe consigne une part normalisée par composante, distincte d’une quantité de variance non normalisée. Les matrices de covariance de dimension finie utilisent leur trace comme variance totale. L’usage en dimension infinie exige des hypothèses spectrales justifiées de trace finie ; ce type n’implique aucune base propre complète."
+
+msgctxt "https://blackcatinformatics.ca/math/ExplainedVariance|http://www.w3.org/2004/02/skos/core#example"
+msgid "For covariance diag(3,1,0), total variance is 4 and the associated component ratios are 3/4, 1/4 and 0. Retaining only the first component retains 3/4 of total variance. Zero covariance instead gives an undefined ratio, not a ratio of zero."
+msgstr "Pour la covariance diag(3,1,0), la variance totale vaut 4 et les rapports des composantes associées valent 3/4, 1/4 et 0. Ne retenir que la première composante conserve 3/4 de la variance totale. Une covariance nulle donne au contraire un rapport indéfini, pas un rapport nul."
+
+msgctxt "https://blackcatinformatics.ca/math/ExplainedVariance|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for a supplied component share justified by its nonnegative covariance eigenvalue and positive finite total variance. Preserve the actual covariance, scalar field, basis, preprocessing and normalization evidence together with the source component association."
+msgstr "Utiliser pour une part de composante fournie, justifiée par sa valeur propre de covariance non négative et une variance totale strictement positive et finie. Préserver la covariance effective, le corps des scalaires, la base, les éléments justificatifs du prétraitement et de la normalisation, ainsi que l’association de source à la composante."
+
+msgctxt "https://blackcatinformatics.ca/math/ExplainedVariance|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Do not replace missing data or zero-total undefined normalization with zero or one. A ratio sum of one can omit zero-variance components and does not prove a complete basis, semantic importance or predictive quality. Retained variance and cumulative shares are separate claims."
+msgstr "Ne pas remplacer des données manquantes ou une normalisation indéfinie due à un total nul par zéro ou un. Une somme de rapports égale à un peut omettre des composantes de variance nulle et ne prouve ni une base complète, ni une importance sémantique, ni une qualité prédictive. La variance conservée et les parts cumulées sont des affirmations distinctes."
+
+msgctxt "https://blackcatinformatics.ca/math/ExplainedVariance|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Name the result as math:ExplainedVariance and link it from the analysis with math:explainedVarianceRatio. Preserve its supplied magnitude, component association, order and multiplicity in the existing source representation. A descriptor alone supplies no numeric value or normalization computation."
+msgstr "Nommer le résultat math:ExplainedVariance et le relier depuis l’analyse par math:explainedVarianceRatio. Préserver sa grandeur fournie, son association à la composante, son ordre et sa multiplicité dans la représentation de source existante. Un descripteur seul ne fournit ni valeur numérique ni calcul de normalisation."
+
+msgctxt "https://blackcatinformatics.ca/math/explainedVarianceRatio|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "explained variance ratio"
+msgstr "rapport de variance expliquée"
+
+msgctxt "https://blackcatinformatics.ca/math/explainedVarianceRatio|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Relates a math:PCAAnalysis to a math:ExplainedVariance it produces — the share of total variance a component accounts for. Domain math:PCAAnalysis, range math:ExplainedVariance (stated in prose). A declared output of the analysis."
+msgstr "Relie une math:PCAAnalysis à une math:ExplainedVariance qu’elle produit — la part de variance totale dont rend compte une composante. Domaine math:PCAAnalysis, portée math:ExplainedVariance (indiqués en prose). Une sortie déclarée de l’analyse."
+
+msgctxt "https://blackcatinformatics.ca/math/explainedVarianceRatio|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The property signature is stated in prose. The existing PCA-local profile has a generic logic:Thing minimum and all-values restriction plus required-path closure, without a dedicated maximum, typed-target rule or numeric denominator/range proof."
+msgstr "La signature de la propriété est énoncée en prose. Le profil existant propre à PCA comporte un minimum générique et une restriction de toutes les valeurs avec logic:Thing, ainsi qu’une fermeture de chemin requis, sans maximum dédié, règle de typage de cible ou preuve numérique du dénominateur ou de l’intervalle."
+
+msgctxt "https://blackcatinformatics.ca/math/explainedVarianceRatio|http://www.w3.org/2004/02/skos/core#example"
+msgid "The exact-pca producer emits p:residualPCA math:explainedVarianceRatio p:pc1Variance and types that descriptor as math:ExplainedVariance. Its fixed Gram, dominant-axis and LDL results supply neither a numeric ratio nor a PCA eigenvalue family."
+msgstr "Le producteur exact-pca émet p:residualPCA math:explainedVarianceRatio p:pc1Variance et type ce descripteur math:ExplainedVariance. Ses résultats sur un Gram fixe, d’axe dominant et de LDL ne fournissent ni rapport numérique ni famille de valeurs propres de PCA."
+
+msgctxt "https://blackcatinformatics.ca/math/explainedVarianceRatio|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain a justified normalized component-result resource declared by a PCA analysis. Keep the source evidence identifying its actual component, covariance and normalization context independently of the other output relations."
+msgstr "Utiliser pour conserver une ressource de résultat normalisé de composante justifiée, déclarée par une analyse PCA. Garder les éléments de source identifiant sa composante effective, sa covariance et son contexte de normalisation indépendamment des autres relations de sortie."
+
+msgctxt "https://blackcatinformatics.ca/math/explainedVarianceRatio|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Do not substitute a literal, eigenvalue amount or singular value for this result resource. Unordered component and variance links do not establish pairings. The current competency query joins those roles independently; its rows are not numeric association certificates."
+msgstr "Ne pas substituer un littéral, une valeur propre non normalisée ou une valeur singulière à cette ressource de résultat. Des liens non ordonnés de composante et de variance n’établissent pas d’appariements. La requête de compétence actuelle joint ces rôles indépendamment ; ses lignes ne certifient pas les associations numériques."
+
+msgctxt "https://blackcatinformatics.ca/math/explainedVarianceRatio|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Point the property from the analysis to the supplied math:ExplainedVariance resource. Preserve its actual source value and component association without inferring order, repeated occurrences or a default ratio. The link alone performs no normalization or numeric validation."
+msgstr "Diriger la propriété de l’analyse vers la ressource math:ExplainedVariance fournie. Préserver sa valeur de source effective et son association à la composante sans déduire d’ordre, d’occurrences répétées ou de rapport par défaut. Le lien seul n’effectue ni normalisation ni validation numérique."
