@@ -321,20 +321,20 @@ msgid "succeeds claim"
 msgstr "succède à une assertion"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/succeedsClaim|skos:definition"
-msgid "Relates a successor claim-bearing entity to its predecessor when the claimed state changes. The predecessor remains valid during its earlier fact-time interval according to the stated standpoint."
-msgstr "Relie une entité porteuse d’assertion à sa précédente lorsque l’état revendiqué change. La précédente reste valide pendant son intervalle factuel antérieur selon le point de vue indiqué."
+msgid "Relates a successor claim to its predecessor when the claimed state changes. The predecessor remains valid during its earlier fact-time interval according to the stated standpoint."
+msgstr "Relie une assertion qui en remplace une autre à sa précédente lorsque l’état affirmé change. La précédente reste valide pendant son intervalle factuel antérieur selon le point de vue indiqué."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/succeedsClaim|gmeow:howToUse"
 msgid "Annotate the relation with accordingTo and validFrom for its effective time; retain separate fact-time intervals on the claims or name usages."
 msgstr "Annoter la relation avec accordingTo et validFrom pour sa date d’effet ; conserver des intervalles factuels distincts sur les assertions ou usages de nom."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/succeedsClaim|gmeow:useWhen"
-msgid "Relates a successor claim-bearing entity to its predecessor when the claimed state changes. The predecessor remains valid during its earlier fact-time interval according to the stated standpoint."
-msgstr "Relie une entité porteuse d’assertion à sa précédente lorsque l’état revendiqué change. La précédente reste valide pendant son intervalle factuel antérieur selon le point de vue indiqué."
+msgid "Relates a successor claim to its predecessor when the claimed state changes. The predecessor remains valid during its earlier fact-time interval according to the stated standpoint."
+msgstr "Relie une assertion qui en remplace une autre à sa précédente lorsque l’état affirmé change. La précédente reste valide pendant son intervalle factuel antérieur selon le point de vue indiqué."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/succeedsClaim|skos:scopeNote"
-msgid "The effective time of a lifecycle relation is distinct from the fact-time interval of the proposition. Display suppression is a projection policy, not a global truth judgment."
-msgstr "La date d’effet d’une relation de cycle de vie est distincte de l’intervalle factuel de la proposition. Le masquage est une politique de projection et non un jugement de vérité globale."
+msgid "The universal logic:Thing bound accepts claim tokens, claim-bearing records and RDF reifiers without converting one into another or inferring gmeow:Entity. The effective time of a lifecycle relation is distinct from the fact-time interval of the proposition. Display suppression is a projection policy, not a global truth judgment."
+msgstr "La borne universelle logic:Thing accepte les jetons d’assertion, les enregistrements porteurs d’assertion et les réificateurs RDF sans les convertir les uns dans les autres ni déduire gmeow:Entity. La date d’effet d’une relation de cycle de vie est distincte de l’intervalle factuel de la proposition. Le masquage est une politique de projection et non un jugement de vérité globale."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/succeedsClaim|skos:example"
 msgid "ex:janet gmeow:succeedsClaim ex:bob ."
@@ -345,8 +345,8 @@ msgid "corrects claim"
 msgstr "corrige une assertion"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/correctsClaim|skos:definition"
-msgid "Relates a correcting claim-bearing entity to a claim that the correcting standpoint states is wrong, including its purported earlier validity. A correction is a statement by that standpoint and nothing more: the corrected claim is retained unchanged, is not superseded, is not suppressed from display, and is not made false in any other standpoint."
-msgstr "Relie une entité porteuse d’assertion corrective à une assertion que le point de vue correcteur déclare erronée, y compris sa validité antérieure alléguée. Une correction est une déclaration de ce point de vue et rien de plus : l’assertion corrigée est conservée telle quelle, n’est pas remplacée, n’est pas masquée à l’affichage et n’est rendue fausse dans aucun autre point de vue."
+msgid "Relates a correcting claim to a claim that the correcting standpoint states is wrong, including its purported earlier validity. A correction is a statement by that standpoint and nothing more: the corrected claim is retained unchanged, is not superseded, is not suppressed from display, and is not made false in any other standpoint."
+msgstr "Relie une assertion corrective à une assertion que le point de vue correcteur déclare erronée, y compris sa validité antérieure alléguée. Une correction est une déclaration de ce point de vue et rien de plus : l’assertion corrigée est conservée telle quelle, n’est pas remplacée, n’est pas masquée à l’affichage et n’est rendue fausse dans aucun autre point de vue."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/correctsClaim|gmeow:howToUse"
 msgid "Annotate the relation with accordingTo for the standpoint that makes the correction and with validFrom for when the correction took effect. Leave the corrected claim as it stands: do not set gmeow:displayable false on it and do not assert gmeow:supersedes because of the correction. Which of the two claims a reader is shown is decided at projection, not in the data."
@@ -361,8 +361,8 @@ msgid "Do not infer global truth, deletion, a preferred claim, a supersession or
 msgstr "Ne pas déduire une vérité globale, une suppression, une assertion préférée, un remplacement ou un changement dans un autre point de vue. À éviter pour un état affirmé qui a changé (utiliser gmeow:succeedsClaim) et pour un point de vue qui retire sa propre assertion (utiliser gmeow:retractsClaim)."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/correctsClaim|skos:scopeNote"
-msgid "The effective time of a lifecycle relation is distinct from the fact-time interval of the proposition. A correction is not a display instruction: whether a reader is shown the corrected claim is reader policy applied at projection."
-msgstr "La date d’effet d’une relation de cycle de vie est distincte de l’intervalle factuel de la proposition. Une correction n’est pas une consigne d’affichage : montrer ou non l’assertion corrigée à un lecteur relève de la politique de lecture appliquée à la projection."
+msgid "The universal logic:Thing bound accepts claim tokens, claim-bearing records and RDF reifiers without converting one into another or inferring gmeow:Entity. The effective time of a lifecycle relation is distinct from the fact-time interval of the proposition. A correction is not a display instruction: whether a reader is shown the corrected claim is reader policy applied at projection."
+msgstr "La borne universelle logic:Thing accepte les jetons d’assertion, les enregistrements porteurs d’assertion et les réificateurs RDF sans les convertir les uns dans les autres ni déduire gmeow:Entity. La date d’effet d’une relation de cycle de vie est distincte de l’intervalle factuel de la proposition. Une correction n’est pas une consigne d’affichage : montrer ou non l’assertion corrigée à un lecteur relève de la politique de lecture appliquée à la projection."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/correctsClaim|skos:example"
 msgid "ex:correction gmeow:correctsClaim ex:mistakenName ."
@@ -373,20 +373,20 @@ msgid "retracts claim"
 msgstr "retire une assertion"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/retractsClaim|skos:definition"
-msgid "Relates a withdrawal activity to the claim-bearing entity it withdraws in a stated standpoint. This relation is the canonical lifecycle encoding; a speech-act force alone performs no withdrawal."
-msgstr "Relie une activité de retrait à l’entité porteuse d’assertion qu’elle retire dans un point de vue indiqué. Cette relation est l’encodage canonique du cycle de vie ; une force d’acte de parole seule n’effectue aucun retrait."
+msgid "Relates a withdrawal activity to the claim it withdraws in a stated standpoint. This relation is the canonical lifecycle encoding; a speech-act force alone performs no withdrawal."
+msgstr "Relie une activité de retrait à l’assertion qu’elle retire dans un point de vue indiqué. Cette relation est l’encodage canonique du cycle de vie ; une force d’acte de parole seule n’effectue aucun retrait."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/retractsClaim|gmeow:howToUse"
 msgid "Type the subject Activity, name its actor with wasAssociatedWith, and annotate the relation with accordingTo and validFrom. Retraction suppresses retained history for ordinary revision; erasure requires separate authorization."
 msgstr "Typer le sujet Activity, nommer son acteur avec wasAssociatedWith et annoter la relation avec accordingTo et validFrom. Le retrait masque l’historique conservé lors d’une révision ordinaire ; l’effacement exige une autorisation distincte."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/retractsClaim|gmeow:useWhen"
-msgid "Relates a withdrawal activity to the claim-bearing entity it withdraws in a stated standpoint. This relation is the canonical lifecycle encoding; a speech-act force alone performs no withdrawal."
-msgstr "Relie une activité de retrait à l’entité porteuse d’assertion qu’elle retire dans un point de vue indiqué. Cette relation est l’encodage canonique du cycle de vie ; une force d’acte de parole seule n’effectue aucun retrait."
+msgid "Relates a withdrawal activity to the claim it withdraws in a stated standpoint. This relation is the canonical lifecycle encoding; a speech-act force alone performs no withdrawal."
+msgstr "Relie une activité de retrait à l’assertion qu’elle retire dans un point de vue indiqué. Cette relation est l’encodage canonique du cycle de vie ; une force d’acte de parole seule n’effectue aucun retrait."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/retractsClaim|skos:scopeNote"
-msgid "The effective time of a lifecycle relation is distinct from the fact-time interval of the proposition. Display suppression is a projection policy, not a global truth judgment."
-msgstr "La date d’effet d’une relation de cycle de vie est distincte de l’intervalle factuel de la proposition. Le masquage est une politique de projection et non un jugement de vérité globale."
+msgid "The universal logic:Thing bound accepts claim tokens, claim-bearing records and RDF reifiers without converting one into another or inferring gmeow:Entity. The effective time of a lifecycle relation is distinct from the fact-time interval of the proposition. Display suppression is a projection policy, not a global truth judgment."
+msgstr "La borne universelle logic:Thing accepte les jetons d’assertion, les enregistrements porteurs d’assertion et les réificateurs RDF sans les convertir les uns dans les autres ni déduire gmeow:Entity. La date d’effet d’une relation de cycle de vie est distincte de l’intervalle factuel de la proposition. Le masquage est une politique de projection et non un jugement de vérité globale."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/retractsClaim|skos:example"
 msgid "ex:withdrawal a gmeow:Activity ; gmeow:retractsClaim ex:claim ."

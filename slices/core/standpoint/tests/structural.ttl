@@ -493,8 +493,9 @@ PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 PREFIX ex: <https://example.org/lifecycle/>
 PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
 PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
-ASK { gmeow:succeedsClaim rdfs:subPropertyOf gmeow:supersedes . gmeow:correctsClaim rdfs:domain gmeow:Entity ; rdfs:range gmeow:Entity . gmeow:retractsClaim rdfs:domain gmeow:Activity ; rdfs:range gmeow:Entity . }""" ;
-    gmeow:saRationale "Succession specializes supersession; correction is a relation between claim-bearing entities in its own right; actual withdrawal belongs to an activity, not a force individual." .
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
+ASK { gmeow:succeedsClaim rdfs:subPropertyOf gmeow:supersedes ; logic:domain logic:Thing ; logic:range logic:Thing . gmeow:correctsClaim logic:domain logic:Thing ; logic:range logic:Thing . gmeow:retractsClaim logic:domain gmeow:Activity ; logic:range logic:Thing . }""" ;
+    gmeow:saRationale "Succession specializes supersession; universal claim-carrier bounds preserve the distinct sorts of assertion-act tokens, records and reifiers. Only the subject of withdrawal is necessarily an activity." .
 
 <https://example.org/lifecycle/tests/correction-is-not-supersession> a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:mustNot ;

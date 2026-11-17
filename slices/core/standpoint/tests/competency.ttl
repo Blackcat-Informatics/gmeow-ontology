@@ -54,3 +54,25 @@ ex:cqCorrectionRowCorrected a gmeow:ExpectedRow ;
 ex:cqCorrectionRowCorrecting a gmeow:ExpectedRow ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "claim" ; gmeow:cellValueIri case:redClaim ] ,
         [ a gmeow:ExpectedCell ; gmeow:cellVar "content" ; gmeow:cellValueIri case:doorIsRed ] .
+
+# Cross-slice signature guard: an owner-scoped structural assertion cannot see
+# the domains of supersedes or its inverse, so check their real merged sources.
+ex:cqLifecyclePreservesCarrierSort a gmeow:CompetencyQuestion ;
+    gmeow:cqReasoning gmeow:reasoningNone ;
+    gmeow:cqQuery """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+ASK {
+    VALUES ?relation { gmeow:succeedsClaim gmeow:correctsClaim gmeow:retractsClaim }
+    VALUES ?forbidden { gmeow:Entity gmeow:ClaimToken gmeow:Activity }
+    ?relation (rdfs:subPropertyOf|logic:subPropertyOf|owl:equivalentProperty|logic:equivalentProperty|^owl:equivalentProperty|^logic:equivalentProperty|owl:inverseOf|logic:inverseOf|^owl:inverseOf|^logic:inverseOf)* ?reachable .
+    ?reachable ?slot ?bound .
+    VALUES ?slot { rdfs:domain logic:domain rdfs:range logic:range }
+    ?bound (rdfs:subClassOf|logic:subClassOf|owl:equivalentClass|logic:equivalentClass|^owl:equivalentClass|^logic:equivalentClass)* ?forbidden .
+    FILTER (!(?relation = gmeow:retractsClaim && ?reachable = gmeow:retractsClaim &&
+              (?slot = rdfs:domain || ?slot = logic:domain) &&
+              ?bound = gmeow:Activity && ?forbidden = gmeow:Activity))
+}""" ;
+    gmeow:cqExpectAsk false ;
+    gmeow:cqRationale "Follow the actual merged lifecycle signatures through superproperties, equivalences, inverses and class ancestry. A lifecycle relation must not turn a claim token into an Entity or turn a record or reifier into a ClaimToken or Activity. The withdrawal subject's explicit Activity domain is the sole intended exception; its target remains unrestricted. This is a schema-path guard, not a runtime closure over an overlaid example." .

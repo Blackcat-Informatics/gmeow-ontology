@@ -162,7 +162,8 @@ can know contested facts in its own world without the model claiming them everyw
 
 The reified promotion `gmeow:KnowledgeClaim` carries the four roles — `gmeow:knowerAgent`,
 `gmeow:knownProposition`, `gmeow:knownInWorld` (→ `gmeow:EpistemicContext`), and `gmeow:underStandard`
-(→ `gmeow:EpistemicStandard`). It is a **claim apparatus** (a `logic:Relator`, like `gmeow:ClaimToken`),
+(→ `gmeow:EpistemicStandard`). It is a **claim apparatus** (a `logic:Relator`);
+the assertion-act `gmeow:ClaimToken` is a `gmeow:Activity`. The knowledge claim is
 deliberately **not** a `kernel:MentalMoment` — the believing *attitude* stays `gmeow:DoxasticState`.
 Local factivity is recorded by **prose only**: there is no `gmeow:isTrue`, no factivity axiom, and no
 asserted `logic:` triple — the world-indexed rule lives in the logic slice over a world-relative hold

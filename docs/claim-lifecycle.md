@@ -15,8 +15,13 @@ that distinction, indexed to the standpoint making it.
 | `gmeow:retractsClaim` | withdrawal activity → withdrawn claim | The standpoint withdraws its endorsement; withdrawal alone does not establish falsity. |
 
 Only `gmeow:succeedsClaim` specializes `gmeow:supersedes`. The relations accept
-claim-bearing entities, including name usages; they do not require turning every
-name usage into a `StandpointClaim`. None selects a global winner or changes
+claim tokens, claim-bearing records (including name usages), and RDF reifiers.
+Their universal `logic:Thing` bounds preserve those distinct identities: a claim
+token stays an activity, a reifier stays a reifier, and no claim becomes a
+`gmeow:Entity` merely by participating. The withdrawal subject remains an
+`Activity`. The generic `supersedes` and inverse `supersededBy` share the universal
+bound, so succession cannot reintroduce entity typing through its superproperty.
+None selects a global winner or changes
 another standpoint. Annotate each relation with `gmeow:accordingTo` and
 `gmeow:validFrom` for its standpoint and effective time. Keep the proposition's
 fact-time interval separate. For a withdrawal activity, `gmeow:wasAssociatedWith`

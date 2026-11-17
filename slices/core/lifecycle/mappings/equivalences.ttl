@@ -52,7 +52,7 @@ gmeow:supersedes skos:closeMatch wdt:P1365 {|
     gmeow:sssomFile "gmeow-lifecycle.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.9 ;
-    gmeow:comment "Wikidata P1365 'replaces' — the predecessor→successor direction"
+    gmeow:comment "Wikidata P1365 'replaces' — the successor→predecessor direction"
 |} .
 
 gmeow:supersededBy skos:closeMatch wdt:P1366 {|

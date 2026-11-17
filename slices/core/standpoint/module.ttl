@@ -1567,44 +1567,44 @@ gmeow:tenureStandpointFunctionality
 
 gmeow:succeedsClaim
     a logic:ObjectProperty ;
-    logic:domain gmeow:Entity ;
-    logic:range gmeow:Entity ;
+    logic:domain logic:Thing ;
+    logic:range logic:Thing ;
     logic:subPropertyOf gmeow:supersedes ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/standpoint> ;
     rdfs:label "succeeds claim"@x-gmeow-english ;
-    skos:definition "Relates a successor claim-bearing entity to its predecessor when the claimed state changes. The predecessor remains valid during its earlier fact-time interval according to the stated standpoint."@x-gmeow-english ;
+    skos:definition "Relates a successor claim to its predecessor when the claimed state changes. The predecessor remains valid during its earlier fact-time interval according to the stated standpoint."@x-gmeow-english ;
     gmeow:howToUse "Annotate the relation with accordingTo and validFrom for its effective time; retain separate fact-time intervals on the claims or name usages."@x-gmeow-english ;
-    gmeow:useWhen "Relates a successor claim-bearing entity to its predecessor when the claimed state changes. The predecessor remains valid during its earlier fact-time interval according to the stated standpoint."@x-gmeow-english ;
+    gmeow:useWhen "Relates a successor claim to its predecessor when the claimed state changes. The predecessor remains valid during its earlier fact-time interval according to the stated standpoint."@x-gmeow-english ;
     gmeow:avoidWhen "Do not infer global truth, deletion, a preferred claim or a change in another standpoint. A succession asserted by another party is that party's claim about the target: it does not end the target's liveness for a reader, and no constraint reads it as the holder revising its own record."@x-gmeow-english ;
-    skos:scopeNote "The effective time of a lifecycle relation is distinct from the fact-time interval of the proposition. Display suppression is a projection policy, not a global truth judgment."@x-gmeow-english ;
+    skos:scopeNote "The universal logic:Thing bound accepts claim tokens, claim-bearing records and RDF reifiers without converting one into another or inferring gmeow:Entity. The effective time of a lifecycle relation is distinct from the fact-time interval of the proposition. Display suppression is a projection policy, not a global truth judgment."@x-gmeow-english ;
     skos:example "ex:janet gmeow:succeedsClaim ex:bob ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 gmeow:correctsClaim
     a logic:ObjectProperty ;
-    logic:domain gmeow:Entity ;
-    logic:range gmeow:Entity ;
+    logic:domain logic:Thing ;
+    logic:range logic:Thing ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/standpoint> ;
     rdfs:label "corrects claim"@x-gmeow-english ;
-    skos:definition "Relates a correcting claim-bearing entity to a claim that the correcting standpoint states is wrong, including its purported earlier validity. A correction is a statement by that standpoint and nothing more: the corrected claim is retained unchanged, is not superseded, is not suppressed from display, and is not made false in any other standpoint."@x-gmeow-english ;
+    skos:definition "Relates a correcting claim to a claim that the correcting standpoint states is wrong, including its purported earlier validity. A correction is a statement by that standpoint and nothing more: the corrected claim is retained unchanged, is not superseded, is not suppressed from display, and is not made false in any other standpoint."@x-gmeow-english ;
     gmeow:howToUse "Annotate the relation with accordingTo for the standpoint that makes the correction and with validFrom for when the correction took effect. Leave the corrected claim as it stands: do not set gmeow:displayable false on it and do not assert gmeow:supersedes because of the correction. Which of the two claims a reader is shown is decided at projection, not in the data."@x-gmeow-english ;
     gmeow:useWhen "Use when a standpoint states, on a codified basis such as a checked record or a rule that decides between the two claims, that another claim is wrong and states its own claim against it. When two parties simply disagree and nothing is corrected, record a gmeow:ClaimEvaluation that gmeow:evaluates the claim instead."@x-gmeow-english ;
     gmeow:avoidWhen "Do not infer global truth, deletion, a preferred claim, a supersession or a change in another standpoint. Avoid it for a claimed state that changed (use gmeow:succeedsClaim) and for a standpoint withdrawing its own claim (use gmeow:retractsClaim)."@x-gmeow-english ;
-    skos:scopeNote "The effective time of a lifecycle relation is distinct from the fact-time interval of the proposition. A correction is not a display instruction: whether a reader is shown the corrected claim is reader policy applied at projection."@x-gmeow-english ;
+    skos:scopeNote "The universal logic:Thing bound accepts claim tokens, claim-bearing records and RDF reifiers without converting one into another or inferring gmeow:Entity. The effective time of a lifecycle relation is distinct from the fact-time interval of the proposition. A correction is not a display instruction: whether a reader is shown the corrected claim is reader policy applied at projection."@x-gmeow-english ;
     skos:example "ex:correction gmeow:correctsClaim ex:mistakenName ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 gmeow:retractsClaim
     a logic:ObjectProperty ;
     logic:domain gmeow:Activity ;
-    logic:range gmeow:Entity ;
+    logic:range logic:Thing ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/standpoint> ;
     rdfs:label "retracts claim"@x-gmeow-english ;
-    skos:definition "Relates a withdrawal activity to the claim-bearing entity it withdraws in a stated standpoint. This relation is the canonical lifecycle encoding; a speech-act force alone performs no withdrawal."@x-gmeow-english ;
+    skos:definition "Relates a withdrawal activity to the claim it withdraws in a stated standpoint. This relation is the canonical lifecycle encoding; a speech-act force alone performs no withdrawal."@x-gmeow-english ;
     gmeow:howToUse "Type the subject Activity, name its actor with wasAssociatedWith, and annotate the relation with accordingTo and validFrom. Retraction suppresses retained history for ordinary revision; erasure requires separate authorization."@x-gmeow-english ;
-    gmeow:useWhen "Relates a withdrawal activity to the claim-bearing entity it withdraws in a stated standpoint. This relation is the canonical lifecycle encoding; a speech-act force alone performs no withdrawal."@x-gmeow-english ;
+    gmeow:useWhen "Relates a withdrawal activity to the claim it withdraws in a stated standpoint. This relation is the canonical lifecycle encoding; a speech-act force alone performs no withdrawal."@x-gmeow-english ;
     gmeow:avoidWhen "Do not infer global truth, deletion, a preferred claim or a change in another standpoint. Only the claim's own holder withdraws it: a retraction by an activity associated with another party is that party's statement about the claim and does not end its liveness or prompt its suppression."@x-gmeow-english ;
-    skos:scopeNote "The effective time of a lifecycle relation is distinct from the fact-time interval of the proposition. Display suppression is a projection policy, not a global truth judgment."@x-gmeow-english ;
+    skos:scopeNote "The universal logic:Thing bound accepts claim tokens, claim-bearing records and RDF reifiers without converting one into another or inferring gmeow:Entity. The effective time of a lifecycle relation is distinct from the fact-time interval of the proposition. Display suppression is a projection policy, not a global truth judgment."@x-gmeow-english ;
     skos:example "ex:withdrawal a gmeow:Activity ; gmeow:retractsClaim ex:claim ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
