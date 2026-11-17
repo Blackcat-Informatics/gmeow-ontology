@@ -6213,7 +6213,12 @@ math:LinearMap
     rdfs:subClassOf math:Function ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "Linear Map"@x-gmeow-english ;
-    skos:definition "A linear map (linear transformation) between vector spaces — a math:Function preserving addition and scalar multiplication. A subclass of math:Function; a matrix (its object-layer representation) realizes one relative to chosen bases. Its math:Rank measures the dimension of its image; a math:CovarianceOperator and the weight action of a neural layer are linear maps."@x-gmeow-english ;
+    skos:definition "A total function T from a vector space V to a vector space W over the same scalar field, preserving linear combinations: T(av+bw) = aT(v)+bT(w). Its source and target vector-space structures are distinct in role from their carrier sets and from a matrix representing the map in chosen bases."@x-gmeow-english ;
+    skos:scopeNote "Linearity needs no inner product or finite-dimensional assumption. A finite matrix representation additionally needs ordered source and target bases. Changing coordinates for the same map over the same field preserves rank; a matrix label, frame or finite sample alone does not establish the universal linearity law."@x-gmeow-english ;
+    skos:example "Over the real numbers, T: R³ → R² given by T(x,y,z) = (x,y) is linear. In the standard ordered bases its matrix is [[1,0,0],[0,1,0]], its image is R², its rank is two and its kernel has dimension one."@x-gmeow-english ;
+    gmeow:useWhen "Use for a justified linear map with declared source and target vector spaces over the same field, preserving their carriers, scalar actions and actual representation or defining rule."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not infer linearity from a matrix-shaped dataset or a neural-layer label. A nonzero bias translation is affine rather than linear, and a nonlinear activation does not become linear merely because its input has a weight matrix. Do not confuse a mathematical function with a functional RDF predicate or an executed method."@x-gmeow-english ;
+    gmeow:howToUse "Retain the inherited math:Function frame through math:domain and math:codomain carrier-set resources; describe the vector-space structures and scalar field separately with existing vocabulary. Preserve any justified math:image. The registered skos:exactMatch to wd:Q207643 has logic:SoundUnderApproximation preservation; neither it nor the frame executes the map or proves linearity."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 math:Rank
@@ -6221,7 +6226,12 @@ math:Rank
     rdfs:subClassOf math:MathematicalObject ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "Rank"@x-gmeow-english ;
-    skos:definition "The rank of a math:LinearMap — the dimension of its image, a non-negative integer invariant. A subclass of math:MathematicalObject carrying its value through math:rankValue. It bounds how much of the source a map preserves and is the count of non-zero singular values of a math:SingularValueDecomposition."@x-gmeow-english ;
+    skos:definition "The dimension of the image of a math:LinearMap over its declared scalar field. A finite rank is a nonnegative integer, including zero, recorded through math:rankValue. The general image dimension may instead be infinite; the finite numeric property supplies no infinite-cardinal encoding."@x-gmeow-english ;
+    skos:scopeNote "Rank concerns the attained image, not the declared source or target dimension. For a finite-dimensional source V, dim(V) = rank(T) + dim(kernel(T)); no finite-source conclusion is inferred for an arbitrary infinite-dimensional map. Rank also depends on the scalar-field interpretation of the vector spaces."@x-gmeow-english ;
+    skos:example "The real projection T: R³ → R², T(x,y,z) = (x,y), has rank two and nullity one. The zero map has rank zero, even when its source and target are nonzero vector spaces."@x-gmeow-english ;
+    gmeow:useWhen "Use to describe the justified image dimension of an identified linear map in its actual field and vector-space context, keeping any finite numeric value separate from the map and its coordinate matrix."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not substitute tensor-axis count, root-system rank, matrix size or a count of distinct output resources. In the finite-dimensional real or complex inner-product SVD setting, exact rank counts positive singular-value occurrences with multiplicity. Numerical tolerance and rank truncation are separate policies, not exact-rank proofs."@x-gmeow-english ;
+    gmeow:howToUse "Describe the rank as its own math:Rank resource and use math:rankValue for a justified finite value. Preserve the source identification of the relevant map and field in the existing representation; no dedicated rank-of property is supplied here. A type, number or grounding link alone does not calculate rank."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 math:Eigendecomposition
@@ -6315,7 +6325,12 @@ math:rankValue
     a logic:DatatypeProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "rank value"@x-gmeow-english ;
-    skos:definition "The non-negative-integer value of a math:Rank — the dimension of the image of the linear map it is the rank of. Domain math:Rank, range xsd:nonNegativeInteger (stated in prose; SHACL enforces xsd:integer with minInclusive 0)."@x-gmeow-english ;
+    skos:definition "The nonnegative-integer value of a finite math:Rank: the dimension of the image of its associated linear map over the declared scalar field. Zero is an actual finite value. This datatype property records a supplied mathematical value; it does not compute or verify rank."@x-gmeow-english ;
+    skos:scopeNote "The finite value contract has no fixed machine-width ceiling and no encoding for infinite-cardinal or unknown rank. The declared nonnegative-integer meaning is distinct from an executed lexical, range or cardinality check; no generated SHACL or native rank-validation result follows from this annotation."@x-gmeow-english ;
+    skos:example "For the real projection (x,y,z) ↦ (x,y), a supplied math:Rank resource can carry math:rankValue 2. The literal records the justified image dimension; the property does not infer the projection, its field or the argument establishing that value."@x-gmeow-english ;
+    gmeow:useWhen "Use when a finite image dimension is actually supplied and justified, preserving its integer literal and the source context that identifies the linear map and scalar field."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not replace an unknown or infinite rank with zero, a large sentinel or an ambient dimension. Do not attach a rounded estimate or tolerance-based numerical rank as if it established the exact mathematical image dimension."@x-gmeow-english ;
+    gmeow:howToUse "Attach the supplied nonnegative integer to the math:Rank resource and retain the map, field and supporting evidence in the existing source representation. Keep omission distinct from zero and preserve any separate approximation policy. The relation alone supplies no specialized validation gate or rank computation."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 math:eigenvalue

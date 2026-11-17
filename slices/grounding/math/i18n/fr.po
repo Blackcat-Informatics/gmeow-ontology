@@ -17746,3 +17746,87 @@ msgstr "Ne pas compter les valeurs strictement positives distinctes ni les resso
 msgctxt "https://blackcatinformatics.ca/math/singularValue|https://blackcatinformatics.ca/gmeow/howToUse"
 msgid "Link the decomposition to the supplied math:Number and preserve source ordering, occurrence multiplicities, factor associations and any numerical tolerance separately. This output relation supplies no left/right-vector pairing, default order, completeness witness or numerical computation."
 msgstr "Relier la décomposition au math:Number fourni et conserver séparément l’ordre de source, les multiplicités d’occurrence, les associations aux facteurs et toute tolérance numérique. Cette relation de sortie ne fournit ni appariement aux vecteurs gauches et droits, ni ordre par défaut, ni témoin de complétude, ni calcul numérique."
+
+msgctxt "https://blackcatinformatics.ca/math/LinearMap|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Linear Map"
+msgstr "Application linéaire"
+
+msgctxt "https://blackcatinformatics.ca/math/LinearMap|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A total function T from a vector space V to a vector space W over the same scalar field, preserving linear combinations: T(av+bw) = aT(v)+bT(w). Its source and target vector-space structures are distinct in role from their carrier sets and from a matrix representing the map in chosen bases."
+msgstr "Une fonction totale T d’un espace vectoriel V vers un espace vectoriel W sur le même corps des scalaires, préservant les combinaisons linéaires : T(av+bw) = aT(v)+bT(w). Les structures vectorielles source et cible sont distinctes dans leur rôle de leurs ensembles supports et d’une matrice représentant l’application dans des bases choisies."
+
+msgctxt "https://blackcatinformatics.ca/math/LinearMap|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Linearity needs no inner product or finite-dimensional assumption. A finite matrix representation additionally needs ordered source and target bases. Changing coordinates for the same map over the same field preserves rank; a matrix label, frame or finite sample alone does not establish the universal linearity law."
+msgstr "La linéarité ne requiert ni produit scalaire ni hypothèse de dimension finie. Une représentation matricielle finie exige en plus des bases ordonnées à la source et à la cible. Changer les coordonnées d’une même application sur un même corps préserve le rang ; un libellé de matrice, un cadre ou un échantillon fini ne suffit pas à établir la loi universelle de linéarité."
+
+msgctxt "https://blackcatinformatics.ca/math/LinearMap|http://www.w3.org/2004/02/skos/core#example"
+msgid "Over the real numbers, T: R³ → R² given by T(x,y,z) = (x,y) is linear. In the standard ordered bases its matrix is [[1,0,0],[0,1,0]], its image is R², its rank is two and its kernel has dimension one."
+msgstr "Sur les réels, T: R³ → R² définie par T(x,y,z) = (x,y) est linéaire. Dans les bases ordonnées standard, sa matrice est [[1,0,0],[0,1,0]], son image est R², son rang est deux et son noyau a pour dimension un."
+
+msgctxt "https://blackcatinformatics.ca/math/LinearMap|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for a justified linear map with declared source and target vector spaces over the same field, preserving their carriers, scalar actions and actual representation or defining rule."
+msgstr "Utiliser pour une application linéaire justifiée avec des espaces vectoriels source et cible déclarés sur le même corps, en conservant leurs supports, leurs actions scalaires et la représentation ou règle de définition effective."
+
+msgctxt "https://blackcatinformatics.ca/math/LinearMap|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Do not infer linearity from a matrix-shaped dataset or a neural-layer label. A nonzero bias translation is affine rather than linear, and a nonlinear activation does not become linear merely because its input has a weight matrix. Do not confuse a mathematical function with a functional RDF predicate or an executed method."
+msgstr "Ne pas déduire la linéarité d’un jeu de données en forme de matrice ou d’un libellé de couche neuronale. Une translation par un biais non nul est affine plutôt que linéaire, et une activation non linéaire ne devient pas linéaire simplement parce que son entrée comporte une matrice de poids. Ne pas confondre une fonction mathématique avec un prédicat RDF fonctionnel ou une méthode exécutée."
+
+msgctxt "https://blackcatinformatics.ca/math/LinearMap|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the inherited math:Function frame through math:domain and math:codomain carrier-set resources; describe the vector-space structures and scalar field separately with existing vocabulary. Preserve any justified math:image. The registered skos:exactMatch to wd:Q207643 has logic:SoundUnderApproximation preservation; neither it nor the frame executes the map or proves linearity."
+msgstr "Conserver le cadre math:Function hérité au moyen de ressources d’ensembles supports liées par math:domain et math:codomain ; décrire séparément les structures vectorielles et le corps des scalaires avec le vocabulaire existant. Préserver toute math:image justifiée. Le skos:exactMatch enregistré vers wd:Q207643 a pour préservation logic:SoundUnderApproximation ; ni lui ni le cadre n’exécute l’application et ne prouve la linéarité."
+
+msgctxt "https://blackcatinformatics.ca/math/Rank|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Rank"
+msgstr "Rang"
+
+msgctxt "https://blackcatinformatics.ca/math/Rank|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The dimension of the image of a math:LinearMap over its declared scalar field. A finite rank is a nonnegative integer, including zero, recorded through math:rankValue. The general image dimension may instead be infinite; the finite numeric property supplies no infinite-cardinal encoding."
+msgstr "La dimension de l’image d’une math:LinearMap sur son corps des scalaires déclaré. Un rang fini est un entier non négatif, y compris zéro, consigné par math:rankValue. La dimension générale de l’image peut au contraire être infinie ; la propriété numérique finie ne fournit aucun encodage de cardinal infini."
+
+msgctxt "https://blackcatinformatics.ca/math/Rank|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Rank concerns the attained image, not the declared source or target dimension. For a finite-dimensional source V, dim(V) = rank(T) + dim(kernel(T)); no finite-source conclusion is inferred for an arbitrary infinite-dimensional map. Rank also depends on the scalar-field interpretation of the vector spaces."
+msgstr "Le rang concerne l’image atteinte, pas la dimension déclarée de la source ou de la cible. Pour une source V de dimension finie, dim(V) = rang(T) + dim(noyau(T)) ; aucune conclusion propre à une source finie n’est déduite pour une application arbitraire en dimension infinie. Le rang dépend aussi de l’interprétation des espaces vectoriels sur leur corps des scalaires."
+
+msgctxt "https://blackcatinformatics.ca/math/Rank|http://www.w3.org/2004/02/skos/core#example"
+msgid "The real projection T: R³ → R², T(x,y,z) = (x,y), has rank two and nullity one. The zero map has rank zero, even when its source and target are nonzero vector spaces."
+msgstr "La projection réelle T: R³ → R², T(x,y,z) = (x,y), a pour rang deux et pour nullité un. L’application nulle a pour rang zéro, même lorsque sa source et sa cible sont des espaces vectoriels non nuls."
+
+msgctxt "https://blackcatinformatics.ca/math/Rank|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to describe the justified image dimension of an identified linear map in its actual field and vector-space context, keeping any finite numeric value separate from the map and its coordinate matrix."
+msgstr "Utiliser pour décrire la dimension justifiée de l’image d’une application linéaire identifiée dans son contexte effectif de corps et d’espaces vectoriels, en séparant toute valeur numérique finie de l’application et de sa matrice de coordonnées."
+
+msgctxt "https://blackcatinformatics.ca/math/Rank|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Do not substitute tensor-axis count, root-system rank, matrix size or a count of distinct output resources. In the finite-dimensional real or complex inner-product SVD setting, exact rank counts positive singular-value occurrences with multiplicity. Numerical tolerance and rank truncation are separate policies, not exact-rank proofs."
+msgstr "Ne pas substituer le nombre d’axes d’un tenseur, le rang d’un système de racines, la taille d’une matrice ou un nombre de ressources de sortie distinctes. Dans le cadre SVD préhilbertien réel ou complexe de dimension finie, le rang exact compte les occurrences de valeurs singulières strictement positives avec leur multiplicité. La tolérance numérique et la troncature en rang sont des politiques distinctes, pas des preuves du rang exact."
+
+msgctxt "https://blackcatinformatics.ca/math/Rank|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Describe the rank as its own math:Rank resource and use math:rankValue for a justified finite value. Preserve the source identification of the relevant map and field in the existing representation; no dedicated rank-of property is supplied here. A type, number or grounding link alone does not calculate rank."
+msgstr "Décrire le rang comme sa propre ressource math:Rank et utiliser math:rankValue pour une valeur finie justifiée. Conserver l’identification de source de l’application concernée et du corps dans la représentation existante ; aucune propriété dédiée reliant le rang à son application n’est fournie ici. Un type, un nombre ou un lien de correspondance seul ne calcule pas le rang."
+
+msgctxt "https://blackcatinformatics.ca/math/rankValue|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "rank value"
+msgstr "valeur du rang"
+
+msgctxt "https://blackcatinformatics.ca/math/rankValue|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The nonnegative-integer value of a finite math:Rank: the dimension of the image of its associated linear map over the declared scalar field. Zero is an actual finite value. This datatype property records a supplied mathematical value; it does not compute or verify rank."
+msgstr "La valeur entière non négative d’un math:Rank fini : la dimension de l’image de son application linéaire associée sur le corps des scalaires déclaré. Zéro est une véritable valeur finie. Cette propriété de données consigne une valeur mathématique fournie ; elle ne calcule ni ne vérifie le rang."
+
+msgctxt "https://blackcatinformatics.ca/math/rankValue|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The finite value contract has no fixed machine-width ceiling and no encoding for infinite-cardinal or unknown rank. The declared nonnegative-integer meaning is distinct from an executed lexical, range or cardinality check; no generated SHACL or native rank-validation result follows from this annotation."
+msgstr "Le contrat de valeur finie ne comporte aucun plafond de largeur machine fixe ni aucun encodage de rang cardinal infini ou inconnu. Le sens déclaré d’entier non négatif est distinct d’un contrôle lexical, de plage ou de cardinalité exécuté ; cette annotation n’implique aucun résultat de validation du rang par SHACL généré ou par le moteur natif."
+
+msgctxt "https://blackcatinformatics.ca/math/rankValue|http://www.w3.org/2004/02/skos/core#example"
+msgid "For the real projection (x,y,z) ↦ (x,y), a supplied math:Rank resource can carry math:rankValue 2. The literal records the justified image dimension; the property does not infer the projection, its field or the argument establishing that value."
+msgstr "Pour la projection réelle (x,y,z) ↦ (x,y), une ressource math:Rank fournie peut porter math:rankValue 2. Le littéral consigne la dimension justifiée de l’image ; la propriété ne déduit ni la projection, ni son corps, ni l’argument établissant cette valeur."
+
+msgctxt "https://blackcatinformatics.ca/math/rankValue|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when a finite image dimension is actually supplied and justified, preserving its integer literal and the source context that identifies the linear map and scalar field."
+msgstr "Utiliser lorsqu’une dimension finie de l’image est effectivement fournie et justifiée, en conservant son littéral entier et le contexte de source qui identifie l’application linéaire et le corps des scalaires."
+
+msgctxt "https://blackcatinformatics.ca/math/rankValue|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Do not replace an unknown or infinite rank with zero, a large sentinel or an ambient dimension. Do not attach a rounded estimate or tolerance-based numerical rank as if it established the exact mathematical image dimension."
+msgstr "Ne pas remplacer un rang inconnu ou infini par zéro, une grande valeur sentinelle ou une dimension ambiante. Ne pas attacher une estimation arrondie ou un rang numérique fondé sur une tolérance comme s’il établissait la dimension mathématique exacte de l’image."
+
+msgctxt "https://blackcatinformatics.ca/math/rankValue|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Attach the supplied nonnegative integer to the math:Rank resource and retain the map, field and supporting evidence in the existing source representation. Keep omission distinct from zero and preserve any separate approximation policy. The relation alone supplies no specialized validation gate or rank computation."
+msgstr "Attacher l’entier non négatif fourni à la ressource math:Rank et conserver l’application, le corps et les éléments justificatifs dans la représentation de source existante. Distinguer l’omission de zéro et préserver toute politique d’approximation distincte. La relation seule ne fournit aucun contrôle de validation spécialisé ni aucun calcul de rang."
