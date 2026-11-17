@@ -1168,6 +1168,19 @@ fn ci_reuses_one_authenticated_nextest_archive_without_coverage_loss() {
         4,
         "prebuild producer, archive consumer, and both static Rust consumers must name the same exact cache lineage"
     );
+    let exact_keys: BTreeSet<&str> = ci
+        .lines()
+        .filter_map(|line| line.trim().strip_prefix("key: rust-prebuild-v1-"))
+        .collect();
+    let restore_keys: BTreeSet<&str> = ci
+        .lines()
+        .filter_map(|line| line.trim().strip_prefix("rust-prebuild-v1-"))
+        .collect();
+    assert_eq!(
+        (exact_keys.len(), restore_keys.len()),
+        (1, 2),
+        "every rust-prebuild consumer must use one exact key and the same two restore keys; a drifting hash input or suffix changes this set"
+    );
     let compact_ci = without_horizontal_whitespace(&ci);
     assert!(
         compact_ci.contains(
@@ -1446,13 +1459,6 @@ fn ci_reuses_one_authenticated_nextest_archive_without_coverage_loss() {
             "test shards must not serialize the static lane `{duplicate}`"
         );
     }
-    assert!(
-        ci.contains("  rust-static:")
-            && ci.contains("  rust-static-source:")
-            && ci.contains("run: cargo test --doc --workspace --exclude gmeow-cli")
-            && ci.contains("run: cargo test --doc -p gmeow-cli"),
-        "doctests and rustdoc must remain required parallel static surfaces"
-    );
     let nextest = std::fs::read_to_string(repo_root().join(".config/nextest.toml"))
         .expect("read nextest config");
     assert!(
@@ -1930,6 +1936,94 @@ fn every_release_entry_point_selects_the_release_profile() {
         assert!(
             !workflow.contains(forbidden),
             "the release workflow must not run the pipeline directly ({forbidden})"
+        );
+    }
+}
+
+/// The two hosted static jobs partition the workspace exactly: the source job takes every
+/// member except the four producer-embedding crates, and rust-static takes exactly those four.
+/// Each job runs the clippy, rustdoc and doctest commands with the Makefile's own arguments
+/// and rustdoc flags, so neither can narrow or drop a check without failing this test.
+#[test]
+fn hosted_static_rust_jobs_partition_the_workspace_with_the_makefile_arguments() {
+    let ci = ci_workflow();
+    let makefile = makefile();
+    let source = ci
+        .split_once("\n  rust-static-source:\n")
+        .and_then(|(_, tail)| tail.split_once("\n  # Static Rust surfaces for the four"))
+        .map(|(job, _)| job)
+        .expect("source static job is bounded by the producer-embedding job header");
+    let embedded = ci
+        .split_once("\n  rust-static:\n")
+        .and_then(|(_, tail)| tail.split_once("\n  # === ONTOLOGY GATE LANES ==="))
+        .map(|(job, _)| job)
+        .expect("producer-embedding static job is bounded by the ontology lanes");
+
+    let args = makefile
+        .lines()
+        .find_map(|line| line.strip_prefix("RUST_PREBUILD_WORKSPACE_ARGS := "))
+        .expect("Makefile declares the source-only workspace arguments");
+    assert!(
+        args.starts_with("--workspace "),
+        "source-only selection is the whole workspace minus exclusions"
+    );
+    let excluded: BTreeSet<&str> = args
+        .split_whitespace()
+        .collect::<Vec<_>>()
+        .windows(2)
+        .filter(|pair| pair[0] == "--exclude")
+        .map(|pair| pair[1])
+        .collect();
+    assert_eq!(
+        excluded,
+        BTreeSet::from([
+            "gmeow-cli",
+            "gmeow-gmn-wasm",
+            "gmeow-lsp",
+            "gmeow-validate-wasm"
+        ]),
+        "the source-only exclusion set is exactly the four producer-embedding crates"
+    );
+
+    let rustdoc_flags = makefile
+        .lines()
+        .find_map(|line| line.trim_start().strip_prefix("RUSTDOCFLAGS=\""))
+        .and_then(|rest| rest.split_once('"'))
+        .map(|(flags, _)| flags)
+        .expect("rust-docs recipe declares its RUSTDOCFLAGS");
+    for (job_name, job) in [("rust-static-source", source), ("rust-static", embedded)] {
+        assert!(
+            job.contains(&format!("RUSTDOCFLAGS: {rustdoc_flags}\n")),
+            "{job_name} rustdoc flags must equal the rust-docs recipe in the Makefile"
+        );
+    }
+
+    let source_commands = [
+        format!("run: cargo clippy {args} --all-targets -- -D warnings"),
+        format!("run: cargo doc {args} --no-deps"),
+        format!("run: cargo test --doc {args}"),
+    ];
+    for command in &source_commands {
+        assert!(
+            source.lines().any(|line| line.trim() == command),
+            "rust-static-source must run `{command}`"
+        );
+    }
+
+    let packages = "-p gmeow-cli -p gmeow-lsp -p gmeow-gmn-wasm -p gmeow-validate-wasm";
+    for command in [
+        format!("cargo clippy {packages} --all-targets -- -D warnings"),
+        format!("cargo doc {packages} --no-deps"),
+        format!("cargo test --doc {packages}"),
+    ] {
+        assert_eq!(
+            embedded
+                .lines()
+                .map(|line| line.trim().strip_prefix("run: ").unwrap_or(line.trim()))
+                .filter(|line| *line == command)
+                .count(),
+            1,
+            "rust-static must run `{command}` exactly once"
         );
     }
 }
