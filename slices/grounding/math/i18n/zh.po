@@ -2826,13 +2826,13 @@ msgctxt "https://blackcatinformatics.ca/math/metricSignature|skos:definition"
 msgid "Relates a math:MetricTensor, math:QuadraticSpace, math:QuadraticForm, or math:CliffordAlgebra to its shared math:MetricSignature (p, q). Range math:MetricSignature (stated in prose). Structured, not an opaque string, so metric and Clifford consumers read the same exact sign convention."
 msgstr "将 math:MetricTensor、math:QuadraticSpace、math:QuadraticForm 或 math:CliffordAlgebra 关联到其共享的 math:MetricSignature (p, q)。值域为 math:MetricSignature（以文字说明）。它是结构化对象而非不透明字符串，因此度量和 Clifford 使用方读取完全相同的符号约定。"
 
-msgctxt "https://blackcatinformatics.ca/math/hasBasis|rdfs:label"
+msgctxt "https://blackcatinformatics.ca/math/hasBasis|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "has basis"
 msgstr "具有基"
 
-msgctxt "https://blackcatinformatics.ca/math/hasBasis|skos:definition"
-msgid "Relates a math:VectorSpace, math:QuadraticSpace, or math:CliffordAlgebra to a math:Basis of its carrier. Range math:Basis (stated in prose). A space or algebra may carry several bases; a Clifford basis fixes the ordered generators used by its exact products and blade witnesses."
-msgstr "将向量空间、二次空间或 Clifford 代数关联到其载体的 math:Basis；Clifford 基确定精确乘积所用的有序生成元。"
+msgctxt "https://blackcatinformatics.ca/math/hasBasis|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Relates a math:VectorSpace, math:QuadraticSpace or math:CliffordAlgebra to a math:Basis of its vector-space carrier. The relation names a basis choice and permits several choices; it does not enumerate or order basis elements. A Clifford algebra carrier basis is distinct from its ordered grade-one generators."
+msgstr "将 math:VectorSpace、math:QuadraticSpace 或 math:CliffordAlgebra 关联到其向量空间载体的 math:Basis。该关系命名一个基的选择，并允许多个选择；它不枚举基元素，也不规定其顺序。Clifford 代数载体的基与其有序一级生成元不同。"
 
 msgctxt "https://blackcatinformatics.ca/math/analysisInput|rdfs:label"
 msgid "analysis input"
@@ -17530,3 +17530,79 @@ msgstr "仅移除了 RatioQuantity 的 hasReferenceFrame 边的参考系对照�
 msgctxt "https://blackcatinformatics.ca/gmeow/examples/math/tests/ecQuotientFrameMissingDenominator|https://blackcatinformatics.ca/gmeow/conformanceRationale"
 msgid "The framed control with only denominatorFrame removed must raise IncompleteRatioFrame from the quotient's closed required denominator path. The numerator, quantity frame and ordinary reference profiles remain supplied."
 msgstr "仅移除了 denominatorFrame 的参考系对照必须由商参考系的封闭必需分母路径报告 IncompleteRatioFrame。分子、数量参考系及普通参考系配置仍然齐全。"
+
+msgctxt "https://blackcatinformatics.ca/math/Basis|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Basis"
+msgstr "基"
+
+msgctxt "https://blackcatinformatics.ca/math/Basis|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An algebraic basis of a vector space over its scalar field: a linearly independent spanning family. Every vector has unique finitely supported coefficients indexed by the basis elements. The basis is distinct from an ordering of its elements, a coordinate array and an inner product."
+msgstr "向量空间在其标量域上的代数基，即线性无关且张成该空间的族。每个向量都具有以基元素为索引的唯一有限支撑系数。基与其元素的排序、坐标数组及内积彼此不同。"
+
+msgctxt "https://blackcatinformatics.ca/math/Basis|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Uniqueness is relative to the vector space and scalar field. Indexed coefficients need not form an ordered tuple; positional coordinates additionally require a correspondence between positions and basis elements. A named Basis record alone does not establish independence or spanning."
+msgstr "唯一性相对于向量空间及标量域而言。带索引的系数不一定构成有序元组；位置坐标还需要位置与基元素之间的对应关系。仅命名一个 Basis 记录不能证明线性无关性或张成性。"
+
+msgctxt "https://blackcatinformatics.ca/math/Basis|http://www.w3.org/2004/02/skos/core#example"
+msgid "The exact-pca producer declares p:covBasis as math:Basis and links its Gram matrix to that resource through math:inBasis. The RDF names the context but does not enumerate basis elements or their order."
+msgstr "exact-pca 生成器将 p:covBasis 声明为 math:Basis，并通过 math:inBasis 将其 Gram 矩阵关联到该资源。RDF 命名了上下文，但没有枚举基元素或其顺序。"
+
+msgctxt "https://blackcatinformatics.ca/math/Basis|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to name a supplied basis underlying vectors, coordinate arrays or an algebra carrier, retaining the actual vector space and scalar field."
+msgstr "用于命名向量、坐标数组或代数载体所依据的已提供基，同时保留实际的向量空间及标量域。"
+
+msgctxt "https://blackcatinformatics.ca/math/Basis|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Do not infer orthonormality or eigenvector roles from the Basis type. A self-adjoint operator on a finite-dimensional real or complex inner-product space admits an orthonormal eigenbasis; not every basis is an eigenbasis. Do not extend that conclusion to arbitrary infinite-dimensional self-adjoint operators or assume that truncated PCA components span the full input space."
+msgstr "不要从 Basis 类型推断标准正交性或特征向量角色。有限维实或复内积空间上的自伴算子具有标准正交特征向量基，但并非每个基都是特征向量基。不要将该结论推广到任意无限维自伴算子，也不要假定截断的主成分张成整个输入空间。"
+
+msgctxt "https://blackcatinformatics.ca/math/Basis|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Describe the basis as its own resource. Use math:hasBasis on the supplied space or algebra and math:inBasis on a vector or Gram matrix. Preserve any supplied element inventory and ordering evidence; neither link constructs a basis or computes a coordinate transform."
+msgstr "将基描述为独立资源。在已提供的空间或代数上使用 math:hasBasis，在向量或 Gram 矩阵上使用 math:inBasis。保留任何已提供的元素清单及顺序证据；这两个链接都不会构造基或计算坐标变换。"
+
+msgctxt "https://blackcatinformatics.ca/math/hasBasis|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "In the finite real Cl(p,q) profile, the algebra carrier has dimension 2^(p+q), while there are p+q grade-one generators. The producer emits selected generator records through math:hasBasisBlade; those records do not enumerate the complete carrier basis or prove independence and spanning."
+msgstr "在有限实 Cl(p,q) 配置中，代数载体的维数为 2^(p+q)，而一级生成元有 p+q 个。生成器通过 math:hasBasisBlade 输出选定的生成元记录；这些记录既未枚举载体的完整基，也不证明线性无关性或张成性。"
+
+msgctxt "https://blackcatinformatics.ca/math/hasBasis|http://www.w3.org/2004/02/skos/core#example"
+msgid "The Clifford producer names a separate BladeBasis through math:hasBasis and emits grade-one math:BasisBlade records with math:generatorIndex. The named carrier basis and the indexed generator records retain different roles."
+msgstr "Clifford 生成器通过 math:hasBasis 命名独立的 BladeBasis，并输出带有 math:generatorIndex 的一级 math:BasisBlade 记录。已命名的载体基与带索引的生成元记录保持不同角色。"
+
+msgctxt "https://blackcatinformatics.ca/math/hasBasis|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to record an actual basis choice for a vector space, quadratic space or algebra carrier, including several supplied choices without selecting a preferred basis."
+msgstr "用于记录向量空间、二次空间或代数载体的实际基选择，包括保留多个已提供的选择而不选出首选基。"
+
+msgctxt "https://blackcatinformatics.ca/math/hasBasis|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Do not count the emitted grade-one generator records as the full algebra carrier basis or treat generator order as a complete blade-basis order. A hasBasis link alone does not prove linear independence or spanning and does not choose an unrecorded default."
+msgstr "不要将输出的一级生成元记录计为代数载体的完整基，也不要将生成元顺序视为完整基刃的排序。单独的 hasBasis 链接不能证明线性无关性或张成性，也不会选取未记录的默认基。"
+
+msgctxt "https://blackcatinformatics.ca/math/hasBasis|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Link the supplied space or algebra to its Basis resource with math:hasBasis. Retain the CliffordAlgebra class-local requirement for a typed basis without making this property globally functional. Record supplied generator indices separately and use math:inBasis for coordinate representations."
+msgstr "通过 math:hasBasis 将已提供的空间或代数关联到其 Basis 资源。保留 CliffordAlgebra 类局部要求的已定型基，而不将该属性设为全局函数属性。单独记录已提供的生成元索引，并使用 math:inBasis 描述坐标表示。"
+
+msgctxt "https://blackcatinformatics.ca/math/inBasis|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "in basis"
+msgstr "在基下"
+
+msgctxt "https://blackcatinformatics.ca/math/inBasis|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Relates a math:GramMatrix or math:Vector to the math:Basis relative to which its entries or coordinates are recorded. The link identifies the declared basis context; it does not supply the element inventory, its order or a coordinate transformation."
+msgstr "将 math:GramMatrix 或 math:Vector 关联到记录其元素或坐标时所依据的 math:Basis。该链接标识已声明的基上下文，但不提供元素清单、元素顺序或坐标变换。"
+
+msgctxt "https://blackcatinformatics.ca/math/inBasis|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Matrix row/column indices and vector component indices are positions. Interpreting them as basis elements additionally requires the supplied position-to-element correspondence. The exact producer names p:covBasis only as Basis, so its inBasis edge alone does not publish such an ordered inventory."
+msgstr "矩阵行列索引与向量分量索引表示位置。要将其解释为基元素，还需要已提供的位置与元素对应关系。精确生成器仅将 p:covBasis 命名为 Basis，因此单独的 inBasis 边不会发布这样的有序清单。"
+
+msgctxt "https://blackcatinformatics.ca/math/inBasis|http://www.w3.org/2004/02/skos/core#example"
+msgid "The exact-pca producer emits p:pcaGram math:inBasis p:covBasis and separately p:pcaGram math:representsForm p:covForm. These identify the coordinate context and represented form, without enumerating the basis elements or their order."
+msgstr "exact-pca 生成器输出 p:pcaGram math:inBasis p:covBasis，并单独输出 p:pcaGram math:representsForm p:covForm。这些链接标识坐标上下文与所表示的形式，但不枚举基元素或其顺序。"
+
+msgctxt "https://blackcatinformatics.ca/math/inBasis|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to preserve the actual basis context of supplied Gram-matrix entries or vector coordinates, separately from the coordinate-independent vector or bilinear form."
+msgstr "用于保留已提供的 Gram 矩阵元素或向量坐标的实际基上下文，并与不依赖坐标的向量或双线性形式分开描述。"
+
+msgctxt "https://blackcatinformatics.ca/math/inBasis|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Do not treat a basis label or inBasis link as proof that an indexed array is complete, correctly ordered or expressed in that basis. Changing the link alone does not transform the entries, and no conversion between differently based arrays is implicit."
+msgstr "不要将基的标签或 inBasis 链接视为索引数组完整、排序正确或在该基下表示的证明。仅修改链接不会变换数组元素，不同基下的数组之间也不隐含任何转换。"
+
+msgctxt "https://blackcatinformatics.ca/math/inBasis|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Attach math:inBasis to the supplied vector or Gram matrix and retain any explicit basis-element ordering with its indexed components or entries. Keep math:representsForm separate from the coordinate context. A basis change needs an actual transformation and its inputs; this relation records no such execution."
+msgstr "在已提供的向量或 Gram 矩阵上附加 math:inBasis，并将任何显式基元素顺序与带索引的分量或元素一同保留。将 math:representsForm 与坐标上下文分开。基变换需要实际的变换及其输入；此关系不记录这样的执行。"

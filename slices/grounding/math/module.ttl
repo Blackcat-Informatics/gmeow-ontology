@@ -6200,7 +6200,12 @@ math:Basis
     rdfs:subClassOf math:MathematicalObject ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "Basis"@x-gmeow-english ;
-    skos:definition "A basis of a vector space: a linearly independent set that spans it, so every vector has unique coordinates. A subclass of math:MathematicalObject named by a space through math:hasBasis. An orthonormal basis is the eigenvector set of a self-adjoint operator; a math:PrincipalComponent set is the basis PCA selects."@x-gmeow-english ;
+    skos:definition "An algebraic basis of a vector space over its scalar field: a linearly independent spanning family. Every vector has unique finitely supported coefficients indexed by the basis elements. The basis is distinct from an ordering of its elements, a coordinate array and an inner product."@x-gmeow-english ;
+    skos:scopeNote "Uniqueness is relative to the vector space and scalar field. Indexed coefficients need not form an ordered tuple; positional coordinates additionally require a correspondence between positions and basis elements. A named Basis record alone does not establish independence or spanning."@x-gmeow-english ;
+    skos:example "The exact-pca producer declares p:covBasis as math:Basis and links its Gram matrix to that resource through math:inBasis. The RDF names the context but does not enumerate basis elements or their order."@x-gmeow-english ;
+    gmeow:useWhen "Use to name a supplied basis underlying vectors, coordinate arrays or an algebra carrier, retaining the actual vector space and scalar field."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not infer orthonormality or eigenvector roles from the Basis type. A self-adjoint operator on a finite-dimensional real or complex inner-product space admits an orthonormal eigenbasis; not every basis is an eigenbasis. Do not extend that conclusion to arbitrary infinite-dimensional self-adjoint operators or assume that truncated PCA components span the full input space."@x-gmeow-english ;
+    gmeow:howToUse "Describe the basis as its own resource. Use math:hasBasis on the supplied space or algebra and math:inBasis on a vector or Gram matrix. Preserve any supplied element inventory and ordering evidence; neither link constructs a basis or computes a coordinate transform."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 math:LinearMap
@@ -6288,7 +6293,12 @@ math:hasBasis
     a logic:ObjectProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "has basis"@x-gmeow-english ;
-    skos:definition "Relates a math:VectorSpace, math:QuadraticSpace, or math:CliffordAlgebra to a math:Basis of its carrier. Range math:Basis (stated in prose). A space or algebra may carry several bases; a Clifford basis fixes the ordered generators used by its exact products and blade witnesses."@x-gmeow-english ;
+    skos:definition "Relates a math:VectorSpace, math:QuadraticSpace or math:CliffordAlgebra to a math:Basis of its vector-space carrier. The relation names a basis choice and permits several choices; it does not enumerate or order basis elements. A Clifford algebra carrier basis is distinct from its ordered grade-one generators."@x-gmeow-english ;
+    skos:scopeNote "In the finite real Cl(p,q) profile, the algebra carrier has dimension 2^(p+q), while there are p+q grade-one generators. The producer emits selected generator records through math:hasBasisBlade; those records do not enumerate the complete carrier basis or prove independence and spanning."@x-gmeow-english ;
+    skos:example "The Clifford producer names a separate BladeBasis through math:hasBasis and emits grade-one math:BasisBlade records with math:generatorIndex. The named carrier basis and the indexed generator records retain different roles."@x-gmeow-english ;
+    gmeow:useWhen "Use to record an actual basis choice for a vector space, quadratic space or algebra carrier, including several supplied choices without selecting a preferred basis."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not count the emitted grade-one generator records as the full algebra carrier basis or treat generator order as a complete blade-basis order. A hasBasis link alone does not prove linear independence or spanning and does not choose an unrecorded default."@x-gmeow-english ;
+    gmeow:howToUse "Link the supplied space or algebra to its Basis resource with math:hasBasis. Retain the CliffordAlgebra class-local requirement for a typed basis without making this property globally functional. Record supplied generator indices separately and use math:inBasis for coordinate representations."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 math:rankValue
@@ -6561,7 +6571,12 @@ math:inBasis
     a logic:ObjectProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "in basis"@x-gmeow-english ;
-    skos:definition "Relates a math:GramMatrix or a math:Vector to the math:Basis its entries or coordinates are taken relative to. Domain a math:GramMatrix or math:Vector, range math:Basis (stated in prose). Coordinates and matrix entries are basis-relative; naming the basis makes the representation unambiguous."@x-gmeow-english ;
+    skos:definition "Relates a math:GramMatrix or math:Vector to the math:Basis relative to which its entries or coordinates are recorded. The link identifies the declared basis context; it does not supply the element inventory, its order or a coordinate transformation."@x-gmeow-english ;
+    skos:scopeNote "Matrix row/column indices and vector component indices are positions. Interpreting them as basis elements additionally requires the supplied position-to-element correspondence. The exact producer names p:covBasis only as Basis, so its inBasis edge alone does not publish such an ordered inventory."@x-gmeow-english ;
+    skos:example "The exact-pca producer emits p:pcaGram math:inBasis p:covBasis and separately p:pcaGram math:representsForm p:covForm. These identify the coordinate context and represented form, without enumerating the basis elements or their order."@x-gmeow-english ;
+    gmeow:useWhen "Use to preserve the actual basis context of supplied Gram-matrix entries or vector coordinates, separately from the coordinate-independent vector or bilinear form."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not treat a basis label or inBasis link as proof that an indexed array is complete, correctly ordered or expressed in that basis. Changing the link alone does not transform the entries, and no conversion between differently based arrays is implicit."@x-gmeow-english ;
+    gmeow:howToUse "Attach math:inBasis to the supplied vector or Gram matrix and retain any explicit basis-element ordering with its indexed components or entries. Keep math:representsForm separate from the coordinate context. A basis change needs an actual transformation and its inputs; this relation records no such execution."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 math:definiteness
