@@ -727,6 +727,7 @@ fn edge_spec(iri: &str) -> Option<EdgeSpec> {
                 ),
                 "hasComposition" => (R::Backing, None, Some(K::CorrespondenceComposition)),
                 "hasLawClaim" => (R::Backing, Some(K::Correspondence), Some(K::LawClaim)),
+                "hasLens" => (R::Target, Some(K::Correspondence), None),
                 "expressivenessBoundary" => (R::Backing, None, Some(K::ExpressivenessBoundary)),
                 "relation" | "overAccessibility" => (R::Target, Some(K::Formula), None),
                 "formalizes" | "termIri" | "functionSymbol" | "variableSort" | "getLeg"

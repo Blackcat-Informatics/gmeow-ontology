@@ -576,10 +576,25 @@ the substrate does not.
   the evidence. A predicate need not be known to count: a standpoint, a stance
   or denial, a time, a module outside the resolved request, a second type, an
   unknown annotation, and every `logic:modality` value, so a carrier that states `logic:none` beside another
-  modality is not read for either value. Every claim that is not read is recorded with
-  the coordinate, predicate or reason that kept it out. Under
-  that profile each selected rule, head, body atom and required descendant needs
-  an admitted scope; filtering never shortens an owner's required syntax. A
+  modality is not read for either value. Eligibility belongs to each original
+  carrier, even when canonical axiom deduplication shares its statement with
+  another carrier. The ingress retains every independently admitted carrier and
+  every unread carrier with its coordinate, predicate or reason. A qualified
+  contribution cannot cancel a valid assertion, and a valid contribution cannot
+  discharge its sibling's boundary. Reports name the actual admitted carriers;
+  quotation accounting retains an unread carrier's own boundary. Exact native
+  facts and refutation premises remain deduplicated by statement and graph,
+  with their contributing carriers retained separately. Any unread contribution
+  prevents complete positive source accounting while an admitted contradiction
+  still refutes the selected theory. Under
+  the source-proof profile, a blocked positive rule remains a named source
+  boundary while the admitted fragment may establish a contradiction. Only an
+  included whole owner enters preparation: each rule, head, body atom and
+  required descendant needs an admitted scope, and filtering never shortens
+  its syntax. Unread rules prevent a complete positive verdict. The procedural
+  operation still refuses nonexcluded blocked rule owners; source-proof
+  execution still refuses nonexcluded negation-as-failure rules before running.
+  Malformed source and execution failures retain their hard failure contract. A
   reifier with no scope or evidence coordinate is a quotation. A module claim
   outside the request remains an assertion outside that theory; unresolved
   membership remains a named boundary. Neither profile reads a quotation as a fact.

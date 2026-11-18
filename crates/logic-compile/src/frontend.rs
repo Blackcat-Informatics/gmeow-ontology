@@ -72,7 +72,7 @@ pub use emission::{
 };
 
 mod claims;
-pub use claims::{ClaimResolver, ClaimStatement};
+pub use claims::{ClaimCarrier, ClaimResolver, ClaimStatement};
 
 mod prepared;
 pub use crate::graphutil::default_graph_pattern as default_source_statements;
@@ -735,6 +735,7 @@ fn is_reserved_source_syntax_predicate(prop_local: &str) -> bool {
                 // Correspondence calculus, law evidence, and certified
                 // composition records.
                 | "hasCorrespondence"
+                | "hasLens"
                 | "hasPreservation"
                 | "correspondenceRelation"
                 | "morphismClass"

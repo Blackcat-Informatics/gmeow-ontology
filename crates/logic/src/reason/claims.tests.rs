@@ -13,7 +13,7 @@ use crate::reason::{
 };
 use crate::result::ReasoningResult;
 use gmeow_logic_compile::frontend::{PreparedLogicSource, SourceSelection};
-use gmeow_logic_compile::source_inventory::SourceInventory;
+use gmeow_logic_compile::source_inventory::{SourceInventory, SourceObligationOrigin};
 
 const PREFIXES: &str = r#"@prefix logic: <https://blackcatinformatics.ca/logic/> .
 @prefix rdf:   <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
@@ -227,15 +227,9 @@ ex:scopedProbe rdf:reifies <<( ex:a ex:probe _:label )>> ; logic:inModule ex:Inc
         NativeSourceAdmission::inspect_selected(&inventory, ingress.resolved_selection())
             .expect("blocked owner remains accounted");
     let domains = default_domain(&input);
-    let error = reason_admitted_theory_within(
-        &mut admission,
-        &selected,
-        input,
-        &domains,
-        &ingress,
-        &UNBOUNDED,
-    )
-    .expect_err("required untyped carrier inside a quoted body/head cannot be dropped");
+    let error =
+        reason_selected_theory_within(&inventory, input.clone(), &domains, &ingress, &UNBOUNDED)
+            .expect_err("required untyped carrier inside a quoted body/head cannot be dropped");
     let refusal = error
         .downcast_ref::<crate::error::NativeRefusal>()
         .expect("whole-owner refusal");
@@ -246,10 +240,39 @@ ex:scopedProbe rdf:reifies <<( ex:a ex:probe _:label )>> ; logic:inModule ex:Inc
             .any(|gap| gap.contains("mark") && gap.contains("REQUIRED_CHILD_OUTSIDE_THEORY")),
         "{refusal:?}"
     );
+    let result = reason_admitted_theory_within(
+        &mut admission,
+        &selected,
+        input,
+        &domains,
+        &ingress,
+        &UNBOUNDED,
+    )
+    .expect("source proof executes the admitted fragment");
+    assert!(consistent(&result));
+    assert!(
+        !result
+            .inferred()
+            .iter()
+            .any(|row| row.predicate == "https://example.org/claims/marked"),
+        "a blocked owner cannot execute after dropping a required child"
+    );
+    assert!(
+        !admission
+            .complete_for(&result)
+            .expect("live fragment result")
+    );
+    assert!(
+        admission.drops().any(
+            |drop| drop.code == "REQUIRED_CHILD_OUTSIDE_THEORY" && drop.detail.contains("mark")
+        )
+    );
 }
 
 /// PROTECTS: selecting a module never relaxes the full-source claim envelope or
 /// translates another context axis, even when filtered input omits the offending row.
+/// A qualified duplicate and unrelated blocked positive rule keep their boundaries
+/// without cancelling a valid carrier or suppressing an admitted contradiction.
 #[test]
 fn module_claims_retain_independent_context_and_full_source_envelope_boundaries() {
     for extra in [
@@ -276,6 +299,93 @@ ex:claim rdf:reifies <<( ex:a logic:instanceOf ex:Right )>> ; logic:inModule ex:
         assert!(
             consistent(&result),
             "unread module claim must not refute ordinary facts: {extra}"
+        );
+    }
+    const VALID_LEFT: &str =
+        "ex:left rdf:reifies <<( ex:a logic:instanceOf ex:Left )>> ; logic:inModule ex:Included .
+ex:alsoLeft rdf:reifies <<( ex:a logic:instanceOf ex:Left )>> ; logic:inModule ex:Included .";
+    for (left, expected_clash, read_count) in [(VALID_LEFT, true, 2), ("", false, 1)] {
+        let theory = compile(&format!(
+            r#"
+ex:Included a logic:Module .
+{left}
+ex:right rdf:reifies <<( ex:a logic:instanceOf ex:Right )>> ; logic:inModule ex:Included .
+ex:qualified rdf:reifies <<( ex:a logic:instanceOf ex:Left )>> ;
+    logic:inModule ex:Included ; ex:qualifier ex:unknown .
+_:r a logic:TermCarrier ; logic:termVariable "r" .
+ex:blocked a logic:Rule ; logic:inModule ex:Included ; logic:standpoint ex:observer ;
+    logic:head [ rdf:reifies <<( _:r logic:instanceOf logic:Nothing )>> ] ;
+    logic:body [ rdf:reifies <<( _:r logic:instanceOf ex:Right )>> ] .
+"#
+        ));
+        let inventory = whole_inventory(&theory);
+        let (input, ingress) = ingest_modules(&inventory, &["https://example.org/claims/Included"]);
+        assert_eq!(ingress.read().len(), read_count);
+        assert_eq!(ingress.unread().len(), 1);
+        let refused = &ingress.unread()[0];
+        assert_eq!(
+            refused.carrier.as_ref().expect("original carrier").name,
+            "https://example.org/claims/qualified"
+        );
+        assert!(
+            matches!(&refused.reason, UnreadReason::Qualified { predicate, .. }
+            if predicate == "https://example.org/claims/qualifier")
+        );
+        let carriers: Vec<_> = ingress
+            .read()
+            .iter()
+            .flat_map(|claim| &claim.carriers)
+            .map(|carrier| carrier.name.as_str())
+            .collect();
+        assert!(!carriers.contains(&"https://example.org/claims/qualified"));
+        if expected_clash {
+            assert!(carriers.contains(&"https://example.org/claims/left"));
+            assert!(carriers.contains(&"https://example.org/claims/alsoLeft"));
+        }
+        let selected = prepare_selected_theory(&inventory, &ingress).expect("selected claims");
+        let mut admission =
+            NativeSourceAdmission::inspect_selected(&inventory, ingress.resolved_selection())
+                .expect("source account");
+        let domains = default_domain(&input);
+        let result = reason_admitted_theory_within(
+            &mut admission,
+            &selected,
+            input,
+            &domains,
+            &ingress,
+            &UNBOUNDED,
+        )
+        .expect("the admitted fragment executes");
+        assert_eq!(!consistent(&result), expected_clash);
+        if expected_clash {
+            let premises = clash_premises(&result);
+            for class in [LEFT, RIGHT] {
+                assert!(
+                    premises
+                        .iter()
+                        .any(|(subject, object)| subject == SUBJECT && object.contains(class)),
+                    "{premises:?}"
+                );
+            }
+        }
+        assert!(!admission.complete_for(&result).expect("live completeness"));
+        assert!(admission.drops().any(
+            |drop| drop.code == "CONTEXT_ERASURE_FORBIDDEN" && drop.detail.contains("blocked")
+        ));
+        assert!(
+            admission.source_dispositions().any(|(unit, disposition)| {
+                matches!(unit.origin(), SourceObligationOrigin::Quotation { reifier, .. }
+                if matches!(theory.source().dataset().resolve(reifier),
+                    purrdf::TermRef::Iri("https://example.org/claims/qualified")))
+                    && matches!(
+                        disposition,
+                        crate::reason::NativeSourceDisposition::Blocked {
+                            code: "SCOPED_CLAIM_NOT_READ",
+                            ..
+                        }
+                    )
+            }),
+            "a valid sibling cannot account the qualified carrier's quotation"
         );
     }
 }

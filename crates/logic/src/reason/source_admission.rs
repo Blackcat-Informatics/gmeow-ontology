@@ -424,9 +424,19 @@ fn classify(
                 }
             }
         }
-        SourceObligationOrigin::Quotation { graph, .. } => {
+        SourceObligationOrigin::Quotation { reifier, graph, .. } => {
             if graph.is_some() {
                 outside()
+            } else if let Some(claim) = ingress.and_then(|ingress| {
+                ingress.unread_carrier(SourceNode {
+                    term: reifier,
+                    graph,
+                })
+            }) {
+                Disposition::blocked(
+                    "SCOPED_CLAIM_NOT_READ",
+                    format!("{}: {}", claim.source_detail(), claim.reason),
+                )
             } else {
                 Disposition::support(
                     "quotation does not assert its payload; any claim is separately bound to ingress",
@@ -864,7 +874,7 @@ pub fn reason_admitted_theory_within(
         .zip(&mut admission.dispositions)
     {
         let reads_ingress = match unit.origin() {
-            SourceObligationOrigin::Axiom(_) => true,
+            SourceObligationOrigin::Axiom(_) | SourceObligationOrigin::Quotation { .. } => true,
             SourceObligationOrigin::Formula(ordinal) => matches!(
                 theory.formula_lowerings()[ordinal].disposition,
                 FormulaDisposition::Axiom(_)
@@ -897,18 +907,13 @@ pub fn reason_admitted_theory_within(
             "selected source contains malformed obligations: {detail}"
         )));
     }
-    super::admit_selected_source_rules(
-        admission.inventory,
-        &admission.selection,
-        super::SelectedRuleProfile::SourceProof,
-    )?;
     for claim in ingress.unread() {
         admission.execution_drops.insert(NativeSourceDrop::new(
             ENGINE_NATIVE,
             "SCOPED_CLAIM_NOT_READ",
             format!(
-                "program:axiom:{}: {} {} {}: {}",
-                claim.axiom,
+                "{}: {} {} {}: {}",
+                claim.source_detail(),
                 theory.program().axioms[claim.axiom].subject,
                 theory.program().axioms[claim.axiom].predicate,
                 theory.program().axioms[claim.axiom].obj.key(),
@@ -916,6 +921,11 @@ pub fn reason_admitted_theory_within(
             ),
         ));
     }
+    super::admit_selected_source_rules(
+        admission.inventory,
+        &admission.selection,
+        super::SelectedRuleProfile::SourceProof,
+    )?;
     let contract = *input.ingress_contract();
     let closure = super::program::execute(&selected.prepared, input, domains, budget.max_steps)?;
     let execution_contract = closure.input_contract;

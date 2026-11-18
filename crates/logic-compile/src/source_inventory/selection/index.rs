@@ -1204,6 +1204,9 @@ fn structural_families(predicate: &str) -> Option<&'static [SyntaxFamily]> {
     }
     let local = predicate.strip_prefix("https://blackcatinformatics.ca/logic/");
     if let Some(local) = local {
+        if local == "hasLens" {
+            return Some(&[SyntaxFamily::Correspondence]);
+        }
         if matches!(
             local,
             "termIndex"

@@ -138,6 +138,12 @@ correspondence. Malformed owners publish no accepted partial support; excluded
 modules, untranslated contexts and unsupported owner families retain their named
 boundaries. This catalogue route does not enlarge the FOF admission contract.
 
+`logic:hasLens` remains reserved correspondence syntax when its owner is rejected
+or absent. Its field follows only the correspondence owner; an unrelated role on
+the same node cannot authorize it. Rejected and orphan links retain their source
+boundaries outside native and OWL object premises. Independent assertions through
+reification retain their own admission.
+
 `logic:hasLens` is optional. When present it has exactly one distinct absolute
 IRI value with an actual default-graph `logic:Lens` declaration. The typed IR,
 content identity and faithful transport retain that reference; canonical
