@@ -8,11 +8,12 @@ use super::*;
 use crate::physical::{DomainProfile, SelectedDomains, SelectedLogicalWorld};
 use crate::query_ir::Budget;
 use crate::reason::{
-    prepare_selected_theory, reason_prepared_theory_within, reason_program_within,
-    reason_selected_theory_within,
+    NativeSourceAdmission, prepare_reasoning_input, prepare_selected_theory,
+    reason_admitted_theory_within, reason_program_within, reason_selected_theory_within,
 };
 use crate::result::ReasoningResult;
-use gmeow_logic_compile::frontend::PreparedLogicSource;
+use gmeow_logic_compile::frontend::{PreparedLogicSource, SourceSelection};
+use gmeow_logic_compile::source_inventory::SourceInventory;
 
 const PREFIXES: &str = r#"@prefix logic: <https://blackcatinformatics.ca/logic/> .
 @prefix rdf:   <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
@@ -305,10 +306,20 @@ fn the_entry_refuses_an_input_or_program_the_ledger_does_not_account_for() {
     let theory = compile(EVIDENCE_CLASH);
     let (admitted, ingress) = ingest(&theory);
 
+    let inventory = SourceInventory::new(&theory, SourceSelection::all_classical_roots(&theory));
+    let mut admission = NativeSourceAdmission::inspect(&inventory).expect("whole source admission");
+    let selected = prepare_selected_theory(&theory, &ingress).expect("selected theory prepares");
     let stale = prepare_reasoning_input(theory.source().dataset()).expect("bare ingestion");
     let domains = default_domain(&stale);
-    let error = reason_selected_theory_within(&theory, stale, &domains, &ingress, &UNBOUNDED)
-        .expect_err("the claims were never added to this input");
+    let error = reason_admitted_theory_within(
+        &mut admission,
+        &selected,
+        stale,
+        &domains,
+        &ingress,
+        &UNBOUNDED,
+    )
+    .expect_err("the claims were never added to this input");
     assert!(
         error
             .to_string()
@@ -326,6 +337,69 @@ fn the_entry_refuses_an_input_or_program_the_ledger_does_not_account_for() {
         error
             .to_string()
             .contains("absent from the claim ingress ledger")
+    );
+    // Equal scoped ledgers do not authorize a different unscoped source.
+    let unscoped = compile("ex:a ex:knows ex:b .");
+    let named_target = LogicalGraph::Named(purrdf::TermValue::iri("urn:claims:unselected"));
+    assert!(
+        prepare_selected_theory_input(&unscoped, &named_target, &TheorySelection::top_level_only())
+            .is_err(),
+        "the selected-theory profile does not execute a named target"
+    );
+    let (mut selected_input, own_ingress) = ingest(&unscoped);
+    let selected_contract = *selected_input.ingress_contract();
+    selected_input
+        .assert_facts(
+            &named_target,
+            [Fact {
+                subject: purrdf::TermValue::iri("urn:claims:subject"),
+                predicate: "urn:claims:predicate".to_owned(),
+                object: purrdf::TermValue::iri("urn:claims:object"),
+            }],
+        )
+        .expect_err("a source edit cannot add an unselected world");
+    assert_eq!(*selected_input.ingress_contract(), selected_contract);
+    let generic = prepare_reasoning_input(unscoped.source().dataset()).expect("all-graph input");
+    assert_ne!(
+        generic.ingress_contract(),
+        &selected_contract,
+        "identical default facts do not erase the selected source-graph policy"
+    );
+    let own_selected = prepare_selected_theory(&unscoped, &own_ingress).expect("own preparation");
+    let own_inventory =
+        SourceInventory::new(&unscoped, SourceSelection::all_classical_roots(&unscoped));
+    let mut own_admission =
+        NativeSourceAdmission::inspect(&own_inventory).expect("own source admission");
+    let generic_domains = default_domain(&generic);
+    reason_admitted_theory_within(
+        &mut own_admission,
+        &own_selected,
+        generic,
+        &generic_domains,
+        &own_ingress,
+        &UNBOUNDED,
+    )
+    .expect_err("generic all-graph input cannot borrow selected default-graph admission");
+    let other = compile("ex:c ex:knows ex:d .");
+    let (input, ingress) = ingest(&unscoped);
+    let selected =
+        prepare_selected_theory(&other, &ingress).expect("other unscoped program prepares");
+    let inventory = SourceInventory::new(&other, SourceSelection::all_classical_roots(&other));
+    let mut admission = NativeSourceAdmission::inspect(&inventory).expect("whole other source");
+    let domains = default_domain(&input);
+    let error = reason_admitted_theory_within(
+        &mut admission,
+        &selected,
+        input,
+        &domains,
+        &ingress,
+        &UNBOUNDED,
+    )
+    .expect_err("equal scoped axioms cannot authorize a foreign source");
+    assert!(
+        error
+            .to_string()
+            .contains("different immutable compiler source")
     );
 }
 
@@ -494,6 +568,60 @@ fn a_claim_with_anything_but_evidence_about_its_carrier_is_named_and_adds_no_fac
         expected.sort_by_key(|reason| reason.to_string());
         assert_eq!(reasons, expected, "{carrier}");
     }
+    // A raw annotation row without a recognised structural edge still carries a
+    // source obligation. Source hashing alone cannot make its unknown law read.
+    let mut builder = purrdf::RdfDatasetBuilder::new();
+    let subject = builder
+        .intern_iri("urn:annotation:subject")
+        .expect("source subject");
+    let relation = builder
+        .intern_iri("urn:annotation:kept")
+        .expect("source relation");
+    let value = builder
+        .intern_iri("urn:annotation:value")
+        .expect("source value");
+    builder
+        .push_quad(subject, relation, value, None)
+        .expect("asserted source fact");
+    let unknown = builder
+        .intern_iri("https://blackcatinformatics.ca/logic/unregisteredBoundary")
+        .expect("unknown interpreted relation");
+    builder
+        .push_annotation(subject, unknown, value)
+        .expect("annotation-table obligation");
+    let source = builder.freeze().expect("owned source freezes");
+    let theory = PreparedLogicSource::new(&source)
+        .expect("source prepares")
+        .into_compiled(None)
+        .expect("source compiles");
+    let inventory = SourceInventory::new(&theory, SourceSelection::all_classical_roots(&theory));
+    let mut admission = NativeSourceAdmission::inspect(&inventory).expect("whole source admission");
+    let (input, ingress) = ingest(&theory);
+    let selected = prepare_selected_theory(&theory, &ingress).expect("source program prepares");
+    let domains = default_domain(&input);
+    let result = reason_admitted_theory_within(
+        &mut admission,
+        &selected,
+        input,
+        &domains,
+        &ingress,
+        &UNBOUNDED,
+    )
+    .expect("native closure executes supported facts");
+    assert!(consistent(&result));
+    assert!(
+        !admission
+            .complete_for(&result)
+            .expect("same live execution binding"),
+        "the unaccounted annotation prevents a whole-source consistent claim"
+    );
+    assert!(
+        admission
+            .drops()
+            .any(|drop| drop.code == "UNIT_NOT_ACCOUNTED"
+                && drop.detail.contains("annotation")
+                && drop.detail.contains("unregisteredBoundary"))
+    );
 }
 
 /// PROTECTS: the classic `rdf:Statement` carrier follows the same rule as the RDF
@@ -690,23 +818,55 @@ fn a_preparation_made_from_another_theory_is_refused() {
     let (_, ingress) = ingest(&theory);
     let foreign = prepare_selected_theory(&other, &ingress).expect("the other theory prepares");
 
+    let inventory = SourceInventory::new(&theory, SourceSelection::all_classical_roots(&theory));
+    let mut admission = NativeSourceAdmission::inspect(&inventory).expect("whole source admission");
     let (input, ingress) = ingest(&theory);
     let domains = default_domain(&input);
-    let refusal =
-        reason_prepared_theory_within(&theory, &foreign, input, &domains, &ingress, &UNBOUNDED)
-            .expect_err("a preparation of another theory must not run");
+    let refusal = reason_admitted_theory_within(
+        &mut admission,
+        &foreign,
+        input,
+        &domains,
+        &ingress,
+        &UNBOUNDED,
+    )
+    .expect_err("a preparation of another theory must not run");
     assert!(
         refusal
             .to_string()
-            .contains("not made from this theory under this selection"),
+            .contains("does not bind this actual selected preparation"),
         "{refusal}"
     );
 
     let own = prepare_selected_theory(&theory, &ingress).expect("the theory prepares");
     let (input, ingress) = ingest(&theory);
     let domains = default_domain(&input);
-    let result =
-        reason_prepared_theory_within(&theory, &own, input, &domains, &ingress, &UNBOUNDED)
+    let mut result =
+        reason_admitted_theory_within(&mut admission, &own, input, &domains, &ingress, &UNBOUNDED)
             .expect("its own preparation runs");
     assert!(!consistent(&result));
+    admission
+        .complete_for(&result)
+        .expect("actual same-run source binding validates");
+    let decoded: ReasoningResult = serde_json::from_slice(
+        &serde_json::to_vec(result.as_ref()).expect("execution observation serializes"),
+    )
+    .expect("execution observation decodes");
+    assert!(
+        admission.complete_for(&decoded).is_err(),
+        "decoded matching bytes cannot supply the actual live result"
+    );
+    std::sync::Arc::make_mut(&mut result).information =
+        crate::result::InformationState::Undetermined;
+    assert!(
+        admission.complete_for(&result).is_err(),
+        "editing the result cannot preserve the original live completion"
+    );
+    let mut selection = SourceSelection::all_classical_roots(&theory);
+    selection.rules = gmeow_logic_compile::frontend::RootSelection::None;
+    let narrowed = SourceInventory::new(&theory, selection);
+    assert!(
+        NativeSourceAdmission::inspect(&narrowed).is_err(),
+        "source filtering requires its own executor before a narrowed source can be admitted"
+    );
 }

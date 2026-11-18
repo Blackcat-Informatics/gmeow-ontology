@@ -34,42 +34,14 @@ impl AdmissionBuilder<'_> {
     /// their source syntax is marked consumed.
     pub(super) fn admit_classes(&mut self) {
         let dataset = self.theory.source().dataset();
-        let mut roots: BTreeSet<_> = self
-            .theory
-            .axiom_sources()
-            .iter()
-            .flatten()
-            .filter_map(|source| {
-                if let AxiomSource::ClassExpression(node) = source {
-                    Some(*node)
-                } else {
-                    None
-                }
+        let roots: BTreeSet<_> = self
+            .inventory
+            .obligations()
+            .filter_map(|obligation| match obligation.origin() {
+                SourceObligationOrigin::ClassDefinition(node) => Some(node),
+                _ => None,
             })
             .collect();
-        roots.extend(
-            self.theory
-                .source()
-                .source_graph()
-                .units()
-                .filter(|unit| {
-                    unit.declared_kinds
-                        .contains(&SourceUnitKind::ClassExpression)
-                })
-                .map(|unit| unit.node),
-        );
-        for quad in dataset.quads().filter(|quad| quad.g.is_none()) {
-            if let TermRef::Iri(predicate) = dataset.resolve(quad.p)
-                && predicate.strip_prefix(LOGIC).is_some_and(|local| {
-                    class_field(local) && !matches!(local, "onClass" | "onDataRange")
-                })
-            {
-                roots.insert(SourceNode {
-                    term: quad.s,
-                    graph: None,
-                });
-            }
-        }
         let mut lowerings = BTreeMap::new();
         let mut dispositions = BTreeMap::new();
         for root in &roots {
@@ -644,22 +616,6 @@ fn unsupported_class(reason: impl Into<String>) -> ClassRefusal {
         code: "UNSUPPORTED_CLASS_EXPRESSION",
         reason: reason.into(),
     }
-}
-
-fn class_field(local: &str) -> bool {
-    local == "onProperty"
-        || crate::restriction::CONSTRAINT_LOCALS.contains(&local)
-        || matches!(
-            local,
-            "hasSelf"
-                | "oneOf"
-                | "unionOf"
-                | "intersectionOf"
-                | "complementOf"
-                | "disjointUnionOf"
-                | "onDatatype"
-                | "withRestrictions"
-        )
 }
 
 fn data_resource(dataset: &RdfDataset, subject: TermId) -> bool {

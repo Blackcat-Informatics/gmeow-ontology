@@ -44,10 +44,43 @@ pub(super) struct ProgramClosure {
 pub(super) type InputFacts = BTreeMap<String, Vec<Fact>>;
 pub(super) type WorldGraphs = BTreeMap<String, Option<TermValue>>;
 
+#[derive(Clone, Copy)]
+enum InputGraphSelection {
+    All,
+    Default,
+}
+
+impl InputGraphSelection {
+    fn admit(self, graph: &crate::physical::LogicalGraph, role: &str) -> gmeow_errors::Result<()> {
+        if matches!(self, Self::Default) && *graph != crate::physical::LogicalGraph::Default {
+            return Err(gmeow_errors::Diag::of_kind(crate::error::NativeRefusal {
+                reason: "selected default-graph source profile refuses an unselected logical world"
+                    .to_owned(),
+                gaps: vec![format!("{role}: {graph:?}")],
+                bounds: Vec::new(),
+            }));
+        }
+        Ok(())
+    }
+
+    fn ingress_contract(
+        self,
+        graphs: &WorldGraphs,
+        occurrences: &BTreeMap<String, Arc<[super::refute::RefutationPremise]>>,
+    ) -> [u8; 32] {
+        let domain = match self {
+            Self::All => "gmeow-native-ingress-v1",
+            Self::Default => "gmeow-native-selected-default-ingress-v1",
+        };
+        crate::physical::metadata_identity(domain, &(graphs, occurrences))
+    }
+}
+
 /// One native source ingestion retained for explicit world/domain selection and
 /// consumed exactly once by a selected reasoning operation.
 #[derive(Clone)]
 pub struct PreparedReasoningInput {
+    graph_selection: InputGraphSelection,
     pub(super) facts: InputFacts,
     pub(super) graphs: WorldGraphs,
     pub(super) sources: super::source_existentials::Collector,
@@ -59,6 +92,16 @@ pub struct PreparedReasoningInput {
 }
 
 impl PreparedReasoningInput {
+    pub(super) fn require_default_graph_profile(&self) -> gmeow_errors::Result<()> {
+        if !matches!(self.graph_selection, InputGraphSelection::Default) {
+            return Err(reason_err(
+                "native source admission requires the selected default-graph input profile"
+                    .to_owned(),
+            ));
+        }
+        Ok(())
+    }
+
     /// Apply one native assertion to an explicitly named source context. Original
     /// source columns remain separate from derived rows; no RDF carrier is rebuilt.
     pub(crate) fn assert_fact(
@@ -77,6 +120,8 @@ impl PreparedReasoningInput {
         graph: &crate::physical::LogicalGraph,
         facts: impl IntoIterator<Item = Fact>,
     ) -> gmeow_errors::Result<bool> {
+        self.graph_selection
+            .admit(graph, "source assertion target")?;
         let world = graph.world()?;
         let graph = graph.graph().cloned();
         if self.graphs.get(&world).is_some_and(|prior| prior != &graph) {
@@ -190,12 +235,11 @@ impl PreparedReasoningInput {
                 );
             }
         }
-        self.ingress_contract = crate::physical::metadata_identity(
-            "gmeow-native-ingress-v1",
-            &(&self.graphs, &self.occurrences),
-        );
+        self.ingress_contract = self
+            .graph_selection
+            .ingress_contract(&self.graphs, &self.occurrences);
     }
-    /// Exact original native context identities, including declared empty graphs.
+    /// Exact native contexts admitted by this input's explicit source-graph profile.
     #[must_use]
     pub fn source_contexts(&self) -> &BTreeMap<String, Option<TermValue>> {
         &self.graphs
@@ -220,6 +264,8 @@ impl PreparedReasoningInput {
     ) -> gmeow_errors::Result<()> {
         domains.validate()?;
         for domain in domains.worlds() {
+            self.graph_selection
+                .admit(domain.graph(), "selected logical domain")?;
             let world = domain.world()?;
             let graph = domain.graph().graph().cloned();
             if self
@@ -249,6 +295,21 @@ impl PreparedReasoningInput {
 pub fn prepare_reasoning_input(
     edb: &impl purrdf::DatasetView<ReadError = std::convert::Infallible>,
 ) -> gmeow_errors::Result<PreparedReasoningInput> {
+    prepare_reasoning_input_under(edb, InputGraphSelection::All)
+}
+
+/// Ingest only default-graph assertions while retaining the caller's original
+/// source separately for complete envelope inspection and source accounting.
+pub(super) fn prepare_default_reasoning_input(
+    edb: &impl purrdf::DatasetView<ReadError = std::convert::Infallible>,
+) -> gmeow_errors::Result<PreparedReasoningInput> {
+    prepare_reasoning_input_under(edb, InputGraphSelection::Default)
+}
+
+fn prepare_reasoning_input_under(
+    edb: &impl purrdf::DatasetView<ReadError = std::convert::Infallible>,
+    graph_selection: InputGraphSelection,
+) -> gmeow_errors::Result<PreparedReasoningInput> {
     let mut sources = super::source_existentials::Collector::default();
     let mut partitions = BTreeMap::<String, BTreeSet<FactKey>>::new();
     let mut origins = BTreeMap::<String, Option<TermValue>>::new();
@@ -272,7 +333,10 @@ pub fn prepare_reasoning_input(
         Ok(key)
     };
 
-    for graph in edb.named_graphs() {
+    for graph in edb
+        .named_graphs()
+        .filter(|_| matches!(graph_selection, InputGraphSelection::All))
+    {
         let world = admit_world(Some(crate::reason::dataset::native(edb, graph)))?;
         partitions.entry(world).or_default();
     }
@@ -280,6 +344,7 @@ pub fn prepare_reasoning_input(
         .quads()
         .chain(edb.reifier_quads())
         .chain(edb.annotation_quads())
+        .filter(|quad| matches!(graph_selection, InputGraphSelection::All) || quad.g.is_none())
     {
         let graph = quad
             .g
@@ -319,12 +384,12 @@ pub fn prepare_reasoning_input(
             (world.clone(), Arc::from(sources))
         })
         .collect();
-    let ingress_contract =
-        crate::physical::metadata_identity("gmeow-native-ingress-v1", &(&origins, &occurrences));
+    let ingress_contract = graph_selection.ingress_contract(&origins, &occurrences);
     let contextual = Arc::new(crate::contextual::native::NativeContextualProgram::prepare(
         &occurrences,
     )?);
     Ok(PreparedReasoningInput {
+        graph_selection,
         ingress_contract,
         contextual,
         occurrences,
@@ -564,11 +629,19 @@ pub(super) fn execute_transaction(
     prepared.admission.admit()?;
     input.admit_domains(domains)?;
     let modal = crate::modal::native::NativeModalProgram::prepare(&input.occurrences)?;
-    for (world, graph) in modal
+    for ((world, graph), role) in modal
         .required_worlds()
         .iter()
-        .chain(input.contextual.required_worlds())
+        .map(|required| (required, "modal source requirement"))
+        .chain(
+            input
+                .contextual
+                .required_worlds()
+                .iter()
+                .map(|required| (required, "contextual source requirement")),
+        )
     {
+        input.graph_selection.admit(graph, role)?;
         let graph = graph.graph().cloned();
         if input.graphs.get(world).is_some_and(|prior| prior != &graph) {
             return Err(reason_err(

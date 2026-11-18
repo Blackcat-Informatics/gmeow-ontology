@@ -88,11 +88,13 @@ fn prove_json(name: &str, body: &str, extra: &[&str]) -> (serde_json::Value, i32
 }
 
 /// A clash derived by the native engine refutes the selection, names the law and
-/// its premises, and is the gate's certified negative.
+/// its premises, and reports an unchecked attestation.
 #[test]
-fn disjointness_clash_is_inconsistent_and_gate_exits_one() {
+fn disjointness_clash_is_inconsistent_and_gate_exits_three() {
     let (report, code) = prove_json("clash.logic.ttl", CLASH, &["--gate"]);
-    assert_eq!(code, 1, "{report:#}");
+    assert_eq!(code, 3, "{report:#}");
+    assert_eq!(report["evidence_grade"], "attestation");
+    assert_eq!(report["gate_admission"], "refused");
     assert_eq!(report["verdict"], "inconsistent");
     let refutation = &report["refutations"][0];
     assert_eq!(refutation["engine"], "native");
@@ -113,11 +115,13 @@ fn disjointness_clash_is_inconsistent_and_gate_exits_one() {
 /// A Horn theory whose every unit is accounted and whose closure completed is
 /// `consistent` with a complete, drop-free selection.
 #[test]
-fn horn_theory_is_consistent_with_zero_drops_and_gate_exits_zero() {
+fn horn_theory_is_consistent_with_zero_drops_and_gate_exits_three() {
     let (report, code) = prove_json("horn.logic.ttl", HORN, &["--gate"]);
     assert_eq!(report["verdict"], "consistent", "{report:#}");
-    assert_eq!(code, 0);
+    assert_eq!(code, 3);
     assert_eq!(report["selection"]["complete"], true);
+    assert_eq!(report["evidence_grade"], "attestation");
+    assert_eq!(report["gate_admission"], "attestation");
     assert_eq!(report["selection"]["drops"], serde_json::json!([]));
     assert_eq!(
         report["engines"]["native"]["information_state"],
@@ -136,6 +140,8 @@ fn uncarried_formula_is_not_decided_with_its_drop_named_and_gate_exits_three() {
     let (report, code) = prove_json("disjunctive.logic.ttl", DISJUNCTIVE, &["--gate"]);
     assert_eq!(report["verdict"], "not-decided", "{report:#}");
     assert_eq!(code, 3);
+    assert_eq!(report["evidence_grade"], "attestation");
+    assert_eq!(report["gate_admission"], "attestation");
     assert_eq!(report["selection"]["complete"], false);
     assert!(
         report["selection"]["drops"]
@@ -369,31 +375,58 @@ ex:R logic:subClassOf logic:Nothing .
     assert!(!drop_codes(&report).is_empty(), "{report:#}");
 }
 
-/// Named-graph content is outside the decided default graph and is a named drop.
+/// Named content cannot refute the selected default graph or hide a default-graph
+/// refutation. All excluded source remains visible as named drops.
 #[test]
 fn named_graph_content_is_a_named_drop() {
     let directory = tempfile::tempdir().expect("scratch directory");
     let source = directory.path().join("named-graph.trig");
-    std::fs::write(
-        &source,
-        format!(
-            "{PREFIXES}\nex:A logic:disjointWith ex:B .\nex:a logic:instanceOf ex:A .\nex:g {{\n    ex:a logic:instanceOf ex:B .\n}}\n"
+    for (body, verdict, native) in [
+        (
+            "ex:A logic:disjointWith ex:B .\nex:a logic:instanceOf ex:A .\nex:g { ex:a logic:instanceOf ex:B . }",
+            "not-decided",
+            "no-clash",
         ),
-    )
-    .expect("write source");
-    let output = gmeow()
-        .args(["prove", path(&source), "--format", "json", "--gate"])
-        .output()
-        .expect("run prove");
-    let report: serde_json::Value = serde_json::from_slice(&output.stdout).expect("JSON");
-    assert_ne!(report["verdict"], "consistent", "{report:#}");
-    assert_ne!(output.status.code(), Some(0));
-    assert!(
-        drop_codes(&report)
-            .iter()
-            .any(|code| code == "OUTSIDE_SELECTION"),
-        "{report:#}"
-    );
+        (
+            "ex:sentinel ex:p ex:value .\nex:g { ex:A logic:disjointWith ex:B . ex:a logic:instanceOf ex:A, ex:B . }",
+            "not-decided",
+            "no-clash",
+        ),
+        (
+            "ex:A logic:disjointWith ex:B .\nex:a logic:instanceOf ex:A, ex:B .\nex:g { ex:other ex:p ex:value . }",
+            "inconsistent",
+            "clash",
+        ),
+    ] {
+        std::fs::write(&source, format!("{PREFIXES}\n{body}\n")).expect("write source");
+        let output = gmeow()
+            .args(["prove", path(&source), "--format", "json", "--gate"])
+            .output()
+            .expect("run prove");
+        let report: serde_json::Value = serde_json::from_slice(&output.stdout).expect("JSON");
+        assert_eq!(report["verdict"], verdict, "{report:#}");
+        assert_eq!(report["engines"]["native"]["verdict"], native, "{report:#}");
+        assert_eq!(output.status.code(), Some(3), "{report:#}");
+        assert!(
+            drop_codes(&report)
+                .iter()
+                .any(|code| code == "OUTSIDE_SELECTION"),
+            "{report:#}"
+        );
+        if verdict == "inconsistent" {
+            assert!(
+                report["refutations"]
+                    .as_array()
+                    .is_some_and(|refutations| refutations
+                        .iter()
+                        .any(|refutation| refutation["world"]
+                            == gmeow_logic::reason::rl::DEFAULT_WORLD)),
+                "{report:#}"
+            );
+        } else {
+            assert_eq!(report["refutations"], serde_json::json!([]), "{report:#}");
+        }
+    }
 }
 
 /// The text report states the selection completeness line and one line per drop.
@@ -468,7 +501,7 @@ fn foreign_and_truncated_proof_files_are_rejected() {
 fn owl_step_cap_is_reported_on_its_leg_and_the_verdict_follows_the_native_engine() {
     let (report, code) = prove_json("horn.logic.ttl", HORN, &["--step-cap", "0", "--gate"]);
     assert_eq!(report["verdict"], "consistent", "{report:#}");
-    assert_eq!(code, 0);
+    assert_eq!(code, 3);
     assert_eq!(report["selection"]["complete"], true);
     let owl = &report["engines"]["owl_dl"];
     assert_eq!(owl["state"], "not-decided", "{report:#}");
@@ -558,10 +591,10 @@ ex:subject ex:property ex:object .
         &["--gate"],
     );
     assert_eq!(report["verdict"], "consistent", "{report:#}");
-    assert_eq!(code, 0);
+    assert_eq!(code, 3);
     assert_eq!(report["selection"]["drops"], serde_json::json!([]));
     assert!(
-        report["admission"]["units"]
+        report["native_admission"]["units"]
             .as_array()
             .expect("admission units")
             .iter()
@@ -581,13 +614,14 @@ ex:A logic:disjointWith ex:B .
 "#;
 
 /// A claim that carries only provenance is a statement of the selected theory, so
-/// two such claims that contradict each other refute the selection even though
-/// source admission has not admitted either one.
+/// two such claims that contradict each other refute the selected native theory.
 #[test]
 fn provenance_only_contradiction_is_inconsistent() {
     let (report, code) = prove_json("provenance-clash.logic.ttl", PROVENANCE_CLASH, &["--gate"]);
     assert_eq!(report["verdict"], "inconsistent", "{report:#}");
-    assert_eq!(code, 1);
+    assert_eq!(code, 3);
+    assert_eq!(report["evidence_grade"], "attestation");
+    assert_eq!(report["gate_admission"], "refused");
     assert_eq!(report["engines"]["native"]["verdict"], "clash");
     assert_eq!(report["selection"]["claims_read"], 2);
     // The report lists each claim it read, with the source that reported it.
@@ -606,28 +640,73 @@ fn provenance_only_contradiction_is_inconsistent() {
     );
 }
 
-/// Reading a claim never decides `consistent` on its own: while source admission
-/// still blocks a reified claim, a selection of claims with no clash is not decided,
-/// the engine ran rather than refused, and the report counts the claims it read.
+/// Evidence-only claims are admitted by the actual native ingress and complete
+/// source accounting. Classical export retains its separate reification blocker;
+/// selecting that unavailable output fails and removes stale bytes.
 #[test]
-fn provenance_only_claims_without_a_clash_are_not_decided_until_admitted() {
-    let (report, code) = prove_json(
-        "provenance-agree.logic.ttl",
-        r#"
+fn provenance_only_claims_without_a_clash_are_native_consistent() {
+    let body = r#"
 [] rdf:reifies <<( ex:a logic:instanceOf ex:A )>> ; logic:provenance ex:first .
 [] rdf:reifies <<( ex:b logic:instanceOf ex:A )>> ; logic:provenance ex:second .
-"#,
-        &["--gate"],
-    );
-    assert_eq!(report["verdict"], "not-decided", "{report:#}");
+"#;
+    let (native, code) = prove_json("provenance-agree.logic.ttl", body, &["--gate"]);
+    assert_eq!(native["verdict"], "consistent", "{native:#}");
     assert_eq!(code, 3);
-    assert_eq!(report["engines"]["native"]["verdict"], "no-clash");
-    assert_eq!(report["selection"]["claims_read"], 2);
+    assert_eq!(native["evidence_grade"], "attestation");
+    assert_eq!(native["gate_admission"], "attestation");
+    assert_eq!(native["engines"]["native"]["verdict"], "no-clash");
+    assert_eq!(native["selection"]["claims_read"], 2);
+    assert_eq!(native["selection"]["complete"], true);
+    assert_eq!(native["selection"]["drops"], serde_json::json!([]));
+    assert_eq!(native["native_admission"]["complete"], true);
     assert!(
-        drop_codes(&report)
-            .iter()
-            .any(|code| code == "CONTEXTUAL_REIFICATION_REQUIRES_TYPED_TRANSLATION"),
-        "{report:#}"
+        native["admission"].is_null(),
+        "native-only proof has no classical admission"
+    );
+
+    let directory = tempfile::tempdir().expect("owned export directory");
+    let source = write(directory.path(), "provenance-agree.logic.ttl", body);
+    let target = directory.path().join("selected.p");
+    std::fs::write(&target, "stale problem").expect("existing stale export");
+    let output = gmeow()
+        .args([
+            "prove",
+            path(&source),
+            "--format",
+            "json",
+            "--out",
+            path(&target),
+        ])
+        .output()
+        .expect("selected classical export runs");
+    let exported: serde_json::Value =
+        serde_json::from_slice(&output.stdout).expect("selected output report");
+    assert_eq!(output.status.code(), Some(5), "{exported:#}");
+    assert_eq!(exported["verdict"], "execution-failure");
+    assert_eq!(
+        exported["diagnostics"][0]["code"],
+        "SELECTED_EXPORT_BLOCKED"
+    );
+    assert_eq!(exported["engines"]["native"]["verdict"], "no-clash");
+    assert_eq!(exported["native_admission"]["complete"], true);
+    assert_eq!(exported["selection"]["complete"], true);
+    assert_eq!(exported["export"]["written"], false);
+    assert!(
+        exported["export"]["blockers"]
+            .as_array()
+            .is_some_and(|blockers| !blockers.is_empty())
+    );
+    assert!(
+        exported["admission"]["units"]
+            .as_array()
+            .is_some_and(|units| units
+                .iter()
+                .any(|unit| unit["disposition"]["Blocked"]["code"]
+                    == "CONTEXTUAL_REIFICATION_REQUIRES_TYPED_TRANSLATION"))
+    );
+    assert!(
+        !target.exists(),
+        "a selected blocked export never leaves stale bytes"
     );
 }
 
@@ -789,7 +868,7 @@ fn a_consequent_mixing_a_unary_and_a_ternary_atom_is_executed() {
         &["--gate"],
     );
     assert_eq!(report["verdict"], "consistent", "{report:#}");
-    assert_eq!(code, 0);
+    assert_eq!(code, 3);
     assert_eq!(report["selection"]["drops"], serde_json::json!([]));
 }
 

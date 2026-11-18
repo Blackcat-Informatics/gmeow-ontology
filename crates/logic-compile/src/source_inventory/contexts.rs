@@ -5,7 +5,7 @@
 
 use std::collections::{BTreeMap, BTreeSet};
 
-use super::super::{PreparedLogicSource, SourceEdgeRole, SourceNode};
+use crate::frontend::{PreparedLogicSource, SourceEdgeRole, SourceNode};
 
 /// Index affected formula ancestors once, retaining graph-local native identities.
 /// The frontend already translates `inContext`; other scope coordinates may not
