@@ -29,6 +29,10 @@ use accounting::{UnitTerm, account_axiom, account_formula, account_predication};
 
 const ENGINE_NATIVE: &str = "native";
 const PROFILE: &str = "gmeow-native-source-accounting-v1";
+const SOURCE_ACCOUNTING_DOMAIN: purrdf_hash::Domain =
+    purrdf_hash::Domain::new(b"gmeow-native-source-accounting-v1\0");
+const SOURCE_EXECUTION_DOMAIN: purrdf_hash::Domain =
+    purrdf_hash::Domain::new(b"gmeow-live-native-source-execution-v1\0");
 
 /// One named source or execution boundary. It never grants proof authority.
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Serialize)]
@@ -39,7 +43,9 @@ pub struct NativeSourceDrop {
 }
 
 impl NativeSourceDrop {
-    fn new(engine: &'static str, code: impl Into<String>, detail: impl Into<String>) -> Self {
+    /// Construct an observation of a boundary without granting proof authority.
+    #[must_use]
+    pub fn new(engine: &'static str, code: impl Into<String>, detail: impl Into<String>) -> Self {
         Self {
             engine,
             code: code.into(),
@@ -205,7 +211,7 @@ impl<'inventory> NativeSourceAdmission<'inventory> {
 
     fn accounting_digest(&self) -> [u8; 32] {
         let mut hasher = purrdf_hash::blake3::Hasher::new();
-        hasher.update(b"gmeow-native-source-accounting-v1\0");
+        hasher.update(SOURCE_ACCOUNTING_DOMAIN.as_bytes());
         serde_json::to_writer(&mut hasher, &Rows(self))
             .expect("native source rows serialize to an infallible digest sink");
         *hasher.finalize().as_bytes()
@@ -307,7 +313,7 @@ fn execution_digest(result: &ReasoningResult, verdict: &super::DlVerdict) -> [u8
         validated_native_verdict: &'a super::DlVerdict,
     }
     let mut hasher = purrdf_hash::blake3::Hasher::new();
-    hasher.update(b"gmeow-live-native-source-execution-v1\0");
+    hasher.update(SOURCE_EXECUTION_DOMAIN.as_bytes());
     serde_json::to_writer(
         &mut hasher,
         &ExecutionV1 {

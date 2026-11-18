@@ -13,6 +13,9 @@ use purrdf::RdfDataset;
 
 use super::identity::{node_anchor, term_anchor};
 
+const COMPILER_SOURCE_TRACE_DOMAIN: purrdf_hash::Domain =
+    purrdf_hash::Domain::new(b"gmeow-compiler-source-trace-v1\0");
+
 #[derive(Serialize)]
 struct TraceV1<'a> {
     schema_version: u32,
@@ -159,7 +162,7 @@ impl Serialize for Diagnostics<'_> {
 
 pub(super) fn digest(theory: &CompiledTheory) -> String {
     let mut hasher = purrdf_hash::blake3::Hasher::new();
-    hasher.update(b"gmeow-compiler-source-trace-v1\0");
+    hasher.update(COMPILER_SOURCE_TRACE_DOMAIN.as_bytes());
     serde_json::to_writer(
         &mut hasher,
         &TraceV1 {

@@ -28,6 +28,8 @@ pub(crate) use identity::{
 };
 
 const LOGIC: &str = "https://blackcatinformatics.ca/logic/";
+const SOURCE_OBLIGATION_DOMAIN: purrdf_hash::Domain =
+    purrdf_hash::Domain::new(b"gmeow-source-obligation-v1\0");
 
 pub(crate) fn source_statements(
     dataset: &RdfDataset,
@@ -570,7 +572,7 @@ impl<'source> SourceInventory<'source> {
             },
         };
         let mut hasher = purrdf_hash::blake3::Hasher::new();
-        hasher.update(b"gmeow-source-obligation-v1\0");
+        hasher.update(SOURCE_OBLIGATION_DOMAIN.as_bytes());
         serde_json::to_writer(
             &mut hasher,
             &Identity {

@@ -13,19 +13,6 @@ use std::collections::{BTreeMap, BTreeSet};
 const RDF_TYPE: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
 const LOGIC_INSTANCE_OF: &str = "https://blackcatinformatics.ca/logic/instanceOf";
 
-fn blocked(code: impl Into<String>, reason: impl Into<String>) -> SemanticUnitDisposition {
-    SemanticUnitDisposition::Blocked {
-        code: code.into(),
-        reason: reason.into(),
-    }
-}
-fn malformed(code: impl Into<String>, reason: impl Into<String>) -> SemanticUnitDisposition {
-    SemanticUnitDisposition::Malformed {
-        code: code.into(),
-        reason: reason.into(),
-    }
-}
-
 #[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
 enum Support {
     Configuration,

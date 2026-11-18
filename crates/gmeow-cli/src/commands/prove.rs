@@ -20,8 +20,8 @@ use gmeow_cli_core::Reporter;
 use gmeow_errors::Diag;
 use gmeow_logic::reason::dl::DlCoverage;
 use gmeow_logic::reason::{
-    DomainProfile, InconsistencyWitness, LogicalGraph, NativeSourceAdmission, SelectedDomains,
-    SelectedLogicalWorld, UnsatClass,
+    DomainProfile, InconsistencyWitness, LogicalGraph, NativeSourceAdmission,
+    NativeSourceDrop as DropRecord, SelectedDomains, SelectedLogicalWorld, UnsatClass,
 };
 use gmeow_logic::reasoner_services::DlReasoner;
 use gmeow_logic_compile::frontend::{
@@ -74,24 +74,6 @@ pub(crate) struct ProveRequest<'a> {
     pub(crate) proof_out: Option<&'a Path>,
     pub(crate) check_proof: Option<&'a Path>,
     pub(crate) out: Option<&'a Path>,
-}
-
-/// One construct, unit or obligation an engine did not read or did not decide.
-#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Serialize)]
-struct DropRecord {
-    engine: &'static str,
-    code: String,
-    detail: String,
-}
-
-impl DropRecord {
-    fn new(engine: &'static str, code: impl Into<String>, detail: impl Into<String>) -> Self {
-        Self {
-            engine,
-            code: code.into(),
-            detail: detail.into(),
-        }
-    }
 }
 
 /// The native source-obligation inventory and everything the engine did not decide.
@@ -1016,11 +998,7 @@ fn native_leg(
         let verdict = result.native_verdict()?;
         Ok::<_, Diag>((result, verdict))
     })();
-    drops.extend(
-        admission
-            .drops()
-            .map(|drop| DropRecord::new(drop.engine, drop.code, drop.detail)),
-    );
+    drops.extend(admission.drops());
     let (result, verdict) = match run {
         Ok(outcome) => outcome,
         Err(error) => {
