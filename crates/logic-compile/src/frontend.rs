@@ -63,12 +63,20 @@ pub use source_graph::{
     SourceEdge, SourceEdgeRole, SourceNode, SourceNodeBinding, SourceOccurrencePosition,
     SourcePredicate, SourceStatementBinding, SourceUnit, SourceUnitKind, StructuralSourceGraph,
 };
+pub(crate) use source_graph::{
+    collection_roles, collection_sources, rewritten_owner_role, source_fields,
+};
+
+mod collections;
+pub(crate) use collections::collection_origins;
+use collections::lift_list_statement;
 
 mod emission;
 use emission::{AxiomEmission, EmissionTrace, OwnerEmission, capture_owner, finish_owners};
 pub use emission::{
-    AxiomSource, CompiledTheory, FormulaDisposition, FormulaLowering, OwnerDisposition,
-    OwnerFamily, OwnerLowering, SourceCompilation,
+    AxiomSource, CollectionField, CollectionMembers, CollectionRole, CollectionSource,
+    CompiledTheory, FormulaDisposition, FormulaLowering, OwnerDisposition, OwnerFamily,
+    OwnerLowering, SourceCompilation, SourceOwnerRole,
 };
 
 mod claims;
@@ -943,110 +951,6 @@ pub fn lift_annotation_axioms(
     Ok((axioms, diagnostics))
 }
 
-/// Lower one authored `owner <predicate> list` statement into the single IR list
-/// encoding: the constructor edge to the head cell (sourced from the authored statement)
-/// plus the `rdf:first`/`rdf:rest` cells (sourced from their class owner for class
-/// constructors, otherwise the list head). Blank members name
-/// their lifted anonymous expression through `skolems`; a cell already asserted for
-/// another owner of the same list is not repeated.
-///
-/// A list that cannot be lowered drops the whole statement with a diagnostic — an error
-/// for a named owner, a warning for an anonymous one — never a partial or dangling list.
-#[allow(clippy::too_many_arguments)]
-fn lift_list_statement(
-    store: &RdfDataset,
-    source_quad: purrdf::QuadIds,
-    owner: &Subject,
-    predicate: &str,
-    ctor: &crate::lists::ListConstructor,
-    head: &Node,
-    skolems: &BTreeMap<String, String>,
-    emitted_cells: &mut BTreeSet<(String, String, crate::ir::AtomicTerm)>,
-    axioms: &mut Vec<AxiomEmission>,
-    diagnostics: &mut Vec<Diagnostic>,
-) {
-    let owner_label = subject_str(owner);
-    let list =
-        match crate::lists::lower(store, ctor, head, &mut crate::lists::resolve_known(skolems)) {
-            Ok(list) => list,
-            Err(defect) => {
-                let enumeration = ctor.local == restriction::ONE_OF_LOCAL;
-                let code = match (&defect, enumeration) {
-                    (crate::lists::ListDefect::Malformed(_), true) => "MALFORMED_ENUMERATION",
-                    (crate::lists::ListDefect::Malformed(_), false) => "MALFORMED_LIST",
-                    (crate::lists::ListDefect::UnresolvedMember(_), true) => {
-                        "UNSUPPORTED_NESTED_ENUMERATION"
-                    }
-                    (crate::lists::ListDefect::UnresolvedMember(_), false) => {
-                        "UNSUPPORTED_NESTED_CLASS_EXPRESSION"
-                    }
-                };
-                let message = format!(
-                    "{owner_label:?} <{predicate}> has an unusable RDF list ({}); not lifted",
-                    defect.reason()
-                );
-                diagnostics.push(if subject_is_blank(owner) {
-                    Diagnostic::warning(code, message, Some(owner_label))
-                } else {
-                    Diagnostic::error(code, message, Some(owner_label))
-                });
-                return;
-            }
-        };
-    match LogicAxiom::new(
-        owner_label.clone(),
-        predicate,
-        crate::ir::AtomicTerm::Iri(list.head),
-        false,
-        ContextualScope::default(),
-    ) {
-        Ok(ax) => axioms.push(AxiomEmission::new(ax, AxiomSource::statement(source_quad))),
-        Err(exc) => {
-            diagnostics.push(Diagnostic::warning(
-                "MALFORMED_AXIOM",
-                exc.message().to_owned(),
-                Some(owner_label),
-            ));
-            return;
-        }
-    }
-    let class_list = matches!(
-        ctor.local,
-        "unionOf" | "intersectionOf" | "disjointUnionOf" | "oneOf"
-    );
-    let cell_source = AxiomSource::ClassExpression(SourceNode {
-        term: if class_list {
-            source_quad.s
-        } else {
-            source_quad.o
-        },
-        graph: source_quad.g,
-    });
-    for (subject, cell_predicate, obj) in list.cells {
-        if !emitted_cells.insert((subject.clone(), cell_predicate.to_owned(), obj.clone()))
-            && !class_list
-        {
-            continue;
-        }
-        // Class owners can share cells. Keep each owner's source emission so
-        // canonical axiom deduplication retains every contributing definition.
-        match LogicAxiom::new(
-            subject.clone(),
-            cell_predicate,
-            obj,
-            false,
-            ContextualScope::default(),
-        ) {
-            Ok(ax) => axioms.push(AxiomEmission::new(ax, cell_source)),
-            Err(exc) => diagnostics.push(Diagnostic::error(
-                "MALFORMED_LIST",
-                exc.message().to_owned(),
-                Some(subject),
-            )),
-        }
-    }
-}
-
 fn extract_axioms(
     store: &RdfDataset,
     source_graph: &StructuralSourceGraph,
@@ -1128,7 +1032,12 @@ fn extract_axioms(
         );
         let resolved_sources: BTreeSet<_> = lifted_restrictions
             .iter()
-            .map(|triple| triple.source.term)
+            .flat_map(|triple| {
+                triple
+                    .sources
+                    .iter()
+                    .map(|source| source.source_node().term)
+            })
             .collect();
         pending_restrictions.retain(|_, node| {
             !resolved_sources.contains(&subject_id(store, node).expect("selected restriction root"))
@@ -1165,20 +1074,7 @@ fn extract_axioms(
     }
     let mut rnodes = anchored.clone();
     rnodes.extend(anonymous_owners.keys().cloned());
-    // A content-addressed list cell is shared by every owner of the same list; it is
-    // asserted once.
-    let mut emitted_cells: BTreeSet<(String, String, crate::ir::AtomicTerm)> = BTreeSet::new();
     for lifted in lifted_class_exprs {
-        if matches!(
-            lifted.predicate.as_str(),
-            crate::lists::RDF_FIRST | crate::lists::RDF_REST
-        ) && !emitted_cells.insert((
-            lifted.subject.clone(),
-            lifted.predicate.clone(),
-            lifted.obj.clone(),
-        )) {
-            continue;
-        }
         if let Ok(ax) = LogicAxiom::new(
             lifted.subject,
             lifted.predicate,
@@ -1186,10 +1082,10 @@ fn extract_axioms(
             false,
             ContextualScope::default(),
         ) {
-            axioms.push(AxiomEmission::new(
-                ax,
-                AxiomSource::ClassExpression(lifted.source),
-            ));
+            axioms.push(AxiomEmission {
+                axiom: ax,
+                sources: lifted.sources,
+            });
         }
     }
 
@@ -1306,8 +1202,8 @@ fn extract_axioms(
         // carries its list in the single IR encoding (see `crate::lists`).
         let list_ctor = crate::lists::constructor(p_str);
         if list_ctor.is_some()
-            || (crate::lists::is_list_head(store, &object)
-                && !matches!(&object, Node::Iri(iri) if iri == crate::lists::RDF_NIL))
+            || (crate::lists::is_list_head(store, &quad.object)
+                && !matches!(&quad.object, Node::Iri(iri) if iri == crate::lists::RDF_NIL))
         {
             lift_list_statement(
                 store,
@@ -1315,9 +1211,8 @@ fn extract_axioms(
                 &quad.subject,
                 p_str,
                 list_ctor.unwrap_or(&crate::lists::UNREGISTERED_LIST),
-                &object,
+                &quad.object,
                 &skolems,
-                &mut emitted_cells,
                 &mut axioms,
                 diagnostics,
             );

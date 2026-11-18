@@ -3,6 +3,8 @@
 
 //! GMEOW lowering ownership and source attribution, using synthetic source only.
 
+use std::collections::BTreeSet;
+
 use purrdf::{RdfDatasetBuilder, RdfLiteral};
 
 use super::*;
@@ -146,8 +148,10 @@ fn formula_owner_and_graph_exclusion_are_distinct_from_global_emission() {
     assert_eq!(compiled.formula_lowerings().len(), declared);
 }
 
+/// PROTECTS: canonical structural payloads retain every actual contributor;
+/// collection selection follows exact constructors without inventing class heads.
 #[test]
-fn identical_restriction_expansions_retain_both_native_roots() {
+fn canonical_structural_expansions_retain_every_native_contributor() {
     let source = prepared(
         "ex:Thing logic:subClassOf _:a, _:b .
         _:a a logic:Restriction ; logic:onProperty ex:part ; logic:someValuesFrom ex:Part .
@@ -174,6 +178,165 @@ fn identical_restriction_expansions_retain_both_native_roots() {
             roots = Some(origins);
         }
     }
+
+    let base = prepared(
+        r#"
+        @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+        ex:M a logic:Module . ex:N a logic:Module .
+        ex:chain logic:propertyChainAxiom ex:head ; logic:inModule ex:N .
+        ex:key logic:hasKey ex:head ; logic:inModule ex:M .
+        ex:Enum logic:oneOf ex:head ; logic:inModule ex:M .
+        ex:untyped logic:members ex:head ; logic:inModule ex:N .
+        ex:head rdf:first ex:value ; rdf:rest rdf:nil .
+        ex:other {
+            ex:chain logic:propertyChainAxiom ex:shadow .
+            ex:shadow rdf:first ex:foreign ; rdf:rest rdf:nil .
+        }
+    "#,
+    );
+    let mut builder = RdfDatasetBuilder::new();
+    for quad in base.dataset().owned_quads() {
+        builder
+            .push_owned_quad(&quad)
+            .expect("the authored source enters one native builder");
+    }
+    let chain = builder
+        .intern_iri("https://example.org/chain")
+        .expect("chain IRI");
+    let predicate = builder
+        .intern_iri("https://blackcatinformatics.ca/logic/propertyChainAxiom")
+        .expect("constructor IRI");
+    let head = builder
+        .intern_iri("https://example.org/head")
+        .expect("head IRI");
+    builder
+        .push_annotation(chain, predicate, head)
+        .expect("the duplicate annotation is a separate physical carrier");
+    let dataset = builder.freeze().expect("the collection fixture freezes");
+    let theory = PreparedLogicSource::new(&dataset)
+        .expect("the collection source prepares")
+        .into_compiled(None)
+        .expect("the collection source compiles");
+    assert!(
+        theory.diagnostics().is_empty(),
+        "{:?}",
+        theory.diagnostics()
+    );
+    let first = theory
+        .program()
+        .axioms
+        .iter()
+        .position(|axiom| {
+            axiom.subject == "https://example.org/head"
+                && axiom.predicate == crate::lists::RDF_FIRST
+        })
+        .expect("the shared first cell has one canonical payload");
+    let origins = &theory.axiom_sources()[first];
+    assert_eq!(
+        origins.len(),
+        5,
+        "every constructor and physical carrier contributes"
+    );
+    assert!(
+        origins.iter().all(|source| matches!(source,
+            AxiomSource::Collection { source, field: super::CollectionField::Cell }
+                if source.constructor.canonical.g.is_none()
+        )),
+        "{origins:?}"
+    );
+    let untyped_roles: BTreeSet<_> = origins
+        .iter()
+        .filter_map(|origin| match origin {
+            AxiomSource::Collection { source, .. }
+                if source.constructor.canonical.s == node(theory.source(), "untyped").term =>
+            {
+                Some(source.role)
+            }
+            _ => None,
+        })
+        .collect();
+    assert_eq!(
+        untyped_roles,
+        BTreeSet::from([super::CollectionRole {
+            owner: super::SourceOwnerRole::SchemaLaw,
+            members: super::CollectionMembers::Uninterpreted,
+        }]),
+        "a members field without n-ary typing grants no interpreted member role"
+    );
+    let inventory = crate::source_inventory::SourceInventory::new(
+        &theory,
+        super::super::SourceSelection::all_classical_roots(&theory),
+    );
+    let classes: Vec<_> = inventory
+        .obligations()
+        .filter_map(|unit| match unit.origin() {
+            crate::source_inventory::SourceObligationOrigin::ClassDefinition(node) => Some(node),
+            _ => None,
+        })
+        .collect();
+    assert_eq!(
+        classes,
+        vec![node(theory.source(), "Enum")],
+        "only the genuine enumeration defines a class"
+    );
+    assert_eq!(
+        inventory
+            .obligations()
+            .filter(|unit| matches!(
+                unit.origin(),
+                crate::source_inventory::SourceObligationOrigin::Axiom(_)
+            ))
+            .count(),
+        2,
+        "constructor rows are already inventoried; only cell expansions need separate axiom obligations"
+    );
+    let request =
+        crate::ir::TheorySelection::composed_modules(["https://example.org/M".to_owned()])
+            .expect("the requested module is an absolute IRI");
+    let resolved = inventory
+        .resolve_theory_selection(&request)
+        .expect("the supplied module resolves");
+    let view = resolved
+        .program_view(&inventory)
+        .expect("the same compilation supplies the selected view");
+    let admitted: Vec<_> = view
+        .axiom_sources_at(first)
+        .expect("the cell has original contributors")
+        .collect();
+    assert_eq!(
+        admitted.len(),
+        2,
+        "the included key and enumeration share the cell"
+    );
+    assert!(
+        admitted.iter().all(|source| match source {
+            AxiomSource::Collection { source, .. } =>
+                source.constructor.canonical.s != node(theory.source(), "chain").term,
+            _ => false,
+        }),
+        "an excluded chain cannot borrow the key's property-list membership"
+    );
+    assert!(
+        admitted.iter().any(|source| matches!(source,
+            AxiomSource::Collection { source, .. }
+                if source.role.members == super::CollectionMembers::Values
+                    && source.role.owner == super::SourceOwnerRole::ClassDefinition
+        )),
+        "oneOf retains value members under its genuine class owner"
+    );
+    let admission = super::super::SourceAdmission::classical_fof(
+        &theory,
+        super::super::SourceSelection::all_classical_roots(&theory),
+    );
+    assert!(
+        admission.units.iter().any(|unit| {
+            unit.anchor.contains("https://example.org/untyped")
+                && matches!(&unit.disposition,
+                    super::super::SemanticUnitDisposition::Blocked { code, .. }
+                        if code == "UNSUPPORTED_COLLECTION_LAW")
+        }),
+        "recording an uninterpreted collection does not admit its law"
+    );
 }
 
 #[test]

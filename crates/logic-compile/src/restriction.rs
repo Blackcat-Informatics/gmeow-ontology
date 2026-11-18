@@ -140,8 +140,8 @@ impl RestrictionVocab {
 /// A flat lifted triple, ready to become a [`crate::ir::LogicAxiom`] by either caller.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub(crate) struct LiftedTriple {
-    /// Actual pre-skolemization source root, never recovered from the generated IRI.
-    pub source: crate::frontend::SourceNode,
+    /// Actual contributors, never recovered from the generated subject or cell IRI.
+    pub sources: Vec<crate::frontend::AxiomSource>,
     pub subject: String,
     pub predicate: String,
     pub obj: AtomicTerm,
@@ -350,20 +350,20 @@ pub(crate) fn skolemize_restrictions(
 
         // Restriction internals.
         out.push(LiftedTriple {
-            source,
+            sources: vec![crate::frontend::AxiomSource::ClassExpression(source)],
             subject: skolem.clone(),
             predicate: RDF_TYPE.to_owned(),
             obj: AtomicTerm::resource(logic(RESTRICTION_CLASS_LOCAL)),
         });
         out.push(LiftedTriple {
-            source,
+            sources: vec![crate::frontend::AxiomSource::ClassExpression(source)],
             subject: skolem.clone(),
             predicate: logic(ON_PROPERTY_LOCAL),
             obj: AtomicTerm::resource(on_property.clone()),
         });
         for c in &constraints {
             out.push(LiftedTriple {
-                source,
+                sources: vec![crate::frontend::AxiomSource::ClassExpression(source)],
                 subject: skolem.clone(),
                 predicate: logic(&c.local),
                 obj: c.value.clone(),
@@ -376,7 +376,7 @@ pub(crate) fn skolemize_restrictions(
         let node_term = subject_as_object(node);
         for anchor in subjects_with(store, &sub_class_of_pred, &node_term) {
             out.push(LiftedTriple {
-                source,
+                sources: vec![crate::frontend::AxiomSource::ClassExpression(source)],
                 subject: subject_str(&anchor),
                 predicate: logic("subClassOf"),
                 obj: AtomicTerm::resource(skolem.clone()),
@@ -384,7 +384,7 @@ pub(crate) fn skolemize_restrictions(
         }
         for anchor in subjects_with(store, &equivalent_class_pred, &node_term) {
             out.push(LiftedTriple {
-                source,
+                sources: vec![crate::frontend::AxiomSource::ClassExpression(source)],
                 subject: subject_str(&anchor),
                 predicate: logic("equivalentClass"),
                 obj: AtomicTerm::resource(skolem.clone()),
@@ -518,22 +518,36 @@ pub(crate) fn skolemize_enumerations(
         if let Subject::Blank { label, .. } = &node {
             skolems.insert(label.clone(), enum_node.clone());
         }
+        let constructors = crate::frontend::collection_origins(
+            store,
+            source,
+            one_of_pred.as_str(),
+            list_head,
+            crate::frontend::CollectionField::Constructor,
+        );
+        let cells = crate::frontend::collection_origins(
+            store,
+            source,
+            one_of_pred.as_str(),
+            list_head,
+            crate::frontend::CollectionField::Cell,
+        );
 
         out.push(LiftedTriple {
-            source,
+            sources: vec![crate::frontend::AxiomSource::ClassExpression(source)],
             subject: enum_node.clone(),
             predicate: RDF_TYPE.to_owned(),
             obj: AtomicTerm::resource(logic(ENUMERATION_CLASS_LOCAL)),
         });
         out.push(LiftedTriple {
-            source,
+            sources: constructors,
             subject: enum_node.clone(),
             predicate: logic(ONE_OF_LOCAL),
             obj: AtomicTerm::Iri(list.head),
         });
         for (subject, predicate, obj) in list.cells {
             out.push(LiftedTriple {
-                source,
+                sources: cells.clone(),
                 subject,
                 predicate: predicate.to_owned(),
                 obj,
@@ -544,7 +558,7 @@ pub(crate) fn skolemize_enumerations(
         let node_term = subject_as_object(&node);
         for anchor in subjects_with(store, &sub_class_of_pred, &node_term) {
             out.push(LiftedTriple {
-                source,
+                sources: vec![crate::frontend::AxiomSource::ClassExpression(source)],
                 subject: subject_str(&anchor),
                 predicate: logic("subClassOf"),
                 obj: AtomicTerm::resource(enum_node.clone()),
@@ -552,7 +566,7 @@ pub(crate) fn skolemize_enumerations(
         }
         for anchor in subjects_with(store, &equivalent_class_pred, &node_term) {
             out.push(LiftedTriple {
-                source,
+                sources: vec![crate::frontend::AxiomSource::ClassExpression(source)],
                 subject: subject_str(&anchor),
                 predicate: logic("equivalentClass"),
                 obj: AtomicTerm::resource(enum_node.clone()),
@@ -820,20 +834,20 @@ pub(crate) fn skolemize_dataranges(
 
         // Datarange internals.
         out.push(LiftedTriple {
-            source,
+            sources: vec![crate::frontend::AxiomSource::ClassExpression(source)],
             subject: skolem.clone(),
             predicate: RDF_TYPE.to_owned(),
             obj: AtomicTerm::resource(logic(DATARANGE_CLASS_LOCAL)),
         });
         out.push(LiftedTriple {
-            source,
+            sources: vec![crate::frontend::AxiomSource::ClassExpression(source)],
             subject: skolem.clone(),
             predicate: logic(ON_DATATYPE_LOCAL),
             obj: AtomicTerm::resource(on_datatype.clone()),
         });
         for f in &facets {
             out.push(LiftedTriple {
-                source,
+                sources: vec![crate::frontend::AxiomSource::ClassExpression(source)],
                 subject: skolem.clone(),
                 // Facets keep their full xsd: IRI on both surfaces (unlike the shared-local
                 // restriction constraints), so emit the facet IRI verbatim.
@@ -846,7 +860,7 @@ pub(crate) fn skolemize_dataranges(
         let node_term = subject_as_object(&node);
         for anchor in subjects_with(store, &sub_class_of_pred, &node_term) {
             out.push(LiftedTriple {
-                source,
+                sources: vec![crate::frontend::AxiomSource::ClassExpression(source)],
                 subject: subject_str(&anchor),
                 predicate: logic("subClassOf"),
                 obj: AtomicTerm::resource(skolem.clone()),
@@ -854,7 +868,7 @@ pub(crate) fn skolemize_dataranges(
         }
         for anchor in subjects_with(store, &equivalent_class_pred, &node_term) {
             out.push(LiftedTriple {
-                source,
+                sources: vec![crate::frontend::AxiomSource::ClassExpression(source)],
                 subject: subject_str(&anchor),
                 predicate: logic("equivalentClass"),
                 obj: AtomicTerm::resource(skolem.clone()),

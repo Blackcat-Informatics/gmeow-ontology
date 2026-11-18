@@ -50,8 +50,56 @@ pub struct OwnerLowering {
     pub record_support: std::collections::BTreeSet<SourceStatementBinding>,
 }
 
-/// An authored statement or structural root that actually emitted an axiom.
-/// Native IDs belong only to the prepared source borrowed by the compilation.
+/// Semantic responsibility of an actual lowering owner.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, serde::Serialize)]
+pub enum SourceOwnerRole {
+    /// A constructor defining a genuine class expression.
+    ClassDefinition,
+    /// A law about a class that does not itself define the class.
+    ClassLaw,
+    /// A property, axiom-resource or uninterpreted schema law.
+    SchemaLaw,
+}
+
+/// The semantic positions of one collection's members, independent of its owner.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, serde::Serialize)]
+pub enum CollectionMembers {
+    Classes,
+    Values,
+    Properties,
+    Facets,
+    Uninterpreted,
+}
+
+/// One actual constructor's distinct owner and member roles.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, serde::Serialize)]
+pub struct CollectionRole {
+    /// Whether this constructor defines a class or states a separate law.
+    pub owner: SourceOwnerRole,
+    /// The positions inhabited by this constructor's members.
+    pub members: CollectionMembers,
+}
+
+/// Exact physical constructor authority for emitted collection syntax.
+/// Equal heads and member roles do not identify different constructor laws.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
+pub struct CollectionSource {
+    /// Actual source constructor, including its original graph and carrier.
+    pub constructor: SourceStatementBinding,
+    /// Owner and member roles determined by the shared source classifiers.
+    pub role: CollectionRole,
+}
+
+/// The emitted part of an actual collection lowering.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, serde::Serialize)]
+pub enum CollectionField {
+    /// The original constructor's link to the canonical head.
+    Constructor,
+    /// A canonical first/rest cell belonging to that constructor.
+    Cell,
+}
+
+/// An actual lowering contributor, before canonical payload deduplication.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
 pub enum AxiomSource {
     Statement {
@@ -60,11 +108,63 @@ pub enum AxiomSource {
         object: TermId,
     },
     ClassExpression(SourceNode),
+    Collection {
+        source: CollectionSource,
+        field: CollectionField,
+    },
+    /// Rewritten anonymous-owner fields retain their physical source and role;
+    /// their emitted RDF is not an exact original statement.
+    RewrittenField {
+        source: SourceStatementBinding,
+        owner: SourceOwnerRole,
+    },
     Reification(SourceNode),
     Formula(SourceNode),
 }
 
 impl AxiomSource {
+    #[must_use]
+    pub(crate) fn source_node(self) -> SourceNode {
+        match self {
+            Self::Statement { subject, .. }
+            | Self::ClassExpression(subject)
+            | Self::Reification(subject)
+            | Self::Formula(subject) => subject,
+            Self::Collection { source, .. } => SourceNode {
+                term: source.constructor.canonical.s,
+                graph: source.constructor.canonical.g,
+            },
+            Self::RewrittenField { source, .. } => SourceNode {
+                term: source.canonical.s,
+                graph: source.canonical.g,
+            },
+        }
+    }
+
+    #[must_use]
+    pub(crate) fn class_definition(self) -> Option<SourceNode> {
+        match self {
+            Self::ClassExpression(source) => Some(source),
+            Self::Collection {
+                source:
+                    CollectionSource {
+                        role:
+                            CollectionRole {
+                                owner: SourceOwnerRole::ClassDefinition,
+                                ..
+                            },
+                        ..
+                    },
+                ..
+            }
+            | Self::RewrittenField {
+                owner: SourceOwnerRole::ClassDefinition,
+                ..
+            } => Some(self.source_node()),
+            _ => None,
+        }
+    }
+
     pub(super) fn statement(quad: QuadIds) -> Self {
         Self::Statement {
             subject: SourceNode {

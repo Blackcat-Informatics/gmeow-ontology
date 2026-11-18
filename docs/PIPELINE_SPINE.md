@@ -260,7 +260,10 @@ Separate reifiers preserve coexisting standpoints; table order cannot pick a win
 
 The prepared compiler can retain emission evidence bound to that exact source.
 Ordinary and annotation axioms carry their native statement coordinates; scoped
-axioms and class-expression expansions carry their original structural roots.
+axioms and genuine class-expression expansions carry their original structural roots.
+Collection expansions carry the exact physical constructor, its owner role and
+member positions. Rewritten anonymous schema fields retain their actual source
+field and role without claiming the emitted RDF is an original statement.
 Horn routing retains each formula root, and axiom deduplication unions all these
 origins. Values and source anchors are sorted together once, so canonical IR
 positions come from actual lowering rather than matching generated identifiers.
@@ -270,6 +273,18 @@ default graph. A shared malformed subtree records every affected root even when
 the diagnostic itself is shared. These invocation-local records do not certify
 complete source coverage, owner execution or optimization laws; class-expression
 roots alone do not account for every consumed restriction or list statement.
+
+Compiler trace schema 3 streams typed constructor and field origins with their
+physical carriers under `gmeow-compiler-source-trace-v3`. Invocation-local
+constructor IDs index the exact binding and role registry rather than embedding
+full constructor bindings in every syntax-owner key.
+Collection ownership follows each actual constructor and owner path, including
+shared heads; role unions and generated names supply no authority. Early payload
+filters do not discard contributors. Canonical payloads remain unique, while
+selected views omit excluded origins independently. Property/value cells and
+non-class anonymous fields create no synthetic class obligations. Constructor
+obligations reuse their physical source rows; unsupported laws remain explicit
+native and classical blockers.
 
 The rule, contract, path-shape, constraint/sugar, reasoning-program and
 correspondence readers also capture their original owner at invocation. Emitted

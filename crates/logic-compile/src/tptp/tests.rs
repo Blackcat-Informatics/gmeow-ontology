@@ -494,6 +494,13 @@ fn unselected_class_expression_does_not_block_selected_document() {
                    logic:minQualifiedCardinality 1 ; logic:onDataRange <http://www.w3.org/2001/XMLSchema#integer> ] ."#,
             None,
         ),
+        (
+            "collection.ttl",
+            r#"@prefix logic: <https://blackcatinformatics.ca/logic/> .
+               @prefix ex: <https://example.org/> .
+               ex:chain logic:propertyChainAxiom ( ex:property ) ."#,
+            None,
+        ),
     ]);
     assert!(
         theory
@@ -519,6 +526,10 @@ fn unselected_class_expression_does_not_block_selected_document() {
         !problem.contains("I|https://example.org/Whole"),
         "{problem}"
     );
+    assert!(
+        !problem.contains("I|https://example.org/chain"),
+        "{problem}"
+    );
 
     let selected =
         SourceAdmission::classical_fof(&theory, SourceSelection::all_classical_roots(&theory));
@@ -530,6 +541,13 @@ fn unselected_class_expression_does_not_block_selected_document() {
             .blockers
             .iter()
             .any(|blocker| { blocker.code == "UNSUPPORTED_CLASS_EXPRESSION" })
+    );
+    assert!(
+        projection
+            .blockers
+            .iter()
+            .any(|blocker| blocker.code == "UNSUPPORTED_SCHEMA_LOWERING"),
+        "collection cells do not become ordinary FOF assertions: {projection:?}"
     );
 }
 
@@ -974,6 +992,8 @@ fn boolean_class_laws_compose_with_restrictions_and_retain_source_blank_identity
     );
 }
 
+/// PROTECTS: excluded class and schema contributors cannot block a selected
+/// certified class law or authorize a selected unsupported schema law.
 #[test]
 fn shared_boolean_list_cells_keep_each_selected_class_owner() {
     let theory = compile_documents(&[
@@ -985,6 +1005,11 @@ fn shared_boolean_list_cells_keep_each_selected_class_owner() {
         (
             "second.ttl",
             "<https://example.org/B> <https://blackcatinformatics.ca/logic/unionOf> <https://example.org/list> .",
+            None,
+        ),
+        (
+            "schema.ttl",
+            "<https://example.org/chain> <https://blackcatinformatics.ca/logic/propertyChainAxiom> <https://example.org/list> .",
             None,
         ),
         (
@@ -1009,8 +1034,23 @@ fn shared_boolean_list_cells_keep_each_selected_class_owner() {
             !problem.contains(&format!("I|https://example.org/{excluded}'")),
             "{problem}"
         );
+        assert!(
+            !problem.contains("I|https://example.org/chain"),
+            "{problem}"
+        );
         assert!(problem.contains("I|https://example.org/Member"));
     }
+    let admission =
+        SourceAdmission::classical_fof(&theory, SourceSelection::all_classical_roots(&theory));
+    let projection = project_tptp_fof(&theory, &admission);
+    assert_eq!(projection.status, FofProjectionStatus::Blocked);
+    assert!(
+        projection
+            .blockers
+            .iter()
+            .any(|blocker| blocker.code == "UNSUPPORTED_SCHEMA_LOWERING"),
+        "selecting the property-chain contributor retains its law boundary: {projection:?}"
+    );
 }
 
 #[test]

@@ -16,8 +16,7 @@ mod contracts;
 mod json;
 use crate::source_inventory::{
     SourceInventory, SourceObligationOrigin, XSD_STRING, assertion_from_quad, atomic_term,
-    class_field, digest_bytes, frame, node_anchor, quad_anchor, single_iri_object, source_digest,
-    term_anchor,
+    class_field, digest_bytes, frame, node_anchor, single_iri_object, source_digest, term_anchor,
 };
 
 use purrdf::{DatasetView, GraphMatch, QuadIds, RdfDataset, TermId, TermRef};
@@ -468,20 +467,20 @@ impl<'a> AdmissionBuilder<'a> {
 
     fn admit_source_statements(&mut self) {
         let dataset = self.theory.source().dataset();
-        for quad in
+        for (binding, anchor, documents) in
             self.inventory
                 .obligations()
                 .filter_map(|obligation| match obligation.origin() {
                     SourceObligationOrigin::Statement(binding)
-                        if binding.carrier == SourceCarrier::Statement =>
+                        if binding.carrier == SourceCarrier::Statement
+                            || obligation.collection_roles().next().is_some() =>
                     {
-                        Some(binding.canonical)
+                        Some((binding, obligation.anchor(), obligation.documents()))
                     }
                     _ => None,
                 })
         {
-            let documents = self.statement_documents(quad, SourceCarrier::Statement);
-            let anchor = quad_anchor(dataset, quad);
+            let quad = binding.canonical;
             if quad.g.is_some() {
                 self.push(
                     SemanticUnitKind::Assertion,
@@ -497,6 +496,29 @@ impl<'a> AdmissionBuilder<'a> {
                     anchor,
                     documents,
                     outside("the contributing documents are outside the exact selection"),
+                );
+                continue;
+            }
+            if self.inventory.collection_roles(binding).next().is_some() {
+                let certified = self
+                    .inventory
+                    .collection_roles(binding)
+                    .all(|role| role.owner == super::SourceOwnerRole::ClassDefinition)
+                    && self.certified_classes.contains(&SourceNode {
+                        term: quad.s,
+                        graph: quad.g,
+                    });
+                self.push(
+                    SemanticUnitKind::StructuralSyntax,
+                    anchor,
+                    documents,
+                    if certified {
+                        SemanticUnitDisposition::StructuralSupport {
+                            detail: "class constructor is represented by exact source-bound formula laws".into(),
+                        }
+                    } else {
+                        blocked("UNSUPPORTED_COLLECTION_LAW", "collection lowering requires a complete source-bound law account")
+                    },
                 );
                 continue;
             }
@@ -977,17 +999,37 @@ impl<'a> AdmissionBuilder<'a> {
                         "a reified assertion cannot be flattened without preserving its standpoint/provenance/context envelope",
                     ),
                 );
+            } else if sources.iter().any(|source| {
+                matches!(
+                    source,
+                    AxiomSource::Collection { .. } | AxiomSource::RewrittenField { .. }
+                ) && source.class_definition().is_none()
+                    && {
+                        let documents = self.axiom_source_documents(source);
+                        documents.is_empty() || self.documents_selected(&documents)
+                    }
+            }) {
+                self.push(
+                    SemanticUnitKind::Assertion,
+                    anchor,
+                    documents,
+                    blocked(
+                        "UNSUPPORTED_SCHEMA_LOWERING",
+                        "rewritten schema and collection laws are not ordinary source assertions",
+                    ),
+                );
             } else if sources
                 .iter()
-                .any(|source| matches!(source, AxiomSource::ClassExpression(_)))
-                && sources.iter().all(|source| match source {
-                    AxiomSource::Statement { .. } => true,
-                    AxiomSource::ClassExpression(node) => {
-                        let documents = self.node_documents(*node);
-                        self.certified_classes.contains(node)
-                            || (!documents.is_empty() && !self.documents_selected(&documents))
+                .any(|source| source.class_definition().is_some())
+                && sources.iter().all(|source| {
+                    let documents = self.axiom_source_documents(source);
+                    if !documents.is_empty() && !self.documents_selected(&documents) {
+                        return true;
                     }
-                    _ => false,
+                    matches!(source, AxiomSource::Statement { .. })
+                        || source
+                            .class_definition()
+                            .is_some_and(|node| self.certified_classes.contains(&node))
                 })
             {
                 self.push(
@@ -1001,7 +1043,7 @@ impl<'a> AdmissionBuilder<'a> {
                 );
             } else if sources
                 .iter()
-                .any(|source| matches!(source, AxiomSource::ClassExpression(_)))
+                .any(|source| source.class_definition().is_some())
             {
                 self.push(
                     SemanticUnitKind::Assertion,
@@ -1178,6 +1220,12 @@ impl<'a> AdmissionBuilder<'a> {
             | AxiomSource::ClassExpression(subject)
             | AxiomSource::Reification(subject)
             | AxiomSource::Formula(subject) => self.node_documents(*subject),
+            AxiomSource::Collection { source, .. } => {
+                self.statement_documents(source.constructor.canonical, source.constructor.carrier)
+            }
+            AxiomSource::RewrittenField { source, .. } => {
+                self.statement_documents(source.canonical, source.carrier)
+            }
         }
     }
 

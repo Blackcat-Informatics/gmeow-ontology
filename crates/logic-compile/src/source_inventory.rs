@@ -12,9 +12,9 @@ use std::collections::{BTreeMap, BTreeSet};
 use purrdf::{QuadIds, RdfDataset, TermId, TermRef};
 
 use crate::frontend::{
-    AxiomSource, CompiledTheory, DocumentSelection, FormulaDisposition, OwnerDisposition,
-    OwnerFamily, SemanticUnitKind, SourceCarrier, SourceEdgeRole, SourceNode, SourceSelection,
-    SourceStatementBinding, SourceUnitKind,
+    AxiomSource, CollectionField, CollectionRole, CompiledTheory, DocumentSelection,
+    FormulaDisposition, OwnerDisposition, OwnerFamily, SemanticUnitKind, SourceCarrier,
+    SourceEdgeRole, SourceNode, SourceSelection, SourceStatementBinding, SourceUnitKind,
 };
 
 mod contexts;
@@ -25,7 +25,7 @@ mod selection;
 mod trace;
 
 pub(crate) use ownership::{
-    SyntaxEvidence, SyntaxFamily, SyntaxIssue, SyntaxOwner, SyntaxOwnership,
+    CollectionId, SyntaxEvidence, SyntaxFamily, SyntaxIssue, SyntaxOwner, SyntaxOwnership,
 };
 pub use selection::{
     ModuleImportObservation, ResolvedTheorySelection, SelectedProgramView, SelectedSourceView,
@@ -177,6 +177,7 @@ pub struct SourceInventory<'source> {
     selection_issues: Vec<SourceSelectionIssue>,
     declarations: BTreeMap<(SourceNode, usize), SourceDeclaration>,
     correspondence_records: BTreeMap<SourceStatementBinding, BTreeSet<usize>>,
+    collection_constructors: BTreeMap<SourceStatementBinding, BTreeSet<CollectionRole>>,
     untranslated_formula_contexts: BTreeSet<SourceNode>,
 }
 
@@ -201,6 +202,7 @@ impl<'source> SourceInventory<'source> {
             declared_builtins: BTreeSet::new(),
             declarations: BTreeMap::new(),
             correspondence_records: BTreeMap::new(),
+            collection_constructors: BTreeMap::new(),
             untranslated_formula_contexts: contexts::untranslated_formulas(theory.source()),
         };
         let dataset = theory.source().dataset();
@@ -221,8 +223,19 @@ impl<'source> SourceInventory<'source> {
             }
         }
         for source in theory.axiom_sources().iter().flatten() {
-            if let AxiomSource::ClassExpression(node) = source {
-                classes.insert(*node);
+            if let Some(node) = source.class_definition() {
+                classes.insert(node);
+            }
+            if let AxiomSource::Collection {
+                source,
+                field: CollectionField::Constructor,
+            } = source
+            {
+                inventory
+                    .collection_constructors
+                    .entry(source.constructor)
+                    .or_default()
+                    .insert(source.role);
             }
         }
         for (quad, carrier) in source_statements(dataset) {
@@ -357,9 +370,16 @@ impl<'source> SourceInventory<'source> {
                 .enumerate()
                 .filter(|(index, sources)| {
                     !formula_axioms.contains(index)
-                        && !sources
-                            .iter()
-                            .all(|source| matches!(source, AxiomSource::Statement { .. }))
+                        && !sources.iter().all(|source| {
+                            matches!(
+                                source,
+                                AxiomSource::Statement { .. }
+                                    | AxiomSource::Collection {
+                                        field: CollectionField::Constructor,
+                                        ..
+                                    }
+                            )
+                        })
                 })
                 .map(|(index, _)| SourceObligationOrigin::Axiom(index)),
         );
@@ -379,6 +399,16 @@ impl<'source> SourceInventory<'source> {
     #[must_use]
     pub fn selection(&self) -> &SourceSelection {
         &self.selection
+    }
+
+    pub(crate) fn collection_roles(
+        &self,
+        binding: SourceStatementBinding,
+    ) -> impl Iterator<Item = CollectionRole> + '_ {
+        self.collection_constructors
+            .get(&binding)
+            .into_iter()
+            .flat_map(|roles| roles.iter().copied())
     }
     #[must_use]
     pub fn source_digest(&self) -> &str {
@@ -680,6 +710,13 @@ impl<'source> SourceInventory<'source> {
                     | AxiomSource::ClassExpression(subject)
                     | AxiomSource::Reification(subject)
                     | AxiomSource::Formula(subject) => self.node_documents(*subject),
+                    AxiomSource::Collection { source, .. } => self.statement_documents(
+                        source.constructor.canonical,
+                        source.constructor.carrier,
+                    ),
+                    AxiomSource::RewrittenField { source, .. } => {
+                        self.statement_documents(source.canonical, source.carrier)
+                    }
                 })
                 .collect(),
             SourceObligationOrigin::MissingRule(_)
@@ -698,6 +735,18 @@ pub struct SourceObligation<'inventory> {
 }
 
 impl SourceObligation<'_> {
+    /// Actual successfully lowered constructor roles, retaining the row's carrier.
+    /// A role is source evidence, not native or classical law admission.
+    pub fn collection_roles(&self) -> impl Iterator<Item = CollectionRole> + '_ {
+        let roles = match self.origin {
+            SourceObligationOrigin::Statement(binding) => {
+                self.inventory.collection_constructors.get(&binding)
+            }
+            _ => None,
+        };
+        roles.into_iter().flat_map(|roles| roles.iter().copied())
+    }
+
     /// Whether this row authors class-constructor syntax, including annotation rows.
     #[must_use]
     pub fn requires_class_law(&self) -> bool {

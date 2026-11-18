@@ -243,6 +243,28 @@ non-branching chain, or that carries a member its constructor cannot admit, is a
 error for a named owner — and its statement is not lifted; no partial list or dangling
 constructor edge is ever emitted.
 
+Each lowered collection retains its exact physical constructor statement, including
+graph placement and ordinary or annotation carrier. Its member positions and owner
+role are distinct: `oneOf` has value members under a genuine class definition;
+`hasKey` is a class law with property members; `propertyChainAxiom` is a schema law
+with property members. Equal heads and equal member roles do not identify these
+different laws. N-ary axiom resources and rewritten anonymous schema fields remain
+separate from class definitions.
+
+Canonical payload deduplication unions every original contributor, including
+anonymous owners with the same content identity. A shared collection has one
+canonical cell payload and every actual constructor origin. Selection follows
+the exact supplied constructor and its owner path; a selected key cannot authorize
+an excluded chain that shares its head. Semantic references do not import the
+referenced resource's definitions. Source rows remain inventoried, and constructor
+links reuse their original obligations rather than creating duplicate rows. Cells
+never invent a class definition for their head.
+
+Origin recording grants no law execution. Native collection and schema accounts
+retain explicit capability boundaries; classical class support requires existing
+source-bound law certification. Unmodeled schema laws remain blocked instead of
+entering ordinary assertion admission.
+
 Canonical owner identity does not require every target expression to be named.
 For an anonymous datatype union or intersection, the OWL 2 DL view declares the
 canonical skolem IRI as a named datatype and defines it with `owl:equivalentClass`
