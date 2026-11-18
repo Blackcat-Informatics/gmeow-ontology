@@ -664,6 +664,28 @@ pub fn admit_reasoning_artifact(bytes: &[u8]) -> gmeow_errors::Result<Arc<RdfDat
     Ok(dataset)
 }
 
+/// Admit the complete contextual artifact for one explicitly selected request.
+///
+/// # Errors
+/// Refuses invalid transport, a missing or ambiguous request/result link, native
+/// contextual attachments and every malformed selected result field.
+pub fn admit_contextual_artifact(
+    bytes: &[u8],
+    request: &str,
+) -> gmeow_errors::Result<Arc<RdfDataset>> {
+    Ok(admit_contextual(bytes, request)?.0)
+}
+
+pub(super) fn admit_contextual(
+    bytes: &[u8],
+    request: &str,
+) -> gmeow_errors::Result<(Arc<RdfDataset>, ReasoningResult)> {
+    let dataset = discover(bytes)?;
+    admit(bytes, &dataset, GraphMatch::Any, None, None)?;
+    let result = super::read_contextual_result(&dataset, request)?;
+    Ok((dataset, result))
+}
+
 /// Authenticate an existing artifact and compare every occurrence of an incoming
 /// receipt with that exact publication. Absence permits its first append.
 ///

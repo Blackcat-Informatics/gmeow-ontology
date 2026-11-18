@@ -2768,14 +2768,23 @@ pub fn logic_evaluate(
             Ok(assessment) => assessment,
             Err(error) => return fail(reporter, CODE, error.to_string()),
         };
-    let projection = match gmeow_logic::result_rdf::project_contextual_dataset(&assessment) {
+    let artifact = match gmeow_logic::result_rdf::project_contextual_artifact(&assessment) {
         Ok(projection) => projection,
         Err(error) => {
             reporter.report(&report_diag(error, "gmeow"));
             return 1;
         }
     };
-    print!("{projection}");
+    let mut output = std::io::stdout().lock();
+    if let Err(error) = std::io::Write::write_all(&mut output, &artifact.bytes)
+        .and_then(|()| std::io::Write::flush(&mut output))
+    {
+        reporter.report(&report_diag(
+            Diag::from(error).with_context("write complete contextual GTS artifact"),
+            "gmeow",
+        ));
+        return 1;
+    }
     i32::from(assessment.result.evaluation != gmeow_logic::result::EvaluationStatus::Completed)
 }
 

@@ -73,9 +73,10 @@ mod snapshot;
 pub use reference_vectors::native_receipt_reference_vectors;
 
 pub use artifact::{
-    admit_reasoning_artifact, admit_reasoning_response, artifact_envelope,
-    contains_admitted_native_receipt, import_native_receipt, parse_reasoning_artifact,
-    parse_reasoning_artifact_graph, parse_reasoning_artifact_with_closure,
+    admit_contextual_artifact, admit_reasoning_artifact, admit_reasoning_response,
+    artifact_envelope, contains_admitted_native_receipt, import_native_receipt,
+    parse_reasoning_artifact, parse_reasoning_artifact_graph,
+    parse_reasoning_artifact_with_closure,
 };
 pub use closure::{CLOSURE_MEDIA_TYPE, CLOSURE_REPRESENTATION};
 pub use receipt::{
@@ -100,6 +101,20 @@ use crate::result::{
 /// the shared substrate, preserving the authored text verbatim.
 fn result_err(detail: String) -> gmeow_errors::Diag {
     gmeow_errors::Diag::of_kind(crate::error::Result::new(detail))
+}
+
+/// Authenticate every RDF role and declaration under one global blank mapping.
+fn complete_rdf_state(
+    dataset: &RdfDataset,
+    context: &'static str,
+) -> gmeow_errors::Result<purrdf::DatasetStateDigest> {
+    purrdf::DatasetStateDigest::from_view(
+        dataset,
+        &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None),
+    )
+    .map_err(|cause| {
+        gmeow_errors::Diag::of_kind(crate::error::Result::caused_by(context.into(), cause))
+    })
 }
 
 /// The `graph/reasoning` named-graph IRI — the snapshot folds this projection here.
@@ -311,6 +326,23 @@ pub fn project_contextual_assessment(
 pub fn project_contextual_dataset(
     assessment: &crate::contextual::ContextualAssessment,
 ) -> gmeow_errors::Result<String> {
+    let dataset = contextual_dataset(assessment)?;
+    let bytes = purrdf::serialize_dataset(
+        &dataset,
+        "application/n-quads",
+        purrdf::SerializeGraph::Dataset,
+    )?;
+    String::from_utf8(bytes).map_err(|cause| {
+        gmeow_errors::Diag::of_kind(crate::error::Result::caused_by(
+            "serialize contextual assessment".into(),
+            cause,
+        ))
+    })
+}
+
+fn contextual_dataset(
+    assessment: &crate::contextual::ContextualAssessment,
+) -> gmeow_errors::Result<Arc<RdfDataset>> {
     let (mut sink, result_iri) = contextual_assessment_sink(assessment)?;
     let mut report = gmeow_errors::Report::new("gmeow-logic.contextual");
     for node in assessment.diagnostics.emit_sorted() {
@@ -333,16 +365,55 @@ pub fn project_contextual_dataset(
         }
         report.add_finding(finding);
     }
-    let mut lines = sink
-        .render_lines_in_graph(Some(GRAPH_REASONING))
-        .into_iter()
-        .collect::<BTreeSet<_>>();
-    lines.extend(
-        gmeow_errors::render::to_gmeow_rdf(&report)
-            .lines()
-            .map(str::to_owned),
-    );
-    Ok(lines.into_iter().collect::<Vec<_>>().join("\n") + "\n")
+    let mut builder = purrdf::RdfDatasetBuilder::new();
+    append_native_dataset(
+        sink,
+        &mut builder,
+        Some(GRAPH_REASONING),
+        purrdf::BlankScope::DEFAULT,
+    )?;
+    gmeow_errors::render::append_gmeow_findings(
+        &report,
+        "https://blackcatinformatics.ca/gmeow/graph/diagnostics",
+        &mut builder,
+    )?;
+    Ok(builder.freeze()?)
+}
+
+/// Publish the selected contextual assessment, evidence and diagnostic graphs as GTS.
+/// Contextual results never acquire a recursive native execution receipt.
+///
+/// # Errors
+/// Refuses native attachments, ambiguous request links, transport failures or any
+/// change to the selected result or complete RDF carrier during readback.
+pub fn project_contextual_artifact(
+    assessment: &crate::contextual::ContextualAssessment,
+) -> gmeow_errors::Result<gmeow_gts_profile::GmeowGtsEmission> {
+    let dataset = contextual_dataset(assessment)?;
+    let expected = reasoning_snapshot_summary(
+        read_contextual_result(&dataset, &assessment.request)?,
+        ReasoningSnapshotScope::Carrier,
+    )?;
+    // This carrier starts in DEFAULT scope. Unscoped ingestion keeps direct
+    // blanks and their CDT lexical references under one shared identity.
+    let emission = gmeow_gts_profile::view_to_gmeow_gts(dataset.as_ref())?;
+    let (restored, actual) = artifact::admit_contextual(&emission.bytes, &assessment.request)?;
+    if actual != expected {
+        return Err(result_err(
+            "contextual GTS changed the complete selected transport result".into(),
+        ));
+    }
+    // Complete-state identity covers every declaration and RDF role, accepting
+    // caller-owned IRIs. Equality relies on the same collision resistance as
+    // the artifact's content addresses, not canonical RDF byte equality.
+    if complete_rdf_state(&dataset, "authenticate complete contextual RDF carrier")?
+        != complete_rdf_state(&restored, "authenticate complete contextual RDF carrier")?
+    {
+        return Err(result_err(
+            "contextual GTS changed its complete evidence or diagnostic carrier".into(),
+        ));
+    }
+    Ok(emission)
 }
 
 fn emit_temporal_basis(sink: &mut Sink, result: &Node, basis: &crate::contextual::TemporalBasis) {
@@ -413,6 +484,11 @@ fn emit_temporal_basis(sink: &mut Sink, result: &Node, basis: &crate::contextual
 fn contextual_assessment_sink(
     assessment: &crate::contextual::ContextualAssessment,
 ) -> gmeow_errors::Result<(Sink, String)> {
+    if assessment.result.provenance.native_execution.is_some() {
+        return Err(result_err(
+            "standalone contextual projection cannot carry native execution evidence".into(),
+        ));
+    }
     let projection = ResultProjection::reasoning(&assessment.result)?;
     let result_iri = projection.node_iri;
     let result = Node::iri(&result_iri);
@@ -1726,6 +1802,22 @@ fn read_reasoning_result(
 enum RootSelection<'a> {
     DatasetProjection,
     Aggregate(Option<&'a str>),
+    Contextual(&'a str),
+}
+
+fn read_contextual_result(
+    dataset: &RdfDataset,
+    request: &str,
+) -> gmeow_errors::Result<ReasoningResult> {
+    let graph = dataset
+        .term_id_by_value(&purrdf::TermValue::iri(GRAPH_REASONING))
+        .ok_or_else(|| result_err("contextual artifact has no graph/reasoning".into()))?;
+    read_reasoning_result_expecting(
+        &ResultGraph::new(dataset, GraphMatch::Named(graph))?,
+        &NoNativeReceipts,
+        RootSelection::Contextual(request),
+        Some(None),
+    )
 }
 
 /// Read the result. `expected_receipt`, when given, is what the receipt literal must
@@ -1760,7 +1852,33 @@ fn read_reasoning_result_expecting(
             .copied()
             .collect::<BTreeSet<_>>(),
     };
-    let subject = if let RootSelection::Aggregate(Some(selected)) = selection {
+    let subject = if let RootSelection::Contextual(request) = selection {
+        let selected = triples
+            .iter()
+            .filter(|row| {
+                row.predicate == logic("contextualResult")
+                    && matches!(triples.dataset.resolve(row.subject), TermRef::Iri(iri) if iri == request)
+            })
+            .map(|row| {
+                row.object_node().ok_or_else(|| {
+                    result_err("selected contextual request requires an IRI result".into())
+                })
+            })
+            .collect::<gmeow_errors::Result<Vec<_>>>()?;
+        let [subject] = selected.as_slice() else {
+            return Err(result_err(
+                "contextual artifact requires exactly one result for the selected request".into(),
+            ));
+        };
+        if !triples.for_subject(*subject).any(|row| {
+            row.predicate == RDF_TYPE && row.object_iri() == Some(logic("ReasoningResult"))
+        }) {
+            return Err(result_err(
+                "selected contextual result is not a logic:ReasoningResult".into(),
+            ));
+        }
+        *subject
+    } else if let RootSelection::Aggregate(Some(selected)) = selection {
         let selected = candidates
             .iter()
             .copied()

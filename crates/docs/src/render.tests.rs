@@ -110,8 +110,8 @@ fn health_renders_undecided_native_reasoning_without_positive_claims() {
     }
 }
 
-/// Executable term examples retain external domain identity and declared lang
-/// prefixes; a codec failure reaches the caller with its cause and provider context.
+/// Executable term examples retain domain, class and predicate IRIs independently
+/// of display names; a codec refusal retains its cause and provider context.
 #[test]
 fn term_syntax_preserves_domain_identity_and_refuses_codec_failure() {
     let mut model = tiny_model();
@@ -135,22 +135,47 @@ fn term_syntax_preserves_domain_identity_and_refuses_codec_failure() {
     let language = to_markdown(&model, &Page::Term("token".into()))
         .expect("the lang namespace is declared for native transcoding");
     assert!(language.contains("https://blackcatinformatics.ca/lang/Token"));
-    model
+    let class_iri = "https://blackcatinformatics.ca/gmeow/example/Widget";
+    model.terms.push(DocTerm {
+        iri: class_iri.into(),
+        curie: class_iri.into(),
+        slug: "nested-widget".into(),
+        category: DocTermCategory::Class,
+        ..Default::default()
+    });
+    let class = to_markdown(&model, &Page::Term("nested-widget".into()))
+        .expect("a nested class IRI renders without a compact display name");
+    assert!(class.contains(&format!("a <{class_iri}> .")));
+    let predicate_iri = "https://blackcatinformatics.ca/gmeow/example/links";
+    model.terms.push(DocTerm {
+        iri: predicate_iri.into(),
+        curie: predicate_iri.into(),
+        slug: "nested-links".into(),
+        category: DocTermCategory::Property,
+        domain: vec![class_iri.into()],
+        ..Default::default()
+    });
+    for slug in ["nested-widget", "nested-links"] {
+        let page = to_markdown(&model, &Page::Term(slug.into()))
+            .expect("nested class and predicate IRIs form executable syntax");
+        assert!(page.contains(&format!("a <{class_iri}> ;")));
+        assert!(page.contains(&format!("<{predicate_iri}> \"...\" .")));
+        assert!(page.contains("**JSON-LD**"));
+    }
+    let invalid = model
         .terms
         .iter_mut()
         .find(|term| term.curie == "lang:Token")
-        .expect("the selected language term exists")
-        .curie = "undeclared:Token".into();
+        .expect("the selected language term exists");
+    invalid.slug = "token".into();
+    invalid.iri = "not an absolute IRI".into();
     let error = to_markdown(&model, &Page::Term("token".into()))
-        .expect_err("a selected example with an undeclared prefix cannot disappear");
+        .expect_err("a selected example with a malformed actual IRI cannot disappear");
     let kind = error
         .downcast_ref::<crate::render_error::Syntax>()
         .expect("the codec refusal keeps its typed renderer diagnostic");
     assert!(std::error::Error::source(kind).is_some());
-    assert!(
-        format!("{error:#}")
-            .contains("jsonld_syntax_tab for https://blackcatinformatics.ca/lang/Token")
-    );
+    assert!(format!("{error:#}").contains("jsonld_syntax_tab for not an absolute IRI"));
 }
 
 /// `CONTROLLER_HOOKS` equals the hooks the SHIPPED controller module actually binds.

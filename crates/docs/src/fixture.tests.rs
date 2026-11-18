@@ -94,8 +94,9 @@ fn a_site_envelope_written_to_disk_verifies_when_read_back() {
     let built = Site { files };
     let invalid = crate::DocsModel {
         terms: vec![crate::DocTerm {
-            iri: "urn:refused:class".into(),
-            curie: "undeclared:Class".into(),
+            iri: "not an absolute IRI".into(),
+            curie: "gmeow:Refused".into(),
+            slug: "refused".into(),
             category: crate::DocTermCategory::Class,
             ..Default::default()
         }],
@@ -137,7 +138,7 @@ fn a_site_envelope_written_to_disk_verifies_when_read_back() {
 fn selected_render_uses_producer_identity_and_refuses_other_languages_or_receipts() {
     let (_tmp, root) = temp_root("selected-render");
     let identity = model_identity();
-    let store = action_store(&root);
+    let store = action_store(&root).expect("the synthetic action store opens");
     let site = Site {
         files: BTreeMap::from([("index.html".to_string(), b"selected".to_vec())]),
     };
@@ -209,10 +210,20 @@ fn language_is_a_first_class_render_action_dimension() {
     );
 }
 
+/// Unavailable or corrupt render caches fail before invoking the producer closure.
 #[test]
-fn present_but_corrupt_site_cache_refuses() {
+fn site_cache_refuses_open_failure_and_corrupt_entries() {
     let (_tmp, root) = temp_root("corrupt-site");
     let identity = model_identity();
+    let blocked = root.join("blocked");
+    fs::write(&blocked, b"not a directory").expect("create the cache-path obstruction");
+    let error = load_or_build_cached_site(&blocked, "site", Some(ENGLISH), &identity, || {
+        panic!("an unavailable action store must not render")
+    })
+    .expect_err("the cache-open failure must reach the producer");
+    assert!(error.downcast_ref::<ActionCacheError>().is_some());
+    assert!(format!("{error:#}").contains("open bounded docs-render action cache at"));
+    assert!(format!("{error:#}").contains(&blocked.display().to_string()));
     let sp = site_cache_path(&root, ENGLISH, &identity);
     fs::create_dir_all(sp.parent().unwrap()).unwrap();
     fs::write(&sp, b"{ not valid json").unwrap();

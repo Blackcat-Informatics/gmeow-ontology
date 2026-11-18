@@ -67,24 +67,14 @@ impl ClosurePublication {
         }
         let address = NativeReceiptAddress::of_bytes(&emission.bytes);
         let restored = admit_leaf(&address, &emission.bytes, &worlds)?;
-        let state = |dataset: &RdfDataset| {
-            purrdf::DatasetStateDigest::from_view(
-                dataset,
-                &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None),
-            )
-            .map_err(|cause| {
-                gmeow_errors::Diag::of_kind(crate::error::Result::caused_by(
-                    "authenticate complete RDF closure state".into(),
-                    cause,
-                ))
-            })
-        };
         // This native complete-state identity includes empty declarations and
         // one global blank bijection across every RDF role. Equality relies on
         // BLAKE3 collision resistance, as does the attachment's content address;
         // it is not exact canonical-byte or rich-result equality. Unlike the
         // RDFC overlay comparator it accepts every caller-owned source IRI.
-        if state(original.as_ref())? != state(restored.as_ref())? {
+        if super::complete_rdf_state(&original, "authenticate complete RDF closure state")?
+            != super::complete_rdf_state(&restored, "authenticate complete RDF closure state")?
+        {
             return Err(result_err(
                 "complete original RDF closure changed during native GTS publication".into(),
             ));

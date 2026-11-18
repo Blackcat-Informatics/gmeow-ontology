@@ -1112,7 +1112,8 @@ pub enum CorrespondenceCommands {
 #[derive(Debug, Subcommand)]
 pub enum LogicCommands {
     /// Evaluate an attributed modal request in supplied RDF and emit its complete
-    /// reasoning, proof, and diagnostic graphs as RDF 1.2 N-Quads. No checkout is required.
+    /// reasoning, proof, and diagnostic graphs as binary GTS on stdout. Redirect
+    /// stdout to a .gts file. No checkout is required.
     Evaluate {
         /// RDF containing a typed request, its contexts, and attributed evidence.
         input: PathBuf,

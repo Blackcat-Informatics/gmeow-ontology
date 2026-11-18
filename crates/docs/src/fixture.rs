@@ -66,13 +66,14 @@ struct RenderActionPayload {
     model_receipt_digest: String,
 }
 
-fn action_store(root: &Path) -> ActionStore {
-    ActionStore::open(
-        ActionStore::default_root(root),
-        STORE_FORMAT_VERSION,
-        StoreLimits::default(),
-    )
-    .unwrap_or_else(|error| panic!("open bounded docs-render action cache: {error}"))
+fn action_store(root: &Path) -> gmeow_errors::Result<ActionStore> {
+    let path = ActionStore::default_root(root);
+    ActionStore::open(&path, STORE_FORMAT_VERSION, StoreLimits::default()).map_err(|error| {
+        Diag::from(error).with_context(format!(
+            "open bounded docs-render action cache at {}",
+            path.display()
+        ))
+    })
 }
 
 fn read_only_action_store(root: &Path) -> ActionStore {
@@ -235,7 +236,7 @@ fn load_or_build_cached_site(
     model: &FixtureIdentity,
     build: impl FnOnce() -> gmeow_errors::Result<Site>,
 ) -> gmeow_errors::Result<Site> {
-    let store = action_store(root);
+    let store = action_store(root)?;
     Ok(load_or_build_cached_site_in_store(&store, root, artifact, language, model, build)?.0)
 }
 
@@ -346,7 +347,7 @@ pub fn prime(root: &Path) -> gmeow_errors::Result<PrimeObservation> {
     let parallelism = render_parallelism(tasks.len());
     let mut built = 0;
     let mut renders = BTreeMap::new();
-    let store = action_store(root);
+    let store = action_store(root)?;
     for batch in tasks.chunks(parallelism) {
         let results = std::thread::scope(|scope| {
             let handles = batch

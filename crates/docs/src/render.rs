@@ -1597,19 +1597,20 @@ fn synthesize_class_quickstart(model: &DocsModel, term: &DocTerm) -> String {
         })
         .collect();
     props.sort_by(|a, b| a.curie.cmp(&b.curie));
+    let class = purrdf::emit_term(&purrdf::RdfTerm::iri(&term.iri));
 
     if props.is_empty() {
-        return format!("<subject> a {} .\n", term.curie);
+        return format!("<subject> a {class} .\n");
     }
 
     let cap = props.len().min(QUICKSTART_PROPERTY_CAP);
-    let mut out = format!("<subject> a {} ;\n", term.curie);
+    let mut out = format!("<subject> a {class} ;\n");
     for (i, prop) in props.iter().take(cap).enumerate() {
         let terminator = if i + 1 == cap { '.' } else { ';' };
         let (object, comment) = quickstart_placeholder(model, &prop.range);
         out.push_str(&format!(
             "    {} {object} {terminator}{comment}\n",
-            prop.curie
+            purrdf::emit_term(&purrdf::RdfTerm::iri(&prop.iri))
         ));
     }
     if props.len() > QUICKSTART_PROPERTY_CAP {
@@ -1639,7 +1640,7 @@ fn synthesize_property_quickstart(model: &DocsModel, term: &DocTerm) -> String {
     let (object, comment) = quickstart_placeholder(model, &term.range);
     format!(
         "<subject> a {subject_type} ;\n    {} {object} .{comment}\n",
-        term.curie
+        purrdf::emit_term(&purrdf::RdfTerm::iri(&term.iri))
     )
 }
 

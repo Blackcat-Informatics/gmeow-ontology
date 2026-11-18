@@ -54,7 +54,17 @@ fn component_assessment() -> crate::contextual::ContextualAssessment {
         p: TermValue::iri("urn:statement-predicate").into(),
         o: directional.clone().into(),
     };
-    let axioms = [directional, quoted]
+    let direct_blank = TermValue::Blank {
+        label: "shared".into(),
+        scope: purrdf::BlankScope::DEFAULT,
+    };
+    let composite_blank = TermValue::Literal {
+        lexical_form: "[_:shared]".into(),
+        datatype: "http://w3id.org/awslabs/neptune/SPARQL-CDTs/List".into(),
+        language: None,
+        direction: None,
+    };
+    let axioms = [directional, quoted, direct_blank, composite_blank]
         .into_iter()
         .map(|object| InferredAxiom {
             modal_evaluation: None,
@@ -72,7 +82,7 @@ fn component_assessment() -> crate::contextual::ContextualAssessment {
         })
         .collect();
     crate::contextual::ContextualAssessment {
-        request: "urn:request".into(),
+        request: "urn:purrdf:rdfc:request".into(),
         formula: "urn:formula".into(),
         result: ReasoningResult::new(
             InputStatus::Valid,
@@ -94,6 +104,7 @@ fn component_assessment() -> crate::contextual::ContextualAssessment {
 
 /// Ordinary blank components and contextual IRI components use the same role
 /// reader, preserving complete provenance and verified native axiom receipts.
+/// Caller-owned reserved-looking IRIs and shared direct/CDT blanks survive GTS.
 #[test]
 fn contextual_resource_components_keep_proof_witness_and_native_receipts() {
     // gmeow-test-input: synthetic-only
@@ -132,6 +143,45 @@ fn contextual_resource_components_keep_proof_witness_and_native_receipts() {
         assessment.result.inferred().iter().collect::<BTreeSet<_>>()
     );
     assert!(parse_reasoning_dataset(&named, GraphMatch::Default, &NoNativeReceipts).is_err());
+    let artifact = project_contextual_artifact(&assessment)
+        .expect("the contextual result publishes its complete GTS carrier");
+    gmeow_gts_profile::validate_mandated_frames(&artifact.bytes)
+        .expect("the contextual carrier uses mandated GTS frames");
+    let admitted = admit_contextual_artifact(&artifact.bytes, &assessment.request)
+        .expect("the exact request selects its admitted contextual result");
+    let graph = admitted
+        .as_ref()
+        .term_id_by_value(&TermValue::iri(GRAPH_REASONING))
+        .expect("the contextual result retains its named graph");
+    let restored = parse_reasoning_dataset(&admitted, GraphMatch::Named(graph), &NoNativeReceipts)
+        .expect("the admitted contextual carrier retains its result");
+    assert_eq!(restored.provenance, assessment.result.provenance);
+    assert_eq!(restored.information, assessment.result.information);
+    assert!(admit_contextual_artifact(&artifact.bytes, "urn:missing:request").is_err());
+    assert!(parse_reasoning_artifact_graph(&artifact.bytes, Some(GRAPH_REASONING)).is_err());
+    for graph in [GRAPH_REASONING, "urn:wrong:contextual-graph"] {
+        let (mut sink, subject) = contextual_assessment_sink(&assessment)
+            .expect("the synthetic contextual carrier is valid before perturbation");
+        if graph == GRAPH_REASONING {
+            sink.push(
+                Node::iri(&assessment.request),
+                logic("contextualResult"),
+                Node::iri(format!("{subject}/another-result")),
+            );
+        }
+        let mut builder = purrdf::RdfDatasetBuilder::new();
+        append_native_dataset(sink, &mut builder, Some(graph), purrdf::BlankScope::DEFAULT)
+            .expect("the perturbed carrier remains valid RDF");
+        let dataset = builder.freeze().expect("the perturbed carrier freezes");
+        // gmeow-test-input: synthetic-only
+        let altered = gmeow_gts_profile::GmeowGtsWriter::new("runtime")
+            .finish_view_scoped(dataset.as_ref(), "contextual-selection-test")
+            .expect("the tiny perturbed carrier has valid governed frames");
+        assert!(
+            admit_contextual_artifact(&altered.bytes, &assessment.request).is_err(),
+            "a wrong graph or ambiguous request cannot select a contextual result"
+        );
+    }
 }
 
 /// A selected evidence link cannot silently disappear merely because its
@@ -141,6 +191,16 @@ fn contextual_resource_components_keep_proof_witness_and_native_receipts() {
 fn contextual_resource_components_refuse_nonresources_and_untyped_targets() {
     // gmeow-test-input: synthetic-only
     let assessment = component_assessment();
+    let mut forbidden = component_assessment();
+    forbidden.result = super::tests::native_conflict_result(None);
+    let Err(error) = contextual_assessment_sink(&forbidden) else {
+        panic!("a contextual boundary rejects outer native execution before projection");
+    };
+    assert!(
+        error
+            .message()
+            .contains("cannot carry native execution evidence")
+    );
     let (sink, subject) =
         contextual_assessment_sink(&assessment).expect("admitted contextual assessment");
     let contextual = native_dataset(sink).expect("unmodified contextual dataset");

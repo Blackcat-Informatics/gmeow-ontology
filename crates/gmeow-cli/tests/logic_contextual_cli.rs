@@ -41,8 +41,13 @@ fn run(cwd: &Path, arguments: &[&str]) -> Output {
 }
 
 fn assert_assessment(output: &Output, evaluation: &str, information: &str) {
-    let dataset = purrdf::parse_dataset(&output.stdout, "application/n-quads", None)
-        .expect("stdout contains the complete RDF assessment");
+    gmeow_gts_profile::validate_mandated_frames(&output.stdout)
+        .expect("stdout uses the mandated GTS frame profile");
+    let dataset = gmeow_logic::result_rdf::admit_contextual_artifact(
+        &output.stdout,
+        "urn:contextual-cli:query",
+    )
+    .expect("stdout contains the complete admitted contextual GTS artifact");
     let dataset = dataset.as_ref();
     let id = |iri: &str| {
         dataset
@@ -87,6 +92,7 @@ fn assert_assessment(output: &Output, evaluation: &str, information: &str) {
     }
 }
 
+/// Complete and exhausted assessments retain GTS evidence; output failures remain terminal.
 #[test]
 fn installed_evaluator_emits_scoped_evidence_and_preserves_budget_exhaustion() {
     let scratch = tempfile::tempdir().expect("blinded working directory");
@@ -112,6 +118,22 @@ fn installed_evaluator_emits_scoped_evidence_and_preserves_budget_exhaustion() {
     );
     assert_eq!(exhausted.status.code(), Some(1));
     assert_assessment(&exhausted, "BudgetExhausted", "InfoUndetermined");
+    #[cfg(target_os = "linux")]
+    {
+        let full = std::fs::OpenOptions::new()
+            .write(true)
+            .open("/dev/full")
+            .expect("Linux provides a deterministic failing output device");
+        let refused = Command::new(assert_cmd::cargo::cargo_bin("gmeow"))
+            .args(["--console", "silent", "logic", "evaluate"])
+            .args(arguments)
+            .current_dir(scratch.path())
+            .env_clear()
+            .stdout(full)
+            .output()
+            .expect("execute the installed consumer with a failing output sink");
+        assert_eq!(refused.status.code(), Some(1));
+    }
 }
 
 #[test]
@@ -145,8 +167,11 @@ fn installed_evaluator_exports_fragment_refusal_as_diagnostics_and_a_non_result(
     );
     assert_eq!(output.status.code(), Some(1));
     assert_assessment(&output, "EvaluationUnsupported", "InfoNotEvaluated");
-    let dataset = purrdf::parse_dataset(&output.stdout, "application/n-quads", None)
-        .expect("structured fragment refusal");
+    let dataset = gmeow_logic::result_rdf::admit_contextual_artifact(
+        &output.stdout,
+        "urn:contextual-cli:query",
+    )
+    .expect("structured fragment refusal retains its admitted GTS diagnostics");
     let dataset = dataset.as_ref();
     let diagnostics = dataset
         .term_id_by_value(&TermValue::iri(

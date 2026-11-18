@@ -141,7 +141,7 @@ fn receipt_reference_text() -> String {
         .expect("produce native receipt references with make maint-native-receipt-vectors before selecting these codec cases")
 }
 
-fn native_conflict_result(max_steps: Option<u64>) -> ReasoningResult {
+pub(super) fn native_conflict_result(max_steps: Option<u64>) -> ReasoningResult {
     use crate::physical::{DomainProfile, LogicalGraph, SelectedDomains, SelectedLogicalWorld};
     let mut source = purrdf::RdfDatasetBuilder::new();
     source
