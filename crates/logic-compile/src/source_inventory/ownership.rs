@@ -5,11 +5,12 @@
 
 use std::collections::{BTreeMap, BTreeSet};
 
-use crate::frontend::{SourceNode, SourceStatementBinding};
+use crate::frontend::{CollectionSource, SourceNode, SourceStatementBinding};
 
 /// Exact coordinates only; there is no second dataset or formula reading.
 #[derive(Debug, Default)]
 pub(crate) struct SyntaxOwnership {
+    pub(crate) collections: BTreeMap<CollectionSource, CollectionId>,
     pub(crate) children: BTreeMap<SyntaxOwner, BTreeMap<SyntaxOwner, BTreeSet<SyntaxEvidence>>>,
     pub(crate) rows:
         BTreeMap<SourceStatementBinding, BTreeMap<SyntaxOwner, BTreeSet<SyntaxEvidence>>>,
@@ -30,7 +31,15 @@ pub(crate) enum SyntaxIssue {
         source: SourceStatementBinding,
         detail: String,
     },
+    CollectionCapacity {
+        source: SourceStatementBinding,
+        detail: String,
+    },
 }
+
+/// Dense invocation-local coordinate whose authority remains in the constructor registry.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
+pub(crate) struct CollectionId(pub(crate) u32);
 
 /// Owning a resource's formula does not own unrelated class or property laws
 /// about that same resource.
@@ -49,10 +58,12 @@ pub(crate) enum SyntaxFamily {
     Class,
     Owner,
     Correspondence,
+    Collection(CollectionId),
     ClassList,
     ValueList,
     PropertyList,
     FacetList,
+    UninterpretedList,
     Schema,
     Module,
 }

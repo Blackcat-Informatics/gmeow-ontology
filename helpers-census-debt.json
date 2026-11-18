@@ -2706,7 +2706,7 @@
   "literal-and-iri-escape": 13,
   "media-type-by-extension": 3,
   "percent-encoding": 2,
-  "rdf-collection": 19,
+  "rdf-collection": 18,
   "reifier-rows": 2,
   "term-nesting-depth": 1,
   "term-syntax": 1,

@@ -18,6 +18,9 @@ use crate::source_inventory::source_statements;
 
 mod cbor;
 mod ownership;
+pub(crate) use ownership::{
+    collection_roles, collection_sources, fields as source_fields, rewritten_owner_role,
+};
 
 /// How a source's admitted base IRI was established.
 #[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]

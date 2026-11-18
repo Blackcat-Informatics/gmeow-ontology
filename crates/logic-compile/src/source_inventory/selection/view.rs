@@ -137,7 +137,7 @@ impl SelectedProgramView<'_, '_> {
                 .selection
                 .0
                 .index
-                .axiom_source_membership(self.inventory, index, source)
+                .axiom_source_membership(self.inventory, source)
             {
                 Some(Membership::Included) => return Ok(TheoryUnitSelection::Included),
                 Some(Membership::Outside) => outside = true,
@@ -210,12 +210,12 @@ impl SelectedProgramView<'_, '_> {
             .iter()
             .enumerate()
             .flat_map(|(index, sources)| sources.iter().map(move |source| (index, source)))
-            .filter(|(index, source)| {
+            .filter(|(_, source)| {
                 matches!(
                     self.selection
                         .0
                         .index
-                        .axiom_source_membership(self.inventory, *index, source),
+                        .axiom_source_membership(self.inventory, source),
                     Some(Membership::Included)
                 )
             })
@@ -240,7 +240,7 @@ impl SelectedProgramView<'_, '_> {
                 self.selection
                     .0
                     .index
-                    .axiom_source_membership(self.inventory, index, source),
+                    .axiom_source_membership(self.inventory, source),
                 Some(Membership::Included)
             )
         }))
@@ -262,7 +262,7 @@ impl SelectedProgramView<'_, '_> {
                 self.selection
                     .0
                     .index
-                    .axiom_source_membership(self.inventory, index, source),
+                    .axiom_source_membership(self.inventory, source),
                 Some(Membership::Included | Membership::Blocked(_))
             )
         }))

@@ -34,7 +34,7 @@ use std::collections::{BTreeMap, BTreeSet};
 
 use purrdf::RdfDataset;
 
-use crate::frontend::{Diagnostic, Severity, SourceNode};
+use crate::frontend::{AxiomSource, CollectionField, Diagnostic, Severity, SourceNode};
 use crate::graphutil::{
     Node, Subject, default_graph_pattern, iri_of, nn, node_of, objects, sha256_12, subject_id,
     term_as_subject,
@@ -442,7 +442,6 @@ struct OwnerSkolemizer<'a> {
     nodes: &'a BTreeMap<String, Subject>,
     skolems: &'a mut BTreeMap<String, String>,
     state: BTreeMap<String, OwnerState>,
-    emitted: BTreeSet<String>,
     out: Vec<LiftedTriple>,
     diagnostics: &'a mut Vec<Diagnostic>,
 }
@@ -469,7 +468,7 @@ impl OwnerSkolemizer<'_> {
         self.diagnostics.push(Diagnostic {
             severity: Severity::Warning,
             code: code.to_owned(),
-            message: format!("anonymous class expression {label:?} is not lifted: {why}"),
+            message: format!("anonymous owner {label:?} is not lifted: {why}"),
             subject: Some(label.to_owned()),
         });
         None
@@ -492,21 +491,44 @@ impl OwnerSkolemizer<'_> {
             term: subject_id(self.store, &node).expect("selected anonymous owner"),
             graph: None,
         };
-        let rows: Vec<(String, Node)> =
+        let rows: Vec<(purrdf::QuadIds, String, Node)> =
             default_graph_pattern(self.store, Some(source.term), None, None)
                 .map(|quad| {
                     (
+                        quad,
                         iri_of(self.store, quad.p).as_str().to_owned(),
                         node_of(self.store, quad.o),
                     )
                 })
                 .collect();
         // (predicate, object) pairs re-emitted on the skolem, plus the list cells.
-        let mut fields: Vec<(String, AtomicTerm)> = Vec::new();
-        let mut cells: Vec<(String, &'static str, AtomicTerm)> = Vec::new();
+        let mut fields: Vec<(String, AtomicTerm, Vec<AxiomSource>)> = Vec::new();
+        let mut cells: Vec<(String, &'static str, AtomicTerm, Vec<AxiomSource>)> = Vec::new();
         let mut key_types: Vec<String> = Vec::new();
         let mut is_nary_axiom = false;
-        for (predicate, object) in rows {
+        let owner_role = crate::frontend::rewritten_owner_role(self.store, source);
+        for (quad, predicate, object) in rows {
+            let field_owner = if (predicate == RDF_TYPE || predicate == LOGIC_INSTANCE_OF)
+                && matches!(&object, Node::Iri(marker)
+                    if matches!(gmeow_ns::schema_type_role(marker),
+                        Some(gmeow_ns::SchemaTypeRole::DisjointClasses
+                            | gmeow_ns::SchemaTypeRole::DisjointProperties
+                            | gmeow_ns::SchemaTypeRole::DistinctIndividuals)))
+            {
+                crate::frontend::SourceOwnerRole::SchemaLaw
+            } else {
+                owner_role
+            };
+            let store = self.store;
+            let origins = || {
+                crate::frontend::source_fields(store, source, Some(quad.p))
+                    .filter(|binding| binding.canonical.o == quad.o)
+                    .map(|source| AxiomSource::RewrittenField {
+                        source,
+                        owner: field_owner,
+                    })
+                    .collect()
+            };
             if predicate == RDF_TYPE || predicate == LOGIC_INSTANCE_OF {
                 let Ok(class) = crate::graphutil::atomic_object(&object) else {
                     return self.fail(label, "MALFORMED_LIST", "its typing is a quoted triple");
@@ -521,6 +543,7 @@ impl OwnerSkolemizer<'_> {
                     fields.push((
                         predicate,
                         AtomicTerm::Iri(crate::graphutil::term_str(&object)),
+                        origins(),
                     ));
                 }
                 continue;
@@ -534,8 +557,24 @@ impl OwnerSkolemizer<'_> {
                 let lowered = lower(store, ctor, &object, &mut |m| self.member(m));
                 match lowered {
                     Ok(list) => {
-                        fields.push((predicate, AtomicTerm::Iri(list.head)));
-                        cells.extend(list.cells);
+                        let constructors = crate::frontend::collection_origins(
+                            self.store,
+                            source,
+                            &predicate,
+                            &object,
+                            CollectionField::Constructor,
+                        );
+                        let cell_origins = crate::frontend::collection_origins(
+                            self.store,
+                            source,
+                            &predicate,
+                            &object,
+                            CollectionField::Cell,
+                        );
+                        fields.push((predicate, AtomicTerm::Iri(list.head), constructors));
+                        cells.extend(list.cells.into_iter().map(|(subject, predicate, object)| {
+                            (subject, predicate, object, cell_origins.clone())
+                        }));
                     }
                     Err(defect) => {
                         let code = match defect {
@@ -554,7 +593,7 @@ impl OwnerSkolemizer<'_> {
                 continue;
             }
             match self.member(&object) {
-                Ok(term) => fields.push((predicate, term)),
+                Ok(term) => fields.push((predicate, term, origins())),
                 Err(defect) => {
                     let code = match defect {
                         ListDefect::Malformed(_) => "MALFORMED_LIST",
@@ -570,7 +609,7 @@ impl OwnerSkolemizer<'_> {
         }
         let mut key: Vec<String> = fields
             .iter()
-            .map(|(predicate, term)| {
+            .map(|(predicate, term, _)| {
                 crate::ir::atomic::frame("field", [predicate.as_str(), &term.key()])
             })
             .chain(key_types)
@@ -588,23 +627,21 @@ impl OwnerSkolemizer<'_> {
         );
         self.state.remove(label);
         self.skolems.insert(label.to_owned(), iri.clone());
-        if self.emitted.insert(iri.clone()) {
-            for (predicate, obj) in fields {
-                self.out.push(LiftedTriple {
-                    source,
-                    subject: iri.clone(),
-                    predicate,
-                    obj,
-                });
-            }
-            for (subject, predicate, obj) in cells {
-                self.out.push(LiftedTriple {
-                    source,
-                    subject,
-                    predicate: predicate.to_owned(),
-                    obj,
-                });
-            }
+        for (predicate, obj, sources) in fields {
+            self.out.push(LiftedTriple {
+                sources,
+                subject: iri.clone(),
+                predicate,
+                obj,
+            });
+        }
+        for (subject, predicate, obj, sources) in cells {
+            self.out.push(LiftedTriple {
+                sources,
+                subject,
+                predicate: predicate.to_owned(),
+                obj,
+            });
         }
         Some(iri)
     }
@@ -626,7 +663,6 @@ pub(crate) fn skolemize_anonymous_owners(
         nodes,
         skolems,
         state: BTreeMap::new(),
-        emitted: BTreeSet::new(),
         out: Vec::new(),
         diagnostics,
     };

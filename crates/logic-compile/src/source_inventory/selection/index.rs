@@ -174,7 +174,11 @@ impl SelectionIndex {
             !owners.is_empty()
         });
         syntax.issues.retain(|_, issues| {
-            issues.retain(|SyntaxIssue::MalformedCollection { source, .. }| {
+            issues.retain(|issue| {
+                let source = match issue {
+                    SyntaxIssue::MalformedCollection { source, .. }
+                    | SyntaxIssue::CollectionCapacity { source, .. } => source,
+                };
                 inventory.statement_selected(source.canonical, source.carrier)
             });
             !issues.is_empty()
@@ -211,6 +215,27 @@ impl SelectionIndex {
                 match source {
                     AxiomSource::Reification(node) => {
                         roots.insert(owner(*node, SyntaxFamily::Atom));
+                    }
+                    AxiomSource::Collection { source, .. } => {
+                        roots.insert(owner(
+                            SourceNode {
+                                term: source.constructor.canonical.s,
+                                graph: source.constructor.canonical.g,
+                            },
+                            source.role.owner.family(),
+                        ));
+                    }
+                    AxiomSource::RewrittenField {
+                        source,
+                        owner: role,
+                    } => {
+                        roots.insert(owner(
+                            SourceNode {
+                                term: source.canonical.s,
+                                graph: source.canonical.g,
+                            },
+                            role.family(),
+                        ));
                     }
                     AxiomSource::ClassExpression(node)
                         if !list_axiom(&theory.program().axioms[index].predicate) =>
@@ -341,12 +366,20 @@ impl SelectionIndex {
                 .participation
                 .get(&unit)
                 .is_some_and(|state| state.included)
-                && let Some(SyntaxIssue::MalformedCollection { detail, .. }) = issues.first()
+                && let Some(issue) = issues.first()
             {
+                let (code, detail) = match issue {
+                    SyntaxIssue::MalformedCollection { detail, .. } => {
+                        ("MALFORMED_OWNED_COLLECTION", detail)
+                    }
+                    SyntaxIssue::CollectionCapacity { detail, .. } => {
+                        ("SOURCE_COLLECTION_CAPACITY", detail)
+                    }
+                };
                 index.blocked.insert(
                     unit,
                     Boundary {
-                        code: "MALFORMED_OWNED_COLLECTION",
+                        code,
                         detail: detail.clone(),
                     },
                 );
@@ -617,7 +650,7 @@ impl SelectionIndex {
         for (index, sources) in theory.axiom_sources().iter().enumerate() {
             self.axioms[index] = sources.iter().any(|source| {
                 matches!(
-                    self.axiom_source_membership(inventory, index, source),
+                    self.axiom_source_membership(inventory, source),
                     Some(Membership::Included)
                 )
             });
@@ -703,7 +736,7 @@ impl SelectionIndex {
             SourceObligationOrigin::Axiom(index) => self.combine_memberships(
                 theory.axiom_sources()[index]
                     .iter()
-                    .filter_map(|source| self.axiom_source_membership(inventory, index, source)),
+                    .filter_map(|source| self.axiom_source_membership(inventory, source)),
             ),
             SourceObligationOrigin::Quotation { reifier, graph, .. } => {
                 self.owner_membership(owner(
@@ -759,7 +792,6 @@ impl SelectionIndex {
     pub(super) fn axiom_source_membership(
         &self,
         inventory: &SourceInventory<'_>,
-        index: usize,
         source: &AxiomSource,
     ) -> Option<Membership<'_>> {
         let theory = inventory.theory();
@@ -813,25 +845,47 @@ impl SelectionIndex {
             AxiomSource::Formula(node) => {
                 self.owner_membership(owner(*node, SyntaxFamily::Formula))
             }
-            AxiomSource::ClassExpression(node) => {
-                let families: &[SyntaxFamily] =
-                    if list_axiom(&theory.program().axioms[index].predicate) {
-                        &[
-                            SyntaxFamily::Class,
-                            SyntaxFamily::ClassList,
-                            SyntaxFamily::ValueList,
-                            SyntaxFamily::PropertyList,
-                            SyntaxFamily::FacetList,
-                        ]
-                    } else {
-                        &[SyntaxFamily::Class]
+            AxiomSource::Collection { source, .. } => {
+                if !inventory
+                    .statement_selected(source.constructor.canonical, source.constructor.carrier)
+                {
+                    Membership::Outside
+                } else {
+                    let node = SourceNode {
+                        term: source.constructor.canonical.s,
+                        graph: source.constructor.canonical.g,
                     };
-                self.combine(
-                    families
-                        .iter()
-                        .map(|family| owner(*node, *family))
-                        .filter(|unit| self.active.contains(unit)),
-                )
+                    match self.owner_membership(owner(node, source.role.owner.family())) {
+                        Membership::Included => {}
+                        membership => return Some(membership),
+                    }
+                    let Some(&id) = self.syntax.collections.get(source) else {
+                        return Some(Membership::Blocked(&self.unknown));
+                    };
+                    self.owner_membership(owner(node, SyntaxFamily::Collection(id)))
+                }
+            }
+            AxiomSource::RewrittenField {
+                source,
+                owner: role,
+            } => {
+                if self.selection_metadata.contains_key(source) {
+                    return None;
+                }
+                if !inventory.statement_selected(source.canonical, source.carrier) {
+                    Membership::Outside
+                } else {
+                    self.owner_membership(owner(
+                        SourceNode {
+                            term: source.canonical.s,
+                            graph: source.canonical.g,
+                        },
+                        role.family(),
+                    ))
+                }
+            }
+            AxiomSource::ClassExpression(node) => {
+                self.owner_membership(owner(*node, SyntaxFamily::Class))
             }
         })
     }
@@ -1141,13 +1195,14 @@ fn intrinsic_family(dataset: &purrdf::RdfDataset, quad: QuadIds) -> Option<Synta
         && let Some(role) = gmeow_ns::schema_type_role(marker)
     {
         return Some(match role {
-            gmeow_ns::SchemaTypeRole::Class
-            | gmeow_ns::SchemaTypeRole::ClassExpression
+            gmeow_ns::SchemaTypeRole::Class | gmeow_ns::SchemaTypeRole::ClassExpression => {
+                SyntaxFamily::Class
+            }
+            gmeow_ns::SchemaTypeRole::PropertySignature
+            | gmeow_ns::SchemaTypeRole::PropertyCharacteristic
             | gmeow_ns::SchemaTypeRole::DisjointClasses
             | gmeow_ns::SchemaTypeRole::DisjointProperties
-            | gmeow_ns::SchemaTypeRole::DistinctIndividuals => SyntaxFamily::Class,
-            gmeow_ns::SchemaTypeRole::PropertySignature
-            | gmeow_ns::SchemaTypeRole::PropertyCharacteristic => SyntaxFamily::Schema,
+            | gmeow_ns::SchemaTypeRole::DistinctIndividuals => SyntaxFamily::Schema,
         });
     }
     gmeow_ns::schema_predicate_role(predicate).and_then(|role| {
@@ -1159,6 +1214,28 @@ fn intrinsic_family(dataset: &purrdf::RdfDataset, quad: QuadIds) -> Option<Synta
             )
         ) {
             return None;
+        }
+        if matches!(
+            role,
+            gmeow_ns::SchemaPredicateRole::ClassList
+                | gmeow_ns::SchemaPredicateRole::ValueList
+                | gmeow_ns::SchemaPredicateRole::PropertyList
+                | gmeow_ns::SchemaPredicateRole::FacetList
+                | gmeow_ns::SchemaPredicateRole::Members
+                | gmeow_ns::SchemaPredicateRole::DistinctMembers
+        ) {
+            return crate::frontend::collection_roles(
+                dataset,
+                SourceNode {
+                    term: quad.s,
+                    graph: quad.g,
+                },
+                predicate,
+            )
+            .into_iter()
+            .flatten()
+            .next()
+            .map(|role| role.owner.family());
         }
         Some(if role == gmeow_ns::SchemaPredicateRole::Signature {
             SyntaxFamily::Schema
@@ -1268,6 +1345,7 @@ fn structural_families(predicate: &str) -> Option<&'static [SyntaxFamily]> {
             SyntaxFamily::ValueList,
             SyntaxFamily::PropertyList,
             SyntaxFamily::FacetList,
+            SyntaxFamily::UninterpretedList,
         ]),
         Some(_) => Some(&[SyntaxFamily::Owner]),
         None => None,

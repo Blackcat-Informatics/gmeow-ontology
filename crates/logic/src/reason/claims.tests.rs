@@ -95,6 +95,8 @@ fn module_execution_preserves_owners_shared_support_and_invocation_authority() {
     let body = r#"
 ex:Included a logic:Module . ex:Excluded a logic:Module .
 ex:p a logic:DatatypeProperty ; logic:domain logic:Nothing ; logic:inModule ex:Excluded .
+ex:chain logic:propertyChainAxiom ex:collection ; logic:inModule ex:Excluded .
+ex:collection rdf:first ex:p ; rdf:rest rdf:nil .
 ex:a ex:p ex:b .
 ex:claim rdf:reifies <<( ex:a ex:label "chat"@fr )>> ; logic:inModule ex:Included .
 _:x a logic:TermCarrier ; logic:termVariable "x" .
@@ -117,6 +119,19 @@ _:x logic:termIndex 0 . _:label logic:termIndex 1 .
     let theory = compile(body);
     let inventory = whole_inventory(&theory);
     let (input, ingress) = ingest_modules(&inventory, &[INCLUDED]);
+    assert!(
+        ingress
+            .resolved_selection()
+            .program_view(&inventory)
+            .expect("the selected view belongs to this source")
+            .axioms()
+            .all(|(_, axiom)| !matches!(
+                axiom.predicate.as_str(),
+                "http://www.w3.org/1999/02/22-rdf-syntax-ns#first"
+                    | "http://www.w3.org/1999/02/22-rdf-syntax-ns#rest"
+            )),
+        "an excluded chain contributes no executable collection cells"
+    );
     let selected = prepare_selected_theory(&inventory, &ingress).expect("selected module lowering");
     let mut admission =
         NativeSourceAdmission::inspect_selected(&inventory, ingress.resolved_selection())

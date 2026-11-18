@@ -7,18 +7,18 @@ use serde::Serialize;
 use serde::ser::SerializeSeq;
 
 use crate::frontend::{
-    AxiomSource, CompiledTheory, FormulaDisposition, OwnerDisposition, OwnerFamily, SourceCarrier,
-    SourceStatementBinding,
+    AxiomSource, CollectionField, CollectionRole, CompiledTheory, FormulaDisposition,
+    OwnerDisposition, OwnerFamily, SourceCarrier, SourceOwnerRole, SourceStatementBinding,
 };
 use purrdf::RdfDataset;
 
 use super::identity::{node_anchor, quad_anchor, term_anchor};
 
 const COMPILER_SOURCE_TRACE_DOMAIN: purrdf_hash::Domain =
-    purrdf_hash::Domain::new(b"gmeow-compiler-source-trace-v2\0");
+    purrdf_hash::Domain::new(b"gmeow-compiler-source-trace-v3\0");
 
 #[derive(Serialize)]
-struct TraceV2<'a> {
+struct TraceV3<'a> {
     schema_version: u32,
     axioms: Axioms<'a>,
     owners: Owners<'a>,
@@ -45,12 +45,29 @@ enum Origin {
     ClassExpression {
         source: String,
     },
+    Collection {
+        constructor: (&'static str, String),
+        role: CollectionRole,
+        field: CollectionField,
+    },
+    RewrittenField {
+        source: (&'static str, String),
+        owner: SourceOwnerRole,
+    },
     Reification {
         source: String,
     },
     Formula {
         source: String,
     },
+}
+
+fn carrier_name(carrier: SourceCarrier) -> &'static str {
+    match carrier {
+        SourceCarrier::Statement => "statement",
+        SourceCarrier::Annotation => "annotation",
+        SourceCarrier::Reifier => "reifier",
+    }
 }
 
 impl Serialize for Origins<'_> {
@@ -69,6 +86,21 @@ impl Serialize for Origins<'_> {
                 },
                 AxiomSource::ClassExpression(node) => Origin::ClassExpression {
                     source: node_anchor(self.dataset, *node),
+                },
+                AxiomSource::Collection { source, field } => Origin::Collection {
+                    constructor: (
+                        carrier_name(source.constructor.carrier),
+                        quad_anchor(self.dataset, source.constructor.canonical),
+                    ),
+                    role: source.role,
+                    field: *field,
+                },
+                AxiomSource::RewrittenField { source, owner } => Origin::RewrittenField {
+                    source: (
+                        carrier_name(source.carrier),
+                        quad_anchor(self.dataset, source.canonical),
+                    ),
+                    owner: *owner,
                 },
                 AxiomSource::Reification(node) => Origin::Reification {
                     source: node_anchor(self.dataset, *node),
@@ -114,11 +146,7 @@ impl Serialize for RecordSupport<'_> {
     fn serialize<S: serde::Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
         let mut sequence = serializer.serialize_seq(Some(self.bindings.len()))?;
         for binding in self.bindings {
-            let carrier = match binding.carrier {
-                SourceCarrier::Statement => "statement",
-                SourceCarrier::Annotation => "annotation",
-                SourceCarrier::Reifier => "reifier",
-            };
+            let carrier = carrier_name(binding.carrier);
             sequence.serialize_element(&(carrier, quad_anchor(self.dataset, binding.canonical)))?;
         }
         sequence.end()
@@ -191,8 +219,8 @@ pub(super) fn digest(theory: &CompiledTheory) -> String {
     hasher.update(COMPILER_SOURCE_TRACE_DOMAIN.as_bytes());
     serde_json::to_writer(
         &mut hasher,
-        &TraceV2 {
-            schema_version: 2,
+        &TraceV3 {
+            schema_version: 3,
             axioms: Axioms(theory),
             owners: Owners(theory),
             formulas: Formulas(theory),

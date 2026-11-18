@@ -91,6 +91,8 @@ fn prove_json(name: &str, body: &str, extra: &[&str]) -> (serde_json::Value, i32
 /// separate module consistency never licenses their contradictory composition.
 /// Qualified duplicate carriers cannot erase admitted premises or borrow admission.
 /// A blocked positive rule stays unread while the admitted fragment seeks a witness.
+/// Excluded collection owners supply no cells or synthetic classes, while
+/// unrelated assertions about a shared resource remain executable.
 #[test]
 fn selected_modules_form_one_theory_with_actual_import_closure() {
     let body = r#"
@@ -251,6 +253,49 @@ ex:blocked a logic:Rule ; logic:inModule ex:LeftModule ; logic:standpoint ex:obs
                 && unit["anchor"].as_str().is_some_and(|anchor|
                     anchor.contains("https://example.org/prove/qualified"))
                 && unit["disposition"]["Blocked"]["code"] == "SCOPED_CLAIM_NOT_READ"));
+    }
+
+    let collection = r#"
+ex:M a logic:Module . ex:N a logic:Module .
+ex:chain logic:propertyChainAxiom ex:head ; logic:inModule ex:N .
+ex:head rdf:first ex:property ; rdf:rest rdf:nil .
+rdf:first logic:domain logic:Nothing .
+"#;
+    for (extra, expected, native) in [
+        ("", "not-decided", "no-clash"),
+        (
+            "ex:mark logic:domain logic:Nothing . ex:head ex:mark ex:value .",
+            "inconsistent",
+            "clash",
+        ),
+    ] {
+        let (report, _) = prove_json(
+            "module-collection.ttl",
+            &format!("{collection}{extra}"),
+            &["--module", "https://example.org/prove/M", "--gate"],
+        );
+        assert_eq!(report["verdict"], expected, "{report:#}");
+        assert_eq!(report["engines"]["native"]["verdict"], native, "{report:#}");
+        let units = report["native_admission"]["units"]
+            .as_array()
+            .expect("the source units remain visible");
+        assert!(
+            !units.iter().any(|unit| unit["kind"] == "ClassDefinition"
+                && unit["anchor"]
+                    .as_str()
+                    .is_some_and(|anchor| anchor.contains("https://example.org/prove/head"))),
+            "a property-list head is not a class definition: {report:#}"
+        );
+        assert!(
+            units.iter().any(
+                |unit| unit["disposition"].get("OutsideRequestedTheory").is_some()
+                    && unit["anchor"]
+                        .as_str()
+                        .is_some_and(|anchor| anchor.contains("https://example.org/prove/head")
+                            && anchor.contains("first"))
+            ),
+            "excluded physical cells remain inventoried: {report:#}"
+        );
     }
 }
 

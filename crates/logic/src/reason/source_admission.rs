@@ -403,6 +403,12 @@ fn classify(
                     "class-constructor syntax requires a complete native source-law account",
                 );
             }
+            if unit.collection_roles().next().is_some() {
+                return Disposition::blocked(
+                    "COLLECTION_LAW_NOT_ACCOUNTED",
+                    "collection constructors require a complete native source-law account",
+                );
+            }
             if unit.is_structural_statement() {
                 return Disposition::support("source grammar accounted by its inventoried owner");
             }
@@ -742,6 +748,30 @@ fn classify_axiom(
             "source route is outside the canonical axiom program",
         );
     };
+    if sources.iter().any(|source| {
+        matches!(
+            source,
+            AxiomSource::Collection { .. } | AxiomSource::RewrittenField { .. }
+        )
+    }) {
+        let class_definition = sources.iter().any(|source| match source {
+            AxiomSource::Collection { source, .. } => {
+                source.role.owner == gmeow_logic_compile::frontend::SourceOwnerRole::ClassDefinition
+            }
+            AxiomSource::RewrittenField { owner, .. } => {
+                *owner == gmeow_logic_compile::frontend::SourceOwnerRole::ClassDefinition
+            }
+            _ => false,
+        });
+        return Disposition::blocked(
+            if class_definition {
+                "CLASS_DEFINITION_NOT_ACCOUNTED"
+            } else {
+                "SCHEMA_LOWERING_NOT_ACCOUNTED"
+            },
+            "rewritten schema and collection syntax requires an explicit native law account",
+        );
+    }
     if sources
         .iter()
         .any(|source| matches!(source, AxiomSource::Formula(_)))
