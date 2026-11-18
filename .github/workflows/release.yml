@@ -49,7 +49,7 @@ jobs:
       # `cargo nextest run --no-run --workspace`, so the release runner needs
       # cargo-nextest just like the ci.yml jobs do.
       - name: Install cargo-nextest
-        uses: taiki-e/install-action@c509219cf42fba86913069efd0ade2458c59337b # v2
+        uses: taiki-e/install-action@cfdb7ed4ccc7c7dce37759eae89dc5674b469b39 # v2
         with:
           tool: cargo-nextest
 
@@ -206,7 +206,7 @@ jobs:
 
       # The SAME pin ci.yml uses; the packaging contract test enforces it.
       - name: Install wasm-bindgen-cli (pinned to the crate version)
-        uses: taiki-e/install-action@c509219cf42fba86913069efd0ade2458c59337b # v2
+        uses: taiki-e/install-action@cfdb7ed4ccc7c7dce37759eae89dc5674b469b39 # v2
         with:
           tool: wasm-bindgen-cli@0.2.130
 
