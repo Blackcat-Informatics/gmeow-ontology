@@ -150,6 +150,29 @@ Each is a declared property of the IR, never an unstated convention:
   the ordinary reifier-scope carrier, it round-trips through the canonical RDF 1.2 serialization
   (and thus every faithful dialect) at `exact` preservation.
 
+The native selected-theory operation composes explicitly requested module roots,
+their actual transitive `logic:imports`, and the top-level obligations of the
+supplied documents into one theory. Roots require actual default-graph
+`logic:Module` declarations; filenames, slice dependencies and graph names grant
+no membership. Missing roots or unavailable imports refuse. Cycles and shared
+import paths retain their original edge evidence without duplicating sentences.
+Selecting several roots authorizes their joint theory without inventing imports.
+A contradiction between their admitted sentences refutes that composition.
+
+`TheorySelection` records a request. Compiler-issued source resolution binds the
+exact roots, closure, import evidence and source selection before native input or
+program views are borrowed. Selected rules and formulas retain their original
+indices and source occurrences after deduplication. An exclusively owned child
+cannot become an independent assertion; a selected owner whose required syntax
+is unavailable remains blocked as a whole. Shared support remains available
+through its actual admitted owners.
+
+The complete supplied inventory remains reportable. Explicitly unselected modules
+receive an authorized disposition outside the requested theory; graph, standpoint, time,
+modality and untranslated-envelope boundaries remain separate blockers. Without
+module roots, the top-level operation retains its existing module-scope boundaries.
+Module composition neither equates contexts nor supplies their translations.
+
 ## Lowering and the preservation judgment
 
 A projection lowers the IR toward a target whose expressivity is usually narrower. Lowering is
@@ -535,24 +558,31 @@ the substrate does not.
   retained as an independent assertion. Native execution has two source profiles. The
   bare-program profile reads no scoped claim and refuses a program in which any axiom,
   rule, head or body atom carries a standpoint, time, modality or module coordinate. The
-  selected-theory profile first accounts for every scoped claim in a claim ingress ledger:
-  a ground claim is read as a fact of the selected world only when it is evidence only,
-  meaning every stated statement about its carrier, in any graph, is on a closed allow-list: the
+  selected-theory profile accounts for every scoped claim in a claim ingress ledger.
+  Its evidence-only route admits a ground claim when every stated statement about
+  its carrier, in any graph, is on a closed allow-list:
   reification structure (`rdf:reifies`, or `rdf:type rdf:Statement` with `rdf:subject`,
   `rdf:predicate` and `rdf:object`), `logic:provenance` and `logic:confidence`. The fact
   is built from the RDF terms the carrier holds and the envelope stays on the carrier as
-  evidence. Any other statement with the carrier as subject, any statement with the
+  evidence. A distinct typed module-assertion route additionally admits one exact
+  default-graph `logic:inModule` coordinate resolved against the same immutable source and
+  requested import closure. This route requires no invented provenance or
+  confidence and does not widen the evidence-only allow-list. Any carrier
+  statement beyond the selected route's contract, any statement with the
   carrier as object or predicate, any mention of the carrier in a statement another carrier
   holds (inside a triple term at any depth, or as a term of a classic statement node,
   whatever the standing of that other carrier), and the carrier's use as a graph name keep
   the claim out, in whichever graph of the source they occur; a named graph never supplies
-  the evidence. A predicate need not be known to count: a standpoint, a stance or denial, a time, a module, a second type, an unknown annotation,
-  and every `logic:modality` value, so a carrier that states `logic:none` beside another
+  the evidence. A predicate need not be known to count: a standpoint, a stance
+  or denial, a time, a module outside the resolved request, a second type, an
+  unknown annotation, and every `logic:modality` value, so a carrier that states `logic:none` beside another
   modality is not read for either value. Every claim that is not read is recorded with
   the coordinate, predicate or reason that kept it out. Under
-  that profile an axiom's scope does not refuse the program, while a rule, head or body
-  atom scoped outside the selected theory still does. A reifier with no scope coordinate
-  is a quotation under both profiles and is never read as a fact.
+  that profile each selected rule, head, body atom and required descendant needs
+  an admitted scope; filtering never shortens an owner's required syntax. A
+  reifier with no scope or evidence coordinate is a quotation. A module claim
+  outside the request remains an assertion outside that theory; unresolved
+  membership remains a named boundary. Neither profile reads a quotation as a fact.
 
 **Validation, not trust.** Transforms are validated, not trusted: a round-trip/witness-preservation
 check (the analogue of compiler `debugify`) and a refinement check against the declared preservation
@@ -638,10 +668,10 @@ positive consequence. The original typed logic program remains the canonical
 owner of these constructs. This explicit boundary does not complete the separate
 contextual source/model calculus or authorize optimizations across its scope.
 The selected-theory native profile is a different operation and does not change
-this lowering: it reads an evidence-only scoped claim (nothing is said about its
-carrier but the reification, provenance and confidence) as a fact of the selected
-world and names every other scoped claim, and it writes no unscoped statement
-into any projection.
+this lowering. It admits evidence-only claims and source-resolved module
+assertions through their separate closed carrier contracts, names every unread
+claim, and writes no unscoped statement into a projection. Native module
+admission grants no classical export or proof-replay authority.
 
 ### Interpreted finite RDF numeric relations
 

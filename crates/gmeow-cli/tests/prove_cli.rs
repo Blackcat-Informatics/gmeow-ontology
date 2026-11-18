@@ -87,6 +87,294 @@ fn prove_json(name: &str, body: &str, extra: &[&str]) -> (serde_json::Value, i32
     (report, output.status.code().expect("exit status"))
 }
 
+/// PROTECTS: explicit roots and actual cyclic imports contribute to one theory;
+/// separate module consistency never licenses their contradictory composition.
+#[test]
+fn selected_modules_form_one_theory_with_actual_import_closure() {
+    let body = r#"
+ex:LeftModule a logic:Module .
+ex:RightModule a logic:Module .
+ex:Hub a logic:Module ; logic:imports ex:LeftModule, ex:Diamond .
+ex:Diamond a logic:Module ; logic:imports ex:RightModule, ex:LeftModule, ex:Hub .
+ex:A logic:disjointWith ex:B .
+ex:left rdf:reifies <<( ex:a logic:instanceOf ex:A )>> ; logic:inModule ex:LeftModule .
+ex:right rdf:reifies <<( ex:a logic:instanceOf ex:B )>> ; logic:inModule ex:RightModule .
+"#;
+    let directory = tempfile::tempdir().expect("scratch directory");
+    let source = write(directory.path(), "modules.ttl", body);
+    let run = |extra: &[&str]| {
+        let output = gmeow()
+            .args(["prove", path(&source), "--format", "json"])
+            .args(extra)
+            .output()
+            .expect("selected module operation");
+        serde_json::from_slice::<serde_json::Value>(&output.stdout).expect("module report")
+    };
+    for module in ["LeftModule", "RightModule"] {
+        let root = format!("https://example.org/prove/{module}");
+        let report = run(&["--module", &root]);
+        assert_eq!(report["verdict"], "consistent", "{report:#}");
+        assert_eq!(report["selection"]["claims_read"], 1);
+    }
+    let joint = run(&[
+        "--module",
+        "https://example.org/prove/LeftModule",
+        "--module",
+        "https://example.org/prove/RightModule",
+    ]);
+    assert_eq!(joint["verdict"], "inconsistent", "{joint:#}");
+    assert_eq!(joint["selection"]["claims_read"], 2);
+    assert!(
+        joint["engines"]["native"]["refutations"]
+            .as_array()
+            .is_some_and(|rows| !rows.is_empty())
+    );
+    let native = joint["refutations"]
+        .as_array()
+        .expect("refutations")
+        .iter()
+        .find(|row| row["engine"] == "native")
+        .expect("native joint witness");
+    let premises = native["premises"].to_string();
+    for term in [
+        "https://example.org/prove/a",
+        "https://example.org/prove/A",
+        "https://example.org/prove/B",
+    ] {
+        assert!(premises.contains(term), "missing {term} from {premises}");
+    }
+    assert_eq!(
+        joint,
+        run(&[
+            "--module",
+            "https://example.org/prove/RightModule",
+            "--module",
+            "https://example.org/prove/LeftModule"
+        ])
+    );
+    let text = gmeow()
+        .args([
+            "prove",
+            path(&source),
+            "--module",
+            "https://example.org/prove/LeftModule",
+        ])
+        .output()
+        .expect("text module report");
+    let text = String::from_utf8(text.stdout).expect("UTF-8 text");
+    assert!(text.contains("theory-composition composed-modules"));
+    assert!(text.contains("theory-root https://example.org/prove/LeftModule"));
+    assert!(text.contains("verdict consistent"));
+    assert!(
+        text.lines().any(
+            |line| line.starts_with("source-unit OutsideRequestedTheory ")
+                && line.contains("https://example.org/prove/right")
+        ),
+        "{text}"
+    );
+    assert!(text.contains(&format!("semantic-units {}", joint["selection"]["units"])));
+    let imported = run(&["--module", "https://example.org/prove/Hub"]);
+    assert_eq!(imported["verdict"], "inconsistent", "{imported:#}");
+    let selection = &imported["selection"]["theory_selection"];
+    assert_eq!(selection["modules"].as_array().map(Vec::len), Some(4));
+    assert_eq!(selection["imports"].as_array().map(Vec::len), Some(5));
+    assert_eq!(selection["includes_top_level"], true);
+    assert_eq!(imported["selection"]["units"], joint["selection"]["units"]);
+}
+
+/// PROTECTS: unresolved roots/imports fail closed before native execution.
+#[test]
+fn module_requests_refuse_missing_declarations_and_imports() {
+    for body in [
+        "ex:Root logic:imports ex:Missing .",
+        "ex:Root a logic:Module ; logic:imports ex:Missing .",
+    ] {
+        let (report, code) = prove_json(
+            "missing-module.ttl",
+            body,
+            &["--module", "https://example.org/prove/Root"],
+        );
+        assert_eq!(code, 4, "{report:#}");
+        assert!(report["engines"].is_null());
+    }
+}
+
+/// PROTECTS: an excluded statement contributor cannot authorize an atomic
+/// formula that the native input never asserts, even after IR deduplication.
+#[test]
+fn excluded_statement_cannot_account_for_an_unread_atomic_formula() {
+    let body = r#"
+ex:Selected a logic:Module . ex:Excluded a logic:Module .
+ex:p logic:domain ex:C ; logic:inModule ex:Excluded .
+ex:a ex:p ex:b ; logic:instanceOf ex:D .
+ex:C logic:disjointWith ex:D .
+ex:law a logic:Formula ; logic:relation logic:domain ; logic:argument ex:propertyTerm, ex:classTerm .
+ex:propertyTerm logic:termIndex 0 ; logic:termIri ex:p .
+ex:classTerm logic:termIndex 1 ; logic:termIri ex:C .
+"#;
+    let (report, _) = prove_json(
+        "atomic-formula.ttl",
+        body,
+        &["--module", "https://example.org/prove/Selected"],
+    );
+    assert_eq!(report["verdict"], "not-decided", "{report:#}");
+    assert!(
+        drop_codes(&report)
+            .iter()
+            .any(|code| code == "FORMULA_AXIOM_NOT_READ"),
+        "{report:#}"
+    );
+}
+
+/// PROTECTS: composed required outputs remove stale bytes, and raw proof replay
+/// cannot acquire composition authority from a supplied file or matching digest.
+#[test]
+fn composed_outputs_and_raw_replay_refuse_after_reporting_theory() {
+    let directory = tempfile::tempdir().expect("scratch directory");
+    let source = write(directory.path(), "module.ttl", "ex:Root a logic:Module .");
+    let fof = directory.path().join("problem.p");
+    let proof = directory.path().join("proof.cbor");
+    std::fs::write(&fof, "stale FOF").expect("old output");
+    std::fs::write(&proof, "stale proof").expect("old proof");
+    let refusal = gmeow()
+        .args([
+            "prove",
+            path(&source),
+            "--module",
+            "https://example.org/prove/Root",
+            "--out",
+            path(&fof),
+            "--proof-out",
+            path(&proof),
+            "--format",
+            "json",
+        ])
+        .assert()
+        .code(5);
+    let report = report(&refusal);
+    assert_eq!(
+        report["selection"]["theory_selection"]["modules"],
+        serde_json::json!(["https://example.org/prove/Root"])
+    );
+    assert_eq!(report["export"]["written"], false);
+    assert!(!fof.exists());
+    assert!(!proof.exists());
+    let replay = gmeow()
+        .args([
+            "prove",
+            path(&source),
+            "--module",
+            "https://example.org/prove/Root",
+            "--check-proof",
+            path(&proof),
+            "--format",
+            "json",
+        ])
+        .assert()
+        .code(1);
+    let replay: serde_json::Value =
+        serde_json::from_slice(&replay.get_output().stdout).expect("proof-check report");
+    assert_eq!(replay["verdict"], "rejected");
+    assert_eq!(
+        replay["theory_selection"]["modules"],
+        serde_json::json!(["https://example.org/prove/Root"])
+    );
+    assert!(replay["diagnostics"].as_array().is_some_and(|rows| {
+        rows.iter()
+            .any(|row| row["code"] == "COMPOSED_PROOF_REPLAY_UNSUPPORTED")
+    }));
+    let original = std::fs::read(&source).expect("source bytes");
+    let alias = directory.path().join("source-alias.ttl");
+    std::fs::hard_link(&source, &alias).expect("input hard link");
+    for sink in ["--out", "--proof-out", "--evidence-out"] {
+        let mut command = gmeow();
+        command.args([
+            "prove",
+            path(&source),
+            "--module",
+            "https://example.org/prove/Root",
+            sink,
+            path(&alias),
+            "--format",
+            "json",
+        ]);
+        if sink != "--evidence-out" {
+            command.args(["--evidence-out", path(&source)]);
+        }
+        command.assert().code(4);
+        assert_eq!(std::fs::read(&source).expect("preserved input"), original);
+        assert_eq!(std::fs::read(&alias).expect("preserved alias"), original);
+    }
+    let shared = directory.path().join("shared-output.bin");
+    std::fs::write(&shared, "retained output").expect("existing selected sink");
+    gmeow()
+        .args([
+            "prove",
+            path(&source),
+            "--module",
+            "https://example.org/prove/Root",
+            "--out",
+            path(&shared),
+            "--proof-out",
+            path(&shared),
+            "--evidence-out",
+            path(&shared),
+            "--format",
+            "json",
+        ])
+        .assert()
+        .code(4);
+    assert_eq!(
+        std::fs::read(&shared).expect("preserved colliding output"),
+        b"retained output"
+    );
+    let absent = directory.path().join("future-output.bin");
+    std::fs::create_dir(directory.path().join("sub")).expect("existing path component");
+    let equivalent = directory.path().join("sub/../future-output.bin");
+    gmeow()
+        .args([
+            "prove",
+            path(&source),
+            "--module",
+            "https://example.org/prove/Root",
+            "--out",
+            path(&absent),
+            "--proof-out",
+            path(&equivalent),
+            "--format",
+            "json",
+        ])
+        .assert()
+        .code(4);
+    assert!(
+        !absent.exists(),
+        "an alias refusal publishes neither selected sink"
+    );
+    #[cfg(unix)]
+    {
+        let dangling = directory.path().join("dangling-output.bin");
+        std::os::unix::fs::symlink(&absent, &dangling).expect("terminal dangling output symlink");
+        gmeow()
+            .args([
+                "prove",
+                path(&source),
+                "--module",
+                "https://example.org/prove/Root",
+                "--out",
+                path(&dangling),
+                "--format",
+                "json",
+            ])
+            .assert()
+            .code(5);
+        assert_eq!(
+            std::fs::read_link(&dangling).expect("guard preserves symlink"),
+            absent
+        );
+        assert!(!absent.exists());
+    }
+}
+
 /// A clash derived by the native engine refutes the selection, names the law and
 /// its premises, and reports an unchecked attestation.
 #[test]

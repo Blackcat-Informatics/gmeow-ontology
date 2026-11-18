@@ -18,8 +18,9 @@ name = "gmeow"
 path = "src/main.rs"
 
 [dependencies]
+same-file.workspace = true
 gmeow-cli-core = { path = "../cli-core" }
-clap = { version = "4", features = ["derive"] }
+clap = { workspace = true, features = ["derive"] }
 gmeow-errors = { path = "../errors" }
 gmeow-gts-profile = { path = "../gts-profile" }
 # The registered term namespaces and the ONE definition of a subsumption edge.
@@ -94,9 +95,9 @@ serde.workspace = true
 [dev-dependencies]
 gmeow-action-cache = { path = "../action-cache" }
 gmeow-bundle-import = { path = "../bundle-import" }
-assert_cmd = "2"
-trycmd = "0.15"
-predicates = "3"
+assert_cmd.workspace = true
+trycmd.workspace = true
+predicates.workspace = true
 serde_json.workspace = true
 # Mints an ephemeral Ed25519 signing key (the substrate's key type) for the bundle_smoke.rs
 # positive/negative real-crypto verify test, in-process — never a production dependency;

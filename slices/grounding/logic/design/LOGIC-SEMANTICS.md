@@ -113,21 +113,30 @@ predicates over the reifier; they are never implicit in the quoting. This rule r
 triple terms appear (the foundation's modal lowering, the worlds layer), and it is the reason the
 foundation needs explicit lowering rather than getting modality "for free."
 
-One stance is settled by a closed rule, because a consistency verdict depends on it:
+Selected-theory execution admits two closed assertion routes:
 
-> A reified claim is an **assertion of the theory it is written in** exactly when it is
-> **evidence only**: its reifier states at least one of `logic:provenance` and
+> An **evidence-only** reified claim asserts a top-level sentence when its reifier
+> states at least one of `logic:provenance` and
 > `logic:confidence`, and the only statements about the reifier are those two and the
 > reification itself (`rdf:reifies`, or the classic `rdf:Statement` node with its subject,
 > predicate and object). Provenance says who reported the claim and confidence how sure the
 > reporter is; neither places the claim in a context, denies it, or weakens it. A reifier
-> that states neither is a quotation and asserts nothing.
+> that states neither does not acquire assertion status through this route.
 
-The list is closed and it fails closed. Any other statement about the reifier may place,
-deny or qualify the claim, so the claim is then not an assertion of the unindexed theory:
+The **typed module-assertion** route admits a claim carrying one exact
+default-graph `logic:inModule` coordinate when the compiler resolves its native module identity
+inside the requested theory. Its remaining carrier statements must satisfy the
+same closed structural and evidence contract. This route requires neither
+provenance nor confidence; it does not treat module membership as evidence-only
+metadata. A bare reifier with no scope or evidence coordinate is a quotation
+and asserts nothing. A module claim outside the requested composition remains
+an assertion outside that theory; unresolved membership remains a named boundary.
+
+Each route fails closed. A carrier statement beyond its selected contract may
+place, deny or qualify the claim, so it prevents ordinary assertion:
 a standpoint (`gmeow:accordingTo`, `logic:standpoint`), a stance such as
 `gmeow:standpointModality gmeow:refuted`, a time, a modality (the value `logic:none`
-included), a module, a further type, an attribution, or a predicate the reader does not
+included), an unresolved module coordinate, a further type, an attribution, or a predicate the reader does not
 know. The same holds when another statement points at the reifier, and when another
 reifier's carried statement mentions it, at any depth of a triple term and whether that
 other reifier is itself an assertion, an unread claim or a quotation: a claim someone speaks
@@ -143,6 +152,30 @@ across contexts; it only withholds one. Two evidence-only claims
 that contradict each other therefore contradict within one context and make the theory
 inconsistent, while two claims placed in different standpoints do not; a contested fact is
 authored with a standpoint, not with provenance alone.
+
+### Explicit module composition
+
+`gmeow prove --module IRI` selects a declared module root; repeating the option
+selects one composed theory over those roots, their actual transitive
+`logic:imports`, and the supplied documents' top-level obligations. All selected
+modules contribute to one execution and verdict, including contradictions between
+them. The request creates no import edge. Each root and imported target requires
+an actual default-graph module declaration in the supplied source; an unavailable
+root or import refuses.
+
+Membership is a source-theory dimension, independent of worlds, standpoints,
+time and modality. Composition preserves those independent coordinates and
+their typed translation requirements. It does not create a union of epistemic
+contexts. An unsupported coordinate remains a named boundary.
+
+The compiler resolves the request against one immutable source. Native input,
+selected program occurrences, claim ingress, preparation and completion bind
+that same composition. Reports retain every supplied source obligation, including
+authorized module exclusions and independent graph/context blockers. An owner
+whose required child lies outside the admitted theory remains selected and
+blocked; its child cannot be dropped to create a weaker sentence. Without an
+explicit module request, module-scoped obligations retain the top-level
+operation's existing boundaries.
 
 The executed selected-theory profile is narrower than this definition in one direction only.
 It may leave an assertion unread, for example a claim over a typed term carrier, a claim

@@ -190,6 +190,7 @@ members = [
 resolver = "2"
 
 [workspace.dependencies]
+same-file = "1.0.6"
 cargo-config2 = "0.1.45"
 # CLI argument parsing; consumers select their own derive feature.
 clap = "4"

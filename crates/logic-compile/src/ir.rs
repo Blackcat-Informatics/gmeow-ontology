@@ -581,17 +581,50 @@ pub enum ScopeMembership {
 
 /// The theory a reasoning operation decides, stated as the scopes it contains.
 ///
-/// The single composition is the top-level theory: every statement whose scope
-/// selects no context. A statement placed in a module, a standpoint, a time or a
-/// modality is outside it.
+/// This is a request and a portable observation, never source-admission authority.
+/// Explicit modules form one theory with top-level obligations and their actual
+/// transitive imports. The compiler resolves that request against one source.
 #[derive(Debug, Clone, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
 pub struct TheorySelection {
     composition: TheoryComposition,
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
 enum TheoryComposition {
     TopLevelOnly,
+    ComposedModules { roots: BTreeSet<ModuleIri> },
+}
+
+/// An absolute module identifier, independent of its declaration in a source.
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, serde::Serialize, serde::Deserialize)]
+#[serde(try_from = "String", into = "String")]
+pub struct ModuleIri(String);
+
+impl ModuleIri {
+    #[must_use]
+    pub fn as_str(&self) -> &str {
+        &self.0
+    }
+}
+
+impl TryFrom<String> for ModuleIri {
+    type Error = Diag;
+
+    fn try_from(value: String) -> Result<Self, Self::Error> {
+        purrdf::iri::BaseIri::parse(&value).map_err(|error| {
+            Diag::of_kind(crate::error::Ir::caused_by(
+                format!("module identifier {value:?} must be an absolute IRI"),
+                error,
+            ))
+        })?;
+        Ok(Self(value))
+    }
+}
+
+impl From<ModuleIri> for String {
+    fn from(value: ModuleIri) -> Self {
+        value.0
+    }
 }
 
 impl TheorySelection {
@@ -603,12 +636,47 @@ impl TheorySelection {
         }
     }
 
-    /// Classify one scope. This is the one predicate that decides whether a scoped
-    /// statement belongs to the selected theory.
+    /// Request one composed theory with top-level obligations and explicit roots.
+    ///
+    /// # Errors
+    /// Refuses an empty root request or a non-absolute module identifier.
+    pub fn composed_modules(roots: impl IntoIterator<Item = String>) -> gmeow_errors::Result<Self> {
+        let roots: BTreeSet<_> = roots
+            .into_iter()
+            .map(ModuleIri::try_from)
+            .collect::<gmeow_errors::Result<_>>()?;
+        if roots.is_empty() {
+            return Err(Diag::of_kind(crate::error::Ir::new(
+                "a composed theory requires at least one explicit module root".into(),
+            )));
+        }
+        Ok(Self {
+            composition: TheoryComposition::ComposedModules { roots },
+        })
+    }
+
+    #[must_use]
+    pub fn is_composed(&self) -> bool {
+        matches!(self.composition, TheoryComposition::ComposedModules { .. })
+    }
+
+    /// Explicit roots, in deterministic IRI order; imports require source resolution.
+    #[must_use]
+    pub fn module_roots(&self) -> impl Iterator<Item = &ModuleIri> {
+        match &self.composition {
+            TheoryComposition::TopLevelOnly => None,
+            TheoryComposition::ComposedModules { roots } => Some(roots),
+        }
+        .into_iter()
+        .flatten()
+    }
+
+    /// Classify the context-free portion of the request. Only a compiler-issued
+    /// source resolution can discharge an exact native module coordinate.
     #[must_use]
     pub fn membership(&self, scope: &ContextualScope) -> ScopeMembership {
-        match self.composition {
-            TheoryComposition::TopLevelOnly => {
+        match &self.composition {
+            TheoryComposition::TopLevelOnly | TheoryComposition::ComposedModules { .. } => {
                 let coordinates = scope.context_coordinates();
                 if coordinates.is_empty() {
                     ScopeMembership::InTheory {

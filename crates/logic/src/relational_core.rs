@@ -66,8 +66,14 @@ pub(crate) struct RelationalCoreLowering {
 /// `RcRule` that cannot be mapped onward is itself flagged as residue rather than
 /// mis-lowered (legalization, total).
 pub(crate) fn lower_formulas(program: &LogicProgram) -> RelationalCoreLowering {
+    lower_indexed_formulas(program.formulas.iter().enumerate())
+}
+
+pub(crate) fn lower_indexed_formulas<'a>(
+    formulas: impl IntoIterator<Item = (usize, &'a gmeow_logic_compile::ir::Formula)>,
+) -> RelationalCoreLowering {
     let (attributed, lane_residue) =
-        gmeow_logic_compile::relational_core::lower_formulas_to_rc_attributed(program);
+        gmeow_logic_compile::relational_core::lower_indexed_formulas_to_rc_attributed(formulas);
     let mut formula_rules: BTreeMap<String, BTreeSet<usize>> = BTreeMap::new();
     let mut rc_rules = Vec::with_capacity(attributed.len());
     for (rule, origins) in attributed {

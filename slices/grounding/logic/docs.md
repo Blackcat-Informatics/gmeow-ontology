@@ -112,6 +112,37 @@ Not every point in the facet product is implementable or coherent. The compiler 
 governing rule: an unsupported combination resolves to `unsupported` — it is never silently
 approximated by the nearest supported semantics.
 
+## Selecting a source theory
+
+Use repeatable `gmeow prove --module IRI` options to select one composed theory.
+It includes the supplied documents' top-level obligations and every requested
+module's actual transitive `logic:imports`. Declare each root and imported target
+as a `logic:Module` in the supplied default graph. Missing declarations refuse;
+filenames, slice dependencies and graph names do not imply module membership.
+Selecting several roots combines their admitted sentences without inventing
+import edges. A contradiction across selected modules refutes the composition.
+
+Module membership does not translate a standpoint, time or modality. Those
+coordinates retain their separate admission requirements. Ground module claims
+can assert through a typed, source-resolved module route without invented
+provenance or confidence; evidence-only claims keep their own closed contract.
+Unknown qualifiers, mentions and graph-name uses retain their boundaries.
+
+Reports preserve the complete supplied source inventory and identify the roots,
+resolved imports, actual consumption and remaining blockers. An unselected module
+is outside this requested theory; an unsupported selected owner is still a
+blocker. Without `--module`, the top-level operation retains its module-scope
+boundaries.
+
+Composed FOF output and raw proof export/replay have no composition-bound
+admission. A composed `--out` or `--proof-out` request fails its required output
+and removes stale output; composed `--check-proof` rejects after resolving and
+reporting the request. Output paths must be distinct from selected sources,
+proof inputs and one another; aliases refuse before any output changes. A native
+verdict remains an attestation. See
+[`LOGIC-SEMANTICS.md`](design/LOGIC-SEMANTICS.md#explicit-module-composition)
+for the assertion and context contract.
+
 ## The typed context algebra
 
 `logic:` replaces a single generic `logic:World` with a typed algebra of distinct contexts, each

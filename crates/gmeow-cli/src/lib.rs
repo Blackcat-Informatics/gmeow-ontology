@@ -411,6 +411,9 @@ pub enum Commands {
         /// Recursively add `module.ttl` and `*.logic.ttl` below this corpus root.
         #[arg(long)]
         dir: Option<PathBuf>,
+        /// Compose these explicit module IRIs, their actual imports and top-level obligations into one theory. Repeat for multiple roots.
+        #[arg(long = "module", action = clap::ArgAction::Append)]
+        modules: Vec<String>,
         /// Native derivation-step allowance. Reaching it yields `not-decided`.
         #[arg(long = "max-steps", conflicts_with = "check_proof")]
         max_steps: Option<u64>,
@@ -422,8 +425,8 @@ pub enum Commands {
         /// Output serialization.
         #[arg(long = "format", short = 'f', value_enum, default_value_t = OutputFormat::Text)]
         format: OutputFormat,
-        /// Apply the gate-exit contract: consistent 0, inconsistent 1,
-        /// not-decided 3. Malformed input is 4 and execution failure 5 in either mode.
+        /// Apply the evidence gate: native attestations exit 3, including decided
+        /// verdicts. Malformed input exits 4 and execution failure exits 5.
         #[arg(long, conflicts_with = "check_proof")]
         gate: bool,
         /// Write the complete machine-readable report regardless of stdout format.
@@ -1934,6 +1937,7 @@ pub fn run() -> i32 {
         Commands::Prove {
             inputs,
             dir,
+            modules,
             max_steps,
             step_cap,
             format,
@@ -1947,6 +1951,7 @@ pub fn run() -> i32 {
             &commands::ProveRequest {
                 inputs: &inputs,
                 dir: dir.as_deref(),
+                modules: &modules,
                 max_steps,
                 step_cap,
                 format,

@@ -757,15 +757,10 @@ pub(super) fn read_rule_distinct_pair(
     Ok((format!("?{left}"), format!("?{right}")))
 }
 
-/// Reuse the strict typed term reader for compact rule object carriers.
-/// No value properties means an ordinary RDF resource; any declared carrier is
-/// mandatory, including datatype-only and conflicting-value errors.
-pub(super) fn read_atomic_carrier(
-    store: &RdfDataset,
-    owner: &Subject,
-    carrier: &Subject,
-) -> gmeow_errors::Result<Option<crate::ir::AtomicTerm>> {
-    if [
+/// Recognize exactly when compact atom reading requires carrier syntax.
+/// The source ownership recorder shares this test without parsing another term.
+pub(super) fn has_atomic_carrier_syntax(store: &RdfDataset, carrier: &Subject) -> bool {
+    [
         "termIri",
         "termVariable",
         "termLiteral",
@@ -774,10 +769,20 @@ pub(super) fn read_atomic_carrier(
         "termLiteralDatatype",
     ]
     .iter()
-    .all(|field| formula_objects(store, carrier, field).is_empty())
-        && !super::has_structural_class(store, carrier, &Node::iri(logic_iri("TermCarrier")))
-        && formula_objects(store, carrier, "termIndex").is_empty()
-    {
+    .any(|field| !formula_objects(store, carrier, field).is_empty())
+        || super::has_structural_class(store, carrier, &Node::iri(logic_iri("TermCarrier")))
+        || !formula_objects(store, carrier, "termIndex").is_empty()
+}
+
+/// Reuse the strict typed term reader for compact rule object carriers.
+/// No value properties means an ordinary RDF resource; any declared carrier is
+/// mandatory, including datatype-only and conflicting-value errors.
+pub(super) fn read_atomic_carrier(
+    store: &RdfDataset,
+    owner: &Subject,
+    carrier: &Subject,
+) -> gmeow_errors::Result<Option<crate::ir::AtomicTerm>> {
+    if !has_atomic_carrier_syntax(store, carrier) {
         return Ok(None);
     }
     super::admission::admit(store, carrier)?;
