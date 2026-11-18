@@ -19,6 +19,7 @@ path = "src/main.rs"
 
 [dependencies]
 same-file.workspace = true
+rustix.workspace = true
 gmeow-cli-core = { path = "../cli-core" }
 clap = { workspace = true, features = ["derive"] }
 gmeow-errors = { path = "../errors" }

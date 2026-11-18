@@ -376,30 +376,53 @@ fn composed_outputs_and_raw_replay_refuse_after_reporting_theory() {
     assert_eq!(report["export"]["written"], false);
     assert!(!fof.exists());
     assert!(!proof.exists());
-    let replay = gmeow()
+    let missing_parent = directory.path().join("missing-parent/proof.cbor");
+    for candidate in [&proof, &missing_parent] {
+        let replay = gmeow()
+            .args([
+                "prove",
+                path(&source),
+                "--module",
+                "https://example.org/prove/Root",
+                "--check-proof",
+                path(candidate),
+                "--format",
+                "json",
+            ])
+            .assert()
+            .code(1);
+        let replay: serde_json::Value =
+            serde_json::from_slice(&replay.get_output().stdout).expect("proof-check report");
+        assert_eq!(replay["verdict"], "rejected");
+        assert_eq!(
+            replay["theory_selection"]["modules"],
+            serde_json::json!(["https://example.org/prove/Root"])
+        );
+        assert!(replay["diagnostics"].as_array().is_some_and(|rows| {
+            rows.iter()
+                .any(|row| row["code"] == "COMPOSED_PROOF_REPLAY_UNSUPPORTED")
+        }));
+    }
+    let evidence = directory.path().join("unpublished-evidence.json");
+    gmeow()
         .args([
             "prove",
             path(&source),
             "--module",
             "https://example.org/prove/Root",
             "--check-proof",
-            path(&proof),
+            path(&missing_parent),
+            "--evidence-out",
+            path(&evidence),
             "--format",
             "json",
         ])
         .assert()
-        .code(1);
-    let replay: serde_json::Value =
-        serde_json::from_slice(&replay.get_output().stdout).expect("proof-check report");
-    assert_eq!(replay["verdict"], "rejected");
-    assert_eq!(
-        replay["theory_selection"]["modules"],
-        serde_json::json!(["https://example.org/prove/Root"])
+        .code(4);
+    assert!(
+        !evidence.exists(),
+        "unprotectable replay input disables sinks"
     );
-    assert!(replay["diagnostics"].as_array().is_some_and(|rows| {
-        rows.iter()
-            .any(|row| row["code"] == "COMPOSED_PROOF_REPLAY_UNSUPPORTED")
-    }));
     let original = std::fs::read(&source).expect("source bytes");
     let alias = directory.path().join("source-alias.ttl");
     std::fs::hard_link(&source, &alias).expect("input hard link");
@@ -469,6 +492,24 @@ fn composed_outputs_and_raw_replay_refuse_after_reporting_theory() {
     );
     #[cfg(unix)]
     {
+        let parent_alias = directory.path().join("parent-alias");
+        std::os::unix::fs::symlink(directory.path(), &parent_alias)
+            .expect("static symlink parent alias");
+        let source_alias = parent_alias.join("module.ttl");
+        for sink in ["--out", "--proof-out", "--evidence-out"] {
+            gmeow()
+                .args([
+                    "prove",
+                    path(&source),
+                    sink,
+                    path(&source_alias),
+                    "--format",
+                    "json",
+                ])
+                .assert()
+                .code(4);
+            assert_eq!(std::fs::read(&source).expect("source retained"), original);
+        }
         let dangling = directory.path().join("dangling-output.bin");
         std::os::unix::fs::symlink(&absent, &dangling).expect("terminal dangling output symlink");
         gmeow()
@@ -648,6 +689,8 @@ fn dir_selects_semantic_sources_only_and_reruns_are_byte_identical() {
 
 /// A recorded tableau proof replays against the same inputs and is rejected
 /// against altered input, without a new solver decision.
+/// Replay input identity is retained, output aliases cannot truncate the proof,
+/// and a required proof refusal removes an earlier proof at the selected sink.
 #[test]
 fn proof_replays_on_same_inputs_and_is_rejected_on_altered_input() {
     let directory = tempfile::tempdir().expect("scratch directory");
@@ -683,6 +726,33 @@ fn proof_replays_on_same_inputs_and_is_rejected_on_altered_input() {
     assert_eq!(check["proof_digest"], digest);
     // A second reader learns which answer the replayed proof certifies.
     assert_eq!(check["claims"], serde_json::json!(["owl-view-consistent"]));
+    let proof_bytes = std::fs::read(&proof).expect("recorded proof bytes");
+    let proof_input = check["inputs"]
+        .as_array()
+        .expect("selected input receipts")
+        .iter()
+        .find(|input| input["role"] == "selected-proof-replay")
+        .expect("actual replay input receipt");
+    assert_eq!(proof_input["path"], path(&proof));
+    assert_eq!(proof_input["media_type"], "application/cbor");
+    let proof_alias = directory.path().join("proof-alias.bin");
+    std::fs::hard_link(&proof, &proof_alias).expect("proof hardlink");
+    for output in [&proof, &proof_alias] {
+        gmeow()
+            .args([
+                "prove",
+                path(&source),
+                "--check-proof",
+                path(&proof),
+                "--evidence-out",
+                path(output),
+                "--format",
+                "json",
+            ])
+            .assert()
+            .code(4);
+        assert_eq!(std::fs::read(&proof).expect("proof retained"), proof_bytes);
+    }
 
     write(
         directory.path(),
@@ -701,6 +771,36 @@ fn proof_replays_on_same_inputs_and_is_rejected_on_altered_input() {
         .assert()
         .code(1);
     assert_eq!(report(&assert)["verdict"], "rejected");
+
+    let no_proof_source = write(
+        directory.path(),
+        "unrecorded.logic.ttl",
+        "ex:shortChain logic:propertyChainAxiom ( ex:operand ) .",
+    );
+    let refusal = gmeow()
+        .args([
+            "prove",
+            path(&no_proof_source),
+            "--proof-out",
+            path(&proof),
+            "--format",
+            "json",
+        ])
+        .assert()
+        .code(5);
+    let refusal = report(&refusal);
+    assert!(
+        refusal["diagnostics"]
+            .as_array()
+            .expect("refusal diagnostics")
+            .iter()
+            .any(|row| row["code"] == "PROOF_NOT_RECORDED"),
+        "{refusal:#}"
+    );
+    assert!(
+        !proof.exists(),
+        "old proof cannot appear current after refusal"
+    );
 }
 
 /// Assert a counterexample is never `consistent` and that the expected drop is named.

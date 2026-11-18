@@ -138,7 +138,13 @@ Composed FOF output and raw proof export/replay have no composition-bound
 admission. A composed `--out` or `--proof-out` request fails its required output
 and removes stale output; composed `--check-proof` rejects after resolving and
 reporting the request. Output paths must be distinct from selected sources,
-proof inputs and one another; aliases refuse before any output changes. A native
+proof inputs and one another; aliases refuse before any output changes. Source
+discovery runs once, and semantic loading and proof replay read the admitted open
+files. Output publication and stale-output removal use held parent directories;
+switching a parent symlink cannot redirect them onto a selected input. Writes
+check the actual opened target before truncation. The boundary does not cover
+arbitrary replacement of entries inside a held directory. A selected proof output
+is removed when the run records no proof. A native
 verdict remains an attestation. See
 [`LOGIC-SEMANTICS.md`](design/LOGIC-SEMANTICS.md#explicit-module-composition)
 for the assertion and context contract.
