@@ -305,7 +305,7 @@ msgstr "À utiliser pour dire quelle question un enregistrement d'absence concer
 
 msgctxt "https://blackcatinformatics.ca/gmeow/absenceReason|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "absence reason"
-msgstr "raison de l'absence"
+msgstr "raison d'absence"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/absenceReason|http://www.w3.org/2004/02/skos/core#definition"
 msgid "The reason an absence record gives for the missing answer, drawn from the open gmeow:AbsenceReason vocabulary. One record carries exactly one reason, enforced by validation and not by a functional axiom. Competing reasons for the same question are separate records from separate vantages, which coexist; none is privileged (Principles 9 and 10)."
