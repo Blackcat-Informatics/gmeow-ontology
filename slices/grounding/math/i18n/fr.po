@@ -3758,8 +3758,8 @@ msgid "Rational Number"
 msgstr "Nombre rationnel"
 
 msgctxt "https://blackcatinformatics.ca/math/RationalNumber|http://www.w3.org/2004/02/skos/core#definition"
-msgid "A rational number (ℚ): a ratio p/q of integers with q ≠ 0. Every rational number is a real number, so this is a subclass of math:RealNumber. Situated in the math:rationalNumbers system. A rational number is exact; its finite or repeating decimal is an approximation carried by a distinct math:ApproximateValue."
-msgstr "Un nombre rationnel (ℚ) : un rapport p/q d’entiers avec q ≠ 0. Tout nombre rationnel est réel, cette classe est donc une sous-classe de math:RealNumber. Situé dans le système math:rationalNumbers. Un nombre rationnel est exact ; sa représentation décimale finie ou périodique est une approximation portée par un math:ApproximateValue distinct."
+msgid "A rational number (ℚ): a ratio p/q of integers with q ≠ 0. Every rational number is a real number, so this is a subclass of math:RealNumber. Situated in the math:rationalNumbers system. A terminating decimal or an infinite periodic decimal expansion can describe it exactly; a rounded or truncated evaluation is carried separately as math:ApproximateValue."
+msgstr "Un nombre rationnel (ℚ) : un rapport p/q d’entiers avec q ≠ 0. Tout nombre rationnel est réel, cette classe est donc une sous-classe de math:RealNumber. Situé dans le système math:rationalNumbers. Une écriture décimale finie ou un développement décimal périodique infini peut le décrire exactement ; une évaluation arrondie ou tronquée est portée séparément comme math:ApproximateValue."
 
 msgctxt "https://blackcatinformatics.ca/math/RationalNumber|http://www.w3.org/2004/02/skos/core#scopeNote"
 msgid "This is the abstract rational number in the containment tower. The concrete exact pair carrier is math:RationalValue, whose math:numerator and math:denominator are integer literals; those slots are not declared on math:RationalNumber."
@@ -18278,3 +18278,115 @@ msgstr "Ne pas remplacer des scores absents par des tuples nuls ni déduire que 
 msgctxt "https://blackcatinformatics.ca/math/scoreVector|https://blackcatinformatics.ca/gmeow/howToUse"
 msgid "Keep the result linked from its analysis and retain its actual sample, ordered components, coefficient representation and prepared input together in the source. The current competency query retrieves component and variance roles without retrieving or validating score coordinates."
 msgstr "Garder le résultat relié depuis son analyse et conserver ensemble dans la source son observation effective, les composantes ordonnées, la représentation en coefficients et l’entrée préparée. La requête de compétence actuelle extrait les rôles de composante et de variance sans extraire ni valider les coordonnées de scores."
+
+msgctxt "https://blackcatinformatics.ca/math/RationalValue|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Rational Value"
+msgstr "Valeur rationnelle"
+
+msgctxt "https://blackcatinformatics.ca/math/RationalValue|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An exact rational value represented by integer literals math:numerator p and math:denominator q with q ≠ 0. This concrete math:MathematicalObject carrier is distinct from the abstract math:RationalNumber and the math:rationalNumbers system. The pair (1, 4) represents 1/4, which also has the exact decimal value 0.25; a rounded evaluation of 1/3 is a separate approximation."
+msgstr "Une valeur rationnelle exacte représentée par les littéraux entiers math:numerator p et math:denominator q avec q ≠ 0. Cet objet porteur concret, de classe math:MathematicalObject, est distinct du math:RationalNumber abstrait et du système math:rationalNumbers. La paire (1, 4) représente 1/4, qui a aussi la valeur décimale exacte 0.25 ; une évaluation arrondie de 1/3 est une approximation distincte."
+
+msgctxt "https://blackcatinformatics.ca/math/RationalValue|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The carrier permits numerator zero and either nonzero denominator sign. Unreduced pairs can denote the same value without becoming the same RDF resource. Class-local integer count/value restrictions and required-path closure state its source contract; they do not execute the native loader."
+msgstr "L’objet porteur admet un numérateur nul et les deux signes pour un dénominateur non nul. Des paires non réduites peuvent désigner la même valeur sans devenir la même ressource RDF. Les restrictions locales à la classe sur le nombre et les valeurs entières, ainsi que la fermeture des chemins obligatoires, énoncent son contrat source ; elles n’exécutent pas le lecteur natif."
+
+msgctxt "https://blackcatinformatics.ca/math/RationalValue|http://www.w3.org/2004/02/skos/core#example"
+msgid "An exact quarter has math:numerator 1 and math:denominator 4. The pair (2, 8) denotes the same rational value without asserting that the two carrier resources are identical."
+msgstr "Un quart exact porte math:numerator 1 et math:denominator 4. La paire (2, 8) désigne la même valeur rationnelle sans affirmer que les deux ressources porteuses sont identiques."
+
+msgctxt "https://blackcatinformatics.ca/math/RationalValue|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when an exact integer ratio must remain inspectable as separate numerator and nonzero denominator literals, including matrix entries and vector components whose selected representation requires this carrier."
+msgstr "Utiliser lorsqu’un rapport exact d’entiers doit rester inspectable sous forme de littéraux séparés pour le numérateur et le dénominateur non nul, notamment pour les entrées de matrices et les composantes de vecteurs dont la représentation choisie exige cet objet porteur."
+
+msgctxt "https://blackcatinformatics.ca/math/RationalValue|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid using this carrier for p/0, an irrational value such as √2, a rounded floating-point evaluation or a claim that an RDF declaration has computed a result."
+msgstr "Éviter d’utiliser cet objet porteur pour p/0, une valeur irrationnelle telle que √2, une évaluation arrondie en virgule flottante ou une affirmation selon laquelle une déclaration RDF a calculé un résultat."
+
+msgctxt "https://blackcatinformatics.ca/math/RationalValue|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Type the resource as math:RationalValue and supply one xsd:integer numerator and one nonzero xsd:integer denominator. Preserve supplied values and resource identity. Validate the complete class-local contract before invoking a consumer whose separate numeric limits must also be satisfied."
+msgstr "Typer la ressource math:RationalValue et fournir un numérateur xsd:integer et un dénominateur xsd:integer non nul. Préserver les valeurs fournies et l’identité de la ressource. Valider le contrat complet local à la classe avant d’appeler un consommateur dont les limites numériques propres doivent également être respectées."
+
+msgctxt "https://blackcatinformatics.ca/math/ZeroDenominator|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Zero Denominator"
+msgstr "Dénominateur nul"
+
+msgctxt "https://blackcatinformatics.ca/math/ZeroDenominator|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The failure raised when a math:RationalValue declares a math:denominator of 0. Zero is not a valid denominator — p/0 is not a rational value — so the exact carrier is ill-formed. The object-layer analogue of the dimension-exponent zero-denominator rule."
+msgstr "L’échec signalé lorsqu’un math:RationalValue déclare un math:denominator égal à 0. Zéro n’est pas un dénominateur valide — p/0 n’est pas une valeur rationnelle —, l’objet porteur exact est donc mal formé. L’analogue, au niveau des objets, de la règle du dénominateur nul des exposants de dimension."
+
+msgctxt "https://blackcatinformatics.ca/math/ZeroDenominator|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This failure concept concerns a stored rational pair with denominator zero, distinct from math:ZeroDivisor during an operation. Generated RationalValue property shapes reuse this failure-class annotation for other carrier violations too; their report class alone does not establish an explicit zero."
+msgstr "Ce concept d’échec concerne une paire rationnelle stockée dont le dénominateur est nul, à distinguer de math:ZeroDivisor pendant une opération. Les formes de propriété RationalValue générées réutilisent aussi cette annotation de classe d’échec pour d’autres violations du contrat de l’objet porteur ; leur seule classe de rapport n’établit pas la présence explicite d’un zéro."
+
+msgctxt "https://blackcatinformatics.ca/math/ZeroDenominator|http://www.w3.org/2004/02/skos/core#example"
+msgid "A math:RationalValue with math:numerator 1 and math:denominator 0 is malformed. A missing denominator or a second numerator can receive the same generated report class, so inspect the actual constraint rather than infer zero from the label."
+msgstr "Un math:RationalValue portant math:numerator 1 et math:denominator 0 est mal formé. Un dénominateur absent ou un second numérateur peut recevoir la même classe de rapport généré ; examiner donc la contrainte effective plutôt que déduire un zéro du libellé."
+
+msgctxt "https://blackcatinformatics.ca/math/ZeroDenominator|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to identify an explicit zero-denominator defect supported by the stored value and the responsible constraint, or to interpret that failure concept in a validation report."
+msgstr "Utiliser pour identifier un défaut explicite de dénominateur nul étayé par la valeur stockée et la contrainte responsable, ou pour interpréter ce concept d’échec dans un rapport de validation."
+
+msgctxt "https://blackcatinformatics.ca/math/ZeroDenominator|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring the precise defect from the class name alone, confusing missing data with a supplied zero, or using this class as a generic arithmetic overflow diagnosis."
+msgstr "Éviter de déduire le défaut précis du seul nom de classe, de confondre des données absentes avec un zéro fourni, ou d’utiliser cette classe comme diagnostic générique de dépassement arithmétique."
+
+msgctxt "https://blackcatinformatics.ca/math/ZeroDenominator|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the finding's component code, constrained path, value and source shape with its failure class. Check math:RationalValueDenominatorNonZeroConstraint and the actual denominator data before attributing the defect to zero; repair the declared pair and validate it again."
+msgstr "Conserver le code de composant du constat, le chemin contraint, la valeur et la forme source avec sa classe d’échec. Vérifier math:RationalValueDenominatorNonZeroConstraint et les données effectives du dénominateur avant d’attribuer le défaut à zéro ; corriger la paire déclarée et la valider de nouveau."
+
+msgctxt "https://blackcatinformatics.ca/math/numerator|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "numerator"
+msgstr "numérateur"
+
+msgctxt "https://blackcatinformatics.ca/math/numerator|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The integer p in a concrete math:RationalValue p/q. The descriptive domain is math:RationalValue and range is xsd:integer; existing class-local restrictions, rather than a global functional-property declaration, constrain the carrier's numerator values."
+msgstr "L’entier p d’un math:RationalValue p/q concret. Le domaine descriptif est math:RationalValue et la portée est xsd:integer ; des restrictions existantes locales à la classe, plutôt qu’une déclaration globale de propriété fonctionnelle, contraignent les valeurs du numérateur de l’objet porteur."
+
+msgctxt "https://blackcatinformatics.ca/math/numerator|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Zero, positive and negative numerators are permitted. With a negative denominator, the represented value's sign depends on both integers. The xsd:integer value space has no fixed machine-width bound; the native i128 reader has its own narrower admission."
+msgstr "Les numérateurs nuls, positifs et négatifs sont admis. Avec un dénominateur négatif, le signe de la valeur représentée dépend des deux entiers. L’espace de valeurs de xsd:integer n’a pas de limite fixe de largeur machine ; le lecteur i128 natif possède une admission propre plus étroite."
+
+msgctxt "https://blackcatinformatics.ca/math/numerator|http://www.w3.org/2004/02/skos/core#example"
+msgid "The pair (0, 5) represents zero, while (-3, 2) represents -3/2 and (3, -2) the same value. These equalities of rational values assert no RDF identity between carrier resources."
+msgstr "La paire (0, 5) représente zéro, tandis que (-3, 2) représente -3/2 et (3, -2) la même valeur. Ces égalités de valeurs rationnelles n’affirment aucune identité RDF entre les ressources porteuses."
+
+msgctxt "https://blackcatinformatics.ca/math/numerator|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain the supplied signed integer component of an explicit exact rational carrier without converting the ratio to a rounded scalar."
+msgstr "Utiliser pour conserver la composante entière signée fournie d’un objet porteur rationnel exact explicite sans convertir le rapport en scalaire arrondi."
+
+msgctxt "https://blackcatinformatics.ca/math/numerator|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid storing a decimal or floating-point magnitude in this integer slot, assigning it directly to an abstract math:RationalNumber, or treating the loader's first literal as a multiplicity check."
+msgstr "Éviter de stocker une grandeur décimale ou en virgule flottante dans cet emplacement entier, de l’attribuer directement à un math:RationalNumber abstrait, ou de traiter le premier littéral du lecteur comme un contrôle de multiplicité."
+
+msgctxt "https://blackcatinformatics.ca/math/numerator|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Supply the integer literal on the math:RationalValue resource together with its nonzero math:denominator. Keep the original datatype and lexical form; validate all supplied values and counts before using the bounded native reader."
+msgstr "Fournir le littéral entier sur la ressource math:RationalValue avec son math:denominator non nul. Conserver le type de données et la forme lexicale d’origine ; valider toutes les valeurs et tous les nombres de valeurs fournis avant d’utiliser le lecteur natif borné."
+
+msgctxt "https://blackcatinformatics.ca/math/denominator|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "denominator"
+msgstr "dénominateur"
+
+msgctxt "https://blackcatinformatics.ca/math/denominator|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The nonzero integer q in a concrete math:RationalValue p/q. The descriptive domain is math:RationalValue and range is xsd:integer. Class-local integer restrictions and required-path closure govern the carrier; math:RationalValueDenominatorNonZeroConstraint owns the zero prohibition, with SHACL as a generated validation view."
+msgstr "L’entier non nul q d’un math:RationalValue p/q concret. Le domaine descriptif est math:RationalValue et la portée est xsd:integer. Les restrictions entières locales à la classe et la fermeture des chemins obligatoires régissent l’objet porteur ; math:RationalValueDenominatorNonZeroConstraint est l’autorité de l’interdiction du zéro, SHACL en étant une vue de validation générée."
+
+msgctxt "https://blackcatinformatics.ca/math/denominator|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "A negative denominator is legal in the authored RDF carrier; normalization to a positive denominator belongs to the selected native constructor. Missing, noninteger, multiple and zero values are distinct defects even when generated reports share a failure class."
+msgstr "Un dénominateur négatif est licite dans l’objet porteur RDF rédigé ; la normalisation vers un dénominateur positif relève du constructeur natif sélectionné. Les valeurs absentes, non entières, multiples et nulles sont des défauts distincts, même lorsque les rapports générés partagent une classe d’échec."
+
+msgctxt "https://blackcatinformatics.ca/math/denominator|http://www.w3.org/2004/02/skos/core#example"
+msgid "The pair (1, -2) denotes -1/2, and (-1, -2) denotes 1/2. The pair (0, 7) is a valid zero; (0, 0) has no rational value."
+msgstr "La paire (1, -2) désigne -1/2, et (-1, -2) désigne 1/2. La paire (0, 7) est un zéro valide ; (0, 0) n’a aucune valeur rationnelle."
+
+msgctxt "https://blackcatinformatics.ca/math/denominator|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the divisor of a stored exact ratio must remain explicit as a nonzero integer, independently of the ratio's sign and display rendering."
+msgstr "Utiliser lorsque le diviseur d’un rapport exact stocké doit rester explicite sous forme d’entier non nul, indépendamment du signe du rapport et de son rendu d’affichage."
+
+msgctxt "https://blackcatinformatics.ca/math/denominator|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid zero, an omitted denominator, a noninteger literal, or an inferred positive-denominator requirement on canonical RDF. Do not read the report's ZeroDenominator class as the complete diagnostic."
+msgstr "Éviter zéro, un dénominateur omis, un littéral non entier ou une exigence déduite de dénominateur positif sur le RDF canonique. Ne pas lire la classe ZeroDenominator du rapport comme le diagnostic complet."
+
+msgctxt "https://blackcatinformatics.ca/math/denominator|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Supply one nonzero xsd:integer value with the carrier's math:numerator. Check the class-local datatype/count/closure obligations and the explicit forbidden-zero constraint. Preserve full diagnostic evidence when generated validation reports a violation."
+msgstr "Fournir une valeur xsd:integer non nulle avec le math:numerator de l’objet porteur. Vérifier les obligations locales à la classe de type de données, de nombre de valeurs et de fermeture, ainsi que la contrainte explicite interdisant zéro. Préserver les éléments diagnostiques complets lorsque la validation générée signale une violation."
