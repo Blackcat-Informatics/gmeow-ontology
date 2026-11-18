@@ -330,53 +330,79 @@ fn native_equality_refuses_unknown_datatype_comparison() {
     assert!(corrupt.validate_native_closure().is_err());
 }
 
+/// Prepared consumers must re-admit source fields and values in each world and
+/// input; a prior successful record cannot authorize split-world fields.
 #[test]
 fn shared_preparation_does_not_reuse_equality_across_worlds_or_inputs() {
     let prepared = crate::program_analysis::prepare_program(&copying(&[(SAME, SEEN)])).unwrap();
-    let rows: Vec<_> = characteristic(false, false)
-        .into_iter()
-        .chain([fact(S, P, A), fact(S, P, B)])
-        .collect();
-    let first = execute(
-        &prepared,
-        crate::reason::program::prepare_reasoning_input(&source(&rows)).unwrap(),
-        &crate::physical::SelectedDomains::new([]).unwrap(),
-        None,
-    )
-    .unwrap();
-    assert!(contains(&first, A, SEEN, B));
-    let mut split = rows.clone();
-    split.last_mut().unwrap().graph_name = Some(RdfTerm::iri("urn:equality:other-world"));
-    let second = execute(
-        &prepared,
-        crate::reason::program::prepare_reasoning_input(&source(&split)).unwrap(),
-        &crate::physical::SelectedDomains::new([]).unwrap(),
-        None,
-    )
-    .unwrap();
-    assert!(
-        !second
-            .inferred
-            .iter()
-            .any(|row| row.predicate == SAME || row.predicate == SEEN)
-    );
-    let third = execute(
-        &prepared,
-        crate::reason::program::prepare_reasoning_input(&source(&rows)).unwrap(),
-        &crate::physical::SelectedDomains::new([]).unwrap(),
-        None,
-    )
-    .unwrap();
-    assert!(contains(&third, A, SEEN, B));
-    let cut = execute(
-        &prepared,
-        crate::reason::program::prepare_reasoning_input(&source(&rows)).unwrap(),
-        &crate::physical::SelectedDomains::new([]).unwrap(),
-        Some(0),
-    )
-    .unwrap();
-    assert_eq!(cut.status, crate::seam::BudgetStatus::Exhausted);
-    assert!(!cut.inferred.iter().any(|row| row.predicate == SEEN));
+    for record in [false, true] {
+        let rows: Vec<_> = characteristic(false, record)
+            .into_iter()
+            .chain([fact(S, P, A), fact(S, P, B)])
+            .collect();
+        let first = execute(
+            &prepared,
+            crate::reason::program::prepare_reasoning_input(&source(&rows)).unwrap(),
+            &crate::physical::SelectedDomains::new([]).unwrap(),
+            None,
+        )
+        .unwrap();
+        assert!(contains(&first, A, SEEN, B));
+        let mut split = rows.clone();
+        split.last_mut().unwrap().graph_name = Some(RdfTerm::iri("urn:equality:other-world"));
+        let second = execute(
+            &prepared,
+            crate::reason::program::prepare_reasoning_input(&source(&split)).unwrap(),
+            &crate::physical::SelectedDomains::new([]).unwrap(),
+            None,
+        )
+        .unwrap();
+        assert!(
+            !second
+                .inferred
+                .iter()
+                .any(|row| row.predicate == SAME || row.predicate == SEEN)
+        );
+        if record {
+            let mut split_fields = rows.clone();
+            split_fields[1].graph_name = Some(RdfTerm::iri("urn:equality:other-world"));
+            let fields = execute(
+                &prepared,
+                crate::reason::program::prepare_reasoning_input(&source(&split_fields)).unwrap(),
+                &crate::physical::SelectedDomains::new([]).unwrap(),
+                None,
+            )
+            .unwrap();
+            assert!(
+                !fields
+                    .inferred
+                    .iter()
+                    .any(|row| row.predicate == SAME || row.predicate == SEEN)
+            );
+            super::test_support::assert_obstructed(
+                &copying(&[(SAME, SEEN)]),
+                fields,
+                crate::reason::refute::NativeObstructionKind::SourceShape,
+            );
+        }
+        let third = execute(
+            &prepared,
+            crate::reason::program::prepare_reasoning_input(&source(&rows)).unwrap(),
+            &crate::physical::SelectedDomains::new([]).unwrap(),
+            None,
+        )
+        .unwrap();
+        assert!(contains(&third, A, SEEN, B));
+        let cut = execute(
+            &prepared,
+            crate::reason::program::prepare_reasoning_input(&source(&rows)).unwrap(),
+            &crate::physical::SelectedDomains::new([]).unwrap(),
+            Some(0),
+        )
+        .unwrap();
+        assert_eq!(cut.status, crate::seam::BudgetStatus::Exhausted);
+        assert!(!cut.inferred.iter().any(|row| row.predicate == SEEN));
+    }
 }
 
 #[test]

@@ -651,7 +651,7 @@ fn classify(
                         .iter()
                         .any(|(sort, _)| *sort == record.characteristic) =>
                 {
-                    Disposition::accounted("native functional characteristic record")
+                    Disposition::accounted("native supported characteristic record law")
                 }
                 Ok(record) => Disposition::blocked(
                     "CHARACTERISTIC_RECORD_NOT_READ",
