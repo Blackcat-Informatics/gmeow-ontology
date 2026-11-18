@@ -1,0 +1,16 @@
+{
+  "github:comment:IC_kwDOSwdn1s8AAAABoJ51Sg": {
+    "resolution": "acknowledged",
+    "reason": "This revision reports review in progress and contains no technical finding. Independent full source and integration review, 35 focused release library cases, 36 actual CLI cases and exact frozen consumer reconciliation pass. New substantive feedback is assessed on refresh; no completed hosted review or CI pass is claimed.",
+    "commit": "214f16de41fc63c3b3d882ec22edc854aaa3b987",
+    "reply_url": null,
+    "revision": {
+      "updated_at": "2026-11-18T19:49:21Z",
+      "state": null,
+      "commit": null,
+      "path": null,
+      "line": null,
+      "body_sha256": "5b78b43f708e268cef4ae138ff529558c40866b203e9a5aceefa487540b27a0a"
+    }
+  }
+}

@@ -1,0 +1,30 @@
+{
+  "schema": 1,
+  "issue": 2931,
+  "repo": "gmeow-ontology",
+  "forge": "github",
+  "nwo": "Blackcat-Informatics/gmeow-ontology",
+  "read_access": "anon-read",
+  "main_root": "/home/paudley/Active/gmeow-ontology",
+  "worktree": "/home/paudley/Active/gmeow-ontology/.worktrees/2931-preserve-actual-collection-roles-and",
+  "branch": "paudley/2931-preserve-actual-collection-roles-and",
+  "slug": "preserve-actual-collection-roles-and",
+  "slug_drift": false,
+  "stage_dir": "/home/paudley/Active/gmeow-ontology/.worktrees/2931-preserve-actual-collection-roles-and/.stage/preserve-actual-collection-roles-and",
+  "stage_tracked": true,
+  "base": "origin/main",
+  "base_oid": "0502d020692b7527a92fe595ab37b0c20bbae310",
+  "reused": false,
+  "adr_repo": false,
+  "created": [
+    "worktree:/home/paudley/Active/gmeow-ontology/.worktrees/2931-preserve-actual-collection-roles-and",
+    "branch:paudley/2931-preserve-actual-collection-roles-and",
+    "ignored:8266 files (8266 reflinked, 0 written)",
+    "rust-caches:skipping busy source /opt/.cargo/6f/5536219aaa5dd5: /opt/.cargo/6f/5536219aaa5dd5/debug/.cargo-build-lock; skipping busy source /opt/.cargo/6f/5536219aaa5dd5: /opt/.cargo/6f/5536219aaa5dd5/debug/.cargo-build-lock; reflinked /home/paudley/Active/gmeow-ontology/.worktrees/2795-release-0-4-0 caches into /home/paudley/Active/gmeow-ontology/.worktrees/2931-preserve-actual-collection-roles-and plus 0 dependency units from 0 other checkouts in 3.3s; 12864 unchanged files keep their built mtimes; 240 other files take the seed time and rebuild; 0 units naming another checkout rebuild",
+    "stage:/home/paudley/Active/gmeow-ontology/.worktrees/2931-preserve-actual-collection-roles-and/.stage/preserve-actual-collection-roles-and",
+    "issue:/home/paudley/Active/gmeow-ontology/.worktrees/2931-preserve-actual-collection-roles-and/.stage/preserve-actual-collection-roles-and/issue.md"
+  ],
+  "warnings": [],
+  "timestamp": "2026-11-18T09:28:14-0600",
+  "seed_error": ""
+}

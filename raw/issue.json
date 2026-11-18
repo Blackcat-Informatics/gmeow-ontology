@@ -1,0 +1,74 @@
+{
+  "assignees": [],
+  "author": {
+    "id": "MDQ6VXNlcjUyNzU1NQ==",
+    "is_bot": false,
+    "login": "paudley",
+    "name": "Patrick Audley"
+  },
+  "body": "Part of #2781 and #2748. Blocked by: nothing. Blocks: #2781 and #2748.\n\n## Problem\n\nNon-class collection cells are emitted by `lift_list_statement` as `AxiomSource::ClassExpression` at the collection head. The source inventory consequently invents a class definition for that head. Selection can then admit the cells through this synthetic class role even when their actual property-list owner is excluded.\n\nSource inspection establishes the incorrect role and membership path. A runtime verdict consequence has not been measured.\n\n## Required behavior\n\n- Record each collection's actual source owner and semantic role through lowering, canonical deduplication, the versioned source trace, inventory and selected views.\n- A property or value collection does not create a class definition merely because its RDF cells were lowered.\n- Shared cells retain every actual contributing owner. An excluded owner cannot introduce an independent root; an included owner cannot lose its source contribution through early cell deduplication.\n- Preserve graph placement, physical source carriers, strict list diagnostics and unrelated facts. Do not admit a previously unsupported list law by changing its accounting label.\n\n## Acceptance\n\n- With actual modules M and N, a property chain owned by N contributes no executable list-cell axioms when only M is requested.\n- A genuinely shared collection follows each actual owner and role, including when one owner is excluded.\n- Genuine class definitions and malformed-list refusals retain their behavior.\n- All source occurrences remain inventoried. Any removal of synthetic class obligations and resulting trace identities is explicitly reconciled.\n- Focused native/compiler and actual CLI checks cover the corrected behavior; the applicable doctrine states the source-ownership contract.\n\nPrinciples 4, 7 and 17.\n",
+  "closedAt": null,
+  "comments": [
+    {
+      "id": "IC_kwDOSwdn1s8AAAABoArocg",
+      "author": {
+        "login": "coderabbitai"
+      },
+      "authorAssociation": "CONTRIBUTOR",
+      "body": "The captured comment links the module-composition change in pull request 2929 and offers planning controls. It contains no technical finding or additional implementation requirement. This summary omits interface instructions and promotional text; the issue body and all other captured fields are retained.",
+      "createdAt": "2026-11-18T13:31:05Z",
+      "includesCreatedEdit": false,
+      "isMinimized": false,
+      "minimizedReason": "",
+      "reactionGroups": [],
+      "url": "https://github.com/Blackcat-Informatics/gmeow-ontology/issues/2931#issuecomment-6980036722",
+      "viewerDidAuthor": false
+    }
+  ],
+  "createdAt": "2026-11-18T13:30:38Z",
+  "labels": [
+    {
+      "id": "LA_kwDOSwdn1s8AAAACl8ZKrA",
+      "name": "bug",
+      "description": "Something isn't working",
+      "color": "d73a4a"
+    },
+    {
+      "id": "LA_kwDOSwdn1s8AAAACmTvThA",
+      "name": "cross-cutting",
+      "description": "Cross-cutting concern",
+      "color": "fbca04"
+    },
+    {
+      "id": "LA_kwDOSwdn1s8AAAACnasmrQ",
+      "name": "logic",
+      "description": "logic: reasoning layer (the RDF 1.2-native logic; OWL is a projection)",
+      "color": "5319e7"
+    },
+    {
+      "id": "LA_kwDOSwdn1s8AAAACndNfoA",
+      "name": "rust",
+      "description": "Pull requests that update rust code",
+      "color": "000000"
+    },
+    {
+      "id": "LA_kwDOSwdn1s8AAAACoIO76w",
+      "name": "complexity-hard",
+      "description": "Foundational/cross-cutting/research; large coordination or new semantics",
+      "color": "b60205"
+    }
+  ],
+  "milestone": null,
+  "number": 2931,
+  "state": "OPEN",
+  "title": "Preserve actual collection roles and owners through theory selection",
+  "updatedAt": "2026-11-18T13:31:15Z",
+  "url": "https://github.com/Blackcat-Informatics/gmeow-ontology/issues/2931",
+  "_capture_projection": {
+    "kind": "summary",
+    "source_url": "https://github.com/Blackcat-Informatics/gmeow-ontology/issues/2931#issuecomment-6980036722",
+    "original_json_sha256": "2a708eb9bacc34b8342c06afa75e5f487315fd482266c418d96b7a630cd4a644",
+    "original_markdown_sha256": "287346e0f0e5ca6d5ca889a02da49074328f03ab3169e281b4031aed01a60934",
+    "scope": "Only the nontechnical comment body is summarized. The complete source remains available through its forge URL; every technical issue field is retained. A separate local duplicate of the full comment was refused by local policy."
+  }
+}

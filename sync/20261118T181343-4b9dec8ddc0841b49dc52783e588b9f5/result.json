@@ -1,0 +1,15 @@
+{
+  "schema": 1,
+  "worktree": "/home/paudley/Active/gmeow-ontology/.worktrees/2931-preserve-actual-collection-roles-and",
+  "branch": "paudley/2931-preserve-actual-collection-roles-and",
+  "base_ref": "origin/main",
+  "head": "0502d020692b7527a92fe595ab37b0c20bbae310",
+  "attempt": "/home/paudley/Active/gmeow-ontology/.worktrees/2931-preserve-actual-collection-roles-and/.stage/preserve-actual-collection-roles-and/sync/20261118T181343-4b9dec8ddc0841b49dc52783e588b9f5",
+  "conflicts": [],
+  "status": "fast_forward",
+  "base": "4b227b51ba7ef0b21030784b73f44f5277eda6be",
+  "merge_bases": [
+    "0502d020692b7527a92fe595ab37b0c20bbae310"
+  ],
+  "commit": "4b227b51ba7ef0b21030784b73f44f5277eda6be"
+}
