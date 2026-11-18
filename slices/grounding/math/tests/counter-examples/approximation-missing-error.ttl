@@ -1,9 +1,12 @@
 # SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 # SPDX-License-Identifier: CC-BY-4.0
 #
-# Counter-example for math:ApproximateValueShape: a math:ApproximateValue that
-# names what it approximates but omits math:approximationError (sh:minCount 1),
-# so validation MUST emit shacl.MinCountConstraintComponent (and no other finding).
+# Counter-example for the canonical math:ApproximateValue restrictions: the
+# approximation names its target but omits the required numeric error bound.
+# The registered cell selects math:ExactApproximateConflation class isolation:
+# it requires a matching finding and rejects findings of other classes, without
+# additionally enforcing the declared component/source-shape fields or a sole
+# finding count. This header records the source contract, not an executed verdict.
 # Bound by tests/example-conformance.ttl (ex:ecApproximationMissingError).
 @prefix math: <https://blackcatinformatics.ca/math/> .
 @prefix logic: <https://blackcatinformatics.ca/logic/> .

@@ -18390,3 +18390,59 @@ msgstr "避免零值、分母缺失、非整数字面量，或对规范 RDF 推�
 msgctxt "https://blackcatinformatics.ca/math/denominator|https://blackcatinformatics.ca/gmeow/howToUse"
 msgid "Supply one nonzero xsd:integer value with the carrier's math:numerator. Check the class-local datatype/count/closure obligations and the explicit forbidden-zero constraint. Preserve full diagnostic evidence when generated validation reports a violation."
 msgstr "为载体提供一个非零的 xsd:integer 值，并同时提供其 math:numerator。检查类局部的数据类型、计数和闭合义务，以及显式禁止零值的约束。当生成的验证报告指出约束违反时，应保留完整的诊断证据。"
+
+msgctxt "https://blackcatinformatics.ca/math/ExactApproximateConflation|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Exact–Approximate Conflation"
+msgstr "精确值与近似值混淆"
+
+msgctxt "https://blackcatinformatics.ca/math/ExactApproximateConflation|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The failure raised when a math:ApproximateValue fails to keep an approximation distinct from the exact value — it does not name, through math:approximates, the exact number it stands in for, or does not declare its math:approximationError. An exact number and an approximation of it are distinct objects."
+msgstr "当 math:ApproximateValue 未将近似值与精确值区分开时报告的失败：它未通过 math:approximates 指明所代表的精确数，或未声明 math:approximationError。精确数与该数的近似值是不同的对象。"
+
+msgctxt "https://blackcatinformatics.ca/math/ExactApproximateConflation|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This class describes a failure of approximation framing. Its current math:ApproximateValue-level report annotation can also classify target-type or count findings; the class alone proves neither resource-identity conflation nor the validity of a numerical error bound."
+msgstr "该类描述近似值描述框架的缺陷。当前位于 math:ApproximateValue 类级别的报告注释也可用于归类目标类型或值数量方面的发现；仅凭该类既不能证明两个资源被视为同一对象，也不能证明数值误差界有效。"
+
+msgctxt "https://blackcatinformatics.ca/math/ExactApproximateConflation|http://www.w3.org/2004/02/skos/core#example"
+msgid "A math:ApproximateValue that names an exact one-third target through math:approximates but omits math:approximationError illustrates the missing-bound case. Read the finding's component and source shape before identifying that case from a report."
+msgstr "一个 math:ApproximateValue 通过 math:approximates 指明精确的三分之一目标，却省略 math:approximationError，展示了缺少误差界的情形。在根据报告认定这一情形前，应读取发现的约束组件和来源形状。"
+
+msgctxt "https://blackcatinformatics.ca/math/ExactApproximateConflation|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when interpreting findings attributed to the canonical math:ApproximateValue restrictions on its exact target and the presence of a numeric error bound."
+msgstr "用于解释归属于 math:ApproximateValue 规范约束的发现，这些约束涉及其精确目标及数值误差界是否存在。"
+
+msgctxt "https://blackcatinformatics.ca/math/ExactApproximateConflation|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating this class as proof of an incorrect numerical value, a negative bound, mismatched literal and declared datatypes, or equality between the approximation and target resources; the current restriction group establishes none of those numerical or identity judgments."
+msgstr "不要将该类视为数值错误、误差界为负、字面量类型与声明类型不符，或近似值资源与目标资源相同的证明；当前约束组并不确立这些数值或身份判断。"
+
+msgctxt "https://blackcatinformatics.ca/math/ExactApproximateConflation|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Inspect the component, path, value and source shape, then repair the reported obligation: retain a separate math:ApproximateValue, one justified math:Number target through math:approximates and a numeric absolute math:approximationError bound. Validation derives from the existing logic restrictions; establish the bound's numerical justification separately."
+msgstr "检查约束组件、路径、值和来源形状，然后修复所报告的义务：保留独立的 math:ApproximateValue，通过 math:approximates 指向一个有依据的 math:Number 目标，并提供数值绝对误差界 math:approximationError。验证由现有 logic 约束派生；误差界的数值依据须另行建立。"
+
+msgctxt "https://blackcatinformatics.ca/math/ConstantAsDecimalLiteral|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Constant as Decimal Literal"
+msgstr "以十进制字面量表示常数"
+
+msgctxt "https://blackcatinformatics.ca/math/ConstantAsDecimalLiteral|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The failure raised when a math:MathematicalConstant is given as a decimal literal — it carries a raw math:quantityValue directly instead of being an exact individual. A constant's decimal expansion belongs to a distinct math:ApproximateValue that math:approximates it."
+msgstr "当 math:MathematicalConstant 被表示为十进制字面量时报告的失败：它直接携带原始 math:quantityValue，而不是保持为精确个体。常数的十进制展开属于独立的 math:ApproximateValue，该对象通过 math:approximates 指向此常数。"
+
+msgctxt "https://blackcatinformatics.ca/math/ConstantAsDecimalLiteral|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The named constant keeps its exact identity independently of any numerical representation. The current math:MathematicalConstant-level report annotation also covers its isExact obligations, so this class alone does not establish that a quantityValue literal was present."
+msgstr "命名常数的精确身份独立于任何数值表示而保留。当前位于 math:MathematicalConstant 类级别的报告注释也涵盖其 isExact 义务，因此仅凭该类不能确定曾存在 quantityValue 字面量。"
+
+msgctxt "https://blackcatinformatics.ca/math/ConstantAsDecimalLiteral|http://www.w3.org/2004/02/skos/core#example"
+msgid "A math:MathematicalConstant with math:isExact true and a direct math:quantityValue of 3.14159 typed as xsd:double illustrates the forbidden-literal case. A justified numerical evaluation belongs on a separate math:ApproximateValue that math:approximates the constant."
+msgstr "一个 math:MathematicalConstant 声明 math:isExact true，并直接携带类型为 xsd:double、数值为 3.14159 的 math:quantityValue，展示了被禁止的字面量情形。有依据的数值求值结果应放在独立的 math:ApproximateValue 上，并由该对象通过 math:approximates 指向常数。"
+
+msgctxt "https://blackcatinformatics.ca/math/ConstantAsDecimalLiteral|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when interpreting findings associated with the existing constant-local exactness or absence-of-direct-literal obligations while preserving the exact named individual."
+msgstr "用于解释与常数现有局部义务相关的发现，包括精确性义务和不得直接携带字面量的义务，同时保留精确的命名个体。"
+
+msgctxt "https://blackcatinformatics.ca/math/ConstantAsDecimalLiteral|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid changing the constant's exact identity because an evaluation is rounded, limiting the literal prohibition to xsd:decimal because of this class's label, or inferring a particular violation component from the class alone."
+msgstr "不要因某次求值经过舍入而改变常数的精确身份，不要因该类的标签而把字面量禁令仅限于 xsd:decimal，也不要仅凭该类推断具体的违规约束组件。"
+
+msgctxt "https://blackcatinformatics.ca/math/ConstantAsDecimalLiteral|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read the reported component, path, value and source shape. Remove a direct math:quantityValue literal from the constant when present, retain math:isExact true, and keep any justified evaluation and numeric absolute error bound on a separate math:ApproximateValue. Repair the actual reported obligation without replacing the canonical constant identity."
+msgstr "读取所报告的约束组件、路径、值和来源形状。若常数上存在直接的 math:quantityValue 字面量，则将其移除；保留 math:isExact true，并将任何有依据的求值结果及数值绝对误差界放在独立的 math:ApproximateValue 上。修复实际报告的义务，不要替换常数的规范身份。"
