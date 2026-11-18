@@ -221,7 +221,9 @@ impl StructuralSourceGraph {
                 SourceEdgeRole::ExclusiveFormulaUse => {
                     &[(SyntaxFamily::Owner, SyntaxFamily::Formula)]
                 }
-                SourceEdgeRole::RecoveryOwnership => &[(SyntaxFamily::Owner, SyntaxFamily::Owner)],
+                SourceEdgeRole::RecoveryOwnership => {
+                    &[(SyntaxFamily::Correspondence, SyntaxFamily::Owner)]
+                }
                 SourceEdgeRole::RuleComponent => &[(SyntaxFamily::Rule, SyntaxFamily::Atom)],
                 SourceEdgeRole::Reification => &[(SyntaxFamily::Atom, SyntaxFamily::Atom)],
                 SourceEdgeRole::TermComponent => &[

@@ -182,6 +182,8 @@ fn emitted_unsupported_contract_keeps_its_admission_error() {
     );
 }
 
+/// PROTECTS: successful shared correspondence reads retain exact physical fields
+/// and memoized recovery syntax without owning other graphs, types or leg records.
 #[test]
 fn native_correspondence_owners_and_shared_leg_use_only_selected_graph_fields() {
     let mut builder = purrdf::RdfDatasetBuilder::new();
@@ -227,6 +229,28 @@ fn native_correspondence_owners_and_shared_leg_use_only_selected_graph_fields() 
         .unwrap();
     let step = builder.intern_iri("https://example.org/p").unwrap();
     builder.push_annotation(leg, path, step).unwrap();
+    let recovery = purrdf::parse_dataset(
+        br#"
+        @prefix ex: <https://example.org/> .
+        @prefix logic: <https://blackcatinformatics.ca/logic/> .
+        ex:first logic:recoveryCase ex:firstCase .
+        ex:second logic:recoveryCase ex:secondCase .
+        ex:first a ex:DomainType . ex:second a ex:DomainType .
+        ex:firstCase a logic:RecoveryCase ; logic:recoveryTransform ex:formula .
+        ex:secondCase a logic:RecoveryCase ; logic:recoveryTransform ex:formula .
+        ex:formula a logic:Formula ; logic:relation ex:p ; logic:argument ex:aTerm, ex:bTerm .
+        ex:aTerm logic:termIndex 0 ; logic:termIri ex:a .
+        ex:bTerm logic:termIndex 1 ; logic:termIri ex:b .
+    "#,
+        "text/turtle",
+        None,
+    )
+    .expect("the shared recovery fixture is valid Turtle");
+    for quad in recovery.owned_quads() {
+        builder
+            .push_owned_quad(&quad)
+            .expect("a parsed recovery statement enters the same native builder");
+    }
     let source = PreparedLogicSource::new(&builder.freeze().unwrap()).unwrap();
     let compiled = source.compile_with_sources(None).unwrap();
     assert!(
@@ -251,6 +275,40 @@ fn native_correspondence_owners_and_shared_leg_use_only_selected_graph_fields() 
             .iri,
             format!("https://example.org/{name}")
         );
+        let support = &owner(&compiled, name, OwnerFamily::Correspondence).record_support;
+        let dataset = compiled.source().dataset();
+        assert!(
+            support.iter().all(|binding| binding.canonical.g.is_none()
+                && !matches!(
+                    dataset.resolve(binding.canonical.o),
+                    purrdf::TermRef::Iri("https://example.org/DomainType")
+                )
+                && !matches!(
+                    dataset.resolve(binding.canonical.s),
+                    purrdf::TermRef::Iri("https://example.org/sharedLeg")
+                )),
+            "record support neither imports another graph nor owns referenced leg descriptions or unrelated types"
+        );
+        assert!(
+            support.iter().any(|binding| matches!(
+                dataset.resolve(binding.canonical.p),
+                purrdf::TermRef::Iri("https://blackcatinformatics.ca/logic/relation")
+            )),
+            "both shared recovery owners retain actual consumed syntax, including memo hits"
+        );
+        for carrier in [
+            crate::frontend::SourceCarrier::Statement,
+            crate::frontend::SourceCarrier::Annotation,
+        ] {
+            assert!(
+                support.iter().any(|binding| binding.carrier == carrier
+                    && matches!(
+                        dataset.resolve(binding.canonical.p),
+                        purrdf::TermRef::Iri("https://blackcatinformatics.ca/logic/morphismKind")
+                    )),
+                "one semantic scalar preserves both physical source bindings"
+            );
+        }
     }
 }
 

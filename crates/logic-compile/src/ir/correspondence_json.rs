@@ -348,6 +348,7 @@ impl ToJson for Correspondence {
             .with("determinacy", self.determinacy.to_json())
             .with("get_leg", self.get_leg.to_json())
             .with("put_leg", self.put_leg.to_json())
+            .with("lens", self.lens.to_json())
             .with("law_claims", self.law_claims.to_json())
             .with("caveats", self.caveats.to_json())
             .with("loss_evidence", literal_serde::to_json(&self.loss_evidence))
@@ -368,6 +369,13 @@ impl ToJson for Correspondence {
 impl FromJson for Correspondence {
     fn from_json(value: &Value) -> Result<Self, DecodeError> {
         let mut fields = Record::new(value, "struct Correspondence")?;
+        let lens: Option<String> = fields.optional("lens")?;
+        if lens
+            .as_deref()
+            .is_some_and(|lens| !super::atomic::is_absolute_iri(lens))
+        {
+            return Err(DecodeError::invalid_value(value, "an absolute Lens IRI").within("lens"));
+        }
         Ok(Self {
             iri: fields.required("iri")?,
             relation: fields.required("relation")?,
@@ -377,6 +385,7 @@ impl FromJson for Correspondence {
             determinacy: fields.optional("determinacy")?,
             get_leg: fields.optional("get_leg")?,
             put_leg: fields.optional("put_leg")?,
+            lens,
             law_claims: fields.required("law_claims")?,
             caveats: fields.required("caveats")?,
             loss_evidence: fields.required_with("loss_evidence", literal_serde::from_json_set)?,

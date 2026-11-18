@@ -5,7 +5,9 @@
 
 use purrdf::{QuadIds, TermId};
 
-use super::{Diagnostic, LogicAxiom, LogicProgram, PreparedLogicSource, SourceNode};
+use super::{
+    Diagnostic, LogicAxiom, LogicProgram, PreparedLogicSource, SourceNode, SourceStatementBinding,
+};
 
 /// Destination collection in the compiled program, distinct from source typing.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, serde::Serialize)]
@@ -43,6 +45,9 @@ pub struct OwnerLowering {
     pub family: OwnerFamily,
     pub disposition: OwnerDisposition,
     pub diagnostics: Vec<usize>,
+    /// Exact physical record fields consumed by this successful owner reader.
+    /// This evidence grants neither law discharge nor object-level execution.
+    pub record_support: std::collections::BTreeSet<SourceStatementBinding>,
 }
 
 /// An authored statement or structural root that actually emitted an axiom.
@@ -179,6 +184,7 @@ pub(super) struct OwnerEmission<T> {
     pub family: OwnerFamily,
     pub diagnostics: Vec<usize>,
     pub value: T,
+    pub record_support: std::collections::BTreeSet<SourceStatementBinding>,
 }
 
 /// Capture at the reader boundary. Shared diagnostics are supplied by the failed
@@ -199,6 +205,7 @@ pub(super) fn capture_owner<T>(
             family,
             diagnostics: diagnostic_ids,
             value,
+            record_support: Default::default(),
         }),
         Err(shared) => {
             diagnostic_ids.extend(shared);
@@ -209,6 +216,7 @@ pub(super) fn capture_owner<T>(
                 family,
                 disposition: OwnerDisposition::Rejected,
                 diagnostics: diagnostic_ids,
+                record_support: Default::default(),
             });
             None
         }
@@ -229,6 +237,7 @@ pub(super) fn finish_owners<T>(
                 family: emission.family,
                 disposition: OwnerDisposition::Emitted { index },
                 diagnostics: emission.diagnostics,
+                record_support: emission.record_support,
             });
             emission.value
         })
@@ -263,6 +272,7 @@ pub(super) fn excluded_owners(graph: &super::StructuralSourceGraph) -> Vec<Owner
                 family,
                 disposition: OwnerDisposition::OutsideDefaultGraph,
                 diagnostics: Vec::new(),
+                record_support: Default::default(),
             })
         })
         .collect()

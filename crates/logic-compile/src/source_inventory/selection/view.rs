@@ -92,6 +92,23 @@ impl ResolvedTheorySelection {
         }
         Ok(membership.into())
     }
+
+    /// Whether an actually selected successful correspondence accounts this row.
+    /// A shared rule path does not select an otherwise excluded catalogue owner.
+    pub fn correspondence_record_selected(
+        &self,
+        unit: SourceObligation<'_>,
+    ) -> gmeow_errors::Result<bool> {
+        self.authorize_inventory(unit.inventory)?;
+        let crate::source_inventory::SourceObligationOrigin::Statement(binding) = unit.origin()
+        else {
+            return Ok(false);
+        };
+        Ok(self
+            .0
+            .index
+            .correspondence_record_selected(unit.inventory, binding))
+    }
 }
 
 /// Original-indexed, borrowed IR admitted by the compiler's source ownership.
@@ -122,9 +139,10 @@ impl SelectedProgramView<'_, '_> {
                 .index
                 .axiom_source_membership(self.inventory, index, source)
             {
-                Membership::Included => return Ok(TheoryUnitSelection::Included),
-                Membership::Outside => outside = true,
-                Membership::Blocked(boundary) => blocked = Some(boundary),
+                Some(Membership::Included) => return Ok(TheoryUnitSelection::Included),
+                Some(Membership::Outside) => outside = true,
+                Some(Membership::Blocked(boundary)) => blocked = Some(boundary),
+                None => {}
             }
         }
         if let Some(boundary) = blocked {
@@ -198,7 +216,7 @@ impl SelectedProgramView<'_, '_> {
                         .0
                         .index
                         .axiom_source_membership(self.inventory, *index, source),
-                    Membership::Included
+                    Some(Membership::Included)
                 )
             })
     }
@@ -223,7 +241,7 @@ impl SelectedProgramView<'_, '_> {
                     .0
                     .index
                     .axiom_source_membership(self.inventory, index, source),
-                Membership::Included
+                Some(Membership::Included)
             )
         }))
     }
@@ -240,12 +258,12 @@ impl SelectedProgramView<'_, '_> {
             .get(index)
             .ok_or_else(|| super::selection_error("UNKNOWN_SELECTED_AXIOM", index))?;
         Ok(sources.iter().filter(move |source| {
-            !matches!(
+            matches!(
                 self.selection
                     .0
                     .index
                     .axiom_source_membership(self.inventory, index, source),
-                Membership::Outside
+                Some(Membership::Included | Membership::Blocked(_))
             )
         }))
     }

@@ -99,6 +99,55 @@ Identity labels never count as residue. Program-level unowned `lossyDrop` declar
 are unsupported and rejected; each actual distinction must name its correspondence.
 These declarations are evidence disclosures, not discharged laws or fusion certificates.
 
+### Catalogue admission and law execution
+
+The selected native `gmeow prove` operation accounts a successfully compiled
+correspondence through the named `MetatheoryDeclaration` catalogue route. It
+lists the actual owner and its exact consumed record statements. This accounts
+the declaration; it does not execute the correspondence, its laws or its legs.
+Claimed discharge verdicts remain declarations, not proof evidence for the
+surrounding object theory.
+
+The existing correspondence reader issues record support only after the whole
+owner compiles successfully. Support retains original graph placement and every
+physical statement or annotation carrier of a consumed RDF value. It includes
+the fields actually read from law and caveat records and from owned recovery
+Formula and Term syntax. Formula memo hits retain the same source reads through
+shared traces; neither reconstruction reuse nor a serialized observation grants
+ownership. The versioned compiler trace, source inventory, selected masks and
+native admission consume that one authority.
+
+Catalogue statements remain included source obligations while being absent from
+both native object premises and the selected raw OWL view. A record statement
+cannot authorize a deduplicated atomic Formula that the object profile does not
+account for. Independent Formula and reification contributors retain their own
+admission. Pure statement-backed axioms do not acquire a duplicate inventory row.
+
+The module resolver owns the exact physical `logic:inModule` rows consumed by
+each active syntax owner's validated coordinate. These rows retain their owner's
+inclusion, exclusion and diagnostic boundaries. They remain report obligations
+outside native object premises and direct Statement axiom contributors;
+independent Formula and reification contributors keep their own admission. The
+correspondence reader does not claim these selection records as catalogue fields.
+
+Ownership is exact, never subject-wide. An unrelated domain type, object fact or
+unread field on a correspondence, law, caveat or term node remains an ordinary
+obligation. Unsupported fields still block completion. Shared syntax retains its
+actual selected owners, including a rule that shares a carrier with an excluded
+correspondence. Malformed owners publish no accepted partial support; excluded
+modules, untranslated contexts and unsupported owner families retain their named
+boundaries. This catalogue route does not enlarge the FOF admission contract.
+
+`logic:hasLens` is optional. When present it has exactly one distinct absolute
+IRI value with an actual default-graph `logic:Lens` declaration. The typed IR,
+content identity and faithful transport retain that reference; canonical
+correspondence projection includes its required Lens declaration. Authored-source
+record support owns only the link, leaving the target's declaration, fields and
+any standalone `TransactionProgram` as independent obligations. No link resolves
+an executable leg or discharges a lens law. A present witness-retention flag is
+an untagged `xsd:boolean` literal; Boolean-looking text of another datatype is
+malformed, not a default value.
+
 ### The relation lattice
 
 The correspondence's relation is a typed `logic:CorrespondenceRelation` on an ordered lattice, not a

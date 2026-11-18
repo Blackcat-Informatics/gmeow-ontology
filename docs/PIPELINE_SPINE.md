@@ -325,12 +325,18 @@ leg failure instead of publishing the remaining programs as a complete registry.
 Formula assertions, constraints, reasoning-program clauses and correspondence
 recovery transforms share one reconstruction session per selected dataset. Its
 memo uses native source-term identity together with modal world and depth, with
-an 8 MiB retained-payload limit and a 4096-entry limit. Eviction recomputes the
-same formula; it cannot omit a check. Modal binders use a deterministic namespace
+an 8 MiB retained-payload limit and a limit of 4,096 entries. Exact reconstruction
+reads travel in a shared immutable trace DAG: each node stores local queried
+coordinates and references its reused children. Every retained entry is charged
+its complete transitive trace cost, conservatively counting shared allocations,
+so eviction cannot leave pinned child traces unaccounted. A memo hit retains the
+same complete read support; an oversized result stays live without cache retention.
+Source ownership and admission still require the successful enclosing owner.
+Eviction recomputes the same formula; it cannot omit a check. Modal binders use a deterministic namespace
 disjoint from authored variables, and sort declarations remain occurrence-scoped
 through modal bodies. Only assertion roots retain owned trees in the formula
-extractor; intermediate reuse belongs to the bounded session. Source ownership,
-admission and execution evidence are separate from this derived-value memo.
+extractor; intermediate reuse belongs to the bounded session. Read observations
+do not supply execution evidence.
 
 The mapping adapter borrows native reifier identities from the same source dataset.
 It probes each reifier's indexed statement rows and allocates only the selected

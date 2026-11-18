@@ -36,8 +36,13 @@
 mod cbor;
 
 use std::fmt::Write as _;
+use std::{cell::RefCell, collections::BTreeSet};
 
-use crate::graphutil::{Subject, is_structural_type_predicate, nn, objects, term_as_subject};
+use purrdf::{DatasetView, GraphMatch};
+
+use crate::frontend::{SourceCarrier, SourceStatementBinding};
+
+use crate::graphutil::term_as_subject;
 use crate::ir::{
     Correspondence, CorrespondenceCaveat, CorrespondenceRelation, LOGIC_NAMESPACE, LegPath,
     MorphismKind, PreservationKind, RecoveryCaseIr, TransactionProgramIr,
@@ -108,6 +113,9 @@ fn p_get_leg() -> String {
 }
 fn p_put_leg() -> String {
     format!("{LOGIC_NAMESPACE}putLeg")
+}
+fn p_has_lens() -> String {
+    format!("{LOGIC_NAMESPACE}hasLens")
 }
 fn p_source_endpoint() -> String {
     format!("{LOGIC_NAMESPACE}sourceEndpoint")
@@ -759,6 +767,10 @@ pub fn project_correspondence_dataset(
         if let Some(leg) = &c.put_leg {
             g.add_iri(&c.iri, &p_put_leg(), leg)?;
         }
+        if let Some(lens) = &c.lens {
+            g.add_iri(&c.iri, &p_has_lens(), lens)?;
+            g.add_iri(lens, RDF_TYPE, &format!("{LOGIC_NAMESPACE}Lens"))?;
+        }
         if let (Some(source), Some(target)) = (&c.source_endpoint, &c.target_endpoint) {
             g.add_iri(&c.iri, &p_source_endpoint(), source)?;
             g.add_iri(&c.iri, &p_target_endpoint(), target)?;
@@ -917,25 +929,103 @@ pub fn project_correspondence_dataset(
 /// constructing this view neither copies source terms nor scans/materializes a dataset.
 struct CorrespondenceView<'source> {
     dataset: &'source purrdf::RdfDataset,
+    support: Option<RefCell<BTreeSet<SourceStatementBinding>>>,
 }
 
 impl<'source> CorrespondenceView<'source> {
     fn from_dataset(dataset: &'source purrdf::RdfDataset) -> Self {
-        Self { dataset }
+        Self {
+            dataset,
+            support: None,
+        }
     }
 
-    fn objects(
-        &self,
-        subject: &str,
-        predicate: &str,
-    ) -> impl Iterator<Item = purrdf::TermRef<'source>> + 'source {
+    fn for_source(dataset: &'source purrdf::RdfDataset) -> Self {
+        Self {
+            dataset,
+            support: Some(RefCell::default()),
+        }
+    }
+
+    /// Preserve every actual physical carrier of one semantically consumed row.
+    fn record(&self, quad: purrdf::QuadIds) {
+        let Some(support) = &self.support else { return };
+        let mut support = support.borrow_mut();
+        if self
+            .dataset
+            .quads_for_pattern(
+                Some(quad.s),
+                Some(quad.p),
+                Some(quad.o),
+                GraphMatch::Default,
+            )
+            .next()
+            .is_some()
+        {
+            support.insert(SourceStatementBinding {
+                canonical: quad,
+                carrier: SourceCarrier::Statement,
+            });
+        }
+        if self
+            .dataset
+            .annotations_of_with_graph(quad.s)
+            .any(|(p, o, g)| p == quad.p && o == quad.o && g == quad.g)
+        {
+            support.insert(SourceStatementBinding {
+                canonical: quad,
+                carrier: SourceCarrier::Annotation,
+            });
+        }
+    }
+
+    fn rows(&self, subject: &str, predicate: &str) -> impl Iterator<Item = purrdf::QuadIds> + '_ {
         let dataset = self.dataset;
         let pair = dataset
             .term_id_by_iri(subject)
             .zip(dataset.term_id_by_iri(predicate));
         pair.into_iter().flat_map(move |(subject, predicate)| {
             crate::graphutil::default_graph_pattern(dataset, Some(subject), Some(predicate), None)
-                .map(move |quad| dataset.resolve(quad.o))
+                .inspect(move |quad| self.record(*quad))
+        })
+    }
+
+    fn objects(
+        &self,
+        subject: &str,
+        predicate: &str,
+    ) -> impl Iterator<Item = purrdf::TermRef<'source>> + '_ {
+        self.rows(subject, predicate)
+            .map(|quad| self.dataset.resolve(quad.o))
+    }
+
+    /// Only the exact role marker read by this record contributes support.
+    fn structural_type(&self, subject: &str, class: &str) -> bool {
+        self.type_rows(subject, class)
+            .inspect(|quad| self.record(*quad))
+            .count()
+            != 0
+    }
+
+    /// Type validation can depend on a reference without owning its description.
+    fn type_rows(&self, subject: &str, class: &str) -> impl Iterator<Item = purrdf::QuadIds> + '_ {
+        let dataset = self.dataset;
+        let terms = dataset
+            .term_id_by_iri(subject)
+            .zip(dataset.term_id_by_iri(class));
+        let predicates = [RDF_TYPE, "https://blackcatinformatics.ca/logic/instanceOf"];
+        terms.into_iter().flat_map(move |(subject, class)| {
+            predicates
+                .into_iter()
+                .filter_map(|predicate| dataset.term_id_by_iri(predicate))
+                .flat_map(move |predicate| {
+                    crate::graphutil::default_graph_pattern(
+                        dataset,
+                        Some(subject),
+                        Some(predicate),
+                        Some(class),
+                    )
+                })
         })
     }
 
@@ -964,15 +1054,6 @@ impl<'source> CorrespondenceView<'source> {
             .ok_or_else(|| field_error(s, p, "requires one IRI value"))
     }
 
-    fn lit_obj(&self, s: &str, p: &str) -> gmeow_errors::Result<Option<&'source str>> {
-        self.scalar(s, p)?
-            .map(|object| match object {
-                purrdf::TermRef::Literal { lexical, .. } => Ok(lexical),
-                _ => Err(field_error(s, p, "requires a literal value")),
-            })
-            .transpose()
-    }
-
     fn numeric_obj<const UNIT: bool>(
         &self,
         s: &str,
@@ -987,8 +1068,27 @@ impl<'source> CorrespondenceView<'source> {
     }
 
     fn boolean_obj(&self, s: &str, p: &str) -> gmeow_errors::Result<Option<bool>> {
-        self.lit_obj(s, p)?
-            .map(|lexical| {
+        self.scalar(s, p)?
+            .map(|term| {
+                let purrdf::TermRef::Literal {
+                    lexical,
+                    datatype,
+                    language: None,
+                    direction: None,
+                } = term
+                else {
+                    return Err(field_error(
+                        s,
+                        p,
+                        "requires an untagged xsd:boolean literal",
+                    ));
+                };
+                if !matches!(
+                    self.dataset.resolve(datatype),
+                    purrdf::TermRef::Iri(XSD_BOOLEAN)
+                ) {
+                    return Err(field_error(s, p, "requires an xsd:boolean datatype"));
+                }
                 let value = purrdf::xsd::parse(lexical, purrdf::xsd::XsdDatatype::Boolean)
                     .map_err(|error| {
                         field_error(s, p, format!("invalid boolean value: {error}"))
@@ -1048,23 +1148,6 @@ impl<'source> CorrespondenceView<'source> {
     fn types_of(&self, s: &str) -> gmeow_errors::Result<Vec<&'source str>> {
         self.iri_objs(s, RDF_TYPE)
     }
-
-    fn structural_types_of(&self, subject: &str) -> gmeow_errors::Result<Vec<&'source str>> {
-        let mut classes = self.types_of(subject)?;
-        classes.extend(
-            self.iri_objs(subject, "https://blackcatinformatics.ca/logic/instanceOf")?
-                .into_iter()
-                .filter(|class| {
-                    is_structural_type_predicate(
-                        "https://blackcatinformatics.ca/logic/instanceOf",
-                        class,
-                    )
-                }),
-        );
-        classes.sort_unstable();
-        classes.dedup();
-        Ok(classes)
-    }
 }
 
 fn field_error(subject: &str, predicate: &str, detail: impl std::fmt::Display) -> Diag {
@@ -1101,6 +1184,19 @@ fn read_correspondence(
     )?;
     let get_leg = idx.iri_obj(corr_iri, &p_get_leg())?.map(str::to_owned);
     let put_leg = idx.iri_obj(corr_iri, &p_put_leg())?.map(str::to_owned);
+    let lens = idx.iri_obj(corr_iri, &p_has_lens())?;
+    if let Some(lens) = lens
+        && idx
+            .type_rows(lens, &format!("{LOGIC_NAMESPACE}Lens"))
+            .next()
+            .is_none()
+    {
+        return Err(field_error(
+            corr_iri,
+            &p_has_lens(),
+            "requires an actual default-graph logic:Lens declaration",
+        ));
+    }
     let source_endpoint = idx
         .iri_obj(corr_iri, &p_source_endpoint())?
         .map(str::to_owned);
@@ -1113,9 +1209,8 @@ fn read_correspondence(
                  or neither"
         ))));
     }
-    let grounding = idx
-        .structural_types_of(corr_iri)?
-        .contains(&class_grounding_correspondence().as_str());
+    idx.structural_type(corr_iri, &class_correspondence());
+    let grounding = idx.structural_type(corr_iri, &class_grounding_correspondence());
     let according_to = idx.iri_obj(corr_iri, &p_according_to())?.map(str::to_owned);
     // The per-correspondence preservation judgment (`logic:preservationKind`), DISTINCT
     // from the program-level `hasPreservation`. Absent ⇒ the cell authors no rung (None).
@@ -1124,6 +1219,7 @@ fn read_correspondence(
     let claim_nodes = idx.iri_objs(corr_iri, &p_has_law_claim())?;
     let mut law_claims = Vec::new();
     for claim_iri in claim_nodes {
+        idx.structural_type(claim_iri, &class_law_claim());
         let law = idx.required_enum(
             claim_iri,
             &p_law_claimed(),
@@ -1148,19 +1244,15 @@ fn read_correspondence(
 
     let mut recovery_cases = Vec::new();
     for case_iri in idx.iri_objs(corr_iri, &p_recovery_case())? {
-        if !idx
-            .structural_types_of(case_iri)?
-            .contains(&class_recovery_case().as_str())
-        {
+        if !idx.structural_type(case_iri, &class_recovery_case()) {
             return Err(Diag::of_kind(crate::error::Correspondence::new(format!(
                 "recovery case <{case_iri}> on correspondence <{corr_iri}> is not typed logic:RecoveryCase"
             ))));
         }
-        let transforms = objects(
-            dataset,
-            &Subject::Iri(case_iri.to_owned()),
-            &nn(&p_recovery_transform()),
-        );
+        let transforms: Vec<_> = idx
+            .rows(case_iri, &p_recovery_transform())
+            .map(|quad| crate::graphutil::node_of(dataset, quad.o))
+            .collect();
         if transforms.len() != 1 {
             return Err(Diag::of_kind(crate::error::Correspondence::new(format!(
                 "recovery case <{case_iri}> on correspondence <{corr_iri}> requires exactly one logic:recoveryTransform; found {}",
@@ -1173,6 +1265,9 @@ fn read_correspondence(
                 )))
         })?;
         let transform = reader.read(&transform_subject)?;
+        for quad in reader.consumed_rows() {
+            idx.record(quad);
+        }
         recovery_cases.push(RecoveryCaseIr::new(case_iri, transform)?);
     }
 
@@ -1198,6 +1293,9 @@ fn read_correspondence(
     }
     if grounding {
         correspondence = correspondence.as_grounding();
+    }
+    if let Some(lens) = lens {
+        correspondence = correspondence.with_lens(lens)?;
     }
     correspondence = correspondence.with_recovery_cases(recovery_cases)?;
     correspondence = correspondence.with_caveats(read_caveats(idx, corr_iri)?)?;
@@ -1305,6 +1403,7 @@ fn read_caveats(
 ) -> gmeow_errors::Result<Vec<CorrespondenceCaveat>> {
     let mut caveats = Vec::new();
     for caveat_iri in idx.iri_objs(corr_iri, &p_has_caveat())? {
+        idx.structural_type(caveat_iri, &class_caveat());
         let comments = read_literals(idx, caveat_iri, RDFS_COMMENT)?;
         if comments.is_empty() {
             return Err(field_error(
@@ -1591,7 +1690,7 @@ pub(crate) fn extract_correspondences_with_reader(
         &crate::graphutil::Node::iri(class_correspondence()),
     ) {
         match read_source_correspondence(reader, &subject) {
-            Ok(c) => ok.push(c),
+            Ok(c) => ok.push(c.value),
             Err(msg) => errors.push((
                 crate::graphutil::subject_str(&subject),
                 msg.message().to_owned(),
@@ -1607,17 +1706,26 @@ pub(crate) fn extract_correspondences_with_reader(
 pub(crate) fn read_source_correspondence(
     reader: &mut crate::frontend::FormulaReader<'_>,
     source: &crate::graphutil::Subject,
-) -> gmeow_errors::Result<Correspondence> {
+) -> gmeow_errors::Result<ReadCorrespondence> {
     let crate::graphutil::Subject::Iri(iri) = source else {
         return Err(Diag::of_kind(crate::error::Correspondence::new(
             "anonymous correspondence identity has no lowering to the current named IR".into(),
         )));
     };
-    read_correspondence(
-        reader,
-        &CorrespondenceView::from_dataset(reader.dataset()),
-        iri,
-    )
+    let view = CorrespondenceView::for_source(reader.dataset());
+    let value = read_correspondence(reader, &view, iri)?;
+    Ok(ReadCorrespondence {
+        value,
+        record_support: view
+            .support
+            .expect("source reader records its consumed fields")
+            .into_inner(),
+    })
+}
+
+pub(crate) struct ReadCorrespondence {
+    pub(crate) value: Correspondence,
+    pub(crate) record_support: BTreeSet<SourceStatementBinding>,
 }
 
 /// Read one named source declaration through the existing native graph indexes.

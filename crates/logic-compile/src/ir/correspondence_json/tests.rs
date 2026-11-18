@@ -49,6 +49,33 @@ fn check_unit_tags<T: FromJson + ToJson + serde::de::DeserializeOwned + serde::S
 
 #[test]
 fn native_correspondence_admits_every_unit_tag_and_refuses_ambiguous_evidence() {
+    let seed: Correspondence =
+        from_slice(WIRE.as_bytes()).expect("the complete evidence packet decodes");
+    for invalid in ["", "relative", "not an iri", "_:blank"] {
+        assert!(seed.clone().with_lens(invalid).is_err(), "{invalid}");
+        let mut wire: serde_json::Value =
+            serde_json::from_str(WIRE).expect("the packet is valid JSON");
+        wire["lens"] = serde_json::json!(invalid);
+        let bytes = serde_json::to_vec(&wire).expect("the packet serializes as JSON");
+        assert!(from_slice::<Correspondence>(&bytes).is_err(), "{invalid}");
+        assert!(
+            serde_json::from_slice::<Correspondence>(&bytes).is_err(),
+            "{invalid}"
+        );
+    }
+    let named = seed
+        .with_lens("https://example.org/lens")
+        .expect("the named Lens IRI is absolute");
+    let wire = to_vec(&named);
+    assert_eq!(
+        from_slice::<Correspondence>(&wire).expect("native evidence retains the Lens IRI"),
+        named
+    );
+    assert_eq!(
+        serde_json::from_slice::<Correspondence>(&wire)
+            .expect("Serde evidence retains the Lens IRI"),
+        named
+    );
     check_unit_tags::<CorrespondenceRelation>(&[
         "Equiv",
         "Subsumes",

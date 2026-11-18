@@ -48,6 +48,7 @@ pub(crate) enum SyntaxFamily {
     Term,
     Class,
     Owner,
+    Correspondence,
     ClassList,
     ValueList,
     PropertyList,

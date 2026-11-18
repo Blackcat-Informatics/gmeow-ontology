@@ -107,6 +107,12 @@ ex:absence a logic:Rule ; logic:inModule ex:Excluded ;
     logic:head [ rdf:reifies <<( _:x logic:instanceOf logic:Nothing )>> ] ;
     logic:body [ rdf:reifies <<( _:x ex:p _:y )>> ] ;
     logic:negatedBody [ rdf:reifies <<( _:x ex:q _:y )>> ] .
+ex:catalogue a logic:Correspondence ; logic:inModule ex:Excluded ;
+    logic:correspondenceRelation logic:RelatedMatch ; logic:morphismClass logic:LossyLens ;
+    logic:morphismKind logic:InstitutionMorphism ; logic:recoveryCase ex:case .
+ex:case a logic:RecoveryCase ; logic:recoveryTransform ex:recovery .
+ex:recovery a logic:Formula ; logic:relation ex:label ; logic:argument _:x, _:label .
+_:x logic:termIndex 0 . _:label logic:termIndex 1 .
 "#;
     let theory = compile(body);
     let inventory = whole_inventory(&theory);
@@ -162,6 +168,30 @@ ex:absence a logic:Rule ; logic:inModule ex:Excluded ;
             .expect("live module completion"),
         "{:?}",
         admission.drops().collect::<Vec<_>>()
+    );
+    assert!(
+        admission.source_dispositions().any(|(unit, disposition)| {
+            let gmeow_logic_compile::source_inventory::SourceObligationOrigin::Statement(binding) =
+                unit.origin()
+            else {
+                return false;
+            };
+            let dataset = theory.source().dataset();
+            matches!(
+                dataset.resolve(binding.canonical.p),
+                purrdf::TermRef::Iri("https://blackcatinformatics.ca/logic/termVariable")
+            ) && matches!(
+                dataset.resolve(binding.canonical.o),
+                purrdf::TermRef::Literal {
+                    lexical: "label",
+                    ..
+                }
+            ) && matches!(
+                disposition,
+                crate::reason::NativeSourceDisposition::StructuralSupport { .. }
+            )
+        }),
+        "selected rule support remains reachable through its actual owner, not the excluded catalogue"
     );
     let blocked = compile(&format!(
         r#"{body}

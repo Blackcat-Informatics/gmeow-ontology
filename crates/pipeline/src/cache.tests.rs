@@ -2358,7 +2358,11 @@ fn correspondence_bundle() -> (
 ) {
     use gmeow_logic_compile::projections::correspondence::project_correspondence;
     use std::sync::Arc;
-    let program = crate::stages::compile_logic::synthetic_affine_program();
+    let mut program = crate::stages::compile_logic::synthetic_affine_program();
+    program.correspondences[0] = program.correspondences[0]
+        .clone()
+        .with_lens("https://example.org/lens")
+        .expect("an absolute named lens");
     let projection = project_correspondence(&program).unwrap();
     let parsed = parse_dataset(projection.as_bytes(), "application/n-triples", None)
         .expect("parse projection");

@@ -62,6 +62,7 @@ pub enum NativeSourceDisposition {
     Accounted { route: &'static str },
     StructuralSupport { route: &'static str },
     ConfigurationDeclaration { route: &'static str },
+    MetatheoryDeclaration { route: &'static str },
     OutsideSelection { reason: &'static str },
     OutsideRequestedTheory { reason: &'static str },
     Blocked { code: &'static str, reason: String },
@@ -379,6 +380,7 @@ fn classify(
     ingress: Option<&ClaimIngress>,
     contexts_admitted: bool,
     axiom_sources: &[AxiomSource],
+    correspondence_record_selected: bool,
 ) -> Disposition {
     let theory = inventory.theory();
     let outside = || Disposition::OutsideSelection {
@@ -389,6 +391,11 @@ fn classify(
             let quad = binding.canonical;
             if quad.g.is_some() {
                 return outside();
+            }
+            if correspondence_record_selected {
+                return Disposition::MetatheoryDeclaration {
+                    route: "validated correspondence catalogue record; no object premise or law execution",
+                };
             }
             if unit.requires_class_law() {
                 return Disposition::blocked(
@@ -517,6 +524,22 @@ fn classify(
                             "MISSING_CONTRACT_IR",
                             "contract route has no shared declaration account",
                         ),
+                    }
+                }
+                OwnerDisposition::Emitted { index }
+                    if owner.family == OwnerFamily::Correspondence =>
+                {
+                    if theory.program().correspondences.get(*index).is_none()
+                        || owner.record_support.is_empty()
+                    {
+                        Disposition::malformed(
+                            "MISSING_CORRESPONDENCE_RECORD",
+                            "correspondence route has no compiled record and exact reader support",
+                        )
+                    } else {
+                        Disposition::MetatheoryDeclaration {
+                            route: "validated correspondence catalogue record; no object premise or law execution",
+                        }
                     }
                 }
                 OwnerDisposition::Emitted { .. } => Disposition::blocked(
@@ -687,6 +710,7 @@ fn classify_selected(
         ingress,
         matches!(membership, TheoryUnitSelection::Included),
         &axiom_sources,
+        selection.correspondence_record_selected(unit)?,
     );
     Ok(match membership {
         TheoryUnitSelection::Blocked { code, reason } if disposition.boundary().is_none() => {
