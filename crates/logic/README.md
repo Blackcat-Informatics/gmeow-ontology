@@ -96,8 +96,16 @@ default graph, while claim-envelope inspection and source accounting retain ever
 supplied graph. Source edits and domain, modal or contextual requirements cannot
 introduce an unselected world; such requirements refuse explicitly. Unsupported and
 unread source remains named even when a faithful native fragment proves a clash.
-Classical FOF export has an independent
-admission and cannot borrow native completion.
+Procedural negation-as-failure rules are named source boundaries and refuse this
+proof operation before execution: absence cannot authorize a classical refutation.
+The generic program and selected-theory execution APIs retain procedural NAF.
+Membership in `logic:Thing` or `owl:Thing` remains accountable when asserted or
+concluded. A universal-class membership premise prevents complete source accounting,
+because native closure does not establish membership for every element. Formula
+accounting tracks classical polarity through negation, implication and equivalence,
+including premises exposed by negation normalization. Independent ordinary clashes
+remain faithful refutations beside that incomplete accounting. Classical FOF export
+has an independent admission and cannot borrow native completion.
 
 Native positive schema joins also participate in that fixed point: domain,
 range, subproperty propagation, inverse/symmetric/transitive properties, and

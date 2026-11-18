@@ -550,6 +550,7 @@ ex:transitionNamesItsTarget a logic:Constraint ;
 /// Two rules that feed an existential head back into its own body have no termination
 /// certificate, so the native engine refuses them: the selection is not decided, the
 /// native leg is reported as refused, and the engine's reasons are the named drops.
+/// Procedural negation is also refused before its absence-based clash can execute.
 #[test]
 fn a_program_the_native_engine_declines_is_not_decided_rather_than_a_failure() {
     let (report, code) = prove_json(
@@ -576,6 +577,126 @@ ex:a logic:instanceOf ex:Person .
     for expected in ["NATIVE_REFUSED", "NATIVE_REFUSAL_REASON"] {
         assert!(codes.iter().any(|code| code == expected), "{report:#}");
     }
+
+    let (report, code) = prove_json(
+        "naf-clash.logic.ttl",
+        r#"
+ex:a ex:p ex:b .
+_:x a logic:TermCarrier ; logic:termVariable "x" .
+_:y a logic:TermCarrier ; logic:termVariable "y" .
+ex:absenceClash a logic:Rule ;
+    logic:head [ rdf:reifies <<( _:x logic:instanceOf logic:Nothing )>> ] ;
+    logic:body [ rdf:reifies <<( _:x ex:p _:y )>> ] ;
+    logic:negatedBody [ rdf:reifies <<( _:x ex:q _:y )>> ] .
+"#,
+        &["--gate"],
+    );
+    assert_eq!(report["verdict"], "not-decided", "{report:#}");
+    assert_eq!(code, 3);
+    assert_eq!(report["engines"]["native"]["verdict"], "refused");
+    assert_eq!(report["selection"]["complete"], false);
+    assert_eq!(report["refutations"], serde_json::json!([]), "{report:#}");
+    assert!(
+        has_drop(
+            &report,
+            "NEGATION_AS_FAILURE_IS_NOT_CLASSICAL_NEGATION",
+            "absenceClash"
+        ) && has_drop(&report, "NATIVE_REFUSAL_REASON", "program:rule:0"),
+        "{report:#}"
+    );
+}
+
+/// PROTECTS: universal-class tests that native closure does not populate prevent
+/// a complete no-clash claim, including premises exposed by negation normalization.
+/// Asserted/head membership remains accountable, and an independent clash remains
+/// a faithful refutation even beside the incomplete universal-class account.
+#[test]
+fn universal_membership_premises_do_not_authorize_complete_no_clash() {
+    const FACTS: &str = r#"
+ex:A logic:disjointWith ex:B .
+ex:a logic:instanceOf ex:B ; ex:p ex:b .
+"#;
+    const ATOMS: &str = r#"
+ex:x a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "x" .
+ex:thing a logic:TermCarrier ; logic:termIndex 1 ;
+    logic:termIri <http://www.w3.org/2002/07/owl#Thing> .
+ex:classA a logic:TermCarrier ; logic:termIndex 1 ; logic:termIri ex:A .
+ex:thingBody a logic:Formula ; logic:relation logic:instanceOf ;
+    logic:argument ex:x, ex:thing .
+ex:classHead a logic:Formula ; logic:relation logic:instanceOf ;
+    logic:argument ex:x, ex:classA .
+ex:law a logic:Formula ; logic:quantifiedVariable ex:x ; logic:forall ex:imp .
+"#;
+    for (name, rule) in [
+        (
+            "compact",
+            r#"
+_:x a logic:TermCarrier ; logic:termVariable "x" .
+_:y a logic:TermCarrier ; logic:termVariable "y" .
+ex:thingGuard a logic:Rule ;
+    logic:head [ rdf:reifies <<( _:x logic:instanceOf ex:A )>> ] ;
+    logic:body [ rdf:reifies <<( _:x logic:instanceOf logic:Thing )>> ],
+        [ rdf:reifies <<( _:x ex:p _:y )>> ] .
+"#
+            .to_owned(),
+        ),
+        (
+            "implication",
+            format!(
+                "{ATOMS} ex:imp a logic:Formula ; logic:antecedent ex:thingBody ; logic:consequent ex:classHead ."
+            ),
+        ),
+        (
+            "normalized-disjunction",
+            format!(
+                "{ATOMS} ex:negative a logic:Formula ; logic:not ex:thingBody . ex:imp a logic:Formula ; logic:or ex:negative, ex:classHead ."
+            ),
+        ),
+    ] {
+        let source = format!("{FACTS}{rule}");
+        let (report, code) = prove_json(&format!("{name}.logic.ttl"), &source, &["--gate"]);
+        assert_eq!(report["verdict"], "not-decided", "{name}: {report:#}");
+        assert_eq!(code, 3);
+        assert_eq!(report["selection"]["complete"], false);
+        assert_eq!(report["engines"]["native"]["verdict"], "no-clash");
+        assert!(
+            has_drop(&report, "UNIT_NOT_ACCOUNTED", "universal membership"),
+            "{name}: {report:#}"
+        );
+        if name == "compact" {
+            let (report, code) = prove_json(
+                "independent-clash.logic.ttl",
+                &format!("{source} ex:a logic:instanceOf ex:A ."),
+                &["--gate"],
+            );
+            assert_eq!(report["verdict"], "inconsistent", "{report:#}");
+            assert_eq!(code, 3);
+            assert_eq!(report["selection"]["complete"], false);
+            assert_eq!(report["engines"]["native"]["verdict"], "clash");
+            assert!(
+                report["refutations"]
+                    .as_array()
+                    .is_some_and(|refutations| !refutations.is_empty()),
+                "{report:#}"
+            );
+        }
+    }
+    let (report, code) = prove_json(
+        "positive-thing.logic.ttl",
+        r#"
+ex:a logic:instanceOf logic:Thing ; ex:p ex:b .
+_:x a logic:TermCarrier ; logic:termVariable "x" .
+_:y a logic:TermCarrier ; logic:termVariable "y" .
+ex:thingHead a logic:Rule ;
+    logic:head [ rdf:reifies <<( _:x logic:instanceOf logic:Thing )>> ] ;
+    logic:body [ rdf:reifies <<( _:x ex:p _:y )>> ] .
+"#,
+        &["--gate"],
+    );
+    assert_eq!(report["verdict"], "consistent", "{report:#}");
+    assert_eq!(code, 3);
+    assert_eq!(report["selection"]["complete"], true);
+    assert_eq!(report["selection"]["drops"], serde_json::json!([]));
 }
 
 /// A reasoning-contract declaration is catalogued metatheory: it is accounted, is

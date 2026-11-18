@@ -200,11 +200,11 @@ const ACCOUNTED_MARKERS: &[(&str, &str)] = &[
     ),
     (
         "http://www.w3.org/2002/07/owl#Thing",
-        "the universal class holds of every element",
+        "asserted membership and its native consequences; no universal body test",
     ),
     (
         "https://blackcatinformatics.ca/logic/Thing",
-        "the universal class holds of every element",
+        "asserted membership and its native consequences; no universal body test",
     ),
     (
         "http://www.w3.org/2002/07/owl#Nothing",
@@ -337,12 +337,32 @@ fn property_accounted(term: UnitTerm<'_>) -> bool {
     matches!(term, UnitTerm::Iri(iri) if !interpreted(iri))
 }
 
+/// An atom's sign after classical negation normalization. A negative occurrence
+/// can become a rule premise; either sign occurs on each side of an equivalence.
+#[derive(Clone, Copy)]
+pub(super) enum AtomPolarity {
+    Positive,
+    Negative,
+    Both,
+}
+
+impl AtomPolarity {
+    fn reversed(self) -> Self {
+        match self {
+            Self::Positive => Self::Negative,
+            Self::Negative => Self::Positive,
+            Self::Both => Self::Both,
+        }
+    }
+}
+
 /// Account one binary predication against THE list. `None` when accounted,
 /// otherwise the reason it is not.
 pub(super) fn account_predication(
     subject: UnitTerm<'_>,
     predicate: UnitTerm<'_>,
     object: UnitTerm<'_>,
+    polarity: AtomPolarity,
 ) -> Option<String> {
     let UnitTerm::Iri(predicate) = predicate else {
         return Some("a variable or non-IRI relation has no accounted law".to_owned());
@@ -360,6 +380,14 @@ pub(super) fn account_predication(
     };
     let accounted = match positions {
         Positions::Membership => match object {
+            UnitTerm::Iri(class)
+                if UNIVERSAL_CLASSES.contains(&class)
+                    && !matches!(polarity, AtomPolarity::Positive) =>
+            {
+                return Some(format!(
+                    "{predicate} membership in {class} is not accounted as a premise; native closure does not establish universal membership"
+                ));
+            }
             UnitTerm::Iri(class) if interpreted(class) => {
                 ACCOUNTED_MARKERS.iter().any(|(marker, _)| *marker == class)
             }
@@ -386,10 +414,11 @@ pub(super) fn account_predication(
         .then(|| format!("{predicate} is accounted only for the positions on its list entry"))
 }
 
-/// Account every relation a formula uses. Horn lowering decides which atoms become
-/// heads; every interpreted relation in the tree must therefore be accounted.
+/// Account every relation with its classical polarity, including premises exposed
+/// by negation normalization and either direction of an equivalence.
 pub(super) fn account_formula(
     formula: &gmeow_logic_compile::ir::Formula,
+    polarity: AtomPolarity,
     refusals: &mut Vec<String>,
 ) {
     use gmeow_logic_compile::ir::Formula;
@@ -400,6 +429,7 @@ pub(super) fn account_formula(
                     UnitTerm::formula(subject),
                     UnitTerm::formula(relation),
                     UnitTerm::formula(object),
+                    polarity,
                 ),
                 _ => match UnitTerm::formula(relation) {
                     UnitTerm::Iri(iri) if !interpreted(iri) => None,
@@ -411,23 +441,30 @@ pub(super) fn account_formula(
             };
             refusals.extend(refusal);
         }
-        Formula::Not(inner) => account_formula(inner, refusals),
+        Formula::Not(inner) => account_formula(inner, polarity.reversed(), refusals),
         Formula::And(parts) | Formula::Or(parts) => {
             for part in parts {
-                account_formula(part, refusals);
+                account_formula(part, polarity, refusals);
             }
         }
-        Formula::Implies(left, right) | Formula::Iff(left, right) => {
-            account_formula(left, refusals);
-            account_formula(right, refusals);
+        Formula::Implies(left, right) => {
+            account_formula(left, polarity.reversed(), refusals);
+            account_formula(right, polarity, refusals);
+        }
+        Formula::Iff(left, right) => {
+            account_formula(left, AtomPolarity::Both, refusals);
+            account_formula(right, AtomPolarity::Both, refusals);
         }
         Formula::Forall { body, .. } | Formula::Exists { body, .. } => {
-            account_formula(body, refusals);
+            account_formula(body, polarity, refusals);
         }
     }
 }
 
-pub(super) fn account_axiom(axiom: &gmeow_logic_compile::ir::LogicAxiom) -> Option<String> {
+pub(super) fn account_axiom(
+    axiom: &gmeow_logic_compile::ir::LogicAxiom,
+    polarity: AtomPolarity,
+) -> Option<String> {
     let predicate = if axiom.predicate.starts_with('?') {
         UnitTerm::Variable
     } else {
@@ -438,7 +475,7 @@ pub(super) fn account_axiom(axiom: &gmeow_logic_compile::ir::LogicAxiom) -> Opti
     } else {
         UnitTerm::Iri(&axiom.subject)
     };
-    account_predication(subject, predicate, UnitTerm::atomic(&axiom.obj))
+    account_predication(subject, predicate, UnitTerm::atomic(&axiom.obj), polarity)
 }
 
 /// Equality between two different terms, asserted or derived. The native engine has

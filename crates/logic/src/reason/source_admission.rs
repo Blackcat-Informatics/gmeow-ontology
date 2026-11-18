@@ -25,10 +25,11 @@ use super::{ClaimIngress, PreparedReasoningInput, SelectedProgram, reason_err};
 use crate::physical::{LogicalGraph, SelectedDomains};
 use crate::query_ir::Budget;
 use crate::result::{EvaluationStatus, InformationState, ReasoningResult};
-use accounting::{UnitTerm, account_axiom, account_formula, account_predication};
+use accounting::{AtomPolarity, UnitTerm, account_axiom, account_formula, account_predication};
 
 const ENGINE_NATIVE: &str = "native";
 const PROFILE: &str = "gmeow-native-source-accounting-v1";
+const NAF_BOUNDARY: &str = "NEGATION_AS_FAILURE_IS_NOT_CLASSICAL_NEGATION";
 const SOURCE_ACCOUNTING_DOMAIN: purrdf_hash::Domain =
     purrdf_hash::Domain::new(b"gmeow-native-source-accounting-v1\0");
 const SOURCE_EXECUTION_DOMAIN: purrdf_hash::Domain =
@@ -371,6 +372,7 @@ fn classify(
                         UnitTerm::atomic(&assertion.subject),
                         UnitTerm::Iri(&assertion.predicate),
                         UnitTerm::atomic(&assertion.object),
+                        AtomPolarity::Positive,
                     ),
                     "native asserted fact and interpreted-relation account",
                 ),
@@ -436,10 +438,18 @@ fn classify(
                 }
                 OwnerDisposition::Emitted { index } if owner.family == OwnerFamily::Rule => {
                     match theory.program().rules.get(*index) {
+                        Some(rule) if rule.body.iter().any(|atom| atom.negated) => {
+                            Disposition::blocked(
+                                NAF_BOUNDARY,
+                                format!(
+                                    "program:rule:{index} uses negation-as-failure body atoms; absence is not classical negation"
+                                ),
+                            )
+                        }
                         Some(rule) => account_refusals(
-                            std::iter::once(&rule.head)
-                                .chain(&rule.body)
-                                .filter_map(account_axiom),
+                            std::iter::once((&rule.head, AtomPolarity::Positive))
+                                .chain(rule.body.iter().map(|atom| (atom, AtomPolarity::Negative)))
+                                .filter_map(|(atom, polarity)| account_axiom(atom, polarity)),
                             "selected native rule; exact preparation and lowering residue checked by executor",
                         ),
                         None => Disposition::malformed(
@@ -519,7 +529,7 @@ fn classify(
                         );
                     };
                     let mut refusals = Vec::new();
-                    account_formula(formula, &mut refusals);
+                    account_formula(formula, AtomPolarity::Positive, &mut refusals);
                     account_refusals(
                         refusals,
                         "selected native formula; exact preparation and lowering residue checked by executor",
@@ -675,12 +685,12 @@ fn classify_axiom(
     }
     if axiom.negated {
         return Disposition::blocked(
-            "NEGATION_AS_FAILURE_IS_NOT_CLASSICAL_NEGATION",
+            NAF_BOUNDARY,
             "compact negation is procedural and has no model account",
         );
     }
     account_refusals(
-        account_axiom(axiom),
+        account_axiom(axiom, AtomPolarity::Positive),
         "exact source axiom; scoped claim authorized by actual selected ingress",
     )
 }
@@ -689,8 +699,8 @@ fn classify_axiom(
 /// Decoded results and matching digest strings are never accepted as authority.
 ///
 /// # Errors
-/// Refuses foreign source/input/preparation/domain bindings before execution and
-/// propagates the native engine's typed failures without weakening the selection.
+/// Refuses foreign source/input/preparation/domain bindings and procedural NAF
+/// rules before execution, and propagates the native engine's typed failures.
 pub fn reason_admitted_theory_within(
     admission: &mut NativeSourceAdmission<'_>,
     selected: &SelectedProgram,
@@ -761,6 +771,27 @@ pub fn reason_admitted_theory_within(
         return Err(reason_err(format!(
             "selected source contains malformed obligations: {detail}"
         )));
+    }
+    let naf_rules: Vec<String> = admission
+        .inventory
+        .obligations()
+        .zip(&admission.dispositions)
+        .filter_map(|(unit, disposition)| match (unit.origin(), disposition) {
+            (SourceObligationOrigin::Owner(_), Disposition::Blocked { code, reason })
+                if *code == NAF_BOUNDARY =>
+            {
+                Some(format!("{}: {reason}", unit.anchor()))
+            }
+            _ => None,
+        })
+        .collect();
+    if !naf_rules.is_empty() {
+        return Err(gmeow_errors::Diag::of_kind(crate::error::NativeRefusal {
+            reason: "selected source proof refuses negation-as-failure rules before execution"
+                .to_owned(),
+            gaps: naf_rules,
+            bounds: Vec::new(),
+        }));
     }
     for claim in ingress.unread() {
         admission.execution_drops.insert(NativeSourceDrop::new(

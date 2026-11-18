@@ -298,6 +298,60 @@ ex:scoped a logic:Rule ;
     );
 }
 
+/// PROTECTS: procedural negation may run through the generic selected-theory
+/// entry, but its absence-based clash cannot become source-bound proof evidence.
+#[test]
+fn a_procedural_naf_clash_is_refused_before_source_proof_execution() {
+    let theory = compile(
+        r#"
+ex:a ex:p ex:b .
+_:x a logic:TermCarrier ; logic:termVariable "x" .
+_:y a logic:TermCarrier ; logic:termVariable "y" .
+ex:absenceClash a logic:Rule ;
+    logic:head [ rdf:reifies <<( _:x logic:instanceOf logic:Nothing )>> ] ;
+    logic:body [ rdf:reifies <<( _:x ex:p _:y )>> ] ;
+    logic:negatedBody [ rdf:reifies <<( _:x ex:q _:y )>> ] .
+"#,
+    );
+    let (procedural, _) = decide(&theory);
+    let procedural = procedural.expect("the generic procedural selection still executes NAF");
+    assert!(!consistent(&procedural));
+
+    let inventory = SourceInventory::new(&theory, SourceSelection::all_classical_roots(&theory));
+    let mut admission = NativeSourceAdmission::inspect(&inventory).expect("whole source admission");
+    let (input, ingress) = ingest(&theory);
+    let selected =
+        prepare_selected_theory(&theory, &ingress).expect("procedural lowering prepares");
+    let domains = default_domain(&input);
+    let error = reason_admitted_theory_within(
+        &mut admission,
+        &selected,
+        input,
+        &domains,
+        &ingress,
+        &UNBOUNDED,
+    )
+    .expect_err("absence cannot authorize a classical refutation");
+    let refusal = error
+        .downcast_ref::<crate::error::NativeRefusal>()
+        .expect("unsupported proof semantics has a typed refusal");
+    assert!(
+        refusal
+            .gaps
+            .iter()
+            .any(|gap| { gap.contains("program:rule:0") && gap.contains("absenceClash") }),
+        "{refusal:?}"
+    );
+    assert!(admission.drops().any(|drop| {
+        drop.code == "NEGATION_AS_FAILURE_IS_NOT_CLASSICAL_NEGATION"
+            && drop.detail.contains("absenceClash")
+    }));
+    assert!(
+        admission.complete_for(&procedural).is_err(),
+        "the refused operation issues no live source completion"
+    );
+}
+
 /// PROTECTS: execution that ignores axiom scopes starts only from the input whose
 /// claims were admitted for that program. An input the claims were never added to,
 /// and a program with a scoped claim the ledger does not hold, are both refused.
