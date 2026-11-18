@@ -180,13 +180,13 @@ fn roots(dataset: &RdfDataset, graph: GraphMatch) -> gmeow_errors::Result<BTreeS
         if !graph.matches(row.g) {
             continue;
         }
-        if matches!(dataset.resolve(row.p), TermRef::Iri(iri) if iri == logic("contextualResult")) {
-            if let TermRef::Iri(subject) = dataset.resolve(row.o) {
-                children.insert(Owner {
-                    graph: row.g,
-                    subject: subject.to_owned(),
-                });
-            }
+        if matches!(dataset.resolve(row.p), TermRef::Iri(iri) if iri == logic("contextualResult"))
+            && let TermRef::Iri(subject) = dataset.resolve(row.o)
+        {
+            children.insert(Owner {
+                graph: row.g,
+                subject: subject.to_owned(),
+            });
         }
         if matches!(dataset.resolve(row.p), TermRef::Iri(RDF_TYPE))
             && matches!(dataset.resolve(row.o), TermRef::Iri(iri) if iri == logic("ReasoningResult"))
@@ -287,13 +287,12 @@ fn metadata(
     for (key, value) in entries {
         if let Value::Text(key) = key
             && matches!(key.as_str(), "digest" | "rep" | "mt")
+            && selected.insert(key.as_str(), value).is_some()
         {
-            if selected.insert(key.as_str(), value).is_some() {
-                return Err(result_err(format!(
-                    "native receipt {} duplicates metadata key {key}",
-                    address.as_str()
-                )));
-            }
+            return Err(result_err(format!(
+                "native receipt {} duplicates metadata key {key}",
+                address.as_str()
+            )));
         }
     }
     for (key, expected) in [
@@ -321,6 +320,7 @@ struct Audit<'a> {
     first_refusal: gmeow_errors::FirstDiagnostic,
     role: Role,
     closures: BTreeMap<NativeReceiptAddress, Required>,
+    closure_by_owner: BTreeMap<Owner, (NativeReceiptAddress, usize)>,
     restored_closure: Option<Arc<RdfDataset>>,
 }
 
@@ -423,9 +423,8 @@ impl Audit<'_> {
         } else if !required.completed && !required.owners.is_empty() {
             let receipt = NativeReceiptRef::admit(address, &bytes)?;
             for owner in &required.owners {
-                let expected = self.closures.iter().find_map(|(address, required)| {
-                    required.owners.contains(owner).then_some(address)
-                });
+                let attachment = self.closure_by_owner.get(owner);
+                let expected = attachment.map(|(address, _)| address);
                 let resolver = PendingClosure {
                     receipt,
                     expected,
@@ -438,7 +437,7 @@ impl Audit<'_> {
                     &resolver,
                 )?;
                 let worlds = resolver.worlds.into_inner();
-                if let Some(address) = expected.cloned() {
+                if let Some((address, slot)) = attachment {
                     let worlds = worlds.ok_or_else(|| {
                         result_err(
                             "required closure binding was not admitted by its owning aggregate"
@@ -447,19 +446,14 @@ impl Audit<'_> {
                     })?;
                     let closure = self
                         .closures
-                        .get_mut(&address)
+                        .get_mut(address)
                         .expect("discovered closure retained");
                     // Multiple owners may share a digest. Preserve exact owner
                     // order so each authenticated world catalog is checked.
-                    let slot = closure
-                        .owners
-                        .iter()
-                        .position(|candidate| candidate == owner)
-                        .expect("closure owner retained");
                     if closure.worlds.len() < closure.owners.len() {
                         closure.worlds.resize_with(closure.owners.len(), Vec::new);
                     }
-                    closure.worlds[slot] = worlds;
+                    closure.worlds[*slot] = worlds;
                 }
                 if self.selected.as_ref() == Some(owner) {
                     self.restored = Some(result);
@@ -551,6 +545,16 @@ fn admit(
     let roots = roots(dataset, graph)?;
     let mut required = bindings(dataset, graph, &roots, "resultNativeExecution")?;
     let closures = bindings(dataset, graph, &roots, "resultClosureBlob")?;
+    let closure_by_owner = closures
+        .iter()
+        .flat_map(|(address, required)| {
+            required
+                .owners
+                .iter()
+                .enumerate()
+                .map(|(slot, owner)| (owner.clone(), (address.clone(), slot)))
+        })
+        .collect();
     if closures
         .keys()
         .any(|address| required.contains_key(address))
@@ -588,6 +592,7 @@ fn admit(
         first_refusal: gmeow_errors::FirstDiagnostic::default(),
         role: Role::Native,
         closures,
+        closure_by_owner,
         restored_closure: None,
     };
     audit_stream(bytes, &mut audit)?;

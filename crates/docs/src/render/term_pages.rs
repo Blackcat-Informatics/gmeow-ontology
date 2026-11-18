@@ -34,12 +34,12 @@ fn base64_encode(bytes: &[u8]) -> String {
     out
 }
 
-pub(super) fn md_term(model: &DocsModel, slug: &str, exec: &ExecutableDocsData) -> String {
+pub(super) fn md_term(model: &DocsModel, slug: &str, exec: &ExecutableDocsData) -> Result<String> {
     let Some(term) = model.terms.iter().find(|t| term_slug(t) == slug) else {
         let mut out = String::new();
         heading(&mut out, 1, slug);
         line(&mut out, model.ui("body_term_not_found"));
-        return out;
+        return Ok(out);
     };
     let from = Page::Term(slug.to_string()).dir();
 
@@ -112,13 +112,13 @@ pub(super) fn md_term(model: &DocsModel, slug: &str, exec: &ExecutableDocsData) 
     // then the ACADEMIC surface below (the formal axioms, derivation provenance,
     // projection fidelity, and citation). Every prior section is preserved; the two
     // tiers only reorder them and add the multi-syntax tabs + DL axioms.
-    out.push_str(&term_developer_surface(model, term, &from, exec));
+    out.push_str(&term_developer_surface(model, term, &from, exec)?);
     out.push_str(&term_academic_surface(model, term, &from, exec));
 
     // Enriched build-pipeline stage section (only when the term IS a stage).
     append_stage_section(&mut out, model, term, &from);
 
-    out
+    Ok(out)
 }
 
 /// The DEVELOPER-facing tier of the term page: everything a consumer needs to
@@ -134,7 +134,7 @@ fn term_developer_surface(
     term: &DocTerm,
     from: &str,
     exec: &ExecutableDocsData,
-) -> String {
+) -> Result<String> {
     let from = from.to_string();
     let mut out = String::new();
     heading(&mut out, 2, model.ui("body_developer_surface"));
@@ -169,7 +169,7 @@ fn term_developer_surface(
     // ── The same example, in several concrete syntaxes (the SyntaxTabProvider
     // seam): Turtle, JSON-LD, and — when the schema digest is attached — the
     // per-term JSON Schema + OpenAPI fragments ("use this term without RDF").
-    append_syntax_tabs(&mut out, model, term);
+    append_syntax_tabs(&mut out, model, term)?;
 
     // ── Neighbourhood diagram (the term and its 1-hop relations) ────────────────
     // Gated on the identical predicate as the emission loop in `render_site_lang`
@@ -467,7 +467,7 @@ fn term_developer_surface(
         blank(&mut out);
     }
 
-    out
+    Ok(out)
 }
 
 /// The ACADEMIC-facing tier of the term page: the formal structure and its
@@ -659,22 +659,16 @@ fn term_academic_surface(
     }
 
     // ── Reasoning status (present only when the native reasoner verdict is attached)
-    // The textual, accessible counterpart of the reasoning badge: a class is
-    // satisfiable unless the native DL reasoner proved it unsatisfiable; a
-    // non-class term is not-evaluated (satisfiability is a class notion). Never
-    // rendered for a source-only model, so no satisfiability claim is fabricated.
+    // The textual counterpart of the shared evidence-based reasoning status.
+    // Global consistency does not establish the realizability of each class.
     if let Some(verdict) = &model.reasoning {
         heading(&mut out, 2, model.ui("body_reasoning_status"));
         let unsatisfiable =
             term.category == DocTermCategory::Class && verdict.unsatisfiable.contains(&term.iri);
-        let status = if term.category == DocTermCategory::Class {
-            if unsatisfiable {
-                model.ui("body_reasoning_unsatisfiable")
-            } else {
-                model.ui("body_reasoning_satisfiable")
-            }
-        } else {
-            model.ui("body_reasoning_not_evaluated")
+        let status = match verdict.term_status(term) {
+            "unsatisfiable" => model.ui("body_reasoning_unsatisfiable"),
+            "not-evaluated" => model.ui("body_reasoning_not_evaluated"),
+            _ => model.ui("body_reasoning_undetermined"),
         };
         push_line(&mut out, &format!("- {status}"));
         // ── Unsatisfiable because (B3): the derivation chain(s) proving this
@@ -929,7 +923,7 @@ fn term_academic_surface(
 //
 // A term's example is rendered in several concrete serializations. Each is
 // produced by a `SyntaxTabProvider`: a PURE `fn(&DocTerm, &DocsModel) ->
-// Option<DocSyntaxTab>` yielding one labeled, language-tagged code block, or
+// Result<Option<DocSyntaxTab>>` yielding one labeled, language-tagged code block, or
 // `None` when this term carries no honest content for that syntax (the tab is
 // then simply absent — the seam's honest layering, never a fabricated
 // placeholder). The providers run in the fixed order of `SYNTAX_TAB_PROVIDERS`.
@@ -954,7 +948,7 @@ struct DocSyntaxTab {
 
 /// A pure example-syntax tab producer. `None` = this term has no honest content
 /// for the syntax (absent tab).
-type SyntaxTabProvider = fn(&DocTerm, &DocsModel) -> Option<DocSyntaxTab>;
+type SyntaxTabProvider = fn(&DocTerm, &DocsModel) -> Result<Option<DocSyntaxTab>>;
 
 /// The ordered example-syntax providers consumed by the term-page renderer.
 const SYNTAX_TAB_PROVIDERS: &[SyntaxTabProvider] = &[
@@ -994,18 +988,21 @@ pub(super) fn python_str_escape(text: &str) -> String {
 /// reading the term. Present only for a modeled class (one carrying a schema
 /// fragment); the payload is the SAME quickstart instance the Turtle / JSON-LD
 /// tabs render, so the code never drifts from the RDF example.
-fn python_syntax_tab(term: &DocTerm, model: &DocsModel) -> Option<DocSyntaxTab> {
+fn python_syntax_tab(term: &DocTerm, model: &DocsModel) -> Result<Option<DocSyntaxTab>> {
     // Only a modeled class has a Pydantic model + a JSON-Schema fragment.
-    model
+    if model
         .schema_fragments
-        .as_ref()?
-        .schema_by_term
-        .get(&term.iri)?;
-    let skeleton = synthesize_quickstart(model, term);
-    if !skeleton_has_triple(&skeleton) {
-        return None;
+        .as_ref()
+        .and_then(|fragments| fragments.schema_by_term.get(&term.iri))
+        .is_none()
+    {
+        return Ok(None);
     }
-    let payload = quickstart_turtle_to_jsonld(&skeleton)?;
+    let Some(skeleton) = syntax_skeleton(model, term)? else {
+        return Ok(None);
+    };
+    let payload = quickstart_turtle_to_jsonld(&skeleton)
+        .map_err(|error| error.with_context(format!("python_syntax_tab for {}", term.iri)))?;
     // A raw triple-quoted literal (`r'''...'''`) cannot escape a `'''` run, so
     // an unlucky payload would terminate the string early and emit broken
     // Python; a non-raw double-quoted literal has no such forbidden
@@ -1022,12 +1019,12 @@ fn python_syntax_tab(term: &DocTerm, model: &DocsModel) -> Option<DocSyntaxTab> 
          obj = {class}.model_validate(payload)\n\
          print(obj.model_dump(by_alias=True, exclude_none=True))"
     );
-    Some(DocSyntaxTab {
+    Ok(Some(DocSyntaxTab {
         id: "python".to_string(),
         label: "Python".to_string(),
         lang: "python".to_string(),
         body,
-    })
+    }))
 }
 
 /// The narrowest Rust raw-string hash-fence width that is safe for `text`: one
@@ -1068,16 +1065,18 @@ pub(super) fn rust_raw_string_literal(text: &str) -> String {
 /// the native GMEOW validator — the shipped Rust surface paired with the Python
 /// tab, from the one worked instance. Present under the same modeled-class
 /// condition as [`python_syntax_tab`].
-fn rust_syntax_tab(term: &DocTerm, model: &DocsModel) -> Option<DocSyntaxTab> {
-    model
+fn rust_syntax_tab(term: &DocTerm, model: &DocsModel) -> Result<Option<DocSyntaxTab>> {
+    if model
         .schema_fragments
-        .as_ref()?
-        .schema_by_term
-        .get(&term.iri)?;
-    let skeleton = synthesize_quickstart(model, term);
-    if !skeleton_has_triple(&skeleton) {
-        return None;
+        .as_ref()
+        .and_then(|fragments| fragments.schema_by_term.get(&term.iri))
+        .is_none()
+    {
+        return Ok(None);
     }
+    let Some(skeleton) = syntax_skeleton(model, term)? else {
+        return Ok(None);
+    };
     let turtle = format!("{QUICKSTART_TURTLE_PREAMBLE}{skeleton}");
     // A fixed one-`#` fence breaks if `turtle` ever contains `"#`; widen the
     // fence to whatever this particular worked instance needs.
@@ -1090,12 +1089,12 @@ fn rust_syntax_tab(term: &DocTerm, model: &DocsModel) -> Option<DocSyntaxTab> {
          let report = gmeow_validate::validate(&dataset)?;\n\
          assert!(report.conforms());"
     );
-    Some(DocSyntaxTab {
+    Ok(Some(DocSyntaxTab {
         id: "rust".to_string(),
         label: "Rust".to_string(),
         lang: "rust".to_string(),
         body: body.trim_end().to_string(),
-    })
+    }))
 }
 
 /// Whether a synthesized quickstart skeleton carries at least one Turtle triple
@@ -1108,86 +1107,109 @@ fn skeleton_has_triple(skeleton: &str) -> bool {
         .any(|l| !l.trim_start().is_empty() && !l.trim_start().starts_with('#'))
 }
 
+/// Select the term's honest example surface; a selected class/property must
+/// produce RDF rows rather than quietly losing every executable syntax tab.
+fn syntax_skeleton(model: &DocsModel, term: &DocTerm) -> Result<Option<String>> {
+    let skeleton = synthesize_quickstart(model, term);
+    if skeleton_has_triple(&skeleton) {
+        return Ok(Some(skeleton));
+    }
+    if matches!(
+        term.category,
+        DocTermCategory::Class | DocTermCategory::Property
+    ) {
+        return Err(Diag::of_kind(crate::render_error::Syntax::new(format!(
+            "selected class/property {} produced no quickstart RDF rows",
+            term.iri,
+        ))));
+    }
+    Ok(None)
+}
+
 /// The Turtle example tab: the term's synthesized quickstart skeleton verbatim.
 /// Present for a class/property (they synthesize a triple skeleton); absent for
 /// an individual/datatype/other whose skeleton is comment-only.
-fn turtle_syntax_tab(term: &DocTerm, model: &DocsModel) -> Option<DocSyntaxTab> {
-    let body = synthesize_quickstart(model, term);
-    if !skeleton_has_triple(&body) {
-        return None;
-    }
-    Some(DocSyntaxTab {
+fn turtle_syntax_tab(term: &DocTerm, model: &DocsModel) -> Result<Option<DocSyntaxTab>> {
+    let Some(body) = syntax_skeleton(model, term)? else {
+        return Ok(None);
+    };
+    Ok(Some(DocSyntaxTab {
         id: "turtle".to_string(),
         label: "Turtle".to_string(),
         lang: "turtle".to_string(),
         body: body.trim_end().to_string(),
-    })
+    }))
 }
 
 /// The JSON-LD example tab: the SAME quickstart Turtle, transcoded to a
 /// deterministic JSON-LD document via the native `purrdf` codec. `None` when the
-/// skeleton carries no triple or fails to parse/transcode (honest absence — no
-/// fabricated document).
-fn jsonld_syntax_tab(term: &DocTerm, model: &DocsModel) -> Option<DocSyntaxTab> {
-    let skeleton = synthesize_quickstart(model, term);
-    if !skeleton_has_triple(&skeleton) {
-        return None;
-    }
-    let body = quickstart_turtle_to_jsonld(&skeleton)?;
-    Some(DocSyntaxTab {
+/// term has no triple-bearing skeleton. Parse or serialization failure is a
+/// typed error retaining the codec cause.
+fn jsonld_syntax_tab(term: &DocTerm, model: &DocsModel) -> Result<Option<DocSyntaxTab>> {
+    let Some(skeleton) = syntax_skeleton(model, term)? else {
+        return Ok(None);
+    };
+    let body = quickstart_turtle_to_jsonld(&skeleton)
+        .map_err(|error| error.with_context(format!("jsonld_syntax_tab for {}", term.iri)))?;
+    Ok(Some(DocSyntaxTab {
         id: "jsonld".to_string(),
         label: "JSON-LD".to_string(),
         lang: "json".to_string(),
         body,
-    })
+    }))
 }
 
 /// The JSON Schema fragment tab ("use this term without RDF"): the class's
 /// `$defs` fragment from the attached schema digest. `None` when no digest is
 /// attached (source-only render) or the term has no fragment — honest absence.
-fn json_schema_syntax_tab(term: &DocTerm, model: &DocsModel) -> Option<DocSyntaxTab> {
-    let body = model
+fn json_schema_syntax_tab(term: &DocTerm, model: &DocsModel) -> Result<Option<DocSyntaxTab>> {
+    let Some(body) = model
         .schema_fragments
-        .as_ref()?
-        .schema_by_term
-        .get(&term.iri)?
-        .clone();
-    Some(DocSyntaxTab {
+        .as_ref()
+        .and_then(|fragments| fragments.schema_by_term.get(&term.iri))
+    else {
+        return Ok(None);
+    };
+    let body = body.clone();
+    Ok(Some(DocSyntaxTab {
         id: "json-schema".to_string(),
         label: model.ui("body_schema_fragment").to_string(),
         lang: "json".to_string(),
         body,
-    })
+    }))
 }
 
 /// The OpenAPI fragment tab: the class's `components/schemas` fragment from the
 /// attached schema digest. `None` under the same honest-absence conditions as
 /// [`json_schema_syntax_tab`].
-fn openapi_syntax_tab(term: &DocTerm, model: &DocsModel) -> Option<DocSyntaxTab> {
-    let body = model
+fn openapi_syntax_tab(term: &DocTerm, model: &DocsModel) -> Result<Option<DocSyntaxTab>> {
+    let Some(body) = model
         .schema_fragments
-        .as_ref()?
-        .openapi_by_term
-        .get(&term.iri)?
-        .clone();
-    Some(DocSyntaxTab {
+        .as_ref()
+        .and_then(|fragments| fragments.openapi_by_term.get(&term.iri))
+    else {
+        return Ok(None);
+    };
+    let body = body.clone();
+    Ok(Some(DocSyntaxTab {
         id: "openapi".to_string(),
         label: model.ui("body_openapi_fragment").to_string(),
         lang: "json".to_string(),
         body,
-    })
+    }))
 }
 
 /// The canonical `@prefix`/`@base` preamble under which a synthesized quickstart
 /// skeleton (which uses bare `gmeow:`/`logic:`/`math:`/`owl:`… CURIEs and the
 /// relative `<subject>`/`<...>` placeholders) parses as a self-contained Turtle
 /// document: a base resolves the relative placeholders, and every prefix a
-/// `quickstart_label`/`term.curie` can emit is declared.
+/// canonical grounding prefix used by documented terms is declared.
 const QUICKSTART_TURTLE_PREAMBLE: &str = concat!(
     "@base <https://blackcatinformatics.ca/gmeow/example/> .\n",
     "@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .\n",
     "@prefix logic: <https://blackcatinformatics.ca/logic/> .\n",
     "@prefix math: <https://blackcatinformatics.ca/math/> .\n",
+    "@prefix lang: <https://blackcatinformatics.ca/lang/> .\n",
     "@prefix owl: <http://www.w3.org/2002/07/owl#> .\n",
     "@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .\n",
     "@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .\n",
@@ -1198,16 +1220,28 @@ const QUICKSTART_TURTLE_PREAMBLE: &str = concat!(
 /// Transcode one synthesized quickstart Turtle skeleton to a deterministic
 /// JSON-LD document using the native `purrdf` codecs: parse the skeleton (under
 /// [`QUICKSTART_TURTLE_PREAMBLE`]) into an in-memory dataset, then serialize with
-/// `serialize_dataset_to_jsonld` (sorted keys / `@graph`, byte-stable). `None`
-/// when the skeleton fails to parse or yields no quads (honest absence). A pure
+/// `serialize_dataset_to_jsonld` (sorted keys / `@graph`, byte-stable). A selected
+/// skeleton must parse and yield RDF rows; failures retain their cause. A pure
 /// in-memory transcode — no `generated/` disk read.
-fn quickstart_turtle_to_jsonld(skeleton: &str) -> Option<String> {
+fn quickstart_turtle_to_jsonld(skeleton: &str) -> Result<String> {
     let doc = format!("{QUICKSTART_TURTLE_PREAMBLE}{skeleton}");
-    let dataset = purrdf::parse_dataset(doc.as_bytes(), "text/turtle", None).ok()?;
+    let dataset = purrdf::parse_dataset(doc.as_bytes(), "text/turtle", None).map_err(|cause| {
+        Diag::of_kind(crate::render_error::Syntax::caused_by(
+            "parse selected quickstart Turtle".into(),
+            cause,
+        ))
+    })?;
     if dataset.quad_count() == 0 {
-        return None;
+        return Err(Diag::of_kind(crate::render_error::Syntax::new(
+            "selected quickstart produced no RDF rows".into(),
+        )));
     }
-    purrdf::native_codecs::jsonld::serialize_dataset_to_jsonld(&dataset).ok()
+    purrdf::native_codecs::jsonld::serialize_dataset_to_jsonld(&dataset).map_err(|cause| {
+        Diag::of_kind(crate::render_error::Syntax::caused_by(
+            "serialize selected quickstart as JSON-LD".into(),
+            cause,
+        ))
+    })
 }
 
 /// Render the ordered example-syntax tabs for a term under the "Example in
@@ -1215,13 +1249,16 @@ fn quickstart_turtle_to_jsonld(skeleton: &str) -> Option<String> {
 /// sequential labeled fenced code blocks (the house style — cf. the loss-ledger's
 /// labeled blocks). Emits nothing when no provider yields a tab (a source-only
 /// render of an individual/datatype term produces no tabs — honest absence).
-fn append_syntax_tabs(out: &mut String, model: &DocsModel, term: &DocTerm) {
+fn append_syntax_tabs(out: &mut String, model: &DocsModel, term: &DocTerm) -> Result<()> {
     let tabs: Vec<DocSyntaxTab> = SYNTAX_TAB_PROVIDERS
         .iter()
-        .filter_map(|provider| provider(term, model))
+        .map(|provider| provider(term, model))
+        .collect::<Result<Vec<_>>>()?
+        .into_iter()
+        .flatten()
         .collect();
     if tabs.is_empty() {
-        return;
+        return Ok(());
     }
     heading(out, 2, model.ui("body_example_syntaxes"));
     for tab in &tabs {
@@ -1229,6 +1266,7 @@ fn append_syntax_tabs(out: &mut String, model: &DocsModel, term: &DocTerm) {
         blank(out);
         fenced(out, &tab.lang, &tab.body);
     }
+    Ok(())
 }
 
 // ── Description-Logic axiom rendering (academic surface) ─────────────────────

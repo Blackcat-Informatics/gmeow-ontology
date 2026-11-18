@@ -4,13 +4,13 @@
 //! Immutable binary receipt ownership and explicit content-address resolution.
 
 use crate::execution_cbor::MAX_RECEIPT_BYTES;
-use crate::result::NativeExecutionEvidence;
+use crate::result::ReasoningResult;
 
 use super::{native, result_err};
 
 /// The complete native receipt's dedicated GTS representation.
 pub const NATIVE_RECEIPT_REPRESENTATION: &str = "native-execution-receipt";
-/// Native execution v3 is a binary CBOR payload.
+/// The strict native receipt v1 is a binary CBOR payload.
 pub const NATIVE_RECEIPT_MEDIA_TYPE: &str = "application/cbor";
 
 /// The canonical native GTS address of one complete execution receipt.
@@ -86,33 +86,47 @@ enum ReceiptBytes<'a> {
 pub struct NativeReceipt<'a> {
     address: NativeReceiptAddress,
     bytes: ReceiptBytes<'a>,
+    closure: Option<NativeReceiptAddress>,
 }
 
 impl NativeReceipt<'static> {
-    pub(super) fn publish(execution: &NativeExecutionEvidence) -> gmeow_errors::Result<Self> {
+    pub(super) fn publish(
+        result: &ReasoningResult,
+        closure: Option<&NativeReceiptAddress>,
+    ) -> gmeow_errors::Result<Self> {
+        let record = native::ReceiptRecord::original(result, closure)?;
         let started = crate::timing::Instant::now();
         tracing::info!(target: "pipeline_phase", stage = "stage-reason", phase = "encode-native-reasoning-receipt", event = "start", "reason phase boundary");
-        let bytes = native::encode(execution)?;
+        let bytes = native::encode(&record)?;
         tracing::info!(target: "pipeline_phase", stage = "stage-reason", phase = "encode-native-reasoning-receipt", event = "end", elapsed_ms = started.elapsed().as_millis(), encoded_bytes = bytes.len(), "reason phase boundary");
         let address = NativeReceiptAddress::of_bytes(&bytes);
         // This same-run equality covers every original source/proof field before
         // any RDF summary normalization. Canonical replay is validation, separate
         // from the one publication-buffer encoding above.
         let authenticated = NativeReceiptRef::admit(&address, &bytes)?;
-        authenticated.verify_execution(execution)?;
+        authenticated.admit_result(result)?;
         Ok(Self {
             address,
             bytes: ReceiptBytes::Owned(bytes),
+            closure: record.closure,
         })
     }
 }
 
 impl<'a> NativeReceipt<'a> {
-    pub(super) fn borrowed(value: NativeReceiptRef<'a>) -> Self {
+    pub(super) fn borrowed(
+        value: NativeReceiptRef<'a>,
+        closure: Option<NativeReceiptAddress>,
+    ) -> Self {
         Self {
             address: value.address.clone(),
             bytes: ReceiptBytes::Borrowed(value.bytes),
+            closure,
         }
+    }
+
+    pub(super) fn closure(&self) -> Option<&NativeReceiptAddress> {
+        self.closure.as_ref()
     }
 
     /// Borrow the exact immutable payload and its typed address.
@@ -159,20 +173,29 @@ pub struct NativeReceiptRef<'a> {
 }
 
 impl<'a> NativeReceiptRef<'a> {
-    /// Check the complete decoded record against its original execution. Owned
-    /// publication and public borrowed-byte publication share this same boundary.
-    pub(super) fn verify_execution(
+    /// Admit the complete native record and constructor assessment against this
+    /// result. Shared deserialized values gain retained-receipt reuse authority,
+    /// never original-closure publication authority. Returns the immutable closure
+    /// attachment selected by the exact supplied receipt.
+    ///
+    /// # Errors
+    /// Refuses malformed records, different execution or assessment fields, and
+    /// replacement of an already admitted receipt or closure selection.
+    pub fn admit_result(
         self,
-        execution: &NativeExecutionEvidence,
-    ) -> gmeow_errors::Result<()> {
-        let decoded = native::decode(self.bytes())?;
-        if decoded.as_ref() != execution {
-            return Err(result_err(
-                "binary native receipt readback differs from complete original execution evidence"
-                    .into(),
-            ));
+        result: &ReasoningResult,
+    ) -> gmeow_errors::Result<Option<NativeReceiptAddress>> {
+        if let Some(closure) = result.retained_receipt_selection(self.address())? {
+            return Ok(closure.clone());
         }
-        Ok(())
+        let decoded = native::decode(self.bytes())?;
+        result.admit_native_receipt(
+            decoded.assessment,
+            &decoded.execution,
+            self.address(),
+            decoded.closure.as_ref(),
+        )?;
+        Ok(decoded.closure)
     }
 
     /// Authenticate a retained artifact against its declared typed address.

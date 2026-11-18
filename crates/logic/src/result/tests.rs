@@ -138,6 +138,7 @@ fn neither_without_conclusive_fails_validate() {
         provenance: prov(),
         payload: ResultPayload::Empty,
         row_schema: None,
+        native_authority: std::sync::OnceLock::new(),
     };
     assert!(
         result.validate().is_err(),
@@ -171,6 +172,7 @@ fn both_without_witness_fails_validate() {
         provenance: prov(),
         payload: ResultPayload::Empty,
         row_schema: None,
+        native_authority: std::sync::OnceLock::new(),
     };
     assert!(
         result.validate().is_err(),
@@ -192,6 +194,7 @@ fn both_proof_only_no_counterproof_fails_validate() {
         provenance: prov_with_proof,
         payload: ResultPayload::Empty,
         row_schema: None,
+        native_authority: std::sync::OnceLock::new(),
     };
     assert!(
         result.validate().is_err(),
@@ -221,6 +224,7 @@ fn both_witness_only_no_proof_counterproof_validates() {
         provenance: prov_with_witness,
         payload: ResultPayload::Empty,
         row_schema: None,
+        native_authority: std::sync::OnceLock::new(),
     };
     assert!(
         result.validate().is_ok(),

@@ -34,6 +34,7 @@ use gmeow_action_cache::{
     ActionCacheError, ActionContext, ActionInput, ActionReceipt, ActionStore, STORE_FORMAT_VERSION,
     StoreLimits,
 };
+use gmeow_errors::Diag;
 use purrdf_lex::json::{
     self, Object, Value,
     record::{DecodeError, FromJson, Record, ToJson},
@@ -232,10 +233,10 @@ fn load_or_build_cached_site(
     artifact: &str,
     language: Option<&str>,
     model: &FixtureIdentity,
-    build: impl FnOnce() -> Site,
-) -> Site {
+    build: impl FnOnce() -> gmeow_errors::Result<Site>,
+) -> gmeow_errors::Result<Site> {
     let store = action_store(root);
-    load_or_build_cached_site_in_store(&store, root, artifact, language, model, build).0
+    Ok(load_or_build_cached_site_in_store(&store, root, artifact, language, model, build)?.0)
 }
 
 fn load_or_build_cached_site_in_store(
@@ -244,12 +245,12 @@ fn load_or_build_cached_site_in_store(
     artifact: &str,
     language: Option<&str>,
     model: &FixtureIdentity,
-    build: impl FnOnce() -> Site,
-) -> (Site, bool, SelectedAction) {
+    build: impl FnOnce() -> gmeow_errors::Result<Site>,
+) -> gmeow_errors::Result<(Site, bool, SelectedAction)> {
     let context = render_context(artifact, language, model);
     let key = context.key();
     let cache_path = render_cache_path(root, &context);
-    let outcome = store.coordinate::<_, ActionCacheError, _, _>(
+    let outcome = store.coordinate::<_, Diag, _, _>(
         &key,
         || {
             let Some(entry) = store.get::<RenderActionPayload>(&context)? else {
@@ -267,7 +268,7 @@ fn load_or_build_cached_site_in_store(
             )))
         },
         || {
-            let site = build();
+            let site = build()?;
             let cached = CachedSite::from_site(&site);
             let bytes = json::record::to_vec(&cached);
             let receipt = store.publish(
@@ -279,24 +280,28 @@ fn load_or_build_cached_site_in_store(
             Ok((site, SelectedAction::from_receipt(&receipt)))
         },
     );
-    let outcome = outcome.unwrap_or_else(|error| {
-        panic!(
-            "corrupt docs-fixture {artifact} action cache at {}: {error}",
-            cache_path.display()
-        )
-    });
-    (outcome.value.0, outcome.built, outcome.value.1)
+    let outcome = outcome.map_err(|error| {
+        error.with_context(format!(
+            "admit or render docs {artifact} action at {}",
+            cache_path.display(),
+        ))
+    })?;
+    Ok((outcome.value.0, outcome.built, outcome.value.1))
 }
 
 /// Producer counterpart of [`load_site`].
-#[must_use]
-pub fn load_site_or_build(root: &Path) -> Site {
+///
+/// # Errors
+/// Propagates a selected render refusal or action-cache admission/publication failure.
+pub fn load_site_or_build(root: &Path) -> gmeow_errors::Result<Site> {
     load_site_lang_or_build(root, ENGLISH)
 }
 
 /// Producer counterpart of [`load_site_lang`].
-#[must_use]
-pub fn load_site_lang_or_build(root: &Path, lang: &str) -> Site {
+///
+/// # Errors
+/// Propagates a selected render refusal or action-cache admission/publication failure.
+pub fn load_site_lang_or_build(root: &Path, lang: &str) -> gmeow_errors::Result<Site> {
     let (model, identity) = load_or_build_with_identity(root);
     load_or_build_cached_site(root, "site", Some(lang), &identity, || {
         render_site_lang(&model, lang)
@@ -304,8 +309,10 @@ pub fn load_site_lang_or_build(root: &Path, lang: &str) -> Site {
 }
 
 /// Producer counterpart of [`load_book`].
-#[must_use]
-pub fn load_book_or_build(root: &Path) -> Site {
+///
+/// # Errors
+/// Propagates a selected render refusal or action-cache admission/publication failure.
+pub fn load_book_or_build(root: &Path) -> gmeow_errors::Result<Site> {
     let (model, identity) = load_or_build_with_identity(root);
     load_or_build_cached_site(root, "book", None, &identity, || {
         render_book(&model, &ExecutableDocsData::default())
@@ -322,8 +329,10 @@ pub fn load_book_or_build(root: &Path) -> Site {
 /// sentinel file. Independent render nodes share one admitted store and execute in
 /// memory-bounded batches; the selected concurrency scales down to one on small CI
 /// runners instead of creating a fixed host-wide cap.
-#[must_use]
-pub fn prime(root: &Path) -> PrimeObservation {
+///
+/// # Errors
+/// Propagates a selected render refusal or action-cache failure before returning a fixture selector.
+pub fn prime(root: &Path) -> gmeow_errors::Result<PrimeObservation> {
     let (model, identity) = load_or_build_with_identity(root);
     let selected_model = produced_model_selection(root)
         .unwrap_or_else(|error| panic!("select produced docs model: {error}"));
@@ -361,12 +370,12 @@ pub fn prime(root: &Path) -> PrimeObservation {
                                     render_book(model, &ExecutableDocsData::default())
                                 }
                             },
-                        );
-                        (
+                        )?;
+                        Ok::<_, Diag>((
                             render_selector_key(artifact, language.as_deref()),
                             was_built,
                             selected,
-                        )
+                        ))
                     })
                 })
                 .collect::<Vec<_>>();
@@ -375,7 +384,8 @@ pub fn prime(root: &Path) -> PrimeObservation {
                 .map(|handle| handle.join().expect("docs render worker"))
                 .collect::<Vec<_>>()
         });
-        for (key, was_built, selected) in results {
+        for result in results {
+            let (key, was_built, selected) = result?;
             built += usize::from(was_built);
             assert!(
                 renders.insert(key, selected).is_none(),
@@ -383,7 +393,7 @@ pub fn prime(root: &Path) -> PrimeObservation {
             );
         }
     }
-    PrimeObservation {
+    Ok(PrimeObservation {
         action_count: tasks.len(),
         built,
         receipt_hits: tasks.len().saturating_sub(built),
@@ -393,7 +403,7 @@ pub fn prime(root: &Path) -> PrimeObservation {
             model: selected_model,
             renders,
         },
-    }
+    })
 }
 
 fn render_selector_key(artifact: &str, language: Option<&str>) -> String {

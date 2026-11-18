@@ -88,7 +88,10 @@ fn json_search_index_actual_adapter_sorts_url_then_kind_then_id() {
 #[test]
 fn json_search_index_empty_adapter_and_public_model_keep_literal_empty_array() {
     assert_eq!(search_records_json(Vec::new()), "[]");
-    assert_eq!(search_index_json(&DocsModel::default()), "[]");
+    assert_eq!(
+        search_index_json(&DocsModel::default()).expect("the selected documentation model renders"),
+        "[]"
+    );
 }
 
 #[test]
@@ -105,7 +108,10 @@ fn json_search_index_public_concern_model_keeps_literal_wire_bytes() {
         ..Default::default()
     };
     let expected = "[\n  {\n    \"kind\": \"concern\",\n    \"id\": \"ex:Search\",\n    \"label\": \"é 猫\",\n    \"definition\": null,\n    \"url\": \"concerns/search/index.html\"\n  }\n]";
-    assert_eq!(search_index_json(&model), expected);
+    assert_eq!(
+        search_index_json(&model).expect("the selected documentation model renders"),
+        expected
+    );
 }
 
 #[test]
@@ -151,7 +157,7 @@ fn json_search_index_public_document_model_retains_child_url_and_full_prose() {
         }],
         ..Default::default()
     };
-    let output = search_index_json(&model);
+    let output = search_index_json(&model).expect("the selected documentation model renders");
     let document = json::record::read_document(output.as_bytes()).unwrap();
     let rows = document.as_array().unwrap();
     assert_eq!(
@@ -210,7 +216,7 @@ fn json_search_index_public_term_model_retains_advice_and_sorted_alignment_facet
         linkages,
         ..Default::default()
     };
-    let output = search_index_json(&model);
+    let output = search_index_json(&model).expect("the selected documentation model renders");
     let document = json::record::read_document(output.as_bytes()).unwrap();
     let rows = document.as_array().unwrap();
     assert_eq!(rows.len(), 1);

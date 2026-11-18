@@ -617,7 +617,10 @@ pub fn doc_lint() -> i32 {
         Ok(m) => m,
         Err(e) => return fail(format!("doc-lint: cannot build model: {e}")),
     };
-    let site = gmeow_docs::fixture::load_site_or_build(&root);
+    let site = match gmeow_docs::fixture::load_site_or_build(&root) {
+        Ok(site) => site,
+        Err(error) => return fail(format!("doc-lint: cannot render site: {error:#}")),
+    };
 
     // R7 seam-registry drift, over the page just rendered — the leg that makes the
     // per-seam comparison unconditional on-gate (see the helper's doc comment).

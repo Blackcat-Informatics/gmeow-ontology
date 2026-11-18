@@ -741,8 +741,7 @@ impl JointProgram {
                         runtime,
                         governor,
                         registry,
-                        world,
-                        self.witness_contract,
+                        (world, self.witness_contract),
                         generative,
                         &read_plan,
                     )?;
@@ -1526,11 +1525,11 @@ impl JointStratum {
         state: &mut WorldRuntime,
         governor: &StepGovernor,
         registry: &mut SkolemRegistry,
-        world: &str,
-        contract: WitnessContract,
+        witness_scope: (&str, WitnessContract),
         generative: bool,
         read_plan: &crate::physical::effects::WorldReadPlan<'_>,
     ) -> gmeow_errors::Result<WorldRound> {
+        let (world, contract) = witness_scope;
         let snapshot = RoundSnapshot {
             store: &state.store,
             rel: &state.rel,

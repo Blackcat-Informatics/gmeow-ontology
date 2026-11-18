@@ -87,7 +87,8 @@ fn competency_index_markdown_golden() {
     // The competency index carries every CQ; lock its deterministic head — the
     // page heading plus the first competency's question/rationale/query block.
     let model = common::cached_model();
-    let md = to_markdown(&model, &Page::CompetencyIndex);
+    let md = to_markdown(&model, &Page::CompetencyIndex)
+        .expect("the selected documentation model renders");
     let head: String = md.lines().take(30).collect::<Vec<_>>().join("\n");
     insta::assert_snapshot!(head);
 }
@@ -104,7 +105,8 @@ fn grammar_page_markdown_golden() {
         .expect("at least one authored EBNF grammar exists")
         .slug
         .clone();
-    let md = to_markdown(&model, &Page::Grammar(slug));
+    let md = to_markdown(&model, &Page::Grammar(slug))
+        .expect("the selected documentation model renders");
     let head: String = md.lines().take(24).collect::<Vec<_>>().join("\n");
     insta::assert_snapshot!(head);
 }
@@ -115,7 +117,8 @@ fn loss_ledger_rows_markdown_golden() {
     // rows plus the authored worked-example rows (A4). Lock the head, which pins
     // the row table shape.
     let model = common::cached_model();
-    let md = to_markdown(&model, &Page::LogicLossLedger);
+    let md = to_markdown(&model, &Page::LogicLossLedger)
+        .expect("the selected documentation model renders");
     let head: String = md.lines().take(30).collect::<Vec<_>>().join("\n");
     insta::assert_snapshot!(head);
 }
@@ -142,7 +145,8 @@ fn fixture_do_dont_pair_markdown_golden() {
     // fixture-referenced term — the A1 render path (violation-code join + rationale).
     let model = common::cached_model();
     let term = first_fixture_term(&model);
-    let md = to_markdown(&model, &Page::Term(term_slug(term)));
+    let md = to_markdown(&model, &Page::Term(term_slug(term)))
+        .expect("the selected documentation model renders");
     insta::assert_snapshot!(section(&md, "Conformance examples"));
 }
 
@@ -185,7 +189,8 @@ fn term_diagnostics_section_markdown_golden() {
     model.attach_diagnostics(digest);
 
     let slug = term_slug(first_term(&model));
-    let md = to_markdown(&model, &Page::Term(slug));
+    let md =
+        to_markdown(&model, &Page::Term(slug)).expect("the selected documentation model renders");
     insta::assert_snapshot!(section(&md, "Diagnostics you might hit"));
 }
 
@@ -212,7 +217,8 @@ fn term_entailments_markdown_golden() {
         }],
     );
 
-    let md = to_markdown_exec(&model, &Page::Term(term_slug(term)), &exec);
+    let md = to_markdown_exec(&model, &Page::Term(term_slug(term)), &exec)
+        .expect("the selected documentation model renders");
     insta::assert_snapshot!(section(&md, "Inferred facts"));
 }
 
@@ -237,7 +243,8 @@ fn diagnostics_and_loss_empty_vs_absent_render_distinction() {
     let slug = term_slug(first_term(&base));
 
     // No digest attached ⇒ neither carrier section is present at all.
-    let none_page = to_markdown(&base, &Page::Term(slug.clone()));
+    let none_page = to_markdown(&base, &Page::Term(slug.clone()))
+        .expect("the selected documentation model renders");
     assert!(
         !none_page.contains(&format!("## {DIAG_HEADING}")),
         "the diagnostics section must be ABSENT when no digest is attached"
@@ -251,7 +258,8 @@ fn diagnostics_and_loss_empty_vs_absent_render_distinction() {
     let mut empty = common::cached_model();
     empty.attach_diagnostics(DiagnosticsDigest::default());
     empty.attach_term_loss(TermLossDigest::default());
-    let empty_page = to_markdown(&empty, &Page::Term(slug));
+    let empty_page =
+        to_markdown(&empty, &Page::Term(slug)).expect("the selected documentation model renders");
 
     // Both sections now render, each with its honest empty-state line (present, not absent).
     let diag = section(&empty_page, DIAG_HEADING);
@@ -280,7 +288,8 @@ fn term_entailments_absent_without_exec_data() {
         &model,
         &Page::Term(term_slug(term)),
         &ExecutableDocsData::default(),
-    );
+    )
+    .expect("the selected documentation model renders");
     assert!(
         !md.contains("## Inferred facts"),
         "the entailments panel must be absent (not empty) in a model-only render"

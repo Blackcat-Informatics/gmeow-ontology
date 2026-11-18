@@ -299,9 +299,9 @@ fn render_every_format(
         ..Default::default()
     };
 
-    let site = gmeow_docs::render_site_lang_exec(&model, gmeow_docs::i18n::ENGLISH, &exec).files;
+    let site = gmeow_docs::render_site_lang_exec(&model, gmeow_docs::i18n::ENGLISH, &exec)?.files;
     let mdbook =
-        gmeow_docs::mdbook::render_book(&model, &gmeow_docs::ExecutableDocsData::default()).files;
+        gmeow_docs::mdbook::render_book(&model, &gmeow_docs::ExecutableDocsData::default())?.files;
     let print = render_print(&model, products)?;
     let snippets = source_snippets(&site)?;
     let pydantic = pydantic_docs_tree(products)?;

@@ -228,8 +228,11 @@ fn real_interactive_render_layouts_price_the_same_shared_assets() {
         conjectures_ttl: b"synthetic conjectures".to_vec(),
         ..Default::default()
     };
-    let site = gmeow_docs::render_site_lang_exec(&model, gmeow_docs::i18n::ENGLISH, &exec).files;
-    let mdbook = render_source_book(&model, &exec);
+    let site = gmeow_docs::render_site_lang_exec(&model, gmeow_docs::i18n::ENGLISH, &exec)
+        .expect("the selected documentation model renders")
+        .files;
+    let mdbook =
+        render_source_book(&model, &exec).expect("the selected synthetic source book renders");
     let console = gmeow_docs::console_files(&exec);
     let rendered: RenderedTrees<'_> =
         BTreeMap::from([("site", &site), ("mdbook", &mdbook), ("console", &console)]);

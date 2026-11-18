@@ -37,6 +37,7 @@ pub(crate) fn requires_admission(command: &Commands) -> bool {
             matches!(mode, TestFixtureMode::Produce) || *scope == TestFixtureScope::CompilerOwner
         }
         Commands::Fanout(_)
+        | Commands::NativeReceiptVectors
         | Commands::MediumSweep(_)
         | Commands::PipelineReads(_)
         | Commands::PipelineScopeCheck

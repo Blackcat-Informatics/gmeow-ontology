@@ -24,6 +24,7 @@ use std::collections::{BTreeMap, BTreeSet};
 use std::sync::OnceLock;
 
 use gmeow_docs_model::slug::short_iri_digest;
+use gmeow_errors::{Diag, Result};
 use minijinja::{Environment, Value as TemplateValue};
 use pulldown_cmark::{Options, Parser, html as cmark_html};
 use purrdf_lex::json::record::ToJson;
@@ -38,6 +39,16 @@ use crate::source_map::{
     DocLinkResolution, LinkResolution, SLICE_PAGE_SOURCE, SourceToPageMap, fence_open,
 };
 use crate::svg;
+
+/// Admit the source-link authority for a caller-supplied model without a panic.
+pub(crate) fn source_page_map(model: &DocsModel) -> Result<SourceToPageMap> {
+    SourceToPageMap::build(model).map_err(|cause| {
+        Diag::of_kind(crate::render_error::SourceMap::caused_by(
+            "admit documentation source-to-page map".into(),
+            cause,
+        ))
+    })
+}
 
 /// The GMEOW vocabulary namespace (mirrors `model.rs`).
 use gmeow_ns::GMEOW_NS;
@@ -412,7 +423,10 @@ pub struct Site {
 /// Emits, for every page, both `<dir>/index.md` and `<dir>/index.html`, plus the
 /// CSS asset at `assets/gmeow.css`. The output is byte-identical across calls.
 /// This is exactly [`render_site_lang`] for the English carrier language.
-pub fn render_site(model: &DocsModel) -> Site {
+///
+/// # Errors
+/// Refuses ambiguous source pages, dangling internal links, heading overflow or failure of a selected syntax provider.
+pub fn render_site(model: &DocsModel) -> Result<Site> {
     render_site_lang(model, ENGLISH)
 }
 
@@ -426,7 +440,10 @@ pub fn render_site(model: &DocsModel) -> Site {
 /// [`ui_string`](crate::i18n::ui_string), falling back to the English value the
 /// model carries. The per-language tree is deterministic and preserves the
 /// no-dangling-link invariant (slugs / IRIs are language-independent).
-pub fn render_site_lang(model: &DocsModel, lang: &str) -> Site {
+///
+/// # Errors
+/// Refuses ambiguous source pages, dangling internal links, heading overflow or failure of a selected syntax provider.
+pub fn render_site_lang(model: &DocsModel, lang: &str) -> Result<Site> {
     render_site_lang_exec(model, lang, &ExecutableDocsData::default())
 }
 
@@ -441,7 +458,14 @@ pub fn render_site_lang(model: &DocsModel, lang: &str) -> Site {
 /// [`ExecutableDocsData::default`] (the model-only render used by unit tests / the
 /// PyO3 preview) produces the complete base site without them. See [`render_site_lang`]
 /// for the model-only convenience.
-pub fn render_site_lang_exec(model: &DocsModel, lang: &str, exec: &ExecutableDocsData) -> Site {
+///
+/// # Errors
+/// Refuses ambiguous source pages, dangling internal links, heading overflow or failure of a selected syntax provider.
+pub fn render_site_lang_exec(
+    model: &DocsModel,
+    lang: &str,
+    exec: &ExecutableDocsData,
+) -> Result<Site> {
     // The language-invariant purrdf graph diagrams are the dominant render cost;
     // render them once here (a multi-language archive shares a single render — see
     // [`render_site_lang_exec_with_diagrams`] and the pipeline's `build_docs_archive`).
@@ -488,12 +512,15 @@ pub fn render_purrdf_diagrams(model: &DocsModel) -> BTreeMap<String, Vec<u8>> {
 /// supplied pre-rendered, so a multi-language render produces those thousands of
 /// graphs ONCE and splices the identical bytes into every language tree. `diagrams`
 /// MUST be [`render_purrdf_diagrams`] of the same `model`.
+///
+/// # Errors
+/// Refuses ambiguous source pages, dangling internal links, heading overflow or failure of a selected syntax provider.
 pub fn render_site_lang_exec_with_diagrams(
     model: &DocsModel,
     lang: &str,
     exec: &ExecutableDocsData,
     diagrams: &BTreeMap<String, Vec<u8>>,
-) -> Site {
+) -> Result<Site> {
     // The executable surfaces (playground, export links, wasm engine, query asset) are
     // language-INDEPENDENT: their RDF/JS/wasm are identical across locales. Emitting
     // them in every translated tree would triple the bundled asset. They therefore
@@ -517,19 +544,18 @@ pub fn render_site_lang_exec_with_diagrams(
     // through every page/index renderer below (a pure function of the — possibly localized —
     // model). Previously each of md_slice / md_slice_document / search_index_json / llms_txt /
     // llms_full_txt rebuilt it, re-deriving the same document anchors N+M+3 times per render.
-    let page_map = SourceToPageMap::build(model)
-        .expect("SourceToPageMap: model documents were already validated at discovery");
+    let page_map = source_page_map(model)?;
 
     let mut files: BTreeMap<String, Vec<u8>> = BTreeMap::new();
 
     for page in pages(model) {
         files.insert(
             page.md_path(),
-            to_markdown_exec_with_map(model, &page, exec, &page_map).into_bytes(),
+            to_markdown_exec_with_map(model, &page, exec, &page_map)?.into_bytes(),
         );
         files.insert(
             page.html_path(),
-            to_html_lang_exec_with_map(model, &page, lang, exec, &page_map).into_bytes(),
+            to_html_lang_exec_with_map(model, &page, lang, exec, &page_map)?.into_bytes(),
         );
     }
     files.insert(CSS_PATH.to_string(), CSS.as_bytes().to_vec());
@@ -551,11 +577,11 @@ pub fn render_site_lang_exec_with_diagrams(
         let page = Page::SparqlPlayground;
         files.insert(
             page.md_path(),
-            to_markdown_exec_with_map(model, &page, exec, &page_map).into_bytes(),
+            to_markdown_exec_with_map(model, &page, exec, &page_map)?.into_bytes(),
         );
         files.insert(
             page.html_path(),
-            to_html_lang_exec_with_map(model, &page, lang, exec, &page_map).into_bytes(),
+            to_html_lang_exec_with_map(model, &page, lang, exec, &page_map)?.into_bytes(),
         );
     }
 
@@ -566,11 +592,11 @@ pub fn render_site_lang_exec_with_diagrams(
         let page = Page::BundleExplorer;
         files.insert(
             page.md_path(),
-            to_markdown_exec_with_map(model, &page, exec, &page_map).into_bytes(),
+            to_markdown_exec_with_map(model, &page, exec, &page_map)?.into_bytes(),
         );
         files.insert(
             page.html_path(),
-            to_html_lang_exec_with_map(model, &page, lang, exec, &page_map).into_bytes(),
+            to_html_lang_exec_with_map(model, &page, lang, exec, &page_map)?.into_bytes(),
         );
     }
 
@@ -581,11 +607,11 @@ pub fn render_site_lang_exec_with_diagrams(
         let page = Page::ConjecturePlayground;
         files.insert(
             page.md_path(),
-            to_markdown_exec_with_map(model, &page, exec, &page_map).into_bytes(),
+            to_markdown_exec_with_map(model, &page, exec, &page_map)?.into_bytes(),
         );
         files.insert(
             page.html_path(),
-            to_html_lang_exec_with_map(model, &page, lang, exec, &page_map).into_bytes(),
+            to_html_lang_exec_with_map(model, &page, lang, exec, &page_map)?.into_bytes(),
         );
     }
 
@@ -639,7 +665,7 @@ pub fn render_site_lang_exec_with_diagrams(
     );
     files.insert(
         "llms-full.txt".to_string(),
-        llms_full_txt_with_map(model, &page_map).into_bytes(),
+        llms_full_txt_with_map(model, &page_map)?.into_bytes(),
     );
 
     // Prompt-ready per-term cards: a compact, link-free Markdown card per
@@ -680,7 +706,7 @@ pub fn render_site_lang_exec_with_diagrams(
         }
     }
 
-    Site { files }
+    Ok(Site { files })
 }
 
 /// Write a rendered [`Site`] tree under `directory`, creating parent directories
@@ -921,7 +947,10 @@ fn pages(model: &DocsModel) -> Vec<Page> {
 // ── Markdown layer ────────────────────────────────────────────────────────────
 
 /// Render a page to a Markdown document (the page body, no HTML shell).
-pub fn to_markdown(model: &DocsModel, page: &Page) -> String {
+///
+/// # Errors
+/// Refuses ambiguous source pages, dangling internal links, heading overflow or failure of a selected syntax provider.
+pub fn to_markdown(model: &DocsModel, page: &Page) -> Result<String> {
     to_markdown_exec(model, page, &ExecutableDocsData::default())
 }
 
@@ -929,13 +958,19 @@ pub fn to_markdown(model: &DocsModel, page: &Page) -> String {
 /// (per-slice export links, reasoner "try it" diffs) when `exec` supplies them. With
 /// an empty `exec` this is byte-identical to the base render (the executable surfaces
 /// simply do not appear), so the model-only goldens are unaffected.
-pub fn to_markdown_exec(model: &DocsModel, page: &Page, exec: &ExecutableDocsData) -> String {
+///
+/// # Errors
+/// Refuses ambiguous source pages, dangling internal links, heading overflow or failure of a selected syntax provider.
+pub fn to_markdown_exec(
+    model: &DocsModel,
+    page: &Page,
+    exec: &ExecutableDocsData,
+) -> Result<String> {
     // The single link-rewrite authority is a pure function of the model; a standalone
     // page render builds it here. A full site/book render instead builds it ONCE and
     // calls [`to_markdown_exec_with_map`] per page, so the map is not rebuilt for every
     // slice/child page (the anchors were otherwise re-derived N+M times per render).
-    let page_map = SourceToPageMap::build(model)
-        .expect("SourceToPageMap: model documents were already validated at discovery");
+    let page_map = source_page_map(model)?;
     to_markdown_exec_with_map(model, page, exec, &page_map)
 }
 
@@ -947,27 +982,27 @@ pub(crate) fn to_markdown_exec_with_map(
     page: &Page,
     exec: &ExecutableDocsData,
     page_map: &SourceToPageMap,
-) -> String {
+) -> Result<String> {
     let mut md = match page {
         Page::Term(slug) => {
-            let mut md = md_term(model, slug, exec);
+            let mut md = md_term(model, slug, exec)?;
             append_term_export_section(&mut md, model, slug, exec);
             md
         }
         Page::Slice(slug) => {
-            let mut md = md_slice(model, slug, page_map);
+            let mut md = md_slice(model, slug, page_map)?;
             append_slice_executable_sections(&mut md, model, slug, exec);
             md
         }
         Page::Landing => {
-            let mut md = to_markdown_base(model, page, page_map);
+            let mut md = to_markdown_base(model, page, page_map)?;
             append_landing_interactive_nav(&mut md, model, exec);
             md
         }
         Page::SparqlPlayground => md_playground(model, exec),
         Page::BundleExplorer => md_bundle_explorer(model, exec),
         Page::ConjecturePlayground => md_conjecture_playground(model, exec),
-        _ => to_markdown_base(model, page, page_map),
+        _ => to_markdown_base(model, page, page_map)?,
     };
     // The generalized page-level cite-this-surface on every durable NON-term page
     // (the term page carries its own richer content-addressed Citation section).
@@ -979,21 +1014,21 @@ pub(crate) fn to_markdown_exec_with_map(
     // projection of the single provenance relation. A no-op on a bare model whose
     // catalog carries no pipeline (honest absence).
     append_provenance_footer(&mut md, model);
-    md
+    Ok(md)
 }
 
-fn to_markdown_base(model: &DocsModel, page: &Page, page_map: &SourceToPageMap) -> String {
-    match page {
+fn to_markdown_base(model: &DocsModel, page: &Page, page_map: &SourceToPageMap) -> Result<String> {
+    Ok(match page {
         Page::Landing => md_landing(model),
         Page::GettingStarted => md_getting_started(model),
         Page::About => md_about(model),
         Page::Health => md_health(model),
         Page::Changelog => md_changelog(model),
         Page::Category(category) => md_category(model, *category),
-        Page::Term(slug) => md_term(model, slug, &ExecutableDocsData::default()),
+        Page::Term(slug) => md_term(model, slug, &ExecutableDocsData::default())?,
         Page::SliceIndex => md_slice_index(model),
-        Page::Slice(slug) => md_slice(model, slug, page_map),
-        Page::SliceDocument { slice, path } => md_slice_document(model, slice, path, page_map),
+        Page::Slice(slug) => md_slice(model, slug, page_map)?,
+        Page::SliceDocument { slice, path } => md_slice_document(model, slice, path, page_map)?,
         Page::LinkageIndex => md_linkage_index(model),
         Page::ExampleIndex => md_example_index(model),
         Page::FixtureIndex => md_fixture_index(model),
@@ -1024,7 +1059,7 @@ fn to_markdown_base(model: &DocsModel, page: &Page, page_map: &SourceToPageMap) 
         Page::ConjecturePlayground => {
             md_conjecture_playground(model, &ExecutableDocsData::default())
         }
-    }
+    })
 }
 
 // ── Executable-docs surfaces (rendered only when `exec` supplies data) ─────────
@@ -1598,7 +1633,7 @@ fn synthesize_class_quickstart(model: &DocsModel, term: &DocTerm) -> String {
 /// term when one is declared, else a placeholder literal).
 fn synthesize_property_quickstart(model: &DocsModel, term: &DocTerm) -> String {
     let subject_type = match term.domain.first() {
-        Some(d) => quickstart_label(model, d),
+        Some(d) => purrdf::emit_term(&purrdf::RdfTerm::iri(d)),
         None => "owl:Thing".to_string(),
     };
     let (object, comment) = quickstart_placeholder(model, &term.range);
@@ -1690,7 +1725,10 @@ use catalog_pages::{
 /// Render a page to a complete, self-contained HTML document (English chrome).
 ///
 /// Equivalent to [`to_html_lang`] with the English carrier language.
-pub fn to_html(model: &DocsModel, page: &Page) -> String {
+///
+/// # Errors
+/// Refuses ambiguous source pages, dangling internal links, heading overflow or failure of a selected syntax provider.
+pub fn to_html(model: &DocsModel, page: &Page) -> Result<String> {
     to_html_lang(model, page, ENGLISH)
 }
 
@@ -1713,7 +1751,10 @@ fn shell_env() -> &'static Environment<'static> {
 /// the UI-chrome nav labels resolved for `lang` (English fallback). The `model`
 /// passed in is already localized by [`render_site_lang`], so the body content
 /// is in the target language.
-pub fn to_html_lang(model: &DocsModel, page: &Page, lang: &str) -> String {
+///
+/// # Errors
+/// Refuses ambiguous source pages, dangling internal links, heading overflow or failure of a selected syntax provider.
+pub fn to_html_lang(model: &DocsModel, page: &Page, lang: &str) -> Result<String> {
     to_html_lang_exec(model, page, lang, &ExecutableDocsData::default())
 }
 
@@ -1721,16 +1762,18 @@ pub fn to_html_lang(model: &DocsModel, page: &Page, lang: &str) -> String {
 /// the reasoner/export sections to the body, a SPARQL nav entry, and the playground
 /// controller script — all only when `exec` supplies data (byte-identical to
 /// [`to_html_lang`] otherwise).
+///
+/// # Errors
+/// Refuses ambiguous source pages, dangling internal links, heading overflow or failure of a selected syntax provider.
 pub fn to_html_lang_exec(
     model: &DocsModel,
     page: &Page,
     lang: &str,
     exec: &ExecutableDocsData,
-) -> String {
+) -> Result<String> {
     // Standalone render builds the map here; a full site render threads one shared map
     // through [`to_html_lang_exec_with_map`] (see [`to_markdown_exec`]).
-    let page_map = SourceToPageMap::build(model)
-        .expect("SourceToPageMap: model documents were already validated at discovery");
+    let page_map = source_page_map(model)?;
     to_html_lang_exec_with_map(model, page, lang, exec, &page_map)
 }
 
@@ -1742,10 +1785,10 @@ pub(crate) fn to_html_lang_exec_with_map(
     lang: &str,
     exec: &ExecutableDocsData,
     page_map: &SourceToPageMap,
-) -> String {
+) -> Result<String> {
     let body_html = rewrite_internal_links(&markdown_to_html(&to_markdown_exec_with_map(
         model, page, exec, page_map,
-    )));
+    )?));
     let root = root_href(&page.dir());
 
     let ui = &model.ui_catalog;
@@ -1876,7 +1919,12 @@ pub(crate) fn to_html_lang_exec_with_map(
         ("page_lang", TemplateValue::from(page_lang)),
         ("body_scripts", TemplateValue::from(body_scripts)),
     ]))
-    .expect("shell template renders")
+    .map_err(|cause| {
+        Diag::of_kind(crate::render_error::Template::caused_by(
+            format!("render HTML shell for {page:?}"),
+            cause,
+        ))
+    })
 }
 
 /// Convert a Markdown document to an HTML fragment via pulldown-cmark with a
@@ -2740,10 +2788,12 @@ fn search_records_json(mut records: Vec<SearchRecord>) -> String {
 
 /// Build the deterministic `search-index.json`: one record per term, slice,
 /// concern, and mapping set, sorted by URL. A pure function of the model.
-pub fn search_index_json(model: &DocsModel) -> String {
-    let page_map = SourceToPageMap::build(model)
-        .expect("SourceToPageMap: model documents were already validated at discovery");
-    search_index_json_with_map(model, &page_map)
+///
+/// # Errors
+/// Refuses an ambiguous source-to-page map.
+pub fn search_index_json(model: &DocsModel) -> Result<String> {
+    let page_map = source_page_map(model)?;
+    Ok(search_index_json_with_map(model, &page_map))
 }
 
 /// [`search_index_json`] with the shared [`SourceToPageMap`] threaded in (built once per
@@ -2889,10 +2939,12 @@ fn term_note(term: &DocTerm) -> String {
 /// published `.../index.html` pages — the SAME convention the MCP index recovers
 /// from `gmeow:docUrl`, so the two never disagree. Notes are capped
 /// ([`llms::LLMS_NOTE_CAP`]); the complete inlined form is [`llms_full_txt`].
-pub fn llms_txt(model: &DocsModel) -> String {
-    let page_map = SourceToPageMap::build(model)
-        .expect("SourceToPageMap: model documents were already validated at discovery");
-    llms_txt_with_map(model, &page_map)
+///
+/// # Errors
+/// Refuses an ambiguous source-to-page map.
+pub fn llms_txt(model: &DocsModel) -> Result<String> {
+    let page_map = source_page_map(model)?;
+    Ok(llms_txt_with_map(model, &page_map))
 }
 
 /// [`llms_txt`] with the shared [`SourceToPageMap`] threaded in (built once per site
@@ -3126,15 +3178,20 @@ fn reference_bullet(text: &str, page: &Page) -> LlmsBullet {
 /// header as [`llms_txt`], then the full inlined content of every term (no
 /// truncation), followed by the concern definitions and the slice inventory. This
 /// is the single-file, link-free surface an agent can ingest whole.
-pub fn llms_full_txt(model: &DocsModel) -> String {
-    let page_map = SourceToPageMap::build(model)
-        .expect("SourceToPageMap: model documents were already validated at discovery");
+///
+/// # Errors
+/// Refuses an ambiguous source-to-page map or a dangling internal document link.
+pub fn llms_full_txt(model: &DocsModel) -> Result<String> {
+    let page_map = source_page_map(model)?;
     llms_full_txt_with_map(model, &page_map)
 }
 
 /// [`llms_full_txt`] with the shared [`SourceToPageMap`] threaded in (built once per site
 /// render). Byte-identical to `llms_full_txt`.
-pub(crate) fn llms_full_txt_with_map(model: &DocsModel, doc_map: &SourceToPageMap) -> String {
+pub(crate) fn llms_full_txt_with_map(
+    model: &DocsModel,
+    doc_map: &SourceToPageMap,
+) -> Result<String> {
     let prose = vec![format!(
         "Vocabulary {}. Namespace: {GMEOW_NS}. Complete inlined form — every term, its definition, and its usage advice in full.",
         model.version
@@ -3190,7 +3247,7 @@ pub(crate) fn llms_full_txt_with_map(model: &DocsModel, doc_map: &SourceToPageMa
                     "",
                     HeadingDemotion::CorpusFloor,
                     false,
-                );
+                )?;
                 out.push_str(&body);
                 if !body.ends_with('\n') {
                     out.push('\n');
@@ -3218,7 +3275,7 @@ pub(crate) fn llms_full_txt_with_map(model: &DocsModel, doc_map: &SourceToPageMa
     }
     out.push_str(&llms::render_section(&reference_section));
 
-    out
+    Ok(out)
 }
 
 /// The metadata + definition + advisory-field body of a term (NO heading). The

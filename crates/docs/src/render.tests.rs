@@ -23,7 +23,8 @@ fn navigation_template_native_values_preserve_empty_and_unicode_strings() {
 #[test]
 fn navigation_template_native_shell_keeps_nested_links_and_language_fallback() {
     // Authored in-memory model; no repository corpus or fixture producer.
-    let html = to_html_lang(&tiny_model(), &Page::Term("foo".to_owned()), "fr");
+    let html = to_html_lang(&tiny_model(), &Page::Term("foo".to_owned()), "fr")
+        .expect("the selected documentation model renders");
     let (_, navigation) = html
         .split_once("<nav class=\"site-nav\" aria-label=\"Primary\">")
         .unwrap();
@@ -59,13 +60,14 @@ fn navigation_template_native_shell_keeps_nested_links_and_language_fallback() {
 #[test]
 fn navigation_template_native_playground_stays_last_when_selected() {
     let model = tiny_model();
-    let base = to_html(&model, &Page::Landing);
+    let base = to_html(&model, &Page::Landing).expect("the selected documentation model renders");
     assert!(!base.contains("href=\"sparql/index.html\">SPARQL</a>"));
     let exec = ExecutableDocsData {
         playground_trig: b"<urn:s> <urn:p> <urn:o> .".to_vec(),
         ..Default::default()
     };
-    let live = to_html_lang_exec(&model, &Page::Landing, "english", &exec);
+    let live = to_html_lang_exec(&model, &Page::Landing, "english", &exec)
+        .expect("the selected documentation model renders");
     let (_, navigation) = live
         .split_once("<nav class=\"site-nav\" aria-label=\"Primary\">")
         .unwrap();
@@ -92,6 +94,63 @@ fn health_renders_undecided_native_reasoning_without_positive_claims() {
     assert!(output.contains("Unsupported observations: **1**"));
     assert!(!output.contains("the rest are satisfiable"));
     assert!(output.contains("other documented classes is undetermined"));
+    for consistency in [
+        crate::model::ConsistencyAssessment::Undetermined,
+        crate::model::ConsistencyAssessment::Consistent,
+    ] {
+        model
+            .reasoning
+            .as_mut()
+            .expect("the native assessment is attached")
+            .consistency = consistency;
+        let page = to_markdown(&model, &Page::Term("foo".into()))
+            .expect("the evidence-based class page renders");
+        assert!(page.contains("**Undetermined**"));
+        assert!(!page.contains("**Satisfiable**"));
+    }
+}
+
+/// Executable term examples retain external domain identity and declared lang
+/// prefixes; a codec failure reaches the caller with its cause and provider context.
+#[test]
+fn term_syntax_preserves_domain_identity_and_refuses_codec_failure() {
+    let mut model = tiny_model();
+    model.terms.push(DocTerm {
+        iri: "https://blackcatinformatics.ca/lang/Token".into(),
+        curie: "lang:Token".into(),
+        category: DocTermCategory::Class,
+        ..Default::default()
+    });
+    model.terms.push(DocTerm {
+        iri: format!("{GMEOW_NS}links"),
+        curie: "gmeow:links".into(),
+        category: DocTermCategory::Property,
+        domain: vec!["https://external.example/model#ExactDomain".into()],
+        ..Default::default()
+    });
+    let property = to_markdown(&model, &Page::Term("links".into()))
+        .expect("an external domain remains executable in every selected syntax");
+    assert!(property.contains("a <https://external.example/model#ExactDomain>"));
+    assert!(property.contains("**JSON-LD**"));
+    let language = to_markdown(&model, &Page::Term("token".into()))
+        .expect("the lang namespace is declared for native transcoding");
+    assert!(language.contains("https://blackcatinformatics.ca/lang/Token"));
+    model
+        .terms
+        .iter_mut()
+        .find(|term| term.curie == "lang:Token")
+        .expect("the selected language term exists")
+        .curie = "undeclared:Token".into();
+    let error = to_markdown(&model, &Page::Term("token".into()))
+        .expect_err("a selected example with an undeclared prefix cannot disappear");
+    let kind = error
+        .downcast_ref::<crate::render_error::Syntax>()
+        .expect("the codec refusal keeps its typed renderer diagnostic");
+    assert!(std::error::Error::source(kind).is_some());
+    assert!(
+        format!("{error:#}")
+            .contains("jsonld_syntax_tab for https://blackcatinformatics.ca/lang/Token")
+    );
 }
 
 /// `CONTROLLER_HOOKS` equals the hooks the SHIPPED controller module actually binds.
@@ -790,7 +849,7 @@ fn render_site_lang_uses_translation_with_english_fallback() {
     let model = tiny_model();
 
     // English page for Foo keeps the carrier values.
-    let en = render_site_lang(&model, "english");
+    let en = render_site_lang(&model, "english").expect("the selected documentation model renders");
     let foo_en = String::from_utf8(en.files["terms/foo/index.md"].clone()).unwrap();
     assert!(foo_en.contains("Foo"), "english label present");
     // Definitions are md-escaped (`.` → `\.`), so match a bare substring.
@@ -798,7 +857,7 @@ fn render_site_lang_uses_translation_with_english_fallback() {
     assert!(!foo_en.contains("Fou"));
 
     // French page for Foo uses the translation.
-    let fr = render_site_lang(&model, "fr");
+    let fr = render_site_lang(&model, "fr").expect("the selected documentation model renders");
     let foo_fr = String::from_utf8(fr.files["terms/foo/index.md"].clone()).unwrap();
     assert!(foo_fr.contains("Fou"), "french label used");
     assert!(foo_fr.contains("Un fou"), "french definition used");
@@ -897,7 +956,8 @@ fn per_term_card_json_and_full_md_are_emitted() {
         ..Default::default()
     };
 
-    let site = render_site_lang_exec(&model, "english", &exec);
+    let site = render_site_lang_exec(&model, "english", &exec)
+        .expect("the selected documentation model renders");
     let foo = model
         .terms
         .iter()
@@ -977,7 +1037,8 @@ fn playground_asset_emitted_only_with_executable_data() {
 
     // A model-only render (empty executable data) ships NO playground asset — the
     // base site is complete without the executable surfaces.
-    let base = render_site_lang(&model, "english");
+    let base =
+        render_site_lang(&model, "english").expect("the selected documentation model renders");
     assert!(
         !base.files.contains_key(PLAYGROUND_TRIG_PATH),
         "the model-only render must not emit the playground asset"
@@ -989,7 +1050,8 @@ fn playground_asset_emitted_only_with_executable_data() {
         playground_trig: b"@prefix ex: <https://e/> .\nex:a ex:b ex:c .\n".to_vec(),
         ..Default::default()
     };
-    let live = render_site_lang_exec(&model, "english", &exec);
+    let live = render_site_lang_exec(&model, "english", &exec)
+        .expect("the selected documentation model renders");
     assert_eq!(
         live.files.get(PLAYGROUND_TRIG_PATH).map(Vec::as_slice),
         Some(exec.playground_trig.as_slice()),
@@ -1002,7 +1064,8 @@ fn bundle_assets_emitted_only_with_bundle_data() {
     let model = tiny_model();
 
     // Model-only render ships none of the browser-bundle assets.
-    let base = render_site_lang(&model, "english");
+    let base =
+        render_site_lang(&model, "english").expect("the selected documentation model renders");
     for path in [FULL_BUNDLE_GTS_PATH, BUNDLE_MANIFEST_PATH] {
         assert!(
             !base.files.contains_key(path),
@@ -1019,7 +1082,8 @@ fn bundle_assets_emitted_only_with_bundle_data() {
         full_bundle_gts: full.clone(),
         ..Default::default()
     };
-    let live = render_site_lang_exec(&model, "english", &exec);
+    let live = render_site_lang_exec(&model, "english", &exec)
+        .expect("the selected documentation model renders");
     assert_eq!(
         live.files.get(FULL_BUNDLE_GTS_PATH).map(Vec::as_slice),
         Some(full.as_slice()),
@@ -1059,7 +1123,8 @@ fn conjecture_playground_ships_page_asset_and_manifest_entry() {
         ..Default::default()
     };
     assert!(exec.has_conjectures(), "the exec must be conjecture-backed");
-    let live = render_site_lang_exec(&model, "english", &exec);
+    let live = render_site_lang_exec(&model, "english", &exec)
+        .expect("the selected documentation model renders");
 
     // The demo library asset is emitted verbatim.
     assert_eq!(
@@ -1109,7 +1174,8 @@ fn conjecture_assets_absent_without_conjecture_data() {
         ..Default::default()
     };
     assert!(!exec.has_conjectures());
-    let live = render_site_lang_exec(&model, "english", &exec);
+    let live = render_site_lang_exec(&model, "english", &exec)
+        .expect("the selected documentation model renders");
     assert!(!live.files.contains_key(CONJECTURES_PATH));
     assert!(
         !live
@@ -1202,7 +1268,8 @@ fn executable_surfaces_render_with_exec() {
         ..Default::default()
     };
 
-    let site = render_site_lang_exec(&model, "english", &exec);
+    let site = render_site_lang_exec(&model, "english", &exec)
+        .expect("the selected documentation model renders");
 
     // Playground page + its assets (incl. the query engine) are present.
     assert!(site.files.contains_key("sparql/index.html"));
@@ -1259,7 +1326,8 @@ fn executable_surfaces_render_with_exec() {
     );
 
     // Non-English trees carry NO executable surfaces (bundle-size gate).
-    let fr = render_site_lang_exec(&model, "fr", &exec);
+    let fr = render_site_lang_exec(&model, "fr", &exec)
+        .expect("the selected documentation model renders");
     assert!(
         !fr.files.contains_key("sparql/index.html") && !fr.files.contains_key(PLAYGROUND_TRIG_PATH),
         "the executable surfaces live only in the English carrier tree"
@@ -1324,7 +1392,8 @@ fn term_page_renders_usage_advice_and_alignments() {
         owner_slice: format!("{GMEOW_NS}slices/demo"),
     });
 
-    let md = to_markdown(&model, &Page::Term("foo".to_string()));
+    let md = to_markdown(&model, &Page::Term("foo".to_string()))
+        .expect("the selected documentation model renders");
 
     // Usage Advice section + every field label, in order.
     assert!(md.contains("## Usage Advice"), "advice heading present");
@@ -1374,7 +1443,8 @@ fn term_page_renders_usage_advice_and_alignments() {
     );
 
     // Bar carries no advice/alignments → neither section appears on its page.
-    let bar_md = to_markdown(&model, &Page::Term("bar".to_string()));
+    let bar_md = to_markdown(&model, &Page::Term("bar".to_string()))
+        .expect("the selected documentation model renders");
     assert!(
         !bar_md.contains("## Usage Advice"),
         "empty advice suppressed"
@@ -1401,14 +1471,16 @@ fn stability_badge_renders_every_state() {
         };
     });
 
-    let foo_md = to_markdown(&model, &Page::Term("foo".to_string()));
+    let foo_md = to_markdown(&model, &Page::Term("foo".to_string()))
+        .expect("the selected documentation model renders");
     assert!(foo_md.contains("## Stability"), "stability heading present");
     assert!(
         foo_md.contains("- **Status:** deprecated"),
         "deprecated badge renders: {foo_md}"
     );
 
-    let bar_md = to_markdown(&model, &Page::Term("bar".to_string()));
+    let bar_md = to_markdown(&model, &Page::Term("bar".to_string()))
+        .expect("the selected documentation model renders");
     assert!(
         bar_md.contains("- **Status:** experimental"),
         "experimental badge renders: {bar_md}"
@@ -1462,7 +1534,8 @@ fn constraint_catalog_anchors_rule_by_helpuri_slug() {
     assert_eq!(rule.slug, fragment, "anchor slug == helpUri fragment");
     model.constraint_rules = vec![rule];
 
-    let md = to_markdown(&model, &Page::ConstraintCatalog);
+    let md = to_markdown(&model, &Page::ConstraintCatalog)
+        .expect("the selected documentation model renders");
     assert!(
         md.contains(&format!("<a id=\"{fragment}\"></a>")),
         "explicit anchor emitted: {md}"
@@ -1484,7 +1557,8 @@ fn constraint_catalog_anchors_rule_by_helpuri_slug() {
 #[test]
 fn constraint_catalog_empty_renders_empty_state() {
     let model = tiny_model(); // constraint_rules empty
-    let md = to_markdown(&model, &Page::ConstraintCatalog);
+    let md = to_markdown(&model, &Page::ConstraintCatalog)
+        .expect("the selected documentation model renders");
     assert!(
         md.contains("No validation rules are declared in the constraint catalog."),
         "empty-state line renders: {md}"

@@ -62,7 +62,6 @@ const C_CATEGORY: &str = "#5b6b8c"; // slate
 const C_BOX: &str = "#1b7369"; // teal
 const C_STEREOTYPE: &str = "#8250df"; // purple
 const C_FRAMEWORK: &str = "#4b56b8"; // indigo
-const C_REASON_SAT: &str = "#1a7f37"; // green — satisfiable
 const C_REASON_UNSAT: &str = "#cf222e"; // red — unsatisfiable
 const C_REASON_NA: &str = "#6b7280"; // grey — not evaluated
 
@@ -88,8 +87,8 @@ pub const FAMILIES: [BadgeFamily; 7] = [
     },
     BadgeFamily {
         label: "Reasoning",
-        swatch: C_REASON_SAT,
-        description: "The native reasoner's per-class observation: green satisfiable, red unsatisfiable, amber undetermined, grey not-evaluated (non-class terms).",
+        swatch: C_REASON_UNSAT,
+        description: "The native reasoner's per-class observation: red proved empty, amber undetermined, grey not-evaluated (non-class terms).",
     },
     BadgeFamily {
         label: "Stability",
@@ -184,16 +183,12 @@ fn stability_badge(stability: DocTermStability) -> Badge {
     }
 }
 
-/// The native-reasoner status badge — a three-state verdict that never collapses
-/// not-evaluated into satisfiable.
-///
-/// Class emptiness remains positive evidence. Other classes require conclusive
-/// admission before receiving a satisfiable badge; unsupported work is amber.
+/// The shared class-status badge: proved emptiness is red, other classes remain
+/// undetermined, and non-class terms are not evaluated.
 fn reasoning_badge(term: &DocTerm, verdict: &ReasoningVerdict) -> Badge {
     let value = verdict.term_status(term);
     let (label, fill) = match value {
         "unsatisfiable" => ("unsatisfiable", C_REASON_UNSAT),
-        "satisfiable" => ("satisfiable", C_REASON_SAT),
         "undetermined" => ("undetermined", C_COMPLETE_MID),
         _ => ("not reasoned", C_REASON_NA),
     };

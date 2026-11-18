@@ -200,8 +200,16 @@ fn missing_reason_product_handle_and_wrong_payloads_refuse() {
             .message()
             .contains("missing pinned")
     );
-    let mut wrong_payload = result(Vec::new());
-    wrong_payload.payload = ResultPayload::Empty;
+    let original = result(Vec::new());
+    let wrong_payload = ReasoningResult::new(
+        original.input,
+        original.evaluation,
+        original.completeness,
+        original.preservation,
+        original.information,
+        original.provenance,
+        ResultPayload::Empty,
+    );
     assert!(
         reasoning_verdict_from_reason(&upstream(product(wrong_payload)))
             .unwrap_err()
@@ -370,11 +378,9 @@ fn changed_native_payload_identity_refuses() {
         "urn:docs-verdict:p",
         "urn:docs-verdict:b",
     )]);
-    let mut changed = original.clone();
-    let ResultPayload::Inferred(rows) = &mut changed.payload else {
-        panic!("the native control has an inferred payload")
-    };
+    let mut rows = original.inferred().to_vec();
     rows[0].object = TermValue::iri("urn:docs-verdict:substituted");
+    let changed = result(rows);
     let mut substituted = product(original);
     let bundle = Arc::make_mut(&mut substituted.bundle);
     let pin = bundle

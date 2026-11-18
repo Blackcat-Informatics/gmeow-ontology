@@ -109,7 +109,7 @@ pub(crate) fn run(
     };
     match result {
         Ok(()) => 0,
-        Err(error) => crate::dev_common::fail(format!("test fixtures: {error}")),
+        Err(error) => crate::dev_common::fail(format!("test fixtures: {error:#}")),
     }
 }
 
@@ -370,7 +370,7 @@ fn produce(
     let docs_observation = if scope.includes_docs() {
         println!("test fixture producer: phase=docs state=started");
         let docs_started = Instant::now();
-        let prime = gmeow_docs::fixture::prime(root);
+        let prime = gmeow_docs::fixture::prime(root)?;
         println!(
             "docs fixture: actions={} built={} receipt-hits={} parallelism={}",
             prime.action_count, prime.built, prime.receipt_hits, prime.parallelism

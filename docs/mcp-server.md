@@ -24,7 +24,10 @@ as well as successful persistence. `gmeow math evaluate` and `gmeow finance eval
 also write complete binary GTS at their required output paths.
 The conjecture and candidate output paths must be distinct from the selected library
 and its transaction lock, including filesystem aliases. That check precedes evaluation
-for successful, dry-run and refused-admission outcomes.
+for successful, dry-run and refused-admission outcomes and runs again immediately before
+artifact publication. A publication failure after evaluation reports the result identity,
+commit state and dry-run state, so callers can distinguish saved reasoning from a failed
+standalone export.
 
 GTS-to-GTS conversion preserves a conforming complete artifact byte for byte, including
 its blobs, public metadata, history and signatures. A blob-free source under another

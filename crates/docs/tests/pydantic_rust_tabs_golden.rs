@@ -90,7 +90,8 @@ fn python_and_rust_syntax_tabs_render_for_a_modeled_class() {
     model.attach_schema_fragments(digest);
 
     let slug = term_slug(&term);
-    let md = to_markdown(&model, &Page::Term(slug));
+    let md =
+        to_markdown(&model, &Page::Term(slug)).expect("the selected documentation model renders");
 
     assert!(
         md.contains("## Example in multiple syntaxes"),

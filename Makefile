@@ -903,6 +903,10 @@ validate-wasm-pkg-test: validate-wasm-pkg ## Build the validator npm package and
 reason-wasm-pkg: ## Build the gmeow-reason-wasm npm/ESM package (release wasm + wasm-bindgen web bindings).
 	$(call BUILD_WASM_PKG,reason,)
 
+.PHONY: maint-native-receipt-vectors
+maint-native-receipt-vectors: ## Refresh strict native receipt references with the authenticated producer; tests only read them.
+	$(GMEOW_DEV) native-receipt-vectors
+
 maint-refresh-reason-witness: ## Refresh both verified native reasoner attestations consumed read-only by parity tests.
 	cargo run -p gmeow-reason-wasm --example refresh-witness-reason
 

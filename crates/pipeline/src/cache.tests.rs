@@ -2230,6 +2230,10 @@ fn cached_reasoning_handle_re_derives_the_result() {
         Some(receipt_bytes),
         "the exact original receipt bytes survive hydration"
     );
+    assert!(
+        gmeow_logic::result_rdf::ResultProjection::reasoning(actual).is_err(),
+        "a cache hit restores exact receipt reuse, not original receipt mint authority"
+    );
 
     // gmeow-test-input: synthetic-only
     let other = crate::stages::reason::reason_product(
@@ -2252,7 +2256,7 @@ fn cached_reasoning_handle_re_derives_the_result() {
     assert!(
         error
             .message()
-            .contains("differs from complete original execution evidence"),
+            .contains("differs from the complete execution or assessment"),
         "{error}"
     );
 

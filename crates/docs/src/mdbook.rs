@@ -26,6 +26,9 @@
 
 use std::collections::{BTreeMap, BTreeSet};
 
+use crate::render::source_page_map;
+use gmeow_errors::{Diag, Result};
+
 use crate::exec::ExecutableDocsData;
 use crate::model::{DocTerm, DocTermCategory, DocsModel};
 use crate::render::{
@@ -77,7 +80,10 @@ pub struct LinkRewrite {
 /// in [`book_pages`]. Chapter bodies are the single Markdown authority
 /// ([`crate::render::to_markdown_exec`]) transformed only by [`rewrite_book_links`]. The output
 /// is byte-identical across calls.
-pub fn render_book(model: &DocsModel, exec: &ExecutableDocsData) -> Site {
+///
+/// # Errors
+/// Refuses ambiguous source pages, dangling internal links, heading overflow or failure of a selected syntax provider.
+pub fn render_book(model: &DocsModel, exec: &ExecutableDocsData) -> Result<Site> {
     let pages = book_pages(model);
     let chapters: BTreeSet<String> = pages.iter().map(Page::dir).collect();
     // The single link-rewrite authority, rebuilt from the model (a pure function of
@@ -85,8 +91,7 @@ pub fn render_book(model: &DocsModel, exec: &ExecutableDocsData) -> Site {
     // the RDF projection perform). It is the ONE authority that decides whether a
     // resolved cross-document link names a real corpus page, and it is what the
     // `SliceDocument` child-chapter nesting in `summary_md` reads.
-    let page_map = SourceToPageMap::build(model)
-        .expect("SourceToPageMap: model documents were already validated at discovery");
+    let page_map = source_page_map(model)?;
     // The SINGLE collision-resolution authority (see [`dir_winners`]): both the
     // chapter body writer below and `summary_md`'s table of contents consult
     // this SAME map, so a colliding chapter path is only ever body-written and
@@ -114,21 +119,21 @@ pub fn render_book(model: &DocsModel, exec: &ExecutableDocsData) -> Site {
             // chapter's body, and `summary_md` only ever links the winner.
             continue;
         }
-        let body = to_markdown_exec_with_map(model, page, exec, &page_map);
-        let rewritten = rewrite_book_links(&body, &page.dir(), &chapters, &page_map);
+        let body = to_markdown_exec_with_map(model, page, exec, &page_map)?;
+        let rewritten = rewrite_book_links(&body, &page.dir(), &chapters, &page_map)?;
         let path = chapter_src_path(&page.dir());
         files.insert(path, rewritten.body.into_bytes());
     }
 
     if interactive {
-        pack_interactive_book(&mut files, &mut summary, model, exec, &chapters, &page_map);
+        pack_interactive_book(&mut files, &mut summary, model, exec, &chapters, &page_map)?;
     }
 
     // mdbook resolves the table of contents at `<src>/SUMMARY.md` (src defaults to
     // `src`), so the summary rides inside the source tree, not at the book root.
     files.insert("src/SUMMARY.md".to_string(), summary.into_bytes());
 
-    Site { files }
+    Ok(Site { files })
 }
 
 /// The `additional-js` boot shim: a classic script that dynamically imports the
@@ -165,7 +170,7 @@ fn pack_interactive_book(
     exec: &ExecutableDocsData,
     chapters: &BTreeSet<String>,
     page_map: &SourceToPageMap,
-) {
+) -> Result<()> {
     for (path, bytes) in interactive_asset_files(exec) {
         // The controller resolves `assets/…`; mdbook copies `src/assets/…` → `assets/…`.
         files.insert(format!("src/{path}"), bytes);
@@ -179,8 +184,8 @@ fn pack_interactive_book(
         let page = Page::BundleExplorer;
         let dir = page.dir();
         debug_assert_eq!(dir, MDBOOK_EXPLORER_CHAPTER);
-        let body = to_markdown_exec_with_map(model, &page, exec, page_map);
-        let rewritten = rewrite_book_links(&body, &dir, chapters, page_map);
+        let body = to_markdown_exec_with_map(model, &page, exec, page_map)?;
+        let rewritten = rewrite_book_links(&body, &dir, chapters, page_map)?;
         files.insert(chapter_src_path(&dir), rewritten.body.into_bytes());
         // A top-level table-of-contents entry so the chapter is reachable (mdbook's
         // `create-missing = false` accepts it because the chapter file exists).
@@ -193,11 +198,12 @@ fn pack_interactive_book(
         let page = Page::ConjecturePlayground;
         let dir = page.dir();
         debug_assert_eq!(dir, MDBOOK_CONJECTURE_CHAPTER);
-        let body = to_markdown_exec_with_map(model, &page, exec, page_map);
-        let rewritten = rewrite_book_links(&body, &dir, chapters, page_map);
+        let body = to_markdown_exec_with_map(model, &page, exec, page_map)?;
+        let rewritten = rewrite_book_links(&body, &dir, chapters, page_map)?;
         files.insert(chapter_src_path(&dir), rewritten.body.into_bytes());
         summary.push_str(&format!("\n- [{}]({}/index.md)\n", page.title(model), dir));
     }
+    Ok(())
 }
 
 /// Compute the SINGLE deterministic winner for each colliding chapter
@@ -254,17 +260,22 @@ fn dir_winners(pages: &[Page]) -> BTreeMap<String, usize> {
 /// chapter — the union of each chapter's [`LinkRewrite::external`]. Exposed so
 /// the declared-loss ledger can be computed from the SAME rewrite authority the
 /// book emits (no second, drifting definition of "what the book drops").
-pub fn book_external_links(model: &DocsModel, exec: &ExecutableDocsData) -> BTreeSet<String> {
+///
+/// # Errors
+/// Refuses ambiguous source pages, dangling internal links, heading overflow or failure of a selected syntax provider.
+pub fn book_external_links(
+    model: &DocsModel,
+    exec: &ExecutableDocsData,
+) -> Result<BTreeSet<String>> {
     let pages = book_pages(model);
     let chapters: BTreeSet<String> = pages.iter().map(Page::dir).collect();
-    let page_map = SourceToPageMap::build(model)
-        .expect("SourceToPageMap: model documents were already validated at discovery");
+    let page_map = source_page_map(model)?;
     let mut all: BTreeSet<String> = BTreeSet::new();
     for page in &pages {
-        let body = to_markdown_exec_with_map(model, page, exec, &page_map);
-        all.extend(rewrite_book_links(&body, &page.dir(), &chapters, &page_map).external);
+        let body = to_markdown_exec_with_map(model, page, exec, &page_map)?;
+        all.extend(rewrite_book_links(&body, &page.dir(), &chapters, &page_map)?.external);
     }
-    all
+    Ok(all)
 }
 
 /// The `src/`-relative path of a page's chapter file (`""` → `src/index.md`).
@@ -526,12 +537,15 @@ fn link_text(text: &str) -> String {
 /// [`PUBLISHED_SITE_BASE`] (an off-corpus document reference) is folded back into
 /// the SAME [`LinkRewrite::external`] ledger, so there is one — and only one —
 /// notion of "what the book points off-site to".
+///
+/// # Errors
+/// Refuses a link to a known corpus page for which no selected chapter exists.
 pub fn rewrite_book_links(
     body: &str,
     page_dir: &str,
     chapters: &BTreeSet<String>,
     map: &SourceToPageMap,
-) -> LinkRewrite {
+) -> Result<LinkRewrite> {
     let mut out = String::with_capacity(body.len());
     let mut external: BTreeSet<String> = BTreeSet::new();
     let mut in_fence = false;
@@ -548,13 +562,13 @@ pub fn rewrite_book_links(
             out.push_str(line);
             continue;
         }
-        rewrite_line(line, page_dir, chapters, map, &mut out, &mut external);
+        rewrite_line(line, page_dir, chapters, map, &mut out, &mut external)?;
     }
 
-    LinkRewrite {
+    Ok(LinkRewrite {
         body: out,
         external,
-    }
+    })
 }
 
 /// Rewrite the link targets on a single (non-fenced) line.
@@ -565,7 +579,7 @@ fn rewrite_line(
     map: &SourceToPageMap,
     out: &mut String,
     external: &mut BTreeSet<String>,
-) {
+) -> Result<()> {
     let mut cursor = 0usize;
     while let Some(rel_open) = line[cursor..].find("](") {
         let open = cursor + rel_open + 2; // index just past "]("
@@ -576,11 +590,12 @@ fn rewrite_line(
         let close = open + rel_close;
         let target = &line[open..close];
         out.push_str(&line[cursor..open]);
-        out.push_str(&rewrite_target(target, page_dir, chapters, map, external));
+        out.push_str(&rewrite_target(target, page_dir, chapters, map, external)?);
         // Keep the closing ')' with the following span.
         cursor = close;
     }
     out.push_str(&line[cursor..]);
+    Ok(())
 }
 
 /// Rewrite a single link target (the text between `](` and `)`).
@@ -590,14 +605,14 @@ fn rewrite_target(
     chapters: &BTreeSet<String>,
     map: &SourceToPageMap,
     external: &mut BTreeSet<String>,
-) -> String {
+) -> Result<String> {
     // A link the upstream document rewrite already absolutized to the published
     // site (an off-corpus cross-document reference) is recorded in the ONE external
     // ledger — no second, parallel notion of "what the book drops" — then left as
     // the absolute URL it already is (it can never dangle a chapter).
     if let Some(rest) = target.strip_prefix(PUBLISHED_SITE_BASE) {
         external.insert(rest.to_string());
-        return target.to_string();
+        return Ok(target.to_string());
     }
 
     // Other absolute / scheme-qualified / anchor-only / protocol-relative: leave as is.
@@ -608,7 +623,7 @@ fn rewrite_target(
         || target.contains("://")
         || target.starts_with("//")
     {
-        return target.to_string();
+        return Ok(target.to_string());
     }
 
     // Split off the query/fragment suffix; resolve only the path part.
@@ -617,7 +632,7 @@ fn rewrite_target(
 
     let Some(canonical) = resolve_site_path(page_dir, path_part) else {
         // Escapes above the site root — not a site path we own; leave untouched.
-        return target.to_string();
+        return Ok(target.to_string());
     };
 
     if let Some(dir) = chapter_dir_of(&canonical) {
@@ -628,7 +643,7 @@ fn rewrite_target(
             } else {
                 path_part.to_string()
             };
-            return format!("{md}{suffix}");
+            return Ok(format!("{md}{suffix}"));
         }
         // The single link authority: if the map recognizes this canonical path as a
         // real corpus document page, it MUST have been emitted as a chapter above.
@@ -636,17 +651,19 @@ fn rewrite_target(
         // did not emit is a dangling internal link — a hard failure, never a quiet
         // externalization that would hide a broken cross-reference.
         if map.is_known_page(&format!("{dir}/")) {
-            panic!(
-                "book chapter link {target:?} on page {page_dir:?} resolves to the known corpus \
+            return Err(Diag::of_kind(crate::render_error::DanglingLink::new(
+                format!(
+                    "book chapter link {target:?} on page {page_dir:?} resolves to the known corpus \
                  document page {dir:?}/ but no chapter was emitted for it — a dangling internal \
                  cross-document link"
-            );
+                ),
+            )));
         }
     }
 
     // A dropped surface: externalize to the published site and record it.
     external.insert(format!("{canonical}{suffix}"));
-    format!("{PUBLISHED_SITE_BASE}{canonical}{suffix}")
+    Ok(format!("{PUBLISHED_SITE_BASE}{canonical}{suffix}"))
 }
 
 /// Resolve a page-relative path against a page directory into a canonical

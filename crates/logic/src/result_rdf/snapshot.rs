@@ -6,7 +6,7 @@
 use purrdf::{BlankScope, RdfDatasetBuilder, RdfTerm, RdfTriple, TermValue};
 
 use super::result_err;
-use crate::result::{ReasoningResult, ResultPayload};
+use crate::result::ReasoningResult;
 
 /// The native snapshot authorship path whose blank identities a summary will carry.
 #[derive(Clone, Copy)]
@@ -36,7 +36,7 @@ pub fn reasoning_snapshot_summary(
     mut result: ReasoningResult,
     scope: ReasoningSnapshotScope,
 ) -> gmeow_errors::Result<ReasoningResult> {
-    let ResultPayload::Inferred(rows) = &mut result.payload else {
+    let Some(rows) = result.summary_rows_mut() else {
         return Ok(result);
     };
     for row in rows {

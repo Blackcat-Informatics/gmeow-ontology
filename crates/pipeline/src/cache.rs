@@ -1478,6 +1478,22 @@ impl CachedBundle {
             let encoded = encode_handle(&entry.payload)?;
             let typed_payload = Some(encoded);
             let rebuilt = rebuild_handle(arm, typed_payload.as_deref())?;
+            if let PipelineHandle::Reasoning(result) = &rebuilt
+                && result.provenance.native_execution.is_some()
+            {
+                use gmeow_logic::result_rdf::{NativeReceiptAddress, NativeReceiptRef};
+                let bytes = crate::bundle::bundle_artifact(
+                    bundle,
+                    crate::stages::reason::NATIVE_RECEIPT_PATH,
+                )
+                .ok_or_else(|| {
+                    gmeow_errors::Diag::of_kind(crate::error::Decode::new(
+                        "cache: rebuilt native reasoning handle has no retained receipt".into(),
+                    ))
+                })?;
+                let address = NativeReceiptAddress::of_bytes(bytes);
+                NativeReceiptRef::admit(&address, bytes)?.admit_result(result)?;
+            }
             let rebuilt_digest = handle_payload_digest(&rebuilt);
             if rebuilt_digest != payload_digest {
                 return Err(gmeow_errors::Diag::of_kind(crate::error::Decode::new(

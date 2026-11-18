@@ -21,17 +21,12 @@ fn attestation_path() -> PathBuf {
 #[test]
 fn native_reason_closure_matches_the_witness_attestation() {
     let out = reason_artifact(INPUT, "turtle");
-    // Deterministic + non-empty: the closure must carry the entailed memberships.
+    // Complete-artifact bytes are deterministic and match the explicit producer.
     assert_eq!(
         out,
         reason_artifact(INPUT, "turtle"),
         "reasoning is deterministic"
     );
-    assert!(
-        !out.trim().is_empty(),
-        "the structured-DL closure of the fixture must be non-empty:\n{out}"
-    );
-
     let path = attestation_path();
     let committed = std::fs::read_to_string(&path).unwrap_or_else(|e| {
         panic!(

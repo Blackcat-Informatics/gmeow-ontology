@@ -29,16 +29,15 @@ fn coherence_result(
     };
     let mut provenance = ResultProvenance::native("contract:abc", "world:default");
     provenance.certified_fragment = fragment.map(str::to_owned);
-    ReasoningResult {
-        input: InputStatus::Valid,
+    ReasoningResult::new(
+        InputStatus::Valid,
         evaluation,
         completeness,
-        preservation: PreservationClaim::exact(),
-        information: InformationState::Supported,
+        PreservationClaim::exact(),
+        InformationState::Supported,
         provenance,
-        payload: ResultPayload::Empty,
-        row_schema: None,
-    }
+        ResultPayload::Empty,
+    )
 }
 
 /// Build the lightest `McpView` that can drive the REAL production entry point

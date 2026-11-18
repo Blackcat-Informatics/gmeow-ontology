@@ -773,8 +773,8 @@ pub const UI_TEMPLATES: &[(&str, &str)] = &[
          for this term.",
     ),
     (
-        "body_reasoning_satisfiable",
-        "**Satisfiable** — the native DL reasoner found this class consistent.",
+        "body_reasoning_undetermined",
+        "**Undetermined** — the available reasoning evidence does not establish this class's realizability.",
     ),
     ("body_reasoning_status", "Reasoning status"),
     (

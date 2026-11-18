@@ -68,7 +68,9 @@ mod artifact;
 mod closure;
 mod native;
 mod receipt;
+mod reference_vectors;
 mod snapshot;
+pub use reference_vectors::native_receipt_reference_vectors;
 
 pub use artifact::{
     admit_reasoning_artifact, admit_reasoning_response, artifact_envelope,
@@ -591,8 +593,8 @@ impl<'a> ResultProjection<'a> {
         let receipt = result
             .provenance
             .native_execution
-            .as_deref()
-            .map(NativeReceipt::publish)
+            .as_ref()
+            .map(|_| NativeReceipt::publish(result, None))
             .transpose()?;
         Self::reasoning_with(result, receipt)
     }
@@ -604,10 +606,7 @@ impl<'a> ResultProjection<'a> {
     /// # Errors
     /// Rejects invalid result evidence.
     pub fn transported(transported: &TransportedReasoning<'a>) -> gmeow_errors::Result<Self> {
-        Self::reasoning_with(
-            &transported.result,
-            transported.receipt.map(NativeReceipt::borrowed),
-        )
+        Self::reasoning_with_receipt(&transported.result, transported.receipt)
     }
 
     /// Reuse an existing immutable publication when the result was already published.
@@ -619,12 +618,14 @@ impl<'a> ResultProjection<'a> {
         result: &ReasoningResult,
         receipt: Option<NativeReceiptRef<'a>>,
     ) -> gmeow_errors::Result<Self> {
-        if let (Some(execution), Some(receipt)) =
-            (result.provenance.native_execution.as_deref(), receipt)
-        {
-            receipt.verify_execution(execution)?;
-        }
-        Self::reasoning_with(result, receipt.map(NativeReceipt::borrowed))
+        let publication = receipt
+            .map(|receipt| {
+                receipt
+                    .admit_result(result)
+                    .map(|closure| NativeReceipt::borrowed(receipt, closure))
+            })
+            .transpose()?;
+        Self::reasoning_with(result, publication)
     }
 
     fn reasoning_with(
@@ -658,11 +659,20 @@ impl<'a> ResultProjection<'a> {
             "reason phase boundary",
         );
         let mut sink = reasoning_sink(result, receipt.as_ref().map(NativeReceipt::as_ref))?;
-        if let Some(closure) = &closure {
+        let bound_closure = receipt.as_ref().and_then(NativeReceipt::closure);
+        if closure
+            .as_ref()
+            .is_some_and(|closure| Some(&closure.address) != bound_closure)
+        {
+            return Err(result_err(
+                "native closure differs from the exact receipt binding".into(),
+            ));
+        }
+        if let Some(address) = bound_closure {
             sink.push(
                 Node::SelfReference(RESULT_PLACEHOLDER.to_owned()),
                 logic("resultClosureBlob"),
-                Node::string(closure.address.as_str()),
+                Node::string(address.as_str()),
             );
         }
         let started = crate::timing::Instant::now();
@@ -714,8 +724,8 @@ impl<'a> ResultProjection<'a> {
         let receipt = result
             .provenance
             .native_execution
-            .as_deref()
-            .map(NativeReceipt::publish)
+            .as_ref()
+            .map(|_| NativeReceipt::publish(result, Some(&closure.address)))
             .transpose()?;
         Self::reasoning_with_attachments(result, receipt, Some(closure))
     }
@@ -787,7 +797,7 @@ impl<'a> ResultProjection<'a> {
         if normalized.provenance.native_execution != self.native_execution {
             return Err(result_err("standalone publication receipt differs from the complete original native execution evidence".into()));
         }
-        normalized.provenance.native_execution = self.native_execution;
+        normalized.share_admitted_execution(self.native_execution)?;
         let transported = TransportedReasoning {
             result: normalized,
             receipt: resolver.receipt,
@@ -1138,7 +1148,7 @@ fn reasoning_sink(
         inferred_rows = result.inferred().len(),
         "reason phase boundary",
     );
-    project_payload(&mut sink, &subject, &result.payload);
+    project_payload(&mut sink, &subject, result.payload());
     tracing::info!(
         target: "pipeline_phase",
         stage = "stage-reason",
@@ -1683,8 +1693,7 @@ pub fn transport_reasoning<'a>(
     receipt: Option<NativeReceiptRef<'a>>,
 ) -> gmeow_errors::Result<TransportedReasoning<'a>> {
     let (dataset, _borrowed_publication) =
-        ResultProjection::reasoning_with(result, receipt.map(NativeReceipt::borrowed))?
-            .into_dataset()?;
+        ResultProjection::reasoning_with_receipt(result, receipt)?.into_dataset()?;
     let mut transported = read_reasoning_result_expecting(
         &ResultGraph::new(&dataset, GraphMatch::Default)?,
         &receipt,
@@ -1697,7 +1706,7 @@ pub fn transport_reasoning<'a>(
             "authenticated native receipt differs from complete original execution evidence".into(),
         ));
     }
-    transported.provenance.native_execution = result.provenance.native_execution.clone();
+    transported.share_admitted_execution(result.provenance.native_execution.clone())?;
     Ok(TransportedReasoning {
         result: transported,
         receipt,
@@ -1784,33 +1793,59 @@ fn read_reasoning_result_expecting(
         ));
     }
 
-    let one_iri = |local: &str| -> Option<String> {
-        triples
-            .for_subject(subject)
-            .find(|t| t.predicate == logic(local))
-            .and_then(|t| t.object_iri())
+    let one_iri = |local: &str| -> gmeow_errors::Result<Option<String>> {
+        optional_field(triples, subject, local)?
+            .map(|field| {
+                field
+                    .object_iri()
+                    .ok_or_else(|| result_err(format!("graph/reasoning: {local} must be an IRI")))
+            })
+            .transpose()
     };
-    let one_str = |local: &str| -> Option<String> {
-        triples
-            .for_subject(subject)
-            .find(|t| t.predicate == logic(local))
-            .and_then(|t| t.object_string())
+    let one_str = |local: &str| -> gmeow_errors::Result<Option<String>> {
+        optional_field(triples, subject, local)?
+            .map(|field| component_text(triples, field))
+            .transpose()
+    };
+    let one_u64 = |local: &str| -> gmeow_errors::Result<Option<u64>> {
+        let Some(field) = optional_field(triples, subject, local)? else {
+            return Ok(None);
+        };
+        match field.object {
+            TermRef::Literal {
+                lexical,
+                datatype,
+                language: None,
+                direction: None,
+            } if matches!(triples.dataset.resolve(datatype), TermRef::Iri(XSD_INTEGER)) => {
+                lexical.parse::<u64>().map(Some).map_err(|cause| {
+                    gmeow_errors::Diag::of_kind(crate::error::Result::caused_by(
+                        format!("graph/reasoning: {local} must encode a u64"),
+                        cause,
+                    ))
+                })
+            }
+            _ => Err(result_err(format!(
+                "graph/reasoning: {local} must be an xsd:integer literal"
+            ))),
+        }
     };
 
-    let input = InputStatus::from_local(local_of(&req(one_iri("resultInput"), "resultInput")?)?)
-        .ok_or_else(|| result_err("graph/reasoning: unrecognized resultInput".to_owned()))?;
+    let input =
+        InputStatus::from_local(local_of(&req(one_iri("resultInput")?, "resultInput")?)?)
+            .ok_or_else(|| result_err("graph/reasoning: unrecognized resultInput".to_owned()))?;
     let evaluation = EvaluationStatus::from_local(local_of(&req(
-        one_iri("resultEvaluation"),
+        one_iri("resultEvaluation")?,
         "resultEvaluation",
     )?)?)
     .ok_or_else(|| result_err("graph/reasoning: unrecognized resultEvaluation".to_owned()))?;
     let completeness = CompletenessStatus::from_local(local_of(&req(
-        one_iri("resultCompleteness"),
+        one_iri("resultCompleteness")?,
         "resultCompleteness",
     )?)?)
     .ok_or_else(|| result_err("graph/reasoning: unrecognized resultCompleteness".to_owned()))?;
     let information = InformationState::from_local(local_of(&req(
-        one_iri("resultInformation"),
+        one_iri("resultInformation")?,
         "resultInformation",
     )?)?)
     .ok_or_else(|| result_err("graph/reasoning: unrecognized resultInformation".to_owned()))?;
@@ -1818,18 +1853,19 @@ fn read_reasoning_result_expecting(
     // preservation: the polarity set + unsupported constructs.
     let mut preservation = PreservationClaim::default();
     for t in triples.for_subject(subject) {
-        if t.subject == subject
-            && t.predicate == logic("resultPreservationPolarity")
-            && let Some(iri) = t.object_iri()
-            && let Some(kind) = preservation_from_iri(&iri)
-        {
+        if t.predicate == logic("resultPreservationPolarity") {
+            let iri = t.object_iri().ok_or_else(|| {
+                result_err("graph/reasoning: resultPreservationPolarity must be an IRI".into())
+            })?;
+            let kind = preservation_from_iri(&iri).ok_or_else(|| {
+                result_err("graph/reasoning: unrecognized resultPreservationPolarity".into())
+            })?;
             preservation.polarities.insert(kind);
         }
-        if t.subject == subject
-            && t.predicate == logic("resultUnsupportedConstruct")
-            && let Some(s) = t.object_string()
-        {
-            preservation.unsupported_constructs.insert(s);
+        if t.predicate == logic("resultUnsupportedConstruct") {
+            preservation
+                .unsupported_constructs
+                .insert(component_text(triples, t)?);
         }
     }
 
@@ -1837,9 +1873,9 @@ fn read_reasoning_result_expecting(
     // world is OPTIONAL (the `reason` surface leaves the result-level context world
     // empty — it is carried per-axiom on the closure); an absent `resultWorld`
     // reconstructs as empty.
-    let world = one_iri("resultWorld").unwrap_or_default();
+    let world = one_iri("resultWorld")?.unwrap_or_default();
     let mut prov = ResultProvenance::native(
-        req(one_str("resultContractHash"), "resultContractHash")?,
+        req(one_str("resultContractHash")?, "resultContractHash")?,
         world.clone(),
     );
     let claim_rows: Vec<_> = triples
@@ -1862,6 +1898,7 @@ fn read_reasoning_result_expecting(
         .for_subject(subject)
         .filter(|row| row.predicate == logic("resultNativeExecution"))
         .collect::<Vec<_>>();
+    let mut admitted_native = None;
     prov.native_execution = match execution_rows.as_slice() {
         [] if expected_receipt.is_some_and(|expected| expected.is_some()) => {
             return Err(result_err(
@@ -1886,7 +1923,10 @@ fn read_reasoning_result_expecting(
                 }
                 let bytes = resolver.resolve(&address)?;
                 let receipt = NativeReceiptRef::admit(&address, bytes)?;
-                Some(native::decode(receipt.bytes())?)
+                let record = native::decode(receipt.bytes())?;
+                let execution = Arc::clone(&record.execution);
+                admitted_native = Some((address, record));
+                Some(execution)
             }
             _ => {
                 return Err(result_err(
@@ -1900,54 +1940,42 @@ fn read_reasoning_result_expecting(
             ));
         }
     };
-    prov.query = req(one_str("resultQuery"), "resultQuery")?;
-    prov.conclusion = req(one_str("resultConclusion"), "resultConclusion")?;
+    prov.query = req(one_str("resultQuery")?, "resultQuery")?;
+    prov.conclusion = req(one_str("resultConclusion")?, "resultConclusion")?;
     prov.proof = parse_derivation(triples, subject, "resultProof")?;
     prov.counterproof = parse_derivation(triples, subject, "resultCounterproof")?;
-    let attributed_contexts = triples
-        .for_subject(subject)
-        .filter(|triple| triple.predicate == logic("resultAttributedContext"))
-        .map(|triple| {
-            triple.object_iri().ok_or_else(|| {
-                result_err("graph/reasoning: resultAttributedContext must be an IRI".into())
-            })
-        })
-        .collect::<gmeow_errors::Result<BTreeSet<_>>>()?;
-    if attributed_contexts.len() > 1 {
-        return Err(result_err(
-            "graph/reasoning: resultAttributedContext must be single-valued".into(),
-        ));
-    }
     prov.context = ResultContext {
         world,
-        standpoint: one_iri("resultStandpoint"),
-        attributed: attributed_contexts.into_iter().next(),
-        time: one_str("resultTime"),
-        path: one_iri("resultPath"),
+        standpoint: one_iri("resultStandpoint")?,
+        attributed: one_iri("resultAttributedContext")?,
+        time: one_str("resultTime")?,
+        path: one_iri("resultPath")?,
     };
     prov.engine = EngineId {
-        name: req(one_str("resultEngineName"), "resultEngineName")?,
-        version: req(one_str("resultEngineVersion"), "resultEngineVersion")?,
+        name: req(one_str("resultEngineName")?, "resultEngineName")?,
+        version: req(one_str("resultEngineVersion")?, "resultEngineVersion")?,
     };
     prov.consumed_budget = crate::result::BudgetUsage {
-        consumed: req(one_str("resultBudgetConsumed"), "resultBudgetConsumed")?
-            .parse::<u64>()
-            .map_err(|e| {
-                result_err(format!(
-                    "graph/reasoning: resultBudgetConsumed not a u64: {e}"
-                ))
-            })?,
-        allowance: one_str("resultBudgetAllowance").and_then(|s| s.parse().ok()),
-        limit: one_str("resultBudgetLimit").and_then(|s| budget_limit_from_wire(&s)),
+        consumed: req(one_u64("resultBudgetConsumed")?, "resultBudgetConsumed")?,
+        allowance: one_u64("resultBudgetAllowance")?,
+        limit: one_str("resultBudgetLimit")?
+            .map(|wire| {
+                budget_limit_from_wire(&wire).ok_or_else(|| {
+                    result_err("graph/reasoning: unrecognized resultBudgetLimit".into())
+                })
+            })
+            .transpose()?,
     };
-    prov.certified_fragment = one_iri("resultCertifiedFragment");
+    prov.certified_fragment = one_iri("resultCertifiedFragment")?;
     prov.projection_class = preservation.clone();
     for t in triples.for_subject(subject) {
-        if t.subject == subject
-            && t.predicate == logic("resultAssumption")
-            && let Some(iri) = t.object_iri()
-            && let Some(a) = assumption_from_iri(&iri)
-        {
+        if t.predicate == logic("resultAssumption") {
+            let iri = t.object_iri().ok_or_else(|| {
+                result_err("graph/reasoning: resultAssumption must be an IRI".into())
+            })?;
+            let a = assumption_from_iri(&iri).ok_or_else(|| {
+                result_err("graph/reasoning: unrecognized resultAssumption".into())
+            })?;
             prov.assumptions.insert(a);
         }
     }
@@ -1955,30 +1983,54 @@ fn read_reasoning_result_expecting(
     prov.contradiction_witnesses.sort();
 
     // Payload discriminant — derived rows retain their complete receipts.
-    let payload = match one_str("resultPayloadKind").as_deref() {
-        Some("inferred") => ResultPayload::Inferred(parse_derived_axioms(triples, subject)?),
-        Some("bindings") => ResultPayload::Bindings(Vec::new()),
-        Some("marginals") => ResultPayload::Marginals(Vec::new()),
-        _ => ResultPayload::Empty,
+    let payload_kind = req(one_str("resultPayloadKind")?, "resultPayloadKind")?;
+    let payload_count = req(one_u64("resultPayloadCount")?, "resultPayloadCount")?;
+    let payload = match payload_kind.as_str() {
+        "inferred" => {
+            let rows = parse_derived_axioms(triples, subject)?;
+            if rows.len() as u64 > payload_count {
+                return Err(result_err(
+                    "graph/reasoning: derived rows exceed declared resultPayloadCount".into(),
+                ));
+            }
+            ResultPayload::Inferred(rows)
+        }
+        "bindings" => ResultPayload::Bindings(Vec::new()),
+        "marginals" => ResultPayload::Marginals(Vec::new()),
+        "empty" if payload_count == 0 => ResultPayload::Empty,
+        "empty" => {
+            return Err(result_err(
+                "graph/reasoning: empty resultPayloadKind requires zero resultPayloadCount".into(),
+            ));
+        }
+        _ => {
+            return Err(result_err(
+                "graph/reasoning: unrecognized resultPayloadKind".into(),
+            ));
+        }
     };
+    if prov.claim == ResultClaim::WorldConsistency && !matches!(payload, ResultPayload::Inferred(_))
+    {
+        return Err(result_err(
+            "graph/reasoning: world consistency resultPayloadKind must be inferred".into(),
+        ));
+    }
 
-    let result = ReasoningResult {
+    let result = ReasoningResult::from_summary(
         input,
         evaluation,
         completeness,
         preservation,
         information,
-        provenance: prov,
+        prov,
         payload,
-        row_schema: None,
-    };
-    result.validate()?;
+    )?;
     let closures = triples
         .for_subject(subject)
         .filter(|row| row.predicate == logic("resultClosureBlob"))
         .collect::<Vec<_>>();
-    match closures.as_slice() {
-        [] => {}
+    let closure = match closures.as_slice() {
+        [] => None,
         [row] => {
             let TermRef::Literal {
                 lexical,
@@ -1995,15 +2047,39 @@ fn read_reasoning_result_expecting(
                 return Err(result_err("resultClosureBlob requires xsd:string".into()));
             }
             let address = NativeReceiptAddress::parse(lexical)?;
-            let worlds = result
-                .native_execution()?
-                .worlds
-                .values()
-                .cloned()
-                .collect::<Vec<_>>();
-            resolver.admit_closure(&address, &worlds)?;
+            Some(address)
         }
         _ => return Err(result_err("duplicate resultClosureBlob binding".into())),
+    };
+    match admitted_native {
+        Some((address, record)) => {
+            if closure != record.closure {
+                return Err(result_err(
+                    "resultClosureBlob differs from the immutable native receipt selection".into(),
+                ));
+            }
+            result.admit_native_receipt(
+                record.assessment,
+                &record.execution,
+                &address,
+                record.closure.as_ref(),
+            )?;
+        }
+        None if closure.is_some() => {
+            return Err(result_err(
+                "RDF closure attachment requires its native receipt binding".into(),
+            ));
+        }
+        None => {}
+    }
+    if let Some(address) = closure {
+        let worlds = result
+            .native_execution()?
+            .worlds
+            .values()
+            .cloned()
+            .collect::<Vec<_>>();
+        resolver.admit_closure(&address, &worlds)?;
     }
     Ok(result)
 }
@@ -2043,19 +2119,32 @@ fn optional_component(
     predicate_local: &str,
     class: &str,
 ) -> gmeow_errors::Result<Option<TermId>> {
-    let predicate = logic(predicate_local);
-    let mut links = triples
-        .for_subject(subject)
-        .filter(|field| field.predicate == predicate);
-    let Some(link) = links.next() else {
+    let Some(link) = optional_field(triples, subject, predicate_local)? else {
         return Ok(None);
     };
-    if links.next().is_some() {
+    component_node(triples, link, class).map(Some)
+}
+
+/// Borrow one scalar without selecting among distinct declared values. Repeated
+/// identical values in a selected union retain ordinary RDF set semantics.
+fn optional_field<'a>(
+    triples: &ResultGraph<'a>,
+    subject: TermId,
+    local: &str,
+) -> gmeow_errors::Result<Option<ParsedTriple<'a>>> {
+    let predicate = logic(local);
+    let mut fields = triples
+        .for_subject(subject)
+        .filter(|field| field.predicate == predicate);
+    let Some(field) = fields.next() else {
+        return Ok(None);
+    };
+    if fields.any(|other| other.object_id != field.object_id) {
         return Err(result_err(format!(
-            "graph/reasoning: {predicate_local} must be single-valued"
+            "graph/reasoning: {local} must be single-valued"
         )));
     }
-    component_node(triples, link, class).map(Some)
+    Ok(Some(field))
 }
 
 /// Borrow one required component field without choosing among competing values.
@@ -2064,21 +2153,11 @@ fn component_field<'a>(
     node: TermId,
     local: &str,
 ) -> gmeow_errors::Result<ParsedTriple<'a>> {
-    let predicate = logic(local);
-    let mut fields = triples
-        .for_subject(node)
-        .filter(|field| field.predicate == predicate);
-    let field = fields.next().ok_or_else(|| {
+    optional_field(triples, node, local)?.ok_or_else(|| {
         result_err(format!(
             "graph/reasoning: component {node:?} is missing {local}"
         ))
-    })?;
-    if fields.next().is_some() {
-        return Err(result_err(format!(
-            "graph/reasoning: component {node:?} requires one {local}"
-        )));
-    }
-    Ok(field)
+    })
 }
 
 /// Component identifiers and encoded premises are authored as xsd:string. A

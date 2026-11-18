@@ -1,10 +1,10 @@
 // SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 // SPDX-License-Identifier: AGPL-3.0-only
 
-//! Hermetic tests for the rendered-artifact half of the cache — no model build
-//! and no live render (those are the integration suite's job). They pin the site
+//! Hermetic tests for the rendered-artifact half of the cache without repository
+//! model construction. They pin the site
 //! envelope round-trip, the per-artifact cache paths, and the integrity-violation
-//! panics. The model envelope, the cache key and the derived implementation
+//! refusals. The model envelope, the cache key and the derived implementation
 //! closure are pinned beside them in `gmeow_docs_model::fixture`.
 use super::*;
 use std::fs;
@@ -92,12 +92,41 @@ fn a_site_envelope_written_to_disk_verifies_when_read_back() {
         "# \u{e9}\u{e8}\u{ea} \u{2603}\n".as_bytes().to_vec(),
     );
     let built = Site { files };
-    let cold = load_or_build_cached_site(&root, "site", Some(ENGLISH), &identity, || built.clone());
+    let invalid = crate::DocsModel {
+        terms: vec![crate::DocTerm {
+            iri: "urn:refused:class".into(),
+            curie: "undeclared:Class".into(),
+            category: crate::DocTermCategory::Class,
+            ..Default::default()
+        }],
+        ..Default::default()
+    };
+    let refused = load_or_build_cached_site(&root, "site", Some(ENGLISH), &identity, || {
+        render_site_lang(&invalid, ENGLISH)
+    });
+    assert!(
+        refused.is_err(),
+        "a renderer refusal must reach the producer"
+    );
+    assert!(
+        !path.is_file(),
+        "a failed render cannot publish an action receipt"
+    );
+    let cold =
+        load_or_build_cached_site(
+            &root,
+            "site",
+            Some(ENGLISH),
+            &identity,
+            || Ok(built.clone()),
+        )
+        .expect("the selected render publishes after success");
     assert_eq!(cold, built, "the cold miss returns the built site");
     assert!(path.is_file(), "the miss wrote the envelope");
     let warm = load_or_build_cached_site(&root, "site", Some(ENGLISH), &identity, || {
         panic!("the warm hit must be served from disk, not rebuilt")
-    });
+    })
+    .expect("the warm action is admitted without rendering");
     assert_eq!(
         warm, built,
         "the warm hit verifies its payload digest and reconstructs the site"
@@ -114,8 +143,9 @@ fn selected_render_uses_producer_identity_and_refuses_other_languages_or_receipt
     };
     let (_, _, selected) =
         load_or_build_cached_site_in_store(&store, &root, "site", Some(ENGLISH), &identity, || {
-            site.clone()
-        });
+            Ok(site.clone())
+        })
+        .expect("the selected render publishes its exact action identity");
     fs::create_dir_all(root.join("crates/docs/src")).unwrap();
     fs::write(
         root.join("crates/docs/src/lib.rs"),
@@ -180,27 +210,27 @@ fn language_is_a_first_class_render_action_dimension() {
 }
 
 #[test]
-#[should_panic(expected = "corrupt docs-fixture site action cache")]
-fn present_but_corrupt_site_cache_panics() {
+fn present_but_corrupt_site_cache_refuses() {
     let (_tmp, root) = temp_root("corrupt-site");
     let identity = model_identity();
     let sp = site_cache_path(&root, ENGLISH, &identity);
     fs::create_dir_all(sp.parent().unwrap()).unwrap();
     fs::write(&sp, b"{ not valid json").unwrap();
-    let _ = load_or_build_cached_site(&root, "site", Some(ENGLISH), &identity, || {
+    let result = load_or_build_cached_site(&root, "site", Some(ENGLISH), &identity, || {
         panic!("a present corrupt action must not rebuild")
     });
+    assert!(result.is_err());
 }
 
 #[test]
-#[should_panic(expected = "corrupt docs-fixture book action cache")]
-fn present_but_corrupt_book_cache_panics() {
+fn present_but_corrupt_book_cache_refuses() {
     let (_tmp, root) = temp_root("corrupt-book");
     let identity = model_identity();
     let bp = book_cache_path(&root, &identity);
     fs::create_dir_all(bp.parent().unwrap()).unwrap();
     fs::write(&bp, b"{ not valid json").unwrap();
-    let _ = load_or_build_cached_site(&root, "book", None, &identity, || {
+    let result = load_or_build_cached_site(&root, "book", None, &identity, || {
         panic!("a present corrupt action must not rebuild")
     });
+    assert!(result.is_err());
 }
