@@ -18390,3 +18390,59 @@ msgstr "Éviter zéro, un dénominateur omis, un littéral non entier ou une exi
 msgctxt "https://blackcatinformatics.ca/math/denominator|https://blackcatinformatics.ca/gmeow/howToUse"
 msgid "Supply one nonzero xsd:integer value with the carrier's math:numerator. Check the class-local datatype/count/closure obligations and the explicit forbidden-zero constraint. Preserve full diagnostic evidence when generated validation reports a violation."
 msgstr "Fournir une valeur xsd:integer non nulle avec le math:numerator de l’objet porteur. Vérifier les obligations locales à la classe de type de données, de nombre de valeurs et de fermeture, ainsi que la contrainte explicite interdisant zéro. Préserver les éléments diagnostiques complets lorsque la validation générée signale une violation."
+
+msgctxt "https://blackcatinformatics.ca/math/ExactApproximateConflation|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Exact–Approximate Conflation"
+msgstr "Confusion entre valeur exacte et valeur approchée"
+
+msgctxt "https://blackcatinformatics.ca/math/ExactApproximateConflation|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The failure raised when a math:ApproximateValue fails to keep an approximation distinct from the exact value — it does not name, through math:approximates, the exact number it stands in for, or does not declare its math:approximationError. An exact number and an approximation of it are distinct objects."
+msgstr "La défaillance signalée lorsqu’un math:ApproximateValue ne maintient pas la distinction entre une approximation et la valeur exacte : il ne nomme pas, au moyen de math:approximates, le nombre exact qu’il représente, ou ne déclare pas son math:approximationError. Un nombre exact et une approximation de ce nombre sont des objets distincts."
+
+msgctxt "https://blackcatinformatics.ca/math/ExactApproximateConflation|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This class describes a failure of approximation framing. Its current math:ApproximateValue-level report annotation can also classify target-type or count findings; the class alone proves neither resource-identity conflation nor the validity of a numerical error bound."
+msgstr "Cette classe décrit un défaut du cadre de l’approximation. Son annotation actuelle des rapports au niveau de math:ApproximateValue peut également classer des constats concernant le type de la cible ou le nombre de valeurs ; la classe seule ne prouve ni l’identification de deux ressources ni la validité d’une borne numérique d’erreur."
+
+msgctxt "https://blackcatinformatics.ca/math/ExactApproximateConflation|http://www.w3.org/2004/02/skos/core#example"
+msgid "A math:ApproximateValue that names an exact one-third target through math:approximates but omits math:approximationError illustrates the missing-bound case. Read the finding's component and source shape before identifying that case from a report."
+msgstr "Un math:ApproximateValue qui nomme une cible exacte égale à un tiers au moyen de math:approximates mais omet math:approximationError illustre le cas d’une borne manquante. Lire le composant et la forme source du constat avant d’identifier ce cas dans un rapport."
+
+msgctxt "https://blackcatinformatics.ca/math/ExactApproximateConflation|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when interpreting findings attributed to the canonical math:ApproximateValue restrictions on its exact target and the presence of a numeric error bound."
+msgstr "À utiliser pour interpréter les constats attribués aux restrictions canoniques de math:ApproximateValue concernant sa cible exacte et la présence d’une borne numérique d’erreur."
+
+msgctxt "https://blackcatinformatics.ca/math/ExactApproximateConflation|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating this class as proof of an incorrect numerical value, a negative bound, mismatched literal and declared datatypes, or equality between the approximation and target resources; the current restriction group establishes none of those numerical or identity judgments."
+msgstr "Ne pas considérer cette classe comme une preuve d’une valeur numérique incorrecte, d’une borne négative, d’un désaccord entre le type du littéral et le type déclaré, ou d’une identité entre les ressources de l’approximation et de sa cible ; le groupe actuel de restrictions n’établit aucun de ces jugements numériques ou d’identité."
+
+msgctxt "https://blackcatinformatics.ca/math/ExactApproximateConflation|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Inspect the component, path, value and source shape, then repair the reported obligation: retain a separate math:ApproximateValue, one justified math:Number target through math:approximates and a numeric absolute math:approximationError bound. Validation derives from the existing logic restrictions; establish the bound's numerical justification separately."
+msgstr "Examiner le composant, le chemin, la valeur et la forme source, puis corriger l’obligation signalée : conserver un math:ApproximateValue distinct, une seule cible math:Number justifiée au moyen de math:approximates et une borne numérique absolue math:approximationError. La validation dérive des restrictions logic existantes ; établir séparément la justification numérique de la borne."
+
+msgctxt "https://blackcatinformatics.ca/math/ConstantAsDecimalLiteral|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Constant as Decimal Literal"
+msgstr "Constante exprimée par un littéral décimal"
+
+msgctxt "https://blackcatinformatics.ca/math/ConstantAsDecimalLiteral|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The failure raised when a math:MathematicalConstant is given as a decimal literal — it carries a raw math:quantityValue directly instead of being an exact individual. A constant's decimal expansion belongs to a distinct math:ApproximateValue that math:approximates it."
+msgstr "La défaillance signalée lorsqu’un math:MathematicalConstant est donné sous forme de littéral décimal : il porte directement une valeur brute math:quantityValue au lieu d’être un individu exact. Le développement décimal d’une constante appartient à un math:ApproximateValue distinct qui la désigne au moyen de math:approximates."
+
+msgctxt "https://blackcatinformatics.ca/math/ConstantAsDecimalLiteral|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The named constant keeps its exact identity independently of any numerical representation. The current math:MathematicalConstant-level report annotation also covers its isExact obligations, so this class alone does not establish that a quantityValue literal was present."
+msgstr "La constante nommée conserve son identité exacte indépendamment de toute représentation numérique. L’annotation actuelle des rapports au niveau de math:MathematicalConstant couvre également ses obligations isExact ; cette classe seule n’établit donc pas qu’un littéral quantityValue était présent."
+
+msgctxt "https://blackcatinformatics.ca/math/ConstantAsDecimalLiteral|http://www.w3.org/2004/02/skos/core#example"
+msgid "A math:MathematicalConstant with math:isExact true and a direct math:quantityValue of 3.14159 typed as xsd:double illustrates the forbidden-literal case. A justified numerical evaluation belongs on a separate math:ApproximateValue that math:approximates the constant."
+msgstr "Un math:MathematicalConstant portant math:isExact true et directement une math:quantityValue de 3.14159 de type xsd:double illustre le cas du littéral interdit. Une évaluation numérique justifiée appartient à un math:ApproximateValue distinct qui désigne la constante au moyen de math:approximates."
+
+msgctxt "https://blackcatinformatics.ca/math/ConstantAsDecimalLiteral|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when interpreting findings associated with the existing constant-local exactness or absence-of-direct-literal obligations while preserving the exact named individual."
+msgstr "À utiliser pour interpréter les constats associés aux obligations existantes d’exactitude ou d’absence de littéral direct propres aux constantes, tout en préservant l’individu nommé exact."
+
+msgctxt "https://blackcatinformatics.ca/math/ConstantAsDecimalLiteral|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid changing the constant's exact identity because an evaluation is rounded, limiting the literal prohibition to xsd:decimal because of this class's label, or inferring a particular violation component from the class alone."
+msgstr "Ne pas modifier l’identité exacte de la constante parce qu’une évaluation est arrondie, limiter l’interdiction des littéraux à xsd:decimal à cause du libellé de cette classe, ou déduire un composant particulier de violation de la seule classe."
+
+msgctxt "https://blackcatinformatics.ca/math/ConstantAsDecimalLiteral|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read the reported component, path, value and source shape. Remove a direct math:quantityValue literal from the constant when present, retain math:isExact true, and keep any justified evaluation and numeric absolute error bound on a separate math:ApproximateValue. Repair the actual reported obligation without replacing the canonical constant identity."
+msgstr "Lire le composant, le chemin, la valeur et la forme source signalés. Retirer de la constante tout littéral direct math:quantityValue présent, conserver math:isExact true et placer toute évaluation justifiée et sa borne numérique absolue d’erreur sur un math:ApproximateValue distinct. Corriger l’obligation effectivement signalée sans remplacer l’identité canonique de la constante."
