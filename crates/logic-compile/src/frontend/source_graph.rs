@@ -14,6 +14,7 @@ use purrdf::{RdfDataset, TermId, TermRef};
 use super::{Diagnostic, FORMULA_SUBLINKS};
 use crate::graphutil::{RDF_REIFIES, RDF_STATEMENT, is_structural_type_predicate};
 use crate::ir::LOGIC_NAMESPACE;
+use crate::source_inventory::source_statements;
 
 mod cbor;
 
@@ -514,19 +515,6 @@ fn is_resource(dataset: &RdfDataset, term: TermId) -> bool {
         dataset.resolve(term),
         TermRef::Iri(_) | TermRef::Blank { .. }
     )
-}
-
-fn source_statements(
-    dataset: &RdfDataset,
-) -> impl Iterator<Item = (purrdf::QuadIds, SourceCarrier)> + '_ {
-    dataset
-        .quads()
-        .map(|quad| (quad, SourceCarrier::Statement))
-        .chain(
-            dataset
-                .annotations_with_graph()
-                .map(|(s, p, o, g)| (purrdf::QuadIds { s, p, o, g }, SourceCarrier::Annotation)),
-        )
 }
 
 pub(crate) fn focus(dataset: &RdfDataset, term: TermId) -> String {

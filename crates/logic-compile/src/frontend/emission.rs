@@ -8,7 +8,7 @@ use purrdf::{QuadIds, TermId};
 use super::{Diagnostic, LogicAxiom, LogicProgram, PreparedLogicSource, SourceNode};
 
 /// Destination collection in the compiled program, distinct from source typing.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, serde::Serialize)]
 pub enum OwnerFamily {
     Rule,
     Contract,
@@ -29,7 +29,7 @@ pub enum OwnerFamily {
 
 /// An owner's extraction outcome. Emission alone does not imply native admission;
 /// attached diagnostics may still reject a contract or another selected capability.
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq, serde::Serialize)]
 pub enum OwnerDisposition {
     Emitted { index: usize },
     Rejected,
@@ -74,7 +74,7 @@ impl AxiomSource {
 
 /// What happened to one declared formula in this compiler invocation.
 /// Reading an owned formula validates its syntax; it does not execute its owner.
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq, serde::Serialize)]
 pub enum FormulaDisposition {
     /// Index into this compilation's canonical `program().axioms`.
     Axiom(usize),

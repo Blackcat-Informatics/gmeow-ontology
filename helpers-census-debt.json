@@ -921,13 +921,6 @@
   {
    "kind": "body",
    "members": [
-    "gmeow_logic_compile::frontend::source_admission::digest_bytes",
-    "gmeow_logic_compile::tptp::writer::digest_bytes"
-   ]
-  },
-  {
-   "kind": "body",
-   "members": [
     "gmeow_logic_compile::openehr_opt::cardinality_from_existence",
     "gmeow_logic_compile::openehr_opt::cardinality_from_occurrences"
    ]

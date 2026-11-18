@@ -83,6 +83,30 @@ they do not certify complete coverage of an authored source corpus or contextual
 scope semantics. Distinct source graphs that collide on the current string world
 key are rejected at admission.
 
+`NativeSourceAdmission` borrows the compiler's immutable source inventory and
+accounts for every ordinary statement, annotation carrier, quotation and lowering
+route. `reason_admitted_theory_within` binds that account to the actual immutable
+compiler source, claim ingress, prepared program, input contract and selected
+domains before execution. Its private live completion is issued by that same
+executor after validating the resulting native evidence. Serialized observations
+cannot restore completion authority. The profile admits all supplied documents
+and roots under the explicit top-level default-graph selection; it refuses narrowed
+source projections. Input ingestion and its identity retain only that selected
+default graph, while claim-envelope inspection and source accounting retain every
+supplied graph. Source edits and domain, modal or contextual requirements cannot
+introduce an unselected world; such requirements refuse explicitly. Unsupported and
+unread source remains named even when a faithful native fragment proves a clash.
+Procedural negation-as-failure rules are named source boundaries and refuse this
+proof operation before execution: absence cannot authorize a classical refutation.
+The generic program and selected-theory execution APIs retain procedural NAF.
+Membership in `logic:Thing` or `owl:Thing` remains accountable when asserted or
+concluded. A universal-class membership premise prevents complete source accounting,
+because native closure does not establish membership for every element. Formula
+accounting tracks classical polarity through negation, implication and equivalence,
+including premises exposed by negation normalization. Independent ordinary clashes
+remain faithful refutations beside that incomplete accounting. Classical FOF export
+has an independent admission and cannot borrow native completion.
+
 Native positive schema joins also participate in that fixed point: domain,
 range, subproperty propagation, inverse/symmetric/transitive properties, and
 value restrictions can consume schema facts derived by authored rules and wake
@@ -282,7 +306,7 @@ refusal, and forward-compatibility contract, and a worked end-to-end example.
 ```rust
 use gmeow_logic::runtime::WorldStore;
 
-let store = WorldStore::new();
+let store = WorldStore::new()?;
 
 // Insert triples into two isolated worlds
 store.insert_quad("http://world/A", "http://ex.org/s", "http://ex.org/p", "http://ex.org/o1");
@@ -296,6 +320,7 @@ assert_eq!(a_quads.len(), 1);
 let mut worlds = store.worlds();
 worlds.sort();
 assert_eq!(worlds, vec!["http://world/A", "http://world/B"]);
+# Ok::<(), gmeow_errors::Diag>(())
 ```
 
 ---

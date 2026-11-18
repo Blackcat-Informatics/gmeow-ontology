@@ -1,14 +1,14 @@
 // SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 // SPDX-License-Identifier: AGPL-3.0-only
 
-//! Installed `gmeow prove`: one native source composition, one compiler admission,
+//! Installed `gmeow prove`: one native source composition, one source inventory,
 //! and two in-process engines over that exact selection.
 //!
 //! The native rule engine reads the whole `logic:` selection and names what it
 //! could not carry. The OWL 2 DL tableau reads the selection's OWL view and returns
 //! a replayable proof. A clash from either engine refutes the whole selection.
 //! Only the native engine may conclude `consistent`, and only from a completed
-//! closure over a complete admission with an empty drop ledger. Every other run is
+//! closure with executor-issued source completion and an empty drop ledger. Every other run is
 //! `not-decided` with each drop named. Nothing here spawns a process, opens a
 //! socket or reads a clock, so two runs over the same inputs print the same bytes.
 
@@ -20,15 +20,16 @@ use gmeow_cli_core::Reporter;
 use gmeow_errors::Diag;
 use gmeow_logic::reason::dl::DlCoverage;
 use gmeow_logic::reason::{
-    DomainProfile, InconsistencyWitness, LogicalGraph, SelectedDomains, SelectedLogicalWorld,
-    UnsatClass,
+    DomainProfile, InconsistencyWitness, LogicalGraph, NativeSourceAdmission,
+    NativeSourceDrop as DropRecord, SelectedDomains, SelectedLogicalWorld, UnsatClass,
 };
 use gmeow_logic::reasoner_services::DlReasoner;
 use gmeow_logic_compile::frontend::{
-    AxiomSource, PreparedLogicSource, SemanticUnitDisposition, SourceAdmission,
-    SourceAdmissionStatus, SourceBase, SourceBaseOrigin, SourceDocument, SourceSelection,
+    PreparedLogicSource, SourceAdmission, SourceBase, SourceBaseOrigin, SourceDocument,
+    SourceSelection,
 };
 use gmeow_logic_compile::ir::TheorySelection;
+use gmeow_logic_compile::source_inventory::SourceInventory;
 use gmeow_logic_compile::tptp::{FofProjectionBlocker, FofProjectionStatus, project_tptp_fof};
 use purrdf::entail::Question;
 use purrdf::{CompositeDatasetView, RdfDataset, TermRef, ViewLimits};
@@ -55,7 +56,6 @@ const VERDICT_CONSISTENT: &str = "consistent";
 const VERDICT_INCONSISTENT: &str = "inconsistent";
 const VERDICT_NOT_DECIDED: &str = "not-decided";
 
-const ENGINE_ADMISSION: &str = "admission";
 const ENGINE_NATIVE: &str = "native";
 const ENGINE_OWL_DL: &str = "owl-dl";
 
@@ -76,38 +76,21 @@ pub(crate) struct ProveRequest<'a> {
     pub(crate) out: Option<&'a Path>,
 }
 
-/// One construct, unit or obligation an engine did not read or did not decide.
-#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Serialize)]
-struct DropRecord {
-    engine: &'static str,
-    code: String,
-    detail: String,
-}
-
-impl DropRecord {
-    fn new(engine: &'static str, code: impl Into<String>, detail: impl Into<String>) -> Self {
-        Self {
-            engine,
-            code: code.into(),
-            detail: detail.into(),
-        }
-    }
-}
-
-/// The selection inventory and everything the deciding engine did not decide.
+/// The native source-obligation inventory and everything the engine did not decide.
 #[derive(Debug, Clone, Serialize)]
 struct SelectionReport {
-    /// True exactly when both engines ran to an end, the admission is complete and
-    /// `drops` is empty. When an engine failed to execute, the report has no `engines`
-    /// block, this is false and `drops` holds only what was named before the failure.
-    /// A failure after both engines ended (writing the export, the proof or the
-    /// evidence file) leaves this block as the completed run computed it.
+    /// Observation of a completed native run with executor-validated full source
+    /// accounting and an empty drop ledger. The OWL leg reports its own status.
+    /// Output publication failures preserve the native selection already observed;
+    /// an engine execution failure marks this selection incomplete and retains all
+    /// boundaries and completed native evidence established before it.
     complete: bool,
     source_digest: String,
     program_digest: String,
     selection_digest: String,
     documents: usize,
     units: usize,
+    unit_basis: &'static str,
     /// How many scoped claims the native engine read as facts. Every other scoped
     /// claim is a `SCOPED_CLAIM_NOT_READ` drop.
     claims_read: usize,
@@ -141,7 +124,8 @@ impl SelectionReport {
     /// The selection block of a run: the admission's identities, the claims the
     /// native engine read and the drops named so far.
     fn new(
-        admission: &SourceAdmission,
+        inventory: &SourceInventory<'_>,
+        units: usize,
         documents: usize,
         complete: bool,
         claims: Vec<ReadClaimReport>,
@@ -149,11 +133,12 @@ impl SelectionReport {
     ) -> Self {
         Self {
             complete,
-            source_digest: admission.source_digest.clone(),
-            program_digest: admission.program_digest.clone(),
-            selection_digest: admission.selection_digest.clone(),
+            source_digest: inventory.source_digest().to_owned(),
+            program_digest: inventory.program_digest().to_owned(),
+            selection_digest: inventory.selection_digest().to_owned(),
             documents,
-            units: admission.units.len(),
+            units,
+            unit_basis: "compiler source obligations and exact lowering routes",
             claims_read: claims.len(),
             claims,
             drops,
@@ -161,8 +146,9 @@ impl SelectionReport {
     }
 }
 
-/// An engine that failed to execute, with the scoped claims read before it failed.
+/// A failed engine, retaining any native leg and ingress completed before it.
 struct EngineFailure {
+    native: Option<NativeLeg>,
     diagnostic: Diag,
     claims_read: Vec<ReadClaimReport>,
 }
@@ -170,6 +156,8 @@ struct EngineFailure {
 /// The native rule engine's own account of the selection.
 #[derive(Debug, Clone, Serialize)]
 struct NativeLeg {
+    #[serde(skip)]
+    source_complete: bool,
     /// `clash`, `no-clash`, or `refused` when the engine declined the program.
     verdict: &'static str,
     information_state: Option<String>,
@@ -191,6 +179,7 @@ impl NativeLeg {
     /// The leg of an engine that declined the program: it executed nothing.
     fn refused(claims_read: Vec<ReadClaimReport>) -> Self {
         Self {
+            source_complete: false,
             verdict: "refused",
             information_state: None,
             evaluation: None,
@@ -242,7 +231,7 @@ const OWL_VIEW_NOT_BUILT: &str = "view-not-built";
 #[derive(Debug, Clone, Serialize)]
 struct OwlDlLeg {
     /// `consistent`, `inconsistent`, `not-decided` (the search stopped before
-    /// deciding; `completeness` says why) or `view-not-built`.
+    /// deciding; `completeness` says why), `view-not-built`, or `execution-failure`.
     state: &'static str,
     /// The tableau's answer `true`, `false` or `unknown`; `null` without a view.
     answer: Option<String>,
@@ -262,6 +251,13 @@ struct OwlDlLeg {
 }
 
 impl OwlDlLeg {
+    fn failed(diagnostic: &Diag) -> Self {
+        let diagnostic = ReportDiagnostic::from_diag(diagnostic);
+        let mut leg = Self::not_built(&diagnostic.code, diagnostic.detail);
+        leg.state = "execution-failure";
+        leg
+    }
+
     fn not_built(code: &str, detail: String) -> Self {
         Self {
             state: OWL_VIEW_NOT_BUILT,
@@ -328,20 +324,21 @@ struct TptpExport {
 /// The reference semantics of every verdict this command prints.
 const PROVE_SEMANTICS: &str = "GMEOW native logic: semantics of the selection's default graph, decided by the native rule engine's accounting; a reified claim is read as a statement of that graph only when it states logic:provenance or logic:confidence, nothing else is stated about its reifier in any graph of the input except the reification itself, and no statement of any graph has that reifier as its object, mentions it inside a triple term or a statement node, or uses it as a predicate or a graph name; every other scoped claim is a named drop, so an assertion may be left unread but is always named, and a quotation is never read; a provenance value is not interpreted; the OWL 2 DL tableau over the selection's OWL view is a second refuter only. Authored reasoning-contract configuration is catalogued, not executed. A native consistent verdict has no replayable proof and is reproduced by re-running on the same inputs; a native inconsistent verdict carries its law and witness premises; only the tableau's answer carries a replayable proof. This is not a verdict about the classical first-order export written by --out.";
 
-#[derive(Debug, Clone, Serialize)]
-struct ProveReport {
+#[derive(Serialize)]
+struct ProveReport<'inventory> {
     #[serde(flatten)]
     common: ReasoningReportCore,
     semantics: &'static str,
-    /// Every clash either engine derived; empty unless the verdict is `inconsistent`.
+    /// Every retained clash, including native evidence preceding a later engine or output failure.
     refutations: Vec<Refutation>,
     admission: Option<SourceAdmission>,
+    native_admission: Option<NativeSourceAdmission<'inventory>>,
     selection: Option<SelectionReport>,
     engines: Option<EngineReports>,
     export: Option<TptpExport>,
 }
 
-impl ProveReport {
+impl<'inventory> ProveReport<'inventory> {
     fn blank(decision: DecisionClass, diagnostic: Diag) -> Self {
         let inputs = recorded_inputs(&diagnostic);
         Self {
@@ -362,6 +359,7 @@ impl ProveReport {
             semantics: PROVE_SEMANTICS,
             refutations: Vec::new(),
             admission: None,
+            native_admission: None,
             selection: None,
             engines: None,
             export: None,
@@ -374,26 +372,45 @@ impl ProveReport {
     fn engine_failure(
         failure: EngineFailure,
         inputs: &[InputIdentity],
-        admission: SourceAdmission,
+        admission: Option<SourceAdmission>,
+        native_admission: NativeSourceAdmission<'inventory>,
+        inventory: &SourceInventory<'_>,
         documents: usize,
         drops: BTreeSet<DropRecord>,
     ) -> Self {
+        let EngineFailure {
+            diagnostic,
+            claims_read,
+            native,
+        } = failure;
+        let completed = native.map(|native| (native, OwlDlLeg::failed(&diagnostic)));
         let mut report = Self::blank(
             DecisionClass::ExecutionFailure,
-            with_inputs(failure.diagnostic, inputs),
+            with_inputs(diagnostic, inputs),
         );
         report.common.program = ProgramIdentity {
             profile: PROVE_PROFILE.to_owned(),
-            content_digest: admission.program_digest.clone(),
+            content_digest: inventory.program_digest().to_owned(),
         };
         report.selection = Some(SelectionReport::new(
-            &admission,
+            inventory,
+            native_admission.units(),
             documents,
             false,
-            failure.claims_read,
+            claims_read,
             drops.into_iter().collect(),
         ));
-        report.admission = Some(admission);
+        if let Some((native, owl_dl)) = completed {
+            report.refutations = native.refutations.clone();
+            report.common.metrics = ReasoningMetrics {
+                decisions: None,
+                steps: native.consumed_steps,
+                budget: native.allowance,
+            };
+            report.engines = Some(EngineReports { native, owl_dl });
+        }
+        report.admission = admission;
+        report.native_admission = Some(native_admission);
         report
     }
 
@@ -547,7 +564,7 @@ enum LoadFailure {
 }
 
 impl LoadFailure {
-    fn into_report(self) -> ProveReport {
+    fn into_report(self) -> ProveReport<'static> {
         match self {
             Self::Malformed(diagnostic) => ProveReport::blank(DecisionClass::Malformed, diagnostic),
             Self::Execution(diagnostic) => {
@@ -585,16 +602,24 @@ pub(crate) fn prove(reporter: &dyn Reporter, request: &ProveRequest<'_>) -> i32 
     };
 
     let selection = SourceSelection::all_classical_roots(&loaded.theory);
-    let admission = SourceAdmission::classical_fof(&loaded.theory, selection);
-    if admission.status == SourceAdmissionStatus::Malformed {
-        let detail = admission
-            .blockers()
-            .filter_map(|unit| match &unit.disposition {
-                SemanticUnitDisposition::Malformed { code, reason } => {
-                    Some(format!("{} {code}: {reason}", unit.anchor))
-                }
-                _ => None,
-            })
+    let inventory = SourceInventory::new(&loaded.theory, selection);
+    let mut native_admission = match NativeSourceAdmission::inspect(&inventory) {
+        Ok(admission) => admission,
+        Err(diagnostic) => {
+            return publish_failure(
+                reporter,
+                ProveReport::blank(
+                    DecisionClass::ExecutionFailure,
+                    with_inputs(diagnostic, &loaded.identities),
+                ),
+                request,
+            );
+        }
+    };
+    if native_admission.malformed() {
+        let detail = native_admission
+            .drops()
+            .map(|drop| format!("{}: {}", drop.code, drop.detail))
             .collect::<Vec<_>>()
             .join("; ");
         let mut report = ProveReport::blank(
@@ -604,42 +629,31 @@ pub(crate) fn prove(reporter: &dyn Reporter, request: &ProveRequest<'_>) -> i32 
                 &loaded.identities,
             ),
         );
-        report.admission = Some(admission);
+        report.native_admission = Some(native_admission);
         return publish_failure(reporter, report, request);
     }
-
-    // The admission and the engine read one compiled theory; a mismatch is a broken
-    // invariant of this command, not a property of the selection.
-    if !admission.matches(&loaded.theory) {
-        let mut report = ProveReport::blank(
-            DecisionClass::ExecutionFailure,
-            with_inputs(
-                failure(
-                    "ADMISSION_THEORY_MISMATCH",
-                    "the admission does not bind the compiled theory the native engine executes",
-                ),
-                &loaded.identities,
-            ),
-        );
-        report.admission = Some(admission);
-        return publish_failure(reporter, report, request);
-    }
-
+    // Classical export is a separate selected operation. Native completion never
+    // authorizes FOF, and native-only runs never construct its owned admission.
+    let admission = request
+        .out
+        .map(|_| SourceAdmission::classical_fof_from_inventory(&inventory));
     let canonical = loaded.theory.source().dataset();
-    let mut drops = admission_drops(&admission);
-    drops.extend(unread_program_axioms(&loaded.theory));
-    drops.extend(accounting_drops(&admission, &loaded.theory));
+    let mut drops = BTreeSet::new();
     let documents = loaded.theory.source().origins().len();
-    let legs =
-        native_leg(&loaded.theory, request.max_steps, &mut drops).and_then(
-            |native| match owl_dl_leg(canonical, request.step_cap) {
-                Ok(owl) => Ok((native, owl)),
-                Err(diagnostic) => Err(EngineFailure {
-                    diagnostic,
-                    claims_read: native.claims_read,
-                }),
-            },
-        );
+    let legs = native_leg(
+        &loaded.theory,
+        &mut native_admission,
+        request.max_steps,
+        &mut drops,
+    )
+    .and_then(|native| match owl_dl_leg(canonical, request.step_cap) {
+        Ok(owl) => Ok((native, owl)),
+        Err(diagnostic) => Err(EngineFailure {
+            diagnostic,
+            claims_read: native.claims_read.clone(),
+            native: Some(native),
+        }),
+    });
     let (native, (owl_dl, proof)) = match legs {
         Ok(legs) => legs,
         Err(failure) => {
@@ -647,6 +661,8 @@ pub(crate) fn prove(reporter: &dyn Reporter, request: &ProveRequest<'_>) -> i32 
                 failure,
                 &loaded.identities,
                 admission,
+                native_admission,
+                &inventory,
                 documents,
                 drops,
             );
@@ -658,7 +674,7 @@ pub(crate) fn prove(reporter: &dyn Reporter, request: &ProveRequest<'_>) -> i32 
     // the preservation axis and the verdict all read it. It covers the native
     // accounting only: the OWL leg's own state is reported under that leg.
     let drops: Vec<DropRecord> = drops.into_iter().collect();
-    let complete = admission.status == SourceAdmissionStatus::Complete && drops.is_empty();
+    let complete = native.source_complete && drops.is_empty();
     let mut refutations = native.refutations.clone();
     if owl_dl.clash() {
         refutations.push(Refutation {
@@ -682,8 +698,8 @@ pub(crate) fn prove(reporter: &dyn Reporter, request: &ProveRequest<'_>) -> i32 
             DecisionClass::Positive,
             "supported",
             "complete-for-fragment",
-            EvidenceGrade::Certificate,
-            GateAdmission::Certificate,
+            EvidenceGrade::Attestation,
+            GateAdmission::Attestation,
         ),
         VERDICT_INCONSISTENT => (
             DecisionClass::Negative,
@@ -693,7 +709,7 @@ pub(crate) fn prove(reporter: &dyn Reporter, request: &ProveRequest<'_>) -> i32 
             } else {
                 "incomplete"
             },
-            EvidenceGrade::Certificate,
+            EvidenceGrade::Attestation,
             GateAdmission::Refused,
         ),
         _ => (
@@ -745,7 +761,7 @@ pub(crate) fn prove(reporter: &dyn Reporter, request: &ProveRequest<'_>) -> i32 
             inputs: loaded.identities.clone(),
             program: ProgramIdentity {
                 profile: PROVE_PROFILE.to_owned(),
-                content_digest: admission.program_digest.clone(),
+                content_digest: inventory.program_digest().to_owned(),
             },
             engine: EngineIdentity::gmeow_native(),
             metrics: ReasoningMetrics {
@@ -757,7 +773,8 @@ pub(crate) fn prove(reporter: &dyn Reporter, request: &ProveRequest<'_>) -> i32 
             diagnostics: Vec::new(),
         },
         selection: Some(SelectionReport::new(
-            &admission,
+            &inventory,
+            native_admission.units(),
             documents,
             complete,
             native.claims_read.clone(),
@@ -768,19 +785,34 @@ pub(crate) fn prove(reporter: &dyn Reporter, request: &ProveRequest<'_>) -> i32 
         engines: Some(EngineReports { native, owl_dl }),
         export: None,
         admission: None,
+        native_admission: Some(native_admission),
     };
 
     if let Some(path) = request.out {
-        match export_tptp(&loaded.theory, &admission, path) {
-            Ok(export) => report.export = Some(export),
+        match export_tptp(
+            &loaded.theory,
+            admission
+                .as_ref()
+                .expect("selected export has its independent classical admission"),
+            path,
+        ) {
+            Ok(export) => {
+                let written = export.written;
+                report.export = Some(export);
+                if !written {
+                    report.admission = admission;
+                    report.execution_failure(failure("SELECTED_EXPORT_BLOCKED", "--out selected a classical FOF output that its source admission cannot produce; inspect export.blockers and admission"));
+                    return publish_failure(reporter, report, request);
+                }
+            }
             Err(diagnostic) => {
-                report.admission = Some(admission);
+                report.admission = admission;
                 report.execution_failure(diagnostic);
                 return publish_failure(reporter, report, request);
             }
         }
     }
-    report.admission = Some(admission);
+    report.admission = admission;
     if let Some(path) = request.proof_out {
         let written = match &proof {
             Some(bytes) => std::fs::write(path, bytes).map_err(|error| {
@@ -801,95 +833,6 @@ pub(crate) fn prove(reporter: &dyn Reporter, request: &ProveRequest<'_>) -> i32 
         }
     }
     publish_report(report, request, reporter)
-}
-
-/// Every admission unit the selection did not admit as a theory member and did not
-/// account for as structure, quotation or metatheory configuration.
-fn admission_drops(admission: &SourceAdmission) -> BTreeSet<DropRecord> {
-    let mut drops = BTreeSet::new();
-    for unit in &admission.units {
-        let drop = match &unit.disposition {
-            SemanticUnitDisposition::Blocked { code, reason } => DropRecord::new(
-                ENGINE_ADMISSION,
-                code.clone(),
-                format!("{}: {reason}", unit.anchor),
-            ),
-            SemanticUnitDisposition::OutsideSelection { reason } => DropRecord::new(
-                ENGINE_ADMISSION,
-                "OUTSIDE_SELECTION",
-                format!("{}: {reason}", unit.anchor),
-            ),
-            // A compiler warning names source content the compiler skipped or
-            // could not lower; it is never silently part of a decided selection.
-            SemanticUnitDisposition::Observed { detail } => DropRecord::new(
-                ENGINE_ADMISSION,
-                "COMPILER_OBSERVATION",
-                format!("{}: {detail}", unit.anchor),
-            ),
-            // Accounted unit by unit against THE list in `accounting_drops`.
-            SemanticUnitDisposition::Admitted(_) => continue,
-            // Accounted: a reasoning-contract declaration states how a theory may be
-            // reasoned over and asserts no object-level fact or law. `prove` decides
-            // the object theory under its own fixed profile (`semantics`), so the
-            // declaration cannot add or remove a model of that theory.
-            SemanticUnitDisposition::ConfigurationDeclaration { .. } => continue,
-            // Accounted: list cells, term carriers, imports and formula nodes carry no
-            // truth claim of their own; the unit that owns them is accounted instead.
-            SemanticUnitDisposition::StructuralSupport { .. } => continue,
-            // Accounted: a quoted, unasserted triple term is mentioned, not asserted,
-            // so it constrains no model.
-            SemanticUnitDisposition::QuotedUnasserted { .. } => continue,
-            // Unreachable here: a malformed unit makes the admission Malformed, which
-            // `prove` reports as malformed input before any engine runs.
-            SemanticUnitDisposition::Malformed { .. } => continue,
-        };
-        drops.insert(drop);
-    }
-    if admission.status == SourceAdmissionStatus::Empty {
-        drops.insert(DropRecord::new(
-            ENGINE_ADMISSION,
-            "EMPTY_SELECTION",
-            "the selection admitted no theory unit to decide",
-        ));
-    }
-    drops
-}
-
-/// Axioms the compiler produced only from a top-level formula. The native engine
-/// reads asserted statements, rules and full formulas; a formula routed to the
-/// axiom table has no asserted statement for it to read.
-fn unread_program_axioms(
-    theory: &gmeow_logic_compile::frontend::CompiledTheory,
-) -> BTreeSet<DropRecord> {
-    theory
-        .axiom_sources()
-        .iter()
-        .enumerate()
-        .filter(|(_, sources)| {
-            sources
-                .iter()
-                .any(|source| matches!(source, AxiomSource::Formula(_)))
-                && !sources.iter().any(|source| {
-                    matches!(
-                        source,
-                        AxiomSource::Statement { .. } | AxiomSource::ClassExpression(_)
-                    )
-                })
-        })
-        .map(|(index, _)| {
-            let axiom = &theory.program().axioms[index];
-            DropRecord::new(
-                ENGINE_NATIVE,
-                "FORMULA_AXIOM_NOT_READ",
-                format!(
-                    "program:axiom:{index}: atomic formula {} {} {} is not an asserted statement the native engine reads",
-                    axiom.subject,
-                    axiom.predicate,
-                    axiom.obj.key()
-                ),
-            )
-        })
-        .collect()
 }
 
 /// The drop code naming an analysis bound that coarsened or stopped part of the termination
@@ -981,6 +924,7 @@ fn insert_lowering_residue(
 /// and `drops` keeps what was named before it.
 fn native_leg(
     theory: &gmeow_logic_compile::frontend::CompiledTheory,
+    admission: &mut NativeSourceAdmission<'_>,
     max_steps: Option<u64>,
     drops: &mut BTreeSet<DropRecord>,
 ) -> Result<NativeLeg, EngineFailure> {
@@ -1040,8 +984,8 @@ fn native_leg(
             PROVE_WORLD_AUTHORITY.to_owned(),
             *input.ingress_contract(),
         )?])?;
-        let result = gmeow_logic::reason::reason_prepared_theory_within(
-            theory,
+        let result = gmeow_logic::reason::reason_admitted_theory_within(
+            admission,
             &program,
             input,
             &domains,
@@ -1052,14 +996,15 @@ fn native_leg(
             },
         )?;
         let verdict = result.native_verdict()?;
-        let chase_certificates = result.native_execution()?.chase_certificates.clone();
-        Ok::<_, Diag>((result, verdict, chase_certificates))
+        Ok::<_, Diag>((result, verdict))
     })();
-    let (result, verdict, chase_certificates) = match run {
+    drops.extend(admission.drops());
+    let (result, verdict) = match run {
         Ok(outcome) => outcome,
         Err(error) => {
             if let Some(budget) = diag_canonicalization_limit(&error).copied() {
                 return Err(EngineFailure {
+                    native: None,
                     diagnostic: canonicalization_limit_failure(
                         &budget,
                         "native closure",
@@ -1110,6 +1055,7 @@ fn native_leg(
                 return Ok(NativeLeg::refused(claims_read));
             }
             return Err(EngineFailure {
+                native: None,
                 diagnostic: caused_diagnostic(
                     "NATIVE_EXECUTION_FAILED",
                     error,
@@ -1120,108 +1066,13 @@ fn native_leg(
             });
         }
     };
-    let authored = selected
-        .as_ref()
-        .map(|program| program.authored_rule_formulas(theory))
-        .unwrap_or_default();
-    let gap_lines: BTreeSet<String> = verdict
-        .gaps
-        .iter()
-        .map(|gap| format!("{}: {}", gap.code, gap.message))
-        .collect();
-    for gap in &verdict.gaps {
-        drops.insert(DropRecord::new(
-            ENGINE_NATIVE,
-            gap.code.clone(),
-            gap.message.clone(),
-        ));
-    }
-    for family in &verdict.coverage.unsupported {
-        drops.insert(DropRecord::new(
-            ENGINE_NATIVE,
-            "UNDECIDED_CONSTRUCT_FAMILY",
-            family.clone(),
-        ));
-    }
-    for finding in &verdict.boundary_findings {
-        drops.insert(DropRecord::new(
-            ENGINE_NATIVE,
-            finding.code.clone(),
-            finding.message.clone(),
-        ));
-    }
-    // Lowering residue and withheld reads are on the preservation axis only.
-    insert_unsupported_constructs(
-        drops,
-        &result.preservation.unsupported_constructs,
-        |construct| {
-            verdict.coverage.unsupported.contains(construct) || gap_lines.contains(construct)
-        },
-    );
-    if result.evaluation != gmeow_logic::result::EvaluationStatus::Completed {
-        drops.insert(DropRecord::new(
-            ENGINE_NATIVE,
-            "NATIVE_EVALUATION_INCOMPLETE",
-            format!(
-                "the native closure ended {} after {} of {} allowed steps",
-                result.evaluation.wire(),
-                result.provenance.consumed_budget.consumed,
-                result
-                    .provenance
-                    .consumed_budget
-                    .allowance
-                    .map_or_else(|| "unbounded".to_owned(), |steps| steps.to_string())
-            ),
-        ));
-    }
-    for certificate in &chase_certificates {
-        if let gmeow_logic::materialize::ChaseAdmission::Uncertified { violations, bounds } =
-            &certificate.admission
-        {
-            for bound in bounds {
-                drops.insert(DropRecord::new(
-                    ENGINE_NATIVE,
-                    ANALYSIS_BOUND,
-                    bound.clone(),
-                ));
-            }
-            drops.insert(DropRecord::new(
-                ENGINE_NATIVE,
-                "CHASE_UNCERTIFIED",
-                format!(
-                    "world {}: the existential chase has no termination certificate: {}",
-                    certificate.world,
-                    name_authored_rules(&violations.join("; "), &authored)
-                ),
-            ));
-        }
-    }
-    for assumption in &result.provenance.assumptions {
-        if !matches!(
-            assumption,
-            gmeow_logic::result::Assumption::OpenWorld
-                | gmeow_logic::result::Assumption::SkolemWitness
-        ) {
-            drops.insert(DropRecord::new(
-                ENGINE_NATIVE,
-                "NONCLASSICAL_ASSUMPTION",
-                format!("the native result rests on the {assumption} assumption"),
-            ));
-        }
-    }
-    drops.extend(equality_drops(result.inferred()));
-    // The engine's own conclusive state is required; the drops above only name why.
-    if verdict.consistent && result.information != gmeow_logic::result::InformationState::Supported
-    {
-        drops.insert(DropRecord::new(
-            ENGINE_NATIVE,
-            "NATIVE_NOT_SUPPORTED",
-            format!(
-                "the native closure reports information state {} rather than supported",
-                result.information.wire()
-            ),
-        ));
-    }
+    let source_complete = admission
+        .complete_for(&result)
+        .map_err(|diagnostic| EngineFailure {
+            native: None,
+            diagnostic,
+            claims_read: claims_read.clone(),
+        })?;
     let mut refutations: Vec<Refutation> = result
         .inferred()
         .iter()
@@ -1275,6 +1126,7 @@ fn native_leg(
         ))
     });
     Ok(NativeLeg {
+        source_complete,
         verdict: if verdict.consistent {
             "no-clash"
         } else {
@@ -1410,7 +1262,7 @@ fn owl_refusal(code: &str, error: &Diag) -> OwlDlLeg {
 /// Export the selection's TPTP FOF projection. A blocked projection writes no
 /// file and removes one left at the path by an earlier run, so the path never holds
 /// stale bytes beside `written: false`; its blockers are reported and the verdict
-/// is unaffected.
+/// remains available in the retained native execution evidence.
 fn export_tptp(
     theory: &gmeow_logic_compile::frontend::CompiledTheory,
     admission: &SourceAdmission,
@@ -1687,544 +1539,6 @@ fn render_check(report: &ProofCheckReport, format: OutputFormat) -> i32 {
         }
     }
     report.exit_code()
-}
-
-const RDF_NS: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#";
-const RDFS_NS: &str = "http://www.w3.org/2000/01/rdf-schema#";
-const OWL_NS: &str = "http://www.w3.org/2002/07/owl#";
-const LOGIC_NS: &str = "https://blackcatinformatics.ca/logic/";
-
-/// Namespaces whose terms the native engine may interpret. A term outside them is
-/// an ordinary constant or relation with no engine law, so its facts are a model.
-const INTERPRETED_NAMESPACES: [&str; 4] = [RDF_NS, RDFS_NS, OWL_NS, LOGIC_NS];
-
-/// How an accounted predicate constrains the terms it relates.
-#[derive(Clone, Copy, PartialEq, Eq)]
-enum Positions {
-    /// Membership: the subject is any term; the object is a class or an accounted marker.
-    Membership,
-    /// Both positions name classes.
-    Classes,
-    /// Both positions name properties.
-    Properties,
-    /// A property and a class.
-    PropertyClass,
-    /// Two individuals related by equality, accounted only when they are identical.
-    Equality,
-    /// Two individuals related by explicit difference.
-    Individuals,
-    /// An annotation with no logical law.
-    Annotation,
-}
-
-/// THE accounting list: every interpreted predicate whose law the completed native
-/// closure satisfies, so that a completed closure without a clash is a model of the
-/// units that use it. A predicate in an interpreted namespace that is not listed
-/// here is a named drop. When in doubt a construct is not on this list.
-const ACCOUNTED_PREDICATES: &[(&str, Positions, &str)] = &[
-    (
-        "http://www.w3.org/1999/02/22-rdf-syntax-ns#type",
-        Positions::Membership,
-        "membership fact; the object is checked against ACCOUNTED_MARKERS",
-    ),
-    (
-        "https://blackcatinformatics.ca/logic/instanceOf",
-        Positions::Membership,
-        "membership fact; the object is checked against ACCOUNTED_MARKERS",
-    ),
-    (
-        "https://blackcatinformatics.ca/logic/subClassOf",
-        Positions::Classes,
-        "Horn law closed by el:type-propagation and el:subClassOf-transitive",
-    ),
-    (
-        "http://www.w3.org/2000/01/rdf-schema#subClassOf",
-        Positions::Classes,
-        "Horn law closed by el:type-propagation and el:subClassOf-transitive",
-    ),
-    (
-        "https://blackcatinformatics.ca/logic/equivalentClass",
-        Positions::Classes,
-        "Horn law closed by el:equivalentClass-fwd and el:equivalentClass-bwd",
-    ),
-    (
-        "http://www.w3.org/2002/07/owl#equivalentClass",
-        Positions::Classes,
-        "Horn law closed by el:equivalentClass-fwd and el:equivalentClass-bwd",
-    ),
-    (
-        "https://blackcatinformatics.ca/logic/disjointWith",
-        Positions::Classes,
-        "denial checked by dl:individual-clash and dl:unsatisfiable-class",
-    ),
-    (
-        "http://www.w3.org/2002/07/owl#disjointWith",
-        Positions::Classes,
-        "denial checked by dl:individual-clash and dl:unsatisfiable-class",
-    ),
-    (
-        "https://blackcatinformatics.ca/logic/subPropertyOf",
-        Positions::Properties,
-        "Horn law closed by subproperty propagation and el:subPropertyOf-transitive",
-    ),
-    (
-        "http://www.w3.org/2000/01/rdf-schema#subPropertyOf",
-        Positions::Properties,
-        "Horn law closed by subproperty propagation and el:subPropertyOf-transitive",
-    ),
-    (
-        "https://blackcatinformatics.ca/logic/equivalentProperty",
-        Positions::Properties,
-        "Horn law closed by dl:equivalentProperty-subproperty",
-    ),
-    (
-        "http://www.w3.org/2002/07/owl#equivalentProperty",
-        Positions::Properties,
-        "Horn law closed by dl:equivalentProperty-subproperty",
-    ),
-    (
-        "https://blackcatinformatics.ca/logic/inverseOf",
-        Positions::Properties,
-        "Horn law closed by dl:inverseOf and dl:inverseOf-symmetry",
-    ),
-    (
-        "http://www.w3.org/2002/07/owl#inverseOf",
-        Positions::Properties,
-        "Horn law closed by dl:inverseOf and dl:inverseOf-symmetry",
-    ),
-    (
-        "https://blackcatinformatics.ca/logic/domain",
-        Positions::PropertyClass,
-        "Horn law closed by dl:domain",
-    ),
-    (
-        "http://www.w3.org/2000/01/rdf-schema#domain",
-        Positions::PropertyClass,
-        "Horn law closed by dl:domain",
-    ),
-    (
-        "https://blackcatinformatics.ca/logic/range",
-        Positions::PropertyClass,
-        "Horn law closed by dl:range",
-    ),
-    (
-        "http://www.w3.org/2000/01/rdf-schema#range",
-        Positions::PropertyClass,
-        "Horn law closed by dl:range",
-    ),
-    (
-        "https://blackcatinformatics.ca/logic/sameAs",
-        Positions::Equality,
-        "reflexive equality needs no substitution; any other equality is a drop",
-    ),
-    (
-        "http://www.w3.org/2002/07/owl#sameAs",
-        Positions::Equality,
-        "reflexive equality needs no substitution; any other equality is a drop",
-    ),
-    (
-        "https://blackcatinformatics.ca/logic/differentFrom",
-        Positions::Individuals,
-        "denial checked by dl:same-different-clash; without equality named terms stay distinct",
-    ),
-    (
-        "http://www.w3.org/2002/07/owl#differentFrom",
-        Positions::Individuals,
-        "denial checked by dl:same-different-clash; without equality named terms stay distinct",
-    ),
-    (
-        "http://www.w3.org/2000/01/rdf-schema#label",
-        Positions::Annotation,
-        "annotation without a law",
-    ),
-    (
-        "http://www.w3.org/2000/01/rdf-schema#comment",
-        Positions::Annotation,
-        "annotation without a law",
-    ),
-    (
-        "http://www.w3.org/2000/01/rdf-schema#isDefinedBy",
-        Positions::Annotation,
-        "annotation without a law",
-    ),
-    (
-        "http://www.w3.org/2000/01/rdf-schema#seeAlso",
-        Positions::Annotation,
-        "annotation without a law",
-    ),
-];
-
-/// Membership objects in an interpreted namespace that the accounting admits, with
-/// the law the completed closure satisfies for each.
-const ACCOUNTED_MARKERS: &[(&str, &str)] = &[
-    (
-        "http://www.w3.org/2002/07/owl#Class",
-        "declaration without a law",
-    ),
-    (
-        "http://www.w3.org/2000/01/rdf-schema#Class",
-        "declaration without a law",
-    ),
-    (
-        "https://blackcatinformatics.ca/logic/Class",
-        "declaration without a law",
-    ),
-    (
-        "http://www.w3.org/1999/02/22-rdf-syntax-ns#Property",
-        "declaration without a law",
-    ),
-    (
-        "http://www.w3.org/2002/07/owl#ObjectProperty",
-        "declaration without a law",
-    ),
-    (
-        "http://www.w3.org/2002/07/owl#NamedIndividual",
-        "declaration without a law",
-    ),
-    (
-        "http://www.w3.org/2002/07/owl#Thing",
-        "the universal class holds of every element",
-    ),
-    (
-        "https://blackcatinformatics.ca/logic/Thing",
-        "the universal class holds of every element",
-    ),
-    (
-        "http://www.w3.org/2002/07/owl#Nothing",
-        "denial checked by dl:nothing-membership",
-    ),
-    (
-        "https://blackcatinformatics.ca/logic/Nothing",
-        "denial checked by dl:nothing-membership",
-    ),
-    (
-        "http://www.w3.org/2002/07/owl#TransitiveProperty",
-        "Horn law closed by dl:transitive-property",
-    ),
-    (
-        "https://blackcatinformatics.ca/logic/transitiveProperty",
-        "Horn law closed by dl:transitive-property",
-    ),
-    (
-        "http://www.w3.org/2002/07/owl#SymmetricProperty",
-        "Horn law closed by dl:symmetric-property",
-    ),
-    (
-        "https://blackcatinformatics.ca/logic/symmetricProperty",
-        "Horn law closed by dl:symmetric-property",
-    ),
-    (
-        "http://www.w3.org/2002/07/owl#IrreflexiveProperty",
-        "denial checked by dl:irreflexive-property-clash",
-    ),
-    (
-        "https://blackcatinformatics.ca/logic/irreflexiveProperty",
-        "denial checked by dl:irreflexive-property-clash",
-    ),
-    (
-        "http://www.w3.org/2002/07/owl#AsymmetricProperty",
-        "denial checked by dl:asymmetric-property-clash",
-    ),
-    (
-        "https://blackcatinformatics.ca/logic/asymmetricProperty",
-        "denial checked by dl:asymmetric-property-clash",
-    ),
-    (
-        "http://www.w3.org/2002/07/owl#FunctionalProperty",
-        "equality-generating dl:functional-equality; every derived equality is checked",
-    ),
-    (
-        "https://blackcatinformatics.ca/logic/functionalProperty",
-        "equality-generating dl:functional-equality; every derived equality is checked",
-    ),
-    (
-        "http://www.w3.org/2002/07/owl#InverseFunctionalProperty",
-        "equality-generating dl:inverse-functional-equality; every derived equality is checked",
-    ),
-    (
-        "https://blackcatinformatics.ca/logic/inverseFunctionalProperty",
-        "equality-generating dl:inverse-functional-equality; every derived equality is checked",
-    ),
-];
-
-/// Record-form property characteristics the native engine reads from the record
-/// itself. The other sorts are read only in marker form.
-const ACCOUNTED_CHARACTERISTIC_RECORDS: &[(&str, &str)] = &[
-    (
-        "https://blackcatinformatics.ca/logic/functionalProperty",
-        "read from the record by the functional characteristic schema",
-    ),
-    (
-        "https://blackcatinformatics.ca/logic/inverseFunctionalProperty",
-        "read from the record by the inverse-functional characteristic schema",
-    ),
-];
-
-const UNIVERSAL_CLASSES: [&str; 2] = [
-    "http://www.w3.org/2002/07/owl#Thing",
-    "https://blackcatinformatics.ca/logic/Thing",
-];
-const EMPTY_CLASSES: [&str; 2] = [
-    "http://www.w3.org/2002/07/owl#Nothing",
-    "https://blackcatinformatics.ca/logic/Nothing",
-];
-const EQUALITY_PREDICATES: [&str; 2] = [
-    "https://blackcatinformatics.ca/logic/sameAs",
-    "http://www.w3.org/2002/07/owl#sameAs",
-];
-
-fn interpreted(iri: &str) -> bool {
-    INTERPRETED_NAMESPACES
-        .iter()
-        .any(|namespace| iri.starts_with(namespace))
-}
-
-/// A term of an accounted unit, reduced to what accounting needs.
-#[derive(Clone, Copy)]
-enum UnitTerm<'a> {
-    Iri(&'a str),
-    Variable,
-    Other,
-}
-
-impl<'a> UnitTerm<'a> {
-    fn atomic(term: &'a gmeow_logic_compile::ir::AtomicTerm) -> Self {
-        match term {
-            gmeow_logic_compile::ir::AtomicTerm::Iri(iri) => Self::Iri(iri),
-            gmeow_logic_compile::ir::AtomicTerm::Var(_) => Self::Variable,
-            _ => Self::Other,
-        }
-    }
-
-    fn formula(term: &'a gmeow_logic_compile::ir::Term) -> Self {
-        match term {
-            gmeow_logic_compile::ir::Term::Iri(iri) => Self::Iri(iri),
-            gmeow_logic_compile::ir::Term::Var(_) => Self::Variable,
-            _ => Self::Other,
-        }
-    }
-}
-
-/// Whether a class position holds a class the accounting admits in that role.
-/// `universal_ok`/`empty_ok` admit the trivially satisfied and the denial readings.
-fn class_accounted(term: UnitTerm<'_>, universal_ok: bool, empty_ok: bool) -> bool {
-    match term {
-        UnitTerm::Iri(iri) if UNIVERSAL_CLASSES.contains(&iri) => universal_ok,
-        UnitTerm::Iri(iri) if EMPTY_CLASSES.contains(&iri) => empty_ok,
-        UnitTerm::Iri(iri) => !interpreted(iri),
-        UnitTerm::Variable | UnitTerm::Other => false,
-    }
-}
-
-fn property_accounted(term: UnitTerm<'_>) -> bool {
-    matches!(term, UnitTerm::Iri(iri) if !interpreted(iri))
-}
-
-/// Account one binary predication against THE list. `None` when accounted,
-/// otherwise the reason it is not.
-fn account_predication(
-    subject: UnitTerm<'_>,
-    predicate: UnitTerm<'_>,
-    object: UnitTerm<'_>,
-) -> Option<String> {
-    let UnitTerm::Iri(predicate) = predicate else {
-        return Some("a variable or non-IRI relation has no accounted law".to_owned());
-    };
-    if !interpreted(predicate) {
-        return None;
-    }
-    let Some((_, positions, _)) = ACCOUNTED_PREDICATES
-        .iter()
-        .find(|(iri, _, _)| *iri == predicate)
-    else {
-        return Some(format!(
-            "interpreted predicate {predicate} is not on the accounting list"
-        ));
-    };
-    let accounted = match positions {
-        Positions::Membership => match object {
-            UnitTerm::Iri(class) if interpreted(class) => {
-                ACCOUNTED_MARKERS.iter().any(|(marker, _)| *marker == class)
-            }
-            UnitTerm::Iri(_) => true,
-            UnitTerm::Variable | UnitTerm::Other => false,
-        },
-        Positions::Classes => match predicate.rsplit(['/', '#']).next() {
-            Some("subClassOf") => {
-                class_accounted(subject, false, true) && class_accounted(object, true, true)
-            }
-            _ => class_accounted(subject, false, false) && class_accounted(object, false, false),
-        },
-        Positions::Properties => property_accounted(subject) && property_accounted(object),
-        Positions::PropertyClass => {
-            property_accounted(subject) && class_accounted(object, true, false)
-        }
-        Positions::Equality => matches!(
-            (subject, object),
-            (UnitTerm::Iri(left), UnitTerm::Iri(right)) if left == right
-        ),
-        Positions::Individuals | Positions::Annotation => true,
-    };
-    (!accounted)
-        .then(|| format!("{predicate} is accounted only for the positions on its list entry"))
-}
-
-/// Account every relation a formula uses. Horn lowering decides which atoms become
-/// heads; every interpreted relation in the tree must therefore be accounted.
-fn account_formula(formula: &gmeow_logic_compile::ir::Formula, refusals: &mut Vec<String>) {
-    use gmeow_logic_compile::ir::Formula;
-    match formula {
-        Formula::Atom { relation, args } => {
-            let refusal = match args.as_slice() {
-                [subject, object] => account_predication(
-                    UnitTerm::formula(subject),
-                    UnitTerm::formula(relation),
-                    UnitTerm::formula(object),
-                ),
-                _ => match UnitTerm::formula(relation) {
-                    UnitTerm::Iri(iri) if !interpreted(iri) => None,
-                    _ => Some(
-                        "a non-binary interpreted or variable relation has no accounted law"
-                            .to_owned(),
-                    ),
-                },
-            };
-            refusals.extend(refusal);
-        }
-        Formula::Not(inner) => account_formula(inner, refusals),
-        Formula::And(parts) | Formula::Or(parts) => {
-            for part in parts {
-                account_formula(part, refusals);
-            }
-        }
-        Formula::Implies(left, right) | Formula::Iff(left, right) => {
-            account_formula(left, refusals);
-            account_formula(right, refusals);
-        }
-        Formula::Forall { body, .. } | Formula::Exists { body, .. } => {
-            account_formula(body, refusals);
-        }
-    }
-}
-
-fn account_axiom(axiom: &gmeow_logic_compile::ir::LogicAxiom) -> Option<String> {
-    let predicate = if axiom.predicate.starts_with('?') {
-        UnitTerm::Variable
-    } else {
-        UnitTerm::Iri(&axiom.predicate)
-    };
-    let subject = if axiom.subject.starts_with('?') {
-        UnitTerm::Variable
-    } else {
-        UnitTerm::Iri(&axiom.subject)
-    };
-    account_predication(subject, predicate, UnitTerm::atomic(&axiom.obj))
-}
-
-/// Account every admitted unit of the selection against THE list. Each unit that
-/// does not map to an accounted family is a named drop.
-fn accounting_drops(
-    admission: &SourceAdmission,
-    theory: &gmeow_logic_compile::frontend::CompiledTheory,
-) -> BTreeSet<DropRecord> {
-    use gmeow_logic_compile::frontend::AdmittedSemanticUnit;
-    let mut drops = BTreeSet::new();
-    for unit in &admission.units {
-        let SemanticUnitDisposition::Admitted(admitted) = &unit.disposition else {
-            continue;
-        };
-        let refusals: Vec<String> = match admitted {
-            AdmittedSemanticUnit::Assertion(assertion) => account_predication(
-                UnitTerm::atomic(&assertion.subject),
-                UnitTerm::Iri(&assertion.predicate),
-                UnitTerm::atomic(&assertion.object),
-            )
-            .into_iter()
-            .collect(),
-            AdmittedSemanticUnit::Rule { index } => match theory.program().rules.get(*index) {
-                Some(rule) => std::iter::once(&rule.head)
-                    .chain(&rule.body)
-                    .filter_map(account_axiom)
-                    .collect(),
-                None => vec!["the admitted rule index is outside the compiled program".to_owned()],
-            },
-            AdmittedSemanticUnit::Formula { index } => {
-                let mut refusals = Vec::new();
-                match theory.program().formulas.get(*index) {
-                    Some(formula) => account_formula(formula, &mut refusals),
-                    None => refusals.push(
-                        "the admitted formula index is outside the compiled program".to_owned(),
-                    ),
-                }
-                refusals
-            }
-            AdmittedSemanticUnit::PropertyCharacteristic(record) => {
-                if ACCOUNTED_CHARACTERISTIC_RECORDS
-                    .iter()
-                    .any(|(sort, _)| *sort == record.characteristic)
-                {
-                    Vec::new()
-                } else {
-                    drops.insert(DropRecord::new(
-                        ENGINE_NATIVE,
-                        "CHARACTERISTIC_RECORD_NOT_READ",
-                        format!(
-                            "{}: the native engine does not read a {} record for {}",
-                            unit.anchor, record.characteristic, record.property
-                        ),
-                    ));
-                    continue;
-                }
-            }
-            AdmittedSemanticUnit::ClassDefinition(_) => {
-                drops.insert(DropRecord::new(
-                    ENGINE_NATIVE,
-                    "CLASS_DEFINITION_NOT_ACCOUNTED",
-                    format!(
-                        "{}: a class-expression law is not on the accounting list; the native engine does not show its completed closure is a model of it",
-                        unit.anchor
-                    ),
-                ));
-                continue;
-            }
-        };
-        for refusal in refusals {
-            drops.insert(DropRecord::new(
-                ENGINE_NATIVE,
-                "UNIT_NOT_ACCOUNTED",
-                format!("{}: {refusal}", unit.anchor),
-            ));
-        }
-    }
-    drops
-}
-
-/// Equality between two different terms, asserted or derived. The native engine has
-/// no substitution, so a closure containing one is not known to be a model.
-fn equality_drops(inferred: &[gmeow_logic::reason::InferredAxiom]) -> BTreeSet<DropRecord> {
-    inferred
-        .iter()
-        .filter(|axiom| EQUALITY_PREDICATES.contains(&axiom.predicate.as_str()))
-        .filter_map(|axiom| {
-            let subject = axiom
-                .subject
-                .strip_prefix('<')
-                .and_then(|inner| inner.strip_suffix('>'))
-                .unwrap_or(&axiom.subject);
-            match axiom.object.as_iri() {
-                Some(object) if object == subject => None,
-                object => Some(DropRecord::new(
-                    ENGINE_NATIVE,
-                    "EQUALITY_WITHOUT_SUBSTITUTION",
-                    format!(
-                        "{subject} = {} ({}); the native engine has no equality substitution",
-                        object.map_or_else(|| format!("{:?}", axiom.object), ToOwned::to_owned),
-                        if axiom.is_edb { "asserted" } else { "derived" }
-                    ),
-                )),
-            }
-        })
-        .collect()
 }
 
 fn source_paths(inputs: &[PathBuf], dir: Option<&Path>) -> gmeow_errors::Result<Vec<PathBuf>> {
@@ -2540,7 +1854,7 @@ fn rdf_media(path: &Path) -> Option<&'static str> {
 
 fn publish_failure(
     reporter: &dyn Reporter,
-    report: ProveReport,
+    report: ProveReport<'_>,
     request: &ProveRequest<'_>,
 ) -> i32 {
     if let Some(diagnostic) = report.common.diagnostics.last() {
@@ -2550,34 +1864,51 @@ fn publish_failure(
 }
 
 fn publish_report(
-    mut report: ProveReport,
+    mut report: ProveReport<'_>,
     request: &ProveRequest<'_>,
     reporter: &dyn Reporter,
 ) -> i32 {
-    let mut json = serde_json::to_string_pretty(&report)
-        .expect("typed prove report serialization is infallible");
-    if let Some(path) = request.evidence_out
-        && let Err(error) = std::fs::write(path, json.as_bytes())
-    {
-        let diagnostic = caused_failure(
-            "EVIDENCE_WRITE_FAILED",
-            error,
-            format!("write evidence report {}", path.display()),
-        );
-        let detail = diagnostic.message().to_owned();
-        report.execution_failure(diagnostic);
-        emit_error(reporter, "gmeow-cli.prove.evidence-write-failed", detail);
-        json = serde_json::to_string_pretty(&report)
-            .expect("typed prove report serialization is infallible");
+    if let Some(path) = request.evidence_out {
+        let written = (|| -> Result<(), std::io::Error> {
+            let file = std::fs::File::create(path)?;
+            let mut writer = std::io::BufWriter::new(file);
+            serde_json::to_writer_pretty(&mut writer, &report).map_err(std::io::Error::other)?;
+            std::io::Write::flush(&mut writer)
+        })();
+        if let Err(error) = written {
+            let diagnostic = caused_failure(
+                "EVIDENCE_WRITE_FAILED",
+                error,
+                format!("write evidence report {}", path.display()),
+            );
+            let detail = diagnostic.message().to_owned();
+            report.execution_failure(diagnostic);
+            emit_error(reporter, "gmeow-cli.prove.evidence-write-failed", detail);
+        }
     }
     match request.format {
-        OutputFormat::Json => println!("{json}"),
+        OutputFormat::Json => {
+            let written = (|| -> Result<(), std::io::Error> {
+                let mut output = std::io::stdout().lock();
+                serde_json::to_writer_pretty(&mut output, &report)
+                    .map_err(std::io::Error::other)?;
+                std::io::Write::write_all(&mut output, b"\n")
+            })();
+            if let Err(error) = written {
+                emit_error(
+                    reporter,
+                    "gmeow-cli.prove.report-write-failed",
+                    error.to_string(),
+                );
+                return 2;
+            }
+        }
         OutputFormat::Text => render_text(&report),
     }
     report.common.exit_code(request.gate)
 }
 
-fn render_text(report: &ProveReport) {
+fn render_text(report: &ProveReport<'_>) {
     println!("verdict {}", report.common.verdict);
     println!("decision {}", report.common.decision.as_str());
     println!("input-status {}", report.common.input_status);

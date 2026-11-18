@@ -588,14 +588,19 @@ impl ReasoningReportCore {
     }
 }
 
+/// Hash exact file content without retaining a file-sized allocation.
 pub(crate) fn digest_file(path: &Path) -> gmeow_errors::Result<String> {
-    let bytes = std::fs::read(path).map_err(|error| {
-        gmeow_errors::Diag::from(error)
-            .with_context(format!("read {} for identity", path.display()))
-    })?;
-    Ok(purrdf_hash::hex::encode(
-        purrdf_hash::blake3::hash(&bytes).as_bytes(),
-    ))
+    let digest = std::fs::File::open(path)
+        .and_then(|mut file| {
+            let mut hasher = purrdf_hash::blake3::Hasher::new();
+            std::io::copy(&mut file, &mut hasher)?;
+            Ok(hasher.finalize())
+        })
+        .map_err(|error| {
+            gmeow_errors::Diag::from(error)
+                .with_context(format!("read {} for identity", path.display()))
+        })?;
+    Ok(purrdf_hash::hex::encode(digest.as_bytes()))
 }
 
 fn current_executable_identity() -> Option<ExecutableIdentity> {

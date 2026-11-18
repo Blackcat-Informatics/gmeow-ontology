@@ -29,8 +29,12 @@ pub mod perf_ledger;
 mod program;
 pub use program::{PreparedReasoningInput, prepare_reasoning_input};
 mod claims;
+mod source_admission;
 pub use claims::{
     ClaimIngress, ReadClaim, UnreadClaim, UnreadReason, prepare_selected_theory_input,
+};
+pub use source_admission::{
+    NativeSourceAdmission, NativeSourceDrop, reason_admitted_theory_within,
 };
 pub mod refute;
 pub mod rl;

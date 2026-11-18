@@ -23,7 +23,8 @@ use gmeow_logic_compile::ir::{
 };
 use purrdf::TermValue;
 
-use super::{PreparedReasoningInput, prepare_reasoning_input, reason_err};
+use super::program::prepare_default_reasoning_input;
+use super::{PreparedReasoningInput, reason_err};
 use crate::physical::LogicalGraph;
 use crate::rule_ir::Fact;
 
@@ -136,6 +137,7 @@ pub struct UnreadClaim {
 /// combination.
 #[derive(Debug, Clone)]
 pub struct ClaimIngress {
+    source: gmeow_logic_compile::source_inventory::SourceIdentity,
     selection: TheorySelection,
     read: Vec<ReadClaim>,
     unread: Vec<UnreadClaim>,
@@ -145,6 +147,14 @@ pub struct ClaimIngress {
 }
 
 impl ClaimIngress {
+    pub(super) fn authorize_source(&self, theory: &CompiledTheory) -> gmeow_errors::Result<()> {
+        if !self.source.matches(&theory.source().identity()) {
+            return Err(reason_err(
+                "the claim ingress belongs to a different immutable compiler source".into(),
+            ));
+        }
+        Ok(())
+    }
     /// The selection the claims were classified under.
     #[must_use]
     pub fn selection(&self) -> &TheorySelection {
@@ -226,12 +236,17 @@ fn scoped(program: &LogicProgram) -> impl Iterator<Item = (usize, &LogicAxiom)> 
 /// recorded as unread. A claim that is also asserted plainly adds no second fact.
 ///
 /// # Errors
-/// Returns ingestion failures and a world that aliases another source graph.
+/// Returns ingestion failures or a target outside the implemented default-graph theory.
 pub fn prepare_selected_theory_input(
     theory: &CompiledTheory,
     world: &LogicalGraph,
     selection: &TheorySelection,
 ) -> gmeow_errors::Result<(PreparedReasoningInput, ClaimIngress)> {
+    if *world != LogicalGraph::Default {
+        return Err(reason_err(format!(
+            "selected-theory claim ingress supports only the default graph, not {world:?}"
+        )));
+    }
     let dataset = theory.source().dataset();
     let program = theory.program();
     let mut facts = Vec::new();
@@ -262,9 +277,10 @@ pub fn prepare_selected_theory_input(
             reason,
         });
     }
-    let mut input = prepare_reasoning_input(dataset)?;
+    let mut input = prepare_default_reasoning_input(dataset)?;
     input.assert_facts(world, facts)?;
     let ingress = ClaimIngress {
+        source: theory.source().identity(),
         selection: selection.clone(),
         read,
         unread,
