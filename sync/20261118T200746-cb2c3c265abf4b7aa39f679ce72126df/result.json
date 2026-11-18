@@ -1,0 +1,15 @@
+{
+  "schema": 1,
+  "worktree": "/home/paudley/Active/gmeow-ontology/.worktrees/2934-bind-prover-output-operations-to",
+  "branch": "paudley/2934-bind-prover-output-operations-to",
+  "base_ref": "origin/main",
+  "head": "4b227b51ba7ef0b21030784b73f44f5277eda6be",
+  "attempt": "/home/paudley/Active/gmeow-ontology/.worktrees/2934-bind-prover-output-operations-to/.stage/bind-prover-output-operations-to/sync/20261118T200746-cb2c3c265abf4b7aa39f679ce72126df",
+  "conflicts": [],
+  "status": "fast_forward",
+  "base": "354904ad8efdc4ec52762ad0e7cecc812209d84b",
+  "merge_bases": [
+    "4b227b51ba7ef0b21030784b73f44f5277eda6be"
+  ],
+  "commit": "354904ad8efdc4ec52762ad0e7cecc812209d84b"
+}

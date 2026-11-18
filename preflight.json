@@ -1,0 +1,143 @@
+{
+  "issue": 2934,
+  "pr_number": 2940,
+  "branch": "paudley/2934-bind-prover-output-operations-to",
+  "stage_dir": "/home/paudley/Active/gmeow-ontology/.worktrees/2934-bind-prover-output-operations-to/.stage/bind-prover-output-operations-to",
+  "observed_at": "2026-11-18T20:44:00.331272+00:00",
+  "completed": [
+    "pr",
+    "checks",
+    "reviews",
+    "merge_candidate"
+  ],
+  "blocked": [
+    {
+      "code": "ci_pending",
+      "message": "CI state is pending"
+    }
+  ],
+  "unavailable": [],
+  "next_actions": [
+    "Wait for CI changes"
+  ],
+  "artifacts": {
+    "ci_failures": "/home/paudley/Active/gmeow-ontology/.worktrees/2934-bind-prover-output-operations-to/.stage/bind-prover-output-operations-to/ci-failures.md",
+    "reviews": "/home/paudley/Active/gmeow-ontology/.worktrees/2934-bind-prover-output-operations-to/.stage/bind-prover-output-operations-to/pr-comments.md",
+    "status": "/home/paudley/Active/gmeow-ontology/.worktrees/2934-bind-prover-output-operations-to/.stage/bind-prover-output-operations-to/status.json",
+    "checks": "/home/paudley/Active/gmeow-ontology/.worktrees/2934-bind-prover-output-operations-to/.stage/bind-prover-output-operations-to/pr-checks.txt",
+    "review_evidence": "/home/paudley/Active/gmeow-ontology/.worktrees/2934-bind-prover-output-operations-to/.stage/bind-prover-output-operations-to/review-evidence.json"
+  },
+  "limits": [
+    "Mechanical evidence only; artifact presence does not establish a passing review or acceptance verdict.",
+    "Preflight does not sign, fetch, push or mutate forge state. API permission and read access do not prove Git push authorization or protected-branch admission."
+  ],
+  "pr": {
+    "baseRefName": "main",
+    "baseRefOid": "354904ad8efdc4ec52762ad0e7cecc812209d84b",
+    "headRefName": "paudley/2934-bind-prover-output-operations-to",
+    "headRefOid": "24a65d9c4158bc32dd6f5048fd1a15eac2302b08",
+    "isDraft": false,
+    "mergeCommit": null,
+    "mergedAt": null,
+    "number": 2940,
+    "state": "OPEN",
+    "title": "Bind prover filesystem operations to admitted inputs and directories",
+    "url": "https://github.com/Blackcat-Informatics/gmeow-ontology/pull/2940"
+  },
+  "checks": {
+    "state": "pending",
+    "checks": [
+      {
+        "link": "https://app.coderabbit.ai/change-stack/Blackcat-Informatics/gmeow-ontology/pull/2940",
+        "name": "CodeRabbit",
+        "state": "IN_PROGRESS"
+      },
+      {
+        "link": "https://github.com/Blackcat-Informatics/gmeow-ontology/actions/runs/44393730272/job/135117941918",
+        "name": "producer-build",
+        "state": "IN_PROGRESS"
+      },
+      {
+        "link": "https://github.com/Blackcat-Informatics/gmeow-ontology/actions/runs/44393730272/job/135117941386",
+        "name": "helpers",
+        "state": "SUCCESS"
+      },
+      {
+        "link": "https://github.com/Blackcat-Informatics/gmeow-ontology/actions/runs/44393730272/job/135117941917",
+        "name": "lint",
+        "state": "SUCCESS"
+      },
+      {
+        "link": "https://github.com/Blackcat-Informatics/gmeow-ontology/actions/runs/44393730272/job/135117941906",
+        "name": "rust-prebuild",
+        "state": "IN_PROGRESS"
+      },
+      {
+        "link": "https://cla-assistant.io/Blackcat-Informatics/gmeow-ontology?pullRequest=2940",
+        "name": "license/cla",
+        "state": "SUCCESS"
+      }
+    ]
+  },
+  "reviews": {
+    "head": "24a65d9c4158bc32dd6f5048fd1a15eac2302b08",
+    "coverage": {
+      "comments": "complete",
+      "reviews": "complete",
+      "inline_comments": "complete",
+      "threads": "complete"
+    },
+    "items": 1,
+    "change_token": "803af6808f12a108d513d575df9ee28ea9c104bfbf6313c1e0a9071c137e0d7a"
+  },
+  "local": {
+    "head": "24a65d9c4158bc32dd6f5048fd1a15eac2302b08",
+    "branch": "paudley/2934-bind-prover-output-operations-to",
+    "dirty_paths": []
+  },
+  "ci_logs": {
+    "pr": 2940,
+    "jobs": [],
+    "ok": true,
+    "summary": "# PR #2940 failed CI logs\n\nNo failed checks in this snapshot.\n"
+  },
+  "review_debt": [],
+  "unresolved_threads": [],
+  "validation": {
+    "results": [],
+    "limits": "Scopes are caller-selected. Unchanged scope is reusable evidence, not a gate waiver; environment capture is not exhaustive."
+  },
+  "preflight": {
+    "git": "/usr/bin/git",
+    "python3": "/home/paudley/stage/root/bin/python3",
+    "stagectl": "/home/paudley/stage/root/bin/stagectl",
+    "bash": "/usr/bin/bash",
+    "readlink": "/home/paudley/stage/root/bin/readlink",
+    "sed": "/usr/bin/sed",
+    "awk": "/usr/bin/awk",
+    "ghprsq": "/home/paudley/stage/agents/bin/ghprsq",
+    "archive": {
+      "files": 14,
+      "bytes": 36648,
+      "errors": [],
+      "limits": "Read-only selected-evidence admission; full newly reachable Git object closure is checked by ghprsq before push."
+    },
+    "signing": {
+      "format": "openpgp",
+      "key_configured": true,
+      "limits": "Configuration inspected; no signing operation was performed."
+    },
+    "forge_permissions": {
+      "admin": true,
+      "maintain": true,
+      "push": true,
+      "triage": true,
+      "pull": true
+    },
+    "merge_candidate": {
+      "base": "354904ad8efdc4ec52762ad0e7cecc812209d84b",
+      "head": "24a65d9c4158bc32dd6f5048fd1a15eac2302b08",
+      "status": "clean"
+    }
+  }
+}

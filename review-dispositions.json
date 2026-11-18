@@ -1,0 +1,16 @@
+{
+  "github:comment:IC_kwDOSwdn1s8AAAABoLLjcA": {
+    "resolution": "acknowledged",
+    "reason": "Read the complete progress comment. It identifies the selected files and pending review, with no source finding. Independent source, design and integration review and focused release qualification pass; hosted completion remains pending under the campaign waiver.",
+    "commit": "24a65d9c4158bc32dd6f5048fd1a15eac2302b08",
+    "reply_url": null,
+    "revision": {
+      "updated_at": "2026-11-18T20:42:20Z",
+      "state": null,
+      "commit": null,
+      "path": null,
+      "line": null,
+      "body_sha256": "c77938e4ddd40f37d54c63026f0613be13cb265b7903db630fdd22f60f69e435"
+    }
+  }
+}

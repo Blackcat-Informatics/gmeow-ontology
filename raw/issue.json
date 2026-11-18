@@ -1,0 +1,57 @@
+{
+  "assignees": [],
+  "author": {
+    "id": "MDQ6VXNlcjUyNzU1NQ==",
+    "is_bot": false,
+    "login": "paudley",
+    "name": "Patrick Audley"
+  },
+  "body": "Part of #2781. Blocked by: nothing. Blocks: #2781.\n\n## Problem\n\n`gmeow prove` validates output paths and file identities before later reopening raw paths for writes or stale-output removal. A switched output-parent symlink can redirect a later destructive operation onto a selected input. Static aliases, hardlinks and terminal symlinks are already checked; the remaining source-backed gap is between validation and use.\n\nInput discovery and validation also precede a separate directory enumeration and raw-path loading. The protected identities must therefore belong to the actual opened semantic and replay inputs, rather than an earlier path observation. The `PROOF_NOT_RECORDED` failure currently leaves an existing selected proof output untouched.\n\nThe parent-redirection gap is verified by source inspection. No deterministic static-alias bypass or live source modification has been demonstrated.\n\n## Required behavior\n\n- Bind output publication and stale-output removal to the validated filesystem objects and parent locations through the actual destructive operation.\n- Discover selected semantic inputs once and read their exact bytes through the opened files whose identities are protected. Retain source media/base/digest receipts and the proof-replay input identity.\n- Protect all loaded semantic inputs and proof-replay inputs from overwrite, truncation or redirected removal.\n- Reuse existing repository filesystem primitives where suitable. Preserve typed, actionable path/alias and I/O failures and the current exit-code distinction.\n- Cover JSON/text reports, evidence, proof and FOF sinks, including required-output refusal and stale-output cleanup. Remove stale selected proof bytes when no proof is recorded. Do not weaken the existing static alias checks.\n- Pin admitted parent directories through publication and removal. Request paths remain reporting coordinates after admission; re-resolving a switched parent cannot redirect use. The boundary covers parent redirection, without claiming protection against arbitrary adversarial replacement inside the pinned directory.\n\n## Acceptance\n\n- In isolated fixtures, changing the output-parent symlink between validation and a sink/removal operation cannot modify or remove a protected source.\n- Existing hardlink, equivalent path, symlink-parent, dangling-terminal-link and conflicting-sink controls remain valid.\n- Correct distinct outputs still publish successfully; failures leave the actual loaded semantic and replay input bytes intact and report the actual failure.\n- A selected proof output containing old bytes cannot survive a no-proof required-output failure as an apparently current proof.\n- Focused filesystem boundary and real CLI checks verify the final shared publication/removal path. The CLI documentation describes its safety contract.\n\nPrinciples 4 and 7.\n",
+  "closedAt": null,
+  "comments": [],
+  "createdAt": "2026-11-18T13:30:44Z",
+  "labels": [
+    {
+      "id": "LA_kwDOSwdn1s8AAAACl8ZKrA",
+      "name": "bug",
+      "description": "Something isn't working",
+      "color": "d73a4a"
+    },
+    {
+      "id": "LA_kwDOSwdn1s8AAAACmTvThA",
+      "name": "cross-cutting",
+      "description": "Cross-cutting concern",
+      "color": "fbca04"
+    },
+    {
+      "id": "LA_kwDOSwdn1s8AAAACmjuimw",
+      "name": "quality",
+      "description": "Quality gate or completeness/correctness invariant",
+      "color": "0e8a16"
+    },
+    {
+      "id": "LA_kwDOSwdn1s8AAAACnasmrQ",
+      "name": "logic",
+      "description": "logic: reasoning layer (the RDF 1.2-native logic; OWL is a projection)",
+      "color": "5319e7"
+    },
+    {
+      "id": "LA_kwDOSwdn1s8AAAACndNfoA",
+      "name": "rust",
+      "description": "Pull requests that update rust code",
+      "color": "000000"
+    },
+    {
+      "id": "LA_kwDOSwdn1s8AAAACoIO76w",
+      "name": "complexity-hard",
+      "description": "Foundational/cross-cutting/research; large coordination or new semantics",
+      "color": "b60205"
+    }
+  ],
+  "milestone": null,
+  "number": 2934,
+  "state": "OPEN",
+  "title": "Bind prover output operations to validated filesystem identities",
+  "updatedAt": "2026-11-18T15:45:34Z",
+  "url": "https://github.com/Blackcat-Informatics/gmeow-ontology/issues/2934"
+}

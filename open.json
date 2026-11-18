@@ -1,0 +1,30 @@
+{
+  "schema": 1,
+  "issue": 2934,
+  "repo": "gmeow-ontology",
+  "forge": "github",
+  "nwo": "Blackcat-Informatics/gmeow-ontology",
+  "read_access": "anon-read",
+  "main_root": "/home/paudley/Active/gmeow-ontology",
+  "worktree": "/home/paudley/Active/gmeow-ontology/.worktrees/2934-bind-prover-output-operations-to",
+  "branch": "paudley/2934-bind-prover-output-operations-to",
+  "slug": "bind-prover-output-operations-to",
+  "slug_drift": false,
+  "stage_dir": "/home/paudley/Active/gmeow-ontology/.worktrees/2934-bind-prover-output-operations-to/.stage/bind-prover-output-operations-to",
+  "stage_tracked": true,
+  "base": "refs/remotes/origin/main",
+  "base_oid": "4b227b51ba7ef0b21030784b73f44f5277eda6be",
+  "reused": false,
+  "adr_repo": false,
+  "created": [
+    "worktree:/home/paudley/Active/gmeow-ontology/.worktrees/2934-bind-prover-output-operations-to",
+    "branch:paudley/2934-bind-prover-output-operations-to",
+    "ignored:8266 files (8266 reflinked, 0 written)",
+    "rust-caches:reflinked /home/paudley/Active/gmeow-ontology/.worktrees/2795-release-0-4-0 caches into /home/paudley/Active/gmeow-ontology/.worktrees/2934-bind-prover-output-operations-to plus 0 dependency units from 0 other checkouts in 3.6s; 12864 unchanged files keep their built mtimes; 240 other files take the seed time and rebuild; 0 units naming another checkout rebuild",
+    "stage:/home/paudley/Active/gmeow-ontology/.worktrees/2934-bind-prover-output-operations-to/.stage/bind-prover-output-operations-to",
+    "issue:/home/paudley/Active/gmeow-ontology/.worktrees/2934-bind-prover-output-operations-to/.stage/bind-prover-output-operations-to/issue.md"
+  ],
+  "warnings": [],
+  "timestamp": "2026-11-18T12:17:02-0600",
+  "seed_error": ""
+}
