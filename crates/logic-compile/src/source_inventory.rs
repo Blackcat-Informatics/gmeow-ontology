@@ -176,6 +176,7 @@ pub struct SourceInventory<'source> {
     declared_builtins: BTreeSet<String>,
     selection_issues: Vec<SourceSelectionIssue>,
     declarations: BTreeMap<(SourceNode, usize), SourceDeclaration>,
+    correspondence_records: BTreeMap<SourceStatementBinding, BTreeSet<usize>>,
     untranslated_formula_contexts: BTreeSet<SourceNode>,
 }
 
@@ -199,6 +200,7 @@ impl<'source> SourceInventory<'source> {
             declared_classes: BTreeSet::new(),
             declared_builtins: BTreeSet::new(),
             declarations: BTreeMap::new(),
+            correspondence_records: BTreeMap::new(),
             untranslated_formula_contexts: contexts::untranslated_formulas(theory.source()),
         };
         let dataset = theory.source().dataset();
@@ -307,6 +309,17 @@ impl<'source> SourceInventory<'source> {
             inventory
                 .obligations
                 .push(SourceObligationOrigin::Owner(index));
+            if lowering.family == OwnerFamily::Correspondence
+                && matches!(lowering.disposition, OwnerDisposition::Emitted { .. })
+            {
+                for binding in &lowering.record_support {
+                    inventory
+                        .correspondence_records
+                        .entry(*binding)
+                        .or_default()
+                        .insert(index);
+                }
+            }
             if lowering.family == OwnerFamily::Rule
                 && let OwnerDisposition::Emitted { index } = &lowering.disposition
             {
@@ -389,6 +402,19 @@ impl<'source> SourceInventory<'source> {
     #[must_use]
     pub fn selection_issues(&self) -> &[SourceSelectionIssue] {
         &self.selection_issues
+    }
+
+    /// Actual successful correspondence owners of this exact physical record row.
+    /// The ordinals address this inventory's immutable compiler trace, not a
+    /// same-subject declaration or a detached serialized observation.
+    pub fn correspondence_record_owners(
+        &self,
+        binding: SourceStatementBinding,
+    ) -> impl Iterator<Item = usize> + '_ {
+        self.correspondence_records
+            .get(&binding)
+            .into_iter()
+            .flat_map(|owners| owners.iter().copied())
     }
     #[must_use]
     pub(crate) fn contract_declaration(

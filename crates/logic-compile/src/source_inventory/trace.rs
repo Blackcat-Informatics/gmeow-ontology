@@ -7,17 +7,18 @@ use serde::Serialize;
 use serde::ser::SerializeSeq;
 
 use crate::frontend::{
-    AxiomSource, CompiledTheory, FormulaDisposition, OwnerDisposition, OwnerFamily,
+    AxiomSource, CompiledTheory, FormulaDisposition, OwnerDisposition, OwnerFamily, SourceCarrier,
+    SourceStatementBinding,
 };
 use purrdf::RdfDataset;
 
-use super::identity::{node_anchor, term_anchor};
+use super::identity::{node_anchor, quad_anchor, term_anchor};
 
 const COMPILER_SOURCE_TRACE_DOMAIN: purrdf_hash::Domain =
-    purrdf_hash::Domain::new(b"gmeow-compiler-source-trace-v1\0");
+    purrdf_hash::Domain::new(b"gmeow-compiler-source-trace-v2\0");
 
 #[derive(Serialize)]
-struct TraceV1<'a> {
+struct TraceV2<'a> {
     schema_version: u32,
     axioms: Axioms<'a>,
     owners: Owners<'a>,
@@ -101,6 +102,27 @@ struct Owner<'a> {
     family: OwnerFamily,
     route: &'a OwnerDisposition,
     diagnostics: &'a [usize],
+    record_support: RecordSupport<'a>,
+}
+
+struct RecordSupport<'a> {
+    dataset: &'a RdfDataset,
+    bindings: &'a std::collections::BTreeSet<SourceStatementBinding>,
+}
+
+impl Serialize for RecordSupport<'_> {
+    fn serialize<S: serde::Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
+        let mut sequence = serializer.serialize_seq(Some(self.bindings.len()))?;
+        for binding in self.bindings {
+            let carrier = match binding.carrier {
+                SourceCarrier::Statement => "statement",
+                SourceCarrier::Annotation => "annotation",
+                SourceCarrier::Reifier => "reifier",
+            };
+            sequence.serialize_element(&(carrier, quad_anchor(self.dataset, binding.canonical)))?;
+        }
+        sequence.end()
+    }
 }
 
 impl Serialize for Owners<'_> {
@@ -112,6 +134,10 @@ impl Serialize for Owners<'_> {
                 family: owner.family,
                 route: &owner.disposition,
                 diagnostics: &owner.diagnostics,
+                record_support: RecordSupport {
+                    dataset: self.0.source().dataset(),
+                    bindings: &owner.record_support,
+                },
             })?;
         }
         sequence.end()
@@ -165,8 +191,8 @@ pub(super) fn digest(theory: &CompiledTheory) -> String {
     hasher.update(COMPILER_SOURCE_TRACE_DOMAIN.as_bytes());
     serde_json::to_writer(
         &mut hasher,
-        &TraceV1 {
-            schema_version: 1,
+        &TraceV2 {
+            schema_version: 2,
             axioms: Axioms(theory),
             owners: Owners(theory),
             formulas: Formulas(theory),

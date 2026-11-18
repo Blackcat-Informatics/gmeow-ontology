@@ -52,6 +52,7 @@ pub(super) struct SelectionIndex {
     active: BTreeSet<SyntaxOwner>,
     participation: BTreeMap<SyntaxOwner, Participation>,
     coordinates: BTreeMap<SyntaxOwner, Coordinate>,
+    selection_metadata: BTreeMap<SourceStatementBinding, BTreeSet<SyntaxOwner>>,
     blocked: BTreeMap<SyntaxOwner, Boundary>,
     unknown: Boundary,
     graph_boundary: Boundary,
@@ -70,6 +71,38 @@ fn owner(node: SourceNode, family: SyntaxFamily) -> SyntaxOwner {
     SyntaxOwner { node, family }
 }
 
+fn owner_family(family: OwnerFamily) -> SyntaxFamily {
+    match family {
+        OwnerFamily::Rule => SyntaxFamily::Rule,
+        OwnerFamily::Correspondence => SyntaxFamily::Correspondence,
+        _ => SyntaxFamily::Owner,
+    }
+}
+
+fn correspondence_field(
+    inventory: &SourceInventory<'_>,
+    unit: SyntaxOwner,
+    edge: &crate::frontend::SourceEdge,
+) -> bool {
+    if unit.family != SyntaxFamily::Correspondence {
+        return false;
+    }
+    let SourcePredicate::Stored(predicate) = edge.predicate else {
+        return false;
+    };
+    inventory
+        .correspondence_record_owners(SourceStatementBinding {
+            canonical: QuadIds {
+                s: edge.source.term,
+                p: predicate,
+                o: edge.target,
+                g: edge.source.graph,
+            },
+            carrier: edge.carrier,
+        })
+        .any(|ordinal| inventory.theory().owner_lowerings()[ordinal].source == unit.node)
+}
+
 fn list_axiom(predicate: &str) -> bool {
     matches!(predicate, crate::lists::RDF_FIRST | crate::lists::RDF_REST)
 }
@@ -85,6 +118,20 @@ impl SelectionIndex {
         let graph = theory.source().source_graph();
         let dataset = theory.source().dataset();
         let mut syntax = graph.syntax_ownership(dataset);
+        for lowering in theory.owner_lowerings().iter().filter(|lowering| {
+            lowering.family == OwnerFamily::Correspondence
+                && matches!(lowering.disposition, OwnerDisposition::Emitted { .. })
+        }) {
+            for &binding in &lowering.record_support {
+                syntax
+                    .rows
+                    .entry(binding)
+                    .or_default()
+                    .entry(owner(lowering.source, SyntaxFamily::Correspondence))
+                    .or_default()
+                    .insert(SyntaxEvidence::Statement(binding));
+            }
+        }
         // A recorded relationship is authority only when its actual carrier is
         // supplied by this inventory. Possible grammar families alone grant none.
         let evidence_selected = |evidence: &SyntaxEvidence| match *evidence {
@@ -154,14 +201,7 @@ impl SelectionIndex {
             }
         }
         for lowering in theory.owner_lowerings() {
-            roots.insert(owner(
-                lowering.source,
-                if lowering.family == OwnerFamily::Rule {
-                    SyntaxFamily::Rule
-                } else {
-                    SyntaxFamily::Owner
-                },
-            ));
+            roots.insert(owner(lowering.source, owner_family(lowering.family)));
         }
         for lowering in theory.formula_lowerings() {
             roots.insert(owner(lowering.source, SyntaxFamily::Formula));
@@ -202,7 +242,14 @@ impl SelectionIndex {
                 edge.role,
                 SourceEdgeRole::ExclusiveFormulaUse | SourceEdgeRole::RecoveryOwnership
             ) {
-                roots.insert(owner(edge.source, SyntaxFamily::Owner));
+                roots.insert(owner(
+                    edge.source,
+                    if edge.role == SourceEdgeRole::RecoveryOwnership {
+                        SyntaxFamily::Correspondence
+                    } else {
+                        SyntaxFamily::Owner
+                    },
+                ));
             }
         }
         // Owners are roots only when they are not used as another owner's syntax.
@@ -226,10 +273,18 @@ impl SelectionIndex {
             }
         }
         let mut coordinates = BTreeMap::new();
+        let mut selection_metadata = BTreeMap::new();
         let mut blocked = BTreeMap::new();
         let mut admitted_modules = BTreeSet::new();
         for &unit in &active {
-            let coordinate = coordinate(inventory, unit, composed, modules, available);
+            let coordinate = coordinate(
+                inventory,
+                unit,
+                composed,
+                modules,
+                available,
+                &mut selection_metadata,
+            );
             match &coordinate {
                 Coordinate::Included => {
                     admitted_modules.insert(unit.node);
@@ -249,11 +304,23 @@ impl SelectionIndex {
                 },
                 SyntaxFamily::Schema,
             );
-            coordinates
-                .entry(unit)
-                .or_insert_with(|| coordinate(inventory, unit, composed, modules, available));
+            coordinates.entry(unit).or_insert_with(|| {
+                coordinate(
+                    inventory,
+                    unit,
+                    composed,
+                    modules,
+                    available,
+                    &mut selection_metadata,
+                )
+            });
         }
+        selection_metadata.retain(|_, owners| {
+            owners.retain(|unit| active.contains(unit));
+            !owners.is_empty()
+        });
         let mut index = Self { syntax, roots, active, coordinates,
+            selection_metadata,
             participation: BTreeMap::new(), blocked, admitted_modules,
             unknown: Boundary { code: "NO_EXECUTABLE_OWNER_PATH",
                 detail: "owned syntax has no admitted executable owner path and cannot become an independent assertion".into() },
@@ -287,7 +354,10 @@ impl SelectionIndex {
         }
         index.block_contexts(inventory);
         for lowering in theory.owner_lowerings() {
-            if !matches!(lowering.family, OwnerFamily::Rule | OwnerFamily::Contract) {
+            if !matches!(
+                lowering.family,
+                OwnerFamily::Rule | OwnerFamily::Contract | OwnerFamily::Correspondence
+            ) {
                 index.blocked.insert(
                     owner(lowering.source, SyntaxFamily::Owner),
                     Boundary {
@@ -455,6 +525,9 @@ impl SelectionIndex {
                 untranslated.contains(&unit.node)
             } else {
                 graph.outgoing(unit.node).iter().any(|edge| {
+                    if correspondence_field(inventory, unit, edge) {
+                        return false;
+                    }
                     let evidence = matches!(
                         unit.family,
                         SyntaxFamily::Rule | SyntaxFamily::Atom | SyntaxFamily::Module
@@ -490,16 +563,19 @@ impl SelectionIndex {
             let incompatible = matches!(
                 self.coordinates.get(&source),
                 Some(Coordinate::Outside | Coordinate::Blocked(_))
-            ) || graph.outgoing(row_node).iter().any(|edge| {
-                matches!(
-                    edge.role,
-                    SourceEdgeRole::Standpoint
-                        | SourceEdgeRole::Context
-                        | SourceEdgeRole::Provenance
-                )
-            });
-            if incompatible {
-                for &unit in owners.keys() {
+            );
+            for &unit in owners.keys() {
+                if incompatible
+                    || graph.outgoing(row_node).iter().any(|edge| {
+                        !correspondence_field(inventory, unit, edge)
+                            && matches!(
+                                edge.role,
+                                SourceEdgeRole::Standpoint
+                                    | SourceEdgeRole::Context
+                                    | SourceEdgeRole::Provenance
+                            )
+                    })
+                {
                     if self
                         .participation
                         .get(&unit)
@@ -542,7 +618,7 @@ impl SelectionIndex {
             self.axioms[index] = sources.iter().any(|source| {
                 matches!(
                     self.axiom_source_membership(inventory, index, source),
-                    Membership::Included
+                    Some(Membership::Included)
                 )
             });
         }
@@ -580,7 +656,12 @@ impl SelectionIndex {
                         Membership::Included
                     )
             } else {
-                inventory.statement_selected(quad, carrier)
+                !self.selection_metadata.contains_key(&binding)
+                    && inventory
+                        .correspondence_record_owners(binding)
+                        .next()
+                        .is_none()
+                    && inventory.statement_selected(quad, carrier)
                     && matches!(
                         self.row_membership(inventory, binding),
                         Membership::Included
@@ -613,14 +694,7 @@ impl SelectionIndex {
             }
             SourceObligationOrigin::Owner(index) => {
                 let lowering = &theory.owner_lowerings()[index];
-                self.owner_membership(owner(
-                    lowering.source,
-                    if lowering.family == OwnerFamily::Rule {
-                        SyntaxFamily::Rule
-                    } else {
-                        SyntaxFamily::Owner
-                    },
-                ))
+                self.owner_membership(owner(lowering.source, owner_family(lowering.family)))
             }
             SourceObligationOrigin::Formula(index) => self.owner_membership(owner(
                 theory.formula_lowerings()[index].source,
@@ -629,7 +703,7 @@ impl SelectionIndex {
             SourceObligationOrigin::Axiom(index) => self.combine_memberships(
                 theory.axiom_sources()[index]
                     .iter()
-                    .map(|source| self.axiom_source_membership(inventory, index, source)),
+                    .filter_map(|source| self.axiom_source_membership(inventory, index, source)),
             ),
             SourceObligationOrigin::Quotation { reifier, graph, .. } => {
                 self.owner_membership(owner(
@@ -668,16 +742,7 @@ impl SelectionIndex {
             .owner_lowerings()
             .iter()
             .filter(|lowering| lowering.diagnostics.contains(&index))
-            .map(|lowering| {
-                owner(
-                    lowering.source,
-                    if lowering.family == OwnerFamily::Rule {
-                        SyntaxFamily::Rule
-                    } else {
-                        SyntaxFamily::Owner
-                    },
-                )
-            });
+            .map(|lowering| owner(lowering.source, owner_family(lowering.family)));
         let formulas = theory.formula_lowerings().iter().filter(|lowering|
             matches!(lowering.disposition, FormulaDisposition::Malformed { diagnostic } if diagnostic == index))
             .map(|lowering| owner(lowering.source, SyntaxFamily::Formula));
@@ -696,9 +761,9 @@ impl SelectionIndex {
         inventory: &SourceInventory<'_>,
         index: usize,
         source: &AxiomSource,
-    ) -> Membership<'_> {
+    ) -> Option<Membership<'_>> {
         let theory = inventory.theory();
-        match source {
+        Some(match source {
             AxiomSource::Statement {
                 subject,
                 predicate,
@@ -710,6 +775,22 @@ impl SelectionIndex {
                     o: *object,
                     g: subject.graph,
                 };
+                if [SourceCarrier::Statement, SourceCarrier::Annotation]
+                    .into_iter()
+                    .any(|carrier| {
+                        let binding = SourceStatementBinding {
+                            canonical: quad,
+                            carrier,
+                        };
+                        self.selection_metadata.contains_key(&binding)
+                            || inventory
+                                .correspondence_record_owners(binding)
+                                .next()
+                                .is_some()
+                    })
+                {
+                    return None;
+                }
                 let memberships = [SourceCarrier::Statement, SourceCarrier::Annotation]
                     .into_iter()
                     .filter(|carrier| {
@@ -752,7 +833,7 @@ impl SelectionIndex {
                         .filter(|unit| self.active.contains(unit)),
                 )
             }
-        }
+        })
     }
 
     pub(super) fn row_membership(
@@ -763,6 +844,67 @@ impl SelectionIndex {
         let quad = binding.canonical;
         if quad.g.is_some() {
             return Membership::Blocked(&self.graph_boundary);
+        }
+        if let Some(owners) = self.selection_metadata.get(&binding) {
+            return self.combine(owners.iter().copied());
+        }
+        if inventory
+            .correspondence_record_owners(binding)
+            .next()
+            .is_some()
+        {
+            let mut owners: BTreeSet<_> = inventory
+                .correspondence_record_owners(binding)
+                .map(|ordinal| {
+                    owner(
+                        inventory.theory().owner_lowerings()[ordinal].source,
+                        SyntaxFamily::Correspondence,
+                    )
+                })
+                .collect();
+            if let Some(syntax) = self.syntax.rows.get(&binding) {
+                owners.extend(
+                    syntax
+                        .keys()
+                        .filter(|unit| self.active.contains(unit))
+                        .copied(),
+                );
+            }
+            let dataset = inventory.theory().source().dataset();
+            let node = SourceNode {
+                term: quad.s,
+                graph: quad.g,
+            };
+            if let Some(family) = intrinsic_family(dataset, quad) {
+                let unit = owner(node, family);
+                if self.active.contains(&unit) {
+                    owners.insert(unit);
+                }
+            }
+            if let TermRef::Iri(predicate) = dataset.resolve(quad.p) {
+                if let Some(families) = structural_families(predicate) {
+                    owners.extend(
+                        families
+                            .iter()
+                            .map(|&family| owner(node, family))
+                            .filter(|unit| self.active.contains(unit)),
+                    );
+                }
+                if matches!(
+                    predicate,
+                    "http://www.w3.org/1999/02/22-rdf-syntax-ns#type"
+                        | "https://blackcatinformatics.ca/logic/instanceOf"
+                ) && let TermRef::Iri(marker) = dataset.resolve(quad.o)
+                    && let Some(kind) =
+                        crate::frontend::StructuralSourceGraph::declaration_kind(marker)
+                {
+                    let unit = owner(node, declaration_family(kind));
+                    if self.active.contains(&unit) {
+                        owners.insert(unit);
+                    }
+                }
+            }
+            return self.combine(owners.into_iter());
         }
         if let Some(owners) = self.syntax.rows.get(&binding) {
             let mut active = owners
@@ -828,6 +970,24 @@ impl SelectionIndex {
         self.combine_memberships(owners.map(|unit| self.owner_membership(unit)))
     }
 
+    pub(super) fn correspondence_record_selected(
+        &self,
+        inventory: &SourceInventory<'_>,
+        binding: SourceStatementBinding,
+    ) -> bool {
+        inventory
+            .correspondence_record_owners(binding)
+            .any(|ordinal| {
+                matches!(
+                    self.owner_membership(owner(
+                        inventory.theory().owner_lowerings()[ordinal].source,
+                        SyntaxFamily::Correspondence
+                    )),
+                    Membership::Included
+                )
+            })
+    }
+
     fn combine_memberships<'a>(
         &'a self,
         memberships: impl Iterator<Item = Membership<'a>>,
@@ -881,6 +1041,7 @@ fn coordinate(
     composed: bool,
     modules: &BTreeSet<TermId>,
     available: &BTreeSet<TermId>,
+    selection_metadata: &mut BTreeMap<SourceStatementBinding, BTreeSet<SyntaxOwner>>,
 ) -> Coordinate {
     let graph = inventory.theory().source().source_graph();
     let dataset = inventory.theory().source().dataset();
@@ -935,6 +1096,28 @@ fn coordinate(
             code: "UNAVAILABLE_MODULE_COORDINATE",
             detail: "module coordinate lacks an actual supplied native IRI declaration".into(),
         });
+    }
+    // Only the validated coordinate's actual physical inputs are selection
+    // metadata. Their owner still determines inclusion, exclusion or blockage.
+    for edge in graph
+        .outgoing(unit.node)
+        .iter()
+        .filter(|edge| edge.role == SourceEdgeRole::Module)
+    {
+        if let SourcePredicate::Stored(predicate) = edge.predicate {
+            let binding = SourceStatementBinding {
+                canonical: QuadIds {
+                    s: edge.source.term,
+                    p: predicate,
+                    o: edge.target,
+                    g: edge.source.graph,
+                },
+                carrier: edge.carrier,
+            };
+            if inventory.statement_selected(binding.canonical, binding.carrier) {
+                selection_metadata.entry(binding).or_default().insert(unit);
+            }
+        }
     }
     if modules.contains(&target) {
         Coordinate::Included
@@ -993,6 +1176,7 @@ fn declaration_family(kind: SourceUnitKind) -> SyntaxFamily {
         SourceUnitKind::ClassExpression => SyntaxFamily::Class,
         SourceUnitKind::ReifiedAssertion | SourceUnitKind::QuotedStatement => SyntaxFamily::Atom,
         SourceUnitKind::Module => SyntaxFamily::Module,
+        SourceUnitKind::Correspondence => SyntaxFamily::Correspondence,
         _ => SyntaxFamily::Owner,
     }
 }
@@ -1074,6 +1258,7 @@ fn structural_families(predicate: &str) -> Option<&'static [SyntaxFamily]> {
             SyntaxFamily::Term,
             SyntaxFamily::Class,
             SyntaxFamily::Owner,
+            SyntaxFamily::Correspondence,
             SyntaxFamily::Schema,
             SyntaxFamily::Module,
             SyntaxFamily::ClassList,

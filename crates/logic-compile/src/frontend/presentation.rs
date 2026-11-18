@@ -128,6 +128,7 @@ pub(super) fn extract(
                         family,
                         disposition: OwnerDisposition::Emitted { index },
                         diagnostics: Vec::new(),
+                        record_support: Default::default(),
                     });
                 }
             }
@@ -155,6 +156,7 @@ pub(super) fn extract(
                         family,
                         disposition: OwnerDisposition::Rejected,
                         diagnostics: vec![diagnostic],
+                        record_support: Default::default(),
                     });
                     PresentationSourceRef {
                         term: PresentationTerm(dataset.term_value(source.term)),

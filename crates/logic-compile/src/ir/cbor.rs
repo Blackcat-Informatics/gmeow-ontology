@@ -293,7 +293,7 @@ impl Correspondence {
     /// # Errors
     /// Returns the sink's original failure without reporting partial success.
     pub(crate) fn write_cbor<W: Write + ?Sized>(&self, out: &mut W) -> io::Result<()> {
-        head::write_head(out, head::MAP, 22)?;
+        head::write_head(out, head::MAP, 22 + u64::from(self.lens.is_some()))?;
         head::write_text(out, "iri")?;
         head::write_text(out, &self.iri)?;
         head::write_text(out, "relation")?;
@@ -318,6 +318,10 @@ impl Correspondence {
         match self.put_leg.as_deref() {
             Some(value) => head::write_text(out, value)?,
             None => cbor::write(&Value::Null, out)?,
+        }
+        if let Some(lens) = &self.lens {
+            head::write_text(out, "lens")?;
+            head::write_text(out, lens)?;
         }
         head::write_text(out, "law_claims")?;
         head::write_head(out, head::ARRAY, self.law_claims.len() as u64)?;

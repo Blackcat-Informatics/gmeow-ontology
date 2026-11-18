@@ -2096,6 +2096,10 @@ pub struct Correspondence {
     pub get_leg: Option<String>,
     /// IRI of the `logic:TransactionProgram` realizing the put leg (`logic:putLeg`).
     pub put_leg: Option<String>,
+    /// The explicitly named `logic:Lens` reference (`logic:hasLens`). This
+    /// catalogue link neither resolves its legs nor discharges its laws.
+    #[serde(default, deserialize_with = "deserialize_lens_reference")]
+    pub lens: Option<String>,
     /// The claimed lens laws with discharge state (`logic:hasLawClaim`); sorted+deduped.
     pub law_claims: Vec<LawClaimIr>,
     /// Named limitations (`logic:hasCaveat`), sorted by IRI. Owned here so a
@@ -2145,6 +2149,21 @@ pub struct Correspondence {
     /// assert recoverability: a lossy correspondence may carry a deliberately refuting case.
     /// Sorted by IRI and unique at construction through [`Self::with_recovery_cases`].
     pub recovery_cases: Vec<RecoveryCaseIr>,
+}
+
+fn deserialize_lens_reference<'de, D: serde::Deserializer<'de>>(
+    deserializer: D,
+) -> Result<Option<String>, D::Error> {
+    let lens = <Option<String> as serde::Deserialize>::deserialize(deserializer)?;
+    if lens
+        .as_deref()
+        .is_some_and(|lens| !atomic::is_absolute_iri(lens))
+    {
+        return Err(serde::de::Error::custom(
+            "Correspondence lens must be an absolute IRI",
+        ));
+    }
+    Ok(lens)
 }
 
 impl Correspondence {
@@ -2203,6 +2222,7 @@ impl Correspondence {
             determinacy,
             get_leg,
             put_leg,
+            lens: None,
             law_claims,
             caveats: Vec::new(),
             loss_evidence: Vec::new(),
@@ -2224,6 +2244,21 @@ impl Correspondence {
     pub fn with_axis_evidence(mut self, evidence: AxisEvidence) -> Self {
         self.axis_evidence = evidence;
         self
+    }
+
+    /// Retain the named lens reference independently of executable leg bodies.
+    ///
+    /// # Errors
+    /// Rejects a reference that is not an absolute IRI.
+    pub fn with_lens(mut self, lens: impl Into<String>) -> gmeow_errors::Result<Self> {
+        let lens = lens.into();
+        if !atomic::is_absolute_iri(&lens) {
+            return Err(Diag::of_kind(crate::error::Ir::new(
+                "Correspondence lens must be an absolute IRI".to_owned(),
+            )));
+        }
+        self.lens = Some(lens);
+        Ok(self)
     }
 
     /// Attach the cell's concrete loss evidence as an unordered RDF literal set.
@@ -2424,6 +2459,13 @@ impl Correspondence {
             let evidence = self.axis_evidence.content_key();
             write!(key, "{SEP}axis-evidence={}:{evidence}", evidence.len())
                 .expect("writing to a String is infallible");
+        }
+        if let Some(lens) = &self.lens {
+            key.push(SEP);
+            key.push_str("lens=");
+            purrdf_hash::frame::frame_le_with(lens.as_bytes(), &mut |bytes| {
+                purrdf_hash::hex::encode_into(bytes, &mut key);
+            });
         }
         if !self.caveats.is_empty() {
             write!(key, "{SEP}caveats={};", self.caveats.len())

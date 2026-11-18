@@ -2295,6 +2295,9 @@ fn render_text(report: &ProveReport<'_>) {
                 NativeSourceDisposition::ConfigurationDeclaration { route } => {
                     ("ConfigurationDeclaration", "-", *route)
                 }
+                NativeSourceDisposition::MetatheoryDeclaration { route } => {
+                    ("MetatheoryDeclaration", "-", *route)
+                }
                 NativeSourceDisposition::OutsideSelection { reason } => {
                     ("OutsideSelection", "OUTSIDE_SELECTION", *reason)
                 }

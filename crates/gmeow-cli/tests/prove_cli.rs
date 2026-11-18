@@ -987,18 +987,25 @@ ex:thingHead a logic:Rule ;
     assert_eq!(report["selection"]["drops"], serde_json::json!([]));
 }
 
-/// A reasoning-contract declaration is catalogued metatheory: it is accounted, is
-/// not a drop, and does not change the verdict of the object theory.
+/// PROTECTS: configuration and correspondence catalogues account only their exact
+/// validated records, retain owned recovery syntax outside object premises, and
+/// keep resolved module metadata outside object premises without hiding a clash
+/// or unsupported statement on the same node.
 #[test]
 fn configuration_declarations_are_accounted_without_a_drop() {
-    let (report, code) = prove_json(
-        "contracts.logic.ttl",
-        r#"
+    const CATALOGUE: &str = r#"
 ex:classical a logic:ReasoningContract ; logic:modelSemantics logic:ClassicalSemantics .
+ex:catalogue a logic:Correspondence ; logic:correspondenceRelation logic:RelatedMatch ;
+    logic:morphismClass logic:LossyLens ; logic:morphismKind logic:InstitutionMorphism ;
+    logic:sourceEndpoint ex:source ; logic:targetEndpoint ex:target ;
+    logic:recoveryCase ex:case .
+ex:case a logic:RecoveryCase ; logic:recoveryTransform ex:recovery .
+ex:recovery a logic:Formula ; logic:relation ex:p ; logic:argument ex:left, ex:right .
+ex:left logic:termIndex 0 ; logic:termIri ex:subject .
+ex:right logic:termIndex 1 ; logic:termIri ex:object .
 ex:subject ex:property ex:object .
-"#,
-        &["--gate"],
-    );
+"#;
+    let (report, code) = prove_json("contracts.logic.ttl", CATALOGUE, &["--gate"]);
     assert_eq!(report["verdict"], "consistent", "{report:#}");
     assert_eq!(code, 3);
     assert_eq!(report["selection"]["drops"], serde_json::json!([]));
@@ -1012,6 +1019,88 @@ ex:subject ex:property ex:object .
                 .is_some_and(|disposition| disposition.contains_key("ConfigurationDeclaration"))),
         "{report:#}"
     );
+    let records: Vec<_> = report["native_admission"]["units"]
+        .as_array()
+        .expect("source units")
+        .iter()
+        .filter(|unit| unit["disposition"].get("MetatheoryDeclaration").is_some())
+        .collect();
+    assert!(
+        records.iter().any(|row| row["kind"] == "Owner"),
+        "{report:#}"
+    );
+    for field in [
+        "correspondenceRelation",
+        "recoveryTransform",
+        "relation",
+        "termIri",
+        "termIndex",
+    ] {
+        assert!(
+            records.iter().any(|row| row["anchor"]
+                .as_str()
+                .is_some_and(|anchor| anchor.contains(field))),
+            "{field}: {report:#}"
+        );
+    }
+    for (extra, expected) in [
+        (
+            "ex:A logic:disjointWith ex:B . ex:catalogue logic:instanceOf ex:A, ex:B .",
+            "inconsistent",
+        ),
+        ("ex:catalogue logic:instanceOf logic:Lens .", "not-decided"),
+        (
+            "ex:catalogue logic:unreadRecordField ex:value .",
+            "not-decided",
+        ),
+        (
+            "ex:unreadAtomic a logic:Formula ; logic:relation logic:sourceEndpoint ; logic:argument [ logic:termIndex 0 ; logic:termIri ex:catalogue ], [ logic:termIndex 1 ; logic:termIri ex:source ] .",
+            "not-decided",
+        ),
+        ("logic:relation logic:domain logic:Nothing .", "not-decided"),
+    ] {
+        let (changed, _) = prove_json(
+            "catalogue-boundary.logic.ttl",
+            &format!("{CATALOGUE}{extra}"),
+            &["--gate"],
+        );
+        assert_eq!(changed["verdict"], expected, "{changed:#}");
+        if expected == "not-decided" {
+            assert!(
+                !drop_codes(&changed).is_empty(),
+                "unaccounted object obligations stay visible"
+            );
+        }
+        if extra.starts_with("logic:relation") {
+            assert_eq!(
+                changed["engines"]["native"]["verdict"], "no-clash",
+                "catalogue syntax is not an object premise: {changed:#}"
+            );
+        }
+    }
+    let scoped = format!(
+        "{CATALOGUE}\nex:M a logic:Module . ex:catalogue logic:inModule ex:M .\n\
+         logic:inModule logic:domain logic:Nothing ."
+    );
+    for (extra, expected, native) in [
+        ("", "not-decided", "no-clash"),
+        (
+            "ex:A logic:disjointWith ex:B . ex:catalogue logic:instanceOf ex:A, ex:B .",
+            "inconsistent",
+            "clash",
+        ),
+    ] {
+        let (changed, _) = prove_json(
+            "scoped-catalogue-boundary.logic.ttl",
+            &format!("{scoped}\n{extra}"),
+            &["--module", "https://example.org/prove/M", "--gate"],
+        );
+        assert_eq!(changed["verdict"], expected, "{changed:#}");
+        assert_eq!(
+            changed["engines"]["native"]["verdict"], native,
+            "{changed:#}"
+        );
+    }
 }
 
 /// Two reports from different sources that type one individual into two disjoint

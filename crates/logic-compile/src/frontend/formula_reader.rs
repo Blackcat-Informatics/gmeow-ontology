@@ -3,12 +3,15 @@
 
 //! Dataset-bound formula reconstruction shared by all semantic owners.
 //!
-//! The memo contains derived values, never source ownership or admission evidence.
+//! The memo retains derived values and exact reconstruction reads. Those reads
+//! confer neither source ownership nor admission; a successful enclosing owner
+//! publishes their source support.
 //! Its native term IDs are valid only in the borrowed, immutable dataset. Modal
 //! translation context is part of each key. Eviction changes work, never meaning.
 
 use std::collections::{HashMap, HashSet, VecDeque};
 use std::mem::size_of;
+use std::sync::Arc;
 
 use purrdf::dataset_view::TermGuard;
 use purrdf::{DatasetView, GraphMatch, RdfDataset, TermRef, TermValue};
@@ -26,6 +29,10 @@ use crate::ir::{Formula, Term};
 
 const MAX_MEMO_ENTRIES: usize = 4096;
 const MAX_MEMO_BYTES: usize = 8 * 1024 * 1024;
+
+mod trace;
+pub(super) use trace::ReadRecorder;
+use trace::ReadTrace;
 
 #[cfg(not(test))]
 mod reconstruction;
@@ -66,9 +73,10 @@ struct MemoKey<Id> {
     translation: Translation,
 }
 
-struct MemoEntry {
+struct MemoEntry<Id> {
     result: ReadResult<Formula>,
     bytes: usize,
+    reads: Arc<ReadTrace<Id>>,
 }
 
 /// One reconstruction session over one selected source dataset.
@@ -87,11 +95,13 @@ pub(crate) struct FormulaReader<
     interval_prefix: String,
     /// Successful size admissions belong to this immutable dataset and graph.
     admitted_sources: HashSet<D::Id, FixedState>,
-    memo: HashMap<MemoKey<D::Id>, MemoEntry, FixedState>,
+    memo: HashMap<MemoKey<D::Id>, MemoEntry<D::Id>, FixedState>,
     insertion_order: VecDeque<MemoKey<D::Id>>,
     retained_bytes: usize,
     max_bytes: usize,
     observer: reconstruction::Observer,
+    reads: ReadRecorder<D::Id>,
+    last_read: Option<Arc<ReadTrace<D::Id>>>,
 }
 
 impl<'a, D: DatasetView<ReadError = std::convert::Infallible> + ?Sized> FormulaReader<'a, D> {
@@ -100,7 +110,11 @@ impl<'a, D: DatasetView<ReadError = std::convert::Infallible> + ?Sized> FormulaR
     }
 
     pub(super) fn in_graph(dataset: &'a D, graph: GraphMatch<D::Id>) -> Self {
-        let source = SelectedFormulaGraph { dataset, graph };
+        let source = SelectedFormulaGraph {
+            dataset,
+            graph,
+            reads: None,
+        };
         let [world_prefix, temporal_prefix, interval_prefix] = fresh_variable_prefixes(&source);
         Self {
             dataset,
@@ -114,6 +128,8 @@ impl<'a, D: DatasetView<ReadError = std::convert::Infallible> + ?Sized> FormulaR
             retained_bytes: 0,
             max_bytes: MAX_MEMO_BYTES,
             observer: reconstruction::Observer::default(),
+            reads: ReadRecorder::default(),
+            last_read: None,
         }
     }
 
@@ -125,7 +141,14 @@ impl<'a, D: DatasetView<ReadError = std::convert::Infallible> + ?Sized> FormulaR
         SelectedFormulaGraph {
             dataset: self.dataset,
             graph: self.graph,
+            reads: Some(self.reads.clone()),
         }
+    }
+
+    /// Exact reconstruction reads, including reused memoized descendants.
+    /// The caller still needs a successful semantic owner before publishing them.
+    pub(crate) fn consumed_rows(&self) -> impl Iterator<Item = purrdf::QuadIds<D::Id>> + '_ {
+        self.last_read.iter().flat_map(|trace| trace.rows())
     }
 
     pub(super) fn temporal_variable(&self, interval: bool, depth: usize) -> String {
@@ -144,6 +167,7 @@ impl<'a, D: DatasetView<ReadError = std::convert::Infallible> + ?Sized> FormulaR
         node: &Subject,
         world: Term,
     ) -> gmeow_errors::Result<Formula> {
+        self.last_read = None;
         self.admit(node)?;
         self.expand(
             node,
@@ -154,6 +178,7 @@ impl<'a, D: DatasetView<ReadError = std::convert::Infallible> + ?Sized> FormulaR
     }
 
     pub(crate) fn read(&mut self, node: &Subject) -> gmeow_errors::Result<Formula> {
+        self.last_read = None;
         self.admit(node)?;
         self.expand(node, &Translation::Plain, &mut Vec::new())
             .map_err(|error| super::formula_err_for(error.focus, error.detail))
@@ -164,7 +189,14 @@ impl<'a, D: DatasetView<ReadError = std::convert::Infallible> + ?Sized> FormulaR
         if id.is_some_and(|id| self.admitted_sources.contains(&id)) {
             return Ok(());
         }
-        super::admission::admit(&self.source(), node)?;
+        super::admission::admit(
+            &SelectedFormulaGraph {
+                dataset: self.dataset,
+                graph: self.graph,
+                reads: None,
+            },
+            node,
+        )?;
         if let Some(id) = id
             && self.admitted_sources.len() < MAX_MEMO_ENTRIES
         {
@@ -178,6 +210,25 @@ impl<'a, D: DatasetView<ReadError = std::convert::Infallible> + ?Sized> FormulaR
         node: &Subject,
         context: &Translation,
         active: &mut Vec<D::Id>,
+    ) -> ReadResult<Formula> {
+        self.reads.begin();
+        let mut retain_key = None;
+        let result = self.expand_recorded(node, context, active, &mut retain_key);
+        let reads = self.reads.finish();
+        if let Some(key) = retain_key {
+            self.retain(key, &result, Arc::clone(&reads));
+        }
+        self.reads.child(Arc::clone(&reads));
+        self.last_read = Some(reads);
+        result
+    }
+
+    fn expand_recorded(
+        &mut self,
+        node: &Subject,
+        context: &Translation,
+        active: &mut Vec<D::Id>,
+        retain_key: &mut Option<MemoKey<D::Id>>,
     ) -> ReadResult<Formula> {
         let context = match explicit_formula_context(&self.source(), node)? {
             Some(world) => Translation::AtWorld {
@@ -218,6 +269,7 @@ impl<'a, D: DatasetView<ReadError = std::convert::Infallible> + ?Sized> FormulaR
         if let Some(entry) = self.memo.get(&key)
             && (entry.result.is_ok() || is_root)
         {
+            self.reads.child(Arc::clone(&entry.reads));
             return entry.result.clone();
         }
         active.push(source);
@@ -225,7 +277,7 @@ impl<'a, D: DatasetView<ReadError = std::convert::Infallible> + ?Sized> FormulaR
         let popped = active.pop();
         debug_assert_eq!(popped, Some(source));
         if result.is_ok() || is_root {
-            self.retain(key, &result);
+            *retain_key = Some(key);
         }
         result
     }
@@ -239,6 +291,7 @@ impl<'a, D: DatasetView<ReadError = std::convert::Infallible> + ?Sized> FormulaR
         self.observer.record();
         let selection = self.source();
         let store = &selection;
+        record_role(store, node, "Formula");
         let node_id = subject_str(node);
         let relation = formula_objects(store, node, "relation");
         let not = formula_objects(store, node, "not");
@@ -459,7 +512,12 @@ impl<'a, D: DatasetView<ReadError = std::convert::Infallible> + ?Sized> FormulaR
         })
     }
 
-    fn retain(&mut self, key: MemoKey<D::Id>, result: &ReadResult<Formula>) {
+    fn retain(
+        &mut self,
+        key: MemoKey<D::Id>,
+        result: &ReadResult<Formula>,
+        reads: Arc<ReadTrace<D::Id>>,
+    ) {
         let context_bytes = match &key.translation {
             Translation::Plain => 0,
             Translation::AtWorld { world, .. } => term_heap_bytes(world),
@@ -470,10 +528,11 @@ impl<'a, D: DatasetView<ReadError = std::convert::Infallible> + ?Sized> FormulaR
         };
         // Account for owned tree/string allocations and both stored keys. The
         // independent entry cap also bounds hash-table and queue bookkeeping.
-        let bytes = size_of::<MemoEntry>()
-            + 2 * size_of::<MemoKey<D::Id>>()
-            + 2 * context_bytes
-            + payload_bytes;
+        let bytes = size_of::<MemoEntry<D::Id>>()
+            .saturating_add(2 * size_of::<MemoKey<D::Id>>())
+            .saturating_add(2 * context_bytes)
+            .saturating_add(payload_bytes)
+            .saturating_add(reads.bytes);
         if bytes > self.max_bytes || self.memo.contains_key(&key) {
             return;
         }
@@ -494,9 +553,38 @@ impl<'a, D: DatasetView<ReadError = std::convert::Infallible> + ?Sized> FormulaR
             MemoEntry {
                 result: result.clone(),
                 bytes,
+                reads,
             },
         );
         self.retained_bytes += bytes;
+    }
+}
+
+/// Retain only the actual declaration of a role consumed by reconstruction.
+fn record_role(source: &impl FormulaSource, node: &Subject, local: &str) {
+    let dataset = source.dataset();
+    let Some(subject) = subject_id(dataset, node) else {
+        return;
+    };
+    let Some(class) = resident(dataset.term_id_by_value(&TermValue::Iri(logic_iri(local)))) else {
+        return;
+    };
+    for predicate in [
+        "http://www.w3.org/1999/02/22-rdf-syntax-ns#type",
+        "https://blackcatinformatics.ca/logic/instanceOf",
+    ] {
+        let Some(predicate) = resident(dataset.term_id_by_value(&TermValue::iri(predicate))) else {
+            continue;
+        };
+        for quad in crate::graphutil::source_graph_pattern(
+            dataset,
+            Some(subject),
+            Some(predicate),
+            Some(class),
+            source.source_graph(),
+        ) {
+            source.observe(quad);
+        }
     }
 }
 
@@ -807,6 +895,7 @@ fn parse_term(
     carrier: &Subject,
     active: &mut Vec<Subject>,
 ) -> ReadResult<Term> {
+    record_role(store, carrier, "TermCarrier");
     let fields = [
         "termIri",
         "termVariable",
@@ -986,6 +1075,7 @@ fn parse_function_term(
     function_term: &Subject,
     active: &mut Vec<Subject>,
 ) -> ReadResult<Term> {
+    record_role(store, function_term, "FunctionTerm");
     let node_id = subject_str(function_term);
     if active.contains(function_term) {
         return Err(formula_err(
