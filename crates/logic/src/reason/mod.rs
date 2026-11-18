@@ -721,7 +721,9 @@ enum SelectedRuleProfile {
     SourceProof,
 }
 
-/// Masked lowering cannot erase the original refusal of a selected source rule.
+/// Procedural execution requires every nonexcluded rule's source contract.
+/// Source proof searches the admitted positive fragment while its source account
+/// retains blocked owners; procedural absence remains a refusal before execution.
 fn admit_selected_source_rules(
     inventory: &gmeow_logic_compile::source_inventory::SourceInventory<'_>,
     selection: &gmeow_logic_compile::source_inventory::ResolvedTheorySelection,
@@ -753,7 +755,9 @@ fn admit_selected_source_rules(
                 .any(|atom| atom.negated)
         {
             gaps.push(format!("{}: program:rule:{index}: NEGATION_AS_FAILURE_IS_NOT_CLASSICAL_NEGATION: selected source rule uses procedural absence", unit.anchor()));
-        } else if let TheoryUnitSelection::Blocked { code, reason } = membership {
+        } else if matches!(profile, SelectedRuleProfile::Procedural)
+            && let TheoryUnitSelection::Blocked { code, reason } = membership
+        {
             gaps.push(format!(
                 "rule/{index}: {}: {code}: {reason}; source scope {:?}",
                 unit.anchor(),

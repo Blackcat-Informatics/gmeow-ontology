@@ -153,6 +153,21 @@ that contradict each other therefore contradict within one context and make the 
 inconsistent, while two claims placed in different standpoints do not; a contested fact is
 authored with a standpoint, not with provenance alone.
 
+Assertion eligibility is resolved independently for each original carrier.
+Canonical statement deduplication preserves all contributors: a qualified
+carrier neither cancels another carrier's admitted assertion nor acquires its
+admission. The ingress reports the actual admitted carrier names and each
+unread carrier's reason. Unread contributions remain completeness boundaries
+even when the admitted fragment supplies a witnessed contradiction.
+
+The source-proof consistency operation executes only whole admitted rule
+owners. A blocked positive rule remains an unread source obligation while
+independent admitted premises may establish a contradiction. Without that
+witness, unread obligations keep the result incomplete. The procedural
+operation retains its selected-rule refusals, and source-proof execution
+refuses nonexcluded negation-as-failure rules before execution. Neither
+operation interprets procedural absence as classical negation.
+
 ### Explicit module composition
 
 `gmeow prove --module IRI` selects a declared module root; repeating the option

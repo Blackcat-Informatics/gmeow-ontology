@@ -4,7 +4,9 @@
 //! Admission contracts for GMEOW correspondence fields and selected leg programs.
 
 use super::*;
-use crate::frontend::{OwnerDisposition, OwnerFamily, PreparedLogicSource};
+use crate::frontend::{OwnerDisposition, OwnerFamily, PreparedLogicSource, SourceSelection};
+use crate::ir::TheorySelection;
+use crate::source_inventory::{SourceInventory, SourceObligationOrigin, TheoryUnitSelection};
 use std::collections::BTreeSet;
 
 const CORR: &str = "https://example.org/corr";
@@ -251,7 +253,7 @@ fn invalid_caveat_literal_components_fail_typed_and_cache_admission() {
 }
 
 /// PROTECTS: present malformed scalar or typed-link values reject the whole owner
-/// and cannot publish partially accepted source support.
+/// and cannot publish partially accepted source support or Lens object premises.
 #[test]
 fn malformed_optional_axes_reject_the_owner_instead_of_becoming_absent() {
     for (predicate, value) in [
@@ -279,7 +281,7 @@ fn malformed_optional_axes_reject_the_owner_instead_of_becoming_absent() {
     ] {
         let dataset = source(&format!("ex:corr {predicate} {value} ."));
         let prepared = PreparedLogicSource::new(&dataset).unwrap();
-        let compiled = prepared.compile_with_sources(None).unwrap();
+        let compiled = prepared.into_compiled(None).unwrap();
         assert!(
             compiled.program().correspondences.is_empty(),
             "{predicate} {value}"
@@ -307,6 +309,36 @@ fn malformed_optional_axes_reject_the_owner_instead_of_becoming_absent() {
             parse_correspondence(&dataset).is_err(),
             "cache rederivation must reject {predicate} {value}"
         );
+        if predicate == "logic:hasLens" {
+            let inventory =
+                SourceInventory::new(&compiled, SourceSelection::all_classical_roots(&compiled));
+            let selected = inventory
+                .resolve_theory_selection(&TheorySelection::top_level_only())
+                .expect("the rejected owner remains selectable source");
+            let link = inventory
+                .obligations()
+                .find(|unit| {
+                    matches!(unit.origin(), SourceObligationOrigin::Statement(binding)
+                    if matches!(compiled.source().dataset().resolve(binding.canonical.p),
+                        purrdf::TermRef::Iri("https://blackcatinformatics.ca/logic/hasLens")))
+                })
+                .expect("the rejected Lens link retains its original obligation");
+            assert!(matches!(
+                selected.unit_selection(link).expect("same inventory"),
+                TheoryUnitSelection::Blocked { .. }
+            ));
+            let view = selected.source_view(&inventory).expect("selected source");
+            assert!(view.quads().all(|quad| !matches!(
+                view.resolve(quad.p).expect("immutable source term"),
+                purrdf::TermRef::Iri("https://blackcatinformatics.ca/logic/hasLens")
+            )));
+            let owl = crate::projections::reader_view::with_owl_rdfs_projection(&view)
+                .expect("the selected OWL reader view materializes");
+            assert!(owl.quads().all(|quad| !matches!(
+                owl.as_ref().resolve(quad.p),
+                purrdf::TermRef::Iri("https://blackcatinformatics.ca/logic/hasLens")
+            )));
+        }
     }
 }
 

@@ -14,7 +14,7 @@
 
 use std::collections::BTreeSet;
 
-use gmeow_logic_compile::frontend::{ClaimStatement, CompiledTheory};
+use gmeow_logic_compile::frontend::{ClaimCarrier, ClaimStatement, CompiledTheory, SourceNode};
 use gmeow_logic_compile::ir::{
     AtomicTerm, ContextualScope, EvidenceCoordinate, LogicAxiom, LogicProgram, ScopeMembership,
     TheorySelection,
@@ -37,6 +37,9 @@ pub struct ReadClaim {
     /// The evidence coordinates of its scope. They are metadata of the report and
     /// stay on the carrier; they are not part of the fact.
     pub evidence: BTreeSet<EvidenceCoordinate>,
+    /// Only the original carriers whose own closed assertion contracts admitted
+    /// this statement. Equal canonical content grants no sibling admission.
+    pub carriers: Vec<ClaimCarrier>,
 }
 
 /// Why a scoped claim was not read as a fact.
@@ -127,8 +130,21 @@ impl std::fmt::Display for UnreadReason {
 pub struct UnreadClaim {
     /// Index of the claim in the compiled program's axioms.
     pub axiom: usize,
+    /// The original carrier, when the scoped axiom has a reification contributor.
+    pub carrier: Option<ClaimCarrier>,
     /// What kept the claim out of the selected world.
     pub reason: UnreadReason,
+}
+
+impl UnreadClaim {
+    /// Deterministic source detail retaining distinct carriers of one axiom.
+    #[must_use]
+    pub fn source_detail(&self) -> String {
+        self.carrier.as_ref().map_or_else(
+            || format!("program:axiom:{}", self.axiom),
+            |carrier| format!("program:axiom:{} carrier {}", self.axiom, carrier.name),
+        )
+    }
 }
 
 /// The account of every scoped axiom of one compiled theory under one selection.
@@ -141,6 +157,8 @@ pub struct ClaimIngress {
     resolved: ResolvedTheorySelection,
     read: Vec<ReadClaim>,
     unread: Vec<UnreadClaim>,
+    /// Compact sorted offsets into `unread`, never cloned source obligations.
+    unread_carriers: Vec<(SourceNode, usize)>,
     excluded: Vec<usize>,
     input_contract: [u8; 32],
     /// The scoped axioms the ledger classified, to recognise their program.
@@ -172,6 +190,13 @@ impl ClaimIngress {
     #[must_use]
     pub fn unread(&self) -> &[UnreadClaim] {
         &self.unread
+    }
+
+    pub(super) fn unread_carrier(&self, carrier: SourceNode) -> Option<&UnreadClaim> {
+        self.unread_carriers
+            .binary_search_by_key(&carrier, |(source, _)| *source)
+            .ok()
+            .map(|position| &self.unread[self.unread_carriers[position].1])
     }
 
     /// The first scoped axiom of `program` this ledger does not account for.
@@ -267,40 +292,64 @@ pub fn prepare_selected_theory_input(
         {
             scope.module = None;
         }
-        let reason = match selection.request().membership(&scope) {
-            ScopeMembership::UntranslatedContext { coordinates } => {
-                UnreadReason::Context(coordinates)
-            }
-            ScopeMembership::InTheory { evidence } => {
-                match claimed_fact(
-                    resolver.selected_statement(index, inventory, selection)?,
-                    dataset,
-                    axiom,
-                ) {
+        let scope_membership = selection.request().membership(&scope);
+        let contributions = resolver.selected_statements(index, inventory, selection)?;
+        let no_carriers = contributions.is_empty();
+        let mut carriers = Vec::new();
+        for (carrier, statement) in contributions
+            .into_iter()
+            .map(|(carrier, statement)| (Some(carrier), statement))
+            .chain(no_carriers.then_some((None, ClaimStatement::Unresolved)))
+        {
+            let reason = match &scope_membership {
+                ScopeMembership::UntranslatedContext { coordinates } => {
+                    UnreadReason::Context(coordinates.clone())
+                }
+                ScopeMembership::InTheory { .. } => match claimed_fact(statement, dataset, axiom) {
                     Ok(fact) => {
                         facts.push(fact);
-                        read.push(ReadClaim {
-                            axiom: index,
-                            evidence,
-                        });
+                        carriers
+                            .push(carrier.expect("a resolved statement has its original carrier"));
                         continue;
                     }
                     Err(reason) => reason,
-                }
-            }
-        };
-        unread.push(UnreadClaim {
-            axiom: index,
-            reason,
-        });
+                },
+            };
+            unread.push(UnreadClaim {
+                axiom: index,
+                carrier,
+                reason,
+            });
+        }
+        if let ScopeMembership::InTheory { evidence } = scope_membership
+            && !carriers.is_empty()
+        {
+            read.push(ReadClaim {
+                axiom: index,
+                evidence,
+                carriers,
+            });
+        }
     }
     let source_view = selection.source_view(inventory)?;
     let mut input = prepare_default_reasoning_input(&source_view, selection)?;
     input.assert_facts(world, facts)?;
+    let mut unread_carriers: Vec<_> = unread
+        .iter()
+        .enumerate()
+        .filter_map(|(index, claim)| {
+            claim
+                .carrier
+                .as_ref()
+                .map(|carrier| (carrier.source, index))
+        })
+        .collect();
+    unread_carriers.sort_unstable();
     let ingress = ClaimIngress {
         resolved: selection.clone(),
         read,
         unread,
+        unread_carriers,
         excluded,
         input_contract: *input.ingress_contract(),
         claims: scoped(program)

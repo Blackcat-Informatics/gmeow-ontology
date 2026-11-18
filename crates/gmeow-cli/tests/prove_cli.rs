@@ -89,6 +89,8 @@ fn prove_json(name: &str, body: &str, extra: &[&str]) -> (serde_json::Value, i32
 
 /// PROTECTS: explicit roots and actual cyclic imports contribute to one theory;
 /// separate module consistency never licenses their contradictory composition.
+/// Qualified duplicate carriers cannot erase admitted premises or borrow admission.
+/// A blocked positive rule stays unread while the admitted fragment seeks a witness.
 #[test]
 fn selected_modules_form_one_theory_with_actual_import_closure() {
     let body = r#"
@@ -166,6 +168,12 @@ ex:right rdf:reifies <<( ex:a logic:instanceOf ex:B )>> ; logic:inModule ex:Righ
     assert!(text.contains("theory-root https://example.org/prove/LeftModule"));
     assert!(text.contains("verdict consistent"));
     assert!(
+        text.lines()
+            .any(|line| line.starts_with("claim-carrier program:axiom:")
+                && line.ends_with("https://example.org/prove/left")),
+        "{text}"
+    );
+    assert!(
         text.lines().any(
             |line| line.starts_with("source-unit OutsideRequestedTheory ")
                 && line.contains("https://example.org/prove/right")
@@ -180,6 +188,70 @@ ex:right rdf:reifies <<( ex:a logic:instanceOf ex:B )>> ; logic:inModule ex:Righ
     assert_eq!(selection["imports"].as_array().map(Vec::len), Some(5));
     assert_eq!(selection["includes_top_level"], true);
     assert_eq!(imported["selection"]["units"], joint["selection"]["units"]);
+    for (left, expected, count) in [
+        (
+            "ex:left rdf:reifies <<( ex:a logic:instanceOf ex:A )>> ; logic:inModule ex:LeftModule .
+ex:alsoLeft rdf:reifies <<( ex:a logic:instanceOf ex:A )>> ; logic:inModule ex:LeftModule .",
+            "inconsistent",
+            2,
+        ),
+        ("", "not-decided", 1),
+    ] {
+        let (report, code) = prove_json(
+            "qualified-module-carrier.ttl",
+            &format!(
+                r#"
+ex:LeftModule a logic:Module . ex:RightModule a logic:Module .
+ex:A logic:disjointWith ex:B .
+{left}
+ex:right rdf:reifies <<( ex:a logic:instanceOf ex:B )>> ; logic:inModule ex:RightModule .
+ex:qualified rdf:reifies <<( ex:a logic:instanceOf ex:A )>> ;
+    logic:inModule ex:LeftModule ; ex:qualifier ex:unknown .
+_:r a logic:TermCarrier ; logic:termVariable "r" .
+ex:blocked a logic:Rule ; logic:inModule ex:LeftModule ; logic:standpoint ex:observer ;
+    logic:head [ rdf:reifies <<( _:r logic:instanceOf logic:Nothing )>> ] ;
+    logic:body [ rdf:reifies <<( _:r logic:instanceOf ex:B )>> ] .
+"#
+            ),
+            &[
+                "--module", "https://example.org/prove/LeftModule",
+                "--module", "https://example.org/prove/RightModule", "--gate",
+            ],
+        );
+        assert_eq!(report["verdict"], expected, "{report:#}");
+        assert_eq!(code, 3, "native verdicts retain attestation grade");
+        assert_eq!(report["selection"]["complete"], false);
+        assert_eq!(report["selection"]["claims_read"], count);
+        assert!(has_drop(&report, "CONTEXT_ERASURE_FORBIDDEN", "blocked"), "{report:#}");
+        let carriers: Vec<_> = report["selection"]["claims"]
+            .as_array().expect("read claims")
+            .iter()
+            .flat_map(|claim| claim["carriers"].as_array().expect("actual carriers"))
+            .filter_map(serde_json::Value::as_str)
+            .collect();
+        assert!(carriers.contains(&"https://example.org/prove/right"));
+        assert!(!carriers.contains(&"https://example.org/prove/qualified"));
+        if expected == "inconsistent" {
+            assert!(carriers.contains(&"https://example.org/prove/left"));
+            assert!(carriers.contains(&"https://example.org/prove/alsoLeft"));
+            assert_eq!(report["engines"]["native"]["verdict"], "clash");
+            let premises = report["refutations"].to_string();
+            assert!(premises.contains("https://example.org/prove/A"));
+            assert!(premises.contains("https://example.org/prove/B"));
+        } else {
+            assert_eq!(report["engines"]["native"]["verdict"], "no-clash");
+        }
+        let unread: Vec<_> = report["native_admission"]["execution_drops"]
+            .as_array().expect("execution boundaries")
+            .iter().filter(|drop| drop["code"] == "SCOPED_CLAIM_NOT_READ").collect();
+        assert!(matches!(unread[..], [drop] if drop["detail"].as_str()
+            .is_some_and(|detail| detail.contains("https://example.org/prove/qualified"))));
+        assert!(report["native_admission"]["units"].as_array().expect("source obligations")
+            .iter().any(|unit| unit["kind"] == "Quotation"
+                && unit["anchor"].as_str().is_some_and(|anchor|
+                    anchor.contains("https://example.org/prove/qualified"))
+                && unit["disposition"]["Blocked"]["code"] == "SCOPED_CLAIM_NOT_READ"));
+    }
 }
 
 /// PROTECTS: unresolved roots/imports fail closed before native execution.
@@ -990,7 +1062,8 @@ ex:thingHead a logic:Rule ;
 /// PROTECTS: configuration and correspondence catalogues account only their exact
 /// validated records, retain owned recovery syntax outside object premises, and
 /// keep resolved module metadata outside object premises without hiding a clash
-/// or unsupported statement on the same node.
+/// or unsupported statement on the same node. Rejected and orphan Lens links
+/// cannot become premises, while independent reification retains its assertion.
 #[test]
 fn configuration_declarations_are_accounted_without_a_drop() {
     const CATALOGUE: &str = r#"
@@ -1078,6 +1151,76 @@ ex:subject ex:property ex:object .
             );
         }
     }
+    let rejected = format!(
+        "{CATALOGUE}\nex:catalogue logic:hasLens ex:undeclaredLens .\n\
+         logic:hasLens logic:domain logic:Nothing ."
+    );
+    for (extra, expected, native) in [
+        ("", "not-decided", "no-clash"),
+        (
+            "ex:assertion rdf:reifies <<( ex:catalogue logic:hasLens ex:undeclaredLens )>> ; logic:provenance ex:source .",
+            "inconsistent",
+            "clash",
+        ),
+    ] {
+        let (changed, code) = prove_json(
+            "rejected-lens-boundary.logic.ttl",
+            &format!("{rejected}\n{extra}"),
+            &["--gate"],
+        );
+        assert_eq!(changed["verdict"], expected, "{changed:#}");
+        assert_eq!(code, 3);
+        assert_eq!(
+            changed["engines"]["native"]["verdict"], native,
+            "{changed:#}"
+        );
+        assert_eq!(
+            changed["engines"]["owl_dl"]["state"], "consistent",
+            "{changed:#}"
+        );
+        assert_eq!(changed["selection"]["complete"], false);
+        assert!(
+            has_drop(&changed, "SKIPPED_SELECTED_OWNER", "catalogue"),
+            "{changed:#}"
+        );
+        assert!(
+            changed["native_admission"]["units"]
+                .as_array()
+                .expect("source units")
+                .iter()
+                .any(|unit| unit["anchor"]
+                    .as_str()
+                    .is_some_and(|anchor| anchor.starts_with("quad|")
+                        && anchor.contains("hasLens")
+                        && anchor.contains("undeclaredLens"))
+                    && unit["disposition"].get("Blocked").is_some()),
+            "{changed:#}"
+        );
+    }
+    let (orphan, code) = prove_json(
+        "orphan-lens-boundary.logic.ttl",
+        &format!(
+            "{CATALOGUE}\nex:orphan a logic:ReasoningContract ; \
+             logic:modelSemantics logic:ClassicalSemantics ; logic:hasLens ex:undeclaredLens .\n\
+             logic:hasLens logic:domain logic:Nothing ."
+        ),
+        &["--gate"],
+    );
+    assert_eq!(orphan["verdict"], "not-decided", "{orphan:#}");
+    assert_eq!(code, 3);
+    assert_eq!(
+        orphan["engines"]["native"]["verdict"], "no-clash",
+        "{orphan:#}"
+    );
+    assert_eq!(
+        orphan["engines"]["owl_dl"]["state"], "consistent",
+        "{orphan:#}"
+    );
+    assert!(
+        has_drop(&orphan, "NO_EXECUTABLE_OWNER_PATH", "hasLens"),
+        "{orphan:#}"
+    );
+
     let scoped = format!(
         "{CATALOGUE}\nex:M a logic:Module . ex:catalogue logic:inModule ex:M .\n\
          logic:inModule logic:domain logic:Nothing ."
@@ -1226,7 +1369,9 @@ ex:a logic:instanceOf ex:A .
     assert_eq!(code, 3);
     assert_eq!(report["engines"]["native"]["verdict"], "no-clash");
     assert_eq!(report["selection"]["claims_read"], 0);
-    let unread: Vec<&str> = report["selection"]["drops"]
+    // Execution boundaries count original unread carriers; source-obligation
+    // rows retain their separate quotation and canonical-axiom judgments.
+    let unread: Vec<&str> = report["native_admission"]["execution_drops"]
         .as_array()
         .expect("selection drops")
         .iter()
@@ -1266,7 +1411,7 @@ ex:A logic:disjointWith ex:B .
     assert_eq!(code, 3);
     assert_eq!(report["engines"]["native"]["verdict"], "no-clash");
     assert_eq!(report["selection"]["claims_read"], 0);
-    let unread: Vec<&str> = report["selection"]["drops"]
+    let unread: Vec<&str> = report["native_admission"]["execution_drops"]
         .as_array()
         .expect("selection drops")
         .iter()
@@ -1321,7 +1466,7 @@ fn refuted_claim_is_unread(report: &serde_json::Value, code: i32, claims_read: u
     assert_eq!(code, 3);
     assert_eq!(report["engines"]["native"]["verdict"], "no-clash");
     assert_eq!(report["selection"]["claims_read"], claims_read);
-    let unread: Vec<&str> = report["selection"]["drops"]
+    let unread: Vec<&str> = report["native_admission"]["execution_drops"]
         .as_array()
         .expect("selection drops")
         .iter()

@@ -116,6 +116,8 @@ struct SelectionReport {
 struct ReadClaimReport {
     /// `program:axiom:N`, the claim's place in the compiled program.
     anchor: String,
+    /// Original source carriers that independently admitted this canonical claim.
+    carriers: Vec<String>,
     subject: String,
     predicate: String,
     object: String,
@@ -1230,6 +1232,11 @@ fn native_leg(
                 let axiom = &theory.program().axioms[claim.axiom];
                 ReadClaimReport {
                     anchor: format!("program:axiom:{}", claim.axiom),
+                    carriers: claim
+                        .carriers
+                        .iter()
+                        .map(|carrier| carrier.name.clone())
+                        .collect(),
                     subject: axiom.subject.clone(),
                     predicate: axiom.predicate.clone(),
                     object: axiom.obj.key(),
@@ -1244,8 +1251,8 @@ fn native_leg(
                 ENGINE_NATIVE,
                 "SCOPED_CLAIM_NOT_READ",
                 format!(
-                    "program:axiom:{}: {} {} {}: {}",
-                    claim.axiom,
+                    "{}: {} {} {}: {}",
+                    claim.source_detail(),
                     axiom.subject,
                     axiom.predicate,
                     axiom.obj.key(),
@@ -2321,6 +2328,11 @@ fn render_text(report: &ProveReport<'_>) {
         println!("selection-digest {}", selection.selection_digest);
         println!("semantic-units {}", selection.units);
         println!("claims-read {}", selection.claims_read);
+        for claim in &selection.claims {
+            for carrier in &claim.carriers {
+                println!("claim-carrier {} {carrier}", claim.anchor);
+            }
+        }
         // `complete` is the one computed value; these lines only spell it. It covers
         // the native accounting; the OWL leg's state is printed under that leg.
         if selection.complete {

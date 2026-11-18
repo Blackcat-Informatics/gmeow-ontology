@@ -23,10 +23,9 @@ use std::collections::{BTreeMap, BTreeSet};
 use purrdf::{RdfDataset, TermId, TermRef};
 
 use super::{
-    AxiomSource, LogicAxiom, Node, PreparedLogicSource, RDF_OBJECT, RDF_PREDICATE, RDF_REIFIES,
-    RDF_STATEMENT, RDF_SUBJECT, RDF_TYPE, SourceNode, Subject, emission::CompiledSource,
-    formula_reader::read_atomic_carrier, logic_iri, native_axiom, native_quoted_axiom,
-    term_as_subject, term_str,
+    AxiomSource, CompiledTheory, LogicAxiom, Node, RDF_OBJECT, RDF_PREDICATE, RDF_REIFIES,
+    RDF_STATEMENT, RDF_SUBJECT, RDF_TYPE, SourceNode, Subject, formula_reader::read_atomic_carrier,
+    logic_iri, native_axiom, native_quoted_axiom, term_as_subject, term_str,
 };
 use crate::graphutil::{default_graph_pattern, iri_of, node_of, source_graph_pattern, subject_of};
 use purrdf::dataset_view::GraphMatch;
@@ -70,6 +69,14 @@ pub enum ClaimStatement {
     /// The axiom states a term its carrier rewrote (a typed term carrier in a term
     /// position), so the carried RDF terms are not the terms of the axiom.
     Mismatch,
+}
+
+/// One original claim carrier and its source-rendered reporting name.
+/// These observations confer no selection or execution authority.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct ClaimCarrier {
+    pub source: SourceNode,
+    pub name: String,
 }
 
 /// THE rule for a statement about a claim's carrier: is it evidence that selects
@@ -124,8 +131,8 @@ struct CarrierUses {
 /// Built once per source: it holds every outside use of a claim carrier, so
 /// resolving every claim reads the dataset a single time.
 #[derive(Debug)]
-pub struct ClaimResolver<'source, S> {
-    compiled: &'source CompiledSource<S>,
+pub struct ClaimResolver<'source> {
+    compiled: &'source CompiledTheory,
     uses: BTreeMap<TermId, CarrierUses>,
 }
 
@@ -148,10 +155,10 @@ fn triple_term_parts(store: &RdfDataset, term: TermId, parts: &mut Vec<TermId>) 
     }
 }
 
-impl<S: std::borrow::Borrow<PreparedLogicSource>> CompiledSource<S> {
+impl CompiledTheory {
     /// A resolver for the scoped claims of this source.
     #[must_use]
-    pub fn claim_resolver(&self) -> ClaimResolver<'_, S> {
+    pub fn claim_resolver(&self) -> ClaimResolver<'_> {
         let store = self.source().dataset();
         let mut uses: BTreeMap<TermId, CarrierUses> = self
             .axiom_sources()
@@ -207,54 +214,7 @@ impl<S: std::borrow::Borrow<PreparedLogicSource>> CompiledSource<S> {
     }
 }
 
-impl<S: std::borrow::Borrow<PreparedLogicSource>> ClaimResolver<'_, S> {
-    /// The native statement of the scoped claim at `index` of `program().axioms`.
-    ///
-    /// Every reification source of the axiom must be an evidence-only carrier that
-    /// nothing mentions, and all must resolve to the same statement. An axiom with
-    /// any other kind of source, or with none, is unresolved.
-    #[must_use]
-    pub fn statement(&self, index: usize) -> ClaimStatement {
-        let Some(sources) = self.compiled.axiom_sources().get(index) else {
-            return ClaimStatement::Unresolved;
-        };
-        self.statement_from_sources(index, sources.iter(), &BTreeSet::new())
-    }
-
-    fn statement_from_sources<'a>(
-        &self,
-        index: usize,
-        sources: impl IntoIterator<Item = &'a AxiomSource>,
-        modules: &BTreeSet<TermId>,
-    ) -> ClaimStatement {
-        let Some(axiom) = self.compiled.program().axioms.get(index) else {
-            return ClaimStatement::Unresolved;
-        };
-        let store = self.compiled.source().dataset();
-        let mut resolved = None;
-        for source in sources {
-            let AxiomSource::Reification(node) = source else {
-                return ClaimStatement::Unresolved;
-            };
-            if node.graph.is_some() {
-                return ClaimStatement::Unresolved;
-            }
-            if let Some(refused) = self.said_about(store, node.term, modules) {
-                return refused;
-            }
-            match carried_statement(store, *node, axiom) {
-                statement @ ClaimStatement::Resolved { .. } => {
-                    if resolved.as_ref().is_some_and(|prior| *prior != statement) {
-                        return ClaimStatement::Unresolved;
-                    }
-                    resolved = Some(statement);
-                }
-                refused => return refused,
-            }
-        }
-        resolved.unwrap_or(ClaimStatement::Unresolved)
-    }
-
+impl ClaimResolver<'_> {
     /// What is said about `carrier` beyond evidence, in any graph, if anything: a
     /// statement it is the subject of that fails [`evidence_only`] or a statement it
     /// is the object of (`Qualified`), else a statement that mentions it
@@ -311,36 +271,55 @@ impl<S: std::borrow::Borrow<PreparedLogicSource>> ClaimResolver<'_, S> {
     }
 }
 
-impl ClaimResolver<'_, PreparedLogicSource> {
-    /// Read admitted source contributors through the sealed module-assertion route.
-    /// The evidence-only route and the complete original-source envelope stay closed.
+impl ClaimResolver<'_> {
+    /// Resolve every nonexcluded original carrier independently. Only admitted
+    /// contributors may resolve facts; blocked observations retain envelope
+    /// refusals without acquiring assertion status. The evidence-only route and
+    /// the complete original-source envelope stay closed.
     ///
     /// # Errors
     /// Refuses a foreign compilation, document selection or original axiom index.
-    pub fn selected_statement(
+    pub fn selected_statements(
         &self,
         index: usize,
         inventory: &crate::source_inventory::SourceInventory<'_>,
         selection: &crate::source_inventory::ResolvedTheorySelection,
-    ) -> gmeow_errors::Result<ClaimStatement> {
+    ) -> gmeow_errors::Result<Vec<(ClaimCarrier, ClaimStatement)>> {
         selection.authorize_source(self.compiled)?;
         let view = selection.program_view(inventory)?;
         let modules = selection.module_terms(self.compiled)?;
-        let statement = self.statement_from_sources(index, view.axiom_sources_at(index)?, modules);
-        if statement != ClaimStatement::Unresolved {
-            return Ok(statement);
-        }
-        // A blocked carrier still owns its precise full-source explanation.
-        // This path only returns envelope refusals; it never resolves a fact.
+        let mut included = view.axiom_sources_at(index)?.copied().peekable();
+        let axiom = &self.compiled.program().axioms[index];
+        let store = self.compiled.source().dataset();
+        let mut statements = Vec::new();
         for source in view.axiom_source_observations_at(index)? {
-            if let AxiomSource::Reification(node) = source
-                && let Some(refused) =
-                    self.said_about(self.compiled.source().dataset(), node.term, modules)
-            {
-                return Ok(refused);
+            // Both iterators are subsequences of the same immutable source vector.
+            // Consume included entries before filtering non-reification origins.
+            let admitted = included.peek() == Some(source);
+            if admitted {
+                included.next();
             }
+            let AxiomSource::Reification(node) = source else {
+                continue;
+            };
+            let statement = self
+                .said_about(store, node.term, modules)
+                .unwrap_or_else(|| {
+                    if admitted && node.graph.is_none() {
+                        carried_statement(store, *node, axiom)
+                    } else {
+                        ClaimStatement::Unresolved
+                    }
+                });
+            statements.push((
+                ClaimCarrier {
+                    source: *node,
+                    name: node_name(store, node.term),
+                },
+                statement,
+            ));
         }
-        Ok(statement)
+        Ok(statements)
     }
 }
 
