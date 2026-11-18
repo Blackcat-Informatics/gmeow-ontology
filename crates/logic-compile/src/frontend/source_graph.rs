@@ -17,6 +17,7 @@ use crate::ir::LOGIC_NAMESPACE;
 use crate::source_inventory::source_statements;
 
 mod cbor;
+mod ownership;
 
 /// How a source's admitted base IRI was established.
 #[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
@@ -235,6 +236,17 @@ pub struct SourceEdge {
     pub required_target: Option<SourceUnitKind>,
 }
 
+impl SourceEdge {
+    /// Reuse the frontend's modality reader for the explicit neutral coordinate.
+    pub(crate) fn has_neutral_modality(&self, dataset: &RdfDataset) -> bool {
+        self.predicate.iri(dataset) == "https://blackcatinformatics.ca/logic/modality"
+            && matches!(
+                super::modality_from_term(Some(&crate::graphutil::node_of(dataset, self.target))),
+                Some(crate::ir::LogicModality::None)
+            )
+    }
+}
+
 /// Indexed structural syntax for one immutable dataset, across all original graphs.
 /// Ordinary schema/data assertions remain in that same native dataset; this index
 /// is not, on its own, a complete logical-law denominator.
@@ -248,6 +260,25 @@ pub struct StructuralSourceGraph {
 }
 
 impl StructuralSourceGraph {
+    /// Match a compiler diagnostic against an original native source focus.
+    pub(crate) fn diagnostic_targets_node(
+        &self,
+        dataset: &RdfDataset,
+        diagnostic: &Diagnostic,
+        node: SourceNode,
+    ) -> bool {
+        diagnostic
+            .subject
+            .as_ref()
+            .is_some_and(|subject| *subject == focus(dataset, node.term))
+    }
+
+    /// Exact declared syntax family, shared with source selection. A semantic
+    /// reference or namespace prefix never establishes a declaration.
+    pub(crate) fn declaration_kind(class: &str) -> Option<SourceUnitKind> {
+        class_kind(class)
+    }
+
     /// Classify an exact source predicate using the same ownership vocabulary as
     /// the structural inventory, without constructing or lowering that inventory.
     /// The role describes authored syntax; it does not admit its execution.

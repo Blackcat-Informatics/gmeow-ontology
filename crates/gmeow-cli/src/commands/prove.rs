@@ -21,7 +21,8 @@ use gmeow_errors::Diag;
 use gmeow_logic::reason::dl::DlCoverage;
 use gmeow_logic::reason::{
     DomainProfile, InconsistencyWitness, LogicalGraph, NativeSourceAdmission,
-    NativeSourceDrop as DropRecord, SelectedDomains, SelectedLogicalWorld, UnsatClass,
+    NativeSourceDisposition, NativeSourceDrop as DropRecord, SelectedDomains, SelectedLogicalWorld,
+    UnsatClass,
 };
 use gmeow_logic::reasoner_services::DlReasoner;
 use gmeow_logic_compile::frontend::{
@@ -29,10 +30,12 @@ use gmeow_logic_compile::frontend::{
     SourceSelection,
 };
 use gmeow_logic_compile::ir::TheorySelection;
-use gmeow_logic_compile::source_inventory::SourceInventory;
+use gmeow_logic_compile::source_inventory::{
+    ResolvedTheorySelection, SourceInventory, TheorySelectionObservation,
+};
 use gmeow_logic_compile::tptp::{FofProjectionBlocker, FofProjectionStatus, project_tptp_fof};
 use purrdf::entail::Question;
-use purrdf::{CompositeDatasetView, RdfDataset, TermRef, ViewLimits};
+use purrdf::{CompositeDatasetView, DatasetView, RdfDataset, TermId, TermRef, ViewLimits};
 use serde::Serialize;
 
 use super::emit_error;
@@ -63,9 +66,11 @@ const ENGINE_OWL_DL: &str = "owl-dl";
 const EXIT_PROOF_REJECTED: i32 = 1;
 
 /// One complete `gmeow prove` invocation as selected on the command line.
+#[derive(Clone, Copy)]
 pub(crate) struct ProveRequest<'a> {
     pub(crate) inputs: &'a [PathBuf],
     pub(crate) dir: Option<&'a Path>,
+    pub(crate) modules: &'a [String],
     pub(crate) max_steps: Option<u64>,
     pub(crate) step_cap: Option<u64>,
     pub(crate) format: OutputFormat,
@@ -88,6 +93,7 @@ struct SelectionReport {
     source_digest: String,
     program_digest: String,
     selection_digest: String,
+    theory_selection: TheorySelectionObservation,
     documents: usize,
     units: usize,
     unit_basis: &'static str,
@@ -125,6 +131,7 @@ impl SelectionReport {
     /// native engine read and the drops named so far.
     fn new(
         inventory: &SourceInventory<'_>,
+        selection: &ResolvedTheorySelection,
         units: usize,
         documents: usize,
         complete: bool,
@@ -136,6 +143,7 @@ impl SelectionReport {
             source_digest: inventory.source_digest().to_owned(),
             program_digest: inventory.program_digest().to_owned(),
             selection_digest: inventory.selection_digest().to_owned(),
+            theory_selection: selection.observation().clone(),
             documents,
             units,
             unit_basis: "compiler source obligations and exact lowering routes",
@@ -322,7 +330,7 @@ struct TptpExport {
 }
 
 /// The reference semantics of every verdict this command prints.
-const PROVE_SEMANTICS: &str = "GMEOW native logic: semantics of the selection's default graph, decided by the native rule engine's accounting; a reified claim is read as a statement of that graph only when it states logic:provenance or logic:confidence, nothing else is stated about its reifier in any graph of the input except the reification itself, and no statement of any graph has that reifier as its object, mentions it inside a triple term or a statement node, or uses it as a predicate or a graph name; every other scoped claim is a named drop, so an assertion may be left unread but is always named, and a quotation is never read; a provenance value is not interpreted; the OWL 2 DL tableau over the selection's OWL view is a second refuter only. Authored reasoning-contract configuration is catalogued, not executed. A native consistent verdict has no replayable proof and is reproduced by re-running on the same inputs; a native inconsistent verdict carries its law and witness premises; only the tableau's answer carries a replayable proof. This is not a verdict about the classical first-order export written by --out.";
+const PROVE_SEMANTICS: &str = "GMEOW native logic: semantics of one selected default-graph theory, containing supplied top-level obligations and explicitly requested modules with their actual transitive imports. The native engine decides under source accounting. Ground reified claims use separate closed evidence-only and source-resolved module-assertion routes. Envelope checks read every original graph; additional qualifications, mentions and graph-name uses keep a claim unread. Excluded modules contribute no premise; other unread scoped claims remain named boundaries. Bare quotations assert no payload. The OWL 2 DL tableau is an independent refuter over the faithful asserted-only filtered raw view; native admitted claim facts are absent from that view. Authored reasoning-contract configuration is catalogued, not executed. Native verdicts are attestations: a consistent verdict is reproduced on the same inputs and an inconsistent verdict carries its law and witness premises. Top-level tableau proofs bind their exact reader dataset; composed proof export/replay and FOF output refuse. Classical FOF export has independent admission and receives no verdict from native completion.";
 
 #[derive(Serialize)]
 struct ProveReport<'inventory> {
@@ -394,6 +402,7 @@ impl<'inventory> ProveReport<'inventory> {
         };
         report.selection = Some(SelectionReport::new(
             inventory,
+            native_admission.resolved_selection(),
             native_admission.units(),
             documents,
             false,
@@ -555,11 +564,11 @@ fn canonicalization_limit_failure(
     )
 }
 
-/// Why a selection could not be loaded.
+/// Why a selected source or output boundary cannot be admitted.
 enum LoadFailure {
     /// The selected documents are not a well-formed source.
     Malformed(Diag),
-    /// A well-formed source exceeded an execution limit.
+    /// I/O or a well-formed operation cannot complete.
     Execution(Diag),
 }
 
@@ -582,10 +591,249 @@ struct LoadedTheory {
     theory: gmeow_logic_compile::frontend::CompiledTheory,
 }
 
+fn resolve_requested_theory(
+    inventory: &SourceInventory<'_>,
+    modules: &[String],
+) -> gmeow_errors::Result<ResolvedTheorySelection> {
+    let request = if modules.is_empty() {
+        TheorySelection::top_level_only()
+    } else {
+        TheorySelection::composed_modules(modules.iter().cloned())?
+    };
+    inventory.resolve_theory_selection(&request)
+}
+
+/// Resolve an existing file, or an absent file's actual parent and future name.
+fn prospective_file_path(path: &Path) -> std::io::Result<PathBuf> {
+    match std::fs::canonicalize(path) {
+        Ok(canonical) => Ok(canonical),
+        Err(error) if error.kind() == std::io::ErrorKind::NotFound => {
+            match std::fs::symlink_metadata(path) {
+                Ok(metadata) if metadata.file_type().is_symlink() => {
+                    return Err(std::io::Error::new(
+                        std::io::ErrorKind::InvalidInput,
+                        "a selected file path is a dangling symlink",
+                    ));
+                }
+                Ok(_) => return Err(error),
+                Err(metadata_error) if metadata_error.kind() == std::io::ErrorKind::NotFound => {}
+                Err(metadata_error) => return Err(metadata_error),
+            }
+            let absolute = std::path::absolute(path)?;
+            let name = absolute.file_name().ok_or_else(|| {
+                std::io::Error::new(
+                    std::io::ErrorKind::InvalidInput,
+                    "a selected file path requires a basename",
+                )
+            })?;
+            let parent = absolute.parent().ok_or_else(|| {
+                std::io::Error::new(
+                    std::io::ErrorKind::InvalidInput,
+                    "a selected file path requires a parent",
+                )
+            })?;
+            Ok(std::fs::canonicalize(parent)?.join(name))
+        }
+        Err(error) => Err(error),
+    }
+}
+
+#[derive(Clone, Copy)]
+enum SelectedFileRole {
+    Input,
+    Output,
+}
+
+impl SelectedFileRole {
+    fn label(self) -> &'static str {
+        match self {
+            Self::Input => "input",
+            Self::Output => "output",
+        }
+    }
+    fn io_failure(self, diagnostic: Diag) -> LoadFailure {
+        match self {
+            Self::Input => LoadFailure::Malformed(diagnostic),
+            Self::Output => LoadFailure::Execution(diagnostic),
+        }
+    }
+}
+
+/// Protect every selected input before any sink can remove or replace bytes.
+fn validate_output_inputs(request: &ProveRequest<'_>) -> Result<(), LoadFailure> {
+    let outputs: Vec<_> = [request.out, request.proof_out, request.evidence_out]
+        .into_iter()
+        .flatten()
+        .collect();
+    if outputs.is_empty() {
+        return Ok(());
+    }
+    let mut inputs = request.inputs.to_vec();
+    if let Some(root) = request.dir {
+        inputs.extend(collect_semantic_sources(root).map_err(LoadFailure::Malformed)?);
+    }
+    if let Some(proof) = request.check_proof {
+        inputs.push(proof.to_owned());
+    }
+    let mut protected: Vec<_> = inputs
+        .into_iter()
+        .map(|input| (input, SelectedFileRole::Input))
+        .collect();
+    for output in outputs {
+        let output_absolute = prospective_file_path(output).map_err(|error| {
+            LoadFailure::Execution(caused_failure(
+                "OUTPUT_PATH_UNAVAILABLE",
+                error,
+                format!("resolve output {}", output.display()),
+            ))
+        })?;
+        let output_exists = match std::fs::metadata(output) {
+            Ok(_) => true,
+            Err(error) if error.kind() == std::io::ErrorKind::NotFound => false,
+            Err(error) => {
+                return Err(LoadFailure::Execution(caused_failure(
+                    "OUTPUT_IDENTITY_UNAVAILABLE",
+                    error,
+                    format!("inspect output {}", output.display()),
+                )));
+            }
+        };
+        for (input, role) in &protected {
+            let absolute = prospective_file_path(input).map_err(|error| {
+                role.io_failure(caused_failure(
+                    "SOURCE_PATH_UNAVAILABLE",
+                    error,
+                    format!("resolve input {}", input.display()),
+                ))
+            })?;
+            let same_identity = if output_exists {
+                match std::fs::metadata(input) {
+                    Ok(_) => same_file::is_same_file(input, output).map_err(|error| {
+                        LoadFailure::Execution(caused_failure(
+                            "OUTPUT_IDENTITY_UNAVAILABLE",
+                            error,
+                            format!(
+                                "compare output {} with input {}",
+                                output.display(),
+                                input.display()
+                            ),
+                        ))
+                    })?,
+                    Err(error) if error.kind() == std::io::ErrorKind::NotFound => false,
+                    Err(error) => {
+                        return Err(role.io_failure(caused_failure(
+                            "SOURCE_IDENTITY_UNAVAILABLE",
+                            error,
+                            format!("inspect input {}", input.display()),
+                        )));
+                    }
+                }
+            } else {
+                false
+            };
+            if absolute == output_absolute || same_identity {
+                return Err(LoadFailure::Malformed(failure(
+                    if matches!(role, SelectedFileRole::Input) {
+                        "OUTPUT_ALIASES_SELECTED_INPUT"
+                    } else {
+                        "SELECTED_OUTPUTS_ALIAS"
+                    },
+                    format!(
+                        "output {} aliases selected {} {}; select separate output paths",
+                        output.display(),
+                        role.label(),
+                        input.display()
+                    ),
+                )));
+            }
+        }
+        protected.push((output.to_owned(), SelectedFileRole::Output));
+    }
+    Ok(())
+}
+
+fn remove_stale_required_output(path: &Path) -> gmeow_errors::Result<()> {
+    match std::fs::remove_file(path) {
+        Ok(()) => Ok(()),
+        Err(error) if error.kind() == std::io::ErrorKind::NotFound => Ok(()),
+        Err(error) => Err(caused_failure(
+            "COMPOSED_OUTPUT_STALE_REMOVE_FAILED",
+            error,
+            format!("remove refused composed output {}", path.display()),
+        )),
+    }
+}
+
+fn refuse_composed_outputs(
+    reporter: &dyn Reporter,
+    request: &ProveRequest<'_>,
+    inventory: &SourceInventory<'_>,
+    admission: NativeSourceAdmission<'_>,
+    inputs: &[InputIdentity],
+) -> i32 {
+    let selection = admission.resolved_selection();
+    let mut report = ProveReport::blank(
+        DecisionClass::ExecutionFailure,
+        with_inputs(
+            failure(
+                "COMPOSED_REQUIRED_OUTPUT_UNSUPPORTED",
+                "the resolved composed theory has no selected FOF export or proof-file contract",
+            ),
+            inputs,
+        ),
+    );
+    report.selection = Some(SelectionReport::new(
+        inventory,
+        selection,
+        admission.units(),
+        inventory.theory().source().origins().len(),
+        false,
+        Vec::new(),
+        admission.drops().collect(),
+    ));
+    if let Some(path) = request.out {
+        report.export = Some(TptpExport {
+            path: path.display().to_string(),
+            written: false,
+            status: FofProjectionStatus::Blocked,
+            profile_id: "gmeow-composed-theory-fof-unimplemented-v1".into(),
+            problem_digest: None,
+            sentences: 0,
+            blockers: vec![FofProjectionBlocker {
+                unit_id: None,
+                code: "COMPOSED_FOF_EXPORT_UNSUPPORTED".into(),
+                reason: "native module admission does not authorize a classical FOF composition"
+                    .into(),
+            }],
+        });
+        if let Err(diagnostic) = remove_stale_required_output(path) {
+            report.execution_failure(diagnostic);
+        }
+    }
+    if let Some(path) = request.proof_out {
+        report.execution_failure(failure(
+            "COMPOSED_PROOF_OUTPUT_UNSUPPORTED",
+            "composed theory proof files require a composition-bound proof contract",
+        ));
+        if let Err(diagnostic) = remove_stale_required_output(path) {
+            report.execution_failure(diagnostic);
+        }
+    }
+    report.native_admission = Some(admission);
+    publish_failure(reporter, report, request)
+}
+
 /// Run the complete installed `gmeow prove` operation.
 pub(crate) fn prove(reporter: &dyn Reporter, request: &ProveRequest<'_>) -> i32 {
     if let Some(proof) = request.check_proof {
         return check_proof(reporter, request, proof);
+    }
+    if let Err(failure) = validate_output_inputs(request) {
+        let safe = ProveRequest {
+            evidence_out: None,
+            ..*request
+        };
+        return publish_failure(reporter, failure.into_report(), &safe);
     }
     let loaded = match source_paths(request.inputs, request.dir) {
         Ok(paths) => match load_theory(&paths) {
@@ -603,7 +851,21 @@ pub(crate) fn prove(reporter: &dyn Reporter, request: &ProveRequest<'_>) -> i32 
 
     let selection = SourceSelection::all_classical_roots(&loaded.theory);
     let inventory = SourceInventory::new(&loaded.theory, selection);
-    let mut native_admission = match NativeSourceAdmission::inspect(&inventory) {
+    let resolved = match resolve_requested_theory(&inventory, request.modules) {
+        Ok(selection) => selection,
+        Err(diagnostic) => {
+            return publish_failure(
+                reporter,
+                ProveReport::blank(
+                    DecisionClass::Malformed,
+                    with_inputs(diagnostic, &loaded.identities),
+                ),
+                request,
+            );
+        }
+    };
+    let mut native_admission = match NativeSourceAdmission::inspect_selected(&inventory, &resolved)
+    {
         Ok(admission) => admission,
         Err(diagnostic) => {
             return publish_failure(
@@ -616,6 +878,15 @@ pub(crate) fn prove(reporter: &dyn Reporter, request: &ProveRequest<'_>) -> i32 
             );
         }
     };
+    if resolved.request().is_composed() && (request.out.is_some() || request.proof_out.is_some()) {
+        return refuse_composed_outputs(
+            reporter,
+            request,
+            &inventory,
+            native_admission,
+            &loaded.identities,
+        );
+    }
     if native_admission.malformed() {
         let detail = native_admission
             .drops()
@@ -637,16 +908,29 @@ pub(crate) fn prove(reporter: &dyn Reporter, request: &ProveRequest<'_>) -> i32 
     let admission = request
         .out
         .map(|_| SourceAdmission::classical_fof_from_inventory(&inventory));
-    let canonical = loaded.theory.source().dataset();
+    let canonical = match resolved.source_view(&inventory) {
+        Ok(view) => view,
+        Err(diagnostic) => {
+            return publish_failure(
+                reporter,
+                ProveReport::blank(
+                    DecisionClass::ExecutionFailure,
+                    with_inputs(diagnostic, &loaded.identities),
+                ),
+                request,
+            );
+        }
+    };
     let mut drops = BTreeSet::new();
     let documents = loaded.theory.source().origins().len();
     let legs = native_leg(
-        &loaded.theory,
+        &inventory,
+        &resolved,
         &mut native_admission,
         request.max_steps,
         &mut drops,
     )
-    .and_then(|native| match owl_dl_leg(canonical, request.step_cap) {
+    .and_then(|native| match owl_dl_leg(&canonical, request.step_cap) {
         Ok(owl) => Ok((native, owl)),
         Err(diagnostic) => Err(EngineFailure {
             diagnostic,
@@ -774,6 +1058,7 @@ pub(crate) fn prove(reporter: &dyn Reporter, request: &ProveRequest<'_>) -> i32 
         },
         selection: Some(SelectionReport::new(
             &inventory,
+            &resolved,
             native_admission.units(),
             documents,
             complete,
@@ -906,14 +1191,10 @@ fn insert_lowering_residue(
 }
 
 /// Run the native rule engine over the whole selection and add every construct it
-/// did not decide to `drops`. The engine reads the asserted statements of the default
-/// graph and, with them, each evidence-only claim: a reified claim about whose
-/// carrier nothing is said except the reification itself, `logic:provenance` and
-/// `logic:confidence` is a statement of the same theory. Any other statement about
-/// the carrier (a standpoint, a stance, a time, a modality, a module, an unknown
-/// annotation), and any mention of the carrier in another statement, in any graph
-/// of the input, keeps the claim unread, as a `SCOPED_CLAIM_NOT_READ` drop that names
-/// what kept it out. A reifier with no scope coordinate is a quotation, never read.
+/// did not decide to `drops`. It ingests compiler-filtered raw assertions and
+/// admitted claims through the closed evidence-only and typed module routes.
+/// Claim envelopes inspect every original graph; other context coordinates,
+/// qualifiers and mentions retain their boundaries. A bare quotation is never read.
 /// An engine that declines the program for a reason it names did not fail: the leg
 /// is `refused` and the reasons are drops, so the selection is not decided. A rule
 /// head the chase refuses is declined the same way, as an `UNSUPPORTED_CONSTRUCT`
@@ -923,17 +1204,19 @@ fn insert_lowering_residue(
 /// error is `NATIVE_EXECUTION_FAILED`. The failure carries the claims read before it,
 /// and `drops` keeps what was named before it.
 fn native_leg(
-    theory: &gmeow_logic_compile::frontend::CompiledTheory,
+    inventory: &SourceInventory<'_>,
+    selection: &ResolvedTheorySelection,
     admission: &mut NativeSourceAdmission<'_>,
     max_steps: Option<u64>,
     drops: &mut BTreeSet<DropRecord>,
 ) -> Result<NativeLeg, EngineFailure> {
+    let theory = inventory.theory();
     // Every scoped claim of the compiled theory is read into the selected world or
     // named here before the engine starts; the engine then ignores axiom scopes.
     let prepared = gmeow_logic::reason::prepare_selected_theory_input(
-        theory,
+        inventory,
         &LogicalGraph::Default,
-        &TheorySelection::top_level_only(),
+        selection,
     );
     let mut claims_read = Vec::new();
     if let Ok((_, ingress)) = &prepared {
@@ -976,7 +1259,7 @@ fn native_leg(
     let mut selected: Option<gmeow_logic::reason::SelectedProgram> = None;
     let run = (|| {
         let (input, ingress) = prepared?;
-        let program = gmeow_logic::reason::prepare_selected_theory(theory, &ingress)?;
+        let program = gmeow_logic::reason::prepare_selected_theory(inventory, &ingress)?;
         selected = Some(program.clone());
         let domains = SelectedDomains::new([SelectedLogicalWorld::new(
             LogicalGraph::Default,
@@ -1014,10 +1297,20 @@ fn native_leg(
                     claims_read,
                 });
             }
-            let authored = selected
+            let authored = match selected
                 .as_ref()
                 .map(|program| program.authored_rule_formulas(theory))
-                .unwrap_or_default();
+                .transpose()
+            {
+                Ok(names) => names.unwrap_or_default(),
+                Err(diagnostic) => {
+                    return Err(EngineFailure {
+                        native: None,
+                        diagnostic,
+                        claims_read,
+                    });
+                }
+            };
             if let Some(refusal) = error.downcast_ref::<gmeow_logic::error::NativeRefusal>() {
                 drops.insert(DropRecord::new(
                     ENGINE_NATIVE,
@@ -1156,7 +1449,7 @@ enum OwlOpenFailure {
 /// Open the recording tableau over the selection's OWL view and prepare it for the
 /// consistency question.
 fn open_owl_view(
-    canonical: &RdfDataset,
+    canonical: &impl DatasetView<Id = TermId, ReadError = std::convert::Infallible>,
     step_cap: Option<u64>,
 ) -> Result<(Arc<RdfDataset>, DlReasoner), OwlOpenFailure> {
     let classify =
@@ -1184,7 +1477,7 @@ fn open_owl_view(
 /// scoped claims the native leg reads. This leg is a second refuter, so deciding
 /// over fewer premises cannot make it report a clash the selection does not have.
 fn owl_dl_leg(
-    canonical: &RdfDataset,
+    canonical: &impl DatasetView<Id = TermId, ReadError = std::convert::Infallible>,
     step_cap: Option<u64>,
 ) -> Result<(OwlDlLeg, Option<Vec<u8>>), Diag> {
     let reasoner = match open_owl_view(canonical, step_cap) {
@@ -1329,6 +1622,7 @@ struct ProofCheckReport {
     /// `replayed`, `rejected`, `malformed` or `execution-failure`.
     verdict: &'static str,
     inputs: Vec<InputIdentity>,
+    theory_selection: Option<TheorySelectionObservation>,
     proof_path: String,
     proof_digest: Option<String>,
     /// The claims the proof states, for example `owl-view-consistent`. They are
@@ -1362,6 +1656,7 @@ fn check_proof(reporter: &dyn Reporter, request: &ProveRequest<'_>, proof_path: 
         operation: "proof-check",
         verdict: "malformed",
         inputs: Vec::new(),
+        theory_selection: None,
         proof_path: proof_path.display().to_string(),
         proof_digest: None,
         claims: Vec::new(),
@@ -1369,6 +1664,17 @@ fn check_proof(reporter: &dyn Reporter, request: &ProveRequest<'_>, proof_path: 
         replayed_runs: None,
         diagnostics: Vec::new(),
     };
+    if let Err(failure) = validate_output_inputs(request) {
+        let safe = ProveRequest {
+            evidence_out: None,
+            ..*request
+        };
+        let (verdict, diagnostic) = match failure {
+            LoadFailure::Malformed(diagnostic) => ("malformed", diagnostic),
+            LoadFailure::Execution(diagnostic) => ("execution-failure", diagnostic),
+        };
+        return publish_check(reporter, report, verdict, &diagnostic, &safe);
+    }
     let loaded = match source_paths(request.inputs, request.dir) {
         Ok(paths) => load_theory(&paths),
         Err(diagnostic) => Err(LoadFailure::Malformed(diagnostic)),
@@ -1385,6 +1691,24 @@ fn check_proof(reporter: &dyn Reporter, request: &ProveRequest<'_>, proof_path: 
         }
     };
     report.inputs.clone_from(&loaded.identities);
+    let inventory = SourceInventory::new(
+        &loaded.theory,
+        SourceSelection::all_classical_roots(&loaded.theory),
+    );
+    let resolved = match resolve_requested_theory(&inventory, request.modules) {
+        Ok(resolved) => resolved,
+        Err(diagnostic) => {
+            return publish_check(reporter, report, "malformed", &diagnostic, request);
+        }
+    };
+    report.theory_selection = Some(resolved.observation().clone());
+    if resolved.request().is_composed() {
+        let diagnostic = failure(
+            "COMPOSED_PROOF_REPLAY_UNSUPPORTED",
+            "a raw tableau proof cannot authorize replay of a resolved composed theory",
+        );
+        return publish_check(reporter, report, "rejected", &diagnostic, request);
+    }
     let bytes = match std::fs::read(proof_path) {
         Ok(bytes) => bytes,
         Err(error) => {
@@ -1410,8 +1734,13 @@ fn check_proof(reporter: &dyn Reporter, request: &ProveRequest<'_>, proof_path: 
     report.proof_digest = Some(proof.digest_hex());
     report.runs = Some(proof.runs().len());
     report.claims = proof_claims(&proof);
-    let canonical = loaded.theory.source().dataset();
-    let (view, reasoner) = match open_owl_view(canonical, request.step_cap) {
+    let canonical = match resolved.source_view(&inventory) {
+        Ok(view) => view,
+        Err(diagnostic) => {
+            return publish_check(reporter, report, "execution-failure", &diagnostic, request);
+        }
+    };
+    let (view, reasoner) = match open_owl_view(&canonical, request.step_cap) {
         Ok(opened) => opened,
         Err(OwlOpenFailure::Limit(diagnostic)) => {
             return publish_check(reporter, report, "execution-failure", &diagnostic, request);
@@ -1520,6 +1849,9 @@ fn render_check(report: &ProofCheckReport, format: OutputFormat) -> i32 {
             println!("verdict {}", report.verdict);
             println!("operation {}", report.operation);
             println!("sources {}", report.inputs.len());
+            if let Some(selection) = &report.theory_selection {
+                render_theory_selection(selection);
+            }
             println!("proof {}", report.proof_path);
             if let Some(digest) = &report.proof_digest {
                 println!("proof-digest {digest}");
@@ -1908,6 +2240,37 @@ fn publish_report(
     report.common.exit_code(request.gate)
 }
 
+fn render_theory_selection(selection: &TheorySelectionObservation) {
+    println!(
+        "theory-composition {}",
+        if selection.request.is_composed() {
+            "composed-modules"
+        } else {
+            "top-level"
+        }
+    );
+    println!("theory-selection-digest {}", selection.identity);
+    println!(
+        "theory-effective-masks {}",
+        selection.effective_masks_digest
+    );
+    println!("theory-includes-top-level {}", selection.includes_top_level);
+    for root in selection.request.module_roots() {
+        println!("theory-root {}", root.as_str());
+    }
+    for module in &selection.modules {
+        println!("theory-module {}", module.as_str());
+    }
+    for edge in &selection.imports {
+        println!(
+            "theory-import {} {} {}",
+            edge.source.as_str(),
+            edge.target.as_str(),
+            edge.carrier
+        );
+    }
+}
+
 fn render_text(report: &ProveReport<'_>) {
     println!("verdict {}", report.common.verdict);
     println!("decision {}", report.common.decision.as_str());
@@ -1922,7 +2285,34 @@ fn render_text(report: &ProveReport<'_>) {
     if let Some(admission) = &report.admission {
         println!("source-admission {:?}", admission.status);
     }
+    if let Some(admission) = &report.native_admission {
+        for (unit, disposition) in admission.source_dispositions() {
+            let (status, code, detail) = match disposition {
+                NativeSourceDisposition::Accounted { route } => ("Accounted", "-", *route),
+                NativeSourceDisposition::StructuralSupport { route } => {
+                    ("StructuralSupport", "-", *route)
+                }
+                NativeSourceDisposition::ConfigurationDeclaration { route } => {
+                    ("ConfigurationDeclaration", "-", *route)
+                }
+                NativeSourceDisposition::OutsideSelection { reason } => {
+                    ("OutsideSelection", "OUTSIDE_SELECTION", *reason)
+                }
+                NativeSourceDisposition::OutsideRequestedTheory { reason } => {
+                    ("OutsideRequestedTheory", "-", *reason)
+                }
+                NativeSourceDisposition::Blocked { code, reason } => {
+                    ("Blocked", *code, reason.as_str())
+                }
+                NativeSourceDisposition::Malformed { code, reason } => {
+                    ("Malformed", *code, reason.as_str())
+                }
+            };
+            println!("source-unit {status} {} {code} {detail}", unit.anchor());
+        }
+    }
     if let Some(selection) = &report.selection {
+        render_theory_selection(&selection.theory_selection);
         println!("source-digest {}", selection.source_digest);
         println!("program-digest {}", selection.program_digest);
         println!("selection-digest {}", selection.selection_digest);
@@ -1933,9 +2323,9 @@ fn render_text(report: &ProveReport<'_>) {
         if selection.complete {
             println!("selection complete zero-drops (native accounting)");
         } else if report.engines.is_none() {
-            // Only an engine failure reports a selection without its engines.
+            // A failed operation can report its selection before engines run.
             println!(
-                "selection incomplete drops={} (named before the engine failure)",
+                "selection incomplete drops={} (named before the operation failed)",
                 selection.drops.len()
             );
         } else {

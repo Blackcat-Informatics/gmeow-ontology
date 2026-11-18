@@ -157,10 +157,27 @@ impl PreparedProgram {
         program: &LogicProgram,
         identity: [u8; 32],
         profile: SourceAdmissionProfile,
+        selected: Option<gmeow_logic_compile::source_inventory::SelectedProgramView<'_, '_>>,
     ) -> gmeow_errors::Result<Self> {
-        let admission = crate::native_semantics::ProgramAdmission::capture(program, profile);
-        let lowering = crate::relational_core::lower_formulas(program);
-        let mut rules = crate::lower::prepare_rule_templates(program)?;
+        let (admission, lowering, mut rules) = if let Some(view) = selected {
+            (
+                crate::native_semantics::ProgramAdmission::capture_selected(
+                    view,
+                    profile,
+                    program.source_iri.clone(),
+                ),
+                crate::relational_core::lower_indexed_formulas(view.formulas()),
+                view.rules()
+                    .map(|(_, rule)| crate::lower::lower_rule(rule))
+                    .collect::<gmeow_errors::Result<Vec<_>>>()?,
+            )
+        } else {
+            (
+                crate::native_semantics::ProgramAdmission::capture(program, profile),
+                crate::relational_core::lower_formulas(program),
+                crate::lower::prepare_rule_templates(program)?,
+            )
+        };
         rules.extend(lowering.rules);
         Ok(Self {
             identity,
@@ -412,6 +429,40 @@ pub(crate) fn prepare_program_under(
     program: &LogicProgram,
     profile: SourceAdmissionProfile,
 ) -> gmeow_errors::Result<Arc<PreparedProgram>> {
+    if matches!(profile, SourceAdmissionProfile::ResolvedTheoryV1 { .. }) {
+        return Err(gmeow_errors::Diag::of_kind(crate::error::Lower {
+            detail: "resolved theory preparation requires the compiler-issued program view".into(),
+        }));
+    }
+    prepare_program_view(program, profile, None)
+}
+
+pub(crate) fn prepare_selected_program(
+    inventory: &gmeow_logic_compile::source_inventory::SourceInventory<'_>,
+    selection: &gmeow_logic_compile::source_inventory::ResolvedTheorySelection,
+) -> gmeow_errors::Result<Arc<PreparedProgram>> {
+    let view = selection.program_view(inventory)?;
+    prepare_program_view(
+        inventory.theory().program(),
+        selected_profile(selection),
+        Some(view),
+    )
+}
+
+pub(crate) fn selected_profile(
+    selection: &gmeow_logic_compile::source_inventory::ResolvedTheorySelection,
+) -> SourceAdmissionProfile {
+    SourceAdmissionProfile::ResolvedTheoryV1 {
+        theory: selection.request().clone(),
+        execution_identity: selection.observation().identity.clone(),
+    }
+}
+
+fn prepare_program_view(
+    program: &LogicProgram,
+    profile: SourceAdmissionProfile,
+    selected: Option<gmeow_logic_compile::source_inventory::SelectedProgramView<'_, '_>>,
+) -> gmeow_errors::Result<Arc<PreparedProgram>> {
     static CACHE: OnceLock<Mutex<PreparationCache>> = OnceLock::new();
     let cache = CACHE.get_or_init(|| Mutex::new(PreparationCache::default()));
     let key = preparation_identity(program, &profile)?;
@@ -422,7 +473,7 @@ pub(crate) fn prepare_program_under(
     {
         return Ok(prepared);
     }
-    let prepared = Arc::new(PreparedProgram::lower(program, key, profile)?);
+    let prepared = Arc::new(PreparedProgram::lower(program, key, profile, selected)?);
     if !prepared.cacheable() {
         return Ok(prepared);
     }
@@ -455,7 +506,7 @@ pub(crate) fn preparation_identity(
     // and so keeps the identity it has always had.
     match profile {
         SourceAdmissionProfile::WorldLocalTemplatesV1 => {}
-        SourceAdmissionProfile::SelectedTheoryV1 { .. } => {
+        SourceAdmissionProfile::ResolvedTheoryV1 { .. } => {
             ciborium::ser::into_writer(profile, &mut digest)
                 .map_err(|error| unidentified(&error))?;
         }

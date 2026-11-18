@@ -49,6 +49,12 @@
 // is unchanged and there is still exactly one definition site.
 pub mod graph_iris;
 
+mod calculus;
+pub use calculus::{
+    SchemaPredicateRole, SchemaTypeRole, calculus_vocabulary, canonical_calculus_symbol,
+    schema_predicate_role, schema_type_role,
+};
+
 use purrdf::{Namespaces, OntologyProfile, SliceVocab};
 
 /// GMEOW's canonical ontology namespace (trailing `/` for term concatenation).

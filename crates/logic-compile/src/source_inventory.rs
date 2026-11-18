@@ -20,7 +20,17 @@ use crate::frontend::{
 mod contexts;
 mod identity;
 mod origins;
+mod ownership;
+mod selection;
 mod trace;
+
+pub(crate) use ownership::{
+    SyntaxEvidence, SyntaxFamily, SyntaxIssue, SyntaxOwner, SyntaxOwnership,
+};
+pub use selection::{
+    ModuleImportObservation, ResolvedTheorySelection, SelectedProgramView, SelectedSourceView,
+    TheorySelectionObservation, TheoryUnitSelection,
+};
 
 pub(crate) use identity::{
     XSD_STRING, assertion_from_quad, atomic_term, class_field, digest_bytes, frame, node_anchor,

@@ -8,7 +8,7 @@
 //! marker position, can use the paired presentation spelling. Variables always
 //! bind the original term, including when that term later occurs as ordinary data.
 
-use gmeow_logic_compile::ir::{ContextualScope, LogicProgram, ScopeMembership, TheorySelection};
+use gmeow_logic_compile::ir::{ContextualScope, LogicProgram, TheorySelection};
 
 /// The selected interpretation is part of preparation and execution identity.
 #[derive(Debug, Clone, Copy, Default, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
@@ -225,11 +225,12 @@ pub(crate) enum SourceAdmissionProfile {
     /// templates and no source-owned axiom is read. Any context coordinate on any
     /// retained scope refuses the program.
     WorldLocalTemplatesV1,
-    /// Execution of one selected theory. Every scoped axiom is accounted for by the
-    /// claim ingress ledger of the same selection before execution: read as a fact
-    /// of the selected world, or named as not read. An axiom's scope is therefore no
-    /// reason to refuse; a rule, head or body-atom scope outside the theory still is.
-    SelectedTheoryV1 { theory: TheorySelection },
+    /// Portable execution profile of compiler-filtered original source masks.
+    /// Live source authority remains with the invocation's sealed selection.
+    ResolvedTheoryV1 {
+        theory: TheorySelection,
+        execution_identity: String,
+    },
 }
 
 /// Bare-program execution is explicitly a world-local template operation. It does
@@ -244,6 +245,41 @@ pub(crate) struct ProgramAdmission {
 }
 
 impl ProgramAdmission {
+    pub(crate) fn capture_selected(
+        view: gmeow_logic_compile::source_inventory::SelectedProgramView<'_, '_>,
+        profile: SourceAdmissionProfile,
+        source_iri: Option<String>,
+    ) -> Self {
+        let mut scopes = Vec::new();
+        for (index, axiom) in view.axioms() {
+            scopes.push(SourceScope {
+                owner: SourceOwner::Axiom(index),
+                scope: axiom.scope.clone(),
+            });
+        }
+        for (index, rule) in view.rules() {
+            scopes.push(SourceScope {
+                owner: SourceOwner::Rule(index),
+                scope: rule.scope.clone(),
+            });
+            scopes.push(SourceScope {
+                owner: SourceOwner::Head(index),
+                scope: rule.head.scope.clone(),
+            });
+            for (atom, body) in rule.body.iter().enumerate() {
+                scopes.push(SourceScope {
+                    owner: SourceOwner::Body(index, atom),
+                    scope: body.scope.clone(),
+                });
+            }
+        }
+        Self {
+            profile,
+            source_iri,
+            scopes,
+        }
+    }
+
     pub(crate) fn capture(program: &LogicProgram, profile: SourceAdmissionProfile) -> Self {
         let mut scopes = Vec::new();
         for (index, axiom) in program.axioms.iter().enumerate() {
@@ -283,14 +319,16 @@ impl ProgramAdmission {
                 "world-local template",
                 self.outside(|source| !source.scope.selects_no_context()),
             ),
-            SourceAdmissionProfile::SelectedTheoryV1 { theory } => (
-                "selected-theory",
+            SourceAdmissionProfile::ResolvedTheoryV1 { .. } => (
+                "resolved-theory",
                 self.outside(|source| {
                     !matches!(source.owner, SourceOwner::Axiom(_))
-                        && !matches!(
-                            theory.membership(&source.scope),
-                            ScopeMembership::InTheory { .. }
-                        )
+                        && (!source.scope.selects_no_context()
+                            && !(source.scope.module.is_some()
+                                && source.scope.standpoint.is_none()
+                                && source.scope.time.is_none()
+                                && source.scope.modality
+                                    == gmeow_logic_compile::ir::LogicModality::None))
                 }),
             ),
         };

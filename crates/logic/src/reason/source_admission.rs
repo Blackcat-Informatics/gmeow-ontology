@@ -16,7 +16,8 @@ use gmeow_logic_compile::frontend::{
     Severity, SourceNode,
 };
 use gmeow_logic_compile::source_inventory::{
-    SourceInventory, SourceObligation, SourceObligationOrigin,
+    ResolvedTheorySelection, SourceInventory, SourceObligation, SourceObligationOrigin,
+    TheoryUnitSelection,
 };
 use serde::Serialize;
 use serde::ser::{SerializeSeq, SerializeStruct};
@@ -56,14 +57,18 @@ impl NativeSourceDrop {
 }
 
 #[derive(Debug, Serialize)]
-enum Disposition {
+/// Borrowable report disposition; observations grant no execution authority.
+pub enum NativeSourceDisposition {
     Accounted { route: &'static str },
     StructuralSupport { route: &'static str },
     ConfigurationDeclaration { route: &'static str },
     OutsideSelection { reason: &'static str },
+    OutsideRequestedTheory { reason: &'static str },
     Blocked { code: &'static str, reason: String },
     Malformed { code: &'static str, reason: String },
 }
+
+use NativeSourceDisposition as Disposition;
 
 impl Disposition {
     fn blocked(code: &'static str, reason: impl Into<String>) -> Self {
@@ -100,6 +105,7 @@ impl Disposition {
 /// selected executor holds its actual input, preparation, domains and result.
 pub struct NativeSourceAdmission<'inventory> {
     inventory: &'inventory SourceInventory<'inventory>,
+    selection: ResolvedTheorySelection,
     dispositions: Vec<Disposition>,
     execution_drops: BTreeSet<NativeSourceDrop>,
     completion: Option<LiveCompletion>,
@@ -125,6 +131,20 @@ impl<'inventory> NativeSourceAdmission<'inventory> {
     pub fn inspect(
         inventory: &'inventory SourceInventory<'inventory>,
     ) -> gmeow_errors::Result<Self> {
+        let selection = inventory
+            .resolve_theory_selection(&gmeow_logic_compile::ir::TheorySelection::top_level_only())?;
+        Self::inspect_selected(inventory, &selection)
+    }
+
+    /// Inspect one compiler-resolved composition against its original inventory.
+    ///
+    /// # Errors
+    /// Refuses a foreign selection or an unimplemented document/root projection.
+    pub fn inspect_selected(
+        inventory: &'inventory SourceInventory<'inventory>,
+        selection: &ResolvedTheorySelection,
+    ) -> gmeow_errors::Result<Self> {
+        selection.authorize_inventory(inventory)?;
         if *inventory.selection()
             != gmeow_logic_compile::frontend::SourceSelection::all_classical_roots(
                 inventory.theory(),
@@ -134,10 +154,11 @@ impl<'inventory> NativeSourceAdmission<'inventory> {
         }
         let dispositions = inventory
             .obligations()
-            .map(|unit| classify(inventory, unit, None))
-            .collect();
+            .map(|unit| classify_selected(inventory, unit, None, selection))
+            .collect::<gmeow_errors::Result<_>>()?;
         Ok(Self {
             inventory,
+            selection: selection.clone(),
             dispositions,
             execution_drops: BTreeSet::new(),
             completion: None,
@@ -210,6 +231,18 @@ impl<'inventory> NativeSourceAdmission<'inventory> {
         self.dispositions.len()
     }
 
+    /// Stream the original source obligations and their current report judgments.
+    pub fn source_dispositions(
+        &self,
+    ) -> impl ExactSizeIterator<Item = (SourceObligation<'_>, &NativeSourceDisposition)> {
+        self.inventory.obligations().zip(&self.dispositions)
+    }
+
+    #[must_use]
+    pub fn resolved_selection(&self) -> &ResolvedTheorySelection {
+        &self.selection
+    }
+
     fn accounting_digest(&self) -> [u8; 32] {
         let mut hasher = purrdf_hash::blake3::Hasher::new();
         hasher.update(SOURCE_ACCOUNTING_DOMAIN.as_bytes());
@@ -257,13 +290,14 @@ impl Serialize for Rows<'_, '_> {
 
 impl Serialize for NativeSourceAdmission<'_> {
     fn serialize<S: serde::Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
-        let mut record = serializer.serialize_struct("NativeSourceAdmission", 14)?;
+        let mut record = serializer.serialize_struct("NativeSourceAdmission", 15)?;
         record.serialize_field("profile", PROFILE)?;
         record.serialize_field("basis", "compiler source obligations and exact lowering routes; authored occurrences are retained by their document receipts")?;
         record.serialize_field("source_digest", self.inventory.source_digest())?;
         record.serialize_field("program_digest", self.inventory.program_digest())?;
         record.serialize_field("selection_digest", self.inventory.selection_digest())?;
         record.serialize_field("selection", self.inventory.selection())?;
+        record.serialize_field("theory_selection", self.selection.observation())?;
         record.serialize_field("complete", &self.observed_complete())?;
         record.serialize_field("units", &Rows(self))?;
         record.serialize_field("execution_drops", &self.execution_drops)?;
@@ -343,6 +377,8 @@ fn classify(
     inventory: &SourceInventory<'_>,
     unit: SourceObligation<'_>,
     ingress: Option<&ClaimIngress>,
+    contexts_admitted: bool,
+    axiom_sources: &[AxiomSource],
 ) -> Disposition {
     let theory = inventory.theory();
     let outside = || Disposition::OutsideSelection {
@@ -504,6 +540,7 @@ fn classify(
             if inventory
                 .untranslated_formula_contexts()
                 .contains(&lowering.source)
+                && !contexts_admitted
                 && !matches!(lowering.disposition, FormulaDisposition::ReadForOwner)
             {
                 return Disposition::blocked(
@@ -520,7 +557,9 @@ fn classify(
                     "MALFORMED_SELECTED_FORMULA",
                     format!("compiler rejected formula at diagnostic {diagnostic}"),
                 ),
-                FormulaDisposition::Axiom(index) => classify_axiom(theory, index, ingress),
+                FormulaDisposition::Axiom(index) => {
+                    classify_axiom(theory, index, ingress, axiom_sources)
+                }
                 FormulaDisposition::Formula(index) => {
                     let Some(formula) = theory.program().formulas.get(index) else {
                         return Disposition::malformed(
@@ -537,7 +576,9 @@ fn classify(
                 }
             }
         }
-        SourceObligationOrigin::Axiom(index) => classify_axiom(theory, index, ingress),
+        SourceObligationOrigin::Axiom(index) => {
+            classify_axiom(theory, index, ingress, axiom_sources)
+        }
         SourceObligationOrigin::Import(index) => {
             let edge = &theory.source().source_graph().edges()[index];
             if edge.source.graph.is_some() {
@@ -610,10 +651,56 @@ fn classify(
     }
 }
 
+fn classify_selected(
+    inventory: &SourceInventory<'_>,
+    unit: SourceObligation<'_>,
+    ingress: Option<&ClaimIngress>,
+    selection: &ResolvedTheorySelection,
+) -> gmeow_errors::Result<Disposition> {
+    let membership = selection.unit_selection(unit)?;
+    if matches!(membership, TheoryUnitSelection::OutsideRequestedTheory) {
+        return Ok(Disposition::OutsideRequestedTheory {
+            reason: "original source obligation belongs exclusively to modules outside the requested theory",
+        });
+    }
+    let axiom_index = match unit.origin() {
+        SourceObligationOrigin::Axiom(index) => Some(index),
+        SourceObligationOrigin::Formula(ordinal) => {
+            match inventory.theory().formula_lowerings()[ordinal].disposition {
+                FormulaDisposition::Axiom(index) => Some(index),
+                _ => None,
+            }
+        }
+        _ => None,
+    };
+    let view = selection.program_view(inventory)?;
+    let axiom_sources = axiom_index
+        .map(|index| {
+            view.axiom_sources_at(index)
+                .map(|sources| sources.copied().collect::<Vec<_>>())
+        })
+        .transpose()?
+        .unwrap_or_default();
+    let disposition = classify(
+        inventory,
+        unit,
+        ingress,
+        matches!(membership, TheoryUnitSelection::Included),
+        &axiom_sources,
+    );
+    Ok(match membership {
+        TheoryUnitSelection::Blocked { code, reason } if disposition.boundary().is_none() => {
+            Disposition::blocked(code, reason)
+        }
+        _ => disposition,
+    })
+}
+
 fn classify_axiom(
     theory: &gmeow_logic_compile::frontend::CompiledTheory,
     index: usize,
     ingress: Option<&ClaimIngress>,
+    sources: &[AxiomSource],
 ) -> Disposition {
     let Some(axiom) = theory.program().axioms.get(index) else {
         return Disposition::malformed(
@@ -621,7 +708,6 @@ fn classify_axiom(
             "source route is outside the canonical axiom program",
         );
     };
-    let sources = &theory.axiom_sources()[index];
     if sources
         .iter()
         .any(|source| matches!(source, AxiomSource::Formula(_)))
@@ -715,16 +801,26 @@ pub fn reason_admitted_theory_within(
     ingress.authorize_source(theory)?;
     ingress.authorize(theory.program(), &input)?;
     input.require_default_graph_profile()?;
-    if ingress.selection() != &gmeow_logic_compile::ir::TheorySelection::top_level_only() {
+    admission
+        .selection
+        .authorize_inventory(admission.inventory)?;
+    ingress
+        .resolved_selection()
+        .authorize_inventory(admission.inventory)?;
+    selected
+        .selection
+        .authorize_inventory(admission.inventory)?;
+    if admission.selection.observation().identity
+        != ingress.resolved_selection().observation().identity
+    {
         return Err(reason_err(
-            "native source profile requires the explicit top-level theory selection".into(),
+            "native source accounting and ingress require the same resolved theory composition"
+                .into(),
         ));
     }
     let expected = crate::program_analysis::preparation_identity(
         theory.program(),
-        &crate::native_semantics::SourceAdmissionProfile::SelectedTheoryV1 {
-            theory: ingress.selection().clone(),
-        },
+        &crate::program_analysis::selected_profile(ingress.resolved_selection()),
     )?;
     if selected.prepared.identity != expected {
         return Err(reason_err(
@@ -752,7 +848,12 @@ pub fn reason_admitted_theory_within(
             _ => false,
         };
         if reads_ingress {
-            *disposition = classify(admission.inventory, unit, Some(ingress));
+            *disposition = classify_selected(
+                admission.inventory,
+                unit,
+                Some(ingress),
+                &admission.selection,
+            )?;
         }
     }
     if admission.malformed() {
@@ -772,27 +873,11 @@ pub fn reason_admitted_theory_within(
             "selected source contains malformed obligations: {detail}"
         )));
     }
-    let naf_rules: Vec<String> = admission
-        .inventory
-        .obligations()
-        .zip(&admission.dispositions)
-        .filter_map(|(unit, disposition)| match (unit.origin(), disposition) {
-            (SourceObligationOrigin::Owner(_), Disposition::Blocked { code, reason })
-                if *code == NAF_BOUNDARY =>
-            {
-                Some(format!("{}: {reason}", unit.anchor()))
-            }
-            _ => None,
-        })
-        .collect();
-    if !naf_rules.is_empty() {
-        return Err(gmeow_errors::Diag::of_kind(crate::error::NativeRefusal {
-            reason: "selected source proof refuses negation-as-failure rules before execution"
-                .to_owned(),
-            gaps: naf_rules,
-            bounds: Vec::new(),
-        }));
-    }
+    super::admit_selected_source_rules(
+        admission.inventory,
+        &admission.selection,
+        super::SelectedRuleProfile::SourceProof,
+    )?;
     for claim in ingress.unread() {
         admission.execution_drops.insert(NativeSourceDrop::new(
             ENGINE_NATIVE,

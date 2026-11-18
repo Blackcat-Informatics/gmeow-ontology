@@ -95,7 +95,7 @@ fn no_blank_terms(program: &LogicProgram) {
     }
 }
 
-/// The four shapes the issue measured, in one source.
+/// The four supported collection shapes share one authored source.
 const ALL_SHAPES: &str = "
 ex:Named logic:oneOf ( ex:b ex:a ex:b ) .
 ex:Anon logic:equivalentClass [ a logic:Class ; logic:oneOf ( ex:a ex:b ) ] .

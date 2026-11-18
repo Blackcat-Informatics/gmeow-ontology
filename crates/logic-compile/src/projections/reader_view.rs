@@ -7,6 +7,10 @@
 //! `gmeow_ns`. It preserves the canonical RDF surface and graph scopes; it does
 //! not discharge general lens laws or project arbitrary scoped formulas.
 
+use purrdf::dataset_view::TermGuard;
+use purrdf::{DatasetView, TermId};
+use std::convert::Infallible;
+
 /// Add the generated OWL/RDFS reader view of canonical `logic:` assertions while
 /// retaining every original assertion and its native table. This is the carrier-side
 /// projection boundary used by consumers and OWL-oriented audit readers; it never
@@ -15,7 +19,7 @@
 /// # Errors
 /// Returns the original storage failure if constructing the reader view fails.
 pub fn with_owl_rdfs_projection(
-    dataset: &purrdf::RdfDataset,
+    dataset: &impl DatasetView<Id = TermId, ReadError = Infallible>,
 ) -> gmeow_errors::Result<std::sync::Arc<purrdf::RdfDataset>> {
     project(dataset, GraphProjection::Preserve)
 }
@@ -55,11 +59,17 @@ enum AssertionTable {
 }
 
 fn project(
-    dataset: &purrdf::RdfDataset,
+    dataset: &impl DatasetView<Id = TermId, ReadError = Infallible>,
     graphs: GraphProjection,
 ) -> gmeow_errors::Result<std::sync::Arc<purrdf::RdfDataset>> {
     let mut builder = purrdf::RdfDatasetBuilder::new();
-    let mut remap = vec![None; dataset.term_count()];
+    let terms = usize::try_from(dataset.term_count()).map_err(|error| {
+        gmeow_errors::Diag::of_kind(crate::error::Frontend::caused_by(
+            "reader-view term dictionary exceeds addressable memory".into(),
+            error,
+        ))
+    })?;
+    let mut remap = vec![None; terms];
     for quad in dataset.quads() {
         project_assertion(
             dataset,
@@ -70,7 +80,8 @@ fn project(
             AssertionTable::Ordinary,
         )?;
     }
-    for (reifier, triple, graph) in dataset.reifiers_with_graph() {
+    for quad in dataset.reifier_quads() {
+        let (reifier, triple, graph) = (quad.s, quad.o, quad.g);
         let reifier = intern_preserving_term(&mut builder, dataset, &mut remap, reifier)?;
         let triple = intern_preserving_term(&mut builder, dataset, &mut remap, triple)?;
         let graph = graphs
@@ -86,18 +97,13 @@ fn project(
             }
         }
     }
-    for (reifier, predicate, object, graph) in dataset.annotations_with_graph() {
+    for quad in dataset.annotation_quads() {
         project_assertion(
             dataset,
             &mut builder,
             &mut remap,
             graphs,
-            purrdf::QuadIds {
-                s: reifier,
-                p: predicate,
-                o: object,
-                g: graph,
-            },
+            quad,
             AssertionTable::Annotation,
         )?;
     }
@@ -118,7 +124,7 @@ fn project(
 /// Project one asserted operator/marker occurrence. Quoted triple payloads are
 /// re-interned unchanged; only the assertion's own predicate/object roles are read.
 fn project_assertion(
-    dataset: &purrdf::RdfDataset,
+    dataset: &impl DatasetView<Id = TermId, ReadError = Infallible>,
     builder: &mut purrdf::RdfDatasetBuilder,
     remap: &mut [Option<purrdf::TermId>],
     graphs: GraphProjection,
@@ -126,12 +132,18 @@ fn project_assertion(
     table: AssertionTable,
 ) -> gmeow_errors::Result<()> {
     const RDF_TYPE: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
-    let source_predicate = match dataset.resolve(quad.p) {
+    let predicate_guard = dataset
+        .resolve(quad.p)
+        .expect("resident source reads are infallible");
+    let object_guard = dataset
+        .resolve(quad.o)
+        .expect("resident source reads are infallible");
+    let source_predicate = match predicate_guard.term() {
         purrdf::TermRef::Iri(iri) => iri,
         other => unreachable!("RDF predicate must be an IRI, got {other:?}"),
     };
     let predicate = gmeow_ns::owl_view_of_predicate(source_predicate);
-    let object = match dataset.resolve(quad.o) {
+    let object = match object_guard.term() {
         purrdf::TermRef::Iri(iri) if source_predicate == RDF_TYPE => {
             gmeow_ns::owl_view_of_type_marker(iri)
         }
@@ -181,7 +193,7 @@ fn project_assertion(
 /// are preserved because this is a one-source projection, not a standardize-apart union.
 fn intern_preserving_term(
     builder: &mut purrdf::RdfDatasetBuilder,
-    source: &purrdf::RdfDataset,
+    source: &impl DatasetView<Id = TermId, ReadError = Infallible>,
     remap: &mut [Option<purrdf::TermId>],
     source_id: purrdf::TermId,
 ) -> gmeow_errors::Result<purrdf::TermId> {
@@ -189,7 +201,10 @@ fn intern_preserving_term(
         return Ok(mapped);
     }
 
-    let mapped = match source.resolve(source_id) {
+    let source_guard = source
+        .resolve(source_id)
+        .expect("resident source reads are infallible");
+    let mapped = match source_guard.term() {
         purrdf::TermRef::Iri(iri) => builder.intern_iri(iri),
         purrdf::TermRef::Blank { label, scope } => builder.intern_blank(label, scope),
         purrdf::TermRef::Literal {
@@ -198,7 +213,10 @@ fn intern_preserving_term(
             language,
             direction,
         } => {
-            let datatype = match source.resolve(datatype) {
+            let datatype_guard = source
+                .resolve(datatype)
+                .expect("resident source reads are infallible");
+            let datatype = match datatype_guard.term() {
                 purrdf::TermRef::Iri(iri) => iri.to_owned(),
                 other => unreachable!("literal datatype must be an IRI, got {other:?}"),
             };

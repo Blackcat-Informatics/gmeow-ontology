@@ -565,9 +565,17 @@ pub fn lower_formulas_to_rc(program: &LogicProgram) -> (Vec<RcRule>, Vec<String>
 pub fn lower_formulas_to_rc_attributed(
     program: &LogicProgram,
 ) -> (Vec<(RcRule, BTreeSet<usize>)>, Vec<String>) {
+    lower_indexed_formulas_to_rc_attributed(program.formulas.iter().enumerate())
+}
+
+/// Lower admitted formulas while retaining their original compilation indices.
+#[must_use]
+pub fn lower_indexed_formulas_to_rc_attributed<'a>(
+    formulas: impl IntoIterator<Item = (usize, &'a Formula)>,
+) -> (Vec<(RcRule, BTreeSet<usize>)>, Vec<String>) {
     let mut rules: Vec<(RcRule, usize)> = Vec::new();
     let mut residue: BTreeSet<String> = BTreeSet::new();
-    for (index, formula) in program.formulas.iter().enumerate() {
+    for (index, formula) in formulas {
         let analysis = formula_analysis::analyze(formula);
         rules.extend(analysis.rules.iter().cloned().map(|rule| (rule, index)));
         residue.extend(analysis.residue.iter().cloned());

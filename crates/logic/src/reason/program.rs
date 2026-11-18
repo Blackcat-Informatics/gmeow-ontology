@@ -44,15 +44,21 @@ pub(super) struct ProgramClosure {
 pub(super) type InputFacts = BTreeMap<String, Vec<Fact>>;
 pub(super) type WorldGraphs = BTreeMap<String, Option<TermValue>>;
 
+const SELECTED_DEFAULT_INGRESS_DOMAIN: purrdf_hash::Domain =
+    purrdf_hash::Domain::new(b"gmeow-native-selected-default-ingress-v2");
+const INGRESS_THEORY_SELECTION_DOMAIN: purrdf_hash::Domain =
+    purrdf_hash::Domain::new(b"gmeow-native-ingress-theory-selection-v1");
+
 #[derive(Clone, Copy)]
 enum InputGraphSelection {
     All,
-    Default,
+    Default { selection: [u8; 32] },
 }
 
 impl InputGraphSelection {
     fn admit(self, graph: &crate::physical::LogicalGraph, role: &str) -> gmeow_errors::Result<()> {
-        if matches!(self, Self::Default) && *graph != crate::physical::LogicalGraph::Default {
+        if matches!(self, Self::Default { .. }) && *graph != crate::physical::LogicalGraph::Default
+        {
             return Err(gmeow_errors::Diag::of_kind(crate::error::NativeRefusal {
                 reason: "selected default-graph source profile refuses an unselected logical world"
                     .to_owned(),
@@ -68,11 +74,16 @@ impl InputGraphSelection {
         graphs: &WorldGraphs,
         occurrences: &BTreeMap<String, Arc<[super::refute::RefutationPremise]>>,
     ) -> [u8; 32] {
-        let domain = match self {
-            Self::All => "gmeow-native-ingress-v1",
-            Self::Default => "gmeow-native-selected-default-ingress-v1",
-        };
-        crate::physical::metadata_identity(domain, &(graphs, occurrences))
+        match self {
+            Self::All => crate::physical::metadata_identity(
+                "gmeow-native-ingress-v1",
+                &(graphs, occurrences),
+            ),
+            Self::Default { selection } => crate::physical::metadata_identity(
+                SELECTED_DEFAULT_INGRESS_DOMAIN.as_str(),
+                &(selection, graphs, occurrences),
+            ),
+        }
     }
 }
 
@@ -93,7 +104,7 @@ pub struct PreparedReasoningInput {
 
 impl PreparedReasoningInput {
     pub(super) fn require_default_graph_profile(&self) -> gmeow_errors::Result<()> {
-        if !matches!(self.graph_selection, InputGraphSelection::Default) {
+        if !matches!(self.graph_selection, InputGraphSelection::Default { .. }) {
             return Err(reason_err(
                 "native source admission requires the selected default-graph input profile"
                     .to_owned(),
@@ -302,8 +313,17 @@ pub fn prepare_reasoning_input(
 /// source separately for complete envelope inspection and source accounting.
 pub(super) fn prepare_default_reasoning_input(
     edb: &impl purrdf::DatasetView<ReadError = std::convert::Infallible>,
+    selection: &gmeow_logic_compile::source_inventory::ResolvedTheorySelection,
 ) -> gmeow_errors::Result<PreparedReasoningInput> {
-    prepare_reasoning_input_under(edb, InputGraphSelection::Default)
+    prepare_reasoning_input_under(
+        edb,
+        InputGraphSelection::Default {
+            selection: crate::physical::metadata_identity(
+                INGRESS_THEORY_SELECTION_DOMAIN.as_str(),
+                &selection.observation().identity,
+            ),
+        },
+    )
 }
 
 fn prepare_reasoning_input_under(
