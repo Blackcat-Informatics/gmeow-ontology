@@ -1,0 +1,184 @@
+{
+  "github:comment:IC_kwDOSwdn1s8AAAABnwGLqw": {
+    "resolution": "addressed",
+    "reason": "Read latest passed description check and its cached-objective caveat. Exact final body readback matches local body and records actual final-head authenticated pass, zero errors and 24 warnings; qualification comment 6965110918 supplies the same result. No pending catalogue requirement remains. Full make check and hosted source CI are not claimed; user waiver and separate 2920 owner are explicit.",
+    "commit": "be7f3e295a40be707c87fa8d7286544e38a09ad2",
+    "reply_url": null,
+    "revision": {
+      "updated_at": "2026-11-18T00:25:21Z",
+      "state": null,
+      "commit": null,
+      "path": null,
+      "line": null,
+      "body_sha256": "fd7b079f55f28628402351e3995389a7849dc074531b56e34284df75b6b2cea2"
+    }
+  },
+  "github:inline:PRRC_kwDOSwdn1s8AAAABEpN5WA": {
+    "resolution": "addressed",
+    "reason": "Unicode prefix correction is retained and all six existing cases pass. Native lexer source and both parser modes are independently reviewed; final authenticated qualification remains running.",
+    "commit": "be7f3e295a40be707c87fa8d7286544e38a09ad2",
+    "reply_url": null,
+    "revision": {
+      "updated_at": "2026-11-17T23:37:48Z",
+      "state": null,
+      "commit": "bd60f0f43da7827f670f9f65c50ccfe88b8bab0b",
+      "path": "crates/docs-model/src/i18n.rs",
+      "line": null,
+      "body_sha256": "3474dc1ecc55be5a7ffc1c8e696ec1c11b77ad8385bd9cb1bdcd7b56c853739c"
+    }
+  },
+  "github:inline:PRRC_kwDOSwdn1s8AAAABEpN5gw": {
+    "resolution": "addressed",
+    "reason": "Blank-node correction is retained with native PrefixedName-only bindings and passing existing behavior cases. Exact corrected-head authenticated qualification remains running.",
+    "commit": "be7f3e295a40be707c87fa8d7286544e38a09ad2",
+    "reply_url": null,
+    "revision": {
+      "updated_at": "2026-11-17T23:35:19Z",
+      "state": null,
+      "commit": "bd60f0f43da7827f670f9f65c50ccfe88b8bab0b",
+      "path": "crates/docs-model/src/i18n.rs",
+      "line": null,
+      "body_sha256": "120a505d5bb63f59c11471039beaa0f36214583a6eff5b8ab147e6752ed6ee71"
+    }
+  },
+  "github:review:PRR_kwDOSwdn1s8AAAABYoIj0A": {
+    "resolution": "addressed",
+    "reason": "Read complete formal review and cross-repository caveats. Both actual prefix regressions reproduced and fixed by native lexer ownership at this commit; six existing cases pass. Linked-repository summary is not runtime acceptance; final authenticated catalogue qualification remains running.",
+    "commit": "21f6085287c57586353199c393598724e4127586",
+    "reply_url": null,
+    "revision": {
+      "updated_at": "2026-11-17T22:26:34Z",
+      "state": "COMMENTED",
+      "commit": "bd60f0f43da7827f670f9f65c50ccfe88b8bab0b",
+      "path": null,
+      "line": null,
+      "body_sha256": "f4bb9548916f21bf1d090520744e18113be49eff225a5a61dfea4b28054035e5"
+    }
+  },
+  "github:inline:PRRC_kwDOSwdn1s8AAAABEpzZBg": {
+    "resolution": "addressed",
+    "reason": "Update preservation is fixed and six cases pass; final authenticated build/verify/catalogue passes with zero errors and 24 existing warnings on exact be7f3e295. Thread resolved and final outcome published.",
+    "commit": "be7f3e295a40be707c87fa8d7286544e38a09ad2",
+    "reply_url": null,
+    "revision": {
+      "updated_at": "2026-11-17T23:50:07Z",
+      "state": null,
+      "commit": "be7f3e295a40be707c87fa8d7286544e38a09ad2",
+      "path": "crates/docs-model/src/i18n.rs",
+      "line": 236,
+      "body_sha256": "4cd923360ce647c291510b25ca6bc54c12573b83d065f7a4669e45e407bfc456"
+    }
+  },
+  "github:review:PRR_kwDOSwdn1s8AAAABYo30ww": {
+    "resolution": "addressed",
+    "reason": "Read complete new formal review and cross-repository limits. The sole update-syntax finding is reproduced and fixed in this commit through the locked native parser. No full corpus or hosted CI pass is claimed.",
+    "commit": "be7f3e295a40be707c87fa8d7286544e38a09ad2",
+    "reply_url": null,
+    "revision": {
+      "updated_at": "2026-11-17T23:33:54Z",
+      "state": "COMMENTED",
+      "commit": "21f6085287c57586353199c393598724e4127586",
+      "path": null,
+      "line": null,
+      "body_sha256": "32fe8d4f2aa7bc25609936bbb0bc29726aa8e4035e3611c81b13149868ab77d6"
+    }
+  },
+  "github:inline:PRRC_kwDOSwdn1s8AAAABEpwyxA": {
+    "resolution": "addressed",
+    "reason": "Read own published Unicode correction reply and verified its source and scoped result claims. Its pending qualification statement remains historical and accurate for publication.",
+    "commit": "be7f3e295a40be707c87fa8d7286544e38a09ad2",
+    "reply_url": null,
+    "revision": {
+      "updated_at": "2026-11-17T23:28:31Z",
+      "state": null,
+      "commit": "bd60f0f43da7827f670f9f65c50ccfe88b8bab0b",
+      "path": "crates/docs-model/src/i18n.rs",
+      "line": null,
+      "body_sha256": "e7e53cfdb5b193f2e2fec992e5ec758e611902d5c8239d0106a16824e4b34993"
+    }
+  },
+  "github:inline:PRRC_kwDOSwdn1s8AAAABEpwz6g": {
+    "resolution": "addressed",
+    "reason": "Read own published blank-node reply and verified its source and scoped result claims. Final authenticated catalogue qualification is separately pending.",
+    "commit": "be7f3e295a40be707c87fa8d7286544e38a09ad2",
+    "reply_url": null,
+    "revision": {
+      "updated_at": "2026-11-17T23:28:33Z",
+      "state": null,
+      "commit": "bd60f0f43da7827f670f9f65c50ccfe88b8bab0b",
+      "path": "crates/docs-model/src/i18n.rs",
+      "line": null,
+      "body_sha256": "2e53dc55783a43f3cee5e72f080c7454b0bbb9d5a10d060cd1452d9358ff53fa"
+    }
+  },
+  "github:inline:PRRC_kwDOSwdn1s8AAAABEp1Pow": {
+    "resolution": "addressed",
+    "reason": "Read complete source-confirmation reply. Zero-error catalogue result remains mandatory and pending on current corrected source; broad CI waiting is explicitly waived by current campaign instruction. No full make check pass claimed.",
+    "commit": "be7f3e295a40be707c87fa8d7286544e38a09ad2",
+    "reply_url": null,
+    "revision": {
+      "updated_at": "2026-11-17T23:37:49Z",
+      "state": null,
+      "commit": "bd60f0f43da7827f670f9f65c50ccfe88b8bab0b",
+      "path": "crates/docs-model/src/i18n.rs",
+      "line": null,
+      "body_sha256": "d38598afc6b0d003602577872653f6e0e622c884ced534187c3a884e88302210"
+    }
+  },
+  "github:inline:PRRC_kwDOSwdn1s8AAAABEp0vmA": {
+    "resolution": "addressed",
+    "reason": "Read complete blank-node source-confirmation reply and its execution caveat. Current authenticated zero-error catalogue acceptance remains pending and accurate warning counts will be reported.",
+    "commit": "be7f3e295a40be707c87fa8d7286544e38a09ad2",
+    "reply_url": null,
+    "revision": {
+      "updated_at": "2026-11-17T23:36:46Z",
+      "state": null,
+      "commit": "bd60f0f43da7827f670f9f65c50ccfe88b8bab0b",
+      "path": "crates/docs-model/src/i18n.rs",
+      "line": null,
+      "body_sha256": "7352dad7fa6a0c45f2b488275e5c36bdecd5c0e29268fa78059f94d2b46e7152"
+    }
+  },
+  "github:inline:PRRC_kwDOSwdn1s8AAAABEp7ArQ": {
+    "resolution": "addressed",
+    "reason": "Own earlier update reply truthfully recorded then-pending qualification. Final exact-head authenticated build/verify/catalogue now passes; result and warning count are recorded in final body/comment.",
+    "commit": "be7f3e295a40be707c87fa8d7286544e38a09ad2",
+    "reply_url": null,
+    "revision": {
+      "updated_at": "2026-11-17T23:50:02Z",
+      "state": null,
+      "commit": "be7f3e295a40be707c87fa8d7286544e38a09ad2",
+      "path": "crates/docs-model/src/i18n.rs",
+      "line": 236,
+      "body_sha256": "fb7c1044c8c2a6d651efe03bf140ce978874be9192f1b2fc28a5dc0fb3dbbeef"
+    }
+  },
+  "github:inline:PRRC_kwDOSwdn1s8AAAABEp7mZQ": {
+    "resolution": "addressed",
+    "reason": "Read complete source-confirmation reply. Final authenticated catalogue has zero errors and 24 existing warnings; current source and artifact parity pass. Full make check not claimed; known pipeline blocker and user CI waiver remain explicit.",
+    "commit": "be7f3e295a40be707c87fa8d7286544e38a09ad2",
+    "reply_url": null,
+    "revision": {
+      "updated_at": "2026-11-17T23:51:20Z",
+      "state": null,
+      "commit": "be7f3e295a40be707c87fa8d7286544e38a09ad2",
+      "path": "crates/docs-model/src/i18n.rs",
+      "line": 236,
+      "body_sha256": "2562d36562613ac864ee2d2cae5dbde45a82d95d7b5befe5cdd356bb7445c665"
+    }
+  },
+  "github:comment:IC_kwDOSwdn1s8AAAABnycohg": {
+    "resolution": "addressed",
+    "reason": "Read own final qualification comment and verified every claim against exact final-head logs, source/pair readbacks, six-case run, configured hooks and resolved threads. No broad corpus or memory-fit claim.",
+    "commit": "be7f3e295a40be707c87fa8d7286544e38a09ad2",
+    "reply_url": null,
+    "revision": {
+      "updated_at": "2026-11-18T00:25:30Z",
+      "state": null,
+      "commit": null,
+      "path": null,
+      "line": null,
+      "body_sha256": "d4022d18e02a8f487028cb0ef0d8fdff08b0daa4fbebe8902f73eedf3b54dafa"
+    }
+  }
+}

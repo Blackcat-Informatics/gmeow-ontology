@@ -1,0 +1,173 @@
+{
+  "issue": 2916,
+  "pr_number": 2919,
+  "branch": "paudley/2916-repair-native-catalogue-technical-text",
+  "stage_dir": "/home/paudley/Active/gmeow-ontology/.worktrees/2916-repair-native-catalogue-technical-text/.stage/repair-native-catalogue-technical-text",
+  "observed_at": "2026-11-18T00:26:42.957896+00:00",
+  "completed": [
+    "pr",
+    "checks",
+    "reviews"
+  ],
+  "blocked": [
+    {
+      "code": "ci_fail",
+      "message": "CI state is fail"
+    },
+    {
+      "code": "review_debt",
+      "message": "2 new or changed review items need disposition"
+    }
+  ],
+  "unavailable": [],
+  "next_actions": [
+    "Inspect saved failed-job excerpts",
+    "Read pr-comments.md and record each disposition with review-disposition"
+  ],
+  "artifacts": {
+    "ci_failures": "/home/paudley/Active/gmeow-ontology/.worktrees/2916-repair-native-catalogue-technical-text/.stage/repair-native-catalogue-technical-text/ci-failures.md",
+    "reviews": "/home/paudley/Active/gmeow-ontology/.worktrees/2916-repair-native-catalogue-technical-text/.stage/repair-native-catalogue-technical-text/pr-comments.md",
+    "status": "/home/paudley/Active/gmeow-ontology/.worktrees/2916-repair-native-catalogue-technical-text/.stage/repair-native-catalogue-technical-text/status.json",
+    "checks": "/home/paudley/Active/gmeow-ontology/.worktrees/2916-repair-native-catalogue-technical-text/.stage/repair-native-catalogue-technical-text/pr-checks.txt",
+    "review_evidence": "/home/paudley/Active/gmeow-ontology/.worktrees/2916-repair-native-catalogue-technical-text/.stage/repair-native-catalogue-technical-text/review-evidence.json"
+  },
+  "limits": [
+    "Mechanical evidence only; artifact presence does not establish a passing review or acceptance verdict."
+  ],
+  "pr": {
+    "baseRefName": "main",
+    "baseRefOid": "acb086890e82489dd4de4ee2016ba6667261b23c",
+    "headRefName": "paudley/2916-repair-native-catalogue-technical-text",
+    "headRefOid": "be7f3e295a40be707c87fa8d7286544e38a09ad2",
+    "isDraft": false,
+    "mergeCommit": null,
+    "mergedAt": null,
+    "number": 2919,
+    "state": "OPEN",
+    "title": "Preserve technical catalogue text and require translation for prose",
+    "url": "https://github.com/Blackcat-Informatics/gmeow-ontology/pull/2919"
+  },
+  "checks": {
+    "state": "fail",
+    "checks": [
+      {
+        "link": "https://github.com/Blackcat-Informatics/gmeow-ontology/actions/runs/44202693507/job/134475215525",
+        "name": "generation (a)",
+        "state": "IN_PROGRESS"
+      },
+      {
+        "link": "https://github.com/Blackcat-Informatics/gmeow-ontology/actions/runs/44202693507/job/134475215584",
+        "name": "generation (b)",
+        "state": "IN_PROGRESS"
+      },
+      {
+        "link": "https://github.com/Blackcat-Informatics/gmeow-ontology/actions/runs/44202693507/job/134475215565",
+        "name": "fixture-prefix",
+        "state": "IN_PROGRESS"
+      },
+      {
+        "link": "https://github.com/Blackcat-Informatics/gmeow-ontology/actions/runs/44202693507/job/134475218450",
+        "name": "maint-medium-sweep",
+        "state": "SKIPPED"
+      },
+      {
+        "link": "https://github.com/Blackcat-Informatics/gmeow-ontology/actions/runs/44202693507/job/134475217226",
+        "name": "maint-wasm-refresh",
+        "state": "SKIPPED"
+      },
+      {
+        "link": "https://github.com/Blackcat-Informatics/gmeow-ontology/actions/runs/44202693507/job/134471748153",
+        "name": "rust-static-source",
+        "state": "FAILURE"
+      },
+      {
+        "link": "https://github.com/Blackcat-Informatics/gmeow-ontology/actions/runs/44202693507/job/134460766184",
+        "name": "producer-build",
+        "state": "SUCCESS"
+      },
+      {
+        "link": "https://github.com/Blackcat-Informatics/gmeow-ontology/actions/runs/44202693507/job/134460765741",
+        "name": "helpers",
+        "state": "SUCCESS"
+      },
+      {
+        "link": "https://github.com/Blackcat-Informatics/gmeow-ontology/actions/runs/44202693507/job/134460766201",
+        "name": "lint",
+        "state": "SUCCESS"
+      },
+      {
+        "link": "https://github.com/Blackcat-Informatics/gmeow-ontology/actions/runs/44202693507/job/134460765949",
+        "name": "rust-prebuild",
+        "state": "SUCCESS"
+      },
+      {
+        "link": "https://coderabbit.ai?utm_source=cr_app&utm_medium=github",
+        "name": "CodeRabbit",
+        "state": "NEUTRAL"
+      },
+      {
+        "link": "https://cla-assistant.io/Blackcat-Informatics/gmeow-ontology?pullRequest=2919",
+        "name": "license/cla",
+        "state": "SUCCESS"
+      }
+    ]
+  },
+  "reviews": {
+    "head": "be7f3e295a40be707c87fa8d7286544e38a09ad2",
+    "coverage": {
+      "comments": "complete",
+      "reviews": "complete",
+      "inline_comments": "complete",
+      "threads": "complete"
+    },
+    "items": 19,
+    "change_token": "19256dce0afe5cf50442a6020584e87f5d4ec7d04b3bb37b8d58a58eec4f192b"
+  },
+  "local": {
+    "head": "be7f3e295a40be707c87fa8d7286544e38a09ad2",
+    "branch": "paudley/2916-repair-native-catalogue-technical-text",
+    "dirty_paths": []
+  },
+  "ci_logs": {
+    "pr": 2919,
+    "jobs": [
+      {
+        "name": "rust-static-source",
+        "link": "https://github.com/Blackcat-Informatics/gmeow-ontology/actions/runs/44202693507/job/134471748153",
+        "path": "/home/paudley/Active/gmeow-ontology/.worktrees/2916-repair-native-catalogue-technical-text/.stage/repair-native-catalogue-technical-text/ci-logs/github-job-134471748153.log",
+        "excerpt": [
+          "1615: 2026-11-18T00:15:43.6631843Z     Checking gmeow-gmn-cost-matrix v0.4.0 (/home/runner/work/gmeow-ontology/gmeow-ontology/crates/gmn-cost-matrix)",
+          "1616: 2026-11-18T00:15:57.8816244Z error: this function has too many arguments (8/7)",
+          "1617: 2026-11-18T00:15:57.8817941Z     --> crates/logic/src/physical/seminaive/joint.rs:1524:5",
+          "1618: 2026-11-18T00:15:57.8818874Z      |",
+          "1631: 2026-11-18T00:15:57.8844207Z ",
+          "1632: 2026-11-18T00:15:59.8748330Z error: could not compile `gmeow-logic` (lib) due to 1 previous error",
+          "1633: 2026-11-18T00:15:59.8749714Z warning: build failed, waiting for other jobs to finish...",
+          "1634: 2026-11-18T00:16:09.8240970Z error: could not compile `gmeow-logic` (lib test) due to 1 previous error",
+          "1635: 2026-11-18T00:16:09.9330728Z ##[error]Process completed with exit code 101.",
+          "1636: 2026-11-18T00:16:09.9470239Z Post job cleanup.",
+          "1637: 2026-11-18T00:16:10.0362688Z [command]/usr/bin/git version"
+        ]
+      }
+    ],
+    "ok": true,
+    "summary": "# PR #2919 failed CI logs\n\n## rust-static-source\nhttps://github.com/Blackcat-Informatics/gmeow-ontology/actions/runs/44202693507/job/134471748153\n\n/home/paudley/Active/gmeow-ontology/.worktrees/2916-repair-native-catalogue-technical-text/.stage/repair-native-catalogue-technical-text/ci-logs/github-job-134471748153.log\n1615: 2026-11-18T00:15:43.6631843Z     Checking gmeow-gmn-cost-matrix v0.4.0 (/home/runner/work/gmeow-ontology/gmeow-ontology/crates/gmn-cost-matrix)\n1616: 2026-11-18T00:15:57.8816244Z error: this function has too many arguments (8/7)\n1617: 2026-11-18T00:15:57.8817941Z     --> crates/logic/src/physical/seminaive/joint.rs:1524:5\n1618: 2026-11-18T00:15:57.8818874Z      |\n1631: 2026-11-18T00:15:57.8844207Z \n1632: 2026-11-18T00:15:59.8748330Z error: could not compile `gmeow-logic` (lib) due to 1 previous error\n1633: 2026-11-18T00:15:59.8749714Z warning: build failed, waiting for other jobs to finish...\n1634: 2026-11-18T00:16:09.8240970Z error: could not compile `gmeow-logic` (lib test) due to 1 previous error\n1635: 2026-11-18T00:16:09.9330728Z ##[error]Process completed with exit code 101.\n1636: 2026-11-18T00:16:09.9470239Z Post job cleanup.\n1637: 2026-11-18T00:16:10.0362688Z [command]/usr/bin/git version\n\n"
+  },
+  "review_debt": [
+    {
+      "id": "github:comment:IC_kwDOSwdn1s8AAAABnwGLqw",
+      "url": "https://github.com/Blackcat-Informatics/gmeow-ontology/pull/2919#issuecomment-6962645931",
+      "kind": "comment"
+    },
+    {
+      "id": "github:comment:IC_kwDOSwdn1s8AAAABnycohg",
+      "url": "https://github.com/Blackcat-Informatics/gmeow-ontology/pull/2919#issuecomment-6965110918",
+      "kind": "comment"
+    }
+  ],
+  "unresolved_threads": [],
+  "validation": {
+    "results": [],
+    "limits": "Scopes are caller-selected. Unchanged scope is reusable evidence, not a gate waiver; environment capture is not exhaustive."
+  }
+}

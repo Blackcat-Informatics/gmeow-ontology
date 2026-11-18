@@ -1,0 +1,24 @@
+{
+  "pr": 2919,
+  "jobs": [
+    {
+      "name": "rust-static-source",
+      "link": "https://github.com/Blackcat-Informatics/gmeow-ontology/actions/runs/44202693507/job/134471748153",
+      "path": "/home/paudley/Active/gmeow-ontology/.worktrees/2916-repair-native-catalogue-technical-text/.stage/repair-native-catalogue-technical-text/ci-logs/github-job-134471748153.log",
+      "excerpt": [
+        "1615: 2026-11-18T00:15:43.6631843Z     Checking gmeow-gmn-cost-matrix v0.4.0 (/home/runner/work/gmeow-ontology/gmeow-ontology/crates/gmn-cost-matrix)",
+        "1616: 2026-11-18T00:15:57.8816244Z error: this function has too many arguments (8/7)",
+        "1617: 2026-11-18T00:15:57.8817941Z     --> crates/logic/src/physical/seminaive/joint.rs:1524:5",
+        "1618: 2026-11-18T00:15:57.8818874Z      |",
+        "1631: 2026-11-18T00:15:57.8844207Z ",
+        "1632: 2026-11-18T00:15:59.8748330Z error: could not compile `gmeow-logic` (lib) due to 1 previous error",
+        "1633: 2026-11-18T00:15:59.8749714Z warning: build failed, waiting for other jobs to finish...",
+        "1634: 2026-11-18T00:16:09.8240970Z error: could not compile `gmeow-logic` (lib test) due to 1 previous error",
+        "1635: 2026-11-18T00:16:09.9330728Z ##[error]Process completed with exit code 101.",
+        "1636: 2026-11-18T00:16:09.9470239Z Post job cleanup.",
+        "1637: 2026-11-18T00:16:10.0362688Z [command]/usr/bin/git version"
+      ]
+    }
+  ],
+  "ok": true
+}

@@ -1,0 +1,20 @@
+{
+  "schema": 1,
+  "worktree": "/home/paudley/Active/gmeow-ontology/.worktrees/2916-repair-native-catalogue-technical-text",
+  "branch": "paudley/2916-repair-native-catalogue-technical-text",
+  "base_ref": "origin/main",
+  "head": "ffc5fc19a2923c1c92eb60e06e23897dfbd1bbfe",
+  "attempt": "/home/paudley/Active/gmeow-ontology/.worktrees/2916-repair-native-catalogue-technical-text/.stage/repair-native-catalogue-technical-text/sync/20261117T215212-d063216cee664e818290507e0d14b9a9",
+  "conflicts": [],
+  "status": "completed",
+  "base": "acb086890e82489dd4de4ee2016ba6667261b23c",
+  "merge_bases": [
+    "61d637e75add31f5f8ebf6c086adfc0c89f4d5ed"
+  ],
+  "merge_index": "d5fb1a0578599c8f8fea2c2aea71d1a9eb16b137c31d8edd0e42f456577c7a50",
+  "candidate_tree": "217de47a188e60958ba11411065b6aea6460cd4d",
+  "candidate_patch": "candidate-c9a0a3dc3e9a4cf6aa0ab8662eb1f859.patch",
+  "validation_records": [],
+  "commit": "bd60f0f43da7827f670f9f65c50ccfe88b8bab0b",
+  "tree": "217de47a188e60958ba11411065b6aea6460cd4d"
+}

@@ -1,0 +1,39 @@
+{
+  "assignees": [],
+  "author": {
+    "id": "MDQ6VXNlcjUyNzU1NQ==",
+    "is_bot": false,
+    "login": "paudley",
+    "name": "Patrick Audley"
+  },
+  "body": "The native catalogue check reports nine errors on the current source. Six are\ncopied-English findings on preserved technical text: two Turtle examples in\nFrench and Chinese and the R-hat notation label in both languages. Three are\nreal glossary inconsistencies: AbsenceReason/absenceReason in French and\nChinese, and ModelFormula/modelFormula in French.\n\nThe failures predate the PCA-output guidance batch. Its new eighty-four\ntranslation pairs are outside every reported context. Apply Principles 4, 7,\n11 and 19. Keep this repair separate from the unchanged PCA guidance contract.\n\nAcceptance:\n\n- Preserve RDF terms, machine-readable examples and mathematical notation.\n  Correct technical-invariant classification through the existing native\n  translation-integrity owner; do not translate code, add a term-specific\n  suppression, weaken copied-prose detection or loosen configuration.\n- Resolve the three genuine label inconsistencies with accurate, consistent\n  French/Chinese terminology. Preserve unrelated catalogue entries and all\n  canonical English terms, axioms and runtime profiles.\n- Extend existing integrity behavior cases for the actual technical text and\n  retained copied-English refusals. Add no parallel test target or broad matrix.\n- Qualify the affected native checker and actual command. Run the native\n  catalogue check with an authenticated producer for the changed implementation;\n  it must report zero errors. Report remaining warnings accurately.\n- Preserve current corpus, generated artifacts and measured floors. No test\n  produces a corpus, no fixture selector is fabricated, and no CI or full\n  producer-runtime success follows from a catalogue pass.\n\nObserved contexts:\n\n- core/gts: evidenceCorpusStale example in fr/zh.\n- core/pipeline: flowReadsHandle example in fr/zh.\n- grounding/math: RHat label in fr/zh; ModelFormula/modelFormula labels in fr.\n- core/inquiry: AbsenceReason/absenceReason labels in fr/zh.\n\nThe current command reports nine errors and twenty-four warnings. The warnings\nhave separate stale/orphaned-entry causes and are not the errors counted here.\n",
+  "closedAt": null,
+  "comments": [],
+  "createdAt": "2026-11-17T20:38:14Z",
+  "labels": [
+    {
+      "id": "LA_kwDOSwdn1s8AAAACl8ZKrA",
+      "name": "bug",
+      "description": "Something isn't working",
+      "color": "d73a4a"
+    },
+    {
+      "id": "LA_kwDOSwdn1s8AAAACmjuimw",
+      "name": "quality",
+      "description": "Quality gate or completeness/correctness invariant",
+      "color": "0e8a16"
+    },
+    {
+      "id": "LA_kwDOSwdn1s8AAAADBPkJyQ",
+      "name": "terms",
+      "description": "",
+      "color": "ededed"
+    }
+  ],
+  "milestone": null,
+  "number": 2916,
+  "state": "OPEN",
+  "title": "Repair native catalogue technical-text classification and inconsistent labels",
+  "updatedAt": "2026-11-17T20:39:30Z",
+  "url": "https://github.com/Blackcat-Informatics/gmeow-ontology/issues/2916"
+}
