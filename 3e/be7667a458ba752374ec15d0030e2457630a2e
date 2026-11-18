@@ -1,0 +1,19 @@
+ghprsq source head backlink metadata
+
+parent_hashes: 3ebe7667a458ba752374ec15d0030e2457630a2e
+
+GhpRsq-Schema: 1
+GhpRsq-Merge-Style: structured-squash-head-backlink
+GhpRsq-GitHub-Repo: Blackcat-Informatics/gmeow-ontology
+GhpRsq-GitHub-Pull-Request: 2921
+GhpRsq-GitHub-PR-URL: https://github.com/Blackcat-Informatics/gmeow-ontology/pull/2921
+GhpRsq-Base-Ref: main
+GhpRsq-Base-OID: 859d9234ee9ffb99693102cba2f2b0b80c5e9988
+GhpRsq-Head-Ref: paudley/2920-restore-clippy-for-native-joint
+GhpRsq-Head-OID: 3ebe7667a458ba752374ec15d0030e2457630a2e
+GhpRsq-Result-Tree: ab9a5b94bed08412c179eb0e87f4def3aeefdd83
+GhpRsq-Result-Commit: 8093407b74b6d4042a154c3f416563ce12f429ed
+GhpRsq-Parent-Hashes: 3ebe7667a458ba752374ec15d0030e2457630a2e
+GhpRsq-Squash-Notes-SHA256: 69c06c9101cd6c2009d80435c50db4ade0042f3628c7d5f870c726511d9fea5d
+GhpRsq-Defect-Class: clippytoo_many_arguments
+GhpRsq-Stage-Evidence: none
