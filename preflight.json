@@ -1,0 +1,143 @@
+{
+  "issue": 2927,
+  "pr_number": 2928,
+  "branch": "paudley/2927-bind-native-proof-completeness-to-the",
+  "stage_dir": "/home/paudley/Active/gmeow-ontology/.worktrees/2927-bind-native-proof-completeness-to-the/.stage/bind-native-proof-completeness-to-the",
+  "observed_at": "2026-11-18T06:13:44.985641+00:00",
+  "completed": [
+    "pr",
+    "checks",
+    "reviews",
+    "merge_candidate"
+  ],
+  "blocked": [
+    {
+      "code": "ci_pending",
+      "message": "CI state is pending"
+    }
+  ],
+  "unavailable": [],
+  "next_actions": [
+    "Wait for CI changes"
+  ],
+  "artifacts": {
+    "ci_failures": "/home/paudley/Active/gmeow-ontology/.worktrees/2927-bind-native-proof-completeness-to-the/.stage/bind-native-proof-completeness-to-the/ci-failures.md",
+    "reviews": "/home/paudley/Active/gmeow-ontology/.worktrees/2927-bind-native-proof-completeness-to-the/.stage/bind-native-proof-completeness-to-the/pr-comments.md",
+    "status": "/home/paudley/Active/gmeow-ontology/.worktrees/2927-bind-native-proof-completeness-to-the/.stage/bind-native-proof-completeness-to-the/status.json",
+    "checks": "/home/paudley/Active/gmeow-ontology/.worktrees/2927-bind-native-proof-completeness-to-the/.stage/bind-native-proof-completeness-to-the/pr-checks.txt",
+    "review_evidence": "/home/paudley/Active/gmeow-ontology/.worktrees/2927-bind-native-proof-completeness-to-the/.stage/bind-native-proof-completeness-to-the/review-evidence.json"
+  },
+  "limits": [
+    "Mechanical evidence only; artifact presence does not establish a passing review or acceptance verdict.",
+    "Preflight does not sign, fetch, push or mutate forge state. API permission and read access do not prove Git push authorization or protected-branch admission."
+  ],
+  "pr": {
+    "baseRefName": "main",
+    "baseRefOid": "e674cb1207d13a68830f80aa61d0b545f8e3b20d",
+    "headRefName": "paudley/2927-bind-native-proof-completeness-to-the",
+    "headRefOid": "d92feced54106958ef2c62d07a278ae3a01bf89f",
+    "isDraft": false,
+    "mergeCommit": null,
+    "mergedAt": null,
+    "number": 2928,
+    "state": "OPEN",
+    "title": "Bind native proof completeness to exact source execution",
+    "url": "https://github.com/Blackcat-Informatics/gmeow-ontology/pull/2928"
+  },
+  "checks": {
+    "state": "pending",
+    "checks": [
+      {
+        "link": "https://github.com/Blackcat-Informatics/gmeow-ontology/actions/runs/44249406179/job/134616562877",
+        "name": "producer-build",
+        "state": "QUEUED"
+      },
+      {
+        "link": "https://github.com/Blackcat-Informatics/gmeow-ontology/actions/runs/44249406179/job/134616563194",
+        "name": "helpers",
+        "state": "QUEUED"
+      },
+      {
+        "link": "https://github.com/Blackcat-Informatics/gmeow-ontology/actions/runs/44249406179/job/134616563478",
+        "name": "lint",
+        "state": "QUEUED"
+      },
+      {
+        "link": "https://github.com/Blackcat-Informatics/gmeow-ontology/actions/runs/44249406179/job/134616563173",
+        "name": "rust-prebuild",
+        "state": "QUEUED"
+      },
+      {
+        "link": "https://app.coderabbit.ai/change-stack/Blackcat-Informatics/gmeow-ontology/pull/2928",
+        "name": "CodeRabbit",
+        "state": "IN_PROGRESS"
+      },
+      {
+        "link": "https://cla-assistant.io/Blackcat-Informatics/gmeow-ontology?pullRequest=2928",
+        "name": "license/cla",
+        "state": "SUCCESS"
+      }
+    ]
+  },
+  "reviews": {
+    "head": "d92feced54106958ef2c62d07a278ae3a01bf89f",
+    "coverage": {
+      "comments": "complete",
+      "reviews": "complete",
+      "inline_comments": "complete",
+      "threads": "complete"
+    },
+    "items": 12,
+    "change_token": "5107f03212221f22b9e2e2bcc8cd538f6b0b8b56285134ed4dd18f7de74c7f48"
+  },
+  "local": {
+    "head": "d92feced54106958ef2c62d07a278ae3a01bf89f",
+    "branch": "paudley/2927-bind-native-proof-completeness-to-the",
+    "dirty_paths": []
+  },
+  "ci_logs": {
+    "pr": 2928,
+    "jobs": [],
+    "ok": true,
+    "summary": "# PR #2928 failed CI logs\n\nNo failed checks in this snapshot.\n"
+  },
+  "review_debt": [],
+  "unresolved_threads": [],
+  "validation": {
+    "results": [],
+    "limits": "Scopes are caller-selected. Unchanged scope is reusable evidence, not a gate waiver; environment capture is not exhaustive."
+  },
+  "preflight": {
+    "git": "/usr/bin/git",
+    "python3": "/home/paudley/stage/root/bin/python3",
+    "stagectl": "/home/paudley/stage/root/bin/stagectl",
+    "bash": "/usr/bin/bash",
+    "readlink": "/home/paudley/stage/root/bin/readlink",
+    "sed": "/usr/bin/sed",
+    "awk": "/usr/bin/awk",
+    "ghprsq": "/home/paudley/stage/agents/bin/ghprsq",
+    "archive": {
+      "files": 16,
+      "bytes": 255241,
+      "errors": [],
+      "limits": "Read-only selected-evidence admission; full newly reachable Git object closure is checked by ghprsq before push."
+    },
+    "signing": {
+      "format": "openpgp",
+      "key_configured": true,
+      "limits": "Configuration inspected; no signing operation was performed."
+    },
+    "forge_permissions": {
+      "admin": true,
+      "maintain": true,
+      "push": true,
+      "triage": true,
+      "pull": true
+    },
+    "merge_candidate": {
+      "base": "e674cb1207d13a68830f80aa61d0b545f8e3b20d",
+      "head": "d92feced54106958ef2c62d07a278ae3a01bf89f",
+      "status": "clean"
+    }
+  }
+}

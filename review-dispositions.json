@@ -1,0 +1,128 @@
+{
+  "github:comment:IC_kwDOSwdn1s8AAAABn2z6-Q": {
+    "resolution": "acknowledged",
+    "reason": "Processing notice is not a completed review. The retained three findings are read: the optional index is declined with a posted reply, and both accounting defects are fixed and independently reviewed with 17 claim and 32 CLI passes.",
+    "commit": "d92feced54106958ef2c62d07a278ae3a01bf89f",
+    "reply_url": null,
+    "revision": {
+      "updated_at": "2026-11-18T06:11:02Z",
+      "state": null,
+      "commit": null,
+      "path": null,
+      "line": null,
+      "body_sha256": "ada9679c47e0f4867b257bce1c3556f035840bd7a362daf6db6164d979470bcb"
+    }
+  },
+  "github:inline:PRRC_kwDOSwdn1s8AAAABEsAM3g": {
+    "resolution": "declined",
+    "reason": "Optional indexing has no measured resource regression requiring another retained binding index. Current exact graph/carrier support membership remains correct within the shared inventory.",
+    "commit": "d92feced54106958ef2c62d07a278ae3a01bf89f",
+    "reply_url": "https://github.com/Blackcat-Informatics/gmeow-ontology/pull/2928#discussion_r4609667337",
+    "revision": {
+      "updated_at": "2026-11-18T05:43:43Z",
+      "state": null,
+      "commit": "d92feced54106958ef2c62d07a278ae3a01bf89f",
+      "path": "crates/logic-compile/src/source_inventory.rs",
+      "line": 413,
+      "body_sha256": "9cc724a8192a04f2cc9c271db540ef1aa863a899181e5c082349d1c9224df388"
+    }
+  },
+  "github:inline:PRRC_kwDOSwdn1s8AAAABEsAM4Q": {
+    "resolution": "addressed",
+    "reason": "NAF owner boundaries produce typed refusal before source-bound execution, preventing an absence-based native witness. Generic procedural execution and CLI refusal regressions pass.",
+    "commit": "d92feced54106958ef2c62d07a278ae3a01bf89f",
+    "reply_url": "https://github.com/Blackcat-Informatics/gmeow-ontology/pull/2928#discussion_r4609844911",
+    "revision": {
+      "updated_at": "2026-11-18T05:24:51Z",
+      "state": null,
+      "commit": "d92feced54106958ef2c62d07a278ae3a01bf89f",
+      "path": "crates/logic/src/reason/source_admission.rs",
+      "line": 454,
+      "body_sha256": "2bd1d035a248ec4c4cc2f563bd284b6850665ec2fc374c8e3ec973d1225d1f93"
+    }
+  },
+  "github:inline:PRRC_kwDOSwdn1s8AAAABEsAM8w": {
+    "resolution": "addressed",
+    "reason": "Read the updated item, which now confirms this finding is addressed by the repair commit. AtomPolarity and positive-membership/independent-clash regressions remain qualified by all 32 CLI cases and independent review.",
+    "commit": "d92feced54106958ef2c62d07a278ae3a01bf89f",
+    "reply_url": "https://github.com/Blackcat-Informatics/gmeow-ontology/pull/2928#discussion_r4609845072",
+    "revision": {
+      "updated_at": "2026-11-18T06:11:34Z",
+      "state": null,
+      "commit": "d92feced54106958ef2c62d07a278ae3a01bf89f",
+      "path": "crates/logic/src/reason/source_admission/accounting.rs",
+      "line": 392,
+      "body_sha256": "efc0cdf1f8dd675ba0a68bedff80d035c1102738eb7148b61eaa2abfba58dd84"
+    }
+  },
+  "github:comment:IC_kwDOSwdn1s8AAAABn3Z_kg": {
+    "resolution": "addressed",
+    "reason": "The published repair plan is implemented by this commit and passes independent source review, actual helpers hygiene, 17 claim cases and all 32 CLI cases.",
+    "commit": "d92feced54106958ef2c62d07a278ae3a01bf89f",
+    "reply_url": null,
+    "revision": {
+      "updated_at": "2026-11-18T05:47:36Z",
+      "state": null,
+      "commit": null,
+      "path": null,
+      "line": null,
+      "body_sha256": "06b5c7de1d6162638820b6d8c67c032683c41b6e4d637b7be2de5f1655f9d9e6"
+    }
+  },
+  "github:review:PRR_kwDOSwdn1s8AAAABYrjLYg": {
+    "resolution": "addressed",
+    "reason": "Both correctness findings are fixed at the source-bound execution and polarity accounting boundaries. The optional performance suggestion is separately declined with a posted reply. All three threads are resolved; exact final source qualification passes.",
+    "commit": "d92feced54106958ef2c62d07a278ae3a01bf89f",
+    "reply_url": null,
+    "revision": {
+      "updated_at": "2026-11-18T05:24:51Z",
+      "state": "COMMENTED",
+      "commit": "e9e3f91b56e76cc1503c6aedf244b7de80765924",
+      "path": null,
+      "line": null,
+      "body_sha256": "9506a00401b13a54fda86ac2a185fad1a27ee13117ede294777a96e24987e762"
+    }
+  },
+  "github:inline:PRRC_kwDOSwdn1s8AAAABEsHxCQ": {
+    "resolution": "acknowledged",
+    "reason": "Posted scope disposition for the optional index suggestion is read and remains applicable.",
+    "commit": "d92feced54106958ef2c62d07a278ae3a01bf89f",
+    "reply_url": null,
+    "revision": {
+      "updated_at": "2026-11-18T05:43:38Z",
+      "state": null,
+      "commit": "d92feced54106958ef2c62d07a278ae3a01bf89f",
+      "path": "crates/logic-compile/src/source_inventory.rs",
+      "line": 413,
+      "body_sha256": "36da9fa0936d5dd5394eae91d14070e1ec743bec56e78d54c034828beabe9c56"
+    }
+  },
+  "github:inline:PRRC_kwDOSwdn1s8AAAABEsSmrw": {
+    "resolution": "acknowledged",
+    "reason": "Posted NAF repair explanation matches the committed implementation and passing regressions.",
+    "commit": "d92feced54106958ef2c62d07a278ae3a01bf89f",
+    "reply_url": null,
+    "revision": {
+      "updated_at": "2026-11-18T06:10:35Z",
+      "state": null,
+      "commit": "d92feced54106958ef2c62d07a278ae3a01bf89f",
+      "path": "crates/logic/src/reason/source_admission.rs",
+      "line": 454,
+      "body_sha256": "012ae84311d62a90528f67888d08cb563330b07089d9e164b4bdd86deff11993"
+    }
+  },
+  "github:inline:PRRC_kwDOSwdn1s8AAAABEsSnUA": {
+    "resolution": "acknowledged",
+    "reason": "Posted universal-membership repair explanation matches the committed implementation and passing regressions.",
+    "commit": "d92feced54106958ef2c62d07a278ae3a01bf89f",
+    "reply_url": null,
+    "revision": {
+      "updated_at": "2026-11-18T06:10:37Z",
+      "state": null,
+      "commit": "d92feced54106958ef2c62d07a278ae3a01bf89f",
+      "path": "crates/logic/src/reason/source_admission/accounting.rs",
+      "line": 392,
+      "body_sha256": "334cb205a8cc49353241e6fb44a5a45446345a22fb3179fc962dfaf093508ac7"
+    }
+  }
+}

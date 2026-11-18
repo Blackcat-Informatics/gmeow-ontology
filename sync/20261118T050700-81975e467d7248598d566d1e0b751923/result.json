@@ -1,0 +1,24 @@
+{
+  "schema": 1,
+  "worktree": "/home/paudley/Active/gmeow-ontology/.worktrees/2927-bind-native-proof-completeness-to-the",
+  "branch": "paudley/2927-bind-native-proof-completeness-to-the",
+  "base_ref": "origin/main",
+  "head": "dd04448ca32f66292d9e4946edc191cf7240d419",
+  "attempt": "/home/paudley/Active/gmeow-ontology/.worktrees/2927-bind-native-proof-completeness-to-the/.stage/bind-native-proof-completeness-to-the/sync/20261118T050700-81975e467d7248598d566d1e0b751923",
+  "conflicts": [],
+  "status": "completed",
+  "base": "e674cb1207d13a68830f80aa61d0b545f8e3b20d",
+  "merge_bases": [
+    "a9a85f296e1b8386c737e0789a80333920c525f7"
+  ],
+  "merge_index": "256a16179ec9b7d3ab4920b5896d2e93523bf72d94b9fcefd10b84fef3d2921e",
+  "candidate_tree": "d0bec8a9fec75a6306a06cda7468efcb89912658",
+  "candidate_patch": "candidate-96a49291cb1e486886b237a847fce476.patch",
+  "stdout_log": "commit-96a49291cb1e486886b237a847fce476.stdout.log",
+  "stderr_log": "commit-96a49291cb1e486886b237a847fce476.stderr.log",
+  "validation_records": [],
+  "commit_duration_seconds": 1.8053928529843688,
+  "commit": "e9e3f91b56e76cc1503c6aedf244b7de80765924",
+  "tree": "d0bec8a9fec75a6306a06cda7468efcb89912658",
+  "exit_code": 0
+}

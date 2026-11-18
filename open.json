@@ -1,0 +1,30 @@
+{
+  "schema": 1,
+  "issue": 2927,
+  "repo": "gmeow-ontology",
+  "forge": "github",
+  "nwo": "Blackcat-Informatics/gmeow-ontology",
+  "read_access": "anon-read",
+  "main_root": "/home/paudley/Active/gmeow-ontology",
+  "worktree": "/home/paudley/Active/gmeow-ontology/.worktrees/2927-bind-native-proof-completeness-to-the",
+  "branch": "paudley/2927-bind-native-proof-completeness-to-the",
+  "slug": "bind-native-proof-completeness-to-the",
+  "slug_drift": false,
+  "stage_dir": "/home/paudley/Active/gmeow-ontology/.worktrees/2927-bind-native-proof-completeness-to-the/.stage/bind-native-proof-completeness-to-the",
+  "stage_tracked": true,
+  "base": "origin/main",
+  "base_oid": "a9a85f296e1b8386c737e0789a80333920c525f7",
+  "reused": false,
+  "adr_repo": false,
+  "created": [
+    "worktree:/home/paudley/Active/gmeow-ontology/.worktrees/2927-bind-native-proof-completeness-to-the",
+    "branch:paudley/2927-bind-native-proof-completeness-to-the",
+    "ignored:8266 files (8266 reflinked, 0 written)",
+    "rust-caches:skipping busy source /opt/.cargo/97/525680d7b34b3d: /opt/.cargo/97/525680d7b34b3d/pipeline/.cargo-build-lock; reflinked /home/paudley/Active/gmeow-ontology/.worktrees/2881-carry-native-reasoning-receipts-as caches into /home/paudley/Active/gmeow-ontology/.worktrees/2927-bind-native-proof-completeness-to-the plus 0 dependency units from 0 other checkouts in 32.4s; 12960 unchanged files keep their built mtimes; 131 other files take the seed time and rebuild; 150 units naming another checkout rebuild",
+    "stage:/home/paudley/Active/gmeow-ontology/.worktrees/2927-bind-native-proof-completeness-to-the/.stage/bind-native-proof-completeness-to-the",
+    "issue:/home/paudley/Active/gmeow-ontology/.worktrees/2927-bind-native-proof-completeness-to-the/.stage/bind-native-proof-completeness-to-the/issue.md"
+  ],
+  "warnings": [],
+  "timestamp": "2026-11-17T20:49:01-0600",
+  "seed_error": ""
+}

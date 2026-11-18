@@ -1,0 +1,351 @@
+diff --git slices/grounding/math/design/MATHEMATICS-NUMBERS-AND-SETS.md slices/grounding/math/design/MATHEMATICS-NUMBERS-AND-SETS.md
+index 2765d2b52..a6919eae0 100644
+--- slices/grounding/math/design/MATHEMATICS-NUMBERS-AND-SETS.md
++++ slices/grounding/math/design/MATHEMATICS-NUMBERS-AND-SETS.md
+@@ -18,9 +18,9 @@
+ ## Purpose
+ 
+ Numbers, sets, and functions are the primitives the rest of the grounding layer is built from. The
+-charter's single discipline is **exactness is explicit**: a number knows whether it is an exact
+-element of a number system or a floating-point approximation of one; a set knows whether it is given
+-extensionally or by a defining condition; a function knows its domain and codomain. Nothing is left
++charter's single discipline is **exactness is explicit**: a number declares its system, and a separate
++approximation records its target and error; a set states whether it is given extensionally or by a
++defining condition; a function declares its domain and codomain. Nothing is left
+ to a bare RDF literal that silently loses which number system, which construction, or which map it
+ belongs to.
+ 
+@@ -37,14 +37,22 @@ Core system individuals: the tower `math:naturalNumbers` ⊂ `math:integers` ⊂
+ Core properties: `math:inNumberSystem`, `math:isExact`, `math:approximates`,
+ `math:approximationError`, `math:numericDatatype`, and `math:extendedRealValue`.
+ 
+-A `math:Number` declares its number system (`math:inNumberSystem`: ℕ ⊂ ℤ ⊂ ℚ ⊂ ℝ ⊂ ℂ, with the
+-algebraic/transcendental distinction inside ℝ/ℂ) and whether it is **exact** or an
+-**approximation**. An exact rational is the pair it denotes; π is a `math:MathematicalConstant` (an
+-exact `math:TranscendentalNumber`), *not* `3.14159`; and `3.14159` is a `math:ApproximateValue`
+-that `math:approximates` π with a stated `math:approximationError`. Floating-point values ground in
+-the canonical RDF datatypes `xsd:double`/`xsd:float` (IEEE-754), carried by `math:numericDatatype`
+-([`MATHEMATICS-REFERENCES.md`](MATHEMATICS-REFERENCES.md) — the `xsd` FP datatypes are subsumed, not
+-re-minted).
++A `math:Number` declares its number system through `math:inNumberSystem`;
++the containment tower is ℕ ⊂ ℤ ⊂ ℚ ⊂ ℝ ⊂ ℂ, with the algebraic/transcendental
++distinction inside ℝ/ℂ. `math:RationalNumber` describes the abstract number,
++while `math:RationalValue` carries a concrete integer pair. Exact finite decimal
++`0.25` and pair `(1,4)` can denote the same value without identifying their RDF
++resources. A decimal representation is not intrinsically an approximation.
++
++π retains its exact `math:MathematicalConstant` identity and `math:isExact true`.
++A separate `math:ApproximateValue` can carry a finite evaluation near `3.14159`,
++link `math:approximates` to π and record a justified numeric absolute
++`math:approximationError` bound. This carrier is separate from the exact number
++and its literal. `math:numericDatatype` names the literal's actual datatype by
++IRI, reusing `xsd:double` or `xsd:float` as described in
++[`MATHEMATICS-REFERENCES.md`](MATHEMATICS-REFERENCES.md). A declared datatype or
++displayed precision supplies no proof of the error bound. A bare
++`math:quantityValue` also supplies no dimension, unit, basis or reference frame.
+ 
+ **Signed extended reals.** Some quantities run off the finite line: a limit diverging downward, an
+ infimum of a set with no lower bound, a σ-finite measure's infinite mass. The **signed extended real
+@@ -182,12 +190,15 @@ ex:oneThirdDecimal
+     math:approximates ex:oneThird ;
+     math:numericDatatype xsd:double ;
+     math:quantityValue "0.3333333333333333"^^xsd:double ;   # note: math:Quantity would frame this in a measurement
+-    math:approximationError ex:doubleRoundingError .
++    math:approximationError "0.000001"^^xsd:decimal .
+ ```
+ 
+-The exact rational and its `double` approximation are two objects; a consumer that needs the value
+-reads the approximation and *knows* it is one, with its error — the floating-point result never
+-masquerades as the exact number.
++The exact rational and its `double` approximation are two objects. The numeric
++absolute bound is conservative for this one-third evaluation; it is neither a
++relative percentage nor an error-resource identifier. Declaring the record
++executes no calculation and does not prove the bound. The canonical obligations
++and broader diagnostic annotations are described in the
++[approximation and constant diagnostic guide](../docs.md#approximation-and-constant-diagnostic-findings).
+ 
+ ## Shape and lint gates
+ 
+diff --git slices/grounding/math/docs.md slices/grounding/math/docs.md
+index 86868f443..5d43bd081 100644
+--- slices/grounding/math/docs.md
++++ slices/grounding/math/docs.md
+@@ -98,6 +98,62 @@ domain/codomain/image and its injectivity/surjectivity/bijectivity, a set's card
+ named constants appear with their external anchors. Further questions in the same registry exercise
+ every realized charter, including the cross-corpus coverage frames described below.
+ 
++## Approximation and constant diagnostic findings
++
++`math:ExactApproximateConflation` and `math:ConstantAsDecimalLiteral` retain
++their canonical `logic:Situation` grounding. `math:ApproximateValue` and
++`math:MathematicalConstant` retain `logic:AbstractIndividualType` grounding.
++The described failure situation and the validation finding that cites its
++class are separate roles; a finding does not imply a newly minted failure node.
++
++The existing [canonical module](./module.ttl) gives `math:ApproximateValue`
++minimum, all-values and qualified-maximum target restrictions that require
++one `math:Number` through `math:approximates`. Its error restriction requires
++at least one `math:approximationError` in the decimal/double/float union.
++That group has no error maximum or all-values restriction, and no
++`math:quantityValue` or `math:numericDatatype` restriction. It supplies no proof
++of finiteness, non-negative error, numerical bound validity, datatype/value
++agreement or inequality between target and approximation resources. Retain
++those intended authoring requirements separately from what the constraints
++actually establish. The [numbers charter](./design/MATHEMATICS-NUMBERS-AND-SETS.md#number-systems-and-exactness)
++distinguishes abstract numbers, pair carriers and separate approximation objects.
++
++`math:MathematicalConstant` has an existing boolean minimum for `math:isExact`,
++typed `logic:hasValue true` and a qualified maximum of zero for direct
++`math:quantityValue` values in `rdfs:Literal`. The prohibition covers literal
++values beyond the `xsd:decimal` datatype. Preserve the constant's exact
++identity; place a justified evaluation and numeric absolute bound on a
++separate approximation. A datatype or displayed precision does not prove that
++bound, and a numeric value alone supplies no dimension, unit, basis or frame.
++
++The two class-level `gmeow:enforcesFailureClass` annotations are copied to
++generated property shapes, and the report bridge resolves classes by source
++shape. Thus `math:ExactApproximateConflation` can accompany target-type/count
++or missing-bound findings, while `math:ConstantAsDecimalLiteral` also labels
++the constant's exactness findings. Neither class alone identifies a particular
++component or proves a raw literal or resource conflation. Inspect the actual
++component, path, value and source shape, then repair that obligation. The
++canonical source is `logic:`; SHACL is its generated validation view.
++
++The two negative conformance cells select class isolation when
++`expectedFailureClass` is present: the executor requires a matching-class
++finding and rejects findings of every other class across its channels. That
++branch does not additionally enforce the declared component/source-shape
++fields or require exactly one finding. The fixture headers describe this
++source contract without asserting an executed verdict.
++
++The [selected exact scalar runtime](./design/MATHEMATICS-RUNTIME.md#selected-exact-scalar-execution)
++accepts dimensionless Quantity integer/decimal bindings and refuses float/double
++inputs and nonterminating exact division. It does not qualify these
++approximation records or their error bounds. The rational reader and decimal
++square-root output have their separate
++[native limits](./design/MATHEMATICS-LINEAR-ALGEBRA-AND-LEARNING.md#rational-carriers-validation-and-native-limits).
++The exact constants' [Wikidata identity laws and OEIS digit locators](./mappings/equivalences.ttl)
++retain `logic:SoundUnderApproximation` and `logic:ValidationOnly` judgments,
++respectively. Their ownership stays with the exact constants; neither the
++approximation nor the diagnostic classes inherit those laws, and the links
++certify no numerical bound.
++
+ ## Algebra — structures, symmetry, and homomorphisms
+ 
+ The algebra charter ([`design/MATHEMATICS-ALGEBRA.md`](./design/MATHEMATICS-ALGEBRA.md)) deepens the
+diff --git slices/grounding/math/i18n/fr.po slices/grounding/math/i18n/fr.po
+index d357b2d4a..963a66f89 100644
+--- slices/grounding/math/i18n/fr.po
++++ slices/grounding/math/i18n/fr.po
+@@ -18390,3 +18390,59 @@ msgstr "Éviter zéro, un dénominateur omis, un littéral non entier ou une exi
+ msgctxt "https://blackcatinformatics.ca/math/denominator|https://blackcatinformatics.ca/gmeow/howToUse"
+ msgid "Supply one nonzero xsd:integer value with the carrier's math:numerator. Check the class-local datatype/count/closure obligations and the explicit forbidden-zero constraint. Preserve full diagnostic evidence when generated validation reports a violation."
+ msgstr "Fournir une valeur xsd:integer non nulle avec le math:numerator de l’objet porteur. Vérifier les obligations locales à la classe de type de données, de nombre de valeurs et de fermeture, ainsi que la contrainte explicite interdisant zéro. Préserver les éléments diagnostiques complets lorsque la validation générée signale une violation."
++
++msgctxt "https://blackcatinformatics.ca/math/ExactApproximateConflation|http://www.w3.org/2000/01/rdf-schema#label"
++msgid "Exact–Approximate Conflation"
++msgstr "Confusion entre valeur exacte et valeur approchée"
++
++msgctxt "https://blackcatinformatics.ca/math/ExactApproximateConflation|http://www.w3.org/2004/02/skos/core#definition"
++msgid "The failure raised when a math:ApproximateValue fails to keep an approximation distinct from the exact value — it does not name, through math:approximates, the exact number it stands in for, or does not declare its math:approximationError. An exact number and an approximation of it are distinct objects."
++msgstr "La défaillance signalée lorsqu’un math:ApproximateValue ne maintient pas la distinction entre une approximation et la valeur exacte : il ne nomme pas, au moyen de math:approximates, le nombre exact qu’il représente, ou ne déclare pas son math:approximationError. Un nombre exact et une approximation de ce nombre sont des objets distincts."
++
++msgctxt "https://blackcatinformatics.ca/math/ExactApproximateConflation|http://www.w3.org/2004/02/skos/core#scopeNote"
++msgid "This class describes a failure of approximation framing. Its current math:ApproximateValue-level report annotation can also classify target-type or count findings; the class alone proves neither resource-identity conflation nor the validity of a numerical error bound."
++msgstr "Cette classe décrit un défaut du cadre de l’approximation. Son annotation actuelle des rapports au niveau de math:ApproximateValue peut également classer des constats concernant le type de la cible ou le nombre de valeurs ; la classe seule ne prouve ni l’identification de deux ressources ni la validité d’une borne numérique d’erreur."
++
++msgctxt "https://blackcatinformatics.ca/math/ExactApproximateConflation|http://www.w3.org/2004/02/skos/core#example"
++msgid "A math:ApproximateValue that names an exact one-third target through math:approximates but omits math:approximationError illustrates the missing-bound case. Read the finding's component and source shape before identifying that case from a report."
++msgstr "Un math:ApproximateValue qui nomme une cible exacte égale à un tiers au moyen de math:approximates mais omet math:approximationError illustre le cas d’une borne manquante. Lire le composant et la forme source du constat avant d’identifier ce cas dans un rapport."
++
++msgctxt "https://blackcatinformatics.ca/math/ExactApproximateConflation|https://blackcatinformatics.ca/gmeow/useWhen"
++msgid "Use when interpreting findings attributed to the canonical math:ApproximateValue restrictions on its exact target and the presence of a numeric error bound."
++msgstr "À utiliser pour interpréter les constats attribués aux restrictions canoniques de math:ApproximateValue concernant sa cible exacte et la présence d’une borne numérique d’erreur."
++
++msgctxt "https://blackcatinformatics.ca/math/ExactApproximateConflation|https://blackcatinformatics.ca/gmeow/avoidWhen"
++msgid "Avoid treating this class as proof of an incorrect numerical value, a negative bound, mismatched literal and declared datatypes, or equality between the approximation and target resources; the current restriction group establishes none of those numerical or identity judgments."
++msgstr "Ne pas considérer cette classe comme une preuve d’une valeur numérique incorrecte, d’une borne négative, d’un désaccord entre le type du littéral et le type déclaré, ou d’une identité entre les ressources de l’approximation et de sa cible ; le groupe actuel de restrictions n’établit aucun de ces jugements numériques ou d’identité."
++
++msgctxt "https://blackcatinformatics.ca/math/ExactApproximateConflation|https://blackcatinformatics.ca/gmeow/howToUse"
++msgid "Inspect the component, path, value and source shape, then repair the reported obligation: retain a separate math:ApproximateValue, one justified math:Number target through math:approximates and a numeric absolute math:approximationError bound. Validation derives from the existing logic restrictions; establish the bound's numerical justification separately."
++msgstr "Examiner le composant, le chemin, la valeur et la forme source, puis corriger l’obligation signalée : conserver un math:ApproximateValue distinct, une seule cible math:Number justifiée au moyen de math:approximates et une borne numérique absolue math:approximationError. La validation dérive des restrictions logic existantes ; établir séparément la justification numérique de la borne."
++
++msgctxt "https://blackcatinformatics.ca/math/ConstantAsDecimalLiteral|http://www.w3.org/2000/01/rdf-schema#label"
++msgid "Constant as Decimal Literal"
++msgstr "Constante exprimée par un littéral décimal"
++
++msgctxt "https://blackcatinformatics.ca/math/ConstantAsDecimalLiteral|http://www.w3.org/2004/02/skos/core#definition"
++msgid "The failure raised when a math:MathematicalConstant is given as a decimal literal — it carries a raw math:quantityValue directly instead of being an exact individual. A constant's decimal expansion belongs to a distinct math:ApproximateValue that math:approximates it."
++msgstr "La défaillance signalée lorsqu’un math:MathematicalConstant est donné sous forme de littéral décimal : il porte directement une valeur brute math:quantityValue au lieu d’être un individu exact. Le développement décimal d’une constante appartient à un math:ApproximateValue distinct qui la désigne au moyen de math:approximates."
++
++msgctxt "https://blackcatinformatics.ca/math/ConstantAsDecimalLiteral|http://www.w3.org/2004/02/skos/core#scopeNote"
++msgid "The named constant keeps its exact identity independently of any numerical representation. The current math:MathematicalConstant-level report annotation also covers its isExact obligations, so this class alone does not establish that a quantityValue literal was present."
++msgstr "La constante nommée conserve son identité exacte indépendamment de toute représentation numérique. L’annotation actuelle des rapports au niveau de math:MathematicalConstant couvre également ses obligations isExact ; cette classe seule n’établit donc pas qu’un littéral quantityValue était présent."
++
++msgctxt "https://blackcatinformatics.ca/math/ConstantAsDecimalLiteral|http://www.w3.org/2004/02/skos/core#example"
++msgid "A math:MathematicalConstant with math:isExact true and a direct math:quantityValue of 3.14159 typed as xsd:double illustrates the forbidden-literal case. A justified numerical evaluation belongs on a separate math:ApproximateValue that math:approximates the constant."
++msgstr "Un math:MathematicalConstant portant math:isExact true et directement une math:quantityValue de 3.14159 de type xsd:double illustre le cas du littéral interdit. Une évaluation numérique justifiée appartient à un math:ApproximateValue distinct qui désigne la constante au moyen de math:approximates."
++
++msgctxt "https://blackcatinformatics.ca/math/ConstantAsDecimalLiteral|https://blackcatinformatics.ca/gmeow/useWhen"
++msgid "Use when interpreting findings associated with the existing constant-local exactness or absence-of-direct-literal obligations while preserving the exact named individual."
++msgstr "À utiliser pour interpréter les constats associés aux obligations existantes d’exactitude ou d’absence de littéral direct propres aux constantes, tout en préservant l’individu nommé exact."
++
++msgctxt "https://blackcatinformatics.ca/math/ConstantAsDecimalLiteral|https://blackcatinformatics.ca/gmeow/avoidWhen"
++msgid "Avoid changing the constant's exact identity because an evaluation is rounded, limiting the literal prohibition to xsd:decimal because of this class's label, or inferring a particular violation component from the class alone."
++msgstr "Ne pas modifier l’identité exacte de la constante parce qu’une évaluation est arrondie, limiter l’interdiction des littéraux à xsd:decimal à cause du libellé de cette classe, ou déduire un composant particulier de violation de la seule classe."
++
++msgctxt "https://blackcatinformatics.ca/math/ConstantAsDecimalLiteral|https://blackcatinformatics.ca/gmeow/howToUse"
++msgid "Read the reported component, path, value and source shape. Remove a direct math:quantityValue literal from the constant when present, retain math:isExact true, and keep any justified evaluation and numeric absolute error bound on a separate math:ApproximateValue. Repair the actual reported obligation without replacing the canonical constant identity."
++msgstr "Lire le composant, le chemin, la valeur et la forme source signalés. Retirer de la constante tout littéral direct math:quantityValue présent, conserver math:isExact true et placer toute évaluation justifiée et sa borne numérique absolue d’erreur sur un math:ApproximateValue distinct. Corriger l’obligation effectivement signalée sans remplacer l’identité canonique de la constante."
+diff --git slices/grounding/math/i18n/zh.po slices/grounding/math/i18n/zh.po
+index 676b578be..b5d585546 100644
+--- slices/grounding/math/i18n/zh.po
++++ slices/grounding/math/i18n/zh.po
+@@ -18390,3 +18390,59 @@ msgstr "避免零值、分母缺失、非整数字面量，或对规范 RDF 推
+ msgctxt "https://blackcatinformatics.ca/math/denominator|https://blackcatinformatics.ca/gmeow/howToUse"
+ msgid "Supply one nonzero xsd:integer value with the carrier's math:numerator. Check the class-local datatype/count/closure obligations and the explicit forbidden-zero constraint. Preserve full diagnostic evidence when generated validation reports a violation."
+ msgstr "为载体提供一个非零的 xsd:integer 值，并同时提供其 math:numerator。检查类局部的数据类型、计数和闭合义务，以及显式禁止零值的约束。当生成的验证报告指出约束违反时，应保留完整的诊断证据。"
++
++msgctxt "https://blackcatinformatics.ca/math/ExactApproximateConflation|http://www.w3.org/2000/01/rdf-schema#label"
++msgid "Exact–Approximate Conflation"
++msgstr "精确值与近似值混淆"
++
++msgctxt "https://blackcatinformatics.ca/math/ExactApproximateConflation|http://www.w3.org/2004/02/skos/core#definition"
++msgid "The failure raised when a math:ApproximateValue fails to keep an approximation distinct from the exact value — it does not name, through math:approximates, the exact number it stands in for, or does not declare its math:approximationError. An exact number and an approximation of it are distinct objects."
++msgstr "当 math:ApproximateValue 未将近似值与精确值区分开时报告的失败：它未通过 math:approximates 指明所代表的精确数，或未声明 math:approximationError。精确数与该数的近似值是不同的对象。"
++
++msgctxt "https://blackcatinformatics.ca/math/ExactApproximateConflation|http://www.w3.org/2004/02/skos/core#scopeNote"
++msgid "This class describes a failure of approximation framing. Its current math:ApproximateValue-level report annotation can also classify target-type or count findings; the class alone proves neither resource-identity conflation nor the validity of a numerical error bound."
++msgstr "该类描述近似值描述框架的缺陷。当前位于 math:ApproximateValue 类级别的报告注释也可用于归类目标类型或值数量方面的发现；仅凭该类既不能证明两个资源被视为同一对象，也不能证明数值误差界有效。"
++
++msgctxt "https://blackcatinformatics.ca/math/ExactApproximateConflation|http://www.w3.org/2004/02/skos/core#example"
++msgid "A math:ApproximateValue that names an exact one-third target through math:approximates but omits math:approximationError illustrates the missing-bound case. Read the finding's component and source shape before identifying that case from a report."
++msgstr "一个 math:ApproximateValue 通过 math:approximates 指明精确的三分之一目标，却省略 math:approximationError，展示了缺少误差界的情形。在根据报告认定这一情形前，应读取发现的约束组件和来源形状。"
++
++msgctxt "https://blackcatinformatics.ca/math/ExactApproximateConflation|https://blackcatinformatics.ca/gmeow/useWhen"
++msgid "Use when interpreting findings attributed to the canonical math:ApproximateValue restrictions on its exact target and the presence of a numeric error bound."
++msgstr "用于解释归属于 math:ApproximateValue 规范约束的发现，这些约束涉及其精确目标及数值误差界是否存在。"
++
++msgctxt "https://blackcatinformatics.ca/math/ExactApproximateConflation|https://blackcatinformatics.ca/gmeow/avoidWhen"
++msgid "Avoid treating this class as proof of an incorrect numerical value, a negative bound, mismatched literal and declared datatypes, or equality between the approximation and target resources; the current restriction group establishes none of those numerical or identity judgments."
++msgstr "不要将该类视为数值错误、误差界为负、字面量类型与声明类型不符，或近似值资源与目标资源相同的证明；当前约束组并不确立这些数值或身份判断。"
++
++msgctxt "https://blackcatinformatics.ca/math/ExactApproximateConflation|https://blackcatinformatics.ca/gmeow/howToUse"
++msgid "Inspect the component, path, value and source shape, then repair the reported obligation: retain a separate math:ApproximateValue, one justified math:Number target through math:approximates and a numeric absolute math:approximationError bound. Validation derives from the existing logic restrictions; establish the bound's numerical justification separately."
++msgstr "检查约束组件、路径、值和来源形状，然后修复所报告的义务：保留独立的 math:ApproximateValue，通过 math:approximates 指向一个有依据的 math:Number 目标，并提供数值绝对误差界 math:approximationError。验证由现有 logic 约束派生；误差界的数值依据须另行建立。"
++
++msgctxt "https://blackcatinformatics.ca/math/ConstantAsDecimalLiteral|http://www.w3.org/2000/01/rdf-schema#label"
++msgid "Constant as Decimal Literal"
++msgstr "以十进制字面量表示常数"
++
++msgctxt "https://blackcatinformatics.ca/math/ConstantAsDecimalLiteral|http://www.w3.org/2004/02/skos/core#definition"
++msgid "The failure raised when a math:MathematicalConstant is given as a decimal literal — it carries a raw math:quantityValue directly instead of being an exact individual. A constant's decimal expansion belongs to a distinct math:ApproximateValue that math:approximates it."
++msgstr "当 math:MathematicalConstant 被表示为十进制字面量时报告的失败：它直接携带原始 math:quantityValue，而不是保持为精确个体。常数的十进制展开属于独立的 math:ApproximateValue，该对象通过 math:approximates 指向此常数。"
++
++msgctxt "https://blackcatinformatics.ca/math/ConstantAsDecimalLiteral|http://www.w3.org/2004/02/skos/core#scopeNote"
++msgid "The named constant keeps its exact identity independently of any numerical representation. The current math:MathematicalConstant-level report annotation also covers its isExact obligations, so this class alone does not establish that a quantityValue literal was present."
++msgstr "命名常数的精确身份独立于任何数值表示而保留。当前位于 math:MathematicalConstant 类级别的报告注释也涵盖其 isExact 义务，因此仅凭该类不能确定曾存在 quantityValue 字面量。"
++
++msgctxt "https://blackcatinformatics.ca/math/ConstantAsDecimalLiteral|http://www.w3.org/2004/02/skos/core#example"
++msgid "A math:MathematicalConstant with math:isExact true and a direct math:quantityValue of 3.14159 typed as xsd:double illustrates the forbidden-literal case. A justified numerical evaluation belongs on a separate math:ApproximateValue that math:approximates the constant."
++msgstr "一个 math:MathematicalConstant 声明 math:isExact true，并直接携带类型为 xsd:double、数值为 3.14159 的 math:quantityValue，展示了被禁止的字面量情形。有依据的数值求值结果应放在独立的 math:ApproximateValue 上，并由该对象通过 math:approximates 指向常数。"
++
++msgctxt "https://blackcatinformatics.ca/math/ConstantAsDecimalLiteral|https://blackcatinformatics.ca/gmeow/useWhen"
++msgid "Use when interpreting findings associated with the existing constant-local exactness or absence-of-direct-literal obligations while preserving the exact named individual."
++msgstr "用于解释与常数现有局部义务相关的发现，包括精确性义务和不得直接携带字面量的义务，同时保留精确的命名个体。"
++
++msgctxt "https://blackcatinformatics.ca/math/ConstantAsDecimalLiteral|https://blackcatinformatics.ca/gmeow/avoidWhen"
++msgid "Avoid changing the constant's exact identity because an evaluation is rounded, limiting the literal prohibition to xsd:decimal because of this class's label, or inferring a particular violation component from the class alone."
++msgstr "不要因某次求值经过舍入而改变常数的精确身份，不要因该类的标签而把字面量禁令仅限于 xsd:decimal，也不要仅凭该类推断具体的违规约束组件。"
++
++msgctxt "https://blackcatinformatics.ca/math/ConstantAsDecimalLiteral|https://blackcatinformatics.ca/gmeow/howToUse"
++msgid "Read the reported component, path, value and source shape. Remove a direct math:quantityValue literal from the constant when present, retain math:isExact true, and keep any justified evaluation and numeric absolute error bound on a separate math:ApproximateValue. Repair the actual reported obligation without replacing the canonical constant identity."
++msgstr "读取所报告的约束组件、路径、值和来源形状。若常数上存在直接的 math:quantityValue 字面量，则将其移除；保留 math:isExact true，并将任何有依据的求值结果及数值绝对误差界放在独立的 math:ApproximateValue 上。修复实际报告的义务，不要替换常数的规范身份。"
+diff --git slices/grounding/math/module.ttl slices/grounding/math/module.ttl
+index 629a48e92..f06a02317 100644
+--- slices/grounding/math/module.ttl
++++ slices/grounding/math/module.ttl
+@@ -1132,6 +1132,11 @@ math:ExactApproximateConflation
+     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+     rdfs:label "Exact–Approximate Conflation"@x-gmeow-english ;
+     skos:definition "The failure raised when a math:ApproximateValue fails to keep an approximation distinct from the exact value — it does not name, through math:approximates, the exact number it stands in for, or does not declare its math:approximationError. An exact number and an approximation of it are distinct objects."@x-gmeow-english ;
++    skos:scopeNote "This class describes a failure of approximation framing. Its current math:ApproximateValue-level report annotation can also classify target-type or count findings; the class alone proves neither resource-identity conflation nor the validity of a numerical error bound."@x-gmeow-english ;
++    skos:example "A math:ApproximateValue that names an exact one-third target through math:approximates but omits math:approximationError illustrates the missing-bound case. Read the finding's component and source shape before identifying that case from a report."@x-gmeow-english ;
++    gmeow:useWhen "Use when interpreting findings attributed to the canonical math:ApproximateValue restrictions on its exact target and the presence of a numeric error bound."@x-gmeow-english ;
++    gmeow:avoidWhen "Avoid treating this class as proof of an incorrect numerical value, a negative bound, mismatched literal and declared datatypes, or equality between the approximation and target resources; the current restriction group establishes none of those numerical or identity judgments."@x-gmeow-english ;
++    gmeow:howToUse "Inspect the component, path, value and source shape, then repair the reported obligation: retain a separate math:ApproximateValue, one justified math:Number target through math:approximates and a numeric absolute math:approximationError bound. Validation derives from the existing logic restrictions; establish the bound's numerical justification separately."@x-gmeow-english ;
+     gmeow:graphBoxRole gmeow:boxTBox .
+ 
+ math:ConstantAsDecimalLiteral
+@@ -1140,6 +1145,11 @@ math:ConstantAsDecimalLiteral
+     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+     rdfs:label "Constant as Decimal Literal"@x-gmeow-english ;
+     skos:definition "The failure raised when a math:MathematicalConstant is given as a decimal literal — it carries a raw math:quantityValue directly instead of being an exact individual. A constant's decimal expansion belongs to a distinct math:ApproximateValue that math:approximates it."@x-gmeow-english ;
++    skos:scopeNote "The named constant keeps its exact identity independently of any numerical representation. The current math:MathematicalConstant-level report annotation also covers its isExact obligations, so this class alone does not establish that a quantityValue literal was present."@x-gmeow-english ;
++    skos:example "A math:MathematicalConstant with math:isExact true and a direct math:quantityValue of 3.14159 typed as xsd:double illustrates the forbidden-literal case. A justified numerical evaluation belongs on a separate math:ApproximateValue that math:approximates the constant."@x-gmeow-english ;
++    gmeow:useWhen "Use when interpreting findings associated with the existing constant-local exactness or absence-of-direct-literal obligations while preserving the exact named individual."@x-gmeow-english ;
++    gmeow:avoidWhen "Avoid changing the constant's exact identity because an evaluation is rounded, limiting the literal prohibition to xsd:decimal because of this class's label, or inferring a particular violation component from the class alone."@x-gmeow-english ;
++    gmeow:howToUse "Read the reported component, path, value and source shape. Remove a direct math:quantityValue literal from the constant when present, retain math:isExact true, and keep any justified evaluation and numeric absolute error bound on a separate math:ApproximateValue. Repair the actual reported obligation without replacing the canonical constant identity."@x-gmeow-english ;
+     gmeow:graphBoxRole gmeow:boxTBox .
+ 
+ math:StringOnlyMemberCondition
+@@ -12975,13 +12985,11 @@ math:ApproximateValue rdfs:subClassOf
+     [ a logic:Restriction ; logic:onProperty math:approximationError ; logic:minQualifiedCardinality 1 ; logic:onDataRange [ logic:unionOf ( xsd:decimal xsd:double xsd:float ) ] ] ;
+     gmeow:enforcesFailureClass math:ExactApproximateConflation .
+ 
+-# math:isExact must be true, and math:totalMass must be 1 (math:ProbabilityMeasure), are
+-# VALUE-EQUALITY constraints authored with OWL hasValue: the frontend term model now carries
+-# the literal datatype, so a typed OWL hasValue true / OWL hasValue 1 derives a typed
+-# sh:hasValue that equals the typed value on every well-formed individual and rejects the
+-# counter-example. The absence obligation math:quantityValue maxQualifiedCardinality 0
+-# (onClass OWL Thing, which also catches the constant-as-decimal counter-example) is
+-# authored alongside.
++# Typed logic:hasValue states the required values: true for math:isExact on
++# math:MathematicalConstant, and 1 for math:totalMass on math:ProbabilityMeasure.
++# The generated validation view retains each literal's datatype. The constant's
++# direct-literal prohibition is logic:maxQualifiedCardinality 0 on
++# math:quantityValue with logic:onDataRange rdfs:Literal.
+ math:MathematicalConstant rdfs:subClassOf
+     [ a logic:Restriction ; logic:onProperty math:isExact ; logic:minQualifiedCardinality 1 ; logic:onDataRange xsd:boolean ] ,
+     [ a logic:Restriction ; logic:onProperty math:isExact ; logic:hasValue true ] ,
+diff --git slices/grounding/math/tests/counter-examples/approximation-missing-error.ttl slices/grounding/math/tests/counter-examples/approximation-missing-error.ttl
+index 481d71f34..68a51b4dd 100644
+--- slices/grounding/math/tests/counter-examples/approximation-missing-error.ttl
++++ slices/grounding/math/tests/counter-examples/approximation-missing-error.ttl
+@@ -1,9 +1,12 @@
+ # SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+ # SPDX-License-Identifier: CC-BY-4.0
+ #
+-# Counter-example for math:ApproximateValueShape: a math:ApproximateValue that
+-# names what it approximates but omits math:approximationError (sh:minCount 1),
+-# so validation MUST emit shacl.MinCountConstraintComponent (and no other finding).
++# Counter-example for the canonical math:ApproximateValue restrictions: the
++# approximation names its target but omits the required numeric error bound.
++# The registered cell selects math:ExactApproximateConflation class isolation:
++# it requires a matching finding and rejects findings of other classes, without
++# additionally enforcing the declared component/source-shape fields or a sole
++# finding count. This header records the source contract, not an executed verdict.
+ # Bound by tests/example-conformance.ttl (ex:ecApproximationMissingError).
+ @prefix math: <https://blackcatinformatics.ca/math/> .
+ @prefix logic: <https://blackcatinformatics.ca/logic/> .
+diff --git slices/grounding/math/tests/counter-examples/constant-as-decimal.ttl slices/grounding/math/tests/counter-examples/constant-as-decimal.ttl
+index da9cd2d25..4b8398ffe 100644
+--- slices/grounding/math/tests/counter-examples/constant-as-decimal.ttl
++++ slices/grounding/math/tests/counter-examples/constant-as-decimal.ttl
+@@ -1,10 +1,12 @@
+ # SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+ # SPDX-License-Identifier: CC-BY-4.0
+ #
+-# Counter-example for math:MathematicalConstantShape: a math:MathematicalConstant
+-# that carries a raw math:quantityValue (sh:maxCount 0). Situated and exact so the
+-# ONLY violation is the forbidden decimal literal: validation MUST emit
+-# shacl.MaxCountConstraintComponent (and no other finding).
++# Counter-example for the canonical math:MathematicalConstant restrictions:
++# the situated, exact constant carries a forbidden direct quantityValue literal.
++# The registered cell selects math:ConstantAsDecimalLiteral class isolation:
++# it requires a matching finding and rejects findings of other classes, without
++# additionally enforcing the declared component/source-shape fields or a sole
++# finding count. This header records the source contract, not an executed verdict.
+ # Bound by tests/example-conformance.ttl (ex:ecConstantAsDecimal).
+ @prefix math: <https://blackcatinformatics.ca/math/> .
+ @prefix logic: <https://blackcatinformatics.ca/logic/> .

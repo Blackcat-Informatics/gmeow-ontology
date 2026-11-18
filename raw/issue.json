@@ -1,0 +1,99 @@
+{
+  "assignees": [],
+  "author": {
+    "id": "MDQ6VXNlcjUyNzU1NQ==",
+    "is_bot": false,
+    "login": "paudley",
+    "name": "Patrick Audley"
+  },
+  "body": "# Bind native proof completeness to the executed source\n\nPart of #2748. This independently landable unit binds native proof completeness\nto the exact selected source and execution. It preserves every other parent\nrequirement and the existing classical/module/context/correspondence owners.\n\n## Problem and resulting behavior\n\nThe native `gmeow prove` verdict currently depends on classical FOF source\nadmission. An existing provenance-only case records two claims consumed by the\nnative engine and no clash, yet remains undecided solely because classical\nadmission cannot flatten its reified source. Native execution and classical\nexport require distinct admission evidence for the same exact source selection.\n\nBind the native verdict to a live receipt for the source actually consumed and\nthe execution actually completed. Keep classical admission as the independent\nauthority for selected FOF export. A native certificate must neither authorize\nthat export nor turn unread source into admitted source.\n\nThis child does not promise a decided Principia verdict. The frozen consumer\nstill reads zero of its 4,548 scoped claims and has module, context, owner,\naccounting and lowering blockers. Those obligations remain in the parent and\ntheir existing owners.\n\n## Included implementation contract\n\n- Reuse one compiler-owned immutable inventory derived from the existing\n  `StructuralSourceGraph`, source traces and selected roots. Keep the complete\n  selected-unit denominator and stable source/program/selection identities.\n- Source-obligation identity is profile independent and binds authored anchors,\n  document occurrences and exact lowering traces. Existing FOF row IDs include\n  dispositions; they are not neutral source IDs. Preserve the classical\n  observation and publication contract while extracting the shared inventory.\n- Borrow/share the existing parsed and prepared theory. Add no second corpus,\n  parser, compiler, family scanner, unconditional classical admission or full\n  inventory copy. Compute classical dispositions only for selected export,\n  against the same inventory; reuse streaming evidence/report machinery.\n- Keep native authority in the native reasoning layer. The compiler must not\n  depend on engine types. Reuse `ClaimIngress` and its actual input/program\n  authorization, selected-domain authority and retained native execution\n  evidence. Do not introduce another closure or proof-evidence owner.\n- Before execution, validate inventory, selection, preparation and ingress as\n  eligibility. Reject malformed source and identity mismatches. Incomplete\n  source can still run its faithfully admitted fragment to seek a refutation.\n- After that exact run, bind the final live native receipt to the actual input,\n  consumed source rows and native execution evidence. A native `consistent`\n  verdict requires complete source accounting, completed supported execution,\n  and no remaining semantic, preservation, accounting or execution drops.\n- Preserve a valid witnessed clash even when source completeness is blocked.\n  Keep every unread or unsupported obligation visible in that report.\n- Separate live authority from serialized observation. Altered required rows,\n  profiles, selections, ingress or execution identities invalidate authority;\n  decoding a report never authorizes a fresh execution or projection.\n- Wire the shipped CLI verdict and JSON/text failure/report paths through this\n  native receipt. Retain independent FOF admission for explicit export and its\n  existing complete-source, tamper and stale-output protections. A selected\n  export that cannot be produced must fail actionably; native success cannot\n  disguise a missing required output as overall command success.\n\n## Ownership and overlap\n\n| Owner | Boundary retained by this child |\n| --- | --- |\n| 2748 | Native admission and whole actual-canon acceptance; assign a distinct child owner before editing. |\n| 2780 | Classical evidence-only admission. Coordinate shared inventory, resolver and CLI/report changes. Preserve its retained 23-path WIP at `37f60cd5ca39e849a24db318add73d12825e9f70`; its known false-consistent contradiction makes it an unqualified implementation base. |\n| 2781 | Explicit module/import selection. Keep the existing top-level selection in this child; do not add imports or silently compose modules. |\n| 2782 | Typed context translation for formulas and rules. Keep its blockers; do not erase coordinates. |\n| 2796 | Correspondence/metatheory execution. Do not classify owner definitions as inert or execute children independently to remove owner drops. |\n\nPreserve classical `CanonAdmissionPublication`, its pipeline consumer and\ndecode-as-observation contract. No producer artifact or publication-schema\nrewrite belongs to this child. Agree shared-file ownership before implementation;\nthe receipt implementation is frozen and the current terms build may finish.\nThis native admission unit owns the active prover implementation lane.\n\n## Acceptance using existing behavioral seams\n\n1. The existing provenance-only contradiction is inconsistent, consumes both\n   claims, and retains its witness/provenance. It must never become consistent,\n   including the known failure shape recorded by the retained 2780 work.\n2. The existing no-clash provenance-only case becomes native-consistent only\n   when its complete receipt, accounted semantics and actual closure support\n   it. An explicitly selected FOF export keeps its separate admission result\n   and required-output failure behavior.\n3. Existing unread module/standpoint, unknown metadata, mentioned carrier,\n   nested mention and named-graph boundaries remain undecided or rejected as\n   appropriate. This child broadens none of their semantics.\n4. Existing wrong-input, wrong-program, foreign-preparation, altered-row/status/\n   profile/selection and decoded-observation cases cannot forge admission.\n5. Existing incomplete-budget, unsupported-lowering and native-not-supported\n   paths remain undecided even if source eligibility succeeds. A completed\n   no-clash string with incomplete/undetermined evidence is insufficient.\n6. Actual TPTP and producer-publication consumers retain their classical\n   contract. Review actual call sites after inventory extraction; do not infer\n   native authority from a classical or serialized observation.\n7. Review allocation ownership to verify one immutable inventory, one parsed/\n   prepared theory and no unconditional classical work on native-only proof.\n   Reuse existing relevant resource evidence; add no fixed memory threshold,\n   mechanical test, broad benchmark or permanent test matrix.\n\nExtend the existing cases identified in `native-admission-design.md`. Perform\nfocused qualification of the changed library paths and shipped CLI, followed\nby mandatory hooks. This unit does not schedule another whole producer run. Principles 4, 7, 17 and\n19 govern source ownership, faithful evidence and the native authority boundary.\n\n## Frozen consumer and qualification limits\n\nUse `updated-consumer-inventory.json` and `updated-consumer-fixtures.json` for\nsource traces and unchanged-file selections. The full frozen Principia tree is\n`96ed43c1a6777e412ccdac5b4f83243872974d79`; its 212 selected documents contain\n67,044 semantic units. Small file selections are regression-design inputs,\nnot demonstrated standalone closed-theory tests or replacements for the full\ncoverage denominator.\n\nThe diagnostic binary at source `52466a33` plus two exact frozen dirty files\ncompleted 3,289 native steps without a clash, but remains incomplete/undetermined,\nwith zero scoped claims read and 15,054 drops. Its 131 lowering residues and all\nscope/owner/accounting blockers remain required work outside this bounded child.\nThe older embedding assets failed their content gate and are explicitly\ndiagnostic inputs, never current ontology corpus or release acceptance.\n\nThe full-canon module-composition question remains pending. This child does not\nchoose between joint theory composition and independent module obligations,\nchange canon, flatten contexts, infer import edges, qualify unrestricted FOL,\nor authorize signing, production, deployment or lifecycle actions.\n",
+  "closedAt": null,
+  "comments": [
+    {
+      "id": "IC_kwDOSwdn1s8AAAABn0swzw",
+      "author": {
+        "login": "coderabbitai"
+      },
+      "authorAssociation": "CONTRIBUTOR",
+      "body": "Planning controls and a link to the merged source-refusal repair are present. This notice contains no additional implementation requirement or actionable source finding. Original comment: https://github.com/Blackcat-Informatics/gmeow-ontology/issues/2927#issuecomment-6967472335",
+      "createdAt": "2026-11-18T02:46:40Z",
+      "includesCreatedEdit": false,
+      "isMinimized": false,
+      "minimizedReason": "",
+      "reactionGroups": [],
+      "url": "https://github.com/Blackcat-Informatics/gmeow-ontology/issues/2927#issuecomment-6967472335",
+      "viewerDidAuthor": false
+    }
+  ],
+  "createdAt": "2026-11-18T02:46:15Z",
+  "labels": [
+    {
+      "id": "LA_kwDOSwdn1s8AAAACl8ZKrA",
+      "name": "bug",
+      "description": "Something isn't working",
+      "color": "d73a4a"
+    },
+    {
+      "id": "LA_kwDOSwdn1s8AAAACl8ZKwA",
+      "name": "enhancement",
+      "description": "New feature or request",
+      "color": "a2eeef"
+    },
+    {
+      "id": "LA_kwDOSwdn1s8AAAACmTvTOg",
+      "name": "foundational",
+      "description": "Foundational / kernel construct",
+      "color": "b60205"
+    },
+    {
+      "id": "LA_kwDOSwdn1s8AAAACmTvThA",
+      "name": "cross-cutting",
+      "description": "Cross-cutting concern",
+      "color": "fbca04"
+    },
+    {
+      "id": "LA_kwDOSwdn1s8AAAACmjuimw",
+      "name": "quality",
+      "description": "Quality gate or completeness/correctness invariant",
+      "color": "0e8a16"
+    },
+    {
+      "id": "LA_kwDOSwdn1s8AAAACnasmrQ",
+      "name": "logic",
+      "description": "logic: reasoning layer (the RDF 1.2-native logic; OWL is a projection)",
+      "color": "5319e7"
+    },
+    {
+      "id": "LA_kwDOSwdn1s8AAAACndNfnw",
+      "name": "dependencies",
+      "description": "Pull requests that update a dependency file",
+      "color": "0366d6"
+    },
+    {
+      "id": "LA_kwDOSwdn1s8AAAACndNfoA",
+      "name": "rust",
+      "description": "Pull requests that update rust code",
+      "color": "000000"
+    },
+    {
+      "id": "LA_kwDOSwdn1s8AAAACoIO76w",
+      "name": "complexity-hard",
+      "description": "Foundational/cross-cutting/research; large coordination or new semantics",
+      "color": "b60205"
+    }
+  ],
+  "milestone": null,
+  "number": 2927,
+  "state": "OPEN",
+  "title": "Bind native proof completeness to the executed source",
+  "updatedAt": "2026-11-18T02:46:49Z",
+  "url": "https://github.com/Blackcat-Informatics/gmeow-ontology/issues/2927",
+  "publication_projection": {
+    "source": "https://github.com/Blackcat-Informatics/gmeow-ontology/issues/2927",
+    "retained": "Original issue body and metadata; original comment identity, author, timestamp and forge link.",
+    "changed": "Only the non-actionable planning notice body is summarized for the selected evidence archive under its attribution policy.",
+    "original_json_sha256": "1469a1c6eed579696091f6a032e28c66e245aad04a1a01458d25c744643744ab",
+    "local_original_json": "/home/paudley/Active/gmeow-ontology/.stage/queues/all-issues/2927-original-intake-issue.json",
+    "local_original_markdown": "/home/paudley/Active/gmeow-ontology/.stage/queues/all-issues/2927-original-intake-issue.md"
+  }
+}
