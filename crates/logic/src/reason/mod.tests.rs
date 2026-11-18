@@ -2205,9 +2205,9 @@ fn modal_contexts_survive_native_receipts_rdf_and_explanation_without_absent_pre
 
     for mutation in 0..4 {
         let mut changed = result.clone();
-        let crate::result::ResultPayload::Inferred(rows) = &mut changed.payload else {
-            panic!("inferred");
-        };
+        let rows = changed
+            .summary_rows_mut()
+            .expect("the native result carries inferred rows");
         let row = rows
             .iter_mut()
             .find(|q| q.modal_evaluation.is_some())

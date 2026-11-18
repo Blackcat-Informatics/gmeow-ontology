@@ -578,13 +578,12 @@ pub fn reason_verify(fresh: bool, timings_json: Option<&Path>) -> i32 {
         },
     };
     let attestation = match gmeow_pipeline::stages::verify_attestation::grade_shipped_attestation(
-        dataset.as_ref(),
+        (dataset.as_ref(), &verify_record),
         edb.as_ref(),
         &evaluation.result,
         native_receipt,
         &queries,
         &evaluation.report,
-        &verify_record,
         &gates,
     ) {
         Ok(attestation) => attestation,

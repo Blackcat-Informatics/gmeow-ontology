@@ -370,15 +370,15 @@ fn build_output_from_report(
 /// and JSON bytes to equal the materialized producer outputs exactly. The function has
 /// no reasoner entry point and therefore constructs zero closures.
 pub fn grade_shipped_attestation(
-    snapshot: &RdfDataset,
+    shipped: (&RdfDataset, &[u8]),
     edb: &RdfDataset,
     reasoning: &gmeow_logic::result::ReasoningResult,
     native_receipt: Option<NativeReceiptRef<'_>>,
     queries: &[(String, String)],
     report: &gmeow_errors::Report,
-    shipped_record: &[u8],
     gates: &gmeow_logic::verify::PreparedReasonedGates,
 ) -> Result<AttestationFreshness, gmeow_errors::Diag> {
+    let (snapshot, shipped_record) = shipped;
     let fresh = build_output_from_report(
         "stage-verify-attestation",
         edb,

@@ -1023,16 +1023,14 @@ fn restored_typed_product_rejects_a_changed_payload_under_the_old_digest() {
 fn reasoning_rows_and_declared_schema_change_native_identity() {
     use gmeow_logic::result::ResultPayload;
     use gmeow_logic::result_shape::{ColumnKind, ResultColumn, ResultShape, RowCardinality};
-    let mut first = sample_reasoning_result();
-    first.payload = ResultPayload::Bindings(vec![BTreeMap::from([(
+    let first = sample_reasoning_result(ResultPayload::Bindings(vec![BTreeMap::from([(
         "x".into(),
         "https://example.org/a".into(),
-    )])]);
-    let mut second = first.clone();
-    second.payload = ResultPayload::Bindings(vec![BTreeMap::from([(
+    )])]));
+    let second = sample_reasoning_result(ResultPayload::Bindings(vec![BTreeMap::from([(
         "x".into(),
         "https://example.org/b".into(),
-    )])]);
+    )])]));
     let mut schema = first.clone();
     schema.row_schema = Some(ResultShape::new(
         vec![ResultColumn::required("x", ColumnKind::Iri)],
@@ -1926,10 +1924,12 @@ fn bounded_store_evicts_only_unreachable_entries_and_ignores_crash_temps() {
 /// A `ReasoningResult` whose `graph/reasoning` projection backs a cache handle, so
 /// the cache's re-derivation (`parse_reasoning_graph`) reconstructs a faithful
 /// verdict-and-provenance result (C7).
-fn sample_reasoning_result() -> gmeow_logic::result::ReasoningResult {
+fn sample_reasoning_result(
+    payload: gmeow_logic::result::ResultPayload,
+) -> gmeow_logic::result::ReasoningResult {
     use gmeow_logic::result::{
         CompletenessStatus, EvaluationStatus, InformationState, InputStatus, PreservationClaim,
-        ReasoningResult, ResultPayload, ResultProvenance,
+        ReasoningResult, ResultProvenance,
     };
     // projection_class mirrors the result's `preservation` axis in every real
     // construction; the parser reconstructs it from that axis, so the fixture sets
@@ -1943,14 +1943,14 @@ fn sample_reasoning_result() -> gmeow_logic::result::ReasoningResult {
         PreservationClaim::exact(),
         InformationState::Supported,
         prov,
-        ResultPayload::Empty,
+        payload,
     )
 }
 
 /// A bundle whose dataset carries a `graph/reasoning` named graph (the projection
 /// of [`sample_reasoning_result`]) with a typed Reasoning handle pinned to it.
 fn reasoning_bundle() -> PipelineBundle<PipelineHandle> {
-    let result = sample_reasoning_result();
+    let result = sample_reasoning_result(gmeow_logic::result::ResultPayload::Empty);
     let (parsed, _receipt) = gmeow_logic::result_rdf::project_reasoning_dataset(&result).unwrap();
     reasoning_bundle_with_result(result, &parsed)
 }
@@ -2029,8 +2029,7 @@ fn cached_reasoning_preserves_full_answers_and_schema() {
     for (i, payload) in payloads.into_iter().enumerate() {
         let dir = tempfile::tempdir().unwrap();
         let cache = PipelineCache::open(dir.path()).unwrap();
-        let mut result = sample_reasoning_result();
-        result.payload = payload;
+        let mut result = sample_reasoning_result(payload);
         result.row_schema = Some(ResultShape::new(
             vec![ResultColumn::required("x", ColumnKind::Iri)],
             RowCardinality::Contains,
@@ -2064,7 +2063,7 @@ fn cached_reasoning_preserves_full_answers_and_schema() {
 
 #[test]
 fn cached_reasoning_refuses_malformed_governed_summary() {
-    let result = sample_reasoning_result();
+    let result = sample_reasoning_result(gmeow_logic::result::ResultPayload::Empty);
     let (graph, _receipt) = gmeow_logic::result_rdf::project_reasoning_dataset(&result).unwrap();
     let string = |value: &str| {
         RdfTerm::Literal(purrdf::RdfLiteral::typed(
@@ -2154,7 +2153,7 @@ fn cached_reasoning_handle_re_derives_the_result() {
     // The verdict-and-provenance result round-trips faithfully (axes + provenance).
     assert_eq!(
         result.as_ref(),
-        &sample_reasoning_result(),
+        &sample_reasoning_result(gmeow_logic::result::ResultPayload::Empty),
         "the cache preserved the complete native Reasoning result"
     );
     // The pin matches the reconstituted backing graph.

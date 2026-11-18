@@ -648,8 +648,7 @@ fn native_result_admission_refuses_missing_duplicate_and_corrupt_execution() {
     assert!(borrowed.to_ntriples().contains(closure.address.as_str()));
     let missing_leaf = borrowed
         .into_gts()
-        .err()
-        .expect("full materialization without the selected leaf must fail");
+        .expect_err("full materialization without the selected leaf must fail");
     assert!(
         missing_leaf
             .message()
