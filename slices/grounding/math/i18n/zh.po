@@ -3758,8 +3758,8 @@ msgid "Rational Number"
 msgstr "有理数"
 
 msgctxt "https://blackcatinformatics.ca/math/RationalNumber|http://www.w3.org/2004/02/skos/core#definition"
-msgid "A rational number (ℚ): a ratio p/q of integers with q ≠ 0. Every rational number is a real number, so this is a subclass of math:RealNumber. Situated in the math:rationalNumbers system. A rational number is exact; its finite or repeating decimal is an approximation carried by a distinct math:ApproximateValue."
-msgstr "有理数（ℚ）：整数之比 p/q，其中 q ≠ 0。每个有理数都是实数，因此此类是 math:RealNumber 的子类。其所属数系为 math:rationalNumbers。有理数是精确的；其有限或循环小数表示作为近似值，由独立的 math:ApproximateValue 承载。"
+msgid "A rational number (ℚ): a ratio p/q of integers with q ≠ 0. Every rational number is a real number, so this is a subclass of math:RealNumber. Situated in the math:rationalNumbers system. A terminating decimal or an infinite periodic decimal expansion can describe it exactly; a rounded or truncated evaluation is carried separately as math:ApproximateValue."
+msgstr "有理数（ℚ）：整数之比 p/q，其中 q ≠ 0。每个有理数都是实数，因此此类是 math:RealNumber 的子类。其所属数系为 math:rationalNumbers。有限小数或无限循环小数展开可以精确描述该数；经舍入或截断的求值结果则单独由 math:ApproximateValue 承载。"
 
 msgctxt "https://blackcatinformatics.ca/math/RationalNumber|http://www.w3.org/2004/02/skos/core#scopeNote"
 msgid "This is the abstract rational number in the containment tower. The concrete exact pair carrier is math:RationalValue, whose math:numerator and math:denominator are integer literals; those slots are not declared on math:RationalNumber."
@@ -18278,3 +18278,115 @@ msgstr "不要以零元组替换缺失得分，也不要推断所有样本都已
 msgctxt "https://blackcatinformatics.ca/math/scoreVector|https://blackcatinformatics.ca/gmeow/howToUse"
 msgid "Keep the result linked from its analysis and retain its actual sample, ordered components, coefficient representation and prepared input together in the source. The current competency query retrieves component and variance roles without retrieving or validating score coordinates."
 msgstr "保持从分析到结果的链接，并在源中一同保留其实际样本、有序成分、系数表示和已预处理输入。当前能力查询提取成分与方差角色，但不提取或验证得分坐标。"
+
+msgctxt "https://blackcatinformatics.ca/math/RationalValue|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Rational Value"
+msgstr "有理值"
+
+msgctxt "https://blackcatinformatics.ca/math/RationalValue|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An exact rational value represented by integer literals math:numerator p and math:denominator q with q ≠ 0. This concrete math:MathematicalObject carrier is distinct from the abstract math:RationalNumber and the math:rationalNumbers system. The pair (1, 4) represents 1/4, which also has the exact decimal value 0.25; a rounded evaluation of 1/3 is a separate approximation."
+msgstr "由整数字面量 math:numerator p 和 math:denominator q 表示的精确有理值，其中 q ≠ 0。这个具体的 math:MathematicalObject 载体不同于抽象的 math:RationalNumber 和 math:rationalNumbers 数系。数对 (1, 4) 表示 1/4，该值也有精确的小数表示 0.25；对 1/3 进行舍入求值得到的是独立的近似值。"
+
+msgctxt "https://blackcatinformatics.ca/math/RationalValue|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The carrier permits numerator zero and either nonzero denominator sign. Unreduced pairs can denote the same value without becoming the same RDF resource. Class-local integer count/value restrictions and required-path closure state its source contract; they do not execute the native loader."
+msgstr "该载体允许分子为零，非零分母可为正或负。未约分的数对可以指称同一数值，而不成为同一 RDF 资源。类局部的整数计数及取值限制与必需路径闭合声明规定其源模型约束；这些声明不执行原生读取器。"
+
+msgctxt "https://blackcatinformatics.ca/math/RationalValue|http://www.w3.org/2004/02/skos/core#example"
+msgid "An exact quarter has math:numerator 1 and math:denominator 4. The pair (2, 8) denotes the same rational value without asserting that the two carrier resources are identical."
+msgstr "精确的四分之一具有 math:numerator 1 和 math:denominator 4。数对 (2, 8) 指称同一有理值，但不因此断言这两个载体资源相同。"
+
+msgctxt "https://blackcatinformatics.ca/math/RationalValue|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when an exact integer ratio must remain inspectable as separate numerator and nonzero denominator literals, including matrix entries and vector components whose selected representation requires this carrier."
+msgstr "当精确整数之比必须以独立的分子和非零分母字面量保留并可供检查时使用，包括所选表示要求此载体的矩阵条目和向量分量。"
+
+msgctxt "https://blackcatinformatics.ca/math/RationalValue|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid using this carrier for p/0, an irrational value such as √2, a rounded floating-point evaluation or a claim that an RDF declaration has computed a result."
+msgstr "避免将此载体用于 p/0、√2 等无理值、经舍入的浮点求值结果，或用于声称 RDF 声明已经计算出结果。"
+
+msgctxt "https://blackcatinformatics.ca/math/RationalValue|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Type the resource as math:RationalValue and supply one xsd:integer numerator and one nonzero xsd:integer denominator. Preserve supplied values and resource identity. Validate the complete class-local contract before invoking a consumer whose separate numeric limits must also be satisfied."
+msgstr "将资源定型为 math:RationalValue，并提供一个 xsd:integer 分子及一个非零的 xsd:integer 分母。保留所提供的数值和资源身份。在调用消费者之前验证完整的类局部约束；该消费者自身的数值限制也必须得到满足。"
+
+msgctxt "https://blackcatinformatics.ca/math/ZeroDenominator|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Zero Denominator"
+msgstr "零分母"
+
+msgctxt "https://blackcatinformatics.ca/math/ZeroDenominator|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The failure raised when a math:RationalValue declares a math:denominator of 0. Zero is not a valid denominator — p/0 is not a rational value — so the exact carrier is ill-formed. The object-layer analogue of the dimension-exponent zero-denominator rule."
+msgstr "当 math:RationalValue 声明的 math:denominator 为 0 时报告的失败。零不是有效分母——p/0 不是有理值——因此该精确载体不合式。这是维度指数零分母规则在对象层的对应规则。"
+
+msgctxt "https://blackcatinformatics.ca/math/ZeroDenominator|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This failure concept concerns a stored rational pair with denominator zero, distinct from math:ZeroDivisor during an operation. Generated RationalValue property shapes reuse this failure-class annotation for other carrier violations too; their report class alone does not establish an explicit zero."
+msgstr "此失败概念针对分母为零的已存储有理数对，不同于运算期间的 math:ZeroDivisor。生成的 RationalValue 属性形状也将此失败类注解用于载体的其他约束违反；仅凭报告中的类不能认定存在显式的零。"
+
+msgctxt "https://blackcatinformatics.ca/math/ZeroDenominator|http://www.w3.org/2004/02/skos/core#example"
+msgid "A math:RationalValue with math:numerator 1 and math:denominator 0 is malformed. A missing denominator or a second numerator can receive the same generated report class, so inspect the actual constraint rather than infer zero from the label."
+msgstr "具有 math:numerator 1 和 math:denominator 0 的 math:RationalValue 不合式。分母缺失或存在第二个分子时，也可能获得相同的生成报告类别，因此应检查实际约束，而非从标签推断零值。"
+
+msgctxt "https://blackcatinformatics.ca/math/ZeroDenominator|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to identify an explicit zero-denominator defect supported by the stored value and the responsible constraint, or to interpret that failure concept in a validation report."
+msgstr "用于依据已存储的数值及负责的约束识别显式的零分母缺陷，或用于解释验证报告中的此失败概念。"
+
+msgctxt "https://blackcatinformatics.ca/math/ZeroDenominator|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring the precise defect from the class name alone, confusing missing data with a supplied zero, or using this class as a generic arithmetic overflow diagnosis."
+msgstr "避免仅凭类名推断具体缺陷、将缺失数据与已提供的零混淆，或将此类用作通用的算术溢出诊断。"
+
+msgctxt "https://blackcatinformatics.ca/math/ZeroDenominator|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the finding's component code, constrained path, value and source shape with its failure class. Check math:RationalValueDenominatorNonZeroConstraint and the actual denominator data before attributing the defect to zero; repair the declared pair and validate it again."
+msgstr "将发现项的组件代码、受约束路径、数值和源形状与失败类一并保留。在将缺陷归因为零之前，检查 math:RationalValueDenominatorNonZeroConstraint 及实际分母数据；修正已声明的数对后再次验证。"
+
+msgctxt "https://blackcatinformatics.ca/math/numerator|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "numerator"
+msgstr "分子"
+
+msgctxt "https://blackcatinformatics.ca/math/numerator|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The integer p in a concrete math:RationalValue p/q. The descriptive domain is math:RationalValue and range is xsd:integer; existing class-local restrictions, rather than a global functional-property declaration, constrain the carrier's numerator values."
+msgstr "具体 math:RationalValue p/q 中的整数 p。描述性定义域为 math:RationalValue，值域为 xsd:integer；载体的分子取值由现有的类局部限制约束，而非由全局函数性属性声明约束。"
+
+msgctxt "https://blackcatinformatics.ca/math/numerator|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Zero, positive and negative numerators are permitted. With a negative denominator, the represented value's sign depends on both integers. The xsd:integer value space has no fixed machine-width bound; the native i128 reader has its own narrower admission."
+msgstr "分子可以为零、正数或负数。分母为负时，所表示数值的符号取决于这两个整数。xsd:integer 的值空间没有固定机器位宽上限；原生 i128 读取器有其自身更窄的准入范围。"
+
+msgctxt "https://blackcatinformatics.ca/math/numerator|http://www.w3.org/2004/02/skos/core#example"
+msgid "The pair (0, 5) represents zero, while (-3, 2) represents -3/2 and (3, -2) the same value. These equalities of rational values assert no RDF identity between carrier resources."
+msgstr "数对 (0, 5) 表示零，(-3, 2) 表示 -3/2，(3, -2) 也表示同一数值。这些有理值相等关系不在载体资源之间断言任何 RDF 身份相同关系。"
+
+msgctxt "https://blackcatinformatics.ca/math/numerator|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain the supplied signed integer component of an explicit exact rational carrier without converting the ratio to a rounded scalar."
+msgstr "用于保留显式精确有理数载体中所提供的有符号整数分量，而不将该比值转换为经舍入的标量。"
+
+msgctxt "https://blackcatinformatics.ca/math/numerator|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid storing a decimal or floating-point magnitude in this integer slot, assigning it directly to an abstract math:RationalNumber, or treating the loader's first literal as a multiplicity check."
+msgstr "避免在此整数槽位中存储小数或浮点量、将它直接赋予抽象的 math:RationalNumber，或将读取器所取的第一个字面量视为多重性检查。"
+
+msgctxt "https://blackcatinformatics.ca/math/numerator|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Supply the integer literal on the math:RationalValue resource together with its nonzero math:denominator. Keep the original datatype and lexical form; validate all supplied values and counts before using the bounded native reader."
+msgstr "在 math:RationalValue 资源上提供整数字面量，并同时提供其非零的 math:denominator。保留原始数据类型和词法形式；使用有界原生读取器之前，验证所有已提供的取值及其数量。"
+
+msgctxt "https://blackcatinformatics.ca/math/denominator|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "denominator"
+msgstr "分母"
+
+msgctxt "https://blackcatinformatics.ca/math/denominator|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The nonzero integer q in a concrete math:RationalValue p/q. The descriptive domain is math:RationalValue and range is xsd:integer. Class-local integer restrictions and required-path closure govern the carrier; math:RationalValueDenominatorNonZeroConstraint owns the zero prohibition, with SHACL as a generated validation view."
+msgstr "具体 math:RationalValue p/q 中的非零整数 q。描述性定义域为 math:RationalValue，值域为 xsd:integer。类局部的整数限制和必需路径闭合声明约束该载体；禁止零值的规则由 math:RationalValueDenominatorNonZeroConstraint 拥有，SHACL 是其生成的验证视图。"
+
+msgctxt "https://blackcatinformatics.ca/math/denominator|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "A negative denominator is legal in the authored RDF carrier; normalization to a positive denominator belongs to the selected native constructor. Missing, noninteger, multiple and zero values are distinct defects even when generated reports share a failure class."
+msgstr "在所编写的 RDF 载体中，负分母是合法的；将分母规范化为正数属于所选原生构造器的职责。缺失、非整数、多个取值和零值是不同的缺陷，即使生成报告使用相同的失败类。"
+
+msgctxt "https://blackcatinformatics.ca/math/denominator|http://www.w3.org/2004/02/skos/core#example"
+msgid "The pair (1, -2) denotes -1/2, and (-1, -2) denotes 1/2. The pair (0, 7) is a valid zero; (0, 0) has no rational value."
+msgstr "数对 (1, -2) 表示 -1/2，(-1, -2) 表示 1/2。数对 (0, 7) 是合法的零；(0, 0) 没有有理值。"
+
+msgctxt "https://blackcatinformatics.ca/math/denominator|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the divisor of a stored exact ratio must remain explicit as a nonzero integer, independently of the ratio's sign and display rendering."
+msgstr "当已存储精确比值中的除数必须以非零整数显式保留，且不依赖于比值符号及显示呈现方式时使用。"
+
+msgctxt "https://blackcatinformatics.ca/math/denominator|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid zero, an omitted denominator, a noninteger literal, or an inferred positive-denominator requirement on canonical RDF. Do not read the report's ZeroDenominator class as the complete diagnostic."
+msgstr "避免零值、分母缺失、非整数字面量，或对规范 RDF 推断出分母必须为正的要求。不要将报告的 ZeroDenominator 类当作完整诊断。"
+
+msgctxt "https://blackcatinformatics.ca/math/denominator|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Supply one nonzero xsd:integer value with the carrier's math:numerator. Check the class-local datatype/count/closure obligations and the explicit forbidden-zero constraint. Preserve full diagnostic evidence when generated validation reports a violation."
+msgstr "为载体提供一个非零的 xsd:integer 值，并同时提供其 math:numerator。检查类局部的数据类型、计数和闭合义务，以及显式禁止零值的约束。当生成的验证报告指出约束违反时，应保留完整的诊断证据。"

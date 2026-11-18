@@ -3,9 +3,11 @@
 #
 # Counter-example for math:RationalValueShape: a math:RationalValue whose
 # math:denominator is 0. p/0 is not a rational value, so the exact carrier is
-# ill-formed. The numerator is present and both are integers, so ONLY the
-# sh:not [ sh:hasValue 0 ] constraint fires. Validation MUST emit
-# shacl.NotConstraintComponent and no other finding (math:ZeroDenominator).
+# ill-formed. The numerator is present and both are integers. The generated
+# views include shacl.NotConstraintComponent and the constraint's derived
+# shacl.SPARQLConstraintComponent, attributed to math:ZeroDenominator.
+# The conformance cell selects failure-class isolation; its declared component
+# and source-shape fields add no further pin in that execution branch.
 # Bound by tests/example-conformance.ttl (ex:ecRationalValueZeroDenominator).
 @prefix math: <https://blackcatinformatics.ca/math/> .
 @prefix ex:   <http://example.org/math/> .

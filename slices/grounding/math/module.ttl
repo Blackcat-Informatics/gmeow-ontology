@@ -230,7 +230,7 @@ math:RationalNumber
     rdfs:subClassOf math:RealNumber ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "Rational Number"@x-gmeow-english ;
-    skos:definition "A rational number (ℚ): a ratio p/q of integers with q ≠ 0. Every rational number is a real number, so this is a subclass of math:RealNumber. Situated in the math:rationalNumbers system. A rational number is exact; its finite or repeating decimal is an approximation carried by a distinct math:ApproximateValue."@x-gmeow-english ;
+    skos:definition "A rational number (ℚ): a ratio p/q of integers with q ≠ 0. Every rational number is a real number, so this is a subclass of math:RealNumber. Situated in the math:rationalNumbers system. A terminating decimal or an infinite periodic decimal expansion can describe it exactly; a rounded or truncated evaluation is carried separately as math:ApproximateValue."@x-gmeow-english ;
     skos:scopeNote "This is the abstract rational number in the containment tower. The concrete exact pair carrier is math:RationalValue, whose math:numerator and math:denominator are integer literals; those slots are not declared on math:RationalNumber."@x-gmeow-english ;
     skos:example "One third is an exact math:RationalNumber in math:rationalNumbers. Its concrete pair representation uses a math:RationalValue with math:numerator 1 and math:denominator 3; a rounded 0.3333 belongs to a separate approximation."@x-gmeow-english ;
     gmeow:useWhen "Use to classify an exact ratio of integers as a mathematical number, independently of the representation chosen for computation."@x-gmeow-english ;
@@ -6537,7 +6537,12 @@ math:RationalValue
     rdfs:subClassOf math:MathematicalObject ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "Rational Value"@x-gmeow-english ;
-    skos:definition "An exact rational carrier: a concrete p/q value held as a math:numerator and math:denominator integer pair (math:denominator ≠ 0). A subclass of math:MathematicalObject. It realizes the ℚ coordinate that the tower's math:RationalNumber describes abstractly, and — unlike math:ApproximateValue, which carries a decimal literal — it carries NO decimal: 1/4 is the pair (1, 4), never 0.25. Matrix entries and vector components of the exact numeric layer are math:RationalValue, so xᵀGx and the norm √(xᵀGx) are computed exactly."@x-gmeow-english ;
+    skos:definition "An exact rational value represented by integer literals math:numerator p and math:denominator q with q ≠ 0. This concrete math:MathematicalObject carrier is distinct from the abstract math:RationalNumber and the math:rationalNumbers system. The pair (1, 4) represents 1/4, which also has the exact decimal value 0.25; a rounded evaluation of 1/3 is a separate approximation."@x-gmeow-english ;
+    skos:scopeNote "The carrier permits numerator zero and either nonzero denominator sign. Unreduced pairs can denote the same value without becoming the same RDF resource. Class-local integer count/value restrictions and required-path closure state its source contract; they do not execute the native loader."@x-gmeow-english ;
+    skos:example "An exact quarter has math:numerator 1 and math:denominator 4. The pair (2, 8) denotes the same rational value without asserting that the two carrier resources are identical."@x-gmeow-english ;
+    gmeow:useWhen "Use when an exact integer ratio must remain inspectable as separate numerator and nonzero denominator literals, including matrix entries and vector components whose selected representation requires this carrier."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid using this carrier for p/0, an irrational value such as √2, a rounded floating-point evaluation or a claim that an RDF declaration has computed a result."@x-gmeow-english ;
+    gmeow:howToUse "Type the resource as math:RationalValue and supply one xsd:integer numerator and one nonzero xsd:integer denominator. Preserve supplied values and resource identity. Validate the complete class-local contract before invoking a consumer whose separate numeric limits must also be satisfied."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 math:VectorComponent
@@ -6564,6 +6569,11 @@ math:ZeroDenominator
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "Zero Denominator"@x-gmeow-english ;
     skos:definition "The failure raised when a math:RationalValue declares a math:denominator of 0. Zero is not a valid denominator — p/0 is not a rational value — so the exact carrier is ill-formed. The object-layer analogue of the dimension-exponent zero-denominator rule."@x-gmeow-english ;
+    skos:scopeNote "This failure concept concerns a stored rational pair with denominator zero, distinct from math:ZeroDivisor during an operation. Generated RationalValue property shapes reuse this failure-class annotation for other carrier violations too; their report class alone does not establish an explicit zero."@x-gmeow-english ;
+    skos:example "A math:RationalValue with math:numerator 1 and math:denominator 0 is malformed. A missing denominator or a second numerator can receive the same generated report class, so inspect the actual constraint rather than infer zero from the label."@x-gmeow-english ;
+    gmeow:useWhen "Use to identify an explicit zero-denominator defect supported by the stored value and the responsible constraint, or to interpret that failure concept in a validation report."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring the precise defect from the class name alone, confusing missing data with a supplied zero, or using this class as a generic arithmetic overflow diagnosis."@x-gmeow-english ;
+    gmeow:howToUse "Retain the finding's component code, constrained path, value and source shape with its failure class. Check math:RationalValueDenominatorNonZeroConstraint and the actual denominator data before attributing the defect to zero; repair the declared pair and validate it again."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 math:ZeroDivisor
@@ -6700,14 +6710,24 @@ math:numerator
     a logic:DatatypeProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "numerator"@x-gmeow-english ;
-    skos:definition "The integer numerator p of a math:RationalValue p/q. Domain math:RationalValue, range xsd:integer (stated in prose). Single-valued (documented in prose, not an OWL characteristic — the math profile is EL-clean) — a rational value has exactly one numerator. Carried as an exact integer, never a decimal."@x-gmeow-english ;
+    skos:definition "The integer p in a concrete math:RationalValue p/q. The descriptive domain is math:RationalValue and range is xsd:integer; existing class-local restrictions, rather than a global functional-property declaration, constrain the carrier's numerator values."@x-gmeow-english ;
+    skos:scopeNote "Zero, positive and negative numerators are permitted. With a negative denominator, the represented value's sign depends on both integers. The xsd:integer value space has no fixed machine-width bound; the native i128 reader has its own narrower admission."@x-gmeow-english ;
+    skos:example "The pair (0, 5) represents zero, while (-3, 2) represents -3/2 and (3, -2) the same value. These equalities of rational values assert no RDF identity between carrier resources."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain the supplied signed integer component of an explicit exact rational carrier without converting the ratio to a rounded scalar."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid storing a decimal or floating-point magnitude in this integer slot, assigning it directly to an abstract math:RationalNumber, or treating the loader's first literal as a multiplicity check."@x-gmeow-english ;
+    gmeow:howToUse "Supply the integer literal on the math:RationalValue resource together with its nonzero math:denominator. Keep the original datatype and lexical form; validate all supplied values and counts before using the bounded native reader."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 math:denominator
     a logic:DatatypeProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "denominator"@x-gmeow-english ;
-    skos:definition "The integer denominator q of a math:RationalValue p/q. Domain math:RationalValue, range xsd:integer (stated in prose; SHACL forbids the value 0). Single-valued (documented in prose, not an OWL characteristic — the math profile is EL-clean) — a rational value has exactly one denominator. A zero denominator is ill-formed (math:ZeroDenominator)."@x-gmeow-english ;
+    skos:definition "The nonzero integer q in a concrete math:RationalValue p/q. The descriptive domain is math:RationalValue and range is xsd:integer. Class-local integer restrictions and required-path closure govern the carrier; math:RationalValueDenominatorNonZeroConstraint owns the zero prohibition, with SHACL as a generated validation view."@x-gmeow-english ;
+    skos:scopeNote "A negative denominator is legal in the authored RDF carrier; normalization to a positive denominator belongs to the selected native constructor. Missing, noninteger, multiple and zero values are distinct defects even when generated reports share a failure class."@x-gmeow-english ;
+    skos:example "The pair (1, -2) denotes -1/2, and (-1, -2) denotes 1/2. The pair (0, 7) is a valid zero; (0, 0) has no rational value."@x-gmeow-english ;
+    gmeow:useWhen "Use when the divisor of a stored exact ratio must remain explicit as a nonzero integer, independently of the ratio's sign and display rendering."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid zero, an omitted denominator, a noninteger literal, or an inferred positive-denominator requirement on canonical RDF. Do not read the report's ZeroDenominator class as the complete diagnostic."@x-gmeow-english ;
+    gmeow:howToUse "Supply one nonzero xsd:integer value with the carrier's math:numerator. Check the class-local datatype/count/closure obligations and the explicit forbidden-zero constraint. Preserve full diagnostic evidence when generated validation reports a violation."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 math:atIndex

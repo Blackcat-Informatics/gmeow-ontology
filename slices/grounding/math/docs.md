@@ -270,6 +270,26 @@ off a residual or a latent dimension is a claim from a vantage, never a property
 the most author-heavy charter (the survey found almost no external ontology for decompositions, latent
 spaces, or representation geometry) and it carries two flagships.
 
+`math:RationalValue` is the concrete integer-pair carrier, separate from the
+abstract `math:RationalNumber` and the `math:rationalNumbers` system. Its
+`math:numerator` and nonzero `math:denominator` preserve an exact ratio; zero
+numerators, negative denominators and unreduced pairs are allowed. Equal rational
+values do not identify their RDF resources. Exact decimal `0.25` can denote the
+same value as `(1,4)`; an approximation depends on the represented target and
+rounding, not on decimal spelling alone. The datatype authority is
+[XML Schema 1.1 Part 2](https://www.w3.org/TR/2012/REC-xmlschema11-2-20120405/),
+sections 3.3.3 and 3.4.13.
+
+The [rational-carrier contract](./design/MATHEMATICS-LINEAR-ALGEBRA-AND-LEARNING.md#rational-carriers-validation-and-native-limits)
+distinguishes class-local integer/closure obligations, the canonical forbidden-zero
+constraint and the broader generated `math:ZeroDenominator` report annotation.
+Retain component, path, value and source-shape evidence; a report class alone
+does not identify the defect. The native pair reader has separate `i128` limits
+and does not independently validate datatype, multiplicity or class membership.
+Exact rational quadratic-form arithmetic and fixed-precision decimal norm output
+are separate representation boundaries. None of these declarations executes a
+calculation or supplies an execution certificate.
+
 `math:Basis` describes an algebraic basis, with unique finitely supported
 coefficients indexed by its elements. `math:hasBasis` records the basis chosen for
 a space or algebra carrier; `math:inBasis` names the context of a vector or Gram

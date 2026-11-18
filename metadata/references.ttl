@@ -14500,3 +14500,61 @@ repo:README.md a gmeow:CreativeWork ;
     gmeow:citingEntity <https://github.com/Blackcat-Informatics/gmeow-ontology/issues/1656#issuecomment-6958491880> ;
     gmeow:citedEntity <https://www.wikidata.org/wiki/Q3555174> ;
     gmeow:viaSelector <https://blackcatinformatics.ca/gmeow/references/selector/wikidata-eigenvector-record> .
+
+<https://www.w3.org/TR/2012/REC-xmlschema11-2-20120405/> a gmeow:CreativeWork ;
+    rdfs:label "W3C XML Schema Definition Language (XSD) 1.1 Part 2: Datatypes"@en ;
+    skos:definition "The dated W3C Recommendation specifying the decimal and integer value spaces and lexical representations used by the rational-carrier datatype contract."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/citations> ;
+    dcterms:issued "2012-04-05"^^xsd:date ;
+    gmeow:bibliographicCitation "W3C. W3C XML Schema Definition Language (XSD) 1.1 Part 2: Datatypes. W3C Recommendation, 5 April 2012. Sections 3.3.3 and 3.4.13." ;
+    gmeow:sourceLocation "https://www.w3.org/TR/2012/REC-xmlschema11-2-20120405/" .
+
+<https://blackcatinformatics.ca/gmeow/references/selector/xsd11-decimal-integer-values> a gmeow:Selector ;
+    rdfs:label "XML Schema decimal and integer value contracts"@en ;
+    skos:definition "Sections 3.3.3 and 3.4.13 ground exact terminating decimal values and the unbounded integer value space, without asserting a rational-carrier identity or native execution capability."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/citations> ;
+    gmeow:selectorLocator "Section 3.3.3 decimal; section 3.4.13 integer" ;
+    gmeow:sourceLocation "https://www.w3.org/TR/2012/REC-xmlschema11-2-20120405/#decimal",
+        "https://www.w3.org/TR/2012/REC-xmlschema11-2-20120405/#integer" .
+
+<https://github.com/Blackcat-Informatics/gmeow-ontology/issues/2922> a gmeow:CreativeWork ;
+    rdfs:label "Document exact rational carriers and complete their translations"@en ;
+    skos:definition "The source document citing the dated XML Schema Recommendation for the rational-carrier decimal and integer distinctions."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/citations> ;
+    gmeow:sourceLocation "https://github.com/Blackcat-Informatics/gmeow-ontology/issues/2922" .
+
+<https://blackcatinformatics.ca/gmeow/references/citation/math-rational-carrier-module-datatypes> a gmeow:CitationAct ;
+    rdfs:label "Rational-carrier guidance cites exact datatype values"@en ;
+    skos:definition "The canonical guidance uses the integer and decimal value contracts while separating the concrete pair from abstract numbers and bounded native readers."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/citations> ;
+    gmeow:citationIntent gmeow:intentBridgedByReference ;
+    gmeow:citingEntity <https://blackcatinformatics.ca/gmeow/repo/slices/grounding/math/module.ttl> ;
+    gmeow:citedEntity <https://www.w3.org/TR/2012/REC-xmlschema11-2-20120405/> ;
+    gmeow:viaSelector <https://blackcatinformatics.ca/gmeow/references/selector/xsd11-decimal-integer-values> .
+
+<https://blackcatinformatics.ca/gmeow/references/citation/math-rational-carrier-guide-datatypes> a gmeow:CitationAct ;
+    rdfs:label "Math guide cites rational-carrier datatype contracts"@en ;
+    skos:definition "The guide cites the dated decimal and integer definitions without treating decimal notation as approximation or mathematical integer width as a native execution promise."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/citations> ;
+    gmeow:citationIntent gmeow:intentBridgedByReference ;
+    gmeow:citingEntity <https://blackcatinformatics.ca/gmeow/repo/slices/grounding/math/docs.md> ;
+    gmeow:citedEntity <https://www.w3.org/TR/2012/REC-xmlschema11-2-20120405/> ;
+    gmeow:viaSelector <https://blackcatinformatics.ca/gmeow/references/selector/xsd11-decimal-integer-values> .
+
+<https://blackcatinformatics.ca/gmeow/references/citation/math-rational-carrier-charter-datatypes> a gmeow:CitationAct ;
+    rdfs:label "Linear-algebra charter cites pair representation boundaries"@en ;
+    skos:definition "The charter cites the precise datatype sections while distinguishing pair identity, exact value, decimal rendering and bounded computation."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/citations> ;
+    gmeow:citationIntent gmeow:intentBridgedByReference ;
+    gmeow:citingEntity <https://blackcatinformatics.ca/gmeow/repo/slices/grounding/math/design/MATHEMATICS-LINEAR-ALGEBRA-AND-LEARNING.md> ;
+    gmeow:citedEntity <https://www.w3.org/TR/2012/REC-xmlschema11-2-20120405/> ;
+    gmeow:viaSelector <https://blackcatinformatics.ca/gmeow/references/selector/xsd11-decimal-integer-values> .
+
+<https://blackcatinformatics.ca/gmeow/references/citation/math-rational-carrier-source-datatypes> a gmeow:CitationAct ;
+    rdfs:label "Rational-carrier source cites the datatype authority"@en ;
+    skos:definition "The source document cites the dated W3C decimal and integer sections for exact values and unbounded integer representation, without proposing an external rational-record correspondence."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/citations> ;
+    gmeow:citationIntent gmeow:intentBridgedByReference ;
+    gmeow:citingEntity <https://github.com/Blackcat-Informatics/gmeow-ontology/issues/2922> ;
+    gmeow:citedEntity <https://www.w3.org/TR/2012/REC-xmlschema11-2-20120405/> ;
+    gmeow:viaSelector <https://blackcatinformatics.ca/gmeow/references/selector/xsd11-decimal-integer-values> .
