@@ -1,0 +1,15 @@
+{
+  "schema": 1,
+  "worktree": "/home/paudley/Active/gmeow-ontology/.worktrees/2932-retain-valid-claim-contributors-beside",
+  "branch": "paudley/2932-retain-valid-claim-contributors-beside",
+  "base_ref": "origin/main",
+  "head": "1a8066b44be6edd767aec9c022df053230b9e456",
+  "attempt": "/home/paudley/Active/gmeow-ontology/.worktrees/2932-retain-valid-claim-contributors-beside/.stage/retain-valid-claim-contributors-beside/sync/20261118T151346-5a29d4d2e44c4b0ebd7347c03e7754ad",
+  "conflicts": [],
+  "status": "fast_forward",
+  "base": "0502d020692b7527a92fe595ab37b0c20bbae310",
+  "merge_bases": [
+    "1a8066b44be6edd767aec9c022df053230b9e456"
+  ],
+  "commit": "0502d020692b7527a92fe595ab37b0c20bbae310"
+}

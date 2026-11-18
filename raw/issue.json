@@ -1,0 +1,62 @@
+{
+  "assignees": [],
+  "author": {
+    "id": "MDQ6VXNlcjUyNzU1NQ==",
+    "is_bot": false,
+    "login": "paudley",
+    "name": "Patrick Audley"
+  },
+  "body": "Part of #2781 and #2748. Blocked by: nothing. Blocks: #2781 and #2748.\n\n## Problem\n\n`ClaimResolver::statement_from_sources` returns a refusal as soon as any contributing reifier is qualified. Canonical axiom deduplication can combine an independently valid carrier with a different qualified carrier for the same statement and scope. The latter then cancels the valid premise.\n\nThis is a source-backed missed-refutation path. No runtime reproducer has been executed yet.\n\n## Required behavior\n\n- Resolve eligibility and refusals per original carrier through canonical deduplication and claim ingress.\n- Retain every independently admitted contribution. One qualified carrier cannot erase another carrier's valid assertion, and a valid assertion cannot erase the qualified carrier's boundary.\n- Execution and witness provenance identify actual admitted contributors. Preserve module/context selection, evidence coordinates and the invocation-bound source/preparation authority.\n- Keep conflicting or unsupported carriers visible; do not choose a preferred source or flatten qualified context.\n\n## Acceptance\n\n- Two valid module-selected carriers asserting disjoint memberships yield a native contradiction. Adding a separately qualified carrier for one identical statement does not suppress that contradiction.\n- Qualified-only input remains refused or undecided with its precise reason, and its rows are not falsely reported as admitted through another carrier.\n- Existing source-authority, mixed-contributor and context controls remain valid.\n- Focused real-consumer checks and updated reasoning doctrine cover the resulting contract.\n\nPrinciples 4, 7, 9, 10 and 17.\n",
+  "closedAt": null,
+  "comments": [
+    {
+      "id": "IC_kwDOSwdn1s8AAAABoAr3sw",
+      "author": {
+        "login": "coderabbitai"
+      },
+      "authorAssociation": "CONTRIBUTOR",
+      "body": "The captured comment links the module-composition change in pull request 2929 and offers planning controls. It contains no technical finding or additional implementation requirement. This summary omits interface instructions and promotional text; the issue body and all other captured fields are retained.",
+      "createdAt": "2026-11-18T13:31:14Z",
+      "includesCreatedEdit": false,
+      "isMinimized": false,
+      "minimizedReason": "",
+      "reactionGroups": [],
+      "url": "https://github.com/Blackcat-Informatics/gmeow-ontology/issues/2932#issuecomment-6980040627",
+      "viewerDidAuthor": false
+    }
+  ],
+  "createdAt": "2026-11-18T13:30:40Z",
+  "labels": [
+    {
+      "id": "LA_kwDOSwdn1s8AAAACl8ZKrA",
+      "name": "bug",
+      "description": "Something isn't working",
+      "color": "d73a4a"
+    },
+    {
+      "id": "LA_kwDOSwdn1s8AAAACnasmrQ",
+      "name": "logic",
+      "description": "logic: reasoning layer (the RDF 1.2-native logic; OWL is a projection)",
+      "color": "5319e7"
+    },
+    {
+      "id": "LA_kwDOSwdn1s8AAAACndNfoA",
+      "name": "rust",
+      "description": "Pull requests that update rust code",
+      "color": "000000"
+    }
+  ],
+  "milestone": null,
+  "number": 2932,
+  "state": "OPEN",
+  "title": "Retain valid claim contributors beside qualified carriers",
+  "updatedAt": "2026-11-18T13:31:24Z",
+  "url": "https://github.com/Blackcat-Informatics/gmeow-ontology/issues/2932",
+  "_capture_projection": {
+    "kind": "summary",
+    "source_url": "https://github.com/Blackcat-Informatics/gmeow-ontology/issues/2932#issuecomment-6980040627",
+    "original_json_sha256": "6cc9256a5b72efd73dda3d6a48650e8b6ecf20de2dd3d7efbfa8306a12d97a27",
+    "original_markdown_sha256": "30d7dea4be8217256ff1f9536b98284988574d98f8985c50cda30d4f584b42e2",
+    "scope": "Only the nontechnical comment body is summarized. Original captures remain local; the complete source is available through its forge URL."
+  }
+}

@@ -1,0 +1,16 @@
+{
+  "github:comment:IC_kwDOSwdn1s8AAAABoG0nyg": {
+    "resolution": "acknowledged",
+    "reason": "Reviewed the edited full comment: no actionable defect and minimal merge/security risk. The linked-issues check is inconclusive because its diff reader reports missing blobs and its linked-repository pass did not inspect this repository. All changed source/test paths were independently read at this head; 20 native, 36 final real CLI and 2 compiler cases pass. The scoped-head note is optional coverage of the already reviewed whole-owner required-child mechanism. Preserve these explicit review limits.",
+    "commit": "943da2809720f16f74c35a1b1297af6c424f7717",
+    "reply_url": null,
+    "revision": {
+      "updated_at": "2026-11-18T17:45:35Z",
+      "state": null,
+      "commit": null,
+      "path": null,
+      "line": null,
+      "body_sha256": "d6fa9a8438bade2017ee0371fd2c189f3d28bf08668867236411ac9f3435f3d8"
+    }
+  }
+}
