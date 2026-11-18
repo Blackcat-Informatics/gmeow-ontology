@@ -1,15 +1,45 @@
 // SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 // SPDX-License-Identifier: AGPL-3.0-only
 
-/// A parse refusal in a later document keeps every selected input identity.
+fn load(paths: &[std::path::PathBuf]) -> Result<super::LoadedTheory, super::LoadFailure> {
+    let inputs = paths
+        .iter()
+        .map(|path| {
+            super::OpenedInput::open(path.clone()).map_err(|error| {
+                super::LoadFailure::Malformed(super::caused_failure(
+                    "SOURCE_READ_FAILED",
+                    error,
+                    "open synthetic source",
+                ))
+            })
+        })
+        .collect::<Result<Vec<_>, _>>()?;
+    super::load_theory(&inputs)
+}
+
+/// A later open failure retains the admitted prefix's actual input receipts;
+/// a later parse refusal keeps the prior and failing document identities.
 #[test]
 fn malformed_later_source_preserves_prior_and_failing_input_identity() {
     let directory = tempfile::tempdir().expect("scratch directory");
     let first = directory.path().join("a.ttl");
     let second = directory.path().join("b.ttl");
-    std::fs::write(&first, "<urn:s> <urn:p> <urn:o> .").expect("source");
+    let first_bytes = b"<urn:s> <urn:p> <urn:o> .";
+    std::fs::write(&first, first_bytes).expect("source");
     std::fs::write(&second, "this is not turtle").expect("bad source");
-    let error = match super::load_theory(&[first, second]) {
+    let removed_after_discovery = directory.path().join("removed.ttl");
+    let error = match super::files::open_sources(vec![first.clone(), removed_after_discovery]) {
+        Err(super::LoadFailure::Malformed(error)) => error,
+        Err(super::LoadFailure::Execution(_)) => panic!("unreadable input is malformed"),
+        Ok(_) => panic!("the removed discovered file cannot open"),
+    };
+    let report = super::ProveReport::blank(super::DecisionClass::Malformed, error);
+    assert_eq!(report.common.inputs.len(), 1);
+    assert_eq!(report.common.inputs[0].path, first.display().to_string());
+    assert_eq!(report.common.inputs[0].media_type, "text/turtle");
+    assert_eq!(report.common.inputs[0].bytes, first_bytes.len() as u64);
+    assert_eq!(report.common.diagnostics[0].code, "SOURCE_READ_FAILED");
+    let error = match load(&[first, second]) {
         Err(super::LoadFailure::Malformed(error)) => error,
         Err(super::LoadFailure::Execution(_)) => panic!("a parse refusal is malformed input"),
         Ok(_) => panic!("malformed source must fail"),
@@ -31,7 +61,7 @@ fn empty_selected_source_preserves_the_frontend_refusal_and_input_identity() {
     let directory = tempfile::tempdir().expect("synthetic source directory");
     let source = directory.path().join("empty.ttl");
     std::fs::write(&source, "@prefix ex: <urn:example:> .").expect("empty valid Turtle");
-    let error = match super::load_theory(&[source]) {
+    let error = match load(&[source]) {
         Err(super::LoadFailure::Malformed(error)) => error,
         Err(super::LoadFailure::Execution(_)) => panic!("an empty source is malformed input"),
         Ok(_) => panic!("an empty selected theory cannot authorize proof"),
@@ -100,22 +130,29 @@ fn an_engine_failure_keeps_the_selection_and_the_drops_named_before_it() {
         "<urn:a> <https://blackcatinformatics.ca/logic/instanceOf> <urn:A> .",
     )
     .expect("source");
-    let Ok(loaded) = super::load_theory(&[source]) else {
+    let Ok(loaded) = load(&[source]) else {
         panic!("a one-fact theory loads");
     };
     let selection = super::SourceSelection::all_classical_roots(&loaded.theory);
-    let admission = super::SourceAdmission::classical_fof(&loaded.theory, selection);
-    let digest = admission.selection_digest.clone();
-    let program = admission.program_digest.clone();
-    let units = admission.units.len();
+    let inventory = super::SourceInventory::new(&loaded.theory, selection);
+    let resolved = super::resolve_requested_theory(&inventory, &[]).expect("top-level selection");
+    let native_admission = super::NativeSourceAdmission::inspect_selected(&inventory, &resolved)
+        .expect("native source admission");
+    let admission = super::SourceAdmission::classical_fof_from_inventory(&inventory);
+    let digest = inventory.selection_digest().to_owned();
+    let program = inventory.program_digest().to_owned();
+    let units = native_admission.units();
     let named = super::DropRecord::new(super::ENGINE_NATIVE, "SCOPED_CLAIM_NOT_READ", "before");
     let report = super::ProveReport::engine_failure(
         super::EngineFailure {
             diagnostic: super::failure("NATIVE_EXECUTION_FAILED", "the engine stopped"),
             claims_read: Vec::new(),
+            native: None,
         },
         &loaded.identities,
-        admission,
+        Some(admission),
+        native_admission,
+        &inventory,
         1,
         std::collections::BTreeSet::from([named.clone()]),
     );

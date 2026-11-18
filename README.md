@@ -284,39 +284,47 @@ is a developer command.
 ### `gmeow prove`
 
 `gmeow prove` takes one theory, from the files named on the command line or from the
-`module.ttl` and `*.logic.ttl` files under `--dir`, and returns exactly one verdict. The
-verdict is given under GMEOW's own `logic:` semantics as executed by the in-process rule
-engine, with the OWL 2 DL tableau as a second refuter over the theory's OWL view:
+`module.ttl` and `*.logic.ttl` files under `--dir`, and returns exactly one verdict.
+Repeat `--module IRI` to compose selected modules with their actual transitive
+`logic:imports` and the supplied top-level obligations. Roots and imported targets must
+be declared `logic:Module` nodes in the supplied default graph. The verdict follows
+GMEOW's own `logic:` semantics as executed by the in-process rule engine. The OWL 2 DL
+tableau independently refutes the faithful asserted-only OWL view; it does not read
+the reified claim facts admitted by the native engine.
 
 | Verdict | When |
 |---|---|
 | `consistent` | the rule engine's closure completed, every unit of the selection is accounted for by the engine, and nothing was dropped |
 | `inconsistent` | a clash is derived; the report names the engine, the law that clashed, and the premises used |
-| `not-decided` | anything else, including an exhausted `--max-steps` or `--step-cap` budget and a program the rule engine declines for a reason it names, such as an existential chase it cannot certify, which the report answers by naming the rules on the cycle, and, under `NATIVE_ANALYSIS_BOUND`, any analysis bound that coarsened or stopped part of the termination analysis (a finer analysis might have decided; with a bound present, the rules then named are the cycles the coarser analysis found, not proof that the program cycles); every drop is listed with its engine, code, and detail |
+| `not-decided` | unread or unsupported selected obligations, incomplete native evaluation, an exhausted `--max-steps` budget, or a program the native engine declines; every drop names its engine, code and detail |
 
-The rule engine reads the asserted statements of the theory. It also reads an evidence-only
-reified claim: one about whose reifier nothing is said except the reification itself
-(`rdf:reifies`, or the classic `rdf:Statement` form), `logic:provenance` and
-`logic:confidence`. Such a claim is a statement of the same theory; the report counts these as
-`claims_read` and lists each under `claims` with its source. Any other statement about
-the reifier, in any graph of the input, keeps the claim unread: a standpoint (`gmeow:accordingTo`,
-`logic:standpoint`), a stance or denial, a time, a modality, a module, another type, or an
-annotation `prove` does not know. So does any mention of the reifier in
-another statement, in any graph: as its object or predicate, inside a statement another
-reifier carries (a bare quotation included), or as a graph name. A named graph can only keep
-a claim out; provenance or confidence stated there is not evidence. Each unread claim is a `SCOPED_CLAIM_NOT_READ`
-drop that names what kept it out, so `prove` may leave an assertion unread but always names
-it. A reifier that states neither provenance nor confidence is a quotation and is never
-read. The value of `logic:provenance` is not interpreted: a claim whose source is itself a
-retraction is still read as reported.
+The OWL leg reports its own `--step-cap` outcome. Its unfinished search does not make a
+completed native account incomplete; its witnessed clash can refute the selection.
+`NATIVE_ANALYSIS_BOUND` names a termination analysis that coarsened or stopped. Rules
+then named are cycles found by that analysis, not proof that the program cannot terminate.
+
+The native engine reads admitted default-graph assertions and ground reified claims
+through two closed routes. Evidence-only claims carry `logic:provenance` or
+`logic:confidence` beside their reification, with no additional qualifications. Ground
+claims in selected modules may assert through the source-resolved module route without
+invented provenance or confidence. Module membership does not erase standpoint, time or
+modality. Unknown qualifications, mentions in other statements and graph-name uses keep
+their own boundaries; envelope checks inspect every original graph.
+
+The report counts admitted reified claims under `claims_read` and lists their actual contributing
+carriers under `claims`. Each carrier is resolved independently: an unread contributor
+cannot erase an admitted sibling or acquire its authority. Each unread carrier retains
+a named `SCOPED_CLAIM_NOT_READ` boundary. Bare quotations assert nothing. Provenance
+values are recorded without interpreting the referenced source's content. See
+[the source-theory contract](slices/grounding/logic/docs.md#selecting-a-source-theory).
 
 | Exit code | Meaning |
 |---|---|
-| 0 | the run completed (any verdict) without `--gate`; with `--gate`, `consistent` |
-| 1 | with `--gate`, `inconsistent` |
-| 3 | with `--gate`, `not-decided` |
-| 4 | malformed input |
-| 5 | execution failure: an engine crashed, hit an internal fault or reached a resource limit of its own; an analysis bound of the termination proof is a `not-decided` drop, never this exit |
+| 0 | a completed prover run without `--gate`, or a successful `--check-proof` replay |
+| 1 | `--check-proof` rejects the replay |
+| 3 | `--gate` refuses an attestation or undecided result; native verdicts currently remain attestations |
+| 4 | invalid, missing or unreadable input |
+| 5 | output I/O failure, required-output refusal, engine fault or internal resource limit; a termination analysis bound remains a `not-decided` drop |
 
 When an engine fails after the selection was admitted, the report still carries the
 selection and the drops named before the failure, with `selection.complete` false. That
@@ -330,9 +338,17 @@ the failure diagnostic.
 The report has no wall-clock field, so rerunning `prove` on the same inputs and comparing
 the bytes is a valid second-party check. `--proof-out <file>` records the proof and
 `--check-proof <file>` replays it, rejecting a proof recorded against different inputs.
+Replay reports retain the exact selected proof input's byte identity.
 `--evidence-out` writes the evidence record and `--format json` the machine-readable report.
 `--out <file>` writes a classical first-order (TPTP) export of the selection for checking
-with a third-party tool; the verdict is not computed from it.
+with a third-party tool under independent admission; the verdict is not computed from it.
+A blocked export removes its stale selected output and fails the required operation.
+Composed FOF output and proof export/replay refuse their unsupported contracts.
+Selected outputs must be distinct from semantic inputs, replay inputs and one another.
+Source loading and replay use admitted open files; output writes and stale-output removal
+stay bound to held parent directories when a parent symlink changes. Writes check the
+actual target before truncation. This boundary does not protect arbitrary replacement of
+entries inside a held directory. A required proof output is removed when no proof is recorded.
 
 **Working on the engine** (the ontology, compilers, and gates):
 

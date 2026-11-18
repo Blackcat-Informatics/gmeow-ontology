@@ -1448,6 +1448,7 @@ dependencies = [
  "purrdf-ed25519",
  "purrdf-hash",
  "purrdf-lex",
+ "rustix",
  "same-file",
  "serde",
  "serde_json",

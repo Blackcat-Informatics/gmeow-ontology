@@ -12,6 +12,9 @@
 //! `not-decided` with each drop named. Nothing here spawns a process, opens a
 //! socket or reads a clock, so two runs over the same inputs print the same bytes.
 
+mod files;
+use files::{FilePlan, OpenedInput, Sink};
+
 use std::collections::BTreeSet;
 use std::path::{Path, PathBuf};
 use std::sync::Arc;
@@ -605,157 +608,12 @@ fn resolve_requested_theory(
     inventory.resolve_theory_selection(&request)
 }
 
-/// Resolve an existing file, or an absent file's actual parent and future name.
-fn prospective_file_path(path: &Path) -> std::io::Result<PathBuf> {
-    match std::fs::canonicalize(path) {
-        Ok(canonical) => Ok(canonical),
-        Err(error) if error.kind() == std::io::ErrorKind::NotFound => {
-            match std::fs::symlink_metadata(path) {
-                Ok(metadata) if metadata.file_type().is_symlink() => {
-                    return Err(std::io::Error::new(
-                        std::io::ErrorKind::InvalidInput,
-                        "a selected file path is a dangling symlink",
-                    ));
-                }
-                Ok(_) => return Err(error),
-                Err(metadata_error) if metadata_error.kind() == std::io::ErrorKind::NotFound => {}
-                Err(metadata_error) => return Err(metadata_error),
-            }
-            let absolute = std::path::absolute(path)?;
-            let name = absolute.file_name().ok_or_else(|| {
-                std::io::Error::new(
-                    std::io::ErrorKind::InvalidInput,
-                    "a selected file path requires a basename",
-                )
-            })?;
-            let parent = absolute.parent().ok_or_else(|| {
-                std::io::Error::new(
-                    std::io::ErrorKind::InvalidInput,
-                    "a selected file path requires a parent",
-                )
-            })?;
-            Ok(std::fs::canonicalize(parent)?.join(name))
-        }
-        Err(error) => Err(error),
-    }
-}
-
-#[derive(Clone, Copy)]
-enum SelectedFileRole {
-    Input,
-    Output,
-}
-
-impl SelectedFileRole {
-    fn label(self) -> &'static str {
-        match self {
-            Self::Input => "input",
-            Self::Output => "output",
-        }
-    }
-    fn io_failure(self, diagnostic: Diag) -> LoadFailure {
-        match self {
-            Self::Input => LoadFailure::Malformed(diagnostic),
-            Self::Output => LoadFailure::Execution(diagnostic),
-        }
-    }
-}
-
-/// Protect every selected input before any sink can remove or replace bytes.
-fn validate_output_inputs(request: &ProveRequest<'_>) -> Result<(), LoadFailure> {
-    let outputs: Vec<_> = [request.out, request.proof_out, request.evidence_out]
-        .into_iter()
-        .flatten()
-        .collect();
-    if outputs.is_empty() {
-        return Ok(());
-    }
-    let mut inputs = request.inputs.to_vec();
-    if let Some(root) = request.dir {
-        inputs.extend(collect_semantic_sources(root).map_err(LoadFailure::Malformed)?);
-    }
-    if let Some(proof) = request.check_proof {
-        inputs.push(proof.to_owned());
-    }
-    let mut protected: Vec<_> = inputs
-        .into_iter()
-        .map(|input| (input, SelectedFileRole::Input))
-        .collect();
-    for output in outputs {
-        let output_absolute = prospective_file_path(output).map_err(|error| {
-            LoadFailure::Execution(caused_failure(
-                "OUTPUT_PATH_UNAVAILABLE",
-                error,
-                format!("resolve output {}", output.display()),
-            ))
-        })?;
-        let output_exists = match std::fs::metadata(output) {
-            Ok(_) => true,
-            Err(error) if error.kind() == std::io::ErrorKind::NotFound => false,
-            Err(error) => {
-                return Err(LoadFailure::Execution(caused_failure(
-                    "OUTPUT_IDENTITY_UNAVAILABLE",
-                    error,
-                    format!("inspect output {}", output.display()),
-                )));
-            }
-        };
-        for (input, role) in &protected {
-            let absolute = prospective_file_path(input).map_err(|error| {
-                role.io_failure(caused_failure(
-                    "SOURCE_PATH_UNAVAILABLE",
-                    error,
-                    format!("resolve input {}", input.display()),
-                ))
-            })?;
-            let same_identity = if output_exists {
-                match std::fs::metadata(input) {
-                    Ok(_) => same_file::is_same_file(input, output).map_err(|error| {
-                        LoadFailure::Execution(caused_failure(
-                            "OUTPUT_IDENTITY_UNAVAILABLE",
-                            error,
-                            format!(
-                                "compare output {} with input {}",
-                                output.display(),
-                                input.display()
-                            ),
-                        ))
-                    })?,
-                    Err(error) if error.kind() == std::io::ErrorKind::NotFound => false,
-                    Err(error) => {
-                        return Err(role.io_failure(caused_failure(
-                            "SOURCE_IDENTITY_UNAVAILABLE",
-                            error,
-                            format!("inspect input {}", input.display()),
-                        )));
-                    }
-                }
-            } else {
-                false
-            };
-            if absolute == output_absolute || same_identity {
-                return Err(LoadFailure::Malformed(failure(
-                    if matches!(role, SelectedFileRole::Input) {
-                        "OUTPUT_ALIASES_SELECTED_INPUT"
-                    } else {
-                        "SELECTED_OUTPUTS_ALIAS"
-                    },
-                    format!(
-                        "output {} aliases selected {} {}; select separate output paths",
-                        output.display(),
-                        role.label(),
-                        input.display()
-                    ),
-                )));
-            }
-        }
-        protected.push((output.to_owned(), SelectedFileRole::Output));
-    }
-    Ok(())
-}
-
-fn remove_stale_required_output(path: &Path) -> gmeow_errors::Result<()> {
-    match std::fs::remove_file(path) {
+fn remove_stale_required_output(
+    files: &FilePlan,
+    sink: Sink,
+    path: &Path,
+) -> gmeow_errors::Result<()> {
+    match files.remove(sink) {
         Ok(()) => Ok(()),
         Err(error) if error.kind() == std::io::ErrorKind::NotFound => Ok(()),
         Err(error) => Err(caused_failure(
@@ -772,6 +630,7 @@ fn refuse_composed_outputs(
     inventory: &SourceInventory<'_>,
     admission: NativeSourceAdmission<'_>,
     inputs: &[InputIdentity],
+    files: &FilePlan,
 ) -> i32 {
     let selection = admission.resolved_selection();
     let mut report = ProveReport::blank(
@@ -808,7 +667,7 @@ fn refuse_composed_outputs(
                     .into(),
             }],
         });
-        if let Err(diagnostic) = remove_stale_required_output(path) {
+        if let Err(diagnostic) = remove_stale_required_output(files, Sink::Fof, path) {
             report.execution_failure(diagnostic);
         }
     }
@@ -817,38 +676,39 @@ fn refuse_composed_outputs(
             "COMPOSED_PROOF_OUTPUT_UNSUPPORTED",
             "composed theory proof files require a composition-bound proof contract",
         ));
-        if let Err(diagnostic) = remove_stale_required_output(path) {
+        if let Err(diagnostic) = remove_stale_required_output(files, Sink::Proof, path) {
             report.execution_failure(diagnostic);
         }
     }
     report.native_admission = Some(admission);
-    publish_failure(reporter, report, request)
+    publish_failure(reporter, report, request, files)
 }
 
 /// Run the complete installed `gmeow prove` operation.
 pub(crate) fn prove(reporter: &dyn Reporter, request: &ProveRequest<'_>) -> i32 {
-    if let Some(proof) = request.check_proof {
-        return check_proof(reporter, request, proof);
-    }
-    if let Err(failure) = validate_output_inputs(request) {
-        let safe = ProveRequest {
-            evidence_out: None,
-            ..*request
-        };
-        return publish_failure(reporter, failure.into_report(), &safe);
-    }
-    let loaded = match source_paths(request.inputs, request.dir) {
-        Ok(paths) => match load_theory(&paths) {
-            Ok(loaded) => loaded,
-            Err(failure) => return publish_failure(reporter, failure.into_report(), request),
-        },
-        Err(diagnostic) => {
-            return publish_failure(
-                reporter,
-                ProveReport::blank(DecisionClass::Malformed, diagnostic),
-                request,
-            );
+    let files = match FilePlan::open(request) {
+        Ok(files) => files,
+        Err(failure) => {
+            let safe = ProveRequest {
+                evidence_out: None,
+                ..*request
+            };
+            if let Some(proof) = request.check_proof {
+                return check_admission_failure(reporter, &safe, proof, failure);
+            }
+            return publish_failure(reporter, failure.into_report(), &safe, &FilePlan::default());
         }
+    };
+    if let Some(proof) = request.check_proof {
+        return check_proof(reporter, request, proof, &files);
+    }
+    prove_admitted(reporter, request, &files)
+}
+
+fn prove_admitted(reporter: &dyn Reporter, request: &ProveRequest<'_>, files: &FilePlan) -> i32 {
+    let loaded = match load_theory(&files.sources) {
+        Ok(loaded) => loaded,
+        Err(failure) => return publish_failure(reporter, failure.into_report(), request, files),
     };
 
     let selection = SourceSelection::all_classical_roots(&loaded.theory);
@@ -863,6 +723,7 @@ pub(crate) fn prove(reporter: &dyn Reporter, request: &ProveRequest<'_>) -> i32 
                     with_inputs(diagnostic, &loaded.identities),
                 ),
                 request,
+                files,
             );
         }
     };
@@ -877,6 +738,7 @@ pub(crate) fn prove(reporter: &dyn Reporter, request: &ProveRequest<'_>) -> i32 
                     with_inputs(diagnostic, &loaded.identities),
                 ),
                 request,
+                files,
             );
         }
     };
@@ -887,6 +749,7 @@ pub(crate) fn prove(reporter: &dyn Reporter, request: &ProveRequest<'_>) -> i32 
             &inventory,
             native_admission,
             &loaded.identities,
+            files,
         );
     }
     if native_admission.malformed() {
@@ -903,7 +766,7 @@ pub(crate) fn prove(reporter: &dyn Reporter, request: &ProveRequest<'_>) -> i32 
             ),
         );
         report.native_admission = Some(native_admission);
-        return publish_failure(reporter, report, request);
+        return publish_failure(reporter, report, request, files);
     }
     // Classical export is a separate selected operation. Native completion never
     // authorizes FOF, and native-only runs never construct its owned admission.
@@ -920,6 +783,7 @@ pub(crate) fn prove(reporter: &dyn Reporter, request: &ProveRequest<'_>) -> i32 
                     with_inputs(diagnostic, &loaded.identities),
                 ),
                 request,
+                files,
             );
         }
     };
@@ -952,7 +816,7 @@ pub(crate) fn prove(reporter: &dyn Reporter, request: &ProveRequest<'_>) -> i32 
                 documents,
                 drops,
             );
-            return publish_failure(reporter, report, request);
+            return publish_failure(reporter, report, request, files);
         }
     };
 
@@ -1082,6 +946,7 @@ pub(crate) fn prove(reporter: &dyn Reporter, request: &ProveRequest<'_>) -> i32 
                 .as_ref()
                 .expect("selected export has its independent classical admission"),
             path,
+            files,
         ) {
             Ok(export) => {
                 let written = export.written;
@@ -1089,37 +954,47 @@ pub(crate) fn prove(reporter: &dyn Reporter, request: &ProveRequest<'_>) -> i32 
                 if !written {
                     report.admission = admission;
                     report.execution_failure(failure("SELECTED_EXPORT_BLOCKED", "--out selected a classical FOF output that its source admission cannot produce; inspect export.blockers and admission"));
-                    return publish_failure(reporter, report, request);
+                    return publish_failure(reporter, report, request, files);
                 }
             }
             Err(diagnostic) => {
                 report.admission = admission;
                 report.execution_failure(diagnostic);
-                return publish_failure(reporter, report, request);
+                return publish_failure(reporter, report, request, files);
             }
         }
     }
     report.admission = admission;
     if let Some(path) = request.proof_out {
         let written = match &proof {
-            Some(bytes) => std::fs::write(path, bytes).map_err(|error| {
+            Some(bytes) => files.write(Sink::Proof, bytes).map_err(|error| {
                 caused_failure(
                     "PROOF_WRITE_FAILED",
                     error,
                     format!("write proof {}", path.display()),
                 )
             }),
-            None => Err(failure(
-                "PROOF_NOT_RECORDED",
-                "--proof-out was selected but the OWL 2 DL leg recorded no proof for this selection",
-            )),
+            None => {
+                report.execution_failure(failure(
+                    "PROOF_NOT_RECORDED",
+                    "--proof-out was selected but the OWL 2 DL leg recorded no proof for this selection",
+                ));
+                if let Err(error) = files.remove(Sink::Proof) {
+                    report.execution_failure(caused_failure(
+                        "PROOF_STALE_REMOVE_FAILED",
+                        error,
+                        format!("remove stale proof {}", path.display()),
+                    ));
+                }
+                return publish_failure(reporter, report, request, files);
+            }
         };
         if let Err(diagnostic) = written {
             report.execution_failure(diagnostic);
-            return publish_failure(reporter, report, request);
+            return publish_failure(reporter, report, request, files);
         }
     }
-    publish_report(report, request, reporter)
+    publish_report(report, request, reporter, files)
 }
 
 /// The drop code naming an analysis bound that coarsened or stopped part of the termination
@@ -1567,6 +1442,7 @@ fn export_tptp(
     theory: &gmeow_logic_compile::frontend::CompiledTheory,
     admission: &SourceAdmission,
     path: &Path,
+    files: &FilePlan,
 ) -> gmeow_errors::Result<TptpExport> {
     let projection = project_tptp_fof(theory, admission);
     let mut export = TptpExport {
@@ -1581,7 +1457,7 @@ fn export_tptp(
     let (FofProjectionStatus::Complete, Some(problem)) =
         (projection.status, projection.problem.as_deref())
     else {
-        match std::fs::remove_file(path) {
+        match files.remove(Sink::Fof) {
             Ok(()) => {}
             Err(error) if error.kind() == std::io::ErrorKind::NotFound => {}
             Err(error) => {
@@ -1594,14 +1470,29 @@ fn export_tptp(
         }
         return Ok(export);
     };
-    std::fs::write(path, problem).map_err(|error| {
+    let mut file = files.writer(Sink::Fof).map_err(|error| {
         caused_failure(
             "PROBLEM_WRITE_FAILED",
             error,
-            format!("write TPTP export {}", path.display()),
+            format!("open TPTP export {}", path.display()),
         )
     })?;
-    let read_back = std::fs::read(path).map_err(|error| {
+    std::io::Write::write_all(&mut file, problem.as_bytes())
+        .and_then(|()| std::io::Write::flush(&mut file))
+        .map_err(|error| {
+            caused_failure(
+                "PROBLEM_WRITE_FAILED",
+                error,
+                format!("write TPTP export {}", path.display()),
+            )
+        })?;
+    let read_back = (|| -> std::io::Result<Vec<u8>> {
+        std::io::Seek::rewind(&mut file)?;
+        let mut bytes = Vec::new();
+        std::io::Read::read_to_end(&mut file, &mut bytes)?;
+        Ok(bytes)
+    })()
+    .map_err(|error| {
         caused_failure(
             "PROBLEM_VERIFY_READ_FAILED",
             error,
@@ -1651,13 +1542,49 @@ impl ProofCheckReport {
     }
 }
 
-/// Re-prepare the same selection and replay a recorded tableau proof against its
-/// OWL view without making a new solver decision. PurRDF's verifier owns the check:
-/// it binds the proof to the canonical identity of this OWL view and to the
-/// consistency question, and checks every stated claim against the runs it replays.
-/// The report prints those claims. The native engine has no replayable proof; its
-/// verdict is reproduced by re-running `gmeow prove` on the same inputs.
-fn check_proof(reporter: &dyn Reporter, request: &ProveRequest<'_>, proof_path: &Path) -> i32 {
+/// Report a filesystem admission failure without opening any output sink.
+fn check_admission_failure(
+    reporter: &dyn Reporter,
+    request: &ProveRequest<'_>,
+    proof_path: &Path,
+    error: LoadFailure,
+) -> i32 {
+    let (verdict, diagnostic) = match error {
+        LoadFailure::Malformed(diagnostic) => ("malformed", diagnostic),
+        LoadFailure::Execution(diagnostic) => ("execution-failure", diagnostic),
+    };
+    let report = ProofCheckReport {
+        schema_version: 1,
+        operation: "proof-check",
+        verdict,
+        inputs: recorded_inputs(&diagnostic),
+        theory_selection: None,
+        proof_path: proof_path.display().to_string(),
+        proof_digest: None,
+        claims: Vec::new(),
+        runs: None,
+        replayed_runs: None,
+        diagnostics: Vec::new(),
+    };
+    publish_check(
+        reporter,
+        report,
+        verdict,
+        &diagnostic,
+        request,
+        &FilePlan::default(),
+    )
+}
+
+/// Re-prepare the selection and replay a recorded tableau proof against its OWL
+/// view. The verifier binds the proof to the view and consistency question and
+/// checks every claim against the recorded runs, without making a solver decision.
+fn check_proof(
+    reporter: &dyn Reporter,
+    request: &ProveRequest<'_>,
+    proof_path: &Path,
+    files: &FilePlan,
+) -> i32 {
     let mut report = ProofCheckReport {
         schema_version: 1,
         operation: "proof-check",
@@ -1671,30 +1598,23 @@ fn check_proof(reporter: &dyn Reporter, request: &ProveRequest<'_>, proof_path: 
         replayed_runs: None,
         diagnostics: Vec::new(),
     };
-    if let Err(failure) = validate_output_inputs(request) {
-        let safe = ProveRequest {
-            evidence_out: None,
-            ..*request
-        };
-        let (verdict, diagnostic) = match failure {
-            LoadFailure::Malformed(diagnostic) => ("malformed", diagnostic),
-            LoadFailure::Execution(diagnostic) => ("execution-failure", diagnostic),
-        };
-        return publish_check(reporter, report, verdict, &diagnostic, &safe);
-    }
-    let loaded = match source_paths(request.inputs, request.dir) {
-        Ok(paths) => load_theory(&paths),
-        Err(diagnostic) => Err(LoadFailure::Malformed(diagnostic)),
-    };
+    let loaded = load_theory(&files.sources);
     let loaded = match loaded {
         Ok(loaded) => loaded,
         Err(LoadFailure::Malformed(diagnostic)) => {
             report.inputs = recorded_inputs(&diagnostic);
-            return publish_check(reporter, report, "malformed", &diagnostic, request);
+            return publish_check(reporter, report, "malformed", &diagnostic, request, files);
         }
         Err(LoadFailure::Execution(diagnostic)) => {
             report.inputs = recorded_inputs(&diagnostic);
-            return publish_check(reporter, report, "execution-failure", &diagnostic, request);
+            return publish_check(
+                reporter,
+                report,
+                "execution-failure",
+                &diagnostic,
+                request,
+                files,
+            );
         }
     };
     report.inputs.clone_from(&loaded.identities);
@@ -1705,7 +1625,7 @@ fn check_proof(reporter: &dyn Reporter, request: &ProveRequest<'_>, proof_path: 
     let resolved = match resolve_requested_theory(&inventory, request.modules) {
         Ok(resolved) => resolved,
         Err(diagnostic) => {
-            return publish_check(reporter, report, "malformed", &diagnostic, request);
+            return publish_check(reporter, report, "malformed", &diagnostic, request, files);
         }
     };
     report.theory_selection = Some(resolved.observation().clone());
@@ -1714,9 +1634,15 @@ fn check_proof(reporter: &dyn Reporter, request: &ProveRequest<'_>, proof_path: 
             "COMPOSED_PROOF_REPLAY_UNSUPPORTED",
             "a raw tableau proof cannot authorize replay of a resolved composed theory",
         );
-        return publish_check(reporter, report, "rejected", &diagnostic, request);
+        return publish_check(reporter, report, "rejected", &diagnostic, request, files);
     }
-    let bytes = match std::fs::read(proof_path) {
+    let input = match files.replay_input() {
+        Ok(input) => input,
+        Err(diagnostic) => {
+            return publish_check(reporter, report, "malformed", diagnostic, request, files);
+        }
+    };
+    let bytes = match input.read() {
         Ok(bytes) => bytes,
         Err(error) => {
             let diagnostic = caused_failure(
@@ -1724,9 +1650,16 @@ fn check_proof(reporter: &dyn Reporter, request: &ProveRequest<'_>, proof_path: 
                 error,
                 format!("read proof {}", proof_path.display()),
             );
-            return publish_check(reporter, report, "malformed", &diagnostic, request);
+            return publish_check(reporter, report, "malformed", &diagnostic, request, files);
         }
     };
+    report.inputs.push(InputIdentity::from_bytes(
+        proof_path,
+        "selected-proof-replay",
+        "application/cbor",
+        None,
+        &bytes,
+    ));
     let proof = match purrdf::entail::ServiceProof::decode(&bytes) {
         Ok(proof) => proof,
         Err(error) => {
@@ -1735,7 +1668,7 @@ fn check_proof(reporter: &dyn Reporter, request: &ProveRequest<'_>, proof_path: 
                 error,
                 format!("decode proof {}", proof_path.display()),
             );
-            return publish_check(reporter, report, "rejected", &diagnostic, request);
+            return publish_check(reporter, report, "rejected", &diagnostic, request, files);
         }
     };
     report.proof_digest = Some(proof.digest_hex());
@@ -1744,13 +1677,27 @@ fn check_proof(reporter: &dyn Reporter, request: &ProveRequest<'_>, proof_path: 
     let canonical = match resolved.source_view(&inventory) {
         Ok(view) => view,
         Err(diagnostic) => {
-            return publish_check(reporter, report, "execution-failure", &diagnostic, request);
+            return publish_check(
+                reporter,
+                report,
+                "execution-failure",
+                &diagnostic,
+                request,
+                files,
+            );
         }
     };
     let (view, reasoner) = match open_owl_view(&canonical, request.step_cap) {
         Ok(opened) => opened,
         Err(OwlOpenFailure::Limit(diagnostic)) => {
-            return publish_check(reporter, report, "execution-failure", &diagnostic, request);
+            return publish_check(
+                reporter,
+                report,
+                "execution-failure",
+                &diagnostic,
+                request,
+                files,
+            );
         }
         Err(OwlOpenFailure::NotBuilt(code, error)) => {
             let diagnostic = with_inputs(
@@ -1762,7 +1709,14 @@ fn check_proof(reporter: &dyn Reporter, request: &ProveRequest<'_>, proof_path: 
                 ),
                 &loaded.identities,
             );
-            return publish_check(reporter, report, "execution-failure", &diagnostic, request);
+            return publish_check(
+                reporter,
+                report,
+                "execution-failure",
+                &diagnostic,
+                request,
+                files,
+            );
         }
     };
     let context = match reasoner.borrowed_proof_context() {
@@ -1774,7 +1728,14 @@ fn check_proof(reporter: &dyn Reporter, request: &ProveRequest<'_>, proof_path: 
                 "borrow the replay context",
                 serde_json::Value::Null,
             );
-            return publish_check(reporter, report, "execution-failure", &diagnostic, request);
+            return publish_check(
+                reporter,
+                report,
+                "execution-failure",
+                &diagnostic,
+                request,
+                files,
+            );
         }
     };
     let replay = proof.verify(
@@ -1788,7 +1749,7 @@ fn check_proof(reporter: &dyn Reporter, request: &ProveRequest<'_>, proof_path: 
         Ok(replay) => {
             report.replayed_runs = Some(replay.replayed());
             report.verdict = "replayed";
-            publish_check_report(report, request)
+            publish_check_report(report, request, files)
         }
         Err(error) => {
             if let Some(budget) = canonicalization_limit(&error).copied() {
@@ -1798,14 +1759,21 @@ fn check_proof(reporter: &dyn Reporter, request: &ProveRequest<'_>, proof_path: 
                     failure("PROOF_SOURCE_BINDING", error.to_string()),
                     &loaded.identities,
                 );
-                return publish_check(reporter, report, "execution-failure", &diagnostic, request);
+                return publish_check(
+                    reporter,
+                    report,
+                    "execution-failure",
+                    &diagnostic,
+                    request,
+                    files,
+                );
             }
             let diagnostic = caused_failure(
                 "PROOF_REJECTED",
                 error,
                 format!("replay proof {}", proof_path.display()),
             );
-            publish_check(reporter, report, "rejected", &diagnostic, request)
+            publish_check(reporter, report, "rejected", &diagnostic, request, files)
         }
     }
 }
@@ -1816,19 +1784,22 @@ fn publish_check(
     verdict: &'static str,
     diagnostic: &Diag,
     request: &ProveRequest<'_>,
+    files: &FilePlan,
 ) -> i32 {
     let projected = ReportDiagnostic::from_diag(diagnostic);
     emit_error(reporter, &projected.code, projected.detail.clone());
     report.verdict = verdict;
     report.diagnostics.push(projected);
-    publish_check_report(report, request)
+    publish_check_report(report, request, files)
 }
 
-fn publish_check_report(report: ProofCheckReport, request: &ProveRequest<'_>) -> i32 {
-    let json = serde_json::to_string_pretty(&report)
-        .expect("typed proof-check report serialization is infallible");
+fn publish_check_report(
+    report: ProofCheckReport,
+    request: &ProveRequest<'_>,
+    files: &FilePlan,
+) -> i32 {
     if let Some(path) = request.evidence_out
-        && let Err(error) = std::fs::write(path, json.as_bytes())
+        && let Err(error) = write_evidence(files, &report)
     {
         let diagnostic = caused_failure(
             "EVIDENCE_WRITE_FAILED",
@@ -2016,12 +1987,13 @@ fn limit_or_malformed(
 /// its cause: the caller's unreadable, unparsable or uncompilable source is
 /// malformed input; a canonicalization search that reached its finite limit, a
 /// storage refusal, or a broken source-binding invariant is an execution failure.
-fn load_theory(paths: &[PathBuf]) -> Result<LoadedTheory, LoadFailure> {
+fn load_theory(paths: &[OpenedInput]) -> Result<LoadedTheory, LoadFailure> {
     let mut receipts = Vec::with_capacity(paths.len());
     let mut identities = Vec::with_capacity(paths.len());
     let mut documents = Vec::with_capacity(paths.len());
-    for path in paths {
-        let bytes = std::fs::read(path).map_err(|error| {
+    for input in paths {
+        let path = &input.path;
+        let bytes = input.read().map_err(|error| {
             LoadFailure::Malformed(with_inputs(
                 caused_failure(
                     "SOURCE_READ_FAILED",
@@ -2195,25 +2167,22 @@ fn publish_failure(
     reporter: &dyn Reporter,
     report: ProveReport<'_>,
     request: &ProveRequest<'_>,
+    files: &FilePlan,
 ) -> i32 {
     if let Some(diagnostic) = report.common.diagnostics.last() {
         emit_error(reporter, &diagnostic.code, diagnostic.detail.clone());
     }
-    publish_report(report, request, reporter)
+    publish_report(report, request, reporter, files)
 }
 
 fn publish_report(
     mut report: ProveReport<'_>,
     request: &ProveRequest<'_>,
     reporter: &dyn Reporter,
+    files: &FilePlan,
 ) -> i32 {
     if let Some(path) = request.evidence_out {
-        let written = (|| -> Result<(), std::io::Error> {
-            let file = std::fs::File::create(path)?;
-            let mut writer = std::io::BufWriter::new(file);
-            serde_json::to_writer_pretty(&mut writer, &report).map_err(std::io::Error::other)?;
-            std::io::Write::flush(&mut writer)
-        })();
+        let written = write_evidence(files, &report);
         if let Err(error) = written {
             let diagnostic = caused_failure(
                 "EVIDENCE_WRITE_FAILED",
@@ -2245,6 +2214,14 @@ fn publish_report(
         OutputFormat::Text => render_text(&report),
     }
     report.common.exit_code(request.gate)
+}
+
+/// Stream either evidence report through the same admitted filesystem boundary.
+fn write_evidence(files: &FilePlan, report: &impl Serialize) -> std::io::Result<()> {
+    let file = files.writer(Sink::Evidence)?;
+    let mut writer = std::io::BufWriter::new(file);
+    serde_json::to_writer_pretty(&mut writer, report).map_err(std::io::Error::other)?;
+    std::io::Write::flush(&mut writer)
 }
 
 fn render_theory_selection(selection: &TheorySelectionObservation) {
