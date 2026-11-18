@@ -131,7 +131,7 @@ fn term_syntax_preserves_domain_identity_and_refuses_codec_failure() {
     let property = to_markdown(&model, &Page::Term("links".into()))
         .expect("an external domain remains executable in every selected syntax");
     assert!(property.contains("a <https://external.example/model#ExactDomain>"));
-    assert!(property.contains("**JSON-LD**"));
+    assert!(property.contains(r"**JSON\-LD**"));
     let language = to_markdown(&model, &Page::Term("token".into()))
         .expect("the lang namespace is declared for native transcoding");
     assert!(language.contains("https://blackcatinformatics.ca/lang/Token"));
@@ -160,7 +160,7 @@ fn term_syntax_preserves_domain_identity_and_refuses_codec_failure() {
             .expect("nested class and predicate IRIs form executable syntax");
         assert!(page.contains(&format!("a <{class_iri}> ;")));
         assert!(page.contains(&format!("<{predicate_iri}> \"...\" .")));
-        assert!(page.contains("**JSON-LD**"));
+        assert!(page.contains(r"**JSON\-LD**"));
     }
     let invalid = model
         .terms
