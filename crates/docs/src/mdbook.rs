@@ -651,13 +651,13 @@ fn rewrite_target(
         // did not emit is a dangling internal link — a hard failure, never a quiet
         // externalization that would hide a broken cross-reference.
         if map.is_known_page(&format!("{dir}/")) {
-            return Err(Diag::of_kind(crate::render_error::DanglingLink::new(
-                format!(
+            return Err(Diag::of_kind(crate::render_error::DanglingLink {
+                detail: format!(
                     "book chapter link {target:?} on page {page_dir:?} resolves to the known corpus \
                  document page {dir:?}/ but no chapter was emitted for it — a dangling internal \
                  cross-document link"
                 ),
-            )));
+            }));
         }
     }
 

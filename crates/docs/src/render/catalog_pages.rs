@@ -964,13 +964,13 @@ fn demote_heading_line(
         HeadingDemotion::Keep => unreachable!("handled above"),
         HeadingDemotion::GraftOne => {
             if hashes == 6 {
-                return Err(Diag::of_kind(crate::render_error::HeadingOverflow::new(
-                    format!(
+                return Err(Diag::of_kind(crate::render_error::HeadingOverflow {
+                    detail: format!(
                         "markdown source `{from_path}` in slice {from_slice} carries a level-6 heading \
                      that cannot be demoted (H6→H7 is illegal): {:?}",
                         line.trim_end()
                     ),
-                )));
+                }));
             }
             1
         }
@@ -1108,12 +1108,14 @@ fn rewrite_doc_target(
                 // A bare `#` with no anchor — leave as authored.
                 None => target.to_string(),
             }),
-            LinkResolution::Dangling { .. } => Err(Diag::of_kind(
-                crate::render_error::DanglingLink::new(format!(
-                    "markdown source `{from_path}` in slice {from_slice} has a dangling same-document \
+            LinkResolution::Dangling { .. } => {
+                Err(Diag::of_kind(crate::render_error::DanglingLink {
+                    detail: format!(
+                        "markdown source `{from_path}` in slice {from_slice} has a dangling same-document \
                  anchor link `{target}` (no such heading)"
-                )),
-            )),
+                    ),
+                }))
+            }
         };
     }
 
@@ -1132,13 +1134,15 @@ fn rewrite_doc_target(
                 None => format!("{href}index.md"),
             })
         }
-        DocLinkResolution::Dangling { .. } => Err(Diag::of_kind(
-            crate::render_error::DanglingLink::new(format!(
-                "markdown source `{from_path}` in slice {from_slice} has a dangling internal document \
+        DocLinkResolution::Dangling { .. } => {
+            Err(Diag::of_kind(crate::render_error::DanglingLink {
+                detail: format!(
+                    "markdown source `{from_path}` in slice {from_slice} has a dangling internal document \
              link `{target}` — fix the link in the slice's markdown (it names no document in the \
              slice)"
-            )),
-        )),
+                ),
+            }))
+        }
     }
 }
 
