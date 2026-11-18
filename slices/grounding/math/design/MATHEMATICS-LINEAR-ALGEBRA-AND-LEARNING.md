@@ -348,13 +348,68 @@ induces a `math:Norm` (`math:inducedByForm`), ‖x‖ = √⟨x, x⟩ = √(xᵀ
 (`math:positiveDefinite`, `math:positiveSemidefinite`, `math:indefinite`, `math:negativeDefinite` —
 individuals, never `owl:oneOf`), the object-layer counterpart of a `math:MetricSignature`.
 
-> **Hard rule — exactness is explicit.** A `math:RationalValue` is an *exact* p/q carrier: a
-> `math:numerator` / `math:denominator` integer pair (denominator ≠ 0), and it carries **no** decimal
-> literal — 1/4 is the pair (1, 4), never 0.25 (the decimal belongs to a distinct
-> `math:ApproximateValue`). Matrix entries and vector components are `math:RationalValue`, so a Gram
-> matrix and the quadratic form xᵀGx — and hence the norm √(xᵀGx) an affect-intensity metric grounds
-> on — are exact by construction. The specialized `math:CartanMatrix` and `math:DatasetMatrix` keep
-> their own parents; they are not reparented onto `math:Matrix`.
+> **Hard rule — exactness is explicit.** A `math:RationalValue` carries p/q as
+> `math:numerator` and nonzero `math:denominator` integer literals. Preserve that
+> representation separately from a decimal rendering, an approximation and a
+> computed result. Exact rational input does not guarantee that its norm has a
+> rational value or that a native decimal output represents that norm exactly.
+> The specialized `math:CartanMatrix` and `math:DatasetMatrix` keep their own
+> parents; they are not reparented onto `math:Matrix`.
+
+### Rational carriers, validation and native limits
+
+The pair carrier is distinct from the abstract `math:RationalNumber` and the
+`math:rationalNumbers` system. `(1,4)` denotes 1/4, also expressed exactly by
+decimal `0.25`; `(1,3)` retains a third without a finite decimal truncation.
+A terminating decimal or a mathematical infinite periodic expansion can be exact,
+while a rounded or truncated evaluation is an approximation. In
+[W3C XML Schema 1.1 Part 2](https://www.w3.org/TR/2012/REC-xmlschema11-2-20120405/),
+section 3.3.3 defines decimal values through integers divided by powers of ten,
+and section 3.4.13 gives integer its unbounded mathematical value space. These
+datatype contracts supply neither an unlimited-integer implementation nor a
+correspondence equating the pair resource with an external rational-number term.
+The existing rationalNumbers close match belongs to the system individual;
+RationalValue does not inherit that law.
+
+Canonical RDF permits numerator zero and either nonzero denominator sign.
+It imposes no reduced-form or positive-denominator convention. `(1,4)` and `(2,8)`
+can denote equal values without asserting RDF resource identity. The existing
+RationalValue-local profile has integer-qualified minima/maxima, integer
+all-values restrictions and closed required paths for both components. The
+properties' global signatures are descriptive, not global functionality axioms.
+`math:RationalValueDenominatorNonZeroConstraint` is the canonical
+`logic:ForbiddenPatternConstraint` prohibiting a stored denominator zero; SHACL
+is its generated validation view. Stored p/0 is distinct from division by zero
+during an operation (`math:ZeroDivisor`).
+
+Generated report attribution is broader than that zero-denominator concept.
+RationalValue's own ZeroDenominator annotation is copied to the generated
+property shapes, and the report bridge resolves it by source-shape identity.
+Missing, noninteger or multiple component values can therefore share that report
+class. Retain the actual component code, path, value and source shape before
+attributing a defect to zero. The existing negative conformance cell selects
+failure-class isolation when `expectedFailureClass` is present; its declared
+component-code and source-shape fields add no further pin in that branch.
+Neither the class annotation nor that cell establishes exclusive component-level
+coverage or an executed conformance result.
+
+The native pair implementation in
+[`crates/math/src/lib.rs`](../../../../crates/math/src/lib.rs) uses `i128`,
+rejects zero denominator and either `i128::MIN` component, and normalizes accepted
+pairs by gcd and a positive denominator. The graph loader parses the first
+literal's trimmed lexical text without independently checking datatype,
+multiplicity or RationalValue membership. Missing, unparsable and out-of-range
+first components use MissingProperty; constructor-domain failures use
+RationalDomain. Those Rust diagnostics are not automatically the ontology's
+ZeroDenominator class. Checked arithmetic methods refuse overflow; ordering has
+its separately documented cross-product overflow panic boundary.
+
+Inner products and quadratic forms return rational values. Norm and distance
+render square roots as decimal strings with six fractional places. A rational
+quadratic-form value of 2 has irrational square root √2, so those outputs must not be
+advertised as exact rational results. Pair declarations alone perform no
+arithmetic, supply no provenance-bearing execution result and certify no
+particular native or installed-consumer run.
 
 ## PCA and the KG-projection flagship
 
