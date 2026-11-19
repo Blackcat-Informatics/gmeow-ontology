@@ -1296,10 +1296,9 @@ fn assemble_carrier(
         "parse-rdf-fanout",
         || -> Result<(), gmeow_errors::Diag> {
             for (path, bytes) in fanout {
-                let iri =
-                    crate::stages::superset::rdf_fanout_graph_iri(&path).ok_or_else(|| {
-                        stage_err(&format!("non-RDF path in rdf_fanout_members: {path}"))
-                    })?;
+                let iri = crate::stages::superset::rdf_fanout_graph_iri(path).ok_or_else(|| {
+                    stage_err(&format!("non-RDF path in rdf_fanout_members: {path}"))
+                })?;
                 let media_type = if path.ends_with(".nt") {
                     "application/n-triples"
                 } else if path.ends_with(".nq") {
@@ -1307,7 +1306,7 @@ fn assemble_carrier(
                 } else {
                     "text/turtle"
                 };
-                parts.push_parsed(&bytes, media_type, &iri)?;
+                parts.push_parsed(bytes, media_type, &iri)?;
             }
             Ok(())
         },
@@ -1508,55 +1507,33 @@ fn fold_coherence_certificate(
     Ok(certified)
 }
 
-/// Every remaining RDF `generated/` file (committed-path → bytes) that rides as an
-/// RDF-fanout named graph, recomputed from THIS run's source. Each is the canonical
-/// fold the producing stage also emits as its committed file. Grows class-by-class.
+/// Borrow the remaining committed RDF artifacts through snapshot parsing.
+/// The sorted map supplies one reconstruction graph per committed path.
 fn rdf_fanout_members(
     upstream: &BTreeMap<String, StageProduct>,
-) -> Result<BTreeMap<String, Vec<u8>>, gmeow_errors::Diag> {
-    let mut out: BTreeMap<String, Vec<u8>> = BTreeMap::new();
-    for (path, bytes) in producer_artifacts("stage-math-producers", upstream)? {
-        if is_rdf_member(&path) {
-            out.insert(path, bytes);
-        }
-    }
-    // profiles — `owl:Ontology` import closures, canonical Turtle. Read off the
-    // stage-export-profiles product (rendered once, in that leaf; keyed by full path).
-    for (path, bytes) in producer_artifacts("stage-export-profiles", upstream)? {
-        out.insert(path, bytes);
-    }
-    // research-objects — the RO-crate `.ttl` re-serializations + the `lillith.dcat.ttl`
-    // CONSTRUCT (opaque JSON/HTML/XML members ride the opaque fanout blob). Read off the
-    // stage-export-research-objects product; keep only the RDF members.
-    for (path, bytes) in producer_artifacts("stage-export-research-objects", upstream)? {
-        if is_rdf_member(&path) {
-            out.insert(path, bytes);
-        }
-    }
-    // evals scores.ttl — the meta-claim Assessments (opaque MD/JSON ride the blob). Read
-    // off the stage-export-evals product; keep only the RDF members.
-    for (path, bytes) in producer_artifacts("stage-export-evals", upstream)? {
-        if is_rdf_member(&path) {
-            out.insert(path, bytes);
-        }
-    }
-    // glossary vartrans.ttl — the OntoLex vartrans:translation lowering of the reviewed
-    // glossary crossings (the readable `.md` table + the `.tbx` termbase are non-RDF and
-    // ride the opaque blob). Read off the stage-export-glossary product; keep only the RDF
-    // member, so the `.ttl` folds as its own `graph/fanout/projections/glossary.vartrans.ttl`
-    // named graph (mirrors evals scores.ttl).
-    for (path, bytes) in producer_artifacts("stage-export-glossary", upstream)? {
-        if is_rdf_member(&path) {
-            out.insert(path, bytes);
-        }
-    }
-    // skos surface gmeow-skos.ttl — the generated SKOS concept-scheme projection of the
-    // lifted NodeKind::Annotation axioms. Read off the stage-export-skos-surface
-    // product; it is a single RDF `.ttl` member, so it folds as its own
-    // graph/fanout/skos/gmeow-skos.ttl named graph (mirrors evals scores.ttl / glossary vartrans).
-    for (path, bytes) in producer_artifacts("stage-export-skos-surface", upstream)? {
-        if is_rdf_member(&path) {
-            out.insert(path, bytes);
+) -> Result<BTreeMap<&str, &[u8]>, gmeow_errors::Diag> {
+    let mut out = BTreeMap::new();
+    for stage in [
+        "stage-math-producers",
+        "stage-export-profiles",
+        "stage-export-research-objects",
+        "stage-export-evals",
+        "stage-export-glossary",
+        "stage-export-skos-surface",
+    ] {
+        let producer = upstream.get(stage).ok_or_else(|| {
+            stage_err(&format!("missing {stage} product for the fanout presenter"))
+        })?;
+        let artifacts = producer.artifact_refs()?;
+        if stage == "stage-export-profiles" {
+            // Every profile output must be accepted by the downstream RDF parser.
+            out.extend(artifacts);
+        } else {
+            out.extend(
+                artifacts
+                    .into_iter()
+                    .filter(|(path, _)| is_rdf_member(path)),
+            );
         }
     }
     // gufo.ttl — the gUFO bridge projection, from the sink-consumed compile-logic
@@ -1564,9 +1541,8 @@ fn rdf_fanout_members(
     let gufo = upstream
         .get("stage-compile-logic")
         .and_then(|p| p.artifact(crate::stages::compile_logic::GUFO_PATH))
-        .map(<[u8]>::to_vec)
         .ok_or_else(|| stage_err("missing generated/foundation/gufo.ttl in stage-compile-logic"))?;
-    out.insert(crate::stages::compile_logic::GUFO_PATH.to_string(), gufo);
+    out.insert(crate::stages::compile_logic::GUFO_PATH, gufo);
 
     // The relational-core and correspondence N-Triples programs from compile-logic.
     for (stage, path) in [
@@ -1602,9 +1578,8 @@ fn rdf_fanout_members(
         let bytes = upstream
             .get(stage)
             .and_then(|p| p.artifact(path))
-            .map(<[u8]>::to_vec)
             .ok_or_else(|| stage_err(&format!("missing {path} in {stage} for RDF fanout")))?;
-        out.insert(path.to_string(), bytes);
+        out.insert(path, bytes);
     }
     Ok(out)
 }
@@ -3459,7 +3434,7 @@ impl Stage for SnapshotStage {
     }
     /// Bind the complete snapshot contract, including required canon admission evidence.
     fn impl_version(&self) -> &str {
-        "snapshot.v40-single-projection-report"
+        "snapshot.v41-borrow-rdf-fanout"
     }
     fn input_files(&self, root: &Path) -> Result<Vec<PathBuf>, gmeow_errors::Diag> {
         let mut files = Vec::new();
