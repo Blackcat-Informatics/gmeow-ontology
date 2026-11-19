@@ -1,0 +1,23 @@
+ghprsq structured squash audit metadata
+
+parent_hashes: eafabfb755a8aef43f0fc0ac90e56fa57cda8403
+
+GhpRsq-Schema: 1
+GhpRsq-Merge-Style: structured-squash
+GhpRsq-GitHub-Repo: Blackcat-Informatics/gmeow-ontology
+GhpRsq-GitHub-Pull-Request: 2972
+GhpRsq-GitHub-PR-URL: https://github.com/Blackcat-Informatics/gmeow-ontology/pull/2972
+GhpRsq-Base-Ref: main
+GhpRsq-Base-OID: a70b2ae62e0582192de3390b676a08db3ea8df61
+GhpRsq-Head-Ref: paudley/2959-admit-verbatim-rationale-on-eligible
+GhpRsq-Head-OID: eafabfb755a8aef43f0fc0ac90e56fa57cda8403
+GhpRsq-Result-Tree: 3579f8e6e0a4744db45e9b866b2ced83b9f7e5fb
+GhpRsq-Result-Commit: b2ea7d286e18a5c06d765b08d038fc3f569cf9a5
+GhpRsq-Parent-Hashes: eafabfb755a8aef43f0fc0ac90e56fa57cda8403
+GhpRsq-Squash-Notes-SHA256: 8d6c63f7cc4eff092da00663a1f449fcebd8c02ca2dad3adfdb5711c7cdc62f6
+GhpRsq-Stage-Tree: 4e77c4e1b10352fa3a0342e38632734a4fbb52dc
+GhpRsq-Stage-Commit: 91544ddc78de94c2a4714997da537f705a932d88
+GhpRsq-Stage-Tag: refs/tags/ghprsq/artifacts/91544ddc78de94c2a4714997da537f705a932d88
+GhpRsq-Stage-Ref: refs/ghprsq/pr/2972/stage
+GhpRsq-Stage-Files: 4
+GhpRsq-Stage-URL: https://github.com/Blackcat-Informatics/gmeow-ontology/tree/91544ddc78de94c2a4714997da537f705a932d88
