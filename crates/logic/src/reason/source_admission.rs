@@ -29,7 +29,8 @@ use crate::query_ir::Budget;
 use crate::result::{EvaluationStatus, InformationState, ReasoningResult};
 use accounting::{AtomPolarity, UnitTerm, account_axiom, account_formula, account_predication};
 pub use governance::{
-    SelectedNonEntailment, SelectedNonEntailmentDisposition, SelectedNonEntailmentObligation,
+    NonEntailmentSourceBoundary, SelectedNonEntailment, SelectedNonEntailmentDisposition,
+    SelectedNonEntailmentObligation,
 };
 
 const ENGINE_NATIVE: &str = "native";

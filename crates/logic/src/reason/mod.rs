@@ -34,8 +34,8 @@ pub use claims::{
     ClaimIngress, ReadClaim, UnreadClaim, UnreadReason, prepare_selected_theory_input,
 };
 pub use source_admission::{
-    NativeSourceAdmission, NativeSourceDisposition, NativeSourceDrop, SelectedNonEntailment,
-    SelectedNonEntailmentDisposition, SelectedNonEntailmentObligation,
+    NativeSourceAdmission, NativeSourceDisposition, NativeSourceDrop, NonEntailmentSourceBoundary,
+    SelectedNonEntailment, SelectedNonEntailmentDisposition, SelectedNonEntailmentObligation,
     reason_admitted_theory_within,
 };
 pub mod refute;

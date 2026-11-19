@@ -64,6 +64,7 @@ pub struct ObligationAssessment {
     /// Every discovered and admitted obligation, including unknowns and hard errors.
     pub outcomes: Vec<ObligationOutcome>,
     pub(crate) condition_errors: BTreeMap<(String, String), String>,
+    pub(crate) absence_reasons: BTreeMap<(String, String), String>,
     /// Sole diagnostic owner; semantic outcomes remain native assessment data.
     ledger: DiagLedger,
 }
@@ -101,11 +102,24 @@ pub(crate) enum ObligationField {
     DischargeCondition,
 }
 
-pub(crate) fn obligation_field(predicate: &str, object: &TermValue) -> Option<ObligationField> {
+impl ObligationField {
+    pub(crate) fn as_str(self) -> &'static str {
+        match self {
+            Self::Declaration => "NonEntailmentObligation",
+            Self::ForbiddenPredicate => "obligationForbiddenPredicate",
+            Self::DischargeCondition => "obligationDischargeCondition",
+        }
+    }
+}
+
+pub(crate) fn obligation_field(
+    predicate: &str,
+    object_iri: Option<&str>,
+) -> Option<ObligationField> {
     match predicate {
         "http://www.w3.org/1999/02/22-rdf-syntax-ns#type"
         | "https://blackcatinformatics.ca/logic/instanceOf"
-            if object.as_iri()
+            if object_iri
                 == Some("https://blackcatinformatics.ca/logic/NonEntailmentObligation") =>
         {
             Some(ObligationField::Declaration)
@@ -123,7 +137,7 @@ pub(crate) fn obligation_field(predicate: &str, object: &TermValue) -> Option<Ob
 /// Retain only governance declaration/field statements in a native typed view.
 /// The execution already normalized blank identities; no RDF text is emitted or parsed.
 pub(crate) fn governance_statement(predicate: &str, object: &TermValue) -> bool {
-    obligation_field(predicate, object).is_some()
+    obligation_field(predicate, object.as_iri()).is_some()
         || predicate == "https://blackcatinformatics.ca/logic/candidateNonEntailment"
         || (matches!(
             predicate,
@@ -142,14 +156,15 @@ fn governance_view(
     for proof in &ledger.proofs {
         let statement = &proof.statement;
         if let Some(admits) = selected {
-            let Some(field) = obligation_field(&statement.predicate, &statement.object) else {
+            let Some(field) = obligation_field(&statement.predicate, statement.object.as_iri())
+            else {
                 continue;
             };
             let NativeProofOrigin::Asserted { sources, .. } = &proof.origin else {
                 continue;
             };
             for source in sources.iter().filter(|source| admits(source)) {
-                if obligation_field(&source.predicate, &source.object) != Some(field) {
+                if obligation_field(&source.predicate, source.object.as_iri()) != Some(field) {
                     continue;
                 }
                 if field == ObligationField::Declaration {
@@ -168,7 +183,7 @@ fn governance_view(
         }
         let selected = governance_statement(&statement.predicate, &statement.object);
         if selected {
-            if obligation_field(&statement.predicate, &statement.object)
+            if obligation_field(&statement.predicate, statement.object.as_iri())
                 == Some(ObligationField::Declaration)
                 && matches!(proof.origin, NativeProofOrigin::Asserted { .. })
             {
@@ -355,6 +370,12 @@ fn assess_world(
                             format!("non-entailment obligation <{}> has no certified selected absence proof (logic:ObligationUnknown); source_complete={source_complete}, finite_complete={finite_complete}", obligation.iri),
                         ), &obligation.iri, &candidates)
                     });
+                if selected.is_some() {
+                    assessment.absence_reasons.insert(
+                        (world.to_owned(), obligation.iri.clone()),
+                        diag.message().to_owned(),
+                    );
+                }
                 assessment.record(diag);
             }
             ObligationDisposition::SyntacticallyDischarged
@@ -443,6 +464,7 @@ fn assess_obligations(
         analysis: analysis.identity(),
         outcomes: Vec::new(),
         condition_errors: BTreeMap::new(),
+        absence_reasons: BTreeMap::new(),
         ledger: DiagLedger::new(),
     };
     let mut derived = BTreeMap::<&str, BTreeMap<&str, &InferredAxiom>>::new();

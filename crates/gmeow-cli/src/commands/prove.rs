@@ -2270,6 +2270,7 @@ fn render_text(report: &ProveReport<'_>) {
         println!("source-admission {:?}", admission.status);
     }
     if let Some(admission) = &report.native_admission {
+        let mut unread_governance_sources = BTreeSet::new();
         if let Some(non_entailment) = admission.non_entailment() {
             println!("non-entailment-analysis {}", non_entailment.analysis);
             for record in &non_entailment.obligations {
@@ -2285,6 +2286,17 @@ fn render_text(report: &ProveReport<'_>) {
                         "non-entailment-source {} {}",
                         record.obligation,
                         source.as_str()
+                    );
+                }
+                for boundary in &record.source_boundaries {
+                    unread_governance_sources.insert(&boundary.source);
+                    println!(
+                        "non-entailment-source-boundary {} {} {} {} {}",
+                        record.obligation,
+                        boundary.source.as_str(),
+                        boundary.field,
+                        boundary.code,
+                        boundary.detail
                     );
                 }
                 if let SelectedNonEntailmentDisposition::Violated(witness) = &record.disposition {
@@ -2362,7 +2374,26 @@ fn render_text(report: &ProveReport<'_>) {
                     ("Malformed", *code, reason.as_str())
                 }
             };
-            println!("source-unit {status} {anchor} {code} {detail}");
+            let source_id = match disposition {
+                NativeSourceDisposition::NonEntailmentDeclaration => Some(unit.identity()),
+                NativeSourceDisposition::Blocked {
+                    code: "UNSUPPORTED_SELECTED_ASSERTION",
+                    ..
+                } if !unread_governance_sources.is_empty() => {
+                    let id = unit.identity();
+                    unread_governance_sources.contains(&id).then_some(id)
+                }
+                _ => None,
+            };
+            if let Some(id) = source_id {
+                println!(
+                    "source-unit {status} {anchor} {code} {} {:?} {detail}",
+                    id.as_str(),
+                    unit.documents()
+                );
+            } else {
+                println!("source-unit {status} {anchor} {code} {detail}");
+            }
         }
     }
     if let Some(selection) = &report.selection {

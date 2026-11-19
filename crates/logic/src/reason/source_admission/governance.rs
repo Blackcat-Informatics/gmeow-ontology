@@ -8,7 +8,7 @@ use std::collections::{BTreeMap, HashMap, HashSet};
 use gmeow_logic_compile::frontend::{SourceCarrier, SourceStatementBinding};
 use gmeow_logic_compile::source_inventory::SelectedSourceView;
 use purrdf::dataset_view::GraphMatch;
-use purrdf::{DatasetView, QuadIds, RdfDataset, TermValue};
+use purrdf::{DatasetView, QuadIds, RdfDataset, TermRef, TermValue};
 use purrdf_hash::fixed::FixedState;
 use serde::Serialize;
 
@@ -40,13 +40,29 @@ pub struct SelectedNonEntailmentObligation {
     pub obligation: String,
     /// Predicate named by a readable forbidden-predicate field.
     pub forbidden_predicate: Option<String>,
-    /// Exact selected authored source obligations used by the assessment.
+    /// Exact selected authored source obligations for this declaration.
     pub sources: Vec<SourceObligationId>,
+    /// Selected declaration rows whose original assertion remains unread.
+    #[serde(skip_serializing_if = "Vec::is_empty")]
+    pub source_boundaries: Vec<NonEntailmentSourceBoundary>,
     /// Outcome within the public proof contract.
     pub disposition: SelectedNonEntailmentDisposition,
     /// An invalid condition retained beside a supported violation.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub declaration_error: Option<String>,
+}
+
+/// The original source and diagnostic for an unsupported governance field.
+#[derive(Debug, Serialize)]
+pub struct NonEntailmentSourceBoundary {
+    /// Identity of the unread selected source row.
+    pub source: SourceObligationId,
+    /// Authored declaration field governed by the unread row.
+    pub field: &'static str,
+    /// Original native source-admission code.
+    pub code: &'static str,
+    /// Original native source-admission diagnostic.
+    pub detail: String,
 }
 
 /// A selected discharge, a supported counterexample, or a named boundary.
@@ -59,7 +75,7 @@ pub enum SelectedNonEntailmentDisposition {
     /// Exact committed native inference of the forbidden predicate.
     Violated(Box<InferredAxiom>),
     /// A required source account or selected absence proof is incomplete.
-    Inconclusive { reason: &'static str },
+    Inconclusive { reason: String },
     /// The selected declaration has malformed or unsupported fields.
     Invalid { detail: String },
 }
@@ -112,6 +128,7 @@ fn resource_identity(term: &TermValue) -> gmeow_errors::Result<String> {
     }
 }
 
+#[derive(Clone)]
 struct SourceField {
     obligation: String,
     field: ObligationField,
@@ -127,12 +144,13 @@ fn source_fields(
             let NativeProofOrigin::Asserted { sources, .. } = &proof.origin else {
                 continue;
             };
-            let Some(field) = obligation_field(&proof.statement.predicate, &proof.statement.object)
+            let Some(field) =
+                obligation_field(&proof.statement.predicate, proof.statement.object.as_iri())
             else {
                 continue;
             };
             for premise in sources {
-                if obligation_field(&premise.predicate, &premise.object) != Some(field) {
+                if obligation_field(&premise.predicate, premise.object.as_iri()) != Some(field) {
                     continue;
                 }
                 let Some(quad) = premise_quad(dataset, premise) else {
@@ -164,6 +182,7 @@ struct SourceRow {
     id: SourceObligationId,
     field: ObligationField,
     quad: QuadIds,
+    boundary: Option<NonEntailmentSourceBoundary>,
 }
 
 impl SourceRows {
@@ -174,18 +193,46 @@ impl SourceRows {
             ObligationField::DischargeCondition,
         ]
         .iter()
-        .all(|field| self.rows.iter().any(|row| row.field == *field))
+        .all(|field| {
+            self.rows
+                .iter()
+                .any(|row| row.field == *field && row.boundary.is_none())
+        })
     }
 
-    fn account(self, dispositions: &mut [Disposition]) -> Vec<SourceObligationId> {
-        self.rows
-            .into_iter()
-            .map(|row| {
+    fn account(
+        self,
+        dispositions: &mut [Disposition],
+    ) -> (Vec<SourceObligationId>, Vec<NonEntailmentSourceBoundary>) {
+        let mut sources = Vec::new();
+        let mut boundaries = Vec::new();
+        for row in self.rows {
+            if let Some(boundary) = row.boundary {
+                boundaries.push(boundary);
+            } else {
                 dispositions[row.index] = Disposition::NonEntailmentDeclaration;
-                row.id
-            })
-            .collect()
+            }
+            sources.push(row.id);
+        }
+        (sources, boundaries)
     }
+}
+
+fn unread_field(dataset: &RdfDataset, quad: QuadIds) -> Option<SourceField> {
+    let TermRef::Iri(predicate) = dataset.resolve(quad.p) else {
+        return None;
+    };
+    let object_iri = match dataset.resolve(quad.o) {
+        TermRef::Iri(iri) => Some(iri),
+        _ => None,
+    };
+    let field = obligation_field(predicate, object_iri)?;
+    let obligation = match dataset.resolve(quad.s) {
+        TermRef::Iri(iri) => iri.to_owned(),
+        TermRef::Blank { label, scope } => format!("_:{}", scope.qualify_label(label)),
+        _ => return None,
+    };
+    Some(SourceField { obligation, field })
 }
 
 fn selected_binding(view: &SelectedSourceView<'_>, binding: SourceStatementBinding) -> bool {
@@ -223,30 +270,50 @@ fn selected_rows(
         if binding.canonical.g.is_some() {
             continue;
         }
-        let Some(field) = fields.get(&binding.canonical) else {
-            continue;
-        };
-        if !matches!(
-            disposition,
+        let (field, unread) = match disposition {
             Disposition::Blocked {
                 code: "UNIT_NOT_ACCOUNTED",
                 ..
+            } => {
+                let Some(field) = fields.get(&binding.canonical) else {
+                    continue;
+                };
+                (field.clone(), None)
             }
-        ) || !matches!(
+            Disposition::Blocked {
+                code: code @ "UNSUPPORTED_SELECTED_ASSERTION",
+                reason,
+            } => {
+                let Some(field) = unread_field(dataset, binding.canonical) else {
+                    continue;
+                };
+                (field, Some((*code, reason)))
+            }
+            _ => continue,
+        };
+        if !matches!(
             admission.selection.unit_selection(unit)?,
             TheoryUnitSelection::Included
         ) || !selected_binding(&view, binding)
         {
             continue;
         }
-        rows.entry(field.obligation.clone())
+        let id = unit.identity();
+        let boundary = unread.map(|(code, detail)| NonEntailmentSourceBoundary {
+            source: id.clone(),
+            field: field.field.as_str(),
+            code,
+            detail: detail.clone(),
+        });
+        rows.entry(field.obligation)
             .or_default()
             .rows
             .push(SourceRow {
                 index,
-                id: unit.identity(),
+                id,
                 field: field.field,
                 quad: binding.canonical,
+                boundary,
             });
     }
     Ok(rows)
@@ -254,8 +321,9 @@ fn selected_rows(
 
 fn selected_disposition(
     disposition: ObligationDisposition,
-    source_complete: bool,
+    admission_gap: Option<&str>,
     declaration_error: &mut Option<String>,
+    assessment_reason: Option<String>,
 ) -> gmeow_errors::Result<SelectedNonEntailmentDisposition> {
     Ok(match disposition {
         ObligationDisposition::Violated(witness) => {
@@ -266,20 +334,26 @@ fn selected_disposition(
                 reason_err("invalid discharge omitted its declaration diagnostic".into())
             })?,
         },
-        ObligationDisposition::SyntacticallyDischarged if source_complete => {
+        ObligationDisposition::SyntacticallyDischarged if admission_gap.is_none() => {
             SelectedNonEntailmentDisposition::SyntacticallyDischarged
         }
-        ObligationDisposition::FiniteClosureDischarged if source_complete => {
+        ObligationDisposition::FiniteClosureDischarged if admission_gap.is_none() => {
             SelectedNonEntailmentDisposition::FiniteClosureDischarged
         }
         ObligationDisposition::SyntacticallyDischarged
         | ObligationDisposition::FiniteClosureDischarged => {
             SelectedNonEntailmentDisposition::Inconclusive {
-                reason: "the selected source account retains unread premises or incomplete declaration bindings",
+                reason: admission_gap
+                    .ok_or_else(|| {
+                        reason_err("withheld discharge omitted its source boundary".into())
+                    })?
+                    .to_owned(),
             }
         }
         ObligationDisposition::Unknown => SelectedNonEntailmentDisposition::Inconclusive {
-            reason: "the selected native execution could not prove the declared non-entailment",
+            reason: assessment_reason.ok_or_else(|| {
+                reason_err("unresolved discharge omitted its assessment diagnostic".into())
+            })?,
         },
     })
 }
@@ -295,7 +369,13 @@ pub(super) fn account_non_entailment(
     let dataset = admission.inventory.theory().source().dataset();
     let selected_quads: HashSet<_, FixedState> = rows
         .values()
-        .flat_map(|source| source.rows.iter().map(|row| row.quad))
+        .flat_map(|source| {
+            source
+                .rows
+                .iter()
+                .filter(|row| row.boundary.is_none())
+                .map(|row| row.quad)
+        })
         .collect();
     let (mut assessment, invalid) = assess_selected_obligations(result, &|premise| {
         premise_quad(dataset, premise).is_some_and(|quad| selected_quads.contains(&quad))
@@ -305,11 +385,11 @@ pub(super) fn account_non_entailment(
     for outcome in assessment.outcomes {
         let source_rows = rows.remove(&outcome.obligation).unwrap_or_default();
         let bound = source_rows.complete();
-        let sources = source_rows.account(&mut admission.dispositions);
-        assessed.push((outcome, bound, sources));
+        let (sources, boundaries) = source_rows.account(&mut admission.dispositions);
+        assessed.push((outcome, bound, sources, boundaries));
     }
     for malformed in invalid {
-        let sources = rows
+        let (sources, source_boundaries) = rows
             .remove(&malformed.obligation)
             .unwrap_or_default()
             .account(&mut admission.dispositions);
@@ -329,27 +409,41 @@ pub(super) fn account_non_entailment(
             obligation: malformed.obligation,
             forbidden_predicate: malformed.forbidden_predicate,
             sources,
+            source_boundaries,
             disposition,
             declaration_error,
         });
     }
-    let source_complete = obligations.is_empty()
-        && assessment.condition_errors.is_empty()
-        && assessed.iter().all(|(_, bound, _)| *bound)
-        && admission.drops().next().is_none();
-    for (outcome, _, sources) in assessed {
-        let mut declaration_error = assessment
-            .condition_errors
-            .remove(&(outcome.world.clone(), outcome.obligation.clone()));
+    let admission_gap = if let Some(drop) = admission.drops().next() {
+        Some(format!(
+            "the selected theory has incomplete coverage ({}): {}",
+            drop.code, drop.detail
+        ))
+    } else if assessed.iter().any(|(_, bound, _, _)| !bound) {
+        Some("the selected theory has incomplete non-entailment declaration bindings".to_owned())
+    } else if !obligations.is_empty() || !assessment.condition_errors.is_empty() {
+        Some(
+            "the selected theory has malformed or unsupported non-entailment declarations"
+                .to_owned(),
+        )
+    } else {
+        None
+    };
+    for (outcome, _, sources, source_boundaries) in assessed {
+        let key = (outcome.world.clone(), outcome.obligation.clone());
+        let mut declaration_error = assessment.condition_errors.remove(&key);
+        let assessment_reason = assessment.absence_reasons.remove(&key);
         obligations.push(SelectedNonEntailmentObligation {
             world: outcome.world,
             obligation: outcome.obligation,
             forbidden_predicate: Some(outcome.forbidden_predicate),
             sources,
+            source_boundaries,
             disposition: selected_disposition(
                 outcome.disposition,
-                source_complete,
+                admission_gap.as_deref(),
                 &mut declaration_error,
+                assessment_reason,
             )?,
             declaration_error,
         });

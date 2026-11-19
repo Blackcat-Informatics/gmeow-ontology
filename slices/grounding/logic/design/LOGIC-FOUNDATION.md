@@ -505,8 +505,9 @@ condition remains a capability error, even when another condition is available.
 
 The public selected-source prover uses the same world-bound assessment as
 the verification gate. Its report links every admitted declaration and field
-to its original source obligation. An absence result requires coverage of the
-full selected theory as well as the native discharge proof. A committed
+to its original source obligation. An unread field retains its source link
+and diagnostic. An absence result requires coverage of the full selected
+theory as well as the native discharge proof. A committed
 derived witness retains its violation even if another selected obligation
 remains undecided or has malformed fields. These outcomes contribute to
 completion of the selected proof account. Refutation of the logical theory

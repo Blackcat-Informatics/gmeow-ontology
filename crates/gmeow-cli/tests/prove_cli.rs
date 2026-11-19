@@ -1326,6 +1326,11 @@ _:obligation logic:instanceOf logic:NonEntailmentObligation ;
         .success();
     let completed = report(&completed);
     assert_eq!(completed["verdict"], "consistent", "{completed:#}");
+    let text = gmeow()
+        .args(["prove", "--dir", path(directory.path()), "--format", "text"])
+        .assert()
+        .success();
+    let text = std::str::from_utf8(&text.get_output().stdout).expect("text report");
     let admission = &completed["native_admission"];
     let records = admission["non_entailment"]["obligations"]
         .as_array()
@@ -1335,31 +1340,61 @@ _:obligation logic:instanceOf logic:NonEntailmentObligation ;
     let units = admission["units"].as_array().expect("source inventory");
     for record in records {
         assert_eq!(record["disposition"], "SyntacticallyDischarged");
-        let sources = record["sources"].as_array().expect("original source IDs");
-        assert_eq!(sources.len(), 3);
-        let expected_document =
+        let (expected_document, typing_field) =
             if record["forbidden_predicate"] == "https://example.org/prove/absentFirst" {
-                "first.ttl"
+                (
+                    "first.ttl",
+                    "http://www.w3.org/1999/02/22-rdf-syntax-ns#type",
+                )
             } else {
                 assert_eq!(
                     record["forbidden_predicate"],
                     "https://example.org/prove/absentSecond"
                 );
-                "second.ttl"
+                (
+                    "second.ttl",
+                    "https://blackcatinformatics.ca/logic/instanceOf",
+                )
             };
-        for source in sources {
-            let unit = units
-                .iter()
-                .find(|unit| &unit["id"] == source)
-                .expect("original selected row");
+        let expected_fields = [
+            typing_field,
+            "https://blackcatinformatics.ca/logic/obligationForbiddenPredicate",
+            "https://blackcatinformatics.ca/logic/obligationDischargeCondition",
+        ];
+        let mut expected_sources = Vec::with_capacity(expected_fields.len());
+        for field in expected_fields {
+            let mut matching = units.iter().filter(|unit| {
+                unit["anchor"]
+                    .as_str()
+                    .is_some_and(|anchor| anchor.contains(field))
+                    && unit["documents"].as_array().is_some_and(|documents| {
+                        documents.len() == 1
+                            && documents[0]
+                                .as_str()
+                                .is_some_and(|name| name.ends_with(expected_document))
+                    })
+            });
+            let unit = matching.next().expect("original selected field");
+            assert!(matching.next().is_none(), "{expected_document} {field}");
             assert_eq!(unit["disposition"], "NonEntailmentDeclaration");
-            assert!(unit["documents"].as_array().is_some_and(|documents| {
-                documents.len() == 1
-                    && documents[0]
-                        .as_str()
-                        .is_some_and(|name| name.ends_with(expected_document))
+            let id = unit["id"].as_str().expect("source ID");
+            let anchor = unit["anchor"].as_str().expect("source anchor");
+            assert!(text.lines().any(|line| {
+                line.starts_with(&format!(
+                    "source-unit NonEntailmentDeclaration {anchor} - {id} "
+                )) && line.contains(expected_document)
             }));
+            expected_sources.push(id);
         }
+        let mut sources: Vec<_> = record["sources"]
+            .as_array()
+            .expect("original source IDs")
+            .iter()
+            .map(|id| id.as_str().expect("source ID"))
+            .collect();
+        sources.sort_unstable();
+        expected_sources.sort_unstable();
+        assert_eq!(sources, expected_sources);
     }
 
     let (incomplete, code) = prove_json(
@@ -1397,8 +1432,9 @@ ex:derive a logic:Rule ;
             .as_str()
             .is_some_and(|detail| detail.contains("obligationForbiddenPredicate"))
     );
-    assert!(
-        record("https://example.org/prove/inconclusive")["disposition"]["Inconclusive"].is_object()
+    assert_eq!(
+        record("https://example.org/prove/inconclusive")["disposition"]["Inconclusive"]["reason"],
+        "the selected theory has malformed or unsupported non-entailment declarations"
     );
     let violated = record("https://example.org/prove/violated");
     let witness = &violated["disposition"]["Violated"];
@@ -1410,7 +1446,8 @@ ex:derive a logic:Rule ;
             .is_some_and(|detail| { detail.contains("non-IRI discharge condition") })
     );
 
-    let (blocked, code) = prove_json(
+    let blocked_source = write(
+        directory.path(),
         "governance-policy.ttl",
         r#"
 ex:policy a logic:NonEntailmentObligation ;
@@ -1422,6 +1459,9 @@ ex:absent a logic:NonEntailmentObligation ;
 ex:finite a logic:NonEntailmentObligation ;
     logic:obligationForbiddenPredicate ex:possible ;
     logic:obligationDischargeCondition logic:DischargeFiniteClosure .
+ex:unread a logic:NonEntailmentObligation ;
+    logic:obligationForbiddenPredicate ex:other ;
+    logic:obligationDischargeCondition <<( ex:s ex:seed ex:o )>> .
 ex:s ex:seed ex:o ; logic:unaccountedRelation ex:o .
 ex:possibleWriter a logic:Rule ;
     logic:body [ rdf:reifies <<( ex:s ex:missingSeed ex:o )>> ] ;
@@ -1430,9 +1470,12 @@ ex:derivedCondition a logic:Rule ;
     logic:body [ rdf:reifies <<( ex:s ex:seed ex:o )>> ] ;
     logic:head [ rdf:reifies <<( ex:policy logic:obligationDischargeCondition logic:DischargeFiniteClosure )>> ] .
 "#,
-        &["--gate"],
     );
-    assert_eq!(code, 3, "{blocked:#}");
+    let blocked = gmeow()
+        .args(["prove", path(&blocked_source), "--format", "json", "--gate"])
+        .assert()
+        .code(3);
+    let blocked = report(&blocked);
     let records = blocked["native_admission"]["non_entailment"]["obligations"]
         .as_array()
         .expect("selected governance records");
@@ -1444,9 +1487,63 @@ ex:derivedCondition a logic:Rule ;
             .as_str()
             .expect("inconclusive reason")
     };
-    assert!(reason("https://example.org/prove/policy").contains("could not prove"));
-    assert!(reason("https://example.org/prove/absent").contains("retains unread"));
-    assert!(reason("https://example.org/prove/finite").contains("retains unread"));
+    assert!(reason("https://example.org/prove/policy").contains("matches a rule head"));
+    let selected_gap = reason("https://example.org/prove/absent");
+    assert!(selected_gap.contains("incomplete coverage"));
+    let drops = blocked["selection"]["drops"]
+        .as_array()
+        .expect("selected drops");
+    assert!(drops.iter().any(|drop| {
+        let code = drop["code"].as_str().expect("code");
+        let detail = drop["detail"].as_str().expect("detail");
+        selected_gap.ends_with(&format!("({code}): {detail}"))
+    }));
+    assert_eq!(reason("https://example.org/prove/finite"), selected_gap);
+    let unread = records
+        .iter()
+        .find(|record| record["obligation"] == "https://example.org/prove/unread")
+        .expect("unread declaration");
+    assert!(unread["disposition"]["Invalid"]["detail"]
+        .as_str()
+        .is_some_and(|detail| detail.contains("declares no logic:obligationDischargeCondition")));
+    let boundaries = unread["source_boundaries"]
+        .as_array()
+        .expect("field boundaries");
+    assert_eq!(boundaries.len(), 1);
+    let boundary = &boundaries[0];
+    assert_eq!(boundary["field"], "obligationDischargeCondition");
+    assert_eq!(boundary["code"], "UNSUPPORTED_SELECTED_ASSERTION");
+    assert!(
+        boundary["detail"]
+            .as_str()
+            .is_some_and(|detail| detail.contains("quoted triple"))
+    );
+    let units = blocked["native_admission"]["units"]
+        .as_array()
+        .expect("source inventory");
+    let field = units
+        .iter()
+        .find(|unit| unit["id"] == boundary["source"])
+        .expect("original field");
+    assert_eq!(field["disposition"]["Blocked"]["code"], boundary["code"]);
+    assert!(
+        unread["sources"]
+            .as_array()
+            .expect("source IDs")
+            .contains(&boundary["source"])
+    );
+    let blocked_text = gmeow()
+        .args(["prove", path(&blocked_source), "--format", "text", "--gate"])
+        .assert()
+        .code(3);
+    let blocked_text = std::str::from_utf8(&blocked_text.get_output().stdout).expect("text report");
+    let id = field["id"].as_str().expect("source ID");
+    let anchor = field["anchor"].as_str().expect("source anchor");
+    assert!(blocked_text.lines().any(|line| {
+        line.starts_with(&format!(
+            "source-unit Blocked {anchor} UNSUPPORTED_SELECTED_ASSERTION {id} "
+        )) && line.contains("governance-policy.ttl")
+    }));
 }
 
 /// PROTECTS: universal-class tests that native closure does not populate prevent
