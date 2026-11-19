@@ -1,0 +1,24 @@
+{
+  "schema": 1,
+  "worktree": "/home/paudley/Active/gmeow-ontology/.worktrees/2992-account-five-grounded-class-memberships",
+  "branch": "paudley/2992-account-five-grounded-class-memberships",
+  "base_ref": "origin/main",
+  "head": "f37690bd6f96190ba0a8ca2d78e0a8b92f7739c6",
+  "attempt": "/home/paudley/Active/gmeow-ontology/.worktrees/2992-account-five-grounded-class-memberships/.stage/account-five-grounded-class-memberships/sync/20261119T135938-6b9e04085a064c5c94251abf0260c03e",
+  "conflicts": [],
+  "status": "completed",
+  "base": "4f8d023cf13215132c9b077c9d2071ea3881ab1f",
+  "merge_bases": [
+    "662c9bf89a50c73a313481575b68dfe92b1497d0"
+  ],
+  "merge_index": "8e216b4305cee121c3edcbd0cc7908757600767d0435ecdb91e3602d40f20ad6",
+  "candidate_tree": "a44e39218fca804a6e118d430d29de1d5ea21a06",
+  "candidate_patch": "candidate-12bf53be5be0402eb3778ae00bfc8272.patch",
+  "stdout_log": "commit-12bf53be5be0402eb3778ae00bfc8272.stdout.log",
+  "stderr_log": "commit-12bf53be5be0402eb3778ae00bfc8272.stderr.log",
+  "validation_records": [],
+  "commit_duration_seconds": 29.459422464002273,
+  "commit": "1bd7ffd1ec6da487cdcd93e509cef430725fe948",
+  "tree": "a44e39218fca804a6e118d430d29de1d5ea21a06",
+  "exit_code": 0
+}

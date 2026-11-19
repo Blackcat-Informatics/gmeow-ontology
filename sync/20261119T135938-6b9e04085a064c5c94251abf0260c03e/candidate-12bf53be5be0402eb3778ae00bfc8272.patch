@@ -1,0 +1,2643 @@
+diff --git crates/docs-model/src/model.rs crates/docs-model/src/model.rs
+index 3fd2737b8..ef2ecd3c7 100644
+--- crates/docs-model/src/model.rs
++++ crates/docs-model/src/model.rs
+@@ -12,6 +12,8 @@
+ use std::collections::{BTreeMap, BTreeSet};
+ use std::path::Path;
+ 
++use gmeow_errors::PreservedDiagnostic;
++use gmeow_logic_compile::ingest::DslView;
+ use serde::{Deserialize, Serialize};
+ 
+ use purrdf::slice::{
+@@ -100,8 +102,6 @@ const RDF_TYPE: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
+ const RDFS_LABEL: &str = "http://www.w3.org/2000/01/rdf-schema#label";
+ const RDFS_COMMENT: &str = "http://www.w3.org/2000/01/rdf-schema#comment";
+ const SKOS_DEFINITION: &str = "http://www.w3.org/2004/02/skos/core#definition";
+-const RDFS_DOMAIN: &str = "http://www.w3.org/2000/01/rdf-schema#domain";
+-const RDFS_RANGE: &str = "http://www.w3.org/2000/01/rdf-schema#range";
+ 
+ const OWL_CLASS: &str = "http://www.w3.org/2002/07/owl#Class";
+ const RDFS_CLASS: &str = "http://www.w3.org/2000/01/rdf-schema#Class";
+@@ -337,6 +337,8 @@ const GMEOW_SEAM_OWNING_DOC: &str = "https://blackcatinformatics.ca/gmeow/seamOw
+ pub enum DocsError {
+     /// Required ontology-owned translation inputs could not be admitted.
+     TranslationCatalog(gmeow_errors::Diag),
++    /// The named canonical and legacy links in an authored property signature disagree.
++    PropertySignature(PreservedDiagnostic),
+     /// A test-facing corpus consumer could not find the exact authenticated model
+     /// produced before the test process started. Tests may not rebuild it on a miss.
+     FixtureUnavailable(String),
+@@ -437,6 +439,7 @@ impl std::fmt::Display for DocsError {
+                 write!(f, "manifest creator in slice {slice_iri}: {detail}")
+             }
+             DocsError::TranslationCatalog(error) => write!(f, "translation catalog: {error}"),
++            DocsError::PropertySignature(error) => write!(f, "property signature: {error}"),
+             DocsError::FixtureUnavailable(msg) => {
+                 write!(f, "documentation corpus fixture unavailable: {msg}")
+             }
+@@ -484,7 +487,14 @@ impl std::fmt::Display for DocsError {
+     }
+ }
+ 
+-impl std::error::Error for DocsError {}
++impl std::error::Error for DocsError {
++    fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {
++        match self {
++            Self::PropertySignature(error) => Some(error),
++            _ => None,
++        }
++    }
++}
+ 
+ impl From<SliceError> for DocsError {
+     fn from(e: SliceError) -> Self {
+@@ -1053,9 +1063,11 @@ pub struct DocTerm {
+     pub owner_slice: String,
+     /// `rdfs:subClassOf` / `rdfs:subPropertyOf` parents (IRIs, sorted).
+     pub parents: Vec<String>,
+-    /// `rdfs:domain` values (IRIs, sorted).
++    /// Sorted named `logic:domain` links. Read `rdfs:domain` only when the canonical
++    /// predicate is absent. Anonymous expressions stay in the authored graph.
+     pub domain: Vec<String>,
+-    /// `rdfs:range` values (IRIs, sorted).
++    /// Sorted named `logic:range` links. Read `rdfs:range` only when the canonical
++    /// predicate is absent. Anonymous expressions stay in the authored graph.
+     pub range: Vec<String>,
+     /// `skos:scopeNote` — usage-advice prose (English carrier, sorted).
+     pub scope_notes: Vec<String>,
+@@ -2120,7 +2132,8 @@ impl DocsModel {
+     /// v21: fixture rationales retain every native literal and its source language/direction.
+     /// v22: slice creators retain their original complete source statements.
+     /// v23: fixture rationales retain source cell identities and exact locale keys.
+-    pub const VERSION: &'static str = "23";
++    /// v24: named property signatures reflect the canonical authored predicates.
++    pub const VERSION: &'static str = "24";
+ 
+     /// Build the documentation model from a discovered catalog and a computed
+     /// ownership report. `central_mapping_sets` carries the cross-slice SSSOM
+@@ -2167,7 +2180,11 @@ impl DocsModel {
+         slices.sort_by(|a, b| a.iri.cmp(&b.iri));
+ 
+         // The docs renderer and its typed rendering corpus share this exact selection.
+-        let (mut terms, formalizes_edges) = documented_terms(catalog, ownership);
++        let DocumentedTerms {
++            mut terms,
++            formalizes_edges,
++        } = documented_terms(catalog, ownership)
++            .map_err(|error| DocsError::PropertySignature(PreservedDiagnostic(error)))?;
+ 
+         // Bidirectional related terms: if A lists B, ensure B lists A. The
+         // forward edges were collected per-term in `extract_terms`; here we mirror
+@@ -3262,21 +3279,29 @@ fn grounding_namespace(owner_slice: &str) -> Option<&'static str> {
+ /// Exact term-page inventory selected by the documentation model. This reuses
+ /// module terms, the explicit PathShape example exception and validated ownership;
+ /// it does not build or enrich a second DocsModel.
++///
++/// # Errors
++/// Refuses contradictory named property signatures under the same rules as [`DocsModel`].
+ pub fn documented_term_iris(
+     catalog: &SliceCatalog,
+     ownership: &OwnershipReport,
+-) -> BTreeSet<String> {
+-    documented_terms(catalog, ownership)
+-        .0
++) -> gmeow_errors::Result<BTreeSet<String>> {
++    Ok(documented_terms(catalog, ownership)?
++        .terms
+         .into_iter()
+         .map(|term| term.iri)
+-        .collect()
++        .collect())
++}
++
++struct DocumentedTerms {
++    terms: Vec<DocTerm>,
++    formalizes_edges: Vec<(String, String)>,
+ }
+ 
+ fn documented_terms(
+     catalog: &SliceCatalog,
+     ownership: &OwnershipReport,
+-) -> (Vec<DocTerm>, Vec<(String, String)>) {
++) -> gmeow_errors::Result<DocumentedTerms> {
+     let mut terms: Vec<DocTerm> = Vec::new();
+     // `logic:formalizes` back-references, collected while modules are parsed.
+     let mut formalizes_edges: Vec<(String, String)> = Vec::new();
+@@ -3291,7 +3316,7 @@ fn documented_terms(
+             // so this should never fail; surface it loudly with full context.
+             let store = parse_turtle_lenient(&artifact.content)
+                 .unwrap_or_else(|e| panic!("module.ttl for slice {owner} failed to parse: {e}"));
+-            terms.extend(extract_terms(&store, owner, record.manifest.tier.as_ref()));
++            terms.extend(extract_terms(&store, owner, record.manifest.tier.as_ref())?);
+             formalizes_edges.extend(extract_formalizes(&store));
+         }
+     }
+@@ -3318,7 +3343,7 @@ fn documented_terms(
+                 &store,
+                 owner,
+                 record.manifest.tier.as_ref(),
+-            ));
++            )?);
+         }
+     }
+     // A foreign module can redeclare a class without defining it. Use the
+@@ -3337,7 +3362,10 @@ fn documented_terms(
+             .is_none_or(|owner| *owner == term.owner_slice.as_str())
+     });
+     terms.sort_by(|a, b| a.iri.cmp(&b.iri));
+-    (terms, formalizes_edges)
++    Ok(DocumentedTerms {
++        terms,
++        formalizes_edges,
++    })
+ }
+ 
+ /// Whether a module subject is a documentable-term subject for a slice: any
+@@ -3352,7 +3380,11 @@ fn is_documented_subject(subject: &str, grounding_ns: Option<&str>) -> bool {
+     subject.starts_with(GMEOW_NS) || grounding_ns.is_some_and(|ns| subject.starts_with(ns))
+ }
+ 
+-fn extract_terms(store: &Store, owner_slice: &str, tier: Option<&SliceTier>) -> Vec<DocTerm> {
++fn extract_terms(
++    store: &Store,
++    owner_slice: &str,
++    tier: Option<&SliceTier>,
++) -> gmeow_errors::Result<Vec<DocTerm>> {
+     // First pass: collect every documentable subject with a recognized vocabulary
+     // type, keyed by IRI, recording the strongest category seen. A grounding slice
+     // also admits its own-namespace vocabulary (`math:` / `logic:` / `lang:`).
+@@ -3400,7 +3432,7 @@ fn extract_path_shape_terms(
+     store: &Store,
+     owner_slice: &str,
+     tier: Option<&SliceTier>,
+-) -> Vec<DocTerm> {
++) -> gmeow_errors::Result<Vec<DocTerm>> {
+     let mut categories: BTreeMap<String, DocTermCategory> = BTreeMap::new();
+     for (subject, object) in store.pattern_subjects_objects(RDF_TYPE) {
+         let Some(subject) = subject.as_named() else {
+@@ -3430,7 +3462,8 @@ fn build_doc_terms(
+     categories: BTreeMap<String, DocTermCategory>,
+     owner_slice: &str,
+     tier: Option<&SliceTier>,
+-) -> Vec<DocTerm> {
++) -> gmeow_errors::Result<Vec<DocTerm>> {
++    let source = DslView::new(store.dataset());
+     let mut terms = Vec::new();
+     for (iri, category) in categories {
+         let label = first_literal(store, &iri, RDFS_LABEL);
+@@ -3448,13 +3481,7 @@ fn build_doc_terms(
+         parents.sort();
+         parents.dedup();
+ 
+-        let mut domain = named_objects(store, &iri, RDFS_DOMAIN);
+-        domain.sort();
+-        domain.dedup();
+-
+-        let mut range = named_objects(store, &iri, RDFS_RANGE);
+-        range.sort();
+-        range.dedup();
++        let signature = source.named_property_signature(&iri)?;
+ 
+         // Per-term usage advice (English carrier from this slice's module.ttl).
+         let scope_notes = literals(store, &iri, SKOS_SCOPE_NOTE);
+@@ -3523,8 +3550,8 @@ fn build_doc_terms(
+             category,
+             owner_slice: owner_slice.to_string(),
+             parents,
+-            domain,
+-            range,
++            domain: signature.domain,
++            range: signature.range,
+             scope_notes,
+             examples,
+             use_when,
+@@ -3550,7 +3577,7 @@ fn build_doc_terms(
+             profiles: Vec::new(),
+         });
+     }
+-    terms
++    Ok(terms)
+ }
+ 
+ /// Resolve a term's stability badge: an explicit `gmeow:termStability`
+diff --git crates/docs-model/src/model.tests.rs crates/docs-model/src/model.tests.rs
+index 878c69622..b93b3660f 100644
+--- crates/docs-model/src/model.tests.rs
++++ crates/docs-model/src/model.tests.rs
+@@ -207,7 +207,8 @@ gmeow:hasOwner a owl:ObjectProperty ;
+     rdfs:comment "Ownership relation." .
+ "#;
+     let store = store_from(ttl);
+-    let terms = extract_terms(&store, "https://example.org/slice/zoo", None);
++    let terms = extract_terms(&store, "https://example.org/slice/zoo", None)
++        .expect("the supplied signatures agree");
+ 
+     let cat = terms.iter().find(|t| t.iri.ends_with("Cat")).unwrap();
+     assert_eq!(cat.category, DocTermCategory::Class);
+@@ -256,7 +257,8 @@ gmeow:grooms a owl:ObjectProperty ;
+     rdfs:label "grooms" .
+ "#;
+     let store = store_from(ttl);
+-    let terms = extract_terms(&store, "https://example.org/slice/zoo", None);
++    let terms = extract_terms(&store, "https://example.org/slice/zoo", None)
++        .expect("the supplied signatures agree");
+ 
+     let cat = terms.iter().find(|t| t.iri.ends_with("Cat")).unwrap();
+     assert_eq!(
+@@ -279,6 +281,65 @@ gmeow:grooms a owl:ObjectProperty ;
+     );
+ }
+ 
++/// Authored property signatures reach documentation with canonical precedence
++/// and refuse conflicting named declarations.
++#[test]
++fn named_property_signatures_reach_docs_from_authored_turtle() {
++    let ttl = r#"
++@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
++@prefix logic: <https://blackcatinformatics.ca/logic/> .
++@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
++@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
++
++gmeow:placeSupersededBy a logic:ObjectProperty ;
++    logic:domain gmeow:Place ;
++    logic:range gmeow:Place .
++
++gmeow:relatedLocation a logic:ObjectProperty ;
++    logic:domain gmeow:Place, gmeow:Location ;
++    rdfs:domain gmeow:Location, gmeow:Place ;
++    logic:range gmeow:Location ;
++    rdfs:range gmeow:Location .
++
++gmeow:hasCoordinateMatrix a logic:DatatypeProperty ;
++    logic:domain [ a logic:Class ; logic:unionOf ( gmeow:Axis gmeow:Pose ) ] ;
++    rdfs:domain gmeow:Place ;
++    logic:range [ a rdfs:Datatype ; logic:unionOf ( xsd:string xsd:token ) ] .
++"#;
++    let owner = "https://example.org/slice/places";
++    let terms = extract_terms(&store_from(ttl), owner, None).expect("the named signatures agree");
++    let term = |curie: &str| {
++        terms
++            .iter()
++            .find(|term| term.curie == curie)
++            .expect("the property has a documentation entry")
++    };
++    let succession = term("gmeow:placeSupersededBy");
++    assert_eq!(succession.domain, [format!("{GMEOW_NS}Place")]);
++    assert_eq!(succession.range, [format!("{GMEOW_NS}Place")]);
++    assert!(crate::svg::term_neighbourhood_svg(succession).contains("Place"));
++
++    let dual = term("gmeow:relatedLocation");
++    assert_eq!(
++        dual.domain,
++        [format!("{GMEOW_NS}Location"), format!("{GMEOW_NS}Place")]
++    );
++    assert_eq!(dual.range, [format!("{GMEOW_NS}Location")]);
++
++    let anonymous = term("gmeow:hasCoordinateMatrix");
++    assert!(anonymous.domain.is_empty());
++    assert!(anonymous.range.is_empty());
++
++    let conflicting = format!("{ttl}\ngmeow:placeSupersededBy rdfs:range gmeow:Location .\n");
++    let error = extract_terms(&store_from(&conflicting), owner, None)
++        .expect_err("different named ranges are a source conflict");
++    assert!(error.is::<gmeow_logic_compile::error::Frontend>());
++    let message = error.message();
++    assert!(message.contains(&succession.iri));
++    assert!(message.contains(gmeow_ns::LOGIC_RANGE));
++    assert!(message.contains(gmeow_ns::RDFS_RANGE));
++}
++
+ /// `read_central_mapping_sets` distinguishes an absent file (fine — slices
+ /// carry their own sets) from a present-but-unparsable one (hard fail, never
+ /// a silent empty that would drop every relocated linkage's `MappingSet`).
+@@ -316,7 +377,11 @@ fn non_gmeow_terms_are_skipped() {
+ <https://example.org/Foo> a owl:Class .
+ "#;
+     let store = store_from(ttl);
+-    assert!(extract_terms(&store, "s", None).is_empty());
++    assert!(
++        extract_terms(&store, "s", None)
++            .expect("no terms to admit")
++            .is_empty()
++    );
+ }
+ 
+ /// Stability derivation precedence: explicit `gmeow:termStability`
+@@ -335,7 +400,8 @@ gmeow:Explicit    a owl:Class ;
+     gmeow:termStability gmeow:stabilityExperimental .
+ "#;
+     let store = store_from(ttl);
+-    let core = extract_terms(&store, "s", Some(&SliceTier::Core));
++    let core =
++        extract_terms(&store, "s", Some(&SliceTier::Core)).expect("the supplied signatures agree");
+     let by = |ts: &[DocTerm], suffix: &str| {
+         ts.iter()
+             .find(|t| t.iri.ends_with(suffix))
+@@ -350,7 +416,8 @@ gmeow:Explicit    a owl:Class ;
+     assert_eq!(by(&core, "Explicit"), DocTermStability::Experimental);
+ 
+     // Same terms under an extension tier → ExtDefault becomes Experimental.
+-    let ext = extract_terms(&store, "s", Some(&SliceTier::Extension));
++    let ext = extract_terms(&store, "s", Some(&SliceTier::Extension))
++        .expect("the supplied signatures agree");
+     assert_eq!(by(&ext, "ExtDefault"), DocTermStability::Experimental);
+ }
+ 
+@@ -373,7 +440,8 @@ gmeow:Thing a owl:Class ;
+         gmeow:entryVersion "1.0.2" ] .
+ "#;
+     let store = store_from(ttl);
+-    let terms = extract_terms(&store, "s", Some(&SliceTier::Core));
++    let terms =
++        extract_terms(&store, "s", Some(&SliceTier::Core)).expect("the supplied signatures agree");
+     let thing = terms.iter().find(|t| t.iri.ends_with("Thing")).unwrap();
+     assert_eq!(thing.added_in_version.as_deref(), Some("1.0.2"));
+     assert_eq!(
+diff --git crates/docs/src/render.rs crates/docs/src/render.rs
+index 037cc3b0e..80892caed 100644
+--- crates/docs/src/render.rs
++++ crates/docs/src/render.rs
+@@ -938,6 +938,24 @@ fn quickstart_label(model: &DocsModel, iri: &str) -> String {
+         .to_string()
+ }
+ 
++/// Render an IRI token for the shared Turtle preamble. Use compact names only
++/// when the prefix expands to this IRI and the local name needs no escaping.
++fn quickstart_iri(iri: &str, label: &str) -> String {
++    if let Some((prefix, local)) = label.split_once(':')
++        && !local.is_empty()
++        && !local.starts_with('-')
++        && local
++            .bytes()
++            .all(|byte| byte.is_ascii_alphanumeric() || matches!(byte, b'_' | b'-'))
++        && let Some(namespace) = iri.strip_suffix(local)
++        && QUICKSTART_TURTLE_PREAMBLE.contains(&format!("@prefix {prefix}: <{namespace}> .\n"))
++    {
++        label.to_owned()
++    } else {
++        format!("<{iri}>")
++    }
++}
++
+ /// A placeholder object for one property's example triple, plus the trailing
+ /// `#`-comment naming what the placeholder stands in for. Never fabricates an
+ /// instance: an empty `range` renders a bare placeholder literal (nothing is
+@@ -981,19 +999,18 @@ fn synthesize_class_quickstart(model: &DocsModel, term: &DocTerm) -> String {
+         .collect();
+     props.sort_by(|a, b| a.curie.cmp(&b.curie));
+ 
++    let class = quickstart_iri(&term.iri, &term.curie);
+     if props.is_empty() {
+-        return format!("<subject> a {} .\n", term.curie);
++        return format!("<subject> a {class} .\n");
+     }
+ 
+     let cap = props.len().min(QUICKSTART_PROPERTY_CAP);
+-    let mut out = format!("<subject> a {} ;\n", term.curie);
++    let mut out = format!("<subject> a {class} ;\n");
+     for (i, prop) in props.iter().take(cap).enumerate() {
+         let terminator = if i + 1 == cap { '.' } else { ';' };
+         let (object, comment) = quickstart_placeholder(model, &prop.range);
+-        out.push_str(&format!(
+-            "    {} {object} {terminator}{comment}\n",
+-            prop.curie
+-        ));
++        let predicate = quickstart_iri(&prop.iri, &prop.curie);
++        out.push_str(&format!("    {predicate} {object} {terminator}{comment}\n"));
+     }
+     if props.len() > QUICKSTART_PROPERTY_CAP {
+         let remaining = props.len() - QUICKSTART_PROPERTY_CAP;
+@@ -1016,14 +1033,12 @@ fn synthesize_class_quickstart(model: &DocsModel, term: &DocTerm) -> String {
+ /// term when one is declared, else a placeholder literal).
+ fn synthesize_property_quickstart(model: &DocsModel, term: &DocTerm) -> String {
+     let subject_type = match term.domain.first() {
+-        Some(d) => quickstart_label(model, d),
++        Some(domain) => quickstart_iri(domain, &quickstart_label(model, domain)),
+         None => "owl:Thing".to_string(),
+     };
+     let (object, comment) = quickstart_placeholder(model, &term.range);
+-    format!(
+-        "<subject> a {subject_type} ;\n    {} {object} .{comment}\n",
+-        term.curie
+-    )
++    let predicate = quickstart_iri(&term.iri, &term.curie);
++    format!("<subject> a {subject_type} ;\n    {predicate} {object} .{comment}\n")
+ }
+ 
+ /// The synthesized quickstart Turtle skeleton for one term — a PURE function
+@@ -2310,8 +2325,8 @@ fn openapi_syntax_tab(term: &DocTerm, model: &DocsModel) -> Option<DocSyntaxTab>
+ /// The canonical `@prefix`/`@base` preamble under which a synthesized quickstart
+ /// skeleton (which uses bare `gmeow:`/`logic:`/`math:`/`owl:`… CURIEs and the
+ /// relative `<subject>`/`<...>` placeholders) parses as a self-contained Turtle
+-/// document: a base resolves the relative placeholders, and every prefix a
+-/// `quickstart_label`/`term.curie` can emit is declared.
++/// document. The base resolves relative placeholders. The declarations control
++/// which IRIs `quickstart_iri` renders in compact form.
+ const QUICKSTART_TURTLE_PREAMBLE: &str = concat!(
+     "@base <https://blackcatinformatics.ca/gmeow/example/> .\n",
+     "@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .\n",
+diff --git crates/docs/src/render.tests.rs crates/docs/src/render.tests.rs
+index e1a32399d..0579e5e99 100644
+--- crates/docs/src/render.tests.rs
++++ crates/docs/src/render.tests.rs
+@@ -297,6 +297,60 @@ fn md_escape_neutralizes_table_and_inline_metachars() {
+     assert_eq!(md_escape("line\nbreak"), "line break");
+ }
+ 
++/// Named domains from the authored signature remain subject types in rendered
++/// JSON-LD quickstarts even when the Turtle preamble has no matching prefix.
++#[test]
++fn canonical_named_domains_reach_rendered_jsonld_quickstarts() {
++    let slice = tempfile::tempdir().expect("create supplied slice");
++    std::fs::write(
++        slice.path().join("manifest.ttl"),
++        r#"<urn:example:ai> a <https://blackcatinformatics.ca/gmeow/Slice> ;
++    <http://purl.org/dc/terms/creator> "Example author" ."#,
++    )
++    .expect("write the slice manifest");
++    std::fs::write(
++        slice.path().join("module.ttl"),
++        r#"
++@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
++@prefix lang: <https://blackcatinformatics.ca/lang/> .
++@prefix logic: <https://blackcatinformatics.ca/logic/> .
++gmeow:analysisFirstChunkKey a logic:DatatypeProperty ;
++    logic:domain lang:Analysis .
++gmeow:hasExternalAgent a logic:ObjectProperty ;
++    logic:domain <https://example.org/Agent> .
++"#,
++    )
++    .expect("write a property with a canonical domain");
++    let model = DocsModel::from_slice_dir(slice.path()).expect("read the supplied signature");
++    for (property, domain_iri) in [
++        (
++            "gmeow:analysisFirstChunkKey",
++            "https://blackcatinformatics.ca/lang/Analysis",
++        ),
++        ("gmeow:hasExternalAgent", "https://example.org/Agent"),
++    ] {
++        let term = model
++            .terms
++            .iter()
++            .find(|term| term.curie == property)
++            .expect("the property has a term page");
++        let page = to_markdown(&model, &Page::Term(term_slug(term)));
++        let (_, example) = page
++            .split_once("\n```json\n")
++            .expect("render the JSON-LD tab");
++        let (jsonld, _) = example
++            .split_once("\n```")
++            .expect("close the JSON-LD fence");
++        let graph = purrdf::parse_dataset(jsonld.as_bytes(), "application/ld+json", None)
++            .expect("the JSON-LD example parses");
++        let domain = purrdf::RdfTerm::iri(domain_iri);
++        assert!(graph.owned_quads().any(|quad| {
++            quad.predicate == "http://www.w3.org/1999/02/22-rdf-syntax-ns#type"
++                && quad.object == domain
++        }));
++    }
++}
++
+ /// Decode a Python double-quoted literal body the way `json.loads` would
+ /// see it after Python's own string-literal decoding — i.e. undo exactly
+ /// the two escapes [`python_str_escape`] introduces (`\\` and `\"`, plus
+diff --git crates/docs/tests/pydantic_rust_tabs_golden.rs crates/docs/tests/pydantic_rust_tabs_golden.rs
+index 4b8cb7c2c..7016aa4fb 100644
+--- crates/docs/tests/pydantic_rust_tabs_golden.rs
++++ crates/docs/tests/pydantic_rust_tabs_golden.rs
+@@ -28,28 +28,19 @@ use gmeow_docs::{DocTerm, DocTermCategory, DocsModel};
+ 
+ mod common;
+ 
+-/// The first documented CLASS (by stable curie/iri sort) that is also the
+-/// `rdfs:domain` of at least one documented property — a deterministic,
+-/// richly-modeled subject whose synthesized quickstart is a multi-field
+-/// instance (`<subject> a C ; p1 ... ; p2 ... .`), not just a bare `a C .`
+-/// skeleton, so the worked instance the Python/Rust tabs validate is
+-/// non-trivial.
+-fn class_term_with_properties(model: &DocsModel) -> &DocTerm {
+-    let mut candidates: Vec<&DocTerm> = model
++/// The accessibility assertion class anchors the golden. Its modeled properties
++/// supply field values to the worked instance used by both syntax tabs.
++fn accessibility_assertion_term(model: &DocsModel) -> &DocTerm {
++    let term = model
+         .terms
+         .iter()
+-        .filter(|t| {
+-            t.category == DocTermCategory::Class
+-                && model.terms.iter().any(|p| {
+-                    p.category == DocTermCategory::Property && p.domain.iter().any(|d| d == &t.iri)
+-                })
+-        })
+-        .collect();
+-    candidates.sort_by(|a, b| a.curie.cmp(&b.curie).then_with(|| a.iri.cmp(&b.iri)));
+-    candidates
+-        .first()
+-        .copied()
+-        .expect("the live model has at least one documented class that is a property's domain")
++        .find(|term| term.iri == "https://blackcatinformatics.ca/gmeow/AccessibilityAssertion")
++        .expect("the live model documents the accessibility assertion class");
++    assert_eq!(term.category, DocTermCategory::Class);
++    assert!(model.terms.iter().any(|property| {
++        property.category == DocTermCategory::Property && property.domain.contains(&term.iri)
++    }));
++    term
+ }
+ 
+ /// Extract the exact body of a `**{lang}**`-labeled fenced code block emitted by
+@@ -73,7 +64,7 @@ fn fenced_body(md: &str, lang: &str) -> String {
+ #[test]
+ fn python_and_rust_syntax_tabs_render_for_a_modeled_class() {
+     let base = common::cached_model();
+-    let term = class_term_with_properties(&base).clone();
++    let term = accessibility_assertion_term(&base).clone();
+ 
+     let mut digest = SchemaFragmentDigest::default();
+     digest.schema_by_term.insert(
+@@ -149,7 +140,7 @@ fn python_and_rust_syntax_tabs_render_for_a_modeled_class() {
+ #[test]
+ fn card_md_and_json_carry_the_python_model_link_for_a_modeled_class() {
+     let base = common::cached_model();
+-    let term = class_term_with_properties(&base).clone();
++    let term = accessibility_assertion_term(&base).clone();
+ 
+     let mut digest = SchemaFragmentDigest::default();
+     digest.schema_by_term.insert(
+diff --git crates/docs/tests/snapshots/pydantic_rust_tabs_golden__python_syntax_tab_body.snap crates/docs/tests/snapshots/pydantic_rust_tabs_golden__python_syntax_tab_body.snap
+index 81ab08f5b..f544a5e78 100644
+--- crates/docs/tests/snapshots/pydantic_rust_tabs_golden__python_syntax_tab_body.snap
++++ crates/docs/tests/snapshots/pydantic_rust_tabs_golden__python_syntax_tab_body.snap
+@@ -8,6 +8,6 @@ from gmeow_models.accessibility import AccessibilityAssertion
+ 
+ # The same worked instance shown in the Turtle / JSON-LD tabs, validated
+ # against the ontology-derived model:
+-payload = json.loads("{\n  \"@context\": {},\n  \"@graph\": [\n    {\n      \"@id\": \"https://blackcatinformatics.ca/gmeow/example/subject\",\n      \"@type\": [\n        {\n          \"@id\": \"https://blackcatinformatics.ca/gmeow/AccessibilityAssertion\"\n        }\n      ],\n      \"https://blackcatinformatics.ca/gmeow/assertionFacet\": {\n        \"@id\": \"https://blackcatinformatics.ca/gmeow/example/...\"\n      },\n      \"https://blackcatinformatics.ca/gmeow/assertionPolarity\": {\n        \"@id\": \"https://blackcatinformatics.ca/gmeow/example/...\"\n      },\n      \"https://blackcatinformatics.ca/gmeow/assertionSubject\": {\n        \"@id\": \"https://blackcatinformatics.ca/gmeow/example/...\"\n      }\n    }\n  ]\n}")
++payload = json.loads("{\n  \"@context\": {},\n  \"@graph\": [\n    {\n      \"@id\": \"https://blackcatinformatics.ca/gmeow/example/subject\",\n      \"@type\": [\n        \"https://blackcatinformatics.ca/gmeow/AccessibilityAssertion\"\n      ],\n      \"https://blackcatinformatics.ca/gmeow/assertionFacet\": {\n        \"@id\": \"https://blackcatinformatics.ca/gmeow/example/...\"\n      },\n      \"https://blackcatinformatics.ca/gmeow/assertionPolarity\": {\n        \"@id\": \"https://blackcatinformatics.ca/gmeow/example/...\"\n      },\n      \"https://blackcatinformatics.ca/gmeow/assertionSubject\": {\n        \"@id\": \"https://blackcatinformatics.ca/gmeow/example/...\"\n      }\n    }\n  ]\n}")
+ obj = AccessibilityAssertion.model_validate(payload)
+ print(obj.model_dump(by_alias=True, exclude_none=True))
+diff --git crates/docs/tests/snapshots/render_golden__first_learning_path_markdown_golden.snap crates/docs/tests/snapshots/render_golden__first_learning_path_markdown_golden.snap
+index 2f5e93174..fe2b8a981 100644
+--- crates/docs/tests/snapshots/render_golden__first_learning_path_markdown_golden.snap
++++ crates/docs/tests/snapshots/render_golden__first_learning_path_markdown_golden.snap
+@@ -19,17 +19,30 @@ Connect generated claims to source chunks, evidence spans, tools, model context,
+ ```turtle
+ # gmeow:Chunk
+ <subject> a gmeow:Chunk ;
+-    gmeow:chunkOf <...> .  # gmeow:InformationObject
++    gmeow:chunkChapterHeading "..." ;  # rdfs:Literal
++    gmeow:chunkInDivision <...> ;  # gmeow:ContentSegment
++    gmeow:chunkMarkerLines <...> ;  # gmeow:StructuredSequence
++    gmeow:chunkOf <...> ;  # gmeow:InformationObject
++    gmeow:chunkSectionHeading "..." ;  # rdfs:Literal
++    gmeow:chunkSectionTag "..." ;  # xsd:string
++    gmeow:chunkSubsectionHeading "..." .  # rdfs:Literal
+ 
+ # gmeow:Dataset
+ <subject> a gmeow:Dataset ;
+     gmeow:citeAs "..." ;  # rdfs:Literal
+-    gmeow:version "..." .  # xsd:string
++    gmeow:version "..." .
+ 
+ # gmeow:EvidenceSpan
+ <subject> a gmeow:EvidenceSpan ;
+-    gmeow:spanOfChunk <...> ;  # gmeow:Chunk
+-    gmeow:supportPolarity <...> .  # gmeow:SupportPolarity
++    gmeow:locusHref "..." ;
++    gmeow:locusSource <...> ;  # gmeow:InformationObject
++    gmeow:occurrenceInAnalysisInput <...> ;  # lang:Analysis
++    gmeow:occurrenceSurface <...> ;  # lang:SurfaceForm
++    gmeow:recognizerLabel "..." ;  # xsd:string
++    gmeow:rootTokenParse <...> ;  # lang:TokenParseReport
++    gmeow:selectorLocator "..." ;  # rdfs:Literal
++    gmeow:selectorPage "..." .  # rdfs:Literal
++# … +3 more properties carried by this class (see the class page for the full list)
+ 
+ # gmeow:ExtractedEntity
+ <subject> a gmeow:ExtractedEntity .
+@@ -64,5 +77,5 @@ Connect generated claims to source chunks, evidence spans, tools, model context,
+ 
+ ---
+ 
+-**Provenance:** this page ← `stage-docs-render` ← `stage-compile-logic` ← `stage-source-load`
++**Provenance:** this page ← `stage-docs-render` ← `stage-compile-logic` ← `stage-parse-sources`
+ Rendered from `gmeow.gts` by the dogfooded build pipeline.
+diff --git crates/gmeow-cli/src/commands/prove.rs crates/gmeow-cli/src/commands/prove.rs
+index bc7754081..6e019bb16 100644
+--- crates/gmeow-cli/src/commands/prove.rs
++++ crates/gmeow-cli/src/commands/prove.rs
+@@ -25,7 +25,7 @@ use gmeow_logic::reason::dl::DlCoverage;
+ use gmeow_logic::reason::{
+     DomainProfile, InconsistencyWitness, LogicalGraph, NativeSourceAdmission,
+     NativeSourceDisposition, NativeSourceDrop as DropRecord, SelectedDomains, SelectedLogicalWorld,
+-    UnsatClass,
++    SelectedNonEntailmentDisposition, UnsatClass,
+ };
+ use gmeow_logic::reasoner_services::DlReasoner;
+ use gmeow_logic_compile::frontend::{
+@@ -2270,6 +2270,44 @@ fn render_text(report: &ProveReport<'_>) {
+         println!("source-admission {:?}", admission.status);
+     }
+     if let Some(admission) = &report.native_admission {
++        if let Some(non_entailment) = admission.non_entailment() {
++            println!("non-entailment-analysis {}", non_entailment.analysis);
++            for record in &non_entailment.obligations {
++                println!(
++                    "non-entailment {} {} {} {}",
++                    record.disposition.as_str(),
++                    record.world,
++                    record.obligation,
++                    record.forbidden_predicate.as_deref().unwrap_or("-")
++                );
++                for source in &record.sources {
++                    println!(
++                        "non-entailment-source {} {}",
++                        record.obligation,
++                        source.as_str()
++                    );
++                }
++                for boundary in &record.source_boundaries {
++                    println!(
++                        "non-entailment-source-boundary {} {} {} {} {}",
++                        record.obligation,
++                        boundary.source.as_str(),
++                        boundary.field,
++                        boundary.code,
++                        boundary.detail
++                    );
++                }
++                if let SelectedNonEntailmentDisposition::Violated(witness) = &record.disposition {
++                    println!(
++                        "non-entailment-witness {} {} {} {}",
++                        record.obligation,
++                        witness.subject,
++                        witness.predicate,
++                        super::render_term(&witness.object)
++                    );
++                }
++            }
++        }
+         let evidence_origins: BTreeSet<_> = admission
+             .source_dispositions()
+             .filter_map(|(_, disposition)| match disposition {
+@@ -2316,20 +2354,40 @@ fn render_text(report: &ProveReport<'_>) {
+                 NativeSourceDisposition::MetatheoryDeclaration { route } => {
+                     ("MetatheoryDeclaration", "-", *route)
+                 }
++                NativeSourceDisposition::NonEntailmentDeclaration => (
++                    "NonEntailmentDeclaration",
++                    "-",
++                    "selected non-entailment declaration assessed against native execution",
++                ),
+                 NativeSourceDisposition::OutsideSelection { reason } => {
+                     ("OutsideSelection", "OUTSIDE_SELECTION", *reason)
+                 }
+                 NativeSourceDisposition::OutsideRequestedTheory { reason } => {
+                     ("OutsideRequestedTheory", "-", *reason)
+                 }
+-                NativeSourceDisposition::Blocked { code, reason } => {
++                NativeSourceDisposition::Blocked { code, reason, .. } => {
+                     ("Blocked", *code, reason.as_str())
+                 }
+                 NativeSourceDisposition::Malformed { code, reason } => {
+                     ("Malformed", *code, reason.as_str())
+                 }
+             };
+-            println!("source-unit {status} {anchor} {code} {detail}");
++            match disposition {
++                NativeSourceDisposition::NonEntailmentDeclaration => println!(
++                    "source-unit {status} {anchor} {code} {} {:?} {detail}",
++                    unit.identity().as_str(),
++                    unit.documents()
++                ),
++                NativeSourceDisposition::Blocked {
++                    non_entailment_field: Some(field),
++                    ..
++                } => println!(
++                    "source-unit {status} {anchor} {code} {} {:?} {field} {detail}",
++                    unit.identity().as_str(),
++                    unit.documents()
++                ),
++                _ => println!("source-unit {status} {anchor} {code} {detail}"),
++            }
+         }
+     }
+     if let Some(selection) = &report.selection {
+diff --git crates/gmeow-cli/tests/prove_cli.rs crates/gmeow-cli/tests/prove_cli.rs
+index a14e25dc4..070adc894 100644
+--- crates/gmeow-cli/tests/prove_cli.rs
++++ crates/gmeow-cli/tests/prove_cli.rs
+@@ -1335,6 +1335,278 @@ fn grounded_class_memberships_supply_accounted_native_premises() {
+     );
+ }
+ 
++/// PROTECTS: selected governance retains exact blank-scoped rows and derived
++/// witnesses, and withholds absence when selected source coverage is incomplete.
++#[test]
++fn selected_non_entailment_binds_source_rows_and_keeps_supported_violations() {
++    let directory = tempfile::tempdir().expect("source directory");
++    write(
++        directory.path(),
++        "first.logic.ttl",
++        r#"
++_:obligation a logic:NonEntailmentObligation ;
++    logic:obligationForbiddenPredicate ex:absentFirst ;
++    logic:obligationDischargeCondition logic:DischargeSyntacticReachability .
++ex:s ex:seed ex:o .
++"#,
++    );
++    write(
++        directory.path(),
++        "second.logic.ttl",
++        r#"
++_:obligation logic:instanceOf logic:NonEntailmentObligation ;
++    logic:obligationForbiddenPredicate ex:absentSecond ;
++    logic:obligationDischargeCondition logic:DischargeSyntacticReachability .
++"#,
++    );
++    let completed = gmeow()
++        .args(["prove", "--dir", path(directory.path()), "--format", "json"])
++        .assert()
++        .success();
++    let completed = report(&completed);
++    assert_eq!(completed["verdict"], "consistent", "{completed:#}");
++    let text = gmeow()
++        .args(["prove", "--dir", path(directory.path()), "--format", "text"])
++        .assert()
++        .success();
++    let text = std::str::from_utf8(&text.get_output().stdout).expect("text report");
++    let admission = &completed["native_admission"];
++    let records = admission["non_entailment"]["obligations"]
++        .as_array()
++        .expect("selected governance records");
++    assert_eq!(records.len(), 2);
++    assert_ne!(records[0]["obligation"], records[1]["obligation"]);
++    let units = admission["units"].as_array().expect("source inventory");
++    for record in records {
++        assert_eq!(record["disposition"], "SyntacticallyDischarged");
++        let (expected_document, typing_field) =
++            if record["forbidden_predicate"] == "https://example.org/prove/absentFirst" {
++                (
++                    "first.logic.ttl",
++                    "http://www.w3.org/1999/02/22-rdf-syntax-ns#type",
++                )
++            } else {
++                assert_eq!(
++                    record["forbidden_predicate"],
++                    "https://example.org/prove/absentSecond"
++                );
++                (
++                    "second.logic.ttl",
++                    "https://blackcatinformatics.ca/logic/instanceOf",
++                )
++            };
++        let expected_fields = [
++            typing_field,
++            "https://blackcatinformatics.ca/logic/obligationForbiddenPredicate",
++            "https://blackcatinformatics.ca/logic/obligationDischargeCondition",
++        ];
++        let mut expected_sources = Vec::with_capacity(expected_fields.len());
++        for field in expected_fields {
++            let mut matching = units.iter().filter(|unit| {
++                unit["anchor"]
++                    .as_str()
++                    .is_some_and(|anchor| anchor.contains(field))
++                    && unit["documents"].as_array().is_some_and(|documents| {
++                        documents.len() == 1
++                            && documents[0]
++                                .as_str()
++                                .is_some_and(|name| name.ends_with(expected_document))
++                    })
++            });
++            let unit = matching.next().expect("original selected field");
++            assert!(matching.next().is_none(), "{expected_document} {field}");
++            assert_eq!(unit["disposition"], "NonEntailmentDeclaration");
++            let id = unit["id"].as_str().expect("source ID");
++            let anchor = unit["anchor"].as_str().expect("source anchor");
++            assert!(text.lines().any(|line| {
++                line.starts_with(&format!(
++                    "source-unit NonEntailmentDeclaration {anchor} - {id} "
++                )) && line.contains(expected_document)
++            }));
++            expected_sources.push(id);
++        }
++        let mut sources: Vec<_> = record["sources"]
++            .as_array()
++            .expect("original source IDs")
++            .iter()
++            .map(|id| id.as_str().expect("source ID"))
++            .collect();
++        sources.sort_unstable();
++        expected_sources.sort_unstable();
++        assert_eq!(sources, expected_sources);
++    }
++
++    let (incomplete, code) = prove_json(
++        "governance.ttl",
++        r#"
++ex:malformed a logic:NonEntailmentObligation ;
++    logic:obligationDischargeCondition logic:DischargeSyntacticReachability .
++ex:inconclusive a logic:NonEntailmentObligation ;
++    logic:obligationForbiddenPredicate ex:unproduced ;
++    logic:obligationDischargeCondition logic:DischargeSyntacticReachability .
++ex:violated a logic:NonEntailmentObligation ;
++    logic:obligationForbiddenPredicate ex:forbidden ;
++    logic:obligationDischargeCondition "invalid condition" .
++ex:s ex:seed ex:o .
++ex:derive a logic:Rule ;
++    logic:body [ rdf:reifies <<( ex:s ex:seed ex:o )>> ] ;
++    logic:head [ rdf:reifies <<( ex:s ex:forbidden ex:o )>> ] .
++"#,
++        &["--gate"],
++    );
++    assert_eq!(code, 3, "{incomplete:#}");
++    assert_eq!(incomplete["verdict"], "not-decided", "{incomplete:#}");
++    assert_eq!(incomplete["engines"]["native"]["verdict"], "no-clash");
++    let records = incomplete["native_admission"]["non_entailment"]["obligations"]
++        .as_array()
++        .expect("selected governance records");
++    let record = |iri| {
++        records
++            .iter()
++            .find(|record| record["obligation"] == iri)
++            .expect("declared obligation")
++    };
++    assert!(
++        record("https://example.org/prove/malformed")["disposition"]["Invalid"]["detail"]
++            .as_str()
++            .is_some_and(|detail| detail.contains("obligationForbiddenPredicate"))
++    );
++    assert_eq!(
++        record("https://example.org/prove/inconclusive")["disposition"]["Inconclusive"]["reason"],
++        "the selected theory has malformed or unsupported non-entailment declarations"
++    );
++    let violated = record("https://example.org/prove/violated");
++    let witness = &violated["disposition"]["Violated"];
++    assert_eq!(witness["predicate"], "https://example.org/prove/forbidden");
++    assert_eq!(witness["is_edb"], false);
++    assert!(
++        violated["declaration_error"]
++            .as_str()
++            .is_some_and(|detail| { detail.contains("non-IRI discharge condition") })
++    );
++
++    let blocked_source = write(
++        directory.path(),
++        "governance-policy.ttl",
++        r#"
++ex:policy a logic:NonEntailmentObligation ;
++    logic:obligationForbiddenPredicate ex:possible ;
++    logic:obligationDischargeCondition logic:DischargeSyntacticReachability .
++ex:absent a logic:NonEntailmentObligation ;
++    logic:obligationForbiddenPredicate ex:unreachable ;
++    logic:obligationDischargeCondition logic:DischargeSyntacticReachability .
++ex:finite a logic:NonEntailmentObligation ;
++    logic:obligationForbiddenPredicate ex:possible ;
++    logic:obligationDischargeCondition logic:DischargeFiniteClosure .
++ex:s ex:seed ex:o ; logic:unaccountedRelation ex:o .
++ex:possibleWriter a logic:Rule ;
++    logic:body [ rdf:reifies <<( ex:s ex:missingSeed ex:o )>> ] ;
++    logic:head [ rdf:reifies <<( ex:s ex:possible ex:o )>> ] .
++ex:derivedCondition a logic:Rule ;
++    logic:body [ rdf:reifies <<( ex:s ex:seed ex:o )>> ] ;
++    logic:head [ rdf:reifies <<( ex:policy logic:obligationDischargeCondition logic:DischargeFiniteClosure )>> ] .
++"#,
++    );
++    let blocked = gmeow()
++        .args(["prove", path(&blocked_source), "--format", "json", "--gate"])
++        .assert()
++        .code(3);
++    let blocked = report(&blocked);
++    let records = blocked["native_admission"]["non_entailment"]["obligations"]
++        .as_array()
++        .expect("selected governance records");
++    let reason = |iri| {
++        records
++            .iter()
++            .find(|record| record["obligation"] == iri)
++            .expect("declared obligation")["disposition"]["Inconclusive"]["reason"]
++            .as_str()
++            .expect("inconclusive reason")
++    };
++    assert!(reason("https://example.org/prove/policy").contains("matches a rule head"));
++    let selected_gap = reason("https://example.org/prove/absent");
++    assert!(selected_gap.contains("incomplete coverage"));
++    let drops = blocked["selection"]["drops"]
++        .as_array()
++        .expect("selected drops");
++    assert!(drops.iter().any(|drop| {
++        let code = drop["code"].as_str().expect("code");
++        let detail = drop["detail"].as_str().expect("detail");
++        selected_gap.ends_with(&format!("({code}): {detail}"))
++    }));
++    assert_eq!(reason("https://example.org/prove/finite"), selected_gap);
++    let malformed_source = write(
++        directory.path(),
++        "malformed-governance.ttl",
++        r#"
++ex:unread a logic:NonEntailmentObligation ;
++    logic:obligationForbiddenPredicate ex:other ;
++    logic:obligationDischargeCondition <<( ex:s ex:seed ex:o )>> .
++"#,
++    );
++    let malformed = gmeow()
++        .args([
++            "prove",
++            path(&malformed_source),
++            "--format",
++            "json",
++            "--gate",
++        ])
++        .assert()
++        .code(4);
++    let malformed = report(&malformed);
++    assert_eq!(malformed["verdict"], "malformed");
++    assert!(malformed["engines"].is_null());
++    let units = malformed["native_admission"]["units"]
++        .as_array()
++        .expect("source inventory");
++    let field = units
++        .iter()
++        .find(|unit| {
++            unit["anchor"].as_str().is_some_and(|anchor| {
++                anchor.contains("https://example.org/prove/unread")
++                    && anchor.contains(
++                        "https://blackcatinformatics.ca/logic/obligationDischargeCondition",
++                    )
++            })
++        })
++        .expect("original unread condition");
++    let boundary = &field["disposition"]["Blocked"];
++    assert_eq!(boundary["code"], "UNSUPPORTED_SELECTED_ASSERTION");
++    assert_eq!(
++        boundary["non_entailment_field"],
++        "obligationDischargeCondition"
++    );
++    assert!(
++        boundary["reason"]
++            .as_str()
++            .is_some_and(|detail| detail.contains("quoted triple"))
++    );
++    assert!(units.iter().any(|unit| {
++        unit["disposition"]["Malformed"]["code"] == "COMPILER_ERROR_IN_SELECTED_THEORY"
++    }));
++    let malformed_text = gmeow()
++        .args([
++            "prove",
++            path(&malformed_source),
++            "--format",
++            "text",
++            "--gate",
++        ])
++        .assert()
++        .code(4);
++    let malformed_text =
++        std::str::from_utf8(&malformed_text.get_output().stdout).expect("text report");
++    let id = field["id"].as_str().expect("source ID");
++    let anchor = field["anchor"].as_str().expect("source anchor");
++    assert!(malformed_text.lines().any(|line| {
++        line.starts_with(&format!(
++            "source-unit Blocked {anchor} UNSUPPORTED_SELECTED_ASSERTION {id} "
++        )) && line.contains("malformed-governance.ttl")
++            && line.contains("obligationDischargeCondition quoted triple")
++    }));
++}
++
+ /// PROTECTS: universal-class tests that native closure does not populate prevent
+ /// a complete no-clash claim, including premises exposed by negation normalization.
+ /// Asserted/head membership remains accountable, and an independent clash remains
+diff --git crates/logic-compile/src/error.rs crates/logic-compile/src/error.rs
+index e1b741bf6..6f43aab4f 100644
+--- crates/logic-compile/src/error.rs
++++ crates/logic-compile/src/error.rs
+@@ -165,8 +165,9 @@ define_diag_kind! {
+ 
+ define_diag_kind! {
+     native_cause;
+-    /// The RDF-carrier frontend failed to lower a node into the IR: a malformed
+-    /// axiom node, or a validation-shape set that could not be derived.
++    /// The RDF-carrier frontend refused an authored construct, such as a
++    /// malformed axiom, a contradictory property signature, or an invalid
++    /// validation-shape set.
+     pub struct Frontend { detail: String }
+     code = "logic-compile.frontend";
+     grade = compile_grade!();
+diff --git crates/logic-compile/src/ingest/dataset.rs crates/logic-compile/src/ingest/dataset.rs
+index 90e3654f3..df89e84d9 100644
+--- crates/logic-compile/src/ingest/dataset.rs
++++ crates/logic-compile/src/ingest/dataset.rs
+@@ -7,6 +7,7 @@
+ //! neither graph labels nor quoted propositions become assertions implicitly.
+ 
+ use crate::graphutil::default_graph_pattern;
++use gmeow_ns::{LOGIC_DOMAIN, LOGIC_RANGE, RDFS_DOMAIN, RDFS_RANGE};
+ use purrdf::{RdfDataset, TermId, TermRef, TermValue};
+ use std::collections::BTreeSet;
+ use std::sync::Mutex;
+@@ -15,6 +16,28 @@ use std::sync::Mutex;
+ /// blank scope, literal direction and recursively quoted propositions.
+ pub type DslTerm = TermValue;
+ 
++/// Sorted, distinct named links in an authored property signature.
++#[must_use]
++pub struct NamedPropertySignature {
++    /// Named classes declared as the property's domain.
++    pub domain: Vec<String>,
++    /// Named classes or datatypes declared as the property's range.
++    pub range: Vec<String>,
++}
++
++fn named_signature_endpoints(values: Vec<DslTerm>) -> Vec<String> {
++    let mut names: Vec<_> = values
++        .into_iter()
++        .filter_map(|value| match value {
++            DslTerm::Iri(iri) => Some(iri),
++            _ => None,
++        })
++        .collect();
++    names.sort();
++    names.dedup();
++    names
++}
++
+ /// Borrow the lexical component of a native literal for a lexical DSL field.
+ pub fn literal_lexical(term: &DslTerm) -> Option<&str> {
+     match term {
+@@ -319,6 +342,50 @@ impl<'a> DslView<'a> {
+             .collect()
+     }
+ 
++    /// Read the named links of a property's authored domain and range. Canonical
++    /// `logic:` declarations take precedence even when entirely anonymous.
++    /// Anonymous expressions are valid source values outside this named-link view.
++    ///
++    /// # Errors
++    /// Refuses a signature when both spellings of a field supply different
++    /// named endpoint sets.
++    pub fn named_property_signature(
++        &self,
++        property: &str,
++    ) -> gmeow_errors::Result<NamedPropertySignature> {
++        Ok(NamedPropertySignature {
++            domain: self.named_signature_links(property, LOGIC_DOMAIN, RDFS_DOMAIN)?,
++            range: self.named_signature_links(property, LOGIC_RANGE, RDFS_RANGE)?,
++        })
++    }
++
++    fn named_signature_links(
++        &self,
++        property: &str,
++        canonical: &str,
++        legacy: &str,
++    ) -> gmeow_errors::Result<Vec<String>> {
++        let canonical_values = self.objects_of(property, canonical);
++        if canonical_values.is_empty() {
++            return Ok(named_signature_endpoints(self.objects_of(property, legacy)));
++        }
++        let canonical_names = named_signature_endpoints(canonical_values);
++        if canonical_names.is_empty() {
++            return Ok(canonical_names);
++        }
++        let legacy_names = named_signature_endpoints(self.objects_of(property, legacy));
++        if !legacy_names.is_empty() && canonical_names != legacy_names {
++            return Err(gmeow_errors::Diag::of_kind(crate::error::Frontend::new(
++                format!(
++                    "property <{property}> has different named endpoints for \
++                     <{canonical}> {canonical_names:?} and <{legacy}> {legacy_names:?}. \
++                     Reconcile the declarations in <{canonical}>."
++                ),
++            )));
++        }
++        Ok(canonical_names)
++    }
++
+     /// The lexical form of the first literal object of `<subject_iri> <pred> ?o`.
+     pub fn object_literal(&self, subject_iri: &str, pred: &str) -> Option<String> {
+         match self.first_object(subject_iri, pred) {
+diff --git crates/logic-compile/src/ingest/mod.rs crates/logic-compile/src/ingest/mod.rs
+index 589eadef0..960ecd07b 100644
+--- crates/logic-compile/src/ingest/mod.rs
++++ crates/logic-compile/src/ingest/mod.rs
+@@ -11,5 +11,5 @@
+ pub mod dataset;
+ pub mod prefixes;
+ 
+-pub use dataset::{DslTerm, DslView, ReifiedStatement, literal_lexical};
++pub use dataset::{DslTerm, DslView, NamedPropertySignature, ReifiedStatement, literal_lexical};
+ pub use prefixes::{PREFIX_REGISTRY, ns_to_prefix, registry_iri, registry_pairs, sssom_id};
+diff --git crates/logic/src/obligations.rs crates/logic/src/obligations.rs
+index 0d20eb90a..0b51969ad 100644
+--- crates/logic/src/obligations.rs
++++ crates/logic/src/obligations.rs
+@@ -53,11 +53,13 @@ use crate::foundation;
+ mod reachability;
+ pub use reachability::{ProgramReachability, ReachabilityEvidence};
+ mod assessment;
+-pub(crate) use assessment::governance_statement;
+ pub use assessment::{
+     ObligationAssessment, ObligationDisposition, ObligationOutcome,
+     assess_non_entailment_obligations,
+ };
++pub(crate) use assessment::{
++    ObligationField, assess_selected_obligations, governance_statement, obligation_field,
++};
+ 
+ /// Wrap a governance-obligation condition message as a typed diagnostic on the
+ /// shared substrate, preserving the authored text verbatim.
+@@ -219,68 +221,101 @@ fn governance_node(store: &RdfDataset, node: TermId) -> gmeow_errors::Result<Str
+     }
+ }
+ 
+-/// Lift every declared obligation, rejecting malformed required fields rather
+-/// than losing the declaration in an inner join or choosing its first value.
+-fn parse_obligations(store: &Arc<RdfDataset>) -> gmeow_errors::Result<Vec<Obligation>> {
++fn forbidden_predicate(
++    store: &RdfDataset,
++    subject: TermId,
++    iri: &str,
++) -> gmeow_errors::Result<String> {
++    let mut values = governance_values(store, subject, "obligationForbiddenPredicate");
++    let forbidden = values.next().ok_or_else(|| {
++        obligation_err(format!(
++            "non-entailment obligation {iri} has no logic:obligationForbiddenPredicate"
++        ))
++    })?;
++    if values.next().is_some() {
++        return Err(obligation_err(format!(
++            "non-entailment obligation {iri} has multiple distinct \
++             logic:obligationForbiddenPredicate values"
++        )));
++    }
++    let forbidden_predicate = match store.resolve(forbidden) {
++        TermRef::Iri(predicate) => predicate.to_owned(),
++        TermRef::Literal {
++            lexical,
++            datatype,
++            language: None,
++            ..
++        } if matches!(
++            store.resolve(datatype),
++            TermRef::Iri("http://www.w3.org/2001/XMLSchema#anyURI")
++        ) && !lexical.is_empty() =>
++        {
++            lexical.to_owned()
++        }
++        _ => {
++            return Err(obligation_err(format!(
++                "non-entailment obligation {iri} requires a predicate IRI or xsd:anyURI value"
++            )));
++        }
++    };
++    let predicate = purrdf::iri::parse(&forbidden_predicate).map_err(|error| {
++        obligation_source_error(
++            format!("non-entailment obligation {iri} has an invalid forbidden predicate"),
++            error,
++        )
++        .with_location(Location {
++            logical: Some(iri.to_owned()),
++            ..Location::default()
++        })
++    })?;
++    if !predicate.has_scheme() {
++        return Err(obligation_err(format!(
++            "non-entailment obligation {iri} requires an absolute forbidden predicate IRI"
++        )));
++    }
++    Ok(forbidden_predicate)
++}
++
++fn discharge_conditions(
++    store: &RdfDataset,
++    subject: TermId,
++    iri: &str,
++) -> gmeow_errors::Result<BTreeSet<String>> {
++    let mut discharge_conditions = BTreeSet::new();
++    for condition in governance_values(store, subject, "obligationDischargeCondition") {
++        let TermRef::Iri(condition) = store.resolve(condition) else {
++            return Err(obligation_err(format!(
++                "non-entailment obligation {iri} has a non-IRI discharge condition"
++            )));
++        };
++        discharge_conditions.insert(condition.to_owned());
++    }
++    Ok(discharge_conditions)
++}
++
++/// Read every declaration and retain a known forbidden predicate when its
++/// discharge conditions are structurally invalid.
++fn parse_obligations(
++    store: &RdfDataset,
++    mut invalid: impl FnMut(String, Option<String>, Diag) -> gmeow_errors::Result<()>,
++) -> gmeow_errors::Result<Vec<Obligation>> {
+     let mut obligations = Vec::new();
+     for subject in governance_subjects(store, "NonEntailmentObligation") {
+         let iri = governance_node(store, subject)?;
+-        let mut values = governance_values(store, subject, "obligationForbiddenPredicate");
+-        let forbidden = values.next().ok_or_else(|| {
+-            obligation_err(format!(
+-                "non-entailment obligation {iri} has no logic:obligationForbiddenPredicate"
+-            ))
+-        })?;
+-        if values.next().is_some() {
+-            return Err(obligation_err(format!(
+-                "non-entailment obligation {iri} has multiple distinct \
+-                 logic:obligationForbiddenPredicate values"
+-            )));
+-        }
+-        let forbidden_predicate = match store.as_ref().resolve(forbidden) {
+-            TermRef::Iri(predicate) => predicate.to_owned(),
+-            TermRef::Literal {
+-                lexical,
+-                datatype,
+-                language: None,
+-                ..
+-            } if matches!(
+-                store.as_ref().resolve(datatype),
+-                TermRef::Iri("http://www.w3.org/2001/XMLSchema#anyURI")
+-            ) && !lexical.is_empty() =>
+-            {
+-                lexical.to_owned()
++        let forbidden_predicate = match forbidden_predicate(store, subject, &iri) {
++            Ok(predicate) => predicate,
++            Err(error) => {
++                invalid(iri, None, error)?;
++                continue;
+             }
+-            _ => {
+-                return Err(obligation_err(format!(
+-                    "non-entailment obligation {iri} requires a predicate IRI or xsd:anyURI value"
+-                )));
++        };
++        let discharge_conditions = match discharge_conditions(store, subject, &iri) {
++            Ok(conditions) => conditions,
++            Err(error) => {
++                invalid(iri, Some(forbidden_predicate), error)?;
++                continue;
+             }
+         };
+-        let predicate = purrdf::iri::parse(&forbidden_predicate).map_err(|error| {
+-            obligation_source_error(
+-                format!("non-entailment obligation {iri} has an invalid forbidden predicate"),
+-                error,
+-            )
+-            .with_location(Location {
+-                logical: Some(iri.clone()),
+-                ..Location::default()
+-            })
+-        })?;
+-        if !predicate.has_scheme() {
+-            return Err(obligation_err(format!(
+-                "non-entailment obligation {iri} requires an absolute forbidden predicate IRI"
+-            )));
+-        }
+-        let mut discharge_conditions = BTreeSet::new();
+-        for condition in governance_values(store, subject, "obligationDischargeCondition") {
+-            let TermRef::Iri(condition) = store.as_ref().resolve(condition) else {
+-                return Err(obligation_err(format!(
+-                    "non-entailment obligation {iri} has a non-IRI discharge condition"
+-                )));
+-            };
+-            discharge_conditions.insert(condition.to_owned());
+-        }
+         obligations.push(Obligation {
+             iri,
+             forbidden_predicate,
+diff --git crates/logic/src/obligations.tests.rs crates/logic/src/obligations.tests.rs
+index 505920e35..c38b3021b 100644
+--- crates/logic/src/obligations.tests.rs
++++ crates/logic/src/obligations.tests.rs
+@@ -192,7 +192,8 @@ fn native_obligation_inventory_covers_both_typings_once_with_attribution() {
+         .expect("write fixture");
+     }
+     let store = governance_store(&source);
+-    let obligations = parse_obligations(&store).expect("complete typed discovery");
++    let obligations =
++        parse_obligations(&store, |_, _, error| Err(error)).expect("complete typed discovery");
+     assert_eq!(obligations.len(), 3);
+     let findings = check_store(
+         &store,
+@@ -272,7 +273,8 @@ fn native_obligation_discovery_preserves_independent_document_blank_scopes() {
+     builder.push_dataset(&first).unwrap();
+     builder.push_dataset(&second).unwrap();
+     let merged = builder.freeze().expect("merged authored fixture");
+-    let obligations = parse_obligations(&merged).expect("distinct scoped obligations");
++    let obligations =
++        parse_obligations(&merged, |_, _, error| Err(error)).expect("distinct scoped obligations");
+     assert_eq!(obligations.len(), 2);
+     assert_ne!(obligations[0].iri, obligations[1].iri);
+     assert!(
+diff --git crates/logic/src/obligations/assessment.rs crates/logic/src/obligations/assessment.rs
+index 474bebd17..0dace7887 100644
+--- crates/logic/src/obligations/assessment.rs
++++ crates/logic/src/obligations/assessment.rs
+@@ -14,6 +14,7 @@ use purrdf::{DatasetMut, MutableDataset, QuadValues, RdfDataset, TermValue};
+ 
+ use crate::reason::InferredAxiom;
+ use crate::reason::refute::NativeFamilyCompletion;
++use crate::reason::refute::RefutationPremise;
+ use crate::reason::refute::native::{NativeClosureStatus, NativeFamilyLedger, NativeProofOrigin};
+ use crate::result::ReasoningResult;
+ 
+@@ -62,10 +63,21 @@ pub struct ObligationAssessment {
+     pub analysis: [u8; 32],
+     /// Every discovered and admitted obligation, including unknowns and hard errors.
+     pub outcomes: Vec<ObligationOutcome>,
++    pub(crate) condition_errors: BTreeMap<(String, String), String>,
++    pub(crate) absence_reasons: BTreeMap<(String, String), String>,
+     /// Sole diagnostic owner; semantic outcomes remain native assessment data.
+     ledger: DiagLedger,
+ }
+ 
++/// A selected declaration whose fields could not be read as an obligation.
++pub(crate) struct MalformedObligation {
++    pub(crate) world: String,
++    pub(crate) obligation: String,
++    pub(crate) forbidden_predicate: Option<String>,
++    pub(crate) witness: Option<Box<InferredAxiom>>,
++    pub(crate) diagnostic: Diag,
++}
++
+ impl ObligationAssessment {
+     /// Borrow the native diagnostic owner without changing semantic outcomes.
+     pub fn ledger(&self) -> &DiagLedger {
+@@ -82,44 +94,97 @@ impl ObligationAssessment {
+     }
+ }
+ 
++/// The authored rows required for a complete non-entailment declaration.
++#[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
++pub(crate) enum ObligationField {
++    Declaration,
++    ForbiddenPredicate,
++    DischargeCondition,
++}
++
++impl ObligationField {
++    pub(crate) fn as_str(self) -> &'static str {
++        match self {
++            Self::Declaration => "NonEntailmentObligation",
++            Self::ForbiddenPredicate => "obligationForbiddenPredicate",
++            Self::DischargeCondition => "obligationDischargeCondition",
++        }
++    }
++}
++
++pub(crate) fn obligation_field(
++    predicate: &str,
++    object_iri: Option<&str>,
++) -> Option<ObligationField> {
++    match predicate {
++        "http://www.w3.org/1999/02/22-rdf-syntax-ns#type"
++        | "https://blackcatinformatics.ca/logic/instanceOf"
++            if object_iri
++                == Some("https://blackcatinformatics.ca/logic/NonEntailmentObligation") =>
++        {
++            Some(ObligationField::Declaration)
++        }
++        "https://blackcatinformatics.ca/logic/obligationForbiddenPredicate" => {
++            Some(ObligationField::ForbiddenPredicate)
++        }
++        "https://blackcatinformatics.ca/logic/obligationDischargeCondition" => {
++            Some(ObligationField::DischargeCondition)
++        }
++        _ => None,
++    }
++}
++
+ /// Retain only governance declaration/field statements in a native typed view.
+ /// The execution already normalized blank identities; no RDF text is emitted or parsed.
+ pub(crate) fn governance_statement(predicate: &str, object: &TermValue) -> bool {
+-    match predicate {
+-        "http://www.w3.org/1999/02/22-rdf-syntax-ns#type"
+-        | "https://blackcatinformatics.ca/logic/instanceOf" => matches!(
+-            object.as_iri(),
+-            Some(
+-                "https://blackcatinformatics.ca/logic/NonEntailmentObligation"
+-                    | "https://blackcatinformatics.ca/logic/FormalizationCandidate"
+-            )
+-        ),
+-        predicate => matches!(
+-            predicate.strip_prefix(LOGIC_NS),
+-            Some(
+-                "obligationForbiddenPredicate"
+-                    | "obligationDischargeCondition"
+-                    | "candidateNonEntailment"
+-            )
+-        ),
+-    }
++    obligation_field(predicate, object.as_iri()).is_some()
++        || predicate == "https://blackcatinformatics.ca/logic/candidateNonEntailment"
++        || (matches!(
++            predicate,
++            "http://www.w3.org/1999/02/22-rdf-syntax-ns#type"
++                | "https://blackcatinformatics.ca/logic/instanceOf"
++        ) && object.as_iri()
++            == Some("https://blackcatinformatics.ca/logic/FormalizationCandidate"))
+ }
+ 
+ fn governance_view(
+     ledger: &NativeFamilyLedger,
++    selected: Option<&dyn Fn(&RefutationPremise) -> bool>,
+ ) -> gmeow_errors::Result<(Arc<RdfDataset>, BTreeSet<String>)> {
+     let mut store = MutableDataset::new(purrdf::RdfDatasetBuilder::new().freeze()?);
+     let mut authored = BTreeSet::new();
+     for proof in &ledger.proofs {
+         let statement = &proof.statement;
++        if let Some(admits) = selected {
++            let Some(field) = obligation_field(&statement.predicate, statement.object.as_iri())
++            else {
++                continue;
++            };
++            let NativeProofOrigin::Asserted { sources, .. } = &proof.origin else {
++                continue;
++            };
++            for source in sources.iter().filter(|source| admits(source)) {
++                if obligation_field(&source.predicate, source.object.as_iri()) != Some(field) {
++                    continue;
++                }
++                if field == ObligationField::Declaration {
++                    authored.insert(&source.subject);
++                }
++                store
++                    .insert(QuadValues {
++                        s: source.subject.clone(),
++                        p: TermValue::iri(&source.predicate),
++                        o: source.object.clone(),
++                        g: None,
++                    })
++                    .ctx("selected native governance projection failed")?;
++            }
++            continue;
++        }
+         let selected = governance_statement(&statement.predicate, &statement.object);
+         if selected {
+-            if matches!(
+-                statement.predicate.as_str(),
+-                "http://www.w3.org/1999/02/22-rdf-syntax-ns#type"
+-                    | "https://blackcatinformatics.ca/logic/instanceOf"
+-            ) && statement.object.as_iri()
+-                == Some("https://blackcatinformatics.ca/logic/NonEntailmentObligation")
++            if obligation_field(&statement.predicate, statement.object.as_iri())
++                == Some(ObligationField::Declaration)
+                 && matches!(proof.origin, NativeProofOrigin::Asserted { .. })
+             {
+                 authored.insert(&statement.subject);
+@@ -224,11 +289,32 @@ fn assess_world(
+     ledger: &NativeFamilyLedger,
+     derived: &BTreeMap<&str, BTreeMap<&str, &InferredAxiom>>,
+     assessment: &mut ObligationAssessment,
++    selected: Option<&dyn Fn(&RefutationPremise) -> bool>,
++    invalid: &mut impl FnMut(MalformedObligation) -> gmeow_errors::Result<()>,
+ ) -> gmeow_errors::Result<()> {
+     let world = ledger.world.as_str();
+     let source_graph = purrdf::iri::BaseIri::parse(world)?;
+-    let (store, authored) = governance_view(ledger)?;
+-    let obligations = parse_obligations(&store)?;
++    let (store, authored) = governance_view(ledger, selected)?;
++    let counterexample = |predicate: &str| {
++        derived
++            .get(world)
++            .and_then(|rows| rows.get(predicate))
++            .copied()
++    };
++    let obligations = parse_obligations(&store, |obligation, forbidden_predicate, diagnostic| {
++        let witness = forbidden_predicate
++            .as_deref()
++            .and_then(counterexample)
++            .cloned()
++            .map(Box::new);
++        invalid(MalformedObligation {
++            world: world.to_owned(),
++            obligation,
++            forbidden_predicate,
++            witness,
++            diagnostic,
++        })
++    })?;
+     let candidates = candidates_by_obligation(&store)?;
+     let source_complete = source_complete(analysis, execution, world);
+     let finite_complete = source_complete
+@@ -245,13 +331,20 @@ fn assess_world(
+     for obligation in &obligations {
+         let conditions = check_discharge_conditions(&source_graph, obligation);
+         let conditions_valid = conditions.is_empty();
++        if selected.is_some() && !conditions_valid {
++            assessment.condition_errors.insert(
++                (world.to_owned(), obligation.iri.clone()),
++                conditions
++                    .iter()
++                    .map(ToString::to_string)
++                    .collect::<Vec<_>>()
++                    .join("; "),
++            );
++        }
+         for diag in conditions {
+             assessment.record(attribute_to_candidates(diag, &obligation.iri, &candidates));
+         }
+-        let counterexample = derived
+-            .get(world)
+-            .and_then(|rows| rows.get(obligation.forbidden_predicate.as_str()))
+-            .copied();
++        let counterexample = counterexample(&obligation.forbidden_predicate);
+         let may_write = analysis.may_write(world, &obligation.forbidden_predicate)?;
+         let status = disposition(
+             obligation,
+@@ -277,6 +370,12 @@ fn assess_world(
+                             format!("non-entailment obligation <{}> has no certified selected absence proof (logic:ObligationUnknown); source_complete={source_complete}, finite_complete={finite_complete}", obligation.iri),
+                         ), &obligation.iri, &candidates)
+                     });
++                if selected.is_some() {
++                    assessment.absence_reasons.insert(
++                        (world.to_owned(), obligation.iri.clone()),
++                        diag.message().to_owned(),
++                    );
++                }
+                 assessment.record(diag);
+             }
+             ObligationDisposition::SyntacticallyDischarged
+@@ -326,6 +425,28 @@ pub fn assess_non_entailment_obligations(
+     result: &ReasoningResult,
+ ) -> gmeow_errors::Result<ObligationAssessment> {
+     result.validate_native_closure()?;
++    assess_obligations(result, None, |record| Err(record.diagnostic))
++}
++
++/// Keep invalid declarations as named boundaries beside supported witnesses.
++/// Execution and candidate-reference failures remain errors.
++pub(crate) fn assess_selected_obligations(
++    result: &ReasoningResult,
++    selected: &dyn Fn(&RefutationPremise) -> bool,
++) -> gmeow_errors::Result<(ObligationAssessment, Vec<MalformedObligation>)> {
++    let mut malformed = Vec::new();
++    let assessment = assess_obligations(result, Some(selected), |record| {
++        malformed.push(record);
++        Ok(())
++    })?;
++    Ok((assessment, malformed))
++}
++
++fn assess_obligations(
++    result: &ReasoningResult,
++    selected: Option<&dyn Fn(&RefutationPremise) -> bool>,
++    mut invalid: impl FnMut(MalformedObligation) -> gmeow_errors::Result<()>,
++) -> gmeow_errors::Result<ObligationAssessment> {
+     let execution = result.native_execution()?;
+     let ReachabilityEvidence::Program(analysis) = &execution.reachability else {
+         return Err(obligation_err(
+@@ -342,6 +463,8 @@ pub fn assess_non_entailment_obligations(
+     let mut assessment = ObligationAssessment {
+         analysis: analysis.identity(),
+         outcomes: Vec::new(),
++        condition_errors: BTreeMap::new(),
++        absence_reasons: BTreeMap::new(),
+         ledger: DiagLedger::new(),
+     };
+     let mut derived = BTreeMap::<&str, BTreeMap<&str, &InferredAxiom>>::new();
+@@ -353,7 +476,15 @@ pub fn assess_non_entailment_obligations(
+             .or_insert(row);
+     }
+     for ledger in &execution.families {
+-        assess_world(analysis, execution, ledger, &derived, &mut assessment)?;
++        assess_world(
++            analysis,
++            execution,
++            ledger,
++            &derived,
++            &mut assessment,
++            selected,
++            &mut invalid,
++        )?;
+     }
+     assessment
+         .outcomes
+diff --git crates/logic/src/reason/mod.rs crates/logic/src/reason/mod.rs
+index 29bc9b152..d447f1c42 100644
+--- crates/logic/src/reason/mod.rs
++++ crates/logic/src/reason/mod.rs
+@@ -34,7 +34,9 @@ pub use claims::{
+     ClaimIngress, ReadClaim, UnreadClaim, UnreadReason, prepare_selected_theory_input,
+ };
+ pub use source_admission::{
+-    NativeSourceAdmission, NativeSourceDisposition, NativeSourceDrop, reason_admitted_theory_within,
++    NativeSourceAdmission, NativeSourceDisposition, NativeSourceDrop, NonEntailmentSourceBoundary,
++    SelectedNonEntailment, SelectedNonEntailmentDisposition, SelectedNonEntailmentObligation,
++    reason_admitted_theory_within,
+ };
+ pub mod refute;
+ pub mod rl;
+diff --git crates/logic/src/reason/source_admission.rs crates/logic/src/reason/source_admission.rs
+index 734db2cc7..8fe815676 100644
+--- crates/logic/src/reason/source_admission.rs
++++ crates/logic/src/reason/source_admission.rs
+@@ -8,6 +8,7 @@
+ //! are observations and have no constructor that can restore that authority.
+ 
+ mod accounting;
++mod governance;
+ 
+ use std::collections::BTreeSet;
+ 
+@@ -27,6 +28,10 @@ use crate::physical::{LogicalGraph, SelectedDomains};
+ use crate::query_ir::Budget;
+ use crate::result::{EvaluationStatus, InformationState, ReasoningResult};
+ use accounting::{AtomPolarity, UnitTerm, account_axiom, account_formula, account_predication};
++pub use governance::{
++    NonEntailmentSourceBoundary, SelectedNonEntailment, SelectedNonEntailmentDisposition,
++    SelectedNonEntailmentObligation,
++};
+ 
+ const ENGINE_NATIVE: &str = "native";
+ const PROFILE: &str = "gmeow-native-source-accounting-v1";
+@@ -34,6 +39,8 @@ const NAF_BOUNDARY: &str = "NEGATION_AS_FAILURE_IS_NOT_CLASSICAL_NEGATION";
+ const FORMULA_EVIDENCE_BOUNDARY: &str = "FORMULA_EVIDENCE_NOT_ACCOUNTED";
+ const SOURCE_ACCOUNTING_DOMAIN: purrdf_hash::Domain =
+     purrdf_hash::Domain::new(b"gmeow-native-source-accounting-v1\0");
++const GOVERNED_SOURCE_ACCOUNTING_DOMAIN: purrdf_hash::Domain =
++    purrdf_hash::Domain::new(b"gmeow-native-source-accounting-v2\0");
+ const SOURCE_EXECUTION_DOMAIN: purrdf_hash::Domain =
+     purrdf_hash::Domain::new(b"gmeow-live-native-source-execution-v1\0");
+ 
+@@ -75,6 +82,7 @@ pub enum NativeSourceDisposition {
+     MetatheoryDeclaration {
+         route: &'static str,
+     },
++    NonEntailmentDeclaration,
+     OutsideSelection {
+         reason: &'static str,
+     },
+@@ -84,6 +92,8 @@ pub enum NativeSourceDisposition {
+     Blocked {
+         code: &'static str,
+         reason: String,
++        #[serde(skip_serializing_if = "Option::is_none")]
++        non_entailment_field: Option<&'static str>,
+     },
+     Malformed {
+         code: &'static str,
+@@ -98,6 +108,7 @@ impl Disposition {
+         Self::Blocked {
+             code,
+             reason: reason.into(),
++            non_entailment_field: None,
+         }
+     }
+     fn malformed(code: &'static str, reason: impl Into<String>) -> Self {
+@@ -114,7 +125,7 @@ impl Disposition {
+     }
+     fn boundary(&self) -> Option<(&'static str, &str)> {
+         match self {
+-            Self::Blocked { code, reason } | Self::Malformed { code, reason } => {
++            Self::Blocked { code, reason, .. } | Self::Malformed { code, reason } => {
+                 Some((code, reason))
+             }
+             Self::OutsideSelection { reason } => Some(("OUTSIDE_SELECTION", reason)),
+@@ -131,6 +142,7 @@ pub struct NativeSourceAdmission<'inventory> {
+     selection: ResolvedTheorySelection,
+     dispositions: Vec<Disposition>,
+     execution_drops: BTreeSet<NativeSourceDrop>,
++    non_entailment: Option<SelectedNonEntailment>,
+     completion: Option<LiveCompletion>,
+ }
+ 
+@@ -184,6 +196,7 @@ impl<'inventory> NativeSourceAdmission<'inventory> {
+             selection: selection.clone(),
+             dispositions,
+             execution_drops: BTreeSet::new(),
++            non_entailment: None,
+             completion: None,
+         })
+     }
+@@ -266,11 +279,26 @@ impl<'inventory> NativeSourceAdmission<'inventory> {
+         &self.selection
+     }
+ 
++    /// Governance outcomes and source links from this selected execution.
++    #[must_use]
++    pub fn non_entailment(&self) -> Option<&SelectedNonEntailment> {
++        self.non_entailment.as_ref()
++    }
++
+     fn accounting_digest(&self) -> [u8; 32] {
+         let mut hasher = purrdf_hash::blake3::Hasher::new();
+-        hasher.update(SOURCE_ACCOUNTING_DOMAIN.as_bytes());
++        let domain = if self.non_entailment.is_some() {
++            GOVERNED_SOURCE_ACCOUNTING_DOMAIN
++        } else {
++            SOURCE_ACCOUNTING_DOMAIN
++        };
++        hasher.update(domain.as_bytes());
+         serde_json::to_writer(&mut hasher, &Rows(self))
+             .expect("native source rows serialize to an infallible digest sink");
++        if let Some(non_entailment) = self.non_entailment() {
++            serde_json::to_writer(&mut hasher, non_entailment)
++                .expect("selected non-entailment observations serialize to the digest sink");
++        }
+         *hasher.finalize().as_bytes()
+     }
+ }
+@@ -313,7 +341,10 @@ impl Serialize for Rows<'_, '_> {
+ 
+ impl Serialize for NativeSourceAdmission<'_> {
+     fn serialize<S: serde::Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
+-        let mut record = serializer.serialize_struct("NativeSourceAdmission", 15)?;
++        let mut record = serializer.serialize_struct(
++            "NativeSourceAdmission",
++            15 + usize::from(self.non_entailment.is_some()),
++        )?;
+         record.serialize_field("profile", PROFILE)?;
+         record.serialize_field("basis", "compiler source obligations and exact lowering routes; authored occurrences are retained by their document receipts")?;
+         record.serialize_field("source_digest", self.inventory.source_digest())?;
+@@ -324,6 +355,9 @@ impl Serialize for NativeSourceAdmission<'_> {
+         record.serialize_field("complete", &self.observed_complete())?;
+         record.serialize_field("units", &Rows(self))?;
+         record.serialize_field("execution_drops", &self.execution_drops)?;
++        if let Some(non_entailment) = self.non_entailment() {
++            record.serialize_field("non_entailment", non_entailment)?;
++        }
+         record.serialize_field(
+             "ingress_contract",
+             &self
+@@ -447,9 +481,14 @@ fn classify(
+                     ),
+                     "native asserted fact and interpreted-relation account",
+                 ),
+-                Err(error) => {
+-                    Disposition::blocked("UNSUPPORTED_SELECTED_ASSERTION", error.to_string())
+-                }
++                Err(error) => Disposition::Blocked {
++                    code: "UNSUPPORTED_SELECTED_ASSERTION",
++                    reason: error.to_string(),
++                    non_entailment_field: governance::unread_field_name(
++                        theory.source().dataset(),
++                        quad,
++                    ),
++                },
+             }
+         }
+         SourceObligationOrigin::Quotation { reifier, graph, .. } => {
+@@ -994,12 +1033,16 @@ pub fn reason_admitted_theory_within(
+ ) -> gmeow_errors::Result<std::sync::Arc<ReasoningResult>> {
+     admission.completion = None;
+     admission.execution_drops.clear();
++    admission.non_entailment = None;
+     for (unit, disposition) in admission
+         .inventory
+         .obligations()
+         .zip(&mut admission.dispositions)
+     {
+-        if matches!(disposition, Disposition::FormulaEvidence { .. }) {
++        if matches!(
++            disposition,
++            Disposition::FormulaEvidence { .. } | Disposition::NonEntailmentDeclaration
++        ) {
+             *disposition =
+                 classify_selected(admission.inventory, unit, None, &admission.selection)?;
+         }
+@@ -1220,6 +1263,7 @@ pub fn reason_admitted_theory_within(
+             "the supplied source contains no theory unit",
+         ));
+     }
++    governance::account_non_entailment(admission, &result)?;
+     let complete = admission.drops().next().is_none();
+     let execution = execution_digest(&result, &verdict);
+     let result = std::sync::Arc::new(result);
+diff --git crates/logic/src/reason/source_admission/governance.rs crates/logic/src/reason/source_admission/governance.rs
+new file mode 100644
+index 000000000..223af57ce
+--- /dev/null
++++ crates/logic/src/reason/source_admission/governance.rs
+@@ -0,0 +1,489 @@
++// SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
++// SPDX-License-Identifier: AGPL-3.0-only
++
++//! Bind native governance outcomes to the selected source occurrences.
++
++use std::collections::{BTreeMap, HashMap, HashSet};
++
++use gmeow_logic_compile::frontend::{SourceCarrier, SourceStatementBinding};
++use gmeow_logic_compile::source_inventory::SelectedSourceView;
++use purrdf::dataset_view::GraphMatch;
++use purrdf::{DatasetView, QuadIds, RdfDataset, TermRef, TermValue};
++use purrdf_hash::fixed::FixedState;
++use serde::Serialize;
++
++use super::{
++    Disposition, ENGINE_NATIVE, NativeSourceAdmission, NativeSourceDrop, ReasoningResult,
++    SourceObligationId, SourceObligationOrigin, TheoryUnitSelection, reason_err,
++};
++use crate::obligations::{
++    ObligationDisposition, ObligationField, assess_selected_obligations, obligation_field,
++};
++use crate::reason::InferredAxiom;
++use crate::reason::refute::{RefutationPremise, native::NativeProofOrigin};
++
++/// Governance observations from the live selected native execution.
++#[derive(Debug, Serialize)]
++pub struct SelectedNonEntailment {
++    /// Content identity of the actual program and world writer analysis.
++    pub analysis: String,
++    /// Selected declarations and their exact outcome and source coordinates.
++    pub obligations: Vec<SelectedNonEntailmentObligation>,
++}
++
++/// One obligation evaluated within the selected theory.
++#[derive(Debug, Serialize)]
++pub struct SelectedNonEntailmentObligation {
++    /// Actual committed native world.
++    pub world: String,
++    /// Scoped identity used by that world.
++    pub obligation: String,
++    /// Predicate named by a readable forbidden-predicate field.
++    pub forbidden_predicate: Option<String>,
++    /// Exact selected authored source obligations for this declaration.
++    pub sources: Vec<SourceObligationId>,
++    /// Selected declaration rows whose original assertion remains unread.
++    #[serde(skip_serializing_if = "Vec::is_empty")]
++    pub source_boundaries: Vec<NonEntailmentSourceBoundary>,
++    /// Outcome within the public proof contract.
++    pub disposition: SelectedNonEntailmentDisposition,
++    /// An invalid condition retained beside a supported violation.
++    #[serde(skip_serializing_if = "Option::is_none")]
++    pub declaration_error: Option<String>,
++}
++
++/// The original source and diagnostic for an unsupported governance field.
++#[derive(Debug, Serialize)]
++pub struct NonEntailmentSourceBoundary {
++    /// Identity of the unread selected source row.
++    pub source: SourceObligationId,
++    /// Authored declaration field governed by the unread row.
++    pub field: &'static str,
++    /// Original native source-admission code.
++    pub code: &'static str,
++    /// Original native source-admission diagnostic.
++    pub detail: String,
++}
++
++/// A selected discharge, a supported counterexample, or a named boundary.
++#[derive(Debug, Serialize)]
++pub enum SelectedNonEntailmentDisposition {
++    /// A complete selected account establishes syntactic unreachability.
++    SyntacticallyDischarged,
++    /// The certified finite selected closure contains no forbidden inference.
++    FiniteClosureDischarged,
++    /// Exact committed native inference of the forbidden predicate.
++    Violated(Box<InferredAxiom>),
++    /// A required source account or selected absence proof is incomplete.
++    Inconclusive { reason: String },
++    /// The selected declaration has malformed or unsupported fields.
++    Invalid { detail: String },
++}
++
++impl SelectedNonEntailmentDisposition {
++    /// Stable spelling for the text report.
++    #[must_use]
++    pub fn as_str(&self) -> &'static str {
++        match self {
++            Self::SyntacticallyDischarged => "syntactically-discharged",
++            Self::FiniteClosureDischarged => "finite-closure-discharged",
++            Self::Violated(_) => "violated",
++            Self::Inconclusive { .. } => "inconclusive",
++            Self::Invalid { .. } => "invalid",
++        }
++    }
++
++    fn boundary(&self) -> Option<(&'static str, &str)> {
++        match self {
++            Self::SyntacticallyDischarged | Self::FiniteClosureDischarged => None,
++            Self::Violated(_) => Some((
++                "NON_ENTAILMENT_VIOLATED",
++                "the selected closure derived the forbidden predicate",
++            )),
++            Self::Inconclusive { reason } => Some(("NON_ENTAILMENT_NOT_DISCHARGED", reason)),
++            Self::Invalid { detail } => Some(("NON_ENTAILMENT_INVALID_DECLARATION", detail)),
++        }
++    }
++}
++
++fn premise_quad(dataset: &RdfDataset, premise: &RefutationPremise) -> Option<QuadIds> {
++    if premise.graph.is_some() {
++        return None;
++    }
++    Some(QuadIds {
++        s: dataset.term_id_by_value(&premise.subject)?,
++        p: dataset.term_id_by_iri(&premise.predicate)?,
++        o: dataset.term_id_by_value(&premise.object)?,
++        g: None,
++    })
++}
++
++fn resource_identity(term: &TermValue) -> gmeow_errors::Result<String> {
++    match term {
++        TermValue::Iri(iri) => Ok(iri.clone()),
++        TermValue::Blank { label, scope } => Ok(format!("_:{}", scope.qualify_label(label))),
++        _ => Err(reason_err(
++            "native governance subject must be a resource".into(),
++        )),
++    }
++}
++
++#[derive(Clone)]
++struct SourceField {
++    obligation: String,
++    field: ObligationField,
++}
++
++fn source_fields(
++    dataset: &RdfDataset,
++    result: &ReasoningResult,
++) -> gmeow_errors::Result<HashMap<QuadIds, SourceField, FixedState>> {
++    let mut fields = HashMap::with_hasher(FixedState::new());
++    for ledger in &result.native_execution()?.families {
++        for proof in &ledger.proofs {
++            let NativeProofOrigin::Asserted { sources, .. } = &proof.origin else {
++                continue;
++            };
++            let Some(field) =
++                obligation_field(&proof.statement.predicate, proof.statement.object.as_iri())
++            else {
++                continue;
++            };
++            for premise in sources {
++                if obligation_field(&premise.predicate, premise.object.as_iri()) != Some(field) {
++                    continue;
++                }
++                let Some(quad) = premise_quad(dataset, premise) else {
++                    continue;
++                };
++                let obligation = resource_identity(&premise.subject)?;
++                let recorded = fields.entry(quad).or_insert_with(|| SourceField {
++                    obligation: obligation.clone(),
++                    field,
++                });
++                if recorded.obligation != obligation || recorded.field != field {
++                    return Err(reason_err(
++                        "a selected governance row has conflicting native source bindings".into(),
++                    ));
++                }
++            }
++        }
++    }
++    Ok(fields)
++}
++
++#[derive(Default)]
++struct SourceRows {
++    rows: Vec<SourceRow>,
++}
++
++struct SourceRow {
++    index: usize,
++    id: SourceObligationId,
++    field: ObligationField,
++    quad: QuadIds,
++    boundary: Option<NonEntailmentSourceBoundary>,
++}
++
++impl SourceRows {
++    fn complete(&self) -> bool {
++        [
++            ObligationField::Declaration,
++            ObligationField::ForbiddenPredicate,
++            ObligationField::DischargeCondition,
++        ]
++        .iter()
++        .all(|field| {
++            self.rows
++                .iter()
++                .any(|row| row.field == *field && row.boundary.is_none())
++        })
++    }
++
++    fn account(
++        self,
++        dispositions: &mut [Disposition],
++    ) -> (Vec<SourceObligationId>, Vec<NonEntailmentSourceBoundary>) {
++        let mut sources = Vec::new();
++        let mut boundaries = Vec::new();
++        for row in self.rows {
++            if let Some(boundary) = row.boundary {
++                boundaries.push(boundary);
++            } else {
++                dispositions[row.index] = Disposition::NonEntailmentDeclaration;
++            }
++            sources.push(row.id);
++        }
++        (sources, boundaries)
++    }
++}
++
++fn authored_field(dataset: &RdfDataset, quad: QuadIds) -> Option<ObligationField> {
++    let TermRef::Iri(predicate) = dataset.resolve(quad.p) else {
++        return None;
++    };
++    let object_iri = match dataset.resolve(quad.o) {
++        TermRef::Iri(iri) => Some(iri),
++        _ => None,
++    };
++    obligation_field(predicate, object_iri)
++}
++
++pub(super) fn unread_field_name(dataset: &RdfDataset, quad: QuadIds) -> Option<&'static str> {
++    authored_field(dataset, quad).map(ObligationField::as_str)
++}
++
++fn unread_field(dataset: &RdfDataset, quad: QuadIds) -> Option<SourceField> {
++    let field = authored_field(dataset, quad)?;
++    let obligation = match dataset.resolve(quad.s) {
++        TermRef::Iri(iri) => iri.to_owned(),
++        TermRef::Blank { label, scope } => format!("_:{}", scope.qualify_label(label)),
++        _ => return None,
++    };
++    Some(SourceField { obligation, field })
++}
++
++fn selected_binding(view: &SelectedSourceView<'_>, binding: SourceStatementBinding) -> bool {
++    let quad = binding.canonical;
++    match binding.carrier {
++        SourceCarrier::Statement => view
++            .quads_for_pattern(
++                Some(quad.s),
++                Some(quad.p),
++                Some(quad.o),
++                GraphMatch::Default,
++            )
++            .any(|selected| selected == quad),
++        SourceCarrier::Annotation => view
++            .annotations_of_with_graph(quad.s)
++            .any(|selected| selected == (quad.p, quad.o, quad.g)),
++        SourceCarrier::Reifier => view
++            .reifier_quads_of(quad.s)
++            .any(|selected| selected == quad),
++    }
++}
++
++fn selected_rows(
++    admission: &NativeSourceAdmission<'_>,
++    result: &ReasoningResult,
++) -> gmeow_errors::Result<BTreeMap<String, SourceRows>> {
++    let dataset = admission.inventory.theory().source().dataset();
++    let fields = source_fields(dataset, result)?;
++    let view = admission.selection.source_view(admission.inventory)?;
++    let mut rows = BTreeMap::<String, SourceRows>::new();
++    for (index, (unit, disposition)) in admission.source_dispositions().enumerate() {
++        let SourceObligationOrigin::Statement(binding) = unit.origin() else {
++            continue;
++        };
++        if binding.canonical.g.is_some() {
++            continue;
++        }
++        let (field, unread) = match disposition {
++            Disposition::Blocked {
++                code: "UNIT_NOT_ACCOUNTED",
++                ..
++            } => {
++                let Some(field) = fields.get(&binding.canonical) else {
++                    continue;
++                };
++                (field.clone(), None)
++            }
++            Disposition::Blocked {
++                code: code @ "UNSUPPORTED_SELECTED_ASSERTION",
++                reason,
++                non_entailment_field: Some(_),
++            } => {
++                let Some(field) = unread_field(dataset, binding.canonical) else {
++                    continue;
++                };
++                (field, Some((*code, reason)))
++            }
++            _ => continue,
++        };
++        if !matches!(
++            admission.selection.unit_selection(unit)?,
++            TheoryUnitSelection::Included
++        ) || !selected_binding(&view, binding)
++        {
++            continue;
++        }
++        let id = unit.identity();
++        let boundary = unread.map(|(code, detail)| NonEntailmentSourceBoundary {
++            source: id.clone(),
++            field: field.field.as_str(),
++            code,
++            detail: detail.clone(),
++        });
++        rows.entry(field.obligation)
++            .or_default()
++            .rows
++            .push(SourceRow {
++                index,
++                id,
++                field: field.field,
++                quad: binding.canonical,
++                boundary,
++            });
++    }
++    Ok(rows)
++}
++
++fn selected_disposition(
++    disposition: ObligationDisposition,
++    admission_gap: Option<&str>,
++    declaration_error: &mut Option<String>,
++    assessment_reason: Option<String>,
++) -> gmeow_errors::Result<SelectedNonEntailmentDisposition> {
++    Ok(match disposition {
++        ObligationDisposition::Violated(witness) => {
++            SelectedNonEntailmentDisposition::Violated(witness)
++        }
++        ObligationDisposition::InvalidDischarge => SelectedNonEntailmentDisposition::Invalid {
++            detail: declaration_error.take().ok_or_else(|| {
++                reason_err("invalid discharge omitted its declaration diagnostic".into())
++            })?,
++        },
++        ObligationDisposition::SyntacticallyDischarged if admission_gap.is_none() => {
++            SelectedNonEntailmentDisposition::SyntacticallyDischarged
++        }
++        ObligationDisposition::FiniteClosureDischarged if admission_gap.is_none() => {
++            SelectedNonEntailmentDisposition::FiniteClosureDischarged
++        }
++        ObligationDisposition::SyntacticallyDischarged
++        | ObligationDisposition::FiniteClosureDischarged => {
++            SelectedNonEntailmentDisposition::Inconclusive {
++                reason: admission_gap
++                    .ok_or_else(|| {
++                        reason_err("withheld discharge omitted its source boundary".into())
++                    })?
++                    .to_owned(),
++            }
++        }
++        ObligationDisposition::Unknown => SelectedNonEntailmentDisposition::Inconclusive {
++            reason: assessment_reason.ok_or_else(|| {
++                reason_err("unresolved discharge omitted its assessment diagnostic".into())
++            })?,
++        },
++    })
++}
++
++pub(super) fn account_non_entailment(
++    admission: &mut NativeSourceAdmission<'_>,
++    result: &ReasoningResult,
++) -> gmeow_errors::Result<()> {
++    let mut rows = selected_rows(admission, result)?;
++    if rows.is_empty() {
++        return Ok(());
++    }
++    let dataset = admission.inventory.theory().source().dataset();
++    let selected_quads: HashSet<_, FixedState> = rows
++        .values()
++        .flat_map(|source| {
++            source
++                .rows
++                .iter()
++                .filter(|row| row.boundary.is_none())
++                .map(|row| row.quad)
++        })
++        .collect();
++    let (mut assessment, invalid) = assess_selected_obligations(result, &|premise| {
++        premise_quad(dataset, premise).is_some_and(|quad| selected_quads.contains(&quad))
++    })?;
++    let mut obligations = Vec::new();
++    let mut assessed = Vec::new();
++    for outcome in assessment.outcomes {
++        let source_rows = rows.remove(&outcome.obligation).unwrap_or_default();
++        let bound = source_rows.complete();
++        let (sources, boundaries) = source_rows.account(&mut admission.dispositions);
++        assessed.push((outcome, bound, sources, boundaries));
++    }
++    for malformed in invalid {
++        let (sources, source_boundaries) = rows
++            .remove(&malformed.obligation)
++            .unwrap_or_default()
++            .account(&mut admission.dispositions);
++        let error = malformed.diagnostic.to_string();
++        let (disposition, declaration_error) = match malformed.witness {
++            Some(witness) => (
++                SelectedNonEntailmentDisposition::Violated(witness),
++                Some(error),
++            ),
++            None => (
++                SelectedNonEntailmentDisposition::Invalid { detail: error },
++                None,
++            ),
++        };
++        obligations.push(SelectedNonEntailmentObligation {
++            world: malformed.world,
++            obligation: malformed.obligation,
++            forbidden_predicate: malformed.forbidden_predicate,
++            sources,
++            source_boundaries,
++            disposition,
++            declaration_error,
++        });
++    }
++    let admission_gap = if let Some(drop) = admission.drops().next() {
++        Some(format!(
++            "the selected theory has incomplete coverage ({}): {}",
++            drop.code, drop.detail
++        ))
++    } else if assessed.iter().any(|(_, bound, _, _)| !bound) {
++        Some("the selected theory has incomplete non-entailment declaration bindings".to_owned())
++    } else if !obligations.is_empty() || !assessment.condition_errors.is_empty() {
++        Some(
++            "the selected theory has malformed or unsupported non-entailment declarations"
++                .to_owned(),
++        )
++    } else {
++        None
++    };
++    for (outcome, _, sources, source_boundaries) in assessed {
++        let key = (outcome.world.clone(), outcome.obligation.clone());
++        let mut declaration_error = assessment.condition_errors.remove(&key);
++        let assessment_reason = assessment.absence_reasons.remove(&key);
++        obligations.push(SelectedNonEntailmentObligation {
++            world: outcome.world,
++            obligation: outcome.obligation,
++            forbidden_predicate: Some(outcome.forbidden_predicate),
++            sources,
++            source_boundaries,
++            disposition: selected_disposition(
++                outcome.disposition,
++                admission_gap.as_deref(),
++                &mut declaration_error,
++                assessment_reason,
++            )?,
++            declaration_error,
++        });
++    }
++    obligations.sort_by(|left, right| {
++        (&left.world, &left.obligation).cmp(&(&right.world, &right.obligation))
++    });
++    for obligation in &obligations {
++        let declaration_error = obligation
++            .declaration_error
++            .as_deref()
++            .map(|detail| ("NON_ENTAILMENT_INVALID_DECLARATION", detail));
++        for (code, detail) in obligation
++            .disposition
++            .boundary()
++            .into_iter()
++            .chain(declaration_error)
++        {
++            admission.execution_drops.insert(NativeSourceDrop::new(
++                ENGINE_NATIVE,
++                code,
++                format!(
++                    "{} in world {}: {detail}",
++                    obligation.obligation, obligation.world
++                ),
++            ));
++        }
++    }
++    admission.non_entailment = Some(SelectedNonEntailment {
++        analysis: purrdf_hash::hex::encode(&assessment.analysis),
++        obligations,
++    });
++    Ok(())
++}
+diff --git crates/pipeline/src/stages/carrier.rs crates/pipeline/src/stages/carrier.rs
+index 4d9977112..b6b57f653 100644
+--- crates/pipeline/src/stages/carrier.rs
++++ crates/pipeline/src/stages/carrier.rs
+@@ -872,6 +872,36 @@ fn holds_named_graph(dataset: &purrdf::RdfDataset, graph_iri: &str) -> bool {
+         .is_some_and(|graph| dataset.has_named_graph(graph))
+ }
+ 
++/// Check that the promised graph owns the entire native dataset.
++pub(super) fn require_rooted_graph(
++    dataset: &purrdf::RdfDataset,
++    stage: &str,
++    graph_iri: &str,
++) -> gmeow_errors::Result<()> {
++    let invalid = |message| {
++        gmeow_errors::Diag::of_kind(crate::error::StageFailed {
++            stage: stage.to_owned(),
++            message,
++            cause: None,
++        })
++    };
++    let graph = dataset
++        .term_id_by_iri(graph_iri)
++        .filter(|&graph| dataset.named_graphs().eq(std::iter::once(graph)))
++        .ok_or_else(|| invalid(format!("must declare only <{graph_iri}>")))?;
++    if dataset.quads().any(|quad| quad.g != Some(graph))
++        || dataset
++            .reifiers_with_graph()
++            .any(|(_, _, owner)| owner != Some(graph))
++        || dataset
++            .annotations_with_graph()
++            .any(|(_, _, _, owner)| owner != Some(graph))
++    {
++        return Err(invalid(format!("contains RDF rows outside <{graph_iri}>")));
++    }
++    Ok(())
++}
++
+ /// Number of ordinary quads `dataset` asserts in the named graph `graph_iri`.
+ fn graph_quad_count(dataset: &purrdf::RdfDataset, graph_iri: &str) -> usize {
+     dataset.term_id_by_iri(graph_iri).map_or(0, |graph| {
+@@ -1034,22 +1064,7 @@ impl<'a> CarrierParts<'a> {
+         graph_iri: &str,
+     ) -> Result<(), gmeow_errors::Diag> {
+         let dataset = self.producer_dataset(stage)?;
+-        let graph = dataset
+-            .term_id_by_iri(graph_iri)
+-            .filter(|&graph| dataset.named_graphs().eq(std::iter::once(graph)))
+-            .ok_or_else(|| stage_err(&format!("{stage} must declare only <{graph_iri}>")))?;
+-        if dataset.quads().any(|quad| quad.g != Some(graph))
+-            || dataset
+-                .reifiers_with_graph()
+-                .any(|(_, _, owner)| owner != Some(graph))
+-            || dataset
+-                .annotations_with_graph()
+-                .any(|(_, _, _, owner)| owner != Some(graph))
+-        {
+-            return Err(stage_err(&format!(
+-                "{stage} contains RDF rows outside <{graph_iri}>"
+-            )));
+-        }
++        require_rooted_graph(&dataset, stage, graph_iri)?;
+         log_carrier_part(stage, graph_iri, dataset.quad_count());
+         self.place_graph_source(purrdf::CompositeSource::new(dataset), graph_iri);
+         Ok(())
+diff --git crates/pipeline/src/stages/docs_render.rs crates/pipeline/src/stages/docs_render.rs
+index 71321f464..141e30097 100644
+--- crates/pipeline/src/stages/docs_render.rs
++++ crates/pipeline/src/stages/docs_render.rs
+@@ -7,18 +7,35 @@
+ 
+ use std::collections::{BTreeMap, BTreeSet};
+ use std::path::Path;
++use std::sync::Arc;
+ 
+ use gmeow_docs::model::{
+     ConsistencyAssessment, ConstraintRule, DiagnosticsDigest, DocDiagFinding, DocsModel,
+     ReasoningVerdict,
+ };
+ use gmeow_docs::rdf::to_gmeow_rdf;
+-use purrdf::RdfTerm;
++use purrdf::{RdfDataset, RdfDatasetBuilder, RdfTerm};
+ 
+ use crate::node::{CachePolicy, Stage, StageInput, StageOutput, StageProduct};
++use crate::stages::carrier::{GRAPH_DOCUMENTATION, require_rooted_graph};
+ 
+ const RDF_TYPE: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
+ 
++/// Publish the already named graph the N-Quads renderer supplies.
++fn admit_rendered_documentation(rendered: &str) -> gmeow_errors::Result<Arc<RdfDataset>> {
++    let dataset = if rendered.is_empty() {
++        let mut builder = RdfDatasetBuilder::new();
++        let graph = builder.intern_iri(GRAPH_DOCUMENTATION)?;
++        builder.declare_named_graph(graph)?;
++        builder.freeze().map_err(gmeow_errors::Diag::from)?
++    } else {
++        purrdf::parse_dataset(rendered.as_bytes(), "application/n-quads", None)
++            .map_err(gmeow_errors::Diag::from)?
++    };
++    require_rooted_graph(&dataset, "stage-docs-render", GRAPH_DOCUMENTATION)?;
++    Ok(dataset)
++}
++
+ /// Select the declared in-DAG reasoning owner. Post-DAG documentation explicitly
+ /// selects its retained snapshot and uses the same native admission below.
+ pub(crate) fn reasoning_verdict_from_reason(
+@@ -690,11 +707,11 @@ pub fn render_docs_graph(
+     let mut model =
+         DocsModel::discover_with_manifest_and_catalog(root, manifest_bytes, &catalog_bytes)
+             .map_err(|e| {
+-                gmeow_errors::Diag::of_kind(crate::error::StageFailed {
+-                    cause: None,
+-                    stage: "stage-docs-render".to_string(),
+-                    message: format!("docs model discovery failed: {e}"),
+-                })
++                gmeow_errors::Diag::of_kind(crate::error::StageFailed::caused_by(
++                    "stage-docs-render".to_owned(),
++                    format!("docs model discovery failed: {e}"),
++                    e,
++                ))
+             })?;
+     model.attach_reasoning(verdict);
+     let known_term_iris: BTreeSet<String> = model.terms.iter().map(|t| t.iri.clone()).collect();
+@@ -1034,7 +1051,7 @@ impl Stage for DocsRenderStage {
+         // v6: adds `term_loss_digest_from_upstream`, folding the dynamic per-term
+         // projection-loss join from the `stage-mappings` product's live
+         // `GRAPH_PROJECTION_LEDGER` graph.
+-        "docs_render.v17-localized-fixture-rationales"
++        "docs_render.v18-admit-rendered-graph"
+     }
+     fn input_files(&self, root: &Path) -> Result<Vec<std::path::PathBuf>, gmeow_errors::Diag> {
+         // Guides, four-boxes patterns and locale catalogs contribute to the graph
+@@ -1045,11 +1062,9 @@ impl Stage for DocsRenderStage {
+         let verdict = reasoning_verdict_from_reason(input.upstream)?;
+         let dataset = {
+             let graph = render_docs_graph(input.root, verdict, input.upstream)?;
+-            crate::stages::carrier::parse_into_graph(
+-                graph.as_bytes(),
+-                "application/n-quads",
+-                crate::stages::carrier::GRAPH_DOCUMENTATION,
+-            )?
++            crate::node::measure_stage_phase(self.id(), "parse-documentation-rdf", || {
++                admit_rendered_documentation(&graph)
++            })?
+         };
+         Ok(StageOutput::new(StageProduct::from_artifacts_over(
+             self.id(),
+diff --git crates/pipeline/src/stages/docs_render.tests.rs crates/pipeline/src/stages/docs_render.tests.rs
+index 7a8e9a93e..c1bde79e6 100644
+--- crates/pipeline/src/stages/docs_render.tests.rs
++++ crates/pipeline/src/stages/docs_render.tests.rs
+@@ -3,6 +3,72 @@
+ 
+ use super::*;
+ 
++/// Publish the same stage and snapshot content for rendered documentation,
++/// including a declaration-only graph and native statement metadata.
++#[test]
++fn documentation_admission_preserves_stage_and_snapshot_identity() {
++    let model = DocsModel {
++        terms: vec![gmeow_docs::model::DocTerm {
++            iri: "https://blackcatinformatics.ca/gmeow/Document".to_owned(),
++            curie: "gmeow:Document".to_owned(),
++            label: Some("Document".to_owned()),
++            owner_slice: "https://blackcatinformatics.ca/gmeow/slice/documents".to_owned(),
++            ..Default::default()
++        }],
++        ..Default::default()
++    };
++    let rendered = to_gmeow_rdf(&model, &BTreeMap::new());
++    assert!(!rendered.is_empty(), "the renderer emits a documented term");
++    let reified = format!(
++        "_:doc <urn:doc:label> \"A document\"@en <{GRAPH_DOCUMENTATION}> .\n\
++         <urn:doc:claim> <http://www.w3.org/1999/02/22-rdf-syntax-ns#reifies> \
++         <<( _:doc <urn:doc:label> \"A document\"@en )>> <{GRAPH_DOCUMENTATION}> .\n\
++         <urn:doc:claim> <urn:doc:evidence> <urn:doc:source> <{GRAPH_DOCUMENTATION}> .\n"
++    );
++    let snapshot_id = |dataset: &RdfDataset| {
++        let mut snapshot = purrdf::gts_compose::SnapshotBuilder::new();
++        let _receipt = snapshot
++            .add_view(dataset)
++            .expect("fold documentation into the snapshot");
++        snapshot.snapshot_content_id()
++    };
++    let stage_digest = |dataset| {
++        StageProduct::from_artifacts_over("stage-docs-render", dataset, BTreeMap::new())
++            .expect("digest the documentation stage product")
++            .digest
++    };
++
++    for input in [rendered.as_str(), reified.as_str(), ""] {
++        let admitted = admit_rendered_documentation(input).expect("admit the rendered graph");
++        assert_eq!(
++            admitted.owned_named_graphs().collect::<Vec<_>>(),
++            [RdfTerm::iri(GRAPH_DOCUMENTATION)]
++        );
++        let rooted = crate::stages::carrier::parse_into_graph(
++            input.as_bytes(),
++            "application/n-quads",
++            GRAPH_DOCUMENTATION,
++        )
++        .expect("admit the same input through explicit graph placement");
++        assert_eq!(snapshot_id(&admitted), snapshot_id(&rooted));
++
++        assert_eq!(stage_digest(admitted), stage_digest(rooted));
++    }
++}
++
++/// Reject renderer output that includes a statement outside its declared graph.
++#[test]
++fn documentation_admission_refuses_foreign_graph_rows() {
++    for foreign in [
++        "<urn:s> <urn:p> <urn:o> .",
++        "<urn:s> <urn:p> <urn:o> <urn:foreign> .",
++    ] {
++        let input = format!("<urn:s> <urn:p> <urn:o> <{GRAPH_DOCUMENTATION}> .\n{foreign}\n");
++        let error = admit_rendered_documentation(&input).expect_err("refuse misplaced RDF");
++        assert!(error.message().contains(GRAPH_DOCUMENTATION));
++    }
++}
++
+ fn repo_root() -> std::path::PathBuf {
+     Path::new(env!("CARGO_MANIFEST_DIR"))
+         .join("..")
+diff --git crates/pipeline/src/stages/lang_docs_rendering.rs crates/pipeline/src/stages/lang_docs_rendering.rs
+index e2ae59d45..8075066f5 100644
+--- crates/pipeline/src/stages/lang_docs_rendering.rs
++++ crates/pipeline/src/stages/lang_docs_rendering.rs
+@@ -103,7 +103,7 @@ pub fn build_corpus(root: &std::path::Path) -> Result<LangDocsRenderingCorpus, g
+         &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None),
+     )?;
+     let ownership = purrdf::slice::OwnershipAnalyzer::new(&catalog).analyze()?;
+-    let pages = gmeow_docs::model::documented_term_iris(&catalog, &ownership);
++    let pages = gmeow_docs::model::documented_term_iris(&catalog, &ownership)?;
+     let sources = gmeow_docs::ontology_catalogs::for_repository(root, &catalog)?;
+     build_corpus_from_sources(&sources, &pages)
+ }
+diff --git crates/pipeline/src/stages/lang_docs_rendering.selected.tests.rs crates/pipeline/src/stages/lang_docs_rendering.selected.tests.rs
+index 7cd77c351..f5bab2a20 100644
+--- crates/pipeline/src/stages/lang_docs_rendering.selected.tests.rs
++++ crates/pipeline/src/stages/lang_docs_rendering.selected.tests.rs
+@@ -37,7 +37,8 @@ g:AuthoredFormula a l:Formula ; r:isDefinedBy <{owner}> .
+     let ownership = purrdf::slice::OwnershipAnalyzer::new(&catalog)
+         .analyze()
+         .unwrap();
+-    let pages = gmeow_docs::model::documented_term_iris(&catalog, &ownership);
++    let pages = gmeow_docs::model::documented_term_iris(&catalog, &ownership)
++        .expect("the supplied term signatures agree");
+     let documented = "https://blackcatinformatics.ca/gmeow/AuthoredDocumented";
+     let nondocumentable = "https://blackcatinformatics.ca/gmeow/AuthoredFormula";
+     let dsl_term = "https://blackcatinformatics.ca/gmeow/AuthoredDslSelector";
+diff --git crates/pipeline/src/stages/mappings.rs crates/pipeline/src/stages/mappings.rs
+index ab546a8bc..e11e3f01c 100644
+--- crates/pipeline/src/stages/mappings.rs
++++ crates/pipeline/src/stages/mappings.rs
+@@ -457,7 +457,7 @@ fn compile_mappings_with_sources(
+         message: "selected docs-rendering corpus requires its actual slice catalog and term-page inventory".to_owned(),
+     }))?;
+     let docs_ownership = purrdf::slice::OwnershipAnalyzer::new(docs_catalog).analyze()?;
+-    let documented_pages = gmeow_docs::model::documented_term_iris(docs_catalog, &docs_ownership);
++    let documented_pages = gmeow_docs::model::documented_term_iris(docs_catalog, &docs_ownership)?;
+     let docs_rendering_corpus = crate::stages::lang_docs_rendering::build_corpus_from_sources(
+         &translation_sources,
+         &documented_pages,
+diff --git docs/PIPELINE_SPINE.md docs/PIPELINE_SPINE.md
+index 78a89ec1a..bf522fcfe 100644
+--- docs/PIPELINE_SPINE.md
++++ docs/PIPELINE_SPINE.md
+@@ -206,9 +206,11 @@ input blank scopes remain distinct. These producer inputs carry locations in the
+ RDF and report payloads; unexpected physical row-location attachments fail admission
+ before publication. Diagnostics retain their selected graph placement.
+ 
+-Snapshot assembly uses the native documentation dataset as an independently
+-scoped source. It checks that the documentation graph is the sole declaration
+-and owns every ordinary statement, reifier and annotation before placing it.
++The documentation producer parses the renderer's named N-Quads and publishes
++that native dataset. An empty render publishes the empty named graph. The
++producer and snapshot assembly both check that the documentation graph is the
++sole declaration and owns every ordinary statement, reifier and annotation.
++Snapshot assembly places the dataset as an independently scoped source.
+ 
+ Snapshot assembly derives finding verdicts over the composed resident sources, then
+ assesses coherence over a second read-only view with those verdicts appended. The
+diff --git slices/core/documentation/docs.md slices/core/documentation/docs.md
+index e9c8a6468..9989714d8 100644
+--- slices/core/documentation/docs.md
++++ slices/core/documentation/docs.md
+@@ -51,6 +51,13 @@ That link remains an annotation even when its target is an ontology. Canonical
+ integrity constraints enforce requiredness, the single value and IRI kind; their
+ generated validation surface does not turn ownership metadata into a logical role.
+ 
++Term pages and neighbourhood diagrams use named domain and range links from
++the authored property signature. The reader selects `logic:domain` and
++`logic:range` and uses the corresponding RDFS predicate when the canonical
++predicate is absent. It lists each IRI endpoint once in sorted order and
++reports a diagnostic when the two spellings give conflicting named endpoints.
++Anonymous class and datatype expressions remain in the authored graph.
++
+ ## Realized state
+ 
+ | Document | Genre | Realized state | Contents |
+diff --git slices/grounding/logic/design/LOGIC-FOUNDATION.md slices/grounding/logic/design/LOGIC-FOUNDATION.md
+index bd22cc895..247b37ac4 100644
+--- slices/grounding/logic/design/LOGIC-FOUNDATION.md
++++ slices/grounding/logic/design/LOGIC-FOUNDATION.md
+@@ -503,6 +503,16 @@ closure can discharge an obligation that syntactic analysis leaves unknown. An a
+ counterexample in the selected context justifies violation. A requested but unimplemented discharge
+ condition remains a capability error, even when another condition is available.
+ 
++The public selected-source prover uses the same world-bound assessment as
++the verification gate. Its report links every admitted declaration and field
++to its original source obligation. An unread field retains its source link
++and diagnostic. An absence result requires coverage of the full selected
++theory as well as the native discharge proof. A committed
++derived witness retains its violation even if another selected obligation
++remains undecided or has malformed fields. These outcomes contribute to
++completion of the selected proof account. Refutation of the logical theory
++still requires a supported contradiction.
++
+ Two standing examples:
+ 
+ - **intent must not be derived from structural deception** — the presence of a held/projected gap is
+diff --git slices/grounding/logic/docs.md slices/grounding/logic/docs.md
+index c23566b14..52e45e41c 100644
+--- slices/grounding/logic/docs.md
++++ slices/grounding/logic/docs.md
+@@ -154,6 +154,17 @@ object-level premise or assertion authority. Text reports connect each
+ `formula-evidence` row to its `formula-origin` by obligation ID and show the
+ original source anchor on both lines.
+ 
++`gmeow prove` evaluates selected `logic:NonEntailmentObligation` declarations
++against the retained native execution. The report links the type and field
++rows to the exact source obligation IDs and names the assessed world.
++When compilation refuses an unread governance field, the source inventory
++identifies the field, its original source coordinates and its diagnostic.
++The selected authored fields determine the authorized discharge conditions.
++Discharge requires a supported absence proof and complete selected source
++coverage. A derived forbidden predicate carries its witness. Invalid fields
++and unresolved obligations leave named completion boundaries. Logical
++inconsistency requires a native or OWL refutation.
++
+ Composed FOF output and raw proof export/replay have no composition-bound
+ admission. A composed `--out` or `--proof-out` request fails its required output
+ and removes stale output; composed `--check-proof` rejects after resolving and
