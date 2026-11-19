@@ -294,12 +294,13 @@ fn selected_set_membership(
         return false;
     };
     let source_has = |predicate, object| {
+        // The owner check reads the full carrier envelope before discharging a reference.
         source_graph_pattern(
             store,
             Some(quad.s),
             Some(predicate),
             object,
-            GraphMatch::Default,
+            GraphMatch::Any,
         )
         .next()
         .is_some()
@@ -420,7 +421,7 @@ impl ClaimResolver<'_> {
     ) -> gmeow_errors::Result<Vec<(ClaimCarrier, ClaimStatement)>> {
         selection.authorize_source(self.compiled)?;
         let view = selection.program_view(inventory)?;
-        let source = selection.source_view(inventory)?;
+        let selected_source = selection.source_view(inventory)?;
         let modules = selection.module_terms(self.compiled)?;
         let mut included = view.axiom_sources_at(index)?.copied().peekable();
         let axiom = &self.compiled.program().axioms[index];
@@ -437,7 +438,7 @@ impl ClaimResolver<'_> {
                 continue;
             };
             let statement = self
-                .said_about(store, node.term, modules, &source)
+                .said_about(store, node.term, modules, &selected_source)
                 .unwrap_or_else(|| {
                     if admitted && node.graph.is_none() {
                         carried_statement(store, *node, axiom)

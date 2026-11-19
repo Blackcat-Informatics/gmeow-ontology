@@ -1197,6 +1197,10 @@ fn a_claim_with_an_independent_qualification_is_named_and_adds_no_fact() {
             vec![qualified(CLAIM, HAS_ELEMENT, 1)],
         ),
         (
+            "logic:provenance ex:first . ex:g { ex:set a math:SetBuilderExpression . } ex:set a math:FiniteSet ; math:hasElement ex:claim",
+            vec![qualified(CLAIM, HAS_ELEMENT, 1)],
+        ),
+        (
             "logic:provenance ex:first . ex:g { ex:set math:hasElement ex:claim . } ex:set a math:FiniteSet",
             vec![UnreadReason::Qualified {
                 graph: Some("https://example.org/claims/g".to_owned()),

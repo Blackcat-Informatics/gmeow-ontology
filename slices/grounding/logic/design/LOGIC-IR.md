@@ -622,8 +622,9 @@ the substrate does not.
   `math:FiniteSet` declaration can enumerate a carrier. The selected declaration
   uses ordinary `logic:instanceOf` or `rdf:type`. The actual
   row remains a membership fact. Both the row and declaration must be selected.
-  Intensional set syntax, statement owners, self-links and annotation rows retain
-  the incoming-reference boundary. Membership supplies no claim assertion authority.
+  Intensional set syntax and statement ownership qualify the set across the complete
+  source, including named graphs. Self-links and annotation rows retain the
+  incoming-reference boundary. Membership supplies no claim assertion authority.
   Envelope checks read the complete original source. Incoming references outside
   admitted membership, other statements beyond the carrier contract, predicate
   uses, mentions in any quoted triple or classic carrier, and graph-name uses keep
