@@ -913,8 +913,8 @@ fn graph_has_quads(dataset: &purrdf::RdfDataset, graph_iri: &str) -> bool {
 /// The snapshot carrier's parts, held as composite sources over the producers' resident
 /// datasets.
 ///
-/// Each part is one producer graph selected and placed into its carrier graph
-/// (`purrdf::CompositeSource::from_selection` plus `purrdf::GraphPlacement::Named`), or
+/// Each part is one producer graph selected and placed into its carrier graph,
+/// a producer dataset that already occupies its sole declared carrier graph, or
 /// a dataset this stage built itself. Selection
 /// carries a graph's quads, reifier declarations, annotations and declaration exactly as
 /// `project_graph` selects them, and named placement moves the whole selected surface
@@ -1025,6 +1025,34 @@ impl<'a> CarrierParts<'a> {
     /// Select `graph_iri` off `stage`'s dataset into the carrier graph of the same name.
     fn push_graph(&mut self, stage: &str, graph_iri: &str) -> Result<(), gmeow_errors::Diag> {
         self.push_graph_as(stage, graph_iri, graph_iri)
+    }
+
+    /// Place a producer's entire single-graph dataset without building a selection index.
+    fn push_rooted_graph(
+        &mut self,
+        stage: &str,
+        graph_iri: &str,
+    ) -> Result<(), gmeow_errors::Diag> {
+        let dataset = self.producer_dataset(stage)?;
+        let graph = dataset
+            .term_id_by_iri(graph_iri)
+            .filter(|&graph| dataset.named_graphs().eq(std::iter::once(graph)))
+            .ok_or_else(|| stage_err(&format!("{stage} must declare only <{graph_iri}>")))?;
+        if dataset.quads().any(|quad| quad.g != Some(graph))
+            || dataset
+                .reifiers_with_graph()
+                .any(|(_, _, owner)| owner != Some(graph))
+            || dataset
+                .annotations_with_graph()
+                .any(|(_, _, _, owner)| owner != Some(graph))
+        {
+            return Err(stage_err(&format!(
+                "{stage} contains RDF rows outside <{graph_iri}>"
+            )));
+        }
+        log_carrier_part(stage, graph_iri, dataset.quad_count());
+        self.place_graph_source(purrdf::CompositeSource::new(dataset), graph_iri);
+        Ok(())
     }
 
     /// Place every record of `dataset` into the carrier graph `placed_iri`.
@@ -1196,7 +1224,7 @@ fn assemble_carrier(
         "stage-source-load",
         crate::stages::provenance_graph::GRAPH_PROVENANCE,
     )?;
-    parts.push_graph("stage-docs-render", GRAPH_DOCUMENTATION)?;
+    parts.push_rooted_graph("stage-docs-render", GRAPH_DOCUMENTATION)?;
     // graph/diagnostics ← SHACL diagnostics (stage-validate) ∪ logic-compile diagnostics
     // (stage-compile-logic) ∪ chase certificates (stage-reason) ∪ schema-export
     // diagnostics, each selected off its producer's attached graph.
@@ -3523,7 +3551,7 @@ impl Stage for SnapshotStage {
     }
     /// Bind the complete snapshot contract, including required canon admission evidence.
     fn impl_version(&self) -> &str {
-        "snapshot.v42-share-checked-projection-ledger"
+        "snapshot.v43-reuse-rooted-documentation"
     }
     fn input_files(&self, root: &Path) -> Result<Vec<PathBuf>, gmeow_errors::Diag> {
         let mut files = Vec::new();

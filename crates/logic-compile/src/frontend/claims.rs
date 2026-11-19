@@ -13,15 +13,15 @@
 //! * the evidence-only route accepts the allow-list of [`evidence_only`]; the
 //!   distinct selected module route additionally accepts its exact admitted
 //!   default-graph module coordinate. Both permit the separate descriptive
-//!   carrier annotations below, which supply no assertion authority. Any other
-//!   carrier statement, and any mention of it in another carried statement, may place, deny or qualify
-//!   the claim, so the claim is not resolved;
+//!   carrier annotations below and ordinary membership in an explicitly
+//!   selected finite set. These supply no assertion authority. An unresolved
+//!   carrier reference or mention may place, deny or qualify the claim;
 //! * a carrier resolves only when exactly one statement it holds lowers to the
 //!   axiom and no term of that statement is a typed term carrier.
 
 use std::collections::{BTreeMap, BTreeSet};
 
-use purrdf::{RdfDataset, TermId, TermRef};
+use purrdf::{DatasetView, QuadIds, RdfDataset, TermId, TermRef};
 
 use super::{
     AxiomSource, CompiledTheory, LogicAxiom, Node, RDF_OBJECT, RDF_PREDICATE, RDF_REIFIES,
@@ -29,7 +29,13 @@ use super::{
     logic_iri, native_axiom, native_quoted_axiom, term_as_subject, term_str,
 };
 use crate::graphutil::{default_graph_pattern, iri_of, node_of, source_graph_pattern, subject_of};
+use crate::source_inventory::SelectedSourceView;
 use purrdf::dataset_view::GraphMatch;
+
+const HAS_ELEMENT: &str = "https://blackcatinformatics.ca/math/hasElement";
+const FINITE_SET: &str = "https://blackcatinformatics.ca/math/FiniteSet";
+const SET_BUILDER: &str = "https://blackcatinformatics.ca/math/SetBuilderExpression";
+const MEMBER_CONDITION: &str = "https://blackcatinformatics.ca/math/memberCondition";
 
 /// The statement a scoped claim carries, as term identities of the prepared dataset.
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -95,7 +101,8 @@ pub struct ClaimCarrier {
 ///
 /// The rule has more arms, applied by [`ClaimResolver`] because they concern
 /// statements the carrier is not the subject of. A statement whose object is the
-/// carrier keeps the claim out. So does any mention of the carrier: inside a triple
+/// carrier requires an independently selected extensional membership route.
+/// A mention of the carrier keeps the claim out: inside a triple
 /// term at any depth, as the predicate of a statement, or as the subject, predicate
 /// or object of a classic statement node. A mention counts whoever makes it,
 /// whether that other node is itself read, left unread, or a bare quotation, so no
@@ -156,8 +163,8 @@ type Use = (String, Option<String>);
 /// What the source says about one claim carrier from outside it, in any graph.
 #[derive(Debug, Default)]
 struct CarrierUses {
-    /// Predicates of statements whose object is the carrier.
-    references: Vec<Use>,
+    /// Original terms of statements whose object is the carrier.
+    references: Vec<QuadIds>,
     /// Nodes whose statement mentions the carrier.
     mentions: Vec<Use>,
     /// The carrier is the name of a graph.
@@ -228,9 +235,7 @@ impl CompiledTheory {
                             .mentions
                             .push((node_name(store, quad.s), graph.clone()));
                     } else {
-                        carrier
-                            .references
-                            .push((predicate.as_str().to_owned(), graph.clone()));
+                        carrier.references.push(quad);
                     }
                 }
                 parts.clear();
@@ -252,17 +257,96 @@ impl CompiledTheory {
     }
 }
 
+/// Recognize an independently selected ordinary extensional membership fact.
+/// The source term in its object position gains no claim authority from the set.
+fn selected_set_membership(
+    store: &RdfDataset,
+    selected: &SelectedSourceView<'_>,
+    quad: QuadIds,
+) -> bool {
+    if quad.g.is_some()
+        || quad.s == quad.o
+        || !matches!(store.resolve(quad.p), TermRef::Iri(HAS_ELEMENT))
+        || !matches!(
+            store.resolve(quad.s),
+            TermRef::Iri(_) | TermRef::Blank { .. }
+        )
+        || store
+            .annotations_of_with_graph(quad.s)
+            .any(|annotation| annotation == (quad.p, quad.o, None))
+        || selected
+            .quads_for_pattern(
+                Some(quad.s),
+                Some(quad.p),
+                Some(quad.o),
+                GraphMatch::Default,
+            )
+            .next()
+            .is_none()
+    {
+        return false;
+    }
+    let type_predicates = [
+        store.term_id_by_iri(&logic_iri("instanceOf")),
+        store.term_id_by_iri(RDF_TYPE),
+    ];
+    let Some(finite_set) = store.term_id_by_iri(FINITE_SET) else {
+        return false;
+    };
+    let source_has = |predicate, object| {
+        // The owner check reads the full carrier envelope before discharging a reference.
+        source_graph_pattern(
+            store,
+            Some(quad.s),
+            Some(predicate),
+            object,
+            GraphMatch::Any,
+        )
+        .next()
+        .is_some()
+    };
+    let source_types = |class| {
+        type_predicates
+            .into_iter()
+            .flatten()
+            .any(|predicate| source_has(predicate, Some(class)))
+    };
+    type_predicates.into_iter().flatten().any(|predicate| {
+        selected
+            .quads_for_pattern(
+                Some(quad.s),
+                Some(predicate),
+                Some(finite_set),
+                GraphMatch::Default,
+            )
+            .next()
+            .is_some()
+    }) && store
+        .term_id_by_iri(SET_BUILDER)
+        .is_none_or(|class| !source_types(class))
+        && store
+            .term_id_by_iri(MEMBER_CONDITION)
+            .is_none_or(|predicate| !source_has(predicate, None))
+        && store
+            .term_id_by_iri(RDF_REIFIES)
+            .is_none_or(|predicate| !source_has(predicate, None))
+        && store
+            .term_id_by_iri(RDF_STATEMENT)
+            .is_none_or(|class| !source_types(class))
+}
+
 impl ClaimResolver<'_> {
     /// What is said about `carrier` outside its contract, in any graph: a
     /// subject statement outside reification, evidence, selected membership and
-    /// admitted descriptive metadata, or a statement it
-    /// is the object of (`Qualified`), else a statement that mentions it
+    /// admitted descriptive metadata, or an incoming reference outside selected
+    /// extensional membership (`Qualified`), else a statement that mentions it
     /// (`Mentioned`), else its use as a graph name (`GraphName`).
     fn said_about(
         &self,
         store: &RdfDataset,
         carrier: TermId,
         modules: &BTreeSet<TermId>,
+        selected: &SelectedSourceView<'_>,
     ) -> Option<ClaimStatement> {
         let uses = self.uses.get(&carrier);
         let mut outside: Vec<Use> =
@@ -286,10 +370,18 @@ impl ClaimResolver<'_> {
                         )
                     })
                 })
-                .chain(
-                    uses.into_iter()
-                        .flat_map(|uses| uses.references.iter().cloned()),
-                )
+                .chain(uses.into_iter().flat_map(|uses| {
+                    uses.references
+                        .iter()
+                        .copied()
+                        .filter(|&quad| !selected_set_membership(store, selected, quad))
+                        .map(|quad| {
+                            (
+                                iri_of(store, quad.p).as_str().to_owned(),
+                                quad.g.map(|graph| node_name(store, graph)),
+                            )
+                        })
+                }))
                 .collect();
         outside.sort();
         if let Some((predicate, graph)) = outside.first() {
@@ -331,6 +423,7 @@ impl ClaimResolver<'_> {
     ) -> gmeow_errors::Result<Vec<(ClaimCarrier, ClaimStatement)>> {
         selection.authorize_source(self.compiled)?;
         let view = selection.program_view(inventory)?;
+        let selected_source = selection.source_view(inventory)?;
         let modules = selection.module_terms(self.compiled)?;
         let mut included = view.axiom_sources_at(index)?.copied().peekable();
         let axiom = &self.compiled.program().axioms[index];
@@ -347,7 +440,7 @@ impl ClaimResolver<'_> {
                 continue;
             };
             let statement = self
-                .said_about(store, node.term, modules)
+                .said_about(store, node.term, modules, &selected_source)
                 .unwrap_or_else(|| {
                     if admitted && node.graph.is_none() {
                         carried_statement(store, *node, axiom)

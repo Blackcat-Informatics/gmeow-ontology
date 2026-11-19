@@ -8,26 +8,19 @@
 //! individual to carry four annotations: `rdfs:label`, `skos:definition`,
 //! `rdfs:isDefinedBy` (pointing at the individual's containing named graph),
 //! and `gmeow:graphBoxRole` (pointing at the assertional `gmeow:boxABox` role
-//! individual). Before this module, two producers — `crate::render`'s
-//! `to_gmeow_rdf_in_graph` and `gmeow_docs::rdf::to_gmeow_rdf` — each hand-rolled
-//! their own copy of this four-triple block, and had already drifted (the
-//! `render` copy was missing `skos:definition` entirely). This module is the ONE
-//! place the contract is expressed; both producers route through it.
+//! individual). This module defines the contract shared by the finding and
+//! documentation projections.
 //!
-//! [`abox_annotation_pairs`] is the box-role-parameterized core: it NEVER
-//! hardcodes [`BOX_ABOX`], so a future T-Box/R-Box emitter can reuse the exact
-//! same core with its own role IRI. [`abox_annotations`] is the A-Box
-//! convenience wrapper every current caller uses. [`annotate_nquads`] and
-//! [`annotate_builder`] are the two substrate-specific thin adapters over the
-//! core — one emitting raw N-Quads text lines (matching the serialization style
-//! already used by `render.rs`/`docs/rdf.rs`), the other pushing quads into a
-//! [`purrdf_core::RdfDatasetBuilder`] for a native RDF-IR consumer (e.g.
-//! `logic-compile`). The `cross_substrate_parity` test below locks the two
-//! adapters to emit the identical logical quad set for the same inputs.
+//! [`abox_annotation_pairs`] accepts the box role IRI. [`abox_annotations`]
+//! supplies [`BOX_ABOX`]. [`annotate_nquads`] appends text for the documentation
+//! projector, and [`annotate_builder`] inserts the same quads into a native
+//! [`purrdf_core::RdfDatasetBuilder`].
 //!
 //! Label/definition literals carry the [`X_GMEOW_ENGLISH`] private-use carrier
 //! language tag, never bare `en` — see `docs/GROUNDING.md` for why the carrier
 //! tag exists.
+
+use std::fmt::Write as _;
 
 use crate::render::nq_escape;
 
@@ -113,21 +106,17 @@ pub fn abox_annotations(
     abox_annotation_pairs(subject_iri, label, definition, graph_iri, BOX_ABOX)
 }
 
-/// String-flavor adapter: push the four A-Box annotation N-Quads lines for
-/// `subject_iri` onto `out`, in the fixed (label, definition, isDefinedBy,
-/// graphBoxRole) order. Literals are [`nq_escape`]d and carry the
-/// [`X_GMEOW_ENGLISH`] carrier language tag; IRIs are angle-bracketed. Matches
-/// the exact N-Quads serialization style the two producers this module
-/// replaces already used (`<s> <p> o <g> .`).
+/// Append four newline-terminated N-Quads lines for `subject_iri` in the fixed
+/// order of label, definition, isDefinedBy and graphBoxRole. Literals use
+/// [`nq_escape`] and carry the [`X_GMEOW_ENGLISH`] language tag. IRIs are
+/// angle-bracketed.
 pub fn annotate_nquads(
     subject_iri: &str,
     label: &str,
     definition: &str,
     graph_iri: &str,
-    out: &mut Vec<String>,
+    out: &mut String,
 ) {
-    let subject = format!("<{subject_iri}>");
-    let graph = format!("<{graph_iri}>");
     for (predicate, object) in abox_annotations(subject_iri, label, definition, graph_iri) {
         let object_text = match object {
             AboxObject::Iri(iri) => format!("<{iri}>"),
@@ -135,7 +124,11 @@ pub fn annotate_nquads(
                 format!("\"{}\"@{X_GMEOW_ENGLISH}", nq_escape(&value))
             }
         };
-        out.push(format!("{subject} <{predicate}> {object_text} {graph} ."));
+        writeln!(
+            out,
+            "<{subject_iri}> <{predicate}> {object_text} <{graph_iri}> ."
+        )
+        .expect("writing to a String cannot fail");
     }
 }
 
