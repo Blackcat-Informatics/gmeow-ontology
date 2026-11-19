@@ -596,15 +596,21 @@ the substrate does not.
   bare-program profile reads no scoped claim and refuses a program in which any axiom,
   rule, head or body atom carries a standpoint, time, modality or module coordinate. The
   selected-theory profile accounts for every scoped claim in a claim ingress ledger.
-  Its evidence-only route admits a ground claim when every stated statement about
-  its carrier, in any graph, is on a closed allow-list:
+  Its evidence-only route admits a ground claim with at least one default-graph
+  provenance or confidence coordinate under a closed carrier contract:
   reification structure (`rdf:reifies`, or `rdf:type rdf:Statement` with `rdf:subject`,
   `rdf:predicate` and `rdf:object`), `logic:provenance` and `logic:confidence`. The fact
   is built from the RDF terms the carrier holds and the envelope stays on the carrier as
-  evidence. A distinct typed module-assertion route additionally admits one exact
+  source metadata. A distinct typed module-assertion route additionally admits one exact
   default-graph `logic:inModule` coordinate resolved against the same immutable source and
   requested import closure. This route requires no invented provenance or
-  confidence and does not widen the evidence-only allow-list. Any carrier
+  confidence and does not widen the evidence-only allow-list. Both routes admit
+  descriptive default-graph `gmeow:graphBoxRole` annotations with IRI or blank-node
+  resource values. Preserve their actual multivalued, open roles and original
+  source rows; they are not evidence coordinates and confer no assertion, context,
+  module, ownership or routing authority. Named-graph and nonresource role rows
+  remain outside this contract. An annotation alone leaves a quotation unasserted.
+  Every envelope check still reads the complete original source. Any carrier
   statement beyond the selected route's contract, any statement with the
   carrier as object or predicate, any mention of the carrier in a statement another carrier
   holds (inside a triple term at any depth, or as a term of a classic statement node,

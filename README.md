@@ -305,7 +305,10 @@ then named are cycles found by that analysis, not proof that the program cannot 
 
 The native engine reads admitted default-graph assertions and ground reified claims
 through two closed routes. Evidence-only claims carry `logic:provenance` or
-`logic:confidence` beside their reification, with no additional qualifications. Ground
+`logic:confidence` beside their reification, with no additional qualifications. Default-graph
+`gmeow:graphBoxRole` resource annotations are descriptive metadata in either route;
+their open, multivalued roles remain source facts and supply no assertion authority.
+Named-graph or nonresource role annotations retain their boundaries. Ground
 claims in selected modules may assert through the source-resolved module route without
 invented provenance or confidence. Module membership does not erase standpoint, time or
 modality. Unknown qualifications, mentions in other statements and graph-name uses keep
@@ -348,7 +351,8 @@ Selected outputs must be distinct from semantic inputs, replay inputs and one an
 Source loading and replay use admitted open files; output writes and stale-output removal
 stay bound to held parent directories when a parent symlink changes. Writes check the
 actual target before truncation. This boundary does not protect arbitrary replacement of
-entries inside a held directory. A required proof output is removed when no proof is recorded.
+entries inside a held directory. The `PROOF_NOT_RECORDED` required-output refusal
+removes the stale selected proof.
 
 **Working on the engine** (the ontology, compilers, and gates):
 
