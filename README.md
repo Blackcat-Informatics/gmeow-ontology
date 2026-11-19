@@ -305,10 +305,11 @@ then named are cycles found by that analysis, not proof that the program cannot 
 
 The native engine reads admitted default-graph assertions and ground reified claims
 through two closed routes. Evidence-only claims carry `logic:provenance` or
-`logic:confidence` beside their reification, with no additional qualifications. Default-graph
-`gmeow:graphBoxRole` resource annotations are descriptive metadata in either route;
-their open, multivalued roles remain source facts and supply no assertion authority.
-Named-graph or nonresource role annotations retain their boundaries. Ground
+`logic:confidence` beside their reification, with no additional qualifications.
+Both routes recognize default-graph `gmeow:graphBoxRole` resource annotations
+and text-valued `gmeow:statedRationale` annotations as descriptive metadata.
+The original source facts retain their values and supply no assertion authority.
+Named-graph annotations and values outside the declared types retain their boundaries. Ground
 claims in selected modules may assert through the source-resolved module route without
 invented provenance or confidence. Module membership does not erase standpoint, time or
 modality. Unknown qualifications, mentions in other statements and graph-name uses keep

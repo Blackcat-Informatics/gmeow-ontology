@@ -611,10 +611,12 @@ the substrate does not.
   requested import closure. This route requires no invented provenance or
   confidence and does not widen the evidence-only allow-list. Both routes admit
   descriptive default-graph `gmeow:graphBoxRole` annotations with IRI or blank-node
-  resource values. Preserve their actual multivalued, open roles and original
-  source rows; they are not evidence coordinates and confer no assertion, context,
-  module, ownership or routing authority. Named-graph and nonresource role rows
-  remain outside this contract. An annotation alone leaves a quotation unasserted.
+  resource values and `gmeow:statedRationale` annotations with `xsd:string`,
+  `rdf:langString` or `rdf:dirLangString` values. Preserve the original roles,
+  wording and source rows. These annotations provide no evidence coordinate,
+  assertion, context, module, ownership or routing authority. Named-graph
+  annotations and values outside the admitted types retain their boundaries.
+  An annotation alone leaves a quotation unasserted.
   Every envelope check still reads the complete original source. Any carrier
   statement beyond the selected route's contract, any statement with the
   carrier as object or predicate, any mention of the carrier in a statement another carrier

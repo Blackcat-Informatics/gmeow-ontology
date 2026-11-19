@@ -133,15 +133,14 @@ metadata. A bare reifier with no scope or evidence coordinate is a quotation
 and asserts nothing. A module claim outside the requested composition remains
 an assertion outside that theory; unresolved membership remains a named boundary.
 
-Default-graph `gmeow:graphBoxRole` annotations whose values are IRI or blank-node
-resources describe the carrier without qualifying its carried assertion. The
-role vocabulary is open and multivalued: preserve every actual role and source
-row, including unknown future resources. These annotations are separate from
-evidence coordinates. They establish no assertion, module membership, ownership,
-context or graph routing. A quotation with only graph-box roles asserts nothing.
-Named-graph role rows and nonresource role values remain outside this admitted
-carrier contract. Other ordinary facts about the carrier and all role rows
-remain source facts; recognizing descriptive metadata does not delete them.
+Default-graph `gmeow:graphBoxRole` annotations with resource values and
+`gmeow:statedRationale` annotations with `xsd:string`, `rdf:langString` or
+`rdf:dirLangString` values describe the carrier. Preserve every original
+role, literal, language and text direction. These annotations carry no evidence,
+assertion, module membership, ownership, context or graph routing authority.
+A quotation with only descriptive annotations asserts nothing. Named-graph
+annotations and values outside the admitted types retain their boundaries.
+The descriptive rows remain ordinary source facts.
 
 Each route fails closed. A carrier statement beyond its selected contract may
 place, deny or qualify the claim, so it prevents ordinary assertion:
