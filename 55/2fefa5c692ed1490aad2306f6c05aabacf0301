@@ -1,0 +1,24 @@
+ghprsq structured squash audit metadata
+
+parent_hashes: 4b756ccebdf5f482102f7e0e5ce00a401fe53eff
+
+GhpRsq-Schema: 1
+GhpRsq-Merge-Style: structured-squash
+GhpRsq-GitHub-Repo: Blackcat-Informatics/gmeow-ontology
+GhpRsq-GitHub-Pull-Request: 2954
+GhpRsq-GitHub-PR-URL: https://github.com/Blackcat-Informatics/gmeow-ontology/pull/2954
+GhpRsq-Base-Ref: main
+GhpRsq-Base-OID: 8538057190c364ced2f9a027ebb738ea659f768d
+GhpRsq-Head-Ref: paudley/2941-respect-descriptive-graph-box-roles-in
+GhpRsq-Head-OID: 4b756ccebdf5f482102f7e0e5ce00a401fe53eff
+GhpRsq-Result-Tree: eec46bddb2f9798d96ddcd0cc22c2572a888165f
+GhpRsq-Result-Commit: 552fefa5c692ed1490aad2306f6c05aabacf0301
+GhpRsq-Parent-Hashes: 4b756ccebdf5f482102f7e0e5ce00a401fe53eff
+GhpRsq-Squash-Notes-SHA256: 3cbb07598249fc7b524e6a76b9e691d095e8db2d476eac5ed71a728afb75b7ad
+GhpRsq-Defect-Class: none
+GhpRsq-Stage-Tree: 3e25191f659da93e28d58569c747765bb17af9fc
+GhpRsq-Stage-Commit: f6a56242e24fc5bc65df30c42a62ae9ab90950e7
+GhpRsq-Stage-Tag: refs/tags/ghprsq/artifacts/f6a56242e24fc5bc65df30c42a62ae9ab90950e7
+GhpRsq-Stage-Ref: refs/ghprsq/pr/2954/stage
+GhpRsq-Stage-Files: 3
+GhpRsq-Stage-URL: https://github.com/Blackcat-Informatics/gmeow-ontology/tree/f6a56242e24fc5bc65df30c42a62ae9ab90950e7
