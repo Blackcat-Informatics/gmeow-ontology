@@ -13,6 +13,8 @@
 //! through GTS fold without bnode relabeling, sorted iteration over the
 //! already-sorted model collections, and a trailing newline.
 
+use std::fmt::Write as _;
+
 use crate::coverage::{CoverageContext, DIMENSIONS, slice_covered_dims, term_coverage};
 use crate::maturity::{
     Dimension, MaturityAnchor, anchor_table, coverage_fraction, earned_maturity,
@@ -113,10 +115,10 @@ pub fn to_gmeow_rdf(
     entailments: &BTreeMap<String, Vec<crate::exec::Entailment>>,
 ) -> String {
     let graph = format!("<{DOCUMENTATION_GRAPH}>");
-    let mut lines: Vec<String> = Vec::new();
+    let mut lines = String::new();
 
-    let triple = |s: &str, p: &str, o: &str, lines: &mut Vec<String>| {
-        lines.push(format!("{s} <{p}> {o} {graph} ."));
+    let triple = |s: &str, p: &str, o: &str, lines: &mut String| {
+        writeln!(lines, "{s} <{p}> {o} {graph} .").expect("writing to a String cannot fail");
     };
     let literal = |value: &str| format!("\"{}\"", nq_escape(value));
     let prose = |value: &str| format!("{}@{}", literal(value), gmeow_errors::abox::X_GMEOW_ENGLISH);
@@ -126,12 +128,9 @@ pub fn to_gmeow_rdf(
     // named-graph provenance anchor, and the assertional `gmeow:boxABox` role so
     // the folded bundle satisfies the assertional-tier validation contract while
     // staying genuinely self-describing (the validator requires the box role and
-    // a provenance link on every materialized individual). Routed through the
-    // single `gmeow_errors::abox::annotate_nquads` contract every generated
-    // A-Box individual satisfies identically (the same primitive
-    // `gmeow-errors`'s own `to_gmeow_rdf_in_graph` uses for `gmeow:Finding`
-    // individuals), rather than a second hand-rolled copy of the four triples.
-    let annotate = |subject: &str, label: &str, definition: &str, lines: &mut Vec<String>| {
+    // a provenance link on every materialized individual). The shared
+    // `gmeow_errors::abox::annotate_nquads` adapter supplies these annotations.
+    let annotate = |subject: &str, label: &str, definition: &str, lines: &mut String| {
         // Every caller here already formats `subject` bracketed (`<iri>`) for its
         // OTHER triples in the same block; the shared adapter takes the bare IRI
         // and re-brackets it itself, so strip the brackets back off here rather
@@ -1038,11 +1037,7 @@ pub fn to_gmeow_rdf(
         }
     }
 
-    let mut out = lines.join("\n");
-    if !out.is_empty() {
-        out.push('\n');
-    }
-    out
+    lines
 }
 
 /// The deterministically-minted identity IRI (angle-bracketed) of a conformance
