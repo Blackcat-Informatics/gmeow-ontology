@@ -9,6 +9,7 @@ use gmeow_logic_compile::frontend::{SourceCarrier, SourceStatementBinding};
 use gmeow_logic_compile::source_inventory::SelectedSourceView;
 use purrdf::dataset_view::GraphMatch;
 use purrdf::{DatasetView, QuadIds, RdfDataset, TermValue};
+use purrdf_hash::fixed::FixedState;
 use serde::Serialize;
 
 use super::{
@@ -119,8 +120,8 @@ struct SourceField {
 fn source_fields(
     dataset: &RdfDataset,
     result: &ReasoningResult,
-) -> gmeow_errors::Result<HashMap<QuadIds, SourceField>> {
-    let mut fields = HashMap::new();
+) -> gmeow_errors::Result<HashMap<QuadIds, SourceField, FixedState>> {
+    let mut fields = HashMap::with_hasher(FixedState::new());
     for ledger in &result.native_execution()?.families {
         for proof in &ledger.proofs {
             let NativeProofOrigin::Asserted { sources, .. } = &proof.origin else {
@@ -292,7 +293,7 @@ pub(super) fn account_non_entailment(
         return Ok(());
     }
     let dataset = admission.inventory.theory().source().dataset();
-    let selected_quads: HashSet<_> = rows
+    let selected_quads: HashSet<_, FixedState> = rows
         .values()
         .flat_map(|source| source.rows.iter().map(|row| row.quad))
         .collect();
