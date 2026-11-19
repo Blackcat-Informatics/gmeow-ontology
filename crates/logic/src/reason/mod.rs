@@ -1010,7 +1010,7 @@ pub(crate) fn run_reasoning_rules(
 /// the FIXED calculi match — the single definition of that correspondence for the whole
 /// reasoner. Nothing under `reason/` may re-spell a `logic:` IRI outside it.
 ///
-/// Two groups, and both are needed for one authored axiom to reach the closure:
+/// The table covers three groups of vocabulary used in lowering and evaluation.
 ///
 /// * the **class-expression body** — `logic:Restriction` and its slots. Their local
 ///   names are shared by BOTH authoring surfaces (the same fact the compiler's
@@ -1032,7 +1032,7 @@ pub(crate) fn run_reasoning_rules(
 ///   hardcoded `owl:` constant and the axiom goes dark exactly as a bare `logic:Restriction`
 ///   would. Every entry here is a slice-authorable construct the reasoner already reads —
 ///   see the matching arms in `dl.rs` and `refute/counting.rs`.
-
+///
 /// The reasoner's fixed-calculus lowering table: each `(canonical logic: IRI, projected
 /// W3C OWL/RDFS IRI)` pair the EDB boundary normalizes (Principle 17). Exposed so the
 /// grounding-law cross-check (`crates/validate`) can pin the shipped
