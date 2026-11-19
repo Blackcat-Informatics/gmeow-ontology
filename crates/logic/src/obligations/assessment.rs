@@ -14,6 +14,7 @@ use purrdf::{DatasetMut, MutableDataset, QuadValues, RdfDataset, TermValue};
 
 use crate::reason::InferredAxiom;
 use crate::reason::refute::NativeFamilyCompletion;
+use crate::reason::refute::RefutationPremise;
 use crate::reason::refute::native::{NativeClosureStatus, NativeFamilyLedger, NativeProofOrigin};
 use crate::result::ReasoningResult;
 
@@ -62,8 +63,19 @@ pub struct ObligationAssessment {
     pub analysis: [u8; 32],
     /// Every discovered and admitted obligation, including unknowns and hard errors.
     pub outcomes: Vec<ObligationOutcome>,
+    pub(crate) condition_errors: BTreeMap<(String, String), String>,
+    pub(crate) absence_reasons: BTreeMap<(String, String), String>,
     /// Sole diagnostic owner; semantic outcomes remain native assessment data.
     ledger: DiagLedger,
+}
+
+/// A selected declaration whose fields could not be read as an obligation.
+pub(crate) struct MalformedObligation {
+    pub(crate) world: String,
+    pub(crate) obligation: String,
+    pub(crate) forbidden_predicate: Option<String>,
+    pub(crate) witness: Option<Box<InferredAxiom>>,
+    pub(crate) diagnostic: Diag,
 }
 
 impl ObligationAssessment {
@@ -82,44 +94,97 @@ impl ObligationAssessment {
     }
 }
 
+/// The authored rows required for a complete non-entailment declaration.
+#[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
+pub(crate) enum ObligationField {
+    Declaration,
+    ForbiddenPredicate,
+    DischargeCondition,
+}
+
+impl ObligationField {
+    pub(crate) fn as_str(self) -> &'static str {
+        match self {
+            Self::Declaration => "NonEntailmentObligation",
+            Self::ForbiddenPredicate => "obligationForbiddenPredicate",
+            Self::DischargeCondition => "obligationDischargeCondition",
+        }
+    }
+}
+
+pub(crate) fn obligation_field(
+    predicate: &str,
+    object_iri: Option<&str>,
+) -> Option<ObligationField> {
+    match predicate {
+        "http://www.w3.org/1999/02/22-rdf-syntax-ns#type"
+        | "https://blackcatinformatics.ca/logic/instanceOf"
+            if object_iri
+                == Some("https://blackcatinformatics.ca/logic/NonEntailmentObligation") =>
+        {
+            Some(ObligationField::Declaration)
+        }
+        "https://blackcatinformatics.ca/logic/obligationForbiddenPredicate" => {
+            Some(ObligationField::ForbiddenPredicate)
+        }
+        "https://blackcatinformatics.ca/logic/obligationDischargeCondition" => {
+            Some(ObligationField::DischargeCondition)
+        }
+        _ => None,
+    }
+}
+
 /// Retain only governance declaration/field statements in a native typed view.
 /// The execution already normalized blank identities; no RDF text is emitted or parsed.
 pub(crate) fn governance_statement(predicate: &str, object: &TermValue) -> bool {
-    match predicate {
-        "http://www.w3.org/1999/02/22-rdf-syntax-ns#type"
-        | "https://blackcatinformatics.ca/logic/instanceOf" => matches!(
-            object.as_iri(),
-            Some(
-                "https://blackcatinformatics.ca/logic/NonEntailmentObligation"
-                    | "https://blackcatinformatics.ca/logic/FormalizationCandidate"
-            )
-        ),
-        predicate => matches!(
-            predicate.strip_prefix(LOGIC_NS),
-            Some(
-                "obligationForbiddenPredicate"
-                    | "obligationDischargeCondition"
-                    | "candidateNonEntailment"
-            )
-        ),
-    }
+    obligation_field(predicate, object.as_iri()).is_some()
+        || predicate == "https://blackcatinformatics.ca/logic/candidateNonEntailment"
+        || (matches!(
+            predicate,
+            "http://www.w3.org/1999/02/22-rdf-syntax-ns#type"
+                | "https://blackcatinformatics.ca/logic/instanceOf"
+        ) && object.as_iri()
+            == Some("https://blackcatinformatics.ca/logic/FormalizationCandidate"))
 }
 
 fn governance_view(
     ledger: &NativeFamilyLedger,
+    selected: Option<&dyn Fn(&RefutationPremise) -> bool>,
 ) -> gmeow_errors::Result<(Arc<RdfDataset>, BTreeSet<String>)> {
     let mut store = MutableDataset::new(purrdf::RdfDatasetBuilder::new().freeze()?);
     let mut authored = BTreeSet::new();
     for proof in &ledger.proofs {
         let statement = &proof.statement;
+        if let Some(admits) = selected {
+            let Some(field) = obligation_field(&statement.predicate, statement.object.as_iri())
+            else {
+                continue;
+            };
+            let NativeProofOrigin::Asserted { sources, .. } = &proof.origin else {
+                continue;
+            };
+            for source in sources.iter().filter(|source| admits(source)) {
+                if obligation_field(&source.predicate, source.object.as_iri()) != Some(field) {
+                    continue;
+                }
+                if field == ObligationField::Declaration {
+                    authored.insert(&source.subject);
+                }
+                store
+                    .insert(QuadValues {
+                        s: source.subject.clone(),
+                        p: TermValue::iri(&source.predicate),
+                        o: source.object.clone(),
+                        g: None,
+                    })
+                    .ctx("selected native governance projection failed")?;
+            }
+            continue;
+        }
         let selected = governance_statement(&statement.predicate, &statement.object);
         if selected {
-            if matches!(
-                statement.predicate.as_str(),
-                "http://www.w3.org/1999/02/22-rdf-syntax-ns#type"
-                    | "https://blackcatinformatics.ca/logic/instanceOf"
-            ) && statement.object.as_iri()
-                == Some("https://blackcatinformatics.ca/logic/NonEntailmentObligation")
+            if obligation_field(&statement.predicate, statement.object.as_iri())
+                == Some(ObligationField::Declaration)
                 && matches!(proof.origin, NativeProofOrigin::Asserted { .. })
             {
                 authored.insert(&statement.subject);
@@ -224,11 +289,32 @@ fn assess_world(
     ledger: &NativeFamilyLedger,
     derived: &BTreeMap<&str, BTreeMap<&str, &InferredAxiom>>,
     assessment: &mut ObligationAssessment,
+    selected: Option<&dyn Fn(&RefutationPremise) -> bool>,
+    invalid: &mut impl FnMut(MalformedObligation) -> gmeow_errors::Result<()>,
 ) -> gmeow_errors::Result<()> {
     let world = ledger.world.as_str();
     let source_graph = purrdf::iri::BaseIri::parse(world)?;
-    let (store, authored) = governance_view(ledger)?;
-    let obligations = parse_obligations(&store)?;
+    let (store, authored) = governance_view(ledger, selected)?;
+    let counterexample = |predicate: &str| {
+        derived
+            .get(world)
+            .and_then(|rows| rows.get(predicate))
+            .copied()
+    };
+    let obligations = parse_obligations(&store, |obligation, forbidden_predicate, diagnostic| {
+        let witness = forbidden_predicate
+            .as_deref()
+            .and_then(counterexample)
+            .cloned()
+            .map(Box::new);
+        invalid(MalformedObligation {
+            world: world.to_owned(),
+            obligation,
+            forbidden_predicate,
+            witness,
+            diagnostic,
+        })
+    })?;
     let candidates = candidates_by_obligation(&store)?;
     let source_complete = source_complete(analysis, execution, world);
     let finite_complete = source_complete
@@ -245,13 +331,20 @@ fn assess_world(
     for obligation in &obligations {
         let conditions = check_discharge_conditions(&source_graph, obligation);
         let conditions_valid = conditions.is_empty();
+        if selected.is_some() && !conditions_valid {
+            assessment.condition_errors.insert(
+                (world.to_owned(), obligation.iri.clone()),
+                conditions
+                    .iter()
+                    .map(ToString::to_string)
+                    .collect::<Vec<_>>()
+                    .join("; "),
+            );
+        }
         for diag in conditions {
             assessment.record(attribute_to_candidates(diag, &obligation.iri, &candidates));
         }
-        let counterexample = derived
-            .get(world)
-            .and_then(|rows| rows.get(obligation.forbidden_predicate.as_str()))
-            .copied();
+        let counterexample = counterexample(&obligation.forbidden_predicate);
         let may_write = analysis.may_write(world, &obligation.forbidden_predicate)?;
         let status = disposition(
             obligation,
@@ -277,6 +370,12 @@ fn assess_world(
                             format!("non-entailment obligation <{}> has no certified selected absence proof (logic:ObligationUnknown); source_complete={source_complete}, finite_complete={finite_complete}", obligation.iri),
                         ), &obligation.iri, &candidates)
                     });
+                if selected.is_some() {
+                    assessment.absence_reasons.insert(
+                        (world.to_owned(), obligation.iri.clone()),
+                        diag.message().to_owned(),
+                    );
+                }
                 assessment.record(diag);
             }
             ObligationDisposition::SyntacticallyDischarged
@@ -326,6 +425,28 @@ pub fn assess_non_entailment_obligations(
     result: &ReasoningResult,
 ) -> gmeow_errors::Result<ObligationAssessment> {
     result.validate_native_closure()?;
+    assess_obligations(result, None, |record| Err(record.diagnostic))
+}
+
+/// Keep invalid declarations as named boundaries beside supported witnesses.
+/// Execution and candidate-reference failures remain errors.
+pub(crate) fn assess_selected_obligations(
+    result: &ReasoningResult,
+    selected: &dyn Fn(&RefutationPremise) -> bool,
+) -> gmeow_errors::Result<(ObligationAssessment, Vec<MalformedObligation>)> {
+    let mut malformed = Vec::new();
+    let assessment = assess_obligations(result, Some(selected), |record| {
+        malformed.push(record);
+        Ok(())
+    })?;
+    Ok((assessment, malformed))
+}
+
+fn assess_obligations(
+    result: &ReasoningResult,
+    selected: Option<&dyn Fn(&RefutationPremise) -> bool>,
+    mut invalid: impl FnMut(MalformedObligation) -> gmeow_errors::Result<()>,
+) -> gmeow_errors::Result<ObligationAssessment> {
     let execution = result.native_execution()?;
     let ReachabilityEvidence::Program(analysis) = &execution.reachability else {
         return Err(obligation_err(
@@ -342,6 +463,8 @@ pub fn assess_non_entailment_obligations(
     let mut assessment = ObligationAssessment {
         analysis: analysis.identity(),
         outcomes: Vec::new(),
+        condition_errors: BTreeMap::new(),
+        absence_reasons: BTreeMap::new(),
         ledger: DiagLedger::new(),
     };
     let mut derived = BTreeMap::<&str, BTreeMap<&str, &InferredAxiom>>::new();
@@ -353,7 +476,15 @@ pub fn assess_non_entailment_obligations(
             .or_insert(row);
     }
     for ledger in &execution.families {
-        assess_world(analysis, execution, ledger, &derived, &mut assessment)?;
+        assess_world(
+            analysis,
+            execution,
+            ledger,
+            &derived,
+            &mut assessment,
+            selected,
+            &mut invalid,
+        )?;
     }
     assessment
         .outcomes

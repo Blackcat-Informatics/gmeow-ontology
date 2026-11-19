@@ -192,7 +192,8 @@ fn native_obligation_inventory_covers_both_typings_once_with_attribution() {
         .expect("write fixture");
     }
     let store = governance_store(&source);
-    let obligations = parse_obligations(&store).expect("complete typed discovery");
+    let obligations =
+        parse_obligations(&store, |_, _, error| Err(error)).expect("complete typed discovery");
     assert_eq!(obligations.len(), 3);
     let findings = check_store(
         &store,
@@ -272,7 +273,8 @@ fn native_obligation_discovery_preserves_independent_document_blank_scopes() {
     builder.push_dataset(&first).unwrap();
     builder.push_dataset(&second).unwrap();
     let merged = builder.freeze().expect("merged authored fixture");
-    let obligations = parse_obligations(&merged).expect("distinct scoped obligations");
+    let obligations =
+        parse_obligations(&merged, |_, _, error| Err(error)).expect("distinct scoped obligations");
     assert_eq!(obligations.len(), 2);
     assert_ne!(obligations[0].iri, obligations[1].iri);
     assert!(
