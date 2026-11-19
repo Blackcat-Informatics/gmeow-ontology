@@ -804,14 +804,10 @@ pub fn to_gmeow_rdf(
                 &mut lines,
             );
         }
-        for rationale in &f.rationales {
-            let value =
-                purrdf::TermValue::from_rdf_term(&purrdf::RdfTerm::Literal(rationale.clone()));
-            let mut object = String::new();
-            purrdf_core::write_term_value(&value, &mut object);
+        for object in fixture_rationale_objects(model, f) {
             triple(
                 subject,
-                &format!("{GMEOW}conformanceRationale"),
+                crate::model::conformance::RATIONALE,
                 &object,
                 &mut lines,
             );
@@ -1043,6 +1039,32 @@ pub fn to_gmeow_rdf(
         out.push('\n');
     }
     out
+}
+
+fn fixture_rationale_objects(
+    model: &DocsModel,
+    fixture: &crate::model::DocFixture,
+) -> BTreeSet<String> {
+    let mut objects = BTreeSet::new();
+    let mut include = |literal: purrdf::RdfLiteral| {
+        let term = purrdf::TermValue::from_rdf_term(&purrdf::RdfTerm::Literal(literal));
+        let mut object = String::new();
+        purrdf_core::write_term_value(&term, &mut object);
+        objects.insert(object);
+    };
+    for rationale in &fixture.rationales {
+        include(rationale.literal.clone());
+        for language in model.translations.languages() {
+            if let Some(text) = rationale.translation(&fixture.slice, &model.translations, language)
+            {
+                include(purrdf::RdfLiteral::language_tagged(
+                    text,
+                    model.translations.internal_tag(language),
+                ));
+            }
+        }
+    }
+    objects
 }
 
 /// The deterministically-minted identity IRI (angle-bracketed) of a conformance

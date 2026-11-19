@@ -18446,3 +18446,11 @@ msgstr "不要因某次求值经过舍入而改变常数的精确身份，不要
 msgctxt "https://blackcatinformatics.ca/math/ConstantAsDecimalLiteral|https://blackcatinformatics.ca/gmeow/howToUse"
 msgid "Read the reported component, path, value and source shape. Remove a direct math:quantityValue literal from the constant when present, retain math:isExact true, and keep any justified evaluation and numeric absolute error bound on a separate math:ApproximateValue. Repair the actual reported obligation without replacing the canonical constant identity."
 msgstr "读取所报告的约束组件、路径、值和来源形状。若常数上存在直接的 math:quantityValue 字面量，则将其移除；保留 math:isExact true，并将任何有依据的求值结果及数值绝对误差界放在独立的 math:ApproximateValue 上。修复实际报告的义务，不要替换常数的规范身份。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/examples/math/tests/ecNumberSituated|https://blackcatinformatics.ca/gmeow/conformanceRationale"
+msgid "The control declares a math:RationalNumber with math:isExact true and exactly one math:inNumberSystem value, math:rationalNumbers. The cell expects a conforming result from the generated validation surface."
+msgstr "对照样例声明了一个标记为 math:isExact true 的 math:RationalNumber，并为其声明了恰好一个 math:inNumberSystem 值，即 math:rationalNumbers。该单元预期生成的验证视图给出符合规范的结果。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/examples/math/tests/ecNumberMissingSystem|https://blackcatinformatics.ca/gmeow/conformanceRationale"
+msgid "The counter-example declares exactness but omits math:inNumberSystem. Class isolation requires at least one math:UnsituatedNumber finding and rejects findings outside that class in the selected channels."
+msgstr "反例声明了精确性，却省略了 math:inNumberSystem。类隔离检查要求至少有一项 math:UnsituatedNumber 发现，并拒绝所选渠道中归入其他类的发现。"

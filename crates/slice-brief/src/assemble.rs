@@ -255,7 +255,7 @@ fn assemble_packet_from_source(
             ),
         })
     })?;
-    let translations = Translations::from_catalog(&catalog);
+    let translations = Translations::from_catalog(&catalog)?;
     let langs = [GroundingAttribute::Fr, GroundingAttribute::Zh];
 
     // Translation-disagreement map: (term, lang, predicate-curie) -> counterpart term.

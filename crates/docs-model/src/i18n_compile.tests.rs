@@ -338,6 +338,115 @@ fn lint_valid_catalog_reports_no_errors() {
     assert_eq!(report.fuzzy_counts.get("x-gmeow-french"), Some(&0));
 }
 
+/// The catalog commands admit only the exact tagged rationale of a named cell
+/// in the catalog's owning slice, and merge only reviewed translations.
+#[test]
+fn fixture_catalogs_select_exact_owned_rationale_sources() {
+    let (_tmp, root) = test_root("fixture-rationale-source");
+    let slice = root.join("slices/core/test");
+    let tests = slice.join("tests");
+    let registry = tests.join("example-conformance.ttl");
+    fs::create_dir_all(&tests).expect("create conformance registry directory");
+    fs::write(
+        &registry,
+        r#"
+@prefix gm: <https://blackcatinformatics.ca/gmeow/> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+<urn:control> a gm:ExampleConformance ;
+    gm:conformanceRationale "The declared system fits the count."@x-gmeow-english ;
+    rdfs:label "Registry-only label"@x-gmeow-english .
+<urn:counter> a gm:ExampleConformance ;
+    gm:conformanceRationale "A required value is missing."@x-gmeow-english .
+<urn:untyped> gm:conformanceRationale "Outside the selected type."@x-gmeow-english .
+"#,
+    )
+    .expect("write selected registry");
+    let control = format!("urn:control|{RATIONALE}");
+    let counter = format!("urn:counter|{RATIONALE}");
+    write_test_po(
+        &root,
+        "fr.po",
+        &po_body(&[
+            (
+                &control,
+                "The declared system fits the count.",
+                "Le système déclaré est adapté au décompte.",
+                false,
+            ),
+            (
+                &counter,
+                "A required value is missing.",
+                "Une valeur requise est absente.",
+                true,
+            ),
+        ]),
+    );
+    fs::write(
+        slice.join("manifest.ttl"),
+        r#"
+@prefix gm: <https://blackcatinformatics.ca/gmeow/> .
+<urn:authored:test-owner> a gm:Slice ; gm:sliceTier gm:tierCore .
+"#,
+    )
+    .expect("declare the owning slice");
+    fs::write(slice.join("module.ttl"), "").expect("write inert module");
+
+    let unowned = root.join("slices/core/unowned/tests");
+    fs::create_dir_all(&unowned).expect("create directory without a slice manifest");
+    let unowned_registry = unowned.join("example-conformance.ttl");
+    fs::write(&unowned_registry, "outside the RDF source inventory")
+        .expect("write unowned registry");
+    #[cfg(unix)]
+    {
+        let linked = root.join("slices/core/linked");
+        fs::create_dir_all(linked.join("tests")).expect("create linked registry directory");
+        fs::write(
+            linked.join("manifest.ttl"),
+            "<urn:linked> a <https://blackcatinformatics.ca/gmeow/Slice> .",
+        )
+        .expect("write catalog manifest");
+        std::os::unix::fs::symlink(
+            &unowned_registry,
+            linked.join("tests/example-conformance.ttl"),
+        )
+        .expect("link to the unowned source");
+    }
+    assert_eq!(
+        conformance_registry_files(&root).expect("select owned physical registries"),
+        vec![registry]
+    );
+
+    let extracted = root.join("extracted");
+    extract_catalog(&root, &extracted, Some("fr"), true).expect("extract fixture catalog");
+    let template = fs::read_to_string(extracted.join("slices/core/test/i18n/fr.po"))
+        .expect("read extracted catalog");
+    assert!(template.contains(&control) && template.contains(&counter));
+    assert!(!template.contains("Registry-only label") && !template.contains("urn:untyped"));
+    let lint = lint_po_files(&root, 100.0);
+    assert!(lint.ok());
+    assert_eq!(lint.ledger().messages(Severity::Warning).count(), 0);
+    let merge = merge_terms(&root, None, Some("fr")).expect("merge reviewed rationale");
+    assert_eq!(merge.added, 1);
+    assert!(merge.turtle.contains("<urn:control>") && !merge.turtle.contains("<urn:counter>"));
+
+    let path = slice.join("i18n/fr.po");
+    for (context, old_english) in [
+        (control.as_str(), "The old source text."),
+        (
+            "urn:untyped|https://blackcatinformatics.ca/gmeow/conformanceRationale",
+            "Outside the selected type.",
+        ),
+    ] {
+        fs::write(
+            &path,
+            po_body(&[(context, old_english, "Une traduction hors contexte.", false)]),
+        )
+        .expect("write mismatched catalog entry");
+        assert!(!lint_po_files(&root, 100.0).ok());
+        assert!(merge_terms(&root, None, Some("fr")).is_err());
+    }
+}
+
 #[test]
 fn lint_flags_collapsed_translation_distinction() {
     // Two DISTINCT English sources translated to the SAME target — the translation

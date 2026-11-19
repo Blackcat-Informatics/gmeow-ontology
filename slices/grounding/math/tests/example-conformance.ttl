@@ -45,7 +45,7 @@
 ex:ecNumberSituated a gmeow:ExampleConformance ;
     gmeow:exampleFile "tests/conformance-fixtures/number-situated.ttl" ;
     gmeow:expectedOutcome gmeow:conforms ;
-    gmeow:conformanceRationale "A math:RationalNumber situated in math:rationalNumbers with math:isExact true satisfies math:NumberSituatedShape and validates with no findings." .
+    gmeow:conformanceRationale "The control declares a math:RationalNumber with math:isExact true and exactly one math:inNumberSystem value, math:rationalNumbers. The cell expects a conforming result from the generated validation surface."@x-gmeow-english .
 
 ex:ecNumberMissingSystem a gmeow:ExampleConformance ;
     gmeow:exampleFile "tests/counter-examples/number-missing-system.ttl" ;
@@ -54,7 +54,7 @@ ex:ecNumberMissingSystem a gmeow:ExampleConformance ;
     gmeow:expectedViolationCode "shacl.MinCountConstraintComponent" ;
     gmeow:expectedSourceShape math:Number-shape ;
     gmeow:expectedSoleFinding true ;
-    gmeow:conformanceRationale "The counter-example omits math:inNumberSystem (sh:minCount 1 on math:NumberSituatedShape), so validation MUST emit shacl.MinCountConstraintComponent and NO other finding (math:UnsituatedNumber)." .
+    gmeow:conformanceRationale "The counter-example declares exactness but omits math:inNumberSystem. Class isolation requires at least one math:UnsituatedNumber finding and rejects findings outside that class in the selected channels."@x-gmeow-english .
 
 # === Rule 2: an approximation names what it approximates and its error ====== #
 

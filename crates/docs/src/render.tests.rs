@@ -814,6 +814,132 @@ fn render_site_lang_uses_translation_with_english_fallback() {
     assert_eq!(en_keys, fr_keys, "no dangling/extra links per language");
 }
 
+/// Localized fixture panels and the documentation graph use each registry
+/// cell's own reviewed translation and retain the complete authored literals.
+#[test]
+fn fixture_rationales_localize_by_source_cell_in_pages_and_rdf() {
+    use std::fs;
+
+    let tmp = tempfile::tempdir().expect("create synthetic slice");
+    let slice = tmp.path().join("demo");
+    for dir in [
+        "tests/conformance-fixtures",
+        "tests/counter-examples",
+        "i18n",
+    ] {
+        fs::create_dir_all(slice.join(dir)).expect("create source directory");
+    }
+    fs::write(
+        slice.join("manifest.ttl"),
+        r#"
+@prefix gm: <https://blackcatinformatics.ca/gmeow/> .
+<urn:demo> a gm:Slice ; gm:sliceTier gm:tierCore .
+"#,
+    )
+    .expect("write synthetic manifest");
+    fs::write(slice.join("module.ttl"), "").expect("write inert module");
+    for path in [
+        "tests/conformance-fixtures/number-ok.ttl",
+        "tests/counter-examples/number-bad.ttl",
+    ] {
+        fs::write(slice.join(path), "<urn:number> a <urn:data:Kind> .")
+            .expect("write supplied specimen");
+    }
+    fs::write(
+        slice.join("tests/example-conformance.ttl"),
+        r#"
+@prefix gm: <https://blackcatinformatics.ca/gmeow/> .
+<urn:control> a gm:ExampleConformance ;
+    gm:exampleFile "tests/conformance-fixtures/number-ok.ttl" ;
+    gm:expectedOutcome gm:conforms ;
+    gm:conformanceRationale "An authored control explanation"@x-gmeow-english .
+<urn:also> a gm:ExampleConformance ;
+    gm:exampleFile "tests/conformance-fixtures/number-ok.ttl" ;
+    gm:expectedOutcome gm:conforms ;
+    gm:conformanceRationale "An authored control explanation"@x-gmeow-english, "علة"@ar--rtl .
+<urn:counter> a gm:ExampleConformance ;
+    gm:exampleFile "tests/counter-examples/number-bad.ttl" ;
+    gm:expectedOutcome gm:violates ;
+    gm:expectedViolationCode "shacl.MinCountConstraintComponent" ;
+    gm:conformanceRationale "Supply the missing record"@x-gmeow-english .
+"#,
+    )
+    .expect("write selected registry");
+    let french = r#"
+msgid ""
+msgstr ""
+"Language: FR\n"
+
+msgctxt "urn:control|https://blackcatinformatics.ca/gmeow/conformanceRationale"
+msgid "An authored control explanation"
+msgstr "Une justification du témoin"
+
+#, fuzzy
+msgctxt "urn:also|https://blackcatinformatics.ca/gmeow/conformanceRationale"
+msgid "An authored control explanation"
+msgstr "Proposition à relire"
+
+msgctxt "urn:counter|https://blackcatinformatics.ca/gmeow/conformanceRationale"
+msgid "An earlier requirement"
+msgstr "Ancienne exigence"
+"#;
+    fs::write(slice.join("i18n/fr.po"), french).expect("write French catalog");
+
+    let model = DocsModel::from_slice_dir(tmp.path()).expect("build docs from supplied slice");
+    assert_eq!(model.translations.languages(), &["fr".to_owned()]);
+    let control = model
+        .fixtures
+        .iter()
+        .find(|fixture| fixture.expected_outcome.as_deref() == Some("conforms"))
+        .expect("control fixture");
+    assert_eq!(control.rationales.len(), 3);
+    assert!(control.rationales.iter().any(|rationale| {
+        rationale.cell == "urn:also"
+            && rationale.literal.direction == Some(purrdf::RdfTextDirection::Rtl)
+    }));
+    let site = render_site_lang(&model, "FR");
+    for path in ["fixtures/index.md", "fixtures/index.html"] {
+        let page = std::str::from_utf8(&site.files[path]).expect("UTF-8 fixture panel");
+        assert!(page.contains("Une justification du témoin"));
+        assert!(page.contains("An authored control explanation"));
+        assert!(page.contains("Supply the missing record"));
+        assert!(!page.contains("Proposition à relire") && !page.contains("Ancienne exigence"));
+    }
+    let nquads = crate::rdf::to_gmeow_rdf(&model, &BTreeMap::new());
+    let rationale_lines: Vec<_> = nquads
+        .lines()
+        .filter(|line| line.contains("<https://blackcatinformatics.ca/gmeow/conformanceRationale>"))
+        .collect();
+    assert_eq!(rationale_lines.len(), 4);
+    for expected in [
+        "\"An authored control explanation\"@x-gmeow-english",
+        "\"علة\"@ar--rtl",
+        "\"Une justification du témoin\"@x-gmeow-fr",
+        "\"Supply the missing record\"@x-gmeow-english",
+    ] {
+        assert!(
+            rationale_lines.iter().any(|line| {
+                line.contains(expected)
+                    && line
+                        .ends_with(" <https://blackcatinformatics.ca/gmeow/graph/documentation> .")
+            }),
+            "missing documentation rationale {expected}"
+        );
+    }
+
+    let conflict = french
+        .replace("Language: FR", "Language: fr")
+        .replace("Une justification du témoin", "Une autre justification");
+    fs::write(slice.join("i18n/fr-alternative.po"), conflict)
+        .expect("write conflicting reviewed value");
+    let error = DocsModel::from_slice_dir(tmp.path()).expect_err("refuse ambiguous reviewed value");
+    assert!(
+        error
+            .to_string()
+            .contains("conflicting reviewed fr rationales for <urn:control>")
+    );
+}
+
 #[test]
 fn per_term_card_json_and_full_md_are_emitted() {
     use crate::model::{

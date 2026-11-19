@@ -18446,3 +18446,11 @@ msgstr "Ne pas modifier l’identité exacte de la constante parce qu’une éva
 msgctxt "https://blackcatinformatics.ca/math/ConstantAsDecimalLiteral|https://blackcatinformatics.ca/gmeow/howToUse"
 msgid "Read the reported component, path, value and source shape. Remove a direct math:quantityValue literal from the constant when present, retain math:isExact true, and keep any justified evaluation and numeric absolute error bound on a separate math:ApproximateValue. Repair the actual reported obligation without replacing the canonical constant identity."
 msgstr "Lire le composant, le chemin, la valeur et la forme source signalés. Retirer de la constante tout littéral direct math:quantityValue présent, conserver math:isExact true et placer toute évaluation justifiée et sa borne numérique absolue d’erreur sur un math:ApproximateValue distinct. Corriger l’obligation effectivement signalée sans remplacer l’identité canonique de la constante."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/examples/math/tests/ecNumberSituated|https://blackcatinformatics.ca/gmeow/conformanceRationale"
+msgid "The control declares a math:RationalNumber with math:isExact true and exactly one math:inNumberSystem value, math:rationalNumbers. The cell expects a conforming result from the generated validation surface."
+msgstr "Le témoin déclare un math:RationalNumber avec math:isExact true et exactement une valeur de math:inNumberSystem, à savoir math:rationalNumbers. Le résultat attendu de la validation générée est la conformité."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/examples/math/tests/ecNumberMissingSystem|https://blackcatinformatics.ca/gmeow/conformanceRationale"
+msgid "The counter-example declares exactness but omits math:inNumberSystem. Class isolation requires at least one math:UnsituatedNumber finding and rejects findings outside that class in the selected channels."
+msgstr "Le contre-exemple déclare l’exactitude et omet math:inNumberSystem. La vérification de l’isolation de la classe exige au moins un constat math:UnsituatedNumber et rejette les constats associés à d’autres classes dans les canaux sélectionnés."

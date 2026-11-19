@@ -827,9 +827,23 @@ pub(crate) fn docs_source_files(
     root: &Path,
 ) -> Result<Vec<std::path::PathBuf>, gmeow_errors::Diag> {
     let mut files: Vec<std::path::PathBuf> = Vec::new();
-    // Include selection-only slices too: the catalog documents their manifests
-    // even when they have no module.ttl to contribute to the ontology fold.
-    files.extend(crate::stages::source_load::all_manifest_files(root)?);
+    // Manifest-owned catalogs are inputs even when the slice has no module.
+    for manifest in crate::stages::source_load::all_manifest_files(root)? {
+        let catalogs = manifest.with_file_name("i18n");
+        files.push(manifest);
+        let entries = match std::fs::read_dir(&catalogs) {
+            Ok(entries) => entries,
+            Err(error) if error.kind() == std::io::ErrorKind::NotFound => continue,
+            Err(error) => return Err(error.into()),
+        };
+        for entry in entries {
+            let path = entry?.path();
+            if path.extension().is_some_and(|extension| extension == "po") {
+                files.push(path);
+            }
+        }
+    }
+    files.extend(gmeow_docs::model::conformance_registry_files(root)?);
     for module in crate::stages::source_load::module_files(root)? {
         let dir = module.parent().unwrap_or(root);
         files.push(module.clone());
@@ -850,13 +864,7 @@ pub(crate) fn docs_source_files(
         if competency.is_file() {
             files.push(competency);
         }
-        // Conformance Do/Don't fixtures: the well-formed instances / counter-
-        // examples themselves plus the binding overlay that joins them to an
-        // expected outcome / violation code / rationale.
-        let example_conformance = dir.join("tests").join("example-conformance.ttl");
-        if example_conformance.is_file() {
-            files.push(example_conformance);
-        }
+        // The fixture bodies are separate inputs from their registries.
         for fixture_dir in ["conformance-fixtures", "counter-examples"] {
             if let Ok(entries) = std::fs::read_dir(dir.join("tests").join(fixture_dir)) {
                 for entry in entries.flatten() {
@@ -871,14 +879,6 @@ pub(crate) fn docs_source_files(
             for entry in entries.flatten() {
                 let p = entry.path();
                 if p.extension().is_some_and(|x| x == "ttl") {
-                    files.push(p);
-                }
-            }
-        }
-        if let Ok(entries) = std::fs::read_dir(dir.join("i18n")) {
-            for entry in entries.flatten() {
-                let p = entry.path();
-                if p.extension().is_some_and(|x| x == "po") {
                     files.push(p);
                 }
             }
@@ -1034,7 +1034,7 @@ impl Stage for DocsRenderStage {
         // v6: adds `term_loss_digest_from_upstream`, folding the dynamic per-term
         // projection-loss join from the `stage-mappings` product's live
         // `GRAPH_PROJECTION_LEDGER` graph.
-        "docs_render.v16-native-documentation-graph"
+        "docs_render.v17-localized-fixture-rationales"
     }
     fn input_files(&self, root: &Path) -> Result<Vec<std::path::PathBuf>, gmeow_errors::Diag> {
         // Guides, four-boxes patterns and locale catalogs contribute to the graph

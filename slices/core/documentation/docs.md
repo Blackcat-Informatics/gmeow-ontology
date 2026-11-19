@@ -82,6 +82,17 @@ Conformance rationales retain every authored literal through the model cache,
 RDF projection and MCP fixture records. Language tags, datatypes and base
 directions remain attached to their original lexical forms. Multiple
 conformance cells citing one specimen contribute all their rationales to its
-documentation record; their individual executable cells remain distinct.
-MCP fixture records expose a `rationales` array of complete literal records,
-including an empty array when no rationale was authored.
+documentation record. Their individual executable cells remain distinct.
+Author each rationale on its named `gmeow:ExampleConformance` cell in the
+slice's `tests/example-conformance.ttl`. To translate an undirected
+`@x-gmeow-english` rationale, use the cell IRI and the full
+`gmeow:conformanceRationale` predicate IRI separated by `|` as the catalog
+context, and copy the exact English lexical form into `msgid`. The catalog
+belongs to the same slice as the cell. The catalog language code and requested
+locale match regardless of ASCII case.
+
+HTML and Markdown fixture panels select the reviewed translation for the
+requested language and use the original rationale when that translation is
+absent or unreviewed. The documentation graph carries the authored literal
+and all matching reviewed translations with their language tags. MCP fixture
+records expose those values in a `rationales` array of complete literal records.
