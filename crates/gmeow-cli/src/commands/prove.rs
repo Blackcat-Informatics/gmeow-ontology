@@ -2270,7 +2270,6 @@ fn render_text(report: &ProveReport<'_>) {
         println!("source-admission {:?}", admission.status);
     }
     if let Some(admission) = &report.native_admission {
-        let mut unread_governance_sources = BTreeSet::new();
         if let Some(non_entailment) = admission.non_entailment() {
             println!("non-entailment-analysis {}", non_entailment.analysis);
             for record in &non_entailment.obligations {
@@ -2289,7 +2288,6 @@ fn render_text(report: &ProveReport<'_>) {
                     );
                 }
                 for boundary in &record.source_boundaries {
-                    unread_governance_sources.insert(&boundary.source);
                     println!(
                         "non-entailment-source-boundary {} {} {} {} {}",
                         record.obligation,
@@ -2367,32 +2365,28 @@ fn render_text(report: &ProveReport<'_>) {
                 NativeSourceDisposition::OutsideRequestedTheory { reason } => {
                     ("OutsideRequestedTheory", "-", *reason)
                 }
-                NativeSourceDisposition::Blocked { code, reason } => {
+                NativeSourceDisposition::Blocked { code, reason, .. } => {
                     ("Blocked", *code, reason.as_str())
                 }
                 NativeSourceDisposition::Malformed { code, reason } => {
                     ("Malformed", *code, reason.as_str())
                 }
             };
-            let source_id = match disposition {
-                NativeSourceDisposition::NonEntailmentDeclaration => Some(unit.identity()),
-                NativeSourceDisposition::Blocked {
-                    code: "UNSUPPORTED_SELECTED_ASSERTION",
-                    ..
-                } if !unread_governance_sources.is_empty() => {
-                    let id = unit.identity();
-                    unread_governance_sources.contains(&id).then_some(id)
-                }
-                _ => None,
-            };
-            if let Some(id) = source_id {
-                println!(
+            match disposition {
+                NativeSourceDisposition::NonEntailmentDeclaration => println!(
                     "source-unit {status} {anchor} {code} {} {:?} {detail}",
-                    id.as_str(),
+                    unit.identity().as_str(),
                     unit.documents()
-                );
-            } else {
-                println!("source-unit {status} {anchor} {code} {detail}");
+                ),
+                NativeSourceDisposition::Blocked {
+                    non_entailment_field: Some(field),
+                    ..
+                } => println!(
+                    "source-unit {status} {anchor} {code} {} {:?} {field} {detail}",
+                    unit.identity().as_str(),
+                    unit.documents()
+                ),
+                _ => println!("source-unit {status} {anchor} {code} {detail}"),
             }
         }
     }

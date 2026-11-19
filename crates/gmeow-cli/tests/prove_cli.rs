@@ -1459,9 +1459,6 @@ ex:absent a logic:NonEntailmentObligation ;
 ex:finite a logic:NonEntailmentObligation ;
     logic:obligationForbiddenPredicate ex:possible ;
     logic:obligationDischargeCondition logic:DischargeFiniteClosure .
-ex:unread a logic:NonEntailmentObligation ;
-    logic:obligationForbiddenPredicate ex:other ;
-    logic:obligationDischargeCondition <<( ex:s ex:seed ex:o )>> .
 ex:s ex:seed ex:o ; logic:unaccountedRelation ex:o .
 ex:possibleWriter a logic:Rule ;
     logic:body [ rdf:reifies <<( ex:s ex:missingSeed ex:o )>> ] ;
@@ -1499,50 +1496,75 @@ ex:derivedCondition a logic:Rule ;
         selected_gap.ends_with(&format!("({code}): {detail}"))
     }));
     assert_eq!(reason("https://example.org/prove/finite"), selected_gap);
-    let unread = records
-        .iter()
-        .find(|record| record["obligation"] == "https://example.org/prove/unread")
-        .expect("unread declaration");
-    assert!(unread["disposition"]["Invalid"]["detail"]
-        .as_str()
-        .is_some_and(|detail| detail.contains("declares no logic:obligationDischargeCondition")));
-    let boundaries = unread["source_boundaries"]
-        .as_array()
-        .expect("field boundaries");
-    assert_eq!(boundaries.len(), 1);
-    let boundary = &boundaries[0];
-    assert_eq!(boundary["field"], "obligationDischargeCondition");
-    assert_eq!(boundary["code"], "UNSUPPORTED_SELECTED_ASSERTION");
-    assert!(
-        boundary["detail"]
-            .as_str()
-            .is_some_and(|detail| detail.contains("quoted triple"))
+    let malformed_source = write(
+        directory.path(),
+        "malformed-governance.ttl",
+        r#"
+ex:unread a logic:NonEntailmentObligation ;
+    logic:obligationForbiddenPredicate ex:other ;
+    logic:obligationDischargeCondition <<( ex:s ex:seed ex:o )>> .
+"#,
     );
-    let units = blocked["native_admission"]["units"]
+    let malformed = gmeow()
+        .args([
+            "prove",
+            path(&malformed_source),
+            "--format",
+            "json",
+            "--gate",
+        ])
+        .assert()
+        .code(4);
+    let malformed = report(&malformed);
+    assert_eq!(malformed["verdict"], "malformed");
+    assert!(malformed["engines"].is_null());
+    let units = malformed["native_admission"]["units"]
         .as_array()
         .expect("source inventory");
     let field = units
         .iter()
-        .find(|unit| unit["id"] == boundary["source"])
-        .expect("original field");
-    assert_eq!(field["disposition"]["Blocked"]["code"], boundary["code"]);
-    assert!(
-        unread["sources"]
-            .as_array()
-            .expect("source IDs")
-            .contains(&boundary["source"])
+        .find(|unit| {
+            unit["anchor"].as_str().is_some_and(|anchor| {
+                anchor.contains("https://example.org/prove/unread")
+                    && anchor.contains(
+                        "https://blackcatinformatics.ca/logic/obligationDischargeCondition",
+                    )
+            })
+        })
+        .expect("original unread condition");
+    let boundary = &field["disposition"]["Blocked"];
+    assert_eq!(boundary["code"], "UNSUPPORTED_SELECTED_ASSERTION");
+    assert_eq!(
+        boundary["non_entailment_field"],
+        "obligationDischargeCondition"
     );
-    let blocked_text = gmeow()
-        .args(["prove", path(&blocked_source), "--format", "text", "--gate"])
+    assert!(
+        boundary["reason"]
+            .as_str()
+            .is_some_and(|detail| detail.contains("quoted triple"))
+    );
+    assert!(units.iter().any(|unit| {
+        unit["disposition"]["Malformed"]["code"] == "COMPILER_ERROR_IN_SELECTED_THEORY"
+    }));
+    let malformed_text = gmeow()
+        .args([
+            "prove",
+            path(&malformed_source),
+            "--format",
+            "text",
+            "--gate",
+        ])
         .assert()
-        .code(3);
-    let blocked_text = std::str::from_utf8(&blocked_text.get_output().stdout).expect("text report");
+        .code(4);
+    let malformed_text =
+        std::str::from_utf8(&malformed_text.get_output().stdout).expect("text report");
     let id = field["id"].as_str().expect("source ID");
     let anchor = field["anchor"].as_str().expect("source anchor");
-    assert!(blocked_text.lines().any(|line| {
+    assert!(malformed_text.lines().any(|line| {
         line.starts_with(&format!(
             "source-unit Blocked {anchor} UNSUPPORTED_SELECTED_ASSERTION {id} "
-        )) && line.contains("governance-policy.ttl")
+        )) && line.contains("malformed-governance.ttl")
+            && line.contains("obligationDischargeCondition quoted triple")
     }));
 }
 

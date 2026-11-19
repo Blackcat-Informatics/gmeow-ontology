@@ -92,6 +92,8 @@ pub enum NativeSourceDisposition {
     Blocked {
         code: &'static str,
         reason: String,
+        #[serde(skip_serializing_if = "Option::is_none")]
+        non_entailment_field: Option<&'static str>,
     },
     Malformed {
         code: &'static str,
@@ -106,6 +108,7 @@ impl Disposition {
         Self::Blocked {
             code,
             reason: reason.into(),
+            non_entailment_field: None,
         }
     }
     fn malformed(code: &'static str, reason: impl Into<String>) -> Self {
@@ -122,7 +125,7 @@ impl Disposition {
     }
     fn boundary(&self) -> Option<(&'static str, &str)> {
         match self {
-            Self::Blocked { code, reason } | Self::Malformed { code, reason } => {
+            Self::Blocked { code, reason, .. } | Self::Malformed { code, reason } => {
                 Some((code, reason))
             }
             Self::OutsideSelection { reason } => Some(("OUTSIDE_SELECTION", reason)),
@@ -478,9 +481,14 @@ fn classify(
                     ),
                     "native asserted fact and interpreted-relation account",
                 ),
-                Err(error) => {
-                    Disposition::blocked("UNSUPPORTED_SELECTED_ASSERTION", error.to_string())
-                }
+                Err(error) => Disposition::Blocked {
+                    code: "UNSUPPORTED_SELECTED_ASSERTION",
+                    reason: error.to_string(),
+                    non_entailment_field: governance::unread_field_name(
+                        theory.source().dataset(),
+                        quad,
+                    ),
+                },
             }
         }
         SourceObligationOrigin::Quotation { reifier, graph, .. } => {

@@ -157,6 +157,8 @@ original source anchor on both lines.
 `gmeow prove` evaluates selected `logic:NonEntailmentObligation` declarations
 against the retained native execution. The report links the type and field
 rows to the exact source obligation IDs and names the assessed world.
+When compilation refuses an unread governance field, the source inventory
+identifies the field, its original source coordinates and its diagnostic.
 The selected authored fields determine the authorized discharge conditions.
 Discharge requires a supported absence proof and complete selected source
 coverage. A derived forbidden predicate carries its witness. Invalid fields

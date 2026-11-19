@@ -218,7 +218,7 @@ impl SourceRows {
     }
 }
 
-fn unread_field(dataset: &RdfDataset, quad: QuadIds) -> Option<SourceField> {
+fn authored_field(dataset: &RdfDataset, quad: QuadIds) -> Option<ObligationField> {
     let TermRef::Iri(predicate) = dataset.resolve(quad.p) else {
         return None;
     };
@@ -226,7 +226,15 @@ fn unread_field(dataset: &RdfDataset, quad: QuadIds) -> Option<SourceField> {
         TermRef::Iri(iri) => Some(iri),
         _ => None,
     };
-    let field = obligation_field(predicate, object_iri)?;
+    obligation_field(predicate, object_iri)
+}
+
+pub(super) fn unread_field_name(dataset: &RdfDataset, quad: QuadIds) -> Option<&'static str> {
+    authored_field(dataset, quad).map(ObligationField::as_str)
+}
+
+fn unread_field(dataset: &RdfDataset, quad: QuadIds) -> Option<SourceField> {
+    let field = authored_field(dataset, quad)?;
     let obligation = match dataset.resolve(quad.s) {
         TermRef::Iri(iri) => iri.to_owned(),
         TermRef::Blank { label, scope } => format!("_:{}", scope.qualify_label(label)),
@@ -283,6 +291,7 @@ fn selected_rows(
             Disposition::Blocked {
                 code: code @ "UNSUPPORTED_SELECTED_ASSERTION",
                 reason,
+                non_entailment_field: Some(_),
             } => {
                 let Some(field) = unread_field(dataset, binding.canonical) else {
                     continue;
