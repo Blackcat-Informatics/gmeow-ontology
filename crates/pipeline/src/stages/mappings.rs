@@ -457,7 +457,7 @@ fn compile_mappings_with_sources(
         message: "selected docs-rendering corpus requires its actual slice catalog and term-page inventory".to_owned(),
     }))?;
     let docs_ownership = purrdf::slice::OwnershipAnalyzer::new(docs_catalog).analyze()?;
-    let documented_pages = gmeow_docs::model::documented_term_iris(docs_catalog, &docs_ownership);
+    let documented_pages = gmeow_docs::model::documented_term_iris(docs_catalog, &docs_ownership)?;
     let docs_rendering_corpus = crate::stages::lang_docs_rendering::build_corpus_from_sources(
         &translation_sources,
         &documented_pages,

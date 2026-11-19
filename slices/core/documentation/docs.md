@@ -51,6 +51,13 @@ That link remains an annotation even when its target is an ontology. Canonical
 integrity constraints enforce requiredness, the single value and IRI kind; their
 generated validation surface does not turn ownership metadata into a logical role.
 
+Term pages and neighbourhood diagrams use named domain and range links from
+the authored property signature. The reader selects `logic:domain` and
+`logic:range` and uses the corresponding RDFS predicate when the canonical
+predicate is absent. It lists each IRI endpoint once in sorted order and
+reports a diagnostic when the two spellings give conflicting named endpoints.
+Anonymous class and datatype expressions remain in the authored graph.
+
 ## Realized state
 
 | Document | Genre | Realized state | Contents |

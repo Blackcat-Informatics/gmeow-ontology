@@ -165,8 +165,9 @@ define_diag_kind! {
 
 define_diag_kind! {
     native_cause;
-    /// The RDF-carrier frontend failed to lower a node into the IR: a malformed
-    /// axiom node, or a validation-shape set that could not be derived.
+    /// The RDF-carrier frontend refused an authored construct, such as a
+    /// malformed axiom, a contradictory property signature, or an invalid
+    /// validation-shape set.
     pub struct Frontend { detail: String }
     code = "logic-compile.frontend";
     grade = compile_grade!();

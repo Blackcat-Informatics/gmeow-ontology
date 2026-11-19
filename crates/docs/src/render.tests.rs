@@ -297,6 +297,60 @@ fn md_escape_neutralizes_table_and_inline_metachars() {
     assert_eq!(md_escape("line\nbreak"), "line break");
 }
 
+/// Named domains from the authored signature remain subject types in rendered
+/// JSON-LD quickstarts even when the Turtle preamble has no matching prefix.
+#[test]
+fn canonical_named_domains_reach_rendered_jsonld_quickstarts() {
+    let slice = tempfile::tempdir().expect("create supplied slice");
+    std::fs::write(
+        slice.path().join("manifest.ttl"),
+        r#"<urn:example:ai> a <https://blackcatinformatics.ca/gmeow/Slice> ;
+    <http://purl.org/dc/terms/creator> "Example author" ."#,
+    )
+    .expect("write the slice manifest");
+    std::fs::write(
+        slice.path().join("module.ttl"),
+        r#"
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix lang: <https://blackcatinformatics.ca/lang/> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+gmeow:analysisFirstChunkKey a logic:DatatypeProperty ;
+    logic:domain lang:Analysis .
+gmeow:hasExternalAgent a logic:ObjectProperty ;
+    logic:domain <https://example.org/Agent> .
+"#,
+    )
+    .expect("write a property with a canonical domain");
+    let model = DocsModel::from_slice_dir(slice.path()).expect("read the supplied signature");
+    for (property, domain_iri) in [
+        (
+            "gmeow:analysisFirstChunkKey",
+            "https://blackcatinformatics.ca/lang/Analysis",
+        ),
+        ("gmeow:hasExternalAgent", "https://example.org/Agent"),
+    ] {
+        let term = model
+            .terms
+            .iter()
+            .find(|term| term.curie == property)
+            .expect("the property has a term page");
+        let page = to_markdown(&model, &Page::Term(term_slug(term)));
+        let (_, example) = page
+            .split_once("\n```json\n")
+            .expect("render the JSON-LD tab");
+        let (jsonld, _) = example
+            .split_once("\n```")
+            .expect("close the JSON-LD fence");
+        let graph = purrdf::parse_dataset(jsonld.as_bytes(), "application/ld+json", None)
+            .expect("the JSON-LD example parses");
+        let domain = purrdf::RdfTerm::iri(domain_iri);
+        assert!(graph.owned_quads().any(|quad| {
+            quad.predicate == "http://www.w3.org/1999/02/22-rdf-syntax-ns#type"
+                && quad.object == domain
+        }));
+    }
+}
+
 /// Decode a Python double-quoted literal body the way `json.loads` would
 /// see it after Python's own string-literal decoding — i.e. undo exactly
 /// the two escapes [`python_str_escape`] introduces (`\\` and `\"`, plus

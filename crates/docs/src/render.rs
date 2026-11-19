@@ -938,6 +938,24 @@ fn quickstart_label(model: &DocsModel, iri: &str) -> String {
         .to_string()
 }
 
+/// Render an IRI token for the shared Turtle preamble. Use compact names only
+/// when the prefix expands to this IRI and the local name needs no escaping.
+fn quickstart_iri(iri: &str, label: &str) -> String {
+    if let Some((prefix, local)) = label.split_once(':')
+        && !local.is_empty()
+        && !local.starts_with('-')
+        && local
+            .bytes()
+            .all(|byte| byte.is_ascii_alphanumeric() || matches!(byte, b'_' | b'-'))
+        && let Some(namespace) = iri.strip_suffix(local)
+        && QUICKSTART_TURTLE_PREAMBLE.contains(&format!("@prefix {prefix}: <{namespace}> .\n"))
+    {
+        label.to_owned()
+    } else {
+        format!("<{iri}>")
+    }
+}
+
 /// A placeholder object for one property's example triple, plus the trailing
 /// `#`-comment naming what the placeholder stands in for. Never fabricates an
 /// instance: an empty `range` renders a bare placeholder literal (nothing is
@@ -981,19 +999,18 @@ fn synthesize_class_quickstart(model: &DocsModel, term: &DocTerm) -> String {
         .collect();
     props.sort_by(|a, b| a.curie.cmp(&b.curie));
 
+    let class = quickstart_iri(&term.iri, &term.curie);
     if props.is_empty() {
-        return format!("<subject> a {} .\n", term.curie);
+        return format!("<subject> a {class} .\n");
     }
 
     let cap = props.len().min(QUICKSTART_PROPERTY_CAP);
-    let mut out = format!("<subject> a {} ;\n", term.curie);
+    let mut out = format!("<subject> a {class} ;\n");
     for (i, prop) in props.iter().take(cap).enumerate() {
         let terminator = if i + 1 == cap { '.' } else { ';' };
         let (object, comment) = quickstart_placeholder(model, &prop.range);
-        out.push_str(&format!(
-            "    {} {object} {terminator}{comment}\n",
-            prop.curie
-        ));
+        let predicate = quickstart_iri(&prop.iri, &prop.curie);
+        out.push_str(&format!("    {predicate} {object} {terminator}{comment}\n"));
     }
     if props.len() > QUICKSTART_PROPERTY_CAP {
         let remaining = props.len() - QUICKSTART_PROPERTY_CAP;
@@ -1016,14 +1033,12 @@ fn synthesize_class_quickstart(model: &DocsModel, term: &DocTerm) -> String {
 /// term when one is declared, else a placeholder literal).
 fn synthesize_property_quickstart(model: &DocsModel, term: &DocTerm) -> String {
     let subject_type = match term.domain.first() {
-        Some(d) => quickstart_label(model, d),
+        Some(domain) => quickstart_iri(domain, &quickstart_label(model, domain)),
         None => "owl:Thing".to_string(),
     };
     let (object, comment) = quickstart_placeholder(model, &term.range);
-    format!(
-        "<subject> a {subject_type} ;\n    {} {object} .{comment}\n",
-        term.curie
-    )
+    let predicate = quickstart_iri(&term.iri, &term.curie);
+    format!("<subject> a {subject_type} ;\n    {predicate} {object} .{comment}\n")
 }
 
 /// The synthesized quickstart Turtle skeleton for one term — a PURE function
@@ -2310,8 +2325,8 @@ fn openapi_syntax_tab(term: &DocTerm, model: &DocsModel) -> Option<DocSyntaxTab>
 /// The canonical `@prefix`/`@base` preamble under which a synthesized quickstart
 /// skeleton (which uses bare `gmeow:`/`logic:`/`math:`/`owl:`… CURIEs and the
 /// relative `<subject>`/`<...>` placeholders) parses as a self-contained Turtle
-/// document: a base resolves the relative placeholders, and every prefix a
-/// `quickstart_label`/`term.curie` can emit is declared.
+/// document. The base resolves relative placeholders. The declarations control
+/// which IRIs `quickstart_iri` renders in compact form.
 const QUICKSTART_TURTLE_PREAMBLE: &str = concat!(
     "@base <https://blackcatinformatics.ca/gmeow/example/> .\n",
     "@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .\n",
