@@ -528,9 +528,11 @@ bespoke generator at fanout time; an output that cannot be produced by extractio
 alone signals a §5 violation upstream, not a need for computation downstream.
 
 Snapshot borrows the committed projection report from `stage-mappings` and
-parses it once in sorted artifact order. The resulting named fanout graph
-reconstructs `generated/logic/projection-report.ttl`. The native projection
-ledger retains its own graph for pipeline consumers.
+parses it once in sorted artifact order. It verifies the exact parsed RDF
+terms and row count against the required native ledger, then releases the
+temporary dataset. Both placements share the native graph selection. The
+ledger graph serves pipeline consumers, and the fanout graph reconstructs
+`generated/logic/projection-report.ttl`.
 Snapshot also borrows the other committed RDF fanout artifacts through parsing.
 The sorted reconstruction map holds references to the producer byte lanes.
 

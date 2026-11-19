@@ -115,3 +115,79 @@ fn projection_ledger_canonicalizes_stably() {
         "the blank structural-drop node must carry a canonical RDFC-1.0 label"
     );
 }
+
+/// Reusing the checked report under both graph names preserves the coherence
+/// preimage and refuses an independently loaded report that disagrees.
+#[test]
+fn projection_report_reuse_preserves_carrier_and_rejects_a_mismatch() {
+    const REPORT: &[u8] = br#"<urn:report> <urn:kind> <urn:projection> ;
+        <urn:count> 7 ; <urn:label> "Projection"@en ."#;
+    const DIFFERENT: &[u8] = br#"<urn:report> <urn:kind> <urn:projection> ;
+        <urn:count> "7" ; <urn:label> "Projection"@en ."#;
+
+    let report_iri = crate::stages::superset::rdf_fanout_graph_iri(
+        crate::stages::compile_logic::PROJECTION_REPORT_PATH,
+    )
+    .expect("the report has a registered fanout graph");
+    let ledger = parse_into_graph(
+        &turtle_to_nquads(REPORT).expect("map the report to normalized statements"),
+        "application/n-quads",
+        GRAPH_PROJECTION_LEDGER,
+    )
+    .expect("construct the native ledger as mappings does");
+    let other = parse_into_graph(DIFFERENT, "text/turtle", "urn:other")
+        .expect("include the alternative term in a different graph");
+    let dataset =
+        purrdf::RdfDataset::union(&[&ledger, &other]).expect("combine the two supplied graphs");
+    let bundle = crate::bundle::bundle_from_artifacts_over(
+        std::sync::Arc::new(dataset),
+        BTreeMap::new(),
+        DatasetProvenance::new(),
+    );
+    let upstream = BTreeMap::from([(
+        "stage-mappings".to_owned(),
+        StageProduct::from_bundle("stage-mappings", std::sync::Arc::new(bundle))
+            .expect("admit the supplied mappings product"),
+    )]);
+    let ledger = upstream["stage-mappings"].dataset();
+    let graph = ledger
+        .term_id_by_iri(GRAPH_PROJECTION_LEDGER)
+        .expect("the ledger graph is declared");
+    let rows = graph_quad_count(ledger, GRAPH_PROJECTION_LEDGER);
+
+    let mut separate = CarrierParts::new(&upstream);
+    separate
+        .push_graph("stage-mappings", GRAPH_PROJECTION_LEDGER)
+        .expect("attach the native projection ledger");
+    separate
+        .push_parsed(REPORT, "text/turtle", &report_iri)
+        .expect("attach the separately parsed report");
+
+    let mut shared = CarrierParts::new(&upstream);
+    let selection = shared
+        .select_graph_source("stage-mappings", GRAPH_PROJECTION_LEDGER)
+        .expect("select the native ledger once");
+    shared.place_graph_source(selection.clone(), GRAPH_PROJECTION_LEDGER);
+    check_projection_report(REPORT, &report_iri, ledger, graph, rows)
+        .expect("admit the report's exact terms");
+    shared.place_graph_source(selection, &report_iri);
+
+    let canonical = |parts: CarrierParts<'_>| {
+        purrdf::try_canonicalize_flat_view(
+            &parts.view().expect("compose the report carrier"),
+            purrdf::CanonHash::Sha256,
+            &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None),
+        )
+        .expect("canonicalize the report carrier")
+        .nquads()
+        .to_owned()
+    };
+    assert_eq!(canonical(shared), canonical(separate));
+    for bytes in [
+        DIFFERENT,
+        b"<urn:report> <urn:count> 7 .",
+        b"<incomplete Turtle",
+    ] {
+        assert!(check_projection_report(bytes, &report_iri, ledger, graph, rows).is_err());
+    }
+}
