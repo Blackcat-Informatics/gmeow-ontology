@@ -814,11 +814,37 @@ fn render_site_lang_uses_translation_with_english_fallback() {
     assert_eq!(en_keys, fr_keys, "no dangling/extra links per language");
 }
 
+/// HTML page links use HTML targets while external links and raw HTML keep their targets.
+#[test]
+fn html_rewrites_only_site_relative_markdown_links() {
+    let html = markdown_to_html(
+        r#"
+[Local](index.md)
+[Absolute](https://example.org/index.md#anchor)
+[Network](//example.org/index.md)
+<a href="../raw/index.md#anchor">Raw</a>
+"#,
+    );
+    for href in [
+        "index.html",
+        "https://example.org/index.md#anchor",
+        "//example.org/index.md",
+        "../raw/index.md#anchor",
+    ] {
+        assert!(
+            html.contains(&format!("href=\"{href}\"")),
+            "missing link: {html}"
+        );
+    }
+}
+
 /// Localized fixture panels and the documentation graph use each registry
 /// cell's own reviewed translation and retain the complete authored literals.
 #[test]
 fn fixture_rationales_localize_by_source_cell_in_pages_and_rdf() {
     use std::fs;
+
+    use crate::model::ConstraintRule;
 
     let tmp = tempfile::tempdir().expect("create synthetic slice");
     let slice = tmp.path().join("demo");
@@ -833,7 +859,9 @@ fn fixture_rationales_localize_by_source_cell_in_pages_and_rdf() {
         slice.join("manifest.ttl"),
         r#"
 @prefix gm: <https://blackcatinformatics.ca/gmeow/> .
-<urn:demo> a gm:Slice ; gm:sliceTier gm:tierCore .
+<urn:demo> a gm:Slice ;
+    gm:sliceTier gm:tierCore ;
+    <http://purl.org/dc/terms/creator> "Example Contributors" .
 "#,
     )
     .expect("write synthetic manifest");
@@ -872,7 +900,7 @@ msgstr ""
 
 msgctxt "urn:control|https://blackcatinformatics.ca/gmeow/conformanceRationale"
 msgid "An authored control explanation"
-msgstr "Une justification du témoin"
+msgstr "Une justification du témoin &lt; dans guide/index.md#anchor"
 
 #, fuzzy
 msgctxt "urn:also|https://blackcatinformatics.ca/gmeow/conformanceRationale"
@@ -885,7 +913,26 @@ msgstr "Ancienne exigence"
 "#;
     fs::write(slice.join("i18n/fr.po"), french).expect("write French catalog");
 
-    let model = DocsModel::from_slice_dir(tmp.path()).expect("build docs from supplied slice");
+    let mut model = DocsModel::from_slice_dir(tmp.path()).expect("build docs from supplied slice");
+    let code = "shacl.MinCountConstraintComponent";
+    let slug = gmeow_validate::rule_catalog::slugify(code);
+    model
+        .fixtures
+        .iter_mut()
+        .find(|fixture| fixture.violation_code.as_deref() == Some(code))
+        .expect("counter-example fixture")
+        .catalog_slug = Some(slug.clone());
+    model.constraint_rules.push(ConstraintRule {
+        code: code.to_string(),
+        slug: slug.clone(),
+        category: "https://blackcatinformatics.ca/logic/FindingDataShapeViolation".to_string(),
+        severity: "binding".to_string(),
+        help_uri: format!("https://blackcatinformatics.ca/gmeow/docs/enforced-constraints#{slug}"),
+        label: None,
+        definition: None,
+        applies_to_terms: Vec::new(),
+        formalizes: None,
+    });
     assert_eq!(model.translations.languages(), &["fr".to_owned()]);
     let control = model
         .fixtures
@@ -898,9 +945,18 @@ msgstr "Ancienne exigence"
             && rationale.literal.direction == Some(purrdf::RdfTextDirection::Rtl)
     }));
     let site = render_site_lang(&model, "FR");
-    for path in ["fixtures/index.md", "fixtures/index.html"] {
-        let page = std::str::from_utf8(&site.files[path]).expect("UTF-8 fixture panel");
-        assert!(page.contains("Une justification du témoin"));
+    let markdown = std::str::from_utf8(&site.files["fixtures/index.md"]).expect("UTF-8 Markdown");
+    let html = std::str::from_utf8(&site.files["fixtures/index.html"]).expect("UTF-8 HTML");
+    assert!(markdown.contains(r"Une justification du témoin \&lt; dans guide/index\.md\#anchor"));
+    assert!(html.contains("Une justification du témoin &amp;lt; dans guide/index.md#anchor"));
+    assert!(markdown.contains(&format!("(../enforced-constraints/index.md#{slug})")));
+    assert!(html.contains(&format!(
+        "href=\"../enforced-constraints/index.html#{slug}\""
+    )));
+    let catalog = std::str::from_utf8(&site.files["enforced-constraints/index.html"])
+        .expect("UTF-8 constraint catalog");
+    assert!(catalog.contains(&format!("<a id=\"{slug}\"></a>")));
+    for page in [markdown, html] {
         assert!(page.contains("An authored control explanation"));
         assert!(page.contains("Supply the missing record"));
         assert!(!page.contains("Proposition à relire") && !page.contains("Ancienne exigence"));
@@ -914,7 +970,7 @@ msgstr "Ancienne exigence"
     for expected in [
         "\"An authored control explanation\"@x-gmeow-english",
         "\"علة\"@ar--rtl",
-        "\"Une justification du témoin\"@x-gmeow-fr",
+        "\"Une justification du témoin &lt; dans guide/index.md#anchor\"@x-gmeow-fr",
         "\"Supply the missing record\"@x-gmeow-english",
     ] {
         assert!(

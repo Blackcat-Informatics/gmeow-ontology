@@ -65,7 +65,9 @@ pub(super) fn push_fixture_binding_bullets(
     }
     for rationale in &fixture.rationales {
         let text = rationale.display_text(&fixture.slice, &model.translations, &model.lang);
-        push_line(out, &format!("  - {}", md_escape(&one_line(text))));
+        // Escape the ampersand so Markdown displays entity references as literal text.
+        let text = md_escape(&one_line(text)).replace('&', "\\&");
+        push_line(out, &format!("  - {text}"));
     }
 }
 

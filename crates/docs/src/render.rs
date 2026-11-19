@@ -25,7 +25,7 @@ use std::sync::OnceLock;
 
 use gmeow_docs_model::slug::short_iri_digest;
 use minijinja::{Environment, Value as TemplateValue};
-use pulldown_cmark::{Options, Parser, html as cmark_html};
+use pulldown_cmark::{Event, Options, Parser, Tag, html as cmark_html};
 use purrdf_lex::json::record::ToJson;
 use purrdf_lex::json::{self, Object, Value};
 
@@ -3172,9 +3172,7 @@ pub(crate) fn to_html_lang_exec_with_map(
     exec: &ExecutableDocsData,
     page_map: &SourceToPageMap,
 ) -> String {
-    let body_html = rewrite_internal_links(&markdown_to_html(&to_markdown_exec_with_map(
-        model, page, exec, page_map,
-    )));
+    let body_html = markdown_to_html(&to_markdown_exec_with_map(model, page, exec, page_map));
     let root = root_href(&page.dir());
 
     let ui = &model.ui_catalog;
@@ -3308,30 +3306,38 @@ pub(crate) fn to_html_lang_exec_with_map(
     .expect("shell template renders")
 }
 
-/// Convert a Markdown document to an HTML fragment via pulldown-cmark with a
-/// fixed, deterministic option set (tables enabled; raw HTML in the source is
-/// inert because we author all Markdown and escape inserted values ourselves).
+/// Convert the Markdown body to HTML and use HTML targets for site links.
 fn markdown_to_html(markdown: &str) -> String {
     let mut options = Options::empty();
     options.insert(Options::ENABLE_TABLES);
     options.insert(Options::ENABLE_STRIKETHROUGH);
-    let parser = Parser::new_ext(markdown, options);
+    let parser = Parser::new_ext(markdown, options).map(|mut event| {
+        if let Event::Start(Tag::Link { dest_url, .. }) = &mut event
+            && let Some(href) = internal_html_href(dest_url.as_ref())
+        {
+            *dest_url = href.into();
+        }
+        event
+    });
     let mut html = String::new();
     cmark_html::push_html(&mut html, parser);
     html
 }
 
-/// Rewrite intra-site link targets in a converted HTML body from the Markdown
-/// tree's `.md` extension to `.html`, so the HTML site navigates between HTML
-/// pages. Every internal link the renderers emit ends in `index.md` inside an
-/// `href="…"` attribute; external links are absolute `http(s)://` URLs that
-/// never contain `index.md`, so this targeted swap touches only internal links.
-fn rewrite_internal_links(html: &str) -> String {
-    // `index.md"` closes a fragment-less internal link; `index.md#` precedes a
-    // heading fragment (the grafted `docs.md` / child-document cross-links carry
-    // `…index.md#anchor`). Both forms map to the `.html` page.
-    html.replace("index.md\"", "index.html\"")
-        .replace("index.md#", "index.html#")
+/// Map a site-relative Markdown index path to its HTML page and keep its fragment.
+fn internal_html_href(destination: &str) -> Option<String> {
+    let (path, fragment) = destination.split_at(destination.find('#').unwrap_or(destination.len()));
+    let prefix = path.strip_suffix("index.md")?;
+    if (!prefix.is_empty() && !prefix.ends_with('/'))
+        || prefix.starts_with("//")
+        || prefix.contains('?')
+        || prefix
+            .split_once('/')
+            .is_some_and(|(first, _)| first.contains(':'))
+    {
+        return None;
+    }
+    Some(format!("{prefix}index.html{fragment}"))
 }
 
 /// Native template map used in the navigation's fixed sequence order.
