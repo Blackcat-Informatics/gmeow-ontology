@@ -53,10 +53,12 @@ use crate::foundation;
 mod reachability;
 pub use reachability::{ProgramReachability, ReachabilityEvidence};
 mod assessment;
-pub(crate) use assessment::governance_statement;
 pub use assessment::{
     ObligationAssessment, ObligationDisposition, ObligationOutcome,
     assess_non_entailment_obligations,
+};
+pub(crate) use assessment::{
+    ObligationField, assess_selected_obligations, governance_statement, obligation_field,
 };
 
 /// Wrap a governance-obligation condition message as a typed diagnostic on the
@@ -219,68 +221,101 @@ fn governance_node(store: &RdfDataset, node: TermId) -> gmeow_errors::Result<Str
     }
 }
 
-/// Lift every declared obligation, rejecting malformed required fields rather
-/// than losing the declaration in an inner join or choosing its first value.
-fn parse_obligations(store: &Arc<RdfDataset>) -> gmeow_errors::Result<Vec<Obligation>> {
+fn forbidden_predicate(
+    store: &RdfDataset,
+    subject: TermId,
+    iri: &str,
+) -> gmeow_errors::Result<String> {
+    let mut values = governance_values(store, subject, "obligationForbiddenPredicate");
+    let forbidden = values.next().ok_or_else(|| {
+        obligation_err(format!(
+            "non-entailment obligation {iri} has no logic:obligationForbiddenPredicate"
+        ))
+    })?;
+    if values.next().is_some() {
+        return Err(obligation_err(format!(
+            "non-entailment obligation {iri} has multiple distinct \
+             logic:obligationForbiddenPredicate values"
+        )));
+    }
+    let forbidden_predicate = match store.resolve(forbidden) {
+        TermRef::Iri(predicate) => predicate.to_owned(),
+        TermRef::Literal {
+            lexical,
+            datatype,
+            language: None,
+            ..
+        } if matches!(
+            store.resolve(datatype),
+            TermRef::Iri("http://www.w3.org/2001/XMLSchema#anyURI")
+        ) && !lexical.is_empty() =>
+        {
+            lexical.to_owned()
+        }
+        _ => {
+            return Err(obligation_err(format!(
+                "non-entailment obligation {iri} requires a predicate IRI or xsd:anyURI value"
+            )));
+        }
+    };
+    let predicate = purrdf::iri::parse(&forbidden_predicate).map_err(|error| {
+        obligation_source_error(
+            format!("non-entailment obligation {iri} has an invalid forbidden predicate"),
+            error,
+        )
+        .with_location(Location {
+            logical: Some(iri.to_owned()),
+            ..Location::default()
+        })
+    })?;
+    if !predicate.has_scheme() {
+        return Err(obligation_err(format!(
+            "non-entailment obligation {iri} requires an absolute forbidden predicate IRI"
+        )));
+    }
+    Ok(forbidden_predicate)
+}
+
+fn discharge_conditions(
+    store: &RdfDataset,
+    subject: TermId,
+    iri: &str,
+) -> gmeow_errors::Result<BTreeSet<String>> {
+    let mut discharge_conditions = BTreeSet::new();
+    for condition in governance_values(store, subject, "obligationDischargeCondition") {
+        let TermRef::Iri(condition) = store.resolve(condition) else {
+            return Err(obligation_err(format!(
+                "non-entailment obligation {iri} has a non-IRI discharge condition"
+            )));
+        };
+        discharge_conditions.insert(condition.to_owned());
+    }
+    Ok(discharge_conditions)
+}
+
+/// Read every declaration and retain a known forbidden predicate when its
+/// discharge conditions are structurally invalid.
+fn parse_obligations(
+    store: &RdfDataset,
+    mut invalid: impl FnMut(String, Option<String>, Diag) -> gmeow_errors::Result<()>,
+) -> gmeow_errors::Result<Vec<Obligation>> {
     let mut obligations = Vec::new();
     for subject in governance_subjects(store, "NonEntailmentObligation") {
         let iri = governance_node(store, subject)?;
-        let mut values = governance_values(store, subject, "obligationForbiddenPredicate");
-        let forbidden = values.next().ok_or_else(|| {
-            obligation_err(format!(
-                "non-entailment obligation {iri} has no logic:obligationForbiddenPredicate"
-            ))
-        })?;
-        if values.next().is_some() {
-            return Err(obligation_err(format!(
-                "non-entailment obligation {iri} has multiple distinct \
-                 logic:obligationForbiddenPredicate values"
-            )));
-        }
-        let forbidden_predicate = match store.as_ref().resolve(forbidden) {
-            TermRef::Iri(predicate) => predicate.to_owned(),
-            TermRef::Literal {
-                lexical,
-                datatype,
-                language: None,
-                ..
-            } if matches!(
-                store.as_ref().resolve(datatype),
-                TermRef::Iri("http://www.w3.org/2001/XMLSchema#anyURI")
-            ) && !lexical.is_empty() =>
-            {
-                lexical.to_owned()
-            }
-            _ => {
-                return Err(obligation_err(format!(
-                    "non-entailment obligation {iri} requires a predicate IRI or xsd:anyURI value"
-                )));
+        let forbidden_predicate = match forbidden_predicate(store, subject, &iri) {
+            Ok(predicate) => predicate,
+            Err(error) => {
+                invalid(iri, None, error)?;
+                continue;
             }
         };
-        let predicate = purrdf::iri::parse(&forbidden_predicate).map_err(|error| {
-            obligation_source_error(
-                format!("non-entailment obligation {iri} has an invalid forbidden predicate"),
-                error,
-            )
-            .with_location(Location {
-                logical: Some(iri.clone()),
-                ..Location::default()
-            })
-        })?;
-        if !predicate.has_scheme() {
-            return Err(obligation_err(format!(
-                "non-entailment obligation {iri} requires an absolute forbidden predicate IRI"
-            )));
-        }
-        let mut discharge_conditions = BTreeSet::new();
-        for condition in governance_values(store, subject, "obligationDischargeCondition") {
-            let TermRef::Iri(condition) = store.as_ref().resolve(condition) else {
-                return Err(obligation_err(format!(
-                    "non-entailment obligation {iri} has a non-IRI discharge condition"
-                )));
-            };
-            discharge_conditions.insert(condition.to_owned());
-        }
+        let discharge_conditions = match discharge_conditions(store, subject, &iri) {
+            Ok(conditions) => conditions,
+            Err(error) => {
+                invalid(iri, Some(forbidden_predicate), error)?;
+                continue;
+            }
+        };
         obligations.push(Obligation {
             iri,
             forbidden_predicate,

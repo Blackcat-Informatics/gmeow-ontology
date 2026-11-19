@@ -25,7 +25,7 @@ use gmeow_logic::reason::dl::DlCoverage;
 use gmeow_logic::reason::{
     DomainProfile, InconsistencyWitness, LogicalGraph, NativeSourceAdmission,
     NativeSourceDisposition, NativeSourceDrop as DropRecord, SelectedDomains, SelectedLogicalWorld,
-    UnsatClass,
+    SelectedNonEntailmentDisposition, UnsatClass,
 };
 use gmeow_logic::reasoner_services::DlReasoner;
 use gmeow_logic_compile::frontend::{
@@ -2270,6 +2270,34 @@ fn render_text(report: &ProveReport<'_>) {
         println!("source-admission {:?}", admission.status);
     }
     if let Some(admission) = &report.native_admission {
+        if let Some(non_entailment) = admission.non_entailment() {
+            println!("non-entailment-analysis {}", non_entailment.analysis);
+            for record in &non_entailment.obligations {
+                println!(
+                    "non-entailment {} {} {} {}",
+                    record.disposition.as_str(),
+                    record.world,
+                    record.obligation,
+                    record.forbidden_predicate.as_deref().unwrap_or("-")
+                );
+                for source in &record.sources {
+                    println!(
+                        "non-entailment-source {} {}",
+                        record.obligation,
+                        source.as_str()
+                    );
+                }
+                if let SelectedNonEntailmentDisposition::Violated(witness) = &record.disposition {
+                    println!(
+                        "non-entailment-witness {} {} {} {}",
+                        record.obligation,
+                        witness.subject,
+                        witness.predicate,
+                        super::render_term(&witness.object)
+                    );
+                }
+            }
+        }
         let evidence_origins: BTreeSet<_> = admission
             .source_dispositions()
             .filter_map(|(_, disposition)| match disposition {
@@ -2316,6 +2344,11 @@ fn render_text(report: &ProveReport<'_>) {
                 NativeSourceDisposition::MetatheoryDeclaration { route } => {
                     ("MetatheoryDeclaration", "-", *route)
                 }
+                NativeSourceDisposition::NonEntailmentDeclaration => (
+                    "NonEntailmentDeclaration",
+                    "-",
+                    "selected non-entailment declaration assessed against native execution",
+                ),
                 NativeSourceDisposition::OutsideSelection { reason } => {
                     ("OutsideSelection", "OUTSIDE_SELECTION", *reason)
                 }

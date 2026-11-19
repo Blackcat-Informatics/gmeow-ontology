@@ -1296,6 +1296,159 @@ ex:conflict a logic:Rule ;
     );
 }
 
+/// PROTECTS: selected governance retains exact blank-scoped rows and derived
+/// witnesses, and withholds absence when selected source coverage is incomplete.
+#[test]
+fn selected_non_entailment_binds_source_rows_and_keeps_supported_violations() {
+    let directory = tempfile::tempdir().expect("source directory");
+    write(
+        directory.path(),
+        "first.ttl",
+        r#"
+_:obligation a logic:NonEntailmentObligation ;
+    logic:obligationForbiddenPredicate ex:absentFirst ;
+    logic:obligationDischargeCondition logic:DischargeSyntacticReachability .
+ex:s ex:seed ex:o .
+"#,
+    );
+    write(
+        directory.path(),
+        "second.ttl",
+        r#"
+_:obligation logic:instanceOf logic:NonEntailmentObligation ;
+    logic:obligationForbiddenPredicate ex:absentSecond ;
+    logic:obligationDischargeCondition logic:DischargeSyntacticReachability .
+"#,
+    );
+    let completed = gmeow()
+        .args(["prove", "--dir", path(directory.path()), "--format", "json"])
+        .assert()
+        .success();
+    let completed = report(&completed);
+    assert_eq!(completed["verdict"], "consistent", "{completed:#}");
+    let admission = &completed["native_admission"];
+    let records = admission["non_entailment"]["obligations"]
+        .as_array()
+        .expect("selected governance records");
+    assert_eq!(records.len(), 2);
+    assert_ne!(records[0]["obligation"], records[1]["obligation"]);
+    let units = admission["units"].as_array().expect("source inventory");
+    for record in records {
+        assert_eq!(record["disposition"], "SyntacticallyDischarged");
+        let sources = record["sources"].as_array().expect("original source IDs");
+        assert_eq!(sources.len(), 3);
+        let expected_document =
+            if record["forbidden_predicate"] == "https://example.org/prove/absentFirst" {
+                "first.ttl"
+            } else {
+                assert_eq!(
+                    record["forbidden_predicate"],
+                    "https://example.org/prove/absentSecond"
+                );
+                "second.ttl"
+            };
+        for source in sources {
+            let unit = units
+                .iter()
+                .find(|unit| &unit["id"] == source)
+                .expect("original selected row");
+            assert_eq!(unit["disposition"], "NonEntailmentDeclaration");
+            assert!(unit["documents"].as_array().is_some_and(|documents| {
+                documents.len() == 1
+                    && documents[0]
+                        .as_str()
+                        .is_some_and(|name| name.ends_with(expected_document))
+            }));
+        }
+    }
+
+    let (incomplete, code) = prove_json(
+        "governance.ttl",
+        r#"
+ex:malformed a logic:NonEntailmentObligation ;
+    logic:obligationDischargeCondition logic:DischargeSyntacticReachability .
+ex:inconclusive a logic:NonEntailmentObligation ;
+    logic:obligationForbiddenPredicate ex:unproduced ;
+    logic:obligationDischargeCondition logic:DischargeSyntacticReachability .
+ex:violated a logic:NonEntailmentObligation ;
+    logic:obligationForbiddenPredicate ex:forbidden ;
+    logic:obligationDischargeCondition "invalid condition" .
+ex:s ex:seed ex:o .
+ex:derive a logic:Rule ;
+    logic:body [ rdf:reifies <<( ex:s ex:seed ex:o )>> ] ;
+    logic:head [ rdf:reifies <<( ex:s ex:forbidden ex:o )>> ] .
+"#,
+        &["--gate"],
+    );
+    assert_eq!(code, 3, "{incomplete:#}");
+    assert_eq!(incomplete["verdict"], "not-decided", "{incomplete:#}");
+    assert_eq!(incomplete["engines"]["native"]["verdict"], "no-clash");
+    let records = incomplete["native_admission"]["non_entailment"]["obligations"]
+        .as_array()
+        .expect("selected governance records");
+    let record = |iri| {
+        records
+            .iter()
+            .find(|record| record["obligation"] == iri)
+            .expect("declared obligation")
+    };
+    assert!(
+        record("https://example.org/prove/malformed")["disposition"]["Invalid"]["detail"]
+            .as_str()
+            .is_some_and(|detail| detail.contains("obligationForbiddenPredicate"))
+    );
+    assert!(
+        record("https://example.org/prove/inconclusive")["disposition"]["Inconclusive"].is_object()
+    );
+    let violated = record("https://example.org/prove/violated");
+    let witness = &violated["disposition"]["Violated"];
+    assert_eq!(witness["predicate"], "https://example.org/prove/forbidden");
+    assert_eq!(witness["is_edb"], false);
+    assert!(
+        violated["declaration_error"]
+            .as_str()
+            .is_some_and(|detail| { detail.contains("non-IRI discharge condition") })
+    );
+
+    let (blocked, code) = prove_json(
+        "governance-policy.ttl",
+        r#"
+ex:policy a logic:NonEntailmentObligation ;
+    logic:obligationForbiddenPredicate ex:possible ;
+    logic:obligationDischargeCondition logic:DischargeSyntacticReachability .
+ex:absent a logic:NonEntailmentObligation ;
+    logic:obligationForbiddenPredicate ex:unreachable ;
+    logic:obligationDischargeCondition logic:DischargeSyntacticReachability .
+ex:finite a logic:NonEntailmentObligation ;
+    logic:obligationForbiddenPredicate ex:possible ;
+    logic:obligationDischargeCondition logic:DischargeFiniteClosure .
+ex:s ex:seed ex:o ; logic:unaccountedRelation ex:o .
+ex:possibleWriter a logic:Rule ;
+    logic:body [ rdf:reifies <<( ex:s ex:missingSeed ex:o )>> ] ;
+    logic:head [ rdf:reifies <<( ex:s ex:possible ex:o )>> ] .
+ex:derivedCondition a logic:Rule ;
+    logic:body [ rdf:reifies <<( ex:s ex:seed ex:o )>> ] ;
+    logic:head [ rdf:reifies <<( ex:policy logic:obligationDischargeCondition logic:DischargeFiniteClosure )>> ] .
+"#,
+        &["--gate"],
+    );
+    assert_eq!(code, 3, "{blocked:#}");
+    let records = blocked["native_admission"]["non_entailment"]["obligations"]
+        .as_array()
+        .expect("selected governance records");
+    let reason = |iri| {
+        records
+            .iter()
+            .find(|record| record["obligation"] == iri)
+            .expect("declared obligation")["disposition"]["Inconclusive"]["reason"]
+            .as_str()
+            .expect("inconclusive reason")
+    };
+    assert!(reason("https://example.org/prove/policy").contains("could not prove"));
+    assert!(reason("https://example.org/prove/absent").contains("retains unread"));
+    assert!(reason("https://example.org/prove/finite").contains("retains unread"));
+}
+
 /// PROTECTS: universal-class tests that native closure does not populate prevent
 /// a complete no-clash claim, including premises exposed by negation normalization.
 /// Asserted/head membership remains accountable, and an independent clash remains

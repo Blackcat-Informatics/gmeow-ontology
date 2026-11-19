@@ -154,6 +154,15 @@ object-level premise or assertion authority. Text reports connect each
 `formula-evidence` row to its `formula-origin` by obligation ID and show the
 original source anchor on both lines.
 
+`gmeow prove` evaluates selected `logic:NonEntailmentObligation` declarations
+against the retained native execution. The report links the type and field
+rows to the exact source obligation IDs and names the assessed world.
+The selected authored fields determine the authorized discharge conditions.
+Discharge requires a supported absence proof and complete selected source
+coverage. A derived forbidden predicate carries its witness. Invalid fields
+and unresolved obligations leave named completion boundaries. Logical
+inconsistency requires a native or OWL refutation.
+
 Composed FOF output and raw proof export/replay have no composition-bound
 admission. A composed `--out` or `--proof-out` request fails its required output
 and removes stale output; composed `--check-proof` rejects after resolving and
