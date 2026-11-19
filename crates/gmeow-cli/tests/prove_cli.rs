@@ -594,7 +594,8 @@ fn horn_theory_is_consistent_with_zero_drops_and_gate_exits_three() {
     );
 }
 
-/// A formula the native lowering cannot carry blocks `consistent` and is named.
+/// A formula the native lowering cannot carry blocks `consistent` and retains
+/// the source boundary on its module link and provenance.
 #[test]
 fn uncarried_formula_is_not_decided_with_its_drop_named_and_gate_exits_three() {
     let (report, code) = prove_json("disjunctive.logic.ttl", DISJUNCTIVE, &["--gate"]);
@@ -611,7 +612,9 @@ fn uncarried_formula_is_not_decided_with_its_drop_named_and_gate_exits_three() {
             .any(|drop| drop["engine"] == "native" && drop["code"] == "UNSUPPORTED_CONSTRUCT"),
         "{report:#}"
     );
-    let linked = format!("{DISJUNCTIVE}\nex:Selected a logic:Module ; logic:hasFormula ex:law .\n");
+    let linked = format!(
+        "{DISJUNCTIVE}\nex:Selected a logic:Module ; logic:hasFormula ex:law .\nex:law logic:provenance ex:sourceRecord .\n"
+    );
     let (report, code) = prove_json(
         "linked-disjunction.ttl",
         &linked,
@@ -634,6 +637,11 @@ fn uncarried_formula_is_not_decided_with_its_drop_named_and_gate_exits_three() {
         link["disposition"]["Blocked"]["code"],
         "FORMULA_NATIVE_LOWERING_RESIDUE"
     );
+    assert!(has_drop(
+        &report,
+        "FORMULA_EVIDENCE_NOT_ACCOUNTED",
+        "/sourceRecord"
+    ));
 }
 
 /// An exhausted derivation allowance is a partial closure and never `consistent`.
@@ -1723,6 +1731,7 @@ ex:c2 a logic:Formula ; {second} .
 
 /// A module-linked formula can refute the composed theory, while its excluded
 /// and context-blocked occurrences retain independent source dispositions.
+/// Its original provenance is attributed to the formula without supplying a premise.
 #[test]
 fn an_imported_formula_assertion_supplies_a_native_refutation() {
     let body = conjunctive_consequent(
@@ -1731,18 +1740,36 @@ fn an_imported_formula_assertion_supplies_a_native_refutation() {
 ex:Chosen a logic:Module ; logic:hasFormula ex:law, ex:blocked .
 ex:Other a logic:Module .
 ex:Hub a logic:Module ; logic:imports ex:Chosen .
+ex:law logic:provenance ex:lawSource .
+ex:g logic:provenance ex:guardSource .
 ex:blocked a logic:Formula ; logic:quantifiedVariable [
     a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "A"
-] ; logic:forall ex:imp ; logic:provenance ex:source .
+] ; logic:forall ex:imp ; logic:provenance ex:otherSource ; logic:standpoint ex:observer .
 ex:a logic:instanceOf ex:Opposition .
 ex:Opposition logic:disjointWith ex:Dst .
 "#;
+    let directory = tempfile::tempdir().expect("scratch directory");
+    let source = write(directory.path(), "linked-formulas.ttl", &body);
+    let run = |format: &str, module: &str| {
+        gmeow()
+            .args([
+                "prove",
+                path(&source),
+                "--format",
+                format,
+                "--module",
+                module,
+            ])
+            .output()
+            .expect("proof report")
+    };
     for (root, verdict, link_disposition) in [
         ("Hub", "inconsistent", "StructuralSupport"),
         ("Other", "consistent", "OutsideRequestedTheory"),
     ] {
         let iri = format!("https://example.org/prove/{root}");
-        let (report, _) = prove_json("linked-formulas.ttl", &body, &["--module", &iri]);
+        let report: serde_json::Value =
+            serde_json::from_slice(&run("json", &iri).stdout).expect("JSON proof report");
         assert_eq!(report["verdict"], verdict, "{report:#}");
         let units = report["native_admission"]["units"]
             .as_array()
@@ -1766,6 +1793,41 @@ ex:Opposition logic:disjointWith ex:Dst .
                 blocked["disposition"]["Blocked"]["code"], "CONTEXT_ERASURE_FORBIDDEN",
                 "{blocked:#}"
             );
+            let formula = units
+                .iter()
+                .find(|unit| {
+                    unit["kind"] == "Formula"
+                        && unit["anchor"]
+                            .as_str()
+                            .is_some_and(|anchor| anchor.ends_with("/law|0:"))
+                })
+                .expect("original formula occurrence");
+            let output = run("text", &iri);
+            let text = std::str::from_utf8(&output.stdout).expect("UTF-8 proof report");
+            let formula_id = formula["id"].as_str().expect("formula ID");
+            let formula_anchor = formula["anchor"].as_str().expect("formula anchor");
+            let origin_line = format!("formula-origin {formula_id} {formula_anchor}");
+            assert!(text.lines().any(|line| line == origin_line));
+            for source in ["/lawSource", "/guardSource"] {
+                let evidence = units
+                    .iter()
+                    .find(|unit| {
+                        unit["anchor"].as_str().is_some_and(|anchor| {
+                            anchor.contains("/provenance") && anchor.contains(source)
+                        })
+                    })
+                    .expect("original provenance row");
+                assert_eq!(
+                    evidence["disposition"]["FormulaEvidence"]["formula_origins"],
+                    serde_json::json!([formula["id"].clone()]),
+                    "{evidence:#}"
+                );
+                let evidence_id = evidence["id"].as_str().expect("physical evidence ID");
+                let evidence_anchor = evidence["anchor"].as_str().expect("evidence anchor");
+                let evidence_line =
+                    format!("formula-evidence {evidence_id} {formula_id} {evidence_anchor}");
+                assert!(text.lines().any(|line| line == evidence_line));
+            }
             let witness = report["refutations"]
                 .as_array()
                 .expect("refutations")
@@ -1775,6 +1837,9 @@ ex:Opposition logic:disjointWith ex:Dst .
             let premises = witness["premises"].to_string();
             for term in ["/Dst", "/Opposition"] {
                 assert!(premises.contains(term), "missing {term} from {premises}");
+            }
+            for source in ["/lawSource", "/guardSource", "/otherSource"] {
+                assert!(!premises.contains(source), "{premises}");
             }
         } else {
             assert!(

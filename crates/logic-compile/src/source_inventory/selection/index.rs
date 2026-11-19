@@ -56,6 +56,12 @@ struct ModuleFormulaTarget {
     ordinal: usize,
 }
 
+#[derive(Debug)]
+pub(super) struct FormulaEvidenceBinding {
+    pub(super) origins: Vec<usize>,
+    pub(super) independent_owner: bool,
+}
+
 /// Invocation-local masks retain original IR indices and lowering occurrences.
 #[derive(Debug)]
 pub(super) struct SelectionIndex {
@@ -66,6 +72,7 @@ pub(super) struct SelectionIndex {
     coordinates: BTreeMap<SyntaxOwner, Coordinate>,
     selection_metadata: BTreeMap<SourceStatementBinding, BTreeSet<SyntaxOwner>>,
     formula_links: BTreeMap<SourceStatementBinding, ModuleFormulaLink>,
+    pub(super) formula_evidence: BTreeMap<SourceStatementBinding, FormulaEvidenceBinding>,
     blocked: BTreeMap<SyntaxOwner, Boundary>,
     unknown: Boundary,
     graph_boundary: Boundary,
@@ -471,7 +478,7 @@ impl SelectionIndex {
             !owners.is_empty()
         });
         let mut index = Self { syntax, roots, active, coordinates,
-            selection_metadata, formula_links,
+            selection_metadata, formula_links, formula_evidence: BTreeMap::new(),
             participation: BTreeMap::new(), blocked, admitted_modules,
             unknown: Boundary { code: "NO_EXECUTABLE_OWNER_PATH",
                 detail: "owned syntax has no admitted executable owner path and cannot become an independent assertion".into() },
@@ -513,7 +520,10 @@ impl SelectionIndex {
                 );
             }
         }
-        index.block_contexts(inventory);
+        let formula_provenance = index.formula_provenance(inventory);
+        index.block_contexts(inventory, |ordinal| {
+            formula_provenance.contains_key(&ordinal)
+        });
         for lowering in theory.owner_lowerings() {
             if !matches!(
                 lowering.family,
@@ -554,6 +564,7 @@ impl SelectionIndex {
         // Inventory boundaries survive, but a blocked owner grants no raw EDB
         // reachability to its otherwise compatible siblings or descendants.
         index.propagate();
+        index.bind_formula_evidence(inventory, formula_provenance);
         index.lowering_masks(inventory);
         index.stream_masks(inventory);
         index
@@ -681,10 +692,57 @@ impl SelectionIndex {
         }
     }
 
-    fn block_contexts(&mut self, inventory: &SourceInventory<'_>) {
-        let untranslated = super::super::contexts::untranslated_formulas_with_modules(
+    fn formula_provenance(
+        &self,
+        inventory: &SourceInventory<'_>,
+    ) -> BTreeMap<usize, SourceStatementBinding> {
+        let source = inventory.theory().source();
+        source
+            .source_graph()
+            .edges()
+            .iter()
+            .enumerate()
+            .filter_map(|(ordinal, edge)| {
+                if edge.role != SourceEdgeRole::Provenance
+                    || edge.source.graph.is_some()
+                    || !self
+                        .active
+                        .contains(&owner(edge.source, SyntaxFamily::Formula))
+                    || !matches!(
+                        source.dataset().resolve(edge.target),
+                        TermRef::Iri(_) | TermRef::Blank { .. }
+                    )
+                {
+                    return None;
+                }
+                let SourcePredicate::Stored(predicate) = edge.predicate else {
+                    return None;
+                };
+                let binding = SourceStatementBinding {
+                    canonical: QuadIds {
+                        s: edge.source.term,
+                        p: predicate,
+                        o: edge.target,
+                        g: None,
+                    },
+                    carrier: edge.carrier,
+                };
+                inventory
+                    .statement_selected(binding.canonical, binding.carrier)
+                    .then_some((ordinal, binding))
+            })
+            .collect()
+    }
+
+    fn block_contexts(
+        &mut self,
+        inventory: &SourceInventory<'_>,
+        admits_formula_provenance: impl Fn(usize) -> bool,
+    ) {
+        let untranslated = super::super::contexts::untranslated_formulas_with_selection(
             inventory.theory().source(),
             &self.admitted_modules,
+            admits_formula_provenance,
         );
         let graph = inventory.theory().source().source_graph();
         let dataset = inventory.theory().source().dataset();
@@ -767,6 +825,90 @@ impl SelectionIndex {
         }
     }
 
+    /// Attribute each original evidence row to selected emitted formula occurrences.
+    /// Only selected formula-component edges carry evidence to an ancestor.
+    fn bind_formula_evidence(
+        &mut self,
+        inventory: &SourceInventory<'_>,
+        bindings: BTreeMap<usize, SourceStatementBinding>,
+    ) {
+        if bindings.is_empty() {
+            return;
+        }
+        let included = |unit| matches!(self.owner_membership(unit), Membership::Included);
+        let mut parents = BTreeMap::<SourceNode, Vec<SourceNode>>::new();
+        for (&parent, children) in &self.syntax.children {
+            if parent.family == SyntaxFamily::Formula && included(parent) {
+                for &child in children.keys() {
+                    if child.family == SyntaxFamily::Formula && included(child) {
+                        parents.entry(child.node).or_default().push(parent.node);
+                    }
+                }
+            }
+        }
+        let emitted: BTreeMap<_, _> = inventory
+            .theory()
+            .formula_lowerings()
+            .iter()
+            .enumerate()
+            .filter(|(_, lowering)| {
+                matches!(lowering.disposition, FormulaDisposition::Formula(_))
+                    && included(owner(lowering.source, SyntaxFamily::Formula))
+            })
+            .map(|(ordinal, lowering)| (lowering.source, ordinal))
+            .collect();
+        self.formula_evidence = bindings
+            .into_values()
+            .filter_map(|binding| {
+                let source = SourceNode {
+                    term: binding.canonical.s,
+                    graph: binding.canonical.g,
+                };
+                if !included(owner(source, SyntaxFamily::Formula)) {
+                    return None;
+                }
+                let independent_owner =
+                    structural_families("https://blackcatinformatics.ca/logic/provenance")
+                        .into_iter()
+                        .flatten()
+                        .copied()
+                        .any(|family| {
+                            family != SyntaxFamily::Formula && included(owner(source, family))
+                        })
+                        || inventory
+                            .correspondence_record_owners(binding)
+                            .any(|ordinal| {
+                                included(owner(
+                                    inventory.theory().owner_lowerings()[ordinal].source,
+                                    SyntaxFamily::Correspondence,
+                                ))
+                            });
+                let mut pending = vec![source];
+                let mut visited = BTreeSet::new();
+                let mut origins = BTreeSet::new();
+                while let Some(node) = pending.pop() {
+                    if visited.insert(node) {
+                        origins.extend(emitted.get(&node).copied());
+                        pending.extend(parents.get(&node).into_iter().flatten().copied());
+                    }
+                }
+                Some((
+                    binding,
+                    FormulaEvidenceBinding {
+                        origins: origins.into_iter().collect(),
+                        independent_owner,
+                    },
+                ))
+            })
+            .collect();
+    }
+
+    fn is_formula_evidence_only(&self, binding: SourceStatementBinding) -> bool {
+        self.formula_evidence
+            .get(&binding)
+            .is_some_and(|evidence| !evidence.independent_owner)
+    }
+
     fn lowering_masks(&mut self, inventory: &SourceInventory<'_>) {
         let theory = inventory.theory();
         for (ordinal, lowering) in theory.formula_lowerings().iter().enumerate() {
@@ -836,6 +978,7 @@ impl SelectionIndex {
             } else {
                 !self.selection_metadata.contains_key(&binding)
                     && !self.formula_links.contains_key(&binding)
+                    && !self.is_formula_evidence_only(binding)
                     && inventory
                         .correspondence_record_owners(binding)
                         .next()
@@ -961,6 +1104,7 @@ impl SelectionIndex {
                             carrier,
                         };
                         self.selection_metadata.contains_key(&binding)
+                            || self.is_formula_evidence_only(binding)
                             || inventory
                                 .correspondence_record_owners(binding)
                                 .next()

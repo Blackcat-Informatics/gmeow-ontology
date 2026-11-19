@@ -16,8 +16,8 @@ use gmeow_logic_compile::frontend::{
     Severity, SourceNode,
 };
 use gmeow_logic_compile::source_inventory::{
-    ResolvedTheorySelection, SourceInventory, SourceObligation, SourceObligationOrigin,
-    TheoryUnitSelection,
+    ResolvedTheorySelection, SourceInventory, SourceObligation, SourceObligationId,
+    SourceObligationOrigin, TheoryUnitSelection,
 };
 use serde::Serialize;
 use serde::ser::{SerializeSeq, SerializeStruct};
@@ -31,6 +31,7 @@ use accounting::{AtomPolarity, UnitTerm, account_axiom, account_formula, account
 const ENGINE_NATIVE: &str = "native";
 const PROFILE: &str = "gmeow-native-source-accounting-v1";
 const NAF_BOUNDARY: &str = "NEGATION_AS_FAILURE_IS_NOT_CLASSICAL_NEGATION";
+const FORMULA_EVIDENCE_BOUNDARY: &str = "FORMULA_EVIDENCE_NOT_ACCOUNTED";
 const SOURCE_ACCOUNTING_DOMAIN: purrdf_hash::Domain =
     purrdf_hash::Domain::new(b"gmeow-native-source-accounting-v1\0");
 const SOURCE_EXECUTION_DOMAIN: purrdf_hash::Domain =
@@ -59,14 +60,35 @@ impl NativeSourceDrop {
 #[derive(Debug, Serialize)]
 /// Borrowable report disposition; observations grant no execution authority.
 pub enum NativeSourceDisposition {
-    Accounted { route: &'static str },
-    StructuralSupport { route: &'static str },
-    ConfigurationDeclaration { route: &'static str },
-    MetatheoryDeclaration { route: &'static str },
-    OutsideSelection { reason: &'static str },
-    OutsideRequestedTheory { reason: &'static str },
-    Blocked { code: &'static str, reason: String },
-    Malformed { code: &'static str, reason: String },
+    Accounted {
+        route: &'static str,
+    },
+    StructuralSupport {
+        route: &'static str,
+    },
+    FormulaEvidence {
+        formula_origins: Vec<SourceObligationId>,
+    },
+    ConfigurationDeclaration {
+        route: &'static str,
+    },
+    MetatheoryDeclaration {
+        route: &'static str,
+    },
+    OutsideSelection {
+        reason: &'static str,
+    },
+    OutsideRequestedTheory {
+        reason: &'static str,
+    },
+    Blocked {
+        code: &'static str,
+        reason: String,
+    },
+    Malformed {
+        code: &'static str,
+        reason: String,
+    },
 }
 
 use NativeSourceDisposition as Disposition;
@@ -739,6 +761,11 @@ fn classify_selected(
             },
         );
     }
+    if matches!(membership, TheoryUnitSelection::Included)
+        && matches!(selection.formula_evidence_origins(unit)?, Some((_, false)))
+    {
+        return Ok(unread_formula_evidence());
+    }
     let axiom_index = match unit.origin() {
         SourceObligationOrigin::Axiom(index) => Some(index),
         SourceObligationOrigin::Formula(ordinal) => formula_axiom(inventory, ordinal),
@@ -766,6 +793,66 @@ fn classify_selected(
         }
         _ => disposition,
     })
+}
+
+fn unread_formula_evidence() -> Disposition {
+    Disposition::blocked(
+        FORMULA_EVIDENCE_BOUNDARY,
+        "source provenance requires an accounted original formula and complete native lowering",
+    )
+}
+
+fn account_formula_evidence(
+    admission: &mut NativeSourceAdmission<'_>,
+    selected: &SelectedProgram,
+) -> gmeow_errors::Result<()> {
+    let inventory = admission.inventory;
+    for (unit, disposition) in inventory.obligations().zip(&mut admission.dispositions) {
+        let requires_formula = matches!(
+            disposition,
+            Disposition::Blocked {
+                code: FORMULA_EVIDENCE_BOUNDARY,
+                ..
+            }
+        );
+        if !requires_formula && !matches!(disposition, Disposition::StructuralSupport { .. }) {
+            continue;
+        }
+        let Some((origins, independent_owner)) =
+            admission.selection.formula_evidence_origins(unit)?
+        else {
+            continue;
+        };
+        if !requires_formula && !independent_owner {
+            continue;
+        }
+        let mut formula_origins = Vec::new();
+        for &ordinal in origins {
+            let Some(lowering) = inventory.theory().formula_lowerings().get(ordinal) else {
+                return Err(reason_err(
+                    "selected formula provenance has no original formula occurrence".into(),
+                ));
+            };
+            if let FormulaDisposition::Formula(index) = lowering.disposition
+                && !selected.prepared.incomplete_formulas.contains(&index)
+                && matches!(
+                    classify_formula(inventory, ordinal, None, true, &[]),
+                    Disposition::Accounted { .. }
+                )
+            {
+                let id = inventory.formula_obligation_id(ordinal).ok_or_else(|| {
+                    reason_err(
+                        "accounted formula provenance has no original obligation identity".into(),
+                    )
+                })?;
+                formula_origins.push(id);
+            }
+        }
+        if !formula_origins.is_empty() {
+            *disposition = Disposition::FormulaEvidence { formula_origins };
+        }
+    }
+    Ok(())
 }
 
 fn unread_atomic_formula() -> Disposition {
@@ -897,6 +984,16 @@ pub fn reason_admitted_theory_within(
 ) -> gmeow_errors::Result<std::sync::Arc<ReasoningResult>> {
     admission.completion = None;
     admission.execution_drops.clear();
+    for (unit, disposition) in admission
+        .inventory
+        .obligations()
+        .zip(&mut admission.dispositions)
+    {
+        if matches!(disposition, Disposition::FormulaEvidence { .. }) {
+            *disposition =
+                classify_selected(admission.inventory, unit, None, &admission.selection)?;
+        }
+    }
     let theory = admission.inventory.theory();
     ingress.authorize_source(theory)?;
     ingress.authorize(theory.program(), &input)?;
@@ -1021,6 +1118,9 @@ pub fn reason_admitted_theory_within(
     };
     reachability.validate_preparation(&selected.prepared)?;
     let verdict = result.native_verdict()?;
+    if result.evaluation == EvaluationStatus::Completed {
+        account_formula_evidence(admission, selected)?;
+    }
     let drops = &mut admission.execution_drops;
     for gap in &verdict.gaps {
         drops.insert(NativeSourceDrop::new(

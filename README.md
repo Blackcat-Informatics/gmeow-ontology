@@ -319,7 +319,8 @@ The report counts admitted reified claims under `claims_read` and lists their ac
 carriers under `claims`. Each carrier is resolved independently: an unread contributor
 cannot erase an admitted sibling or acquire its authority. Each unread carrier retains
 a named `SCOPED_CLAIM_NOT_READ` boundary. Bare quotations assert nothing. Provenance
-values are recorded without interpreting the referenced source's content. See
+values are recorded without interpreting the referenced source's content. Formula
+provenance rows name the original accounted formula obligations in `FormulaEvidence`. See
 [the source-theory contract](slices/grounding/logic/docs.md#selecting-a-source-theory).
 
 | Exit code | Meaning |

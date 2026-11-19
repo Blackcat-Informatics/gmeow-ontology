@@ -208,6 +208,15 @@ admitted formulas and imports remain available. Without an explicit module
 request, module-scoped obligations retain the top-level operation's existing
 boundaries.
 
+An exact default-graph `logic:provenance` row with an IRI or blank-node value
+records a formula's source. The formula still requires an independent
+assertion route. Provenance on required descendants follows each actual
+accounted formula occurrence. The report retains every provenance row and
+links its evidence to the original formula obligation IDs after native
+coverage checks. Evidence supplies no object-level premise or context
+selection. Named graphs, invalid resource values and independent contexts
+retain their boundaries.
+
 The executed selected-theory profile is narrower than this definition in one direction only.
 It may leave an assertion unread, for example a claim over a typed term carrier, a claim
 with a variable, or a carrier that holds more than one candidate statement, and it always

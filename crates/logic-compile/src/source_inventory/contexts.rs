@@ -11,18 +11,18 @@ use crate::frontend::{PreparedLogicSource, SourceEdgeRole, SourceNode};
 /// The frontend already translates `inContext`; other scope coordinates may not
 /// disappear when atom routing or owned subformulas erase their source wrappers.
 pub(super) fn untranslated_formulas(source: &PreparedLogicSource) -> BTreeSet<SourceNode> {
-    untranslated_formulas_with_modules(source, &BTreeSet::new())
+    untranslated_formulas_with_selection(source, &BTreeSet::new(), |_| false)
 }
 
-/// Discharge only module coordinates proved against the exact native source.
-/// Every other axis and the original ancestor propagation remain unchanged.
-pub(super) fn untranslated_formulas_with_modules(
+/// Discharge selected module coordinates and exact provenance occurrences.
+pub(super) fn untranslated_formulas_with_selection(
     source: &PreparedLogicSource,
     admitted_modules: &BTreeSet<SourceNode>,
+    admits_provenance: impl Fn(usize) -> bool,
 ) -> BTreeSet<SourceNode> {
     let mut parents = BTreeMap::<SourceNode, Vec<SourceNode>>::new();
     let mut affected = BTreeSet::new();
-    for edge in source.source_graph().edges() {
+    for (ordinal, edge) in source.source_graph().edges().iter().enumerate() {
         match edge.role {
             SourceEdgeRole::FormulaComponent => parents
                 .entry(SourceNode {
@@ -31,7 +31,9 @@ pub(super) fn untranslated_formulas_with_modules(
                 })
                 .or_default()
                 .push(edge.source),
-            SourceEdgeRole::Standpoint | SourceEdgeRole::Provenance => {
+            SourceEdgeRole::Standpoint | SourceEdgeRole::Provenance
+                if edge.role == SourceEdgeRole::Standpoint || !admits_provenance(ordinal) =>
+            {
                 affected.insert(edge.source);
             }
             SourceEdgeRole::Module if !admitted_modules.contains(&edge.source) => {

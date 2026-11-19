@@ -140,6 +140,14 @@ is outside this requested theory; an unsupported selected owner is still a
 blocker. Without `--module`, the top-level operation retains its module-scope
 boundaries.
 
+For an accounted native formula, `FormulaEvidence` links each eligible
+default-graph `logic:provenance` row to the original formula obligation IDs.
+An evidence row on shared syntax can name several selected occurrences.
+The source resource remains evidence for those occurrences and supplies no
+object-level premise or assertion authority. Text reports connect each
+`formula-evidence` row to its `formula-origin` by obligation ID and show the
+original source anchor on both lines.
+
 Composed FOF output and raw proof export/replay have no composition-bound
 admission. A composed `--out` or `--proof-out` request fails its required output
 and removes stale output; composed `--check-proof` rejects after resolving and
