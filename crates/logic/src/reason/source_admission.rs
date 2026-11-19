@@ -807,6 +807,22 @@ fn account_formula_evidence(
     selected: &SelectedProgram,
 ) -> gmeow_errors::Result<()> {
     let inventory = admission.inventory;
+    let lowerings = inventory.theory().formula_lowerings();
+    let mut accounted = vec![false; lowerings.len()];
+    for (unit, disposition) in admission.source_dispositions() {
+        if let SourceObligationOrigin::Formula(ordinal) = unit.origin()
+            && matches!(disposition, Disposition::Accounted { .. })
+        {
+            accounted[ordinal] = match lowerings[ordinal].disposition {
+                FormulaDisposition::Formula(index) => {
+                    !selected.prepared.incomplete_formulas.contains(&index)
+                }
+                // The actual source account has already checked the selected asserted backing.
+                FormulaDisposition::Axiom(_) => true,
+                _ => false,
+            };
+        }
+    }
     for (unit, disposition) in inventory.obligations().zip(&mut admission.dispositions) {
         let requires_formula = matches!(
             disposition,
@@ -828,18 +844,12 @@ fn account_formula_evidence(
         }
         let mut formula_origins = Vec::new();
         for &ordinal in origins {
-            let Some(lowering) = inventory.theory().formula_lowerings().get(ordinal) else {
+            let Some(&is_accounted) = accounted.get(ordinal) else {
                 return Err(reason_err(
                     "selected formula provenance has no original formula occurrence".into(),
                 ));
             };
-            if let FormulaDisposition::Formula(index) = lowering.disposition
-                && !selected.prepared.incomplete_formulas.contains(&index)
-                && matches!(
-                    classify_formula(inventory, ordinal, None, true, &[]),
-                    Disposition::Accounted { .. }
-                )
-            {
+            if is_accounted {
                 let id = inventory.formula_obligation_id(ordinal).ok_or_else(|| {
                     reason_err(
                         "accounted formula provenance has no original obligation identity".into(),

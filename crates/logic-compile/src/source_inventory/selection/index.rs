@@ -852,8 +852,10 @@ impl SelectionIndex {
             .iter()
             .enumerate()
             .filter(|(_, lowering)| {
-                matches!(lowering.disposition, FormulaDisposition::Formula(_))
-                    && included(owner(lowering.source, SyntaxFamily::Formula))
+                matches!(
+                    lowering.disposition,
+                    FormulaDisposition::Formula(_) | FormulaDisposition::Axiom(_)
+                ) && included(owner(lowering.source, SyntaxFamily::Formula))
             })
             .map(|(ordinal, lowering)| (lowering.source, ordinal))
             .collect();

@@ -177,7 +177,8 @@ as source evidence on the formula or its required descendants. Formula provenanc
 grants no input fact authority. An independent owner can still admit the same
 row through its existing route. On completed evaluation, each retained row
 names the original formula obligation IDs with a complete native lowering and
-formula account. Independent context and ownership refusals still apply.
+formula account. An axiom-lowered formula requires an exact selected asserted
+backing in its native source account. Independent context and ownership refusals still apply.
 Classical admission retains its own evidence and scope requirements.
 
 The complete supplied inventory remains reportable. Explicitly unselected modules

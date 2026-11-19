@@ -318,6 +318,7 @@ fn module_requests_refuse_missing_declarations_and_imports() {
 
 /// PROTECTS: an atomic formula link remains unread whether its equal ordinary
 /// statement is independently asserted or excluded.
+/// Its provenance follows the original formula account after exact source selection.
 #[test]
 fn excluded_statement_cannot_account_for_an_unread_atomic_formula() {
     let body = r#"
@@ -326,7 +327,8 @@ ex:Excluded a logic:Module .
 ex:p logic:domain ex:C {scope} .
 ex:a ex:p ex:b ; logic:instanceOf ex:D .
 ex:C logic:disjointWith ex:D .
-ex:law a logic:Formula ; logic:relation logic:domain ; logic:argument ex:propertyTerm, ex:classTerm .
+ex:law a logic:Formula ; logic:relation logic:domain ; logic:argument ex:propertyTerm, ex:classTerm ;
+    logic:provenance ex:lawSource .
 ex:propertyTerm logic:termIndex 0 ; logic:termIri ex:p .
 ex:classTerm logic:termIndex 1 ; logic:termIri ex:C .
 "#;
@@ -340,9 +342,10 @@ ex:classTerm logic:termIndex 1 ; logic:termIri ex:C .
             &["--module", "https://example.org/prove/Selected"],
         );
         assert_eq!(report["verdict"], verdict, "{report:#}");
-        let link = report["native_admission"]["units"]
+        let units = report["native_admission"]["units"]
             .as_array()
-            .expect("source units")
+            .expect("source units");
+        let link = units
             .iter()
             .find(|unit| {
                 unit["anchor"]
@@ -354,6 +357,38 @@ ex:classTerm logic:termIndex 1 ; logic:termIri ex:C .
             link["disposition"]["Blocked"]["code"],
             "FORMULA_AXIOM_NOT_READ"
         );
+        let evidence = units
+            .iter()
+            .find(|unit| {
+                unit["anchor"].as_str().is_some_and(|anchor| {
+                    anchor.contains("/provenance") && anchor.contains("/lawSource")
+                })
+            })
+            .expect("original provenance row");
+        if scope.is_empty() {
+            let formula = units
+                .iter()
+                .find(|unit| {
+                    unit["kind"] == "Formula"
+                        && unit["anchor"]
+                            .as_str()
+                            .is_some_and(|anchor| anchor.ends_with("/law|0:"))
+                })
+                .expect("original formula occurrence");
+            assert!(
+                !formula["disposition"]["Accounted"].is_null(),
+                "{formula:#}"
+            );
+            assert_eq!(
+                evidence["disposition"]["FormulaEvidence"]["formula_origins"],
+                serde_json::json!([formula["id"].clone()])
+            );
+        } else {
+            assert_eq!(
+                evidence["disposition"]["Blocked"]["code"],
+                "FORMULA_EVIDENCE_NOT_ACCOUNTED"
+            );
+        }
     }
 }
 
