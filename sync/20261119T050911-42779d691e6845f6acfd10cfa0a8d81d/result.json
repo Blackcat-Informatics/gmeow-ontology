@@ -1,0 +1,15 @@
+{
+  "schema": 1,
+  "worktree": "/home/paudley/Active/gmeow-ontology/.worktrees/2959-admit-verbatim-rationale-on-eligible",
+  "branch": "paudley/2959-admit-verbatim-rationale-on-eligible",
+  "base_ref": "refs/remotes/origin/main",
+  "head": "0cd8e7adbc1203fb0b62fd9782593039f29ecb33",
+  "attempt": "/home/paudley/Active/gmeow-ontology/.worktrees/2959-admit-verbatim-rationale-on-eligible/.stage/admit-verbatim-rationale-on-eligible/sync/20261119T050911-42779d691e6845f6acfd10cfa0a8d81d",
+  "conflicts": [],
+  "status": "fast_forward",
+  "base": "fb8d8aae4a84fbf5bdf87da04bccd7eb203cc52d",
+  "merge_bases": [
+    "0cd8e7adbc1203fb0b62fd9782593039f29ecb33"
+  ],
+  "commit": "fb8d8aae4a84fbf5bdf87da04bccd7eb203cc52d"
+}
