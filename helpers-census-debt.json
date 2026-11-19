@@ -384,13 +384,6 @@
   {
    "kind": "body",
    "members": [
-    "gmeow_docs::render::provenance_chain",
-    "gmeow_docs_model::slug::provenance_chain"
-   ]
-  },
-  {
-   "kind": "body",
-   "members": [
     "gmeow_docs::render::pydantic_class_name",
     "gmeow_docs_model::slug::pydantic_class_name"
    ]

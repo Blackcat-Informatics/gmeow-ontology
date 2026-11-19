@@ -5,7 +5,7 @@
 
 use crate::source_map::{DocLinkResolution, LinkResolution, SourceToPageMap, fence_open};
 
-use super::rel;
+use super::{find_backtick_run, rel};
 
 // ── First-class Markdown document rewrite (graft + child page + llms corpus) ──
 
@@ -225,26 +225,6 @@ fn atx_level(line: &str) -> Option<u8> {
     } else {
         None
     }
-}
-
-/// The fence marker (` ``` ` or `~~~`) a trimmed line opens/closes a fenced code
-/// block with (three or more of one marker char), else `None`.
-/// Find the byte offset of the next run of EXACTLY `run` backticks in `bytes`,
-/// else `None`. Used to skip inline code spans in [`rewrite_doc_line`].
-fn find_backtick_run(bytes: &[u8], run: usize) -> Option<usize> {
-    let mut i = 0usize;
-    while i < bytes.len() {
-        if bytes[i] == b'`' {
-            let here = bytes[i..].iter().take_while(|&&b| b == b'`').count();
-            if here == run {
-                return Some(i);
-            }
-            i += here;
-        } else {
-            i += 1;
-        }
-    }
-    None
 }
 
 /// Rewrite a single authored link/image destination (the text between `](` and

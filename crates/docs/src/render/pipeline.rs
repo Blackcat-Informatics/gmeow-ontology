@@ -3,13 +3,12 @@
 
 //! Build pipeline and provenance sections.
 
-use std::collections::BTreeMap;
+use gmeow_docs_model::slug::provenance_chain;
 
 use crate::model::{DocTerm, DocsModel};
 
 use super::{
-    Page, blank, code_escape, curie_link, heading, line, local_name, push_line, rel, root_href,
-    to_curie,
+    Page, blank, code_escape, curie_link, heading, line, push_line, rel, root_href, to_curie,
 };
 
 /// The build-pipeline DAG page: the deterministic SVG plus a stage table (impl,
@@ -269,50 +268,6 @@ pub(super) fn append_stage_section(
         }
         blank(out);
     }
-}
-
-/// The coarse-grain provenance chain for a durable page: the producing-stage path
-/// walked BACKWARD over `gmeow:dataflowConsumes` from `start_local` (the stage
-/// whose local name is `start_local`, default `stage-docs-render`), following the
-/// lexicographically-smallest consumed producer at each step until a source-reading
-/// stage (one that consumes nothing in-DAG) is reached. Cycle-safe (visited set).
-/// Returns the stage local names in consumer→producer order, or empty when the
-/// start stage is absent.
-fn provenance_chain(pipeline: &crate::model::DocPipeline, start_local: &str) -> Vec<String> {
-    use std::collections::BTreeSet;
-    let by_iri: BTreeMap<&str, &crate::model::DocStage> = pipeline
-        .stages
-        .iter()
-        .map(|s| (s.iri.as_str(), s))
-        .collect();
-    let Some(mut current) = pipeline
-        .stages
-        .iter()
-        .find(|s| local_name(&s.iri) == start_local)
-    else {
-        return Vec::new();
-    };
-    let mut chain = vec![local_name(&current.iri).to_string()];
-    let mut visited: BTreeSet<&str> = BTreeSet::new();
-    visited.insert(current.iri.as_str());
-    // `next_iri` is cloned to an owned String so the borrow of `current.consumes`
-    // ends before `current` is reassigned in the body (the condition temporary must
-    // not outlive the reassignment).
-    while let Some(next_iri) = current
-        .consumes
-        .iter()
-        .filter(|p| !visited.contains(p.as_str()))
-        .min()
-        .cloned()
-    {
-        let Some(next) = by_iri.get(next_iri.as_str()) else {
-            break;
-        };
-        chain.push(local_name(&next.iri).to_string());
-        visited.insert(next.iri.as_str());
-        current = *next;
-    }
-    chain
 }
 
 /// Append the per-page provenance footer: the producing-stage chain, the

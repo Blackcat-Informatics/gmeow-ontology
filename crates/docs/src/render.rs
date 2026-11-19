@@ -3985,6 +3985,23 @@ fn fenced(out: &mut String, lang: &str, body: &str) {
     out.push_str("\n\n");
 }
 
+/// Find the byte offset of the next run of exactly `run` backticks.
+fn find_backtick_run(bytes: &[u8], run: usize) -> Option<usize> {
+    let mut i = 0usize;
+    while i < bytes.len() {
+        if bytes[i] == b'`' {
+            let here = bytes[i..].iter().take_while(|&&b| b == b'`').count();
+            if here == run {
+                return Some(i);
+            }
+            i += here;
+        } else {
+            i += 1;
+        }
+    }
+    None
+}
+
 /// Collapse a definition to a single line: newlines/tabs → spaces, runs
 /// collapsed. Pipes are NOT touched here ([`md_escape`] handles table-cell
 /// escaping at emission).
