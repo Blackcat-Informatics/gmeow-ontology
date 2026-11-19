@@ -191,3 +191,153 @@ fn projection_report_reuse_preserves_carrier_and_rejects_a_mismatch() {
         assert!(check_projection_report(bytes, &report_iri, ledger, graph, rows).is_err());
     }
 }
+
+/// Snapshot reuse keeps the old documentation placement, certificate inputs
+/// and materialized carrier content across independently scoped neighbours.
+#[test]
+fn rooted_documentation_reuse_preserves_snapshot_identity() {
+    let documentation = parse_into_graph(
+        br#"_:member <urn:docs:count> 7 ; <urn:docs:label> "Documentation"@en .
+            <urn:docs:claim> <http://www.w3.org/1999/02/22-rdf-syntax-ns#reifies>
+                <<( _:member <urn:docs:count> 7 )>> ;
+                <urn:docs:evidence> <urn:docs:source> ."#,
+        "text/turtle",
+        GRAPH_DOCUMENTATION,
+    )
+    .expect("parse and root documentation RDF");
+    let empty = parse_into_graph(b"", "text/turtle", GRAPH_DOCUMENTATION)
+        .expect("root an empty documentation graph");
+    let neighbour = parse_into_graph(
+        b"_:member <urn:docs:label> <urn:docs:source> .",
+        "text/turtle",
+        "urn:neighbour",
+    )
+    .expect("parse an independently scoped neighbouring graph");
+    let canonical = |view: &purrdf::CompositeDatasetView| {
+        purrdf::try_canonicalize_flat_view(
+            view,
+            purrdf::CanonHash::Sha256,
+            &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None),
+        )
+        .expect("canonicalize the documentation carrier")
+    };
+    let hashes = |view: &purrdf::CompositeDatasetView| {
+        gmeow_logic::certificate::per_graph_axiom_hashes(view, purrdf::gts::writer::digest_string)
+    };
+    let content = |view: &purrdf::CompositeDatasetView| {
+        let carrier = view
+            .materialize()
+            .expect("materialize the composed carrier");
+        let mut snapshot = purrdf::gts_compose::SnapshotBuilder::new();
+        let _ingestion = snapshot
+            .add_view(carrier.as_ref())
+            .expect("fold the materialized carrier");
+        assert!(holds_named_graph(carrier.as_ref(), GRAPH_DOCUMENTATION));
+        snapshot.snapshot_content_id()
+    };
+
+    for dataset in [documentation, empty] {
+        let upstream = documentation_input(dataset);
+        let mut selected = CarrierParts::new(&upstream);
+        let mut reused = CarrierParts::new(&upstream);
+        for parts in [&mut selected, &mut reused] {
+            parts.push_dataset(neighbour.clone());
+        }
+        selected
+            .push_graph("stage-docs-render", GRAPH_DOCUMENTATION)
+            .expect("select the documentation graph");
+        reused
+            .push_rooted_graph("stage-docs-render", GRAPH_DOCUMENTATION)
+            .expect("reuse the native documentation graph");
+        for parts in [&mut selected, &mut reused] {
+            parts.push_dataset(neighbour.clone());
+        }
+        let selected = selected.view().expect("compose with the graph selection");
+        let reused = reused.view().expect("compose with the root dataset");
+
+        assert_eq!(canonical(&selected).nquads(), canonical(&reused).nquads());
+        assert_eq!(hashes(&selected), hashes(&reused));
+        assert_eq!(content(&selected), content(&reused));
+    }
+}
+
+/// Reuse refuses carrier rows from the default graph and unexpected declarations.
+#[test]
+fn rooted_documentation_reuse_refuses_foreign_surfaces() {
+    let empty = RdfDatasetBuilder::new()
+        .freeze()
+        .expect("freeze an undeclared dataset");
+    let unexpected_declaration = purrdf::parse_dataset(
+        format!("<{GRAPH_DOCUMENTATION}> {{}} <urn:unexpected> {{}}").as_bytes(),
+        "application/trig",
+        None,
+    )
+    .expect("parse the candidate's extra graph declaration");
+    for dataset in [empty, unexpected_declaration] {
+        let upstream = documentation_input(dataset);
+        let error = CarrierParts::new(&upstream)
+            .push_rooted_graph("stage-docs-render", GRAPH_DOCUMENTATION)
+            .expect_err("refuse an absent or extra graph declaration");
+        assert!(error.to_string().contains("must declare only"));
+    }
+
+    #[derive(Debug)]
+    enum Layer {
+        Ordinary,
+        Reifier,
+        Annotation,
+    }
+    for layer in [Layer::Ordinary, Layer::Reifier, Layer::Annotation] {
+        let mut builder = RdfDatasetBuilder::new();
+        let graph = builder
+            .intern_iri(GRAPH_DOCUMENTATION)
+            .expect("intern the documentation graph");
+        builder
+            .declare_named_graph(graph)
+            .expect("declare the graph");
+        let s = builder.intern_iri("urn:s").expect("intern the subject");
+        let p = builder.intern_iri("urn:p").expect("intern the predicate");
+        let o = builder.intern_iri("urn:o").expect("intern the object");
+        let reifier = builder
+            .intern_iri("urn:reifier")
+            .expect("intern the reifier");
+        let statement = builder.intern_triple(s, p, o).expect("intern the triple");
+        match layer {
+            Layer::Ordinary => builder
+                .push_quad(s, p, o, None)
+                .expect("add a default quad"),
+            Layer::Reifier => builder
+                .push_reifier_in_graph(reifier, statement, None)
+                .expect("add a default reifier"),
+            Layer::Annotation => {
+                builder
+                    .push_reifier_in_graph(reifier, statement, Some(graph))
+                    .expect("declare the named reifier");
+                builder
+                    .push_annotation_in_graph(reifier, p, o, None)
+                    .expect("add a default annotation");
+            }
+        }
+        let dataset = builder
+            .freeze()
+            .expect("freeze RDF with default graph rows");
+        let upstream = documentation_input(dataset);
+        let error = CarrierParts::new(&upstream)
+            .push_rooted_graph("stage-docs-render", GRAPH_DOCUMENTATION)
+            .expect_err("refuse default graph rows");
+        assert!(
+            error.to_string().contains("contains RDF rows outside"),
+            "{layer:?}: {error}"
+        );
+    }
+}
+
+fn documentation_input(
+    dataset: std::sync::Arc<purrdf::RdfDataset>,
+) -> BTreeMap<String, StageProduct> {
+    BTreeMap::from([(
+        "stage-docs-render".to_owned(),
+        StageProduct::from_artifacts_over("stage-docs-render", dataset, BTreeMap::new())
+            .expect("admit the supplied documentation product"),
+    )])
+}
