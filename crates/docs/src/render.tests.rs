@@ -304,7 +304,8 @@ fn canonical_language_domain_reaches_rendered_jsonld_quickstart() {
     let slice = tempfile::tempdir().expect("create supplied slice");
     std::fs::write(
         slice.path().join("manifest.ttl"),
-        "<urn:example:ai> a <https://blackcatinformatics.ca/gmeow/Slice> .",
+        r#"<urn:example:ai> a <https://blackcatinformatics.ca/gmeow/Slice> ;
+    <http://purl.org/dc/terms/creator> "Example author" ."#,
     )
     .expect("write the slice manifest");
     std::fs::write(
