@@ -1256,21 +1256,32 @@ fn assemble_carrier(
     let mappings = upstream
         .get("stage-mappings")
         .ok_or_else(|| stage_err("missing stage-mappings product for projection graphs"))?;
-    // The RDF-fanout attach class, DERIVED from the authored gmeow:fanoutExtracts rows in
-    // the loaded pipeline-slice source (stage-source-load already holds module.ttl in
-    // memory — a source input, not the bundle being produced), so the carrier's attach set
-    // and the superset gate's claim set read ONE inventory (no hand-list to drift).
+    // The authored gmeow:fanoutExtracts inventory classifies the remaining
+    // mappings RDF fanout members. The report has its own required read below.
     let rdf_fanout_classes =
         crate::stages::superset::RdfFanoutClasses::from_source(&authored_default)?;
-    for (path, bytes) in mappings.artifacts() {
-        if let Some(iri) = crate::stages::superset::edoal_projection_graph_iri(&path) {
-            parts.push_parsed(&bytes, "text/turtle", &iri)?;
-        } else if rdf_fanout_classes.contains(&path) {
+    let mut mapping_artifacts = mappings.artifact_refs()?;
+    let report_path = crate::stages::compile_logic::PROJECTION_REPORT_PATH;
+    let report = mappings.artifact(report_path).ok_or_else(|| {
+        stage_err(&format!(
+            "missing {report_path} in stage-mappings for RDF fanout"
+        ))
+    })?;
+    let report_iri = crate::stages::superset::rdf_fanout_graph_iri(report_path)
+        .ok_or_else(|| stage_err(&format!("non-RDF projection report path: {report_path}")))?;
+    // The required report read supplies the same sorted mapping slot as the bulk lane.
+    mapping_artifacts.insert(report_path, report);
+    for (path, bytes) in mapping_artifacts {
+        if path == report_path {
+            parts.push_parsed(bytes, "text/turtle", &report_iri)?;
+        } else if let Some(iri) = crate::stages::superset::edoal_projection_graph_iri(path) {
+            parts.push_parsed(bytes, "text/turtle", &iri)?;
+        } else if rdf_fanout_classes.contains(path)
+            && let Some(iri) = crate::stages::superset::rdf_fanout_graph_iri(path)
+        {
             // The non-EDOAL RDF projections (core-prefixes / functions.fno /
-            // list-functions), now emitted canonically by the mappings stage.
-            if let Some(iri) = crate::stages::superset::rdf_fanout_graph_iri(&path) {
-                parts.push_parsed(&bytes, "text/turtle", &iri)?;
-            }
+            // list-functions) emitted canonically by the mappings stage.
+            parts.push_parsed(bytes, "text/turtle", &iri)?;
         }
     }
     // graph/fanout/<path> ← every other RDF generated/ file, one named graph per file,
@@ -1557,13 +1568,8 @@ fn rdf_fanout_members(
         .ok_or_else(|| stage_err("missing generated/foundation/gufo.ttl in stage-compile-logic"))?;
     out.insert(crate::stages::compile_logic::GUFO_PATH.to_string(), gufo);
 
-    // projection-report loss ledger (mappings) + the relational-core / correspondence
-    // N-Triples programs (compile-logic), each emitted canonically by its stage.
+    // The relational-core and correspondence N-Triples programs from compile-logic.
     for (stage, path) in [
-        (
-            "stage-mappings",
-            crate::stages::compile_logic::PROJECTION_REPORT_PATH,
-        ),
         (
             "stage-compile-logic",
             crate::stages::compile_logic::RELATIONAL_CORE_PATH,
@@ -3453,7 +3459,7 @@ impl Stage for SnapshotStage {
     }
     /// Bind the complete snapshot contract, including required canon admission evidence.
     fn impl_version(&self) -> &str {
-        "snapshot.v39-math-target-projections"
+        "snapshot.v40-single-projection-report"
     }
     fn input_files(&self, root: &Path) -> Result<Vec<PathBuf>, gmeow_errors::Diag> {
         let mut files = Vec::new();

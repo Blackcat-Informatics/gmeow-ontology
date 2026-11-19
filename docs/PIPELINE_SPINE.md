@@ -524,6 +524,11 @@ for a blob by digest, `unpack` for a files-profile archive). No output requires 
 bespoke generator at fanout time; an output that cannot be produced by extraction
 alone signals a §5 violation upstream, not a need for computation downstream.
 
+Snapshot borrows the committed projection report from `stage-mappings` and
+parses it once in sorted artifact order. The resulting named fanout graph
+reconstructs `generated/logic/projection-report.ttl`. The native projection
+ledger retains its own graph for pipeline consumers.
+
 ### 6.1 Worked instance — the GMN-1 ecosystem projections
 
 The GMN-1 (Grounded Model Notation) ecosystem is the two-halves law at work over a
