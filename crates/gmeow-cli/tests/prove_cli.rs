@@ -316,31 +316,45 @@ fn module_requests_refuse_missing_declarations_and_imports() {
     }
 }
 
-/// PROTECTS: an excluded statement contributor cannot authorize an atomic
-/// formula that the native input never asserts, even after IR deduplication.
+/// PROTECTS: an atomic formula link remains unread whether its equal ordinary
+/// statement is independently asserted or excluded.
 #[test]
 fn excluded_statement_cannot_account_for_an_unread_atomic_formula() {
     let body = r#"
-ex:Selected a logic:Module . ex:Excluded a logic:Module .
-ex:p logic:domain ex:C ; logic:inModule ex:Excluded .
+ex:Selected a logic:Module ; logic:hasFormula ex:law .
+ex:Excluded a logic:Module .
+ex:p logic:domain ex:C {scope} .
 ex:a ex:p ex:b ; logic:instanceOf ex:D .
 ex:C logic:disjointWith ex:D .
 ex:law a logic:Formula ; logic:relation logic:domain ; logic:argument ex:propertyTerm, ex:classTerm .
 ex:propertyTerm logic:termIndex 0 ; logic:termIri ex:p .
 ex:classTerm logic:termIndex 1 ; logic:termIri ex:C .
 "#;
-    let (report, _) = prove_json(
-        "atomic-formula.ttl",
-        body,
-        &["--module", "https://example.org/prove/Selected"],
-    );
-    assert_eq!(report["verdict"], "not-decided", "{report:#}");
-    assert!(
-        drop_codes(&report)
+    for (scope, verdict) in [
+        ("; logic:inModule ex:Excluded", "not-decided"),
+        ("", "inconsistent"),
+    ] {
+        let (report, _) = prove_json(
+            "atomic-formula.ttl",
+            &body.replace("{scope}", scope),
+            &["--module", "https://example.org/prove/Selected"],
+        );
+        assert_eq!(report["verdict"], verdict, "{report:#}");
+        let link = report["native_admission"]["units"]
+            .as_array()
+            .expect("source units")
             .iter()
-            .any(|code| code == "FORMULA_AXIOM_NOT_READ"),
-        "{report:#}"
-    );
+            .find(|unit| {
+                unit["anchor"]
+                    .as_str()
+                    .is_some_and(|anchor| anchor.contains("/hasFormula"))
+            })
+            .expect("original module formula link");
+        assert_eq!(
+            link["disposition"]["Blocked"]["code"],
+            "FORMULA_AXIOM_NOT_READ"
+        );
+    }
 }
 
 /// PROTECTS: composed required outputs remove stale bytes, and raw proof replay
@@ -596,6 +610,29 @@ fn uncarried_formula_is_not_decided_with_its_drop_named_and_gate_exits_three() {
             .iter()
             .any(|drop| drop["engine"] == "native" && drop["code"] == "UNSUPPORTED_CONSTRUCT"),
         "{report:#}"
+    );
+    let linked = format!("{DISJUNCTIVE}\nex:Selected a logic:Module ; logic:hasFormula ex:law .\n");
+    let (report, code) = prove_json(
+        "linked-disjunction.ttl",
+        &linked,
+        &["--module", "https://example.org/prove/Selected", "--gate"],
+    );
+    assert_eq!(report["verdict"], "not-decided", "{report:#}");
+    assert_eq!(code, 3);
+    let units = report["native_admission"]["units"]
+        .as_array()
+        .expect("source units");
+    let link = units
+        .iter()
+        .find(|unit| {
+            unit["anchor"]
+                .as_str()
+                .is_some_and(|anchor| anchor.contains("/hasFormula"))
+        })
+        .expect("original disjunctive formula link");
+    assert_eq!(
+        link["disposition"]["Blocked"]["code"],
+        "FORMULA_NATIVE_LOWERING_RESIDUE"
     );
 }
 
@@ -1678,6 +1715,70 @@ ex:c1 a logic:Formula ; logic:relation logic:instanceOf ; logic:argument [ a log
 ex:c2 a logic:Formula ; {second} .
 "#
     )
+}
+
+/// A module-linked formula can refute the composed theory, while its excluded
+/// and context-blocked occurrences retain independent source dispositions.
+#[test]
+fn an_imported_formula_assertion_supplies_a_native_refutation() {
+    let body = conjunctive_consequent(
+        r#"logic:relation ex:marked ; logic:argument [ a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "A" ], [ a logic:TermCarrier ; logic:termIndex 1 ; logic:termIri ex:a ]"#,
+    ) + r#"
+ex:Chosen a logic:Module ; logic:hasFormula ex:law, ex:blocked .
+ex:Other a logic:Module .
+ex:Hub a logic:Module ; logic:imports ex:Chosen .
+ex:blocked a logic:Formula ; logic:quantifiedVariable [
+    a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "A"
+] ; logic:forall ex:imp ; logic:provenance ex:source .
+ex:a logic:instanceOf ex:Opposition .
+ex:Opposition logic:disjointWith ex:Dst .
+"#;
+    for (root, verdict, link_disposition) in [
+        ("Hub", "inconsistent", "StructuralSupport"),
+        ("Other", "consistent", "OutsideRequestedTheory"),
+    ] {
+        let iri = format!("https://example.org/prove/{root}");
+        let (report, _) = prove_json("linked-formulas.ttl", &body, &["--module", &iri]);
+        assert_eq!(report["verdict"], verdict, "{report:#}");
+        let units = report["native_admission"]["units"]
+            .as_array()
+            .expect("source units");
+        let link = |target: &str| {
+            units
+                .iter()
+                .find(|unit| {
+                    unit["anchor"].as_str().is_some_and(|anchor| {
+                        anchor.contains("/hasFormula") && anchor.contains(target)
+                    })
+                })
+                .expect("original physical module formula link")
+        };
+        let law = link("/law");
+        assert!(!law["disposition"][link_disposition].is_null(), "{law:#}");
+        assert_eq!(law["documents"].as_array().map(Vec::len), Some(1));
+        let blocked = link("/blocked");
+        if root == "Hub" {
+            assert_eq!(
+                blocked["disposition"]["Blocked"]["code"], "CONTEXT_ERASURE_FORBIDDEN",
+                "{blocked:#}"
+            );
+            let witness = report["refutations"]
+                .as_array()
+                .expect("refutations")
+                .iter()
+                .find(|row| row["engine"] == "native")
+                .expect("native witness");
+            let premises = witness["premises"].to_string();
+            for term in ["/Dst", "/Opposition"] {
+                assert!(premises.contains(term), "missing {term} from {premises}");
+            }
+        } else {
+            assert!(
+                !blocked["disposition"]["OutsideRequestedTheory"].is_null(),
+                "{blocked:#}"
+            );
+        }
+    }
 }
 
 /// A consequent that conjoins a unary atom with an atom of arity three is one

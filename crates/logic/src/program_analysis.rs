@@ -10,7 +10,7 @@
 //! Preparation reuse is not a coverage certificate or permission to erase scope: admission
 //! and execution of each selected context remain obligations of the consuming operation.
 
-use std::collections::VecDeque;
+use std::collections::{BTreeSet, VecDeque};
 use std::fmt::Write as _;
 use std::sync::{Arc, Mutex, OnceLock};
 
@@ -40,6 +40,9 @@ pub(crate) struct PreparedProgram {
     /// Each compiler-produced rule identity, with the indices into the program's
     /// formulas of the authored formulas it was clausified from.
     pub(crate) formula_rules: std::collections::BTreeMap<String, std::collections::BTreeSet<usize>>,
+    /// Formula indices whose selected lowering left a preservation boundary.
+    #[serde(skip)]
+    pub(crate) incomplete_formulas: BTreeSet<usize>,
     /// No datasets or run state; shared joint dependency and witness layout only.
     #[serde(skip)]
     joint: Mutex<Option<NativeOutcome<Arc<JointProgram>>>>,
@@ -146,6 +149,7 @@ impl PreparedProgram {
             existential_rules: self.existential_rules.clone(),
             preservation: self.preservation.clone(),
             formula_rules: self.formula_rules.clone(),
+            incomplete_formulas: self.incomplete_formulas.clone(),
             joint: Mutex::new(None),
             reasoning_rules: OnceLock::new(),
             schema_plans: Mutex::new(SchemaPlans::default()),
@@ -186,6 +190,11 @@ impl PreparedProgram {
             existential_rules: lowering.existential_rules,
             preservation: lowering.preservation,
             formula_rules: lowering.formula_rules,
+            incomplete_formulas: if selected.is_some() {
+                lowering.incomplete_formulas
+            } else {
+                BTreeSet::new()
+            },
             joint: Mutex::new(None),
             reasoning_rules: std::sync::OnceLock::new(),
             schema_plans: Mutex::new(SchemaPlans::default()),

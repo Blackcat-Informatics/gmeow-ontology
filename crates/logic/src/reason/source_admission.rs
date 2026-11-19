@@ -571,50 +571,13 @@ fn classify(
             "RULE_WITHOUT_SOURCE_TRACE",
             "compiled rule has no exact source-owner route",
         ),
-        SourceObligationOrigin::Formula(ordinal) => {
-            let lowering = &theory.formula_lowerings()[ordinal];
-            if lowering.source.graph.is_some() {
-                return outside();
-            }
-            if inventory
-                .untranslated_formula_contexts()
-                .contains(&lowering.source)
-                && !contexts_admitted
-                && !matches!(lowering.disposition, FormulaDisposition::ReadForOwner)
-            {
-                return Disposition::blocked(
-                    "CONTEXT_ERASURE_FORBIDDEN",
-                    "formula or descendant scope is not represented by the selected top-level execution",
-                );
-            }
-            match lowering.disposition {
-                FormulaDisposition::OutsideDefaultGraph => outside(),
-                FormulaDisposition::ReadForOwner => Disposition::support(
-                    "formula syntax retained by its separately inventoried owner",
-                ),
-                FormulaDisposition::Malformed { diagnostic } => Disposition::malformed(
-                    "MALFORMED_SELECTED_FORMULA",
-                    format!("compiler rejected formula at diagnostic {diagnostic}"),
-                ),
-                FormulaDisposition::Axiom(index) => {
-                    classify_axiom(theory, index, ingress, axiom_sources)
-                }
-                FormulaDisposition::Formula(index) => {
-                    let Some(formula) = theory.program().formulas.get(index) else {
-                        return Disposition::malformed(
-                            "MISSING_FORMULA_IR",
-                            "formula route is outside the canonical program",
-                        );
-                    };
-                    let mut refusals = Vec::new();
-                    account_formula(formula, AtomPolarity::Positive, &mut refusals);
-                    account_refusals(
-                        refusals,
-                        "selected native formula; exact preparation and lowering residue checked by executor",
-                    )
-                }
-            }
-        }
+        SourceObligationOrigin::Formula(ordinal) => classify_formula(
+            inventory,
+            ordinal,
+            ingress,
+            contexts_admitted,
+            axiom_sources,
+        ),
         SourceObligationOrigin::Axiom(index) => {
             classify_axiom(theory, index, ingress, axiom_sources)
         }
@@ -690,6 +653,67 @@ fn classify(
     }
 }
 
+fn classify_formula(
+    inventory: &SourceInventory<'_>,
+    ordinal: usize,
+    ingress: Option<&ClaimIngress>,
+    contexts_admitted: bool,
+    axiom_sources: &[AxiomSource],
+) -> Disposition {
+    let theory = inventory.theory();
+    let lowering = &theory.formula_lowerings()[ordinal];
+    if lowering.source.graph.is_some() {
+        return Disposition::OutsideSelection {
+            reason: "source placement is outside the selected default graph",
+        };
+    }
+    if !contexts_admitted
+        && !matches!(lowering.disposition, FormulaDisposition::ReadForOwner)
+        && inventory
+            .untranslated_formula_contexts()
+            .contains(&lowering.source)
+    {
+        return Disposition::blocked(
+            "CONTEXT_ERASURE_FORBIDDEN",
+            "formula or descendant scope is not represented by the selected top-level execution",
+        );
+    }
+    match lowering.disposition {
+        FormulaDisposition::OutsideDefaultGraph => Disposition::OutsideSelection {
+            reason: "source placement is outside the selected default graph",
+        },
+        FormulaDisposition::ReadForOwner => {
+            Disposition::support("formula syntax retained by its separately inventoried owner")
+        }
+        FormulaDisposition::Malformed { diagnostic } => Disposition::malformed(
+            "MALFORMED_SELECTED_FORMULA",
+            format!("compiler rejected formula at diagnostic {diagnostic}"),
+        ),
+        FormulaDisposition::Axiom(index) => classify_axiom(theory, index, ingress, axiom_sources),
+        FormulaDisposition::Formula(index) => {
+            let Some(formula) = theory.program().formulas.get(index) else {
+                return Disposition::malformed(
+                    "MISSING_FORMULA_IR",
+                    "formula route is outside the canonical program",
+                );
+            };
+            let mut refusals = Vec::new();
+            account_formula(formula, AtomPolarity::Positive, &mut refusals);
+            account_refusals(
+                refusals,
+                "selected native formula; exact preparation and lowering residue checked by executor",
+            )
+        }
+    }
+}
+
+fn formula_axiom(inventory: &SourceInventory<'_>, ordinal: usize) -> Option<usize> {
+    match inventory.theory().formula_lowerings()[ordinal].disposition {
+        FormulaDisposition::Axiom(index) => Some(index),
+        _ => None,
+    }
+}
+
 fn classify_selected(
     inventory: &SourceInventory<'_>,
     unit: SourceObligation<'_>,
@@ -702,14 +726,22 @@ fn classify_selected(
             reason: "original source obligation belongs exclusively to modules outside the requested theory",
         });
     }
+    if let Some(ordinal) = selection.selected_module_formula(unit)? {
+        if formula_axiom(inventory, ordinal).is_some() {
+            return Ok(unread_atomic_formula());
+        }
+        return Ok(
+            match classify_formula(inventory, ordinal, ingress, true, &[]) {
+                Disposition::Accounted { .. } => Disposition::support(
+                    "module formula assertion accounted by its exact selected formula occurrence",
+                ),
+                boundary => boundary,
+            },
+        );
+    }
     let axiom_index = match unit.origin() {
         SourceObligationOrigin::Axiom(index) => Some(index),
-        SourceObligationOrigin::Formula(ordinal) => {
-            match inventory.theory().formula_lowerings()[ordinal].disposition {
-                FormulaDisposition::Axiom(index) => Some(index),
-                _ => None,
-            }
-        }
+        SourceObligationOrigin::Formula(ordinal) => formula_axiom(inventory, ordinal),
         _ => None,
     };
     let view = selection.program_view(inventory)?;
@@ -734,6 +766,13 @@ fn classify_selected(
         }
         _ => disposition,
     })
+}
+
+fn unread_atomic_formula() -> Disposition {
+    Disposition::blocked(
+        "FORMULA_AXIOM_NOT_READ",
+        "atomic formula is not an asserted source statement the native input reads",
+    )
 }
 
 fn classify_axiom(
@@ -782,10 +821,7 @@ fn classify_axiom(
             )
         })
     {
-        return Disposition::blocked(
-            "FORMULA_AXIOM_NOT_READ",
-            "atomic formula is not an asserted source statement the native input reads",
-        );
+        return unread_atomic_formula();
     }
     if sources
         .iter()
@@ -905,10 +941,9 @@ pub fn reason_admitted_theory_within(
     {
         let reads_ingress = match unit.origin() {
             SourceObligationOrigin::Axiom(_) | SourceObligationOrigin::Quotation { .. } => true,
-            SourceObligationOrigin::Formula(ordinal) => matches!(
-                theory.formula_lowerings()[ordinal].disposition,
-                FormulaDisposition::Axiom(_)
-            ),
+            SourceObligationOrigin::Formula(ordinal) => {
+                formula_axiom(admission.inventory, ordinal).is_some()
+            }
             _ => false,
         };
         if reads_ingress {
@@ -918,6 +953,18 @@ pub fn reason_admitted_theory_within(
                 Some(ingress),
                 &admission.selection,
             )?;
+        }
+        if !selected.prepared.incomplete_formulas.is_empty()
+            && matches!(disposition, Disposition::StructuralSupport { .. })
+            && let Some(ordinal) = admission.selection.selected_module_formula(unit)?
+            && let FormulaDisposition::Formula(index) =
+                theory.formula_lowerings()[ordinal].disposition
+            && selected.prepared.incomplete_formulas.contains(&index)
+        {
+            *disposition = Disposition::blocked(
+                "FORMULA_NATIVE_LOWERING_RESIDUE",
+                "native preparation cannot carry every clause of the selected formula",
+            );
         }
     }
     if admission.malformed() {
