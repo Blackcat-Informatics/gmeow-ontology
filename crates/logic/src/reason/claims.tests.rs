@@ -500,22 +500,32 @@ ex:blocked a logic:Rule ; logic:inModule ex:Included ; logic:standpoint ex:obser
 
 /// PROTECTS: shared formula IR retains each admitted module assertion and authored
 /// name without promoting owned children or dropping required descendants.
+/// Direct and shared descendant provenance retain the original formula occurrences.
 #[test]
 fn selected_formula_occurrences_keep_names_and_required_descendants() {
     let body = r#"
 ex:Included a logic:Module ; logic:hasFormula ex:first, ex:second, ex:consequence, ex:other .
 ex:Excluded a logic:Module ; logic:hasFormula ex:other, ex:excluded, ex:shared .
 ex:container logic:hasFormula ex:shared .
-ex:namedGraph { ex:Included logic:hasFormula ex:first . }
+ex:namedGraph {
+    ex:Included logic:hasFormula ex:first .
+    ex:first logic:provenance ex:externalSource .
+}
 ex:a ex:seed ex:b .
-ex:first a logic:Formula ; logic:quantifiedVariable ex:x ; logic:forall ex:implication .
-ex:second a logic:Formula ; logic:quantifiedVariable ex:x ; logic:forall ex:implication ; logic:inModule ex:Included .
+ex:first a logic:Formula ; logic:quantifiedVariable ex:x ; logic:forall ex:implication ;
+    logic:provenance ex:firstSource .
+ex:second a logic:Formula ; logic:quantifiedVariable ex:x ; logic:forall ex:implication ;
+    logic:inModule ex:Included ; logic:provenance ex:secondSource .
 ex:other a logic:Formula ; logic:quantifiedVariable ex:x ; logic:forall ex:implication ; logic:inModule ex:Excluded .
-ex:excluded a logic:Formula ; logic:quantifiedVariable ex:x ; logic:forall ex:implication .
+ex:excluded a logic:Formula, logic:Rule ; logic:quantifiedVariable ex:x ; logic:forall ex:implication ;
+    logic:provenance ex:ruleSource ;
+    logic:head [ rdf:reifies <<( ex:a ex:independent ex:b )>> ] ;
+    logic:body [ rdf:reifies <<( ex:a ex:seed ex:b )>> ] .
 ex:shared a logic:Formula ; logic:quantifiedVariable ex:x ; logic:forall ex:implication .
 ex:implication a logic:Formula ; logic:antecedent ex:guard ; logic:consequent ex:consequence .
 ex:guard a logic:Formula ; logic:relation ex:seed ; logic:argument ex:x, ex:bTerm .
-ex:consequence a logic:Formula ; logic:relation ex:marked ; logic:argument ex:x, ex:bTerm .
+ex:consequence a logic:Formula ; logic:relation ex:marked ; logic:argument ex:x, ex:bTerm ;
+    logic:provenance ex:childSource .
 ex:x a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "x" .
 ex:bTerm logic:termIndex 1 ; logic:termIri ex:b .
 "#;
@@ -523,6 +533,7 @@ ex:bTerm logic:termIndex 1 ; logic:termIri ex:b .
         ("", true),
         ("ex:consequence logic:inModule ex:Excluded .", false),
         ("ex:bTerm logic:inModule ex:Excluded .", false),
+        ("ex:guard logic:provenance \"invalid resource\" .", false),
     ] {
         let theory = compile(&format!("{body}{extra}"));
         let inventory = whole_inventory(&theory);
@@ -567,6 +578,63 @@ ex:bTerm logic:termIndex 1 ; logic:termIri ex:b .
                 .iter()
                 .any(|row| row.predicate == "https://example.org/claims/marked"),
             executes
+        );
+        let exact_formula = |name: &str| {
+            inventory
+                .obligations()
+                .find(|unit| {
+                    matches!(unit.origin(), SourceObligationOrigin::Formula(_))
+                        && unit
+                            .anchor()
+                            .strip_suffix("|0:")
+                            .is_some_and(|anchor| anchor.ends_with(name))
+                })
+                .expect("authored formula occurrence")
+                .identity()
+        };
+        let observe_evidence = |name: &str| {
+            admission
+                .source_dispositions()
+                .find_map(|(unit, disposition)| {
+                    let anchor = unit.anchor();
+                    (anchor.contains("/provenance") && anchor.contains(name)).then_some(disposition)
+                })
+                .expect("physical provenance occurrence")
+        };
+        for (source, owners) in [
+            ("/firstSource", vec!["/first"]),
+            ("/secondSource", vec!["/second"]),
+            ("/childSource", vec!["/first", "/second", "/shared"]),
+        ] {
+            match observe_evidence(source) {
+                crate::reason::NativeSourceDisposition::FormulaEvidence { formula_origins }
+                    if executes =>
+                {
+                    assert_eq!(
+                        formula_origins.iter().cloned().collect::<BTreeSet<_>>(),
+                        owners.into_iter().map(exact_formula).collect()
+                    );
+                }
+                crate::reason::NativeSourceDisposition::Blocked { .. }
+                | crate::reason::NativeSourceDisposition::OutsideRequestedTheory { .. }
+                    if !executes => {}
+                disposition => panic!("unexpected source evidence {source}: {disposition:?}"),
+            }
+        }
+        assert!(matches!(
+            observe_evidence("/externalSource"),
+            crate::reason::NativeSourceDisposition::OutsideSelection { .. }
+        ));
+        assert!(matches!(
+            observe_evidence("/ruleSource"),
+            crate::reason::NativeSourceDisposition::StructuralSupport { .. }
+        ));
+        assert!(
+            result
+                .inferred()
+                .iter()
+                .any(|row| row.predicate == "https://example.org/claims/independent"),
+            "the excluded formula leaves its independently selected rule executable"
         );
         let links: Vec<_> = admission
             .source_dispositions()
@@ -616,7 +684,33 @@ ex:bTerm logic:termIndex 1 ; logic:termIri ex:b .
                 .count(),
             if executes { 2 } else { 0 }
         );
-        if !executes {
+        if executes {
+            let (other_input, other_ingress) =
+                ingest_modules(&inventory, &["https://example.org/claims/Excluded"]);
+            let other_domains = default_domain(&other_input);
+            let failure = reason_admitted_theory_within(
+                &mut admission,
+                &selected,
+                other_input,
+                &other_domains,
+                &other_ingress,
+                &UNBOUNDED,
+            )
+            .expect_err("a different module selection cannot reuse the previous admission");
+            assert!(
+                failure
+                    .to_string()
+                    .contains("same resolved theory composition")
+            );
+            assert!(
+                admission
+                    .source_dispositions()
+                    .all(|(_, disposition)| !matches!(
+                        disposition,
+                        crate::reason::NativeSourceDisposition::FormulaEvidence { .. }
+                    ))
+            );
+        } else {
             assert!(
                 !admission
                     .complete_for(&result)

@@ -428,6 +428,13 @@ impl<'source> SourceInventory<'source> {
             origin: *origin,
         })
     }
+
+    /// Original obligation identity of a compiler formula-lowering occurrence.
+    #[must_use]
+    pub fn formula_obligation_id(&self, ordinal: usize) -> Option<SourceObligationId> {
+        self.theory.formula_lowerings().get(ordinal)?;
+        Some(self.identity(SourceObligationOrigin::Formula(ordinal)))
+    }
     #[must_use]
     pub fn selection_issues(&self) -> &[SourceSelectionIssue] {
         &self.selection_issues

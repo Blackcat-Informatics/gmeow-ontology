@@ -49,7 +49,8 @@ use gmeow_docs_model::exec::ExecutableDocsData;
 // renderer should not have to name a second crate to get the model.
 use gmeow_docs_model::fixture::{
     DocsFixtureSelector, FixtureIdentity, load_or_build_with_identity, model_identity,
-    payload_digest, produced_model_selection, selected_fixtures, verify_payload,
+    payload_digest, prepare_model_from_catalogs, produced_model_selection, selected_fixtures,
+    verify_payload,
 };
 pub use gmeow_docs_model::fixture::{load, load_or_build};
 use gmeow_docs_model::i18n::ENGLISH;
@@ -327,6 +328,34 @@ pub fn prime(root: &Path) -> PrimeObservation {
     let (model, identity) = load_or_build_with_identity(root);
     let selected_model = produced_model_selection(root)
         .unwrap_or_else(|error| panic!("select produced docs model: {error}"));
+    prime_selected_model(root, model, identity, selected_model)
+}
+
+/// Produce the complete docs fixture family from authenticated catalog artifacts.
+///
+/// # Errors
+/// Refuses missing catalog inputs and model discovery errors.
+pub fn prime_from_catalogs(
+    root: &Path,
+    term_manifest: &[u8],
+    constraint_catalog: &[u8],
+    inputs: Vec<ActionInput>,
+) -> Result<PrimeObservation, gmeow_docs_model::model::DocsError> {
+    let produced = prepare_model_from_catalogs(root, term_manifest, constraint_catalog, inputs)?;
+    Ok(prime_selected_model(
+        root,
+        produced.model,
+        produced.identity,
+        produced.selection,
+    ))
+}
+
+fn prime_selected_model(
+    root: &Path,
+    model: gmeow_docs_model::model::DocsModel,
+    identity: FixtureIdentity,
+    selected_model: SelectedAction,
+) -> PrimeObservation {
     assert_eq!(selected_model.receipt_digest, identity.receipt_digest);
     let mut languages = model.available_languages.clone();
     languages.push(ENGLISH.to_string());

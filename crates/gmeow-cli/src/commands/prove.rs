@@ -34,7 +34,7 @@ use gmeow_logic_compile::frontend::{
 };
 use gmeow_logic_compile::ir::TheorySelection;
 use gmeow_logic_compile::source_inventory::{
-    ResolvedTheorySelection, SourceInventory, TheorySelectionObservation,
+    ResolvedTheorySelection, SourceInventory, SourceObligationOrigin, TheorySelectionObservation,
 };
 use gmeow_logic_compile::tptp::{FofProjectionBlocker, FofProjectionStatus, project_tptp_fof};
 use purrdf::entail::Question;
@@ -2270,11 +2270,45 @@ fn render_text(report: &ProveReport<'_>) {
         println!("source-admission {:?}", admission.status);
     }
     if let Some(admission) = &report.native_admission {
+        let evidence_origins: BTreeSet<_> = admission
+            .source_dispositions()
+            .filter_map(|(_, disposition)| match disposition {
+                NativeSourceDisposition::FormulaEvidence { formula_origins } => {
+                    Some(formula_origins)
+                }
+                _ => None,
+            })
+            .flatten()
+            .collect();
         for (unit, disposition) in admission.source_dispositions() {
+            let anchor = unit.anchor();
+            if !evidence_origins.is_empty()
+                && matches!(unit.origin(), SourceObligationOrigin::Formula(_))
+            {
+                let id = unit.identity();
+                if evidence_origins.contains(&id) {
+                    println!("formula-origin {} {anchor}", id.as_str());
+                }
+            }
             let (status, code, detail) = match disposition {
                 NativeSourceDisposition::Accounted { route } => ("Accounted", "-", *route),
                 NativeSourceDisposition::StructuralSupport { route } => {
                     ("StructuralSupport", "-", *route)
+                }
+                NativeSourceDisposition::FormulaEvidence { formula_origins } => {
+                    let evidence = unit.identity();
+                    for formula in formula_origins {
+                        println!(
+                            "formula-evidence {} {} {anchor}",
+                            evidence.as_str(),
+                            formula.as_str()
+                        );
+                    }
+                    (
+                        "FormulaEvidence",
+                        "-",
+                        "source provenance of an accounted formula",
+                    )
                 }
                 NativeSourceDisposition::ConfigurationDeclaration { route } => {
                     ("ConfigurationDeclaration", "-", *route)
@@ -2295,7 +2329,7 @@ fn render_text(report: &ProveReport<'_>) {
                     ("Malformed", *code, reason.as_str())
                 }
             };
-            println!("source-unit {status} {} {code} {detail}", unit.anchor());
+            println!("source-unit {status} {anchor} {code} {detail}");
         }
     }
     if let Some(selection) = &report.selection {
