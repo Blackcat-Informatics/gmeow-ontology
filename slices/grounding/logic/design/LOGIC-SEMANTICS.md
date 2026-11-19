@@ -199,9 +199,13 @@ selected program occurrences, claim ingress, preparation and completion bind
 that same composition. Reports retain every supplied source obligation, including
 authorized module exclusions and independent graph/context blockers. An owner
 whose required child lies outside the admitted theory remains selected and
-blocked; its child cannot be dropped to create a weaker sentence. Without an
-explicit module request, module-scoped obligations retain the top-level
-operation's existing boundaries.
+blocked; its child cannot be dropped to create a weaker sentence. A selected
+module's `logic:hasFormula` link carries its top-level formula into the same
+theory. Each physical link retains its own disposition and the target's
+lowering boundaries. A blocked target withholds that assertion while other
+admitted formulas and imports remain available. Without an explicit module
+request, module-scoped obligations retain the top-level operation's existing
+boundaries.
 
 The executed selected-theory profile is narrower than this definition in one direction only.
 It may leave an assertion unread, for example a claim over a typed term carrier, a claim

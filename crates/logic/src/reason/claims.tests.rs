@@ -444,16 +444,21 @@ ex:blocked a logic:Rule ; logic:inModule ex:Included ; logic:standpoint ex:obser
     }
 }
 
-/// PROTECTS: shared formula IR keeps every admitted authored name, excludes other
-/// occurrences, and never executes a parent after dropping a required descendant.
+/// PROTECTS: shared formula IR retains each admitted module assertion and authored
+/// name without promoting owned children or dropping required descendants.
 #[test]
 fn selected_formula_occurrences_keep_names_and_required_descendants() {
     let body = r#"
-ex:Included a logic:Module . ex:Excluded a logic:Module .
+ex:Included a logic:Module ; logic:hasFormula ex:first, ex:second, ex:consequence, ex:other .
+ex:Excluded a logic:Module ; logic:hasFormula ex:other, ex:excluded, ex:shared .
+ex:container logic:hasFormula ex:shared .
+ex:namedGraph { ex:Included logic:hasFormula ex:first . }
 ex:a ex:seed ex:b .
-ex:first a logic:Formula ; logic:quantifiedVariable ex:x ; logic:forall ex:implication ; logic:inModule ex:Included .
+ex:first a logic:Formula ; logic:quantifiedVariable ex:x ; logic:forall ex:implication .
 ex:second a logic:Formula ; logic:quantifiedVariable ex:x ; logic:forall ex:implication ; logic:inModule ex:Included .
 ex:other a logic:Formula ; logic:quantifiedVariable ex:x ; logic:forall ex:implication ; logic:inModule ex:Excluded .
+ex:excluded a logic:Formula ; logic:quantifiedVariable ex:x ; logic:forall ex:implication .
+ex:shared a logic:Formula ; logic:quantifiedVariable ex:x ; logic:forall ex:implication .
 ex:implication a logic:Formula ; logic:antecedent ex:guard ; logic:consequent ex:consequence .
 ex:guard a logic:Formula ; logic:relation ex:seed ; logic:argument ex:x, ex:bTerm .
 ex:consequence a logic:Formula ; logic:relation ex:marked ; logic:argument ex:x, ex:bTerm .
@@ -479,7 +484,8 @@ ex:bTerm logic:termIndex 1 ; logic:termIri ex:b .
                 names,
                 BTreeSet::from([
                     "https://example.org/claims/first",
-                    "https://example.org/claims/second"
+                    "https://example.org/claims/second",
+                    "https://example.org/claims/shared"
                 ])
             );
         } else {
@@ -507,6 +513,54 @@ ex:bTerm logic:termIndex 1 ; logic:termIri ex:b .
                 .iter()
                 .any(|row| row.predicate == "https://example.org/claims/marked"),
             executes
+        );
+        let links: Vec<_> = admission
+            .source_dispositions()
+            .filter_map(|(unit, disposition)| {
+                let anchor = unit.anchor();
+                anchor
+                    .contains("/hasFormula")
+                    .then_some((anchor, disposition))
+            })
+            .collect();
+        assert_eq!(links.len(), 9);
+        assert!(links.iter().any(|(anchor, disposition)| {
+            anchor.contains("/namedGraph")
+                && matches!(
+                    disposition,
+                    crate::reason::NativeSourceDisposition::OutsideSelection { .. }
+                )
+        }));
+        for (link, expected) in [
+            ("consequence", "MODULE_LINK_TO_OWNED_FORMULA"),
+            ("other", "CONFLICTING_FORMULA_MODULE_COORDINATE"),
+        ] {
+            assert!(links.iter().any(|(anchor, disposition)| {
+                anchor.contains(&format!("/{link}"))
+                    && matches!(disposition, crate::reason::NativeSourceDisposition::Blocked {
+                        code, ..
+                    } if *code == expected)
+            }));
+        }
+        assert_eq!(
+            links
+                .iter()
+                .filter(|(_, disposition)| matches!(
+                    disposition,
+                    crate::reason::NativeSourceDisposition::OutsideRequestedTheory { .. }
+                ))
+                .count(),
+            3
+        );
+        assert_eq!(
+            links
+                .iter()
+                .filter(|(_, disposition)| matches!(
+                    disposition,
+                    crate::reason::NativeSourceDisposition::StructuralSupport { .. }
+                ))
+                .count(),
+            if executes { 2 } else { 0 }
         );
         if !executes {
             assert!(

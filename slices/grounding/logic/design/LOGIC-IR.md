@@ -162,10 +162,15 @@ A contradiction between their admitted sentences refutes that composition.
 `TheorySelection` records a request. Compiler-issued source resolution binds the
 exact roots, closure, import evidence and source selection before native input or
 program views are borrowed. Selected rules and formulas retain their original
-indices and source occurrences after deduplication. An exclusively owned child
-cannot become an independent assertion; a selected owner whose required syntax
-is unavailable remains blocked as a whole. Shared support remains available
-through its actual admitted owners.
+indices and source occurrences after deduplication. A declared module asserts
+a top-level formula through an actual `logic:hasFormula` occurrence in the
+default graph. The link carries that module's membership and records the target's
+admission. A direct `logic:inModule` coordinate or an unqualified nonmodule
+container can supply a separate route.
+A link to a formula that declares a different module remains blocked.
+An exclusively owned child cannot become an independent assertion. A selected
+owner whose required syntax is unavailable remains blocked as a whole. Shared
+support remains available through its actual admitted owners.
 
 The complete supplied inventory remains reportable. Explicitly unselected modules
 receive an authorized disposition outside the requested theory; graph, standpoint, time,
