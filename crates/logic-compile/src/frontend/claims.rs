@@ -371,14 +371,16 @@ impl ClaimResolver<'_> {
                     })
                 })
                 .chain(uses.into_iter().flat_map(|uses| {
-                    uses.references.iter().filter_map(|&quad| {
-                        (!selected_set_membership(store, selected, quad)).then(|| {
+                    uses.references
+                        .iter()
+                        .copied()
+                        .filter(|&quad| !selected_set_membership(store, selected, quad))
+                        .map(|quad| {
                             (
                                 iri_of(store, quad.p).as_str().to_owned(),
                                 quad.g.map(|graph| node_name(store, graph)),
                             )
                         })
-                    })
                 }))
                 .collect();
         outside.sort();
