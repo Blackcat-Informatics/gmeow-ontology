@@ -25,6 +25,13 @@ can record a partisan claim, and a claim can be high-confidence yet from a frame
 dispute. (`gmeow:wasAttributedTo` plays a different role entirely: it ascribes
 responsibility for an *entity* to an *agent* — see below.)
 
+An outgoing default-graph `gmeow:wasDerivedFrom` link from a statement reifier
+to an IRI or blank node records the lineage of that exact carrier. The link
+remains available as an ordinary source fact. Native claim execution requires
+its own evidence or selected-module assertion route. A lineage-only reifier
+remains a quotation, and a link that targets another carrier leaves that
+carrier subject to the incoming-reference boundary.
+
 ## Activities
 
 ### gmeow:Activity

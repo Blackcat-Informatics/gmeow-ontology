@@ -610,12 +610,13 @@ the substrate does not.
   default-graph `logic:inModule` coordinate resolved against the same immutable source and
   requested import closure. This route requires no invented provenance or
   confidence and does not widen the evidence-only allow-list. Both routes admit
-  descriptive default-graph `gmeow:graphBoxRole` annotations with IRI or blank-node
-  resource values and `gmeow:statedRationale` annotations with `xsd:string`,
-  `rdf:langString` or `rdf:dirLangString` values. Preserve the original roles,
-  wording and source rows. These annotations provide no evidence coordinate,
-  assertion, context, module, ownership or routing authority. Named-graph
-  annotations and values outside the admitted types retain their boundaries.
+  descriptive default-graph `gmeow:graphBoxRole` and outgoing `gmeow:wasDerivedFrom`
+  annotations with IRI or blank-node values, and `gmeow:statedRationale` annotations
+  with `xsd:string`, `rdf:langString` or `rdf:dirLangString` values. Preserve the
+  original roles, lineage targets, wording and source rows. These annotations
+  provide no evidence coordinate, assertion, context, module, ownership or
+  routing authority. Named-graph annotations and values outside the admitted
+  types retain their boundaries.
   An annotation alone leaves a quotation unasserted.
   Every envelope check still reads the complete original source. Any carrier
   statement beyond the selected route's contract, any statement with the

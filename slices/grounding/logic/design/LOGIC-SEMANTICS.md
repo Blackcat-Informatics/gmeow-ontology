@@ -133,11 +133,12 @@ metadata. A bare reifier with no scope or evidence coordinate is a quotation
 and asserts nothing. A module claim outside the requested composition remains
 an assertion outside that theory; unresolved membership remains a named boundary.
 
-Default-graph `gmeow:graphBoxRole` annotations with resource values and
-`gmeow:statedRationale` annotations with `xsd:string`, `rdf:langString` or
-`rdf:dirLangString` values describe the carrier. Preserve every original
-role, literal, language and text direction. These annotations carry no evidence,
-assertion, module membership, ownership, context or graph routing authority.
+Default-graph `gmeow:graphBoxRole` and outgoing `gmeow:wasDerivedFrom` annotations
+with resource values describe the carrier, as does `gmeow:statedRationale`
+with `xsd:string`, `rdf:langString` or `rdf:dirLangString` values. Preserve
+every original role, lineage target, literal, language and text direction.
+These annotations carry no evidence, assertion, module membership, ownership,
+context or graph routing authority.
 A quotation with only descriptive annotations asserts nothing. Named-graph
 annotations and values outside the admitted types retain their boundaries.
 The descriptive rows remain ordinary source facts.
@@ -153,7 +154,8 @@ other reifier is itself an assertion, an unread claim or a quotation: a claim so
 about is out, and no fixpoint is taken. The statements that count are the stated ones, not
 those a rule derives, in every graph of the source: the default graph, each named graph, and
 the statements reifiers carry in either. A reifier used as a predicate or as a graph name is
-out as well. A named graph can only keep a claim out. It is another context, so by the rule
+out as well. A lineage link targeting the reifier keeps that target unread, including a
+self-link. A named graph can only keep a claim out. It is another context, so by the rule
 of [context-indexed entailment](#inconsistency-across-contexts-and-context-indexed-entailment)
 nothing in it is an assertion of this theory or evidence for one: provenance or confidence
 stated there does not make a claim an assertion, and a statement there never contradicts

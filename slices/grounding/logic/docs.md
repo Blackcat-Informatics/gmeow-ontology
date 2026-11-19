@@ -126,12 +126,12 @@ Module membership does not translate a standpoint, time or modality. Those
 coordinates retain their separate admission requirements. Ground module claims
 can assert through a typed, source-resolved module route without invented
 provenance or confidence; evidence-only claims keep their own closed contract.
-Both contracts admit default-graph `gmeow:graphBoxRole` resource annotations
-and `gmeow:statedRationale` text annotations as descriptive source facts.
-Preserve every role and the literal's exact wording, language and direction.
-They supply no evidence or assertion authority. Quotations still assert
-nothing. Named-graph annotations and values outside the admitted types retain
-their boundaries.
+Both contracts admit default-graph resource annotations `gmeow:graphBoxRole`
+and outgoing `gmeow:wasDerivedFrom`, and `gmeow:statedRationale` text, as
+descriptive source facts. Preserve the exact role, lineage target, wording,
+language and direction. These annotations supply no evidence or assertion
+authority. Quotations still assert nothing. Named-graph annotations, values
+outside the admitted types and incoming references retain their boundaries.
 Unknown qualifiers, mentions and graph-name uses retain their boundaries.
 
 Reports preserve the complete supplied source inventory and identify the roots,
