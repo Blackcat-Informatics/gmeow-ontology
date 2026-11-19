@@ -1517,24 +1517,14 @@ pub fn merge_terms(root: &Path, output: Option<&Path>, lang: Option<&str>) -> Re
             if entry.msgstr.is_empty() {
                 continue;
             }
-            if let Some(reason) =
-                translation_integrity_issue(&language, &entry.msgid, &entry.msgstr)
-            {
-                return Err(Diag::of_kind(CatalogInconsistent {
-                    detail: format!(
-                        "{}: invalid translation {:?}: {reason}",
-                        path.display(),
-                        entry.msgctxt
-                    ),
-                }));
-            }
             let Some((term, predicate)) = entry.msgctxt.split_once('|') else {
                 return Err(Diag::of_kind(CatalogInconsistent {
                     detail: format!("{}: invalid msgctxt {:?}", path.display(), entry.msgctxt),
                 }));
             };
             let predicate = expand_predicate(predicate);
-            if predicate == RATIONALE {
+            let is_rationale = predicate == RATIONALE;
+            if is_rationale {
                 if !matches_fixture_source(&fixtures, &path, term, &entry.msgid) {
                     return Err(Diag::of_kind(CatalogInconsistent {
                         detail: format!(
@@ -1547,6 +1537,28 @@ pub fn merge_terms(root: &Path, output: Option<&Path>, lang: Option<&str>) -> Re
                 if entry.fuzzy {
                     continue;
                 }
+            } else if !base_values.contains_key(&(term.to_owned(), predicate.clone())) {
+                return Err(Diag::of_kind(CatalogInconsistent {
+                    detail: format!(
+                        "{}: unknown term/predicate {} {}",
+                        path.display(),
+                        term,
+                        predicate
+                    ),
+                }));
+            }
+            if let Some(reason) =
+                translation_integrity_issue(&language, &entry.msgid, &entry.msgstr)
+            {
+                return Err(Diag::of_kind(CatalogInconsistent {
+                    detail: format!(
+                        "{}: invalid translation {:?}: {reason}",
+                        path.display(),
+                        entry.msgctxt
+                    ),
+                }));
+            }
+            if is_rationale {
                 let key = (
                     path.ancestors().nth(2).map(Path::to_path_buf),
                     term.to_owned(),
@@ -1566,15 +1578,6 @@ pub fn merge_terms(root: &Path, output: Option<&Path>, lang: Option<&str>) -> Re
                     }
                     continue;
                 }
-            } else if !base_values.contains_key(&(term.to_owned(), predicate.clone())) {
-                return Err(Diag::of_kind(CatalogInconsistent {
-                    detail: format!(
-                        "{}: unknown term/predicate {} {}",
-                        path.display(),
-                        term,
-                        predicate
-                    ),
-                }));
             }
             text.push_str(&format!(
                 "<{}> <{}> {} .\n",

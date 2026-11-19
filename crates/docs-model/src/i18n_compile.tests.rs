@@ -376,7 +376,7 @@ fn fixture_catalogs_select_exact_owned_rationale_sources() {
             (
                 &counter,
                 "A required value is missing.",
-                "Une valeur requise est absente.",
+                "A required value is missing.",
                 true,
             ),
         ]),
@@ -430,16 +430,17 @@ fn fixture_catalogs_select_exact_owned_rationale_sources() {
     assert!(merge.turtle.contains("<urn:control>") && !merge.turtle.contains("<urn:counter>"));
 
     let path = slice.join("i18n/fr.po");
-    for (context, old_english) in [
-        (control.as_str(), "The old source text."),
+    for (context, old_english, fuzzy) in [
+        (control.as_str(), "The old source text.", true),
         (
             "urn:untyped|https://blackcatinformatics.ca/gmeow/conformanceRationale",
             "Outside the selected type.",
+            false,
         ),
     ] {
         fs::write(
             &path,
-            po_body(&[(context, old_english, "Une traduction hors contexte.", false)]),
+            po_body(&[(context, old_english, "Une traduction hors contexte.", fuzzy)]),
         )
         .expect("write mismatched catalog entry");
         assert!(!lint_po_files(&root, 100.0).ok());
