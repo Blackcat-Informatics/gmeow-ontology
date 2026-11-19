@@ -618,16 +618,20 @@ the substrate does not.
   routing authority. Named-graph annotations and values outside the admitted
   types retain their boundaries.
   An annotation alone leaves a quotation unasserted.
-  Every envelope check still reads the complete original source. Any carrier
-  statement beyond the selected route's contract, any statement with the
-  carrier as object or predicate, any mention of the carrier in a statement another carrier
-  holds (inside a triple term at any depth, or as a term of a classic statement node,
-  whatever the standing of that other carrier), and the carrier's use as a graph name keep
-  the claim out, in whichever graph of the source they occur; a named graph never supplies
-  the evidence. A predicate need not be known to count: a standpoint, a stance
-  or denial, a time, a module outside the resolved request, a second type, an
-  unknown annotation, and every `logic:modality` value, so a carrier that states `logic:none` beside another
-  modality is not read for either value. Eligibility belongs to each original
+  An ordinary default-graph `math:hasElement` row with an independently selected
+  `math:FiniteSet` declaration can enumerate a carrier. The selected declaration
+  uses ordinary `logic:instanceOf` or `rdf:type`. The actual
+  row remains a membership fact. Both the row and declaration must be selected.
+  Intensional set syntax, statement owners, self-links and annotation rows retain
+  the incoming-reference boundary. Membership supplies no claim assertion authority.
+  Envelope checks read the complete original source. Incoming references outside
+  admitted membership, other statements beyond the carrier contract, predicate
+  uses, mentions in any quoted triple or classic carrier, and graph-name uses keep
+  the claim out wherever they occur. A named graph grants no evidence authority.
+  A standpoint, stance, denial, time, module outside the resolved request,
+  second type, unknown annotation or any `logic:modality` value still qualifies
+  the carrier. A carrier with several modality values remains unread for each.
+  Eligibility belongs to each original
   carrier, even when canonical axiom deduplication shares its statement with
   another carrier. The ingress retains every independently admitted carrier and
   every unread carrier with its coordinate, predicate or reason. A qualified

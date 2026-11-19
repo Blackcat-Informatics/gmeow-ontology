@@ -9,6 +9,7 @@ use assert_cmd::Command;
 
 const PREFIXES: &str = r#"@prefix logic: <https://blackcatinformatics.ca/logic/> .
 @prefix rdf:   <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix math:  <https://blackcatinformatics.ca/math/> .
 @prefix ex:    <https://example.org/prove/> .
 "#;
 
@@ -91,6 +92,7 @@ fn prove_json(name: &str, body: &str, extra: &[&str]) -> (serde_json::Value, i32
 /// separate module consistency never licenses their contradictory composition.
 /// Qualified duplicate carriers cannot erase admitted premises or borrow admission.
 /// A blocked positive rule stays unread while the admitted fragment seeks a witness.
+/// An extensional set can list a selected claim and a quotation without changing their authority.
 /// Excluded collection owners supply no cells or synthetic classes, while
 /// unrelated assertions about a shared resource remain executable.
 #[test]
@@ -103,6 +105,8 @@ ex:Diamond a logic:Module ; logic:imports ex:RightModule, ex:LeftModule, ex:Hub 
 ex:A logic:disjointWith ex:B .
 ex:left rdf:reifies <<( ex:a logic:instanceOf ex:A )>> ; logic:inModule ex:LeftModule .
 ex:right rdf:reifies <<( ex:a logic:instanceOf ex:B )>> ; logic:inModule ex:RightModule .
+ex:quoted rdf:reifies <<( ex:a logic:instanceOf logic:Nothing )>> .
+ex:claims a math:FiniteSet ; math:hasElement ex:right, ex:quoted .
 "#;
     let directory = tempfile::tempdir().expect("scratch directory");
     let source = write(directory.path(), "modules.ttl", body);

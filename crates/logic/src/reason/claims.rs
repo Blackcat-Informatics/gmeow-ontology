@@ -10,6 +10,8 @@
 //! each enforce their closed carrier contract against the complete original source.
 //! Descriptive annotations retain roles, rationale and lineage without supplying evidence or
 //! assertion authority.
+//! Selected extensional sets can enumerate carriers. Set members retain their independent
+//! claim admission requirements.
 //! Read claims retain their carried native RDF terms. Excluded modules contribute
 //! no premise; other unread scoped claims retain their boundaries. A quotation
 //! carries no scope or evidence coordinate and is never read as an assertion.

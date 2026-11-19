@@ -19,6 +19,7 @@ const PREFIXES: &str = r#"@prefix logic: <https://blackcatinformatics.ca/logic/>
 @prefix rdf:   <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix math:  <https://blackcatinformatics.ca/math/> .
 @prefix ex:    <https://example.org/claims/> .
 ex:Left logic:disjointWith ex:Right .
 "#;
@@ -89,6 +90,7 @@ fn ingest_modules(
 /// excluded schema and NAF contribute no premise while genuinely shared terms survive.
 /// Source, root, preparation, input and domain identities authorize the same run.
 /// Descriptive roles, rationale and lineage remain ordinary source facts for authored rules.
+/// Extensional membership remains executable and supplies no claim assertion authority.
 #[test]
 fn module_execution_preserves_owners_shared_support_and_invocation_authority() {
     const INCLUDED: &str = "https://example.org/claims/Included";
@@ -103,6 +105,9 @@ ex:claim rdf:reifies <<( ex:a ex:label "chat"@fr )>> ; logic:inModule ex:Include
     gmeow:graphBoxRole gmeow:boxCBox, ex:futureRole ;
     gmeow:wasDerivedFrom ex:sourceRecord ;
     gmeow:statedRationale "سبب"@ar--rtl .
+ex:quoted rdf:reifies <<( ex:a logic:instanceOf logic:Nothing )>> .
+ex:roster logic:instanceOf math:FiniteSet ; math:hasElement ex:claim, ex:quoted .
+ex:secondRoster a math:FiniteSet ; math:hasElement ex:claim .
 _:x a logic:TermCarrier ; logic:termVariable "x" .
 _:label logic:termVariable "label" .
 _:y a logic:TermCarrier ; logic:termVariable "y" .
@@ -111,6 +116,9 @@ ex:mark a logic:Rule ; logic:inModule ex:Included ;
     logic:body [ rdf:reifies <<( _:x ex:label _:label )>> ; logic:inModule ex:Included ] .
 _:carrier a logic:TermCarrier ; logic:termVariable "carrier" .
 _:role a logic:TermCarrier ; logic:termVariable "role" .
+ex:rosterReceipt a logic:Rule ; logic:inModule ex:Included ;
+    logic:head [ rdf:reifies <<( _:carrier ex:listedBy ex:roster )>> ] ;
+    logic:body [ rdf:reifies <<( ex:roster math:hasElement _:carrier )>> ] .
 ex:roleReceipt a logic:Rule ; logic:inModule ex:Included ;
     logic:head [ rdf:reifies <<( _:carrier ex:describedBy _:role )>> ] ;
     logic:body [ rdf:reifies <<( _:carrier gmeow:graphBoxRole _:role )>> ] .
@@ -189,6 +197,16 @@ _:x logic:termIndex 0 . _:label logic:termIndex 1 .
         ingress.read()[0].evidence.is_empty(),
         "module assertion needs no invented evidence"
     );
+    for member in [
+        "https://example.org/claims/claim",
+        "https://example.org/claims/quoted",
+    ] {
+        assert!(result.inferred().iter().any(|row| {
+            row.subject == member
+                && row.predicate == "https://example.org/claims/listedBy"
+                && row.object.as_iri() == Some("https://example.org/claims/roster")
+        }));
+    }
     assert!(result.inferred().iter().any(|row| row.predicate == "https://example.org/claims/marked"
         && matches!(&row.object, TermValue::Literal { lexical_form, language: Some(language), .. }
             if lexical_form == "chat" && language == "fr")), "shared variable and literal identity reach the rule head");
@@ -1144,6 +1162,7 @@ fn claims_placed_in_standpoints_by_according_to_are_named_and_are_not_a_clash() 
 #[test]
 fn a_claim_with_an_independent_qualification_is_named_and_adds_no_fact() {
     const MODALITY: &str = "https://blackcatinformatics.ca/logic/modality";
+    const HAS_ELEMENT: &str = "https://blackcatinformatics.ca/math/hasElement";
     for (carrier, expected) in [
         (
             "gmeow:standpointModality gmeow:refuted ; logic:provenance ex:first",
@@ -1167,6 +1186,27 @@ fn a_claim_with_an_independent_qualification_is_named_and_adds_no_fact() {
         ),
         (
             "logic:provenance ex:first . ex:denial ex:denies ex:claim",
+            vec![qualified(CLAIM, "https://example.org/claims/denies", 1)],
+        ),
+        (
+            "logic:provenance ex:first . ex:set math:hasElement ex:claim",
+            vec![qualified(CLAIM, HAS_ELEMENT, 1)],
+        ),
+        (
+            "logic:provenance ex:first . ex:set logic:instanceOf math:FiniteSet, math:SetBuilderExpression ; math:hasElement ex:claim",
+            vec![qualified(CLAIM, HAS_ELEMENT, 1)],
+        ),
+        (
+            "logic:provenance ex:first . ex:g { ex:set math:hasElement ex:claim . } ex:set a math:FiniteSet",
+            vec![UnreadReason::Qualified {
+                graph: Some("https://example.org/claims/g".to_owned()),
+                carrier: CLAIM.to_owned(),
+                predicate: HAS_ELEMENT.to_owned(),
+                statements: 1,
+            }],
+        ),
+        (
+            "logic:provenance ex:first . ex:set logic:instanceOf math:FiniteSet ; math:hasElement ex:claim . ex:denial ex:denies ex:claim",
             vec![qualified(CLAIM, "https://example.org/claims/denies", 1)],
         ),
         (
@@ -1219,6 +1259,38 @@ fn a_claim_with_an_independent_qualification_is_named_and_adds_no_fact() {
     builder
         .push_annotation(subject, unknown, value)
         .expect("annotation-table obligation");
+    // An exact annotation duplicate cannot borrow the ordinary membership route.
+    let claim = builder.intern_iri(CLAIM).expect("source carrier");
+    let proposition = builder
+        .intern_triple(value, relation, subject)
+        .expect("quoted fact");
+    builder
+        .push_reifier(claim, proposition)
+        .expect("quoted source");
+    let provenance = builder
+        .intern_iri("https://blackcatinformatics.ca/logic/provenance")
+        .expect("provenance predicate");
+    builder
+        .push_quad(claim, provenance, value, None)
+        .expect("claim evidence");
+    let type_predicate = builder
+        .intern_iri("http://www.w3.org/1999/02/22-rdf-syntax-ns#type")
+        .expect("type predicate");
+    let finite_set = builder
+        .intern_iri("https://blackcatinformatics.ca/math/FiniteSet")
+        .expect("finite set type");
+    builder
+        .push_quad(subject, type_predicate, finite_set, None)
+        .expect("ordinary finite set declaration");
+    let has_element = builder
+        .intern_iri(HAS_ELEMENT)
+        .expect("membership predicate");
+    builder
+        .push_quad(subject, has_element, claim, None)
+        .expect("ordinary source membership");
+    builder
+        .push_annotation(subject, has_element, claim)
+        .expect("annotation-table membership");
     let source = builder.freeze().expect("owned source freezes");
     let theory = PreparedLogicSource::new(&source)
         .expect("source prepares")
@@ -1227,6 +1299,8 @@ fn a_claim_with_an_independent_qualification_is_named_and_adds_no_fact() {
     let inventory = SourceInventory::new(&theory, SourceSelection::all_classical_roots(&theory));
     let mut admission = NativeSourceAdmission::inspect(&inventory).expect("whole source admission");
     let (input, ingress) = ingest(&theory);
+    assert!(ingress.read().is_empty());
+    assert_eq!(unread_reasons(&ingress), [qualified(CLAIM, HAS_ELEMENT, 1)]);
     let selected = prepare_selected_theory(&inventory, &ingress).expect("source program prepares");
     let domains = default_domain(&input);
     let result = reason_admitted_theory_within(
