@@ -460,15 +460,24 @@ ASK {
 }""" ;
     gmeow:saRationale "gmeow:placeDeterminacy and geometryDeterminacy MUST be subproperties of gmeow:hasDeterminacy with correct domains." .
 
-# --- 35. placeSupersededBy and placeSupersedes subproperties (MUST) -----------
+# --- 35. Place succession signatures and display policy ---------------------
 ex:saPlaceSupersessionSubproperties a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:must ;
     gmeow:saScope gmeow:scopeModule ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 ASK {
-    gmeow:placeSupersededBy rdfs:subPropertyOf gmeow:supersededBy .
-    gmeow:placeSupersedes   rdfs:subPropertyOf gmeow:supersedes .
+    gmeow:placeSupersededBy rdfs:subPropertyOf gmeow:supersededBy ;
+                           logic:domain gmeow:Place ;
+                           logic:range gmeow:Place ;
+                           logic:inverseOf gmeow:placeSupersedes .
+    gmeow:placeSupersedes rdfs:subPropertyOf gmeow:supersedes ;
+                         logic:domain gmeow:Place ;
+                         logic:range gmeow:Place ;
+                         logic:inverseOf gmeow:placeSupersededBy .
+    FILTER NOT EXISTS { gmeow:SupersededPlaceSuppressionConstraint ?predicate ?value . }
+    FILTER NOT EXISTS { ?constraint logic:formalizes gmeow:SupersededPlaceSuppressionShape . }
 }""" ;
     gmeow:saRationale "gmeow:placeSupersededBy MUST be rdfs:subPropertyOf gmeow:supersededBy and gmeow:placeSupersedes MUST be rdfs:subPropertyOf gmeow:supersedes." .
 
