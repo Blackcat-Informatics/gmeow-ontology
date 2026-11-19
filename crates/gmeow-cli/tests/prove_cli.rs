@@ -1225,6 +1225,77 @@ ex:absenceClash a logic:Rule ;
     );
 }
 
+/// PROTECTS: relationship-type membership is accounted through either type spelling
+/// and carries its exact authored premise into the native refutation.
+#[test]
+fn relationship_type_membership_supplies_an_accounted_native_premise() {
+    const CLASS: &str = "https://blackcatinformatics.ca/logic/RelationshipType";
+    const SUBJECT: &str = "https://example.org/prove/relationship";
+    const RULE: &str = r#"
+ex:conflict a logic:Rule ;
+    logic:body [ rdf:reifies <<( ex:relationship logic:instanceOf logic:RelationshipType )>> ] ;
+    logic:head [ rdf:reifies <<( ex:relationship logic:instanceOf logic:Nothing )>> ] .
+"#;
+    for (syntax, predicate) in [
+        (
+            "logic:instanceOf",
+            "https://blackcatinformatics.ca/logic/instanceOf",
+        ),
+        ("a", "http://www.w3.org/1999/02/22-rdf-syntax-ns#type"),
+    ] {
+        let source = format!("{RULE}\nex:relationship {syntax} logic:RelationshipType .");
+        let (report, code) = prove_json("relationship-type.logic.ttl", &source, &["--gate"]);
+        assert_eq!(code, 3);
+        assert_eq!(report["verdict"], "inconsistent", "{report:#}");
+        assert_eq!(report["engines"]["native"]["verdict"], "clash");
+        let units = report["native_admission"]["units"]
+            .as_array()
+            .expect("source units");
+        let assertion = units
+            .iter()
+            .find(|unit| {
+                unit["kind"] == "Assertion"
+                    && unit["anchor"].as_str().is_some_and(|anchor| {
+                        anchor.contains(SUBJECT)
+                            && anchor.contains(predicate)
+                            && anchor.contains(CLASS)
+                    })
+            })
+            .expect("original membership assertion");
+        assert!(
+            !assertion["disposition"]["Accounted"].is_null(),
+            "{assertion:#}"
+        );
+        assert!(
+            !has_drop(&report, "UNIT_NOT_ACCOUNTED", "RelationshipType"),
+            "{report:#}"
+        );
+        let witness = report["refutations"]
+            .as_array()
+            .expect("refutations")
+            .iter()
+            .find(|witness| witness["engine"] == "native")
+            .expect("native refutation");
+        assert_eq!(
+            witness["premises"],
+            serde_json::json!([[SUBJECT, predicate, format!("<{CLASS}>")]])
+        );
+    }
+
+    let (report, code) = prove_json(
+        "relationship-type-class-position.logic.ttl",
+        &format!("{RULE}\nlogic:RelationshipType logic:subClassOf ex:Classifier ."),
+        &["--gate"],
+    );
+    assert_eq!(code, 3);
+    assert_eq!(report["verdict"], "not-decided", "{report:#}");
+    assert_eq!(report["engines"]["native"]["verdict"], "no-clash");
+    assert!(
+        has_drop(&report, "UNIT_NOT_ACCOUNTED", "subClassOf"),
+        "{report:#}"
+    );
+}
+
 /// PROTECTS: universal-class tests that native closure does not populate prevent
 /// a complete no-clash claim, including premises exposed by negation normalization.
 /// Asserted/head membership remains accountable, and an independent clash remains
