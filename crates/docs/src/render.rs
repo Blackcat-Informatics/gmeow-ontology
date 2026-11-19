@@ -20,7 +20,7 @@
 //! key, and no `HashMap` iteration reaches the output. Rendering the same model
 //! twice is byte-identical.
 
-use std::collections::{BTreeMap, BTreeSet};
+use std::collections::BTreeMap;
 use std::sync::OnceLock;
 
 use gmeow_docs_model::slug::short_iri_digest;

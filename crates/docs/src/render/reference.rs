@@ -7,7 +7,6 @@ use std::collections::BTreeMap;
 
 use crate::model::DocsModel;
 
-use super::overview::dimension_label;
 use super::{
     Page, blank, code_escape, concern_display, concern_slug, confidence_cell, curie_link, fenced,
     heading, line, local_name, md_advice_section, md_escape, namespace_count, one_line, push_line,
