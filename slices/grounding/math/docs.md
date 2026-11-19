@@ -46,12 +46,13 @@ The object-layer parents and the reference, expression, proof/theory, probabilit
 applied-category-theory surfaces are all authored in this grounding slice; the design files below
 factor their contracts without creating separate semantic owners.
 
-Every well-formedness violation is a typed, queryable object: `math:MathConformanceFailure` and its
-subclasses, each wired from a canonical EL-safe axiom or `logic:Constraint` through
-`gmeow:enforcesFailureClass` and projected to the applicable validation surface. The
-preservation-polarity vocabulary is reused verbatim from the `logic:` loss ledger, and each named
-constant and number system is anchored to Wikidata (with OEIS locators for the constants) as a
-native alignment cell.
+`math:MathConformanceFailure` and its subclasses classify situations that violate
+mathematical obligations. The applicable canonical axioms and constraints can
+associate a failure class through `gmeow:enforcesFailureClass`. A SHACL finding
+carries that association when the generated source shape declares it.
+The preservation-polarity vocabulary is reused verbatim from the `logic:` loss
+ledger, and each named constant and number system is anchored to Wikidata
+(with OEIS locators for the constants) as a native alignment cell.
 
 ## The design set
 
@@ -83,7 +84,7 @@ positive fixture and a negative counter-example under the native slicetest harne
 
 | Rule | Shape | Failure class |
 | --- | --- | --- |
-| A number declares its number system | `math:NumberSituatedShape` | `math:UnsituatedNumber` |
+| A number declares exactly one number system | Generated `math:Number-shape` | `math:UnsituatedNumber` |
 | An approximation names what it approximates and its error | `math:ApproximateValueShape` | `math:ExactApproximateConflation` |
 | A named constant is an exact individual, not a decimal | `math:MathematicalConstantShape` | `math:ConstantAsDecimalLiteral` |
 | An intensional condition denotes a `logic:` formula | `math:IntensionalSetShape` | `math:StringOnlyMemberCondition` |
@@ -97,6 +98,37 @@ exact, whether a set is extensional or intensional and its condition, a function
 domain/codomain/image and its injectivity/surjectivity/bijectivity, a set's cardinality, and which
 named constants appear with their external anchors. Further questions in the same registry exercise
 every realized charter, including the cross-corpus coverage frames described below.
+
+## Number-system findings
+
+The [canonical module](./module.ttl) gives `math:Number` a qualified minimum of
+one `math:NumberSystem` on `math:inNumberSystem`, qualified maxima of one over
+`logic:Thing` and `math:NumberSystem`, an all-values restriction to
+`math:NumberSystem`, and a closed required-path entry. Together these checks
+require one system declaration for a number. The restrictions apply to
+`math:Number`. The property's domain and range are described in prose.
+
+Use `math:RationalNumber` to classify a number and `math:rationalNumbers` as its
+declared system. The signed extended real line is also a `math:NumberSystem`
+individual. System containment uses `math:subsystemOf`. RDF datatypes describe
+literals, and a number's membership in a chosen system needs mathematical
+justification. Record exactness independently of any approximate carrier.
+The general number-system checks govern the system link, while
+`math:MathematicalConstant` has its own boolean and true-value obligations.
+
+`math:MathConformanceFailure` and `math:UnsituatedNumber` have canonical
+`logic:Situation` grounding. `math:Number` and `math:NumberSystem` have
+`logic:AbstractIndividualType` grounding. The generated property shapes carry
+`math:Number`'s failure-class association, which the SHACL report bridge
+resolves by source-shape identity. A missing link, target-type violation or
+count violation can share `math:UnsituatedNumber`. Inspect the component, path,
+value and source shape to decide how to repair a specific finding.
+
+The [owned correspondences](./mappings/equivalences.ttl) declare Wikidata close
+matches for the named system individuals. Their
+`logic:AffineCorrespondence`, `logic:InstitutionMorphism` and
+`logic:ValidationOnly` judgments apply to those individuals and their external
+targets. The failure classes and individual number objects have separate roles.
 
 ## Approximation and constant diagnostic findings
 

@@ -1,10 +1,10 @@
 # SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 # SPDX-License-Identifier: CC-BY-4.0
 #
-# Counter-example for math:NumberSituatedShape: a math:Number with no
-# math:inNumberSystem. sh:minCount 1, so validation MUST emit
-# shacl.MinCountConstraintComponent (and no other finding).
-# Bound by tests/example-conformance.ttl (ex:ecNumberMissingSystem).
+# This rational number declares exactness and omits its math:inNumberSystem
+# link. The ex:ecNumberMissingSystem cell checks for at least one
+# math:UnsituatedNumber finding and rejects findings outside that class in
+# the class-isolation channels.
 @prefix math: <https://blackcatinformatics.ca/math/> .
 @prefix logic: <https://blackcatinformatics.ca/logic/> .
 @prefix xsd:  <http://www.w3.org/2001/XMLSchema#> .
