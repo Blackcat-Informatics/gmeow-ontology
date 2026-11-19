@@ -1,0 +1,49 @@
+{
+  "rows": [
+    {
+      "id": "B1",
+      "line": 19,
+      "rules": [
+        "list-under-requirement-heading"
+      ],
+      "text": "- Focused behavior checks show the record forms produce their native closure or clash, including a clash that requires transitivity before asymmetry can detect it.",
+      "source": "body",
+      "author": "",
+      "date": ""
+    },
+    {
+      "id": "B2",
+      "line": 20,
+      "rules": [
+        "list-under-requirement-heading"
+      ],
+      "text": "- Irreflexive self-relations are refuted; unrelated or unsupported records cannot make a selection appear complete.",
+      "source": "body",
+      "author": "",
+      "date": ""
+    },
+    {
+      "id": "B3",
+      "line": 21,
+      "rules": [
+        "list-under-requirement-heading"
+      ],
+      "text": "- Existing source/accounting and real CLI controls remain valid.",
+      "source": "body",
+      "author": "",
+      "date": ""
+    },
+    {
+      "id": "B4",
+      "line": 22,
+      "rules": [
+        "list-under-requirement-heading"
+      ],
+      "text": "- The composed consumer is compared against the retained baseline: all 212 frozen documents, all original 67,044 anchors and the additional 21,039 physical annotation occurrences remain accounted for. The six characteristic boundaries are removed by execution, with every unrelated blocker still reported.",
+      "source": "body",
+      "author": "",
+      "date": ""
+    }
+  ],
+  "silent_comments": []
+}

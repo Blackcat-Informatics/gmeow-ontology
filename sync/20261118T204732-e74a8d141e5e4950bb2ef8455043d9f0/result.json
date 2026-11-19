@@ -1,0 +1,15 @@
+{
+  "schema": 1,
+  "worktree": "/home/paudley/Active/gmeow-ontology/.worktrees/2930-execute-native-property-laws-from",
+  "branch": "paudley/2930-execute-native-property-laws-from",
+  "base_ref": "origin/main",
+  "head": "354904ad8efdc4ec52762ad0e7cecc812209d84b",
+  "attempt": "/home/paudley/Active/gmeow-ontology/.worktrees/2930-execute-native-property-laws-from/.stage/execute-native-property-laws-from/sync/20261118T204732-e74a8d141e5e4950bb2ef8455043d9f0",
+  "conflicts": [],
+  "status": "fast_forward",
+  "base": "9f380e1dba1abb53e4c0938fc4bc1461e901e4df",
+  "merge_bases": [
+    "354904ad8efdc4ec52762ad0e7cecc812209d84b"
+  ],
+  "commit": "9f380e1dba1abb53e4c0938fc4bc1461e901e4df"
+}

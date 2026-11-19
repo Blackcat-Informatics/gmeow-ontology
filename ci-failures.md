@@ -1,0 +1,91 @@
+# PR #2942 failed CI logs
+
+## quality
+https://github.com/Blackcat-Informatics/gmeow-ontology/actions/runs/44409841187/job/135250215288
+
+/home/paudley/Active/gmeow-ontology/.worktrees/2930-execute-native-property-laws-from/.stage/execute-native-property-laws-from/ci-logs/github-job-135250215288.log
+62: 2026-11-19T00:46:12.2317333Z   if [ "$r" != "success" ]; then
+63: 2026-11-19T00:46:12.2318516Z     echo "::error::a quality job did not succeed ($r)"
+64: 2026-11-19T00:46:12.2320133Z     exit 1
+65: 2026-11-19T00:46:12.2321673Z   fi
+96: 2026-11-19T00:46:12.2546675Z ontology-reason=skipped ontology-misc=skipped
+97: 2026-11-19T00:46:12.2576943Z ##[error]a quality job did not succeed (skipped)
+98: 2026-11-19T00:46:12.2590943Z ##[error]Process completed with exit code 1.
+99: 2026-11-19T00:46:12.2836754Z Cleaning up orphan processes
+
+## fixture-prefix
+https://github.com/Blackcat-Informatics/gmeow-ontology/actions/runs/44409841187/job/135192706859
+
+/home/paudley/Active/gmeow-ontology/.worktrees/2930-execute-native-property-laws-from/.stage/execute-native-property-laws-from/ci-logs/github-job-135192706859.log
+223459: 2026-11-19T00:13:28.0757492Z fail 0
+223460: 2026-11-19T00:13:37.0824447Z ##[error]The runner has received a shutdown signal. This can happen when the runner service is stopped, or a manually started runner is canceled.
+223461: 2026-11-19T00:13:38.4334649Z make: *** [Makefile:696: produce-producer-independent-test-fixtures] Killed
+223462: 2026-11-19T00:13:38.4371905Z Terminated                 GMEOW_STAGE_MEMORY_LOG=$memory_log "$@" 3>&-
+223679: 2026-11-19T00:13:38.5702140Z observer_end phase=fixture-prefix producer_exit=running wrapper_status=143 observation_status=125
+223680: 2026-11-19T00:13:38.6144171Z ##[error]The operation was canceled.
+223681: 2026-11-19T00:13:38.6464920Z Evaluate and set job outputs
+223682: 2026-11-19T00:13:38.6539785Z Cleaning up orphan processes
+
+## generation (a)
+https://github.com/Blackcat-Informatics/gmeow-ontology/actions/runs/44409841187/job/135192706981
+
+/home/paudley/Active/gmeow-ontology/.worktrees/2930-execute-native-property-laws-from/.stage/execute-native-property-laws-from/ci-logs/github-job-135192706981.log
+224359: 2026-11-18T23:55:01.9390167Z   <size from="289" to="289" total="4624" count="16"/>
+224360: 2026-11-18T23:55:01.9390556Z   <size from="305" to="305" total="305" count="1"/>
+224361: 2026-11-18T23:55:01.9390918Z   <size from="321" to="321" total="963" count="3"/>
+224362: 2026-11-18T23:55:01.9391169Z   <size from="337" to="337" total="1685" count="5"/>
+224363: 2026-11-18T23:55:01.9391414Z   <size from="353" to="353" total="353" count="1"/>
+224364: 2026-11-18T23:55:01.9391657Z   <size from="369" to="369" total="369" count="1"/>
+224365: 2026-11-18T23:55:01.9391899Z   <size from="385" to="385" total="385" count="1"/>
+224366: 2026-11-18T23:55:01.9392187Z   <size from="401" to="401" total="2406" count="6"/>
+
+## generation (b)
+https://github.com/Blackcat-Informatics/gmeow-ontology/actions/runs/44409841187/job/135192706767
+
+/home/paudley/Active/gmeow-ontology/.worktrees/2930-execute-native-property-laws-from/.stage/execute-native-property-laws-from/ci-logs/github-job-135192706767.log
+238481: 2026-11-18T23:58:57.0143447Z fail 0
+238482: 2026-11-18T23:59:07.8595697Z ##[error]The runner has received a shutdown signal. This can happen when the runner service is stopped, or a manually started runner is canceled.
+238483: 2026-11-18T23:59:09.1213178Z make: *** [Makefile:463: check-sync] Killed
+238484: 2026-11-18T23:59:09.1242469Z Terminated                 GMEOW_STAGE_MEMORY_LOG=$memory_log "$@" 3>&-
+238700: 2026-11-18T23:59:09.3648694Z observer_end phase=cold-generation producer_exit=running wrapper_status=143 observation_status=125
+238701: 2026-11-18T23:59:09.4295431Z ##[error]The operation was canceled.
+238702: 2026-11-18T23:59:09.4726864Z Cleaning up orphan processes
+
+## rust-static-source
+https://github.com/Blackcat-Informatics/gmeow-ontology/actions/runs/44409841187/job/135190689097
+
+/home/paudley/Active/gmeow-ontology/.worktrees/2930-execute-native-property-laws-from/.stage/execute-native-property-laws-from/ci-logs/github-job-135190689097.log
+1613: 2026-11-18T22:47:27.7550610Z     Checking helper-census v0.4.0 (/home/runner/work/gmeow-ontology/gmeow-ontology/crates/helper-census)
+1614: 2026-11-18T22:47:30.7495379Z error: explicit call to `.into_iter()` in function argument accepting `IntoIterator`
+1615: 2026-11-18T22:47:30.7496131Z    --> crates/logic-compile/src/frontend/source_graph/ownership.rs:564:53
+1616: 2026-11-18T22:47:30.7496706Z     |
+1633: 2026-11-18T22:47:30.7767534Z 
+1634: 2026-11-18T22:47:31.1177068Z error: this function has a `#[must_use]` attribute with no message, but returns a type already considered as `#[must_use]`
+1635: 2026-11-18T22:47:31.1179346Z    --> crates/logic-compile/src/ir.rs:665:5
+1636: 2026-11-18T22:47:31.1179815Z     |
+1654: 2026-11-18T22:47:31.1190305Z 
+1655: 2026-11-18T22:47:32.0476356Z error: this `if` statement can be collapsed
+1656: 2026-11-18T22:47:32.0477744Z    --> crates/logic-compile/src/source_inventory/selection/index.rs:601:17
+1657: 2026-11-18T22:47:32.0478427Z     |
+1684: 2026-11-18T22:47:32.0494205Z 
+1685: 2026-11-18T22:47:32.0585936Z error: this function has a `#[must_use]` attribute with no message, but returns a type already considered as `#[must_use]`
+1686: 2026-11-18T22:47:32.0588235Z    --> crates/logic-compile/src/source_inventory/selection/view.rs:161:5
+1687: 2026-11-18T22:47:32.0588887Z     |
+1700: 2026-11-18T22:47:32.0598946Z 
+1701: 2026-11-18T22:47:32.0599578Z error: this function has a `#[must_use]` attribute with no message, but returns a type already considered as `#[must_use]`
+1702: 2026-11-18T22:47:32.0600430Z    --> crates/logic-compile/src/source_inventory/selection/view.rs:172:5
+1703: 2026-11-18T22:47:32.0600954Z     |
+1716: 2026-11-18T22:47:32.0609082Z 
+1717: 2026-11-18T22:47:32.0609668Z error: this function has a `#[must_use]` attribute with no message, but returns a type already considered as `#[must_use]`
+1718: 2026-11-18T22:47:32.0610768Z    --> crates/logic-compile/src/source_inventory/selection/view.rs:183:5
+1719: 2026-11-18T22:47:32.0611290Z     |
+1732: 2026-11-18T22:47:32.0619658Z 
+1733: 2026-11-18T22:47:32.0620239Z error: this function has a `#[must_use]` attribute with no message, but returns a type already considered as `#[must_use]`
+1734: 2026-11-18T22:47:32.0621133Z    --> crates/logic-compile/src/source_inventory/selection/view.rs:195:5
+1735: 2026-11-18T22:47:32.0621697Z     |
+1751: 2026-11-18T22:47:32.0631670Z 
+1752: 2026-11-18T22:47:32.0632225Z error: this function has a `#[must_use]` attribute with no message, but returns a type already considered as `#[must_use]`
+1753: 2026-11-18T22:47:32.0633029Z    --> crates/logic-compile/src/source_inventory/selection/view.rs:206:5
+1754: 2026-11-18T22:47:32.0633600Z     |
+(5 further error matches; see saved log)
+

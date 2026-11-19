@@ -1,0 +1,16 @@
+{
+  "github:comment:IC_kwDOSwdn1s8AAAABoNQDJw": {
+    "resolution": "acknowledged",
+    "reason": "The completed review has no actionable source finding. Each invocation constructs fresh world runtimes and source state. Exact field changes match completed reads in invalidated_completed_readers, and RetainedJoint drops invalid producers from reusable rows and introductions even when the selector itself is unchanged. The scoped late-writer, world and input checks pass. The PR states the actual focused validation, document update and hosted CI waiver.",
+    "commit": "bd4f4ac25006a3a36d1aa526bc647be6a5b58faf",
+    "reply_url": null,
+    "revision": {
+      "updated_at": "2026-11-18T22:23:47Z",
+      "state": null,
+      "commit": null,
+      "path": null,
+      "line": null,
+      "body_sha256": "e827736dcc3f58968ef57bffbcb327bf4c33a6468ade424c7e986ae856fca980"
+    }
+  }
+}

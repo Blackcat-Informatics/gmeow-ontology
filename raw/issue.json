@@ -1,0 +1,63 @@
+{
+  "assignees": [],
+  "author": {
+    "id": "MDQ6VXNlcjUyNzU1NQ==",
+    "is_bot": false,
+    "login": "paudley",
+    "name": "Patrick Audley"
+  },
+  "body": "Part of #2748. Blocked by: nothing. Blocks: #2748.\n\n## Problem\n\nThe native schema engine reads functional and inverse-functional characteristic records directly. Transitivity, symmetry, asymmetry and irreflexivity have native laws, but those laws read only property type markers. Their canonical `logic:PropertyCharacteristicAssertion` record forms therefore remain `CHARACTERISTIC_RECORD_NOT_READ` boundaries.\n\nThe composed Principia consumer exposes six such boundaries: transitivity, asymmetry and irreflexivity for each of two authored relations. All selected source remains present; treating the records as metadata would incorrectly discard their laws.\n\n## Required behavior\n\n- Execute the already-supported transitive, symmetric, asymmetric and irreflexive laws from canonical characteristic records as well as marker forms. Reuse the existing native schema mechanism and shared record reader.\n- Preserve the actual characteristic and relation premises in derivations and clash evidence. Do not manufacture a marker assertion in place of the source record.\n- Admit a record only when its selected native law is implemented. Preserve malformed and unsupported characteristic diagnostics, graph and source selection, context boundaries, and independent object-level facts.\n- Preserve existing functional and inverse-functional behavior. Reflexivity and other unsupported semantics remain explicit parent requirements.\n- Describe the current supported record forms and their limits in the reasoning documentation.\n\n## Acceptance\n\n- Focused behavior checks show the record forms produce their native closure or clash, including a clash that requires transitivity before asymmetry can detect it.\n- Irreflexive self-relations are refuted; unrelated or unsupported records cannot make a selection appear complete.\n- Existing source/accounting and real CLI controls remain valid.\n- The composed consumer is compared against the retained baseline: all 212 frozen documents, all original 67,044 anchors and the additional 21,039 physical annotation occurrences remain accounted for. The six characteristic boundaries are removed by execution, with every unrelated blocker still reported.\n\nPrinciples 4, 7 and 17.\n",
+  "closedAt": null,
+  "comments": [],
+  "createdAt": "2026-11-18T12:08:33Z",
+  "labels": [
+    {
+      "id": "LA_kwDOSwdn1s8AAAACl8ZKrA",
+      "name": "bug",
+      "description": "Something isn't working",
+      "color": "d73a4a"
+    },
+    {
+      "id": "LA_kwDOSwdn1s8AAAACl8ZKsg",
+      "name": "documentation",
+      "description": "Improvements or additions to documentation",
+      "color": "0075ca"
+    },
+    {
+      "id": "LA_kwDOSwdn1s8AAAACl8ZKwA",
+      "name": "enhancement",
+      "description": "New feature or request",
+      "color": "a2eeef"
+    },
+    {
+      "id": "LA_kwDOSwdn1s8AAAACmTvThA",
+      "name": "cross-cutting",
+      "description": "Cross-cutting concern",
+      "color": "fbca04"
+    },
+    {
+      "id": "LA_kwDOSwdn1s8AAAACnasmrQ",
+      "name": "logic",
+      "description": "logic: reasoning layer (the RDF 1.2-native logic; OWL is a projection)",
+      "color": "5319e7"
+    },
+    {
+      "id": "LA_kwDOSwdn1s8AAAACndNfoA",
+      "name": "rust",
+      "description": "Pull requests that update rust code",
+      "color": "000000"
+    },
+    {
+      "id": "LA_kwDOSwdn1s8AAAACoIO76w",
+      "name": "complexity-hard",
+      "description": "Foundational/cross-cutting/research; large coordination or new semantics",
+      "color": "b60205"
+    }
+  ],
+  "milestone": null,
+  "number": 2930,
+  "state": "OPEN",
+  "title": "Execute native property laws from canonical characteristic records",
+  "updatedAt": "2026-11-18T12:09:23Z",
+  "url": "https://github.com/Blackcat-Informatics/gmeow-ontology/issues/2930"
+}

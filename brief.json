@@ -1,0 +1,122 @@
+{
+  "issue": 2930,
+  "repo": "Blackcat-Informatics/gmeow-ontology",
+  "forge": "github",
+  "title": "Execute native property laws from canonical characteristic records",
+  "state": "OPEN",
+  "forge_available": true,
+  "adrs": [],
+  "linked_issues": {
+    "2748": "REQUIRED: gmeow prove decides no real slice"
+  },
+  "link_relations": {
+    "2748": "part of"
+  },
+  "related": [
+    {
+      "number": 1843,
+      "title": "logic: lower node-kind integrity into executable violation rules",
+      "state": "OPEN"
+    },
+    {
+      "number": 1807,
+      "title": "[term] Literal typing: language on words, types for machinery, time at its stated precision (consumers: memetics, katamari)",
+      "state": "OPEN"
+    },
+    {
+      "number": 1803,
+      "title": "Split gmeow/purrdf responsibilities: generic engines in purrdf, logic: semantics in gmeow",
+      "state": "OPEN"
+    },
+    {
+      "number": 1733,
+      "title": "logic: implement the composite agentic modal kernel",
+      "state": "OPEN"
+    },
+    {
+      "number": 2243,
+      "title": "Terms a downstream memory service keeps local for an inner agent",
+      "state": "OPEN"
+    },
+    {
+      "number": 1748,
+      "title": "logic: a pure logic:-native corpus gets a vacuous consistency verdict \u2014 laws never reach a clash-capable surface",
+      "state": "OPEN"
+    },
+    {
+      "number": 1757,
+      "title": "perf/logic: finish merged pipeline validation and remove the remaining serial critical path",
+      "state": "OPEN"
+    },
+    {
+      "number": 1770,
+      "title": "feat: certify and precompile the complete canon for consumer proof",
+      "state": "OPEN"
+    },
+    {
+      "number": 1656,
+      "title": "docs-coverage and translation debt on recently minted vocabulary",
+      "state": "OPEN"
+    },
+    {
+      "number": 2600,
+      "title": "Restore main producer and CI after merged repairs and PurRDF pin update",
+      "state": "OPEN"
+    },
+    {
+      "number": 1741,
+      "title": "logic: complete typed correspondence execution and law-bearing source recovery",
+      "state": "OPEN"
+    },
+    {
+      "number": 2931,
+      "title": "Preserve actual collection roles and owners through theory selection",
+      "state": "CLOSED"
+    },
+    {
+      "number": 1745,
+      "title": "perf: adopt typed correspondence execution throughout the production pipeline",
+      "state": "OPEN"
+    },
+    {
+      "number": 1776,
+      "title": "deps: replace serde/serde_json with purrdf_lex::json (PurRDF owns JSON)",
+      "state": "OPEN"
+    }
+  ],
+  "defect_classes": {
+    "none": 31,
+    "documentation-overclaim": 1,
+    "clippytoo_many_arguments": 1,
+    "technical-text-classification": 1,
+    "ontology-definition": 1,
+    "documentation-drift": 1,
+    "semantic-direction": 1
+  },
+  "prior_attempts": {
+    "commits": [],
+    "branches": [],
+    "prs": [],
+    "own_branch": "paudley/2930-execute-native-property-laws-from"
+  },
+  "coverage": [
+    "issue #2930 + 0 comment(s) via github",
+    "link crawl: 1 issue(s) within 1 hop(s) of `#N` references",
+    "forge search on ['Execute', 'native', 'property']: 14 other item(s)",
+    "GhpRsq-Defect-Class trailers: 7 distinct class(es) in the last 200 commits",
+    "prior attempts: 0 commit(s) citing #2930 (second parents walked), 0 other branch(es) named for it",
+    "PRs citing #2930: 0",
+    "requirement candidates: 4 line(s); 0 comment(s) matched no rule",
+    "referenced artifacts: 0 path(s) (0 on disk), 1 identifier(s), 0 workspace package(s), 0 URL(s)"
+  ],
+  "knowledge": {
+    "states": {
+      "graph": "stale",
+      "memory": "available",
+      "forge": "available"
+    },
+    "bank_id": "gmeow-ontology",
+    "unavailable": [],
+    "artifact": "/home/paudley/Active/gmeow-ontology/.worktrees/2930-execute-native-property-laws-from/.stage/execute-native-property-laws-from/knowledge-brief.md"
+  }
+}

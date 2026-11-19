@@ -1,0 +1,792 @@
+{
+  "repository": "github.com/blackcat-informatics/gmeow-ontology",
+  "bank_id": "gmeow-ontology",
+  "head": "0502d020692b7527a92fe595ab37b0c20bbae310",
+  "question": "Execute native property laws from canonical characteristic records",
+  "sources": {
+    "graph": {
+      "state": "stale",
+      "indexed_commit": "354904ad8efdc4ec52762ad0e7cecc812209d84b",
+      "path": "/home/paudley/stage/agents/integration/data/graphs/48363be4a89713a9d1fbea5c/354904ad8efdc4ec52762ad0e7cecc812209d84b/graph.json",
+      "coverage": {
+        "scope": [
+          "all tracked files"
+        ],
+        "excluded_links": [],
+        "limitations": [
+          "AST extraction; semantic document interpretation is not performed"
+        ],
+        "warnings": [
+          "  warning: 2 .r file(s) contributed nothing to the graph because a dependency is missing: tree-sitter-language-pack not installed. Install it with: pip install \"graphifyy[r]\" (#1745)",
+          "  warning: 108 code file(s) yielded no symbols (0.68 MB) \u2014 a data file, or source this extractor models no symbols for: crates/action-cache/Cargo.toml, crates/affect-ingest/Cargo.toml, crates/affect/Cargo.toml, crates/bench-engines/Cargo.toml, crates/build-inputs/Cargo.toml (+103 more)"
+        ],
+        "nodes": 65013,
+        "edges": 149426
+      },
+      "updated": 1795032041.541356,
+      "text": "Graph: /home/paudley/stage/agents/integration/data/graphs/48363be4a89713a9d1fbea5c/354904ad8efdc4ec52762ad0e7cecc812209d84b/graph.json (65013 nodes) | Traversal: BFS depth=2 | Start: ['Execute', 'execute()', 'characteristic()', 'laws()', 'Records', 'canonical()', 'property()', 'native'] | Context: field (heuristic) | 12 nodes found\n\nNODE Execute [src=crates/gmeow-cli/src/lib.rs loc=L1034 community=]\nNODE execute() [src=crates/logic/src/correspondence_exec/axes.rs loc=L500 community=]\nNODE characteristic() [src=crates/logic/src/reason/program/equality_tests.rs loc=L91 community=]\nNODE laws() [src=crates/logic/src/reason/schema.rs loc=L97 community=]\nNODE Records [src=crates/logic/src/finance_evaluation/source.rs loc=L22 community=]\nNODE canonical() [src=crates/logic/src/reason/refute/casesplit/logic_lists_tests.rs loc=L46 community=]\nNODE property() [src=crates/logic/src/physical/seminaive/joint/input/tests.rs loc=L31 community=]\nNODE native [src= loc= community=]\nNODE Admission [src=crates/logic/src/finance_evaluation.rs loc=L617 community=]\nNODE Signature [src=crates/logic/src/finance_evaluation.rs loc=L240 community=]\nNODE BoundInputs [src=crates/logic/src/finance_evaluation.rs loc=L387 community=]\nNODE FrameContext [src=crates/logic/src/finance_evaluation.rs loc=L235 community=]\nEDGE Admission --references [EXTRACTED context=field]--> Records at=crates/logic/src/finance_evaluation.rs:L618\nEDGE Admission --references [EXTRACTED context=field]--> FrameContext at=crates/logic/src/finance_evaluation.rs:L620\nEDGE Admission --references [EXTRACTED context=field]--> Signature at=crates/logic/src/finance_evaluation.rs:L619\nEDGE Admission --references [EXTRACTED context=field]--> BoundInputs at=crates/logic/src/finance_evaluation.rs:L622"
+    },
+    "memory": {
+      "state": "available",
+      "bank_id": "gmeow-ontology",
+      "facts": [
+        {
+          "id": "a8108276-f2f8-41e3-a87b-b2267346ff54",
+          "text": "PR #2132, contributing to #1656 on October 30, 2026, clarified 57 functional assertion usage notes: functionality permits no value and at most one target per source, and may identify resource targets rather than reject differently named targets. It also clarified usage annotations for eight core characteristic terms and corrected PropertyCharacteristicAssertion ownership so the property-owning slice authors the canonical record and OWL declarations derive from it. Independent review confirmed native forward target equality, no inverse uniqueness or existence, validation minimum absent and maximum one, and current OWL profile losses. Native laws, Formula ASTs, axioms, property definitions, and identifiers were unchanged; broader annotation debt remains open.",
+          "document_id": null,
+          "metadata": {},
+          "occurred_start": "2026-10-30T00:00:00+00:00",
+          "context": null
+        },
+        {
+          "id": "7e11af26-ad83-45fe-ac90-48bfa6a66a91",
+          "text": "Commit e0e893be4a24a9f893e644591d2b3f11d8add0ff restored forward functionality for receiptOfPreparation, lawGovernsAxis, and lensGoverns by replacing three restrictions with canonical PropertyCharacteristicAssertion records used by the native reasoner, derived validation, and OWL DL projection. Each record permits at most one target per source; no inverse uniqueness, mandatory value, or selection authority was added. The catalogs grew from 5,916 to 5,928 contexts each, with prior entries unchanged. | When: October 30, 2026 | Addresses feedback on PR #2128 and contributes to issue #1656.",
+          "document_id": "merge-e0e893be4a24a9f893e644591d2b3f11d8add0ff",
+          "metadata": {
+            "pr": "https://github.com/Blackcat-Informatics/gmeow-ontology/pull/2129",
+            "commit": "e0e893be4a24a9f893e644591d2b3f11d8add0ff",
+            "source": "git:github.com/blackcat-informatics/gmeow-ontology@e0e893be4a24a9f893e644591d2b3f11d8add0ff",
+            "evidence": "committed-change-record",
+            "repository": "github.com/blackcat-informatics/gmeow-ontology"
+          },
+          "occurred_start": "2026-10-30T00:00:00+00:00",
+          "context": ""
+        },
+        {
+          "id": "8956fa0c-4271-4029-bfbf-fc6040c45cc9",
+          "text": "PR #2129 restored forward functionality for receiptOfPreparation, lawGovernsAxis, and lensGoverns using canonical PropertyCharacteristicAssertion records in native reasoning, derived validation, and OWL DL projection. Each source has at most one target; shared targets do not imply distinct resources, and the change adds no inverse uniqueness, mandatory value, or selection authority. | When: 2026-10-30 | Replaces restrictions whose logic:Thing qualifier was not grounded as OWL's universal class.",
+          "document_id": "merge-e0e893be4a24a9f893e644591d2b3f11d8add0ff",
+          "metadata": {
+            "pr": "https://github.com/Blackcat-Informatics/gmeow-ontology/pull/2129",
+            "commit": "e0e893be4a24a9f893e644591d2b3f11d8add0ff",
+            "source": "git:github.com/blackcat-informatics/gmeow-ontology@e0e893be4a24a9f893e644591d2b3f11d8add0ff",
+            "evidence": "committed-change-record",
+            "repository": "github.com/blackcat-informatics/gmeow-ontology"
+          },
+          "occurred_start": "2026-10-30T19:37:43+00:00",
+          "context": ""
+        },
+        {
+          "id": "e509bece-a331-495c-958d-d3e5515d25ce",
+          "text": "PR #2208 added an ontology slice for exact property-named state assignments and supersession records, with six canonical integrity laws, native RDF 1.2 tuple grounding, and distinct assertion, observation, and persona-profile concepts. It also added annotations, translations, manifest and owner dependencies, design documentation, and an RDF 1.2 authority citation/selector. | When: 2026-10-31 | Implements item 2 of #2177; the parent remains open for its remaining requirements.",
+          "document_id": "merge-471b53a607a7c62781478100685e7efd015846f7",
+          "metadata": {
+            "pr": "https://github.com/Blackcat-Informatics/gmeow-ontology/pull/2208",
+            "commit": "471b53a607a7c62781478100685e7efd015846f7",
+            "source": "git:github.com/blackcat-informatics/gmeow-ontology@471b53a607a7c62781478100685e7efd015846f7",
+            "evidence": "committed-change-record",
+            "repository": "github.com/blackcat-informatics/gmeow-ontology"
+          },
+          "occurred_start": "2026-10-31T20:19:07+00:00",
+          "context": ""
+        },
+        {
+          "id": "8fd2532a-e7b2-4b47-a73b-007f0b7c172d",
+          "text": "Commit 471b53a607a7c62781478100685e7efd015846f7 (PR #2208), implementing item 2 of #2177, added an ontology slice to gmeow-ontology for exact property-named state assignments and supersession records, including StateAssignmentClaim, StateSupersessionClaim, and StateTransitionClaim; six canonical integrity laws grounded in native RDF 1.2 tuples; distinct assertion, observation, and persona-profile concepts; and related annotations, translations, manifest and owner dependencies, documentation, and an RDF 1.2 authority citation and selector. Although the parent issue was open after PR #2208, #2177 was verified CLOSED COMPLETED through current GitHub fields on November 1, 2026.",
+          "document_id": null,
+          "metadata": {},
+          "occurred_start": "2026-10-31T00:00:00+00:00",
+          "context": null
+        },
+        {
+          "id": "1a5f3a92-f245-4692-815f-b7535f6d91be",
+          "text": "PR #2132 (commit cd5c50aacc13ce5b9ec5b80772d618ab0461884d) clarified 57 functional assertion usage notes: functionality permits no value and at most one target per source, and may identify resource targets rather than reject different names. It also gave eight core characteristic terms distinct annotations and corrected PropertyCharacteristicAssertion ownership so the property-owning slice authors the canonical record and OWL declarations derive from it; native laws, Formula ASTs, axioms, property definitions, and identifiers were unchanged. | When: 2026-10-30 | The changes contribute to #1656; broader annotation debt remains open.",
+          "document_id": "merge-cd5c50aacc13ce5b9ec5b80772d618ab0461884d",
+          "metadata": {
+            "pr": "https://github.com/Blackcat-Informatics/gmeow-ontology/pull/2132",
+            "commit": "cd5c50aacc13ce5b9ec5b80772d618ab0461884d",
+            "source": "git:github.com/blackcat-informatics/gmeow-ontology@cd5c50aacc13ce5b9ec5b80772d618ab0461884d",
+            "evidence": "committed-change-record",
+            "repository": "github.com/blackcat-informatics/gmeow-ontology"
+          },
+          "occurred_start": "2026-10-30T20:50:32+00:00",
+          "context": ""
+        },
+        {
+          "id": "87ebc65c-08b2-471b-9445-e5818ac57dd1",
+          "text": "PR #2132 corrected 57 functional assertion usage notes: functionality permits no value and at most one target per source, and may identify resource targets rather than reject differently named targets. It also clarified usage annotations for eight core characteristic terms and corrected PropertyCharacteristicAssertion ownership so the property-owning slice authors the canonical record and OWL declarations derive from it; native laws, Formula ASTs, axioms, property definitions, and identifiers were unchanged. | When: October 30, 2026 | The change contributes to #1656; broader annotation debt remains open.",
+          "document_id": "merge-cd5c50aacc13ce5b9ec5b80772d618ab0461884d",
+          "metadata": {
+            "pr": "https://github.com/Blackcat-Informatics/gmeow-ontology/pull/2132",
+            "commit": "cd5c50aacc13ce5b9ec5b80772d618ab0461884d",
+            "source": "git:github.com/blackcat-informatics/gmeow-ontology@cd5c50aacc13ce5b9ec5b80772d618ab0461884d",
+            "evidence": "committed-change-record",
+            "repository": "github.com/blackcat-informatics/gmeow-ontology"
+          },
+          "occurred_start": "2026-10-30T00:00:00+00:00",
+          "context": ""
+        },
+        {
+          "id": "3de848dc-9021-45b4-bc4e-3b82fab08423",
+          "text": "On October 30, 2026, PR #2129 merged as commit e0e893be4a24a9f893e644591d2b3f11d8add0ff, restoring forward functionality for receiptOfPreparation, lawGovernsAxis, and lensGoverns by replacing class-local max-one Thing restrictions with canonical PropertyCharacteristicAssertion records used by native reasoning, derived validation, and OWL DL projection. Each source has at most one target; the change adds no inverse uniqueness, mandatory value, or selection authority. The result tree 0d3b9d69679a3991ee4191c872d7d8093a1a13a7 matched the reviewed signed source 3a82aef907c8bb366f9a2297b8b6571422144c60. It addressed feedback on PR #2128 and contributes to issue #1656.",
+          "document_id": null,
+          "metadata": {},
+          "occurred_start": "2026-10-30T00:00:00+00:00",
+          "context": null
+        },
+        {
+          "id": "7240821b-3d9c-47d1-b602-432d6dbcf1c1",
+          "text": "Eight property-characteristic vocabulary terms received five-field coats, and 57 functional carrier usage notes changed from exactly-one to at-most-one with explicit no required presence. The PCA ownership definition now says the property owner authors the canonical record and OWL declarations are derived; independent review confirmed native forward target equality, no inverse uniqueness or existence, validation min absent/max one, and current OWL profile losses. | When: 2026-10-30",
+          "document_id": "characteristic-guidance-2132-20261030",
+          "metadata": {},
+          "occurred_start": "2026-10-30T00:00:00.010000+00:00",
+          "context": "Verified ontology guidance delivery and existing legacy catalog synchronization lesson; no runtime claim."
+        },
+        {
+          "id": "3f76c72b-f41d-4839-8abd-f8e51f75e0b8",
+          "text": "Commit 471b53a607a7c62781478100685e7efd015846f7 (PR #2208) added exact state-assignment and supersession records to gmeow-ontology, including StateAssignmentClaim, StateSupersessionClaim, StateTransitionClaim, six canonical integrity laws, and documentation and multilingual annotations. | When: 2026-10-31 | The change adds exact property-named assignment and replacement-history modeling grounded in native RDF 1.2 tuples.",
+          "document_id": "merge-471b53a607a7c62781478100685e7efd015846f7",
+          "metadata": {
+            "pr": "https://github.com/Blackcat-Informatics/gmeow-ontology/pull/2208",
+            "commit": "471b53a607a7c62781478100685e7efd015846f7",
+            "source": "git:github.com/blackcat-informatics/gmeow-ontology@471b53a607a7c62781478100685e7efd015846f7",
+            "evidence": "committed-change-record",
+            "repository": "github.com/blackcat-informatics/gmeow-ontology"
+          },
+          "occurred_start": "2026-10-31T00:00:00+00:00",
+          "context": ""
+        },
+        {
+          "id": "7bb62663-585a-4051-bd11-77b7fb168fd2",
+          "text": "The ontology change added eight source paths with 100 vocabulary terms, 24 realized constraints, one canonical inheritance property chain, and 748 paired French/Chinese contexts; independent semantic/catalog review passed. Native module, manifest, and translation lint reported zero environment-records diagnostics after three translated-label corrections, while the repository-wide command still failed on eight existing errors and 429 warnings elsewhere. No tests, fixtures, competency cases, provider/parser/executor implementation, or generated/runtime acceptance were added or claimed. | When: October 30, 2026 | The record explicitly limits the validation and implementation claims for this change.",
+          "document_id": "merge-174f1ee1860d94eaf34815856174bcb2a327df5d",
+          "metadata": {
+            "pr": "https://github.com/Blackcat-Informatics/gmeow-ontology/pull/2106",
+            "commit": "174f1ee1860d94eaf34815856174bcb2a327df5d",
+            "source": "git:github.com/blackcat-informatics/gmeow-ontology@174f1ee1860d94eaf34815856174bcb2a327df5d",
+            "evidence": "committed-change-record",
+            "repository": "github.com/blackcat-informatics/gmeow-ontology"
+          },
+          "occurred_start": "2026-10-30T00:00:00.010000+00:00",
+          "context": ""
+        },
+        {
+          "id": "5182ff68-6789-44e1-8bea-31459b623384",
+          "text": "The work delivered seven storytelling/revisit/intention-witness properties and five canonical laws through narrative and agency-records, including complete coats, FR/ZH catalogs, documentation/design, and an ordinary scene. Key rules: AcceptedAsStory preserves Person-attributed asserted or quoted acceptance; stage markers require explicit Activity occurrentBoundary Closed and same-story gathering but do not certify write order or global member completeness; DefectFixedBy accepts Activity or InformationObject; WitnessedForIntention links Observation to Intention without inferring goal satisfaction; story selection uses hasPart/hasSegment rather than organizational hasMember and preserves source offered-versus-selected distinctions, positions, narration, and citations. | When: October 31, 2026",
+          "document_id": "delivery-pr2175-story-building",
+          "metadata": {},
+          "occurred_start": "2026-10-31T00:00:00.010000+00:00",
+          "context": "general"
+        }
+      ],
+      "limitation": "Recalled evidence may be historical; verify source commits and current repository policy"
+    },
+    "forge": {
+      "state": "available",
+      "issue": 2930,
+      "title": "Execute native property laws from canonical characteristic records",
+      "artifacts": {
+        "issue": "/home/paudley/Active/gmeow-ontology/.worktrees/2930-execute-native-property-laws-from/.stage/execute-native-property-laws-from/issue.md",
+        "prior_art": "/home/paudley/Active/gmeow-ontology/.worktrees/2930-execute-native-property-laws-from/.stage/execute-native-property-laws-from/prior-art.md"
+      },
+      "coverage": [
+        "issue #2930 + 0 comment(s) via github",
+        "link crawl: 1 issue(s) within 1 hop(s) of `#N` references",
+        "forge search on ['Execute', 'native', 'property']: 14 other item(s)",
+        "GhpRsq-Defect-Class trailers: 7 distinct class(es) in the last 200 commits",
+        "prior attempts: 0 commit(s) citing #2930 (second parents walked), 0 other branch(es) named for it",
+        "PRs citing #2930: 0",
+        "requirement candidates: 4 line(s); 0 comment(s) matched no rule",
+        "referenced artifacts: 0 path(s) (0 on disk), 1 identifier(s), 0 workspace package(s), 0 URL(s)"
+      ]
+    }
+  },
+  "unavailable": [],
+  "limitations": [
+    "Graph commit differs from the requested checkout HEAD"
+  ],
+  "integration": {
+    "counts": [
+      {
+        "kind": "graph",
+        "state": "done",
+        "count": 407
+      },
+      {
+        "kind": "graph",
+        "state": "superseded",
+        "count": 9
+      },
+      {
+        "kind": "retain",
+        "state": "dead",
+        "count": 95
+      },
+      {
+        "kind": "retain",
+        "state": "done",
+        "count": 320
+      },
+      {
+        "kind": "retain",
+        "state": "pending",
+        "count": 1
+      }
+    ],
+    "jobs": [
+      {
+        "id": 4283,
+        "identity": "github.com/blackcat-informatics/gmeow-ontology",
+        "oid": "354904ad8efdc4ec52762ad0e7cecc812209d84b",
+        "kind": "retain",
+        "state": "pending",
+        "attempts": 4,
+        "error": "Hindsight operation failed: ProviderAuthError: Fact extraction rejected by provider authentication: 1 of 1 failed chunks (1 total) got HTTP 401/403; retrying with the same credentials cannot succeed. First failures: chunk 0: AuthenticationError: Error code: 401 - {'error': {'message': 'Your API key has expired. Create a new API key to continue.', 'type': 'invalid_request_error', 'code': 'expired_secret_key', 'param': None}, 'status': 401}\n\nTraceback:\nTraceback (most recent call last):\n  File \"/app/api/hindsight_api/engine/retain/fact_extraction.py\", line 2571, in _extract_facts_with_auto_split\n    return await _extract_facts_from_chunk(\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/app/api/hindsight_api/engine/retain/fact_extraction.py\", line 2160, in _extract_facts_from_chunk\n    extraction_call = await llm_c",
+        "operation": "b2c04ed5-79b7-553e-8296-423d84f17174",
+        "updated": 1795032395.7445204
+      },
+      {
+        "id": 4282,
+        "identity": "github.com/blackcat-informatics/gmeow-ontology",
+        "oid": "354904ad8efdc4ec52762ad0e7cecc812209d84b",
+        "kind": "graph",
+        "state": "done",
+        "attempts": 0,
+        "error": null,
+        "operation": null,
+        "updated": 1795032041.652807
+      },
+      {
+        "id": 4265,
+        "identity": "github.com/blackcat-informatics/gmeow-ontology",
+        "oid": "4b227b51ba7ef0b21030784b73f44f5277eda6be",
+        "kind": "retain",
+        "state": "dead",
+        "attempts": 5,
+        "error": "Hindsight operation failed: ProviderAuthError: Fact extraction rejected by provider authentication: 1 of 1 failed chunks (1 total) got HTTP 401/403; retrying with the same credentials cannot succeed. First failures: chunk 0: AuthenticationError: Error code: 401 - {'error': {'message': 'Your API key has expired. Create a new API key to continue.', 'type': 'invalid_request_error', 'code': 'expired_secret_key', 'param': None}, 'status': 401}\n\nTraceback:\nTraceback (most recent call last):\n  File \"/app/api/hindsight_api/engine/retain/fact_extraction.py\", line 2571, in _extract_facts_with_auto_split\n    return await _extract_facts_from_chunk(\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/app/api/hindsight_api/engine/retain/fact_extraction.py\", line 2160, in _extract_facts_from_chunk\n    extraction_call = await llm_c",
+        "operation": "d484b6fa-f118-5810-b625-59ad04c61ba4",
+        "updated": 1795025878.2229054
+      },
+      {
+        "id": 4264,
+        "identity": "github.com/blackcat-informatics/gmeow-ontology",
+        "oid": "4b227b51ba7ef0b21030784b73f44f5277eda6be",
+        "kind": "graph",
+        "state": "done",
+        "attempts": 0,
+        "error": null,
+        "operation": null,
+        "updated": 1795025144.4779994
+      },
+      {
+        "id": 4251,
+        "identity": "github.com/blackcat-informatics/gmeow-ontology",
+        "oid": "0502d020692b7527a92fe595ab37b0c20bbae310",
+        "kind": "retain",
+        "state": "dead",
+        "attempts": 5,
+        "error": "Hindsight operation failed: ProviderAuthError: Fact extraction rejected by provider authentication: 1 of 1 failed chunks (1 total) got HTTP 401/403; retrying with the same credentials cannot succeed. First failures: chunk 0: AuthenticationError: Error code: 401 - {'error': {'message': 'Your API key has expired. Create a new API key to continue.', 'type': 'invalid_request_error', 'code': 'expired_secret_key', 'param': None}, 'status': 401}\n\nTraceback:\nTraceback (most recent call last):\n  File \"/app/api/hindsight_api/engine/retain/fact_extraction.py\", line 2571, in _extract_facts_with_auto_split\n    return await _extract_facts_from_chunk(\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/app/api/hindsight_api/engine/retain/fact_extraction.py\", line 2160, in _extract_facts_from_chunk\n    extraction_call = await llm_c",
+        "operation": "8a0a60ed-3956-592e-999a-099fbebf081b",
+        "updated": 1795015733.6680684
+      },
+      {
+        "id": 4250,
+        "identity": "github.com/blackcat-informatics/gmeow-ontology",
+        "oid": "0502d020692b7527a92fe595ab37b0c20bbae310",
+        "kind": "graph",
+        "state": "done",
+        "attempts": 0,
+        "error": null,
+        "operation": null,
+        "updated": 1795015004.9149282
+      },
+      {
+        "id": 4245,
+        "identity": "github.com/blackcat-informatics/gmeow-ontology",
+        "oid": "1a8066b44be6edd767aec9c022df053230b9e456",
+        "kind": "retain",
+        "state": "dead",
+        "attempts": 5,
+        "error": "Hindsight operation failed: ProviderAuthError: Fact extraction rejected by provider authentication: 1 of 1 failed chunks (1 total) got HTTP 401/403; retrying with the same credentials cannot succeed. First failures: chunk 0: AuthenticationError: Error code: 401 - {'error': {'message': 'Your API key has expired. Create a new API key to continue.', 'type': 'invalid_request_error', 'code': 'expired_secret_key', 'param': None}, 'status': 401}\n\nTraceback:\nTraceback (most recent call last):\n  File \"/app/api/hindsight_api/engine/retain/fact_extraction.py\", line 2571, in _extract_facts_with_auto_split\n    return await _extract_facts_from_chunk(\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/app/api/hindsight_api/engine/retain/fact_extraction.py\", line 2160, in _extract_facts_from_chunk\n    extraction_call = await llm_c",
+        "operation": "e6d7fd43-4ae9-550d-98f8-e5443cf95242",
+        "updated": 1795003357.5889685
+      },
+      {
+        "id": 4244,
+        "identity": "github.com/blackcat-informatics/gmeow-ontology",
+        "oid": "1a8066b44be6edd767aec9c022df053230b9e456",
+        "kind": "graph",
+        "state": "done",
+        "attempts": 0,
+        "error": null,
+        "operation": null,
+        "updated": 1795002490.3794355
+      },
+      {
+        "id": 4229,
+        "identity": "github.com/blackcat-informatics/gmeow-ontology",
+        "oid": "871fac17f50b0f3d2317e8bd94cc7ddd69c82372",
+        "kind": "retain",
+        "state": "dead",
+        "attempts": 5,
+        "error": "Hindsight operation failed: ProviderAuthError: Fact extraction rejected by provider authentication: 1 of 1 failed chunks (1 total) got HTTP 401/403; retrying with the same credentials cannot succeed. First failures: chunk 0: AuthenticationError: Error code: 401 - {'error': {'message': 'Your API key has expired. Create a new API key to continue.', 'type': 'invalid_request_error', 'code': 'expired_secret_key', 'param': None}, 'status': 401}\n\nTraceback:\nTraceback (most recent call last):\n  File \"/app/api/hindsight_api/engine/retain/fact_extraction.py\", line 2571, in _extract_facts_with_auto_split\n    return await _extract_facts_from_chunk(\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/app/api/hindsight_api/engine/retain/fact_extraction.py\", line 2160, in _extract_facts_from_chunk\n    extraction_call = await llm_c",
+        "operation": "bb5b4afa-bf9c-5a37-afb4-16819ba32735",
+        "updated": 1794983541.7558546
+      },
+      {
+        "id": 4228,
+        "identity": "github.com/blackcat-informatics/gmeow-ontology",
+        "oid": "871fac17f50b0f3d2317e8bd94cc7ddd69c82372",
+        "kind": "graph",
+        "state": "done",
+        "attempts": 0,
+        "error": null,
+        "operation": null,
+        "updated": 1794982865.8303866
+      },
+      {
+        "id": 4209,
+        "identity": "github.com/blackcat-informatics/gmeow-ontology",
+        "oid": "e674cb1207d13a68830f80aa61d0b545f8e3b20d",
+        "kind": "retain",
+        "state": "dead",
+        "attempts": 5,
+        "error": "Hindsight operation failed: ProviderAuthError: Fact extraction rejected by provider authentication: 1 of 1 failed chunks (1 total) got HTTP 401/403; retrying with the same credentials cannot succeed. First failures: chunk 0: AuthenticationError: Error code: 401 - {'error': {'message': 'Your API key has expired. Create a new API key to continue.', 'type': 'invalid_request_error', 'code': 'expired_secret_key', 'param': None}, 'status': 401}\n\nTraceback:\nTraceback (most recent call last):\n  File \"/app/api/hindsight_api/engine/retain/fact_extraction.py\", line 2571, in _extract_facts_with_auto_split\n    return await _extract_facts_from_chunk(\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/app/api/hindsight_api/engine/retain/fact_extraction.py\", line 2160, in _extract_facts_from_chunk\n    extraction_call = await llm_c",
+        "operation": "74d8ecf2-0485-5f67-8b97-2490a849b14a",
+        "updated": 1794972896.710041
+      },
+      {
+        "id": 4208,
+        "identity": "github.com/blackcat-informatics/gmeow-ontology",
+        "oid": "e674cb1207d13a68830f80aa61d0b545f8e3b20d",
+        "kind": "graph",
+        "state": "done",
+        "attempts": 0,
+        "error": null,
+        "operation": null,
+        "updated": 1794972223.160406
+      },
+      {
+        "id": 4199,
+        "identity": "github.com/blackcat-informatics/gmeow-ontology",
+        "oid": "a9a85f296e1b8386c737e0789a80333920c525f7",
+        "kind": "retain",
+        "state": "dead",
+        "attempts": 5,
+        "error": "Hindsight operation failed: ProviderAuthError: Fact extraction rejected by provider authentication: 1 of 1 failed chunks (1 total) got HTTP 401/403; retrying with the same credentials cannot succeed. First failures: chunk 0: AuthenticationError: Error code: 401 - {'error': {'message': 'Your API key has expired. Create a new API key to continue.', 'type': 'invalid_request_error', 'code': 'expired_secret_key', 'param': None}, 'status': 401}\n\nTraceback:\nTraceback (most recent call last):\n  File \"/app/api/hindsight_api/engine/retain/fact_extraction.py\", line 2571, in _extract_facts_with_auto_split\n    return await _extract_facts_from_chunk(\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/app/api/hindsight_api/engine/retain/fact_extraction.py\", line 2160, in _extract_facts_from_chunk\n    extraction_call = await llm_c",
+        "operation": "8e1635f1-9337-5a43-ae33-febd37a2c922",
+        "updated": 1794967729.803102
+      },
+      {
+        "id": 4198,
+        "identity": "github.com/blackcat-informatics/gmeow-ontology",
+        "oid": "a9a85f296e1b8386c737e0789a80333920c525f7",
+        "kind": "graph",
+        "state": "done",
+        "attempts": 0,
+        "error": null,
+        "operation": null,
+        "updated": 1794966757.6704388
+      },
+      {
+        "id": 4195,
+        "identity": "github.com/blackcat-informatics/gmeow-ontology",
+        "oid": "8093407b74b6d4042a154c3f416563ce12f429ed",
+        "kind": "retain",
+        "state": "dead",
+        "attempts": 5,
+        "error": "Hindsight operation failed: ProviderAuthError: Fact extraction rejected by provider authentication: 1 of 1 failed chunks (1 total) got HTTP 401/403; retrying with the same credentials cannot succeed. First failures: chunk 0: AuthenticationError: Error code: 401 - {'error': {'message': 'Your API key has expired. Create a new API key to continue.', 'type': 'invalid_request_error', 'code': 'expired_secret_key', 'param': None}, 'status': 401}\n\nTraceback:\nTraceback (most recent call last):\n  File \"/app/api/hindsight_api/engine/retain/fact_extraction.py\", line 2571, in _extract_facts_with_auto_split\n    return await _extract_facts_from_chunk(\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/app/api/hindsight_api/engine/retain/fact_extraction.py\", line 2160, in _extract_facts_from_chunk\n    extraction_call = await llm_c",
+        "operation": "28187dc3-bf46-5cab-8734-1655f566495a",
+        "updated": 1794963556.529967
+      },
+      {
+        "id": 4194,
+        "identity": "github.com/blackcat-informatics/gmeow-ontology",
+        "oid": "8093407b74b6d4042a154c3f416563ce12f429ed",
+        "kind": "graph",
+        "state": "done",
+        "attempts": 0,
+        "error": null,
+        "operation": null,
+        "updated": 1794962651.9873805
+      },
+      {
+        "id": 4193,
+        "identity": "github.com/blackcat-informatics/gmeow-ontology",
+        "oid": "859d9234ee9ffb99693102cba2f2b0b80c5e9988",
+        "kind": "retain",
+        "state": "dead",
+        "attempts": 5,
+        "error": "Hindsight operation failed: ProviderAuthError: Fact extraction rejected by provider authentication: 1 of 1 failed chunks (1 total) got HTTP 401/403; retrying with the same credentials cannot succeed. First failures: chunk 0: AuthenticationError: Error code: 401 - {'error': {'message': 'Your API key has expired. Create a new API key to continue.', 'type': 'invalid_request_error', 'code': 'expired_secret_key', 'param': None}, 'status': 401}\n\nTraceback:\nTraceback (most recent call last):\n  File \"/app/api/hindsight_api/engine/retain/fact_extraction.py\", line 2571, in _extract_facts_with_auto_split\n    return await _extract_facts_from_chunk(\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/app/api/hindsight_api/engine/retain/fact_extraction.py\", line 2160, in _extract_facts_from_chunk\n    extraction_call = await llm_c",
+        "operation": "c4d466fb-ab40-5082-945d-f7a7757f099f",
+        "updated": 1794962849.3884103
+      },
+      {
+        "id": 4192,
+        "identity": "github.com/blackcat-informatics/gmeow-ontology",
+        "oid": "859d9234ee9ffb99693102cba2f2b0b80c5e9988",
+        "kind": "graph",
+        "state": "done",
+        "attempts": 0,
+        "error": null,
+        "operation": null,
+        "updated": 1794961850.462834
+      },
+      {
+        "id": 4183,
+        "identity": "github.com/blackcat-informatics/gmeow-ontology",
+        "oid": "acb086890e82489dd4de4ee2016ba6667261b23c",
+        "kind": "retain",
+        "state": "dead",
+        "attempts": 5,
+        "error": "Hindsight operation failed: ProviderAuthError: Fact extraction rejected by provider authentication: 1 of 1 failed chunks (1 total) got HTTP 401/403; retrying with the same credentials cannot succeed. First failures: chunk 0: AuthenticationError: Error code: 401 - {'error': {'message': 'Your API key has expired. Create a new API key to continue.', 'type': 'invalid_request_error', 'code': 'expired_secret_key', 'param': None}, 'status': 401}\n\nTraceback:\nTraceback (most recent call last):\n  File \"/app/api/hindsight_api/engine/retain/fact_extraction.py\", line 2571, in _extract_facts_with_auto_split\n    return await _extract_facts_from_chunk(\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/app/api/hindsight_api/engine/retain/fact_extraction.py\", line 2160, in _extract_facts_from_chunk\n    extraction_call = await llm_c",
+        "operation": "3d4221da-a52b-50fe-80c3-364ffa6f98bc",
+        "updated": 1794953389.357878
+      },
+      {
+        "id": 4182,
+        "identity": "github.com/blackcat-informatics/gmeow-ontology",
+        "oid": "acb086890e82489dd4de4ee2016ba6667261b23c",
+        "kind": "graph",
+        "state": "done",
+        "attempts": 0,
+        "error": null,
+        "operation": null,
+        "updated": 1794952505.6584735
+      },
+      {
+        "id": 4177,
+        "identity": "github.com/blackcat-informatics/gmeow-ontology",
+        "oid": "61d637e75add31f5f8ebf6c086adfc0c89f4d5ed",
+        "kind": "retain",
+        "state": "dead",
+        "attempts": 5,
+        "error": "Hindsight operation failed: ProviderAuthError: Fact extraction rejected by provider authentication: 1 of 1 failed chunks (1 total) got HTTP 401/403; retrying with the same credentials cannot succeed. First failures: chunk 0: AuthenticationError: Error code: 401 - {'error': {'message': 'Your API key has expired. Create a new API key to continue.', 'type': 'invalid_request_error', 'code': 'expired_secret_key', 'param': None}, 'status': 401}\n\nTraceback:\nTraceback (most recent call last):\n  File \"/app/api/hindsight_api/engine/retain/fact_extraction.py\", line 2571, in _extract_facts_with_auto_split\n    return await _extract_facts_from_chunk(\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/app/api/hindsight_api/engine/retain/fact_extraction.py\", line 2160, in _extract_facts_from_chunk\n    extraction_call = await llm_c",
+        "operation": "cd3036c5-c258-5384-a70a-53944d893d0e",
+        "updated": 1794949414.091852
+      },
+      {
+        "id": 4176,
+        "identity": "github.com/blackcat-informatics/gmeow-ontology",
+        "oid": "61d637e75add31f5f8ebf6c086adfc0c89f4d5ed",
+        "kind": "graph",
+        "state": "done",
+        "attempts": 0,
+        "error": null,
+        "operation": null,
+        "updated": 1794948538.8778038
+      },
+      {
+        "id": 4167,
+        "identity": "github.com/blackcat-informatics/gmeow-ontology",
+        "oid": "676b0feadbeeb78d8c32e213cc07877c15374ad3",
+        "kind": "retain",
+        "state": "dead",
+        "attempts": 5,
+        "error": "Hindsight operation failed: ProviderAuthError: Fact extraction rejected by provider authentication: 1 of 1 failed chunks (1 total) got HTTP 401/403; retrying with the same credentials cannot succeed. First failures: chunk 0: AuthenticationError: Error code: 401 - {'error': {'message': 'Your API key has expired. Create a new API key to continue.', 'type': 'invalid_request_error', 'code': 'expired_secret_key', 'param': None}, 'status': 401}\n\nTraceback:\nTraceback (most recent call last):\n  File \"/app/api/hindsight_api/engine/retain/fact_extraction.py\", line 2571, in _extract_facts_with_auto_split\n    return await _extract_facts_from_chunk(\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/app/api/hindsight_api/engine/retain/fact_extraction.py\", line 2160, in _extract_facts_from_chunk\n    extraction_call = await llm_c",
+        "operation": "0d3a41f8-e481-5698-af80-4aef8bd597d7",
+        "updated": 1794943039.9276109
+      },
+      {
+        "id": 4166,
+        "identity": "github.com/blackcat-informatics/gmeow-ontology",
+        "oid": "676b0feadbeeb78d8c32e213cc07877c15374ad3",
+        "kind": "graph",
+        "state": "done",
+        "attempts": 0,
+        "error": null,
+        "operation": null,
+        "updated": 1794942287.716949
+      },
+      {
+        "id": 4161,
+        "identity": "github.com/blackcat-informatics/gmeow-ontology",
+        "oid": "aff3482ee7e28788a03b1752cf0f810632659888",
+        "kind": "retain",
+        "state": "dead",
+        "attempts": 5,
+        "error": "Hindsight operation failed: ProviderAuthError: Fact extraction rejected by provider authentication: 1 of 1 failed chunks (1 total) got HTTP 401/403; retrying with the same credentials cannot succeed. First failures: chunk 0: AuthenticationError: Error code: 401 - {'error': {'message': 'Your API key has expired. Create a new API key to continue.', 'type': 'invalid_request_error', 'code': 'expired_secret_key', 'param': None}, 'status': 401}\n\nTraceback:\nTraceback (most recent call last):\n  File \"/app/api/hindsight_api/engine/retain/fact_extraction.py\", line 2571, in _extract_facts_with_auto_split\n    return await _extract_facts_from_chunk(\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/app/api/hindsight_api/engine/retain/fact_extraction.py\", line 2160, in _extract_facts_from_chunk\n    extraction_call = await llm_c",
+        "operation": "517b676d-4b25-542f-bccf-1fdb6de27843",
+        "updated": 1794939696.8065495
+      },
+      {
+        "id": 4160,
+        "identity": "github.com/blackcat-informatics/gmeow-ontology",
+        "oid": "aff3482ee7e28788a03b1752cf0f810632659888",
+        "kind": "graph",
+        "state": "done",
+        "attempts": 0,
+        "error": null,
+        "operation": null,
+        "updated": 1794938914.8425908
+      },
+      {
+        "id": 4157,
+        "identity": "github.com/blackcat-informatics/gmeow-ontology",
+        "oid": "4b5aad715eccbd0cc96d2e13a6f011b9c15db7e7",
+        "kind": "retain",
+        "state": "dead",
+        "attempts": 5,
+        "error": "Hindsight operation failed: ProviderAuthError: Fact extraction rejected by provider authentication: 1 of 1 failed chunks (1 total) got HTTP 401/403; retrying with the same credentials cannot succeed. First failures: chunk 0: AuthenticationError: Error code: 401 - {'error': {'message': 'Your API key has expired. Create a new API key to continue.', 'type': 'invalid_request_error', 'code': 'expired_secret_key', 'param': None}, 'status': 401}\n\nTraceback:\nTraceback (most recent call last):\n  File \"/app/api/hindsight_api/engine/retain/fact_extraction.py\", line 2571, in _extract_facts_with_auto_split\n    return await _extract_facts_from_chunk(\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/app/api/hindsight_api/engine/retain/fact_extraction.py\", line 2160, in _extract_facts_from_chunk\n    extraction_call = await llm_c",
+        "operation": "f68d6502-f422-5907-8cf7-7cb4e696a72a",
+        "updated": 1794937976.1042824
+      },
+      {
+        "id": 4156,
+        "identity": "github.com/blackcat-informatics/gmeow-ontology",
+        "oid": "4b5aad715eccbd0cc96d2e13a6f011b9c15db7e7",
+        "kind": "graph",
+        "state": "done",
+        "attempts": 0,
+        "error": null,
+        "operation": null,
+        "updated": 1794937102.3216329
+      },
+      {
+        "id": 4155,
+        "identity": "github.com/blackcat-informatics/gmeow-ontology",
+        "oid": "538efa47f5662a17b86a54aff99578f00f577012",
+        "kind": "retain",
+        "state": "dead",
+        "attempts": 5,
+        "error": "Hindsight operation failed: ProviderAuthError: Fact extraction rejected by provider authentication: 1 of 1 failed chunks (1 total) got HTTP 401/403; retrying with the same credentials cannot succeed. First failures: chunk 0: AuthenticationError: Error code: 401 - {'error': {'message': 'Your API key has expired. Create a new API key to continue.', 'type': 'invalid_request_error', 'code': 'expired_secret_key', 'param': None}, 'status': 401}\n\nTraceback:\nTraceback (most recent call last):\n  File \"/app/api/hindsight_api/engine/retain/fact_extraction.py\", line 2571, in _extract_facts_with_auto_split\n    return await _extract_facts_from_chunk(\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/app/api/hindsight_api/engine/retain/fact_extraction.py\", line 2160, in _extract_facts_from_chunk\n    extraction_call = await llm_c",
+        "operation": "bb5c0973-5c2a-5d3a-b932-5e5d58f56a88",
+        "updated": 1794936220.6115143
+      },
+      {
+        "id": 4154,
+        "identity": "github.com/blackcat-informatics/gmeow-ontology",
+        "oid": "538efa47f5662a17b86a54aff99578f00f577012",
+        "kind": "graph",
+        "state": "done",
+        "attempts": 0,
+        "error": null,
+        "operation": null,
+        "updated": 1794935446.854525
+      },
+      {
+        "id": 4151,
+        "identity": "github.com/blackcat-informatics/gmeow-ontology",
+        "oid": "eeab8b0468a748e82edd4b46d14e56364cc41c6f",
+        "kind": "retain",
+        "state": "dead",
+        "attempts": 5,
+        "error": "Hindsight operation failed: ProviderAuthError: Fact extraction rejected by provider authentication: 1 of 1 failed chunks (1 total) got HTTP 401/403; retrying with the same credentials cannot succeed. First failures: chunk 0: AuthenticationError: Error code: 401 - {'error': {'message': 'Your API key has expired. Create a new API key to continue.', 'type': 'invalid_request_error', 'code': 'expired_secret_key', 'param': None}, 'status': 401}\n\nTraceback:\nTraceback (most recent call last):\n  File \"/app/api/hindsight_api/engine/retain/fact_extraction.py\", line 2571, in _extract_facts_with_auto_split\n    return await _extract_facts_from_chunk(\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/app/api/hindsight_api/engine/retain/fact_extraction.py\", line 2160, in _extract_facts_from_chunk\n    extraction_call = await llm_c",
+        "operation": "d210162e-0e16-556e-8b0a-588e1391302d",
+        "updated": 1794934756.629372
+      },
+      {
+        "id": 4150,
+        "identity": "github.com/blackcat-informatics/gmeow-ontology",
+        "oid": "eeab8b0468a748e82edd4b46d14e56364cc41c6f",
+        "kind": "graph",
+        "state": "done",
+        "attempts": 0,
+        "error": null,
+        "operation": null,
+        "updated": 1794934125.9586098
+      },
+      {
+        "id": 4137,
+        "identity": "github.com/blackcat-informatics/gmeow-ontology",
+        "oid": "0b5712b2a658cb8ee5208ba820a2f9b148fd622d",
+        "kind": "retain",
+        "state": "dead",
+        "attempts": 5,
+        "error": "Hindsight operation failed: ProviderAuthError: Fact extraction rejected by provider authentication: 1 of 1 failed chunks (1 total) got HTTP 401/403; retrying with the same credentials cannot succeed. First failures: chunk 0: AuthenticationError: Error code: 401 - {'error': {'message': 'Your API key has expired. Create a new API key to continue.', 'type': 'invalid_request_error', 'code': 'expired_secret_key', 'param': None}, 'status': 401}\n\nTraceback:\nTraceback (most recent call last):\n  File \"/app/api/hindsight_api/engine/retain/fact_extraction.py\", line 2571, in _extract_facts_with_auto_split\n    return await _extract_facts_from_chunk(\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/app/api/hindsight_api/engine/retain/fact_extraction.py\", line 2160, in _extract_facts_from_chunk\n    extraction_call = await llm_c",
+        "operation": "9cb60c03-5af2-53a6-9ce8-09614046be91",
+        "updated": 1794923524.4665592
+      },
+      {
+        "id": 4136,
+        "identity": "github.com/blackcat-informatics/gmeow-ontology",
+        "oid": "0b5712b2a658cb8ee5208ba820a2f9b148fd622d",
+        "kind": "graph",
+        "state": "done",
+        "attempts": 0,
+        "error": null,
+        "operation": null,
+        "updated": 1794922660.6408668
+      },
+      {
+        "id": 4135,
+        "identity": "github.com/blackcat-informatics/gmeow-ontology",
+        "oid": "8e0c559d32da60b58547bf6f71e1fab9bfc979c9",
+        "kind": "retain",
+        "state": "dead",
+        "attempts": 5,
+        "error": "Hindsight operation failed: ProviderAuthError: Fact extraction rejected by provider authentication: 1 of 1 failed chunks (1 total) got HTTP 401/403; retrying with the same credentials cannot succeed. First failures: chunk 0: AuthenticationError: Error code: 401 - {'error': {'message': 'Your API key has expired. Create a new API key to continue.', 'type': 'invalid_request_error', 'code': 'expired_secret_key', 'param': None}, 'status': 401}\n\nTraceback:\nTraceback (most recent call last):\n  File \"/app/api/hindsight_api/engine/retain/fact_extraction.py\", line 2571, in _extract_facts_with_auto_split\n    return await _extract_facts_from_chunk(\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/app/api/hindsight_api/engine/retain/fact_extraction.py\", line 2160, in _extract_facts_from_chunk\n    extraction_call = await llm_c",
+        "operation": "04420094-b06d-501d-bf24-ca12d10d4cda",
+        "updated": 1794919287.710897
+      },
+      {
+        "id": 4134,
+        "identity": "github.com/blackcat-informatics/gmeow-ontology",
+        "oid": "8e0c559d32da60b58547bf6f71e1fab9bfc979c9",
+        "kind": "graph",
+        "state": "done",
+        "attempts": 0,
+        "error": null,
+        "operation": null,
+        "updated": 1794918373.9138715
+      },
+      {
+        "id": 4133,
+        "identity": "github.com/blackcat-informatics/gmeow-ontology",
+        "oid": "b863dd44df1a803b5c6dcfb08c1a3ba6b231989a",
+        "kind": "retain",
+        "state": "dead",
+        "attempts": 5,
+        "error": "Hindsight operation failed: ProviderAuthError: Fact extraction rejected by provider authentication: 1 of 1 failed chunks (1 total) got HTTP 401/403; retrying with the same credentials cannot succeed. First failures: chunk 0: AuthenticationError: Error code: 401 - {'error': {'message': 'Your API key has expired. Create a new API key to continue.', 'type': 'invalid_request_error', 'code': 'expired_secret_key', 'param': None}, 'status': 401}\n\nTraceback:\nTraceback (most recent call last):\n  File \"/app/api/hindsight_api/engine/retain/fact_extraction.py\", line 2571, in _extract_facts_with_auto_split\n    return await _extract_facts_from_chunk(\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/app/api/hindsight_api/engine/retain/fact_extraction.py\", line 2160, in _extract_facts_from_chunk\n    extraction_call = await llm_c",
+        "operation": "ade15faa-a927-5f2e-aeb9-3f9e4a7c39ac",
+        "updated": 1794917786.108033
+      },
+      {
+        "id": 4132,
+        "identity": "github.com/blackcat-informatics/gmeow-ontology",
+        "oid": "b863dd44df1a803b5c6dcfb08c1a3ba6b231989a",
+        "kind": "graph",
+        "state": "done",
+        "attempts": 0,
+        "error": null,
+        "operation": null,
+        "updated": 1794916922.4674067
+      },
+      {
+        "id": 4131,
+        "identity": "github.com/blackcat-informatics/gmeow-ontology",
+        "oid": "978f059dbb45cbd20d7b564b10205c93a6de6d09",
+        "kind": "retain",
+        "state": "dead",
+        "attempts": 5,
+        "error": "Hindsight operation failed: ProviderAuthError: Fact extraction rejected by provider authentication: 1 of 1 failed chunks (1 total) got HTTP 401/403; retrying with the same credentials cannot succeed. First failures: chunk 0: AuthenticationError: Error code: 401 - {'error': {'message': 'Your API key has expired. Create a new API key to continue.', 'type': 'invalid_request_error', 'code': 'expired_secret_key', 'param': None}, 'status': 401}\n\nTraceback:\nTraceback (most recent call last):\n  File \"/app/api/hindsight_api/engine/retain/fact_extraction.py\", line 2571, in _extract_facts_with_auto_split\n    return await _extract_facts_from_chunk(\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/app/api/hindsight_api/engine/retain/fact_extraction.py\", line 2160, in _extract_facts_from_chunk\n    extraction_call = await llm_c",
+        "operation": "1d9cba38-d0d9-530a-90be-e1eaddaee43a",
+        "updated": 1794914549.1145298
+      },
+      {
+        "id": 4130,
+        "identity": "github.com/blackcat-informatics/gmeow-ontology",
+        "oid": "978f059dbb45cbd20d7b564b10205c93a6de6d09",
+        "kind": "graph",
+        "state": "done",
+        "attempts": 0,
+        "error": null,
+        "operation": null,
+        "updated": 1794913777.9885082
+      },
+      {
+        "id": 4127,
+        "identity": "github.com/blackcat-informatics/gmeow-ontology",
+        "oid": "0c8fe0ee666eb488f3015f6a006dee1b8c50f2b5",
+        "kind": "retain",
+        "state": "dead",
+        "attempts": 5,
+        "error": "Hindsight operation failed: ProviderAuthError: Fact extraction rejected by provider authentication: 1 of 1 failed chunks (1 total) got HTTP 401/403; retrying with the same credentials cannot succeed. First failures: chunk 0: AuthenticationError: Error code: 401 - {'error': {'message': 'Your API key has expired. Create a new API key to continue.', 'type': 'invalid_request_error', 'code': 'expired_secret_key', 'param': None}, 'status': 401}\n\nTraceback:\nTraceback (most recent call last):\n  File \"/app/api/hindsight_api/engine/retain/fact_extraction.py\", line 2571, in _extract_facts_with_auto_split\n    return await _extract_facts_from_chunk(\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/app/api/hindsight_api/engine/retain/fact_extraction.py\", line 2160, in _extract_facts_from_chunk\n    extraction_call = await llm_c",
+        "operation": "9106bc85-f21f-5a39-9651-988103570ba8",
+        "updated": 1794912806.8953454
+      },
+      {
+        "id": 4126,
+        "identity": "github.com/blackcat-informatics/gmeow-ontology",
+        "oid": "0c8fe0ee666eb488f3015f6a006dee1b8c50f2b5",
+        "kind": "graph",
+        "state": "done",
+        "attempts": 0,
+        "error": null,
+        "operation": null,
+        "updated": 1794911943.0601058
+      },
+      {
+        "id": 4125,
+        "identity": "github.com/blackcat-informatics/gmeow-ontology",
+        "oid": "7f04135edf31efa173151f2e1b3875a5e52244a0",
+        "kind": "retain",
+        "state": "dead",
+        "attempts": 5,
+        "error": "Hindsight operation failed: ProviderAuthError: Fact extraction rejected by provider authentication: 1 of 1 failed chunks (1 total) got HTTP 401/403; retrying with the same credentials cannot succeed. First failures: chunk 0: AuthenticationError: Error code: 401 - {'error': {'message': 'Your API key has expired. Create a new API key to continue.', 'type': 'invalid_request_error', 'code': 'expired_secret_key', 'param': None}, 'status': 401}\n\nTraceback:\nTraceback (most recent call last):\n  File \"/app/api/hindsight_api/engine/retain/fact_extraction.py\", line 2571, in _extract_facts_with_auto_split\n    return await _extract_facts_from_chunk(\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/app/api/hindsight_api/engine/retain/fact_extraction.py\", line 2160, in _extract_facts_from_chunk\n    extraction_call = await llm_c",
+        "operation": "c3a583f3-ab66-5d55-a1c7-a81405fc3475",
+        "updated": 1794910473.78886
+      },
+      {
+        "id": 4124,
+        "identity": "github.com/blackcat-informatics/gmeow-ontology",
+        "oid": "7f04135edf31efa173151f2e1b3875a5e52244a0",
+        "kind": "graph",
+        "state": "done",
+        "attempts": 0,
+        "error": null,
+        "operation": null,
+        "updated": 1794909622.599223
+      },
+      {
+        "id": 4123,
+        "identity": "github.com/blackcat-informatics/gmeow-ontology",
+        "oid": "0e5cd42915b5534555f793565e3c70f0e7015b9f",
+        "kind": "retain",
+        "state": "dead",
+        "attempts": 5,
+        "error": "Hindsight operation failed: ProviderAuthError: Fact extraction rejected by provider authentication: 1 of 1 failed chunks (1 total) got HTTP 401/403; retrying with the same credentials cannot succeed. First failures: chunk 0: AuthenticationError: Error code: 401 - {'error': {'message': 'Your API key has expired. Create a new API key to continue.', 'type': 'invalid_request_error', 'code': 'expired_secret_key', 'param': None}, 'status': 401}\n\nTraceback:\nTraceback (most recent call last):\n  File \"/app/api/hindsight_api/engine/retain/fact_extraction.py\", line 2571, in _extract_facts_with_auto_split\n    return await _extract_facts_from_chunk(\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/app/api/hindsight_api/engine/retain/fact_extraction.py\", line 2160, in _extract_facts_from_chunk\n    extraction_call = await llm_c",
+        "operation": "b05db959-2099-5514-bedf-a104f95d2832",
+        "updated": 1794909914.570797
+      },
+      {
+        "id": 4122,
+        "identity": "github.com/blackcat-informatics/gmeow-ontology",
+        "oid": "0e5cd42915b5534555f793565e3c70f0e7015b9f",
+        "kind": "graph",
+        "state": "done",
+        "attempts": 0,
+        "error": null,
+        "operation": null,
+        "updated": 1794909262.3111212
+      },
+      {
+        "id": 4121,
+        "identity": "github.com/blackcat-informatics/gmeow-ontology",
+        "oid": "4c34c208ffdb51b7c86b10427778c00b7511d35f",
+        "kind": "retain",
+        "state": "dead",
+        "attempts": 5,
+        "error": "Hindsight operation failed: ProviderAuthError: Fact extraction rejected by provider authentication: 1 of 1 failed chunks (1 total) got HTTP 401/403; retrying with the same credentials cannot succeed. First failures: chunk 0: AuthenticationError: Error code: 401 - {'error': {'message': 'Your API key has expired. Create a new API key to continue.', 'type': 'invalid_request_error', 'code': 'expired_secret_key', 'param': None}, 'status': 401}\n\nTraceback:\nTraceback (most recent call last):\n  File \"/app/api/hindsight_api/engine/retain/fact_extraction.py\", line 2571, in _extract_facts_with_auto_split\n    return await _extract_facts_from_chunk(\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/app/api/hindsight_api/engine/retain/fact_extraction.py\", line 2160, in _extract_facts_from_chunk\n    extraction_call = await llm_c",
+        "operation": "8fb0444a-d6f5-56e2-9136-3e770c55642d",
+        "updated": 1794905252.9086864
+      },
+      {
+        "id": 4120,
+        "identity": "github.com/blackcat-informatics/gmeow-ontology",
+        "oid": "4c34c208ffdb51b7c86b10427778c00b7511d35f",
+        "kind": "graph",
+        "state": "done",
+        "attempts": 0,
+        "error": null,
+        "operation": null,
+        "updated": 1794904507.2815828
+      },
+      {
+        "id": 4119,
+        "identity": "github.com/blackcat-informatics/gmeow-ontology",
+        "oid": "6a91b120e3506df8803f4a04bb267ae4f606931e",
+        "kind": "retain",
+        "state": "dead",
+        "attempts": 5,
+        "error": "Hindsight operation failed: ProviderAuthError: Fact extraction rejected by provider authentication: 1 of 1 failed chunks (1 total) got HTTP 401/403; retrying with the same credentials cannot succeed. First failures: chunk 0: AuthenticationError: Error code: 401 - {'error': {'message': 'Your API key has expired. Create a new API key to continue.', 'type': 'invalid_request_error', 'code': 'expired_secret_key', 'param': None}, 'status': 401}\n\nTraceback:\nTraceback (most recent call last):\n  File \"/app/api/hindsight_api/engine/retain/fact_extraction.py\", line 2571, in _extract_facts_with_auto_split\n    return await _extract_facts_from_chunk(\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/app/api/hindsight_api/engine/retain/fact_extraction.py\", line 2160, in _extract_facts_from_chunk\n    extraction_call = await llm_c",
+        "operation": "f479acfe-be05-5ab6-8735-32471b220d4a",
+        "updated": 1794903058.5405807
+      },
+      {
+        "id": 4118,
+        "identity": "github.com/blackcat-informatics/gmeow-ontology",
+        "oid": "6a91b120e3506df8803f4a04bb267ae4f606931e",
+        "kind": "graph",
+        "state": "done",
+        "attempts": 0,
+        "error": null,
+        "operation": null,
+        "updated": 1794902183.0404391
+      }
+    ],
+    "repositories": [
+      {
+        "identity": "github.com/blackcat-informatics/gmeow-ontology",
+        "root": "/home/paudley/Active/gmeow-ontology",
+        "bank": "gmeow-ontology",
+        "remote": "origin",
+        "branch": "main",
+        "scope": "[]",
+        "cursor": "c540a80bbf5226ab06ac94ada6471aff06402ff3",
+        "error": "git@ssh.github.com: Permission denied (publickey).\nfatal: Could not read from remote repository.\n\nPlease make sure you have the correct access rights\nand the repository exists.",
+        "updated": 1795032505.0474277
+      }
+    ]
+  }
+}

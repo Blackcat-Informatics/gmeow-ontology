@@ -1,0 +1,30 @@
+{
+  "schema": 1,
+  "issue": 2930,
+  "repo": "gmeow-ontology",
+  "forge": "github",
+  "nwo": "Blackcat-Informatics/gmeow-ontology",
+  "read_access": "anon-read",
+  "main_root": "/home/paudley/Active/gmeow-ontology",
+  "worktree": "/home/paudley/Active/gmeow-ontology/.worktrees/2930-execute-native-property-laws-from",
+  "branch": "paudley/2930-execute-native-property-laws-from",
+  "slug": "execute-native-property-laws-from",
+  "slug_drift": false,
+  "stage_dir": "/home/paudley/Active/gmeow-ontology/.worktrees/2930-execute-native-property-laws-from/.stage/execute-native-property-laws-from",
+  "stage_tracked": true,
+  "base": "refs/remotes/origin/main",
+  "base_oid": "354904ad8efdc4ec52762ad0e7cecc812209d84b",
+  "reused": false,
+  "adr_repo": false,
+  "created": [
+    "worktree:/home/paudley/Active/gmeow-ontology/.worktrees/2930-execute-native-property-laws-from",
+    "branch:paudley/2930-execute-native-property-laws-from",
+    "ignored:8266 files (8266 reflinked, 0 written)",
+    "rust-caches:reflinked /home/paudley/Active/gmeow-ontology/.worktrees/2795-release-0-4-0 caches into /home/paudley/Active/gmeow-ontology/.worktrees/2930-execute-native-property-laws-from plus 0 dependency units from 0 other checkouts in 2.8s; 12860 unchanged files keep their built mtimes; 245 other files take the seed time and rebuild; 0 units naming another checkout rebuild",
+    "stage:/home/paudley/Active/gmeow-ontology/.worktrees/2930-execute-native-property-laws-from/.stage/execute-native-property-laws-from",
+    "issue:/home/paudley/Active/gmeow-ontology/.worktrees/2930-execute-native-property-laws-from/.stage/execute-native-property-laws-from/issue.md"
+  ],
+  "warnings": [],
+  "timestamp": "2026-11-18T14:08:04-0600",
+  "seed_error": ""
+}
