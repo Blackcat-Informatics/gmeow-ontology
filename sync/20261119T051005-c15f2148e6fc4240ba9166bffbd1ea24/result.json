@@ -1,0 +1,29 @@
+{
+  "schema": 1,
+  "worktree": "/home/paudley/Active/gmeow-ontology/.worktrees/2950-localize-authored-conformance-fixture",
+  "branch": "paudley/2950-localize-authored-conformance-fixture",
+  "base_ref": "origin/main",
+  "head": "56c2f9aa050bb8e2ca2fd821b453296232d8990c",
+  "attempt": "/home/paudley/Active/gmeow-ontology/.worktrees/2950-localize-authored-conformance-fixture/.stage/localized-catalog-integration/sync/20261119T051005-c15f2148e6fc4240ba9166bffbd1ea24",
+  "conflicts": [
+    "slices/grounding/math/i18n/fr.po",
+    "slices/grounding/math/i18n/zh.po"
+  ],
+  "status": "completed",
+  "base": "fb8d8aae4a84fbf5bdf87da04bccd7eb203cc52d",
+  "merge_bases": [
+    "1c571fd1ce283f27ead00eaa4812b3d162de0c85"
+  ],
+  "merge_index": "aec02b03652671139dbcad06d5b424546eccf044983ae6e5ee17c61b4c45e798",
+  "reused_paths": [],
+  "rerere_output": "Recorded preimage for 'slices/grounding/math/i18n/fr.po'\nRecorded preimage for 'slices/grounding/math/i18n/zh.po'\n",
+  "candidate_tree": "855add3a5867312f4e03894ae56207b143d677a5",
+  "candidate_patch": "candidate-ebe26a07b0564dfdaf3f44d656744485.patch",
+  "stdout_log": "commit-ebe26a07b0564dfdaf3f44d656744485.stdout.log",
+  "stderr_log": "commit-ebe26a07b0564dfdaf3f44d656744485.stderr.log",
+  "validation_records": [],
+  "commit_duration_seconds": 43.75573356200039,
+  "commit": "8ba7b5dbe253a983ebf258cb9c4ecea37d19e122",
+  "tree": "855add3a5867312f4e03894ae56207b143d677a5",
+  "exit_code": 0
+}

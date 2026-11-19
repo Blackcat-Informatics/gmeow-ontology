@@ -1,0 +1,14 @@
+[
+  {
+    "path": "slices/grounding/math/i18n/fr.po",
+    "kind": "file",
+    "executable": false,
+    "content": "proposed/0.bin"
+  },
+  {
+    "path": "slices/grounding/math/i18n/zh.po",
+    "kind": "file",
+    "executable": false,
+    "content": "proposed/1.bin"
+  }
+]

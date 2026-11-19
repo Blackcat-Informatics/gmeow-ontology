@@ -1,0 +1,42 @@
+{
+  "slices/grounding/math/i18n/fr.po": [
+    {
+      "mode": "100644",
+      "oid": "963a66f89a8d7f2dc7ee1a2f856b9fbcd18af4e1",
+      "stage": 1,
+      "content": "inputs/0-1.bin"
+    },
+    {
+      "mode": "100644",
+      "oid": "f5d0bdbcab96ece65c6aa93a8676e585de95f4c5",
+      "stage": 2,
+      "content": "inputs/0-2.bin"
+    },
+    {
+      "mode": "100644",
+      "oid": "4022d51053015411552a26725431c1ec7504eee4",
+      "stage": 3,
+      "content": "inputs/0-3.bin"
+    }
+  ],
+  "slices/grounding/math/i18n/zh.po": [
+    {
+      "mode": "100644",
+      "oid": "b5d58554649d330fb81ac5252d68576149710fcc",
+      "stage": 1,
+      "content": "inputs/1-1.bin"
+    },
+    {
+      "mode": "100644",
+      "oid": "a09ba9aa4c4e1f5c8dd015feb49a9bf1f05aeb1b",
+      "stage": 2,
+      "content": "inputs/1-2.bin"
+    },
+    {
+      "mode": "100644",
+      "oid": "62c2b5363635a969045360ec2bf1990da5288825",
+      "stage": 3,
+      "content": "inputs/1-3.bin"
+    }
+  ]
+}

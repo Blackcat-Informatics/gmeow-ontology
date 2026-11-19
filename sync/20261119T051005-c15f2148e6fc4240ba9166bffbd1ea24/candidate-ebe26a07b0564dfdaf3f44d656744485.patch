@@ -1,0 +1,2253 @@
+diff --git README.md README.md
+index 723c4144d..2bbfc8395 100644
+--- README.md
++++ README.md
+@@ -305,7 +305,10 @@ then named are cycles found by that analysis, not proof that the program cannot
+ 
+ The native engine reads admitted default-graph assertions and ground reified claims
+ through two closed routes. Evidence-only claims carry `logic:provenance` or
+-`logic:confidence` beside their reification, with no additional qualifications. Ground
++`logic:confidence` beside their reification, with no additional qualifications. Default-graph
++`gmeow:graphBoxRole` resource annotations are descriptive metadata in either route;
++their open, multivalued roles remain source facts and supply no assertion authority.
++Named-graph or nonresource role annotations retain their boundaries. Ground
+ claims in selected modules may assert through the source-resolved module route without
+ invented provenance or confidence. Module membership does not erase standpoint, time or
+ modality. Unknown qualifications, mentions in other statements and graph-name uses keep
+@@ -348,7 +351,8 @@ Selected outputs must be distinct from semantic inputs, replay inputs and one an
+ Source loading and replay use admitted open files; output writes and stale-output removal
+ stay bound to held parent directories when a parent symlink changes. Writes check the
+ actual target before truncation. This boundary does not protect arbitrary replacement of
+-entries inside a held directory. A required proof output is removed when no proof is recorded.
++entries inside a held directory. The `PROOF_NOT_RECORDED` required-output refusal
++removes the stale selected proof.
+ 
+ **Working on the engine** (the ontology, compilers, and gates):
+ 
+diff --git crates/gmeow-cli/tests/prove_cli.rs crates/gmeow-cli/tests/prove_cli.rs
+index 50f10745c..57537128d 100644
+--- crates/gmeow-cli/tests/prove_cli.rs
++++ crates/gmeow-cli/tests/prove_cli.rs
+@@ -192,7 +192,7 @@ ex:right rdf:reifies <<( ex:a logic:instanceOf ex:B )>> ; logic:inModule ex:Righ
+     assert_eq!(imported["selection"]["units"], joint["selection"]["units"]);
+     for (left, expected, count) in [
+         (
+-            "ex:left rdf:reifies <<( ex:a logic:instanceOf ex:A )>> ; logic:inModule ex:LeftModule .
++            "ex:left rdf:reifies <<( ex:a logic:instanceOf ex:A )>> ; logic:inModule ex:LeftModule ; <https://blackcatinformatics.ca/gmeow/graphBoxRole> <https://blackcatinformatics.ca/gmeow/boxCBox> .
+ ex:alsoLeft rdf:reifies <<( ex:a logic:instanceOf ex:A )>> ; logic:inModule ex:LeftModule .",
+             "inconsistent",
+             2,
+@@ -208,7 +208,7 @@ ex:A logic:disjointWith ex:B .
+ {left}
+ ex:right rdf:reifies <<( ex:a logic:instanceOf ex:B )>> ; logic:inModule ex:RightModule .
+ ex:qualified rdf:reifies <<( ex:a logic:instanceOf ex:A )>> ;
+-    logic:inModule ex:LeftModule ; ex:qualifier ex:unknown .
++    logic:inModule ex:LeftModule ; <https://blackcatinformatics.ca/gmeow/graphBoxRole> <https://blackcatinformatics.ca/gmeow/boxCBox> ; ex:qualifier ex:unknown .
+ _:r a logic:TermCarrier ; logic:termVariable "r" .
+ ex:blocked a logic:Rule ; logic:inModule ex:LeftModule ; logic:standpoint ex:observer ;
+     logic:head [ rdf:reifies <<( _:r logic:instanceOf logic:Nothing )>> ] ;
+@@ -316,31 +316,45 @@ fn module_requests_refuse_missing_declarations_and_imports() {
+     }
+ }
+ 
+-/// PROTECTS: an excluded statement contributor cannot authorize an atomic
+-/// formula that the native input never asserts, even after IR deduplication.
++/// PROTECTS: an atomic formula link remains unread whether its equal ordinary
++/// statement is independently asserted or excluded.
+ #[test]
+ fn excluded_statement_cannot_account_for_an_unread_atomic_formula() {
+     let body = r#"
+-ex:Selected a logic:Module . ex:Excluded a logic:Module .
+-ex:p logic:domain ex:C ; logic:inModule ex:Excluded .
++ex:Selected a logic:Module ; logic:hasFormula ex:law .
++ex:Excluded a logic:Module .
++ex:p logic:domain ex:C {scope} .
+ ex:a ex:p ex:b ; logic:instanceOf ex:D .
+ ex:C logic:disjointWith ex:D .
+ ex:law a logic:Formula ; logic:relation logic:domain ; logic:argument ex:propertyTerm, ex:classTerm .
+ ex:propertyTerm logic:termIndex 0 ; logic:termIri ex:p .
+ ex:classTerm logic:termIndex 1 ; logic:termIri ex:C .
+ "#;
+-    let (report, _) = prove_json(
+-        "atomic-formula.ttl",
+-        body,
+-        &["--module", "https://example.org/prove/Selected"],
+-    );
+-    assert_eq!(report["verdict"], "not-decided", "{report:#}");
+-    assert!(
+-        drop_codes(&report)
++    for (scope, verdict) in [
++        ("; logic:inModule ex:Excluded", "not-decided"),
++        ("", "inconsistent"),
++    ] {
++        let (report, _) = prove_json(
++            "atomic-formula.ttl",
++            &body.replace("{scope}", scope),
++            &["--module", "https://example.org/prove/Selected"],
++        );
++        assert_eq!(report["verdict"], verdict, "{report:#}");
++        let link = report["native_admission"]["units"]
++            .as_array()
++            .expect("source units")
+             .iter()
+-            .any(|code| code == "FORMULA_AXIOM_NOT_READ"),
+-        "{report:#}"
+-    );
++            .find(|unit| {
++                unit["anchor"]
++                    .as_str()
++                    .is_some_and(|anchor| anchor.contains("/hasFormula"))
++            })
++            .expect("original module formula link");
++        assert_eq!(
++            link["disposition"]["Blocked"]["code"],
++            "FORMULA_AXIOM_NOT_READ"
++        );
++    }
+ }
+ 
+ /// PROTECTS: composed required outputs remove stale bytes, and raw proof replay
+@@ -597,6 +611,29 @@ fn uncarried_formula_is_not_decided_with_its_drop_named_and_gate_exits_three() {
+             .any(|drop| drop["engine"] == "native" && drop["code"] == "UNSUPPORTED_CONSTRUCT"),
+         "{report:#}"
+     );
++    let linked = format!("{DISJUNCTIVE}\nex:Selected a logic:Module ; logic:hasFormula ex:law .\n");
++    let (report, code) = prove_json(
++        "linked-disjunction.ttl",
++        &linked,
++        &["--module", "https://example.org/prove/Selected", "--gate"],
++    );
++    assert_eq!(report["verdict"], "not-decided", "{report:#}");
++    assert_eq!(code, 3);
++    let units = report["native_admission"]["units"]
++        .as_array()
++        .expect("source units");
++    let link = units
++        .iter()
++        .find(|unit| {
++            unit["anchor"]
++                .as_str()
++                .is_some_and(|anchor| anchor.contains("/hasFormula"))
++        })
++        .expect("original disjunctive formula link");
++    assert_eq!(
++        link["disposition"]["Blocked"]["code"],
++        "FORMULA_NATIVE_LOWERING_RESIDUE"
++    );
+ }
+ 
+ /// An exhausted derivation allowance is a partial closure and never `consistent`.
+@@ -1431,9 +1468,14 @@ ex:A logic:disjointWith ex:B .
+ 
+ /// A claim that carries only provenance is a statement of the selected theory, so
+ /// two such claims that contradict each other refute the selected native theory.
++/// Descriptive carrier roles retain their values without becoming evidence.
+ #[test]
+ fn provenance_only_contradiction_is_inconsistent() {
+-    let (report, code) = prove_json("provenance-clash.logic.ttl", PROVENANCE_CLASH, &["--gate"]);
++    for body in [
++        PROVENANCE_CLASH.to_owned(),
++        PROVENANCE_CLASH.replace(" ; logic:provenance", " ; <https://blackcatinformatics.ca/gmeow/graphBoxRole> <https://blackcatinformatics.ca/gmeow/boxCBox>, ex:futureRole ; logic:provenance"),
++    ] {
++    let (report, code) = prove_json("provenance-clash.logic.ttl", &body, &["--gate"]);
+     assert_eq!(report["verdict"], "inconsistent", "{report:#}");
+     assert_eq!(code, 3);
+     assert_eq!(report["evidence_grade"], "attestation");
+@@ -1454,6 +1496,7 @@ fn provenance_only_contradiction_is_inconsistent() {
+             "https://example.org/prove/second"
+         ]
+     );
++    }
+ }
+ 
+ /// Evidence-only claims are admitted by the actual native ingress and complete
+@@ -1462,7 +1505,8 @@ fn provenance_only_contradiction_is_inconsistent() {
+ #[test]
+ fn provenance_only_claims_without_a_clash_are_native_consistent() {
+     let body = r#"
+-[] rdf:reifies <<( ex:a logic:instanceOf ex:A )>> ; logic:provenance ex:first .
++[] rdf:reifies <<( ex:a logic:instanceOf ex:A )>> ; logic:provenance ex:first ;
++    <https://blackcatinformatics.ca/gmeow/graphBoxRole> <https://blackcatinformatics.ca/gmeow/boxCBox>, ex:futureRole .
+ [] rdf:reifies <<( ex:b logic:instanceOf ex:A )>> ; logic:provenance ex:second .
+ "#;
+     let (native, code) = prove_json("provenance-agree.logic.ttl", body, &["--gate"]);
+@@ -1673,6 +1717,70 @@ ex:c2 a logic:Formula ; {second} .
+     )
+ }
+ 
++/// A module-linked formula can refute the composed theory, while its excluded
++/// and context-blocked occurrences retain independent source dispositions.
++#[test]
++fn an_imported_formula_assertion_supplies_a_native_refutation() {
++    let body = conjunctive_consequent(
++        r#"logic:relation ex:marked ; logic:argument [ a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "A" ], [ a logic:TermCarrier ; logic:termIndex 1 ; logic:termIri ex:a ]"#,
++    ) + r#"
++ex:Chosen a logic:Module ; logic:hasFormula ex:law, ex:blocked .
++ex:Other a logic:Module .
++ex:Hub a logic:Module ; logic:imports ex:Chosen .
++ex:blocked a logic:Formula ; logic:quantifiedVariable [
++    a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "A"
++] ; logic:forall ex:imp ; logic:provenance ex:source .
++ex:a logic:instanceOf ex:Opposition .
++ex:Opposition logic:disjointWith ex:Dst .
++"#;
++    for (root, verdict, link_disposition) in [
++        ("Hub", "inconsistent", "StructuralSupport"),
++        ("Other", "consistent", "OutsideRequestedTheory"),
++    ] {
++        let iri = format!("https://example.org/prove/{root}");
++        let (report, _) = prove_json("linked-formulas.ttl", &body, &["--module", &iri]);
++        assert_eq!(report["verdict"], verdict, "{report:#}");
++        let units = report["native_admission"]["units"]
++            .as_array()
++            .expect("source units");
++        let link = |target: &str| {
++            units
++                .iter()
++                .find(|unit| {
++                    unit["anchor"].as_str().is_some_and(|anchor| {
++                        anchor.contains("/hasFormula") && anchor.contains(target)
++                    })
++                })
++                .expect("original physical module formula link")
++        };
++        let law = link("/law");
++        assert!(!law["disposition"][link_disposition].is_null(), "{law:#}");
++        assert_eq!(law["documents"].as_array().map(Vec::len), Some(1));
++        let blocked = link("/blocked");
++        if root == "Hub" {
++            assert_eq!(
++                blocked["disposition"]["Blocked"]["code"], "CONTEXT_ERASURE_FORBIDDEN",
++                "{blocked:#}"
++            );
++            let witness = report["refutations"]
++                .as_array()
++                .expect("refutations")
++                .iter()
++                .find(|row| row["engine"] == "native")
++                .expect("native witness");
++            let premises = witness["premises"].to_string();
++            for term in ["/Dst", "/Opposition"] {
++                assert!(premises.contains(term), "missing {term} from {premises}");
++            }
++        } else {
++            assert!(
++                !blocked["disposition"]["OutsideRequestedTheory"].is_null(),
++                "{blocked:#}"
++            );
++        }
++    }
++}
++
+ /// A consequent that conjoins a unary atom with an atom of arity three is one
+ /// dependency the native engine executes: the run is decided, not an execution
+ /// failure, and no drop names the formula.
+diff --git crates/logic-compile/src/frontend/claims.rs crates/logic-compile/src/frontend/claims.rs
+index ffcb6cedb..e6d0a4783 100644
+--- crates/logic-compile/src/frontend/claims.rs
++++ crates/logic-compile/src/frontend/claims.rs
+@@ -12,8 +12,9 @@
+ //!
+ //! * the evidence-only route accepts the allow-list of [`evidence_only`]; the
+ //!   distinct selected module route additionally accepts its exact admitted
+-//!   default-graph module coordinate. Any other carrier statement, and
+-//!   any mention of it in another carried statement, may place, deny or qualify
++//!   default-graph module coordinate. Both permit the separate descriptive
++//!   carrier annotations below, which supply no assertion authority. Any other
++//!   carrier statement, and any mention of it in another carried statement, may place, deny or qualify
+ //!   the claim, so the claim is not resolved;
+ //! * a carrier resolves only when exactly one statement it holds lowers to the
+ //!   axiom and no term of that statement is a typed term carrier.
+@@ -40,10 +41,10 @@ pub enum ClaimStatement {
+         predicate: TermId,
+         object: TermId,
+     },
+-    /// Something other than evidence is said about `carrier`. `predicate` is the
+-    /// first such predicate IRI in sorted order, `graph` the named graph that
++    /// A statement outside its selected carrier contract describes `carrier`.
++    /// `predicate` is the first such predicate IRI in sorted order, `graph` the named graph that
+     /// statement is in (none for the default graph), and `statements` is how many
+-    /// statements about the carrier are outside the evidence allow-list.
++    /// statements about the carrier are outside that contract.
+     Qualified {
+         carrier: String,
+         predicate: String,
+@@ -86,7 +87,8 @@ pub struct ClaimCarrier {
+ /// `rdf:reifies`, and for the classic form `rdf:type rdf:Statement`, `rdf:subject`,
+ /// `rdf:predicate` and `rdf:object`. Beyond structure only `logic:provenance` (who
+ /// reported the claim) and `logic:confidence` (how sure the reporter is) are
+-/// allowed. Every other predicate keeps the claim out, known or unknown: a
++/// allowed. Descriptive annotations are recognized separately and are never
++/// evidence. Other predicates keep the claim out, known or unknown: a
+ /// standpoint, a stance or denial, a time, a modality (including `logic:modality
+ /// logic:none`), a module, an attribution, a second type, or an annotation this
+ /// reader has never heard of may each change where or whether the claim holds.
+@@ -112,6 +114,21 @@ fn evidence_only(predicate: &str, object: &Node) -> bool {
+     }
+ }
+ 
++/// Descriptive metadata has no evidence, context or assertion authority.
++/// The exact canonical predicate has an open, multivalued resource range; this
++/// reader does not interpret role values or consult arbitrary annotation declarations.
++enum DescriptiveCarrierAnnotation {
++    GraphBoxRole,
++}
++
++impl DescriptiveCarrierAnnotation {
++    fn parse(predicate: &str, object: &Node) -> Option<Self> {
++        (predicate == "https://blackcatinformatics.ca/gmeow/graphBoxRole"
++            && matches!(object, Node::Iri(_) | Node::Blank { .. }))
++        .then_some(Self::GraphBoxRole)
++    }
++}
++
+ /// A use of a carrier: the predicate or mentioning node, and the named graph.
+ type Use = (String, Option<String>);
+ 
+@@ -215,8 +232,9 @@ impl CompiledTheory {
+ }
+ 
+ impl ClaimResolver<'_> {
+-    /// What is said about `carrier` beyond evidence, in any graph, if anything: a
+-    /// statement it is the subject of that fails [`evidence_only`] or a statement it
++    /// What is said about `carrier` outside its contract, in any graph: a
++    /// subject statement outside reification, evidence, selected membership and
++    /// admitted descriptive metadata, or a statement it
+     /// is the object of (`Qualified`), else a statement that mentions it
+     /// (`Mentioned`), else its use as a graph name (`GraphName`).
+     fn said_about(
+@@ -233,9 +251,14 @@ impl ClaimResolver<'_> {
+                     let module_assertion = quad.g.is_none()
+                         && predicate.as_str() == logic_iri("inModule")
+                         && modules.contains(&quad.o);
+-                    (!module_assertion
+-                        && !evidence_only(predicate.as_str(), &node_of(store, quad.o)))
+-                    .then(|| {
++                    if module_assertion {
++                        return None;
++                    }
++                    let object = node_of(store, quad.o);
++                    let descriptive = quad.g.is_none()
++                        && DescriptiveCarrierAnnotation::parse(predicate.as_str(), &object)
++                            .is_some();
++                    (!descriptive && !evidence_only(predicate.as_str(), &object)).then(|| {
+                         (
+                             predicate.as_str().to_owned(),
+                             quad.g.map(|graph| node_name(store, graph)),
+diff --git crates/logic-compile/src/relational_core.rs crates/logic-compile/src/relational_core.rs
+index 5d1016a5a..5f3dfefa5 100644
+--- crates/logic-compile/src/relational_core.rs
++++ crates/logic-compile/src/relational_core.rs
+@@ -565,20 +565,32 @@ pub fn lower_formulas_to_rc(program: &LogicProgram) -> (Vec<RcRule>, Vec<String>
+ pub fn lower_formulas_to_rc_attributed(
+     program: &LogicProgram,
+ ) -> (Vec<(RcRule, BTreeSet<usize>)>, Vec<String>) {
+-    lower_indexed_formulas_to_rc_attributed(program.formulas.iter().enumerate())
++    let lowering = lower_indexed_formulas_to_rc_attributed(program.formulas.iter().enumerate());
++    (lowering.rules, lowering.residue.into_iter().collect())
++}
++
++/// Relational lowering and residue with original formula indices.
++pub struct AttributedFormulaLowering {
++    pub rules: Vec<(RcRule, BTreeSet<usize>)>,
++    pub residue: BTreeSet<String>,
++    pub incomplete_formulas: BTreeSet<usize>,
+ }
+ 
+ /// Lower admitted formulas while retaining their original compilation indices.
+ #[must_use]
+ pub fn lower_indexed_formulas_to_rc_attributed<'a>(
+     formulas: impl IntoIterator<Item = (usize, &'a Formula)>,
+-) -> (Vec<(RcRule, BTreeSet<usize>)>, Vec<String>) {
++) -> AttributedFormulaLowering {
+     let mut rules: Vec<(RcRule, usize)> = Vec::new();
+-    let mut residue: BTreeSet<String> = BTreeSet::new();
++    let mut residue = BTreeSet::new();
++    let mut incomplete_formulas = BTreeSet::new();
+     for (index, formula) in formulas {
+         let analysis = formula_analysis::analyze(formula);
+         rules.extend(analysis.rules.iter().cloned().map(|rule| (rule, index)));
+-        residue.extend(analysis.residue.iter().cloned());
++        if !analysis.residue.is_empty() {
++            incomplete_formulas.insert(index);
++            residue.extend(analysis.residue.iter().cloned());
++        }
+     }
+     // Dedup by content key (stable first-wins, preserving canonical formula-source order).
+     // Authored Horn rules use the same relational atom order and rule key. Must NOT use `rules.sort(); rules.dedup()` — derived `Ord` orders
+@@ -596,7 +608,11 @@ pub fn lower_indexed_formulas_to_rc_attributed<'a>(
+             }
+         }
+     }
+-    (kept, residue.into_iter().collect())
++    AttributedFormulaLowering {
++        rules: kept,
++        residue,
++        incomplete_formulas,
++    }
+ }
+ 
+ // --------------------------------------------------------------------------- //
+diff --git crates/logic-compile/src/source_inventory/selection/index.rs crates/logic-compile/src/source_inventory/selection/index.rs
+index de6a1d920..907288fcd 100644
+--- crates/logic-compile/src/source_inventory/selection/index.rs
++++ crates/logic-compile/src/source_inventory/selection/index.rs
+@@ -44,6 +44,18 @@ pub(super) enum Membership<'a> {
+     Blocked(&'a Boundary),
+ }
+ 
++#[derive(Debug)]
++struct ModuleFormulaLink {
++    module: SyntaxOwner,
++    target: Result<ModuleFormulaTarget, Boundary>,
++}
++
++#[derive(Debug, Clone, Copy)]
++struct ModuleFormulaTarget {
++    owner: SyntaxOwner,
++    ordinal: usize,
++}
++
+ /// Invocation-local masks retain original IR indices and lowering occurrences.
+ #[derive(Debug)]
+ pub(super) struct SelectionIndex {
+@@ -53,9 +65,11 @@ pub(super) struct SelectionIndex {
+     participation: BTreeMap<SyntaxOwner, Participation>,
+     coordinates: BTreeMap<SyntaxOwner, Coordinate>,
+     selection_metadata: BTreeMap<SourceStatementBinding, BTreeSet<SyntaxOwner>>,
++    formula_links: BTreeMap<SourceStatementBinding, ModuleFormulaLink>,
+     blocked: BTreeMap<SyntaxOwner, Boundary>,
+     unknown: Boundary,
+     graph_boundary: Boundary,
++    top_level_module_link: Boundary,
+     pub(super) admitted_modules: BTreeSet<SourceNode>,
+     pub(super) formula_occurrences: Vec<bool>,
+     pub(super) axioms: Vec<bool>,
+@@ -107,6 +121,106 @@ fn list_axiom(predicate: &str) -> bool {
+     matches!(predicate, crate::lists::RDF_FIRST | crate::lists::RDF_REST)
+ }
+ 
++fn module_formula_links(
++    inventory: &SourceInventory<'_>,
++    roots: &BTreeSet<SyntaxOwner>,
++    independent_formulas: &mut BTreeSet<SourceNode>,
++) -> BTreeMap<SourceStatementBinding, ModuleFormulaLink> {
++    let theory = inventory.theory();
++    let graph = theory.source().source_graph();
++    let lowerings: BTreeMap<_, _> = theory
++        .formula_lowerings()
++        .iter()
++        .enumerate()
++        .map(|(ordinal, lowering)| (lowering.source, ordinal))
++        .collect();
++    graph
++        .edges()
++        .iter()
++        .filter(|edge| {
++            edge.role == SourceEdgeRole::ExplicitFormulaSelection && edge.source.graph.is_none()
++        })
++        .filter_map(|edge| {
++            let SourcePredicate::Stored(predicate) = edge.predicate else {
++                return None;
++            };
++            let binding = SourceStatementBinding {
++                canonical: QuadIds {
++                    s: edge.source.term,
++                    p: predicate,
++                    o: edge.target,
++                    g: edge.source.graph,
++                },
++                carrier: edge.carrier,
++            };
++            if !inventory.statement_selected(binding.canonical, binding.carrier) {
++                return None;
++            }
++            let node = SourceNode {
++                term: edge.target,
++                graph: edge.source.graph,
++            };
++            if !graph.declares(edge.source, SourceUnitKind::Module) {
++                if !graph.outgoing(edge.source).iter().any(|coordinate| {
++                    matches!(
++                        coordinate.role,
++                        SourceEdgeRole::Module
++                            | SourceEdgeRole::Standpoint
++                            | SourceEdgeRole::Context
++                            | SourceEdgeRole::Provenance
++                    )
++                }) {
++                    // Preserve the existing top-level formula route through an
++                    // unqualified nonmodule container.
++                    independent_formulas.insert(node);
++                }
++                return None;
++            }
++            let target = lowerings
++                .get(&node)
++                .copied()
++                .filter(|_| graph.declares(node, SourceUnitKind::Formula))
++                .ok_or_else(|| Boundary {
++                    code: "MISSING_MODULE_FORMULA_ROOT",
++                    detail:
++                        "module formula link requires an actual formula declaration and lowering"
++                            .into(),
++                })
++                .and_then(|ordinal| {
++                    let formula = owner(node, SyntaxFamily::Formula);
++                    if !roots.contains(&formula) || graph.formula_is_owned(node) {
++                        return Err(Boundary {
++                            code: "MODULE_LINK_TO_OWNED_FORMULA",
++                            detail:
++                                "module cannot assert syntax already owned by another source unit"
++                                    .into(),
++                        });
++                    }
++                    if graph.outgoing(node).iter().any(|coordinate| {
++                        coordinate.role == SourceEdgeRole::Module
++                            && coordinate.target != edge.source.term
++                    }) {
++                        return Err(Boundary {
++                            code: "CONFLICTING_FORMULA_MODULE_COORDINATE",
++                            detail: "formula declares membership in a different module".into(),
++                        });
++                    }
++                    Ok(ModuleFormulaTarget {
++                        owner: formula,
++                        ordinal,
++                    })
++                });
++            Some((
++                binding,
++                ModuleFormulaLink {
++                    module: owner(edge.source, SyntaxFamily::Module),
++                    target,
++                },
++            ))
++        })
++        .collect()
++}
++
+ impl SelectionIndex {
+     pub(super) fn new(
+         inventory: &SourceInventory<'_>,
+@@ -340,17 +454,31 @@ impl SelectionIndex {
+                 )
+             });
+         }
++        let mut independent_formulas = BTreeSet::new();
++        let formula_links = module_formula_links(inventory, &roots, &mut independent_formulas);
++        for target in formula_links
++            .values()
++            .filter_map(|link| link.target.as_ref().ok())
++        {
++            if matches!(coordinates.get(&target.owner), Some(Coordinate::None))
++                && !independent_formulas.contains(&target.owner.node)
++            {
++                roots.remove(&target.owner);
++            }
++        }
+         selection_metadata.retain(|_, owners| {
+             owners.retain(|unit| active.contains(unit));
+             !owners.is_empty()
+         });
+         let mut index = Self { syntax, roots, active, coordinates,
+-            selection_metadata,
++            selection_metadata, formula_links,
+             participation: BTreeMap::new(), blocked, admitted_modules,
+             unknown: Boundary { code: "NO_EXECUTABLE_OWNER_PATH",
+                 detail: "owned syntax has no admitted executable owner path and cannot become an independent assertion".into() },
+             graph_boundary: Boundary { code: "OUTSIDE_SELECTED_DEFAULT_GRAPH",
+                 detail: "named-graph syntax has no translation into the selected default logical world".into() },
++            top_level_module_link: Boundary { code: "CONTEXT_ERASURE_FORBIDDEN",
++                detail: "module formula link requires explicit module composition".into() },
+             formula_occurrences: vec![false; theory.formula_lowerings().len()],
+             axioms: vec![false; theory.program().axioms.len()],
+             rules: vec![false; theory.program().rules.len()],
+@@ -451,6 +579,20 @@ impl SelectionIndex {
+             }
+             self.participation.insert(unit, state);
+         }
++        // A link can select a root, but a target cannot block its module or the
++        // module's other assertions. Required syntax still propagates normally.
++        for link in self.formula_links.values() {
++            let Ok(target) = link.target else { continue };
++            let mut state = self.participation[&target.owner];
++            match self.formula_link_module(link) {
++                Membership::Included if !self.blocked.contains_key(&target.owner) => {
++                    state.included = true;
++                }
++                Membership::Outside => state.outside = true,
++                Membership::Included | Membership::Blocked(_) => state.blocked_path = true,
++            }
++            self.participation.insert(target.owner, state);
++        }
+         let mut pending: VecDeque<_> = self
+             .participation
+             .iter()
+@@ -693,6 +835,7 @@ impl SelectionIndex {
+                     )
+             } else {
+                 !self.selection_metadata.contains_key(&binding)
++                    && !self.formula_links.contains_key(&binding)
+                     && inventory
+                         .correspondence_record_owners(binding)
+                         .next()
+@@ -902,6 +1045,9 @@ impl SelectionIndex {
+         if quad.g.is_some() {
+             return Membership::Blocked(&self.graph_boundary);
+         }
++        if let Some(link) = self.formula_links.get(&binding) {
++            return self.formula_link_membership(link);
++        }
+         if let Some(owners) = self.selection_metadata.get(&binding) {
+             return self.combine(owners.iter().copied());
+         }
+@@ -1023,6 +1169,32 @@ impl SelectionIndex {
+         Membership::Included
+     }
+ 
++    fn formula_link_module(&self, link: &ModuleFormulaLink) -> Membership<'_> {
++        match self.coordinates.get(&link.module) {
++            Some(Coordinate::None) => Membership::Blocked(&self.top_level_module_link),
++            _ => self.owner_membership(link.module),
++        }
++    }
++
++    fn formula_link_membership<'a>(&'a self, link: &'a ModuleFormulaLink) -> Membership<'a> {
++        match self.formula_link_module(link) {
++            Membership::Included => {}
++            membership => return membership,
++        }
++        match &link.target {
++            Ok(target) => self.owner_membership(target.owner),
++            Err(boundary) => Membership::Blocked(boundary),
++        }
++    }
++
++    pub(super) fn selected_module_formula(&self, binding: SourceStatementBinding) -> Option<usize> {
++        let link = self.formula_links.get(&binding)?;
++        if !matches!(self.formula_link_membership(link), Membership::Included) {
++            return None;
++        }
++        link.target.as_ref().ok().map(|target| target.ordinal)
++    }
++
+     fn combine(&self, owners: impl Iterator<Item = SyntaxOwner>) -> Membership<'_> {
+         self.combine_memberships(owners.map(|unit| self.owner_membership(unit)))
+     }
+diff --git crates/logic-compile/src/source_inventory/selection/view.rs crates/logic-compile/src/source_inventory/selection/view.rs
+index dc1d0f344..fb2f4b20e 100644
+--- crates/logic-compile/src/source_inventory/selection/view.rs
++++ crates/logic-compile/src/source_inventory/selection/view.rs
+@@ -109,6 +109,22 @@ impl ResolvedTheorySelection {
+             .index
+             .correspondence_record_selected(unit.inventory, binding))
+     }
++
++    /// Original formula-lowering ordinal asserted by this admitted physical module link.
++    ///
++    /// # Errors
++    /// Refuses obligations borrowed from another compilation or selection.
++    pub fn selected_module_formula(
++        &self,
++        unit: SourceObligation<'_>,
++    ) -> gmeow_errors::Result<Option<usize>> {
++        self.authorize_inventory(unit.inventory)?;
++        let crate::source_inventory::SourceObligationOrigin::Statement(binding) = unit.origin()
++        else {
++            return Ok(None);
++        };
++        Ok(self.0.index.selected_module_formula(binding))
++    }
+ }
+ 
+ /// Original-indexed, borrowed IR admitted by the compiler's source ownership.
+diff --git crates/logic/src/program_analysis.rs crates/logic/src/program_analysis.rs
+index 8c3b61562..e60cdf5a2 100644
+--- crates/logic/src/program_analysis.rs
++++ crates/logic/src/program_analysis.rs
+@@ -10,7 +10,7 @@
+ //! Preparation reuse is not a coverage certificate or permission to erase scope: admission
+ //! and execution of each selected context remain obligations of the consuming operation.
+ 
+-use std::collections::VecDeque;
++use std::collections::{BTreeSet, VecDeque};
+ use std::fmt::Write as _;
+ use std::sync::{Arc, Mutex, OnceLock};
+ 
+@@ -40,6 +40,9 @@ pub(crate) struct PreparedProgram {
+     /// Each compiler-produced rule identity, with the indices into the program's
+     /// formulas of the authored formulas it was clausified from.
+     pub(crate) formula_rules: std::collections::BTreeMap<String, std::collections::BTreeSet<usize>>,
++    /// Formula indices whose selected lowering left a preservation boundary.
++    #[serde(skip)]
++    pub(crate) incomplete_formulas: BTreeSet<usize>,
+     /// No datasets or run state; shared joint dependency and witness layout only.
+     #[serde(skip)]
+     joint: Mutex<Option<NativeOutcome<Arc<JointProgram>>>>,
+@@ -146,6 +149,7 @@ impl PreparedProgram {
+             existential_rules: self.existential_rules.clone(),
+             preservation: self.preservation.clone(),
+             formula_rules: self.formula_rules.clone(),
++            incomplete_formulas: self.incomplete_formulas.clone(),
+             joint: Mutex::new(None),
+             reasoning_rules: OnceLock::new(),
+             schema_plans: Mutex::new(SchemaPlans::default()),
+@@ -186,6 +190,11 @@ impl PreparedProgram {
+             existential_rules: lowering.existential_rules,
+             preservation: lowering.preservation,
+             formula_rules: lowering.formula_rules,
++            incomplete_formulas: if selected.is_some() {
++                lowering.incomplete_formulas
++            } else {
++                BTreeSet::new()
++            },
+             joint: Mutex::new(None),
+             reasoning_rules: std::sync::OnceLock::new(),
+             schema_plans: Mutex::new(SchemaPlans::default()),
+diff --git crates/logic/src/reason/claims.rs crates/logic/src/reason/claims.rs
+index 46bb06c63..e2d83a04d 100644
+--- crates/logic/src/reason/claims.rs
++++ crates/logic/src/reason/claims.rs
+@@ -8,6 +8,7 @@
+ //! read the claimed statement. This module is the one place a scoped claim becomes a
+ //! fact. The evidence-only route and the distinct source-resolved module route
+ //! each enforce their closed carrier contract against the complete original source.
++//! Descriptive graph-box annotations supply neither evidence nor assertion authority.
+ //! Read claims retain their carried native RDF terms. Excluded modules contribute
+ //! no premise; other unread scoped claims retain their boundaries. A quotation
+ //! carries no scope or evidence coordinate and is never read as an assertion.
+@@ -48,7 +49,7 @@ pub enum UnreadReason {
+     /// The scope selects a context outside the selected theory. The `logic:` names
+     /// of the selecting coordinates are listed.
+     Context(Vec<&'static str>),
+-    /// Something other than evidence is said about the claim's carrier, so the
++    /// A statement outside the admitted contract describes the claim's carrier, so the
+     /// claim may be placed, denied or qualified. `carrier` is the reifier or
+     /// statement node concerned, `predicate` the first such predicate IRI in sorted
+     /// order, and `statements` counts all of them.
+diff --git crates/logic/src/reason/claims.tests.rs crates/logic/src/reason/claims.tests.rs
+index 12f50d044..e09670d75 100644
+--- crates/logic/src/reason/claims.tests.rs
++++ crates/logic/src/reason/claims.tests.rs
+@@ -88,6 +88,7 @@ fn ingest_modules(
+ /// PROTECTS: module claims and scoped rule/head/body syntax execute together;
+ /// excluded schema and NAF contribute no premise while genuinely shared terms survive.
+ /// Source, root, preparation, input and domain identities authorize the same run.
++/// Descriptive carrier roles remain ordinary source facts for authored consumers.
+ #[test]
+ fn module_execution_preserves_owners_shared_support_and_invocation_authority() {
+     const INCLUDED: &str = "https://example.org/claims/Included";
+@@ -98,13 +99,19 @@ ex:p a logic:DatatypeProperty ; logic:domain logic:Nothing ; logic:inModule ex:E
+ ex:chain logic:propertyChainAxiom ex:collection ; logic:inModule ex:Excluded .
+ ex:collection rdf:first ex:p ; rdf:rest rdf:nil .
+ ex:a ex:p ex:b .
+-ex:claim rdf:reifies <<( ex:a ex:label "chat"@fr )>> ; logic:inModule ex:Included .
++ex:claim rdf:reifies <<( ex:a ex:label "chat"@fr )>> ; logic:inModule ex:Included ;
++    gmeow:graphBoxRole gmeow:boxCBox, ex:futureRole .
+ _:x a logic:TermCarrier ; logic:termVariable "x" .
+ _:label logic:termVariable "label" .
+ _:y a logic:TermCarrier ; logic:termVariable "y" .
+ ex:mark a logic:Rule ; logic:inModule ex:Included ;
+     logic:head [ rdf:reifies <<( _:x ex:marked _:label )>> ; logic:inModule ex:Included ] ;
+     logic:body [ rdf:reifies <<( _:x ex:label _:label )>> ; logic:inModule ex:Included ] .
++_:carrier a logic:TermCarrier ; logic:termVariable "carrier" .
++_:role a logic:TermCarrier ; logic:termVariable "role" .
++ex:roleReceipt a logic:Rule ; logic:inModule ex:Included ;
++    logic:head [ rdf:reifies <<( _:carrier ex:describedBy _:role )>> ] ;
++    logic:body [ rdf:reifies <<( _:carrier gmeow:graphBoxRole _:role )>> ] .
+ ex:absence a logic:Rule ; logic:inModule ex:Excluded ;
+     logic:head [ rdf:reifies <<( _:x logic:instanceOf logic:Nothing )>> ] ;
+     logic:body [ rdf:reifies <<( _:x ex:p _:y )>> ] ;
+@@ -177,6 +184,19 @@ _:x logic:termIndex 0 . _:label logic:termIndex 1 .
+     assert!(result.inferred().iter().any(|row| row.predicate == "https://example.org/claims/marked"
+         && matches!(&row.object, TermValue::Literal { lexical_form, language: Some(language), .. }
+             if lexical_form == "chat" && language == "fr")), "shared variable and literal identity reach the rule head");
++    for role in [
++        "https://blackcatinformatics.ca/gmeow/boxCBox",
++        "https://example.org/claims/futureRole",
++    ] {
++        assert!(
++            result.inferred().iter().any(|row| {
++                row.subject == "https://example.org/claims/claim"
++                    && row.predicate == "https://example.org/claims/describedBy"
++                    && row.object.as_iri() == Some(role)
++            }),
++            "the actual authored role remains executable source data: {role}"
++        );
++    }
+     assert!(
+         admission
+             .complete_for(&result)
+@@ -288,18 +308,36 @@ ex:scopedProbe rdf:reifies <<( ex:a ex:probe _:label )>> ; logic:inModule ex:Inc
+ /// translates another context axis, even when filtered input omits the offending row.
+ /// A qualified duplicate and unrelated blocked positive rule keep their boundaries
+ /// without cancelling a valid carrier or suppressing an admitted contradiction.
++/// Ordinary source assertions about an unread carrier still supply native premises.
+ #[test]
+ fn module_claims_retain_independent_context_and_full_source_envelope_boundaries() {
+-    for extra in [
+-        "ex:claim logic:standpoint ex:observer .",
+-        "ex:claim logic:modality logic:none .",
+-        "ex:g { ex:claim ex:unknownQualifier ex:value . }",
++    for (extra, ordinary_clash) in [
++        ("ex:claim logic:standpoint ex:observer .", false),
++        ("ex:claim logic:modality logic:none .", false),
++        ("ex:g { ex:claim ex:unknownQualifier ex:value . }", false),
++        (
++            "ex:g { ex:claim gmeow:graphBoxRole gmeow:boxCBox . }",
++            false,
++        ),
++        (
++            "ex:claim gmeow:graphBoxRole \"not a role resource\" .",
++            false,
++        ),
++        (
++            "ex:annotation a logic:AnnotationProperty . ex:claim ex:annotation ex:value .",
++            false,
++        ),
++        (
++            "ex:mark logic:domain logic:Nothing . ex:claim ex:mark ex:value .",
++            true,
++        ),
+     ] {
+         let theory = compile(&format!(
+             r#"
+ ex:Included a logic:Module .
+ ex:a logic:instanceOf ex:Left .
+-ex:claim rdf:reifies <<( ex:a logic:instanceOf ex:Right )>> ; logic:inModule ex:Included .
++ex:claim rdf:reifies <<( ex:a logic:instanceOf ex:Right )>> ; logic:inModule ex:Included ;
++    gmeow:graphBoxRole gmeow:boxCBox .
+ {extra}
+ "#
+         ));
+@@ -311,13 +349,14 @@ ex:claim rdf:reifies <<( ex:a logic:instanceOf ex:Right )>> ; logic:inModule ex:
+         let result =
+             reason_selected_theory_within(&inventory, input, &domains, &ingress, &UNBOUNDED)
+                 .expect("the supported ordinary theory executes");
+-        assert!(
+-            consistent(&result),
+-            "unread module claim must not refute ordinary facts: {extra}"
++        assert_eq!(
++            !consistent(&result),
++            ordinary_clash,
++            "only the independent ordinary assertion may refute: {extra}"
+         );
+     }
+     const VALID_LEFT: &str =
+-        "ex:left rdf:reifies <<( ex:a logic:instanceOf ex:Left )>> ; logic:inModule ex:Included .
++        "ex:left rdf:reifies <<( ex:a logic:instanceOf ex:Left )>> ; logic:inModule ex:Included ; gmeow:graphBoxRole gmeow:boxCBox .
+ ex:alsoLeft rdf:reifies <<( ex:a logic:instanceOf ex:Left )>> ; logic:inModule ex:Included .";
+     for (left, expected_clash, read_count) in [(VALID_LEFT, true, 2), ("", false, 1)] {
+         let theory = compile(&format!(
+@@ -326,7 +365,7 @@ ex:Included a logic:Module .
+ {left}
+ ex:right rdf:reifies <<( ex:a logic:instanceOf ex:Right )>> ; logic:inModule ex:Included .
+ ex:qualified rdf:reifies <<( ex:a logic:instanceOf ex:Left )>> ;
+-    logic:inModule ex:Included ; ex:qualifier ex:unknown .
++    logic:inModule ex:Included ; gmeow:graphBoxRole gmeow:boxCBox ; ex:qualifier ex:unknown .
+ _:r a logic:TermCarrier ; logic:termVariable "r" .
+ ex:blocked a logic:Rule ; logic:inModule ex:Included ; logic:standpoint ex:observer ;
+     logic:head [ rdf:reifies <<( _:r logic:instanceOf logic:Nothing )>> ] ;
+@@ -405,16 +444,21 @@ ex:blocked a logic:Rule ; logic:inModule ex:Included ; logic:standpoint ex:obser
+     }
+ }
+ 
+-/// PROTECTS: shared formula IR keeps every admitted authored name, excludes other
+-/// occurrences, and never executes a parent after dropping a required descendant.
++/// PROTECTS: shared formula IR retains each admitted module assertion and authored
++/// name without promoting owned children or dropping required descendants.
+ #[test]
+ fn selected_formula_occurrences_keep_names_and_required_descendants() {
+     let body = r#"
+-ex:Included a logic:Module . ex:Excluded a logic:Module .
++ex:Included a logic:Module ; logic:hasFormula ex:first, ex:second, ex:consequence, ex:other .
++ex:Excluded a logic:Module ; logic:hasFormula ex:other, ex:excluded, ex:shared .
++ex:container logic:hasFormula ex:shared .
++ex:namedGraph { ex:Included logic:hasFormula ex:first . }
+ ex:a ex:seed ex:b .
+-ex:first a logic:Formula ; logic:quantifiedVariable ex:x ; logic:forall ex:implication ; logic:inModule ex:Included .
++ex:first a logic:Formula ; logic:quantifiedVariable ex:x ; logic:forall ex:implication .
+ ex:second a logic:Formula ; logic:quantifiedVariable ex:x ; logic:forall ex:implication ; logic:inModule ex:Included .
+ ex:other a logic:Formula ; logic:quantifiedVariable ex:x ; logic:forall ex:implication ; logic:inModule ex:Excluded .
++ex:excluded a logic:Formula ; logic:quantifiedVariable ex:x ; logic:forall ex:implication .
++ex:shared a logic:Formula ; logic:quantifiedVariable ex:x ; logic:forall ex:implication .
+ ex:implication a logic:Formula ; logic:antecedent ex:guard ; logic:consequent ex:consequence .
+ ex:guard a logic:Formula ; logic:relation ex:seed ; logic:argument ex:x, ex:bTerm .
+ ex:consequence a logic:Formula ; logic:relation ex:marked ; logic:argument ex:x, ex:bTerm .
+@@ -440,7 +484,8 @@ ex:bTerm logic:termIndex 1 ; logic:termIri ex:b .
+                 names,
+                 BTreeSet::from([
+                     "https://example.org/claims/first",
+-                    "https://example.org/claims/second"
++                    "https://example.org/claims/second",
++                    "https://example.org/claims/shared"
+                 ])
+             );
+         } else {
+@@ -469,6 +514,54 @@ ex:bTerm logic:termIndex 1 ; logic:termIri ex:b .
+                 .any(|row| row.predicate == "https://example.org/claims/marked"),
+             executes
+         );
++        let links: Vec<_> = admission
++            .source_dispositions()
++            .filter_map(|(unit, disposition)| {
++                let anchor = unit.anchor();
++                anchor
++                    .contains("/hasFormula")
++                    .then_some((anchor, disposition))
++            })
++            .collect();
++        assert_eq!(links.len(), 9);
++        assert!(links.iter().any(|(anchor, disposition)| {
++            anchor.contains("/namedGraph")
++                && matches!(
++                    disposition,
++                    crate::reason::NativeSourceDisposition::OutsideSelection { .. }
++                )
++        }));
++        for (link, expected) in [
++            ("consequence", "MODULE_LINK_TO_OWNED_FORMULA"),
++            ("other", "CONFLICTING_FORMULA_MODULE_COORDINATE"),
++        ] {
++            assert!(links.iter().any(|(anchor, disposition)| {
++                anchor.contains(&format!("/{link}"))
++                    && matches!(disposition, crate::reason::NativeSourceDisposition::Blocked {
++                        code, ..
++                    } if *code == expected)
++            }));
++        }
++        assert_eq!(
++            links
++                .iter()
++                .filter(|(_, disposition)| matches!(
++                    disposition,
++                    crate::reason::NativeSourceDisposition::OutsideRequestedTheory { .. }
++                ))
++                .count(),
++            3
++        );
++        assert_eq!(
++            links
++                .iter()
++                .filter(|(_, disposition)| matches!(
++                    disposition,
++                    crate::reason::NativeSourceDisposition::StructuralSupport { .. }
++                ))
++                .count(),
++            if executes { 2 } else { 0 }
++        );
+         if !executes {
+             assert!(
+                 !admission
+@@ -522,37 +615,46 @@ fn clash_premises(result: &ReasoningResult) -> Vec<(String, String)> {
+ /// PROTECTS: a claim that carries only evidence coordinates is a statement of the
+ /// selected theory. Two such claims that contradict each other make the theory
+ /// inconsistent, the clash is witnessed by both claimed statements, and both are
+-/// in the ledger as read with their evidence. A confidence of zero is still a claim.
++/// in the ledger as read with their evidence. A confidence of zero is still a claim;
++/// default-graph descriptive roles never become evidence or cancel assertion.
+ #[test]
+ fn evidence_only_claims_that_contradict_are_a_clash() {
+-    let theory = compile(EVIDENCE_CLASH);
+-    let (result, ingress) = decide(&theory);
+-    let result = result.expect("the selected theory executes");
++    for body in [
++        EVIDENCE_CLASH.to_owned(),
++        EVIDENCE_CLASH.replace(
++            " .",
++            " ; gmeow:graphBoxRole gmeow:boxCBox, ex:futureRole, [] .",
++        ),
++    ] {
++        let theory = compile(&body);
++        let (result, ingress) = decide(&theory);
++        let result = result.expect("the selected theory executes");
+ 
+-    assert!(!consistent(&result));
+-    let premises = clash_premises(&result);
+-    for class in [LEFT, RIGHT] {
+-        assert!(
+-            premises
+-                .iter()
+-                .any(|(subject, object)| subject == SUBJECT && object.contains(class)),
+-            "{class} is a witness premise: {premises:?}"
++        assert!(!consistent(&result));
++        let premises = clash_premises(&result);
++        for class in [LEFT, RIGHT] {
++            assert!(
++                premises
++                    .iter()
++                    .any(|(subject, object)| subject == SUBJECT && object.contains(class)),
++                "{class} is a witness premise: {premises:?}"
++            );
++        }
++        let evidence: Vec<_> = ingress
++            .read()
++            .iter()
++            .flat_map(|claim| claim.evidence.iter().copied())
++            .collect();
++        assert_eq!(
++            evidence,
++            [
++                EvidenceCoordinate::Provenance,
++                EvidenceCoordinate::Confidence
++            ]
+         );
++        assert!(ingress.unread().is_empty());
++        assert_eq!(ingress.unaccounted(theory.program()), None);
+     }
+-    let evidence: Vec<_> = ingress
+-        .read()
+-        .iter()
+-        .flat_map(|claim| claim.evidence.iter().copied())
+-        .collect();
+-    assert_eq!(
+-        evidence,
+-        [
+-            EvidenceCoordinate::Provenance,
+-            EvidenceCoordinate::Confidence
+-        ]
+-    );
+-    assert!(ingress.unread().is_empty());
+-    assert_eq!(ingress.unaccounted(theory.program()), None);
+ }
+ 
+ /// PROTECTS: a triple term asserts nothing. A reifier with no scope coordinate is a
+@@ -565,6 +667,8 @@ fn a_quotation_that_contradicts_an_assertion_is_not_a_clash() {
+ ex:a logic:instanceOf ex:Left .
+ [] rdf:reifies <<( ex:a logic:instanceOf ex:Right )>> .
+ ex:remark rdf:reifies <<( ex:a logic:instanceOf ex:Right )>> ; rdfs:comment "someone said so" .
++ex:described rdf:reifies <<( ex:a logic:instanceOf ex:Right )>> ;
++    gmeow:graphBoxRole gmeow:boxABox, ex:futureRole .
+ "#,
+     );
+     let (result, ingress) = decide(&theory);
+@@ -592,7 +696,7 @@ fn a_claim_in_an_untranslated_context_is_named_and_adds_no_fact() {
+     ] {
+         let theory = compile(&format!(
+             "ex:a logic:instanceOf ex:Left .
+-             [] rdf:reifies <<( ex:a logic:instanceOf ex:Right )>> ; {annotation} ."
++             [] rdf:reifies <<( ex:a logic:instanceOf ex:Right )>> ; gmeow:graphBoxRole gmeow:boxCBox ; {annotation} ."
+         ));
+         let (result, ingress) = decide(&theory);
+ 
+@@ -987,14 +1091,14 @@ fn claims_placed_in_standpoints_by_according_to_are_named_and_are_not_a_clash()
+     );
+ }
+ 
+-/// PROTECTS: the evidence allow-list is closed. Provenance does not turn a claim
+-/// into a statement of the theory when anything else is said about its carrier: a
++/// PROTECTS: the carrier contract stays closed around descriptive roles. Provenance
++/// does not admit an independent qualification about its carrier: a
+ /// denial stance, an annotation this reader does not know, a second type, a
+ /// statement that points at the carrier, or any `logic:modality` value including
+ /// `logic:none`. Each such claim adds no fact and is named with the first offending
+ /// predicate and the number of offending statements.
+ #[test]
+-fn a_claim_with_anything_but_evidence_about_its_carrier_is_named_and_adds_no_fact() {
++fn a_claim_with_an_independent_qualification_is_named_and_adds_no_fact() {
+     const MODALITY: &str = "https://blackcatinformatics.ca/logic/modality";
+     for (carrier, expected) in [
+         (
+@@ -1035,7 +1139,7 @@ fn a_claim_with_anything_but_evidence_about_its_carrier_is_named_and_adds_no_fac
+     ] {
+         let theory = compile(&format!(
+             "ex:a logic:instanceOf ex:Left .
+-             ex:claim rdf:reifies <<( ex:a logic:instanceOf ex:Right )>> ; {carrier} ."
++             ex:claim rdf:reifies <<( ex:a logic:instanceOf ex:Right )>> ; gmeow:graphBoxRole gmeow:boxCBox ; {carrier} ."
+         ));
+         let (result, ingress) = decide(&theory);
+ 
+@@ -1120,7 +1224,11 @@ fn a_classic_statement_carrier_is_read_only_when_it_is_evidence_only() {
+ 
+     let evidence_only = compile(&format!(
+         "{}{}",
+-        classic("first", "Left", ""),
++        classic(
++            "first",
++            "Left",
++            "; gmeow:graphBoxRole gmeow:boxCBox, ex:futureRole"
++        ),
+         classic("second", "Right", "; logic:confidence 0.9")
+     ));
+     let (result, ingress) = decide(&evidence_only);
+@@ -1152,7 +1260,8 @@ const R2: &str = "https://example.org/claims/r2";
+ /// An assertion, and an evidence-only claim `ex:r1` that would contradict it.
+ const CONTESTED: &str = r#"
+ ex:a logic:instanceOf ex:Left .
+-ex:r1 rdf:reifies <<( ex:a logic:instanceOf ex:Right )>> ; logic:provenance ex:first .
++ex:r1 rdf:reifies <<( ex:a logic:instanceOf ex:Right )>> ; logic:provenance ex:first ;
++    gmeow:graphBoxRole gmeow:boxCBox .
+ "#;
+ 
+ /// PROTECTS: a statement about a claim keeps that claim out even when the statement
+diff --git crates/logic/src/reason/dl.rs crates/logic/src/reason/dl.rs
+index 39d6d359b..d285bb9a4 100644
+--- crates/logic/src/reason/dl.rs
++++ crates/logic/src/reason/dl.rs
+@@ -1018,30 +1018,30 @@ pub(crate) fn source_execution_requires_admission(
+     if family.is_characteristic() {
+         return predicate == CHARACTERISTIC_SORT;
+     }
+-    match family {
++    matches!(
++        family,
+         F::AllValuesFrom
+-        | F::SomeValuesFrom
+-        | F::HasValue
+-        | F::HasSelf
+-        | F::Cardinality
+-        | F::MinCardinality
+-        | F::MaxCardinality
+-        | F::QualifiedCardinality
+-        | F::MinQualifiedCardinality
+-        | F::MaxQualifiedCardinality
+-        | F::PropertyChainAxiom
+-        | F::HasKey
+-        | F::NegativePropertyAssertion
+-        | F::AllDifferent
+-        | F::AllDisjointClasses
+-        | F::AllDisjointProperties
+-        | F::UnionOf
+-        | F::IntersectionOf
+-        | F::OneOf
+-        | F::DisjointUnionOf
+-        | F::WithRestrictions => true,
+-        _ => false,
+-    }
++            | F::SomeValuesFrom
++            | F::HasValue
++            | F::HasSelf
++            | F::Cardinality
++            | F::MinCardinality
++            | F::MaxCardinality
++            | F::QualifiedCardinality
++            | F::MinQualifiedCardinality
++            | F::MaxQualifiedCardinality
++            | F::PropertyChainAxiom
++            | F::HasKey
++            | F::NegativePropertyAssertion
++            | F::AllDifferent
++            | F::AllDisjointClasses
++            | F::AllDisjointProperties
++            | F::UnionOf
++            | F::IntersectionOf
++            | F::OneOf
++            | F::DisjointUnionOf
++            | F::WithRestrictions
++    )
+ }
+ 
+ /// Validate a selected atom's native operand roles without waiting for other
+diff --git crates/logic/src/reason/mod.rs crates/logic/src/reason/mod.rs
+index 69ad02670..29bc9b152 100644
+--- crates/logic/src/reason/mod.rs
++++ crates/logic/src/reason/mod.rs
+@@ -1010,7 +1010,7 @@ pub(crate) fn run_reasoning_rules(
+ /// the FIXED calculi match — the single definition of that correspondence for the whole
+ /// reasoner. Nothing under `reason/` may re-spell a `logic:` IRI outside it.
+ ///
+-/// Two groups, and both are needed for one authored axiom to reach the closure:
++/// The table covers three groups of vocabulary used in lowering and evaluation.
+ ///
+ /// * the **class-expression body** — `logic:Restriction` and its slots. Their local
+ ///   names are shared by BOTH authoring surfaces (the same fact the compiler's
+@@ -1032,7 +1032,7 @@ pub(crate) fn run_reasoning_rules(
+ ///   hardcoded `owl:` constant and the axiom goes dark exactly as a bare `logic:Restriction`
+ ///   would. Every entry here is a slice-authorable construct the reasoner already reads —
+ ///   see the matching arms in `dl.rs` and `refute/counting.rs`.
+-
++///
+ /// The reasoner's fixed-calculus lowering table: each `(canonical logic: IRI, projected
+ /// W3C OWL/RDFS IRI)` pair the EDB boundary normalizes (Principle 17). Exposed so the
+ /// grounding-law cross-check (`crates/validate`) can pin the shipped
+diff --git crates/logic/src/reason/source_admission.rs crates/logic/src/reason/source_admission.rs
+index f1388767c..e6469c39c 100644
+--- crates/logic/src/reason/source_admission.rs
++++ crates/logic/src/reason/source_admission.rs
+@@ -571,50 +571,13 @@ fn classify(
+             "RULE_WITHOUT_SOURCE_TRACE",
+             "compiled rule has no exact source-owner route",
+         ),
+-        SourceObligationOrigin::Formula(ordinal) => {
+-            let lowering = &theory.formula_lowerings()[ordinal];
+-            if lowering.source.graph.is_some() {
+-                return outside();
+-            }
+-            if inventory
+-                .untranslated_formula_contexts()
+-                .contains(&lowering.source)
+-                && !contexts_admitted
+-                && !matches!(lowering.disposition, FormulaDisposition::ReadForOwner)
+-            {
+-                return Disposition::blocked(
+-                    "CONTEXT_ERASURE_FORBIDDEN",
+-                    "formula or descendant scope is not represented by the selected top-level execution",
+-                );
+-            }
+-            match lowering.disposition {
+-                FormulaDisposition::OutsideDefaultGraph => outside(),
+-                FormulaDisposition::ReadForOwner => Disposition::support(
+-                    "formula syntax retained by its separately inventoried owner",
+-                ),
+-                FormulaDisposition::Malformed { diagnostic } => Disposition::malformed(
+-                    "MALFORMED_SELECTED_FORMULA",
+-                    format!("compiler rejected formula at diagnostic {diagnostic}"),
+-                ),
+-                FormulaDisposition::Axiom(index) => {
+-                    classify_axiom(theory, index, ingress, axiom_sources)
+-                }
+-                FormulaDisposition::Formula(index) => {
+-                    let Some(formula) = theory.program().formulas.get(index) else {
+-                        return Disposition::malformed(
+-                            "MISSING_FORMULA_IR",
+-                            "formula route is outside the canonical program",
+-                        );
+-                    };
+-                    let mut refusals = Vec::new();
+-                    account_formula(formula, AtomPolarity::Positive, &mut refusals);
+-                    account_refusals(
+-                        refusals,
+-                        "selected native formula; exact preparation and lowering residue checked by executor",
+-                    )
+-                }
+-            }
+-        }
++        SourceObligationOrigin::Formula(ordinal) => classify_formula(
++            inventory,
++            ordinal,
++            ingress,
++            contexts_admitted,
++            axiom_sources,
++        ),
+         SourceObligationOrigin::Axiom(index) => {
+             classify_axiom(theory, index, ingress, axiom_sources)
+         }
+@@ -690,6 +653,67 @@ fn classify(
+     }
+ }
+ 
++fn classify_formula(
++    inventory: &SourceInventory<'_>,
++    ordinal: usize,
++    ingress: Option<&ClaimIngress>,
++    contexts_admitted: bool,
++    axiom_sources: &[AxiomSource],
++) -> Disposition {
++    let theory = inventory.theory();
++    let lowering = &theory.formula_lowerings()[ordinal];
++    if lowering.source.graph.is_some() {
++        return Disposition::OutsideSelection {
++            reason: "source placement is outside the selected default graph",
++        };
++    }
++    if !contexts_admitted
++        && !matches!(lowering.disposition, FormulaDisposition::ReadForOwner)
++        && inventory
++            .untranslated_formula_contexts()
++            .contains(&lowering.source)
++    {
++        return Disposition::blocked(
++            "CONTEXT_ERASURE_FORBIDDEN",
++            "formula or descendant scope is not represented by the selected top-level execution",
++        );
++    }
++    match lowering.disposition {
++        FormulaDisposition::OutsideDefaultGraph => Disposition::OutsideSelection {
++            reason: "source placement is outside the selected default graph",
++        },
++        FormulaDisposition::ReadForOwner => {
++            Disposition::support("formula syntax retained by its separately inventoried owner")
++        }
++        FormulaDisposition::Malformed { diagnostic } => Disposition::malformed(
++            "MALFORMED_SELECTED_FORMULA",
++            format!("compiler rejected formula at diagnostic {diagnostic}"),
++        ),
++        FormulaDisposition::Axiom(index) => classify_axiom(theory, index, ingress, axiom_sources),
++        FormulaDisposition::Formula(index) => {
++            let Some(formula) = theory.program().formulas.get(index) else {
++                return Disposition::malformed(
++                    "MISSING_FORMULA_IR",
++                    "formula route is outside the canonical program",
++                );
++            };
++            let mut refusals = Vec::new();
++            account_formula(formula, AtomPolarity::Positive, &mut refusals);
++            account_refusals(
++                refusals,
++                "selected native formula; exact preparation and lowering residue checked by executor",
++            )
++        }
++    }
++}
++
++fn formula_axiom(inventory: &SourceInventory<'_>, ordinal: usize) -> Option<usize> {
++    match inventory.theory().formula_lowerings()[ordinal].disposition {
++        FormulaDisposition::Axiom(index) => Some(index),
++        _ => None,
++    }
++}
++
+ fn classify_selected(
+     inventory: &SourceInventory<'_>,
+     unit: SourceObligation<'_>,
+@@ -702,14 +726,22 @@ fn classify_selected(
+             reason: "original source obligation belongs exclusively to modules outside the requested theory",
+         });
+     }
++    if let Some(ordinal) = selection.selected_module_formula(unit)? {
++        if formula_axiom(inventory, ordinal).is_some() {
++            return Ok(unread_atomic_formula());
++        }
++        return Ok(
++            match classify_formula(inventory, ordinal, ingress, true, &[]) {
++                Disposition::Accounted { .. } => Disposition::support(
++                    "module formula assertion accounted by its exact selected formula occurrence",
++                ),
++                boundary => boundary,
++            },
++        );
++    }
+     let axiom_index = match unit.origin() {
+         SourceObligationOrigin::Axiom(index) => Some(index),
+-        SourceObligationOrigin::Formula(ordinal) => {
+-            match inventory.theory().formula_lowerings()[ordinal].disposition {
+-                FormulaDisposition::Axiom(index) => Some(index),
+-                _ => None,
+-            }
+-        }
++        SourceObligationOrigin::Formula(ordinal) => formula_axiom(inventory, ordinal),
+         _ => None,
+     };
+     let view = selection.program_view(inventory)?;
+@@ -736,6 +768,13 @@ fn classify_selected(
+     })
+ }
+ 
++fn unread_atomic_formula() -> Disposition {
++    Disposition::blocked(
++        "FORMULA_AXIOM_NOT_READ",
++        "atomic formula is not an asserted source statement the native input reads",
++    )
++}
++
+ fn classify_axiom(
+     theory: &gmeow_logic_compile::frontend::CompiledTheory,
+     index: usize,
+@@ -782,10 +821,7 @@ fn classify_axiom(
+             )
+         })
+     {
+-        return Disposition::blocked(
+-            "FORMULA_AXIOM_NOT_READ",
+-            "atomic formula is not an asserted source statement the native input reads",
+-        );
++        return unread_atomic_formula();
+     }
+     if sources
+         .iter()
+@@ -905,10 +941,9 @@ pub fn reason_admitted_theory_within(
+     {
+         let reads_ingress = match unit.origin() {
+             SourceObligationOrigin::Axiom(_) | SourceObligationOrigin::Quotation { .. } => true,
+-            SourceObligationOrigin::Formula(ordinal) => matches!(
+-                theory.formula_lowerings()[ordinal].disposition,
+-                FormulaDisposition::Axiom(_)
+-            ),
++            SourceObligationOrigin::Formula(ordinal) => {
++                formula_axiom(admission.inventory, ordinal).is_some()
++            }
+             _ => false,
+         };
+         if reads_ingress {
+@@ -919,6 +954,18 @@ pub fn reason_admitted_theory_within(
+                 &admission.selection,
+             )?;
+         }
++        if !selected.prepared.incomplete_formulas.is_empty()
++            && matches!(disposition, Disposition::StructuralSupport { .. })
++            && let Some(ordinal) = admission.selection.selected_module_formula(unit)?
++            && let FormulaDisposition::Formula(index) =
++                theory.formula_lowerings()[ordinal].disposition
++            && selected.prepared.incomplete_formulas.contains(&index)
++        {
++            *disposition = Disposition::blocked(
++                "FORMULA_NATIVE_LOWERING_RESIDUE",
++                "native preparation cannot carry every clause of the selected formula",
++            );
++        }
+     }
+     if admission.malformed() {
+         let detail = admission
+diff --git crates/logic/src/relational_core.rs crates/logic/src/relational_core.rs
+index 4b86b1c70..8d5417bf9 100644
+--- crates/logic/src/relational_core.rs
++++ crates/logic/src/relational_core.rs
+@@ -58,6 +58,8 @@ pub(crate) struct RelationalCoreLowering {
+     /// The rule identity of every lowered formula rule, with the indices into
+     /// `program.formulas` of the formulas that produced it.
+     pub(crate) formula_rules: BTreeMap<String, BTreeSet<usize>>,
++    /// Original formula indices with an incomplete native lowering.
++    pub(crate) incomplete_formulas: BTreeSet<usize>,
+ }
+ 
+ /// Lower every full-FOL formula in `program` to the evaluable engine IR, delegating the
+@@ -72,48 +74,34 @@ pub(crate) fn lower_formulas(program: &LogicProgram) -> RelationalCoreLowering {
+ pub(crate) fn lower_indexed_formulas<'a>(
+     formulas: impl IntoIterator<Item = (usize, &'a gmeow_logic_compile::ir::Formula)>,
+ ) -> RelationalCoreLowering {
+-    let (attributed, lane_residue) =
++    let attributed =
+         gmeow_logic_compile::relational_core::lower_indexed_formulas_to_rc_attributed(formulas);
+     let mut formula_rules: BTreeMap<String, BTreeSet<usize>> = BTreeMap::new();
+-    let mut rc_rules = Vec::with_capacity(attributed.len());
+-    for (rule, origins) in attributed {
+-        let family = if !rule.head_conjuncts.is_empty() || rule.has_existential_head() {
+-            "formula-existential"
++    let mut incomplete_formulas = attributed.incomplete_formulas;
++    let mut residue = attributed.residue;
++    let mut rules = Vec::new();
++    let mut existential_rules = Vec::new();
++    for (rule, origins) in attributed.rules {
++        // Keep a conjunctive head or witness invention in one chase producer.
++        let (family, lowered) = if !rule.head_conjuncts.is_empty() || rule.has_existential_head() {
++            (
++                "formula-existential",
++                rc_rule_to_existential(&rule).map(|producer| existential_rules.push(producer)),
++            )
+         } else {
+-            "formula-rule"
++            (
++                "formula-rule",
++                rc_rule_to_eval(&rule).map(|rule| rules.push(rule)),
++            )
+         };
++        if let Err(reason) = lowered {
++            residue.insert(reason.message().to_owned());
++            incomplete_formulas.extend(origins.iter().copied());
++        }
+         formula_rules.insert(
+             format!("{LOGIC_NAMESPACE}{family}/{}", sha1_hex(&rule.key())),
+             origins,
+         );
+-        rc_rules.push(rule);
+-    }
+-
+-    let mut rules: Vec<EvalRule> = Vec::new();
+-    let mut residue: BTreeSet<String> = lane_residue.into_iter().collect();
+-    // A single binary head can invent a witness. Conjunctive heads also stay
+-    // together so the native chase preserves their common firing and witness scope.
+-    let mut producers: Vec<&RcRule> = Vec::new();
+-    for rc in &rc_rules {
+-        if !rc.head_conjuncts.is_empty() || rc.has_existential_head() {
+-            producers.push(rc);
+-            continue;
+-        }
+-        match rc_rule_to_eval(rc) {
+-            Ok(rule) => rules.push(rule),
+-            Err(reason) => {
+-                residue.insert(reason.message().to_owned());
+-            }
+-        }
+-    }
+-    let mut existential_rules = Vec::new();
+-    for rule in producers {
+-        match rc_rule_to_existential(rule) {
+-            Ok(rule) => existential_rules.push(rule),
+-            Err(reason) => {
+-                residue.insert(reason.message().to_owned());
+-            }
+-        }
+     }
+ 
+     RelationalCoreLowering {
+@@ -121,6 +109,7 @@ pub(crate) fn lower_indexed_formulas<'a>(
+         rules,
+         existential_rules,
+         formula_rules,
++        incomplete_formulas,
+     }
+ }
+ 
+diff --git crates/pipeline/src/stages/carrier.rs crates/pipeline/src/stages/carrier.rs
+index 923e08973..5ffa1c9d3 100644
+--- crates/pipeline/src/stages/carrier.rs
++++ crates/pipeline/src/stages/carrier.rs
+@@ -1256,21 +1256,32 @@ fn assemble_carrier(
+     let mappings = upstream
+         .get("stage-mappings")
+         .ok_or_else(|| stage_err("missing stage-mappings product for projection graphs"))?;
+-    // The RDF-fanout attach class, DERIVED from the authored gmeow:fanoutExtracts rows in
+-    // the loaded pipeline-slice source (stage-source-load already holds module.ttl in
+-    // memory — a source input, not the bundle being produced), so the carrier's attach set
+-    // and the superset gate's claim set read ONE inventory (no hand-list to drift).
++    // The authored gmeow:fanoutExtracts inventory classifies the remaining
++    // mappings RDF fanout members. The report has its own required read below.
+     let rdf_fanout_classes =
+         crate::stages::superset::RdfFanoutClasses::from_source(&authored_default)?;
+-    for (path, bytes) in mappings.artifacts() {
+-        if let Some(iri) = crate::stages::superset::edoal_projection_graph_iri(&path) {
+-            parts.push_parsed(&bytes, "text/turtle", &iri)?;
+-        } else if rdf_fanout_classes.contains(&path) {
++    let mut mapping_artifacts = mappings.artifact_refs()?;
++    let report_path = crate::stages::compile_logic::PROJECTION_REPORT_PATH;
++    let report = mappings.artifact(report_path).ok_or_else(|| {
++        stage_err(&format!(
++            "missing {report_path} in stage-mappings for RDF fanout"
++        ))
++    })?;
++    let report_iri = crate::stages::superset::rdf_fanout_graph_iri(report_path)
++        .ok_or_else(|| stage_err(&format!("non-RDF projection report path: {report_path}")))?;
++    // The required report read supplies the same sorted mapping slot as the bulk lane.
++    mapping_artifacts.insert(report_path, report);
++    for (path, bytes) in mapping_artifacts {
++        if path == report_path {
++            parts.push_parsed(bytes, "text/turtle", &report_iri)?;
++        } else if let Some(iri) = crate::stages::superset::edoal_projection_graph_iri(path) {
++            parts.push_parsed(bytes, "text/turtle", &iri)?;
++        } else if rdf_fanout_classes.contains(path)
++            && let Some(iri) = crate::stages::superset::rdf_fanout_graph_iri(path)
++        {
+             // The non-EDOAL RDF projections (core-prefixes / functions.fno /
+-            // list-functions), now emitted canonically by the mappings stage.
+-            if let Some(iri) = crate::stages::superset::rdf_fanout_graph_iri(&path) {
+-                parts.push_parsed(&bytes, "text/turtle", &iri)?;
+-            }
++            // list-functions) emitted canonically by the mappings stage.
++            parts.push_parsed(bytes, "text/turtle", &iri)?;
+         }
+     }
+     // graph/fanout/<path> ← every other RDF generated/ file, one named graph per file,
+@@ -1285,10 +1296,9 @@ fn assemble_carrier(
+         "parse-rdf-fanout",
+         || -> Result<(), gmeow_errors::Diag> {
+             for (path, bytes) in fanout {
+-                let iri =
+-                    crate::stages::superset::rdf_fanout_graph_iri(&path).ok_or_else(|| {
+-                        stage_err(&format!("non-RDF path in rdf_fanout_members: {path}"))
+-                    })?;
++                let iri = crate::stages::superset::rdf_fanout_graph_iri(path).ok_or_else(|| {
++                    stage_err(&format!("non-RDF path in rdf_fanout_members: {path}"))
++                })?;
+                 let media_type = if path.ends_with(".nt") {
+                     "application/n-triples"
+                 } else if path.ends_with(".nq") {
+@@ -1296,7 +1306,7 @@ fn assemble_carrier(
+                 } else {
+                     "text/turtle"
+                 };
+-                parts.push_parsed(&bytes, media_type, &iri)?;
++                parts.push_parsed(bytes, media_type, &iri)?;
+             }
+             Ok(())
+         },
+@@ -1497,55 +1507,33 @@ fn fold_coherence_certificate(
+     Ok(certified)
+ }
+ 
+-/// Every remaining RDF `generated/` file (committed-path → bytes) that rides as an
+-/// RDF-fanout named graph, recomputed from THIS run's source. Each is the canonical
+-/// fold the producing stage also emits as its committed file. Grows class-by-class.
++/// Borrow the remaining committed RDF artifacts through snapshot parsing.
++/// The sorted map supplies one reconstruction graph per committed path.
+ fn rdf_fanout_members(
+     upstream: &BTreeMap<String, StageProduct>,
+-) -> Result<BTreeMap<String, Vec<u8>>, gmeow_errors::Diag> {
+-    let mut out: BTreeMap<String, Vec<u8>> = BTreeMap::new();
+-    for (path, bytes) in producer_artifacts("stage-math-producers", upstream)? {
+-        if is_rdf_member(&path) {
+-            out.insert(path, bytes);
+-        }
+-    }
+-    // profiles — `owl:Ontology` import closures, canonical Turtle. Read off the
+-    // stage-export-profiles product (rendered once, in that leaf; keyed by full path).
+-    for (path, bytes) in producer_artifacts("stage-export-profiles", upstream)? {
+-        out.insert(path, bytes);
+-    }
+-    // research-objects — the RO-crate `.ttl` re-serializations + the `lillith.dcat.ttl`
+-    // CONSTRUCT (opaque JSON/HTML/XML members ride the opaque fanout blob). Read off the
+-    // stage-export-research-objects product; keep only the RDF members.
+-    for (path, bytes) in producer_artifacts("stage-export-research-objects", upstream)? {
+-        if is_rdf_member(&path) {
+-            out.insert(path, bytes);
+-        }
+-    }
+-    // evals scores.ttl — the meta-claim Assessments (opaque MD/JSON ride the blob). Read
+-    // off the stage-export-evals product; keep only the RDF members.
+-    for (path, bytes) in producer_artifacts("stage-export-evals", upstream)? {
+-        if is_rdf_member(&path) {
+-            out.insert(path, bytes);
+-        }
+-    }
+-    // glossary vartrans.ttl — the OntoLex vartrans:translation lowering of the reviewed
+-    // glossary crossings (the readable `.md` table + the `.tbx` termbase are non-RDF and
+-    // ride the opaque blob). Read off the stage-export-glossary product; keep only the RDF
+-    // member, so the `.ttl` folds as its own `graph/fanout/projections/glossary.vartrans.ttl`
+-    // named graph (mirrors evals scores.ttl).
+-    for (path, bytes) in producer_artifacts("stage-export-glossary", upstream)? {
+-        if is_rdf_member(&path) {
+-            out.insert(path, bytes);
+-        }
+-    }
+-    // skos surface gmeow-skos.ttl — the generated SKOS concept-scheme projection of the
+-    // lifted NodeKind::Annotation axioms. Read off the stage-export-skos-surface
+-    // product; it is a single RDF `.ttl` member, so it folds as its own
+-    // graph/fanout/skos/gmeow-skos.ttl named graph (mirrors evals scores.ttl / glossary vartrans).
+-    for (path, bytes) in producer_artifacts("stage-export-skos-surface", upstream)? {
+-        if is_rdf_member(&path) {
+-            out.insert(path, bytes);
++) -> Result<BTreeMap<&str, &[u8]>, gmeow_errors::Diag> {
++    let mut out = BTreeMap::new();
++    for stage in [
++        "stage-math-producers",
++        "stage-export-profiles",
++        "stage-export-research-objects",
++        "stage-export-evals",
++        "stage-export-glossary",
++        "stage-export-skos-surface",
++    ] {
++        let producer = upstream.get(stage).ok_or_else(|| {
++            stage_err(&format!("missing {stage} product for the fanout presenter"))
++        })?;
++        let artifacts = producer.artifact_refs()?;
++        if stage == "stage-export-profiles" {
++            // Every profile output must be accepted by the downstream RDF parser.
++            out.extend(artifacts);
++        } else {
++            out.extend(
++                artifacts
++                    .into_iter()
++                    .filter(|(path, _)| is_rdf_member(path)),
++            );
+         }
+     }
+     // gufo.ttl — the gUFO bridge projection, from the sink-consumed compile-logic
+@@ -1553,17 +1541,11 @@ fn rdf_fanout_members(
+     let gufo = upstream
+         .get("stage-compile-logic")
+         .and_then(|p| p.artifact(crate::stages::compile_logic::GUFO_PATH))
+-        .map(<[u8]>::to_vec)
+         .ok_or_else(|| stage_err("missing generated/foundation/gufo.ttl in stage-compile-logic"))?;
+-    out.insert(crate::stages::compile_logic::GUFO_PATH.to_string(), gufo);
++    out.insert(crate::stages::compile_logic::GUFO_PATH, gufo);
+ 
+-    // projection-report loss ledger (mappings) + the relational-core / correspondence
+-    // N-Triples programs (compile-logic), each emitted canonically by its stage.
++    // The relational-core and correspondence N-Triples programs from compile-logic.
+     for (stage, path) in [
+-        (
+-            "stage-mappings",
+-            crate::stages::compile_logic::PROJECTION_REPORT_PATH,
+-        ),
+         (
+             "stage-compile-logic",
+             crate::stages::compile_logic::RELATIONAL_CORE_PATH,
+@@ -1596,9 +1578,8 @@ fn rdf_fanout_members(
+         let bytes = upstream
+             .get(stage)
+             .and_then(|p| p.artifact(path))
+-            .map(<[u8]>::to_vec)
+             .ok_or_else(|| stage_err(&format!("missing {path} in {stage} for RDF fanout")))?;
+-        out.insert(path.to_string(), bytes);
++        out.insert(path, bytes);
+     }
+     Ok(out)
+ }
+@@ -3453,7 +3434,7 @@ impl Stage for SnapshotStage {
+     }
+     /// Bind the complete snapshot contract, including required canon admission evidence.
+     fn impl_version(&self) -> &str {
+-        "snapshot.v39-math-target-projections"
++        "snapshot.v41-borrow-rdf-fanout"
+     }
+     fn input_files(&self, root: &Path) -> Result<Vec<PathBuf>, gmeow_errors::Diag> {
+         let mut files = Vec::new();
+diff --git docs/PIPELINE_SPINE.md docs/PIPELINE_SPINE.md
+index d84f88387..e9e2116bc 100644
+--- docs/PIPELINE_SPINE.md
++++ docs/PIPELINE_SPINE.md
+@@ -524,6 +524,13 @@ for a blob by digest, `unpack` for a files-profile archive). No output requires
+ bespoke generator at fanout time; an output that cannot be produced by extraction
+ alone signals a §5 violation upstream, not a need for computation downstream.
+ 
++Snapshot borrows the committed projection report from `stage-mappings` and
++parses it once in sorted artifact order. The resulting named fanout graph
++reconstructs `generated/logic/projection-report.ttl`. The native projection
++ledger retains its own graph for pipeline consumers.
++Snapshot also borrows the other committed RDF fanout artifacts through parsing.
++The sorted reconstruction map holds references to the producer byte lanes.
++
+ ### 6.1 Worked instance — the GMN-1 ecosystem projections
+ 
+ The GMN-1 (Grounded Model Notation) ecosystem is the two-halves law at work over a
+diff --git slices/grounding/logic/design/LOGIC-FOUNDATION.md slices/grounding/logic/design/LOGIC-FOUNDATION.md
+index bbba91b03..bd22cc895 100644
+--- slices/grounding/logic/design/LOGIC-FOUNDATION.md
++++ slices/grounding/logic/design/LOGIC-FOUNDATION.md
+@@ -720,13 +720,11 @@ fatal flaw engineered out: the precision is always *available*, but progressive
+ (the bundled standpoint-modality, the unary holon, the union "observation") are *generated from* the
+ factored canon, never substituted for it.
+ 
+-## Four-box organization (built in)
++## Graph-box organization
+ 
+-The upper ontology is classified throughout by the **built-in graph-box roles** — the annotation
+-property `gmeow:graphBoxRole`, whose four box values are `gmeow:boxTBox`, `gmeow:boxABox`,
+-`gmeow:boxRBox`, and `gmeow:boxCBox`, with a fifth meta role, `gmeow:boxConfigBox`, marking the
+-module's own header and configuration rather than a reasoned term. The four boxes partition the
+-foundation cleanly:
++The annotation property `gmeow:graphBoxRole` describes a construct's role for
++documentation, validation diagnostics and package consumers. Its values are
++`gmeow:GraphBoxRole` resources. The standard roles include:
+ 
+ - **TBox** — the sort and type taxonomy: `logic:Kind`, `logic:SubKind`, `logic:Phase`, `logic:Role`,
+   `logic:Category`, `logic:Mixin`, `logic:RoleMixin`, `logic:PhaseMixin`, and the
+@@ -736,12 +734,19 @@ foundation cleanly:
+ - **RBox** — relation and property axioms: the `logic:properPartOf` characteristics (transitive,
+   asymmetric, irreflexive), the profiled mereology relations, `logic:mediates`, and the rest of the
+   relational discipline.
+-- **CBox** — constraints and shapes, realized by the **built-in** closed-world lane: the closed-world
+-  half of the scoped open/closed construct (`logic:closedUnder` / `logic:WorldBoundary`), and the
+-  home of `FormalizationCandidate` constraints and `NonEntailmentObligation` checks.
++- **CBox** — statement context and assertion envelopes, including provenance,
++  confidence, standpoint, temporal scope and disclosure metadata. A shape or
++  diagnostic can carry this role when it concerns that assertion context.
++- **ConfigBox** — runtime, package, profile, solver, service and transport
++  configuration, distinct from the context of a particular assertion.
+ 
+-Every authored term carries its graph-box role, so the partition is machine-checkable rather than
+-documentary — no term is left unclassified.
++Roles are advisory, multivalued and open to future resource values. They do not
++partition the ontology or confer logical class membership, ownership, imports,
++graph routing or assertion authority. Preserve actual authored roles in consumers;
++do not infer a missing role or force a construct into exactly one box. The native
++carrier contract in [LOGIC-SEMANTICS.md](./LOGIC-SEMANTICS.md#triple-terms-reifiers-and-assertion)
++recognizes descriptive default-graph resource annotations without turning them
++into evidence or discarding their ordinary source rows.
+ 
+ ## Scope and seams
+ 
+diff --git slices/grounding/logic/design/LOGIC-IR.md slices/grounding/logic/design/LOGIC-IR.md
+index 15c9a270f..abe53285b 100644
+--- slices/grounding/logic/design/LOGIC-IR.md
++++ slices/grounding/logic/design/LOGIC-IR.md
+@@ -162,10 +162,15 @@ A contradiction between their admitted sentences refutes that composition.
+ `TheorySelection` records a request. Compiler-issued source resolution binds the
+ exact roots, closure, import evidence and source selection before native input or
+ program views are borrowed. Selected rules and formulas retain their original
+-indices and source occurrences after deduplication. An exclusively owned child
+-cannot become an independent assertion; a selected owner whose required syntax
+-is unavailable remains blocked as a whole. Shared support remains available
+-through its actual admitted owners.
++indices and source occurrences after deduplication. A declared module asserts
++a top-level formula through an actual `logic:hasFormula` occurrence in the
++default graph. The link carries that module's membership and records the target's
++admission. A direct `logic:inModule` coordinate or an unqualified nonmodule
++container can supply a separate route.
++A link to a formula that declares a different module remains blocked.
++An exclusively owned child cannot become an independent assertion. A selected
++owner whose required syntax is unavailable remains blocked as a whole. Shared
++support remains available through its actual admitted owners.
+ 
+ The complete supplied inventory remains reportable. Explicitly unselected modules
+ receive an authorized disposition outside the requested theory; graph, standpoint, time,
+@@ -596,15 +601,21 @@ the substrate does not.
+   bare-program profile reads no scoped claim and refuses a program in which any axiom,
+   rule, head or body atom carries a standpoint, time, modality or module coordinate. The
+   selected-theory profile accounts for every scoped claim in a claim ingress ledger.
+-  Its evidence-only route admits a ground claim when every stated statement about
+-  its carrier, in any graph, is on a closed allow-list:
++  Its evidence-only route admits a ground claim with at least one default-graph
++  provenance or confidence coordinate under a closed carrier contract:
+   reification structure (`rdf:reifies`, or `rdf:type rdf:Statement` with `rdf:subject`,
+   `rdf:predicate` and `rdf:object`), `logic:provenance` and `logic:confidence`. The fact
+   is built from the RDF terms the carrier holds and the envelope stays on the carrier as
+-  evidence. A distinct typed module-assertion route additionally admits one exact
++  source metadata. A distinct typed module-assertion route additionally admits one exact
+   default-graph `logic:inModule` coordinate resolved against the same immutable source and
+   requested import closure. This route requires no invented provenance or
+-  confidence and does not widen the evidence-only allow-list. Any carrier
++  confidence and does not widen the evidence-only allow-list. Both routes admit
++  descriptive default-graph `gmeow:graphBoxRole` annotations with IRI or blank-node
++  resource values. Preserve their actual multivalued, open roles and original
++  source rows; they are not evidence coordinates and confer no assertion, context,
++  module, ownership or routing authority. Named-graph and nonresource role rows
++  remain outside this contract. An annotation alone leaves a quotation unasserted.
++  Every envelope check still reads the complete original source. Any carrier
+   statement beyond the selected route's contract, any statement with the
+   carrier as object or predicate, any mention of the carrier in a statement another carrier
+   holds (inside a triple term at any depth, or as a term of a classic statement node,
+diff --git slices/grounding/logic/design/LOGIC-SEMANTICS.md slices/grounding/logic/design/LOGIC-SEMANTICS.md
+index c3b27ea6a..8518ad357 100644
+--- slices/grounding/logic/design/LOGIC-SEMANTICS.md
++++ slices/grounding/logic/design/LOGIC-SEMANTICS.md
+@@ -117,21 +117,32 @@ Selected-theory execution admits two closed assertion routes:
+ 
+ > An **evidence-only** reified claim asserts a top-level sentence when its reifier
+ > states at least one of `logic:provenance` and
+-> `logic:confidence`, and the only statements about the reifier are those two and the
+-> reification itself (`rdf:reifies`, or the classic `rdf:Statement` node with its subject,
+-> predicate and object). Provenance says who reported the claim and confidence how sure the
+-> reporter is; neither places the claim in a context, denies it, or weakens it. A reifier
++> `logic:confidence`, and its remaining statements satisfy the closed carrier contract:
++> the reification itself (`rdf:reifies`, or the classic `rdf:Statement` node with its subject,
++> predicate and object) and the descriptive annotations admitted below. Provenance
++> says who reported the claim and confidence how sure the reporter is; neither
++> places the claim in a context, denies it, or weakens it. A reifier
+ > that states neither does not acquire assertion status through this route.
+ 
+ The **typed module-assertion** route admits a claim carrying one exact
+ default-graph `logic:inModule` coordinate when the compiler resolves its native module identity
+ inside the requested theory. Its remaining carrier statements must satisfy the
+-same closed structural and evidence contract. This route requires neither
+-provenance nor confidence; it does not treat module membership as evidence-only
++same closed structural, evidence and descriptive annotation contract. This route
++requires neither provenance nor confidence; it does not treat module membership as evidence-only
+ metadata. A bare reifier with no scope or evidence coordinate is a quotation
+ and asserts nothing. A module claim outside the requested composition remains
+ an assertion outside that theory; unresolved membership remains a named boundary.
+ 
++Default-graph `gmeow:graphBoxRole` annotations whose values are IRI or blank-node
++resources describe the carrier without qualifying its carried assertion. The
++role vocabulary is open and multivalued: preserve every actual role and source
++row, including unknown future resources. These annotations are separate from
++evidence coordinates. They establish no assertion, module membership, ownership,
++context or graph routing. A quotation with only graph-box roles asserts nothing.
++Named-graph role rows and nonresource role values remain outside this admitted
++carrier contract. Other ordinary facts about the carrier and all role rows
++remain source facts; recognizing descriptive metadata does not delete them.
++
+ Each route fails closed. A carrier statement beyond its selected contract may
+ place, deny or qualify the claim, so it prevents ordinary assertion:
+ a standpoint (`gmeow:accordingTo`, `logic:standpoint`), a stance such as
+@@ -188,9 +199,13 @@ selected program occurrences, claim ingress, preparation and completion bind
+ that same composition. Reports retain every supplied source obligation, including
+ authorized module exclusions and independent graph/context blockers. An owner
+ whose required child lies outside the admitted theory remains selected and
+-blocked; its child cannot be dropped to create a weaker sentence. Without an
+-explicit module request, module-scoped obligations retain the top-level
+-operation's existing boundaries.
++blocked; its child cannot be dropped to create a weaker sentence. A selected
++module's `logic:hasFormula` link carries its top-level formula into the same
++theory. Each physical link retains its own disposition and the target's
++lowering boundaries. A blocked target withholds that assertion while other
++admitted formulas and imports remain available. Without an explicit module
++request, module-scoped obligations retain the top-level operation's existing
++boundaries.
+ 
+ The executed selected-theory profile is narrower than this definition in one direction only.
+ It may leave an assertion unread, for example a claim over a typed term carrier, a claim
+diff --git slices/grounding/logic/docs.md slices/grounding/logic/docs.md
+index 8dd3459ac..53c4bbcf7 100644
+--- slices/grounding/logic/docs.md
++++ slices/grounding/logic/docs.md
+@@ -36,7 +36,7 @@ implemented against rather than only read:
+ | Document | Genre | Realized state | Contents |
+ | --- | --- | --- | --- |
+ | [`design/LOGIC.md`](./design/LOGIC.md) | manifesto | realized | vision, doctrine, lineage |
+-| [`design/LOGIC-FOUNDATION.md`](./design/LOGIC-FOUNDATION.md) | charter | realized (a few named engine-selection strategies not yet engine-backed) | the `gmeow:logic` upper-ontology charter — the gUFO ⊇ baseline, the criticism ledger, the greenfield feature map, the Ithkuil precision ethos, the four-box organization |
++| [`design/LOGIC-FOUNDATION.md`](./design/LOGIC-FOUNDATION.md) | charter | realized (a few named engine-selection strategies not yet engine-backed) | the `gmeow:logic` upper-ontology charter — the gUFO ⊇ baseline, the criticism ledger, the greenfield feature map, the Ithkuil precision ethos, the descriptive graph-box roles |
+ | [`design/LOGIC-CONTRACT.md`](./design/LOGIC-CONTRACT.md) | configuration | realized | the reasoning contract — the orthogonal facets a reasoning request selects; named profiles as presets; the compatibility matrix |
+ | [`design/LOGIC-IR.md`](./design/LOGIC-IR.md) | intermediate representation | realized (`crates/logic-compile`) | the typed, full first-order IR every source compiles into and every projection out of; the per-lowering preservation judgment |
+ | [`design/LOGIC-SEMANTICS.md`](./design/LOGIC-SEMANTICS.md) | formal semantics | realized | the unified core, triple-term/assertion rules, the reasoning result, modality, the typed context algebra, decidability |
+@@ -126,6 +126,11 @@ Module membership does not translate a standpoint, time or modality. Those
+ coordinates retain their separate admission requirements. Ground module claims
+ can assert through a typed, source-resolved module route without invented
+ provenance or confidence; evidence-only claims keep their own closed contract.
++Default-graph `gmeow:graphBoxRole` resource annotations are descriptive metadata
++within both carrier contracts. Preserve their actual, possibly multiple or
++unknown role values. They supply neither evidence nor assertion authority;
++quotations still assert nothing. Named-graph or nonresource role annotations
++retain their boundaries, and all role rows remain independent source facts.
+ Unknown qualifiers, mentions and graph-name uses retain their boundaries.
+ 
+ Reports preserve the complete supplied source inventory and identify the roots,
+@@ -143,8 +148,8 @@ discovery runs once, and semantic loading and proof replay read the admitted ope
+ files. Output publication and stale-output removal use held parent directories;
+ switching a parent symlink cannot redirect them onto a selected input. Writes
+ check the actual opened target before truncation. The boundary does not cover
+-arbitrary replacement of entries inside a held directory. A selected proof output
+-is removed when the run records no proof. A native
++arbitrary replacement of entries inside a held directory. The
++`PROOF_NOT_RECORDED` required-output refusal removes the stale selected proof. A native
+ verdict remains an attestation. See
+ [`LOGIC-SEMANTICS.md`](design/LOGIC-SEMANTICS.md#explicit-module-composition)
+ for the assertion and context contract.
+diff --git slices/grounding/math/design/MATHEMATICS-CONFORMANCE.md slices/grounding/math/design/MATHEMATICS-CONFORMANCE.md
+index 068afdae6..2d71eaf7a 100644
+--- slices/grounding/math/design/MATHEMATICS-CONFORMANCE.md
++++ slices/grounding/math/design/MATHEMATICS-CONFORMANCE.md
+@@ -38,8 +38,13 @@ most declarative to most procedural:
+ - **projection test** — an acceptance query over a generated lowering that fails if loss is
+   unrecorded or preservation is mis-declared.
+ 
+-Failure classes are IRIs in the `math:` failure vocabulary (`math:MathConformanceFailure`
+-subclasses), so a violation is itself a typed, queryable object, not a log line.
++Subclasses of `math:MathConformanceFailure` classify failure situations.
++Canonical logic axioms and constraints state the obligations. In the SHACL
++projection, generated property shapes can carry a failure class IRI from
++`gmeow:enforcesFailureClass`. The report bridge looks up that IRI by source
++shape and records it on the finding. The finding also carries evidence such
++as the component, focus node, path and value, so consumers can distinguish
++different violations that share a class.
+ 
+ ## The gate matrix
+ 
+diff --git slices/grounding/math/docs.md slices/grounding/math/docs.md
+index 5d43bd081..331f6d91d 100644
+--- slices/grounding/math/docs.md
++++ slices/grounding/math/docs.md
+@@ -46,12 +46,13 @@ The object-layer parents and the reference, expression, proof/theory, probabilit
+ applied-category-theory surfaces are all authored in this grounding slice; the design files below
+ factor their contracts without creating separate semantic owners.
+ 
+-Every well-formedness violation is a typed, queryable object: `math:MathConformanceFailure` and its
+-subclasses, each wired from a canonical EL-safe axiom or `logic:Constraint` through
+-`gmeow:enforcesFailureClass` and projected to the applicable validation surface. The
+-preservation-polarity vocabulary is reused verbatim from the `logic:` loss ledger, and each named
+-constant and number system is anchored to Wikidata (with OEIS locators for the constants) as a
+-native alignment cell.
++`math:MathConformanceFailure` and its subclasses classify situations that violate
++mathematical obligations. The applicable canonical axioms and constraints can
++associate a failure class through `gmeow:enforcesFailureClass`. A SHACL finding
++carries that association when the generated source shape declares it.
++The preservation-polarity vocabulary is reused verbatim from the `logic:` loss
++ledger, and each named constant and number system is anchored to Wikidata
++(with OEIS locators for the constants) as a native alignment cell.
+ 
+ ## The design set
+ 
+@@ -83,7 +84,7 @@ positive fixture and a negative counter-example under the native slicetest harne
+ 
+ | Rule | Shape | Failure class |
+ | --- | --- | --- |
+-| A number declares its number system | `math:NumberSituatedShape` | `math:UnsituatedNumber` |
++| A number declares exactly one number system | Generated `math:Number-shape` | `math:UnsituatedNumber` |
+ | An approximation names what it approximates and its error | `math:ApproximateValueShape` | `math:ExactApproximateConflation` |
+ | A named constant is an exact individual, not a decimal | `math:MathematicalConstantShape` | `math:ConstantAsDecimalLiteral` |
+ | An intensional condition denotes a `logic:` formula | `math:IntensionalSetShape` | `math:StringOnlyMemberCondition` |
+@@ -98,6 +99,37 @@ domain/codomain/image and its injectivity/surjectivity/bijectivity, a set's card
+ named constants appear with their external anchors. Further questions in the same registry exercise
+ every realized charter, including the cross-corpus coverage frames described below.
+ 
++## Number-system findings
++
++The [canonical module](./module.ttl) gives `math:Number` a qualified minimum of
++one `math:NumberSystem` on `math:inNumberSystem`, qualified maxima of one over
++`logic:Thing` and `math:NumberSystem`, an all-values restriction to
++`math:NumberSystem`, and a closed required-path entry. Together these checks
++require one system declaration for a number. The restrictions apply to
++`math:Number`. The property's domain and range are described in prose.
++
++Use `math:RationalNumber` to classify a number and `math:rationalNumbers` as its
++declared system. The signed extended real line is also a `math:NumberSystem`
++individual. System containment uses `math:subsystemOf`. RDF datatypes describe
++literals, and a number's membership in a chosen system needs mathematical
++justification. Record exactness independently of any approximate carrier.
++The general number-system checks govern the system link, while
++`math:MathematicalConstant` has its own boolean and true-value obligations.
++
++`math:MathConformanceFailure` and `math:UnsituatedNumber` have canonical
++`logic:Situation` grounding. `math:Number` and `math:NumberSystem` have
++`logic:AbstractIndividualType` grounding. The generated property shapes carry
++`math:Number`'s failure-class association, which the SHACL report bridge
++resolves by source-shape identity. A missing link, target-type violation or
++count violation can share `math:UnsituatedNumber`. Inspect the component, path,
++value and source shape to decide how to repair a specific finding.
++
++The [owned correspondences](./mappings/equivalences.ttl) declare Wikidata close
++matches for the named system individuals. Their
++`logic:AffineCorrespondence`, `logic:InstitutionMorphism` and
++`logic:ValidationOnly` judgments apply to those individuals and their external
++targets. The failure classes and individual number objects have separate roles.
++
+ ## Approximation and constant diagnostic findings
+ 
+ `math:ExactApproximateConflation` and `math:ConstantAsDecimalLiteral` retain
+diff --git slices/grounding/math/i18n/fr.po slices/grounding/math/i18n/fr.po
+index f5d0bdbca..5102b8749 100644
+--- slices/grounding/math/i18n/fr.po
++++ slices/grounding/math/i18n/fr.po
+@@ -3674,8 +3674,8 @@ msgid "Number"
+ msgstr "Nombre"
+ 
+ msgctxt "https://blackcatinformatics.ca/math/Number|http://www.w3.org/2004/02/skos/core#definition"
+-msgid "A mathematical number: an abstract quantity that lives in a declared number system. Every math:Number situates itself in a math:NumberSystem through math:inNumberSystem — an unsituated number is ill-formed — and declares through math:isExact whether it is an exact value or the abstract counterpart that a math:ApproximateValue approximates. The five nested systems ℕ ⊂ ℤ ⊂ ℚ ⊂ ℝ ⊂ ℂ are its principal subclasses."
+-msgstr "Un nombre mathématique : une quantité abstraite appartenant à un système de nombres déclaré. Chaque math:Number se situe dans un math:NumberSystem par math:inNumberSystem — un nombre sans système est mal formé — et déclare par math:isExact s’il est une valeur exacte ou la contrepartie abstraite qu’un math:ApproximateValue approche. Les cinq systèmes emboîtés ℕ ⊂ ℤ ⊂ ℚ ⊂ ℝ ⊂ ℂ correspondent à ses principales sous-classes."
++msgid "An abstract mathematical number with an identity in the graph. A number has one declared math:NumberSystem through math:inNumberSystem. Classes such as math:RationalNumber refine its classification, while named systems such as math:rationalNumbers are values of that property. Record exactness with math:isExact independently of any math:ApproximateValue that names the number as its target."
++msgstr "Un nombre mathématique abstrait doté d’une identité dans le graphe. Il possède un seul math:NumberSystem déclaré par math:inNumberSystem. Une classe telle que math:RationalNumber précise sa classification, et un système nommé tel que math:rationalNumbers constitue une valeur de cette propriété. Déclarer l’exactitude par math:isExact indépendamment de tout math:ApproximateValue qui désigne ce nombre comme sa cible."
+ 
+ msgctxt "https://blackcatinformatics.ca/math/Number|http://www.w3.org/2004/02/skos/core#scopeNote"
+ msgid "This class describes mathematical objects, not RDF numeric literals or the sets that contain numbers. Select a more specific number class when known; math:inNumberSystem names a system individual rather than a class."
+@@ -18447,6 +18447,62 @@ msgctxt "https://blackcatinformatics.ca/math/ConstantAsDecimalLiteral|https://bl
+ msgid "Read the reported component, path, value and source shape. Remove a direct math:quantityValue literal from the constant when present, retain math:isExact true, and keep any justified evaluation and numeric absolute error bound on a separate math:ApproximateValue. Repair the actual reported obligation without replacing the canonical constant identity."
+ msgstr "Lire le composant, le chemin, la valeur et la forme source signalés. Retirer de la constante tout littéral direct math:quantityValue présent, conserver math:isExact true et placer toute évaluation justifiée et sa borne numérique absolue d’erreur sur un math:ApproximateValue distinct. Corriger l’obligation effectivement signalée sans remplacer l’identité canonique de la constante."
+ 
++msgctxt "https://blackcatinformatics.ca/math/MathConformanceFailure|http://www.w3.org/2000/01/rdf-schema#label"
++msgid "Math Conformance Failure"
++msgstr "Défaut de conformité mathématique"
++
++msgctxt "https://blackcatinformatics.ca/math/MathConformanceFailure|http://www.w3.org/2004/02/skos/core#definition"
++msgid "The class of situations in which a mathematical well-formedness or preservation obligation is violated. Its subclasses identify kinds of failure that validation findings can report."
++msgstr "La classe des situations où une obligation de bonne formation ou de préservation mathématique est violée. Ses sous-classes identifient les types de défaillance que les constats de validation peuvent signaler."
++
++msgctxt "https://blackcatinformatics.ca/math/MathConformanceFailure|http://www.w3.org/2004/02/skos/core#scopeNote"
++msgid "Canonical logic axioms and constraints state the applicable obligations. A class IRI on a finding identifies the kind of situation observed. One class can cover several checks."
++msgstr "Les axiomes et les contraintes de la logique canonique énoncent les obligations applicables. L’IRI de classe d’un constat identifie le type de situation observée. Une même classe peut couvrir plusieurs contrôles."
++
++msgctxt "https://blackcatinformatics.ca/math/MathConformanceFailure|http://www.w3.org/2004/02/skos/core#example"
++msgid "A finding attributed to math:UnsituatedNumber identifies a number-system validation problem. Its path and constraint component show which part of the obligation failed."
++msgstr "Un constat attribué à math:UnsituatedNumber signale un problème de validation du système de nombres. Son chemin et son composant de contrainte indiquent quelle partie de l’obligation est violée."
++
++msgctxt "https://blackcatinformatics.ca/math/MathConformanceFailure|https://blackcatinformatics.ca/gmeow/useWhen"
++msgid "Use as a parent for a class that identifies a kind of violation of an authored mathematical obligation."
++msgstr "Utiliser comme classe parente d’une classe qui identifie un type de violation d’une obligation mathématique définie dans la source."
++
++msgctxt "https://blackcatinformatics.ca/math/MathConformanceFailure|https://blackcatinformatics.ca/gmeow/avoidWhen"
++msgid "Use the finding record for validation details. Establish numerical or empirical claims with evidence appropriate to those claims."
++msgstr "Consulter le constat pour les détails de validation. Étayer les affirmations numériques ou empiriques par des éléments de preuve adaptés."
++
++msgctxt "https://blackcatinformatics.ca/math/MathConformanceFailure|https://blackcatinformatics.ca/gmeow/howToUse"
++msgid "Choose the most specific failure class supported by the check. Keep the class IRI and the focus node, path, component, value and source shape when the finding provides them."
++msgstr "Choisir la classe de défaillance la plus précise établie par le contrôle. Conserver l’IRI de classe, ainsi que le nœud ciblé, le chemin, le composant, la valeur et la forme source lorsque le constat les fournit."
++
++msgctxt "https://blackcatinformatics.ca/math/UnsituatedNumber|http://www.w3.org/2000/01/rdf-schema#label"
++msgid "Unsituated Number"
++msgstr "Nombre sans système déclaré"
++
++msgctxt "https://blackcatinformatics.ca/math/UnsituatedNumber|http://www.w3.org/2004/02/skos/core#definition"
++msgid "A failure of the requirement for a math:Number to declare exactly one math:NumberSystem through math:inNumberSystem."
++msgstr "Un manquement à l’obligation pour un math:Number de déclarer exactement un math:NumberSystem par math:inNumberSystem."
++
++msgctxt "https://blackcatinformatics.ca/math/UnsituatedNumber|http://www.w3.org/2004/02/skos/core#scopeNote"
++msgid "The obligation on math:Number covers both the type of the system and the number of values. Admissible targets include the ordinary named system individuals and math:ExtendedRealLine. The mathematical context determines whether the chosen system describes the number."
++msgstr "L’obligation applicable à math:Number porte sur le type du système et sur le nombre de valeurs. Les cibles admissibles comprennent les individus des systèmes usuels nommés et math:ExtendedRealLine. Le contexte mathématique permet de déterminer si le système choisi décrit le nombre."
++
++msgctxt "https://blackcatinformatics.ca/math/UnsituatedNumber|http://www.w3.org/2004/02/skos/core#example"
++msgid "A math:RationalNumber marked math:isExact true with no math:inNumberSystem link illustrates a missing-system case. A valid declaration for the exact number one third links to math:rationalNumbers."
++msgstr "Un math:RationalNumber marqué math:isExact true et dépourvu de lien math:inNumberSystem illustre le cas d’un système manquant. Une déclaration valide du nombre exact un tiers pointe vers math:rationalNumbers."
++
++msgctxt "https://blackcatinformatics.ca/math/UnsituatedNumber|https://blackcatinformatics.ca/gmeow/useWhen"
++msgid "Use to interpret a finding attributed to the math:inNumberSystem requirement on math:Number."
++msgstr "Utiliser pour interpréter un constat attribué à l’obligation math:inNumberSystem sur math:Number."
++
++msgctxt "https://blackcatinformatics.ca/math/UnsituatedNumber|https://blackcatinformatics.ca/gmeow/avoidWhen"
++msgid "Use the reported component to investigate whether a system link is missing. Assess exactness and mathematical membership independently."
++msgstr "Examiner le composant signalé pour déterminer si un lien vers un système manque. Évaluer séparément l’exactitude et l’appartenance mathématique."
++
++msgctxt "https://blackcatinformatics.ca/math/UnsituatedNumber|https://blackcatinformatics.ca/gmeow/howToUse"
++msgid "Read the focus node, component, path, value and source shape for the reported problem. Repair the declaration so math:inNumberSystem points to one justified math:NumberSystem individual. Express containment between systems through math:subsystemOf."
++msgstr "Lire le nœud ciblé, le composant, le chemin, la valeur et la forme source associés au problème signalé. Corriger la déclaration pour que math:inNumberSystem pointe vers un seul individu math:NumberSystem dont le choix est justifié. Exprimer l’inclusion entre systèmes par math:subsystemOf."
++
+ msgctxt "https://blackcatinformatics.ca/gmeow/examples/math/tests/ecNumberSituated|https://blackcatinformatics.ca/gmeow/conformanceRationale"
+ msgid "The control declares a math:RationalNumber with math:isExact true and exactly one math:inNumberSystem value, math:rationalNumbers. The cell expects a conforming result from the generated validation surface."
+ msgstr "Le témoin déclare un math:RationalNumber avec math:isExact true et exactement une valeur de math:inNumberSystem, à savoir math:rationalNumbers. Le résultat attendu de la validation générée est la conformité."
+diff --git slices/grounding/math/i18n/zh.po slices/grounding/math/i18n/zh.po
+index a09ba9aa4..9e8956575 100644
+--- slices/grounding/math/i18n/zh.po
++++ slices/grounding/math/i18n/zh.po
+@@ -3674,8 +3674,8 @@ msgid "Number"
+ msgstr "数"
+ 
+ msgctxt "https://blackcatinformatics.ca/math/Number|http://www.w3.org/2004/02/skos/core#definition"
+-msgid "A mathematical number: an abstract quantity that lives in a declared number system. Every math:Number situates itself in a math:NumberSystem through math:inNumberSystem — an unsituated number is ill-formed — and declares through math:isExact whether it is an exact value or the abstract counterpart that a math:ApproximateValue approximates. The five nested systems ℕ ⊂ ℤ ⊂ ℚ ⊂ ℝ ⊂ ℂ are its principal subclasses."
+-msgstr "数学中的数：属于一个已声明数系的抽象量。每个 math:Number 都通过 math:inNumberSystem 将自身置于一个 math:NumberSystem 中；未指定数系的数不合规范。它还通过 math:isExact 声明自身是精确值，还是某个 math:ApproximateValue 所近似的抽象对应对象。五个嵌套数系 ℕ ⊂ ℤ ⊂ ℚ ⊂ ℝ ⊂ ℂ 对应其主要子类。"
++msgid "An abstract mathematical number with an identity in the graph. A number has one declared math:NumberSystem through math:inNumberSystem. Classes such as math:RationalNumber refine its classification, while named systems such as math:rationalNumbers are values of that property. Record exactness with math:isExact independently of any math:ApproximateValue that names the number as its target."
++msgstr "在图中具有明确身份的抽象数。每个数通过 math:inNumberSystem 声明一个 math:NumberSystem。math:RationalNumber 等类细化数的分类，math:rationalNumbers 等命名数系是该属性的值。用 math:isExact 记录精确性，这独立于是否有 math:ApproximateValue 将该数作为目标。"
+ 
+ msgctxt "https://blackcatinformatics.ca/math/Number|http://www.w3.org/2004/02/skos/core#scopeNote"
+ msgid "This class describes mathematical objects, not RDF numeric literals or the sets that contain numbers. Select a more specific number class when known; math:inNumberSystem names a system individual rather than a class."
+@@ -18447,6 +18447,62 @@ msgctxt "https://blackcatinformatics.ca/math/ConstantAsDecimalLiteral|https://bl
+ msgid "Read the reported component, path, value and source shape. Remove a direct math:quantityValue literal from the constant when present, retain math:isExact true, and keep any justified evaluation and numeric absolute error bound on a separate math:ApproximateValue. Repair the actual reported obligation without replacing the canonical constant identity."
+ msgstr "读取所报告的约束组件、路径、值和来源形状。若常数上存在直接的 math:quantityValue 字面量，则将其移除；保留 math:isExact true，并将任何有依据的求值结果及数值绝对误差界放在独立的 math:ApproximateValue 上。修复实际报告的义务，不要替换常数的规范身份。"
+ 
++msgctxt "https://blackcatinformatics.ca/math/MathConformanceFailure|http://www.w3.org/2000/01/rdf-schema#label"
++msgid "Math Conformance Failure"
++msgstr "数学规范违例"
++
++msgctxt "https://blackcatinformatics.ca/math/MathConformanceFailure|http://www.w3.org/2004/02/skos/core#definition"
++msgid "The class of situations in which a mathematical well-formedness or preservation obligation is violated. Its subclasses identify kinds of failure that validation findings can report."
++msgstr "数学良构义务或保持性义务遭到违反的情形所属的类。其子类指明验证发现可以报告的失败类型。"
++
++msgctxt "https://blackcatinformatics.ca/math/MathConformanceFailure|http://www.w3.org/2004/02/skos/core#scopeNote"
++msgid "Canonical logic axioms and constraints state the applicable obligations. A class IRI on a finding identifies the kind of situation observed. One class can cover several checks."
++msgstr "规范逻辑公理和约束规定适用的义务。验证发现中的类 IRI 指明观察到的情形属于哪一类。同一个类可以涵盖多项检查。"
++
++msgctxt "https://blackcatinformatics.ca/math/MathConformanceFailure|http://www.w3.org/2004/02/skos/core#example"
++msgid "A finding attributed to math:UnsituatedNumber identifies a number-system validation problem. Its path and constraint component show which part of the obligation failed."
++msgstr "归入 math:UnsituatedNumber 的发现表明数系验证存在问题。该发现的路径和约束组件指出义务的哪一部分未得到满足。"
++
++msgctxt "https://blackcatinformatics.ca/math/MathConformanceFailure|https://blackcatinformatics.ca/gmeow/useWhen"
++msgid "Use as a parent for a class that identifies a kind of violation of an authored mathematical obligation."
++msgstr "用作父类，其子类标识违反源中所声明数学义务的不同情形。"
++
++msgctxt "https://blackcatinformatics.ca/math/MathConformanceFailure|https://blackcatinformatics.ca/gmeow/avoidWhen"
++msgid "Use the finding record for validation details. Establish numerical or empirical claims with evidence appropriate to those claims."
++msgstr "从发现记录中读取验证细节。用适当的证据支持数值主张或经验主张。"
++
++msgctxt "https://blackcatinformatics.ca/math/MathConformanceFailure|https://blackcatinformatics.ca/gmeow/howToUse"
++msgid "Choose the most specific failure class supported by the check. Keep the class IRI and the focus node, path, component, value and source shape when the finding provides them."
++msgstr "选择检查结果所支持的最具体的失败类。保留类 IRI，并保留发现所提供的焦点节点、路径、组件、值和来源形状。"
++
++msgctxt "https://blackcatinformatics.ca/math/UnsituatedNumber|http://www.w3.org/2000/01/rdf-schema#label"
++msgid "Unsituated Number"
++msgstr "未指定数系的数"
++
++msgctxt "https://blackcatinformatics.ca/math/UnsituatedNumber|http://www.w3.org/2004/02/skos/core#definition"
++msgid "A failure of the requirement for a math:Number to declare exactly one math:NumberSystem through math:inNumberSystem."
++msgstr "未满足 math:Number 必须通过 math:inNumberSystem 声明恰好一个 math:NumberSystem 的要求。"
++
++msgctxt "https://blackcatinformatics.ca/math/UnsituatedNumber|http://www.w3.org/2004/02/skos/core#scopeNote"
++msgid "The obligation on math:Number covers both the type of the system and the number of values. Admissible targets include the ordinary named system individuals and math:ExtendedRealLine. The mathematical context determines whether the chosen system describes the number."
++msgstr "math:Number 上的义务同时涉及数系类型和值的数量。允许的目标包括通常的命名数系个体和 math:ExtendedRealLine。所选数系能否描述该数，取决于数学语境。"
++
++msgctxt "https://blackcatinformatics.ca/math/UnsituatedNumber|http://www.w3.org/2004/02/skos/core#example"
++msgid "A math:RationalNumber marked math:isExact true with no math:inNumberSystem link illustrates a missing-system case. A valid declaration for the exact number one third links to math:rationalNumbers."
++msgstr "一个标记为 math:isExact true 却缺少 math:inNumberSystem 链接的 math:RationalNumber 展示了缺少数系的情形。精确数三分之一的有效声明指向 math:rationalNumbers。"
++
++msgctxt "https://blackcatinformatics.ca/math/UnsituatedNumber|https://blackcatinformatics.ca/gmeow/useWhen"
++msgid "Use to interpret a finding attributed to the math:inNumberSystem requirement on math:Number."
++msgstr "用于解释归入 math:Number 上的 math:inNumberSystem 要求的验证发现。"
++
++msgctxt "https://blackcatinformatics.ca/math/UnsituatedNumber|https://blackcatinformatics.ca/gmeow/avoidWhen"
++msgid "Use the reported component to investigate whether a system link is missing. Assess exactness and mathematical membership independently."
++msgstr "根据报告的组件查看数系链接是否缺失。另行判断精确性和数学上的归属关系。"
++
++msgctxt "https://blackcatinformatics.ca/math/UnsituatedNumber|https://blackcatinformatics.ca/gmeow/howToUse"
++msgid "Read the focus node, component, path, value and source shape for the reported problem. Repair the declaration so math:inNumberSystem points to one justified math:NumberSystem individual. Express containment between systems through math:subsystemOf."
++msgstr "查看问题所涉及的焦点节点、组件、路径、值和来源形状。修正声明，使 math:inNumberSystem 指向一个有充分依据的 math:NumberSystem 个体。通过 math:subsystemOf 表达数系之间的包含关系。"
++
+ msgctxt "https://blackcatinformatics.ca/gmeow/examples/math/tests/ecNumberSituated|https://blackcatinformatics.ca/gmeow/conformanceRationale"
+ msgid "The control declares a math:RationalNumber with math:isExact true and exactly one math:inNumberSystem value, math:rationalNumbers. The cell expects a conforming result from the generated validation surface."
+ msgstr "对照样例声明了一个标记为 math:isExact true 的 math:RationalNumber，并为其声明了恰好一个 math:inNumberSystem 值，即 math:rationalNumbers。该单元预期生成的验证视图给出符合规范的结果。"
+diff --git slices/grounding/math/module.ttl slices/grounding/math/module.ttl
+index f06a02317..22c23d48a 100644
+--- slices/grounding/math/module.ttl
++++ slices/grounding/math/module.ttl
+@@ -191,7 +191,7 @@ math:Number
+     a logic:Class ;
+     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+     rdfs:label "Number"@x-gmeow-english ;
+-    skos:definition "A mathematical number: an abstract quantity that lives in a declared number system. Every math:Number situates itself in a math:NumberSystem through math:inNumberSystem — an unsituated number is ill-formed — and declares through math:isExact whether it is an exact value or the abstract counterpart that a math:ApproximateValue approximates. The five nested systems ℕ ⊂ ℤ ⊂ ℚ ⊂ ℝ ⊂ ℂ are its principal subclasses."@x-gmeow-english ;
++    skos:definition "An abstract mathematical number with an identity in the graph. A number has one declared math:NumberSystem through math:inNumberSystem. Classes such as math:RationalNumber refine its classification, while named systems such as math:rationalNumbers are values of that property. Record exactness with math:isExact independently of any math:ApproximateValue that names the number as its target."@x-gmeow-english ;
+     skos:scopeNote "This class describes mathematical objects, not RDF numeric literals or the sets that contain numbers. Select a more specific number class when known; math:inNumberSystem names a system individual rather than a class."@x-gmeow-english ;
+     skos:example "An identified object denoting five can be typed math:NaturalNumber, situated by math:inNumberSystem math:naturalNumbers, and marked math:isExact true; the literal 5 alone does not supply that object description."@x-gmeow-english ;
+     gmeow:useWhen "Use when a number needs an identity, a declared system and an explicit exactness statement in a mathematical graph."@x-gmeow-english ;
+@@ -1108,14 +1108,19 @@ math:NumberLiteral
+     skos:example "exf:oneLeaf a math:NumberLiteral ; math:literalValue exf:oneNumber ."@x-gmeow-english .
+ 
+ # =========================================================================== #
+-# Conformance-failure vocabulary (typed, queryable violation objects)
++# Conformance-failure vocabulary (failure situations reported by findings)
+ # =========================================================================== #
+ 
+ math:MathConformanceFailure
+     a logic:Class ;
+     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+     rdfs:label "Math Conformance Failure"@x-gmeow-english ;
+-    skos:definition "The parent of the math: well-formedness failure vocabulary: a violation is itself a typed, queryable object rather than a log line. Each subclass names one bedrock hard rule, and the SHACL shape enforcing that rule points at its failure class through gmeow:enforcesFailureClass. Conformance enforces well-formedness and preservation, never mathematical or empirical truth."@x-gmeow-english ;
++    skos:definition "The class of situations in which a mathematical well-formedness or preservation obligation is violated. Its subclasses identify kinds of failure that validation findings can report."@x-gmeow-english ;
++    skos:scopeNote "Canonical logic axioms and constraints state the applicable obligations. A class IRI on a finding identifies the kind of situation observed. One class can cover several checks."@x-gmeow-english ;
++    skos:example "A finding attributed to math:UnsituatedNumber identifies a number-system validation problem. Its path and constraint component show which part of the obligation failed."@x-gmeow-english ;
++    gmeow:useWhen "Use as a parent for a class that identifies a kind of violation of an authored mathematical obligation."@x-gmeow-english ;
++    gmeow:avoidWhen "Use the finding record for validation details. Establish numerical or empirical claims with evidence appropriate to those claims."@x-gmeow-english ;
++    gmeow:howToUse "Choose the most specific failure class supported by the check. Keep the class IRI and the focus node, path, component, value and source shape when the finding provides them."@x-gmeow-english ;
+     gmeow:graphBoxRole gmeow:boxTBox .
+ 
+ math:UnsituatedNumber
+@@ -1123,7 +1128,12 @@ math:UnsituatedNumber
+     rdfs:subClassOf math:MathConformanceFailure ;
+     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+     rdfs:label "Unsituated Number"@x-gmeow-english ;
+-    skos:definition "The failure raised when a math:Number does not declare the math:NumberSystem it belongs to. Every number situates itself in ℕ, ℤ, ℚ, ℝ, or ℂ; an unsituated number is ill-formed."@x-gmeow-english ;
++    skos:definition "A failure of the requirement for a math:Number to declare exactly one math:NumberSystem through math:inNumberSystem."@x-gmeow-english ;
++    skos:scopeNote "The obligation on math:Number covers both the type of the system and the number of values. Admissible targets include the ordinary named system individuals and math:ExtendedRealLine. The mathematical context determines whether the chosen system describes the number."@x-gmeow-english ;
++    skos:example "A math:RationalNumber marked math:isExact true with no math:inNumberSystem link illustrates a missing-system case. A valid declaration for the exact number one third links to math:rationalNumbers."@x-gmeow-english ;
++    gmeow:useWhen "Use to interpret a finding attributed to the math:inNumberSystem requirement on math:Number."@x-gmeow-english ;
++    gmeow:avoidWhen "Use the reported component to investigate whether a system link is missing. Assess exactness and mathematical membership independently."@x-gmeow-english ;
++    gmeow:howToUse "Read the focus node, component, path, value and source shape for the reported problem. Repair the declaration so math:inNumberSystem points to one justified math:NumberSystem individual. Express containment between systems through math:subsystemOf."@x-gmeow-english ;
+     gmeow:graphBoxRole gmeow:boxTBox .
+ 
+ math:ExactApproximateConflation
+diff --git slices/grounding/math/tests/counter-examples/number-missing-system.ttl slices/grounding/math/tests/counter-examples/number-missing-system.ttl
+index 44abbbda2..1cf299f24 100644
+--- slices/grounding/math/tests/counter-examples/number-missing-system.ttl
++++ slices/grounding/math/tests/counter-examples/number-missing-system.ttl
+@@ -1,10 +1,10 @@
+ # SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+ # SPDX-License-Identifier: CC-BY-4.0
+ #
+-# Counter-example for math:NumberSituatedShape: a math:Number with no
+-# math:inNumberSystem. sh:minCount 1, so validation MUST emit
+-# shacl.MinCountConstraintComponent (and no other finding).
+-# Bound by tests/example-conformance.ttl (ex:ecNumberMissingSystem).
++# This rational number declares exactness and omits its math:inNumberSystem
++# link. The ex:ecNumberMissingSystem cell checks for at least one
++# math:UnsituatedNumber finding and rejects findings outside that class in
++# the class-isolation channels.
+ @prefix math: <https://blackcatinformatics.ca/math/> .
+ @prefix logic: <https://blackcatinformatics.ca/logic/> .
+ @prefix xsd:  <http://www.w3.org/2001/XMLSchema#> .
+diff --git slices/grounding/math/tests/example-conformance.ttl slices/grounding/math/tests/example-conformance.ttl
+index 03ca10cc2..f02c869c1 100644
+--- slices/grounding/math/tests/example-conformance.ttl
++++ slices/grounding/math/tests/example-conformance.ttl
+@@ -1,40 +1,27 @@
+ # SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+ # SPDX-License-Identifier: CC-BY-4.0
+ #
+-# Declarative example-conformance fixtures for the mathematics slice — the test-DSL
+-# twin of the slice's validation surface ("this instance must validate, that
+-# counter-example must be rejected"). The slice's legacy shapes.ttl is retired: the
+-# harness (crates/slicetest run_conformance_cell) validates mathematics/module.ttl +
+-# the one bound gmeow:exampleFile against the canonical generated projections
+-# (generated/shapes/{validation-shapes,constraint-shapes,procedural-constraints}.ttl)
+-# and compares finding codes.
++# Declarative example-conformance fixtures for the mathematics slice. The
++# slicetest harness checks the bound gmeow:exampleFile with the slice module
++# and its generated validation shapes.
+ #
+-# Every counter-example cell pins the law it tests by IRI with
+-# gmeow:expectedSourceShape, so a fixture that reds a DIFFERENT rule of the same
+-# component no longer passes. The conforming fixtures live under tests/conformance-fixtures/
+-# and the counter-examples under tests/counter-examples/, so the global
+-# `make validate` gate never loads the intentional violations as data.
++# A cell declaring gmeow:expectedFailureClass selects class isolation. Its
++# findings are drawn from SHACL violations, native expression errors,
++# structural lint errors and dimension markers, with module baselines removed
++# from structural lint and dimension findings. At least one finding must
++# match the declared class, and every finding counted by those channels must
++# match it. Multiple findings of that class are allowed. Component, source
++# shape and sole-origin fields are evaluated in the separate component branch.
+ #
+-# WHICH CELLS MAY CLAIM SOLENESS, AND WHY THE REST MAY NOT.
+-# Every counter-example here used to say "and NO other finding". Measured against the
+-# harness, 92 of the 111 are true and now declare gmeow:expectedSoleFinding, which the
+-# harness enforces: their whole violation-severity report comes from the pinned shape.
+-# The other 19 are false, each rationale now enumerates the shapes it actually trips,
+-# and the causes are two, neither of them "the fixture tests two things":
++# A component-based cell requires a matching gmeow:expectedViolationCode.
++# When gmeow:expectedSourceShape is also present, a matching finding must
++# originate at the named shape or at a property shape with that unique owner.
++# With gmeow:expectedSoleFinding true, all violation-severity results must
++# originate there. Several results from that source can satisfy the cell.
+ #
+-#  1. DOUBLE AUTHORITY over the same rule. A handful of math: rules are authored BOTH as
+-#     an EL-safe OWL restriction (projected to the derived math:<Class>-shape) and as a
+-#     logic:Constraint (projected to math:…ProceduralConstraintShape). One defect is then
+-#     reported by two sh:sourceShapes, and soleness counts authorities, not defects.
+-#     Retiring either authoring for those rules makes the cells sole-declarable.
+-#  2. SUPERCLASS/CARRIER CLASS SHAPES. A math:Derivative is also a math:BindingExpression,
+-#     so a missing bound variable is reported at both class shapes; likewise a
+-#     math:ConfidenceInterval inside a math:FrequentistResult.
+-#
+-# NOTE ON SHAPE NAMES IN PROSE. Several rationales below still name the slice's RETIRED
+-# hand-authored shapes (math:NumberSituatedShape and friends) when describing which rule
+-# a fixture breaks. Those names no longer denote a shipped shape; the live shape each
+-# cell must red is the one its gmeow:expectedSourceShape binds.
++# Conforming fixtures live under tests/conformance-fixtures/ and
++# counter-examples under tests/counter-examples/. The global validation gate
++# excludes the intentional counter-examples from its data.
+ 
+ @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+ @prefix math:  <https://blackcatinformatics.ca/math/> .
