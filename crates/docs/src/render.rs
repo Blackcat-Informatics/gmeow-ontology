@@ -1016,6 +1016,8 @@ fn synthesize_class_quickstart(model: &DocsModel, term: &DocTerm) -> String {
 /// term when one is declared, else a placeholder literal).
 fn synthesize_property_quickstart(model: &DocsModel, term: &DocTerm) -> String {
     let subject_type = match term.domain.first() {
+        // Expand language-vocabulary domains for the shared Turtle parser.
+        Some(d) if d.starts_with(gmeow_ns::LANG_NS) => format!("<{d}>"),
         Some(d) => quickstart_label(model, d),
         None => "owl:Thing".to_string(),
     };

@@ -690,11 +690,11 @@ pub fn render_docs_graph(
     let mut model =
         DocsModel::discover_with_manifest_and_catalog(root, manifest_bytes, &catalog_bytes)
             .map_err(|e| {
-                gmeow_errors::Diag::of_kind(crate::error::StageFailed {
-                    cause: None,
-                    stage: "stage-docs-render".to_string(),
-                    message: format!("docs model discovery failed: {e}"),
-                })
+                gmeow_errors::Diag::of_kind(crate::error::StageFailed::caused_by(
+                    "stage-docs-render".to_owned(),
+                    format!("docs model discovery failed: {e}"),
+                    e,
+                ))
             })?;
     model.attach_reasoning(verdict);
     let known_term_iris: BTreeSet<String> = model.terms.iter().map(|t| t.iri.clone()).collect();

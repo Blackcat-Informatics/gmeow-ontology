@@ -103,7 +103,7 @@ pub fn build_corpus(root: &std::path::Path) -> Result<LangDocsRenderingCorpus, g
         &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None),
     )?;
     let ownership = purrdf::slice::OwnershipAnalyzer::new(&catalog).analyze()?;
-    let pages = gmeow_docs::model::documented_term_iris(&catalog, &ownership);
+    let pages = gmeow_docs::model::documented_term_iris(&catalog, &ownership)?;
     let sources = gmeow_docs::ontology_catalogs::for_repository(root, &catalog)?;
     build_corpus_from_sources(&sources, &pages)
 }
