@@ -661,7 +661,6 @@ impl TheorySelection {
     }
 
     /// Explicit roots, in deterministic IRI order; imports require source resolution.
-    #[must_use]
     pub fn module_roots(&self) -> impl Iterator<Item = &ModuleIri> {
         match &self.composition {
             TheoryComposition::TopLevelOnly => None,

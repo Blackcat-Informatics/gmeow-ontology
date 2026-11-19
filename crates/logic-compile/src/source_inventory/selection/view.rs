@@ -157,7 +157,6 @@ impl SelectedProgramView<'_, '_> {
         })
     }
 
-    #[must_use]
     pub fn axioms(&self) -> impl Iterator<Item = (usize, &LogicAxiom)> {
         self.inventory
             .theory()
@@ -168,7 +167,6 @@ impl SelectedProgramView<'_, '_> {
             .filter(|(index, _)| self.selection.0.index.axioms[*index])
     }
 
-    #[must_use]
     pub fn rules(&self) -> impl Iterator<Item = (usize, &LogicRule)> {
         self.inventory
             .theory()
@@ -179,7 +177,6 @@ impl SelectedProgramView<'_, '_> {
             .filter(|(index, _)| self.selection.0.index.rules[*index])
     }
 
-    #[must_use]
     pub fn formulas(&self) -> impl Iterator<Item = (usize, &Formula)> {
         self.inventory
             .theory()
@@ -191,7 +188,6 @@ impl SelectedProgramView<'_, '_> {
     }
 
     /// Every admitted source occurrence survives shared-AST deduplication.
-    #[must_use]
     pub fn formula_lowerings(&self) -> impl Iterator<Item = (usize, &FormulaLowering)> {
         self.inventory
             .theory()
@@ -202,7 +198,6 @@ impl SelectedProgramView<'_, '_> {
     }
 
     /// Admitted contributors only, retaining their original axiom coordinate.
-    #[must_use]
     pub fn axiom_sources(&self) -> impl Iterator<Item = (usize, &AxiomSource)> {
         self.inventory
             .theory()
