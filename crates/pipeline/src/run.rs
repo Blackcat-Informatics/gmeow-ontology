@@ -622,11 +622,8 @@ pub fn run_full_scoped_with_progress(
         .chain(std::iter::once(terminal_product))
     {
         for (path, bytes) in product.artifact_refs()? {
-            // Internal in-memory dataflow artifacts (under the `pipeline/` logical
-            // prefix: base-graph.nq, composed.nq, documentation.nq) are NOT
-            // committed outputs — they exist only to pass between stages. Skip.
-            // ONE constant with the scheduler's carrier release, which drops exactly
-            // these once their last declared consumer has run.
+            // Reconcile committed outputs. Carrier release uses the same prefix
+            // to identify internal paths.
             if path.starts_with(crate::bundle::INTERNAL_ARTIFACT_PREFIX) {
                 continue;
             }

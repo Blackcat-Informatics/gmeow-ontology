@@ -142,13 +142,10 @@ impl PipelineHandle {
 const ARTIFACT_KIND: RdfLookasideKind = RdfLookasideKind::Blob;
 
 /// The logical-path prefix marking an INTERNAL dataflow artifact: bytes that exist
-/// only to travel from one stage to its declared consumers (`pipeline/base-graph.nq`,
-/// `pipeline/documentation.nq`, …). They are NOT
-/// committed outputs — [`crate::run::run_full`]'s reconcile skips them — and they are
-/// the LARGEST entries on the byte-artifact lane (whole-dataset N-Quads serializations),
-/// so [`release_carrier`] drops exactly these once the producing stage's last declared
-/// consumer has run. ONE constant, read by both the reconcile and the release, so the
-/// two cannot drift into disagreeing about what "internal" means.
+/// only to travel from one stage to its declared consumers, such as
+/// `pipeline/base-graph.nq`. Output reconciliation skips these paths.
+/// [`release_carrier`] preserves the internal paths in the scheduler's declared
+/// reader set. Both operations use this prefix to identify internal paths.
 pub const INTERNAL_ARTIFACT_PREFIX: &str = "pipeline/";
 
 /// Rebuild `bundle` retaining ONLY its COMMITTED byte-artifact-lane entries (every lane

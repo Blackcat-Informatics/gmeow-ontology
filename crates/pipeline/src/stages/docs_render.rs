@@ -1,13 +1,9 @@
 // SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 // SPDX-License-Identifier: AGPL-3.0-only
 
-//! The `docs_render` stage: the typed documentation model as data.
-//!
-//! Pure WIRING of the Rust docs crate — no port. It discovers the
-//! `gmeow_docs::DocsModel` from the slice catalog and projects it to the
-//! self-hosting documentation named graph via `gmeow_docs::to_gmeow_rdf` — the
-//! exact N-Quads the Python `DocSet.to_gmeow_rdf()` folds into `gmeow.gts`. The
-//! rendered HTML/Markdown site blobs (`render_site`) are folded by `gts_sink`.
+//! Project the typed slice documentation model into `graph/documentation`.
+//! The renderer's N-Quads are a transient input to native parsing. Snapshot
+//! reads the frozen documentation graph from this stage's dataset.
 
 use std::collections::{BTreeMap, BTreeSet};
 use std::path::Path;
@@ -20,9 +16,6 @@ use gmeow_docs::rdf::to_gmeow_rdf;
 use purrdf::RdfTerm;
 
 use crate::node::{CachePolicy, Stage, StageInput, StageOutput, StageProduct};
-
-/// Logical path of the documentation named graph (N-Quads, in-memory dataflow).
-pub const DOCS_GRAPH_PATH: &str = "pipeline/documentation.nq";
 
 const RDF_TYPE: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
 
@@ -1012,8 +1005,7 @@ impl Stage for DocsRenderStage {
         crate::stages::attach::blob_reps(self.id())
     }
     fn cache_policy(&self) -> CachePolicy {
-        // Measured contribution: 241.6 MB serialized for a ~6.1 s rebuild. Hydration
-        // cannot amortize the disk/RSS cost, so the typed DAG keeps it recompute-only.
+        // Recompute the aggregate documentation graph for each run that selects it.
         CachePolicy::Recompute
     }
     fn impl_version(&self) -> &str {
@@ -1042,33 +1034,27 @@ impl Stage for DocsRenderStage {
         // v6: adds `term_loss_digest_from_upstream`, folding the dynamic per-term
         // projection-loss join from the `stage-mappings` product's live
         // `GRAPH_PROJECTION_LEDGER` graph.
-        "docs_render.v15-creator-source-statements"
+        "docs_render.v16-native-documentation-graph"
     }
     fn input_files(&self, root: &Path) -> Result<Vec<std::path::PathBuf>, gmeow_errors::Diag> {
-        // The raw-source half of this DocsRender leaf — declared so a guide /
-        // four-boxes / per-slice i18n catalog edit busts the cache (cache soundness).
-        // The snapshot stage embeds the rendered SITE from these same sources,
-        // so it shares this list via `docs_source_files`.
+        // Guides, four-boxes patterns and locale catalogs contribute to the graph
+        // and belong in the stage's action identity.
         docs_source_files(root)
     }
     fn run(&self, input: StageInput<'_>) -> Result<StageOutput, gmeow_errors::Diag> {
         let verdict = reasoning_verdict_from_reason(input.upstream)?;
-        let graph = render_docs_graph(input.root, verdict, input.upstream)?;
-        let graph_bytes = graph.into_bytes();
-        // Attach the documentation projection as the carrier's `graph/documentation`
-        // named graph so the presenter reads it as a pure keyed fold (PIPELINE_SPINE §4),
-        // never re-parses the byte artifact. The byte lane is kept for the byte readers.
-        let dataset = crate::stages::carrier::parse_into_graph(
-            &graph_bytes,
-            "application/n-quads",
-            crate::stages::carrier::GRAPH_DOCUMENTATION,
-        )?;
-        let mut artifacts: BTreeMap<String, Vec<u8>> = BTreeMap::new();
-        artifacts.insert(DOCS_GRAPH_PATH.to_string(), graph_bytes);
+        let dataset = {
+            let graph = render_docs_graph(input.root, verdict, input.upstream)?;
+            crate::stages::carrier::parse_into_graph(
+                graph.as_bytes(),
+                "application/n-quads",
+                crate::stages::carrier::GRAPH_DOCUMENTATION,
+            )?
+        };
         Ok(StageOutput::new(StageProduct::from_artifacts_over(
             self.id(),
             dataset,
-            artifacts,
+            BTreeMap::new(),
         )?))
     }
 }
