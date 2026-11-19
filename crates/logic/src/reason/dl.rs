@@ -1018,30 +1018,30 @@ pub(crate) fn source_execution_requires_admission(
     if family.is_characteristic() {
         return predicate == CHARACTERISTIC_SORT;
     }
-    match family {
+    matches!(
+        family,
         F::AllValuesFrom
-        | F::SomeValuesFrom
-        | F::HasValue
-        | F::HasSelf
-        | F::Cardinality
-        | F::MinCardinality
-        | F::MaxCardinality
-        | F::QualifiedCardinality
-        | F::MinQualifiedCardinality
-        | F::MaxQualifiedCardinality
-        | F::PropertyChainAxiom
-        | F::HasKey
-        | F::NegativePropertyAssertion
-        | F::AllDifferent
-        | F::AllDisjointClasses
-        | F::AllDisjointProperties
-        | F::UnionOf
-        | F::IntersectionOf
-        | F::OneOf
-        | F::DisjointUnionOf
-        | F::WithRestrictions => true,
-        _ => false,
-    }
+            | F::SomeValuesFrom
+            | F::HasValue
+            | F::HasSelf
+            | F::Cardinality
+            | F::MinCardinality
+            | F::MaxCardinality
+            | F::QualifiedCardinality
+            | F::MinQualifiedCardinality
+            | F::MaxQualifiedCardinality
+            | F::PropertyChainAxiom
+            | F::HasKey
+            | F::NegativePropertyAssertion
+            | F::AllDifferent
+            | F::AllDisjointClasses
+            | F::AllDisjointProperties
+            | F::UnionOf
+            | F::IntersectionOf
+            | F::OneOf
+            | F::DisjointUnionOf
+            | F::WithRestrictions
+    )
 }
 
 /// Validate a selected atom's native operand roles without waiting for other
