@@ -94,7 +94,8 @@ Stage kinds (source-load, transform, reason, validate, docs-render) differ only 
 deliver by attaching to the carrier.
 
 `stage-docs-render` publishes `graph/documentation` in its frozen dataset.
-It releases the serialized rendering when native parsing finishes. Snapshot
+The documentation projector appends each row and its shared A-Box annotations
+to one N-Quads buffer and releases that text after native parsing. Snapshot
 selects the named graph through the declared dataset edge.
 
 `stage-parse-sources` owns the original native root, module and import document
@@ -192,6 +193,9 @@ rediscovering the slice catalog or reconstructing authority from the graph.
 Mappings binds every physical slice-admission input into its action key; its full
 source slice catalog stays local to the lowering invocation. Persistent restoration
 authenticates the complete native catalog and graph binding without source reads.
+Mappings releases the raw projection report after emitting canonical Turtle.
+The ordered RDF union owns its dataset, so its input datasets are released
+before handle commitment and product digesting.
 
 Compiler carrier assembly places the existing canonical, relational-core and
 correspondence datasets through one composite view and materializes the final
@@ -201,6 +205,10 @@ declaration; an IRI used as a provenance value remains that value. Independent
 input blank scopes remain distinct. These producer inputs carry locations in their
 RDF and report payloads; unexpected physical row-location attachments fail admission
 before publication. Diagnostics retain their selected graph placement.
+
+Snapshot assembly uses the native documentation dataset as an independently
+scoped source. It checks that the documentation graph is the sole declaration
+and owns every ordinary statement, reifier and annotation before placing it.
 
 Snapshot assembly derives finding verdicts over the composed resident sources, then
 assesses coherence over a second read-only view with those verdicts appended. The
@@ -525,9 +533,11 @@ bespoke generator at fanout time; an output that cannot be produced by extractio
 alone signals a §5 violation upstream, not a need for computation downstream.
 
 Snapshot borrows the committed projection report from `stage-mappings` and
-parses it once in sorted artifact order. The resulting named fanout graph
-reconstructs `generated/logic/projection-report.ttl`. The native projection
-ledger retains its own graph for pipeline consumers.
+parses it once in sorted artifact order. It verifies the exact parsed RDF
+terms and row count against the required native ledger, then releases the
+temporary dataset. Both placements share the native graph selection. The
+ledger graph serves pipeline consumers, and the fanout graph reconstructs
+`generated/logic/projection-report.ttl`.
 Snapshot also borrows the other committed RDF fanout artifacts through parsing.
 The sorted reconstruction map holds references to the producer byte lanes.
 

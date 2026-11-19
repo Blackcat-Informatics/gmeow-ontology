@@ -112,6 +112,8 @@ pub enum TestFixtureScope {
     All,
     ProducerIndependent,
     ProducerBound,
+    /// Complete documentation fixtures from the authenticated catalog stages.
+    Docs,
     Bundle,
     /// Exhaustive native divergence evidence, produced separately from required fixtures.
     ConformanceHeavy,

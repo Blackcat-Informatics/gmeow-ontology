@@ -24,6 +24,10 @@ use crate::error::{
     CatalogInconsistent, FileIo, PoParse, RdfFormat, RdfParse, TurtleUnescape, UnsupportedSource,
 };
 use crate::i18n::translation_integrity_issue;
+use crate::model::conformance::{
+    RATIONALE, conformance_registry_files, english_rationales, is_registry,
+};
+use crate::store::Store;
 
 const ENGLISH_TAG: &str = "x-gmeow-english";
 use gmeow_ns::GMEOW_NS;
@@ -109,7 +113,7 @@ impl I18nLintReport {
     }
 }
 
-fn at_source(diag: Diag, path: &Path) -> Diag {
+pub(crate) fn at_source(diag: Diag, path: &Path) -> Diag {
     let mut location = diag.inner().source_ctx.location.clone();
     location.path = Some(path.to_string_lossy().into_owned());
     diag.with_location(location)
@@ -450,6 +454,11 @@ pub fn parse_po(text: &str, require_msgctxt: bool) -> Result<Vec<PoEntry>> {
     Ok(entries)
 }
 
+/// Read and normalize the gettext language header.
+///
+/// # Errors
+///
+/// Reports malformed catalog syntax.
 pub fn language_from_po(text: &str) -> Result<Option<String>> {
     for entry in parse_po(text, false)? {
         if entry.msgid.is_empty() {
@@ -457,7 +466,7 @@ pub fn language_from_po(text: &str) -> Result<Option<String>> {
                 if let Some(rest) = line.trim().strip_prefix("Language:") {
                     let code = rest.trim();
                     if !code.is_empty() {
-                        return Ok(Some(code.to_owned()));
+                        return Ok(Some(code.to_ascii_lowercase()));
                     }
                 }
             }
@@ -809,6 +818,45 @@ fn current_english_values_from_rows(
     values
 }
 
+type FixtureSourceValues = BTreeMap<PathBuf, BTreeMap<String, BTreeSet<String>>>;
+
+fn fixture_source_values(root: &Path) -> Result<FixtureSourceValues> {
+    let mut values = FixtureSourceValues::new();
+    for registry in conformance_registry_files(root)? {
+        let bytes = fs::read(&registry)
+            .map_err(|error| source_io_error(&registry, "read conformance registry", error))?;
+        let store =
+            Store::parse_turtle(&bytes).map_err(|error| at_source(error.into(), &registry))?;
+        // `registry` always ends in the canonical two-part registry path.
+        let slice = registry.ancestors().nth(2).ok_or_else(|| {
+            Diag::of_kind(CatalogInconsistent {
+                detail: format!("{} has no owning slice", registry.display()),
+            })
+        })?;
+        let cells = values.entry(slice.to_path_buf()).or_default();
+        for (cell, english) in
+            english_rationales(&store).map_err(|error| at_source(error.into(), &registry))?
+        {
+            cells.entry(cell).or_default().insert(english);
+        }
+    }
+    Ok(values)
+}
+
+fn matches_fixture_source(
+    values: &FixtureSourceValues,
+    catalog: &Path,
+    cell: &str,
+    english: &str,
+) -> bool {
+    catalog
+        .ancestors()
+        .nth(2)
+        .and_then(|slice| values.get(slice))
+        .and_then(|cells| cells.get(cell))
+        .is_some_and(|sources| sources.contains(english))
+}
+
 pub fn lint_po_files(root: &Path, max_fuzzy_ratio: f64) -> I18nLintReport {
     let mut report = I18nLintReport::default();
     // ONE parse of the authored Turtle corpus, three projections of it. The three used to
@@ -822,6 +870,13 @@ pub fn lint_po_files(root: &Path, max_fuzzy_ratio: f64) -> I18nLintReport {
     };
     let tag_map = bcp47_to_internal_map_from_rows(&authored);
     let current = current_english_values_from_rows(&authored);
+    let fixtures = match fixture_source_values(root) {
+        Ok(values) => values,
+        Err(error) => {
+            report.record(error);
+            return report;
+        }
+    };
     // Ontology-resident escape for the glossary-consistency check: English sources
     // explicitly declared homographs (distinct senses that legitimately render
     // differently). Read from authored TTL only.
@@ -848,7 +903,7 @@ pub fn lint_po_files(root: &Path, max_fuzzy_ratio: f64) -> I18nLintReport {
             }
         };
         let language = match language_from_po(&text) {
-            Ok(Some(lang)) => lang.to_ascii_lowercase(),
+            Ok(Some(lang)) => lang,
             Ok(None) => {
                 report.observe(
                     &path,
@@ -930,6 +985,18 @@ pub fn lint_po_files(root: &Path, max_fuzzy_ratio: f64) -> I18nLintReport {
             }
             let (term, predicate) = entry.msgctxt.split_once('|').unwrap();
             let predicate = expand_predicate(predicate);
+            if predicate == RATIONALE {
+                if !matches_fixture_source(&fixtures, &path, term, &entry.msgid) {
+                    report.observe(
+                        &path,
+                        "fixture-source-mismatch",
+                        &[&entry.msgctxt, &entry.msgid],
+                        Severity::Error,
+                        format!("{rel}: rationale {:?} has no exact English source in the owning slice's conformance registry", entry.msgctxt),
+                    );
+                }
+                continue;
+            }
             let key = (term.to_owned(), predicate.clone());
             match current.get(&key) {
                 None => report.observe(&path, "orphaned-entry", &[&entry.msgctxt, &entry.msgid], Severity::Warning, format!(
@@ -1018,12 +1085,7 @@ fn slice_group_name(root: &Path, slice_dir: &Path) -> (String, String) {
     rel.unwrap_or_else(|| ("_core".to_owned(), "_".to_owned()))
 }
 
-fn collect_slice_terms(root: &Path) -> Result<BTreeMap<String, Vec<TranslationKey>>> {
-    let catalog = SliceCatalog::discover(
-        &root.join("slices"),
-        gmeow_ns::gmeow_slice_vocab(),
-        &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None),
-    )?;
+fn collect_slice_terms(catalog: &SliceCatalog) -> Result<BTreeMap<String, Vec<TranslationKey>>> {
     let localizable: HashSet<&str> = LOCALIZABLE_PREDICATES.iter().copied().collect();
     let mut groups: BTreeMap<String, BTreeMap<(String, String), TranslationKey>> = BTreeMap::new();
     let mut english_seen: BTreeMap<(String, String, String), BTreeSet<String>> = BTreeMap::new();
@@ -1083,10 +1145,38 @@ fn collect_slice_terms(root: &Path) -> Result<BTreeMap<String, Vec<TranslationKe
         }
     }
 
-    Ok(groups
+    let mut groups: BTreeMap<String, Vec<TranslationKey>> = groups
         .into_iter()
         .map(|(slice, entries)| (slice, entries.into_values().collect()))
-        .collect())
+        .collect();
+    for record in catalog.records() {
+        let slice = &record.manifest.slice_iri;
+        for artifact in record
+            .artifacts
+            .iter()
+            .filter(|artifact| is_registry(artifact))
+        {
+            let path = record.slice_dir.join(&artifact.logical_path);
+            let store = Store::parse_turtle(&artifact.content)
+                .map_err(|error| at_source(error.into(), &path))?;
+            let sources =
+                english_rationales(&store).map_err(|error| at_source(error.into(), &path))?;
+            groups
+                .entry(slice.clone())
+                .or_default()
+                .extend(
+                    sources
+                        .into_iter()
+                        .map(|(term_iri, english_value)| TranslationKey {
+                            slice_iri: slice.clone(),
+                            term_iri,
+                            predicate: RATIONALE.to_owned(),
+                            english_value,
+                        }),
+                );
+        }
+    }
+    Ok(groups)
 }
 
 pub fn extract_catalog(
@@ -1110,7 +1200,7 @@ pub fn extract_catalog(
             )
         })
         .collect();
-    let groups = collect_slice_terms(root)?;
+    let groups = collect_slice_terms(&catalog)?;
     let mut total_keys = 0usize;
     for (slice_iri, keys) in &groups {
         total_keys += keys.len();
@@ -1403,14 +1493,14 @@ pub fn merge_terms(root: &Path, output: Option<&Path>, lang: Option<&str>) -> Re
     let authored = authored_literal_rows(root)?;
     let tag_map = bcp47_to_internal_map_from_rows(&authored);
     let base_values = current_english_values_from_rows(&authored);
+    let fixtures = fixture_source_values(root)?;
+    let mut fixture_targets = BTreeMap::new();
     let mut added = 0usize;
     let mut text = String::new();
     let mut po_count = 0usize;
     for path in collect_po_paths(root)? {
         let po_text = fs::read_to_string(&path)?;
-        let language = language_from_po(&po_text)?
-            .unwrap_or_default()
-            .to_ascii_lowercase();
+        let language = language_from_po(&po_text)?.unwrap_or_default();
         if lang.is_some_and(|wanted| wanted.to_ascii_lowercase() != language) {
             continue;
         }
@@ -1427,6 +1517,36 @@ pub fn merge_terms(root: &Path, output: Option<&Path>, lang: Option<&str>) -> Re
             if entry.msgstr.is_empty() {
                 continue;
             }
+            let Some((term, predicate)) = entry.msgctxt.split_once('|') else {
+                return Err(Diag::of_kind(CatalogInconsistent {
+                    detail: format!("{}: invalid msgctxt {:?}", path.display(), entry.msgctxt),
+                }));
+            };
+            let predicate = expand_predicate(predicate);
+            let is_rationale = predicate == RATIONALE;
+            if is_rationale {
+                if !matches_fixture_source(&fixtures, &path, term, &entry.msgid) {
+                    return Err(Diag::of_kind(CatalogInconsistent {
+                        detail: format!(
+                            "{}: rationale {:?} has no exact English source in the owning slice's conformance registry",
+                            path.display(),
+                            entry.msgctxt
+                        ),
+                    }));
+                }
+                if entry.fuzzy {
+                    continue;
+                }
+            } else if !base_values.contains_key(&(term.to_owned(), predicate.clone())) {
+                return Err(Diag::of_kind(CatalogInconsistent {
+                    detail: format!(
+                        "{}: unknown term/predicate {} {}",
+                        path.display(),
+                        term,
+                        predicate
+                    ),
+                }));
+            }
             if let Some(reason) =
                 translation_integrity_issue(&language, &entry.msgid, &entry.msgstr)
             {
@@ -1438,21 +1558,26 @@ pub fn merge_terms(root: &Path, output: Option<&Path>, lang: Option<&str>) -> Re
                     ),
                 }));
             }
-            let Some((term, predicate)) = entry.msgctxt.split_once('|') else {
-                return Err(Diag::of_kind(CatalogInconsistent {
-                    detail: format!("{}: invalid msgctxt {:?}", path.display(), entry.msgctxt),
-                }));
-            };
-            let predicate = expand_predicate(predicate);
-            if !base_values.contains_key(&(term.to_owned(), predicate.clone())) {
-                return Err(Diag::of_kind(CatalogInconsistent {
-                    detail: format!(
-                        "{}: unknown term/predicate {} {}",
-                        path.display(),
-                        term,
-                        predicate
-                    ),
-                }));
+            if is_rationale {
+                let key = (
+                    path.ancestors().nth(2).map(Path::to_path_buf),
+                    term.to_owned(),
+                    entry.msgid.clone(),
+                    language.clone(),
+                );
+                if let Some(previous) = fixture_targets.insert(key, entry.msgstr.clone()) {
+                    if previous != entry.msgstr {
+                        return Err(at_source(
+                            Diag::of_kind(CatalogInconsistent {
+                                detail: format!(
+                                    "conflicting reviewed {language} rationales for <{term}>"
+                                ),
+                            }),
+                            &path,
+                        ));
+                    }
+                    continue;
+                }
             }
             text.push_str(&format!(
                 "<{}> <{}> {} .\n",

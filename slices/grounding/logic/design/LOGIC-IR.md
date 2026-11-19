@@ -162,10 +162,24 @@ A contradiction between their admitted sentences refutes that composition.
 `TheorySelection` records a request. Compiler-issued source resolution binds the
 exact roots, closure, import evidence and source selection before native input or
 program views are borrowed. Selected rules and formulas retain their original
-indices and source occurrences after deduplication. An exclusively owned child
-cannot become an independent assertion; a selected owner whose required syntax
-is unavailable remains blocked as a whole. Shared support remains available
-through its actual admitted owners.
+indices and source occurrences after deduplication. A declared module asserts
+a top-level formula through an actual `logic:hasFormula` occurrence in the
+default graph. The link carries that module's membership and records the target's
+admission. A direct `logic:inModule` coordinate or an unqualified nonmodule
+container can supply a separate route.
+A link to a formula that declares a different module remains blocked.
+An exclusively owned child cannot become an independent assertion. A selected
+owner whose required syntax is unavailable remains blocked as a whole. Shared
+support remains available through its actual admitted owners.
+
+Native formula selection treats resource-valued default-graph `logic:provenance`
+as source evidence on the formula or its required descendants. Formula provenance
+grants no input fact authority. An independent owner can still admit the same
+row through its existing route. On completed evaluation, each retained row
+names the original formula obligation IDs with a complete native lowering and
+formula account. An axiom-lowered formula requires an exact selected asserted
+backing in its native source account. Independent context and ownership refusals still apply.
+Classical admission retains its own evidence and scope requirements.
 
 The complete supplied inventory remains reportable. Explicitly unselected modules
 receive an authorized disposition outside the requested theory; graph, standpoint, time,
@@ -605,21 +619,29 @@ the substrate does not.
   default-graph `logic:inModule` coordinate resolved against the same immutable source and
   requested import closure. This route requires no invented provenance or
   confidence and does not widen the evidence-only allow-list. Both routes admit
-  descriptive default-graph `gmeow:graphBoxRole` annotations with IRI or blank-node
-  resource values. Preserve their actual multivalued, open roles and original
-  source rows; they are not evidence coordinates and confer no assertion, context,
-  module, ownership or routing authority. Named-graph and nonresource role rows
-  remain outside this contract. An annotation alone leaves a quotation unasserted.
-  Every envelope check still reads the complete original source. Any carrier
-  statement beyond the selected route's contract, any statement with the
-  carrier as object or predicate, any mention of the carrier in a statement another carrier
-  holds (inside a triple term at any depth, or as a term of a classic statement node,
-  whatever the standing of that other carrier), and the carrier's use as a graph name keep
-  the claim out, in whichever graph of the source they occur; a named graph never supplies
-  the evidence. A predicate need not be known to count: a standpoint, a stance
-  or denial, a time, a module outside the resolved request, a second type, an
-  unknown annotation, and every `logic:modality` value, so a carrier that states `logic:none` beside another
-  modality is not read for either value. Eligibility belongs to each original
+  descriptive default-graph `gmeow:graphBoxRole` and outgoing `gmeow:wasDerivedFrom`
+  annotations with IRI or blank-node values, and `gmeow:statedRationale` annotations
+  with `xsd:string`, `rdf:langString` or `rdf:dirLangString` values. Preserve the
+  original roles, lineage targets, wording and source rows. These annotations
+  provide no evidence coordinate, assertion, context, module, ownership or
+  routing authority. Named-graph annotations and values outside the admitted
+  types retain their boundaries.
+  An annotation alone leaves a quotation unasserted.
+  An ordinary default-graph `math:hasElement` row with an independently selected
+  `math:FiniteSet` declaration can enumerate a carrier. The selected declaration
+  uses ordinary `logic:instanceOf` or `rdf:type`. The actual
+  row remains a membership fact. Both the row and declaration must be selected.
+  Intensional set syntax and statement ownership qualify the set across the complete
+  source, including named graphs. Self-links and annotation rows retain the
+  incoming-reference boundary. Membership supplies no claim assertion authority.
+  Envelope checks read the complete original source. Incoming references outside
+  admitted membership, other statements beyond the carrier contract, predicate
+  uses, mentions in any quoted triple or classic carrier, and graph-name uses keep
+  the claim out wherever they occur. A named graph grants no evidence authority.
+  A standpoint, stance, denial, time, module outside the resolved request,
+  second type, unknown annotation or any `logic:modality` value still qualifies
+  the carrier. A carrier with several modality values remains unread for each.
+  Eligibility belongs to each original
   carrier, even when canonical axiom deduplication shares its statement with
   another carrier. The ingress retains every independently admitted carrier and
   every unread carrier with its coordinate, predicate or reason. A qualified

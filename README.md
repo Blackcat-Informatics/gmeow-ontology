@@ -305,12 +305,13 @@ then named are cycles found by that analysis, not proof that the program cannot 
 
 The native engine reads admitted default-graph assertions and ground reified claims
 through two closed routes. Evidence-only claims carry `logic:provenance` or
-`logic:confidence` beside their reification, with no additional qualifications. Default-graph
-`gmeow:graphBoxRole` resource annotations are descriptive metadata in either route;
-their open, multivalued roles remain source facts and supply no assertion authority.
-Named-graph or nonresource role annotations retain their boundaries. Ground
-claims in selected modules may assert through the source-resolved module route without
-invented provenance or confidence. Module membership does not erase standpoint, time or
+`logic:confidence` beside their reification, with no additional qualifications.
+Both routes retain default-graph `gmeow:graphBoxRole` and `gmeow:wasDerivedFrom`
+resource annotations and `gmeow:statedRationale` text as descriptive source facts.
+These facts supply no assertion authority. Named-graph annotations and values outside
+the declared types retain their boundaries. Ground claims in selected modules may
+assert through the source-resolved module route without invented provenance or confidence.
+Module membership does not erase standpoint, time or
 modality. Unknown qualifications, mentions in other statements and graph-name uses keep
 their own boundaries; envelope checks inspect every original graph.
 
@@ -318,7 +319,8 @@ The report counts admitted reified claims under `claims_read` and lists their ac
 carriers under `claims`. Each carrier is resolved independently: an unread contributor
 cannot erase an admitted sibling or acquire its authority. Each unread carrier retains
 a named `SCOPED_CLAIM_NOT_READ` boundary. Bare quotations assert nothing. Provenance
-values are recorded without interpreting the referenced source's content. See
+values are recorded without interpreting the referenced source's content. Formula
+provenance rows name the original accounted formula obligations in `FormulaEvidence`. See
 [the source-theory contract](slices/grounding/logic/docs.md#selecting-a-source-theory).
 
 | Exit code | Meaning |

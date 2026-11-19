@@ -133,15 +133,15 @@ metadata. A bare reifier with no scope or evidence coordinate is a quotation
 and asserts nothing. A module claim outside the requested composition remains
 an assertion outside that theory; unresolved membership remains a named boundary.
 
-Default-graph `gmeow:graphBoxRole` annotations whose values are IRI or blank-node
-resources describe the carrier without qualifying its carried assertion. The
-role vocabulary is open and multivalued: preserve every actual role and source
-row, including unknown future resources. These annotations are separate from
-evidence coordinates. They establish no assertion, module membership, ownership,
-context or graph routing. A quotation with only graph-box roles asserts nothing.
-Named-graph role rows and nonresource role values remain outside this admitted
-carrier contract. Other ordinary facts about the carrier and all role rows
-remain source facts; recognizing descriptive metadata does not delete them.
+Default-graph `gmeow:graphBoxRole` and outgoing `gmeow:wasDerivedFrom` annotations
+with resource values describe the carrier, as does `gmeow:statedRationale`
+with `xsd:string`, `rdf:langString` or `rdf:dirLangString` values. Preserve
+every original role, lineage target, literal, language and text direction.
+These annotations carry no evidence, assertion, module membership, ownership,
+context or graph routing authority.
+A quotation with only descriptive annotations asserts nothing. Named-graph
+annotations and values outside the admitted types retain their boundaries.
+The descriptive rows remain ordinary source facts.
 
 Each route fails closed. A carrier statement beyond its selected contract may
 place, deny or qualify the claim, so it prevents ordinary assertion:
@@ -154,7 +154,8 @@ other reifier is itself an assertion, an unread claim or a quotation: a claim so
 about is out, and no fixpoint is taken. The statements that count are the stated ones, not
 those a rule derives, in every graph of the source: the default graph, each named graph, and
 the statements reifiers carry in either. A reifier used as a predicate or as a graph name is
-out as well. A named graph can only keep a claim out. It is another context, so by the rule
+out as well. A lineage link targeting the reifier keeps that target unread, including a
+self-link. A named graph can only keep a claim out. It is another context, so by the rule
 of [context-indexed entailment](#inconsistency-across-contexts-and-context-indexed-entailment)
 nothing in it is an assertion of this theory or evidence for one: provenance or confidence
 stated there does not make a claim an assertion, and a statement there never contradicts
@@ -199,9 +200,22 @@ selected program occurrences, claim ingress, preparation and completion bind
 that same composition. Reports retain every supplied source obligation, including
 authorized module exclusions and independent graph/context blockers. An owner
 whose required child lies outside the admitted theory remains selected and
-blocked; its child cannot be dropped to create a weaker sentence. Without an
-explicit module request, module-scoped obligations retain the top-level
-operation's existing boundaries.
+blocked; its child cannot be dropped to create a weaker sentence. A selected
+module's `logic:hasFormula` link carries its top-level formula into the same
+theory. Each physical link retains its own disposition and the target's
+lowering boundaries. A blocked target withholds that assertion while other
+admitted formulas and imports remain available. Without an explicit module
+request, module-scoped obligations retain the top-level operation's existing
+boundaries.
+
+An exact default-graph `logic:provenance` row with an IRI or blank-node value
+records a formula's source. The formula still requires an independent
+assertion route. Provenance on required descendants follows each actual
+accounted formula occurrence. The report retains every provenance row and
+links its evidence to the original formula obligation IDs after native
+coverage checks. Evidence supplies no object-level premise or context
+selection. Named graphs, invalid resource values and independent contexts
+retain their boundaries.
 
 The executed selected-theory profile is narrower than this definition in one direction only.
 It may leave an assertion unread, for example a claim over a typed term carrier, a claim
@@ -209,6 +223,12 @@ with a variable, or a carrier that holds more than one candidate statement, and 
 names each claim it leaves unread. It never reads a quotation. One residual is not
 interpreted: the *value* of `logic:provenance`. A claim whose stated source is itself a
 retraction or denial activity is still read as reported by that source.
+
+An admitted extensional set enumerates claim resources through its ordinary
+`math:hasElement` facts. Each member retains its own assertion and scope.
+A member can be a quotation or an asserted claim, and the same carrier can
+occur in several sets. The finite-set declaration and membership both require
+ordinary default-graph source occurrences in the selected view.
 
 ## The reasoning contract
 
@@ -625,6 +645,13 @@ The foundational categories are `logic:` terms in the one namespace: `logic:Kind
 `logic:Relator`, `logic:Event`, `logic:Situation`, and relations such as `logic:rigidlyAppliesTo`,
 `logic:suppliesIdentity`, and `logic:mediates`. They obey the same naming discipline as the rest of
 GMEOW (Principle 9: no selector tokens) and the language-tag discipline (`@x-gmeow-english`).
+
+Native execution accounts `logic:RelationshipType` as named class membership
+through `logic:instanceOf` or `rdf:type`. The exact authored fact can support a
+native rule and its refutation witness. Authored subsumption, signatures and
+scope require their own source accounts. The grounding slice publishes
+validation-only correspondences to gUFO and SUMO with explicit preservation
+judgments in [the grounding bridges](../mappings/grounding-bridges.ttl).
 
 The payoff: the OntoUML disciplines GMEOW enforces — exactly-one-stereotype, identity overlap
 (**MixIden**), anti-rigidity (**MixRig** / **FreeRole**), and relator mediation (**RelComp**) — cannot

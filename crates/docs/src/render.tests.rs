@@ -297,6 +297,60 @@ fn md_escape_neutralizes_table_and_inline_metachars() {
     assert_eq!(md_escape("line\nbreak"), "line break");
 }
 
+/// Named domains from the authored signature remain subject types in rendered
+/// JSON-LD quickstarts even when the Turtle preamble has no matching prefix.
+#[test]
+fn canonical_named_domains_reach_rendered_jsonld_quickstarts() {
+    let slice = tempfile::tempdir().expect("create supplied slice");
+    std::fs::write(
+        slice.path().join("manifest.ttl"),
+        r#"<urn:example:ai> a <https://blackcatinformatics.ca/gmeow/Slice> ;
+    <http://purl.org/dc/terms/creator> "Example author" ."#,
+    )
+    .expect("write the slice manifest");
+    std::fs::write(
+        slice.path().join("module.ttl"),
+        r#"
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix lang: <https://blackcatinformatics.ca/lang/> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+gmeow:analysisFirstChunkKey a logic:DatatypeProperty ;
+    logic:domain lang:Analysis .
+gmeow:hasExternalAgent a logic:ObjectProperty ;
+    logic:domain <https://example.org/Agent> .
+"#,
+    )
+    .expect("write a property with a canonical domain");
+    let model = DocsModel::from_slice_dir(slice.path()).expect("read the supplied signature");
+    for (property, domain_iri) in [
+        (
+            "gmeow:analysisFirstChunkKey",
+            "https://blackcatinformatics.ca/lang/Analysis",
+        ),
+        ("gmeow:hasExternalAgent", "https://example.org/Agent"),
+    ] {
+        let term = model
+            .terms
+            .iter()
+            .find(|term| term.curie == property)
+            .expect("the property has a term page");
+        let page = to_markdown(&model, &Page::Term(term_slug(term)));
+        let (_, example) = page
+            .split_once("\n```json\n")
+            .expect("render the JSON-LD tab");
+        let (jsonld, _) = example
+            .split_once("\n```")
+            .expect("close the JSON-LD fence");
+        let graph = purrdf::parse_dataset(jsonld.as_bytes(), "application/ld+json", None)
+            .expect("the JSON-LD example parses");
+        let domain = purrdf::RdfTerm::iri(domain_iri);
+        assert!(graph.owned_quads().any(|quad| {
+            quad.predicate == "http://www.w3.org/1999/02/22-rdf-syntax-ns#type"
+                && quad.object == domain
+        }));
+    }
+}
+
 /// Decode a Python double-quoted literal body the way `json.loads` would
 /// see it after Python's own string-literal decoding — i.e. undo exactly
 /// the two escapes [`python_str_escape`] introduces (`\\` and `\"`, plus
@@ -812,6 +866,188 @@ fn render_site_lang_uses_translation_with_english_fallback() {
     let en_keys: Vec<&String> = en.files.keys().collect();
     let fr_keys: Vec<&String> = fr.files.keys().collect();
     assert_eq!(en_keys, fr_keys, "no dangling/extra links per language");
+}
+
+/// HTML page links use HTML targets while external links and raw HTML keep their targets.
+#[test]
+fn html_rewrites_only_site_relative_markdown_links() {
+    let html = markdown_to_html(
+        r#"
+[Local](index.md)
+[Absolute](https://example.org/index.md#anchor)
+[Network](//example.org/index.md)
+<a href="../raw/index.md#anchor">Raw</a>
+"#,
+    );
+    for href in [
+        "index.html",
+        "https://example.org/index.md#anchor",
+        "//example.org/index.md",
+        "../raw/index.md#anchor",
+    ] {
+        assert!(
+            html.contains(&format!("href=\"{href}\"")),
+            "missing link: {html}"
+        );
+    }
+}
+
+/// Localized fixture panels and the documentation graph use each registry
+/// cell's own reviewed translation and retain the complete authored literals.
+#[test]
+fn fixture_rationales_localize_by_source_cell_in_pages_and_rdf() {
+    use std::fs;
+
+    use crate::model::ConstraintRule;
+
+    let tmp = tempfile::tempdir().expect("create synthetic slice");
+    let slice = tmp.path().join("demo");
+    for dir in [
+        "tests/conformance-fixtures",
+        "tests/counter-examples",
+        "i18n",
+    ] {
+        fs::create_dir_all(slice.join(dir)).expect("create source directory");
+    }
+    fs::write(
+        slice.join("manifest.ttl"),
+        r#"
+@prefix gm: <https://blackcatinformatics.ca/gmeow/> .
+<urn:demo> a gm:Slice ;
+    gm:sliceTier gm:tierCore ;
+    <http://purl.org/dc/terms/creator> "Example Contributors" .
+"#,
+    )
+    .expect("write synthetic manifest");
+    fs::write(slice.join("module.ttl"), "").expect("write inert module");
+    for path in [
+        "tests/conformance-fixtures/number-ok.ttl",
+        "tests/counter-examples/number-bad.ttl",
+    ] {
+        fs::write(slice.join(path), "<urn:number> a <urn:data:Kind> .")
+            .expect("write supplied specimen");
+    }
+    fs::write(
+        slice.join("tests/example-conformance.ttl"),
+        r#"
+@prefix gm: <https://blackcatinformatics.ca/gmeow/> .
+<urn:control> a gm:ExampleConformance ;
+    gm:exampleFile "tests/conformance-fixtures/number-ok.ttl" ;
+    gm:expectedOutcome gm:conforms ;
+    gm:conformanceRationale "An authored control explanation"@x-gmeow-english .
+<urn:also> a gm:ExampleConformance ;
+    gm:exampleFile "tests/conformance-fixtures/number-ok.ttl" ;
+    gm:expectedOutcome gm:conforms ;
+    gm:conformanceRationale "An authored control explanation"@x-gmeow-english, "علة"@ar--rtl .
+<urn:counter> a gm:ExampleConformance ;
+    gm:exampleFile "tests/counter-examples/number-bad.ttl" ;
+    gm:expectedOutcome gm:violates ;
+    gm:expectedViolationCode "shacl.MinCountConstraintComponent" ;
+    gm:conformanceRationale "Supply the missing record"@x-gmeow-english .
+"#,
+    )
+    .expect("write selected registry");
+    let french = r#"
+msgid ""
+msgstr ""
+"Language: FR\n"
+
+msgctxt "urn:control|https://blackcatinformatics.ca/gmeow/conformanceRationale"
+msgid "An authored control explanation"
+msgstr "Une justification du témoin &lt; dans guide/index.md#anchor"
+
+#, fuzzy
+msgctxt "urn:also|https://blackcatinformatics.ca/gmeow/conformanceRationale"
+msgid "An authored control explanation"
+msgstr "Proposition à relire"
+
+msgctxt "urn:counter|https://blackcatinformatics.ca/gmeow/conformanceRationale"
+msgid "An earlier requirement"
+msgstr "Ancienne exigence"
+"#;
+    fs::write(slice.join("i18n/fr.po"), french).expect("write French catalog");
+
+    let mut model = DocsModel::from_slice_dir(tmp.path()).expect("build docs from supplied slice");
+    let code = "shacl.MinCountConstraintComponent";
+    let slug = gmeow_validate::rule_catalog::slugify(code);
+    model
+        .fixtures
+        .iter_mut()
+        .find(|fixture| fixture.violation_code.as_deref() == Some(code))
+        .expect("counter-example fixture")
+        .catalog_slug = Some(slug.clone());
+    model.constraint_rules.push(ConstraintRule {
+        code: code.to_string(),
+        slug: slug.clone(),
+        category: "https://blackcatinformatics.ca/logic/FindingDataShapeViolation".to_string(),
+        severity: "binding".to_string(),
+        help_uri: format!("https://blackcatinformatics.ca/gmeow/docs/enforced-constraints#{slug}"),
+        label: None,
+        definition: None,
+        applies_to_terms: Vec::new(),
+        formalizes: None,
+    });
+    assert_eq!(model.translations.languages(), &["fr".to_owned()]);
+    let control = model
+        .fixtures
+        .iter()
+        .find(|fixture| fixture.expected_outcome.as_deref() == Some("conforms"))
+        .expect("control fixture");
+    assert_eq!(control.rationales.len(), 3);
+    assert!(control.rationales.iter().any(|rationale| {
+        rationale.cell == "urn:also"
+            && rationale.literal.direction == Some(purrdf::RdfTextDirection::Rtl)
+    }));
+    let site = render_site_lang(&model, "FR");
+    let markdown = std::str::from_utf8(&site.files["fixtures/index.md"]).expect("UTF-8 Markdown");
+    let html = std::str::from_utf8(&site.files["fixtures/index.html"]).expect("UTF-8 HTML");
+    assert!(markdown.contains(r"Une justification du témoin \&lt; dans guide/index\.md\#anchor"));
+    assert!(html.contains("Une justification du témoin &amp;lt; dans guide/index.md#anchor"));
+    assert!(markdown.contains(&format!("(../enforced-constraints/index.md#{slug})")));
+    assert!(html.contains(&format!(
+        "href=\"../enforced-constraints/index.html#{slug}\""
+    )));
+    let catalog = std::str::from_utf8(&site.files["enforced-constraints/index.html"])
+        .expect("UTF-8 constraint catalog");
+    assert!(catalog.contains(&format!("<a id=\"{slug}\"></a>")));
+    for page in [markdown, html] {
+        assert!(page.contains("An authored control explanation"));
+        assert!(page.contains("Supply the missing record"));
+        assert!(!page.contains("Proposition à relire") && !page.contains("Ancienne exigence"));
+    }
+    let nquads = crate::rdf::to_gmeow_rdf(&model, &BTreeMap::new());
+    let rationale_lines: Vec<_> = nquads
+        .lines()
+        .filter(|line| line.contains("<https://blackcatinformatics.ca/gmeow/conformanceRationale>"))
+        .collect();
+    assert_eq!(rationale_lines.len(), 4);
+    for expected in [
+        "\"An authored control explanation\"@x-gmeow-english",
+        "\"علة\"@ar--rtl",
+        "\"Une justification du témoin &lt; dans guide/index.md#anchor\"@x-gmeow-fr",
+        "\"Supply the missing record\"@x-gmeow-english",
+    ] {
+        assert!(
+            rationale_lines.iter().any(|line| {
+                line.contains(expected)
+                    && line
+                        .ends_with(" <https://blackcatinformatics.ca/gmeow/graph/documentation> .")
+            }),
+            "missing documentation rationale {expected}"
+        );
+    }
+
+    let conflict = french
+        .replace("Language: FR", "Language: fr")
+        .replace("Une justification du témoin", "Une autre justification");
+    fs::write(slice.join("i18n/fr-alternative.po"), conflict)
+        .expect("write conflicting reviewed value");
+    let error = DocsModel::from_slice_dir(tmp.path()).expect_err("refuse ambiguous reviewed value");
+    assert!(
+        error
+            .to_string()
+            .contains("conflicting reviewed fr rationales for <urn:control>")
+    );
 }
 
 #[test]

@@ -70,7 +70,7 @@ pub(super) fn build_docs_book_archive(
         &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None),
     )
     .map_err(|e| stage_err(&format!("slice catalog: {e}")))?;
-    let translations = gmeow_docs::Translations::from_catalog(&catalog);
+    let translations = gmeow_docs::Translations::from_catalog(&catalog)?;
     let prefix = translations.internal_tag(gmeow_docs::i18n::ENGLISH);
 
     let site = gmeow_docs::mdbook::render_book(model, exec);

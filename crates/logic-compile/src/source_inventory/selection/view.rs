@@ -109,6 +109,44 @@ impl ResolvedTheorySelection {
             .index
             .correspondence_record_selected(unit.inventory, binding))
     }
+
+    /// Original formula-lowering ordinal asserted by this admitted physical module link.
+    ///
+    /// # Errors
+    /// Refuses obligations borrowed from another compilation or selection.
+    pub fn selected_module_formula(
+        &self,
+        unit: SourceObligation<'_>,
+    ) -> gmeow_errors::Result<Option<usize>> {
+        self.authorize_inventory(unit.inventory)?;
+        let crate::source_inventory::SourceObligationOrigin::Statement(binding) = unit.origin()
+        else {
+            return Ok(None);
+        };
+        Ok(self.0.index.selected_module_formula(binding))
+    }
+
+    /// Selected formula ordinals and independent ownership of this exact evidence row.
+    /// Native coverage checks still apply to every returned formula occurrence.
+    ///
+    /// # Errors
+    /// Refuses obligations borrowed from another compilation or selection.
+    pub fn formula_evidence_origins(
+        &self,
+        unit: SourceObligation<'_>,
+    ) -> gmeow_errors::Result<Option<(&[usize], bool)>> {
+        self.authorize_inventory(unit.inventory)?;
+        let crate::source_inventory::SourceObligationOrigin::Statement(binding) = unit.origin()
+        else {
+            return Ok(None);
+        };
+        Ok(self
+            .0
+            .index
+            .formula_evidence
+            .get(&binding)
+            .map(|evidence| (evidence.origins.as_slice(), evidence.independent_owner)))
+    }
 }
 
 /// Original-indexed, borrowed IR admitted by the compiler's source ownership.

@@ -17,7 +17,8 @@ use std::path::Path;
 use std::sync::Arc;
 
 use gmeow_action_cache::{
-    ActionContext, ActionInput, ActionStore, ProducerIdentity, STORE_FORMAT_VERSION, StoreLimits,
+    ActionContext, ActionInput, ActionStore, FileKind, ProducerIdentity, STORE_FORMAT_VERSION,
+    StoreLimits,
 };
 use purrdf_lex::json::{self, record::ToJson as _};
 use serde::{Deserialize, Serialize};
@@ -102,6 +103,11 @@ pub const AUTHENTICATED_TEST_STAGE_IDS: &[&str] = &[
 const WASM_CODEBOOK_STAGE_IDS: &[&str] = &[crate::stages::mappings::native_codebook::STAGE_ID];
 const COMPILER_OWNER_STAGE_IDS: &[&str] = &["stage-compile-logic"];
 const COMPILER_OWNER_CLOSURE: &[&str] = &["stage-parse-sources", "stage-compile-logic"];
+const DOCS_CATALOG_STAGE_IDS: &[&str] = &["stage-constraint-catalog", "stage-term-manifest"];
+const DOCS_CATALOG_PATHS: [&str; 2] = [
+    crate::stages::constraint_catalog::CONSTRAINT_CATALOG_RDF_PATH,
+    crate::stages::term_manifest::TERM_MANIFEST_RDF_PATH,
+];
 const WASM_CODEBOOK_CLOSURE: &[&str] = &[
     "stage-parse-sources",
     crate::stages::mappings::native_codebook::STAGE_ID,
@@ -665,6 +671,98 @@ pub fn prepare_compiler_owner_fixtures(
     Ok(manifest.to_json())
 }
 
+/// Exact catalog inputs for the standalone documentation fixture producer.
+pub struct DocsCatalogFixtures {
+    pub selection: json::Value,
+    pub constraint_catalog: Vec<u8>,
+    pub term_manifest: Vec<u8>,
+    pub inputs: Vec<ActionInput>,
+}
+
+/// Produce the documentation catalogs through their declared prerequisite closure.
+/// Release the run carriers before opening the two selected artifacts read-only.
+///
+/// # Errors
+/// Refuses missing or invalid stage receipts and catalog artifacts.
+pub fn prepare_docs_catalog_fixtures(
+    root: &Path,
+    jobs: usize,
+) -> gmeow_errors::Result<DocsCatalogFixtures> {
+    let run = prime_stage_fixtures(root, jobs, DOCS_CATALOG_STAGE_IDS)?;
+    let manifest = selected_fixture_manifest(&run.stage_receipts, DOCS_CATALOG_STAGE_IDS)?;
+    drop(run);
+    let cache = PipelineCache::open_existing_default_read_only(root)?;
+    let mut inputs = Vec::new();
+    let mut read = |stage: &str, path: &str| -> gmeow_errors::Result<Vec<u8>> {
+        let expected = &manifest.stages[stage];
+        let mut hit = cache
+            .get_artifact(&expected.context, path)?
+            .ok_or_else(|| fixture_miss(stage))?;
+        if hit.receipt != *expected {
+            return Err(gmeow_errors::Diag::of_kind(crate::error::CacheMismatch {
+                expected: expected.digest(),
+                actual: hit.receipt.digest(),
+            }));
+        }
+        inputs.extend(catalog_action_inputs(&hit.receipt, path)?);
+        hit.artifacts
+            .remove(path)
+            .ok_or_else(|| fixture_manifest_error(format!("{stage} omitted catalog {path}")))
+    };
+    let constraint_catalog = read(DOCS_CATALOG_STAGE_IDS[0], DOCS_CATALOG_PATHS[0])?;
+    let term_manifest = read(DOCS_CATALOG_STAGE_IDS[1], DOCS_CATALOG_PATHS[1])?;
+    Ok(DocsCatalogFixtures {
+        selection: manifest.to_json(),
+        constraint_catalog,
+        term_manifest,
+        inputs,
+    })
+}
+
+/// Authenticate the isolated docs selector's two catalogs and expose their exact
+/// model action inputs. The verification path reads only existing receipts.
+///
+/// # Errors
+/// Refuses a wrong selector scope, missing artifact commitment or corrupt action.
+pub fn verify_docs_catalog_fixtures(root: &Path) -> gmeow_errors::Result<Vec<ActionInput>> {
+    let manifest: StageFixtureManifest = gmeow_action_cache::selection::load_manifest(root)
+        .map_err(|error| fixture_manifest_error(error.to_string()))?;
+    validate_stage_fixture_selection(&manifest, DOCS_CATALOG_STAGE_IDS)?;
+    let closure = bound_selected_fixture_closure(DOCS_CATALOG_STAGE_IDS)?;
+    verify_current_fixture_closure(root, &manifest, closure, "docs")?;
+    let mut inputs = Vec::new();
+    for (&stage, path) in DOCS_CATALOG_STAGE_IDS.iter().zip(DOCS_CATALOG_PATHS) {
+        inputs.extend(catalog_action_inputs(&manifest.stages[stage], path)?);
+    }
+    Ok(inputs)
+}
+
+fn catalog_action_inputs(
+    receipt: &StageReceipt,
+    path: &str,
+) -> gmeow_errors::Result<[ActionInput; 2]> {
+    let stage = &receipt.context.stage_id;
+    let artifact = receipt
+        .logical_artifacts
+        .iter()
+        .find(|artifact| artifact.identity == path)
+        .ok_or_else(|| fixture_manifest_error(format!("{stage} omitted commitment for {path}")))?;
+    Ok([
+        ActionInput::Upstream {
+            producer: stage.clone(),
+            entity: Some(path.to_owned()),
+            receipt_digest: Some(receipt.digest()),
+            product_digest: receipt.product_digest.clone(),
+        },
+        ActionInput::Raw {
+            logical_path: path.to_owned(),
+            file_kind: FileKind::File,
+            executable: false,
+            digest: artifact.digest.clone(),
+        },
+    ])
+}
+
 /// Compare a current action with its recorded producer identity and persistent bytes.
 /// Recomputed ancestors have receipt-only metadata and no cache payload to inspect.
 #[derive(Debug, PartialEq, Eq)]
@@ -750,12 +848,28 @@ fn verify_compiler_owner_artifact(
 pub fn verify_compiler_owner_fixtures(root: &Path) -> gmeow_errors::Result<()> {
     let manifest = load_stage_fixture_manifest(root)?;
     validate_compiler_owner_manifest(&manifest)?;
+    let closure = bound_selected_fixture_closure(COMPILER_OWNER_STAGE_IDS)?;
+    validate_compiler_owner_closure(&closure.required)?;
+    verify_current_fixture_closure(root, &manifest, closure, "compiler-owner")?;
+    verify_compiler_owner_artifact(root, &manifest)
+}
+
+fn verify_current_fixture_closure(
+    root: &Path,
+    manifest: &StageFixtureManifest,
+    closure: BoundFixtureClosure,
+    scope: &str,
+) -> gmeow_errors::Result<()> {
     let BoundFixtureClosure {
         graph,
         stages,
         required,
-    } = bound_selected_fixture_closure(COMPILER_OWNER_STAGE_IDS)?;
-    validate_compiler_owner_closure(&required)?;
+    } = closure;
+    if !manifest.closure_receipts.keys().eq(required.iter()) {
+        return Err(fixture_manifest_error(format!(
+            "{scope} fixture closure differs from the declared targets"
+        )));
+    }
     let cache = PipelineCache::open_existing_default_read_only(root)?;
     let mut admitted = BTreeMap::new();
     let mut raw_input_digests = BTreeMap::new();
@@ -774,7 +888,7 @@ pub fn verify_compiler_owner_fixtures(root: &Path) -> gmeow_errors::Result<()> {
                     .map(|receipt| (producer.clone(), receipt))
                     .ok_or_else(|| {
                         fixture_manifest_error(format!(
-                            "compiler closure reached {id} before {producer}"
+                            "{scope} fixture closure reached {id} before {producer}"
                         ))
                     })
             })
@@ -790,12 +904,12 @@ pub fn verify_compiler_owner_fixtures(root: &Path) -> gmeow_errors::Result<()> {
             != FixtureReceiptAdmission::Current
         {
             return Err(fixture_manifest_error(format!(
-                "compiler owner fixture is absent or stale: {id}; run the explicit compiler-owner producer"
+                "{scope} fixture is absent or stale: {id}; run the explicit {scope} producer"
             )));
         }
         admitted.insert(id, recorded.clone());
     }
-    verify_compiler_owner_artifact(root, &manifest)
+    Ok(())
 }
 
 /// Admit an unchanged producer closure without hydrating or rebuilding any carrier.

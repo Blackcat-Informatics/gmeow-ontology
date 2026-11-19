@@ -12,6 +12,8 @@
 use std::collections::{BTreeMap, BTreeSet};
 use std::path::Path;
 
+use gmeow_errors::PreservedDiagnostic;
+use gmeow_logic_compile::ingest::DslView;
 use serde::{Deserialize, Serialize};
 
 use purrdf::slice::{
@@ -100,8 +102,6 @@ const RDF_TYPE: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
 const RDFS_LABEL: &str = "http://www.w3.org/2000/01/rdf-schema#label";
 const RDFS_COMMENT: &str = "http://www.w3.org/2000/01/rdf-schema#comment";
 const SKOS_DEFINITION: &str = "http://www.w3.org/2004/02/skos/core#definition";
-const RDFS_DOMAIN: &str = "http://www.w3.org/2000/01/rdf-schema#domain";
-const RDFS_RANGE: &str = "http://www.w3.org/2000/01/rdf-schema#range";
 
 const OWL_CLASS: &str = "http://www.w3.org/2002/07/owl#Class";
 const RDFS_CLASS: &str = "http://www.w3.org/2000/01/rdf-schema#Class";
@@ -279,20 +279,6 @@ const GMEOW_CELL_VAR: &str = "https://blackcatinformatics.ca/gmeow/cellVar";
 const GMEOW_CELL_VALUE_LITERAL: &str = "https://blackcatinformatics.ca/gmeow/cellValueLiteral";
 
 // ── Conformance-fixture Do/Don't binding surface ─────────────────────────────
-// The fixtures themselves (`tests/conformance-fixtures/*.ttl` /
-// `tests/counter-examples/*.ttl`) are pure ABox payloads carrying no
-// `sh:message` or shape reference; the expected outcome / violation code /
-// rationale live in a SEPARATE per-slice `tests/example-conformance.ttl`
-// binding file, joined by slice-relative path (`gmeow:exampleFile`).
-
-const GMEOW_EXAMPLE_CONFORMANCE: &str = "https://blackcatinformatics.ca/gmeow/ExampleConformance";
-const GMEOW_EXAMPLE_FILE: &str = "https://blackcatinformatics.ca/gmeow/exampleFile";
-const GMEOW_EXPECTED_OUTCOME: &str = "https://blackcatinformatics.ca/gmeow/expectedOutcome";
-const GMEOW_EXPECTED_VIOLATION_CODE: &str =
-    "https://blackcatinformatics.ca/gmeow/expectedViolationCode";
-const GMEOW_CONFORMANCE_RATIONALE: &str =
-    "https://blackcatinformatics.ca/gmeow/conformanceRationale";
-
 // ── Build-pipeline DAG surface (slices/core/pipeline/module.ttl) ────────────
 // The dogfooded build graph authored as data: `gmeow:PipelineStage` individuals
 // gathered on the one `gmeow:Pipeline` (`gmeow:pipeline-build`) through
@@ -351,6 +337,8 @@ const GMEOW_SEAM_OWNING_DOC: &str = "https://blackcatinformatics.ca/gmeow/seamOw
 pub enum DocsError {
     /// Required ontology-owned translation inputs could not be admitted.
     TranslationCatalog(gmeow_errors::Diag),
+    /// The named canonical and legacy links in an authored property signature disagree.
+    PropertySignature(PreservedDiagnostic),
     /// A test-facing corpus consumer could not find the exact authenticated model
     /// produced before the test process started. Tests may not rebuild it on a miss.
     FixtureUnavailable(String),
@@ -451,6 +439,7 @@ impl std::fmt::Display for DocsError {
                 write!(f, "manifest creator in slice {slice_iri}: {detail}")
             }
             DocsError::TranslationCatalog(error) => write!(f, "translation catalog: {error}"),
+            DocsError::PropertySignature(error) => write!(f, "property signature: {error}"),
             DocsError::FixtureUnavailable(msg) => {
                 write!(f, "documentation corpus fixture unavailable: {msg}")
             }
@@ -498,7 +487,14 @@ impl std::fmt::Display for DocsError {
     }
 }
 
-impl std::error::Error for DocsError {}
+impl std::error::Error for DocsError {
+    fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {
+        match self {
+            Self::PropertySignature(error) => Some(error),
+            _ => None,
+        }
+    }
+}
 
 impl From<SliceError> for DocsError {
     fn from(e: SliceError) -> Self {
@@ -1067,9 +1063,11 @@ pub struct DocTerm {
     pub owner_slice: String,
     /// `rdfs:subClassOf` / `rdfs:subPropertyOf` parents (IRIs, sorted).
     pub parents: Vec<String>,
-    /// `rdfs:domain` values (IRIs, sorted).
+    /// Sorted named `logic:domain` links. Read `rdfs:domain` only when the canonical
+    /// predicate is absent. Anonymous expressions stay in the authored graph.
     pub domain: Vec<String>,
-    /// `rdfs:range` values (IRIs, sorted).
+    /// Sorted named `logic:range` links. Read `rdfs:range` only when the canonical
+    /// predicate is absent. Anonymous expressions stay in the authored graph.
     pub range: Vec<String>,
     /// `skos:scopeNote` — usage-advice prose (English carrier, sorted).
     pub scope_notes: Vec<String>,
@@ -1238,62 +1236,6 @@ pub struct DocExample {
     pub text: String,
     /// GMEOW CURIEs referenced anywhere in the example (sorted, deduped).
     pub terms_referenced: Vec<String>,
-}
-
-/// Whether a [`DocFixture`] is a well-formed conformance instance or a
-/// deliberately malformed counter-example.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]
-pub enum DocFixtureKind {
-    /// A `tests/conformance-fixtures/*.ttl` instance that MUST validate.
-    Wellformed,
-    /// A `tests/counter-examples/*.ttl` instance that MUST be rejected.
-    CounterExample,
-}
-
-/// A conformance Do/Don't fixture — a well-formed instance
-/// ([`DocFixtureKind::Wellformed`]) or a deliberately malformed counter-example
-/// ([`DocFixtureKind::CounterExample`]), carried in full (small Turtle text,
-/// not a blob). The fixture file itself is a pure ABox payload with no
-/// `sh:message` or shape reference; the expected outcome, violation code, and
-/// rationale — when the slice authors a binding — are joined in from that
-/// slice's `tests/example-conformance.ttl` (`gmeow:ExampleConformance`) by
-/// slice-relative path.
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
-pub struct DocFixture {
-    /// The slice IRI that owns the fixture.
-    pub slice: String,
-    /// The logical path within the slice directory (e.g.
-    /// `tests/counter-examples/plan-missing-successmode.ttl`).
-    pub logical_path: String,
-    /// A human title (an `rdfs:label` if any subject carries one, else derived
-    /// from the filename — mirrors [`DocExample::title`]).
-    pub title: String,
-    /// The Turtle source, carried in full.
-    pub text: String,
-    /// Well-formed instance or counter-example.
-    pub kind: DocFixtureKind,
-    /// GMEOW CURIEs referenced anywhere in the fixture (sorted, deduped) —
-    /// reuses [`DocExample`]'s term-reference extraction exactly.
-    pub terms_referenced: Vec<String>,
-    /// `gmeow:expectedOutcome`'s local name (`"conforms"` | `"violates"`), from
-    /// this slice's `tests/example-conformance.ttl` binding. `None` when the
-    /// fixture carries no authored binding — an honest absence (not every
-    /// fixture is bound today).
-    pub expected_outcome: Option<String>,
-    /// `gmeow:expectedViolationCode` (e.g. `"shacl.MinCountConstraintComponent"`).
-    /// `None` for a well-formed fixture or an unbound counter-example.
-    pub violation_code: Option<String>,
-    /// `gmeow:conformanceRationale` — the human-readable "why" the fixture
-    /// conforms or violates, retaining every complete literal. Empty when unbound.
-    #[serde(with = "literal_values")]
-    pub rationales: Vec<purrdf::RdfLiteral>,
-    /// The constraint-catalog rule slug [`violation_code`](Self::violation_code)
-    /// resolves to, when a genuine [`ConstraintRule::code`] match exists in
-    /// [`DocsModel::constraint_rules`]. `None` when the fixture is unbound,
-    /// well-formed, or (the common case today) the catalog carries no
-    /// per-constraint-component rule matching the code — NEVER fabricated to
-    /// avoid an absent link.
-    pub catalog_slug: Option<String>,
 }
 
 /// A SHACL node shape, reverse-mapped to the term it constrains. Parsed from a
@@ -2189,7 +2131,9 @@ impl DocsModel {
     /// v20: competency rationales retain all complete native RDF literal records.
     /// v21: fixture rationales retain every native literal and its source language/direction.
     /// v22: slice creators retain their original complete source statements.
-    pub const VERSION: &'static str = "22";
+    /// v23: fixture rationales retain source cell identities and exact locale keys.
+    /// v24: named property signatures reflect the canonical authored predicates.
+    pub const VERSION: &'static str = "24";
 
     /// Build the documentation model from a discovered catalog and a computed
     /// ownership report. `central_mapping_sets` carries the cross-slice SSSOM
@@ -2236,7 +2180,11 @@ impl DocsModel {
         slices.sort_by(|a, b| a.iri.cmp(&b.iri));
 
         // The docs renderer and its typed rendering corpus share this exact selection.
-        let (mut terms, formalizes_edges) = documented_terms(catalog, ownership);
+        let DocumentedTerms {
+            mut terms,
+            formalizes_edges,
+        } = documented_terms(catalog, ownership)
+            .map_err(|error| DocsError::PropertySignature(PreservedDiagnostic(error)))?;
 
         // Bidirectional related terms: if A lists B, ensure B lists A. The
         // forward edges were collected per-term in `extract_terms`; here we mirror
@@ -2458,20 +2406,14 @@ impl DocsModel {
             // slice-relative fixture path each `gmeow:exampleFile` pins. Empty when
             // the slice authors no bindings — fixtures then join to nothing (an
             // honest absence, not an error).
-            let mut bindings: BTreeMap<String, FixtureBinding> = BTreeMap::new();
-            for artifact in &record.artifacts {
-                // The binding overlay lives under tests/example-conformance.ttl,
-                // carried as a TestDsl artifact (same role as competency.ttl;
-                // discriminated by filename suffix).
-                if artifact.role != ArtifactRole::TestDsl
-                    || !artifact.logical_path.ends_with("example-conformance.ttl")
-                {
-                    continue;
-                }
-                let store = parse_turtle_lenient(&artifact.content).unwrap_or_else(|e| {
-                    panic!("example-conformance.ttl for slice {owner} failed to parse: {e}")
-                });
-                bindings.extend(extract_fixture_bindings(&store)?);
+            let mut bindings = BTreeMap::new();
+            for artifact in record
+                .artifacts
+                .iter()
+                .filter(|artifact| conformance::is_registry(artifact))
+            {
+                let store = parse_turtle_lenient(&artifact.content)?;
+                bindings.extend(conformance::extract_bindings(&store)?);
             }
             for artifact in &record.artifacts {
                 let kind = match artifact.role {
@@ -2486,7 +2428,7 @@ impl DocsModel {
                     _ => continue,
                 };
                 let binding = bindings.get(&artifact.logical_path);
-                fixtures.push(extract_fixture(artifact, owner, kind, binding));
+                fixtures.push(conformance::extract_fixture(artifact, owner, kind, binding));
             }
         }
         fixtures.sort_by(|a, b| {
@@ -2581,7 +2523,8 @@ impl DocsModel {
         let (recipes, learning_paths) = extract_guides(catalog);
 
         // ── Translations (built from each slice's i18n/<lang>.po catalogs) ──────
-        let translations = Translations::from_ontology_catalogs(catalog, translation_sources);
+        let translations = Translations::from_ontology_catalogs(catalog, translation_sources)
+            .map_err(DocsError::TranslationCatalog)?;
         let available_languages = i18n::available_languages(&translations);
 
         let model = Self {
@@ -3336,21 +3279,29 @@ fn grounding_namespace(owner_slice: &str) -> Option<&'static str> {
 /// Exact term-page inventory selected by the documentation model. This reuses
 /// module terms, the explicit PathShape example exception and validated ownership;
 /// it does not build or enrich a second DocsModel.
+///
+/// # Errors
+/// Refuses contradictory named property signatures under the same rules as [`DocsModel`].
 pub fn documented_term_iris(
     catalog: &SliceCatalog,
     ownership: &OwnershipReport,
-) -> BTreeSet<String> {
-    documented_terms(catalog, ownership)
-        .0
+) -> gmeow_errors::Result<BTreeSet<String>> {
+    Ok(documented_terms(catalog, ownership)?
+        .terms
         .into_iter()
         .map(|term| term.iri)
-        .collect()
+        .collect())
+}
+
+struct DocumentedTerms {
+    terms: Vec<DocTerm>,
+    formalizes_edges: Vec<(String, String)>,
 }
 
 fn documented_terms(
     catalog: &SliceCatalog,
     ownership: &OwnershipReport,
-) -> (Vec<DocTerm>, Vec<(String, String)>) {
+) -> gmeow_errors::Result<DocumentedTerms> {
     let mut terms: Vec<DocTerm> = Vec::new();
     // `logic:formalizes` back-references, collected while modules are parsed.
     let mut formalizes_edges: Vec<(String, String)> = Vec::new();
@@ -3365,7 +3316,7 @@ fn documented_terms(
             // so this should never fail; surface it loudly with full context.
             let store = parse_turtle_lenient(&artifact.content)
                 .unwrap_or_else(|e| panic!("module.ttl for slice {owner} failed to parse: {e}"));
-            terms.extend(extract_terms(&store, owner, record.manifest.tier.as_ref()));
+            terms.extend(extract_terms(&store, owner, record.manifest.tier.as_ref())?);
             formalizes_edges.extend(extract_formalizes(&store));
         }
     }
@@ -3392,7 +3343,7 @@ fn documented_terms(
                 &store,
                 owner,
                 record.manifest.tier.as_ref(),
-            ));
+            )?);
         }
     }
     // A foreign module can redeclare a class without defining it. Use the
@@ -3411,7 +3362,10 @@ fn documented_terms(
             .is_none_or(|owner| *owner == term.owner_slice.as_str())
     });
     terms.sort_by(|a, b| a.iri.cmp(&b.iri));
-    (terms, formalizes_edges)
+    Ok(DocumentedTerms {
+        terms,
+        formalizes_edges,
+    })
 }
 
 /// Whether a module subject is a documentable-term subject for a slice: any
@@ -3426,7 +3380,11 @@ fn is_documented_subject(subject: &str, grounding_ns: Option<&str>) -> bool {
     subject.starts_with(GMEOW_NS) || grounding_ns.is_some_and(|ns| subject.starts_with(ns))
 }
 
-fn extract_terms(store: &Store, owner_slice: &str, tier: Option<&SliceTier>) -> Vec<DocTerm> {
+fn extract_terms(
+    store: &Store,
+    owner_slice: &str,
+    tier: Option<&SliceTier>,
+) -> gmeow_errors::Result<Vec<DocTerm>> {
     // First pass: collect every documentable subject with a recognized vocabulary
     // type, keyed by IRI, recording the strongest category seen. A grounding slice
     // also admits its own-namespace vocabulary (`math:` / `logic:` / `lang:`).
@@ -3474,7 +3432,7 @@ fn extract_path_shape_terms(
     store: &Store,
     owner_slice: &str,
     tier: Option<&SliceTier>,
-) -> Vec<DocTerm> {
+) -> gmeow_errors::Result<Vec<DocTerm>> {
     let mut categories: BTreeMap<String, DocTermCategory> = BTreeMap::new();
     for (subject, object) in store.pattern_subjects_objects(RDF_TYPE) {
         let Some(subject) = subject.as_named() else {
@@ -3504,7 +3462,8 @@ fn build_doc_terms(
     categories: BTreeMap<String, DocTermCategory>,
     owner_slice: &str,
     tier: Option<&SliceTier>,
-) -> Vec<DocTerm> {
+) -> gmeow_errors::Result<Vec<DocTerm>> {
+    let source = DslView::new(store.dataset());
     let mut terms = Vec::new();
     for (iri, category) in categories {
         let label = first_literal(store, &iri, RDFS_LABEL);
@@ -3522,13 +3481,7 @@ fn build_doc_terms(
         parents.sort();
         parents.dedup();
 
-        let mut domain = named_objects(store, &iri, RDFS_DOMAIN);
-        domain.sort();
-        domain.dedup();
-
-        let mut range = named_objects(store, &iri, RDFS_RANGE);
-        range.sort();
-        range.dedup();
+        let signature = source.named_property_signature(&iri)?;
 
         // Per-term usage advice (English carrier from this slice's module.ttl).
         let scope_notes = literals(store, &iri, SKOS_SCOPE_NOTE);
@@ -3597,8 +3550,8 @@ fn build_doc_terms(
             category,
             owner_slice: owner_slice.to_string(),
             parents,
-            domain,
-            range,
+            domain: signature.domain,
+            range: signature.range,
             scope_notes,
             examples,
             use_when,
@@ -3624,7 +3577,7 @@ fn build_doc_terms(
             profiles: Vec::new(),
         });
     }
-    terms
+    Ok(terms)
 }
 
 /// Resolve a term's stability badge: an explicit `gmeow:termStability`
@@ -4342,94 +4295,6 @@ fn render_worked_instance_turtle(
     out
 }
 
-type RationaleKey = (String, String, Option<String>, Option<String>);
-
-/// Conformance bindings for one fixture path, retaining every rationale term.
-struct FixtureBinding {
-    /// `gmeow:expectedOutcome`'s local name (`"conforms"` | `"violates"`).
-    expected_outcome: Option<String>,
-    /// `gmeow:expectedViolationCode`.
-    violation_code: Option<String>,
-    /// `gmeow:conformanceRationale`.
-    rationales: BTreeMap<RationaleKey, purrdf::RdfLiteral>,
-}
-
-/// Extract the per-fixture-path conformance bindings from a slice's
-/// `tests/example-conformance.ttl` store, keyed by the slice-relative
-/// `gmeow:exampleFile` path each `gmeow:ExampleConformance` cell pins.
-fn extract_fixture_bindings(store: &Store) -> Result<BTreeMap<String, FixtureBinding>, DocsError> {
-    let mut out: BTreeMap<String, FixtureBinding> = BTreeMap::new();
-    for cell in subjects_of_type(store, GMEOW_EXAMPLE_CONFORMANCE) {
-        let Some(file) = first_literal(store, &cell, GMEOW_EXAMPLE_FILE) else {
-            continue;
-        };
-        // The lowest-sorted object IRI's local name — deterministic even if a
-        // cell were ever multiply asserted.
-        let expected_outcome = named_objects(store, &cell, GMEOW_EXPECTED_OUTCOME)
-            .into_iter()
-            .min()
-            .map(|iri| local_name(&iri).to_string());
-        let violation_code = first_literal(store, &cell, GMEOW_EXPECTED_VIOLATION_CODE);
-        let rationales = store.rdf_literals(&cell, GMEOW_CONFORMANCE_RATIONALE)?;
-        // Several conformance cells can cite one specimen. Keep every rationale;
-        // the existing deterministic scalar projection remains per fixture path.
-        let binding = out.entry(file).or_insert_with(|| FixtureBinding {
-            expected_outcome: None,
-            violation_code: None,
-            rationales: BTreeMap::new(),
-        });
-        binding.expected_outcome = expected_outcome;
-        binding.violation_code = violation_code;
-        for literal in rationales {
-            let key = (
-                literal.lexical_form.clone(),
-                literal.datatype_iri().to_owned(),
-                literal.language.clone(),
-                literal
-                    .direction
-                    .map(|direction| direction.as_str().to_owned()),
-            );
-            binding.rationales.insert(key, literal);
-        }
-    }
-    Ok(out)
-}
-
-/// Extract a single conformance fixture, reusing [`extract_example`]'s title /
-/// text / term-reference extraction verbatim (the fixture files are structured
-/// identically to worked examples) and joining `binding` — this slice's
-/// `tests/example-conformance.ttl` entry for this fixture's path, if any.
-/// `catalog_slug` starts `None`; [`apply_fixture_catalog_slugs`] resolves it
-/// once `constraint_rules` is populated in `discover()`.
-fn extract_fixture(
-    artifact: &ArtifactRecord,
-    owner_slice: &str,
-    kind: DocFixtureKind,
-    binding: Option<&FixtureBinding>,
-) -> DocFixture {
-    let example = extract_example(artifact, owner_slice);
-    let (expected_outcome, violation_code, rationales) = match binding {
-        Some(b) => (
-            b.expected_outcome.clone(),
-            b.violation_code.clone(),
-            b.rationales.values().cloned().collect(),
-        ),
-        None => (None, None, Vec::new()),
-    };
-    DocFixture {
-        slice: example.slice,
-        logical_path: example.logical_path,
-        title: example.title,
-        text: example.text,
-        kind,
-        terms_referenced: example.terms_referenced,
-        expected_outcome,
-        violation_code,
-        rationales,
-        catalog_slug: None,
-    }
-}
-
 /// A human title derived from a logical path's filename stem (kebab → Title).
 fn filename_title(logical_path: &str) -> String {
     let stem = logical_path
@@ -5069,6 +4934,10 @@ fn to_curie(iri: &str) -> String {
 #[path = "model_test_support.rs"]
 mod test_support;
 
+pub(crate) mod conformance;
+pub use conformance::{
+    DocFixture, DocFixtureKind, DocFixtureRationale, conformance_registry_files,
+};
 mod literal_values;
 
 #[cfg(test)]

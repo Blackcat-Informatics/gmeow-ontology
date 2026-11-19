@@ -58,6 +58,8 @@ pub(crate) struct RelationalCoreLowering {
     /// The rule identity of every lowered formula rule, with the indices into
     /// `program.formulas` of the formulas that produced it.
     pub(crate) formula_rules: BTreeMap<String, BTreeSet<usize>>,
+    /// Original formula indices with an incomplete native lowering.
+    pub(crate) incomplete_formulas: BTreeSet<usize>,
 }
 
 /// Lower every full-FOL formula in `program` to the evaluable engine IR, delegating the
@@ -72,48 +74,34 @@ pub(crate) fn lower_formulas(program: &LogicProgram) -> RelationalCoreLowering {
 pub(crate) fn lower_indexed_formulas<'a>(
     formulas: impl IntoIterator<Item = (usize, &'a gmeow_logic_compile::ir::Formula)>,
 ) -> RelationalCoreLowering {
-    let (attributed, lane_residue) =
+    let attributed =
         gmeow_logic_compile::relational_core::lower_indexed_formulas_to_rc_attributed(formulas);
     let mut formula_rules: BTreeMap<String, BTreeSet<usize>> = BTreeMap::new();
-    let mut rc_rules = Vec::with_capacity(attributed.len());
-    for (rule, origins) in attributed {
-        let family = if !rule.head_conjuncts.is_empty() || rule.has_existential_head() {
-            "formula-existential"
+    let mut incomplete_formulas = attributed.incomplete_formulas;
+    let mut residue = attributed.residue;
+    let mut rules = Vec::new();
+    let mut existential_rules = Vec::new();
+    for (rule, origins) in attributed.rules {
+        // Keep a conjunctive head or witness invention in one chase producer.
+        let (family, lowered) = if !rule.head_conjuncts.is_empty() || rule.has_existential_head() {
+            (
+                "formula-existential",
+                rc_rule_to_existential(&rule).map(|producer| existential_rules.push(producer)),
+            )
         } else {
-            "formula-rule"
+            (
+                "formula-rule",
+                rc_rule_to_eval(&rule).map(|rule| rules.push(rule)),
+            )
         };
+        if let Err(reason) = lowered {
+            residue.insert(reason.message().to_owned());
+            incomplete_formulas.extend(origins.iter().copied());
+        }
         formula_rules.insert(
             format!("{LOGIC_NAMESPACE}{family}/{}", sha1_hex(&rule.key())),
             origins,
         );
-        rc_rules.push(rule);
-    }
-
-    let mut rules: Vec<EvalRule> = Vec::new();
-    let mut residue: BTreeSet<String> = lane_residue.into_iter().collect();
-    // A single binary head can invent a witness. Conjunctive heads also stay
-    // together so the native chase preserves their common firing and witness scope.
-    let mut producers: Vec<&RcRule> = Vec::new();
-    for rc in &rc_rules {
-        if !rc.head_conjuncts.is_empty() || rc.has_existential_head() {
-            producers.push(rc);
-            continue;
-        }
-        match rc_rule_to_eval(rc) {
-            Ok(rule) => rules.push(rule),
-            Err(reason) => {
-                residue.insert(reason.message().to_owned());
-            }
-        }
-    }
-    let mut existential_rules = Vec::new();
-    for rule in producers {
-        match rc_rule_to_existential(rule) {
-            Ok(rule) => existential_rules.push(rule),
-            Err(reason) => {
-                residue.insert(reason.message().to_owned());
-            }
-        }
     }
 
     RelationalCoreLowering {
@@ -121,6 +109,7 @@ pub(crate) fn lower_indexed_formulas<'a>(
         rules,
         existential_rules,
         formula_rules,
+        incomplete_formulas,
     }
 }
 

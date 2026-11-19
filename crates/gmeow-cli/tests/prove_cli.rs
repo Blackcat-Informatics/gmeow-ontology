@@ -9,6 +9,7 @@ use assert_cmd::Command;
 
 const PREFIXES: &str = r#"@prefix logic: <https://blackcatinformatics.ca/logic/> .
 @prefix rdf:   <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix math:  <https://blackcatinformatics.ca/math/> .
 @prefix ex:    <https://example.org/prove/> .
 "#;
 
@@ -91,6 +92,7 @@ fn prove_json(name: &str, body: &str, extra: &[&str]) -> (serde_json::Value, i32
 /// separate module consistency never licenses their contradictory composition.
 /// Qualified duplicate carriers cannot erase admitted premises or borrow admission.
 /// A blocked positive rule stays unread while the admitted fragment seeks a witness.
+/// An extensional set can list a selected claim and a quotation without changing their authority.
 /// Excluded collection owners supply no cells or synthetic classes, while
 /// unrelated assertions about a shared resource remain executable.
 #[test]
@@ -103,6 +105,8 @@ ex:Diamond a logic:Module ; logic:imports ex:RightModule, ex:LeftModule, ex:Hub 
 ex:A logic:disjointWith ex:B .
 ex:left rdf:reifies <<( ex:a logic:instanceOf ex:A )>> ; logic:inModule ex:LeftModule .
 ex:right rdf:reifies <<( ex:a logic:instanceOf ex:B )>> ; logic:inModule ex:RightModule .
+ex:quoted rdf:reifies <<( ex:a logic:instanceOf logic:Nothing )>> .
+ex:claims a math:FiniteSet ; math:hasElement ex:right, ex:quoted .
 "#;
     let directory = tempfile::tempdir().expect("scratch directory");
     let source = write(directory.path(), "modules.ttl", body);
@@ -316,31 +320,80 @@ fn module_requests_refuse_missing_declarations_and_imports() {
     }
 }
 
-/// PROTECTS: an excluded statement contributor cannot authorize an atomic
-/// formula that the native input never asserts, even after IR deduplication.
+/// PROTECTS: an atomic formula link remains unread whether its equal ordinary
+/// statement is independently asserted or excluded.
+/// Its provenance follows the original formula account after exact source selection.
 #[test]
 fn excluded_statement_cannot_account_for_an_unread_atomic_formula() {
     let body = r#"
-ex:Selected a logic:Module . ex:Excluded a logic:Module .
-ex:p logic:domain ex:C ; logic:inModule ex:Excluded .
+ex:Selected a logic:Module ; logic:hasFormula ex:law .
+ex:Excluded a logic:Module .
+ex:p logic:domain ex:C {scope} .
 ex:a ex:p ex:b ; logic:instanceOf ex:D .
 ex:C logic:disjointWith ex:D .
-ex:law a logic:Formula ; logic:relation logic:domain ; logic:argument ex:propertyTerm, ex:classTerm .
+ex:law a logic:Formula ; logic:relation logic:domain ; logic:argument ex:propertyTerm, ex:classTerm ;
+    logic:provenance ex:lawSource .
 ex:propertyTerm logic:termIndex 0 ; logic:termIri ex:p .
 ex:classTerm logic:termIndex 1 ; logic:termIri ex:C .
 "#;
-    let (report, _) = prove_json(
-        "atomic-formula.ttl",
-        body,
-        &["--module", "https://example.org/prove/Selected"],
-    );
-    assert_eq!(report["verdict"], "not-decided", "{report:#}");
-    assert!(
-        drop_codes(&report)
+    for (scope, verdict) in [
+        ("; logic:inModule ex:Excluded", "not-decided"),
+        ("", "inconsistent"),
+    ] {
+        let (report, _) = prove_json(
+            "atomic-formula.ttl",
+            &body.replace("{scope}", scope),
+            &["--module", "https://example.org/prove/Selected"],
+        );
+        assert_eq!(report["verdict"], verdict, "{report:#}");
+        let units = report["native_admission"]["units"]
+            .as_array()
+            .expect("source units");
+        let link = units
             .iter()
-            .any(|code| code == "FORMULA_AXIOM_NOT_READ"),
-        "{report:#}"
-    );
+            .find(|unit| {
+                unit["anchor"]
+                    .as_str()
+                    .is_some_and(|anchor| anchor.contains("/hasFormula"))
+            })
+            .expect("original module formula link");
+        assert_eq!(
+            link["disposition"]["Blocked"]["code"],
+            "FORMULA_AXIOM_NOT_READ"
+        );
+        let evidence = units
+            .iter()
+            .find(|unit| {
+                unit["anchor"].as_str().is_some_and(|anchor| {
+                    anchor.contains("/provenance") && anchor.contains("/lawSource")
+                })
+            })
+            .expect("original provenance row");
+        if scope.is_empty() {
+            let formula = units
+                .iter()
+                .find(|unit| {
+                    unit["kind"] == "Formula"
+                        && unit["anchor"]
+                            .as_str()
+                            .is_some_and(|anchor| anchor.ends_with("/law|0:"))
+                })
+                .expect("original formula occurrence");
+            assert!(
+                !formula["disposition"]["Accounted"].is_null(),
+                "{formula:#}"
+            );
+            assert_eq!(
+                evidence["disposition"]["FormulaEvidence"]["formula_origins"],
+                serde_json::json!([formula["id"].clone()])
+            );
+        } else {
+            assert_eq!(
+                evidence["disposition"]["Blocked"]["code"],
+                "FORMULA_EVIDENCE_NOT_ACCOUNTED"
+            );
+        }
+    }
 }
 
 /// PROTECTS: composed required outputs remove stale bytes, and raw proof replay
@@ -580,7 +633,8 @@ fn horn_theory_is_consistent_with_zero_drops_and_gate_exits_three() {
     );
 }
 
-/// A formula the native lowering cannot carry blocks `consistent` and is named.
+/// A formula the native lowering cannot carry blocks `consistent` and retains
+/// the source boundary on its module link and provenance.
 #[test]
 fn uncarried_formula_is_not_decided_with_its_drop_named_and_gate_exits_three() {
     let (report, code) = prove_json("disjunctive.logic.ttl", DISJUNCTIVE, &["--gate"]);
@@ -597,6 +651,36 @@ fn uncarried_formula_is_not_decided_with_its_drop_named_and_gate_exits_three() {
             .any(|drop| drop["engine"] == "native" && drop["code"] == "UNSUPPORTED_CONSTRUCT"),
         "{report:#}"
     );
+    let linked = format!(
+        "{DISJUNCTIVE}\nex:Selected a logic:Module ; logic:hasFormula ex:law .\nex:law logic:provenance ex:sourceRecord .\n"
+    );
+    let (report, code) = prove_json(
+        "linked-disjunction.ttl",
+        &linked,
+        &["--module", "https://example.org/prove/Selected", "--gate"],
+    );
+    assert_eq!(report["verdict"], "not-decided", "{report:#}");
+    assert_eq!(code, 3);
+    let units = report["native_admission"]["units"]
+        .as_array()
+        .expect("source units");
+    let link = units
+        .iter()
+        .find(|unit| {
+            unit["anchor"]
+                .as_str()
+                .is_some_and(|anchor| anchor.contains("/hasFormula"))
+        })
+        .expect("original disjunctive formula link");
+    assert_eq!(
+        link["disposition"]["Blocked"]["code"],
+        "FORMULA_NATIVE_LOWERING_RESIDUE"
+    );
+    assert!(has_drop(
+        &report,
+        "FORMULA_EVIDENCE_NOT_ACCOUNTED",
+        "/sourceRecord"
+    ));
 }
 
 /// An exhausted derivation allowance is a partial closure and never `consistent`.
@@ -1141,6 +1225,77 @@ ex:absenceClash a logic:Rule ;
     );
 }
 
+/// PROTECTS: relationship-type membership is accounted through either type spelling
+/// and carries its exact authored premise into the native refutation.
+#[test]
+fn relationship_type_membership_supplies_an_accounted_native_premise() {
+    const CLASS: &str = "https://blackcatinformatics.ca/logic/RelationshipType";
+    const SUBJECT: &str = "https://example.org/prove/relationship";
+    const RULE: &str = r#"
+ex:conflict a logic:Rule ;
+    logic:body [ rdf:reifies <<( ex:relationship logic:instanceOf logic:RelationshipType )>> ] ;
+    logic:head [ rdf:reifies <<( ex:relationship logic:instanceOf logic:Nothing )>> ] .
+"#;
+    for (syntax, predicate) in [
+        (
+            "logic:instanceOf",
+            "https://blackcatinformatics.ca/logic/instanceOf",
+        ),
+        ("a", "http://www.w3.org/1999/02/22-rdf-syntax-ns#type"),
+    ] {
+        let source = format!("{RULE}\nex:relationship {syntax} logic:RelationshipType .");
+        let (report, code) = prove_json("relationship-type.logic.ttl", &source, &["--gate"]);
+        assert_eq!(code, 3);
+        assert_eq!(report["verdict"], "inconsistent", "{report:#}");
+        assert_eq!(report["engines"]["native"]["verdict"], "clash");
+        let units = report["native_admission"]["units"]
+            .as_array()
+            .expect("source units");
+        let assertion = units
+            .iter()
+            .find(|unit| {
+                unit["kind"] == "Assertion"
+                    && unit["anchor"].as_str().is_some_and(|anchor| {
+                        anchor.contains(SUBJECT)
+                            && anchor.contains(predicate)
+                            && anchor.contains(CLASS)
+                    })
+            })
+            .expect("original membership assertion");
+        assert!(
+            !assertion["disposition"]["Accounted"].is_null(),
+            "{assertion:#}"
+        );
+        assert!(
+            !has_drop(&report, "UNIT_NOT_ACCOUNTED", "RelationshipType"),
+            "{report:#}"
+        );
+        let witness = report["refutations"]
+            .as_array()
+            .expect("refutations")
+            .iter()
+            .find(|witness| witness["engine"] == "native")
+            .expect("native refutation");
+        assert_eq!(
+            witness["premises"],
+            serde_json::json!([[SUBJECT, predicate, format!("<{CLASS}>")]])
+        );
+    }
+
+    let (report, code) = prove_json(
+        "relationship-type-class-position.logic.ttl",
+        &format!("{RULE}\nlogic:RelationshipType logic:subClassOf ex:Classifier ."),
+        &["--gate"],
+    );
+    assert_eq!(code, 3);
+    assert_eq!(report["verdict"], "not-decided", "{report:#}");
+    assert_eq!(report["engines"]["native"]["verdict"], "no-clash");
+    assert!(
+        has_drop(&report, "UNIT_NOT_ACCOUNTED", "subClassOf"),
+        "{report:#}"
+    );
+}
+
 /// PROTECTS: universal-class tests that native closure does not populate prevent
 /// a complete no-clash claim, including premises exposed by negation normalization.
 /// Asserted/head membership remains accountable, and an independent clash remains
@@ -1431,12 +1586,16 @@ ex:A logic:disjointWith ex:B .
 
 /// A claim that carries only provenance is a statement of the selected theory, so
 /// two such claims that contradict each other refute the selected native theory.
-/// Descriptive carrier roles retain their values without becoming evidence.
+/// Descriptive roles, rationale and lineage retain their values without becoming evidence.
 #[test]
 fn provenance_only_contradiction_is_inconsistent() {
     for body in [
         PROVENANCE_CLASH.to_owned(),
         PROVENANCE_CLASH.replace(" ; logic:provenance", " ; <https://blackcatinformatics.ca/gmeow/graphBoxRole> <https://blackcatinformatics.ca/gmeow/boxCBox>, ex:futureRole ; logic:provenance"),
+        PROVENANCE_CLASH.replace(
+            " ; logic:provenance",
+            r#" ; <https://blackcatinformatics.ca/gmeow/statedRationale> "source reason"@en ; <https://blackcatinformatics.ca/gmeow/wasDerivedFrom> ex:sourceRecord ; logic:provenance"#,
+        ),
     ] {
     let (report, code) = prove_json("provenance-clash.logic.ttl", &body, &["--gate"]);
     assert_eq!(report["verdict"], "inconsistent", "{report:#}");
@@ -1678,6 +1837,127 @@ ex:c1 a logic:Formula ; logic:relation logic:instanceOf ; logic:argument [ a log
 ex:c2 a logic:Formula ; {second} .
 "#
     )
+}
+
+/// A module-linked formula can refute the composed theory, while its excluded
+/// and context-blocked occurrences retain independent source dispositions.
+/// Its original provenance is attributed to the formula without supplying a premise.
+#[test]
+fn an_imported_formula_assertion_supplies_a_native_refutation() {
+    let body = conjunctive_consequent(
+        r#"logic:relation ex:marked ; logic:argument [ a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "A" ], [ a logic:TermCarrier ; logic:termIndex 1 ; logic:termIri ex:a ]"#,
+    ) + r#"
+ex:Chosen a logic:Module ; logic:hasFormula ex:law, ex:blocked .
+ex:Other a logic:Module .
+ex:Hub a logic:Module ; logic:imports ex:Chosen .
+ex:law logic:provenance ex:lawSource .
+ex:g logic:provenance ex:guardSource .
+ex:blocked a logic:Formula ; logic:quantifiedVariable [
+    a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "A"
+] ; logic:forall ex:imp ; logic:provenance ex:otherSource ; logic:standpoint ex:observer .
+ex:a logic:instanceOf ex:Opposition .
+ex:Opposition logic:disjointWith ex:Dst .
+"#;
+    let directory = tempfile::tempdir().expect("scratch directory");
+    let source = write(directory.path(), "linked-formulas.ttl", &body);
+    let run = |format: &str, module: &str| {
+        gmeow()
+            .args([
+                "prove",
+                path(&source),
+                "--format",
+                format,
+                "--module",
+                module,
+            ])
+            .output()
+            .expect("proof report")
+    };
+    for (root, verdict, link_disposition) in [
+        ("Hub", "inconsistent", "StructuralSupport"),
+        ("Other", "consistent", "OutsideRequestedTheory"),
+    ] {
+        let iri = format!("https://example.org/prove/{root}");
+        let report: serde_json::Value =
+            serde_json::from_slice(&run("json", &iri).stdout).expect("JSON proof report");
+        assert_eq!(report["verdict"], verdict, "{report:#}");
+        let units = report["native_admission"]["units"]
+            .as_array()
+            .expect("source units");
+        let link = |target: &str| {
+            units
+                .iter()
+                .find(|unit| {
+                    unit["anchor"].as_str().is_some_and(|anchor| {
+                        anchor.contains("/hasFormula") && anchor.contains(target)
+                    })
+                })
+                .expect("original physical module formula link")
+        };
+        let law = link("/law");
+        assert!(!law["disposition"][link_disposition].is_null(), "{law:#}");
+        assert_eq!(law["documents"].as_array().map(Vec::len), Some(1));
+        let blocked = link("/blocked");
+        if root == "Hub" {
+            assert_eq!(
+                blocked["disposition"]["Blocked"]["code"], "CONTEXT_ERASURE_FORBIDDEN",
+                "{blocked:#}"
+            );
+            let formula = units
+                .iter()
+                .find(|unit| {
+                    unit["kind"] == "Formula"
+                        && unit["anchor"]
+                            .as_str()
+                            .is_some_and(|anchor| anchor.ends_with("/law|0:"))
+                })
+                .expect("original formula occurrence");
+            let output = run("text", &iri);
+            let text = std::str::from_utf8(&output.stdout).expect("UTF-8 proof report");
+            let formula_id = formula["id"].as_str().expect("formula ID");
+            let formula_anchor = formula["anchor"].as_str().expect("formula anchor");
+            let origin_line = format!("formula-origin {formula_id} {formula_anchor}");
+            assert!(text.lines().any(|line| line == origin_line));
+            for source in ["/lawSource", "/guardSource"] {
+                let evidence = units
+                    .iter()
+                    .find(|unit| {
+                        unit["anchor"].as_str().is_some_and(|anchor| {
+                            anchor.contains("/provenance") && anchor.contains(source)
+                        })
+                    })
+                    .expect("original provenance row");
+                assert_eq!(
+                    evidence["disposition"]["FormulaEvidence"]["formula_origins"],
+                    serde_json::json!([formula["id"].clone()]),
+                    "{evidence:#}"
+                );
+                let evidence_id = evidence["id"].as_str().expect("physical evidence ID");
+                let evidence_anchor = evidence["anchor"].as_str().expect("evidence anchor");
+                let evidence_line =
+                    format!("formula-evidence {evidence_id} {formula_id} {evidence_anchor}");
+                assert!(text.lines().any(|line| line == evidence_line));
+            }
+            let witness = report["refutations"]
+                .as_array()
+                .expect("refutations")
+                .iter()
+                .find(|row| row["engine"] == "native")
+                .expect("native witness");
+            let premises = witness["premises"].to_string();
+            for term in ["/Dst", "/Opposition"] {
+                assert!(premises.contains(term), "missing {term} from {premises}");
+            }
+            for source in ["/lawSource", "/guardSource", "/otherSource"] {
+                assert!(!premises.contains(source), "{premises}");
+            }
+        } else {
+            assert!(
+                !blocked["disposition"]["OutsideRequestedTheory"].is_null(),
+                "{blocked:#}"
+            );
+        }
+    }
 }
 
 /// A consequent that conjoins a unary atom with an atom of arity three is one

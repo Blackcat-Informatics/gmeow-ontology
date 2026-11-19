@@ -126,18 +126,33 @@ Module membership does not translate a standpoint, time or modality. Those
 coordinates retain their separate admission requirements. Ground module claims
 can assert through a typed, source-resolved module route without invented
 provenance or confidence; evidence-only claims keep their own closed contract.
-Default-graph `gmeow:graphBoxRole` resource annotations are descriptive metadata
-within both carrier contracts. Preserve their actual, possibly multiple or
-unknown role values. They supply neither evidence nor assertion authority;
-quotations still assert nothing. Named-graph or nonresource role annotations
-retain their boundaries, and all role rows remain independent source facts.
-Unknown qualifiers, mentions and graph-name uses retain their boundaries.
+Both contracts admit default-graph resource annotations `gmeow:graphBoxRole`
+and outgoing `gmeow:wasDerivedFrom`, and `gmeow:statedRationale` text, as
+descriptive source facts. Preserve the exact role, lineage target, wording,
+language and direction. These annotations supply no evidence or assertion
+authority. Quotations still assert nothing. Named-graph annotations, values
+outside the admitted types, unknown qualifiers, mentions and graph-name uses
+retain their boundaries.
+
+An ordinary default-graph `math:hasElement` row can list a carrier in a set
+explicitly declared as `math:FiniteSet` with `logic:instanceOf` or `rdf:type`.
+Both rows must be selected. An independently admitted claim in the set remains executable, and
+a listed quotation remains a quotation. The original membership is available
+to rules. Other incoming references still qualify the carrier.
 
 Reports preserve the complete supplied source inventory and identify the roots,
 resolved imports, actual consumption and remaining blockers. An unselected module
 is outside this requested theory; an unsupported selected owner is still a
 blocker. Without `--module`, the top-level operation retains its module-scope
 boundaries.
+
+For an accounted native formula, `FormulaEvidence` links each eligible
+default-graph `logic:provenance` row to the original formula obligation IDs.
+An evidence row on shared syntax can name several selected occurrences.
+The source resource remains evidence for those occurrences and supplies no
+object-level premise or assertion authority. Text reports connect each
+`formula-evidence` row to its `formula-origin` by obligation ID and show the
+original source anchor on both lines.
 
 Composed FOF output and raw proof export/replay have no composition-bound
 admission. A composed `--out` or `--proof-out` request fails its required output

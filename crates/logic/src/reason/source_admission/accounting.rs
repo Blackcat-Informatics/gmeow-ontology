@@ -187,6 +187,10 @@ const ACCOUNTED_MARKERS: &[(&str, &str)] = &[
         "declaration without a law",
     ),
     (
+        "https://blackcatinformatics.ca/logic/RelationshipType",
+        "named class membership carried by the native closure",
+    ),
+    (
         "http://www.w3.org/1999/02/22-rdf-syntax-ns#Property",
         "declaration without a law",
     ),

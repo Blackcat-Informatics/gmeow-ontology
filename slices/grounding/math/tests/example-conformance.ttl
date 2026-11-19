@@ -1,40 +1,27 @@
 # SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 # SPDX-License-Identifier: CC-BY-4.0
 #
-# Declarative example-conformance fixtures for the mathematics slice — the test-DSL
-# twin of the slice's validation surface ("this instance must validate, that
-# counter-example must be rejected"). The slice's legacy shapes.ttl is retired: the
-# harness (crates/slicetest run_conformance_cell) validates mathematics/module.ttl +
-# the one bound gmeow:exampleFile against the canonical generated projections
-# (generated/shapes/{validation-shapes,constraint-shapes,procedural-constraints}.ttl)
-# and compares finding codes.
+# Declarative example-conformance fixtures for the mathematics slice. The
+# slicetest harness checks the bound gmeow:exampleFile with the slice module
+# and its generated validation shapes.
 #
-# Every counter-example cell pins the law it tests by IRI with
-# gmeow:expectedSourceShape, so a fixture that reds a DIFFERENT rule of the same
-# component no longer passes. The conforming fixtures live under tests/conformance-fixtures/
-# and the counter-examples under tests/counter-examples/, so the global
-# `make validate` gate never loads the intentional violations as data.
+# A cell declaring gmeow:expectedFailureClass selects class isolation. Its
+# findings are drawn from SHACL violations, native expression errors,
+# structural lint errors and dimension markers, with module baselines removed
+# from structural lint and dimension findings. At least one finding must
+# match the declared class, and every finding counted by those channels must
+# match it. Multiple findings of that class are allowed. Component, source
+# shape and sole-origin fields are evaluated in the separate component branch.
 #
-# WHICH CELLS MAY CLAIM SOLENESS, AND WHY THE REST MAY NOT.
-# Every counter-example here used to say "and NO other finding". Measured against the
-# harness, 92 of the 111 are true and now declare gmeow:expectedSoleFinding, which the
-# harness enforces: their whole violation-severity report comes from the pinned shape.
-# The other 19 are false, each rationale now enumerates the shapes it actually trips,
-# and the causes are two, neither of them "the fixture tests two things":
+# A component-based cell requires a matching gmeow:expectedViolationCode.
+# When gmeow:expectedSourceShape is also present, a matching finding must
+# originate at the named shape or at a property shape with that unique owner.
+# With gmeow:expectedSoleFinding true, all violation-severity results must
+# originate there. Several results from that source can satisfy the cell.
 #
-#  1. DOUBLE AUTHORITY over the same rule. A handful of math: rules are authored BOTH as
-#     an EL-safe OWL restriction (projected to the derived math:<Class>-shape) and as a
-#     logic:Constraint (projected to math:…ProceduralConstraintShape). One defect is then
-#     reported by two sh:sourceShapes, and soleness counts authorities, not defects.
-#     Retiring either authoring for those rules makes the cells sole-declarable.
-#  2. SUPERCLASS/CARRIER CLASS SHAPES. A math:Derivative is also a math:BindingExpression,
-#     so a missing bound variable is reported at both class shapes; likewise a
-#     math:ConfidenceInterval inside a math:FrequentistResult.
-#
-# NOTE ON SHAPE NAMES IN PROSE. Several rationales below still name the slice's RETIRED
-# hand-authored shapes (math:NumberSituatedShape and friends) when describing which rule
-# a fixture breaks. Those names no longer denote a shipped shape; the live shape each
-# cell must red is the one its gmeow:expectedSourceShape binds.
+# Conforming fixtures live under tests/conformance-fixtures/ and
+# counter-examples under tests/counter-examples/. The global validation gate
+# excludes the intentional counter-examples from its data.
 
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
 @prefix math:  <https://blackcatinformatics.ca/math/> .
@@ -45,7 +32,7 @@
 ex:ecNumberSituated a gmeow:ExampleConformance ;
     gmeow:exampleFile "tests/conformance-fixtures/number-situated.ttl" ;
     gmeow:expectedOutcome gmeow:conforms ;
-    gmeow:conformanceRationale "A math:RationalNumber situated in math:rationalNumbers with math:isExact true satisfies math:NumberSituatedShape and validates with no findings." .
+    gmeow:conformanceRationale "The control declares a math:RationalNumber with math:isExact true and exactly one math:inNumberSystem value, math:rationalNumbers. The cell expects a conforming result from the generated validation surface."@x-gmeow-english .
 
 ex:ecNumberMissingSystem a gmeow:ExampleConformance ;
     gmeow:exampleFile "tests/counter-examples/number-missing-system.ttl" ;
@@ -54,7 +41,7 @@ ex:ecNumberMissingSystem a gmeow:ExampleConformance ;
     gmeow:expectedViolationCode "shacl.MinCountConstraintComponent" ;
     gmeow:expectedSourceShape math:Number-shape ;
     gmeow:expectedSoleFinding true ;
-    gmeow:conformanceRationale "The counter-example omits math:inNumberSystem (sh:minCount 1 on math:NumberSituatedShape), so validation MUST emit shacl.MinCountConstraintComponent and NO other finding (math:UnsituatedNumber)." .
+    gmeow:conformanceRationale "The counter-example declares exactness but omits math:inNumberSystem. Class isolation requires at least one math:UnsituatedNumber finding and rejects findings outside that class in the selected channels."@x-gmeow-english .
 
 # === Rule 2: an approximation names what it approximates and its error ====== #
 
