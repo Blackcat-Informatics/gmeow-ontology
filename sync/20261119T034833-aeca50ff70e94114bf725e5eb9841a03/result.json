@@ -1,0 +1,15 @@
+{
+  "schema": 1,
+  "worktree": "/home/paudley/Active/gmeow-ontology/.worktrees/2947-bind-selected-module-formula-assertions",
+  "branch": "paudley/2947-bind-selected-module-formula-assertions",
+  "base_ref": "refs/remotes/origin/main",
+  "head": "1c571fd1ce283f27ead00eaa4812b3d162de0c85",
+  "attempt": "/home/paudley/Active/gmeow-ontology/.worktrees/2947-bind-selected-module-formula-assertions/.stage/bind-selected-module-formula-assertions/sync/20261119T034833-aeca50ff70e94114bf725e5eb9841a03",
+  "conflicts": [],
+  "status": "fast_forward",
+  "base": "552fefa5c692ed1490aad2306f6c05aabacf0301",
+  "merge_bases": [
+    "1c571fd1ce283f27ead00eaa4812b3d162de0c85"
+  ],
+  "commit": "552fefa5c692ed1490aad2306f6c05aabacf0301"
+}
