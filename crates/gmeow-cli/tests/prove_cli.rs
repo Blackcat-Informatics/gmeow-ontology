@@ -1225,17 +1225,29 @@ ex:absenceClash a logic:Rule ;
     );
 }
 
-/// PROTECTS: relationship-type membership is accounted through either type spelling
-/// and carries its exact authored premise into the native refutation.
+/// PROTECTS: grounded class memberships are accounted through either type spelling
+/// and carry their exact authored premises into the native refutation.
 #[test]
-fn relationship_type_membership_supplies_an_accounted_native_premise() {
-    const CLASS: &str = "https://blackcatinformatics.ca/logic/RelationshipType";
-    const SUBJECT: &str = "https://example.org/prove/relationship";
-    const RULE: &str = r#"
-ex:conflict a logic:Rule ;
-    logic:body [ rdf:reifies <<( ex:relationship logic:instanceOf logic:RelationshipType )>> ] ;
-    logic:head [ rdf:reifies <<( ex:relationship logic:instanceOf logic:Nothing )>> ] .
-"#;
+fn grounded_class_memberships_supply_accounted_native_premises() {
+    const MEMBERSHIPS: [(&str, &str); 6] = [
+        ("cardinalType", "AbstractIndividualType"),
+        ("fundamentalType", "Category"),
+        ("rigidType", "Kind"),
+        ("rating", "QualityValue"),
+        ("relationship", "RelationshipType"),
+        ("specializedType", "SubKind"),
+    ];
+    let body = MEMBERSHIPS
+        .iter()
+        .map(|(subject, class)| {
+            format!("[ rdf:reifies <<( ex:{subject} logic:instanceOf logic:{class} )>> ]")
+        })
+        .collect::<Vec<_>>()
+        .join(",\n");
+    let rule = format!(
+        "ex:conflict a logic:Rule ;\nlogic:body {body} ;\n\
+         logic:head [ rdf:reifies <<( ex:relationship logic:instanceOf logic:Nothing )>> ] ."
+    );
     for (syntax, predicate) in [
         (
             "logic:instanceOf",
@@ -1243,48 +1255,75 @@ ex:conflict a logic:Rule ;
         ),
         ("a", "http://www.w3.org/1999/02/22-rdf-syntax-ns#type"),
     ] {
-        let source = format!("{RULE}\nex:relationship {syntax} logic:RelationshipType .");
-        let (report, code) = prove_json("relationship-type.logic.ttl", &source, &["--gate"]);
+        let facts = MEMBERSHIPS
+            .iter()
+            .map(|(subject, class)| format!("ex:{subject} {syntax} logic:{class} ."))
+            .collect::<Vec<_>>()
+            .join("\n");
+        let source = format!("{rule}\n{facts}");
+        let (report, code) = prove_json("grounded-memberships.logic.ttl", &source, &["--gate"]);
         assert_eq!(code, 3);
         assert_eq!(report["verdict"], "inconsistent", "{report:#}");
         assert_eq!(report["engines"]["native"]["verdict"], "clash");
         let units = report["native_admission"]["units"]
             .as_array()
             .expect("source units");
-        let assertion = units
+        let owner = units
             .iter()
             .find(|unit| {
-                unit["kind"] == "Assertion"
-                    && unit["anchor"].as_str().is_some_and(|anchor| {
-                        anchor.contains(SUBJECT)
-                            && anchor.contains(predicate)
-                            && anchor.contains(CLASS)
-                    })
+                unit["kind"] == "Rule"
+                    && unit["anchor"]
+                        .as_str()
+                        .is_some_and(|anchor| anchor.contains("https://example.org/prove/conflict"))
             })
-            .expect("original membership assertion");
-        assert!(
-            !assertion["disposition"]["Accounted"].is_null(),
-            "{assertion:#}"
-        );
-        assert!(
-            !has_drop(&report, "UNIT_NOT_ACCOUNTED", "RelationshipType"),
-            "{report:#}"
-        );
+            .expect("authored rule");
+        assert!(owner["disposition"]["Accounted"].is_object(), "{owner:#}");
         let witness = report["refutations"]
             .as_array()
             .expect("refutations")
             .iter()
             .find(|witness| witness["engine"] == "native")
             .expect("native refutation");
-        assert_eq!(
-            witness["premises"],
-            serde_json::json!([[SUBJECT, predicate, format!("<{CLASS}>")]])
-        );
+        let premises = witness["premises"]
+            .as_array()
+            .expect("exact native premises");
+        assert_eq!(premises.len(), MEMBERSHIPS.len(), "{witness:#}");
+        for (subject, class) in MEMBERSHIPS {
+            let subject_iri = format!("https://example.org/prove/{subject}");
+            let class_iri = format!("https://blackcatinformatics.ca/logic/{class}");
+            let assertion = units
+                .iter()
+                .find(|unit| {
+                    unit["kind"] == "Assertion"
+                        && unit["anchor"].as_str().is_some_and(|anchor| {
+                            anchor.contains(&subject_iri)
+                                && anchor.contains(predicate)
+                                && anchor.contains(&class_iri)
+                        })
+                })
+                .expect("original membership assertion");
+            assert!(
+                assertion["disposition"]["Accounted"].is_object(),
+                "{assertion:#}"
+            );
+            assert!(
+                !has_drop(&report, "UNIT_NOT_ACCOUNTED", class),
+                "{report:#}"
+            );
+            assert!(
+                premises.contains(&serde_json::json!([
+                    subject_iri,
+                    predicate,
+                    format!("<{class_iri}>")
+                ])),
+                "{witness:#}"
+            );
+        }
     }
 
     let (report, code) = prove_json(
-        "relationship-type-class-position.logic.ttl",
-        &format!("{RULE}\nlogic:RelationshipType logic:subClassOf ex:Classifier ."),
+        "grounded-membership-class-position.logic.ttl",
+        &format!("{rule}\nlogic:Kind logic:subClassOf ex:Classifier ."),
         &["--gate"],
     );
     assert_eq!(code, 3);
