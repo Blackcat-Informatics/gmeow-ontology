@@ -12,6 +12,8 @@
 use std::collections::{BTreeMap, BTreeSet};
 use std::path::Path;
 
+use gmeow_errors::PreservedDiagnostic;
+use gmeow_logic_compile::ingest::DslView;
 use serde::{Deserialize, Serialize};
 
 use purrdf::slice::{
@@ -100,8 +102,6 @@ const RDF_TYPE: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
 const RDFS_LABEL: &str = "http://www.w3.org/2000/01/rdf-schema#label";
 const RDFS_COMMENT: &str = "http://www.w3.org/2000/01/rdf-schema#comment";
 const SKOS_DEFINITION: &str = "http://www.w3.org/2004/02/skos/core#definition";
-const RDFS_DOMAIN: &str = "http://www.w3.org/2000/01/rdf-schema#domain";
-const RDFS_RANGE: &str = "http://www.w3.org/2000/01/rdf-schema#range";
 
 const OWL_CLASS: &str = "http://www.w3.org/2002/07/owl#Class";
 const RDFS_CLASS: &str = "http://www.w3.org/2000/01/rdf-schema#Class";
@@ -337,6 +337,8 @@ const GMEOW_SEAM_OWNING_DOC: &str = "https://blackcatinformatics.ca/gmeow/seamOw
 pub enum DocsError {
     /// Required ontology-owned translation inputs could not be admitted.
     TranslationCatalog(gmeow_errors::Diag),
+    /// The named canonical and legacy links in an authored property signature disagree.
+    PropertySignature(PreservedDiagnostic),
     /// A test-facing corpus consumer could not find the exact authenticated model
     /// produced before the test process started. Tests may not rebuild it on a miss.
     FixtureUnavailable(String),
@@ -437,6 +439,7 @@ impl std::fmt::Display for DocsError {
                 write!(f, "manifest creator in slice {slice_iri}: {detail}")
             }
             DocsError::TranslationCatalog(error) => write!(f, "translation catalog: {error}"),
+            DocsError::PropertySignature(error) => write!(f, "property signature: {error}"),
             DocsError::FixtureUnavailable(msg) => {
                 write!(f, "documentation corpus fixture unavailable: {msg}")
             }
@@ -484,7 +487,14 @@ impl std::fmt::Display for DocsError {
     }
 }
 
-impl std::error::Error for DocsError {}
+impl std::error::Error for DocsError {
+    fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {
+        match self {
+            Self::PropertySignature(error) => Some(error),
+            _ => None,
+        }
+    }
+}
 
 impl From<SliceError> for DocsError {
     fn from(e: SliceError) -> Self {
@@ -1053,9 +1063,11 @@ pub struct DocTerm {
     pub owner_slice: String,
     /// `rdfs:subClassOf` / `rdfs:subPropertyOf` parents (IRIs, sorted).
     pub parents: Vec<String>,
-    /// `rdfs:domain` values (IRIs, sorted).
+    /// Sorted named `logic:domain` links. Read `rdfs:domain` only when the canonical
+    /// predicate is absent. Anonymous expressions stay in the authored graph.
     pub domain: Vec<String>,
-    /// `rdfs:range` values (IRIs, sorted).
+    /// Sorted named `logic:range` links. Read `rdfs:range` only when the canonical
+    /// predicate is absent. Anonymous expressions stay in the authored graph.
     pub range: Vec<String>,
     /// `skos:scopeNote` — usage-advice prose (English carrier, sorted).
     pub scope_notes: Vec<String>,
@@ -2120,7 +2132,8 @@ impl DocsModel {
     /// v21: fixture rationales retain every native literal and its source language/direction.
     /// v22: slice creators retain their original complete source statements.
     /// v23: fixture rationales retain source cell identities and exact locale keys.
-    pub const VERSION: &'static str = "23";
+    /// v24: named property signatures reflect the canonical authored predicates.
+    pub const VERSION: &'static str = "24";
 
     /// Build the documentation model from a discovered catalog and a computed
     /// ownership report. `central_mapping_sets` carries the cross-slice SSSOM
@@ -2167,7 +2180,11 @@ impl DocsModel {
         slices.sort_by(|a, b| a.iri.cmp(&b.iri));
 
         // The docs renderer and its typed rendering corpus share this exact selection.
-        let (mut terms, formalizes_edges) = documented_terms(catalog, ownership);
+        let DocumentedTerms {
+            mut terms,
+            formalizes_edges,
+        } = documented_terms(catalog, ownership)
+            .map_err(|error| DocsError::PropertySignature(PreservedDiagnostic(error)))?;
 
         // Bidirectional related terms: if A lists B, ensure B lists A. The
         // forward edges were collected per-term in `extract_terms`; here we mirror
@@ -3262,21 +3279,29 @@ fn grounding_namespace(owner_slice: &str) -> Option<&'static str> {
 /// Exact term-page inventory selected by the documentation model. This reuses
 /// module terms, the explicit PathShape example exception and validated ownership;
 /// it does not build or enrich a second DocsModel.
+///
+/// # Errors
+/// Refuses contradictory named property signatures under the same rules as [`DocsModel`].
 pub fn documented_term_iris(
     catalog: &SliceCatalog,
     ownership: &OwnershipReport,
-) -> BTreeSet<String> {
-    documented_terms(catalog, ownership)
-        .0
+) -> gmeow_errors::Result<BTreeSet<String>> {
+    Ok(documented_terms(catalog, ownership)?
+        .terms
         .into_iter()
         .map(|term| term.iri)
-        .collect()
+        .collect())
+}
+
+struct DocumentedTerms {
+    terms: Vec<DocTerm>,
+    formalizes_edges: Vec<(String, String)>,
 }
 
 fn documented_terms(
     catalog: &SliceCatalog,
     ownership: &OwnershipReport,
-) -> (Vec<DocTerm>, Vec<(String, String)>) {
+) -> gmeow_errors::Result<DocumentedTerms> {
     let mut terms: Vec<DocTerm> = Vec::new();
     // `logic:formalizes` back-references, collected while modules are parsed.
     let mut formalizes_edges: Vec<(String, String)> = Vec::new();
@@ -3291,7 +3316,7 @@ fn documented_terms(
             // so this should never fail; surface it loudly with full context.
             let store = parse_turtle_lenient(&artifact.content)
                 .unwrap_or_else(|e| panic!("module.ttl for slice {owner} failed to parse: {e}"));
-            terms.extend(extract_terms(&store, owner, record.manifest.tier.as_ref()));
+            terms.extend(extract_terms(&store, owner, record.manifest.tier.as_ref())?);
             formalizes_edges.extend(extract_formalizes(&store));
         }
     }
@@ -3318,7 +3343,7 @@ fn documented_terms(
                 &store,
                 owner,
                 record.manifest.tier.as_ref(),
-            ));
+            )?);
         }
     }
     // A foreign module can redeclare a class without defining it. Use the
@@ -3337,7 +3362,10 @@ fn documented_terms(
             .is_none_or(|owner| *owner == term.owner_slice.as_str())
     });
     terms.sort_by(|a, b| a.iri.cmp(&b.iri));
-    (terms, formalizes_edges)
+    Ok(DocumentedTerms {
+        terms,
+        formalizes_edges,
+    })
 }
 
 /// Whether a module subject is a documentable-term subject for a slice: any
@@ -3352,7 +3380,11 @@ fn is_documented_subject(subject: &str, grounding_ns: Option<&str>) -> bool {
     subject.starts_with(GMEOW_NS) || grounding_ns.is_some_and(|ns| subject.starts_with(ns))
 }
 
-fn extract_terms(store: &Store, owner_slice: &str, tier: Option<&SliceTier>) -> Vec<DocTerm> {
+fn extract_terms(
+    store: &Store,
+    owner_slice: &str,
+    tier: Option<&SliceTier>,
+) -> gmeow_errors::Result<Vec<DocTerm>> {
     // First pass: collect every documentable subject with a recognized vocabulary
     // type, keyed by IRI, recording the strongest category seen. A grounding slice
     // also admits its own-namespace vocabulary (`math:` / `logic:` / `lang:`).
@@ -3400,7 +3432,7 @@ fn extract_path_shape_terms(
     store: &Store,
     owner_slice: &str,
     tier: Option<&SliceTier>,
-) -> Vec<DocTerm> {
+) -> gmeow_errors::Result<Vec<DocTerm>> {
     let mut categories: BTreeMap<String, DocTermCategory> = BTreeMap::new();
     for (subject, object) in store.pattern_subjects_objects(RDF_TYPE) {
         let Some(subject) = subject.as_named() else {
@@ -3430,7 +3462,8 @@ fn build_doc_terms(
     categories: BTreeMap<String, DocTermCategory>,
     owner_slice: &str,
     tier: Option<&SliceTier>,
-) -> Vec<DocTerm> {
+) -> gmeow_errors::Result<Vec<DocTerm>> {
+    let source = DslView::new(store.dataset());
     let mut terms = Vec::new();
     for (iri, category) in categories {
         let label = first_literal(store, &iri, RDFS_LABEL);
@@ -3448,13 +3481,7 @@ fn build_doc_terms(
         parents.sort();
         parents.dedup();
 
-        let mut domain = named_objects(store, &iri, RDFS_DOMAIN);
-        domain.sort();
-        domain.dedup();
-
-        let mut range = named_objects(store, &iri, RDFS_RANGE);
-        range.sort();
-        range.dedup();
+        let signature = source.named_property_signature(&iri)?;
 
         // Per-term usage advice (English carrier from this slice's module.ttl).
         let scope_notes = literals(store, &iri, SKOS_SCOPE_NOTE);
@@ -3523,8 +3550,8 @@ fn build_doc_terms(
             category,
             owner_slice: owner_slice.to_string(),
             parents,
-            domain,
-            range,
+            domain: signature.domain,
+            range: signature.range,
             scope_notes,
             examples,
             use_when,
@@ -3550,7 +3577,7 @@ fn build_doc_terms(
             profiles: Vec::new(),
         });
     }
-    terms
+    Ok(terms)
 }
 
 /// Resolve a term's stability badge: an explicit `gmeow:termStability`

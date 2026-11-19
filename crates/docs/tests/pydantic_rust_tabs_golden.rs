@@ -28,28 +28,19 @@ use gmeow_docs::{DocTerm, DocTermCategory, DocsModel};
 
 mod common;
 
-/// The first documented CLASS (by stable curie/iri sort) that is also the
-/// `rdfs:domain` of at least one documented property — a deterministic,
-/// richly-modeled subject whose synthesized quickstart is a multi-field
-/// instance (`<subject> a C ; p1 ... ; p2 ... .`), not just a bare `a C .`
-/// skeleton, so the worked instance the Python/Rust tabs validate is
-/// non-trivial.
-fn class_term_with_properties(model: &DocsModel) -> &DocTerm {
-    let mut candidates: Vec<&DocTerm> = model
+/// The accessibility assertion class anchors the golden. Its modeled properties
+/// supply field values to the worked instance used by both syntax tabs.
+fn accessibility_assertion_term(model: &DocsModel) -> &DocTerm {
+    let term = model
         .terms
         .iter()
-        .filter(|t| {
-            t.category == DocTermCategory::Class
-                && model.terms.iter().any(|p| {
-                    p.category == DocTermCategory::Property && p.domain.iter().any(|d| d == &t.iri)
-                })
-        })
-        .collect();
-    candidates.sort_by(|a, b| a.curie.cmp(&b.curie).then_with(|| a.iri.cmp(&b.iri)));
-    candidates
-        .first()
-        .copied()
-        .expect("the live model has at least one documented class that is a property's domain")
+        .find(|term| term.iri == "https://blackcatinformatics.ca/gmeow/AccessibilityAssertion")
+        .expect("the live model documents the accessibility assertion class");
+    assert_eq!(term.category, DocTermCategory::Class);
+    assert!(model.terms.iter().any(|property| {
+        property.category == DocTermCategory::Property && property.domain.contains(&term.iri)
+    }));
+    term
 }
 
 /// Extract the exact body of a `**{lang}**`-labeled fenced code block emitted by
@@ -73,7 +64,7 @@ fn fenced_body(md: &str, lang: &str) -> String {
 #[test]
 fn python_and_rust_syntax_tabs_render_for_a_modeled_class() {
     let base = common::cached_model();
-    let term = class_term_with_properties(&base).clone();
+    let term = accessibility_assertion_term(&base).clone();
 
     let mut digest = SchemaFragmentDigest::default();
     digest.schema_by_term.insert(
@@ -149,7 +140,7 @@ fn python_and_rust_syntax_tabs_render_for_a_modeled_class() {
 #[test]
 fn card_md_and_json_carry_the_python_model_link_for_a_modeled_class() {
     let base = common::cached_model();
-    let term = class_term_with_properties(&base).clone();
+    let term = accessibility_assertion_term(&base).clone();
 
     let mut digest = SchemaFragmentDigest::default();
     digest.schema_by_term.insert(

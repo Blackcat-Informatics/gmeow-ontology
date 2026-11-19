@@ -11,5 +11,5 @@
 pub mod dataset;
 pub mod prefixes;
 
-pub use dataset::{DslTerm, DslView, ReifiedStatement, literal_lexical};
+pub use dataset::{DslTerm, DslView, NamedPropertySignature, ReifiedStatement, literal_lexical};
 pub use prefixes::{PREFIX_REGISTRY, ns_to_prefix, registry_iri, registry_pairs, sssom_id};

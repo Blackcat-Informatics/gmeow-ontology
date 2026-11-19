@@ -207,7 +207,8 @@ gmeow:hasOwner a owl:ObjectProperty ;
     rdfs:comment "Ownership relation." .
 "#;
     let store = store_from(ttl);
-    let terms = extract_terms(&store, "https://example.org/slice/zoo", None);
+    let terms = extract_terms(&store, "https://example.org/slice/zoo", None)
+        .expect("the supplied signatures agree");
 
     let cat = terms.iter().find(|t| t.iri.ends_with("Cat")).unwrap();
     assert_eq!(cat.category, DocTermCategory::Class);
@@ -256,7 +257,8 @@ gmeow:grooms a owl:ObjectProperty ;
     rdfs:label "grooms" .
 "#;
     let store = store_from(ttl);
-    let terms = extract_terms(&store, "https://example.org/slice/zoo", None);
+    let terms = extract_terms(&store, "https://example.org/slice/zoo", None)
+        .expect("the supplied signatures agree");
 
     let cat = terms.iter().find(|t| t.iri.ends_with("Cat")).unwrap();
     assert_eq!(
@@ -277,6 +279,65 @@ gmeow:grooms a owl:ObjectProperty ;
         crate::svg::term_neighbourhood_svg(cat).contains("Animal"),
         "the neighbourhood diagram must draw the canonical parent edge"
     );
+}
+
+/// Authored property signatures reach documentation with canonical precedence
+/// and refuse conflicting named declarations.
+#[test]
+fn named_property_signatures_reach_docs_from_authored_turtle() {
+    let ttl = r#"
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+gmeow:placeSupersededBy a logic:ObjectProperty ;
+    logic:domain gmeow:Place ;
+    logic:range gmeow:Place .
+
+gmeow:relatedLocation a logic:ObjectProperty ;
+    logic:domain gmeow:Place, gmeow:Location ;
+    rdfs:domain gmeow:Location, gmeow:Place ;
+    logic:range gmeow:Location ;
+    rdfs:range gmeow:Location .
+
+gmeow:hasCoordinateMatrix a logic:DatatypeProperty ;
+    logic:domain [ a logic:Class ; logic:unionOf ( gmeow:Axis gmeow:Pose ) ] ;
+    rdfs:domain gmeow:Place ;
+    logic:range [ a rdfs:Datatype ; logic:unionOf ( xsd:string xsd:token ) ] .
+"#;
+    let owner = "https://example.org/slice/places";
+    let terms = extract_terms(&store_from(ttl), owner, None).expect("the named signatures agree");
+    let term = |curie: &str| {
+        terms
+            .iter()
+            .find(|term| term.curie == curie)
+            .expect("the property has a documentation entry")
+    };
+    let succession = term("gmeow:placeSupersededBy");
+    assert_eq!(succession.domain, [format!("{GMEOW_NS}Place")]);
+    assert_eq!(succession.range, [format!("{GMEOW_NS}Place")]);
+    assert!(crate::svg::term_neighbourhood_svg(succession).contains("Place"));
+
+    let dual = term("gmeow:relatedLocation");
+    assert_eq!(
+        dual.domain,
+        [format!("{GMEOW_NS}Location"), format!("{GMEOW_NS}Place")]
+    );
+    assert_eq!(dual.range, [format!("{GMEOW_NS}Location")]);
+
+    let anonymous = term("gmeow:hasCoordinateMatrix");
+    assert!(anonymous.domain.is_empty());
+    assert!(anonymous.range.is_empty());
+
+    let conflicting = format!("{ttl}\ngmeow:placeSupersededBy rdfs:range gmeow:Location .\n");
+    let error = extract_terms(&store_from(&conflicting), owner, None)
+        .expect_err("different named ranges are a source conflict");
+    assert!(error.is::<gmeow_logic_compile::error::Frontend>());
+    let message = error.message();
+    assert!(message.contains(&succession.iri));
+    assert!(message.contains(gmeow_ns::LOGIC_RANGE));
+    assert!(message.contains(gmeow_ns::RDFS_RANGE));
 }
 
 /// `read_central_mapping_sets` distinguishes an absent file (fine — slices
@@ -316,7 +377,11 @@ fn non_gmeow_terms_are_skipped() {
 <https://example.org/Foo> a owl:Class .
 "#;
     let store = store_from(ttl);
-    assert!(extract_terms(&store, "s", None).is_empty());
+    assert!(
+        extract_terms(&store, "s", None)
+            .expect("no terms to admit")
+            .is_empty()
+    );
 }
 
 /// Stability derivation precedence: explicit `gmeow:termStability`
@@ -335,7 +400,8 @@ gmeow:Explicit    a owl:Class ;
     gmeow:termStability gmeow:stabilityExperimental .
 "#;
     let store = store_from(ttl);
-    let core = extract_terms(&store, "s", Some(&SliceTier::Core));
+    let core =
+        extract_terms(&store, "s", Some(&SliceTier::Core)).expect("the supplied signatures agree");
     let by = |ts: &[DocTerm], suffix: &str| {
         ts.iter()
             .find(|t| t.iri.ends_with(suffix))
@@ -350,7 +416,8 @@ gmeow:Explicit    a owl:Class ;
     assert_eq!(by(&core, "Explicit"), DocTermStability::Experimental);
 
     // Same terms under an extension tier → ExtDefault becomes Experimental.
-    let ext = extract_terms(&store, "s", Some(&SliceTier::Extension));
+    let ext = extract_terms(&store, "s", Some(&SliceTier::Extension))
+        .expect("the supplied signatures agree");
     assert_eq!(by(&ext, "ExtDefault"), DocTermStability::Experimental);
 }
 
@@ -373,7 +440,8 @@ gmeow:Thing a owl:Class ;
         gmeow:entryVersion "1.0.2" ] .
 "#;
     let store = store_from(ttl);
-    let terms = extract_terms(&store, "s", Some(&SliceTier::Core));
+    let terms =
+        extract_terms(&store, "s", Some(&SliceTier::Core)).expect("the supplied signatures agree");
     let thing = terms.iter().find(|t| t.iri.ends_with("Thing")).unwrap();
     assert_eq!(thing.added_in_version.as_deref(), Some("1.0.2"));
     assert_eq!(

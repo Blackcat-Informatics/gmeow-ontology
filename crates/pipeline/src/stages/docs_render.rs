@@ -7,17 +7,34 @@
 
 use std::collections::{BTreeMap, BTreeSet};
 use std::path::Path;
+use std::sync::Arc;
 
 use gmeow_docs::model::{
     ConsistencyAssessment, ConstraintRule, DiagnosticsDigest, DocDiagFinding, DocsModel,
     ReasoningVerdict,
 };
 use gmeow_docs::rdf::to_gmeow_rdf;
-use purrdf::RdfTerm;
+use purrdf::{RdfDataset, RdfDatasetBuilder, RdfTerm};
 
 use crate::node::{CachePolicy, Stage, StageInput, StageOutput, StageProduct};
+use crate::stages::carrier::{GRAPH_DOCUMENTATION, require_rooted_graph};
 
 const RDF_TYPE: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
+
+/// Publish the already named graph the N-Quads renderer supplies.
+fn admit_rendered_documentation(rendered: &str) -> gmeow_errors::Result<Arc<RdfDataset>> {
+    let dataset = if rendered.is_empty() {
+        let mut builder = RdfDatasetBuilder::new();
+        let graph = builder.intern_iri(GRAPH_DOCUMENTATION)?;
+        builder.declare_named_graph(graph)?;
+        builder.freeze().map_err(gmeow_errors::Diag::from)?
+    } else {
+        purrdf::parse_dataset(rendered.as_bytes(), "application/n-quads", None)
+            .map_err(gmeow_errors::Diag::from)?
+    };
+    require_rooted_graph(&dataset, "stage-docs-render", GRAPH_DOCUMENTATION)?;
+    Ok(dataset)
+}
 
 /// Select the declared in-DAG reasoning owner. Post-DAG documentation explicitly
 /// selects its retained snapshot and uses the same native admission below.
@@ -690,11 +707,11 @@ pub fn render_docs_graph(
     let mut model =
         DocsModel::discover_with_manifest_and_catalog(root, manifest_bytes, &catalog_bytes)
             .map_err(|e| {
-                gmeow_errors::Diag::of_kind(crate::error::StageFailed {
-                    cause: None,
-                    stage: "stage-docs-render".to_string(),
-                    message: format!("docs model discovery failed: {e}"),
-                })
+                gmeow_errors::Diag::of_kind(crate::error::StageFailed::caused_by(
+                    "stage-docs-render".to_owned(),
+                    format!("docs model discovery failed: {e}"),
+                    e,
+                ))
             })?;
     model.attach_reasoning(verdict);
     let known_term_iris: BTreeSet<String> = model.terms.iter().map(|t| t.iri.clone()).collect();
@@ -1034,7 +1051,7 @@ impl Stage for DocsRenderStage {
         // v6: adds `term_loss_digest_from_upstream`, folding the dynamic per-term
         // projection-loss join from the `stage-mappings` product's live
         // `GRAPH_PROJECTION_LEDGER` graph.
-        "docs_render.v17-localized-fixture-rationales"
+        "docs_render.v18-admit-rendered-graph"
     }
     fn input_files(&self, root: &Path) -> Result<Vec<std::path::PathBuf>, gmeow_errors::Diag> {
         // Guides, four-boxes patterns and locale catalogs contribute to the graph
@@ -1045,11 +1062,9 @@ impl Stage for DocsRenderStage {
         let verdict = reasoning_verdict_from_reason(input.upstream)?;
         let dataset = {
             let graph = render_docs_graph(input.root, verdict, input.upstream)?;
-            crate::stages::carrier::parse_into_graph(
-                graph.as_bytes(),
-                "application/n-quads",
-                crate::stages::carrier::GRAPH_DOCUMENTATION,
-            )?
+            crate::node::measure_stage_phase(self.id(), "parse-documentation-rdf", || {
+                admit_rendered_documentation(&graph)
+            })?
         };
         Ok(StageOutput::new(StageProduct::from_artifacts_over(
             self.id(),

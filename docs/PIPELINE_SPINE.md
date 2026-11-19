@@ -206,9 +206,11 @@ input blank scopes remain distinct. These producer inputs carry locations in the
 RDF and report payloads; unexpected physical row-location attachments fail admission
 before publication. Diagnostics retain their selected graph placement.
 
-Snapshot assembly uses the native documentation dataset as an independently
-scoped source. It checks that the documentation graph is the sole declaration
-and owns every ordinary statement, reifier and annotation before placing it.
+The documentation producer parses the renderer's named N-Quads and publishes
+that native dataset. An empty render publishes the empty named graph. The
+producer and snapshot assembly both check that the documentation graph is the
+sole declaration and owns every ordinary statement, reifier and annotation.
+Snapshot assembly places the dataset as an independently scoped source.
 
 Snapshot assembly derives finding verdicts over the composed resident sources, then
 assesses coherence over a second read-only view with those verdicts appended. The

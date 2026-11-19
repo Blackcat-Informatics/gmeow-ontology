@@ -7,6 +7,7 @@
 //! neither graph labels nor quoted propositions become assertions implicitly.
 
 use crate::graphutil::default_graph_pattern;
+use gmeow_ns::{LOGIC_DOMAIN, LOGIC_RANGE, RDFS_DOMAIN, RDFS_RANGE};
 use purrdf::{RdfDataset, TermId, TermRef, TermValue};
 use std::collections::BTreeSet;
 use std::sync::Mutex;
@@ -14,6 +15,28 @@ use std::sync::Mutex;
 /// The alignment adapter uses PurRDF's complete native value identity, including
 /// blank scope, literal direction and recursively quoted propositions.
 pub type DslTerm = TermValue;
+
+/// Sorted, distinct named links in an authored property signature.
+#[must_use]
+pub struct NamedPropertySignature {
+    /// Named classes declared as the property's domain.
+    pub domain: Vec<String>,
+    /// Named classes or datatypes declared as the property's range.
+    pub range: Vec<String>,
+}
+
+fn named_signature_endpoints(values: Vec<DslTerm>) -> Vec<String> {
+    let mut names: Vec<_> = values
+        .into_iter()
+        .filter_map(|value| match value {
+            DslTerm::Iri(iri) => Some(iri),
+            _ => None,
+        })
+        .collect();
+    names.sort();
+    names.dedup();
+    names
+}
 
 /// Borrow the lexical component of a native literal for a lexical DSL field.
 pub fn literal_lexical(term: &DslTerm) -> Option<&str> {
@@ -317,6 +340,50 @@ impl<'a> DslView<'a> {
                 _ => None,
             })
             .collect()
+    }
+
+    /// Read the named links of a property's authored domain and range. Canonical
+    /// `logic:` declarations take precedence even when entirely anonymous.
+    /// Anonymous expressions are valid source values outside this named-link view.
+    ///
+    /// # Errors
+    /// Refuses a signature when both spellings of a field supply different
+    /// named endpoint sets.
+    pub fn named_property_signature(
+        &self,
+        property: &str,
+    ) -> gmeow_errors::Result<NamedPropertySignature> {
+        Ok(NamedPropertySignature {
+            domain: self.named_signature_links(property, LOGIC_DOMAIN, RDFS_DOMAIN)?,
+            range: self.named_signature_links(property, LOGIC_RANGE, RDFS_RANGE)?,
+        })
+    }
+
+    fn named_signature_links(
+        &self,
+        property: &str,
+        canonical: &str,
+        legacy: &str,
+    ) -> gmeow_errors::Result<Vec<String>> {
+        let canonical_values = self.objects_of(property, canonical);
+        if canonical_values.is_empty() {
+            return Ok(named_signature_endpoints(self.objects_of(property, legacy)));
+        }
+        let canonical_names = named_signature_endpoints(canonical_values);
+        if canonical_names.is_empty() {
+            return Ok(canonical_names);
+        }
+        let legacy_names = named_signature_endpoints(self.objects_of(property, legacy));
+        if !legacy_names.is_empty() && canonical_names != legacy_names {
+            return Err(gmeow_errors::Diag::of_kind(crate::error::Frontend::new(
+                format!(
+                    "property <{property}> has different named endpoints for \
+                     <{canonical}> {canonical_names:?} and <{legacy}> {legacy_names:?}. \
+                     Reconcile the declarations in <{canonical}>."
+                ),
+            )));
+        }
+        Ok(canonical_names)
     }
 
     /// The lexical form of the first literal object of `<subject_iri> <pred> ?o`.
