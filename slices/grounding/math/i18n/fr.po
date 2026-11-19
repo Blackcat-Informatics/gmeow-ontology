@@ -3674,8 +3674,8 @@ msgid "Number"
 msgstr "Nombre"
 
 msgctxt "https://blackcatinformatics.ca/math/Number|http://www.w3.org/2004/02/skos/core#definition"
-msgid "A mathematical number: an abstract quantity that lives in a declared number system. Every math:Number situates itself in a math:NumberSystem through math:inNumberSystem — an unsituated number is ill-formed — and declares through math:isExact whether it is an exact value or the abstract counterpart that a math:ApproximateValue approximates. The five nested systems ℕ ⊂ ℤ ⊂ ℚ ⊂ ℝ ⊂ ℂ are its principal subclasses."
-msgstr "Un nombre mathématique : une quantité abstraite appartenant à un système de nombres déclaré. Chaque math:Number se situe dans un math:NumberSystem par math:inNumberSystem — un nombre sans système est mal formé — et déclare par math:isExact s’il est une valeur exacte ou la contrepartie abstraite qu’un math:ApproximateValue approche. Les cinq systèmes emboîtés ℕ ⊂ ℤ ⊂ ℚ ⊂ ℝ ⊂ ℂ correspondent à ses principales sous-classes."
+msgid "An abstract mathematical number with an identity in the graph. A number has one declared math:NumberSystem through math:inNumberSystem. Classes such as math:RationalNumber refine its classification, while named systems such as math:rationalNumbers are values of that property. Record exactness with math:isExact independently of any math:ApproximateValue that names the number as its target."
+msgstr "Un nombre mathématique abstrait doté d’une identité dans le graphe. Il possède un seul math:NumberSystem déclaré par math:inNumberSystem. Une classe telle que math:RationalNumber précise sa classification, et un système nommé tel que math:rationalNumbers constitue une valeur de cette propriété. Déclarer l’exactitude par math:isExact indépendamment de tout math:ApproximateValue qui désigne ce nombre comme sa cible."
 
 msgctxt "https://blackcatinformatics.ca/math/Number|http://www.w3.org/2004/02/skos/core#scopeNote"
 msgid "This class describes mathematical objects, not RDF numeric literals or the sets that contain numbers. Select a more specific number class when known; math:inNumberSystem names a system individual rather than a class."
@@ -18446,3 +18446,59 @@ msgstr "Ne pas modifier l’identité exacte de la constante parce qu’une éva
 msgctxt "https://blackcatinformatics.ca/math/ConstantAsDecimalLiteral|https://blackcatinformatics.ca/gmeow/howToUse"
 msgid "Read the reported component, path, value and source shape. Remove a direct math:quantityValue literal from the constant when present, retain math:isExact true, and keep any justified evaluation and numeric absolute error bound on a separate math:ApproximateValue. Repair the actual reported obligation without replacing the canonical constant identity."
 msgstr "Lire le composant, le chemin, la valeur et la forme source signalés. Retirer de la constante tout littéral direct math:quantityValue présent, conserver math:isExact true et placer toute évaluation justifiée et sa borne numérique absolue d’erreur sur un math:ApproximateValue distinct. Corriger l’obligation effectivement signalée sans remplacer l’identité canonique de la constante."
+
+msgctxt "https://blackcatinformatics.ca/math/MathConformanceFailure|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Math Conformance Failure"
+msgstr "Défaut de conformité mathématique"
+
+msgctxt "https://blackcatinformatics.ca/math/MathConformanceFailure|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The class of situations in which a mathematical well-formedness or preservation obligation is violated. Its subclasses identify kinds of failure that validation findings can report."
+msgstr "La classe des situations où une obligation de bonne formation ou de préservation mathématique est violée. Ses sous-classes identifient les types de défaillance que les constats de validation peuvent signaler."
+
+msgctxt "https://blackcatinformatics.ca/math/MathConformanceFailure|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Canonical logic axioms and constraints state the applicable obligations. A class IRI on a finding identifies the kind of situation observed. One class can cover several checks."
+msgstr "Les axiomes et les contraintes de la logique canonique énoncent les obligations applicables. L’IRI de classe d’un constat identifie le type de situation observée. Une même classe peut couvrir plusieurs contrôles."
+
+msgctxt "https://blackcatinformatics.ca/math/MathConformanceFailure|http://www.w3.org/2004/02/skos/core#example"
+msgid "A finding attributed to math:UnsituatedNumber identifies a number-system validation problem. Its path and constraint component show which part of the obligation failed."
+msgstr "Un constat attribué à math:UnsituatedNumber signale un problème de validation du système de nombres. Son chemin et son composant de contrainte indiquent quelle partie de l’obligation est violée."
+
+msgctxt "https://blackcatinformatics.ca/math/MathConformanceFailure|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use as a parent for a class that identifies a kind of violation of an authored mathematical obligation."
+msgstr "Utiliser comme classe parente d’une classe qui identifie un type de violation d’une obligation mathématique définie dans la source."
+
+msgctxt "https://blackcatinformatics.ca/math/MathConformanceFailure|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Use the finding record for validation details. Establish numerical or empirical claims with evidence appropriate to those claims."
+msgstr "Consulter le constat pour les détails de validation. Étayer les affirmations numériques ou empiriques par des éléments de preuve adaptés."
+
+msgctxt "https://blackcatinformatics.ca/math/MathConformanceFailure|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Choose the most specific failure class supported by the check. Keep the class IRI and the focus node, path, component, value and source shape when the finding provides them."
+msgstr "Choisir la classe de défaillance la plus précise établie par le contrôle. Conserver l’IRI de classe, ainsi que le nœud ciblé, le chemin, le composant, la valeur et la forme source lorsque le constat les fournit."
+
+msgctxt "https://blackcatinformatics.ca/math/UnsituatedNumber|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Unsituated Number"
+msgstr "Nombre sans système déclaré"
+
+msgctxt "https://blackcatinformatics.ca/math/UnsituatedNumber|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A failure of the requirement for a math:Number to declare exactly one math:NumberSystem through math:inNumberSystem."
+msgstr "Un manquement à l’obligation pour un math:Number de déclarer exactement un math:NumberSystem par math:inNumberSystem."
+
+msgctxt "https://blackcatinformatics.ca/math/UnsituatedNumber|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The obligation on math:Number covers both the type of the system and the number of values. Admissible targets include the ordinary named system individuals and math:ExtendedRealLine. The mathematical context determines whether the chosen system describes the number."
+msgstr "L’obligation applicable à math:Number porte sur le type du système et sur le nombre de valeurs. Les cibles admissibles comprennent les individus des systèmes usuels nommés et math:ExtendedRealLine. Le contexte mathématique permet de déterminer si le système choisi décrit le nombre."
+
+msgctxt "https://blackcatinformatics.ca/math/UnsituatedNumber|http://www.w3.org/2004/02/skos/core#example"
+msgid "A math:RationalNumber marked math:isExact true with no math:inNumberSystem link illustrates a missing-system case. A valid declaration for the exact number one third links to math:rationalNumbers."
+msgstr "Un math:RationalNumber marqué math:isExact true et dépourvu de lien math:inNumberSystem illustre le cas d’un système manquant. Une déclaration valide du nombre exact un tiers pointe vers math:rationalNumbers."
+
+msgctxt "https://blackcatinformatics.ca/math/UnsituatedNumber|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to interpret a finding attributed to the math:inNumberSystem requirement on math:Number."
+msgstr "Utiliser pour interpréter un constat attribué à l’obligation math:inNumberSystem sur math:Number."
+
+msgctxt "https://blackcatinformatics.ca/math/UnsituatedNumber|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Use the reported component to investigate whether a system link is missing. Assess exactness and mathematical membership independently."
+msgstr "Examiner le composant signalé pour déterminer si un lien vers un système manque. Évaluer séparément l’exactitude et l’appartenance mathématique."
+
+msgctxt "https://blackcatinformatics.ca/math/UnsituatedNumber|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read the focus node, component, path, value and source shape for the reported problem. Repair the declaration so math:inNumberSystem points to one justified math:NumberSystem individual. Express containment between systems through math:subsystemOf."
+msgstr "Lire le nœud ciblé, le composant, le chemin, la valeur et la forme source associés au problème signalé. Corriger la déclaration pour que math:inNumberSystem pointe vers un seul individu math:NumberSystem dont le choix est justifié. Exprimer l’inclusion entre systèmes par math:subsystemOf."

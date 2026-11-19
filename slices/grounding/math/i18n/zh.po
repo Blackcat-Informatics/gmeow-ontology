@@ -3674,8 +3674,8 @@ msgid "Number"
 msgstr "数"
 
 msgctxt "https://blackcatinformatics.ca/math/Number|http://www.w3.org/2004/02/skos/core#definition"
-msgid "A mathematical number: an abstract quantity that lives in a declared number system. Every math:Number situates itself in a math:NumberSystem through math:inNumberSystem — an unsituated number is ill-formed — and declares through math:isExact whether it is an exact value or the abstract counterpart that a math:ApproximateValue approximates. The five nested systems ℕ ⊂ ℤ ⊂ ℚ ⊂ ℝ ⊂ ℂ are its principal subclasses."
-msgstr "数学中的数：属于一个已声明数系的抽象量。每个 math:Number 都通过 math:inNumberSystem 将自身置于一个 math:NumberSystem 中；未指定数系的数不合规范。它还通过 math:isExact 声明自身是精确值，还是某个 math:ApproximateValue 所近似的抽象对应对象。五个嵌套数系 ℕ ⊂ ℤ ⊂ ℚ ⊂ ℝ ⊂ ℂ 对应其主要子类。"
+msgid "An abstract mathematical number with an identity in the graph. A number has one declared math:NumberSystem through math:inNumberSystem. Classes such as math:RationalNumber refine its classification, while named systems such as math:rationalNumbers are values of that property. Record exactness with math:isExact independently of any math:ApproximateValue that names the number as its target."
+msgstr "在图中具有明确身份的抽象数。每个数通过 math:inNumberSystem 声明一个 math:NumberSystem。math:RationalNumber 等类细化数的分类，math:rationalNumbers 等命名数系是该属性的值。用 math:isExact 记录精确性，这独立于是否有 math:ApproximateValue 将该数作为目标。"
 
 msgctxt "https://blackcatinformatics.ca/math/Number|http://www.w3.org/2004/02/skos/core#scopeNote"
 msgid "This class describes mathematical objects, not RDF numeric literals or the sets that contain numbers. Select a more specific number class when known; math:inNumberSystem names a system individual rather than a class."
@@ -18446,3 +18446,59 @@ msgstr "不要因某次求值经过舍入而改变常数的精确身份，不要
 msgctxt "https://blackcatinformatics.ca/math/ConstantAsDecimalLiteral|https://blackcatinformatics.ca/gmeow/howToUse"
 msgid "Read the reported component, path, value and source shape. Remove a direct math:quantityValue literal from the constant when present, retain math:isExact true, and keep any justified evaluation and numeric absolute error bound on a separate math:ApproximateValue. Repair the actual reported obligation without replacing the canonical constant identity."
 msgstr "读取所报告的约束组件、路径、值和来源形状。若常数上存在直接的 math:quantityValue 字面量，则将其移除；保留 math:isExact true，并将任何有依据的求值结果及数值绝对误差界放在独立的 math:ApproximateValue 上。修复实际报告的义务，不要替换常数的规范身份。"
+
+msgctxt "https://blackcatinformatics.ca/math/MathConformanceFailure|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Math Conformance Failure"
+msgstr "数学规范违例"
+
+msgctxt "https://blackcatinformatics.ca/math/MathConformanceFailure|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The class of situations in which a mathematical well-formedness or preservation obligation is violated. Its subclasses identify kinds of failure that validation findings can report."
+msgstr "数学良构义务或保持性义务遭到违反的情形所属的类。其子类指明验证发现可以报告的失败类型。"
+
+msgctxt "https://blackcatinformatics.ca/math/MathConformanceFailure|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Canonical logic axioms and constraints state the applicable obligations. A class IRI on a finding identifies the kind of situation observed. One class can cover several checks."
+msgstr "规范逻辑公理和约束规定适用的义务。验证发现中的类 IRI 指明观察到的情形属于哪一类。同一个类可以涵盖多项检查。"
+
+msgctxt "https://blackcatinformatics.ca/math/MathConformanceFailure|http://www.w3.org/2004/02/skos/core#example"
+msgid "A finding attributed to math:UnsituatedNumber identifies a number-system validation problem. Its path and constraint component show which part of the obligation failed."
+msgstr "归入 math:UnsituatedNumber 的发现表明数系验证存在问题。该发现的路径和约束组件指出义务的哪一部分未得到满足。"
+
+msgctxt "https://blackcatinformatics.ca/math/MathConformanceFailure|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use as a parent for a class that identifies a kind of violation of an authored mathematical obligation."
+msgstr "用作父类，其子类标识违反源中所声明数学义务的不同情形。"
+
+msgctxt "https://blackcatinformatics.ca/math/MathConformanceFailure|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Use the finding record for validation details. Establish numerical or empirical claims with evidence appropriate to those claims."
+msgstr "从发现记录中读取验证细节。用适当的证据支持数值主张或经验主张。"
+
+msgctxt "https://blackcatinformatics.ca/math/MathConformanceFailure|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Choose the most specific failure class supported by the check. Keep the class IRI and the focus node, path, component, value and source shape when the finding provides them."
+msgstr "选择检查结果所支持的最具体的失败类。保留类 IRI，并保留发现所提供的焦点节点、路径、组件、值和来源形状。"
+
+msgctxt "https://blackcatinformatics.ca/math/UnsituatedNumber|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Unsituated Number"
+msgstr "未指定数系的数"
+
+msgctxt "https://blackcatinformatics.ca/math/UnsituatedNumber|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A failure of the requirement for a math:Number to declare exactly one math:NumberSystem through math:inNumberSystem."
+msgstr "未满足 math:Number 必须通过 math:inNumberSystem 声明恰好一个 math:NumberSystem 的要求。"
+
+msgctxt "https://blackcatinformatics.ca/math/UnsituatedNumber|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The obligation on math:Number covers both the type of the system and the number of values. Admissible targets include the ordinary named system individuals and math:ExtendedRealLine. The mathematical context determines whether the chosen system describes the number."
+msgstr "math:Number 上的义务同时涉及数系类型和值的数量。允许的目标包括通常的命名数系个体和 math:ExtendedRealLine。所选数系能否描述该数，取决于数学语境。"
+
+msgctxt "https://blackcatinformatics.ca/math/UnsituatedNumber|http://www.w3.org/2004/02/skos/core#example"
+msgid "A math:RationalNumber marked math:isExact true with no math:inNumberSystem link illustrates a missing-system case. A valid declaration for the exact number one third links to math:rationalNumbers."
+msgstr "一个标记为 math:isExact true 却缺少 math:inNumberSystem 链接的 math:RationalNumber 展示了缺少数系的情形。精确数三分之一的有效声明指向 math:rationalNumbers。"
+
+msgctxt "https://blackcatinformatics.ca/math/UnsituatedNumber|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to interpret a finding attributed to the math:inNumberSystem requirement on math:Number."
+msgstr "用于解释归入 math:Number 上的 math:inNumberSystem 要求的验证发现。"
+
+msgctxt "https://blackcatinformatics.ca/math/UnsituatedNumber|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Use the reported component to investigate whether a system link is missing. Assess exactness and mathematical membership independently."
+msgstr "根据报告的组件查看数系链接是否缺失。另行判断精确性和数学上的归属关系。"
+
+msgctxt "https://blackcatinformatics.ca/math/UnsituatedNumber|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read the focus node, component, path, value and source shape for the reported problem. Repair the declaration so math:inNumberSystem points to one justified math:NumberSystem individual. Express containment between systems through math:subsystemOf."
+msgstr "查看问题所涉及的焦点节点、组件、路径、值和来源形状。修正声明，使 math:inNumberSystem 指向一个有充分依据的 math:NumberSystem 个体。通过 math:subsystemOf 表达数系之间的包含关系。"
