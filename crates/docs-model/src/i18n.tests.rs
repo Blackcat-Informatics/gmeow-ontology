@@ -247,6 +247,7 @@ fn translations_lookup_indexes_by_full_predicate() {
     );
     let t = Translations {
         by_key,
+        fixtures: BTreeMap::new(),
         languages: vec!["fr".to_string()],
         internal_tag: BTreeMap::new(),
     };
@@ -254,7 +255,7 @@ fn translations_lookup_indexes_by_full_predicate() {
         t.lookup(
             "https://blackcatinformatics.ca/gmeow/Foo",
             "http://www.w3.org/2000/01/rdf-schema#label",
-            "fr"
+            "FR"
         ),
         Some("Fou")
     );
@@ -303,6 +304,7 @@ fn translations_serde_round_trip_is_identity() {
     internal_tag.insert("zh".to_string(), "x-gmeow-chinese".to_string());
     let original = Translations {
         by_key,
+        fixtures: BTreeMap::new(),
         languages: vec!["fr".to_string(), "zh".to_string()],
         internal_tag,
     };

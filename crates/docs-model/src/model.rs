@@ -279,20 +279,6 @@ const GMEOW_CELL_VAR: &str = "https://blackcatinformatics.ca/gmeow/cellVar";
 const GMEOW_CELL_VALUE_LITERAL: &str = "https://blackcatinformatics.ca/gmeow/cellValueLiteral";
 
 // ── Conformance-fixture Do/Don't binding surface ─────────────────────────────
-// The fixtures themselves (`tests/conformance-fixtures/*.ttl` /
-// `tests/counter-examples/*.ttl`) are pure ABox payloads carrying no
-// `sh:message` or shape reference; the expected outcome / violation code /
-// rationale live in a SEPARATE per-slice `tests/example-conformance.ttl`
-// binding file, joined by slice-relative path (`gmeow:exampleFile`).
-
-const GMEOW_EXAMPLE_CONFORMANCE: &str = "https://blackcatinformatics.ca/gmeow/ExampleConformance";
-const GMEOW_EXAMPLE_FILE: &str = "https://blackcatinformatics.ca/gmeow/exampleFile";
-const GMEOW_EXPECTED_OUTCOME: &str = "https://blackcatinformatics.ca/gmeow/expectedOutcome";
-const GMEOW_EXPECTED_VIOLATION_CODE: &str =
-    "https://blackcatinformatics.ca/gmeow/expectedViolationCode";
-const GMEOW_CONFORMANCE_RATIONALE: &str =
-    "https://blackcatinformatics.ca/gmeow/conformanceRationale";
-
 // ── Build-pipeline DAG surface (slices/core/pipeline/module.ttl) ────────────
 // The dogfooded build graph authored as data: `gmeow:PipelineStage` individuals
 // gathered on the one `gmeow:Pipeline` (`gmeow:pipeline-build`) through
@@ -1240,62 +1226,6 @@ pub struct DocExample {
     pub terms_referenced: Vec<String>,
 }
 
-/// Whether a [`DocFixture`] is a well-formed conformance instance or a
-/// deliberately malformed counter-example.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]
-pub enum DocFixtureKind {
-    /// A `tests/conformance-fixtures/*.ttl` instance that MUST validate.
-    Wellformed,
-    /// A `tests/counter-examples/*.ttl` instance that MUST be rejected.
-    CounterExample,
-}
-
-/// A conformance Do/Don't fixture — a well-formed instance
-/// ([`DocFixtureKind::Wellformed`]) or a deliberately malformed counter-example
-/// ([`DocFixtureKind::CounterExample`]), carried in full (small Turtle text,
-/// not a blob). The fixture file itself is a pure ABox payload with no
-/// `sh:message` or shape reference; the expected outcome, violation code, and
-/// rationale — when the slice authors a binding — are joined in from that
-/// slice's `tests/example-conformance.ttl` (`gmeow:ExampleConformance`) by
-/// slice-relative path.
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
-pub struct DocFixture {
-    /// The slice IRI that owns the fixture.
-    pub slice: String,
-    /// The logical path within the slice directory (e.g.
-    /// `tests/counter-examples/plan-missing-successmode.ttl`).
-    pub logical_path: String,
-    /// A human title (an `rdfs:label` if any subject carries one, else derived
-    /// from the filename — mirrors [`DocExample::title`]).
-    pub title: String,
-    /// The Turtle source, carried in full.
-    pub text: String,
-    /// Well-formed instance or counter-example.
-    pub kind: DocFixtureKind,
-    /// GMEOW CURIEs referenced anywhere in the fixture (sorted, deduped) —
-    /// reuses [`DocExample`]'s term-reference extraction exactly.
-    pub terms_referenced: Vec<String>,
-    /// `gmeow:expectedOutcome`'s local name (`"conforms"` | `"violates"`), from
-    /// this slice's `tests/example-conformance.ttl` binding. `None` when the
-    /// fixture carries no authored binding — an honest absence (not every
-    /// fixture is bound today).
-    pub expected_outcome: Option<String>,
-    /// `gmeow:expectedViolationCode` (e.g. `"shacl.MinCountConstraintComponent"`).
-    /// `None` for a well-formed fixture or an unbound counter-example.
-    pub violation_code: Option<String>,
-    /// `gmeow:conformanceRationale` — the human-readable "why" the fixture
-    /// conforms or violates, retaining every complete literal. Empty when unbound.
-    #[serde(with = "literal_values")]
-    pub rationales: Vec<purrdf::RdfLiteral>,
-    /// The constraint-catalog rule slug [`violation_code`](Self::violation_code)
-    /// resolves to, when a genuine [`ConstraintRule::code`] match exists in
-    /// [`DocsModel::constraint_rules`]. `None` when the fixture is unbound,
-    /// well-formed, or (the common case today) the catalog carries no
-    /// per-constraint-component rule matching the code — NEVER fabricated to
-    /// avoid an absent link.
-    pub catalog_slug: Option<String>,
-}
-
 /// A SHACL node shape, reverse-mapped to the term it constrains. Parsed from a
 /// slice's `shapes.ttl` (`ArtifactRole::Shapes`) and the root `shapes/*.ttl`
 /// files. DISTINCT from the integrity-constraint index (SPARQL verify queries):
@@ -2189,7 +2119,8 @@ impl DocsModel {
     /// v20: competency rationales retain all complete native RDF literal records.
     /// v21: fixture rationales retain every native literal and its source language/direction.
     /// v22: slice creators retain their original complete source statements.
-    pub const VERSION: &'static str = "22";
+    /// v23: fixture rationales retain source cell identities and exact locale keys.
+    pub const VERSION: &'static str = "23";
 
     /// Build the documentation model from a discovered catalog and a computed
     /// ownership report. `central_mapping_sets` carries the cross-slice SSSOM
@@ -2458,20 +2389,14 @@ impl DocsModel {
             // slice-relative fixture path each `gmeow:exampleFile` pins. Empty when
             // the slice authors no bindings — fixtures then join to nothing (an
             // honest absence, not an error).
-            let mut bindings: BTreeMap<String, FixtureBinding> = BTreeMap::new();
-            for artifact in &record.artifacts {
-                // The binding overlay lives under tests/example-conformance.ttl,
-                // carried as a TestDsl artifact (same role as competency.ttl;
-                // discriminated by filename suffix).
-                if artifact.role != ArtifactRole::TestDsl
-                    || !artifact.logical_path.ends_with("example-conformance.ttl")
-                {
-                    continue;
-                }
-                let store = parse_turtle_lenient(&artifact.content).unwrap_or_else(|e| {
-                    panic!("example-conformance.ttl for slice {owner} failed to parse: {e}")
-                });
-                bindings.extend(extract_fixture_bindings(&store)?);
+            let mut bindings = BTreeMap::new();
+            for artifact in record
+                .artifacts
+                .iter()
+                .filter(|artifact| conformance::is_registry(artifact))
+            {
+                let store = parse_turtle_lenient(&artifact.content)?;
+                bindings.extend(conformance::extract_bindings(&store)?);
             }
             for artifact in &record.artifacts {
                 let kind = match artifact.role {
@@ -2486,7 +2411,7 @@ impl DocsModel {
                     _ => continue,
                 };
                 let binding = bindings.get(&artifact.logical_path);
-                fixtures.push(extract_fixture(artifact, owner, kind, binding));
+                fixtures.push(conformance::extract_fixture(artifact, owner, kind, binding));
             }
         }
         fixtures.sort_by(|a, b| {
@@ -2581,7 +2506,8 @@ impl DocsModel {
         let (recipes, learning_paths) = extract_guides(catalog);
 
         // ── Translations (built from each slice's i18n/<lang>.po catalogs) ──────
-        let translations = Translations::from_ontology_catalogs(catalog, translation_sources);
+        let translations = Translations::from_ontology_catalogs(catalog, translation_sources)
+            .map_err(DocsError::TranslationCatalog)?;
         let available_languages = i18n::available_languages(&translations);
 
         let model = Self {
@@ -4342,94 +4268,6 @@ fn render_worked_instance_turtle(
     out
 }
 
-type RationaleKey = (String, String, Option<String>, Option<String>);
-
-/// Conformance bindings for one fixture path, retaining every rationale term.
-struct FixtureBinding {
-    /// `gmeow:expectedOutcome`'s local name (`"conforms"` | `"violates"`).
-    expected_outcome: Option<String>,
-    /// `gmeow:expectedViolationCode`.
-    violation_code: Option<String>,
-    /// `gmeow:conformanceRationale`.
-    rationales: BTreeMap<RationaleKey, purrdf::RdfLiteral>,
-}
-
-/// Extract the per-fixture-path conformance bindings from a slice's
-/// `tests/example-conformance.ttl` store, keyed by the slice-relative
-/// `gmeow:exampleFile` path each `gmeow:ExampleConformance` cell pins.
-fn extract_fixture_bindings(store: &Store) -> Result<BTreeMap<String, FixtureBinding>, DocsError> {
-    let mut out: BTreeMap<String, FixtureBinding> = BTreeMap::new();
-    for cell in subjects_of_type(store, GMEOW_EXAMPLE_CONFORMANCE) {
-        let Some(file) = first_literal(store, &cell, GMEOW_EXAMPLE_FILE) else {
-            continue;
-        };
-        // The lowest-sorted object IRI's local name — deterministic even if a
-        // cell were ever multiply asserted.
-        let expected_outcome = named_objects(store, &cell, GMEOW_EXPECTED_OUTCOME)
-            .into_iter()
-            .min()
-            .map(|iri| local_name(&iri).to_string());
-        let violation_code = first_literal(store, &cell, GMEOW_EXPECTED_VIOLATION_CODE);
-        let rationales = store.rdf_literals(&cell, GMEOW_CONFORMANCE_RATIONALE)?;
-        // Several conformance cells can cite one specimen. Keep every rationale;
-        // the existing deterministic scalar projection remains per fixture path.
-        let binding = out.entry(file).or_insert_with(|| FixtureBinding {
-            expected_outcome: None,
-            violation_code: None,
-            rationales: BTreeMap::new(),
-        });
-        binding.expected_outcome = expected_outcome;
-        binding.violation_code = violation_code;
-        for literal in rationales {
-            let key = (
-                literal.lexical_form.clone(),
-                literal.datatype_iri().to_owned(),
-                literal.language.clone(),
-                literal
-                    .direction
-                    .map(|direction| direction.as_str().to_owned()),
-            );
-            binding.rationales.insert(key, literal);
-        }
-    }
-    Ok(out)
-}
-
-/// Extract a single conformance fixture, reusing [`extract_example`]'s title /
-/// text / term-reference extraction verbatim (the fixture files are structured
-/// identically to worked examples) and joining `binding` — this slice's
-/// `tests/example-conformance.ttl` entry for this fixture's path, if any.
-/// `catalog_slug` starts `None`; [`apply_fixture_catalog_slugs`] resolves it
-/// once `constraint_rules` is populated in `discover()`.
-fn extract_fixture(
-    artifact: &ArtifactRecord,
-    owner_slice: &str,
-    kind: DocFixtureKind,
-    binding: Option<&FixtureBinding>,
-) -> DocFixture {
-    let example = extract_example(artifact, owner_slice);
-    let (expected_outcome, violation_code, rationales) = match binding {
-        Some(b) => (
-            b.expected_outcome.clone(),
-            b.violation_code.clone(),
-            b.rationales.values().cloned().collect(),
-        ),
-        None => (None, None, Vec::new()),
-    };
-    DocFixture {
-        slice: example.slice,
-        logical_path: example.logical_path,
-        title: example.title,
-        text: example.text,
-        kind,
-        terms_referenced: example.terms_referenced,
-        expected_outcome,
-        violation_code,
-        rationales,
-        catalog_slug: None,
-    }
-}
-
 /// A human title derived from a logical path's filename stem (kebab → Title).
 fn filename_title(logical_path: &str) -> String {
     let stem = logical_path
@@ -5069,6 +4907,10 @@ fn to_curie(iri: &str) -> String {
 #[path = "model_test_support.rs"]
 mod test_support;
 
+pub(crate) mod conformance;
+pub use conformance::{
+    DocFixture, DocFixtureKind, DocFixtureRationale, conformance_registry_files,
+};
 mod literal_values;
 
 #[cfg(test)]

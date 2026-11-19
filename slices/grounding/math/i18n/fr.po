@@ -18502,3 +18502,11 @@ msgstr "Examiner le composant signalé pour déterminer si un lien vers un syst�
 msgctxt "https://blackcatinformatics.ca/math/UnsituatedNumber|https://blackcatinformatics.ca/gmeow/howToUse"
 msgid "Read the focus node, component, path, value and source shape for the reported problem. Repair the declaration so math:inNumberSystem points to one justified math:NumberSystem individual. Express containment between systems through math:subsystemOf."
 msgstr "Lire le nœud ciblé, le composant, le chemin, la valeur et la forme source associés au problème signalé. Corriger la déclaration pour que math:inNumberSystem pointe vers un seul individu math:NumberSystem dont le choix est justifié. Exprimer l’inclusion entre systèmes par math:subsystemOf."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/examples/math/tests/ecNumberSituated|https://blackcatinformatics.ca/gmeow/conformanceRationale"
+msgid "The control declares a math:RationalNumber with math:isExact true and exactly one math:inNumberSystem value, math:rationalNumbers. The cell expects a conforming result from the generated validation surface."
+msgstr "Le témoin déclare un math:RationalNumber avec math:isExact true et exactement une valeur de math:inNumberSystem, à savoir math:rationalNumbers. Le résultat attendu de la validation générée est la conformité."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/examples/math/tests/ecNumberMissingSystem|https://blackcatinformatics.ca/gmeow/conformanceRationale"
+msgid "The counter-example declares exactness but omits math:inNumberSystem. Class isolation requires at least one math:UnsituatedNumber finding and rejects findings outside that class in the selected channels."
+msgstr "Le contre-exemple déclare l’exactitude et omet math:inNumberSystem. La vérification de l’isolation de la classe exige au moins un constat math:UnsituatedNumber et rejette les constats associés à d’autres classes dans les canaux sélectionnés."

@@ -3850,7 +3850,7 @@ fn merge_translations(root: &Path, quads: &mut Vec<RdfQuad>) -> Result<(), gmeow
     .map_err(|e| stage_err(&format!("slice catalog: {e}")))?;
     let translation_sources = gmeow_docs::ontology_catalogs::for_repository(root, &catalog)?;
     let translations =
-        gmeow_docs::Translations::from_ontology_catalogs(&catalog, &translation_sources);
+        gmeow_docs::Translations::from_ontology_catalogs(&catalog, &translation_sources)?;
     let langs: Vec<String> = translations.languages().to_vec();
     if langs.is_empty() {
         return Ok(());

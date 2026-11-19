@@ -53,6 +53,39 @@ fn validate(literal: &RdfLiteral) -> gmeow_errors::Result<()> {
         .map_err(Into::into)
 }
 
+impl LiteralFields {
+    fn encode(literal: &RdfLiteral) -> gmeow_errors::Result<Self> {
+        validate(literal)?;
+        Ok(Self {
+            lexical_form: literal.lexical_form.clone(),
+            datatype: literal.datatype.clone(),
+            language: literal.language.clone(),
+            direction: literal
+                .direction
+                .map(|direction| direction.as_str().to_owned()),
+        })
+    }
+
+    fn decode(self) -> gmeow_errors::Result<RdfLiteral> {
+        let direction = self
+            .direction
+            .as_deref()
+            .map(|token| {
+                RdfTextDirection::from_str_token(token)
+                    .ok_or_else(|| LiteralTransportError::Direction(token.to_owned()))
+            })
+            .transpose()?;
+        let literal = RdfLiteral {
+            lexical_form: self.lexical_form,
+            datatype: self.datatype,
+            language: self.language,
+            direction,
+        };
+        validate(&literal)?;
+        Ok(literal)
+    }
+}
+
 pub(super) fn serialize<S: Serializer>(
     values: &[RdfLiteral],
     serializer: S,
@@ -60,15 +93,8 @@ pub(super) fn serialize<S: Serializer>(
     use serde::ser::SerializeSeq;
     let mut sequence = serializer.serialize_seq(Some(values.len()))?;
     for literal in values {
-        validate(literal).map_err(<S::Error as ser::Error>::custom)?;
-        sequence.serialize_element(&LiteralFields {
-            lexical_form: literal.lexical_form.clone(),
-            datatype: literal.datatype.clone(),
-            language: literal.language.clone(),
-            direction: literal
-                .direction
-                .map(|direction| direction.as_str().to_owned()),
-        })?;
+        let fields = LiteralFields::encode(literal).map_err(<S::Error as ser::Error>::custom)?;
+        sequence.serialize_element(&fields)?;
     }
     sequence.end()
 }
@@ -78,28 +104,30 @@ pub(super) fn deserialize<'de, D: Deserializer<'de>>(
 ) -> Result<Vec<RdfLiteral>, D::Error> {
     Vec::<LiteralFields>::deserialize(deserializer)?
         .into_iter()
-        .map(|fields| {
-            let direction = fields
-                .direction
-                .as_deref()
-                .map(|token| {
-                    RdfTextDirection::from_str_token(token).ok_or_else(|| {
-                        <D::Error as de::Error>::custom(gmeow_errors::Diag::from(
-                            LiteralTransportError::Direction(token.to_owned()),
-                        ))
-                    })
-                })
-                .transpose()?;
-            let literal = RdfLiteral {
-                lexical_form: fields.lexical_form,
-                datatype: fields.datatype,
-                language: fields.language,
-                direction,
-            };
-            validate(&literal).map_err(<D::Error as de::Error>::custom)?;
-            Ok(literal)
-        })
+        .map(|fields| fields.decode().map_err(<D::Error as de::Error>::custom))
         .collect()
+}
+
+pub(super) mod single {
+    use super::{LiteralFields, RdfLiteral};
+    use serde::{Deserialize, Deserializer, Serialize, Serializer, de, ser};
+
+    pub(in crate::model) fn serialize<S: Serializer>(
+        literal: &RdfLiteral,
+        serializer: S,
+    ) -> Result<S::Ok, S::Error> {
+        LiteralFields::encode(literal)
+            .map_err(<S::Error as ser::Error>::custom)?
+            .serialize(serializer)
+    }
+
+    pub(in crate::model) fn deserialize<'de, D: Deserializer<'de>>(
+        deserializer: D,
+    ) -> Result<RdfLiteral, D::Error> {
+        LiteralFields::deserialize(deserializer)?
+            .decode()
+            .map_err(<D::Error as de::Error>::custom)
+    }
 }
 
 #[cfg(test)]

@@ -51,7 +51,8 @@ fn projection_literal_i18n_uses_actual_dsl_owner_across_native_index_export_and_
     let discovered = discover(root.path()).unwrap();
     assert_eq!(discovered[0].owner_iri, sources[0].owner_iri);
     assert_eq!(discovered[0].path, sources[0].path);
-    let translations = crate::i18n::Translations::from_ontology_catalogs(&catalog, &sources);
+    let translations = crate::i18n::Translations::from_ontology_catalogs(&catalog, &sources)
+        .expect("valid ontology catalogs");
     assert_eq!(
         translations.lookup(
             "urn:authored:selector",
@@ -178,7 +179,8 @@ fn cq_rationale_i18n_test_dsl_owner_reaches_all_shared_catalog_consumers() {
     assert_eq!(selected.owner_path, root.path().join("dsl/tests"));
     assert_eq!(selected.content, po.as_bytes());
     assert_eq!(discover(root.path()).unwrap().len(), 2);
-    let translations = crate::i18n::Translations::from_ontology_catalogs(&catalog, &sources);
+    let translations = crate::i18n::Translations::from_ontology_catalogs(&catalog, &sources)
+        .expect("valid ontology catalogs");
     assert_eq!(
         translations.lookup(
             "urn:authored:rationale",

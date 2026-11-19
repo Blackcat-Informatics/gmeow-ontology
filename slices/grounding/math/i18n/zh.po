@@ -18502,3 +18502,11 @@ msgstr "根据报告的组件查看数系链接是否缺失。另行判断精确
 msgctxt "https://blackcatinformatics.ca/math/UnsituatedNumber|https://blackcatinformatics.ca/gmeow/howToUse"
 msgid "Read the focus node, component, path, value and source shape for the reported problem. Repair the declaration so math:inNumberSystem points to one justified math:NumberSystem individual. Express containment between systems through math:subsystemOf."
 msgstr "查看问题所涉及的焦点节点、组件、路径、值和来源形状。修正声明，使 math:inNumberSystem 指向一个有充分依据的 math:NumberSystem 个体。通过 math:subsystemOf 表达数系之间的包含关系。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/examples/math/tests/ecNumberSituated|https://blackcatinformatics.ca/gmeow/conformanceRationale"
+msgid "The control declares a math:RationalNumber with math:isExact true and exactly one math:inNumberSystem value, math:rationalNumbers. The cell expects a conforming result from the generated validation surface."
+msgstr "对照样例声明了一个标记为 math:isExact true 的 math:RationalNumber，并为其声明了恰好一个 math:inNumberSystem 值，即 math:rationalNumbers。该单元预期生成的验证视图给出符合规范的结果。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/examples/math/tests/ecNumberMissingSystem|https://blackcatinformatics.ca/gmeow/conformanceRationale"
+msgid "The counter-example declares exactness but omits math:inNumberSystem. Class isolation requires at least one math:UnsituatedNumber finding and rejects findings outside that class in the selected channels."
+msgstr "反例声明了精确性，却省略了 math:inNumberSystem。类隔离检查要求至少有一项 math:UnsituatedNumber 发现，并拒绝所选渠道中归入其他类的发现。"

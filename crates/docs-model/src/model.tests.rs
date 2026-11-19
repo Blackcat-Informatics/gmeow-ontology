@@ -573,7 +573,8 @@ fn example_and_fixture_coverage_includes_used_properties_without_counting_litera
     ];
     assert_eq!(extract_example(&artifact, owner).terms_referenced, expected);
     assert_eq!(
-        extract_fixture(&artifact, owner, DocFixtureKind::Wellformed, None).terms_referenced,
+        conformance::extract_fixture(&artifact, owner, DocFixtureKind::Wellformed, None)
+            .terms_referenced,
         expected,
     );
 }

@@ -345,6 +345,14 @@ pub struct TranslatedValue {
     pub fuzzy: bool,
 }
 
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+struct FixtureTranslation {
+    owner: String,
+    english: String,
+    language: String,
+    value: String,
+}
+
 /// All translated ontology literals, indexed by `(term_iri, predicate_full_iri,
 /// bcp47_lang)`. Built from every slice's [`ArtifactRole::TranslationCatalog`]
 /// artifact. Also carries the BCP-47 → internal-tag map (e.g. `fr` →
@@ -355,6 +363,8 @@ pub struct TranslatedValue {
 pub struct Translations {
     /// `(term_iri, predicate_full_iri, lang) -> translated_value` (with review state).
     by_key: BTreeMap<(String, String, String), TranslatedValue>,
+    /// Reviewed fixture translations by source cell IRI, with their exact source text.
+    fixtures: BTreeMap<String, Vec<FixtureTranslation>>,
     /// Sorted set of BCP-47 language codes seen across all catalogs.
     languages: Vec<String>,
     /// `bcp47 -> internal x-gmeow-* tag` (from the language slice).
@@ -370,6 +380,7 @@ pub struct Translations {
 #[derive(Serialize, Deserialize)]
 struct TranslationsDto {
     by_key: Vec<TranslationEntryDto>,
+    fixtures: BTreeMap<String, Vec<FixtureTranslation>>,
     languages: Vec<String>,
     internal_tag: BTreeMap<String, String>,
 }
@@ -398,6 +409,7 @@ impl From<Translations> for TranslationsDto {
                     fuzzy: tv.fuzzy,
                 })
                 .collect(),
+            fixtures: t.fixtures,
             languages: t.languages,
             internal_tag: t.internal_tag,
         }
@@ -420,6 +432,7 @@ impl From<TranslationsDto> for Translations {
                     )
                 })
                 .collect(),
+            fixtures: d.fixtures,
             languages: d.languages,
             internal_tag: d.internal_tag,
         }
@@ -433,7 +446,11 @@ impl Translations {
     /// exists. Compiled on every target rather than gated away: the caller reaches it
     /// only by asking for a repo-anchored model, and on a target with no filesystem
     /// that request must fail with the REAL I/O error rather than vanish from the API.
-    pub fn from_catalog(catalog: &SliceCatalog) -> Self {
+    ///
+    /// # Errors
+    ///
+    /// Refuses malformed catalogs and conflicting reviewed fixture translations.
+    pub fn from_catalog(catalog: &SliceCatalog) -> gmeow_errors::Result<Self> {
         Self::from_ontology_catalogs(
             catalog,
             &crate::ontology_catalogs::from_slice_catalog(catalog),
@@ -442,36 +459,42 @@ impl Translations {
 
     /// Index an explicit admitted ontology-catalog inventory. The slice catalog
     /// supplies the existing language-tag registry; it cannot hide DSL inputs.
+    ///
+    /// # Errors
+    ///
+    /// Refuses malformed catalogs and conflicting reviewed fixture translations.
     pub fn from_ontology_catalogs(
         catalog: &SliceCatalog,
         sources: &[crate::ontology_catalogs::OntologyCatalogSource],
-    ) -> Self {
-        use crate::i18n_compile::{expand_predicate, language_from_po, parse_po};
+    ) -> gmeow_errors::Result<Self> {
+        use crate::error::CatalogInconsistent;
+        use crate::i18n_compile::{at_source, expand_predicate, language_from_po, parse_po};
+        use crate::model::conformance::RATIONALE;
 
         let mut by_key: BTreeMap<(String, String, String), TranslatedValue> = BTreeMap::new();
+        let mut fixtures = BTreeMap::<String, Vec<FixtureTranslation>>::new();
         let mut langs: std::collections::BTreeSet<String> = std::collections::BTreeSet::new();
 
         for source in sources {
             let owner = &source.owner_iri;
-            // A present translation catalog is required input: a malformed one is a
-            // HARD FAIL, never a silent skip that would drop measured coverage. Invalid
-            // UTF-8 is a hard fail too — `from_utf8_lossy` would silently substitute
-            // replacement chars and let a corrupt catalog parse with altered translations.
-            let text = std::str::from_utf8(&source.content).unwrap_or_else(|e| {
-                panic!("i18n catalog for ontology {owner} is not valid UTF-8: {e}")
-            });
-            let language = language_from_po(text).unwrap_or_else(|e| {
-                panic!("i18n catalog for ontology {owner} failed to parse: {e}")
-            });
+            let text = std::str::from_utf8(&source.content).map_err(|error| {
+                at_source(
+                    gmeow_errors::Diag::of_kind(CatalogInconsistent {
+                        detail: format!("i18n catalog for ontology {owner} is not valid UTF-8"),
+                    })
+                    .with_source(error),
+                    &source.path,
+                )
+            })?;
+            let language =
+                language_from_po(text).map_err(|error| at_source(error, &source.path))?;
             let Some(language) = language else {
                 continue;
             };
-            if language.is_empty() || language.eq_ignore_ascii_case("en") {
+            if language == "en" || language == ENGLISH {
                 continue;
             }
-            let entries = parse_po(text, false).unwrap_or_else(|e| {
-                panic!("i18n catalog for ontology {owner} failed to parse: {e}")
-            });
+            let entries = parse_po(text, false).map_err(|error| at_source(error, &source.path))?;
             langs.insert(language.clone());
             for entry in &entries {
                 if entry.msgctxt.is_empty()
@@ -483,6 +506,36 @@ impl Translations {
                     continue;
                 };
                 let predicate = expand_predicate(predicate);
+                if predicate == RATIONALE {
+                    if !entry.fuzzy {
+                        let rows = fixtures.entry(term_iri.to_owned()).or_default();
+                        let existing = rows.iter().find(|row| {
+                            row.owner == *owner
+                                && row.english == entry.msgid
+                                && row.language == language
+                        });
+                        if let Some(row) = existing {
+                            if row.value != entry.msgstr {
+                                return Err(at_source(
+                                    gmeow_errors::Diag::of_kind(CatalogInconsistent {
+                                        detail: format!(
+                                            "conflicting reviewed {language} rationales for <{term_iri}> in ontology {owner}"
+                                        ),
+                                    }),
+                                    &source.path,
+                                ));
+                            }
+                        } else {
+                            rows.push(FixtureTranslation {
+                                owner: owner.clone(),
+                                english: entry.msgid.clone(),
+                                language: language.clone(),
+                                value: entry.msgstr.clone(),
+                            });
+                        }
+                    }
+                    continue;
+                }
                 by_key.insert(
                     (term_iri.to_string(), predicate, language.clone()),
                     TranslatedValue {
@@ -495,11 +548,12 @@ impl Translations {
 
         let internal_tag = internal_tag_map(catalog);
 
-        Self {
+        Ok(Self {
             by_key,
+            fixtures,
             languages: langs.into_iter().collect(),
             internal_tag,
-        }
+        })
     }
 
     /// Construct a `Translations` index directly from `(iri, predicate, lang) ->
@@ -511,9 +565,9 @@ impl Translations {
     ) -> Self {
         let by_key: BTreeMap<(String, String, String), TranslatedValue> = entries
             .into_iter()
-            .map(|(key, value)| {
+            .map(|((iri, predicate, lang), value)| {
                 (
-                    key,
+                    (iri, predicate, lang.to_ascii_lowercase()),
                     TranslatedValue {
                         value,
                         fuzzy: false,
@@ -521,11 +575,15 @@ impl Translations {
                 )
             })
             .collect();
-        let mut languages: Vec<String> = languages.into_iter().collect();
+        let mut languages: Vec<String> = languages
+            .into_iter()
+            .map(|lang| lang.to_ascii_lowercase())
+            .collect();
         languages.sort();
         languages.dedup();
         Self {
             by_key,
+            fixtures: BTreeMap::new(),
             languages,
             internal_tag: BTreeMap::new(),
         }
@@ -536,13 +594,35 @@ impl Translations {
     /// key always returns `None` so the model's own value is used, and a stored
     /// fuzzy (unreviewed) value also returns `None` — it is not yet live.
     pub fn lookup(&self, iri: &str, predicate: &str, lang: &str) -> Option<&str> {
-        if lang == ENGLISH {
+        if lang.eq_ignore_ascii_case(ENGLISH) {
             return None;
         }
         self.by_key
-            .get(&(iri.to_string(), predicate.to_string(), lang.to_string()))
+            .get(&(
+                iri.to_string(),
+                predicate.to_string(),
+                lang.to_ascii_lowercase(),
+            ))
             .filter(|v| !v.fuzzy)
             .map(|v| v.value.as_str())
+    }
+
+    pub(crate) fn fixture_rationale(
+        &self,
+        owner: &str,
+        cell: &str,
+        english: &str,
+        language: &str,
+    ) -> Option<&str> {
+        self.fixtures
+            .get(cell)?
+            .iter()
+            .find(|row| {
+                row.owner == owner
+                    && row.english == english
+                    && row.language.eq_ignore_ascii_case(language)
+            })
+            .map(|row| row.value.as_str())
     }
 
     /// All non-English BCP-47 language codes with at least one catalog (sorted).
@@ -555,11 +635,12 @@ impl Translations {
     /// declares no mapping. This is the gts archive-prefix the docs consumer
     /// (`create_docs`) selects on.
     pub fn internal_tag(&self, lang: &str) -> String {
+        let lang = lang.to_ascii_lowercase();
         if lang == ENGLISH {
             return "x-gmeow-english".to_string();
         }
         self.internal_tag
-            .get(lang)
+            .get(&lang)
             .cloned()
             .unwrap_or_else(|| format!("x-gmeow-{lang}"))
     }
@@ -1110,8 +1191,10 @@ pub fn ui_default(key: &str) -> &'static str {
 /// Resolve a UI-chrome string for `key` in `lang`: a per-language override when
 /// present, else the `'static` English default.
 pub fn ui_string<'a>(key: &str, lang: &str, catalog: &'a UiCatalog) -> &'a str {
-    if lang != ENGLISH
-        && let Some(value) = catalog.overrides.get(&(lang.to_string(), key.to_string()))
+    if !lang.eq_ignore_ascii_case(ENGLISH)
+        && let Some(value) = catalog
+            .overrides
+            .get(&(lang.to_ascii_lowercase(), key.to_string()))
     {
         return value.as_str();
     }
