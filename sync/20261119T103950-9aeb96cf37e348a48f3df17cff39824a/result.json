@@ -1,0 +1,24 @@
+{
+  "schema": 1,
+  "worktree": "/home/paudley/Active/gmeow-ontology/.worktrees/2985-account-relationship-type-membership-in",
+  "branch": "paudley/2985-account-relationship-type-membership-in",
+  "base_ref": "origin/main",
+  "head": "0e9859c2115b38412ea27e7c726f44dc7a42431e",
+  "attempt": "/home/paudley/Active/gmeow-ontology/.worktrees/2985-account-relationship-type-membership-in/.stage/account-relationship-type-membership-in/sync/20261119T103950-9aeb96cf37e348a48f3df17cff39824a",
+  "conflicts": [],
+  "status": "completed",
+  "base": "f99e9121174225aa019a5565d88be21d2c5e8b69",
+  "merge_bases": [
+    "10b7409813860ef9fe7f735b3cbcbf71021c72b5"
+  ],
+  "merge_index": "5588a5be8fc935fddaeca80d48a54cc85d27dd8fb4d7c2a2e0bff0fbd1025b26",
+  "candidate_tree": "d757ebfbb4d571190915f7047feffc1d43d5558f",
+  "candidate_patch": "candidate-a2d1ff19cc234fce83913a8b7036f7c2.patch",
+  "stdout_log": "commit-a2d1ff19cc234fce83913a8b7036f7c2.stdout.log",
+  "stderr_log": "commit-a2d1ff19cc234fce83913a8b7036f7c2.stderr.log",
+  "validation_records": [],
+  "commit_duration_seconds": 49.34341702399979,
+  "commit": "c38ba59dc3311b455c12b4ba5a8dbcae849f3068",
+  "tree": "d757ebfbb4d571190915f7047feffc1d43d5558f",
+  "exit_code": 0
+}
