@@ -116,10 +116,12 @@ fn evidence_only(predicate: &str, object: &Node) -> bool {
 
 /// Descriptive metadata has no evidence, context or assertion authority.
 /// Each canonical predicate admits its declared term forms. The reader keeps
-/// the original roles and wording and consults no arbitrary annotation declarations.
+/// the original roles, wording and lineage. Arbitrary annotation declarations
+/// confer no admission.
 enum DescriptiveCarrierAnnotation {
     GraphBoxRole,
     StatedRationale,
+    WasDerivedFrom,
 }
 
 impl DescriptiveCarrierAnnotation {
@@ -129,6 +131,10 @@ impl DescriptiveCarrierAnnotation {
                 "https://blackcatinformatics.ca/gmeow/graphBoxRole",
                 Node::Iri(_) | Node::Blank { .. },
             ) => Some(Self::GraphBoxRole),
+            (
+                "https://blackcatinformatics.ca/gmeow/wasDerivedFrom",
+                Node::Iri(_) | Node::Blank { .. },
+            ) => Some(Self::WasDerivedFrom),
             ("https://blackcatinformatics.ca/gmeow/statedRationale", Node::Lit(literal))
                 if matches!(
                     literal.datatype_iri(),

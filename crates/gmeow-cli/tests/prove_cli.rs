@@ -1468,7 +1468,7 @@ ex:A logic:disjointWith ex:B .
 
 /// A claim that carries only provenance is a statement of the selected theory, so
 /// two such claims that contradict each other refute the selected native theory.
-/// Descriptive carrier roles and rationale retain their values without becoming evidence.
+/// Descriptive roles, rationale and lineage retain their values without becoming evidence.
 #[test]
 fn provenance_only_contradiction_is_inconsistent() {
     for body in [
@@ -1476,7 +1476,7 @@ fn provenance_only_contradiction_is_inconsistent() {
         PROVENANCE_CLASH.replace(" ; logic:provenance", " ; <https://blackcatinformatics.ca/gmeow/graphBoxRole> <https://blackcatinformatics.ca/gmeow/boxCBox>, ex:futureRole ; logic:provenance"),
         PROVENANCE_CLASH.replace(
             " ; logic:provenance",
-            r#" ; <https://blackcatinformatics.ca/gmeow/statedRationale> "source reason"@en ; logic:provenance"#,
+            r#" ; <https://blackcatinformatics.ca/gmeow/statedRationale> "source reason"@en ; <https://blackcatinformatics.ca/gmeow/wasDerivedFrom> ex:sourceRecord ; logic:provenance"#,
         ),
     ] {
     let (report, code) = prove_json("provenance-clash.logic.ttl", &body, &["--gate"]);

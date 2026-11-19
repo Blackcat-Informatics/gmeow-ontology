@@ -88,7 +88,7 @@ fn ingest_modules(
 /// PROTECTS: module claims and scoped rule/head/body syntax execute together;
 /// excluded schema and NAF contribute no premise while genuinely shared terms survive.
 /// Source, root, preparation, input and domain identities authorize the same run.
-/// Descriptive carrier roles and text remain ordinary source facts for authored consumers.
+/// Descriptive roles, rationale and lineage remain ordinary source facts for authored rules.
 #[test]
 fn module_execution_preserves_owners_shared_support_and_invocation_authority() {
     const INCLUDED: &str = "https://example.org/claims/Included";
@@ -101,6 +101,7 @@ ex:collection rdf:first ex:p ; rdf:rest rdf:nil .
 ex:a ex:p ex:b .
 ex:claim rdf:reifies <<( ex:a ex:label "chat"@fr )>> ; logic:inModule ex:Included ;
     gmeow:graphBoxRole gmeow:boxCBox, ex:futureRole ;
+    gmeow:wasDerivedFrom ex:sourceRecord ;
     gmeow:statedRationale "سبب"@ar--rtl .
 _:x a logic:TermCarrier ; logic:termVariable "x" .
 _:label logic:termVariable "label" .
@@ -116,6 +117,9 @@ ex:roleReceipt a logic:Rule ; logic:inModule ex:Included ;
 ex:rationaleReceipt a logic:Rule ; logic:inModule ex:Included ;
     logic:head [ rdf:reifies <<( _:carrier ex:describedBy _:role )>> ] ;
     logic:body [ rdf:reifies <<( _:carrier gmeow:statedRationale _:role )>> ] .
+ex:lineageReceipt a logic:Rule ; logic:inModule ex:Included ;
+    logic:head [ rdf:reifies <<( _:carrier ex:describedBy _:role )>> ] ;
+    logic:body [ rdf:reifies <<( _:carrier gmeow:wasDerivedFrom _:role )>> ] .
 ex:absence a logic:Rule ; logic:inModule ex:Excluded ;
     logic:head [ rdf:reifies <<( _:x logic:instanceOf logic:Nothing )>> ] ;
     logic:body [ rdf:reifies <<( _:x ex:p _:y )>> ] ;
@@ -188,17 +192,18 @@ _:x logic:termIndex 0 . _:label logic:termIndex 1 .
     assert!(result.inferred().iter().any(|row| row.predicate == "https://example.org/claims/marked"
         && matches!(&row.object, TermValue::Literal { lexical_form, language: Some(language), .. }
             if lexical_form == "chat" && language == "fr")), "shared variable and literal identity reach the rule head");
-    for role in [
+    for resource in [
         "https://blackcatinformatics.ca/gmeow/boxCBox",
         "https://example.org/claims/futureRole",
+        "https://example.org/claims/sourceRecord",
     ] {
         assert!(
             result.inferred().iter().any(|row| {
                 row.subject == "https://example.org/claims/claim"
                     && row.predicate == "https://example.org/claims/describedBy"
-                    && row.object.as_iri() == Some(role)
+                    && row.object.as_iri() == Some(resource)
             }),
-            "the actual authored role remains executable source data: {role}"
+            "the stated resource reaches the rule head: {resource}"
         );
     }
     assert!(
@@ -346,6 +351,13 @@ fn module_claims_retain_independent_context_and_full_source_envelope_boundaries(
             "ex:g { ex:claim gmeow:statedRationale \"scope notes\" . }",
             false,
         ),
+        ("ex:claim gmeow:wasDerivedFrom \"not a resource\" .", false),
+        (
+            "ex:g { ex:claim gmeow:wasDerivedFrom ex:sourceRecord . }",
+            false,
+        ),
+        ("ex:derivedRecord gmeow:wasDerivedFrom ex:claim .", false),
+        ("ex:claim gmeow:wasDerivedFrom ex:claim .", false),
         (
             "ex:annotation a logic:AnnotationProperty . ex:claim ex:annotation ex:value .",
             false,
@@ -360,7 +372,8 @@ fn module_claims_retain_independent_context_and_full_source_envelope_boundaries(
 ex:Included a logic:Module .
 ex:a logic:instanceOf ex:Left .
 ex:claim rdf:reifies <<( ex:a logic:instanceOf ex:Right )>> ; logic:inModule ex:Included ;
-    gmeow:graphBoxRole gmeow:boxCBox ; gmeow:statedRationale "source reason" .
+    gmeow:graphBoxRole gmeow:boxCBox ; gmeow:statedRationale "source reason" ;
+    gmeow:wasDerivedFrom ex:sourceRecord .
 {extra}
 "#
         ));
@@ -639,7 +652,7 @@ fn clash_premises(result: &ReasoningResult) -> Vec<(String, String)> {
 /// selected theory. Two such claims that contradict each other make the theory
 /// inconsistent, the clash is witnessed by both claimed statements, and both are
 /// in the ledger as read with their evidence. A confidence of zero is still a claim;
-/// default-graph descriptive roles and rationale never become evidence or cancel assertion.
+/// default-graph descriptive annotations supply no evidence and leave assertion authority intact.
 #[test]
 fn evidence_only_claims_that_contradict_are_a_clash() {
     for body in [
@@ -650,7 +663,7 @@ fn evidence_only_claims_that_contradict_are_a_clash() {
         ),
         EVIDENCE_CLASH.replace(
             " .",
-            r#" ; gmeow:statedRationale "stated reason", "motif"@fr, "سبب"@ar--rtl ."#,
+            r#" ; gmeow:statedRationale "stated reason", "motif"@fr, "سبب"@ar--rtl ; gmeow:wasDerivedFrom ex:sourceRecord, [] ."#,
         ),
     ] {
         let theory = compile(&body);
@@ -698,6 +711,8 @@ ex:described rdf:reifies <<( ex:a logic:instanceOf ex:Right )>> ;
     gmeow:graphBoxRole gmeow:boxABox, ex:futureRole .
 ex:explained rdf:reifies <<( ex:a logic:instanceOf ex:Right )>> ;
     gmeow:statedRationale "someone said so" .
+ex:derivedQuotation rdf:reifies <<( ex:a logic:instanceOf ex:Right )>> ;
+    gmeow:wasDerivedFrom ex:sourceRecord .
 "#,
     );
     let (result, ingress) = decide(&theory);
