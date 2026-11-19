@@ -117,20 +117,31 @@ Selected-theory execution admits two closed assertion routes:
 
 > An **evidence-only** reified claim asserts a top-level sentence when its reifier
 > states at least one of `logic:provenance` and
-> `logic:confidence`, and the only statements about the reifier are those two and the
-> reification itself (`rdf:reifies`, or the classic `rdf:Statement` node with its subject,
-> predicate and object). Provenance says who reported the claim and confidence how sure the
-> reporter is; neither places the claim in a context, denies it, or weakens it. A reifier
+> `logic:confidence`, and its remaining statements satisfy the closed carrier contract:
+> the reification itself (`rdf:reifies`, or the classic `rdf:Statement` node with its subject,
+> predicate and object) and the descriptive annotations admitted below. Provenance
+> says who reported the claim and confidence how sure the reporter is; neither
+> places the claim in a context, denies it, or weakens it. A reifier
 > that states neither does not acquire assertion status through this route.
 
 The **typed module-assertion** route admits a claim carrying one exact
 default-graph `logic:inModule` coordinate when the compiler resolves its native module identity
 inside the requested theory. Its remaining carrier statements must satisfy the
-same closed structural and evidence contract. This route requires neither
-provenance nor confidence; it does not treat module membership as evidence-only
+same closed structural, evidence and descriptive annotation contract. This route
+requires neither provenance nor confidence; it does not treat module membership as evidence-only
 metadata. A bare reifier with no scope or evidence coordinate is a quotation
 and asserts nothing. A module claim outside the requested composition remains
 an assertion outside that theory; unresolved membership remains a named boundary.
+
+Default-graph `gmeow:graphBoxRole` annotations whose values are IRI or blank-node
+resources describe the carrier without qualifying its carried assertion. The
+role vocabulary is open and multivalued: preserve every actual role and source
+row, including unknown future resources. These annotations are separate from
+evidence coordinates. They establish no assertion, module membership, ownership,
+context or graph routing. A quotation with only graph-box roles asserts nothing.
+Named-graph role rows and nonresource role values remain outside this admitted
+carrier contract. Other ordinary facts about the carrier and all role rows
+remain source facts; recognizing descriptive metadata does not delete them.
 
 Each route fails closed. A carrier statement beyond its selected contract may
 place, deny or qualify the claim, so it prevents ordinary assertion:

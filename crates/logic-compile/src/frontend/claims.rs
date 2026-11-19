@@ -12,8 +12,9 @@
 //!
 //! * the evidence-only route accepts the allow-list of [`evidence_only`]; the
 //!   distinct selected module route additionally accepts its exact admitted
-//!   default-graph module coordinate. Any other carrier statement, and
-//!   any mention of it in another carried statement, may place, deny or qualify
+//!   default-graph module coordinate. Both permit the separate descriptive
+//!   carrier annotations below, which supply no assertion authority. Any other
+//!   carrier statement, and any mention of it in another carried statement, may place, deny or qualify
 //!   the claim, so the claim is not resolved;
 //! * a carrier resolves only when exactly one statement it holds lowers to the
 //!   axiom and no term of that statement is a typed term carrier.
@@ -40,10 +41,10 @@ pub enum ClaimStatement {
         predicate: TermId,
         object: TermId,
     },
-    /// Something other than evidence is said about `carrier`. `predicate` is the
-    /// first such predicate IRI in sorted order, `graph` the named graph that
+    /// A statement outside its selected carrier contract describes `carrier`.
+    /// `predicate` is the first such predicate IRI in sorted order, `graph` the named graph that
     /// statement is in (none for the default graph), and `statements` is how many
-    /// statements about the carrier are outside the evidence allow-list.
+    /// statements about the carrier are outside that contract.
     Qualified {
         carrier: String,
         predicate: String,
@@ -86,7 +87,8 @@ pub struct ClaimCarrier {
 /// `rdf:reifies`, and for the classic form `rdf:type rdf:Statement`, `rdf:subject`,
 /// `rdf:predicate` and `rdf:object`. Beyond structure only `logic:provenance` (who
 /// reported the claim) and `logic:confidence` (how sure the reporter is) are
-/// allowed. Every other predicate keeps the claim out, known or unknown: a
+/// allowed. Descriptive annotations are recognized separately and are never
+/// evidence. Other predicates keep the claim out, known or unknown: a
 /// standpoint, a stance or denial, a time, a modality (including `logic:modality
 /// logic:none`), a module, an attribution, a second type, or an annotation this
 /// reader has never heard of may each change where or whether the claim holds.
@@ -109,6 +111,21 @@ fn evidence_only(predicate: &str, object: &Node) -> bool {
         RDF_REIFIES | RDF_SUBJECT | RDF_PREDICATE | RDF_OBJECT => true,
         RDF_TYPE => matches!(object, Node::Iri(class) if class == RDF_STATEMENT),
         _ => predicate == logic_iri("provenance") || predicate == logic_iri("confidence"),
+    }
+}
+
+/// Descriptive metadata has no evidence, context or assertion authority.
+/// The exact canonical predicate has an open, multivalued resource range; this
+/// reader does not interpret role values or consult arbitrary annotation declarations.
+enum DescriptiveCarrierAnnotation {
+    GraphBoxRole,
+}
+
+impl DescriptiveCarrierAnnotation {
+    fn parse(predicate: &str, object: &Node) -> Option<Self> {
+        (predicate == "https://blackcatinformatics.ca/gmeow/graphBoxRole"
+            && matches!(object, Node::Iri(_) | Node::Blank { .. }))
+        .then_some(Self::GraphBoxRole)
     }
 }
 
@@ -215,8 +232,9 @@ impl CompiledTheory {
 }
 
 impl ClaimResolver<'_> {
-    /// What is said about `carrier` beyond evidence, in any graph, if anything: a
-    /// statement it is the subject of that fails [`evidence_only`] or a statement it
+    /// What is said about `carrier` outside its contract, in any graph: a
+    /// subject statement outside reification, evidence, selected membership and
+    /// admitted descriptive metadata, or a statement it
     /// is the object of (`Qualified`), else a statement that mentions it
     /// (`Mentioned`), else its use as a graph name (`GraphName`).
     fn said_about(
@@ -233,9 +251,14 @@ impl ClaimResolver<'_> {
                     let module_assertion = quad.g.is_none()
                         && predicate.as_str() == logic_iri("inModule")
                         && modules.contains(&quad.o);
-                    (!module_assertion
-                        && !evidence_only(predicate.as_str(), &node_of(store, quad.o)))
-                    .then(|| {
+                    if module_assertion {
+                        return None;
+                    }
+                    let object = node_of(store, quad.o);
+                    let descriptive = quad.g.is_none()
+                        && DescriptiveCarrierAnnotation::parse(predicate.as_str(), &object)
+                            .is_some();
+                    (!descriptive && !evidence_only(predicate.as_str(), &object)).then(|| {
                         (
                             predicate.as_str().to_owned(),
                             quad.g.map(|graph| node_name(store, graph)),

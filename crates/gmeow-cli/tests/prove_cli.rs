@@ -192,7 +192,7 @@ ex:right rdf:reifies <<( ex:a logic:instanceOf ex:B )>> ; logic:inModule ex:Righ
     assert_eq!(imported["selection"]["units"], joint["selection"]["units"]);
     for (left, expected, count) in [
         (
-            "ex:left rdf:reifies <<( ex:a logic:instanceOf ex:A )>> ; logic:inModule ex:LeftModule .
+            "ex:left rdf:reifies <<( ex:a logic:instanceOf ex:A )>> ; logic:inModule ex:LeftModule ; <https://blackcatinformatics.ca/gmeow/graphBoxRole> <https://blackcatinformatics.ca/gmeow/boxCBox> .
 ex:alsoLeft rdf:reifies <<( ex:a logic:instanceOf ex:A )>> ; logic:inModule ex:LeftModule .",
             "inconsistent",
             2,
@@ -208,7 +208,7 @@ ex:A logic:disjointWith ex:B .
 {left}
 ex:right rdf:reifies <<( ex:a logic:instanceOf ex:B )>> ; logic:inModule ex:RightModule .
 ex:qualified rdf:reifies <<( ex:a logic:instanceOf ex:A )>> ;
-    logic:inModule ex:LeftModule ; ex:qualifier ex:unknown .
+    logic:inModule ex:LeftModule ; <https://blackcatinformatics.ca/gmeow/graphBoxRole> <https://blackcatinformatics.ca/gmeow/boxCBox> ; ex:qualifier ex:unknown .
 _:r a logic:TermCarrier ; logic:termVariable "r" .
 ex:blocked a logic:Rule ; logic:inModule ex:LeftModule ; logic:standpoint ex:observer ;
     logic:head [ rdf:reifies <<( _:r logic:instanceOf logic:Nothing )>> ] ;
@@ -1431,9 +1431,14 @@ ex:A logic:disjointWith ex:B .
 
 /// A claim that carries only provenance is a statement of the selected theory, so
 /// two such claims that contradict each other refute the selected native theory.
+/// Descriptive carrier roles retain their values without becoming evidence.
 #[test]
 fn provenance_only_contradiction_is_inconsistent() {
-    let (report, code) = prove_json("provenance-clash.logic.ttl", PROVENANCE_CLASH, &["--gate"]);
+    for body in [
+        PROVENANCE_CLASH.to_owned(),
+        PROVENANCE_CLASH.replace(" ; logic:provenance", " ; <https://blackcatinformatics.ca/gmeow/graphBoxRole> <https://blackcatinformatics.ca/gmeow/boxCBox>, ex:futureRole ; logic:provenance"),
+    ] {
+    let (report, code) = prove_json("provenance-clash.logic.ttl", &body, &["--gate"]);
     assert_eq!(report["verdict"], "inconsistent", "{report:#}");
     assert_eq!(code, 3);
     assert_eq!(report["evidence_grade"], "attestation");
@@ -1454,6 +1459,7 @@ fn provenance_only_contradiction_is_inconsistent() {
             "https://example.org/prove/second"
         ]
     );
+    }
 }
 
 /// Evidence-only claims are admitted by the actual native ingress and complete
@@ -1462,7 +1468,8 @@ fn provenance_only_contradiction_is_inconsistent() {
 #[test]
 fn provenance_only_claims_without_a_clash_are_native_consistent() {
     let body = r#"
-[] rdf:reifies <<( ex:a logic:instanceOf ex:A )>> ; logic:provenance ex:first .
+[] rdf:reifies <<( ex:a logic:instanceOf ex:A )>> ; logic:provenance ex:first ;
+    <https://blackcatinformatics.ca/gmeow/graphBoxRole> <https://blackcatinformatics.ca/gmeow/boxCBox>, ex:futureRole .
 [] rdf:reifies <<( ex:b logic:instanceOf ex:A )>> ; logic:provenance ex:second .
 "#;
     let (native, code) = prove_json("provenance-agree.logic.ttl", body, &["--gate"]);
