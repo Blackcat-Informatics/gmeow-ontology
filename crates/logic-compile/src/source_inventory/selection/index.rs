@@ -44,6 +44,18 @@ pub(super) enum Membership<'a> {
     Blocked(&'a Boundary),
 }
 
+#[derive(Debug)]
+struct ModuleFormulaLink {
+    module: SyntaxOwner,
+    target: Result<ModuleFormulaTarget, Boundary>,
+}
+
+#[derive(Debug, Clone, Copy)]
+struct ModuleFormulaTarget {
+    owner: SyntaxOwner,
+    ordinal: usize,
+}
+
 /// Invocation-local masks retain original IR indices and lowering occurrences.
 #[derive(Debug)]
 pub(super) struct SelectionIndex {
@@ -53,9 +65,11 @@ pub(super) struct SelectionIndex {
     participation: BTreeMap<SyntaxOwner, Participation>,
     coordinates: BTreeMap<SyntaxOwner, Coordinate>,
     selection_metadata: BTreeMap<SourceStatementBinding, BTreeSet<SyntaxOwner>>,
+    formula_links: BTreeMap<SourceStatementBinding, ModuleFormulaLink>,
     blocked: BTreeMap<SyntaxOwner, Boundary>,
     unknown: Boundary,
     graph_boundary: Boundary,
+    top_level_module_link: Boundary,
     pub(super) admitted_modules: BTreeSet<SourceNode>,
     pub(super) formula_occurrences: Vec<bool>,
     pub(super) axioms: Vec<bool>,
@@ -105,6 +119,106 @@ fn correspondence_field(
 
 fn list_axiom(predicate: &str) -> bool {
     matches!(predicate, crate::lists::RDF_FIRST | crate::lists::RDF_REST)
+}
+
+fn module_formula_links(
+    inventory: &SourceInventory<'_>,
+    roots: &BTreeSet<SyntaxOwner>,
+    independent_formulas: &mut BTreeSet<SourceNode>,
+) -> BTreeMap<SourceStatementBinding, ModuleFormulaLink> {
+    let theory = inventory.theory();
+    let graph = theory.source().source_graph();
+    let lowerings: BTreeMap<_, _> = theory
+        .formula_lowerings()
+        .iter()
+        .enumerate()
+        .map(|(ordinal, lowering)| (lowering.source, ordinal))
+        .collect();
+    graph
+        .edges()
+        .iter()
+        .filter(|edge| {
+            edge.role == SourceEdgeRole::ExplicitFormulaSelection && edge.source.graph.is_none()
+        })
+        .filter_map(|edge| {
+            let SourcePredicate::Stored(predicate) = edge.predicate else {
+                return None;
+            };
+            let binding = SourceStatementBinding {
+                canonical: QuadIds {
+                    s: edge.source.term,
+                    p: predicate,
+                    o: edge.target,
+                    g: edge.source.graph,
+                },
+                carrier: edge.carrier,
+            };
+            if !inventory.statement_selected(binding.canonical, binding.carrier) {
+                return None;
+            }
+            let node = SourceNode {
+                term: edge.target,
+                graph: edge.source.graph,
+            };
+            if !graph.declares(edge.source, SourceUnitKind::Module) {
+                if !graph.outgoing(edge.source).iter().any(|coordinate| {
+                    matches!(
+                        coordinate.role,
+                        SourceEdgeRole::Module
+                            | SourceEdgeRole::Standpoint
+                            | SourceEdgeRole::Context
+                            | SourceEdgeRole::Provenance
+                    )
+                }) {
+                    // Preserve the existing top-level formula route through an
+                    // unqualified nonmodule container.
+                    independent_formulas.insert(node);
+                }
+                return None;
+            }
+            let target = lowerings
+                .get(&node)
+                .copied()
+                .filter(|_| graph.declares(node, SourceUnitKind::Formula))
+                .ok_or_else(|| Boundary {
+                    code: "MISSING_MODULE_FORMULA_ROOT",
+                    detail:
+                        "module formula link requires an actual formula declaration and lowering"
+                            .into(),
+                })
+                .and_then(|ordinal| {
+                    let formula = owner(node, SyntaxFamily::Formula);
+                    if !roots.contains(&formula) || graph.formula_is_owned(node) {
+                        return Err(Boundary {
+                            code: "MODULE_LINK_TO_OWNED_FORMULA",
+                            detail:
+                                "module cannot assert syntax already owned by another source unit"
+                                    .into(),
+                        });
+                    }
+                    if graph.outgoing(node).iter().any(|coordinate| {
+                        coordinate.role == SourceEdgeRole::Module
+                            && coordinate.target != edge.source.term
+                    }) {
+                        return Err(Boundary {
+                            code: "CONFLICTING_FORMULA_MODULE_COORDINATE",
+                            detail: "formula declares membership in a different module".into(),
+                        });
+                    }
+                    Ok(ModuleFormulaTarget {
+                        owner: formula,
+                        ordinal,
+                    })
+                });
+            Some((
+                binding,
+                ModuleFormulaLink {
+                    module: owner(edge.source, SyntaxFamily::Module),
+                    target,
+                },
+            ))
+        })
+        .collect()
 }
 
 impl SelectionIndex {
@@ -340,17 +454,31 @@ impl SelectionIndex {
                 )
             });
         }
+        let mut independent_formulas = BTreeSet::new();
+        let formula_links = module_formula_links(inventory, &roots, &mut independent_formulas);
+        for target in formula_links
+            .values()
+            .filter_map(|link| link.target.as_ref().ok())
+        {
+            if matches!(coordinates.get(&target.owner), Some(Coordinate::None))
+                && !independent_formulas.contains(&target.owner.node)
+            {
+                roots.remove(&target.owner);
+            }
+        }
         selection_metadata.retain(|_, owners| {
             owners.retain(|unit| active.contains(unit));
             !owners.is_empty()
         });
         let mut index = Self { syntax, roots, active, coordinates,
-            selection_metadata,
+            selection_metadata, formula_links,
             participation: BTreeMap::new(), blocked, admitted_modules,
             unknown: Boundary { code: "NO_EXECUTABLE_OWNER_PATH",
                 detail: "owned syntax has no admitted executable owner path and cannot become an independent assertion".into() },
             graph_boundary: Boundary { code: "OUTSIDE_SELECTED_DEFAULT_GRAPH",
                 detail: "named-graph syntax has no translation into the selected default logical world".into() },
+            top_level_module_link: Boundary { code: "CONTEXT_ERASURE_FORBIDDEN",
+                detail: "module formula link requires explicit module composition".into() },
             formula_occurrences: vec![false; theory.formula_lowerings().len()],
             axioms: vec![false; theory.program().axioms.len()],
             rules: vec![false; theory.program().rules.len()],
@@ -450,6 +578,20 @@ impl SelectionIndex {
                 _ => {}
             }
             self.participation.insert(unit, state);
+        }
+        // A link can select a root, but a target cannot block its module or the
+        // module's other assertions. Required syntax still propagates normally.
+        for link in self.formula_links.values() {
+            let Ok(target) = link.target else { continue };
+            let mut state = self.participation[&target.owner];
+            match self.formula_link_module(link) {
+                Membership::Included if !self.blocked.contains_key(&target.owner) => {
+                    state.included = true;
+                }
+                Membership::Outside => state.outside = true,
+                Membership::Included | Membership::Blocked(_) => state.blocked_path = true,
+            }
+            self.participation.insert(target.owner, state);
         }
         let mut pending: VecDeque<_> = self
             .participation
@@ -693,6 +835,7 @@ impl SelectionIndex {
                     )
             } else {
                 !self.selection_metadata.contains_key(&binding)
+                    && !self.formula_links.contains_key(&binding)
                     && inventory
                         .correspondence_record_owners(binding)
                         .next()
@@ -902,6 +1045,9 @@ impl SelectionIndex {
         if quad.g.is_some() {
             return Membership::Blocked(&self.graph_boundary);
         }
+        if let Some(link) = self.formula_links.get(&binding) {
+            return self.formula_link_membership(link);
+        }
         if let Some(owners) = self.selection_metadata.get(&binding) {
             return self.combine(owners.iter().copied());
         }
@@ -1021,6 +1167,32 @@ impl SelectionIndex {
         // A plainly asserted domain row is its own top-level sentence. Merely
         // describing the same resource or a scoped reifier does not own it.
         Membership::Included
+    }
+
+    fn formula_link_module(&self, link: &ModuleFormulaLink) -> Membership<'_> {
+        match self.coordinates.get(&link.module) {
+            Some(Coordinate::None) => Membership::Blocked(&self.top_level_module_link),
+            _ => self.owner_membership(link.module),
+        }
+    }
+
+    fn formula_link_membership<'a>(&'a self, link: &'a ModuleFormulaLink) -> Membership<'a> {
+        match self.formula_link_module(link) {
+            Membership::Included => {}
+            membership => return membership,
+        }
+        match &link.target {
+            Ok(target) => self.owner_membership(target.owner),
+            Err(boundary) => Membership::Blocked(boundary),
+        }
+    }
+
+    pub(super) fn selected_module_formula(&self, binding: SourceStatementBinding) -> Option<usize> {
+        let link = self.formula_links.get(&binding)?;
+        if !matches!(self.formula_link_membership(link), Membership::Included) {
+            return None;
+        }
+        link.target.as_ref().ok().map(|target| target.ordinal)
     }
 
     fn combine(&self, owners: impl Iterator<Item = SyntaxOwner>) -> Membership<'_> {

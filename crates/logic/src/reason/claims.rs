@@ -8,6 +8,7 @@
 //! read the claimed statement. This module is the one place a scoped claim becomes a
 //! fact. The evidence-only route and the distinct source-resolved module route
 //! each enforce their closed carrier contract against the complete original source.
+//! Descriptive graph-box annotations supply neither evidence nor assertion authority.
 //! Read claims retain their carried native RDF terms. Excluded modules contribute
 //! no premise; other unread scoped claims retain their boundaries. A quotation
 //! carries no scope or evidence coordinate and is never read as an assertion.
@@ -48,7 +49,7 @@ pub enum UnreadReason {
     /// The scope selects a context outside the selected theory. The `logic:` names
     /// of the selecting coordinates are listed.
     Context(Vec<&'static str>),
-    /// Something other than evidence is said about the claim's carrier, so the
+    /// A statement outside the admitted contract describes the claim's carrier, so the
     /// claim may be placed, denied or qualified. `carrier` is the reifier or
     /// statement node concerned, `predicate` the first such predicate IRI in sorted
     /// order, and `statements` counts all of them.

@@ -36,7 +36,7 @@ implemented against rather than only read:
 | Document | Genre | Realized state | Contents |
 | --- | --- | --- | --- |
 | [`design/LOGIC.md`](./design/LOGIC.md) | manifesto | realized | vision, doctrine, lineage |
-| [`design/LOGIC-FOUNDATION.md`](./design/LOGIC-FOUNDATION.md) | charter | realized (a few named engine-selection strategies not yet engine-backed) | the `gmeow:logic` upper-ontology charter — the gUFO ⊇ baseline, the criticism ledger, the greenfield feature map, the Ithkuil precision ethos, the four-box organization |
+| [`design/LOGIC-FOUNDATION.md`](./design/LOGIC-FOUNDATION.md) | charter | realized (a few named engine-selection strategies not yet engine-backed) | the `gmeow:logic` upper-ontology charter — the gUFO ⊇ baseline, the criticism ledger, the greenfield feature map, the Ithkuil precision ethos, the descriptive graph-box roles |
 | [`design/LOGIC-CONTRACT.md`](./design/LOGIC-CONTRACT.md) | configuration | realized | the reasoning contract — the orthogonal facets a reasoning request selects; named profiles as presets; the compatibility matrix |
 | [`design/LOGIC-IR.md`](./design/LOGIC-IR.md) | intermediate representation | realized (`crates/logic-compile`) | the typed, full first-order IR every source compiles into and every projection out of; the per-lowering preservation judgment |
 | [`design/LOGIC-SEMANTICS.md`](./design/LOGIC-SEMANTICS.md) | formal semantics | realized | the unified core, triple-term/assertion rules, the reasoning result, modality, the typed context algebra, decidability |
@@ -126,6 +126,11 @@ Module membership does not translate a standpoint, time or modality. Those
 coordinates retain their separate admission requirements. Ground module claims
 can assert through a typed, source-resolved module route without invented
 provenance or confidence; evidence-only claims keep their own closed contract.
+Default-graph `gmeow:graphBoxRole` resource annotations are descriptive metadata
+within both carrier contracts. Preserve their actual, possibly multiple or
+unknown role values. They supply neither evidence nor assertion authority;
+quotations still assert nothing. Named-graph or nonresource role annotations
+retain their boundaries, and all role rows remain independent source facts.
 Unknown qualifiers, mentions and graph-name uses retain their boundaries.
 
 Reports preserve the complete supplied source inventory and identify the roots,
@@ -143,8 +148,8 @@ discovery runs once, and semantic loading and proof replay read the admitted ope
 files. Output publication and stale-output removal use held parent directories;
 switching a parent symlink cannot redirect them onto a selected input. Writes
 check the actual opened target before truncation. The boundary does not cover
-arbitrary replacement of entries inside a held directory. A selected proof output
-is removed when the run records no proof. A native
+arbitrary replacement of entries inside a held directory. The
+`PROOF_NOT_RECORDED` required-output refusal removes the stale selected proof. A native
 verdict remains an attestation. See
 [`LOGIC-SEMANTICS.md`](design/LOGIC-SEMANTICS.md#explicit-module-composition)
 for the assertion and context contract.

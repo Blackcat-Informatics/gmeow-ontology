@@ -88,6 +88,7 @@ fn ingest_modules(
 /// PROTECTS: module claims and scoped rule/head/body syntax execute together;
 /// excluded schema and NAF contribute no premise while genuinely shared terms survive.
 /// Source, root, preparation, input and domain identities authorize the same run.
+/// Descriptive carrier roles remain ordinary source facts for authored consumers.
 #[test]
 fn module_execution_preserves_owners_shared_support_and_invocation_authority() {
     const INCLUDED: &str = "https://example.org/claims/Included";
@@ -98,13 +99,19 @@ ex:p a logic:DatatypeProperty ; logic:domain logic:Nothing ; logic:inModule ex:E
 ex:chain logic:propertyChainAxiom ex:collection ; logic:inModule ex:Excluded .
 ex:collection rdf:first ex:p ; rdf:rest rdf:nil .
 ex:a ex:p ex:b .
-ex:claim rdf:reifies <<( ex:a ex:label "chat"@fr )>> ; logic:inModule ex:Included .
+ex:claim rdf:reifies <<( ex:a ex:label "chat"@fr )>> ; logic:inModule ex:Included ;
+    gmeow:graphBoxRole gmeow:boxCBox, ex:futureRole .
 _:x a logic:TermCarrier ; logic:termVariable "x" .
 _:label logic:termVariable "label" .
 _:y a logic:TermCarrier ; logic:termVariable "y" .
 ex:mark a logic:Rule ; logic:inModule ex:Included ;
     logic:head [ rdf:reifies <<( _:x ex:marked _:label )>> ; logic:inModule ex:Included ] ;
     logic:body [ rdf:reifies <<( _:x ex:label _:label )>> ; logic:inModule ex:Included ] .
+_:carrier a logic:TermCarrier ; logic:termVariable "carrier" .
+_:role a logic:TermCarrier ; logic:termVariable "role" .
+ex:roleReceipt a logic:Rule ; logic:inModule ex:Included ;
+    logic:head [ rdf:reifies <<( _:carrier ex:describedBy _:role )>> ] ;
+    logic:body [ rdf:reifies <<( _:carrier gmeow:graphBoxRole _:role )>> ] .
 ex:absence a logic:Rule ; logic:inModule ex:Excluded ;
     logic:head [ rdf:reifies <<( _:x logic:instanceOf logic:Nothing )>> ] ;
     logic:body [ rdf:reifies <<( _:x ex:p _:y )>> ] ;
@@ -177,6 +184,19 @@ _:x logic:termIndex 0 . _:label logic:termIndex 1 .
     assert!(result.inferred().iter().any(|row| row.predicate == "https://example.org/claims/marked"
         && matches!(&row.object, TermValue::Literal { lexical_form, language: Some(language), .. }
             if lexical_form == "chat" && language == "fr")), "shared variable and literal identity reach the rule head");
+    for role in [
+        "https://blackcatinformatics.ca/gmeow/boxCBox",
+        "https://example.org/claims/futureRole",
+    ] {
+        assert!(
+            result.inferred().iter().any(|row| {
+                row.subject == "https://example.org/claims/claim"
+                    && row.predicate == "https://example.org/claims/describedBy"
+                    && row.object.as_iri() == Some(role)
+            }),
+            "the actual authored role remains executable source data: {role}"
+        );
+    }
     assert!(
         admission
             .complete_for(&result)
@@ -288,18 +308,36 @@ ex:scopedProbe rdf:reifies <<( ex:a ex:probe _:label )>> ; logic:inModule ex:Inc
 /// translates another context axis, even when filtered input omits the offending row.
 /// A qualified duplicate and unrelated blocked positive rule keep their boundaries
 /// without cancelling a valid carrier or suppressing an admitted contradiction.
+/// Ordinary source assertions about an unread carrier still supply native premises.
 #[test]
 fn module_claims_retain_independent_context_and_full_source_envelope_boundaries() {
-    for extra in [
-        "ex:claim logic:standpoint ex:observer .",
-        "ex:claim logic:modality logic:none .",
-        "ex:g { ex:claim ex:unknownQualifier ex:value . }",
+    for (extra, ordinary_clash) in [
+        ("ex:claim logic:standpoint ex:observer .", false),
+        ("ex:claim logic:modality logic:none .", false),
+        ("ex:g { ex:claim ex:unknownQualifier ex:value . }", false),
+        (
+            "ex:g { ex:claim gmeow:graphBoxRole gmeow:boxCBox . }",
+            false,
+        ),
+        (
+            "ex:claim gmeow:graphBoxRole \"not a role resource\" .",
+            false,
+        ),
+        (
+            "ex:annotation a logic:AnnotationProperty . ex:claim ex:annotation ex:value .",
+            false,
+        ),
+        (
+            "ex:mark logic:domain logic:Nothing . ex:claim ex:mark ex:value .",
+            true,
+        ),
     ] {
         let theory = compile(&format!(
             r#"
 ex:Included a logic:Module .
 ex:a logic:instanceOf ex:Left .
-ex:claim rdf:reifies <<( ex:a logic:instanceOf ex:Right )>> ; logic:inModule ex:Included .
+ex:claim rdf:reifies <<( ex:a logic:instanceOf ex:Right )>> ; logic:inModule ex:Included ;
+    gmeow:graphBoxRole gmeow:boxCBox .
 {extra}
 "#
         ));
@@ -311,13 +349,14 @@ ex:claim rdf:reifies <<( ex:a logic:instanceOf ex:Right )>> ; logic:inModule ex:
         let result =
             reason_selected_theory_within(&inventory, input, &domains, &ingress, &UNBOUNDED)
                 .expect("the supported ordinary theory executes");
-        assert!(
-            consistent(&result),
-            "unread module claim must not refute ordinary facts: {extra}"
+        assert_eq!(
+            !consistent(&result),
+            ordinary_clash,
+            "only the independent ordinary assertion may refute: {extra}"
         );
     }
     const VALID_LEFT: &str =
-        "ex:left rdf:reifies <<( ex:a logic:instanceOf ex:Left )>> ; logic:inModule ex:Included .
+        "ex:left rdf:reifies <<( ex:a logic:instanceOf ex:Left )>> ; logic:inModule ex:Included ; gmeow:graphBoxRole gmeow:boxCBox .
 ex:alsoLeft rdf:reifies <<( ex:a logic:instanceOf ex:Left )>> ; logic:inModule ex:Included .";
     for (left, expected_clash, read_count) in [(VALID_LEFT, true, 2), ("", false, 1)] {
         let theory = compile(&format!(
@@ -326,7 +365,7 @@ ex:Included a logic:Module .
 {left}
 ex:right rdf:reifies <<( ex:a logic:instanceOf ex:Right )>> ; logic:inModule ex:Included .
 ex:qualified rdf:reifies <<( ex:a logic:instanceOf ex:Left )>> ;
-    logic:inModule ex:Included ; ex:qualifier ex:unknown .
+    logic:inModule ex:Included ; gmeow:graphBoxRole gmeow:boxCBox ; ex:qualifier ex:unknown .
 _:r a logic:TermCarrier ; logic:termVariable "r" .
 ex:blocked a logic:Rule ; logic:inModule ex:Included ; logic:standpoint ex:observer ;
     logic:head [ rdf:reifies <<( _:r logic:instanceOf logic:Nothing )>> ] ;
@@ -405,16 +444,21 @@ ex:blocked a logic:Rule ; logic:inModule ex:Included ; logic:standpoint ex:obser
     }
 }
 
-/// PROTECTS: shared formula IR keeps every admitted authored name, excludes other
-/// occurrences, and never executes a parent after dropping a required descendant.
+/// PROTECTS: shared formula IR retains each admitted module assertion and authored
+/// name without promoting owned children or dropping required descendants.
 #[test]
 fn selected_formula_occurrences_keep_names_and_required_descendants() {
     let body = r#"
-ex:Included a logic:Module . ex:Excluded a logic:Module .
+ex:Included a logic:Module ; logic:hasFormula ex:first, ex:second, ex:consequence, ex:other .
+ex:Excluded a logic:Module ; logic:hasFormula ex:other, ex:excluded, ex:shared .
+ex:container logic:hasFormula ex:shared .
+ex:namedGraph { ex:Included logic:hasFormula ex:first . }
 ex:a ex:seed ex:b .
-ex:first a logic:Formula ; logic:quantifiedVariable ex:x ; logic:forall ex:implication ; logic:inModule ex:Included .
+ex:first a logic:Formula ; logic:quantifiedVariable ex:x ; logic:forall ex:implication .
 ex:second a logic:Formula ; logic:quantifiedVariable ex:x ; logic:forall ex:implication ; logic:inModule ex:Included .
 ex:other a logic:Formula ; logic:quantifiedVariable ex:x ; logic:forall ex:implication ; logic:inModule ex:Excluded .
+ex:excluded a logic:Formula ; logic:quantifiedVariable ex:x ; logic:forall ex:implication .
+ex:shared a logic:Formula ; logic:quantifiedVariable ex:x ; logic:forall ex:implication .
 ex:implication a logic:Formula ; logic:antecedent ex:guard ; logic:consequent ex:consequence .
 ex:guard a logic:Formula ; logic:relation ex:seed ; logic:argument ex:x, ex:bTerm .
 ex:consequence a logic:Formula ; logic:relation ex:marked ; logic:argument ex:x, ex:bTerm .
@@ -440,7 +484,8 @@ ex:bTerm logic:termIndex 1 ; logic:termIri ex:b .
                 names,
                 BTreeSet::from([
                     "https://example.org/claims/first",
-                    "https://example.org/claims/second"
+                    "https://example.org/claims/second",
+                    "https://example.org/claims/shared"
                 ])
             );
         } else {
@@ -468,6 +513,54 @@ ex:bTerm logic:termIndex 1 ; logic:termIri ex:b .
                 .iter()
                 .any(|row| row.predicate == "https://example.org/claims/marked"),
             executes
+        );
+        let links: Vec<_> = admission
+            .source_dispositions()
+            .filter_map(|(unit, disposition)| {
+                let anchor = unit.anchor();
+                anchor
+                    .contains("/hasFormula")
+                    .then_some((anchor, disposition))
+            })
+            .collect();
+        assert_eq!(links.len(), 9);
+        assert!(links.iter().any(|(anchor, disposition)| {
+            anchor.contains("/namedGraph")
+                && matches!(
+                    disposition,
+                    crate::reason::NativeSourceDisposition::OutsideSelection { .. }
+                )
+        }));
+        for (link, expected) in [
+            ("consequence", "MODULE_LINK_TO_OWNED_FORMULA"),
+            ("other", "CONFLICTING_FORMULA_MODULE_COORDINATE"),
+        ] {
+            assert!(links.iter().any(|(anchor, disposition)| {
+                anchor.contains(&format!("/{link}"))
+                    && matches!(disposition, crate::reason::NativeSourceDisposition::Blocked {
+                        code, ..
+                    } if *code == expected)
+            }));
+        }
+        assert_eq!(
+            links
+                .iter()
+                .filter(|(_, disposition)| matches!(
+                    disposition,
+                    crate::reason::NativeSourceDisposition::OutsideRequestedTheory { .. }
+                ))
+                .count(),
+            3
+        );
+        assert_eq!(
+            links
+                .iter()
+                .filter(|(_, disposition)| matches!(
+                    disposition,
+                    crate::reason::NativeSourceDisposition::StructuralSupport { .. }
+                ))
+                .count(),
+            if executes { 2 } else { 0 }
         );
         if !executes {
             assert!(
@@ -522,37 +615,46 @@ fn clash_premises(result: &ReasoningResult) -> Vec<(String, String)> {
 /// PROTECTS: a claim that carries only evidence coordinates is a statement of the
 /// selected theory. Two such claims that contradict each other make the theory
 /// inconsistent, the clash is witnessed by both claimed statements, and both are
-/// in the ledger as read with their evidence. A confidence of zero is still a claim.
+/// in the ledger as read with their evidence. A confidence of zero is still a claim;
+/// default-graph descriptive roles never become evidence or cancel assertion.
 #[test]
 fn evidence_only_claims_that_contradict_are_a_clash() {
-    let theory = compile(EVIDENCE_CLASH);
-    let (result, ingress) = decide(&theory);
-    let result = result.expect("the selected theory executes");
+    for body in [
+        EVIDENCE_CLASH.to_owned(),
+        EVIDENCE_CLASH.replace(
+            " .",
+            " ; gmeow:graphBoxRole gmeow:boxCBox, ex:futureRole, [] .",
+        ),
+    ] {
+        let theory = compile(&body);
+        let (result, ingress) = decide(&theory);
+        let result = result.expect("the selected theory executes");
 
-    assert!(!consistent(&result));
-    let premises = clash_premises(&result);
-    for class in [LEFT, RIGHT] {
-        assert!(
-            premises
-                .iter()
-                .any(|(subject, object)| subject == SUBJECT && object.contains(class)),
-            "{class} is a witness premise: {premises:?}"
+        assert!(!consistent(&result));
+        let premises = clash_premises(&result);
+        for class in [LEFT, RIGHT] {
+            assert!(
+                premises
+                    .iter()
+                    .any(|(subject, object)| subject == SUBJECT && object.contains(class)),
+                "{class} is a witness premise: {premises:?}"
+            );
+        }
+        let evidence: Vec<_> = ingress
+            .read()
+            .iter()
+            .flat_map(|claim| claim.evidence.iter().copied())
+            .collect();
+        assert_eq!(
+            evidence,
+            [
+                EvidenceCoordinate::Provenance,
+                EvidenceCoordinate::Confidence
+            ]
         );
+        assert!(ingress.unread().is_empty());
+        assert_eq!(ingress.unaccounted(theory.program()), None);
     }
-    let evidence: Vec<_> = ingress
-        .read()
-        .iter()
-        .flat_map(|claim| claim.evidence.iter().copied())
-        .collect();
-    assert_eq!(
-        evidence,
-        [
-            EvidenceCoordinate::Provenance,
-            EvidenceCoordinate::Confidence
-        ]
-    );
-    assert!(ingress.unread().is_empty());
-    assert_eq!(ingress.unaccounted(theory.program()), None);
 }
 
 /// PROTECTS: a triple term asserts nothing. A reifier with no scope coordinate is a
@@ -565,6 +667,8 @@ fn a_quotation_that_contradicts_an_assertion_is_not_a_clash() {
 ex:a logic:instanceOf ex:Left .
 [] rdf:reifies <<( ex:a logic:instanceOf ex:Right )>> .
 ex:remark rdf:reifies <<( ex:a logic:instanceOf ex:Right )>> ; rdfs:comment "someone said so" .
+ex:described rdf:reifies <<( ex:a logic:instanceOf ex:Right )>> ;
+    gmeow:graphBoxRole gmeow:boxABox, ex:futureRole .
 "#,
     );
     let (result, ingress) = decide(&theory);
@@ -592,7 +696,7 @@ fn a_claim_in_an_untranslated_context_is_named_and_adds_no_fact() {
     ] {
         let theory = compile(&format!(
             "ex:a logic:instanceOf ex:Left .
-             [] rdf:reifies <<( ex:a logic:instanceOf ex:Right )>> ; {annotation} ."
+             [] rdf:reifies <<( ex:a logic:instanceOf ex:Right )>> ; gmeow:graphBoxRole gmeow:boxCBox ; {annotation} ."
         ));
         let (result, ingress) = decide(&theory);
 
@@ -987,14 +1091,14 @@ fn claims_placed_in_standpoints_by_according_to_are_named_and_are_not_a_clash() 
     );
 }
 
-/// PROTECTS: the evidence allow-list is closed. Provenance does not turn a claim
-/// into a statement of the theory when anything else is said about its carrier: a
+/// PROTECTS: the carrier contract stays closed around descriptive roles. Provenance
+/// does not admit an independent qualification about its carrier: a
 /// denial stance, an annotation this reader does not know, a second type, a
 /// statement that points at the carrier, or any `logic:modality` value including
 /// `logic:none`. Each such claim adds no fact and is named with the first offending
 /// predicate and the number of offending statements.
 #[test]
-fn a_claim_with_anything_but_evidence_about_its_carrier_is_named_and_adds_no_fact() {
+fn a_claim_with_an_independent_qualification_is_named_and_adds_no_fact() {
     const MODALITY: &str = "https://blackcatinformatics.ca/logic/modality";
     for (carrier, expected) in [
         (
@@ -1035,7 +1139,7 @@ fn a_claim_with_anything_but_evidence_about_its_carrier_is_named_and_adds_no_fac
     ] {
         let theory = compile(&format!(
             "ex:a logic:instanceOf ex:Left .
-             ex:claim rdf:reifies <<( ex:a logic:instanceOf ex:Right )>> ; {carrier} ."
+             ex:claim rdf:reifies <<( ex:a logic:instanceOf ex:Right )>> ; gmeow:graphBoxRole gmeow:boxCBox ; {carrier} ."
         ));
         let (result, ingress) = decide(&theory);
 
@@ -1120,7 +1224,11 @@ fn a_classic_statement_carrier_is_read_only_when_it_is_evidence_only() {
 
     let evidence_only = compile(&format!(
         "{}{}",
-        classic("first", "Left", ""),
+        classic(
+            "first",
+            "Left",
+            "; gmeow:graphBoxRole gmeow:boxCBox, ex:futureRole"
+        ),
         classic("second", "Right", "; logic:confidence 0.9")
     ));
     let (result, ingress) = decide(&evidence_only);
@@ -1152,7 +1260,8 @@ const R2: &str = "https://example.org/claims/r2";
 /// An assertion, and an evidence-only claim `ex:r1` that would contradict it.
 const CONTESTED: &str = r#"
 ex:a logic:instanceOf ex:Left .
-ex:r1 rdf:reifies <<( ex:a logic:instanceOf ex:Right )>> ; logic:provenance ex:first .
+ex:r1 rdf:reifies <<( ex:a logic:instanceOf ex:Right )>> ; logic:provenance ex:first ;
+    gmeow:graphBoxRole gmeow:boxCBox .
 "#;
 
 /// PROTECTS: a statement about a claim keeps that claim out even when the statement

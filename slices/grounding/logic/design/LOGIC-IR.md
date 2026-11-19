@@ -162,10 +162,15 @@ A contradiction between their admitted sentences refutes that composition.
 `TheorySelection` records a request. Compiler-issued source resolution binds the
 exact roots, closure, import evidence and source selection before native input or
 program views are borrowed. Selected rules and formulas retain their original
-indices and source occurrences after deduplication. An exclusively owned child
-cannot become an independent assertion; a selected owner whose required syntax
-is unavailable remains blocked as a whole. Shared support remains available
-through its actual admitted owners.
+indices and source occurrences after deduplication. A declared module asserts
+a top-level formula through an actual `logic:hasFormula` occurrence in the
+default graph. The link carries that module's membership and records the target's
+admission. A direct `logic:inModule` coordinate or an unqualified nonmodule
+container can supply a separate route.
+A link to a formula that declares a different module remains blocked.
+An exclusively owned child cannot become an independent assertion. A selected
+owner whose required syntax is unavailable remains blocked as a whole. Shared
+support remains available through its actual admitted owners.
 
 The complete supplied inventory remains reportable. Explicitly unselected modules
 receive an authorized disposition outside the requested theory; graph, standpoint, time,
@@ -596,15 +601,21 @@ the substrate does not.
   bare-program profile reads no scoped claim and refuses a program in which any axiom,
   rule, head or body atom carries a standpoint, time, modality or module coordinate. The
   selected-theory profile accounts for every scoped claim in a claim ingress ledger.
-  Its evidence-only route admits a ground claim when every stated statement about
-  its carrier, in any graph, is on a closed allow-list:
+  Its evidence-only route admits a ground claim with at least one default-graph
+  provenance or confidence coordinate under a closed carrier contract:
   reification structure (`rdf:reifies`, or `rdf:type rdf:Statement` with `rdf:subject`,
   `rdf:predicate` and `rdf:object`), `logic:provenance` and `logic:confidence`. The fact
   is built from the RDF terms the carrier holds and the envelope stays on the carrier as
-  evidence. A distinct typed module-assertion route additionally admits one exact
+  source metadata. A distinct typed module-assertion route additionally admits one exact
   default-graph `logic:inModule` coordinate resolved against the same immutable source and
   requested import closure. This route requires no invented provenance or
-  confidence and does not widen the evidence-only allow-list. Any carrier
+  confidence and does not widen the evidence-only allow-list. Both routes admit
+  descriptive default-graph `gmeow:graphBoxRole` annotations with IRI or blank-node
+  resource values. Preserve their actual multivalued, open roles and original
+  source rows; they are not evidence coordinates and confer no assertion, context,
+  module, ownership or routing authority. Named-graph and nonresource role rows
+  remain outside this contract. An annotation alone leaves a quotation unasserted.
+  Every envelope check still reads the complete original source. Any carrier
   statement beyond the selected route's contract, any statement with the
   carrier as object or predicate, any mention of the carrier in a statement another carrier
   holds (inside a triple term at any depth, or as a term of a classic statement node,
