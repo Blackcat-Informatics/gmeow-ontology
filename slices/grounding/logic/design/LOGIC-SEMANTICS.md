@@ -224,6 +224,12 @@ names each claim it leaves unread. It never reads a quotation. One residual is n
 interpreted: the *value* of `logic:provenance`. A claim whose stated source is itself a
 retraction or denial activity is still read as reported by that source.
 
+An admitted extensional set enumerates claim resources through its ordinary
+`math:hasElement` facts. Each member retains its own assertion and scope.
+A member can be a quotation or an asserted claim, and the same carrier can
+occur in several sets. The finite-set declaration and membership both require
+ordinary default-graph source occurrences in the selected view.
+
 ## The reasoning contract
 
 "Sound" is ambiguous until you answer "sound relative to which semantics?" Because `logic:` admits
