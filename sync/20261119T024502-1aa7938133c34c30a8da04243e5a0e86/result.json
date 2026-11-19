@@ -1,0 +1,15 @@
+{
+  "schema": 1,
+  "worktree": "/home/paudley/Active/gmeow-ontology/.worktrees/2941-respect-descriptive-graph-box-roles-in",
+  "branch": "paudley/2941-respect-descriptive-graph-box-roles-in",
+  "base_ref": "refs/remotes/origin/main",
+  "head": "9f380e1dba1abb53e4c0938fc4bc1461e901e4df",
+  "attempt": "/home/paudley/Active/gmeow-ontology/.worktrees/2941-respect-descriptive-graph-box-roles-in/.stage/respect-descriptive-graph-box-roles-in/sync/20261119T024502-1aa7938133c34c30a8da04243e5a0e86",
+  "conflicts": [],
+  "status": "fast_forward",
+  "base": "41fba1ea3c009d99ef28b81e8b43c3b1d63af82d",
+  "merge_bases": [
+    "9f380e1dba1abb53e4c0938fc4bc1461e901e4df"
+  ],
+  "commit": "41fba1ea3c009d99ef28b81e8b43c3b1d63af82d"
+}
