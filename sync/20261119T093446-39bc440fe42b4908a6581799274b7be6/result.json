@@ -1,0 +1,24 @@
+{
+  "schema": 1,
+  "worktree": "/home/paudley/Active/gmeow-ontology/.worktrees/2981-preserve-native-claim-admission-through",
+  "branch": "paudley/2981-preserve-native-claim-admission-through",
+  "base_ref": "origin/main",
+  "head": "04bbca2aeb4300e7e8613e549e6bfe9c82eef272",
+  "attempt": "/home/paudley/Active/gmeow-ontology/.worktrees/2981-preserve-native-claim-admission-through/.stage/preserve-native-claim-admission-through/sync/20261119T093446-39bc440fe42b4908a6581799274b7be6",
+  "conflicts": [],
+  "status": "completed",
+  "base": "bfa339c5101b67b05b1b5144a506fb340054eb8b",
+  "merge_bases": [
+    "c6857028fcc1dd07dc9f9e0d5e15c78f80c86b4f"
+  ],
+  "merge_index": "9eedd1fd6534161f85e8025e8d24ea56649dbf08bc3edef04c7b006c2e3454dc",
+  "candidate_tree": "8ad320c137421601f667a65ecba48a1706437f5b",
+  "candidate_patch": "candidate-e50c4abdc91149138d110806b420eb2e.patch",
+  "stdout_log": "commit-e50c4abdc91149138d110806b420eb2e.stdout.log",
+  "stderr_log": "commit-e50c4abdc91149138d110806b420eb2e.stderr.log",
+  "validation_records": [],
+  "commit_duration_seconds": 54.95251634200031,
+  "commit": "8db327c288cbafb4dc66493a16ae0d254942cc24",
+  "tree": "8ad320c137421601f667a65ecba48a1706437f5b",
+  "exit_code": 0
+}

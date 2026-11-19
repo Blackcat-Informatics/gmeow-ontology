@@ -1,0 +1,1836 @@
+diff --git Makefile Makefile
+index 5390aae0d..60e7d4cc9 100644
+--- Makefile
++++ Makefile
+@@ -196,6 +196,8 @@ TEST_FIXTURE_MANIFEST ?= $(abspath .cache/gmeow-sync/test-fixture-manifest-v2.js
+ WASM_CODEBOOK_MANIFEST := $(abspath .cache/gmeow-sync/wasm-codebook-manifest-v2.json)
+ COMPILER_OWNER_MANIFEST := $(abspath .cache/gmeow-sync/compiler-owner-fixture-manifest-v2.json)
+ COMPILER_OWNER_FIXTURE_ENV = GMEOW_TEST_FIXTURE_MANIFEST="$(COMPILER_OWNER_MANIFEST)" GMEOW_TEST_FIXTURE_MANIFEST_SHA256="$$(sha256sum "$(COMPILER_OWNER_MANIFEST)" | cut -d ' ' -f1)"
++DOCS_FIXTURE_MANIFEST := $(abspath .cache/gmeow-sync/docs-fixture-manifest-v2.json)
++DOCS_FIXTURE_ENV = GMEOW_TEST_FIXTURE_MANIFEST="$(DOCS_FIXTURE_MANIFEST)" GMEOW_TEST_FIXTURE_MANIFEST_SHA256="$$(sha256sum "$(DOCS_FIXTURE_MANIFEST)" | cut -d ' ' -f1)"
+ # The selector is written only by the explicit producer. Each consumer receives its
+ # exact digest before process start, so a missing, stale, or test-mutated selector fails
+ # rather than causing a dependency walk or producer fallback.
+@@ -710,6 +712,19 @@ nextest-compiler-owner: test-corpus-purity verify-compiler-owner-test-fixtures #
+ 	@test -n "$(strip $(NEXTEST_FILTER))" || { echo "NEXTEST_FILTER is required for nextest-compiler-owner"; exit 2; }
+ 	$(COMPILER_OWNER_FIXTURE_ENV) cargo nextest run --manifest-path $(CURDIR)/Cargo.toml --profile ci -p gmeow-pipeline --lib $(NEXTEST_FILTER_ARG) --no-tests=fail
+ 
++.PHONY: produce-docs-test-fixtures verify-docs-test-fixtures nextest-docs-fixtures
++produce-docs-test-fixtures: ## Produce the complete authenticated docs fixture selection before bundle materialization.
++	$(GMEOW_DEV) test-fixtures produce --scope docs $(FIXTURE_TIMINGS_ARG)
++
++verify-docs-test-fixtures: ## Authenticate the selected docs model, render actions and catalog artifacts read-only.
++	$(DOCS_FIXTURE_ENV) $(TEST_FIXTURE_TOOL) test-fixtures verify --scope docs
++
++nextest-docs-fixtures: test-corpus-purity ## Run the documentation goldens with the authenticated docs selector.
++	export $(DOCS_FIXTURE_ENV) && \
++	  $(TEST_FIXTURE_TOOL) test-fixtures verify --scope docs && \
++	  cargo nextest run --manifest-path $(CURDIR)/Cargo.toml --profile ci \
++	  -p gmeow-docs --test render_golden --test pydantic_rust_tabs_golden $(NEXTEST_FILTER_ARG) --no-tests=fail
++
+ produce-producer-bound-test-fixtures: ## Explicitly produce docs plus exact generated-bundle import fixtures before archive/test execution.
+ 	$(BUNDLE_IMPORT_CACHE_ENV) $(GMEOW_DEV) test-fixtures produce --scope producer-bound $(BUNDLE_IMPORT_CACHE_ARGS) $(FIXTURE_TIMINGS_ARG)
+ 
+diff --git README.md README.md
+index bd8abd805..6c3b86048 100644
+--- README.md
++++ README.md
+@@ -319,7 +319,8 @@ The report counts admitted reified claims under `claims_read` and lists their ac
+ carriers under `claims`. Each carrier is resolved independently: an unread contributor
+ cannot erase an admitted sibling or acquire its authority. Each unread carrier retains
+ a named `SCOPED_CLAIM_NOT_READ` boundary. Bare quotations assert nothing. Provenance
+-values are recorded without interpreting the referenced source's content. See
++values are recorded without interpreting the referenced source's content. Formula
++provenance rows name the original accounted formula obligations in `FormulaEvidence`. See
+ [the source-theory contract](slices/grounding/logic/docs.md#selecting-a-source-theory).
+ 
+ | Exit code | Meaning |
+diff --git crates/docs-model/src/fixture.rs crates/docs-model/src/fixture.rs
+index 778ea42bd..c5eeb1442 100644
+--- crates/docs-model/src/fixture.rs
++++ crates/docs-model/src/fixture.rs
+@@ -31,6 +31,8 @@
+ //! come from the workspace's single `gmeow-action-cache` authority.
+ 
+ mod action_payload_json;
++#[cfg(test)]
++mod catalog_inputs_tests;
+ 
+ use std::collections::BTreeMap;
+ use std::fs;
+@@ -48,6 +50,17 @@ use crate::i18n::{Translations, UiCatalog};
+ use crate::model::{COMPETENCY_QUERY_ROOTS, DocsError, DocsModel};
+ 
+ const MODEL_CODEC: &str = "docs-model-json-2";
++const MODEL_INPUT_CLOSURE: &str = "docs-model-input-closure";
++const CATALOG_ARTIFACTS: [(&str, &str); 2] = [
++    (
++        "stage-constraint-catalog",
++        "generated/catalog/constraint-catalog.nq",
++    ),
++    (
++        "stage-term-manifest",
++        "generated/catalog/term-content-manifest.nq",
++    ),
++];
+ 
+ #[derive(Debug, Clone, PartialEq, Eq)]
+ struct DocsActionPayload {
+@@ -107,13 +120,36 @@ pub fn selected_fixtures(root: &Path) -> Result<DocsFixtureSelector, ActionCache
+             "docs fixture selector schema mismatch",
+         ));
+     }
+-    let context = &selected.model.context;
+-    if *context != model_context_for_digest(context.implementation.digest.clone()) {
++    validate_model_context(&selected.model.context)?;
++    Ok(selected)
++}
++
++/// Verify the selected model against current authored inputs and catalog actions.
++/// Used by the explicit read-only verifier before the test runner starts.
++///
++/// # Errors
++/// Refuses a disk-sourced model or a model built with different inputs.
++pub fn verify_current_catalog_model(
++    root: &Path,
++    selected: &DocsFixtureSelector,
++    inputs: Vec<ActionInput>,
++) -> Result<(), ActionCacheError> {
++    let current_digest = cache_key_for_paths(root, &fixture_implementation(root), &[]);
++    verify_catalog_model_context(&selected.model.context, current_digest, inputs)
++}
++
++fn verify_catalog_model_context(
++    context: &ActionContext,
++    authored_digest: String,
++    inputs: Vec<ActionInput>,
++) -> Result<(), ActionCacheError> {
++    let expected = model_context_for_inputs(authored_digest, inputs);
++    if expected.inputs.len() != 1 + 2 * CATALOG_ARTIFACTS.len() || *context != expected {
+         return Err(ActionCacheError::message(
+-            "selected docs model context mismatch",
++            "selected docs model differs from current authored inputs or authenticated catalogs",
+         ));
+     }
+-    Ok(selected)
++    Ok(())
+ }
+ 
+ enum ModelCacheError {
+@@ -149,20 +185,71 @@ fn model_context(root: &Path) -> ActionContext {
+ }
+ 
+ fn model_context_for_digest(input_digest: String) -> ActionContext {
++    model_context_for_inputs(input_digest, Vec::new())
++}
++
++fn model_context_for_inputs(input_digest: String, mut inputs: Vec<ActionInput>) -> ActionContext {
++    inputs.push(ActionInput::Raw {
++        logical_path: MODEL_INPUT_CLOSURE.to_owned(),
++        file_kind: FileKind::Aggregate,
++        executable: false,
++        digest: input_digest.clone(),
++    });
+     ActionContext::new(
+         "docs-fixture",
+         "model",
+-        ProducerIdentity::new(input_digest.clone()),
++        ProducerIdentity::new(input_digest),
+         MODEL_CODEC,
+-        vec![ActionInput::Raw {
+-            logical_path: "docs-model-input-closure".to_string(),
+-            file_kind: FileKind::Aggregate,
+-            executable: false,
+-            digest: input_digest,
+-        }],
++        inputs,
+     )
+ }
+ 
++fn validate_model_context(context: &ActionContext) -> Result<(), ActionCacheError> {
++    let catalogs: Vec<_> = context
++        .inputs
++        .iter()
++        .filter(|input| {
++            !matches!(
++                input,
++                ActionInput::Raw { logical_path, .. } if logical_path == MODEL_INPUT_CLOSURE
++            )
++        })
++        .cloned()
++        .collect();
++    let complete_catalogs = catalogs.len() == 2 * CATALOG_ARTIFACTS.len()
++        && CATALOG_ARTIFACTS.iter().all(|(stage, path)| {
++            catalogs.iter().any(|input| {
++                matches!(
++                    input,
++                    ActionInput::Raw {
++                        logical_path,
++                        file_kind: FileKind::File,
++                        executable: false,
++                        ..
++                    } if logical_path.as_str() == *path
++                )
++            }) && catalogs.iter().any(|input| {
++                matches!(
++                    input,
++                    ActionInput::Upstream {
++                        producer,
++                        entity: Some(entity),
++                        receipt_digest: Some(_),
++                        ..
++                    } if producer.as_str() == *stage && entity.as_str() == *path
++                )
++            })
++        });
++    let valid_catalogs = catalogs.is_empty() || complete_catalogs;
++    let expected = model_context_for_inputs(context.implementation.digest.clone(), catalogs);
++    if !valid_catalogs || *context != expected {
++        return Err(ActionCacheError::message(
++            "selected docs model context mismatch",
++        ));
++    }
++    Ok(())
++}
++
+ fn model_payload(context: &ActionContext) -> DocsActionPayload {
+     DocsActionPayload {
+         schema_version: 1,
+@@ -171,8 +258,12 @@ fn model_payload(context: &ActionContext) -> DocsActionPayload {
+             .inputs
+             .iter()
+             .find_map(|input| match input {
+-                ActionInput::Raw { digest, .. } => Some(digest.clone()),
+-                ActionInput::Upstream { .. } => None,
++                ActionInput::Raw {
++                    logical_path,
++                    digest,
++                    ..
++                } if logical_path == MODEL_INPUT_CLOSURE => Some(digest.clone()),
++                _ => None,
+             })
+             .expect("model action has its aggregate input"),
+     }
+@@ -203,14 +294,13 @@ fn probe_model(
+     store: &ActionStore,
+     context: &ActionContext,
+     cache_path: &Path,
+-) -> Result<Option<(DocsModel, FixtureIdentity)>, ActionCacheError> {
++) -> Result<Option<ProducedModel>, ActionCacheError> {
+     let Some(entry) = store.get::<DocsActionPayload>(context)? else {
+         return Ok(None);
+     };
+     validate_model_receipt(context, &entry.receipt)?;
+-    let identity = FixtureIdentity::from_receipt(&entry.receipt);
+     let model = decode_model(cache_path, &entry.bytes)?;
+-    Ok(Some((model, identity)))
++    Ok(Some(ProducedModel::new(model, &entry.receipt)))
+ }
+ 
+ /// Load the exact authenticated documentation model produced before this consumer.
+@@ -245,11 +335,7 @@ fn load_selected_model(
+     selected: &SelectedAction,
+ ) -> Result<(DocsModel, FixtureIdentity), ActionCacheError> {
+     let context = &selected.context;
+-    if *context != model_context_for_digest(context.implementation.digest.clone()) {
+-        return Err(ActionCacheError::message(
+-            "selected docs model context mismatch",
+-        ));
+-    }
++    validate_model_context(context)?;
+     let store = read_only_action_store(root)?;
+     let entry = store.get::<DocsActionPayload>(context)?.ok_or_else(|| {
+         ActionCacheError::message(format!(
+@@ -305,15 +391,83 @@ pub fn try_load_or_build(root: &Path) -> Result<DocsModel, DocsError> {
+ }
+ 
+ fn try_load_or_build_with_identity(root: &Path) -> Result<(DocsModel, FixtureIdentity), DocsError> {
++    prepare_model(root, model_context(root), || DocsModel::discover(root))
++        .map(|produced| (produced.model, produced.identity))
++}
++
++/// The model and exact selected action returned by the cache producer.
++pub struct ProducedModel {
++    pub model: DocsModel,
++    pub identity: FixtureIdentity,
++    pub selection: SelectedAction,
++}
++
++impl ProducedModel {
++    fn new(model: DocsModel, receipt: &ActionReceipt<DocsActionPayload>) -> Self {
++        Self {
++            model,
++            identity: FixtureIdentity::from_receipt(receipt),
++            selection: SelectedAction::from_receipt(receipt),
++        }
++    }
++}
++
++/// Produce the exact docs model from authenticated in-memory catalog outputs.
++/// Catalog action inputs commit their receipts and artifact bytes.
++///
++/// # Errors
++/// Refuses incomplete catalog identities and model discovery failures.
++pub fn prepare_model_from_catalogs(
++    root: &Path,
++    term_manifest: &[u8],
++    constraint_catalog: &[u8],
++    inputs: Vec<ActionInput>,
++) -> Result<ProducedModel, DocsError> {
++    let input_digest = cache_key_for_paths(root, &fixture_implementation(root), &[]);
++    let context = model_context_for_inputs(input_digest, inputs);
++    validate_model_context(&context)
++        .map_err(|error| DocsError::FixtureUnavailable(error.to_string()))?;
++    if context.inputs.len() != 1 + 2 * CATALOG_ARTIFACTS.len() {
++        return Err(DocsError::FixtureUnavailable(
++            "live docs fixture requires both authenticated catalog inputs".to_owned(),
++        ));
++    }
++    verify_catalog_bytes(&context, [constraint_catalog, term_manifest])?;
++    prepare_model(root, context, || {
++        DocsModel::discover_with_manifest_and_catalog(root, term_manifest, constraint_catalog)
++    })
++}
++
++fn verify_catalog_bytes(context: &ActionContext, artifacts: [&[u8]; 2]) -> Result<(), DocsError> {
++    for ((_, path), bytes) in CATALOG_ARTIFACTS.into_iter().zip(artifacts) {
++        let input = ActionInput::Raw {
++            logical_path: path.to_owned(),
++            file_kind: FileKind::File,
++            executable: false,
++            digest: purrdf::ContentDigest::of(bytes).to_hex(),
++        };
++        if !context.inputs.contains(&input) {
++            return Err(DocsError::FixtureUnavailable(format!(
++                "catalog bytes differ from the selected digest for {path}"
++            )));
++        }
++    }
++    Ok(())
++}
++
++fn prepare_model(
++    root: &Path,
++    context: ActionContext,
++    discover: impl FnOnce() -> Result<DocsModel, DocsError>,
++) -> Result<ProducedModel, DocsError> {
+     let store = action_store(root);
+-    let context = model_context(root);
+     let key = context.key();
+-    let cache_path = cache_path(root);
++    let cache_path = cache_path_for_context(root, &context);
+     let outcome = store.coordinate::<_, ModelCacheError, _, _>(
+         &key,
+         || probe_model(&store, &context, &cache_path).map_err(ModelCacheError::from),
+         || {
+-            let model = DocsModel::discover(root).map_err(ModelCacheError::Build)?;
++            let model = discover().map_err(ModelCacheError::Build)?;
+             let cached = CachedModel::from_model(&model);
+             let bytes = serde_json::to_vec(&cached).map_err(ActionCacheError::from)?;
+             let receipt = store
+@@ -324,7 +478,7 @@ fn try_load_or_build_with_identity(root: &Path) -> Result<(DocsModel, FixtureIde
+                     &bytes,
+                 )
+                 .map_err(ModelCacheError::from)?;
+-            Ok((model, FixtureIdentity::from_receipt(&receipt)))
++            Ok(ProducedModel::new(model, &receipt))
+         },
+     );
+     match outcome {
+@@ -524,18 +678,25 @@ impl CachedModel {
+ /// If the producer receipt is missing/stale or a selected input cannot be read.
+ #[must_use]
+ pub fn cache_key(root: &Path) -> String {
+-    let implementation =
+-        gmeow_action_cache::executable::current_source_inventory(root, "crates/docs/Cargo.toml")
+-            .and_then(|inventory| {
+-                inventory
+-                    .digest()
+-                    .map_err(|error| ActionCacheError::message(error.to_string()))
+-            })
+-            .unwrap_or_else(|error| panic!("authenticate docs fixture implementation: {error}"));
+-    cache_key_with_implementation(root, &implementation)
++    cache_key_with_implementation(root, &fixture_implementation(root))
++}
++
++fn fixture_implementation(root: &Path) -> String {
++    gmeow_action_cache::executable::current_source_inventory(root, "crates/docs/Cargo.toml")
++        .and_then(|inventory| {
++            inventory
++                .digest()
++                .map_err(|error| ActionCacheError::message(error.to_string()))
++        })
++        .unwrap_or_else(|error| panic!("authenticate docs fixture implementation: {error}"))
+ }
+ 
+ fn cache_key_with_implementation(root: &Path, implementation: &str) -> String {
++    let paths = CATALOG_ARTIFACTS.map(|(_, path)| path);
++    cache_key_for_paths(root, implementation, &paths)
++}
++
++fn cache_key_for_paths(root: &Path, implementation: &str, catalog_paths: &[&str]) -> String {
+     let mut hasher = Sha1::new();
+     hasher.update(b"gmeow-docs-fixture-v2\x1f");
+     hasher.update(implementation.as_bytes());
+@@ -570,9 +731,10 @@ fn cache_key_with_implementation(root: &Path, implementation: &str) -> String {
+         "docs/four-boxes.md",
+         "metadata/gmeow-self.ttl",
+         "dsl/mappings/mapping-sets.ttl",
+-        "generated/catalog/constraint-catalog.nq",
+-        "generated/catalog/term-content-manifest.nq",
+-    ] {
++    ]
++    .into_iter()
++    .chain(catalog_paths.iter().copied())
++    {
+         let p = root.join(file);
+         if p.is_file() {
+             files.push(p);
+diff --git crates/docs-model/src/fixture/catalog_inputs_tests.rs crates/docs-model/src/fixture/catalog_inputs_tests.rs
+new file mode 100644
+index 000000000..eb49f99c2
+--- /dev/null
++++ crates/docs-model/src/fixture/catalog_inputs_tests.rs
+@@ -0,0 +1,46 @@
++// SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
++// SPDX-License-Identifier: AGPL-3.0-only
++
++use super::*;
++
++/// Docs qualification rejects stale authored input, spliced catalog receipts
++/// and bytes that disagree with a catalog commitment.
++#[test]
++fn docs_fixture_rejects_stale_inputs_and_spliced_catalogs() {
++    let constraints: &[u8] = b"supplied constraints";
++    let manifest: &[u8] = b"supplied manifest";
++    let inputs = |generation: &str| {
++        CATALOG_ARTIFACTS
++            .into_iter()
++            .zip([constraints, manifest])
++            .flat_map(move |((stage, path), bytes)| {
++                [
++                    ActionInput::Upstream {
++                        producer: stage.to_owned(),
++                        entity: Some(path.to_owned()),
++                        receipt_digest: Some(format!("{stage}-{generation}")),
++                        product_digest: format!("{stage}-product"),
++                    },
++                    ActionInput::Raw {
++                        logical_path: path.to_owned(),
++                        file_kind: FileKind::File,
++                        executable: false,
++                        digest: purrdf::ContentDigest::of(bytes).to_hex(),
++                    },
++                ]
++            })
++            .collect::<Vec<_>>()
++    };
++    let selected =
++        |model_inputs| model_context_for_inputs("authored-source".to_owned(), model_inputs);
++    let live = selected(inputs("first"));
++    let verify = |model, authored: &str, generation| {
++        verify_catalog_model_context(model, authored.to_owned(), inputs(generation))
++    };
++    verify(&live, "authored-source", "first").expect("matching authored and catalog inputs");
++    assert!(verify(&live, "authored-source", "second").is_err());
++    assert!(verify(&live, "edited-source", "first").is_err());
++    assert!(verify(&selected(Vec::new()), "authored-source", "first").is_err());
++    verify_catalog_bytes(&live, [constraints, manifest]).expect("matching catalog bytes");
++    assert!(verify_catalog_bytes(&live, [b"different constraints", manifest]).is_err());
++}
+diff --git crates/docs/src/fixture.rs crates/docs/src/fixture.rs
+index 65bd575d5..7ca551a85 100644
+--- crates/docs/src/fixture.rs
++++ crates/docs/src/fixture.rs
+@@ -49,7 +49,8 @@ use gmeow_docs_model::exec::ExecutableDocsData;
+ // renderer should not have to name a second crate to get the model.
+ use gmeow_docs_model::fixture::{
+     DocsFixtureSelector, FixtureIdentity, load_or_build_with_identity, model_identity,
+-    payload_digest, produced_model_selection, selected_fixtures, verify_payload,
++    payload_digest, prepare_model_from_catalogs, produced_model_selection, selected_fixtures,
++    verify_payload,
+ };
+ pub use gmeow_docs_model::fixture::{load, load_or_build};
+ use gmeow_docs_model::i18n::ENGLISH;
+@@ -327,6 +328,34 @@ pub fn prime(root: &Path) -> PrimeObservation {
+     let (model, identity) = load_or_build_with_identity(root);
+     let selected_model = produced_model_selection(root)
+         .unwrap_or_else(|error| panic!("select produced docs model: {error}"));
++    prime_selected_model(root, model, identity, selected_model)
++}
++
++/// Produce the complete docs fixture family from authenticated catalog artifacts.
++///
++/// # Errors
++/// Refuses missing catalog inputs and model discovery errors.
++pub fn prime_from_catalogs(
++    root: &Path,
++    term_manifest: &[u8],
++    constraint_catalog: &[u8],
++    inputs: Vec<ActionInput>,
++) -> Result<PrimeObservation, gmeow_docs_model::model::DocsError> {
++    let produced = prepare_model_from_catalogs(root, term_manifest, constraint_catalog, inputs)?;
++    Ok(prime_selected_model(
++        root,
++        produced.model,
++        produced.identity,
++        produced.selection,
++    ))
++}
++
++fn prime_selected_model(
++    root: &Path,
++    model: gmeow_docs_model::model::DocsModel,
++    identity: FixtureIdentity,
++    selected_model: SelectedAction,
++) -> PrimeObservation {
+     assert_eq!(selected_model.receipt_digest, identity.receipt_digest);
+     let mut languages = model.available_languages.clone();
+     languages.push(ENGLISH.to_string());
+diff --git crates/gmeow-cli/src/commands/prove.rs crates/gmeow-cli/src/commands/prove.rs
+index 7dcfdbcf5..bc7754081 100644
+--- crates/gmeow-cli/src/commands/prove.rs
++++ crates/gmeow-cli/src/commands/prove.rs
+@@ -34,7 +34,7 @@ use gmeow_logic_compile::frontend::{
+ };
+ use gmeow_logic_compile::ir::TheorySelection;
+ use gmeow_logic_compile::source_inventory::{
+-    ResolvedTheorySelection, SourceInventory, TheorySelectionObservation,
++    ResolvedTheorySelection, SourceInventory, SourceObligationOrigin, TheorySelectionObservation,
+ };
+ use gmeow_logic_compile::tptp::{FofProjectionBlocker, FofProjectionStatus, project_tptp_fof};
+ use purrdf::entail::Question;
+@@ -2270,12 +2270,46 @@ fn render_text(report: &ProveReport<'_>) {
+         println!("source-admission {:?}", admission.status);
+     }
+     if let Some(admission) = &report.native_admission {
++        let evidence_origins: BTreeSet<_> = admission
++            .source_dispositions()
++            .filter_map(|(_, disposition)| match disposition {
++                NativeSourceDisposition::FormulaEvidence { formula_origins } => {
++                    Some(formula_origins)
++                }
++                _ => None,
++            })
++            .flatten()
++            .collect();
+         for (unit, disposition) in admission.source_dispositions() {
++            let anchor = unit.anchor();
++            if !evidence_origins.is_empty()
++                && matches!(unit.origin(), SourceObligationOrigin::Formula(_))
++            {
++                let id = unit.identity();
++                if evidence_origins.contains(&id) {
++                    println!("formula-origin {} {anchor}", id.as_str());
++                }
++            }
+             let (status, code, detail) = match disposition {
+                 NativeSourceDisposition::Accounted { route } => ("Accounted", "-", *route),
+                 NativeSourceDisposition::StructuralSupport { route } => {
+                     ("StructuralSupport", "-", *route)
+                 }
++                NativeSourceDisposition::FormulaEvidence { formula_origins } => {
++                    let evidence = unit.identity();
++                    for formula in formula_origins {
++                        println!(
++                            "formula-evidence {} {} {anchor}",
++                            evidence.as_str(),
++                            formula.as_str()
++                        );
++                    }
++                    (
++                        "FormulaEvidence",
++                        "-",
++                        "source provenance of an accounted formula",
++                    )
++                }
+                 NativeSourceDisposition::ConfigurationDeclaration { route } => {
+                     ("ConfigurationDeclaration", "-", *route)
+                 }
+@@ -2295,7 +2329,7 @@ fn render_text(report: &ProveReport<'_>) {
+                     ("Malformed", *code, reason.as_str())
+                 }
+             };
+-            println!("source-unit {status} {} {code} {detail}", unit.anchor());
++            println!("source-unit {status} {anchor} {code} {detail}");
+         }
+     }
+     if let Some(selection) = &report.selection {
+diff --git crates/gmeow-cli/tests/prove_cli.rs crates/gmeow-cli/tests/prove_cli.rs
+index f38267396..5baf0a31a 100644
+--- crates/gmeow-cli/tests/prove_cli.rs
++++ crates/gmeow-cli/tests/prove_cli.rs
+@@ -322,6 +322,7 @@ fn module_requests_refuse_missing_declarations_and_imports() {
+ 
+ /// PROTECTS: an atomic formula link remains unread whether its equal ordinary
+ /// statement is independently asserted or excluded.
++/// Its provenance follows the original formula account after exact source selection.
+ #[test]
+ fn excluded_statement_cannot_account_for_an_unread_atomic_formula() {
+     let body = r#"
+@@ -330,7 +331,8 @@ ex:Excluded a logic:Module .
+ ex:p logic:domain ex:C {scope} .
+ ex:a ex:p ex:b ; logic:instanceOf ex:D .
+ ex:C logic:disjointWith ex:D .
+-ex:law a logic:Formula ; logic:relation logic:domain ; logic:argument ex:propertyTerm, ex:classTerm .
++ex:law a logic:Formula ; logic:relation logic:domain ; logic:argument ex:propertyTerm, ex:classTerm ;
++    logic:provenance ex:lawSource .
+ ex:propertyTerm logic:termIndex 0 ; logic:termIri ex:p .
+ ex:classTerm logic:termIndex 1 ; logic:termIri ex:C .
+ "#;
+@@ -344,9 +346,10 @@ ex:classTerm logic:termIndex 1 ; logic:termIri ex:C .
+             &["--module", "https://example.org/prove/Selected"],
+         );
+         assert_eq!(report["verdict"], verdict, "{report:#}");
+-        let link = report["native_admission"]["units"]
++        let units = report["native_admission"]["units"]
+             .as_array()
+-            .expect("source units")
++            .expect("source units");
++        let link = units
+             .iter()
+             .find(|unit| {
+                 unit["anchor"]
+@@ -358,6 +361,38 @@ ex:classTerm logic:termIndex 1 ; logic:termIri ex:C .
+             link["disposition"]["Blocked"]["code"],
+             "FORMULA_AXIOM_NOT_READ"
+         );
++        let evidence = units
++            .iter()
++            .find(|unit| {
++                unit["anchor"].as_str().is_some_and(|anchor| {
++                    anchor.contains("/provenance") && anchor.contains("/lawSource")
++                })
++            })
++            .expect("original provenance row");
++        if scope.is_empty() {
++            let formula = units
++                .iter()
++                .find(|unit| {
++                    unit["kind"] == "Formula"
++                        && unit["anchor"]
++                            .as_str()
++                            .is_some_and(|anchor| anchor.ends_with("/law|0:"))
++                })
++                .expect("original formula occurrence");
++            assert!(
++                !formula["disposition"]["Accounted"].is_null(),
++                "{formula:#}"
++            );
++            assert_eq!(
++                evidence["disposition"]["FormulaEvidence"]["formula_origins"],
++                serde_json::json!([formula["id"].clone()])
++            );
++        } else {
++            assert_eq!(
++                evidence["disposition"]["Blocked"]["code"],
++                "FORMULA_EVIDENCE_NOT_ACCOUNTED"
++            );
++        }
+     }
+ }
+ 
+@@ -598,7 +633,8 @@ fn horn_theory_is_consistent_with_zero_drops_and_gate_exits_three() {
+     );
+ }
+ 
+-/// A formula the native lowering cannot carry blocks `consistent` and is named.
++/// A formula the native lowering cannot carry blocks `consistent` and retains
++/// the source boundary on its module link and provenance.
+ #[test]
+ fn uncarried_formula_is_not_decided_with_its_drop_named_and_gate_exits_three() {
+     let (report, code) = prove_json("disjunctive.logic.ttl", DISJUNCTIVE, &["--gate"]);
+@@ -615,7 +651,9 @@ fn uncarried_formula_is_not_decided_with_its_drop_named_and_gate_exits_three() {
+             .any(|drop| drop["engine"] == "native" && drop["code"] == "UNSUPPORTED_CONSTRUCT"),
+         "{report:#}"
+     );
+-    let linked = format!("{DISJUNCTIVE}\nex:Selected a logic:Module ; logic:hasFormula ex:law .\n");
++    let linked = format!(
++        "{DISJUNCTIVE}\nex:Selected a logic:Module ; logic:hasFormula ex:law .\nex:law logic:provenance ex:sourceRecord .\n"
++    );
+     let (report, code) = prove_json(
+         "linked-disjunction.ttl",
+         &linked,
+@@ -638,6 +676,11 @@ fn uncarried_formula_is_not_decided_with_its_drop_named_and_gate_exits_three() {
+         link["disposition"]["Blocked"]["code"],
+         "FORMULA_NATIVE_LOWERING_RESIDUE"
+     );
++    assert!(has_drop(
++        &report,
++        "FORMULA_EVIDENCE_NOT_ACCOUNTED",
++        "/sourceRecord"
++    ));
+ }
+ 
+ /// An exhausted derivation allowance is a partial closure and never `consistent`.
+@@ -1727,6 +1770,7 @@ ex:c2 a logic:Formula ; {second} .
+ 
+ /// A module-linked formula can refute the composed theory, while its excluded
+ /// and context-blocked occurrences retain independent source dispositions.
++/// Its original provenance is attributed to the formula without supplying a premise.
+ #[test]
+ fn an_imported_formula_assertion_supplies_a_native_refutation() {
+     let body = conjunctive_consequent(
+@@ -1735,18 +1779,36 @@ fn an_imported_formula_assertion_supplies_a_native_refutation() {
+ ex:Chosen a logic:Module ; logic:hasFormula ex:law, ex:blocked .
+ ex:Other a logic:Module .
+ ex:Hub a logic:Module ; logic:imports ex:Chosen .
++ex:law logic:provenance ex:lawSource .
++ex:g logic:provenance ex:guardSource .
+ ex:blocked a logic:Formula ; logic:quantifiedVariable [
+     a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "A"
+-] ; logic:forall ex:imp ; logic:provenance ex:source .
++] ; logic:forall ex:imp ; logic:provenance ex:otherSource ; logic:standpoint ex:observer .
+ ex:a logic:instanceOf ex:Opposition .
+ ex:Opposition logic:disjointWith ex:Dst .
+ "#;
++    let directory = tempfile::tempdir().expect("scratch directory");
++    let source = write(directory.path(), "linked-formulas.ttl", &body);
++    let run = |format: &str, module: &str| {
++        gmeow()
++            .args([
++                "prove",
++                path(&source),
++                "--format",
++                format,
++                "--module",
++                module,
++            ])
++            .output()
++            .expect("proof report")
++    };
+     for (root, verdict, link_disposition) in [
+         ("Hub", "inconsistent", "StructuralSupport"),
+         ("Other", "consistent", "OutsideRequestedTheory"),
+     ] {
+         let iri = format!("https://example.org/prove/{root}");
+-        let (report, _) = prove_json("linked-formulas.ttl", &body, &["--module", &iri]);
++        let report: serde_json::Value =
++            serde_json::from_slice(&run("json", &iri).stdout).expect("JSON proof report");
+         assert_eq!(report["verdict"], verdict, "{report:#}");
+         let units = report["native_admission"]["units"]
+             .as_array()
+@@ -1770,6 +1832,41 @@ ex:Opposition logic:disjointWith ex:Dst .
+                 blocked["disposition"]["Blocked"]["code"], "CONTEXT_ERASURE_FORBIDDEN",
+                 "{blocked:#}"
+             );
++            let formula = units
++                .iter()
++                .find(|unit| {
++                    unit["kind"] == "Formula"
++                        && unit["anchor"]
++                            .as_str()
++                            .is_some_and(|anchor| anchor.ends_with("/law|0:"))
++                })
++                .expect("original formula occurrence");
++            let output = run("text", &iri);
++            let text = std::str::from_utf8(&output.stdout).expect("UTF-8 proof report");
++            let formula_id = formula["id"].as_str().expect("formula ID");
++            let formula_anchor = formula["anchor"].as_str().expect("formula anchor");
++            let origin_line = format!("formula-origin {formula_id} {formula_anchor}");
++            assert!(text.lines().any(|line| line == origin_line));
++            for source in ["/lawSource", "/guardSource"] {
++                let evidence = units
++                    .iter()
++                    .find(|unit| {
++                        unit["anchor"].as_str().is_some_and(|anchor| {
++                            anchor.contains("/provenance") && anchor.contains(source)
++                        })
++                    })
++                    .expect("original provenance row");
++                assert_eq!(
++                    evidence["disposition"]["FormulaEvidence"]["formula_origins"],
++                    serde_json::json!([formula["id"].clone()]),
++                    "{evidence:#}"
++                );
++                let evidence_id = evidence["id"].as_str().expect("physical evidence ID");
++                let evidence_anchor = evidence["anchor"].as_str().expect("evidence anchor");
++                let evidence_line =
++                    format!("formula-evidence {evidence_id} {formula_id} {evidence_anchor}");
++                assert!(text.lines().any(|line| line == evidence_line));
++            }
+             let witness = report["refutations"]
+                 .as_array()
+                 .expect("refutations")
+@@ -1780,6 +1877,9 @@ ex:Opposition logic:disjointWith ex:Dst .
+             for term in ["/Dst", "/Opposition"] {
+                 assert!(premises.contains(term), "missing {term} from {premises}");
+             }
++            for source in ["/lawSource", "/guardSource", "/otherSource"] {
++                assert!(!premises.contains(source), "{premises}");
++            }
+         } else {
+             assert!(
+                 !blocked["disposition"]["OutsideRequestedTheory"].is_null(),
+diff --git crates/gmeow-dev-cli/src/dev_producer.rs crates/gmeow-dev-cli/src/dev_producer.rs
+index b94485d4c..47c9a7221 100644
+--- crates/gmeow-dev-cli/src/dev_producer.rs
++++ crates/gmeow-dev-cli/src/dev_producer.rs
+@@ -23,8 +23,8 @@ pub(crate) fn admitted_identity() -> gmeow_errors::Result<ProducerIdentity> {
+ 
+ /// Classify commands that must authenticate the optimized producer before dispatch.
+ ///
+-/// Metadata inspection and fixture verification remain read-only. Compiler-owner
+-/// verification also requires current executable and source admission. Console assembly
++/// Metadata inspection and fixture verification remain read-only. Compiler-owner and
++/// docs verification also require current executable and source admission. Console assembly
+ /// performs its own admission after refusing output paths owned by synchronization.
+ pub(crate) fn requires_admission(command: &Commands) -> bool {
+     match command {
+@@ -34,7 +34,11 @@ pub(crate) fn requires_admission(command: &Commands) -> bool {
+             ..
+         }) => !metadata && !list_paths,
+         Commands::TestFixtures(crate::TestFixturesArgs { mode, scope, .. }) => {
+-            matches!(mode, TestFixtureMode::Produce) || *scope == TestFixtureScope::CompilerOwner
++            matches!(mode, TestFixtureMode::Produce)
++                || matches!(
++                    scope,
++                    TestFixtureScope::CompilerOwner | TestFixtureScope::Docs
++                )
+         }
+         Commands::Fanout(_)
+         | Commands::MediumSweep(_)
+diff --git crates/gmeow-dev-cli/src/dev_test_fixtures.rs crates/gmeow-dev-cli/src/dev_test_fixtures.rs
+index 21050e5d8..7497a35cd 100644
+--- crates/gmeow-dev-cli/src/dev_test_fixtures.rs
++++ crates/gmeow-dev-cli/src/dev_test_fixtures.rs
+@@ -27,6 +27,7 @@ type FixtureResult<T> = gmeow_errors::Result<T>;
+ 
+ const WASM_CODEBOOK_MANIFEST_RELATIVE_PATH: &str =
+     ".cache/gmeow-sync/wasm-codebook-manifest-v2.json";
++const DOCS_FIXTURE_MANIFEST_RELATIVE_PATH: &str = ".cache/gmeow-sync/docs-fixture-manifest-v2.json";
+ 
+ fn fail(detail: impl std::fmt::Display) -> Diag {
+     crate::error::sync(detail)
+@@ -38,7 +39,7 @@ impl TestFixtureScope {
+     }
+ 
+     const fn includes_docs(self) -> bool {
+-        matches!(self, Self::All | Self::ProducerBound)
++        matches!(self, Self::All | Self::ProducerBound | Self::Docs)
+     }
+ 
+     const fn includes_bundle(self) -> bool {
+@@ -54,6 +55,7 @@ impl TestFixtureScope {
+             Self::All => "all",
+             Self::ProducerIndependent => "producer-independent",
+             Self::ProducerBound => "producer-bound",
++            Self::Docs => "docs",
+             Self::Bundle => "bundle",
+             Self::ConformanceHeavy => "conformance-heavy",
+             Self::WasmCodebook => "wasm-codebook",
+@@ -98,6 +100,9 @@ pub(crate) fn run(
+         );
+     }
+     let result = match mode {
++        TestFixtureMode::Produce if scope == TestFixtureScope::Docs => {
++            produce_docs_fixtures(&root, timings_path)
++        }
+         TestFixtureMode::Produce => produce(
+             &root,
+             scope,
+@@ -263,6 +268,48 @@ fn produce_compiler_owner(root: &Path, timings_path: Option<&Path>) -> FixtureRe
+     Ok(())
+ }
+ 
++fn produce_docs_fixtures(root: &Path, timings_path: Option<&Path>) -> FixtureResult<()> {
++    let started = Instant::now();
++    let jobs = std::thread::available_parallelism()
++        .map(std::num::NonZeroUsize::get)
++        .unwrap_or(1);
++    let catalogs = gmeow_pipeline::fixture::prepare_docs_catalog_fixtures(root, jobs)?;
++    let prime = gmeow_docs::fixture::prime_from_catalogs(
++        root,
++        &catalogs.term_manifest,
++        &catalogs.constraint_catalog,
++        catalogs.inputs,
++    )
++    .map_err(fail)?;
++    let prepared = prepare_fixture_selector_at_path(
++        root.join(DOCS_FIXTURE_MANIFEST_RELATIVE_PATH),
++        Some(catalogs.selection),
++        BTreeMap::from([("docs", prime.selector.to_json())]),
++    )?;
++    if let Some(path) = timings_path {
++        write_json_atomic(
++            path,
++            &Object::new()
++                .with("schema_version", 1)
++                .with("scope", TestFixtureScope::Docs.name())
++                .with("elapsed_ms", started.elapsed().as_millis())
++                .with("render_actions", prime.action_count)
++                .with("built", prime.built)
++                .with("receipt_hits", prime.receipt_hits)
++                .with("manifest_sha256", prepared.sha256.clone())
++                .into(),
++        )
++        .map_err(fail)?;
++    }
++    let finalized = prepared.publish()?;
++    println!(
++        "docs fixtures produced: selector={} sha256={}",
++        finalized.path.display(),
++        finalized.sha256,
++    );
++    Ok(())
++}
++
+ /// Read the existing bundle only when its content digest matches the selection.
+ ///
+ /// # Errors
+@@ -693,11 +740,25 @@ fn verify(
+     }
+     if scope.includes_docs() {
+         println!("test fixture verifier: phase=docs state=started");
++        let render_count = if scope == TestFixtureScope::Docs {
++            let inputs = gmeow_pipeline::fixture::verify_docs_catalog_fixtures(root)?;
++            let selected = gmeow_docs_model::fixture::selected_fixtures(root).map_err(fail)?;
++            gmeow_docs_model::fixture::verify_current_catalog_model(root, &selected, inputs)
++                .map_err(fail)?;
++            Some(selected.renders.len())
++        } else {
++            None
++        };
+         let (model, identity) = gmeow_docs_model::fixture::load_with_identity(root);
+         let mut languages = model.available_languages.clone();
+         languages.push(ENGLISH.to_string());
+         languages.sort();
+         languages.dedup();
++        if render_count.is_some_and(|count| count != languages.len() + 1) {
++            return Err(fail(
++                "docs selector must carry one site per language and one book",
++            ));
++        }
+         for language in &languages {
+             let site = gmeow_docs::fixture::load_site_lang(root, language);
+             println!(
+diff --git crates/gmeow-dev-cli/src/lib.rs crates/gmeow-dev-cli/src/lib.rs
+index 05bf1c112..41aec7fc8 100644
+--- crates/gmeow-dev-cli/src/lib.rs
++++ crates/gmeow-dev-cli/src/lib.rs
+@@ -112,6 +112,8 @@ pub enum TestFixtureScope {
+     All,
+     ProducerIndependent,
+     ProducerBound,
++    /// Complete documentation fixtures from the authenticated catalog stages.
++    Docs,
+     Bundle,
+     /// Exhaustive native divergence evidence, produced separately from required fixtures.
+     ConformanceHeavy,
+diff --git crates/logic-compile/src/source_inventory.rs crates/logic-compile/src/source_inventory.rs
+index d9cf81038..4b565328d 100644
+--- crates/logic-compile/src/source_inventory.rs
++++ crates/logic-compile/src/source_inventory.rs
+@@ -428,6 +428,13 @@ impl<'source> SourceInventory<'source> {
+             origin: *origin,
+         })
+     }
++
++    /// Original obligation identity of a compiler formula-lowering occurrence.
++    #[must_use]
++    pub fn formula_obligation_id(&self, ordinal: usize) -> Option<SourceObligationId> {
++        self.theory.formula_lowerings().get(ordinal)?;
++        Some(self.identity(SourceObligationOrigin::Formula(ordinal)))
++    }
+     #[must_use]
+     pub fn selection_issues(&self) -> &[SourceSelectionIssue] {
+         &self.selection_issues
+diff --git crates/logic-compile/src/source_inventory/contexts.rs crates/logic-compile/src/source_inventory/contexts.rs
+index 59fe6d562..34704206f 100644
+--- crates/logic-compile/src/source_inventory/contexts.rs
++++ crates/logic-compile/src/source_inventory/contexts.rs
+@@ -11,18 +11,18 @@ use crate::frontend::{PreparedLogicSource, SourceEdgeRole, SourceNode};
+ /// The frontend already translates `inContext`; other scope coordinates may not
+ /// disappear when atom routing or owned subformulas erase their source wrappers.
+ pub(super) fn untranslated_formulas(source: &PreparedLogicSource) -> BTreeSet<SourceNode> {
+-    untranslated_formulas_with_modules(source, &BTreeSet::new())
++    untranslated_formulas_with_selection(source, &BTreeSet::new(), |_| false)
+ }
+ 
+-/// Discharge only module coordinates proved against the exact native source.
+-/// Every other axis and the original ancestor propagation remain unchanged.
+-pub(super) fn untranslated_formulas_with_modules(
++/// Discharge selected module coordinates and exact provenance occurrences.
++pub(super) fn untranslated_formulas_with_selection(
+     source: &PreparedLogicSource,
+     admitted_modules: &BTreeSet<SourceNode>,
++    admits_provenance: impl Fn(usize) -> bool,
+ ) -> BTreeSet<SourceNode> {
+     let mut parents = BTreeMap::<SourceNode, Vec<SourceNode>>::new();
+     let mut affected = BTreeSet::new();
+-    for edge in source.source_graph().edges() {
++    for (ordinal, edge) in source.source_graph().edges().iter().enumerate() {
+         match edge.role {
+             SourceEdgeRole::FormulaComponent => parents
+                 .entry(SourceNode {
+@@ -31,7 +31,9 @@ pub(super) fn untranslated_formulas_with_modules(
+                 })
+                 .or_default()
+                 .push(edge.source),
+-            SourceEdgeRole::Standpoint | SourceEdgeRole::Provenance => {
++            SourceEdgeRole::Standpoint | SourceEdgeRole::Provenance
++                if edge.role == SourceEdgeRole::Standpoint || !admits_provenance(ordinal) =>
++            {
+                 affected.insert(edge.source);
+             }
+             SourceEdgeRole::Module if !admitted_modules.contains(&edge.source) => {
+diff --git crates/logic-compile/src/source_inventory/selection/index.rs crates/logic-compile/src/source_inventory/selection/index.rs
+index 907288fcd..0278636b1 100644
+--- crates/logic-compile/src/source_inventory/selection/index.rs
++++ crates/logic-compile/src/source_inventory/selection/index.rs
+@@ -56,6 +56,12 @@ struct ModuleFormulaTarget {
+     ordinal: usize,
+ }
+ 
++#[derive(Debug)]
++pub(super) struct FormulaEvidenceBinding {
++    pub(super) origins: Vec<usize>,
++    pub(super) independent_owner: bool,
++}
++
+ /// Invocation-local masks retain original IR indices and lowering occurrences.
+ #[derive(Debug)]
+ pub(super) struct SelectionIndex {
+@@ -66,6 +72,7 @@ pub(super) struct SelectionIndex {
+     coordinates: BTreeMap<SyntaxOwner, Coordinate>,
+     selection_metadata: BTreeMap<SourceStatementBinding, BTreeSet<SyntaxOwner>>,
+     formula_links: BTreeMap<SourceStatementBinding, ModuleFormulaLink>,
++    pub(super) formula_evidence: BTreeMap<SourceStatementBinding, FormulaEvidenceBinding>,
+     blocked: BTreeMap<SyntaxOwner, Boundary>,
+     unknown: Boundary,
+     graph_boundary: Boundary,
+@@ -471,7 +478,7 @@ impl SelectionIndex {
+             !owners.is_empty()
+         });
+         let mut index = Self { syntax, roots, active, coordinates,
+-            selection_metadata, formula_links,
++            selection_metadata, formula_links, formula_evidence: BTreeMap::new(),
+             participation: BTreeMap::new(), blocked, admitted_modules,
+             unknown: Boundary { code: "NO_EXECUTABLE_OWNER_PATH",
+                 detail: "owned syntax has no admitted executable owner path and cannot become an independent assertion".into() },
+@@ -513,7 +520,10 @@ impl SelectionIndex {
+                 );
+             }
+         }
+-        index.block_contexts(inventory);
++        let formula_provenance = index.formula_provenance(inventory);
++        index.block_contexts(inventory, |ordinal| {
++            formula_provenance.contains_key(&ordinal)
++        });
+         for lowering in theory.owner_lowerings() {
+             if !matches!(
+                 lowering.family,
+@@ -554,6 +564,7 @@ impl SelectionIndex {
+         // Inventory boundaries survive, but a blocked owner grants no raw EDB
+         // reachability to its otherwise compatible siblings or descendants.
+         index.propagate();
++        index.bind_formula_evidence(inventory, formula_provenance);
+         index.lowering_masks(inventory);
+         index.stream_masks(inventory);
+         index
+@@ -681,10 +692,57 @@ impl SelectionIndex {
+         }
+     }
+ 
+-    fn block_contexts(&mut self, inventory: &SourceInventory<'_>) {
+-        let untranslated = super::super::contexts::untranslated_formulas_with_modules(
++    fn formula_provenance(
++        &self,
++        inventory: &SourceInventory<'_>,
++    ) -> BTreeMap<usize, SourceStatementBinding> {
++        let source = inventory.theory().source();
++        source
++            .source_graph()
++            .edges()
++            .iter()
++            .enumerate()
++            .filter_map(|(ordinal, edge)| {
++                if edge.role != SourceEdgeRole::Provenance
++                    || edge.source.graph.is_some()
++                    || !self
++                        .active
++                        .contains(&owner(edge.source, SyntaxFamily::Formula))
++                    || !matches!(
++                        source.dataset().resolve(edge.target),
++                        TermRef::Iri(_) | TermRef::Blank { .. }
++                    )
++                {
++                    return None;
++                }
++                let SourcePredicate::Stored(predicate) = edge.predicate else {
++                    return None;
++                };
++                let binding = SourceStatementBinding {
++                    canonical: QuadIds {
++                        s: edge.source.term,
++                        p: predicate,
++                        o: edge.target,
++                        g: None,
++                    },
++                    carrier: edge.carrier,
++                };
++                inventory
++                    .statement_selected(binding.canonical, binding.carrier)
++                    .then_some((ordinal, binding))
++            })
++            .collect()
++    }
++
++    fn block_contexts(
++        &mut self,
++        inventory: &SourceInventory<'_>,
++        admits_formula_provenance: impl Fn(usize) -> bool,
++    ) {
++        let untranslated = super::super::contexts::untranslated_formulas_with_selection(
+             inventory.theory().source(),
+             &self.admitted_modules,
++            admits_formula_provenance,
+         );
+         let graph = inventory.theory().source().source_graph();
+         let dataset = inventory.theory().source().dataset();
+@@ -767,6 +825,92 @@ impl SelectionIndex {
+         }
+     }
+ 
++    /// Attribute each original evidence row to selected emitted formula occurrences.
++    /// Only selected formula-component edges carry evidence to an ancestor.
++    fn bind_formula_evidence(
++        &mut self,
++        inventory: &SourceInventory<'_>,
++        bindings: BTreeMap<usize, SourceStatementBinding>,
++    ) {
++        if bindings.is_empty() {
++            return;
++        }
++        let included = |unit| matches!(self.owner_membership(unit), Membership::Included);
++        let mut parents = BTreeMap::<SourceNode, Vec<SourceNode>>::new();
++        for (&parent, children) in &self.syntax.children {
++            if parent.family == SyntaxFamily::Formula && included(parent) {
++                for &child in children.keys() {
++                    if child.family == SyntaxFamily::Formula && included(child) {
++                        parents.entry(child.node).or_default().push(parent.node);
++                    }
++                }
++            }
++        }
++        let emitted: BTreeMap<_, _> = inventory
++            .theory()
++            .formula_lowerings()
++            .iter()
++            .enumerate()
++            .filter(|(_, lowering)| {
++                matches!(
++                    lowering.disposition,
++                    FormulaDisposition::Formula(_) | FormulaDisposition::Axiom(_)
++                ) && included(owner(lowering.source, SyntaxFamily::Formula))
++            })
++            .map(|(ordinal, lowering)| (lowering.source, ordinal))
++            .collect();
++        self.formula_evidence = bindings
++            .into_values()
++            .filter_map(|binding| {
++                let source = SourceNode {
++                    term: binding.canonical.s,
++                    graph: binding.canonical.g,
++                };
++                if !included(owner(source, SyntaxFamily::Formula)) {
++                    return None;
++                }
++                let independent_owner =
++                    structural_families("https://blackcatinformatics.ca/logic/provenance")
++                        .into_iter()
++                        .flatten()
++                        .copied()
++                        .any(|family| {
++                            family != SyntaxFamily::Formula && included(owner(source, family))
++                        })
++                        || inventory
++                            .correspondence_record_owners(binding)
++                            .any(|ordinal| {
++                                included(owner(
++                                    inventory.theory().owner_lowerings()[ordinal].source,
++                                    SyntaxFamily::Correspondence,
++                                ))
++                            });
++                let mut pending = vec![source];
++                let mut visited = BTreeSet::new();
++                let mut origins = BTreeSet::new();
++                while let Some(node) = pending.pop() {
++                    if visited.insert(node) {
++                        origins.extend(emitted.get(&node).copied());
++                        pending.extend(parents.get(&node).into_iter().flatten().copied());
++                    }
++                }
++                Some((
++                    binding,
++                    FormulaEvidenceBinding {
++                        origins: origins.into_iter().collect(),
++                        independent_owner,
++                    },
++                ))
++            })
++            .collect();
++    }
++
++    fn is_formula_evidence_only(&self, binding: SourceStatementBinding) -> bool {
++        self.formula_evidence
++            .get(&binding)
++            .is_some_and(|evidence| !evidence.independent_owner)
++    }
++
+     fn lowering_masks(&mut self, inventory: &SourceInventory<'_>) {
+         let theory = inventory.theory();
+         for (ordinal, lowering) in theory.formula_lowerings().iter().enumerate() {
+@@ -836,6 +980,7 @@ impl SelectionIndex {
+             } else {
+                 !self.selection_metadata.contains_key(&binding)
+                     && !self.formula_links.contains_key(&binding)
++                    && !self.is_formula_evidence_only(binding)
+                     && inventory
+                         .correspondence_record_owners(binding)
+                         .next()
+@@ -961,6 +1106,7 @@ impl SelectionIndex {
+                             carrier,
+                         };
+                         self.selection_metadata.contains_key(&binding)
++                            || self.is_formula_evidence_only(binding)
+                             || inventory
+                                 .correspondence_record_owners(binding)
+                                 .next()
+diff --git crates/logic-compile/src/source_inventory/selection/view.rs crates/logic-compile/src/source_inventory/selection/view.rs
+index fb2f4b20e..7cc73a167 100644
+--- crates/logic-compile/src/source_inventory/selection/view.rs
++++ crates/logic-compile/src/source_inventory/selection/view.rs
+@@ -125,6 +125,28 @@ impl ResolvedTheorySelection {
+         };
+         Ok(self.0.index.selected_module_formula(binding))
+     }
++
++    /// Selected formula ordinals and independent ownership of this exact evidence row.
++    /// Native coverage checks still apply to every returned formula occurrence.
++    ///
++    /// # Errors
++    /// Refuses obligations borrowed from another compilation or selection.
++    pub fn formula_evidence_origins(
++        &self,
++        unit: SourceObligation<'_>,
++    ) -> gmeow_errors::Result<Option<(&[usize], bool)>> {
++        self.authorize_inventory(unit.inventory)?;
++        let crate::source_inventory::SourceObligationOrigin::Statement(binding) = unit.origin()
++        else {
++            return Ok(None);
++        };
++        Ok(self
++            .0
++            .index
++            .formula_evidence
++            .get(&binding)
++            .map(|evidence| (evidence.origins.as_slice(), evidence.independent_owner)))
++    }
+ }
+ 
+ /// Original-indexed, borrowed IR admitted by the compiler's source ownership.
+diff --git crates/logic/src/reason/claims.tests.rs crates/logic/src/reason/claims.tests.rs
+index d162593b0..e70f266e9 100644
+--- crates/logic/src/reason/claims.tests.rs
++++ crates/logic/src/reason/claims.tests.rs
+@@ -500,22 +500,32 @@ ex:blocked a logic:Rule ; logic:inModule ex:Included ; logic:standpoint ex:obser
+ 
+ /// PROTECTS: shared formula IR retains each admitted module assertion and authored
+ /// name without promoting owned children or dropping required descendants.
++/// Direct and shared descendant provenance retain the original formula occurrences.
+ #[test]
+ fn selected_formula_occurrences_keep_names_and_required_descendants() {
+     let body = r#"
+ ex:Included a logic:Module ; logic:hasFormula ex:first, ex:second, ex:consequence, ex:other .
+ ex:Excluded a logic:Module ; logic:hasFormula ex:other, ex:excluded, ex:shared .
+ ex:container logic:hasFormula ex:shared .
+-ex:namedGraph { ex:Included logic:hasFormula ex:first . }
++ex:namedGraph {
++    ex:Included logic:hasFormula ex:first .
++    ex:first logic:provenance ex:externalSource .
++}
+ ex:a ex:seed ex:b .
+-ex:first a logic:Formula ; logic:quantifiedVariable ex:x ; logic:forall ex:implication .
+-ex:second a logic:Formula ; logic:quantifiedVariable ex:x ; logic:forall ex:implication ; logic:inModule ex:Included .
++ex:first a logic:Formula ; logic:quantifiedVariable ex:x ; logic:forall ex:implication ;
++    logic:provenance ex:firstSource .
++ex:second a logic:Formula ; logic:quantifiedVariable ex:x ; logic:forall ex:implication ;
++    logic:inModule ex:Included ; logic:provenance ex:secondSource .
+ ex:other a logic:Formula ; logic:quantifiedVariable ex:x ; logic:forall ex:implication ; logic:inModule ex:Excluded .
+-ex:excluded a logic:Formula ; logic:quantifiedVariable ex:x ; logic:forall ex:implication .
++ex:excluded a logic:Formula, logic:Rule ; logic:quantifiedVariable ex:x ; logic:forall ex:implication ;
++    logic:provenance ex:ruleSource ;
++    logic:head [ rdf:reifies <<( ex:a ex:independent ex:b )>> ] ;
++    logic:body [ rdf:reifies <<( ex:a ex:seed ex:b )>> ] .
+ ex:shared a logic:Formula ; logic:quantifiedVariable ex:x ; logic:forall ex:implication .
+ ex:implication a logic:Formula ; logic:antecedent ex:guard ; logic:consequent ex:consequence .
+ ex:guard a logic:Formula ; logic:relation ex:seed ; logic:argument ex:x, ex:bTerm .
+-ex:consequence a logic:Formula ; logic:relation ex:marked ; logic:argument ex:x, ex:bTerm .
++ex:consequence a logic:Formula ; logic:relation ex:marked ; logic:argument ex:x, ex:bTerm ;
++    logic:provenance ex:childSource .
+ ex:x a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "x" .
+ ex:bTerm logic:termIndex 1 ; logic:termIri ex:b .
+ "#;
+@@ -523,6 +533,7 @@ ex:bTerm logic:termIndex 1 ; logic:termIri ex:b .
+         ("", true),
+         ("ex:consequence logic:inModule ex:Excluded .", false),
+         ("ex:bTerm logic:inModule ex:Excluded .", false),
++        ("ex:guard logic:provenance \"invalid resource\" .", false),
+     ] {
+         let theory = compile(&format!("{body}{extra}"));
+         let inventory = whole_inventory(&theory);
+@@ -568,6 +579,63 @@ ex:bTerm logic:termIndex 1 ; logic:termIri ex:b .
+                 .any(|row| row.predicate == "https://example.org/claims/marked"),
+             executes
+         );
++        let exact_formula = |name: &str| {
++            inventory
++                .obligations()
++                .find(|unit| {
++                    matches!(unit.origin(), SourceObligationOrigin::Formula(_))
++                        && unit
++                            .anchor()
++                            .strip_suffix("|0:")
++                            .is_some_and(|anchor| anchor.ends_with(name))
++                })
++                .expect("authored formula occurrence")
++                .identity()
++        };
++        let observe_evidence = |name: &str| {
++            admission
++                .source_dispositions()
++                .find_map(|(unit, disposition)| {
++                    let anchor = unit.anchor();
++                    (anchor.contains("/provenance") && anchor.contains(name)).then_some(disposition)
++                })
++                .expect("physical provenance occurrence")
++        };
++        for (source, owners) in [
++            ("/firstSource", vec!["/first"]),
++            ("/secondSource", vec!["/second"]),
++            ("/childSource", vec!["/first", "/second", "/shared"]),
++        ] {
++            match observe_evidence(source) {
++                crate::reason::NativeSourceDisposition::FormulaEvidence { formula_origins }
++                    if executes =>
++                {
++                    assert_eq!(
++                        formula_origins.iter().cloned().collect::<BTreeSet<_>>(),
++                        owners.into_iter().map(exact_formula).collect()
++                    );
++                }
++                crate::reason::NativeSourceDisposition::Blocked { .. }
++                | crate::reason::NativeSourceDisposition::OutsideRequestedTheory { .. }
++                    if !executes => {}
++                disposition => panic!("unexpected source evidence {source}: {disposition:?}"),
++            }
++        }
++        assert!(matches!(
++            observe_evidence("/externalSource"),
++            crate::reason::NativeSourceDisposition::OutsideSelection { .. }
++        ));
++        assert!(matches!(
++            observe_evidence("/ruleSource"),
++            crate::reason::NativeSourceDisposition::StructuralSupport { .. }
++        ));
++        assert!(
++            result
++                .inferred()
++                .iter()
++                .any(|row| row.predicate == "https://example.org/claims/independent"),
++            "the excluded formula leaves its independently selected rule executable"
++        );
+         let links: Vec<_> = admission
+             .source_dispositions()
+             .filter_map(|(unit, disposition)| {
+@@ -616,7 +684,33 @@ ex:bTerm logic:termIndex 1 ; logic:termIri ex:b .
+                 .count(),
+             if executes { 2 } else { 0 }
+         );
+-        if !executes {
++        if executes {
++            let (other_input, other_ingress) =
++                ingest_modules(&inventory, &["https://example.org/claims/Excluded"]);
++            let other_domains = default_domain(&other_input);
++            let failure = reason_admitted_theory_within(
++                &mut admission,
++                &selected,
++                other_input,
++                &other_domains,
++                &other_ingress,
++                &UNBOUNDED,
++            )
++            .expect_err("a different module selection cannot reuse the previous admission");
++            assert!(
++                failure
++                    .to_string()
++                    .contains("same resolved theory composition")
++            );
++            assert!(
++                admission
++                    .source_dispositions()
++                    .all(|(_, disposition)| !matches!(
++                        disposition,
++                        crate::reason::NativeSourceDisposition::FormulaEvidence { .. }
++                    ))
++            );
++        } else {
+             assert!(
+                 !admission
+                     .complete_for(&result)
+diff --git crates/logic/src/reason/source_admission.rs crates/logic/src/reason/source_admission.rs
+index e6469c39c..734db2cc7 100644
+--- crates/logic/src/reason/source_admission.rs
++++ crates/logic/src/reason/source_admission.rs
+@@ -16,8 +16,8 @@ use gmeow_logic_compile::frontend::{
+     Severity, SourceNode,
+ };
+ use gmeow_logic_compile::source_inventory::{
+-    ResolvedTheorySelection, SourceInventory, SourceObligation, SourceObligationOrigin,
+-    TheoryUnitSelection,
++    ResolvedTheorySelection, SourceInventory, SourceObligation, SourceObligationId,
++    SourceObligationOrigin, TheoryUnitSelection,
+ };
+ use serde::Serialize;
+ use serde::ser::{SerializeSeq, SerializeStruct};
+@@ -31,6 +31,7 @@ use accounting::{AtomPolarity, UnitTerm, account_axiom, account_formula, account
+ const ENGINE_NATIVE: &str = "native";
+ const PROFILE: &str = "gmeow-native-source-accounting-v1";
+ const NAF_BOUNDARY: &str = "NEGATION_AS_FAILURE_IS_NOT_CLASSICAL_NEGATION";
++const FORMULA_EVIDENCE_BOUNDARY: &str = "FORMULA_EVIDENCE_NOT_ACCOUNTED";
+ const SOURCE_ACCOUNTING_DOMAIN: purrdf_hash::Domain =
+     purrdf_hash::Domain::new(b"gmeow-native-source-accounting-v1\0");
+ const SOURCE_EXECUTION_DOMAIN: purrdf_hash::Domain =
+@@ -59,14 +60,35 @@ impl NativeSourceDrop {
+ #[derive(Debug, Serialize)]
+ /// Borrowable report disposition; observations grant no execution authority.
+ pub enum NativeSourceDisposition {
+-    Accounted { route: &'static str },
+-    StructuralSupport { route: &'static str },
+-    ConfigurationDeclaration { route: &'static str },
+-    MetatheoryDeclaration { route: &'static str },
+-    OutsideSelection { reason: &'static str },
+-    OutsideRequestedTheory { reason: &'static str },
+-    Blocked { code: &'static str, reason: String },
+-    Malformed { code: &'static str, reason: String },
++    Accounted {
++        route: &'static str,
++    },
++    StructuralSupport {
++        route: &'static str,
++    },
++    FormulaEvidence {
++        formula_origins: Vec<SourceObligationId>,
++    },
++    ConfigurationDeclaration {
++        route: &'static str,
++    },
++    MetatheoryDeclaration {
++        route: &'static str,
++    },
++    OutsideSelection {
++        reason: &'static str,
++    },
++    OutsideRequestedTheory {
++        reason: &'static str,
++    },
++    Blocked {
++        code: &'static str,
++        reason: String,
++    },
++    Malformed {
++        code: &'static str,
++        reason: String,
++    },
+ }
+ 
+ use NativeSourceDisposition as Disposition;
+@@ -739,6 +761,11 @@ fn classify_selected(
+             },
+         );
+     }
++    if matches!(membership, TheoryUnitSelection::Included)
++        && matches!(selection.formula_evidence_origins(unit)?, Some((_, false)))
++    {
++        return Ok(unread_formula_evidence());
++    }
+     let axiom_index = match unit.origin() {
+         SourceObligationOrigin::Axiom(index) => Some(index),
+         SourceObligationOrigin::Formula(ordinal) => formula_axiom(inventory, ordinal),
+@@ -768,6 +795,76 @@ fn classify_selected(
+     })
+ }
+ 
++fn unread_formula_evidence() -> Disposition {
++    Disposition::blocked(
++        FORMULA_EVIDENCE_BOUNDARY,
++        "source provenance requires an accounted original formula and complete native lowering",
++    )
++}
++
++fn account_formula_evidence(
++    admission: &mut NativeSourceAdmission<'_>,
++    selected: &SelectedProgram,
++) -> gmeow_errors::Result<()> {
++    let inventory = admission.inventory;
++    let lowerings = inventory.theory().formula_lowerings();
++    let mut accounted = vec![false; lowerings.len()];
++    for (unit, disposition) in admission.source_dispositions() {
++        if let SourceObligationOrigin::Formula(ordinal) = unit.origin()
++            && matches!(disposition, Disposition::Accounted { .. })
++        {
++            accounted[ordinal] = match lowerings[ordinal].disposition {
++                FormulaDisposition::Formula(index) => {
++                    !selected.prepared.incomplete_formulas.contains(&index)
++                }
++                // The actual source account has already checked the selected asserted backing.
++                FormulaDisposition::Axiom(_) => true,
++                _ => false,
++            };
++        }
++    }
++    for (unit, disposition) in inventory.obligations().zip(&mut admission.dispositions) {
++        let requires_formula = matches!(
++            disposition,
++            Disposition::Blocked {
++                code: FORMULA_EVIDENCE_BOUNDARY,
++                ..
++            }
++        );
++        if !requires_formula && !matches!(disposition, Disposition::StructuralSupport { .. }) {
++            continue;
++        }
++        let Some((origins, independent_owner)) =
++            admission.selection.formula_evidence_origins(unit)?
++        else {
++            continue;
++        };
++        if !requires_formula && !independent_owner {
++            continue;
++        }
++        let mut formula_origins = Vec::new();
++        for &ordinal in origins {
++            let Some(&is_accounted) = accounted.get(ordinal) else {
++                return Err(reason_err(
++                    "selected formula provenance has no original formula occurrence".into(),
++                ));
++            };
++            if is_accounted {
++                let id = inventory.formula_obligation_id(ordinal).ok_or_else(|| {
++                    reason_err(
++                        "accounted formula provenance has no original obligation identity".into(),
++                    )
++                })?;
++                formula_origins.push(id);
++            }
++        }
++        if !formula_origins.is_empty() {
++            *disposition = Disposition::FormulaEvidence { formula_origins };
++        }
++    }
++    Ok(())
++}
++
+ fn unread_atomic_formula() -> Disposition {
+     Disposition::blocked(
+         "FORMULA_AXIOM_NOT_READ",
+@@ -897,6 +994,16 @@ pub fn reason_admitted_theory_within(
+ ) -> gmeow_errors::Result<std::sync::Arc<ReasoningResult>> {
+     admission.completion = None;
+     admission.execution_drops.clear();
++    for (unit, disposition) in admission
++        .inventory
++        .obligations()
++        .zip(&mut admission.dispositions)
++    {
++        if matches!(disposition, Disposition::FormulaEvidence { .. }) {
++            *disposition =
++                classify_selected(admission.inventory, unit, None, &admission.selection)?;
++        }
++    }
+     let theory = admission.inventory.theory();
+     ingress.authorize_source(theory)?;
+     ingress.authorize(theory.program(), &input)?;
+@@ -1021,6 +1128,9 @@ pub fn reason_admitted_theory_within(
+     };
+     reachability.validate_preparation(&selected.prepared)?;
+     let verdict = result.native_verdict()?;
++    if result.evaluation == EvaluationStatus::Completed {
++        account_formula_evidence(admission, selected)?;
++    }
+     let drops = &mut admission.execution_drops;
+     for gap in &verdict.gaps {
+         drops.insert(NativeSourceDrop::new(
+diff --git crates/pipeline/src/fixture.rs crates/pipeline/src/fixture.rs
+index cd1749fc0..2dbc09605 100644
+--- crates/pipeline/src/fixture.rs
++++ crates/pipeline/src/fixture.rs
+@@ -17,7 +17,8 @@ use std::path::Path;
+ use std::sync::Arc;
+ 
+ use gmeow_action_cache::{
+-    ActionContext, ActionInput, ActionStore, ProducerIdentity, STORE_FORMAT_VERSION, StoreLimits,
++    ActionContext, ActionInput, ActionStore, FileKind, ProducerIdentity, STORE_FORMAT_VERSION,
++    StoreLimits,
+ };
+ use purrdf_lex::json::{self, record::ToJson as _};
+ use serde::{Deserialize, Serialize};
+@@ -102,6 +103,11 @@ pub const AUTHENTICATED_TEST_STAGE_IDS: &[&str] = &[
+ const WASM_CODEBOOK_STAGE_IDS: &[&str] = &[crate::stages::mappings::native_codebook::STAGE_ID];
+ const COMPILER_OWNER_STAGE_IDS: &[&str] = &["stage-compile-logic"];
+ const COMPILER_OWNER_CLOSURE: &[&str] = &["stage-parse-sources", "stage-compile-logic"];
++const DOCS_CATALOG_STAGE_IDS: &[&str] = &["stage-constraint-catalog", "stage-term-manifest"];
++const DOCS_CATALOG_PATHS: [&str; 2] = [
++    crate::stages::constraint_catalog::CONSTRAINT_CATALOG_RDF_PATH,
++    crate::stages::term_manifest::TERM_MANIFEST_RDF_PATH,
++];
+ const WASM_CODEBOOK_CLOSURE: &[&str] = &[
+     "stage-parse-sources",
+     crate::stages::mappings::native_codebook::STAGE_ID,
+@@ -665,6 +671,98 @@ pub fn prepare_compiler_owner_fixtures(
+     Ok(manifest.to_json())
+ }
+ 
++/// Exact catalog inputs for the standalone documentation fixture producer.
++pub struct DocsCatalogFixtures {
++    pub selection: json::Value,
++    pub constraint_catalog: Vec<u8>,
++    pub term_manifest: Vec<u8>,
++    pub inputs: Vec<ActionInput>,
++}
++
++/// Produce the documentation catalogs through their declared prerequisite closure.
++/// Release the run carriers before opening the two selected artifacts read-only.
++///
++/// # Errors
++/// Refuses missing or invalid stage receipts and catalog artifacts.
++pub fn prepare_docs_catalog_fixtures(
++    root: &Path,
++    jobs: usize,
++) -> gmeow_errors::Result<DocsCatalogFixtures> {
++    let run = prime_stage_fixtures(root, jobs, DOCS_CATALOG_STAGE_IDS)?;
++    let manifest = selected_fixture_manifest(&run.stage_receipts, DOCS_CATALOG_STAGE_IDS)?;
++    drop(run);
++    let cache = PipelineCache::open_existing_default_read_only(root)?;
++    let mut inputs = Vec::new();
++    let mut read = |stage: &str, path: &str| -> gmeow_errors::Result<Vec<u8>> {
++        let expected = &manifest.stages[stage];
++        let mut hit = cache
++            .get_artifact(&expected.context, path)?
++            .ok_or_else(|| fixture_miss(stage))?;
++        if hit.receipt != *expected {
++            return Err(gmeow_errors::Diag::of_kind(crate::error::CacheMismatch {
++                expected: expected.digest(),
++                actual: hit.receipt.digest(),
++            }));
++        }
++        inputs.extend(catalog_action_inputs(&hit.receipt, path)?);
++        hit.artifacts
++            .remove(path)
++            .ok_or_else(|| fixture_manifest_error(format!("{stage} omitted catalog {path}")))
++    };
++    let constraint_catalog = read(DOCS_CATALOG_STAGE_IDS[0], DOCS_CATALOG_PATHS[0])?;
++    let term_manifest = read(DOCS_CATALOG_STAGE_IDS[1], DOCS_CATALOG_PATHS[1])?;
++    Ok(DocsCatalogFixtures {
++        selection: manifest.to_json(),
++        constraint_catalog,
++        term_manifest,
++        inputs,
++    })
++}
++
++/// Authenticate the isolated docs selector's two catalogs and expose their exact
++/// model action inputs. The verification path reads only existing receipts.
++///
++/// # Errors
++/// Refuses a wrong selector scope, missing artifact commitment or corrupt action.
++pub fn verify_docs_catalog_fixtures(root: &Path) -> gmeow_errors::Result<Vec<ActionInput>> {
++    let manifest: StageFixtureManifest = gmeow_action_cache::selection::load_manifest(root)
++        .map_err(|error| fixture_manifest_error(error.to_string()))?;
++    validate_stage_fixture_selection(&manifest, DOCS_CATALOG_STAGE_IDS)?;
++    let closure = bound_selected_fixture_closure(DOCS_CATALOG_STAGE_IDS)?;
++    verify_current_fixture_closure(root, &manifest, closure, "docs")?;
++    let mut inputs = Vec::new();
++    for (&stage, path) in DOCS_CATALOG_STAGE_IDS.iter().zip(DOCS_CATALOG_PATHS) {
++        inputs.extend(catalog_action_inputs(&manifest.stages[stage], path)?);
++    }
++    Ok(inputs)
++}
++
++fn catalog_action_inputs(
++    receipt: &StageReceipt,
++    path: &str,
++) -> gmeow_errors::Result<[ActionInput; 2]> {
++    let stage = &receipt.context.stage_id;
++    let artifact = receipt
++        .logical_artifacts
++        .iter()
++        .find(|artifact| artifact.identity == path)
++        .ok_or_else(|| fixture_manifest_error(format!("{stage} omitted commitment for {path}")))?;
++    Ok([
++        ActionInput::Upstream {
++            producer: stage.clone(),
++            entity: Some(path.to_owned()),
++            receipt_digest: Some(receipt.digest()),
++            product_digest: receipt.product_digest.clone(),
++        },
++        ActionInput::Raw {
++            logical_path: path.to_owned(),
++            file_kind: FileKind::File,
++            executable: false,
++            digest: artifact.digest.clone(),
++        },
++    ])
++}
++
+ /// Compare a current action with its recorded producer identity and persistent bytes.
+ /// Recomputed ancestors have receipt-only metadata and no cache payload to inspect.
+ #[derive(Debug, PartialEq, Eq)]
+@@ -750,12 +848,28 @@ fn verify_compiler_owner_artifact(
+ pub fn verify_compiler_owner_fixtures(root: &Path) -> gmeow_errors::Result<()> {
+     let manifest = load_stage_fixture_manifest(root)?;
+     validate_compiler_owner_manifest(&manifest)?;
++    let closure = bound_selected_fixture_closure(COMPILER_OWNER_STAGE_IDS)?;
++    validate_compiler_owner_closure(&closure.required)?;
++    verify_current_fixture_closure(root, &manifest, closure, "compiler-owner")?;
++    verify_compiler_owner_artifact(root, &manifest)
++}
++
++fn verify_current_fixture_closure(
++    root: &Path,
++    manifest: &StageFixtureManifest,
++    closure: BoundFixtureClosure,
++    scope: &str,
++) -> gmeow_errors::Result<()> {
+     let BoundFixtureClosure {
+         graph,
+         stages,
+         required,
+-    } = bound_selected_fixture_closure(COMPILER_OWNER_STAGE_IDS)?;
+-    validate_compiler_owner_closure(&required)?;
++    } = closure;
++    if !manifest.closure_receipts.keys().eq(required.iter()) {
++        return Err(fixture_manifest_error(format!(
++            "{scope} fixture closure differs from the declared targets"
++        )));
++    }
+     let cache = PipelineCache::open_existing_default_read_only(root)?;
+     let mut admitted = BTreeMap::new();
+     let mut raw_input_digests = BTreeMap::new();
+@@ -774,7 +888,7 @@ pub fn verify_compiler_owner_fixtures(root: &Path) -> gmeow_errors::Result<()> {
+                     .map(|receipt| (producer.clone(), receipt))
+                     .ok_or_else(|| {
+                         fixture_manifest_error(format!(
+-                            "compiler closure reached {id} before {producer}"
++                            "{scope} fixture closure reached {id} before {producer}"
+                         ))
+                     })
+             })
+@@ -790,12 +904,12 @@ pub fn verify_compiler_owner_fixtures(root: &Path) -> gmeow_errors::Result<()> {
+             != FixtureReceiptAdmission::Current
+         {
+             return Err(fixture_manifest_error(format!(
+-                "compiler owner fixture is absent or stale: {id}; run the explicit compiler-owner producer"
++                "{scope} fixture is absent or stale: {id}; run the explicit {scope} producer"
+             )));
+         }
+         admitted.insert(id, recorded.clone());
+     }
+-    verify_compiler_owner_artifact(root, &manifest)
++    Ok(())
+ }
+ 
+ /// Admit an unchanged producer closure without hydrating or rebuilding any carrier.
+diff --git docs/GATE-AND-PIPELINE.md docs/GATE-AND-PIPELINE.md
+index 54269a5af..5aac75cc4 100644
+--- docs/GATE-AND-PIPELINE.md
++++ docs/GATE-AND-PIPELINE.md
+@@ -126,6 +126,19 @@ Registered slice-spec verdicts, main World reasoning, constraint-shapes export,
+ runtime and installed consumer acceptance retain their separate requirements; the full
+ fixture profile and normal gate still require their complete outputs.
+ 
++Run `make produce-docs-test-fixtures` to build the full documentation fixture
++family before bundle materialization. It uses the authenticated constraint
++catalog and term manifest from their declared production closure, including
++native reasoning. The docs model action binds both stage receipts and both
++artifact digests alongside the authored inputs. The producer renders each
++available language and the book, then publishes
++`.cache/gmeow-sync/docs-fixture-manifest-v2.json` atomically.
++
++`make verify-docs-test-fixtures` authenticates the producer, the current
++catalog and authored inputs, and the selected model, language sites and book
++read-only. `make nextest-docs-fixtures` binds the same selector and runs the
++documentation goldens. The full test gate uses its combined selector.
++
+ ### Values derived from the canonical profile
+ 
+ Blank-node labels and canonical documents come from PurRDF's canonicalization
+@@ -362,7 +375,7 @@ from that crate to `gmeow-docs` would close a first-party cycle, because
+ `gmeow-docs` dev-depends on `gmeow-mcp` and `gmeow-mcp` depends on
+ `gmeow-slice-quality`, and the layering scan counts dev-dependencies.
+ 
+-The explicit fixture producer now binds the model, every selected language render,
++The full fixture producer binds the model, every selected language render,
+ and the book action into the same SHA-256-selected manifest as pipeline and bundle
+ fixtures. Documentation consumers authenticate those exact contexts, receipts and
+ payloads through the shared bounded selector reader. They never hash the current
+diff --git slices/grounding/logic/design/LOGIC-IR.md slices/grounding/logic/design/LOGIC-IR.md
+index ae96c6e0c..ec8265f29 100644
+--- slices/grounding/logic/design/LOGIC-IR.md
++++ slices/grounding/logic/design/LOGIC-IR.md
+@@ -172,6 +172,15 @@ An exclusively owned child cannot become an independent assertion. A selected
+ owner whose required syntax is unavailable remains blocked as a whole. Shared
+ support remains available through its actual admitted owners.
+ 
++Native formula selection treats resource-valued default-graph `logic:provenance`
++as source evidence on the formula or its required descendants. Formula provenance
++grants no input fact authority. An independent owner can still admit the same
++row through its existing route. On completed evaluation, each retained row
++names the original formula obligation IDs with a complete native lowering and
++formula account. An axiom-lowered formula requires an exact selected asserted
++backing in its native source account. Independent context and ownership refusals still apply.
++Classical admission retains its own evidence and scope requirements.
++
+ The complete supplied inventory remains reportable. Explicitly unselected modules
+ receive an authorized disposition outside the requested theory; graph, standpoint, time,
+ modality and untranslated-envelope boundaries remain separate blockers. Without
+diff --git slices/grounding/logic/design/LOGIC-SEMANTICS.md slices/grounding/logic/design/LOGIC-SEMANTICS.md
+index a5dfcb595..e5cc0cfcd 100644
+--- slices/grounding/logic/design/LOGIC-SEMANTICS.md
++++ slices/grounding/logic/design/LOGIC-SEMANTICS.md
+@@ -208,6 +208,15 @@ admitted formulas and imports remain available. Without an explicit module
+ request, module-scoped obligations retain the top-level operation's existing
+ boundaries.
+ 
++An exact default-graph `logic:provenance` row with an IRI or blank-node value
++records a formula's source. The formula still requires an independent
++assertion route. Provenance on required descendants follows each actual
++accounted formula occurrence. The report retains every provenance row and
++links its evidence to the original formula obligation IDs after native
++coverage checks. Evidence supplies no object-level premise or context
++selection. Named graphs, invalid resource values and independent contexts
++retain their boundaries.
++
+ The executed selected-theory profile is narrower than this definition in one direction only.
+ It may leave an assertion unread, for example a claim over a typed term carrier, a claim
+ with a variable, or a carrier that holds more than one candidate statement, and it always
+diff --git slices/grounding/logic/docs.md slices/grounding/logic/docs.md
+index c88c609a5..c23566b14 100644
+--- slices/grounding/logic/docs.md
++++ slices/grounding/logic/docs.md
+@@ -146,6 +146,14 @@ is outside this requested theory; an unsupported selected owner is still a
+ blocker. Without `--module`, the top-level operation retains its module-scope
+ boundaries.
+ 
++For an accounted native formula, `FormulaEvidence` links each eligible
++default-graph `logic:provenance` row to the original formula obligation IDs.
++An evidence row on shared syntax can name several selected occurrences.
++The source resource remains evidence for those occurrences and supplies no
++object-level premise or assertion authority. Text reports connect each
++`formula-evidence` row to its `formula-origin` by obligation ID and show the
++original source anchor on both lines.
++
+ Composed FOF output and raw proof export/replay have no composition-bound
+ admission. A composed `--out` or `--proof-out` request fails its required output
+ and removes stale output; composed `--check-proof` rejects after resolving and
