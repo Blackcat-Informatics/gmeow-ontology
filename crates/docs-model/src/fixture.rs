@@ -31,6 +31,8 @@
 //! come from the workspace's single `gmeow-action-cache` authority.
 
 mod action_payload_json;
+#[cfg(test)]
+mod catalog_inputs_tests;
 
 use std::collections::BTreeMap;
 use std::fs;
@@ -48,6 +50,17 @@ use crate::i18n::{Translations, UiCatalog};
 use crate::model::{COMPETENCY_QUERY_ROOTS, DocsError, DocsModel};
 
 const MODEL_CODEC: &str = "docs-model-json-2";
+const MODEL_INPUT_CLOSURE: &str = "docs-model-input-closure";
+const CATALOG_ARTIFACTS: [(&str, &str); 2] = [
+    (
+        "stage-constraint-catalog",
+        "generated/catalog/constraint-catalog.nq",
+    ),
+    (
+        "stage-term-manifest",
+        "generated/catalog/term-content-manifest.nq",
+    ),
+];
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 struct DocsActionPayload {
@@ -107,13 +120,36 @@ pub fn selected_fixtures(root: &Path) -> Result<DocsFixtureSelector, ActionCache
             "docs fixture selector schema mismatch",
         ));
     }
-    let context = &selected.model.context;
-    if *context != model_context_for_digest(context.implementation.digest.clone()) {
+    validate_model_context(&selected.model.context)?;
+    Ok(selected)
+}
+
+/// Verify the selected model against current authored inputs and catalog actions.
+/// Used by the explicit read-only verifier before the test runner starts.
+///
+/// # Errors
+/// Refuses a disk-sourced model or a model built with different inputs.
+pub fn verify_current_catalog_model(
+    root: &Path,
+    selected: &DocsFixtureSelector,
+    inputs: Vec<ActionInput>,
+) -> Result<(), ActionCacheError> {
+    let current_digest = cache_key_for_paths(root, &fixture_implementation(root), &[]);
+    verify_catalog_model_context(&selected.model.context, current_digest, inputs)
+}
+
+fn verify_catalog_model_context(
+    context: &ActionContext,
+    authored_digest: String,
+    inputs: Vec<ActionInput>,
+) -> Result<(), ActionCacheError> {
+    let expected = model_context_for_inputs(authored_digest, inputs);
+    if expected.inputs.len() != 1 + 2 * CATALOG_ARTIFACTS.len() || *context != expected {
         return Err(ActionCacheError::message(
-            "selected docs model context mismatch",
+            "selected docs model differs from current authored inputs or authenticated catalogs",
         ));
     }
-    Ok(selected)
+    Ok(())
 }
 
 enum ModelCacheError {
@@ -149,18 +185,69 @@ fn model_context(root: &Path) -> ActionContext {
 }
 
 fn model_context_for_digest(input_digest: String) -> ActionContext {
+    model_context_for_inputs(input_digest, Vec::new())
+}
+
+fn model_context_for_inputs(input_digest: String, mut inputs: Vec<ActionInput>) -> ActionContext {
+    inputs.push(ActionInput::Raw {
+        logical_path: MODEL_INPUT_CLOSURE.to_owned(),
+        file_kind: FileKind::Aggregate,
+        executable: false,
+        digest: input_digest.clone(),
+    });
     ActionContext::new(
         "docs-fixture",
         "model",
-        ProducerIdentity::new(input_digest.clone()),
+        ProducerIdentity::new(input_digest),
         MODEL_CODEC,
-        vec![ActionInput::Raw {
-            logical_path: "docs-model-input-closure".to_string(),
-            file_kind: FileKind::Aggregate,
-            executable: false,
-            digest: input_digest,
-        }],
+        inputs,
     )
+}
+
+fn validate_model_context(context: &ActionContext) -> Result<(), ActionCacheError> {
+    let catalogs: Vec<_> = context
+        .inputs
+        .iter()
+        .filter(|input| {
+            !matches!(
+                input,
+                ActionInput::Raw { logical_path, .. } if logical_path == MODEL_INPUT_CLOSURE
+            )
+        })
+        .cloned()
+        .collect();
+    let complete_catalogs = catalogs.len() == 2 * CATALOG_ARTIFACTS.len()
+        && CATALOG_ARTIFACTS.iter().all(|(stage, path)| {
+            catalogs.iter().any(|input| {
+                matches!(
+                    input,
+                    ActionInput::Raw {
+                        logical_path,
+                        file_kind: FileKind::File,
+                        executable: false,
+                        ..
+                    } if logical_path.as_str() == *path
+                )
+            }) && catalogs.iter().any(|input| {
+                matches!(
+                    input,
+                    ActionInput::Upstream {
+                        producer,
+                        entity: Some(entity),
+                        receipt_digest: Some(_),
+                        ..
+                    } if producer.as_str() == *stage && entity.as_str() == *path
+                )
+            })
+        });
+    let valid_catalogs = catalogs.is_empty() || complete_catalogs;
+    let expected = model_context_for_inputs(context.implementation.digest.clone(), catalogs);
+    if !valid_catalogs || *context != expected {
+        return Err(ActionCacheError::message(
+            "selected docs model context mismatch",
+        ));
+    }
+    Ok(())
 }
 
 fn model_payload(context: &ActionContext) -> DocsActionPayload {
@@ -171,8 +258,12 @@ fn model_payload(context: &ActionContext) -> DocsActionPayload {
             .inputs
             .iter()
             .find_map(|input| match input {
-                ActionInput::Raw { digest, .. } => Some(digest.clone()),
-                ActionInput::Upstream { .. } => None,
+                ActionInput::Raw {
+                    logical_path,
+                    digest,
+                    ..
+                } if logical_path == MODEL_INPUT_CLOSURE => Some(digest.clone()),
+                _ => None,
             })
             .expect("model action has its aggregate input"),
     }
@@ -203,14 +294,13 @@ fn probe_model(
     store: &ActionStore,
     context: &ActionContext,
     cache_path: &Path,
-) -> Result<Option<(DocsModel, FixtureIdentity)>, ActionCacheError> {
+) -> Result<Option<ProducedModel>, ActionCacheError> {
     let Some(entry) = store.get::<DocsActionPayload>(context)? else {
         return Ok(None);
     };
     validate_model_receipt(context, &entry.receipt)?;
-    let identity = FixtureIdentity::from_receipt(&entry.receipt);
     let model = decode_model(cache_path, &entry.bytes)?;
-    Ok(Some((model, identity)))
+    Ok(Some(ProducedModel::new(model, &entry.receipt)))
 }
 
 /// Load the exact authenticated documentation model produced before this consumer.
@@ -245,11 +335,7 @@ fn load_selected_model(
     selected: &SelectedAction,
 ) -> Result<(DocsModel, FixtureIdentity), ActionCacheError> {
     let context = &selected.context;
-    if *context != model_context_for_digest(context.implementation.digest.clone()) {
-        return Err(ActionCacheError::message(
-            "selected docs model context mismatch",
-        ));
-    }
+    validate_model_context(context)?;
     let store = read_only_action_store(root)?;
     let entry = store.get::<DocsActionPayload>(context)?.ok_or_else(|| {
         ActionCacheError::message(format!(
@@ -305,15 +391,83 @@ pub fn try_load_or_build(root: &Path) -> Result<DocsModel, DocsError> {
 }
 
 fn try_load_or_build_with_identity(root: &Path) -> Result<(DocsModel, FixtureIdentity), DocsError> {
+    prepare_model(root, model_context(root), || DocsModel::discover(root))
+        .map(|produced| (produced.model, produced.identity))
+}
+
+/// The model and exact selected action returned by the cache producer.
+pub struct ProducedModel {
+    pub model: DocsModel,
+    pub identity: FixtureIdentity,
+    pub selection: SelectedAction,
+}
+
+impl ProducedModel {
+    fn new(model: DocsModel, receipt: &ActionReceipt<DocsActionPayload>) -> Self {
+        Self {
+            model,
+            identity: FixtureIdentity::from_receipt(receipt),
+            selection: SelectedAction::from_receipt(receipt),
+        }
+    }
+}
+
+/// Produce the exact docs model from authenticated in-memory catalog outputs.
+/// Catalog action inputs commit their receipts and artifact bytes.
+///
+/// # Errors
+/// Refuses incomplete catalog identities and model discovery failures.
+pub fn prepare_model_from_catalogs(
+    root: &Path,
+    term_manifest: &[u8],
+    constraint_catalog: &[u8],
+    inputs: Vec<ActionInput>,
+) -> Result<ProducedModel, DocsError> {
+    let input_digest = cache_key_for_paths(root, &fixture_implementation(root), &[]);
+    let context = model_context_for_inputs(input_digest, inputs);
+    validate_model_context(&context)
+        .map_err(|error| DocsError::FixtureUnavailable(error.to_string()))?;
+    if context.inputs.len() != 1 + 2 * CATALOG_ARTIFACTS.len() {
+        return Err(DocsError::FixtureUnavailable(
+            "live docs fixture requires both authenticated catalog inputs".to_owned(),
+        ));
+    }
+    verify_catalog_bytes(&context, [constraint_catalog, term_manifest])?;
+    prepare_model(root, context, || {
+        DocsModel::discover_with_manifest_and_catalog(root, term_manifest, constraint_catalog)
+    })
+}
+
+fn verify_catalog_bytes(context: &ActionContext, artifacts: [&[u8]; 2]) -> Result<(), DocsError> {
+    for ((_, path), bytes) in CATALOG_ARTIFACTS.into_iter().zip(artifacts) {
+        let input = ActionInput::Raw {
+            logical_path: path.to_owned(),
+            file_kind: FileKind::File,
+            executable: false,
+            digest: purrdf::ContentDigest::of(bytes).to_hex(),
+        };
+        if !context.inputs.contains(&input) {
+            return Err(DocsError::FixtureUnavailable(format!(
+                "catalog bytes differ from the selected digest for {path}"
+            )));
+        }
+    }
+    Ok(())
+}
+
+fn prepare_model(
+    root: &Path,
+    context: ActionContext,
+    discover: impl FnOnce() -> Result<DocsModel, DocsError>,
+) -> Result<ProducedModel, DocsError> {
     let store = action_store(root);
-    let context = model_context(root);
     let key = context.key();
-    let cache_path = cache_path(root);
+    let cache_path = cache_path_for_context(root, &context);
     let outcome = store.coordinate::<_, ModelCacheError, _, _>(
         &key,
         || probe_model(&store, &context, &cache_path).map_err(ModelCacheError::from),
         || {
-            let model = DocsModel::discover(root).map_err(ModelCacheError::Build)?;
+            let model = discover().map_err(ModelCacheError::Build)?;
             let cached = CachedModel::from_model(&model);
             let bytes = serde_json::to_vec(&cached).map_err(ActionCacheError::from)?;
             let receipt = store
@@ -324,7 +478,7 @@ fn try_load_or_build_with_identity(root: &Path) -> Result<(DocsModel, FixtureIde
                     &bytes,
                 )
                 .map_err(ModelCacheError::from)?;
-            Ok((model, FixtureIdentity::from_receipt(&receipt)))
+            Ok(ProducedModel::new(model, &receipt))
         },
     );
     match outcome {
@@ -524,18 +678,25 @@ impl CachedModel {
 /// If the producer receipt is missing/stale or a selected input cannot be read.
 #[must_use]
 pub fn cache_key(root: &Path) -> String {
-    let implementation =
-        gmeow_action_cache::executable::current_source_inventory(root, "crates/docs/Cargo.toml")
-            .and_then(|inventory| {
-                inventory
-                    .digest()
-                    .map_err(|error| ActionCacheError::message(error.to_string()))
-            })
-            .unwrap_or_else(|error| panic!("authenticate docs fixture implementation: {error}"));
-    cache_key_with_implementation(root, &implementation)
+    cache_key_with_implementation(root, &fixture_implementation(root))
+}
+
+fn fixture_implementation(root: &Path) -> String {
+    gmeow_action_cache::executable::current_source_inventory(root, "crates/docs/Cargo.toml")
+        .and_then(|inventory| {
+            inventory
+                .digest()
+                .map_err(|error| ActionCacheError::message(error.to_string()))
+        })
+        .unwrap_or_else(|error| panic!("authenticate docs fixture implementation: {error}"))
 }
 
 fn cache_key_with_implementation(root: &Path, implementation: &str) -> String {
+    let paths = CATALOG_ARTIFACTS.map(|(_, path)| path);
+    cache_key_for_paths(root, implementation, &paths)
+}
+
+fn cache_key_for_paths(root: &Path, implementation: &str, catalog_paths: &[&str]) -> String {
     let mut hasher = Sha1::new();
     hasher.update(b"gmeow-docs-fixture-v2\x1f");
     hasher.update(implementation.as_bytes());
@@ -570,9 +731,10 @@ fn cache_key_with_implementation(root: &Path, implementation: &str) -> String {
         "docs/four-boxes.md",
         "metadata/gmeow-self.ttl",
         "dsl/mappings/mapping-sets.ttl",
-        "generated/catalog/constraint-catalog.nq",
-        "generated/catalog/term-content-manifest.nq",
-    ] {
+    ]
+    .into_iter()
+    .chain(catalog_paths.iter().copied())
+    {
         let p = root.join(file);
         if p.is_file() {
             files.push(p);
