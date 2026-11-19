@@ -8,7 +8,7 @@
 //! read the claimed statement. This module is the one place a scoped claim becomes a
 //! fact. The evidence-only route and the distinct source-resolved module route
 //! each enforce their closed carrier contract against the complete original source.
-//! Descriptive graph-box annotations supply neither evidence nor assertion authority.
+//! Descriptive role and rationale annotations supply neither evidence nor assertion authority.
 //! Read claims retain their carried native RDF terms. Excluded modules contribute
 //! no premise; other unread scoped claims retain their boundaries. A quotation
 //! carries no scope or evidence coordinate and is never read as an assertion.

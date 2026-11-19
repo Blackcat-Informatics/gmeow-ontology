@@ -115,17 +115,32 @@ fn evidence_only(predicate: &str, object: &Node) -> bool {
 }
 
 /// Descriptive metadata has no evidence, context or assertion authority.
-/// The exact canonical predicate has an open, multivalued resource range; this
-/// reader does not interpret role values or consult arbitrary annotation declarations.
+/// Each canonical predicate admits its declared term forms. The reader keeps
+/// the original roles and wording and consults no arbitrary annotation declarations.
 enum DescriptiveCarrierAnnotation {
     GraphBoxRole,
+    StatedRationale,
 }
 
 impl DescriptiveCarrierAnnotation {
     fn parse(predicate: &str, object: &Node) -> Option<Self> {
-        (predicate == "https://blackcatinformatics.ca/gmeow/graphBoxRole"
-            && matches!(object, Node::Iri(_) | Node::Blank { .. }))
-        .then_some(Self::GraphBoxRole)
+        match (predicate, object) {
+            (
+                "https://blackcatinformatics.ca/gmeow/graphBoxRole",
+                Node::Iri(_) | Node::Blank { .. },
+            ) => Some(Self::GraphBoxRole),
+            ("https://blackcatinformatics.ca/gmeow/statedRationale", Node::Lit(literal))
+                if matches!(
+                    literal.datatype_iri(),
+                    "http://www.w3.org/2001/XMLSchema#string"
+                        | "http://www.w3.org/1999/02/22-rdf-syntax-ns#langString"
+                        | "http://www.w3.org/1999/02/22-rdf-syntax-ns#dirLangString"
+                ) =>
+            {
+                Some(Self::StatedRationale)
+            }
+            _ => None,
+        }
     }
 }
 
