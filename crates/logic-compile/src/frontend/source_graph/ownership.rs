@@ -561,7 +561,7 @@ impl StructuralSourceGraph {
                         )
                         .map(|row| row.canonical.o)
                         .collect();
-                        purrdf_core::SoleObject::of(values.into_iter())
+                        purrdf_core::SoleObject::of(values)
                     })
                 };
                 if let Err(error) = purrdf_core::walk_rdf_list(

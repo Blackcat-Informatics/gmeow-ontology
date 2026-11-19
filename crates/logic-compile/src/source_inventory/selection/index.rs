@@ -598,7 +598,7 @@ impl SelectionIndex {
                 Some(Coordinate::Outside | Coordinate::Blocked(_))
             );
             for &unit in owners.keys() {
-                if incompatible
+                let support_outside_theory = incompatible
                     || graph.outgoing(row_node).iter().any(|edge| {
                         !correspondence_field(inventory, unit, edge)
                             && matches!(
@@ -607,16 +607,19 @@ impl SelectionIndex {
                                     | SourceEdgeRole::Context
                                     | SourceEdgeRole::Provenance
                             )
-                    })
-                {
-                    if self
+                    });
+                if support_outside_theory
+                    && self
                         .participation
                         .get(&unit)
                         .is_some_and(|state| state.included)
-                    {
-                        self.blocked.entry(unit).or_insert_with(|| Boundary { code: "REQUIRED_SUPPORT_OUTSIDE_THEORY",
-                            detail: "whole owner requires source support whose module or remaining context is not admitted".into() });
-                    }
+                {
+                    self.blocked.entry(unit).or_insert_with(|| Boundary {
+                        code: "REQUIRED_SUPPORT_OUTSIDE_THEORY",
+                        detail: "whole owner requires source support whose module or remaining \
+                                 context is not admitted"
+                            .into(),
+                    });
                 }
             }
         }

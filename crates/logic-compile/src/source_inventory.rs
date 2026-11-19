@@ -422,7 +422,6 @@ impl<'source> SourceInventory<'source> {
     pub fn selection_digest(&self) -> &str {
         &self.selection_digest
     }
-    #[must_use]
     pub fn obligations(&self) -> impl ExactSizeIterator<Item = SourceObligation<'_>> {
         self.obligations.iter().map(|origin| SourceObligation {
             inventory: self,
