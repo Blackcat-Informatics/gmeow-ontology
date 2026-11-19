@@ -265,7 +265,8 @@ const ACCOUNTED_MARKERS: &[(&str, &str)] = &[
 ];
 
 /// Record-form property characteristics the native engine reads from the record
-/// itself. The other sorts are read only in marker form.
+/// itself. Every entry has an implemented marker and record law; other sorts
+/// retain their explicit capability boundary.
 pub(super) const ACCOUNTED_CHARACTERISTIC_RECORDS: &[(&str, &str)] = &[
     (
         "https://blackcatinformatics.ca/logic/functionalProperty",
@@ -274,6 +275,22 @@ pub(super) const ACCOUNTED_CHARACTERISTIC_RECORDS: &[(&str, &str)] = &[
     (
         "https://blackcatinformatics.ca/logic/inverseFunctionalProperty",
         "read from the record by the inverse-functional characteristic schema",
+    ),
+    (
+        "https://blackcatinformatics.ca/logic/transitiveProperty",
+        "read from the record by the transitive characteristic schema",
+    ),
+    (
+        "https://blackcatinformatics.ca/logic/symmetricProperty",
+        "read from the record by the symmetric characteristic schema",
+    ),
+    (
+        "https://blackcatinformatics.ca/logic/asymmetricProperty",
+        "read from the record by the asymmetric characteristic schema",
+    ),
+    (
+        "https://blackcatinformatics.ca/logic/irreflexiveProperty",
+        "read from the record by the irreflexive characteristic schema",
     ),
 ];
 

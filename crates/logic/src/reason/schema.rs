@@ -7,6 +7,7 @@
 //! canonical operator keys. It does not rename stored facts or variable bindings;
 //! every schema premise retains its actual source spelling and asserting world.
 
+use super::dl::DlConstructFamily;
 use crate::physical::{
     CardinalityPattern, CardinalitySet, DatatypeConstraint, ListOperation, ListPattern,
     MinimumPattern, PreparedPropertyRule, PropertyAtom, PropertyGuard, PropertyOperation,
@@ -28,7 +29,6 @@ const ALL: &str = "http://www.w3.org/2002/07/owl#allValuesFrom";
 const NOTHING: &str = "http://www.w3.org/2002/07/owl#Nothing";
 const SAME: &str = "http://www.w3.org/2002/07/owl#sameAs";
 const DIFFERENT: &str = "http://www.w3.org/2002/07/owl#differentFrom";
-const FUNCTIONAL: &str = "http://www.w3.org/2002/07/owl#FunctionalProperty";
 
 fn atom(s: &str, p: &str, o: &str) -> PropertyAtom {
     let term = |value: &str| {
@@ -355,18 +355,6 @@ pub(crate) fn laws() -> &'static [PreparedPropertyRule] {
                 vec![atom("?p", RANGE, "?c"), atom("?s", "?p", "?o")],
             ),
             law(
-                "dl:symmetric-property",
-                atom("?o", "?p", "?s"),
-                vec![
-                    atom(
-                        "?p",
-                        RDF_TYPE,
-                        "http://www.w3.org/2002/07/owl#SymmetricProperty",
-                    ),
-                    atom("?s", "?p", "?o"),
-                ],
-            ),
-            law(
                 "dl:inverseOf",
                 atom("?o", "?q", "?s"),
                 vec![atom("?p", INVERSE, "?q"), atom("?s", "?p", "?o")],
@@ -375,19 +363,6 @@ pub(crate) fn laws() -> &'static [PreparedPropertyRule] {
                 "dl:inverseOf-symmetry",
                 atom("?q", INVERSE, "?p"),
                 vec![atom("?p", INVERSE, "?q")],
-            ),
-            law(
-                "dl:transitive-property",
-                atom("?s", "?p", "?o"),
-                vec![
-                    atom(
-                        "?p",
-                        RDF_TYPE,
-                        "http://www.w3.org/2002/07/owl#TransitiveProperty",
-                    ),
-                    atom("?s", "?p", "?m"),
-                    atom("?m", "?p", "?o"),
-                ],
             ),
             law(
                 "dl:someValuesFrom",
@@ -428,6 +403,7 @@ pub(crate) fn laws() -> &'static [PreparedPropertyRule] {
                 ],
             ),
         ];
+        rules.extend(characteristic_laws());
         rules.extend(universal_class_laws());
         rules.extend(empty_class_laws());
         rules.extend(bottom_property_laws());
@@ -596,18 +572,10 @@ fn bottom_property_laws() -> Vec<PreparedPropertyRule> {
 
 /// Both canonical characteristic records and their direct type marker carry
 /// the same law; source statements remain separate proof premises.
-fn characteristic_schemas(inverse: bool) -> [Vec<PropertyAtom>; 2] {
-    let (marker, characteristic) = if inverse {
-        (
-            "http://www.w3.org/2002/07/owl#InverseFunctionalProperty",
-            "https://blackcatinformatics.ca/logic/inverseFunctionalProperty",
-        )
-    } else {
-        (
-            FUNCTIONAL,
-            "https://blackcatinformatics.ca/logic/functionalProperty",
-        )
-    };
+fn characteristic_schemas(family: DlConstructFamily) -> [Vec<PropertyAtom>; 2] {
+    let (marker, characteristic) = family
+        .characteristic_forms()
+        .expect("native characteristic schemas use supported characteristic families");
     [
         vec![atom("?p", RDF_TYPE, marker)],
         vec![
@@ -623,6 +591,32 @@ fn characteristic_schemas(inverse: bool) -> [Vec<PropertyAtom>; 2] {
             ),
         ],
     ]
+}
+
+/// Positive characteristic consequences use the same source forms as clashes
+/// and equality; the record fields remain joined proof premises.
+fn characteristic_laws() -> Vec<PreparedPropertyRule> {
+    let mut rules = Vec::new();
+    for (family, name, head, relations) in [
+        (
+            DlConstructFamily::SymmetricProperty,
+            "dl:symmetric-property",
+            atom("?o", "?p", "?s"),
+            vec![atom("?s", "?p", "?o")],
+        ),
+        (
+            DlConstructFamily::TransitiveProperty,
+            "dl:transitive-property",
+            atom("?s", "?p", "?o"),
+            vec![atom("?s", "?p", "?m"), atom("?m", "?p", "?o")],
+        ),
+    ] {
+        for mut body in characteristic_schemas(family) {
+            body.extend(relations.iter().cloned());
+            rules.push(law(name, head.clone(), body));
+        }
+    }
+    rules
 }
 
 fn guard(comparison: ValueComparison, left: &str, right: &str) -> PropertyGuard {
@@ -657,8 +651,12 @@ fn equality_law(
 /// disjunction of possible equalities and cannot select an arbitrary pair.
 fn equality_laws() -> Vec<PreparedPropertyRule> {
     let mut rules = Vec::new();
-    for inverse in [false, true] {
-        for mut body in characteristic_schemas(inverse) {
+    for family in [
+        DlConstructFamily::FunctionalProperty,
+        DlConstructFamily::InverseFunctionalProperty,
+    ] {
+        for mut body in characteristic_schemas(family) {
+            let inverse = family == DlConstructFamily::InverseFunctionalProperty;
             let (name, guards) = if inverse {
                 body.extend([atom("?left", "?p", "?a"), atom("?right", "?p", "?b")]);
                 (
@@ -1073,31 +1071,6 @@ fn clash_laws() -> Vec<PreparedPropertyRule> {
             bottom(),
             vec![atom("?s", DIFFERENT, "?s")],
         ),
-        law(
-            "dl:asymmetric-property-clash",
-            bottom(),
-            vec![
-                atom(
-                    "?p",
-                    RDF_TYPE,
-                    "http://www.w3.org/2002/07/owl#AsymmetricProperty",
-                ),
-                atom("?s", "?p", "?o"),
-                atom("?o", "?p", "?s"),
-            ],
-        ),
-        law(
-            "dl:irreflexive-property-clash",
-            bottom(),
-            vec![
-                atom(
-                    "?p",
-                    RDF_TYPE,
-                    "http://www.w3.org/2002/07/owl#IrreflexiveProperty",
-                ),
-                atom("?s", "?p", "?s"),
-            ],
-        ),
         guarded_law(
             "dl:property-disjoint-clash",
             bottom(),
@@ -1115,6 +1088,23 @@ fn clash_laws() -> Vec<PreparedPropertyRule> {
             "?right",
         ),
     ];
+    for (family, name, relations) in [
+        (
+            DlConstructFamily::AsymmetricProperty,
+            "dl:asymmetric-property-clash",
+            vec![atom("?s", "?p", "?o"), atom("?o", "?p", "?s")],
+        ),
+        (
+            DlConstructFamily::IrreflexiveProperty,
+            "dl:irreflexive-property-clash",
+            vec![atom("?s", "?p", "?s")],
+        ),
+    ] {
+        for mut body in characteristic_schemas(family) {
+            body.extend(relations.iter().cloned());
+            rules.push(law(name, bottom(), body));
+        }
+    }
     for target in [
         "http://www.w3.org/2002/07/owl#targetIndividual",
         "http://www.w3.org/2002/07/owl#targetValue",
@@ -1143,7 +1133,7 @@ fn clash_laws() -> Vec<PreparedPropertyRule> {
             "?positive",
         ));
     }
-    for schema in characteristic_schemas(false) {
+    for schema in characteristic_schemas(DlConstructFamily::FunctionalProperty) {
         let mut body = schema;
         body.extend([atom("?s", "?p", "?left"), atom("?s", "?p", "?right")]);
         rules.push(guarded_law(

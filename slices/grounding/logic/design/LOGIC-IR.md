@@ -355,6 +355,21 @@ the substrate does not.
   do not erase their distinct lexical provenance. These guards do not themselves
   supply general resource-equality substitution or a complete key entailment calculus.
 
+  Native property characteristics execute from direct property markers or the
+  original canonical record fields `logic:characterizes` and
+  `logic:characteristicSort`. Supported sorts are `logic:functionalProperty`,
+  `logic:inverseFunctionalProperty`, `logic:transitiveProperty`,
+  `logic:symmetricProperty`, `logic:asymmetricProperty` and
+  `logic:irreflexiveProperty`. Each record requires exactly one property IRI and
+  exactly one supported sort IRI in its asserting world, including records with
+  no explicit type assertion. Every writer of either field must complete before
+  admission; extra, unknown or non-IRI field values refuse the record. A completion
+  cycle is refused. Record laws retain both actual fields and relation premises;
+  they never manufacture property markers or borrow fields from another world.
+  Transitive and symmetric consequences feed the same native fixed point as
+  equality, asymmetry and irreflexivity clashes and authored consumers. Other
+  characteristic sorts retain their explicit capability boundaries.
+
   Deterministic resource equalities from functionality, inverse functionality and
   object maximum/exact-one restrictions are positive producers in the shared native
   fixed point. Canonical characteristic records and direct property markers retain

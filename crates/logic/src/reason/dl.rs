@@ -76,6 +76,10 @@ pub enum DlConstructFamily {
     NegativePropertyAssertion,
     /// The `functionalProperty` source construct.
     FunctionalProperty,
+    /// The `transitiveProperty` source construct.
+    TransitiveProperty,
+    /// The `symmetricProperty` source construct.
+    SymmetricProperty,
     /// The `asymmetricProperty` source construct.
     AsymmetricProperty,
     /// The `irreflexiveProperty` source construct.
@@ -158,6 +162,8 @@ impl DlConstructFamily {
             Self::HasKey => "hasKey",
             Self::NegativePropertyAssertion => "negativePropertyAssertion",
             Self::FunctionalProperty => "functionalProperty",
+            Self::TransitiveProperty => "transitiveProperty",
+            Self::SymmetricProperty => "symmetricProperty",
             Self::AsymmetricProperty => "asymmetricProperty",
             Self::IrreflexiveProperty => "irreflexiveProperty",
             Self::PropertyDisjointWith => "propertyDisjointWith",
@@ -186,6 +192,35 @@ impl DlConstructFamily {
             Self::WhiteSpace => "whiteSpace",
             Self::ExplicitTimezone => "explicitTimezone",
         }
+    }
+
+    const fn is_characteristic(self) -> bool {
+        matches!(
+            self,
+            Self::FunctionalProperty
+                | Self::InverseFunctionalProperty
+                | Self::TransitiveProperty
+                | Self::SymmetricProperty
+                | Self::AsymmetricProperty
+                | Self::IrreflexiveProperty
+        )
+    }
+
+    /// The supported marker and canonical record sort share the native inventory.
+    #[must_use]
+    pub(crate) fn characteristic_forms(self) -> Option<(&'static str, &'static str)> {
+        if !self.is_characteristic() {
+            return None;
+        }
+        let marker = CONSTRUCTS
+            .iter()
+            .find_map(|&(family, iri, role)| {
+                (family == self && matches!(role, ConstructRole::Marker)).then_some(iri)
+            })
+            .expect("every supported characteristic family has its fixed marker");
+        let sort = gmeow_ns::canonical_calculus_symbol(marker)
+            .expect("fixed characteristic markers have canonical sort spellings");
+        Some((marker, sort))
     }
 }
 
@@ -310,6 +345,16 @@ const CONSTRUCTS: &[(DlConstructFamily, &str, ConstructRole)] = &[
     (
         DlConstructFamily::FunctionalProperty,
         "http://www.w3.org/2002/07/owl#FunctionalProperty",
+        ConstructRole::Marker,
+    ),
+    (
+        DlConstructFamily::TransitiveProperty,
+        "http://www.w3.org/2002/07/owl#TransitiveProperty",
+        ConstructRole::Marker,
+    ),
+    (
+        DlConstructFamily::SymmetricProperty,
+        "http://www.w3.org/2002/07/owl#SymmetricProperty",
         ConstructRole::Marker,
     ),
     (
@@ -861,6 +906,7 @@ impl SourceCoverageObservation {
 struct ConstructIndex {
     predicates: BTreeMap<&'static str, DlConstructFamily>,
     markers: BTreeMap<&'static str, DlConstructFamily>,
+    characteristics: BTreeMap<&'static str, DlConstructFamily>,
     properties: BTreeMap<&'static str, DlConstructFamily>,
     property_edges: BTreeSet<&'static str>,
 }
@@ -871,6 +917,7 @@ fn construct_index() -> &'static ConstructIndex {
         let mut index = ConstructIndex {
             predicates: BTreeMap::new(),
             markers: BTreeMap::new(),
+            characteristics: BTreeMap::new(),
             properties: BTreeMap::new(),
             property_edges: BTreeSet::new(),
         };
@@ -881,6 +928,9 @@ fn construct_index() -> &'static ConstructIndex {
                 }
                 ConstructRole::Marker => {
                     index.markers.insert(iri, family);
+                    if let Some((_, sort)) = family.characteristic_forms() {
+                        index.characteristics.insert(sort, family);
+                    }
                     if let Some(canonical) = semantics.alternate_marker(RDF_TYPE, iri) {
                         index.markers.insert(canonical, family);
                     }
@@ -946,10 +996,10 @@ pub(crate) fn source_selector_families(
         {
             selected.push(*family);
         }
-        if predicate == "https://blackcatinformatics.ca/logic/characteristicSort"
-            && iri == "https://blackcatinformatics.ca/logic/functionalProperty"
+        if predicate == CHARACTERISTIC_SORT
+            && let Some(family) = index.characteristics.get(iri)
         {
-            selected.push(DlConstructFamily::FunctionalProperty);
+            selected.push(*family);
         }
     }
     selected.sort();
@@ -965,6 +1015,9 @@ pub(crate) fn source_execution_requires_admission(
     predicate: &str,
 ) -> bool {
     use DlConstructFamily as F;
+    if family.is_characteristic() {
+        return predicate == CHARACTERISTIC_SORT;
+    }
     match family {
         F::AllValuesFrom
         | F::SomeValuesFrom
@@ -987,9 +1040,6 @@ pub(crate) fn source_execution_requires_admission(
         | F::OneOf
         | F::DisjointUnionOf
         | F::WithRestrictions => true,
-        F::FunctionalProperty => {
-            predicate == "https://blackcatinformatics.ca/logic/characteristicSort"
-        }
         _ => false,
     }
 }
@@ -1043,14 +1093,7 @@ pub(crate) fn source_operand_issue(
     if family == F::PropertyDisjointWith && object.as_iri().is_none() {
         return Some("a selected property-disjoint operand must be a native property IRI");
     }
-    if matches!(
-        family,
-        F::FunctionalProperty
-            | F::InverseFunctionalProperty
-            | F::AsymmetricProperty
-            | F::IrreflexiveProperty
-    ) && predicate != "https://blackcatinformatics.ca/logic/characteristicSort"
-        && subject.as_iri().is_none()
+    if family.is_characteristic() && predicate != CHARACTERISTIC_SORT && subject.as_iri().is_none()
     {
         return Some("a selected property characteristic requires a native property IRI");
     }
@@ -1161,9 +1204,13 @@ const ASSERTION_PROPERTY: &str = "http://www.w3.org/2002/07/owl#assertionPropert
 const TARGET_INDIVIDUAL: &str = "http://www.w3.org/2002/07/owl#targetIndividual";
 const TARGET_VALUE: &str = "http://www.w3.org/2002/07/owl#targetValue";
 const CHARACTERIZES: &str = "https://blackcatinformatics.ca/logic/characterizes";
+const CHARACTERISTIC_SORT: &str = "https://blackcatinformatics.ca/logic/characteristicSort";
 
 fn admission_fields(family: DlConstructFamily) -> &'static [&'static str] {
     use DlConstructFamily as F;
+    if family.is_characteristic() {
+        return &[CHARACTERIZES, CHARACTERISTIC_SORT];
+    }
     match family {
         F::AllValuesFrom
         | F::SomeValuesFrom
@@ -1190,7 +1237,6 @@ fn admission_fields(family: DlConstructFamily) -> &'static [&'static str] {
             TARGET_INDIVIDUAL,
             TARGET_VALUE,
         ],
-        F::FunctionalProperty => &[CHARACTERIZES],
         _ => &[],
     }
 }
@@ -1257,11 +1303,8 @@ pub(crate) fn source_admission_reads_for(
             "https://blackcatinformatics.ca/logic/KeyAssertion",
         ));
     }
-    if family == DlConstructFamily::FunctionalProperty {
-        reads.insert(NativeRead::declaration(
-            "https://blackcatinformatics.ca/logic/characteristicSort",
-            "https://blackcatinformatics.ca/logic/functionalProperty",
-        ));
+    if let Some((_, sort)) = family.characteristic_forms() {
+        reads.insert(NativeRead::declaration(CHARACTERISTIC_SORT, sort));
     }
     reads.into_iter().collect()
 }
@@ -1507,15 +1550,23 @@ pub(crate) fn admit_source_constructs(
                 );
             }
         }
-        if family == F::FunctionalProperty
-            && occurrences.iter().any(|occurrence| {
-                occurrence.statement.predicate
-                    == "https://blackcatinformatics.ca/logic/characteristicSort"
-            })
+        if family.is_characteristic()
+            && occurrences
+                .iter()
+                .any(|occurrence| occurrence.statement.predicate == CHARACTERISTIC_SORT)
         {
             let properties = objects(CHARACTERIZES);
             if properties.len() != 1 || !properties.iter().all(|term| term.as_iri().is_some()) {
                 invalid_shape("a characteristic record requires exactly one property IRI");
+            }
+            let (_, sort) = family
+                .characteristic_forms()
+                .expect("the selected family is a supported characteristic");
+            let sorts = objects(CHARACTERISTIC_SORT);
+            if sorts.len() != 1 || !sorts.iter().all(|term| term.as_iri() == Some(sort)) {
+                invalid_shape(
+                    "a characteristic record requires exactly one admitted characteristic-sort IRI",
+                );
             }
         }
         let semantics = crate::native_semantics::SemanticVocabulary::GroundedLogicV1;
@@ -1771,6 +1822,8 @@ fn construct_complete(
         | F::PropertyChainAxiom
         | F::BottomObjectProperty
         | F::BottomDataProperty
+        | F::TransitiveProperty
+        | F::SymmetricProperty
         | F::AsymmetricProperty
         | F::IrreflexiveProperty => true,
     }

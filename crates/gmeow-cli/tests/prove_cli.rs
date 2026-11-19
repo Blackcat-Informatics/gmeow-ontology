@@ -814,11 +814,10 @@ fn assert_not_consistent_with(name: &str, body: &str, code: &str) {
     );
 }
 
-/// A record-form irreflexive characteristic the engine does not read is a drop,
-/// never a silent `consistent`.
+/// A record-form irreflexive law yields a native refutation with its actual fields.
 #[test]
-fn irreflexive_characteristic_record_is_a_named_drop() {
-    assert_not_consistent_with(
+fn irreflexive_characteristic_record_refutes_a_self_edge() {
+    let (report, exit) = prove_json(
         "record-irreflexive.logic.ttl",
         r#"
 ex:pIrreflexive a logic:PropertyCharacteristicAssertion ;
@@ -826,23 +825,54 @@ ex:pIrreflexive a logic:PropertyCharacteristicAssertion ;
     logic:characteristicSort logic:irreflexiveProperty .
 ex:a ex:p ex:a .
 "#,
-        "CHARACTERISTIC_RECORD_NOT_READ",
+        &["--gate"],
     );
+    assert_ne!(exit, 0);
+    assert_eq!(report["verdict"], "inconsistent", "{report:#}");
+    assert_eq!(
+        report["engines"]["native"]["verdict"], "clash",
+        "{report:#}"
+    );
+    assert!(
+        !drop_codes(&report)
+            .iter()
+            .any(|code| code == "CHARACTERISTIC_RECORD_NOT_READ"),
+        "{report:#}"
+    );
+    let premises = report["refutations"].to_string();
+    assert!(premises.contains("characterizes"), "{report:#}");
+    assert!(premises.contains("characteristicSort"), "{report:#}");
 }
 
-/// A record-form asymmetric characteristic the engine does not read is a drop.
+/// Transitive record consequences feed asymmetric record refutation in one theory.
 #[test]
-fn asymmetric_characteristic_record_is_a_named_drop() {
-    assert_not_consistent_with(
+fn transitive_characteristic_record_feeds_asymmetric_refutation() {
+    let (report, exit) = prove_json(
         "record-asymmetric.logic.ttl",
         r#"
 ex:pAsymmetric a logic:PropertyCharacteristicAssertion ;
     logic:characterizes ex:p ;
     logic:characteristicSort logic:asymmetricProperty .
+ex:pTransitive a logic:PropertyCharacteristicAssertion ;
+    logic:characterizes ex:p ;
+    logic:characteristicSort logic:transitiveProperty .
 ex:a ex:p ex:b .
-ex:b ex:p ex:a .
+ex:b ex:p ex:c .
+ex:c ex:p ex:a .
 "#,
-        "CHARACTERISTIC_RECORD_NOT_READ",
+        &["--gate"],
+    );
+    assert_ne!(exit, 0);
+    assert_eq!(report["verdict"], "inconsistent", "{report:#}");
+    assert_eq!(
+        report["engines"]["native"]["verdict"], "clash",
+        "{report:#}"
+    );
+    assert!(
+        !drop_codes(&report)
+            .iter()
+            .any(|code| code == "CHARACTERISTIC_RECORD_NOT_READ"),
+        "{report:#}"
     );
 }
 

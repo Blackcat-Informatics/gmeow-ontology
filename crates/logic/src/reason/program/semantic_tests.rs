@@ -114,41 +114,125 @@ fn canonical_derived_domain_wakes_native_schema_and_canonical_consumer() {
     );
 }
 
+/// Derived characteristic fields enable positive laws and authored consumers in
+/// one fixed point, retaining the original marker or two-field record evidence.
+/// Their source coverage and evidence survive the shipped receipt boundary.
 #[test]
-fn derived_canonical_property_marker_is_visible_in_the_same_fixed_point() {
-    let var = |name| Term::var(name).unwrap();
-    let program = LogicProgram::new(vec![], vec![], vec![], None).with_formulas(vec![rule(
-        formula(EDGE, var("x"), var("y")),
-        formula(
-            INSTANCE,
-            Term::iri(EDGE).unwrap(),
-            Term::iri("https://blackcatinformatics.ca/logic/transitiveProperty").unwrap(),
-        ),
-    )]);
-    let mut builder = RdfDatasetBuilder::new();
-    for (s, o) in [("urn:x", "urn:y"), ("urn:y", "urn:z")] {
-        builder
-            .push_owned_quad(&RdfQuad::new(RdfTerm::iri(s), EDGE, RdfTerm::iri(o)))
+fn derived_property_characteristics_are_visible_in_the_same_fixed_point() {
+    for record in [false, true] {
+        for (sort, law, target) in [
+            (
+                "transitiveProperty",
+                "dl:transitive-property",
+                ("urn:x", "urn:z"),
+            ),
+            (
+                "symmetricProperty",
+                "dl:symmetric-property",
+                ("urn:y", "urn:x"),
+            ),
+        ] {
+            let var = |name| Term::var(name).unwrap();
+            let named = |name| Term::iri(name).unwrap();
+            let sort = format!("https://blackcatinformatics.ca/logic/{sort}");
+            let schema = if record {
+                Formula::And(vec![
+                    formula(
+                        "https://blackcatinformatics.ca/logic/characterizes",
+                        named("urn:characteristic"),
+                        named(EDGE),
+                    ),
+                    formula(
+                        "https://blackcatinformatics.ca/logic/characteristicSort",
+                        named("urn:characteristic"),
+                        named(&sort),
+                    ),
+                ])
+            } else {
+                formula(INSTANCE, named(EDGE), named(&sort))
+            };
+            let program = LogicProgram::new(vec![], vec![], vec![], None).with_formulas(vec![
+                rule(formula("urn:seed", var("x"), var("y")), schema),
+                rule(
+                    formula(EDGE, var("x"), var("y")),
+                    formula(DONE, var("x"), var("y")),
+                ),
+            ]);
+            let mut builder = RdfDatasetBuilder::new();
+            builder
+                .push_owned_quad(&RdfQuad::new(
+                    RdfTerm::iri("urn:x"),
+                    "urn:seed",
+                    RdfTerm::iri("urn:y"),
+                ))
+                .unwrap();
+            for (s, o) in [("urn:x", "urn:y"), ("urn:y", "urn:z")] {
+                builder
+                    .push_owned_quad(&RdfQuad::new(RdfTerm::iri(s), EDGE, RdfTerm::iri(o)))
+                    .unwrap();
+            }
+            let prepared = crate::program_analysis::prepare_program(&program).unwrap();
+            let closure = execute(
+                &prepared,
+                crate::reason::program::prepare_reasoning_input(&builder.freeze().unwrap())
+                    .unwrap(),
+                &crate::physical::SelectedDomains::new([]).unwrap(),
+                None,
+            )
             .unwrap();
+            let derived = closure
+                .inferred
+                .iter()
+                .find(|row| {
+                    row.subject == target.0
+                        && row.predicate == EDGE
+                        && row.object.as_iri() == Some(target.1)
+                        && row.rule_name.as_deref() == Some(law)
+                })
+                .unwrap();
+            assert!(closure.inferred.iter().any(|row| row.subject == target.0
+                && row.predicate == DONE
+                && row.object.as_iri() == Some(target.1)));
+            if record {
+                for predicate in [
+                    "https://blackcatinformatics.ca/logic/characterizes",
+                    "https://blackcatinformatics.ca/logic/characteristicSort",
+                ] {
+                    assert!(
+                        derived
+                            .premises
+                            .iter()
+                            .any(|(s, p, _)| s == "urn:characteristic" && p == predicate)
+                    );
+                }
+                assert!(
+                    !derived
+                        .premises
+                        .iter()
+                        .any(|(_, p, _)| p == TYPE || p == INSTANCE)
+                );
+            } else {
+                assert!(
+                    derived
+                        .premises
+                        .iter()
+                        .any(|(s, p, o)| s == EDGE && p == INSTANCE && o == &format!("<{sort}>"))
+                );
+            }
+            let (result, _, _) =
+                super::super::result_from_closure(&prepared, closure, None).unwrap();
+            let transported = crate::result_rdf::transport_reasoning(&result).unwrap();
+            assert_eq!(
+                transported
+                    .result()
+                    .native_execution()
+                    .expect("transported evidence retains a validated native execution"),
+                result
+                    .native_execution()
+                    .expect("the native closure carries its validated execution evidence")
+            );
+        }
     }
-    let prepared = crate::program_analysis::prepare_program(&program).unwrap();
-    let closure = execute(
-        &prepared,
-        crate::reason::program::prepare_reasoning_input(&builder.freeze().unwrap()).unwrap(),
-        &crate::physical::SelectedDomains::new([]).unwrap(),
-        None,
-    )
-    .unwrap();
-    let derived = closure
-        .inferred
-        .iter()
-        .find(|row| {
-            row.subject == "urn:x" && row.predicate == EDGE && row.object.as_iri() == Some("urn:z")
-        })
-        .unwrap();
-    assert!(derived.premises.iter().any(|(s, p, o)| s == EDGE
-        && p == INSTANCE
-        && o == "<https://blackcatinformatics.ca/logic/transitiveProperty>"));
 }
 
 #[test]
