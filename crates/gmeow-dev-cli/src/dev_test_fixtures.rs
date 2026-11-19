@@ -27,6 +27,7 @@ type FixtureResult<T> = gmeow_errors::Result<T>;
 
 const WASM_CODEBOOK_MANIFEST_RELATIVE_PATH: &str =
     ".cache/gmeow-sync/wasm-codebook-manifest-v2.json";
+const DOCS_FIXTURE_MANIFEST_RELATIVE_PATH: &str = ".cache/gmeow-sync/docs-fixture-manifest-v2.json";
 
 fn fail(detail: impl std::fmt::Display) -> Diag {
     crate::error::sync(detail)
@@ -38,7 +39,7 @@ impl TestFixtureScope {
     }
 
     const fn includes_docs(self) -> bool {
-        matches!(self, Self::All | Self::ProducerBound)
+        matches!(self, Self::All | Self::ProducerBound | Self::Docs)
     }
 
     const fn includes_bundle(self) -> bool {
@@ -54,6 +55,7 @@ impl TestFixtureScope {
             Self::All => "all",
             Self::ProducerIndependent => "producer-independent",
             Self::ProducerBound => "producer-bound",
+            Self::Docs => "docs",
             Self::Bundle => "bundle",
             Self::ConformanceHeavy => "conformance-heavy",
             Self::WasmCodebook => "wasm-codebook",
@@ -98,6 +100,9 @@ pub(crate) fn run(
         );
     }
     let result = match mode {
+        TestFixtureMode::Produce if scope == TestFixtureScope::Docs => {
+            produce_docs_fixtures(&root, timings_path)
+        }
         TestFixtureMode::Produce => produce(
             &root,
             scope,
@@ -259,6 +264,48 @@ fn produce_compiler_owner(root: &Path, timings_path: Option<&Path>) -> FixtureRe
         "compiler owner fixtures produced: selector={} sha256={}",
         finalized.path.display(),
         finalized.sha256
+    );
+    Ok(())
+}
+
+fn produce_docs_fixtures(root: &Path, timings_path: Option<&Path>) -> FixtureResult<()> {
+    let started = Instant::now();
+    let jobs = std::thread::available_parallelism()
+        .map(std::num::NonZeroUsize::get)
+        .unwrap_or(1);
+    let catalogs = gmeow_pipeline::fixture::prepare_docs_catalog_fixtures(root, jobs)?;
+    let prime = gmeow_docs::fixture::prime_from_catalogs(
+        root,
+        &catalogs.term_manifest,
+        &catalogs.constraint_catalog,
+        catalogs.inputs,
+    )
+    .map_err(fail)?;
+    let prepared = prepare_fixture_selector_at_path(
+        root.join(DOCS_FIXTURE_MANIFEST_RELATIVE_PATH),
+        Some(catalogs.selection),
+        BTreeMap::from([("docs", prime.selector.to_json())]),
+    )?;
+    if let Some(path) = timings_path {
+        write_json_atomic(
+            path,
+            &Object::new()
+                .with("schema_version", 1)
+                .with("scope", TestFixtureScope::Docs.name())
+                .with("elapsed_ms", started.elapsed().as_millis())
+                .with("render_actions", prime.action_count)
+                .with("built", prime.built)
+                .with("receipt_hits", prime.receipt_hits)
+                .with("manifest_sha256", prepared.sha256.clone())
+                .into(),
+        )
+        .map_err(fail)?;
+    }
+    let finalized = prepared.publish()?;
+    println!(
+        "docs fixtures produced: selector={} sha256={}",
+        finalized.path.display(),
+        finalized.sha256,
     );
     Ok(())
 }
@@ -693,11 +740,25 @@ fn verify(
     }
     if scope.includes_docs() {
         println!("test fixture verifier: phase=docs state=started");
+        let render_count = if scope == TestFixtureScope::Docs {
+            let inputs = gmeow_pipeline::fixture::verify_docs_catalog_fixtures(root)?;
+            let selected = gmeow_docs_model::fixture::selected_fixtures(root).map_err(fail)?;
+            gmeow_docs_model::fixture::verify_current_catalog_model(root, &selected, inputs)
+                .map_err(fail)?;
+            Some(selected.renders.len())
+        } else {
+            None
+        };
         let (model, identity) = gmeow_docs_model::fixture::load_with_identity(root);
         let mut languages = model.available_languages.clone();
         languages.push(ENGLISH.to_string());
         languages.sort();
         languages.dedup();
+        if render_count.is_some_and(|count| count != languages.len() + 1) {
+            return Err(fail(
+                "docs selector must carry one site per language and one book",
+            ));
+        }
         for language in &languages {
             let site = gmeow_docs::fixture::load_site_lang(root, language);
             println!(
