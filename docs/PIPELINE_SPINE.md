@@ -93,6 +93,10 @@ Stage kinds (source-load, transform, reason, validate, docs-render) differ only 
 *what* they contribute and *what they read*, never in *how* they deliver it: all
 deliver by attaching to the carrier.
 
+`stage-docs-render` publishes `graph/documentation` in its frozen dataset.
+It releases the serialized rendering when native parsing finishes. Snapshot
+selects the named graph through the declared dataset edge.
+
 `stage-parse-sources` owns the original native root, module and import document
 parses. Its typed source catalog retains exact source receipts, document bases,
 roles, scopes and positions, plus one bounded composite view and one shared
