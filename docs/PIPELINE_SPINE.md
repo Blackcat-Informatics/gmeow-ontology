@@ -192,6 +192,9 @@ rediscovering the slice catalog or reconstructing authority from the graph.
 Mappings binds every physical slice-admission input into its action key; its full
 source slice catalog stays local to the lowering invocation. Persistent restoration
 authenticates the complete native catalog and graph binding without source reads.
+Mappings releases the raw projection report after emitting canonical Turtle.
+The ordered RDF union owns its dataset, so its input datasets are released
+before handle commitment and product digesting.
 
 Compiler carrier assembly places the existing canonical, relational-core and
 correspondence datasets through one composite view and materializes the final
