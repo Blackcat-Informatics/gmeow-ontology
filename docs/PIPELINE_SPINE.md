@@ -528,6 +528,8 @@ Snapshot borrows the committed projection report from `stage-mappings` and
 parses it once in sorted artifact order. The resulting named fanout graph
 reconstructs `generated/logic/projection-report.ttl`. The native projection
 ledger retains its own graph for pipeline consumers.
+Snapshot also borrows the other committed RDF fanout artifacts through parsing.
+The sorted reconstruction map holds references to the producer byte lanes.
 
 ### 6.1 Worked instance — the GMN-1 ecosystem projections
 
