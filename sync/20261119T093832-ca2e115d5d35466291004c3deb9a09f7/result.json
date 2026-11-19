@@ -1,0 +1,15 @@
+{
+  "schema": 1,
+  "worktree": "/home/paudley/Active/gmeow-ontology/.worktrees/2968-publish-canonical-named-property",
+  "branch": "paudley/2968-publish-canonical-named-property",
+  "base_ref": "origin/main",
+  "head": "8ba7b5dbe253a983ebf258cb9c4ecea37d19e122",
+  "attempt": "/home/paudley/Active/gmeow-ontology/.worktrees/2968-publish-canonical-named-property/.stage/publish-canonical-named-property/sync/20261119T093832-ca2e115d5d35466291004c3deb9a09f7",
+  "conflicts": [],
+  "status": "fast_forward",
+  "base": "10b7409813860ef9fe7f735b3cbcbf71021c72b5",
+  "merge_bases": [
+    "8ba7b5dbe253a983ebf258cb9c4ecea37d19e122"
+  ],
+  "commit": "10b7409813860ef9fe7f735b3cbcbf71021c72b5"
+}

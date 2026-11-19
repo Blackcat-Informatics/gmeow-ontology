@@ -1,0 +1,24 @@
+{
+  "schema": 1,
+  "worktree": "/home/paudley/Active/gmeow-ontology/.worktrees/2968-publish-canonical-named-property",
+  "branch": "paudley/2968-publish-canonical-named-property",
+  "base_ref": "refs/remotes/origin/main",
+  "head": "50f895a328d126dfc502fd2be27917d35c1afa64",
+  "attempt": "/home/paudley/Active/gmeow-ontology/.worktrees/2968-publish-canonical-named-property/.stage/publish-canonical-named-property/sync/20261119T104307-b41006041f17469b8772aa760e14352c",
+  "conflicts": [],
+  "status": "completed",
+  "base": "f99e9121174225aa019a5565d88be21d2c5e8b69",
+  "merge_bases": [
+    "10b7409813860ef9fe7f735b3cbcbf71021c72b5"
+  ],
+  "merge_index": "6972213c189ffcb8e9bd8801d93e0be7f706249cec2d830891846f9ddffafc8a",
+  "candidate_tree": "0b957195cb5f654d9a5650b4fd2ba90121953ef9",
+  "candidate_patch": "candidate-d8ec0a9b5b644648bf0d4c45605dcaf0.patch",
+  "stdout_log": "commit-d8ec0a9b5b644648bf0d4c45605dcaf0.stdout.log",
+  "stderr_log": "commit-d8ec0a9b5b644648bf0d4c45605dcaf0.stderr.log",
+  "validation_records": [],
+  "commit_duration_seconds": 2.5665061340005195,
+  "commit": "8606da41098a794c8adfe2d1afdfdb3b7319bfc8",
+  "tree": "0b957195cb5f654d9a5650b4fd2ba90121953ef9",
+  "exit_code": 0
+}

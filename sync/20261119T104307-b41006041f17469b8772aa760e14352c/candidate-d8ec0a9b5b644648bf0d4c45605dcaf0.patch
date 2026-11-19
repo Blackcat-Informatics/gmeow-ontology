@@ -1,0 +1,970 @@
+diff --git crates/docs-model/src/rdf.rs crates/docs-model/src/rdf.rs
+index 8fe27916d..e9314825b 100644
+--- crates/docs-model/src/rdf.rs
++++ crates/docs-model/src/rdf.rs
+@@ -13,6 +13,8 @@
+ //! through GTS fold without bnode relabeling, sorted iteration over the
+ //! already-sorted model collections, and a trailing newline.
+ 
++use std::fmt::Write as _;
++
+ use crate::coverage::{CoverageContext, DIMENSIONS, slice_covered_dims, term_coverage};
+ use crate::maturity::{
+     Dimension, MaturityAnchor, anchor_table, coverage_fraction, earned_maturity,
+@@ -113,10 +115,10 @@ pub fn to_gmeow_rdf(
+     entailments: &BTreeMap<String, Vec<crate::exec::Entailment>>,
+ ) -> String {
+     let graph = format!("<{DOCUMENTATION_GRAPH}>");
+-    let mut lines: Vec<String> = Vec::new();
++    let mut lines = String::new();
+ 
+-    let triple = |s: &str, p: &str, o: &str, lines: &mut Vec<String>| {
+-        lines.push(format!("{s} <{p}> {o} {graph} ."));
++    let triple = |s: &str, p: &str, o: &str, lines: &mut String| {
++        writeln!(lines, "{s} <{p}> {o} {graph} .").expect("writing to a String cannot fail");
+     };
+     let literal = |value: &str| format!("\"{}\"", nq_escape(value));
+     let prose = |value: &str| format!("{}@{}", literal(value), gmeow_errors::abox::X_GMEOW_ENGLISH);
+@@ -126,12 +128,9 @@ pub fn to_gmeow_rdf(
+     // named-graph provenance anchor, and the assertional `gmeow:boxABox` role so
+     // the folded bundle satisfies the assertional-tier validation contract while
+     // staying genuinely self-describing (the validator requires the box role and
+-    // a provenance link on every materialized individual). Routed through the
+-    // single `gmeow_errors::abox::annotate_nquads` contract every generated
+-    // A-Box individual satisfies identically (the same primitive
+-    // `gmeow-errors`'s own `to_gmeow_rdf_in_graph` uses for `gmeow:Finding`
+-    // individuals), rather than a second hand-rolled copy of the four triples.
+-    let annotate = |subject: &str, label: &str, definition: &str, lines: &mut Vec<String>| {
++    // a provenance link on every materialized individual). The shared
++    // `gmeow_errors::abox::annotate_nquads` adapter supplies these annotations.
++    let annotate = |subject: &str, label: &str, definition: &str, lines: &mut String| {
+         // Every caller here already formats `subject` bracketed (`<iri>`) for its
+         // OTHER triples in the same block; the shared adapter takes the bare IRI
+         // and re-brackets it itself, so strip the brackets back off here rather
+@@ -1034,11 +1033,7 @@ pub fn to_gmeow_rdf(
+         }
+     }
+ 
+-    let mut out = lines.join("\n");
+-    if !out.is_empty() {
+-        out.push('\n');
+-    }
+-    out
++    lines
+ }
+ 
+ fn fixture_rationale_objects(
+diff --git crates/docs/tests/snapshots/rdf_golden__gmeow_rdf_small.snap crates/docs/tests/snapshots/rdf_golden__gmeow_rdf_small.snap
+index 52059d894..9e930f821 100644
+--- crates/docs/tests/snapshots/rdf_golden__gmeow_rdf_small.snap
++++ crates/docs/tests/snapshots/rdf_golden__gmeow_rdf_small.snap
+@@ -21,7 +21,7 @@ expression: nq
+ <https://blackcatinformatics.ca/gmeow/documentation/evidence/cat/competency> <https://blackcatinformatics.ca/gmeow/docGroundedBy> <https://blackcatinformatics.ca/gmeow/cq/cats-are-animals> <https://blackcatinformatics.ca/gmeow/graph/documentation> .
+ <https://blackcatinformatics.ca/gmeow/documentation/evidence/cat/competency> <https://blackcatinformatics.ca/gmeow/docProducedByChain> "stage-docs-render <- stage-source-load" <https://blackcatinformatics.ca/gmeow/graph/documentation> .
+ <https://blackcatinformatics.ca/gmeow/documentation/evidence/cat/competency> <https://blackcatinformatics.ca/gmeow/docCompetencyCount> "1"^^<http://www.w3.org/2001/XMLSchema#integer> <https://blackcatinformatics.ca/gmeow/graph/documentation> .
+-<https://blackcatinformatics.ca/gmeow/documentation/evidence/cat/competency> <https://blackcatinformatics.ca/gmeow/docCompetencyQueryDigest> "blake3:87751c62f5672889c3bd77c0b3335fefc9cad15ad5e1d3e40b1a81b36faf4098" <https://blackcatinformatics.ca/gmeow/graph/documentation> .
++<https://blackcatinformatics.ca/gmeow/documentation/evidence/cat/competency> <https://blackcatinformatics.ca/gmeow/docCompetencyQueryDigest> "87751c62f5672889c3bd77c0b3335fefc9cad15ad5e1d3e40b1a81b36faf4098"^^<https://blackcatinformatics.ca/gmeow/blake3_256Digest> <https://blackcatinformatics.ca/gmeow/graph/documentation> .
+ <https://blackcatinformatics.ca/gmeow/documentation/evidence/cat/competency> <http://www.w3.org/2000/01/rdf-schema#label> "Doc evidence (competency): gmeow:Cat"@x-gmeow-english <https://blackcatinformatics.ca/gmeow/graph/documentation> .
+ <https://blackcatinformatics.ca/gmeow/documentation/evidence/cat/competency> <http://www.w3.org/2004/02/skos/core#definition> "competency documentation evidence for https://blackcatinformatics.ca/gmeow/Cat — exercised by 1 competency question(s)."@x-gmeow-english <https://blackcatinformatics.ca/gmeow/graph/documentation> .
+ <https://blackcatinformatics.ca/gmeow/documentation/evidence/cat/competency> <http://www.w3.org/2000/01/rdf-schema#isDefinedBy> <https://blackcatinformatics.ca/gmeow/graph/documentation> <https://blackcatinformatics.ca/gmeow/graph/documentation> .
+diff --git crates/errors/src/abox.rs crates/errors/src/abox.rs
+index bbe1ee6a0..35faba5d4 100644
+--- crates/errors/src/abox.rs
++++ crates/errors/src/abox.rs
+@@ -8,27 +8,20 @@
+ //! individual to carry four annotations: `rdfs:label`, `skos:definition`,
+ //! `rdfs:isDefinedBy` (pointing at the individual's containing named graph),
+ //! and `gmeow:graphBoxRole` (pointing at the assertional `gmeow:boxABox` role
+-//! individual). Before this module, two producers — `crate::render`'s
+-//! `to_gmeow_rdf_in_graph` and `gmeow_docs::rdf::to_gmeow_rdf` — each hand-rolled
+-//! their own copy of this four-triple block, and had already drifted (the
+-//! `render` copy was missing `skos:definition` entirely). This module is the ONE
+-//! place the contract is expressed; both producers route through it.
++//! individual). This module defines the contract shared by the finding and
++//! documentation projections.
+ //!
+-//! [`abox_annotation_pairs`] is the box-role-parameterized core: it NEVER
+-//! hardcodes [`BOX_ABOX`], so a future T-Box/R-Box emitter can reuse the exact
+-//! same core with its own role IRI. [`abox_annotations`] is the A-Box
+-//! convenience wrapper every current caller uses. [`annotate_nquads`] and
+-//! [`annotate_builder`] are the two substrate-specific thin adapters over the
+-//! core — one emitting raw N-Quads text lines (matching the serialization style
+-//! already used by `render.rs`/`docs/rdf.rs`), the other pushing quads into a
+-//! [`purrdf_core::RdfDatasetBuilder`] for a native RDF-IR consumer (e.g.
+-//! `logic-compile`). The `cross_substrate_parity` test below locks the two
+-//! adapters to emit the identical logical quad set for the same inputs.
++//! [`abox_annotation_pairs`] accepts the box role IRI. [`abox_annotations`]
++//! supplies [`BOX_ABOX`]. [`annotate_nquads`] appends text for the documentation
++//! projector, and [`annotate_builder`] inserts the same quads into a native
++//! [`purrdf_core::RdfDatasetBuilder`].
+ //!
+ //! Label/definition literals carry the [`X_GMEOW_ENGLISH`] private-use carrier
+ //! language tag, never bare `en` — see `docs/GROUNDING.md` for why the carrier
+ //! tag exists.
+ 
++use std::fmt::Write as _;
++
+ use crate::render::nq_escape;
+ 
+ /// The GMEOW namespace IRI prefix.
+@@ -113,21 +106,17 @@ pub fn abox_annotations(
+     abox_annotation_pairs(subject_iri, label, definition, graph_iri, BOX_ABOX)
+ }
+ 
+-/// String-flavor adapter: push the four A-Box annotation N-Quads lines for
+-/// `subject_iri` onto `out`, in the fixed (label, definition, isDefinedBy,
+-/// graphBoxRole) order. Literals are [`nq_escape`]d and carry the
+-/// [`X_GMEOW_ENGLISH`] carrier language tag; IRIs are angle-bracketed. Matches
+-/// the exact N-Quads serialization style the two producers this module
+-/// replaces already used (`<s> <p> o <g> .`).
++/// Append four newline-terminated N-Quads lines for `subject_iri` in the fixed
++/// order of label, definition, isDefinedBy and graphBoxRole. Literals use
++/// [`nq_escape`] and carry the [`X_GMEOW_ENGLISH`] language tag. IRIs are
++/// angle-bracketed.
+ pub fn annotate_nquads(
+     subject_iri: &str,
+     label: &str,
+     definition: &str,
+     graph_iri: &str,
+-    out: &mut Vec<String>,
++    out: &mut String,
+ ) {
+-    let subject = format!("<{subject_iri}>");
+-    let graph = format!("<{graph_iri}>");
+     for (predicate, object) in abox_annotations(subject_iri, label, definition, graph_iri) {
+         let object_text = match object {
+             AboxObject::Iri(iri) => format!("<{iri}>"),
+@@ -135,7 +124,11 @@ pub fn annotate_nquads(
+                 format!("\"{}\"@{X_GMEOW_ENGLISH}", nq_escape(&value))
+             }
+         };
+-        out.push(format!("{subject} <{predicate}> {object_text} {graph} ."));
++        writeln!(
++            out,
++            "<{subject_iri}> <{predicate}> {object_text} <{graph_iri}> ."
++        )
++        .expect("writing to a String cannot fail");
+     }
+ }
+ 
+diff --git crates/errors/src/abox.tests.rs crates/errors/src/abox.tests.rs
+index 75ea70314..bbc1d5d4f 100644
+--- crates/errors/src/abox.tests.rs
++++ crates/errors/src/abox.tests.rs
+@@ -12,8 +12,13 @@ const GRAPH: &str = "https://blackcatinformatics.ca/gmeow/graph/example";
+ /// graphBoxRole) order — the order both adapters commit to.
+ #[test]
+ fn annotate_nquads_emits_four_triples_in_fixed_order() {
+-    let mut out = Vec::new();
++    let mut out = String::new();
+     annotate_nquads(SUBJECT, LABEL, DEFINITION, GRAPH, &mut out);
++    assert!(
++        out.ends_with('\n'),
++        "the final quad must end with a newline"
++    );
++    let out: Vec<_> = out.lines().collect();
+     assert_eq!(out.len(), 4, "must emit exactly four annotation triples");
+     assert!(
+         out[0].contains(RDFS_LABEL),
+@@ -37,8 +42,9 @@ fn annotate_nquads_emits_four_triples_in_fixed_order() {
+ /// `graphBoxRole`'s object is exactly `gmeow:boxABox`.
+ #[test]
+ fn annotate_nquads_isdefinedby_and_role_objects_are_correct() {
+-    let mut out = Vec::new();
++    let mut out = String::new();
+     annotate_nquads(SUBJECT, LABEL, DEFINITION, GRAPH, &mut out);
++    let out: Vec<_> = out.lines().collect();
+     assert!(
+         out[2].contains(&format!("<{GRAPH}>")),
+         "isDefinedBy must point at the containing graph IRI: {}",
+@@ -55,9 +61,9 @@ fn annotate_nquads_isdefinedby_and_role_objects_are_correct() {
+ /// language tag, never bare `en`.
+ #[test]
+ fn annotate_nquads_literals_carry_the_carrier_language_tag() {
+-    let mut out = Vec::new();
++    let mut out = String::new();
+     annotate_nquads(SUBJECT, LABEL, DEFINITION, GRAPH, &mut out);
+-    for line in &out[0..2] {
++    for line in out.lines().take(2) {
+         assert!(
+             line.ends_with(&format!("\"@{X_GMEOW_ENGLISH} <{GRAPH}> .")),
+             "literal line must carry the x-gmeow-english carrier tag: {line}"
+@@ -72,8 +78,8 @@ fn annotate_nquads_literals_carry_the_carrier_language_tag() {
+ /// Determinism: identical inputs produce byte-identical output, every call.
+ #[test]
+ fn annotate_nquads_is_deterministic() {
+-    let mut a = Vec::new();
+-    let mut b = Vec::new();
++    let mut a = String::new();
++    let mut b = String::new();
+     annotate_nquads(SUBJECT, LABEL, DEFINITION, GRAPH, &mut a);
+     annotate_nquads(SUBJECT, LABEL, DEFINITION, GRAPH, &mut b);
+     assert_eq!(a, b);
+@@ -84,8 +90,9 @@ fn annotate_nquads_is_deterministic() {
+ /// N-Quads line shape (still four triples, still ending in the graph token).
+ #[test]
+ fn annotate_nquads_escapes_literal_content() {
+-    let mut out = Vec::new();
++    let mut out = String::new();
+     annotate_nquads(SUBJECT, "has \"quotes\"", "has\\backslash", GRAPH, &mut out);
++    let out: Vec<_> = out.lines().collect();
+     assert!(out[0].contains("has \\\"quotes\\\""), "{}", out[0]);
+     assert!(out[1].contains("has\\\\backslash"), "{}", out[1]);
+ }
+@@ -100,7 +107,7 @@ fn annotate_nquads_escapes_literal_content() {
+ fn cross_substrate_parity_string_and_builder_emit_the_same_quad_set() {
+     use std::collections::BTreeSet;
+ 
+-    let mut lines = Vec::new();
++    let mut lines = String::new();
+     annotate_nquads(SUBJECT, LABEL, DEFINITION, GRAPH, &mut lines);
+ 
+     let mut builder = purrdf_core::RdfDatasetBuilder::new();
+@@ -129,7 +136,7 @@ fn cross_substrate_parity_string_and_builder_emit_the_same_quad_set() {
+     // space, dropping the doubled predicate brackets vs. Display's IRI
+     // rendering — both sides normalize to `<iri>`/`"lex"@tag` tokens).
+     let mut from_nquads: BTreeSet<String> = BTreeSet::new();
+-    for line in &lines {
++    for line in lines.lines() {
+         let body = line
+             .strip_suffix(" .")
+             .expect("every emitted line ends with ' .'");
+diff --git crates/gmeow-cli/tests/prove_cli.rs crates/gmeow-cli/tests/prove_cli.rs
+index 58271a070..5baf0a31a 100644
+--- crates/gmeow-cli/tests/prove_cli.rs
++++ crates/gmeow-cli/tests/prove_cli.rs
+@@ -9,6 +9,7 @@ use assert_cmd::Command;
+ 
+ const PREFIXES: &str = r#"@prefix logic: <https://blackcatinformatics.ca/logic/> .
+ @prefix rdf:   <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
++@prefix math:  <https://blackcatinformatics.ca/math/> .
+ @prefix ex:    <https://example.org/prove/> .
+ "#;
+ 
+@@ -91,6 +92,7 @@ fn prove_json(name: &str, body: &str, extra: &[&str]) -> (serde_json::Value, i32
+ /// separate module consistency never licenses their contradictory composition.
+ /// Qualified duplicate carriers cannot erase admitted premises or borrow admission.
+ /// A blocked positive rule stays unread while the admitted fragment seeks a witness.
++/// An extensional set can list a selected claim and a quotation without changing their authority.
+ /// Excluded collection owners supply no cells or synthetic classes, while
+ /// unrelated assertions about a shared resource remain executable.
+ #[test]
+@@ -103,6 +105,8 @@ ex:Diamond a logic:Module ; logic:imports ex:RightModule, ex:LeftModule, ex:Hub
+ ex:A logic:disjointWith ex:B .
+ ex:left rdf:reifies <<( ex:a logic:instanceOf ex:A )>> ; logic:inModule ex:LeftModule .
+ ex:right rdf:reifies <<( ex:a logic:instanceOf ex:B )>> ; logic:inModule ex:RightModule .
++ex:quoted rdf:reifies <<( ex:a logic:instanceOf logic:Nothing )>> .
++ex:claims a math:FiniteSet ; math:hasElement ex:right, ex:quoted .
+ "#;
+     let directory = tempfile::tempdir().expect("scratch directory");
+     let source = write(directory.path(), "modules.ttl", body);
+diff --git crates/logic-compile/src/frontend/claims.rs crates/logic-compile/src/frontend/claims.rs
+index de65100a1..bfbc38066 100644
+--- crates/logic-compile/src/frontend/claims.rs
++++ crates/logic-compile/src/frontend/claims.rs
+@@ -13,15 +13,15 @@
+ //! * the evidence-only route accepts the allow-list of [`evidence_only`]; the
+ //!   distinct selected module route additionally accepts its exact admitted
+ //!   default-graph module coordinate. Both permit the separate descriptive
+-//!   carrier annotations below, which supply no assertion authority. Any other
+-//!   carrier statement, and any mention of it in another carried statement, may place, deny or qualify
+-//!   the claim, so the claim is not resolved;
++//!   carrier annotations below and ordinary membership in an explicitly
++//!   selected finite set. These supply no assertion authority. An unresolved
++//!   carrier reference or mention may place, deny or qualify the claim;
+ //! * a carrier resolves only when exactly one statement it holds lowers to the
+ //!   axiom and no term of that statement is a typed term carrier.
+ 
+ use std::collections::{BTreeMap, BTreeSet};
+ 
+-use purrdf::{RdfDataset, TermId, TermRef};
++use purrdf::{DatasetView, QuadIds, RdfDataset, TermId, TermRef};
+ 
+ use super::{
+     AxiomSource, CompiledTheory, LogicAxiom, Node, RDF_OBJECT, RDF_PREDICATE, RDF_REIFIES,
+@@ -29,8 +29,14 @@ use super::{
+     logic_iri, native_axiom, native_quoted_axiom, term_as_subject, term_str,
+ };
+ use crate::graphutil::{default_graph_pattern, iri_of, node_of, source_graph_pattern, subject_of};
++use crate::source_inventory::SelectedSourceView;
+ use purrdf::dataset_view::GraphMatch;
+ 
++const HAS_ELEMENT: &str = "https://blackcatinformatics.ca/math/hasElement";
++const FINITE_SET: &str = "https://blackcatinformatics.ca/math/FiniteSet";
++const SET_BUILDER: &str = "https://blackcatinformatics.ca/math/SetBuilderExpression";
++const MEMBER_CONDITION: &str = "https://blackcatinformatics.ca/math/memberCondition";
++
+ /// The statement a scoped claim carries, as term identities of the prepared dataset.
+ #[derive(Debug, Clone, PartialEq, Eq)]
+ pub enum ClaimStatement {
+@@ -95,7 +101,8 @@ pub struct ClaimCarrier {
+ ///
+ /// The rule has more arms, applied by [`ClaimResolver`] because they concern
+ /// statements the carrier is not the subject of. A statement whose object is the
+-/// carrier keeps the claim out. So does any mention of the carrier: inside a triple
++/// carrier requires an independently selected extensional membership route.
++/// A mention of the carrier keeps the claim out: inside a triple
+ /// term at any depth, as the predicate of a statement, or as the subject, predicate
+ /// or object of a classic statement node. A mention counts whoever makes it,
+ /// whether that other node is itself read, left unread, or a bare quotation, so no
+@@ -156,8 +163,8 @@ type Use = (String, Option<String>);
+ /// What the source says about one claim carrier from outside it, in any graph.
+ #[derive(Debug, Default)]
+ struct CarrierUses {
+-    /// Predicates of statements whose object is the carrier.
+-    references: Vec<Use>,
++    /// Original terms of statements whose object is the carrier.
++    references: Vec<QuadIds>,
+     /// Nodes whose statement mentions the carrier.
+     mentions: Vec<Use>,
+     /// The carrier is the name of a graph.
+@@ -228,9 +235,7 @@ impl CompiledTheory {
+                             .mentions
+                             .push((node_name(store, quad.s), graph.clone()));
+                     } else {
+-                        carrier
+-                            .references
+-                            .push((predicate.as_str().to_owned(), graph.clone()));
++                        carrier.references.push(quad);
+                     }
+                 }
+                 parts.clear();
+@@ -252,17 +257,96 @@ impl CompiledTheory {
+     }
+ }
+ 
++/// Recognize an independently selected ordinary extensional membership fact.
++/// The source term in its object position gains no claim authority from the set.
++fn selected_set_membership(
++    store: &RdfDataset,
++    selected: &SelectedSourceView<'_>,
++    quad: QuadIds,
++) -> bool {
++    if quad.g.is_some()
++        || quad.s == quad.o
++        || !matches!(store.resolve(quad.p), TermRef::Iri(HAS_ELEMENT))
++        || !matches!(
++            store.resolve(quad.s),
++            TermRef::Iri(_) | TermRef::Blank { .. }
++        )
++        || store
++            .annotations_of_with_graph(quad.s)
++            .any(|annotation| annotation == (quad.p, quad.o, None))
++        || selected
++            .quads_for_pattern(
++                Some(quad.s),
++                Some(quad.p),
++                Some(quad.o),
++                GraphMatch::Default,
++            )
++            .next()
++            .is_none()
++    {
++        return false;
++    }
++    let type_predicates = [
++        store.term_id_by_iri(&logic_iri("instanceOf")),
++        store.term_id_by_iri(RDF_TYPE),
++    ];
++    let Some(finite_set) = store.term_id_by_iri(FINITE_SET) else {
++        return false;
++    };
++    let source_has = |predicate, object| {
++        // The owner check reads the full carrier envelope before discharging a reference.
++        source_graph_pattern(
++            store,
++            Some(quad.s),
++            Some(predicate),
++            object,
++            GraphMatch::Any,
++        )
++        .next()
++        .is_some()
++    };
++    let source_types = |class| {
++        type_predicates
++            .into_iter()
++            .flatten()
++            .any(|predicate| source_has(predicate, Some(class)))
++    };
++    type_predicates.into_iter().flatten().any(|predicate| {
++        selected
++            .quads_for_pattern(
++                Some(quad.s),
++                Some(predicate),
++                Some(finite_set),
++                GraphMatch::Default,
++            )
++            .next()
++            .is_some()
++    }) && store
++        .term_id_by_iri(SET_BUILDER)
++        .is_none_or(|class| !source_types(class))
++        && store
++            .term_id_by_iri(MEMBER_CONDITION)
++            .is_none_or(|predicate| !source_has(predicate, None))
++        && store
++            .term_id_by_iri(RDF_REIFIES)
++            .is_none_or(|predicate| !source_has(predicate, None))
++        && store
++            .term_id_by_iri(RDF_STATEMENT)
++            .is_none_or(|class| !source_types(class))
++}
++
+ impl ClaimResolver<'_> {
+     /// What is said about `carrier` outside its contract, in any graph: a
+     /// subject statement outside reification, evidence, selected membership and
+-    /// admitted descriptive metadata, or a statement it
+-    /// is the object of (`Qualified`), else a statement that mentions it
++    /// admitted descriptive metadata, or an incoming reference outside selected
++    /// extensional membership (`Qualified`), else a statement that mentions it
+     /// (`Mentioned`), else its use as a graph name (`GraphName`).
+     fn said_about(
+         &self,
+         store: &RdfDataset,
+         carrier: TermId,
+         modules: &BTreeSet<TermId>,
++        selected: &SelectedSourceView<'_>,
+     ) -> Option<ClaimStatement> {
+         let uses = self.uses.get(&carrier);
+         let mut outside: Vec<Use> =
+@@ -286,10 +370,18 @@ impl ClaimResolver<'_> {
+                         )
+                     })
+                 })
+-                .chain(
+-                    uses.into_iter()
+-                        .flat_map(|uses| uses.references.iter().cloned()),
+-                )
++                .chain(uses.into_iter().flat_map(|uses| {
++                    uses.references
++                        .iter()
++                        .copied()
++                        .filter(|&quad| !selected_set_membership(store, selected, quad))
++                        .map(|quad| {
++                            (
++                                iri_of(store, quad.p).as_str().to_owned(),
++                                quad.g.map(|graph| node_name(store, graph)),
++                            )
++                        })
++                }))
+                 .collect();
+         outside.sort();
+         if let Some((predicate, graph)) = outside.first() {
+@@ -331,6 +423,7 @@ impl ClaimResolver<'_> {
+     ) -> gmeow_errors::Result<Vec<(ClaimCarrier, ClaimStatement)>> {
+         selection.authorize_source(self.compiled)?;
+         let view = selection.program_view(inventory)?;
++        let selected_source = selection.source_view(inventory)?;
+         let modules = selection.module_terms(self.compiled)?;
+         let mut included = view.axiom_sources_at(index)?.copied().peekable();
+         let axiom = &self.compiled.program().axioms[index];
+@@ -347,7 +440,7 @@ impl ClaimResolver<'_> {
+                 continue;
+             };
+             let statement = self
+-                .said_about(store, node.term, modules)
++                .said_about(store, node.term, modules, &selected_source)
+                 .unwrap_or_else(|| {
+                     if admitted && node.graph.is_none() {
+                         carried_statement(store, *node, axiom)
+diff --git crates/logic/src/reason/claims.rs crates/logic/src/reason/claims.rs
+index 2c03a5b6b..c19a66e67 100644
+--- crates/logic/src/reason/claims.rs
++++ crates/logic/src/reason/claims.rs
+@@ -10,6 +10,8 @@
+ //! each enforce their closed carrier contract against the complete original source.
+ //! Descriptive annotations retain roles, rationale and lineage without supplying evidence or
+ //! assertion authority.
++//! Selected extensional sets can enumerate carriers. Set members retain their independent
++//! claim admission requirements.
+ //! Read claims retain their carried native RDF terms. Excluded modules contribute
+ //! no premise; other unread scoped claims retain their boundaries. A quotation
+ //! carries no scope or evidence coordinate and is never read as an assertion.
+diff --git crates/logic/src/reason/claims.tests.rs crates/logic/src/reason/claims.tests.rs
+index fb65824b9..e70f266e9 100644
+--- crates/logic/src/reason/claims.tests.rs
++++ crates/logic/src/reason/claims.tests.rs
+@@ -19,6 +19,7 @@ const PREFIXES: &str = r#"@prefix logic: <https://blackcatinformatics.ca/logic/>
+ @prefix rdf:   <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+ @prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+ @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
++@prefix math:  <https://blackcatinformatics.ca/math/> .
+ @prefix ex:    <https://example.org/claims/> .
+ ex:Left logic:disjointWith ex:Right .
+ "#;
+@@ -89,6 +90,7 @@ fn ingest_modules(
+ /// excluded schema and NAF contribute no premise while genuinely shared terms survive.
+ /// Source, root, preparation, input and domain identities authorize the same run.
+ /// Descriptive roles, rationale and lineage remain ordinary source facts for authored rules.
++/// Extensional membership remains executable and supplies no claim assertion authority.
+ #[test]
+ fn module_execution_preserves_owners_shared_support_and_invocation_authority() {
+     const INCLUDED: &str = "https://example.org/claims/Included";
+@@ -103,6 +105,9 @@ ex:claim rdf:reifies <<( ex:a ex:label "chat"@fr )>> ; logic:inModule ex:Include
+     gmeow:graphBoxRole gmeow:boxCBox, ex:futureRole ;
+     gmeow:wasDerivedFrom ex:sourceRecord ;
+     gmeow:statedRationale "سبب"@ar--rtl .
++ex:quoted rdf:reifies <<( ex:a logic:instanceOf logic:Nothing )>> .
++ex:roster logic:instanceOf math:FiniteSet ; math:hasElement ex:claim, ex:quoted .
++ex:secondRoster a math:FiniteSet ; math:hasElement ex:claim .
+ _:x a logic:TermCarrier ; logic:termVariable "x" .
+ _:label logic:termVariable "label" .
+ _:y a logic:TermCarrier ; logic:termVariable "y" .
+@@ -111,6 +116,9 @@ ex:mark a logic:Rule ; logic:inModule ex:Included ;
+     logic:body [ rdf:reifies <<( _:x ex:label _:label )>> ; logic:inModule ex:Included ] .
+ _:carrier a logic:TermCarrier ; logic:termVariable "carrier" .
+ _:role a logic:TermCarrier ; logic:termVariable "role" .
++ex:rosterReceipt a logic:Rule ; logic:inModule ex:Included ;
++    logic:head [ rdf:reifies <<( _:carrier ex:listedBy ex:roster )>> ] ;
++    logic:body [ rdf:reifies <<( ex:roster math:hasElement _:carrier )>> ] .
+ ex:roleReceipt a logic:Rule ; logic:inModule ex:Included ;
+     logic:head [ rdf:reifies <<( _:carrier ex:describedBy _:role )>> ] ;
+     logic:body [ rdf:reifies <<( _:carrier gmeow:graphBoxRole _:role )>> ] .
+@@ -189,6 +197,16 @@ _:x logic:termIndex 0 . _:label logic:termIndex 1 .
+         ingress.read()[0].evidence.is_empty(),
+         "module assertion needs no invented evidence"
+     );
++    for member in [
++        "https://example.org/claims/claim",
++        "https://example.org/claims/quoted",
++    ] {
++        assert!(result.inferred().iter().any(|row| {
++            row.subject == member
++                && row.predicate == "https://example.org/claims/listedBy"
++                && row.object.as_iri() == Some("https://example.org/claims/roster")
++        }));
++    }
+     assert!(result.inferred().iter().any(|row| row.predicate == "https://example.org/claims/marked"
+         && matches!(&row.object, TermValue::Literal { lexical_form, language: Some(language), .. }
+             if lexical_form == "chat" && language == "fr")), "shared variable and literal identity reach the rule head");
+@@ -1238,6 +1256,7 @@ fn claims_placed_in_standpoints_by_according_to_are_named_and_are_not_a_clash()
+ #[test]
+ fn a_claim_with_an_independent_qualification_is_named_and_adds_no_fact() {
+     const MODALITY: &str = "https://blackcatinformatics.ca/logic/modality";
++    const HAS_ELEMENT: &str = "https://blackcatinformatics.ca/math/hasElement";
+     for (carrier, expected) in [
+         (
+             "gmeow:standpointModality gmeow:refuted ; logic:provenance ex:first",
+@@ -1263,6 +1282,31 @@ fn a_claim_with_an_independent_qualification_is_named_and_adds_no_fact() {
+             "logic:provenance ex:first . ex:denial ex:denies ex:claim",
+             vec![qualified(CLAIM, "https://example.org/claims/denies", 1)],
+         ),
++        (
++            "logic:provenance ex:first . ex:set math:hasElement ex:claim",
++            vec![qualified(CLAIM, HAS_ELEMENT, 1)],
++        ),
++        (
++            "logic:provenance ex:first . ex:set logic:instanceOf math:FiniteSet, math:SetBuilderExpression ; math:hasElement ex:claim",
++            vec![qualified(CLAIM, HAS_ELEMENT, 1)],
++        ),
++        (
++            "logic:provenance ex:first . ex:g { ex:set a math:SetBuilderExpression . } ex:set a math:FiniteSet ; math:hasElement ex:claim",
++            vec![qualified(CLAIM, HAS_ELEMENT, 1)],
++        ),
++        (
++            "logic:provenance ex:first . ex:g { ex:set math:hasElement ex:claim . } ex:set a math:FiniteSet",
++            vec![UnreadReason::Qualified {
++                graph: Some("https://example.org/claims/g".to_owned()),
++                carrier: CLAIM.to_owned(),
++                predicate: HAS_ELEMENT.to_owned(),
++                statements: 1,
++            }],
++        ),
++        (
++            "logic:provenance ex:first . ex:set logic:instanceOf math:FiniteSet ; math:hasElement ex:claim . ex:denial ex:denies ex:claim",
++            vec![qualified(CLAIM, "https://example.org/claims/denies", 1)],
++        ),
+         (
+             "logic:modality logic:none ; logic:provenance ex:first",
+             vec![qualified(CLAIM, MODALITY, 1)],
+@@ -1313,6 +1357,38 @@ fn a_claim_with_an_independent_qualification_is_named_and_adds_no_fact() {
+     builder
+         .push_annotation(subject, unknown, value)
+         .expect("annotation-table obligation");
++    // An exact annotation duplicate cannot borrow the ordinary membership route.
++    let claim = builder.intern_iri(CLAIM).expect("source carrier");
++    let proposition = builder
++        .intern_triple(value, relation, subject)
++        .expect("quoted fact");
++    builder
++        .push_reifier(claim, proposition)
++        .expect("quoted source");
++    let provenance = builder
++        .intern_iri("https://blackcatinformatics.ca/logic/provenance")
++        .expect("provenance predicate");
++    builder
++        .push_quad(claim, provenance, value, None)
++        .expect("claim evidence");
++    let type_predicate = builder
++        .intern_iri("http://www.w3.org/1999/02/22-rdf-syntax-ns#type")
++        .expect("type predicate");
++    let finite_set = builder
++        .intern_iri("https://blackcatinformatics.ca/math/FiniteSet")
++        .expect("finite set type");
++    builder
++        .push_quad(subject, type_predicate, finite_set, None)
++        .expect("ordinary finite set declaration");
++    let has_element = builder
++        .intern_iri(HAS_ELEMENT)
++        .expect("membership predicate");
++    builder
++        .push_quad(subject, has_element, claim, None)
++        .expect("ordinary source membership");
++    builder
++        .push_annotation(subject, has_element, claim)
++        .expect("annotation-table membership");
+     let source = builder.freeze().expect("owned source freezes");
+     let theory = PreparedLogicSource::new(&source)
+         .expect("source prepares")
+@@ -1321,6 +1397,8 @@ fn a_claim_with_an_independent_qualification_is_named_and_adds_no_fact() {
+     let inventory = SourceInventory::new(&theory, SourceSelection::all_classical_roots(&theory));
+     let mut admission = NativeSourceAdmission::inspect(&inventory).expect("whole source admission");
+     let (input, ingress) = ingest(&theory);
++    assert!(ingress.read().is_empty());
++    assert_eq!(unread_reasons(&ingress), [qualified(CLAIM, HAS_ELEMENT, 1)]);
+     let selected = prepare_selected_theory(&inventory, &ingress).expect("source program prepares");
+     let domains = default_domain(&input);
+     let result = reason_admitted_theory_within(
+diff --git crates/pipeline/src/stages/carrier.native_assembly_tests.rs crates/pipeline/src/stages/carrier.native_assembly_tests.rs
+index 9d5258879..2898a5507 100644
+--- crates/pipeline/src/stages/carrier.native_assembly_tests.rs
++++ crates/pipeline/src/stages/carrier.native_assembly_tests.rs
+@@ -191,3 +191,153 @@ fn projection_report_reuse_preserves_carrier_and_rejects_a_mismatch() {
+         assert!(check_projection_report(bytes, &report_iri, ledger, graph, rows).is_err());
+     }
+ }
++
++/// Snapshot reuse keeps the old documentation placement, certificate inputs
++/// and materialized carrier content across independently scoped neighbours.
++#[test]
++fn rooted_documentation_reuse_preserves_snapshot_identity() {
++    let documentation = parse_into_graph(
++        br#"_:member <urn:docs:count> 7 ; <urn:docs:label> "Documentation"@en .
++            <urn:docs:claim> <http://www.w3.org/1999/02/22-rdf-syntax-ns#reifies>
++                <<( _:member <urn:docs:count> 7 )>> ;
++                <urn:docs:evidence> <urn:docs:source> ."#,
++        "text/turtle",
++        GRAPH_DOCUMENTATION,
++    )
++    .expect("parse and root documentation RDF");
++    let empty = parse_into_graph(b"", "text/turtle", GRAPH_DOCUMENTATION)
++        .expect("root an empty documentation graph");
++    let neighbour = parse_into_graph(
++        b"_:member <urn:docs:label> <urn:docs:source> .",
++        "text/turtle",
++        "urn:neighbour",
++    )
++    .expect("parse an independently scoped neighbouring graph");
++    let canonical = |view: &purrdf::CompositeDatasetView| {
++        purrdf::try_canonicalize_flat_view(
++            view,
++            purrdf::CanonHash::Sha256,
++            &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None),
++        )
++        .expect("canonicalize the documentation carrier")
++    };
++    let hashes = |view: &purrdf::CompositeDatasetView| {
++        gmeow_logic::certificate::per_graph_axiom_hashes(view, purrdf::gts::writer::digest_string)
++    };
++    let content = |view: &purrdf::CompositeDatasetView| {
++        let carrier = view
++            .materialize()
++            .expect("materialize the composed carrier");
++        let mut snapshot = purrdf::gts_compose::SnapshotBuilder::new();
++        let _ingestion = snapshot
++            .add_view(carrier.as_ref())
++            .expect("fold the materialized carrier");
++        assert!(holds_named_graph(carrier.as_ref(), GRAPH_DOCUMENTATION));
++        snapshot.snapshot_content_id()
++    };
++
++    for dataset in [documentation, empty] {
++        let upstream = documentation_input(dataset);
++        let mut selected = CarrierParts::new(&upstream);
++        let mut reused = CarrierParts::new(&upstream);
++        for parts in [&mut selected, &mut reused] {
++            parts.push_dataset(neighbour.clone());
++        }
++        selected
++            .push_graph("stage-docs-render", GRAPH_DOCUMENTATION)
++            .expect("select the documentation graph");
++        reused
++            .push_rooted_graph("stage-docs-render", GRAPH_DOCUMENTATION)
++            .expect("reuse the native documentation graph");
++        for parts in [&mut selected, &mut reused] {
++            parts.push_dataset(neighbour.clone());
++        }
++        let selected = selected.view().expect("compose with the graph selection");
++        let reused = reused.view().expect("compose with the root dataset");
++
++        assert_eq!(canonical(&selected).nquads(), canonical(&reused).nquads());
++        assert_eq!(hashes(&selected), hashes(&reused));
++        assert_eq!(content(&selected), content(&reused));
++    }
++}
++
++/// Reuse refuses carrier rows from the default graph and unexpected declarations.
++#[test]
++fn rooted_documentation_reuse_refuses_foreign_surfaces() {
++    let empty = RdfDatasetBuilder::new()
++        .freeze()
++        .expect("freeze an undeclared dataset");
++    let unexpected_declaration = purrdf::parse_dataset(
++        format!("<{GRAPH_DOCUMENTATION}> {{}} <urn:unexpected> {{}}").as_bytes(),
++        "application/trig",
++        None,
++    )
++    .expect("parse the candidate's extra graph declaration");
++    for dataset in [empty, unexpected_declaration] {
++        let upstream = documentation_input(dataset);
++        let error = CarrierParts::new(&upstream)
++            .push_rooted_graph("stage-docs-render", GRAPH_DOCUMENTATION)
++            .expect_err("refuse an absent or extra graph declaration");
++        assert!(error.to_string().contains("must declare only"));
++    }
++
++    #[derive(Debug)]
++    enum Layer {
++        Ordinary,
++        Reifier,
++        Annotation,
++    }
++    for layer in [Layer::Ordinary, Layer::Reifier, Layer::Annotation] {
++        let mut builder = RdfDatasetBuilder::new();
++        let graph = builder
++            .intern_iri(GRAPH_DOCUMENTATION)
++            .expect("intern the documentation graph");
++        builder
++            .declare_named_graph(graph)
++            .expect("declare the graph");
++        let s = builder.intern_iri("urn:s").expect("intern the subject");
++        let p = builder.intern_iri("urn:p").expect("intern the predicate");
++        let o = builder.intern_iri("urn:o").expect("intern the object");
++        let reifier = builder
++            .intern_iri("urn:reifier")
++            .expect("intern the reifier");
++        let statement = builder.intern_triple(s, p, o).expect("intern the triple");
++        match layer {
++            Layer::Ordinary => builder
++                .push_quad(s, p, o, None)
++                .expect("add a default quad"),
++            Layer::Reifier => builder
++                .push_reifier_in_graph(reifier, statement, None)
++                .expect("add a default reifier"),
++            Layer::Annotation => {
++                builder
++                    .push_reifier_in_graph(reifier, statement, Some(graph))
++                    .expect("declare the named reifier");
++                builder
++                    .push_annotation_in_graph(reifier, p, o, None)
++                    .expect("add a default annotation");
++            }
++        }
++        let dataset = builder
++            .freeze()
++            .expect("freeze RDF with default graph rows");
++        let upstream = documentation_input(dataset);
++        let error = CarrierParts::new(&upstream)
++            .push_rooted_graph("stage-docs-render", GRAPH_DOCUMENTATION)
++            .expect_err("refuse default graph rows");
++        assert!(
++            error.to_string().contains("contains RDF rows outside"),
++            "{layer:?}: {error}"
++        );
++    }
++}
++
++fn documentation_input(
++    dataset: std::sync::Arc<purrdf::RdfDataset>,
++) -> BTreeMap<String, StageProduct> {
++    BTreeMap::from([(
++        "stage-docs-render".to_owned(),
++        StageProduct::from_artifacts_over("stage-docs-render", dataset, BTreeMap::new())
++            .expect("admit the supplied documentation product"),
++    )])
++}
+diff --git crates/pipeline/src/stages/carrier.rs crates/pipeline/src/stages/carrier.rs
+index e344ecfd4..4d9977112 100644
+--- crates/pipeline/src/stages/carrier.rs
++++ crates/pipeline/src/stages/carrier.rs
+@@ -913,8 +913,8 @@ fn graph_has_quads(dataset: &purrdf::RdfDataset, graph_iri: &str) -> bool {
+ /// The snapshot carrier's parts, held as composite sources over the producers' resident
+ /// datasets.
+ ///
+-/// Each part is one producer graph selected and placed into its carrier graph
+-/// (`purrdf::CompositeSource::from_selection` plus `purrdf::GraphPlacement::Named`), or
++/// Each part is one producer graph selected and placed into its carrier graph,
++/// a producer dataset that already occupies its sole declared carrier graph, or
+ /// a dataset this stage built itself. Selection
+ /// carries a graph's quads, reifier declarations, annotations and declaration exactly as
+ /// `project_graph` selects them, and named placement moves the whole selected surface
+@@ -1027,6 +1027,34 @@ impl<'a> CarrierParts<'a> {
+         self.push_graph_as(stage, graph_iri, graph_iri)
+     }
+ 
++    /// Place a producer's entire single-graph dataset without building a selection index.
++    fn push_rooted_graph(
++        &mut self,
++        stage: &str,
++        graph_iri: &str,
++    ) -> Result<(), gmeow_errors::Diag> {
++        let dataset = self.producer_dataset(stage)?;
++        let graph = dataset
++            .term_id_by_iri(graph_iri)
++            .filter(|&graph| dataset.named_graphs().eq(std::iter::once(graph)))
++            .ok_or_else(|| stage_err(&format!("{stage} must declare only <{graph_iri}>")))?;
++        if dataset.quads().any(|quad| quad.g != Some(graph))
++            || dataset
++                .reifiers_with_graph()
++                .any(|(_, _, owner)| owner != Some(graph))
++            || dataset
++                .annotations_with_graph()
++                .any(|(_, _, _, owner)| owner != Some(graph))
++        {
++            return Err(stage_err(&format!(
++                "{stage} contains RDF rows outside <{graph_iri}>"
++            )));
++        }
++        log_carrier_part(stage, graph_iri, dataset.quad_count());
++        self.place_graph_source(purrdf::CompositeSource::new(dataset), graph_iri);
++        Ok(())
++    }
++
+     /// Place every record of `dataset` into the carrier graph `placed_iri`.
+     fn push_placed(&mut self, dataset: std::sync::Arc<purrdf::RdfDataset>, placed_iri: &str) {
+         log_carrier_part("dataset", placed_iri, dataset.quad_count());
+@@ -1196,7 +1224,7 @@ fn assemble_carrier(
+         "stage-source-load",
+         crate::stages::provenance_graph::GRAPH_PROVENANCE,
+     )?;
+-    parts.push_graph("stage-docs-render", GRAPH_DOCUMENTATION)?;
++    parts.push_rooted_graph("stage-docs-render", GRAPH_DOCUMENTATION)?;
+     // graph/diagnostics ← SHACL diagnostics (stage-validate) ∪ logic-compile diagnostics
+     // (stage-compile-logic) ∪ chase certificates (stage-reason) ∪ schema-export
+     // diagnostics, each selected off its producer's attached graph.
+@@ -3523,7 +3551,7 @@ impl Stage for SnapshotStage {
+     }
+     /// Bind the complete snapshot contract, including required canon admission evidence.
+     fn impl_version(&self) -> &str {
+-        "snapshot.v42-share-checked-projection-ledger"
++        "snapshot.v43-reuse-rooted-documentation"
+     }
+     fn input_files(&self, root: &Path) -> Result<Vec<PathBuf>, gmeow_errors::Diag> {
+         let mut files = Vec::new();
+diff --git docs/PIPELINE_SPINE.md docs/PIPELINE_SPINE.md
+index 2760ea37a..78a89ec1a 100644
+--- docs/PIPELINE_SPINE.md
++++ docs/PIPELINE_SPINE.md
+@@ -94,7 +94,8 @@ Stage kinds (source-load, transform, reason, validate, docs-render) differ only
+ deliver by attaching to the carrier.
+ 
+ `stage-docs-render` publishes `graph/documentation` in its frozen dataset.
+-It releases the serialized rendering when native parsing finishes. Snapshot
++The documentation projector appends each row and its shared A-Box annotations
++to one N-Quads buffer and releases that text after native parsing. Snapshot
+ selects the named graph through the declared dataset edge.
+ 
+ `stage-parse-sources` owns the original native root, module and import document
+@@ -205,6 +206,10 @@ input blank scopes remain distinct. These producer inputs carry locations in the
+ RDF and report payloads; unexpected physical row-location attachments fail admission
+ before publication. Diagnostics retain their selected graph placement.
+ 
++Snapshot assembly uses the native documentation dataset as an independently
++scoped source. It checks that the documentation graph is the sole declaration
++and owns every ordinary statement, reifier and annotation before placing it.
++
+ Snapshot assembly derives finding verdicts over the composed resident sources, then
+ assesses coherence over a second read-only view with those verdicts appended. The
+ shared release/pipeline outcome builder reads the governing policy and per-graph
+diff --git slices/grounding/logic/design/LOGIC-IR.md slices/grounding/logic/design/LOGIC-IR.md
+index d5a9cfafb..ec8265f29 100644
+--- slices/grounding/logic/design/LOGIC-IR.md
++++ slices/grounding/logic/design/LOGIC-IR.md
+@@ -627,16 +627,21 @@ the substrate does not.
+   routing authority. Named-graph annotations and values outside the admitted
+   types retain their boundaries.
+   An annotation alone leaves a quotation unasserted.
+-  Every envelope check still reads the complete original source. Any carrier
+-  statement beyond the selected route's contract, any statement with the
+-  carrier as object or predicate, any mention of the carrier in a statement another carrier
+-  holds (inside a triple term at any depth, or as a term of a classic statement node,
+-  whatever the standing of that other carrier), and the carrier's use as a graph name keep
+-  the claim out, in whichever graph of the source they occur; a named graph never supplies
+-  the evidence. A predicate need not be known to count: a standpoint, a stance
+-  or denial, a time, a module outside the resolved request, a second type, an
+-  unknown annotation, and every `logic:modality` value, so a carrier that states `logic:none` beside another
+-  modality is not read for either value. Eligibility belongs to each original
++  An ordinary default-graph `math:hasElement` row with an independently selected
++  `math:FiniteSet` declaration can enumerate a carrier. The selected declaration
++  uses ordinary `logic:instanceOf` or `rdf:type`. The actual
++  row remains a membership fact. Both the row and declaration must be selected.
++  Intensional set syntax and statement ownership qualify the set across the complete
++  source, including named graphs. Self-links and annotation rows retain the
++  incoming-reference boundary. Membership supplies no claim assertion authority.
++  Envelope checks read the complete original source. Incoming references outside
++  admitted membership, other statements beyond the carrier contract, predicate
++  uses, mentions in any quoted triple or classic carrier, and graph-name uses keep
++  the claim out wherever they occur. A named graph grants no evidence authority.
++  A standpoint, stance, denial, time, module outside the resolved request,
++  second type, unknown annotation or any `logic:modality` value still qualifies
++  the carrier. A carrier with several modality values remains unread for each.
++  Eligibility belongs to each original
+   carrier, even when canonical axiom deduplication shares its statement with
+   another carrier. The ingress retains every independently admitted carrier and
+   every unread carrier with its coordinate, predicate or reason. A qualified
+diff --git slices/grounding/logic/design/LOGIC-SEMANTICS.md slices/grounding/logic/design/LOGIC-SEMANTICS.md
+index d90526812..e5cc0cfcd 100644
+--- slices/grounding/logic/design/LOGIC-SEMANTICS.md
++++ slices/grounding/logic/design/LOGIC-SEMANTICS.md
+@@ -224,6 +224,12 @@ names each claim it leaves unread. It never reads a quotation. One residual is n
+ interpreted: the *value* of `logic:provenance`. A claim whose stated source is itself a
+ retraction or denial activity is still read as reported by that source.
+ 
++An admitted extensional set enumerates claim resources through its ordinary
++`math:hasElement` facts. Each member retains its own assertion and scope.
++A member can be a quotation or an asserted claim, and the same carrier can
++occur in several sets. The finite-set declaration and membership both require
++ordinary default-graph source occurrences in the selected view.
++
+ ## The reasoning contract
+ 
+ "Sound" is ambiguous until you answer "sound relative to which semantics?" Because `logic:` admits
+diff --git slices/grounding/logic/docs.md slices/grounding/logic/docs.md
+index 74087d91e..c23566b14 100644
+--- slices/grounding/logic/docs.md
++++ slices/grounding/logic/docs.md
+@@ -131,8 +131,14 @@ and outgoing `gmeow:wasDerivedFrom`, and `gmeow:statedRationale` text, as
+ descriptive source facts. Preserve the exact role, lineage target, wording,
+ language and direction. These annotations supply no evidence or assertion
+ authority. Quotations still assert nothing. Named-graph annotations, values
+-outside the admitted types and incoming references retain their boundaries.
+-Unknown qualifiers, mentions and graph-name uses retain their boundaries.
++outside the admitted types, unknown qualifiers, mentions and graph-name uses
++retain their boundaries.
++
++An ordinary default-graph `math:hasElement` row can list a carrier in a set
++explicitly declared as `math:FiniteSet` with `logic:instanceOf` or `rdf:type`.
++Both rows must be selected. An independently admitted claim in the set remains executable, and
++a listed quotation remains a quotation. The original membership is available
++to rules. Other incoming references still qualify the carrier.
+ 
+ Reports preserve the complete supplied source inventory and identify the roots,
+ resolved imports, actual consumption and remaining blockers. An unselected module
+diff --git slices/grounding/math/design/MATHEMATICS-NUMBERS-AND-SETS.md slices/grounding/math/design/MATHEMATICS-NUMBERS-AND-SETS.md
+index a6919eae0..440bf288b 100644
+--- slices/grounding/math/design/MATHEMATICS-NUMBERS-AND-SETS.md
++++ slices/grounding/math/design/MATHEMATICS-NUMBERS-AND-SETS.md
+@@ -109,6 +109,12 @@ without a declared equality. Set operations (union, intersection, complement, di
+ constructors; and `math:Cardinality` (finite, ℵ₀, 𝔠, …) is carried, not assumed. The external
+ anchor is OpenMath `set1`.
+ 
++An extensional set can enumerate claim carriers with ordinary
++`math:hasElement` assertions and an explicit `math:FiniteSet` declaration
++via `logic:instanceOf` or `rdf:type` in the selected default graph. The membership relates the set to
++the carrier resource and supplies no assertion authority for the carried statement.
++See [the selected source-theory contract](../../logic/docs.md#selecting-a-source-theory).
++
+ > **Hard rule.** An intensional set names its member condition as a `logic:` formula (the
+ > denotation seam), never as an opaque string. A "complement" names its ambient set — an unqualified
+ > complement is ill-formed (the same discipline the geometry charter applies to subspace
