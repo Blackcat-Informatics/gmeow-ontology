@@ -8,6 +8,7 @@
 //! are observations and have no constructor that can restore that authority.
 
 mod accounting;
+mod governance;
 
 use std::collections::BTreeSet;
 
@@ -27,6 +28,10 @@ use crate::physical::{LogicalGraph, SelectedDomains};
 use crate::query_ir::Budget;
 use crate::result::{EvaluationStatus, InformationState, ReasoningResult};
 use accounting::{AtomPolarity, UnitTerm, account_axiom, account_formula, account_predication};
+pub use governance::{
+    NonEntailmentSourceBoundary, SelectedNonEntailment, SelectedNonEntailmentDisposition,
+    SelectedNonEntailmentObligation,
+};
 
 const ENGINE_NATIVE: &str = "native";
 const PROFILE: &str = "gmeow-native-source-accounting-v1";
@@ -34,6 +39,8 @@ const NAF_BOUNDARY: &str = "NEGATION_AS_FAILURE_IS_NOT_CLASSICAL_NEGATION";
 const FORMULA_EVIDENCE_BOUNDARY: &str = "FORMULA_EVIDENCE_NOT_ACCOUNTED";
 const SOURCE_ACCOUNTING_DOMAIN: purrdf_hash::Domain =
     purrdf_hash::Domain::new(b"gmeow-native-source-accounting-v1\0");
+const GOVERNED_SOURCE_ACCOUNTING_DOMAIN: purrdf_hash::Domain =
+    purrdf_hash::Domain::new(b"gmeow-native-source-accounting-v2\0");
 const SOURCE_EXECUTION_DOMAIN: purrdf_hash::Domain =
     purrdf_hash::Domain::new(b"gmeow-live-native-source-execution-v1\0");
 
@@ -75,6 +82,7 @@ pub enum NativeSourceDisposition {
     MetatheoryDeclaration {
         route: &'static str,
     },
+    NonEntailmentDeclaration,
     OutsideSelection {
         reason: &'static str,
     },
@@ -84,6 +92,8 @@ pub enum NativeSourceDisposition {
     Blocked {
         code: &'static str,
         reason: String,
+        #[serde(skip_serializing_if = "Option::is_none")]
+        non_entailment_field: Option<&'static str>,
     },
     Malformed {
         code: &'static str,
@@ -98,6 +108,7 @@ impl Disposition {
         Self::Blocked {
             code,
             reason: reason.into(),
+            non_entailment_field: None,
         }
     }
     fn malformed(code: &'static str, reason: impl Into<String>) -> Self {
@@ -114,7 +125,7 @@ impl Disposition {
     }
     fn boundary(&self) -> Option<(&'static str, &str)> {
         match self {
-            Self::Blocked { code, reason } | Self::Malformed { code, reason } => {
+            Self::Blocked { code, reason, .. } | Self::Malformed { code, reason } => {
                 Some((code, reason))
             }
             Self::OutsideSelection { reason } => Some(("OUTSIDE_SELECTION", reason)),
@@ -131,6 +142,7 @@ pub struct NativeSourceAdmission<'inventory> {
     selection: ResolvedTheorySelection,
     dispositions: Vec<Disposition>,
     execution_drops: BTreeSet<NativeSourceDrop>,
+    non_entailment: Option<SelectedNonEntailment>,
     completion: Option<LiveCompletion>,
 }
 
@@ -184,6 +196,7 @@ impl<'inventory> NativeSourceAdmission<'inventory> {
             selection: selection.clone(),
             dispositions,
             execution_drops: BTreeSet::new(),
+            non_entailment: None,
             completion: None,
         })
     }
@@ -266,11 +279,26 @@ impl<'inventory> NativeSourceAdmission<'inventory> {
         &self.selection
     }
 
+    /// Governance outcomes and source links from this selected execution.
+    #[must_use]
+    pub fn non_entailment(&self) -> Option<&SelectedNonEntailment> {
+        self.non_entailment.as_ref()
+    }
+
     fn accounting_digest(&self) -> [u8; 32] {
         let mut hasher = purrdf_hash::blake3::Hasher::new();
-        hasher.update(SOURCE_ACCOUNTING_DOMAIN.as_bytes());
+        let domain = if self.non_entailment.is_some() {
+            GOVERNED_SOURCE_ACCOUNTING_DOMAIN
+        } else {
+            SOURCE_ACCOUNTING_DOMAIN
+        };
+        hasher.update(domain.as_bytes());
         serde_json::to_writer(&mut hasher, &Rows(self))
             .expect("native source rows serialize to an infallible digest sink");
+        if let Some(non_entailment) = self.non_entailment() {
+            serde_json::to_writer(&mut hasher, non_entailment)
+                .expect("selected non-entailment observations serialize to the digest sink");
+        }
         *hasher.finalize().as_bytes()
     }
 }
@@ -313,7 +341,10 @@ impl Serialize for Rows<'_, '_> {
 
 impl Serialize for NativeSourceAdmission<'_> {
     fn serialize<S: serde::Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
-        let mut record = serializer.serialize_struct("NativeSourceAdmission", 15)?;
+        let mut record = serializer.serialize_struct(
+            "NativeSourceAdmission",
+            15 + usize::from(self.non_entailment.is_some()),
+        )?;
         record.serialize_field("profile", PROFILE)?;
         record.serialize_field("basis", "compiler source obligations and exact lowering routes; authored occurrences are retained by their document receipts")?;
         record.serialize_field("source_digest", self.inventory.source_digest())?;
@@ -324,6 +355,9 @@ impl Serialize for NativeSourceAdmission<'_> {
         record.serialize_field("complete", &self.observed_complete())?;
         record.serialize_field("units", &Rows(self))?;
         record.serialize_field("execution_drops", &self.execution_drops)?;
+        if let Some(non_entailment) = self.non_entailment() {
+            record.serialize_field("non_entailment", non_entailment)?;
+        }
         record.serialize_field(
             "ingress_contract",
             &self
@@ -447,9 +481,14 @@ fn classify(
                     ),
                     "native asserted fact and interpreted-relation account",
                 ),
-                Err(error) => {
-                    Disposition::blocked("UNSUPPORTED_SELECTED_ASSERTION", error.to_string())
-                }
+                Err(error) => Disposition::Blocked {
+                    code: "UNSUPPORTED_SELECTED_ASSERTION",
+                    reason: error.to_string(),
+                    non_entailment_field: governance::unread_field_name(
+                        theory.source().dataset(),
+                        quad,
+                    ),
+                },
             }
         }
         SourceObligationOrigin::Quotation { reifier, graph, .. } => {
@@ -994,12 +1033,16 @@ pub fn reason_admitted_theory_within(
 ) -> gmeow_errors::Result<std::sync::Arc<ReasoningResult>> {
     admission.completion = None;
     admission.execution_drops.clear();
+    admission.non_entailment = None;
     for (unit, disposition) in admission
         .inventory
         .obligations()
         .zip(&mut admission.dispositions)
     {
-        if matches!(disposition, Disposition::FormulaEvidence { .. }) {
+        if matches!(
+            disposition,
+            Disposition::FormulaEvidence { .. } | Disposition::NonEntailmentDeclaration
+        ) {
             *disposition =
                 classify_selected(admission.inventory, unit, None, &admission.selection)?;
         }
@@ -1220,6 +1263,7 @@ pub fn reason_admitted_theory_within(
             "the supplied source contains no theory unit",
         ));
     }
+    governance::account_non_entailment(admission, &result)?;
     let complete = admission.drops().next().is_none();
     let execution = execution_digest(&result, &verdict);
     let result = std::sync::Arc::new(result);

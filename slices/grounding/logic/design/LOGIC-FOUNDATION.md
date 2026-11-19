@@ -503,6 +503,16 @@ closure can discharge an obligation that syntactic analysis leaves unknown. An a
 counterexample in the selected context justifies violation. A requested but unimplemented discharge
 condition remains a capability error, even when another condition is available.
 
+The public selected-source prover uses the same world-bound assessment as
+the verification gate. Its report links every admitted declaration and field
+to its original source obligation. An unread field retains its source link
+and diagnostic. An absence result requires coverage of the full selected
+theory as well as the native discharge proof. A committed
+derived witness retains its violation even if another selected obligation
+remains undecided or has malformed fields. These outcomes contribute to
+completion of the selected proof account. Refutation of the logical theory
+still requires a supported contradiction.
+
 Two standing examples:
 
 - **intent must not be derived from structural deception** — the presence of a held/projected gap is
