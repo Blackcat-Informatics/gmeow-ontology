@@ -12,6 +12,7 @@ fn documentation_admission_preserves_stage_and_snapshot_identity() {
             iri: "https://blackcatinformatics.ca/gmeow/Document".to_owned(),
             curie: "gmeow:Document".to_owned(),
             label: Some("Document".to_owned()),
+            owner_slice: "https://blackcatinformatics.ca/gmeow/slice/documents".to_owned(),
             ..Default::default()
         }],
         ..Default::default()
@@ -39,6 +40,10 @@ fn documentation_admission_preserves_stage_and_snapshot_identity() {
 
     for input in [rendered.as_str(), reified.as_str(), ""] {
         let admitted = admit_rendered_documentation(input).expect("admit the rendered graph");
+        assert_eq!(
+            admitted.owned_named_graphs().collect::<Vec<_>>(),
+            [RdfTerm::iri(GRAPH_DOCUMENTATION)]
+        );
         let rooted = crate::stages::carrier::parse_into_graph(
             input.as_bytes(),
             "application/n-quads",
