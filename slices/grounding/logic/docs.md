@@ -131,8 +131,14 @@ and outgoing `gmeow:wasDerivedFrom`, and `gmeow:statedRationale` text, as
 descriptive source facts. Preserve the exact role, lineage target, wording,
 language and direction. These annotations supply no evidence or assertion
 authority. Quotations still assert nothing. Named-graph annotations, values
-outside the admitted types and incoming references retain their boundaries.
-Unknown qualifiers, mentions and graph-name uses retain their boundaries.
+outside the admitted types, unknown qualifiers, mentions and graph-name uses
+retain their boundaries.
+
+An ordinary default-graph `math:hasElement` row can list a carrier in a set
+explicitly declared as `math:FiniteSet` with `logic:instanceOf` or `rdf:type`.
+Both rows must be selected. An independently admitted claim in the set remains executable, and
+a listed quotation remains a quotation. The original membership is available
+to rules. Other incoming references still qualify the carrier.
 
 Reports preserve the complete supplied source inventory and identify the roots,
 resolved imports, actual consumption and remaining blockers. An unselected module

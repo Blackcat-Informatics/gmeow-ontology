@@ -109,6 +109,12 @@ without a declared equality. Set operations (union, intersection, complement, di
 constructors; and `math:Cardinality` (finite, ℵ₀, 𝔠, …) is carried, not assumed. The external
 anchor is OpenMath `set1`.
 
+An extensional set can enumerate claim carriers with ordinary
+`math:hasElement` assertions and an explicit `math:FiniteSet` declaration
+via `logic:instanceOf` or `rdf:type` in the selected default graph. The membership relates the set to
+the carrier resource and supplies no assertion authority for the carried statement.
+See [the selected source-theory contract](../../logic/docs.md#selecting-a-source-theory).
+
 > **Hard rule.** An intensional set names its member condition as a `logic:` formula (the
 > denotation seam), never as an opaque string. A "complement" names its ambient set — an unqualified
 > complement is ill-formed (the same discipline the geometry charter applies to subspace

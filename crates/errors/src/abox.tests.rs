@@ -12,8 +12,13 @@ const GRAPH: &str = "https://blackcatinformatics.ca/gmeow/graph/example";
 /// graphBoxRole) order — the order both adapters commit to.
 #[test]
 fn annotate_nquads_emits_four_triples_in_fixed_order() {
-    let mut out = Vec::new();
+    let mut out = String::new();
     annotate_nquads(SUBJECT, LABEL, DEFINITION, GRAPH, &mut out);
+    assert!(
+        out.ends_with('\n'),
+        "the final quad must end with a newline"
+    );
+    let out: Vec<_> = out.lines().collect();
     assert_eq!(out.len(), 4, "must emit exactly four annotation triples");
     assert!(
         out[0].contains(RDFS_LABEL),
@@ -37,8 +42,9 @@ fn annotate_nquads_emits_four_triples_in_fixed_order() {
 /// `graphBoxRole`'s object is exactly `gmeow:boxABox`.
 #[test]
 fn annotate_nquads_isdefinedby_and_role_objects_are_correct() {
-    let mut out = Vec::new();
+    let mut out = String::new();
     annotate_nquads(SUBJECT, LABEL, DEFINITION, GRAPH, &mut out);
+    let out: Vec<_> = out.lines().collect();
     assert!(
         out[2].contains(&format!("<{GRAPH}>")),
         "isDefinedBy must point at the containing graph IRI: {}",
@@ -55,9 +61,9 @@ fn annotate_nquads_isdefinedby_and_role_objects_are_correct() {
 /// language tag, never bare `en`.
 #[test]
 fn annotate_nquads_literals_carry_the_carrier_language_tag() {
-    let mut out = Vec::new();
+    let mut out = String::new();
     annotate_nquads(SUBJECT, LABEL, DEFINITION, GRAPH, &mut out);
-    for line in &out[0..2] {
+    for line in out.lines().take(2) {
         assert!(
             line.ends_with(&format!("\"@{X_GMEOW_ENGLISH} <{GRAPH}> .")),
             "literal line must carry the x-gmeow-english carrier tag: {line}"
@@ -72,8 +78,8 @@ fn annotate_nquads_literals_carry_the_carrier_language_tag() {
 /// Determinism: identical inputs produce byte-identical output, every call.
 #[test]
 fn annotate_nquads_is_deterministic() {
-    let mut a = Vec::new();
-    let mut b = Vec::new();
+    let mut a = String::new();
+    let mut b = String::new();
     annotate_nquads(SUBJECT, LABEL, DEFINITION, GRAPH, &mut a);
     annotate_nquads(SUBJECT, LABEL, DEFINITION, GRAPH, &mut b);
     assert_eq!(a, b);
@@ -84,8 +90,9 @@ fn annotate_nquads_is_deterministic() {
 /// N-Quads line shape (still four triples, still ending in the graph token).
 #[test]
 fn annotate_nquads_escapes_literal_content() {
-    let mut out = Vec::new();
+    let mut out = String::new();
     annotate_nquads(SUBJECT, "has \"quotes\"", "has\\backslash", GRAPH, &mut out);
+    let out: Vec<_> = out.lines().collect();
     assert!(out[0].contains("has \\\"quotes\\\""), "{}", out[0]);
     assert!(out[1].contains("has\\\\backslash"), "{}", out[1]);
 }
@@ -100,7 +107,7 @@ fn annotate_nquads_escapes_literal_content() {
 fn cross_substrate_parity_string_and_builder_emit_the_same_quad_set() {
     use std::collections::BTreeSet;
 
-    let mut lines = Vec::new();
+    let mut lines = String::new();
     annotate_nquads(SUBJECT, LABEL, DEFINITION, GRAPH, &mut lines);
 
     let mut builder = purrdf_core::RdfDatasetBuilder::new();
@@ -129,7 +136,7 @@ fn cross_substrate_parity_string_and_builder_emit_the_same_quad_set() {
     // space, dropping the doubled predicate brackets vs. Display's IRI
     // rendering — both sides normalize to `<iri>`/`"lex"@tag` tokens).
     let mut from_nquads: BTreeSet<String> = BTreeSet::new();
-    for line in &lines {
+    for line in lines.lines() {
         let body = line
             .strip_suffix(" .")
             .expect("every emitted line ends with ' .'");
