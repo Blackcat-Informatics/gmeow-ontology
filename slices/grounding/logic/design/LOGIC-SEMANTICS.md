@@ -646,12 +646,16 @@ The foundational categories are `logic:` terms in the one namespace: `logic:Kind
 `logic:suppliesIdentity`, and `logic:mediates`. They obey the same naming discipline as the rest of
 GMEOW (Principle 9: no selector tokens) and the language-tag discipline (`@x-gmeow-english`).
 
-Native execution accounts `logic:RelationshipType` as named class membership
-through `logic:instanceOf` or `rdf:type`. The exact authored fact can support a
-native rule and its refutation witness. Authored subsumption, signatures and
-scope require their own source accounts. The grounding slice publishes
-validation-only correspondences to gUFO and SUMO with explicit preservation
-judgments in [the grounding bridges](../mappings/grounding-bridges.ttl).
+Native execution accounts for named membership in `logic:AbstractIndividualType`,
+`logic:Category`, `logic:Kind`, `logic:QualityValue`, `logic:RelationshipType`
+and `logic:SubKind` through `logic:instanceOf` or `rdf:type`. The exact
+authored fact can support a native rule and its refutation witness. Authored
+subsumption, signatures and scope require their own source accounts.
+The grounding slice publishes validation-only correspondences for these
+classes to gUFO, for `logic:RelationshipType` to SUMO, and for
+`logic:QualityValue` to YAMATO. Each correspondence records its own
+preservation judgment. [Grounding bridges](../mappings/grounding-bridges.ttl) ·
+[Foundational bridges](../mappings/foundation-bridges.ttl)
 
 The payoff: the OntoUML disciplines GMEOW enforces — exactly-one-stereotype, identity overlap
 (**MixIden**), anti-rigidity (**MixRig** / **FreeRole**), and relator mediation (**RelComp**) — cannot

@@ -187,7 +187,27 @@ const ACCOUNTED_MARKERS: &[(&str, &str)] = &[
         "declaration without a law",
     ),
     (
+        "https://blackcatinformatics.ca/logic/AbstractIndividualType",
+        "named class membership carried by the native closure",
+    ),
+    (
+        "https://blackcatinformatics.ca/logic/Category",
+        "named class membership carried by the native closure",
+    ),
+    (
+        "https://blackcatinformatics.ca/logic/Kind",
+        "named class membership carried by the native closure",
+    ),
+    (
+        "https://blackcatinformatics.ca/logic/QualityValue",
+        "named class membership carried by the native closure",
+    ),
+    (
         "https://blackcatinformatics.ca/logic/RelationshipType",
+        "named class membership carried by the native closure",
+    ),
+    (
+        "https://blackcatinformatics.ca/logic/SubKind",
         "named class membership carried by the native closure",
     ),
     (
