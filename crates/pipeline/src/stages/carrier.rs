@@ -872,6 +872,36 @@ fn holds_named_graph(dataset: &purrdf::RdfDataset, graph_iri: &str) -> bool {
         .is_some_and(|graph| dataset.has_named_graph(graph))
 }
 
+/// Check that the promised graph owns the entire native dataset.
+pub(super) fn require_rooted_graph(
+    dataset: &purrdf::RdfDataset,
+    stage: &str,
+    graph_iri: &str,
+) -> gmeow_errors::Result<()> {
+    let invalid = |message| {
+        gmeow_errors::Diag::of_kind(crate::error::StageFailed {
+            stage: stage.to_owned(),
+            message,
+            cause: None,
+        })
+    };
+    let graph = dataset
+        .term_id_by_iri(graph_iri)
+        .filter(|&graph| dataset.named_graphs().eq(std::iter::once(graph)))
+        .ok_or_else(|| invalid(format!("must declare only <{graph_iri}>")))?;
+    if dataset.quads().any(|quad| quad.g != Some(graph))
+        || dataset
+            .reifiers_with_graph()
+            .any(|(_, _, owner)| owner != Some(graph))
+        || dataset
+            .annotations_with_graph()
+            .any(|(_, _, _, owner)| owner != Some(graph))
+    {
+        return Err(invalid(format!("contains RDF rows outside <{graph_iri}>")));
+    }
+    Ok(())
+}
+
 /// Number of ordinary quads `dataset` asserts in the named graph `graph_iri`.
 fn graph_quad_count(dataset: &purrdf::RdfDataset, graph_iri: &str) -> usize {
     dataset.term_id_by_iri(graph_iri).map_or(0, |graph| {
@@ -1034,22 +1064,7 @@ impl<'a> CarrierParts<'a> {
         graph_iri: &str,
     ) -> Result<(), gmeow_errors::Diag> {
         let dataset = self.producer_dataset(stage)?;
-        let graph = dataset
-            .term_id_by_iri(graph_iri)
-            .filter(|&graph| dataset.named_graphs().eq(std::iter::once(graph)))
-            .ok_or_else(|| stage_err(&format!("{stage} must declare only <{graph_iri}>")))?;
-        if dataset.quads().any(|quad| quad.g != Some(graph))
-            || dataset
-                .reifiers_with_graph()
-                .any(|(_, _, owner)| owner != Some(graph))
-            || dataset
-                .annotations_with_graph()
-                .any(|(_, _, _, owner)| owner != Some(graph))
-        {
-            return Err(stage_err(&format!(
-                "{stage} contains RDF rows outside <{graph_iri}>"
-            )));
-        }
+        require_rooted_graph(&dataset, stage, graph_iri)?;
         log_carrier_part(stage, graph_iri, dataset.quad_count());
         self.place_graph_source(purrdf::CompositeSource::new(dataset), graph_iri);
         Ok(())
