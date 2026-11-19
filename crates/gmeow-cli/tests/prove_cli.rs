@@ -1303,7 +1303,7 @@ fn selected_non_entailment_binds_source_rows_and_keeps_supported_violations() {
     let directory = tempfile::tempdir().expect("source directory");
     write(
         directory.path(),
-        "first.ttl",
+        "first.logic.ttl",
         r#"
 _:obligation a logic:NonEntailmentObligation ;
     logic:obligationForbiddenPredicate ex:absentFirst ;
@@ -1313,7 +1313,7 @@ ex:s ex:seed ex:o .
     );
     write(
         directory.path(),
-        "second.ttl",
+        "second.logic.ttl",
         r#"
 _:obligation logic:instanceOf logic:NonEntailmentObligation ;
     logic:obligationForbiddenPredicate ex:absentSecond ;
@@ -1343,7 +1343,7 @@ _:obligation logic:instanceOf logic:NonEntailmentObligation ;
         let (expected_document, typing_field) =
             if record["forbidden_predicate"] == "https://example.org/prove/absentFirst" {
                 (
-                    "first.ttl",
+                    "first.logic.ttl",
                     "http://www.w3.org/1999/02/22-rdf-syntax-ns#type",
                 )
             } else {
@@ -1352,7 +1352,7 @@ _:obligation logic:instanceOf logic:NonEntailmentObligation ;
                     "https://example.org/prove/absentSecond"
                 );
                 (
-                    "second.ttl",
+                    "second.logic.ttl",
                     "https://blackcatinformatics.ca/logic/instanceOf",
                 )
             };
