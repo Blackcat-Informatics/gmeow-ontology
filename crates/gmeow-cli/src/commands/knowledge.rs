@@ -3,6 +3,8 @@
 
 //! Installed knowledge, reasoning and validation command bodies.
 
+use std::io::{self, Write as _};
+
 use super::*;
 
 // ── describe ─────────────────────────────────────────────────────────────────
@@ -217,40 +219,63 @@ pub fn conjecture_test(
         );
     }
 
-    // A precondition-unmet TR gate refused the write: report it and fail (exit 1),
-    // mirroring the MCP `ok:false` path — the verdict was computed but not persisted.
+    if let Err(error) = write_conjecture_verdict(&out) {
+        return fail(
+            reporter,
+            "gmeow-cli.conjecture.stdout",
+            format!(
+                "cannot write the verdict ({error}). Artifact published at {} (committed={}, dry_run={})",
+                artifact_path.display(),
+                out.committed,
+                out.dry_run,
+            ),
+        );
+    }
+    // An unmet persistence precondition returns the same refusal as the MCP path.
     if let Some(reason) = &out.precondition_unmet {
-        println!("lifecycle {}", out.lifecycle);
-        println!("information {}", out.information);
         return fail(
             reporter,
             "gmeow-cli.conjecture.precondition-unmet",
             format!("persistConjecture precondition unmet: {reason}"),
         );
     }
+    0
+}
 
-    // Product results → stdout with stable, greppable key prefixes.
-    println!("lifecycle {}", out.lifecycle);
-    println!("information {}", out.information);
-    println!("evaluation {}", out.evaluation);
-    println!("completeness {}", out.completeness);
-    println!("discharge {}", out.discharge);
-    println!("conjecture {}", out.node_iri);
+fn write_conjecture_verdict(out: &gmeow_mcp::ConjectureRunOutput) -> io::Result<()> {
+    let mut stdout = io::stdout().lock();
+    writeln!(stdout, "lifecycle {}", out.lifecycle)?;
+    writeln!(stdout, "information {}", out.information)?;
+    if out.precondition_unmet.is_some() {
+        return stdout.flush();
+    }
+    writeln!(stdout, "evaluation {}", out.evaluation)?;
+    writeln!(stdout, "completeness {}", out.completeness)?;
+    writeln!(stdout, "discharge {}", out.discharge)?;
+    writeln!(stdout, "conjecture {}", out.node_iri)?;
     if let Some(witness) = &out.witness {
-        println!("witness-individual {}", witness.individual);
-        println!("witness-world {}", witness.world);
+        writeln!(stdout, "witness-individual {}", witness.individual)?;
+        writeln!(stdout, "witness-world {}", witness.world)?;
         for premise in &witness.premises {
-            println!("witness-premise {premise}");
+            writeln!(stdout, "witness-premise {premise}")?;
         }
     }
-    if out.dry_run {
-        println!("persisted dry-run (library unchanged)");
-    } else if out.committed {
-        println!("persisted committed");
+    writeln!(
+        stdout,
+        "persisted {}",
+        persistence_status(out.dry_run, out.committed)
+    )?;
+    stdout.flush()
+}
+
+fn persistence_status(dry_run: bool, committed: bool) -> &'static str {
+    if dry_run {
+        "dry-run (library unchanged)"
+    } else if committed {
+        "committed"
     } else {
-        println!("persisted no");
+        "no"
     }
-    0
 }
 
 // ── candidate (propose/verify seam) ──────────────────────────────────────────
@@ -387,13 +412,18 @@ pub fn candidate_submit(
             ),
         );
     }
-    println!("lifecycle {}", out.lifecycle);
-    println!("information {}", out.information);
-    println!("evaluation {}", out.evaluation);
-    println!("completeness {}", out.completeness);
-    println!("discharge {}", out.discharge);
-    println!("admissible {}", out.admissible);
-    println!("candidate {}", out.node_iri);
+    if let Err(error) = write_candidate_verdict(&out) {
+        return fail(
+            reporter,
+            "gmeow-cli.candidate.stdout",
+            format!(
+                "cannot write the verdict ({error}). Artifact published at {} (committed={}, dry_run={})",
+                artifact_path.display(),
+                out.committed,
+                out.dry_run,
+            ),
+        );
+    }
 
     // NOT admissible (refuted / open): the write was refused and nothing was appended. Report and
     // fail (exit 1), mirroring the MCP `ok:false` path.
@@ -404,14 +434,26 @@ pub fn candidate_submit(
             format!("submitCandidate precondition unmet (candidate not admissible): {reason}"),
         );
     }
-    if out.dry_run {
-        println!("persisted dry-run (library unchanged)");
-    } else if out.committed {
-        println!("persisted committed");
-    } else {
-        println!("persisted no");
-    }
     0
+}
+
+fn write_candidate_verdict(out: &gmeow_mcp::CandidateSubmitOutput) -> io::Result<()> {
+    let mut stdout = io::stdout().lock();
+    writeln!(stdout, "lifecycle {}", out.lifecycle)?;
+    writeln!(stdout, "information {}", out.information)?;
+    writeln!(stdout, "evaluation {}", out.evaluation)?;
+    writeln!(stdout, "completeness {}", out.completeness)?;
+    writeln!(stdout, "discharge {}", out.discharge)?;
+    writeln!(stdout, "admissible {}", out.admissible)?;
+    writeln!(stdout, "candidate {}", out.node_iri)?;
+    if out.precondition_unmet.is_none() {
+        writeln!(
+            stdout,
+            "persisted {}",
+            persistence_status(out.dry_run, out.committed)
+        )?;
+    }
+    stdout.flush()
 }
 
 /// `gmeow candidate withdraw` — withdraw a persisted candidate (P10 supersession). Delegates to
