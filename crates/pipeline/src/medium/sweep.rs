@@ -1388,7 +1388,7 @@ pub fn run_sweep(root: &Path, jobs: usize) -> Result<MediumBaseline, gmeow_error
     let codec_corpus: Vec<&[u8]> = payload_frames
         .iter()
         .filter(|row| !CODEC_SWEEP_EXCLUDED_REPS.contains(&row.rep.as_str()))
-        .map(|row| row.data.as_slice())
+        .map(|row| row.data.as_ref())
         .collect();
     let excluded: Vec<String> = CODEC_SWEEP_EXCLUDED_REPS
         .iter()
@@ -1423,7 +1423,7 @@ pub fn run_sweep(root: &Path, jobs: usize) -> Result<MediumBaseline, gmeow_error
         let row = match by_dictionary.get(&id) {
             // Population A: the dictionary primes emitted blob frames.
             Some(primed) => {
-                let population: Vec<&[u8]> = primed.iter().map(|row| row.data.as_slice()).collect();
+                let population: Vec<&[u8]> = primed.iter().map(|row| row.data.as_ref()).collect();
                 sweep_dictionary(&inputs, &population, &codec, level)?
             }
             // Population B: no bundle rep names it, so its frames are the ones a

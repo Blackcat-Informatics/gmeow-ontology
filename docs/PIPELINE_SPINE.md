@@ -490,8 +490,11 @@ fanout paths. The superset gate checks those materialized paths (§7).
 publishes the certified snapshot dataset. `stage-gts-sink` reads that dataset
 and the declared archive, dictionary, and export inputs. It assembles the
 physical frames, computes their identities, seals the medium envelopes, and
-publishes the serialized `gmeow.gts` bytes in its stage product. In update
-mode, reconcile materializes the bundle and fanout projects its files (§6).
+publishes the serialized `gmeow.gts` bytes in its stage product. Dictionary
+measurement and envelope sealing borrow prebuilt bytes from the producing
+stages. The emitter copies each borrowed payload into the writer's owned
+frame buffer when it emits that frame. In update mode, reconcile
+materializes the bundle and fanout projects its files (§6).
 In check mode, reconcile checks the emitted bundle and the existing files
 without writing either.
 

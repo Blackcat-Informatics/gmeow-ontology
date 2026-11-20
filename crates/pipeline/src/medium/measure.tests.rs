@@ -135,12 +135,12 @@ fn population_a_groups_by_the_assigned_dictionary() {
         4096,
     )
     .expect("train");
-    let rows = [BlobRow {
-        data: owned.concat(),
+    let rows = [GmeowGtsBlob {
+        data: owned.concat().into(),
         media_type: "application/x-tar".to_string(),
         rep: "cells-archive".to_string(),
     }];
-    let borrowed: Vec<&BlobRow> = rows.iter().collect();
+    let borrowed: Vec<_> = rows.iter().collect();
     let trained: BTreeMap<String, Vec<u8>> = [("gmeow-core-v1".to_string(), dict)].into();
     let sample_counts: BTreeMap<String, u64> = [("gmeow-core-v1".to_string(), 400)].into();
     let effects = population_a(

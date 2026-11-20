@@ -10,8 +10,8 @@ use crate::node::StageProduct;
 /// [`purrdf::RdfLookasideKind::Shex`], each resolving to the exact producer bytes.
 /// This is the production-surface demonstration that a repo-free consumer reads the
 /// validation surface under its typed kind (LOGIC-VALIDATION.md) without re-running
-/// the compiler — the decode path exercised is the true `emit_gts` writer +
-/// `read_graph`/`lookaside_from_graph` reader, never a hand-rolled shortcut.
+/// the compiler. The test uses the GMEOW snapshot emitter and the native
+/// `read_graph` and `lookaside_from_graph` readers.
 #[test]
 fn typed_shacl_shex_sidecars_round_trip_through_gmeow_gts() {
     // A minimal stage-compile-logic product carrying the two validation-shape surfaces
@@ -39,7 +39,7 @@ fn typed_shacl_shex_sidecars_round_trip_through_gmeow_gts() {
     );
 
     // Build the typed sidecars through the PRODUCTION helper, fold them into a
-    // well-formed snapshot, and emit through the REAL gts writer (`emit_gts`).
+    // well-formed snapshot, and emit through the GMEOW snapshot writer.
     let typed_blobs = build_validation_shape_typed_blobs(&upstream).expect("typed sidecars");
     let mut builder = SnapshotBuilder::new();
     add_base_nq(
@@ -51,22 +51,17 @@ fn typed_shacl_shex_sidecars_round_trip_through_gmeow_gts() {
     )
     .expect("fold base graph");
     // gmeow-test-input: synthetic-only
-    let gts = emit_gts(
-        &builder,
-        "dist",
-        Some(vec!["gzip".to_string()]),
+    let gts = gmeow_gts_profile::emit_gmeow_gts(
+        builder,
         typed_blobs,
         Vec::new(),
         None,
-        None,
-        None,
-        purrdf::gts_compose::DEFAULT_RSYNCABLE_THRESHOLD,
-        &purrdf::gts_compose::MediumPlan::dist_default(Some(&["gzip".to_string()])),
+        &gmeow_gts_profile::baseline_medium_plan(),
     )
     .expect("emit snapshot");
 
     // DECODE the emitted bytes back through the real gts reader + lookaside fold.
-    let graph = purrdf::gts::read_graph(&gts, true).expect("read_graph");
+    let graph = purrdf::gts::read_graph(&gts.bytes, true).expect("read_graph");
     let lookaside = purrdf::gts::lookaside_from_graph(&graph);
 
     // Resolve the single resource of `kind` to its payload bytes via the content-store

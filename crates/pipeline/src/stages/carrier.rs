@@ -19,6 +19,7 @@ use std::collections::BTreeMap;
 use std::path::{Path, PathBuf};
 
 use crate::node::{CachePolicy, Stage, StageInput, StageOutput, StageProduct, StageRunTiming};
+use gmeow_gts_profile::GmeowGtsBlob;
 use purrdf::RdfDatasetBuilder;
 #[cfg(test)]
 use purrdf::gts_compose::emit_gts;
@@ -537,18 +538,18 @@ const SNAPSHOT_SERIALIZER: &str = "gts-snapshot-serializer";
 /// opaque archive's members and the manifest graph that DECLARES them are derived
 /// from the same collected set, and separating them would let the bytes and the
 /// declaration disagree about which paths the opaque lane carries.
-pub struct SnapshotFrames {
+pub struct SnapshotFrames<'a> {
     /// The by-reference archives, surface blobs, reasoning report, opaque fanout
     /// archive and typed validation sidecars.
-    pub blobs: Vec<BlobRow>,
+    pub blobs: Vec<GmeowGtsBlob<'a>>,
     /// The SHACL diagnostics sidecars, which ride their own report lane.
-    pub report_blobs: Vec<BlobRow>,
+    pub report_blobs: Vec<GmeowGtsBlob<'a>>,
     /// The carrier-time meta-level named graphs folded alongside the carrier: the
     /// opaque-fanout manifest and the distribution catalog.
     pub extra_graphs: Vec<std::sync::Arc<purrdf::RdfDataset>>,
 }
 
-impl SnapshotFrames {
+impl SnapshotFrames<'_> {
     /// Every payload-bearing blob frame, in emission order — the population the
     /// medium's dictionary-effect measurement is taken over.
     ///
@@ -556,7 +557,7 @@ impl SnapshotFrames {
     /// is the frame whose compressed length is a function of the payload that carries
     /// the measurement (see [`crate::medium::measure`]).
     #[must_use]
-    pub fn payload_frames(&self) -> Vec<&BlobRow> {
+    pub fn payload_frames(&self) -> Vec<&GmeowGtsBlob<'_>> {
         self.blobs.iter().chain(self.report_blobs.iter()).collect()
     }
 }
@@ -569,11 +570,11 @@ impl SnapshotFrames {
 /// # Errors
 /// Any missing upstream artifact (no-optionality: a frame this emission is supposed
 /// to author and cannot is a hard fail, never a smaller bundle).
-pub fn snapshot_frames(
+pub fn snapshot_frames<'a>(
     root: &Path,
-    upstream: &BTreeMap<String, StageProduct>,
+    upstream: &'a BTreeMap<String, StageProduct>,
     carrier: &purrdf::RdfDataset,
-) -> Result<SnapshotFrames, gmeow_errors::Diag> {
+) -> Result<SnapshotFrames<'a>, gmeow_errors::Diag> {
     // THIS run's by-reference TAR archives (mappings / cells / queries / tests /
     // schemas / shapes / axioms / models-python), folded ONCE by the dedicated
     // `stage-archive-blobs` producer and read back off its product here. The terminal
@@ -597,10 +598,12 @@ pub fn snapshot_frames(
         &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None),
     )
     .map_err(|e| stage_err(&format!("lang-form slice catalog: {e}")))?;
-    blobs.extend(crate::stages::lang_form::build_surface_blobs(Some(
-        &lang_form_catalog,
-    ))?);
-    blobs.push(build_reasoning_blob(upstream)?);
+    blobs.extend(
+        crate::stages::lang_form::build_surface_blobs(Some(&lang_form_catalog))?
+            .into_iter()
+            .map(GmeowGtsBlob::from),
+    );
+    blobs.push(build_reasoning_blob(upstream)?.into());
     // The opaque-fanout archive: every non-RDF generated/ fanout output, recomputed from
     // THIS run's carrier (superset law — RDF rides as named graphs, not here). Collect the
     // member set ONCE and derive BOTH the archive blob AND the declared `opaque` fanout
@@ -608,7 +611,7 @@ pub fn snapshot_frames(
     // about which paths the opaque lane carries.
     let opaque_members = collect_fanout_opaque_members(carrier, upstream)?;
     let opaque_manifest = build_fanout_opaque_manifest(opaque_members.keys())?;
-    blobs.push(opaque_blob_from_members(opaque_members)?);
+    blobs.push(opaque_blob_from_members(opaque_members)?.into());
     // The typed Shacl/Shex validation-shape sidecars: the SAME validation surfaces the
     // REP_GENERATED archive carries (one source — `validation_shape_surfaces`), ALSO folded
     // as content-addressed blobs whose media type classifies each on decode into its typed
@@ -619,21 +622,19 @@ pub fn snapshot_frames(
     let shacl_json = upstream
         .get("stage-validate")
         .and_then(|p| p.artifact(crate::stages::validate::SHACL_JSON_PATH))
-        .ok_or_else(|| stage_err("missing validate-stage SHACL diagnostics JSON"))?
-        .to_vec();
+        .ok_or_else(|| stage_err("missing validate-stage SHACL diagnostics JSON"))?;
     let shacl_sarif = upstream
         .get("stage-validate")
         .and_then(|p| p.artifact(crate::stages::validate::SHACL_SARIF_PATH))
-        .ok_or_else(|| stage_err("missing validate-stage SHACL diagnostics SARIF"))?
-        .to_vec();
+        .ok_or_else(|| stage_err("missing validate-stage SHACL diagnostics SARIF"))?;
     let report_blobs = vec![
-        BlobRow {
-            data: shacl_sarif,
+        GmeowGtsBlob {
+            data: shacl_sarif.into(),
             media_type: "application/sarif+json".to_string(),
             rep: REP_SHACL_SARIF.to_string(),
         },
-        BlobRow {
-            data: shacl_json,
+        GmeowGtsBlob {
+            data: shacl_json.into(),
             media_type: "application/json".to_string(),
             rep: REP_SHACL_FINDINGS.to_string(),
         },
@@ -1877,8 +1878,8 @@ fn compile_logic_object_graphs(
 fn serialize_snapshot(
     carrier_handle: &std::sync::Arc<purrdf::RdfDataset>,
     extra_graphs: &[std::sync::Arc<purrdf::RdfDataset>],
-    blobs: Vec<BlobRow>,
-    report_blobs: Vec<BlobRow>,
+    blobs: Vec<GmeowGtsBlob<'_>>,
+    report_blobs: Vec<GmeowGtsBlob<'_>>,
     upstream: &BTreeMap<String, StageProduct>,
     selection: &crate::medium::registry::MediumSelection,
     timings: &mut Vec<StageRunTiming>,
@@ -1912,7 +1913,7 @@ fn serialize_snapshot(
     // assignment is total over the frames `emit_gts` will write; an unregistered or
     // unassigned one is a HARD FAIL at this point rather than an unprimed frame on a
     // shipped artifact.
-    let frames: Vec<&BlobRow> = blobs.iter().chain(report_blobs.iter()).collect();
+    let frames: Vec<_> = blobs.iter().chain(report_blobs.iter()).collect();
     let frame_count = frames.len();
     let frame_bytes = frames.iter().map(|row| row.data.len()).sum();
     let phase_started = std::time::Instant::now();
@@ -2584,18 +2585,16 @@ mod claims_archive_rep_tests;
 /// Hard-fails if either surface is absent from the product (no-optionality, fail-closed).
 fn validation_shape_surfaces(
     upstream: &BTreeMap<String, StageProduct>,
-) -> Result<(Vec<u8>, Vec<u8>), gmeow_errors::Diag> {
+) -> Result<(&[u8], &[u8]), gmeow_errors::Diag> {
     let shacl = upstream
         .get("stage-compile-logic")
         .and_then(|p| p.artifact(crate::stages::compile_logic::VALIDATION_SHAPES_TTL_PATH))
-        .map(<[u8]>::to_vec)
         .ok_or_else(|| {
             stage_err("missing generated/shapes/validation-shapes.ttl in stage-compile-logic")
         })?;
     let shex = upstream
         .get("stage-compile-logic")
         .and_then(|p| p.artifact(crate::stages::compile_logic::VALIDATION_SHAPES_SHEX_PATH))
-        .map(<[u8]>::to_vec)
         .ok_or_else(|| {
             stage_err("missing generated/shapes/validation-shapes.shex in stage-compile-logic")
         })?;
@@ -2616,16 +2615,16 @@ fn validation_shape_surfaces(
 /// two blobs carry distinct reps, so the blob-frame sort in `emit_gts` is deterministic.
 fn build_validation_shape_typed_blobs(
     upstream: &BTreeMap<String, StageProduct>,
-) -> Result<Vec<BlobRow>, gmeow_errors::Diag> {
+) -> Result<Vec<GmeowGtsBlob<'_>>, gmeow_errors::Diag> {
     let (shacl, shex) = validation_shape_surfaces(upstream)?;
     Ok(vec![
-        BlobRow {
-            data: shacl,
+        GmeowGtsBlob {
+            data: shacl.into(),
             media_type: VALIDATION_SHACL_MEDIA_TYPE.to_string(),
             rep: REP_VALIDATION_SHACL.to_string(),
         },
-        BlobRow {
-            data: shex,
+        GmeowGtsBlob {
+            data: shex.into(),
             media_type: VALIDATION_SHEX_MEDIA_TYPE.to_string(),
             rep: REP_VALIDATION_SHEX.to_string(),
         },
@@ -2907,11 +2906,11 @@ fn collect_fanout_opaque_members(
     let (validation_shacl, validation_shex) = validation_shape_surfaces(upstream)?;
     members.insert(
         crate::stages::compile_logic::VALIDATION_SHAPES_TTL_PATH.to_string(),
-        validation_shacl,
+        validation_shacl.to_vec(),
     );
     members.insert(
         crate::stages::compile_logic::VALIDATION_SHAPES_SHEX_PATH.to_string(),
-        validation_shex,
+        validation_shex.to_vec(),
     );
 
     // context.jsonld + dsl-stats ride in from the sink-consumed stage-mappings product
@@ -3111,14 +3110,13 @@ const REASONING_INTERNAL_MEMBERS: [(&str, &str, &str); 4] = [
 fn build_reasoning_blob(
     upstream: &BTreeMap<String, StageProduct>,
 ) -> Result<BlobRow, gmeow_errors::Diag> {
-    let get = |path: &str| -> Result<Vec<u8>, gmeow_errors::Diag> {
+    let get = |path: &str| {
         upstream
             .get("stage-reason")
             .and_then(|p| p.artifact(path))
-            .map(<[u8]>::to_vec)
             .ok_or_else(|| stage_err(&format!("missing stage-reason artifact {path}")))
     };
-    let internal = |index: usize| -> Result<(String, Vec<u8>), gmeow_errors::Diag> {
+    let internal = |index: usize| -> Result<(&str, &[u8]), gmeow_errors::Diag> {
         let (member, producer, artifact) = REASONING_INTERNAL_MEMBERS[index];
         let bytes = upstream
             .get(producer)
@@ -3130,26 +3128,26 @@ fn build_reasoning_blob(
                      edge to {producer} declares `gmeow:flowReadsArtifact \"{artifact}\"`"
                 ))
             })?;
-        Ok((member.to_owned(), bytes.to_vec()))
+        Ok((member, bytes))
     };
     // Bundle-relative keys under `reason/` — deliberately NOT `generated/logic/…`, so
     // a consumer never mistakes these bundle-consistent reports (over the reasoning result
     // whose projection rides the carrier) for the full-fold `generated/logic/` files
     // owned by `stage-export-logic`.
-    let members = vec![
+    let members = [
         internal(0)?,
         internal(1)?,
         internal(2)?,
         (
-            "reason/reasoning-explanations.rdf12.ttl".to_string(),
+            "reason/reasoning-explanations.rdf12.ttl",
             get(crate::stages::reason::EXPLANATIONS_PATH)?,
         ),
         (
-            "reason/dl-el-crosscheck-report.ttl".to_string(),
+            "reason/dl-el-crosscheck-report.ttl",
             get(crate::stages::reason::LEDGER_PATH)?,
         ),
         (
-            "reason/perf-ledger.ttl".to_string(),
+            "reason/perf-ledger.ttl",
             get(crate::stages::reason::PERF_LEDGER_PATH)?,
         ),
         internal(3)?,
@@ -3443,10 +3441,15 @@ pub(crate) fn members_relpath(
 /// One archive blob: a deterministic USTAR tar over `members`, tagged with `rep`.
 pub(crate) fn archive_blob(
     rep: &str,
-    members: &[(String, Vec<u8>)],
+    members: &[(impl AsRef<str>, impl AsRef<[u8]>)],
 ) -> Result<BlobRow, gmeow_errors::Diag> {
     Ok(BlobRow {
-        data: purrdf::ustar::write_archive(members).map_err(|cause| {
+        data: purrdf::ustar::write_archive_borrowed(
+            members
+                .iter()
+                .map(|(name, bytes)| (name.as_ref(), bytes.as_ref())),
+        )
+        .map_err(|cause| {
             gmeow_errors::Diag::of_kind(gmeow_gts_profile::error::NativeArchive {
                 cause: std::sync::Arc::new(cause),
             })

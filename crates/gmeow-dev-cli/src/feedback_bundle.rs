@@ -15,9 +15,10 @@
 use std::collections::BTreeMap;
 
 use gmeow_errors::{Report, render};
+use gmeow_gts_profile::GmeowGtsBlob;
 use purrdf::gts::dataset_from_gts_graph;
 use purrdf::gts::reader::read;
-use purrdf::gts_compose::{BlobRow, SnapshotBuilder};
+use purrdf::gts_compose::SnapshotBuilder;
 use purrdf::parse_dataset;
 use purrdf_lex::cbor::Value as CborValue;
 
@@ -66,13 +67,13 @@ pub fn build_feedback_bundle(
         builder,
         Vec::new(),
         vec![
-            BlobRow {
-                data: sarif.into_bytes(),
+            GmeowGtsBlob {
+                data: sarif.into_bytes().into(),
                 media_type: "application/sarif+json".to_owned(),
                 rep: REP_SARIF.to_owned(),
             },
-            BlobRow {
-                data: flat.into_bytes(),
+            GmeowGtsBlob {
+                data: flat.into_bytes().into(),
                 media_type: "application/json".to_owned(),
                 rep: REP_FINDINGS.to_owned(),
             },

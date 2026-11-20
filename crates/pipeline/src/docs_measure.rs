@@ -50,8 +50,9 @@ use std::collections::BTreeMap;
 use std::path::Path;
 
 use gmeow_errors::Diag;
+use gmeow_gts_profile::GmeowGtsBlob;
 use purrdf::RdfDataset;
-use purrdf::gts_compose::{BlobRow, SnapshotBuilder};
+use purrdf::gts_compose::SnapshotBuilder;
 
 use crate::error::DocsMeasure as DocsMeasureError;
 use crate::node::StageProduct;
@@ -252,11 +253,8 @@ pub fn measure_docs_designs(root: &Path) -> Result<DocsMeasurements, Diag> {
     })
 }
 
-/// One rendered format, ready to be totalled and GTS-framed. Carries the
-/// packed archive bytes + a stable `rep` label rather than an owned
-/// [`BlobRow`] (which does not implement `Clone`), since this format's blob
-/// is framed twice — once alone (its own `l12_bytes` delta) and once
-/// together with every other format (Design B).
+/// One rendered format with the packed bytes shared by its individual
+/// measurement and the combined GTS emission.
 struct RenderedFormat {
     format_name: String,
     family: String,
@@ -271,9 +269,9 @@ struct RenderedFormat {
 }
 
 impl RenderedFormat {
-    fn blob_row(&self) -> BlobRow {
-        BlobRow {
-            data: self.archive.clone(),
+    fn blob_row(&self) -> GmeowGtsBlob<'_> {
+        GmeowGtsBlob {
+            data: self.archive.as_slice().into(),
             media_type: "application/x-tar".to_string(),
             rep: self.rep.clone(),
         }

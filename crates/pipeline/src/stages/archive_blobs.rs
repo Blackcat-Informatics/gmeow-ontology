@@ -44,6 +44,7 @@ use std::collections::BTreeMap;
 use std::path::{Path, PathBuf};
 use std::sync::Arc;
 
+use gmeow_gts_profile::GmeowGtsBlob;
 use purrdf::gts_compose::BlobRow;
 use purrdf::provenance::DatasetProvenance;
 use purrdf::{ContentDigest, PipelineBundle};
@@ -671,7 +672,7 @@ fn members_basename_from_artifacts(
 /// truncated — never permission to ship a bundle without an archive surface.
 pub(crate) fn archive_blobs_from_product(
     upstream: &BTreeMap<String, StageProduct>,
-) -> Result<Vec<BlobRow>, gmeow_errors::Diag> {
+) -> Result<Vec<GmeowGtsBlob<'_>>, gmeow_errors::Diag> {
     let bundle = upstream
         .get(STAGE_ID)
         .ok_or_else(|| {
@@ -747,10 +748,10 @@ fn archive_bytes<'a>(
 
 /// One archive row reconstructed from the product's blob lane: the record's declared
 /// media type + representation and the content-store bytes its digest resolves to.
-fn archive_row(
-    bundle: &PipelineBundle<PipelineHandle>,
+fn archive_row<'a>(
+    bundle: &'a PipelineBundle<PipelineHandle>,
     rep: &str,
-) -> Result<BlobRow, gmeow_errors::Diag> {
+) -> Result<GmeowGtsBlob<'a>, gmeow_errors::Diag> {
     let record = bundle
         .lookaside()
         .blobs
@@ -761,14 +762,14 @@ fn archive_row(
                 "the {STAGE_ID} product carries no `{rep}` blob record (fail-closed)"
             ))
         })?;
-    let data = archive_bytes(bundle, rep)?.to_vec();
+    let data = archive_bytes(bundle, rep)?;
     let media_type = record.media_type.clone().ok_or_else(|| {
         stage_err(&format!(
             "the {STAGE_ID} product's `{rep}` blob record declares no media type"
         ))
     })?;
-    Ok(BlobRow {
-        data,
+    Ok(GmeowGtsBlob {
+        data: data.into(),
         media_type,
         rep: rep.to_string(),
     })

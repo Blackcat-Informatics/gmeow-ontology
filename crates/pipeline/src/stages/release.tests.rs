@@ -469,8 +469,8 @@ fn snapshot_with_report_blob(data: &[u8], rep: &str) -> gmeow_gts_profile::Gmeow
     gmeow_gts_profile::emit_gmeow_gts(
         b,
         Vec::new(),
-        vec![BlobRow {
-            data: data.to_vec(),
+        vec![GmeowGtsBlob {
+            data: data.into(),
             media_type: "application/json".to_string(),
             rep: rep.to_string(),
         }],
@@ -800,13 +800,13 @@ fn docs_snapshot() -> gmeow_gts_profile::GmeowGtsEmission {
     gmeow_gts_profile::emit_gmeow_gts(
         b,
         vec![
-            BlobRow {
-                data: b"BOOK-ARCHIVE-BYTES".to_vec(),
+            GmeowGtsBlob {
+                data: b"BOOK-ARCHIVE-BYTES".as_slice().into(),
                 media_type: "application/x-tar".to_string(),
                 rep: REP_DOCS_BOOK.to_string(),
             },
-            BlobRow {
-                data: print_tar,
+            GmeowGtsBlob {
+                data: print_tar.into(),
                 media_type: "application/x-tar".to_string(),
                 rep: REP_DOCS_PRINT.to_string(),
             },

@@ -13,6 +13,7 @@ use std::collections::BTreeMap;
 use std::sync::Arc;
 
 use gmeow_cost_measure::{CountingAllocator, measure};
+use gmeow_gts_profile::GmeowGtsBlob;
 use gmeow_pipeline::medium::envelope::{
     DigestStratum, FrameDigestFacts, FrameFacts, MediumEnvelope, seal, seal_digests,
 };
@@ -20,7 +21,7 @@ use gmeow_pipeline::medium::registry::{MediumRegistry, MediumSelection};
 use gmeow_pipeline::medium::{SNAPSHOT_WIRE_REP, blake3_digest};
 use gmeow_pipeline::stages::carrier::{snapshot_stratum_digest, with_owl_rdfs_projection};
 use gmeow_pipeline::stages::medium_dictionaries::{frame_iri, seal_bundle_envelopes};
-use purrdf::gts_compose::{BlobRow, DictSelection as WireDictSelection, FrameSlot, MediumPlan};
+use purrdf::gts_compose::{DictSelection as WireDictSelection, FrameSlot, MediumPlan};
 use purrdf::{BlankScope, RdfDataset, RdfDatasetBuilder, RdfLiteral, parse_dataset};
 
 #[global_allocator]
@@ -357,7 +358,7 @@ fn legacy_bundle_envelopes(
     registry: &MediumRegistry,
     selection: &MediumSelection,
     plan: &MediumPlan,
-    blobs: &[&BlobRow],
+    blobs: &[&GmeowGtsBlob<'_>],
     snapshot_content_digest: &str,
     snapshot_strata_digest: &str,
 ) -> Vec<MediumEnvelope> {
@@ -414,8 +415,8 @@ fn prehashed_blob_sealing_is_identical_and_strictly_lowers_allocations() {
     let selection =
         MediumSelection::Uniform("https://blackcatinformatics.ca/gmeow/mediumBaseline".to_string());
     let plan = baseline_plan();
-    let blob = BlobRow {
-        data: vec![b'x'; 4 * 1024 * 1024],
+    let blob = GmeowGtsBlob {
+        data: vec![b'x'; 4 * 1024 * 1024].into(),
         media_type: "application/x-tar".to_string(),
         rep: "cells-archive".to_string(),
     };

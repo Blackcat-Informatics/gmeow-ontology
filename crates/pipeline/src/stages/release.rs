@@ -35,11 +35,12 @@
 use std::collections::BTreeSet;
 
 use gmeow_errors::Diag;
+use gmeow_gts_profile::GmeowGtsBlob;
 use purrdf::gts::dataset_from_gts_graph;
 use purrdf::gts::model::Graph;
 use purrdf::gts::reader::read;
 use purrdf::gts::writer::digest_string;
-use purrdf::gts_compose::{BlobRow, SnapshotBuilder};
+use purrdf::gts_compose::SnapshotBuilder;
 use purrdf::{NativeRdfFormat, PROJECTION_CODECS, pair_loss_ledger, parse_dataset};
 
 use crate::error::Release;
@@ -179,11 +180,11 @@ pub fn fold_release_bundle(
     //    exactly one blob frame AND one attestation envelope per artifact.
     let committed_digests: std::collections::HashSet<&str> =
         graph.blobs.iter().map(|(d, _)| d.as_str()).collect();
-    let report_blobs: Vec<BlobRow> = sorted
+    let report_blobs = sorted
         .iter()
         .filter(|(digest, _)| !committed_digests.contains(digest.as_str()))
-        .map(|(_, ev)| BlobRow {
-            data: ev.data.clone(),
+        .map(|(_, ev)| GmeowGtsBlob {
+            data: ev.data.as_slice().into(),
             media_type: ev.media_type.clone(),
             rep: format!("{EVIDENCE_REP_PREFIX}{}", ev.rep),
         })
@@ -606,10 +607,10 @@ fn docs_print_pdf_evidence(tar_bytes: &[u8]) -> gmeow_errors::Result<EvidenceInp
     })
 }
 
-/// Decode every existing snapshot blob into a [`BlobRow`], preserving the
+/// Decode every existing snapshot blob into a [`GmeowGtsBlob`], preserving the
 /// declared media type + `rep`. Hard-fails a lazy blob that cannot decode (a
 /// damaged committed snapshot is a hard build failure, never a silent drop).
-fn existing_blobs(graph: &Graph) -> gmeow_errors::Result<Vec<BlobRow>> {
+fn existing_blobs(graph: &Graph) -> gmeow_errors::Result<Vec<GmeowGtsBlob<'static>>> {
     let mut rows = Vec::with_capacity(graph.blobs.len());
     for (digest, entry) in &graph.blobs {
         let data = entry.decoded_vec().map_err(|e| {
@@ -618,8 +619,8 @@ fn existing_blobs(graph: &Graph) -> gmeow_errors::Result<Vec<BlobRow>> {
             })
         })?;
         let (media_type, rep) = blob_meta_for(graph, digest)?;
-        rows.push(BlobRow {
-            data,
+        rows.push(GmeowGtsBlob {
+            data: data.into(),
             media_type,
             rep,
         });

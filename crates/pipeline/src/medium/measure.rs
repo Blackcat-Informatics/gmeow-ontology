@@ -71,7 +71,7 @@
 
 use std::collections::{BTreeMap, BTreeSet};
 
-use purrdf::gts_compose::BlobRow;
+use gmeow_gts_profile::GmeowGtsBlob;
 use purrdf::{RdfLiteral, RdfQuad, RdfTerm};
 
 use super::registry::{DictSelection, MediumRegistry};
@@ -252,7 +252,7 @@ pub fn encoded_len(
 /// outside the registered catalog, or two assigned media declaring different chains.
 pub fn mandated_chain(
     registry: &MediumRegistry,
-    frames: &[&BlobRow],
+    frames: &[&GmeowGtsBlob<'_>],
 ) -> Result<(String, i32), gmeow_errors::Diag> {
     let mut chain: Option<(String, i32, String)> = None;
     for row in frames {
@@ -303,12 +303,12 @@ pub fn mandated_chain(
 /// # Errors
 /// An unregistered or unassigned rep, or an assignment naming an unregistered
 /// dictionary.
-pub fn frames_by_dictionary<'a>(
+pub fn frames_by_dictionary<'a, 'data>(
     registry: &MediumRegistry,
-    frames: &[&'a BlobRow],
-) -> Result<BTreeMap<String, Vec<&'a BlobRow>>, gmeow_errors::Diag> {
-    let mut by_dictionary: BTreeMap<String, Vec<&'a BlobRow>> = BTreeMap::new();
-    for row in frames {
+    frames: &[&'a GmeowGtsBlob<'data>],
+) -> Result<BTreeMap<String, Vec<&'a GmeowGtsBlob<'data>>>, gmeow_errors::Diag> {
+    let mut by_dictionary: BTreeMap<String, Vec<_>> = BTreeMap::new();
+    for &row in frames {
         let assignment = registry.assignment_for(&row.rep)?;
         let DictSelection::Named(iri) = &assignment.dictionary else {
             continue;
@@ -343,7 +343,7 @@ pub fn frames_by_dictionary<'a>(
 /// an encoder refusal.
 pub fn population_a(
     registry: &MediumRegistry,
-    frames: &[&BlobRow],
+    frames: &[&GmeowGtsBlob<'_>],
     trained: &BTreeMap<String, Vec<u8>>,
     sample_counts: &BTreeMap<String, u64>,
     codec: &str,

@@ -265,8 +265,8 @@ fn missing_deep_archive_preserves_tier1_and_matches_prepared_validation() {
     let bytes = {
         let emission = gmeow_gts_profile::emit_gmeow_gts(
             builder,
-            vec![purrdf::gts_compose::BlobRow {
-                data: archive,
+            vec![gmeow_gts_profile::GmeowGtsBlob {
+                data: archive.into(),
                 media_type: "application/x-tar".to_owned(),
                 rep: REP_SHAPES.to_owned(),
             }],
