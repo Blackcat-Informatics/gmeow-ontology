@@ -742,8 +742,7 @@ fn verify(
         let render_count = if scope == TestFixtureScope::Docs {
             let inputs = gmeow_pipeline::fixture::verify_docs_catalog_fixtures(root)?;
             let selected = gmeow_docs_model::fixture::selected_fixtures(root).map_err(fail)?;
-            gmeow_docs_model::fixture::verify_current_catalog_model(root, &selected, inputs)
-                .map_err(fail)?;
+            gmeow_docs_model::fixture::verify_current_catalog_model(root, &selected, inputs)?;
             Some(selected.renders.len())
         } else {
             None

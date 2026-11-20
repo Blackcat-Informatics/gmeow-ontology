@@ -43,6 +43,7 @@ use gmeow_action_cache::{
     ActionCacheError, ActionContext, ActionInput, ActionReceipt, ActionStore, FileKind,
     ProducerIdentity, STORE_FORMAT_VERSION, StoreLimits,
 };
+use gmeow_errors::{Diag, PreservedDiagnostic};
 use purrdf_hash::sha1::Sha1;
 use serde::{Deserialize, Serialize};
 
@@ -133,9 +134,10 @@ pub fn verify_current_catalog_model(
     root: &Path,
     selected: &DocsFixtureSelector,
     inputs: Vec<ActionInput>,
-) -> Result<(), ActionCacheError> {
+) -> gmeow_errors::Result<()> {
     let current_digest = cache_key_for_paths(root, &fixture_implementation(root)?, &[])?;
     verify_catalog_model_context(&selected.model.context, current_digest, inputs)
+        .map_err(Into::into)
 }
 
 fn verify_catalog_model_context(
@@ -183,15 +185,13 @@ fn read_only_action_store(root: &Path) -> Result<ActionStore, ActionCacheError> 
     )
 }
 
-fn model_context(root: &Path) -> Result<ActionContext, ActionCacheError> {
+fn model_context(root: &Path) -> gmeow_errors::Result<ActionContext> {
     cache_key_with_implementation(root, &fixture_implementation(root)?)
         .map(model_context_for_digest)
 }
 
-fn model_cache_error(error: ActionCacheError, context: impl Into<String>) -> DocsError {
-    DocsError::FixtureCache(gmeow_errors::PreservedDiagnostic(
-        gmeow_errors::Diag::from(error).with_context(context),
-    ))
+fn model_cache_error(error: impl Into<Diag>, context: impl Into<String>) -> DocsError {
+    DocsError::FixtureCache(PreservedDiagnostic(error.into().with_context(context)))
 }
 
 fn model_context_for_digest(input_digest: String) -> ActionContext {
@@ -685,19 +685,16 @@ pub fn cache_key(root: &Path) -> String {
         .unwrap_or_else(|error| panic!("authenticate documentation fixture inputs: {error}"))
 }
 
-fn fixture_implementation(root: &Path) -> Result<String, ActionCacheError> {
-    gmeow_action_cache::executable::current_source_inventory(root, "crates/docs/Cargo.toml")
-        .and_then(|inventory| {
-            inventory
-                .digest()
-                .map_err(|error| ActionCacheError::message(error.to_string()))
-        })
+fn fixture_implementation(root: &Path) -> gmeow_errors::Result<String> {
+    let inventory =
+        gmeow_action_cache::executable::current_source_inventory(root, "crates/docs/Cargo.toml")?;
+    inventory.digest().map_err(Into::into)
 }
 
 fn cache_key_with_implementation(
     root: &Path,
     implementation: &str,
-) -> Result<String, ActionCacheError> {
+) -> gmeow_errors::Result<String> {
     let paths = CATALOG_ARTIFACTS.map(|(_, path)| path);
     cache_key_for_paths(root, implementation, &paths)
 }
@@ -706,7 +703,7 @@ fn cache_key_for_paths(
     root: &Path,
     implementation: &str,
     catalog_paths: &[&str],
-) -> Result<String, ActionCacheError> {
+) -> gmeow_errors::Result<String> {
     let mut hasher = Sha1::new();
     hasher.update(b"gmeow-docs-fixture-v2\x1f");
     hasher.update(implementation.as_bytes());
@@ -732,11 +729,8 @@ fn cache_key_for_paths(
         collect_files(&root.join(dir), &mut files)?;
     }
     files.extend(
-        crate::ontology_catalogs::dsl_input_files(root).map_err(|error| {
-            ActionCacheError::message(format!(
-                "authenticate fixture DSL translation inputs: {error}"
-            ))
-        })?,
+        crate::ontology_catalogs::dsl_input_files(root)
+            .map_err(|error| error.with_context("authenticate fixture DSL translation inputs"))?,
     );
     // Runtime files discover() reads directly. Registry and Git dependencies are
     // already bound by selected lock records in the shared implementation inventory.
@@ -764,7 +758,7 @@ fn cache_key_for_paths(
         hasher.update(rel.as_bytes());
         hasher.update(b"\x1f");
         let bytes = fs::read(path).map_err(|error| {
-            ActionCacheError::message(format!("hash fixture input {}: {error}", path.display()))
+            Diag::from(error).with_context(format!("hash fixture input {}", path.display()))
         })?;
         hasher.update(&(bytes.len() as u64).to_le_bytes());
         hasher.update(&bytes);
@@ -775,12 +769,9 @@ fn cache_key_for_paths(
 }
 
 /// Recursively collect every regular file under `dir` (absent dir → no files).
-fn collect_files(dir: &Path, out: &mut Vec<PathBuf>) -> Result<(), ActionCacheError> {
+fn collect_files(dir: &Path, out: &mut Vec<PathBuf>) -> gmeow_errors::Result<()> {
     let walk_error = |error| {
-        ActionCacheError::message(format!(
-            "walk fixture input directory {}: {error}",
-            dir.display()
-        ))
+        Diag::from(error).with_context(format!("walk fixture input directory {}", dir.display()))
     };
     let entries = match fs::read_dir(dir) {
         Ok(entries) => entries,
@@ -791,10 +782,7 @@ fn collect_files(dir: &Path, out: &mut Vec<PathBuf>) -> Result<(), ActionCacheEr
         let entry = entry.map_err(walk_error)?;
         let path = entry.path();
         let file_type = entry.file_type().map_err(|error| {
-            ActionCacheError::message(format!(
-                "read fixture input type {}: {error}",
-                path.display()
-            ))
+            Diag::from(error).with_context(format!("read fixture input type {}", path.display()))
         })?;
         if file_type.is_dir() {
             collect_files(&path, out)?;
@@ -804,7 +792,8 @@ fn collect_files(dir: &Path, out: &mut Vec<PathBuf>) -> Result<(), ActionCacheEr
             return Err(ActionCacheError::message(format!(
                 "fixture input {} must be a regular file or directory",
                 path.display()
-            )));
+            ))
+            .into());
         }
     }
     Ok(())

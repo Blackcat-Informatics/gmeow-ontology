@@ -268,6 +268,12 @@ fn cache_key_is_deterministic_and_content_sensitive() {
         cache_key(&root),
         "key must change when fixture implementation bytes change"
     );
+
+    let shapes = root.join("shapes");
+    fs::write(&shapes, b"regular file in place of the shape directory").unwrap();
+    let error = cache_key_with_implementation(&root, "synthetic").unwrap_err();
+    assert!(error.is::<std::io::Error>());
+    assert!(format!("{error:#}").contains(&shapes.display().to_string()));
 }
 
 #[test]
