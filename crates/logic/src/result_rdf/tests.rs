@@ -209,6 +209,10 @@ fn transported_projection_matches_the_reencoding_path_byte_for_byte() {
             .node_iri()
     );
     assert_eq!(reused.to_ntriples(), reencoded);
+    assert_eq!(
+        reused.ntriples_digest(),
+        ContentDigest::of(reencoded.as_bytes())
+    );
 
     let bytes =
         serde_json::to_vec(&result).expect("the original result has complete typed serde data");

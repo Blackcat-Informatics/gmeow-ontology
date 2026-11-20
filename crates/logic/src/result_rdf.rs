@@ -61,7 +61,8 @@ use std::fmt;
 use std::sync::Arc;
 
 use gmeow_logic_compile::ir::{LOGIC_NAMESPACE, PreservationKind};
-use purrdf::{DatasetView, GraphMatch, QuadIds, RdfDataset, TermId, TermRef};
+use purrdf::{ContentDigest, DatasetView, GraphMatch, QuadIds, RdfDataset, TermId, TermRef};
+use purrdf_core::ContentHasher;
 use sha2::{Digest, Sha256};
 
 mod artifact;
@@ -838,6 +839,16 @@ impl<'a> ResultProjection<'a> {
         self.sink.render_lines().join("\n") + "\n"
     }
 
+    /// Hash the exact N-Triples output without allocating the joined document.
+    #[must_use]
+    pub fn ntriples_digest(&self) -> ContentDigest {
+        let lines = self.sink.render_lines();
+        if lines.is_empty() {
+            return ContentDigest::of(b"\n");
+        }
+        digest_lines(&lines)
+    }
+
     /// Move the already-prepared native triples into the RDF sink.
     ///
     /// # Errors
@@ -1596,7 +1607,8 @@ fn axiom_term(value: &str) -> Node {
 /// Resolve generated references without changing authored IRIs or literal data.
 /// Encoded proof premises retain exactly the bytes their receipts authenticate.
 fn content_addressed_sink(mut sink: Sink, iri_base: &str, placeholder_urn: &str) -> (Sink, String) {
-    let node_iri = format!("{iri_base}{}", digest_lines(&sink.render_lines()));
+    let digest = digest_lines(&sink.render_lines()).to_hex();
+    let node_iri = format!("{iri_base}{digest}");
     for triple in &mut sink.triples {
         for node in [&mut triple.subject, &mut triple.object] {
             if let Node::SelfReference(placeholder) = node {
@@ -1613,14 +1625,13 @@ fn content_addressed_sink(mut sink: Sink, iri_base: &str, placeholder_urn: &str)
 
 /// The `sha256` (lowercase hex) of the newline-joined body lines — the content-address
 /// digest a node IRI is minted from (so two structurally-equal bodies mint one node).
-fn digest_lines(lines: &[String]) -> String {
-    let mut hasher = Sha256::new();
+fn digest_lines(lines: &[String]) -> ContentDigest {
+    let mut hasher = ContentHasher::default();
     for line in lines {
         hasher.update(line.as_bytes());
         hasher.update(b"\n");
     }
-    let digest = hasher.finalize();
-    purrdf_hash::hex::encode(&digest)
+    hasher.finish()
 }
 
 /// The `sha256` (lowercase hex) of an arbitrary string — the KB-world hash the conjecture

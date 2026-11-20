@@ -251,10 +251,11 @@ fn build_output_from_report(
         crate::stages::carrier::GRAPH_VERIFY,
     )?;
 
-    let canonical_nquads = purrdf::canonical_flat_nquads(
+    let verify_input_digest = purrdf::canonical_flat_nquads(
         edb,
         &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None),
     )
+    .map(|canonical| ContentDigest::of(canonical.nquads().as_bytes()))
     .map_err(|e| stage_err(format!("canonicalize verification input digest: {e}")))?;
     // The shipped CLI reconstructs the verdict-and-provenance handle from
     // `graph/reasoning`. That projection deliberately omits EDB payload rows, so grade
@@ -268,10 +269,10 @@ fn build_output_from_report(
             gmeow_logic::result_rdf::transport_reasoning(reasoning, native_receipt)
         })?;
     let transported_reasoning = transported.result();
-    let reasoning_projection =
+    let verify_reasoning_digest =
         crate::node::measure_stage_phase(stage_id, "project-transported-reasoning", || {
             gmeow_logic::result_rdf::ResultProjection::transported(&transported)
-                .map(|projection| projection.to_ntriples())
+                .map(|projection| projection.ntriples_digest())
         })?;
     let query_digest = query_set_digest(queries);
     let finding_count = report.findings.len();
@@ -283,15 +284,11 @@ fn build_output_from_report(
     );
     report.metadata.insert(
         "verifyInputDigest".to_string(),
-        gmeow_errors::JsonEvidence::from(
-            ContentDigest::of(canonical_nquads.nquads().as_bytes()).to_hex(),
-        ),
+        gmeow_errors::JsonEvidence::from(verify_input_digest.to_hex()),
     );
     report.metadata.insert(
         "verifyReasoningDigest".to_string(),
-        gmeow_errors::JsonEvidence::from(
-            ContentDigest::of(reasoning_projection.as_bytes()).to_hex(),
-        ),
+        gmeow_errors::JsonEvidence::from(verify_reasoning_digest.to_hex()),
     );
     report.metadata.insert(
         "verifyContractDigest".to_string(),
