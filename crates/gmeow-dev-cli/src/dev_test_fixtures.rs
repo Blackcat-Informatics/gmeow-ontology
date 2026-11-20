@@ -279,8 +279,7 @@ fn produce_docs_fixtures(root: &Path, timings_path: Option<&Path>) -> FixtureRes
         &catalogs.term_manifest,
         &catalogs.constraint_catalog,
         catalogs.inputs,
-    )
-    .map_err(fail)?;
+    )?;
     let prepared = prepare_fixture_selector_at_path(
         root.join(DOCS_FIXTURE_MANIFEST_RELATIVE_PATH),
         Some(catalogs.selection),

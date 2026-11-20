@@ -327,13 +327,6 @@
   {
    "kind": "body",
    "members": [
-    "gmeow_docs::fixture::action_store",
-    "gmeow_docs_model::fixture::action_store"
-   ]
-  },
-  {
-   "kind": "body",
-   "members": [
     "gmeow_docs::fixture::render_cache_path",
     "gmeow_docs_model::fixture::cache_path_for_context"
    ]

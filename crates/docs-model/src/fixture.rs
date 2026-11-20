@@ -134,7 +134,7 @@ pub fn verify_current_catalog_model(
     selected: &DocsFixtureSelector,
     inputs: Vec<ActionInput>,
 ) -> Result<(), ActionCacheError> {
-    let current_digest = cache_key_for_paths(root, &fixture_implementation(root), &[]);
+    let current_digest = cache_key_for_paths(root, &fixture_implementation(root)?, &[])?;
     verify_catalog_model_context(&selected.model.context, current_digest, inputs)
 }
 
@@ -163,13 +163,16 @@ impl From<ActionCacheError> for ModelCacheError {
     }
 }
 
-fn action_store(root: &Path) -> ActionStore {
+/// Open the shared action store for explicit model and render fixture producers.
+///
+/// # Errors
+/// Returns cache format or filesystem failures.
+pub fn open_action_store(root: &Path) -> Result<ActionStore, ActionCacheError> {
     ActionStore::open(
         ActionStore::default_root(root),
         STORE_FORMAT_VERSION,
         StoreLimits::default(),
     )
-    .unwrap_or_else(|error| panic!("open bounded docs-fixture action cache: {error}"))
 }
 
 fn read_only_action_store(root: &Path) -> Result<ActionStore, ActionCacheError> {
@@ -180,8 +183,15 @@ fn read_only_action_store(root: &Path) -> Result<ActionStore, ActionCacheError> 
     )
 }
 
-fn model_context(root: &Path) -> ActionContext {
-    model_context_for_digest(cache_key(root))
+fn model_context(root: &Path) -> Result<ActionContext, ActionCacheError> {
+    cache_key_with_implementation(root, &fixture_implementation(root)?)
+        .map(model_context_for_digest)
+}
+
+fn model_cache_error(error: ActionCacheError, context: impl Into<String>) -> DocsError {
+    DocsError::FixtureCache(gmeow_errors::PreservedDiagnostic(
+        gmeow_errors::Diag::from(error).with_context(context),
+    ))
 }
 
 fn model_context_for_digest(input_digest: String) -> ActionContext {
@@ -287,7 +297,7 @@ fn decode_model(cache_path: &Path, bytes: &[u8]) -> Result<DocsModel, ActionCach
     let cached: CachedModel = serde_json::from_slice(bytes).map_err(|error| {
         ActionCacheError::message(format!("docs model payload JSON is corrupt: {error}"))
     })?;
-    Ok(cached.into_model(cache_path))
+    cached.into_model(cache_path)
 }
 
 fn probe_model(
@@ -350,27 +360,6 @@ fn load_selected_model(
     Ok((model, identity))
 }
 
-/// Select the already-produced model for binding into a test fixture manifest.
-/// This producer-side operation authenticates the current input key without building.
-pub fn produced_model_selection(root: &Path) -> Result<SelectedAction, ActionCacheError> {
-    let context = model_context(root);
-    let store = read_only_action_store(root).map_err(|error| {
-        ActionCacheError::message(format!(
-            "authenticated docs action store is unavailable without mutation: {error}"
-        ))
-    })?;
-    let receipt = store
-        .inspect::<DocsActionPayload>(&context)?
-        .ok_or_else(|| {
-            ActionCacheError::message(format!(
-                "current docs model action {} is absent",
-                context.key()
-            ))
-        })?;
-    validate_model_receipt(&context, &receipt)?;
-    Ok(SelectedAction::from_receipt(&receipt))
-}
-
 /// Load or produce the documentation model for an explicit producer operation.
 /// Test code must use [`load`] or [`try_load`] instead.
 #[must_use]
@@ -381,18 +370,24 @@ pub fn load_or_build(root: &Path) -> DocsModel {
 /// Producer counterpart of [`load_with_identity`].
 #[must_use]
 pub fn load_or_build_with_identity(root: &Path) -> (DocsModel, FixtureIdentity) {
-    try_load_or_build_with_identity(root)
-        .unwrap_or_else(|error| panic!("build docs model from live slices: {error}"))
+    let produced = prepare_model_from_sources(root)
+        .unwrap_or_else(|error| panic!("build docs model from live slices: {error}"));
+    (produced.model, produced.identity)
 }
 
 /// Producer counterpart of [`try_load`].
 pub fn try_load_or_build(root: &Path) -> Result<DocsModel, DocsError> {
-    try_load_or_build_with_identity(root).map(|(model, _)| model)
+    prepare_model_from_sources(root).map(|produced| produced.model)
 }
 
-fn try_load_or_build_with_identity(root: &Path) -> Result<(DocsModel, FixtureIdentity), DocsError> {
-    prepare_model(root, model_context(root), || DocsModel::discover(root))
-        .map(|produced| (produced.model, produced.identity))
+/// Produce or admit the source model and retain its exact selected action.
+///
+/// # Errors
+/// Returns model discovery, cache admission, and cache publication failures.
+pub fn prepare_model_from_sources(root: &Path) -> Result<ProducedModel, DocsError> {
+    let context = model_context(root)
+        .map_err(|error| model_cache_error(error, "authenticate documentation fixture inputs"))?;
+    prepare_model(root, context, || DocsModel::discover(root))
 }
 
 /// The model and exact selected action returned by the cache producer.
@@ -423,7 +418,9 @@ pub fn prepare_model_from_catalogs(
     constraint_catalog: &[u8],
     inputs: Vec<ActionInput>,
 ) -> Result<ProducedModel, DocsError> {
-    let input_digest = cache_key_for_paths(root, &fixture_implementation(root), &[]);
+    let input_digest = fixture_implementation(root)
+        .and_then(|implementation| cache_key_for_paths(root, &implementation, &[]))
+        .map_err(|error| model_cache_error(error, "authenticate documentation catalog inputs"))?;
     let context = model_context_for_inputs(input_digest, inputs);
     validate_model_context(&context)
         .map_err(|error| DocsError::FixtureUnavailable(error.to_string()))?;
@@ -460,7 +457,8 @@ fn prepare_model(
     context: ActionContext,
     discover: impl FnOnce() -> Result<DocsModel, DocsError>,
 ) -> Result<ProducedModel, DocsError> {
-    let store = action_store(root);
+    let store = open_action_store(root)
+        .map_err(|error| model_cache_error(error, "open documentation action cache"))?;
     let key = context.key();
     let cache_path = cache_path_for_context(root, &context);
     let outcome = store.coordinate::<_, ModelCacheError, _, _>(
@@ -484,12 +482,10 @@ fn prepare_model(
     match outcome {
         Ok(outcome) => Ok(outcome.value),
         Err(ModelCacheError::Build(error)) => Err(error),
-        Err(ModelCacheError::Cache(error)) => {
-            panic!(
-                "corrupt docs-fixture action cache at {}: {error}",
-                cache_path.display()
-            )
-        }
+        Err(ModelCacheError::Cache(error)) => Err(model_cache_error(
+            error,
+            format!("admit or produce action at {}", cache_path.display()),
+        )),
     }
 }
 
@@ -522,8 +518,10 @@ pub fn model_identity(root: &Path) -> FixtureIdentity {
 /// Producer counterpart of [`model_identity`].
 #[must_use]
 pub fn model_identity_or_build(root: &Path) -> FixtureIdentity {
-    let store = action_store(root);
-    let context = model_context(root);
+    let store = open_action_store(root)
+        .unwrap_or_else(|error| panic!("open bounded docs-fixture action cache: {error}"));
+    let context = model_context(root)
+        .unwrap_or_else(|error| panic!("authenticate documentation fixture inputs: {error}"));
     match store.inspect::<DocsActionPayload>(&context) {
         Ok(Some(receipt)) => {
             validate_model_receipt(&context, &receipt)
@@ -542,7 +540,8 @@ pub fn model_identity_or_build(root: &Path) -> FixtureIdentity {
 /// governs the whole fixture set.
 #[must_use]
 pub fn cache_path(root: &Path) -> PathBuf {
-    cache_path_for_context(root, &model_context(root))
+    let context = model_context_for_digest(cache_key(root));
+    cache_path_for_context(root, &context)
 }
 
 fn cache_path_for_context(root: &Path, context: &ActionContext) -> PathBuf {
@@ -581,24 +580,27 @@ pub fn payload_digest(label: &str, canonical_payload: &[u8]) -> String {
     purrdf_hash::hex::encode(&hasher.finalize())
 }
 
-/// Hard-fail unless the canonical payload bytes fold to the envelope's declared digest.
+/// Require the canonical payload bytes to match the envelope's declared digest.
 ///
-/// An edited cache entry is corruption of the same class as an undeserializable one, and
-/// is treated identically: panic naming the file, never a silent rebuild that would mask
-/// it and never a quiet acceptance of the edited values.
-///
-/// # Panics
-/// When the live fold of the canonical payload differs from `declared`.
-pub fn verify_payload(cache_path: &Path, label: &str, declared: &str, canonical_payload: &[u8]) {
+/// # Errors
+/// A digest mismatch reports the corrupt cache entry and its path.
+pub fn verify_payload(
+    cache_path: &Path,
+    label: &str,
+    declared: &str,
+    canonical_payload: &[u8],
+) -> Result<(), ActionCacheError> {
     let live = payload_digest(label, canonical_payload);
-    assert!(
-        live == declared,
+    if live == declared {
+        return Ok(());
+    }
+    Err(ActionCacheError::message(format!(
         "tampered docs-fixture {label} cache at {}: it declares payload digest {declared} but \
          its content folds to {live}. The entry was edited after it was written — remove the \
          named corrupt action through cache maintenance to rebuild it; an edited cache entry \
          is never served",
         cache_path.display(),
-    );
+    )))
 }
 
 /// The serialized cache envelope: the payload plus a digest OVER that payload.
@@ -647,13 +649,13 @@ impl CachedModel {
     }
 
     /// Reconstruct the model, first proving the envelope carries the payload it claims.
-    fn into_model(self, cache_path: &Path) -> DocsModel {
+    fn into_model(self, cache_path: &Path) -> Result<DocsModel, ActionCacheError> {
         verify_payload(
             cache_path,
             "model",
             &self.digest,
             &self.body.canonical_bytes(),
-        );
+        )?;
         let CachedModelBody {
             mut model,
             available_languages,
@@ -663,7 +665,7 @@ impl CachedModel {
         model.available_languages = available_languages;
         model.translations = translations;
         model.ui_catalog = ui_catalog;
-        model
+        Ok(model)
     }
 }
 
@@ -678,25 +680,33 @@ impl CachedModel {
 /// If the producer receipt is missing/stale or a selected input cannot be read.
 #[must_use]
 pub fn cache_key(root: &Path) -> String {
-    cache_key_with_implementation(root, &fixture_implementation(root))
+    fixture_implementation(root)
+        .and_then(|implementation| cache_key_with_implementation(root, &implementation))
+        .unwrap_or_else(|error| panic!("authenticate documentation fixture inputs: {error}"))
 }
 
-fn fixture_implementation(root: &Path) -> String {
+fn fixture_implementation(root: &Path) -> Result<String, ActionCacheError> {
     gmeow_action_cache::executable::current_source_inventory(root, "crates/docs/Cargo.toml")
         .and_then(|inventory| {
             inventory
                 .digest()
                 .map_err(|error| ActionCacheError::message(error.to_string()))
         })
-        .unwrap_or_else(|error| panic!("authenticate docs fixture implementation: {error}"))
 }
 
-fn cache_key_with_implementation(root: &Path, implementation: &str) -> String {
+fn cache_key_with_implementation(
+    root: &Path,
+    implementation: &str,
+) -> Result<String, ActionCacheError> {
     let paths = CATALOG_ARTIFACTS.map(|(_, path)| path);
     cache_key_for_paths(root, implementation, &paths)
 }
 
-fn cache_key_for_paths(root: &Path, implementation: &str, catalog_paths: &[&str]) -> String {
+fn cache_key_for_paths(
+    root: &Path,
+    implementation: &str,
+    catalog_paths: &[&str],
+) -> Result<String, ActionCacheError> {
     let mut hasher = Sha1::new();
     hasher.update(b"gmeow-docs-fixture-v2\x1f");
     hasher.update(implementation.as_bytes());
@@ -719,11 +729,14 @@ fn cache_key_for_paths(root: &Path, implementation: &str, catalog_paths: &[&str]
         .map(|r| r.trim_end_matches('/'))
         .chain(["shapes", "i18n"])
     {
-        collect_files(&root.join(dir), &mut files);
+        collect_files(&root.join(dir), &mut files)?;
     }
     files.extend(
-        crate::ontology_catalogs::dsl_input_files(root)
-            .unwrap_or_else(|error| panic!("authenticate fixture DSL translation inputs: {error}")),
+        crate::ontology_catalogs::dsl_input_files(root).map_err(|error| {
+            ActionCacheError::message(format!(
+                "authenticate fixture DSL translation inputs: {error}"
+            ))
+        })?,
     );
     // Runtime files discover() reads directly. Registry and Git dependencies are
     // already bound by selected lock records in the shared implementation inventory.
@@ -750,42 +763,51 @@ fn cache_key_for_paths(root: &Path, implementation: &str, catalog_paths: &[&str]
         let rel = rel.to_string_lossy().replace('\\', "/");
         hasher.update(rel.as_bytes());
         hasher.update(b"\x1f");
-        let bytes = fs::read(path)
-            .unwrap_or_else(|e| panic!("hashing fixture input {}: {e}", path.display()));
+        let bytes = fs::read(path).map_err(|error| {
+            ActionCacheError::message(format!("hash fixture input {}: {error}", path.display()))
+        })?;
         hasher.update(&(bytes.len() as u64).to_le_bytes());
         hasher.update(&bytes);
         hasher.update(b"\x1e");
     }
 
-    purrdf_hash::hex::encode(&hasher.finalize())
+    Ok(purrdf_hash::hex::encode(&hasher.finalize()))
 }
 
 /// Recursively collect every regular file under `dir` (absent dir → no files).
-fn collect_files(dir: &Path, out: &mut Vec<PathBuf>) {
+fn collect_files(dir: &Path, out: &mut Vec<PathBuf>) -> Result<(), ActionCacheError> {
+    let walk_error = |error| {
+        ActionCacheError::message(format!(
+            "walk fixture input directory {}: {error}",
+            dir.display()
+        ))
+    };
     let entries = match fs::read_dir(dir) {
         Ok(entries) => entries,
-        Err(error) if error.kind() == std::io::ErrorKind::NotFound => return,
-        Err(error) => panic!("walking fixture input directory {}: {error}", dir.display()),
+        Err(error) if error.kind() == std::io::ErrorKind::NotFound => return Ok(()),
+        Err(error) => return Err(walk_error(error)),
     };
     for entry in entries {
-        let entry = entry.unwrap_or_else(|error| {
-            panic!("walking fixture input directory {}: {error}", dir.display())
-        });
+        let entry = entry.map_err(walk_error)?;
         let path = entry.path();
-        let file_type = entry.file_type().unwrap_or_else(|error| {
-            panic!("reading fixture input type {}: {error}", path.display())
-        });
+        let file_type = entry.file_type().map_err(|error| {
+            ActionCacheError::message(format!(
+                "read fixture input type {}: {error}",
+                path.display()
+            ))
+        })?;
         if file_type.is_dir() {
-            collect_files(&path, out);
+            collect_files(&path, out)?;
         } else if file_type.is_file() {
             out.push(path);
         } else {
-            panic!(
-                "fixture input {} is neither a regular file nor directory; symlinks and special files require an explicit typed key policy",
+            return Err(ActionCacheError::message(format!(
+                "fixture input {} must be a regular file or directory",
                 path.display()
-            );
+            )));
         }
     }
+    Ok(())
 }
 
 #[path = "fixture.tests.rs"]

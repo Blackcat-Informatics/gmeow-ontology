@@ -49,12 +49,13 @@ use gmeow_docs_model::exec::ExecutableDocsData;
 // (which `include_bytes!`s ~19 MB of wasm), but a caller that already depends on the
 // renderer should not have to name a second crate to get the model.
 use gmeow_docs_model::fixture::{
-    DocsFixtureSelector, FixtureIdentity, load_or_build_with_identity, model_identity,
-    payload_digest, prepare_model_from_catalogs, produced_model_selection, selected_fixtures,
+    DocsFixtureSelector, FixtureIdentity, ProducedModel, model_identity, open_action_store,
+    payload_digest, prepare_model_from_catalogs, prepare_model_from_sources, selected_fixtures,
     verify_payload,
 };
 pub use gmeow_docs_model::fixture::{load, load_or_build};
 use gmeow_docs_model::i18n::ENGLISH;
+use gmeow_docs_model::model::DocsError;
 
 const SITE_CODEC: &str = "docs-site-json-2";
 const BOOK_CODEC: &str = "docs-book-json-2";
@@ -67,14 +68,20 @@ struct RenderActionPayload {
     model_receipt_digest: String,
 }
 
-fn action_store(root: &Path) -> gmeow_errors::Result<ActionStore> {
-    let path = ActionStore::default_root(root);
-    ActionStore::open(&path, STORE_FORMAT_VERSION, StoreLimits::default()).map_err(|error| {
+fn open_render_store(root: &Path) -> gmeow_errors::Result<ActionStore> {
+    open_action_store(root).map_err(|error| {
         Diag::from(error).with_context(format!(
             "open bounded docs-render action cache at {}",
-            path.display()
+            ActionStore::default_root(root).display()
         ))
     })
+}
+
+fn model_admission_error(error: DocsError) -> Diag {
+    Diag::of_kind(crate::render_error::FixtureModel::caused_by(
+        error.to_string(),
+        error,
+    ))
 }
 
 fn read_only_action_store(root: &Path) -> ActionStore {
@@ -225,7 +232,9 @@ fn load_selected_site(
             cache_path.display()
         )
     });
-    cached.into_site(&cache_path)
+    cached
+        .into_site(&cache_path)
+        .unwrap_or_else(|error| panic!("{error}"))
 }
 
 /// Produce or load one render action. This is reachable only from explicit producer
@@ -237,7 +246,7 @@ fn load_or_build_cached_site(
     model: &FixtureIdentity,
     build: impl FnOnce() -> gmeow_errors::Result<Site>,
 ) -> gmeow_errors::Result<Site> {
-    let store = action_store(root)?;
+    let store = open_render_store(root)?;
     Ok(load_or_build_cached_site_in_store(&store, root, artifact, language, model, build)?.0)
 }
 
@@ -265,7 +274,7 @@ fn load_or_build_cached_site_in_store(
                 ))
             })?;
             Ok(Some((
-                cached.into_site(&cache_path),
+                cached.into_site(&cache_path)?,
                 SelectedAction::from_receipt(&entry.receipt),
             )))
         },
@@ -304,9 +313,9 @@ pub fn load_site_or_build(root: &Path) -> gmeow_errors::Result<Site> {
 /// # Errors
 /// Propagates a selected render refusal or action-cache admission/publication failure.
 pub fn load_site_lang_or_build(root: &Path, lang: &str) -> gmeow_errors::Result<Site> {
-    let (model, identity) = load_or_build_with_identity(root);
-    load_or_build_cached_site(root, "site", Some(lang), &identity, || {
-        render_site_lang(&model, lang)
+    let produced = prepare_model_from_sources(root).map_err(model_admission_error)?;
+    load_or_build_cached_site(root, "site", Some(lang), &produced.identity, || {
+        render_site_lang(&produced.model, lang)
     })
 }
 
@@ -315,9 +324,9 @@ pub fn load_site_lang_or_build(root: &Path, lang: &str) -> gmeow_errors::Result<
 /// # Errors
 /// Propagates a selected render refusal or action-cache admission/publication failure.
 pub fn load_book_or_build(root: &Path) -> gmeow_errors::Result<Site> {
-    let (model, identity) = load_or_build_with_identity(root);
-    load_or_build_cached_site(root, "book", None, &identity, || {
-        render_book(&model, &ExecutableDocsData::default())
+    let produced = prepare_model_from_sources(root).map_err(model_admission_error)?;
+    load_or_build_cached_site(root, "book", None, &produced.identity, || {
+        render_book(&produced.model, &ExecutableDocsData::default())
     })
 }
 
@@ -335,10 +344,8 @@ pub fn load_book_or_build(root: &Path) -> gmeow_errors::Result<Site> {
 /// # Errors
 /// Propagates a selected render refusal or action-cache failure before returning a fixture selector.
 pub fn prime(root: &Path) -> gmeow_errors::Result<PrimeObservation> {
-    let (model, identity) = load_or_build_with_identity(root);
-    let selected_model = produced_model_selection(root)
-        .unwrap_or_else(|error| panic!("select produced docs model: {error}"));
-    prime_selected_model(root, model, identity, selected_model)
+    let produced = prepare_model_from_sources(root).map_err(model_admission_error)?;
+    prime_selected_model(root, produced)
 }
 
 /// Produce the complete docs fixture family from authenticated catalog artifacts.
@@ -350,23 +357,21 @@ pub fn prime_from_catalogs(
     term_manifest: &[u8],
     constraint_catalog: &[u8],
     inputs: Vec<ActionInput>,
-) -> Result<PrimeObservation, gmeow_docs_model::model::DocsError> {
-    let produced = prepare_model_from_catalogs(root, term_manifest, constraint_catalog, inputs)?;
-    Ok(prime_selected_model(
-        root,
-        produced.model,
-        produced.identity,
-        produced.selection,
-    ))
+) -> gmeow_errors::Result<PrimeObservation> {
+    let produced = prepare_model_from_catalogs(root, term_manifest, constraint_catalog, inputs)
+        .map_err(model_admission_error)?;
+    prime_selected_model(root, produced)
 }
 
 fn prime_selected_model(
     root: &Path,
-    model: gmeow_docs_model::model::DocsModel,
-    identity: FixtureIdentity,
-    selected_model: SelectedAction,
-) -> PrimeObservation {
-    assert_eq!(selected_model.receipt_digest, identity.receipt_digest);
+    produced: ProducedModel,
+) -> gmeow_errors::Result<PrimeObservation> {
+    let ProducedModel {
+        model,
+        identity,
+        selection,
+    } = produced;
     let mut languages = model.available_languages.clone();
     languages.push(ENGLISH.to_string());
     languages.sort();
@@ -376,7 +381,7 @@ fn prime_selected_model(
     let parallelism = render_parallelism(tasks.len());
     let mut built = 0;
     let mut renders = BTreeMap::new();
-    let store = action_store(root)?;
+    let store = open_render_store(root)?;
     for batch in tasks.chunks(parallelism) {
         let results = std::thread::scope(|scope| {
             let handles = batch
@@ -430,7 +435,7 @@ fn prime_selected_model(
         parallelism,
         selector: DocsFixtureSelector {
             schema_version: 1,
-            model: selected_model,
+            model: selection,
             renders,
         },
     })
@@ -544,20 +549,20 @@ impl CachedSite {
     }
 
     /// Reconstruct the site, first proving the envelope carries the files it claims.
-    fn into_site(self, cache_path: &Path) -> Site {
+    fn into_site(self, cache_path: &Path) -> Result<Site, ActionCacheError> {
         verify_payload(
             cache_path,
             "site",
             &self.digest,
             &json::record::to_vec(&self.files),
-        );
-        Site {
+        )?;
+        Ok(Site {
             files: self
                 .files
                 .into_iter()
                 .map(|(path, text)| (path, text.into_bytes()))
                 .collect(),
-        }
+        })
     }
 }
 

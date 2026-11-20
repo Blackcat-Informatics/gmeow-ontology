@@ -43,7 +43,9 @@ fn cached_site_round_trips_to_identical_bytes() {
     let site = Site { files };
     assert_eq!(
         site,
-        CachedSite::from_site(&site).into_site(Path::new("<in-memory>"))
+        CachedSite::from_site(&site)
+            .into_site(Path::new("<in-memory>"))
+            .unwrap()
     );
 }
 
@@ -54,7 +56,6 @@ fn cached_site_round_trips_to_identical_bytes() {
 /// INPUTS, so editing the cached OUTPUT leaves it satisfied. `.cache/` is gitignored
 /// and persists, so an entry edited once would keep being served.
 #[test]
-#[should_panic(expected = "tampered docs-fixture site cache")]
 fn an_edited_site_envelope_is_refused() {
     let mut files = BTreeMap::new();
     files.insert("index.html".to_string(), b"<h1>hi</h1>".to_vec());
@@ -63,7 +64,12 @@ fn an_edited_site_envelope_is_refused() {
     cached
         .files
         .insert("index.html".to_string(), "<h1>edited</h1>".to_string());
-    let _ = cached.into_site(Path::new("<in-memory>"));
+    let error = cached.into_site(Path::new("<in-memory>")).unwrap_err();
+    assert!(
+        error
+            .to_string()
+            .contains("tampered docs-fixture site cache")
+    );
 }
 
 /// **The write→read proof, across the real JSON codec boundary.** An envelope written by
@@ -105,9 +111,12 @@ fn a_site_envelope_written_to_disk_verifies_when_read_back() {
     let refused = load_or_build_cached_site(&root, "site", Some(ENGLISH), &identity, || {
         render_site_lang(&invalid, ENGLISH)
     });
-    assert!(
-        refused.is_err(),
-        "a renderer refusal must reach the producer"
+    assert_eq!(
+        refused
+            .expect_err("the renderer must refuse the invalid IRI")
+            .code(),
+        crate::render_error::Syntax::register(),
+        "the fixture producer preserves the renderer diagnostic"
     );
     assert!(
         !path.is_file(),
@@ -182,15 +191,12 @@ fn cached_site_rejects_non_utf8_files() {
 }
 
 #[test]
-fn model_site_and_book_share_the_store_without_key_aliases() {
+fn site_and_book_share_the_store_without_key_aliases() {
     let (_tmp, root) = temp_root("paths");
     let identity = model_identity();
-    let model = gmeow_docs_model::fixture::cache_path(&root);
     let site = site_cache_path(&root, ENGLISH, &identity);
     let book = book_cache_path(&root, &identity);
-    assert_eq!(model.parent(), site.parent());
     assert_eq!(site.parent(), book.parent());
-    assert_ne!(model, site);
     assert_ne!(site, book);
     assert_ne!(book, site_cache_path(&root, "book", &identity));
 }

@@ -7,6 +7,15 @@ use gmeow_errors::{FindingCategory, Grade, Severity, Standpoint, define_diag_kin
 
 define_diag_kind! {
     native_cause;
+    /// The fixture producer cannot discover or admit its input model.
+    pub struct FixtureModel { detail: String }
+    code = "docs.fixture.model-admission";
+    grade = Grade::new(Severity::Error, FindingCategory::ModelingDisciplineViolation, Standpoint::Binding);
+    message = "{}", detail;
+}
+
+define_diag_kind! {
+    native_cause;
     /// The HTML template cannot render the selected page.
     pub struct Template { detail: String }
     code = "docs.render.template";

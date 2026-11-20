@@ -348,6 +348,8 @@ pub enum DocsError {
     /// A test-facing corpus consumer could not find the exact authenticated model
     /// produced before the test process started. Tests may not rebuild it on a miss.
     FixtureUnavailable(String),
+    /// Authenticating or publishing an explicit fixture action failed.
+    FixtureCache(PreservedDiagnostic),
     /// A slice-catalog discovery / parse error.
     Slice(SliceError),
     /// The committed constraint-catalog fanout artifact
@@ -449,6 +451,7 @@ impl std::fmt::Display for DocsError {
             DocsError::FixtureUnavailable(msg) => {
                 write!(f, "documentation corpus fixture unavailable: {msg}")
             }
+            DocsError::FixtureCache(error) => write!(f, "documentation fixture cache: {error}"),
             DocsError::Slice(e) => write!(f, "slice catalog error: {e}"),
             DocsError::ConstraintCatalog(msg) => write!(f, "constraint catalog error: {msg}"),
             DocsError::MappingSets(msg) => write!(f, "central mapping-sets error: {msg}"),
@@ -496,7 +499,7 @@ impl std::fmt::Display for DocsError {
 impl std::error::Error for DocsError {
     fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {
         match self {
-            Self::PropertySignature(error) => Some(error),
+            Self::PropertySignature(error) | Self::FixtureCache(error) => Some(error),
             _ => None,
         }
     }
