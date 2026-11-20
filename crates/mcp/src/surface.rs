@@ -28,7 +28,7 @@ use gmeow_logic::reason::{
     reason_all_budgeted,
 };
 #[cfg(feature = "reasoning")]
-use gmeow_logic::result_rdf::{project_conjecture_withdrawal, project_reasoning_result};
+use gmeow_logic::result_rdf::project_conjecture_withdrawal;
 #[cfg(feature = "reasoning")]
 use gmeow_logic::transaction::execute::TxReceipt;
 #[cfg(feature = "core")]
@@ -196,8 +196,10 @@ fn builtin_tool_descriptors() -> Vec<Value> {
                  (CoherenceCertificate for a conclusive coherent closure, \
                  CoherenceCheckAttestation for a budget-cut closure, Refused for a witnessed \
                  forbidden contradiction), the completeness/evaluation axes, the verify \
-                 findings, the cited IRIs, and judgment_nquads (the grounded \
-                 logic:ReasoningResult). An overlay exceeding the size ceiling, and a missing \
+                 findings, the cited IRIs, judgment_nquads (the grounded \
+                 logic:ReasoningResult), and artifact (the complete binary GTS envelope). \
+                 Admit artifact natively before consuming projected text or facets. \
+                 An overlay exceeding the size ceiling, and a missing \
                  or unrecognized `format`, is a hard error — the format is never guessed.",
             &[
                 ("data", "string"),
@@ -219,7 +221,9 @@ fn builtin_tool_descriptors() -> Vec<Value> {
                  (max_steps bounds the derivation budget, max_answers the answer cap), and the \
                  completeness/evaluation axes plus judgment_nquads ride the response so a \
                  budget-cut closure is legible as CUT rather than as small. Returns {ok, \
-                 entailed_count, closure_nquads, completeness, evaluation, judgment_nquads}. An \
+                 entailed_count, closure_nquads, completeness, evaluation, judgment_nquads, \
+                 artifact}. The complete binary GTS artifact requires native admission before \
+                 consuming projected text or facets. An \
                  unrecognized format, or an input above the size/quad ceiling, is a hard error.",
             &[
                 ("data", "string"),
@@ -239,9 +243,12 @@ fn builtin_tool_descriptors() -> Vec<Value> {
                  step_skeleton (target first, each step carrying its rule, derivation id, \
                  (S,P,O), world, asserted flag, depth, antecedent step ids, and cited term \
                  IRIs), the complete cited_iris set, a Markdown rendering, the world_iri, the \
-                 completeness class (CoherenceCertificate for a conclusive closure, \
-                 CoherenceCheckAttestation for a budget-cut one), and judgment_nquads (the \
-                 grounded logic:ReasoningResult). `object_kind` is `iri` or `literal` (inferred \
+                 class_local_name classification (CoherenceCertificate for a conclusive \
+                 coherent closure, CoherenceCheckAttestation for a budget-cut one, Refused \
+                 for a witnessed forbidden contradiction), the separate completeness axis, \
+                 judgment_nquads (the grounded logic:ReasoningResult), and artifact (the \
+                 complete binary GTS envelope). Admit artifact natively before consuming \
+                 projected text or facets. `object_kind` is `iri` or `literal` (inferred \
                  from object_value when omitted); `object_datatype` types a literal object. This \
                  is DISTINCT from explain_finding: explain_finding addresses a PUBLISHED \
                  diagnostic by its fingerprint/anchor IRI over the graph/diagnostics projection, \
@@ -376,7 +383,9 @@ fn builtin_tool_descriptors() -> Vec<Value> {
                  (P9); math_conjecture optionally names the math:Conjecture twin. max_steps / \
                  max_answers optionally bound the isolated scenario evaluation (a \
                  derived-closure-size ceiling: exceeding it stamps BudgetExhausted → lifecycle \
-                 open). For the committing counterpart, see store_conjecture.",
+                 open). Every evaluation carries artifact, the complete binary GTS envelope; \
+                 admit it natively before consuming projected judgment text or verdict facets. \
+                 For the committing counterpart, see store_conjecture.",
             &[
                 ("formula", "string"),
                 ("kb", "string"),
@@ -397,7 +406,9 @@ fn builtin_tool_descriptors() -> Vec<Value> {
                  isolated scenario evaluation (a derived-closure-size ceiling: exceeding it \
                  stamps BudgetExhausted → lifecycle open). Pass dry_run=true for a \
                  non-committing sandbox run (verdict only, nothing written) — a \
-                 hypothetical-commit witness.",
+                 hypothetical-commit witness. Every evaluated outcome, including a refused \
+                 or hypothetical persist, carries artifact, the complete binary GTS envelope; \
+                 admit it natively before consuming projected judgment text or verdict facets.",
             &[
                 ("formula", "string"),
                 ("kb", "string"),
@@ -554,7 +565,10 @@ fn builtin_tool_descriptors() -> Vec<Value> {
                  this edge, empty for a lossless pair. Quoted triples survive to every \
                  star-capable target; a target that cannot carry them says so in `loss`. An \
                  unknown codec, an undecodable source, or a failed serialization is a hard \
-                 error.",
+                 error. Conforming GTS-to-GTS conversion preserves the complete artifact \
+                 byte for byte. Blob-free sources can be re-emitted under the mandated \
+                 profile; nonconforming blob-bearing sources refuse rather than discard \
+                 content. Text RDF outputs are projections, without complete proof carriage.",
             &[
                 ("data", "string"),
                 ("from", "string"),
@@ -1276,27 +1290,10 @@ impl McpServer {
                 .collect::<gmeow_errors::Result<Vec<_>>>()?,
         )?;
         let result = reason_all_budgeted(input, &domains, &budget)?;
-        let closure = gmeow_logic::reason::native_closure_to_dataset(&result)?;
-        let bytes = purrdf::serialize_dataset(
-            closure.as_ref(),
-            "application/n-quads",
-            purrdf::SerializeGraph::Dataset,
-        )
-        .with_ctx(|| "serialize reasoned closure".to_string())?;
-        let closure_nquads = String::from_utf8(bytes).map_err(|e| {
-            gmeow_errors::Diag::of_kind(crate::error::Mcp::new(format!(
-                "reason_graph: closure N-Quads are not UTF-8: {e}"
-            )))
-        })?;
-        Ok(json!({
-            "ok": true,
-            "entailed_count": closure.quad_count(),
-            "closure_nquads": closure_nquads,
-            "completeness": result.completeness.wire(),
-            "evaluation": result.evaluation.wire(),
-            "judgment_nquads": project_reasoning_result(&result)?,
-        })
-        .to_string())
+        let artifact = gmeow_logic::result_rdf::ResultProjection::reasoning_with_closure(&result)?
+            .into_gts()?
+            .bytes;
+        Ok(gmeow_logic::result_rdf::admit_reasoning_response(&artifact)?.to_string())
     }
 
     /// Reason-and-verify the bundle UNIONED with a READ-ONLY inline overlay graph,
@@ -2138,6 +2135,7 @@ impl McpServer {
             // here the embedded `logic:ReasoningResult` the engine's verdict was read from,
             // wrapped in the content-addressed `logic:Conjecture` node.
             "judgment_nquads": out.verdict_nt,
+            "artifact": gmeow_logic::result_rdf::artifact_envelope(&out.artifact),
         })
     }
 
@@ -2224,6 +2222,7 @@ impl McpServer {
                 "witness": witness_json,
                 "transaction": txn_json(&out.receipt),
                 "judgment_nquads": out.verdict_nt,
+            "artifact": gmeow_logic::result_rdf::artifact_envelope(&out.artifact),
             });
         }
         if out.dry_run {
@@ -2235,6 +2234,7 @@ impl McpServer {
                 "conjecture": out.node_iri,
                 "transaction": txn_json(&out.receipt),
                 "judgment_nquads": out.verdict_nt,
+            "artifact": gmeow_logic::result_rdf::artifact_envelope(&out.artifact),
             });
         }
 
@@ -2245,6 +2245,7 @@ impl McpServer {
             "conjecture": out.node_iri,
             "transaction": txn_json(&out.receipt),
             "judgment_nquads": out.verdict_nt,
+            "artifact": gmeow_logic::result_rdf::artifact_envelope(&out.artifact),
         })
     }
 
@@ -2509,6 +2510,7 @@ impl McpServer {
                 "witness": witness_json,
                 "transaction": txn_json(&out.receipt),
                 "judgment_nquads": out.verdict_nt,
+            "artifact": gmeow_logic::result_rdf::artifact_envelope(&out.artifact),
             })
             .to_string());
         }
@@ -2522,6 +2524,7 @@ impl McpServer {
                 "candidate": out.node_iri,
                 "transaction": txn_json(&out.receipt),
                 "judgment_nquads": out.verdict_nt,
+            "artifact": gmeow_logic::result_rdf::artifact_envelope(&out.artifact),
             })
             .to_string());
         }
@@ -2536,6 +2539,7 @@ impl McpServer {
             "candidate": out.node_iri,
             "transaction": txn_json(&out.receipt),
             "judgment_nquads": out.verdict_nt,
+            "artifact": gmeow_logic::result_rdf::artifact_envelope(&out.artifact),
         })
         .to_string())
     }

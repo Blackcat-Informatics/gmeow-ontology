@@ -28,24 +28,32 @@ const TELEMETRY_SCHEMA_VERSION: u32 = 1;
 /// Import the committed snapshot through the content-keyed graph-preserving dataset
 /// product. The original bytes remain available to the independent frame/profile gates;
 /// this boundary only eliminates repeated container decode/freeze/index work.
-fn snapshot_import(root: &Path) -> Result<gmeow_bundle_import::ImportOutcome, i32> {
+fn snapshot_import(root: &Path) -> Result<(gmeow_bundle_import::ImportOutcome, Vec<u8>), i32> {
     let bytes = snapshot_bytes(root)?;
     gmeow_bundle_import::import_graph_preserving_cached(
         &root.join(".cache/gmeow-bundle-import"),
         &bytes,
     )
+    .map(|imported| (imported, bytes))
     .map_err(|e| fail(format!("cannot read snapshot: {e}")))
 }
 
 fn snapshot_dataset(root: &Path) -> Result<std::sync::Arc<purrdf::RdfDataset>, i32> {
-    snapshot_import(root).map(|outcome| outcome.dataset)
+    snapshot_import(root).map(|(outcome, _bytes)| outcome.dataset)
 }
 
 /// Read the dataset and native law preparation from the same captured bundle bytes.
 /// Native laws are producer outputs; verification never recompiles their authored RDF.
 fn snapshot_verification_input(
     root: &Path,
-) -> Result<(gmeow_bundle_import::ImportOutcome, PreparedReasonedGates), i32> {
+) -> Result<
+    (
+        gmeow_bundle_import::ImportOutcome,
+        PreparedReasonedGates,
+        Vec<u8>,
+    ),
+    i32,
+> {
     let bytes = snapshot_bytes(root)?;
     let imported = gmeow_bundle_import::import_graph_preserving_cached(
         &root.join(".cache/gmeow-bundle-import"),
@@ -62,7 +70,7 @@ fn snapshot_verification_input(
     gates
         .validate_source_identity()
         .map_err(|error| fail(format!("cannot admit snapshot native laws: {error}")))?;
-    Ok((imported, gates))
+    Ok((imported, gates, bytes))
 }
 
 /// Recover the exact object-level reasoning EDB from a full shipped snapshot. The
@@ -81,14 +89,17 @@ fn snapshot_reasoning_dataset(
 /// and refuse a verdict minted under a different reasoning contract than this
 /// binary's engine: a stale bundle must be regenerated (or re-reasoned with
 /// `--fresh`), never re-reported as current.
-fn shipped_reasoning_result(dataset: &purrdf::RdfDataset) -> gmeow_errors::Result<ReasoningResult> {
-    let graph = dataset.term_id_by_iri(gmeow_logic::result_rdf::GRAPH_REASONING)
-        .ok_or_else(|| error::reasoning(
-            "the snapshot carries no graph/reasoning verdict; run `make check` (or re-reason with --fresh)",
-        ))?;
-    let result =
-        gmeow_logic::result_rdf::parse_reasoning_dataset(dataset, purrdf::GraphMatch::Named(graph))
-            .map_err(error::reasoning)?;
+fn shipped_reasoning_result(bytes: &[u8]) -> gmeow_errors::Result<ReasoningResult> {
+    let result = gmeow_logic::result_rdf::parse_reasoning_artifact_graph(
+        bytes,
+        Some(gmeow_logic::result_rdf::GRAPH_REASONING),
+    )
+    .map_err(error::reasoning)?;
+    check_shipped_reasoning_contract(&result)?;
+    Ok(result)
+}
+
+fn check_shipped_reasoning_contract(result: &ReasoningResult) -> gmeow_errors::Result<()> {
     let current = native_contract_hash();
     if result.provenance.contract_hash != current {
         return Err(error::reasoning(format!(
@@ -98,7 +109,7 @@ fn shipped_reasoning_result(dataset: &purrdf::RdfDataset) -> gmeow_errors::Resul
             shipped = result.provenance.contract_hash,
         )));
     }
-    Ok(result)
+    Ok(())
 }
 
 /// `gmeow-dev reason [--mode --fresh --merge …]` — native EL/DL reasoning. By
@@ -112,7 +123,7 @@ pub fn reason(mode: &str, fresh: bool, timings_json: Option<&Path>) -> i32 {
     }
     let root = project_root();
     let started = Instant::now();
-    let imported = match snapshot_import(&root) {
+    let (imported, snapshot_bytes) = match snapshot_import(&root) {
         Ok(imported) => imported,
         Err(code) => return code,
     };
@@ -145,7 +156,7 @@ pub fn reason(mode: &str, fresh: bool, timings_json: Option<&Path>) -> i32 {
             Err(e) => return fail(format!("native reasoning failed: {e}")),
         }
     } else {
-        match shipped_reasoning_result(dataset.as_ref()) {
+        match shipped_reasoning_result(&snapshot_bytes) {
             Ok(r) => (r, "reason-shipped", None),
             Err(e) => return fail(format!("cannot reuse the shipped verdict: {e}")),
         }
@@ -267,7 +278,7 @@ pub fn verify(mode: &str, fresh: bool, timings_json: Option<&Path>) -> i32 {
     }
     let root = project_root();
     let started = Instant::now();
-    let (imported, gates) = match snapshot_verification_input(&root) {
+    let (imported, gates, snapshot_bytes) = match snapshot_verification_input(&root) {
         Ok(input) => input,
         Err(code) => return code,
     };
@@ -288,7 +299,7 @@ pub fn verify(mode: &str, fresh: bool, timings_json: Option<&Path>) -> i32 {
             Err(e) => return fail(format!("native verify reasoning failed: {e}")),
         }
     } else {
-        match shipped_reasoning_result(dataset.as_ref()) {
+        match shipped_reasoning_result(&snapshot_bytes) {
             Ok(result) => result,
             Err(e) => return fail(format!("cannot reuse the shipped verdict: {e}")),
         }
@@ -462,14 +473,14 @@ where
 }
 
 /// `gmeow-dev reason-verify [--fresh --merge --timings-json]` — reason + verify in
-/// one pass. By default both halves reuse the shipped closure + verdict
-/// (contract-hash-checked, ONE snapshot import and no chase); `--fresh` computes
-/// one complete native closure and verifies that same value.
+/// one pass. The shipped path validates the verdict and retains its native
+/// receipt in one artifact admission. The fresh path computes one complete
+/// native closure and verifies that value.
 pub fn reason_verify(fresh: bool, timings_json: Option<&Path>) -> i32 {
     let root = project_root();
     let started = Instant::now();
     let snapshot_started = Instant::now();
-    let (imported, gates) = match snapshot_verification_input(&root) {
+    let (imported, gates, snapshot_bytes) = match snapshot_verification_input(&root) {
         Ok(input) => input,
         Err(code) => return code,
     };
@@ -484,6 +495,7 @@ pub fn reason_verify(fresh: bool, timings_json: Option<&Path>) -> i32 {
         Ok(verification) => verification,
         Err(error) => return fail(format!("native verify preparation failed: {error}")),
     };
+    let mut shipped_receipt = None;
     let (evaluation, result_phase) = if fresh {
         (
             evaluate_reason_verify_once(edb.as_ref(), &verification, || {
@@ -501,8 +513,17 @@ pub fn reason_verify(fresh: bool, timings_json: Option<&Path>) -> i32 {
     } else {
         (
             evaluate_reason_verify_once(edb.as_ref(), &verification, || {
-                shipped_reasoning_result(dataset.as_ref())
-                    .map_err(|e| error::reasoning(format!("cannot reuse the shipped verdict: {e}")))
+                let (result, receipt) =
+                    gmeow_logic::result_rdf::parse_reasoning_artifact_graph_with_receipt(
+                        &snapshot_bytes,
+                        Some(gmeow_logic::result_rdf::GRAPH_REASONING),
+                    )
+                    .map_err(|error| {
+                        error::reasoning(format!("cannot reuse the shipped verdict: {error}"))
+                    })?;
+                check_shipped_reasoning_contract(&result)?;
+                shipped_receipt = receipt;
+                Ok(result)
             }),
             "reason-result-shipped",
         )
@@ -530,13 +551,33 @@ pub fn reason_verify(fresh: bool, timings_json: Option<&Path>) -> i32 {
             ));
         }
     };
+    let fresh_publication = if fresh {
+        match gmeow_logic::result_rdf::ResultProjection::reasoning(&evaluation.result) {
+            Ok(publication) => Some(publication),
+            Err(error) => {
+                return fail(format!(
+                    "cannot publish fresh verification receipt: {error}"
+                ));
+            }
+        }
+    } else {
+        None
+    };
+    let native_receipt = fresh_publication
+        .as_ref()
+        .and_then(gmeow_logic::result_rdf::ResultProjection::receipt)
+        .or_else(|| {
+            shipped_receipt
+                .as_ref()
+                .map(gmeow_logic::result_rdf::NativeReceipt::as_ref)
+        });
     let attestation = match gmeow_pipeline::stages::verify_attestation::grade_shipped_attestation(
-        dataset.as_ref(),
+        (dataset.as_ref(), &verify_record),
         edb.as_ref(),
         &evaluation.result,
+        native_receipt,
         &queries,
         &evaluation.report,
-        &verify_record,
         &gates,
     ) {
         Ok(attestation) => attestation,
@@ -600,7 +641,8 @@ pub fn reason_verify(fresh: bool, timings_json: Option<&Path>) -> i32 {
                     "deterministic_work",
                     purrdf_lex::json::Value::from(
                         purrdf_lex::json::Object::new()
-                            .with("gts_imports", 1)
+                            .with("bundle_import_actions", 1)
+                            .with("verdict_artifact_admissions", usize::from(!fresh))
                             .with(
                                 "gts_import",
                                 purrdf_lex::json::Value::from(

@@ -215,7 +215,7 @@ fn empty_model_yields_empty_string() {
 }
 
 #[test]
-fn undecided_reasoning_projection_never_invents_satisfiable_classes() {
+fn reasoning_projection_never_invents_class_realizability() {
     let mut model = tiny_model();
     model.reasoning = Some(crate::model::ReasoningVerdict {
         consistency: crate::model::ConsistencyAssessment::Undetermined,
@@ -229,6 +229,14 @@ fn undecided_reasoning_projection_never_invents_satisfiable_classes() {
     let rdf = to_gmeow_rdf(&model, &BTreeMap::new());
     assert!(rdf.contains("\"undetermined\""));
     assert!(rdf.contains("\"not-evaluated\""));
+    assert!(!rdf.contains("\"satisfiable\""));
+    model
+        .reasoning
+        .as_mut()
+        .expect("the selected native assessment is attached")
+        .consistency = crate::model::ConsistencyAssessment::Consistent;
+    let rdf = to_gmeow_rdf(&model, &BTreeMap::new());
+    assert!(rdf.contains("\"undetermined\""));
     assert!(!rdf.contains("\"satisfiable\""));
 }
 

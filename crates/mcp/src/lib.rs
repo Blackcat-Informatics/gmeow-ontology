@@ -163,8 +163,8 @@ pub use libraries::compact_store;
 pub use libraries::{
     CandidateSubmitInput, CandidateSubmitOutput, ConjecturePureOutput, ConjectureRunInput,
     ConjectureRunOutput, ConjectureRunPureInput, ConjectureRunWitness, run_conjecture_test,
-    run_conjecture_test_pure, run_list_candidates, run_list_candidates_in, run_submit_candidate,
-    run_withdraw_candidate,
+    run_conjecture_test_in, run_conjecture_test_pure, run_list_candidates, run_list_candidates_in,
+    run_submit_candidate, run_submit_candidate_in, run_withdraw_candidate,
 };
 
 #[cfg(feature = "reasoning")]
@@ -241,7 +241,17 @@ use gmeow_logic::reason::{prepare_reasoning_input, reason_all_budgeted};
 #[cfg(feature = "reasoning")]
 use gmeow_logic::result::{CompletenessStatus, EvaluationStatus, ReasoningResult};
 #[cfg(feature = "reasoning")]
-use gmeow_logic::result_rdf::project_reasoning_result;
+use gmeow_logic::result_rdf::{ResultProjection, artifact_envelope};
+
+/// Admit a complete reasoning response through the shared native proof boundary.
+/// Core-only consumers must load the reasoning segment before accepting facets.
+///
+/// # Errors
+/// Rejects missing or invalid required receipts, closures and transport evidence.
+#[cfg(feature = "reasoning")]
+pub fn admit_reasoning_response(bytes: &[u8]) -> gmeow_errors::Result<String> {
+    Ok(gmeow_logic::result_rdf::admit_reasoning_response(bytes)?.to_string())
+}
 #[cfg(all(
     test,
     not(target_arch = "wasm32"),
@@ -2161,7 +2171,7 @@ impl McpView {
     #[cfg(feature = "reasoning")]
     fn verify_graph_json(&self, data: &str, format: &str, budget: &Budget) -> String {
         match self.run_verify_graph(data, format, budget) {
-            Ok((value, _result)) => value.to_string(),
+            Ok((value, _result, _artifact)) => value.to_string(),
             Err(err) => json!({"ok": false, "error": err.to_string()}).to_string(),
         }
     }
@@ -2227,7 +2237,7 @@ impl McpView {
         data: &str,
         format: &str,
         budget: &Budget,
-    ) -> gmeow_errors::Result<(Value, ReasoningResult)> {
+    ) -> gmeow_errors::Result<(Value, ReasoningResult, Vec<u8>)> {
         // Media from the DECLARED format; an unrecognized token HARD-FAILS naming the
         // accepted set (no silent fallback), exactly as query_local.
         let media = rdf_media_type("verify_graph", format)?;
@@ -2324,7 +2334,7 @@ impl McpView {
         // The grounded RDF judgment: the ReasoningResult node projected to N-Triples
         // (a subset of N-Quads) so an agent can reason over the verdict itself — its
         // completeness/evaluation axes and consumed budget ride the node.
-        let judgment_nquads = project_reasoning_result(&result)?;
+        let (judgment_nquads, artifact) = Self::publish_native_judgment(&result)?;
 
         Ok((
             json!({
@@ -2337,8 +2347,10 @@ impl McpView {
                 "findings": findings,
                 "cited_iris": cited_iris.into_iter().collect::<Vec<_>>(),
                 "judgment_nquads": judgment_nquads,
+                "artifact": artifact_envelope(&artifact),
             }),
             result,
+            artifact,
         ))
     }
 
@@ -2429,7 +2441,26 @@ impl McpView {
         graph: &str,
     ) -> gmeow_errors::Result<Value> {
         let rows = explain::rows_for_result(result)?;
-        Self::explain_native_rows(result, &rows, subject, predicate, obj_n3, graph)
+        let (judgment, artifact) = Self::publish_native_judgment(result)?;
+        Self::explain_native_rows(
+            result,
+            &rows,
+            subject,
+            predicate,
+            obj_n3,
+            graph,
+            (&judgment, &artifact),
+        )
+    }
+
+    #[cfg(feature = "reasoning")]
+    fn publish_native_judgment(
+        result: &ReasoningResult,
+    ) -> gmeow_errors::Result<(String, Vec<u8>)> {
+        let projection = ResultProjection::reasoning(result)?;
+        let judgment = projection.to_ntriples();
+        let artifact = projection.into_gts()?.bytes;
+        Ok((judgment, artifact))
     }
 
     /// Render from the same native rows used to select a producer target, avoiding
@@ -2442,6 +2473,7 @@ impl McpView {
         predicate: &str,
         obj_n3: &str,
         graph: &str,
+        publication: (&str, &[u8]),
     ) -> gmeow_errors::Result<Value> {
         let target_reifier = reifier_from_strings(subject, predicate, obj_n3);
         let target_index = locate_explain_target(rows, &target_reifier, graph)?;
@@ -2475,8 +2507,10 @@ impl McpView {
             "cited_iris": explanation.cited_iris.iter().cloned().collect::<Vec<_>>(),
             "step_skeleton": step_skeleton,
             "world_iri": explanation.world_iri,
-            "completeness": completeness_class(result),
-            "judgment_nquads": project_reasoning_result(result)?,
+            "class_local_name": completeness_class(result),
+            "completeness": result.completeness.wire(),
+            "judgment_nquads": publication.0,
+            "artifact": artifact_envelope(publication.1),
         }))
     }
 
@@ -3172,7 +3206,9 @@ pub fn candidate_submission_descriptor() -> Value {
          isolated-world verdict corroborates it. Refuted or open candidates stage nothing. \
          kb_format selects the KB codec (default text/turtle); for_slice and for_packet \
          record target provenance. max_steps and max_answers select reasoning limits. \
-         dry_run returns the verdict without writing.",
+         dry_run returns the verdict without writing. Every evaluated outcome carries \
+         artifact, the complete binary GTS envelope; admit it natively before consuming \
+         projected judgment text or verdict facets.",
         &[
             ("formula", "string"),
             ("kb", "string"),
@@ -4010,115 +4046,21 @@ fn gmn_signature_join(
     (None, None)
 }
 
-// ── base64 (RFC 4648 §4, standard alphabet, padded) ─────────────────────────────
-//
-// The MCP wire format is JSON, which carries text; the `convert` tool carries BYTES.
-// Every codec whose output is not valid UTF-8 (`gts`) therefore needs a byte-exact text
-// encoding in both directions, and a caller that pastes a binary source needs the same on
-// the way in. This is ~40 lines of table lookup with no state — cheaper, and far easier to
-// audit at a crate boundary this strict, than a dependency edge on the consumer surface.
-
-/// The standard base64 alphabet, in index order.
-#[cfg(feature = "core")]
-const BASE64_ALPHABET: &[u8; 64] =
-    b"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
-
-/// Encode `bytes` as padded standard base64.
+/// Encode binary MCP output through the native canonical RFC 4648 codec.
 #[cfg(feature = "core")]
 fn base64_encode(bytes: &[u8]) -> String {
-    let mut out = String::with_capacity(bytes.len().div_ceil(3) * 4);
-    for chunk in bytes.chunks(3) {
-        let b0 = u32::from(chunk[0]);
-        let b1 = chunk.get(1).copied().map_or(0, u32::from);
-        let b2 = chunk.get(2).copied().map_or(0, u32::from);
-        let triple = (b0 << 16) | (b1 << 8) | b2;
-        for i in 0..4 {
-            // A group of 3 input bytes yields 4 output characters; a short final group
-            // yields 2 or 3 characters plus padding.
-            if i <= chunk.len() {
-                let index = ((triple >> (18 - 6 * i)) & 0x3F) as usize;
-                out.push(char::from(BASE64_ALPHABET[index]));
-            } else {
-                out.push('=');
-            }
-        }
-    }
-    out
+    purrdf::xsd::canonical_base64(bytes)
 }
 
-/// The 0–63 value of one base64 character, or `None` when it is not in the alphabet.
-#[cfg(feature = "core")]
-fn base64_value(ch: u8) -> Option<u32> {
-    let value = match ch {
-        b'A'..=b'Z' => ch - b'A',
-        b'a'..=b'z' => ch - b'a' + 26,
-        b'0'..=b'9' => ch - b'0' + 52,
-        b'+' => 62,
-        b'/' => 63,
-        _ => return None,
-    };
-    Some(u32::from(value))
-}
-
-/// Decode padded standard base64, refusing anything that is not exactly that.
-///
-/// Strict by construction: ASCII whitespace is skipped (a pasted payload is routinely
-/// line-wrapped), but a stray character, a length that is not a multiple of four, and
-/// misplaced padding are each named rather than silently truncated to whatever decoded —
-/// a partial decode is exactly the silent degradation this surface forbids.
-///
-/// `what` labels the argument being decoded so the refusal points at the caller's own
-/// parameter (`convert: \`data\``) rather than at this helper.
+/// Admit padded standard base64 through the native codec, preserving its cause.
 #[cfg(feature = "core")]
 fn base64_decode(what: &str, text: &str) -> gmeow_errors::Result<Vec<u8>> {
-    let refuse = |detail: String| {
-        gmeow_errors::Diag::of_kind(crate::error::Mcp::new(format!(
-            "{what} is not valid base64: {detail}"
-        )))
-    };
-    let symbols: Vec<u8> = text
-        .bytes()
-        .filter(|b| !b.is_ascii_whitespace())
-        .collect::<Vec<u8>>();
-    if !symbols.len().is_multiple_of(4) {
-        return Err(refuse(format!(
-            "length {} is not a multiple of 4 (standard base64 is padded)",
-            symbols.len()
-        )));
-    }
-    let mut out = Vec::with_capacity(symbols.len() / 4 * 3);
-    for (group_index, group) in symbols.chunks(4).enumerate() {
-        let is_last = (group_index + 1) * 4 == symbols.len();
-        let pad = group.iter().filter(|b| **b == b'=').count();
-        if pad > 0 && !is_last {
-            return Err(refuse(format!(
-                "padding appears in group {group_index}, which is not the final group"
-            )));
-        }
-        if pad > 2 || (pad > 0 && group[4 - pad..].iter().any(|b| *b != b'=')) {
-            return Err(refuse(
-                "padding must be the final one or two characters of the last group".to_owned(),
-            ));
-        }
-        let mut acc: u32 = 0;
-        for (i, &ch) in group.iter().enumerate() {
-            let value = if ch == b'=' {
-                0
-            } else {
-                base64_value(ch).ok_or_else(|| {
-                    refuse(format!(
-                        "character {:?} is not in the base64 alphabet",
-                        char::from(ch)
-                    ))
-                })?
-            };
-            acc |= value << (18 - 6 * i);
-        }
-        for i in 0..(3 - pad) {
-            out.push(((acc >> (16 - 8 * i)) & 0xFF) as u8);
-        }
-    }
-    Ok(out)
+    purrdf::xsd::parse_base64(text).map_err(|cause| {
+        gmeow_errors::Diag::of_kind(crate::error::Mcp::caused_by(
+            format!("{what} is not valid base64: {cause}"),
+            cause,
+        ))
+    })
 }
 
 /// Read a required string using the same argument contract as built-in MCP tools.

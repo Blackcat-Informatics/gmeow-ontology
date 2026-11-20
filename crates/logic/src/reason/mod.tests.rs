@@ -2163,8 +2163,10 @@ fn modal_contexts_survive_native_receipts_rdf_and_explanation_without_absent_pre
             .any(|q| q.world == "urn:context:alternate"
                 && q.predicate == modal::MODAL_NECESSITY_HOLDS)
     );
-    let wire = crate::result_rdf::project_reasoning_result(&result).unwrap();
-    let recovered = crate::result_rdf::parse_reasoning_graph(&wire).unwrap();
+    let publication = crate::result_rdf::ResultProjection::reasoning(&result).unwrap();
+    let wire = publication.to_ntriples();
+    let recovered =
+        crate::result_rdf::parse_reasoning_graph(&wire, &publication.receipt()).unwrap();
     let recovered_rows: Vec<_> = recovered
         .inferred()
         .iter()
@@ -2203,9 +2205,9 @@ fn modal_contexts_survive_native_receipts_rdf_and_explanation_without_absent_pre
 
     for mutation in 0..4 {
         let mut changed = result.clone();
-        let crate::result::ResultPayload::Inferred(rows) = &mut changed.payload else {
-            panic!("inferred");
-        };
+        let rows = changed
+            .summary_rows_mut()
+            .expect("the native result carries inferred rows");
         let row = rows
             .iter_mut()
             .find(|q| q.modal_evaluation.is_some())
@@ -2226,10 +2228,6 @@ fn modal_contexts_survive_native_receipts_rdf_and_explanation_without_absent_pre
         assert!(
             changed.validate().is_err(),
             "mutation {mutation} must fail native admission"
-        );
-        assert!(
-            crate::result_rdf::project_reasoning_result(&changed).is_err(),
-            "mutation {mutation} must fail RDF publication before malformed bytes escape"
         );
     }
 }

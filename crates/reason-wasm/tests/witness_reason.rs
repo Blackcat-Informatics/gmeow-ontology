@@ -1,45 +1,51 @@
 // SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 // SPDX-License-Identifier: AGPL-3.0-only
 
-//! Native half of the W4b reasoner `reason` WITNESS (T1/F3).
-//!
-//! `gmeow-reason-wasm::reason` is a thin shim over exactly this pipeline (parse →
-//! `gmeow_logic::reason::reason_closure_dataset` → serialize N-Quads), so the browser
-//! reasoner produces byte-identical output to native. This test pins the NATIVE
-//! reasoned closure of a fixed input to a committed content-addressed attestation
-//! (`crates/reason-wasm/tests/WITNESS.reason.nq`); the Node lane runs the WASM
-//! `reason` over the SAME input and asserts byte-identity with that attestation.
-//! Both matching the one attestation proves native ≡ wasm. The attestation is
-//! refreshed only by an explicit maintainer producer.
+//! Native complete-artifact identity for the shipped browser reason operation.
+//! The matching WASM case consumes the same producer-owned frozen JSON witness.
 
 use std::path::PathBuf;
 
 #[path = "support/closure_witness.rs"]
 mod closure_witness;
-use closure_witness::{INPUT, reason_nquads};
+use closure_witness::{INPUT, reason_artifact};
 
 fn attestation_path() -> PathBuf {
     PathBuf::from(env!("CARGO_MANIFEST_DIR"))
         .join("../..")
         .canonicalize()
         .expect("repo root")
-        .join("crates/reason-wasm/tests/WITNESS.reason.nq")
+        .join("crates/reason-wasm/tests/WITNESS.reason.json")
 }
 
 #[test]
 fn native_reason_closure_matches_the_witness_attestation() {
-    let out = reason_nquads(INPUT, "turtle");
-    // Deterministic + non-empty: the closure must carry the entailed memberships.
+    let out = reason_artifact(INPUT, "turtle");
+    let response: serde_json::Value =
+        serde_json::from_str(&out).expect("the admitted reasoning response is JSON");
+    let closure = response["closure_nquads"]
+        .as_str()
+        .expect("the admitted artifact carries its closure");
+    let dataset = purrdf::parse_dataset(closure.as_bytes(), "application/n-quads", None)
+        .expect("the admitted closure is valid N-Quads");
+    let subject = purrdf::RdfTerm::iri("https://example.org/felix");
+    let predicate = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
+    for class in ["https://example.org/Animal", "https://example.org/Organism"] {
+        let object = purrdf::RdfTerm::iri(class);
+        assert!(
+            dataset.owned_quads().any(|quad| quad.subject == subject
+                && quad.predicate == predicate
+                && quad.object == object),
+            "the admitted closure entails Felix's membership in {class}"
+        );
+    }
+
+    // Complete-artifact bytes are deterministic and match the explicit producer.
     assert_eq!(
         out,
-        reason_nquads(INPUT, "turtle"),
+        reason_artifact(INPUT, "turtle"),
         "reasoning is deterministic"
     );
-    assert!(
-        !out.trim().is_empty(),
-        "the structured-DL closure of the fixture must be non-empty:\n{out}"
-    );
-
     let path = attestation_path();
     let committed = std::fs::read_to_string(&path).unwrap_or_else(|e| {
         panic!(

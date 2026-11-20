@@ -34,3 +34,6 @@ gmeow-errors = { path = "../errors" }
 # Pinned once in the workspace: the CLI that generates the JS bindings must match the
 # library version byte-for-byte, and one CLI serves every wasm crate in the build.
 wasm-bindgen.workspace = true
+
+[dev-dependencies]
+serde_json.workspace = true

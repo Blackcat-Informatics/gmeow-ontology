@@ -128,7 +128,7 @@ fn populated(extra: Vec<DocTerm>) -> DocsModel {
 #[test]
 fn clean_site_has_zero_errors() {
     let model = populated(vec![term("Cat", Some("A cat."), Some("Cat"))]);
-    let site = render_site(&model);
+    let site = render_site(&model).expect("the selected documentation model renders");
     let report = lint(&model, &site);
     assert_eq!(
         report.error_count(),
@@ -176,7 +176,7 @@ fn coverage_gaps_are_warnings() {
     // ledger row, loss judgment sound) — those apply only where a term declares
     // an external correspondence or is a lossy projection. No errors.
     let model = populated(vec![term("Bare", None, None)]);
-    let site = render_site(&model);
+    let site = render_site(&model).expect("the selected documentation model renders");
     let report = lint(&model, &site);
     assert_eq!(report.error_count(), 0);
     let codes: BTreeSet<&str> = report.findings.iter().map(|f| f.code.as_str()).collect();
@@ -325,7 +325,7 @@ fn fully_covered_terms_emit_no_coverage_warnings() {
             owner_slice: format!("{GMEOW}slice/zoo"),
         });
     }
-    let site = render_site(&model);
+    let site = render_site(&model).expect("the selected documentation model renders");
     let report = lint(&model, &site);
     assert_eq!(report.error_count(), 0, "{:?}", report.legacy_errors());
     let coverage: Vec<&str> = report

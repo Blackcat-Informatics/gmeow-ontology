@@ -28,11 +28,11 @@ test("version() equals the published package version", () => {
   assert.equal(version(), packageJson.version);
 });
 
-test("wasm reasoned closure is byte-identical to the native witness attestation", async () => {
+test("wasm complete reasoning artifact is byte-identical to the native witness attestation", async () => {
   const attestation = await readFile(
-    fileURLToPath(new URL("../../tests/WITNESS.reason.nq", import.meta.url)),
+    fileURLToPath(new URL("../../tests/WITNESS.reason.json", import.meta.url)),
     "utf8",
   );
-  const wasmClosure = reason(INPUT, "turtle");
-  assert.equal(wasmClosure, attestation, "wasm reasoned closure drifted from native attestation");
+  const wasmArtifact = reason(INPUT, "turtle");
+  assert.equal(wasmArtifact, attestation, "wasm complete reasoning artifact drifted from native attestation");
 });

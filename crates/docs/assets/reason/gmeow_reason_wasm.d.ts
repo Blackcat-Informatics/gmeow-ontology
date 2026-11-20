@@ -2,10 +2,17 @@
 /* eslint-disable */
 
 /**
- * Test a candidate `logic:` formula against a KB with the native SYMMETRIC conjecture
- * engine and return the **deterministic verdict** as N-Triples text — the SAME projection
- * the on-gate MCP / CLI surface emits (proven byte-identical by the native≡wasm conjecture
- * witness). Powers the live documentation conjecture playground (the WASM-interactive docs W4 deliverable).
+ * Admit a complete artifact before rendering facets or recording a derivation.
+ *
+ * # Errors
+ * Throws when any selected result, attachment or native transport is invalid.
+ */
+export function admit_artifact(bytes: Uint8Array | number[]): string;
+
+/**
+ * Test a candidate `logic:` formula against a KB with the native symmetric engine
+ * and return its complete artifact envelope and admitted verdict facets as JSON.
+ * The native MCP, CLI and browser share the same publication and admission owner.
  *
  * - `kb` — the knowledge base to test against (RDF text in `kb_format`).
  * - `kb_format` — a media type / short id purrdf understands (`turtle`/`ttl`,
@@ -14,9 +21,8 @@
  * - `standpoint` — the reified standpoint IRI the verdict is scoped to (REQUIRED; a
  *   conjecture verdict is always standpoint-scoped, never global — Principle 9).
  *
- * The symmetric two legs (proof `KB ⊨ φ` and counterproof `KB ∪ {φ} ⊨ ⊥`) and the Belnap
- * classification are all readable from the returned N-Triples; the JS controller renders
- * them side-by-side.
+ * The proof leg `KB ⊨ φ`, counterproof leg `KB ∪ {φ} ⊨ ⊥` and Belnap
+ * classification are readable from the admitted RDF facets carried beside the artifact.
  *
  * # Errors
  *
@@ -27,8 +33,8 @@ export function conjecture(kb: string, kb_format: string, formula: string, stand
 
 /**
  * Run the structured-DL chase over `data` (RDF text in `format`) and return the
- * **reasoned closure** as N-Quads text, retaining asserted facts, inferred facts,
- * and the selected nonempty-domain witness.
+ * complete reasoning artifact as JSON, retaining its binary native receipt,
+ * asserted and inferred closure, and the selected nonempty-domain witness.
  *
  * - `data` — the RDF document to reason over (UTF-8 text).
  * - `format` — a media type / short id purrdf understands (`turtle`/`ttl`,
@@ -51,15 +57,16 @@ export type InitInput = RequestInfo | URL | Response | BufferSource | WebAssembl
 
 export interface InitOutput {
     readonly memory: WebAssembly.Memory;
+    readonly admit_artifact: (a: number, b: number, c: number) => void;
     readonly conjecture: (a: number, b: number, c: number, d: number, e: number, f: number, g: number, h: number, i: number) => void;
     readonly reason: (a: number, b: number, c: number, d: number, e: number) => void;
     readonly version: (a: number) => void;
     readonly __wbindgen_externrefs: WebAssembly.Table;
     readonly __wbindgen_add_to_stack_pointer: (a: number) => number;
     readonly __wbindgen_export: (a: number, b: number) => number;
-    readonly __wbindgen_export2: (a: number, b: number, c: number, d: number) => number;
-    readonly __wbindgen_export3: (a: number, b: number, c: number) => void;
-    readonly __wbindgen_export4: (a: number) => void;
+    readonly __wbindgen_export2: (a: number, b: number, c: number) => void;
+    readonly __wbindgen_export3: (a: number) => void;
+    readonly __wbindgen_export4: (a: number, b: number, c: number, d: number) => number;
     readonly __wbindgen_start: () => void;
 }
 

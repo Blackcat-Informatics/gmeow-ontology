@@ -114,7 +114,7 @@ pub(crate) fn run(
     };
     match result {
         Ok(()) => 0,
-        Err(error) => crate::dev_common::fail(format!("test fixtures: {error}")),
+        Err(error) => crate::dev_common::fail(format!("test fixtures: {error:#}")),
     }
 }
 
@@ -279,8 +279,7 @@ fn produce_docs_fixtures(root: &Path, timings_path: Option<&Path>) -> FixtureRes
         &catalogs.term_manifest,
         &catalogs.constraint_catalog,
         catalogs.inputs,
-    )
-    .map_err(fail)?;
+    )?;
     let prepared = prepare_fixture_selector_at_path(
         root.join(DOCS_FIXTURE_MANIFEST_RELATIVE_PATH),
         Some(catalogs.selection),
@@ -417,7 +416,7 @@ fn produce(
     let docs_observation = if scope.includes_docs() {
         println!("test fixture producer: phase=docs state=started");
         let docs_started = Instant::now();
-        let prime = gmeow_docs::fixture::prime(root);
+        let prime = gmeow_docs::fixture::prime(root)?;
         println!(
             "docs fixture: actions={} built={} receipt-hits={} parallelism={}",
             prime.action_count, prime.built, prime.receipt_hits, prime.parallelism
@@ -743,8 +742,7 @@ fn verify(
         let render_count = if scope == TestFixtureScope::Docs {
             let inputs = gmeow_pipeline::fixture::verify_docs_catalog_fixtures(root)?;
             let selected = gmeow_docs_model::fixture::selected_fixtures(root).map_err(fail)?;
-            gmeow_docs_model::fixture::verify_current_catalog_model(root, &selected, inputs)
-                .map_err(fail)?;
+            gmeow_docs_model::fixture::verify_current_catalog_model(root, &selected, inputs)?;
             Some(selected.renders.len())
         } else {
             None

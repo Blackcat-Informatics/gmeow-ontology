@@ -54,7 +54,6 @@ pub(super) const NAMES: &[&str] = &[
     "validate-queries.ustar",
     "validate-mappings.ustar",
     "validate-constraint-shapes.ttl",
-    "validate-linkml.yaml",
     "validate-statements-owl.ttl",
 ];
 /// Exact archive profile required by every artifact in `NAMES`. Independent
@@ -66,7 +65,6 @@ pub(super) const BLOB_SELECTORS: &[GtsBlobSelector<'static>] = &[
     GtsBlobSelector::Representation(REP_SHAPES),
     GtsBlobSelector::Representation(REP_QUERIES),
     GtsBlobSelector::Representation(REP_MAPPINGS),
-    GtsBlobSelector::Representation("generated-opaque-archive"),
     GtsBlobSelector::Representation("statements-archive"),
 ];
 
@@ -292,11 +290,6 @@ impl<'a> Sources<'a> {
             "validate-constraint-shapes.ttl" => self.member(
                 REP_SHAPES,
                 "generated/shapes/constraint-shapes.ttl",
-                member_limit,
-            ),
-            "validate-linkml.yaml" => self.member(
-                "generated-opaque-archive",
-                "generated/schemas/gmeow.linkml.yaml",
                 member_limit,
             ),
             "validate-statements-owl.ttl" => self.member(

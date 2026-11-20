@@ -21,6 +21,7 @@
 mod commands;
 mod error;
 mod gmn;
+mod output;
 mod passthrough;
 
 pub use gmn::{DecodeFormat, DigestFormat};
@@ -270,7 +271,8 @@ pub enum Commands {
         #[arg(long = "gts")]
         gts: Option<PathBuf>,
     },
-    /// Transcode any RDF-1.2 syntax/projection to any other, recording loss.
+    /// Transcode RDF 1.2 with loss records. Conforming GTS identity preserves every blob;
+    /// nonconforming blob-bearing GTS refuses, while blob-free GTS can be re-emitted.
     Convert {
         /// Input RDF document, or `-` to read from stdin.
         source: String,
@@ -914,6 +916,9 @@ pub enum ConjectureCommands {
     /// scenario world, print the engine verdict, and — unless `--dry-run` — APPEND it to the
     /// append-only conjecture library (`GMEOW_CONJECTURE_PATH`, else `~/.gmeow/conjectures.gts`).
     Test {
+        /// Required complete binary GTS evaluation artifact, also written for dry runs.
+        #[arg(long)]
+        out: PathBuf,
         /// A Turtle `logic:` document naming exactly one candidate formula.
         #[arg(long = "formula")]
         formula: PathBuf,
@@ -952,8 +957,11 @@ pub enum CandidateCommands {
     /// Test a candidate `logic:` formula against a KB and — ONLY if the isolated-world verdict
     /// CORROBORATES it (admissible) — APPEND it to the append-only candidate library
     /// (`GMEOW_CANDIDATE_PATH`, else `~/.gmeow/candidates.gts`). A refuted or open candidate is
-    /// never admitted and writes nothing.
+    /// never admitted to the library; its complete evaluation artifact is still written.
     Submit {
+        /// Required complete GTS evaluation artifact, including refused admission.
+        #[arg(long)]
+        out: PathBuf,
         /// A Turtle `logic:` document naming exactly one candidate formula.
         #[arg(long = "formula")]
         formula: PathBuf,
@@ -1107,7 +1115,8 @@ pub enum CorrespondenceCommands {
 #[derive(Debug, Subcommand)]
 pub enum LogicCommands {
     /// Evaluate an attributed modal request in supplied RDF and emit its complete
-    /// reasoning, proof, and diagnostic graphs as RDF 1.2 N-Quads. No checkout is required.
+    /// reasoning, proof, and diagnostic graphs as binary GTS on stdout. Redirect
+    /// stdout to a .gts file. No checkout is required.
     Evaluate {
         /// RDF containing a typed request, its contexts, and attributed evidence.
         input: PathBuf,
@@ -1522,7 +1531,7 @@ pub enum FinanceCommands {
         /// Named financial calculation with complete observation context.
         #[arg(long)]
         subject: String,
-        /// Required derived result and native proof output.
+        /// Required complete binary GTS result, native receipt and RDF closure.
         #[arg(long)]
         out: PathBuf,
     },
@@ -1554,7 +1563,7 @@ pub enum MathCommands {
         /// Explicit MathematicalSymbol=Quantity binding, repeatable; duplicates fail.
         #[arg(long = "bind")]
         bindings: Vec<String>,
-        /// Required derived quantity and proof artifact output path.
+        /// Required complete binary GTS quantity, native receipt and RDF closure.
         #[arg(long)]
         out: PathBuf,
     },
@@ -1872,6 +1881,7 @@ pub fn run() -> i32 {
         Commands::Finance { command } => passthrough::finance(reporter, &command),
         Commands::Conjecture { command } => match command {
             ConjectureCommands::Test {
+                out,
                 formula,
                 kb,
                 standpoint,
@@ -1881,6 +1891,7 @@ pub fn run() -> i32 {
                 max_answers,
             } => commands::conjecture_test(
                 reporter,
+                &out,
                 &formula,
                 &kb,
                 &standpoint,
@@ -1892,6 +1903,7 @@ pub fn run() -> i32 {
         },
         Commands::Candidate { command } => match command {
             CandidateCommands::Submit {
+                out,
                 formula,
                 kb,
                 standpoint,
@@ -1903,6 +1915,7 @@ pub fn run() -> i32 {
                 max_answers,
             } => commands::candidate_submit(
                 reporter,
+                &out,
                 &formula,
                 &kb,
                 &standpoint,

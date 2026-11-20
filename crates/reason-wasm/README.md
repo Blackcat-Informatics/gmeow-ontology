@@ -10,28 +10,40 @@ editor plugins, browsers, and LLM clients can run the reasoning chase over autho
 GMEOW RDF **client-side** — no server, no repository, no Docker.
 
 It wraps the wasm-clean [`gmeow-logic`](../logic) chase: it runs the same structured-DL
-reasoning as the native engine (serially on wasm — the parallel scheduler degrades to
-sequential where threads are unavailable) and returns the reasoned closure, the inferred
-triples. Byte-identity to the native reasoner is proven by the Node parity witness lane
+reasoning as the native engine (serially on wasm) and returns a complete binary GTS
+artifact with its native execution receipt, asserted and inferred RDF closure, and
+admitted verdict facets. Byte identity with the native reasoner is checked by the Node parity witness lane
 (`make reason-wasm-pkg-test`, gate-enforced on every pull request via `wasm-parity` in
 the required CI `make heavy` lane).
 
 ## JavaScript API
 
 ```js
-import { ready, reason, version } from "gmeow-reason-wasm";
+import { admit_artifact, ready, reason } from "gmeow-reason-wasm";
 
 await ready();                          // one-time wasm instantiation
-const closure = reason(
+const response = JSON.parse(reason(
   "@prefix ex: <https://example.org/> . ex:a a ex:Cat .",
   "turtle",
-);
-// closure: N-Quads text of the inferred triples
+));
+const bytes = Uint8Array.from(atob(response.artifact.output), (byte) => byte.charCodeAt(0));
+const admitted = JSON.parse(admit_artifact(bytes));
+const closure = admitted.closure_nquads;
+// Retain response.artifact: it carries the complete evidence behind these RDF facets.
 ```
 
 `reason(data, format)` runs the chase over `data` (RDF text in `format` — `turtle`,
-`n-triples`, `n-quads`, `trig`, `rdf+xml`, `json-ld`) and returns the reasoned closure as
-N-Quads text; it throws on unparsable input, a reasoning failure, or a serialization error.
+`n-triples`, `n-quads`, `trig`, `rdf+xml`, `json-ld`) and returns JSON. Its `artifact`
+envelope declares `format: "gts"`, the media type, canonical base64 encoding, decoded
+byte length, and encoded bytes in `output`. `closure_nquads` is the complete asserted
+and inferred RDF closure, including selected nonempty-domain witnesses;
+`judgment_nquads` carries the admitted reasoning summary. `admit_artifact(bytes)`
+checks the complete artifact and required attachments before returning these facets.
+Missing or invalid evidence throws, as do parse, reasoning and serialization failures.
+
+`conjecture(kb, format, formula, standpoint)` returns the same envelope and admitted
+judgment facets for a standpoint-scoped conjecture verdict. The standalone
+conjecture artifact carries its native receipt; it does not claim a full RDF closure.
 
 ## Build
 

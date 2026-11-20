@@ -362,6 +362,24 @@ impl StageProduct {
         }
     }
 
+    /// Drop unread handles without copying a carrier held by a running consumer.
+    /// The original handle commitments and stage digest remain the published identity.
+    pub(crate) fn release_unread_handles(&mut self, is_live: impl Fn(&str) -> bool) {
+        let Some(bundle) = Arc::get_mut(&mut self.bundle) else {
+            return;
+        };
+        let keys: Vec<_> = bundle
+            .handles()
+            .keys()
+            .filter(|key| !is_live(key))
+            .cloned()
+            .collect();
+        for key in keys {
+            drop(bundle.detach_handle(&key));
+            crate::memory_record::handle_release(&self.stage_id, &key);
+        }
+    }
+
     /// This product as `consumer` may read it: the same carrier, recording each access made through
     /// the lane accessors against `access`, the declared read set of the dataflow edge.
     #[must_use]

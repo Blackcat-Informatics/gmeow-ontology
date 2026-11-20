@@ -1648,7 +1648,9 @@ dependencies = [
  "gmeow-errors",
  "purrdf",
  "purrdf-ed25519",
+ "purrdf-hash",
  "purrdf-lex",
+ "purrdf-zstd",
 ]
 
 [[package]]
@@ -1943,6 +1945,7 @@ dependencies = [
  "gmeow-errors",
  "gmeow-logic",
  "purrdf",
+ "serde_json",
  "wasm-bindgen",
 ]
 

@@ -48,6 +48,7 @@ pub mod canon_profile;
 pub mod const_str;
 pub mod error;
 mod ingestion_receipt;
+pub mod transport;
 pub use ingestion_receipt::{
     GmeowGtsReceipt, GmeowGtsSourceReceipt, ingestion_receipt, ingestion_receipt_path,
     read_ingestion_receipt, write_ingestion_receipt,
@@ -66,6 +67,8 @@ pub const GMEOW_GTS_FRAME_TRANSFORM: &str = "zstd-rsyncable";
 
 /// Required zstd compression level on every payload-bearing GMEOW GTS frame.
 pub const GMEOW_GTS_ZSTD_LEVEL: i32 = 12;
+/// The registered media type of a complete native GTS CBOR sequence.
+pub const GMEOW_GTS_MEDIA_TYPE: &str = "application/vnd.blackcat.gts+cbor-seq";
 
 // `emit_gts` applies its public dist-profile level to every blob and snapshot
 // frame.  Turn an upstream default drift into a compile failure rather than a
@@ -664,6 +667,33 @@ impl GmeowGtsWriter {
             rows.push(Value::Array(row));
         }
         self.add_mandated_frame("quads", Value::Array(rows))
+    }
+
+    /// Append complete inline bytes through the native blob writer, with the
+    /// selected store dictionary and mandatory compression profile.
+    ///
+    /// # Errors
+    /// Refuses unavailable dictionaries or native payload encoding failures.
+    pub fn add_blob(
+        &mut self,
+        bytes: Vec<u8>,
+        media_type: &str,
+        representation: &str,
+    ) -> gmeow_errors::Result<Vec<u8>> {
+        self.inner
+            .add_blob_transformed(
+                bytes,
+                Some(media_type),
+                Some(representation),
+                &[GMEOW_GTS_FRAME_TRANSFORM.to_owned()],
+                self.dict.as_deref(),
+            )
+            .map_err(|error| {
+                gmeow_errors::Diag::of_kind(error::Transport::caused_by(
+                    "encode required inline blob".to_owned(),
+                    error,
+                ))
+            })
     }
 
     /// How many term rows this writer's segment already carried before it was

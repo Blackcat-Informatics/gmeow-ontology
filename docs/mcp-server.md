@@ -7,10 +7,39 @@ Native grounded agent memory as MCP tools — **store / recall / revise** (the
 flagship, CONSTITUTION P14) — plus bundled ontology lookup. One config knob, no
 checkout, no Docker, no RDF knowledge required (P13).
 
+Reasoning responses carry a complete `artifact` envelope with `format: "gts"`,
+`media_type: "application/vnd.blackcat.gts+cbor-seq"`, `encoding: "base64"`,
+the decoded byte count in `bytes`, and padded standard base64 in `output`.
+The artifact includes every required native receipt; full-closure operations include the
+isolated RDF closure from the same execution. RDF facets are auxiliary projections.
+The browser admits the complete artifact through the reasoning image before rendering
+facets or recording derivations, and retains that artifact in its in-memory console
+response. Exported trajectory segments retain the existing digest-only projection for
+large tool-result JSON; they do not carry those native receipt bytes. Save the complete
+artifact envelope separately when its evidence must remain independently available.
+
+`gmeow conjecture test` and `gmeow candidate submit` require `--out verdict.gts`.
+They write the complete evaluation artifact for dry runs and refused candidate admission
+as well as successful persistence. `gmeow math evaluate` and `gmeow finance evaluate`
+also write complete binary GTS at their required output paths.
+The conjecture and candidate output paths must be distinct from the selected library
+and its transaction lock, including filesystem aliases. That check precedes evaluation
+for successful, dry-run and refused-admission outcomes and runs again immediately before
+artifact publication. A publication failure after evaluation reports the result identity,
+commit state and dry-run state, so callers can distinguish saved reasoning from a failed
+standalone export.
+
+GTS-to-GTS conversion preserves a conforming complete artifact byte for byte, including
+its blobs, public metadata, history and signatures. A blob-free source under another
+profile can be re-emitted as RDF with an actual ingestion receipt. A nonconforming
+blob-bearing source refuses because RDF-only conversion would discard its content.
+Conversion to a text RDF format projects RDF facets and does not authenticate or carry
+the complete native proof artifact.
+
 ## Install (one line)
 
 ```bash
-claude mcp add gmeow -e GMEOW_MEMORY_PATH="$HOME/.gmeow/memory.gts" -- uv run gmeow mcp
+claude mcp add gmeow -e GMEOW_MEMORY_PATH="$HOME/.gmeow/memory.gts" -- gmeow mcp
 ```
 
 or the equivalent `mcpServers` block (any MCP client):
@@ -19,8 +48,8 @@ or the equivalent `mcpServers` block (any MCP client):
 {
   "mcpServers": {
     "gmeow": {
-      "command": "uv",
-      "args": ["run", "gmeow", "mcp"],
+      "command": "gmeow",
+      "args": ["mcp"],
       "env": { "GMEOW_MEMORY_PATH": "/home/you/.gmeow/memory.gts" }
     }
   }

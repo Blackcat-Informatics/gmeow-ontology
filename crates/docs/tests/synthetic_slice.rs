@@ -19,7 +19,6 @@
 //! coverage, cache-relevant digests, and the hard-fail guards (invalid UTF-8, page
 //! collision, dangling link, H6 overflow, page-scoped duplicate headings).
 
-use std::panic::AssertUnwindSafe;
 use std::path::{Path, PathBuf};
 
 use gmeow_docs::ExecutableDocsData;
@@ -175,23 +174,6 @@ fn site_md<'a>(site: &'a Site, page_dir: &str) -> &'a str {
     .expect("utf8 site page")
 }
 
-/// Capture the message of a panic raised by `f` (with the default noisy hook
-/// suppressed for the duration), asserting a panic actually occurred.
-fn capture_panic(f: impl FnOnce()) -> String {
-    let prev = std::panic::take_hook();
-    std::panic::set_hook(Box::new(|_| {}));
-    let result = std::panic::catch_unwind(AssertUnwindSafe(f));
-    std::panic::set_hook(prev);
-    let payload = result.expect_err("expected a panic but the call returned");
-    if let Some(s) = payload.downcast_ref::<&str>() {
-        (*s).to_string()
-    } else if let Some(s) = payload.downcast_ref::<String>() {
-        s.clone()
-    } else {
-        panic!("panic payload was not a string");
-    }
-}
-
 // ── 1. Model + ordering ─────────────────────────────────────────────────────────
 
 /// The discovered slice carries BOTH markdown sources, sorted by normalized logical
@@ -231,7 +213,8 @@ fn model_carries_both_documents_sorted_with_titles() {
 #[test]
 fn slice_page_grafts_guide_with_demoted_headings() {
     let model = rich_model("graft");
-    let md = to_markdown(&model, &Page::Slice(SLICE_SLUG.to_string()));
+    let md = to_markdown(&model, &Page::Slice(SLICE_SLUG.to_string()))
+        .expect("the selected documentation model renders");
 
     // Generated slice H1 is the manifest title; the guide's own H1/H2 are demoted.
     assert!(md.contains("# Synthetic Rich Slice"), "generated slice H1");
@@ -255,7 +238,7 @@ fn slice_page_grafts_guide_with_demoted_headings() {
     );
 
     // The HTML projection carries the same code text (the shell wraps the body).
-    let site = render_site(&model);
+    let site = render_site(&model).expect("the selected documentation model renders");
     let html = std::str::from_utf8(
         site.files
             .get("slices/synth-rich/index.html")
@@ -273,7 +256,7 @@ fn slice_page_grafts_guide_with_demoted_headings() {
 #[test]
 fn design_child_renders_to_its_own_page() {
     let model = rich_model("child");
-    let site = render_site(&model);
+    let site = render_site(&model).expect("the selected documentation model renders");
 
     for ext in ["md", "html"] {
         assert!(
@@ -321,7 +304,7 @@ fn cross_document_links_rewrite_in_site_and_mdbook() {
     }
 
     // Site render: the grafted guide links to the child page + anchor, relatively.
-    let site = render_site(&model);
+    let site = render_site(&model).expect("the selected documentation model renders");
     let slice_md = site_md(&site, "slices/synth-rich/");
     assert!(
         slice_md.contains("documents/design/ARCHITECTURE/index.md#overview"),
@@ -335,7 +318,8 @@ fn cross_document_links_rewrite_in_site_and_mdbook() {
 
     // mdbook render: the slice chapter body links to the emitted child chapter
     // (relative, `.md`, with the same anchor).
-    let book = render_book(&model, &ExecutableDocsData::default());
+    let book = render_book(&model, &ExecutableDocsData::default())
+        .expect("the selected documentation model renders");
     let slice_chapter = std::str::from_utf8(
         book.files
             .get("src/slices/synth-rich/index.md")
@@ -384,8 +368,9 @@ fn cross_doc_anchor_fragment_is_invariant_across_targets() {
 
     // The SAME fragment slug is what both the site and the mdbook cross-links carry.
     let fragment = format!("index.md#{anchor_from_resolve}");
-    let site = render_site(&model);
-    let book = render_book(&model, &ExecutableDocsData::default());
+    let site = render_site(&model).expect("the selected documentation model renders");
+    let book = render_book(&model, &ExecutableDocsData::default())
+        .expect("the selected documentation model renders");
     let site_slice = site_md(&site, "slices/synth-rich/");
     let book_slice = std::str::from_utf8(
         book.files
@@ -410,7 +395,8 @@ fn cross_doc_anchor_fragment_is_invariant_across_targets() {
 #[test]
 fn mdbook_emits_child_chapter_nested_under_slice() {
     let model = rich_model("mdbook");
-    let book = render_book(&model, &ExecutableDocsData::default());
+    let book = render_book(&model, &ExecutableDocsData::default())
+        .expect("the selected documentation model renders");
 
     // The child chapter file exists and carries the design prose/table/code.
     let child_chapter = std::str::from_utf8(
@@ -457,7 +443,7 @@ fn mdbook_emits_child_chapter_nested_under_slice() {
 fn search_and_llms_cover_the_child_document() {
     let model = rich_model("search");
 
-    let search = search_index_json(&model);
+    let search = search_index_json(&model).expect("the selected documentation model renders");
     // A `document` record for the design child: title, page url, and prose body.
     assert!(
         search.contains("\"kind\": \"document\""),
@@ -477,7 +463,7 @@ fn search_and_llms_cover_the_child_document() {
     );
 
     // llms.txt lists the child page under Documents.
-    let llms = llms_txt(&model);
+    let llms = llms_txt(&model).expect("the selected documentation model renders");
     assert!(llms.contains("## Documents"), "llms Documents section");
     assert!(
         llms.contains("slices/synth-rich/documents/design/ARCHITECTURE/index.html"),
@@ -485,7 +471,7 @@ fn search_and_llms_cover_the_child_document() {
     );
 
     // llms-full.txt inlines the FULL prose of the child (and the guide).
-    let full = llms_full_txt(&model);
+    let full = llms_full_txt(&model).expect("the selected documentation model renders");
     assert!(
         full.contains("motivating constraints"),
         "llms-full inlines the child prose"
@@ -610,6 +596,16 @@ fn colliding_page_path_hard_fails_naming_both() {
         other => panic!("expected MarkdownPageCollision, got {other:?}"),
     }
     assert!(err.to_string().contains(iri_a) && err.to_string().contains(iri_b));
+    let error = to_markdown(&model, &Page::Landing)
+        .expect_err("a public render must refuse an ambiguous source map");
+    let kind = error
+        .downcast_ref::<gmeow_docs::render_error::SourceMap>()
+        .expect("the public render keeps its typed map-admission diagnostic");
+    assert!(
+        std::error::Error::source(kind)
+            .expect("the mapping refusal keeps its original cause")
+            .is::<DocsError>()
+    );
 }
 
 // ── 10c-bis. Hard-fail: an unparsable mapping artifact ──────────────────────────
@@ -694,7 +690,7 @@ gmeow:SynthWidget skos:closeMatch <https://example.org/ext/Widget> {|
 // ── 10d. Hard-fail: a dangling internal link ────────────────────────────────────
 
 /// A guide linking a within-slice markdown that names no document hard-fails
-/// rendering, and the panic message names the source path AND the offending link.
+/// rendering with a typed diagnostic naming the source path and offending link.
 #[test]
 fn dangling_internal_link_hard_fails_naming_path_and_link() {
     let (_tmp, dir) = fresh_dir("dangling");
@@ -703,23 +699,27 @@ fn dangling_internal_link_hard_fails_naming_path_and_link() {
     write_slice(&dir, guide, None);
     let model = DocsModel::from_slice_dir(&dir).expect("model builds; links resolve at render");
 
-    let msg = capture_panic(|| {
-        let _ = render_site(&model);
-    });
+    let error = render_site(&model).expect_err("a dangling selected document must refuse");
+    assert!(
+        error
+            .downcast_ref::<gmeow_docs::render_error::DanglingLink>()
+            .is_some()
+    );
+    let msg = error.message();
     assert!(
         msg.contains("docs.md"),
-        "dangling-link panic names the source path: {msg}"
+        "dangling-link diagnostic names the source path: {msg}"
     );
     assert!(
         msg.contains("design/NOPE.md"),
-        "dangling-link panic names the offending link: {msg}"
+        "dangling-link diagnostic names the offending link: {msg}"
     );
 }
 
 // ── 10e. Hard-fail: H6 overflow in the graft ────────────────────────────────────
 
 /// A `docs.md` whose source carries an H6 heading hard-fails the slice-page graft
-/// (H6→H7 is illegal), and the panic message names the source path.
+/// (H6→H7 is illegal), with a typed diagnostic naming the source path.
 #[test]
 fn h6_source_heading_overflows_the_graft_naming_path() {
     let (_tmp, dir) = fresh_dir("h6");
@@ -727,16 +727,21 @@ fn h6_source_heading_overflows_the_graft_naming_path() {
     write_slice(&dir, guide, None);
     let model = DocsModel::from_slice_dir(&dir).expect("model builds; demotion at render");
 
-    let msg = capture_panic(|| {
-        let _ = to_markdown(&model, &Page::Slice(SLICE_SLUG.to_string()));
-    });
+    let error = to_markdown(&model, &Page::Slice(SLICE_SLUG.to_string()))
+        .expect_err("the selected graft cannot demote an H6 source heading");
+    assert!(
+        error
+            .downcast_ref::<gmeow_docs::render_error::HeadingOverflow>()
+            .is_some()
+    );
+    let msg = error.message();
     assert!(
         msg.contains("docs.md"),
-        "H6-overflow panic names the source path: {msg}"
+        "H6-overflow diagnostic names the source path: {msg}"
     );
     assert!(
         msg.contains("H6→H7") || msg.contains("level-6"),
-        "H6-overflow panic explains the illegal demotion: {msg}"
+        "H6-overflow diagnostic explains the illegal demotion: {msg}"
     );
 }
 
@@ -788,7 +793,7 @@ fn duplicate_headings_across_child_docs_are_page_scoped() {
 #[test]
 fn docs_link_lint_is_clean_on_synthetic_site() {
     let model = rich_model("lint");
-    let site = render_site(&model);
+    let site = render_site(&model).expect("the selected documentation model renders");
     let report = gmeow_docs::lint(&model, &site);
     assert_eq!(
         report.error_count(),

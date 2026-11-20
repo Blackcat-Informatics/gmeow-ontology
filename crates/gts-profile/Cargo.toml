@@ -19,6 +19,8 @@ path = "src/lib.rs"
 # consuming snapshot emitter owns publication; `gts::wire` supplies the cheap frame
 # introspection the audit reads.
 purrdf.workspace = true
+purrdf-hash.workspace = true
+purrdf-zstd.workspace = true
 # The diagnostic substrate: every profile violation is a typed `Diag` under the
 # `gts-profile.*` code namespace, not a bare string.
 gmeow-errors = { path = "../errors" }

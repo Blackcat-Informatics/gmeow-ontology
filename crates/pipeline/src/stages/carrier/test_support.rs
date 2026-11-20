@@ -73,7 +73,7 @@ pub(super) fn build_docs_book_archive(
     let translations = gmeow_docs::Translations::from_catalog(&catalog)?;
     let prefix = translations.internal_tag(gmeow_docs::i18n::ENGLISH);
 
-    let site = gmeow_docs::mdbook::render_book(model, exec);
+    let site = gmeow_docs::mdbook::render_book(model, exec)?;
     let mut members: Vec<(String, Vec<u8>)> = site
         .files
         .into_iter()

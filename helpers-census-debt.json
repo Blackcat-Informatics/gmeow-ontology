@@ -327,13 +327,6 @@
   {
    "kind": "body",
    "members": [
-    "gmeow_docs::fixture::action_store",
-    "gmeow_docs_model::fixture::action_store"
-   ]
-  },
-  {
-   "kind": "body",
-   "members": [
     "gmeow_docs::fixture::render_cache_path",
     "gmeow_docs_model::fixture::cache_path_for_context"
    ]
@@ -379,20 +372,6 @@
    "members": [
     "gmeow_docs::render::precompute_alignment_facets",
     "gmeow_docs_model::slug::precompute_alignment_facets"
-   ]
-  },
-  {
-   "kind": "body",
-   "members": [
-    "gmeow_docs::render::pydantic_class_name",
-    "gmeow_docs_model::slug::pydantic_class_name"
-   ]
-  },
-  {
-   "kind": "body",
-   "members": [
-    "gmeow_docs::render::pydantic_module_slug",
-    "gmeow_docs_model::slug::pydantic_module_slug"
    ]
   },
   {
@@ -1555,7 +1534,6 @@
    "members": [
     "gmeow_validate::test_crate::conformance_suite::conformance_places::superseded_capacity_suppressed",
     "gmeow_validate::test_crate::conformance_suite::conformance_places::superseded_coordinate_observation_suppressed",
-    "gmeow_validate::test_crate::conformance_suite::conformance_places::superseded_historical_name_suppressed",
     "gmeow_validate::test_crate::conformance_suite::conformance_places::superseded_network_address_suppressed"
    ]
   },
@@ -2328,8 +2306,7 @@
    "members": [
     "gmeow_mcp::example_crate::refresh_witness_describe::explorer_describe::fail",
     "gmeow_mcp::example_crate::refresh_witness_describe::fail",
-    "gmeow_mcp_wasm::example_crate::refresh_witness_mcp::fail",
-    "gmeow_reason_wasm::example_crate::refresh_witness_reason::conjecture_witness::fail"
+    "gmeow_mcp_wasm::example_crate::refresh_witness_mcp::fail"
    ]
   },
   {
@@ -2692,7 +2669,7 @@
   "fixed-hasher-everywhere": 701,
   "fnv1a64": 5,
   "frame-le": 52,
-  "grammar-ws": 14,
+  "grammar-ws": 13,
   "hash-domain": 45,
   "hex": 1,
   "json-pointer": 2,

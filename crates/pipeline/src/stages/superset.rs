@@ -478,18 +478,29 @@ fn optional_literal(
 /// unknown match/family/form value — is a HARD FAIL, never silently tolerated
 /// (no-optionality): see [`mandatory_literal`] / [`optional_literal`].
 ///
-/// A single pass over `dataset.owned_quads()` groups every subject-IRI quad into a
-/// `BTreeMap` keyed by subject, so each field read below is a map lookup rather than a
-/// fresh scan of the whole dataset (O(R) total instead of O(R·M) over R rows and M
-/// fields). `BTreeMap` (not `HashMap`) keeps subject — and hence row — order
-/// deterministic.
+/// Scan frozen quad IDs and resolve only fanout fields. Group the selected rows
+/// by subject so field reads keep deterministic ordering and detect repeated
+/// values across named and default graphs.
 pub(crate) fn read_fanout_rules(
     dataset: &RdfDataset,
 ) -> Result<Vec<FanoutRule>, gmeow_errors::Diag> {
     const GMEOW: &str = "https://blackcatinformatics.ca/gmeow/";
 
+    let field_predicates = [
+        "extractsPath",
+        "extractsMatch",
+        "extractsSuffix",
+        "extractsGraphFamily",
+        "extractsForm",
+    ]
+    .map(|field| dataset.term_id_by_iri(&format!("{GMEOW}{field}")));
+
     let mut by_subject: BTreeMap<String, Vec<purrdf::RdfQuad>> = BTreeMap::new();
-    for quad in dataset.owned_quads() {
+    for (index, ids) in dataset.quads().enumerate() {
+        if !field_predicates.contains(&Some(ids.p)) {
+            continue;
+        }
+        let quad = dataset.to_owned_quad(index, ids);
         if let purrdf::RdfTerm::Iri(subj) = &quad.subject {
             by_subject.entry(subj.clone()).or_default().push(quad);
         }

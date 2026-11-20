@@ -35,7 +35,7 @@ fn run(dir: &Path, extra: &[&str]) -> Output {
             "--bind",
             "urn:y=urn:divisor",
             "--out",
-            "result.ttl",
+            "result.gts",
         ])
         .args(extra)
         .output()
@@ -53,7 +53,18 @@ fn math_evaluation_cli_runs_without_checkout_and_publishes_native_evidence() {
         "{}",
         String::from_utf8_lossy(&output.stderr)
     );
-    let result = std::fs::read_to_string(dir.path().join("result.ttl")).unwrap();
+    let artifact = std::fs::read(dir.path().join("result.gts")).unwrap();
+    let admitted = gmeow_logic::result_rdf::admit_reasoning_response(&artifact)
+        .expect("complete native evaluation artifact");
+    let result = format!(
+        "{}\n{}",
+        admitted["closure_nquads"]
+            .as_str()
+            .expect("full RDF closure"),
+        admitted["judgment_nquads"]
+            .as_str()
+            .expect("admitted judgment")
+    );
     assert!(result.contains("0.5"));
     assert!(result.contains("quantityValue"));
     assert!(result.contains("resultDerivedAxiom"));
@@ -68,14 +79,14 @@ fn math_evaluation_cli_refuses_nonterminating_zero_and_duplicate_bindings_atomic
     for divisor in ["0", "3"] {
         // gmeow-test-input: synthetic-only
         std::fs::write(dir.path().join("source.ttl"), source(divisor)).unwrap();
-        std::fs::write(dir.path().join("result.ttl"), "previous complete result").unwrap();
+        std::fs::write(dir.path().join("result.gts"), "previous complete result").unwrap();
         let output = run(dir.path(), &[]);
         assert!(!output.status.success());
         let diagnostics = String::from_utf8_lossy(&output.stderr);
         assert!(diagnostics.contains("evaluate"));
         assert!(diagnostics.contains("source.ttl"));
         assert_eq!(
-            std::fs::read_to_string(dir.path().join("result.ttl")).unwrap(),
+            std::fs::read_to_string(dir.path().join("result.gts")).unwrap(),
             "previous complete result"
         );
     }

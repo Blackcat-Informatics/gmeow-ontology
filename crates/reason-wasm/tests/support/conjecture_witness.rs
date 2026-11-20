@@ -3,7 +3,16 @@
 
 //! One verified native computation shared by the conjecture attestation test and producer.
 
+use gmeow_errors::{Diag, FindingCategory, Grade, Severity, Standpoint};
 use gmeow_logic::conjecture_eval::{ConjectureVerdictProjection, evaluate_conjecture_ttl};
+
+gmeow_errors::define_diag_kind! {
+    /// The selected witness does not meet its declared semantic or determinism contract.
+    struct WitnessContract { detail: String }
+    code = "wasm.reason.witness-contract";
+    grade = Grade::new(Severity::Error, FindingCategory::ModelingDisciplineViolation, Standpoint::Binding);
+    message = "native reason witness contract: {}", detail;
+}
 
 /// The reified standpoint the demo verdicts are scoped to (Principle 9: never global).
 pub const STANDPOINT: &str =
@@ -48,45 +57,40 @@ pub const REFUTE_KB: &str = "@prefix ex:  <http://ex/> .\n\
      ex:a rdf:type ex:A .\n\
      ex:A owl:disjointWith ex:B .\n";
 
-/// The exact byte delimiter shared with the browser parity lane.
-pub const DELIMITER: &str =
-    "# ── conjecture witness · counterproof leg ──────────────────────────────\n";
-
-/// Both verified legs and the byte-exact joined attestation.
+/// Both verified legs and their complete artifact response attestation.
 pub struct ConjectureWitness {
     pub proof: ConjectureVerdictProjection,
     pub refutation: ConjectureVerdictProjection,
     pub attestation: String,
 }
 
-fn fail(message: impl Into<String>) -> Box<dyn std::error::Error> {
-    std::io::Error::other(message.into()).into()
+#[must_use]
+pub(super) fn contract_failure(message: impl Into<String>) -> Diag {
+    Diag::of_kind(WitnessContract {
+        detail: message.into(),
+    })
 }
 
 fn evaluate(
     formula: &str,
     kb: &str,
     label: &str,
-) -> Result<ConjectureVerdictProjection, Box<dyn std::error::Error>> {
-    evaluate_conjecture_ttl(formula, kb, STANDPOINT).map_err(|error| {
-        fail(format!(
-            "{label} conjecture evaluation failed: {}",
-            error.message()
-        ))
-    })
+) -> gmeow_errors::Result<ConjectureVerdictProjection> {
+    evaluate_conjecture_ttl(formula, kb, STANDPOINT)
+        .map_err(|error| error.with_context(format!("{label} conjecture witness evaluation")))
 }
 
 /// Evaluate both legs, verify their intended semantics and determinism, and render the
 /// exact attestation bytes. The producer calls this before writing, so it cannot bless an
 /// error or a semantically empty verdict.
-pub fn verified_witness() -> Result<ConjectureWitness, Box<dyn std::error::Error>> {
+pub fn verified_witness() -> gmeow_errors::Result<ConjectureWitness> {
     let proof = evaluate(PROOF_FORMULA, PROOF_KB, "proof")?;
     if !proof.has_proof
         || proof.has_counterproof
         || proof.witness.is_some()
         || proof.lifecycle != "corroborated"
     {
-        return Err(fail(format!(
+        return Err(contract_failure(format!(
             "proof leg did not produce the corroborated contract: {proof:?}"
         )));
     }
@@ -96,36 +100,29 @@ pub fn verified_witness() -> Result<ConjectureWitness, Box<dyn std::error::Error
         || refutation.witness.is_none()
         || refutation.lifecycle != "refuted-in-standpoint"
     {
-        return Err(fail(format!(
+        return Err(contract_failure(format!(
             "counterproof leg did not produce the refutation contract: {refutation:?}"
         )));
     }
 
     let repeated_proof = evaluate(PROOF_FORMULA, PROOF_KB, "repeated proof")?;
     if proof != repeated_proof {
-        return Err(fail("conjecture proof witness is not deterministic"));
+        return Err(contract_failure(
+            "conjecture proof witness is not deterministic",
+        ));
     }
     let repeated_refutation = evaluate(REFUTE_FORMULA, REFUTE_KB, "repeated refutation")?;
     if refutation != repeated_refutation {
-        return Err(fail("conjecture refutation witness is not deterministic"));
-    }
-
-    let attestation = format!("{}{DELIMITER}{}", proof.verdict_nt, refutation.verdict_nt);
-    if attestation
-        .chars()
-        .any(|c| c.is_control() && !matches!(c, '\n' | '\r' | '\t'))
-    {
-        return Err(fail(
-            "conjecture attestation contains a raw control scalar instead of an RDF UCHAR escape",
+        return Err(contract_failure(
+            "conjecture refutation witness is not deterministic",
         ));
     }
-    purrdf::parse_dataset(attestation.as_bytes(), "application/n-triples", None).map_err(
-        |error| {
-            fail(format!(
-                "conjecture attestation is not valid N-Triples: {error}"
-            ))
-        },
-    )?;
+
+    let proof_artifact = gmeow_logic::result_rdf::admit_reasoning_response(&proof.artifact)?;
+    let refutation_artifact =
+        gmeow_logic::result_rdf::admit_reasoning_response(&refutation.artifact)?;
+    let attestation =
+        serde_json::json!({"proof": proof_artifact, "refutation": refutation_artifact}).to_string();
     Ok(ConjectureWitness {
         proof,
         refutation,

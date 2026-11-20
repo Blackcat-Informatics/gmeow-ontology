@@ -28,6 +28,7 @@
 // offers is read back out of the shipped ontology at run time.
 
 import { blake3Hex } from "./blake3.mjs";
+import { admitReasoningArtifact } from "./reasoning-artifact.mjs";
 import {
   SEGMENT_NOT_LOADED,
   initTiered,
@@ -278,7 +279,18 @@ export async function callTool(name, args, onSegmentLoad) {
   if (typeof text !== "string") {
     throw new Error(`${name}: the tool envelope carried no text content`);
   }
-  const payload = toolPayload(text);
+  let payload = toolPayload(text);
+  const proofTool = ["verify_graph", "explain_quad", "reason_graph", "conjecture_test", "store_conjecture", "submit_candidate"].includes(name);
+  const proofSuccess = proofTool && parsed.result?.isError !== true && payload.ok !== false;
+  if (proofSuccess || payload.artifact !== undefined || typeof payload.closure_nquads === "string" || (proofTool && typeof payload.judgment_nquads === "string")) {
+    const reasoning = await loadSegment("reasoning");
+    await reasoning.ready();
+    const admitted = admitReasoningArtifact(payload.artifact, reasoning.admit_artifact);
+    if (Object.hasOwn(payload, "closure_nquads") && typeof admitted.closure_nquads !== "string") {
+      throw new Error("reasoning response declares a closure without its required admitted attachment");
+    }
+    payload = { ...payload, ...admitted, ok: payload.ok };
+  }
   if (parsed.result?.isError === true) {
     // A failing envelope's own message, whichever shape it carried it in: the `error`
     // field of a JSON payload, or the text itself when the engine reported in prose.

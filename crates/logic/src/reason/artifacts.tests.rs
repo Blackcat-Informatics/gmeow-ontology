@@ -363,12 +363,16 @@ fn native_artifact_fixture_rejects_missing_or_mismatched_execution_evidence() {
             .message()
             .contains("missing its native execution evidence")
     );
-    let mut mismatched = result;
-    let ResultPayload::Inferred(inferred) = &mut mismatched.payload else {
-        panic!("native result carries its inferred closure");
-    };
-    inferred.clear();
-    let error = mismatched.validate_native_closure().unwrap_err();
+    let error = ReasoningResult::from_native_closure(
+        Vec::new(),
+        result
+            .native_execution()
+            .expect("the native result retains its execution")
+            .clone(),
+        &result.preservation,
+        result.provenance.consumed_budget,
+    )
+    .expect_err("the native constructor rejects absent committed closure rows");
     assert!(
         error
             .message()

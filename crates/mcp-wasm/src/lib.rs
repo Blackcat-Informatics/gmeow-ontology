@@ -211,6 +211,15 @@ pub fn mcp(request_json: &str) -> Result<String, JsError> {
     })
 }
 
+/// Authenticate a complete result before exposing facets to a browser client.
+///
+/// # Errors
+/// Throws when any required native receipt, closure or transport is invalid.
+#[wasm_bindgen]
+pub fn admit_artifact(bytes: &[u8]) -> Result<String, JsError> {
+    gmeow_mcp::admit_reasoning_response(bytes).map_err(|error| transport_error(error.message()))
+}
+
 #[cfg(all(test, not(target_arch = "wasm32")))]
 mod tests {
     use super::*;

@@ -63,13 +63,19 @@ fn json_cached_site_roundtrip_preserves_unicode_controls_empty_files_and_sorted_
     );
     let encoded = json::write_compact(&cached.to_json());
     let decoded: CachedSite = json::record::from_slice(encoded.as_bytes()).unwrap();
-    assert_eq!(decoded.into_site(Path::new("<authored-unicode>")), site);
+    assert_eq!(
+        decoded.into_site(Path::new("<authored-unicode>")).unwrap(),
+        site
+    );
     let empty = Site {
         files: BTreeMap::new(),
     };
     let bytes = json::write_compact(&CachedSite::from_site(&empty).to_json());
     let decoded: CachedSite = json::record::from_slice(bytes.as_bytes()).unwrap();
-    assert_eq!(decoded.into_site(Path::new("<authored-empty>")), empty);
+    assert_eq!(
+        decoded.into_site(Path::new("<authored-empty>")).unwrap(),
+        empty
+    );
 }
 
 #[test]
@@ -142,7 +148,9 @@ fn json_cached_site_known_duplicates_refuse_and_file_map_duplicates_keep_last_st
     let decoded: CachedSite = json::record::from_slice(text.as_bytes()).unwrap();
     assert_eq!(json::write_compact(&decoded.to_json()), ENVELOPE);
     assert_eq!(
-        decoded.into_site(Path::new("<authored-duplicates>")),
+        decoded
+            .into_site(Path::new("<authored-duplicates>"))
+            .unwrap(),
         authored()
     );
 }
@@ -156,25 +164,39 @@ fn json_cached_site_whitespace_escapes_and_ignored_members_do_not_change_payload
     let decoded: CachedSite = json::record::from_slice(text.as_bytes()).unwrap();
     assert_eq!(json::write_compact(&decoded.to_json()), ENVELOPE);
     assert_eq!(
-        decoded.into_site(Path::new("<authored-formatting>")),
+        decoded
+            .into_site(Path::new("<authored-formatting>"))
+            .unwrap(),
         authored()
     );
 }
 
 #[test]
-#[should_panic(expected = "tampered docs-fixture site cache at <authored-tamper>")]
 fn json_cached_site_changed_payload_never_reconstructs_with_stale_digest() {
     let text = ENVELOPE.replace("\"hi\"", "\"changed\"");
     let decoded: CachedSite = json::record::from_slice(text.as_bytes()).unwrap();
-    let _ = decoded.into_site(Path::new("<authored-tamper>"));
+    let error = decoded
+        .into_site(Path::new("<authored-tamper>"))
+        .unwrap_err();
+    assert!(
+        error
+            .to_string()
+            .contains("tampered docs-fixture site cache at <authored-tamper>")
+    );
 }
 
 #[test]
-#[should_panic(expected = "tampered docs-fixture site cache at <authored-digest>")]
 fn json_cached_site_changed_declared_digest_never_reconstructs_valid_payload() {
     let text = ENVELOPE.replace(DIGEST, "wrong");
     let decoded: CachedSite = json::record::from_slice(text.as_bytes()).unwrap();
-    let _ = decoded.into_site(Path::new("<authored-digest>"));
+    let error = decoded
+        .into_site(Path::new("<authored-digest>"))
+        .unwrap_err();
+    assert!(
+        error
+            .to_string()
+            .contains("tampered docs-fixture site cache at <authored-digest>")
+    );
 }
 
 #[test]

@@ -814,3 +814,11 @@ msgstr "介质规范配置文件形式约束"
 msgctxt "https://blackcatinformatics.ca/logic/MediumCanonProfileFormConstraint|http://www.w3.org/2004/02/skos/core#definition"
 msgid "The lexical check for a supplied canonProfileId: lowercase alphanumeric words joined by single hyphens. It does not compare the identifier with the profile a reader implements; that comparison is the reader's, and it runs before any digest."
 msgstr "对所提供 canonProfileId 的词法检查：由单个连字符连接的小写字母数字词。它不将标识符与读取方所实现的配置文件比较；该比较由读取方负责，并在任何摘要之前运行。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/payloadSchemaNativeExecutionReceipt|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "payload schema — native execution receipt"
+msgstr "载荷模式 — 原生执行凭据"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/payloadSchemaNativeExecutionReceipt|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The complete binary native execution receipt addressed by a reasoning result. Every physical dedicated blob retains its canonical digest, native-execution-receipt representation and application/cbor media type. The distribution frame uses the prooftrace dictionary; its training corpus remains the separately declared textual report family."
+msgstr "由推理结果寻址的完整二进制原生执行凭据。每个专用物理二进制对象保留规范摘要、native-execution-receipt 表示及 application/cbor 媒体类型。分发帧使用 prooftrace 字典；其训练语料仍为另行声明的文本报告族。"

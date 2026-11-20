@@ -22690,8 +22690,8 @@ msgid "result native execution evidence"
 msgstr "preuves d’exécution native du résultat"
 
 msgctxt "https://blackcatinformatics.ca/logic/resultNativeExecution|http://www.w3.org/2004/02/skos/core#definition"
-msgid "A terminal CBOR encoding of the complete native execution record under schema gmeow-native-execution-v3. Deterministic string and complete RDF-term tables preserve every occurrence, order, proof, witness, blank scope and literal facet. Admission requires at most 256 MiB of published wire, 512 MiB of expanded logical encoding including table definitions and every payload occurrence, and the existing typed and structural depth bounds of 64. These are encoding bounds, not measured host RSS or a guarantee that a particular record fits. The live typed result remains the owner; carriage grants no theorem or rewrite authority."
-msgstr "Un encodage CBOR terminal du dossier natif complet d’exécution selon le schéma gmeow-native-execution-v3. Des tables déterministes de chaînes et de termes RDF complets préservent chaque occurrence, ordre, preuve, témoin, portée de nœud anonyme et facette de littéral. L’admission impose au plus 256 MiB de données publiées, 512 MiB d’encodage logique développé incluant les définitions des tables et chaque occurrence de la charge utile, ainsi que les limites de profondeur typée et structurelle existantes de 64. Ces limites portent sur l’encodage, non sur une mesure de mémoire RSS ni sur une garantie qu’un dossier donné tient dans ces limites. Le résultat typé vivant reste le propriétaire ; le transport n’accorde aucune autorité de théorème ou de réécriture."
+msgid "The canonical BLAKE3 address of the complete binary receipt under outer schema gmeow-native-receipt-v1, containing an explicit gmeow-native-execution-v4 record, an assessment commitment and an immutable optional closure address. The assessment uses the gmeow-native-assessment/v1 domain followed by a zero byte. The required dedicated GTS blob uses representation native-execution-receipt and media type application/cbor. Admission authenticates every physical payload occurrence, the exact owning result and its complete typed evidence. Compact bytes are bounded by 256 MiB, expanded logical encoding by 512 MiB, and typed and structural depth by 64; these bounds cover the complete receipt and do not measure host RSS. The live typed result remains the owner; carriage grants no theorem or rewrite authority."
+msgstr "L’adresse BLAKE3 canonique du reçu binaire complet selon le schéma externe gmeow-native-receipt-v1, contenant un enregistrement explicite gmeow-native-execution-v4, un engagement d’évaluation et une adresse facultative de clôture immuable. L’évaluation utilise le domaine gmeow-native-assessment/v1 suivi d’un octet nul. Le blob GTS dédié obligatoire utilise la représentation native-execution-receipt et le type de média application/cbor. L’admission authentifie chaque occurrence physique de charge utile, le résultat propriétaire exact et ses preuves typées complètes. Les octets compacts sont limités à 256 MiB, l’encodage logique développé à 512 MiB, et les profondeurs typée et structurelle à 64 ; ces limites couvrent le reçu complet et ne mesurent pas la mémoire RSS de l’hôte. Le résultat typé vivant reste propriétaire ; le transport n’accorde aucune autorité de théorème ou de réécriture."
 
 msgctxt "https://blackcatinformatics.ca/logic/resultNativeExecution|https://blackcatinformatics.ca/gmeow/useWhen"
 msgid "Use when publishing or validating the provenance scope of a native reasoning result."
@@ -24314,3 +24314,31 @@ msgstr "version de la présentation canonique"
 msgctxt "https://blackcatinformatics.ca/logic/canonPresentationVersion|http://www.w3.org/2004/02/skos/core#definition"
 msgid "The version of the presentation named by logic:canonPresentationId, as an xsd:nonNegativeInteger. Single-valued. Domain logic:CoherenceCertificate or logic:CoherenceCheckAttestation (stated in prose)."
 msgstr "La version de la présentation nommée par logic:canonPresentationId, sous forme d’xsd:nonNegativeInteger. Mono-valuée. Domaine logic:CoherenceCertificate ou logic:CoherenceCheckAttestation (précisé en prose)."
+
+msgctxt "https://blackcatinformatics.ca/logic/resultClosureBlob|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "result RDF closure blob"
+msgstr "blob de clôture RDF du résultat"
+
+msgctxt "https://blackcatinformatics.ca/logic/resultClosureBlob|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The canonical BLAKE3 address of an isolated native GTS leaf containing the complete RDF closure from the same native execution as the owning result. The exact address is selected inside the native receipt; adding, omitting or substituting the RDF closure link is invalid under that retained receipt. The dedicated outer blob has representation reasoned-closure and media type application/vnd.blackcat.gts+cbor-seq. Both layers require the mandated compression profile. The authenticated execution world catalog restores declaration-only graphs in the native transport namespace; source statements resembling result metadata remain ordinary data."
+msgstr "L’adresse BLAKE3 canonique d’une feuille GTS native isolée contenant la clôture RDF complète issue de la même exécution native que le résultat propriétaire. L’adresse exacte est sélectionnée dans le reçu natif ; ajouter, omettre ou substituer le lien de clôture RDF est invalide sous ce reçu conservé. Le blob externe dédié utilise la représentation reasoned-closure et le type de média application/vnd.blackcat.gts+cbor-seq. Les deux couches exigent le profil de compression prescrit. Le catalogue des mondes d’exécution authentifié restaure les graphes uniquement déclarés dans l’espace de noms du transport natif ; les énoncés sources ressemblant à des métadonnées de résultat restent des données ordinaires."
+
+msgctxt "https://blackcatinformatics.ca/logic/resultClosureBlob|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when publishing the complete asserted and inferred RDF closure of one native execution."
+msgstr "À utiliser pour publier la clôture RDF complète, affirmée et inférée, d’une exécution native."
+
+msgctxt "https://blackcatinformatics.ca/logic/resultClosureBlob|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Do not substitute a normalized result summary for the complete RDF closure or infer rich proof fields from RDF rows."
+msgstr "Ne pas remplacer la clôture RDF complète par un résumé normalisé du résultat ni déduire des champs riches de preuve à partir des lignes RDF."
+
+msgctxt "https://blackcatinformatics.ca/logic/resultClosureBlob|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Bind the address before computing the aggregate result identity and admit every required closure occurrence against that result's authenticated world catalog."
+msgstr "Lier l’adresse avant de calculer l’identité du résultat agrégé et admettre chaque occurrence de clôture obligatoire contre le catalogue des mondes authentifié de ce résultat."
+
+msgctxt "https://blackcatinformatics.ca/logic/resultClosureBlob|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The closure leaf has one completed segment and no application blob payload or external blob reference. Its decoded size is bounded by 1 GiB. Original typed world identities remain in the separate native execution receipt."
+msgstr "La feuille de clôture possède un segment terminé et aucune charge utile de blob applicatif ni référence externe de blob. Sa taille décodée est limitée à 1 GiB. Les identités typées originales des mondes restent dans le reçu séparé d’exécution native."
+
+msgctxt "https://blackcatinformatics.ca/logic/resultClosureBlob|http://www.w3.org/2004/02/skos/core#example"
+msgid "A reasoned document preserves a caller graph named graph/reasoning inside the isolated closure while its outer aggregate binds the required closure address."
+msgstr "Un document raisonné conserve un graphe fourni par l’appelant nommé graph/reasoning dans la clôture isolée, tandis que son agrégat externe lie l’adresse obligatoire de cette clôture."

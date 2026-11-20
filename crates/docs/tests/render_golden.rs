@@ -125,7 +125,9 @@ fn neighbourhood_term(model: &DocsModel) -> &gmeow_docs::DocTerm {
 fn richest_surface_term_markdown_golden() {
     let model = common::cached_model();
     let slug = richest_surface_term_slug(&model);
-    insta::assert_snapshot!(to_markdown(&model, &Page::Term(slug)));
+    insta::assert_snapshot!(
+        to_markdown(&model, &Page::Term(slug)).expect("the selected documentation model renders")
+    );
 }
 
 /// The fixed IRI of a REAL `gmeow:PipelineStage` — the narrow-waist serialization
@@ -159,7 +161,9 @@ fn pipeline_stage_term_markdown_golden() {
     // regress to the pre-wiring DARK state where no stage was a term page.
     let model = common::cached_model();
     let slug = stage_term_slug(&model, STAGE_GTS_SINK_IRI);
-    insta::assert_snapshot!(to_markdown(&model, &Page::Term(slug)));
+    insta::assert_snapshot!(
+        to_markdown(&model, &Page::Term(slug)).expect("the selected documentation model renders")
+    );
 }
 
 /// A REAL producer stage that has BOTH downstream consumers (a non-empty
@@ -180,7 +184,8 @@ fn producer_stage_renders_reverse_edges_and_flowing_graphs() {
     // production surface.
     let model = common::cached_model();
     let slug = stage_term_slug(&model, STAGE_COMPILE_LOGIC_IRI);
-    let page = to_markdown(&model, &Page::Term(slug));
+    let page =
+        to_markdown(&model, &Page::Term(slug)).expect("the selected documentation model renders");
 
     assert!(
         page.contains("## Build\\-pipeline stage"),
@@ -280,7 +285,9 @@ fn term_with_changelog_markdown_golden() {
     // citation block (permalink + concept DOI).
     let model = common::cached_model();
     let slug = term_with_changelog_slug(&model);
-    insta::assert_snapshot!(to_markdown(&model, &Page::Term(slug)));
+    insta::assert_snapshot!(
+        to_markdown(&model, &Page::Term(slug)).expect("the selected documentation model renders")
+    );
 }
 
 #[test]
@@ -288,7 +295,7 @@ fn logic_index_markdown_golden() {
     // The logic index groups every stereotyped term; lock the header + the first
     // stereotype group block (the deterministic, low-churn part).
     let model = common::cached_model();
-    let md = to_markdown(&model, &Page::Logic);
+    let md = to_markdown(&model, &Page::Logic).expect("the selected documentation model renders");
     let head: String = md.lines().take(10).collect::<Vec<_>>().join("\n");
     insta::assert_snapshot!(head);
 }
@@ -296,7 +303,9 @@ fn logic_index_markdown_golden() {
 #[test]
 fn landing_markdown_golden() {
     let model = common::cached_model();
-    insta::assert_snapshot!(to_markdown(&model, &Page::Landing));
+    insta::assert_snapshot!(
+        to_markdown(&model, &Page::Landing).expect("the selected documentation model renders")
+    );
 }
 
 #[test]
@@ -304,7 +313,8 @@ fn classes_index_markdown_golden() {
     // The classes index is large; lock only its header region (the deterministic,
     // low-churn part) rather than every one of the hundreds of rows.
     let model = common::cached_model();
-    let md = to_markdown(&model, &Page::Category(DocTermCategory::Class));
+    let md = to_markdown(&model, &Page::Category(DocTermCategory::Class))
+        .expect("the selected documentation model renders");
     let header: String = md.lines().take(6).collect::<Vec<_>>().join("\n");
     insta::assert_snapshot!(header);
 }
@@ -313,21 +323,26 @@ fn classes_index_markdown_golden() {
 fn fully_populated_term_markdown_golden() {
     let model = common::cached_model();
     let slug = fully_populated_term_slug(&model);
-    insta::assert_snapshot!(to_markdown(&model, &Page::Term(slug)));
+    insta::assert_snapshot!(
+        to_markdown(&model, &Page::Term(slug)).expect("the selected documentation model renders")
+    );
 }
 
 #[test]
 fn fully_populated_term_html_golden() {
     let model = common::cached_model();
     let slug = fully_populated_term_slug(&model);
-    insta::assert_snapshot!(to_html(&model, &Page::Term(slug)));
+    insta::assert_snapshot!(
+        to_html(&model, &Page::Term(slug)).expect("the selected documentation model renders")
+    );
 }
 
 #[test]
 fn slice_index_markdown_golden() {
     // Lock the header + first few rows; the row set is large and slice-owned.
     let model = common::cached_model();
-    let md = to_markdown(&model, &Page::SliceIndex);
+    let md =
+        to_markdown(&model, &Page::SliceIndex).expect("the selected documentation model renders");
     let head: String = md.lines().take(8).collect::<Vec<_>>().join("\n");
     insta::assert_snapshot!(head);
 }
@@ -337,14 +352,18 @@ fn first_slice_markdown_golden() {
     // The first slice by IRI (model.slices is IRI-sorted) — a deterministic rep.
     let model = common::cached_model();
     let slug = gmeow_docs::render::slice_slug(&model.slices[0]);
-    insta::assert_snapshot!(to_markdown(&model, &Page::Slice(slug)));
+    insta::assert_snapshot!(
+        to_markdown(&model, &Page::Slice(slug)).expect("the selected documentation model renders")
+    );
 }
 
 #[test]
 fn first_slice_html_golden() {
     let model = common::cached_model();
     let slug = gmeow_docs::render::slice_slug(&model.slices[0]);
-    insta::assert_snapshot!(to_html(&model, &Page::Slice(slug)));
+    insta::assert_snapshot!(
+        to_html(&model, &Page::Slice(slug)).expect("the selected documentation model renders")
+    );
 }
 
 #[test]
@@ -352,7 +371,8 @@ fn linkage_index_markdown_golden() {
     // The linkage index is large (54 mapping sets); lock the header region plus
     // the first mapping set's heading block (the deterministic, low-churn part).
     let model = common::cached_model();
-    let md = to_markdown(&model, &Page::LinkageIndex);
+    let md =
+        to_markdown(&model, &Page::LinkageIndex).expect("the selected documentation model renders");
     let head: String = md.lines().take(14).collect::<Vec<_>>().join("\n");
     insta::assert_snapshot!(head);
 }
@@ -363,7 +383,10 @@ fn first_concern_markdown_golden() {
     // small page exercising definition + member terms + slices.
     let model = common::cached_model();
     let slug = concern_slug(&model.concerns[0]);
-    insta::assert_snapshot!(to_markdown(&model, &Page::Concern(slug)));
+    insta::assert_snapshot!(
+        to_markdown(&model, &Page::Concern(slug))
+            .expect("the selected documentation model renders")
+    );
 }
 
 #[test]
@@ -375,7 +398,8 @@ fn constraint_catalog_markdown_golden() {
     // rows, and the helpUri deep link). The full render is exercised by the site
     // build; the anchor-resolves-to-helpUri invariant by the crate unit tests.
     let model = common::cached_model();
-    let md = to_markdown(&model, &Page::ConstraintCatalog);
+    let md = to_markdown(&model, &Page::ConstraintCatalog)
+        .expect("the selected documentation model renders");
     let head: String = md.lines().take(24).collect::<Vec<_>>().join("\n");
     insta::assert_snapshot!(head);
 }
@@ -434,7 +458,7 @@ fn search_index_json_golden() {
     // Do NOT snapshot the whole ~2.4k-record index: lock its record count plus
     // the first and last records (URL-sorted) so the format + ordering are pinned.
     let model = common::cached_model();
-    let json = search_index_json(&model);
+    let json = search_index_json(&model).expect("the selected documentation model renders");
     let records: Vec<serde_json::Value> =
         serde_json::from_str(&json).expect("search index is valid JSON array");
     let summary = serde_json::json!({
@@ -457,7 +481,8 @@ fn documentation_health_distribution_partitions_the_graph_records() {
     use gmeow_docs::rdf::documentation_graph;
 
     let model = common::cached_model();
-    let page = to_markdown(&model, &Page::Health);
+    let page =
+        to_markdown(&model, &Page::Health).expect("the selected documentation model renders");
 
     let graph = documentation_graph(&model);
     let total = graph.terms.len();
@@ -577,7 +602,8 @@ fn health_page_numbers_are_derivable_from_the_documentation_graph() {
     let total = term_owner.len();
     assert!(total > 0, "the model must project documented terms");
 
-    let page = to_markdown(&model, &Page::Health);
+    let page =
+        to_markdown(&model, &Page::Health).expect("the selected documentation model renders");
 
     // Every per-dimension "Covered" count on the page equals the raw triple count.
     for dim in DIMENSIONS.iter() {
@@ -658,7 +684,8 @@ fn llms_txt_header_golden() {
     // The standard llmstxt.org index is ~2k bullets; lock only its deterministic
     // head — H1 + canonical summary blockquote + prose + the Vocabulary section.
     let model = common::cached_model();
-    let txt = gmeow_docs::render::llms_txt(&model);
+    let txt =
+        gmeow_docs::render::llms_txt(&model).expect("the selected documentation model renders");
     let head: String = txt.lines().take(16).collect::<Vec<_>>().join("\n");
     insta::assert_snapshot!(head);
 }
@@ -667,7 +694,8 @@ fn llms_txt_header_golden() {
 fn llms_full_txt_header_golden() {
     // Lock the complete form's header skeleton + the `## Terms` banner.
     let model = common::cached_model();
-    let txt = gmeow_docs::render::llms_full_txt(&model);
+    let txt = gmeow_docs::render::llms_full_txt(&model)
+        .expect("the selected documentation model renders");
     let head: String = txt.lines().take(8).collect::<Vec<_>>().join("\n");
     insta::assert_snapshot!(head);
 }
@@ -690,7 +718,8 @@ fn llms_txt_references_the_standing_pages() {
         model.pipeline.is_some(),
         "the whole-repo model carries a build pipeline, so the pipeline page is rendered"
     );
-    let txt = gmeow_docs::render::llms_txt(&model);
+    let txt =
+        gmeow_docs::render::llms_txt(&model).expect("the selected documentation model renders");
     for (title, url) in STANDING_PAGES {
         assert!(
             txt.contains(&format!("[{title}]({url})")),
@@ -704,7 +733,8 @@ fn llms_full_txt_covers_the_standing_pages() {
     // The complete inlined form is linkless, so it names each standing page by
     // its title. Kept in sync with `llms_txt` (both cover all five).
     let model = common::cached_model();
-    let txt = gmeow_docs::render::llms_full_txt(&model);
+    let txt = gmeow_docs::render::llms_full_txt(&model)
+        .expect("the selected documentation model renders");
     for (title, _url) in STANDING_PAGES {
         assert!(
             txt.contains(title),
@@ -724,11 +754,15 @@ fn llms_surfaces_advertise_the_offline_snippet_corpus() {
         "the shared corpus note names the snippets-export affordance"
     );
     assert!(
-        gmeow_docs::render::llms_txt(&model).contains(note),
+        gmeow_docs::render::llms_txt(&model)
+            .expect("the selected documentation model renders")
+            .contains(note),
         "llms.txt must carry the offline snippet-corpus note"
     );
     assert!(
-        gmeow_docs::render::llms_full_txt(&model).contains(note),
+        gmeow_docs::render::llms_full_txt(&model)
+            .expect("the selected documentation model renders")
+            .contains(note),
         "llms-full.txt must carry the offline snippet-corpus note"
     );
 }
@@ -960,7 +994,9 @@ fn cached_site_has_the_required_distribution_surface() {
 fn recipe_index_markdown_golden() {
     // The guides surface is small and curated; lock the recipe index in full.
     let model = common::cached_model();
-    insta::assert_snapshot!(to_markdown(&model, &Page::RecipeIndex));
+    insta::assert_snapshot!(
+        to_markdown(&model, &Page::RecipeIndex).expect("the selected documentation model renders")
+    );
 }
 
 #[test]
@@ -969,7 +1005,10 @@ fn first_learning_path_markdown_golden() {
     // deterministic representative exercising recipes + terms + adoption targets.
     let model = common::cached_model();
     let slug = model.learning_paths[0].slug.clone();
-    insta::assert_snapshot!(to_markdown(&model, &Page::LearningPath(slug)));
+    insta::assert_snapshot!(
+        to_markdown(&model, &Page::LearningPath(slug))
+            .expect("the selected documentation model renders")
+    );
 }
 
 #[test]

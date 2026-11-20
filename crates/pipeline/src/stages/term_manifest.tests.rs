@@ -466,8 +466,10 @@ fn fresh_and_warm_fixed_points_render_byte_identical_term_docs() {
             ..Default::default()
         };
         (
-            gmeow_docs::to_markdown(&model, &gmeow_docs::Page::Term(slug)),
-            gmeow_docs::to_markdown(&model, &gmeow_docs::Page::Changelog),
+            gmeow_docs::to_markdown(&model, &gmeow_docs::Page::Term(slug))
+                .expect("the selected term manifest page renders"),
+            gmeow_docs::to_markdown(&model, &gmeow_docs::Page::Changelog)
+                .expect("the authored changelog renders"),
         )
     }
 

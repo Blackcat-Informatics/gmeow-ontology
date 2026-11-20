@@ -2552,6 +2552,16 @@ gmeow:payloadSchemaQueriesArchive
     gmeow:graphBoxRole gmeow:boxABox ,
         gmeow:boxConfigBox .
 
+gmeow:payloadSchemaNativeExecutionReceipt
+    a gmeow:PayloadSchema ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
+    rdfs:label "payload schema — native execution receipt"@x-gmeow-english ;
+    skos:definition "The complete binary native execution receipt addressed by a reasoning result. Every physical dedicated blob retains its canonical digest, native-execution-receipt representation and application/cbor media type. The distribution frame uses the prooftrace dictionary; its training corpus remains the separately declared textual report family."@x-gmeow-english ;
+    gmeow:payloadSchemaId "native-execution-receipt" ;
+    gmeow:payloadSchemaMedium gmeow:mediumProfileDistL12 ;
+    gmeow:payloadSchemaDictionary gmeow:dictGmeowProoftraceV1 ;
+    gmeow:graphBoxRole gmeow:boxABox , gmeow:boxConfigBox .
+
 gmeow:payloadSchemaReasoningArchive
     a gmeow:PayloadSchema ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;

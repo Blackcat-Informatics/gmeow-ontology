@@ -38,7 +38,8 @@ fn cq_rationale_actual_index_and_term_display_every_lexical_value_without_prefer
     };
     for markdown in [
         md_competency_index(&model),
-        md_term(&model, "authored", &ExecutableDocsData::default()),
+        md_term(&model, "authored", &ExecutableDocsData::default())
+            .expect("the authored rationale term page renders"),
     ] {
         for text in ["untagged reason", "justification française", "سبب عربي"] {
             assert_eq!(markdown.matches(text).count(), 1, "{markdown}");

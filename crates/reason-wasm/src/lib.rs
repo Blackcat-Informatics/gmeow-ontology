@@ -11,8 +11,8 @@
 //! ## Scope
 //!
 //! - **The real chase.** `reason` parses authored RDF, runs
-//!   [`gmeow_logic::reason::reason_closure_dataset`] (the structured-DL closure), and
-//!   serializes the complete selected closure to N-Quads, including asserted facts
+//!   [`gmeow_logic::reason::reason_all`] (the structured-DL closure), and
+//!   publishes a complete GTS artifact, including asserted facts
 //!   and its explicit nonempty-domain witness. On wasm the chase runs SERIALLY (the
 //!   single-threaded rayon fallback + the `should_parallelize` gate), byte-identical
 //!   to the parallel path (proven natively by the rule-parallel evidence probe), so
@@ -34,8 +34,8 @@ pub fn version() -> String {
 }
 
 /// Run the structured-DL chase over `data` (RDF text in `format`) and return the
-/// **reasoned closure** as N-Quads text, retaining asserted facts, inferred facts,
-/// and the selected nonempty-domain witness.
+/// complete reasoning artifact as JSON, retaining its binary native receipt,
+/// asserted and inferred closure, and the selected nonempty-domain witness.
 ///
 /// - `data` — the RDF document to reason over (UTF-8 text).
 /// - `format` — a media type / short id purrdf understands (`turtle`/`ttl`,
@@ -68,21 +68,28 @@ pub fn reason(data: &str, format: &str) -> Result<String, JsError> {
             .map_err(|e| JsError::new(e.message()))?,
     )
     .map_err(|e| JsError::new(e.message()))?;
-    let closure = gmeow_logic::reason::reason_closure_dataset(input, &domains)
+    let result =
+        gmeow_logic::reason::reason_all(input, &domains).map_err(|e| JsError::new(e.message()))?;
+    let artifact = gmeow_logic::result_rdf::ResultProjection::reasoning_with_closure(&result)
+        .and_then(|projection| projection.into_gts())
         .map_err(|e| JsError::new(e.message()))?;
-    let bytes = purrdf::serialize_dataset(
-        &*closure,
-        "application/n-quads",
-        purrdf::SerializeGraph::Dataset,
-    )
-    .map_err(|e| JsError::new(&e.to_string()))?;
-    String::from_utf8(bytes).map_err(|e| JsError::new(&format!("closure N-Quads not UTF-8: {e}")))
+    admit_artifact(&artifact.bytes)
 }
 
-/// Test a candidate `logic:` formula against a KB with the native SYMMETRIC conjecture
-/// engine and return the **deterministic verdict** as N-Triples text — the SAME projection
-/// the on-gate MCP / CLI surface emits (proven byte-identical by the native≡wasm conjecture
-/// witness). Powers the live documentation conjecture playground (the WASM-interactive docs W4 deliverable).
+/// Admit a complete artifact before rendering facets or recording a derivation.
+///
+/// # Errors
+/// Throws when any selected result, attachment or native transport is invalid.
+#[wasm_bindgen]
+pub fn admit_artifact(bytes: &[u8]) -> Result<String, JsError> {
+    gmeow_logic::result_rdf::admit_reasoning_response(bytes)
+        .map(|value| value.to_string())
+        .map_err(|error| JsError::new(error.message()))
+}
+
+/// Test a candidate `logic:` formula against a KB with the native symmetric engine
+/// and return its complete artifact envelope and admitted verdict facets as JSON.
+/// The native MCP, CLI and browser share the same publication and admission owner.
 ///
 /// - `kb` — the knowledge base to test against (RDF text in `kb_format`).
 /// - `kb_format` — a media type / short id purrdf understands (`turtle`/`ttl`,
@@ -91,9 +98,8 @@ pub fn reason(data: &str, format: &str) -> Result<String, JsError> {
 /// - `standpoint` — the reified standpoint IRI the verdict is scoped to (REQUIRED; a
 ///   conjecture verdict is always standpoint-scoped, never global — Principle 9).
 ///
-/// The symmetric two legs (proof `KB ⊨ φ` and counterproof `KB ∪ {φ} ⊨ ⊥`) and the Belnap
-/// classification are all readable from the returned N-Triples; the JS controller renders
-/// them side-by-side.
+/// The proof leg `KB ⊨ φ`, counterproof leg `KB ∪ {φ} ⊨ ⊥` and Belnap
+/// classification are readable from the admitted RDF facets carried beside the artifact.
 ///
 /// # Errors
 ///
@@ -109,5 +115,5 @@ pub fn conjecture(
     let projection =
         gmeow_logic::conjecture_eval::evaluate_conjecture_kb(formula, kb, kb_format, standpoint)
             .map_err(|e| JsError::new(e.message()))?;
-    Ok(projection.verdict_nt)
+    admit_artifact(&projection.artifact)
 }

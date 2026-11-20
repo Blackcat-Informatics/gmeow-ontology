@@ -236,7 +236,8 @@ pub struct RealizedLoss {
 pub struct TranscodeOutput {
     /// The serialized output bytes.
     pub bytes: Vec<u8>,
-    /// Complete native ingestion evidence for a selected GTS target, absent otherwise.
+    /// Native ingestion evidence when this operation authors a new GTS snapshot.
+    /// Byte-preserving GTS identity performs no new ingestion and carries `None`.
     pub gts_ingestion: Option<purrdf::gts_compose::IngestReport>,
     /// The losses realized for this transcode pair on this particular dataset.
     /// Empty for lossless pairs.
@@ -360,6 +361,21 @@ pub fn transcode(
     to: Codec,
     base_iri: Option<&str>,
 ) -> Result<TranscodeOutput, gmeow_errors::Diag> {
+    if from == Codec::Gts && to == Codec::Gts {
+        let transport =
+            gmeow_gts_profile::transport::audit_opaque_transport(input).map_err(gts_codec_error)?;
+        match gmeow_gts_profile::validate_mandated_frames(input) {
+            Ok(()) => return Ok(TranscodeOutput {
+                bytes: input.to_vec(),
+                gts_ingestion: None,
+                realized: Vec::new(),
+            }),
+            Err(cause) if transport.has_blobs() => return Err(gts_codec_error(
+                cause.with_context("GTS-to-GTS byte identity requires the GMEOW artifact profile; this source carries blobs that RDF-only profile conversion would discard. Supply a conforming complete GMEOW artifact; generic blob profile repacking is not supported"),
+            )),
+            Err(_) => {}, // Blob-free generic input takes the native RDF re-emission below.
+        }
+    }
     let dataset = read_to_dataset(input, from)?;
 
     // Compute the static loss contract for this (from, to) pair.

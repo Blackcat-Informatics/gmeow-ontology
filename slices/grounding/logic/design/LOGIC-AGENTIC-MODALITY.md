@@ -102,8 +102,16 @@ about a norm violation does not assert an issuer-independent ought.
 
 ## Supplied-data assessment
 
-`gmeow logic evaluate assessment.trig --request urn:example:query` selects one
-request from caller-supplied RDF. For example, `assessment.trig` can contain:
+`gmeow logic evaluate` selects one request from caller-supplied RDF and writes a
+complete binary GTS artifact to standard output. Save the artifact to a `.gts`
+file, then inspect its RDF projection with `gmeow gts fold`:
+
+```sh
+gmeow logic evaluate assessment.trig --request urn:example:query > assessment.gts
+gmeow gts fold assessment.gts
+```
+
+For example, `assessment.trig` can contain:
 
 ```trig
 @prefix logic: <https://blackcatinformatics.ca/logic/> .
@@ -127,12 +135,16 @@ ex:world {
 }
 ```
 
-The command emits an RDF 1.2 N-Quads assessment and proof in `graph/reasoning`,
-with any fragment-refusal findings in `graph/diagnostics`. This input produces
+The GTS artifact carries the RDF 1.2 assessment and proof in `graph/reasoning`,
+with any fragment-refusal findings in `graph/diagnostics`. Its shared contextual
+reader requires the exact request IRI and preserves the nested-context invariant
+that forbids native execution attachments. This input produces
 supported information under `ex:view`; the output does not assert the quoted
 proposition as an unconditional fact. `--max-steps N` bounds formula/context
-evaluation steps. Exhaustion and unsupported syntax return a nonzero exit status;
-an opposed or undetermined semantic result can still be a completed computation.
+evaluation steps. Exhaustion and unsupported syntax still emit the complete
+artifact and return a nonzero exit status; an opposed or undetermined semantic
+result can still be a completed computation. An output write or flush failure
+returns a nonzero exit status.
 
 The repository's [nested contextual example](../examples/contextual-assessment.ttl)
 is a canonical producer input. The producer assigns its statements to

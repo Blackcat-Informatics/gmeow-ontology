@@ -97,8 +97,8 @@ fn reasoning_badge_preserves_undetermined_and_not_evaluated() {
         ..good.clone()
     };
 
-    // An evaluated class flips satisfiable → unsatisfiable on the unsat set.
-    assert_eq!(reasoning_badge(&class, &good).value, "satisfiable");
+    // Global consistency leaves realizability open; proved emptiness is decisive.
+    assert_eq!(reasoning_badge(&class, &good).value, "undetermined");
     assert_eq!(reasoning_badge(&class, &bad).value, "unsatisfiable");
     assert_eq!(reasoning_badge(&class, &undecided).value, "undetermined");
     assert_eq!(
