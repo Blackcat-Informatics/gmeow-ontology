@@ -417,6 +417,26 @@ reader that reaches for an unretained intermediate, HARD-fails on the released m
 rather than treating the empty residue as data. A post-run proof names the exact
 intermediate carriers it retains in the run context; `RetainAll` remains an explicit
 diagnostic profile. These profiles change only residency, never produced bytes.
+
+The ordinary build ranks only dependency-ready stages whose resources are
+available. It compares transient memory estimates, then the change in retained
+bytes after the candidate completes. Last-reader credit counts a shared
+dataset once and includes the source catalog's aggregate RDF payload when
+it has no other owner. Retained or in-flight inputs stay live. Ties defer stages
+whose only consumer is the sink, favor the longer remaining dependency path,
+and use stage identifier order. The ranking uses declared dependencies and
+fixed measurements.
+
+For controlled comparisons, set `GMEOW_PIPELINE_READY_ORDER=stage-id` to use
+the identifier order with the same retention policy. The default is `memory`.
+Set `GMEOW_PIPELINE_MEMORY_ESTIMATES` to a JSON file keyed by selected stage
+identifier to supply `transient_bytes` and `published_bytes` for each stage.
+The transient value is the measured demand above the resident inputs during
+the stage. The published value is the measured newly retained output. Without
+a calibration file, the memory order uses the measured payload sizes and
+declared graph. These controls change execution order while leaving action keys and
+published identities intact.
+
 On glibc Linux, the scheduler also requests allocator reclamation once after each
 stage's publication and the carrier releases that completion caused, before the next
 stage is dispatched, and the reasoning stage requests it after preparing its input and

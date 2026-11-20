@@ -33,6 +33,10 @@ use crate::provenance::register_stage_unit;
 use gmeow_cli_core::Reporter;
 use purrdf::provenance::DatasetProvenance;
 
+#[path = "scheduler_order.rs"]
+mod ready_order;
+pub(crate) use ready_order::ReadyOrder;
+
 /// The process-wide registry of per-resource mutexes. A stage that declares a
 /// `gmeow:requiresResource` acquires that resource's permit before running, so two
 /// stages competing for the same resource serialize. A permit, not data — results
@@ -189,6 +193,8 @@ pub struct RunContext {
     /// [`ReadPolicy::Enforce`](crate::reads::ReadPolicy::Enforce); only the maintainer
     /// command that writes observed read sets to a file selects `Record`.
     pub read_policy: crate::reads::ReadPolicy,
+    /// Deterministic preference for the dependency-ready, eligible frontier.
+    pub(crate) ready_order: ReadyOrder,
     /// RAII owner of an ephemeral cache directory, when this context was built by
     /// [`Self::open_ephemeral`]. Holding the [`tempfile::TempDir`] here — rather than
     /// leaking a pid-salted path under the system temp dir — is what makes the cache
@@ -219,6 +225,7 @@ impl RunContext {
             retained_carriers: BTreeSet::new(),
             retained_artifacts: BTreeSet::new(),
             read_policy: crate::reads::ReadPolicy::Enforce,
+            ready_order: ReadyOrder::default(),
             // Persistent boundary: the cache lives under the repo's `.cache/`, not a
             // temporary directory, so there is nothing to tear down.
             _ephemeral_cache_dir: None,
@@ -259,6 +266,7 @@ impl RunContext {
             retained_carriers: BTreeSet::new(),
             retained_artifacts: BTreeSet::new(),
             read_policy: crate::reads::ReadPolicy::Enforce,
+            ready_order: ReadyOrder::default(),
             _ephemeral_cache_dir: Some(dir),
         })
     }
@@ -281,6 +289,7 @@ impl RunContext {
             retained_carriers: BTreeSet::new(),
             retained_artifacts: BTreeSet::new(),
             read_policy: crate::reads::ReadPolicy::Enforce,
+            ready_order: ReadyOrder::default(),
             // Inert boundary: no cache I/O at all, so no temporary directory.
             _ephemeral_cache_dir: None,
         }
@@ -652,6 +661,13 @@ pub fn run_without(
         }
     }
     let declared_level_frontier = last_consumer_levels(graph, &by_id);
+    ctx.ready_order.validate(&executed)?;
+    let depth = if matches!(ctx.ready_order, ReadyOrder::Memory(_)) {
+        ready_order::critical_depth(graph, &dependents)
+    } else {
+        BTreeMap::new()
+    };
+    let mut dataset_bytes = BTreeMap::new();
     // The internal artifacts each producer must keep through every release, because a
     // consumer declared it reads them.
     let mut kept_internal: BTreeMap<String, BTreeSet<String>> = BTreeMap::new();
@@ -725,6 +741,7 @@ pub fn run_without(
     let retained_artifact_selection = &ctx.retained_artifacts;
     let carrier_retention = ctx.carrier_retention;
     let jobs = ctx.jobs;
+    let ready_order = &ctx.ready_order;
 
     let scheduling_result = pool.in_place_scope_fifo(|scope| -> Result<(), gmeow_errors::Diag> {
         let (tx, rx) = mpsc::channel::<(
@@ -740,20 +757,47 @@ pub fn run_without(
         let mut first_error: Option<gmeow_errors::Diag> = None;
 
         while completed < executed.len() || active > 0 {
-            // Fill every free worker from the sorted ready frontier. A locally active
+            // Fill every free worker from the dependency-ready frontier. A locally active
             // declared resource is excluded before dispatch, so a blocked resource user
             // never occupies a worker while unrelated ready work exists. The process-wide
             // locks in `exec_stage` remain authoritative across concurrent pipeline runs.
             while first_error.is_none() && active < jobs {
-                let next = ready
-                    .iter()
-                    .find(|stage_id| {
-                        by_id[stage_id.as_str()]
-                            .resources()
-                            .iter()
-                            .all(|resource| !active_resources.contains(resource))
-                    })
-                    .cloned();
+                let mut eligible = ready.iter().filter(|stage_id| {
+                    by_id[stage_id.as_str()]
+                        .resources()
+                        .iter()
+                        .all(|resource| !active_resources.contains(resource))
+                });
+                let next = match ready_order {
+                    ReadyOrder::StageId => eligible.next(),
+                    ReadyOrder::Memory(estimates) => {
+                        let live = ready_order::LiveReads {
+                            products: &products,
+                            dataset_bytes: &dataset_bytes,
+                            carrier_readers: &remaining_carrier_readers,
+                            artifact_views: &artifact_views_in_flight,
+                            retained: retained_carriers,
+                        };
+                        // `min_by_key` returns the first equal item in the sorted set.
+                        eligible.min_by_key(|id| {
+                            let terminal_only = dependents.get(*id).is_some_and(|consumers| {
+                                consumers.len() == 1
+                                    && consumers.iter().all(|consumer| {
+                                        by_id[consumer.as_str()].capabilities().iter().any(
+                                            |capability| capability == crate::node::SINK_CAPABILITY,
+                                        )
+                                    })
+                            });
+                            live.priority(
+                                by_id[id.as_str()].as_ref(),
+                                estimates.as_ref().and_then(|estimates| estimates.get(*id)),
+                                terminal_only,
+                                depth[*id],
+                            )
+                        })
+                    }
+                }
+                .cloned();
                 let Some(stage_id) = next else { break };
                 ready.remove(&stage_id);
                 let stage = Arc::clone(by_id[stage_id.as_str()]);
@@ -1019,11 +1063,15 @@ pub fn run_without(
                     retained_artifacts
                         .insert((selected_stage.clone(), path.clone()), bytes.to_vec());
                 }
+                let footprint = run.product.footprint();
+                if matches!(ready_order, ReadyOrder::Memory(_)) {
+                    dataset_bytes.insert(run.id.clone(), footprint.dataset_payload_bytes);
+                }
                 memory.push(crate::memory_record::record(
                     &run.id,
                     MemoryEvent::Complete,
                     None,
-                    Some(run.product.footprint()),
+                    Some(footprint),
                     None,
                 ));
                 products.insert(run.id.clone(), run.product);

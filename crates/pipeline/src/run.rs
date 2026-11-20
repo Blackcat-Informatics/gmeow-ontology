@@ -418,6 +418,7 @@ pub fn run_full_scoped_with_progress(
     profile: BuildProfile,
     progress: Option<Arc<dyn Reporter>>,
 ) -> Result<RunReport, gmeow_errors::Diag> {
+    let ready_order = crate::scheduler::ReadyOrder::from_environment()?;
     let total_started = Instant::now();
 
     // The abstract fields are producer-owned inputs to `source_load`, so this
@@ -483,6 +484,7 @@ pub fn run_full_scoped_with_progress(
     // COMMITTED byte-artifact lane, every digest) survives the release untouched, so the
     // written/compared bytes and `combined_digest` are byte-identical either way.
     ctx.carrier_retention = CarrierRetention::DropAfterLastConsumer;
+    ctx.ready_order = ready_order;
     let gmn_observation_key = (
         "stage-conformance".to_owned(),
         crate::stages::conformance::gmn_grounding::CHANNEL.to_owned(),
@@ -494,6 +496,13 @@ pub fn run_full_scoped_with_progress(
     }
     let scheduler_started = Instant::now();
     let mut result = run(&graph, &bound, &mut ctx)?;
+    tracing::info!(
+        target: crate::memory_record::TARGET,
+        event = "dag-output-identity",
+        combined_digest = %result.combined_digest,
+        stage_receipt_root = %result.receipt_root,
+        "selected DAG output identity"
+    );
     let scheduler_elapsed = scheduler_started.elapsed().as_millis();
     let gmn_reports = crate::stages::conformance::gmn_grounding::from_bytes(
         &result
