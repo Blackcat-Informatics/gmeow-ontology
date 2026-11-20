@@ -41,6 +41,8 @@ impl ExecutionCbor for DlConstructFamily {
             Self::HasKey => head::write_text(out, "HasKey"),
             Self::NegativePropertyAssertion => head::write_text(out, "NegativePropertyAssertion"),
             Self::FunctionalProperty => head::write_text(out, "FunctionalProperty"),
+            Self::TransitiveProperty => head::write_text(out, "TransitiveProperty"),
+            Self::SymmetricProperty => head::write_text(out, "SymmetricProperty"),
             Self::AsymmetricProperty => head::write_text(out, "AsymmetricProperty"),
             Self::IrreflexiveProperty => head::write_text(out, "IrreflexiveProperty"),
             Self::PropertyDisjointWith => head::write_text(out, "PropertyDisjointWith"),
@@ -95,6 +97,8 @@ impl ExecutionCbor for DlConstructFamily {
             | Self::HasKey
             | Self::NegativePropertyAssertion
             | Self::FunctionalProperty
+            | Self::TransitiveProperty
+            | Self::SymmetricProperty
             | Self::AsymmetricProperty
             | Self::IrreflexiveProperty
             | Self::PropertyDisjointWith
@@ -148,6 +152,8 @@ impl ExecutionCbor for DlConstructFamily {
             ("HasKey", false) => Ok(Self::HasKey),
             ("NegativePropertyAssertion", false) => Ok(Self::NegativePropertyAssertion),
             ("FunctionalProperty", false) => Ok(Self::FunctionalProperty),
+            ("TransitiveProperty", false) => Ok(Self::TransitiveProperty),
+            ("SymmetricProperty", false) => Ok(Self::SymmetricProperty),
             ("AsymmetricProperty", false) => Ok(Self::AsymmetricProperty),
             ("IrreflexiveProperty", false) => Ok(Self::IrreflexiveProperty),
             ("PropertyDisjointWith", false) => Ok(Self::PropertyDisjointWith),

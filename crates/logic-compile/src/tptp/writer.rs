@@ -8,6 +8,7 @@ use crate::frontend::{
     SourceAdmission, SourceAdmissionStatus, SourceAssertion, SourceClassDefinition,
 };
 use crate::ir::{AtomicTerm, Formula, LogicAxiom, LogicRule, Term};
+use crate::source_inventory::digest_bytes;
 
 // `matches!` patterns require literals; this keeps canonical logic IRIs beside
 // their standard-vocabulary counterparts without allocating.
@@ -836,11 +837,4 @@ fn missing(kind: &str, index: usize) -> (String, String) {
         "ADMISSION_PROGRAM_INDEX_MISMATCH".into(),
         format!("admitted {kind} index {index} is absent from the bound program"),
     )
-}
-
-fn digest_bytes(domain: &[u8], value: &[u8]) -> String {
-    let mut hasher = purrdf_hash::blake3::Hasher::new();
-    hasher.update(domain);
-    hasher.update(value);
-    purrdf_hash::hex::encode(hasher.finalize().as_bytes())
 }

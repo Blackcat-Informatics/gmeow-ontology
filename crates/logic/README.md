@@ -83,6 +83,50 @@ they do not certify complete coverage of an authored source corpus or contextual
 scope semantics. Distinct source graphs that collide on the current string world
 key are rejected at admission.
 
+`NativeSourceAdmission` borrows the compiler's immutable source inventory and
+accounts for every ordinary statement, annotation carrier, quotation and lowering
+route. `reason_admitted_theory_within` binds that account to the actual immutable
+compiler source, claim ingress, prepared program, input contract and selected
+domains before execution. Its private live completion is issued by that same
+executor after validating the resulting native evidence. Serialized observations
+cannot restore completion authority. The profile admits all supplied documents
+and source roots; it refuses narrowed source projections. Explicit module roots
+select one composed theory containing top-level obligations and the roots' actual
+transitive imports. Compiler-issued resolution binds the exact native declarations,
+roots, closure and import evidence to the immutable source. Portable requests and
+reports do not restore that authority. Without module roots the operation keeps
+the top-level selection and its module-scope boundaries. Input ingestion and its
+identity retain only that selected default graph, while claim-envelope inspection
+and source accounting retain every
+supplied graph. Source edits and domain, modal or contextual requirements cannot
+introduce an unselected world; such requirements refuse explicitly. Unsupported and
+unread source remains named even when a faithful native fragment proves a clash.
+Selected procedural negation-as-failure rules are named source boundaries and refuse this
+proof operation before execution: absence cannot authorize a classical refutation.
+The generic program and selected-theory execution APIs retain procedural NAF.
+Membership in `logic:Thing` or `owl:Thing` remains accountable when asserted or
+concluded. A universal-class membership premise prevents complete source accounting,
+because native closure does not establish membership for every element. Formula
+accounting tracks classical polarity through negation, implication and equivalence,
+including premises exposed by negation normalization. Independent ordinary clashes
+remain faithful refutations beside that incomplete accounting. Classical FOF export
+has an independent admission and cannot borrow native completion.
+
+Selected source and program views borrow the same compiler publication and retain
+original axiom, rule and formula indices. Excluded modules contribute no premise.
+Owned syntax is not an independent assertion, and unavailable required syntax
+blocks its selected owner as a whole. Shared support survives through actual
+admitted owners. Typed module claims use a distinct source-resolved assertion
+route; module membership is not added to the evidence-only metadata allow-list.
+Standpoint, time, modality and graph boundaries remain independent.
+
+Composed FOF export and raw proof export/replay lack composition-bound authority.
+The CLI resolves and reports the request before refusing those selected outputs;
+required output failure removes stale bytes. Native attestations and the existing
+top-level proof/replay contract remain distinct.
+Output paths must be distinct from selected sources, proof inputs and one another;
+aliases refuse before any output changes.
+
 Native positive schema joins also participate in that fixed point: domain,
 range, subproperty propagation, inverse/symmetric/transitive properties, and
 value restrictions can consume schema facts derived by authored rules and wake
@@ -282,7 +326,7 @@ refusal, and forward-compatibility contract, and a worked end-to-end example.
 ```rust
 use gmeow_logic::runtime::WorldStore;
 
-let store = WorldStore::new();
+let store = WorldStore::new()?;
 
 // Insert triples into two isolated worlds
 store.insert_quad("http://world/A", "http://ex.org/s", "http://ex.org/p", "http://ex.org/o1");
@@ -296,6 +340,7 @@ assert_eq!(a_quads.len(), 1);
 let mut worlds = store.worlds();
 worlds.sort();
 assert_eq!(worlds, vec!["http://world/A", "http://world/B"]);
+# Ok::<(), gmeow_errors::Diag>(())
 ```
 
 ---

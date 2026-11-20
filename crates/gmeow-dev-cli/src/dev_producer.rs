@@ -23,8 +23,8 @@ pub(crate) fn admitted_identity() -> gmeow_errors::Result<ProducerIdentity> {
 
 /// Classify commands that must authenticate the optimized producer before dispatch.
 ///
-/// Metadata inspection and fixture verification remain read-only. Compiler-owner
-/// verification also requires current executable and source admission. Console assembly
+/// Metadata inspection and fixture verification remain read-only. Compiler-owner and
+/// docs verification also require current executable and source admission. Console assembly
 /// performs its own admission after refusing output paths owned by synchronization.
 pub(crate) fn requires_admission(command: &Commands) -> bool {
     match command {
@@ -34,7 +34,11 @@ pub(crate) fn requires_admission(command: &Commands) -> bool {
             ..
         }) => !metadata && !list_paths,
         Commands::TestFixtures(crate::TestFixturesArgs { mode, scope, .. }) => {
-            matches!(mode, TestFixtureMode::Produce) || *scope == TestFixtureScope::CompilerOwner
+            matches!(mode, TestFixtureMode::Produce)
+                || matches!(
+                    scope,
+                    TestFixtureScope::CompilerOwner | TestFixtureScope::Docs
+                )
         }
         Commands::Fanout(_)
         | Commands::NativeReceiptVectors

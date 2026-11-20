@@ -9,6 +9,7 @@ use assert_cmd::Command;
 
 const PREFIXES: &str = r#"@prefix logic: <https://blackcatinformatics.ca/logic/> .
 @prefix rdf:   <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix math:  <https://blackcatinformatics.ca/math/> .
 @prefix ex:    <https://example.org/prove/> .
 "#;
 
@@ -87,12 +88,512 @@ fn prove_json(name: &str, body: &str, extra: &[&str]) -> (serde_json::Value, i32
     (report, output.status.code().expect("exit status"))
 }
 
-/// A clash derived by the native engine refutes the selection, names the law and
-/// its premises, and is the gate's certified negative.
+/// PROTECTS: explicit roots and actual cyclic imports contribute to one theory;
+/// separate module consistency never licenses their contradictory composition.
+/// Qualified duplicate carriers cannot erase admitted premises or borrow admission.
+/// A blocked positive rule stays unread while the admitted fragment seeks a witness.
+/// An extensional set can list a selected claim and a quotation without changing their authority.
+/// Excluded collection owners supply no cells or synthetic classes, while
+/// unrelated assertions about a shared resource remain executable.
 #[test]
-fn disjointness_clash_is_inconsistent_and_gate_exits_one() {
+fn selected_modules_form_one_theory_with_actual_import_closure() {
+    let body = r#"
+ex:LeftModule a logic:Module .
+ex:RightModule a logic:Module .
+ex:Hub a logic:Module ; logic:imports ex:LeftModule, ex:Diamond .
+ex:Diamond a logic:Module ; logic:imports ex:RightModule, ex:LeftModule, ex:Hub .
+ex:A logic:disjointWith ex:B .
+ex:left rdf:reifies <<( ex:a logic:instanceOf ex:A )>> ; logic:inModule ex:LeftModule .
+ex:right rdf:reifies <<( ex:a logic:instanceOf ex:B )>> ; logic:inModule ex:RightModule .
+ex:quoted rdf:reifies <<( ex:a logic:instanceOf logic:Nothing )>> .
+ex:claims a math:FiniteSet ; math:hasElement ex:right, ex:quoted .
+"#;
+    let directory = tempfile::tempdir().expect("scratch directory");
+    let source = write(directory.path(), "modules.ttl", body);
+    let run = |extra: &[&str]| {
+        let output = gmeow()
+            .args(["prove", path(&source), "--format", "json"])
+            .args(extra)
+            .output()
+            .expect("selected module operation");
+        serde_json::from_slice::<serde_json::Value>(&output.stdout).expect("module report")
+    };
+    for module in ["LeftModule", "RightModule"] {
+        let root = format!("https://example.org/prove/{module}");
+        let report = run(&["--module", &root]);
+        assert_eq!(report["verdict"], "consistent", "{report:#}");
+        assert_eq!(report["selection"]["claims_read"], 1);
+    }
+    let joint = run(&[
+        "--module",
+        "https://example.org/prove/LeftModule",
+        "--module",
+        "https://example.org/prove/RightModule",
+    ]);
+    assert_eq!(joint["verdict"], "inconsistent", "{joint:#}");
+    assert_eq!(joint["selection"]["claims_read"], 2);
+    assert!(
+        joint["engines"]["native"]["refutations"]
+            .as_array()
+            .is_some_and(|rows| !rows.is_empty())
+    );
+    let native = joint["refutations"]
+        .as_array()
+        .expect("refutations")
+        .iter()
+        .find(|row| row["engine"] == "native")
+        .expect("native joint witness");
+    let premises = native["premises"].to_string();
+    for term in [
+        "https://example.org/prove/a",
+        "https://example.org/prove/A",
+        "https://example.org/prove/B",
+    ] {
+        assert!(premises.contains(term), "missing {term} from {premises}");
+    }
+    assert_eq!(
+        joint,
+        run(&[
+            "--module",
+            "https://example.org/prove/RightModule",
+            "--module",
+            "https://example.org/prove/LeftModule"
+        ])
+    );
+    let text = gmeow()
+        .args([
+            "prove",
+            path(&source),
+            "--module",
+            "https://example.org/prove/LeftModule",
+        ])
+        .output()
+        .expect("text module report");
+    let text = String::from_utf8(text.stdout).expect("UTF-8 text");
+    assert!(text.contains("theory-composition composed-modules"));
+    assert!(text.contains("theory-root https://example.org/prove/LeftModule"));
+    assert!(text.contains("verdict consistent"));
+    assert!(
+        text.lines()
+            .any(|line| line.starts_with("claim-carrier program:axiom:")
+                && line.ends_with("https://example.org/prove/left")),
+        "{text}"
+    );
+    assert!(
+        text.lines().any(
+            |line| line.starts_with("source-unit OutsideRequestedTheory ")
+                && line.contains("https://example.org/prove/right")
+        ),
+        "{text}"
+    );
+    assert!(text.contains(&format!("semantic-units {}", joint["selection"]["units"])));
+    let imported = run(&["--module", "https://example.org/prove/Hub"]);
+    assert_eq!(imported["verdict"], "inconsistent", "{imported:#}");
+    let selection = &imported["selection"]["theory_selection"];
+    assert_eq!(selection["modules"].as_array().map(Vec::len), Some(4));
+    assert_eq!(selection["imports"].as_array().map(Vec::len), Some(5));
+    assert_eq!(selection["includes_top_level"], true);
+    assert_eq!(imported["selection"]["units"], joint["selection"]["units"]);
+    for (left, expected, count) in [
+        (
+            "ex:left rdf:reifies <<( ex:a logic:instanceOf ex:A )>> ; logic:inModule ex:LeftModule ; <https://blackcatinformatics.ca/gmeow/graphBoxRole> <https://blackcatinformatics.ca/gmeow/boxCBox> .
+ex:alsoLeft rdf:reifies <<( ex:a logic:instanceOf ex:A )>> ; logic:inModule ex:LeftModule .",
+            "inconsistent",
+            2,
+        ),
+        ("", "not-decided", 1),
+    ] {
+        let (report, code) = prove_json(
+            "qualified-module-carrier.ttl",
+            &format!(
+                r#"
+ex:LeftModule a logic:Module . ex:RightModule a logic:Module .
+ex:A logic:disjointWith ex:B .
+{left}
+ex:right rdf:reifies <<( ex:a logic:instanceOf ex:B )>> ; logic:inModule ex:RightModule .
+ex:qualified rdf:reifies <<( ex:a logic:instanceOf ex:A )>> ;
+    logic:inModule ex:LeftModule ; <https://blackcatinformatics.ca/gmeow/graphBoxRole> <https://blackcatinformatics.ca/gmeow/boxCBox> ; ex:qualifier ex:unknown .
+_:r a logic:TermCarrier ; logic:termVariable "r" .
+ex:blocked a logic:Rule ; logic:inModule ex:LeftModule ; logic:standpoint ex:observer ;
+    logic:head [ rdf:reifies <<( _:r logic:instanceOf logic:Nothing )>> ] ;
+    logic:body [ rdf:reifies <<( _:r logic:instanceOf ex:B )>> ] .
+"#
+            ),
+            &[
+                "--module", "https://example.org/prove/LeftModule",
+                "--module", "https://example.org/prove/RightModule", "--gate",
+            ],
+        );
+        assert_eq!(report["verdict"], expected, "{report:#}");
+        assert_eq!(code, 3, "native verdicts retain attestation grade");
+        assert_eq!(report["selection"]["complete"], false);
+        assert_eq!(report["selection"]["claims_read"], count);
+        assert!(has_drop(&report, "CONTEXT_ERASURE_FORBIDDEN", "blocked"), "{report:#}");
+        let carriers: Vec<_> = report["selection"]["claims"]
+            .as_array().expect("read claims")
+            .iter()
+            .flat_map(|claim| claim["carriers"].as_array().expect("actual carriers"))
+            .filter_map(serde_json::Value::as_str)
+            .collect();
+        assert!(carriers.contains(&"https://example.org/prove/right"));
+        assert!(!carriers.contains(&"https://example.org/prove/qualified"));
+        if expected == "inconsistent" {
+            assert!(carriers.contains(&"https://example.org/prove/left"));
+            assert!(carriers.contains(&"https://example.org/prove/alsoLeft"));
+            assert_eq!(report["engines"]["native"]["verdict"], "clash");
+            let premises = report["refutations"].to_string();
+            assert!(premises.contains("https://example.org/prove/A"));
+            assert!(premises.contains("https://example.org/prove/B"));
+        } else {
+            assert_eq!(report["engines"]["native"]["verdict"], "no-clash");
+        }
+        let unread: Vec<_> = report["native_admission"]["execution_drops"]
+            .as_array().expect("execution boundaries")
+            .iter().filter(|drop| drop["code"] == "SCOPED_CLAIM_NOT_READ").collect();
+        assert!(matches!(unread[..], [drop] if drop["detail"].as_str()
+            .is_some_and(|detail| detail.contains("https://example.org/prove/qualified"))));
+        assert!(report["native_admission"]["units"].as_array().expect("source obligations")
+            .iter().any(|unit| unit["kind"] == "Quotation"
+                && unit["anchor"].as_str().is_some_and(|anchor|
+                    anchor.contains("https://example.org/prove/qualified"))
+                && unit["disposition"]["Blocked"]["code"] == "SCOPED_CLAIM_NOT_READ"));
+    }
+
+    let collection = r#"
+ex:M a logic:Module . ex:N a logic:Module .
+ex:chain logic:propertyChainAxiom ex:head ; logic:inModule ex:N .
+ex:head rdf:first ex:property ; rdf:rest rdf:nil .
+rdf:first logic:domain logic:Nothing .
+"#;
+    for (extra, expected, native) in [
+        ("", "not-decided", "no-clash"),
+        (
+            "ex:mark logic:domain logic:Nothing . ex:head ex:mark ex:value .",
+            "inconsistent",
+            "clash",
+        ),
+    ] {
+        let (report, _) = prove_json(
+            "module-collection.ttl",
+            &format!("{collection}{extra}"),
+            &["--module", "https://example.org/prove/M", "--gate"],
+        );
+        assert_eq!(report["verdict"], expected, "{report:#}");
+        assert_eq!(report["engines"]["native"]["verdict"], native, "{report:#}");
+        let units = report["native_admission"]["units"]
+            .as_array()
+            .expect("the source units remain visible");
+        assert!(
+            !units.iter().any(|unit| unit["kind"] == "ClassDefinition"
+                && unit["anchor"]
+                    .as_str()
+                    .is_some_and(|anchor| anchor.contains("https://example.org/prove/head"))),
+            "a property-list head is not a class definition: {report:#}"
+        );
+        assert!(
+            units.iter().any(
+                |unit| unit["disposition"].get("OutsideRequestedTheory").is_some()
+                    && unit["anchor"]
+                        .as_str()
+                        .is_some_and(|anchor| anchor.contains("https://example.org/prove/head")
+                            && anchor.contains("first"))
+            ),
+            "excluded physical cells remain inventoried: {report:#}"
+        );
+    }
+}
+
+/// PROTECTS: unresolved roots/imports fail closed before native execution.
+#[test]
+fn module_requests_refuse_missing_declarations_and_imports() {
+    for body in [
+        "ex:Root logic:imports ex:Missing .",
+        "ex:Root a logic:Module ; logic:imports ex:Missing .",
+    ] {
+        let (report, code) = prove_json(
+            "missing-module.ttl",
+            body,
+            &["--module", "https://example.org/prove/Root"],
+        );
+        assert_eq!(code, 4, "{report:#}");
+        assert!(report["engines"].is_null());
+    }
+}
+
+/// PROTECTS: an atomic formula link remains unread whether its equal ordinary
+/// statement is independently asserted or excluded.
+/// Its provenance follows the original formula account after exact source selection.
+#[test]
+fn excluded_statement_cannot_account_for_an_unread_atomic_formula() {
+    let body = r#"
+ex:Selected a logic:Module ; logic:hasFormula ex:law .
+ex:Excluded a logic:Module .
+ex:p logic:domain ex:C {scope} .
+ex:a ex:p ex:b ; logic:instanceOf ex:D .
+ex:C logic:disjointWith ex:D .
+ex:law a logic:Formula ; logic:relation logic:domain ; logic:argument ex:propertyTerm, ex:classTerm ;
+    logic:provenance ex:lawSource .
+ex:propertyTerm logic:termIndex 0 ; logic:termIri ex:p .
+ex:classTerm logic:termIndex 1 ; logic:termIri ex:C .
+"#;
+    for (scope, verdict) in [
+        ("; logic:inModule ex:Excluded", "not-decided"),
+        ("", "inconsistent"),
+    ] {
+        let (report, _) = prove_json(
+            "atomic-formula.ttl",
+            &body.replace("{scope}", scope),
+            &["--module", "https://example.org/prove/Selected"],
+        );
+        assert_eq!(report["verdict"], verdict, "{report:#}");
+        let units = report["native_admission"]["units"]
+            .as_array()
+            .expect("source units");
+        let link = units
+            .iter()
+            .find(|unit| {
+                unit["anchor"]
+                    .as_str()
+                    .is_some_and(|anchor| anchor.contains("/hasFormula"))
+            })
+            .expect("original module formula link");
+        assert_eq!(
+            link["disposition"]["Blocked"]["code"],
+            "FORMULA_AXIOM_NOT_READ"
+        );
+        let evidence = units
+            .iter()
+            .find(|unit| {
+                unit["anchor"].as_str().is_some_and(|anchor| {
+                    anchor.contains("/provenance") && anchor.contains("/lawSource")
+                })
+            })
+            .expect("original provenance row");
+        if scope.is_empty() {
+            let formula = units
+                .iter()
+                .find(|unit| {
+                    unit["kind"] == "Formula"
+                        && unit["anchor"]
+                            .as_str()
+                            .is_some_and(|anchor| anchor.ends_with("/law|0:"))
+                })
+                .expect("original formula occurrence");
+            assert!(
+                !formula["disposition"]["Accounted"].is_null(),
+                "{formula:#}"
+            );
+            assert_eq!(
+                evidence["disposition"]["FormulaEvidence"]["formula_origins"],
+                serde_json::json!([formula["id"].clone()])
+            );
+        } else {
+            assert_eq!(
+                evidence["disposition"]["Blocked"]["code"],
+                "FORMULA_EVIDENCE_NOT_ACCOUNTED"
+            );
+        }
+    }
+}
+
+/// PROTECTS: composed required outputs remove stale bytes, and raw proof replay
+/// cannot acquire composition authority from a supplied file or matching digest.
+#[test]
+fn composed_outputs_and_raw_replay_refuse_after_reporting_theory() {
+    let directory = tempfile::tempdir().expect("scratch directory");
+    let source = write(directory.path(), "module.ttl", "ex:Root a logic:Module .");
+    let fof = directory.path().join("problem.p");
+    let proof = directory.path().join("proof.cbor");
+    std::fs::write(&fof, "stale FOF").expect("old output");
+    std::fs::write(&proof, "stale proof").expect("old proof");
+    let refusal = gmeow()
+        .args([
+            "prove",
+            path(&source),
+            "--module",
+            "https://example.org/prove/Root",
+            "--out",
+            path(&fof),
+            "--proof-out",
+            path(&proof),
+            "--format",
+            "json",
+        ])
+        .assert()
+        .code(5);
+    let report = report(&refusal);
+    assert_eq!(
+        report["selection"]["theory_selection"]["modules"],
+        serde_json::json!(["https://example.org/prove/Root"])
+    );
+    assert_eq!(report["export"]["written"], false);
+    assert!(!fof.exists());
+    assert!(!proof.exists());
+    let missing_parent = directory.path().join("missing-parent/proof.cbor");
+    for candidate in [&proof, &missing_parent] {
+        let replay = gmeow()
+            .args([
+                "prove",
+                path(&source),
+                "--module",
+                "https://example.org/prove/Root",
+                "--check-proof",
+                path(candidate),
+                "--format",
+                "json",
+            ])
+            .assert()
+            .code(1);
+        let replay: serde_json::Value =
+            serde_json::from_slice(&replay.get_output().stdout).expect("proof-check report");
+        assert_eq!(replay["verdict"], "rejected");
+        assert_eq!(
+            replay["theory_selection"]["modules"],
+            serde_json::json!(["https://example.org/prove/Root"])
+        );
+        assert!(replay["diagnostics"].as_array().is_some_and(|rows| {
+            rows.iter()
+                .any(|row| row["code"] == "COMPOSED_PROOF_REPLAY_UNSUPPORTED")
+        }));
+    }
+    let evidence = directory.path().join("unpublished-evidence.json");
+    gmeow()
+        .args([
+            "prove",
+            path(&source),
+            "--module",
+            "https://example.org/prove/Root",
+            "--check-proof",
+            path(&missing_parent),
+            "--evidence-out",
+            path(&evidence),
+            "--format",
+            "json",
+        ])
+        .assert()
+        .code(4);
+    assert!(
+        !evidence.exists(),
+        "unprotectable replay input disables sinks"
+    );
+    let original = std::fs::read(&source).expect("source bytes");
+    let alias = directory.path().join("source-alias.ttl");
+    std::fs::hard_link(&source, &alias).expect("input hard link");
+    for sink in ["--out", "--proof-out", "--evidence-out"] {
+        let mut command = gmeow();
+        command.args([
+            "prove",
+            path(&source),
+            "--module",
+            "https://example.org/prove/Root",
+            sink,
+            path(&alias),
+            "--format",
+            "json",
+        ]);
+        if sink != "--evidence-out" {
+            command.args(["--evidence-out", path(&source)]);
+        }
+        command.assert().code(4);
+        assert_eq!(std::fs::read(&source).expect("preserved input"), original);
+        assert_eq!(std::fs::read(&alias).expect("preserved alias"), original);
+    }
+    let shared = directory.path().join("shared-output.bin");
+    std::fs::write(&shared, "retained output").expect("existing selected sink");
+    gmeow()
+        .args([
+            "prove",
+            path(&source),
+            "--module",
+            "https://example.org/prove/Root",
+            "--out",
+            path(&shared),
+            "--proof-out",
+            path(&shared),
+            "--evidence-out",
+            path(&shared),
+            "--format",
+            "json",
+        ])
+        .assert()
+        .code(4);
+    assert_eq!(
+        std::fs::read(&shared).expect("preserved colliding output"),
+        b"retained output"
+    );
+    let absent = directory.path().join("future-output.bin");
+    std::fs::create_dir(directory.path().join("sub")).expect("existing path component");
+    let equivalent = directory.path().join("sub/../future-output.bin");
+    gmeow()
+        .args([
+            "prove",
+            path(&source),
+            "--module",
+            "https://example.org/prove/Root",
+            "--out",
+            path(&absent),
+            "--proof-out",
+            path(&equivalent),
+            "--format",
+            "json",
+        ])
+        .assert()
+        .code(4);
+    assert!(
+        !absent.exists(),
+        "an alias refusal publishes neither selected sink"
+    );
+    #[cfg(unix)]
+    {
+        let parent_alias = directory.path().join("parent-alias");
+        std::os::unix::fs::symlink(directory.path(), &parent_alias)
+            .expect("static symlink parent alias");
+        let source_alias = parent_alias.join("module.ttl");
+        for sink in ["--out", "--proof-out", "--evidence-out"] {
+            gmeow()
+                .args([
+                    "prove",
+                    path(&source),
+                    sink,
+                    path(&source_alias),
+                    "--format",
+                    "json",
+                ])
+                .assert()
+                .code(4);
+            assert_eq!(std::fs::read(&source).expect("source retained"), original);
+        }
+        let dangling = directory.path().join("dangling-output.bin");
+        std::os::unix::fs::symlink(&absent, &dangling).expect("terminal dangling output symlink");
+        gmeow()
+            .args([
+                "prove",
+                path(&source),
+                "--module",
+                "https://example.org/prove/Root",
+                "--out",
+                path(&dangling),
+                "--format",
+                "json",
+            ])
+            .assert()
+            .code(5);
+        assert_eq!(
+            std::fs::read_link(&dangling).expect("guard preserves symlink"),
+            absent
+        );
+        assert!(!absent.exists());
+    }
+}
+
+/// A clash derived by the native engine refutes the selection, names the law and
+/// its premises, and reports an unchecked attestation.
+#[test]
+fn disjointness_clash_is_inconsistent_and_gate_exits_three() {
     let (report, code) = prove_json("clash.logic.ttl", CLASH, &["--gate"]);
-    assert_eq!(code, 1, "{report:#}");
+    assert_eq!(code, 3, "{report:#}");
+    assert_eq!(report["evidence_grade"], "attestation");
+    assert_eq!(report["gate_admission"], "refused");
     assert_eq!(report["verdict"], "inconsistent");
     let refutation = &report["refutations"][0];
     assert_eq!(refutation["engine"], "native");
@@ -113,11 +614,13 @@ fn disjointness_clash_is_inconsistent_and_gate_exits_one() {
 /// A Horn theory whose every unit is accounted and whose closure completed is
 /// `consistent` with a complete, drop-free selection.
 #[test]
-fn horn_theory_is_consistent_with_zero_drops_and_gate_exits_zero() {
+fn horn_theory_is_consistent_with_zero_drops_and_gate_exits_three() {
     let (report, code) = prove_json("horn.logic.ttl", HORN, &["--gate"]);
     assert_eq!(report["verdict"], "consistent", "{report:#}");
-    assert_eq!(code, 0);
+    assert_eq!(code, 3);
     assert_eq!(report["selection"]["complete"], true);
+    assert_eq!(report["evidence_grade"], "attestation");
+    assert_eq!(report["gate_admission"], "attestation");
     assert_eq!(report["selection"]["drops"], serde_json::json!([]));
     assert_eq!(
         report["engines"]["native"]["information_state"],
@@ -130,12 +633,15 @@ fn horn_theory_is_consistent_with_zero_drops_and_gate_exits_zero() {
     );
 }
 
-/// A formula the native lowering cannot carry blocks `consistent` and is named.
+/// A formula the native lowering cannot carry blocks `consistent` and retains
+/// the source boundary on its module link and provenance.
 #[test]
 fn uncarried_formula_is_not_decided_with_its_drop_named_and_gate_exits_three() {
     let (report, code) = prove_json("disjunctive.logic.ttl", DISJUNCTIVE, &["--gate"]);
     assert_eq!(report["verdict"], "not-decided", "{report:#}");
     assert_eq!(code, 3);
+    assert_eq!(report["evidence_grade"], "attestation");
+    assert_eq!(report["gate_admission"], "attestation");
     assert_eq!(report["selection"]["complete"], false);
     assert!(
         report["selection"]["drops"]
@@ -145,6 +651,36 @@ fn uncarried_formula_is_not_decided_with_its_drop_named_and_gate_exits_three() {
             .any(|drop| drop["engine"] == "native" && drop["code"] == "UNSUPPORTED_CONSTRUCT"),
         "{report:#}"
     );
+    let linked = format!(
+        "{DISJUNCTIVE}\nex:Selected a logic:Module ; logic:hasFormula ex:law .\nex:law logic:provenance ex:sourceRecord .\n"
+    );
+    let (report, code) = prove_json(
+        "linked-disjunction.ttl",
+        &linked,
+        &["--module", "https://example.org/prove/Selected", "--gate"],
+    );
+    assert_eq!(report["verdict"], "not-decided", "{report:#}");
+    assert_eq!(code, 3);
+    let units = report["native_admission"]["units"]
+        .as_array()
+        .expect("source units");
+    let link = units
+        .iter()
+        .find(|unit| {
+            unit["anchor"]
+                .as_str()
+                .is_some_and(|anchor| anchor.contains("/hasFormula"))
+        })
+        .expect("original disjunctive formula link");
+    assert_eq!(
+        link["disposition"]["Blocked"]["code"],
+        "FORMULA_NATIVE_LOWERING_RESIDUE"
+    );
+    assert!(has_drop(
+        &report,
+        "FORMULA_EVIDENCE_NOT_ACCOUNTED",
+        "/sourceRecord"
+    ));
 }
 
 /// An exhausted derivation allowance is a partial closure and never `consistent`.
@@ -237,6 +773,8 @@ fn dir_selects_semantic_sources_only_and_reruns_are_byte_identical() {
 
 /// A recorded tableau proof replays against the same inputs and is rejected
 /// against altered input, without a new solver decision.
+/// Replay input identity is retained, output aliases cannot truncate the proof,
+/// and a required proof refusal removes an earlier proof at the selected sink.
 #[test]
 fn proof_replays_on_same_inputs_and_is_rejected_on_altered_input() {
     let directory = tempfile::tempdir().expect("scratch directory");
@@ -272,6 +810,33 @@ fn proof_replays_on_same_inputs_and_is_rejected_on_altered_input() {
     assert_eq!(check["proof_digest"], digest);
     // A second reader learns which answer the replayed proof certifies.
     assert_eq!(check["claims"], serde_json::json!(["owl-view-consistent"]));
+    let proof_bytes = std::fs::read(&proof).expect("recorded proof bytes");
+    let proof_input = check["inputs"]
+        .as_array()
+        .expect("selected input receipts")
+        .iter()
+        .find(|input| input["role"] == "selected-proof-replay")
+        .expect("actual replay input receipt");
+    assert_eq!(proof_input["path"], path(&proof));
+    assert_eq!(proof_input["media_type"], "application/cbor");
+    let proof_alias = directory.path().join("proof-alias.bin");
+    std::fs::hard_link(&proof, &proof_alias).expect("proof hardlink");
+    for output in [&proof, &proof_alias] {
+        gmeow()
+            .args([
+                "prove",
+                path(&source),
+                "--check-proof",
+                path(&proof),
+                "--evidence-out",
+                path(output),
+                "--format",
+                "json",
+            ])
+            .assert()
+            .code(4);
+        assert_eq!(std::fs::read(&proof).expect("proof retained"), proof_bytes);
+    }
 
     write(
         directory.path(),
@@ -290,6 +855,36 @@ fn proof_replays_on_same_inputs_and_is_rejected_on_altered_input() {
         .assert()
         .code(1);
     assert_eq!(report(&assert)["verdict"], "rejected");
+
+    let no_proof_source = write(
+        directory.path(),
+        "unrecorded.logic.ttl",
+        "ex:shortChain logic:propertyChainAxiom ( ex:operand ) .",
+    );
+    let refusal = gmeow()
+        .args([
+            "prove",
+            path(&no_proof_source),
+            "--proof-out",
+            path(&proof),
+            "--format",
+            "json",
+        ])
+        .assert()
+        .code(5);
+    let refusal = report(&refusal);
+    assert!(
+        refusal["diagnostics"]
+            .as_array()
+            .expect("refusal diagnostics")
+            .iter()
+            .any(|row| row["code"] == "PROOF_NOT_RECORDED"),
+        "{refusal:#}"
+    );
+    assert!(
+        !proof.exists(),
+        "old proof cannot appear current after refusal"
+    );
 }
 
 /// Assert a counterexample is never `consistent` and that the expected drop is named.
@@ -303,11 +898,10 @@ fn assert_not_consistent_with(name: &str, body: &str, code: &str) {
     );
 }
 
-/// A record-form irreflexive characteristic the engine does not read is a drop,
-/// never a silent `consistent`.
+/// A record-form irreflexive law yields a native refutation with its actual fields.
 #[test]
-fn irreflexive_characteristic_record_is_a_named_drop() {
-    assert_not_consistent_with(
+fn irreflexive_characteristic_record_refutes_a_self_edge() {
+    let (report, exit) = prove_json(
         "record-irreflexive.logic.ttl",
         r#"
 ex:pIrreflexive a logic:PropertyCharacteristicAssertion ;
@@ -315,23 +909,54 @@ ex:pIrreflexive a logic:PropertyCharacteristicAssertion ;
     logic:characteristicSort logic:irreflexiveProperty .
 ex:a ex:p ex:a .
 "#,
-        "CHARACTERISTIC_RECORD_NOT_READ",
+        &["--gate"],
     );
+    assert_ne!(exit, 0);
+    assert_eq!(report["verdict"], "inconsistent", "{report:#}");
+    assert_eq!(
+        report["engines"]["native"]["verdict"], "clash",
+        "{report:#}"
+    );
+    assert!(
+        !drop_codes(&report)
+            .iter()
+            .any(|code| code == "CHARACTERISTIC_RECORD_NOT_READ"),
+        "{report:#}"
+    );
+    let premises = report["refutations"].to_string();
+    assert!(premises.contains("characterizes"), "{report:#}");
+    assert!(premises.contains("characteristicSort"), "{report:#}");
 }
 
-/// A record-form asymmetric characteristic the engine does not read is a drop.
+/// Transitive record consequences feed asymmetric record refutation in one theory.
 #[test]
-fn asymmetric_characteristic_record_is_a_named_drop() {
-    assert_not_consistent_with(
+fn transitive_characteristic_record_feeds_asymmetric_refutation() {
+    let (report, exit) = prove_json(
         "record-asymmetric.logic.ttl",
         r#"
 ex:pAsymmetric a logic:PropertyCharacteristicAssertion ;
     logic:characterizes ex:p ;
     logic:characteristicSort logic:asymmetricProperty .
+ex:pTransitive a logic:PropertyCharacteristicAssertion ;
+    logic:characterizes ex:p ;
+    logic:characteristicSort logic:transitiveProperty .
 ex:a ex:p ex:b .
-ex:b ex:p ex:a .
+ex:b ex:p ex:c .
+ex:c ex:p ex:a .
 "#,
-        "CHARACTERISTIC_RECORD_NOT_READ",
+        &["--gate"],
+    );
+    assert_ne!(exit, 0);
+    assert_eq!(report["verdict"], "inconsistent", "{report:#}");
+    assert_eq!(
+        report["engines"]["native"]["verdict"], "clash",
+        "{report:#}"
+    );
+    assert!(
+        !drop_codes(&report)
+            .iter()
+            .any(|code| code == "CHARACTERISTIC_RECORD_NOT_READ"),
+        "{report:#}"
     );
 }
 
@@ -369,31 +994,58 @@ ex:R logic:subClassOf logic:Nothing .
     assert!(!drop_codes(&report).is_empty(), "{report:#}");
 }
 
-/// Named-graph content is outside the decided default graph and is a named drop.
+/// Named content cannot refute the selected default graph or hide a default-graph
+/// refutation. All excluded source remains visible as named drops.
 #[test]
 fn named_graph_content_is_a_named_drop() {
     let directory = tempfile::tempdir().expect("scratch directory");
     let source = directory.path().join("named-graph.trig");
-    std::fs::write(
-        &source,
-        format!(
-            "{PREFIXES}\nex:A logic:disjointWith ex:B .\nex:a logic:instanceOf ex:A .\nex:g {{\n    ex:a logic:instanceOf ex:B .\n}}\n"
+    for (body, verdict, native) in [
+        (
+            "ex:A logic:disjointWith ex:B .\nex:a logic:instanceOf ex:A .\nex:g { ex:a logic:instanceOf ex:B . }",
+            "not-decided",
+            "no-clash",
         ),
-    )
-    .expect("write source");
-    let output = gmeow()
-        .args(["prove", path(&source), "--format", "json", "--gate"])
-        .output()
-        .expect("run prove");
-    let report: serde_json::Value = serde_json::from_slice(&output.stdout).expect("JSON");
-    assert_ne!(report["verdict"], "consistent", "{report:#}");
-    assert_ne!(output.status.code(), Some(0));
-    assert!(
-        drop_codes(&report)
-            .iter()
-            .any(|code| code == "OUTSIDE_SELECTION"),
-        "{report:#}"
-    );
+        (
+            "ex:sentinel ex:p ex:value .\nex:g { ex:A logic:disjointWith ex:B . ex:a logic:instanceOf ex:A, ex:B . }",
+            "not-decided",
+            "no-clash",
+        ),
+        (
+            "ex:A logic:disjointWith ex:B .\nex:a logic:instanceOf ex:A, ex:B .\nex:g { ex:other ex:p ex:value . }",
+            "inconsistent",
+            "clash",
+        ),
+    ] {
+        std::fs::write(&source, format!("{PREFIXES}\n{body}\n")).expect("write source");
+        let output = gmeow()
+            .args(["prove", path(&source), "--format", "json", "--gate"])
+            .output()
+            .expect("run prove");
+        let report: serde_json::Value = serde_json::from_slice(&output.stdout).expect("JSON");
+        assert_eq!(report["verdict"], verdict, "{report:#}");
+        assert_eq!(report["engines"]["native"]["verdict"], native, "{report:#}");
+        assert_eq!(output.status.code(), Some(3), "{report:#}");
+        assert!(
+            drop_codes(&report)
+                .iter()
+                .any(|code| code == "OUTSIDE_SELECTION"),
+            "{report:#}"
+        );
+        if verdict == "inconsistent" {
+            assert!(
+                report["refutations"]
+                    .as_array()
+                    .is_some_and(|refutations| refutations
+                        .iter()
+                        .any(|refutation| refutation["world"]
+                            == gmeow_logic::reason::rl::DEFAULT_WORLD)),
+                "{report:#}"
+            );
+        } else {
+            assert_eq!(report["refutations"], serde_json::json!([]), "{report:#}");
+        }
+    }
 }
 
 /// The text report states the selection completeness line and one line per drop.
@@ -468,7 +1120,7 @@ fn foreign_and_truncated_proof_files_are_rejected() {
 fn owl_step_cap_is_reported_on_its_leg_and_the_verdict_follows_the_native_engine() {
     let (report, code) = prove_json("horn.logic.ttl", HORN, &["--step-cap", "0", "--gate"]);
     assert_eq!(report["verdict"], "consistent", "{report:#}");
-    assert_eq!(code, 0);
+    assert_eq!(code, 3);
     assert_eq!(report["selection"]["complete"], true);
     let owl = &report["engines"]["owl_dl"];
     assert_eq!(owl["state"], "not-decided", "{report:#}");
@@ -517,6 +1169,7 @@ ex:transitionNamesItsTarget a logic:Constraint ;
 /// Two rules that feed an existential head back into its own body have no termination
 /// certificate, so the native engine refuses them: the selection is not decided, the
 /// native leg is reported as refused, and the engine's reasons are the named drops.
+/// Procedural negation is also refused before its absence-based clash can execute.
 #[test]
 fn a_program_the_native_engine_declines_is_not_decided_rather_than_a_failure() {
     let (report, code) = prove_json(
@@ -543,25 +1196,535 @@ ex:a logic:instanceOf ex:Person .
     for expected in ["NATIVE_REFUSED", "NATIVE_REFUSAL_REASON"] {
         assert!(codes.iter().any(|code| code == expected), "{report:#}");
     }
+
+    let (report, code) = prove_json(
+        "naf-clash.logic.ttl",
+        r#"
+ex:a ex:p ex:b .
+_:x a logic:TermCarrier ; logic:termVariable "x" .
+_:y a logic:TermCarrier ; logic:termVariable "y" .
+ex:absenceClash a logic:Rule ;
+    logic:head [ rdf:reifies <<( _:x logic:instanceOf logic:Nothing )>> ] ;
+    logic:body [ rdf:reifies <<( _:x ex:p _:y )>> ] ;
+    logic:negatedBody [ rdf:reifies <<( _:x ex:q _:y )>> ] .
+"#,
+        &["--gate"],
+    );
+    assert_eq!(report["verdict"], "not-decided", "{report:#}");
+    assert_eq!(code, 3);
+    assert_eq!(report["engines"]["native"]["verdict"], "refused");
+    assert_eq!(report["selection"]["complete"], false);
+    assert_eq!(report["refutations"], serde_json::json!([]), "{report:#}");
+    assert!(
+        has_drop(
+            &report,
+            "NEGATION_AS_FAILURE_IS_NOT_CLASSICAL_NEGATION",
+            "absenceClash"
+        ) && has_drop(&report, "NATIVE_REFUSAL_REASON", "program:rule:0"),
+        "{report:#}"
+    );
 }
 
-/// A reasoning-contract declaration is catalogued metatheory: it is accounted, is
-/// not a drop, and does not change the verdict of the object theory.
+/// PROTECTS: grounded class memberships are accounted through either type spelling
+/// and carry their exact authored premises into the native refutation.
 #[test]
-fn configuration_declarations_are_accounted_without_a_drop() {
+fn grounded_class_memberships_supply_accounted_native_premises() {
+    const MEMBERSHIPS: [(&str, &str); 6] = [
+        ("cardinalType", "AbstractIndividualType"),
+        ("fundamentalType", "Category"),
+        ("rigidType", "Kind"),
+        ("rating", "QualityValue"),
+        ("relationship", "RelationshipType"),
+        ("specializedType", "SubKind"),
+    ];
+    let body = MEMBERSHIPS
+        .iter()
+        .map(|(subject, class)| {
+            format!("[ rdf:reifies <<( ex:{subject} logic:instanceOf logic:{class} )>> ]")
+        })
+        .collect::<Vec<_>>()
+        .join(",\n");
+    let rule = format!(
+        "ex:conflict a logic:Rule ;\nlogic:body {body} ;\n\
+         logic:head [ rdf:reifies <<( ex:relationship logic:instanceOf logic:Nothing )>> ] ."
+    );
+    for (syntax, predicate) in [
+        (
+            "logic:instanceOf",
+            "https://blackcatinformatics.ca/logic/instanceOf",
+        ),
+        ("a", "http://www.w3.org/1999/02/22-rdf-syntax-ns#type"),
+    ] {
+        let facts = MEMBERSHIPS
+            .iter()
+            .map(|(subject, class)| format!("ex:{subject} {syntax} logic:{class} ."))
+            .collect::<Vec<_>>()
+            .join("\n");
+        let source = format!("{rule}\n{facts}");
+        let (report, code) = prove_json("grounded-memberships.logic.ttl", &source, &["--gate"]);
+        assert_eq!(code, 3);
+        assert_eq!(report["verdict"], "inconsistent", "{report:#}");
+        assert_eq!(report["engines"]["native"]["verdict"], "clash");
+        let units = report["native_admission"]["units"]
+            .as_array()
+            .expect("source units");
+        let owner = units
+            .iter()
+            .find(|unit| {
+                unit["kind"] == "Rule"
+                    && unit["anchor"]
+                        .as_str()
+                        .is_some_and(|anchor| anchor.contains("https://example.org/prove/conflict"))
+            })
+            .expect("authored rule");
+        assert!(owner["disposition"]["Accounted"].is_object(), "{owner:#}");
+        let witness = report["refutations"]
+            .as_array()
+            .expect("refutations")
+            .iter()
+            .find(|witness| witness["engine"] == "native")
+            .expect("native refutation");
+        let premises = witness["premises"]
+            .as_array()
+            .expect("exact native premises");
+        assert_eq!(premises.len(), MEMBERSHIPS.len(), "{witness:#}");
+        for (subject, class) in MEMBERSHIPS {
+            let subject_iri = format!("https://example.org/prove/{subject}");
+            let class_iri = format!("https://blackcatinformatics.ca/logic/{class}");
+            let assertion = units
+                .iter()
+                .find(|unit| {
+                    unit["kind"] == "Assertion"
+                        && unit["anchor"].as_str().is_some_and(|anchor| {
+                            anchor.contains(&subject_iri)
+                                && anchor.contains(predicate)
+                                && anchor.contains(&class_iri)
+                        })
+                })
+                .expect("original membership assertion");
+            assert!(
+                assertion["disposition"]["Accounted"].is_object(),
+                "{assertion:#}"
+            );
+            assert!(
+                !has_drop(&report, "UNIT_NOT_ACCOUNTED", class),
+                "{report:#}"
+            );
+            assert!(
+                premises.contains(&serde_json::json!([
+                    subject_iri,
+                    predicate,
+                    format!("<{class_iri}>")
+                ])),
+                "{witness:#}"
+            );
+        }
+    }
+
     let (report, code) = prove_json(
-        "contracts.logic.ttl",
+        "grounded-membership-class-position.logic.ttl",
+        &format!("{rule}\nlogic:Kind logic:subClassOf ex:Classifier ."),
+        &["--gate"],
+    );
+    assert_eq!(code, 3);
+    assert_eq!(report["verdict"], "not-decided", "{report:#}");
+    assert_eq!(report["engines"]["native"]["verdict"], "no-clash");
+    assert!(
+        has_drop(&report, "UNIT_NOT_ACCOUNTED", "subClassOf"),
+        "{report:#}"
+    );
+}
+
+/// PROTECTS: selected governance retains exact blank-scoped rows and derived
+/// witnesses, and withholds absence when selected source coverage is incomplete.
+#[test]
+fn selected_non_entailment_binds_source_rows_and_keeps_supported_violations() {
+    let directory = tempfile::tempdir().expect("source directory");
+    write(
+        directory.path(),
+        "first.logic.ttl",
         r#"
-ex:classical a logic:ReasoningContract ; logic:modelSemantics logic:ClassicalSemantics .
-ex:subject ex:property ex:object .
+_:obligation a logic:NonEntailmentObligation ;
+    logic:obligationForbiddenPredicate ex:absentFirst ;
+    logic:obligationDischargeCondition logic:DischargeSyntacticReachability .
+ex:s ex:seed ex:o .
+"#,
+    );
+    write(
+        directory.path(),
+        "second.logic.ttl",
+        r#"
+_:obligation logic:instanceOf logic:NonEntailmentObligation ;
+    logic:obligationForbiddenPredicate ex:absentSecond ;
+    logic:obligationDischargeCondition logic:DischargeSyntacticReachability .
+"#,
+    );
+    let completed = gmeow()
+        .args(["prove", "--dir", path(directory.path()), "--format", "json"])
+        .assert()
+        .success();
+    let completed = report(&completed);
+    assert_eq!(completed["verdict"], "consistent", "{completed:#}");
+    let text = gmeow()
+        .args(["prove", "--dir", path(directory.path()), "--format", "text"])
+        .assert()
+        .success();
+    let text = std::str::from_utf8(&text.get_output().stdout).expect("text report");
+    let admission = &completed["native_admission"];
+    let records = admission["non_entailment"]["obligations"]
+        .as_array()
+        .expect("selected governance records");
+    assert_eq!(records.len(), 2);
+    assert_ne!(records[0]["obligation"], records[1]["obligation"]);
+    let units = admission["units"].as_array().expect("source inventory");
+    for record in records {
+        assert_eq!(record["disposition"], "SyntacticallyDischarged");
+        let (expected_document, typing_field) =
+            if record["forbidden_predicate"] == "https://example.org/prove/absentFirst" {
+                (
+                    "first.logic.ttl",
+                    "http://www.w3.org/1999/02/22-rdf-syntax-ns#type",
+                )
+            } else {
+                assert_eq!(
+                    record["forbidden_predicate"],
+                    "https://example.org/prove/absentSecond"
+                );
+                (
+                    "second.logic.ttl",
+                    "https://blackcatinformatics.ca/logic/instanceOf",
+                )
+            };
+        let expected_fields = [
+            typing_field,
+            "https://blackcatinformatics.ca/logic/obligationForbiddenPredicate",
+            "https://blackcatinformatics.ca/logic/obligationDischargeCondition",
+        ];
+        let mut expected_sources = Vec::with_capacity(expected_fields.len());
+        for field in expected_fields {
+            let mut matching = units.iter().filter(|unit| {
+                unit["anchor"]
+                    .as_str()
+                    .is_some_and(|anchor| anchor.contains(field))
+                    && unit["documents"].as_array().is_some_and(|documents| {
+                        documents.len() == 1
+                            && documents[0]
+                                .as_str()
+                                .is_some_and(|name| name.ends_with(expected_document))
+                    })
+            });
+            let unit = matching.next().expect("original selected field");
+            assert!(matching.next().is_none(), "{expected_document} {field}");
+            assert_eq!(unit["disposition"], "NonEntailmentDeclaration");
+            let id = unit["id"].as_str().expect("source ID");
+            let anchor = unit["anchor"].as_str().expect("source anchor");
+            assert!(text.lines().any(|line| {
+                line.starts_with(&format!(
+                    "source-unit NonEntailmentDeclaration {anchor} - {id} "
+                )) && line.contains(expected_document)
+            }));
+            expected_sources.push(id);
+        }
+        let mut sources: Vec<_> = record["sources"]
+            .as_array()
+            .expect("original source IDs")
+            .iter()
+            .map(|id| id.as_str().expect("source ID"))
+            .collect();
+        sources.sort_unstable();
+        expected_sources.sort_unstable();
+        assert_eq!(sources, expected_sources);
+    }
+
+    let (incomplete, code) = prove_json(
+        "governance.ttl",
+        r#"
+ex:malformed a logic:NonEntailmentObligation ;
+    logic:obligationDischargeCondition logic:DischargeSyntacticReachability .
+ex:inconclusive a logic:NonEntailmentObligation ;
+    logic:obligationForbiddenPredicate ex:unproduced ;
+    logic:obligationDischargeCondition logic:DischargeSyntacticReachability .
+ex:violated a logic:NonEntailmentObligation ;
+    logic:obligationForbiddenPredicate ex:forbidden ;
+    logic:obligationDischargeCondition "invalid condition" .
+ex:s ex:seed ex:o .
+ex:derive a logic:Rule ;
+    logic:body [ rdf:reifies <<( ex:s ex:seed ex:o )>> ] ;
+    logic:head [ rdf:reifies <<( ex:s ex:forbidden ex:o )>> ] .
+"#,
+        &["--gate"],
+    );
+    assert_eq!(code, 3, "{incomplete:#}");
+    assert_eq!(incomplete["verdict"], "not-decided", "{incomplete:#}");
+    assert_eq!(incomplete["engines"]["native"]["verdict"], "no-clash");
+    let records = incomplete["native_admission"]["non_entailment"]["obligations"]
+        .as_array()
+        .expect("selected governance records");
+    let record = |iri| {
+        records
+            .iter()
+            .find(|record| record["obligation"] == iri)
+            .expect("declared obligation")
+    };
+    assert!(
+        record("https://example.org/prove/malformed")["disposition"]["Invalid"]["detail"]
+            .as_str()
+            .is_some_and(|detail| detail.contains("obligationForbiddenPredicate"))
+    );
+    assert_eq!(
+        record("https://example.org/prove/inconclusive")["disposition"]["Inconclusive"]["reason"],
+        "the selected theory has malformed or unsupported non-entailment declarations"
+    );
+    let violated = record("https://example.org/prove/violated");
+    let witness = &violated["disposition"]["Violated"];
+    assert_eq!(witness["predicate"], "https://example.org/prove/forbidden");
+    assert_eq!(witness["is_edb"], false);
+    assert!(
+        violated["declaration_error"]
+            .as_str()
+            .is_some_and(|detail| { detail.contains("non-IRI discharge condition") })
+    );
+
+    let blocked_source = write(
+        directory.path(),
+        "governance-policy.ttl",
+        r#"
+ex:policy a logic:NonEntailmentObligation ;
+    logic:obligationForbiddenPredicate ex:possible ;
+    logic:obligationDischargeCondition logic:DischargeSyntacticReachability .
+ex:absent a logic:NonEntailmentObligation ;
+    logic:obligationForbiddenPredicate ex:unreachable ;
+    logic:obligationDischargeCondition logic:DischargeSyntacticReachability .
+ex:finite a logic:NonEntailmentObligation ;
+    logic:obligationForbiddenPredicate ex:possible ;
+    logic:obligationDischargeCondition logic:DischargeFiniteClosure .
+ex:s ex:seed ex:o ; logic:unaccountedRelation ex:o .
+ex:possibleWriter a logic:Rule ;
+    logic:body [ rdf:reifies <<( ex:s ex:missingSeed ex:o )>> ] ;
+    logic:head [ rdf:reifies <<( ex:s ex:possible ex:o )>> ] .
+ex:derivedCondition a logic:Rule ;
+    logic:body [ rdf:reifies <<( ex:s ex:seed ex:o )>> ] ;
+    logic:head [ rdf:reifies <<( ex:policy logic:obligationDischargeCondition logic:DischargeFiniteClosure )>> ] .
+"#,
+    );
+    let blocked = gmeow()
+        .args(["prove", path(&blocked_source), "--format", "json", "--gate"])
+        .assert()
+        .code(3);
+    let blocked = report(&blocked);
+    let records = blocked["native_admission"]["non_entailment"]["obligations"]
+        .as_array()
+        .expect("selected governance records");
+    let reason = |iri| {
+        records
+            .iter()
+            .find(|record| record["obligation"] == iri)
+            .expect("declared obligation")["disposition"]["Inconclusive"]["reason"]
+            .as_str()
+            .expect("inconclusive reason")
+    };
+    assert!(reason("https://example.org/prove/policy").contains("matches a rule head"));
+    let selected_gap = reason("https://example.org/prove/absent");
+    assert!(selected_gap.contains("incomplete coverage"));
+    let drops = blocked["selection"]["drops"]
+        .as_array()
+        .expect("selected drops");
+    assert!(drops.iter().any(|drop| {
+        let code = drop["code"].as_str().expect("code");
+        let detail = drop["detail"].as_str().expect("detail");
+        selected_gap.ends_with(&format!("({code}): {detail}"))
+    }));
+    assert_eq!(reason("https://example.org/prove/finite"), selected_gap);
+    let malformed_source = write(
+        directory.path(),
+        "malformed-governance.ttl",
+        r#"
+ex:unread a logic:NonEntailmentObligation ;
+    logic:obligationForbiddenPredicate ex:other ;
+    logic:obligationDischargeCondition <<( ex:s ex:seed ex:o )>> .
+"#,
+    );
+    let malformed = gmeow()
+        .args([
+            "prove",
+            path(&malformed_source),
+            "--format",
+            "json",
+            "--gate",
+        ])
+        .assert()
+        .code(4);
+    let malformed = report(&malformed);
+    assert_eq!(malformed["verdict"], "malformed");
+    assert!(malformed["engines"].is_null());
+    let units = malformed["native_admission"]["units"]
+        .as_array()
+        .expect("source inventory");
+    let field = units
+        .iter()
+        .find(|unit| {
+            unit["anchor"].as_str().is_some_and(|anchor| {
+                anchor.contains("https://example.org/prove/unread")
+                    && anchor.contains(
+                        "https://blackcatinformatics.ca/logic/obligationDischargeCondition",
+                    )
+            })
+        })
+        .expect("original unread condition");
+    let boundary = &field["disposition"]["Blocked"];
+    assert_eq!(boundary["code"], "UNSUPPORTED_SELECTED_ASSERTION");
+    assert_eq!(
+        boundary["non_entailment_field"],
+        "obligationDischargeCondition"
+    );
+    assert!(
+        boundary["reason"]
+            .as_str()
+            .is_some_and(|detail| detail.contains("quoted triple"))
+    );
+    assert!(units.iter().any(|unit| {
+        unit["disposition"]["Malformed"]["code"] == "COMPILER_ERROR_IN_SELECTED_THEORY"
+    }));
+    let malformed_text = gmeow()
+        .args([
+            "prove",
+            path(&malformed_source),
+            "--format",
+            "text",
+            "--gate",
+        ])
+        .assert()
+        .code(4);
+    let malformed_text =
+        std::str::from_utf8(&malformed_text.get_output().stdout).expect("text report");
+    let id = field["id"].as_str().expect("source ID");
+    let anchor = field["anchor"].as_str().expect("source anchor");
+    assert!(malformed_text.lines().any(|line| {
+        line.starts_with(&format!(
+            "source-unit Blocked {anchor} UNSUPPORTED_SELECTED_ASSERTION {id} "
+        )) && line.contains("malformed-governance.ttl")
+            && line.contains("obligationDischargeCondition quoted triple")
+    }));
+}
+
+/// PROTECTS: universal-class tests that native closure does not populate prevent
+/// a complete no-clash claim, including premises exposed by negation normalization.
+/// Asserted/head membership remains accountable, and an independent clash remains
+/// a faithful refutation even beside the incomplete universal-class account.
+#[test]
+fn universal_membership_premises_do_not_authorize_complete_no_clash() {
+    const FACTS: &str = r#"
+ex:A logic:disjointWith ex:B .
+ex:a logic:instanceOf ex:B ; ex:p ex:b .
+"#;
+    const ATOMS: &str = r#"
+ex:x a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "x" .
+ex:thing a logic:TermCarrier ; logic:termIndex 1 ;
+    logic:termIri <http://www.w3.org/2002/07/owl#Thing> .
+ex:classA a logic:TermCarrier ; logic:termIndex 1 ; logic:termIri ex:A .
+ex:thingBody a logic:Formula ; logic:relation logic:instanceOf ;
+    logic:argument ex:x, ex:thing .
+ex:classHead a logic:Formula ; logic:relation logic:instanceOf ;
+    logic:argument ex:x, ex:classA .
+ex:law a logic:Formula ; logic:quantifiedVariable ex:x ; logic:forall ex:imp .
+"#;
+    for (name, rule) in [
+        (
+            "compact",
+            r#"
+_:x a logic:TermCarrier ; logic:termVariable "x" .
+_:y a logic:TermCarrier ; logic:termVariable "y" .
+ex:thingGuard a logic:Rule ;
+    logic:head [ rdf:reifies <<( _:x logic:instanceOf ex:A )>> ] ;
+    logic:body [ rdf:reifies <<( _:x logic:instanceOf logic:Thing )>> ],
+        [ rdf:reifies <<( _:x ex:p _:y )>> ] .
+"#
+            .to_owned(),
+        ),
+        (
+            "implication",
+            format!(
+                "{ATOMS} ex:imp a logic:Formula ; logic:antecedent ex:thingBody ; logic:consequent ex:classHead ."
+            ),
+        ),
+        (
+            "normalized-disjunction",
+            format!(
+                "{ATOMS} ex:negative a logic:Formula ; logic:not ex:thingBody . ex:imp a logic:Formula ; logic:or ex:negative, ex:classHead ."
+            ),
+        ),
+    ] {
+        let source = format!("{FACTS}{rule}");
+        let (report, code) = prove_json(&format!("{name}.logic.ttl"), &source, &["--gate"]);
+        assert_eq!(report["verdict"], "not-decided", "{name}: {report:#}");
+        assert_eq!(code, 3);
+        assert_eq!(report["selection"]["complete"], false);
+        assert_eq!(report["engines"]["native"]["verdict"], "no-clash");
+        assert!(
+            has_drop(&report, "UNIT_NOT_ACCOUNTED", "universal membership"),
+            "{name}: {report:#}"
+        );
+        if name == "compact" {
+            let (report, code) = prove_json(
+                "independent-clash.logic.ttl",
+                &format!("{source} ex:a logic:instanceOf ex:A ."),
+                &["--gate"],
+            );
+            assert_eq!(report["verdict"], "inconsistent", "{report:#}");
+            assert_eq!(code, 3);
+            assert_eq!(report["selection"]["complete"], false);
+            assert_eq!(report["engines"]["native"]["verdict"], "clash");
+            assert!(
+                report["refutations"]
+                    .as_array()
+                    .is_some_and(|refutations| !refutations.is_empty()),
+                "{report:#}"
+            );
+        }
+    }
+    let (report, code) = prove_json(
+        "positive-thing.logic.ttl",
+        r#"
+ex:a logic:instanceOf logic:Thing ; ex:p ex:b .
+_:x a logic:TermCarrier ; logic:termVariable "x" .
+_:y a logic:TermCarrier ; logic:termVariable "y" .
+ex:thingHead a logic:Rule ;
+    logic:head [ rdf:reifies <<( _:x logic:instanceOf logic:Thing )>> ] ;
+    logic:body [ rdf:reifies <<( _:x ex:p _:y )>> ] .
 "#,
         &["--gate"],
     );
     assert_eq!(report["verdict"], "consistent", "{report:#}");
-    assert_eq!(code, 0);
+    assert_eq!(code, 3);
+    assert_eq!(report["selection"]["complete"], true);
+    assert_eq!(report["selection"]["drops"], serde_json::json!([]));
+}
+
+/// PROTECTS: configuration and correspondence catalogues account only their exact
+/// validated records, retain owned recovery syntax outside object premises, and
+/// keep resolved module metadata outside object premises without hiding a clash
+/// or unsupported statement on the same node. Rejected and orphan Lens links
+/// cannot become premises, while independent reification retains its assertion.
+#[test]
+fn configuration_declarations_are_accounted_without_a_drop() {
+    const CATALOGUE: &str = r#"
+ex:classical a logic:ReasoningContract ; logic:modelSemantics logic:ClassicalSemantics .
+ex:catalogue a logic:Correspondence ; logic:correspondenceRelation logic:RelatedMatch ;
+    logic:morphismClass logic:LossyLens ; logic:morphismKind logic:InstitutionMorphism ;
+    logic:sourceEndpoint ex:source ; logic:targetEndpoint ex:target ;
+    logic:recoveryCase ex:case .
+ex:case a logic:RecoveryCase ; logic:recoveryTransform ex:recovery .
+ex:recovery a logic:Formula ; logic:relation ex:p ; logic:argument ex:left, ex:right .
+ex:left logic:termIndex 0 ; logic:termIri ex:subject .
+ex:right logic:termIndex 1 ; logic:termIri ex:object .
+ex:subject ex:property ex:object .
+"#;
+    let (report, code) = prove_json("contracts.logic.ttl", CATALOGUE, &["--gate"]);
+    assert_eq!(report["verdict"], "consistent", "{report:#}");
+    assert_eq!(code, 3);
     assert_eq!(report["selection"]["drops"], serde_json::json!([]));
     assert!(
-        report["admission"]["units"]
+        report["native_admission"]["units"]
             .as_array()
             .expect("admission units")
             .iter()
@@ -570,6 +1733,158 @@ ex:subject ex:property ex:object .
                 .is_some_and(|disposition| disposition.contains_key("ConfigurationDeclaration"))),
         "{report:#}"
     );
+    let records: Vec<_> = report["native_admission"]["units"]
+        .as_array()
+        .expect("source units")
+        .iter()
+        .filter(|unit| unit["disposition"].get("MetatheoryDeclaration").is_some())
+        .collect();
+    assert!(
+        records.iter().any(|row| row["kind"] == "Owner"),
+        "{report:#}"
+    );
+    for field in [
+        "correspondenceRelation",
+        "recoveryTransform",
+        "relation",
+        "termIri",
+        "termIndex",
+    ] {
+        assert!(
+            records.iter().any(|row| row["anchor"]
+                .as_str()
+                .is_some_and(|anchor| anchor.contains(field))),
+            "{field}: {report:#}"
+        );
+    }
+    for (extra, expected) in [
+        (
+            "ex:A logic:disjointWith ex:B . ex:catalogue logic:instanceOf ex:A, ex:B .",
+            "inconsistent",
+        ),
+        ("ex:catalogue logic:instanceOf logic:Lens .", "not-decided"),
+        (
+            "ex:catalogue logic:unreadRecordField ex:value .",
+            "not-decided",
+        ),
+        (
+            "ex:unreadAtomic a logic:Formula ; logic:relation logic:sourceEndpoint ; logic:argument [ logic:termIndex 0 ; logic:termIri ex:catalogue ], [ logic:termIndex 1 ; logic:termIri ex:source ] .",
+            "not-decided",
+        ),
+        ("logic:relation logic:domain logic:Nothing .", "not-decided"),
+    ] {
+        let (changed, _) = prove_json(
+            "catalogue-boundary.logic.ttl",
+            &format!("{CATALOGUE}{extra}"),
+            &["--gate"],
+        );
+        assert_eq!(changed["verdict"], expected, "{changed:#}");
+        if expected == "not-decided" {
+            assert!(
+                !drop_codes(&changed).is_empty(),
+                "unaccounted object obligations stay visible"
+            );
+        }
+        if extra.starts_with("logic:relation") {
+            assert_eq!(
+                changed["engines"]["native"]["verdict"], "no-clash",
+                "catalogue syntax is not an object premise: {changed:#}"
+            );
+        }
+    }
+    let rejected = format!(
+        "{CATALOGUE}\nex:catalogue logic:hasLens ex:undeclaredLens .\n\
+         logic:hasLens logic:domain logic:Nothing ."
+    );
+    for (extra, expected, native) in [
+        ("", "not-decided", "no-clash"),
+        (
+            "ex:assertion rdf:reifies <<( ex:catalogue logic:hasLens ex:undeclaredLens )>> ; logic:provenance ex:source .",
+            "inconsistent",
+            "clash",
+        ),
+    ] {
+        let (changed, code) = prove_json(
+            "rejected-lens-boundary.logic.ttl",
+            &format!("{rejected}\n{extra}"),
+            &["--gate"],
+        );
+        assert_eq!(changed["verdict"], expected, "{changed:#}");
+        assert_eq!(code, 3);
+        assert_eq!(
+            changed["engines"]["native"]["verdict"], native,
+            "{changed:#}"
+        );
+        assert_eq!(
+            changed["engines"]["owl_dl"]["state"], "consistent",
+            "{changed:#}"
+        );
+        assert_eq!(changed["selection"]["complete"], false);
+        assert!(
+            has_drop(&changed, "SKIPPED_SELECTED_OWNER", "catalogue"),
+            "{changed:#}"
+        );
+        assert!(
+            changed["native_admission"]["units"]
+                .as_array()
+                .expect("source units")
+                .iter()
+                .any(|unit| unit["anchor"]
+                    .as_str()
+                    .is_some_and(|anchor| anchor.starts_with("quad|")
+                        && anchor.contains("hasLens")
+                        && anchor.contains("undeclaredLens"))
+                    && unit["disposition"].get("Blocked").is_some()),
+            "{changed:#}"
+        );
+    }
+    let (orphan, code) = prove_json(
+        "orphan-lens-boundary.logic.ttl",
+        &format!(
+            "{CATALOGUE}\nex:orphan a logic:ReasoningContract ; \
+             logic:modelSemantics logic:ClassicalSemantics ; logic:hasLens ex:undeclaredLens .\n\
+             logic:hasLens logic:domain logic:Nothing ."
+        ),
+        &["--gate"],
+    );
+    assert_eq!(orphan["verdict"], "not-decided", "{orphan:#}");
+    assert_eq!(code, 3);
+    assert_eq!(
+        orphan["engines"]["native"]["verdict"], "no-clash",
+        "{orphan:#}"
+    );
+    assert_eq!(
+        orphan["engines"]["owl_dl"]["state"], "consistent",
+        "{orphan:#}"
+    );
+    assert!(
+        has_drop(&orphan, "NO_EXECUTABLE_OWNER_PATH", "hasLens"),
+        "{orphan:#}"
+    );
+
+    let scoped = format!(
+        "{CATALOGUE}\nex:M a logic:Module . ex:catalogue logic:inModule ex:M .\n\
+         logic:inModule logic:domain logic:Nothing ."
+    );
+    for (extra, expected, native) in [
+        ("", "not-decided", "no-clash"),
+        (
+            "ex:A logic:disjointWith ex:B . ex:catalogue logic:instanceOf ex:A, ex:B .",
+            "inconsistent",
+            "clash",
+        ),
+    ] {
+        let (changed, _) = prove_json(
+            "scoped-catalogue-boundary.logic.ttl",
+            &format!("{scoped}\n{extra}"),
+            &["--module", "https://example.org/prove/M", "--gate"],
+        );
+        assert_eq!(changed["verdict"], expected, "{changed:#}");
+        assert_eq!(
+            changed["engines"]["native"]["verdict"], native,
+            "{changed:#}"
+        );
+    }
 }
 
 /// Two reports from different sources that type one individual into two disjoint
@@ -581,13 +1896,23 @@ ex:A logic:disjointWith ex:B .
 "#;
 
 /// A claim that carries only provenance is a statement of the selected theory, so
-/// two such claims that contradict each other refute the selection even though
-/// source admission has not admitted either one.
+/// two such claims that contradict each other refute the selected native theory.
+/// Descriptive roles, rationale and lineage retain their values without becoming evidence.
 #[test]
 fn provenance_only_contradiction_is_inconsistent() {
-    let (report, code) = prove_json("provenance-clash.logic.ttl", PROVENANCE_CLASH, &["--gate"]);
+    for body in [
+        PROVENANCE_CLASH.to_owned(),
+        PROVENANCE_CLASH.replace(" ; logic:provenance", " ; <https://blackcatinformatics.ca/gmeow/graphBoxRole> <https://blackcatinformatics.ca/gmeow/boxCBox>, ex:futureRole ; logic:provenance"),
+        PROVENANCE_CLASH.replace(
+            " ; logic:provenance",
+            r#" ; <https://blackcatinformatics.ca/gmeow/statedRationale> "source reason"@en ; <https://blackcatinformatics.ca/gmeow/wasDerivedFrom> ex:sourceRecord ; logic:provenance"#,
+        ),
+    ] {
+    let (report, code) = prove_json("provenance-clash.logic.ttl", &body, &["--gate"]);
     assert_eq!(report["verdict"], "inconsistent", "{report:#}");
-    assert_eq!(code, 1);
+    assert_eq!(code, 3);
+    assert_eq!(report["evidence_grade"], "attestation");
+    assert_eq!(report["gate_admission"], "refused");
     assert_eq!(report["engines"]["native"]["verdict"], "clash");
     assert_eq!(report["selection"]["claims_read"], 2);
     // The report lists each claim it read, with the source that reported it.
@@ -604,30 +1929,77 @@ fn provenance_only_contradiction_is_inconsistent() {
             "https://example.org/prove/second"
         ]
     );
+    }
 }
 
-/// Reading a claim never decides `consistent` on its own: while source admission
-/// still blocks a reified claim, a selection of claims with no clash is not decided,
-/// the engine ran rather than refused, and the report counts the claims it read.
+/// Evidence-only claims are admitted by the actual native ingress and complete
+/// source accounting. Classical export retains its separate reification blocker;
+/// selecting that unavailable output fails and removes stale bytes.
 #[test]
-fn provenance_only_claims_without_a_clash_are_not_decided_until_admitted() {
-    let (report, code) = prove_json(
-        "provenance-agree.logic.ttl",
-        r#"
-[] rdf:reifies <<( ex:a logic:instanceOf ex:A )>> ; logic:provenance ex:first .
+fn provenance_only_claims_without_a_clash_are_native_consistent() {
+    let body = r#"
+[] rdf:reifies <<( ex:a logic:instanceOf ex:A )>> ; logic:provenance ex:first ;
+    <https://blackcatinformatics.ca/gmeow/graphBoxRole> <https://blackcatinformatics.ca/gmeow/boxCBox>, ex:futureRole .
 [] rdf:reifies <<( ex:b logic:instanceOf ex:A )>> ; logic:provenance ex:second .
-"#,
-        &["--gate"],
-    );
-    assert_eq!(report["verdict"], "not-decided", "{report:#}");
+"#;
+    let (native, code) = prove_json("provenance-agree.logic.ttl", body, &["--gate"]);
+    assert_eq!(native["verdict"], "consistent", "{native:#}");
     assert_eq!(code, 3);
-    assert_eq!(report["engines"]["native"]["verdict"], "no-clash");
-    assert_eq!(report["selection"]["claims_read"], 2);
+    assert_eq!(native["evidence_grade"], "attestation");
+    assert_eq!(native["gate_admission"], "attestation");
+    assert_eq!(native["engines"]["native"]["verdict"], "no-clash");
+    assert_eq!(native["selection"]["claims_read"], 2);
+    assert_eq!(native["selection"]["complete"], true);
+    assert_eq!(native["selection"]["drops"], serde_json::json!([]));
+    assert_eq!(native["native_admission"]["complete"], true);
     assert!(
-        drop_codes(&report)
-            .iter()
-            .any(|code| code == "CONTEXTUAL_REIFICATION_REQUIRES_TYPED_TRANSLATION"),
-        "{report:#}"
+        native["admission"].is_null(),
+        "native-only proof has no classical admission"
+    );
+
+    let directory = tempfile::tempdir().expect("owned export directory");
+    let source = write(directory.path(), "provenance-agree.logic.ttl", body);
+    let target = directory.path().join("selected.p");
+    std::fs::write(&target, "stale problem").expect("existing stale export");
+    let output = gmeow()
+        .args([
+            "prove",
+            path(&source),
+            "--format",
+            "json",
+            "--out",
+            path(&target),
+        ])
+        .output()
+        .expect("selected classical export runs");
+    let exported: serde_json::Value =
+        serde_json::from_slice(&output.stdout).expect("selected output report");
+    assert_eq!(output.status.code(), Some(5), "{exported:#}");
+    assert_eq!(exported["verdict"], "execution-failure");
+    assert_eq!(
+        exported["diagnostics"][0]["code"],
+        "SELECTED_EXPORT_BLOCKED"
+    );
+    assert_eq!(exported["engines"]["native"]["verdict"], "no-clash");
+    assert_eq!(exported["native_admission"]["complete"], true);
+    assert_eq!(exported["selection"]["complete"], true);
+    assert_eq!(exported["export"]["written"], false);
+    assert!(
+        exported["export"]["blockers"]
+            .as_array()
+            .is_some_and(|blockers| !blockers.is_empty())
+    );
+    assert!(
+        exported["admission"]["units"]
+            .as_array()
+            .is_some_and(|units| units
+                .iter()
+                .any(|unit| unit["disposition"]["Blocked"]["code"]
+                    == "CONTEXTUAL_REIFICATION_REQUIRES_TYPED_TRANSLATION"))
+    );
+    assert!(
+        !target.exists(),
+        "a selected blocked export never leaves stale bytes"
     );
 }
 
@@ -649,7 +2021,9 @@ ex:a logic:instanceOf ex:A .
     assert_eq!(code, 3);
     assert_eq!(report["engines"]["native"]["verdict"], "no-clash");
     assert_eq!(report["selection"]["claims_read"], 0);
-    let unread: Vec<&str> = report["selection"]["drops"]
+    // Execution boundaries count original unread carriers; source-obligation
+    // rows retain their separate quotation and canonical-axiom judgments.
+    let unread: Vec<&str> = report["native_admission"]["execution_drops"]
         .as_array()
         .expect("selection drops")
         .iter()
@@ -689,7 +2063,7 @@ ex:A logic:disjointWith ex:B .
     assert_eq!(code, 3);
     assert_eq!(report["engines"]["native"]["verdict"], "no-clash");
     assert_eq!(report["selection"]["claims_read"], 0);
-    let unread: Vec<&str> = report["selection"]["drops"]
+    let unread: Vec<&str> = report["native_admission"]["execution_drops"]
         .as_array()
         .expect("selection drops")
         .iter()
@@ -744,7 +2118,7 @@ fn refuted_claim_is_unread(report: &serde_json::Value, code: i32, claims_read: u
     assert_eq!(code, 3);
     assert_eq!(report["engines"]["native"]["verdict"], "no-clash");
     assert_eq!(report["selection"]["claims_read"], claims_read);
-    let unread: Vec<&str> = report["selection"]["drops"]
+    let unread: Vec<&str> = report["native_admission"]["execution_drops"]
         .as_array()
         .expect("selection drops")
         .iter()
@@ -776,6 +2150,127 @@ ex:c2 a logic:Formula ; {second} .
     )
 }
 
+/// A module-linked formula can refute the composed theory, while its excluded
+/// and context-blocked occurrences retain independent source dispositions.
+/// Its original provenance is attributed to the formula without supplying a premise.
+#[test]
+fn an_imported_formula_assertion_supplies_a_native_refutation() {
+    let body = conjunctive_consequent(
+        r#"logic:relation ex:marked ; logic:argument [ a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "A" ], [ a logic:TermCarrier ; logic:termIndex 1 ; logic:termIri ex:a ]"#,
+    ) + r#"
+ex:Chosen a logic:Module ; logic:hasFormula ex:law, ex:blocked .
+ex:Other a logic:Module .
+ex:Hub a logic:Module ; logic:imports ex:Chosen .
+ex:law logic:provenance ex:lawSource .
+ex:g logic:provenance ex:guardSource .
+ex:blocked a logic:Formula ; logic:quantifiedVariable [
+    a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "A"
+] ; logic:forall ex:imp ; logic:provenance ex:otherSource ; logic:standpoint ex:observer .
+ex:a logic:instanceOf ex:Opposition .
+ex:Opposition logic:disjointWith ex:Dst .
+"#;
+    let directory = tempfile::tempdir().expect("scratch directory");
+    let source = write(directory.path(), "linked-formulas.ttl", &body);
+    let run = |format: &str, module: &str| {
+        gmeow()
+            .args([
+                "prove",
+                path(&source),
+                "--format",
+                format,
+                "--module",
+                module,
+            ])
+            .output()
+            .expect("proof report")
+    };
+    for (root, verdict, link_disposition) in [
+        ("Hub", "inconsistent", "StructuralSupport"),
+        ("Other", "consistent", "OutsideRequestedTheory"),
+    ] {
+        let iri = format!("https://example.org/prove/{root}");
+        let report: serde_json::Value =
+            serde_json::from_slice(&run("json", &iri).stdout).expect("JSON proof report");
+        assert_eq!(report["verdict"], verdict, "{report:#}");
+        let units = report["native_admission"]["units"]
+            .as_array()
+            .expect("source units");
+        let link = |target: &str| {
+            units
+                .iter()
+                .find(|unit| {
+                    unit["anchor"].as_str().is_some_and(|anchor| {
+                        anchor.contains("/hasFormula") && anchor.contains(target)
+                    })
+                })
+                .expect("original physical module formula link")
+        };
+        let law = link("/law");
+        assert!(!law["disposition"][link_disposition].is_null(), "{law:#}");
+        assert_eq!(law["documents"].as_array().map(Vec::len), Some(1));
+        let blocked = link("/blocked");
+        if root == "Hub" {
+            assert_eq!(
+                blocked["disposition"]["Blocked"]["code"], "CONTEXT_ERASURE_FORBIDDEN",
+                "{blocked:#}"
+            );
+            let formula = units
+                .iter()
+                .find(|unit| {
+                    unit["kind"] == "Formula"
+                        && unit["anchor"]
+                            .as_str()
+                            .is_some_and(|anchor| anchor.ends_with("/law|0:"))
+                })
+                .expect("original formula occurrence");
+            let output = run("text", &iri);
+            let text = std::str::from_utf8(&output.stdout).expect("UTF-8 proof report");
+            let formula_id = formula["id"].as_str().expect("formula ID");
+            let formula_anchor = formula["anchor"].as_str().expect("formula anchor");
+            let origin_line = format!("formula-origin {formula_id} {formula_anchor}");
+            assert!(text.lines().any(|line| line == origin_line));
+            for source in ["/lawSource", "/guardSource"] {
+                let evidence = units
+                    .iter()
+                    .find(|unit| {
+                        unit["anchor"].as_str().is_some_and(|anchor| {
+                            anchor.contains("/provenance") && anchor.contains(source)
+                        })
+                    })
+                    .expect("original provenance row");
+                assert_eq!(
+                    evidence["disposition"]["FormulaEvidence"]["formula_origins"],
+                    serde_json::json!([formula["id"].clone()]),
+                    "{evidence:#}"
+                );
+                let evidence_id = evidence["id"].as_str().expect("physical evidence ID");
+                let evidence_anchor = evidence["anchor"].as_str().expect("evidence anchor");
+                let evidence_line =
+                    format!("formula-evidence {evidence_id} {formula_id} {evidence_anchor}");
+                assert!(text.lines().any(|line| line == evidence_line));
+            }
+            let witness = report["refutations"]
+                .as_array()
+                .expect("refutations")
+                .iter()
+                .find(|row| row["engine"] == "native")
+                .expect("native witness");
+            let premises = witness["premises"].to_string();
+            for term in ["/Dst", "/Opposition"] {
+                assert!(premises.contains(term), "missing {term} from {premises}");
+            }
+            for source in ["/lawSource", "/guardSource", "/otherSource"] {
+                assert!(!premises.contains(source), "{premises}");
+            }
+        } else {
+            assert!(
+                !blocked["disposition"]["OutsideRequestedTheory"].is_null(),
+                "{blocked:#}"
+            );
+        }
+    }
+}
+
 /// A consequent that conjoins a unary atom with an atom of arity three is one
 /// dependency the native engine executes: the run is decided, not an execution
 /// failure, and no drop names the formula.
@@ -789,7 +2284,7 @@ fn a_consequent_mixing_a_unary_and_a_ternary_atom_is_executed() {
         &["--gate"],
     );
     assert_eq!(report["verdict"], "consistent", "{report:#}");
-    assert_eq!(code, 0);
+    assert_eq!(code, 3);
     assert_eq!(report["selection"]["drops"], serde_json::json!([]));
 }
 

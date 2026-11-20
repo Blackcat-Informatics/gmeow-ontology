@@ -533,32 +533,150 @@ fn functionality_uses_canonical_records_and_requires_resource_distinctness() {
     }
 }
 
+/// Both characteristic source forms produce native clashes that wake authored
+/// consumers, including a clash that requires a transitive consequence first.
 #[test]
 fn structural_property_and_identity_clashes_join_the_same_round_graph() {
-    let cases = [
-        vec![
-            fact(P, TYPE, "http://www.w3.org/2002/07/owl#AsymmetricProperty"),
-            fact(SUBJECT, P, "urn:other"),
+    for record in [false, true] {
+        let characteristic = |owner: &str, sort: &str, marker: &str| {
+            if record {
+                vec![
+                    fact(
+                        owner,
+                        "https://blackcatinformatics.ca/logic/characterizes",
+                        P,
+                    ),
+                    fact(
+                        owner,
+                        "https://blackcatinformatics.ca/logic/characteristicSort",
+                        sort,
+                    ),
+                ]
+            } else {
+                vec![fact(P, TYPE, marker)]
+            }
+        };
+        let mut asymmetric = characteristic(
+            "urn:asymmetric",
+            "https://blackcatinformatics.ca/logic/asymmetricProperty",
+            "http://www.w3.org/2002/07/owl#AsymmetricProperty",
+        );
+        asymmetric.extend(characteristic(
+            "urn:transitive",
+            "https://blackcatinformatics.ca/logic/transitiveProperty",
+            "http://www.w3.org/2002/07/owl#TransitiveProperty",
+        ));
+        asymmetric.extend([
+            fact(SUBJECT, P, "urn:middle"),
+            fact("urn:middle", P, "urn:other"),
             fact("urn:other", P, SUBJECT),
-        ],
-        vec![
-            fact(P, TYPE, "http://www.w3.org/2002/07/owl#IrreflexiveProperty"),
+        ]);
+        let mut irreflexive = characteristic(
+            "urn:irreflexive",
+            "https://blackcatinformatics.ca/logic/irreflexiveProperty",
+            "http://www.w3.org/2002/07/owl#IrreflexiveProperty",
+        );
+        irreflexive.push(fact(SUBJECT, P, SUBJECT));
+        let cases = [
+            asymmetric,
+            irreflexive,
+            vec![
+                fact(SUBJECT, SAME, "urn:middle"),
+                fact("urn:other", SAME, "urn:middle"),
+                fact(SUBJECT, DIFFERENT, "urn:other"),
+            ],
+            vec![fact(SUBJECT, DIFFERENT, SUBJECT)],
+        ];
+        for quads in cases {
+            let result = run(&program(Vec::new()), &source(quads));
+            assert!(
+                result
+                    .inferred
+                    .iter()
+                    .any(|row| row.subject == SUBJECT && row.predicate == DONE)
+            );
+            if record {
+                for clash in result.inferred.iter().filter(|row| {
+                    matches!(
+                        row.rule_name.as_deref(),
+                        Some("dl:asymmetric-property-clash" | "dl:irreflexive-property-clash")
+                    )
+                }) {
+                    for predicate in [
+                        "https://blackcatinformatics.ca/logic/characterizes",
+                        "https://blackcatinformatics.ca/logic/characteristicSort",
+                    ] {
+                        assert!(clash.premises.iter().any(|(_, p, _)| p == predicate));
+                    }
+                    assert!(!clash.premises.iter().any(|(_, p, _)| p == TYPE));
+                }
+            }
+        }
+    }
+}
+
+/// An untyped characteristic cannot borrow admission from one valid sort when
+/// another field value is malformed or arrives through an authored producer.
+#[test]
+fn malformed_characteristic_records_refuse_before_their_laws_execute() {
+    const PROPERTY: &str = "https://blackcatinformatics.ca/logic/characterizes";
+    const SORT: &str = "https://blackcatinformatics.ca/logic/characteristicSort";
+    for defect in [
+        "two-properties",
+        "literal-property",
+        "two-sorts",
+        "unknown-sort",
+        "literal-sort",
+        "late-sort",
+    ] {
+        let mut quads = vec![
+            fact(RECORD, PROPERTY, P),
+            fact(
+                RECORD,
+                SORT,
+                "https://blackcatinformatics.ca/logic/irreflexiveProperty",
+            ),
             fact(SUBJECT, P, SUBJECT),
-        ],
-        vec![
-            fact(SUBJECT, SAME, "urn:middle"),
-            fact("urn:other", SAME, "urn:middle"),
-            fact(SUBJECT, DIFFERENT, "urn:other"),
-        ],
-        vec![fact(SUBJECT, DIFFERENT, SUBJECT)],
-    ];
-    for quads in cases {
-        let result = run(&program(Vec::new()), &source(quads));
+        ];
+        match defect {
+            "two-properties" => quads.push(fact(RECORD, PROPERTY, Q)),
+            "literal-property" => {
+                quads.remove(0);
+                quads.push(literal(
+                    RECORD,
+                    PROPERTY,
+                    "bad",
+                    "http://www.w3.org/2001/XMLSchema#string",
+                ));
+            }
+            "two-sorts" => quads.push(fact(
+                RECORD,
+                SORT,
+                "https://blackcatinformatics.ca/logic/asymmetricProperty",
+            )),
+            "unknown-sort" => quads.push(fact(RECORD, SORT, "urn:unknown-sort")),
+            "literal-sort" => quads.push(literal(
+                RECORD,
+                SORT,
+                "bad",
+                "http://www.w3.org/2001/XMLSchema#string",
+            )),
+            "late-sort" => quads.push(fact(RECORD, "urn:sort-seed", "urn:unknown-sort")),
+            _ => unreachable!(),
+        }
+        let p = program(vec![(
+            atom("?x", "urn:sort-seed", "?y"),
+            atom("?x", SORT, "?y"),
+        )]);
+        let closure = run(&p, &source(quads));
         assert!(
-            result
-                .inferred
-                .iter()
-                .any(|row| row.subject == SUBJECT && row.predicate == DONE)
+            !closure.inferred.iter().any(|row| row.predicate == DONE),
+            "{defect}"
+        );
+        super::test_support::assert_obstructed(
+            &p,
+            closure,
+            crate::reason::refute::NativeObstructionKind::SourceShape,
         );
     }
 }

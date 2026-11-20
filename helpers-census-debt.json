@@ -18,7 +18,7 @@
    "kind": "body",
    "members": [
     "docs_print::doc_render::find_backtick_run",
-    "gmeow_docs::render::catalog_pages::find_backtick_run"
+    "gmeow_docs::render::find_backtick_run"
    ]
   },
   {
@@ -895,13 +895,6 @@
    "members": [
     "gmeow_logic_compile::cgif::writer::var_token",
     "gmeow_logic_compile::clif::writer::var_token"
-   ]
-  },
-  {
-   "kind": "body",
-   "members": [
-    "gmeow_logic_compile::frontend::source_admission::digest_bytes",
-    "gmeow_logic_compile::tptp::writer::digest_bytes"
    ]
   },
   {
@@ -2691,7 +2684,7 @@
   "literal-and-iri-escape": 13,
   "media-type-by-extension": 3,
   "percent-encoding": 2,
-  "rdf-collection": 19,
+  "rdf-collection": 18,
   "reifier-rows": 2,
   "term-nesting-depth": 1,
   "term-syntax": 1,

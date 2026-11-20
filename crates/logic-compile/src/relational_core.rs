@@ -565,12 +565,32 @@ pub fn lower_formulas_to_rc(program: &LogicProgram) -> (Vec<RcRule>, Vec<String>
 pub fn lower_formulas_to_rc_attributed(
     program: &LogicProgram,
 ) -> (Vec<(RcRule, BTreeSet<usize>)>, Vec<String>) {
+    let lowering = lower_indexed_formulas_to_rc_attributed(program.formulas.iter().enumerate());
+    (lowering.rules, lowering.residue.into_iter().collect())
+}
+
+/// Relational lowering and residue with original formula indices.
+pub struct AttributedFormulaLowering {
+    pub rules: Vec<(RcRule, BTreeSet<usize>)>,
+    pub residue: BTreeSet<String>,
+    pub incomplete_formulas: BTreeSet<usize>,
+}
+
+/// Lower admitted formulas while retaining their original compilation indices.
+#[must_use]
+pub fn lower_indexed_formulas_to_rc_attributed<'a>(
+    formulas: impl IntoIterator<Item = (usize, &'a Formula)>,
+) -> AttributedFormulaLowering {
     let mut rules: Vec<(RcRule, usize)> = Vec::new();
-    let mut residue: BTreeSet<String> = BTreeSet::new();
-    for (index, formula) in program.formulas.iter().enumerate() {
+    let mut residue = BTreeSet::new();
+    let mut incomplete_formulas = BTreeSet::new();
+    for (index, formula) in formulas {
         let analysis = formula_analysis::analyze(formula);
         rules.extend(analysis.rules.iter().cloned().map(|rule| (rule, index)));
-        residue.extend(analysis.residue.iter().cloned());
+        if !analysis.residue.is_empty() {
+            incomplete_formulas.insert(index);
+            residue.extend(analysis.residue.iter().cloned());
+        }
     }
     // Dedup by content key (stable first-wins, preserving canonical formula-source order).
     // Authored Horn rules use the same relational atom order and rule key. Must NOT use `rules.sort(); rules.dedup()` — derived `Ord` orders
@@ -588,7 +608,11 @@ pub fn lower_formulas_to_rc_attributed(
             }
         }
     }
-    (kept, residue.into_iter().collect())
+    AttributedFormulaLowering {
+        rules: kept,
+        residue,
+        incomplete_formulas,
+    }
 }
 
 // --------------------------------------------------------------------------- //

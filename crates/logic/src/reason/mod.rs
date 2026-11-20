@@ -29,8 +29,14 @@ pub mod perf_ledger;
 mod program;
 pub use program::{PreparedReasoningInput, prepare_reasoning_input};
 mod claims;
+mod source_admission;
 pub use claims::{
     ClaimIngress, ReadClaim, UnreadClaim, UnreadReason, prepare_selected_theory_input,
+};
+pub use source_admission::{
+    NativeSourceAdmission, NativeSourceDisposition, NativeSourceDrop, NonEntailmentSourceBoundary,
+    SelectedNonEntailment, SelectedNonEntailmentDisposition, SelectedNonEntailmentObligation,
+    reason_admitted_theory_within,
 };
 pub mod refute;
 pub mod rl;
@@ -590,14 +596,14 @@ pub fn reason_program_within(
 /// program and its own selection, and otherwise the same lowering, admission and
 /// execution failures as [`reason_program_within`].
 pub fn reason_selected_theory_within(
-    theory: &gmeow_logic_compile::frontend::CompiledTheory,
+    inventory: &gmeow_logic_compile::source_inventory::SourceInventory<'_>,
     input: PreparedReasoningInput,
     domains: &crate::physical::SelectedDomains,
     ingress: &ClaimIngress,
     budget: &Budget,
 ) -> gmeow_errors::Result<ReasoningResult> {
-    let selected = prepare_selected_theory(theory, ingress)?;
-    reason_prepared_theory_within(theory, &selected, input, domains, ingress, budget)
+    let selected = prepare_selected_theory(inventory, ingress)?;
+    reason_prepared_theory_within(inventory, &selected, input, domains, ingress, budget)
 }
 
 /// A selected theory's native lowering, prepared once. A caller that holds it can name
@@ -606,6 +612,8 @@ pub fn reason_selected_theory_within(
 #[derive(Debug, Clone)]
 pub struct SelectedProgram {
     prepared: std::sync::Arc<crate::program_analysis::PreparedProgram>,
+    selection: gmeow_logic_compile::source_inventory::ResolvedTheorySelection,
+    authored: std::collections::BTreeMap<usize, std::collections::BTreeSet<String>>,
 }
 
 impl SelectedProgram {
@@ -619,33 +627,26 @@ impl SelectedProgram {
     /// Each compiler-produced rule identity with the IRIs of the authored formulas it was
     /// clausified from. A formula without an IRI of its own (a blank node) contributes
     /// none, and a rule with no named formula is omitted: its identity stands alone.
-    #[must_use]
+    ///
+    /// # Errors
+    /// Refuses a foreign source, even when its formula content matches.
     pub fn authored_rule_formulas(
         &self,
         theory: &gmeow_logic_compile::frontend::CompiledTheory,
-    ) -> std::collections::BTreeMap<String, Vec<String>> {
-        let dataset = theory.source().dataset();
-        let mut named: std::collections::BTreeMap<usize, String> =
-            std::collections::BTreeMap::new();
-        for lowering in theory.formula_lowerings() {
-            if let gmeow_logic_compile::frontend::FormulaDisposition::Formula(index) =
-                lowering.disposition
-                && let purrdf::TermRef::Iri(iri) = dataset.resolve(lowering.source.term)
-            {
-                named.entry(index).or_insert_with(|| iri.to_owned());
-            }
-        }
-        self.prepared
+    ) -> gmeow_errors::Result<std::collections::BTreeMap<String, Vec<String>>> {
+        self.selection.authorize_source(theory)?;
+        Ok(self
+            .prepared
             .formula_rules
             .iter()
             .filter_map(|(rule, origins)| {
-                let iris: Vec<String> = origins
+                let iris: std::collections::BTreeSet<String> = origins
                     .iter()
-                    .filter_map(|index| named.get(index).cloned())
+                    .flat_map(|index| self.authored.get(index).into_iter().flatten().cloned())
                     .collect();
-                (!iris.is_empty()).then(|| (rule.clone(), iris))
+                (!iris.is_empty()).then(|| (rule.clone(), iris.into_iter().collect()))
             })
-            .collect()
+            .collect())
     }
 }
 
@@ -656,16 +657,29 @@ impl SelectedProgram {
 /// # Errors
 /// Returns the lowering failures of [`reason_program_within`].
 pub fn prepare_selected_theory(
-    theory: &gmeow_logic_compile::frontend::CompiledTheory,
+    inventory: &gmeow_logic_compile::source_inventory::SourceInventory<'_>,
     ingress: &ClaimIngress,
 ) -> gmeow_errors::Result<SelectedProgram> {
-    let prepared = crate::program_analysis::prepare_program_under(
-        theory.program(),
-        crate::native_semantics::SourceAdmissionProfile::SelectedTheoryV1 {
-            theory: ingress.selection().clone(),
-        },
-    )?;
-    Ok(SelectedProgram { prepared })
+    let theory = inventory.theory();
+    let selection = ingress.resolved_selection();
+    let view = selection.program_view(inventory)?;
+    let mut authored: std::collections::BTreeMap<usize, std::collections::BTreeSet<String>> =
+        Default::default();
+    for (_, lowering) in view.formula_lowerings() {
+        if let gmeow_logic_compile::frontend::FormulaDisposition::Formula(index) =
+            lowering.disposition
+            && let purrdf::TermRef::Iri(iri) =
+                theory.source().dataset().resolve(lowering.source.term)
+        {
+            authored.entry(index).or_default().insert(iri.to_owned());
+        }
+    }
+    let prepared = crate::program_analysis::prepare_selected_program(inventory, selection)?;
+    Ok(SelectedProgram {
+        prepared,
+        selection: selection.clone(),
+        authored,
+    })
 }
 
 /// Execute a selected theory whose lowering [`prepare_selected_theory`] already made.
@@ -675,27 +689,95 @@ pub fn prepare_selected_theory(
 /// `ingress` records, and otherwise returns the failures of
 /// [`reason_selected_theory_within`].
 pub fn reason_prepared_theory_within(
-    theory: &gmeow_logic_compile::frontend::CompiledTheory,
+    inventory: &gmeow_logic_compile::source_inventory::SourceInventory<'_>,
     selected: &SelectedProgram,
     input: PreparedReasoningInput,
     domains: &crate::physical::SelectedDomains,
     ingress: &ClaimIngress,
     budget: &Budget,
 ) -> gmeow_errors::Result<ReasoningResult> {
+    let theory = inventory.theory();
+    ingress.authorize_source(theory)?;
+    selected.selection.authorize_source(theory)?;
     ingress.authorize(theory.program(), &input)?;
     let expected = crate::program_analysis::preparation_identity(
         theory.program(),
-        &crate::native_semantics::SourceAdmissionProfile::SelectedTheoryV1 {
-            theory: ingress.selection().clone(),
-        },
+        &crate::program_analysis::selected_profile(ingress.resolved_selection()),
     )?;
     if selected.prepared.identity != expected {
         return Err(reason_err(
             "the prepared program was not made from this theory under this selection".to_owned(),
         ));
     }
+    admit_selected_source_rules(
+        inventory,
+        ingress.resolved_selection(),
+        SelectedRuleProfile::Procedural,
+    )?;
     let closure = program::execute(&selected.prepared, input, domains, budget.max_steps)?;
     Ok(result_from_closure(&selected.prepared, closure, budget.max_steps)?.0)
+}
+
+enum SelectedRuleProfile {
+    Procedural,
+    SourceProof,
+}
+
+/// Procedural execution requires every nonexcluded rule's source contract.
+/// Source proof searches the admitted positive fragment while its source account
+/// retains blocked owners; procedural absence remains a refusal before execution.
+fn admit_selected_source_rules(
+    inventory: &gmeow_logic_compile::source_inventory::SourceInventory<'_>,
+    selection: &gmeow_logic_compile::source_inventory::ResolvedTheorySelection,
+    profile: SelectedRuleProfile,
+) -> gmeow_errors::Result<()> {
+    use gmeow_logic_compile::frontend::{OwnerDisposition, OwnerFamily};
+    use gmeow_logic_compile::source_inventory::{SourceObligationOrigin, TheoryUnitSelection};
+    selection.authorize_inventory(inventory)?;
+    let mut gaps = Vec::new();
+    for unit in inventory.obligations() {
+        let SourceObligationOrigin::Owner(ordinal) = unit.origin() else {
+            continue;
+        };
+        let owner = &inventory.theory().owner_lowerings()[ordinal];
+        if owner.family != OwnerFamily::Rule {
+            continue;
+        }
+        let OwnerDisposition::Emitted { index } = owner.disposition else {
+            continue;
+        };
+        let membership = selection.unit_selection(unit)?;
+        if matches!(membership, TheoryUnitSelection::OutsideRequestedTheory) {
+            continue;
+        }
+        if matches!(profile, SelectedRuleProfile::SourceProof)
+            && inventory.theory().program().rules[index]
+                .body
+                .iter()
+                .any(|atom| atom.negated)
+        {
+            gaps.push(format!("{}: program:rule:{index}: NEGATION_AS_FAILURE_IS_NOT_CLASSICAL_NEGATION: selected source rule uses procedural absence", unit.anchor()));
+        } else if matches!(profile, SelectedRuleProfile::Procedural)
+            && let TheoryUnitSelection::Blocked { code, reason } = membership
+        {
+            gaps.push(format!(
+                "rule/{index}: {}: {code}: {reason}; source scope {:?}",
+                unit.anchor(),
+                inventory.theory().program().rules[index].scope
+            ));
+        }
+    }
+    if gaps.is_empty() {
+        return Ok(());
+    }
+    Err(gmeow_errors::Diag::of_kind(crate::error::NativeRefusal {
+        reason: format!(
+            "selected-theory admission refuses unexecuted source scope, syntax or procedural negation from {:?}",
+            inventory.theory().program().source_iri
+        ),
+        gaps,
+        bounds: Vec::new(),
+    }))
 }
 
 /// The sole producer-to-result fold for the governed native operation. The typed
@@ -930,7 +1012,7 @@ pub(crate) fn run_reasoning_rules(
 /// the FIXED calculi match — the single definition of that correspondence for the whole
 /// reasoner. Nothing under `reason/` may re-spell a `logic:` IRI outside it.
 ///
-/// Two groups, and both are needed for one authored axiom to reach the closure:
+/// The table covers three groups of vocabulary used in lowering and evaluation.
 ///
 /// * the **class-expression body** — `logic:Restriction` and its slots. Their local
 ///   names are shared by BOTH authoring surfaces (the same fact the compiler's
@@ -952,103 +1034,14 @@ pub(crate) fn run_reasoning_rules(
 ///   hardcoded `owl:` constant and the axiom goes dark exactly as a bare `logic:Restriction`
 ///   would. Every entry here is a slice-authorable construct the reasoner already reads —
 ///   see the matching arms in `dl.rs` and `refute/counting.rs`.
-static CALCULUS_VOCABULARY: [(&str, &str); 52] = {
-    macro_rules! owl {
-        ($local:literal) => {
-            (
-                concat!("https://blackcatinformatics.ca/logic/", $local),
-                concat!("http://www.w3.org/2002/07/owl#", $local),
-            )
-        };
-    }
-    // The property-characteristic markers are NOT a pure namespace swap: the canonical `logic:`
-    // spelling is lower-camel (`logic:transitiveProperty`), the `owl:` view upper-camel
-    // (`owl:TransitiveProperty`) — the exact map `adapter::OWL_CHARACTERISTIC_TO_LOGIC` and
-    // `rdf::owl_for_char` use. A slice authors `?P a logic:transitiveProperty` once `owl:` is
-    // retired as an authoring vocabulary, so the
-    // reasoner must lower THAT onto the upper-camel spelling the fixed RL characteristic rules match.
-    macro_rules! owl_char {
-        ($logic_local:literal, $owl_local:literal) => {
-            (
-                concat!("https://blackcatinformatics.ca/logic/", $logic_local),
-                concat!("http://www.w3.org/2002/07/owl#", $owl_local),
-            )
-        };
-    }
-    [
-        // Anchors.
-        (gmeow_ns::LOGIC_SUB_CLASS_OF, gmeow_ns::RDFS_SUB_CLASS_OF),
-        (
-            gmeow_ns::LOGIC_SUB_PROPERTY_OF,
-            gmeow_ns::RDFS_SUB_PROPERTY_OF,
-        ),
-        // Property domain/range — canonical `logic:` lowered to the fixed `rdfs:` calculus
-        // spelling the DL/RL domain-range rules match (a slice authors `?P logic:domain C`
-        // / `?P logic:range C`, e.g. the `logic:` grounding slice's own reasoning axioms).
-        (gmeow_ns::LOGIC_DOMAIN, gmeow_ns::RDFS_DOMAIN),
-        (gmeow_ns::LOGIC_RANGE, gmeow_ns::RDFS_RANGE),
-        owl!("equivalentClass"),
-        // Class-expression body.
-        owl!("Restriction"),
-        owl!("onProperty"),
-        owl!("someValuesFrom"),
-        owl!("allValuesFrom"),
-        owl!("hasValue"),
-        owl!("onClass"),
-        owl!("onDataRange"),
-        owl!("onDatatype"),
-        owl!("withRestrictions"),
-        owl!("cardinality"),
-        owl!("minCardinality"),
-        owl!("maxCardinality"),
-        owl!("qualifiedCardinality"),
-        owl!("minQualifiedCardinality"),
-        owl!("maxQualifiedCardinality"),
-        // Typing markers (rdf:type objects the refuters read by name).
-        owl!("Class"),
-        owl!("ObjectProperty"),
-        owl!("DatatypeProperty"),
-        owl!("NamedIndividual"),
-        owl!("AnnotationProperty"),
-        owl!("Ontology"),
-        owl!("Thing"),
-        owl!("Nothing"),
-        // Property-characteristic types — canonical lower-camel `logic:` → upper-camel `owl:` view.
-        owl_char!("functionalProperty", "FunctionalProperty"),
-        owl_char!("inverseFunctionalProperty", "InverseFunctionalProperty"),
-        owl_char!("transitiveProperty", "TransitiveProperty"),
-        owl_char!("symmetricProperty", "SymmetricProperty"),
-        owl_char!("asymmetricProperty", "AsymmetricProperty"),
-        owl_char!("reflexiveProperty", "ReflexiveProperty"),
-        owl_char!("irreflexiveProperty", "IrreflexiveProperty"),
-        // Class + property axiom vocabulary.
-        owl!("disjointWith"),
-        owl!("complementOf"),
-        owl!("inverseOf"),
-        owl!("unionOf"),
-        owl!("oneOf"),
-        owl!("intersectionOf"),
-        owl!("disjointUnionOf"),
-        owl!("sameAs"),
-        owl!("differentFrom"),
-        owl!("equivalentProperty"),
-        owl!("propertyChainAxiom"),
-        owl!("propertyDisjointWith"),
-        owl!("hasKey"),
-        owl!("members"),
-        owl!("hasSelf"),
-        owl!("AllDisjointClasses"),
-        owl!("AllDisjointProperties"),
-    ]
-};
-
+///
 /// The reasoner's fixed-calculus lowering table: each `(canonical logic: IRI, projected
 /// W3C OWL/RDFS IRI)` pair the EDB boundary normalizes (Principle 17). Exposed so the
 /// grounding-law cross-check (`crates/validate`) can pin the shipped
 /// `logic:GroundingCorrespondence` corpus against THIS table directly, rather than a
 /// hand-retyped mirror that can silently drift from it.
 pub fn calculus_vocabulary() -> &'static [(&'static str, &'static str)] {
-    &CALCULUS_VOCABULARY
+    gmeow_ns::calculus_vocabulary()
 }
 
 /// The fixed-calculus spelling of a canonical `logic:` axiom term, or `None` when `iri`
@@ -1057,7 +1050,7 @@ fn calculus_projection(iri: &str) -> Option<&'static str> {
     if !iri.starts_with(gmeow_ns::LOGIC_NS) {
         return None;
     }
-    CALCULUS_VOCABULARY
+    calculus_vocabulary()
         .iter()
         .find(|(canonical, _)| *canonical == iri)
         .map(|(_, projected)| *projected)

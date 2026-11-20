@@ -503,6 +503,16 @@ closure can discharge an obligation that syntactic analysis leaves unknown. An a
 counterexample in the selected context justifies violation. A requested but unimplemented discharge
 condition remains a capability error, even when another condition is available.
 
+The public selected-source prover uses the same world-bound assessment as
+the verification gate. Its report links every admitted declaration and field
+to its original source obligation. An unread field retains its source link
+and diagnostic. An absence result requires coverage of the full selected
+theory as well as the native discharge proof. A committed
+derived witness retains its violation even if another selected obligation
+remains undecided or has malformed fields. These outcomes contribute to
+completion of the selected proof account. Refutation of the logical theory
+still requires a supported contradiction.
+
 Two standing examples:
 
 - **intent must not be derived from structural deception** — the presence of a held/projected gap is
@@ -720,13 +730,11 @@ fatal flaw engineered out: the precision is always *available*, but progressive 
 (the bundled standpoint-modality, the unary holon, the union "observation") are *generated from* the
 factored canon, never substituted for it.
 
-## Four-box organization (built in)
+## Graph-box organization
 
-The upper ontology is classified throughout by the **built-in graph-box roles** — the annotation
-property `gmeow:graphBoxRole`, whose four box values are `gmeow:boxTBox`, `gmeow:boxABox`,
-`gmeow:boxRBox`, and `gmeow:boxCBox`, with a fifth meta role, `gmeow:boxConfigBox`, marking the
-module's own header and configuration rather than a reasoned term. The four boxes partition the
-foundation cleanly:
+The annotation property `gmeow:graphBoxRole` describes a construct's role for
+documentation, validation diagnostics and package consumers. Its values are
+`gmeow:GraphBoxRole` resources. The standard roles include:
 
 - **TBox** — the sort and type taxonomy: `logic:Kind`, `logic:SubKind`, `logic:Phase`, `logic:Role`,
   `logic:Category`, `logic:Mixin`, `logic:RoleMixin`, `logic:PhaseMixin`, and the
@@ -736,12 +744,19 @@ foundation cleanly:
 - **RBox** — relation and property axioms: the `logic:properPartOf` characteristics (transitive,
   asymmetric, irreflexive), the profiled mereology relations, `logic:mediates`, and the rest of the
   relational discipline.
-- **CBox** — constraints and shapes, realized by the **built-in** closed-world lane: the closed-world
-  half of the scoped open/closed construct (`logic:closedUnder` / `logic:WorldBoundary`), and the
-  home of `FormalizationCandidate` constraints and `NonEntailmentObligation` checks.
+- **CBox** — statement context and assertion envelopes, including provenance,
+  confidence, standpoint, temporal scope and disclosure metadata. A shape or
+  diagnostic can carry this role when it concerns that assertion context.
+- **ConfigBox** — runtime, package, profile, solver, service and transport
+  configuration, distinct from the context of a particular assertion.
 
-Every authored term carries its graph-box role, so the partition is machine-checkable rather than
-documentary — no term is left unclassified.
+Roles are advisory, multivalued and open to future resource values. They do not
+partition the ontology or confer logical class membership, ownership, imports,
+graph routing or assertion authority. Preserve actual authored roles in consumers;
+do not infer a missing role or force a construct into exactly one box. The native
+carrier contract in [LOGIC-SEMANTICS.md](./LOGIC-SEMANTICS.md#triple-terms-reifiers-and-assertion)
+recognizes descriptive default-graph resource annotations without turning them
+into evidence or discarding their ordinary source rows.
 
 ## Scope and seams
 

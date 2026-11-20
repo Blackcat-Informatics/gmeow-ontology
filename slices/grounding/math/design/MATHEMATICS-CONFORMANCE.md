@@ -38,8 +38,13 @@ most declarative to most procedural:
 - **projection test** — an acceptance query over a generated lowering that fails if loss is
   unrecorded or preservation is mis-declared.
 
-Failure classes are IRIs in the `math:` failure vocabulary (`math:MathConformanceFailure`
-subclasses), so a violation is itself a typed, queryable object, not a log line.
+Subclasses of `math:MathConformanceFailure` classify failure situations.
+Canonical logic axioms and constraints state the obligations. In the SHACL
+projection, generated property shapes can carry a failure class IRI from
+`gmeow:enforcesFailureClass`. The report bridge looks up that IRI by source
+shape and records it on the finding. The finding also carries evidence such
+as the component, focus node, path and value, so consumers can distinguish
+different violations that share a class.
 
 ## The gate matrix
 

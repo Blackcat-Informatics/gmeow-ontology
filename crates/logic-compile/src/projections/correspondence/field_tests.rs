@@ -4,7 +4,9 @@
 //! Admission contracts for GMEOW correspondence fields and selected leg programs.
 
 use super::*;
-use crate::frontend::{OwnerDisposition, OwnerFamily, PreparedLogicSource};
+use crate::frontend::{OwnerDisposition, OwnerFamily, PreparedLogicSource, SourceSelection};
+use crate::ir::TheorySelection;
+use crate::source_inventory::{SourceInventory, SourceObligationOrigin, TheoryUnitSelection};
 use std::collections::BTreeSet;
 
 const CORR: &str = "https://example.org/corr";
@@ -29,6 +31,7 @@ fn authored_caveats_survive_compilation_and_each_common_logic_projection() {
     let dataset = source(
         r#"
         ex:corr logic:hasCaveat ex:zCaveat, ex:aCaveat .
+        ex:corr logic:hasLens ex:lens . ex:lens a logic:Lens ; ex:unrelated "ordinary data" .
         ex:zCaveat rdfs:comment "Limited to the declared standpoint." .
         ex:aCaveat rdfs:comment "Overlap does not assert entity equivalence."@en,
             "Le chevauchement ne signifie pas une équivalence."@fr,
@@ -39,6 +42,24 @@ fn authored_caveats_survive_compilation_and_each_common_logic_projection() {
     let compiled = prepared.compile_with_sources(None).unwrap();
     let expected = parse_correspondence(&dataset).unwrap().correspondences;
     assert_eq!(compiled.program().correspondences, expected);
+    assert_eq!(
+        expected[0].lens.as_deref(),
+        Some("https://example.org/lens")
+    );
+    let target = compiled
+        .source()
+        .dataset()
+        .term_id_by_iri("https://example.org/lens")
+        .expect("the authored Lens declaration has a native identity");
+    assert!(
+        compiled
+            .owner_lowerings()
+            .iter()
+            .filter(|owner| owner.family == OwnerFamily::Correspondence)
+            .flat_map(|owner| &owner.record_support)
+            .all(|binding| binding.canonical.s != target),
+        "validating a typed Lens link does not own the target's type or object facts"
+    );
     assert_eq!(expected[0].caveats.len(), 2);
     assert!(expected[0].caveats[0].iri.ends_with("aCaveat"));
     let comments = &expected[0].caveats[0].comments;
@@ -231,6 +252,8 @@ fn invalid_caveat_literal_components_fail_typed_and_cache_admission() {
     assert!(serde_json::from_value::<CorrespondenceProgram>(empty).is_err());
 }
 
+/// PROTECTS: present malformed scalar or typed-link values reject the whole owner
+/// and cannot publish partially accepted source support or Lens object premises.
 #[test]
 fn malformed_optional_axes_reject_the_owner_instead_of_becoming_absent() {
     for (predicate, value) in [
@@ -241,6 +264,12 @@ fn malformed_optional_axes_reject_the_owner_instead_of_becoming_absent() {
         ("logic:probability", "\"not a probability\""),
         ("logic:mnemomorphic", "\"maybe\""),
         ("logic:mnemomorphic", "2"),
+        ("logic:mnemomorphic", "\"true\""),
+        ("logic:mnemomorphic", "\"true\"@en"),
+        ("logic:mnemomorphic", "\"true\"@ar--rtl"),
+        ("logic:mnemomorphic", "\"true\"^^ex:foreignBoolean"),
+        ("logic:hasLens", "\"not an IRI\""),
+        ("logic:hasLens", "ex:undeclaredLens"),
         ("logic:hasDeterminacy", "logic:UnrecognizedDeterminacy"),
         ("logic:preservationKind", "logic:UnrecognizedPreservation"),
         (
@@ -252,7 +281,7 @@ fn malformed_optional_axes_reject_the_owner_instead_of_becoming_absent() {
     ] {
         let dataset = source(&format!("ex:corr {predicate} {value} ."));
         let prepared = PreparedLogicSource::new(&dataset).unwrap();
-        let compiled = prepared.compile_with_sources(None).unwrap();
+        let compiled = prepared.into_compiled(None).unwrap();
         assert!(
             compiled.program().correspondences.is_empty(),
             "{predicate} {value}"
@@ -267,6 +296,10 @@ fn malformed_optional_axes_reject_the_owner_instead_of_becoming_absent() {
             OwnerDisposition::Rejected,
             "{predicate} {value}"
         );
+        assert!(
+            owner.record_support.is_empty(),
+            "a failed owner publishes no partial accepted support"
+        );
         assert!(owner.diagnostics.iter().any(|&index| {
             compiled.diagnostics()[index]
                 .message
@@ -276,6 +309,36 @@ fn malformed_optional_axes_reject_the_owner_instead_of_becoming_absent() {
             parse_correspondence(&dataset).is_err(),
             "cache rederivation must reject {predicate} {value}"
         );
+        if predicate == "logic:hasLens" {
+            let inventory =
+                SourceInventory::new(&compiled, SourceSelection::all_classical_roots(&compiled));
+            let selected = inventory
+                .resolve_theory_selection(&TheorySelection::top_level_only())
+                .expect("the rejected owner remains selectable source");
+            let link = inventory
+                .obligations()
+                .find(|unit| {
+                    matches!(unit.origin(), SourceObligationOrigin::Statement(binding)
+                    if matches!(compiled.source().dataset().resolve(binding.canonical.p),
+                        purrdf::TermRef::Iri("https://blackcatinformatics.ca/logic/hasLens")))
+                })
+                .expect("the rejected Lens link retains its original obligation");
+            assert!(matches!(
+                selected.unit_selection(link).expect("same inventory"),
+                TheoryUnitSelection::Blocked { .. }
+            ));
+            let view = selected.source_view(&inventory).expect("selected source");
+            assert!(view.quads().all(|quad| !matches!(
+                view.resolve(quad.p).expect("immutable source term"),
+                purrdf::TermRef::Iri("https://blackcatinformatics.ca/logic/hasLens")
+            )));
+            let owl = crate::projections::reader_view::with_owl_rdfs_projection(&view)
+                .expect("the selected OWL reader view materializes");
+            assert!(owl.quads().all(|quad| !matches!(
+                owl.as_ref().resolve(quad.p),
+                purrdf::TermRef::Iri("https://blackcatinformatics.ca/logic/hasLens")
+            )));
+        }
     }
 }
 
@@ -286,6 +349,7 @@ fn conflicting_scalar_values_cannot_select_a_winning_axis() {
         "ex:corr gm:accordingTo ex:first, ex:second .",
         "ex:corr logic:mnemomorphic true, false .",
         "ex:corr logic:getLeg ex:first, ex:second .",
+        "ex:corr logic:hasLens ex:first, ex:second .",
         "ex:corr logic:correspondenceRelation logic:RelatedMatch .",
         "logic:correspondence-program logic:hasPreservation logic:ValidationOnly .",
     ] {

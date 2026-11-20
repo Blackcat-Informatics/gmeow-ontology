@@ -1,7 +1,16 @@
 // SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 // SPDX-License-Identifier: AGPL-3.0-only
 
-use super::*;
+//! Landing, health, and vocabulary overview pages.
+
+use std::collections::{BTreeMap, BTreeSet};
+
+use crate::model::{DocChangelogEntry, DocTerm, DocTermCategory, DocsModel};
+
+use super::{
+    Page, blank, category_plural, code_escape, heading, label_suffix, line, local_name, md_escape,
+    one_line, push_line, rel, root_href, term_slug,
+};
 
 pub(super) fn md_landing(model: &DocsModel) -> String {
     let mut out = String::new();
@@ -252,7 +261,7 @@ fn maturity_gap(
 
 /// The human display label for a coverage dimension, resolved from the single
 /// [`crate::coverage`] label authority (per-term and slice-scoped dimensions).
-fn dimension_label(dim: crate::maturity::Dimension) -> String {
+pub(super) fn dimension_label(dim: crate::maturity::Dimension) -> String {
     crate::coverage::DIMENSIONS
         .iter()
         .chain(crate::coverage::SLICE_DIMENSIONS.iter())

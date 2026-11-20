@@ -93,7 +93,7 @@ implemented against rather than only read:
 | Document | Genre | Realized state | Contents |
 | --- | --- | --- | --- |
 | [`design/LOGIC.md`](./design/LOGIC.md) | manifesto | realized | vision, doctrine, lineage |
-| [`design/LOGIC-FOUNDATION.md`](./design/LOGIC-FOUNDATION.md) | charter | realized (a few named engine-selection strategies not yet engine-backed) | the `gmeow:logic` upper-ontology charter — the gUFO ⊇ baseline, the criticism ledger, the greenfield feature map, the Ithkuil precision ethos, the four-box organization |
+| [`design/LOGIC-FOUNDATION.md`](./design/LOGIC-FOUNDATION.md) | charter | realized (a few named engine-selection strategies not yet engine-backed) | the `gmeow:logic` upper-ontology charter — the gUFO ⊇ baseline, the criticism ledger, the greenfield feature map, the Ithkuil precision ethos, the descriptive graph-box roles |
 | [`design/LOGIC-CONTRACT.md`](./design/LOGIC-CONTRACT.md) | configuration | realized | the reasoning contract — the orthogonal facets a reasoning request selects; named profiles as presets; the compatibility matrix |
 | [`design/LOGIC-IR.md`](./design/LOGIC-IR.md) | intermediate representation | realized (`crates/logic-compile`) | the typed, full first-order IR every source compiles into and every projection out of; the per-lowering preservation judgment |
 | [`design/LOGIC-SEMANTICS.md`](./design/LOGIC-SEMANTICS.md) | formal semantics | realized | the unified core, triple-term/assertion rules, the reasoning result, modality, the typed context algebra, decidability |
@@ -168,6 +168,74 @@ Not every point in the facet product is implementable or coherent. The compiler 
 **compatibility matrix** and validates every contract against it before any reasoning begins. The
 governing rule: an unsupported combination resolves to `unsupported` — it is never silently
 approximated by the nearest supported semantics.
+
+## Selecting a source theory
+
+Use repeatable `gmeow prove --module IRI` options to select one composed theory.
+It includes the supplied documents' top-level obligations and every requested
+module's actual transitive `logic:imports`. Declare each root and imported target
+as a `logic:Module` in the supplied default graph. Missing declarations refuse;
+filenames, slice dependencies and graph names do not imply module membership.
+Selecting several roots combines their admitted sentences without inventing
+import edges. A contradiction across selected modules refutes the composition.
+
+Module membership does not translate a standpoint, time or modality. Those
+coordinates retain their separate admission requirements. Ground module claims
+can assert through a typed, source-resolved module route without invented
+provenance or confidence; evidence-only claims keep their own closed contract.
+Both contracts admit default-graph resource annotations `gmeow:graphBoxRole`
+and outgoing `gmeow:wasDerivedFrom`, and `gmeow:statedRationale` text, as
+descriptive source facts. Preserve the exact role, lineage target, wording,
+language and direction. These annotations supply no evidence or assertion
+authority. Quotations still assert nothing. Named-graph annotations, values
+outside the admitted types, unknown qualifiers, mentions and graph-name uses
+retain their boundaries.
+
+An ordinary default-graph `math:hasElement` row can list a carrier in a set
+explicitly declared as `math:FiniteSet` with `logic:instanceOf` or `rdf:type`.
+Both rows must be selected. An independently admitted claim in the set remains executable, and
+a listed quotation remains a quotation. The original membership is available
+to rules. Other incoming references still qualify the carrier.
+
+Reports preserve the complete supplied source inventory and identify the roots,
+resolved imports, actual consumption and remaining blockers. An unselected module
+is outside this requested theory; an unsupported selected owner is still a
+blocker. Without `--module`, the top-level operation retains its module-scope
+boundaries.
+
+For an accounted native formula, `FormulaEvidence` links each eligible
+default-graph `logic:provenance` row to the original formula obligation IDs.
+An evidence row on shared syntax can name several selected occurrences.
+The source resource remains evidence for those occurrences and supplies no
+object-level premise or assertion authority. Text reports connect each
+`formula-evidence` row to its `formula-origin` by obligation ID and show the
+original source anchor on both lines.
+
+`gmeow prove` evaluates selected `logic:NonEntailmentObligation` declarations
+against the retained native execution. The report links the type and field
+rows to the exact source obligation IDs and names the assessed world.
+When compilation refuses an unread governance field, the source inventory
+identifies the field, its original source coordinates and its diagnostic.
+The selected authored fields determine the authorized discharge conditions.
+Discharge requires a supported absence proof and complete selected source
+coverage. A derived forbidden predicate carries its witness. Invalid fields
+and unresolved obligations leave named completion boundaries. Logical
+inconsistency requires a native or OWL refutation.
+
+Composed FOF output and raw proof export/replay have no composition-bound
+admission. A composed `--out` or `--proof-out` request fails its required output
+and removes stale output; composed `--check-proof` rejects after resolving and
+reporting the request. Output paths must be distinct from selected sources,
+proof inputs and one another; aliases refuse before any output changes. Source
+discovery runs once, and semantic loading and proof replay read the admitted open
+files. Output publication and stale-output removal use held parent directories;
+switching a parent symlink cannot redirect them onto a selected input. Writes
+check the actual opened target before truncation. The boundary does not cover
+arbitrary replacement of entries inside a held directory. The
+`PROOF_NOT_RECORDED` required-output refusal removes the stale selected proof. A native
+verdict remains an attestation. See
+[`LOGIC-SEMANTICS.md`](design/LOGIC-SEMANTICS.md#explicit-module-composition)
+for the assertion and context contract.
 
 ## The typed context algebra
 

@@ -253,6 +253,7 @@ fn entailment_dag_round_trips_rule_conclusion_and_all_premises() {
                 "gmeow:Cat rdfs:subClassOf gmeow:Feline".to_string(),
                 "gmeow:Feline rdfs:subClassOf gmeow:Animal".to_string(),
             ],
+            proves_term_unsatisfiable: false,
         }],
     );
     let nq = to_gmeow_rdf(&model, &entailments);

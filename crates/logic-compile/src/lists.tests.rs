@@ -95,7 +95,7 @@ fn no_blank_terms(program: &LogicProgram) {
     }
 }
 
-/// The four shapes the issue measured, in one source.
+/// The four supported collection shapes share one authored source.
 const ALL_SHAPES: &str = "
 ex:Named logic:oneOf ( ex:b ex:a ex:b ) .
 ex:Anon logic:equivalentClass [ a logic:Class ; logic:oneOf ( ex:a ex:b ) ] .
@@ -267,17 +267,75 @@ fn nested_anonymous_members_resolve_to_their_lifted_identity() {
     );
 }
 
+/// PROTECTS: equal anonymous payloads share identity while every class and
+/// non-class owner retains its own field and collection provenance.
 #[test]
 fn identical_anonymous_expressions_share_one_identity() {
-    let (program, diagnostics) = compile(
-        "ex:p logic:domain [ a logic:Class ; logic:unionOf ( ex:A ex:B ) ] .
-         ex:q logic:domain [ a logic:Class ; logic:unionOf ( ex:B ex:A ) ] .",
+    let text = format!(
+        "{PREFIXES}
+        ex:p logic:domain [ a logic:Class ; logic:unionOf ( ex:A ex:B ) ] .
+        ex:q logic:domain [ a logic:Class ; logic:unionOf ( ex:B ex:A ) ] .
+        _:a a logic:AllDisjointProperties ; logic:members ( ex:r ex:s ) .
+        _:b a logic:AllDisjointProperties ; logic:members ( ex:s ex:r ) ."
     );
+    let dataset = purrdf::parse_dataset(text.as_bytes(), "text/turtle", None)
+        .expect("the anonymous owners are valid Turtle");
+    let theory = crate::frontend::PreparedLogicSource::new(&dataset)
+        .expect("the anonymous source prepares")
+        .into_compiled(None)
+        .expect("the anonymous source compiles");
+    let program = theory.program();
+    let diagnostics = theory.diagnostics();
     assert!(diagnostics.is_empty(), "{diagnostics:?}");
-    no_blank_terms(&program);
+    no_blank_terms(program);
     assert_eq!(
-        only_iri(&program, &ex("p"), &logic("domain")),
-        only_iri(&program, &ex("q"), &logic("domain"))
+        only_iri(program, &ex("p"), &logic("domain")),
+        only_iri(program, &ex("q"), &logic("domain"))
+    );
+    let schema_fields: BTreeSet<_> = theory
+        .axiom_sources()
+        .iter()
+        .flatten()
+        .filter_map(|source| match source {
+            AxiomSource::RewrittenField {
+                source,
+                owner: crate::frontend::SourceOwnerRole::SchemaLaw,
+            } => Some(source.canonical.s),
+            _ => None,
+        })
+        .collect();
+    assert_eq!(
+        schema_fields.len(),
+        2,
+        "both original n-ary owners survive canonical identity deduplication"
+    );
+    for members in [
+        crate::frontend::CollectionMembers::Classes,
+        crate::frontend::CollectionMembers::Properties,
+    ] {
+        assert!(
+            theory
+                .axiom_sources()
+                .iter()
+                .any(|sources| sources.len() == 2
+                    && sources.iter().all(|source| matches!(source,
+                        AxiomSource::Collection { source, field: CollectionField::Cell }
+                            if source.role.members == members
+                    ))),
+            "shared {members:?} cells retain both actual constructor paths"
+        );
+    }
+    let inventory = crate::source_inventory::SourceInventory::new(
+        &theory,
+        crate::frontend::SourceSelection::all_classical_roots(&theory),
+    );
+    assert!(
+        inventory.obligations().all(|unit| match unit.origin() {
+            crate::source_inventory::SourceObligationOrigin::ClassDefinition(node) =>
+                !schema_fields.contains(&node.term),
+            _ => true,
+        }),
+        "rewritten n-ary fields never become class definitions"
     );
 }
 
@@ -313,16 +371,23 @@ fn literal_enumerations_are_admitted_and_kept_typed() {
     assert!(members.iter().all(AtomicTerm::is_literal), "{members:?}");
 }
 
+/// PROTECTS: authored list cells retain their identity, including a shared
+/// members field with no declared n-ary meaning.
 #[test]
 fn authored_iri_cells_are_kept_verbatim() {
     let (program, diagnostics) = compile(
         "ex:r logic:propertyChainAxiom ex:c0 .
+         ex:untyped logic:members ex:c0 .
          ex:c0 rdf:first ex:p ; rdf:rest ex:c1 .
          ex:c1 rdf:first ex:q ; rdf:rest rdf:nil .",
     );
     assert!(diagnostics.is_empty(), "{diagnostics:?}");
     assert_eq!(
         only_iri(&program, &ex("r"), &logic("propertyChainAxiom")),
+        ex("c0")
+    );
+    assert_eq!(
+        only_iri(&program, &ex("untyped"), &logic("members")),
         ex("c0")
     );
     assert_eq!(ir_list(&program, &ex("c0")), iris(&["p", "q"]));

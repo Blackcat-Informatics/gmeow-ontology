@@ -19,17 +19,30 @@ Connect generated claims to source chunks, evidence spans, tools, model context,
 ```turtle
 # gmeow:Chunk
 <subject> a gmeow:Chunk ;
-    gmeow:chunkOf <...> .  # gmeow:InformationObject
+    gmeow:chunkChapterHeading "..." ;  # rdfs:Literal
+    gmeow:chunkInDivision <...> ;  # gmeow:ContentSegment
+    gmeow:chunkMarkerLines <...> ;  # gmeow:StructuredSequence
+    gmeow:chunkOf <...> ;  # gmeow:InformationObject
+    gmeow:chunkSectionHeading "..." ;  # rdfs:Literal
+    gmeow:chunkSectionTag "..." ;  # xsd:string
+    gmeow:chunkSubsectionHeading "..." .  # rdfs:Literal
 
 # gmeow:Dataset
 <subject> a gmeow:Dataset ;
     gmeow:citeAs "..." ;  # rdfs:Literal
-    gmeow:version "..." .  # xsd:string
+    gmeow:version "..." .
 
 # gmeow:EvidenceSpan
 <subject> a gmeow:EvidenceSpan ;
-    gmeow:spanOfChunk <...> ;  # gmeow:Chunk
-    gmeow:supportPolarity <...> .  # gmeow:SupportPolarity
+    gmeow:locusHref "..." ;
+    gmeow:locusSource <...> ;  # gmeow:InformationObject
+    gmeow:occurrenceInAnalysisInput <...> ;  # lang:Analysis
+    gmeow:occurrenceSurface <...> ;  # lang:SurfaceForm
+    gmeow:recognizerLabel "..." ;  # xsd:string
+    gmeow:rootTokenParse <...> ;  # lang:TokenParseReport
+    gmeow:selectorLocator "..." ;  # rdfs:Literal
+    gmeow:selectorPage "..." .  # rdfs:Literal
+# … +3 more properties carried by this class (see the class page for the full list)
 
 # gmeow:ExtractedEntity
 <subject> a gmeow:ExtractedEntity .
@@ -64,5 +77,5 @@ Connect generated claims to source chunks, evidence spans, tools, model context,
 
 ---
 
-**Provenance:** this page ← `stage-docs-render` ← `stage-compile-logic` ← `stage-source-load`
+**Provenance:** this page ← `stage-docs-render` ← `stage-compile-logic` ← `stage-parse-sources`
 Rendered from `gmeow.gts` by the dogfooded build pipeline.

@@ -150,6 +150,43 @@ Each is a declared property of the IR, never an unstated convention:
   the ordinary reifier-scope carrier, it round-trips through the canonical RDF 1.2 serialization
   (and thus every faithful dialect) at `exact` preservation.
 
+The native selected-theory operation composes explicitly requested module roots,
+their actual transitive `logic:imports`, and the top-level obligations of the
+supplied documents into one theory. Roots require actual default-graph
+`logic:Module` declarations; filenames, slice dependencies and graph names grant
+no membership. Missing roots or unavailable imports refuse. Cycles and shared
+import paths retain their original edge evidence without duplicating sentences.
+Selecting several roots authorizes their joint theory without inventing imports.
+A contradiction between their admitted sentences refutes that composition.
+
+`TheorySelection` records a request. Compiler-issued source resolution binds the
+exact roots, closure, import evidence and source selection before native input or
+program views are borrowed. Selected rules and formulas retain their original
+indices and source occurrences after deduplication. A declared module asserts
+a top-level formula through an actual `logic:hasFormula` occurrence in the
+default graph. The link carries that module's membership and records the target's
+admission. A direct `logic:inModule` coordinate or an unqualified nonmodule
+container can supply a separate route.
+A link to a formula that declares a different module remains blocked.
+An exclusively owned child cannot become an independent assertion. A selected
+owner whose required syntax is unavailable remains blocked as a whole. Shared
+support remains available through its actual admitted owners.
+
+Native formula selection treats resource-valued default-graph `logic:provenance`
+as source evidence on the formula or its required descendants. Formula provenance
+grants no input fact authority. An independent owner can still admit the same
+row through its existing route. On completed evaluation, each retained row
+names the original formula obligation IDs with a complete native lowering and
+formula account. An axiom-lowered formula requires an exact selected asserted
+backing in its native source account. Independent context and ownership refusals still apply.
+Classical admission retains its own evidence and scope requirements.
+
+The complete supplied inventory remains reportable. Explicitly unselected modules
+receive an authorized disposition outside the requested theory; graph, standpoint, time,
+modality and untranslated-envelope boundaries remain separate blockers. Without
+module roots, the top-level operation retains its existing module-scope boundaries.
+Module composition neither equates contexts nor supplies their translations.
+
 ## Lowering and the preservation judgment
 
 A projection lowers the IR toward a target whose expressivity is usually narrower. Lowering is
@@ -219,6 +256,28 @@ complete lists and a re-parse recovers the same IR. A list that is not a finite,
 non-branching chain, or that carries a member its constructor cannot admit, is a diagnostic — an
 error for a named owner — and its statement is not lifted; no partial list or dangling
 constructor edge is ever emitted.
+
+Each lowered collection retains its exact physical constructor statement, including
+graph placement and ordinary or annotation carrier. Its member positions and owner
+role are distinct: `oneOf` has value members under a genuine class definition;
+`hasKey` is a class law with property members; `propertyChainAxiom` is a schema law
+with property members. Equal heads and equal member roles do not identify these
+different laws. N-ary axiom resources and rewritten anonymous schema fields remain
+separate from class definitions.
+
+Canonical payload deduplication unions every original contributor, including
+anonymous owners with the same content identity. A shared collection has one
+canonical cell payload and every actual constructor origin. Selection follows
+the exact supplied constructor and its owner path; a selected key cannot authorize
+an excluded chain that shares its head. Semantic references do not import the
+referenced resource's definitions. Source rows remain inventoried, and constructor
+links reuse their original obligations rather than creating duplicate rows. Cells
+never invent a class definition for their head.
+
+Origin recording grants no law execution. Native collection and schema accounts
+retain explicit capability boundaries; classical class support requires existing
+source-bound law certification. Unmodeled schema laws remain blocked instead of
+entering ordinary assertion admission.
 
 Canonical owner identity does not require every target expression to be named.
 For an anonymous datatype union or intersection, the OWL 2 DL view declares the
@@ -309,6 +368,21 @@ the substrate does not.
   datatype equality cannot certify a failed comparison, and equal literal values
   do not erase their distinct lexical provenance. These guards do not themselves
   supply general resource-equality substitution or a complete key entailment calculus.
+
+  Native property characteristics execute from direct property markers or the
+  original canonical record fields `logic:characterizes` and
+  `logic:characteristicSort`. Supported sorts are `logic:functionalProperty`,
+  `logic:inverseFunctionalProperty`, `logic:transitiveProperty`,
+  `logic:symmetricProperty`, `logic:asymmetricProperty` and
+  `logic:irreflexiveProperty`. Each record requires exactly one property IRI and
+  exactly one supported sort IRI in its asserting world, including records with
+  no explicit type assertion. Every writer of either field must complete before
+  admission; extra, unknown or non-IRI field values refuse the record. A completion
+  cycle is refused. Record laws retain both actual fields and relation premises;
+  they never manufacture property markers or borrow fields from another world.
+  Transitive and symmetric consequences feed the same native fixed point as
+  equality, asymmetry and irreflexivity clashes and authored consumers. Other
+  characteristic sorts retain their explicit capability boundaries.
 
   Deterministic resource equalities from functionality, inverse functionality and
   object maximum/exact-one restrictions are positive producers in the shared native
@@ -535,24 +609,60 @@ the substrate does not.
   retained as an independent assertion. Native execution has two source profiles. The
   bare-program profile reads no scoped claim and refuses a program in which any axiom,
   rule, head or body atom carries a standpoint, time, modality or module coordinate. The
-  selected-theory profile first accounts for every scoped claim in a claim ingress ledger:
-  a ground claim is read as a fact of the selected world only when it is evidence only,
-  meaning every stated statement about its carrier, in any graph, is on a closed allow-list: the
+  selected-theory profile accounts for every scoped claim in a claim ingress ledger.
+  Its evidence-only route admits a ground claim with at least one default-graph
+  provenance or confidence coordinate under a closed carrier contract:
   reification structure (`rdf:reifies`, or `rdf:type rdf:Statement` with `rdf:subject`,
   `rdf:predicate` and `rdf:object`), `logic:provenance` and `logic:confidence`. The fact
   is built from the RDF terms the carrier holds and the envelope stays on the carrier as
-  evidence. Any other statement with the carrier as subject, any statement with the
-  carrier as object or predicate, any mention of the carrier in a statement another carrier
-  holds (inside a triple term at any depth, or as a term of a classic statement node,
-  whatever the standing of that other carrier), and the carrier's use as a graph name keep
-  the claim out, in whichever graph of the source they occur; a named graph never supplies
-  the evidence. A predicate need not be known to count: a standpoint, a stance or denial, a time, a module, a second type, an unknown annotation,
-  and every `logic:modality` value, so a carrier that states `logic:none` beside another
-  modality is not read for either value. Every claim that is not read is recorded with
-  the coordinate, predicate or reason that kept it out. Under
-  that profile an axiom's scope does not refuse the program, while a rule, head or body
-  atom scoped outside the selected theory still does. A reifier with no scope coordinate
-  is a quotation under both profiles and is never read as a fact.
+  source metadata. A distinct typed module-assertion route additionally admits one exact
+  default-graph `logic:inModule` coordinate resolved against the same immutable source and
+  requested import closure. This route requires no invented provenance or
+  confidence and does not widen the evidence-only allow-list. Both routes admit
+  descriptive default-graph `gmeow:graphBoxRole` and outgoing `gmeow:wasDerivedFrom`
+  annotations with IRI or blank-node values, and `gmeow:statedRationale` annotations
+  with `xsd:string`, `rdf:langString` or `rdf:dirLangString` values. Preserve the
+  original roles, lineage targets, wording and source rows. These annotations
+  provide no evidence coordinate, assertion, context, module, ownership or
+  routing authority. Named-graph annotations and values outside the admitted
+  types retain their boundaries.
+  An annotation alone leaves a quotation unasserted.
+  An ordinary default-graph `math:hasElement` row with an independently selected
+  `math:FiniteSet` declaration can enumerate a carrier. The selected declaration
+  uses ordinary `logic:instanceOf` or `rdf:type`. The actual
+  row remains a membership fact. Both the row and declaration must be selected.
+  Intensional set syntax and statement ownership qualify the set across the complete
+  source, including named graphs. Self-links and annotation rows retain the
+  incoming-reference boundary. Membership supplies no claim assertion authority.
+  Envelope checks read the complete original source. Incoming references outside
+  admitted membership, other statements beyond the carrier contract, predicate
+  uses, mentions in any quoted triple or classic carrier, and graph-name uses keep
+  the claim out wherever they occur. A named graph grants no evidence authority.
+  A standpoint, stance, denial, time, module outside the resolved request,
+  second type, unknown annotation or any `logic:modality` value still qualifies
+  the carrier. A carrier with several modality values remains unread for each.
+  Eligibility belongs to each original
+  carrier, even when canonical axiom deduplication shares its statement with
+  another carrier. The ingress retains every independently admitted carrier and
+  every unread carrier with its coordinate, predicate or reason. A qualified
+  contribution cannot cancel a valid assertion, and a valid contribution cannot
+  discharge its sibling's boundary. Reports name the actual admitted carriers;
+  quotation accounting retains an unread carrier's own boundary. Exact native
+  facts and refutation premises remain deduplicated by statement and graph,
+  with their contributing carriers retained separately. Any unread contribution
+  prevents complete positive source accounting while an admitted contradiction
+  still refutes the selected theory. Under
+  the source-proof profile, a blocked positive rule remains a named source
+  boundary while the admitted fragment may establish a contradiction. Only an
+  included whole owner enters preparation: each rule, head, body atom and
+  required descendant needs an admitted scope, and filtering never shortens
+  its syntax. Unread rules prevent a complete positive verdict. The procedural
+  operation still refuses nonexcluded blocked rule owners; source-proof
+  execution still refuses nonexcluded negation-as-failure rules before running.
+  Malformed source and execution failures retain their hard failure contract. A
+  reifier with no scope or evidence coordinate is a quotation. A module claim
+  outside the request remains an assertion outside that theory; unresolved
+  membership remains a named boundary. Neither profile reads a quotation as a fact.
 
 **Validation, not trust.** Transforms are validated, not trusted: a round-trip/witness-preservation
 check (the analogue of compiler `debugify`) and a refinement check against the declared preservation
@@ -638,10 +748,10 @@ positive consequence. The original typed logic program remains the canonical
 owner of these constructs. This explicit boundary does not complete the separate
 contextual source/model calculus or authorize optimizations across its scope.
 The selected-theory native profile is a different operation and does not change
-this lowering: it reads an evidence-only scoped claim (nothing is said about its
-carrier but the reification, provenance and confidence) as a fact of the selected
-world and names every other scoped claim, and it writes no unscoped statement
-into any projection.
+this lowering. It admits evidence-only claims and source-resolved module
+assertions through their separate closed carrier contracts, names every unread
+claim, and writes no unscoped statement into a projection. Native module
+admission grants no classical export or proof-replay authority.
 
 ### Interpreted finite RDF numeric relations
 

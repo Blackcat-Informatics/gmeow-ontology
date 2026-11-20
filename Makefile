@@ -196,6 +196,8 @@ TEST_FIXTURE_MANIFEST ?= $(abspath .cache/gmeow-sync/test-fixture-manifest-v2.js
 WASM_CODEBOOK_MANIFEST := $(abspath .cache/gmeow-sync/wasm-codebook-manifest-v2.json)
 COMPILER_OWNER_MANIFEST := $(abspath .cache/gmeow-sync/compiler-owner-fixture-manifest-v2.json)
 COMPILER_OWNER_FIXTURE_ENV = GMEOW_TEST_FIXTURE_MANIFEST="$(COMPILER_OWNER_MANIFEST)" GMEOW_TEST_FIXTURE_MANIFEST_SHA256="$$(sha256sum "$(COMPILER_OWNER_MANIFEST)" | cut -d ' ' -f1)"
+DOCS_FIXTURE_MANIFEST := $(abspath .cache/gmeow-sync/docs-fixture-manifest-v2.json)
+DOCS_FIXTURE_ENV = GMEOW_TEST_FIXTURE_MANIFEST="$(DOCS_FIXTURE_MANIFEST)" GMEOW_TEST_FIXTURE_MANIFEST_SHA256="$$(sha256sum "$(DOCS_FIXTURE_MANIFEST)" | cut -d ' ' -f1)"
 # The selector is written only by the explicit producer. Each consumer receives its
 # exact digest before process start, so a missing, stale, or test-mutated selector fails
 # rather than causing a dependency walk or producer fallback.
@@ -709,6 +711,19 @@ verify-compiler-owner-test-fixtures: ## Authenticate the compiler-owner closure 
 nextest-compiler-owner: test-corpus-purity verify-compiler-owner-test-fixtures ## Run an explicit NEXTEST_FILTER against compiler-owner fixtures without any producer path.
 	@test -n "$(strip $(NEXTEST_FILTER))" || { echo "NEXTEST_FILTER is required for nextest-compiler-owner"; exit 2; }
 	$(COMPILER_OWNER_FIXTURE_ENV) cargo nextest run --manifest-path $(CURDIR)/Cargo.toml --profile ci -p gmeow-pipeline --lib $(NEXTEST_FILTER_ARG) --no-tests=fail
+
+.PHONY: produce-docs-test-fixtures verify-docs-test-fixtures nextest-docs-fixtures
+produce-docs-test-fixtures: ## Produce the complete authenticated docs fixture selection before bundle materialization.
+	$(GMEOW_DEV) test-fixtures produce --scope docs $(FIXTURE_TIMINGS_ARG)
+
+verify-docs-test-fixtures: ## Authenticate the selected docs model, render actions and catalog artifacts read-only.
+	$(DOCS_FIXTURE_ENV) $(TEST_FIXTURE_TOOL) test-fixtures verify --scope docs
+
+nextest-docs-fixtures: test-corpus-purity ## Run the documentation goldens with the authenticated docs selector.
+	export $(DOCS_FIXTURE_ENV) && \
+	  $(TEST_FIXTURE_TOOL) test-fixtures verify --scope docs && \
+	  cargo nextest run --manifest-path $(CURDIR)/Cargo.toml --profile ci \
+	  -p gmeow-docs --test render_golden --test pydantic_rust_tabs_golden $(NEXTEST_FILTER_ARG) --no-tests=fail
 
 produce-producer-bound-test-fixtures: ## Explicitly produce docs plus exact generated-bundle import fixtures before archive/test execution.
 	$(BUNDLE_IMPORT_CACHE_ENV) $(GMEOW_DEV) test-fixtures produce --scope producer-bound $(BUNDLE_IMPORT_CACHE_ARGS) $(FIXTURE_TIMINGS_ARG)

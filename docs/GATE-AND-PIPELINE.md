@@ -126,6 +126,19 @@ Registered slice-spec verdicts, main World reasoning, constraint-shapes export, 
 runtime and installed consumer acceptance retain their separate requirements; the full
 fixture profile and normal gate still require their complete outputs.
 
+Run `make produce-docs-test-fixtures` to build the full documentation fixture
+family before bundle materialization. It uses the authenticated constraint
+catalog and term manifest from their declared production closure, including
+native reasoning. The docs model action binds both stage receipts and both
+artifact digests alongside the authored inputs. The producer renders each
+available language and the book, then publishes
+`.cache/gmeow-sync/docs-fixture-manifest-v2.json` atomically.
+
+`make verify-docs-test-fixtures` authenticates the producer, the current
+catalog and authored inputs, and the selected model, language sites and book
+read-only. `make nextest-docs-fixtures` binds the same selector and runs the
+documentation goldens. The full test gate uses its combined selector.
+
 ### Values derived from the canonical profile
 
 Blank-node labels and canonical documents come from PurRDF's canonicalization
@@ -362,7 +375,7 @@ from that crate to `gmeow-docs` would close a first-party cycle, because
 `gmeow-docs` dev-depends on `gmeow-mcp` and `gmeow-mcp` depends on
 `gmeow-slice-quality`, and the layering scan counts dev-dependencies.
 
-The explicit fixture producer now binds the model, every selected language render,
+The full fixture producer binds the model, every selected language render,
 and the book action into the same SHA-256-selected manifest as pipeline and bundle
 fixtures. Documentation consumers authenticate those exact contexts, receipts and
 payloads through the shared bounded selector reader. They never hash the current

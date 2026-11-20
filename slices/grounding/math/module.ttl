@@ -191,7 +191,7 @@ math:Number
     a logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "Number"@x-gmeow-english ;
-    skos:definition "A mathematical number: an abstract quantity that lives in a declared number system. Every math:Number situates itself in a math:NumberSystem through math:inNumberSystem — an unsituated number is ill-formed — and declares through math:isExact whether it is an exact value or the abstract counterpart that a math:ApproximateValue approximates. The five nested systems ℕ ⊂ ℤ ⊂ ℚ ⊂ ℝ ⊂ ℂ are its principal subclasses."@x-gmeow-english ;
+    skos:definition "An abstract mathematical number with an identity in the graph. A number has one declared math:NumberSystem through math:inNumberSystem. Classes such as math:RationalNumber refine its classification, while named systems such as math:rationalNumbers are values of that property. Record exactness with math:isExact independently of any math:ApproximateValue that names the number as its target."@x-gmeow-english ;
     skos:scopeNote "This class describes mathematical objects, not RDF numeric literals or the sets that contain numbers. Select a more specific number class when known; math:inNumberSystem names a system individual rather than a class."@x-gmeow-english ;
     skos:example "An identified object denoting five can be typed math:NaturalNumber, situated by math:inNumberSystem math:naturalNumbers, and marked math:isExact true; the literal 5 alone does not supply that object description."@x-gmeow-english ;
     gmeow:useWhen "Use when a number needs an identity, a declared system and an explicit exactness statement in a mathematical graph."@x-gmeow-english ;
@@ -1108,14 +1108,19 @@ math:NumberLiteral
     skos:example "exf:oneLeaf a math:NumberLiteral ; math:literalValue exf:oneNumber ."@x-gmeow-english .
 
 # =========================================================================== #
-# Conformance-failure vocabulary (typed, queryable violation objects)
+# Conformance-failure vocabulary (failure situations reported by findings)
 # =========================================================================== #
 
 math:MathConformanceFailure
     a logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "Math Conformance Failure"@x-gmeow-english ;
-    skos:definition "The parent of the math: well-formedness failure vocabulary: a violation is itself a typed, queryable object rather than a log line. Each subclass names one bedrock hard rule, and the SHACL shape enforcing that rule points at its failure class through gmeow:enforcesFailureClass. Conformance enforces well-formedness and preservation, never mathematical or empirical truth."@x-gmeow-english ;
+    skos:definition "The class of situations in which a mathematical well-formedness or preservation obligation is violated. Its subclasses identify kinds of failure that validation findings can report."@x-gmeow-english ;
+    skos:scopeNote "Canonical logic axioms and constraints state the applicable obligations. A class IRI on a finding identifies the kind of situation observed. One class can cover several checks."@x-gmeow-english ;
+    skos:example "A finding attributed to math:UnsituatedNumber identifies a number-system validation problem. Its path and constraint component show which part of the obligation failed."@x-gmeow-english ;
+    gmeow:useWhen "Use as a parent for a class that identifies a kind of violation of an authored mathematical obligation."@x-gmeow-english ;
+    gmeow:avoidWhen "Use the finding record for validation details. Establish numerical or empirical claims with evidence appropriate to those claims."@x-gmeow-english ;
+    gmeow:howToUse "Choose the most specific failure class supported by the check. Keep the class IRI and the focus node, path, component, value and source shape when the finding provides them."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 math:UnsituatedNumber
@@ -1123,7 +1128,12 @@ math:UnsituatedNumber
     rdfs:subClassOf math:MathConformanceFailure ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "Unsituated Number"@x-gmeow-english ;
-    skos:definition "The failure raised when a math:Number does not declare the math:NumberSystem it belongs to. Every number situates itself in ℕ, ℤ, ℚ, ℝ, or ℂ; an unsituated number is ill-formed."@x-gmeow-english ;
+    skos:definition "A failure of the requirement for a math:Number to declare exactly one math:NumberSystem through math:inNumberSystem."@x-gmeow-english ;
+    skos:scopeNote "The obligation on math:Number covers both the type of the system and the number of values. Admissible targets include the ordinary named system individuals and math:ExtendedRealLine. The mathematical context determines whether the chosen system describes the number."@x-gmeow-english ;
+    skos:example "A math:RationalNumber marked math:isExact true with no math:inNumberSystem link illustrates a missing-system case. A valid declaration for the exact number one third links to math:rationalNumbers."@x-gmeow-english ;
+    gmeow:useWhen "Use to interpret a finding attributed to the math:inNumberSystem requirement on math:Number."@x-gmeow-english ;
+    gmeow:avoidWhen "Use the reported component to investigate whether a system link is missing. Assess exactness and mathematical membership independently."@x-gmeow-english ;
+    gmeow:howToUse "Read the focus node, component, path, value and source shape for the reported problem. Repair the declaration so math:inNumberSystem points to one justified math:NumberSystem individual. Express containment between systems through math:subsystemOf."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 math:ExactApproximateConflation
@@ -1132,6 +1142,11 @@ math:ExactApproximateConflation
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "Exact–Approximate Conflation"@x-gmeow-english ;
     skos:definition "The failure raised when a math:ApproximateValue fails to keep an approximation distinct from the exact value — it does not name, through math:approximates, the exact number it stands in for, or does not declare its math:approximationError. An exact number and an approximation of it are distinct objects."@x-gmeow-english ;
+    skos:scopeNote "This class describes a failure of approximation framing. Its current math:ApproximateValue-level report annotation can also classify target-type or count findings; the class alone proves neither resource-identity conflation nor the validity of a numerical error bound."@x-gmeow-english ;
+    skos:example "A math:ApproximateValue that names an exact one-third target through math:approximates but omits math:approximationError illustrates the missing-bound case. Read the finding's component and source shape before identifying that case from a report."@x-gmeow-english ;
+    gmeow:useWhen "Use when interpreting findings attributed to the canonical math:ApproximateValue restrictions on its exact target and the presence of a numeric error bound."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid treating this class as proof of an incorrect numerical value, a negative bound, mismatched literal and declared datatypes, or equality between the approximation and target resources; the current restriction group establishes none of those numerical or identity judgments."@x-gmeow-english ;
+    gmeow:howToUse "Inspect the component, path, value and source shape, then repair the reported obligation: retain a separate math:ApproximateValue, one justified math:Number target through math:approximates and a numeric absolute math:approximationError bound. Validation derives from the existing logic restrictions; establish the bound's numerical justification separately."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 math:ConstantAsDecimalLiteral
@@ -1140,6 +1155,11 @@ math:ConstantAsDecimalLiteral
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "Constant as Decimal Literal"@x-gmeow-english ;
     skos:definition "The failure raised when a math:MathematicalConstant is given as a decimal literal — it carries a raw math:quantityValue directly instead of being an exact individual. A constant's decimal expansion belongs to a distinct math:ApproximateValue that math:approximates it."@x-gmeow-english ;
+    skos:scopeNote "The named constant keeps its exact identity independently of any numerical representation. The current math:MathematicalConstant-level report annotation also covers its isExact obligations, so this class alone does not establish that a quantityValue literal was present."@x-gmeow-english ;
+    skos:example "A math:MathematicalConstant with math:isExact true and a direct math:quantityValue of 3.14159 typed as xsd:double illustrates the forbidden-literal case. A justified numerical evaluation belongs on a separate math:ApproximateValue that math:approximates the constant."@x-gmeow-english ;
+    gmeow:useWhen "Use when interpreting findings associated with the existing constant-local exactness or absence-of-direct-literal obligations while preserving the exact named individual."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid changing the constant's exact identity because an evaluation is rounded, limiting the literal prohibition to xsd:decimal because of this class's label, or inferring a particular violation component from the class alone."@x-gmeow-english ;
+    gmeow:howToUse "Read the reported component, path, value and source shape. Remove a direct math:quantityValue literal from the constant when present, retain math:isExact true, and keep any justified evaluation and numeric absolute error bound on a separate math:ApproximateValue. Repair the actual reported obligation without replacing the canonical constant identity."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 math:StringOnlyMemberCondition
@@ -12975,13 +12995,11 @@ math:ApproximateValue rdfs:subClassOf
     [ a logic:Restriction ; logic:onProperty math:approximationError ; logic:minQualifiedCardinality 1 ; logic:onDataRange [ logic:unionOf ( xsd:decimal xsd:double xsd:float ) ] ] ;
     gmeow:enforcesFailureClass math:ExactApproximateConflation .
 
-# math:isExact must be true, and math:totalMass must be 1 (math:ProbabilityMeasure), are
-# VALUE-EQUALITY constraints authored with OWL hasValue: the frontend term model now carries
-# the literal datatype, so a typed OWL hasValue true / OWL hasValue 1 derives a typed
-# sh:hasValue that equals the typed value on every well-formed individual and rejects the
-# counter-example. The absence obligation math:quantityValue maxQualifiedCardinality 0
-# (onClass OWL Thing, which also catches the constant-as-decimal counter-example) is
-# authored alongside.
+# Typed logic:hasValue states the required values: true for math:isExact on
+# math:MathematicalConstant, and 1 for math:totalMass on math:ProbabilityMeasure.
+# The generated validation view retains each literal's datatype. The constant's
+# direct-literal prohibition is logic:maxQualifiedCardinality 0 on
+# math:quantityValue with logic:onDataRange rdfs:Literal.
 math:MathematicalConstant rdfs:subClassOf
     [ a logic:Restriction ; logic:onProperty math:isExact ; logic:minQualifiedCardinality 1 ; logic:onDataRange xsd:boolean ] ,
     [ a logic:Restriction ; logic:onProperty math:isExact ; logic:hasValue true ] ,

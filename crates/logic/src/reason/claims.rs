@@ -6,24 +6,30 @@
 //! A scoped claim is a reifier or `rdf:Statement` node that carries a scope
 //! coordinate. The dataset holds only its carrier, so the bare-program entries never
 //! read the claimed statement. This module is the one place a scoped claim becomes a
-//! fact: a claim whose scope is inside the selected theory, and whose carrier says
-//! nothing but evidence, is added to the selected world with the exact RDF terms of
-//! its carrier, and every other scoped claim is recorded with the reason it was left
-//! out. The compiler owns the evidence allow-list and the resolution. A quotation, which carries no scope
-//! coordinate, is not a scoped axiom of the program and is never read.
+//! fact. The evidence-only route and the distinct source-resolved module route
+//! each enforce their closed carrier contract against the complete original source.
+//! Descriptive annotations retain roles, rationale and lineage without supplying evidence or
+//! assertion authority.
+//! Selected extensional sets can enumerate carriers. Set members retain their independent
+//! claim admission requirements.
+//! Read claims retain their carried native RDF terms. Excluded modules contribute
+//! no premise; other unread scoped claims retain their boundaries. A quotation
+//! carries no scope or evidence coordinate and is never read as an assertion.
 
 use std::collections::BTreeSet;
 
-use gmeow_logic_compile::frontend::{
-    ClaimResolver, ClaimStatement, CompiledTheory, PreparedLogicSource,
-};
+use gmeow_logic_compile::frontend::{ClaimCarrier, ClaimStatement, CompiledTheory, SourceNode};
 use gmeow_logic_compile::ir::{
     AtomicTerm, ContextualScope, EvidenceCoordinate, LogicAxiom, LogicProgram, ScopeMembership,
     TheorySelection,
 };
+use gmeow_logic_compile::source_inventory::{
+    ResolvedTheorySelection, SourceInventory, TheoryUnitSelection,
+};
 use purrdf::TermValue;
 
-use super::{PreparedReasoningInput, prepare_reasoning_input, reason_err};
+use super::program::prepare_default_reasoning_input;
+use super::{PreparedReasoningInput, reason_err};
 use crate::physical::LogicalGraph;
 use crate::rule_ir::Fact;
 
@@ -35,6 +41,9 @@ pub struct ReadClaim {
     /// The evidence coordinates of its scope. They are metadata of the report and
     /// stay on the carrier; they are not part of the fact.
     pub evidence: BTreeSet<EvidenceCoordinate>,
+    /// Only the original carriers whose own closed assertion contracts admitted
+    /// this statement. Equal canonical content grants no sibling admission.
+    pub carriers: Vec<ClaimCarrier>,
 }
 
 /// Why a scoped claim was not read as a fact.
@@ -43,7 +52,7 @@ pub enum UnreadReason {
     /// The scope selects a context outside the selected theory. The `logic:` names
     /// of the selecting coordinates are listed.
     Context(Vec<&'static str>),
-    /// Something other than evidence is said about the claim's carrier, so the
+    /// A statement outside the admitted contract describes the claim's carrier, so the
     /// claim may be placed, denied or qualified. `carrier` is the reifier or
     /// statement node concerned, `predicate` the first such predicate IRI in sorted
     /// order, and `statements` counts all of them.
@@ -125,8 +134,21 @@ impl std::fmt::Display for UnreadReason {
 pub struct UnreadClaim {
     /// Index of the claim in the compiled program's axioms.
     pub axiom: usize,
+    /// The original carrier, when the scoped axiom has a reification contributor.
+    pub carrier: Option<ClaimCarrier>,
     /// What kept the claim out of the selected world.
     pub reason: UnreadReason,
+}
+
+impl UnreadClaim {
+    /// Deterministic source detail retaining distinct carriers of one axiom.
+    #[must_use]
+    pub fn source_detail(&self) -> String {
+        self.carrier.as_ref().map_or_else(
+            || format!("program:axiom:{}", self.axiom),
+            |carrier| format!("program:axiom:{} carrier {}", self.axiom, carrier.name),
+        )
+    }
 }
 
 /// The account of every scoped axiom of one compiled theory under one selection.
@@ -136,19 +158,30 @@ pub struct UnreadClaim {
 /// combination.
 #[derive(Debug, Clone)]
 pub struct ClaimIngress {
-    selection: TheorySelection,
+    resolved: ResolvedTheorySelection,
     read: Vec<ReadClaim>,
     unread: Vec<UnreadClaim>,
+    /// Compact sorted offsets into `unread`, never cloned source obligations.
+    unread_carriers: Vec<(SourceNode, usize)>,
+    excluded: Vec<usize>,
     input_contract: [u8; 32],
     /// The scoped axioms the ledger classified, to recognise their program.
     claims: Vec<(usize, LogicAxiom)>,
 }
 
 impl ClaimIngress {
+    pub(super) fn authorize_source(&self, theory: &CompiledTheory) -> gmeow_errors::Result<()> {
+        self.resolved.authorize_source(theory)
+    }
     /// The selection the claims were classified under.
     #[must_use]
     pub fn selection(&self) -> &TheorySelection {
-        &self.selection
+        self.resolved.request()
+    }
+
+    #[must_use]
+    pub fn resolved_selection(&self) -> &ResolvedTheorySelection {
+        &self.resolved
     }
 
     /// Claims read as facts, in axiom order.
@@ -163,6 +196,13 @@ impl ClaimIngress {
         &self.unread
     }
 
+    pub(super) fn unread_carrier(&self, carrier: SourceNode) -> Option<&UnreadClaim> {
+        self.unread_carriers
+            .binary_search_by_key(&carrier, |(source, _)| *source)
+            .ok()
+            .map(|position| &self.unread[self.unread_carriers[position].1])
+    }
+
     /// The first scoped axiom of `program` this ledger does not account for.
     fn unaccounted(&self, program: &LogicProgram) -> Option<usize> {
         scoped(program).map(|(index, _)| index).find(|index| {
@@ -173,6 +213,7 @@ impl ClaimIngress {
                     .unread
                     .binary_search_by_key(index, |claim| claim.axiom)
                     .is_err()
+                && self.excluded.binary_search(index).is_err()
         })
     }
 
@@ -214,60 +255,106 @@ fn scoped(program: &LogicProgram) -> impl Iterator<Item = (usize, &LogicAxiom)> 
 
 /// Prepare the native input of one selected theory.
 ///
-/// The source statements are ingested exactly as [`prepare_reasoning_input`] ingests
-/// them. Then every scoped axiom of the compiled program is classified by
-/// [`TheorySelection::membership`]. A ground claim inside the theory, whose carrier
-/// the compiler resolves as evidence only (nothing is said about the carrier except
-/// its reification structure, `logic:provenance` and `logic:confidence`, in any graph, and no
-/// statement of any graph mentions it or has it as object or graph name), is added to
-/// `world` as one fact whose subject, predicate and object are the
-/// native terms of the statement its carrier holds, so blank identity, datatype,
-/// language and direction are those of the source. Every other scoped axiom is
-/// recorded as unread. A claim that is also asserted plainly adds no second fact.
+/// Filter physical source streams through the compiler-issued selection before
+/// native ingestion, existential collection or contextual preparation. Ground
+/// evidence-only claims and source-resolved module assertions use separate closed
+/// carrier contracts. Every envelope check reads the complete original source,
+/// including excluded modules and named graphs. A read claim preserves native
+/// blank identity, datatype, language and direction. Other selected claims are
+/// named as unread; authorized module exclusions remain outside this theory.
 ///
 /// # Errors
-/// Returns ingestion failures and a world that aliases another source graph.
+/// Returns a foreign source/selection, ingestion failure or unsupported target.
 pub fn prepare_selected_theory_input(
-    theory: &CompiledTheory,
+    inventory: &SourceInventory<'_>,
     world: &LogicalGraph,
-    selection: &TheorySelection,
+    selection: &ResolvedTheorySelection,
 ) -> gmeow_errors::Result<(PreparedReasoningInput, ClaimIngress)> {
+    if *world != LogicalGraph::Default {
+        return Err(reason_err(format!(
+            "selected-theory claim ingress supports only the default graph, not {world:?}"
+        )));
+    }
+    selection.authorize_inventory(inventory)?;
+    let theory = inventory.theory();
     let dataset = theory.source().dataset();
     let program = theory.program();
     let mut facts = Vec::new();
     let mut read = Vec::new();
     let mut unread = Vec::new();
+    let mut excluded = Vec::new();
     let resolver = theory.claim_resolver();
+    let view = selection.program_view(inventory)?;
     for (index, axiom) in scoped(program) {
-        let reason = match selection.membership(&axiom.scope) {
-            ScopeMembership::UntranslatedContext { coordinates } => {
-                UnreadReason::Context(coordinates)
-            }
-            ScopeMembership::InTheory { evidence } => {
-                match claimed_fact(&resolver, dataset, index, axiom) {
+        let membership = view.axiom_selection(index)?;
+        if matches!(membership, TheoryUnitSelection::OutsideRequestedTheory) {
+            excluded.push(index);
+            continue;
+        }
+        let mut scope = axiom.scope.clone();
+        if selection.request().is_composed() && matches!(membership, TheoryUnitSelection::Included)
+        {
+            scope.module = None;
+        }
+        let scope_membership = selection.request().membership(&scope);
+        let contributions = resolver.selected_statements(index, inventory, selection)?;
+        let no_carriers = contributions.is_empty();
+        let mut carriers = Vec::new();
+        for (carrier, statement) in contributions
+            .into_iter()
+            .map(|(carrier, statement)| (Some(carrier), statement))
+            .chain(no_carriers.then_some((None, ClaimStatement::Unresolved)))
+        {
+            let reason = match &scope_membership {
+                ScopeMembership::UntranslatedContext { coordinates } => {
+                    UnreadReason::Context(coordinates.clone())
+                }
+                ScopeMembership::InTheory { .. } => match claimed_fact(statement, dataset, axiom) {
                     Ok(fact) => {
                         facts.push(fact);
-                        read.push(ReadClaim {
-                            axiom: index,
-                            evidence,
-                        });
+                        carriers
+                            .push(carrier.expect("a resolved statement has its original carrier"));
                         continue;
                     }
                     Err(reason) => reason,
-                }
-            }
-        };
-        unread.push(UnreadClaim {
-            axiom: index,
-            reason,
-        });
+                },
+            };
+            unread.push(UnreadClaim {
+                axiom: index,
+                carrier,
+                reason,
+            });
+        }
+        if let ScopeMembership::InTheory { evidence } = scope_membership
+            && !carriers.is_empty()
+        {
+            read.push(ReadClaim {
+                axiom: index,
+                evidence,
+                carriers,
+            });
+        }
     }
-    let mut input = prepare_reasoning_input(dataset)?;
+    let source_view = selection.source_view(inventory)?;
+    let mut input = prepare_default_reasoning_input(&source_view, selection)?;
     input.assert_facts(world, facts)?;
+    let mut unread_carriers: Vec<_> = unread
+        .iter()
+        .enumerate()
+        .filter_map(|(index, claim)| {
+            claim
+                .carrier
+                .as_ref()
+                .map(|carrier| (carrier.source, index))
+        })
+        .collect();
+    unread_carriers.sort_unstable();
     let ingress = ClaimIngress {
-        selection: selection.clone(),
+        resolved: selection.clone(),
         read,
         unread,
+        unread_carriers,
+        excluded,
         input_contract: *input.ingress_contract(),
         claims: scoped(program)
             .map(|(index, axiom)| (index, axiom.clone()))
@@ -278,9 +365,8 @@ pub fn prepare_selected_theory_input(
 
 /// The fact a claim inside the selected theory states, or why it states none.
 fn claimed_fact(
-    resolver: &ClaimResolver<'_, PreparedLogicSource>,
+    statement: ClaimStatement,
     dataset: &purrdf::RdfDataset,
-    index: usize,
     axiom: &LogicAxiom,
 ) -> Result<Fact, UnreadReason> {
     if axiom.subject.starts_with('?')
@@ -289,7 +375,7 @@ fn claimed_fact(
     {
         return Err(UnreadReason::NotGround);
     }
-    let (subject, predicate, object) = match resolver.statement(index) {
+    let (subject, predicate, object) = match statement {
         ClaimStatement::Resolved {
             subject,
             predicate,

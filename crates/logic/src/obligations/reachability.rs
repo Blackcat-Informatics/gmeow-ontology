@@ -37,6 +37,18 @@ pub struct ProgramReachability {
 }
 
 impl ProgramReachability {
+    /// Match the actual selected preparation held by the same-run executor.
+    pub(crate) fn validate_preparation(
+        &self,
+        prepared: &crate::program_analysis::PreparedProgram,
+    ) -> gmeow_errors::Result<()> {
+        if self.program != prepared.identity || self.lowering != prepared.preservation {
+            return Err(obligation_err(
+                "native reachability belongs to a different prepared program".into(),
+            ));
+        }
+        Ok(())
+    }
     pub(super) fn identity(&self) -> [u8; 32] {
         self.identity
     }

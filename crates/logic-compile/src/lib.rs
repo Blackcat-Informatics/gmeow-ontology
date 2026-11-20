@@ -78,6 +78,8 @@ pub mod projections;
 pub mod relational_core;
 pub mod restriction;
 pub mod result_shape;
+/// Shared source obligations; interpretation and execution remain separate admissions.
+pub mod source_inventory;
 // The RDF 1.2 statement-metadata lowering, shared by the reasoning world and every SHACL
 // validation view: one owner below both, so neither can carry a second copy.
 pub mod statement_lowering;

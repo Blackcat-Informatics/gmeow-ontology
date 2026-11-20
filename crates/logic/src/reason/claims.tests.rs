@@ -8,16 +8,18 @@ use super::*;
 use crate::physical::{DomainProfile, SelectedDomains, SelectedLogicalWorld};
 use crate::query_ir::Budget;
 use crate::reason::{
-    prepare_selected_theory, reason_prepared_theory_within, reason_program_within,
-    reason_selected_theory_within,
+    NativeSourceAdmission, prepare_reasoning_input, prepare_selected_theory,
+    reason_admitted_theory_within, reason_program_within, reason_selected_theory_within,
 };
 use crate::result::ReasoningResult;
-use gmeow_logic_compile::frontend::PreparedLogicSource;
+use gmeow_logic_compile::frontend::{PreparedLogicSource, SourceSelection};
+use gmeow_logic_compile::source_inventory::{SourceInventory, SourceObligationOrigin};
 
 const PREFIXES: &str = r#"@prefix logic: <https://blackcatinformatics.ca/logic/> .
 @prefix rdf:   <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix math:  <https://blackcatinformatics.ca/math/> .
 @prefix ex:    <https://example.org/claims/> .
 ex:Left logic:disjointWith ex:Right .
 "#;
@@ -59,19 +61,676 @@ fn default_domain(input: &PreparedReasoningInput) -> SelectedDomains {
 }
 
 fn ingest(theory: &CompiledTheory) -> (PreparedReasoningInput, ClaimIngress) {
-    prepare_selected_theory_input(
-        theory,
-        &LogicalGraph::Default,
-        &TheorySelection::top_level_only(),
+    let inventory = whole_inventory(theory);
+    let selection = inventory
+        .resolve_theory_selection(&TheorySelection::top_level_only())
+        .expect("top-level source resolution");
+    prepare_selected_theory_input(&inventory, &LogicalGraph::Default, &selection)
+        .expect("claim ingress")
+}
+
+fn whole_inventory(theory: &CompiledTheory) -> SourceInventory<'_> {
+    SourceInventory::new(theory, SourceSelection::all_classical_roots(theory))
+}
+
+fn ingest_modules(
+    inventory: &SourceInventory<'_>,
+    roots: &[&str],
+) -> (PreparedReasoningInput, ClaimIngress) {
+    let request = TheorySelection::composed_modules(roots.iter().map(|root| (*root).to_owned()))
+        .expect("absolute module roots");
+    let selection = inventory
+        .resolve_theory_selection(&request)
+        .expect("source module resolution");
+    prepare_selected_theory_input(inventory, &LogicalGraph::Default, &selection)
+        .expect("module ingress")
+}
+
+/// PROTECTS: module claims and scoped rule/head/body syntax execute together;
+/// excluded schema and NAF contribute no premise while genuinely shared terms survive.
+/// Source, root, preparation, input and domain identities authorize the same run.
+/// Descriptive roles, rationale and lineage remain ordinary source facts for authored rules.
+/// Extensional membership remains executable and supplies no claim assertion authority.
+#[test]
+fn module_execution_preserves_owners_shared_support_and_invocation_authority() {
+    const INCLUDED: &str = "https://example.org/claims/Included";
+    const EXCLUDED: &str = "https://example.org/claims/Excluded";
+    let body = r#"
+ex:Included a logic:Module . ex:Excluded a logic:Module .
+ex:p a logic:DatatypeProperty ; logic:domain logic:Nothing ; logic:inModule ex:Excluded .
+ex:chain logic:propertyChainAxiom ex:collection ; logic:inModule ex:Excluded .
+ex:collection rdf:first ex:p ; rdf:rest rdf:nil .
+ex:a ex:p ex:b .
+ex:claim rdf:reifies <<( ex:a ex:label "chat"@fr )>> ; logic:inModule ex:Included ;
+    gmeow:graphBoxRole gmeow:boxCBox, ex:futureRole ;
+    gmeow:wasDerivedFrom ex:sourceRecord ;
+    gmeow:statedRationale "سبب"@ar--rtl .
+ex:quoted rdf:reifies <<( ex:a logic:instanceOf logic:Nothing )>> .
+ex:roster logic:instanceOf math:FiniteSet ; math:hasElement ex:claim, ex:quoted .
+ex:secondRoster a math:FiniteSet ; math:hasElement ex:claim .
+_:x a logic:TermCarrier ; logic:termVariable "x" .
+_:label logic:termVariable "label" .
+_:y a logic:TermCarrier ; logic:termVariable "y" .
+ex:mark a logic:Rule ; logic:inModule ex:Included ;
+    logic:head [ rdf:reifies <<( _:x ex:marked _:label )>> ; logic:inModule ex:Included ] ;
+    logic:body [ rdf:reifies <<( _:x ex:label _:label )>> ; logic:inModule ex:Included ] .
+_:carrier a logic:TermCarrier ; logic:termVariable "carrier" .
+_:role a logic:TermCarrier ; logic:termVariable "role" .
+ex:rosterReceipt a logic:Rule ; logic:inModule ex:Included ;
+    logic:head [ rdf:reifies <<( _:carrier ex:listedBy ex:roster )>> ] ;
+    logic:body [ rdf:reifies <<( ex:roster math:hasElement _:carrier )>> ] .
+ex:roleReceipt a logic:Rule ; logic:inModule ex:Included ;
+    logic:head [ rdf:reifies <<( _:carrier ex:describedBy _:role )>> ] ;
+    logic:body [ rdf:reifies <<( _:carrier gmeow:graphBoxRole _:role )>> ] .
+ex:rationaleReceipt a logic:Rule ; logic:inModule ex:Included ;
+    logic:head [ rdf:reifies <<( _:carrier ex:describedBy _:role )>> ] ;
+    logic:body [ rdf:reifies <<( _:carrier gmeow:statedRationale _:role )>> ] .
+ex:lineageReceipt a logic:Rule ; logic:inModule ex:Included ;
+    logic:head [ rdf:reifies <<( _:carrier ex:describedBy _:role )>> ] ;
+    logic:body [ rdf:reifies <<( _:carrier gmeow:wasDerivedFrom _:role )>> ] .
+ex:absence a logic:Rule ; logic:inModule ex:Excluded ;
+    logic:head [ rdf:reifies <<( _:x logic:instanceOf logic:Nothing )>> ] ;
+    logic:body [ rdf:reifies <<( _:x ex:p _:y )>> ] ;
+    logic:negatedBody [ rdf:reifies <<( _:x ex:q _:y )>> ] .
+ex:catalogue a logic:Correspondence ; logic:inModule ex:Excluded ;
+    logic:correspondenceRelation logic:RelatedMatch ; logic:morphismClass logic:LossyLens ;
+    logic:morphismKind logic:InstitutionMorphism ; logic:recoveryCase ex:case .
+ex:case a logic:RecoveryCase ; logic:recoveryTransform ex:recovery .
+ex:recovery a logic:Formula ; logic:relation ex:label ; logic:argument _:x, _:label .
+_:x logic:termIndex 0 . _:label logic:termIndex 1 .
+"#;
+    let theory = compile(body);
+    let inventory = whole_inventory(&theory);
+    let (input, ingress) = ingest_modules(&inventory, &[INCLUDED]);
+    assert!(
+        ingress
+            .resolved_selection()
+            .program_view(&inventory)
+            .expect("the selected view belongs to this source")
+            .axioms()
+            .all(|(_, axiom)| !matches!(
+                axiom.predicate.as_str(),
+                "http://www.w3.org/1999/02/22-rdf-syntax-ns#first"
+                    | "http://www.w3.org/1999/02/22-rdf-syntax-ns#rest"
+            )),
+        "an excluded chain contributes no executable collection cells"
+    );
+    let selected = prepare_selected_theory(&inventory, &ingress).expect("selected module lowering");
+    let mut admission =
+        NativeSourceAdmission::inspect_selected(&inventory, ingress.resolved_selection())
+            .expect("module source admission");
+    let domains = default_domain(&input);
+    let (other_input, other_ingress) = ingest_modules(&inventory, &[EXCLUDED]);
+    let other_selected =
+        prepare_selected_theory(&inventory, &other_ingress).expect("other root preparation");
+    let other_domains = default_domain(&other_input);
+    for (program, candidate, domain) in [
+        (&other_selected, input.clone(), &domains),
+        (&selected, other_input, &domains),
+        (&selected, input.clone(), &other_domains),
+    ] {
+        reason_admitted_theory_within(
+            &mut admission,
+            program,
+            candidate,
+            domain,
+            &ingress,
+            &UNBOUNDED,
+        )
+        .expect_err("different root, input, preparation or domain cannot borrow authority");
+    }
+    let result = reason_admitted_theory_within(
+        &mut admission,
+        &selected,
+        input,
+        &domains,
+        &ingress,
+        &UNBOUNDED,
     )
-    .expect("claim ingress")
+    .expect("the exact selected invocation executes");
+    assert!(
+        consistent(&result),
+        "excluded schema and procedural absence cannot refute the selected module"
+    );
+    assert_eq!(ingress.read().len(), 1);
+    assert!(
+        ingress.read()[0].evidence.is_empty(),
+        "module assertion needs no invented evidence"
+    );
+    for member in [
+        "https://example.org/claims/claim",
+        "https://example.org/claims/quoted",
+    ] {
+        assert!(result.inferred().iter().any(|row| {
+            row.subject == member
+                && row.predicate == "https://example.org/claims/listedBy"
+                && row.object.as_iri() == Some("https://example.org/claims/roster")
+        }));
+    }
+    assert!(result.inferred().iter().any(|row| row.predicate == "https://example.org/claims/marked"
+        && matches!(&row.object, TermValue::Literal { lexical_form, language: Some(language), .. }
+            if lexical_form == "chat" && language == "fr")), "shared variable and literal identity reach the rule head");
+    for resource in [
+        "https://blackcatinformatics.ca/gmeow/boxCBox",
+        "https://example.org/claims/futureRole",
+        "https://example.org/claims/sourceRecord",
+    ] {
+        assert!(
+            result.inferred().iter().any(|row| {
+                row.subject == "https://example.org/claims/claim"
+                    && row.predicate == "https://example.org/claims/describedBy"
+                    && row.object.as_iri() == Some(resource)
+            }),
+            "the stated resource reaches the rule head: {resource}"
+        );
+    }
+    assert!(
+        result
+            .inferred()
+            .iter()
+            .any(|row| row.subject == "https://example.org/claims/claim"
+                && row.predicate == "https://example.org/claims/describedBy"
+                && matches!(&row.object, TermValue::Literal {
+                lexical_form, datatype, language: Some(language),
+                direction: Some(purrdf::RdfTextDirection::Rtl), ..
+            } if lexical_form == "سبب"
+                && datatype == "http://www.w3.org/1999/02/22-rdf-syntax-ns#dirLangString"
+                && language == "ar")),
+        "the actual authored rationale reaches the rule head with its language and direction"
+    );
+    assert!(
+        admission
+            .complete_for(&result)
+            .expect("live module completion"),
+        "{:?}",
+        admission.drops().collect::<Vec<_>>()
+    );
+    assert!(
+        admission.source_dispositions().any(|(unit, disposition)| {
+            let gmeow_logic_compile::source_inventory::SourceObligationOrigin::Statement(binding) =
+                unit.origin()
+            else {
+                return false;
+            };
+            let dataset = theory.source().dataset();
+            matches!(
+                dataset.resolve(binding.canonical.p),
+                purrdf::TermRef::Iri("https://blackcatinformatics.ca/logic/termVariable")
+            ) && matches!(
+                dataset.resolve(binding.canonical.o),
+                purrdf::TermRef::Literal {
+                    lexical: "label",
+                    ..
+                }
+            ) && matches!(
+                disposition,
+                crate::reason::NativeSourceDisposition::StructuralSupport { .. }
+            )
+        }),
+        "selected rule support remains reachable through its actual owner, not the excluded catalogue"
+    );
+    let blocked = compile(&format!(
+        r#"{body}
+_:label logic:inModule ex:Excluded .
+ex:scopedProbe rdf:reifies <<( ex:a ex:probe _:label )>> ; logic:inModule ex:Included .
+"#
+    ));
+    let inventory = whole_inventory(&blocked);
+    let (input, ingress) = ingest_modules(&inventory, &[INCLUDED]);
+    let probe = blocked
+        .program()
+        .axioms
+        .iter()
+        .position(|axiom| axiom.predicate == "https://example.org/claims/probe")
+        .expect("native scoped payload lowers");
+    assert!(
+        matches!(
+            ingress
+                .resolved_selection()
+                .program_view(&inventory)
+                .expect("same source view")
+                .axiom_selection(probe)
+                .expect("original scoped axiom"),
+            gmeow_logic_compile::source_inventory::TheoryUnitSelection::Blocked {
+                code: "REQUIRED_CHILD_OUTSIDE_THEORY",
+                ..
+            }
+        ),
+        "a scoped reifier also retains its required native payload carrier"
+    );
+    let selected = prepare_selected_theory(&inventory, &ingress).expect("blocked rule preparation");
+    let mut admission =
+        NativeSourceAdmission::inspect_selected(&inventory, ingress.resolved_selection())
+            .expect("blocked owner remains accounted");
+    let domains = default_domain(&input);
+    let error =
+        reason_selected_theory_within(&inventory, input.clone(), &domains, &ingress, &UNBOUNDED)
+            .expect_err("required untyped carrier inside a quoted body/head cannot be dropped");
+    let refusal = error
+        .downcast_ref::<crate::error::NativeRefusal>()
+        .expect("whole-owner refusal");
+    assert!(
+        refusal
+            .gaps
+            .iter()
+            .any(|gap| gap.contains("mark") && gap.contains("REQUIRED_CHILD_OUTSIDE_THEORY")),
+        "{refusal:?}"
+    );
+    let result = reason_admitted_theory_within(
+        &mut admission,
+        &selected,
+        input,
+        &domains,
+        &ingress,
+        &UNBOUNDED,
+    )
+    .expect("source proof executes the admitted fragment");
+    assert!(consistent(&result));
+    assert!(
+        !result
+            .inferred()
+            .iter()
+            .any(|row| row.predicate == "https://example.org/claims/marked"),
+        "a blocked owner cannot execute after dropping a required child"
+    );
+    assert!(
+        !admission
+            .complete_for(&result)
+            .expect("live fragment result")
+    );
+    assert!(
+        admission.drops().any(
+            |drop| drop.code == "REQUIRED_CHILD_OUTSIDE_THEORY" && drop.detail.contains("mark")
+        )
+    );
+}
+
+/// PROTECTS: selecting a module never relaxes the full-source claim envelope or
+/// translates another context axis, even when filtered input omits the offending row.
+/// A qualified duplicate and unrelated blocked positive rule keep their boundaries
+/// without cancelling a valid carrier or suppressing an admitted contradiction.
+/// Ordinary source assertions about an unread carrier still supply native premises.
+#[test]
+fn module_claims_retain_independent_context_and_full_source_envelope_boundaries() {
+    for (extra, ordinary_clash) in [
+        ("ex:claim logic:standpoint ex:observer .", false),
+        ("ex:claim logic:modality logic:none .", false),
+        ("ex:g { ex:claim ex:unknownQualifier ex:value . }", false),
+        (
+            "ex:g { ex:claim gmeow:graphBoxRole gmeow:boxCBox . }",
+            false,
+        ),
+        (
+            "ex:claim gmeow:graphBoxRole \"not a role resource\" .",
+            false,
+        ),
+        ("ex:claim gmeow:statedRationale 1 .", false),
+        (
+            "ex:g { ex:claim gmeow:statedRationale \"scope notes\" . }",
+            false,
+        ),
+        ("ex:claim gmeow:wasDerivedFrom \"not a resource\" .", false),
+        (
+            "ex:g { ex:claim gmeow:wasDerivedFrom ex:sourceRecord . }",
+            false,
+        ),
+        ("ex:derivedRecord gmeow:wasDerivedFrom ex:claim .", false),
+        ("ex:claim gmeow:wasDerivedFrom ex:claim .", false),
+        (
+            "ex:annotation a logic:AnnotationProperty . ex:claim ex:annotation ex:value .",
+            false,
+        ),
+        (
+            "ex:mark logic:domain logic:Nothing . ex:claim ex:mark ex:value .",
+            true,
+        ),
+    ] {
+        let theory = compile(&format!(
+            r#"
+ex:Included a logic:Module .
+ex:a logic:instanceOf ex:Left .
+ex:claim rdf:reifies <<( ex:a logic:instanceOf ex:Right )>> ; logic:inModule ex:Included ;
+    gmeow:graphBoxRole gmeow:boxCBox ; gmeow:statedRationale "source reason" ;
+    gmeow:wasDerivedFrom ex:sourceRecord .
+{extra}
+"#
+        ));
+        let inventory = whole_inventory(&theory);
+        let (input, ingress) = ingest_modules(&inventory, &["https://example.org/claims/Included"]);
+        assert!(ingress.read().is_empty(), "{extra}");
+        assert_eq!(ingress.unread().len(), 1, "{extra}");
+        let domains = default_domain(&input);
+        let result =
+            reason_selected_theory_within(&inventory, input, &domains, &ingress, &UNBOUNDED)
+                .expect("the supported ordinary theory executes");
+        assert_eq!(
+            !consistent(&result),
+            ordinary_clash,
+            "only the independent ordinary assertion may refute: {extra}"
+        );
+    }
+    const VALID_LEFT: &str =
+        "ex:left rdf:reifies <<( ex:a logic:instanceOf ex:Left )>> ; logic:inModule ex:Included ; gmeow:graphBoxRole gmeow:boxCBox .
+ex:alsoLeft rdf:reifies <<( ex:a logic:instanceOf ex:Left )>> ; logic:inModule ex:Included .";
+    for (left, expected_clash, read_count) in [(VALID_LEFT, true, 2), ("", false, 1)] {
+        let theory = compile(&format!(
+            r#"
+ex:Included a logic:Module .
+{left}
+ex:right rdf:reifies <<( ex:a logic:instanceOf ex:Right )>> ; logic:inModule ex:Included .
+ex:qualified rdf:reifies <<( ex:a logic:instanceOf ex:Left )>> ;
+    logic:inModule ex:Included ; gmeow:graphBoxRole gmeow:boxCBox ; ex:qualifier ex:unknown .
+_:r a logic:TermCarrier ; logic:termVariable "r" .
+ex:blocked a logic:Rule ; logic:inModule ex:Included ; logic:standpoint ex:observer ;
+    logic:head [ rdf:reifies <<( _:r logic:instanceOf logic:Nothing )>> ] ;
+    logic:body [ rdf:reifies <<( _:r logic:instanceOf ex:Right )>> ] .
+"#
+        ));
+        let inventory = whole_inventory(&theory);
+        let (input, ingress) = ingest_modules(&inventory, &["https://example.org/claims/Included"]);
+        assert_eq!(ingress.read().len(), read_count);
+        assert_eq!(ingress.unread().len(), 1);
+        let refused = &ingress.unread()[0];
+        assert_eq!(
+            refused.carrier.as_ref().expect("original carrier").name,
+            "https://example.org/claims/qualified"
+        );
+        assert!(
+            matches!(&refused.reason, UnreadReason::Qualified { predicate, .. }
+            if predicate == "https://example.org/claims/qualifier")
+        );
+        let carriers: Vec<_> = ingress
+            .read()
+            .iter()
+            .flat_map(|claim| &claim.carriers)
+            .map(|carrier| carrier.name.as_str())
+            .collect();
+        assert!(!carriers.contains(&"https://example.org/claims/qualified"));
+        if expected_clash {
+            assert!(carriers.contains(&"https://example.org/claims/left"));
+            assert!(carriers.contains(&"https://example.org/claims/alsoLeft"));
+        }
+        let selected = prepare_selected_theory(&inventory, &ingress).expect("selected claims");
+        let mut admission =
+            NativeSourceAdmission::inspect_selected(&inventory, ingress.resolved_selection())
+                .expect("source account");
+        let domains = default_domain(&input);
+        let result = reason_admitted_theory_within(
+            &mut admission,
+            &selected,
+            input,
+            &domains,
+            &ingress,
+            &UNBOUNDED,
+        )
+        .expect("the admitted fragment executes");
+        assert_eq!(!consistent(&result), expected_clash);
+        if expected_clash {
+            let premises = clash_premises(&result);
+            for class in [LEFT, RIGHT] {
+                assert!(
+                    premises
+                        .iter()
+                        .any(|(subject, object)| subject == SUBJECT && object.contains(class)),
+                    "{premises:?}"
+                );
+            }
+        }
+        assert!(!admission.complete_for(&result).expect("live completeness"));
+        assert!(admission.drops().any(
+            |drop| drop.code == "CONTEXT_ERASURE_FORBIDDEN" && drop.detail.contains("blocked")
+        ));
+        assert!(
+            admission.source_dispositions().any(|(unit, disposition)| {
+                matches!(unit.origin(), SourceObligationOrigin::Quotation { reifier, .. }
+                if matches!(theory.source().dataset().resolve(reifier),
+                    purrdf::TermRef::Iri("https://example.org/claims/qualified")))
+                    && matches!(
+                        disposition,
+                        crate::reason::NativeSourceDisposition::Blocked {
+                            code: "SCOPED_CLAIM_NOT_READ",
+                            ..
+                        }
+                    )
+            }),
+            "a valid sibling cannot account the qualified carrier's quotation"
+        );
+    }
+}
+
+/// PROTECTS: shared formula IR retains each admitted module assertion and authored
+/// name without promoting owned children or dropping required descendants.
+/// Direct and shared descendant provenance retain the original formula occurrences.
+#[test]
+fn selected_formula_occurrences_keep_names_and_required_descendants() {
+    let body = r#"
+ex:Included a logic:Module ; logic:hasFormula ex:first, ex:second, ex:consequence, ex:other .
+ex:Excluded a logic:Module ; logic:hasFormula ex:other, ex:excluded, ex:shared .
+ex:container logic:hasFormula ex:shared .
+ex:namedGraph {
+    ex:Included logic:hasFormula ex:first .
+    ex:first logic:provenance ex:externalSource .
+}
+ex:a ex:seed ex:b .
+ex:first a logic:Formula ; logic:quantifiedVariable ex:x ; logic:forall ex:implication ;
+    logic:provenance ex:firstSource .
+ex:second a logic:Formula ; logic:quantifiedVariable ex:x ; logic:forall ex:implication ;
+    logic:inModule ex:Included ; logic:provenance ex:secondSource .
+ex:other a logic:Formula ; logic:quantifiedVariable ex:x ; logic:forall ex:implication ; logic:inModule ex:Excluded .
+ex:excluded a logic:Formula, logic:Rule ; logic:quantifiedVariable ex:x ; logic:forall ex:implication ;
+    logic:provenance ex:ruleSource ;
+    logic:head [ rdf:reifies <<( ex:a ex:independent ex:b )>> ] ;
+    logic:body [ rdf:reifies <<( ex:a ex:seed ex:b )>> ] .
+ex:shared a logic:Formula ; logic:quantifiedVariable ex:x ; logic:forall ex:implication .
+ex:implication a logic:Formula ; logic:antecedent ex:guard ; logic:consequent ex:consequence .
+ex:guard a logic:Formula ; logic:relation ex:seed ; logic:argument ex:x, ex:bTerm .
+ex:consequence a logic:Formula ; logic:relation ex:marked ; logic:argument ex:x, ex:bTerm ;
+    logic:provenance ex:childSource .
+ex:x a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "x" .
+ex:bTerm logic:termIndex 1 ; logic:termIri ex:b .
+"#;
+    for (extra, executes) in [
+        ("", true),
+        ("ex:consequence logic:inModule ex:Excluded .", false),
+        ("ex:bTerm logic:inModule ex:Excluded .", false),
+        ("ex:guard logic:provenance \"invalid resource\" .", false),
+    ] {
+        let theory = compile(&format!("{body}{extra}"));
+        let inventory = whole_inventory(&theory);
+        let (input, ingress) = ingest_modules(&inventory, &["https://example.org/claims/Included"]);
+        let selected =
+            prepare_selected_theory(&inventory, &ingress).expect("selected formula preparation");
+        let names = selected
+            .authored_rule_formulas(&theory)
+            .expect("same source attribution");
+        let names: BTreeSet<_> = names.values().flatten().map(String::as_str).collect();
+        if executes {
+            assert_eq!(
+                names,
+                BTreeSet::from([
+                    "https://example.org/claims/first",
+                    "https://example.org/claims/second",
+                    "https://example.org/claims/shared"
+                ])
+            );
+        } else {
+            assert!(
+                names.is_empty(),
+                "blocked parent contributes no executable clause"
+            );
+        }
+        let mut admission =
+            NativeSourceAdmission::inspect_selected(&inventory, ingress.resolved_selection())
+                .expect("selected formula source account");
+        let domains = default_domain(&input);
+        let result = reason_admitted_theory_within(
+            &mut admission,
+            &selected,
+            input,
+            &domains,
+            &ingress,
+            &UNBOUNDED,
+        )
+        .expect("supported source remainder executes");
+        assert_eq!(
+            result
+                .inferred()
+                .iter()
+                .any(|row| row.predicate == "https://example.org/claims/marked"),
+            executes
+        );
+        let exact_formula = |name: &str| {
+            inventory
+                .obligations()
+                .find(|unit| {
+                    matches!(unit.origin(), SourceObligationOrigin::Formula(_))
+                        && unit
+                            .anchor()
+                            .strip_suffix("|0:")
+                            .is_some_and(|anchor| anchor.ends_with(name))
+                })
+                .expect("authored formula occurrence")
+                .identity()
+        };
+        let observe_evidence = |name: &str| {
+            admission
+                .source_dispositions()
+                .find_map(|(unit, disposition)| {
+                    let anchor = unit.anchor();
+                    (anchor.contains("/provenance") && anchor.contains(name)).then_some(disposition)
+                })
+                .expect("physical provenance occurrence")
+        };
+        for (source, owners) in [
+            ("/firstSource", vec!["/first"]),
+            ("/secondSource", vec!["/second"]),
+            ("/childSource", vec!["/first", "/second", "/shared"]),
+        ] {
+            match observe_evidence(source) {
+                crate::reason::NativeSourceDisposition::FormulaEvidence { formula_origins }
+                    if executes =>
+                {
+                    assert_eq!(
+                        formula_origins.iter().cloned().collect::<BTreeSet<_>>(),
+                        owners.into_iter().map(exact_formula).collect()
+                    );
+                }
+                crate::reason::NativeSourceDisposition::Blocked { .. }
+                | crate::reason::NativeSourceDisposition::OutsideRequestedTheory { .. }
+                    if !executes => {}
+                disposition => panic!("unexpected source evidence {source}: {disposition:?}"),
+            }
+        }
+        assert!(matches!(
+            observe_evidence("/externalSource"),
+            crate::reason::NativeSourceDisposition::OutsideSelection { .. }
+        ));
+        assert!(matches!(
+            observe_evidence("/ruleSource"),
+            crate::reason::NativeSourceDisposition::StructuralSupport { .. }
+        ));
+        assert!(
+            result
+                .inferred()
+                .iter()
+                .any(|row| row.predicate == "https://example.org/claims/independent"),
+            "the excluded formula leaves its independently selected rule executable"
+        );
+        let links: Vec<_> = admission
+            .source_dispositions()
+            .filter_map(|(unit, disposition)| {
+                let anchor = unit.anchor();
+                anchor
+                    .contains("/hasFormula")
+                    .then_some((anchor, disposition))
+            })
+            .collect();
+        assert_eq!(links.len(), 9);
+        assert!(links.iter().any(|(anchor, disposition)| {
+            anchor.contains("/namedGraph")
+                && matches!(
+                    disposition,
+                    crate::reason::NativeSourceDisposition::OutsideSelection { .. }
+                )
+        }));
+        for (link, expected) in [
+            ("consequence", "MODULE_LINK_TO_OWNED_FORMULA"),
+            ("other", "CONFLICTING_FORMULA_MODULE_COORDINATE"),
+        ] {
+            assert!(links.iter().any(|(anchor, disposition)| {
+                anchor.contains(&format!("/{link}"))
+                    && matches!(disposition, crate::reason::NativeSourceDisposition::Blocked {
+                        code, ..
+                    } if *code == expected)
+            }));
+        }
+        assert_eq!(
+            links
+                .iter()
+                .filter(|(_, disposition)| matches!(
+                    disposition,
+                    crate::reason::NativeSourceDisposition::OutsideRequestedTheory { .. }
+                ))
+                .count(),
+            3
+        );
+        assert_eq!(
+            links
+                .iter()
+                .filter(|(_, disposition)| matches!(
+                    disposition,
+                    crate::reason::NativeSourceDisposition::StructuralSupport { .. }
+                ))
+                .count(),
+            if executes { 2 } else { 0 }
+        );
+        if executes {
+            let (other_input, other_ingress) =
+                ingest_modules(&inventory, &["https://example.org/claims/Excluded"]);
+            let other_domains = default_domain(&other_input);
+            let failure = reason_admitted_theory_within(
+                &mut admission,
+                &selected,
+                other_input,
+                &other_domains,
+                &other_ingress,
+                &UNBOUNDED,
+            )
+            .expect_err("a different module selection cannot reuse the previous admission");
+            assert!(
+                failure
+                    .to_string()
+                    .contains("same resolved theory composition")
+            );
+            assert!(
+                admission
+                    .source_dispositions()
+                    .all(|(_, disposition)| !matches!(
+                        disposition,
+                        crate::reason::NativeSourceDisposition::FormulaEvidence { .. }
+                    ))
+            );
+        } else {
+            assert!(
+                !admission
+                    .complete_for(&result)
+                    .expect("same source completion")
+            );
+        }
+    }
 }
 
 fn decide(theory: &CompiledTheory) -> (gmeow_errors::Result<ReasoningResult>, ClaimIngress) {
     let (input, ingress) = ingest(theory);
     let domains = default_domain(&input);
     (
-        reason_selected_theory_within(theory, input, &domains, &ingress, &UNBOUNDED),
+        reason_selected_theory_within(
+            &whole_inventory(theory),
+            input,
+            &domains,
+            &ingress,
+            &UNBOUNDED,
+        ),
         ingress,
     )
 }
@@ -104,37 +763,50 @@ fn clash_premises(result: &ReasoningResult) -> Vec<(String, String)> {
 /// PROTECTS: a claim that carries only evidence coordinates is a statement of the
 /// selected theory. Two such claims that contradict each other make the theory
 /// inconsistent, the clash is witnessed by both claimed statements, and both are
-/// in the ledger as read with their evidence. A confidence of zero is still a claim.
+/// in the ledger as read with their evidence. A confidence of zero is still a claim;
+/// default-graph descriptive annotations supply no evidence and leave assertion authority intact.
 #[test]
 fn evidence_only_claims_that_contradict_are_a_clash() {
-    let theory = compile(EVIDENCE_CLASH);
-    let (result, ingress) = decide(&theory);
-    let result = result.expect("the selected theory executes");
+    for body in [
+        EVIDENCE_CLASH.to_owned(),
+        EVIDENCE_CLASH.replace(
+            " .",
+            " ; gmeow:graphBoxRole gmeow:boxCBox, ex:futureRole, [] .",
+        ),
+        EVIDENCE_CLASH.replace(
+            " .",
+            r#" ; gmeow:statedRationale "stated reason", "motif"@fr, "سبب"@ar--rtl ; gmeow:wasDerivedFrom ex:sourceRecord, [] ."#,
+        ),
+    ] {
+        let theory = compile(&body);
+        let (result, ingress) = decide(&theory);
+        let result = result.expect("the selected theory executes");
 
-    assert!(!consistent(&result));
-    let premises = clash_premises(&result);
-    for class in [LEFT, RIGHT] {
-        assert!(
-            premises
-                .iter()
-                .any(|(subject, object)| subject == SUBJECT && object.contains(class)),
-            "{class} is a witness premise: {premises:?}"
+        assert!(!consistent(&result));
+        let premises = clash_premises(&result);
+        for class in [LEFT, RIGHT] {
+            assert!(
+                premises
+                    .iter()
+                    .any(|(subject, object)| subject == SUBJECT && object.contains(class)),
+                "{class} is a witness premise: {premises:?}"
+            );
+        }
+        let evidence: Vec<_> = ingress
+            .read()
+            .iter()
+            .flat_map(|claim| claim.evidence.iter().copied())
+            .collect();
+        assert_eq!(
+            evidence,
+            [
+                EvidenceCoordinate::Provenance,
+                EvidenceCoordinate::Confidence
+            ]
         );
+        assert!(ingress.unread().is_empty());
+        assert_eq!(ingress.unaccounted(theory.program()), None);
     }
-    let evidence: Vec<_> = ingress
-        .read()
-        .iter()
-        .flat_map(|claim| claim.evidence.iter().copied())
-        .collect();
-    assert_eq!(
-        evidence,
-        [
-            EvidenceCoordinate::Provenance,
-            EvidenceCoordinate::Confidence
-        ]
-    );
-    assert!(ingress.unread().is_empty());
-    assert_eq!(ingress.unaccounted(theory.program()), None);
 }
 
 /// PROTECTS: a triple term asserts nothing. A reifier with no scope coordinate is a
@@ -147,6 +819,12 @@ fn a_quotation_that_contradicts_an_assertion_is_not_a_clash() {
 ex:a logic:instanceOf ex:Left .
 [] rdf:reifies <<( ex:a logic:instanceOf ex:Right )>> .
 ex:remark rdf:reifies <<( ex:a logic:instanceOf ex:Right )>> ; rdfs:comment "someone said so" .
+ex:described rdf:reifies <<( ex:a logic:instanceOf ex:Right )>> ;
+    gmeow:graphBoxRole gmeow:boxABox, ex:futureRole .
+ex:explained rdf:reifies <<( ex:a logic:instanceOf ex:Right )>> ;
+    gmeow:statedRationale "someone said so" .
+ex:derivedQuotation rdf:reifies <<( ex:a logic:instanceOf ex:Right )>> ;
+    gmeow:wasDerivedFrom ex:sourceRecord .
 "#,
     );
     let (result, ingress) = decide(&theory);
@@ -174,7 +852,7 @@ fn a_claim_in_an_untranslated_context_is_named_and_adds_no_fact() {
     ] {
         let theory = compile(&format!(
             "ex:a logic:instanceOf ex:Left .
-             [] rdf:reifies <<( ex:a logic:instanceOf ex:Right )>> ; {annotation} ."
+             [] rdf:reifies <<( ex:a logic:instanceOf ex:Right )>> ; gmeow:graphBoxRole gmeow:boxCBox ; {annotation} ."
         ));
         let (result, ingress) = decide(&theory);
 
@@ -297,6 +975,60 @@ ex:scoped a logic:Rule ;
     );
 }
 
+/// PROTECTS: procedural negation may run through the generic selected-theory
+/// entry, but its absence-based clash cannot become source-bound proof evidence.
+#[test]
+fn a_procedural_naf_clash_is_refused_before_source_proof_execution() {
+    let theory = compile(
+        r#"
+ex:a ex:p ex:b .
+_:x a logic:TermCarrier ; logic:termVariable "x" .
+_:y a logic:TermCarrier ; logic:termVariable "y" .
+ex:absenceClash a logic:Rule ;
+    logic:head [ rdf:reifies <<( _:x logic:instanceOf logic:Nothing )>> ] ;
+    logic:body [ rdf:reifies <<( _:x ex:p _:y )>> ] ;
+    logic:negatedBody [ rdf:reifies <<( _:x ex:q _:y )>> ] .
+"#,
+    );
+    let (procedural, _) = decide(&theory);
+    let procedural = procedural.expect("the generic procedural selection still executes NAF");
+    assert!(!consistent(&procedural));
+
+    let inventory = SourceInventory::new(&theory, SourceSelection::all_classical_roots(&theory));
+    let mut admission = NativeSourceAdmission::inspect(&inventory).expect("whole source admission");
+    let (input, ingress) = ingest(&theory);
+    let selected =
+        prepare_selected_theory(&inventory, &ingress).expect("procedural lowering prepares");
+    let domains = default_domain(&input);
+    let error = reason_admitted_theory_within(
+        &mut admission,
+        &selected,
+        input,
+        &domains,
+        &ingress,
+        &UNBOUNDED,
+    )
+    .expect_err("absence cannot authorize a classical refutation");
+    let refusal = error
+        .downcast_ref::<crate::error::NativeRefusal>()
+        .expect("unsupported proof semantics has a typed refusal");
+    assert!(
+        refusal
+            .gaps
+            .iter()
+            .any(|gap| { gap.contains("program:rule:0") && gap.contains("absenceClash") }),
+        "{refusal:?}"
+    );
+    assert!(admission.drops().any(|drop| {
+        drop.code == "NEGATION_AS_FAILURE_IS_NOT_CLASSICAL_NEGATION"
+            && drop.detail.contains("absenceClash")
+    }));
+    assert!(
+        admission.complete_for(&procedural).is_err(),
+        "the refused operation issues no live source completion"
+    );
+}
+
 /// PROTECTS: execution that ignores axiom scopes starts only from the input whose
 /// claims were admitted for that program. An input the claims were never added to,
 /// and a program with a scoped claim the ledger does not hold, are both refused.
@@ -305,10 +1037,20 @@ fn the_entry_refuses_an_input_or_program_the_ledger_does_not_account_for() {
     let theory = compile(EVIDENCE_CLASH);
     let (admitted, ingress) = ingest(&theory);
 
+    let inventory = SourceInventory::new(&theory, SourceSelection::all_classical_roots(&theory));
+    let mut admission = NativeSourceAdmission::inspect(&inventory).expect("whole source admission");
+    let selected = prepare_selected_theory(&inventory, &ingress).expect("selected theory prepares");
     let stale = prepare_reasoning_input(theory.source().dataset()).expect("bare ingestion");
     let domains = default_domain(&stale);
-    let error = reason_selected_theory_within(&theory, stale, &domains, &ingress, &UNBOUNDED)
-        .expect_err("the claims were never added to this input");
+    let error = reason_admitted_theory_within(
+        &mut admission,
+        &selected,
+        stale,
+        &domains,
+        &ingress,
+        &UNBOUNDED,
+    )
+    .expect_err("the claims were never added to this input");
     assert!(
         error
             .to_string()
@@ -320,12 +1062,86 @@ fn the_entry_refuses_an_input_or_program_the_ledger_does_not_account_for() {
          [] rdf:reifies <<( ex:b logic:instanceOf ex:Left )>> ; logic:inModule ex:module ."
     ));
     let domains = default_domain(&admitted);
-    let error = reason_selected_theory_within(&wider, admitted, &domains, &ingress, &UNBOUNDED)
-        .expect_err("a scoped claim of this program is not in the ledger");
+    let error = reason_selected_theory_within(
+        &whole_inventory(&wider),
+        admitted,
+        &domains,
+        &ingress,
+        &UNBOUNDED,
+    )
+    .expect_err("a scoped claim of this program is not in the ledger");
     assert!(
         error
             .to_string()
-            .contains("absent from the claim ingress ledger")
+            .contains("different immutable compiler source")
+    );
+    // Equal scoped ledgers do not authorize a different unscoped source.
+    let unscoped = compile("ex:a ex:knows ex:b .");
+    let named_target = LogicalGraph::Named(purrdf::TermValue::iri("urn:claims:unselected"));
+    let unscoped_inventory = whole_inventory(&unscoped);
+    let selection = unscoped_inventory
+        .resolve_theory_selection(&TheorySelection::top_level_only())
+        .expect("source resolution");
+    assert!(
+        prepare_selected_theory_input(&unscoped_inventory, &named_target, &selection).is_err(),
+        "the selected-theory profile does not execute a named target"
+    );
+    let (mut selected_input, own_ingress) = ingest(&unscoped);
+    let selected_contract = *selected_input.ingress_contract();
+    selected_input
+        .assert_facts(
+            &named_target,
+            [Fact {
+                subject: purrdf::TermValue::iri("urn:claims:subject"),
+                predicate: "urn:claims:predicate".to_owned(),
+                object: purrdf::TermValue::iri("urn:claims:object"),
+            }],
+        )
+        .expect_err("a source edit cannot add an unselected world");
+    assert_eq!(*selected_input.ingress_contract(), selected_contract);
+    let generic = prepare_reasoning_input(unscoped.source().dataset()).expect("all-graph input");
+    assert_ne!(
+        generic.ingress_contract(),
+        &selected_contract,
+        "identical default facts do not erase the selected source-graph policy"
+    );
+    let own_selected =
+        prepare_selected_theory(&unscoped_inventory, &own_ingress).expect("own preparation");
+    let own_inventory =
+        SourceInventory::new(&unscoped, SourceSelection::all_classical_roots(&unscoped));
+    let mut own_admission =
+        NativeSourceAdmission::inspect(&own_inventory).expect("own source admission");
+    let generic_domains = default_domain(&generic);
+    reason_admitted_theory_within(
+        &mut own_admission,
+        &own_selected,
+        generic,
+        &generic_domains,
+        &own_ingress,
+        &UNBOUNDED,
+    )
+    .expect_err("generic all-graph input cannot borrow selected default-graph admission");
+    let other = compile("ex:c ex:knows ex:d .");
+    let (input, ingress) = ingest(&unscoped);
+    let inventory = SourceInventory::new(&other, SourceSelection::all_classical_roots(&other));
+    let (_, other_ingress) = ingest(&other);
+    let selected = prepare_selected_theory(&inventory, &other_ingress)
+        .expect("other unscoped program prepares");
+    let mut admission = NativeSourceAdmission::inspect(&inventory).expect("whole other source");
+    let domains = default_domain(&input);
+    let error = reason_admitted_theory_within(
+        &mut admission,
+        &selected,
+        input,
+        &domains,
+        &ingress,
+        &UNBOUNDED,
+    )
+    .expect_err("equal scoped axioms cannot authorize a foreign source");
+    assert!(
+        error
+            .to_string()
+            .contains("different immutable compiler source")
     );
 }
 
@@ -431,15 +1247,16 @@ fn claims_placed_in_standpoints_by_according_to_are_named_and_are_not_a_clash() 
     );
 }
 
-/// PROTECTS: the evidence allow-list is closed. Provenance does not turn a claim
-/// into a statement of the theory when anything else is said about its carrier: a
+/// PROTECTS: the carrier contract stays closed around descriptive roles. Provenance
+/// does not admit an independent qualification about its carrier: a
 /// denial stance, an annotation this reader does not know, a second type, a
 /// statement that points at the carrier, or any `logic:modality` value including
 /// `logic:none`. Each such claim adds no fact and is named with the first offending
 /// predicate and the number of offending statements.
 #[test]
-fn a_claim_with_anything_but_evidence_about_its_carrier_is_named_and_adds_no_fact() {
+fn a_claim_with_an_independent_qualification_is_named_and_adds_no_fact() {
     const MODALITY: &str = "https://blackcatinformatics.ca/logic/modality";
+    const HAS_ELEMENT: &str = "https://blackcatinformatics.ca/math/hasElement";
     for (carrier, expected) in [
         (
             "gmeow:standpointModality gmeow:refuted ; logic:provenance ex:first",
@@ -466,6 +1283,31 @@ fn a_claim_with_anything_but_evidence_about_its_carrier_is_named_and_adds_no_fac
             vec![qualified(CLAIM, "https://example.org/claims/denies", 1)],
         ),
         (
+            "logic:provenance ex:first . ex:set math:hasElement ex:claim",
+            vec![qualified(CLAIM, HAS_ELEMENT, 1)],
+        ),
+        (
+            "logic:provenance ex:first . ex:set logic:instanceOf math:FiniteSet, math:SetBuilderExpression ; math:hasElement ex:claim",
+            vec![qualified(CLAIM, HAS_ELEMENT, 1)],
+        ),
+        (
+            "logic:provenance ex:first . ex:g { ex:set a math:SetBuilderExpression . } ex:set a math:FiniteSet ; math:hasElement ex:claim",
+            vec![qualified(CLAIM, HAS_ELEMENT, 1)],
+        ),
+        (
+            "logic:provenance ex:first . ex:g { ex:set math:hasElement ex:claim . } ex:set a math:FiniteSet",
+            vec![UnreadReason::Qualified {
+                graph: Some("https://example.org/claims/g".to_owned()),
+                carrier: CLAIM.to_owned(),
+                predicate: HAS_ELEMENT.to_owned(),
+                statements: 1,
+            }],
+        ),
+        (
+            "logic:provenance ex:first . ex:set logic:instanceOf math:FiniteSet ; math:hasElement ex:claim . ex:denial ex:denies ex:claim",
+            vec![qualified(CLAIM, "https://example.org/claims/denies", 1)],
+        ),
+        (
             "logic:modality logic:none ; logic:provenance ex:first",
             vec![qualified(CLAIM, MODALITY, 1)],
         ),
@@ -479,7 +1321,7 @@ fn a_claim_with_anything_but_evidence_about_its_carrier_is_named_and_adds_no_fac
     ] {
         let theory = compile(&format!(
             "ex:a logic:instanceOf ex:Left .
-             ex:claim rdf:reifies <<( ex:a logic:instanceOf ex:Right )>> ; {carrier} ."
+             ex:claim rdf:reifies <<( ex:a logic:instanceOf ex:Right )>> ; gmeow:graphBoxRole gmeow:boxCBox ; {carrier} ."
         ));
         let (result, ingress) = decide(&theory);
 
@@ -494,6 +1336,94 @@ fn a_claim_with_anything_but_evidence_about_its_carrier_is_named_and_adds_no_fac
         expected.sort_by_key(|reason| reason.to_string());
         assert_eq!(reasons, expected, "{carrier}");
     }
+    // A raw annotation row without a recognised structural edge still carries a
+    // source obligation. Source hashing alone cannot make its unknown law read.
+    let mut builder = purrdf::RdfDatasetBuilder::new();
+    let subject = builder
+        .intern_iri("urn:annotation:subject")
+        .expect("source subject");
+    let relation = builder
+        .intern_iri("urn:annotation:kept")
+        .expect("source relation");
+    let value = builder
+        .intern_iri("urn:annotation:value")
+        .expect("source value");
+    builder
+        .push_quad(subject, relation, value, None)
+        .expect("asserted source fact");
+    let unknown = builder
+        .intern_iri("https://blackcatinformatics.ca/logic/unregisteredBoundary")
+        .expect("unknown interpreted relation");
+    builder
+        .push_annotation(subject, unknown, value)
+        .expect("annotation-table obligation");
+    // An exact annotation duplicate cannot borrow the ordinary membership route.
+    let claim = builder.intern_iri(CLAIM).expect("source carrier");
+    let proposition = builder
+        .intern_triple(value, relation, subject)
+        .expect("quoted fact");
+    builder
+        .push_reifier(claim, proposition)
+        .expect("quoted source");
+    let provenance = builder
+        .intern_iri("https://blackcatinformatics.ca/logic/provenance")
+        .expect("provenance predicate");
+    builder
+        .push_quad(claim, provenance, value, None)
+        .expect("claim evidence");
+    let type_predicate = builder
+        .intern_iri("http://www.w3.org/1999/02/22-rdf-syntax-ns#type")
+        .expect("type predicate");
+    let finite_set = builder
+        .intern_iri("https://blackcatinformatics.ca/math/FiniteSet")
+        .expect("finite set type");
+    builder
+        .push_quad(subject, type_predicate, finite_set, None)
+        .expect("ordinary finite set declaration");
+    let has_element = builder
+        .intern_iri(HAS_ELEMENT)
+        .expect("membership predicate");
+    builder
+        .push_quad(subject, has_element, claim, None)
+        .expect("ordinary source membership");
+    builder
+        .push_annotation(subject, has_element, claim)
+        .expect("annotation-table membership");
+    let source = builder.freeze().expect("owned source freezes");
+    let theory = PreparedLogicSource::new(&source)
+        .expect("source prepares")
+        .into_compiled(None)
+        .expect("source compiles");
+    let inventory = SourceInventory::new(&theory, SourceSelection::all_classical_roots(&theory));
+    let mut admission = NativeSourceAdmission::inspect(&inventory).expect("whole source admission");
+    let (input, ingress) = ingest(&theory);
+    assert!(ingress.read().is_empty());
+    assert_eq!(unread_reasons(&ingress), [qualified(CLAIM, HAS_ELEMENT, 1)]);
+    let selected = prepare_selected_theory(&inventory, &ingress).expect("source program prepares");
+    let domains = default_domain(&input);
+    let result = reason_admitted_theory_within(
+        &mut admission,
+        &selected,
+        input,
+        &domains,
+        &ingress,
+        &UNBOUNDED,
+    )
+    .expect("native closure executes supported facts");
+    assert!(consistent(&result));
+    assert!(
+        !admission
+            .complete_for(&result)
+            .expect("same live execution binding"),
+        "the unaccounted annotation prevents a whole-source consistent claim"
+    );
+    assert!(
+        admission
+            .drops()
+            .any(|drop| drop.code == "UNIT_NOT_ACCOUNTED"
+                && drop.detail.contains("annotation")
+                && drop.detail.contains("unregisteredBoundary"))
+    );
 }
 
 /// PROTECTS: the classic `rdf:Statement` carrier follows the same rule as the RDF
@@ -510,7 +1440,11 @@ fn a_classic_statement_carrier_is_read_only_when_it_is_evidence_only() {
 
     let evidence_only = compile(&format!(
         "{}{}",
-        classic("first", "Left", ""),
+        classic(
+            "first",
+            "Left",
+            "; gmeow:graphBoxRole gmeow:boxCBox, ex:futureRole"
+        ),
         classic("second", "Right", "; logic:confidence 0.9")
     ));
     let (result, ingress) = decide(&evidence_only);
@@ -542,7 +1476,8 @@ const R2: &str = "https://example.org/claims/r2";
 /// An assertion, and an evidence-only claim `ex:r1` that would contradict it.
 const CONTESTED: &str = r#"
 ex:a logic:instanceOf ex:Left .
-ex:r1 rdf:reifies <<( ex:a logic:instanceOf ex:Right )>> ; logic:provenance ex:first .
+ex:r1 rdf:reifies <<( ex:a logic:instanceOf ex:Right )>> ; logic:provenance ex:first ;
+    gmeow:graphBoxRole gmeow:boxCBox .
 "#;
 
 /// PROTECTS: a statement about a claim keeps that claim out even when the statement
@@ -687,26 +1622,59 @@ fn a_preparation_made_from_another_theory_is_refused() {
     let other = compile(&format!(
         "{EVIDENCE_CLASH}\nex:Third logic:disjointWith ex:Fourth ."
     ));
-    let (_, ingress) = ingest(&theory);
-    let foreign = prepare_selected_theory(&other, &ingress).expect("the other theory prepares");
+    let (_, other_ingress) = ingest(&other);
+    let foreign = prepare_selected_theory(&whole_inventory(&other), &other_ingress)
+        .expect("the other theory prepares");
 
+    let inventory = SourceInventory::new(&theory, SourceSelection::all_classical_roots(&theory));
+    let mut admission = NativeSourceAdmission::inspect(&inventory).expect("whole source admission");
     let (input, ingress) = ingest(&theory);
     let domains = default_domain(&input);
-    let refusal =
-        reason_prepared_theory_within(&theory, &foreign, input, &domains, &ingress, &UNBOUNDED)
-            .expect_err("a preparation of another theory must not run");
+    let refusal = reason_admitted_theory_within(
+        &mut admission,
+        &foreign,
+        input,
+        &domains,
+        &ingress,
+        &UNBOUNDED,
+    )
+    .expect_err("a preparation of another theory must not run");
     assert!(
         refusal
             .to_string()
-            .contains("not made from this theory under this selection"),
+            .contains("different immutable compiler source"),
         "{refusal}"
     );
 
-    let own = prepare_selected_theory(&theory, &ingress).expect("the theory prepares");
+    let own = prepare_selected_theory(&inventory, &ingress).expect("the theory prepares");
     let (input, ingress) = ingest(&theory);
     let domains = default_domain(&input);
-    let result =
-        reason_prepared_theory_within(&theory, &own, input, &domains, &ingress, &UNBOUNDED)
+    let mut result =
+        reason_admitted_theory_within(&mut admission, &own, input, &domains, &ingress, &UNBOUNDED)
             .expect("its own preparation runs");
     assert!(!consistent(&result));
+    admission
+        .complete_for(&result)
+        .expect("actual same-run source binding validates");
+    let decoded: ReasoningResult = serde_json::from_slice(
+        &serde_json::to_vec(result.as_ref()).expect("execution observation serializes"),
+    )
+    .expect("execution observation decodes");
+    assert!(
+        admission.complete_for(&decoded).is_err(),
+        "decoded matching bytes cannot supply the actual live result"
+    );
+    std::sync::Arc::make_mut(&mut result).information =
+        crate::result::InformationState::Undetermined;
+    assert!(
+        admission.complete_for(&result).is_err(),
+        "editing the result cannot preserve the original live completion"
+    );
+    let mut selection = SourceSelection::all_classical_roots(&theory);
+    selection.rules = gmeow_logic_compile::frontend::RootSelection::None;
+    let narrowed = SourceInventory::new(&theory, selection);
+    assert!(
+        NativeSourceAdmission::inspect(&narrowed).is_err(),
+        "source filtering requires its own executor before a narrowed source can be admitted"
+    );
 }

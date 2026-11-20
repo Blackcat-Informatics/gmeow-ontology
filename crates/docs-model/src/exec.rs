@@ -34,11 +34,9 @@ impl InferenceDiff {
     }
 }
 
-/// One reasoner-derived "why" fact about a documented term: the rule that fired, a
-/// display of the axiom it concluded, and the premises it fired from. Parsed by the
-/// pipeline (`build_executable_docs_data`) from `stage-reason`'s already-materialized
-/// `reasoning-explanations` proof skeletons (reason-once — the reasoner itself never
-/// runs in the docs crate; see [`ExecutableDocsData::term_entailments`]).
+/// A proof entry for a documented term. The pipeline projects the rule,
+/// conclusion, and premises from the native reasoning result and indexes the
+/// proof under the terms they mention. See [`ExecutableDocsData::term_entailments`].
 #[derive(Debug, Clone, Default, PartialEq, Eq)]
 pub struct Entailment {
     /// The firing rule: a compact display form (a CURIE where the canonical prefix
@@ -51,6 +49,9 @@ pub struct Entailment {
     /// Compact displays of the derivation's premises (zero or more, sorted), in the
     /// same `s p o` style as [`conclusion`](Self::conclusion).
     pub premises: Vec<String>,
+    /// The exact native conclusion proves unsatisfiability of the class under
+    /// which this entry is indexed.
+    pub proves_term_unsatisfiable: bool,
 }
 
 /// Everything the executable docs surfaces need. Empty ⇒ render the base site only.

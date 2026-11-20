@@ -9,6 +9,7 @@ use gmeow_errors::Diag;
 use purrdf::{CanonicalRelabeling, RdfDataset, TermId, TermRef, canonical_relabel_with_mapping};
 
 use super::{Diagnostic, LogicProgram};
+use crate::source_inventory::SourceIdentity;
 
 /// An admitted native source selection, canonicalized once before extraction.
 ///
@@ -19,6 +20,7 @@ use super::{Diagnostic, LogicProgram};
 /// constitutes a durable source identity or a rewrite certificate.
 #[derive(Debug)]
 pub struct PreparedLogicSource {
+    identity: SourceIdentity,
     canonical: CanonicalRelabeling,
     source_graph: super::StructuralSourceGraph,
     origins: Vec<super::SourceDocumentOccurrences>,
@@ -37,6 +39,7 @@ impl PreparedLogicSource {
             .map_err(|error| crate::graphutil::canonicalization_failure(error, &control))?;
         let source_graph = super::StructuralSourceGraph::new(canonical.dataset());
         Ok(Self {
+            identity: SourceIdentity::new(),
             canonical,
             source_graph,
             origins: Vec::new(),
@@ -47,6 +50,11 @@ impl PreparedLogicSource {
     #[must_use]
     pub fn dataset(&self) -> &RdfDataset {
         self.canonical.dataset()
+    }
+
+    #[must_use]
+    pub fn identity(&self) -> SourceIdentity {
+        self.identity.clone()
     }
 
     /// Structural units and uses captured before lowering, not an execution verdict.

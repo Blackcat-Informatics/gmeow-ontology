@@ -18,9 +18,9 @@
 ## Purpose
 
 Numbers, sets, and functions are the primitives the rest of the grounding layer is built from. The
-charter's single discipline is **exactness is explicit**: a number knows whether it is an exact
-element of a number system or a floating-point approximation of one; a set knows whether it is given
-extensionally or by a defining condition; a function knows its domain and codomain. Nothing is left
+charter's single discipline is **exactness is explicit**: a number declares its system, and a separate
+approximation records its target and error; a set states whether it is given extensionally or by a
+defining condition; a function declares its domain and codomain. Nothing is left
 to a bare RDF literal that silently loses which number system, which construction, or which map it
 belongs to.
 
@@ -37,14 +37,22 @@ Core system individuals: the tower `math:naturalNumbers` ⊂ `math:integers` ⊂
 Core properties: `math:inNumberSystem`, `math:isExact`, `math:approximates`,
 `math:approximationError`, `math:numericDatatype`, and `math:extendedRealValue`.
 
-A `math:Number` declares its number system (`math:inNumberSystem`: ℕ ⊂ ℤ ⊂ ℚ ⊂ ℝ ⊂ ℂ, with the
-algebraic/transcendental distinction inside ℝ/ℂ) and whether it is **exact** or an
-**approximation**. An exact rational is the pair it denotes; π is a `math:MathematicalConstant` (an
-exact `math:TranscendentalNumber`), *not* `3.14159`; and `3.14159` is a `math:ApproximateValue`
-that `math:approximates` π with a stated `math:approximationError`. Floating-point values ground in
-the canonical RDF datatypes `xsd:double`/`xsd:float` (IEEE-754), carried by `math:numericDatatype`
-([`MATHEMATICS-REFERENCES.md`](MATHEMATICS-REFERENCES.md) — the `xsd` FP datatypes are subsumed, not
-re-minted).
+A `math:Number` declares its number system through `math:inNumberSystem`;
+the containment tower is ℕ ⊂ ℤ ⊂ ℚ ⊂ ℝ ⊂ ℂ, with the algebraic/transcendental
+distinction inside ℝ/ℂ. `math:RationalNumber` describes the abstract number,
+while `math:RationalValue` carries a concrete integer pair. Exact finite decimal
+`0.25` and pair `(1,4)` can denote the same value without identifying their RDF
+resources. A decimal representation is not intrinsically an approximation.
+
+π retains its exact `math:MathematicalConstant` identity and `math:isExact true`.
+A separate `math:ApproximateValue` can carry a finite evaluation near `3.14159`,
+link `math:approximates` to π and record a justified numeric absolute
+`math:approximationError` bound. This carrier is separate from the exact number
+and its literal. `math:numericDatatype` names the literal's actual datatype by
+IRI, reusing `xsd:double` or `xsd:float` as described in
+[`MATHEMATICS-REFERENCES.md`](MATHEMATICS-REFERENCES.md). A declared datatype or
+displayed precision supplies no proof of the error bound. A bare
+`math:quantityValue` also supplies no dimension, unit, basis or reference frame.
 
 **Signed extended reals.** Some quantities run off the finite line: a limit diverging downward, an
 infimum of a set with no lower bound, a σ-finite measure's infinite mass. The **signed extended real
@@ -100,6 +108,12 @@ without a declared equality. Set operations (union, intersection, complement, di
 `math:SetOperation` applications; `math:PowerSet` and `math:CartesianProduct` are first-class
 constructors; and `math:Cardinality` (finite, ℵ₀, 𝔠, …) is carried, not assumed. The external
 anchor is OpenMath `set1`.
+
+An extensional set can enumerate claim carriers with ordinary
+`math:hasElement` assertions and an explicit `math:FiniteSet` declaration
+via `logic:instanceOf` or `rdf:type` in the selected default graph. The membership relates the set to
+the carrier resource and supplies no assertion authority for the carried statement.
+See [the selected source-theory contract](../../logic/docs.md#selecting-a-source-theory).
 
 > **Hard rule.** An intensional set names its member condition as a `logic:` formula (the
 > denotation seam), never as an opaque string. A "complement" names its ambient set — an unqualified
@@ -182,12 +196,15 @@ ex:oneThirdDecimal
     math:approximates ex:oneThird ;
     math:numericDatatype xsd:double ;
     math:quantityValue "0.3333333333333333"^^xsd:double ;   # note: math:Quantity would frame this in a measurement
-    math:approximationError ex:doubleRoundingError .
+    math:approximationError "0.000001"^^xsd:decimal .
 ```
 
-The exact rational and its `double` approximation are two objects; a consumer that needs the value
-reads the approximation and *knows* it is one, with its error — the floating-point result never
-masquerades as the exact number.
+The exact rational and its `double` approximation are two objects. The numeric
+absolute bound is conservative for this one-third evaluation; it is neither a
+relative percentage nor an error-resource identifier. Declaring the record
+executes no calculation and does not prove the bound. The canonical obligations
+and broader diagnostic annotations are described in the
+[approximation and constant diagnostic guide](../docs.md#approximation-and-constant-diagnostic-findings).
 
 ## Shape and lint gates
 

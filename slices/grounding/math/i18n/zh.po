@@ -3674,8 +3674,8 @@ msgid "Number"
 msgstr "数"
 
 msgctxt "https://blackcatinformatics.ca/math/Number|http://www.w3.org/2004/02/skos/core#definition"
-msgid "A mathematical number: an abstract quantity that lives in a declared number system. Every math:Number situates itself in a math:NumberSystem through math:inNumberSystem — an unsituated number is ill-formed — and declares through math:isExact whether it is an exact value or the abstract counterpart that a math:ApproximateValue approximates. The five nested systems ℕ ⊂ ℤ ⊂ ℚ ⊂ ℝ ⊂ ℂ are its principal subclasses."
-msgstr "数学中的数：属于一个已声明数系的抽象量。每个 math:Number 都通过 math:inNumberSystem 将自身置于一个 math:NumberSystem 中；未指定数系的数不合规范。它还通过 math:isExact 声明自身是精确值，还是某个 math:ApproximateValue 所近似的抽象对应对象。五个嵌套数系 ℕ ⊂ ℤ ⊂ ℚ ⊂ ℝ ⊂ ℂ 对应其主要子类。"
+msgid "An abstract mathematical number with an identity in the graph. A number has one declared math:NumberSystem through math:inNumberSystem. Classes such as math:RationalNumber refine its classification, while named systems such as math:rationalNumbers are values of that property. Record exactness with math:isExact independently of any math:ApproximateValue that names the number as its target."
+msgstr "在图中具有明确身份的抽象数。每个数通过 math:inNumberSystem 声明一个 math:NumberSystem。math:RationalNumber 等类细化数的分类，math:rationalNumbers 等命名数系是该属性的值。用 math:isExact 记录精确性，这独立于是否有 math:ApproximateValue 将该数作为目标。"
 
 msgctxt "https://blackcatinformatics.ca/math/Number|http://www.w3.org/2004/02/skos/core#scopeNote"
 msgid "This class describes mathematical objects, not RDF numeric literals or the sets that contain numbers. Select a more specific number class when known; math:inNumberSystem names a system individual rather than a class."
@@ -18390,3 +18390,123 @@ msgstr "避免零值、分母缺失、非整数字面量，或对规范 RDF 推�
 msgctxt "https://blackcatinformatics.ca/math/denominator|https://blackcatinformatics.ca/gmeow/howToUse"
 msgid "Supply one nonzero xsd:integer value with the carrier's math:numerator. Check the class-local datatype/count/closure obligations and the explicit forbidden-zero constraint. Preserve full diagnostic evidence when generated validation reports a violation."
 msgstr "为载体提供一个非零的 xsd:integer 值，并同时提供其 math:numerator。检查类局部的数据类型、计数和闭合义务，以及显式禁止零值的约束。当生成的验证报告指出约束违反时，应保留完整的诊断证据。"
+
+msgctxt "https://blackcatinformatics.ca/math/ExactApproximateConflation|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Exact–Approximate Conflation"
+msgstr "精确值与近似值混淆"
+
+msgctxt "https://blackcatinformatics.ca/math/ExactApproximateConflation|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The failure raised when a math:ApproximateValue fails to keep an approximation distinct from the exact value — it does not name, through math:approximates, the exact number it stands in for, or does not declare its math:approximationError. An exact number and an approximation of it are distinct objects."
+msgstr "当 math:ApproximateValue 未将近似值与精确值区分开时报告的失败：它未通过 math:approximates 指明所代表的精确数，或未声明 math:approximationError。精确数与该数的近似值是不同的对象。"
+
+msgctxt "https://blackcatinformatics.ca/math/ExactApproximateConflation|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This class describes a failure of approximation framing. Its current math:ApproximateValue-level report annotation can also classify target-type or count findings; the class alone proves neither resource-identity conflation nor the validity of a numerical error bound."
+msgstr "该类描述近似值描述框架的缺陷。当前位于 math:ApproximateValue 类级别的报告注释也可用于归类目标类型或值数量方面的发现；仅凭该类既不能证明两个资源被视为同一对象，也不能证明数值误差界有效。"
+
+msgctxt "https://blackcatinformatics.ca/math/ExactApproximateConflation|http://www.w3.org/2004/02/skos/core#example"
+msgid "A math:ApproximateValue that names an exact one-third target through math:approximates but omits math:approximationError illustrates the missing-bound case. Read the finding's component and source shape before identifying that case from a report."
+msgstr "一个 math:ApproximateValue 通过 math:approximates 指明精确的三分之一目标，却省略 math:approximationError，展示了缺少误差界的情形。在根据报告认定这一情形前，应读取发现的约束组件和来源形状。"
+
+msgctxt "https://blackcatinformatics.ca/math/ExactApproximateConflation|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when interpreting findings attributed to the canonical math:ApproximateValue restrictions on its exact target and the presence of a numeric error bound."
+msgstr "用于解释归属于 math:ApproximateValue 规范约束的发现，这些约束涉及其精确目标及数值误差界是否存在。"
+
+msgctxt "https://blackcatinformatics.ca/math/ExactApproximateConflation|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating this class as proof of an incorrect numerical value, a negative bound, mismatched literal and declared datatypes, or equality between the approximation and target resources; the current restriction group establishes none of those numerical or identity judgments."
+msgstr "不要将该类视为数值错误、误差界为负、字面量类型与声明类型不符，或近似值资源与目标资源相同的证明；当前约束组并不确立这些数值或身份判断。"
+
+msgctxt "https://blackcatinformatics.ca/math/ExactApproximateConflation|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Inspect the component, path, value and source shape, then repair the reported obligation: retain a separate math:ApproximateValue, one justified math:Number target through math:approximates and a numeric absolute math:approximationError bound. Validation derives from the existing logic restrictions; establish the bound's numerical justification separately."
+msgstr "检查约束组件、路径、值和来源形状，然后修复所报告的义务：保留独立的 math:ApproximateValue，通过 math:approximates 指向一个有依据的 math:Number 目标，并提供数值绝对误差界 math:approximationError。验证由现有 logic 约束派生；误差界的数值依据须另行建立。"
+
+msgctxt "https://blackcatinformatics.ca/math/ConstantAsDecimalLiteral|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Constant as Decimal Literal"
+msgstr "以十进制字面量表示常数"
+
+msgctxt "https://blackcatinformatics.ca/math/ConstantAsDecimalLiteral|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The failure raised when a math:MathematicalConstant is given as a decimal literal — it carries a raw math:quantityValue directly instead of being an exact individual. A constant's decimal expansion belongs to a distinct math:ApproximateValue that math:approximates it."
+msgstr "当 math:MathematicalConstant 被表示为十进制字面量时报告的失败：它直接携带原始 math:quantityValue，而不是保持为精确个体。常数的十进制展开属于独立的 math:ApproximateValue，该对象通过 math:approximates 指向此常数。"
+
+msgctxt "https://blackcatinformatics.ca/math/ConstantAsDecimalLiteral|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The named constant keeps its exact identity independently of any numerical representation. The current math:MathematicalConstant-level report annotation also covers its isExact obligations, so this class alone does not establish that a quantityValue literal was present."
+msgstr "命名常数的精确身份独立于任何数值表示而保留。当前位于 math:MathematicalConstant 类级别的报告注释也涵盖其 isExact 义务，因此仅凭该类不能确定曾存在 quantityValue 字面量。"
+
+msgctxt "https://blackcatinformatics.ca/math/ConstantAsDecimalLiteral|http://www.w3.org/2004/02/skos/core#example"
+msgid "A math:MathematicalConstant with math:isExact true and a direct math:quantityValue of 3.14159 typed as xsd:double illustrates the forbidden-literal case. A justified numerical evaluation belongs on a separate math:ApproximateValue that math:approximates the constant."
+msgstr "一个 math:MathematicalConstant 声明 math:isExact true，并直接携带类型为 xsd:double、数值为 3.14159 的 math:quantityValue，展示了被禁止的字面量情形。有依据的数值求值结果应放在独立的 math:ApproximateValue 上，并由该对象通过 math:approximates 指向常数。"
+
+msgctxt "https://blackcatinformatics.ca/math/ConstantAsDecimalLiteral|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when interpreting findings associated with the existing constant-local exactness or absence-of-direct-literal obligations while preserving the exact named individual."
+msgstr "用于解释与常数现有局部义务相关的发现，包括精确性义务和不得直接携带字面量的义务，同时保留精确的命名个体。"
+
+msgctxt "https://blackcatinformatics.ca/math/ConstantAsDecimalLiteral|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid changing the constant's exact identity because an evaluation is rounded, limiting the literal prohibition to xsd:decimal because of this class's label, or inferring a particular violation component from the class alone."
+msgstr "不要因某次求值经过舍入而改变常数的精确身份，不要因该类的标签而把字面量禁令仅限于 xsd:decimal，也不要仅凭该类推断具体的违规约束组件。"
+
+msgctxt "https://blackcatinformatics.ca/math/ConstantAsDecimalLiteral|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read the reported component, path, value and source shape. Remove a direct math:quantityValue literal from the constant when present, retain math:isExact true, and keep any justified evaluation and numeric absolute error bound on a separate math:ApproximateValue. Repair the actual reported obligation without replacing the canonical constant identity."
+msgstr "读取所报告的约束组件、路径、值和来源形状。若常数上存在直接的 math:quantityValue 字面量，则将其移除；保留 math:isExact true，并将任何有依据的求值结果及数值绝对误差界放在独立的 math:ApproximateValue 上。修复实际报告的义务，不要替换常数的规范身份。"
+
+msgctxt "https://blackcatinformatics.ca/math/MathConformanceFailure|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Math Conformance Failure"
+msgstr "数学规范违例"
+
+msgctxt "https://blackcatinformatics.ca/math/MathConformanceFailure|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The class of situations in which a mathematical well-formedness or preservation obligation is violated. Its subclasses identify kinds of failure that validation findings can report."
+msgstr "数学良构义务或保持性义务遭到违反的情形所属的类。其子类指明验证发现可以报告的失败类型。"
+
+msgctxt "https://blackcatinformatics.ca/math/MathConformanceFailure|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Canonical logic axioms and constraints state the applicable obligations. A class IRI on a finding identifies the kind of situation observed. One class can cover several checks."
+msgstr "规范逻辑公理和约束规定适用的义务。验证发现中的类 IRI 指明观察到的情形属于哪一类。同一个类可以涵盖多项检查。"
+
+msgctxt "https://blackcatinformatics.ca/math/MathConformanceFailure|http://www.w3.org/2004/02/skos/core#example"
+msgid "A finding attributed to math:UnsituatedNumber identifies a number-system validation problem. Its path and constraint component show which part of the obligation failed."
+msgstr "归入 math:UnsituatedNumber 的发现表明数系验证存在问题。该发现的路径和约束组件指出义务的哪一部分未得到满足。"
+
+msgctxt "https://blackcatinformatics.ca/math/MathConformanceFailure|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use as a parent for a class that identifies a kind of violation of an authored mathematical obligation."
+msgstr "用作父类，其子类标识违反源中所声明数学义务的不同情形。"
+
+msgctxt "https://blackcatinformatics.ca/math/MathConformanceFailure|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Use the finding record for validation details. Establish numerical or empirical claims with evidence appropriate to those claims."
+msgstr "从发现记录中读取验证细节。用适当的证据支持数值主张或经验主张。"
+
+msgctxt "https://blackcatinformatics.ca/math/MathConformanceFailure|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Choose the most specific failure class supported by the check. Keep the class IRI and the focus node, path, component, value and source shape when the finding provides them."
+msgstr "选择检查结果所支持的最具体的失败类。保留类 IRI，并保留发现所提供的焦点节点、路径、组件、值和来源形状。"
+
+msgctxt "https://blackcatinformatics.ca/math/UnsituatedNumber|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Unsituated Number"
+msgstr "未指定数系的数"
+
+msgctxt "https://blackcatinformatics.ca/math/UnsituatedNumber|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A failure of the requirement for a math:Number to declare exactly one math:NumberSystem through math:inNumberSystem."
+msgstr "未满足 math:Number 必须通过 math:inNumberSystem 声明恰好一个 math:NumberSystem 的要求。"
+
+msgctxt "https://blackcatinformatics.ca/math/UnsituatedNumber|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The obligation on math:Number covers both the type of the system and the number of values. Admissible targets include the ordinary named system individuals and math:ExtendedRealLine. The mathematical context determines whether the chosen system describes the number."
+msgstr "math:Number 上的义务同时涉及数系类型和值的数量。允许的目标包括通常的命名数系个体和 math:ExtendedRealLine。所选数系能否描述该数，取决于数学语境。"
+
+msgctxt "https://blackcatinformatics.ca/math/UnsituatedNumber|http://www.w3.org/2004/02/skos/core#example"
+msgid "A math:RationalNumber marked math:isExact true with no math:inNumberSystem link illustrates a missing-system case. A valid declaration for the exact number one third links to math:rationalNumbers."
+msgstr "一个标记为 math:isExact true 却缺少 math:inNumberSystem 链接的 math:RationalNumber 展示了缺少数系的情形。精确数三分之一的有效声明指向 math:rationalNumbers。"
+
+msgctxt "https://blackcatinformatics.ca/math/UnsituatedNumber|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to interpret a finding attributed to the math:inNumberSystem requirement on math:Number."
+msgstr "用于解释归入 math:Number 上的 math:inNumberSystem 要求的验证发现。"
+
+msgctxt "https://blackcatinformatics.ca/math/UnsituatedNumber|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Use the reported component to investigate whether a system link is missing. Assess exactness and mathematical membership independently."
+msgstr "根据报告的组件查看数系链接是否缺失。另行判断精确性和数学上的归属关系。"
+
+msgctxt "https://blackcatinformatics.ca/math/UnsituatedNumber|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read the focus node, component, path, value and source shape for the reported problem. Repair the declaration so math:inNumberSystem points to one justified math:NumberSystem individual. Express containment between systems through math:subsystemOf."
+msgstr "查看问题所涉及的焦点节点、组件、路径、值和来源形状。修正声明，使 math:inNumberSystem 指向一个有充分依据的 math:NumberSystem 个体。通过 math:subsystemOf 表达数系之间的包含关系。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/examples/math/tests/ecNumberSituated|https://blackcatinformatics.ca/gmeow/conformanceRationale"
+msgid "The control declares a math:RationalNumber with math:isExact true and exactly one math:inNumberSystem value, math:rationalNumbers. The cell expects a conforming result from the generated validation surface."
+msgstr "对照样例声明了一个标记为 math:isExact true 的 math:RationalNumber，并为其声明了恰好一个 math:inNumberSystem 值，即 math:rationalNumbers。该单元预期生成的验证视图给出符合规范的结果。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/examples/math/tests/ecNumberMissingSystem|https://blackcatinformatics.ca/gmeow/conformanceRationale"
+msgid "The counter-example declares exactness but omits math:inNumberSystem. Class isolation requires at least one math:UnsituatedNumber finding and rejects findings outside that class in the selected channels."
+msgstr "反例声明了精确性，却省略了 math:inNumberSystem。类隔离检查要求至少有一项 math:UnsituatedNumber 发现，并拒绝所选渠道中归入其他类的发现。"

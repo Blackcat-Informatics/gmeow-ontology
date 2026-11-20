@@ -46,12 +46,13 @@ The object-layer parents and the reference, expression, proof/theory, probabilit
 applied-category-theory surfaces are all authored in this grounding slice; the design files below
 factor their contracts without creating separate semantic owners.
 
-Every well-formedness violation is a typed, queryable object: `math:MathConformanceFailure` and its
-subclasses, each wired from a canonical EL-safe axiom or `logic:Constraint` through
-`gmeow:enforcesFailureClass` and projected to the applicable validation surface. The
-preservation-polarity vocabulary is reused verbatim from the `logic:` loss ledger, and each named
-constant and number system is anchored to Wikidata (with OEIS locators for the constants) as a
-native alignment cell.
+`math:MathConformanceFailure` and its subclasses classify situations that violate
+mathematical obligations. The applicable canonical axioms and constraints can
+associate a failure class through `gmeow:enforcesFailureClass`. A SHACL finding
+carries that association when the generated source shape declares it.
+The preservation-polarity vocabulary is reused verbatim from the `logic:` loss
+ledger, and each named constant and number system is anchored to Wikidata
+(with OEIS locators for the constants) as a native alignment cell.
 
 ## The design set
 
@@ -83,7 +84,7 @@ positive fixture and a negative counter-example under the native slicetest harne
 
 | Rule | Shape | Failure class |
 | --- | --- | --- |
-| A number declares its number system | `math:NumberSituatedShape` | `math:UnsituatedNumber` |
+| A number declares exactly one number system | Generated `math:Number-shape` | `math:UnsituatedNumber` |
 | An approximation names what it approximates and its error | `math:ApproximateValueShape` | `math:ExactApproximateConflation` |
 | A named constant is an exact individual, not a decimal | `math:MathematicalConstantShape` | `math:ConstantAsDecimalLiteral` |
 | An intensional condition denotes a `logic:` formula | `math:IntensionalSetShape` | `math:StringOnlyMemberCondition` |
@@ -97,6 +98,93 @@ exact, whether a set is extensional or intensional and its condition, a function
 domain/codomain/image and its injectivity/surjectivity/bijectivity, a set's cardinality, and which
 named constants appear with their external anchors. Further questions in the same registry exercise
 every realized charter, including the cross-corpus coverage frames described below.
+
+## Number-system findings
+
+The [canonical module](./module.ttl) gives `math:Number` a qualified minimum of
+one `math:NumberSystem` on `math:inNumberSystem`, qualified maxima of one over
+`logic:Thing` and `math:NumberSystem`, an all-values restriction to
+`math:NumberSystem`, and a closed required-path entry. Together these checks
+require one system declaration for a number. The restrictions apply to
+`math:Number`. The property's domain and range are described in prose.
+
+Use `math:RationalNumber` to classify a number and `math:rationalNumbers` as its
+declared system. The signed extended real line is also a `math:NumberSystem`
+individual. System containment uses `math:subsystemOf`. RDF datatypes describe
+literals, and a number's membership in a chosen system needs mathematical
+justification. Record exactness independently of any approximate carrier.
+The general number-system checks govern the system link, while
+`math:MathematicalConstant` has its own boolean and true-value obligations.
+
+`math:MathConformanceFailure` and `math:UnsituatedNumber` have canonical
+`logic:Situation` grounding. `math:Number` and `math:NumberSystem` have
+`logic:AbstractIndividualType` grounding. The generated property shapes carry
+`math:Number`'s failure-class association, which the SHACL report bridge
+resolves by source-shape identity. A missing link, target-type violation or
+count violation can share `math:UnsituatedNumber`. Inspect the component, path,
+value and source shape to decide how to repair a specific finding.
+
+The [owned correspondences](./mappings/equivalences.ttl) declare Wikidata close
+matches for the named system individuals. Their
+`logic:AffineCorrespondence`, `logic:InstitutionMorphism` and
+`logic:ValidationOnly` judgments apply to those individuals and their external
+targets. The failure classes and individual number objects have separate roles.
+
+## Approximation and constant diagnostic findings
+
+`math:ExactApproximateConflation` and `math:ConstantAsDecimalLiteral` retain
+their canonical `logic:Situation` grounding. `math:ApproximateValue` and
+`math:MathematicalConstant` retain `logic:AbstractIndividualType` grounding.
+The described failure situation and the validation finding that cites its
+class are separate roles; a finding does not imply a newly minted failure node.
+
+The existing [canonical module](./module.ttl) gives `math:ApproximateValue`
+minimum, all-values and qualified-maximum target restrictions that require
+one `math:Number` through `math:approximates`. Its error restriction requires
+at least one `math:approximationError` in the decimal/double/float union.
+That group has no error maximum or all-values restriction, and no
+`math:quantityValue` or `math:numericDatatype` restriction. It supplies no proof
+of finiteness, non-negative error, numerical bound validity, datatype/value
+agreement or inequality between target and approximation resources. Retain
+those intended authoring requirements separately from what the constraints
+actually establish. The [numbers charter](./design/MATHEMATICS-NUMBERS-AND-SETS.md#number-systems-and-exactness)
+distinguishes abstract numbers, pair carriers and separate approximation objects.
+
+`math:MathematicalConstant` has an existing boolean minimum for `math:isExact`,
+typed `logic:hasValue true` and a qualified maximum of zero for direct
+`math:quantityValue` values in `rdfs:Literal`. The prohibition covers literal
+values beyond the `xsd:decimal` datatype. Preserve the constant's exact
+identity; place a justified evaluation and numeric absolute bound on a
+separate approximation. A datatype or displayed precision does not prove that
+bound, and a numeric value alone supplies no dimension, unit, basis or frame.
+
+The two class-level `gmeow:enforcesFailureClass` annotations are copied to
+generated property shapes, and the report bridge resolves classes by source
+shape. Thus `math:ExactApproximateConflation` can accompany target-type/count
+or missing-bound findings, while `math:ConstantAsDecimalLiteral` also labels
+the constant's exactness findings. Neither class alone identifies a particular
+component or proves a raw literal or resource conflation. Inspect the actual
+component, path, value and source shape, then repair that obligation. The
+canonical source is `logic:`; SHACL is its generated validation view.
+
+The two negative conformance cells select class isolation when
+`expectedFailureClass` is present: the executor requires a matching-class
+finding and rejects findings of every other class across its channels. That
+branch does not additionally enforce the declared component/source-shape
+fields or require exactly one finding. The fixture headers describe this
+source contract without asserting an executed verdict.
+
+The [selected exact scalar runtime](./design/MATHEMATICS-RUNTIME.md#selected-exact-scalar-execution)
+accepts dimensionless Quantity integer/decimal bindings and refuses float/double
+inputs and nonterminating exact division. It does not qualify these
+approximation records or their error bounds. The rational reader and decimal
+square-root output have their separate
+[native limits](./design/MATHEMATICS-LINEAR-ALGEBRA-AND-LEARNING.md#rational-carriers-validation-and-native-limits).
+The exact constants' [Wikidata identity laws and OEIS digit locators](./mappings/equivalences.ttl)
+retain `logic:SoundUnderApproximation` and `logic:ValidationOnly` judgments,
+respectively. Their ownership stays with the exact constants; neither the
+approximation nor the diagnostic classes inherit those laws, and the links
+certify no numerical bound.
 
 ## Algebra — structures, symmetry, and homomorphisms
 

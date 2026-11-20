@@ -539,10 +539,22 @@ pub(crate) fn objects_in_graph<D: DatasetView<ReadError = Infallible> + ?Sized>(
     predicate: &Iri,
     graph: GraphMatch<D::Id>,
 ) -> Vec<Node> {
+    objects_in_graph_observed(ds, subject, predicate, graph, |_| {})
+}
+
+/// Observe the exact semantic source rows read by the shared object query.
+pub(crate) fn objects_in_graph_observed<D: DatasetView<ReadError = Infallible> + ?Sized>(
+    ds: &D,
+    subject: &Subject,
+    predicate: &Iri,
+    graph: GraphMatch<D::Id>,
+    mut observe: impl FnMut(QuadIds<D::Id>),
+) -> Vec<Node> {
     let (Some(s_id), Some(p_id)) = (subject_id(ds, subject), predicate_id(ds, predicate)) else {
         return Vec::new();
     };
     source_graph_pattern(ds, Some(s_id), Some(p_id), None, graph)
+        .inspect(|quad| observe(*quad))
         .map(|q| node_of(ds, q.o))
         .collect()
 }

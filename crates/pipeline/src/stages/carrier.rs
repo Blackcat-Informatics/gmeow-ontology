@@ -883,6 +883,36 @@ fn holds_named_graph(dataset: &purrdf::RdfDataset, graph_iri: &str) -> bool {
         .is_some_and(|graph| dataset.has_named_graph(graph))
 }
 
+/// Check that the promised graph owns the entire native dataset.
+pub(super) fn require_rooted_graph(
+    dataset: &purrdf::RdfDataset,
+    stage: &str,
+    graph_iri: &str,
+) -> gmeow_errors::Result<()> {
+    let invalid = |message| {
+        gmeow_errors::Diag::of_kind(crate::error::StageFailed {
+            stage: stage.to_owned(),
+            message,
+            cause: None,
+        })
+    };
+    let graph = dataset
+        .term_id_by_iri(graph_iri)
+        .filter(|&graph| dataset.named_graphs().eq(std::iter::once(graph)))
+        .ok_or_else(|| invalid(format!("must declare only <{graph_iri}>")))?;
+    if dataset.quads().any(|quad| quad.g != Some(graph))
+        || dataset
+            .reifiers_with_graph()
+            .any(|(_, _, owner)| owner != Some(graph))
+        || dataset
+            .annotations_with_graph()
+            .any(|(_, _, _, owner)| owner != Some(graph))
+    {
+        return Err(invalid(format!("contains RDF rows outside <{graph_iri}>")));
+    }
+    Ok(())
+}
+
 /// Number of ordinary quads `dataset` asserts in the named graph `graph_iri`.
 fn graph_quad_count(dataset: &purrdf::RdfDataset, graph_iri: &str) -> usize {
     dataset.term_id_by_iri(graph_iri).map_or(0, |graph| {
@@ -924,8 +954,8 @@ fn graph_has_quads(dataset: &purrdf::RdfDataset, graph_iri: &str) -> bool {
 /// The snapshot carrier's parts, held as composite sources over the producers' resident
 /// datasets.
 ///
-/// Each part is one producer graph selected and placed into its carrier graph
-/// (`purrdf::CompositeSource::from_selection` plus `purrdf::GraphPlacement::Named`), or
+/// Each part is one producer graph selected and placed into its carrier graph,
+/// a producer dataset that already occupies its sole declared carrier graph, or
 /// a dataset this stage built itself. Selection
 /// carries a graph's quads, reifier declarations, annotations and declaration exactly as
 /// `project_graph` selects them, and named placement moves the whole selected surface
@@ -985,6 +1015,27 @@ impl<'a> CarrierParts<'a> {
         self.producers.clear();
     }
 
+    /// Borrow a declared producer graph as a reusable source selection.
+    fn select_graph_source(
+        &mut self,
+        stage: &str,
+        graph_iri: &str,
+    ) -> Result<purrdf::CompositeSource, gmeow_errors::Diag> {
+        purrdf::CompositeSource::from_selection(
+            self.producer_view(stage)?,
+            [purrdf::TermValue::iri(graph_iri)],
+            CARRIER_VIEW_LIMITS,
+        )
+        .map_err(|e| stage_err(&format!("select <{graph_iri}> off {stage}: {e}")))
+    }
+
+    fn place_graph_source(&mut self, source: purrdf::CompositeSource, placed_iri: &str) {
+        self.sources
+            .push(source.with_graph_placement(purrdf::GraphPlacement::Named(
+                purrdf::TermValue::iri(placed_iri),
+            )));
+    }
+
     /// Select `graph_iri` off `stage`'s dataset and place it in `placed_iri`. A graph the
     /// producer does not hold contributes only the destination declaration, as the empty
     /// `project_graph` result re-rooted by [`rooted_in_graph`] did.
@@ -1002,21 +1053,13 @@ impl<'a> CarrierParts<'a> {
         );
         let source =
             if holds_named_graph(dataset.as_ref(), graph_iri) {
-                purrdf::CompositeSource::from_selection(
-                    self.producer_view(stage)?,
-                    [purrdf::TermValue::iri(graph_iri)],
-                    CARRIER_VIEW_LIMITS,
-                )
-                .map_err(|e| stage_err(&format!("select <{graph_iri}> off {stage}: {e}")))?
+                self.select_graph_source(stage, graph_iri)?
             } else {
                 purrdf::CompositeSource::new(RdfDatasetBuilder::new().freeze().map_err(|e| {
                     stage_err(&format!("freeze the empty <{placed_iri}> part: {e}"))
                 })?)
             };
-        self.sources
-            .push(source.with_graph_placement(purrdf::GraphPlacement::Named(
-                purrdf::TermValue::iri(placed_iri),
-            )));
+        self.place_graph_source(source, placed_iri);
         Ok(())
     }
 
@@ -1025,13 +1068,23 @@ impl<'a> CarrierParts<'a> {
         self.push_graph_as(stage, graph_iri, graph_iri)
     }
 
+    /// Place a producer's entire single-graph dataset without building a selection index.
+    fn push_rooted_graph(
+        &mut self,
+        stage: &str,
+        graph_iri: &str,
+    ) -> Result<(), gmeow_errors::Diag> {
+        let dataset = self.producer_dataset(stage)?;
+        require_rooted_graph(&dataset, stage, graph_iri)?;
+        log_carrier_part(stage, graph_iri, dataset.quad_count());
+        self.place_graph_source(purrdf::CompositeSource::new(dataset), graph_iri);
+        Ok(())
+    }
+
     /// Place every record of `dataset` into the carrier graph `placed_iri`.
     fn push_placed(&mut self, dataset: std::sync::Arc<purrdf::RdfDataset>, placed_iri: &str) {
         log_carrier_part("dataset", placed_iri, dataset.quad_count());
-        self.sources
-            .push(purrdf::CompositeSource::new(dataset).with_graph_placement(
-                purrdf::GraphPlacement::Named(purrdf::TermValue::iri(placed_iri)),
-            ));
+        self.place_graph_source(purrdf::CompositeSource::new(dataset), placed_iri);
     }
 
     /// Keep every record of `dataset` in the graph it already names.
@@ -1066,6 +1119,75 @@ impl<'a> CarrierParts<'a> {
             .materialize()
             .map_err(|e| stage_err(&format!("materialize the snapshot carrier: {e}")))
     }
+}
+
+/// Certify the independently loaded report bytes and ledger before sharing the graph.
+/// The report writer emits ordinary statements over IRIs and literals. Frozen rows
+/// are distinct, so equal counts and indexed membership establish equality without
+/// copying either graph's rows or term strings.
+fn check_projection_report(
+    bytes: &[u8],
+    report_iri: &str,
+    ledger: &purrdf::RdfDataset,
+    ledger_graph: purrdf::TermId,
+    ledger_rows: usize,
+) -> Result<(), gmeow_errors::Diag> {
+    let report = parse_dataset(bytes, "text/turtle", None)
+        .map_err(|e| stage_err(&format!("parse <{report_iri}>: {e}")))?;
+    if report.quad_count() != ledger_rows {
+        return Err(stage_err(&format!(
+            "projection report <{report_iri}> has {} rows, ledger <{GRAPH_PROJECTION_LEDGER}> has {ledger_rows}",
+            report.quad_count()
+        )));
+    }
+    if report.reifiers().next().is_some()
+        || report.annotations().next().is_some()
+        || ledger
+            .reifiers_with_graph()
+            .any(|(_, _, graph)| graph == Some(ledger_graph))
+        || ledger
+            .annotations_with_graph()
+            .any(|(_, _, _, graph)| graph == Some(ledger_graph))
+    {
+        return Err(stage_err(&format!(
+            "projection report <{report_iri}> and its native ledger require ordinary statements"
+        )));
+    }
+    let lookup = |id| match report.resolve(id) {
+        purrdf::TermRef::Iri(iri) => ledger.term_id_by_iri(iri),
+        purrdf::TermRef::Literal {
+            lexical,
+            datatype,
+            language,
+            direction,
+        } => {
+            let purrdf::TermRef::Iri(datatype) = report.resolve(datatype) else {
+                return None;
+            };
+            ledger.term_id_by_literal(lexical, datatype, language, direction)
+        }
+        purrdf::TermRef::Blank { .. } | purrdf::TermRef::Triple { .. } => None,
+    };
+    let matches = report.quads().all(|q| {
+        let (Some(s), Some(p), Some(o)) = (lookup(q.s), lookup(q.p), lookup(q.o)) else {
+            return false;
+        };
+        purrdf::DatasetView::quads_for_pattern(
+            ledger,
+            Some(s),
+            Some(p),
+            Some(o),
+            purrdf::GraphMatch::Named(ledger_graph),
+        )
+        .next()
+        .is_some()
+    });
+    if !matches {
+        return Err(stage_err(&format!(
+            "projection report <{report_iri}> differs from native ledger <{GRAPH_PROJECTION_LEDGER}>"
+        )));
+    }
+    Ok(())
 }
 
 fn assemble_carrier(
@@ -1128,7 +1250,7 @@ fn assemble_carrier(
         "stage-source-load",
         crate::stages::provenance_graph::GRAPH_PROVENANCE,
     )?;
-    parts.push_graph("stage-docs-render", GRAPH_DOCUMENTATION)?;
+    parts.push_rooted_graph("stage-docs-render", GRAPH_DOCUMENTATION)?;
     // graph/diagnostics ← SHACL diagnostics (stage-validate) ∪ logic-compile diagnostics
     // (stage-compile-logic) ∪ chase certificates (stage-reason) ∪ schema-export
     // diagnostics, each selected off its producer's attached graph.
@@ -1150,8 +1272,19 @@ fn assemble_carrier(
     // `gmeow project --profile spdx` returns the substrate packages; bundle-internal,
     // so `assemble_object_level_edb` never selects it.
     parts.push_graph("stage-mappings", GRAPH_SUBSTRATE_SBOM)?;
+    let mappings = upstream
+        .get("stage-mappings")
+        .ok_or_else(|| stage_err("missing stage-mappings product for projection graphs"))?;
+    let ledger = mappings.dataset();
+    let ledger_graph = ledger
+        .term_id_by_iri(GRAPH_PROJECTION_LEDGER)
+        .filter(|&graph| ledger.has_named_graph(graph))
+        .ok_or_else(|| stage_err("missing projection ledger graph in stage-mappings"))?;
+    let ledger_rows = graph_quad_count(ledger, GRAPH_PROJECTION_LEDGER);
+    let ledger_source = parts.select_graph_source("stage-mappings", GRAPH_PROJECTION_LEDGER)?;
+    log_carrier_part("stage-mappings", GRAPH_PROJECTION_LEDGER, ledger_rows);
+    parts.place_graph_source(ledger_source.clone(), GRAPH_PROJECTION_LEDGER);
     for graph_iri in [
-        GRAPH_PROJECTION_LEDGER,
         GRAPH_LANG_TRANSLATION_CORPUS,
         GRAPH_LANG_FORM_CORPUS,
         GRAPH_LANG_PROJECTION_CORPUS,
@@ -1264,24 +1397,34 @@ fn assemble_carrier(
     // graph/projections/<name>.edoal ← each committed EDOAL projection, one named
     // graph per file. EDOAL renders through the canonical-Turtle serializer, so the
     // fold of its named graph reproduces the committed bytes exactly (superset law).
-    let mappings = upstream
-        .get("stage-mappings")
-        .ok_or_else(|| stage_err("missing stage-mappings product for projection graphs"))?;
-    // The RDF-fanout attach class, DERIVED from the authored gmeow:fanoutExtracts rows in
-    // the loaded pipeline-slice source (stage-source-load already holds module.ttl in
-    // memory — a source input, not the bundle being produced), so the carrier's attach set
-    // and the superset gate's claim set read ONE inventory (no hand-list to drift).
+    // The authored gmeow:fanoutExtracts inventory classifies the remaining
+    // mappings RDF fanout members. The report has its own required read below.
     let rdf_fanout_classes =
         crate::stages::superset::RdfFanoutClasses::from_source(&authored_default)?;
-    for (path, bytes) in mappings.artifacts() {
-        if let Some(iri) = crate::stages::superset::edoal_projection_graph_iri(&path) {
-            parts.push_parsed(&bytes, "text/turtle", &iri)?;
-        } else if rdf_fanout_classes.contains(&path) {
+    let mut mapping_artifacts = mappings.artifact_refs()?;
+    let report_path = crate::stages::compile_logic::PROJECTION_REPORT_PATH;
+    let report = mappings.artifact(report_path).ok_or_else(|| {
+        stage_err(&format!(
+            "missing {report_path} in stage-mappings for RDF fanout"
+        ))
+    })?;
+    let report_iri = crate::stages::superset::rdf_fanout_graph_iri(report_path)
+        .ok_or_else(|| stage_err(&format!("non-RDF projection report path: {report_path}")))?;
+    // The required report read supplies the same sorted mapping slot as the bulk lane.
+    mapping_artifacts.insert(report_path, report);
+    for (path, bytes) in mapping_artifacts {
+        if path == report_path {
+            check_projection_report(bytes, &report_iri, ledger, ledger_graph, ledger_rows)?;
+            log_carrier_part("stage-mappings", &report_iri, ledger_rows);
+            parts.place_graph_source(ledger_source.clone(), &report_iri);
+        } else if let Some(iri) = crate::stages::superset::edoal_projection_graph_iri(path) {
+            parts.push_parsed(bytes, "text/turtle", &iri)?;
+        } else if rdf_fanout_classes.contains(path)
+            && let Some(iri) = crate::stages::superset::rdf_fanout_graph_iri(path)
+        {
             // The non-EDOAL RDF projections (core-prefixes / functions.fno /
-            // list-functions), now emitted canonically by the mappings stage.
-            if let Some(iri) = crate::stages::superset::rdf_fanout_graph_iri(&path) {
-                parts.push_parsed(&bytes, "text/turtle", &iri)?;
-            }
+            // list-functions) emitted canonically by the mappings stage.
+            parts.push_parsed(bytes, "text/turtle", &iri)?;
         }
     }
     // graph/fanout/<path> ← every other RDF generated/ file, one named graph per file,
@@ -1296,10 +1439,9 @@ fn assemble_carrier(
         "parse-rdf-fanout",
         || -> Result<(), gmeow_errors::Diag> {
             for (path, bytes) in fanout {
-                let iri =
-                    crate::stages::superset::rdf_fanout_graph_iri(&path).ok_or_else(|| {
-                        stage_err(&format!("non-RDF path in rdf_fanout_members: {path}"))
-                    })?;
+                let iri = crate::stages::superset::rdf_fanout_graph_iri(path).ok_or_else(|| {
+                    stage_err(&format!("non-RDF path in rdf_fanout_members: {path}"))
+                })?;
                 let media_type = if path.ends_with(".nt") {
                     "application/n-triples"
                 } else if path.ends_with(".nq") {
@@ -1307,7 +1449,7 @@ fn assemble_carrier(
                 } else {
                     "text/turtle"
                 };
-                parts.push_parsed(&bytes, media_type, &iri)?;
+                parts.push_parsed(bytes, media_type, &iri)?;
             }
             Ok(())
         },
@@ -1508,55 +1650,33 @@ fn fold_coherence_certificate(
     Ok(certified)
 }
 
-/// Every remaining RDF `generated/` file (committed-path → bytes) that rides as an
-/// RDF-fanout named graph, recomputed from THIS run's source. Each is the canonical
-/// fold the producing stage also emits as its committed file. Grows class-by-class.
+/// Borrow the remaining committed RDF artifacts through snapshot parsing.
+/// The sorted map supplies one reconstruction graph per committed path.
 fn rdf_fanout_members(
     upstream: &BTreeMap<String, StageProduct>,
-) -> Result<BTreeMap<String, Vec<u8>>, gmeow_errors::Diag> {
-    let mut out: BTreeMap<String, Vec<u8>> = BTreeMap::new();
-    for (path, bytes) in producer_artifacts("stage-math-producers", upstream)? {
-        if is_rdf_member(&path) {
-            out.insert(path, bytes);
-        }
-    }
-    // profiles — `owl:Ontology` import closures, canonical Turtle. Read off the
-    // stage-export-profiles product (rendered once, in that leaf; keyed by full path).
-    for (path, bytes) in producer_artifacts("stage-export-profiles", upstream)? {
-        out.insert(path, bytes);
-    }
-    // research-objects — the RO-crate `.ttl` re-serializations + the `lillith.dcat.ttl`
-    // CONSTRUCT (opaque JSON/HTML/XML members ride the opaque fanout blob). Read off the
-    // stage-export-research-objects product; keep only the RDF members.
-    for (path, bytes) in producer_artifacts("stage-export-research-objects", upstream)? {
-        if is_rdf_member(&path) {
-            out.insert(path, bytes);
-        }
-    }
-    // evals scores.ttl — the meta-claim Assessments (opaque MD/JSON ride the blob). Read
-    // off the stage-export-evals product; keep only the RDF members.
-    for (path, bytes) in producer_artifacts("stage-export-evals", upstream)? {
-        if is_rdf_member(&path) {
-            out.insert(path, bytes);
-        }
-    }
-    // glossary vartrans.ttl — the OntoLex vartrans:translation lowering of the reviewed
-    // glossary crossings (the readable `.md` table + the `.tbx` termbase are non-RDF and
-    // ride the opaque blob). Read off the stage-export-glossary product; keep only the RDF
-    // member, so the `.ttl` folds as its own `graph/fanout/projections/glossary.vartrans.ttl`
-    // named graph (mirrors evals scores.ttl).
-    for (path, bytes) in producer_artifacts("stage-export-glossary", upstream)? {
-        if is_rdf_member(&path) {
-            out.insert(path, bytes);
-        }
-    }
-    // skos surface gmeow-skos.ttl — the generated SKOS concept-scheme projection of the
-    // lifted NodeKind::Annotation axioms. Read off the stage-export-skos-surface
-    // product; it is a single RDF `.ttl` member, so it folds as its own
-    // graph/fanout/skos/gmeow-skos.ttl named graph (mirrors evals scores.ttl / glossary vartrans).
-    for (path, bytes) in producer_artifacts("stage-export-skos-surface", upstream)? {
-        if is_rdf_member(&path) {
-            out.insert(path, bytes);
+) -> Result<BTreeMap<&str, &[u8]>, gmeow_errors::Diag> {
+    let mut out = BTreeMap::new();
+    for stage in [
+        "stage-math-producers",
+        "stage-export-profiles",
+        "stage-export-research-objects",
+        "stage-export-evals",
+        "stage-export-glossary",
+        "stage-export-skos-surface",
+    ] {
+        let producer = upstream.get(stage).ok_or_else(|| {
+            stage_err(&format!("missing {stage} product for the fanout presenter"))
+        })?;
+        let artifacts = producer.artifact_refs()?;
+        if stage == "stage-export-profiles" {
+            // Every profile output must be accepted by the downstream RDF parser.
+            out.extend(artifacts);
+        } else {
+            out.extend(
+                artifacts
+                    .into_iter()
+                    .filter(|(path, _)| is_rdf_member(path)),
+            );
         }
     }
     // gufo.ttl — the gUFO bridge projection, from the sink-consumed compile-logic
@@ -1564,17 +1684,11 @@ fn rdf_fanout_members(
     let gufo = upstream
         .get("stage-compile-logic")
         .and_then(|p| p.artifact(crate::stages::compile_logic::GUFO_PATH))
-        .map(<[u8]>::to_vec)
         .ok_or_else(|| stage_err("missing generated/foundation/gufo.ttl in stage-compile-logic"))?;
-    out.insert(crate::stages::compile_logic::GUFO_PATH.to_string(), gufo);
+    out.insert(crate::stages::compile_logic::GUFO_PATH, gufo);
 
-    // projection-report loss ledger (mappings) + the relational-core / correspondence
-    // N-Triples programs (compile-logic), each emitted canonically by its stage.
+    // The relational-core and correspondence N-Triples programs from compile-logic.
     for (stage, path) in [
-        (
-            "stage-mappings",
-            crate::stages::compile_logic::PROJECTION_REPORT_PATH,
-        ),
         (
             "stage-compile-logic",
             crate::stages::compile_logic::RELATIONAL_CORE_PATH,
@@ -1607,9 +1721,8 @@ fn rdf_fanout_members(
         let bytes = upstream
             .get(stage)
             .and_then(|p| p.artifact(path))
-            .map(<[u8]>::to_vec)
             .ok_or_else(|| stage_err(&format!("missing {path} in {stage} for RDF fanout")))?;
-        out.insert(path.to_string(), bytes);
+        out.insert(path, bytes);
     }
     Ok(out)
 }
@@ -3081,6 +3194,8 @@ pub(crate) fn term_entailments_from_upstream(
     upstream: &BTreeMap<String, StageProduct>,
     term_iris: &std::collections::BTreeSet<String>,
 ) -> Result<BTreeMap<String, Vec<gmeow_docs::Entailment>>, gmeow_errors::Diag> {
+    use gmeow_logic::reason::dl::EmptyClassAssertion;
+
     // Documentation runs before snapshot assembly and already retains this native
     // carrier for its verdict. No extra dependency or lifetime extension is needed.
     use crate::stages::docs_render::reasoning_verdict_error;
@@ -3154,6 +3269,11 @@ pub(crate) fn term_entailments_from_upstream(
         }
         premises.sort();
         premises.dedup();
+        let proves_unsatisfiability = axiom
+            .object
+            .as_iri()
+            .and_then(|iri| EmptyClassAssertion::classify(&axiom.predicate, iri))
+            == Some(EmptyClassAssertion::Subsumption);
         let object = axiom
             .object
             .as_iri()
@@ -3169,9 +3289,17 @@ pub(crate) fn term_entailments_from_upstream(
                 object
             ),
             premises,
+            proves_term_unsatisfiable: false,
         };
         for iri in matched {
-            entailments.entry(iri).or_default().push(entailment.clone());
+            let proves_term_unsatisfiable = proves_unsatisfiability && iri == axiom.subject;
+            entailments
+                .entry(iri)
+                .or_default()
+                .push(gmeow_docs::Entailment {
+                    proves_term_unsatisfiable,
+                    ..entailment.clone()
+                });
         }
     }
     for entries in entailments.values_mut() {
@@ -3464,7 +3592,7 @@ impl Stage for SnapshotStage {
     }
     /// Bind the complete snapshot contract, including required canon admission evidence.
     fn impl_version(&self) -> &str {
-        "snapshot.v39-math-target-projections"
+        "snapshot.v43-reuse-rooted-documentation"
     }
     fn input_files(&self, root: &Path) -> Result<Vec<PathBuf>, gmeow_errors::Diag> {
         let mut files = Vec::new();
@@ -3791,7 +3919,7 @@ fn merge_translations(root: &Path, quads: &mut Vec<RdfQuad>) -> Result<(), gmeow
     .map_err(|e| stage_err(&format!("slice catalog: {e}")))?;
     let translation_sources = gmeow_docs::ontology_catalogs::for_repository(root, &catalog)?;
     let translations =
-        gmeow_docs::Translations::from_ontology_catalogs(&catalog, &translation_sources);
+        gmeow_docs::Translations::from_ontology_catalogs(&catalog, &translation_sources)?;
     let langs: Vec<String> = translations.languages().to_vec();
     if langs.is_empty() {
         return Ok(());

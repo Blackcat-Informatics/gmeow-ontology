@@ -3,10 +3,10 @@
 
 # The Pipeline Spine — Carrier, Terminal, and Fanout
 
-> **Genre.** A normative architecture spec for the regeneration pipeline. The
-> declarative present tense is normative — "the carrier *is* the sole transport"
-> means "a conforming realization makes it so" — not a claim that every line of the
-> current build already conforms. The conformance gate (§7) is what establishes it.
+> **Genre.** A normative architecture spec for the regeneration pipeline.
+> The stage contract (§3) identifies the checks that enforce it and the
+> conventions that require review. The conformance gate (§7) checks the
+> materialized outputs against the bundle.
 >
 > **Audience.** Anyone working on `crates/pipeline`, the GTS terminal, or any stage
 > that produces a committed artifact under `generated/`.
@@ -49,11 +49,9 @@ whole run. It holds:
   text trees, serialized side formats) keyed by digest;
 - the **provenance** sidecar — per-quad attribution.
 
-The carrier is the spine for the whole run: every stage hands the next stage a
-richer carrier, never a serialized file and never a second parallel assembly. In
-particular the GTS form is **exit-only** — the bundle is serialized to `gmeow.gts`
-once, by the terminal, and never re-parsed back into the pipeline as transport.
-There is no `dataset → gts → dataset` round-trip inside the spine.
+Stages exchange contributions through the carrier. The terminal publishes
+`gmeow.gts` at the exit. Fanout and verification read the serialized bundle
+after the stage DAG, outside its transport path.
 
 **Typed publication identity.** A typed attachment binds its named graph's
 canonical digest and its complete native payload commitment. Downstream action
@@ -67,31 +65,47 @@ native payload, graph binding and product commitment before admitting a hit.
 
 A stage is a function from carrier to carrier. It **reads** what upstream stages
 contributed and **attaches** its own contribution — one or more named graphs and/or
-blobs. Four rules bind every stage:
+blobs. Each stage follows four rules.
 
-1. **No out-of-band writes.** A stage never writes a file under `generated/`, never
-   reads one back as input, and never opens a side channel to a later stage. Its
-   only output is what it attaches to the carrier. (Reading authored *source* —
-   `slices/`, `dsl/`, `imports/` — is how stages begin; that is input, not
-   transport.)
-2. **Transform once (the razor).** Each transformation from one form to another
-   happens at most once per run. A closure, a projection, or a rendering is computed
-   a single time and attached; downstream consumers read the attached result rather
-   than recomputing it. Reasoning in particular runs **once**, materializing the
-   reasoned closure as a carrier graph that every consumer — the bundle, the
-   committed closure artifact, the documentation — reads from.
-3. **Declare contributions.** A stage names the graphs and blobs it contributes, so
-   the dependency order is derivable and the superset gate (§7) can map every output
-   to its producer.
-
-4. **Read only what you declared.** The scheduler hands a stage exactly the products
-   of the ids in its `dataflowConsumes`. There is no ambient access to a sibling's or
-   an ancestor's carrier; an undeclared read is not "unsupported", it is
-   *unreachable*.
+1. **Route stage products through the carrier (convention).** Read declared
+   authored inputs and publish outputs through the stage product. Keep
+   `generated/` writes and reads of the materialized outputs in the reconcile,
+   fanout, and audit phases. The carrier-purity test checks selected transport
+   code for store accumulation and round-trips. Review enforces the broader
+   convention about filesystem access and side channels.
+   [Carrier-purity test](../crates/pipeline/tests/carrier_purity.rs)
+2. **Transform once (convention).** Attach the authoritative closure,
+   projection, or rendering and reuse it in downstream stages. The scheduler
+   accounts for actions and their reads. Identifying equivalent computations
+   across separate stage bodies is a review responsibility.
+3. **Declare contributions (checked).** Name the graphs and blob
+   representations a stage attaches. The loader compares the RDF declarations
+   with the Rust implementation, and the scheduler compares the product's
+   attachment delta with those declarations. Authored dataflow edges order
+   dependencies. The superset gate (§7) verifies the correspondence between
+   shipped representatives and committed paths.
+   [Loader](../crates/pipeline/src/loader.rs) · [Scheduler](../crates/pipeline/src/scheduler.rs)
+4. **Declare the reads each edge makes (checked).** The scheduler provides only
+   the producer products named by `dataflowConsumes`. The bound dataflow
+   declares which reads need a live carrier and which use the artifact lane.
+   Under the production enforcement policy, the scheduler compares recorded
+   reads with those declarations in both directions when a stage succeeds.
+   Undeclared reads and unread declarations fail the run and prevent caching that
+   product. The maintainer recording mode observes reads without enforcement.
+   An identity-only dependency uses the producer's digest and requires no lane
+   read. Stored products are authenticated on cache hits. This check covers reads
+   on declared edges. Finding products with no declared reader remains a review
+   responsibility.
+   [Read contracts](../crates/pipeline/src/reads.rs) · [Scheduler](../crates/pipeline/src/scheduler.rs)
 
 Stage kinds (source-load, transform, reason, validate, docs-render) differ only in
 *what* they contribute and *what they read*, never in *how* they deliver it: all
 deliver by attaching to the carrier.
+
+`stage-docs-render` publishes `graph/documentation` in its frozen dataset.
+The documentation projector appends each row and its shared A-Box annotations
+to one N-Quads buffer and releases that text after native parsing. Snapshot
+selects the named graph through the declared dataset edge.
 
 `stage-parse-sources` owns the original native root, module and import document
 parses. Its typed source catalog retains exact source receipts, document bases,
@@ -188,6 +202,9 @@ rediscovering the slice catalog or reconstructing authority from the graph.
 Mappings binds every physical slice-admission input into its action key; its full
 source slice catalog stays local to the lowering invocation. Persistent restoration
 authenticates the complete native catalog and graph binding without source reads.
+Mappings releases the raw projection report after emitting canonical Turtle.
+The ordered RDF union owns its dataset, so its input datasets are released
+before handle commitment and product digesting.
 
 Compiler carrier assembly places the existing canonical, relational-core and
 correspondence datasets through one composite view and materializes the final
@@ -197,6 +214,12 @@ declaration; an IRI used as a provenance value remains that value. Independent
 input blank scopes remain distinct. These producer inputs carry locations in their
 RDF and report payloads; unexpected physical row-location attachments fail admission
 before publication. Diagnostics retain their selected graph placement.
+
+The documentation producer parses the renderer's named N-Quads and publishes
+that native dataset. An empty render publishes the empty named graph. The
+producer and snapshot assembly both check that the documentation graph is the
+sole declaration and owns every ordinary statement, reifier and annotation.
+Snapshot assembly places the dataset as an independently scoped source.
 
 Snapshot assembly derives finding verdicts over the composed resident sources, then
 assesses coherence over a second read-only view with those verdicts appended. The
@@ -260,7 +283,10 @@ Separate reifiers preserve coexisting standpoints; table order cannot pick a win
 
 The prepared compiler can retain emission evidence bound to that exact source.
 Ordinary and annotation axioms carry their native statement coordinates; scoped
-axioms and class-expression expansions carry their original structural roots.
+axioms and genuine class-expression expansions carry their original structural roots.
+Collection expansions carry the exact physical constructor, its owner role and
+member positions. Rewritten anonymous schema fields retain their actual source
+field and role without claiming the emitted RDF is an original statement.
 Horn routing retains each formula root, and axiom deduplication unions all these
 origins. Values and source anchors are sorted together once, so canonical IR
 positions come from actual lowering rather than matching generated identifiers.
@@ -270,6 +296,18 @@ default graph. A shared malformed subtree records every affected root even when
 the diagnostic itself is shared. These invocation-local records do not certify
 complete source coverage, owner execution or optimization laws; class-expression
 roots alone do not account for every consumed restriction or list statement.
+
+Compiler trace schema 3 streams typed constructor and field origins with their
+physical carriers under `gmeow-compiler-source-trace-v3`. Invocation-local
+constructor IDs index the exact binding and role registry rather than embedding
+full constructor bindings in every syntax-owner key.
+Collection ownership follows each actual constructor and owner path, including
+shared heads; role unions and generated names supply no authority. Early payload
+filters do not discard contributors. Canonical payloads remain unique, while
+selected views omit excluded origins independently. Property/value cells and
+non-class anonymous fields create no synthetic class obligations. Constructor
+obligations reuse their physical source rows; unsupported laws remain explicit
+native and classical blockers.
 
 The rule, contract, path-shape, constraint/sugar, reasoning-program and
 correspondence readers also capture their original owner at invocation. Emitted
@@ -325,12 +363,18 @@ leg failure instead of publishing the remaining programs as a complete registry.
 Formula assertions, constraints, reasoning-program clauses and correspondence
 recovery transforms share one reconstruction session per selected dataset. Its
 memo uses native source-term identity together with modal world and depth, with
-an 8 MiB retained-payload limit and a 4096-entry limit. Eviction recomputes the
-same formula; it cannot omit a check. Modal binders use a deterministic namespace
+an 8 MiB retained-payload limit and a limit of 4,096 entries. Exact reconstruction
+reads travel in a shared immutable trace DAG: each node stores local queried
+coordinates and references its reused children. Every retained entry is charged
+its complete transitive trace cost, conservatively counting shared allocations,
+so eviction cannot leave pinned child traces unaccounted. A memo hit retains the
+same complete read support; an oversized result stays live without cache retention.
+Source ownership and admission still require the successful enclosing owner.
+Eviction recomputes the same formula; it cannot omit a check. Modal binders use a deterministic namespace
 disjoint from authored variables, and sort declarations remain occurrence-scoped
 through modal bodies. Only assertion roots retain owned trees in the formula
-extractor; intermediate reuse belongs to the bounded session. Source ownership,
-admission and execution evidence are separate from this derived-value memo.
+extractor; intermediate reuse belongs to the bounded session. Read observations
+do not supply execution evidence.
 
 The mapping adapter borrows native reifier identities from the same source dataset.
 It probes each reifier's indexed statement rows and allocates only the selected
@@ -383,21 +427,20 @@ output.
 
 ### 3.1 The grounding-generator contract
 
-A grounding slice (`logic:`, `lang:`, `math:`) does not only *declare* vocabulary —
-it computes things: closures, corpora, projections, executed lifts. Those computed
-artifacts reach consumers the same way every other stage output does, and the
-uniformity is the point: **a grounding slice's computed artifact is a carrier graph
-attached by a registered stage, never a file the slice writes and something else
-reads back.** Rule 1 of the stage contract admits no grounding exception.
+Grounding slices (`logic:`, `lang:`, `math:`) compute closures, corpora,
+projections, and lifts. Their stages publish computed artifacts through the
+declared carrier outputs under rule 1.
 
-Three stages instantiate the contract today, and they differ only in what they
-compute — never in how it travels:
+The following stages supply grounding outputs and their authored inputs.
 
-| Stage | Computes | Attaches |
+| Stage | Product | Selected graph attachments |
 | --- | --- | --- |
+| `stage-source-load` | Authored worked examples | `GRAPH_EXAMPLES` |
 | `stage-compile-logic` | the `logic:` IR and its typed views | `GRAPH_LOGIC`, `GRAPH_RELATIONAL_CORE`, `GRAPH_CORRESPONDENCE`, `GRAPH_DIAGNOSTICS` |
-| `stage-reason` | the reasoned closure (once — the razor) | `GRAPH_REASONING`, `GRAPH_EXAMPLES`, `GRAPH_DIAGNOSTICS` |
-| `stage-math-producers` | the `math:` producer outputs, including executed R / ONNX / TSTP lifts | `GRAPH_EXAMPLES` |
+| `stage-reason` | the reasoned closure | `GRAPH_REASONING`, `GRAPH_DIAGNOSTICS` |
+| `stage-math-producers` | the `math:` producer outputs, including executed R / ONNX / TSTP lifts | Named graphs under `graph/math-producers/` |
+
+[Stage attachment inventory](../crates/pipeline/src/stages/attach.rs)
 
 Diagnostic reports project directly into native datasets for rule execution and
 carrier publication. The same finding projection supplies the terminal text
@@ -424,38 +467,38 @@ quoted and composite-literal occurrences. The completed carrier is shared by the
 stage product. Stage timing metadata reports removed closure-reparse bytes and
 witness wire bytes separately from required artifact bytes.
 
-Four properties bind a grounding generator, all inherited rather than special:
+Grounding generators follow the same checks and conventions as other stages.
 
-1. **Determinism over a committed input.** The artifact is a pure function of authored
-   source plus, where a lift executes a real front-end, a committed artifact embedded
-   at compile time. `stage-math-producers` runs the shipped `gmeow_math_lift`
-   entrypoint — the same one the `gmeow` CLI calls — over a real committed script, so
-   the bundle carries the output of the actual parser rather than an imitation of it.
-2. **Attached, not written.** The output is one or more named graphs on the carrier.
-   A grounding artifact that appears under `generated/` is a *projection* of the
-   bundle produced by fanout (§6), never the transport that got it there.
-3. **Computed once.** The razor applies unchanged: a closure or a lift is computed a
-   single time and read from the carrier by every downstream consumer.
-4. **Diagnostics ride the same rail.** A grounding generator's findings attach to
-   `GRAPH_DIAGNOSTICS` alongside every other stage's, so a grounding failure is a
-   carrier-borne `gmeow:Finding` rather than a private error channel.
+1. **Deterministic inputs (convention).** Compute from committed source and
+   declared inputs. `stage-math-producers` uses the shipped `gmeow_math_lift`
+   entry point over committed scripts.
+2. **Carrier routing (rule 1) and attachment checks (rule 3).** Publish groundings
+   as declared stage outputs. Fanout writes their generated file projections (§6).
+3. **Compute once (rule 2).** Compute a closure or lift in its owning stage and
+   share its product.
+4. **Carrier diagnostics.** Publish `gmeow:Finding` records through the same
+   declared attachment mechanism (rule 3). The reason stage attaches
+   `GRAPH_DIAGNOSTICS`.
 
-The consequence for a new grounding capability is that there is nothing to design
-about its transport: register a stage, attach graphs, and it is in the bundle, in the
-superset law, and under the conformance gate automatically. The open question for any
-grounding slice is only *what to compute* — never *how to ship it*.
+Register a grounding stage and declare its edges and attachments. Select its
+shipped contributions at the snapshot boundary and declare any corresponding
+fanout paths. The superset gate checks those materialized paths (§7).
 
 ## 4. One terminal
 
-Exactly **one** stage writes bytes. The terminal takes the fully-accumulated
-carrier and **presents** it as the `gmeow.gts` bundle. It assembles nothing: it does
-not load sources, union datasets, re-canonicalize graphs, or recompute any view —
-those are the stages' work, already in the carrier. The terminal is the sole
-serialization boundary in the build, and the bundle it emits is the single
-content-addressed, signable artifact the project ships (Principles 14, 16).
+`stage-snapshot` assembles the cumulative carrier from upstream products and
+publishes the certified snapshot dataset. `stage-gts-sink` reads that dataset
+and the declared archive, dictionary, and export inputs. It assembles the
+physical frames, computes their identities, seals the medium envelopes, and
+publishes the serialized `gmeow.gts` bytes in its stage product. In update
+mode, reconcile materializes the bundle and fanout projects its files (§6).
+In check mode, reconcile checks the emitted bundle and the existing files
+without writing either.
 
-A build with two writers — one that serializes and another that re-emits — has two
-terminals, and is non-conforming. Presentation and writing are one stage.
+The reconcile checks for exactly one declared sink and exactly one product
+that supplies the bundle bytes, and requires their stage identities to match.
+The terminal publishes the build's sole GTS artifact (Principles 14 and 16).
+[Snapshot stage](../crates/pipeline/src/stages/carrier.rs) · [GTS sink](../crates/pipeline/src/stages/gts_sink.rs) · [Reconcile](../crates/pipeline/src/run.rs)
 
 ## 5. The superset law
 
@@ -498,6 +541,15 @@ consumer views, and the GTS structural verbs (`fold` for named graphs, `extract`
 for a blob by digest, `unpack` for a files-profile archive). No output requires a
 bespoke generator at fanout time; an output that cannot be produced by extraction
 alone signals a §5 violation upstream, not a need for computation downstream.
+
+Snapshot borrows the committed projection report from `stage-mappings` and
+parses it once in sorted artifact order. It verifies the exact parsed RDF
+terms and row count against the required native ledger, then releases the
+temporary dataset. Both placements share the native graph selection. The
+ledger graph serves pipeline consumers, and the fanout graph reconstructs
+`generated/logic/projection-report.ttl`.
+Snapshot also borrows the other committed RDF fanout artifacts through parsing.
+The sorted reconstruction map holds references to the producer byte lanes.
 
 ### 6.1 Worked instance — the GMN-1 ecosystem projections
 
@@ -613,11 +665,10 @@ contract while exercising the same exact carrier.
   committed closure file, the bundle's reasoning graph, and any documentation of
   inferred axioms are all projections of that one graph — never independent
   reasoning passes. Two artifacts that claim to be "the closure" but were reasoned
-  separately are a razor (§3.2) violation, even if they happen to agree.
-- **One serialization.** The carrier is serialized exactly once, by the terminal.
-  Intermediate `gmeow.gts` emissions inside the pipeline are non-conforming; a side
-  format a blob needs is produced from the in-memory carrier, not by emitting and
-  re-parsing a temporary bundle.
+  separately violate the convention in rule 2 of §3.
+- **One published bundle.** The terminal publishes `gmeow.gts`. Produce side
+  formats from the in-memory carrier. The explicit documentation sizing command
+  can serialize a counterfactual bundle for measurement after the stage DAG.
 - **Determinism.** Stage completion order does not affect the bundle: contributions
   fold by a stable key, so the emitted bytes are identical regardless of scheduling.
 - **Not a format spec.** The on-the-wire layout of `gmeow.gts` (segments, blob

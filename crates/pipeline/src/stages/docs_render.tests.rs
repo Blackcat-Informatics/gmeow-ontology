@@ -3,6 +3,72 @@
 
 use super::*;
 
+/// Publish the same stage and snapshot content for rendered documentation,
+/// including a declaration-only graph and native statement metadata.
+#[test]
+fn documentation_admission_preserves_stage_and_snapshot_identity() {
+    let model = DocsModel {
+        terms: vec![gmeow_docs::model::DocTerm {
+            iri: "https://blackcatinformatics.ca/gmeow/Document".to_owned(),
+            curie: "gmeow:Document".to_owned(),
+            label: Some("Document".to_owned()),
+            owner_slice: "https://blackcatinformatics.ca/gmeow/slice/documents".to_owned(),
+            ..Default::default()
+        }],
+        ..Default::default()
+    };
+    let rendered = to_gmeow_rdf(&model, &BTreeMap::new());
+    assert!(!rendered.is_empty(), "the renderer emits a documented term");
+    let reified = format!(
+        "_:doc <urn:doc:label> \"A document\"@en <{GRAPH_DOCUMENTATION}> .\n\
+         <urn:doc:claim> <http://www.w3.org/1999/02/22-rdf-syntax-ns#reifies> \
+         <<( _:doc <urn:doc:label> \"A document\"@en )>> <{GRAPH_DOCUMENTATION}> .\n\
+         <urn:doc:claim> <urn:doc:evidence> <urn:doc:source> <{GRAPH_DOCUMENTATION}> .\n"
+    );
+    let snapshot_id = |dataset: &RdfDataset| {
+        let mut snapshot = purrdf::gts_compose::SnapshotBuilder::new();
+        let _receipt = snapshot
+            .add_view(dataset)
+            .expect("fold documentation into the snapshot");
+        snapshot.snapshot_content_id()
+    };
+    let stage_digest = |dataset| {
+        StageProduct::from_artifacts_over("stage-docs-render", dataset, BTreeMap::new())
+            .expect("digest the documentation stage product")
+            .digest
+    };
+
+    for input in [rendered.as_str(), reified.as_str(), ""] {
+        let admitted = admit_rendered_documentation(input).expect("admit the rendered graph");
+        assert_eq!(
+            admitted.owned_named_graphs().collect::<Vec<_>>(),
+            [RdfTerm::iri(GRAPH_DOCUMENTATION)]
+        );
+        let rooted = crate::stages::carrier::parse_into_graph(
+            input.as_bytes(),
+            "application/n-quads",
+            GRAPH_DOCUMENTATION,
+        )
+        .expect("admit the same input through explicit graph placement");
+        assert_eq!(snapshot_id(&admitted), snapshot_id(&rooted));
+
+        assert_eq!(stage_digest(admitted), stage_digest(rooted));
+    }
+}
+
+/// Reject renderer output that includes a statement outside its declared graph.
+#[test]
+fn documentation_admission_refuses_foreign_graph_rows() {
+    for foreign in [
+        "<urn:s> <urn:p> <urn:o> .",
+        "<urn:s> <urn:p> <urn:o> <urn:foreign> .",
+    ] {
+        let input = format!("<urn:s> <urn:p> <urn:o> <{GRAPH_DOCUMENTATION}> .\n{foreign}\n");
+        let error = admit_rendered_documentation(&input).expect_err("refuse misplaced RDF");
+        assert!(error.message().contains(GRAPH_DOCUMENTATION));
+    }
+}
+
 fn repo_root() -> std::path::PathBuf {
     Path::new(env!("CARGO_MANIFEST_DIR"))
         .join("..")

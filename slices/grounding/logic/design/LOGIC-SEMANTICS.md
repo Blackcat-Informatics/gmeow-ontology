@@ -113,28 +113,49 @@ predicates over the reifier; they are never implicit in the quoting. This rule r
 triple terms appear (the foundation's modal lowering, the worlds layer), and it is the reason the
 foundation needs explicit lowering rather than getting modality "for free."
 
-One stance is settled by a closed rule, because a consistency verdict depends on it:
+Selected-theory execution admits two closed assertion routes:
 
-> A reified claim is an **assertion of the theory it is written in** exactly when it is
-> **evidence only**: its reifier states at least one of `logic:provenance` and
-> `logic:confidence`, and the only statements about the reifier are those two and the
-> reification itself (`rdf:reifies`, or the classic `rdf:Statement` node with its subject,
-> predicate and object). Provenance says who reported the claim and confidence how sure the
-> reporter is; neither places the claim in a context, denies it, or weakens it. A reifier
-> that states neither is a quotation and asserts nothing.
+> An **evidence-only** reified claim asserts a top-level sentence when its reifier
+> states at least one of `logic:provenance` and
+> `logic:confidence`, and its remaining statements satisfy the closed carrier contract:
+> the reification itself (`rdf:reifies`, or the classic `rdf:Statement` node with its subject,
+> predicate and object) and the descriptive annotations admitted below. Provenance
+> says who reported the claim and confidence how sure the reporter is; neither
+> places the claim in a context, denies it, or weakens it. A reifier
+> that states neither does not acquire assertion status through this route.
 
-The list is closed and it fails closed. Any other statement about the reifier may place,
-deny or qualify the claim, so the claim is then not an assertion of the unindexed theory:
+The **typed module-assertion** route admits a claim carrying one exact
+default-graph `logic:inModule` coordinate when the compiler resolves its native module identity
+inside the requested theory. Its remaining carrier statements must satisfy the
+same closed structural, evidence and descriptive annotation contract. This route
+requires neither provenance nor confidence; it does not treat module membership as evidence-only
+metadata. A bare reifier with no scope or evidence coordinate is a quotation
+and asserts nothing. A module claim outside the requested composition remains
+an assertion outside that theory; unresolved membership remains a named boundary.
+
+Default-graph `gmeow:graphBoxRole` and outgoing `gmeow:wasDerivedFrom` annotations
+with resource values describe the carrier, as does `gmeow:statedRationale`
+with `xsd:string`, `rdf:langString` or `rdf:dirLangString` values. Preserve
+every original role, lineage target, literal, language and text direction.
+These annotations carry no evidence, assertion, module membership, ownership,
+context or graph routing authority.
+A quotation with only descriptive annotations asserts nothing. Named-graph
+annotations and values outside the admitted types retain their boundaries.
+The descriptive rows remain ordinary source facts.
+
+Each route fails closed. A carrier statement beyond its selected contract may
+place, deny or qualify the claim, so it prevents ordinary assertion:
 a standpoint (`gmeow:accordingTo`, `logic:standpoint`), a stance such as
 `gmeow:standpointModality gmeow:refuted`, a time, a modality (the value `logic:none`
-included), a module, a further type, an attribution, or a predicate the reader does not
+included), an unresolved module coordinate, a further type, an attribution, or a predicate the reader does not
 know. The same holds when another statement points at the reifier, and when another
 reifier's carried statement mentions it, at any depth of a triple term and whether that
 other reifier is itself an assertion, an unread claim or a quotation: a claim someone speaks
 about is out, and no fixpoint is taken. The statements that count are the stated ones, not
 those a rule derives, in every graph of the source: the default graph, each named graph, and
 the statements reifiers carry in either. A reifier used as a predicate or as a graph name is
-out as well. A named graph can only keep a claim out. It is another context, so by the rule
+out as well. A lineage link targeting the reifier keeps that target unread, including a
+self-link. A named graph can only keep a claim out. It is another context, so by the rule
 of [context-indexed entailment](#inconsistency-across-contexts-and-context-indexed-entailment)
 nothing in it is an assertion of this theory or evidence for one: provenance or confidence
 stated there does not make a claim an assertion, and a statement there never contradicts
@@ -144,12 +165,70 @@ that contradict each other therefore contradict within one context and make the 
 inconsistent, while two claims placed in different standpoints do not; a contested fact is
 authored with a standpoint, not with provenance alone.
 
+Assertion eligibility is resolved independently for each original carrier.
+Canonical statement deduplication preserves all contributors: a qualified
+carrier neither cancels another carrier's admitted assertion nor acquires its
+admission. The ingress reports the actual admitted carrier names and each
+unread carrier's reason. Unread contributions remain completeness boundaries
+even when the admitted fragment supplies a witnessed contradiction.
+
+The source-proof consistency operation executes only whole admitted rule
+owners. A blocked positive rule remains an unread source obligation while
+independent admitted premises may establish a contradiction. Without that
+witness, unread obligations keep the result incomplete. The procedural
+operation retains its selected-rule refusals, and source-proof execution
+refuses nonexcluded negation-as-failure rules before execution. Neither
+operation interprets procedural absence as classical negation.
+
+### Explicit module composition
+
+`gmeow prove --module IRI` selects a declared module root; repeating the option
+selects one composed theory over those roots, their actual transitive
+`logic:imports`, and the supplied documents' top-level obligations. All selected
+modules contribute to one execution and verdict, including contradictions between
+them. The request creates no import edge. Each root and imported target requires
+an actual default-graph module declaration in the supplied source; an unavailable
+root or import refuses.
+
+Membership is a source-theory dimension, independent of worlds, standpoints,
+time and modality. Composition preserves those independent coordinates and
+their typed translation requirements. It does not create a union of epistemic
+contexts. An unsupported coordinate remains a named boundary.
+
+The compiler resolves the request against one immutable source. Native input,
+selected program occurrences, claim ingress, preparation and completion bind
+that same composition. Reports retain every supplied source obligation, including
+authorized module exclusions and independent graph/context blockers. An owner
+whose required child lies outside the admitted theory remains selected and
+blocked; its child cannot be dropped to create a weaker sentence. A selected
+module's `logic:hasFormula` link carries its top-level formula into the same
+theory. Each physical link retains its own disposition and the target's
+lowering boundaries. A blocked target withholds that assertion while other
+admitted formulas and imports remain available. Without an explicit module
+request, module-scoped obligations retain the top-level operation's existing
+boundaries.
+
+An exact default-graph `logic:provenance` row with an IRI or blank-node value
+records a formula's source. The formula still requires an independent
+assertion route. Provenance on required descendants follows each actual
+accounted formula occurrence. The report retains every provenance row and
+links its evidence to the original formula obligation IDs after native
+coverage checks. Evidence supplies no object-level premise or context
+selection. Named graphs, invalid resource values and independent contexts
+retain their boundaries.
+
 The executed selected-theory profile is narrower than this definition in one direction only.
 It may leave an assertion unread, for example a claim over a typed term carrier, a claim
 with a variable, or a carrier that holds more than one candidate statement, and it always
 names each claim it leaves unread. It never reads a quotation. One residual is not
 interpreted: the *value* of `logic:provenance`. A claim whose stated source is itself a
 retraction or denial activity is still read as reported by that source.
+
+An admitted extensional set enumerates claim resources through its ordinary
+`math:hasElement` facts. Each member retains its own assertion and scope.
+A member can be a quotation or an asserted claim, and the same carrier can
+occur in several sets. The finite-set declaration and membership both require
+ordinary default-graph source occurrences in the selected view.
 
 ## The reasoning contract
 
@@ -566,6 +645,17 @@ The foundational categories are `logic:` terms in the one namespace: `logic:Kind
 `logic:Relator`, `logic:Event`, `logic:Situation`, and relations such as `logic:rigidlyAppliesTo`,
 `logic:suppliesIdentity`, and `logic:mediates`. They obey the same naming discipline as the rest of
 GMEOW (Principle 9: no selector tokens) and the language-tag discipline (`@x-gmeow-english`).
+
+Native execution accounts for named membership in `logic:AbstractIndividualType`,
+`logic:Category`, `logic:Kind`, `logic:QualityValue`, `logic:RelationshipType`
+and `logic:SubKind` through `logic:instanceOf` or `rdf:type`. The exact
+authored fact can support a native rule and its refutation witness. Authored
+subsumption, signatures and scope require their own source accounts.
+The grounding slice publishes validation-only correspondences for these
+classes to gUFO, for `logic:RelationshipType` to SUMO, and for
+`logic:QualityValue` to YAMATO. Each correspondence records its own
+preservation judgment. [Grounding bridges](../mappings/grounding-bridges.ttl) ·
+[Foundational bridges](../mappings/foundation-bridges.ttl)
 
 The payoff: the OntoUML disciplines GMEOW enforces — exactly-one-stereotype, identity overlap
 (**MixIden**), anti-rigidity (**MixRig** / **FreeRole**), and relator mediation (**RelComp**) — cannot

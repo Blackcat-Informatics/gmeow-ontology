@@ -5,10 +5,12 @@
 
 use purrdf::{QuadIds, TermId};
 
-use super::{Diagnostic, LogicAxiom, LogicProgram, PreparedLogicSource, SourceNode};
+use super::{
+    Diagnostic, LogicAxiom, LogicProgram, PreparedLogicSource, SourceNode, SourceStatementBinding,
+};
 
 /// Destination collection in the compiled program, distinct from source typing.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, serde::Serialize)]
 pub enum OwnerFamily {
     Rule,
     Contract,
@@ -29,7 +31,7 @@ pub enum OwnerFamily {
 
 /// An owner's extraction outcome. Emission alone does not imply native admission;
 /// attached diagnostics may still reject a contract or another selected capability.
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq, serde::Serialize)]
 pub enum OwnerDisposition {
     Emitted { index: usize },
     Rejected,
@@ -43,10 +45,61 @@ pub struct OwnerLowering {
     pub family: OwnerFamily,
     pub disposition: OwnerDisposition,
     pub diagnostics: Vec<usize>,
+    /// Exact physical record fields consumed by this successful owner reader.
+    /// This evidence grants neither law discharge nor object-level execution.
+    pub record_support: std::collections::BTreeSet<SourceStatementBinding>,
 }
 
-/// An authored statement or structural root that actually emitted an axiom.
-/// Native IDs belong only to the prepared source borrowed by the compilation.
+/// Semantic responsibility of an actual lowering owner.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, serde::Serialize)]
+pub enum SourceOwnerRole {
+    /// A constructor defining a genuine class expression.
+    ClassDefinition,
+    /// A law about a class that does not itself define the class.
+    ClassLaw,
+    /// A property, axiom-resource or uninterpreted schema law.
+    SchemaLaw,
+}
+
+/// The semantic positions of one collection's members, independent of its owner.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, serde::Serialize)]
+pub enum CollectionMembers {
+    Classes,
+    Values,
+    Properties,
+    Facets,
+    Uninterpreted,
+}
+
+/// One actual constructor's distinct owner and member roles.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, serde::Serialize)]
+pub struct CollectionRole {
+    /// Whether this constructor defines a class or states a separate law.
+    pub owner: SourceOwnerRole,
+    /// The positions inhabited by this constructor's members.
+    pub members: CollectionMembers,
+}
+
+/// Exact physical constructor authority for emitted collection syntax.
+/// Equal heads and member roles do not identify different constructor laws.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
+pub struct CollectionSource {
+    /// Actual source constructor, including its original graph and carrier.
+    pub constructor: SourceStatementBinding,
+    /// Owner and member roles determined by the shared source classifiers.
+    pub role: CollectionRole,
+}
+
+/// The emitted part of an actual collection lowering.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, serde::Serialize)]
+pub enum CollectionField {
+    /// The original constructor's link to the canonical head.
+    Constructor,
+    /// A canonical first/rest cell belonging to that constructor.
+    Cell,
+}
+
+/// An actual lowering contributor, before canonical payload deduplication.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
 pub enum AxiomSource {
     Statement {
@@ -55,11 +108,63 @@ pub enum AxiomSource {
         object: TermId,
     },
     ClassExpression(SourceNode),
+    Collection {
+        source: CollectionSource,
+        field: CollectionField,
+    },
+    /// Rewritten anonymous-owner fields retain their physical source and role;
+    /// their emitted RDF is not an exact original statement.
+    RewrittenField {
+        source: SourceStatementBinding,
+        owner: SourceOwnerRole,
+    },
     Reification(SourceNode),
     Formula(SourceNode),
 }
 
 impl AxiomSource {
+    #[must_use]
+    pub(crate) fn source_node(self) -> SourceNode {
+        match self {
+            Self::Statement { subject, .. }
+            | Self::ClassExpression(subject)
+            | Self::Reification(subject)
+            | Self::Formula(subject) => subject,
+            Self::Collection { source, .. } => SourceNode {
+                term: source.constructor.canonical.s,
+                graph: source.constructor.canonical.g,
+            },
+            Self::RewrittenField { source, .. } => SourceNode {
+                term: source.canonical.s,
+                graph: source.canonical.g,
+            },
+        }
+    }
+
+    #[must_use]
+    pub(crate) fn class_definition(self) -> Option<SourceNode> {
+        match self {
+            Self::ClassExpression(source) => Some(source),
+            Self::Collection {
+                source:
+                    CollectionSource {
+                        role:
+                            CollectionRole {
+                                owner: SourceOwnerRole::ClassDefinition,
+                                ..
+                            },
+                        ..
+                    },
+                ..
+            }
+            | Self::RewrittenField {
+                owner: SourceOwnerRole::ClassDefinition,
+                ..
+            } => Some(self.source_node()),
+            _ => None,
+        }
+    }
+
     pub(super) fn statement(quad: QuadIds) -> Self {
         Self::Statement {
             subject: SourceNode {
@@ -74,7 +179,7 @@ impl AxiomSource {
 
 /// What happened to one declared formula in this compiler invocation.
 /// Reading an owned formula validates its syntax; it does not execute its owner.
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq, serde::Serialize)]
 pub enum FormulaDisposition {
     /// Index into this compilation's canonical `program().axioms`.
     Axiom(usize),
@@ -179,6 +284,7 @@ pub(super) struct OwnerEmission<T> {
     pub family: OwnerFamily,
     pub diagnostics: Vec<usize>,
     pub value: T,
+    pub record_support: std::collections::BTreeSet<SourceStatementBinding>,
 }
 
 /// Capture at the reader boundary. Shared diagnostics are supplied by the failed
@@ -199,6 +305,7 @@ pub(super) fn capture_owner<T>(
             family,
             diagnostics: diagnostic_ids,
             value,
+            record_support: Default::default(),
         }),
         Err(shared) => {
             diagnostic_ids.extend(shared);
@@ -209,6 +316,7 @@ pub(super) fn capture_owner<T>(
                 family,
                 disposition: OwnerDisposition::Rejected,
                 diagnostics: diagnostic_ids,
+                record_support: Default::default(),
             });
             None
         }
@@ -229,6 +337,7 @@ pub(super) fn finish_owners<T>(
                 family: emission.family,
                 disposition: OwnerDisposition::Emitted { index },
                 diagnostics: emission.diagnostics,
+                record_support: emission.record_support,
             });
             emission.value
         })
@@ -263,6 +372,7 @@ pub(super) fn excluded_owners(graph: &super::StructuralSourceGraph) -> Vec<Owner
                 family,
                 disposition: OwnerDisposition::OutsideDefaultGraph,
                 diagnostics: Vec::new(),
+                record_support: Default::default(),
             })
         })
         .collect()

@@ -457,7 +457,7 @@ fn compile_mappings_with_sources(
         message: "selected docs-rendering corpus requires its actual slice catalog and term-page inventory".to_owned(),
     }))?;
     let docs_ownership = purrdf::slice::OwnershipAnalyzer::new(docs_catalog).analyze()?;
-    let documented_pages = gmeow_docs::model::documented_term_iris(docs_catalog, &docs_ownership);
+    let documented_pages = gmeow_docs::model::documented_term_iris(docs_catalog, &docs_ownership)?;
     let docs_rendering_corpus = crate::stages::lang_docs_rendering::build_corpus_from_sources(
         &translation_sources,
         &documented_pages,
@@ -1379,11 +1379,11 @@ impl Stage for MappingsStage {
             channel.base_correspondence_count,
             channel.base_lawful_uplift_count,
         )?;
-        let report = build_union_report(header, channel, &compiled.ledger, &compiled.loss)?;
-        artifacts.insert(
-            PROJECTION_REPORT_PATH.to_string(),
-            canon_fanout_ttl_bytes(&report)?,
-        );
+        let report_ttl = {
+            let report = build_union_report(header, channel, &compiled.ledger, &compiled.loss)?;
+            canon_fanout_ttl_bytes(&report)?
+        };
+        artifacts.insert(PROJECTION_REPORT_PATH.to_string(), report_ttl);
 
         // The shape-grounding certificate ledger: RE-DERIVE every `logic:formalizes`
         // record's preservation judgment against THIS run's projected constraint
@@ -1529,19 +1529,23 @@ impl Stage for MappingsStage {
             "application/n-triples",
             crate::stages::carrier::GRAPH_SUBSTRATE_SBOM,
         )?;
-        let dataset = std::sync::Arc::new(purrdf::RdfDataset::union(&[
-            rdf_dataset.as_ref(),
-            ledger_graph.as_ref(),
-            alignments_graph.as_ref(),
-            lang_translation_graph.as_ref(),
-            lang_form_graph.as_ref(),
-            lang_projection_graph.as_ref(),
-            lang_lowering_graph.as_ref(),
-            lang_docs_rendering_graph.as_ref(),
-            lang_glossary_graph.as_ref(),
-            correspondence_laws_graph.as_ref(),
-            substrate_sbom_graph.as_ref(),
-        ])?);
+        let dataset = {
+            let inputs = [
+                rdf_dataset,
+                ledger_graph,
+                alignments_graph,
+                lang_translation_graph,
+                lang_form_graph,
+                lang_projection_graph,
+                lang_lowering_graph,
+                lang_docs_rendering_graph,
+                lang_glossary_graph,
+                correspondence_laws_graph,
+                substrate_sbom_graph,
+            ];
+            let dataset_refs = inputs.each_ref().map(std::sync::Arc::as_ref);
+            std::sync::Arc::new(purrdf::RdfDataset::union(&dataset_refs)?)
+        };
         let mut bundle = crate::bundle::bundle_from_artifacts_over(
             dataset,
             artifacts,

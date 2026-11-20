@@ -684,7 +684,7 @@ fn term_academic_surface(
                 .map(|entries| {
                     entries
                         .iter()
-                        .filter(|e| is_unsatisfiable_conclusion(&e.conclusion))
+                        .filter(|e| e.proves_term_unsatisfiable)
                         .collect()
                 })
                 .unwrap_or_default();
@@ -1202,14 +1202,13 @@ fn openapi_syntax_tab(term: &DocTerm, model: &DocsModel) -> Result<Option<DocSyn
 /// The canonical `@prefix`/`@base` preamble under which a synthesized quickstart
 /// skeleton (which uses bare `gmeow:`/`logic:`/`math:`/`owl:`… CURIEs and the
 /// relative `<subject>`/`<...>` placeholders) parses as a self-contained Turtle
-/// document: a base resolves the relative placeholders, and every prefix a
-/// canonical grounding prefix used by documented terms is declared.
-const QUICKSTART_TURTLE_PREAMBLE: &str = concat!(
+/// document. The base resolves relative placeholders. The declarations control
+/// which IRIs the renderer can emit in compact form.
+pub(super) const QUICKSTART_TURTLE_PREAMBLE: &str = concat!(
     "@base <https://blackcatinformatics.ca/gmeow/example/> .\n",
     "@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .\n",
     "@prefix logic: <https://blackcatinformatics.ca/logic/> .\n",
     "@prefix math: <https://blackcatinformatics.ca/math/> .\n",
-    "@prefix lang: <https://blackcatinformatics.ca/lang/> .\n",
     "@prefix owl: <http://www.w3.org/2002/07/owl#> .\n",
     "@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .\n",
     "@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .\n",

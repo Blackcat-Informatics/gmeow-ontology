@@ -37,7 +37,8 @@ g:AuthoredFormula a l:Formula ; r:isDefinedBy <{owner}> .
     let ownership = purrdf::slice::OwnershipAnalyzer::new(&catalog)
         .analyze()
         .unwrap();
-    let pages = gmeow_docs::model::documented_term_iris(&catalog, &ownership);
+    let pages = gmeow_docs::model::documented_term_iris(&catalog, &ownership)
+        .expect("the supplied term signatures agree");
     let documented = "https://blackcatinformatics.ca/gmeow/AuthoredDocumented";
     let nondocumentable = "https://blackcatinformatics.ca/gmeow/AuthoredFormula";
     let dsl_term = "https://blackcatinformatics.ca/gmeow/AuthoredDslSelector";

@@ -48,7 +48,7 @@ jobs:
       # `make rust-build` starts with the corpus-purity source scanner, whose
       # source inventory is ripgrep's. The tool is not on the hosted-runner image.
       - name: Install ripgrep
-        uses: taiki-e/install-action@c509219cf42fba86913069efd0ade2458c59337b # v2
+        uses: taiki-e/install-action@cfdb7ed4ccc7c7dce37759eae89dc5674b469b39 # v2
         with:
           tool: ripgrep
       - name: Install cargo-llvm-cov + cargo-nextest
@@ -167,11 +167,11 @@ jobs:
       # `make rust-build` starts with the corpus-purity source scanner, whose
       # source inventory is ripgrep's. The tool is not on the hosted-runner image.
       - name: Install ripgrep
-        uses: taiki-e/install-action@c509219cf42fba86913069efd0ade2458c59337b # v2
+        uses: taiki-e/install-action@cfdb7ed4ccc7c7dce37759eae89dc5674b469b39 # v2
         with:
           tool: ripgrep
       - name: Install cargo-nextest
-        uses: taiki-e/install-action@c509219cf42fba86913069efd0ade2458c59337b # v2
+        uses: taiki-e/install-action@cfdb7ed4ccc7c7dce37759eae89dc5674b469b39 # v2
         with:
           tool: cargo-nextest
       - name: Heavy off-gate Rust tests (corpus_parity_heavy_offgate et al.)
