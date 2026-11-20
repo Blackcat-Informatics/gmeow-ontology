@@ -16,9 +16,9 @@ use super::closure::{
     self, CLOSURE_MEDIA_TYPE, CLOSURE_REPRESENTATION, MAX_CLOSURE_BYTES, MAX_CLOSURE_ENCODED_BYTES,
 };
 use super::{
-    NATIVE_RECEIPT_MEDIA_TYPE, NATIVE_RECEIPT_REPRESENTATION, NativeReceiptAddress,
+    NATIVE_RECEIPT_MEDIA_TYPE, NATIVE_RECEIPT_REPRESENTATION, NativeReceipt, NativeReceiptAddress,
     NativeReceiptRef, NativeReceiptResolver, NoNativeReceipts, RDF_TYPE, ReasoningResult,
-    XSD_STRING, logic, parse_reasoning_dataset_subject, result_err,
+    ResultGraph, RootSelection, XSD_STRING, logic, read_reasoning_result_expecting, result_err,
 };
 use crate::execution_cbor::MAX_RECEIPT_BYTES;
 use crate::physical::LogicalGraph;
@@ -56,14 +56,15 @@ pub fn admit_reasoning_response(bytes: &[u8]) -> gmeow_errors::Result<serde_json
             candidates.len()
         )));
     };
-    let (result, _, closure) = admit(
+    let admission = admit(
         bytes,
         &dataset,
         GraphMatch::Default,
-        Some(owner.clone()),
+        Some(Selection::Verdict(owner.clone())),
         None,
     )?;
-    let result = result
+    let result = admission
+        .result
         .ok_or_else(|| result_err("selected response result was not authenticated".into()))?;
     let serialize = |dataset: &RdfDataset| -> gmeow_errors::Result<String> {
         let bytes = purrdf::serialize_dataset(
@@ -85,7 +86,7 @@ pub fn admit_reasoning_response(bytes: &[u8]) -> gmeow_errors::Result<serde_json
         "evaluation": result.evaluation.wire(),
         "completeness": result.completeness.wire(),
     });
-    if let Some(closure) = closure {
+    if let Some(closure) = admission.closure {
         response["entailed_count"] = serde_json::json!(closure.quad_count());
         response["closure_nquads"] = serde_json::json!(serialize(&closure)?);
     }
@@ -102,6 +103,54 @@ impl Owner {
     fn graph_match(&self) -> GraphMatch {
         self.graph.map_or(GraphMatch::Default, GraphMatch::Named)
     }
+}
+
+struct ArtifactGraphs<'a> {
+    dataset: &'a RdfDataset,
+    readers: BTreeMap<Option<TermId>, ResultGraph<'a>>,
+}
+
+impl ArtifactGraphs<'_> {
+    fn admit(
+        &mut self,
+        owner: &Owner,
+        resolver: &dyn NativeReceiptResolver,
+    ) -> gmeow_errors::Result<ReasoningResult> {
+        use std::collections::btree_map::Entry;
+
+        let reader = match self.readers.entry(owner.graph) {
+            Entry::Occupied(entry) => entry.into_mut(),
+            Entry::Vacant(entry) => {
+                entry.insert(ResultGraph::new(self.dataset, owner.graph_match())?)
+            }
+        };
+        read_reasoning_result_expecting(
+            reader,
+            resolver,
+            RootSelection::Aggregate(Some(&owner.subject)),
+            None,
+        )
+    }
+}
+
+enum Selection {
+    Verdict(Owner),
+    WithReceipt(Owner),
+}
+
+impl Selection {
+    fn owner(&self) -> &Owner {
+        match self {
+            Self::Verdict(owner) | Self::WithReceipt(owner) => owner,
+        }
+    }
+}
+
+struct Admission {
+    result: Option<ReasoningResult>,
+    probe_matches: bool,
+    closure: Option<Arc<RdfDataset>>,
+    retained_receipt: Option<NativeReceipt<'static>>,
 }
 
 #[derive(Default)]
@@ -311,10 +360,11 @@ fn metadata(
 }
 
 struct Audit<'a> {
-    dataset: &'a RdfDataset,
+    graphs: ArtifactGraphs<'a>,
     required: BTreeMap<NativeReceiptAddress, Required>,
-    selected: Option<Owner>,
+    selected: Option<Selection>,
     restored: Option<ReasoningResult>,
+    retained_receipt: Option<NativeReceipt<'static>>,
     probe: Option<NativeReceiptRef<'a>>,
     dedicated_blob: bool,
     first_refusal: gmeow_errors::FirstDiagnostic,
@@ -416,7 +466,7 @@ impl Audit<'_> {
         if self.role == Role::Closure {
             for (owner, worlds) in required.owners.iter().zip(&required.worlds) {
                 let dataset = closure::admit_leaf(address, &bytes, worlds)?;
-                if self.selected.as_ref() == Some(owner) {
+                if self.selected.as_ref().map(Selection::owner) == Some(owner) {
                     self.restored_closure = Some(dataset);
                 }
             }
@@ -430,12 +480,7 @@ impl Audit<'_> {
                     expected,
                     worlds: RefCell::new(None),
                 };
-                let result = parse_reasoning_dataset_subject(
-                    self.dataset,
-                    owner.graph_match(),
-                    &owner.subject,
-                    &resolver,
-                )?;
+                let result = self.graphs.admit(owner, &resolver)?;
                 let worlds = resolver.worlds.into_inner();
                 if let Some((address, slot)) = attachment {
                     let worlds = worlds.ok_or_else(|| {
@@ -455,9 +500,22 @@ impl Audit<'_> {
                     }
                     closure.worlds[*slot] = worlds;
                 }
-                if self.selected.as_ref() == Some(owner) {
+                if self.selected.as_ref().map(Selection::owner) == Some(owner) {
                     self.restored = Some(result);
                 }
+            }
+            if let Some(Selection::WithReceipt(owner)) = &self.selected
+                && required.owners.contains(owner)
+            {
+                let closure = self
+                    .closure_by_owner
+                    .get(owner)
+                    .map(|(address, _)| address.clone());
+                self.retained_receipt = Some(NativeReceipt::from_admitted_payload(
+                    address.clone(),
+                    bytes,
+                    closure,
+                ));
             }
         }
         self.required
@@ -538,9 +596,9 @@ fn admit(
     bytes: &[u8],
     dataset: &RdfDataset,
     graph: GraphMatch,
-    selected: Option<Owner>,
+    selected: Option<Selection>,
     probe: Option<NativeReceiptRef<'_>>,
-) -> gmeow_errors::Result<(Option<ReasoningResult>, bool, Option<Arc<RdfDataset>>)> {
+) -> gmeow_errors::Result<Admission> {
     gmeow_gts_profile::validate_mandated_frames(bytes)?;
     let roots = roots(dataset, graph)?;
     let mut required = bindings(dataset, graph, &roots, "resultNativeExecution")?;
@@ -563,19 +621,18 @@ fn admit(
             "one blob address cannot have conflicting native-receipt and RDF-closure roles".into(),
         ));
     }
+    let mut graphs = ArtifactGraphs {
+        dataset,
+        readers: BTreeMap::new(),
+    };
     let mut restored = None;
     for owner in roots.iter().filter(|owner| {
         !required
             .values()
             .any(|required| required.owners.contains(owner))
     }) {
-        let result = parse_reasoning_dataset_subject(
-            dataset,
-            owner.graph_match(),
-            &owner.subject,
-            &NoNativeReceipts,
-        )?;
-        if selected.as_ref() == Some(owner) {
+        let result = graphs.admit(owner, &NoNativeReceipts)?;
+        if selected.as_ref().map(Selection::owner) == Some(owner) {
             restored = Some(result);
         }
     }
@@ -583,10 +640,11 @@ fn admit(
         required.entry(probe.address().clone()).or_default();
     }
     let mut audit = Audit {
-        dataset,
+        graphs,
         required,
         selected,
         restored,
+        retained_receipt: None,
         probe,
         dedicated_blob: false,
         first_refusal: gmeow_errors::FirstDiagnostic::default(),
@@ -615,7 +673,12 @@ fn admit(
         audit.probe = None;
         audit_stream(bytes, &mut audit)?;
     }
-    Ok((audit.restored, reused, audit.restored_closure))
+    Ok(Admission {
+        result: audit.restored,
+        probe_matches: reused,
+        closure: audit.restored_closure,
+        retained_receipt: audit.retained_receipt,
+    })
 }
 
 fn audit_stream(bytes: &[u8], audit: &mut Audit<'_>) -> gmeow_errors::Result<()> {
@@ -696,7 +759,7 @@ pub fn contains_admitted_native_receipt(
     receipt: NativeReceiptRef<'_>,
 ) -> gmeow_errors::Result<bool> {
     let dataset = discover(bytes)?;
-    Ok(admit(bytes, &dataset, GraphMatch::Default, None, Some(receipt))?.1)
+    Ok(admit(bytes, &dataset, GraphMatch::Default, None, Some(receipt))?.probe_matches)
 }
 
 /// Recover the sole aggregate in the default graph of a complete artifact.
@@ -726,16 +789,18 @@ pub fn parse_reasoning_artifact_with_closure(
             candidates.len()
         )));
     };
-    let (result, _, closure) = admit(
+    let admission = admit(
         bytes,
         &dataset,
         GraphMatch::Default,
-        Some(owner.clone()),
+        Some(Selection::Verdict(owner.clone())),
         None,
     )?;
     Ok((
-        result.ok_or_else(|| result_err("selected full-closure result is absent".into()))?,
-        closure.ok_or_else(|| {
+        admission
+            .result
+            .ok_or_else(|| result_err("selected full-closure result is absent".into()))?,
+        admission.closure.ok_or_else(|| {
             result_err("selected operation requires a complete RDF closure attachment".into())
         })?,
     ))
@@ -749,6 +814,25 @@ pub fn parse_reasoning_artifact_graph(
     bytes: &[u8],
     graph: Option<&str>,
 ) -> gmeow_errors::Result<ReasoningResult> {
+    Ok(admit_graph(bytes, graph, Selection::Verdict)?.0)
+}
+
+/// Admit a selected aggregate and keep its exact native receipt for reuse.
+/// The selected payload comes from the same admission as the result.
+/// # Errors
+/// Refuses missing graphs, ambiguous aggregates and invalid complete artifacts.
+pub fn parse_reasoning_artifact_graph_with_receipt(
+    bytes: &[u8],
+    graph: Option<&str>,
+) -> gmeow_errors::Result<(ReasoningResult, Option<NativeReceipt<'static>>)> {
+    admit_graph(bytes, graph, Selection::WithReceipt)
+}
+
+fn admit_graph(
+    bytes: &[u8],
+    graph: Option<&str>,
+    select: fn(Owner) -> Selection,
+) -> gmeow_errors::Result<(ReasoningResult, Option<NativeReceipt<'static>>)> {
     let dataset = discover(bytes)?;
     let selected_graph = graph
         .map(|graph| {
@@ -765,66 +849,9 @@ pub fn parse_reasoning_artifact_graph(
             candidates.len()
         )));
     };
-    admit(bytes, &dataset, graph, Some(owner.clone()), None)?
-        .0
-        .ok_or_else(|| result_err("selected aggregate was not authenticated".into()))
-}
-
-/// Retain the exact required payload of one selected aggregate using the native
-/// digest selector. The returned native `Arc` owns only that binary receipt.
-///
-/// # Errors
-/// Refuses incomplete artifacts, ambiguous aggregates, missing/corrupt selected
-/// blobs and all semantic or budget violations. Discovery is dropped before
-/// selected import; no accumulated library payload set is retained.
-pub fn import_native_receipt(
-    bytes: &[u8],
-    graph_name: Option<&str>,
-) -> gmeow_errors::Result<Option<(NativeReceiptAddress, Arc<[u8]>)>> {
-    parse_reasoning_artifact_graph(bytes, graph_name)?;
-    let dataset = discover(bytes)?;
-    let graph = match graph_name {
-        Some(name) => GraphMatch::Named(
-            dataset
-                .term_id_by_iri(name)
-                .ok_or_else(|| result_err(format!("missing selected graph {name}")))?,
-        ),
-        None => GraphMatch::Default,
-    };
-    let selected_roots = roots(&dataset, graph)?;
-    let mut addresses =
-        bindings(&dataset, graph, &selected_roots, "resultNativeExecution")?.into_keys();
-    let Some(address) = addresses.next() else {
-        return Ok(None);
-    };
-    if addresses.next().is_some() {
-        return Err(result_err(
-            "selected aggregate has multiple native receipt addresses".into(),
-        ));
-    }
-    drop(dataset);
-    let mut limits = purrdf::GtsBlobLimits::new(MAX_RECEIPT_BYTES, MAX_RECEIPT_BYTES);
-    limits.max_encoded_bytes = MAX_ENCODED_BYTES;
-    limits.max_frame_decoded_bytes = MAX_FRAME_BYTES;
-    let imported = purrdf::import_gts_events_with_blobs(
-        bytes,
-        &[purrdf::GtsBlobSelector::Digest(address.as_str())],
-        limits,
-    )
-    .map_err(|cause| {
-        gmeow_errors::Diag::of_kind(crate::error::Result::caused_by(
-            "retain selected native receipt".into(),
-            cause,
-        ))
-    })?;
-    let mut blobs = imported.blobs.into_iter();
-    let blob = blobs
-        .next()
-        .ok_or_else(|| result_err("selected native receipt payload is absent".into()))?;
-    if blobs.next().is_some() || blob.digest != address.as_str() {
-        return Err(result_err(
-            "native receipt selector returned an ambiguous or different address".into(),
-        ));
-    }
-    Ok(Some((address, blob.bytes)))
+    let admission = admit(bytes, &dataset, graph, Some(select(owner.clone())), None)?;
+    let result = admission
+        .result
+        .ok_or_else(|| result_err("selected aggregate was not authenticated".into()))?;
+    Ok((result, admission.retained_receipt))
 }

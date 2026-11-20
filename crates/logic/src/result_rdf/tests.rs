@@ -816,6 +816,33 @@ fn native_result_admission_refuses_missing_duplicate_and_corrupt_execution() {
         .unwrap()
         .into_gts()
         .unwrap();
+    let (admitted, retained) =
+        parse_reasoning_artifact_graph_with_receipt(&complete.bytes, None).unwrap();
+    let retained = retained.expect("the selected aggregate carries a native receipt");
+    assert_eq!(
+        admitted.native_execution().unwrap(),
+        result.native_execution().unwrap()
+    );
+    assert_eq!(retained.as_ref().address(), receipt.as_ref().address());
+    assert_eq!(retained.as_ref().bytes(), receipt.as_ref().bytes());
+
+    let mut duplicate =
+        ResultProjection::reasoning_with_receipt(&result, Some(receipt.as_ref())).unwrap();
+    let owner = Node::iri(duplicate.node_iri());
+    duplicate.sink.push(
+        owner,
+        logic("resultClosureBlob"),
+        Node::string(replacement.address.as_str()),
+    );
+    let duplicate = native_dataset(duplicate.sink).unwrap();
+    // gmeow-test-input: synthetic-only
+    let duplicate = gmeow_gts_profile::view_to_gmeow_gts(duplicate.as_ref()).unwrap();
+    let error = parse_reasoning_artifact(&duplicate.bytes).unwrap_err();
+    assert!(
+        error.message().contains("duplicate native receipt binding"),
+        "{error}"
+    );
+
     // gmeow-test-input: synthetic-only
     let mut repeated = gmeow_gts_profile::GmeowGtsWriter::new("runtime");
     repeated

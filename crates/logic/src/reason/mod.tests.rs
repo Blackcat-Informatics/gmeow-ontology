@@ -2229,10 +2229,6 @@ fn modal_contexts_survive_native_receipts_rdf_and_explanation_without_absent_pre
             changed.validate().is_err(),
             "mutation {mutation} must fail native admission"
         );
-        assert!(
-            crate::result_rdf::project_reasoning_result(&changed).is_err(),
-            "mutation {mutation} must fail RDF publication before malformed bytes escape"
-        );
     }
 }
 

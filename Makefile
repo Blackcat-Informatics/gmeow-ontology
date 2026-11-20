@@ -761,7 +761,7 @@ nextest: rust-build verify-test-fixtures ## Run the Rust workspace test suite on
 	$(TEST_FIXTURE_ENV) $(BUNDLE_IMPORT_CACHE_ENV) cargo nextest run --profile ci $(RUST_TEST_WORKSPACE_ARGS) $(NEXTEST_PARTITION_ARG) $(NEXTEST_FILTER_ARG)
 
 .PHONY: nextest-synthetic test-corpus-scanner
-nextest-synthetic: test-corpus-purity ## Run an explicit NEXTEST_FILTER over synthetic tests without admitting any corpus fixture; development only.
+nextest-synthetic: test-corpus-purity ## Run selected synthetic tests without a corpus. Run make maint-native-receipt-vectors before selecting native receipt reference cases.
 	@test -n "$(strip $(NEXTEST_FILTER))" || { echo "NEXTEST_FILTER is required for nextest-synthetic"; exit 2; }
 	@# This diagnostic selection uses the producer-independent workspace build graph.
 	@# It grants no corpus access: selected corpus consumers fail in their authenticated

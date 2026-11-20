@@ -90,6 +90,18 @@ pub struct NativeReceipt<'a> {
 }
 
 impl NativeReceipt<'static> {
+    pub(super) fn from_admitted_payload(
+        address: NativeReceiptAddress,
+        bytes: Vec<u8>,
+        closure: Option<NativeReceiptAddress>,
+    ) -> Self {
+        Self {
+            address,
+            bytes: ReceiptBytes::Owned(bytes),
+            closure,
+        }
+    }
+
     pub(super) fn publish(
         result: &ReasoningResult,
         closure: Option<&NativeReceiptAddress>,

@@ -68,12 +68,11 @@ pub struct NativeObservation {
 impl NativeObservation {
     fn observe(result: &ReasoningResult, artifact: &[u8]) -> gmeow_errors::Result<Self> {
         result.validate_native_closure()?;
-        use gmeow_logic::result_rdf::{NativeReceiptRef, ResultProjection, import_native_receipt};
-        let owned = import_native_receipt(artifact, None)?;
-        let receipt = owned
-            .as_ref()
-            .map(|(address, bytes)| NativeReceiptRef::admit(address, bytes))
-            .transpose()?;
+        use gmeow_logic::result_rdf::{
+            NativeReceipt, ResultProjection, parse_reasoning_artifact_graph_with_receipt,
+        };
+        let (_, owned) = parse_reasoning_artifact_graph_with_receipt(artifact, None)?;
+        let receipt = owned.as_ref().map(NativeReceipt::as_ref);
         Ok(Self {
             judgment_nquads: ResultProjection::reasoning_with_receipt(result, receipt)?
                 .to_ntriples(),

@@ -74,8 +74,8 @@ pub use reference_vectors::native_receipt_reference_vectors;
 
 pub use artifact::{
     admit_contextual_artifact, admit_reasoning_artifact, admit_reasoning_response,
-    artifact_envelope, contains_admitted_native_receipt, import_native_receipt,
-    parse_reasoning_artifact, parse_reasoning_artifact_graph,
+    artifact_envelope, contains_admitted_native_receipt, parse_reasoning_artifact,
+    parse_reasoning_artifact_graph, parse_reasoning_artifact_graph_with_receipt,
     parse_reasoning_artifact_with_closure,
 };
 pub use closure::{CLOSURE_MEDIA_TYPE, CLOSURE_REPRESENTATION};
@@ -1704,8 +1704,8 @@ pub fn parse_reasoning_graph(
 }
 
 /// Recover a reasoning handle directly from one selected graph in a native dataset.
-/// PurRDF's indexes and borrowed terms are reused; no graph copy, RDF text, or
-/// second triple index is constructed. Derived rows retain every receipt check.
+/// Read ordinary rows through PurRDF's indexes and index the RDF 1.2 statement
+/// rows for subject lookup. Derived rows retain every receipt check.
 /// A sole standalone contextual projection is readable without native attachments;
 /// aggregate artifact readers apply their separate strict root selection.
 ///
@@ -1828,30 +1828,13 @@ fn read_reasoning_result_expecting(
     selection: RootSelection<'_>,
     expected_receipt: Option<Option<&NativeReceiptAddress>>,
 ) -> gmeow_errors::Result<ReasoningResult> {
-    let results = triples
-        .iter()
-        .filter(|t| t.predicate == RDF_TYPE && t.object_iri() == Some(logic("ReasoningResult")))
-        .map(|t| t.subject)
-        .collect::<BTreeSet<_>>();
+    let results = &triples.result_roots;
     if results.is_empty() {
         return Err(result_err(
             "graph/reasoning: no logic:ReasoningResult subject".into(),
         ));
     }
-    // An aggregate can also carry contextual children. Their request links
-    // distinguish them from the aggregate handle; row order cannot choose it.
-    let contextual = triples
-        .iter()
-        .filter(|t| t.predicate == logic("contextualResult"))
-        .filter_map(|t| t.object_node())
-        .collect::<BTreeSet<_>>();
-    let candidates = match selection {
-        RootSelection::DatasetProjection if results.len() == 1 => results,
-        _ => results
-            .difference(&contextual)
-            .copied()
-            .collect::<BTreeSet<_>>(),
-    };
+    let contextual = &triples.contextual_children;
     let subject = if let RootSelection::Contextual(request) = selection {
         let selected = triples
             .iter()
@@ -1879,26 +1862,30 @@ fn read_reasoning_result_expecting(
         }
         *subject
     } else if let RootSelection::Aggregate(Some(selected)) = selection {
-        let selected = candidates
-            .iter()
-            .copied()
-            .filter(
-                |id| matches!(triples.dataset.resolve(*id), TermRef::Iri(iri) if iri == selected),
-            )
-            .collect::<Vec<_>>();
-        let [subject] = selected.as_slice() else {
-            return Err(result_err(
-                "graph/reasoning: selected subject is absent or is a contextual child".into(),
-            ));
-        };
-        *subject
-    } else if candidates.len() != 1 {
-        return Err(result_err(format!(
-            "graph/reasoning: expected one aggregate logic:ReasoningResult subject, found {}",
-            candidates.len(),
-        )));
+        triples
+            .dataset
+            .term_id_by_iri(selected)
+            .filter(|id| results.contains(id) && !contextual.contains(id))
+            .ok_or_else(|| {
+                result_err(
+                    "graph/reasoning: selected subject is absent or is a contextual child".into(),
+                )
+            })?
+    } else if matches!(selection, RootSelection::DatasetProjection) && results.len() == 1 {
+        *results.first().expect("one result")
     } else {
-        candidates.into_iter().next().expect("one result")
+        let mut candidates = results.difference(contextual);
+        match (candidates.next(), candidates.next()) {
+            (Some(&candidate), None) => candidate,
+            (first, second) => {
+                let count = usize::from(first.is_some())
+                    + usize::from(second.is_some())
+                    + candidates.count();
+                return Err(result_err(format!(
+                    "graph/reasoning: expected one aggregate logic:ReasoningResult subject, found {count}"
+                )));
+            }
+        }
     };
     if contextual.contains(&subject)
         && triples.for_subject(subject).any(|row| {
@@ -2602,6 +2589,8 @@ struct ResultGraph<'a> {
     // Only the RDF 1.2 side tables need an auxiliary subject index. Ordinary
     // verdict and axiom rows reuse the native dataset's existing index.
     side_rows: BTreeMap<TermId, Vec<ParsedTriple<'a>>>,
+    result_roots: BTreeSet<TermId>,
+    contextual_children: BTreeSet<TermId>,
 }
 
 impl<'a> ResultGraph<'a> {
@@ -2610,6 +2599,8 @@ impl<'a> ResultGraph<'a> {
             dataset,
             graph,
             side_rows: BTreeMap::new(),
+            result_roots: BTreeSet::new(),
+            contextual_children: BTreeSet::new(),
         };
         for (s, p, o, g) in dataset
             .annotations_with_graph()
@@ -2644,6 +2635,10 @@ impl<'a> ResultGraph<'a> {
                 });
             }
         }
+        let result_type = logic("ReasoningResult");
+        let contextual_result = logic("contextualResult");
+        let mut roots = BTreeSet::new();
+        let mut children = BTreeSet::new();
         for triple in reader.iter() {
             if !matches!(
                 dataset.resolve(triple.subject),
@@ -2651,7 +2646,20 @@ impl<'a> ResultGraph<'a> {
             ) {
                 return Err(result_err("graph/reasoning: non-node subject".into()));
             }
+            if triple.predicate == RDF_TYPE
+                && matches!(triple.object, TermRef::Iri(iri) if iri == result_type)
+            {
+                roots.insert(triple.subject);
+            }
+            // Request links identify contextual children independently of row order.
+            if triple.predicate == contextual_result
+                && let Some(child) = triple.object_node()
+            {
+                children.insert(child);
+            }
         }
+        reader.result_roots = roots;
+        reader.contextual_children = children;
         Ok(reader)
     }
 

@@ -544,12 +544,9 @@ fn build_verdict_segment(
     body: &str,
     artifact: &[u8],
 ) -> gmeow_errors::Result<Vec<u8>> {
-    use gmeow_logic::result_rdf::{NativeReceiptRef, import_native_receipt};
-    let incoming = import_native_receipt(artifact, None)?;
-    let receipt = incoming
-        .as_ref()
-        .map(|(address, bytes)| NativeReceiptRef::admit(address, bytes))
-        .transpose()?;
+    use gmeow_logic::result_rdf::{NativeReceipt, parse_reasoning_artifact_graph_with_receipt};
+    let (_, incoming) = parse_reasoning_artifact_graph_with_receipt(artifact, None)?;
+    let receipt = incoming.as_ref().map(NativeReceipt::as_ref);
     let reused = if existing.is_empty() {
         false
     } else if let Some(receipt) = receipt {
