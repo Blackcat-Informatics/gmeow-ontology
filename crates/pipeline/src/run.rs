@@ -501,6 +501,10 @@ pub fn run_full_scoped_with_progress(
         event = "dag-output-identity",
         combined_digest = %result.combined_digest,
         stage_receipt_root = %result.receipt_root,
+        pid = std::process::id(),
+        jobs,
+        stage_count = result.stage_timings.len(),
+        hydrated_stage_count = result.stage_timings.iter().filter(|stage| stage.cached).count(),
         "selected DAG output identity"
     );
     let scheduler_elapsed = scheduler_started.elapsed().as_millis();
