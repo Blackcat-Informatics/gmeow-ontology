@@ -474,8 +474,8 @@ Grounding generators follow the same checks and conventions as other stages.
    as declared stage outputs. Fanout writes their generated file projections (§6).
 3. **Compute once (rule 2).** Compute a closure or lift in its owning stage and
    share its product.
-4. **Carrier diagnostics.** Publish finding graphs through the same declared
-   attachment mechanism (rule 3). The reason stage, for example, attaches
+4. **Carrier diagnostics.** Publish `gmeow:Finding` records through the same
+   declared attachment mechanism (rule 3). The reason stage attaches
    `GRAPH_DIAGNOSTICS`.
 
 Register a grounding stage and declare its edges and attachments. Select its
