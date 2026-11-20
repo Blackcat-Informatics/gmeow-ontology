@@ -1,0 +1,28 @@
+{
+  "schema": 1,
+  "worktree": "/home/paudley/Active/gmeow-ontology/.worktrees/3008-borrow-prebuilt-archive-payloads",
+  "branch": "paudley/3008-borrow-prebuilt-archive-payloads",
+  "base_ref": "5c10bb28d1b58a648b1632339b1cf5a73d5b5463",
+  "head": "3b3fcd08bc5f1369d5052609300f0aa34fbd8566",
+  "attempt": "/home/paudley/Active/gmeow-ontology/.worktrees/3008-borrow-prebuilt-archive-payloads/.stage/borrow-prebuilt-archive-payloads/sync/20261120T233127-378bd0ba932c445fa165b72ee72c0f77",
+  "conflicts": [
+    "crates/pipeline/src/stages/carrier.rs"
+  ],
+  "status": "completed",
+  "base": "5c10bb28d1b58a648b1632339b1cf5a73d5b5463",
+  "merge_bases": [
+    "881aab42b0678a8fa8f00ec67f4b3fd88fbd86a1"
+  ],
+  "merge_index": "786ffef55ed94c198e9e516d8ea1f47ffefa66e2f2de7ae7262cf59b7986a3d5",
+  "reused_paths": [],
+  "rerere_output": "Recorded preimage for 'crates/pipeline/src/stages/carrier.rs'\n",
+  "candidate_tree": "97e1dbab4aa349b0fb407d937935965d9335a34a",
+  "candidate_patch": "candidate-2cc0261a9ab740268ad0599570911416.patch",
+  "stdout_log": "commit-2cc0261a9ab740268ad0599570911416.stdout.log",
+  "stderr_log": "commit-2cc0261a9ab740268ad0599570911416.stderr.log",
+  "validation_records": [],
+  "commit_duration_seconds": 25.9826853289851,
+  "commit": "483467a7c6a776fbe62578693e5c8b6ec6028b0d",
+  "tree": "97e1dbab4aa349b0fb407d937935965d9335a34a",
+  "exit_code": 0
+}

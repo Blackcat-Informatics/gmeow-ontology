@@ -1,0 +1,22 @@
+{
+  "crates/pipeline/src/stages/carrier.rs": [
+    {
+      "mode": "100644",
+      "oid": "4691ac8fdc9c986ac95cd234c8d7a7383d4e2004",
+      "stage": 1,
+      "content": "inputs/0-1.bin"
+    },
+    {
+      "mode": "100644",
+      "oid": "f804d1eb6f86229fec8374158f5528ca9d6e4d1a",
+      "stage": 2,
+      "content": "inputs/0-2.bin"
+    },
+    {
+      "mode": "100644",
+      "oid": "3c8beffb409640a0b806b40106ed7ea211fa13dd",
+      "stage": 3,
+      "content": "inputs/0-3.bin"
+    }
+  ]
+}
