@@ -501,8 +501,12 @@ pub fn run_full_scoped_with_progress(
         event = "dag-output-identity",
         combined_digest = %result.combined_digest,
         stage_receipt_root = %result.receipt_root,
+        observed_reads_sha256 = %purrdf::ContentDigest::of(
+            crate::reads::observed_turtle(&result.recorded_reads).as_bytes(),
+        ).to_hex(),
         pid = std::process::id(),
-        jobs,
+        jobs = result.rayon_workers,
+        stage_limit = ctx.ready_order.stage_limit(result.rayon_workers),
         stage_count = result.stage_timings.len(),
         hydrated_stage_count = result.stage_timings.iter().filter(|stage| stage.cached).count(),
         "selected DAG output identity"

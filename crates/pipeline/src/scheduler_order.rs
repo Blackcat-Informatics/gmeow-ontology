@@ -16,6 +16,7 @@ use crate::node::{Stage, StageProduct};
 pub(crate) enum ReadyOrder {
     #[default]
     StageId,
+    Calibrate,
     Memory(Option<BTreeMap<String, StageEstimate>>),
 }
 
@@ -33,8 +34,11 @@ impl ReadyOrder {
             None => {}
             Some(mode) if mode == "memory" => {}
             Some(mode) if mode == "stage-id" && profile.is_none() => return Ok(Self::StageId),
-            Some(mode) if mode == "stage-id" => {
-                return Err(invalid_order("stage-id order cannot use memory estimates"));
+            Some(mode) if mode == "calibrate" && profile.is_none() => return Ok(Self::Calibrate),
+            Some(mode) if mode == "stage-id" || mode == "calibrate" => {
+                return Err(invalid_order(format!(
+                    "{mode:?} order cannot use memory estimates"
+                )));
             }
             Some(mode) => {
                 return Err(invalid_order(format!("unknown ready order {mode:?}")));
@@ -53,6 +57,14 @@ impl ReadyOrder {
             })
             .transpose()?;
         Ok(Self::Memory(estimates))
+    }
+
+    /// Calibration isolates one stage without reducing its Rayon pool.
+    pub(crate) const fn stage_limit(&self, jobs: usize) -> usize {
+        match self {
+            Self::Calibrate => 1,
+            Self::StageId | Self::Memory(_) => jobs,
+        }
     }
 
     pub(super) fn validate(&self, selected: &BTreeSet<String>) -> gmeow_errors::Result<()> {

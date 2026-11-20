@@ -321,6 +321,8 @@ impl RunContext {
 /// `combined_digest` (a `String`), which tests compare directly (C4).
 #[derive(Debug, Clone)]
 pub struct RunResult {
+    /// Width of the Rayon pool that executed the stages.
+    pub(crate) rayon_workers: usize,
     /// Each stage's product, keyed by stage id (sorted).
     pub products: BTreeMap<String, StageProduct>,
     /// Selected observations surviving carrier release, keyed by (stage, path).
@@ -740,8 +742,9 @@ pub fn run_without(
     let retained_carriers = &ctx.retained_carriers;
     let retained_artifact_selection = &ctx.retained_artifacts;
     let carrier_retention = ctx.carrier_retention;
-    let jobs = ctx.jobs;
     let ready_order = &ctx.ready_order;
+    let rayon_workers = pool.current_num_threads();
+    let stage_limit = ready_order.stage_limit(rayon_workers);
 
     let scheduling_result = pool.in_place_scope_fifo(|scope| -> Result<(), gmeow_errors::Diag> {
         let (tx, rx) = mpsc::channel::<(
@@ -757,11 +760,11 @@ pub fn run_without(
         let mut first_error: Option<gmeow_errors::Diag> = None;
 
         while completed < executed.len() || active > 0 {
-            // Fill every free worker from the dependency-ready frontier. A locally active
+            // Fill the available stage slots from the dependency-ready frontier. A locally active
             // declared resource is excluded before dispatch, so a blocked resource user
             // never occupies a worker while unrelated ready work exists. The process-wide
             // locks in `exec_stage` remain authoritative across concurrent pipeline runs.
-            while first_error.is_none() && active < jobs {
+            while first_error.is_none() && active < stage_limit {
                 let mut eligible = ready.iter().filter(|stage_id| {
                     by_id[stage_id.as_str()]
                         .resources()
@@ -769,7 +772,7 @@ pub fn run_without(
                         .all(|resource| !active_resources.contains(resource))
                 });
                 let next = match ready_order {
-                    ReadyOrder::StageId => eligible.next(),
+                    ReadyOrder::StageId | ReadyOrder::Calibrate => eligible.next(),
                     ReadyOrder::Memory(estimates) => {
                         let live = ready_order::LiveReads {
                             products: &products,
@@ -1256,6 +1259,7 @@ pub fn run_without(
     let combined_digest = combined(&products);
     let receipt_root = combined_receipts(&stage_receipts);
     Ok(RunResult {
+        rayon_workers,
         products,
         retained_artifacts,
         combined_digest,

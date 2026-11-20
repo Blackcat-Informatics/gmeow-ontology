@@ -12,7 +12,7 @@ use crate::reads::Read;
 use crate::scheduler::{CarrierRetention, ReadyOrder, RunContext, run};
 use crate::stages::parse_sources::{GRAPH_SOURCE_CATALOG, STAGE_ID as PARSE_SOURCES};
 
-struct FrontierStage(StageSpec);
+struct FrontierStage(StageSpec, usize);
 
 impl Stage for FrontierStage {
     fn id(&self) -> &str {
@@ -44,6 +44,7 @@ impl Stage for FrontierStage {
     }
 
     fn run(&self, input: StageInput<'_>) -> gmeow_errors::Result<StageOutput> {
+        assert_eq!(rayon::current_num_threads(), self.1);
         let product = match self.id() {
             "producer" => {
                 let triple = format!("<urn:subject> <urn:predicate> \"{}\" .", "x".repeat(2048));
@@ -78,20 +79,7 @@ fn execute_frontier(
     root: &Path,
     order: ReadyOrder,
 ) -> (Vec<String>, String, String) {
-    let graph = pipeline.validate().expect("frontier graph");
-    let registry = registry_for(
-        pipeline,
-        pipeline
-            .stages
-            .iter()
-            .map(|stage| Arc::new(FrontierStage(stage.clone())) as Arc<dyn Stage>)
-            .collect(),
-    );
-    let bound = crate::loader::bind(pipeline, &graph, &registry).expect("bind frontier graph");
-    let mut ctx = RunContext::open_ephemeral(root, 1).expect("cold run");
-    ctx.carrier_retention = CarrierRetention::DropAfterLastConsumer;
-    ctx.ready_order = order;
-    let report = run(&graph, &bound, &mut ctx).expect("run selected frontier");
+    let report = run_frontier(pipeline, root, order, 1);
     let dispatch = report
         .memory
         .iter()
@@ -99,6 +87,61 @@ fn execute_frontier(
         .map(|record| record.stage_id.clone())
         .collect();
     (dispatch, report.combined_digest, report.receipt_root)
+}
+
+fn run_frontier(
+    pipeline: &PipelineSpec,
+    root: &Path,
+    order: ReadyOrder,
+    jobs: usize,
+) -> crate::scheduler::RunResult {
+    let graph = pipeline.validate().expect("frontier graph");
+    let registry = registry_for(
+        pipeline,
+        pipeline
+            .stages
+            .iter()
+            .map(|stage| Arc::new(FrontierStage(stage.clone(), jobs)) as Arc<dyn Stage>)
+            .collect(),
+    );
+    let bound = crate::loader::bind(pipeline, &graph, &registry).expect("bind frontier graph");
+    let mut ctx = RunContext::open_ephemeral(root, jobs).expect("cold run");
+    ctx.carrier_retention = CarrierRetention::DropAfterLastConsumer;
+    ctx.ready_order = order;
+    run(&graph, &bound, &mut ctx).expect("run selected frontier")
+}
+
+/// A calibration run isolates stages while each dispatched stage can use the
+/// full Rayon pool, as checked by the stage body.
+#[test]
+fn calibration_serializes_dispatch_with_the_full_worker_pool() {
+    let directory = tempfile::tempdir().expect("synthetic calibration root");
+    let pipeline = PipelineSpec {
+        id: "calibration-fixture".into(),
+        stages: vec![
+            spec("a-source", &[]),
+            spec("b-source", &[]),
+            spec("sink", &["a-source", "b-source"]),
+        ],
+    };
+    let report = run_frontier(&pipeline, directory.path(), ReadyOrder::Calibrate, 3);
+    let boundaries: Vec<_> = report
+        .memory
+        .iter()
+        .filter(|record| matches!(record.event, MemoryEvent::Dispatch | MemoryEvent::Complete))
+        .map(|record| (record.stage_id.as_str(), record.event))
+        .collect();
+    assert_eq!(
+        boundaries,
+        [
+            ("a-source", MemoryEvent::Dispatch),
+            ("a-source", MemoryEvent::Complete),
+            ("b-source", MemoryEvent::Dispatch),
+            ("b-source", MemoryEvent::Complete),
+            ("sink", MemoryEvent::Dispatch),
+            ("sink", MemoryEvent::Complete),
+        ]
+    );
 }
 
 /// Independent ready stages can run in either order. The default memory

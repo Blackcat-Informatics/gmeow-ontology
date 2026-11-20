@@ -429,6 +429,9 @@ fixed measurements.
 
 For controlled comparisons, set `GMEOW_PIPELINE_READY_ORDER=stage-id` to use
 the identifier order with the same retention policy. The default is `memory`.
+Set `GMEOW_PIPELINE_READY_ORDER=calibrate` to dispatch one stage at a time
+in identifier order. Use the same `--jobs` for calibration and both comparison
+arms so each stage can use the ordinary Rayon pool.
 Set `GMEOW_PIPELINE_MEMORY_ESTIMATES` to a JSON file keyed by selected stage
 identifier to supply `transient_bytes` and `published_bytes` for each stage.
 The transient value is the measured demand above the resident inputs during
