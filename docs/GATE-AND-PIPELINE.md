@@ -635,7 +635,9 @@ inventory and copies only the requested bytes; corruption in an unselected artif
 still fails the read. The full product blob is read and authenticated, so this removes
 payload copies and native reconstruction without claiming to remove that I/O.
 
-The producer also exports selected compact source observations as bounded actions.
+The producer also exports selected compact source observations and stage artifacts
+as bounded actions. The LinkML conformance case reads the authenticated
+`stage-export-schemas` output `generated/schemas/gmeow.linkml.yaml`.
 Each export binds its original stage action, receipt, product, implementation,
 artifact digest and byte count. The runner verifies those origins against the
 selected parent receipts before starting tests. Consumers open the exported action
