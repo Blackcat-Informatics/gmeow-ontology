@@ -50,9 +50,12 @@ fn native_term_panels_from_reason_preserve_multiple_heads_sources_and_worlds() {
     let mut edb = derived(TermValue::iri("urn:asserted-only"));
     edb.is_edb = true;
     edb.rule_name = None;
+    let mut empty = derived(TermValue::iri(gmeow_ns::LOGIC_NOTHING));
+    empty.predicate = gmeow_ns::LOGIC_SUB_CLASS_OF.to_owned();
     let upstream = native_upstream(vec![
         derived(TermValue::iri(ANIMAL)),
         derived(TermValue::iri("urn:companion")),
+        empty,
         edb,
     ]);
     let terms = [
@@ -67,12 +70,23 @@ fn native_term_panels_from_reason_preserve_multiple_heads_sources_and_worlds() {
     .map(str::to_owned)
     .collect();
     let panels = term_entailments_from_upstream(&upstream, &terms).unwrap();
-    assert_eq!(panels[CAT].len(), 2);
-    assert_eq!(panels[MAMMAL].len(), 2);
+    assert_eq!(panels[CAT].len(), 3);
+    assert_eq!(panels[MAMMAL].len(), 3);
     assert_eq!(panels[ANIMAL].len(), 1);
     assert_eq!(panels["urn:companion"].len(), 1);
     assert!(!panels.contains_key("urn:unrelated"));
     assert!(!panels.contains_key("urn:asserted-only"));
+    let own_proof: Vec<_> = panels[CAT]
+        .iter()
+        .filter(|entry| entry.proves_term_unsatisfiable)
+        .collect();
+    assert_eq!(own_proof.len(), 1);
+    assert!(own_proof[0].conclusion.ends_with(" logic:Nothing"));
+    assert!(
+        panels[MAMMAL]
+            .iter()
+            .all(|entry| !entry.proves_term_unsatisfiable)
+    );
     for panel in &panels[CAT] {
         assert!(panel.conclusion.contains(WORLD));
         assert!(panel.premises[0].contains(WORLD));

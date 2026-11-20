@@ -14,7 +14,7 @@
 //! `tests/fixtures/coverage/*.ttl` fixtures:
 //! - `test_contested_sovereignty_coexists` → `contested_sovereignty_coexists`
 //! - `test_contested_place_names_coexist` → `contested_place_names_coexist`
-//! - `test_superseded_historical_name_suppressed` → `superseded_historical_name_suppressed`
+//! - Place succession follows reader display policy, with a suppressed historical name.
 //! - `test_contested_jurisdiction_tenures_coexist` → `contested_jurisdiction_tenures_coexist`
 //! - `test_containment_tenure_records_border_change` → `containment_tenure_records_border_change`
 //! - `test_geometry_has_type_and_geojson` → `geometry_has_type_and_geojson`
@@ -574,16 +574,24 @@ fn contested_place_names_coexist() {
     assert!(names.contains(&ex("nameExonym")));
 }
 
-/// Twin of `test_superseded_historical_name_suppressed`.
+/// A place successor requires no display flag and a suppressed historical name
+/// retains its own flag.
 #[gmeow_test_batch_macros::batch_test]
-fn superseded_historical_name_suppressed() {
-    let g = load_ok("places-contested");
-    assert!(g.has_literal(
-        &ex("nameHistorical"),
-        &gmeow("displayable"),
-        "false",
-        XSD_BOOLEAN
+fn place_succession_respects_reader_display_policy() {
+    let nt = fixture_as_nt("coverage", "places-contested");
+    let g = GraphStore::wrap_dataset(nt_to_dataset(&nt));
+    let predecessor = ex("historicalPlace");
+    let displayable = gmeow("displayable");
+    assert!(g.has(
+        Some(&predecessor),
+        Some(&gmeow("placeSupersededBy")),
+        Some(&ex("disputedPlace")),
     ));
+    assert!(!g.has(Some(&predecessor), Some(&displayable), None));
+    assert!(g.has_literal(&ex("nameHistorical"), &displayable, "false", XSD_BOOLEAN));
+    Case::raw_nt(nt)
+        .no_warning("A superseded place (one with gmeow:placeSupersededBy)")
+        .run();
 }
 
 /// Twin of `test_contested_jurisdiction_tenures_coexist`.

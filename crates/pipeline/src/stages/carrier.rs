@@ -3183,6 +3183,8 @@ pub(crate) fn term_entailments_from_upstream(
     upstream: &BTreeMap<String, StageProduct>,
     term_iris: &std::collections::BTreeSet<String>,
 ) -> Result<BTreeMap<String, Vec<gmeow_docs::Entailment>>, gmeow_errors::Diag> {
+    use gmeow_logic::reason::dl::EmptyClassAssertion;
+
     // Documentation runs before snapshot assembly and already retains this native
     // carrier for its verdict. No extra dependency or lifetime extension is needed.
     use crate::stages::docs_render::reasoning_verdict_error;
@@ -3256,6 +3258,11 @@ pub(crate) fn term_entailments_from_upstream(
         }
         premises.sort();
         premises.dedup();
+        let proves_unsatisfiability = axiom
+            .object
+            .as_iri()
+            .and_then(|iri| EmptyClassAssertion::classify(&axiom.predicate, iri))
+            == Some(EmptyClassAssertion::Subsumption);
         let object = axiom
             .object
             .as_iri()
@@ -3271,9 +3278,17 @@ pub(crate) fn term_entailments_from_upstream(
                 object
             ),
             premises,
+            proves_term_unsatisfiable: false,
         };
         for iri in matched {
-            entailments.entry(iri).or_default().push(entailment.clone());
+            let proves_term_unsatisfiable = proves_unsatisfiability && iri == axiom.subject;
+            entailments
+                .entry(iri)
+                .or_default()
+                .push(gmeow_docs::Entailment {
+                    proves_term_unsatisfiable,
+                    ..entailment.clone()
+                });
         }
     }
     for entries in entailments.values_mut() {

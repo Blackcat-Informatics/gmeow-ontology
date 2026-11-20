@@ -694,6 +694,9 @@ pub fn run_without(
             .unwrap_or_default()
     };
     let read_policy = ctx.read_policy;
+    let release_handles = read_policy == crate::reads::ReadPolicy::Enforce
+        && ctx.carrier_retention == CarrierRetention::DropAfterLastConsumer;
+    let mut remaining_handle_readers = BTreeMap::<String, HandleReaders>::new();
     let mut recorded_edges: Vec<Arc<crate::reads::EdgeAccess>> = Vec::new();
     let mut memory: Vec<MemoryRecord> = Vec::new();
     // Every stage whose recorded reads differ from its declared dataflow. The run goes
@@ -712,6 +715,14 @@ pub fn run_without(
                     undeclared.push(format!(
                         "{stage_id} consumes {producer} and its dataflow edge declares no read"
                     ));
+                }
+            }
+            if release_handles {
+                for (producer, reads) in reads {
+                    remaining_handle_readers
+                        .entry(producer)
+                        .or_default()
+                        .declare(reads);
                 }
             }
         }
@@ -1105,6 +1116,14 @@ pub fn run_without(
                             .checked_sub(1)
                             .expect("completed carrier reader was counted");
                     }
+                    if release_handles {
+                        for (producer, reads) in stage.reads() {
+                            remaining_handle_readers
+                                .get_mut(&producer)
+                                .expect("a completed handle reader was counted")
+                                .complete(reads);
+                        }
+                    }
                     // A producer's carrier is swapped for its residue once no carrier
                     // reader is left and no artifact-lane view of it is in flight. The
                     // three things that can make that true are this stage finishing its
@@ -1145,6 +1164,15 @@ pub fn run_without(
                                 Some(after),
                                 Some(before.released_to(&after)),
                             ));
+                        } else if release_handles
+                            && logically_consumed.contains(&producer)
+                            && !retained_carriers.contains(&producer)
+                            && let Some(product) = products.get_mut(&producer)
+                        {
+                            let readers = remaining_handle_readers.get(&producer);
+                            product.release_unread_handles(|key| {
+                                readers.is_some_and(|readers| readers.contains(key))
+                            });
                         }
                     }
                 }
@@ -1333,6 +1361,45 @@ pub(crate) fn last_consumer_levels(
         }
     }
     last
+}
+
+/// Selected readers that still have access to a producer's typed handles.
+#[derive(Default)]
+struct HandleReaders {
+    whole: usize,
+    keys: BTreeMap<String, usize>,
+}
+
+impl HandleReaders {
+    fn declare(&mut self, reads: crate::reads::ReadSet) {
+        for read in reads {
+            match read {
+                crate::reads::Read::Carrier => self.whole += 1,
+                crate::reads::Read::Handle(key) => *self.keys.entry(key).or_default() += 1,
+                _ => {}
+            }
+        }
+    }
+
+    fn complete(&mut self, reads: crate::reads::ReadSet) {
+        for read in reads {
+            let remaining = match read {
+                crate::reads::Read::Carrier => &mut self.whole,
+                crate::reads::Read::Handle(key) => self
+                    .keys
+                    .get_mut(&key)
+                    .expect("declared typed handle reader was counted"),
+                _ => continue,
+            };
+            *remaining = remaining
+                .checked_sub(1)
+                .expect("completed typed handle reader was counted");
+        }
+    }
+
+    fn contains(&self, key: &str) -> bool {
+        self.whole > 0 || self.keys.get(key).is_some_and(|&readers| readers > 0)
+    }
 }
 
 /// The producers `stage` is handed an artifact-lane view of: the dependencies whose edge

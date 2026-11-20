@@ -418,6 +418,14 @@ rather than treating the empty residue as data. A post-run proof names the exact
 intermediate carriers it retains in the run context; `RetainAll` remains an explicit
 diagnostic profile. These profiles change only residency, never produced bytes.
 
+Typed handles can also leave the live carrier independently. The enforcing
+scheduler counts exact handle readers and whole-carrier readers in the selected
+graph. After publication or a reader's completion, it detaches handles with no
+remaining reader when the scheduler has sole access to the carrier. In-flight
+views and explicit post-run retention preserve access. Published commitments
+still identify the full product and its handles. Memory traces identify each
+dropped handle reference. Shared allocations can remain live through other owners.
+
 The ordinary build ranks only dependency-ready stages whose resources are
 available. It compares transient memory estimates, then the change in retained
 bytes after the candidate completes. Last-reader credit counts a shared

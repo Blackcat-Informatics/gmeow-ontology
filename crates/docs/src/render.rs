@@ -1784,7 +1784,7 @@ fn term_academic_surface(
                 .map(|entries| {
                     entries
                         .iter()
-                        .filter(|e| is_unsatisfiable_conclusion(&e.conclusion))
+                        .filter(|e| e.proves_term_unsatisfiable)
                         .collect()
                 })
                 .unwrap_or_default();
@@ -4060,14 +4060,6 @@ fn code_escape(text: &str) -> String {
         }
     }
     out
-}
-
-/// Whether a B3 entailment's display-form conclusion (`s p o`, CURIE-compacted) is a
-/// class-unsatisfiability witness — `<class> rdfs:subClassOf owl:Nothing` — the same
-/// signal [`crate::model::ReasoningVerdict::unsatisfiable`] keys on, so the
-/// "unsatisfiable because" derivation lines never surface an unrelated entailment.
-fn is_unsatisfiable_conclusion(conclusion: &str) -> bool {
-    conclusion.contains(" rdfs:subClassOf ") && conclusion.ends_with(" owl:Nothing")
 }
 
 /// Escape model-derived text for safe Markdown emission: backslash-escape the

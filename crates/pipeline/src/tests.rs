@@ -2884,6 +2884,9 @@ fn run_retention_chain(
 #[path = "scheduler.order_tests.rs"]
 mod scheduling_order;
 
+#[path = "scheduler.handle_retention_tests.rs"]
+mod handle_retention;
+
 #[test]
 fn last_consumer_level_is_total_over_consumed_stages_and_absent_for_outputs() {
     let spec = retention_chain();

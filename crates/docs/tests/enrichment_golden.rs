@@ -209,6 +209,7 @@ fn term_entailments_markdown_golden() {
                 format!("{} rdfs:subClassOf gmeow:Continuant", term.curie),
                 "gmeow:Continuant rdfs:subClassOf gmeow:Entity".to_string(),
             ],
+            proves_term_unsatisfiable: false,
         }],
     );
 
