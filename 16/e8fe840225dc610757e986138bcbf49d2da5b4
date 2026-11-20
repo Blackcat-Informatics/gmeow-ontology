@@ -1,0 +1,18 @@
+ghprsq source head backlink metadata
+
+parent_hashes: 16e8fe840225dc610757e986138bcbf49d2da5b4
+
+GhpRsq-Schema: 1
+GhpRsq-Merge-Style: structured-squash-head-backlink
+GhpRsq-GitHub-Repo: Blackcat-Informatics/gmeow-ontology
+GhpRsq-GitHub-Pull-Request: 2999
+GhpRsq-GitHub-PR-URL: https://github.com/Blackcat-Informatics/gmeow-ontology/pull/2999
+GhpRsq-Base-Ref: main
+GhpRsq-Base-OID: 4216551d1a7795cddb60df5ad345228dda7a9a6c
+GhpRsq-Head-Ref: paudley/2715-reconcile-the-spine-document-with-what
+GhpRsq-Head-OID: 16e8fe840225dc610757e986138bcbf49d2da5b4
+GhpRsq-Result-Tree: 3940fa0f860a4b5c0e724a6456a73880cc14ec90
+GhpRsq-Result-Commit: 93997fdc1104db1b117a7587692db80d358a732b
+GhpRsq-Parent-Hashes: 16e8fe840225dc610757e986138bcbf49d2da5b4
+GhpRsq-Squash-Notes-SHA256: e25a765c099ebc6fa4dc9d2cd209d331f8d1edb401296b5614bfd64165fb29a9
+GhpRsq-Stage-Evidence: none
