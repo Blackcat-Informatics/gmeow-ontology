@@ -48,8 +48,9 @@ use std::collections::BTreeMap;
 use std::path::Path;
 use std::sync::Arc;
 
+use gmeow_gts_profile::GmeowGtsBlob;
 use purrdf::RdfQuad;
-use purrdf::gts_compose::{BlobRow, MediumPlan};
+use purrdf::gts_compose::MediumPlan;
 use purrdf::provenance::DatasetProvenance;
 
 use crate::bundle::bundle_from_artifacts_over;
@@ -375,7 +376,7 @@ pub fn seal_bundle_envelopes(
     registry: &MediumRegistry,
     selection: &MediumSelection,
     plan: &MediumPlan,
-    blobs: &[&BlobRow],
+    blobs: &[&GmeowGtsBlob<'_>],
     snapshot_content_digest: &str,
     snapshot_strata_digest: &str,
 ) -> Result<Vec<MediumEnvelope>, gmeow_errors::Diag> {

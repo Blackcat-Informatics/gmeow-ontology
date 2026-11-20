@@ -372,17 +372,17 @@ fn the_measured_chain_is_the_mandated_zstd_rsyncable_chain() {
     let registry = live_registry();
     // One blob row per registered rep that is not the snapshot wire schema: exactly
     // the shape `mandated_chain` sees at the terminal.
-    let rows: Vec<purrdf::gts_compose::BlobRow> = registry
+    let rows: Vec<_> = registry
         .schemas()
         .values()
         .filter(|schema| schema.rep != gmeow_pipeline::medium::SNAPSHOT_WIRE_REP)
-        .map(|schema| purrdf::gts_compose::BlobRow {
-            data: b"<https://e/s> <https://e/p> \"v\" .\n".to_vec(),
+        .map(|schema| gmeow_gts_profile::GmeowGtsBlob {
+            data: b"<https://e/s> <https://e/p> \"v\" .\n".as_slice().into(),
             media_type: "application/x-tar".to_string(),
             rep: schema.rep.clone(),
         })
         .collect();
-    let borrowed: Vec<&purrdf::gts_compose::BlobRow> = rows.iter().collect();
+    let borrowed: Vec<_> = rows.iter().collect();
     let (codec, level) = measure::mandated_chain(&registry, &borrowed)
         .expect("every registered rep resolves to one declared chain");
     assert_eq!(

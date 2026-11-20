@@ -66,18 +66,19 @@ fn synthetic_dcat_transport(include_query_product: bool) -> Vec<u8> {
     let native = purrdf::dataset_from_quads(&quads).unwrap();
     let mut builder = purrdf::gts_compose::SnapshotBuilder::new();
     builder.add_dataset(&native).unwrap();
-    let mut blobs = vec![purrdf::gts_compose::BlobRow {
-        data: purrdf::ustar::write_archive(&[]).unwrap(),
+    let mut blobs = vec![gmeow_gts_profile::GmeowGtsBlob {
+        data: purrdf::ustar::write_archive(&[]).unwrap().into(),
         media_type: "application/x-tar".to_owned(),
         rep: "cells-archive".to_owned(),
     }];
     if include_query_product {
-        blobs.push(purrdf::gts_compose::BlobRow {
+        blobs.push(gmeow_gts_profile::GmeowGtsBlob {
             data: purrdf::ustar::write_archive(&[(
                 "dcat.projection.json".to_owned(),
                 profiles[0].to_bytes(),
             )])
-            .unwrap(),
+            .unwrap()
+            .into(),
             media_type: "application/x-tar".to_owned(),
             rep: "queries-archive".to_owned(),
         });
@@ -530,8 +531,8 @@ fn read_distribution_matrix_fails_closed_without_the_catalog_graph() {
     let gts_bytes = {
         let emission = gmeow_gts_profile::emit_gmeow_gts(
             builder,
-            vec![purrdf::gts_compose::BlobRow {
-                data: b"unrelated".to_vec(),
+            vec![gmeow_gts_profile::GmeowGtsBlob {
+                data: b"unrelated".as_slice().into(),
                 media_type: "application/octet-stream".to_string(),
                 rep: "not-catalog".to_string(),
             }],

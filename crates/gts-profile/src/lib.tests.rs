@@ -51,8 +51,10 @@ fn production_profile_pins_transform_and_level() {
     // gmeow-test-input: synthetic-only
     let bytes = emit_gmeow_gts(
         builder,
-        vec![BlobRow {
-            data: b"small payload must not fall back to plain zstd".to_vec(),
+        vec![GmeowGtsBlob {
+            data: b"small payload must not fall back to plain zstd"
+                .as_slice()
+                .into(),
             media_type: "text/plain".to_string(),
             rep: "profile-test".to_string(),
         }],
@@ -64,44 +66,50 @@ fn production_profile_pins_transform_and_level() {
     validate_mandated_frames(&bytes.bytes).expect("fixture uses mandated frame profile");
 }
 
+/// Mixed ownership preserves the bytes of the canonical emitter, including
+/// the payload tie-break between archive and report frames with the same rep.
 #[test]
-fn owned_snapshot_emission_is_byte_identical() {
-    let blob_rows = || {
-        vec![BlobRow {
-            data: b"the same blob bytes".to_vec(),
-            media_type: "text/plain".to_string(),
-            rep: "profile-test".to_string(),
-        }]
+fn borrowed_snapshot_blobs_preserve_wire_bytes() {
+    let row = |data: &[u8]| BlobRow {
+        data: data.to_vec(),
+        media_type: "text/plain".to_string(),
+        rep: "profile-test".to_string(),
     };
+    let archive = b"this archive sorts later";
+    let report = b"report sorts first";
     // gmeow-test-input: synthetic-only
     let expected = purrdf::gts_compose::emit_gts(
         &fixture_builder(),
         "dist",
         Some(vec![GMEOW_GTS_FRAME_TRANSFORM.to_owned()]),
-        blob_rows(),
-        Vec::new(),
+        vec![row(archive)],
+        vec![row(report)],
         None,
         None,
         None,
         purrdf::gts_compose::DEFAULT_RSYNCABLE_THRESHOLD,
         &baseline_medium_plan(),
     )
-    .expect("borrowed snapshot emission");
+    .expect("reference snapshot emission");
     // gmeow-test-input: synthetic-only
     let actual = emit_gmeow_gts(
         fixture_builder(),
-        blob_rows(),
-        Vec::new(),
+        vec![GmeowGtsBlob {
+            data: archive.as_slice().into(),
+            media_type: "text/plain".to_string(),
+            rep: "profile-test".to_string(),
+        }],
+        vec![row(report).into()],
         None,
         &baseline_medium_plan(),
     )
-    .expect("owned snapshot emission");
+    .expect("mixed snapshot emission");
 
     assert_eq!(
         actual.bytes, expected,
-        "releasing the builder and skipping the redundant length probe cannot alter wire bytes"
+        "borrowed archive and owned report frames retain their canonical wire bytes"
     );
-    validate_mandated_frames(&actual.bytes).expect("owned emission uses the mandated profile");
+    validate_mandated_frames(&actual.bytes).expect("mixed emission uses the mandated profile");
 }
 
 /// The leaf raises its OWN code namespace. A profile violation reported under

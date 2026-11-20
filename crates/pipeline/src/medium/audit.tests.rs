@@ -60,8 +60,8 @@ fn baseline_bundle() -> Vec<u8> {
     {
         let emission = gmeow_gts_profile::emit_gmeow_gts(
             builder,
-            vec![purrdf::gts_compose::BlobRow {
-                data: b"a whole-artifact payload".repeat(32),
+            vec![gmeow_gts_profile::GmeowGtsBlob {
+                data: b"a whole-artifact payload".repeat(32).into(),
                 media_type: "text/plain".to_string(),
                 rep: "cells-archive".to_string(),
             }],

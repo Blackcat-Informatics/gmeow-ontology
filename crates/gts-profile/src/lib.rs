@@ -54,6 +54,8 @@ pub use ingestion_receipt::{
     read_ingestion_receipt, write_ingestion_receipt,
 };
 
+use std::borrow::Cow;
+
 use purrdf::gts::model::{Quad, Term};
 use purrdf::gts::wire::{SELF_DESCRIBE_TAG, iter_items, map_get, unwrap_header};
 use purrdf::gts::writer::{FrameOptions, Writer, term_to_wire};
@@ -340,6 +342,29 @@ fn ingestion_error(cause: GtsIngestError) -> gmeow_errors::Diag {
     gmeow_errors::Diag::of_kind(error::SnapshotAdmission { cause })
 }
 
+/// One decoded blob for the snapshot emitter.
+///
+/// Prebuilt payloads can be borrowed from their producers through sorting and
+/// hashing. The native writer takes ownership of only the frame it is writing.
+pub struct GmeowGtsBlob<'a> {
+    /// Decoded payload bytes.
+    pub data: Cow<'a, [u8]>,
+    /// Declared media type.
+    pub media_type: String,
+    /// Declared representation.
+    pub rep: String,
+}
+
+impl From<BlobRow> for GmeowGtsBlob<'_> {
+    fn from(row: BlobRow) -> Self {
+        Self {
+            data: Cow::Owned(row.data),
+            media_type: row.media_type,
+            rep: row.rep,
+        }
+    }
+}
+
 /// Consume an admitted snapshot and publish it through the sole GMEOW emitter.
 ///
 /// Native view ingestion checks completion before and after draining rows. Its
@@ -357,8 +382,8 @@ fn ingestion_error(cause: GtsIngestError) -> gmeow_errors::Diag {
 /// selected by one complete [`GmeowGtsSigning`] value.
 pub fn emit_gmeow_gts(
     builder: SnapshotBuilder,
-    archive_blobs: Vec<BlobRow>,
-    report_blobs: Vec<BlobRow>,
+    archive_blobs: Vec<GmeowGtsBlob<'_>>,
+    report_blobs: Vec<GmeowGtsBlob<'_>>,
     signing: Option<GmeowGtsSigning>,
     medium: &MediumPlan,
 ) -> gmeow_errors::Result<GmeowGtsEmission> {
@@ -405,8 +430,8 @@ fn selected_dictionary<'a>(
 
 fn emit_snapshot_payload_with_medium(
     payload: Value,
-    archive_blobs: Vec<BlobRow>,
-    report_blobs: Vec<BlobRow>,
+    archive_blobs: Vec<GmeowGtsBlob<'_>>,
+    report_blobs: Vec<GmeowGtsBlob<'_>>,
     signing: Option<GmeowGtsSigning>,
     medium: &MediumPlan,
 ) -> gmeow_errors::Result<Vec<u8>> {
@@ -450,21 +475,26 @@ fn emit_snapshot_payload_with_medium(
     let mut blobs = archive_blobs;
     blobs.extend(report_blobs);
     blobs.sort_by(|a, b| a.rep.cmp(&b.rep).then_with(|| a.data.cmp(&b.data)));
-    for blob in blobs {
-        let dictionary = selected_dictionary(medium, &FrameSlot::Blob(blob.rep.clone()))?;
+    for GmeowGtsBlob {
+        data,
+        media_type,
+        rep,
+    } in blobs
+    {
+        let dictionary = selected_dictionary(medium, &FrameSlot::Blob(rep.clone()))?;
         let public = Value::Map(vec![
             (
                 "digest".into(),
-                Value::Text(purrdf::gts::writer::digest_string(&blob.data)),
+                Value::Text(purrdf::gts::writer::digest_string(&data)),
             ),
-            ("mt".into(), Value::Text(blob.media_type.clone())),
-            ("rep".into(), Value::Text(blob.rep.clone())),
+            ("mt".into(), Value::Text(media_type)),
+            ("rep".into(), Value::Text(rep)),
         ]);
         writer
             .add_frame_with_options(
                 "blob",
                 FrameOptions {
-                    raw: Some(blob.data),
+                    raw: Some(data.into_owned()),
                     transform: vec![GMEOW_GTS_FRAME_TRANSFORM.to_string()],
                     pub_meta: Some(public),
                     zstd_level: medium.zstd_level,
