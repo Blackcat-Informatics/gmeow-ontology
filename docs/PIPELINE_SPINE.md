@@ -49,11 +49,9 @@ whole run. It holds:
   text trees, serialized side formats) keyed by digest;
 - the **provenance** sidecar — per-quad attribution.
 
-The carrier is the spine for the whole run: every stage hands the next stage a
-richer carrier, never a serialized file and never a second parallel assembly. In
-particular the GTS form is **exit-only** — the bundle is serialized to `gmeow.gts`
-once, by the terminal, and never re-parsed back into the pipeline as transport.
-There is no `dataset → gts → dataset` round-trip inside the spine.
+Stages exchange contributions through the carrier. The terminal publishes
+`gmeow.gts` at the exit. Fanout and verification read the serialized bundle
+after the stage DAG, outside its transport path.
 
 **Typed publication identity.** A typed attachment binds its named graph's
 canonical digest and its complete native payload commitment. Downstream action
@@ -434,14 +432,16 @@ uniformity is the point: **a grounding slice's computed artifact is a carrier gr
 attached by a registered stage, never a file the slice writes and something else
 reads back.** Rule 1 of the stage contract admits no grounding exception.
 
-Three stages instantiate the contract today, and they differ only in what they
-compute — never in how it travels:
+The following stages supply grounding outputs and their authored inputs.
 
-| Stage | Computes | Attaches |
+| Stage | Product | Selected graph attachments |
 | --- | --- | --- |
+| `stage-source-load` | Authored worked examples | `GRAPH_EXAMPLES` |
 | `stage-compile-logic` | the `logic:` IR and its typed views | `GRAPH_LOGIC`, `GRAPH_RELATIONAL_CORE`, `GRAPH_CORRESPONDENCE`, `GRAPH_DIAGNOSTICS` |
-| `stage-reason` | the reasoned closure (once — the razor) | `GRAPH_REASONING`, `GRAPH_EXAMPLES`, `GRAPH_DIAGNOSTICS` |
-| `stage-math-producers` | the `math:` producer outputs, including executed R / ONNX / TSTP lifts | `GRAPH_EXAMPLES` |
+| `stage-reason` | the reasoned closure | `GRAPH_REASONING`, `GRAPH_DIAGNOSTICS` |
+| `stage-math-producers` | the `math:` producer outputs, including executed R / ONNX / TSTP lifts | Named graphs under `graph/math-producers/` |
+
+[Stage attachment inventory](../crates/pipeline/src/stages/attach.rs)
 
 Diagnostic reports project directly into native datasets for rule execution and
 carrier publication. The same finding projection supplies the terminal text
@@ -468,26 +468,22 @@ quoted and composite-literal occurrences. The completed carrier is shared by the
 stage product. Stage timing metadata reports removed closure-reparse bytes and
 witness wire bytes separately from required artifact bytes.
 
-Four properties bind a grounding generator, all inherited rather than special:
+Grounding generators follow the same checks and conventions as other stages.
 
-1. **Determinism over a committed input.** The artifact is a pure function of authored
-   source plus, where a lift executes a real front-end, a committed artifact embedded
-   at compile time. `stage-math-producers` runs the shipped `gmeow_math_lift`
-   entrypoint — the same one the `gmeow` CLI calls — over a real committed script, so
-   the bundle carries the output of the actual parser rather than an imitation of it.
-2. **Attached, not written.** The output is one or more named graphs on the carrier.
-   A grounding artifact that appears under `generated/` is a *projection* of the
-   bundle produced by fanout (§6), never the transport that got it there.
-3. **Computed once.** The razor applies unchanged: a closure or a lift is computed a
-   single time and read from the carrier by every downstream consumer.
-4. **Diagnostics ride the same rail.** A grounding generator's findings attach to
-   `GRAPH_DIAGNOSTICS` alongside every other stage's, so a grounding failure is a
-   carrier-borne `gmeow:Finding` rather than a private error channel.
+1. **Deterministic inputs (convention).** Compute from committed source and
+   declared inputs. `stage-math-producers` uses the shipped `gmeow_math_lift`
+   entry point over committed scripts.
+2. **Carrier routing (rule 1) and attachment checks (rule 3).** Publish groundings
+   as declared stage outputs. Fanout writes their generated file projections (§6).
+3. **Compute once (rule 2).** Compute a closure or lift in its owning stage and
+   share its product.
+4. **Carrier diagnostics.** Publish finding graphs through the same declared
+   attachment mechanism (rule 3). The reason stage, for example, attaches
+   `GRAPH_DIAGNOSTICS`.
 
-The consequence for a new grounding capability is that there is nothing to design
-about its transport: register a stage, attach graphs, and it is in the bundle, in the
-superset law, and under the conformance gate automatically. The open question for any
-grounding slice is only *what to compute* — never *how to ship it*.
+Register a grounding stage and declare its edges and attachments. Select its
+shipped contributions at the snapshot boundary and declare any corresponding
+fanout paths. The superset gate checks those materialized paths (§7).
 
 ## 4. One terminal
 
@@ -495,13 +491,12 @@ grounding slice is only *what to compute* — never *how to ship it*.
 publishes the certified snapshot dataset. `stage-gts-sink` reads that dataset
 and the declared archive, dictionary, and export inputs. It assembles the
 physical frames, computes their identities, seals the medium envelopes, and
-publishes the serialized `gmeow.gts` bytes in its stage product. The reconcile
-phase materializes the bundle, then fanout projects its files (§6).
+publishes the serialized `gmeow.gts` bytes in its stage product. In update
+mode, reconcile materializes the bundle and fanout projects its files (§6).
 
 The reconcile checks for exactly one declared sink and exactly one product
 that supplies the bundle bytes, and requires their stage identities to match.
-The shipped bundle is the sole GTS serialization boundary for the carrier
-(Principles 14 and 16).
+The terminal publishes the build's sole GTS artifact (Principles 14 and 16).
 [Snapshot stage](../crates/pipeline/src/stages/carrier.rs) · [GTS sink](../crates/pipeline/src/stages/gts_sink.rs) · [Reconcile](../crates/pipeline/src/run.rs)
 
 ## 5. The superset law
@@ -670,10 +665,9 @@ contract while exercising the same exact carrier.
   inferred axioms are all projections of that one graph — never independent
   reasoning passes. Two artifacts that claim to be "the closure" but were reasoned
   separately are a razor (§3.2) violation, even if they happen to agree.
-- **One serialization.** The carrier is serialized exactly once, by the terminal.
-  Intermediate `gmeow.gts` emissions inside the pipeline are non-conforming; a side
-  format a blob needs is produced from the in-memory carrier, not by emitting and
-  re-parsing a temporary bundle.
+- **One published bundle.** The terminal publishes `gmeow.gts`. Produce side
+  formats from the in-memory carrier. The explicit documentation sizing command
+  can serialize a counterfactual bundle for measurement after the stage DAG.
 - **Determinism.** Stage completion order does not affect the bundle: contributions
   fold by a stable key, so the emitted bytes are identical regardless of scheduling.
 - **Not a format spec.** The on-the-wire layout of `gmeow.gts` (segments, blob
