@@ -228,21 +228,33 @@ fn superset_empty_materialized_tree_hard_fails() {
     assert!(!report.is_clean());
 }
 
+/// Fanout fields in every graph participate in the same reconstruction contract.
 #[test]
 fn fanout_rules_drive_reconstruction_and_bijection() {
     // The path↔representative map read as DATA (the promoted gmeow:fanoutExtracts rows):
     // parse a small row set, prove the form/family/graph-IRI resolution is data-driven,
     // and prove the bijection HARD-fail fires on an unmapped path AND on a stale row.
-    let ttl = r#"@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
-gmeow:r1 gmeow:extractsPath "generated/evals/scores.ttl" ; gmeow:extractsMatch "exact" ; gmeow:extractsGraphFamily "rdf-fanout" ; gmeow:extractsForm "turtle" .
+    let trig = r#"@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+gmeow:r1 gmeow:extractsPath "generated/evals/scores.ttl" ; gmeow:extractsMatch "exact" ; gmeow:extractsGraphFamily "rdf-fanout" .
+gmeow:contract { gmeow:r1 gmeow:extractsForm "turtle" . }
 gmeow:r2 gmeow:extractsPath "generated/logic/gmeow.correspondence.nt" ; gmeow:extractsMatch "exact" ; gmeow:extractsGraphFamily "rdf-fanout" ; gmeow:extractsForm "ntriples" .
 gmeow:r3 gmeow:extractsPath "generated/diagnostics/shacl.nq" ; gmeow:extractsMatch "exact" ; gmeow:extractsGraphFamily "rdf-fanout" ; gmeow:extractsForm "nquads-diagnostics" .
 gmeow:r4 gmeow:extractsPath "generated/profiles/" ; gmeow:extractsMatch "prefix" ; gmeow:extractsGraphFamily "rdf-fanout" ; gmeow:extractsForm "turtle" .
 gmeow:r5 gmeow:extractsPath "generated/projections/" ; gmeow:extractsMatch "prefix" ; gmeow:extractsSuffix ".edoal.ttl" ; gmeow:extractsGraphFamily "edoal" ; gmeow:extractsForm "turtle" .
 "#;
-    let ds = purrdf::parse_dataset(ttl.as_bytes(), "text/turtle", None).unwrap();
+    let ds = purrdf::parse_dataset(trig.as_bytes(), "application/trig", None).unwrap();
     let rules = read_fanout_rules(&ds).unwrap();
     assert_eq!(rules.len(), 5);
+
+    let duplicate = format!("{trig}\ngmeow:r1 gmeow:extractsForm \"turtle\" .\n");
+    let ds = purrdf::parse_dataset(duplicate.as_bytes(), "application/trig", None)
+        .expect("parse a repeated field in a second graph");
+    let error = read_fanout_rules(&ds).expect_err("each field is checked across every graph");
+    assert!(
+        error
+            .to_string()
+            .contains("has 2 values for gmeow:extractsForm")
+    );
 
     // Form + graph-IRI resolution is driven entirely by the data rows.
     let rep = graph_rep_for_path(&rules, "generated/evals/scores.ttl").unwrap();
