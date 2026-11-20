@@ -44,8 +44,9 @@
 //!
 //! That bound covers the reads made for records only. The scheduler also reads the same
 //! file once per stage, and a second time on a cache hit, for the cache-hydration
-//! figure, and the snapshot reads it once for each owned carrier whose size it logs
-//! (`log_carrier_size` in `stages/carrier.rs`).
+//! figure, and once for each individually detached typed handle. The snapshot reads
+//! it once for each owned carrier whose size it logs (`log_carrier_size` in
+//! `stages/carrier.rs`).
 
 use std::cell::RefCell;
 use std::sync::atomic::{AtomicU64, Ordering};
@@ -95,6 +96,22 @@ impl ProcessMemory {
             peak_rss_kib: value("VmHWM:"),
         }
     }
+}
+
+/// Report an individual dropped handle reference at the scheduler boundary.
+/// Shared handle backing can survive this event through another owner.
+pub(crate) fn handle_release(stage: &str, handle: &str) {
+    let process = ProcessMemory::sample();
+    tracing::info!(
+        target: TARGET,
+        pid = std::process::id(),
+        stage,
+        event = "release-handle",
+        handle,
+        rss_kib = process.rss_kib,
+        peak_rss_kib = process.peak_rss_kib,
+        "typed handle release"
+    );
 }
 
 /// What the process allocator held, in bytes, as its own totals report it.
