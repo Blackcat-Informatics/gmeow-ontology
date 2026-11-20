@@ -1,0 +1,7 @@
+{"time": "2026-11-20T23:31:28.380437+00:00", "status": "started"}
+{"time": "2026-11-20T23:31:28.567659+00:00", "status": "merging"}
+{"time": "2026-11-20T23:31:36.002200+00:00", "status": "conflicted"}
+{"time": "2026-11-20T23:31:36.025369+00:00", "status": "review_required", "reused_paths": [], "rerere_output": "Recorded preimage for 'crates/pipeline/src/stages/verify_attestation.rs'\n"}
+{"time": "2026-11-20T23:32:27.234867+00:00", "status": "committing", "candidate_tree": "d2c5f45e1e1d546ef913b17a4d79acbcb39ce646", "candidate_patch": "candidate-6eba9f30ae404f9396e47a0543ee0a2b.patch", "stdout_log": "commit-6eba9f30ae404f9396e47a0543ee0a2b.stdout.log", "stderr_log": "commit-6eba9f30ae404f9396e47a0543ee0a2b.stderr.log", "validation_records": []}
+{"time": "2026-11-20T23:32:54.831072+00:00", "status": "commit_returned", "exit_code": 0, "commit_duration_seconds": 27.58414651401108, "stdout_log": "commit-6eba9f30ae404f9396e47a0543ee0a2b.stdout.log", "stderr_log": "commit-6eba9f30ae404f9396e47a0543ee0a2b.stderr.log"}
+{"time": "2026-11-20T23:32:54.905263+00:00", "status": "completed", "commit": "222a215a7b3dd3da253be781f394cf2e57d168cd", "tree": "d2c5f45e1e1d546ef913b17a4d79acbcb39ce646", "exit_code": 0, "stdout_log": "commit-6eba9f30ae404f9396e47a0543ee0a2b.stdout.log", "stderr_log": "commit-6eba9f30ae404f9396e47a0543ee0a2b.stderr.log"}

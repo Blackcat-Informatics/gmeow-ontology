@@ -1,0 +1,28 @@
+{
+  "schema": 1,
+  "worktree": "/home/paudley/Active/gmeow-ontology/.worktrees/3009-hash-verify-attestation-inputs-without",
+  "branch": "paudley/3009-hash-verify-attestation-inputs-without",
+  "base_ref": "5c10bb28d1b58a648b1632339b1cf5a73d5b5463",
+  "head": "f15d2b1e83290e4a8da54f7c77a7829be1c9cf7f",
+  "attempt": "/home/paudley/Active/gmeow-ontology/.worktrees/3009-hash-verify-attestation-inputs-without/.stage/hash-verify-attestation-inputs-without/sync/20261120T233128-2fe4d14445f14aa7a150b13f6dee089d",
+  "conflicts": [
+    "crates/pipeline/src/stages/verify_attestation.rs"
+  ],
+  "status": "completed",
+  "base": "5c10bb28d1b58a648b1632339b1cf5a73d5b5463",
+  "merge_bases": [
+    "881aab42b0678a8fa8f00ec67f4b3fd88fbd86a1"
+  ],
+  "merge_index": "aa62fc743007715bb89c67b881bf430639715f2b7ed9c03ab585009c08630508",
+  "reused_paths": [],
+  "rerere_output": "Recorded preimage for 'crates/pipeline/src/stages/verify_attestation.rs'\n",
+  "candidate_tree": "d2c5f45e1e1d546ef913b17a4d79acbcb39ce646",
+  "candidate_patch": "candidate-6eba9f30ae404f9396e47a0543ee0a2b.patch",
+  "stdout_log": "commit-6eba9f30ae404f9396e47a0543ee0a2b.stdout.log",
+  "stderr_log": "commit-6eba9f30ae404f9396e47a0543ee0a2b.stderr.log",
+  "validation_records": [],
+  "commit_duration_seconds": 27.58414651401108,
+  "commit": "222a215a7b3dd3da253be781f394cf2e57d168cd",
+  "tree": "d2c5f45e1e1d546ef913b17a4d79acbcb39ce646",
+  "exit_code": 0
+}
