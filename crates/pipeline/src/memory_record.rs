@@ -97,6 +97,24 @@ impl ProcessMemory {
     }
 }
 
+/// Report an individual dropped handle reference at the scheduler boundary.
+/// Shared handle backing can survive this event through another owner.
+pub(crate) fn handle_release(stage: &str, handle: &str) {
+    if tracing::enabled!(target: TARGET, tracing::Level::INFO) {
+        let process = ProcessMemory::sample();
+        tracing::info!(
+            target: TARGET,
+            pid = std::process::id(),
+            stage,
+            event = "release-handle",
+            handle,
+            rss_kib = process.rss_kib,
+            peak_rss_kib = process.peak_rss_kib,
+            "typed handle release"
+        );
+    }
+}
+
 /// What the process allocator held, in bytes, as its own totals report it.
 ///
 /// The totals are those of every arena and are not an atomic snapshot: threads go on
