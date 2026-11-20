@@ -1,0 +1,32 @@
+{
+  "schema": 1,
+  "worktree": "/home/paudley/Active/gmeow-ontology/.worktrees/2881-carry-native-reasoning-receipts-as",
+  "branch": "paudley/2881-carry-native-reasoning-receipts-as",
+  "base_ref": "refs/remotes/origin/main",
+  "head": "20e94e57fd659e5889b5df9fa490cabd618fa0b2",
+  "attempt": "/home/paudley/Active/gmeow-ontology/.worktrees/2881-carry-native-reasoning-receipts-as/.stage/carry-native-reasoning-receipts-as/sync/20261120T135737-7231c88e03ba4fe2bc05f1cd4cd2a84d",
+  "conflicts": [
+    "Cargo.toml",
+    "crates/docs/src/render.rs",
+    "crates/docs/src/render/overview.rs",
+    "crates/pipeline/src/cache.rs",
+    "helpers-census-debt.json"
+  ],
+  "status": "completed",
+  "base": "881aab42b0678a8fa8f00ec67f4b3fd88fbd86a1",
+  "merge_bases": [
+    "a9a85f296e1b8386c737e0789a80333920c525f7"
+  ],
+  "merge_index": "b4cfb911479c1eea31b37eb434185c32a8a67b51b81a8e85a61ceb317e9fd28f",
+  "reused_paths": [],
+  "rerere_output": "Recorded preimage for 'Cargo.toml'\nRecorded preimage for 'crates/docs/src/render.rs'\nRecorded preimage for 'crates/docs/src/render/overview.rs'\nRecorded preimage for 'crates/pipeline/src/cache.rs'\nRecorded preimage for 'helpers-census-debt.json'\n",
+  "candidate_tree": "76c32959500be095cc3989ae62678baff3975929",
+  "candidate_patch": "candidate-cb8cccfb8aed433a84cb373df6a86441.patch",
+  "stdout_log": "commit-cb8cccfb8aed433a84cb373df6a86441.stdout.log",
+  "stderr_log": "commit-cb8cccfb8aed433a84cb373df6a86441.stderr.log",
+  "validation_records": [],
+  "commit_duration_seconds": 115.47578743299528,
+  "commit": "7c07b9b53211c98f6bf5cc3dd431a620a911cb66",
+  "tree": "76c32959500be095cc3989ae62678baff3975929",
+  "exit_code": 0
+}

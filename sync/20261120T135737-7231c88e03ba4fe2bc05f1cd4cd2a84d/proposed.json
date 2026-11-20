@@ -1,0 +1,32 @@
+[
+  {
+    "path": "Cargo.toml",
+    "kind": "file",
+    "executable": false,
+    "content": "proposed/0.bin"
+  },
+  {
+    "path": "crates/docs/src/render.rs",
+    "kind": "file",
+    "executable": false,
+    "content": "proposed/1.bin"
+  },
+  {
+    "path": "crates/docs/src/render/overview.rs",
+    "kind": "file",
+    "executable": false,
+    "content": "proposed/2.bin"
+  },
+  {
+    "path": "crates/pipeline/src/cache.rs",
+    "kind": "file",
+    "executable": false,
+    "content": "proposed/3.bin"
+  },
+  {
+    "path": "helpers-census-debt.json",
+    "kind": "file",
+    "executable": false,
+    "content": "proposed/4.bin"
+  }
+]

@@ -1,0 +1,32 @@
+[
+  {
+    "path": "Cargo.toml",
+    "kind": "file",
+    "executable": false,
+    "content": "accepted-cb8cccfb8aed433a84cb373df6a86441/0.bin"
+  },
+  {
+    "path": "crates/docs/src/render.rs",
+    "kind": "file",
+    "executable": false,
+    "content": "accepted-cb8cccfb8aed433a84cb373df6a86441/1.bin"
+  },
+  {
+    "path": "crates/docs/src/render/overview.rs",
+    "kind": "file",
+    "executable": false,
+    "content": "accepted-cb8cccfb8aed433a84cb373df6a86441/2.bin"
+  },
+  {
+    "path": "crates/pipeline/src/cache.rs",
+    "kind": "file",
+    "executable": false,
+    "content": "accepted-cb8cccfb8aed433a84cb373df6a86441/3.bin"
+  },
+  {
+    "path": "helpers-census-debt.json",
+    "kind": "file",
+    "executable": false,
+    "content": "accepted-cb8cccfb8aed433a84cb373df6a86441/4.bin"
+  }
+]

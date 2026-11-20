@@ -1,0 +1,7 @@
+{"time": "2026-11-20T13:57:37.095257+00:00", "status": "started"}
+{"time": "2026-11-20T13:58:06.913889+00:00", "status": "merging"}
+{"time": "2026-11-20T13:58:09.589590+00:00", "status": "conflicted"}
+{"time": "2026-11-20T13:58:09.652958+00:00", "status": "review_required", "reused_paths": [], "rerere_output": "Recorded preimage for 'Cargo.toml'\nRecorded preimage for 'crates/docs/src/render.rs'\nRecorded preimage for 'crates/docs/src/render/overview.rs'\nRecorded preimage for 'crates/pipeline/src/cache.rs'\nRecorded preimage for 'helpers-census-debt.json'\n"}
+{"time": "2026-11-20T14:13:52.507144+00:00", "status": "committing", "candidate_tree": "76c32959500be095cc3989ae62678baff3975929", "candidate_patch": "candidate-cb8cccfb8aed433a84cb373df6a86441.patch", "stdout_log": "commit-cb8cccfb8aed433a84cb373df6a86441.stdout.log", "stderr_log": "commit-cb8cccfb8aed433a84cb373df6a86441.stderr.log", "validation_records": []}
+{"time": "2026-11-20T14:15:48.152700+00:00", "status": "commit_returned", "exit_code": 0, "commit_duration_seconds": 115.47578743299528, "stdout_log": "commit-cb8cccfb8aed433a84cb373df6a86441.stdout.log", "stderr_log": "commit-cb8cccfb8aed433a84cb373df6a86441.stderr.log"}
+{"time": "2026-11-20T14:15:48.329806+00:00", "status": "completed", "commit": "7c07b9b53211c98f6bf5cc3dd431a620a911cb66", "tree": "76c32959500be095cc3989ae62678baff3975929", "exit_code": 0, "stdout_log": "commit-cb8cccfb8aed433a84cb373df6a86441.stdout.log", "stderr_log": "commit-cb8cccfb8aed433a84cb373df6a86441.stderr.log"}
