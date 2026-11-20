@@ -1249,8 +1249,9 @@ fn verify_selected_stage_receipts(
     Ok(verified)
 }
 
-/// Compact original-source observations explicitly exported before test processes start.
+/// Compact authenticated stage outputs explicitly exported before test processes start.
 pub const AUTHENTICATED_SOURCE_ARTIFACTS: &[(&str, &str)] = &[
+    ("stage-export-schemas", crate::stages::schemas::LINKML_PATH),
     (
         "stage-conformance",
         crate::stages::conformance::reviewed_translations::CHANNEL,
