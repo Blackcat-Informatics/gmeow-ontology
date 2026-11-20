@@ -172,20 +172,16 @@ definition change, and until then the generated term
 manifest records each moved term as changed in the current release. Do not use that
 target to settle a profile move.
 
-The reasoner witnesses are refreshed with a substrate bump but do not derive from
-the profile. They move with the substrate because their skolem IRIs fold the native
-contract hash, which folds the linked PurRDF's substrate identity. They do not move
-with the profile because no canonical label reaches a witness identity, for two
-different reasons. The conjecture formulas do hold blank nodes, as argument and
-quantified-variable nodes, and those are read into a formula over IRIs and
-variables, whose terms have no blank-node form. The closure input and both
-knowledge bases hold no blank node; that is true of the inputs as they stand and is
-not enforced, so a blank node added to either needs this paragraph checked again.
-`make maint-refresh-reason-witness` writes
-`crates/reason-wasm/tests/WITNESS.reason.nq` and `WITNESS.conjecture.nq`, and
-`make maint-prepare-wasm-assets` copies `WITNESS.reason.nq` into
-`crates/docs/assets/reason/`. No target copies
-`crates/docs/assets/reason/WITNESS.conjecture.nq`.
+The native reasoner witnesses record complete JSON responses. The reason
+witness carries the closure and its GTS artifact. The conjecture witness
+records the corroborated and refuted responses and their GTS artifacts.
+Skolem IRIs in the closure bind the native contract hash, which includes
+the linked PurRDF substrate identity. Refresh both witnesses when bumping
+the substrate. `make maint-refresh-reason-witness` writes
+`crates/reason-wasm/tests/WITNESS.reason.json` and `WITNESS.conjecture.json`.
+`make maint-prepare-wasm-assets` and `make maint-refresh-reason-asset` copy the
+reason witness into `crates/docs/assets/reason/`. The native and Node conjecture
+parity tests read the conjecture witness directly from `crates/reason-wasm/tests/`.
 
 A stored proof file or a bundle produced under another profile may not verify
 against this one. `gmeow prove --check-proof` recomputes the canonical identity of

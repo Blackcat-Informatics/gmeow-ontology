@@ -194,7 +194,7 @@ fn docs_source_files_includes_new_inputs() {
     for witness in [
         "crates/docs/assets/query/WITNESS.describe.nt",
         "crates/docs/assets/validate/WITNESS.validate.json",
-        "crates/docs/assets/reason/WITNESS.reason.nq",
+        "crates/docs/assets/reason/WITNESS.reason.json",
         "crates/docs/assets/gmn/WITNESS.gmn1.txt",
         "crates/docs/assets/mcp-core/WITNESS.core-deferral.json",
         "crates/docs/assets/mcp/WITNESS.mcp.json",

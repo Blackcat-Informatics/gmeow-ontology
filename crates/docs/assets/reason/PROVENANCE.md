@@ -40,17 +40,17 @@ make maint-refresh-reason-asset
 This first runs the verified native producer for `tests/WITNESS.reason.json` and
 `tests/WITNESS.conjecture.json`, then
 rebuilds the wasm package (`make reason-wasm-pkg`) with a release build for
-`wasm32-unknown-unknown`, wasm-bindgen 0.2.129 with `--target web`, and the required
-`wasm-opt -Oz`. It runs the complete Node native↔wasm witness lane before copying the
-four artifacts here and re-pinning `DIGESTS.blake3` through the shared explicit asset
-producer. Those steps are sequenced in the target recipe, so a parallel Make invocation
-cannot race a witness refresh against its consumer. It must be run whenever the reasoner
-source changes; otherwise the vendored engine drifts from source.
+`wasm32-unknown-unknown`, the workspace-pinned wasm-bindgen with `--target web`, and
+the required `wasm-opt -Oz`. It runs the complete Node native↔wasm witness lane before
+copying the four package artifacts and `WITNESS.reason.json` here and refreshing
+`DIGESTS.blake3` through the asset producer. The recipe finishes the witness refresh
+before its consumers run, including in parallel Make invocations. Refresh the asset
+whenever the reasoner source changes to keep the vendored engine current.
 Two gates guard against a stale/broken blob:
 
 - a **Rust structural + digest test** (`crates/docs/tests/reason_asset.rs`, on
-  `make check`) asserts the vendored `.wasm` is a real wasm module, the bindings still
-  export the `reason` surface, and the pinned BLAKE3 digests match the exact bytes;
+  `make check`) verifies the vendored WebAssembly module, the reasoning and artifact
+  admission exports, and the exact bytes against the pinned BLAKE3 digests;
 - **Node native↔wasm parity witnesses** (`crates/reason-wasm/js/tests/witness.test.mjs`
   and `witness_conjecture.test.mjs`, on `make reason-wasm-pkg-test`, gate-enforced on
   every pull request via `wasm-parity` in the required CI `make heavy` lane) load the

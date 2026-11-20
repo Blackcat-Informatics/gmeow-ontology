@@ -21,6 +21,25 @@ fn attestation_path() -> PathBuf {
 #[test]
 fn native_reason_closure_matches_the_witness_attestation() {
     let out = reason_artifact(INPUT, "turtle");
+    let response: serde_json::Value =
+        serde_json::from_str(&out).expect("the admitted reasoning response is JSON");
+    let closure = response["closure_nquads"]
+        .as_str()
+        .expect("the admitted artifact carries its closure");
+    let dataset = purrdf::parse_dataset(closure.as_bytes(), "application/n-quads", None)
+        .expect("the admitted closure is valid N-Quads");
+    let subject = purrdf::RdfTerm::iri("https://example.org/felix");
+    let predicate = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
+    for class in ["https://example.org/Animal", "https://example.org/Organism"] {
+        let object = purrdf::RdfTerm::iri(class);
+        assert!(
+            dataset.owned_quads().any(|quad| quad.subject == subject
+                && quad.predicate == predicate
+                && quad.object == object),
+            "the admitted closure entails Felix's membership in {class}"
+        );
+    }
+
     // Complete-artifact bytes are deterministic and match the explicit producer.
     assert_eq!(
         out,

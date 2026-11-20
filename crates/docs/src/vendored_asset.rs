@@ -648,7 +648,7 @@ pub static QUERY_ASSET: VendoredWasmAsset = VendoredWasmAsset {
 };
 
 /// The vendored gmeow-validate-wasm engine — the repo-free Tier-1 GMEOW validator
-/// (SHACL + OntoUML disciplines over a `gmeow.gts` bundle) compiled to wasm32.
+/// (SHACL + OntoUML disciplines over a `gmeow.gts` bundle) compiled to `wasm32`.
 ///
 /// Emitted under `assets/validate/`; refreshed by `make maint-refresh-validate-asset`.
 /// Behaviour (does a validation actually run?) is covered by the validate-wasm Node
@@ -706,7 +706,7 @@ pub static VALIDATE_ASSET: VendoredWasmAsset = VendoredWasmAsset {
 };
 
 /// The vendored gmeow-reason-wasm engine — the native GMEOW structured-DL reasoner
-/// (`gmeow-logic`) compiled to wasm32, run SERIALLY in the browser (byte-identical to
+/// (`gmeow-logic`) compiled to `wasm32`, run SERIALLY in the browser (byte-identical to
 /// the parallel native chase). Emitted under `assets/reason/`; refreshed by
 /// `make maint-refresh-reason-asset`.
 pub static REASON_ASSET: VendoredWasmAsset = VendoredWasmAsset {
@@ -750,6 +750,16 @@ pub static REASON_ASSET: VendoredWasmAsset = VendoredWasmAsset {
             needle: "export function conjecture(kb: string, kb_format: string, formula: string, standpoint: string): string",
             hint: "vendored .d.ts lacks the conjecture type signature (W4 conjecture playground)",
         },
+        ExportCheck {
+            file: "gmeow_reason_wasm.js",
+            needle: "export function admit_artifact(bytes)",
+            hint: "vendored bindings lack the reasoning artifact admission export",
+        },
+        ExportCheck {
+            file: "gmeow_reason_wasm.d.ts",
+            needle: "export function admit_artifact(bytes: Uint8Array",
+            hint: "vendored .d.ts lacks the reasoning artifact admission type signature",
+        },
     ],
     refresh_target: "maint-refresh-reason-asset",
     // The native↔wasm reasoning parity attestation (`WITNESS.reason.json`): the reasoned
@@ -760,7 +770,7 @@ pub static REASON_ASSET: VendoredWasmAsset = VendoredWasmAsset {
 };
 
 /// The vendored `gmeow-gmn-wasm` engine — the shipped GMN-0↔GMN-1 codec + glyph
-/// symbology compiled to wasm32, run client-side so the docs GMN transcode widget turns
+/// symbology compiled to `wasm32`, run client-side so the docs GMN transcode widget turns
 /// authored RDF into the token-compact GMN-1 surface and back with the SAME codec the
 /// on-gate authority ships. Refreshed by `make maint-refresh-gmn-asset`.
 pub static GMN_ASSET: VendoredWasmAsset = VendoredWasmAsset {
