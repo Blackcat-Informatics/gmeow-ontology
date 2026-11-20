@@ -214,8 +214,10 @@ fn term_page_attributes_unsatisfiability_to_the_concluded_class() {
         ]),
         ..Default::default()
     };
-    let foo_page = to_markdown_exec(&model, &Page::Term(term_slug(foo)), &exec);
-    let bar_page = to_markdown_exec(&model, &Page::Term(term_slug(bar)), &exec);
+    let foo_page = to_markdown_exec(&model, &Page::Term(term_slug(foo)), &exec)
+        .expect("the premise class page renders");
+    let bar_page = to_markdown_exec(&model, &Page::Term(term_slug(bar)), &exec)
+        .expect("the concluded class page renders");
     let explanation = format!(
         "- **{}:**",
         model.ui("body_reasoning_unsatisfiable_because")

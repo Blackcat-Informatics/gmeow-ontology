@@ -147,7 +147,7 @@ fn a_site_envelope_written_to_disk_verifies_when_read_back() {
 fn selected_render_uses_producer_identity_and_refuses_other_languages_or_receipts() {
     let (_tmp, root) = temp_root("selected-render");
     let identity = model_identity();
-    let store = action_store(&root).expect("the synthetic action store opens");
+    let store = open_render_store(&root).expect("the synthetic action store opens");
     let site = Site {
         files: BTreeMap::from([("index.html".to_string(), b"selected".to_vec())]),
     };
