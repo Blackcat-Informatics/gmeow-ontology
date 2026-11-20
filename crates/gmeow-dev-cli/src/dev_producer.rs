@@ -41,6 +41,7 @@ pub(crate) fn requires_admission(command: &Commands) -> bool {
                 )
         }
         Commands::Fanout(_)
+        | Commands::NativeReceiptVectors
         | Commands::MediumSweep(_)
         | Commands::PipelineReads(_)
         | Commands::PipelineScopeCheck

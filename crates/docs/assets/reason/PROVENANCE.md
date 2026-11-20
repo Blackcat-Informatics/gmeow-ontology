@@ -7,7 +7,8 @@ SPDX-License-Identifier: AGPL-3.0-only
 
 These files are the **prebuilt** [`gmeow-reason-wasm`](../../../reason-wasm) engine —
 the repo-free GMEOW structured-DL reasoner (the native `gmeow-reason` chase over authored
-RDF, returning the reasoned closure — the inferred triples) compiled to
+RDF, returning a complete binary GTS artifact envelope with admitted verdict facets
+and the full asserted and inferred RDF closure) compiled to
 `wasm32-unknown-unknown` — pinned here so the generated documentation site can reason over
 authored RDF entirely in the browser (no server, no network, no repository). They are
 emitted verbatim into the rendered site under `assets/reason/` (a language-neutral path)
@@ -17,7 +18,7 @@ and constitute the reasoning runtime the docs controller loads.
 
 | File | Role |
 |------|------|
-| `gmeow_reason_wasm.js` | wasm-bindgen `--target web` ES-module bindings (exposes `reason`, `conjecture`, `version`). |
+| `gmeow_reason_wasm.js` | wasm-bindgen `--target web` ES-module bindings (exposes `reason`, `conjecture`, `admit_artifact`, `version`). |
 | `gmeow_reason_wasm_bg.wasm` | The compiled structured-DL reasoner — the native `gmeow-reason` chase, run serially on wasm. |
 | `gmeow_reason_wasm.d.ts` / `gmeow_reason_wasm_bg.wasm.d.ts` | TypeScript type surface. |
 
@@ -36,23 +37,24 @@ Because it is a constant `include_bytes!` input, the rendered site stays byte-de
 make maint-refresh-reason-asset
 ```
 
-This first runs the verified native producer for `tests/WITNESS.conjecture.nq`, then
+This first runs the verified native producer for `tests/WITNESS.reason.json` and
+`tests/WITNESS.conjecture.json`, then
 rebuilds the wasm package (`make reason-wasm-pkg`) with a release build for
-`wasm32-unknown-unknown`, wasm-bindgen 0.2.129 with `--target web`, and the required
-`wasm-opt -Oz`. It runs the complete Node native↔wasm witness lane before copying the
-four artifacts here and re-pinning `DIGESTS.blake3` through the shared explicit asset
-producer. Those steps are sequenced in the target recipe, so a parallel Make invocation
-cannot race a witness refresh against its consumer. It must be run whenever the reasoner
-source changes; otherwise the vendored engine drifts from source.
+`wasm32-unknown-unknown`, the workspace-pinned wasm-bindgen with `--target web`, and
+the required `wasm-opt -Oz`. It runs the complete Node native↔wasm witness lane before
+copying the four package artifacts and `WITNESS.reason.json` here and refreshing
+`DIGESTS.blake3` through the asset producer. The recipe finishes the witness refresh
+before its consumers run, including in parallel Make invocations. Refresh the asset
+whenever the reasoner source changes to keep the vendored engine current.
 Two gates guard against a stale/broken blob:
 
 - a **Rust structural + digest test** (`crates/docs/tests/reason_asset.rs`, on
-  `make check`) asserts the vendored `.wasm` is a real wasm module, the bindings still
-  export the `reason` surface, and the pinned BLAKE3 digests match the exact bytes;
+  `make check`) verifies the vendored WebAssembly module, the reasoning and artifact
+  admission exports, and the exact bytes against the pinned BLAKE3 digests;
 - **Node native↔wasm parity witnesses** (`crates/reason-wasm/js/tests/witness.test.mjs`
   and `witness_conjecture.test.mjs`, on `make reason-wasm-pkg-test`, gate-enforced on
   every pull request via `wasm-parity` in the required CI `make heavy` lane) load the
-  built engine and assert its reasoned closure and symmetric conjecture verdicts are
+  built engine and assert its complete reasoning and symmetric conjecture artifact responses are
   byte-identical to their verified native attestations.
 
 Coordinated preparation uses `make maint-prepare-wasm-assets` to rebuild all six

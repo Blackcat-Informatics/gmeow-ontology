@@ -102,7 +102,7 @@ pub(crate) fn reasoning_result_from_product<'a>(
         ));
     }
     result.validate()?;
-    let ResultPayload::Inferred(_) = &result.payload else {
+    let ResultPayload::Inferred(_) = result.payload() else {
         return Err(fail(
             "the reasoning verdict requires a complete native Inferred payload".into(),
         ));

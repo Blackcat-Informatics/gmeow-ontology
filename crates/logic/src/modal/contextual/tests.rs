@@ -429,7 +429,9 @@ fn public_assessment_preserves_the_shared_result_and_complete_proof_addresses() 
         .expect("project the valid native contextual result");
     assert!(rdf.contains("urn:example:yes"));
     assert!(rdf.contains("ContextualJudgment"));
-    let restored = crate::result_rdf::parse_reasoning_graph(&rdf).unwrap();
+    let restored =
+        crate::result_rdf::parse_reasoning_graph(&rdf, &crate::result_rdf::NoNativeReceipts)
+            .unwrap();
     assert_eq!(restored.provenance, assessment.result.provenance);
 }
 
@@ -458,9 +460,11 @@ fn native_reasoning_evaluates_requests_without_asserting_their_propositions() {
     let dataset_input = crate::reason::prepare_reasoning_input(dataset.as_ref()).unwrap();
     let dataset_domains = evidence_domains(&dataset_input);
     let result = crate::reason::reason_all(dataset_input, &dataset_domains).unwrap();
-    let projection = crate::result_rdf::project_reasoning_result(&result)
-        .expect("project the valid native contextual result");
-    let restored = crate::result_rdf::parse_reasoning_graph(&projection).unwrap();
+    let publication = crate::result_rdf::ResultProjection::reasoning(&result)
+        .expect("publish native contextual result");
+    let projection = publication.to_ntriples();
+    let restored =
+        crate::result_rdf::parse_reasoning_graph(&projection, &publication.receipt()).unwrap();
     assert_eq!(restored.provenance, result.provenance);
     assert_eq!(
         restored.inferred().iter().collect::<BTreeSet<_>>(),
@@ -580,9 +584,13 @@ fn lexical_carriers_cannot_silently_erase_rdf12_literal_semantics() {
         );
         let native = crate::result_rdf::project_contextual_assessment_dataset(&assessment).unwrap();
         assert_eq!(
-            crate::result_rdf::parse_reasoning_dataset(&native, GraphMatch::Default)
-                .unwrap()
-                .provenance,
+            crate::result_rdf::parse_reasoning_dataset(
+                &native,
+                GraphMatch::Default,
+                &crate::result_rdf::NoNativeReceipts
+            )
+            .unwrap()
+            .provenance,
             assessment.result.provenance
         );
 
@@ -656,17 +664,20 @@ fn result_components_remain_disjoint_when_multiple_requests_share_one_reasoning_
             .collect::<BTreeSet<_>>();
         assert!(!components.is_empty());
         component_sets.push(components);
-        let restored = crate::result_rdf::parse_reasoning_graph(&rdf).unwrap();
+        let restored =
+            crate::result_rdf::parse_reasoning_graph(&rdf, &crate::result_rdf::NoNativeReceipts)
+                .unwrap();
         assert_eq!(restored.provenance, assessment.result.provenance);
     }
     assert!(component_sets[0].is_disjoint(&component_sets[1]));
     let dataset_input = crate::reason::prepare_reasoning_input(dataset.as_ref()).unwrap();
     let dataset_domains = evidence_domains(&dataset_input);
     let reasoned = crate::reason::reason_all(dataset_input, &dataset_domains).unwrap();
-    let aggregate = crate::result_rdf::project_reasoning_result(&reasoned)
-        .expect("project the valid native contextual result");
+    let publication = crate::result_rdf::ResultProjection::reasoning(&reasoned)
+        .expect("publish native aggregate");
+    let aggregate = publication.to_ntriples();
     assert_eq!(
-        crate::result_rdf::parse_reasoning_graph(&aggregate)
+        crate::result_rdf::parse_reasoning_graph(&aggregate, &publication.receipt())
             .unwrap()
             .provenance,
         reasoned.provenance,
@@ -759,7 +770,7 @@ fn assert_derived_attribution_receipts(anonymous: bool) {
     assert!(graph.reifiers_with_graph().any(|(reifier, _, _)| matches!(graph.as_ref().resolve(reifier), TermRef::Iri(identity) if identity == native.identity())));
     assert!(projection.contains("receipt-rule-identity"));
     assert_eq!(
-        crate::result_rdf::parse_reasoning_graph(&projection)
+        crate::result_rdf::parse_reasoning_graph(&projection, &crate::result_rdf::NoNativeReceipts)
             .unwrap()
             .provenance,
         assessment.result.provenance
@@ -773,9 +784,11 @@ fn assert_derived_attribution_receipts(anonymous: bool) {
     ] {
         assert_contextual_artifact_receipt(&artifact, &native_result, native.identity());
     }
-    let aggregate = crate::result_rdf::project_reasoning_result(&native_result)
-        .expect("project the valid native contextual result");
-    let restored = crate::result_rdf::parse_reasoning_graph(&aggregate).unwrap();
+    let publication = crate::result_rdf::ResultProjection::reasoning(&native_result)
+        .expect("publish native aggregate");
+    let aggregate = publication.to_ntriples();
+    let restored =
+        crate::result_rdf::parse_reasoning_graph(&aggregate, &publication.receipt()).unwrap();
     assert_eq!(restored.provenance, native_result.provenance);
     assert_eq!(
         restored.inferred().iter().collect::<BTreeSet<_>>(),

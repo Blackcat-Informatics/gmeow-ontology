@@ -39,7 +39,7 @@ fn run(directory: &Path, subject: &str) -> Output {
             "--subject",
             subject,
             "--out",
-            "result.ttl",
+            "result.gts",
         ])
         .output()
         .unwrap()
@@ -60,7 +60,18 @@ fn finance_evaluation_cli_uses_embedded_recipes_without_a_checkout() {
             "{}",
             String::from_utf8_lossy(&output.stderr)
         );
-        let result = std::fs::read_to_string(directory.path().join("result.ttl")).unwrap();
+        let artifact = std::fs::read(directory.path().join("result.gts")).unwrap();
+        let admitted = gmeow_logic::result_rdf::admit_reasoning_response(&artifact)
+            .expect("complete native evaluation artifact");
+        let result = format!(
+            "{}\n{}",
+            admitted["closure_nquads"]
+                .as_str()
+                .expect("full RDF closure"),
+            admitted["judgment_nquads"]
+                .as_str()
+                .expect("admitted judgment")
+        );
         for required in [
             "quantityValue",
             "observationResult",
@@ -88,7 +99,7 @@ fn finance_evaluation_cli_refuses_incompatible_inputs_without_replacing_output()
     assert_ne!(input, original);
     std::fs::write(directory.path().join("source.ttl"), input).unwrap();
     std::fs::write(
-        directory.path().join("result.ttl"),
+        directory.path().join("result.gts"),
         "previous complete result",
     )
     .unwrap();
@@ -98,7 +109,7 @@ fn finance_evaluation_cli_refuses_incompatible_inputs_without_replacing_output()
     assert!(diagnostic.contains("gmeow finance evaluate"));
     assert!(diagnostic.contains("source.ttl"));
     assert_eq!(
-        std::fs::read_to_string(directory.path().join("result.ttl")).unwrap(),
+        std::fs::read_to_string(directory.path().join("result.gts")).unwrap(),
         "previous complete result"
     );
     for input in [
@@ -116,7 +127,7 @@ fn finance_evaluation_cli_refuses_incompatible_inputs_without_replacing_output()
         let output = run(directory.path(), "urn:finance:unit-price-total");
         assert!(!output.status.success());
         assert_eq!(
-            std::fs::read_to_string(directory.path().join("result.ttl")).unwrap(),
+            std::fs::read_to_string(directory.path().join("result.gts")).unwrap(),
             "previous complete result"
         );
     }

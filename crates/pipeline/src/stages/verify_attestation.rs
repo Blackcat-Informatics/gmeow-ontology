@@ -16,6 +16,7 @@ use std::fmt::Write as _;
 use std::sync::Arc;
 use std::time::Instant;
 
+use gmeow_logic::result_rdf::{NativeReceiptAddress, NativeReceiptRef};
 use purrdf::{ContentDigest, RdfDataset};
 
 use crate::bundle::PipelineHandle;
@@ -114,7 +115,7 @@ impl Stage for VerifyAttestationStage {
     }
 
     fn impl_version(&self) -> &str {
-        "verify-attestation.v4-shared-native-laws"
+        "verify-attestation.v5-binary-native-receipt"
     }
 
     fn run(&self, input: StageInput<'_>) -> Result<StageOutput, gmeow_errors::Diag> {
@@ -146,6 +147,13 @@ impl Stage for VerifyAttestationStage {
                 "stage-reason graph/reasoning handle is not the Reasoning arm",
             ));
         };
+        let receipt_bytes = reason_product
+            .artifact(crate::stages::reason::NATIVE_RECEIPT_PATH)
+            .ok_or_else(|| {
+                stage_err("stage-reason product carries no required native binary receipt artifact")
+            })?;
+        let receipt_address = NativeReceiptAddress::of_bytes(receipt_bytes);
+        let native_receipt = NativeReceiptRef::admit(&receipt_address, receipt_bytes)?;
 
         let queries = gmeow_logic::verify::embedded_verify_queries();
         let prepare_started = Instant::now();
@@ -166,6 +174,7 @@ impl Stage for VerifyAttestationStage {
             self.id(),
             canonical.as_ref(),
             reasoning.as_ref(),
+            Some(native_receipt),
             &queries,
             &verification,
         )?;
@@ -192,6 +201,7 @@ fn build_output(
     stage_id: &str,
     edb: &RdfDataset,
     reasoning: &gmeow_logic::result::ReasoningResult,
+    native_receipt: Option<NativeReceiptRef<'_>>,
     queries: &[(String, String)],
     verification: &gmeow_logic::verify::PreparedVerification<'_>,
 ) -> Result<StageOutput, gmeow_errors::Diag> {
@@ -202,6 +212,7 @@ fn build_output(
         stage_id,
         edb,
         reasoning,
+        native_receipt,
         queries,
         report,
         verification.gates(),
@@ -216,6 +227,7 @@ fn build_output_from_report(
     stage_id: &str,
     edb: &RdfDataset,
     reasoning: &gmeow_logic::result::ReasoningResult,
+    native_receipt: Option<NativeReceiptRef<'_>>,
     queries: &[(String, String)],
     mut report: gmeow_errors::Report,
     gates: &gmeow_logic::verify::PreparedReasonedGates,
@@ -249,12 +261,11 @@ fn build_output_from_report(
     // the transport-normalized value the consumer can actually recover rather than the
     // richer in-process handle. Query evaluation is unchanged: it reads only non-EDB
     // inferred rows, all of which the projection carries.
-    // The receipt is encoded once: the text that crosses the projection is kept and
-    // written again for the digest below, where a second projection of the transported
-    // value would encode it a second time to the same bytes.
+    // Borrow the already published binary artifact. Neither normalization nor the
+    // digest projection constructs a second publication encoding.
     let transported =
         crate::node::measure_stage_phase(stage_id, "transport-reasoning-summary", || {
-            gmeow_logic::result_rdf::transport_reasoning(reasoning)
+            gmeow_logic::result_rdf::transport_reasoning(reasoning, native_receipt)
         })?;
     let transported_reasoning = transported.result();
     let reasoning_projection =
@@ -268,7 +279,7 @@ fn build_output_from_report(
     let warning_count = report.warning_count();
     report.metadata.insert(
         "schemaVersion".to_string(),
-        gmeow_errors::JsonEvidence::from("gmeow.verify-attestation.v2"),
+        gmeow_errors::JsonEvidence::from("gmeow.verify-attestation.v3-binary-native-receipt"),
     );
     report.metadata.insert(
         "verifyInputDigest".to_string(),
@@ -359,18 +370,20 @@ fn build_output_from_report(
 /// and JSON bytes to equal the materialized producer outputs exactly. The function has
 /// no reasoner entry point and therefore constructs zero closures.
 pub fn grade_shipped_attestation(
-    snapshot: &RdfDataset,
+    shipped: (&RdfDataset, &[u8]),
     edb: &RdfDataset,
     reasoning: &gmeow_logic::result::ReasoningResult,
+    native_receipt: Option<NativeReceiptRef<'_>>,
     queries: &[(String, String)],
     report: &gmeow_errors::Report,
-    shipped_record: &[u8],
     gates: &gmeow_logic::verify::PreparedReasonedGates,
 ) -> Result<AttestationFreshness, gmeow_errors::Diag> {
+    let (snapshot, shipped_record) = shipped;
     let fresh = build_output_from_report(
         "stage-verify-attestation",
         edb,
         reasoning,
+        native_receipt,
         queries,
         report.clone(),
         gates,

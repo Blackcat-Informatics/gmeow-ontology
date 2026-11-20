@@ -1023,16 +1023,14 @@ fn restored_typed_product_rejects_a_changed_payload_under_the_old_digest() {
 fn reasoning_rows_and_declared_schema_change_native_identity() {
     use gmeow_logic::result::ResultPayload;
     use gmeow_logic::result_shape::{ColumnKind, ResultColumn, ResultShape, RowCardinality};
-    let mut first = sample_reasoning_result();
-    first.payload = ResultPayload::Bindings(vec![BTreeMap::from([(
+    let first = sample_reasoning_result(ResultPayload::Bindings(vec![BTreeMap::from([(
         "x".into(),
         "https://example.org/a".into(),
-    )])]);
-    let mut second = first.clone();
-    second.payload = ResultPayload::Bindings(vec![BTreeMap::from([(
+    )])]));
+    let second = sample_reasoning_result(ResultPayload::Bindings(vec![BTreeMap::from([(
         "x".into(),
         "https://example.org/b".into(),
-    )])]);
+    )])]));
     let mut schema = first.clone();
     schema.row_schema = Some(ResultShape::new(
         vec![ResultColumn::required("x", ColumnKind::Iri)],
@@ -1926,10 +1924,12 @@ fn bounded_store_evicts_only_unreachable_entries_and_ignores_crash_temps() {
 /// A `ReasoningResult` whose `graph/reasoning` projection backs a cache handle, so
 /// the cache's re-derivation (`parse_reasoning_graph`) reconstructs a faithful
 /// verdict-and-provenance result (C7).
-fn sample_reasoning_result() -> gmeow_logic::result::ReasoningResult {
+fn sample_reasoning_result(
+    payload: gmeow_logic::result::ResultPayload,
+) -> gmeow_logic::result::ReasoningResult {
     use gmeow_logic::result::{
         CompletenessStatus, EvaluationStatus, InformationState, InputStatus, PreservationClaim,
-        ReasoningResult, ResultPayload, ResultProvenance,
+        ReasoningResult, ResultProvenance,
     };
     // projection_class mirrors the result's `preservation` axis in every real
     // construction; the parser reconstructs it from that axis, so the fixture sets
@@ -1943,15 +1943,15 @@ fn sample_reasoning_result() -> gmeow_logic::result::ReasoningResult {
         PreservationClaim::exact(),
         InformationState::Supported,
         prov,
-        ResultPayload::Empty,
+        payload,
     )
 }
 
 /// A bundle whose dataset carries a `graph/reasoning` named graph (the projection
 /// of [`sample_reasoning_result`]) with a typed Reasoning handle pinned to it.
 fn reasoning_bundle() -> PipelineBundle<PipelineHandle> {
-    let result = sample_reasoning_result();
-    let parsed = gmeow_logic::result_rdf::project_reasoning_dataset(&result).unwrap();
+    let result = sample_reasoning_result(gmeow_logic::result::ResultPayload::Empty);
+    let (parsed, _receipt) = gmeow_logic::result_rdf::project_reasoning_dataset(&result).unwrap();
     reasoning_bundle_with_result(result, &parsed)
 }
 
@@ -2029,13 +2029,13 @@ fn cached_reasoning_preserves_full_answers_and_schema() {
     for (i, payload) in payloads.into_iter().enumerate() {
         let dir = tempfile::tempdir().unwrap();
         let cache = PipelineCache::open(dir.path()).unwrap();
-        let mut result = sample_reasoning_result();
-        result.payload = payload;
+        let mut result = sample_reasoning_result(payload);
         result.row_schema = Some(ResultShape::new(
             vec![ResultColumn::required("x", ColumnKind::Iri)],
             RowCardinality::Contains,
         ));
-        let graph = gmeow_logic::result_rdf::project_reasoning_dataset(&result).unwrap();
+        let (graph, _receipt) =
+            gmeow_logic::result_rdf::project_reasoning_dataset(&result).unwrap();
         let product = StageProduct::from_bundle(
             "stage-reason",
             Arc::new(reasoning_bundle_with_result(result.clone(), &graph)),
@@ -2063,8 +2063,8 @@ fn cached_reasoning_preserves_full_answers_and_schema() {
 
 #[test]
 fn cached_reasoning_refuses_malformed_governed_summary() {
-    let result = sample_reasoning_result();
-    let graph = gmeow_logic::result_rdf::project_reasoning_dataset(&result).unwrap();
+    let result = sample_reasoning_result(gmeow_logic::result::ResultPayload::Empty);
+    let (graph, _receipt) = gmeow_logic::result_rdf::project_reasoning_dataset(&result).unwrap();
     let string = |value: &str| {
         RdfTerm::Literal(purrdf::RdfLiteral::typed(
             value,
@@ -2126,6 +2126,8 @@ fn cached_reasoning_refuses_malformed_governed_summary() {
     }
 }
 
+/// Cache hydration retains honest no-native results and complete native products;
+/// a native product cannot hydrate after its required binary receipt is removed.
 #[test]
 fn cached_reasoning_handle_re_derives_the_result() {
     use std::sync::Arc;
@@ -2151,7 +2153,7 @@ fn cached_reasoning_handle_re_derives_the_result() {
     // The verdict-and-provenance result round-trips faithfully (axes + provenance).
     assert_eq!(
         result.as_ref(),
-        &sample_reasoning_result(),
+        &sample_reasoning_result(gmeow_logic::result::ResultPayload::Empty),
         "the cache preserved the complete native Reasoning result"
     );
     // The pin matches the reconstituted backing graph.
@@ -2179,6 +2181,97 @@ fn cached_reasoning_handle_re_derives_the_result() {
             ))
             .expect("the original carrier digests"),
         "bundle digest preserved"
+    );
+
+    // gmeow-test-input: synthetic-only
+    let native = crate::stages::reason::reason_product(
+        br#"
+<urn:cache:a> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <urn:cache:b> <urn:cache:world> .
+<urn:cache:b> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <urn:cache:c> <urn:cache:world> .
+"#,
+    )
+    .expect("the tiny caller-owned theory produces the real native reasoning product");
+    let native_entry = native
+        .bundle()
+        .handle(graph_iri)
+        .expect("original native handle");
+    let PipelineHandle::Reasoning(expected) = &native_entry.payload else {
+        panic!("the production reason stage owns its typed reasoning result");
+    };
+    let _native_execution = expected
+        .native_execution()
+        .expect("the actual tiny reason product carries original native execution evidence");
+    let receipt_path = crate::stages::reason::NATIVE_RECEIPT_PATH;
+    let receipt_bytes = native
+        .artifact(receipt_path)
+        .expect("the native receipt is a required product artifact");
+    let context = test_context("stage-reason", "native-binary-receipt-round-trip");
+    persist_test_product(&cache, &context, &native);
+    let restored = cache
+        .get(&context)
+        .unwrap()
+        .expect("native product cache hit");
+    let restored_entry = restored
+        .product
+        .bundle()
+        .handle(graph_iri)
+        .expect("hydrated native handle");
+    let PipelineHandle::Reasoning(actual) = &restored_entry.payload else {
+        panic!("native hydration retains the reasoning handle arm");
+    };
+    assert_eq!(
+        actual.as_ref(),
+        expected.as_ref(),
+        "the complete original rich native result survives hydration"
+    );
+    assert_eq!(
+        restored.product.artifact(receipt_path),
+        Some(receipt_bytes),
+        "the exact original receipt bytes survive hydration"
+    );
+    assert!(
+        gmeow_logic::result_rdf::ResultProjection::reasoning(actual).is_err(),
+        "a cache hit restores exact receipt reuse, not original receipt mint authority"
+    );
+
+    // gmeow-test-input: synthetic-only
+    let other = crate::stages::reason::reason_product(
+        b"<urn:cache:other> <urn:cache:predicate> <urn:cache:value> <urn:cache:world> .\n",
+    )
+    .expect("a distinct tiny caller-owned theory produces an independently valid receipt");
+    let other_bytes = other
+        .artifact(receipt_path)
+        .expect("the other real native receipt");
+    let other_address = gmeow_logic::result_rdf::NativeReceiptAddress::of_bytes(other_bytes);
+    let other_receipt =
+        gmeow_logic::result_rdf::NativeReceiptRef::admit(&other_address, other_bytes)
+            .expect("the independently published receipt has its correct address");
+    let Err(error) = gmeow_logic::result_rdf::ResultProjection::reasoning_with_receipt(
+        expected,
+        Some(other_receipt),
+    ) else {
+        panic!("another valid execution receipt cannot authorize this original rich result");
+    };
+    assert!(
+        error
+            .message()
+            .contains("differs from the complete execution or assessment"),
+        "{error}"
+    );
+
+    let mut missing = CachedBundle::from_product(&native, &full_selection(&native)).unwrap();
+    missing
+        .blobs
+        .remove(&ContentDigest::of(receipt_bytes).to_hex())
+        .expect("remove the exact producer-selected native receipt payload");
+    let error = missing
+        .into_product()
+        .expect_err("native hydration requires its published receipt artifact");
+    assert!(
+        error
+            .message()
+            .contains("required binary receipt publication"),
+        "{error}"
     );
 }
 

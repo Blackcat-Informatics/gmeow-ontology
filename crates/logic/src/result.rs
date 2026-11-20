@@ -42,6 +42,8 @@ pub use native::NativeExecutionEvidence;
 pub(crate) use native::validate_committed_native;
 
 mod provenance_cbor;
+mod publication;
+pub(crate) use publication::AssessmentCommitment;
 
 use std::collections::BTreeSet;
 use std::fmt;
@@ -752,7 +754,7 @@ pub struct ResultProvenance {
     /// Complete retained forward-native evidence when this operation executed a
     /// native closure. No native closure result may omit it; operations without
     /// such an execution carry their existing proof/counterproof evidence.
-    pub native_execution: Option<Box<NativeExecutionEvidence>>,
+    pub native_execution: Option<std::sync::Arc<NativeExecutionEvidence>>,
     /// The declared closure/identity/revision/witness-policy assumptions (sorted).
     pub assumptions: BTreeSet<Assumption>,
 }
@@ -807,7 +809,7 @@ pub enum ResultPayload {
 // --------------------------------------------------------------------------- //
 
 /// The typed `logic:ReasoningResult` — the single shared result model.
-#[derive(Debug, Clone, PartialEq, serde::Serialize, serde::Deserialize)]
+#[derive(Debug, Clone, serde::Serialize)]
 pub struct ReasoningResult {
     /// Was the request well-formed?
     pub input: InputStatus,
@@ -822,7 +824,7 @@ pub struct ReasoningResult {
     /// The full provenance bundle.
     pub provenance: ResultProvenance,
     /// The surface-specific answer payload.
-    pub payload: ResultPayload,
+    payload: ResultPayload,
     /// The declared row-schema facet: the typed [`ResultShape`](crate::result_shape::ResultShape)
     /// the result's bindings are contracted to. `None` for surfaces with no row
     /// schema (e.g. a pure DL-consistency verdict). This is the DECLARED contract a
@@ -830,9 +832,31 @@ pub struct ReasoningResult {
     /// result's own bindings (that would be a tautology) — against which a consumer
     /// validates the bindings.
     pub row_schema: Option<crate::result_shape::ResultShape>,
+    /// Runtime admission is never inherited from a generic data deserializer.
+    #[serde(skip)]
+    native_authority: std::sync::OnceLock<publication::NativeAuthority>,
+}
+
+impl PartialEq for ReasoningResult {
+    fn eq(&self, other: &Self) -> bool {
+        self.input == other.input
+            && self.evaluation == other.evaluation
+            && self.completeness == other.completeness
+            && self.preservation == other.preservation
+            && self.information == other.information
+            && self.provenance == other.provenance
+            && self.payload == other.payload
+            && self.row_schema == other.row_schema
+    }
 }
 
 impl ReasoningResult {
+    /// Borrow the surface payload without transferring its producer ownership.
+    #[must_use]
+    pub fn payload(&self) -> &ResultPayload {
+        &self.payload
+    }
+
     /// The inferred closure this result carries, or an empty slice when the
     /// payload is not an [`ResultPayload::Inferred`] surface.
     pub fn inferred(&self) -> &[InferredAxiom] {
@@ -969,6 +993,7 @@ impl ReasoningResult {
     /// # Errors
     /// Rejects missing evidence, the wrong payload surface, and uncommitted receipts.
     pub fn validate_native_closure(&self) -> gmeow_errors::Result<()> {
+        self.original_assessment()?;
         self.validate()?;
         if self.provenance.claim != ResultClaim::WorldConsistency {
             return Err(result_err(
@@ -1054,7 +1079,7 @@ impl ReasoningResult {
             .map(ContradictionWitness::from)
             .collect();
         provenance.contradiction_witnesses.sort();
-        provenance.native_execution = Some(Box::new(execution));
+        provenance.native_execution = Some(std::sync::Arc::new(execution));
         preservation.validate()?;
         let result = Self {
             input: InputStatus::Valid,
@@ -1069,8 +1094,10 @@ impl ReasoningResult {
             provenance,
             payload: ResultPayload::Inferred(inferred),
             row_schema: None,
+            native_authority: std::sync::OnceLock::new(),
         };
         result.validate_surface()?;
+        result.issue_original_authority()?;
         Ok(result)
     }
 
@@ -1096,6 +1123,7 @@ impl ReasoningResult {
             provenance,
             payload,
             row_schema: None,
+            native_authority: std::sync::OnceLock::new(),
         };
         debug_assert!(
             result.validate().is_ok(),
@@ -1103,6 +1131,32 @@ impl ReasoningResult {
             result.validate()
         );
         result
+    }
+
+    /// Admit parsed summary fields without panicking on an invalid external
+    /// facade or granting original native producer authority.
+    pub(crate) fn from_summary(
+        input: InputStatus,
+        evaluation: EvaluationStatus,
+        completeness: CompletenessStatus,
+        preservation: PreservationClaim,
+        information: InformationState,
+        provenance: ResultProvenance,
+        payload: ResultPayload,
+    ) -> gmeow_errors::Result<Self> {
+        let result = Self {
+            input,
+            evaluation,
+            completeness,
+            preservation,
+            information,
+            provenance,
+            payload,
+            row_schema: None,
+            native_authority: std::sync::OnceLock::new(),
+        };
+        result.validate()?;
+        Ok(result)
     }
 
     /// Attach the declared row-schema facet — the typed

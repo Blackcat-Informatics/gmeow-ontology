@@ -29,6 +29,26 @@ define_diag_kind! {
 }
 
 define_diag_kind! {
+    native_cause;
+    /// Native opaque-transport admission or complete blob publication failed.
+    pub struct Transport { message: String }
+    code = "gts-profile.transport";
+    grade = Grade::new(Severity::Error, FindingCategory::ModelingDisciplineViolation, Standpoint::Binding);
+    message = "GTS opaque transport: {}", message;
+    failure_class = "https://blackcatinformatics.ca/gmeow/GtsFrameProfileViolation";
+}
+
+define_diag_kind! {
+    /// Preserve the native frame diagnostic beneath opaque-transport refusal.
+    pub struct TransportDiagnostic { diagnostic: std::sync::Arc<purrdf::gts::model::Diagnostic>, detail: String }
+    code = "gts-profile.transport-diagnostic";
+    grade = Grade::new(Severity::Error, FindingCategory::ModelingDisciplineViolation, Standpoint::Binding);
+    message = "GTS opaque transport admission: {}", detail;
+    failure_class = "https://blackcatinformatics.ca/gmeow/GtsFrameProfileViolation";
+    source = failure => failure.diagnostic.native_cause().map(|cause| cause as &(dyn std::error::Error + 'static));
+}
+
+define_diag_kind! {
     /// Selected native snapshot input failed admission. The original typed cause
     /// remains downcastable, including the failed checkpoint or offending term.
     pub struct SnapshotAdmission { cause: purrdf::gts_compose::GtsIngestError }
@@ -67,6 +87,8 @@ pub const GTS_PROFILE_DIAG_CODES: &[&str] = &[
     SnapshotAdmission::CODE,
     AppendAdmission::CODE,
     AppendFoldAdmission::CODE,
+    Transport::CODE,
+    TransportDiagnostic::CODE,
 ];
 
 define_diag_kind! {
@@ -98,6 +120,8 @@ pub fn register_all() -> Vec<Code> {
         SnapshotAdmission::register(),
         AppendAdmission::register(),
         AppendFoldAdmission::register(),
+        Transport::register(),
+        TransportDiagnostic::register(),
     ]
 }
 

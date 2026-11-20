@@ -31,7 +31,7 @@ use gmeow_logic::reason::{
     LogicalGraph, PreparedReasoningInput, SelectedDomains, prepare_reasoning_input, reason_all,
 };
 use gmeow_logic::result::ReasoningResult;
-use gmeow_logic::result_rdf::{GRAPH_REASONING, ResultProjection};
+use gmeow_logic::result_rdf::{GRAPH_REASONING, NativeReceipt, ResultProjection};
 use purrdf::{RdfDataset, RdfDatasetBuilder, RdfLiteral, RdfTerm};
 
 use crate::bundle::PipelineHandle;
@@ -56,6 +56,8 @@ pub const LEDGER_PATH: &str = "generated/logic/dl-el-crosscheck-report.ttl";
 /// Canonical static content (a property of the engine, not of this run's data), so
 /// it is byte-identical run to run.
 pub const PERF_LEDGER_PATH: &str = "generated/logic/perf-ledger.ttl";
+/// Required internal artifact, retained only for explicitly declared consumers.
+pub const NATIVE_RECEIPT_PATH: &str = "pipeline/reason/native-execution.cbor";
 /// The reasoned artifacts a single `reason_all` produces: the three committed-style
 /// Turtle blobs plus the typed [`ReasoningResult`] itself (the C7 typed handle's
 /// payload and the source of the `graph/reasoning` projection).
@@ -65,6 +67,8 @@ pub struct ReasonArtifacts {
     /// Native dual-carriage product projected alongside the closure artifact,
     /// including its proof reifiers, reasoning graph and diagnostics.
     pub dataset: Arc<RdfDataset>,
+    /// The single complete binary receipt publication owned by this run.
+    pub native_receipt: NativeReceipt<'static>,
     /// The per-axiom proof-skeleton explanations Turtle.
     pub explanations: String,
     /// The native DL·EL crosscheck ledger Turtle.
@@ -94,9 +98,13 @@ pub fn reason_product_over_dataset(
 fn reason_product_from_artifacts(
     reasoned: ReasonArtifacts,
 ) -> Result<StageProduct, gmeow_errors::Diag> {
+    let artifacts = BTreeMap::from([(
+        NATIVE_RECEIPT_PATH.to_owned(),
+        reasoned.native_receipt.into_owned_bytes()?,
+    )]);
     let mut bundle = crate::bundle::bundle_from_artifacts_over(
         reasoned.dataset,
-        BTreeMap::new(),
+        artifacts,
         purrdf::provenance::DatasetProvenance::new(),
     );
     let pinned = bundle.graph_digest(
@@ -312,9 +320,10 @@ fn project_reason_artifacts(
     // physical engine's lever staging, not of this run's data), so it is byte-stable
     // run to run regardless of the reasoned result.
     let perf = perf_ledger().to_turtle();
-    let dataset = measure_stage_phase("stage-reason", "project-reason-dataset", || {
-        reason_dataset(builder, &result, &chase_report, &witness_projections)
-    })?;
+    let (dataset, native_receipt) =
+        measure_stage_phase("stage-reason", "project-reason-dataset", || {
+            reason_dataset(builder, &result, &chase_report, &witness_projections)
+        })?;
     tracing::info!(
         target: "pipeline_phase",
         stage = "stage-reason",
@@ -326,6 +335,7 @@ fn project_reason_artifacts(
     Ok(ReasonArtifacts {
         closure,
         dataset,
+        native_receipt,
         explanations,
         ledger,
         perf_ledger: perf,
@@ -587,7 +597,7 @@ fn reason_dataset(
     result: &ReasoningResult,
     chase_report: &gmeow_errors::Report,
     projections: &[WitnessProjection],
-) -> Result<Arc<RdfDataset>, gmeow_errors::Diag> {
+) -> Result<(Arc<RdfDataset>, NativeReceipt<'static>), gmeow_errors::Diag> {
     // This is an independently minted summary graph. Standardize its blanks
     // apart from every already-projected source and proof identity.
     let scopes: BTreeSet<_> = builder.blank_identities().map(|(_, scope)| scope).collect();
@@ -610,13 +620,14 @@ fn reason_dataset(
     // Route the prepared summary directly into the closure carrier, avoiding an
     // intermediate frozen dataset and its second owned-row materialization.
     let projection = ResultProjection::reasoning(result)?;
-    measure_stage_phase("stage-reason", "append-reasoning-summary", || {
+    let receipt = measure_stage_phase("stage-reason", "append-reasoning-summary", || {
         projection.append_into(
             &mut builder,
             Some(GRAPH_REASONING),
             purrdf::BlankScope(scope),
         )
-    })?;
+    })?
+    .ok_or_else(|| stage_failure("native reason product omitted its required binary receipt"))?;
     let graph = RdfTerm::Iri(GRAPH_REASONING.to_owned());
     let graph_id = builder.intern_owned_term(&graph)?;
     builder.declare_named_graph(graph_id)?;
@@ -630,13 +641,14 @@ fn reason_dataset(
     // routed into graph/diagnostics so the offline `gmeow explain` CLI can decompose
     // an invented individual. Byte-stable: content-addressed null IRIs, sorted.
     witness_projection_into(projections, &mut builder)?;
-    measure_stage_phase("stage-reason", "freeze-reason-carrier", || {
+    let dataset = measure_stage_phase("stage-reason", "freeze-reason-carrier", || {
         builder.freeze().map_err(|e| {
             gmeow_errors::Diag::of_kind(crate::error::Parse {
                 message: format!("freeze reason dual-carriage dataset: {e}"),
             })
         })
-    })
+    })?;
+    Ok((dataset, receipt))
 }
 
 // ── correspondence drift-gate (the mandatory reader — adversary F4) ────────────
@@ -757,7 +769,7 @@ impl Stage for ReasonStage {
     fn impl_version(&self) -> &str {
         // Retain selected-domain native evidence and each world's independently
         // certified authored program; enforce the demonstrators' declared classes.
-        "reason.v16-typed-terminal-receipt-v3"
+        "reason.v17-binary-native-receipt-v3"
     }
     fn run(&self, input: StageInput<'_>) -> Result<StageOutput, gmeow_errors::Diag> {
         let mut timings = Vec::with_capacity(3);
@@ -841,6 +853,7 @@ impl Stage for ReasonStage {
                 // repo-free RDF projection) AND as the typed `PipelineHandle::Reasoning` handle
                 // pinned to that graph (C7) — dual carriage.
                 let dataset = reasoned.dataset;
+                let receipt_bytes = reasoned.native_receipt.into_owned_bytes()?;
                 let (nodes, diag_blob) =
                     measure_stage_phase(self.id(), "assemble-reason-diagnostics", || {
                         let nodes = crate::stages::diag_render::finding_nodes(
@@ -856,6 +869,7 @@ impl Stage for ReasonStage {
                 // handle that disagrees with its backing graph can never attach (fail-closed).
                 let mut bundle = measure_stage_phase(self.id(), "assemble-reason-bundle", || {
                     let mut artifacts: BTreeMap<String, Vec<u8>> = BTreeMap::new();
+                    artifacts.insert(NATIVE_RECEIPT_PATH.to_owned(), receipt_bytes);
                     artifacts.insert(CLOSURE_PATH.to_string(), reasoned.closure.into_bytes());
                     artifacts.insert(
                         EXPLANATIONS_PATH.to_string(),

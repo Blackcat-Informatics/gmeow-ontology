@@ -50,6 +50,9 @@ const MCP_TRANSPORT_PATH: &str = "assets/mcp-transport.mjs";
 /// The embedded shared MCP transport, emitted to [`MCP_TRANSPORT_PATH`].
 const MCP_TRANSPORT: &str = include_str!("../../assets/mcp-transport.mjs");
 
+const REASONING_ARTIFACT_PATH: &str = "assets/reasoning-artifact.mjs";
+const REASONING_ARTIFACT: &str = include_str!("../../assets/reasoning-artifact.mjs");
+
 /// The site-relative path of the client-side BLAKE3 the transport verifies every
 /// integrity-pinned asset with. The browser has no BLAKE3 primitive and `crypto.subtle`
 /// offers none, so the project's own content-address function is reimplemented rather
@@ -119,6 +122,10 @@ pub fn interactive_asset_files(exec: &ExecutableDocsData) -> BTreeMap<String, Ve
         MCP_TRANSPORT.as_bytes().to_vec(),
     );
     files.insert(BLAKE3_PATH.to_string(), BLAKE3_MODULE.as_bytes().to_vec());
+    files.insert(
+        REASONING_ARTIFACT_PATH.to_string(),
+        REASONING_ARTIFACT.as_bytes().to_vec(),
+    );
     for asset in VENDORED_WASM_ASSETS {
         asset.emit_into(&mut files);
     }

@@ -51,7 +51,7 @@ impl Workflow {
         let standpoint = "https://example.org/concurrent/standpoint";
         match self {
             Self::Conjecture => {
-                let out = run_conjecture_test_with_library(
+                let out = run_conjecture_test_in(
                     &ConjectureRunInput {
                         formula_ttl: &formula,
                         kb_ttl: &kb,
@@ -63,7 +63,7 @@ impl Workflow {
                     },
                     medium,
                     policy,
-                    || Ok(library),
+                    library,
                 )?;
                 Ok(StoredVerdict {
                     node: out.node_iri,
@@ -72,7 +72,7 @@ impl Workflow {
                 })
             }
             Self::Candidate => {
-                let out = run_submit_candidate_with_library(
+                let out = run_submit_candidate_in(
                     &CandidateSubmitInput {
                         formula_ttl: &formula,
                         kb_ttl: &kb,
@@ -87,7 +87,7 @@ impl Workflow {
                     },
                     medium,
                     policy,
-                    || Ok(library),
+                    library,
                 )?;
                 Ok(StoredVerdict {
                     node: out.node_iri,
@@ -156,6 +156,11 @@ struct InterleavedLibrary {
 }
 
 impl SegmentLibrary for InterleavedLibrary {
+    #[cfg(not(target_arch = "wasm32"))]
+    fn ensure_distinct_output(&self, output: &std::path::Path) -> gmeow_errors::Result<()> {
+        self.inner.ensure_distinct_output(output)
+    }
+
     fn read_bytes(&self) -> gmeow_errors::Result<Vec<u8>> {
         self.inner.read_bytes()
     }

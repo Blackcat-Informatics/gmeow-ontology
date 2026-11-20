@@ -11,14 +11,15 @@ export function ready(wasmBytesOrUrl?: BufferSource | URL | string): Promise<voi
 
 /**
  * Run the structured-DL chase over `data` (RDF text in `format`) and return the reasoned
- * closure — the inferred triples — as N-Quads text. Throws on unparsable input, a
- * reasoning failure, or a serialization failure.
+ * complete artifact envelope and admitted closure/judgment facets as JSON. The
+ * artifact includes the binary receipt and the full asserted/inferred RDF closure.
+ * Throws on parsing, reasoning, transport or attachment admission failure.
  */
 export function reason(data: string, format: string): string;
 
 /**
  * Test a candidate `logic:` formula against a KB with the native SYMMETRIC conjecture
- * engine, returning the deterministic verdict as N-Triples text. `standpoint` is
+ * engine, returning the complete GTS artifact envelope and admitted facets as JSON. `standpoint` is
  * REQUIRED: a conjecture verdict is always standpoint-scoped, never global. Throws if the
  * candidate does not name exactly one formula, the KB cannot be parsed, or the engine
  * fails.
@@ -29,6 +30,9 @@ export function conjecture(
   formula: string,
   standpoint: string,
 ): string;
+
+/** Admit every required attachment before exposing RDF facets or recording a result. */
+export function admit_artifact(bytes: Uint8Array): string;
 
 /** The reasoner version (the crate's SemVer). */
 export function version(): string;

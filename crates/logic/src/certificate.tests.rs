@@ -25,16 +25,15 @@ fn consistent_result(
     // A named certified fragment: a conclusive, violation-free check is only
     // entitled to a CoherenceCertificate when it names the fragment it ranges over.
     provenance.certified_fragment = Some("fragment:test".to_owned());
-    ReasoningResult {
-        input: InputStatus::Valid,
+    ReasoningResult::new(
+        InputStatus::Valid,
         evaluation,
         completeness,
-        preservation: PreservationClaim::exact(),
-        information: InformationState::Supported,
+        PreservationClaim::exact(),
+        InformationState::Supported,
         provenance,
-        payload: ResultPayload::Empty,
-        row_schema: None,
-    }
+        ResultPayload::Empty,
+    )
 }
 
 /// A glut result carrying one contradiction witness.

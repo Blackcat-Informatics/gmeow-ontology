@@ -488,7 +488,7 @@ pub fn conjecture_test(
         preservation,
         information,
         provenance,
-        with_phi.payload.clone(),
+        with_phi.payload().clone(),
     );
     // Hard-fail on any invariant violation (a `Both` without a witness would be one), rather
     // than lean on the debug-only assertion in `ReasoningResult::new`.

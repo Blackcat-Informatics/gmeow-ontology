@@ -761,7 +761,7 @@ nextest: rust-build verify-test-fixtures ## Run the Rust workspace test suite on
 	$(TEST_FIXTURE_ENV) $(BUNDLE_IMPORT_CACHE_ENV) cargo nextest run --profile ci $(RUST_TEST_WORKSPACE_ARGS) $(NEXTEST_PARTITION_ARG) $(NEXTEST_FILTER_ARG)
 
 .PHONY: nextest-synthetic test-corpus-scanner
-nextest-synthetic: test-corpus-purity ## Run an explicit NEXTEST_FILTER over synthetic tests without admitting any corpus fixture; development only.
+nextest-synthetic: test-corpus-purity ## Run selected synthetic tests without a corpus. Run make maint-native-receipt-vectors before selecting native receipt reference cases.
 	@test -n "$(strip $(NEXTEST_FILTER))" || { echo "NEXTEST_FILTER is required for nextest-synthetic"; exit 2; }
 	@# This diagnostic selection uses the producer-independent workspace build graph.
 	@# It grants no corpus access: selected corpus consumers fail in their authenticated
@@ -918,6 +918,10 @@ validate-wasm-pkg-test: validate-wasm-pkg ## Build the validator npm package and
 reason-wasm-pkg: ## Build the gmeow-reason-wasm npm/ESM package (release wasm + wasm-bindgen web bindings).
 	$(call BUILD_WASM_PKG,reason,)
 
+.PHONY: maint-native-receipt-vectors
+maint-native-receipt-vectors: ## Refresh strict native receipt references with the authenticated producer; tests only read them.
+	$(GMEOW_DEV) native-receipt-vectors
+
 maint-refresh-reason-witness: ## Refresh both verified native reasoner attestations consumed read-only by parity tests.
 	cargo run -p gmeow-reason-wasm --example refresh-witness-reason
 
@@ -926,6 +930,7 @@ maint-refresh-reason-asset: ## Refresh both native witnesses, prove Node parity,
 	$(MAKE) reason-wasm-pkg
 	cd crates/reason-wasm/js && node --test tests/*.test.mjs
 	@echo "OK: gmeow-reason-wasm Node native↔wasm parity witness lane passed"
+	cp crates/reason-wasm/tests/WITNESS.reason.json crates/docs/assets/reason/WITNESS.reason.json
 	$(call REVENDOR_WASM_ASSET,reason,REASON)
 
 reason-wasm-pkg-test: reason-wasm-pkg ## Build the reasoner npm package and run its Node native↔wasm parity witness lane.
@@ -978,7 +983,7 @@ maint-prepare-wasm-assets: ## Prepare all six browser assets and stamps; verific
 	cp crates/mcp-wasm/tests/WITNESS.mcp.json crates/docs/assets/mcp/WITNESS.mcp.json
 	cp crates/mcp-core-wasm/js/index.mjs crates/docs/assets/mcp-core/index.mjs
 	cp crates/mcp-core-wasm/tests/WITNESS.core-deferral.json crates/docs/assets/mcp-core/WITNESS.core-deferral.json
-	cp crates/reason-wasm/tests/WITNESS.reason.nq crates/docs/assets/reason/WITNESS.reason.nq
+	cp crates/reason-wasm/tests/WITNESS.reason.json crates/docs/assets/reason/WITNESS.reason.json
 	@# Refresh all metadata in one process, after every embedded asset has changed.
 	cargo run -p gmeow-docs --example refresh-vendored-asset -- all
 	@echo "Prepared assets only; the full gate and six parity lanes are still required."

@@ -26,6 +26,7 @@ mod dev_gates;
 mod dev_i18n;
 mod dev_logic;
 mod dev_medium_sweep;
+mod dev_native_receipt_vectors;
 mod dev_pipeline_reads;
 mod dev_pipeline_scope;
 mod dev_producer;
@@ -817,6 +818,9 @@ pub enum Commands {
     BuildIdentity,
     /// Print the gmeow package version.
     Version,
+    /// Refresh strict native receipt references from a bounded original execution.
+    #[command(name = "native-receipt-vectors")]
+    NativeReceiptVectors,
     /// Show a summary of the bundled GMEOW ontology snapshot.
     Info,
     /// Produce or authenticate the exact pre-test fixture DAG.
@@ -1215,6 +1219,7 @@ pub fn run() -> i32 {
     let console = cli.console;
     match cli.command {
         Commands::Version => version(),
+        Commands::NativeReceiptVectors => dev_native_receipt_vectors::run(),
         Commands::BuildIdentity => {
             println!("{}", gmeow_pipeline::cache::PRODUCER_BUILD_CONTRACT);
             0

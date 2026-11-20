@@ -106,7 +106,7 @@ impl NativeContextualJudgment {
     ) -> gmeow_errors::Result<Self> {
         assessment.result.validate()?;
         if assessment.result.input != InputStatus::Valid
-            || !matches!(assessment.result.payload, ResultPayload::Empty)
+            || !matches!(assessment.result.payload(), ResultPayload::Empty)
             || assessment.result.row_schema.is_some()
             || assessment.result.provenance.native_execution.is_some()
             || !assessment

@@ -37,7 +37,7 @@ file and runs outside a repository. The standalone input in
 ```sh
 gmeow math evaluate exact-scalar.ttl --subject urn:scalar:quotient \
   --bind urn:scalar:dividend=urn:scalar:seven \
-  --bind urn:scalar:divisor=urn:scalar:two --out result.ttl
+  --bind urn:scalar:divisor=urn:scalar:two --out result.gts
 ```
 
 This profile admits named `math:ApplicationExpression` and `math:SymbolReference`
@@ -63,7 +63,11 @@ semantics retain their existing behavior.
 
 The result is a fresh content-addressed `math:Quantity`, its derived numeric
 value and explicit dimensionless dimension, accompanied by the normal native
-closure proofs and `logic:ReasoningResult` RDF projection. The profile, selected
+closure proofs and `logic:ReasoningResult` RDF projection. The output is a complete
+binary GTS artifact containing the native execution receipt and the asserted and
+inferred RDF closure. Retain that artifact when retaining independently verifiable
+evidence; a text RDF conversion carries only the selected RDF projection.
+The profile, selected
 root, bindings, source AST edges and complete bound literal identities determine
 the operation identity; original quantity/value/dimension and expression/slot
 facts remain positive proof premises. An already asserted result identity is

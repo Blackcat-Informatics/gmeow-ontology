@@ -566,13 +566,14 @@ gmeow:pipeline-dataflow-verify-reason
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
     rdfs:label "dataflow: reason → verify attestation"@x-gmeow-english ;
     gmeow:flowReason gmeow:flowReasonDataflow ;
-    skos:definition "The typed dataflow edge from gmeow:stage-reason to gmeow:stage-verify-attestation: the verifier consumes the already-built typed ReasoningResult pinned to graph/reasoning and evaluates every embedded bad-example query against it. Narrowing the edge to graph/reasoning keys the bounded persistent attestation on the exact logical result while excluding the reason stage's committed prose and report byte lanes; no second closure is constructed."@x-gmeow-english ;
+    skos:definition "The typed dataflow edge from gmeow:stage-reason to gmeow:stage-verify-attestation: the verifier consumes the already-built typed ReasoningResult pinned to graph/reasoning and evaluates every embedded bad-example query against it. Narrowing the edge to graph/reasoning keys the bounded persistent attestation on the exact logical result while excluding the reason stage's committed prose and report byte lanes; no second closure is constructed. It also borrows the required binary native execution artifact for exact transport normalization without another publication encoding."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox ;
     gmeow:buildFlowFrom gmeow:stage-reason ;
     gmeow:buildFlowTo gmeow:stage-verify-attestation ;
     gmeow:flowEntity
         <https://blackcatinformatics.ca/gmeow/graph/reasoning> ;
-    gmeow:flowReadsHandle <https://blackcatinformatics.ca/gmeow/graph/reasoning> .
+    gmeow:flowReadsHandle <https://blackcatinformatics.ca/gmeow/graph/reasoning> ;
+    gmeow:flowReadsArtifact "pipeline/reason/native-execution.cbor" .
 
 # stage-validate reads the validation-shape byte artifacts of stage-compile-logic's
 # product (generated/shapes/validation-shapes.ttl + procedural-constraints.ttl —
@@ -1353,14 +1354,15 @@ gmeow:pipeline-dataflow-gts-sink-reason
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
     rdfs:label "dataflow: reason → gts-sink"@x-gmeow-english ;
     gmeow:flowReason gmeow:flowReasonDataflow ;
-    skos:definition "The dataflow edge from gmeow:stage-reason to gmeow:stage-gts-sink: gts-sink reads the artifact 'generated/logic/dl-el-crosscheck-report.ttl', the artifact 'generated/logic/inferred-closure.rdf12.ttl', the artifact 'generated/logic/perf-ledger.ttl', the artifact 'generated/logic/reasoning-explanations.rdf12.ttl' of the producer's product."@x-gmeow-english ;
+    skos:definition "The dataflow edge from gmeow:stage-reason to gmeow:stage-gts-sink: gts-sink reads the artifact 'generated/logic/dl-el-crosscheck-report.ttl', the artifact 'generated/logic/inferred-closure.rdf12.ttl', the artifact 'generated/logic/perf-ledger.ttl', the artifact 'generated/logic/reasoning-explanations.rdf12.ttl' of the producer's product. It also reads the required binary native execution artifact and emits its dedicated receipt frame without retaining the rich reasoning carrier."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox ;
     gmeow:buildFlowFrom gmeow:stage-reason ;
     gmeow:buildFlowTo gmeow:stage-gts-sink ;
     gmeow:flowReadsArtifact "generated/logic/dl-el-crosscheck-report.ttl" ;
     gmeow:flowReadsArtifact "generated/logic/inferred-closure.rdf12.ttl" ;
     gmeow:flowReadsArtifact "generated/logic/perf-ledger.ttl" ;
-    gmeow:flowReadsArtifact "generated/logic/reasoning-explanations.rdf12.ttl" .
+    gmeow:flowReadsArtifact "generated/logic/reasoning-explanations.rdf12.ttl" ;
+    gmeow:flowReadsArtifact "pipeline/reason/native-execution.cbor" .
 
 gmeow:pipeline-dataflow-gts-sink-snapshot
     a gmeow:BuildDataFlow ;

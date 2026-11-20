@@ -33,6 +33,7 @@ pub use gmeow_docs_model::{
 };
 
 pub mod render;
+pub mod render_error;
 // The vendored wasm-engine assets (the browser-side glue/wrapper/`.d.ts` triples and
 // their pinned `DIGESTS.blake3`) and the anti-rot gate over them.
 pub mod vendored_asset;

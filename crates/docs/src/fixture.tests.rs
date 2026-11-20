@@ -1,10 +1,10 @@
 // SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 // SPDX-License-Identifier: AGPL-3.0-only
 
-//! Hermetic tests for the rendered-artifact half of the cache — no model build
-//! and no live render (those are the integration suite's job). They pin the site
+//! Hermetic tests for the rendered-artifact half of the cache without repository
+//! model construction. They pin the site
 //! envelope round-trip, the per-artifact cache paths, and the integrity-violation
-//! panics. The model envelope, the cache key and the derived implementation
+//! refusals. The model envelope, the cache key and the derived implementation
 //! closure are pinned beside them in `gmeow_docs_model::fixture`.
 use super::*;
 use std::fs;
@@ -43,7 +43,9 @@ fn cached_site_round_trips_to_identical_bytes() {
     let site = Site { files };
     assert_eq!(
         site,
-        CachedSite::from_site(&site).into_site(Path::new("<in-memory>"))
+        CachedSite::from_site(&site)
+            .into_site(Path::new("<in-memory>"))
+            .unwrap()
     );
 }
 
@@ -54,7 +56,6 @@ fn cached_site_round_trips_to_identical_bytes() {
 /// INPUTS, so editing the cached OUTPUT leaves it satisfied. `.cache/` is gitignored
 /// and persists, so an entry edited once would keep being served.
 #[test]
-#[should_panic(expected = "tampered docs-fixture site cache")]
 fn an_edited_site_envelope_is_refused() {
     let mut files = BTreeMap::new();
     files.insert("index.html".to_string(), b"<h1>hi</h1>".to_vec());
@@ -63,7 +64,12 @@ fn an_edited_site_envelope_is_refused() {
     cached
         .files
         .insert("index.html".to_string(), "<h1>edited</h1>".to_string());
-    let _ = cached.into_site(Path::new("<in-memory>"));
+    let error = cached.into_site(Path::new("<in-memory>")).unwrap_err();
+    assert!(
+        error
+            .to_string()
+            .contains("tampered docs-fixture site cache")
+    );
 }
 
 /// **The write→read proof, across the real JSON codec boundary.** An envelope written by
@@ -92,12 +98,45 @@ fn a_site_envelope_written_to_disk_verifies_when_read_back() {
         "# \u{e9}\u{e8}\u{ea} \u{2603}\n".as_bytes().to_vec(),
     );
     let built = Site { files };
-    let cold = load_or_build_cached_site(&root, "site", Some(ENGLISH), &identity, || built.clone());
+    let invalid = crate::DocsModel {
+        terms: vec![crate::DocTerm {
+            iri: "not an absolute IRI".into(),
+            curie: "gmeow:Refused".into(),
+            slug: "refused".into(),
+            category: crate::DocTermCategory::Class,
+            ..Default::default()
+        }],
+        ..Default::default()
+    };
+    let refused = load_or_build_cached_site(&root, "site", Some(ENGLISH), &identity, || {
+        render_site_lang(&invalid, ENGLISH)
+    });
+    assert_eq!(
+        refused
+            .expect_err("the renderer must refuse the invalid IRI")
+            .code(),
+        crate::render_error::Syntax::register(),
+        "the fixture producer preserves the renderer diagnostic"
+    );
+    assert!(
+        !path.is_file(),
+        "a failed render cannot publish an action receipt"
+    );
+    let cold =
+        load_or_build_cached_site(
+            &root,
+            "site",
+            Some(ENGLISH),
+            &identity,
+            || Ok(built.clone()),
+        )
+        .expect("the selected render publishes after success");
     assert_eq!(cold, built, "the cold miss returns the built site");
     assert!(path.is_file(), "the miss wrote the envelope");
     let warm = load_or_build_cached_site(&root, "site", Some(ENGLISH), &identity, || {
         panic!("the warm hit must be served from disk, not rebuilt")
-    });
+    })
+    .expect("the warm action is admitted without rendering");
     assert_eq!(
         warm, built,
         "the warm hit verifies its payload digest and reconstructs the site"
@@ -108,14 +147,15 @@ fn a_site_envelope_written_to_disk_verifies_when_read_back() {
 fn selected_render_uses_producer_identity_and_refuses_other_languages_or_receipts() {
     let (_tmp, root) = temp_root("selected-render");
     let identity = model_identity();
-    let store = action_store(&root);
+    let store = open_render_store(&root).expect("the synthetic action store opens");
     let site = Site {
         files: BTreeMap::from([("index.html".to_string(), b"selected".to_vec())]),
     };
     let (_, _, selected) =
         load_or_build_cached_site_in_store(&store, &root, "site", Some(ENGLISH), &identity, || {
-            site.clone()
-        });
+            Ok(site.clone())
+        })
+        .expect("the selected render publishes its exact action identity");
     fs::create_dir_all(root.join("crates/docs/src")).unwrap();
     fs::write(
         root.join("crates/docs/src/lib.rs"),
@@ -151,15 +191,12 @@ fn cached_site_rejects_non_utf8_files() {
 }
 
 #[test]
-fn model_site_and_book_share_the_store_without_key_aliases() {
+fn site_and_book_share_the_store_without_key_aliases() {
     let (_tmp, root) = temp_root("paths");
     let identity = model_identity();
-    let model = gmeow_docs_model::fixture::cache_path(&root);
     let site = site_cache_path(&root, ENGLISH, &identity);
     let book = book_cache_path(&root, &identity);
-    assert_eq!(model.parent(), site.parent());
     assert_eq!(site.parent(), book.parent());
-    assert_ne!(model, site);
     assert_ne!(site, book);
     assert_ne!(book, site_cache_path(&root, "book", &identity));
 }
@@ -179,28 +216,38 @@ fn language_is_a_first_class_render_action_dimension() {
     );
 }
 
+/// Unavailable or corrupt render caches fail before invoking the producer closure.
 #[test]
-#[should_panic(expected = "corrupt docs-fixture site action cache")]
-fn present_but_corrupt_site_cache_panics() {
+fn site_cache_refuses_open_failure_and_corrupt_entries() {
     let (_tmp, root) = temp_root("corrupt-site");
     let identity = model_identity();
+    let blocked = root.join("blocked");
+    fs::write(&blocked, b"not a directory").expect("create the cache-path obstruction");
+    let error = load_or_build_cached_site(&blocked, "site", Some(ENGLISH), &identity, || {
+        panic!("an unavailable action store must not render")
+    })
+    .expect_err("the cache-open failure must reach the producer");
+    assert!(error.downcast_ref::<ActionCacheError>().is_some());
+    assert!(format!("{error:#}").contains("open bounded docs-render action cache at"));
+    assert!(format!("{error:#}").contains(&blocked.display().to_string()));
     let sp = site_cache_path(&root, ENGLISH, &identity);
     fs::create_dir_all(sp.parent().unwrap()).unwrap();
     fs::write(&sp, b"{ not valid json").unwrap();
-    let _ = load_or_build_cached_site(&root, "site", Some(ENGLISH), &identity, || {
+    let result = load_or_build_cached_site(&root, "site", Some(ENGLISH), &identity, || {
         panic!("a present corrupt action must not rebuild")
     });
+    assert!(result.is_err());
 }
 
 #[test]
-#[should_panic(expected = "corrupt docs-fixture book action cache")]
-fn present_but_corrupt_book_cache_panics() {
+fn present_but_corrupt_book_cache_refuses() {
     let (_tmp, root) = temp_root("corrupt-book");
     let identity = model_identity();
     let bp = book_cache_path(&root, &identity);
     fs::create_dir_all(bp.parent().unwrap()).unwrap();
     fs::write(&bp, b"{ not valid json").unwrap();
-    let _ = load_or_build_cached_site(&root, "book", None, &identity, || {
+    let result = load_or_build_cached_site(&root, "book", None, &identity, || {
         panic!("a present corrupt action must not rebuild")
     });
+    assert!(result.is_err());
 }

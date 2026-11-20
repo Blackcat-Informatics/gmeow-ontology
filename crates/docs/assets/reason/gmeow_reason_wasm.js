@@ -1,10 +1,44 @@
 /* @ts-self-types="./gmeow_reason_wasm.d.ts" */
 
 /**
- * Test a candidate `logic:` formula against a KB with the native SYMMETRIC conjecture
- * engine and return the **deterministic verdict** as N-Triples text — the SAME projection
- * the on-gate MCP / CLI surface emits (proven byte-identical by the native≡wasm conjecture
- * witness). Powers the live documentation conjecture playground (the WASM-interactive docs W4 deliverable).
+ * Admit a complete artifact before rendering facets or recording a derivation.
+ *
+ * # Errors
+ * Throws when any selected result, attachment or native transport is invalid.
+ * @param {Uint8Array | number[]} bytes
+ * @returns {string}
+ */
+export function admit_artifact(bytes) {
+    let deferred3_0;
+    let deferred3_1;
+    try {
+        const retptr = wasm.__wbindgen_add_to_stack_pointer(-16) >>> 0;
+        const ptr0 = passArray8ToWasm0(bytes, wasm.__wbindgen_export);
+        const len0 = WASM_VECTOR_LEN;
+        wasm.admit_artifact(retptr, ptr0, len0);
+        var r0 = getDataViewMemory0().getInt32(retptr + 4 * 0, true);
+        var r1 = getDataViewMemory0().getInt32(retptr + 4 * 1, true);
+        var r2 = getDataViewMemory0().getInt32(retptr + 4 * 2, true);
+        var r3 = getDataViewMemory0().getInt32(retptr + 4 * 3, true);
+        var ptr2 = r0;
+        var len2 = r1;
+        if (r3) {
+            ptr2 = 0; len2 = 0;
+            throw takeFromExternrefTable0(r2);
+        }
+        deferred3_0 = ptr2;
+        deferred3_1 = len2;
+        return getStringFromWasm0(ptr2, len2);
+    } finally {
+        wasm.__wbindgen_add_to_stack_pointer(16);
+        wasm.__wbindgen_export2(deferred3_0, deferred3_1, 1);
+    }
+}
+
+/**
+ * Test a candidate `logic:` formula against a KB with the native symmetric engine
+ * and return its complete artifact envelope and admitted verdict facets as JSON.
+ * The native MCP, CLI and browser share the same publication and admission owner.
  *
  * - `kb` — the knowledge base to test against (RDF text in `kb_format`).
  * - `kb_format` — a media type / short id purrdf understands (`turtle`/`ttl`,
@@ -13,9 +47,8 @@
  * - `standpoint` — the reified standpoint IRI the verdict is scoped to (REQUIRED; a
  *   conjecture verdict is always standpoint-scoped, never global — Principle 9).
  *
- * The symmetric two legs (proof `KB ⊨ φ` and counterproof `KB ∪ {φ} ⊨ ⊥`) and the Belnap
- * classification are all readable from the returned N-Triples; the JS controller renders
- * them side-by-side.
+ * The proof leg `KB ⊨ φ`, counterproof leg `KB ∪ {φ} ⊨ ⊥` and Belnap
+ * classification are readable from the admitted RDF facets carried beside the artifact.
  *
  * # Errors
  *
@@ -34,19 +67,19 @@ export function conjecture(kb, kb_format, formula, standpoint) {
         const retptr = wasm.__wbindgen_add_to_stack_pointer(-16) >>> 0;
         let ptr0, len0, ptr1, len1, ptr2, len2, ptr3, len3;
         try {
-            ptr0 = passStringToWasm0(kb, wasm.__wbindgen_export, wasm.__wbindgen_export2);
+            ptr0 = passStringToWasm0(kb, wasm.__wbindgen_export, wasm.__wbindgen_export4);
             len0 = WASM_VECTOR_LEN;
-            ptr1 = passStringToWasm0(kb_format, wasm.__wbindgen_export, wasm.__wbindgen_export2);
+            ptr1 = passStringToWasm0(kb_format, wasm.__wbindgen_export, wasm.__wbindgen_export4);
             len1 = WASM_VECTOR_LEN;
-            ptr2 = passStringToWasm0(formula, wasm.__wbindgen_export, wasm.__wbindgen_export2);
+            ptr2 = passStringToWasm0(formula, wasm.__wbindgen_export, wasm.__wbindgen_export4);
             len2 = WASM_VECTOR_LEN;
-            ptr3 = passStringToWasm0(standpoint, wasm.__wbindgen_export, wasm.__wbindgen_export2);
+            ptr3 = passStringToWasm0(standpoint, wasm.__wbindgen_export, wasm.__wbindgen_export4);
             len3 = WASM_VECTOR_LEN;
         } catch (e) {
-            if (ptr3) { wasm.__wbindgen_export3(ptr3, len3 * 1, 1); }
-            if (ptr2) { wasm.__wbindgen_export3(ptr2, len2 * 1, 1); }
-            if (ptr1) { wasm.__wbindgen_export3(ptr1, len1 * 1, 1); }
-            if (ptr0) { wasm.__wbindgen_export3(ptr0, len0 * 1, 1); }
+            if (ptr3) { wasm.__wbindgen_export2(ptr3, len3 * 1, 1); }
+            if (ptr2) { wasm.__wbindgen_export2(ptr2, len2 * 1, 1); }
+            if (ptr1) { wasm.__wbindgen_export2(ptr1, len1 * 1, 1); }
+            if (ptr0) { wasm.__wbindgen_export2(ptr0, len0 * 1, 1); }
             throw e;
         }
         wasm.conjecture(retptr, ptr0, len0, ptr1, len1, ptr2, len2, ptr3, len3);
@@ -65,14 +98,14 @@ export function conjecture(kb, kb_format, formula, standpoint) {
         return getStringFromWasm0(ptr5, len5);
     } finally {
         wasm.__wbindgen_add_to_stack_pointer(16);
-        wasm.__wbindgen_export3(deferred6_0, deferred6_1, 1);
+        wasm.__wbindgen_export2(deferred6_0, deferred6_1, 1);
     }
 }
 
 /**
  * Run the structured-DL chase over `data` (RDF text in `format`) and return the
- * **reasoned closure** as N-Quads text, retaining asserted facts, inferred facts,
- * and the selected nonempty-domain witness.
+ * complete reasoning artifact as JSON, retaining its binary native receipt,
+ * asserted and inferred closure, and the selected nonempty-domain witness.
  *
  * - `data` — the RDF document to reason over (UTF-8 text).
  * - `format` — a media type / short id purrdf understands (`turtle`/`ttl`,
@@ -93,13 +126,13 @@ export function reason(data, format) {
         const retptr = wasm.__wbindgen_add_to_stack_pointer(-16) >>> 0;
         let ptr0, len0, ptr1, len1;
         try {
-            ptr0 = passStringToWasm0(data, wasm.__wbindgen_export, wasm.__wbindgen_export2);
+            ptr0 = passStringToWasm0(data, wasm.__wbindgen_export, wasm.__wbindgen_export4);
             len0 = WASM_VECTOR_LEN;
-            ptr1 = passStringToWasm0(format, wasm.__wbindgen_export, wasm.__wbindgen_export2);
+            ptr1 = passStringToWasm0(format, wasm.__wbindgen_export, wasm.__wbindgen_export4);
             len1 = WASM_VECTOR_LEN;
         } catch (e) {
-            if (ptr1) { wasm.__wbindgen_export3(ptr1, len1 * 1, 1); }
-            if (ptr0) { wasm.__wbindgen_export3(ptr0, len0 * 1, 1); }
+            if (ptr1) { wasm.__wbindgen_export2(ptr1, len1 * 1, 1); }
+            if (ptr0) { wasm.__wbindgen_export2(ptr0, len0 * 1, 1); }
             throw e;
         }
         wasm.reason(retptr, ptr0, len0, ptr1, len1);
@@ -118,7 +151,7 @@ export function reason(data, format) {
         return getStringFromWasm0(ptr3, len3);
     } finally {
         wasm.__wbindgen_add_to_stack_pointer(16);
-        wasm.__wbindgen_export3(deferred4_0, deferred4_1, 1);
+        wasm.__wbindgen_export2(deferred4_0, deferred4_1, 1);
     }
 }
 
@@ -140,7 +173,7 @@ export function version() {
         return getStringFromWasm0(r0, r1);
     } finally {
         wasm.__wbindgen_add_to_stack_pointer(16);
-        wasm.__wbindgen_export3(deferred1_0, deferred1_1, 1);
+        wasm.__wbindgen_export2(deferred1_0, deferred1_1, 1);
     }
 }
 function __wbg_get_imports() {
@@ -150,7 +183,7 @@ function __wbg_get_imports() {
             const ret = Error(getStringFromWasm0(arg0, arg1));
             return ret;
         },
-        __wbg_now_449da2ee7e3b5247: function() {
+        __wbg_now_b560666ff11180a4: function() {
             const ret = performance.now();
             return ret;
         },
@@ -188,6 +221,13 @@ function getUint8ArrayMemory0() {
         cachedUint8ArrayMemory0 = new Uint8Array(wasm.memory.buffer);
     }
     return cachedUint8ArrayMemory0;
+}
+
+function passArray8ToWasm0(arg, malloc) {
+    const ptr = malloc(arg.length * 1, 1) >>> 0;
+    getUint8ArrayMemory0().set(arg, ptr / 1);
+    WASM_VECTOR_LEN = arg.length;
+    return ptr;
 }
 
 function passStringToWasm0(arg, malloc, realloc) {
@@ -229,7 +269,7 @@ function passStringToWasm0(arg, malloc, realloc) {
 
 function takeFromExternrefTable0(idx) {
     const value = wasm.__wbindgen_externrefs.get(idx);
-    wasm.__wbindgen_export4(idx);
+    wasm.__wbindgen_export3(idx);
     return value;
 }
 

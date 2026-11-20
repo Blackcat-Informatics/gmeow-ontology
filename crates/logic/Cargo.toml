@@ -33,6 +33,8 @@ purrdf-lex.workspace = true
 # First-class diagnostics model (Finding/Report) so the native verify lane builds
 # its findings in Rust and hands Python a report via JSON.
 gmeow-errors = { path = "../errors" }
+# Complete reasoning artifacts use the one mandated GTS publication door.
+gmeow-gts-profile = { path = "../gts-profile" }
 # THE single declaration site of GMEOW's registered namespaces and of the
 # subsumption-edge spellings (`gmeow_ns::SUB_CLASS_OF` / `SUB_PROPERTY_OF`): the
 # RL EDB encoder lowers the canonical `logic:` edge into the `rdfs:` spelling the
@@ -78,30 +80,30 @@ ciborium.workspace = true
 # never comes from hasher order (it stays at the sorted round commit), so the seed
 # is fixed and never persisted. Version matches the copy already resolved in the
 # workspace lock (pulled transitively by hashbrown 0.15) so no re-resolution.
-foldhash = "0.1"
+foldhash.workspace = true
 # hashbrown: the raw-entry / `HashTable` + `entry_ref` borrowed-key probe surface
 # so the interner dedup and relation-store inserts never clone an owned key per
 # probe (the borrowed-key raw-entry probe requirement — mechanical-sympathy
 # doctrine). Direct, always-on dependency; version matches the copy
 # petgraph already pins in the workspace lock.
-hashbrown = "0.15"
+hashbrown.workspace = true
 # smallvec: the inline form the phase-scoped arena's inline small-vec requirement
 # sanctions. A per-round argument tuple that fits inline (arity ≤ 4 — the
 # binary engine's common case) stays on the stack; a larger n-ary tuple spills into
 # the arena's contiguous backing buffer, truncated at each round boundary. Direct,
 # always-on dependency; version matches the copy already resolved in the workspace
 # lock.
-smallvec = "1"
+smallvec.workspace = true
 # petgraph: cycle detection (tarjan_scc) for the DAG-workflow profile certifier
 # (crate::dag_profile), the single shared acyclicity certifier crates/pipeline's
 # stage graph delegates to. default-features off — only the core graph + algo are
 # needed. Same version as crates/pipeline so the workspace resolves one copy.
-petgraph = { version = "0.8", default-features = false }
+petgraph.workspace = true
 # rayon: data-parallel iterators for foundation multi-world chase.
 # Worlds are independent: each `chase_world` call is pure and produces its own
 # Vec<FoundationQuad> with no shared mutable state.  Only invoked when
 # store.worlds().len() > 1 to avoid thread-pool overhead for single-world inputs.
-rayon = "1"
+rayon.workspace = true
 # Structured phase boundaries for the native reasoner's production critical path.
 # The events carry deterministic row/count metadata only; they do not enter results.
 tracing.workspace = true
@@ -114,7 +116,7 @@ sha2.workspace = true
 # feature is deliberately excluded so no wall-clock/system-time enters the evaluator
 # (determinism contract). The xsd:duration horizon is parsed by a local fixed-length
 # parser (weeks/days/hours/minutes/seconds), not chrono.
-chrono = { version = "0.4", default-features = false, features = ["alloc"] }
+chrono = { workspace = true, features = ["alloc"] }
 
 [target.'cfg(all(target_arch = "wasm32", target_os = "unknown"))'.dependencies]
 # Existing workspace binding ABI: browser execution observations require the
@@ -131,7 +133,7 @@ gmeow-bundle-import = { path = "../bundle-import" }
 # Also a dev-dependency so the integration tests (tests/never_panic.rs,
 # proptest_invariants.rs) can `use gmeow_logic_compile::` directly.
 gmeow-logic-compile = { path = "../logic-compile" }
-proptest = "1"
+proptest.workspace = true
 serde_json.workspace = true
 # insta: snapshot goldens for the projection back-ends + explanation prose (T8).
 # The `.snap` files ARE the byte-exact unit goldens (the native
@@ -141,13 +143,10 @@ insta = { workspace = true, features = ["json"] }
 # Acceleration-program baselines (Phase 0). Light feature set: criterion's
 # plotters/rayon defaults are off so `make bench` builds fast; the cargo-bench
 # stdout summary is all the baseline needs.
-criterion = { version = "0.5", default-features = false, features = ["cargo_bench_support"] }
+criterion = { workspace = true, features = ["cargo_bench_support"] }
 # Harness-only allocator accounting for the OWL-RL oracle scan. This dependency
 # installs no allocator itself; the dedicated bench binary opts in explicitly.
 gmeow-cost-measure = { path = "../cost-measure" }
-# Test bundles still pass through the mandatory GMEOW authorship profile; the import
-# cache itself is a reader and keeps no production writer edge.
-gmeow-gts-profile = { path = "../gts-profile" }
 # Gungraun: the DETERMINISTIC instruction-count backend for the engine bench
 # (benches/engines_instructions.rs). It counts retired instructions under Valgrind
 # Callgrind — a machine-independent, run-to-run stable metric — as corroboration for
@@ -159,12 +158,12 @@ gmeow-gts-profile = { path = "../gts-profile" }
 # The default `benchmark` feature supplies `#[library_benchmark]` / `main!`.
 # The extra `client_requests` and `cachegrind` features stay off, retaining the
 # instruction-only harness dependency surface.
-gungraun = "=0.19.4"
+gungraun.workspace = true
 # memmap2 + tempfile: the PURREMB relation-provider matrix asserts heap-backed
 # (Vec<u8>) vs memory-mapped artifact bytes yield byte-identical dispatch answers.
 # The immutable-mmap path is the module's documented borrow-stability case; the
 # temp file is written once and mapped read-only. Versions match the workspace lock.
-memmap2 = "0.9"
+memmap2.workspace = true
 tempfile.workspace = true
 
 [[bench]]

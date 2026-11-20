@@ -74,6 +74,9 @@ fn clean_and_poisoned_queries_have_attestation_teeth_without_re_reasoning() {
 #[test]
 fn output_receipt_records_zero_closure_constructions() {
     let (edb, reasoning) = fixture();
+    let publication = gmeow_logic::result_rdf::ResultProjection::reasoning(&reasoning)
+        .expect("publish tiny native evidence");
+    let receipt = publication.receipt();
     let queries = vec![(
         "clean.rq".to_string(),
         "SELECT ?s WHERE { ?s <urn:missing> <urn:o> . }".to_string(),
@@ -82,6 +85,7 @@ fn output_receipt_records_zero_closure_constructions() {
         "stage-verify-attestation",
         edb.as_ref(),
         &reasoning,
+        receipt,
         &queries,
         &gmeow_logic::verify::PreparedVerification::new(&queries, &test_gates())
             .expect("prepare tiny query"),
@@ -102,6 +106,9 @@ fn output_receipt_records_zero_closure_constructions() {
 #[test]
 fn independent_grader_accepts_exact_outputs_and_rejects_stale_projections() {
     let (edb, reasoning) = fixture();
+    let publication = gmeow_logic::result_rdf::ResultProjection::reasoning(&reasoning)
+        .expect("publish tiny native evidence");
+    let receipt = publication.receipt();
     let queries = vec![(
         "clean.rq".to_string(),
         "SELECT ?s WHERE { ?s <urn:missing> <urn:o> . }".to_string(),
@@ -115,6 +122,7 @@ fn independent_grader_accepts_exact_outputs_and_rejects_stale_projections() {
         "stage-verify-attestation",
         edb.as_ref(),
         &reasoning,
+        receipt,
         &queries,
         report.clone(),
         &gates,
@@ -127,12 +135,12 @@ fn independent_grader_accepts_exact_outputs_and_rejects_stale_projections() {
         .expect("verify record");
 
     let exact = grade_shipped_attestation(
-        snapshot,
+        (snapshot, record),
         edb.as_ref(),
         &reasoning,
+        receipt,
         &queries,
         &report,
-        record,
         &gates,
     )
     .expect("exact producer projections grade fresh");
@@ -142,12 +150,12 @@ fn independent_grader_accepts_exact_outputs_and_rejects_stale_projections() {
     let mut tampered_record = record.to_vec();
     tampered_record.push(b' ');
     let record_error = grade_shipped_attestation(
-        snapshot,
+        (snapshot, &tampered_record),
         edb.as_ref(),
         &reasoning,
+        receipt,
         &queries,
         &report,
-        &tampered_record,
         &gates,
     )
     .expect_err("tampered normalized record must fail");
@@ -157,12 +165,12 @@ fn independent_grader_accepts_exact_outputs_and_rejects_stale_projections() {
     stale_value["metadata"]["verifyQueryCount"] = serde_json::json!(999);
     let stale_record = serde_json::to_vec_pretty(&stale_value).expect("stale JSON");
     let value_error = grade_shipped_attestation(
-        snapshot,
+        (snapshot, &stale_record),
         edb.as_ref(),
         &reasoning,
+        receipt,
         &queries,
         &report,
-        &stale_record,
         &gates,
     )
     .expect_err("stale JSON value must fail");
@@ -176,12 +184,12 @@ fn independent_grader_accepts_exact_outputs_and_rejects_stale_projections() {
     let empty_snapshot =
         purrdf::parse_dataset(b"", "application/n-quads", None).expect("empty snapshot dataset");
     let graph_error = grade_shipped_attestation(
-        empty_snapshot.as_ref(),
+        (empty_snapshot.as_ref(), record),
         edb.as_ref(),
         &reasoning,
+        receipt,
         &queries,
         &report,
-        record,
         &gates,
     )
     .expect_err("missing graph/verify must fail");

@@ -153,14 +153,14 @@ gmeow-lang-form = { path = "../lang-form" }
 # petgraph directly — the one acyclicity authority lives in gmeow-logic.
 # Level-parallel scheduling: independent stages within a topological level run
 # concurrently; only Reason stages serialize under the process-wide ENGINE_LOCK.
-rayon = "1"
+rayon.workspace = true
 sha2.workspace = true
 # blake3 for the eval span verifier's current-content digest (mirrors the
 # Python `_current_digest`); the corpus digests pin the scored source version.
 serde.workspace = true
 # Stage products use compact binary encoding in the content-addressed cache; JSON
 # remains the deterministic human-readable cache index and several export formats.
-bincode = "1.3"
+bincode.workspace = true
 serde_json.workspace = true
 # The tracked term-changelog authority is bound to an ordered ontology release
 # identity; arbitrary same-release boundary rewrites are rejected.
@@ -180,7 +180,7 @@ ciborium.workspace = true
 # `allow_network=true` leg fetches a canonical target source document and filters it to the
 # minimal structural axiom subset. The on-gate path uses `allow_network=false` (snapshots /
 # fixtures only), so this is never on the gate. Same pin as the slice crate's fetcher.
-ureq = "3"
+ureq.workspace = true
 # Self-cleaning system temp dirs for the consumer runtime path (works from a
 # read-only install) — used by the cache, source-load, and validation lanes.
 # Same pin as the test-side tempdir usage.
@@ -201,7 +201,7 @@ gmeow-build-inputs = { path = "../build-inputs" }
 # Deterministic Ed25519 key material for the signed release-fold tests: the substrate's key type.
 purrdf-ed25519.workspace = true
 # Independent confusable-glyph audit over producer-selected source observations.
-unicode-security = "0.1.2"
+unicode-security.workspace = true
 # Dedicated integration-test allocation accounting for the GTS sink's stratum
 # canonicalization. The single-test binary installs the allocator; the pipeline
 # library and shipped CLIs do not.
@@ -220,4 +220,4 @@ gmeow-music = { path = "../music" }
 insta = { workspace = true, features = ["json"] }
 # Determinism tests for the YAML-LD-star / JSON-LD-star emitter vary hash-map
 # seeds to prove that output order is independent of input collection order.
-ahash = "0.8"
+ahash.workspace = true

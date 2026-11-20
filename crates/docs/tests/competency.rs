@@ -72,8 +72,10 @@ fn term_page_surfaces_iri_definition_domain_and_range() {
     let model = common::cached_model();
     let term = fully_populated_term(&model);
     let slug = term_slug(term);
-    let md = to_markdown(&model, &Page::Term(slug.clone()));
-    let html = to_html(&model, &Page::Term(slug));
+    let md = to_markdown(&model, &Page::Term(slug.clone()))
+        .expect("the selected documentation model renders");
+    let html =
+        to_html(&model, &Page::Term(slug)).expect("the selected documentation model renders");
 
     // The term's own IRI anchors the page (markdown + html).
     assert!(
@@ -114,7 +116,8 @@ fn slice_page_lists_tier_and_consumers() {
         .next()
         .unwrap_or(&slice.iri)
         .to_string();
-    let md = to_markdown(&model, &Page::Slice(slug));
+    let md =
+        to_markdown(&model, &Page::Slice(slug)).expect("the selected documentation model renders");
 
     assert!(md.contains("| Tier |"), "slice page missing the Tier row");
     assert!(
@@ -147,7 +150,8 @@ fn recipe_index_and_page_surface_goal_and_terms() {
         r[0]
     };
 
-    let index = to_markdown(&model, &Page::RecipeIndex);
+    let index =
+        to_markdown(&model, &Page::RecipeIndex).expect("the selected documentation model renders");
     assert!(
         index.contains("Recipes"),
         "recipe index missing its heading"
@@ -158,7 +162,8 @@ fn recipe_index_and_page_surface_goal_and_terms() {
         "recipe index missing recipe title `{title_probe}`"
     );
 
-    let page = to_markdown(&model, &Page::Recipe(recipe.slug.clone()));
+    let page = to_markdown(&model, &Page::Recipe(recipe.slug.clone()))
+        .expect("the selected documentation model renders");
     assert!(
         page.contains("## Goal"),
         "recipe page missing the Goal section"
@@ -184,7 +189,8 @@ fn learning_path_index_and_page_sequence_audience_goal_and_recipes() {
         p[0]
     };
 
-    let index = to_markdown(&model, &Page::LearningPathIndex);
+    let index = to_markdown(&model, &Page::LearningPathIndex)
+        .expect("the selected documentation model renders");
     assert!(
         index.contains("| Learning path | Audience | Goal |"),
         "learning-path index missing its table header"
@@ -195,7 +201,8 @@ fn learning_path_index_and_page_sequence_audience_goal_and_recipes() {
         "learning-path index missing path title `{title_probe}`"
     );
 
-    let page = to_markdown(&model, &Page::LearningPath(path.slug.clone()));
+    let page = to_markdown(&model, &Page::LearningPath(path.slug.clone()))
+        .expect("the selected documentation model renders");
     assert!(
         page.contains("| Audience |"),
         "learning-path page missing Audience row"
@@ -290,7 +297,8 @@ fn term_page_surfaces_constraints() {
         .iter()
         .find(|t| t.iri == shape.target_term)
         .expect("shape target is documented");
-    let md = to_markdown(&model, &Page::Term(term_slug(term)));
+    let md = to_markdown(&model, &Page::Term(term_slug(term)))
+        .expect("the selected documentation model renders");
     assert!(
         md.contains("## Constraints"),
         "term {} missing the Constraints section",
@@ -313,7 +321,8 @@ fn term_and_logic_index_surface_stereotypes() {
         .iter()
         .find(|t| !t.logic_stereotypes.is_empty())
         .expect("a stereotyped term exists");
-    let md = to_markdown(&model, &Page::Term(term_slug(term)));
+    let md = to_markdown(&model, &Page::Term(term_slug(term)))
+        .expect("the selected documentation model renders");
     assert!(
         md.contains("## Logic stereotypes"),
         "term {} missing the Logic stereotypes section",
@@ -326,7 +335,8 @@ fn term_and_logic_index_surface_stereotypes() {
         term.iri
     );
 
-    let logic = to_markdown(&model, &Page::Logic);
+    let logic =
+        to_markdown(&model, &Page::Logic).expect("the selected documentation model renders");
     assert!(
         logic.contains("Logic & Reasoning"),
         "logic index missing its heading"
@@ -351,7 +361,8 @@ fn term_page_surfaces_box_role() {
         .iter()
         .find(|t| t.box_role.is_some())
         .expect("a term with a box role exists");
-    let md = to_markdown(&model, &Page::Term(term_slug(term)));
+    let md = to_markdown(&model, &Page::Term(term_slug(term)))
+        .expect("the selected documentation model renders");
     assert!(
         md.contains("## Box role"),
         "term {} missing the Box role section",
@@ -376,7 +387,8 @@ fn term_page_surfaces_tested_by() {
         .find(|e| model.terms.iter().any(|t| &t.iri == *e))
         .expect("competency exercises a documented term");
     let term = model.terms.iter().find(|t| &t.iri == target).unwrap();
-    let md = to_markdown(&model, &Page::Term(term_slug(term)));
+    let md = to_markdown(&model, &Page::Term(term_slug(term)))
+        .expect("the selected documentation model renders");
     assert!(
         md.contains("## Tested by"),
         "term {} missing the Tested by section",
@@ -401,7 +413,8 @@ fn term_page_surfaces_example_cross_links() {
         .find(|c| model.terms.iter().any(|t| &t.curie == *c))
         .unwrap();
     let term = model.terms.iter().find(|t| &t.curie == curie).unwrap();
-    let md = to_markdown(&model, &Page::Term(term_slug(term)));
+    let md = to_markdown(&model, &Page::Term(term_slug(term)))
+        .expect("the selected documentation model renders");
     assert!(
         md.contains("## Examples using this term"),
         "term {} missing the Examples cross-link section",

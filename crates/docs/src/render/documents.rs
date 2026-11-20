@@ -3,6 +3,8 @@
 
 //! Link, heading, and anchor rewrites for authored Markdown documents.
 
+use gmeow_errors::{Diag, Result};
+
 use crate::source_map::{DocLinkResolution, LinkResolution, SourceToPageMap, fence_open};
 
 use super::{find_backtick_run, rel};
@@ -37,7 +39,7 @@ pub(super) fn rewrite_doc_body(
     page_dir: &str,
     demote: HeadingDemotion,
     inject_anchors: bool,
-) -> String {
+) -> Result<String> {
     // The page-scoped heading anchors, in source order, for the id injection. Empty
     // when not injecting or when the document has no known page.
     let anchors: &[crate::source_map::HeadingAnchor] = if inject_anchors {
@@ -76,7 +78,7 @@ pub(super) fn rewrite_doc_body(
             // as a spurious H1/section in the flat `llms-full` corpus — harmless,
             // since `#`-to-end-of-line comment syntaxes stay comments at any depth.
             if demote == HeadingDemotion::CorpusFloor {
-                out.push_str(&demote_heading_line(line, demote, from_slice, from_path));
+                out.push_str(&demote_heading_line(line, demote, from_slice, from_path)?);
             } else {
                 out.push_str(line);
             }
@@ -92,10 +94,10 @@ pub(super) fn rewrite_doc_body(
         }
         // Heading demotion is applied to the raw line before link rewriting; the
         // added `#`s never affect link scanning.
-        let demoted = demote_heading_line(line, demote, from_slice, from_path);
-        rewrite_doc_line(&demoted, map, from_slice, from_path, page_dir, &mut out);
+        let demoted = demote_heading_line(line, demote, from_slice, from_path)?;
+        rewrite_doc_line(&demoted, map, from_slice, from_path, page_dir, &mut out)?;
     }
-    out
+    Ok(out)
 }
 
 /// The heading transform [`rewrite_doc_body`] applies to a re-emitted document.
@@ -122,31 +124,33 @@ fn demote_heading_line(
     demote: HeadingDemotion,
     from_slice: &str,
     from_path: &str,
-) -> String {
+) -> Result<String> {
     if demote == HeadingDemotion::Keep {
-        return line.to_string();
+        return Ok(line.to_string());
     }
     let indent_len = line.len() - line.trim_start().len();
     let (indent, rest) = line.split_at(indent_len);
     let hashes = rest.chars().take_while(|&c| c == '#').count();
     if hashes == 0 || hashes > 6 {
-        return line.to_string();
+        return Ok(line.to_string());
     }
     let after = &rest[hashes..];
     // A heading needs whitespace (or end of line) after the hash run; otherwise
     // it is not an ATX heading (e.g. `#hashtag`) and must not be demoted.
     if !after.is_empty() && !after.starts_with([' ', '\t', '\n']) {
-        return line.to_string();
+        return Ok(line.to_string());
     }
     let extra = match demote {
         HeadingDemotion::Keep => unreachable!("handled above"),
         HeadingDemotion::GraftOne => {
             if hashes == 6 {
-                panic!(
-                    "markdown source `{from_path}` in slice {from_slice} carries a level-6 heading \
+                return Err(Diag::of_kind(crate::render_error::HeadingOverflow {
+                    detail: format!(
+                        "markdown source `{from_path}` in slice {from_slice} carries a level-6 heading \
                      that cannot be demoted (H6→H7 is illegal): {:?}",
-                    line.trim_end()
-                );
+                        line.trim_end()
+                    ),
+                }));
             }
             1
         }
@@ -154,7 +158,7 @@ fn demote_heading_line(
         HeadingDemotion::CorpusFloor => (6 - hashes).min(2),
     };
     let prefix = "#".repeat(hashes + extra);
-    format!("{indent}{prefix}{after}")
+    Ok(format!("{indent}{prefix}{after}"))
 }
 
 /// Rewrite the link targets on a single (non-fenced) source line, appending the
@@ -167,7 +171,7 @@ fn rewrite_doc_line(
     from_path: &str,
     page_dir: &str,
     out: &mut String,
-) {
+) -> Result<()> {
     let bytes = line.as_bytes();
     let mut i = 0usize;
     let mut span_start = 0usize;
@@ -199,7 +203,7 @@ fn rewrite_doc_line(
                     from_slice,
                     from_path,
                     page_dir,
-                ));
+                )?);
                 span_start = close;
                 i = close;
                 continue;
@@ -208,6 +212,7 @@ fn rewrite_doc_line(
         i += 1;
     }
     out.push_str(&line[span_start..]);
+    Ok(())
 }
 
 /// The ATX heading level (1–6) of a non-fenced line, or `None` when it is not an
@@ -247,9 +252,9 @@ fn rewrite_doc_target(
     from_slice: &str,
     from_path: &str,
     page_dir: &str,
-) -> String {
+) -> Result<String> {
     if target.is_empty() {
-        return target.to_string();
+        return Ok(target.to_string());
     }
     // The path portion (before any `#fragment`) classifies the target; the resolver
     // re-splits and validates the fragment itself.
@@ -258,15 +263,19 @@ fn rewrite_doc_target(
     // A pure fragment: a heading in this same document.
     if path_part.is_empty() {
         return match map.resolve_link(from_slice, from_path, target) {
-            LinkResolution::Resolved(loc) => match loc.anchor {
+            LinkResolution::Resolved(loc) => Ok(match loc.anchor {
                 Some(anchor) => format!("#{anchor}"),
                 // A bare `#` with no anchor — leave as authored.
                 None => target.to_string(),
-            },
-            LinkResolution::Dangling { .. } => panic!(
-                "markdown source `{from_path}` in slice {from_slice} has a dangling same-document \
+            }),
+            LinkResolution::Dangling { .. } => {
+                Err(Diag::of_kind(crate::render_error::DanglingLink {
+                    detail: format!(
+                        "markdown source `{from_path}` in slice {from_slice} has a dangling same-document \
                  anchor link `{target}` (no such heading)"
-            ),
+                    ),
+                }))
+            }
         };
     }
 
@@ -275,21 +284,25 @@ fn rewrite_doc_target(
     // "internal vs. off-corpus vs. external"; it only formats the classification for
     // its own (site-relative) output.
     match map.classify_doc_link(from_slice, from_path, target) {
-        DocLinkResolution::External => target.to_string(),
-        DocLinkResolution::OffCorpus => absolutize_offsite(target),
+        DocLinkResolution::External => Ok(target.to_string()),
+        DocLinkResolution::OffCorpus => Ok(absolutize_offsite(target)),
         DocLinkResolution::Corpus(loc) => {
             let target_dir = loc.page.strip_suffix('/').unwrap_or(&loc.page);
             let href = rel(page_dir, target_dir);
-            match loc.anchor {
+            Ok(match loc.anchor {
                 Some(anchor) => format!("{href}index.md#{anchor}"),
                 None => format!("{href}index.md"),
-            }
+            })
         }
-        DocLinkResolution::Dangling { .. } => panic!(
-            "markdown source `{from_path}` in slice {from_slice} has a dangling internal document \
+        DocLinkResolution::Dangling { .. } => {
+            Err(Diag::of_kind(crate::render_error::DanglingLink {
+                detail: format!(
+                    "markdown source `{from_path}` in slice {from_slice} has a dangling internal document \
              link `{target}` — fix the link in the slice's markdown (it names no document in the \
              slice)"
-        ),
+                ),
+            }))
+        }
     }
 }
 
