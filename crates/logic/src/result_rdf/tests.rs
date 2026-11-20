@@ -526,6 +526,42 @@ fn complete_closure_keeps_caller_namespaces_and_scoped_world_catalog() {
     );
 }
 
+/// A statement layer cannot introduce a default world into a named-only closure.
+#[test]
+fn complete_closure_refuses_statement_rows_outside_its_world_catalog() {
+    use crate::physical::LogicalGraph;
+
+    let world = purrdf::TermValue::iri("urn:closure:named-world");
+    for is_reifier in [true, false] {
+        let mut builder = purrdf::RdfDatasetBuilder::new();
+        let named = builder.intern_iri("urn:closure:named-world").unwrap();
+        let reifier = builder.intern_iri("urn:closure:reifier").unwrap();
+        let subject = builder.intern_iri("urn:closure:subject").unwrap();
+        let relation = builder.intern_iri("urn:closure:relation").unwrap();
+        builder
+            .push_quad(subject, relation, reifier, Some(named))
+            .unwrap();
+        if is_reifier {
+            let statement = builder.intern_triple(subject, relation, reifier).unwrap();
+            builder.push_reifier(reifier, statement).unwrap();
+        } else {
+            builder.push_annotation(reifier, relation, subject).unwrap();
+        }
+        let dataset = builder.freeze().unwrap();
+        // gmeow-test-input: synthetic-only
+        let leaf = gmeow_gts_profile::view_to_gmeow_gts(dataset.as_ref()).unwrap();
+        let address = NativeReceiptAddress::of_bytes(&leaf.bytes);
+        let worlds = [LogicalGraph::from_graph(Some(world.clone()))];
+        let error = super::closure::admit_leaf(&address, &leaf.bytes, &worlds).unwrap_err();
+        assert!(
+            error
+                .message()
+                .contains("outside the authenticated world catalog"),
+            "{error}"
+        );
+    }
+}
+
 #[test]
 fn native_world_conflict_does_not_supply_an_unrelated_conclusion_proof() {
     let mut result = native_conflict_result(None);

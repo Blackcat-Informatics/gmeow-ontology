@@ -163,8 +163,17 @@ pub(super) fn admit_leaf(
     }
     let dataset = imported.bundle.dataset;
     let catalog = graph_catalog(worlds);
-    for row in dataset.quads() {
-        let graph = row.g.map(|graph| dataset.term_value(graph)).transpose()?;
+    let row_graphs = dataset
+        .quads()
+        .map(|row| row.g)
+        .chain(dataset.reifiers_with_graph().map(|(_, _, graph)| graph))
+        .chain(
+            dataset
+                .annotations_with_graph()
+                .map(|(_, _, _, graph)| graph),
+        );
+    for graph in row_graphs {
+        let graph = graph.map(|graph| dataset.term_value(graph)).transpose()?;
         if !catalog.contains(&graph) {
             return Err(result_err(
                 "native RDF closure carries a row outside the authenticated world catalog".into(),
