@@ -3262,29 +3262,29 @@ gmeow:placeDeterminacy
 
 gmeow:placeSupersededBy
     a logic:ObjectProperty ;
-    rdfs:domain gmeow:Place ;
+    logic:domain gmeow:Place ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/places> ;
     rdfs:label "place superseded by"@x-gmeow-english ;
-    rdfs:range gmeow:Place ;
+    logic:range gmeow:Place ;
     rdfs:subPropertyOf gmeow:supersededBy ;
     logic:inverseOf gmeow:placeSupersedes ;
-    skos:definition "Links a place to the place that replaced it — Constantinople placeSupersededBy Istanbul, a merged municipality placeSupersededBy its successor. Directional. The superseded place is retained (never deleted) and may carry gmeow:displayable false."@x-gmeow-english ;
-    skos:example "ex:constantinople gmeow:placeSupersededBy ex:istanbul ."@x-gmeow-english ;
-    gmeow:avoidWhen "Avoid deleting the superseded place — retain it, optionally with gmeow:displayable false (Principle 10); avoid using it for a mere alternate name (that is a PlaceName via the names slice)."@x-gmeow-english ;
+    skos:definition "Links a predecessor place to the distinct place that replaced it. Retain the predecessor (Principle 10). The succession relation sets no display flag. Each reader's policy determines whether to show the predecessor at projection."@x-gmeow-english ;
+    skos:example "ex:oldTown gmeow:placeSupersededBy ex:mergedMunicipality ."@x-gmeow-english ;
+    gmeow:avoidWhen "Use gmeow:NameUsage with a gmeow:PlaceName for an alternate or historical name of the same place. Record succession independently of gmeow:displayable. Apply the reader's display policy at projection."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox ;
     gmeow:howToUse "Assert gmeow:placeSupersededBy from the old place to the new; read the inverse via gmeow:placeSupersedes."@x-gmeow-english ;
-    gmeow:useWhen "Use to link a place to the place that replaced it (renaming, merger); directional, a subproperty of gmeow:supersededBy."@x-gmeow-english .
+    gmeow:useWhen "Use when one place replaces a distinct place, as when a municipality formed by a merger succeeds its predecessor municipalities."@x-gmeow-english .
 
 gmeow:placeSupersedes
     a logic:ObjectProperty ;
-    rdfs:domain gmeow:Place ;
+    logic:domain gmeow:Place ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/places> ;
     rdfs:label "place supersedes"@x-gmeow-english ;
-    rdfs:range gmeow:Place ;
+    logic:range gmeow:Place ;
     rdfs:subPropertyOf gmeow:supersedes ;
     logic:inverseOf gmeow:placeSupersededBy ;
     skos:definition "Links a newer place to a prior one it supersedes. Inverse of gmeow:placeSupersededBy. Non-functional: one successor may consolidate several predecessors."@x-gmeow-english ;
-    skos:example "ex:istanbul gmeow:placeSupersedes ex:constantinople ."@x-gmeow-english ;
+    skos:example "ex:mergedMunicipality gmeow:placeSupersedes ex:oldTown ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid using it for naming variants (names slice) and avoid deleting predecessors."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox ;
     gmeow:howToUse "Assert gmeow:placeSupersedes from the successor; merged municipalities point to all predecessors."@x-gmeow-english ;
@@ -5336,7 +5336,7 @@ gmeow:yaw
     dcterms:isPartOf <https://blackcatinformatics.ca/gmeow> ;
     rdfs:comment """Locations — geographic places, online (virtual) locations, digital storage locations, celestial / astronomical locations, and biological-sequence loci — with coordinates, geometry, containment, and external-gazetteer coreference (the schema.org / GeoSPARQL / GeoNames / Getty TGN / Wikidata / WGS84 / BOT / ifcOWL / IVOA / UAT / SWEET / FALDO / Sequence Ontology superset layer). Place kinds, celestial object kinds, and sequence feature kinds are open value vocabularies (gmeow:placeType, gmeow:celestialObjectType, gmeow:sequenceFeatureType), so any granularity from country to room, from star to galaxy cluster, or from chromosome to SNP, can be a first-class, QID-bearing entity chained by containedInPlace or locatedAt.
 
-STANDPOINT DOCTRINE. Contested facts in the locations slice — sovereignty/jurisdiction disputes, competing place names (endonym vs exonym per community), boundary changes, regulatory overlays — are standpoint-indexed claims that COEXIST, none privileged (Principle 9). A contested sovereignty claim (e.g. Crimea-class) is two gmeow:accordingTo-annotated gmeow:containedInPlace base triples. A contested toponym is two gmeow:accordingTo-annotated gmeow:hasPlaceName statements, or two reified gmeow:PlaceNaming instances each carrying gmeow:accordingTo. gmeow:usageAuthority on a gmeow:NameUsage names the toponymic authority; gmeow:accordingTo on the same usage names the standpoint frame asserting it — the two axes are orthogonal and must not be conflated. There is NO location-specific dispute mechanism, no preferredJurisdiction, no primaryName — only the cross-cutting standpoint facility. Superseded or withdrawn claims set gmeow:displayable false, never deletion (Principle 10).
+STANDPOINT DOCTRINE. Contested facts in the locations slice — sovereignty/jurisdiction disputes, competing place names (endonym vs exonym per community), boundary changes, regulatory overlays — are standpoint-indexed claims that COEXIST, none privileged (Principle 9). A contested sovereignty claim (e.g. Crimea-class) is two gmeow:accordingTo-annotated gmeow:containedInPlace base triples. A contested toponym is two gmeow:accordingTo-annotated gmeow:hasPlaceName statements, or two reified gmeow:PlaceNaming instances each carrying gmeow:accordingTo. gmeow:usageAuthority on a gmeow:NameUsage names the toponymic authority; gmeow:accordingTo on the same usage names the standpoint frame asserting it — the two axes are orthogonal and must not be conflated. There is NO location-specific dispute mechanism, no preferredJurisdiction, no primaryName — only the cross-cutting standpoint facility. Only a claim's holder ends its liveness by replacing or withdrawing it. Keep the earlier record (Principle 10). Apply the reader's display policy at projection when another party disputes, corrects or evaluates the claim (Principle 9).
 
 REGULATORY OVERLAYS (regulatory-overlay design + vertical/maritime/aviation-zone design). Legal and regulatory spatial overlays — zoning, protected areas, restricted airspace, sanctions, tax/electoral districts, postal zones, civil-time zones, fishing zones, customs zones, maritime zones (territorial sea, EEZ, continental shelf, high seas, marine protected area), aviation zones (airway, CTR, TMA, FIR, ATZ, MOA, warning, alert), and temporary NOTAM notices — are modelled as reified gmeow:RegulatoryOverlay instances (⊑ gmeow:TimeScopedRelation), each binding a place, an authority, an overlay type (open value vocabulary), and an optional RightsStatement (rights facility) for the deontic rules. 3D bounds (altitude/depth) are frame-relative math:Quantity values in explicit vertical reference frames (Principle 11). Contested overlays (disputed EEZ, overlapping airspace claims) coexist as multiple standpoint-indexed instances, never a single winner (Principle 9).
 
@@ -5412,39 +5412,6 @@ gmeow:FrameDimensionCountConstraint
     logic:aggCompareTo gmeow:dimensionCount ;
     logic:formalizes gmeow:ReferenceFrame , gmeow:FrameProfileShape ;
     logic:message "A reference frame's dimension count must equal its number of coordinate axes." .
-
-# =========================================================================== #
-# Suppression constraint — projection of SupersededPlaceSuppressionShape.
-# A superseded place (one carrying gmeow:placeSupersededBy) that is not          #
-# suppressed (gmeow:displayable false) is a Warning — a source may lag the flag. #
-# =========================================================================== #
-
-gmeow:SupersededPlaceSuppressionConstraint
-    a logic:Constraint ;
-    rdfs:label "Superseded place suppression constraint"@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/places> ;
-    gmeow:graphBoxRole gmeow:boxTBox ;
-    skos:definition "A closed-world integrity constraint: a superseded gmeow:Place (one carrying gmeow:placeSupersededBy) should set gmeow:displayable false — suppressed from display, never deleted (Principle 10)."@x-gmeow-english ;
-    logic:formalizes gmeow:Place , gmeow:SupersededPlaceSuppressionShape ;
-    logic:severity "Warning" ;
-    logic:message "A superseded place (one with gmeow:placeSupersededBy) should set gmeow:displayable false — suppressed from display, never deleted." ;
-    logic:integrity logic:supPlForall .
-logic:supPlForall a logic:Formula ;
-    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ;
-    logic:forall logic:supPlImpl .
-logic:supPlImpl a logic:Formula ; logic:antecedent logic:supPlGuard ; logic:consequent logic:supPlPhi .
-logic:supPlGuard a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ;
-    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri gmeow:Place ] .
-logic:supPlPhi a logic:Formula ; logic:not logic:supPlEx .
-logic:supPlEx a logic:Formula ;
-    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "s" ] ;
-    logic:exists logic:supPlBody .
-logic:supPlBody a logic:Formula ; logic:and logic:supPlSuc , logic:supPlNotSuppressed .
-logic:supPlSuc a logic:Formula ; logic:relation gmeow:placeSupersededBy ;
-    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "s" ] .
-logic:supPlNotSuppressed a logic:Formula ; logic:not logic:supPlDisp .
-logic:supPlDisp a logic:Formula ; logic:relation gmeow:displayable ;
-    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termLiteral "false" ; logic:termLiteralDatatype xsd:boolean ] .
 
 # =========================================================================== #
 # coarsenTo target-level reachability constraint                        #

@@ -46,14 +46,14 @@ statements. The interval carries its frame per Principle 11.
 
 ### gmeow:supersededBy
 
-Links a resource to the resource that replaced it — Constantinople `supersededBy`
-Istanbul, a deprecated release `supersededBy` its successor. The declared inverse of
-the coreference slice's `gmeow:supersedes`; directional, never symmetric. The
+Links a predecessor resource to its replacement, such as a retired software release
+to its successor. The declared inverse is the coreference slice's `gmeow:supersedes`. The
 universal `logic:Thing` domain and range preserve the types of entities, claim
 tokens and reifiers, including when an inverse edge is inferred from claim
-succession. The superseded resource is retained (Principle 10) and takes no display flag from the succession;
-the replacement itself may be recorded as an event typed
-`gmeow:eventTypeSupersession` when it needs a date or participants.
+succession. Keep the predecessor (Principle 10) and apply each reader's display
+policy at projection. The lifecycle warning prompts global suppression only for a
+superseded name or identity label. To record the date or participants of the
+replacement, use an event typed `gmeow:eventTypeSupersession`.
 
 ## The reified form (promote on demand)
 

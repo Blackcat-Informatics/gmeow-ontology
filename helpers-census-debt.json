@@ -1555,7 +1555,6 @@
    "members": [
     "gmeow_validate::test_crate::conformance_suite::conformance_places::superseded_capacity_suppressed",
     "gmeow_validate::test_crate::conformance_suite::conformance_places::superseded_coordinate_observation_suppressed",
-    "gmeow_validate::test_crate::conformance_suite::conformance_places::superseded_historical_name_suppressed",
     "gmeow_validate::test_crate::conformance_suite::conformance_places::superseded_network_address_suppressed"
    ]
   },
